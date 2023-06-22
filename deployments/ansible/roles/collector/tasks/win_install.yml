@@ -11,3 +11,7 @@
 - name: Install Fluentd with msi package manager
   ansible.builtin.import_tasks: win_fluentd_install.yml
   when: install_fluentd
+
+- name: Install Auto Instrumentation for .NET
+  ansible.builtin.import_tasks: win_install_dotnet_auto_instrumentation.yml
+  when: install_signalfx_dotnet_auto_instrumentation

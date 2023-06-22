@@ -74,3 +74,14 @@ splunk_otel_auto_instrumentation_enable_metrics: false
 
 # Custom environment variables for the collector service
 splunk_otel_collector_additional_env_vars: {}
+
+# Configure Auto Instrumentation for .NET
+install_signalfx_dotnet_auto_instrumentation: false
+signalfx_dotnet_auto_instrumentation_version: latest
+signalfx_dotnet_auto_instrumentation_msi_url: ""
+signalfx_dotnet_auto_instrumentation_github_token: ""
+signalfx_dotnet_auto_instrumentation_environment: ""
+signalfx_dotnet_auto_instrumentation_service_name: ""
+signalfx_dotnet_auto_instrumentation_enable_profiler: false
+signalfx_dotnet_auto_instrumentation_enable_profiler_memory: false
+signalfx_dotnet_auto_instrumentation_additional_options: {}

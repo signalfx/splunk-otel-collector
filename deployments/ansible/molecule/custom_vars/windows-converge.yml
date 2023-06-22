@@ -18,6 +18,16 @@
     splunk_otel_collector_additional_env_vars:
       MY_CUSTOM_VAR1: value1
       MY_CUSTOM_VAR2: value2
+    install_signalfx_dotnet_auto_instrumentation: true
+    signalfx_dotnet_auto_instrumentation_version: 1.0.0
+    signalfx_dotnet_auto_instrumentation_github_token: ${GITHUB_TOKEN}
+    signalfx_dotnet_auto_instrumentation_environment: test-environment
+    signalfx_dotnet_auto_instrumentation_service_name: test-service-name
+    signalfx_dotnet_auto_instrumentation_enable_profiler: true
+    signalfx_dotnet_auto_instrumentation_enable_profiler_memory: true
+    signalfx_dotnet_auto_instrumentation_additional_options:
+      SIGNALFX_DOTNET_VAR1: value1
+      SIGNALFX_DOTNET_VAR2: value2
   tasks:
     - name: "Include signalfx.splunk_otel_collector.collector role"
       include_role:

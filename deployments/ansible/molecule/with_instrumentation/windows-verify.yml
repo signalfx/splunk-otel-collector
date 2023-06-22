@@ -1,0 +1,195 @@
+---
+- name: Verify scenario with the default configuration
+  hosts: all
+  gather_facts: true
+  become: no
+  tasks:
+    - name: Check splunk-otel-collector service
+      ansible.windows.win_service:
+        name: splunk-otel-collector
+        state: started
+      check_mode: yes
+      register: service_status
+
+    - name: Assert splunk-otel-collector service status
+      assert:
+        that: not service_status.changed
+
+    - name: Check fluentdwinsvc service
+      ansible.windows.win_service:
+        name: fluentdwinsvc
+        state: started
+      check_mode: yes
+      register: service_status
+
+    - name: Assert fluentdwinsvc service status
+      assert:
+        that: not service_status.changed
+
+    - name: Check SPLUNK_ACCESS_TOKEN registry value
+      ansible.windows.win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+        state: present
+        name: SPLUNK_ACCESS_TOKEN
+        data: fake-token
+        type: string
+      check_mode: yes
+      register: reg_value
+
+    - name: Assert registry value exists
+      assert:
+        that: not reg_value.changed
+
+    - name: Check SPLUNK_REALM registry value
+      ansible.windows.win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+        state: present
+        name: SPLUNK_REALM
+        data: fake-realm
+        type: string
+      check_mode: yes
+      register: reg_value
+
+    - name: Assert registry value exists
+      assert:
+        that: not reg_value.changed
+
+    - name: Check SPLUNK_API_URL registry value
+      ansible.windows.win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+        state: present
+        name: SPLUNK_API_URL
+        data: https://api.fake-realm.signalfx.com
+        type: string
+      check_mode: yes
+      register: reg_value
+
+    - name: Assert registry value exists
+      assert:
+        that: not reg_value.changed
+
+    - name: Check SPLUNK_HEC_TOKEN registry value
+      ansible.windows.win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+        state: present
+        name: SPLUNK_HEC_TOKEN
+        data: fake-token
+        type: string
+      check_mode: yes
+      register: reg_value
+
+    - name: Assert registry value exists
+      assert:
+        that: not reg_value.changed
+
+    - name: Check SPLUNK_HEC_URL registry value
+      ansible.windows.win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+        state: present
+        name: SPLUNK_HEC_URL
+        data: https://ingest.fake-realm.signalfx.com/v1/log
+        type: string
+      check_mode: yes
+      register: reg_value
+
+    - name: Assert registry value exists
+      assert:
+        that: not reg_value.changed
+
+    - name: Check SPLUNK_INGEST_URL registry value
+      ansible.windows.win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+        state: present
+        name: SPLUNK_INGEST_URL
+        data: https://ingest.fake-realm.signalfx.com
+        type: string
+      check_mode: yes
+      register: reg_value
+
+    - name: Assert registry value exists
+      assert:
+        that: not reg_value.changed
+
+    - name: Check SPLUNK_TRACE_URL registry value
+      ansible.windows.win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+        state: present
+        name: SPLUNK_TRACE_URL
+        data: https://ingest.fake-realm.signalfx.com/v2/trace
+        type: string
+      check_mode: yes
+      register: reg_value
+
+    - name: Assert registry value exists
+      assert:
+        that: not reg_value.changed
+
+    - name: Download signalfx-dotnet-tracing-1.1.0-x64.msi
+      ansible.windows.win_get_url:
+        url: "https://github.com/signalfx/signalfx-dotnet-tracing/releases/download/\
+              v1.1.0/signalfx-dotnet-tracing-1.1.0-x64.msi"
+        dest: "{{ansible_env.TEMP}}"
+      register: dotnet_msi_package
+
+    - name: Install signalfx-dotnet-tracing-1.1.0-x64.msi
+      ansible.windows.win_package:
+        path: "{{dotnet_msi_package.dest}}"
+        state: present
+      check_mode: yes
+      register: msi_installed
+
+    - name: Assert signalfx-dotnet-tracing-1.1.0-x64.msi is already installed
+      assert:
+        that: not msi_installed.changed
+
+    - name: Check SIGNALFX_ENV registry value
+      ansible.windows.win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+        state: absent
+        name: SIGNALFX_ENV
+      check_mode: yes
+      register: reg_value
+
+    - name: Assert registry value exists
+      assert:
+        that: not reg_value.changed
+
+    - name: Check SIGNALFX_SERVICE_NAME registry value
+      ansible.windows.win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+        state: absent
+        name: SIGNALFX_SERVICE_NAME
+      check_mode: yes
+      register: reg_value
+
+    - name: Assert registry value exists
+      assert:
+        that: not reg_value.changed
+
+    - name: Check SIGNALFX_PROFILER_ENABLED registry value
+      ansible.windows.win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+        state: present
+        name: SIGNALFX_PROFILER_ENABLED
+        data: "false"
+        type: string
+      check_mode: yes
+      register: reg_value
+
+    - name: Assert registry value exists
+      assert:
+        that: not reg_value.changed
+
+    - name: Check SIGNALFX_PROFILER_MEMORY_ENABLED registry value
+      ansible.windows.win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+        state: present
+        name: SIGNALFX_PROFILER_MEMORY_ENABLED
+        data: "false"
+        type: string
+      check_mode: yes
+      register: reg_value
+
+    - name: Assert registry value exists
+      assert:
+        that: not reg_value.changed

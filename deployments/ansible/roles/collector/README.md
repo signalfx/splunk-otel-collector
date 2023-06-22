@@ -187,7 +187,7 @@ which allows setting up a proxy to download the collector binaries.
   e.g. `./custom_fluentd_config.conf`. (**default:** `""` meaning 
   that nothing will be copied and existing `splunk_fluentd_config` will be used)
 
-### Auto Instrumentation
+### Auto Instrumentation for Java on Linux
 
 **Note:** The Java application(s) on the node need to be restarted separately
 after installation/configuration in order for any change to take effect.
@@ -253,3 +253,73 @@ after installation/configuration in order for any change to take effect.
 
 - `splunk_otel_auto_instrumentation_enable_metrics` (Linux only): Enable or
   disable exporting Micrometer metrics. (**default**: `false`)
+
+### Auto Instrumentation for .NET on Windows
+
+- `install_signalfx_dotnet_auto_instrumentation` (Windows only): Whether to
+  install/manage [SignalFx Auto Instrumentation for .NET](
+  https://docs.splunk.com/Observability/gdi/get-data-in/application/dotnet/get-started.html).
+  When set to `true`, the `signalfx-dotnet-tracing` MSI package will be
+  downloaded and installed from [GitHub Releases](
+  https://github.com/signalfx/signalfx-dotnet-tracing/releases). (**default:**
+  `false`)
+
+- `signalfx_dotnet_auto_instrumentation_version` (Windows only): Version of the
+  `signalfx-dotnet-tracing` MSI package to download and install from
+  [GitHub Releases](https://github.com/signalfx/signalfx-dotnet-tracing/releases),
+  e.g. `1.0.0`. (**default:** `latest`)
+
+- `signalfx_dotnet_auto_instrumentation_msi_url` (Windows only): By default,
+  a request will be made to
+  `https://api.github.com/repos/signalfx/signalfx-dotnet-tracing/releases` to
+  get the download URL for the `signalfx-dotnet-tracing` MSI package. Specify
+  the download URL to skip the API request, e.g.
+  `https://github.com/signalfx/signalfx-dotnet-tracing/releases/download/v1.1.0/signalfx-dotnet-tracing-1.1.0-x64.msi`,
+  or to download the MSI from a custom source, e.g.
+  `https://my.server/signalfx-dotnet-tracing-1.2.3-x64.msi`. If specified, the
+  `signalfx_dotnet_auto_instrumentation_version` option is ignored.
+  (**default:** ``)
+
+- `signalfx_dotnet_auto_instrumentation_github_token` (Windows only): Specify
+  a token to authenticate with the GitHub API when making requests to get the
+  download URL for the `signalfx-dotnet-tracing` MSI package. This is
+  recommended when not using `signalfx_dotnet_auto_instrumentation_msi_url`
+  since unauthenticated requests are [rate-limited](
+  https://docs.github.com/en/rest/rate-limit) by GitHub. (**default:** ``)
+
+- `signalfx_dotnet_auto_instrumentation_environment` (Windows only): Configure
+  this option to set the system-wide "Environment" value to be reported to
+  Splunk APM, e.g. `prod`. The value is assigned to the `SIGNALFX_ENV`
+  environment variable in the Windows registry. (**default:** ``, i.e. the
+  "Environment" will appear as `unknown` in Splunk APM for the instrumented
+  service/application)
+
+- `signalfx_dotnet_auto_instrumentation_service_name` (Windows only): Configure
+  this variable to override the [auto-generated service name](
+  https://docs.splunk.com/Observability/gdi/get-data-in/application/dotnet/configuration/advanced-dotnet-configuration.html#changing-the-default-service-name)
+  for the instrumented service/application, e.g. `my-service-name`. The value
+  is assigned to the `SIGNALFX_SERVICE_NAME` environment variable in the
+  Windows registry. (**default:** ``)
+
+- `signalfx_dotnet_auto_instrumentation_enable_profiler` (Windows only): Set
+  this option to `true` to enable AlwaysOn CPU Profiling. The value will be
+  assigned to the `SIGNALFX_PROFILER_ENABLED` environment variable in the
+  Windows registry. (**default:** `false`)
+
+- `signalfx_dotnet_auto_instrumentation_enable_profiler_memory` (Windows only):
+  Set this option to `true` to enable AlwaysOn Memory Profiling. The value will
+  be assigned to the `SIGNALFX_PROFILER_MEMORY_ENABLED` environment variable in
+  the Windows registry. (**default:** `false`)
+
+- `signalfx_dotnet_auto_instrumentation_additional_options` (Windows only):
+  Dictionary of additional [supported options and values](
+  https://docs.splunk.com/Observability/gdi/get-data-in/application/dotnet/configuration/advanced-dotnet-configuration.html)
+  to be added to the Windows registry as environment variables. For example:
+  ```yaml
+  signalfx_dotnet_auto_instrumentation_additional_options:
+    SIGNALFX_VERSION: 1.2.3
+    SIGNALFX_FILE_LOG_ENABLED: false
+  ```
+  These options/values will be added to the
+  `HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment`
+  registry key, in addition to the other options above. (**default:** `{}`)

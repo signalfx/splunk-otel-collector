@@ -1,0 +1,94 @@
+---
+- name: Get signalfx-dotnet-tracing release json
+  ansible.windows.win_uri:
+    url: |-
+      {%- if signalfx_dotnet_auto_instrumentation_version == "latest" -%}
+        {{ base_url }}/latest
+      {%- else -%}
+        {{ base_url }}/tags/v{{ signalfx_dotnet_auto_instrumentation_version }}
+      {%- endif -%}
+    return_content: yes
+    headers:
+      Authorization: "{{ signalfx_dotnet_auto_instrumentation_github_token }}"
+    proxy_password: "{{ win_proxy_password | default(omit) }}"
+    proxy_url: "{{ win_proxy_url | default(omit) }}"
+    proxy_username: "{{ win_proxy_username | default(omit) }}"
+    use_proxy: "{{ win_use_proxy }}"
+  register: dotnet_tracing_release
+  vars:
+    base_url: https://api.github.com/repos/signalfx/signalfx-dotnet-tracing/releases
+  when: signalfx_dotnet_auto_instrumentation_msi_url == ""
+
+- name: Set dotnet_tracing_download_url fact
+  set_fact:
+    dotnet_tracing_download_url: "{{ item.browser_download_url }}"
+  loop: "{{ dotnet_tracing_release.json.assets | default([]) }}"
+  when: item.name.startswith("signalfx-dotnet-tracing") and item.name.endswith("x64.msi")
+
+- name: Download signalfx-dotnet-tracing MSI
+  ansible.windows.win_get_url:
+    url: |-
+      {%- if signalfx_dotnet_auto_instrumentation_msi_url == "" -%}
+        {{ dotnet_tracing_download_url }}
+      {%- else -%}
+        {{ signalfx_dotnet_auto_instrumentation_msi_url }}
+      {%- endif -%}
+    dest: "%TEMP%"
+    proxy_password: "{{ win_proxy_password | default(omit) }}"
+    proxy_url: "{{ win_proxy_url | default(omit) }}"
+    proxy_username: "{{ win_proxy_username | default(omit) }}"
+    use_proxy: "{{ win_use_proxy }}"
+  register: dotnet_tracing_msi
+
+- name: Install signalfx-dotnet-tracing MSI
+  ansible.windows.win_package:
+    path: "{{ dotnet_tracing_msi.dest }}"
+    state: present
+
+- name: Create registry path
+  ansible.windows.win_regedit:
+    path: "{{ registry_key }}"
+    state: present
+
+- name: Set registry value
+  ansible.windows.win_regedit:
+    path: "{{ registry_key }}"
+    state: present
+    name: SIGNALFX_ENV
+    data: "{{ signalfx_dotnet_auto_instrumentation_environment }}"
+    type: string
+  when: signalfx_dotnet_auto_instrumentation_environment != ""
+
+- name: Set registry value
+  ansible.windows.win_regedit:
+    path: "{{ registry_key }}"
+    state: present
+    name: SIGNALFX_SERVICE_NAME
+    data: "{{ signalfx_dotnet_auto_instrumentation_service_name }}"
+    type: string
+  when: signalfx_dotnet_auto_instrumentation_service_name != ""
+
+- name: Set registry value
+  ansible.windows.win_regedit:
+    path: "{{ registry_key }}"
+    state: present
+    name: SIGNALFX_PROFILER_ENABLED
+    data: "{{ signalfx_dotnet_auto_instrumentation_enable_profiler | string | lower }}"
+    type: string
+
+- name: Set registry value
+  ansible.windows.win_regedit:
+    path: "{{ registry_key }}"
+    state: present
+    name: SIGNALFX_PROFILER_MEMORY_ENABLED
+    data: "{{ signalfx_dotnet_auto_instrumentation_enable_profiler_memory | string | lower }}"
+    type: string
+
+- name: Set additional registry values
+  ansible.windows.win_regedit:
+    path: "{{ registry_key }}"
+    state: present
+    name: "{{ item.key }}"
+    data: "{{ item.value }}"
+    type: string
+  loop: "{{ signalfx_dotnet_auto_instrumentation_additional_options | default({}) | dict2items }}"

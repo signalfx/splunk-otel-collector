@@ -1,0 +1,40 @@
+name: Check for new java agent
+
+on:
+  schedule:
+    - cron: "45 */4 * * *"
+  workflow_dispatch:
+
+env:
+  RELEASE_FILE: instrumentation/packaging/java-agent-release.txt
+  LATEST_API: https://api.github.com/repos/signalfx/splunk-otel-java/releases/latest
+
+jobs:
+  maybe_update_java:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3.5.3
+      - name: swizzle version
+        id: swizzle_version
+        run: |
+          LOCAL_VER=$(head -1 ${RELEASE_FILE})
+          LATEST_VER=$(curl -qs -H "Accept: application/vnd.github+json" $LATEST_API | jq -r .tag_name)
+          echo "LATEST_VER=$LATEST_VER" >> $GITHUB_OUTPUT
+          echo "Current version is $LOCAL_VER, latest is $LATEST_VER"
+          if [ "$LATEST_VER" == "$LOCAL_VER" ]; then
+            echo We are already up to date. Nothing else to do.
+          else
+            echo Updating to new version
+            echo "NEED_UPDATE=1" >> $GITHUB_OUTPUT
+            echo ${LATEST_VER} > ${RELEASE_FILE}
+            git --no-pager diff
+          fi
+      - name: PR the new version
+        if: ${{ steps.swizzle_version.outputs.NEED_UPDATE == 1 }}
+        uses: peter-evans/create-pull-request@v5
+        with:
+          commit-message: update java agent version to ${{ steps.swizzle_version.outputs.LATEST_VER }}
+          title: Update Java agent version to ${{ steps.swizzle_version.outputs.LATEST_VER }}
+          body: Use the new version of the java agent
+          branch: "update-java-${{ steps.swizzle_version.outputs.LATEST_VER }}"
+          base: main

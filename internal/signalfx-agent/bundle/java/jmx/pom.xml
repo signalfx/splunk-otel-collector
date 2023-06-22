@@ -15,9 +15,9 @@
 
     <repositories>
         <repository>
-            <id>JCenter Bintray</id>
-            <name>JCenter Bintray</name>
-            <url>https://jcenter.bintray.com</url>
+            <id>Terracotta</id>
+            <name>Terracotta</name>
+            <url>https://repo.terracotta.org/maven2</url>
         </repository>
     </repositories>
 

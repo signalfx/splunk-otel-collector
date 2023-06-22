@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -36,8 +35,6 @@ import (
 )
 
 const collectorImageEnvVar = "SPLUNK_OTEL_COLLECTOR_IMAGE"
-
-var configFromArgsPattern = regexp.MustCompile("--config($|[^d-]+)")
 
 var _ Collector = (*CollectorContainer)(nil)
 var _ testcontainers.LogConsumer = (*collectorLogConsumer)(nil)
@@ -214,12 +211,7 @@ func (collector *CollectorContainer) buildContextArchive() (io.Reader, error) {
 
 		// We need to tell the Collector to use the provided config
 		// but only if not already done so in the test
-		var configSetByArgs bool
-		for _, c := range collector.Args {
-			if configFromArgsPattern.Match([]byte(c)) {
-				configSetByArgs = true
-			}
-		}
+		configSetByArgs := configIsSetByArgs(collector.Args)
 		_, configSetByEnvVar := collector.Container.Env["SPLUNK_CONFIG"]
 		if !configSetByArgs && !configSetByEnvVar {
 			// only specify w/ args if none are used in the test

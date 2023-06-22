@@ -62,13 +62,12 @@ func TestCollectorProcessBuilders(t *testing.T) {
 	assert.Empty(t, builder.LogLevel)
 }
 
-func TestConfigPathRequiredUponBuildWithoutArgs(t *testing.T) {
+func TestConfigPathNotRequiredUponBuildWithoutArgs(t *testing.T) {
 	builder := NewCollectorProcess()
 
 	collector, err := builder.Build()
-	assert.Nil(t, collector)
-	require.Error(t, err)
-	assert.EqualError(t, err, "you must specify a ConfigPath for your CollectorProcess before building")
+	require.NoError(t, err)
+	assert.NotNil(t, collector)
 }
 
 func TestCollectorProcessBuildDefaults(t *testing.T) {

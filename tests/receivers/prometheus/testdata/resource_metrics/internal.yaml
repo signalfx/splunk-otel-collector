@@ -117,7 +117,7 @@ resource_metrics:
               service_name: otelcol
               service_version: <VERSION_FROM_BUILD>
               transport: http
-          - name: scrape_duration
+          - name: scrape_duration_seconds
             description: Duration of the scrape
             type: DoubleGauge
             attributes: {}

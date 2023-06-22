@@ -144,6 +144,16 @@ update-openjdk:
     - .gitlab/install-gh-cli.sh
     - .gitlab/update-openjdk.sh
 
+update-javaagent:
+  only:
+    - schedules
+  stage: update-deps
+  needs: []
+  dependencies: []
+  script:
+    - .gitlab/install-gh-cli.sh
+    - .gitlab/update-javaagent.sh
+
 tidy-dependabot-pr:
   rules:
     - if: $CI_COMMIT_BRANCH =~ /^dependabot\/go_modules\/.*/ && $CI_COMMIT_AUTHOR =~ /^dependabot.*/

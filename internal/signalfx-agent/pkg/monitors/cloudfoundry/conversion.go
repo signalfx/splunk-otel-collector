@@ -23,7 +23,7 @@ func envelopeToDatapoints(env *loggregator_v2.Envelope) ([]*datapoint.Datapoint,
 
 	if env.SourceId != "" {
 		dims["source_id"] = env.SourceId
-		if hexIDRegexp.Match([]byte(env.SourceId)) {
+		if hexIDRegexp.MatchString(env.SourceId) {
 			prefix = env.Tags["origin"] + "."
 		} else {
 			prefix = env.SourceId + "."

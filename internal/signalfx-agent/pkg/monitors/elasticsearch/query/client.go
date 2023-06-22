@@ -29,7 +29,7 @@ func NewESQueryClient(host string, port string, scheme string, client *http.Clie
 func (es ESQueryHTTPClient) makeHTTPRequestFromConfig(index string, esSearchRequest string) ([]byte, error) {
 	url := fmt.Sprintf("%s://%s:%s/%s/_search?", es.esClient.Scheme, es.esClient.Host, es.esClient.Port, index)
 
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer([]byte(esSearchRequest)))
+	req, err := http.NewRequest("POST", url, bytes.NewBufferString(esSearchRequest))
 	if err != nil {
 		return nil, err
 	}

@@ -1,0 +1,33 @@
+receivers:
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: 'from-httpd'
+          scrape_interval: 1s
+          static_configs:
+            - targets:
+                - "localhost:8000"
+  signalfx:
+    endpoint: 127.0.0.1:9943
+
+exporters:
+  signalfx:
+    access_token: token
+    ingest_url: http://127.0.0.1:9943
+    api_url: http://127.0.0.1:9943
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+
+service:
+  telemetry:
+    metrics:
+      address: 0.0.0.0:8889
+  pipelines:
+    metrics/in:
+      receivers: [prometheus]
+      exporters: [signalfx]
+    metrics/out:
+      receivers: [signalfx]
+      exporters: [otlp]

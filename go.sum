@@ -1183,8 +1183,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger 
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.79.0/go.mod h1:Zyqr3oq5gK99+nqA6WwHxj1ZnaFj+uj0EFY9BzR9QCU=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/opencensus v0.79.0 h1:Xazghy2LA9FSYM7LLBizZcSajffhF7l8jV2RY8fG58c=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/opencensus v0.79.0/go.mod h1:apQSxsBwQSK6jcnShW0ntruGCZ63WcDdhuvdMSO+Qkk=
-github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus v0.79.0 h1:F6rc6ivh6EoHlaSaWDom7dKN7b5e2Zss5TNi1S2QR8A=
-github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus v0.79.0/go.mod h1:owoAzfn0tUVguGxqc1s25IrEdiAbon5fZGoUfgAuylQ=
+github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus v0.79.1-0.20230608182157-47b208f70b15 h1:DyaI27qGYkQNyCbSkSwmXVendixfPjaN4wGe6xc9gyU=
+github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus v0.79.1-0.20230608182157-47b208f70b15/go.mod h1:owoAzfn0tUVguGxqc1s25IrEdiAbon5fZGoUfgAuylQ=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheusremotewrite v0.79.0 h1:34ExxmcoJ87OtsQ8SW10sjcajFfE+0Nc/rFBBN0S2KY=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/signalfx v0.79.0 h1:YPEpjxCh4fkk8NdazKckECUgIc3+33jd5e53qqL+l0o=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/signalfx v0.79.0/go.mod h1:nv5Tpf4KJrnJKRRW2Ziq5i3FnhJgtKujJNLVgAAhl6Y=

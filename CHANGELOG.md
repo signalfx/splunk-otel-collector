@@ -2,9 +2,22 @@
 
 ## Unreleased
 
+### 🛑 Breaking changes 🛑
+
+- (Contrib) Set `pkg.translator.prometheus.NormalizeName` feature gate back to Alpha state since it was enabled
+  prematurely. Metrics coming from Prometheus receiver will not be normalized by default, specifically `_total` suffix
+  will not be removed from metric names. To maintain the current behavior (drop the `_total` suffix), you can enable
+  the feature gate using the `--feature-gates=pkg.translator.prometheus.NormalizeName` command argument. However, note
+  that the translation in the prometheus receiver is a subject to possible future changes.
+  ([#23229](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/23229))
+
 ### 💡 Enhancements 💡
 
 - (Splunk) Upgrade builds to use golang 1.20.5 ([#3299](https://github.com/signalfx/splunk-otel-collector/pull/3299))
+
+### 🧰 Bug fixes 🧰
+
+- (Splunk) Correct imported Contrib `pkg/translator/prometheus` dependency for `pkg.translator.prometheus.NormalizeName` Alpha state ([#3303](https://github.com/signalfx/splunk-otel-collector/pull/3303))
 
 ## v0.79.0
 
@@ -12,12 +25,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 
 ### 🛑 Breaking changes 🛑
 
-- (Contrib) Set `pkg.translator.prometheus.NormalizeName` feature gate back to Alpha state since it was enabled 
-  prematurely. Metrics coming from Prometheus receiver will not be normalized by default, specifically `_total` suffix
-  will not be removed from metric names. To maintain the current behavior (drop the `_total` suffix), you can enable
-  the feature gate using the `--feature-gates=pkg.translator.prometheus.NormalizeName` command argument. However, note
-  that the translation in the prometheus receiver is a subject to possible future changes.
-  ([#23229](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/23229))
+- (Contrib) ~~Set `pkg.translator.prometheus.NormalizeName` feature gate back to Alpha state since it was enabled prematurely.~~ edit: This was an incomplete adoption, addressed in release v0.79.1.
 - (Contrib) `attributesprocessor`: Enable SHA-256 as hashing algorithm by default for attributesprocessor hashing action ([#4759](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/4759))
 - (Contrib) `windowseventlogreceiver`: Emit raw Windows events as strings instead of byte arrays ([#22704](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/22704))
 - (Contrib) `pkg/ottl`: Removes `StandardTypeGetter` in favor of `StandardStringGetter`, `StandardIntGetter`, `StandardFloatGetter`, and `StandardPMapGetter`, which handle converting pcommon.Values of the proper type. ([#22763](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/22763))

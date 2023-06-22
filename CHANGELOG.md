@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-## v0.79.0
+## v0.79.1
 
 ### 🛑 Breaking changes 🛑
 
@@ -18,7 +18,6 @@
 - (Splunk) Add spanmetric and count connectors ([#3300](https://github.com/signalfx/splunk-otel-collector/pull/3300))
 - (Splunk) Upgrade builds to use golang 1.20.5 ([#3299](https://github.com/signalfx/splunk-otel-collector/pull/3299))
 - (Splunk) `receiver/smartagent`: Add `scrapeFailureLogLevel` config field to `prometheus-exporter` and its sourcing monitors to determine the log level for reported scrape failures ([#3260](https://github.com/signalfx/splunk-otel-collector/pull/3260))
-- (Core, Contrib, Splunk) Third-party dependency updates.
 
 ### 🧰 Bug fixes 🧰
 

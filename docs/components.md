@@ -116,9 +116,11 @@ The distribution offers support for the following components.
 
 <div>
 
-| Connectors                                                                                                           | Stability        |
-|:---------------------------------------------------------------------------------------------------------------------|:-----------------|
-| [forward](https://github.com/open-telemetry/opentelemetry-collector/tree/main/connector/forwardconnector)            | [alpha]          |
+| Connectors                                                                                                                 | Stability        |
+|:---------------------------------------------------------------------------------------------------------------------------|:-----------------|
+| [count](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/connector/countconnector)              | [in development] |
+| [forward](https://github.com/open-telemetry/opentelemetry-collector/tree/main/connector/forwardconnector)                  | [beta]           |
+| [spanmetrics](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/connector/spanmetricsconnector)  | [alpha]          |
 
 </div>
 </div>

@@ -1115,6 +1115,10 @@ github.com/onsi/gomega v1.10.1/go.mod h1:iN09h71vgCQne3DLsj+A5owkum+a2tYe+TOCB1y
 github.com/onsi/gomega v1.13.0/go.mod h1:lRk9szgn8TxENtWd0Tp4c3wjlRfMTMH27I+3Je41yGY=
 github.com/onsi/gomega v1.27.7 h1:fVih9JD6ogIiHUN6ePK7HJidyEDpWGVB5mzM7cWNXoU=
 github.com/op/go-logging v0.0.0-20160315200505-970db520ece7/go.mod h1:HzydrMdWErDVzsI23lYNej1Htcns9BCg93Dk0bBINWk=
+github.com/open-telemetry/opentelemetry-collector-contrib/connector/countconnector v0.79.0 h1:fhiuI19Vp6V830F3RtUCita/MNXdm9sHlonUjstIE9M=
+github.com/open-telemetry/opentelemetry-collector-contrib/connector/countconnector v0.79.0/go.mod h1:EEXQMPfuqiS514i734021gRCattUAq2KDhHiZPQmmjk=
+github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector v0.79.0 h1:OjivbKImHmtCRw2QT2ZC6OwHGuqTGXXQ+ys/pEJvNNw=
+github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector v0.79.0/go.mod h1:kzQyntnBGZPs35fKJSENMjEhDur+HJHAwIxaxWYitDg=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.79.0 h1:o2WthvXeW+uwbXDW0GemAQ7/d6AP56lcEHIOOuqeXNQ=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.79.0/go.mod h1:vHEsZ7gmysbsKwBeXfjdvkbrzZlfweAcGh9+jZP0Mig=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.79.0 h1:ZnMXlPr89HVj5HttFJbElyhlS/Em17pQ2rjtpxFv7oY=

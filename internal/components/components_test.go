@@ -113,6 +113,8 @@ func TestDefaultComponents(t *testing.T) {
 		"httpsink",
 	}
 	expectedConnectors := []component.Type{
+		"count",
+		"spanmetrics",
 		"forward",
 	}
 

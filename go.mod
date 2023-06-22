@@ -15,6 +15,8 @@ require (
 	github.com/hashicorp/vault/api v1.9.2
 	github.com/jaegertracing/jaeger v1.41.0
 	github.com/knadh/koanf v1.5.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/connector/countconnector v0.79.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector v0.79.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.79.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.79.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.79.0

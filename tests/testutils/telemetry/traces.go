@@ -61,6 +61,10 @@ func (rt *ResourceTraces) SaveResourceTraces(path string) error {
 	return nil
 }
 
+func (rt ResourceTraces) String() string {
+	return marshal(rt)
+}
+
 // LoadResourceTraces returns a ResourceTraces instance generated via parsing a valid yaml file at the provided path.
 func LoadResourceTraces(path string) (*ResourceTraces, error) {
 	traceFile, err := os.Open(path)
@@ -89,12 +93,16 @@ func LoadResourceTraces(path string) (*ResourceTraces, error) {
 	return &loaded, nil
 }
 
+func (resourceSpans ResourceSpans) String() string {
+	return marshal(resourceSpans)
+}
+
+func (scopeSpans ScopeSpans) String() string {
+	return marshal(scopeSpans)
+}
+
 func (span Span) String() string {
-	out, err := yaml.Marshal(span)
-	if err != nil {
-		panic(err)
-	}
-	return string(out)
+	return marshal(span)
 }
 
 func (span Span) RelaxedEquals(toCompare Span) bool {

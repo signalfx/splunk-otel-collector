@@ -8,11 +8,11 @@ resource_logs:
           version: some_version
       - logs:
           - body: a string body
-            severity_text: info
-            severity: 1
             attributes:
               one_lr_attr: one_lr_value
               two_lr_attr: two_lr_value
+            severity: 1
+            severity_text: info
           - body: 0
   - scope_logs:
       - instrumentation_scope:
@@ -20,7 +20,7 @@ resource_logs:
           version: another_version
         logs:
           - body: true
-            severity_text: arbitrary
             severity: 24
+            severity_text: arbitrary
           - body: 0.123
             severity: 9

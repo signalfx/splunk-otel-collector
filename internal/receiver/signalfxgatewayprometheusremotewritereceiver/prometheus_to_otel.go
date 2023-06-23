@@ -39,9 +39,17 @@ type metricData struct {
 }
 
 type prometheusRemoteOtelParser struct {
-	totalNans            atomic.Int64
-	totalInvalidRequests atomic.Int64
-	totalBadMetrics      atomic.Int64
+	totalNans            *atomic.Int64
+	totalInvalidRequests *atomic.Int64
+	totalBadMetrics      *atomic.Int64
+}
+
+func newPrometheusRemoteOtelParser() *prometheusRemoteOtelParser {
+	return &prometheusRemoteOtelParser{
+		totalNans:            &atomic.Int64{},
+		totalInvalidRequests: &atomic.Int64{},
+		totalBadMetrics:      &atomic.Int64{},
+	}
 }
 
 func (prwParser *prometheusRemoteOtelParser) fromPrometheusWriteRequestMetrics(request *prompb.WriteRequest) (pmetric.Metrics, error) {

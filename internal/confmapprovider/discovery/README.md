@@ -100,8 +100,6 @@ successfully started observers.
 1. Log any receiver resulting in a `discovery.status` of `partial` with the configured guidance for setting any relevant discovery properties.
 1. Stop all temporary components before continuing on to the actual Collector service (or exiting early with `--dry-run`).
 
-By default, the Discovery mode is provided with pre-made discovery config components in [`bundle.d`](./bundle/README.md).
-
 Unlike `config.d` component files, which are direct configuration entries for the desired component, Discovery component
 configs have an `enabled` boolean and `config` parent mapping field to determine use and configure the functionality of
 the components:
@@ -131,6 +129,20 @@ the components:
     statements:
       <discovery receiver statement status entries>
 ```
+
+By default, the Discovery mode is provided with pre-made discovery config components in [`bundle.d`](./bundle/README.md).
+
+The following components have bundled discovery configurations in the last Splunk OpenTelmetry Collector release:
+
+I. Smart Agent receiver
+* `collectd/mysql` monitor type ([Linux](./bundle/bundle.d/receivers/smartagent-collectd-mysql.discovery.yaml))
+* `collectd/nginx` monitor type ([Linux](./bundle/bundle.d/receivers/smartagent-collectd-nginx.discovery.yaml))
+* `postgresql` monitor type ([Linux and Windows](./bundle/bundle.d/receivers/smartagent-postgresql.discovery.yaml))
+
+II. Extensions
+* `docker_observer` ([Linux and Windows](./bundle/bundle.d/extensions/docker-observer.discovery.yaml))
+* `host_observer` ([Linux and Windows](./bundle/bundle.d/extensions/host-observer.discovery.yaml))
+* `k8s_observer` ([Linux and Windows](./bundle/bundle.d/extensions/k8s-observer.discovery.yaml))
 
 ### Discovery properties
 

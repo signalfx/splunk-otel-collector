@@ -44,6 +44,7 @@ import (
 // one and that the first collector process's initial and effective configs from the config server
 // are as expected.
 func TestHostObserver(t *testing.T) {
+	testutils.SkipIfNotContainerTest(t)
 	if testutils.CollectorImageIsForArm(t) {
 		t.Skip("host_observer missing process info on arm")
 	}

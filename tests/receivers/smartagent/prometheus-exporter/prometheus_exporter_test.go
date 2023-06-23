@@ -25,6 +25,7 @@ import (
 )
 
 func TestPrometheusExporterProvidesInternalMetrics(t *testing.T) {
+	testutils.SkipIfNotContainerTest(t)
 	testutils.AssertAllMetricsReceived(
 		t, "internal.yaml", "internal_metrics_config.yaml", nil, nil,
 	)

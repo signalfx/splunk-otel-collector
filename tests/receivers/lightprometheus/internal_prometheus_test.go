@@ -24,6 +24,7 @@ import (
 )
 
 func TestInternalPrometheusMetrics(t *testing.T) {
+	testutils.SkipIfNotContainerTest(t) // TODO: enhance internal metric settings detection for process config
 	testutils.AssertAllMetricsReceived(
 		t, "internal.yaml", "internal_metrics_config.yaml", nil, nil,
 	)

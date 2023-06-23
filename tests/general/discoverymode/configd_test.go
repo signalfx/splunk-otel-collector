@@ -241,17 +241,13 @@ func TestStandaloneConfigD(t *testing.T) {
 		t, "memory.yaml", "empty-config.yaml",
 		nil, []testutils.CollectorBuilder{
 			func(c testutils.Collector) testutils.Collector {
-				cc := c.(*testutils.CollectorContainer)
 				configd, err := filepath.Abs(filepath.Join(".", "testdata", "standalone-config.d"))
 				require.NoError(t, err)
-				cc.Container = cc.Container.WithMount(testcontainers.BindMount(configd, "/opt/config.d"))
-
-				return cc
-			},
-			func(c testutils.Collector) testutils.Collector {
-				return c.WithEnv(map[string]string{
-					"SPLUNK_CONFIG_DIR": "/opt/config.d",
-				}).WithArgs("--configd")
+				if cc, ok := c.(*testutils.CollectorContainer); ok {
+					cc.Container = cc.Container.WithMount(testcontainers.BindMount(configd, "/opt/config.d"))
+					configd = "/opt/config.d"
+				}
+				return c.WithEnv(map[string]string{"SPLUNK_CONFIG_DIR": configd}).WithArgs("--configd")
 			},
 		},
 	)

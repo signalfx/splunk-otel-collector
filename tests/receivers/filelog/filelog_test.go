@@ -30,11 +30,13 @@ func TestFilelogReceiverSyslogFormat(t *testing.T) {
 	testutils.AssertAllLogsReceived(t, "syslog.yaml", "syslog_config.yaml",
 		nil, []testutils.CollectorBuilder{
 			func(c testutils.Collector) testutils.Collector {
-				cc := c.(*testutils.CollectorContainer)
 				syslog, err := filepath.Abs(filepath.Join(".", "testdata", "syslog"))
 				require.NoError(t, err)
-				cc.Container = cc.Container.WithMount(testcontainers.BindMount(syslog, "/opt/syslog"))
-				return cc
+				if cc, ok := c.(*testutils.CollectorContainer); ok {
+					cc.Container = cc.Container.WithMount(testcontainers.BindMount(syslog, "/opt/syslog"))
+					syslog = "/opt/syslog"
+				}
+				return c.WithEnv(map[string]string{"LOGFILE_PATH": syslog})
 			},
 		},
 	)

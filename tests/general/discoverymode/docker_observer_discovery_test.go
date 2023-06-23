@@ -35,6 +35,7 @@ import (
 // starting a collector with the daemon domain socket mounted and the container running with its group id
 // before starting a prometheus container with a label the receiver creator rule matches against.
 func TestDockerObserver(t *testing.T) {
+	testutils.SkipIfNotContainerTest(t)
 	if runtime.GOOS == "darwin" {
 		t.Skip("unable to share sockets between mac and d4m vm: https://github.com/docker/for-mac/issues/483#issuecomment-758836836")
 	}

@@ -20,8 +20,8 @@ Example `redis.discovery.yaml.tmpl`:
 
 ```yaml
 {{ receiver "redis" }}:
+  enabled: true
   rule:
-    enabled: true
     docker_observer: type == "container" and port == 6379
     <...>
   status:

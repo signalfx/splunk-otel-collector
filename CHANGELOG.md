@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.79.1
+
 ### 🛑 Breaking changes 🛑
 
 - (Contrib) Set `pkg.translator.prometheus.NormalizeName` feature gate back to Alpha state since it was enabled
@@ -13,7 +15,9 @@
 
 ### 💡 Enhancements 💡
 
+- (Splunk) Add spanmetric and count connectors ([#3300](https://github.com/signalfx/splunk-otel-collector/pull/3300))
 - (Splunk) Upgrade builds to use golang 1.20.5 ([#3299](https://github.com/signalfx/splunk-otel-collector/pull/3299))
+- (Splunk) `receiver/smartagent`: Add `scrapeFailureLogLevel` config field to `prometheus-exporter` and its sourcing monitors to determine the log level for reported scrape failures ([#3260](https://github.com/signalfx/splunk-otel-collector/pull/3260))
 
 ### 🧰 Bug fixes 🧰
 
@@ -75,10 +79,6 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 - (Contrib) `prometheusreceiver`: The prometheus receiver now sets a full, versioned user agent. ([#21910](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/21910))
 - (Contrib) `splunkhecreceiver`: Fix reusing the same splunkhecreiver between logs and metrics ([#22848](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/22848))
 - (Core) `connectors`: When replicating data to connectors, consider whether the next pipeline will mutate data ([#7776](https://github.com/open-telemetry/opentelemetry-collector/issues/7776))
-
-### 💡 Enhancements 💡
-
-- (Splunk) `receiver/smartagent`: Add `scrapeFailureLogLevel` config field to `prometheus-exporter` and its sourcing monitors to determine the log level for reported scrape failures ([#3260](https://github.com/signalfx/splunk-otel-collector/pull/3260))
 
 ## v0.78.1
 
@@ -195,7 +195,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 - Cherry-pick [fluentforward receiver fix](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/20721)
   from upstream which fixes a performance regression introduced in v0.73.0.
 - Fixed sendLoadState, sendSubState and sendActiveState options for [systemd metadata](https://github.com/signalfx/splunk-otel-collector/pull/2929)
-  
+
 
 ## v0.74.0
 
@@ -230,7 +230,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 
 ### 💡 Enhancements 💡
 - [Added discoverybundler, initial embedded bundle.d and enabled properties for discovery mode](https://github.com/signalfx/splunk-otel-collector/pull/2601)
-- [Updated pulsarexporter configuration to prepare for using exporter from contrib](https://github.com/signalfx/splunk-otel-collector/pull/2650) 
+- [Updated pulsarexporter configuration to prepare for using exporter from contrib](https://github.com/signalfx/splunk-otel-collector/pull/2650)
 - [Corrected module names for directory locations in examples](https://github.com/signalfx/splunk-otel-collector/pull/2665)
 - [Built linux and windows amd64 agent bundles](https://github.com/signalfx/splunk-otel-collector/pull/2649)
 - Third party dependency updates
@@ -496,10 +496,10 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 
 ### 🧰 Bug fixes 🧰
 
-- Upgrade [`metricstransform` 
-  processor](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/metricstransformprocessor) 
-  to pick up [migration from OpenCensus data model to 
-  OTLP](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/10817) that fixes a few issues with 
+- Upgrade [`metricstransform`
+  processor](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/metricstransformprocessor)
+  to pick up [migration from OpenCensus data model to
+  OTLP](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/10817) that fixes a few issues with
   the processor.
 
 ## v0.53.0
@@ -630,8 +630,8 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 
 ### 🧰 Bug fixes 🧰
 
-- As a bug fix for hosts number miscalculation in Splunk Observability Cloud, Splunk OpenTelemetry Collector running in 
-  agent mode now is configured to override `host.name` attribute of all signals sent from instrumentation libraries by 
+- As a bug fix for hosts number miscalculation in Splunk Observability Cloud, Splunk OpenTelemetry Collector running in
+  agent mode now is configured to override `host.name` attribute of all signals sent from instrumentation libraries by
   default (#1307)
 
 ## v0.45.0
@@ -789,10 +789,10 @@ This Splunk OpenTelemetry Connector release includes changes from the [opentelem
 
 ### 🛑 Breaking changes 🛑
 
-- Reorder detectors in default configs, moving the `system` detector to the 
+- Reorder detectors in default configs, moving the `system` detector to the
   end of the list. Applying this change to a pre-existing config in an EC2
-  or Azure deployment will change both the `host.name` dimension and the 
-  resource ID dimension on some MTSes, possibly causing detectors to fire. 
+  or Azure deployment will change both the `host.name` dimension and the
+  resource ID dimension on some MTSes, possibly causing detectors to fire.
   (#822)
 
 ### 💡 Enhancements 💡

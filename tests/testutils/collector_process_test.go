@@ -62,14 +62,6 @@ func TestCollectorProcessBuilders(t *testing.T) {
 	assert.Empty(t, builder.LogLevel)
 }
 
-func TestConfigPathNotRequiredUponBuildWithoutArgs(t *testing.T) {
-	builder := NewCollectorProcess()
-
-	collector, err := builder.Build()
-	require.NoError(t, err)
-	assert.NotNil(t, collector)
-}
-
 func TestCollectorProcessBuildDefaults(t *testing.T) {
 	// specifying Path to avoid built otelcol requirement
 	builder := NewCollectorProcess().WithPath("somepath").WithConfigPath("someconfigpath")
@@ -86,6 +78,17 @@ func TestCollectorProcessBuildDefaults(t *testing.T) {
 	assert.NotNil(t, collector.Logger)
 	assert.Equal(t, "info", collector.LogLevel)
 	assert.Equal(t, []string{"--set=service.telemetry.logs.level=info", "--config", "someconfigpath", "--set=service.telemetry.metrics.level=none"}, collector.Args)
+}
+
+func TestConfigPathNotRequiredUponBuildWithoutArgs(t *testing.T) {
+	builder := NewCollectorProcess().WithPath("somepath")
+	c, err := builder.Build()
+	require.NoError(t, err)
+	require.NotNil(t, c)
+
+	collector, ok := c.(*CollectorProcess)
+	require.True(t, ok)
+	require.Nil(t, collector.Args)
 }
 
 func TestStartAndShutdownInvalidWithoutBuilding(t *testing.T) {

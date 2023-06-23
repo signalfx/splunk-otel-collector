@@ -303,6 +303,10 @@ func CollectorImageIsSet() bool {
 	return GetCollectorImage() != ""
 }
 
+func SkipIfNotContainerTest(t testing.TB) {
+	_ = GetCollectorImageOrSkipTest(t)
+}
+
 func GetCollectorImageOrSkipTest(t testing.TB) string {
 	image := GetCollectorImage()
 	if image == "" {

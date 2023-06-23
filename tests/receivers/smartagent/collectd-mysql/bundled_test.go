@@ -38,6 +38,7 @@ import (
 )
 
 func TestK8sObserver(t *testing.T) {
+	testutils.SkipIfNotContainerTest(t)
 	tc := testutils.NewTestcase(t, testutils.OTLPReceiverSinkAllInterfaces)
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()

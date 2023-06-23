@@ -28,7 +28,7 @@ import (
 func TestParseAndPartitionPrometheusRemoteWriteRequest(t *testing.T) {
 	reporter := newMockReporter()
 	require.NotNil(t, reporter)
-	parser := &prometheusRemoteOtelParser{}
+	parser := newPrometheusRemoteOtelParser()
 
 	sampleWriteRequests := FlattenWriteRequests(GetWriteRequestsOfAllTypesWithoutMetadata())
 	noMdPartitions, err := parser.partitionWriteRequest(sampleWriteRequests)
@@ -104,7 +104,7 @@ func TestAddMetricsHappyPath(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			reporter := newMockReporter()
 			require.NotNil(t, reporter)
-			parser := &prometheusRemoteOtelParser{}
+			parser := newPrometheusRemoteOtelParser()
 			actual, err := parser.fromPrometheusWriteRequestMetrics(tc.Sample)
 			assert.NoError(t, err)
 

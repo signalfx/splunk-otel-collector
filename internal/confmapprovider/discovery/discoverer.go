@@ -326,7 +326,10 @@ func (d *discoverer) createObserver(observerID component.ID, cfg *Config) (otelc
 	if e := cfg.DiscoveryObservers[observerID].Enabled; e != nil {
 		enabled = *e
 	}
-	observerCfgMap := confmap.NewFromStringMap(cfg.DiscoveryObservers[observerID].ToStringMap())
+
+	observerDiscoveryConf := confmap.NewFromStringMap(
+		cfg.DiscoveryObservers[observerID].Config.ToStringMap(),
+	)
 
 	if d.propertiesConf.IsSet("extensions") {
 		propertiesConf, e := d.propertiesConf.Sub("extensions")
@@ -334,26 +337,27 @@ func (d *discoverer) createObserver(observerID component.ID, cfg *Config) (otelc
 			return nil, fmt.Errorf("failed obtaining extensions properties config: %w", e)
 		}
 		if propertiesConf.IsSet(observerID.String()) {
-			propertiesConf, e = propertiesConf.Sub(observerID.String())
-			if e != nil {
+			var observerProperties *confmap.Conf
+			if observerProperties, e = propertiesConf.Sub(observerID.String()); e != nil {
+				return nil, fmt.Errorf("failed obtaining observer properties: %w", e)
+			}
+			if propertiesConf, e = observerProperties.Sub("config"); e != nil {
 				return nil, fmt.Errorf("failed obtaining observer properties config: %w", e)
 			}
-			if propertiesConf.IsSet("enabled") {
-				if b, convErr := strconv.ParseBool(strings.ToLower(fmt.Sprintf("%v", propertiesConf.Get("enabled")))); convErr == nil {
+			if observerProperties.IsSet("enabled") {
+				if b, convErr := strconv.ParseBool(strings.ToLower(fmt.Sprintf("%v", observerProperties.Get("enabled")))); convErr == nil {
 					// convErr would have been detected in properties
 					enabled = b
 				}
-				// delete enabled property since it's not valid config field
-				pc := propertiesConf.ToStringMap()
-				delete(pc, "enabled")
-				propertiesConf = confmap.NewFromStringMap(pc)
 			}
-			if err = observerCfgMap.Merge(propertiesConf); err != nil {
+			if err = observerDiscoveryConf.Merge(propertiesConf); err != nil {
 				return nil, fmt.Errorf("failed merging observer properties config: %w", err)
 			}
+
+			// update the discovery config item for later retrieval in unexpanded form
 			cfg.DiscoveryObservers[observerID] = ObserverEntry{
 				Enabled: &enabled,
-				Entry:   observerCfgMap.ToStringMap(),
+				Config:  observerDiscoveryConf.ToStringMap(),
 			}
 		}
 	}
@@ -362,11 +366,11 @@ func (d *discoverer) createObserver(observerID component.ID, cfg *Config) (otelc
 		return nil, nil
 	}
 
-	if err = d.expandConverter.Convert(context.Background(), observerCfgMap); err != nil {
+	if err = d.expandConverter.Convert(context.Background(), observerDiscoveryConf); err != nil {
 		return nil, fmt.Errorf("error converting environment variables in %q config: %w", observerID, err)
 	}
 
-	if err = component.UnmarshalConfig(observerCfgMap, observerConfig); err != nil {
+	if err = component.UnmarshalConfig(observerDiscoveryConf, observerConfig); err != nil {
 		return nil, fmt.Errorf("failed unmarshaling %q config: %w", observerID, err)
 	}
 
@@ -463,7 +467,7 @@ func (d *discoverer) discoveryConfig(cfg *Config) (map[string]any, error) {
 		if observerCfg, ok := cfg.DiscoveryObservers[observerID]; ok {
 			obsMap := map[string]any{
 				"extensions": map[string]any{
-					observerID.String(): observerCfg.ToStringMap(),
+					observerID.String(): observerCfg.Config.ToStringMap(),
 				},
 			}
 			if err := extensions.Merge(confmap.NewFromStringMap(obsMap)); err != nil {

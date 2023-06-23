@@ -1,2 +1,3 @@
 host_observer:
-  refresh_interval: overrwritten by property
+  config:
+    refresh_interval: overrwritten by property

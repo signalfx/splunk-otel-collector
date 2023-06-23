@@ -171,6 +171,7 @@ var _ entryType = (*ObserverEntry)(nil)
 
 type ObserverEntry struct {
 	Enabled *bool
+	Config  Entry
 	Entry   `yaml:",inline"`
 }
 
@@ -554,12 +555,12 @@ func mergeConfigWithBundle(userCfg *Config, bundleCfg *Config) error {
 		if userObs.Enabled != nil {
 			enabled = userObs.Enabled
 		}
-		bundledConfMap := confmap.NewFromStringMap(bundledObs.ToStringMap())
-		userConfMap := confmap.NewFromStringMap(userObs.ToStringMap())
+		bundledConfMap := confmap.NewFromStringMap(bundledObs.Config.ToStringMap())
+		userConfMap := confmap.NewFromStringMap(userObs.Config.ToStringMap())
 		if err := bundledConfMap.Merge(userConfMap); err != nil {
 			return fmt.Errorf("failed merged user and bundled observer %q discovery configs: %w", obs, err)
 		}
-		userCfg.DiscoveryObservers[obs] = ObserverEntry{Enabled: enabled, Entry: bundledConfMap.ToStringMap()}
+		userCfg.DiscoveryObservers[obs] = ObserverEntry{Enabled: enabled, Config: bundledConfMap.ToStringMap()}
 	}
 	for rec, bundledRec := range bundleCfg.ReceiversToDiscover {
 		userRec, ok := userCfg.ReceiversToDiscover[rec]

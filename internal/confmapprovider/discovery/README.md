@@ -100,9 +100,37 @@ successfully started observers.
 1. Log any receiver resulting in a `discovery.status` of `partial` with the configured guidance for setting any relevant discovery properties.
 1. Stop all temporary components before continuing on to the actual Collector service (or exiting early with `--dry-run`).
 
-
 By default, the Discovery mode is provided with pre-made discovery config components in [`bundle.d`](./bundle/README.md).
 
+Unlike `config.d` component files, which are direct configuration entries for the desired component, Discovery component
+configs have an `enabled` boolean and `config` parent mapping field to determine use and configure the functionality of
+the components:
+
+```yaml
+# <some-observer-type-with-optional-name.discovery.yaml>
+<observer_type>(/<observer_name>):
+  enabled: <true | false> # true by default
+  config:
+    <embedded observer config>
+```
+
+```yaml
+# <some-receiver-type-with-optional-name.discovery.yaml>
+<receiver_type>(/<receiver_name>):
+  enabled: <true | false> # true by default
+  rule:
+    <observer_type>(/<observer_name>): <receiver creator rule for this observer>
+  config:
+    default:
+      <default embedded receiver config>
+    <observer_type>(/<observer_name>):
+      <observer-specific config items, merged with `default`>
+  status:
+    metrics:
+      <discovery receiver metric status entries>
+    statements:
+      <discovery receiver statement status entries>
+```
 
 ### Discovery properties
 

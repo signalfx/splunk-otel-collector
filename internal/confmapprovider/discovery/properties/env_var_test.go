@@ -56,8 +56,10 @@ func TestValidEnvVarProperties(t *testing.T) {
 				stringMap: map[string]any{
 					"extensions": map[string]any{
 						"extension.type/extension____name": map[string]any{
-							"one": map[string]any{
-								"two": "a.val",
+							"config": map[string]any{
+								"one": map[string]any{
+									"two": "a.val",
+								},
 							},
 						},
 					},

@@ -186,7 +186,7 @@ var expectedConfig = Config{
 	DiscoveryObservers: map[component.ID]ObserverEntry{
 		component.NewID("docker_observer"): {
 			Enabled: &tru,
-			Entry: Entry{
+			Config: Entry{
 				"endpoint": "tcp://debian:54321",
 				"timeout":  "2s",
 			},

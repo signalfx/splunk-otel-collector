@@ -162,6 +162,7 @@ service:
 
 // This test also exercises collectd binary usage and managed config writing
 func TestNonDefaultGIDCanAccessJavaInAgentBundle(t *testing.T) {
+	testutils.SkipIfNotContainerTest(t)
 	testutils.AssertAllMetricsReceived(t, "activemq.yaml", "activemq_config.yaml",
 		[]testutils.Container{testutils.NewContainer().WithContext(
 			filepath.Join("..", "receivers", "smartagent", "collectd-activemq", "testdata", "server"),
@@ -177,6 +178,7 @@ func TestNonDefaultGIDCanAccessJavaInAgentBundle(t *testing.T) {
 }
 
 func TestNonDefaultGIDCanAccessPythonInAgentBundle(t *testing.T) {
+	testutils.SkipIfNotContainerTest(t)
 	testutils.AssertAllMetricsReceived(t, "solr.yaml", "solr_config.yaml",
 		[]testutils.Container{
 			testutils.NewContainer().WithContext(

@@ -33,6 +33,7 @@ var cassandra = []testutils.Container{
 }
 
 func TestJmxReceiverProvidesAllMetrics(t *testing.T) {
+	testutils.SkipIfNotContainerTest(t)
 	testutils.AssertAllMetricsReceived(
 		t, "all.yaml", "all_metrics_config.yaml", cassandra,
 		[]testutils.CollectorBuilder{

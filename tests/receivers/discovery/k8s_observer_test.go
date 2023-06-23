@@ -39,6 +39,7 @@ import (
 )
 
 func TestDiscoveryReceiverWithK8sObserverProvidesEndpointLogs(t *testing.T) {
+	testutils.SkipIfNotContainerTest(t)
 	tc := testutils.NewTestcase(t, testutils.OTLPReceiverSinkAllInterfaces)
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
@@ -112,6 +113,7 @@ func TestDiscoveryReceiverWithK8sObserverProvidesEndpointLogs(t *testing.T) {
 }
 
 func TestDiscoveryReceiverWithK8sObserverAndSmartAgentRedisReceiverProvideStatusLogs(t *testing.T) {
+	testutils.SkipIfNotContainerTest(t)
 	tc := testutils.NewTestcase(t, testutils.OTLPReceiverSinkAllInterfaces)
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()

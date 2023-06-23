@@ -14,8 +14,9 @@ is:
 ...but if you are interested in something else enhancements and contributions are a great way to ensure this library
 is more useful overall.
 
-At this time only limited metric content is supported.  If you need additional metric functionality or trace/log
-helpers, please don't hesitate to contribute!
+**NOTE** At this time, integration tests generally target collector containers (`SPLUNK_OTEL_COLLECTOR_IMAGE` env var),
+and test coverage for the subprocess is best effort only, unless the test cases explicitly maintain one.
+The collector process targets are generally for test development without requiring frequent rebuilds of a local docker image.
 
 ```go
 package example_test

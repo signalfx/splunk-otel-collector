@@ -17,6 +17,8 @@
 package telemetry
 
 import (
+	"fmt"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -30,6 +32,13 @@ func loadedResourceLogs(t *testing.T) ResourceLogs {
 	require.NoError(t, err)
 	require.NotNil(t, resourceLogs)
 	return *resourceLogs
+}
+
+func TestResourceLogsYamlStringRep(t *testing.T) {
+	b, err := os.ReadFile(filepath.Join(".", "testdata", "logs", "resource-logs.yaml"))
+	require.NoError(t, err)
+	resourceLogs := loadedResourceLogs(t)
+	require.Equal(t, string(b), fmt.Sprintf("%v", resourceLogs))
 }
 
 func TestLoadLogsHappyPath(t *testing.T) {
@@ -389,7 +398,7 @@ func TestLogContainsAllResourceNeverReceived(t *testing.T) {
 	containsAll, err := received.ContainsAll(*expected)
 	require.False(t, containsAll)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "Missing resources: [not: matched\n]")
+	require.Contains(t, err.Error(), "Missing resources: [attributes:\n  not: matched\n]")
 }
 
 func TestLogContainsAllWithMissingAndEmptyAttributes(t *testing.T) {

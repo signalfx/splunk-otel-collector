@@ -15,11 +15,12 @@
 package telemetry
 
 import (
+	"bytes"
 	"crypto/md5" // #nosec this is not for cryptographic purposes
 	"fmt"
 	"reflect"
 
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 
 	"github.com/signalfx/splunk-otel-collector/tests/internal/version"
 )
@@ -29,16 +30,22 @@ const (
 	buildVersionPlaceholder = "<VERSION_FROM_BUILD>"
 )
 
+func marshal(y any) string {
+	b := &bytes.Buffer{}
+	enc := yaml.NewEncoder(b)
+	enc.SetIndent(2)
+	if err := enc.Encode(y); err != nil {
+		panic(err)
+	}
+	return b.String()
+}
+
 type Resource struct {
 	Attributes *map[string]any `yaml:"attributes,omitempty"`
 }
 
 func (resource Resource) String() string {
-	out, err := yaml.Marshal(resource.Attributes)
-	if err != nil {
-		panic(err)
-	}
-	return string(out)
+	return marshal(resource)
 }
 
 // Hash provides an md5 hash determined by Resource content.
@@ -68,11 +75,7 @@ type InstrumentationScope struct {
 }
 
 func (is InstrumentationScope) String() string {
-	out, err := yaml.Marshal(is)
-	if err != nil {
-		panic(err)
-	}
-	return string(out)
+	return marshal(is)
 }
 
 // Hash provides an md5 hash determined by InstrumentationScope fields.

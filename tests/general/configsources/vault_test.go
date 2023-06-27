@@ -34,7 +34,7 @@ func TestBasicSecretAccess(t *testing.T) {
 	defer tc.PrintLogsOnFailure()
 
 	vaultHostname := "vault"
-	vault := testutils.NewContainer().WithImage("vault:latest").WithNetworks("vault").WithName("vault").WithEnv(
+	vault := testutils.NewContainer().WithImage("hashicorp/vault:latest").WithNetworks("vault").WithName("vault").WithEnv(
 		map[string]string{
 			"VAULT_DEV_ROOT_TOKEN_ID": "token",
 			"VAULT_TOKEN":             "token",

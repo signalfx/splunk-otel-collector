@@ -3,6 +3,8 @@ receivers:
     type: collectd/nginx
     host: localhost
     port: 8123
+    username: some_user
+    password: some_password
     extraMetrics: ["*"]
     intervalSeconds: 1
 

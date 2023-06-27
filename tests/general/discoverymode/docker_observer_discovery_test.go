@@ -21,7 +21,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"syscall"
 	"testing"
 	"time"
 
@@ -43,13 +42,6 @@ func TestDockerObserver(t *testing.T) {
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
 
-	finfo, err := os.Stat("/var/run/docker.sock")
-	require.NoError(t, err)
-	fsys := finfo.Sys()
-	stat, ok := fsys.(*syscall.Stat_t)
-	require.True(t, ok)
-	dockerGID := stat.Gid
-
 	cc, shutdown := tc.SplunkOtelCollectorContainer(
 		"docker-otlp-exporter-no-internal-prometheus.yaml",
 		func(c testutils.Collector) testutils.Collector {
@@ -61,7 +53,7 @@ func TestDockerObserver(t *testing.T) {
 			cc.Container = cc.Container.WillWaitForLogs("Discovering for next")
 			// uid check is for basic collector functionality not using the splunk-otel-collector user
 			// but the docker gid is required to reach the daemon
-			cc.Container = cc.Container.WithUser(fmt.Sprintf("%d:%d", os.Getuid(), dockerGID))
+			cc.Container = cc.Container.WithUser(fmt.Sprintf("%d:%d", os.Getuid(), testutils.GetDockerGID(t)))
 			return cc
 		},
 		func(c testutils.Collector) testutils.Collector {

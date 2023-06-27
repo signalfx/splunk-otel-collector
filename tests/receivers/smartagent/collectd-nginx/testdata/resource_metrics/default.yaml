@@ -1,0 +1,22 @@
+resource_metrics:
+  - scope_metrics:
+      - metrics:
+          - name: connections.accepted
+            type: IntMonotonicCumulativeSum
+            attributes:
+              dsname: value
+              host: <ANY>
+              plugin: nginx
+              system.type: nginx
+          - name: connections.handled
+            type: IntMonotonicCumulativeSum
+          - name: nginx_connections.active
+            type: IntGauge
+          - name: nginx_connections.reading
+            type: IntGauge
+          - name: nginx_connections.waiting
+            type: IntGauge
+          - name: nginx_connections.writing
+            type: IntGauge
+          - name: nginx_requests
+            type: IntMonotonicCumulativeSum

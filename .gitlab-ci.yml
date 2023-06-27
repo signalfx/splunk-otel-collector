@@ -21,6 +21,7 @@ include:
     ref: master
     file: '/prodsec/.oss-scan.yml'
   - project: 'core-ee/signing/api-integration'
+    ref: develop
     file: '/templates/.sign-client.yml'
 
 semgrep:

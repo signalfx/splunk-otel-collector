@@ -256,6 +256,13 @@ after installation/configuration in order for any change to take effect.
 
 ### Auto Instrumentation for .NET on Windows
 
+**Note:** By default, only IIS applications will be instrumented after
+installation/configuration. Applications not running within IIS will need to
+restarted separately after installation/configuration in order for any change
+to take effect.
+
+For proxy options, see the [Windows Proxy](#windows-proxy) section.
+
 - `install_signalfx_dotnet_auto_instrumentation` (Windows only): Whether to
   install/manage [SignalFx Auto Instrumentation for .NET](
   https://docs.splunk.com/Observability/gdi/get-data-in/application/dotnet/get-started.html).
@@ -266,26 +273,29 @@ after installation/configuration in order for any change to take effect.
 
 - `signalfx_dotnet_auto_instrumentation_version` (Windows only): Version of the
   `signalfx-dotnet-tracing` MSI package to download and install from
-  [GitHub Releases](https://github.com/signalfx/signalfx-dotnet-tracing/releases),
-  e.g. `1.0.0`. (**default:** `latest`)
-
-- `signalfx_dotnet_auto_instrumentation_msi_url` (Windows only): By default,
-  a request will be made to
+  [GitHub Releases](https://github.com/signalfx/signalfx-dotnet-tracing/releases).
+  By default, a request will be made to
   `https://api.github.com/repos/signalfx/signalfx-dotnet-tracing/releases` to
-  get the download URL for the `signalfx-dotnet-tracing` MSI package. Specify
-  the download URL to skip the API request, e.g.
-  `https://github.com/signalfx/signalfx-dotnet-tracing/releases/download/v1.1.0/signalfx-dotnet-tracing-1.1.0-x64.msi`,
-  or to download the MSI from a custom source, e.g.
-  `https://my.server/signalfx-dotnet-tracing-1.2.3-x64.msi`. If specified, the
+  determine the latest release. If a version is specified, e.g. `1.0.0`, the
+  API request will be skipped and the MSI package will be downloaded from
+  `https://github.com/signalfx/signalfx-dotnet-tracing/releases/download/v{{ signalfx_dotnet_auto_instrumentation_version }}/signalfx-dotnet-tracing-{{ signalfx_dotnet_auto_instrumentation_version }}-x64.msi`.
+  (**default:** `latest`)
+
+- `signalfx_dotnet_auto_instrumentation_msi_url` (Windows only): Specify the
+  download URL to skip the GitHub API request, e.g.
+  `https://github.com/signalfx/signalfx-dotnet-tracing/releases/download/v1.0.0/signalfx-dotnet-tracing-1.0.0-x64.msi`,
+  or to download the MSI from a custom host, e.g.
+  `https://my.host/signalfx-dotnet-tracing-1.0.0-x64.msi`. If specified, the
   `signalfx_dotnet_auto_instrumentation_version` option is ignored.
   (**default:** ``)
 
 - `signalfx_dotnet_auto_instrumentation_github_token` (Windows only): Specify
   a token to authenticate with the GitHub API when making requests to get the
-  download URL for the `signalfx-dotnet-tracing` MSI package. This is
-  recommended when not using `signalfx_dotnet_auto_instrumentation_msi_url`
-  since unauthenticated requests are [rate-limited](
-  https://docs.github.com/en/rest/rate-limit) by GitHub. (**default:** ``)
+  latest `signalfx-dotnet-tracing` release. A token is recommended when
+  `signalfx_dotnet_auto_instrumentation_version` is `latest` or when not using
+  `signalfx_dotnet_auto_instrumentation_msi_url` since unauthenticated requests
+  are [rate-limited](https://docs.github.com/en/rest/rate-limit) by GitHub.
+  (**default:** ``)
 
 - `signalfx_dotnet_auto_instrumentation_environment` (Windows only): Configure
   this option to set the system-wide "Environment" value to be reported to
@@ -310,6 +320,12 @@ after installation/configuration in order for any change to take effect.
   Set this option to `true` to enable AlwaysOn Memory Profiling. The value will
   be assigned to the `SIGNALFX_PROFILER_MEMORY_ENABLED` environment variable in
   the Windows registry. (**default:** `false`)
+
+- `signalfx_dotnet_auto_instrumentation_iisreset` (Windows only): By default,
+  the `iisreset.exe` Powershell command will be executed after
+  installation/configuration in order for auto instrumentation to take effect
+  for IIS applications. Set this option to `false` to skip this step if IIS is
+  managed separately or not applicable. (**default:** `true`)
 
 - `signalfx_dotnet_auto_instrumentation_additional_options` (Windows only):
   Dictionary of additional [supported options and values](

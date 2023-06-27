@@ -163,6 +163,16 @@ jobs:
       - name: Install test dependencies.
         run: pip3 install --use-pep517 -r ${GITHUB_WORKSPACE}/requirements.txt
 
+      - name: Set IISRESET env var
+        run: |
+          # Currently only the 2022 vagrant box has IIS installed.
+          # The IISRESET env var will be used for the signalfx_dotnet_auto_instrumentation_iisreset test option.
+          if [[ "${{ matrix.distro }}" = "2022" ]]; then
+            echo "IISRESET=true" >> $GITHUB_ENV
+          else
+            echo "IISRESET=false" >> $GITHUB_ENV
+          fi
+
       - name: Run Molecule tests.
         run: molecule --debug -v --base-config ./molecule/config/windows.yml test -s ${{ matrix.scenario }} -p ${{ matrix.distro }}
         env:

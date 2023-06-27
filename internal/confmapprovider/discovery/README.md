@@ -1,6 +1,6 @@
-# Discovery confmap.Provider (Experimental)
+# Discovery confmap.Provider
 
-**This component should not be considered stable. At this time its functionality is provided for testing and validation purposes only.**
+**This feature is currently in [development](https://github.com/open-telemetry/opentelemetry-collector#development)**
 
 The Discovery [confmap.Provider](https://pkg.go.dev/go.opentelemetry.io/collector/confmap#readme-provider) provides
 the ability to define Collector service config through individual component yaml mappings in a `config.d` directory:
@@ -130,9 +130,9 @@ the components:
       <discovery receiver statement status entries>
 ```
 
-By default, the Discovery mode is provided with pre-made discovery config components in [`bundle.d`](./bundle/README.md).
+By default, the discovery mode is provided with pre-made discovery config components in [`bundle.d`](./bundle/README.md).
 
-The following components have bundled discovery configurations in the last Splunk OpenTelmetry Collector release:
+The following components have bundled discovery configurations in the last Splunk OpenTelemetry Collector release:
 
 I. Smart Agent receiver
 * `collectd/mysql` monitor type ([Linux](./bundle/bundle.d/receivers/smartagent-collectd-mysql.discovery.yaml))

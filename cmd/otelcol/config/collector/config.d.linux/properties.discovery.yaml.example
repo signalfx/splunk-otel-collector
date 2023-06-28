@@ -1,0 +1,19 @@
+# Copy this file to properties.discovery.yaml and add any discovery properties for use in discovery mode:
+# For more information:
+# https://github.com/signalfx/splunk-otel-collector/tree/main/internal/confmapprovider/discovery#discovery-properties
+
+splunk.discovery:
+  extensions:
+    docker_observer:
+      enabled: true
+    host_observer:
+      enabled: true
+    k8s_observer:
+      enabled: true
+  receivers:
+    smartagent/collectd/mysql:
+      enabled: true
+    smartagent/collectd/nginx:
+      enabled: true
+    smartagent/postgresql:
+      enabled: true

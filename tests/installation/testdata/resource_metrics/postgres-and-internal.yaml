@@ -1,0 +1,418 @@
+resource_metrics:
+  - attributes:
+      container.image.name: <ANY>
+      container.name: postgres-server
+    scope_metrics:
+      - metrics:
+          - name: postgres_query_count
+            attributes:
+              system.type: postgresql
+              database: postgres
+              postgres_port: "5432"
+              user: postgres
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_query_count
+            attributes:
+              system.type: postgresql
+              database: postgres
+              postgres_port: "5432"
+              user: test_user
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_query_count
+            attributes:
+              system.type: postgresql
+              database: test_db
+              postgres_port: "5432"
+              user: postgres
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_query_count
+            attributes:
+              system.type: postgresql
+              database: test_db
+              postgres_port: "5432"
+              user: test_user
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_query_time
+            attributes:
+              system.type: postgresql
+              database: postgres
+              postgres_port: "5432"
+              user: postgres
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_query_time
+            attributes:
+              system.type: postgresql
+              database: postgres
+              postgres_port: "5432"
+              user: test_user
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_query_time
+            attributes:
+              system.type: postgresql
+              database: test_db
+              postgres_port: "5432"
+              user: postgres
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_query_time
+            attributes:
+              system.type: postgresql
+              database: test_db
+              postgres_port: "5432"
+              user: test_user
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_block_hit_ratio
+            attributes:
+              system.type: postgresql
+              database: test_db
+              index: table_two_pkey
+              postgres_port: "5432"
+              schemaname: test_schema
+              table: table_two
+              type: user
+            type: DoubleGauge
+          - name: postgres_block_hit_ratio
+            attributes:
+              system.type: postgresql
+              database: test_db
+              postgres_port: "5432"
+            type: DoubleGauge
+          - name: postgres_block_hit_ratio
+            attributes:
+              system.type: postgresql
+              database: postgres
+              postgres_port: "5432"
+            type: DoubleGauge
+          - name: postgres_deadlocks
+            attributes:
+              system.type: postgresql
+              database: test_db
+              postgres_port: "5432"
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_sessions
+            attributes:
+              system.type: postgresql
+              database: <ANY>
+              postgres_port: "5432"
+              state: <ANY>
+            type: DoubleGauge
+          - name: postgres_deadlocks
+            attributes:
+              system.type: postgresql
+              database: postgres
+              postgres_port: "5432"
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_database_size
+            attributes:
+              system.type: postgresql
+              database: postgres
+              postgres_port: "5432"
+            type: DoubleGauge
+          - name: postgres_database_size
+            attributes:
+              system.type: postgresql
+              database: test_db
+              postgres_port: "5432"
+            type: DoubleGauge
+          - name: postgres_block_hit_ratio
+            attributes:
+              system.type: postgresql
+              database: test_db
+              postgres_port: "5432"
+              schemaname: test_schema
+              table: table_one
+              type: user
+            type: DoubleGauge
+          - name: postgres_block_hit_ratio
+            attributes:
+              system.type: postgresql
+              database: test_db
+              postgres_port: "5432"
+              schemaname: test_schema
+              table: table_two
+              type: user
+            type: DoubleGauge
+          - name: postgres_block_hit_ratio
+            attributes:
+              system.type: postgresql
+              database: test_db
+              index: table_one_pkey
+              postgres_port: "5432"
+              schemaname: test_schema
+              table: table_one
+              type: user
+            type: DoubleGauge
+          - name: postgres_rows_inserted
+            attributes:
+              system.type: postgresql
+              database: test_db
+              postgres_port: "5432"
+              schemaname: test_schema
+              table: table_two
+              tablespace: ""
+              type: user
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_rows_updated
+            attributes:
+              system.type: postgresql
+              database: test_db
+              postgres_port: "5432"
+              schemaname: test_schema
+              table: table_two
+              tablespace: ""
+              type: user
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_rows_deleted
+            attributes:
+              system.type: postgresql
+              database: test_db
+              postgres_port: "5432"
+              schemaname: test_schema
+              table: table_two
+              tablespace: ""
+              type: user
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_sequential_scans
+            attributes:
+              system.type: postgresql
+              database: test_db
+              postgres_port: "5432"
+              schemaname: test_schema
+              table: table_two
+              tablespace: ""
+              type: user
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_index_scans
+            attributes:
+              system.type: postgresql
+              database: test_db
+              postgres_port: "5432"
+              schemaname: test_schema
+              table: table_two
+              tablespace: ""
+              type: user
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_table_size
+            attributes:
+              system.type: postgresql
+              database: test_db
+              postgres_port: "5432"
+              schemaname: test_schema
+              table: table_two
+              tablespace: ""
+              type: user
+            type: DoubleGauge
+          - name: postgres_live_rows
+            attributes:
+              system.type: postgresql
+              database: test_db
+              postgres_port: "5432"
+              schemaname: test_schema
+              table: table_two
+              tablespace: ""
+              type: user
+            type: DoubleGauge
+          - name: postgres_live_rows
+            attributes:
+              system.type: postgresql
+              database: test_db
+              postgres_port: "5432"
+              schemaname: test_schema
+              table: table_one
+              tablespace: ""
+              type: user
+            type: DoubleGauge
+          - name: postgres_rows_inserted
+            attributes:
+              system.type: postgresql
+              database: test_db
+              postgres_port: "5432"
+              schemaname: test_schema
+              table: table_one
+              tablespace: ""
+              type: user
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_rows_updated
+            attributes:
+              system.type: postgresql
+              database: test_db
+              postgres_port: "5432"
+              schemaname: test_schema
+              table: table_one
+              tablespace: ""
+              type: user
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_rows_deleted
+            attributes:
+              system.type: postgresql
+              database: test_db
+              postgres_port: "5432"
+              schemaname: test_schema
+              table: table_one
+              tablespace: ""
+              type: user
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_sequential_scans
+            attributes:
+              system.type: postgresql
+              database: test_db
+              postgres_port: "5432"
+              schemaname: test_schema
+              table: table_one
+              tablespace: ""
+              type: user
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_index_scans
+            attributes:
+              system.type: postgresql
+              database: test_db
+              postgres_port: "5432"
+              schemaname: test_schema
+              table: table_one
+              tablespace: ""
+              type: user
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_table_size
+            attributes:
+              system.type: postgresql
+              database: test_db
+              postgres_port: "5432"
+              schemaname: test_schema
+              table: table_one
+              tablespace: ""
+              type: user
+            type: DoubleGauge
+  - attributes:
+      http.scheme: http
+      net.host.port: "8888"
+      service.instance.id: 0.0.0.0:8888
+      service.name: otel-collector
+    scope_metrics:
+      - instrumentation_scope:
+          attributes: {}
+          name: otelcol/prometheusreceiver
+          version: <VERSION_FROM_BUILD>
+        metrics:
+          - attributes:
+              exporter: otlp
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+            description: Current size of the retry queue (in batches)
+            name: otelcol_exporter_queue_size
+            type: DoubleGauge
+          - attributes:
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+            description: Bytes of allocated heap objects (see 'go doc runtime.MemStats.HeapAlloc')
+            name: otelcol_process_runtime_heap_alloc_bytes
+            type: DoubleGauge
+          - attributes:
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+            description: Cumulative bytes allocated for heap objects (see 'go doc runtime.MemStats.TotalAlloc')
+            name: otelcol_process_runtime_total_alloc_bytes
+            type: DoubleMonotonicCumulativeSum
+          - attributes:
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+            description: Uptime of the process
+            name: otelcol_process_uptime
+            type: DoubleMonotonicCumulativeSum
+          - attributes:
+              exporter: otlp
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+            description: Number of metric points successfully sent to destination.
+            name: otelcol_exporter_sent_metric_points
+            type: DoubleMonotonicCumulativeSum
+          - description: Duration of the scrape
+            name: scrape_duration_seconds
+            type: DoubleGauge
+            unit: seconds
+          - attributes:
+              receiver: <ANY>
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+              transport: internal
+            description: Number of metric points that could not be pushed into the pipeline.
+            name: otelcol_receiver_refused_metric_points
+            type: DoubleMonotonicCumulativeSum
+          - description: The number of samples remaining after metric relabeling was applied
+            name: scrape_samples_post_metric_relabeling
+            type: DoubleGauge
+          - attributes:
+              exporter: otlp
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+            description: Number of log records failed to be added to the sending queue.
+            name: otelcol_exporter_enqueue_failed_log_records
+            type: DoubleMonotonicCumulativeSum
+          - attributes:
+              exporter: otlp
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+            description: Number of metric points failed to be added to the sending queue.
+            name: otelcol_exporter_enqueue_failed_metric_points
+            type: DoubleMonotonicCumulativeSum
+          - attributes:
+              exporter: otlp
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+            description: Fixed capacity of the retry queue (in batches)
+            name: otelcol_exporter_queue_capacity
+            type: DoubleGauge
+          - attributes:
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+            description: Total CPU user and system time in seconds
+            name: otelcol_process_cpu_seconds
+            type: DoubleMonotonicCumulativeSum
+          - description: The scraping was successful
+            name: up
+            type: DoubleGauge
+          - description: The number of samples the target exposed
+            name: scrape_samples_scraped
+            type: DoubleGauge
+          - description: The approximate number of new series in this scrape
+            name: scrape_series_added
+            type: DoubleGauge
+          - attributes:
+              exporter: otlp
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+            description: Number of spans failed to be added to the sending queue.
+            name: otelcol_exporter_enqueue_failed_spans
+            type: DoubleMonotonicCumulativeSum
+          - attributes:
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+            description: Total physical memory (resident set size)
+            name: otelcol_process_memory_rss
+            type: DoubleGauge
+          - attributes:
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+            description: Total bytes of memory obtained from the OS (see 'go doc runtime.MemStats.Sys')
+            name: otelcol_process_runtime_total_sys_memory_bytes
+            type: DoubleGauge
+          - attributes:
+              receiver: <ANY>
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+              transport: internal
+            description: Number of metric points successfully pushed into the pipeline.
+            name: otelcol_receiver_accepted_metric_points
+            type: DoubleMonotonicCumulativeSum

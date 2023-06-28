@@ -1,7 +1,0 @@
-# Add your Discovery properties here for use in Discovery Mode:
-# https://github.com/signalfx/splunk-otel-collector/tree/main/internal/confmapprovider/discovery#discovery-properties
-#
-# splunk.discovery:
-#   extensions:
-#   receivers:
-#

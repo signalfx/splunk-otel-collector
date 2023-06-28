@@ -52,6 +52,7 @@ sudo fpm -s dir -t deb -n "$PKG_NAME" -v "$VERSION" -f -p "$OUTPUT_DIR" \
     --after-install "$POSTINSTALL_PATH" \
     --before-remove "$PREUNINSTALL_PATH" \
     --deb-no-default-config-files \
+    --config-files "$CONFIG_DIR_INSTALL_PATH" \
     --config-files "$AGENT_CONFIG_INSTALL_PATH" \
     --config-files "$GATEWAY_CONFIG_INSTALL_PATH" \
     --config-files "$FLUENTD_CONFIG_INSTALL_DIR" \

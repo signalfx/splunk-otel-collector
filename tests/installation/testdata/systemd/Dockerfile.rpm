@@ -1,0 +1,31 @@
+# A centos9 image with systemd enabled.  Must be run with:
+# `-d --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro` flags
+FROM quay.io/centos/centos:stream9
+ARG DOCKER_GID=998
+
+ENV container docker
+
+RUN groupadd -g ${DOCKER_GID} docker
+
+RUN rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
+RUN echo 'fastestmirror=1' >> /etc/yum.conf
+RUN dnf install -y procps initscripts systemd tree
+
+RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i = \
+    "systemd-tmpfiles-setup.service" ] || rm -f $i; done); \
+    rm -f /lib/systemd/system/multi-user.target.wants/*;\
+    rm -f /lib/systemd/system/local-fs.target.wants/*; \
+    rm -f /lib/systemd/system/sockets.target.wants/*udev*; \
+    rm -f /lib/systemd/system/sockets.target.wants/*initctl*; \
+    rm -f /lib/systemd/system/basic.target.wants/*;\
+    rm -f /lib/systemd/system/anaconda.target.wants/*;
+
+COPY --chown=999 service.yaml /etc/otel/collector/config.d/service.yaml
+COPY --chown=999 otlp-exporter.yaml /etc/otel/collector/config.d/exporters/otlp-exporter.yaml
+COPY --chown=999 prometheus-internal.yaml /etc/otel/collector/config.d/receivers/prometheus-internal.yaml
+COPY --chown=999 properties.discovery.yaml /etc/otel/collector/config.d/properties.discovery.yaml
+COPY --chown=999 splunk-otel-collector.conf /etc/otel/collector/splunk-otel-collector.conf
+
+VOLUME [ "/sys/fs/cgroup" ]
+
+ENTRYPOINT ["/usr/sbin/init"]

@@ -30,6 +30,8 @@ SERVICE_GROUP="splunk-otel-collector"
 
 OTELCOL_INSTALL_PATH="/usr/bin/otelcol"
 TRANSLATESFX_INSTALL_PATH="/usr/bin/translatesfx"
+CONFIG_DIR_REPO_PATH="$REPO_DIR/cmd/otelcol/config/collector/config.d.linux"
+CONFIG_DIR_INSTALL_PATH="/etc/otel/collector/config.d"
 AGENT_CONFIG_REPO_PATH="$REPO_DIR/cmd/otelcol/config/collector/agent_config.yaml"
 AGENT_CONFIG_INSTALL_PATH="/etc/otel/collector/agent_config.yaml"
 GATEWAY_CONFIG_REPO_PATH="$REPO_DIR/cmd/otelcol/config/collector/gateway_config.yaml"
@@ -84,6 +86,7 @@ setup_files_and_permissions() {
     sudo chmod 755 "$buildroot/$TRANSLATESFX_INSTALL_PATH"
 
     cp -r "$FPM_DIR/etc" "$buildroot/etc"
+    cp -r "$CONFIG_DIR_REPO_PATH" "$buildroot/$CONFIG_DIR_INSTALL_PATH"
     cp -f "$AGENT_CONFIG_REPO_PATH" "$buildroot/$AGENT_CONFIG_INSTALL_PATH"
     cp -f "$GATEWAY_CONFIG_REPO_PATH" "$buildroot/$GATEWAY_CONFIG_INSTALL_PATH"
     sudo chown -R $SERVICE_USER:$SERVICE_GROUP "$buildroot/etc/otel"

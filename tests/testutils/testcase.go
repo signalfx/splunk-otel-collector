@@ -25,6 +25,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/docker/docker/api/types"
+	docker "github.com/docker/docker/client"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -39,6 +41,7 @@ type TestOption int
 
 const (
 	OTLPReceiverSinkAllInterfaces TestOption = iota
+	OTLPReceiverSinkBindToBridgeGateway
 )
 
 type CollectorBuilder func(Collector) Collector
@@ -89,8 +92,21 @@ func NewTestcase(t testing.TB, opts ...TestOption) *Testcase {
 func (t *Testcase) setOTLPEndpoint(opts []TestOption) {
 	otlpPort := GetAvailablePort(t)
 	otlpHost := "localhost"
-	if HasTestOption(OTLPReceiverSinkAllInterfaces, opts) {
+	switch {
+	case HasTestOption(OTLPReceiverSinkAllInterfaces, opts):
 		otlpHost = "0.0.0.0"
+	case HasTestOption(OTLPReceiverSinkBindToBridgeGateway, opts):
+		client, err := docker.NewClientWithOpts(docker.FromEnv)
+		require.NoError(t, err)
+		client.NegotiateAPIVersion(context.Background())
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		network, err := client.NetworkInspect(ctx, "bridge", types.NetworkInspectOptions{})
+		require.NoError(t, err)
+		for _, ipam := range network.IPAM.Config {
+			otlpHost = ipam.Gateway
+		}
+		require.NotEmpty(t, otlpHost, "no bridge network gateway detected. Host IP is inaccessible.")
 	}
 	t.OTLPEndpoint = fmt.Sprintf("%s:%d", otlpHost, otlpPort)
 	t.OTLPEndpointForCollector = t.OTLPEndpoint

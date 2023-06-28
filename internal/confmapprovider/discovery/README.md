@@ -1,6 +1,7 @@
 # Discovery confmap.Provider
 
-**This feature is currently in [development](https://github.com/open-telemetry/opentelemetry-collector#development)**
+**This feature currently has an [alpha](https://github.com/open-telemetry/opentelemetry-collector#alpha) stability level.<br>
+Backwards incompatible changes to components and custom discovery configuration may occur.**
 
 The Discovery [confmap.Provider](https://pkg.go.dev/go.opentelemetry.io/collector/confmap#readme-provider) provides
 the ability to define Collector service config through individual component yaml mappings in a `config.d` directory:

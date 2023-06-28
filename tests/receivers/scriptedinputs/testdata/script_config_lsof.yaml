@@ -1,0 +1,21 @@
+receivers:
+  scripted_inputs/lsof:
+    script_name: lsof.sh
+    collection_interval: 10s
+    source: lsof
+    sourcetype: lsof
+
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+
+service:
+  telemetry:
+    logs:
+      level: debug
+  pipelines:
+    logs:
+      receivers: [scripted_inputs/lsof]
+      exporters: [otlp]

@@ -1,0 +1,21 @@
+receivers:
+  scripted_inputs/time:
+    script_name: time.sh
+    collection_interval: 10s
+    source: time
+    sourcetype: time
+
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+
+time:
+  telemetry:
+    logs:
+      level: debug
+  pipelines:
+    logs:
+      receivers: [scripted_inputs/time]
+      exporters: [otlp]

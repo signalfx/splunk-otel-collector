@@ -1,0 +1,21 @@
+receivers:
+  scripted_inputs/nfsiostat:
+    script_name: nfsiostat.sh
+    collection_interval: 10s
+    source: nfsiostat
+    sourcetype: nfsiostat
+
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+
+service:
+  telemetry:
+    logs:
+      level: debug
+  pipelines:
+    logs:
+      receivers: [scripted_inputs/nfsiostat]
+      exporters: [otlp]

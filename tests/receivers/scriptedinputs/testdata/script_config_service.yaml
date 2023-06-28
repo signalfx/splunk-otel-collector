@@ -1,0 +1,21 @@
+receivers:
+  scripted_inputs/service:
+    script_name: service.sh
+    collection_interval: 10s
+    source: service
+    sourcetype: service
+
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+
+service:
+  telemetry:
+    logs:
+      level: debug
+  pipelines:
+    logs:
+      receivers: [scripted_inputs/service]
+      exporters: [otlp]

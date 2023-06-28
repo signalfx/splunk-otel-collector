@@ -19,6 +19,7 @@ import (
 	"crypto/md5" // #nosec this is not for cryptographic purposes
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"go.opentelemetry.io/collector/pdata/plog"
@@ -146,6 +147,12 @@ func (log Log) Equals(toCompare Log) bool {
 // set.
 func (log Log) RelaxedEquals(toCompare Log) bool {
 	return log.equals(toCompare, false)
+}
+
+func (log Log) StartsWith(prefix Log) bool {
+	logString := fmt.Sprintf("%s", log.Body)
+	prefixString := fmt.Sprintf("%s", prefix.Body)
+	return strings.HasPrefix(logString, prefixString)
 }
 
 // equals determines if receiver Log is equal to toCompare Log, relaxed if not strict
@@ -338,6 +345,41 @@ func (resourceLogs ResourceLogs) ContainsAll(expected ResourceLogs) (bool, error
 			"%v doesn't contain all of %v. Missing resources: %s",
 			resourceLogs.ResourceLogs, expected.ResourceLogs, missingResources,
 		)
+	}
+	return true, nil
+}
+
+func (resourceLogs ResourceLogs) StartsWith(expected ResourceLogs) (bool, error) {
+	var missingLogs []string
+	for _, expectedResourceLog := range expected.ResourceLogs {
+		for _, resourceLog := range resourceLogs.ResourceLogs {
+			if expectedResourceLog.Resource.Equals(resourceLog.Resource) {
+				for _, expectedSL := range expectedResourceLog.ScopeLogs {
+					for _, ilm := range resourceLog.ScopeLogs {
+						if expectedSL.Scope.Equals(ilm.Scope) {
+							for _, expectedLog := range expectedSL.Logs {
+								logFound := false
+								for _, log := range ilm.Logs {
+									if log.StartsWith(expectedLog) {
+										logFound = true
+									}
+								}
+								if !logFound {
+									missingLogs = append(missingLogs, expectedLog.String())
+								}
+							}
+							if len(missingLogs) != 0 {
+								return false, fmt.Errorf(
+									"%v doesn't contain all of %v. Missing Logs: %s",
+									ilm.Logs, expectedSL.Logs, missingLogs)
+							}
+						}
+					}
+
+				}
+			}
+		}
+
 	}
 	return true, nil
 }

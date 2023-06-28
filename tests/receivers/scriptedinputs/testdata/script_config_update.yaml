@@ -1,0 +1,21 @@
+receivers:
+  scripted_inputs/update:
+    script_name: update.sh
+    collection_interval: 10s
+    source: update
+    sourcetype: update
+
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+
+service:
+  telemetry:
+    logs:
+      level: debug
+  pipelines:
+    logs:
+      receivers: [scripted_inputs/update]
+      exporters: [otlp]

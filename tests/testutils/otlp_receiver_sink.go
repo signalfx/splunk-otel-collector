@@ -238,6 +238,45 @@ func (otlp *OTLPReceiverSink) AssertAllLogsReceived(t testing.TB, expectedResour
 
 	return err
 }
+func (otlp *OTLPReceiverSink) AssertValidLogsHeader(t testing.TB, expectedResourceLogs telemetry.ResourceLogs, waitTime time.Duration) error {
+	if err := otlp.assertBuilt("AssertAllLogsReceived"); err != nil {
+		return err
+	}
+
+	if len(expectedResourceLogs.ResourceLogs) == 0 {
+		return fmt.Errorf("empty ResourceLogs provided")
+	}
+
+	receivedLogs := telemetry.ResourceLogs{}
+
+	var err error
+	assert.Eventually(t, func() bool {
+		if otlp.LogRecordCount() == 0 {
+			if err == nil {
+				err = fmt.Errorf("no logs received")
+			}
+			return false
+		}
+		receivedOTLPLogs := otlp.AllLogs()
+		otlp.Reset()
+
+		receivedResourceLogs, e := telemetry.PDataToResourceLogs(receivedOTLPLogs...)
+		require.NoError(t, e)
+		require.NotNil(t, receivedResourceLogs)
+		receivedLogs = telemetry.FlattenResourceLogs(receivedLogs, receivedResourceLogs)
+
+		var containsAll bool
+		containsAll, err = receivedLogs.StartsWith(expectedResourceLogs)
+		return containsAll
+	}, waitTime, 10*time.Millisecond, "Failed to receive expected logs")
+
+	// testify won't render exceptionally long errors, so leaving this here for easy debugging
+	if err != nil {
+		fmt.Printf("err: %v\n", err)
+	}
+
+	return err
+}
 
 func (otlp *OTLPReceiverSink) AssertAllMetricsReceived(t testing.TB, expectedResourceMetrics telemetry.ResourceMetrics, waitTime time.Duration) error {
 	if err := otlp.assertBuilt("AssertAllMetricsReceived"); err != nil {

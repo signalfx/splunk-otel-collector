@@ -1,0 +1,21 @@
+receivers:
+  scripted_inputs/ps:
+    script_name: ps.sh
+    collection_interval: 10s
+    source: ps
+    sourcetype: ps
+
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+
+service:
+  telemetry:
+    logs:
+      level: debug
+  pipelines:
+    logs:
+      receivers: [scripted_inputs/ps]
+      exporters: [otlp]

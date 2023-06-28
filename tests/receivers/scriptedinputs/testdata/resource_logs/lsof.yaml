@@ -1,0 +1,4 @@
+resource_logs:
+  - scope_logs:
+      - logs:
+          - body: "COMMAND          PID         USER             FD       TYPE      DEVICE                      SIZE  NODE                  NAME"

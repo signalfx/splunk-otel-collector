@@ -20,6 +20,7 @@
       MY_CUSTOM_VAR2: value2
     install_signalfx_dotnet_auto_instrumentation: true
     signalfx_dotnet_auto_instrumentation_version: 1.0.0
+    signalfx_dotnet_auto_instrumentation_system_wide: true
     signalfx_dotnet_auto_instrumentation_environment: test-environment
     signalfx_dotnet_auto_instrumentation_service_name: test-service-name
     signalfx_dotnet_auto_instrumentation_enable_profiler: true

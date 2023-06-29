@@ -80,6 +80,7 @@ install_signalfx_dotnet_auto_instrumentation: false
 signalfx_dotnet_auto_instrumentation_version: latest
 signalfx_dotnet_auto_instrumentation_msi_url: ""
 signalfx_dotnet_auto_instrumentation_github_token: ""
+signalfx_dotnet_auto_instrumentation_system_wide: false
 signalfx_dotnet_auto_instrumentation_environment: ""
 signalfx_dotnet_auto_instrumentation_service_name: ""
 signalfx_dotnet_auto_instrumentation_enable_profiler: false

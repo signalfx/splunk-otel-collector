@@ -39,9 +39,3 @@
   listen: "restart windows fluentdwinsvc"
   when:
     - (start_service | default(true) | bool)
-
-- name: Reset IIS
-  ansible.windows.win_shell: "& { iisreset.exe }"
-  listen: "reset iis"
-  when:
-    - install_signalfx_dotnet_auto_instrumentation and signalfx_dotnet_auto_instrumentation_iisreset

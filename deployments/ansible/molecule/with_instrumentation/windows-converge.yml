@@ -5,6 +5,7 @@
   vars:
     splunk_access_token: fake-token
     splunk_realm: fake-realm
+    install_fluentd: false
     install_signalfx_dotnet_auto_instrumentation: true
     signalfx_dotnet_auto_instrumentation_github_token: ${GITHUB_TOKEN}
     signalfx_dotnet_auto_instrumentation_iisreset: ${IISRESET}

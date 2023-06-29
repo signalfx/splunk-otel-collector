@@ -47,54 +47,46 @@
 
 - name: Create registry path
   ansible.windows.win_regedit:
-    path: "{{ registry_key }}"
+    path: "{{ iis_registry_key }}"
     state: present
+
+- name: Get IIS options list
+  set_fact:
+    options_list: |-
+      {%- set value = item.value -%}
+      {%- if (item.value | type_debug) == "bool" -%}
+        {%- set value = item.value | string | lower -%}
+      {%- endif -%}
+      {{ (options_list | default([])) + [item.key + '=' + (value | string)] }}
+  loop: "{{ dotnet_options | combine(signalfx_dotnet_auto_instrumentation_additional_options) | dict2items }}"
+
+- name: Set IIS registry value
+  ansible.windows.win_regedit:
+    path: "{{ iis_registry_key }}"
+    state: present
+    name: Environment
+    data: "{{ options_list | sort }}"
+    type: multistring
   notify: "reset iis"
 
-- name: Set registry value
+- name: Create registry path
   ansible.windows.win_regedit:
     path: "{{ registry_key }}"
     state: present
-    name: SIGNALFX_ENV
-    data: "{{ signalfx_dotnet_auto_instrumentation_environment }}"
-    type: string
-  when: signalfx_dotnet_auto_instrumentation_environment != ""
-  notify: "reset iis"
+  when: signalfx_dotnet_auto_instrumentation_system_wide
 
-- name: Set registry value
-  ansible.windows.win_regedit:
-    path: "{{ registry_key }}"
-    state: present
-    name: SIGNALFX_SERVICE_NAME
-    data: "{{ signalfx_dotnet_auto_instrumentation_service_name }}"
-    type: string
-  when: signalfx_dotnet_auto_instrumentation_service_name != ""
-  notify: "reset iis"
-
-- name: Set registry value
-  ansible.windows.win_regedit:
-    path: "{{ registry_key }}"
-    state: present
-    name: SIGNALFX_PROFILER_ENABLED
-    data: "{{ signalfx_dotnet_auto_instrumentation_enable_profiler | string | lower }}"
-    type: string
-  notify: "reset iis"
-
-- name: Set registry value
-  ansible.windows.win_regedit:
-    path: "{{ registry_key }}"
-    state: present
-    name: SIGNALFX_PROFILER_MEMORY_ENABLED
-    data: "{{ signalfx_dotnet_auto_instrumentation_enable_profiler_memory | string | lower }}"
-    type: string
-  notify: "reset iis"
-
-- name: Set additional registry values
+- name: Set system-wide registry value
   ansible.windows.win_regedit:
     path: "{{ registry_key }}"
     state: present
     name: "{{ item.key }}"
-    data: "{{ item.value }}"
+    data: |-
+      {%- set value = item.value -%}
+      {%- if (item.value | type_debug) == "bool" -%}
+        {%- set value = item.value | string | lower -%}
+      {%- endif -%}
+      {{ value | string }}
     type: string
-  loop: "{{ signalfx_dotnet_auto_instrumentation_additional_options | default({}) | dict2items }}"
+  loop: "{{ dotnet_options | combine(signalfx_dotnet_auto_instrumentation_additional_options) | dict2items }}"
+  when: signalfx_dotnet_auto_instrumentation_system_wide
   notify: "reset iis"

@@ -230,6 +230,100 @@
       assert:
         that: not msi_installed.changed
 
+    - name: Check IIS registry value
+      ansible.windows.win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\W3SVC
+        state: present
+        name: Environment
+        data:
+          - COR_ENABLE_PROFILING=true
+          - COR_PROFILER={B4C89B0F-9908-4F73-9F59-0D77C5A06874}
+          - CORECLR_ENABLE_PROFILING=true
+          - CORECLR_PROFILER={B4C89B0F-9908-4F73-9F59-0D77C5A06874}
+          - SIGNALFX_DOTNET_VAR1=value1
+          - SIGNALFX_DOTNET_VAR2=value2
+          - SIGNALFX_ENV=test-environment
+          - SIGNALFX_PROFILER_ENABLED=true
+          - SIGNALFX_PROFILER_MEMORY_ENABLED=true
+          - SIGNALFX_SERVICE_NAME=test-service-name
+        type: multistring
+      check_mode: yes
+      register: reg_value
+
+    - name: Assert registry value exists
+      assert:
+        that: not reg_value.changed
+
+    - name: Check SIGNALFX_DOTNET_TRACER_HOME registry value
+      ansible.windows.win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+        state: present
+        name: SIGNALFX_DOTNET_TRACER_HOME
+        data: C:\Program Files\SignalFx\.NET Tracing\
+        type: string
+      check_mode: yes
+      register: reg_value
+
+    - name: Assert registry value exists
+      assert:
+        that: not reg_value.changed
+
+    - name: Check COR_ENABLE_PROFILING registry value
+      ansible.windows.win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+        state: present
+        name: COR_ENABLE_PROFILING
+        data: "true"
+        type: string
+      check_mode: yes
+      register: reg_value
+
+    - name: Assert registry value exists
+      assert:
+        that: not reg_value.changed
+
+    - name: Check COR_PROFILER registry value
+      ansible.windows.win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+        state: present
+        name: COR_PROFILER
+        data: "{B4C89B0F-9908-4F73-9F59-0D77C5A06874}"
+        type: string
+      check_mode: yes
+      register: reg_value
+
+    - name: Assert registry value exists
+      assert:
+        that: not reg_value.changed
+
+    - name: Check CORECLR_ENABLE_PROFILING registry value
+      ansible.windows.win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+        state: present
+        name: CORECLR_ENABLE_PROFILING
+        data: "true"
+        type: string
+      check_mode: yes
+      register: reg_value
+
+    - name: Assert registry value exists
+      assert:
+        that: not reg_value.changed
+
+    - name: Check CORECLR_PROFILER registry value
+      ansible.windows.win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+        state: present
+        name: CORECLR_PROFILER
+        data: "{B4C89B0F-9908-4F73-9F59-0D77C5A06874}"
+        type: string
+      check_mode: yes
+      register: reg_value
+
+    - name: Assert registry value exists
+      assert:
+        that: not reg_value.changed
+
     - name: Check SIGNALFX_ENV registry value
       ansible.windows.win_regedit:
         path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment

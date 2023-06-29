@@ -10,6 +10,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/peer"
 
 	"github.com/signalfx/signalfx-agent/pkg/core/common/constants"
@@ -149,17 +150,19 @@ func (m *Monitor) Configure(conf *Config) error {
 	m.cancel = cancel
 
 	// parse tls configurations
-	var grpcOptions []grpc.ServerOption
+	var creds credentials.TransportCredentials
 	if conf.TLS != nil {
-		creds, err := conf.TLS.Credentials()
+		var err error
+		creds, err = conf.TLS.Credentials()
 		if err != nil {
 			return err
 		}
-		grpcOptions = []grpc.ServerOption{grpc.Creds(creds)}
+	} else {
+		creds = insecure.NewCredentials()
 	}
 
 	// create the grpc server
-	m.grpc = grpc.NewServer(grpcOptions...)
+	m.grpc = grpc.NewServer(grpc.Creds(creds))
 
 	// start the grpc server
 	go func() {

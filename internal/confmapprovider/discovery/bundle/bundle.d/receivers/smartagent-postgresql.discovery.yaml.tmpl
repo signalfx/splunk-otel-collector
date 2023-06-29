@@ -1,9 +1,9 @@
 {{ receiver "smartagent/postgresql" }}:
   enabled: true
   rule:
-    docker_observer: type == "container" and port == 5432
-    host_observer: type == "hostport" and command contains "postgres" and port == 5432
-    k8s_observer: type == "port" and pod.name contains "postgres" and port == 5432
+    docker_observer: type == "container" and any([name, image, command], {# matches "(?i)postgres"}) and not (command matches "splunk.discovery")
+    host_observer: type == "hostport" and command matches "(?i)postgres" and not (command matches "splunk.discovery")
+    k8s_observer: type == "port" and pod.name matches "(?i)postgres"
   config:
     default:
       type: postgresql
@@ -20,6 +20,17 @@
           log_record:
             severity_text: info
             body: PostgreSQL receiver is working!
+      partial:
+        - strict: postgres_rows_inserted
+          first_only: true
+          log_record:
+            severity_text: info
+            body: >-
+              Make sure that
+              `CREATE EXTENSION IF NOT EXISTS pg_stat_statements;`
+              has been run for each database you would like to monitor.
+              For example:
+              `psql --dbname "<db-name>" -c "CREATE EXTENSION IF NOT EXISTS pg_stat_statements;"`
     statements:
       failed:
         - regexp: 'connect: network is unreachable'

@@ -59,8 +59,8 @@ func NewConfig() *Config {
 
 // Config is the configuration of a stdin input operator.
 type Config struct {
-	BaseConfig         `mapstructure:",squash"`
 	helper.InputConfig `mapstructure:",squash"`
+	BaseConfig         `mapstructure:",squash"`
 }
 
 // BaseConfig is the detailed configuration of a tcp input operator.
@@ -129,12 +129,12 @@ func (c *Config) Build(logger *zap.SugaredLogger) (operator.Operator, error) {
 
 // Input is an operator that reads input from stdin
 type Input struct {
-	baseConfig BaseConfig
-	logger     *zap.SugaredLogger
-	cancelAll  context.CancelFunc
+	logger    *zap.SugaredLogger
+	cancelAll context.CancelFunc
+	splitFunc bufio.SplitFunc
 	helper.InputOperator
 	encoding   helper.Encoding
-	splitFunc  bufio.SplitFunc
+	baseConfig BaseConfig
 	wg         sync.WaitGroup
 	MaxLogSize int
 }

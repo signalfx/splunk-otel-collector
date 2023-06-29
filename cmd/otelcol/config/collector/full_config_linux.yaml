@@ -485,20 +485,6 @@ exporters:
 ###############################################################################
 extensions:
 
-  # Enables the fluentbit extension
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/fluentbitextension
-  # NOTE: These settings should be updated prior to use
-  fluentbit:
-    executable_path: /usr/src/fluent-bit/build/bin/fluent-bit
-    tcp_endpoint: 127.0.0.1:8006
-    config: |
-      [SERVICE]
-          parsers_file /usr/src/fluent-bit/conf/parsers.conf
-      [INPUT]
-          name tail
-          path /var/log/mylog
-          parser apache
-
   # Enables the health check extension
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/healthcheckextension
   health_check:

@@ -11,7 +11,7 @@
 #   rule:
 #     docker_observer: type == "container" and any([name, image, command], {# matches "(?i)nginx"}) and not (command matches "splunk.discovery")
 #     host_observer: type == "hostport" and command matches "(?i)nginx" and not (command matches "splunk.discovery")
-#     k8s_observer: type == "port" and pod.name matches "(?i:nginx)"
+#     k8s_observer: type == "port" and pod.name matches "(?i)nginx"
 #   config:
 #     default:
 #       type: collectd/nginx

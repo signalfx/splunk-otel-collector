@@ -19,9 +19,10 @@ package scriptedinputreceiver
 import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/adapter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator"
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/scriptedinputsreceiver/procpipe"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/receiver"
+
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/scriptedinputsreceiver/procpipe"
 )
 
 const (

@@ -1,4 +1,0 @@
-resource_logs:
-  - scope_logs:
-      - logs:
-          - body: "  IPdropped   TCPrexmits   TCPreorder   TCPpktRecv   TCPpktSent   UDPpktLost   UDPunkPort   UDPpktRecv   UDPpktSent"

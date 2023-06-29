@@ -1,10 +1,11 @@
 package procpipe
 
 import (
+	"testing"
+
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator/helper"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
-	"testing"
 )
 
 func TestCreateDefaultConfig(t *testing.T) {

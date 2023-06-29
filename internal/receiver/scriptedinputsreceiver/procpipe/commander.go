@@ -33,13 +33,13 @@ const LinuxScriptsLocation = "/etc/otel/collector/scripts/"
 // Commander can start/stop/restart the Agent executable and also watch for a signal
 // for the Agent process to finish.
 type Commander struct {
-	logger       *zap.Logger
-	execFilePath string
 	stdout       io.Writer
-	args         []string
+	logger       *zap.Logger
 	cmd          *exec.Cmd
 	doneCh       chan struct{}
 	waitCh       chan struct{}
+	execFilePath string
+	args         []string
 	running      int64
 }
 

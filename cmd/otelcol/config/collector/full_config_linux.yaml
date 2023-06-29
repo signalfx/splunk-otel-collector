@@ -169,156 +169,21 @@ receivers:
 
   # Enables scripted inputs receiver
   # Full configuration here: https://github.com/weliasz/splunk-otel-collector/tree/main/internal/receiver/scriptedinputsreceiver
-  scripted_inputs/bandwidth:
-    script_name: bandwidth.sh
-    collection_interval: 60s
-    source: bandwidth
-    sourcetype: bandwidth
   scripted_inputs/cpu:
-    script_name: cpu.sh
+    script_name: cpu
     collection_interval: 30s
     source: cpu
     sourcetype: cpu
   scripted_inputs/df:
-    script_name: df.sh
+    script_name: df
     collection_interval: 10s
     source: df
     sourcetype: df
-  scripted_inputs/hardware:
-    script_name: hardware.sh
-    collection_interval: 36000s
-    source: hardware
-    sourcetype: hardware
-  scripted_inputs/interfaces:
-    script_name: interfaces.sh
-    collection_interval: 60s
-    source: interfaces
-    sourcetype: interfaces
-  scripted_inputs/iostat:
-    script_name: iostat.sh
-    collection_interval: 60s
-    source: iostat
-    sourcetype: iostat
-  scripted_inputs/lastlog:
-    script_name: lastlog.sh
-    collection_interval: 300s
-    source: lastlog
-    sourcetype: lastlog
-  scripted_inputs/lsof:
-    script_name: lsof.sh
-    collection_interval: 600s
-    source: lsof
-    sourcetype: lsof
-  scripted_inputs/netstat:
-    script_name: netstat.sh
-    collection_interval: 60s
-    source: netstat
-    sourcetype: netstat
-  scripted_inputs/nfsiostat:
-    script_name: nfsiostat.sh
-    collection_interval: 60s
-    source: nfsiostat
-    sourcetype: nfsiostat
-  scripted_inputs/openPorts:
-    script_name: openPorts.sh
-    collection_interval: 300s
-    source: openPorts
-    sourcetype: openPorts
-  scripted_inputs/openPortsEnhanced:
-    script_name: openPortsEnhanced.sh
-    collection_interval: 3600s
-    source: openPortsEnhanced
-    sourcetype: openPortsEnhanced
-  scripted_inputs/package:
-    script_name: package.sh
-    collection_interval: 3600s
-    source: package
-    sourcetype: package
-  scripted_inputs/passwd:
-    script_name: passwd.sh
-    collection_interval: 3600s
-    source: passwd
-    sourcetype: passwd
-  scripted_inputs/protocol:
-    script_name: protocol.sh
-    collection_interval: 60s
-    source: protocol
-    sourcetype: protocol
   scripted_inputs/ps:
-    script_name: ps.sh
+    script_name: ps
     collection_interval: 30s
     source: ps
     sourcetype: ps
-  scripted_inputs/rlog:
-    script_name: rlog.sh
-    collection_interval: 60s
-    source: rlog
-    sourcetype: rlog
-  scripted_inputs/selinuxChecker:
-    script_name: selinuxChecker.sh
-    collection_interval: 3600s
-    source: selinuxChecker
-    sourcetype: selinuxChecker
-  scripted_inputs/service:
-    script_name: service.sh
-    collection_interval: 3600s
-    source: service
-    sourcetype: service
-  scripted_inputs/setup:
-    script_name: setup.sh
-    collection_interval: 3600s
-    source: setup
-    sourcetype: setup
-  scripted_inputs/sshdChecker:
-    script_name: sshdChecker.sh
-    collection_interval: 3600s
-    source: sshdChecker
-    sourcetype: sshdChecker
-  scripted_inputs/time:
-    script_name: time.sh
-    collection_interval: 21600s
-    source: time
-    sourcetype: time
-  scripted_inputs/top:
-    script_name: top.sh
-    collection_interval: 60s
-    source: top
-    sourcetype: top
-  scripted_inputs/update:
-    script_name: update.sh
-    collection_interval: 86400s
-    source: update
-    sourcetype: update
-  scripted_inputs/uptime:
-    script_name: uptime.sh
-    collection_interval: 86400s
-    source: uptime
-    sourcetype: uptime
-  scripted_inputs/usersWithLoginPrivs:
-    script_name: usersWithLoginPrivs.sh
-    collection_interval: 3600s
-    source: usersWithLoginPrivs
-    sourcetype: usersWithLoginPrivs
-  scripted_inputs/version:
-    script_name: version.sh
-    collection_interval: 86400s
-    source: version
-    sourcetype: version
-  scripted_inputs/vmstat:
-    script_name: vmstat.sh
-    collection_interval: 60s
-    source: vmstat
-    sourcetype: vmstat
-  scripted_inputs/vsftpdChecker:
-    script_name: vsftpdChecker.sh
-    collection_interval: 86400s
-    source: vsftpdChecker
-    sourcetype: vsftpdChecker
-  scripted_inputs/who:
-    script_name: who.sh
-    collection_interval: 150s
-    source: who
-    sourcetype: who
 
 ###############################################################################
 # Processors

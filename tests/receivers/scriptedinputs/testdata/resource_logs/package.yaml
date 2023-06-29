@@ -1,4 +1,0 @@
-resource_logs:
-  - scope_logs:
-      - logs:
-          - body: "NAME                                                     VERSION               RELEASE               ARCH        VENDOR                          GROUP"

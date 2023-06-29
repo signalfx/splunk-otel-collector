@@ -1,4 +1,0 @@
-resource_logs:
-  - scope_logs:
-      - logs:
-          - body: "Proto  Recv-Q  Send-Q  LocalAddress                    ForeignAddress                  State"

@@ -1,4 +1,0 @@
-resource_logs:
-  - scope_logs:
-      - logs:
-          - body: "USERNAME                      UID                             GID                             HOME_DIR                                                      USER_INFO"

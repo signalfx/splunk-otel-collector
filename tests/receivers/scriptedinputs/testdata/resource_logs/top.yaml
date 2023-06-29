@@ -1,4 +1,0 @@
-resource_logs:
-  - scope_logs:
-      - logs:
-          - body: "   PID  USER              PR    NI    VIRT     RES     SHR   S  pctCPU  pctMEM       cpuTIME  COMMAND"

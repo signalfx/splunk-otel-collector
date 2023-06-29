@@ -59,20 +59,20 @@ func NewConfig() *Config {
 
 // Config is the configuration of a stdin input operator.
 type Config struct {
-	helper.InputConfig `mapstructure:",squash"`
 	BaseConfig         `mapstructure:",squash"`
+	helper.InputConfig `mapstructure:",squash"`
 }
 
 // BaseConfig is the detailed configuration of a tcp input operator.
 type BaseConfig struct {
-	ScriptName         string                 `mapstructure:"script_name,omitempty"`
-	MaxLogSize         helper.ByteSize        `mapstructure:"max_log_size,omitempty"`
-	AddAttributes      bool                   `mapstructure:"add_attributes,omitempty"`
-	Encoding           helper.EncodingConfig  `mapstructure:",squash,omitempty"`
 	Multiline          helper.MultilineConfig `mapstructure:"multiline,omitempty"`
+	ScriptName         string                 `mapstructure:"script_name,omitempty"`
+	Encoding           helper.EncodingConfig  `mapstructure:",squash,omitempty"`
 	Source             string                 `mapstructure:"source"`
 	SourceType         string                 `mapstructure:"sourcetype"`
 	CollectionInterval string                 `mapstructure:"collection_interval"`
+	MaxLogSize         helper.ByteSize        `mapstructure:"max_log_size,omitempty"`
+	AddAttributes      bool                   `mapstructure:"add_attributes,omitempty"`
 }
 
 // Build will build a stdin input operator.
@@ -130,13 +130,13 @@ func (c *Config) Build(logger *zap.SugaredLogger) (operator.Operator, error) {
 // Input is an operator that reads input from stdin
 type Input struct {
 	baseConfig BaseConfig
-	helper.InputOperator
-	MaxLogSize int
 	logger     *zap.SugaredLogger
-	wg         sync.WaitGroup
 	cancelAll  context.CancelFunc
+	helper.InputOperator
 	encoding   helper.Encoding
 	splitFunc  bufio.SplitFunc
+	wg         sync.WaitGroup
+	MaxLogSize int
 }
 
 func createTicker(intervalStr string) (*time.Ticker, error) {
@@ -185,7 +185,7 @@ func (g *Input) Start(_ operator.Persister) error {
 func (g *Input) beginCycle(ctx context.Context) error {
 
 	stdOutReader, stdOutWriter := io.Pipe()
-	commander, err := NewCommander(g.logger.Desugar(), g.baseConfig.ScriptName, stdOutWriter)
+	commander, err := NewCommander(g.logger.Desugar(), g.baseConfig.ScriptName+".sh", stdOutWriter)
 	if err != nil {
 		return err
 	}

@@ -9,9 +9,9 @@
 # smartagent/collectd/mysql:
 #   enabled: true
 #   rule:
-#     docker_observer: type == "container" and port == 3306
-#     host_observer: type == "hostport" and command contains "mysqld" and port == 3306
-#     k8s_observer: type == "port" and pod.name contains "mysql" and port == 3306
+#     docker_observer: type == "container" and any([name, image, command], {# matches "(?i)mysql"}) and not (command matches "splunk.discovery")
+#     host_observer: type == "hostport" and command matches "(?i)mysqld"
+#     k8s_observer: type == "port" and pod.name matches "(?i)mysql"
 #   config:
 #     default:
 #       type: collectd/mysql

@@ -103,12 +103,18 @@ exporters:
     access_token: "${SPLUNK_ACCESS_TOKEN}"
     realm: "${SPLUNK_REALM}"
     correlation:
-  # Logs + Profiling
+  # Logs
   splunk_hec:
     token: "${SPLUNK_HEC_TOKEN}"
     endpoint: "${SPLUNK_HEC_URL}"
     source: "otel"
     sourcetype: "otel"
+    profiling_data_enabled: false
+  # Profiling
+  splunk_hec/profiling:
+    token: "${SPLUNK_ACCESS_TOKEN}"
+    endpoint: "${SPLUNK_INGEST_URL}/v1/log"
+    log_data_enabled: false
 
 service:
   extensions: [health_check, http_forwarder, zpages, memory_ballast]
@@ -119,7 +125,7 @@ service:
         - memory_limiter
         - batch
         - resourcedetection
-#        - resource/add_environment
+        #- resource/add_environment
       exporters: [sapm, signalfx]
     metrics:
       receivers: [signalfx, smartagent/signalfx-forwarder, smartagent/ecs-metadata, prometheus/internal]
@@ -131,7 +137,5 @@ service:
         - memory_limiter
         - batch
         - resourcedetection
-      #- resource/add_environment
-      exporters: [splunk_hec]
-      # Use instead when sending to gateway
-      #exporters: [otlp]
+        #- resource/add_environment
+      exporters: [splunk_hec, splunk_hec/profiling]

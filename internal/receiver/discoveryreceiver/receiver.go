@@ -127,18 +127,22 @@ func (d *discoveryReceiver) Start(ctx context.Context, host component.Host) (err
 }
 
 func (d *discoveryReceiver) Shutdown(ctx context.Context) error {
-	d.endpointTracker.stop()
-	defer func() {
-		d.logger.Debug("discovery receiver shutting down")
-		d.sentinel <- struct{}{}
-		d.loopFinished.Wait()
-		close(d.sentinel)
-		close(d.pLogs)
-		d.logger.Debug("finished shutdown")
-	}()
+	if d.endpointTracker != nil {
+		d.endpointTracker.stop()
+		defer func() {
+			d.logger.Debug("discovery receiver shutting down")
+			d.sentinel <- struct{}{}
+			d.loopFinished.Wait()
+			close(d.sentinel)
+			close(d.pLogs)
+			d.logger.Debug("finished shutdown")
+		}()
+	}
 
-	if err := d.receiverCreator.Shutdown(ctx); err != nil {
-		return fmt.Errorf("failed shutting down internal receiver_creator: %w", err)
+	if d.receiverCreator != nil {
+		if err := d.receiverCreator.Shutdown(ctx); err != nil {
+			return fmt.Errorf("failed shutting down internal receiver_creator: %w", err)
+		}
 	}
 
 	return nil

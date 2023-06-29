@@ -41,6 +41,9 @@ func TestNewDiscoveryReceiver(t *testing.T) {
 	receiver, err := newDiscoveryReceiver(rcs, cfg, consumertest.NewNop())
 	require.NoError(t, err)
 	require.NotNil(t, receiver)
+
+	// out of order shutdown
+	require.NoError(t, receiver.Shutdown(context.Background()))
 }
 
 func TestObservablesFromHost(t *testing.T) {

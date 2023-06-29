@@ -48,6 +48,8 @@ fossa:
     - schedules
   needs: []
   dependencies: []
+  variables:
+    jira_automation: "true"
   # allow_failure: false
 
 .get-artifactory-stage: &get-artifactory-stage

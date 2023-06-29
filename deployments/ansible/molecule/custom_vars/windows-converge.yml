@@ -25,7 +25,6 @@
     signalfx_dotnet_auto_instrumentation_service_name: test-service-name
     signalfx_dotnet_auto_instrumentation_enable_profiler: true
     signalfx_dotnet_auto_instrumentation_enable_profiler_memory: true
-    signalfx_dotnet_auto_instrumentation_iisreset: ${IISRESET}
     signalfx_dotnet_auto_instrumentation_additional_options:
       SIGNALFX_DOTNET_VAR1: value1
       SIGNALFX_DOTNET_VAR2: value2

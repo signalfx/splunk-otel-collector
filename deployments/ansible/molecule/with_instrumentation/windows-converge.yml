@@ -8,7 +8,6 @@
     install_fluentd: false
     install_signalfx_dotnet_auto_instrumentation: true
     signalfx_dotnet_auto_instrumentation_github_token: ${GITHUB_TOKEN}
-    signalfx_dotnet_auto_instrumentation_iisreset: ${IISRESET}
   tasks:
     - name: "Include signalfx.splunk_otel_collector.collector role"
       include_role:

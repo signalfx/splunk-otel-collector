@@ -263,10 +263,10 @@ instrumentation for IIS. Use the
 `signalfx_dotnet_auto_instrumentation_additional_options` option (see below for
 details) to include any other environment variables required for IIS.
 
-**Note:** By default, only IIS will be restarted with the `iisreset` command
-(if it exists) after installation/configuration. Applications/services not
-running within IIS need to be restarted separately in order for any changes to
-take effect.
+**Note:** By default, IIS will be restarted with the `iisreset` command (if it
+exists) after installation/configuration. Applications ***not*** running within
+IIS need to be restarted/managed separately in order for any changes to take
+effect.
 
 For proxy options, see the [Windows Proxy](#windows-proxy) section.
 
@@ -274,7 +274,8 @@ For proxy options, see the [Windows Proxy](#windows-proxy) section.
   install/manage [SignalFx Auto Instrumentation for .NET](
   https://docs.splunk.com/Observability/gdi/get-data-in/application/dotnet/get-started.html).
   When set to `true`, the `signalfx-dotnet-tracing` MSI package will be
-  downloaded and installed. (**default:** `false`)
+  downloaded and installed, and the Windows registry will be updated based on
+  the options below. (**default:** `false`)
 
 - `signalfx_dotnet_auto_instrumentation_version` (Windows only): Version of the
   `signalfx-dotnet-tracing` MSI package to download and install from
@@ -304,17 +305,17 @@ For proxy options, see the [Windows Proxy](#windows-proxy) section.
   (**default:** ``)
 
 - `signalfx_dotnet_auto_instrumentation_iisreset` (Windows only): By default,
-  the `iisreset.exe` Powershell command (if it exists) will be executed after
+  the `iisreset.exe` command (if it exists) will be executed after
   installation/configuration in order for any changes to take effect for IIS
   applications. Set this option to `false` to skip this step if IIS is managed
   separately or is not applicable. (**default:** `true`)
 
 - `signalfx_dotnet_auto_instrumentation_system_wide` (Windows only): By
   default, the `Environment` property in the
-  `HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\W3SVC` registry key to
+  `HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\W3SVC` registry key
   will be configured for the following environment variables and any from the
-  `signalfx_dotnet_auto_instrumentation_additional_options` option to enable auto
-  instrumentation for ***only*** IIS applications:
+  `signalfx_dotnet_auto_instrumentation_additional_options` option to
+  enable/configure auto instrumentation for ***only*** IIS applications:
   ```yaml
   COR_ENABLE_PROFILING: true  # Required
   COR_PROFILER: "{B4C89B0F-9908-4F73-9F59-0D77C5A06874}"  # Required
@@ -329,8 +330,8 @@ For proxy options, see the [Windows Proxy](#windows-proxy) section.
   from the `signalfx_dotnet_auto_instrumentation_additional_options` option to
   the
   `HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment`
-  registry key to enable auto instrumentation for ***all*** .NET
-  services/applications on the node. (**default:** `false`)
+  registry key to enable/configure auto instrumentation for ***all*** .NET
+  applications on the node. (**default:** `false`)
 
 - `signalfx_dotnet_auto_instrumentation_environment` (Windows only): Configure
   this option to set the "Environment" value to be reported to Splunk APM, e.g.
@@ -347,7 +348,7 @@ For proxy options, see the [Windows Proxy](#windows-proxy) section.
   Windows registry. (**default:** ``)
 
 - `signalfx_dotnet_auto_instrumentation_enable_profiler` (Windows only): Set
-  this option to `true` to enable AlwaysOn CPU Profiling. The value will be
+  this option to `true` to enable AlwaysOn Profiling. The value will be
   assigned to the `SIGNALFX_PROFILER_ENABLED` environment variable in the
   Windows registry. (**default:** `false`)
 
@@ -365,11 +366,13 @@ For proxy options, see the [Windows Proxy](#windows-proxy) section.
   signalfx_dotnet_auto_instrumentation_additional_options:
     SIGNALFX_VERSION: "1.2.3"
     SIGNALFX_FILE_LOG_ENABLED: false
-    # Hint: If signalfx_dotnet_auto_instrumentation_system_wide is set to true, use
-    # the following options to include/exclude processes from auto instrumentation.
+    # Hint: If the signalfx_dotnet_auto_instrumentation_system_wide option is
+    # set to true, all .NET applications on the node will be instrumented. Use
+    # the following options to include/exclude processes from auto
+    # instrumentation.
     SIGNALFX_PROFILER_PROCESSES: MyApp.exe;dotnet.exe
     SIGNALFX_PROFILER_EXCLUDE_PROCESSES: ReservedProcess.exe;powershell.exe
   ```
   Check the [Advanced Configuration Guide](
   https://docs.splunk.com/Observability/gdi/get-data-in/application/dotnet/configuration/advanced-dotnet-configuration.html)
-  for details about supported options.
+  for more details about the options above and other supported options.

@@ -49,6 +49,9 @@ func TestDockerObserver(t *testing.T) {
 			configd, err := filepath.Abs(filepath.Join(".", "testdata", "docker-observer-config.d"))
 			require.NoError(t, err)
 			cc.Container = cc.Container.WithMount(testcontainers.BindMount(configd, "/opt/config.d"))
+			properties, err := filepath.Abs(filepath.Join(".", "testdata", "docker-observer-properties.yaml"))
+			require.NoError(t, err)
+			cc.Container = cc.Container.WithMount(testcontainers.BindMount(properties, "/opt/properties.yaml"))
 			cc.Container = cc.Container.WithBinds("/var/run/docker.sock:/var/run/dock.e.r.sock:ro")
 			cc.Container = cc.Container.WillWaitForLogs("Discovering for next")
 			// uid check is for basic collector functionality not using the splunk-otel-collector user
@@ -74,6 +77,7 @@ func TestDockerObserver(t *testing.T) {
 				"--set", `splunk.discovery.extensions.docker_observer.config.endpoint=${DOCKER_DOMAIN_SOCKET}`,
 				"--set", `splunk.discovery.receivers.prometheus_simple.enabled=true`,
 				"--set", `splunk.discovery.receivers.prometheus_simple.config.labels::label_three=actual.label.three.value`,
+				"--discovery-properties", "/opt/properties.yaml",
 			)
 		},
 	)
@@ -157,7 +161,8 @@ func TestDockerObserver(t *testing.T) {
 				"receivers/splunk.discovery":  []any{"receiver_creator/discovery"},
 			},
 		},
-		"splunk.property": map[string]any{},
+		"splunk.properties": map[string]any{},
+		"splunk.property":   map[string]any{},
 	}
 	require.Equal(t, expectedInitial, cc.InitialConfig(t, 55554))
 
@@ -236,7 +241,9 @@ SPLUNK_DISCOVERY_RECEIVERS_prometheus_x5f_simple_ENABLED=true \
 SPLUNK_DISCOVERY_RECEIVERS_prometheus_x5f_simple_CONFIG_labels_x3a__x3a_label_x5f_three=="overwritten by --set property" \
 SPLUNK_DISCOVERY_RECEIVERS_prometheus_x5f_simple_CONFIG_labels_x3a__x3a_label_x5f_four="actual.label.four.value" \
 /otelcol --config-dir /opt/config.d --discovery --dry-run \
---set splunk.discovery.receivers.prometheus_simple.config.labels::label_three=actual.label.three.value`)
+--set splunk.discovery.receivers.prometheus_simple.config.labels::label_three=actual.label.three.value \
+--discovery-properties /opt/properties.yaml
+`)
 	require.Equal(t, `exporters:
   otlp:
     endpoint: ${OTLP_ENDPOINT}

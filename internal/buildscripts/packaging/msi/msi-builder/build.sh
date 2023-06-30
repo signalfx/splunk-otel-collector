@@ -189,11 +189,13 @@ download_jmx_metric_gatherer() {
     local version="$1"
     local build_dir="$2"
     local output_dir="$3"
-    JMX_METRIC_GATHERER_RELEASE_DL_URL="https://repo1.maven.org/maven2/io/opentelemetry/contrib/opentelemetry-jmx-metrics/$version/opentelemetry-jmx-metrics-$version.jar"
+    jmx_filename="opentelemetry-java-contrib-jmx-metrics.jar"
+    JMX_METRIC_GATHERER_RELEASE_DL_URL="https://github.com/open-telemetry/opentelemetry-java-contrib/releases/download/v$version/opentelemetry-jmx-metrics.jar"
     echo "Downloading ${JMX_METRIC_GATHERER_RELEASE_DL_URL}..."
 
-    curl -sL "$JMX_METRIC_GATHERER_RELEASE_DL_URL" -o "${build_dir}/opentelemetry-java-contrib-jmx-metrics.jar"
-    mv "${build_dir}/opentelemetry-java-contrib-jmx-metrics.jar" "$output_dir"
+    curl -sL "$JMX_METRIC_GATHERER_RELEASE_DL_URL" -o "${build_dir}/"
+    mv "${build_dir}/${jmx_filename}" "$output_dir"
+    cp "${output_dir}/${jmx_filename}" "/opt/${jmx_filename}"
 
     # Delete unnecessary files.
     rm -f "${build_dir}/opentelemetry-java-contrib-jmx-metrics.jar"

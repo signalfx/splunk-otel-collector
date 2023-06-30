@@ -31,6 +31,7 @@ create_collector_pr() {
     if [[ -n "$version" ]]; then
       echo ">>> Updating openjdk version to $version ..."
       sed -i "s|^ARG JDK_VERSION=.*|ARG JDK_VERSION=${version}|" internal/signalfx-agent/bundle/Dockerfile
+      sed -i "s|^ARG JDK_VERSION=.*|ARG JDK_VERSION=${version}|" cmd/otelcol/Dockerfile.windows
     else
       echo "ERROR: Failed to get version from tag name '${tag}'!" >&2
       exit 1

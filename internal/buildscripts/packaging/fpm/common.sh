@@ -72,7 +72,7 @@ download_jmx_metric_gatherer() {
     local version="$1"
     local buildroot="$2"
 
-    JMX_METRIC_GATHERER_RELEASE_DL_URL="https://repo1.maven.org/maven2/io/opentelemetry/contrib/opentelemetry-jmx-metrics/$version/opentelemetry-jmx-metrics-$version.jar"
+    JMX_METRIC_GATHERER_RELEASE_DL_URL="https://github.com/open-telemetry/opentelemetry-java-contrib/releases/download/v$version/opentelemetry-jmx-metrics.jar"
     mkdir -p "$buildroot/opt"
 
     echo "Downloading ${JMX_METRIC_GATHERER_RELEASE_DL_URL}"
@@ -115,5 +115,11 @@ setup_files_and_permissions() {
         tar -xzf "$bundle_path" -C "$buildroot/$BUNDLE_BASE_DIR"
         sudo chown -R $SERVICE_USER:$SERVICE_GROUP "$buildroot/$BUNDLE_BASE_DIR"
         sudo chmod -R 755 "$buildroot/$BUNDLE_BASE_DIR"
+    fi
+
+    JMX_INSTALL_PATH="$buildroot/opt/opentelemetry-java-contrib-jmx-metrics.jar"
+    if [[ -e "$JMX_INSTALL_PATH"]]; then
+        sudo chown root:root "$JMX_INSTALL_PATH"
+        sudo chmod 755 "$JMX_INSTALL_PATH"
     fi
 }

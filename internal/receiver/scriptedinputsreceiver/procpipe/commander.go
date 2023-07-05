@@ -16,11 +16,10 @@ package procpipe
 
 import (
 	"context"
-	"crypto/sha512"
-	"encoding/hex"
+	_ "embed"
 	"io"
-	"os"
 	"os/exec"
+	"strings"
 	"sync/atomic"
 	"syscall"
 	"time"
@@ -28,7 +27,23 @@ import (
 	"go.uber.org/zap"
 )
 
-const LinuxScriptsLocation = "/etc/otel/collector/scripts/"
+//go:embed scripts/cpu.sh
+var cpuScript string
+
+//go:embed scripts/df.sh
+var dfScript string
+
+//go:embed scripts/ps.sh
+var psScript string
+
+//go:embed scripts/common.sh
+var commonScript string
+
+var scripts = map[string]string{
+	"cpu": cpuScript,
+	"df":  dfScript,
+	"ps":  psScript,
+}
 
 // Commander can start/stop/restart the Agent executable and also watch for a signal
 // for the Agent process to finish.
@@ -57,14 +72,17 @@ func NewCommander(logger *zap.Logger, execFilePath string, stdout io.Writer, arg
 func (c *Commander) Start(ctx context.Context) error {
 	c.logger.Info("Starting script", zap.String("script", c.execFilePath))
 
-	if !c.VerifyChecksum(c.execFilePath) {
-		c.logger.Warn("Script was modified, aborting execution", zap.String("script", c.execFilePath))
+	_, ok := scripts[c.execFilePath]
+	if !ok {
+		c.logger.Error("Unsupported script", zap.Any("script_name", c.execFilePath))
 		return nil
 	}
 
-	c.cmd = exec.CommandContext(ctx, LinuxScriptsLocation+c.execFilePath, c.args...) //nolint:gosec
+	c.cmd = exec.CommandContext(ctx, "/bin/sh", c.args...) //nolint:gosec
+	replaced := strings.Replace(scripts[c.execFilePath], ". \"$(dirname \"$0\")\"/common.sh", commonScript, 1)
 
 	// Capture standard output and standard error.
+	c.cmd.Stdin = strings.NewReader(replaced)
 	c.cmd.Stdout = c.stdout
 	c.cmd.Stderr = c.stdout
 
@@ -179,26 +197,4 @@ func (c *Commander) Stop(ctx context.Context) error {
 	close(finished)
 
 	return innerErr
-}
-
-func (c *Commander) VerifyChecksum(scriptName string) bool {
-	oldSum := scriptChecksums[scriptName]
-
-	f, err := os.Open(LinuxScriptsLocation + scriptName)
-	defer func(f *os.File) {
-		err2 := f.Close()
-		if err2 != nil {
-			return
-		}
-	}(f)
-	if err != nil {
-		return false
-	}
-
-	hasher := sha512.New()
-	if _, err := io.Copy(hasher, f); err != nil {
-		return false
-	}
-	freshSum := hex.EncodeToString(hasher.Sum(nil))
-	return oldSum == freshSum
 }

@@ -14,8 +14,6 @@
 
 package scriptedinputreceiver
 
-//go:generate sh ./generate_checksums.sh
-
 import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/adapter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator"

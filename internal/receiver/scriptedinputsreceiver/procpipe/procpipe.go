@@ -185,7 +185,7 @@ func (g *Input) Start(_ operator.Persister) error {
 func (g *Input) beginCycle(ctx context.Context) error {
 
 	stdOutReader, stdOutWriter := io.Pipe()
-	commander, err := NewCommander(g.logger.Desugar(), g.baseConfig.ScriptName+".sh", stdOutWriter)
+	commander, err := NewCommander(g.logger.Desugar(), g.baseConfig.ScriptName, stdOutWriter)
 	if err != nil {
 		return err
 	}

@@ -17,37 +17,22 @@
 package tests
 
 import (
-	"path/filepath"
 	"testing"
-
-	"github.com/stretchr/testify/require"
-	"github.com/testcontainers/testcontainers-go"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
-func TestScriptReceiverDf(t *testing.T) {
+func TestScriptReceiver(t *testing.T) {
 	testutils.AssertValidLogsHeader(t, "cpu.yaml", "script_config_cpu.yaml",
 		nil, []testutils.CollectorBuilder{
 			func(c testutils.Collector) testutils.Collector {
-				df, err := filepath.Abs(filepath.Join("..", "..", "..", "..", "internal", "receiver", "scriptedinputsreceiver", "scripts", "cpu.sh"))
-				require.NoError(t, err)
-				if cc, ok := c.(*testutils.CollectorContainer); ok {
-					cc.Container = cc.Container.WithMount(testcontainers.BindMount(df, "/etc/otel/collector/scripts/cpu.sh"))
-				}
 				return c
 			},
 		},
 	)
-
 	testutils.AssertValidLogsHeader(t, "df.yaml", "script_config_df.yaml",
 		nil, []testutils.CollectorBuilder{
 			func(c testutils.Collector) testutils.Collector {
-				df, err := filepath.Abs(filepath.Join("..", "..", "..", "..", "internal", "receiver", "scriptedinputsreceiver", "scripts", "df.sh"))
-				require.NoError(t, err)
-				if cc, ok := c.(*testutils.CollectorContainer); ok {
-					cc.Container = cc.Container.WithMount(testcontainers.BindMount(df, "/etc/otel/collector/scripts/df.sh"))
-				}
 				return c
 			},
 		},
@@ -56,11 +41,6 @@ func TestScriptReceiverDf(t *testing.T) {
 	testutils.AssertValidLogsHeader(t, "ps.yaml", "script_config_ps.yaml",
 		nil, []testutils.CollectorBuilder{
 			func(c testutils.Collector) testutils.Collector {
-				df, err := filepath.Abs(filepath.Join("..", "..", "..", "..", "internal", "receiver", "scriptedinputsreceiver", "scripts", "ps.sh"))
-				require.NoError(t, err)
-				if cc, ok := c.(*testutils.CollectorContainer); ok {
-					cc.Container = cc.Container.WithMount(testcontainers.BindMount(df, "/etc/otel/collector/scripts/ps.sh"))
-				}
 				return c
 			},
 		},

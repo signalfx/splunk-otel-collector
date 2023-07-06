@@ -27,6 +27,8 @@ import (
 	"go.uber.org/zap"
 )
 
+const includePattern = ". \"$(dirname \"$0\")\"/common.sh"
+
 //go:embed scripts/cpu.sh
 var cpuScript string
 
@@ -79,7 +81,8 @@ func (c *Commander) Start(ctx context.Context) error {
 	}
 
 	c.cmd = exec.CommandContext(ctx, "/bin/sh", c.args...) //nolint:gosec
-	replaced := strings.Replace(scripts[c.execFilePath], ". \"$(dirname \"$0\")\"/common.sh", commonScript, 1)
+
+	replaced := strings.Replace(scripts[c.execFilePath], includePattern, commonScript, 1)
 
 	// Capture standard output and standard error.
 	c.cmd.Stdin = strings.NewReader(replaced)

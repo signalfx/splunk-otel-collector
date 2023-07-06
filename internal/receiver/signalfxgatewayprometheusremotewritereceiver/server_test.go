@@ -31,7 +31,7 @@ import (
 func TestWriteEmpty(t *testing.T) {
 	mc := make(chan<- pmetric.Metrics)
 	mockReporter := newMockReporter()
-	freePort, err := GetFreePort()
+	freePort, err := getFreePort()
 	require.NoError(t, err)
 	expectedEndpoint := fmt.Sprintf("localhost:%d", freePort)
 	parser := newPrometheusRemoteOtelParser()
@@ -62,7 +62,7 @@ func TestWriteEmpty(t *testing.T) {
 		serverLifecycle.Done()
 	}()
 
-	client, err := NewMockPrwClient(
+	client, err := newMockPrwClient(
 		cfg.Endpoint,
 		"metrics",
 		timeout,
@@ -70,7 +70,7 @@ func TestWriteEmpty(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, client)
 	require.Eventually(t, func() bool { remoteWriteServer.ready(); return true }, time.Second*10, 50*time.Millisecond)
-	require.NoError(t, client.SendWriteRequest(&prompb.WriteRequest{
+	require.NoError(t, client.sendWriteRequest(&prompb.WriteRequest{
 		Timeseries: []prompb.TimeSeries{},
 		Metadata:   []prompb.MetricMetadata{},
 	}))
@@ -83,7 +83,7 @@ func TestWriteEmpty(t *testing.T) {
 func TestWriteMany(t *testing.T) {
 	mc := make(chan<- pmetric.Metrics, 1000)
 	mockReporter := newMockReporter()
-	freePort, err := GetFreePort()
+	freePort, err := getFreePort()
 	require.NoError(t, err)
 	expectedEndpoint := fmt.Sprintf("localhost:%d", freePort)
 	parser := newPrometheusRemoteOtelParser()
@@ -113,7 +113,7 @@ func TestWriteMany(t *testing.T) {
 	}()
 	require.Eventually(t, func() bool { remoteWriteServer.ready(); return true }, time.Second*10, 50*time.Millisecond)
 
-	client, err := NewMockPrwClient(
+	client, err := newMockPrwClient(
 		cfg.Endpoint,
 		"metrics",
 		timeout,
@@ -121,9 +121,9 @@ func TestWriteMany(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, client)
 	time.Sleep(100 * time.Millisecond)
-	wqs := GetWriteRequestsOfAllTypesWithoutMetadata()
+	wqs := getWriteRequestsOfAllTypesWithoutMetadata()
 	for _, wq := range wqs {
-		require.NoError(t, client.SendWriteRequest(wq))
+		require.NoError(t, client.sendWriteRequest(wq))
 	}
 
 	require.NoError(t, mockReporter.WaitAllOnMetricsProcessedCalls(time.Second*5))

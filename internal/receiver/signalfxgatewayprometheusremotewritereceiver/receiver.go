@@ -38,8 +38,7 @@ type prometheusRemoteWriteReceiver struct {
 	settings     receiver.CreateSettings
 }
 
-// New creates the PrometheusRemoteWrite receiver with the given parameters.
-func New(
+func newReceiver(
 	settings receiver.CreateSettings,
 	config *Config,
 	nextConsumer consumer.Metrics,

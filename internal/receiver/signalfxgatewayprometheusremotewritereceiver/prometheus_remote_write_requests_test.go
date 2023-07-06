@@ -29,7 +29,7 @@ var (
 	Jan20 = time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
 )
 
-func SampleCounterTs() []prompb.TimeSeries {
+func sampleCounterTs() []prompb.TimeSeries {
 	return []prompb.TimeSeries{
 		{
 			Labels: []prompb.Label{
@@ -43,11 +43,11 @@ func SampleCounterTs() []prompb.TimeSeries {
 		},
 	}
 }
-func SampleCounterWq() *prompb.WriteRequest {
-	return &prompb.WriteRequest{Timeseries: SampleCounterTs()}
+func sampleCounterWq() *prompb.WriteRequest {
+	return &prompb.WriteRequest{Timeseries: sampleCounterTs()}
 }
 
-func SampleGaugeTs() []prompb.TimeSeries {
+func sampleGaugeTs() []prompb.TimeSeries {
 	return []prompb.TimeSeries{
 		{
 			Labels: []prompb.Label{
@@ -60,9 +60,9 @@ func SampleGaugeTs() []prompb.TimeSeries {
 	}
 }
 
-func SampleGaugeWq() *prompb.WriteRequest { return &prompb.WriteRequest{Timeseries: SampleGaugeTs()} }
+func sampleGaugeWq() *prompb.WriteRequest { return &prompb.WriteRequest{Timeseries: sampleGaugeTs()} }
 
-func SampleHistogramTs() []prompb.TimeSeries {
+func sampleHistogramTs() []prompb.TimeSeries {
 	return []prompb.TimeSeries{
 		{
 			Labels: []prompb.Label{
@@ -101,13 +101,13 @@ func SampleHistogramTs() []prompb.TimeSeries {
 	}
 }
 
-func SampleHistogramWq() *prompb.WriteRequest {
+func sampleHistogramWq() *prompb.WriteRequest {
 	return &prompb.WriteRequest{
-		Timeseries: SampleHistogramTs(),
+		Timeseries: sampleHistogramTs(),
 	}
 }
 
-func SampleSummaryTs() []prompb.TimeSeries {
+func sampleSummaryTs() []prompb.TimeSeries {
 	return []prompb.TimeSeries{
 		{
 			Labels: []prompb.Label{
@@ -146,13 +146,13 @@ func SampleSummaryTs() []prompb.TimeSeries {
 	}
 }
 
-func SampleSummaryWq() *prompb.WriteRequest {
+func sampleSummaryWq() *prompb.WriteRequest {
 	return &prompb.WriteRequest{
-		Timeseries: SampleSummaryTs(),
+		Timeseries: sampleSummaryTs(),
 	}
 }
 
-func ExpectedCounter() pmetric.Metrics {
+func expectedCounter() pmetric.Metrics {
 	result := pmetric.NewMetrics()
 	resourceMetrics := result.ResourceMetrics().AppendEmpty()
 	scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
@@ -173,7 +173,7 @@ func ExpectedCounter() pmetric.Metrics {
 	return result
 }
 
-func ExpectedGauge() pmetric.Metrics {
+func expectedGauge() pmetric.Metrics {
 	result := pmetric.NewMetrics()
 	resourceMetrics := result.ResourceMetrics().AppendEmpty()
 	scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
@@ -190,7 +190,7 @@ func ExpectedGauge() pmetric.Metrics {
 	return result
 }
 
-func ExpectedSfxCompatibleHistogram() pmetric.Metrics {
+func expectedSfxCompatibleHistogram() pmetric.Metrics {
 	result := pmetric.NewMetrics()
 	resourceMetrics := result.ResourceMetrics().AppendEmpty()
 	scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
@@ -249,7 +249,7 @@ func ExpectedSfxCompatibleHistogram() pmetric.Metrics {
 	return result
 }
 
-func ExpectedSfxCompatibleQuantile() pmetric.Metrics {
+func expectedSfxCompatibleQuantile() pmetric.Metrics {
 	result := pmetric.NewMetrics()
 	resourceMetrics := result.ResourceMetrics().AppendEmpty()
 	scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
@@ -306,21 +306,21 @@ func ExpectedSfxCompatibleQuantile() pmetric.Metrics {
 	return result
 }
 
-func GetWriteRequestsOfAllTypesWithoutMetadata() []*prompb.WriteRequest {
+func getWriteRequestsOfAllTypesWithoutMetadata() []*prompb.WriteRequest {
 	var sampleWriteRequestsNoMetadata = []*prompb.WriteRequest{
 		// Counter
-		SampleCounterWq(),
+		sampleCounterWq(),
 		// Gauge
-		SampleGaugeWq(),
+		sampleGaugeWq(),
 		// Histogram
-		SampleHistogramWq(),
+		sampleHistogramWq(),
 		// Summary
-		SampleSummaryWq(),
+		sampleSummaryWq(),
 	}
 	return sampleWriteRequestsNoMetadata
 }
 
-func AddSfxCompatibilityMetrics(metrics pmetric.Metrics, expectedNans int64, expectedMissing int64, expectedInvalid int64) pmetric.Metrics {
+func addSfxCompatibilityMetrics(metrics pmetric.Metrics, expectedNans int64, expectedMissing int64, expectedInvalid int64) pmetric.Metrics {
 	if metrics == pmetric.NewMetrics() {
 		metrics.ResourceMetrics().AppendEmpty().ScopeMetrics().AppendEmpty()
 	}
@@ -376,7 +376,7 @@ func addSfxCompatibilityNanMetrics(scopeMetrics pmetric.ScopeMetrics, value int6
 	return metric
 }
 
-func FlattenWriteRequests(request []*prompb.WriteRequest) *prompb.WriteRequest {
+func flattenWriteRequests(request []*prompb.WriteRequest) *prompb.WriteRequest {
 	var ts []prompb.TimeSeries
 	for _, req := range request {
 		ts = append(ts, req.Timeseries...)
@@ -387,7 +387,7 @@ func FlattenWriteRequests(request []*prompb.WriteRequest) *prompb.WriteRequest {
 }
 
 func TestBasicNoMd(t *testing.T) {
-	wqs := GetWriteRequestsOfAllTypesWithoutMetadata()
+	wqs := getWriteRequestsOfAllTypesWithoutMetadata()
 	require.NotNil(t, wqs)
 	for _, wq := range wqs {
 		for _, ts := range wq.Timeseries {

@@ -30,7 +30,7 @@ func TestParseAndPartitionPrometheusRemoteWriteRequest(t *testing.T) {
 	require.NotNil(t, reporter)
 	parser := newPrometheusRemoteOtelParser()
 
-	sampleWriteRequests := FlattenWriteRequests(GetWriteRequestsOfAllTypesWithoutMetadata())
+	sampleWriteRequests := flattenWriteRequests(getWriteRequestsOfAllTypesWithoutMetadata())
 	noMdPartitions, err := parser.partitionWriteRequest(sampleWriteRequests)
 	require.NoError(t, err)
 	require.Empty(t, sampleWriteRequests.Metadata, "NoMetadata (heuristical) portion of test contains metadata")
@@ -80,23 +80,23 @@ func TestAddMetricsHappyPath(t *testing.T) {
 	}{
 		{
 			Name:     "test counters",
-			Sample:   SampleCounterWq(),
-			Expected: AddSfxCompatibilityMetrics(ExpectedCounter(), 0, 0, 0),
+			Sample:   sampleCounterWq(),
+			Expected: addSfxCompatibilityMetrics(expectedCounter(), 0, 0, 0),
 		},
 		{
 			Name:     "test gauges",
-			Sample:   SampleGaugeWq(),
-			Expected: AddSfxCompatibilityMetrics(ExpectedGauge(), 0, 0, 0),
+			Sample:   sampleGaugeWq(),
+			Expected: addSfxCompatibilityMetrics(expectedGauge(), 0, 0, 0),
 		},
 		{
 			Name:     "test histograms",
-			Sample:   SampleHistogramWq(),
-			Expected: AddSfxCompatibilityMetrics(ExpectedSfxCompatibleHistogram(), 0, 0, 0),
+			Sample:   sampleHistogramWq(),
+			Expected: addSfxCompatibilityMetrics(expectedSfxCompatibleHistogram(), 0, 0, 0),
 		},
 		{
 			Name:     "test quantiles",
-			Sample:   SampleSummaryWq(),
-			Expected: AddSfxCompatibilityMetrics(ExpectedSfxCompatibleQuantile(), 0, 0, 0),
+			Sample:   sampleSummaryWq(),
+			Expected: addSfxCompatibilityMetrics(expectedSfxCompatibleQuantile(), 0, 0, 0),
 		},
 	}
 

@@ -30,12 +30,12 @@ import (
 	"github.com/prometheus/prometheus/storage/remote"
 )
 
-type MockPrwClient struct {
+type mockPrwClient struct {
 	Client  remote.WriteClient
 	Timeout time.Duration
 }
 
-func NewMockPrwClient(addr string, path string, timeout time.Duration) (MockPrwClient, error) {
+func newMockPrwClient(addr string, path string, timeout time.Duration) (mockPrwClient, error) {
 	URL := &config.URL{
 		URL: &url.URL{
 			Scheme: "http",
@@ -49,13 +49,13 @@ func NewMockPrwClient(addr string, path string, timeout time.Duration) (MockPrwC
 		HTTPClientConfig: config.HTTPClientConfig{},
 	}
 	client, err := remote.NewWriteClient("mock_prw_client", cfg)
-	return MockPrwClient{
+	return mockPrwClient{
 		Client:  client,
 		Timeout: timeout,
 	}, err
 }
 
-func (prwc *MockPrwClient) SendWriteRequest(wr *prompb.WriteRequest) error {
+func (prwc *mockPrwClient) sendWriteRequest(wr *prompb.WriteRequest) error {
 
 	data, err := proto.Marshal(wr)
 	if err != nil {
@@ -82,7 +82,7 @@ func (prwc *MockPrwClient) SendWriteRequest(wr *prompb.WriteRequest) error {
 	return errors.New("failed to send prometheus remote write requests to server")
 }
 
-func GetFreePort() (int, error) {
+func getFreePort() (int, error) {
 	addr, err := net.ResolveTCPAddr("tcp", "127.0.0.1:0")
 	if err != nil {
 		return 0, err

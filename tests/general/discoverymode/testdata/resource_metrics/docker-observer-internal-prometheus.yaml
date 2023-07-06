@@ -13,5 +13,11 @@ resource_metrics:
           version: <VERSION_FROM_BUILD>
         metrics:
           - name: prometheus_tsdb_exemplar_exemplars_in_storage
+            attributes:
+              label_one: actual.label.one.value
+              label_two: actual.label.two.value
+              label_three: actual.label.three.value
+              label_four: actual.label.four.value
+              label_five: actual.label.five.value
             description: Number of exemplars currently in circular storage.
             type: DoubleGauge

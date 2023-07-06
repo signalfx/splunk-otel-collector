@@ -1,0 +1,12 @@
+splunk.discovery.receivers.prometheus_simple.config.labels::label_three: overwritten by --set property
+splunk.discovery.receivers.prometheus_simple.config.labels::label_four: overwritten by env var property
+splunk.discovery.receivers.prometheus_simple.config.labels::label_five: actual.label.five.value
+splunk.discovery:
+  extensions:
+    docker_observer:
+      enabled: false # overwritten by --set and env var properties
+  receivers:
+    prometheus_simple:
+      config:
+        labels:
+          label_five: overwritten by above --set form

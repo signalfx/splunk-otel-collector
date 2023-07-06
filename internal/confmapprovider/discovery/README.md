@@ -88,7 +88,7 @@ service:
 
 ## Discovery Mode
 
-This component also provides a `--discovery [--dry-run]` option compatible with `config.d` that attempts to instantiate
+This component also provides a `--discovery [--dry-run] [--discovery-properties=<properties.yaml>]` option compatible with `config.d` that attempts to instantiate
 any `.discovery.yaml` receivers using corresponding `.discovery.yaml` observers in a "preflight" Collector service.
 Discovery mode will:
 
@@ -165,6 +165,8 @@ splunk.discovery.extensions.k8s_observer.enabled: false
 ```
 
 These properties can be in `config.d/properties.discovery.yaml` or specified at run time with `--set` command line options.
+
+You can also specify a `--discovery-properties=<filepath.yaml>` argument to disregard `config.d/properties.discovery.yaml` properties and load properties not to be shared with another Collector service, while still benefiting from existing discovery component definitions.
 
 The `config.d/properties.discovery.yaml` file supports specifying the property values directly as well within a mapped form:
 

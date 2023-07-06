@@ -19,6 +19,7 @@ import (
 	"io"
 	"io/fs"
 	"os"
+	"path/filepath"
 	"regexp"
 	"sort"
 
@@ -89,7 +90,8 @@ type Config struct {
 	// DiscoveryProperties is a mapping of discovery properties to their values for
 	// configuring discovery mode components.
 	// It must be in the root config directory and named "properties.discovery.yaml".
-	DiscoveryProperties PropertiesEntry
+	DiscoveryProperties     PropertiesEntry
+	propertiesAlreadyLoaded bool
 }
 
 func NewConfig(logger *zap.Logger) *Config {
@@ -259,6 +261,10 @@ func (c *Config) LoadFS(dirfs fs.FS) error {
 			tmpSEMap := map[string]ServiceEntry{typeService: c.Service}
 			return loadEntry(typeService, dirfs, path, tmpSEMap)
 		case isDiscoveryPropertiesEntryPath(path):
+			if c.propertiesAlreadyLoaded {
+				c.logger.Debug("disregarding properties file for user specified path")
+				return nil
+			}
 			// c.DiscoveryProperties is not a map[string]PropertiesEntry, so we form a tmp
 			// and unmarshal to the underlying PropertiesEntry
 			tmpDPMap := map[string]PropertiesEntry{typeDiscoveryProperties: c.DiscoveryProperties}
@@ -294,6 +300,13 @@ func (c *Config) LoadFS(dirfs fs.FS) error {
 		c.DiscoveryProperties = PropertiesEntry{nil}
 	}
 	return err
+}
+
+func (c *Config) LoadProperties(path string) error {
+	dirfs := os.DirFS(filepath.Dir(path))
+	path = filepath.Base(path)
+	tmpDPMap := map[string]PropertiesEntry{typeDiscoveryProperties: c.DiscoveryProperties}
+	return loadEntry(typeDiscoveryProperties, dirfs, path, tmpDPMap)
 }
 
 // toServiceConfig renders the loaded Config content

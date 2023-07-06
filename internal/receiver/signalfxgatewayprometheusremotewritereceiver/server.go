@@ -34,13 +34,13 @@ type prometheusRemoteWriteServer struct {
 }
 
 type serverConfig struct {
+	confighttp.HTTPServerSettings
+	component.TelemetrySettings
 	Reporter reporter
 	component.Host
-	Mc chan<- pmetric.Metrics
-	component.TelemetrySettings
-	Path   string
+	Mc     chan<- pmetric.Metrics
 	Parser *prometheusRemoteOtelParser
-	confighttp.HTTPServerSettings
+	Path   string
 }
 
 func newPrometheusRemoteWriteServer(config *serverConfig) (*prometheusRemoteWriteServer, error) {

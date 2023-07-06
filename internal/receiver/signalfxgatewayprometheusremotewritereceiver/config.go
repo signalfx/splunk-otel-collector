@@ -25,12 +25,9 @@ import (
 var _ component.Config = (*Config)(nil)
 
 type Config struct {
-	// ListenPath is the path in which the receiver should respond to prometheus remote write requests.
-	ListenPath string `mapstructure:"path"`
-	// provides generic settings for connecting to HTTP servers as commonly used in opentelemetry
 	confighttp.HTTPServerSettings `mapstructure:",squash"`
-	// BufferSize is the degree to which metric translations may be buffered without blocking further write requests.
-	BufferSize int `mapstructure:"buffer_size"`
+	ListenPath                    string `mapstructure:"path"`
+	BufferSize                    int    `mapstructure:"buffer_size"`
 }
 
 func (c *Config) Validate() error {

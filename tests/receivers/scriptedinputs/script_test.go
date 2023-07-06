@@ -30,6 +30,7 @@ func TestScriptReceiver(t *testing.T) {
 			},
 		},
 	)
+
 	testutils.AssertValidLogsHeader(t, "df.yaml", "script_config_df.yaml",
 		nil, []testutils.CollectorBuilder{
 			func(c testutils.Collector) testutils.Collector {

@@ -123,7 +123,7 @@ require (
 	github.com/hashicorp/golang-lru v0.6.0
 	github.com/kr/pretty v0.3.1
 	github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-00010101000000-000000000000
-	github.com/smartystreets/goconvey v1.8.0
+	github.com/smartystreets/goconvey v1.8.1
 	gotest.tools v2.2.0+incompatible
 )
 
@@ -274,6 +274,7 @@ require (
 	github.com/shirou/gopsutil/v3 v3.22.8 // indirect
 	github.com/signalfx/gohistogram v0.0.0-20160107210732-1ccfd2ff5083 // indirect
 	github.com/signalfx/sapm-proto v0.12.0 // indirect
+	github.com/smarty/assertions v1.15.0 // indirect
 	github.com/smartystreets/assertions v1.13.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/objx v0.5.0 // indirect

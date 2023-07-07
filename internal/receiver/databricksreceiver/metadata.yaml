@@ -288,7 +288,7 @@ metrics:
   databricks.spark.executor_metrics.major_gc.count:
     enabled: true
     description: Total major GC count. For example, the garbage collector is one of MarkSweepCompact, PS MarkSweep, ConcurrentMarkSweep, G1 Old Generation and so on.
-    unit: "{gc}"
+    unit: "{gc_operations}"
     gauge:
       value_type: double
     attributes:

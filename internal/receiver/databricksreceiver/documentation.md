@@ -1129,7 +1129,7 @@ Total major GC count. For example, the garbage collector is one of MarkSweepComp
 
 | Unit | Metric Type | Value Type |
 | ---- | ----------- | ---------- |
-| {gc} | Gauge | Double |
+| {gc_operations} | Gauge | Double |
 
 #### Attributes
 

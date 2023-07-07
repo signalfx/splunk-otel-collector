@@ -3735,7 +3735,7 @@ type metricDatabricksSparkExecutorMetricsMajorGcCount struct {
 func (m *metricDatabricksSparkExecutorMetricsMajorGcCount) init() {
 	m.data.SetName("databricks.spark.executor_metrics.major_gc.count")
 	m.data.SetDescription("Total major GC count. For example, the garbage collector is one of MarkSweepCompact, PS MarkSweep, ConcurrentMarkSweep, G1 Old Generation and so on.")
-	m.data.SetUnit("{gc}")
+	m.data.SetUnit("{gc_operations}")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }

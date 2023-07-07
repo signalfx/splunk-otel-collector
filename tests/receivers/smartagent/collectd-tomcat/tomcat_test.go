@@ -18,6 +18,7 @@ package tests
 import (
 	"path"
 	"testing"
+	"time"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
@@ -25,7 +26,7 @@ import (
 var apache = []testutils.Container{
 	testutils.NewContainer().WithContext(
 		path.Join(".", "testdata", "server"),
-	).WithExposedPorts("5000:5000").WithName("tomcat").WillWaitForPorts("5000"),
+	).WithExposedPorts("5000:5000").WithName("tomcat").WillWaitForHealth(30 * time.Second),
 }
 
 func TestCollectdTomcatReceiverProvidesDefaultMetrics(t *testing.T) {

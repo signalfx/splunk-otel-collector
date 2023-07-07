@@ -75,9 +75,9 @@ func TestParseAndPartitionPrometheusRemoteWriteRequest(t *testing.T) {
 func TestAddMetrics(t *testing.T) {
 
 	testCases := []struct {
-		name      string
 		sample    *prompb.WriteRequest
 		expected  pmetric.Metrics
+		name      string
 		errWanted bool
 	}{
 		{

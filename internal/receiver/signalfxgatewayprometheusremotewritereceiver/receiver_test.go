@@ -64,7 +64,6 @@ func TestEmptySend(t *testing.T) {
 
 	client, err := newMockPrwClient(
 		cfg.Endpoint,
-		"metrics",
 		time.Second*5,
 	)
 	require.NoError(t, err)
@@ -115,7 +114,6 @@ func TestSuccessfulSend(t *testing.T) {
 
 	client, err := newMockPrwClient(
 		cfg.Endpoint,
-		"metrics",
 		time.Second*5,
 	)
 	require.NoError(t, err)
@@ -129,8 +127,8 @@ func TestSuccessfulSend(t *testing.T) {
 		if nil != err {
 			assert.NoError(t, errors.Unwrap(err))
 		}
-		// always will have 3 "health" metrics due to sfx gateway compatibility metrics
-		assert.GreaterOrEqual(t, mockreporter.TotalSuccessMetrics.Load(), int32(len(wq.Timeseries)+3))
+		// always will have 2 "health" metrics due to sfx gateway compatibility metrics
+		assert.GreaterOrEqual(t, mockreporter.TotalSuccessMetrics.Load(), int32(len(wq.Timeseries)+2))
 		assert.Equal(t, mockreporter.TotalErrorMetrics.Load(), int32(0))
 	}
 
@@ -169,7 +167,6 @@ func TestRealReporter(t *testing.T) {
 
 	client, err := newMockPrwClient(
 		cfg.Endpoint,
-		"metrics",
 		time.Second*5,
 	)
 	require.NoError(t, err)

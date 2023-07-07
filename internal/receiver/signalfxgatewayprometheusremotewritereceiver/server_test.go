@@ -64,7 +64,6 @@ func TestWriteEmpty(t *testing.T) {
 
 	client, err := newMockPrwClient(
 		cfg.Endpoint,
-		"metrics",
 		timeout,
 	)
 	require.NoError(t, err)
@@ -115,7 +114,6 @@ func TestWriteMany(t *testing.T) {
 
 	client, err := newMockPrwClient(
 		cfg.Endpoint,
-		"metrics",
 		timeout,
 	)
 	require.NoError(t, err)

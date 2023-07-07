@@ -26,7 +26,7 @@ import (
 )
 
 var (
-	Jan20 = time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
+	jan20 = time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
 )
 
 func sampleCounterTs() []prompb.TimeSeries {
@@ -38,7 +38,7 @@ func sampleCounterTs() []prompb.TimeSeries {
 				{Name: "status", Value: "200"},
 			},
 			Samples: []prompb.Sample{
-				{Value: 1024, Timestamp: Jan20.UnixMilli()},
+				{Value: 1024, Timestamp: jan20.UnixMilli()},
 			},
 		},
 	}
@@ -54,7 +54,7 @@ func sampleGaugeTs() []prompb.TimeSeries {
 				{Name: "__name__", Value: "i_am_a_gauge"},
 			},
 			Samples: []prompb.Sample{
-				{Value: 42, Timestamp: Jan20.UnixMilli()},
+				{Value: 42, Timestamp: jan20.UnixMilli()},
 			},
 		},
 	}
@@ -70,7 +70,7 @@ func sampleHistogramTs() []prompb.TimeSeries {
 				{Name: "le", Value: "0.1"},
 			},
 			Samples: []prompb.Sample{
-				{Value: 500, Timestamp: Jan20.UnixMilli()},
+				{Value: 500, Timestamp: jan20.UnixMilli()},
 			},
 		},
 		{
@@ -79,7 +79,7 @@ func sampleHistogramTs() []prompb.TimeSeries {
 				{Name: "le", Value: "0.2"},
 			},
 			Samples: []prompb.Sample{
-				{Value: 1500, Timestamp: Jan20.UnixMilli()},
+				{Value: 1500, Timestamp: jan20.UnixMilli()},
 			},
 		},
 		{
@@ -87,7 +87,7 @@ func sampleHistogramTs() []prompb.TimeSeries {
 				{Name: "__name__", Value: "api_request_duration_seconds_count"},
 			},
 			Samples: []prompb.Sample{
-				{Value: 2500, Timestamp: Jan20.UnixMilli()},
+				{Value: 2500, Timestamp: jan20.UnixMilli()},
 			},
 		},
 		{
@@ -95,7 +95,7 @@ func sampleHistogramTs() []prompb.TimeSeries {
 				{Name: "__name__", Value: "api_request_duration_seconds_sum"},
 			},
 			Samples: []prompb.Sample{
-				{Value: 350, Timestamp: Jan20.UnixMilli()},
+				{Value: 350, Timestamp: jan20.UnixMilli()},
 			},
 		},
 	}
@@ -115,7 +115,7 @@ func sampleSummaryTs() []prompb.TimeSeries {
 				{Name: "quantile", Value: "0.5"},
 			},
 			Samples: []prompb.Sample{
-				{Value: 0.25, Timestamp: Jan20.UnixMilli()},
+				{Value: 0.25, Timestamp: jan20.UnixMilli()},
 			},
 		},
 		{
@@ -124,7 +124,7 @@ func sampleSummaryTs() []prompb.TimeSeries {
 				{Name: "quantile", Value: "0.9"},
 			},
 			Samples: []prompb.Sample{
-				{Value: 0.35, Timestamp: Jan20.UnixMilli()},
+				{Value: 0.35, Timestamp: jan20.UnixMilli()},
 			},
 		},
 		{
@@ -132,7 +132,7 @@ func sampleSummaryTs() []prompb.TimeSeries {
 				{Name: "__name__", Value: "request_duration_seconds_sum"},
 			},
 			Samples: []prompb.Sample{
-				{Value: 123.5, Timestamp: Jan20.UnixMilli()},
+				{Value: 123.5, Timestamp: jan20.UnixMilli()},
 			},
 		},
 		{
@@ -140,7 +140,7 @@ func sampleSummaryTs() []prompb.TimeSeries {
 				{Name: "__name__", Value: "request_duration_seconds_count"},
 			},
 			Samples: []prompb.Sample{
-				{Value: 1500, Timestamp: Jan20.UnixMilli()},
+				{Value: 1500, Timestamp: jan20.UnixMilli()},
 			},
 		},
 	}
@@ -164,8 +164,8 @@ func expectedCounter() pmetric.Metrics {
 	counter.SetIsMonotonic(true)
 	counter.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
 	dp := counter.DataPoints().AppendEmpty()
-	dp.SetTimestamp(pcommon.NewTimestampFromTime(Jan20))
-	dp.SetStartTimestamp(pcommon.NewTimestampFromTime(Jan20))
+	dp.SetTimestamp(pcommon.NewTimestampFromTime(jan20))
+	dp.SetStartTimestamp(pcommon.NewTimestampFromTime(jan20))
 	dp.SetIntValue(1024)
 	dp.Attributes().PutStr("method", "GET")
 	dp.Attributes().PutStr("status", "200")
@@ -183,8 +183,8 @@ func expectedGauge() pmetric.Metrics {
 	metric.SetName("i_am_a_gauge")
 	counter := metric.SetEmptyGauge()
 	dp := counter.DataPoints().AppendEmpty()
-	dp.SetTimestamp(pcommon.NewTimestampFromTime(Jan20))
-	dp.SetStartTimestamp(pcommon.NewTimestampFromTime(Jan20))
+	dp.SetTimestamp(pcommon.NewTimestampFromTime(jan20))
+	dp.SetStartTimestamp(pcommon.NewTimestampFromTime(jan20))
 	dp.SetIntValue(42)
 
 	return result
@@ -206,12 +206,12 @@ func expectedSfxCompatibleHistogram() pmetric.Metrics {
 		{
 			bucket:    "0.1",
 			value:     500,
-			timestamp: Jan20.UnixNano(),
+			timestamp: jan20.UnixNano(),
 		},
 		{
 			bucket:    "0.2",
 			value:     1500,
-			timestamp: Jan20.UnixNano(),
+			timestamp: jan20.UnixNano(),
 		},
 	}
 	for _, values := range pairs {
@@ -233,8 +233,8 @@ func expectedSfxCompatibleHistogram() pmetric.Metrics {
 	counter.SetIsMonotonic(true)
 	counter.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
 	dp := counter.DataPoints().AppendEmpty()
-	dp.SetTimestamp(pcommon.Timestamp(Jan20.UnixNano()))
-	dp.SetStartTimestamp(pcommon.Timestamp(Jan20.UnixNano()))
+	dp.SetTimestamp(pcommon.Timestamp(jan20.UnixNano()))
+	dp.SetStartTimestamp(pcommon.Timestamp(jan20.UnixNano()))
 	dp.SetIntValue(2500)
 
 	metric = scopeMetrics.Metrics().AppendEmpty()
@@ -242,8 +242,8 @@ func expectedSfxCompatibleHistogram() pmetric.Metrics {
 	gauge := metric.SetEmptyGauge()
 	dp = gauge.DataPoints().AppendEmpty()
 
-	dp.SetTimestamp(pcommon.Timestamp(Jan20.UnixNano()))
-	dp.SetStartTimestamp(pcommon.Timestamp(Jan20.UnixNano()))
+	dp.SetTimestamp(pcommon.Timestamp(jan20.UnixNano()))
+	dp.SetStartTimestamp(pcommon.Timestamp(jan20.UnixNano()))
 	dp.SetIntValue(350)
 
 	return result
@@ -265,12 +265,12 @@ func expectedSfxCompatibleQuantile() pmetric.Metrics {
 		{
 			bucket:    "0.5",
 			value:     .25,
-			timestamp: Jan20.UnixNano(),
+			timestamp: jan20.UnixNano(),
 		},
 		{
 			bucket:    "0.9",
 			value:     .35,
-			timestamp: Jan20.UnixNano(),
+			timestamp: jan20.UnixNano(),
 		},
 	}
 	for _, values := range pairs {
@@ -290,8 +290,8 @@ func expectedSfxCompatibleQuantile() pmetric.Metrics {
 	sum.SetIsMonotonic(true)
 	sum.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
 	dp := sum.DataPoints().AppendEmpty()
-	dp.SetTimestamp(pcommon.Timestamp(Jan20.UnixNano()))
-	dp.SetStartTimestamp(pcommon.Timestamp(Jan20.UnixNano()))
+	dp.SetTimestamp(pcommon.Timestamp(jan20.UnixNano()))
+	dp.SetStartTimestamp(pcommon.Timestamp(jan20.UnixNano()))
 	dp.SetIntValue(1500)
 
 	metric = scopeMetrics.Metrics().AppendEmpty()
@@ -299,8 +299,8 @@ func expectedSfxCompatibleQuantile() pmetric.Metrics {
 	gauge := metric.SetEmptyGauge()
 	dp = gauge.DataPoints().AppendEmpty()
 
-	dp.SetTimestamp(pcommon.Timestamp(Jan20.UnixNano()))
-	dp.SetStartTimestamp(pcommon.Timestamp(Jan20.UnixNano()))
+	dp.SetTimestamp(pcommon.Timestamp(jan20.UnixNano()))
+	dp.SetStartTimestamp(pcommon.Timestamp(jan20.UnixNano()))
 	dp.SetDoubleValue(123.5)
 
 	return result
@@ -320,30 +320,14 @@ func getWriteRequestsOfAllTypesWithoutMetadata() []*prompb.WriteRequest {
 	return sampleWriteRequestsNoMetadata
 }
 
-func addSfxCompatibilityMetrics(metrics pmetric.Metrics, expectedNans int64, expectedMissing int64, expectedInvalid int64) pmetric.Metrics {
-	if metrics == pmetric.NewMetrics() {
+func addSfxCompatibilityMetrics(metrics pmetric.Metrics, expectedNans int64, expectedMissing int64) pmetric.Metrics {
+	if metrics.ResourceMetrics().Len() == 0 {
 		metrics.ResourceMetrics().AppendEmpty().ScopeMetrics().AppendEmpty()
 	}
 	scope := metrics.ResourceMetrics().At(0).ScopeMetrics().At(0)
 	addSfxCompatibilityMissingNameMetrics(scope, expectedMissing)
 	addSfxCompatibilityNanMetrics(scope, expectedNans)
-	addSfxCompatibilityInvalidRequestMetrics(scope, expectedInvalid)
 	return metrics
-}
-
-// addSfxCompatibilityInvalidRequestMetrics adds the meta-metrics to a given scope, but won't set values
-// See https://github.com/signalfx/gateway/blob/main/protocol/prometheus/prometheuslistener.go#L188
-func addSfxCompatibilityInvalidRequestMetrics(scopeMetrics pmetric.ScopeMetrics, value int64) pmetric.Metric {
-	metric := scopeMetrics.Metrics().AppendEmpty()
-	metric.SetName("prometheus.invalid_requests")
-	counter := metric.SetEmptySum()
-	counter.SetIsMonotonic(true)
-	counter.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
-	dp := counter.DataPoints().AppendEmpty()
-	dp.SetIntValue(value)
-	dp.SetStartTimestamp(pcommon.NewTimestampFromTime(Jan20))
-	dp.SetTimestamp(pcommon.NewTimestampFromTime(Jan20))
-	return metric
 }
 
 // addSfxCompatibilityMissingNameMetrics adds the meta-metrics to a given scope, but won't set values
@@ -356,8 +340,8 @@ func addSfxCompatibilityMissingNameMetrics(scopeMetrics pmetric.ScopeMetrics, va
 	counter.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
 	dp := counter.DataPoints().AppendEmpty()
 	dp.SetIntValue(value)
-	dp.SetStartTimestamp(pcommon.NewTimestampFromTime(Jan20))
-	dp.SetTimestamp(pcommon.NewTimestampFromTime(Jan20))
+	dp.SetStartTimestamp(pcommon.NewTimestampFromTime(jan20))
+	dp.SetTimestamp(pcommon.NewTimestampFromTime(jan20))
 	return metric
 }
 
@@ -371,8 +355,8 @@ func addSfxCompatibilityNanMetrics(scopeMetrics pmetric.ScopeMetrics, value int6
 	counter.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
 	dp := counter.DataPoints().AppendEmpty()
 	dp.SetIntValue(value)
-	dp.SetStartTimestamp(pcommon.NewTimestampFromTime(Jan20))
-	dp.SetTimestamp(pcommon.NewTimestampFromTime(Jan20))
+	dp.SetStartTimestamp(pcommon.NewTimestampFromTime(jan20))
+	dp.SetTimestamp(pcommon.NewTimestampFromTime(jan20))
 	return metric
 }
 

@@ -15,6 +15,7 @@
 package signalfxgatewayprometheusremotewritereceiver
 
 import (
+	"math"
 	"testing"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
@@ -71,46 +72,99 @@ func TestParseAndPartitionPrometheusRemoteWriteRequest(t *testing.T) {
 
 }
 
-func TestAddMetricsHappyPath(t *testing.T) {
+func TestAddMetrics(t *testing.T) {
 
 	testCases := []struct {
-		Sample   *prompb.WriteRequest
-		Expected pmetric.Metrics
-		Name     string
+		name      string
+		sample    *prompb.WriteRequest
+		expected  pmetric.Metrics
+		errWanted bool
 	}{
 		{
-			Name:     "test counters",
-			Sample:   sampleCounterWq(),
-			Expected: addSfxCompatibilityMetrics(expectedCounter(), 0, 0, 0),
+			name:     "test counters",
+			sample:   sampleCounterWq(),
+			expected: addSfxCompatibilityMetrics(expectedCounter(), 0, 0),
 		},
 		{
-			Name:     "test gauges",
-			Sample:   sampleGaugeWq(),
-			Expected: addSfxCompatibilityMetrics(expectedGauge(), 0, 0, 0),
+			name:     "test gauges",
+			sample:   sampleGaugeWq(),
+			expected: addSfxCompatibilityMetrics(expectedGauge(), 0, 0),
 		},
 		{
-			Name:     "test histograms",
-			Sample:   sampleHistogramWq(),
-			Expected: addSfxCompatibilityMetrics(expectedSfxCompatibleHistogram(), 0, 0, 0),
+			name:     "test histograms",
+			sample:   sampleHistogramWq(),
+			expected: addSfxCompatibilityMetrics(expectedSfxCompatibleHistogram(), 0, 0),
 		},
 		{
-			Name:     "test quantiles",
-			Sample:   sampleSummaryWq(),
-			Expected: addSfxCompatibilityMetrics(expectedSfxCompatibleQuantile(), 0, 0, 0),
+			name:     "test quantiles",
+			sample:   sampleSummaryWq(),
+			expected: addSfxCompatibilityMetrics(expectedSfxCompatibleQuantile(), 0, 0),
+		},
+		{
+			name: "test missing",
+			sample: &prompb.WriteRequest{
+				Timeseries: []prompb.TimeSeries{
+					{
+						Labels: []prompb.Label{
+							{Name: "quantile", Value: "-0.5"},
+						},
+					},
+				},
+			},
+			expected: addSfxCompatibilityMetrics(func() pmetric.Metrics {
+				result := pmetric.NewMetrics()
+				resourceMetrics := result.ResourceMetrics().AppendEmpty()
+				scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
+				scopeMetrics.Scope().SetName("signalfxgatewayprometheusremotewrite")
+				scopeMetrics.Scope().SetVersion("0.1")
+				return result
+			}(), 0, 1),
+			errWanted: true,
+		},
+		{
+			name: "test nan",
+			sample: &prompb.WriteRequest{
+				Timeseries: []prompb.TimeSeries{
+					{
+						Labels: []prompb.Label{
+							{Name: "__name__", Value: "foo"},
+						},
+						Samples: []prompb.Sample{
+							{Value: math.NaN(), Timestamp: jan20.UnixMilli()},
+						},
+					},
+				},
+			},
+			expected: addSfxCompatibilityMetrics(func() pmetric.Metrics {
+				result := pmetric.NewMetrics()
+				resourceMetrics := result.ResourceMetrics().AppendEmpty()
+				scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
+				scopeMetrics.Scope().SetName("signalfxgatewayprometheusremotewrite")
+				scopeMetrics.Scope().SetVersion("0.1")
+				m := scopeMetrics.Metrics().AppendEmpty()
+				m.SetName("foo")
+				m.SetEmptyGauge()
+				return result
+			}(), 1, 0),
 		},
 	}
 
 	for _, tc := range testCases {
-		t.Run(tc.Name, func(t *testing.T) {
+		t.Run(tc.name, func(t *testing.T) {
 			reporter := newMockReporter()
 			require.NotNil(t, reporter)
 			parser := newPrometheusRemoteOtelParser()
-			actual, err := parser.fromPrometheusWriteRequestMetrics(tc.Sample)
-			assert.NoError(t, err)
-
-			require.NoError(t, pmetrictest.CompareMetrics(tc.Expected, actual,
+			actual, err := parser.fromPrometheusWriteRequestMetrics(tc.sample)
+			if tc.errWanted {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+			require.NoError(t, pmetrictest.CompareMetrics(tc.expected, actual,
 				pmetrictest.IgnoreMetricDataPointsOrder(),
-				pmetrictest.IgnoreMetricsOrder()))
+				pmetrictest.IgnoreMetricsOrder(),
+				pmetrictest.IgnoreTimestamp(),
+				pmetrictest.IgnoreStartTimestamp()))
 		})
 
 	}

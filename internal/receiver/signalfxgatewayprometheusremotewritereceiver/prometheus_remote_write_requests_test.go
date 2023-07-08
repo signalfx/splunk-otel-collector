@@ -320,14 +320,30 @@ func getWriteRequestsOfAllTypesWithoutMetadata() []*prompb.WriteRequest {
 	return sampleWriteRequestsNoMetadata
 }
 
-func addSfxCompatibilityMetrics(metrics pmetric.Metrics, expectedNans int64, expectedMissing int64) pmetric.Metrics {
+func addSfxCompatibilityMetrics(metrics pmetric.Metrics, expectedInvalid int64, expectedNans int64, expectedMissing int64) pmetric.Metrics {
 	if metrics.ResourceMetrics().Len() == 0 {
 		metrics.ResourceMetrics().AppendEmpty().ScopeMetrics().AppendEmpty()
 	}
 	scope := metrics.ResourceMetrics().At(0).ScopeMetrics().At(0)
+	addSfxCompatibilityInvalidRequestMetrics(scope, expectedInvalid)
 	addSfxCompatibilityMissingNameMetrics(scope, expectedMissing)
 	addSfxCompatibilityNanMetrics(scope, expectedNans)
 	return metrics
+}
+
+// addSfxCompatibilityInvalidRequestMetrics adds the meta-metrics to a given scope, but won't set values
+// See https://github.com/signalfx/gateway/blob/main/protocol/prometheus/prometheuslistener.go#L188
+func addSfxCompatibilityInvalidRequestMetrics(scopeMetrics pmetric.ScopeMetrics, value int64) pmetric.Metric {
+	metric := scopeMetrics.Metrics().AppendEmpty()
+	metric.SetName("prometheus.invalid_requests")
+	counter := metric.SetEmptySum()
+	counter.SetIsMonotonic(true)
+	counter.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	dp := counter.DataPoints().AppendEmpty()
+	dp.SetIntValue(value)
+	dp.SetStartTimestamp(pcommon.NewTimestampFromTime(jan20))
+	dp.SetTimestamp(pcommon.NewTimestampFromTime(jan20))
+	return metric
 }
 
 // addSfxCompatibilityMissingNameMetrics adds the meta-metrics to a given scope, but won't set values

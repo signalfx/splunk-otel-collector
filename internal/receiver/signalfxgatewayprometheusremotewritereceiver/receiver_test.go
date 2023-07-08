@@ -127,8 +127,8 @@ func TestSuccessfulSend(t *testing.T) {
 		if nil != err {
 			assert.NoError(t, errors.Unwrap(err))
 		}
-		// always will have 2 "health" metrics due to sfx gateway compatibility metrics
-		assert.GreaterOrEqual(t, mockreporter.TotalSuccessMetrics.Load(), int32(len(wq.Timeseries)+2))
+		// always will have 3 "health" metrics due to sfx gateway compatibility metrics
+		assert.GreaterOrEqual(t, mockreporter.TotalSuccessMetrics.Load(), int32(len(wq.Timeseries)+3))
 		assert.Equal(t, mockreporter.TotalErrorMetrics.Load(), int32(0))
 	}
 

@@ -39,14 +39,16 @@ type metricData struct {
 }
 
 type prometheusRemoteOtelParser struct {
-	totalNans       *atomic.Int64
-	totalBadMetrics *atomic.Int64
+	totalNans            *atomic.Int64
+	totalInvalidRequests *atomic.Int64
+	totalBadMetrics      *atomic.Int64
 }
 
 func newPrometheusRemoteOtelParser() *prometheusRemoteOtelParser {
 	return &prometheusRemoteOtelParser{
-		totalNans:       &atomic.Int64{},
-		totalBadMetrics: &atomic.Int64{},
+		totalNans:            &atomic.Int64{},
+		totalInvalidRequests: &atomic.Int64{},
+		totalBadMetrics:      &atomic.Int64{},
 	}
 }
 
@@ -55,6 +57,7 @@ func (prwParser *prometheusRemoteOtelParser) fromPrometheusWriteRequestMetrics(r
 	otelMetrics := prwParser.transformPrometheusRemoteWriteToOtel(metricFamiliesAndData)
 	startTime, endTime := getWriteRequestTimestampBounds(request)
 	scope := otelMetrics.ResourceMetrics().At(0).ScopeMetrics().At(0)
+	prwParser.addBadRequests(scope, startTime, endTime)
 	prwParser.addNanDataPoints(scope, startTime, endTime)
 	prwParser.addMetricsWithMissingName(scope, startTime, endTime)
 	return otelMetrics, err
@@ -95,6 +98,7 @@ func (prwParser *prometheusRemoteOtelParser) partitionWriteRequest(writeReq *pro
 		}
 		if len(md.Samples) < 1 {
 			translationErrors = multierr.Append(translationErrors, fmt.Errorf("no samples found for  %s", metricName))
+			prwParser.totalInvalidRequests.Add(1)
 		}
 		partitions[metricType] = append(partitions[metricType], md)
 	}
@@ -118,6 +122,19 @@ func (prwParser *prometheusRemoteOtelParser) scaffoldNewMetric(ilm pmetric.Scope
 	nm := ilm.Metrics().AppendEmpty()
 	nm.SetName(name)
 	return nm
+}
+
+// addBadRequests is used to report write requests with invalid data
+func (prwParser *prometheusRemoteOtelParser) addBadRequests(ilm pmetric.ScopeMetrics, start time.Time, end time.Time) {
+	errMetric := ilm.Metrics().AppendEmpty()
+	errMetric.SetName("prometheus.invalid_requests")
+	errorSum := errMetric.SetEmptySum()
+	errorSum.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	errorSum.SetIsMonotonic(true)
+	dp := errorSum.DataPoints().AppendEmpty()
+	dp.SetIntValue(prwParser.totalInvalidRequests.Load())
+	dp.SetStartTimestamp(pcommon.NewTimestampFromTime(start))
+	dp.SetTimestamp(pcommon.NewTimestampFromTime(end))
 }
 
 // addMetricsWithMissingName is used to report metrics in the remote write request without names

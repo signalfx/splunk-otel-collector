@@ -83,22 +83,22 @@ func TestAddMetrics(t *testing.T) {
 		{
 			name:     "test counters",
 			sample:   sampleCounterWq(),
-			expected: addSfxCompatibilityMetrics(expectedCounter(), 0, 0),
+			expected: addSfxCompatibilityMetrics(expectedCounter(), 0, 0, 0),
 		},
 		{
 			name:     "test gauges",
 			sample:   sampleGaugeWq(),
-			expected: addSfxCompatibilityMetrics(expectedGauge(), 0, 0),
+			expected: addSfxCompatibilityMetrics(expectedGauge(), 0, 0, 0),
 		},
 		{
 			name:     "test histograms",
 			sample:   sampleHistogramWq(),
-			expected: addSfxCompatibilityMetrics(expectedSfxCompatibleHistogram(), 0, 0),
+			expected: addSfxCompatibilityMetrics(expectedSfxCompatibleHistogram(), 0, 0, 0),
 		},
 		{
 			name:     "test quantiles",
 			sample:   sampleSummaryWq(),
-			expected: addSfxCompatibilityMetrics(expectedSfxCompatibleQuantile(), 0, 0),
+			expected: addSfxCompatibilityMetrics(expectedSfxCompatibleQuantile(), 0, 0, 0),
 		},
 		{
 			name: "test missing",
@@ -107,6 +107,9 @@ func TestAddMetrics(t *testing.T) {
 					{
 						Labels: []prompb.Label{
 							{Name: "quantile", Value: "-0.5"},
+						},
+						Samples: []prompb.Sample{
+							{Value: math.NaN(), Timestamp: jan20.UnixMilli()},
 						},
 					},
 				},
@@ -118,7 +121,7 @@ func TestAddMetrics(t *testing.T) {
 				scopeMetrics.Scope().SetName("signalfxgatewayprometheusremotewrite")
 				scopeMetrics.Scope().SetVersion("0.1")
 				return result
-			}(), 0, 1),
+			}(), 0, 0, 1),
 			errWanted: true,
 		},
 		{
@@ -145,7 +148,31 @@ func TestAddMetrics(t *testing.T) {
 				m.SetName("foo")
 				m.SetEmptyGauge()
 				return result
-			}(), 1, 0),
+			}(), 0, 1, 0),
+		},
+		{
+			name: "test invalid",
+			sample: &prompb.WriteRequest{
+				Timeseries: []prompb.TimeSeries{
+					{
+						Labels: []prompb.Label{
+							{Name: "__name__", Value: "foo"},
+						},
+					},
+				},
+			},
+			expected: addSfxCompatibilityMetrics(func() pmetric.Metrics {
+				result := pmetric.NewMetrics()
+				resourceMetrics := result.ResourceMetrics().AppendEmpty()
+				scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
+				scopeMetrics.Scope().SetName("signalfxgatewayprometheusremotewrite")
+				scopeMetrics.Scope().SetVersion("0.1")
+				m := scopeMetrics.Metrics().AppendEmpty()
+				m.SetName("foo")
+				m.SetEmptyGauge()
+				return result
+			}(), 1, 0, 0),
+			errWanted: true,
 		},
 	}
 

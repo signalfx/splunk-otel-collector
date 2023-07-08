@@ -1,4 +1,9 @@
-type: databricksreceiver
+type: databricks
+status:
+  class: receiver
+  stability:
+    development: [metrics]
+
 resource_attributes:
   databricks.instance.name:
     description: The name of the Databricks instance as defined by the value of the "instance_name" field in the config
@@ -99,10 +104,11 @@ metrics:
     attributes:
       [job.id, task.id]
 
+  # https://github.com/apache/spark/blob/master/sql/catalyst/src/main/scala/org/apache/spark/sql/catalyst/expressions/codegen/CodeGenerator.scala
   databricks.spark.code_generator.compilation.time:
     enabled: true
     description: This value comes from the 'mean' field in a histogram returned by the /metrics/json/ endpoint.
-    unit:
+    unit: ns
     gauge:
       value_type: double
     attributes:
@@ -110,7 +116,7 @@ metrics:
   databricks.spark.code_generator.generated_class_size:
     enabled: true
     description: This value comes from the 'mean' field in a histogram returned by the /metrics/json/ endpoint.
-    unit:
+    unit: By
     gauge:
       value_type: double
     attributes:
@@ -118,7 +124,7 @@ metrics:
   databricks.spark.code_generator.generated_method_size:
     enabled: true
     description: This value comes from the 'mean' field in a histogram returned by the /metrics/json/ endpoint.
-    unit:
+    unit: By
     gauge:
       value_type: double
     attributes:
@@ -126,7 +132,7 @@ metrics:
   databricks.spark.code_generator.sourcecode_size:
     enabled: true
     description: This value comes from the 'mean' field in a histogram returned by the /metrics/json/ endpoint.
-    unit:
+    unit: By
     gauge:
       value_type: double
     attributes:
@@ -215,6 +221,7 @@ metrics:
   databricks.spark.dag_scheduler.jobs.active:
     enabled: true
     description: n/a
+    unit: "{jobs}"
     gauge:
       value_type: double
     attributes:
@@ -222,6 +229,7 @@ metrics:
   databricks.spark.dag_scheduler.jobs.all:
     enabled: true
     description: n/a
+    unit: "{jobs}"
     gauge:
       value_type: double
     attributes:
@@ -229,6 +237,7 @@ metrics:
   databricks.spark.dag_scheduler.stages.failed:
     enabled: true
     description: n/a
+    unit: "{stages}"
     gauge:
       value_type: double
     attributes:
@@ -236,6 +245,7 @@ metrics:
   databricks.spark.dag_scheduler.stages.running:
     enabled: true
     description: n/a
+    unit: "{stages}"
     gauge:
       value_type: double
     attributes:
@@ -243,146 +253,172 @@ metrics:
   databricks.spark.dag_scheduler.stages.waiting:
     enabled: true
     description: n/a
+    unit: "{stages}"
     gauge:
       value_type: double
     attributes:
       [cluster.id, spark.app.id, pipeline.id, pipeline.name]
+  # https://spark.apache.org/docs/latest/monitoring.html
   databricks.spark.executor_metrics.direct_pool.memory:
     enabled: true
-    description: n/a
+    description: Peak memory that the JVM is using for direct buffer pool
+    unit: By
     gauge:
       value_type: double
     attributes:
       [cluster.id, spark.app.id, pipeline.id, pipeline.name]
+  # https://spark.apache.org/docs/latest/monitoring.html
   databricks.spark.executor_metrics.jvm.heap.memory:
     enabled: true
-    description: n/a
+    description: Peak memory usage of the heap that is used for object allocation. See https://spark.apache.org/docs/latest/monitoring.html
+    unit: By
     gauge:
       value_type: double
     attributes:
       [cluster.id, spark.app.id, pipeline.id, pipeline.name]
+  # https://spark.apache.org/docs/latest/monitoring.html
   databricks.spark.executor_metrics.jvm.off_heap.memory:
     enabled: true
-    description: n/a
+    description: Peak memory usage of non-heap memory that is used by the Java virtual machine. See https://spark.apache.org/docs/latest/monitoring.html
+    unit: By
     gauge:
       value_type: double
     attributes:
       [cluster.id, spark.app.id, pipeline.id, pipeline.name]
   databricks.spark.executor_metrics.major_gc.count:
     enabled: true
-    description: n/a
+    description: Total major GC count. For example, the garbage collector is one of MarkSweepCompact, PS MarkSweep, ConcurrentMarkSweep, G1 Old Generation and so on.
+    unit: "{gc_operations}"
     gauge:
       value_type: double
     attributes:
       [cluster.id, spark.app.id, pipeline.id, pipeline.name]
+  # https://spark.apache.org/docs/latest/monitoring.html
   databricks.spark.executor_metrics.major_gc.time:
     enabled: true
-    description: n/a
+    description: Elapsed total major GC time.
+    unit: ms
     gauge:
       value_type: double
     attributes:
       [cluster.id, spark.app.id, pipeline.id, pipeline.name]
+  # https://spark.apache.org/docs/latest/monitoring.html
   databricks.spark.executor_metrics.mapped_pool.memory:
     enabled: true
-    description: n/a
+    description: Peak memory that the JVM is using for mapped buffer pool
+    unit: By
     gauge:
       value_type: double
     attributes:
       [cluster.id, spark.app.id, pipeline.id, pipeline.name]
   databricks.spark.executor_metrics.minor_gc.count:
     enabled: true
-    description: n/a
+    description: Total minor GC count. For example, the garbage collector is one of Copy, PS Scavenge, ParNew, G1 Young Generation and so on.
+    unit: "{gc}"
     gauge:
       value_type: double
     attributes:
       [cluster.id, spark.app.id, pipeline.id, pipeline.name]
   databricks.spark.executor_metrics.minor_gc.time:
     enabled: true
-    description: n/a
+    description: Elapsed total minor GC time.
+    unit: ms
     gauge:
       value_type: double
     attributes:
       [cluster.id, spark.app.id, pipeline.id, pipeline.name]
   databricks.spark.executor_metrics.off_heap.execution.memory:
     enabled: true
-    description: n/a
+    description: Peak off heap execution memory in use, in bytes.
+    unit: By
     gauge:
       value_type: double
     attributes:
       [cluster.id, spark.app.id, pipeline.id, pipeline.name]
   databricks.spark.executor_metrics.off_heap.storage.memory:
     enabled: true
-    description: n/a
+    description: Peak off heap storage memory in use, in bytes.
+    unit: By
     gauge:
       value_type: double
     attributes:
       [cluster.id, spark.app.id, pipeline.id, pipeline.name]
   databricks.spark.executor_metrics.off_heap.unified.memory:
     enabled: true
-    description: n/a
+    description: Peak off heap memory (execution and storage).
+    unit: By
     gauge:
       value_type: double
     attributes:
       [cluster.id, spark.app.id, pipeline.id, pipeline.name]
   databricks.spark.executor_metrics.on_heap.execution.memory:
     enabled: true
-    description: n/a
+    description: Peak on heap memory (execution and storage).
+    unit: By
     gauge:
       value_type: double
     attributes:
       [cluster.id, spark.app.id, pipeline.id, pipeline.name]
   databricks.spark.executor_metrics.on_heap.storage.memory:
     enabled: true
-    description: n/a
+    description: Peak on heap storage memory in use, in bytes.
+    unit: By
     gauge:
       value_type: double
     attributes:
       [cluster.id, spark.app.id, pipeline.id, pipeline.name]
   databricks.spark.executor_metrics.on_heap.unified.memory:
     enabled: true
-    description: n/a
+    description: Peak on heap memory (execution and storage).
+    unit: By
     gauge:
       value_type: double
     attributes:
       [cluster.id, spark.app.id, pipeline.id, pipeline.name]
   databricks.spark.executor_metrics.process_tree.jvm_rss.memory:
     enabled: true
-    description: n/a
+    description: "Resident Set Size: number of pages the process has in real memory. This is just the pages which count toward text, data, or stack space. This does not include pages which have not been demand-loaded in, or which are swapped out. Enabled if spark.executor.processTreeMetrics.enabled is true."
+    unit: "{pages}"
     gauge:
       value_type: double
     attributes:
       [cluster.id, spark.app.id, pipeline.id, pipeline.name]
   databricks.spark.executor_metrics.process_tree.jvm_v.memory:
     enabled: true
-    description: n/a
+    description: Virtual memory size in bytes. Enabled if spark.executor.processTreeMetrics.enabled is true.
+    unit: By
     gauge:
       value_type: double
     attributes:
       [cluster.id, spark.app.id, pipeline.id, pipeline.name]
   databricks.spark.executor_metrics.process_tree.other_rss.memory:
     enabled: true
-    description: n/a
+    description: Resident Set Size for other kind of process. Enabled if spark.executor.processTreeMetrics.enabled is true.
+    unit: "{pages}"
     gauge:
       value_type: double
     attributes:
       [cluster.id, spark.app.id, pipeline.id, pipeline.name]
   databricks.spark.executor_metrics.process_tree.other_v.memory:
     enabled: true
-    description: n/a
+    description: Virtual memory size for other kind of process in bytes. Enabled if spark.executor.processTreeMetrics.enabled is true.
+    unit: By
     gauge:
       value_type: double
     attributes:
       [cluster.id, spark.app.id, pipeline.id, pipeline.name]
   databricks.spark.executor_metrics.process_tree.python_rss.memory:
     enabled: true
-    description: n/a
+    description: Resident Set Size for Python. Enabled if spark.executor.processTreeMetrics.enabled is true.
+    unit: "{pages}"
     gauge:
       value_type: double
     attributes:
       [cluster.id, spark.app.id, pipeline.id, pipeline.name]
   databricks.spark.executor_metrics.process_tree.python_v.memory:
     enabled: true
-    description: n/a
+    description: Virtual memory size for Python in bytes. Enabled if spark.executor.processTreeMetrics.enabled is true.
+    unit: By
     gauge:
       value_type: double
     attributes:
@@ -390,6 +426,7 @@ metrics:
   databricks.spark.jvm.cpu.time:
     enabled: true
     description: n/a
+    unit: ns
     sum:
       value_type: double
       monotonic: false
@@ -399,6 +436,7 @@ metrics:
   databricks.spark.live_listener_bus.queue.appstatus.size:
     enabled: true
     description: n/a
+    unit: "1"
     gauge:
       value_type: double
     attributes:
@@ -408,6 +446,7 @@ metrics:
     description: n/a
     gauge:
       value_type: double
+    unit: "{executor}"
     attributes:
       [cluster.id, spark.app.id, pipeline.id, pipeline.name]
   databricks.spark.live_listener_bus.queue.shared.size:
@@ -415,6 +454,7 @@ metrics:
     description: n/a
     gauge:
       value_type: double
+    unit: "1"
     attributes:
       [cluster.id, spark.app.id, pipeline.id, pipeline.name]
   databricks.spark.live_listener_bus.queue.streams.size:
@@ -422,6 +462,7 @@ metrics:
     description: n/a
     gauge:
       value_type: double
+    unit: "1"
     attributes:
       [cluster.id, spark.app.id, pipeline.id, pipeline.name]
   databricks.spark.spark_sql_operation_manager.hive_operations.count:
@@ -429,11 +470,13 @@ metrics:
     description: n/a
     gauge:
       value_type: double
+    unit: "{operations}"
     attributes:
       [cluster.id, spark.app.id, pipeline.id, pipeline.name]
   databricks.spark.databricks.directory_commit.auto_vacuum.count:
     enabled: true
     description: n/a
+    unit: "{auto-vacuums}"
     sum:
       value_type: int
       monotonic: false
@@ -443,6 +486,7 @@ metrics:
   databricks.spark.databricks.directory_commit.deleted_files_filtered:
     enabled: true
     description: n/a
+    unit: "{files}"
     sum:
       value_type: int
       monotonic: false
@@ -452,6 +496,7 @@ metrics:
   databricks.spark.databricks.directory_commit.filter_listing.count:
     enabled: true
     description: n/a
+    unit: "{filters}"
     sum:
       value_type: int
       monotonic: false
@@ -461,6 +506,7 @@ metrics:
   databricks.spark.databricks.directory_commit.job_commit_completed:
     enabled: true
     description: n/a
+    unit: "{commits}"
     sum:
       value_type: int
       monotonic: false
@@ -470,6 +516,7 @@ metrics:
   databricks.spark.databricks.directory_commit.marker_read.errors:
     enabled: true
     description: n/a
+    unit: "{errors}"
     sum:
       value_type: int
       monotonic: false
@@ -479,6 +526,7 @@ metrics:
   databricks.spark.databricks.directory_commit.marker_refresh.count:
     enabled: true
     description: n/a
+    unit: "{refreshes}"
     sum:
       value_type: int
       monotonic: false
@@ -488,6 +536,7 @@ metrics:
   databricks.spark.databricks.directory_commit.marker_refresh.errors:
     enabled: true
     description: n/a
+    unit: "{errors}"
     sum:
       value_type: int
       monotonic: false
@@ -497,6 +546,7 @@ metrics:
   databricks.spark.databricks.directory_commit.markers.read:
     enabled: true
     description: n/a
+    unit: "{markers}"
     sum:
       value_type: int
       monotonic: false
@@ -506,6 +556,7 @@ metrics:
   databricks.spark.databricks.directory_commit.repeated_list.count:
     enabled: true
     description: n/a
+    unit: "{lists}"
     sum:
       value_type: int
       monotonic: false
@@ -515,6 +566,7 @@ metrics:
   databricks.spark.databricks.directory_commit.uncommitted_files.filtered:
     enabled: true
     description: n/a
+    unit: "{files}"
     sum:
       value_type: int
       monotonic: false
@@ -524,6 +576,7 @@ metrics:
   databricks.spark.databricks.directory_commit.untracked_files.found:
     enabled: true
     description: n/a
+    unit: "{files}"
     sum:
       value_type: int
       monotonic: false
@@ -533,6 +586,7 @@ metrics:
   databricks.spark.databricks.directory_commit.vacuum.count:
     enabled: true
     description: n/a
+    unit: "{vaccums}"
     sum:
       value_type: int
       monotonic: false
@@ -542,6 +596,7 @@ metrics:
   databricks.spark.databricks.directory_commit.vacuum.errors:
     enabled: true
     description: n/a
+    unit: "{errors}"
     sum:
       value_type: int
       monotonic: false
@@ -551,6 +606,7 @@ metrics:
   databricks.spark.databricks.preemption.checks.count:
     enabled: true
     description: n/a
+    unit: "{checks}"
     sum:
       value_type: int
       monotonic: false
@@ -560,6 +616,7 @@ metrics:
   databricks.spark.databricks.preemption.pools_autoexpired.count:
     enabled: true
     description: n/a
+    unit: "{pools}"
     sum:
       value_type: int
       monotonic: false
@@ -569,6 +626,7 @@ metrics:
   databricks.spark.databricks.preemption.tasks_preempted.count:
     enabled: true
     description: n/a
+    unit: "{tasks}"
     sum:
       value_type: int
       monotonic: false
@@ -608,6 +666,7 @@ metrics:
   databricks.spark.databricks.task_scheduling_lanes.active_pools:
     enabled: true
     description: n/a
+    unit: "{pools}"
     sum:
       value_type: int
       monotonic: false
@@ -617,6 +676,7 @@ metrics:
   databricks.spark.databricks.task_scheduling_lanes.bypass_lane_active_pools:
     enabled: true
     description: n/a
+    unit: "{pools}"
     sum:
       value_type: int
       monotonic: false
@@ -626,6 +686,7 @@ metrics:
   databricks.spark.databricks.task_scheduling_lanes.fast_lane_active_pools:
     enabled: true
     description: n/a
+    unit: "{pools}"
     sum:
       value_type: int
       monotonic: false
@@ -645,6 +706,7 @@ metrics:
   databricks.spark.databricks.task_scheduling_lanes.lane_cleanup.marked_pools:
     enabled: true
     description: n/a
+    unit: "{pools}"
     sum:
       value_type: int
       monotonic: false
@@ -654,6 +716,7 @@ metrics:
   databricks.spark.databricks.task_scheduling_lanes.lane_cleanup.two_phase_pools_cleaned:
     enabled: true
     description: n/a
+    unit: "{pools}"
     sum:
       value_type: int
       monotonic: false
@@ -663,6 +726,7 @@ metrics:
   databricks.spark.databricks.task_scheduling_lanes.lane_cleanup.zombie_pools_cleaned:
     enabled: true
     description: n/a
+    unit: "{pools}"
     sum:
       value_type: int
       monotonic: false
@@ -672,6 +736,7 @@ metrics:
   databricks.spark.databricks.task_scheduling_lanes.preemption.slot_transfer_successful_preemption_iterations.count:
     enabled: true
     description: n/a
+    unit: "{slots}"
     sum:
       value_type: int
       monotonic: false
@@ -681,6 +746,7 @@ metrics:
   databricks.spark.databricks.task_scheduling_lanes.preemption.slot_transfer_tasks_preempted.count:
     enabled: true
     description: n/a
+    unit: "{slots}"
     sum:
       value_type: int
       monotonic: false
@@ -700,6 +766,7 @@ metrics:
   databricks.spark.databricks.task_scheduling_lanes.slot_reservation.gradual_decrease.count:
     enabled: true
     description: n/a
+    unit: "{slot reservations}"
     sum:
       value_type: int
       monotonic: false
@@ -709,6 +776,7 @@ metrics:
   databricks.spark.databricks.task_scheduling_lanes.slot_reservation.quick_drop.count:
     enabled: true
     description: n/a
+    unit: "{slot reservations}"
     sum:
       value_type: int
       monotonic: false
@@ -718,6 +786,7 @@ metrics:
   databricks.spark.databricks.task_scheduling_lanes.slot_reservation.quick_jump.count:
     enabled: true
     description: n/a
+    unit: "{slot reservations}"
     sum:
       value_type: int
       monotonic: false
@@ -727,6 +796,7 @@ metrics:
   databricks.spark.databricks.task_scheduling_lanes.slot_reservation.slots_reserved:
     enabled: true
     description: n/a
+    unit: "{slot reservations}"
     sum:
       value_type: int
       monotonic: false
@@ -736,6 +806,7 @@ metrics:
   databricks.spark.databricks.task_scheduling_lanes.slow_lane_active_pools:
     enabled: true
     description: n/a
+    unit: "{pools}"
     sum:
       value_type: int
       monotonic: false
@@ -745,6 +816,7 @@ metrics:
   databricks.spark.databricks.task_scheduling_lanes.totalquerygroupsfinished:
     enabled: true
     description: n/a
+    unit: "{query groups}"
     sum:
       value_type: int
       monotonic: false
@@ -754,6 +826,7 @@ metrics:
   databricks.spark.hive_external_catalog.file_cache.hits:
     enabled: true
     description: n/a
+    unit: "{hits}"
     sum:
       value_type: int
       monotonic: false
@@ -763,6 +836,7 @@ metrics:
   databricks.spark.hive_external_catalog.files_discovered:
     enabled: true
     description: n/a
+    unit: "{files}"
     sum:
       value_type: int
       monotonic: false
@@ -772,6 +846,7 @@ metrics:
   databricks.spark.hive_external_catalog.hive_client_calls:
     enabled: true
     description: n/a
+    unit: "{calls}"
     sum:
       value_type: int
       monotonic: false
@@ -781,6 +856,7 @@ metrics:
   databricks.spark.hive_external_catalog.parallel_listing_jobs.count:
     enabled: true
     description: n/a
+    unit: "{jobs}"
     sum:
       value_type: int
       monotonic: false
@@ -790,6 +866,7 @@ metrics:
   databricks.spark.hive_external_catalog.partitions_fetched:
     enabled: true
     description: n/a
+    unit: "{partitions}"
     sum:
       value_type: int
       monotonic: false
@@ -799,6 +876,7 @@ metrics:
   databricks.spark.live_listener_bus.events_posted.count:
     enabled: true
     description: n/a
+    unit: "{events}"
     sum:
       value_type: int
       monotonic: false
@@ -808,6 +886,7 @@ metrics:
   databricks.spark.live_listener_bus.queue.app_status.dropped_events.count:
     enabled: true
     description: n/a
+    unit: "{events}"
     sum:
       value_type: int
       monotonic: false
@@ -817,6 +896,7 @@ metrics:
   databricks.spark.live_listener_bus.queue.executor_management.dropped_events.count:
     enabled: true
     description: n/a
+    unit: "{events}"
     sum:
       value_type: int
       monotonic: false
@@ -826,6 +906,7 @@ metrics:
   databricks.spark.live_listener_bus.queue.shared.dropped_events.count:
     enabled: true
     description: n/a
+    unit: "{events}"
     sum:
       value_type: int
       monotonic: false
@@ -835,6 +916,7 @@ metrics:
   databricks.spark.live_listener_bus.queue.streams.dropped_events.count:
     enabled: true
     description: n/a
+    unit: "{events}"
     sum:
       value_type: int
       monotonic: false
@@ -1164,8 +1246,8 @@ metrics:
       [cluster.id, spark.app.id, spark.job.id]
   databricks.spark.stage.executor_run_time:
     enabled: true
-    description: n/a
-    unit: ""
+    description: Elapsed time the executor spent running this task. This includes time fetching shuffle data. See https://spark.apache.org/docs/latest/monitoring.html#executor-metrics
+    unit: ms
     gauge:
       value_type: int
     attributes:
@@ -1173,7 +1255,7 @@ metrics:
   databricks.spark.stage.input_bytes:
     enabled: true
     description: n/a
-    unit: ""
+    unit: By
     gauge:
       value_type: int
     attributes:
@@ -1181,7 +1263,7 @@ metrics:
   databricks.spark.stage.input_records:
     enabled: true
     description: n/a
-    unit: ""
+    unit: "{records}"
     gauge:
       value_type: int
     attributes:
@@ -1197,7 +1279,7 @@ metrics:
   databricks.spark.stage.output_records:
     enabled: true
     description: n/a
-    unit: ""
+    unit: "{records}"
     gauge:
       value_type: int
     attributes:

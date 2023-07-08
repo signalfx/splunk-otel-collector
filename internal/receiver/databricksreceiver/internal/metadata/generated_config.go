@@ -23,7 +23,7 @@ func (ms *MetricConfig) Unmarshal(parser *confmap.Conf) error {
 	return nil
 }
 
-// MetricsConfig provides config for databricksreceiver metrics.
+// MetricsConfig provides config for databricks metrics.
 type MetricsConfig struct {
 	DatabricksJobsActiveTotal                                                                                          MetricConfig `mapstructure:"databricks.jobs.active.total"`
 	DatabricksJobsRunDuration                                                                                          MetricConfig `mapstructure:"databricks.jobs.run.duration"`
@@ -597,7 +597,7 @@ type ResourceAttributeConfig struct {
 	Enabled bool `mapstructure:"enabled"`
 }
 
-// ResourceAttributesConfig provides config for databricksreceiver resource attributes.
+// ResourceAttributesConfig provides config for databricks resource attributes.
 type ResourceAttributesConfig struct {
 	DatabricksInstanceName ResourceAttributeConfig `mapstructure:"databricks.instance.name"`
 	SparkAppID             ResourceAttributeConfig `mapstructure:"spark.app.id"`
@@ -622,7 +622,7 @@ func DefaultResourceAttributesConfig() ResourceAttributesConfig {
 	}
 }
 
-// MetricsBuilderConfig is a configuration for databricksreceiver metrics builder.
+// MetricsBuilderConfig is a configuration for databricks metrics builder.
 type MetricsBuilderConfig struct {
 	Metrics            MetricsConfig            `mapstructure:"metrics"`
 	ResourceAttributes ResourceAttributesConfig `mapstructure:"resource_attributes"`

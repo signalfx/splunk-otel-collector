@@ -803,7 +803,7 @@ type metricDatabricksSparkCodeGeneratorCompilationTime struct {
 func (m *metricDatabricksSparkCodeGeneratorCompilationTime) init() {
 	m.data.SetName("databricks.spark.code_generator.compilation.time")
 	m.data.SetDescription("This value comes from the 'mean' field in a histogram returned by the /metrics/json/ endpoint.")
-	m.data.SetUnit("")
+	m.data.SetUnit("ns")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
@@ -857,7 +857,7 @@ type metricDatabricksSparkCodeGeneratorGeneratedClassSize struct {
 func (m *metricDatabricksSparkCodeGeneratorGeneratedClassSize) init() {
 	m.data.SetName("databricks.spark.code_generator.generated_class_size")
 	m.data.SetDescription("This value comes from the 'mean' field in a histogram returned by the /metrics/json/ endpoint.")
-	m.data.SetUnit("")
+	m.data.SetUnit("By")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
@@ -911,7 +911,7 @@ type metricDatabricksSparkCodeGeneratorGeneratedMethodSize struct {
 func (m *metricDatabricksSparkCodeGeneratorGeneratedMethodSize) init() {
 	m.data.SetName("databricks.spark.code_generator.generated_method_size")
 	m.data.SetDescription("This value comes from the 'mean' field in a histogram returned by the /metrics/json/ endpoint.")
-	m.data.SetUnit("")
+	m.data.SetUnit("By")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
@@ -965,7 +965,7 @@ type metricDatabricksSparkCodeGeneratorSourcecodeSize struct {
 func (m *metricDatabricksSparkCodeGeneratorSourcecodeSize) init() {
 	m.data.SetName("databricks.spark.code_generator.sourcecode_size")
 	m.data.SetDescription("This value comes from the 'mean' field in a histogram returned by the /metrics/json/ endpoint.")
-	m.data.SetUnit("")
+	m.data.SetUnit("By")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
@@ -1019,7 +1019,7 @@ type metricDatabricksSparkDagSchedulerJobsActive struct {
 func (m *metricDatabricksSparkDagSchedulerJobsActive) init() {
 	m.data.SetName("databricks.spark.dag_scheduler.jobs.active")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{jobs}")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
@@ -1073,7 +1073,7 @@ type metricDatabricksSparkDagSchedulerJobsAll struct {
 func (m *metricDatabricksSparkDagSchedulerJobsAll) init() {
 	m.data.SetName("databricks.spark.dag_scheduler.jobs.all")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{jobs}")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
@@ -1127,7 +1127,7 @@ type metricDatabricksSparkDagSchedulerStagesFailed struct {
 func (m *metricDatabricksSparkDagSchedulerStagesFailed) init() {
 	m.data.SetName("databricks.spark.dag_scheduler.stages.failed")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{stages}")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
@@ -1181,7 +1181,7 @@ type metricDatabricksSparkDagSchedulerStagesRunning struct {
 func (m *metricDatabricksSparkDagSchedulerStagesRunning) init() {
 	m.data.SetName("databricks.spark.dag_scheduler.stages.running")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{stages}")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
@@ -1235,7 +1235,7 @@ type metricDatabricksSparkDagSchedulerStagesWaiting struct {
 func (m *metricDatabricksSparkDagSchedulerStagesWaiting) init() {
 	m.data.SetName("databricks.spark.dag_scheduler.stages.waiting")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{stages}")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
@@ -1289,7 +1289,7 @@ type metricDatabricksSparkDatabricksDirectoryCommitAutoVacuumCount struct {
 func (m *metricDatabricksSparkDatabricksDirectoryCommitAutoVacuumCount) init() {
 	m.data.SetName("databricks.spark.databricks.directory_commit.auto_vacuum.count")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{auto-vacuums}")
 	m.data.SetEmptySum()
 	m.data.Sum().SetIsMonotonic(false)
 	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
@@ -1345,7 +1345,7 @@ type metricDatabricksSparkDatabricksDirectoryCommitDeletedFilesFiltered struct {
 func (m *metricDatabricksSparkDatabricksDirectoryCommitDeletedFilesFiltered) init() {
 	m.data.SetName("databricks.spark.databricks.directory_commit.deleted_files_filtered")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{files}")
 	m.data.SetEmptySum()
 	m.data.Sum().SetIsMonotonic(false)
 	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
@@ -1401,7 +1401,7 @@ type metricDatabricksSparkDatabricksDirectoryCommitFilterListingCount struct {
 func (m *metricDatabricksSparkDatabricksDirectoryCommitFilterListingCount) init() {
 	m.data.SetName("databricks.spark.databricks.directory_commit.filter_listing.count")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{filters}")
 	m.data.SetEmptySum()
 	m.data.Sum().SetIsMonotonic(false)
 	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
@@ -1457,7 +1457,7 @@ type metricDatabricksSparkDatabricksDirectoryCommitJobCommitCompleted struct {
 func (m *metricDatabricksSparkDatabricksDirectoryCommitJobCommitCompleted) init() {
 	m.data.SetName("databricks.spark.databricks.directory_commit.job_commit_completed")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{commits}")
 	m.data.SetEmptySum()
 	m.data.Sum().SetIsMonotonic(false)
 	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
@@ -1513,7 +1513,7 @@ type metricDatabricksSparkDatabricksDirectoryCommitMarkerReadErrors struct {
 func (m *metricDatabricksSparkDatabricksDirectoryCommitMarkerReadErrors) init() {
 	m.data.SetName("databricks.spark.databricks.directory_commit.marker_read.errors")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{errors}")
 	m.data.SetEmptySum()
 	m.data.Sum().SetIsMonotonic(false)
 	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
@@ -1569,7 +1569,7 @@ type metricDatabricksSparkDatabricksDirectoryCommitMarkerRefreshCount struct {
 func (m *metricDatabricksSparkDatabricksDirectoryCommitMarkerRefreshCount) init() {
 	m.data.SetName("databricks.spark.databricks.directory_commit.marker_refresh.count")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{refreshes}")
 	m.data.SetEmptySum()
 	m.data.Sum().SetIsMonotonic(false)
 	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
@@ -1625,7 +1625,7 @@ type metricDatabricksSparkDatabricksDirectoryCommitMarkerRefreshErrors struct {
 func (m *metricDatabricksSparkDatabricksDirectoryCommitMarkerRefreshErrors) init() {
 	m.data.SetName("databricks.spark.databricks.directory_commit.marker_refresh.errors")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{errors}")
 	m.data.SetEmptySum()
 	m.data.Sum().SetIsMonotonic(false)
 	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
@@ -1681,7 +1681,7 @@ type metricDatabricksSparkDatabricksDirectoryCommitMarkersRead struct {
 func (m *metricDatabricksSparkDatabricksDirectoryCommitMarkersRead) init() {
 	m.data.SetName("databricks.spark.databricks.directory_commit.markers.read")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{markers}")
 	m.data.SetEmptySum()
 	m.data.Sum().SetIsMonotonic(false)
 	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
@@ -1737,7 +1737,7 @@ type metricDatabricksSparkDatabricksDirectoryCommitRepeatedListCount struct {
 func (m *metricDatabricksSparkDatabricksDirectoryCommitRepeatedListCount) init() {
 	m.data.SetName("databricks.spark.databricks.directory_commit.repeated_list.count")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{lists}")
 	m.data.SetEmptySum()
 	m.data.Sum().SetIsMonotonic(false)
 	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
@@ -1793,7 +1793,7 @@ type metricDatabricksSparkDatabricksDirectoryCommitUncommittedFilesFiltered stru
 func (m *metricDatabricksSparkDatabricksDirectoryCommitUncommittedFilesFiltered) init() {
 	m.data.SetName("databricks.spark.databricks.directory_commit.uncommitted_files.filtered")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{files}")
 	m.data.SetEmptySum()
 	m.data.Sum().SetIsMonotonic(false)
 	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
@@ -1849,7 +1849,7 @@ type metricDatabricksSparkDatabricksDirectoryCommitUntrackedFilesFound struct {
 func (m *metricDatabricksSparkDatabricksDirectoryCommitUntrackedFilesFound) init() {
 	m.data.SetName("databricks.spark.databricks.directory_commit.untracked_files.found")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{files}")
 	m.data.SetEmptySum()
 	m.data.Sum().SetIsMonotonic(false)
 	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
@@ -1905,7 +1905,7 @@ type metricDatabricksSparkDatabricksDirectoryCommitVacuumCount struct {
 func (m *metricDatabricksSparkDatabricksDirectoryCommitVacuumCount) init() {
 	m.data.SetName("databricks.spark.databricks.directory_commit.vacuum.count")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{vaccums}")
 	m.data.SetEmptySum()
 	m.data.Sum().SetIsMonotonic(false)
 	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
@@ -1961,7 +1961,7 @@ type metricDatabricksSparkDatabricksDirectoryCommitVacuumErrors struct {
 func (m *metricDatabricksSparkDatabricksDirectoryCommitVacuumErrors) init() {
 	m.data.SetName("databricks.spark.databricks.directory_commit.vacuum.errors")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{errors}")
 	m.data.SetEmptySum()
 	m.data.Sum().SetIsMonotonic(false)
 	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
@@ -2017,7 +2017,7 @@ type metricDatabricksSparkDatabricksPreemptionChecksCount struct {
 func (m *metricDatabricksSparkDatabricksPreemptionChecksCount) init() {
 	m.data.SetName("databricks.spark.databricks.preemption.checks.count")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{checks}")
 	m.data.SetEmptySum()
 	m.data.Sum().SetIsMonotonic(false)
 	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
@@ -2073,7 +2073,7 @@ type metricDatabricksSparkDatabricksPreemptionPoolsAutoexpiredCount struct {
 func (m *metricDatabricksSparkDatabricksPreemptionPoolsAutoexpiredCount) init() {
 	m.data.SetName("databricks.spark.databricks.preemption.pools_autoexpired.count")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{pools}")
 	m.data.SetEmptySum()
 	m.data.Sum().SetIsMonotonic(false)
 	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
@@ -2297,7 +2297,7 @@ type metricDatabricksSparkDatabricksPreemptionTasksPreemptedCount struct {
 func (m *metricDatabricksSparkDatabricksPreemptionTasksPreemptedCount) init() {
 	m.data.SetName("databricks.spark.databricks.preemption.tasks_preempted.count")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{tasks}")
 	m.data.SetEmptySum()
 	m.data.Sum().SetIsMonotonic(false)
 	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
@@ -2353,7 +2353,7 @@ type metricDatabricksSparkDatabricksTaskSchedulingLanesActivePools struct {
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesActivePools) init() {
 	m.data.SetName("databricks.spark.databricks.task_scheduling_lanes.active_pools")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{pools}")
 	m.data.SetEmptySum()
 	m.data.Sum().SetIsMonotonic(false)
 	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
@@ -2409,7 +2409,7 @@ type metricDatabricksSparkDatabricksTaskSchedulingLanesBypassLaneActivePools str
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesBypassLaneActivePools) init() {
 	m.data.SetName("databricks.spark.databricks.task_scheduling_lanes.bypass_lane_active_pools")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{pools}")
 	m.data.SetEmptySum()
 	m.data.Sum().SetIsMonotonic(false)
 	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
@@ -2465,7 +2465,7 @@ type metricDatabricksSparkDatabricksTaskSchedulingLanesFastLaneActivePools struc
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesFastLaneActivePools) init() {
 	m.data.SetName("databricks.spark.databricks.task_scheduling_lanes.fast_lane_active_pools")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{pools}")
 	m.data.SetEmptySum()
 	m.data.Sum().SetIsMonotonic(false)
 	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
@@ -2577,7 +2577,7 @@ type metricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupMarkedPools st
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupMarkedPools) init() {
 	m.data.SetName("databricks.spark.databricks.task_scheduling_lanes.lane_cleanup.marked_pools")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{pools}")
 	m.data.SetEmptySum()
 	m.data.Sum().SetIsMonotonic(false)
 	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
@@ -2633,7 +2633,7 @@ type metricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupTwoPhasePoolsC
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupTwoPhasePoolsCleaned) init() {
 	m.data.SetName("databricks.spark.databricks.task_scheduling_lanes.lane_cleanup.two_phase_pools_cleaned")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{pools}")
 	m.data.SetEmptySum()
 	m.data.Sum().SetIsMonotonic(false)
 	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
@@ -2689,7 +2689,7 @@ type metricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupZombiePoolsCle
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupZombiePoolsCleaned) init() {
 	m.data.SetName("databricks.spark.databricks.task_scheduling_lanes.lane_cleanup.zombie_pools_cleaned")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{pools}")
 	m.data.SetEmptySum()
 	m.data.Sum().SetIsMonotonic(false)
 	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
@@ -2745,7 +2745,7 @@ type metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferSuc
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferSuccessfulPreemptionIterationsCount) init() {
 	m.data.SetName("databricks.spark.databricks.task_scheduling_lanes.preemption.slot_transfer_successful_preemption_iterations.count")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{slots}")
 	m.data.SetEmptySum()
 	m.data.Sum().SetIsMonotonic(false)
 	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
@@ -2801,7 +2801,7 @@ type metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferTas
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferTasksPreemptedCount) init() {
 	m.data.SetName("databricks.spark.databricks.task_scheduling_lanes.preemption.slot_transfer_tasks_preempted.count")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{slots}")
 	m.data.SetEmptySum()
 	m.data.Sum().SetIsMonotonic(false)
 	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
@@ -2913,7 +2913,7 @@ type metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationGradualDec
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationGradualDecreaseCount) init() {
 	m.data.SetName("databricks.spark.databricks.task_scheduling_lanes.slot_reservation.gradual_decrease.count")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{slot reservations}")
 	m.data.SetEmptySum()
 	m.data.Sum().SetIsMonotonic(false)
 	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
@@ -2969,7 +2969,7 @@ type metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickDropC
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickDropCount) init() {
 	m.data.SetName("databricks.spark.databricks.task_scheduling_lanes.slot_reservation.quick_drop.count")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{slot reservations}")
 	m.data.SetEmptySum()
 	m.data.Sum().SetIsMonotonic(false)
 	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
@@ -3025,7 +3025,7 @@ type metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickJumpC
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickJumpCount) init() {
 	m.data.SetName("databricks.spark.databricks.task_scheduling_lanes.slot_reservation.quick_jump.count")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{slot reservations}")
 	m.data.SetEmptySum()
 	m.data.Sum().SetIsMonotonic(false)
 	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
@@ -3081,7 +3081,7 @@ type metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationSlotsReser
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationSlotsReserved) init() {
 	m.data.SetName("databricks.spark.databricks.task_scheduling_lanes.slot_reservation.slots_reserved")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{slot reservations}")
 	m.data.SetEmptySum()
 	m.data.Sum().SetIsMonotonic(false)
 	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
@@ -3137,7 +3137,7 @@ type metricDatabricksSparkDatabricksTaskSchedulingLanesSlowLaneActivePools struc
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesSlowLaneActivePools) init() {
 	m.data.SetName("databricks.spark.databricks.task_scheduling_lanes.slow_lane_active_pools")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{pools}")
 	m.data.SetEmptySum()
 	m.data.Sum().SetIsMonotonic(false)
 	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
@@ -3193,7 +3193,7 @@ type metricDatabricksSparkDatabricksTaskSchedulingLanesTotalquerygroupsfinished 
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesTotalquerygroupsfinished) init() {
 	m.data.SetName("databricks.spark.databricks.task_scheduling_lanes.totalquerygroupsfinished")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{query groups}")
 	m.data.SetEmptySum()
 	m.data.Sum().SetIsMonotonic(false)
 	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
@@ -3572,8 +3572,8 @@ type metricDatabricksSparkExecutorMetricsDirectPoolMemory struct {
 // init fills databricks.spark.executor_metrics.direct_pool.memory metric with initial data.
 func (m *metricDatabricksSparkExecutorMetricsDirectPoolMemory) init() {
 	m.data.SetName("databricks.spark.executor_metrics.direct_pool.memory")
-	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetDescription("Peak memory that the JVM is using for direct buffer pool")
+	m.data.SetUnit("By")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
@@ -3626,8 +3626,8 @@ type metricDatabricksSparkExecutorMetricsJvmHeapMemory struct {
 // init fills databricks.spark.executor_metrics.jvm.heap.memory metric with initial data.
 func (m *metricDatabricksSparkExecutorMetricsJvmHeapMemory) init() {
 	m.data.SetName("databricks.spark.executor_metrics.jvm.heap.memory")
-	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetDescription("Peak memory usage of the heap that is used for object allocation. See https://spark.apache.org/docs/latest/monitoring.html")
+	m.data.SetUnit("By")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
@@ -3680,8 +3680,8 @@ type metricDatabricksSparkExecutorMetricsJvmOffHeapMemory struct {
 // init fills databricks.spark.executor_metrics.jvm.off_heap.memory metric with initial data.
 func (m *metricDatabricksSparkExecutorMetricsJvmOffHeapMemory) init() {
 	m.data.SetName("databricks.spark.executor_metrics.jvm.off_heap.memory")
-	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetDescription("Peak memory usage of non-heap memory that is used by the Java virtual machine. See https://spark.apache.org/docs/latest/monitoring.html")
+	m.data.SetUnit("By")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
@@ -3734,8 +3734,8 @@ type metricDatabricksSparkExecutorMetricsMajorGcCount struct {
 // init fills databricks.spark.executor_metrics.major_gc.count metric with initial data.
 func (m *metricDatabricksSparkExecutorMetricsMajorGcCount) init() {
 	m.data.SetName("databricks.spark.executor_metrics.major_gc.count")
-	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetDescription("Total major GC count. For example, the garbage collector is one of MarkSweepCompact, PS MarkSweep, ConcurrentMarkSweep, G1 Old Generation and so on.")
+	m.data.SetUnit("{gc_operations}")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
@@ -3788,8 +3788,8 @@ type metricDatabricksSparkExecutorMetricsMajorGcTime struct {
 // init fills databricks.spark.executor_metrics.major_gc.time metric with initial data.
 func (m *metricDatabricksSparkExecutorMetricsMajorGcTime) init() {
 	m.data.SetName("databricks.spark.executor_metrics.major_gc.time")
-	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetDescription("Elapsed total major GC time.")
+	m.data.SetUnit("ms")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
@@ -3842,8 +3842,8 @@ type metricDatabricksSparkExecutorMetricsMappedPoolMemory struct {
 // init fills databricks.spark.executor_metrics.mapped_pool.memory metric with initial data.
 func (m *metricDatabricksSparkExecutorMetricsMappedPoolMemory) init() {
 	m.data.SetName("databricks.spark.executor_metrics.mapped_pool.memory")
-	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetDescription("Peak memory that the JVM is using for mapped buffer pool")
+	m.data.SetUnit("By")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
@@ -3896,8 +3896,8 @@ type metricDatabricksSparkExecutorMetricsMinorGcCount struct {
 // init fills databricks.spark.executor_metrics.minor_gc.count metric with initial data.
 func (m *metricDatabricksSparkExecutorMetricsMinorGcCount) init() {
 	m.data.SetName("databricks.spark.executor_metrics.minor_gc.count")
-	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetDescription("Total minor GC count. For example, the garbage collector is one of Copy, PS Scavenge, ParNew, G1 Young Generation and so on.")
+	m.data.SetUnit("{gc}")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
@@ -3950,8 +3950,8 @@ type metricDatabricksSparkExecutorMetricsMinorGcTime struct {
 // init fills databricks.spark.executor_metrics.minor_gc.time metric with initial data.
 func (m *metricDatabricksSparkExecutorMetricsMinorGcTime) init() {
 	m.data.SetName("databricks.spark.executor_metrics.minor_gc.time")
-	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetDescription("Elapsed total minor GC time.")
+	m.data.SetUnit("ms")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
@@ -4004,8 +4004,8 @@ type metricDatabricksSparkExecutorMetricsOffHeapExecutionMemory struct {
 // init fills databricks.spark.executor_metrics.off_heap.execution.memory metric with initial data.
 func (m *metricDatabricksSparkExecutorMetricsOffHeapExecutionMemory) init() {
 	m.data.SetName("databricks.spark.executor_metrics.off_heap.execution.memory")
-	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetDescription("Peak off heap execution memory in use, in bytes.")
+	m.data.SetUnit("By")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
@@ -4058,8 +4058,8 @@ type metricDatabricksSparkExecutorMetricsOffHeapStorageMemory struct {
 // init fills databricks.spark.executor_metrics.off_heap.storage.memory metric with initial data.
 func (m *metricDatabricksSparkExecutorMetricsOffHeapStorageMemory) init() {
 	m.data.SetName("databricks.spark.executor_metrics.off_heap.storage.memory")
-	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetDescription("Peak off heap storage memory in use, in bytes.")
+	m.data.SetUnit("By")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
@@ -4112,8 +4112,8 @@ type metricDatabricksSparkExecutorMetricsOffHeapUnifiedMemory struct {
 // init fills databricks.spark.executor_metrics.off_heap.unified.memory metric with initial data.
 func (m *metricDatabricksSparkExecutorMetricsOffHeapUnifiedMemory) init() {
 	m.data.SetName("databricks.spark.executor_metrics.off_heap.unified.memory")
-	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetDescription("Peak off heap memory (execution and storage).")
+	m.data.SetUnit("By")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
@@ -4166,8 +4166,8 @@ type metricDatabricksSparkExecutorMetricsOnHeapExecutionMemory struct {
 // init fills databricks.spark.executor_metrics.on_heap.execution.memory metric with initial data.
 func (m *metricDatabricksSparkExecutorMetricsOnHeapExecutionMemory) init() {
 	m.data.SetName("databricks.spark.executor_metrics.on_heap.execution.memory")
-	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetDescription("Peak on heap memory (execution and storage).")
+	m.data.SetUnit("By")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
@@ -4220,8 +4220,8 @@ type metricDatabricksSparkExecutorMetricsOnHeapStorageMemory struct {
 // init fills databricks.spark.executor_metrics.on_heap.storage.memory metric with initial data.
 func (m *metricDatabricksSparkExecutorMetricsOnHeapStorageMemory) init() {
 	m.data.SetName("databricks.spark.executor_metrics.on_heap.storage.memory")
-	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetDescription("Peak on heap storage memory in use, in bytes.")
+	m.data.SetUnit("By")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
@@ -4274,8 +4274,8 @@ type metricDatabricksSparkExecutorMetricsOnHeapUnifiedMemory struct {
 // init fills databricks.spark.executor_metrics.on_heap.unified.memory metric with initial data.
 func (m *metricDatabricksSparkExecutorMetricsOnHeapUnifiedMemory) init() {
 	m.data.SetName("databricks.spark.executor_metrics.on_heap.unified.memory")
-	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetDescription("Peak on heap memory (execution and storage).")
+	m.data.SetUnit("By")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
@@ -4328,8 +4328,8 @@ type metricDatabricksSparkExecutorMetricsProcessTreeJvmRssMemory struct {
 // init fills databricks.spark.executor_metrics.process_tree.jvm_rss.memory metric with initial data.
 func (m *metricDatabricksSparkExecutorMetricsProcessTreeJvmRssMemory) init() {
 	m.data.SetName("databricks.spark.executor_metrics.process_tree.jvm_rss.memory")
-	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetDescription("Resident Set Size: number of pages the process has in real memory. This is just the pages which count toward text, data, or stack space. This does not include pages which have not been demand-loaded in, or which are swapped out. Enabled if spark.executor.processTreeMetrics.enabled is true.")
+	m.data.SetUnit("{pages}")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
@@ -4382,8 +4382,8 @@ type metricDatabricksSparkExecutorMetricsProcessTreeJvmVMemory struct {
 // init fills databricks.spark.executor_metrics.process_tree.jvm_v.memory metric with initial data.
 func (m *metricDatabricksSparkExecutorMetricsProcessTreeJvmVMemory) init() {
 	m.data.SetName("databricks.spark.executor_metrics.process_tree.jvm_v.memory")
-	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetDescription("Virtual memory size in bytes. Enabled if spark.executor.processTreeMetrics.enabled is true.")
+	m.data.SetUnit("By")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
@@ -4436,8 +4436,8 @@ type metricDatabricksSparkExecutorMetricsProcessTreeOtherRssMemory struct {
 // init fills databricks.spark.executor_metrics.process_tree.other_rss.memory metric with initial data.
 func (m *metricDatabricksSparkExecutorMetricsProcessTreeOtherRssMemory) init() {
 	m.data.SetName("databricks.spark.executor_metrics.process_tree.other_rss.memory")
-	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetDescription("Resident Set Size for other kind of process. Enabled if spark.executor.processTreeMetrics.enabled is true.")
+	m.data.SetUnit("{pages}")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
@@ -4490,8 +4490,8 @@ type metricDatabricksSparkExecutorMetricsProcessTreeOtherVMemory struct {
 // init fills databricks.spark.executor_metrics.process_tree.other_v.memory metric with initial data.
 func (m *metricDatabricksSparkExecutorMetricsProcessTreeOtherVMemory) init() {
 	m.data.SetName("databricks.spark.executor_metrics.process_tree.other_v.memory")
-	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetDescription("Virtual memory size for other kind of process in bytes. Enabled if spark.executor.processTreeMetrics.enabled is true.")
+	m.data.SetUnit("By")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
@@ -4544,8 +4544,8 @@ type metricDatabricksSparkExecutorMetricsProcessTreePythonRssMemory struct {
 // init fills databricks.spark.executor_metrics.process_tree.python_rss.memory metric with initial data.
 func (m *metricDatabricksSparkExecutorMetricsProcessTreePythonRssMemory) init() {
 	m.data.SetName("databricks.spark.executor_metrics.process_tree.python_rss.memory")
-	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetDescription("Resident Set Size for Python. Enabled if spark.executor.processTreeMetrics.enabled is true.")
+	m.data.SetUnit("{pages}")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
@@ -4598,8 +4598,8 @@ type metricDatabricksSparkExecutorMetricsProcessTreePythonVMemory struct {
 // init fills databricks.spark.executor_metrics.process_tree.python_v.memory metric with initial data.
 func (m *metricDatabricksSparkExecutorMetricsProcessTreePythonVMemory) init() {
 	m.data.SetName("databricks.spark.executor_metrics.process_tree.python_v.memory")
-	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetDescription("Virtual memory size for Python in bytes. Enabled if spark.executor.processTreeMetrics.enabled is true.")
+	m.data.SetUnit("By")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
@@ -4653,7 +4653,7 @@ type metricDatabricksSparkHiveExternalCatalogFileCacheHits struct {
 func (m *metricDatabricksSparkHiveExternalCatalogFileCacheHits) init() {
 	m.data.SetName("databricks.spark.hive_external_catalog.file_cache.hits")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{hits}")
 	m.data.SetEmptySum()
 	m.data.Sum().SetIsMonotonic(false)
 	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
@@ -4709,7 +4709,7 @@ type metricDatabricksSparkHiveExternalCatalogFilesDiscovered struct {
 func (m *metricDatabricksSparkHiveExternalCatalogFilesDiscovered) init() {
 	m.data.SetName("databricks.spark.hive_external_catalog.files_discovered")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{files}")
 	m.data.SetEmptySum()
 	m.data.Sum().SetIsMonotonic(false)
 	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
@@ -4765,7 +4765,7 @@ type metricDatabricksSparkHiveExternalCatalogHiveClientCalls struct {
 func (m *metricDatabricksSparkHiveExternalCatalogHiveClientCalls) init() {
 	m.data.SetName("databricks.spark.hive_external_catalog.hive_client_calls")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{calls}")
 	m.data.SetEmptySum()
 	m.data.Sum().SetIsMonotonic(false)
 	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
@@ -4821,7 +4821,7 @@ type metricDatabricksSparkHiveExternalCatalogParallelListingJobsCount struct {
 func (m *metricDatabricksSparkHiveExternalCatalogParallelListingJobsCount) init() {
 	m.data.SetName("databricks.spark.hive_external_catalog.parallel_listing_jobs.count")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{jobs}")
 	m.data.SetEmptySum()
 	m.data.Sum().SetIsMonotonic(false)
 	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
@@ -4877,7 +4877,7 @@ type metricDatabricksSparkHiveExternalCatalogPartitionsFetched struct {
 func (m *metricDatabricksSparkHiveExternalCatalogPartitionsFetched) init() {
 	m.data.SetName("databricks.spark.hive_external_catalog.partitions_fetched")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{partitions}")
 	m.data.SetEmptySum()
 	m.data.Sum().SetIsMonotonic(false)
 	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
@@ -5410,7 +5410,7 @@ type metricDatabricksSparkJvmCPUTime struct {
 func (m *metricDatabricksSparkJvmCPUTime) init() {
 	m.data.SetName("databricks.spark.jvm.cpu.time")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("ns")
 	m.data.SetEmptySum()
 	m.data.Sum().SetIsMonotonic(false)
 	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
@@ -5466,7 +5466,7 @@ type metricDatabricksSparkLiveListenerBusEventsPostedCount struct {
 func (m *metricDatabricksSparkLiveListenerBusEventsPostedCount) init() {
 	m.data.SetName("databricks.spark.live_listener_bus.events_posted.count")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{events}")
 	m.data.SetEmptySum()
 	m.data.Sum().SetIsMonotonic(false)
 	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
@@ -5522,7 +5522,7 @@ type metricDatabricksSparkLiveListenerBusQueueAppStatusDroppedEventsCount struct
 func (m *metricDatabricksSparkLiveListenerBusQueueAppStatusDroppedEventsCount) init() {
 	m.data.SetName("databricks.spark.live_listener_bus.queue.app_status.dropped_events.count")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{events}")
 	m.data.SetEmptySum()
 	m.data.Sum().SetIsMonotonic(false)
 	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
@@ -5578,7 +5578,7 @@ type metricDatabricksSparkLiveListenerBusQueueAppstatusSize struct {
 func (m *metricDatabricksSparkLiveListenerBusQueueAppstatusSize) init() {
 	m.data.SetName("databricks.spark.live_listener_bus.queue.appstatus.size")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("1")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
@@ -5632,7 +5632,7 @@ type metricDatabricksSparkLiveListenerBusQueueExecutorManagementDroppedEventsCou
 func (m *metricDatabricksSparkLiveListenerBusQueueExecutorManagementDroppedEventsCount) init() {
 	m.data.SetName("databricks.spark.live_listener_bus.queue.executor_management.dropped_events.count")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{events}")
 	m.data.SetEmptySum()
 	m.data.Sum().SetIsMonotonic(false)
 	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
@@ -5688,7 +5688,7 @@ type metricDatabricksSparkLiveListenerBusQueueExecutormanagementSize struct {
 func (m *metricDatabricksSparkLiveListenerBusQueueExecutormanagementSize) init() {
 	m.data.SetName("databricks.spark.live_listener_bus.queue.executormanagement.size")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{executor}")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
@@ -5742,7 +5742,7 @@ type metricDatabricksSparkLiveListenerBusQueueSharedDroppedEventsCount struct {
 func (m *metricDatabricksSparkLiveListenerBusQueueSharedDroppedEventsCount) init() {
 	m.data.SetName("databricks.spark.live_listener_bus.queue.shared.dropped_events.count")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{events}")
 	m.data.SetEmptySum()
 	m.data.Sum().SetIsMonotonic(false)
 	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
@@ -5798,7 +5798,7 @@ type metricDatabricksSparkLiveListenerBusQueueSharedSize struct {
 func (m *metricDatabricksSparkLiveListenerBusQueueSharedSize) init() {
 	m.data.SetName("databricks.spark.live_listener_bus.queue.shared.size")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("1")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
@@ -5852,7 +5852,7 @@ type metricDatabricksSparkLiveListenerBusQueueStreamsDroppedEventsCount struct {
 func (m *metricDatabricksSparkLiveListenerBusQueueStreamsDroppedEventsCount) init() {
 	m.data.SetName("databricks.spark.live_listener_bus.queue.streams.dropped_events.count")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{events}")
 	m.data.SetEmptySum()
 	m.data.Sum().SetIsMonotonic(false)
 	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
@@ -5908,7 +5908,7 @@ type metricDatabricksSparkLiveListenerBusQueueStreamsSize struct {
 func (m *metricDatabricksSparkLiveListenerBusQueueStreamsSize) init() {
 	m.data.SetName("databricks.spark.live_listener_bus.queue.streams.size")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("1")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
@@ -5962,7 +5962,7 @@ type metricDatabricksSparkSparkSQLOperationManagerHiveOperationsCount struct {
 func (m *metricDatabricksSparkSparkSQLOperationManagerHiveOperationsCount) init() {
 	m.data.SetName("databricks.spark.spark_sql_operation_manager.hive_operations.count")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{operations}")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
@@ -6068,8 +6068,8 @@ type metricDatabricksSparkStageExecutorRunTime struct {
 // init fills databricks.spark.stage.executor_run_time metric with initial data.
 func (m *metricDatabricksSparkStageExecutorRunTime) init() {
 	m.data.SetName("databricks.spark.stage.executor_run_time")
-	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetDescription("Elapsed time the executor spent running this task. This includes time fetching shuffle data. See https://spark.apache.org/docs/latest/monitoring.html#executor-metrics")
+	m.data.SetUnit("ms")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
@@ -6122,7 +6122,7 @@ type metricDatabricksSparkStageInputBytes struct {
 func (m *metricDatabricksSparkStageInputBytes) init() {
 	m.data.SetName("databricks.spark.stage.input_bytes")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("By")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
@@ -6175,7 +6175,7 @@ type metricDatabricksSparkStageInputRecords struct {
 func (m *metricDatabricksSparkStageInputRecords) init() {
 	m.data.SetName("databricks.spark.stage.input_records")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{records}")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
@@ -6334,7 +6334,7 @@ type metricDatabricksSparkStageOutputRecords struct {
 func (m *metricDatabricksSparkStageOutputRecords) init() {
 	m.data.SetName("databricks.spark.stage.output_records")
 	m.data.SetDescription("n/a")
-	m.data.SetUnit("")
+	m.data.SetUnit("{records}")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }

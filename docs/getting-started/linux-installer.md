@@ -359,6 +359,11 @@ system (requires `root` privileges):
 **Note:** After successful upgrade, the Java application(s) on the host need to
 be manually started/restarted in order for the changes to take effect.
 
+### Discovery mode
+
+If you wish to start the collector with discovery mode you can add the `--discovery` installation option.
+For more information see the discovery config provider [documentation](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/confmapprovider/discovery#discovery-mode).
+
 ### Uninstall
 
 If you wish to uninstall the Collector, Fluentd, and Auto Instrumentation

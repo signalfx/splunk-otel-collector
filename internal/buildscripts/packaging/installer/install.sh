@@ -641,6 +641,7 @@ Options:
                                         effect.
   --collector-version <version>         The splunk-otel-collector package version to install.
                                         (default: "$default_collector_version")
+  --discovery                           Enable discovery mode on collector startup (disabled by default).
   --hec-token <token>                   Set the HEC token if different than the specified access_token.
   --hec-url <url>                       Set the HEC endpoint URL explicitly instead of the endpoint inferred from the
                                         specified realm.
@@ -854,6 +855,7 @@ parse_args_and_install() {
   local with_instrumentation="false"
   local instrumentation_version="$default_instrumentation_version"
   local deployment_environment="$default_deployment_environment"
+  local discovery=
 
   while [ -n "${1-}" ]; do
     case $1 in
@@ -997,6 +999,9 @@ parse_args_and_install() {
         ;;
       --disable-metrics)
         enable_metrics="false"
+        ;;
+      --discovery)
+        discovery="true"
         ;;
       --)
         access_token="$2"
@@ -1162,6 +1167,10 @@ parse_args_and_install() {
     configure_env_file "SPLUNK_COLLECTD_DIR" "$collectd_config_dir" "$collector_env_path"
     # ensure the collector service owner has access to the collectd dir
     chown -R $service_user:$service_group "$(dirname $collectd_config_dir)"
+  fi
+
+  if [ "$discovery" = "true" ]; then
+    configure_env_file "OTELCOL_OPTIONS" "--discovery" "$collector_env_path"
   fi
 
   # ensure the collector service owner has access to the config dir

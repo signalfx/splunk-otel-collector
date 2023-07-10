@@ -29,7 +29,7 @@ replace (
 require (
 	code.cloudfoundry.org/go-loggregator v7.4.0+incompatible
 	github.com/Microsoft/go-winio v0.6.0 // indirect
-	github.com/SAP/go-hdb v1.3.6
+	github.com/SAP/go-hdb v1.3.9
 	github.com/Sectorbob/mlab-ns2 v0.0.0-20171030222938-d3aa0c295a8a
 	github.com/Showmax/go-fqdn v1.0.0
 	github.com/StackExchange/wmi v1.2.1

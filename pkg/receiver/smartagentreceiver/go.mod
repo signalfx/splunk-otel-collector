@@ -44,7 +44,7 @@ require (
 	github.com/Azure/go-autorest/autorest/adal v0.9.21 // indirect
 	github.com/JohnCGriffin/overflow v0.0.0-20211019200055-46fa312c352c // indirect
 	github.com/Microsoft/go-winio v0.6.0 // indirect
-	github.com/SAP/go-hdb v1.3.6 // indirect
+	github.com/SAP/go-hdb v1.3.9 // indirect
 	github.com/Sectorbob/mlab-ns2 v0.0.0-20171030222938-d3aa0c295a8a // indirect
 	github.com/Showmax/go-fqdn v1.0.0 // indirect
 	github.com/StackExchange/wmi v1.2.1 // indirect

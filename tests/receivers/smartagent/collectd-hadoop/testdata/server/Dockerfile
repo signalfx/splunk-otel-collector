@@ -25,8 +25,8 @@ RUN mkdir -p /usr/local/hadoop
 ARG HADOOP_VER=2.10.1
 
 # curl down hadoop and untar it into place
-RUN curl -Lk -o hadoop.tar.gz http://www.gtlib.gatech.edu/pub/apache/hadoop/common/hadoop-${HADOOP_VER}/hadoop-${HADOOP_VER}.tar.gz \
-    && tar -xvf hadoop.tar.gz -C /usr/local/hadoop --strip-components 1 \
+RUN curl -Lks -o hadoop.tar.gz https://dlcdn.apache.org/hadoop/common/hadoop-${HADOOP_VER}/hadoop-${HADOOP_VER}.tar.gz \
+    && tar -xf hadoop.tar.gz -C /usr/local/hadoop --strip-components 1 \
     && rm hadoop.tar.gz
 
 # set environment variables for hadoop path

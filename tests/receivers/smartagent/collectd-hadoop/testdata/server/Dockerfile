@@ -26,7 +26,7 @@ ARG HADOOP_VER=2.10.1
 
 # curl down hadoop and untar it into place
 RUN curl -Lks -o hadoop.tar.gz https://dlcdn.apache.org/hadoop/common/hadoop-${HADOOP_VER}/hadoop-${HADOOP_VER}.tar.gz \
-    && tar -xvfq hadoop.tar.gz -C /usr/local/hadoop --strip-components 1 \
+    && tar -xf hadoop.tar.gz -C /usr/local/hadoop --strip-components 1 \
     && rm hadoop.tar.gz
 
 # set environment variables for hadoop path

@@ -78,10 +78,6 @@ func TestEmptySend(t *testing.T) {
 }
 
 func TestSuccessfulSend(t *testing.T) {
-	timeout := time.Second * 10
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-
 	cfg := createDefaultConfig().(*Config)
 	freePort, err := GetFreePort()
 	require.NoError(t, err)
@@ -103,7 +99,10 @@ func TestSuccessfulSend(t *testing.T) {
 
 	assert.NoError(t, err)
 	require.NotNil(t, remoteWriteReceiver)
-	require.NoError(t, remoteWriteReceiver.Start(ctx, nopHost))
+	require.NoError(t, remoteWriteReceiver.Start(context.Background(), nopHost))
+	t.Cleanup(func() {
+		require.NoError(t, remoteWriteReceiver.Shutdown(context.Background()))
+	})
 	require.NotEmpty(t, remoteWriteReceiver.server)
 	require.NotEmpty(t, remoteWriteReceiver.cancel)
 	require.NotEmpty(t, remoteWriteReceiver.config)
@@ -129,12 +128,11 @@ func TestSuccessfulSend(t *testing.T) {
 		if nil != err {
 			assert.NoError(t, errors.Unwrap(err))
 		}
+		require.NoError(t, mockreporter.WaitAllOnMetricsProcessedCalls(5*time.Second))
 		// always will have 3 "health" metrics due to sfx gateway compatibility metrics
 		assert.GreaterOrEqual(t, mockreporter.TotalSuccessMetrics.Load(), int32(len(wq.Timeseries)+3))
 		assert.Equal(t, mockreporter.TotalErrorMetrics.Load(), int32(0))
 	}
-
-	require.NoError(t, remoteWriteReceiver.Shutdown(ctx))
 }
 
 func TestRealReporter(t *testing.T) {

@@ -38,16 +38,10 @@ jobs:
           go-version: 1.20.5
           cache-dependency-path: '**/go.sum'
 
-      - name: Install golang dependency
-        run: |
-          $ErrorActionPreference = 'Stop'
-          $env:GOPATH = "${env:USERPROFILE}\go"
-          go env -w CGO_ENABLED=0
-          go install github.com/ory/go-acc@v0.2.8
-
       - name: Unit tests with coverage
         run: |
           $ErrorActionPreference = 'Stop'
           $env:GOPATH = "${env:USERPROFILE}\go"
           $env:PATH = "$env:PATH;${env:GOPATH}\bin"
-          go-acc ./...
+          go env -w CGO_ENABLED=0
+          go test -v -cover ./...

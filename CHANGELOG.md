@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### 🛑 Breaking changes 🛑
+
+- (Splunk) Fluentd installation ***disabled*** by default for the Linux and Windows installer scripts ([#3369](https://github.com/signalfx/splunk-otel-collector/pull/3369))
+  - Specify the `--with-fluentd` (Linux) or `with_fluentd = 1` (Windows) option to enable installation
+
 ### 🧰 Bug fixes 🧰
 
 - (Splunk) Discovery mode: Ensure all successful observers are used in resulting receiver creator instance ([#3391](https://github.com/signalfx/splunk-otel-collector/pull/3391))

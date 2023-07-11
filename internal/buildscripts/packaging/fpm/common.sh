@@ -118,7 +118,7 @@ setup_files_and_permissions() {
     fi
 
     JMX_INSTALL_PATH="$buildroot/opt/opentelemetry-java-contrib-jmx-metrics.jar"
-    if [[ -e "$JMX_INSTALL_PATH"]]; then
+    if [[ -e "$JMX_INSTALL_PATH" ]]; then
         sudo chown root:root "$JMX_INSTALL_PATH"
         sudo chmod 755 "$JMX_INSTALL_PATH"
     fi

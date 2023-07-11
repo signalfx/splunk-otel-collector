@@ -1,4 +1,0 @@
-resource_logs:
-  - scope_logs:
-      - logs:
-          - body: "Filesystem	Size	Used	Avail	Capacity	iused	ifree	IUsePct	MountedOn	Type	INodes"

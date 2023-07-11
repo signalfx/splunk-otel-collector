@@ -1,4 +1,0 @@
-resource_logs:
-  - scope_logs:
-      - logs:
-          - body: "USER    PID    %CPU    %MEM    VSZ    RSS    TT    STAT    STARTED    TIME    COMMAND    ARGS"

@@ -1,4 +1,4 @@
-// Copyright The OpenTelemetry Authors
+// Copyright Splunk, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import (
 
 const (
 	typeStr   = "scripted_inputs"
-	stability = component.StabilityLevelBeta
+	stability = component.StabilityLevelDevelopment
 )
 
 func NewFactory() receiver.Factory {
@@ -43,9 +43,6 @@ func (f ReceiverType) Type() component.Type {
 
 // CreateDefaultConfig creates a config with type and version
 func (f ReceiverType) CreateDefaultConfig() component.Config {
-	return createDefaultConfig()
-}
-func createDefaultConfig() *ScriptConfig {
 	return &ScriptConfig{
 		BaseConfig: adapter.BaseConfig{
 			Operators: []operator.Config{},

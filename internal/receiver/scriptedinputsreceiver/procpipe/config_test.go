@@ -12,18 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package scriptedinputreceiver
+package procpipe
 
 import (
-	"go.opentelemetry.io/collector/component/componenttest"
-	"testing"
-
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
-func TestCreateDefaultConfig(t *testing.T) {
-	factory := NewFactory()
-	cfg := factory.CreateDefaultConfig()
-	assert.NotNil(t, cfg, "failed to create default config")
-	assert.NoError(t, componenttest.CheckConfigStruct(cfg))
+func TestNewConfig(t *testing.T) {
+	config := NewConfig()
+	assert.NotNil(t, config, "failed to create default config")
 }

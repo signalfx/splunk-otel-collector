@@ -1,4 +1,4 @@
-// Copyright The OpenTelemetry Authors
+// Copyright Copyright Splunk, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -44,35 +44,6 @@ const (
 
 func init() {
 	operator.Register(operatorType, func() operator.Builder { return NewConfig() })
-}
-
-// NewConfig creates a new stdin input config with default values
-func NewConfig() *Config {
-	return &Config{
-		InputConfig: helper.NewInputConfig(operatorType, operatorType),
-		BaseConfig: BaseConfig{
-			Multiline: helper.NewMultilineConfig(),
-			Encoding:  helper.NewEncodingConfig(),
-		},
-	}
-}
-
-// Config is the configuration of a stdin input operator.
-type Config struct {
-	helper.InputConfig `mapstructure:",squash"`
-	BaseConfig         `mapstructure:",squash"`
-}
-
-// BaseConfig is the detailed configuration of a tcp input operator.
-type BaseConfig struct {
-	Multiline          helper.MultilineConfig `mapstructure:"multiline,omitempty"`
-	ScriptName         string                 `mapstructure:"script_name,omitempty"`
-	Encoding           helper.EncodingConfig  `mapstructure:",squash,omitempty"`
-	Source             string                 `mapstructure:"source"`
-	SourceType         string                 `mapstructure:"sourcetype"`
-	CollectionInterval string                 `mapstructure:"collection_interval"`
-	MaxLogSize         helper.ByteSize        `mapstructure:"max_log_size,omitempty"`
-	AddAttributes      bool                   `mapstructure:"add_attributes,omitempty"`
 }
 
 // Build will build a stdin input operator.

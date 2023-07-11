@@ -37,8 +37,8 @@ RUN if [[ "$ARCH" = "amd64" || "$ARCH" = "arm64" ]]; then \
 
 FROM alpine:3.17.0 AS jmx
 ARG JMX_METRIC_GATHERER_RELEASE
-RUN JMX_METRICS_JAR=opentelemetry-jmx-metrics-${JMX_METRIC_GATHERER_RELEASE}.jar && \
-URL=https://repo1.maven.org/maven2/io/opentelemetry/contrib/opentelemetry-jmx-metrics/${JMX_METRIC_GATHERER_RELEASE}/$JMX_METRICS_JAR && \
+RUN JMX_METRICS_JAR=opentelemetry-jmx-metrics.jar && \
+URL=https://github.com/open-telemetry/opentelemetry-java-contrib/releases/download/v${JMX_METRIC_GATHERER_RELEASE}/${JMX_METRICS_JAR} && \
 cd /tmp && wget "$URL" && mv $JMX_METRICS_JAR opentelemetry-java-contrib-jmx-metrics.jar;
 
 FROM ${DOCKER_REPO}/debian:11.5 as journalctl

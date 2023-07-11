@@ -13,14 +13,14 @@ require (
 	github.com/hashicorp/vault v1.14.0
 	github.com/hashicorp/vault-plugin-auth-gcp v0.16.0
 	github.com/hashicorp/vault/api v1.9.2
-	github.com/jaegertracing/jaeger v1.41.0
+	github.com/jaegertracing/jaeger v1.47.0
 	github.com/knadh/koanf v1.5.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/countconnector v0.81.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector v0.81.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.81.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.81.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.81.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.81.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.60.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.81.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension v0.81.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarder v0.81.0
@@ -72,7 +72,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/receivercreator v0.81.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/redisreceiver v0.81.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sapmreceiver v0.81.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/signalfxreceiver v0.81.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/signalfxreceiver v0.60.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/simpleprometheusreceiver v0.81.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver v0.81.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sqlqueryreceiver v0.81.0
@@ -86,10 +86,10 @@ require (
 	github.com/prometheus/common v0.44.0
 	github.com/prometheus/prometheus v0.45.0
 	github.com/signalfx/golib/v3 v3.3.50
-	github.com/signalfx/signalfx-agent v1.0.1-0.20230222185249-54e5d1064c5b
+	github.com/signalfx/signalfx-agent v1.0.1-0.20230104182534-9eee411fe305
 	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension v0.72.0
 	github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor v0.72.0
-	github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver v0.72.0
+	github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver v0.0.0-00010101000000-000000000000
 	github.com/signalfx/splunk-otel-collector/tests v0.72.0
 	github.com/spf13/cast v1.5.1
 	github.com/spf13/pflag v1.0.5
@@ -165,6 +165,7 @@ require (
 	github.com/relvacode/iso8601 v1.3.0 // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/shoenig/go-m1cpu v0.1.6 // indirect
+	github.com/signalfx/ingest-protocols v0.2.0 // indirect
 	github.com/tilinna/clock v1.1.0 // indirect
 	github.com/zeebo/xxh3 v1.0.2 // indirect
 	go.opentelemetry.io/collector/config/configauth v0.81.0 // indirect
@@ -311,7 +312,7 @@ require (
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
 	github.com/hashicorp/go-kms-wrapping/entropy/v2 v2.0.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
-	github.com/hashicorp/go-plugin v1.4.9 // indirect
+	github.com/hashicorp/go-plugin v1.4.10 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.2 // indirect
 	github.com/hashicorp/go-rootcerts v1.0.2 // indirect
 	github.com/hashicorp/go-secure-stdlib/awsutil v0.2.2 // indirect
@@ -436,7 +437,6 @@ require (
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3 // indirect
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657 // indirect
 	github.com/signalfx/gohistogram v0.0.0-20160107210732-1ccfd2ff5083 // indirect
-	github.com/signalfx/ingest-protocols v0.2.0 // indirect
 	github.com/signalfx/sapm-proto v0.13.0 // indirect
 	github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20230222185249-54e5d1064c5b // indirect
 	github.com/signalfx/signalfx-go v1.33.0 // indirect

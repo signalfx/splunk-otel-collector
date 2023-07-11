@@ -1472,8 +1472,8 @@ github.com/signalfx/ingest-protocols v0.2.0 h1:axbmVg8eLoBh3wNmwBG9O/2jMjfzCVP7M
 github.com/signalfx/ingest-protocols v0.2.0/go.mod h1:CYKWPtxFWF9RCUGfN0Hh6javdTTqediTCbXFbW0BF60=
 github.com/signalfx/sapm-proto v0.13.0 h1:yEkp1+MAU4vZvnJMp56uhVlRjlvCK7KQjBg0g2Apw8k=
 github.com/signalfx/sapm-proto v0.13.0/go.mod h1:C72HjeCW5v0Llk6pIVJ/ZH8A5GbiZpCCSkE1dSlpWxY=
-github.com/signalfx/signalfx-go v1.32.0 h1:b3zgMR8lz2EAYFbaGO0XInanWmMfkmJ5IPgKv6mstyg=
-github.com/signalfx/signalfx-go v1.32.0/go.mod h1:IpGZLPvCKNFyspAXoS480jB02mocTpo0KYd8jbl6/T8=
+github.com/signalfx/signalfx-go v1.33.0 h1:+v1fa+is8rYSxGoN1W+9PiDj1dCF5sVjJx60dhNLsTA=
+github.com/signalfx/signalfx-go v1.33.0/go.mod h1:IpGZLPvCKNFyspAXoS480jB02mocTpo0KYd8jbl6/T8=
 github.com/signalfx/telegraf v0.10.2-0.20210820123244-82265917ca87 h1:ayeUHxiUjcxzuEzjWVkXJxf42UYNw8UKmYmIQu9mAqo=
 github.com/signalfx/telegraf v0.10.2-0.20210820123244-82265917ca87/go.mod h1:1gnMOcwGO3lAxfoMq28M8gjooF2MqVwquPVEvgZ1its=
 github.com/sijms/go-ora/v2 v2.7.8 h1:6G4a+L9atTJFRCIOENi05CEE6gMxCGYS9CFimhqPqlw=

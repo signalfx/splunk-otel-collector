@@ -57,7 +57,7 @@ func downloadJMXGatherer(t *testing.T) string {
 	require.NoError(t, err)
 
 	jmx_file_name := "opentelemetry-jmx-metrics.jar"
-	remote_url := fmt.Sprintf("https://github.com/open-telemetry/opentelemetry-java-contrib/releases/download/v$version/$jmx_filename",
+	remote_url := fmt.Sprintf("https://github.com/open-telemetry/opentelemetry-java-contrib/releases/download/v%s/$%s",
 		jmx_version, jmx_file_name)
 
 	resp, err := http.Get(remote_url)

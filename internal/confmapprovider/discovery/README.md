@@ -1,6 +1,7 @@
-# Discovery confmap.Provider (Experimental)
+# Discovery confmap.Provider
 
-**This component should not be considered stable. At this time its functionality is provided for testing and validation purposes only.**
+**This feature currently has an [alpha](https://github.com/open-telemetry/opentelemetry-collector#alpha) stability level.<br>
+Backwards incompatible changes to components and custom discovery configuration may occur.**
 
 The Discovery [confmap.Provider](https://pkg.go.dev/go.opentelemetry.io/collector/confmap#readme-provider) provides
 the ability to define Collector service config through individual component yaml mappings in a `config.d` directory:
@@ -87,7 +88,7 @@ service:
 
 ## Discovery Mode
 
-This component also provides a `--discovery [--dry-run]` option compatible with `config.d` that attempts to instantiate
+This component also provides a `--discovery [--dry-run] [--discovery-properties=<properties.yaml>]` option compatible with `config.d` that attempts to instantiate
 any `.discovery.yaml` receivers using corresponding `.discovery.yaml` observers in a "preflight" Collector service.
 Discovery mode will:
 
@@ -96,13 +97,53 @@ Discovery mode will:
 [Discovery Receiver](../../receiver/discoveryreceiver/README.md) instance to receive discovery events from all
 successfully started observers.
 1. Wait 10s or the configured `SPLUNK_DISCOVERY_DURATION` environment variable [`time.Duration`](https://pkg.go.dev/time#ParseDuration).
-1. Embed any receiver instances' configs resulting in a `discovery.status` of `successful` inside a `receiver_creator/discovery` receiver's configuration to be passed to the final Collector service config (or outputted w/ `--dry-run`).
+1. Embed any receiver instances' configs resulting in a `discovery.status` of `successful` inside a `receiver_creator/discovery` receiver's configuration to be passed to the final Collector service config in a new or existing `service::pipelines::metrics::receivers` sequence (or outputted w/ `--dry-run`). Any required observers will be added to `service::extensions`.
 1. Log any receiver resulting in a `discovery.status` of `partial` with the configured guidance for setting any relevant discovery properties.
 1. Stop all temporary components before continuing on to the actual Collector service (or exiting early with `--dry-run`).
 
+Unlike `config.d` component files, which are direct configuration entries for the desired component, Discovery component
+configs have an `enabled` boolean and `config` parent mapping field to determine use and configure the functionality of
+the components:
 
-By default, the Discovery mode is provided with pre-made discovery config components in [`bundle.d`](./bundle/README.md).
+```yaml
+# <some-observer-type-with-optional-name.discovery.yaml>
+<observer_type>(/<observer_name>):
+  enabled: <true | false> # true by default
+  config:
+    <embedded observer config>
+```
 
+```yaml
+# <some-receiver-type-with-optional-name.discovery.yaml>
+<receiver_type>(/<receiver_name>):
+  enabled: <true | false> # true by default
+  rule:
+    <observer_type>(/<observer_name>): <receiver creator rule for this observer>
+  config:
+    default:
+      <default embedded receiver config>
+    <observer_type>(/<observer_name>):
+      <observer-specific config items, merged with `default`>
+  status:
+    metrics:
+      <discovery receiver metric status entries>
+    statements:
+      <discovery receiver statement status entries>
+```
+
+By default, the discovery mode is provided with pre-made discovery config components in [`bundle.d`](./bundle/README.md).
+
+The following components have bundled discovery configurations in the last Splunk OpenTelemetry Collector release:
+
+I. Smart Agent receiver
+* `collectd/mysql` monitor type ([Linux](./bundle/bundle.d/receivers/smartagent-collectd-mysql.discovery.yaml))
+* `collectd/nginx` monitor type ([Linux](./bundle/bundle.d/receivers/smartagent-collectd-nginx.discovery.yaml))
+* `postgresql` monitor type ([Linux and Windows](./bundle/bundle.d/receivers/smartagent-postgresql.discovery.yaml))
+
+II. Extensions
+* `docker_observer` ([Linux and Windows](./bundle/bundle.d/extensions/docker-observer.discovery.yaml))
+* `host_observer` ([Linux and Windows](./bundle/bundle.d/extensions/host-observer.discovery.yaml))
+* `k8s_observer` ([Linux and Windows](./bundle/bundle.d/extensions/k8s-observer.discovery.yaml))
 
 ### Discovery properties
 
@@ -125,6 +166,27 @@ splunk.discovery.extensions.k8s_observer.enabled: false
 
 These properties can be in `config.d/properties.discovery.yaml` or specified at run time with `--set` command line options.
 
+You can also specify a `--discovery-properties=<filepath.yaml>` argument to disregard `config.d/properties.discovery.yaml` properties and load properties not to be shared with another Collector service, while still benefiting from existing discovery component definitions.
+
+The `config.d/properties.discovery.yaml` file supports specifying the property values directly as well within a mapped form:
+
+```yaml
+# --set form will take priority to mapped values
+splunk.discovery.receivers.prometheus_simple.config.labels::my_label: my_label_value
+splunk.discovery.receivers.prometheus_simple.enabled: true
+
+# mapped property form
+splunk.discovery:
+  extensions:
+    docker_observer:
+      enabled: false
+      config:
+        endpoint: tcp://localhost:54321
+  receivers:
+    prometheus_simple:
+      enabled: false # will be overwritten by above --set form (discovery is attempted for the receiver)
+```
+
 Each discovery property also has an equivalent environment variable form using `_x<hex pair>_` encoded delimiters for
 non-word characters `[^a-zA-Z0-9_]`:
 
@@ -142,9 +204,11 @@ SPLUNK_DISCOVERY_EXTENSIONS_docker_observer_CONFIG_endpoint="tcp://localhost:808
 SPLUNK_DISCOVERY_EXTENSIONS_k8s_observer_ENABLED=false
 ```
 
-The priority order for discovery config content from lowest to highest is:
+The priority order for discovery config values from lowest to highest is:
 
-1. `config.d/<receivers or extensions>/*.discovery.yaml` file content (lowest).
-2. `config.d/properties.discovery.yaml` file content.
-3. `SPLUNK_DISCOVERY_<xyz>` environment variables available to the collector process.
-4. `--set splunk.discovery.<xyz>` commandline options (highest).
+1. Pre-made `bundle.d` component config content (lowest).
+2. `config.d/<receivers or extensions>/*.discovery.yaml` component config file content.
+3. `config.d/properties.discovery.yaml` properties file mapped form content.
+4. `config.d/properties.discovery.yaml` properties file --set form content.
+5. `SPLUNK_DISCOVERY_<xyz>` property environment variables available to the collector process.
+6. `--set splunk.discovery.<xyz>` property commandline options (highest).

@@ -50,6 +50,7 @@ func TestDefaultComponents(t *testing.T) {
 		"fluentforward",
 		"hostmetrics",
 		"jaeger",
+		"jmx",
 		"journald",
 		"k8s_cluster",
 		"k8s_events",
@@ -58,6 +59,7 @@ func TestDefaultComponents(t *testing.T) {
 		"kafkametrics",
 		"kubeletstats",
 		"mongodbatlas",
+		"lightprometheus",
 		"oracledb",
 		"otlp",
 		"postgresql",
@@ -68,6 +70,7 @@ func TestDefaultComponents(t *testing.T) {
 		"redis",
 		"sapm",
 		"signalfx",
+		"signalfxgatewayprometheusremotewrite",
 		"smartagent",
 		"splunk_hec",
 		"sqlquery",
@@ -109,6 +112,11 @@ func TestDefaultComponents(t *testing.T) {
 		"splunk_hec",
 		"httpsink",
 	}
+	expectedConnectors := []component.Type{
+		"count",
+		"spanmetrics",
+		"forward",
+	}
 
 	factories, err := Get()
 	assert.NoError(t, err)
@@ -142,6 +150,14 @@ func TestDefaultComponents(t *testing.T) {
 	for _, k := range expectedExporters {
 		v, ok := exps[k]
 		require.True(t, ok)
+		assert.Equal(t, k, v.Type())
+	}
+
+	conns := factories.Connectors
+	assert.Len(t, conns, len(expectedConnectors))
+	for _, k := range expectedConnectors {
+		v, ok := conns[k]
+		require.True(t, ok, fmt.Sprintf("Missing expected connector %s", k))
 		assert.Equal(t, k, v.Type())
 	}
 }

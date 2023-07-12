@@ -17,6 +17,8 @@
 package telemetry
 
 import (
+	"fmt"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -29,6 +31,13 @@ func loadedResourceMetrics(t *testing.T) ResourceMetrics {
 	require.NoError(t, err)
 	require.NotNil(t, resourceMetrics)
 	return *resourceMetrics
+}
+
+func TestResourceMetricsYamlStringRep(t *testing.T) {
+	b, err := os.ReadFile(filepath.Join(".", "testdata", "metrics", "resource-metrics.yaml"))
+	require.NoError(t, err)
+	resourceMetrics := loadedResourceMetrics(t)
+	require.Equal(t, string(b), fmt.Sprintf("%v", resourceMetrics))
 }
 
 func TestLoadMetricsHappyPath(t *testing.T) {
@@ -107,7 +116,7 @@ func TestLoadMetricsHappyPath(t *testing.T) {
 func TestLoadMetricsNotAValidPath(t *testing.T) {
 	resourceMetrics, err := LoadResourceMetrics("notafile")
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "no such file or directory")
+	require.Contains(t, err.Error(), invalidPathErrorMsg())
 	require.Nil(t, resourceMetrics)
 }
 
@@ -378,6 +387,13 @@ func TestMetricContainsAllSelfCheck(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestMetricContainsOnlySelfCheck(t *testing.T) {
+	resourceMetrics := loadedResourceMetrics(t)
+	containsAll, err := resourceMetrics.ContainsOnly(resourceMetrics)
+	require.True(t, containsAll, err)
+	require.NoError(t, err)
+}
+
 func TestMetricContainsAllNoBijection(t *testing.T) {
 	received := loadedResourceMetrics(t)
 
@@ -434,7 +450,7 @@ func TestMetricContainsAllResourceNeverReceived(t *testing.T) {
 	containsAll, err := received.ContainsAll(*expected)
 	require.False(t, containsAll)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "Missing resources: [not: matched\n]")
+	require.Contains(t, err.Error(), "Missing resources: [attributes:\n  not: matched\n]")
 }
 
 func TestMetricContainsAllWithMissingAndEmptyAttributes(t *testing.T) {
@@ -457,5 +473,14 @@ func TestMetricContainsAllWithMissingAndEmptyAttributes(t *testing.T) {
 	containsAll, err = received.ContainsAll(*empty)
 	require.False(t, containsAll)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "Missing Metrics: [attributes: {}\nname: another_int_gauge\ntype: IntGauge\nvalue: 111\n]")
+	require.Contains(t, err.Error(), "Missing Metrics: [name: another_int_gauge\ntype: IntGauge\nvalue: 111\n]")
+}
+
+func TestMetricContainsOnlyDetectsUnexpectedMetric(t *testing.T) {
+	resourceMetrics := loadedResourceMetrics(t)
+	sm := resourceMetrics.ResourceMetrics[0].ScopeMetrics
+	sm[0].Metrics = append(sm[0].Metrics, Metric{Name: "unexpected_metric"})
+	containsAll, err := resourceMetrics.ContainsOnly(loadedResourceMetrics(t))
+	require.False(t, containsAll, err)
+	require.EqualError(t, err, fmt.Sprintf("%v contains unexpected metrics unexpected_metric", resourceMetrics))
 }

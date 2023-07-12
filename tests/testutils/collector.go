@@ -15,6 +15,7 @@
 package testutils
 
 import (
+	"regexp"
 	"testing"
 
 	"go.uber.org/zap"
@@ -33,4 +34,15 @@ type Collector interface {
 	Shutdown() error
 	InitialConfig(t testing.TB, port uint16) map[string]any
 	EffectiveConfig(t testing.TB, port uint16) map[string]any
+}
+
+var configFromArgsPattern = regexp.MustCompile("--config($|[^d-]+)")
+
+func configIsSetByArgs(args []string) bool {
+	for _, c := range args {
+		if configFromArgsPattern.Match([]byte(c)) {
+			return true
+		}
+	}
+	return false
 }

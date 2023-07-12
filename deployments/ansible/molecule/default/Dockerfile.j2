@@ -1,10 +1,29 @@
-{% if item.image not in ["opensuse12", "opensuse15"] %}
+{% if item.image not in ["opensuse12", "opensuse15", "centos9"] %}
 FROM geerlingguy/docker-{{ item.image }}-ansible:latest
 {% if item.image == "centos8" %}
 RUN sed -i 's|#mirrorlist|mirrorlist|g' /etc/yum.repos.d/CentOS*.repo
 RUN sed -i 's|^baseurl|#baseurl|' /etc/yum.repos.d/CentOS*.repo
 RUN sed -i 's|\$releasever|8-stream|g' /etc/yum.repos.d/CentOS*.repo
+{% elif item.image == "debian9" %}
+RUN sed -i 's|http://.*.debian.org|http://archive.debian.org|' /etc/apt/sources.list
+RUN sed -i '/stretch-updates/d' /etc/apt/sources.list
 {% endif %}
+{% elif item.image == "centos9" %}
+FROM quay.io/centos/centos:stream9
+ENV container docker
+RUN rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
+RUN dnf install -y initscripts sudo systemd
+RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i = \
+    "systemd-tmpfiles-setup.service" ] || rm -f $i; done); \
+    rm -f /lib/systemd/system/multi-user.target.wants/*;\
+    rm -f /lib/systemd/system/local-fs.target.wants/*; \
+    rm -f /lib/systemd/system/sockets.target.wants/*udev*; \
+    rm -f /lib/systemd/system/sockets.target.wants/*initctl*; \
+    rm -f /lib/systemd/system/basic.target.wants/*;\
+    rm -f /lib/systemd/system/anaconda.target.wants/*;
+# Disable requiretty.
+RUN sed -i -e 's/^\(Defaults\s*requiretty\)/#--- \1/'  /etc/sudoers
+CMD ["/usr/sbin/init"]
 {% else %}
 {% if item.image == "opensuse12" %}
 FROM opensuse/leap:42

@@ -20,9 +20,9 @@ Currently, the following Linux distributions and versions are supported:
 
 - Amazon Linux: 2, 2023 (**Note:** Log collection with Fluentd not currently supported for Amazon Linux 2023.)
 - CentOS / Red Hat / Oracle: 7, 8, 9
-- Debian: 9, 10, 11
+- Debian: 9, 10, 11 (**Note:** Log collection with Fluentd is not supported for Debian 9 aarch64.)
 - SUSE: 12, 15 (**Note:** Only for Collector versions v0.34.0 or higher.  Log collection with Fluentd not currently supported.)
-- Ubuntu: 16.04, 18.04, 20.04, 22.04
+- Ubuntu: 16.04, 18.04, 20.04, 22.04 (**Note:** Log collection with Fluentd is not supported for Ubuntu 16.04 aarch64.)
 
 ## Getting Started
 
@@ -157,7 +157,7 @@ To upgrade the Collector, run the following commands on your system (requires
 - Debian:
   ```sh
   sudo apt-get update
-  sudo apt-get --only-upgrade splunk-otel-collector
+  sudo apt-get install --only-upgrade splunk-otel-collector
   ```
   **Note:** If the default configuration files in `/etc/otel/collector` have
   been modified after initial installation, you may be prompted to keep the
@@ -335,7 +335,7 @@ system (requires `root` privileges):
 - Debian:
   ```sh
   sudo apt-get update
-  sudo apt-get --only-upgrade splunk-otel-auto-instrumentation
+  sudo apt-get install --only-upgrade splunk-otel-auto-instrumentation
   ```
   **Note:** You may be prompted to keep or overwrite the configuration file at
   `/usr/lib/splunk-instrumentation/instrumentation.conf`.  Choosing to
@@ -358,6 +358,11 @@ system (requires `root` privileges):
 
 **Note:** After successful upgrade, the Java application(s) on the host need to
 be manually started/restarted in order for the changes to take effect.
+
+### Discovery mode
+
+If you wish to start the collector with discovery mode you can add the `--discovery` installation option.
+For more information see the discovery config provider [documentation](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/confmapprovider/discovery#discovery-mode).
 
 ### Uninstall
 

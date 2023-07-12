@@ -1,0 +1,327 @@
+name: linux-package-test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    paths:
+      - '.github/workflows/linux-package-test.yml'
+      - 'cmd/otelcol/**'
+      - 'internal/buildscripts/packaging/collect-libs.sh'
+      - 'internal/buildscripts/packaging/fpm/**'
+      - 'internal/buildscripts/packaging/tests/**'
+      - 'internal/signalfx-agent/bundle/**'
+      - 'Makefile'
+      - 'Makefile.common'
+      - '!**.md'
+      - '!internal/buildscripts/packaging/tests/deployments/**'
+
+concurrency:
+  group: linux-package-test-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: '3.10'
+  PIP_VERSION: '22.0.4'
+  REQUIREMENTS_PATH: "internal/buildscripts/packaging/tests/requirements.txt"
+  GO_VERSION: 1.20.5
+
+jobs:
+  setup-environment:
+    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: '**/go.sum'
+
+      - name: Installing dependency
+        run: |
+          make install-tools
+
+  cross-compile:
+    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+    runs-on: ubuntu-20.04
+    needs: [setup-environment]
+    strategy:
+      matrix:
+        SYS_BINARIES: [ "binaries-linux_amd64", "binaries-linux_arm64", "binaries-linux_ppc64le" ]
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: '**/go.sum'
+
+      - name: Build Collector
+        run: |
+          make ${{ matrix.SYS_BINARIES }}
+
+      - name: Uploading binaries
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.SYS_BINARIES }}
+          path: |
+            ./bin/*
+
+  agent-bundle-linux:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        ARCH: ["amd64", "arm64"]
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/cache@v3
+        with:
+          path: .cache/buildx/agent-bundle-${{ matrix.ARCH }}
+          key: agent-bundle-buildx-${{ matrix.ARCH }}-${{ hashFiles('internal/signalfx-agent/bundle/**') }}
+
+      - uses: docker/setup-qemu-action@v2
+        if: ${{ matrix.ARCH != 'amd64' }}
+        with:
+          platforms: ${{ matrix.ARCH }}
+          image: tonistiigi/binfmt:qemu-v7.0.0
+
+      - run: make -C internal/signalfx-agent/bundle agent-bundle-linux ARCH=${{ matrix.ARCH }}
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: agent-bundle-linux-${{ matrix.ARCH }}
+          path: ./dist/agent-bundle_linux_${{ matrix.ARCH }}.tar.gz
+
+  build-package:
+    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+    runs-on: ubuntu-20.04
+    needs: [cross-compile, agent-bundle-linux]
+    strategy:
+      matrix:
+        SYS_PACKAGE: [ "deb", "rpm", "tar" ]
+        ARCH: [ "amd64", "arm64" ]
+      fail-fast: false
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: '**/go.sum'
+
+      - name: Downloading binaries-linux_${{ matrix.ARCH }}
+        uses: actions/download-artifact@v3
+        with:
+          name: binaries-linux_${{ matrix.ARCH }}
+          path: ./bin
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: agent-bundle-linux-${{ matrix.ARCH }}
+          path: ./dist
+
+      - name: Build ${{ matrix.SYS_PACKAGE }} ${{ matrix.ARCH }} package
+        run: make ${{ matrix.SYS_PACKAGE }}-package SKIP_COMPILE=true SKIP_BUNDLE=true VERSION="" ARCH="${{ matrix.ARCH }}"
+
+      - name: Uploading ${{ matrix.SYS_PACKAGE }} ${{ matrix.ARCH }} package artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.SYS_PACKAGE }}-${{ matrix.ARCH }}-package
+          path: ./dist/splunk-otel-collector*
+
+  test-package-matrix:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Get matrix
+        id: get-matrix
+        run: |
+          # create test matrix for distro and arch
+          dockerfiles=$(find internal/buildscripts/packaging/tests/images/ -name "Dockerfile.*" | cut -d '.' -f2- | sort -u)
+          if [ -z "$dockerfiles" ]; then
+            echo "Failed to get dockerfiles from internal/buildscripts/packaging/tests/images!" >&2
+            exit 1
+          fi
+          distro=$(for d in $dockerfiles; do echo -n "\"$d\","; done)
+          arch="\"amd64\", \"arm64\""
+          matrix="{\"DISTRO\": [${distro%,}], \"ARCH\": [${arch}]}"
+          echo "$matrix" | jq
+          echo "matrix=${matrix}" >> $GITHUB_OUTPUT
+    outputs:
+      matrix: ${{ steps.get-matrix.outputs.matrix }}
+
+  test-package:
+    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+    runs-on: ${{ fromJSON('["ubuntu-20.04", "ubuntu-22.04"]')[matrix.DISTRO == 'amazonlinux-2023'] }}
+    timeout-minutes: 20
+    needs: [build-package, test-package-matrix]
+    strategy:
+      matrix: ${{ fromJSON(needs.test-package-matrix.outputs.matrix) }}
+      fail-fast: false
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v3
+
+      - name: Get package type for ${{ matrix.DISTRO }}
+        run: |
+          for pkg in "deb" "rpm" "tar"; do
+            if [[ -f "internal/buildscripts/packaging/tests/images/${pkg}/Dockerfile.${{ matrix.DISTRO }}" ]]; then
+              echo "SYS_PACKAGE=${pkg}" >> $GITHUB_ENV
+              exit 0
+            fi
+          done
+          echo "Unknown distro '${{ matrix.DISTRO }}'!"
+          exit 1
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: ${{ env.SYS_PACKAGE }}-${{ matrix.ARCH }}-package
+          path: ./dist
+
+      - uses: docker/setup-qemu-action@v2
+        if: ${{ matrix.ARCH != 'amd64' }}
+        with:
+          platforms: ${{ matrix.ARCH }}
+          image: tonistiigi/binfmt:qemu-v7.0.0
+
+      - name: Setup python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          cache-dependency-path: ${{ env.REQUIREMENTS_PATH }}
+
+      - name: Install pytest
+        run: |
+          if which pip; then
+              pip install --upgrade 'pip==${{ env.PIP_VERSION }}'
+          else
+              curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+              python get-pip.py 'pip==${{ env.PIP_VERSION }}'
+          fi
+          pip install -r "${{ env.REQUIREMENTS_PATH }}"
+
+      - name: Test ${{ env.SYS_PACKAGE }} on ${{ matrix.DISTRO }} ${{ matrix.ARCH }}
+        run: |
+          distro="${{ matrix.DISTRO }}"
+          if [[ "$distro" = "amazonlinux-2" ]]; then
+            # workaround for pytest substring matching
+            distro="amazonlinux-2 and not amazonlinux-2023"
+          fi
+          pytest -sx --verbose -m "${{ env.SYS_PACKAGE }}" \
+            -k "$distro and ${{ matrix.ARCH }}" \
+            internal/buildscripts/packaging/tests/package_test.py
+
+  docker-otelcol:
+    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+    runs-on: ubuntu-20.04
+    needs: [cross-compile, agent-bundle-linux]
+    strategy:
+      matrix:
+        ARCH: [ "amd64", "arm64", "ppc64le" ]
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: '**/go.sum'
+
+      - name: Set up QEMU
+        if: ${{ matrix.ARCH != 'amd64' }}
+        uses: docker/setup-qemu-action@v2
+        with:
+          platforms: ${{ matrix.ARCH }}
+          image: tonistiigi/binfmt:qemu-v7.0.0
+
+      - name: Downloading binaries-linux_${{ matrix.ARCH }}
+        uses: actions/download-artifact@v3
+        with:
+          name: binaries-linux_${{ matrix.ARCH }}
+          path: ./bin
+
+      - uses: actions/download-artifact@v3
+        if: ${{ matrix.ARCH != 'ppc64le' }}
+        with:
+          name: agent-bundle-linux-${{ matrix.ARCH }}
+          path: ./dist
+
+      - name: Build ${{ matrix.ARCH }} docker image
+        run: |
+          make docker-otelcol SKIP_COMPILE=true SKIP_BUNDLE=true ARCH=${{ matrix.ARCH }}
+
+      - name: Check image arch
+        run: |
+          # ensure that the arch in the image manifest is correct
+          [ "$( docker inspect --format='{{.Architecture}}' otelcol:${{ matrix.ARCH }} )" = "${{ matrix.ARCH }}" ] || exit 1
+
+      - name: Run docker image
+        run: |
+          # ensure the collector can start with the default config file
+          docker run --platform linux/${{ matrix.ARCH }} -d -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=fake-realm --name otelcol otelcol:${{ matrix.ARCH }}
+          sleep 10
+          if [ -z "$( docker ps --filter=status=running --filter=name=otelcol -q )" ]; then
+            docker logs otelcol
+            echo "Failing job execution: fail to start otelcol docker container with the default config in 10 seconds."
+            exit 1
+          fi
+
+          # get all provided config files from the container
+          tmpdir=$(mktemp -d)
+          docker cp otelcol:/etc/otel/collector $tmpdir
+          docker rm -f otelcol
+
+          # ensure the collector can start with all provided config files
+          configs=$(ls ${tmpdir}/collector/ 2>/dev/null)
+          if [ -z "$configs" ]; then
+            echo "failed to get config files from otelcol:/etc/otel/collector"
+            exit 1
+          fi
+          for config in $configs; do
+            docker run --platform linux/${{ matrix.ARCH }} -d -e SPLUNK_CONFIG=/etc/otel/collector/${config} -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=fake-realm --name otelcol otelcol:${{ matrix.ARCH }}
+            sleep 10
+            if [ -z "$( docker ps --filter=status=running --filter=name=otelcol -q )" ]; then
+              docker logs otelcol
+              echo "Failing job execution: fail to start otelcol docker container with ${config} in 10 seconds."
+              exit 1
+            fi
+            docker rm -f otelcol
+          done
+
+      - name: Check journalctl
+        run: |
+          # ensure journalctl can run with the collected libraries
+          docker run --platform linux/${{ matrix.ARCH }} -d -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=fake-realm --name otelcol otelcol:${{ matrix.ARCH }}
+          docker exec otelcol /bin/journalctl
+          docker rm -f otelcol
+
+      - name: Check python and java
+        if: ${{ matrix.ARCH != 'ppc64le' }}
+        run: |
+          # ensure python and java can run with the collected libraries
+          docker run --platform linux/${{ matrix.ARCH }} -d -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=fake-realm --name otelcol otelcol:${{ matrix.ARCH }}
+          docker exec otelcol /usr/lib/splunk-otel-collector/agent-bundle/bin/python --version
+          docker exec otelcol /usr/lib/splunk-otel-collector/agent-bundle/jre/bin/java -version
+          # ensure collectd-python plugins were installed
+          docker exec otelcol bash -c 'test -d /usr/lib/splunk-otel-collector/agent-bundle/collectd-python/'
+          if [[ "$(docker exec otelcol ls /usr/lib/splunk-otel-collector/agent-bundle/collectd-python/ | wc -l)" -eq 0 ]]; then
+            echo "/usr/lib/splunk-otel-collector/agent-bundle/collectd-python/ is empty!" >&2
+            exit 1
+          fi
+          docker rm -f otelcol

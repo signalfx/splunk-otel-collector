@@ -64,7 +64,6 @@ func TestSessionRetrieve(t *testing.T) {
 			assert.Nil(t, retrieved)
 		})
 	}
-	assert.NoError(t, source.Shutdown(context.Background()))
 }
 
 func TestWatcher(t *testing.T) {
@@ -116,7 +115,6 @@ func TestWatcher(t *testing.T) {
 				assert.NoError(t, ce.Error)
 				assert.NoError(t, retrieved.Close(context.Background()))
 			}
-			assert.NoError(t, source.Shutdown(context.Background()))
 		})
 	}
 }

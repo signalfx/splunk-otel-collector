@@ -116,12 +116,20 @@ func (resourceLogs ResourceLogs) Validate() error {
 	return nil
 }
 
+func (resourceLogs ResourceLogs) String() string {
+	return marshal(resourceLogs)
+}
+
+func (resourceLog ResourceLog) String() string {
+	return marshal(resourceLog)
+}
+
+func (scopeLogs ScopeLogs) String() string {
+	return marshal(scopeLogs)
+}
+
 func (log Log) String() string {
-	out, err := yaml.Marshal(log)
-	if err != nil {
-		panic(err)
-	}
-	return string(out)
+	return marshal(log)
 }
 
 // Hash provides an md5 hash determined by Log content.
@@ -302,16 +310,15 @@ func (resourceLogs ResourceLogs) ContainsAll(expected ResourceLogs) (bool, error
 							missingInstrumentationScopes[k] = v
 						}
 						continue
-					} else {
-						var missingIS []string
-						for k := range innerMissingInstrumentationScopes {
-							missingIS = append(missingIS, k)
-						}
-						return false, fmt.Errorf(
-							"%v doesn't contain all of %v. Missing InstrumentationScopes: %s",
-							resourceLog.ScopeLogs, expectedResourceLog.ScopeLogs, missingIS,
-						)
 					}
+					var missingIS []string
+					for k := range innerMissingInstrumentationScopes {
+						missingIS = append(missingIS, k)
+					}
+					return false, fmt.Errorf(
+						"%v doesn't contain all of %v. Missing InstrumentationScopes: %s",
+						resourceLog.ScopeLogs, expectedResourceLog.ScopeLogs, missingIS,
+					)
 				}
 			}
 		}

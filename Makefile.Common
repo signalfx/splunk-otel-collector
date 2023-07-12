@@ -19,18 +19,20 @@ LINT=golangci-lint
 IMPI=impi
 # BUILD_TYPE should be one of (dev, release).
 BUILD_TYPE?=release
+NUM_CORES := $(shell getconf _NPROCESSORS_ONLN)
 
 ALL_PKG_DIRS := $(shell $(GOCMD) list -f '{{ .Dir }}' ./... | sort)
 
 ALL_SRC := $(shell find $(ALL_PKG_DIRS) -name '*.go' \
                                 -not -path '*/third_party/*' \
                                 -not -path '*/local/*' \
-                                -not -path '*/pkg/signalfx-agent/*' \
+                                -not -path '*/internal/signalfx-agent/*' \
                                 -type f | sort)
 
 # All source code and documents. Used in spell check.
 ALL_SRC_AND_DOC := $(shell find $(ALL_PKG_DIRS) -name "*.md" -o -name "*.go" -o -name "*.yaml" \
                                 -not -path '*/third_party/*' \
+                                -not -path '*/internal/signalfx-agent/*' \
                                 -type f | sort)
 
 pwd:
@@ -90,13 +92,13 @@ fmt: addlicense misspell-correction
 	fieldalignment -fix ./... || true
 
 .PHONY: lint
-lint: checklicense misspell
-	$(LINT) run --allow-parallel-runners --timeout 10m
+lint: checklicense misspell impi
+	$(LINT) run --allow-parallel-runners -j$(NUM_CORES)
 
 .PHONY: tidy
 tidy:
 	rm -fr go.sum
-	$(GOCMD) mod tidy -compat=1.18
+	$(GOCMD) mod tidy -compat=1.19
 
 .PHONY: misspell
 misspell:
@@ -109,7 +111,7 @@ misspell-correction:
 
 .PHONY: impi
 impi:
-	@$(IMPI) --local github.com/signalfx/splunk-otel-collector --skip pkg/signalfx-agent --scheme stdThirdPartyLocal ./...
+	@$(IMPI) --local github.com/signalfx/splunk-otel-collector --skip internal/signalfx-agent --scheme stdThirdPartyLocal ./...
 
 .PHONY: moddownload
 moddownload:

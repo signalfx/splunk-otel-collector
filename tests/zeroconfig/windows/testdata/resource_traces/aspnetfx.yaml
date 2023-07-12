@@ -1,0 +1,31 @@
+resource_spans:
+- attributes:
+    deployment.environment: zc-iis-test
+    host.id: <ANY>
+    host.name: <ANY>
+    os.type: windows
+    service.name: Default Web Site/aspnetfxapp
+  scope_spans:
+  - instrumentation_scope:
+      attributes: {}
+    spans:
+    - name: GET /api/values/{id}
+      attributes:
+        http.host: localhost:8000
+        http.method: GET
+        http.status_code: "200"
+        http.url: http://localhost/aspnetfxapp/api/values/4
+        http.user_agent: Go-http-client/1.1
+        net.peer.ip: <ANY>
+        signalfx.tracing.library: dotnet-tracing
+        signalfx.tracing.version: <ANY>
+    - name: GET /api/values/{id}
+      attributes:
+        aspnet.controller: values
+        aspnet.route: api/{controller}/{id}
+        http.host: localhost:8000
+        http.method: GET
+        http.status_code: "200"
+        http.url: http://localhost/aspnetfxapp/api/values/4
+        http.user_agent: Go-http-client/1.1
+        net.peer.ip: <ANY>

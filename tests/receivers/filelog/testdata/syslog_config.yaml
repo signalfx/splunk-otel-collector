@@ -1,6 +1,6 @@
 receivers:
   filelog:
-    include: [/opt/syslog]
+    include: ["${env:LOGFILE_PATH}"]
     start_at: beginning
     operators:
       type: syslog_parser

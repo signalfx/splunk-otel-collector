@@ -26,6 +26,8 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/discovery/properties"
 )
 
+const defaultValue = "splunk.discovery.default"
+
 func FuncMap() template.FuncMap {
 	dc := newDiscoveryConfig()
 	return map[string]any{
@@ -33,6 +35,7 @@ func FuncMap() template.FuncMap {
 		"configPropertyEnvVar": dc.configPropertyEnvVar,
 		"extension":            dc.extension,
 		"receiver":             dc.receiver,
+		"defaultValue":         func() string { return defaultValue },
 	}
 }
 

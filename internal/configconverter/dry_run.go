@@ -23,23 +23,25 @@ import (
 	"go.opentelemetry.io/collector/confmap"
 	"gopkg.in/yaml.v2"
 
-	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
+	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/configsource"
 )
 
 var _ confmap.Converter = (*DryRun)(nil)
-var _ configprovider.Hook = (*DryRun)(nil)
+var _ configsource.Hook = (*DryRun)(nil)
 
 type DryRun struct {
 	*sync.Mutex
-	configs []map[string]any
-	enabled bool
+	configs    []map[string]any
+	converters []confmap.Converter
+	enabled    bool
 }
 
-func NewDryRun(enabled bool) *DryRun {
+func NewDryRun(enabled bool, converters []confmap.Converter) *DryRun {
 	return &DryRun{
-		Mutex:   &sync.Mutex{},
-		enabled: enabled,
-		configs: []map[string]any{},
+		Mutex:      &sync.Mutex{},
+		enabled:    enabled,
+		configs:    []map[string]any{},
+		converters: converters,
 	}
 }
 
@@ -59,7 +61,7 @@ func (dr *DryRun) OnShutdown() {}
 // Convert disregards the provided *confmap.Conf so that it will use
 // unexpanded values (env vars, config source directives) as
 // accrued by OnRetrieve() calls.
-func (dr *DryRun) Convert(context.Context, *confmap.Conf) error {
+func (dr *DryRun) Convert(ctx context.Context, _ *confmap.Conf) error {
 	if dr == nil || !dr.enabled {
 		return nil
 	}
@@ -69,6 +71,13 @@ func (dr *DryRun) Convert(context.Context, *confmap.Conf) error {
 		if err := cm.Merge(confmap.NewFromStringMap(cfg)); err != nil {
 			dr.Unlock()
 			return err
+		}
+	}
+	// need to run through other converters since their modifications
+	// are only available via reruns (we disregard confmap.Conf arg)
+	for _, c := range dr.converters {
+		if err := c.Convert(ctx, cm); err != nil {
+			return fmt.Errorf("error finalizing --dry-run with converter %v: %w", c, err)
 		}
 	}
 	dr.Unlock() // not deferred because we are exiting

@@ -15,7 +15,9 @@
 package bundle
 
 import (
+	"bytes"
 	"testing"
+	"text/template"
 
 	"github.com/stretchr/testify/require"
 )
@@ -25,6 +27,7 @@ func TestFuncMap(t *testing.T) {
 	functions := []string{
 		"configProperty",
 		"configPropertyEnvVar",
+		"defaultValue",
 		"extension",
 		"receiver",
 	}
@@ -108,4 +111,12 @@ func TestExtensionConfigProperties(t *testing.T) {
 	prop, err = dc.configPropertyEnvVar("invalid")
 	require.EqualError(t, err, "configPropertyEnvVar takes key+ and value{1} arguments (minimum 2)")
 	require.Empty(t, prop)
+}
+
+func TestDefaultValue(t *testing.T) {
+	tmplt, err := template.New("").Funcs(FuncMap()).Parse("{{ defaultValue }}")
+	require.NoError(t, err)
+	out := &bytes.Buffer{}
+	require.NoError(t, tmplt.Execute(out, nil))
+	require.Equal(t, "splunk.discovery.default", out.String())
 }

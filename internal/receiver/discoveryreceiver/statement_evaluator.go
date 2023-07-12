@@ -15,8 +15,8 @@
 package discoveryreceiver
 
 import (
+	"encoding/json"
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
@@ -46,6 +46,7 @@ type statementEvaluator struct {
 	// this is the logger to share with other components to evaluate their statements and produce plog.Logs
 	evaluatedLogger *zap.Logger
 	encoder         zapcore.Encoder
+	id              component.ID
 }
 
 func newStatementEvaluator(logger *zap.Logger, id component.ID, config *Config, pLogs chan plog.Logs, correlations correlationStore) (*statementEvaluator, error) {
@@ -56,20 +57,12 @@ func newStatementEvaluator(logger *zap.Logger, id component.ID, config *Config, 
 	encoder := statussources.NewZapCoreEncoder()
 
 	se := &statementEvaluator{
-		pLogs: pLogs,
-		evaluator: &evaluator{
-			logger:        logger,
-			config:        config,
-			correlations:  correlations,
-			alreadyLogged: &sync.Map{},
-			// TODO: provide more capable env w/ resource and log record attributes
-			exprEnv: func(pattern string) map[string]any {
-				return map[string]any{"msg": pattern}
-			},
-			id: id,
-		},
+		pLogs:   pLogs,
 		encoder: encoder,
+		id:      id,
 	}
+	se.evaluator = newEvaluator(logger, config, correlations, se.exprEnv)
+
 	var err error
 	if se.evaluatedLogger, err = zapConfig.Build(
 		// zap.OnFatal must not be WriteThenFatal or WriteThenNoop since it's rewritten to be WriteThenFatal
@@ -81,6 +74,16 @@ func newStatementEvaluator(logger *zap.Logger, id component.ID, config *Config, 
 		return nil, err
 	}
 	return se, nil
+}
+
+// exprEnv will unpack logged statement message and field content for expr program use
+func (se *statementEvaluator) exprEnv(pattern string) map[string]any {
+	patternMap := map[string]any{}
+	if err := json.Unmarshal([]byte(pattern), &patternMap); err != nil {
+		se.logger.Info(fmt.Sprintf("failed unmarshaling pattern map %q", pattern), zap.Error(err))
+		patternMap = map[string]any{"message": pattern}
+	}
+	return patternMap
 }
 
 // Enabled is a zapcore.Core method. We should be enabled for all
@@ -155,12 +158,33 @@ func (se *statementEvaluator) evaluateStatement(statement *statussources.Stateme
 	}
 
 	stagePLogs, logRecords := se.prepareMatchingLogs(rEntry, receiverID, endpointID)
-	body := statementLogRecord.Body().AsString()
+	patternMap := map[string]string{"message": statement.Message}
+	for k, v := range statement.Fields {
+		switch k {
+		case "caller", "monitorID", "name", "stacktrace":
+		default:
+			patternMap[k] = fmt.Sprintf("%v", v)
+		}
+	}
+
+	var patternMapStr string
+	if pm, err := json.Marshal(patternMap); err != nil {
+		se.logger.Debug(fmt.Sprintf("failed marshaling pattern map for %q", statement.Message), zap.Error(err))
+		// best effort default in marshaling failure cases
+		patternMapStr = fmt.Sprintf(`{"message":%q}`, statement.Message)
+	} else {
+		patternMapStr = string(pm)
+	}
+	se.logger.Debug("non-strict matches will be evaluated with pattern map", zap.String("map", patternMapStr))
 
 	var matchFound bool
 	for status, matches := range rEntry.Status.Statements {
 		for _, match := range matches {
-			if shouldLog, err := se.evaluateMatch(match, body, status, receiverID, endpointID); err != nil {
+			p := patternMapStr
+			if match.Strict != "" {
+				p = statement.Message
+			}
+			if shouldLog, err := se.evaluateMatch(match, p, status, receiverID, endpointID); err != nil {
 				se.logger.Info(fmt.Sprintf("Error evaluating %s statement match", status), zap.Error(err))
 				continue
 			} else if !shouldLog {
@@ -174,7 +198,11 @@ func (se *statementEvaluator) evaluateStatement(statement *statussources.Stateme
 			}
 			statementLogRecord.CopyTo(logRecord)
 			if desiredRecord.Body != "" {
-				logRecord.Body().SetStr(desiredRecord.Body)
+				body := desiredRecord.Body
+				if desiredRecord.AppendPattern {
+					body = fmt.Sprintf("%s (evaluated %q)", body, p)
+				}
+				logRecord.Body().SetStr(body)
 			}
 			if len(desiredRecord.Attributes) > 0 {
 				for k, v := range desiredRecord.Attributes {

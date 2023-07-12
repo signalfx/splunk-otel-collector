@@ -18,13 +18,24 @@
 package tests
 
 import (
+	"path"
 	"testing"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
 func TestPrometheusExporterProvidesInternalMetrics(t *testing.T) {
+	testutils.SkipIfNotContainerTest(t)
 	testutils.AssertAllMetricsReceived(
 		t, "internal.yaml", "internal_metrics_config.yaml", nil, nil,
+	)
+}
+
+func TestPrometheusExporterScrapesTargets(t *testing.T) {
+	httpd := []testutils.Container{testutils.NewContainer().WithContext(
+		path.Join(".", "testdata", "httpd"),
+	).WithName("httpd").WithExposedPorts("8000:80").WillWaitForPorts("80")}
+	testutils.AssertAllMetricsReceived(
+		t, "httpd.yaml", "httpd_metrics_config.yaml", httpd, nil,
 	)
 }

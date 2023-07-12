@@ -2,7 +2,7 @@ FROM centos:7
 
 ENV container docker
 
-RUN yum install -y systemd procps initscripts
+RUN yum install -y systemd procps initscripts deltarpm
 
 ARG PUPPET_RELEASE="6"
 RUN rpm -Uvh https://yum.puppet.com/puppet${PUPPET_RELEASE}-release-el-7.noarch.rpm && \

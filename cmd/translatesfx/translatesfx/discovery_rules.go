@@ -183,13 +183,6 @@ func translateTree(node ast.Node, idMap map[string]string) error {
 		if err := translateTree(n.Right, idMap); err != nil {
 			return err
 		}
-	case *ast.MatchesNode:
-		if err := translateTree(n.Left, idMap); err != nil {
-			return err
-		}
-		if err := translateTree(n.Right, idMap); err != nil {
-			return err
-		}
 	case *ast.IdentifierNode:
 		if otelID, ok := idMap[n.Value]; ok {
 			if otelID == "" {
@@ -225,8 +218,6 @@ func treeToString(node ast.Node) string {
 	switch n := node.(type) {
 	case *ast.BinaryNode:
 		return fmt.Sprintf("%s %s %s", treeToString(n.Left), n.Operator, treeToString(n.Right))
-	case *ast.MatchesNode:
-		return fmt.Sprintf("%s matches %s", treeToString(n.Left), treeToString(n.Right))
 	case *ast.IdentifierNode:
 		return n.Value
 	case *ast.IntegerNode:

@@ -4,6 +4,17 @@
 - name: Populate service facts
   ansible.builtin.service_facts:
 
+- name: Set fluentd_supported fact
+  ansible.builtin.set_fact:
+    fluentd_supported: |-
+      {%- if ansible_os_family == "Suse" -%}
+        false
+      {%- elif ansible_distribution == "Amazon" and ansible_distribution_version == "2023" -%}
+        false
+      {%- else -%}
+        true
+      {%- endif -%}
+
 - name: Assert splunk-otel-collector service is running
   assert:
     that: ansible_facts.services['splunk-otel-collector.service'].state == 'running'
@@ -11,4 +22,4 @@
 - name: Assert td-agent service is running
   assert:
     that: ansible_facts.services['td-agent.service'].state == 'running'
-  when: ansible_os_family != "Suse"
+  when: fluentd_supported

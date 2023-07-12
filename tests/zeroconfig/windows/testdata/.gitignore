@@ -1,0 +1,3 @@
+# This folder is used to store files necessary for the docker compose build command
+# e.g.: scripts that are tracked by the repo or build artifacts.
+docker-setup/*

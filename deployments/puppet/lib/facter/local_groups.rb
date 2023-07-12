@@ -5,7 +5,7 @@ Facter.add(:local_groups) do
   confine :kernel => 'Linux'
   setcode do
     groups = Array.new
-    if File.exists?("/etc/group")
+    if File.exist?("/etc/group")
       File.open("/etc/group").each do |line|
         next if line.match(/^\s|^#|^$/)
         groups << line.split(':').first

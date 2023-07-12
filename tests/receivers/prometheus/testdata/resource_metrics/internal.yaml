@@ -5,7 +5,10 @@ resource_metrics:
       service.instance.id: localhost:8889
       service.name: otel-agent
     scope_metrics:
-      - metrics:
+      - instrumentation_scope:
+          name: otelcol/prometheusreceiver
+          version: <VERSION_FROM_BUILD>
+        metrics:
           - name: otelcol_process_runtime_total_sys_memory_bytes
             description: Total bytes of memory obtained from the OS (see 'go doc runtime.MemStats.Sys')
             type: DoubleGauge
@@ -114,3 +117,27 @@ resource_metrics:
               service_name: otelcol
               service_version: <VERSION_FROM_BUILD>
               transport: http
+          - name: scrape_duration_seconds
+            description: Duration of the scrape
+            type: DoubleGauge
+            attributes: {}
+          - name: scrape_samples_post_metric_relabeling
+            description: The number of samples remaining after metric relabeling was applied
+            type: DoubleGauge
+            attributes: {}
+          - name: scrape_samples_scraped
+            description: The number of samples the target exposed
+            type: DoubleGauge
+            attributes: {}
+          - name: scrape_samples_post_metric_relabeling
+            description: The number of samples remaining after metric relabeling was applied
+            type: DoubleGauge
+            attributes: {}
+          - name: scrape_series_added
+            description: The approximate number of new series in this scrape
+            type: DoubleGauge
+            attributes: {}
+          - name: up
+            description: The scraping was successful
+            type: DoubleGauge
+            attributes: {}

@@ -15,16 +15,12 @@
 
 package envvarconfigsource
 
-import "github.com/signalfx/splunk-otel-collector/internal/configprovider"
+import "github.com/signalfx/splunk-otel-collector/internal/configsource"
 
 // Config holds the configuration for the creation of environment variable config source objects.
 type Config struct {
 	// Defaults specify a map to fallback if a given environment variable is not defined.
 	Defaults map[string]any `mapstructure:"defaults"`
 
-	configprovider.SourceSettings `mapstructure:",squash"` // squash ensures fields are correctly decoded in embedded struct
-}
-
-func (*Config) Validate() error {
-	return nil
+	configsource.SourceSettings `mapstructure:",squash"` // squash ensures fields are correctly decoded in embedded struct
 }

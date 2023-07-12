@@ -26,7 +26,7 @@ import (
 	"go.opentelemetry.io/collector/obsreport"
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/receiver"
-	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/metric/noop"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
@@ -99,7 +99,7 @@ func (d *discoveryReceiver) Start(ctx context.Context, host component.Host) (err
 	d.endpointTracker = newEndpointTracker(d.observables, d.config, d.logger, d.pLogs, correlations)
 	d.endpointTracker.start()
 
-	d.metricEvaluator = newMetricEvaluator(d.logger, d.settings.ID, d.config, d.pLogs, correlations)
+	d.metricEvaluator = newMetricEvaluator(d.logger, d.config, d.pLogs, correlations)
 
 	if d.statementEvaluator, err = newStatementEvaluator(d.logger, d.settings.ID, d.config, d.pLogs, correlations); err != nil {
 		return fmt.Errorf("failed creating statement evaluator: %w", err)
@@ -127,18 +127,22 @@ func (d *discoveryReceiver) Start(ctx context.Context, host component.Host) (err
 }
 
 func (d *discoveryReceiver) Shutdown(ctx context.Context) error {
-	d.endpointTracker.stop()
-	defer func() {
-		d.logger.Debug("discovery receiver shutting down")
-		d.sentinel <- struct{}{}
-		d.loopFinished.Wait()
-		close(d.sentinel)
-		close(d.pLogs)
-		d.logger.Debug("finished shutdown")
-	}()
+	if d.endpointTracker != nil {
+		d.endpointTracker.stop()
+		defer func() {
+			d.logger.Debug("discovery receiver shutting down")
+			d.sentinel <- struct{}{}
+			d.loopFinished.Wait()
+			close(d.sentinel)
+			close(d.pLogs)
+			d.logger.Debug("finished shutdown")
+		}()
+	}
 
-	if err := d.receiverCreator.Shutdown(ctx); err != nil {
-		return fmt.Errorf("failed shutting down internal receiver_creator: %w", err)
+	if d.receiverCreator != nil {
+		if err := d.receiverCreator.Shutdown(ctx); err != nil {
+			return fmt.Errorf("failed shutting down internal receiver_creator: %w", err)
+		}
 	}
 
 	return nil
@@ -182,7 +186,7 @@ func (d *discoveryReceiver) createAndSetReceiverCreator() error {
 				zap.String("name", id.String()),
 			),
 			TracerProvider: trace.NewNoopTracerProvider(),
-			MeterProvider:  metric.NewNoopMeterProvider(),
+			MeterProvider:  noop.NewMeterProvider(),
 			MetricsLevel:   configtelemetry.LevelDetailed,
 		},
 		BuildInfo: component.BuildInfo{

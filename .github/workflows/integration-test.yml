@@ -23,7 +23,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: "1.19.6"
+  GO_VERSION: "1.20.5"
   GOTESPLIT_TOTAL: "10"
 
 jobs:
@@ -45,13 +45,12 @@ jobs:
       - uses: actions/cache@v3
         with:
           path: .cache/buildx/agent-bundle-${{ matrix.ARCH }}
-          key: agent-bundle-buildx-${{ matrix.ARCH }}-${{ hashFiles('pkg/signalfx-agent/bundle/**') }}
-          restore-keys: |
-            agent-bundle-buildx-${{ matrix.ARCH }}-
+          key: agent-bundle-buildx-${{ matrix.ARCH }}-${{ hashFiles('internal/signalfx-agent/bundle/**') }}
       - uses: docker/setup-qemu-action@v2
         if: ${{ matrix.ARCH != 'amd64' }}
         with:
           platforms: ${{ matrix.ARCH }}
+          image: tonistiigi/binfmt:qemu-v7.0.0
       - run: |
           make docker-otelcol ARCH=${{ matrix.ARCH }}
         env:
@@ -87,6 +86,7 @@ jobs:
         if: ${{ matrix.ARCH != 'amd64' }}
         with:
           platforms: ${{ matrix.ARCH }}
+          image: tonistiigi/binfmt:qemu-v7.0.0
       - run: docker load -i ./bin/image.tar
       - run: chmod a+x ./bin/*
       - run: make integration-vet
@@ -119,6 +119,7 @@ jobs:
         if: ${{ matrix.ARCH != 'amd64' }}
         with:
           platforms: ${{ matrix.ARCH }}
+          image: tonistiigi/binfmt:qemu-v7.0.0
       - run: docker load -i ./bin/image.tar
       - run: chmod a+x ./bin/*
       - run: make integration-test-split

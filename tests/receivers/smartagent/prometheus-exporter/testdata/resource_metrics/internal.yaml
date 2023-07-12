@@ -4,6 +4,7 @@ resource_metrics:
           - name: otelcol_process_runtime_total_sys_memory_bytes
             type: DoubleGauge
             attributes:
+              foo: bar
               system.type: prometheus-exporter
               service_instance_id: <ANY>
               service_name: otelcol
@@ -11,6 +12,7 @@ resource_metrics:
           - name: otelcol_process_memory_rss
             type: DoubleGauge
             attributes:
+              foo: bar
               system.type: prometheus-exporter
               service_instance_id: <ANY>
               service_name: otelcol
@@ -18,6 +20,7 @@ resource_metrics:
           - name: otelcol_process_cpu_seconds
             type: DoubleMonotonicCumulativeSum
             attributes:
+              foo: bar
               system.type: prometheus-exporter
               service_instance_id: <ANY>
               service_name: otelcol
@@ -25,6 +28,7 @@ resource_metrics:
           - name: otelcol_process_uptime
             type: DoubleMonotonicCumulativeSum
             attributes:
+              foo: bar
               system.type: prometheus-exporter
               service_instance_id: <ANY>
               service_name: otelcol
@@ -32,6 +36,7 @@ resource_metrics:
           - name: otelcol_process_runtime_total_alloc_bytes
             type: DoubleMonotonicCumulativeSum
             attributes:
+              foo: bar
               system.type: prometheus-exporter
               service_instance_id: <ANY>
               service_name: otelcol
@@ -39,6 +44,7 @@ resource_metrics:
           - name: otelcol_process_runtime_heap_alloc_bytes
             type: DoubleGauge
             attributes:
+              foo: bar
               system.type: prometheus-exporter
               service_instance_id: <ANY>
               service_name: otelcol
@@ -48,6 +54,7 @@ resource_metrics:
             attributes:
               system.type: prometheus-exporter
               exporter: otlp
+              foo: bar
               service_instance_id: <ANY>
               service_name: otelcol
               service_version: <VERSION_FROM_BUILD>
@@ -56,6 +63,7 @@ resource_metrics:
             attributes:
               system.type: prometheus-exporter
               exporter: otlp
+              foo: bar
               service_instance_id: <ANY>
               service_name: otelcol
               service_version: <VERSION_FROM_BUILD>
@@ -64,6 +72,7 @@ resource_metrics:
             attributes:
               system.type: prometheus-exporter
               exporter: otlp
+              foo: bar
               service_instance_id: <ANY>
               service_name: otelcol
               service_version: <VERSION_FROM_BUILD>
@@ -72,6 +81,7 @@ resource_metrics:
             attributes:
               system.type: prometheus-exporter
               exporter: otlp
+              foo: bar
               service_instance_id: <ANY>
               service_name: otelcol
               service_version: <VERSION_FROM_BUILD>
@@ -80,6 +90,7 @@ resource_metrics:
             attributes:
               system.type: prometheus-exporter
               exporter: otlp
+              foo: bar
               service_instance_id: <ANY>
               service_name: otelcol
               service_version: <VERSION_FROM_BUILD>
@@ -88,12 +99,14 @@ resource_metrics:
             attributes:
               system.type: prometheus-exporter
               exporter: otlp
+              foo: bar
               service_instance_id: <ANY>
               service_name: otelcol
               service_version: <VERSION_FROM_BUILD>
           - name: otelcol_receiver_accepted_metric_points
             type: DoubleMonotonicCumulativeSum
             attributes:
+              foo: bar
               system.type: prometheus-exporter
               receiver: smartagent/prometheus-exporter
               service_instance_id: <ANY>
@@ -103,6 +116,7 @@ resource_metrics:
           - name: otelcol_receiver_refused_metric_points
             type: DoubleMonotonicCumulativeSum
             attributes:
+              foo: bar
               system.type: prometheus-exporter
               receiver: smartagent/prometheus-exporter
               service_instance_id: <ANY>

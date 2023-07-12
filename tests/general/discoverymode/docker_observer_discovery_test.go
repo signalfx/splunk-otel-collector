@@ -21,7 +21,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"syscall"
 	"testing"
 	"time"
 
@@ -35,6 +34,7 @@ import (
 // starting a collector with the daemon domain socket mounted and the container running with its group id
 // before starting a prometheus container with a label the receiver creator rule matches against.
 func TestDockerObserver(t *testing.T) {
+	testutils.SkipIfNotContainerTest(t)
 	if runtime.GOOS == "darwin" {
 		t.Skip("unable to share sockets between mac and d4m vm: https://github.com/docker/for-mac/issues/483#issuecomment-758836836")
 	}
@@ -42,25 +42,21 @@ func TestDockerObserver(t *testing.T) {
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
 
-	finfo, err := os.Stat("/var/run/docker.sock")
-	require.NoError(t, err)
-	fsys := finfo.Sys()
-	stat, ok := fsys.(*syscall.Stat_t)
-	require.True(t, ok)
-	dockerGID := stat.Gid
-
 	cc, shutdown := tc.SplunkOtelCollectorContainer(
-		"otlp-exporter-no-internal-prometheus.yaml",
+		"docker-otlp-exporter-no-internal-prometheus.yaml",
 		func(c testutils.Collector) testutils.Collector {
 			cc := c.(*testutils.CollectorContainer)
 			configd, err := filepath.Abs(filepath.Join(".", "testdata", "docker-observer-config.d"))
 			require.NoError(t, err)
 			cc.Container = cc.Container.WithMount(testcontainers.BindMount(configd, "/opt/config.d"))
+			properties, err := filepath.Abs(filepath.Join(".", "testdata", "docker-observer-properties.yaml"))
+			require.NoError(t, err)
+			cc.Container = cc.Container.WithMount(testcontainers.BindMount(properties, "/opt/properties.yaml"))
 			cc.Container = cc.Container.WithBinds("/var/run/docker.sock:/var/run/dock.e.r.sock:ro")
 			cc.Container = cc.Container.WillWaitForLogs("Discovering for next")
 			// uid check is for basic collector functionality not using the splunk-otel-collector user
 			// but the docker gid is required to reach the daemon
-			cc.Container = cc.Container.WithUser(fmt.Sprintf("%d:%d", os.Getuid(), dockerGID))
+			cc.Container = cc.Container.WithUser(fmt.Sprintf("%d:%d", os.Getuid(), testutils.GetDockerGID(t)))
 			return cc
 		},
 		func(c testutils.Collector) testutils.Collector {
@@ -76,19 +72,22 @@ func TestDockerObserver(t *testing.T) {
 				"SPLUNK_DISCOVERY_RECEIVERS_prometheus_x5f_simple_CONFIG_labels_x3a__x3a_label_x5f_four":  "actual.label.four.value",
 			}).WithArgs(
 				"--discovery", "--config-dir", "/opt/config.d",
-				"--set", `splunk.discovery.extensions.host_observer.enabled=false`,
 				"--set", `splunk.discovery.extensions.k8s_observer.enabled=false`,
+				"--set", `splunk.discovery.extensions.docker_observer.enabled=true`,
 				"--set", `splunk.discovery.extensions.docker_observer.config.endpoint=${DOCKER_DOMAIN_SOCKET}`,
+				"--set", `splunk.discovery.receivers.prometheus_simple.enabled=true`,
 				"--set", `splunk.discovery.receivers.prometheus_simple.config.labels::label_three=actual.label.three.value`,
+				"--discovery-properties", "/opt/properties.yaml",
 			)
 		},
 	)
 	defer shutdown()
 
-	_, shutdownPrometheus := tc.Containers(
+	cntrs, shutdownPrometheus := tc.Containers(
 		testutils.NewContainer().WithImage("bitnami/prometheus").WithLabel("test.id", tc.ID).WillWaitForLogs("Server is ready to receive web requests."),
 	)
 	defer shutdownPrometheus()
+	prometheus := cntrs[0]
 
 	expectedResourceMetrics := tc.ResourceMetrics("docker-observer-internal-prometheus.yaml")
 	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
@@ -103,10 +102,23 @@ func TestDockerObserver(t *testing.T) {
 					},
 				},
 			},
+			"processors": map[string]any{
+				"filter": map[string]any{
+					"metrics": map[string]any{
+						"include": map[string]any{
+							"match_type": "strict",
+							"metric_names": []any{
+								"prometheus_tsdb_exemplar_exemplars_in_storage",
+							},
+						},
+					},
+				},
+			},
 			"service": map[string]any{
 				"pipelines": map[string]any{
 					"metrics": map[string]any{
-						"exporters": []any{"otlp"},
+						"exporters":  []any{"otlp"},
+						"processors": []any{"filter"},
 					},
 				},
 				"telemetry": map[string]any{
@@ -145,15 +157,12 @@ func TestDockerObserver(t *testing.T) {
 				},
 			},
 			"service": map[string]any{
-				"extensions": []any{"docker_observer"},
-				"pipelines": map[string]any{
-					"metrics": map[string]any{
-						"receivers": []any{"receiver_creator/discovery"},
-					},
-				},
+				"extensions/splunk.discovery": []any{"docker_observer"},
+				"receivers/splunk.discovery":  []any{"receiver_creator/discovery"},
 			},
 		},
-		"splunk.property": map[string]any{},
+		"splunk.properties": map[string]any{},
+		"splunk.property":   map[string]any{},
 	}
 	require.Equal(t, expectedInitial, cc.InitialConfig(t, 55554))
 
@@ -166,12 +175,25 @@ func TestDockerObserver(t *testing.T) {
 				},
 			},
 		},
+		"processors": map[string]any{
+			"filter": map[string]any{
+				"metrics": map[string]any{
+					"include": map[string]any{
+						"match_type": "strict",
+						"metric_names": []any{
+							"prometheus_tsdb_exemplar_exemplars_in_storage",
+						},
+					},
+				},
+			},
+		},
 		"service": map[string]any{
 			"extensions": []any{"docker_observer"},
 			"pipelines": map[string]any{
 				"metrics": map[string]any{
-					"receivers": []any{"receiver_creator/discovery"},
-					"exporters": []any{"otlp"},
+					"receivers":  []any{"receiver_creator/discovery"},
+					"exporters":  []any{"otlp"},
+					"processors": []any{"filter"},
 				},
 			},
 			"telemetry": map[string]any{
@@ -212,13 +234,16 @@ func TestDockerObserver(t *testing.T) {
 
 	sc, stdout, stderr := cc.Container.AssertExec(t, 25*time.Second,
 		"bash", "-c", `SPLUNK_DISCOVERY_LOG_LEVEL=error SPLUNK_DEBUG_CONFIG_SERVER=false \
-SPLUNK_DISCOVERY_EXTENSIONS_host_observer_ENABLED=false \
 SPLUNK_DISCOVERY_EXTENSIONS_k8s_observer_ENABLED=false \
+SPLUNK_DISCOVERY_EXTENSIONS_docker_observer_ENABLED=true \
 SPLUNK_DISCOVERY_EXTENSIONS_docker_observer_CONFIG_endpoint=\${DOCKER_DOMAIN_SOCKET} \
+SPLUNK_DISCOVERY_RECEIVERS_prometheus_x5f_simple_ENABLED=true \
 SPLUNK_DISCOVERY_RECEIVERS_prometheus_x5f_simple_CONFIG_labels_x3a__x3a_label_x5f_three=="overwritten by --set property" \
 SPLUNK_DISCOVERY_RECEIVERS_prometheus_x5f_simple_CONFIG_labels_x3a__x3a_label_x5f_four="actual.label.four.value" \
 /otelcol --config-dir /opt/config.d --discovery --dry-run \
---set splunk.discovery.receivers.prometheus_simple.config.labels::label_three=actual.label.three.value`)
+--set splunk.discovery.receivers.prometheus_simple.config.labels::label_three=actual.label.three.value \
+--discovery-properties /opt/properties.yaml
+`)
 	require.Equal(t, `exporters:
   otlp:
     endpoint: ${OTLP_ENDPOINT}
@@ -227,6 +252,13 @@ SPLUNK_DISCOVERY_RECEIVERS_prometheus_x5f_simple_CONFIG_labels_x3a__x3a_label_x5
 extensions:
   docker_observer:
     endpoint: ${DOCKER_DOMAIN_SOCKET}
+processors:
+  filter:
+    metrics:
+      include:
+        match_type: strict
+        metric_names:
+        - prometheus_tsdb_exemplar_exemplars_in_storage
 receivers:
   receiver_creator/discovery:
     receivers:
@@ -251,6 +283,8 @@ service:
     metrics:
       exporters:
       - otlp
+      processors:
+      - filter
       receivers:
       - receiver_creator/discovery
   telemetry:
@@ -258,6 +292,12 @@ service:
       address: ""
       level: none
 `, stdout)
-	require.Contains(t, stderr, "Discovering for next 20s...\nSuccessfully discovered \"prometheus_simple\" using \"docker_observer\".\nDiscovery complete.\n")
+	require.Contains(
+		t, stderr,
+		fmt.Sprintf(`Discovering for next 20s...
+Successfully discovered "prometheus_simple" using "docker_observer" endpoint "%s:9090".
+Discovery complete.
+`, prometheus.GetContainerID()),
+	)
 	require.Zero(t, sc)
 }

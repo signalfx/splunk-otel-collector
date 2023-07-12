@@ -1,0 +1,6 @@
+exclude:
+  - './deployments/**'
+  - './examples/**'
+  - './instrumentation/packaging/**'
+  - './internal/buildscripts/packaging/**'
+  - './tests/**'

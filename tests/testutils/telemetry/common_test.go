@@ -28,7 +28,7 @@ func TestResourceHashFunctionConsistency(t *testing.T) {
 		"one": "1", "two": 2, "three": 3.000, "four": false, "five": nil,
 	}}
 	for i := 0; i < 100; i++ {
-		require.Equal(t, "d3b92e5ff5847c43f397d5856f14c607", resource.Hash())
+		require.Equal(t, "8c2edf4b5b71836ef95c2d64c200f30c", resource.Hash())
 	}
 
 	il := InstrumentationScope{Name: "some instrumentation library", Version: "some instrumentation version"}

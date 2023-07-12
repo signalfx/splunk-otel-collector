@@ -56,6 +56,8 @@ def run_distro_container(distro, arch="amd64", dockerfile=None, path=TESTS_DIR, 
 
     assert os.path.isfile(str(dockerfile)), f"{dockerfile} not found!"
 
+    print(f"Building {dockerfile} ...")
+
     image, _ = retry(
         lambda: client.images.build(
             path=str(path),
@@ -81,19 +83,38 @@ def run_distro_container(distro, arch="amd64", dockerfile=None, path=TESTS_DIR, 
     try:
         container.start()
 
+        # increase default timeout for qemu
+        if arch != "amd64" and timeout == DEFAULT_TIMEOUT:
+            timeout = DEFAULT_TIMEOUT * 3
+
+        print("Waiting for container to be ready ...")
+
         start_time = time.time()
         while True:
             container.reload()
             if container.attrs["NetworkSettings"]["IPAddress"]:
                 break
             assert (time.time() - start_time) < timeout, "timed out waiting for container to start"
+            time.sleep(1)
+
+        # qemu is slow, so wait for systemd to be ready
+        start_time = time.time()
+        while True:
+            code, output = container.exec_run("systemctl list-units --no-pager")
+            if code == 0:
+                break
+            output = output.decode("utf-8").strip()
+            assert (time.time() - start_time) < timeout, f"timed out waiting for systemd to start: {output}"
+            time.sleep(1)
 
         yield container
     finally:
         container.remove(force=True, v=True)
 
 
-def run_container_cmd(container, cmd, env=None, exit_code=0):
+def run_container_cmd(container, cmd, env=None, exit_code=0, timeout=None):
+    if timeout:
+        cmd = f"timeout {timeout} {cmd}"
     print(f"Running '{cmd}' ...")
     code, output = container.exec_run(cmd, environment=env)
     print(output.decode("utf-8"))

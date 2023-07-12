@@ -2,6 +2,7 @@ default:
   image: '${DOCKER_CICD_REPO}/ci-container/debian-buster:1.8.0'
 
 stages:
+  - update-deps
   - sast-oss-scan
   - build
   - sign-binaries
@@ -20,6 +21,7 @@ include:
     ref: master
     file: '/prodsec/.oss-scan.yml'
   - project: 'core-ee/signing/api-integration'
+    ref: develop
     file: '/templates/.sign-client.yml'
 
 semgrep:
@@ -35,6 +37,8 @@ semgrep:
   only:
     - main
     - schedules
+  needs: []
+  dependencies: []
 
 fossa:
   extends: .oss-scan
@@ -42,6 +46,10 @@ fossa:
   only:
     - main
     - schedules
+  needs: []
+  dependencies: []
+  variables:
+    jira_automation: "true"
   # allow_failure: false
 
 .get-artifactory-stage: &get-artifactory-stage
@@ -53,6 +61,10 @@ fossa:
     elif [[ "${CI_COMMIT_TAG:-}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
       export STAGE="release"
     fi
+
+.aws-releaser-role: &aws-releaser-role |
+  creds-helper init
+  eval $(creds-helper aws --eval "aws:v1/o11y-infra/role/o11y_gdi_otel_releaser_role")
 
 .trigger-filter:
   only:
@@ -73,21 +85,28 @@ fossa:
     paths:
       - .cache/pip
   retry: 2
-  before_script:
-    - *get-artifactory-stage
   script:
+    - *get-artifactory-stage
+    - *aws-releaser-role
     - pip3 install -r internal/buildscripts/packaging/release/requirements.txt
     - |
-      for path in ${PATHS:-}; do
-        if [ ! -f "$path" ]; then
-          echo "$path not found!"
-          exit 1
-        fi
-        python3 internal/buildscripts/packaging/release/release.py --force --stage=${STAGE} --path=$path ${OPTIONS:-}
-      done
+      if [ -n "${PATHS:-}" ]; then
+        for path in $PATHS; do
+          if [ ! -f "$path" ]; then
+            echo "$path not found!"
+            exit 1
+          fi
+          python3 internal/buildscripts/packaging/release/release.py --force --stage=${STAGE} --path=$path ${OPTIONS:-}
+        done
+      elif [ -n "${INSTALLERS:-}" ]; then
+        python3 internal/buildscripts/packaging/release/release.py --force --installers ${OPTIONS:-}
+      else
+        echo "Either the PATHS or INSTALLERS env var must be defined!" >&2
+        exit 1
+      fi
 
 .go-cache:
-  image: '${DOCKER_HUB_REPO}/golang:1.19.6'
+  image: '${DOCKER_HUB_REPO}/golang:1.20.5'
   variables:
     GOPATH: "$CI_PROJECT_DIR/.go"
   before_script:
@@ -107,6 +126,48 @@ fossa:
   creds-helper init
   eval $(creds-helper docker --eval "artifactory:v2/cloud/role/docker-reader-role")
 
+update-otel-deps:
+  only:
+    - schedules
+  extends: .go-cache
+  stage: update-deps
+  needs: []
+  dependencies: []
+  script:
+    - .gitlab/install-gh-cli.sh
+    - .gitlab/update-otel-deps.sh
+
+update-openjdk:
+  only:
+    - schedules
+  stage: update-deps
+  needs: []
+  dependencies: []
+  script:
+    - .gitlab/install-gh-cli.sh
+    - .gitlab/update-openjdk.sh
+
+update-javaagent:
+  only:
+    - schedules
+  stage: update-deps
+  needs: []
+  dependencies: []
+  script:
+    - .gitlab/install-gh-cli.sh
+    - .gitlab/update-javaagent.sh
+
+tidy-dependabot-pr:
+  rules:
+    - if: $CI_COMMIT_BRANCH =~ /^dependabot\/go_modules\/.*/ && $CI_COMMIT_AUTHOR =~ /^dependabot.*/
+  extends: .go-cache
+  stage: update-deps
+  needs: []
+  dependencies: []
+  script:
+    - .gitlab/install-gh-cli.sh
+    - .gitlab/tidy-dependabot-pr.sh
+
 compile:
   extends:
     - .trigger-filter
@@ -114,7 +175,7 @@ compile:
   stage: build
   parallel:
     matrix:
-      - TARGET: [binaries-darwin_amd64, binaries-linux_amd64, binaries-linux_arm64, binaries-windows_amd64, binaries-linux_ppc64le]
+      - TARGET: [binaries-darwin_amd64, binaries-darwin_arm64, binaries-linux_amd64, binaries-linux_arm64, binaries-windows_amd64, binaries-linux_ppc64le]
   script: make $TARGET
   after_script:
     - if [ -e bin/otelcol ]; then rm -f bin/otelcol; fi  # remove the symlink
@@ -154,12 +215,12 @@ agent-bundle-linux:
   cache:
     key:
       files:
-        - pkg/signalfx-agent/bundle/**
+        - internal/signalfx-agent/bundle/**
     paths:
       - .cache/buildx/agent-bundle-${ARCH}
   script:
     - *docker-reader-role
-    - make -C pkg/signalfx-agent/bundle agent-bundle-linux ARCH=${ARCH} DOCKER_REPO=${DOCKER_HUB_REPO}
+    - make -C internal/signalfx-agent/bundle agent-bundle-linux ARCH=${ARCH} DOCKER_REPO=${DOCKER_HUB_REPO}
   artifacts:
     paths:
       - dist/agent-bundle_linux_${ARCH}.tar.gz
@@ -174,12 +235,12 @@ agent-bundle-windows:
   cache:
     key:
       files:
-        - pkg/signalfx-agent/bundle/collectd-plugins.yaml
-        - pkg/signalfx-agent/bundle/scripts/requirements.txt
+        - internal/signalfx-agent/bundle/collectd-plugins.yaml
+        - internal/signalfx-agent/bundle/scripts/requirements.txt
     paths:
       - .cache/pip
   script:
-    - ./pkg/signalfx-agent/bundle/scripts/windows/make.ps1 bundle
+    - ./internal/signalfx-agent/bundle/scripts/windows/make.ps1 bundle
   artifacts:
     paths:
       - dist/agent-bundle_windows_amd64.zip
@@ -238,6 +299,9 @@ sign-osx:
   stage: sign-binaries
   needs:
     - compile
+  parallel:
+    matrix:
+      - ARCH: [amd64, arm64]
   variables:
     ARTIFACT: bin/packages.tar.gz
     SIGN_TYPE: OSX
@@ -245,14 +309,14 @@ sign-osx:
     DOWNLOAD_DIR: dist/signed
   before_script:
     - mkdir -p dist
-    - pushd bin && tar -czvf packages.tar.gz otelcol_darwin_amd64 translatesfx_darwin_amd64 && popd
+    - pushd bin && tar -czvf packages.tar.gz otelcol_darwin_${ARCH} translatesfx_darwin_${ARCH} && popd
   after_script:
     - tar -xzvf dist/signed/packages.tar.gz -C dist/signed/
     - rm dist/signed/packages.tar.gz
   artifacts:
     paths:
-      - dist/signed/otelcol_darwin_amd64
-      - dist/signed/translatesfx_darwin_amd64
+      - dist/signed/otelcol_darwin_${ARCH}
+      - dist/signed/translatesfx_darwin_${ARCH}
 
 build-linux-image:
   extends: .trigger-filter
@@ -452,6 +516,24 @@ sign-agent-bundles:
       - dist/signed/*.zip
       - dist/signed/*.zip.asc
 
+sign-ps-installer:
+  extends:
+    - .trigger-filter
+    - .submit-signing-request
+  stage: sign-packages
+  dependencies: []
+  variables:
+    ARTIFACT: dist/install.ps1
+    SIGN_TYPE: WIN
+    DOWNLOAD_DIR: dist/signed
+  before_script:
+    - mkdir -p dist
+    - cp internal/buildscripts/packaging/installer/install.ps1 dist/install.ps1
+  artifacts:
+    paths:
+      - dist/install.ps1
+      - dist/signed/install.ps1
+
 verify-signed-packages:
   extends: .trigger-filter
   stage: sign-packages
@@ -469,10 +551,11 @@ verify-signed-packages:
     - agent-bundle-linux
     - agent-bundle-windows
     - sign-agent-bundles
+    - sign-ps-installer
   script:
     - |
       set -ex
-      for pkg in dist/*.rpm dist/*.deb dist/*.msi dist/*.tar.gz dist/*.zip; do
+      for pkg in dist/*.rpm dist/*.deb dist/*.msi dist/*.tar.gz dist/*.zip dist/install.ps1; do
         if [[ ! -f dist/signed/$(basename $pkg) ]]; then
           echo "$pkg was not signed!" >&2
           exit 1
@@ -664,6 +747,38 @@ release-rpms:
     paths:
       - dist/signed/*${ARCH}.rpm
       - ${ARCH}/repomd.xml
+
+# only upload the msi to S3 for stable release tags
+release-msi:
+  only:
+    variables:
+      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+  except:
+    - schedules
+  extends:
+    - .deploy-release
+  stage: release
+  dependencies:
+    - sign-msi
+  variables:
+    PATHS: dist/signed/*.msi
+
+# only upload the installer scripts to S3 for stable release tags
+release-installers:
+  only:
+    variables:
+      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+  except:
+    - schedules
+  extends:
+    - .deploy-release
+  stage: release
+  dependencies:
+    - sign-ps-installer
+  variables:
+    INSTALLERS: "true"
+  before_script:
+    - cp -f dist/signed/install.ps1 internal/buildscripts/packaging/installer/install.ps1
 
 choco-release:
   extends: .trigger-filter

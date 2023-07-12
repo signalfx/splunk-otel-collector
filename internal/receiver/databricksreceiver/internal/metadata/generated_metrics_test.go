@@ -3,13 +3,9 @@
 package metadata
 
 import (
-	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/confmap/confmaptest"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/receiver/receivertest"
@@ -17,30 +13,30 @@ import (
 	"go.uber.org/zap/zaptest/observer"
 )
 
-type testMetricsSet int
+type testConfigCollection int
 
 const (
-	testMetricsSetDefault testMetricsSet = iota
-	testMetricsSetAll
-	testMetricsSetNo
+	testSetDefault testConfigCollection = iota
+	testSetAll
+	testSetNone
 )
 
 func TestMetricsBuilder(t *testing.T) {
 	tests := []struct {
-		name       string
-		metricsSet testMetricsSet
+		name      string
+		configSet testConfigCollection
 	}{
 		{
-			name:       "default",
-			metricsSet: testMetricsSetDefault,
+			name:      "default",
+			configSet: testSetDefault,
 		},
 		{
-			name:       "all_metrics",
-			metricsSet: testMetricsSetAll,
+			name:      "all_set",
+			configSet: testSetAll,
 		},
 		{
-			name:       "no_metrics",
-			metricsSet: testMetricsSetNo,
+			name:      "none_set",
+			configSet: testSetNone,
 		},
 	}
 	for _, test := range tests {
@@ -50,7 +46,7 @@ func TestMetricsBuilder(t *testing.T) {
 			observedZapCore, observedLogs := observer.New(zap.WarnLevel)
 			settings := receivertest.NewNopCreateSettings()
 			settings.Logger = zap.New(observedZapCore)
-			mb := NewMetricsBuilder(loadConfig(t, test.name), settings, WithStartTime(start))
+			mb := NewMetricsBuilder(loadMetricsBuilderConfig(t, test.name), settings, WithStartTime(start))
 
 			expectedWarnings := 0
 			assert.Equal(t, expectedWarnings, observedLogs.Len())
@@ -620,7 +616,7 @@ func TestMetricsBuilder(t *testing.T) {
 
 			metrics := mb.Emit(WithDatabricksInstanceName("attr-val"), WithSparkAppID("attr-val"), WithSparkClusterID("attr-val"), WithSparkClusterName("attr-val"))
 
-			if test.metricsSet == testMetricsSetNo {
+			if test.configSet == testSetNone {
 				assert.Equal(t, 0, metrics.ResourceMetrics().Len())
 				return
 			}
@@ -631,29 +627,29 @@ func TestMetricsBuilder(t *testing.T) {
 			enabledAttrCount := 0
 			attrVal, ok := rm.Resource().Attributes().Get("databricks.instance.name")
 			attrCount++
-			assert.Equal(t, mb.resourceAttributesSettings.DatabricksInstanceName.Enabled, ok)
-			if mb.resourceAttributesSettings.DatabricksInstanceName.Enabled {
+			assert.Equal(t, mb.resourceAttributesConfig.DatabricksInstanceName.Enabled, ok)
+			if mb.resourceAttributesConfig.DatabricksInstanceName.Enabled {
 				enabledAttrCount++
 				assert.EqualValues(t, "attr-val", attrVal.Str())
 			}
 			attrVal, ok = rm.Resource().Attributes().Get("spark.app.id")
 			attrCount++
-			assert.Equal(t, mb.resourceAttributesSettings.SparkAppID.Enabled, ok)
-			if mb.resourceAttributesSettings.SparkAppID.Enabled {
+			assert.Equal(t, mb.resourceAttributesConfig.SparkAppID.Enabled, ok)
+			if mb.resourceAttributesConfig.SparkAppID.Enabled {
 				enabledAttrCount++
 				assert.EqualValues(t, "attr-val", attrVal.Str())
 			}
 			attrVal, ok = rm.Resource().Attributes().Get("spark.cluster.id")
 			attrCount++
-			assert.Equal(t, mb.resourceAttributesSettings.SparkClusterID.Enabled, ok)
-			if mb.resourceAttributesSettings.SparkClusterID.Enabled {
+			assert.Equal(t, mb.resourceAttributesConfig.SparkClusterID.Enabled, ok)
+			if mb.resourceAttributesConfig.SparkClusterID.Enabled {
 				enabledAttrCount++
 				assert.EqualValues(t, "attr-val", attrVal.Str())
 			}
 			attrVal, ok = rm.Resource().Attributes().Get("spark.cluster.name")
 			attrCount++
-			assert.Equal(t, mb.resourceAttributesSettings.SparkClusterName.Enabled, ok)
-			if mb.resourceAttributesSettings.SparkClusterName.Enabled {
+			assert.Equal(t, mb.resourceAttributesConfig.SparkClusterName.Enabled, ok)
+			if mb.resourceAttributesConfig.SparkClusterName.Enabled {
 				enabledAttrCount++
 				assert.EqualValues(t, "attr-val", attrVal.Str())
 			}
@@ -662,10 +658,10 @@ func TestMetricsBuilder(t *testing.T) {
 
 			assert.Equal(t, 1, rm.ScopeMetrics().Len())
 			ms := rm.ScopeMetrics().At(0).Metrics()
-			if test.metricsSet == testMetricsSetDefault {
+			if test.configSet == testSetDefault {
 				assert.Equal(t, defaultMetricsCount, ms.Len())
 			}
-			if test.metricsSet == testMetricsSetAll {
+			if test.configSet == testSetAll {
 				assert.Equal(t, allMetricsCount, ms.Len())
 			}
 			validatedMetrics := make(map[string]bool)
@@ -971,7 +967,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeGauge, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Gauge().DataPoints().Len())
 					assert.Equal(t, "This value comes from the 'mean' field in a histogram returned by the /metrics/json/ endpoint.", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "ns", ms.At(i).Unit())
 					dp := ms.At(i).Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())
@@ -995,7 +991,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeGauge, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Gauge().DataPoints().Len())
 					assert.Equal(t, "This value comes from the 'mean' field in a histogram returned by the /metrics/json/ endpoint.", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "By", ms.At(i).Unit())
 					dp := ms.At(i).Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())
@@ -1019,7 +1015,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeGauge, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Gauge().DataPoints().Len())
 					assert.Equal(t, "This value comes from the 'mean' field in a histogram returned by the /metrics/json/ endpoint.", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "By", ms.At(i).Unit())
 					dp := ms.At(i).Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())
@@ -1043,7 +1039,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeGauge, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Gauge().DataPoints().Len())
 					assert.Equal(t, "This value comes from the 'mean' field in a histogram returned by the /metrics/json/ endpoint.", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "By", ms.At(i).Unit())
 					dp := ms.At(i).Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())
@@ -1067,7 +1063,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeGauge, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Gauge().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{jobs}", ms.At(i).Unit())
 					dp := ms.At(i).Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())
@@ -1091,7 +1087,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeGauge, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Gauge().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{jobs}", ms.At(i).Unit())
 					dp := ms.At(i).Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())
@@ -1115,7 +1111,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeGauge, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Gauge().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{stages}", ms.At(i).Unit())
 					dp := ms.At(i).Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())
@@ -1139,7 +1135,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeGauge, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Gauge().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{stages}", ms.At(i).Unit())
 					dp := ms.At(i).Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())
@@ -1163,7 +1159,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeGauge, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Gauge().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{stages}", ms.At(i).Unit())
 					dp := ms.At(i).Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())
@@ -1187,7 +1183,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{auto-vacuums}", ms.At(i).Unit())
 					assert.Equal(t, false, ms.At(i).Sum().IsMonotonic())
 					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
 					dp := ms.At(i).Sum().DataPoints().At(0)
@@ -1213,7 +1209,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{files}", ms.At(i).Unit())
 					assert.Equal(t, false, ms.At(i).Sum().IsMonotonic())
 					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
 					dp := ms.At(i).Sum().DataPoints().At(0)
@@ -1239,7 +1235,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{filters}", ms.At(i).Unit())
 					assert.Equal(t, false, ms.At(i).Sum().IsMonotonic())
 					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
 					dp := ms.At(i).Sum().DataPoints().At(0)
@@ -1265,7 +1261,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{commits}", ms.At(i).Unit())
 					assert.Equal(t, false, ms.At(i).Sum().IsMonotonic())
 					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
 					dp := ms.At(i).Sum().DataPoints().At(0)
@@ -1291,7 +1287,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{errors}", ms.At(i).Unit())
 					assert.Equal(t, false, ms.At(i).Sum().IsMonotonic())
 					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
 					dp := ms.At(i).Sum().DataPoints().At(0)
@@ -1317,7 +1313,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{refreshes}", ms.At(i).Unit())
 					assert.Equal(t, false, ms.At(i).Sum().IsMonotonic())
 					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
 					dp := ms.At(i).Sum().DataPoints().At(0)
@@ -1343,7 +1339,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{errors}", ms.At(i).Unit())
 					assert.Equal(t, false, ms.At(i).Sum().IsMonotonic())
 					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
 					dp := ms.At(i).Sum().DataPoints().At(0)
@@ -1369,7 +1365,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{markers}", ms.At(i).Unit())
 					assert.Equal(t, false, ms.At(i).Sum().IsMonotonic())
 					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
 					dp := ms.At(i).Sum().DataPoints().At(0)
@@ -1395,7 +1391,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{lists}", ms.At(i).Unit())
 					assert.Equal(t, false, ms.At(i).Sum().IsMonotonic())
 					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
 					dp := ms.At(i).Sum().DataPoints().At(0)
@@ -1421,7 +1417,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{files}", ms.At(i).Unit())
 					assert.Equal(t, false, ms.At(i).Sum().IsMonotonic())
 					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
 					dp := ms.At(i).Sum().DataPoints().At(0)
@@ -1447,7 +1443,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{files}", ms.At(i).Unit())
 					assert.Equal(t, false, ms.At(i).Sum().IsMonotonic())
 					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
 					dp := ms.At(i).Sum().DataPoints().At(0)
@@ -1473,7 +1469,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{vaccums}", ms.At(i).Unit())
 					assert.Equal(t, false, ms.At(i).Sum().IsMonotonic())
 					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
 					dp := ms.At(i).Sum().DataPoints().At(0)
@@ -1499,7 +1495,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{errors}", ms.At(i).Unit())
 					assert.Equal(t, false, ms.At(i).Sum().IsMonotonic())
 					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
 					dp := ms.At(i).Sum().DataPoints().At(0)
@@ -1525,7 +1521,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{checks}", ms.At(i).Unit())
 					assert.Equal(t, false, ms.At(i).Sum().IsMonotonic())
 					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
 					dp := ms.At(i).Sum().DataPoints().At(0)
@@ -1551,7 +1547,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{pools}", ms.At(i).Unit())
 					assert.Equal(t, false, ms.At(i).Sum().IsMonotonic())
 					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
 					dp := ms.At(i).Sum().DataPoints().At(0)
@@ -1655,7 +1651,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{tasks}", ms.At(i).Unit())
 					assert.Equal(t, false, ms.At(i).Sum().IsMonotonic())
 					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
 					dp := ms.At(i).Sum().DataPoints().At(0)
@@ -1681,7 +1677,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{pools}", ms.At(i).Unit())
 					assert.Equal(t, false, ms.At(i).Sum().IsMonotonic())
 					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
 					dp := ms.At(i).Sum().DataPoints().At(0)
@@ -1707,7 +1703,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{pools}", ms.At(i).Unit())
 					assert.Equal(t, false, ms.At(i).Sum().IsMonotonic())
 					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
 					dp := ms.At(i).Sum().DataPoints().At(0)
@@ -1733,7 +1729,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{pools}", ms.At(i).Unit())
 					assert.Equal(t, false, ms.At(i).Sum().IsMonotonic())
 					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
 					dp := ms.At(i).Sum().DataPoints().At(0)
@@ -1785,7 +1781,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{pools}", ms.At(i).Unit())
 					assert.Equal(t, false, ms.At(i).Sum().IsMonotonic())
 					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
 					dp := ms.At(i).Sum().DataPoints().At(0)
@@ -1811,7 +1807,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{pools}", ms.At(i).Unit())
 					assert.Equal(t, false, ms.At(i).Sum().IsMonotonic())
 					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
 					dp := ms.At(i).Sum().DataPoints().At(0)
@@ -1837,7 +1833,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{pools}", ms.At(i).Unit())
 					assert.Equal(t, false, ms.At(i).Sum().IsMonotonic())
 					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
 					dp := ms.At(i).Sum().DataPoints().At(0)
@@ -1863,7 +1859,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{slots}", ms.At(i).Unit())
 					assert.Equal(t, false, ms.At(i).Sum().IsMonotonic())
 					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
 					dp := ms.At(i).Sum().DataPoints().At(0)
@@ -1889,7 +1885,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{slots}", ms.At(i).Unit())
 					assert.Equal(t, false, ms.At(i).Sum().IsMonotonic())
 					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
 					dp := ms.At(i).Sum().DataPoints().At(0)
@@ -1941,7 +1937,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{slot reservations}", ms.At(i).Unit())
 					assert.Equal(t, false, ms.At(i).Sum().IsMonotonic())
 					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
 					dp := ms.At(i).Sum().DataPoints().At(0)
@@ -1967,7 +1963,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{slot reservations}", ms.At(i).Unit())
 					assert.Equal(t, false, ms.At(i).Sum().IsMonotonic())
 					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
 					dp := ms.At(i).Sum().DataPoints().At(0)
@@ -1993,7 +1989,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{slot reservations}", ms.At(i).Unit())
 					assert.Equal(t, false, ms.At(i).Sum().IsMonotonic())
 					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
 					dp := ms.At(i).Sum().DataPoints().At(0)
@@ -2019,7 +2015,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{slot reservations}", ms.At(i).Unit())
 					assert.Equal(t, false, ms.At(i).Sum().IsMonotonic())
 					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
 					dp := ms.At(i).Sum().DataPoints().At(0)
@@ -2045,7 +2041,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{pools}", ms.At(i).Unit())
 					assert.Equal(t, false, ms.At(i).Sum().IsMonotonic())
 					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
 					dp := ms.At(i).Sum().DataPoints().At(0)
@@ -2071,7 +2067,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{query groups}", ms.At(i).Unit())
 					assert.Equal(t, false, ms.At(i).Sum().IsMonotonic())
 					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
 					dp := ms.At(i).Sum().DataPoints().At(0)
@@ -2228,8 +2224,8 @@ func TestMetricsBuilder(t *testing.T) {
 					validatedMetrics["databricks.spark.executor_metrics.direct_pool.memory"] = true
 					assert.Equal(t, pmetric.MetricTypeGauge, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Gauge().DataPoints().Len())
-					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "Peak memory that the JVM is using for direct buffer pool", ms.At(i).Description())
+					assert.Equal(t, "By", ms.At(i).Unit())
 					dp := ms.At(i).Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())
@@ -2252,8 +2248,8 @@ func TestMetricsBuilder(t *testing.T) {
 					validatedMetrics["databricks.spark.executor_metrics.jvm.heap.memory"] = true
 					assert.Equal(t, pmetric.MetricTypeGauge, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Gauge().DataPoints().Len())
-					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "Peak memory usage of the heap that is used for object allocation. See https://spark.apache.org/docs/latest/monitoring.html", ms.At(i).Description())
+					assert.Equal(t, "By", ms.At(i).Unit())
 					dp := ms.At(i).Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())
@@ -2276,8 +2272,8 @@ func TestMetricsBuilder(t *testing.T) {
 					validatedMetrics["databricks.spark.executor_metrics.jvm.off_heap.memory"] = true
 					assert.Equal(t, pmetric.MetricTypeGauge, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Gauge().DataPoints().Len())
-					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "Peak memory usage of non-heap memory that is used by the Java virtual machine. See https://spark.apache.org/docs/latest/monitoring.html", ms.At(i).Description())
+					assert.Equal(t, "By", ms.At(i).Unit())
 					dp := ms.At(i).Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())
@@ -2300,8 +2296,8 @@ func TestMetricsBuilder(t *testing.T) {
 					validatedMetrics["databricks.spark.executor_metrics.major_gc.count"] = true
 					assert.Equal(t, pmetric.MetricTypeGauge, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Gauge().DataPoints().Len())
-					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "Total major GC count. For example, the garbage collector is one of MarkSweepCompact, PS MarkSweep, ConcurrentMarkSweep, G1 Old Generation and so on.", ms.At(i).Description())
+					assert.Equal(t, "{gc_operations}", ms.At(i).Unit())
 					dp := ms.At(i).Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())
@@ -2324,8 +2320,8 @@ func TestMetricsBuilder(t *testing.T) {
 					validatedMetrics["databricks.spark.executor_metrics.major_gc.time"] = true
 					assert.Equal(t, pmetric.MetricTypeGauge, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Gauge().DataPoints().Len())
-					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "Elapsed total major GC time.", ms.At(i).Description())
+					assert.Equal(t, "ms", ms.At(i).Unit())
 					dp := ms.At(i).Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())
@@ -2348,8 +2344,8 @@ func TestMetricsBuilder(t *testing.T) {
 					validatedMetrics["databricks.spark.executor_metrics.mapped_pool.memory"] = true
 					assert.Equal(t, pmetric.MetricTypeGauge, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Gauge().DataPoints().Len())
-					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "Peak memory that the JVM is using for mapped buffer pool", ms.At(i).Description())
+					assert.Equal(t, "By", ms.At(i).Unit())
 					dp := ms.At(i).Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())
@@ -2372,8 +2368,8 @@ func TestMetricsBuilder(t *testing.T) {
 					validatedMetrics["databricks.spark.executor_metrics.minor_gc.count"] = true
 					assert.Equal(t, pmetric.MetricTypeGauge, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Gauge().DataPoints().Len())
-					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "Total minor GC count. For example, the garbage collector is one of Copy, PS Scavenge, ParNew, G1 Young Generation and so on.", ms.At(i).Description())
+					assert.Equal(t, "{gc}", ms.At(i).Unit())
 					dp := ms.At(i).Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())
@@ -2396,8 +2392,8 @@ func TestMetricsBuilder(t *testing.T) {
 					validatedMetrics["databricks.spark.executor_metrics.minor_gc.time"] = true
 					assert.Equal(t, pmetric.MetricTypeGauge, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Gauge().DataPoints().Len())
-					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "Elapsed total minor GC time.", ms.At(i).Description())
+					assert.Equal(t, "ms", ms.At(i).Unit())
 					dp := ms.At(i).Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())
@@ -2420,8 +2416,8 @@ func TestMetricsBuilder(t *testing.T) {
 					validatedMetrics["databricks.spark.executor_metrics.off_heap.execution.memory"] = true
 					assert.Equal(t, pmetric.MetricTypeGauge, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Gauge().DataPoints().Len())
-					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "Peak off heap execution memory in use, in bytes.", ms.At(i).Description())
+					assert.Equal(t, "By", ms.At(i).Unit())
 					dp := ms.At(i).Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())
@@ -2444,8 +2440,8 @@ func TestMetricsBuilder(t *testing.T) {
 					validatedMetrics["databricks.spark.executor_metrics.off_heap.storage.memory"] = true
 					assert.Equal(t, pmetric.MetricTypeGauge, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Gauge().DataPoints().Len())
-					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "Peak off heap storage memory in use, in bytes.", ms.At(i).Description())
+					assert.Equal(t, "By", ms.At(i).Unit())
 					dp := ms.At(i).Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())
@@ -2468,8 +2464,8 @@ func TestMetricsBuilder(t *testing.T) {
 					validatedMetrics["databricks.spark.executor_metrics.off_heap.unified.memory"] = true
 					assert.Equal(t, pmetric.MetricTypeGauge, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Gauge().DataPoints().Len())
-					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "Peak off heap memory (execution and storage).", ms.At(i).Description())
+					assert.Equal(t, "By", ms.At(i).Unit())
 					dp := ms.At(i).Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())
@@ -2492,8 +2488,8 @@ func TestMetricsBuilder(t *testing.T) {
 					validatedMetrics["databricks.spark.executor_metrics.on_heap.execution.memory"] = true
 					assert.Equal(t, pmetric.MetricTypeGauge, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Gauge().DataPoints().Len())
-					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "Peak on heap memory (execution and storage).", ms.At(i).Description())
+					assert.Equal(t, "By", ms.At(i).Unit())
 					dp := ms.At(i).Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())
@@ -2516,8 +2512,8 @@ func TestMetricsBuilder(t *testing.T) {
 					validatedMetrics["databricks.spark.executor_metrics.on_heap.storage.memory"] = true
 					assert.Equal(t, pmetric.MetricTypeGauge, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Gauge().DataPoints().Len())
-					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "Peak on heap storage memory in use, in bytes.", ms.At(i).Description())
+					assert.Equal(t, "By", ms.At(i).Unit())
 					dp := ms.At(i).Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())
@@ -2540,8 +2536,8 @@ func TestMetricsBuilder(t *testing.T) {
 					validatedMetrics["databricks.spark.executor_metrics.on_heap.unified.memory"] = true
 					assert.Equal(t, pmetric.MetricTypeGauge, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Gauge().DataPoints().Len())
-					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "Peak on heap memory (execution and storage).", ms.At(i).Description())
+					assert.Equal(t, "By", ms.At(i).Unit())
 					dp := ms.At(i).Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())
@@ -2564,8 +2560,8 @@ func TestMetricsBuilder(t *testing.T) {
 					validatedMetrics["databricks.spark.executor_metrics.process_tree.jvm_rss.memory"] = true
 					assert.Equal(t, pmetric.MetricTypeGauge, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Gauge().DataPoints().Len())
-					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "Resident Set Size: number of pages the process has in real memory. This is just the pages which count toward text, data, or stack space. This does not include pages which have not been demand-loaded in, or which are swapped out. Enabled if spark.executor.processTreeMetrics.enabled is true.", ms.At(i).Description())
+					assert.Equal(t, "{pages}", ms.At(i).Unit())
 					dp := ms.At(i).Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())
@@ -2588,8 +2584,8 @@ func TestMetricsBuilder(t *testing.T) {
 					validatedMetrics["databricks.spark.executor_metrics.process_tree.jvm_v.memory"] = true
 					assert.Equal(t, pmetric.MetricTypeGauge, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Gauge().DataPoints().Len())
-					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "Virtual memory size in bytes. Enabled if spark.executor.processTreeMetrics.enabled is true.", ms.At(i).Description())
+					assert.Equal(t, "By", ms.At(i).Unit())
 					dp := ms.At(i).Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())
@@ -2612,8 +2608,8 @@ func TestMetricsBuilder(t *testing.T) {
 					validatedMetrics["databricks.spark.executor_metrics.process_tree.other_rss.memory"] = true
 					assert.Equal(t, pmetric.MetricTypeGauge, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Gauge().DataPoints().Len())
-					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "Resident Set Size for other kind of process. Enabled if spark.executor.processTreeMetrics.enabled is true.", ms.At(i).Description())
+					assert.Equal(t, "{pages}", ms.At(i).Unit())
 					dp := ms.At(i).Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())
@@ -2636,8 +2632,8 @@ func TestMetricsBuilder(t *testing.T) {
 					validatedMetrics["databricks.spark.executor_metrics.process_tree.other_v.memory"] = true
 					assert.Equal(t, pmetric.MetricTypeGauge, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Gauge().DataPoints().Len())
-					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "Virtual memory size for other kind of process in bytes. Enabled if spark.executor.processTreeMetrics.enabled is true.", ms.At(i).Description())
+					assert.Equal(t, "By", ms.At(i).Unit())
 					dp := ms.At(i).Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())
@@ -2660,8 +2656,8 @@ func TestMetricsBuilder(t *testing.T) {
 					validatedMetrics["databricks.spark.executor_metrics.process_tree.python_rss.memory"] = true
 					assert.Equal(t, pmetric.MetricTypeGauge, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Gauge().DataPoints().Len())
-					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "Resident Set Size for Python. Enabled if spark.executor.processTreeMetrics.enabled is true.", ms.At(i).Description())
+					assert.Equal(t, "{pages}", ms.At(i).Unit())
 					dp := ms.At(i).Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())
@@ -2684,8 +2680,8 @@ func TestMetricsBuilder(t *testing.T) {
 					validatedMetrics["databricks.spark.executor_metrics.process_tree.python_v.memory"] = true
 					assert.Equal(t, pmetric.MetricTypeGauge, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Gauge().DataPoints().Len())
-					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "Virtual memory size for Python in bytes. Enabled if spark.executor.processTreeMetrics.enabled is true.", ms.At(i).Description())
+					assert.Equal(t, "By", ms.At(i).Unit())
 					dp := ms.At(i).Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())
@@ -2709,7 +2705,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{hits}", ms.At(i).Unit())
 					assert.Equal(t, false, ms.At(i).Sum().IsMonotonic())
 					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
 					dp := ms.At(i).Sum().DataPoints().At(0)
@@ -2735,7 +2731,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{files}", ms.At(i).Unit())
 					assert.Equal(t, false, ms.At(i).Sum().IsMonotonic())
 					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
 					dp := ms.At(i).Sum().DataPoints().At(0)
@@ -2761,7 +2757,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{calls}", ms.At(i).Unit())
 					assert.Equal(t, false, ms.At(i).Sum().IsMonotonic())
 					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
 					dp := ms.At(i).Sum().DataPoints().At(0)
@@ -2787,7 +2783,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{jobs}", ms.At(i).Unit())
 					assert.Equal(t, false, ms.At(i).Sum().IsMonotonic())
 					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
 					dp := ms.At(i).Sum().DataPoints().At(0)
@@ -2813,7 +2809,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{partitions}", ms.At(i).Unit())
 					assert.Equal(t, false, ms.At(i).Sum().IsMonotonic())
 					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
 					dp := ms.At(i).Sum().DataPoints().At(0)
@@ -3028,7 +3024,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "ns", ms.At(i).Unit())
 					assert.Equal(t, false, ms.At(i).Sum().IsMonotonic())
 					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
 					dp := ms.At(i).Sum().DataPoints().At(0)
@@ -3054,7 +3050,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{events}", ms.At(i).Unit())
 					assert.Equal(t, false, ms.At(i).Sum().IsMonotonic())
 					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
 					dp := ms.At(i).Sum().DataPoints().At(0)
@@ -3080,7 +3076,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{events}", ms.At(i).Unit())
 					assert.Equal(t, false, ms.At(i).Sum().IsMonotonic())
 					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
 					dp := ms.At(i).Sum().DataPoints().At(0)
@@ -3106,7 +3102,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeGauge, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Gauge().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "1", ms.At(i).Unit())
 					dp := ms.At(i).Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())
@@ -3130,7 +3126,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{events}", ms.At(i).Unit())
 					assert.Equal(t, false, ms.At(i).Sum().IsMonotonic())
 					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
 					dp := ms.At(i).Sum().DataPoints().At(0)
@@ -3156,7 +3152,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeGauge, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Gauge().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{executor}", ms.At(i).Unit())
 					dp := ms.At(i).Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())
@@ -3180,7 +3176,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{events}", ms.At(i).Unit())
 					assert.Equal(t, false, ms.At(i).Sum().IsMonotonic())
 					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
 					dp := ms.At(i).Sum().DataPoints().At(0)
@@ -3206,7 +3202,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeGauge, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Gauge().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "1", ms.At(i).Unit())
 					dp := ms.At(i).Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())
@@ -3230,7 +3226,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{events}", ms.At(i).Unit())
 					assert.Equal(t, false, ms.At(i).Sum().IsMonotonic())
 					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
 					dp := ms.At(i).Sum().DataPoints().At(0)
@@ -3256,7 +3252,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeGauge, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Gauge().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "1", ms.At(i).Unit())
 					dp := ms.At(i).Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())
@@ -3280,7 +3276,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeGauge, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Gauge().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{operations}", ms.At(i).Unit())
 					dp := ms.At(i).Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())
@@ -3324,8 +3320,8 @@ func TestMetricsBuilder(t *testing.T) {
 					validatedMetrics["databricks.spark.stage.executor_run_time"] = true
 					assert.Equal(t, pmetric.MetricTypeGauge, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Gauge().DataPoints().Len())
-					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "Elapsed time the executor spent running this task. This includes time fetching shuffle data. See https://spark.apache.org/docs/latest/monitoring.html#executor-metrics", ms.At(i).Description())
+					assert.Equal(t, "ms", ms.At(i).Unit())
 					dp := ms.At(i).Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())
@@ -3346,7 +3342,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeGauge, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Gauge().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "By", ms.At(i).Unit())
 					dp := ms.At(i).Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())
@@ -3367,7 +3363,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeGauge, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Gauge().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{records}", ms.At(i).Unit())
 					dp := ms.At(i).Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())
@@ -3430,7 +3426,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, pmetric.MetricTypeGauge, ms.At(i).Type())
 					assert.Equal(t, 1, ms.At(i).Gauge().DataPoints().Len())
 					assert.Equal(t, "n/a", ms.At(i).Description())
-					assert.Equal(t, "", ms.At(i).Unit())
+					assert.Equal(t, "{records}", ms.At(i).Unit())
 					dp := ms.At(i).Gauge().DataPoints().At(0)
 					assert.Equal(t, start, dp.StartTimestamp())
 					assert.Equal(t, ts, dp.Timestamp())
@@ -3928,14 +3924,4 @@ func TestMetricsBuilder(t *testing.T) {
 			}
 		})
 	}
-}
-
-func loadConfig(t *testing.T, name string) MetricsSettings {
-	cm, err := confmaptest.LoadConf(filepath.Join("testdata", "config.yaml"))
-	require.NoError(t, err)
-	sub, err := cm.Sub(name)
-	require.NoError(t, err)
-	cfg := DefaultMetricsSettings()
-	require.NoError(t, component.UnmarshalConfig(sub, &cfg))
-	return cfg
 }

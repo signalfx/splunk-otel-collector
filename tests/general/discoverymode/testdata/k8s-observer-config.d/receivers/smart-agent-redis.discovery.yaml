@@ -17,7 +17,7 @@ smartagent:
               body: Successfully scraped metrics from redis pod
     statements:
       failed:
-        - regexp: "^redis_info plugin: Error connecting to .* - ConnectionRefusedError.*$"
+        - regexp: '"message":"redis_info plugin: Error connecting to .* - ConnectionRefusedError"'
           first_only: true
           log_record:
             severity_text: debug

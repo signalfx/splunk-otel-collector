@@ -23,6 +23,7 @@ import (
 )
 
 func TestTelegrafProcstatReceiverProvidesAllMetrics(t *testing.T) {
+	testutils.SkipIfNotContainerTest(t)
 	expectedMetrics := "all.yaml"
 	// telegraf/procstat is missing cpu metrics on arm64 as an apparently unsupported platform.
 	if testutils.CollectorImageIsForArm(t) {

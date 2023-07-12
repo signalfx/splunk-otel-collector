@@ -40,7 +40,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	otelcolreceiver "go.opentelemetry.io/collector/receiver"
-	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/metric/noop"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -60,7 +60,7 @@ func newReceiverCreateSettings(name string) otelcolreceiver.CreateSettings {
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         zap.NewNop(),
 			TracerProvider: trace.NewNoopTracerProvider(),
-			MeterProvider:  metric.NewNoopMeterProvider(),
+			MeterProvider:  noop.NewMeterProvider(),
 		},
 	}
 }

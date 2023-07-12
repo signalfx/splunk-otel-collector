@@ -74,7 +74,7 @@ type ComponentID struct {
 func NewProperty(property, val string) (*Property, error) {
 	p, err := parser.ParseString("splunk.discovery", property)
 	if err != nil {
-		return nil, fmt.Errorf("invalid property (parsing error): %w", err)
+		return nil, fmt.Errorf("invalid property %q (parsing error): %w", property, err)
 	}
 	p.Val = val
 
@@ -93,10 +93,7 @@ func NewProperty(property, val string) (*Property, error) {
 		if err = yaml.Unmarshal(cfgItem, &dst); err != nil {
 			return nil, fmt.Errorf("failed unmarshaling property %q: %w", p.Key, err)
 		}
-		subStringMap = confmap.NewFromStringMap(dst).ToStringMap()
-		if p.ComponentType == "receivers" {
-			subStringMap = map[string]any{"config": subStringMap}
-		}
+		subStringMap = map[string]any{"config": confmap.NewFromStringMap(dst).ToStringMap()}
 	}
 	p.stringMap = map[string]any{
 		p.ComponentType: map[string]any{

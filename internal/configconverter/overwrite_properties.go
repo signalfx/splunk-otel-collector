@@ -21,11 +21,13 @@ package configconverter
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/knadh/koanf/maps"
 	"github.com/magiconair/properties"
 	"go.opentelemetry.io/collector/confmap"
+	"gopkg.in/yaml.v3"
 )
 
 type converter struct {
@@ -57,7 +59,12 @@ func (c *converter) Convert(_ context.Context, conf *confmap.Conf) error {
 	// Create a map manually instead of using properties.Map() to not expand the env vars.
 	parsed := make(map[string]interface{}, props.Len())
 	for _, key := range props.Keys() {
-		value, _ := props.Get(key)
+		var value any
+		if raw, ok := props.Get(key); ok {
+			if err = yaml.Unmarshal([]byte(raw), &value); err != nil {
+				return fmt.Errorf("error unmarshalling %q value: %w", key, err)
+			}
+		}
 		parsed[key] = value
 	}
 	prop := maps.Unflatten(parsed, ".")

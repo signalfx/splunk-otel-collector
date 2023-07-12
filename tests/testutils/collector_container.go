@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -36,8 +35,6 @@ import (
 )
 
 const collectorImageEnvVar = "SPLUNK_OTEL_COLLECTOR_IMAGE"
-
-var configFromArgsPattern = regexp.MustCompile("--config($|[^d-]+)")
 
 var _ Collector = (*CollectorContainer)(nil)
 var _ testcontainers.LogConsumer = (*collectorLogConsumer)(nil)
@@ -112,9 +109,10 @@ func (collector CollectorContainer) WithMount(path string, mountPoint string) Co
 }
 
 func (collector CollectorContainer) Build() (Collector, error) {
-	if collector.Image == "" {
+	if collector.Image == "" && collector.Container.Dockerfile.Context == "" {
 		collector.Image = "quay.io/signalfx/splunk-otel-collector:latest"
 	}
+
 	if collector.Logger == nil {
 		collector.Logger = zap.NewNop()
 	}
@@ -124,14 +122,16 @@ func (collector CollectorContainer) Build() (Collector, error) {
 
 	collector.logConsumer = newCollectorLogConsumer(collector.Logger)
 
-	var err error
-	collector.contextArchive, err = collector.buildContextArchive()
-	if err != nil {
-		return nil, err
+	if collector.Container.Dockerfile.Context == "" {
+		var err error
+		collector.contextArchive, err = collector.buildContextArchive()
+		if err != nil {
+			return nil, err
+		}
+		collector.Container = collector.Container.WithContextArchive(
+			collector.contextArchive,
+		)
 	}
-	collector.Container = collector.Container.WithContextArchive(
-		collector.contextArchive,
-	)
 
 	if collector.Container.ContainerNetworkMode == "" {
 		collector.Container = collector.Container.WithNetworkMode("host")
@@ -160,7 +160,7 @@ func (collector CollectorContainer) Build() (Collector, error) {
 }
 
 func (collector *CollectorContainer) Start() error {
-	if collector.contextArchive == nil {
+	if collector.Container.req == nil {
 		return fmt.Errorf("cannot Start a CollectorContainer that hasn't been successfully built")
 	}
 
@@ -173,7 +173,7 @@ func (collector *CollectorContainer) Start() error {
 }
 
 func (collector *CollectorContainer) Shutdown() error {
-	if collector.contextArchive == nil {
+	if collector.Container.req == nil {
 		return fmt.Errorf("cannot Shutdown a CollectorContainer that hasn't been successfully built")
 	}
 	defer collector.Container.Terminate(context.Background())
@@ -211,12 +211,7 @@ func (collector *CollectorContainer) buildContextArchive() (io.Reader, error) {
 
 		// We need to tell the Collector to use the provided config
 		// but only if not already done so in the test
-		var configSetByArgs bool
-		for _, c := range collector.Args {
-			if configFromArgsPattern.Match([]byte(c)) {
-				configSetByArgs = true
-			}
-		}
+		configSetByArgs := configIsSetByArgs(collector.Args)
 		_, configSetByEnvVar := collector.Container.Env["SPLUNK_CONFIG"]
 		if !configSetByArgs && !configSetByEnvVar {
 			// only specify w/ args if none are used in the test
@@ -306,6 +301,10 @@ func GetCollectorImage() string {
 
 func CollectorImageIsSet() bool {
 	return GetCollectorImage() != ""
+}
+
+func SkipIfNotContainerTest(t testing.TB) {
+	_ = GetCollectorImageOrSkipTest(t)
 }
 
 func GetCollectorImageOrSkipTest(t testing.TB) string {

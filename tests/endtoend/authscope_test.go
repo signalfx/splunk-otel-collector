@@ -32,7 +32,7 @@ import (
 	sfxpb "github.com/signalfx/com_signalfx_metrics_protobuf/model"
 	sfx "github.com/signalfx/signalfx-go"
 	"github.com/signalfx/signalfx-go/metrics_metadata"
-	"github.com/signalfx/signalfx-go/signalflow"
+	"github.com/signalfx/signalfx-go/signalflow/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
@@ -98,6 +98,9 @@ func TestIngestAuthScopeTokenGrantsRequiredMetricAndDimensionCapabilities(tt *te
 			collector, shutdown := tc.SplunkOtelCollector("postgres_config.yaml")
 			defer shutdown()
 
+			fmt.Println("sleeping 20s to give collector time to process and send metadata updates")
+			time.Sleep(20 * time.Second)
+
 			client, err := sfx.NewClient(ts.DefaultToken, sfx.APIUrl(ts.APIUrl))
 			require.NoError(t, err)
 			require.NotNil(t, client)
@@ -140,21 +143,23 @@ func TestIngestAuthScopeTokenGrantsRequiredEventCapabilities(tt *testing.T) {
 			collector, shutdown := tc.SplunkOtelCollector("event_forwarder_config.yaml")
 			defer shutdown()
 
-			client, err := sfx.NewClient(ts.DefaultToken, sfx.APIUrl(ts.APIUrl))
+			client, err := signalflow.NewClient(
+				signalflow.AccessToken(ts.DefaultToken),
+				signalflow.StreamURL(ts.SignalFlowUrl),
+				signalflow.OnError(func(err error) {
+					require.NoError(t, err)
+				}),
+			)
 			require.NoError(t, err)
 			require.NotNil(t, client)
-
-			sflow, err := client.SignalFlow(signalflow.StreamURL(ts.SignalFlowUrl))
-			require.NoError(t, err)
-			require.NotNil(t, sflow)
 
 			eventType := fmt.Sprintf("testevent%s", tc.ID)
 			program := fmt.Sprintf("events(eventType=%q).publish()", eventType)
 
-			comp, err := sflow.Execute(&signalflow.ExecuteRequest{Program: program})
+			comp, err := client.Execute(context.Background(), &signalflow.ExecuteRequest{Program: program})
 			require.NoError(t, err)
 			require.NotNil(t, comp)
-			defer comp.Stop()
+			defer comp.Stop(context.Background())
 
 			fmt.Println("sleeping 10s before sending event to Collector to allow computation to begin")
 			time.Sleep(10 * time.Second)
@@ -163,7 +168,8 @@ func TestIngestAuthScopeTokenGrantsRequiredEventCapabilities(tt *testing.T) {
 
 			done := make(chan struct{})
 			go func() {
-				for _, event := range comp.Events() {
+				expected := 10
+				for event := range comp.Events() {
 					raw := event.RawData()
 					require.Contains(t, raw, "metadata")
 					// added by configured resource processor
@@ -171,8 +177,11 @@ func TestIngestAuthScopeTokenGrantsRequiredEventCapabilities(tt *testing.T) {
 					metadata, ok := raw["metadata"].(map[string]any)
 					require.True(t, ok)
 					require.Equal(t, tc.ID, metadata["testid"])
-					close(done)
-					return
+					expected--
+					if expected == 0 {
+						close(done)
+						return
+					}
 				}
 			}()
 
@@ -229,23 +238,24 @@ func TestAPIAuthScopeTokenDoesntGrantRequiredEventCapabilities(t *testing.T) {
 	collector, shutdown := tc.SplunkOtelCollector("event_forwarder_config.yaml")
 	defer shutdown()
 
-	client, err := sfx.NewClient(
-		ts.DefaultToken, sfx.APIUrl(ts.APIUrl),
+	sflow, err := signalflow.NewClient(
+		signalflow.AccessToken(ts.DefaultToken),
+		signalflow.StreamURL(ts.SignalFlowUrl),
+		signalflow.OnError(func(err error) {
+			require.NoError(t, err)
+		}),
 	)
-	require.NoError(t, err)
-	require.NotNil(t, client)
 
-	sflow, err := client.SignalFlow(signalflow.StreamURL(ts.SignalFlowUrl))
 	require.NoError(t, err)
 	require.NotNil(t, sflow)
 
 	eventType := fmt.Sprintf("testevent%s", tc.ID)
 	program := fmt.Sprintf("events(eventType=%q).publish()", eventType)
 
-	comp, err := sflow.Execute(&signalflow.ExecuteRequest{Program: program})
+	comp, err := sflow.Execute(context.Background(), &signalflow.ExecuteRequest{Program: program})
 	require.NoError(t, err)
 	require.NotNil(t, comp)
-	defer comp.Stop()
+	defer comp.Stop(context.Background())
 
 	fmt.Println("sleeping 10s before sending event to Collector to allow computation to begin")
 	time.Sleep(10 * time.Second)
@@ -254,7 +264,7 @@ func TestAPIAuthScopeTokenDoesntGrantRequiredEventCapabilities(t *testing.T) {
 
 	done := make(chan struct{})
 	go func() {
-		for _, event := range comp.Events() {
+		for event := range comp.Events() {
 			close(done)
 			require.Fail(t, "should never have received with api token event: %v", event)
 			return
@@ -336,7 +346,6 @@ func assertQueryIdDimensionsWithQueryProperties(tc *testutils.Testcase, sfxClien
 }
 
 func sendEvents(t testing.TB, eventType string) {
-	dim := sfxpb.Dimension{Key: "dim_one", Value: "val_one"}
 	propVal := "a test event"
 	description := sfxpb.Property{Key: "description", Value: &sfxpb.PropertyValue{StrValue: &propVal}}
 
@@ -344,6 +353,7 @@ func sendEvents(t testing.TB, eventType string) {
 
 	// I have found sending several events to be necessary for detecting in a fresh signalflow job
 	for i := 0; i < 10; i++ {
+		dim := sfxpb.Dimension{Key: "dim_one", Value: fmt.Sprintf("%d", i)}
 		event := sfxpb.Event{
 			EventType:  eventType,
 			Dimensions: []*sfxpb.Dimension{&dim},

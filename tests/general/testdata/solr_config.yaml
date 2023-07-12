@@ -6,6 +6,13 @@ receivers:
     extraMetrics: ["*"]
     intervalSeconds: 1
 
+processors:
+  filter:
+    metrics:
+      include:
+        match_type: strict
+        metric_names: [counter.solr.http_2xx_responses]
+
 exporters:
   otlp:
     endpoint: "${OTLP_ENDPOINT}"
@@ -15,6 +22,8 @@ exporters:
 service:
   pipelines:
     metrics:
+      processors:
+        - filter
       receivers:
         - smartagent/collectd_solr
       exporters:

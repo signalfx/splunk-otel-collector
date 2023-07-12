@@ -1,5 +1,8 @@
 # Minimum configuration file for the OpenTelemetry Collector Contrib distribution
 # https://github.com/open-telemetry/opentelemetry-collector-contrib
+#
+# For official documentation, see the following page:
+# https://docs.splunk.com/Observability/gdi/other-ingestion-methods/upstream-collector.html
 
 # The following environment variables are required to be manually defined or
 # configured below:
@@ -127,12 +130,18 @@ exporters:
     #ingest_url: http://${SPLUNK_GATEWAY_URL}:9943
     sync_host_metadata: true
     correlation:
-  # Logs
+  # Logs for Splunk Cloud Platform and Log Observer Connect
+  # See https://docs.splunk.com/Observability/gdi/opentelemetry/components/splunk-hec-exporter.html
   splunk_hec:
     token: "${SPLUNK_HEC_TOKEN}"
     endpoint: "${SPLUNK_HEC_URL}"
     source: "otel"
     sourcetype: "otel"
+    profiling_data_enabled: false
+  splunk_hec/profiling:
+    token: "${SPLUNK_ACCESS_TOKEN}"
+    endpoint: "https://ingest.${SPLUNK_REALM}.signalfx.com/v1/log"
+    log_data_enabled: false
   # Send to gateway
   otlp:
     endpoint: "${SPLUNK_GATEWAY_URL}:4317"
@@ -185,6 +194,6 @@ service:
       - batch
       - resourcedetection
       #- resource/add_environment
-      exporters: [splunk_hec]
+      exporters: [splunk_hec, splunk_hec/profiling]
       # Use instead when sending to gateway
       #exporters: [otlp]

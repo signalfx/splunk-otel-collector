@@ -39,6 +39,7 @@ import (
 )
 
 func TestK8sObserver(t *testing.T) {
+	testutils.SkipIfNotContainerTest(t)
 	tc := testutils.NewTestcase(t, testutils.OTLPReceiverSinkAllInterfaces)
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
@@ -50,12 +51,12 @@ func TestK8sObserver(t *testing.T) {
 
 	namespace, serviceAccount := createNamespaceAndServiceAccount(cluster)
 
-	configMap, configMapManifest := configToConfigMapManifest(t, "otlp-exporter-no-internal-prometheus.yaml", namespace)
+	configMap, configMapManifest := configToConfigMapManifest(t, "k8s-otlp-exporter-no-internal-prometheus.yaml", namespace)
 	sout, serr, err := cluster.Apply(configMapManifest)
 	tc.Logger.Debug("applying ConfigMap", zap.String("stdout", sout.String()), zap.String("stderr", serr.String()))
 	require.NoError(t, err)
 
-	redis := createRedis(cluster, "target.redis", namespace, serviceAccount)
+	redisName, redisUID := createRedis(cluster, "target.redis", namespace, serviceAccount)
 
 	crManifest, crbManifest := clusterRoleAndBindingManifests(t, namespace, serviceAccount)
 	sout, serr, err = cluster.Apply(crManifest)
@@ -74,7 +75,7 @@ func TestK8sObserver(t *testing.T) {
 	require.Eventually(t, func() bool {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		rPod, err := cluster.Clientset.CoreV1().Pods(namespace).Get(ctx, redis, metav1.GetOptions{})
+		rPod, err := cluster.Clientset.CoreV1().Pods(namespace).Get(ctx, redisName, metav1.GetOptions{})
 		require.NoError(t, err)
 		tc.Logger.Debug(fmt.Sprintf("redis is: %s\n", rPod.Status.Phase))
 		return rPod.Status.Phase == corev1.PodRunning
@@ -118,6 +119,13 @@ SPLUNK_DISCOVERY_RECEIVERS_smartagent_CONFIG_extraDimensions_x3a__x3a_three_x2e_
 extensions:
   k8s_observer:
     auth_type: serviceAccount
+processors:
+  filter:
+    metrics:
+      include:
+        match_type: strict
+        metric_names:
+        - gauge.connected_clients
 receivers:
   receiver_creator/discovery:
     receivers:
@@ -139,6 +147,8 @@ service:
     metrics:
       exporters:
       - otlp
+      processors:
+      - filter
       receivers:
       - receiver_creator/discovery
   telemetry:
@@ -146,10 +156,16 @@ service:
       address: ""
       level: none
 `, stdout.String())
-	require.Contains(t, stderr.String(), "Discovering for next 10s...\nSuccessfully discovered \"smartagent\" using \"k8s_observer\".\nDiscovery complete.\n")
+	require.Contains(
+		t, stderr.String(),
+		fmt.Sprintf(`Discovering for next 10s...
+Successfully discovered "smartagent" using "k8s_observer" endpoint "k8s_observer/%s/(6379)".
+Discovery complete.
+`, redisUID),
+	)
 }
 
-func createRedis(cluster *kubeutils.KindCluster, name, namespace, serviceAccount string) string {
+func createRedis(cluster *kubeutils.KindCluster, name, namespace, serviceAccount string) (string, string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	redis, err := cluster.Clientset.CoreV1().Pods(namespace).Create(
@@ -178,7 +194,7 @@ func createRedis(cluster *kubeutils.KindCluster, name, namespace, serviceAccount
 		}, metav1.CreateOptions{},
 	)
 	require.NoError(cluster.Testcase, err)
-	return redis.Name
+	return redis.Name, string(redis.UID)
 }
 
 func createNamespaceAndServiceAccount(cluster *kubeutils.KindCluster) (string, string) {
@@ -202,8 +218,9 @@ func createNamespaceAndServiceAccount(cluster *kubeutils.KindCluster) (string, s
 	return namespace, serviceAccount.Name
 }
 
-func configToConfigMapManifest(t testing.TB, _, namespace string) (name, manifest string) {
-	config, err := os.ReadFile(filepath.Join(".", "testdata", "otlp-exporter-no-internal-prometheus.yaml"))
+func configToConfigMapManifest(t testing.TB, cfg, namespace string) (name, manifest string) {
+	config, err := os.ReadFile(filepath.Join(".", "testdata", cfg))
+	require.NoError(t, err)
 	configStore := map[string]any{"config": string(config)}
 
 	k8sObserver, err := os.ReadFile(filepath.Join(".", "testdata", "k8s-observer-config.d", "extensions", "k8s-observer.discovery.yaml"))

@@ -1,0 +1,27 @@
+receivers:
+  signalfxgatewayprometheusremotewrite:
+    endpoint: "0.0.0.0:54090"
+    path: "/metrics"
+    buffer_size: 100
+processors:
+  batch:
+exporters:
+  signalfx:
+    # to configure, see https://github:com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/signalfxexporter
+    access_token: "${SPLUNK_ACCESS_TOKEN}"
+    realm: "${SPLUNK_REALM}"
+  logging:
+    verbosity: detailed
+service:
+  telemetry:
+    metrics:
+      address: ":8888"
+  pipelines:
+    metrics/logging:
+      receivers: [signalfxgatewayprometheusremotewrite]
+      processors: [batch]
+      exporters: [logging]
+    metrics/sfx:
+      receivers: [signalfxgatewayprometheusremotewrite]
+      processors: [batch]
+      exporters: [signalfx]

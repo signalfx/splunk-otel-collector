@@ -22,6 +22,7 @@ The distribution offers support for the following components.
 | [fluentforward](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/fluentforwardreceiver)             | [beta]           |
 | [hostmetrics](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/hostmetricsreceiver)                 | [beta]           |
 | [jaeger](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jaegerreceiver)                           | [beta]           |
+| [jmx](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jmxreceiver)                                 | [alpha]          |
 | [journald](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/journaldreceiver)                       | [alpha]          |
 | [k8s_cluster](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/k8sclusterreceiver)                  | [beta]           |
 | [k8s_events](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/k8seventsreceiver)                    | [alpha]          |
@@ -29,6 +30,7 @@ The distribution offers support for the following components.
 | [kafkametrics](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/kafkametricsreceiver)               | [beta]           |
 | [kafka](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/kafkareceiver)                             | [beta]           |
 | [kubeletstats](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/kubeletstatsreceiver)               | [beta]           |
+| [lightprometheus](../internal/receiver/lightprometheusreceiver)                                                                         | [in development] |
 | [mongodbatlas](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/mongodbatlasreceiver)               | [beta]           |
 | [oracledb](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/oracledbreceiver)                       | [alpha]          |
 | [otlp](https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/otlpreceiver)                                       | [stable]         |
@@ -109,6 +111,16 @@ The distribution offers support for the following components.
 | [zpages](https://github.com/open-telemetry/opentelemetry-collector/tree/main/extension/zpagesextension)                             | [beta]    |
 | [file_storage](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/storage/filestorage)           | [beta]    |
 | [ballast](https://github.com/open-telemetry/opentelemetry-collector/tree/main/extension/ballastextension)                           | [beta]    |
+
+</div>
+
+<div>
+
+| Connectors                                                                                                                 | Stability        |
+|:---------------------------------------------------------------------------------------------------------------------------|:-----------------|
+| [count](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/connector/countconnector)              | [in development] |
+| [forward](https://github.com/open-telemetry/opentelemetry-collector/tree/main/connector/forwardconnector)                  | [beta]           |
+| [spanmetrics](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/connector/spanmetricsconnector)  | [alpha]          |
 
 </div>
 </div>

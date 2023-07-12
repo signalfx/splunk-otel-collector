@@ -1,0 +1,29 @@
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+  zpages:
+
+receivers:
+  signalfx:
+    endpoint: 0.0.0.0:9943
+  sapm:
+    endpoint: 0.0.0.0:7276
+
+processors:
+  batch:
+
+exporters:
+  otlp:
+    endpoint: 10.1.1.1:4318
+    tls:
+      insecure: true
+
+service:
+  extensions: [health_check, zpages]
+  pipelines:
+    metrics:
+      receivers: [signalfx]
+      exporters: [otlp]
+    traces:
+      receivers: [sapm]
+      exporters: [otlp]

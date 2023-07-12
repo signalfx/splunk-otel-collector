@@ -7,7 +7,6 @@ on:
   pull_request:
     paths:
       - '.github/workflows/build-and-test.yml'
-      - '.github/workflows/scripts/**'
       - 'cmd/**'
       - 'internal/**'
       - 'pkg/**'
@@ -17,8 +16,7 @@ on:
       - 'go.mod'
       - 'go.sum'
       - '!**.md'
-      - '!internal/buildscripts/packaging/tests/deployments/**'
-      - '!internal/buildscripts/packaging/release/**'
+      - '!internal/buildscripts/packaging/**'
 
 concurrency:
   group: build-and-test-${{ github.event.pull_request.number || github.ref }}
@@ -29,7 +27,7 @@ env:
   PIP_VERSION: '22.0.4'
   REQUIREMENTS_PATH: "internal/buildscripts/packaging/tests/requirements.txt"
   RESULT_PATH: "~/testresults"
-  GO_VERSION: 1.19.6
+  GO_VERSION: 1.20.5
 
 jobs:
   setup-environment:
@@ -68,9 +66,35 @@ jobs:
       - name: gofmt
         run: |
           make install-tools
-          gofmt -s -w .
+          make fmt
           if ! git diff --exit-code; then
-            echo "One or more Go files are not formatted correctly. Run 'gofmt -s -w .' and push the changes."
+            echo "One or more Go files are not formatted correctly. Run 'make fmt' and push the changes."
+            exit 1
+          fi
+
+  generate-metrics:
+    name: generate-metrics
+    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+    runs-on: ubuntu-20.04
+    needs: [setup-environment]
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: '**/go.sum'
+
+      - name: install-tools
+        run: make install-tools
+
+      - name: generate-metrics
+        run: |
+          make generate-metrics
+          if ! git diff --exit-code; then
+            echo "Generated code is out of date. Run 'make generate-metrics' and push the changes."
             exit 1
           fi
 
@@ -89,11 +113,18 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
 
+      - run: echo "GOLANGCI_LINT_CACHE=${HOME}/.cache/golangci-lint" >> $GITHUB_ENV
+
+      - uses: actions/cache@v3
+        with:
+          path: ${{ env.GOLANGCI_LINT_CACHE }}
+          key: golangci-lint-${{ hashFiles('**/.golangci.yml', '**/*.go', '**/go.sum') }}
+
       - name: Lint
         run: |
           make install-tools
-          make -j4 for-all CMD="make checklicense impi lint misspell"
-  
+          make for-all CMD="make lint"
+
   test:
     name: test
     # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
@@ -111,6 +142,7 @@ jobs:
 
       - name: Unit tests
         run: |
+          set -o pipefail
           make install-tools
           mkdir -p unit-test-results/junit
           trap "go-junit-report  -set-exit-code < unit-test-results/go-unit-tests.out > unit-test-results/junit/results.xml" EXIT
@@ -160,7 +192,7 @@ jobs:
     needs: [setup-environment]
     strategy:
       matrix:
-        SYS_BINARIES: [ "binaries-darwin_amd64", "binaries-linux_amd64", "binaries-linux_arm64", "binaries-windows_amd64", "binaries-linux_ppc64le" ]
+        SYS_BINARIES: [ "binaries-darwin_amd64", "binaries-darwin_arm64", "binaries-linux_amd64", "binaries-linux_arm64", "binaries-windows_amd64", "binaries-linux_ppc64le" ]
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v3
@@ -181,492 +213,3 @@ jobs:
           name: ${{ matrix.SYS_BINARIES }}
           path: |
             ./bin/*
-
-  agent-bundle-linux:
-    runs-on: ubuntu-20.04
-    strategy:
-      matrix:
-        ARCH: ["amd64", "arm64"]
-      fail-fast: false
-    steps:
-      - uses: actions/checkout@v3
-
-      - uses: actions/cache@v3
-        with:
-          path: .cache/buildx/agent-bundle-${{ matrix.ARCH }}
-          key: agent-bundle-buildx-${{ matrix.ARCH }}-${{ hashFiles('pkg/signalfx-agent/bundle/**') }}
-          restore-keys: |
-            agent-bundle-buildx-${{ matrix.ARCH }}-
-
-      - uses: docker/setup-qemu-action@v2
-        if: ${{ matrix.ARCH != 'amd64' }}
-        with:
-          platforms: ${{ matrix.ARCH }}
-
-      - run: make -C pkg/signalfx-agent/bundle agent-bundle-linux ARCH=${{ matrix.ARCH }}
-
-      - uses: actions/upload-artifact@v3
-        with:
-          name: agent-bundle-linux-${{ matrix.ARCH }}
-          path: ./dist/agent-bundle_linux_${{ matrix.ARCH }}.tar.gz
-
-  agent-bundle-windows:
-    runs-on: windows-2019
-    env:
-      PIP_CACHE_DIR: ${{ github.workspace }}/.cache/pip
-    steps:
-      - uses: actions/checkout@v3
-
-      - uses: actions/cache@v3
-        with:
-          path: ${{ env.PIP_CACHE_DIR }}
-          key: agent-bundle-windows-pip-${{ hashFiles('pkg/signalfx-agent/bundle/collectd-plugins.yaml', 'pkg/signalfx-agent/bundle/scripts/requirements.txt') }}
-
-      - run: ./pkg/signalfx-agent/bundle/scripts/windows/make.ps1 bundle
-
-      - uses: actions/upload-artifact@v3
-        with:
-          name: agent-bundle-windows
-          path: ./dist/agent-bundle_windows_amd64.zip
-
-  build-package:
-    name: build-package
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
-    needs: [cross-compile, agent-bundle-linux]
-    strategy:
-      matrix:
-        SYS_PACKAGE: [ "deb", "rpm", "tar" ]
-        ARCH: [ "amd64", "arm64" ]
-      fail-fast: false
-    steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
-
-      - name: Downloading binaries-linux_${{ matrix.ARCH }}
-        uses: actions/download-artifact@v3
-        with:
-          name: binaries-linux_${{ matrix.ARCH }}
-          path: ./bin
-
-      - uses: actions/download-artifact@v3
-        with:
-          name: agent-bundle-linux-${{ matrix.ARCH }}
-          path: ./dist
-
-      - name: Build ${{ matrix.SYS_PACKAGE }} ${{ matrix.ARCH }} package
-        run: make ${{ matrix.SYS_PACKAGE }}-package SKIP_COMPILE=true SKIP_BUNDLE=true VERSION="" ARCH="${{ matrix.ARCH }}"
-
-      - name: Uploading ${{ matrix.SYS_PACKAGE }} ${{ matrix.ARCH }} package artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ matrix.SYS_PACKAGE }}-${{ matrix.ARCH }}-package
-          path: ./dist/splunk-otel-collector*
-
-  test-package:
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
-    timeout-minutes: 60
-    needs: [build-package]
-    strategy:
-      matrix:
-        SYS_PACKAGE: [ "deb", "rpm", "tar" ]
-        ARCH: [ "amd64", "arm64" ]
-        TEST_CASE: [ "install", "upgrade" ]
-        exclude:
-          - SYS_PACKAGE: "tar"
-            TEST_CASE: "upgrade"
-      fail-fast: false
-    steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v3
-
-      - uses: actions/download-artifact@v3
-        with:
-          name: ${{ matrix.SYS_PACKAGE }}-${{ matrix.ARCH }}-package
-          path: ./dist
-
-      - uses: docker/setup-qemu-action@v2
-        if: ${{ matrix.ARCH != 'amd64' }}
-        with:
-          platforms: ${{ matrix.ARCH }}
-
-      - name: Setup python
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
-          cache-dependency-path: ${{ env.REQUIREMENTS_PATH }}
-
-      - name: Install pytest
-        run: |
-          if which pip; then
-              pip install --upgrade 'pip==${{ env.PIP_VERSION }}'
-          else
-              curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-              python get-pip.py 'pip==${{ env.PIP_VERSION }}'
-          fi
-          pip install -r "${{ env.REQUIREMENTS_PATH }}"
-
-      - name: Test ${{ matrix.SYS_PACKAGE }} ${{ matrix.ARCH }} package ${{ matrix.TEST_CASE }}
-        run: |
-          mkdir -p ${{ env.RESULT_PATH }}
-          pytest -n2 --verbose -m ${{ matrix.SYS_PACKAGE }} \
-            -k "${{ matrix.ARCH }} and ${{ matrix.TEST_CASE }}" \
-            --junitxml=${{ env.RESULT_PATH }}/results.xml \
-            --html=${{ env.RESULT_PATH }}/results.html \
-            --self-contained-html \
-            internal/buildscripts/packaging/tests/package_test.py
-
-      - name: Uploading test result artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ matrix.SYS_PACKAGE }}-${{ matrix.ARCH }}-${{ matrix.TEST_CASE }}-test-result
-          path: ${{ env.RESULT_PATH }}
-
-  windows-msi:
-    name: windows-msi
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
-    needs: [cross-compile, agent-bundle-windows]
-    steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v3
-
-      - name: Downloading binaries-windows_amd64
-        uses: actions/download-artifact@v3
-        with:
-          name: binaries-windows_amd64
-          path: ./bin
-
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
-
-      - id: latest
-        uses: pozetroninc/github-action-get-latest-release@v0.7.0
-        with:
-          repository: signalfx/splunk-otel-collector
-          excludes: prerelease, draft
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - uses: actions/download-artifact@v3
-        with:
-          name: agent-bundle-windows
-          path: ./dist
-
-      - name: Build MSI
-        run: |
-          mkdir -p dist
-          VERSION_TAG="${TAG_NAME:-${{ steps.latest.outputs.release }}.${{ github.run_number }}}"
-          make msi SKIP_COMPILE=true VERSION="${VERSION_TAG#v}"
-      
-      - name: Uploading msi build artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: msi-build
-          path: ./dist/*.msi
-
-  windows-msi-validation:
-    name: windows-msi-validation
-    runs-on: ${{ matrix.OS }}
-    needs: [windows-msi]
-    strategy:
-      matrix:
-        OS: [ "windows-2019", "windows-2022" ]
-        MODE: [ "agent", "gateway" ]
-        WITH_FLUENTD: [ "true", "false" ]
-    steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v3
-
-      - name: Downloading msi build
-        uses: actions/download-artifact@v3
-        with:
-          name: msi-build
-          path: ./dist
-
-      - name: Installation test
-        run: |
-          $ErrorActionPreference = 'Stop'
-          Set-PSDebug -Trace 1
-          $msi_path = Resolve-Path .\dist\splunk-otel-collector*.msi
-          $env:VERIFY_ACCESS_TOKEN = "false"
-          .\internal\buildscripts\packaging\installer\install.ps1 -access_token "testing123" -realm "test" -msi_path "$msi_path" -mode "${{ matrix.MODE }}" -with_fluentd $${{ matrix.WITH_FLUENTD }}
-          Start-Sleep -s 30
-          powershell.exe -File .github\workflows\scripts\win-test-services.ps1 -mode "${{ matrix.MODE }}" -with_fluentd "${{ matrix.WITH_FLUENTD }}"
-          powershell.exe -File .github\workflows\scripts\win-test-support-bundle.ps1 -mode "${{ matrix.MODE }}" -with_fluentd "${{ matrix.WITH_FLUENTD }}"
-          Test-Path -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector\agent-bundle\python\python.exe"
-          Test-Path -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector\agent-bundle\collectd-python"
-
-  windows-choco:
-    name: windows-choco
-    runs-on: windows-2019
-    needs: [windows-msi]
-    steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v3
-
-      - name: Downloading msi build
-        uses: actions/download-artifact@v3
-        with:
-          name: msi-build
-          path: ./dist
-
-      - name: Build Chocolatey
-        run: |
-          $ErrorActionPreference = 'Stop'
-          Set-PSDebug -Trace 1
-          $msi_file_path = Resolve-Path .\dist\splunk-otel-collector*.msi
-          $msi_file_name = Resolve-Path .\dist\splunk-otel-collector*.msi | Split-Path -leaf
-          $msi_file_name -match '(\d+\.)(\d+\.)+(\d*)'
-          $version = $matches[0]
-          write-host "Building choco package..."
-          .\internal\buildscripts\packaging\choco\make.ps1 build_choco -MSIFile $msi_file_path -Version $version | Tee-Object -file .\dist\build_logs.log
-          Test-Path -Path ".\dist\splunk-otel-collector.$version.nupkg"
-
-      - name: Uploading choco build artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: choco-build
-          path: ./dist/*.nupkg
-
-  windows-choco-validation:
-    name: windows-choco-validation
-    runs-on: ${{ matrix.OS }}
-    needs: [windows-choco]
-    strategy:
-      matrix:
-        OS: [ "windows-2019", "windows-2022" ]
-        MODE: [ "agent", "gateway" ]
-        WITH_FLUENTD: [ "true", "false" ]
-    steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v3
-
-      - name: Downloading choco build
-        uses: actions/download-artifact@v3
-        with:
-          name: choco-build
-          path: ./dist
-
-      - name: Chocolatey test
-        run: |
-          $ErrorActionPreference = 'Stop'
-          Set-PSDebug -Trace 1
-          $choco_file_name = Resolve-Path .\dist\splunk-otel-collector*.nupkg
-          write-host "Installing $choco_file_name..."
-          choco install splunk-otel-collector -s="$choco_file_name" --params="'/SPLUNK_ACCESS_TOKEN=12345 /SPLUNK_REALM=test /MODE:${{ matrix.MODE }} /WITH_FLUENTD:${{ matrix.WITH_FLUENTD }}'" -y
-          Start-Sleep -s 30
-          powershell.exe -File .github\workflows\scripts\win-test-services.ps1 -mode "${{ matrix.MODE }}" -with_fluentd "${{ matrix.WITH_FLUENTD }}"
-          powershell.exe -File .github\workflows\scripts\win-test-support-bundle.ps1 -mode "${{ matrix.MODE }}" -with_fluentd "${{ matrix.WITH_FLUENTD }}"
-          write-host "Reinstalling choco package..."
-          choco install splunk-otel-collector -s="$choco_file_name" --params="'/MODE:${{ matrix.MODE }} /WITH_FLUENTD:${{ matrix.WITH_FLUENTD }}'" --force -y
-          Start-Sleep -s 30
-          powershell.exe -File .github\workflows\scripts\win-test-services.ps1 -mode "${{ matrix.MODE }}" -with_fluentd "${{ matrix.WITH_FLUENTD }}"
-          write-host "Uninstalling choco package..."
-          choco uninstall -y splunk-otel-collector
-          if (!((Get-CimInstance -ClassName win32_service -Filter "Name = 'splunk-otel-collector'" | Select Name, State).State -Eq "Running")) {
-            write-host "splunk-otel-collector has been successfully uninstalled and service is not running."
-          } else {
-            throw "Failed to uninstall splunk-otel-collector chocolatey package."
-          }
-          if (!((Get-CimInstance -ClassName win32_service -Filter "Name = 'fluentdwinsvc'" | Select Name, State).State -Eq "Running")) {
-            write-host "fluentdwinsvc has been successfully uninstalled and service is not running."
-          } else {
-            throw "Failed to uninstall fluentdwinsvc."
-          }
-
-  docker-otelcol:
-    name: docker-otelcol
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
-    needs: [cross-compile, agent-bundle-linux]
-    strategy:
-      matrix:
-        ARCH: [ "amd64", "arm64", "ppc64le" ]
-    steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v3
-
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
-
-      - name: Set up QEMU
-        if: ${{ matrix.ARCH != 'amd64' }}
-        uses: docker/setup-qemu-action@v2
-        with:
-          platforms: ${{ matrix.ARCH }}
-
-      - name: Downloading binaries-linux_${{ matrix.ARCH }}
-        uses: actions/download-artifact@v3
-        with:
-          name: binaries-linux_${{ matrix.ARCH }}
-          path: ./bin
-
-      - uses: actions/download-artifact@v3
-        if: ${{ matrix.ARCH != 'ppc64le' }}
-        with:
-          name: agent-bundle-linux-${{ matrix.ARCH }}
-          path: ./dist
-
-      - name: Build ${{ matrix.ARCH }} docker image
-        run: |
-          make docker-otelcol SKIP_COMPILE=true SKIP_BUNDLE=true ARCH=${{ matrix.ARCH }}
-
-      - name: Check image arch
-        run: |
-          # ensure that the arch in the image manifest is correct
-          [ "$( docker inspect --format='{{.Architecture}}' otelcol:${{ matrix.ARCH }} )" = "${{ matrix.ARCH }}" ] || exit 1
-
-      - name: Run docker image
-        run: |
-          # ensure the collector can start with the default config file
-          docker run --platform linux/${{ matrix.ARCH }} -d -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=fake-realm --name otelcol otelcol:${{ matrix.ARCH }}
-          sleep 10
-          if [ -z "$( docker ps --filter=status=running --filter=name=otelcol -q )" ]; then
-            docker logs otelcol
-            echo "Failing job execution: fail to start otelcol docker container with the default config in 10 seconds."
-            exit 1
-          fi
-
-          # get all provided config files from the container
-          tmpdir=$(mktemp -d)
-          docker cp otelcol:/etc/otel/collector $tmpdir
-          docker rm -f otelcol
-
-          # ensure the collector can start with all provided config files
-          configs=$(ls ${tmpdir}/collector/ 2>/dev/null)
-          if [ -z "$configs" ]; then
-            echo "failed to get config files from otelcol:/etc/otel/collector"
-            exit 1
-          fi
-          for config in $configs; do
-            docker run --platform linux/${{ matrix.ARCH }} -d -e SPLUNK_CONFIG=/etc/otel/collector/${config} -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=fake-realm --name otelcol otelcol:${{ matrix.ARCH }}
-            sleep 10
-            if [ -z "$( docker ps --filter=status=running --filter=name=otelcol -q )" ]; then
-              docker logs otelcol
-              echo "Failing job execution: fail to start otelcol docker container with ${config} in 10 seconds."
-              exit 1
-            fi
-            docker rm -f otelcol
-          done
-
-      - name: Check journalctl
-        run: |
-          # ensure journalctl can run with the collected libraries
-          docker run --platform linux/${{ matrix.ARCH }} -d -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=fake-realm --name otelcol otelcol:${{ matrix.ARCH }}
-          docker exec otelcol /bin/journalctl
-          docker rm -f otelcol
-
-      - name: Check python and java
-        if: ${{ matrix.ARCH != 'ppc64le' }}
-        run: |
-          # ensure python and java can run with the collected libraries
-          docker run --platform linux/${{ matrix.ARCH }} -d -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=fake-realm --name otelcol otelcol:${{ matrix.ARCH }}
-          docker exec otelcol /usr/lib/splunk-otel-collector/agent-bundle/bin/python --version
-          docker exec otelcol /usr/lib/splunk-otel-collector/agent-bundle/jre/bin/java -version
-          # ensure collectd-python plugins were installed
-          docker exec otelcol bash -c 'test -d /usr/lib/splunk-otel-collector/agent-bundle/collectd-python/'
-          if [[ "$(docker exec otelcol ls /usr/lib/splunk-otel-collector/agent-bundle/collectd-python/ | wc -l)" -eq 0 ]]; then
-            echo "/usr/lib/splunk-otel-collector/agent-bundle/collectd-python/ is empty!" >&2
-            exit 1
-          fi
-          docker rm -f otelcol
-
-  docker-otelcol-windows:
-    name: docker-otelcol-windows
-    runs-on: windows-2019
-    needs: [cross-compile, agent-bundle-windows]
-    steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v3
-
-      - name: Downloading binaries-windows_amd64
-        uses: actions/download-artifact@v3
-        with:
-          name: binaries-windows_amd64
-          path: ./bin
-
-      - uses: actions/download-artifact@v3
-        with:
-          name: agent-bundle-windows
-          path: ./dist
-
-      - name: Build docker image
-        run: |
-          $ErrorActionPreference = 'Stop'
-          Copy-Item .\bin\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
-          Copy-Item .\bin\translatesfx_windows_amd64.exe .\cmd\otelcol\translatesfx.exe
-          Copy-Item .\dist\agent-bundle_windows_amd64.zip .\cmd\otelcol\agent-bundle_windows_amd64.zip
-          docker build -t otelcol-windows --build-arg BASE_IMAGE=mcr.microsoft.com/windows/servercore:1809 -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
-          Remove-Item .\cmd\otelcol\otelcol.exe
-          Remove-Item .\cmd\otelcol\translatesfx.exe
-          Remove-Item .\cmd\otelcol\agent-bundle_windows_amd64.zip
-      
-      - name: Run docker image
-        run: |
-          $ErrorActionPreference = 'Stop'
-          docker run -d -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=fake-realm --name otelcol otelcol-windows:latest
-          Start-Sleep 10
-          $DockerOutput=$(docker ps --filter=status=running --filter=name=otelcol -q)
-          if ( $DockerOutput -eq $null ) {
-            docker logs otelcol
-            echo "Failing job execution: fail to start otelcol docker container in 10 seconds."
-            exit 1
-          }
-
-  docker-otelcol-windows-2022:
-    name: docker-otelcol-windows-2022
-    runs-on: windows-2022
-    needs: [cross-compile, agent-bundle-windows]
-    steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v3
-
-      - name: Downloading binaries-windows_amd64
-        uses: actions/download-artifact@v3
-        with:
-          name: binaries-windows_amd64
-          path: ./bin
-
-      - uses: actions/download-artifact@v3
-        with:
-          name: agent-bundle-windows
-          path: ./dist
-
-      - name: Build docker image
-        run: |
-          $ErrorActionPreference = 'Stop'
-          Copy-Item .\bin\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
-          Copy-Item .\bin\translatesfx_windows_amd64.exe .\cmd\otelcol\translatesfx.exe
-          Copy-Item .\dist\agent-bundle_windows_amd64.zip .\cmd\otelcol\agent-bundle_windows_amd64.zip
-          docker build -t otelcol-windows --build-arg BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022 -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
-          Remove-Item .\cmd\otelcol\otelcol.exe
-          Remove-Item .\cmd\otelcol\translatesfx.exe
-          Remove-Item .\cmd\otelcol\agent-bundle_windows_amd64.zip
-
-      - name: Run docker image
-        run: |
-          $ErrorActionPreference = 'Stop'
-          docker run -d -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=fake-realm --name otelcol otelcol-windows:latest
-          Start-Sleep 10
-          $DockerOutput=$(docker ps --filter=status=running --filter=name=otelcol -q)
-          if ( $DockerOutput -eq $null ) {
-            docker logs otelcol
-            echo "Failing job execution: fail to start otelcol docker container in 10 seconds."
-            exit 1
-          }

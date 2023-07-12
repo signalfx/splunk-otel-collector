@@ -58,6 +58,7 @@ type Container struct {
 	Binds                []string
 	WaitingFor           []wait.Strategy
 	Mounts               []testcontainers.ContainerMount
+	HostConfigModifiers  []func(*dockerContainer.HostConfig)
 	Privileged           bool
 }
 
@@ -67,7 +68,8 @@ var _ testcontainers.Container = (*Container)(nil)
 // implements a testcontainers.Container.
 func NewContainer() Container {
 	return Container{
-		Env: map[string]string{},
+		Env:                 map[string]string{},
+		HostConfigModifiers: []func(*dockerContainer.HostConfig){},
 	}
 }
 
@@ -83,6 +85,11 @@ func (container Container) WithDockerfile(dockerfile string) Container {
 
 func (container Container) WithContext(path string) Container {
 	container.Dockerfile.Context = path
+	return container
+}
+
+func (container Container) WithBuildArgs(args map[string]*string) Container {
+	container.Dockerfile.BuildArgs = args
 	return container
 }
 
@@ -103,6 +110,15 @@ func (container Container) WithCmd(cmd ...string) Container {
 
 func (container Container) WithStartupTimeout(startupTimeout time.Duration) Container {
 	container.startupTimeout = &startupTimeout
+	return container
+}
+
+func (container Container) WithHostConfigModifier(cm func(*dockerContainer.HostConfig)) Container {
+	// copy current modifiers since we are in a builder
+	var hcm []func(*dockerContainer.HostConfig)
+	hcm = append(hcm, container.HostConfigModifiers...)
+	hcm = append(hcm, cm)
+	container.HostConfigModifiers = hcm
 	return container
 }
 
@@ -217,22 +233,32 @@ func (container Container) Build() *Container {
 		startupTimeout = *container.startupTimeout
 	}
 
+	var hostConfigModifier func(config *dockerContainer.HostConfig)
+	if len(container.HostConfigModifiers) != 0 {
+		hostConfigModifier = func(config *dockerContainer.HostConfig) {
+			for _, cm := range container.HostConfigModifiers {
+				cm(config)
+			}
+		}
+	}
+
 	container.req = &testcontainers.ContainerRequest{
-		Binds:          container.Binds,
-		User:           container.User,
-		Image:          container.Image,
-		FromDockerfile: container.Dockerfile,
-		Cmd:            container.Cmd,
-		Entrypoint:     container.Entrypoint,
-		Env:            container.Env,
-		ExposedPorts:   container.ExposedPorts,
-		Name:           container.ContainerName,
-		Networks:       container.ContainerNetworks,
-		Mounts:         container.Mounts,
-		NetworkMode:    networkMode,
-		Labels:         container.Labels,
-		Privileged:     container.Privileged,
-		WaitingFor:     wait.ForAll(container.WaitingFor...).WithDeadline(startupTimeout),
+		Binds:              container.Binds,
+		User:               container.User,
+		Image:              container.Image,
+		FromDockerfile:     container.Dockerfile,
+		Cmd:                container.Cmd,
+		Entrypoint:         container.Entrypoint,
+		Env:                container.Env,
+		ExposedPorts:       container.ExposedPorts,
+		Name:               container.ContainerName,
+		Networks:           container.ContainerNetworks,
+		Mounts:             container.Mounts,
+		NetworkMode:        networkMode,
+		Labels:             container.Labels,
+		Privileged:         container.Privileged,
+		HostConfigModifier: hostConfigModifier,
+		WaitingFor:         wait.ForAll(container.WaitingFor...).WithDeadline(startupTimeout),
 	}
 	return &container
 }

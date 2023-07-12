@@ -42,6 +42,9 @@ platforms:
   - name: debian-9
     driver:
       image: dokken/debian-9
+      intermediate_instructions: |
+        RUN sed -i 's|http://.*.debian.org|http://archive.debian.org|' /etc/apt/sources.list
+        RUN sed -i '/stretch-updates/d' /etc/apt/sources.list
       pid_one_command: /bin/systemd
       volumes:
         - /sys/fs/cgroup:/sys/fs/cgroup:ro

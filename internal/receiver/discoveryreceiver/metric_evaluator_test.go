@@ -27,18 +27,18 @@ import (
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/pmetric"
-	"go.uber.org/zap/zaptest"
+	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
 )
 
 func TestMetricEvaluatorBaseMetricConsumer(t *testing.T) {
-	logger := zaptest.NewLogger(t)
+	logger := zap.NewNop()
 	cfg := &Config{}
 	plogs := make(chan plog.Logs)
 	cStore := newCorrelationStore(logger, time.Hour)
 
-	me := newMetricEvaluator(logger, component.NewID("some.type"), cfg, plogs, cStore)
+	me := newMetricEvaluator(logger, cfg, plogs, cStore)
 	require.Equal(t, consumer.Capabilities{}, me.Capabilities())
 
 	md := pmetric.NewMetrics()
@@ -46,7 +46,10 @@ func TestMetricEvaluatorBaseMetricConsumer(t *testing.T) {
 }
 
 func TestMetricEvaluation(t *testing.T) {
-	logger := zaptest.NewLogger(t)
+	// If debugging tests, replace the Nop Logger with a test instance to see
+	// all statements. Not in regular use to avoid spamming output.
+	// logger := zaptest.NewLogger(t)
+	logger := zap.NewNop()
 	for _, tc := range []struct {
 		name  string
 		match Match
@@ -87,7 +90,7 @@ func TestMetricEvaluation(t *testing.T) {
 								addedState, observerID,
 							)
 
-							me := newMetricEvaluator(logger, component.NewID("some.type"), cfg, plogs, cStore)
+							me := newMetricEvaluator(logger, cfg, plogs, cStore)
 
 							md := pmetric.NewMetrics()
 							rm := md.ResourceMetrics().AppendEmpty()
@@ -204,7 +207,7 @@ func TestTimestampFromMetric(t *testing.T) {
 		{name: "MetricTypeNone", metricFunc: func(md pmetric.Metric) bool { return true }},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			me := newMetricEvaluator(zaptest.NewLogger(t), component.NewID("some.type"), &Config{}, make(chan plog.Logs), nil)
+			me := newMetricEvaluator(zap.NewNop(), &Config{}, make(chan plog.Logs), nil)
 			md := pmetric.NewMetrics().ResourceMetrics().AppendEmpty().ScopeMetrics().AppendEmpty().Metrics().AppendEmpty()
 			shouldBeNil := test.metricFunc(md)
 			actual := me.timestampFromMetric(md)

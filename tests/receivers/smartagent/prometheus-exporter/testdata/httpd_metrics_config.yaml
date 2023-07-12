@@ -1,0 +1,17 @@
+receivers:
+  smartagent/prometheus-exporter:
+    type: prometheus-exporter
+    intervalSeconds: 1
+    host: "localhost"
+    port: 8000
+    scrapeFailureLogLevel: debug
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+service:
+  pipelines:
+    metrics:
+      receivers: [smartagent/prometheus-exporter]
+      exporters: [otlp]

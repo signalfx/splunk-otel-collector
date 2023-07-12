@@ -23,6 +23,7 @@ import (
 )
 
 func TestDiscoveryReceiverWithHostObserverProvidesEndpointLogs(t *testing.T) {
+	testutils.SkipIfNotContainerTest(t)
 	if testutils.CollectorImageIsForArm(t) {
 		t.Skip("host_observer missing process info on arm")
 	}
@@ -33,6 +34,7 @@ func TestDiscoveryReceiverWithHostObserverProvidesEndpointLogs(t *testing.T) {
 }
 
 func TestDiscoveryReceiverWithHostObserverAndSimplePrometheusReceiverProvideStatusLogs(t *testing.T) {
+	testutils.SkipIfNotContainerTest(t)
 	if testutils.CollectorImageIsForArm(t) {
 		t.Skip("host_observer missing process info on arm")
 	}

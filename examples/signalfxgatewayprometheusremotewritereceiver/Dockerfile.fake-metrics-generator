@@ -1,0 +1,9 @@
+FROM golang:1.20-alpine AS builder
+WORKDIR /app
+COPY fake-metrics-generator.go go.mod go.sum ./
+RUN CGO_ENABLED=0 GOOS=linux go build -o fake-metrics-generator
+
+FROM alpine:3.14
+WORKDIR /app
+COPY --from=builder /app/fake-metrics-generator .
+CMD ["./fake-metrics-generator"]

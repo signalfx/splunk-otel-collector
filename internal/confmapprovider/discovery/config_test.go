@@ -151,6 +151,11 @@ func TestDiscoveryPropertiesEntryPath(t *testing.T) {
 	assert.False(t, isDiscoveryPropertiesEntryPath(fmt.Sprintf("%cprocessors%cproperties.discovery.yml", os.PathSeparator, os.PathSeparator)))
 }
 
+var (
+	tru  = true
+	flse = false
+)
+
 var expectedConfig = Config{
 	Service: ServiceEntry{
 		Entry{
@@ -178,9 +183,10 @@ var expectedConfig = Config{
 			},
 		},
 	},
-	DiscoveryObservers: map[component.ID]ExtensionEntry{
+	DiscoveryObservers: map[component.ID]ObserverEntry{
 		component.NewID("docker_observer"): {
-			Entry{
+			Enabled: &tru,
+			Config: Entry{
 				"endpoint": "tcp://debian:54321",
 				"timeout":  "2s",
 			},
@@ -205,6 +211,7 @@ var expectedConfig = Config{
 	},
 	ReceiversToDiscover: map[component.ID]ReceiverToDiscoverEntry{
 		component.NewIDWithName(component.Type("smartagent"), "postgresql"): {
+			Enabled: &flse,
 			Rule: map[component.ID]string{
 				component.NewID("docker_observer"): `type == "container" and port == 5432`,
 				component.NewID("host_observer"):   `type == "hostport" and command contains "pg" and port == 5432`,

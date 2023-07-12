@@ -1,3 +1,5 @@
 docker_observer:
-  endpoint: tcp://debian:54321
-  timeout: 2s
+  enabled: true
+  config:
+    endpoint: tcp://debian:54321
+    timeout: 2s

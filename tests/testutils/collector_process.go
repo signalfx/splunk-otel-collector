@@ -49,7 +49,7 @@ type CollectorProcess struct {
 	Fail             bool
 }
 
-func (collector CollectorProcess) WithMount(path string, mountPoint string) Collector {
+func (collector CollectorProcess) WithMount(string, string) Collector {
 	return &collector
 }
 
@@ -103,9 +103,6 @@ func (collector CollectorProcess) WillFail(fail bool) Collector {
 }
 
 func (collector CollectorProcess) Build() (Collector, error) {
-	if collector.ConfigPath == "" && collector.Args == nil {
-		return nil, fmt.Errorf("you must specify a ConfigPath for your CollectorProcess before building")
-	}
 	if collector.Path == "" {
 		collectorPath, err := findCollectorPath()
 		if err != nil {
@@ -119,9 +116,18 @@ func (collector CollectorProcess) Build() (Collector, error) {
 	if collector.LogLevel == "" {
 		collector.LogLevel = "info"
 	}
-	if collector.Args == nil {
-		collector.Args = []string{
-			fmt.Sprintf("--set=service.telemetry.logs.level=%s", collector.LogLevel), "--config", collector.ConfigPath, "--set=service.telemetry.metrics.level=none",
+
+	configSetByArgs := configIsSetByArgs(collector.Args)
+	_, configSetByEnvVar := collector.Env["SPLUNK_CONFIG"]
+	if collector.ConfigPath != "" && !configSetByArgs && !configSetByEnvVar {
+		// only specify w/ args if none are used in the test
+		if collector.Args == nil {
+			collector.Args = []string{
+				fmt.Sprintf("--set=service.telemetry.logs.level=%s", collector.LogLevel), "--config", collector.ConfigPath, "--set=service.telemetry.metrics.level=none",
+			}
+		} else {
+			// fallback to env var
+			collector.Env["SPLUNK_CONFIG"] = collector.ConfigPath
 		}
 	}
 
@@ -141,6 +147,7 @@ func (collector *CollectorProcess) Start() error {
 	go func() {
 		// drain stdout/err buffer (already logged for us)
 		for range collector.Process.Stdout {
+			continue
 		}
 	}()
 

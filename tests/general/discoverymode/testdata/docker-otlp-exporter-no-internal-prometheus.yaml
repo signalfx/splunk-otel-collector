@@ -1,0 +1,21 @@
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+processors:
+  filter:
+    metrics:
+      include:
+        match_type: strict
+        metric_names: [prometheus_tsdb_exemplar_exemplars_in_storage]
+service:
+  telemetry:
+    metrics:
+      level: none
+      address: ""
+  pipelines:
+    metrics:
+      exporters: [otlp]
+      processors: [filter]
+

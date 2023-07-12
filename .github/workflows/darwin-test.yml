@@ -28,7 +28,7 @@ jobs:
     runs-on: ${{ matrix.OS }}
     strategy:
       matrix:
-        OS: [ "macos-11", "macos-12" ]
+        OS: [ "macos-11", "macos-12", "macos-11-arm64" ]
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v3
@@ -36,8 +36,10 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version: 1.19.6
+          go-version: 1.20.5
           cache-dependency-path: '**/go.sum'
+
+      - run: go env -w CGO_ENABLED=0
 
       - name: Install golang dependency
         run: make install-tools

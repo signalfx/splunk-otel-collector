@@ -16,6 +16,8 @@
 package components
 
 import (
+	"github.com/open-telemetry/opentelemetry-collector-contrib/connector/countconnector"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter"
@@ -52,6 +54,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/fluentforwardreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/journaldreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sclusterreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8seventsreceiver"
@@ -77,6 +80,8 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowseventlogreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsperfcountersreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver"
+	"go.opentelemetry.io/collector/connector"
+	"go.opentelemetry.io/collector/connector/forwardconnector"
 	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/exporter/loggingexporter"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
@@ -97,6 +102,8 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/exporter/pulsarexporter"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/lightprometheusreceiver"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/signalfxgatewayprometheusremotewritereceiver"
 	"github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension"
 	"github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor"
 	"github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver"
@@ -128,11 +135,13 @@ func Get() (otelcol.Factories, error) {
 		cloudfoundryreceiver.NewFactory(),
 		collectdreceiver.NewFactory(),
 		databricksreceiver.NewFactory(),
+		lightprometheusreceiver.NewFactory(),
 		discoveryreceiver.NewFactory(),
 		fluentforwardreceiver.NewFactory(),
 		filelogreceiver.NewFactory(),
 		hostmetricsreceiver.NewFactory(),
 		jaegerreceiver.NewFactory(),
+		jmxreceiver.NewFactory(),
 		journaldreceiver.NewFactory(),
 		k8sclusterreceiver.NewFactory(),
 		k8seventsreceiver.NewFactory(),
@@ -150,6 +159,7 @@ func Get() (otelcol.Factories, error) {
 		redisreceiver.NewFactory(),
 		sapmreceiver.NewFactory(),
 		signalfxreceiver.NewFactory(),
+		signalfxgatewayprometheusremotewritereceiver.NewFactory(),
 		simpleprometheusreceiver.NewFactory(),
 		smartagentreceiver.NewFactory(),
 		splunkhecreceiver.NewFactory(),
@@ -205,11 +215,21 @@ func Get() (otelcol.Factories, error) {
 		errs = append(errs, err)
 	}
 
+	connectors, err := connector.MakeFactoryMap(
+		countconnector.NewFactory(),
+		forwardconnector.NewFactory(),
+		spanmetricsconnector.NewFactory(),
+	)
+	if err != nil {
+		errs = append(errs, err)
+	}
+
 	factories := otelcol.Factories{
 		Extensions: extensions,
 		Receivers:  receivers,
 		Processors: processors,
 		Exporters:  exporters,
+		Connectors: connectors,
 	}
 
 	return factories, multierr.Combine(errs...)

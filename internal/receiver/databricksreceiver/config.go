@@ -36,7 +36,7 @@ func createDefaultConfig() component.Config {
 	return &Config{
 		MaxResults:                maxMaxResults, // 25 is the max the API supports
 		ScraperControllerSettings: scs,
-		Metrics:                   metadata.DefaultMetricsSettings(),
+		MetricsBuilderConfig:      metadata.DefaultMetricsBuilderConfig(),
 	}
 }
 
@@ -47,9 +47,9 @@ type Config struct {
 	SparkOrgID                              string `mapstructure:"spark_org_id"`
 	SparkEndpoint                           string `mapstructure:"spark_endpoint"`
 	scraperhelper.ScraperControllerSettings `mapstructure:",squash"`
-	MaxResults                              int                      `mapstructure:"max_results"`
-	SparkUIPort                             int                      `mapstructure:"spark_ui_port"`
-	Metrics                                 metadata.MetricsSettings `mapstructure:"metrics"`
+	MaxResults                              int                           `mapstructure:"max_results"`
+	SparkUIPort                             int                           `mapstructure:"spark_ui_port"`
+	MetricsBuilderConfig                    metadata.MetricsBuilderConfig `mapstructure:"squash,"`
 }
 
 func (c *Config) Validate() error {

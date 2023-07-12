@@ -108,7 +108,7 @@
     - name: Assert custom_fluentd.conf is created
       assert:
         that: custom_fluentd_config.stat.exists
-      when: ansible_os_family != "Suse"
+      when: fluentd_supported
 
     - name: Assert custom_fluentd.conf is used
       ansible.builtin.lineinfile:
@@ -116,7 +116,7 @@
         dest: /etc/systemd/system/td-agent.service.d/splunk-otel-collector.conf
         state: present
       check_mode: yes
-      when: ansible_os_family != "Suse"
+      when: fluentd_supported
 
     - name: Send a test log message
       ansible.builtin.uri:
@@ -124,7 +124,7 @@
         method: POST
         url: http://localhost:9880/app.log
       changed_when: false
-      when: ansible_os_family != "Suse"
+      when: fluentd_supported
 
     - name: Look for the test log message in collector service output
       ansible.builtin.shell:
@@ -134,4 +134,4 @@
       until: result.stdout
       retries: 20
       delay: 1
-      when: ansible_os_family != "Suse"
+      when: fluentd_supported

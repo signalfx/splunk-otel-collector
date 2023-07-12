@@ -8,6 +8,15 @@ receivers:
     extraMetrics: ["*"]
     intervalSeconds: 1
 
+processors:
+  filter:
+    metrics:
+      include:
+        match_type: strict
+        metric_names:
+          - counter.amq.TotalConnectionsCount
+          - jmx_memory.committed
+
 exporters:
   otlp:
     endpoint: "${OTLP_ENDPOINT}"
@@ -17,6 +26,6 @@ exporters:
 service:
   pipelines:
     metrics:
-      receivers:
-        - smartagent/collectd_activemq
+      processors: [filter]
+      receivers: [smartagent/collectd_activemq]
       exporters: [otlp]

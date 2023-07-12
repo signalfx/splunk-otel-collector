@@ -31,7 +31,17 @@ receivers:
                 first_only: true
                 log_record:
                   severity_text: debug
-                  body: Port appears to not be serving prometheus metrics
+                  body: (strict) Port appears to not be serving prometheus metrics
+              - regexp: '"message":"Failed to scrape Prometheus endpoint"'
+                first_only: true
+                log_record:
+                  severity_text: debug
+                  body: (regexp) Port appears to not be serving prometheus metrics
+              - expr: message == 'Failed to scrape Prometheus endpoint' && target_labels contains 'up'
+                first_only: true
+                log_record:
+                  severity_text: debug
+                  body: (expr) Port appears to not be serving prometheus metrics
 
     watch_observers:
       - host_observer

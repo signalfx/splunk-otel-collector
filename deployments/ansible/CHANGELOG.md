@@ -1,5 +1,17 @@
 # Changelog
 
+## ansible-v0.18.0
+
+### 💡 Enhancements 💡
+
+- Add support for RHEL 9 and Amazon Linux 2023
+
+## ansible-v0.17.0
+
+### 🧰 Bug fixes 🧰
+
+- Fix Windows templating [(#2960)](https://github.com/signalfx/splunk-otel-collector/pull/2960)
+
 ## ansible-v0.16.0
 
 ### 💡 Enhancements 💡

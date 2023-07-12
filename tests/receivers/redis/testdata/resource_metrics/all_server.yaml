@@ -1,0 +1,66 @@
+resource_metrics:
+  - attributes:
+      redis.version: <ANY>
+    scope_metrics:
+      - instrumentation_scope:
+          name: otelcol/redisreceiver
+          version: <ANY>
+        metrics:
+          - name: redis.uptime
+            type: IntMonotonicCumulativeSum
+          - name: redis.cpu.time
+            type: DoubleMonotonicCumulativeSum
+          - name: redis.clients.connected
+            type: IntNonmonotonicCumulativeSum
+          - name: redis.clients.max_input_buffer
+            type: IntGauge
+          - name: redis.clients.max_output_buffer
+            type: IntGauge
+          - name: redis.clients.blocked
+            type: IntNonmonotonicCumulativeSum
+          - name: redis.keys.expired
+            type: IntMonotonicCumulativeSum
+          - name: redis.keys.evicted
+            type: IntMonotonicCumulativeSum
+          - name: redis.connections.rejected
+            type: IntMonotonicCumulativeSum
+          - name: redis.memory.used
+            type: IntGauge
+          - name: redis.memory.rss
+            type: IntGauge
+          - name: redis.memory.peak
+            type: IntGauge
+          - name: redis.memory.lua
+            type: IntGauge
+          - name: redis.memory.fragmentation_ratio
+            type: DoubleGauge
+          - name: redis.rdb.changes_since_last_save
+            type: IntNonmonotonicCumulativeSum
+          - name: redis.commands
+            type: IntGauge
+          - name: redis.connections.received
+            type: IntMonotonicCumulativeSum
+          - name: redis.commands.processed
+            type: IntMonotonicCumulativeSum
+          - name: redis.net.input
+            type: IntMonotonicCumulativeSum
+          - name: redis.net.output
+            type: IntMonotonicCumulativeSum
+          - name: redis.keyspace.hits
+            type: IntMonotonicCumulativeSum
+          - name: redis.keyspace.misses
+            type: IntMonotonicCumulativeSum
+          - name: redis.latest_fork
+            type: IntGauge
+          - name: redis.slaves.connected
+            type: IntNonmonotonicCumulativeSum
+          - name: redis.replication.backlog_first_byte_offset
+            type: IntGauge
+          - name: redis.replication.offset
+            type: IntGauge
+          - name: redis.db.avg_ttl
+            type: IntGauge
+          - name: redis.db.expires
+            type: IntGauge
+          - name: redis.db.keys
+            type: IntGauge

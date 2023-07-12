@@ -16,7 +16,9 @@ package discovery
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"strings"
 
@@ -26,7 +28,13 @@ import (
 
 	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/discovery/bundle"
 	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/discovery/properties"
-	"github.com/signalfx/splunk-otel-collector/internal/settings"
+)
+
+const (
+	discoveryModeScheme  = "splunk.discovery"
+	propertyScheme       = "splunk.property"
+	propertiesFileScheme = "splunk.properties"
+	configDScheme        = "splunk.configd"
 )
 
 var _ confmap.Provider = (*providerShim)(nil)
@@ -38,6 +46,8 @@ type Provider interface {
 	DiscoveryModeProvider() confmap.Provider
 	PropertyScheme() string
 	PropertyProvider() confmap.Provider
+	PropertiesFileScheme() string
+	PropertiesFileProvider() confmap.Provider
 }
 
 type providerShim struct {
@@ -53,8 +63,8 @@ func (p providerShim) Scheme() string {
 	return p.scheme
 }
 
-func (p providerShim) Shutdown(ctx context.Context) error {
-	return nil // nolint:unparam
+func (p providerShim) Shutdown(context.Context) error {
+	return nil
 }
 
 type mapProvider struct {
@@ -85,23 +95,30 @@ func New() (Provider, error) {
 }
 
 func (m *mapProvider) ConfigDProvider() confmap.Provider {
-	return providerShim{
+	return &providerShim{
 		scheme:   m.ConfigDScheme(),
 		retrieve: m.retrieve(m.ConfigDScheme()),
 	}
 }
 
 func (m *mapProvider) DiscoveryModeProvider() confmap.Provider {
-	return providerShim{
+	return &providerShim{
 		scheme:   m.DiscoveryModeScheme(),
 		retrieve: m.retrieve(m.DiscoveryModeScheme()),
 	}
 }
 
 func (m *mapProvider) PropertyProvider() confmap.Provider {
-	return providerShim{
+	return &providerShim{
 		scheme:   m.PropertyScheme(),
 		retrieve: m.retrieve(m.PropertyScheme()),
+	}
+}
+
+func (m *mapProvider) PropertiesFileProvider() confmap.Provider {
+	return &providerShim{
+		scheme:   m.PropertiesFileScheme(),
+		retrieve: m.retrieve(m.PropertiesFileScheme()),
 	}
 }
 
@@ -113,7 +130,12 @@ func (m *mapProvider) retrieve(scheme string) func(context.Context, string, conf
 		}
 
 		uriVal := uri[len(schemePrefix):]
-		if schemePrefix == fmt.Sprintf("%s:", settings.PropertyScheme) {
+
+		if schemePrefix == fmt.Sprintf("%s:", propertiesFileScheme) {
+			return m.loadPropertiesFile(uriVal)
+		}
+
+		if schemePrefix == fmt.Sprintf("%s:", propertyScheme) {
 			return m.parsedProperty(uriVal)
 		}
 
@@ -122,10 +144,18 @@ func (m *mapProvider) retrieve(scheme string) func(context.Context, string, conf
 		if uriVal != "" {
 			if cfg, ok = m.configs[uriVal]; !ok {
 				cfg = NewConfig(m.logger)
+				cfg.propertiesAlreadyLoaded = m.discoverer.propertiesFileSpecified
 				m.logger.Debug("loading config.d", zap.String("config-dir", uriVal))
 				if err := cfg.Load(uriVal); err != nil {
-					m.logger.Error("failed loading config.d", zap.String("config-dir", uriVal), zap.Error(err))
-					return nil, err
+					// ignore if we're attempting to load a default that hasn't been installed to expected path
+					if uriVal == "/etc/otel/collector/config.d" && errors.Is(err, fs.ErrNotExist) {
+						m.logger.Debug("failed loading default nonexistent config.d (disregarding).", zap.String("config-dir", uriVal), zap.Error(err))
+						// restore empty base since fields are purged on error
+						cfg = NewConfig(m.logger)
+					} else {
+						m.logger.Error("failed loading config.d", zap.String("config-dir", uriVal), zap.Error(err))
+						return nil, err
+					}
 				}
 				m.logger.Debug("successfully loaded config.d", zap.String("config-dir", uriVal))
 				m.configs[uriVal] = cfg
@@ -135,11 +165,11 @@ func (m *mapProvider) retrieve(scheme string) func(context.Context, string, conf
 			cfg = NewConfig(m.logger)
 		}
 
-		if strings.HasPrefix(uri, settings.ConfigDScheme) {
+		if strings.HasPrefix(uri, configDScheme) {
 			return confmap.NewRetrieved(cfg.toServiceConfig())
 		}
 
-		if strings.HasPrefix(uri, settings.DiscoveryModeScheme) {
+		if strings.HasPrefix(uri, discoveryModeScheme) {
 			var bundledCfg *Config
 			if bundledCfg, ok = m.configs["<bundled>"]; !ok {
 				m.logger.Debug("loading bundle.d")
@@ -166,15 +196,33 @@ func (m *mapProvider) retrieve(scheme string) func(context.Context, string, conf
 }
 
 func (m *mapProvider) ConfigDScheme() string {
-	return settings.ConfigDScheme
+	return configDScheme
 }
 
 func (m *mapProvider) DiscoveryModeScheme() string {
-	return settings.DiscoveryModeScheme
+	return discoveryModeScheme
 }
 
 func (m *mapProvider) PropertyScheme() string {
-	return settings.PropertyScheme
+	return propertyScheme
+}
+
+func (m *mapProvider) PropertiesFileScheme() string {
+	return propertiesFileScheme
+}
+
+func (m *mapProvider) loadPropertiesFile(path string) (*confmap.Retrieved, error) {
+	propertiesCfg := NewConfig(m.logger)
+	m.logger.Debug("loading discovery properties", zap.String("file", path))
+	if err := propertiesCfg.LoadProperties(path); err != nil {
+		return nil, err
+	}
+	if err := m.discoverer.mergeDiscoveryPropertiesEntry(propertiesCfg); err != nil {
+		return nil, err
+	}
+	m.discoverer.propertiesFileSpecified = true
+	// return nil confmap to satisfy signature
+	return confmap.NewRetrieved(nil)
 }
 
 func (m *mapProvider) parsedProperty(rawProperty string) (*confmap.Retrieved, error) {

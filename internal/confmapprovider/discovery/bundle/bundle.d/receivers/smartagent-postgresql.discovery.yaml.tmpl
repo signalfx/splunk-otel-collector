@@ -1,46 +1,81 @@
 {{ receiver "smartagent/postgresql" }}:
+  enabled: true
   rule:
-    docker_observer: type == "container" and port == 5432
-    host_observer: type == "hostport" and command contains "pg" and port == 5432
+    docker_observer: type == "container" and any([name, image, command], {# matches "(?i)postgres"}) and not (command matches "splunk.discovery")
+    host_observer: type == "hostport" and command matches "(?i)postgres" and not (command matches "splunk.discovery")
+    k8s_observer: type == "port" and pod.name matches "(?i)postgres"
   config:
     default:
       type: postgresql
       connectionString: 'sslmode=disable user={{ "{{.username}}" }} password={{ "{{.password}}" }}'
       params:
-        username: bundle.default
-        password: bundle.default
-      masterDBName: postgres
+        username: {{ defaultValue }}
+        password: {{ defaultValue }}
+      masterDBName: {{ defaultValue }}
   status:
     metrics:
       successful:
-        - strict: postgres_block_hit_ratio
+        - strict: postgres_query_count
           first_only: true
           log_record:
             severity_text: info
-            body: postgresql SA receiver working!
+            body: PostgreSQL receiver is working!
+      partial:
+        - strict: postgres_rows_inserted
+          first_only: true
+          log_record:
+            severity_text: info
+            body: >-
+              Make sure that
+              `CREATE EXTENSION IF NOT EXISTS pg_stat_statements;`
+              has been run for each database you would like to monitor.
+              For example:
+              `psql --dbname "<db-name>" -c "CREATE EXTENSION IF NOT EXISTS pg_stat_statements;"`
     statements:
       failed:
-        - regexp: '.* connect: connection refused'
+        - regexp: 'connect: network is unreachable'
           first_only: true
           log_record:
             severity_text: info
-            body: container appears to not be accepting postgres connections
+            append_pattern: true
+            body: The container cannot be reached by the Collector. Make sure they're in the same network.
+        - regexp: 'connect: connection refused'
+          first_only: true
+          log_record:
+            severity_text: info
+            append_pattern: true
+            body: The container is refusing PostgreSQL connections.
       partial:
-        - regexp: '.*pq: password authentication failed for user.*'
+        - regexp: 'pq: password authentication failed for user'
           first_only: true
           log_record:
             severity_text: info
+            append_pattern: true
             body: >-
               Please ensure your user credentials are correctly specified with
               `--set {{ configProperty "params" "username" "<username>" }}` and
               `--set {{ configProperty "params" "password" "<password>" }}` or
               `{{ configPropertyEnvVar "params" "username" "<username>" }}` and
               `{{ configPropertyEnvVar "params" "password" "<password>" }}` environment variables.
-        - regexp: '.*pq: database ".*" does not exist.*'
+        - regexp: 'pq: database .* does not exist'
           first_only: true
           log_record:
             severity_text: info
+            append_pattern: true
             body: >-
-              Please ensure your target database is correctly specified with
-              `--set {{ configProperty "masterDBName" "<db>" }}` or
+              Make sure the target database is correctly specified using the
+              `--set {{ configProperty "masterDBName" "<db>" }}` command or the
               `{{ configPropertyEnvVar "masterDBName" "<db>" }}` environment variable.
+        - regexp: 'pq: pg_stat_statements must be loaded via shared_preload_libraries'
+          first_only: true
+          log_record:
+            severity_text: info
+            append_pattern: true
+            body: >-
+              Make sure your PostgreSQL database has
+              `shared_preload_libraries = 'pg_stat_statements'`
+              in the postgresql.conf file and that
+              `CREATE EXTENSION IF NOT EXISTS pg_stat_statements;`
+              has been run for each database you would like to monitor.
+              For example:
+              `psql --dbname "<db-name>" -c "CREATE EXTENSION pg_stat_statements;"`

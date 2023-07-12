@@ -10,6 +10,8 @@
 
 *.md @signalfx/gdi-docs @signalfx/gdi-data-collection-approvers
 *.rst @signalfx/gdi-docs @signalfx/gdi-data-collection-approvers
+*.yaml @signalfx/gdi-docs @signalfx/gdi-data-collection-approvers
 docs/ @signalfx/gdi-docs @signalfx/gdi-data-collection-approvers
+examples/ @signalfx/gdi-docs @signalfx/gdi-data-collection-approvers
 README* @signalfx/gdi-docs @signalfx/gdi-data-collection-approvers
 internal/confmapprovider/discovery/bundle/bundle.d/**/*.discovery.yaml @signalfx/gdi-docs @signalfx/gdi-data-collection-approvers

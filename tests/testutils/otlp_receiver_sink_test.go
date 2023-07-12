@@ -29,7 +29,7 @@ import (
 	"go.opentelemetry.io/collector/config/configtls"
 	otelcolexporter "go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
-	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/metric/noop"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 
@@ -47,6 +47,8 @@ func TestNewOTLPReceiverSink(t *testing.T) {
 	require.Nil(t, otlp.logsSink)
 	require.Nil(t, otlp.metricsReceiver)
 	require.Nil(t, otlp.metricsSink)
+	require.Nil(t, otlp.tracesReceiver)
+	require.Nil(t, otlp.tracesSink)
 }
 
 func TestBuilderMethods(t *testing.T) {
@@ -82,6 +84,8 @@ func TestBuildDefaults(t *testing.T) {
 	assert.NotNil(t, otlp.logsSink)
 	assert.NotNil(t, otlp.metricsReceiver)
 	assert.NotNil(t, otlp.metricsSink)
+	assert.NotNil(t, otlp.tracesReceiver)
+	assert.NotNil(t, otlp.tracesSink)
 }
 
 func TestReceiverMethodsWithoutBuildingDisallowed(t *testing.T) {
@@ -98,8 +102,14 @@ func TestReceiverMethodsWithoutBuildingDisallowed(t *testing.T) {
 	metrics := otlp.AllMetrics()
 	require.Nil(t, metrics)
 
-	count := otlp.DataPointCount()
-	require.Zero(t, count)
+	dataPointCount := otlp.DataPointCount()
+	require.Zero(t, dataPointCount)
+
+	traces := otlp.AllTraces()
+	require.Nil(t, traces)
+
+	spanCount := otlp.SpanCount()
+	require.Zero(t, spanCount)
 
 	// doesn't panic
 	otlp.Reset()
@@ -107,26 +117,39 @@ func TestReceiverMethodsWithoutBuildingDisallowed(t *testing.T) {
 	err = otlp.AssertAllMetricsReceived(t, telemetry.ResourceMetrics{}, 0)
 	require.Error(t, err)
 	require.EqualError(t, err, "cannot invoke AssertAllMetricsReceived() on an OTLPReceiverSink that hasn't been built")
+
+	err = otlp.AssertAllTracesReceived(t, telemetry.ResourceTraces{}, 0)
+	require.Error(t, err)
+	require.EqualError(t, err, "cannot invoke AssertAllTracesReceived() on an OTLPReceiverSink that hasn't been built")
 }
 
-func otlpExporter(t *testing.T) otelcolexporter.Metrics {
+func createOTLPFactoryParameters() (otlpexporter.Config, otelcolexporter.CreateSettings) {
 	exporterCfg := otlpexporter.Config{
 		GRPCClientSettings: configgrpc.GRPCClientSettings{
 			Endpoint: "localhost:4317",
 			TLSSetting: configtls.TLSClientSetting{
 				Insecure: true,
 			},
-		}}
-	otlpExporterFactory := otlpexporter.NewFactory()
-	ctx := context.Background()
+		},
+	}
 	createParams := otelcolexporter.CreateSettings{
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         zap.NewNop(),
 			TracerProvider: trace.NewNoopTracerProvider(),
-			MeterProvider:  metric.NewNoopMeterProvider(),
+			MeterProvider:  noop.NewMeterProvider(),
 		},
 	}
+
+	return exporterCfg, createParams
+}
+
+func otlpMetricsExporter(t *testing.T) otelcolexporter.Metrics {
+	exporterCfg, createParams := createOTLPFactoryParameters()
+	otlpExporterFactory := otlpexporter.NewFactory()
+	ctx := context.Background()
+
 	exporter, err := otlpExporterFactory.CreateMetricsExporter(ctx, createParams, &exporterCfg)
+
 	require.NoError(t, err)
 	require.NotNil(t, exporter)
 	err = exporter.Start(ctx, componenttest.NewNopHost())
@@ -144,7 +167,7 @@ func TestOTLPReceiverMetricsAvailableToSink(t *testing.T) {
 	}()
 	require.NoError(t, err)
 
-	exporter := otlpExporter(t)
+	exporter := otlpMetricsExporter(t)
 	defer func() { require.NoError(t, exporter.Shutdown(context.Background())) }()
 
 	metrics := telemetry.PDataMetrics()
@@ -167,7 +190,7 @@ func TestAssertAllMetricsReceivedHappyPath(t *testing.T) {
 	}()
 	require.NoError(t, err)
 
-	exporter := otlpExporter(t)
+	exporter := otlpMetricsExporter(t)
 	defer func() { require.NoError(t, exporter.Shutdown(context.Background())) }()
 
 	metrics := telemetry.PDataMetrics()
@@ -178,4 +201,64 @@ func TestAssertAllMetricsReceivedHappyPath(t *testing.T) {
 	resourceMetrics = telemetry.FlattenResourceMetrics(resourceMetrics)
 	require.NoError(t, err)
 	require.NoError(t, otlp.AssertAllMetricsReceived(t, resourceMetrics, 100*time.Millisecond))
+}
+
+func otlpTracesExporter(t *testing.T) otelcolexporter.Traces {
+	exporterCfg, createParams := createOTLPFactoryParameters()
+	otlpExporterFactory := otlpexporter.NewFactory()
+	ctx := context.Background()
+
+	exporter, err := otlpExporterFactory.CreateTracesExporter(ctx, createParams, &exporterCfg)
+
+	require.NoError(t, err)
+	require.NotNil(t, exporter)
+	err = exporter.Start(ctx, componenttest.NewNopHost())
+	require.NoError(t, err)
+	return exporter
+}
+
+func TestOTLPReceiverTracesAvailableToSink(t *testing.T) {
+	otlp, err := NewOTLPReceiverSink().WithEndpoint("localhost:4317").Build()
+	require.NoError(t, err)
+
+	err = otlp.Start()
+	defer func() {
+		require.NoError(t, otlp.Shutdown())
+	}()
+	require.NoError(t, err)
+
+	exporter := otlpTracesExporter(t)
+	defer func() { require.NoError(t, exporter.Shutdown(context.Background())) }()
+
+	traces := telemetry.PDataTraces()
+	expectedCount := traces.SpanCount()
+	err = exporter.ConsumeTraces(context.Background(), traces)
+	require.NoError(t, err)
+
+	assert.Eventually(t, func() bool {
+		return otlp.SpanCount() == expectedCount
+	}, 5*time.Second, 1*time.Millisecond)
+}
+
+func TestAssertAllTracesReceivedHappyPath(t *testing.T) {
+	otlp, err := NewOTLPReceiverSink().WithEndpoint("localhost:4317").Build()
+	require.NoError(t, err)
+
+	err = otlp.Start()
+	defer func() {
+		require.NoError(t, otlp.Shutdown())
+	}()
+	require.NoError(t, err)
+
+	exporter := otlpTracesExporter(t)
+	defer func() { require.NoError(t, exporter.Shutdown(context.Background())) }()
+
+	traces := telemetry.PDataTraces()
+	err = exporter.ConsumeTraces(context.Background(), traces)
+	require.NoError(t, err)
+
+	resourceTraces, err := telemetry.PDataToResourceTraces(traces)
+	resourceTraces = telemetry.FlattenResourceTraces(resourceTraces)
+	require.NoError(t, err)
+	require.NoError(t, otlp.AssertAllTracesReceived(t, resourceTraces, 100*time.Millisecond))
 }

@@ -23,10 +23,12 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/core/common/kubelet"
 	"github.com/signalfx/signalfx-agent/pkg/core/common/kubernetes"
 	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
+	"github.com/signalfx/signalfx-agent/pkg/monitors/cadvisor"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/consul"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/hadoop"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/python"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/redis"
+	"github.com/signalfx/signalfx-agent/pkg/monitors/elasticsearch/stats"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/filesystems"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/haproxy"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/kubernetes/volumes"
@@ -130,9 +132,10 @@ func TestLoadConfig(t *testing.T) {
 			HTTPConfig: httpclient.HTTPConfig{
 				HTTPTimeout: timeutil.Duration(10 * time.Second),
 			},
-			Host:       "localhost",
-			Port:       5309,
-			MetricPath: "/metrics",
+			Host:                  "localhost",
+			Port:                  5309,
+			MetricPath:            "/metrics",
+			ScrapeFailureLogLevel: "error",
 		},
 		acceptsEndpoints: true,
 	}, etcdCfg)
@@ -246,7 +249,7 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
-	assert.Equal(t, 4, len(cfg.ToStringMap()))
+	assert.Equal(t, 6, len(cfg.ToStringMap()))
 
 	cm, err := cfg.Sub(component.NewIDWithName(typeStr, "haproxy").String())
 	require.NoError(t, err)
@@ -326,13 +329,65 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 			HTTPConfig: httpclient.HTTPConfig{
 				HTTPTimeout: timeutil.Duration(10 * time.Second),
 			},
-			Host:       "localhost",
-			Port:       5555,
-			MetricPath: "/metrics",
+			Host:                  "localhost",
+			Port:                  5555,
+			MetricPath:            "/metrics",
+			ScrapeFailureLogLevel: "error",
 		},
 		acceptsEndpoints: true,
 	}, etcdCfg)
 	require.NoError(t, etcdCfg.validate())
+
+	cm, err = cfg.Sub(component.NewIDWithName(typeStr, "elasticsearch").String())
+	require.NoError(t, err)
+	elasticCfg := CreateDefaultConfig().(*Config)
+	require.NoError(t, component.UnmarshalConfig(cm, elasticCfg))
+	tru := true
+	require.Equal(t, &Config{
+		Endpoint: "elastic:567",
+		monitorConfig: &stats.Config{
+			MonitorConfig: saconfig.MonitorConfig{
+				Type:                "elasticsearch",
+				IntervalSeconds:     567,
+				DatapointsToExclude: []saconfig.MetricFilter{},
+			},
+			HTTPConfig: httpclient.HTTPConfig{
+				HTTPTimeout: timeutil.Duration(10 * time.Second),
+			},
+			Host:                           "elastic",
+			Port:                           "567",
+			EnableIndexStats:               &tru,
+			IndexStatsIntervalSeconds:      60,
+			IndexStatsMasterOnly:           &tru,
+			EnableClusterHealth:            &tru,
+			ClusterHealthStatsMasterOnly:   &tru,
+			ThreadPools:                    []string{"search", "index"},
+			MetadataRefreshIntervalSeconds: 30,
+		},
+		acceptsEndpoints: true,
+	}, elasticCfg)
+	require.NoError(t, elasticCfg.validate())
+
+	cm, err = cfg.Sub(component.NewIDWithName(typeStr, "kubelet-stats").String())
+	require.NoError(t, err)
+	kubeletCfg := CreateDefaultConfig().(*Config)
+	require.NoError(t, component.UnmarshalConfig(cm, kubeletCfg))
+	require.Equal(t, &Config{
+		Endpoint: "disregarded:678",
+		monitorConfig: &cadvisor.KubeletStatsConfig{
+			MonitorConfig: saconfig.MonitorConfig{
+				Type:                "kubelet-stats",
+				IntervalSeconds:     789,
+				DatapointsToExclude: []saconfig.MetricFilter{},
+			},
+			KubeletAPI: kubelet.APIConfig{
+				AuthType:   "serviceAccount",
+				SkipVerify: &tru,
+			},
+		},
+		acceptsEndpoints: true,
+	}, kubeletCfg)
+	require.NoError(t, kubeletCfg.validate())
 }
 
 func TestLoadInvalidConfigWithInvalidEndpoint(t *testing.T) {

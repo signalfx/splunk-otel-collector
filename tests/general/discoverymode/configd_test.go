@@ -47,7 +47,7 @@ func TestConfigDInitialAndEffectiveConfig(t *testing.T) {
 				"SPLUNK_CONFIG_DIR":             "/opt/config.d",
 				"CONFIG_FILE_PORT_FROM_ENV_VAR": "12345",
 				"CONFIGD_PORT_FROM_ENV_VAR":     "34567",
-			}).WithArgs("--configd")
+			}).WithArgs("--configd", "--set", "processors.batch/from-config-file.send_batch_size=123456789")
 		},
 	)
 
@@ -144,8 +144,10 @@ func TestConfigDInitialAndEffectiveConfig(t *testing.T) {
 			},
 		},
 		"processors": map[string]any{
-			"batch/from-config-file": nil,
-			"batch/from-configd":     map[string]any{},
+			"batch/from-config-file": map[string]any{
+				"send_batch_size": 123456789,
+			},
+			"batch/from-configd": map[string]any{},
 		},
 		"receivers": map[string]any{
 			"otlp/from-config-file": map[string]any{
@@ -185,7 +187,7 @@ func TestConfigDInitialAndEffectiveConfig(t *testing.T) {
 
 	sc, stdout, stderr := cc.Container.AssertExec(
 		tc, 15*time.Second, "bash", "-c",
-		"SPLUNK_DEBUG_CONFIG_SERVER=false /otelcol --config-dir /opt/config.d --configd --dry-run 2>/dev/null",
+		"SPLUNK_DEBUG_CONFIG_SERVER=false /otelcol --config-dir /opt/config.d --configd --set processors.batch/from-config-file.send_batch_size=123456789 --dry-run 2>/dev/null",
 	)
 	require.Equal(t, `exporters:
   otlp/from-config-file:
@@ -198,7 +200,8 @@ extensions:
   health_check/from-configd:
     endpoint: 0.0.0.0:45678
 processors:
-  batch/from-config-file: null
+  batch/from-config-file:
+    send_batch_size: 123456789
   batch/from-configd: {}
 receivers:
   otlp/from-config-file:
@@ -238,17 +241,13 @@ func TestStandaloneConfigD(t *testing.T) {
 		t, "memory.yaml", "empty-config.yaml",
 		nil, []testutils.CollectorBuilder{
 			func(c testutils.Collector) testutils.Collector {
-				cc := c.(*testutils.CollectorContainer)
 				configd, err := filepath.Abs(filepath.Join(".", "testdata", "standalone-config.d"))
 				require.NoError(t, err)
-				cc.Container = cc.Container.WithMount(testcontainers.BindMount(configd, "/opt/config.d"))
-
-				return cc
-			},
-			func(c testutils.Collector) testutils.Collector {
-				return c.WithEnv(map[string]string{
-					"SPLUNK_CONFIG_DIR": "/opt/config.d",
-				}).WithArgs("--configd")
+				if cc, ok := c.(*testutils.CollectorContainer); ok {
+					cc.Container = cc.Container.WithMount(testcontainers.BindMount(configd, "/opt/config.d"))
+					configd = "/opt/config.d"
+				}
+				return c.WithEnv(map[string]string{"SPLUNK_CONFIG_DIR": configd}).WithArgs("--configd")
 			},
 		},
 	)

@@ -246,6 +246,32 @@ func TestDatapointsToPDataMetrics(t *testing.T) {
 			}(),
 			expectedMetrics: pdataMetrics(pmetric.MetricTypeGauge, 13, now),
 		},
+		{
+			name: "undesired monitorID dimension",
+			datapoints: func() []*sfx.Datapoint {
+				pt := sfxDatapoint()
+				pt.Meta = map[any]any{"monitorID": "undesired.value"}
+				pt.Dimensions["monitorID"] = "undesired.value"
+				return []*sfx.Datapoint{pt}
+			}(),
+			expectedMetrics: func() pmetric.Metrics {
+				return pdataMetrics(pmetric.MetricTypeGauge, 13, now)
+			}(),
+		},
+		{
+			name: "desired monitorID dimension",
+			datapoints: func() []*sfx.Datapoint {
+				pt := sfxDatapoint()
+				pt.Meta = map[any]any{"monitorID": "undesired.value"}
+				pt.Dimensions["monitorID"] = "desired.value"
+				return []*sfx.Datapoint{pt}
+			}(),
+			expectedMetrics: func() pmetric.Metrics {
+				md := pdataMetrics(pmetric.MetricTypeGauge, 13, now)
+				md.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(0).Gauge().DataPoints().At(0).Attributes().PutStr("monitorID", "desired.value")
+				return md
+			}(),
+		},
 	}
 
 	for _, test := range tests {

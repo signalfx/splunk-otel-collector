@@ -1,0 +1,13 @@
+receivers:
+  hostmetrics: ${file:./testdata/file_with_config_content}
+exporters:
+  otlp:
+    endpoint: ${env:OTLP_ENDPOINT}
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    metrics:
+      receivers: [hostmetrics]
+      exporters: [otlp]

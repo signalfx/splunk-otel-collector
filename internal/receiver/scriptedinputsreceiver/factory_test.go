@@ -15,8 +15,9 @@
 package scriptedinputreceiver
 
 import (
-	"go.opentelemetry.io/collector/component/componenttest"
 	"testing"
+
+	"go.opentelemetry.io/collector/component/componenttest"
 
 	"github.com/stretchr/testify/assert"
 )

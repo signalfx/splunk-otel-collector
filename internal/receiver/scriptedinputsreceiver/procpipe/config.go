@@ -15,10 +15,11 @@
 package procpipe
 
 import (
-	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator/helper"
-	"go.uber.org/zap"
 	"io"
 	"os/exec"
+
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator/helper"
+	"go.uber.org/zap"
 )
 
 // NewConfig creates a new stdin input config with default values

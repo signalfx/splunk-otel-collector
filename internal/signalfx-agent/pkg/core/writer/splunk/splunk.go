@@ -1,8 +1,8 @@
 package splunk
 
-//go:generate sh -c "`go env GOPATH`/bin/genny -ast -pkg splunk -in `go env GOPATH`/pkg/mod/github.com/signalfx/signalfx-go@v1.32.0/writer/template/ring.go gen Instance=logEntry | sed -e s/*logEntry/logEntry/g > ./log_event_ring.gen.go"
+//go:generate sh -c "`go env GOPATH`/bin/genny -ast -pkg splunk -in `go env GOPATH`/pkg/mod/github.com/signalfx/signalfx-go@v1.33.0/writer/template/ring.go gen Instance=logEntry | sed -e s/*logEntry/logEntry/g > ./log_event_ring.gen.go"
 
-//go:generate sh -c "`go env GOPATH`/bin/genny -ast -pkg splunk -in `go env GOPATH`/pkg/mod/github.com/signalfx/signalfx-go@v1.32.0/writer/template/writer.go gen Instance=logEntry | sed -e s/*logEntry/logEntry/g > ./log_event_writer.gen.go"
+//go:generate sh -c "`go env GOPATH`/bin/genny -ast -pkg splunk -in `go env GOPATH`/pkg/mod/github.com/signalfx/signalfx-go@v1.33.0/writer/template/writer.go gen Instance=logEntry | sed -e s/*logEntry/logEntry/g > ./log_event_writer.gen.go"
 
 import (
 	"bytes"

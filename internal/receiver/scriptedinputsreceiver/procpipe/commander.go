@@ -16,7 +16,6 @@ package procpipe
 
 import (
 	"context"
-	_ "embed"
 	"os/exec"
 	"strings"
 	"sync/atomic"

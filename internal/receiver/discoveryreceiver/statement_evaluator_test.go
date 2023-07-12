@@ -100,19 +100,14 @@ func TestStatementEvaluation(t *testing.T) {
 											wg.Add(numExpected)
 
 											go func() {
-												timer := time.NewTimer(50 * time.Millisecond)
 												for i := 0; i < numExpected; i++ {
-													select {
-													case logs := <-plogs:
-														if emitted.LogRecordCount() == 0 {
-															emitted = logs
-														} else {
-															logs.ResourceLogs().MoveAndAppendTo(emitted.ResourceLogs())
-														}
-														wg.Done()
-													case <-timer.C:
-														return
+													logs := <-plogs
+													if emitted.LogRecordCount() == 0 {
+														emitted = logs
+													} else {
+														logs.ResourceLogs().MoveAndAppendTo(emitted.ResourceLogs())
 													}
+													wg.Done()
 												}
 											}()
 
@@ -149,7 +144,8 @@ func TestStatementEvaluation(t *testing.T) {
 											require.Eventually(t, func() bool {
 												wg.Wait()
 												return true
-											}, 100*time.Millisecond, time.Millisecond)
+											}, 1*time.Second, time.Millisecond)
+											close(plogs)
 
 											for i := 0; i < numExpected; i++ {
 												rl := emitted.ResourceLogs().At(i)

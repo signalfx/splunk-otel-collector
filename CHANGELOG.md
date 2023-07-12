@@ -8,6 +8,9 @@
 - (Splunk) Add bundled collectd/nginx Smart Agent receiver discovery rules ([#3321](https://github.com/signalfx/splunk-otel-collector/pull/3321))
 - (Splunk) Support custom `--discovery-properties` file ([#3334](https://github.com/signalfx/splunk-otel-collector/pull/3334))
 - (Splunk) Add `--discovery` to the Linux installer script ([#3365](https://github.com/signalfx/splunk-otel-collector/pull/3365))
+- (Splunk) Starting from this version the logs pipeline is split in the default configuration in a way that profiling 
+  data is always sent to Splunk Observability endpoint while other logs can be sent to another hec endpoint configured
+  with `SPLUNK_HEC_URL` and `SPLUNK_HEC_TOKEN` environment variables ([#3330](https://github.com/signalfx/splunk-otel-collector/pull/3330))
 
 ## v0.80.0
 

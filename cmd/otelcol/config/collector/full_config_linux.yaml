@@ -386,6 +386,17 @@ exporters:
     timeout: 10s
     # Whether to skip checking the certificate of the HEC endpoint when sending data over HTTPS. Defaults to false.
     insecure_skip_verify: false
+    # Profiling data should always be sent to Splunk Observability Cloud which is configured in the next section.
+    profiling_data_enabled: false
+
+  # Enables the splunk hec exporter to send profiling data to Splunk Observability Cloud.
+  splunk_hec/profiling:
+    # Splunk Observability Cloud access token.
+    token: "${SPLUNK_ACCESS_TOKEN}"
+    # Splunk Observability Cloud endpoint.
+    endpoint: "https://ingest.${SPLUNK_REALM}.signalfx.com/v1/log"
+    # Disabling logs as only profiling data should be sent to Splunk Observability Cloud.
+    log_data_enabled: false
 
   #############################################################################
   # Traces
@@ -568,4 +579,4 @@ service:
     logs:
       receivers: [fluentforward, otlp]
       processors: [memory_limiter, batch]
-      exporters: [splunk_hec]
+      exporters: [splunk_hec, splunk_hec/profiling]

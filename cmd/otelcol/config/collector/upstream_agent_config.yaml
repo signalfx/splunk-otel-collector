@@ -137,6 +137,11 @@ exporters:
     endpoint: "${SPLUNK_HEC_URL}"
     source: "otel"
     sourcetype: "otel"
+    profiling_data_enabled: false
+  splunk_hec/profiling:
+    token: "${SPLUNK_ACCESS_TOKEN}"
+    endpoint: "https://ingest.${SPLUNK_REALM}.signalfx.com/v1/log"
+    log_data_enabled: false
   # Send to gateway
   otlp:
     endpoint: "${SPLUNK_GATEWAY_URL}:4317"
@@ -189,6 +194,6 @@ service:
       - batch
       - resourcedetection
       #- resource/add_environment
-      exporters: [splunk_hec]
+      exporters: [splunk_hec, splunk_hec/profiling]
       # Use instead when sending to gateway
       #exporters: [otlp]

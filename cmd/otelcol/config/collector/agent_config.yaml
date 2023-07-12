@@ -143,6 +143,12 @@ exporters:
     endpoint: "${SPLUNK_HEC_URL}"
     source: "otel"
     sourcetype: "otel"
+    profiling_data_enabled: false
+  # Profiling
+  splunk_hec/profiling:
+    token: "${SPLUNK_ACCESS_TOKEN}"
+    endpoint: "${SPLUNK_INGEST_URL}/v1/log"
+    log_data_enabled: false
   # Send to gateway
   otlp:
     endpoint: "${SPLUNK_GATEWAY_URL}:4317"
@@ -181,8 +187,6 @@ service:
       receivers: [signalfx, smartagent/processlist]
       processors: [memory_limiter, batch, resourcedetection]
       exporters: [signalfx]
-      # Use instead when sending to gateway
-      #exporters: [otlp]
     logs:
       receivers: [fluentforward, otlp]
       processors:
@@ -190,6 +194,6 @@ service:
       - batch
       - resourcedetection
       #- resource/add_environment
-      exporters: [splunk_hec]
+      exporters: [splunk_hec, splunk_hec/profiling]
       # Use instead when sending to gateway
       #exporters: [otlp]

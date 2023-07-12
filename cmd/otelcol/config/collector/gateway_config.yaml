@@ -107,9 +107,18 @@ exporters:
     access_token: "${SPLUNK_ACCESS_TOKEN}"
     realm: "${SPLUNK_REALM}"
     sync_host_metadata: true
-  # Debug
-  #logging:
-    #verbosity: detailed
+  # Logs
+  splunk_hec:
+    token: "${SPLUNK_HEC_TOKEN}"
+    endpoint: "${SPLUNK_HEC_URL}"
+    source: "otel"
+    sourcetype: "otel"
+    profiling_data_enabled: false
+  # Profiling
+  splunk_hec/profiling:
+    token: "${SPLUNK_ACCESS_TOKEN}"
+    endpoint: "${SPLUNK_INGEST_URL}/v1/log"
+    log_data_enabled: false
 
 service:
   extensions: [health_check, http_forwarder, zpages, memory_ballast]
@@ -129,7 +138,11 @@ service:
       receivers: [prometheus/internal]
       processors: [memory_limiter, batch, resourcedetection/internal]
       exporters: [signalfx/internal]
-    logs:
-      receivers: [otlp, signalfx]
+    logs/signalfx:
+      receivers: [signalfx]
       processors: [memory_limiter, batch]
       exporters: [signalfx]
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [splunk_hec, splunk_hec/profiling]

@@ -17,9 +17,8 @@ package scriptedinputreceiver
 import (
 	"testing"
 
-	"go.opentelemetry.io/collector/component/componenttest"
-
 	"github.com/stretchr/testify/assert"
+	"go.opentelemetry.io/collector/component/componenttest"
 )
 
 func TestCreateDefaultConfig(t *testing.T) {

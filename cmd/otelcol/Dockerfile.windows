@@ -36,7 +36,7 @@ ARG JDK_VERSION="11.0.19_7"
 ARG OPENJDK_BASE_URL="https://github.com/adoptium/temurin11-binaries/releases/download"
 ARG JAVA_HOME="C:\java\openjdk-${JDK_VERSION}\bin"
 RUN Set-Variable -Name "ENCODED_VER" -Value "\"$env:JDK_VERSION\".replace(\"_\", \"%2B\")"; \
-    Invoke-WebRequest -Uri "${env:OPENJDK_BASE_URL}/jdk-${ENCODED_VER}/OpenJDK11U-jdk_x64_windows_${env:JDK_VERSION}.zip" -OutFile "openjdk.zip" ; \
+    Invoke-WebRequest -Uri "${env:OPENJDK_BASE_URL}/jdk-${ENCODED_VER}/OpenJDK11U-jdk_x64_windows_hotspot_${env:JDK_VERSION}.zip" -OutFile "openjdk.zip" ; \
     Expand-Archive "openjdk.zip" -DestinationPath "C:\java" ;
 RUN setx PATH "$env:JAVA_HOME;$env:PATH"
 

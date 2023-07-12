@@ -282,16 +282,17 @@ For proxy options, see the [Windows Proxy](#windows-proxy) section.
   [GitHub Releases](https://github.com/signalfx/signalfx-dotnet-tracing/releases).
   By default, a request will be made to
   `https://api.github.com/repos/signalfx/signalfx-dotnet-tracing/releases/latest`
-  to determine the latest release. If a version is specified, e.g. `1.0.0`,
-  the API request will be skipped and the MSI package will be downloaded from
+  to determine the latest release. If a version is specified, for example
+  `1.0.0`, the API request will be skipped and the MSI package will be
+  downloaded from
   `https://github.com/signalfx/signalfx-dotnet-tracing/releases/download/v{{ signalfx_dotnet_auto_instrumentation_version }}/signalfx-dotnet-tracing-{{ signalfx_dotnet_auto_instrumentation_version }}-x64.msi`.
   (**default:** `latest`)
 
 - `signalfx_dotnet_auto_instrumentation_msi_url` (Windows only): Specify the
-  download URL to the `signalfx-dotnet-tracing` MSI to skip the GitHub API
-  request, e.g.
+  URL to download the `signalfx-dotnet-tracing` MSI to skip the GitHub API
+  request, for example
   `https://github.com/signalfx/signalfx-dotnet-tracing/releases/download/v1.0.0/signalfx-dotnet-tracing-1.0.0-x64.msi`,
-  or to download the MSI from a custom host, e.g.
+  or to download the MSI from a custom host, for example
   `https://my.host/signalfx-dotnet-tracing-1.0.0-x64.msi`. If specified, the
   `signalfx_dotnet_auto_instrumentation_version` option is ignored.
   (**default:** ``)
@@ -334,8 +335,8 @@ For proxy options, see the [Windows Proxy](#windows-proxy) section.
   applications on the node. (**default:** `false`)
 
 - `signalfx_dotnet_auto_instrumentation_environment` (Windows only): Configure
-  this option to set the "Environment" value to be reported to Splunk APM, e.g.
-  `production`. The value is assigned to the `SIGNALFX_ENV` environment
+  this option to set the "Environment" value to be reported to Splunk APM, for
+  example `production`. The value is assigned to the `SIGNALFX_ENV` environment
   variable in the Windows registry (**default:** ``, i.e. the "Environment"
   will appear as `unknown` in Splunk APM for the instrumented
   service/application)
@@ -343,8 +344,8 @@ For proxy options, see the [Windows Proxy](#windows-proxy) section.
 - `signalfx_dotnet_auto_instrumentation_service_name` (Windows only): Configure
   this variable to override the [auto-generated service name](
   https://docs.splunk.com/Observability/gdi/get-data-in/application/dotnet/configuration/advanced-dotnet-configuration.html#changing-the-default-service-name)
-  for the instrumented service/application, e.g. `my-service-name`. The value
-  is assigned to the `SIGNALFX_SERVICE_NAME` environment variable in the
+  for the instrumented service/application, for example `my-service-name`. The
+  value is assigned to the `SIGNALFX_SERVICE_NAME` environment variable in the
   Windows registry. (**default:** ``)
 
 - `signalfx_dotnet_auto_instrumentation_enable_profiler` (Windows only): Set

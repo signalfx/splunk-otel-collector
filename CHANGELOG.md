@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## v0.81.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.81.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.81.0) and the [opentelemetry-collector-contrib v0.81.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.81.0) releases where appropriate.
+
+### 🛑 Breaking changes 🛑
+- (Core) `service`: Remove 'service.connectors' featuregate ([#7952](https://github.com/open-telemetry/opentelemetry-collector/pull/7952))
+- (Contrib) `receiver/mongodbatlas`: Change the types of `Config.PrivateKey` and `Config.Alerts.Secret` to be `configopaque.String` ([#17273](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/17273))
+
 ### 💡 Enhancements 💡
 
 - (Splunk) Package default discovery configuration in reference form in `/etc/otel/collector/config.d` ([#3311](https://github.com/signalfx/splunk-otel-collector/pull/3311))

@@ -16,7 +16,6 @@ package databricks
 
 import (
 	"fmt"
-	"net/http"
 
 	"go.uber.org/zap"
 
@@ -43,9 +42,9 @@ type rawHTTPClient struct {
 	endpoint   string
 }
 
-func NewRawClient(tok, endpoint string, httpClient *http.Client, logger *zap.Logger) RawClient {
+func NewRawClient(tok, endpoint string, httpDoer httpauth.HTTPDoer, logger *zap.Logger) RawClient {
 	return rawHTTPClient{
-		authClient: httpauth.NewClient(httpClient, tok),
+		authClient: httpauth.NewClient(httpDoer, tok, logger),
 		endpoint:   endpoint,
 		logger:     logger,
 	}

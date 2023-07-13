@@ -16,7 +16,6 @@ package spark
 
 import (
 	"fmt"
-	"net/http"
 
 	"go.uber.org/zap"
 
@@ -38,7 +37,7 @@ type restService struct {
 
 func NewService(
 	logger *zap.Logger,
-	httpClient *http.Client,
+	httpDoer httpauth.HTTPDoer,
 	tok string,
 	sparkEndpoint string,
 	orgID string,
@@ -46,7 +45,7 @@ func NewService(
 ) Service {
 	return restService{
 		logger:      logger,
-		sparkClient: newClient(httpClient, tok, sparkEndpoint, orgID, sparkUIPort),
+		sparkClient: newClient(httpDoer, tok, sparkEndpoint, orgID, sparkUIPort),
 	}
 }
 

@@ -60,7 +60,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
   - The default attributes 'enabled' values are defined in `metadata.yaml`.
   - Future releases will introduce changes to resource_attributes `enabled` values.
   - Users can tailor resource detection process to their needs and environment.
-- `k8sclusterreceiver`: Switch k8s.pod and k8s.container metrics to use pdata. ([#23441](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/23441))
+- (Contrib) `k8sclusterreceiver`: Switch k8s.pod and k8s.container metrics to use pdata. ([#23441](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/23441))
 
 ### 🧰 Bug fixes 🧰
 

@@ -16,6 +16,10 @@ description: |
   This also includes a BOSH release of the Splunk OpenTelemetry Collector, called "splunk-otel-collector"
   that can be used in deployments to put the collector on individual VMs.
 
+stemcell_criteria:
+  os: 'ubuntu-jammy'
+  version: '1.148'
+
 # Specify the packages to be included in the tile.
 packages:
   - name: splunk_collector_firehose_nozzle

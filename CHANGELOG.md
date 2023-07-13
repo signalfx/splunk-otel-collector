@@ -33,7 +33,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 - (Contrib) `filelogreceiver`: Add support for tracking the current file in filelogreceiver ([#22998](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/22998))
 - (Contrib) `pkg/ottl`: Adds new `Time` converter to convert a string to a Golang time struct based on a supplied format ([#22007](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/22007))
 - (Contrib) `hostmetricsreceiver`: Add new Windows-exclusive process.handles metric. ([#21379](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/21379))
-- `resourcedetectionprocessor`: Adds a way to configure the list of added resource attributes by the processor ([#21482](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/21482))
+- (Contrib) `resourcedetectionprocessor`: Adds a way to configure the list of added resource attributes by the processor ([#21482](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/21482))
   Users can now configure what resource attributes are gathered by specific detectors.
   Example configuration:
 

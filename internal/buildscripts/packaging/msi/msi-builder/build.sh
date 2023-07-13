@@ -195,12 +195,9 @@ download_jmx_metric_gatherer() {
 
     mkdir -p "${build_dir}"
     mkdir -p "${output_dir}"
-    curl -sL "$JMX_METRIC_GATHERER_RELEASE_DL_URL" -o "${build_dir}/"
-    mv "${build_dir}/${jmx_filename}" "${output_dir}"
-    cp "${output_dir}/${jmx_filename}" "/opt/${jmx_filename}"
+    curl -sL "$JMX_METRIC_GATHERER_RELEASE_DL_URL" -o "${output_dir}"
 
-    # Delete unnecessary files.
-    rm -f "${build_dir}/${$jmx_filename}"
+    cp "${output_dir}/${jmx_filename}" "/opt/${jmx_filename}"
 }
 
 parse_args_and_build $@

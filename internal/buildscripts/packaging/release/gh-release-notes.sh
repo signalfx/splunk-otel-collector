@@ -35,8 +35,7 @@ CHANGELOG="${4:-${REPO_DIR}/CHANGELOG.md}"
 changes="$( awk -v version="$VERSION" '/^## / { if (p) { exit }; if ($2 == version) { p=1; next } } p && NF' "$CHANGELOG" )"
 
 if [[ -z "$changes" ]] || [[ "$changes" =~ ^[[:space:]]+$ ]]; then
-    echo "Failed to get changes for $VERSION from $CHANGELOG" >&2
-    exit 1
+  changes="Release notes in progress."
 fi
 
 linux_amd64_digest="$( get_digest "$LINUX_AMD64_DIGEST" )"

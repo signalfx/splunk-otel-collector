@@ -1239,8 +1239,6 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/carbonreceive
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/carbonreceiver v0.81.0/go.mod h1:xzynAsJHFWk28/0iOQicsg31Y0gLBl1RuMHELiS+3mQ=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/cloudfoundryreceiver v0.81.0 h1:uJrSvS7gHks3HJE8+AH+z+T3/UpzYAXEtthwfy88Fxw=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/cloudfoundryreceiver v0.81.0/go.mod h1:g9LtkctSHzgmHejYcwz+j9IlJFGC+1k0mUlbptvFr5M=
-github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdreceiver v0.81.0 h1:hXtoprYw4r7H/jEeCw/uUgGr9bKCtAZV72EbibpZA1g=
-github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdreceiver v0.81.0/go.mod h1:V8T/oyAIo/hKDetJkxi9eHvd92cUZwOaIA6uh6wetFw=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filelogreceiver v0.81.0 h1:hAhbuCBvFCQc/TRcBb/7l8MtyUdB1FFVS+80ffQlGg4=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filelogreceiver v0.81.0/go.mod h1:mc4DUjy7KQEqTVf1pFMABTwU0a7jmYlFMRGwWtscSXQ=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/fluentforwardreceiver v0.81.0 h1:QjAGLAVupmdJVysJlULs35X7vPTiC3XLL7oLPlEWYMI=
@@ -1597,6 +1595,8 @@ github.com/zeebo/assert v1.3.0 h1:g7C04CbJuIDKNPFHmsk4hwZDO5O+kntRxzaUoNXj+IQ=
 github.com/zeebo/xxh3 v1.0.2 h1:xZmwmqxHZA8AI603jOQ0tMqmBr9lPeFwGg6d+xy9DC0=
 github.com/zeebo/xxh3 v1.0.2/go.mod h1:5NWz9Sef7zIDm2JHfFlcQvNekmcEl9ekUZQQKCYaDcA=
 github.com/zenazn/goji v0.9.0/go.mod h1:7S9M489iMyHBNxwZnk9/EHS098H4/F6TATF2mIxtB1Q=
+github.com/zeno-splunk/opentelemetry-collector-contrib/receiver/collectdreceiver v0.79.0 h1:IDS2AQER7fPCxRg9EXQH2+uZsPDeAmNcdPlMBist+0U=
+github.com/zeno-splunk/opentelemetry-collector-contrib/receiver/collectdreceiver v0.79.0/go.mod h1:z6aODWRg+tyrRkgAr/NK2MM9BRzjfaAiwWofY+wc03k=
 go.etcd.io/bbolt v1.3.7 h1:j+zJOnnEjF/kyHlDDgGnVL/AIqIJPq8UoB2GSNfkUfQ=
 go.etcd.io/bbolt v1.3.7/go.mod h1:N9Mkw9X8x5fupy0IKsmuqVtoGDyxsaDlbk4Rd05IAQw=
 go.etcd.io/etcd/api/v3 v3.5.0/go.mod h1:cbVKeC6lCfl7j/8jBhAK6aIYO9XOjdptoxU/nLQcPvs=

@@ -189,15 +189,14 @@ download_jmx_metric_gatherer() {
     local version="$1"
     local build_dir="$2"
     local output_dir="$3"
-    jmx_filename="opentelemetry-jmx-metrics.jar"
-    JMX_METRIC_GATHERER_RELEASE_DL_URL="https://github.com/open-telemetry/opentelemetry-java-contrib/releases/download/v$version/$jmx_filename"
+    jmx_filename="opentelemetry-java-contrib-jmx-metrics.jar"
+    JMX_METRIC_GATHERER_RELEASE_DL_URL="https://github.com/open-telemetry/opentelemetry-java-contrib/releases/download/v$version/opentelemetry-jmx-metrics.jar"
     echo "Downloading ${JMX_METRIC_GATHERER_RELEASE_DL_URL}"
 
-    mkdir -p "${build_dir}"
     mkdir -p "${output_dir}"
     curl -sL "$JMX_METRIC_GATHERER_RELEASE_DL_URL" -o "${output_dir}/${jmx_filename}"
 
-    cp "${output_dir}/${jmx_filename}" "/opt/${jmx_filename}"
+    mv "${output_dir}/${jmx_filename}" "/opt/${jmx_filename}"
 }
 
 parse_args_and_build $@

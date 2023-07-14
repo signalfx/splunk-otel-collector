@@ -50,8 +50,7 @@ func newReceiverFactory() receiver.CreateMetricsFunc {
 		if err != nil {
 			return nil, fmt.Errorf("newReceiverFactory failed to create client from config: %w", err)
 		}
-		dbrClient := databricks.NewRawClient(dbrcfg.Token, dbrcfg.Endpoint, httpClient, settings.Logger)
-		dbrsvc := databricks.NewService(dbrClient, dbrcfg.MaxResults)
+		dbrsvc := databricks.NewService(databricks.NewRawClient(dbrcfg.Token, dbrcfg.Endpoint, httpClient, settings.Logger), dbrcfg.MaxResults)
 		ssvc := spark.NewService(settings.Logger, httpClient, dbrcfg.Token, dbrcfg.SparkEndpoint, dbrcfg.SparkOrgID, dbrcfg.SparkUIPort)
 		dbrScraper := scraper{
 			dbrInstanceName: dbrcfg.InstanceName,

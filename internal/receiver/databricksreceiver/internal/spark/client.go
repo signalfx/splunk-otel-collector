@@ -17,7 +17,6 @@ package spark
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
 
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/httpauth"
 )
@@ -27,9 +26,9 @@ import (
 // unmarshalls content into go types. Although it's focused on standalone Spark,
 // this document has some additional information:
 // https://spark.apache.org/docs/latest/monitoring.html
-func newClient(httpClient *http.Client, tok, sparkEndpoint, orgID string, port int) client {
+func newClient(httpDoer httpauth.HTTPDoer, tok, sparkEndpoint, orgID string, port int) client {
 	return client{
-		rawClient: newRawHTTPClient(httpauth.NewClient(httpClient, tok), sparkEndpoint, orgID, port),
+		rawClient: newRawHTTPClient(httpauth.NewClient(httpDoer, tok, nil), sparkEndpoint, orgID, port),
 	}
 }
 

@@ -2,7 +2,7 @@ receivers:
   jmx:
     endpoint: localhost:7199
     target_system: jvm
-    jar_path: ${JMX_PATH}
+    jar_path: "${JMX_PATH}"
     password: cassandra
     username: cassandra
     collection_interval: 1s

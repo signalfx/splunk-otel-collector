@@ -23,6 +23,7 @@ import (
 	"os"
 	"path"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -34,7 +35,7 @@ func TestJMXReceiverProvidesAllJVMMetrics(t *testing.T) {
 	containers := []testutils.Container{
 		testutils.NewContainer().WithContext(
 			path.Join(".", "testdata", "server"),
-		).WithExposedPorts("7199:7199").WithName("jmx").WillWaitForPorts("7199"),
+		).WithExposedPorts("7199:7199").WithName("jmx").WillWaitForHealth(15 * time.Minute),
 	}
 
 	jmx_gatherer_path := downloadJMXGatherer(t)

@@ -19,6 +19,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -481,9 +482,19 @@ func (d *discoverer) discoveryConfig(cfg *Config) (map[string]any, error) {
 	}
 
 	if len(observers) > 0 {
+		sort.Strings(observers)
 		if err := dCfg.Merge(
 			confmap.NewFromStringMap(
-				map[string]any{"service": map[string]any{discovery.DiscoExtensionsKey: observers}},
+				map[string]any{
+					"receivers": map[string]any{
+						"receiver_creator/discovery": map[string]any{
+							"watch_observers": observers,
+						},
+					},
+					"service": map[string]any{
+						discovery.DiscoExtensionsKey: observers,
+					},
+				},
 			),
 		); err != nil {
 			return nil, fmt.Errorf("failed forming suggested discovery observer extensions array: %w", err)

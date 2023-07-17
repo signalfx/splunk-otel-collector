@@ -1,6 +1,7 @@
 prometheus_simple:
   rule:
     host_observer: type == "hostport" and command contains "otelcol" and port == ${INTERNAL_PROMETHEUS_PORT}
+    host_observer/with-name: type == "hostport" and command contains "otelcol" and port == ${INTERNAL_PROMETHEUS_PORT}
   config:
     default:
       collection_interval: invalid
@@ -8,6 +9,10 @@ prometheus_simple:
         label_one: ${LABEL_ONE_VALUE}
         label_three: overwritten by discovery property
     host_observer:
+      collection_interval: 1s
+      labels:
+        label_two: ${LABEL_TWO_VALUE}
+    host_observer/with-name:
       collection_interval: 1s
       labels:
         label_two: ${LABEL_TWO_VALUE}

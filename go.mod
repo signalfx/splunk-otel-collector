@@ -576,7 +576,7 @@ replace (
 // https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/8081
 replace github.com/googleapis/gnostic v0.5.6 => github.com/googleapis/gnostic v0.5.5
 
-replace github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdreceiver v0.81.0 => github.com/zeno-splunk/opentelemetry-collector-contrib/receiver/collectdreceiver v0.79.0
+replace github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdreceiver v0.81.0 => github.com/zeno-splunk/opentelemetry-collector-contrib/receiver/collectdreceiver v0.81.0
 
 // required to drop dependency on deprecated git.apache.org/thrift.git
 exclude go.opencensus.io v0.19.1

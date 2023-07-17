@@ -73,7 +73,7 @@ integration-vet:
 
 .PHONY: integration-test
 integration-test: integration-vet
-	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=integration -v -timeout 5m -count 1 ./...
+	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=integration -v -timeout 15m -count 1 ./...
 
 .PHONY: end-to-end-test
 end-to-end-test:

@@ -175,6 +175,9 @@ func fetchPrometheusMetrics(fetch fetcher, applyDimensions func(attrs pcommon.Ma
 	if err != nil {
 		return metrics, err
 	}
+	if len(metricFamilies) == 0 {
+		return metrics, nil
+	}
 	sm := metrics.ResourceMetrics().AppendEmpty().ScopeMetrics().AppendEmpty()
 
 	for i := range metricFamilies {

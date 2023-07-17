@@ -22,12 +22,15 @@ import (
 	"io"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
+	"golang.org/x/exp/slices"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
@@ -161,6 +164,9 @@ func TestHostObserver(t *testing.T) {
 				"host_observer": map[string]any{
 					"refresh_interval": "1s",
 				},
+				"host_observer/with-name": map[string]any{
+					"refresh_interval": "1s",
+				},
 			},
 			"receivers": map[string]any{
 				"receiver_creator/discovery": map[string]any{
@@ -178,11 +184,11 @@ func TestHostObserver(t *testing.T) {
 							"rule":                `type == "hostport" and command contains "otelcol" and port == ${INTERNAL_PROMETHEUS_PORT}`,
 						},
 					},
-					"watch_observers": []any{"host_observer"},
+					"watch_observers": []any{"host_observer", "host_observer/with-name"},
 				},
 			},
 			"service": map[string]any{
-				"extensions/splunk.discovery": []any{"host_observer"},
+				"extensions/splunk.discovery": []any{"host_observer", "host_observer/with-name"},
 				"receivers/splunk.discovery":  []any{"receiver_creator/discovery"},
 			},
 		},
@@ -216,7 +222,7 @@ func TestHostObserver(t *testing.T) {
 			},
 		},
 		"service": map[string]any{
-			"extensions": []any{"host_observer"},
+			"extensions": []any{"host_observer", "host_observer/with-name"},
 			"pipelines": map[string]any{
 				"metrics": map[string]any{
 					"receivers":  []any{"receiver_creator/discovery"},
@@ -233,6 +239,9 @@ func TestHostObserver(t *testing.T) {
 		},
 		"extensions": map[string]any{
 			"host_observer": map[string]any{
+				"refresh_interval": "1s",
+			},
+			"host_observer/with-name": map[string]any{
 				"refresh_interval": "1s",
 			},
 		},
@@ -252,7 +261,7 @@ func TestHostObserver(t *testing.T) {
 						"rule":                fmt.Sprintf(`type == "hostport" and command contains "otelcol" and port == %d`, promPort),
 					},
 				},
-				"watch_observers": []any{"host_observer"},
+				"watch_observers": []any{"host_observer", "host_observer/with-name"},
 			},
 		},
 	}
@@ -266,6 +275,8 @@ SPLUNK_DISCOVERY_RECEIVERS_prometheus_simple_CONFIG_labels_x3a__x3a_label_three=
 SPLUNK_DISCOVERY_EXTENSIONS_k8s_observer_ENABLED=false \
 SPLUNK_DISCOVERY_EXTENSIONS_host_observer_CONFIG_refresh_interval=\$REFRESH_INTERVAL \
 /otelcol --config-dir /opt/config.d --discovery --dry-run`)
+
+	errorContent := fmt.Sprintf("unexpected --dry-run: %s", stderr)
 	require.Equal(t, `exporters:
   otlp:
     endpoint: ${OTLP_ENDPOINT}
@@ -274,6 +285,8 @@ SPLUNK_DISCOVERY_EXTENSIONS_host_observer_CONFIG_refresh_interval=\$REFRESH_INTE
 extensions:
   host_observer:
     refresh_interval: $REFRESH_INTERVAL
+  host_observer/with-name:
+    refresh_interval: 1s
 processors:
   filter:
     metrics:
@@ -295,9 +308,11 @@ receivers:
         rule: type == "hostport" and command contains "otelcol" and port == ${INTERNAL_PROMETHEUS_PORT}
     watch_observers:
     - host_observer
+    - host_observer/with-name
 service:
   extensions:
   - host_observer
+  - host_observer/with-name
   pipelines:
     metrics:
       exporters:
@@ -310,12 +325,20 @@ service:
     metrics:
       address: ""
       level: none
-`, stdout, fmt.Sprintf("unexpected --dry-run: %s", stderr))
-	require.Contains(
-		t, stderr,
-		fmt.Sprintf(`Discovering for next 9s...
-Successfully discovered "prometheus_simple" using "host_observer" endpoint "(host_observer)127.0.0.1-%d-TCP-%s".
-Discovery complete.
-`, promPort, promPid))
+`, stdout, errorContent)
+
+	split := strings.Split(stderr, "\n")
+	start := slices.Index(split, "Discovering for next 9s...")
+	require.GreaterOrEqual(t, start, 0, errorContent)
+	require.GreaterOrEqual(t, len(split), start+3, errorContent)
+	assert.Equal(t, split[start+3], "Discovery complete.", errorContent)
+
+	statuses := split[start+1 : start+3]
+	sort.Strings(statuses)
+	var expectedStatuses []string
+	for _, obs := range []string{"host_observer", "host_observer/with-name"} {
+		expectedStatuses = append(expectedStatuses, fmt.Sprintf(`Successfully discovered "prometheus_simple" using "%s" endpoint "(%s)127.0.0.1-%d-TCP-%s".`, obs, obs, promPort, promPid))
+	}
+	require.Equal(t, expectedStatuses, statuses, errorContent)
 	require.Zero(t, sc)
 }

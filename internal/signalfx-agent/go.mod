@@ -88,7 +88,7 @@ require (
 	github.com/snowflakedb/gosnowflake v1.6.22
 	github.com/stretchr/testify v1.8.4
 	github.com/ulule/deepcopier v0.0.0-20171107155558-ca99b135e50f
-	github.com/vmware/govmomi v0.30.4
+	github.com/vmware/govmomi v0.30.5
 	github.com/yalp/jsonpath v0.0.0-20180802001716-5cc68e5049a0
 	go.etcd.io/etcd/client/v2 v2.305.9
 	golang.org/x/net v0.12.0

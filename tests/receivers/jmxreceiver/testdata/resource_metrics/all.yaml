@@ -151,3 +151,11 @@ resource_metrics:
             description: current memory pool usage
             unit: by
             type: IntGauge
+      - instrumentation_scope:
+          attributes: { }
+          name: io.opentelemetry.sdk.logs
+        metrics:
+          - name: queueSize
+            description: The number of logs queued
+            unit: "1"
+            type: IntGauge

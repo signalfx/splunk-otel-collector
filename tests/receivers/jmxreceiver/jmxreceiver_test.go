@@ -23,7 +23,6 @@ import (
 	"os"
 	"path"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -35,10 +34,11 @@ func TestJMXReceiverProvidesAllJVMMetrics(t *testing.T) {
 	containers := []testutils.Container{
 		testutils.NewContainer().WithContext(
 			path.Join(".", "testdata", "server"),
-		).WithExposedPorts("7199:7199").WithName("jmx").WillWaitForHealth(15 * time.Minute),
+		).WithExposedPorts("7199:7199").WithName("jmx").WillWaitForPorts("7199"),
 	}
 
 	jmx_gatherer_path := downloadJMXGatherer(t)
+	defer deleteJMXGatherer(t, jmx_gatherer_path)
 
 	testutils.AssertAllMetricsReceived(t, "all.yaml",
 		"all_metrics_config.yaml", containers,
@@ -49,26 +49,26 @@ func TestJMXReceiverProvidesAllJVMMetrics(t *testing.T) {
 				})
 			},
 		})
-
-	deleteJMXGatherer(t, jmx_gatherer_path)
 }
 
 func downloadJMXGatherer(t *testing.T) string {
-	jmx_version, err := os.ReadFile("../../../internal/buildscripts/packaging/jmx-metric-gatherer-release.txt")
+	jmx_version_bytes, err := os.ReadFile("../../../internal/buildscripts/packaging/jmx-metric-gatherer-release.txt")
 	require.NoError(t, err)
+	jmx_version := string(jmx_version_bytes)
 
 	jmx_file_name := "opentelemetry-jmx-metrics.jar"
-	remote_url := fmt.Sprintf("https://github.com/open-telemetry/opentelemetry-java-contrib/releases/download/v%s/$%s",
+	remote_url := fmt.Sprintf("https://github.com/open-telemetry/opentelemetry-java-contrib/releases/download/v%s/%s",
 		jmx_version, jmx_file_name)
-
-	resp, err := http.Get(remote_url)
-	require.NoError(t, err)
-	defer resp.Body.Close()
 
 	jmx_gatherer_path := path.Join(".", "testdata", jmx_file_name)
 	out, err := os.Create(jmx_gatherer_path)
 	require.NoError(t, err)
 	defer out.Close()
+
+	resp, err := http.Get(remote_url)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
 	_, err = io.Copy(out, resp.Body)
 	require.NoError(t, err)
 

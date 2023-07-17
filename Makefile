@@ -29,8 +29,7 @@ VERSION=$(shell git describe --match "v[0-9]*" HEAD)
 BUILD_X1=-X $(BUILD_INFO_IMPORT_PATH).Version=$(VERSION)
 BUILD_X2=-X $(BUILD_INFO_IMPORT_PATH_CORE).Version=$(VERSION)
 BUILD_INFO=-ldflags "${BUILD_X1} ${BUILD_X2}"
-BUILD_INFO_TESTS=-ldflags "-X $(BUILD_INFO_IMPORT_PATH_TESTS).Version=$(VERSION)"
-
+BUILD_INFO_TESTS="-ldflags \"-X github.com/signalfx/splunk-otel-collector/tests/internal/version.Version=$(git describe --always --match 'v[0-9]*' HEAD)\""
 SKIP_COMPILE=false
 ARCH=amd64
 BUNDLE_SUPPORTED_ARCHS := amd64 arm64

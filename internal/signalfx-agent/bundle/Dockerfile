@@ -282,6 +282,10 @@ COPY scripts/get-collectd-plugins.py /opt/scripts/
 COPY scripts/requirements.txt /opt/
 COPY collectd-plugins.yaml /opt/
 
+# workaround for https://github.com/yaml/pyyaml/issues/724
+RUN /usr/local/bin/python3 -m pip install 'wheel==0.40.0'
+RUN /usr/local/bin/python3 -m pip install 'Cython<3.0' 'PyYaml~=5.0' --no-build-isolation
+
 RUN /usr/local/bin/python3 -m pip install -r /opt/requirements.txt
 
 RUN mkdir -p /opt/collectd-python &&\

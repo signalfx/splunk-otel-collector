@@ -17,14 +17,10 @@
 package tests
 
 import (
-	"fmt"
-	"io"
-	"net/http"
+	"github.com/stretchr/testify/require"
 	"os"
 	"path"
 	"testing"
-
-	"github.com/stretchr/testify/require"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
@@ -37,45 +33,19 @@ func TestJMXReceiverProvidesAllJVMMetrics(t *testing.T) {
 		).WithExposedPorts("7199:7199").WithName("jmx").WillWaitForPorts("7199"),
 	}
 
-	jmx_gatherer_path := downloadJMXGatherer(t)
-	defer deleteJMXGatherer(t, jmx_gatherer_path)
+	// JMX requires a local directory that can be written to, so we must mount a local dir
+	// that the collector has write access to.
+	tmp_dir := "/etc/otel/collector/tmp"
+	working_dir, err := os.Getwd()
+	require.NoError(t, err)
 
 	testutils.AssertAllMetricsReceived(t, "all.yaml",
 		"all_metrics_config.yaml", containers,
 		[]testutils.CollectorBuilder{
 			func(collector testutils.Collector) testutils.Collector {
 				return collector.WithEnv(map[string]string{
-					"JMX_PATH": jmx_gatherer_path,
-				})
+					"TMPDIR": tmp_dir,
+				}).WithMount(path.Join(working_dir, "testdata"), tmp_dir)
 			},
 		})
-}
-
-func downloadJMXGatherer(t *testing.T) string {
-	jmx_version_bytes, err := os.ReadFile("../../../internal/buildscripts/packaging/jmx-metric-gatherer-release.txt")
-	require.NoError(t, err)
-	jmx_version := string(jmx_version_bytes)
-
-	jmx_file_name := "opentelemetry-jmx-metrics.jar"
-	remote_url := fmt.Sprintf("https://github.com/open-telemetry/opentelemetry-java-contrib/releases/download/v%s/%s",
-		jmx_version, jmx_file_name)
-
-	jmx_gatherer_path := path.Join(".", "testdata", jmx_file_name)
-	out, err := os.Create(jmx_gatherer_path)
-	require.NoError(t, err)
-	defer out.Close()
-
-	resp, err := http.Get(remote_url)
-	require.NoError(t, err)
-	defer resp.Body.Close()
-
-	_, err = io.Copy(out, resp.Body)
-	require.NoError(t, err)
-
-	return jmx_gatherer_path
-}
-
-func deleteJMXGatherer(t *testing.T, jmx_gatherer_path string) {
-	err := os.Remove(jmx_gatherer_path)
-	require.NoError(t, err)
 }

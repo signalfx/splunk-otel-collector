@@ -38,7 +38,7 @@ ENV JAVA_HOME="C:\java\jdk-11.0.19+7"
 RUN Set-Variable -Name "ENCODED_VER" -Value "\"$env:JDK_VERSION\".replace(\"_\", \"%2B\")"; \
     Invoke-WebRequest -Uri "${env:OPENJDK_BASE_URL}/jdk-${ENCODED_VER}/OpenJDK11U-jdk_x64_windows_hotspot_${env:JDK_VERSION}.zip" -OutFile "openjdk.zip" ; \
     Expand-Archive "openjdk.zip" -DestinationPath "C:\java" ;
-RUN powershell.exe -Command $path = "${env:JAVA_HOME}\bin" + $env:path; Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment\' -Name Path -Value $path
+RUN powershell.exe -Command $path = $env:path + ";${env:JAVA_HOME}\bin"; Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment\' -Name Path -Value $path
 
 # Delete unnecessary files
 RUN Remove-Item "openjdk.zip" -force

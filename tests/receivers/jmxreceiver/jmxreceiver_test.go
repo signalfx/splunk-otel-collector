@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build integration
+////go:build integration
 
 package tests
 
 import (
-	"os"
 	"path"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -37,7 +37,7 @@ func TestJMXReceiverProvidesAllJVMMetrics(t *testing.T) {
 	// JMX requires a local directory that can be written to, so we must mount a local dir
 	// that the collector has write access to.
 	tmp_dir := "/etc/otel/collector/tmp"
-	working_dir, err := os.Getwd()
+	mount_dir, err := filepath.Abs(filepath.Join(".", "testdata"))
 	require.NoError(t, err)
 
 	testutils.AssertAllMetricsReceived(t, "all.yaml",
@@ -46,7 +46,7 @@ func TestJMXReceiverProvidesAllJVMMetrics(t *testing.T) {
 			func(collector testutils.Collector) testutils.Collector {
 				return collector.WithEnv(map[string]string{
 					"TMPDIR": tmp_dir,
-				}).WithMount(path.Join(working_dir, "testdata"), tmp_dir)
+				}).WithMount(mount_dir, tmp_dir)
 			},
 		})
 }

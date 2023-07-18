@@ -197,6 +197,7 @@ jobs:
           & ${{ github.workspace }}\.github\workflows\scripts\win-test-support-bundle.ps1 -mode "${{ matrix.MODE }}" -with_fluentd "${{ matrix.WITH_FLUENTD }}"
           Test-Path -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector\agent-bundle\python\python.exe"
           Test-Path -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector\agent-bundle\collectd-python"
+          Test-Path -Path "$env:opt\opentelemetry-java-contrib-jmx-metrics.jar"
 
       - name: splunk-otel-collector logs
         if: ${{ always() }}

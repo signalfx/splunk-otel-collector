@@ -1,0 +1,27 @@
+receivers:
+  jmx:
+    endpoint: localhost:7199
+    target_system: jvm
+    password: cassandra
+    username: cassandra
+    collection_interval: 1s
+    log_level: debug
+
+processors:
+  resource:
+    attributes:
+      - key: telemetry.sdk.version
+        action: delete
+
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    metrics:
+      receivers: [jmx]
+      processors: [resource]
+      exporters: [otlp]

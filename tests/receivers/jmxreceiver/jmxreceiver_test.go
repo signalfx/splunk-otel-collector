@@ -57,7 +57,7 @@ func TestJMXReceiverProvidesAllJVMMetrics(t *testing.T) {
 				//require.NoError(t, err)
 				return collector.WithEnv(map[string]string{
 					"TMPDIR": "/etc/otel/collector/tmp",
-				}).WithMount(tmp_dir, "/etc/otel/collector/tmp").WillFail(true).WillFail(true)
+				}).WithMount(tmp_dir, "/etc/otel/collector/tmp").WillFail(true)
 			},
 		})
 }

@@ -28,19 +28,19 @@ import (
 )
 
 func TestJMXReceiverProvidesAllJVMMetrics(t *testing.T) {
-
+	//os.Setenv("SPLUNK_OTEL_COLLECTOR_IMAGE", "otelcol:latest")
 	containers := []testutils.Container{
 		testutils.NewContainer().WithContext(
 			path.Join(".", "testdata", "server"),
 		).WithExposedPorts("7199:7199").WithName("jmx").WillWaitForPorts("7199"),
 	}
 
-	abs_path, err := filepath.Abs(".")
+	tmp_dir := "/etc/otel/collector/tmp"
+	local_tmp := filepath.Join(".", "tmp")
+	mount_dir, err := filepath.Abs(local_tmp)
 	require.NoError(t, err)
-	tmp_dir, err := os.MkdirTemp(abs_path, "tmp")
-	require.NoError(t, err)
-
-	defer os.RemoveAll(tmp_dir)
+	os.MkdirAll(mount_dir, 1777)
+	defer os.RemoveAll(local_tmp)
 
 	testutils.AssertAllMetricsReceived(t, "all.yaml",
 		"all_metrics_config.yaml", containers,
@@ -48,16 +48,10 @@ func TestJMXReceiverProvidesAllJVMMetrics(t *testing.T) {
 			func(collector testutils.Collector) testutils.Collector {
 				// JMX requires a local directory that can be written to, so we must mount a local dir
 				// that the collector has write access to.
-				//tmp_dir := "/etc/otel/collector/tmp"
-				//local_tmp := filepath.Join(".", "tmp")
-				//os.MkdirAll(local_tmp, 1755)
-				//defer os.RemoveAll(local_tmp)
 
-				//mount_dir, err := filepath.Abs(local_tmp)
-				//require.NoError(t, err)
 				return collector.WithEnv(map[string]string{
-					"TMPDIR": "/etc/otel/collector/tmp",
-				}).WithMount(tmp_dir, "/etc/otel/collector/tmp").WillFail(true)
+					"TMPDIR": tmp_dir,
+				}).WithMount(mount_dir, tmp_dir).WillFail(true)
 			},
 		})
 }

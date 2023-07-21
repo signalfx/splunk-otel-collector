@@ -23,29 +23,67 @@ OUTPUT_DIR="${REPO_DIR}/dist"
 ARCH="${1:-amd64}"
 DOCKER_REPO="${2:-docker.io}"
 CI="${CI:-false}"
+USE_REGISTRY_CACHE="${USE_REGISTRY_CACHE:-yes}"
+PUSH_CACHE="${PUSH_CACHE:-no}"
+
+DOCKER_OPTS="--platform linux/${ARCH} -f ${SCRIPT_DIR}/../Dockerfile --build-arg ARCH=${ARCH} --build-arg DOCKER_REPO=${DOCKER_REPO} ${SCRIPT_DIR}/.."
 IMAGE_NAME="agent-bundle"
 OUTPUT="${IMAGE_NAME}_linux_${ARCH}.tar.gz"
 output_tar=$(basename "$OUTPUT" .gz)
+
+CACHE_REPO="quay.io/signalfx/agent-bundle-stage-cache"
 CACHE_DIR="${REPO_DIR}/.cache/buildx/${IMAGE_NAME}-${ARCH}"
-CACHE_OPTS=""
+CACHE_TO_DIR=""
+CACHE_FROM_OPTS=""
+CACHE_TO_OPTS=""
+BUILDER=""
+
+ALL_STAGES=$( grep 'FROM .* as .*' ${SCRIPT_DIR}/../Dockerfile | sed -e 's/.*as //' )
 
 export DOCKER_BUILDKIT=1
 
-if [[ "$CI" = "true" ]]; then
-    # create and use the docker-container builder for local caching when running in github or gitlab
-    mkdir -p "$CACHE_DIR"
-    docker buildx create --name $IMAGE_NAME --driver docker-container
-    CACHE_OPTS="--builder ${IMAGE_NAME} --cache-from=type=local,src=${CACHE_DIR} --cache-to=type=local,dest=${CACHE_DIR} --load"
+if [[ "$CI" = "true" || "$PUSH_CACHE" = "yes" ]]; then
+    # create and use the docker-container builder for caching when running in github or gitlab
+    docker buildx create --name $IMAGE_NAME --driver docker-container || true
+    BUILDER="--builder ${IMAGE_NAME}"
+    DOCKER_OPTS="$BUILDER $DOCKER_OPTS"
+    if [[ -d "$CACHE_DIR" ]]; then
+        CACHE_FROM_OPTS="--cache-from=type=local,src=${CACHE_DIR}"
+    fi
+    # export to local cache when running in CI
+    CACHE_TO_DIR="$(mktemp -d)"
+    CACHE_TO_OPTS="--cache-to=type=local,mode=max,dest=${CACHE_TO_DIR}"
 fi
 
+if [[ "$PUSH_CACHE" = "yes" ]]; then
+    # build and push inline cache images for each stage
+    for stage in $ALL_STAGES; do
+        stage_image="${CACHE_REPO}:stage-${stage}-${ARCH}"
+        docker buildx build \
+            --tag $stage_image \
+            --target $stage \
+            --push \
+            $CACHE_TO_OPTS --cache-to=type=inline \
+            $CACHE_FROM_OPTS --cache-from=type=registry,ref=${stage_image} \
+            $DOCKER_OPTS
+    done
+fi
+
+if [[ "$USE_REGISTRY_CACHE" = "yes" ]]; then
+    # use registry cache images from each stage
+    for stage in $ALL_STAGES; do
+        stage_image="${CACHE_REPO}:stage-${stage}-${ARCH}"
+        CACHE_FROM_OPTS="${CACHE_FROM_OPTS} --cache-from=type=registry,ref=${stage_image}"
+    done
+fi
+
+# build and save the agent bundle image
 docker buildx build \
-    $CACHE_OPTS \
-    --platform linux/${ARCH} \
-    -t ${IMAGE_NAME}:${ARCH} \
-    -f ${SCRIPT_DIR}/../Dockerfile \
-    --build-arg ARCH=${ARCH} \
-    --build-arg DOCKER_REPO=${DOCKER_REPO} \
-    ${SCRIPT_DIR}/..
+    --tag ${IMAGE_NAME}:${ARCH} \
+    --load \
+    $CACHE_TO_OPTS \
+    $CACHE_FROM_OPTS \
+    $DOCKER_OPTS
 
 cid=$(docker create --platform linux/${ARCH} ${IMAGE_NAME}:${ARCH} true)
 
@@ -58,3 +96,15 @@ docker export $cid | tar -C ${tmpdir}/${IMAGE_NAME} -xf -
 rm -rf ${tmpdir}/${IMAGE_NAME}/{proc,sys,dev,etc} ${tmpdir}/${IMAGE_NAME}/.dockerenv
 mkdir -p "$OUTPUT_DIR"
 (cd $tmpdir && tar -zcf ${OUTPUT_DIR}/${OUTPUT} *)
+
+if [[ -n "$CACHE_TO_DIR" && -d "$CACHE_TO_DIR" ]]; then
+    # replace cache directory with the current build to avoid snowballing
+    mkdir -p "$CACHE_DIR"
+    rm -rf "$CACHE_DIR"
+    mv "$CACHE_TO_DIR" "$CACHE_DIR"
+fi
+
+if [[ -n "$BUILDER" ]]; then
+    # clean up the builder to reclaim space
+    docker buildx prune --force $BUILDER
+fi

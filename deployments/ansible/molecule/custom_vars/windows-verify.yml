@@ -3,6 +3,30 @@
   hosts: all
   gather_facts: true
   become: no
+  vars:
+    reg_values:
+      SPLUNK_CONFIG: '{{ ansible_env.ProgramData }}\Splunk\OpenTelemetry Collector\custom_config.yml'
+      SPLUNK_INGEST_URL: https://fake-splunk-ingest.com
+      SPLUNK_API_URL: https://fake-splunk-api.com
+      SPLUNK_TRACE_URL: https://fake-splunk-ingest.com/v2/trace
+      SPLUNK_HEC_URL: https://fake-splunk-hec.com
+      SPLUNK_HEC_TOKEN: fake-hec-token
+      SPLUNK_MEMORY_TOTAL_MIB: "256"
+      SPLUNK_BALLAST_SIZE_MIB: "100"
+      MY_CUSTOM_VAR1: value1
+      MY_CUSTOM_VAR2: value2
+      SIGNALFX_DOTNET_TRACER_HOME: '{{ ansible_env.ProgramFiles }}\SignalFx\.NET Tracing\'
+    dotnet_reg_values:
+      COR_ENABLE_PROFILING: "true"
+      COR_PROFILER: "{B4C89B0F-9908-4F73-9F59-0D77C5A06874}"
+      CORECLR_ENABLE_PROFILING: "true"
+      CORECLR_PROFILER: "{B4C89B0F-9908-4F73-9F59-0D77C5A06874}"
+      SIGNALFX_ENV: test-environment
+      SIGNALFX_SERVICE_NAME: test-service-name
+      SIGNALFX_PROFILER_ENABLED: "true"
+      SIGNALFX_PROFILER_MEMORY_ENABLED: "true"
+      SIGNALFX_DOTNET_VAR1: dotnet-value1
+      SIGNALFX_DOTNET_VAR2: dotnet-value2
   tasks:
     - name: Check splunk-otel-collector service
       ansible.windows.win_service:
@@ -52,146 +76,6 @@
       assert:
         that: custom_collector_config.stat.exists
 
-    - name: Check SPLUNK_CONFIG custom value
-      ansible.windows.win_regedit:
-        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
-        state: present
-        name: SPLUNK_CONFIG
-        data: '{{ansible_env.ProgramData}}\Splunk\OpenTelemetry Collector\custom_config.yml'
-        type: string
-      check_mode: yes
-      register: reg_value
-
-    - name: Assert custom value exists
-      assert:
-        that: not reg_value.changed
-
-    - name: Check SPLUNK_INGEST_URL custom value
-      ansible.windows.win_regedit:
-        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
-        state: present
-        name: SPLUNK_INGEST_URL
-        data: https://fake-splunk-ingest.com
-        type: string
-      check_mode: yes
-      register: reg_value
-
-    - name: Assert custom value exists
-      assert:
-        that: not reg_value.changed
-
-    - name: Check SPLUNK_API_URL custom value
-      ansible.windows.win_regedit:
-        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
-        state: present
-        name: SPLUNK_API_URL
-        data: https://fake-splunk-api.com
-        type: string
-      check_mode: yes
-      register: reg_value
-
-    - name: Assert custom value exists
-      assert:
-        that: not reg_value.changed
-
-    - name: Check SPLUNK_TRACE_URL custom value
-      ansible.windows.win_regedit:
-        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
-        state: present
-        name: SPLUNK_TRACE_URL
-        data: https://fake-splunk-ingest.com/v2/trace
-        type: string
-      check_mode: yes
-      register: reg_value
-
-    - name: Assert custom value exists
-      assert:
-        that: not reg_value.changed
-
-    - name: Check SPLUNK_HEC_URL custom value
-      ansible.windows.win_regedit:
-        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
-        state: present
-        name: SPLUNK_HEC_URL
-        data: https://fake-splunk-hec.com
-        type: string
-      check_mode: yes
-      register: reg_value
-
-    - name: Assert custom value exists
-      assert:
-        that: not reg_value.changed
-
-    - name: Check SPLUNK_HEC_TOKEN custom value
-      ansible.windows.win_regedit:
-        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
-        state: present
-        name: SPLUNK_HEC_TOKEN
-        data: fake-hec-token
-        type: string
-      check_mode: yes
-      register: reg_value
-
-    - name: Assert custom value exists
-      assert:
-        that: not reg_value.changed
-
-    - name: Check SPLUNK_MEMORY_TOTAL_MIB custom value
-      ansible.windows.win_regedit:
-        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
-        state: present
-        name: SPLUNK_MEMORY_TOTAL_MIB
-        data: 256
-        type: string
-      check_mode: yes
-      register: reg_value
-
-    - name: Assert custom value exists
-      assert:
-        that: not reg_value.changed
-
-    - name: Check SPLUNK_BALLAST_SIZE_MIB custom value
-      ansible.windows.win_regedit:
-        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
-        state: present
-        name: SPLUNK_BALLAST_SIZE_MIB
-        data: 100
-        type: string
-      check_mode: yes
-      register: reg_value
-
-    - name: Assert custom value exists
-      assert:
-        that: not reg_value.changed
-
-    - name: Check MY_CUSTOM_VAR1 custom variable
-      ansible.windows.win_regedit:
-        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
-        state: present
-        name: MY_CUSTOM_VAR1
-        data: value1
-        type: string
-      check_mode: yes
-      register: reg_value
-
-    - name: Assert custom value exists
-      assert:
-        that: not reg_value.changed
-
-    - name: Check MY_CUSTOM_VAR2 custom variable
-      ansible.windows.win_regedit:
-        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
-        state: present
-        name: MY_CUSTOM_VAR2
-        data: value2
-        type: string
-      check_mode: yes
-      register: reg_value
-
-    - name: Assert custom value exists
-      assert:
-        that: not reg_value.changed
-
     - name: Check fluentd custom_config.conf
       ansible.windows.win_stat:
         path: '{{ansible_env.ProgramFiles}}\Splunk\OpenTelemetry Collector\fluentd\custom_config.conf'
@@ -230,180 +114,21 @@
       assert:
         that: not msi_installed.changed
 
-    - name: Check IIS registry value
-      ansible.windows.win_regedit:
+    - name: Get IIS env vars
+      ansible.windows.win_reg_stat:
         path: HKLM:\SYSTEM\CurrentControlSet\Services\W3SVC
-        state: present
         name: Environment
-        data:
-          - COR_ENABLE_PROFILING=true
-          - COR_PROFILER={B4C89B0F-9908-4F73-9F59-0D77C5A06874}
-          - CORECLR_ENABLE_PROFILING=true
-          - CORECLR_PROFILER={B4C89B0F-9908-4F73-9F59-0D77C5A06874}
-          - SIGNALFX_DOTNET_VAR1=value1
-          - SIGNALFX_DOTNET_VAR2=value2
-          - SIGNALFX_ENV=test-environment
-          - SIGNALFX_PROFILER_ENABLED=true
-          - SIGNALFX_PROFILER_MEMORY_ENABLED=true
-          - SIGNALFX_SERVICE_NAME=test-service-name
-        type: multistring
-      check_mode: yes
-      register: reg_value
+      register: iis_env
 
-    - name: Assert registry value exists
+    - name: Verify IIS env vars
       assert:
-        that: not reg_value.changed
+        that: (item.key + '=' + item.value) in iis_env.value
+      loop: "{{ dotnet_reg_values | dict2items }}"
 
-    - name: Check SIGNALFX_DOTNET_TRACER_HOME registry value
-      ansible.windows.win_regedit:
+    - name: Verify env vars
+      include_tasks: ../shared/verify_registry_key.yml
+      vars:
         path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
-        state: present
-        name: SIGNALFX_DOTNET_TRACER_HOME
-        data: C:\Program Files\SignalFx\.NET Tracing\
-        type: string
-      check_mode: yes
-      register: reg_value
-
-    - name: Assert registry value exists
-      assert:
-        that: not reg_value.changed
-
-    - name: Check COR_ENABLE_PROFILING registry value
-      ansible.windows.win_regedit:
-        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
-        state: present
-        name: COR_ENABLE_PROFILING
-        data: "true"
-        type: string
-      check_mode: yes
-      register: reg_value
-
-    - name: Assert registry value exists
-      assert:
-        that: not reg_value.changed
-
-    - name: Check COR_PROFILER registry value
-      ansible.windows.win_regedit:
-        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
-        state: present
-        name: COR_PROFILER
-        data: "{B4C89B0F-9908-4F73-9F59-0D77C5A06874}"
-        type: string
-      check_mode: yes
-      register: reg_value
-
-    - name: Assert registry value exists
-      assert:
-        that: not reg_value.changed
-
-    - name: Check CORECLR_ENABLE_PROFILING registry value
-      ansible.windows.win_regedit:
-        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
-        state: present
-        name: CORECLR_ENABLE_PROFILING
-        data: "true"
-        type: string
-      check_mode: yes
-      register: reg_value
-
-    - name: Assert registry value exists
-      assert:
-        that: not reg_value.changed
-
-    - name: Check CORECLR_PROFILER registry value
-      ansible.windows.win_regedit:
-        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
-        state: present
-        name: CORECLR_PROFILER
-        data: "{B4C89B0F-9908-4F73-9F59-0D77C5A06874}"
-        type: string
-      check_mode: yes
-      register: reg_value
-
-    - name: Assert registry value exists
-      assert:
-        that: not reg_value.changed
-
-    - name: Check SIGNALFX_ENV registry value
-      ansible.windows.win_regedit:
-        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
-        state: present
-        name: SIGNALFX_ENV
-        data: test-environment
-        type: string
-      check_mode: yes
-      register: reg_value
-
-    - name: Assert registry value exists
-      assert:
-        that: not reg_value.changed
-
-    - name: Check SIGNALFX_SERVICE_NAME registry value
-      ansible.windows.win_regedit:
-        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
-        state: present
-        name: SIGNALFX_SERVICE_NAME
-        data: test-service-name
-        type: string
-      check_mode: yes
-      register: reg_value
-
-    - name: Assert registry value exists
-      assert:
-        that: not reg_value.changed
-
-    - name: Check SIGNALFX_PROFILER_ENABLED registry value
-      ansible.windows.win_regedit:
-        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
-        state: present
-        name: SIGNALFX_PROFILER_ENABLED
-        data: "true"
-        type: string
-      check_mode: yes
-      register: reg_value
-
-    - name: Assert registry value exists
-      assert:
-        that: not reg_value.changed
-
-    - name: Check SIGNALFX_PROFILER_MEMORY_ENABLED registry value
-      ansible.windows.win_regedit:
-        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
-        state: present
-        name: SIGNALFX_PROFILER_MEMORY_ENABLED
-        data: "true"
-        type: string
-      check_mode: yes
-      register: reg_value
-
-    - name: Assert registry value exists
-      assert:
-        that: not reg_value.changed
-
-    - name: Check SIGNALFX_DOTNET_VAR1 registry value
-      ansible.windows.win_regedit:
-        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
-        state: present
-        name: SIGNALFX_DOTNET_VAR1
-        data: value1
-        type: string
-      check_mode: yes
-      register: reg_value
-
-    - name: Assert registry value exists
-      assert:
-        that: not reg_value.changed
-
-    - name: Check SIGNALFX_DOTNET_VAR2 registry value
-      ansible.windows.win_regedit:
-        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
-        state: present
-        name: SIGNALFX_DOTNET_VAR2
-        data: value2
-        type: string
-      check_mode: yes
-      register: reg_value
-
-    - name: Assert registry value exists
-      assert:
-        that: not reg_value.changed
+        name: "{{ item.key }}"
+        value: "{{ item.value }}"
+      loop: "{{ reg_values | combine(dotnet_reg_values) | dict2items }}"

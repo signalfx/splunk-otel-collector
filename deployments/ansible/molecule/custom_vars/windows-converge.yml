@@ -26,8 +26,8 @@
     signalfx_dotnet_auto_instrumentation_enable_profiler: true
     signalfx_dotnet_auto_instrumentation_enable_profiler_memory: true
     signalfx_dotnet_auto_instrumentation_additional_options:
-      SIGNALFX_DOTNET_VAR1: value1
-      SIGNALFX_DOTNET_VAR2: value2
+      SIGNALFX_DOTNET_VAR1: dotnet-value1
+      SIGNALFX_DOTNET_VAR2: dotnet-value2
   tasks:
     - name: "Include signalfx.splunk_otel_collector.collector role"
       include_role:

@@ -3,8 +3,9 @@
   ansible.windows.win_uri:
     url: "https://api.github.com/repos/signalfx/signalfx-dotnet-tracing/releases/latest"
     return_content: yes
+    content_type: "application/json"
     headers:
-      Authorization: "{{ signalfx_dotnet_auto_instrumentation_github_token }}"
+      Authorization: "{{ signalfx_dotnet_auto_instrumentation_github_token | default(omit) }}"
     proxy_password: "{{ win_proxy_password | default(omit) }}"
     proxy_url: "{{ win_proxy_url | default(omit) }}"
     proxy_username: "{{ win_proxy_username | default(omit) }}"

@@ -29,7 +29,7 @@ func TestCollectdSolrReceiverProvidesAllMetrics(t *testing.T) {
 			path.Join(".", "testdata", "server"),
 		).WithExposedPorts("8983:8983").WithName(
 			"solr",
-		).WillWaitForPorts("8983").WillWaitForLogs("example launched successfully"),
+		).WillWaitForPorts("8983").WillWaitForLogs("Time spent:"),
 	}
 
 	testutils.AssertAllMetricsReceived(

@@ -185,7 +185,7 @@ func TestNonDefaultGIDCanAccessPythonInAgentBundle(t *testing.T) {
 				filepath.Join("..", "receivers", "smartagent", "collectd-solr", "testdata", "server"),
 			).WithExposedPorts("8983:8983").WithName(
 				"solr",
-			).WillWaitForPorts("8983").WillWaitForLogs("example launched successfully"),
+			).WillWaitForPorts("8983").WillWaitForLogs("Time spent:"),
 		}, []testutils.CollectorBuilder{
 			func(collector testutils.Collector) testutils.Collector {
 				cc := collector.(*testutils.CollectorContainer)

@@ -47,10 +47,14 @@ func TestJMXReceiverProvidesAllJVMMetrics(t *testing.T) {
 				// that the collector has write access to.
 
 				tmp_dir := "/etc/otel/collector/tmp"
+				local_tmp := os.Getenv("TMPDIR")
+				if local_tmp == "" {
+					local_tmp = "/tmp"
+				}
 
 				return collector.WithEnv(map[string]string{
 					"TMPDIR": tmp_dir,
-				}).WithMount(os.Getenv("TMPDIR"), tmp_dir).WillFail(true)
+				}).WithMount(local_tmp, tmp_dir).WillFail(true)
 			},
 		})
 }

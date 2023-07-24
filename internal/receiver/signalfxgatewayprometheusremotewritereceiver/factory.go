@@ -40,7 +40,7 @@ func createMetricsReceiver(
 	consumer consumer.Metrics,
 ) (receiver.Metrics, error) {
 	c := cfg.(*Config)
-	return New(params, c, consumer)
+	return newReceiver(params, c, consumer)
 }
 
 func createDefaultConfig() component.Config {

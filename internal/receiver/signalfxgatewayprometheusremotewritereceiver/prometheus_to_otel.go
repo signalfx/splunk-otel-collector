@@ -53,14 +53,8 @@ func newPrometheusRemoteOtelParser() *prometheusRemoteOtelParser {
 }
 
 func (prwParser *prometheusRemoteOtelParser) fromPrometheusWriteRequestMetrics(request *prompb.WriteRequest) (pmetric.Metrics, error) {
-	var otelMetrics pmetric.Metrics
 	metricFamiliesAndData, err := prwParser.partitionWriteRequest(request)
-	if nil == err {
-		otelMetrics = prwParser.transformPrometheusRemoteWriteToOtel(metricFamiliesAndData)
-	}
-	if otelMetrics == pmetric.NewMetrics() {
-		otelMetrics.ResourceMetrics().AppendEmpty().ScopeMetrics().AppendEmpty()
-	}
+	otelMetrics := prwParser.transformPrometheusRemoteWriteToOtel(metricFamiliesAndData)
 	startTime, endTime := getWriteRequestTimestampBounds(request)
 	scope := otelMetrics.ResourceMetrics().At(0).ScopeMetrics().At(0)
 	prwParser.addBadRequests(scope, startTime, endTime)
@@ -104,6 +98,7 @@ func (prwParser *prometheusRemoteOtelParser) partitionWriteRequest(writeReq *pro
 		}
 		if len(md.Samples) < 1 {
 			translationErrors = multierr.Append(translationErrors, fmt.Errorf("no samples found for  %s", metricName))
+			prwParser.totalInvalidRequests.Add(1)
 		}
 		partitions[metricType] = append(partitions[metricType], md)
 	}

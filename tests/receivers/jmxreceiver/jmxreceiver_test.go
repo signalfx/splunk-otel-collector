@@ -17,6 +17,7 @@
 package tests
 
 import (
+	"os"
 	"path"
 	"testing"
 
@@ -45,7 +46,11 @@ func TestJMXReceiverProvidesAllJVMMetrics(t *testing.T) {
 				// JMX requires a local directory that can be written to, so we must mount a local dir
 				// that the collector has write access to.
 
-				return collector.WillFail(true)
+				tmp_dir := "/etc/otel/collector/tmp"
+
+				return collector.WithEnv(map[string]string{
+					"TMPDIR": tmp_dir,
+				}).WithMount(os.Getenv("TMPDIR"), tmp_dir).WillFail(true)
 			},
 		})
 }

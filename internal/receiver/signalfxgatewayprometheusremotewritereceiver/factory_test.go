@@ -37,7 +37,7 @@ func TestFactory(t *testing.T) {
 	defer cancel()
 
 	cfg := createDefaultConfig().(*Config)
-	freePort, err := GetFreePort()
+	freePort, err := getFreePort()
 	require.NoError(t, err)
 	assert.NoError(t, componenttest.CheckConfigStruct(cfg))
 	cfg.Endpoint = fmt.Sprintf("localhost:%d", freePort)
@@ -46,7 +46,7 @@ func TestFactory(t *testing.T) {
 	nopHost := componenttest.NewNopHost()
 	mockSettings := receivertest.NewNopCreateSettings()
 	mockConsumer := consumertest.NewNop()
-	receiver, err := New(mockSettings, cfg, mockConsumer)
+	receiver, err := newReceiver(mockSettings, cfg, mockConsumer)
 
 	assert.NoError(t, err)
 	require.NotNil(t, receiver)

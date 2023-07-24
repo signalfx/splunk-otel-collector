@@ -26,10 +26,10 @@ import (
 )
 
 var (
-	Jan20 = time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
+	jan20 = time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
 )
 
-func SampleCounterTs() []prompb.TimeSeries {
+func sampleCounterTs() []prompb.TimeSeries {
 	return []prompb.TimeSeries{
 		{
 			Labels: []prompb.Label{
@@ -38,31 +38,31 @@ func SampleCounterTs() []prompb.TimeSeries {
 				{Name: "status", Value: "200"},
 			},
 			Samples: []prompb.Sample{
-				{Value: 1024, Timestamp: Jan20.UnixMilli()},
+				{Value: 1024, Timestamp: jan20.UnixMilli()},
 			},
 		},
 	}
 }
-func SampleCounterWq() *prompb.WriteRequest {
-	return &prompb.WriteRequest{Timeseries: SampleCounterTs()}
+func sampleCounterWq() *prompb.WriteRequest {
+	return &prompb.WriteRequest{Timeseries: sampleCounterTs()}
 }
 
-func SampleGaugeTs() []prompb.TimeSeries {
+func sampleGaugeTs() []prompb.TimeSeries {
 	return []prompb.TimeSeries{
 		{
 			Labels: []prompb.Label{
 				{Name: "__name__", Value: "i_am_a_gauge"},
 			},
 			Samples: []prompb.Sample{
-				{Value: 42, Timestamp: Jan20.UnixMilli()},
+				{Value: 42, Timestamp: jan20.UnixMilli()},
 			},
 		},
 	}
 }
 
-func SampleGaugeWq() *prompb.WriteRequest { return &prompb.WriteRequest{Timeseries: SampleGaugeTs()} }
+func sampleGaugeWq() *prompb.WriteRequest { return &prompb.WriteRequest{Timeseries: sampleGaugeTs()} }
 
-func SampleHistogramTs() []prompb.TimeSeries {
+func sampleHistogramTs() []prompb.TimeSeries {
 	return []prompb.TimeSeries{
 		{
 			Labels: []prompb.Label{
@@ -70,7 +70,7 @@ func SampleHistogramTs() []prompb.TimeSeries {
 				{Name: "le", Value: "0.1"},
 			},
 			Samples: []prompb.Sample{
-				{Value: 500, Timestamp: Jan20.UnixMilli()},
+				{Value: 500, Timestamp: jan20.UnixMilli()},
 			},
 		},
 		{
@@ -79,7 +79,7 @@ func SampleHistogramTs() []prompb.TimeSeries {
 				{Name: "le", Value: "0.2"},
 			},
 			Samples: []prompb.Sample{
-				{Value: 1500, Timestamp: Jan20.UnixMilli()},
+				{Value: 1500, Timestamp: jan20.UnixMilli()},
 			},
 		},
 		{
@@ -87,7 +87,7 @@ func SampleHistogramTs() []prompb.TimeSeries {
 				{Name: "__name__", Value: "api_request_duration_seconds_count"},
 			},
 			Samples: []prompb.Sample{
-				{Value: 2500, Timestamp: Jan20.UnixMilli()},
+				{Value: 2500, Timestamp: jan20.UnixMilli()},
 			},
 		},
 		{
@@ -95,19 +95,19 @@ func SampleHistogramTs() []prompb.TimeSeries {
 				{Name: "__name__", Value: "api_request_duration_seconds_sum"},
 			},
 			Samples: []prompb.Sample{
-				{Value: 350, Timestamp: Jan20.UnixMilli()},
+				{Value: 350, Timestamp: jan20.UnixMilli()},
 			},
 		},
 	}
 }
 
-func SampleHistogramWq() *prompb.WriteRequest {
+func sampleHistogramWq() *prompb.WriteRequest {
 	return &prompb.WriteRequest{
-		Timeseries: SampleHistogramTs(),
+		Timeseries: sampleHistogramTs(),
 	}
 }
 
-func SampleSummaryTs() []prompb.TimeSeries {
+func sampleSummaryTs() []prompb.TimeSeries {
 	return []prompb.TimeSeries{
 		{
 			Labels: []prompb.Label{
@@ -115,7 +115,7 @@ func SampleSummaryTs() []prompb.TimeSeries {
 				{Name: "quantile", Value: "0.5"},
 			},
 			Samples: []prompb.Sample{
-				{Value: 0.25, Timestamp: Jan20.UnixMilli()},
+				{Value: 0.25, Timestamp: jan20.UnixMilli()},
 			},
 		},
 		{
@@ -124,7 +124,7 @@ func SampleSummaryTs() []prompb.TimeSeries {
 				{Name: "quantile", Value: "0.9"},
 			},
 			Samples: []prompb.Sample{
-				{Value: 0.35, Timestamp: Jan20.UnixMilli()},
+				{Value: 0.35, Timestamp: jan20.UnixMilli()},
 			},
 		},
 		{
@@ -132,7 +132,7 @@ func SampleSummaryTs() []prompb.TimeSeries {
 				{Name: "__name__", Value: "request_duration_seconds_sum"},
 			},
 			Samples: []prompb.Sample{
-				{Value: 123.5, Timestamp: Jan20.UnixMilli()},
+				{Value: 123.5, Timestamp: jan20.UnixMilli()},
 			},
 		},
 		{
@@ -140,19 +140,19 @@ func SampleSummaryTs() []prompb.TimeSeries {
 				{Name: "__name__", Value: "request_duration_seconds_count"},
 			},
 			Samples: []prompb.Sample{
-				{Value: 1500, Timestamp: Jan20.UnixMilli()},
+				{Value: 1500, Timestamp: jan20.UnixMilli()},
 			},
 		},
 	}
 }
 
-func SampleSummaryWq() *prompb.WriteRequest {
+func sampleSummaryWq() *prompb.WriteRequest {
 	return &prompb.WriteRequest{
-		Timeseries: SampleSummaryTs(),
+		Timeseries: sampleSummaryTs(),
 	}
 }
 
-func ExpectedCounter() pmetric.Metrics {
+func expectedCounter() pmetric.Metrics {
 	result := pmetric.NewMetrics()
 	resourceMetrics := result.ResourceMetrics().AppendEmpty()
 	scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
@@ -164,8 +164,8 @@ func ExpectedCounter() pmetric.Metrics {
 	counter.SetIsMonotonic(true)
 	counter.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
 	dp := counter.DataPoints().AppendEmpty()
-	dp.SetTimestamp(pcommon.NewTimestampFromTime(Jan20))
-	dp.SetStartTimestamp(pcommon.NewTimestampFromTime(Jan20))
+	dp.SetTimestamp(pcommon.NewTimestampFromTime(jan20))
+	dp.SetStartTimestamp(pcommon.NewTimestampFromTime(jan20))
 	dp.SetIntValue(1024)
 	dp.Attributes().PutStr("method", "GET")
 	dp.Attributes().PutStr("status", "200")
@@ -173,7 +173,7 @@ func ExpectedCounter() pmetric.Metrics {
 	return result
 }
 
-func ExpectedGauge() pmetric.Metrics {
+func expectedGauge() pmetric.Metrics {
 	result := pmetric.NewMetrics()
 	resourceMetrics := result.ResourceMetrics().AppendEmpty()
 	scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
@@ -183,14 +183,14 @@ func ExpectedGauge() pmetric.Metrics {
 	metric.SetName("i_am_a_gauge")
 	counter := metric.SetEmptyGauge()
 	dp := counter.DataPoints().AppendEmpty()
-	dp.SetTimestamp(pcommon.NewTimestampFromTime(Jan20))
-	dp.SetStartTimestamp(pcommon.NewTimestampFromTime(Jan20))
+	dp.SetTimestamp(pcommon.NewTimestampFromTime(jan20))
+	dp.SetStartTimestamp(pcommon.NewTimestampFromTime(jan20))
 	dp.SetIntValue(42)
 
 	return result
 }
 
-func ExpectedSfxCompatibleHistogram() pmetric.Metrics {
+func expectedSfxCompatibleHistogram() pmetric.Metrics {
 	result := pmetric.NewMetrics()
 	resourceMetrics := result.ResourceMetrics().AppendEmpty()
 	scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
@@ -206,12 +206,12 @@ func ExpectedSfxCompatibleHistogram() pmetric.Metrics {
 		{
 			bucket:    "0.1",
 			value:     500,
-			timestamp: Jan20.UnixNano(),
+			timestamp: jan20.UnixNano(),
 		},
 		{
 			bucket:    "0.2",
 			value:     1500,
-			timestamp: Jan20.UnixNano(),
+			timestamp: jan20.UnixNano(),
 		},
 	}
 	for _, values := range pairs {
@@ -233,8 +233,8 @@ func ExpectedSfxCompatibleHistogram() pmetric.Metrics {
 	counter.SetIsMonotonic(true)
 	counter.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
 	dp := counter.DataPoints().AppendEmpty()
-	dp.SetTimestamp(pcommon.Timestamp(Jan20.UnixNano()))
-	dp.SetStartTimestamp(pcommon.Timestamp(Jan20.UnixNano()))
+	dp.SetTimestamp(pcommon.Timestamp(jan20.UnixNano()))
+	dp.SetStartTimestamp(pcommon.Timestamp(jan20.UnixNano()))
 	dp.SetIntValue(2500)
 
 	metric = scopeMetrics.Metrics().AppendEmpty()
@@ -242,14 +242,14 @@ func ExpectedSfxCompatibleHistogram() pmetric.Metrics {
 	gauge := metric.SetEmptyGauge()
 	dp = gauge.DataPoints().AppendEmpty()
 
-	dp.SetTimestamp(pcommon.Timestamp(Jan20.UnixNano()))
-	dp.SetStartTimestamp(pcommon.Timestamp(Jan20.UnixNano()))
+	dp.SetTimestamp(pcommon.Timestamp(jan20.UnixNano()))
+	dp.SetStartTimestamp(pcommon.Timestamp(jan20.UnixNano()))
 	dp.SetIntValue(350)
 
 	return result
 }
 
-func ExpectedSfxCompatibleQuantile() pmetric.Metrics {
+func expectedSfxCompatibleQuantile() pmetric.Metrics {
 	result := pmetric.NewMetrics()
 	resourceMetrics := result.ResourceMetrics().AppendEmpty()
 	scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
@@ -265,12 +265,12 @@ func ExpectedSfxCompatibleQuantile() pmetric.Metrics {
 		{
 			bucket:    "0.5",
 			value:     .25,
-			timestamp: Jan20.UnixNano(),
+			timestamp: jan20.UnixNano(),
 		},
 		{
 			bucket:    "0.9",
 			value:     .35,
-			timestamp: Jan20.UnixNano(),
+			timestamp: jan20.UnixNano(),
 		},
 	}
 	for _, values := range pairs {
@@ -290,8 +290,8 @@ func ExpectedSfxCompatibleQuantile() pmetric.Metrics {
 	sum.SetIsMonotonic(true)
 	sum.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
 	dp := sum.DataPoints().AppendEmpty()
-	dp.SetTimestamp(pcommon.Timestamp(Jan20.UnixNano()))
-	dp.SetStartTimestamp(pcommon.Timestamp(Jan20.UnixNano()))
+	dp.SetTimestamp(pcommon.Timestamp(jan20.UnixNano()))
+	dp.SetStartTimestamp(pcommon.Timestamp(jan20.UnixNano()))
 	dp.SetIntValue(1500)
 
 	metric = scopeMetrics.Metrics().AppendEmpty()
@@ -299,35 +299,35 @@ func ExpectedSfxCompatibleQuantile() pmetric.Metrics {
 	gauge := metric.SetEmptyGauge()
 	dp = gauge.DataPoints().AppendEmpty()
 
-	dp.SetTimestamp(pcommon.Timestamp(Jan20.UnixNano()))
-	dp.SetStartTimestamp(pcommon.Timestamp(Jan20.UnixNano()))
+	dp.SetTimestamp(pcommon.Timestamp(jan20.UnixNano()))
+	dp.SetStartTimestamp(pcommon.Timestamp(jan20.UnixNano()))
 	dp.SetDoubleValue(123.5)
 
 	return result
 }
 
-func GetWriteRequestsOfAllTypesWithoutMetadata() []*prompb.WriteRequest {
+func getWriteRequestsOfAllTypesWithoutMetadata() []*prompb.WriteRequest {
 	var sampleWriteRequestsNoMetadata = []*prompb.WriteRequest{
 		// Counter
-		SampleCounterWq(),
+		sampleCounterWq(),
 		// Gauge
-		SampleGaugeWq(),
+		sampleGaugeWq(),
 		// Histogram
-		SampleHistogramWq(),
+		sampleHistogramWq(),
 		// Summary
-		SampleSummaryWq(),
+		sampleSummaryWq(),
 	}
 	return sampleWriteRequestsNoMetadata
 }
 
-func AddSfxCompatibilityMetrics(metrics pmetric.Metrics, expectedNans int64, expectedMissing int64, expectedInvalid int64) pmetric.Metrics {
-	if metrics == pmetric.NewMetrics() {
+func addSfxCompatibilityMetrics(metrics pmetric.Metrics, expectedInvalid int64, expectedNans int64, expectedMissing int64) pmetric.Metrics {
+	if metrics.ResourceMetrics().Len() == 0 {
 		metrics.ResourceMetrics().AppendEmpty().ScopeMetrics().AppendEmpty()
 	}
 	scope := metrics.ResourceMetrics().At(0).ScopeMetrics().At(0)
+	addSfxCompatibilityInvalidRequestMetrics(scope, expectedInvalid)
 	addSfxCompatibilityMissingNameMetrics(scope, expectedMissing)
 	addSfxCompatibilityNanMetrics(scope, expectedNans)
-	addSfxCompatibilityInvalidRequestMetrics(scope, expectedInvalid)
 	return metrics
 }
 
@@ -341,8 +341,8 @@ func addSfxCompatibilityInvalidRequestMetrics(scopeMetrics pmetric.ScopeMetrics,
 	counter.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
 	dp := counter.DataPoints().AppendEmpty()
 	dp.SetIntValue(value)
-	dp.SetStartTimestamp(pcommon.NewTimestampFromTime(Jan20))
-	dp.SetTimestamp(pcommon.NewTimestampFromTime(Jan20))
+	dp.SetStartTimestamp(pcommon.NewTimestampFromTime(jan20))
+	dp.SetTimestamp(pcommon.NewTimestampFromTime(jan20))
 	return metric
 }
 
@@ -356,8 +356,8 @@ func addSfxCompatibilityMissingNameMetrics(scopeMetrics pmetric.ScopeMetrics, va
 	counter.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
 	dp := counter.DataPoints().AppendEmpty()
 	dp.SetIntValue(value)
-	dp.SetStartTimestamp(pcommon.NewTimestampFromTime(Jan20))
-	dp.SetTimestamp(pcommon.NewTimestampFromTime(Jan20))
+	dp.SetStartTimestamp(pcommon.NewTimestampFromTime(jan20))
+	dp.SetTimestamp(pcommon.NewTimestampFromTime(jan20))
 	return metric
 }
 
@@ -371,12 +371,12 @@ func addSfxCompatibilityNanMetrics(scopeMetrics pmetric.ScopeMetrics, value int6
 	counter.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
 	dp := counter.DataPoints().AppendEmpty()
 	dp.SetIntValue(value)
-	dp.SetStartTimestamp(pcommon.NewTimestampFromTime(Jan20))
-	dp.SetTimestamp(pcommon.NewTimestampFromTime(Jan20))
+	dp.SetStartTimestamp(pcommon.NewTimestampFromTime(jan20))
+	dp.SetTimestamp(pcommon.NewTimestampFromTime(jan20))
 	return metric
 }
 
-func FlattenWriteRequests(request []*prompb.WriteRequest) *prompb.WriteRequest {
+func flattenWriteRequests(request []*prompb.WriteRequest) *prompb.WriteRequest {
 	var ts []prompb.TimeSeries
 	for _, req := range request {
 		ts = append(ts, req.Timeseries...)
@@ -387,7 +387,7 @@ func FlattenWriteRequests(request []*prompb.WriteRequest) *prompb.WriteRequest {
 }
 
 func TestBasicNoMd(t *testing.T) {
-	wqs := GetWriteRequestsOfAllTypesWithoutMetadata()
+	wqs := getWriteRequestsOfAllTypesWithoutMetadata()
 	require.NotNil(t, wqs)
 	for _, wq := range wqs {
 		for _, ts := range wq.Timeseries {

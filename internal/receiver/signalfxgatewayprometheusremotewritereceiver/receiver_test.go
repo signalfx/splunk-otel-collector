@@ -35,7 +35,7 @@ func TestEmptySend(t *testing.T) {
 	defer cancel()
 
 	cfg := createDefaultConfig().(*Config)
-	freePort, err := GetFreePort()
+	freePort, err := getFreePort()
 	require.NoError(t, err)
 	expectedEndpoint := fmt.Sprintf("localhost:%d", freePort)
 
@@ -46,7 +46,7 @@ func TestEmptySend(t *testing.T) {
 	mockSettings := receivertest.NewNopCreateSettings()
 	mockConsumer := consumertest.NewNop()
 	mockreporter := newMockReporter()
-	receiver, err := New(mockSettings, cfg, mockConsumer)
+	receiver, err := newReceiver(mockSettings, cfg, mockConsumer)
 	remoteWriteReceiver := receiver.(*prometheusRemoteWriteReceiver)
 	remoteWriteReceiver.reporter = mockreporter
 
@@ -62,14 +62,13 @@ func TestEmptySend(t *testing.T) {
 	require.Equal(t, expectedEndpoint, remoteWriteReceiver.server.Addr)
 	require.Eventually(t, func() bool { remoteWriteReceiver.server.ready(); return true }, time.Second*10, 50*time.Millisecond)
 
-	client, err := NewMockPrwClient(
+	client, err := newMockPrwClient(
 		cfg.Endpoint,
-		"metrics",
 		time.Second*5,
 	)
 	require.NoError(t, err)
 	require.NotNil(t, client)
-	require.NoError(t, client.SendWriteRequest(&prompb.WriteRequest{
+	require.NoError(t, client.sendWriteRequest(&prompb.WriteRequest{
 		Timeseries: []prompb.TimeSeries{},
 		Metadata:   []prompb.MetricMetadata{},
 	}))
@@ -79,7 +78,7 @@ func TestEmptySend(t *testing.T) {
 
 func TestSuccessfulSend(t *testing.T) {
 	cfg := createDefaultConfig().(*Config)
-	freePort, err := GetFreePort()
+	freePort, err := getFreePort()
 	require.NoError(t, err)
 	expectedEndpoint := fmt.Sprintf("localhost:%d", freePort)
 
@@ -90,10 +89,10 @@ func TestSuccessfulSend(t *testing.T) {
 	mockSettings := receivertest.NewNopCreateSettings()
 	mockConsumer := consumertest.NewNop()
 
-	sampleNoMdMetrics := GetWriteRequestsOfAllTypesWithoutMetadata()
+	sampleNoMdMetrics := getWriteRequestsOfAllTypesWithoutMetadata()
 	mockreporter := newMockReporter()
 
-	receiver, err := New(mockSettings, cfg, mockConsumer)
+	receiver, err := newReceiver(mockSettings, cfg, mockConsumer)
 	remoteWriteReceiver := receiver.(*prometheusRemoteWriteReceiver)
 	remoteWriteReceiver.reporter = mockreporter
 
@@ -112,9 +111,8 @@ func TestSuccessfulSend(t *testing.T) {
 	require.Equal(t, expectedEndpoint, remoteWriteReceiver.server.Addr)
 	require.Eventually(t, func() bool { remoteWriteReceiver.server.ready(); return true }, time.Second*10, 50*time.Millisecond)
 
-	client, err := NewMockPrwClient(
+	client, err := newMockPrwClient(
 		cfg.Endpoint,
-		"metrics",
 		time.Second*5,
 	)
 	require.NoError(t, err)
@@ -123,7 +121,7 @@ func TestSuccessfulSend(t *testing.T) {
 	for index, wq := range sampleNoMdMetrics {
 		mockreporter.AddExpectedStart(1)
 		mockreporter.AddExpectedSuccess(1)
-		err = client.SendWriteRequest(wq)
+		err = client.sendWriteRequest(wq)
 		assert.NoError(t, err, "failed to write %d", index)
 		if nil != err {
 			assert.NoError(t, errors.Unwrap(err))
@@ -141,7 +139,7 @@ func TestRealReporter(t *testing.T) {
 	defer cancel()
 
 	cfg := createDefaultConfig().(*Config)
-	freePort, err := GetFreePort()
+	freePort, err := getFreePort()
 	require.NoError(t, err)
 	expectedEndpoint := fmt.Sprintf("localhost:%d", freePort)
 
@@ -152,9 +150,9 @@ func TestRealReporter(t *testing.T) {
 	mockSettings := receivertest.NewNopCreateSettings()
 	mockConsumer := consumertest.NewNop()
 
-	sampleNoMdMetrics := GetWriteRequestsOfAllTypesWithoutMetadata()
+	sampleNoMdMetrics := getWriteRequestsOfAllTypesWithoutMetadata()
 
-	receiver, err := New(mockSettings, cfg, mockConsumer)
+	receiver, err := newReceiver(mockSettings, cfg, mockConsumer)
 	remoteWriteReceiver := receiver.(*prometheusRemoteWriteReceiver)
 
 	assert.NoError(t, err)
@@ -165,16 +163,15 @@ func TestRealReporter(t *testing.T) {
 	require.NotEmpty(t, remoteWriteReceiver.settings.BuildInfo)
 	require.Eventually(t, func() bool { remoteWriteReceiver.server.ready(); return true }, time.Second*10, 50*time.Millisecond)
 
-	client, err := NewMockPrwClient(
+	client, err := newMockPrwClient(
 		cfg.Endpoint,
-		"metrics",
 		time.Second*5,
 	)
 	require.NoError(t, err)
 	require.NotNil(t, client)
 
 	for index, wq := range sampleNoMdMetrics {
-		err = client.SendWriteRequest(wq)
+		err = client.sendWriteRequest(wq)
 		require.NoError(t, err, "failed to write %d", index)
 	}
 

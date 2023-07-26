@@ -1,0 +1,23 @@
+receivers:
+  lightprometheus/myjob:
+    auth:
+      authenticator: basicauth
+    collection_interval: 1s
+    endpoint: "http://localhost:8000/metrics"
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+extensions:
+  basicauth:
+    client_auth:
+      username: foo
+      password: bar
+
+service:
+  extensions: [ basicauth ]
+  pipelines:
+    metrics:
+      receivers: [ lightprometheus/myjob ]
+      exporters: [ otlp ]

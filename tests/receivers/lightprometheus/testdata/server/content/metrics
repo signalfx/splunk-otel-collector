@@ -1,0 +1,10 @@
+# HELP foo_bar The amount of foo going well with bar
+# TYPE foo_bar gauge
+foo_bar{application="my-own-app",area="nonheap",id="CodeHeap 'non-profiled nmethods'",} 13732552.0
+foo_bar{application="my-own-app",area="heap",id="G1 Eden Space",} 17.9641776E7
+foo_bar{application="my-own-app",area="nonheap",id="Metaspace",} 13.72735E7
+foo_bar{application="my-own-app",area="heap",id="G1 Survivor Space",} 12097152.0
+foo_bar{application="my-own-app",area="nonheap",id="CodeHeap 'non-nmethods'",} 12544904.0
+foo_bar{application="my-own-app",area="nonheap",id="CodeHeap 'profiled nmethods'",} 11.0555296E7
+foo_bar{application="my-own-app",area="nonheap",id="Compressed Class Space",} 14325676.0
+foo_bar{application="my-own-app",area="heap",id="G1 Old Gen",} 15.0331678E7

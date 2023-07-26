@@ -22,6 +22,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.81.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.81.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.81.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.81.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension v0.81.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarder v0.81.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer v0.81.0
@@ -133,6 +134,7 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/internal v1.3.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.0.0 // indirect
 	github.com/AzureAD/microsoft-authentication-library-for-go v1.0.0 // indirect
+	github.com/GehirnInc/crypt v0.0.0-20200316065508-bb7000b8a962 // indirect
 	github.com/JohnCGriffin/overflow v0.0.0-20211019200055-46fa312c352c // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/apache/arrow/go/v12 v12.0.0 // indirect
@@ -165,6 +167,7 @@ require (
 	github.com/relvacode/iso8601 v1.3.0 // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/shoenig/go-m1cpu v0.1.6 // indirect
+	github.com/tg123/go-htpasswd v1.2.1 // indirect
 	github.com/tilinna/clock v1.1.0 // indirect
 	github.com/zeebo/xxh3 v1.0.2 // indirect
 	go.opentelemetry.io/collector/config/configauth v0.81.0 // indirect

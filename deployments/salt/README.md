@@ -15,7 +15,7 @@ Currently, the following Linux distributions and versions are supported:
 
 ## Prerequisites
 
-- [Splunk Access Token](https://docs.splunk.com/Observability/admin/authentication-tokens/org-tokens.html#admin-org-tokens)
+- [Splunk Access Token](https://docs.splunk.com/observability/admin/authentication/authentication-tokens/org-tokens.html)
 - [Splunk Realm](https://dev.splunk.com/observability/docs/realms_in_endpoints/)
 - [Double-check exposed ports](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/security.md#exposed-endpoints) 
   to make sure your environment doesn't have conflicts. Ports can be changed in the collector's configuration.

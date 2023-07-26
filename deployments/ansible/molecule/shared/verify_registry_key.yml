@@ -1,0 +1,16 @@
+---
+- name: Get registry entry
+  ansible.windows.win_reg_stat:
+    path: "{{ path }}"
+    name: "{{ name }}"
+  register: reg_entry
+
+- name: Verify registry entry value
+  assert:
+    that: reg_entry.value == value
+  when: exists | default(true)
+
+- name: Verify registry entry does not exist
+  assert:
+    that: not reg_entry.exists
+  when: not (exists | default(true))

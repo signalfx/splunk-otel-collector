@@ -71,4 +71,14 @@
     package_stage: release
     win_base_url: https://dl.signalfx.com
     win_use_proxy: "no"
+    dotnet_options:
+      COR_ENABLE_PROFILING: true
+      COR_PROFILER: "{B4C89B0F-9908-4F73-9F59-0D77C5A06874}"
+      CORECLR_ENABLE_PROFILING: true
+      CORECLR_PROFILER: "{B4C89B0F-9908-4F73-9F59-0D77C5A06874}"
+      SIGNALFX_ENV: "{{ signalfx_dotnet_auto_instrumentation_environment }}"
+      SIGNALFX_SERVICE_NAME: "{{ signalfx_dotnet_auto_instrumentation_service_name }}"
+      SIGNALFX_PROFILER_ENABLED: "{{ signalfx_dotnet_auto_instrumentation_enable_profiler }}"
+      SIGNALFX_PROFILER_MEMORY_ENABLED: "{{ signalfx_dotnet_auto_instrumentation_enable_profiler_memory }}"
+    iis_registry_key: HKLM:\SYSTEM\CurrentControlSet\Services\W3SVC
   when: ansible_os_family == "Windows"

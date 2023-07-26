@@ -36,8 +36,8 @@ platforms:
     memory: 4096
     instance_raw_config_args: *vagrant_args
   - name: "2022"
-    box: gusztavvargadr/windows-server-2022-standard
-    box_version: 2102.0.2305
+    box: gusztavvargadr/iis-windows-server
+    box_version: 10.2102.2306
     cpus: 2
     memory: 4096
     instance_raw_config_args: *vagrant_args

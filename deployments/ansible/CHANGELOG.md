@@ -1,5 +1,11 @@
 # Changelog
 
+## ansible-v0.19.0
+
+### 💡 Enhancements 💡
+
+- Add support for Auto Instrumentation for .NET on Windows
+
 ## ansible-v0.18.0
 
 ### 💡 Enhancements 💡

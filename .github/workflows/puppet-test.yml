@@ -12,6 +12,7 @@ on:
       - 'internal/buildscripts/packaging/tests/deployments/puppet/**'
       - 'internal/buildscripts/packaging/tests/helpers/**'
       - 'internal/buildscripts/packaging/tests/requirements.txt'
+      - '!**.md'
 
 concurrency:
   group: puppet-test-${{ github.event.pull_request.number || github.ref }}

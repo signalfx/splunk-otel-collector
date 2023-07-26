@@ -16,6 +16,7 @@ on:
     paths:
       - '.github/workflows/ansible.yml'
       - 'deployments/ansible/**'
+      - '!**.md'
 
 concurrency:
   group: ansible-${{ github.event.pull_request.number || github.ref }}

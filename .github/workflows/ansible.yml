@@ -104,7 +104,11 @@ jobs:
           cache-dependency-path: "${{ github.workspace }}/requirements.txt"
 
       - name: Install test dependencies.
-        run: pip3 install --use-pep517 -r ${GITHUB_WORKSPACE}/requirements.txt
+        run: |
+          # workaround for https://github.com/yaml/pyyaml/issues/724
+          pip3 install 'wheel==0.40.0'
+          pip3 install 'Cython<3.0' 'PyYaml~=5.0' --no-build-isolation
+          pip3 install --use-pep517 -r ${GITHUB_WORKSPACE}/requirements.txt
 
       - name: Run Molecule tests.
         run: molecule --base-config ./molecule/config/docker.yml test --all
@@ -137,6 +141,7 @@ jobs:
           - default
           - custom_vars
           - without_fluentd
+          - with_instrumentation
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v3

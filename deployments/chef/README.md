@@ -7,7 +7,7 @@ https://www.splunk.com/en_us/observability.html).
 
 ## Prerequisites
 
-- [Splunk Access Token](https://docs.splunk.com/Observability/admin/authentication-tokens/org-tokens.html)
+- [Splunk Access Token](https://docs.splunk.com/observability/admin/authentication/authentication-tokens/org-tokens.html)
 - [Splunk Realm](https://dev.splunk.com/observability/docs/realms_in_endpoints/)
 - [Double-check exposed ports](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/security.md#exposed-endpoints) 
   to make sure your environment doesn't have conflicts. Ports can be changed in the collector's configuration.
@@ -51,7 +51,7 @@ required `splunk_access_token` attribute and some optional attributes:
 ### Collector
 
 - `splunk_access_token` (**Required**): The [Splunk access token](
-  https://docs.splunk.com/Observability/admin/authentication-tokens/org-tokens.html)
+  https://docs.splunk.com/observability/admin/authentication/authentication-tokens/org-tokens.html)
   to authenticate requests.
 
 - `splunk_realm`: Which Splunk realm to send the data to, e.g. `us1`. The

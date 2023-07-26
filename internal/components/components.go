@@ -113,19 +113,19 @@ import (
 func Get() (otelcol.Factories, error) {
 	var errs []error
 	extensions, err := extension.MakeFactoryMap(
+		ballastextension.NewFactory(),
+		basicauthextension.NewFactory(),
 		ecsobserver.NewFactory(),
 		ecstaskobserver.NewFactory(),
 		dockerobserver.NewFactory(),
-		healthcheckextension.NewFactory(),
 		filestorage.NewFactory(),
+		healthcheckextension.NewFactory(),
 		hostobserver.NewFactory(),
 		httpforwarder.NewFactory(),
 		k8sobserver.NewFactory(),
 		pprofextension.NewFactory(),
 		smartagentextension.NewFactory(),
 		zpagesextension.NewFactory(),
-		ballastextension.NewFactory(),
-		basicauthextension.NewFactory(),
 	)
 	if err != nil {
 		errs = append(errs, err)

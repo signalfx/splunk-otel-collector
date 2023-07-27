@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.81.1
+
 ### 🛑 Breaking changes 🛑
 
 - (Splunk) Fluentd installation ***disabled*** by default for the Linux and Windows installer scripts ([#3369](https://github.com/signalfx/splunk-otel-collector/pull/3369))
@@ -28,6 +30,7 @@
 ### 💡 Enhancements 💡
 
 - (Splunk) Add support for basicauth extension. ([#3413](https://github.com/signalfx/splunk-otel-collector/pull/3413))
+- (Splunk) `receiver/databricks`: Add retry/backoff on http 429s. ([#3374](https://github.com/signalfx/splunk-otel-collector/pull/3374))
 - (Contrib) `processor/resourcedetection`: The system detector now can optionally set the `host.arch` resource attribute. ([#22939](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/22939))
 
 ## v0.81.0

@@ -10,10 +10,26 @@
 ### 🧰 Bug fixes 🧰
 
 - (Splunk) Discovery mode: Ensure all successful observers are used in resulting receiver creator instance ([#3391](https://github.com/signalfx/splunk-otel-collector/pull/3391))
+- (Contrib) `processor/resourcedetection`: Fix panic when AKS detector is used. ([#24549](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/24549))
+- (Contrib) `processor/resourcedetection`: Avoid returning empty `host.id` by the `system` detector. ([#24230](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/24230))
+- (Contrib) `processor/resourcedetection`: Disable `host.id` by default on the `system` detector. This restores the behavior prior to v0.72.0 when using the `system` detector together with other detectors that set `host.id`. ([#21233](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/21233))
+  To re-enable `host.id` on the `system` detector set `system::resource_attributes::host.id::enabled` to `true`:
+  ```
+  resourcedetection:
+    detectors: [system]
+    system:
+      resource_attributes:
+        host.id:
+          enabled: true
+  ```
+- (Contrib) `processor/resourcedetection`: Fix docker detector not setting any attributes. ([#24280](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/24280))
+- (Contrib) `processor/resourcedetection`: Fix Heroku config option for the `service.name` and `service.version` attributes. ([#24355](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/24355))
 
 ### 💡 Enhancements 💡
 
-- Add support for basicauth extension ([#3413](https://github.com/signalfx/splunk-otel-collector/pull/3413))
+- (Splunk) Add support for basicauth extension. ([#3413](https://github.com/signalfx/splunk-otel-collector/pull/3413))
+- (Contrib) `processor/resourcedetection`: The system detector now can optionally set the `host.arch` resource attribute. ([#22939](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/22939))
+
 ## v0.81.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.81.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.81.0) and the [opentelemetry-collector-contrib v0.81.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.81.0) releases where appropriate.

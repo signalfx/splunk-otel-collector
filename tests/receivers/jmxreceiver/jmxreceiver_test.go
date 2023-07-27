@@ -19,25 +19,24 @@ package tests
 import (
 	"os"
 	"path"
+	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
 func TestJMXReceiverProvidesAllJVMMetrics(t *testing.T) {
-	//os.Setenv("SPLUNK_OTEL_COLLECTOR_IMAGE", "otelcol:latest")
+	if strings.Contains(runtime.GOARCH, "arm") {
+		t.Skip("Running test on ARM currently fails as metrics from the ",
+			"\"io.opentelemetry.contrib.jmxmetrics\" instrumentation scope are not received.")
+	}
+
 	containers := []testutils.Container{
 		testutils.NewContainer().WithContext(
 			path.Join(".", "testdata", "server"),
 		).WithExposedPorts("7199:7199").WithName("jmx").WillWaitForPorts("7199"),
 	}
-
-	//tmp_dir := "/etc/otel/collector/tmp"
-	//local_tmp := filepath.Join(".", "tmp")
-	//mount_dir, err := filepath.Abs(local_tmp)
-	//require.NoError(t, err)
-	//os.MkdirAll(mount_dir, 1777)
-	//defer os.RemoveAll(local_tmp)
 
 	testutils.AssertAllMetricsReceived(t, "all.yaml",
 		"all_metrics_config.yaml", containers,

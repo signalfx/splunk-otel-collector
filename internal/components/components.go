@@ -23,6 +23,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarder"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/dockerobserver"
@@ -112,18 +113,19 @@ import (
 func Get() (otelcol.Factories, error) {
 	var errs []error
 	extensions, err := extension.MakeFactoryMap(
+		ballastextension.NewFactory(),
+		basicauthextension.NewFactory(),
 		ecsobserver.NewFactory(),
 		ecstaskobserver.NewFactory(),
 		dockerobserver.NewFactory(),
-		healthcheckextension.NewFactory(),
 		filestorage.NewFactory(),
+		healthcheckextension.NewFactory(),
 		hostobserver.NewFactory(),
 		httpforwarder.NewFactory(),
 		k8sobserver.NewFactory(),
 		pprofextension.NewFactory(),
 		smartagentextension.NewFactory(),
 		zpagesextension.NewFactory(),
-		ballastextension.NewFactory(),
 	)
 	if err != nil {
 		errs = append(errs, err)

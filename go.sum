@@ -121,6 +121,8 @@ github.com/DataDog/datadog-go v3.2.0+incompatible h1:qSG2N4FghB1He/r2mFrWKCaL7dX
 github.com/DataDog/datadog-go v3.2.0+incompatible/go.mod h1:LButxg5PwREeZtORoXG3tL4fMGNddJ+vMq1mwgfaqoQ=
 github.com/DataDog/zstd v1.5.0 h1:+K/VEwIAaPcHiMtQvpLD4lqW7f0Gk3xdYZmI1hD+CXo=
 github.com/DataDog/zstd v1.5.0/go.mod h1:g4AWEaM3yOg3HYfnJ3YIawPnVdXJh9QME85blwSAmyw=
+github.com/GehirnInc/crypt v0.0.0-20200316065508-bb7000b8a962 h1:KeNholpO2xKjgaaSyd+DyQRrsQjhbSeS7qe4nEw8aQw=
+github.com/GehirnInc/crypt v0.0.0-20200316065508-bb7000b8a962/go.mod h1:kC29dT1vFpj7py2OvG1khBdQpo3kInWP+6QipLbdngo=
 github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.15.2 h1:9VwVugD2NuPr6/IjrNJLpzaX7j+P6EJIup7cpNwcYhw=
 github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.15.2/go.mod h1:Xx0VKh7GJ4si3rmElbh19Mejxz68ibWg/J30ZOMrqzU=
 github.com/HdrHistogram/hdrhistogram-go v1.1.0/go.mod h1:yDgFjdqOqDEKOvasDdhWNXYg9BVp4O+o5f6V/ehm6Oo=
@@ -1138,6 +1140,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexpor
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.81.0/go.mod h1:WAQrgajoWC4x9BkCaiRSortkUK4OKjbN8aw4coXsuJM=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.81.0 h1:xsRmOPWyAWNFnEnuK2d3JtD+RaO0JR6/BIKw0eSjNy8=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.81.0/go.mod h1:jlILI9syx/7cbTRKvP0pzr2I7wv5vnz1q+OYM76escw=
+github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.81.0 h1:5rnbwxwn9+PF6hMpRYoz8fI8n/Oyj6uFTi+nCqXcITo=
+github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.81.0/go.mod h1:RFbrR6/CmOHkuJIlGoi3xfUpkSZ15EubW0qcpAAHUC8=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension v0.81.0 h1:ZqX6htxXlPr5GrAj/zpGjYGvhBIRkosyzV4VjGYLvKg=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension v0.81.0/go.mod h1:Kd2693zrJXP/BoRA59N/obF1Fjx+LPSB7L1nmR6pSz4=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarder v0.81.0 h1:52o4B6JzTn3lghhCPZk0/4rzUaCEMjLVEMKhck7Gb6c=
@@ -1541,6 +1545,8 @@ github.com/syndtr/gocapability v0.0.0-20200815063812-42c35b437635/go.mod h1:hkRG
 github.com/tencentcloud/tencentcloud-sdk-go v1.0.162 h1:8fDzz4GuVg4skjY2B0nMN7h6uN61EDVkuLyI2+qGHhI=
 github.com/testcontainers/testcontainers-go v0.21.0 h1:syePAxdeTzfkap+RrJaQZpJQ/s/fsUgn11xIvHrOE9U=
 github.com/testcontainers/testcontainers-go v0.21.0/go.mod h1:c1ez3WVRHq7T/Aj+X3TIipFBwkBaNT5iNCY8+1b83Ng=
+github.com/tg123/go-htpasswd v1.2.1 h1:i4wfsX1KvvkyoMiHZzjS0VzbAPWfxzI8INcZAKtutoU=
+github.com/tg123/go-htpasswd v1.2.1/go.mod h1:erHp1B86KXdwQf1X5ZrLb7erXZnWueEQezb2dql4q58=
 github.com/tidwall/gjson v1.10.2 h1:APbLGOM0rrEkd8WBw9C24nllro4ajFuJu0Sc9hRz8Bo=
 github.com/tidwall/gjson v1.10.2/go.mod h1:/wbyibRr2FHMks5tjHJ5F8dMZh3AcwJEMf5vlfC0lxk=
 github.com/tidwall/match v1.1.1 h1:+Ho715JplO36QYgwN9PGYNhgZvoUSc9X2c80KVTi+GA=

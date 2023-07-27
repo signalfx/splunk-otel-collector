@@ -26,6 +26,7 @@ import (
 
 func TestDefaultComponents(t *testing.T) {
 	expectedExtensions := []component.Type{
+		"basicauth",
 		"ecs_observer",
 		"ecs_task_observer",
 		"docker_observer",

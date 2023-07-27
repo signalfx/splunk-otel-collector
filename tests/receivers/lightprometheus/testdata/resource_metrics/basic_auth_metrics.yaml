@@ -1,0 +1,64 @@
+resource_metrics:
+  - attributes:
+      service.instance.id: localhost:8000
+      service.name: myjob
+    scope_metrics:
+      - instrumentation_scope:
+          attributes: { }
+        metrics:
+          - attributes:
+              application: my-own-app
+              area: nonheap
+              id: CodeHeap 'non-profiled nmethods'
+            description: The amount of foo going well with bar
+            name: foo_bar
+            type: DoubleGauge
+          - attributes:
+              application: my-own-app
+              area: heap
+              id: G1 Eden Space
+            description: The amount of foo going well with bar
+            name: foo_bar
+            type: DoubleGauge
+          - attributes:
+              application: my-own-app
+              area: nonheap
+              id: Metaspace
+            description: The amount of foo going well with bar
+            name: foo_bar
+            type: DoubleGauge
+          - attributes:
+              application: my-own-app
+              area: heap
+              id: G1 Survivor Space
+            description: The amount of foo going well with bar
+            name: foo_bar
+            type: DoubleGauge
+          - attributes:
+              application: my-own-app
+              area: nonheap
+              id: CodeHeap 'non-nmethods'
+            description: The amount of foo going well with bar
+            name: foo_bar
+            type: DoubleGauge
+          - attributes:
+              application: my-own-app
+              area: nonheap
+              id: CodeHeap 'profiled nmethods'
+            description: The amount of foo going well with bar
+            name: foo_bar
+            type: DoubleGauge
+          - attributes:
+              application: my-own-app
+              area: nonheap
+              id: Compressed Class Space
+            description: The amount of foo going well with bar
+            name: foo_bar
+            type: DoubleGauge
+          - attributes:
+              application: my-own-app
+              area: heap
+              id: G1 Old Gen
+            description: The amount of foo going well with bar
+            name: foo_bar
+            type: DoubleGauge

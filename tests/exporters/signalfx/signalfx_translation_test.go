@@ -17,14 +17,26 @@
 package tests
 
 import (
+	"path/filepath"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
 func TestSignalFxExporterTranslatesOTelCPUMetrics(t *testing.T) {
 	testutils.AssertAllMetricsReceived(
-		t, "cpu_translations.yaml", "cpu_translations_config.yaml", nil, nil,
+		t, "cpu_translations.yaml", "cpu_translations_config.yaml", nil,
+		[]testutils.CollectorBuilder{
+			// Added for implicit resourcedetection processor coverage
+			// TODO: add suite
+			func(collector testutils.Collector) testutils.Collector {
+				machineId, err := filepath.Abs(filepath.Join(".", "testdata", "machine-id"))
+				require.NoError(t, err)
+				return collector.WithMount(machineId, "/etc/machine-id")
+			},
+		},
 	)
 }
 

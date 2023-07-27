@@ -6,6 +6,12 @@ receivers:
   signalfx:
     endpoint: 127.0.0.1:9943
 
+# implicit coverage for resource attribute changes
+processors:
+  resourcedetection:
+    detectors: [system]
+    override: true
+
 exporters:
   signalfx:
     access_token: token
@@ -24,6 +30,7 @@ service:
   pipelines:
     metrics/in:
       receivers: [hostmetrics]
+      processors: [resourcedetection]
       exporters: [signalfx]
     metrics/out:
       receivers: [signalfx]

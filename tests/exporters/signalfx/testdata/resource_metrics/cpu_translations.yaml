@@ -6,6 +6,8 @@ resource_metrics:
             attributes:
               cpu: cpu0
               state: user
+              host.name: <ANY>
+              os.type: linux
           - name: cpu.utilization
             type: DoubleGauge
           - name: cpu.num_processors

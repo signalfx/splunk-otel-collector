@@ -159,7 +159,8 @@ parse_args_and_build() {
     unzip -d "$files_dir" "${OUTPUT_DIR}/agent-bundle_windows_amd64.zip"
     rm -f "${OUTPUT_DIR}/agent-bundle_windows_amd64.zip"
 
-    download_jmx_metric_gatherer "$jmx_metric_gatherer_release" "$build_dir" "$files_dir"
+    download_jmx_metric_gatherer "$jmx_metric_gatherer_release" "$build_dir"
+    jmx_metrics_jar="${build_dir}/opentelemetry-java-contrib-jmx-metrics.jar"
 
     # kludge to satisfy relative path in splunk-otel-collector.wxs
     mkdir -p /work/internal/buildscripts/packaging/msi
@@ -173,7 +174,7 @@ parse_args_and_build() {
     candle -arch x64 -out "${configFilesWixObj//\//\\}" "${configFilesWsx//\//\\}"
 
     collectorWixObj="${build_dir}/splunk-otel-collector.wixobj"
-    candle -arch x64 -out "${collectorWixObj//\//\\}" -dVersion="$version" -dOtelcol="$otelcol" -dTranslatesfx="$translatesfx" "${WXS_PATH//\//\\}"
+    candle -arch x64 -out "${collectorWixObj//\//\\}" -dVersion="$version" -dOtelcol="$otelcol" -dTranslatesfx="$translatesfx" -dJmxMetricsJar="$jmx_metrics_jar" "${WXS_PATH//\//\\}"
 
     msi="${build_dir}/${msi_name}"
     light -ext WixUtilExtension.dll -sval -out "${msi//\//\\}" -b "${files_dir//\//\\}" "${collectorWixObj//\//\\}" "${configFilesWixObj//\//\\}"
@@ -188,15 +189,12 @@ parse_args_and_build() {
 download_jmx_metric_gatherer() {
     local version="$1"
     local build_dir="$2"
-    local output_dir="$3"
     jmx_filename="opentelemetry-java-contrib-jmx-metrics.jar"
     JMX_METRIC_GATHERER_RELEASE_DL_URL="https://github.com/open-telemetry/opentelemetry-java-contrib/releases/download/v$version/opentelemetry-jmx-metrics.jar"
     echo "Downloading ${JMX_METRIC_GATHERER_RELEASE_DL_URL}"
 
-    mkdir -p "${output_dir}"
-    curl -sL "$JMX_METRIC_GATHERER_RELEASE_DL_URL" -o "${output_dir}/${jmx_filename}"
-
-    mv "${output_dir}/${jmx_filename}" "/opt/${jmx_filename}"
+    mkdir -p "${build_dir}"
+    curl -sL "$JMX_METRIC_GATHERER_RELEASE_DL_URL" -o "${build_dir}/${jmx_filename}"
 }
 
 parse_args_and_build $@

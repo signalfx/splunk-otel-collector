@@ -46,6 +46,11 @@
                </Directory>
             </Directory>
          </Directory>
+         <Directory Id="OptDir" Name="opt">
+            <Component Id="JmxMetricsJarComponent" Guid="c2aca15f-813a-4497-9bad-1c97e7bff618">
+                <File Id="JmxMetricsJar" Name="opentelemetry-java-contrib-jmx-metrics.jar" KeyPath="yes" Source="$(var.JmxMetricsJar)"/>
+            </Component>
+         </Directory>
       </Directory>
 
       <Feature Id="SplunkOtelCollector" Level="1">
@@ -67,7 +72,6 @@
 
       <!-- Copy the default agent config file to ProgramData if it does not already exist -->
       <CustomAction Id="CopyConfig" ExeCommand="xcopy /y &quot;[INSTALLDIR]agent_config.yaml&quot; &quot;[CommonAppDataFolder]Splunk\OpenTelemetry Collector\agent_config.yaml*&quot;" Directory="INSTALLDIR" Impersonate="no" Execute="deferred" Return="check" />
-      <!-- Copy the JMX Metric Gatherer JAR to opt if it does not already exist -->
       <InstallExecuteSequence>
          <Custom Action="CopyConfig" After="InstallFiles">NOT CONFIG_FILE_EXISTS AND NOT Installed</Custom>
       </InstallExecuteSequence>

@@ -25,6 +25,8 @@ import (
 )
 
 func TestJMXReceiverProvidesAllJVMMetrics(t *testing.T) {
+	// JMX metrics are missing when running on arm so the test only checks a subset
+	// of what would be received otherwise.
 	expected_metrics_file := "all.yaml"
 	if testutils.CollectorImageIsForArm(t) {
 		expected_metrics_file = "arm64.yaml"

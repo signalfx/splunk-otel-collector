@@ -4,7 +4,7 @@
 
 ### 💡 Enhancements 💡
 
-- (Splunk) `jmxreceiver`: Enable running in Docker on Windows and Linux (#3262)
+- (Splunk) `jmxreceiver`: Enable running in Docker on Windows and Linux ([#3262](https://github.com/signalfx/splunk-otel-collector/pull/3262))
 
 ## v0.81.1
 

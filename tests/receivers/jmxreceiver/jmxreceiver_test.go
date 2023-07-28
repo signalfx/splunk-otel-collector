@@ -19,16 +19,15 @@ package tests
 import (
 	"os"
 	"path"
-	"strings"
 	"testing"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
 func TestJMXReceiverProvidesAllJVMMetrics(t *testing.T) {
-	if strings.Contains(strings.ToLower(os.Getenv("GOARCH")), "amd") {
-		t.Skip("Running test on ARM currently fails as metrics from the ",
-			"\"io.opentelemetry.contrib.jmxmetrics\" instrumentation scope are not received.")
+	expected_metrics_file := "all.yaml"
+	if testutils.CollectorImageIsForArm(t) {
+		expected_metrics_file = "arm64.yaml"
 	}
 
 	containers := []testutils.Container{
@@ -37,7 +36,7 @@ func TestJMXReceiverProvidesAllJVMMetrics(t *testing.T) {
 		).WithExposedPorts("7199:7199").WithName("jmx").WillWaitForPorts("7199"),
 	}
 
-	testutils.AssertAllMetricsReceived(t, "all.yaml",
+	testutils.AssertAllMetricsReceived(t, expected_metrics_file,
 		"all_metrics_config.yaml", containers,
 		[]testutils.CollectorBuilder{
 			func(collector testutils.Collector) testutils.Collector {

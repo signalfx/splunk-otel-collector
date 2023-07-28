@@ -1,0 +1,16 @@
+resource_metrics:
+  - attributes:
+      service.name: unknown_service:java
+      telemetry.sdk.language: java
+      telemetry.sdk.name: opentelemetry
+    scope_metrics:
+      - instrumentation_scope:
+          attributes: {}
+          name: io.opentelemetry.sdk.logs
+        metrics:
+          - attributes:
+              logRecordProcessorType: BatchLogRecordProcessor
+            description: The number of logs queued
+            name: queueSize
+            type: IntGauge
+            unit: "1"

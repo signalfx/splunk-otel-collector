@@ -17,7 +17,6 @@
 package tests
 
 import (
-	"go/build"
 	"os"
 	"path"
 	"strings"
@@ -27,7 +26,7 @@ import (
 )
 
 func TestJMXReceiverProvidesAllJVMMetrics(t *testing.T) {
-	if strings.Contains(strings.ToLower(build.Default.GOARCH), "arm") {
+	if strings.Contains(strings.ToLower(os.Getenv("GOARCH")), "amd") {
 		t.Skip("Running test on ARM currently fails as metrics from the ",
 			"\"io.opentelemetry.contrib.jmxmetrics\" instrumentation scope are not received.")
 	}

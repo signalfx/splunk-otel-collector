@@ -62,8 +62,6 @@ COPY --from=otelcol --chown=999 /otel/collector /etc/otel/collector
 COPY --from=agent-bundle --chown=999 /usr/lib/splunk-otel-collector /usr/lib/splunk-otel-collector
 COPY --from=jmx --chown=999 /tmp/opentelemetry-jmx-metrics.jar /opt/opentelemetry-java-contrib-jmx-metrics.jar
 
-#COPY --from=otelcol --chown=999 /tmp /tmp
-#ENV TMPDIR=/tmp
 
 COPY --from=journalctl --chown=999 /bin/journalctl /bin/journalctl
 COPY --from=journalctl --chown=999 /opt/journalctl /

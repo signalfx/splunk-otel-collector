@@ -677,7 +677,7 @@ Options:
                                         (default: https://ingest.REALM.signalfx.com/v2/trace)
   --uninstall                           Removes the Splunk OpenTelemetry Collector for Linux.
   --with[out]-fluentd                   Whether to install and configure fluentd to forward log events to the collector.
-                                        (default: --without-fluentd)
+                                        (default: --with-fluentd)
   --with[out]-instrumentation           Whether to install and configure the splunk-otel-auto-instrumentation package.
                                         (default: --without-instrumentation)
   --deployment-environment <value>      Set the 'deployment.environment' resource attribute to the specified value.
@@ -848,7 +848,7 @@ parse_args_and_install() {
   local trace_url=
   local uninstall="false"
   local mode="agent"
-  local with_fluentd="false"
+  local with_fluentd="true"
   local collector_config_path=
   local skip_collector_repo="false"
   local skip_fluentd_repo="false"

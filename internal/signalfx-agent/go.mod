@@ -48,7 +48,7 @@ require (
 	github.com/go-test/deep v1.1.0
 	github.com/gobwas/glob v0.2.4-0.20181002190808-e7a84e9525fe
 	github.com/gogo/protobuf v1.3.2
-	github.com/google/cadvisor v0.47.1
+	github.com/google/cadvisor v0.47.3
 	github.com/gorilla/mux v1.8.0
 	github.com/hashicorp/consul/api v1.22.0
 	github.com/hashicorp/vault v1.14.0 // required for newer google.golang.org/api compatibility

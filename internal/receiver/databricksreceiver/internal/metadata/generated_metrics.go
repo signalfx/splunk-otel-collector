@@ -7673,10 +7673,8 @@ func newMetricDatabricksTasksScheduleStatus(cfg MetricConfig) metricDatabricksTa
 // MetricsBuilder provides an interface for scrapers to report metrics while taking care of all the transformations
 // required to produce metric representation defined in metadata and user config.
 type MetricsBuilder struct {
-	startTime                                                                                                                pcommon.Timestamp   // start time that will be applied to all recorded data points.
-	metricsCapacity                                                                                                          int                 // maximum observed number of metrics per resource.
-	metricsBuffer                                                                                                            pmetric.Metrics     // accumulates metrics data before emitting.
-	buildInfo                                                                                                                component.BuildInfo // contains version information
+	metricsBuffer                                                                                                            pmetric.Metrics
+	buildInfo                                                                                                                component.BuildInfo
 	metricDatabricksJobsActiveTotal                                                                                          metricDatabricksJobsActiveTotal
 	metricDatabricksJobsRunDuration                                                                                          metricDatabricksJobsRunDuration
 	metricDatabricksJobsScheduleStatus                                                                                       metricDatabricksJobsScheduleStatus
@@ -7817,6 +7815,8 @@ type MetricsBuilder struct {
 	metricDatabricksSparkTimerLiveListenerBusQueueStreamsListenerProcessingTime                                              metricDatabricksSparkTimerLiveListenerBusQueueStreamsListenerProcessingTime
 	metricDatabricksTasksRunDuration                                                                                         metricDatabricksTasksRunDuration
 	metricDatabricksTasksScheduleStatus                                                                                      metricDatabricksTasksScheduleStatus
+	startTime                                                                                                                pcommon.Timestamp
+	metricsCapacity                                                                                                          int
 }
 
 // metricBuilderOption applies changes to default metrics builder.

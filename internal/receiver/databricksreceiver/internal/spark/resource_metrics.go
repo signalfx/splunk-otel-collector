@@ -124,15 +124,16 @@ func (m *ResourceMetrics) addStageInfo(clstr Cluster, appID string, info StageIn
 	})
 }
 
-func (m *ResourceMetrics) Build(builder *metadata.MetricsBuilder, now pcommon.Timestamp, rmo ...metadata.ResourceMetricsOption) []pmetric.Metrics {
+func (m *ResourceMetrics) Build(mb *metadata.MetricsBuilder, rb *metadata.ResourceBuilder, now pcommon.Timestamp, instanceName string) []pmetric.Metrics {
 	var out []pmetric.Metrics
 	for rs, metricInfos := range m.m {
 		for _, mi := range metricInfos {
-			mi.build(builder, rs, now)
+			mi.build(mb, rs, now)
 		}
-		rmo = append(rmo, metadata.WithSparkClusterID(rs.cluster.ClusterID))
-		rmo = append(rmo, metadata.WithSparkClusterName(rs.cluster.ClusterName))
-		out = append(out, builder.Emit(rmo...))
+		rb.SetDatabricksInstanceName(instanceName)
+		rb.SetSparkClusterID(rs.cluster.ClusterID)
+		rb.SetSparkClusterName(rs.cluster.ClusterName)
+		out = append(out, mb.Emit(metadata.WithResource(rb.Emit())))
 	}
 	return out
 }

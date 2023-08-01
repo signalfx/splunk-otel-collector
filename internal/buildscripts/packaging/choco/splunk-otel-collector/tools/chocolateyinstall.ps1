@@ -5,7 +5,7 @@ $toolsDir = "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
 write-host "Checking configuration parameters ..."
 $pp = Get-PackageParameters
 
-[bool]$WITH_FLUENTD = $TRUE
+[bool]$WITH_FLUENTD = $FALSE
 [bool]$SkipFluentd = $FALSE
 
 $MODE = $pp['MODE']

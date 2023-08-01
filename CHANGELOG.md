@@ -6,6 +6,8 @@
 
 - (Splunk) Fluentd installation ***disabled*** by default for the Linux and Windows installer scripts ([#3369](https://github.com/signalfx/splunk-otel-collector/pull/3369))
   - Specify the `--with-fluentd` (Linux) or `with_fluentd = 1` (Windows) option to enable installation
+- (Splunk) Fluentd installation ***disabled*** by default for the Windows Chocolatey package ([#3377](https://github.com/signalfx/splunk-otel-collector/pull/3377))
+  - Specify the `/WITH_FLUENTD:true` parameter to enable installation
 
 ## v0.81.1
 

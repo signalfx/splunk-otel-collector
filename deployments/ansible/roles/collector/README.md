@@ -171,7 +171,7 @@ which allows setting up a proxy to download the collector binaries.
   [fluent-plugin-systemd](
   https://github.com/fluent-plugin-systemd/fluent-plugin-systemd) for systemd
   journal log collection, and the required libraries/development tools.
-  (**default:** `true`)
+  (**default:** `false`)
 
 - `td_agent_version`: Version of td-agent (fluentd package) that will be 
   installed (**default:** `3.7.1` for Debian stretch and `4.3.2` for other

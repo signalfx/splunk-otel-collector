@@ -52,7 +52,7 @@ func (c *Config) Validate() error {
 	}
 
 	if c.MaxLogSize != 0 && c.MaxLogSize < minMaxLogSize {
-		return errors.New(fmt.Sprintf("invalid value for parameter 'max_log_size', must be equal to or greater than %d bytes", minMaxLogSize))
+		return fmt.Errorf("invalid value for parameter 'max_log_size', must be equal to or greater than %d bytes", minMaxLogSize)
 	}
 	return nil
 }

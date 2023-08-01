@@ -184,9 +184,8 @@ privileges):
 
 A [Chocolatey package](
 https://community.chocolatey.org/packages/splunk-otel-collector) is available
-to download, install, and configure the Collector and Fluentd with the
-following PowerShell command (replace `MY_SPLUNK_ACCESS_TOKEN` and
-`MY_SPLUNK_REALM`):
+to download, install, and configure the Collector with the following PowerShell
+command (replace `MY_SPLUNK_ACCESS_TOKEN` and `MY_SPLUNK_REALM`):
 
 ```powershell
 choco install splunk-otel-collector --params="'/SPLUNK_ACCESS_TOKEN:MY_SPLUNK_ACCESS_TOKEN /SPLUNK_REALM:MY_SPLUNK_REALM'"
@@ -205,7 +204,7 @@ The following package parameters are available:
  * `/SPLUNK_TRACE_URL`: URL of the Splunk trace endpoint (e.g. `https://ingest.us1.signalfx.com/v2/trace`). This parameter is saved to the `HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment\SPLUNK_TRACE_URL` registry value. Default value is `https://ingest.$SPLUNK_REALM.signalfx.com/v2/trace`
  * `/SPLUNK_BUNDLE_DIR`: The path to the Smart Agent bundle directory for the `smartagent` receiver and extension. The default path is provided by the Collector package. If the specified path is changed from the default value, the path should be an existing directory on the system. This parameter is saved to the `HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment\SPLUNK_BUNDLE_DIR` registry value. Default value is `\Program Files\Splunk\OpenTelemetry Collector\agent-bundle`.
  * `/MODE`: This parameter is used for setting the `HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment\SPLUNK_CONFIG` registry value to `\ProgramData\Splunk\OpenTelemetry Collector\agent_config.yaml` or `\ProgramData\Splunk\OpenTelemetry Collector\gateway_config.yaml`. Possible values are `agent` and `gateway`. Default value is `agent`.
- * `/WITH_FLUENTD`: Whether to download, install, and configure Fluentd to forward log events to the Collector. Possible values are `true` and `false`. If set to `true`, the Fluentd MSI package will be downloaded from `https://packages.treasuredata.com`. Default value is `true`.
+ * `/WITH_FLUENTD`: Whether to download, install, and configure Fluentd to collect and forward log events to the Collector. Possible values are `true` and `false`. If set to `true`, the Fluentd MSI package will be downloaded from `https://packages.treasuredata.com`. Default value is `false`.
 
 To pass parameters, use `--params "''"` (e.g. `choco install splunk-otel-collector --params="'/SPLUNK_ACCESS_TOKEN:MY_SPLUNK_ACCESS_TOKEN /SPLUNK_REALM:MY_SPLUNK_REALM'"`).
 

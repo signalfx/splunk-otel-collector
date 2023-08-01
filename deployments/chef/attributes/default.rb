@@ -24,7 +24,7 @@ default['splunk_otel_collector']['splunk_ballast_size_mib'] = ''
 
 default['splunk_otel_collector']['collector_config'] = {}
 
-default['splunk_otel_collector']['with_fluentd'] = true
+default['splunk_otel_collector']['with_fluentd'] = false
 default['splunk_otel_collector']['fluentd_base_url'] = 'https://packages.treasuredata.com'
 default['splunk_otel_collector']['fluentd_version'] = if platform_family?('debian')
                                                         case node['lsb']['codename']

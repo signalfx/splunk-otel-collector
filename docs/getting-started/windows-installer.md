@@ -6,7 +6,7 @@ For Windows 64-bit environments, an installer script is available. The
 script deploys and configures:
 
 - Splunk OpenTelemetry Collector for Windows
-- [Fluentd (via the TD Agent)](https://www.fluentd.org/)
+- **Optional**: Log Collection with [Fluentd (via the TD Agent)](#fluentd-configuration) (disabled, by default)
 
 Currently, the following Windows versions are supported and requires PowerShell
 3.0 or newer:
@@ -176,10 +176,18 @@ as `Administrator`:
 
 ### Fluentd Configuration
 
-By default, the Fluentd service will be installed and configured to forward log
-events with the `@SPLUNK` label to the Collector (see below for how to add
-custom Fluentd log sources), and the Collector will send these events to the
-HEC ingest endpoint determined by the `realm = <SPLUNK_REALM>` option, e.g.
+If log collection with [Fluentd](https://www.fluentd.org/) is required, run the
+installer script with the `with_fluentd = 1` option. For example (replace the
+`<SPLUNK...>` values for your configuration):
+
+```powershell
+& {Set-ExecutionPolicy Bypass -Scope Process -Force; $script = ((New-Object System.Net.WebClient).DownloadString('https://dl.signalfx.com/splunk-otel-collector.ps1')); $params = @{access_token = "<SPLUNK_ACCESS_TOKEN>"; realm = "<SPLUNK_REALM>"; with_fluentd = 1}; Invoke-Command -ScriptBlock ([scriptblock]::Create(". {$script} $(&{$args} @params)"))}
+```
+
+Fluentd will be downloaded, installed, and configured to forward log events
+with the `@SPLUNK` label to the Collector (see below for how to add custom
+Fluentd log sources), and the Collector will send these events to the HEC
+ingest endpoint determined by the `realm = <SPLUNK_REALM>` option, e.g.
 `https://ingest.SPLUNK_REALM.signalfx.com/v1/log`.
 
 To configure the Collector to send log events to a custom HEC endpoint URL, you
@@ -190,7 +198,7 @@ can specify the following parameters for the installer script:
 
 For example (replace the `<SPLUNK...>` values for your configuration):
 ```powershell
-& {Set-ExecutionPolicy Bypass -Scope Process -Force; $script = ((New-Object System.Net.WebClient).DownloadString('https://dl.signalfx.com/splunk-otel-collector.ps1')); $params = @{access_token = "<SPLUNK_ACCESS_TOKEN>"; realm = "<SPLUNK_REALM>"; hec_url = "<SPLUNK_HEC_URL>"; hec_token = "<SPLUNK_HEC_TOKEN>"}; Invoke-Command -ScriptBlock ([scriptblock]::Create(". {$script} $(&{$args} @params)"))}
+& {Set-ExecutionPolicy Bypass -Scope Process -Force; $script = ((New-Object System.Net.WebClient).DownloadString('https://dl.signalfx.com/splunk-otel-collector.ps1')); $params = @{access_token = "<SPLUNK_ACCESS_TOKEN>"; realm = "<SPLUNK_REALM>"; with_fluentd = 1; hec_url = "<SPLUNK_HEC_URL>"; hec_token = "<SPLUNK_HEC_TOKEN>"}; Invoke-Command -ScriptBlock ([scriptblock]::Create(". {$script} $(&{$args} @params)"))}
 ```
 
 The main Fluentd configuration file will be installed to

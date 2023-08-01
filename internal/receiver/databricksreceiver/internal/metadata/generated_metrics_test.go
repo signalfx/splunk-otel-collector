@@ -60,11 +60,11 @@ func TestMetricsBuilder(t *testing.T) {
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksJobsRunDurationDataPoint(ts, 1, 1)
+			mb.RecordDatabricksJobsRunDurationDataPoint(ts, 1, 6)
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksJobsScheduleStatusDataPoint(ts, 1, 1)
+			mb.RecordDatabricksJobsScheduleStatusDataPoint(ts, 1, 6)
 
 			defaultMetricsCount++
 			allMetricsCount++
@@ -72,549 +72,551 @@ func TestMetricsBuilder(t *testing.T) {
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkBlockManagerMemoryDiskSpaceUsedDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkBlockManagerMemoryDiskSpaceUsedDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkBlockManagerMemoryMaxDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkBlockManagerMemoryMaxDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkBlockManagerMemoryOffHeapMaxDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkBlockManagerMemoryOffHeapMaxDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkBlockManagerMemoryOffHeapUsedDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkBlockManagerMemoryOffHeapUsedDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkBlockManagerMemoryOnHeapMaxDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkBlockManagerMemoryOnHeapMaxDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkBlockManagerMemoryOnHeapUsedDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkBlockManagerMemoryOnHeapUsedDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkBlockManagerMemoryRemainingDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkBlockManagerMemoryRemainingDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkBlockManagerMemoryRemainingOffHeapDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkBlockManagerMemoryRemainingOffHeapDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkBlockManagerMemoryRemainingOnHeapDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkBlockManagerMemoryRemainingOnHeapDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkBlockManagerMemoryUsedDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkBlockManagerMemoryUsedDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkCodeGeneratorCompilationTimeDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkCodeGeneratorCompilationTimeDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkCodeGeneratorGeneratedClassSizeDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkCodeGeneratorGeneratedClassSizeDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkCodeGeneratorGeneratedMethodSizeDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkCodeGeneratorGeneratedMethodSizeDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkCodeGeneratorSourcecodeSizeDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkCodeGeneratorSourcecodeSizeDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkDagSchedulerJobsActiveDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkDagSchedulerJobsActiveDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkDagSchedulerJobsAllDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkDagSchedulerJobsAllDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkDagSchedulerStagesFailedDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkDagSchedulerStagesFailedDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkDagSchedulerStagesRunningDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkDagSchedulerStagesRunningDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkDagSchedulerStagesWaitingDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkDagSchedulerStagesWaitingDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkDatabricksDirectoryCommitAutoVacuumCountDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkDatabricksDirectoryCommitAutoVacuumCountDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkDatabricksDirectoryCommitDeletedFilesFilteredDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkDatabricksDirectoryCommitDeletedFilesFilteredDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkDatabricksDirectoryCommitFilterListingCountDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkDatabricksDirectoryCommitFilterListingCountDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkDatabricksDirectoryCommitJobCommitCompletedDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkDatabricksDirectoryCommitJobCommitCompletedDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkDatabricksDirectoryCommitMarkerReadErrorsDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkDatabricksDirectoryCommitMarkerReadErrorsDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkDatabricksDirectoryCommitMarkerRefreshCountDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkDatabricksDirectoryCommitMarkerRefreshCountDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkDatabricksDirectoryCommitMarkerRefreshErrorsDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkDatabricksDirectoryCommitMarkerRefreshErrorsDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkDatabricksDirectoryCommitMarkersReadDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkDatabricksDirectoryCommitMarkersReadDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkDatabricksDirectoryCommitRepeatedListCountDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkDatabricksDirectoryCommitRepeatedListCountDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkDatabricksDirectoryCommitUncommittedFilesFilteredDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkDatabricksDirectoryCommitUncommittedFilesFilteredDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkDatabricksDirectoryCommitUntrackedFilesFoundDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkDatabricksDirectoryCommitUntrackedFilesFoundDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkDatabricksDirectoryCommitVacuumCountDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkDatabricksDirectoryCommitVacuumCountDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkDatabricksDirectoryCommitVacuumErrorsDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkDatabricksDirectoryCommitVacuumErrorsDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkDatabricksPreemptionChecksCountDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkDatabricksPreemptionChecksCountDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkDatabricksPreemptionPoolsAutoexpiredCountDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkDatabricksPreemptionPoolsAutoexpiredCountDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkDatabricksPreemptionPoolstarvationTimeDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkDatabricksPreemptionPoolstarvationTimeDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkDatabricksPreemptionSchedulerOverheadTimeDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkDatabricksPreemptionSchedulerOverheadTimeDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkDatabricksPreemptionTaskWastedTimeDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkDatabricksPreemptionTaskWastedTimeDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkDatabricksPreemptionTasksPreemptedCountDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkDatabricksPreemptionTasksPreemptedCountDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkDatabricksTaskSchedulingLanesActivePoolsDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkDatabricksTaskSchedulingLanesActivePoolsDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkDatabricksTaskSchedulingLanesBypassLaneActivePoolsDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkDatabricksTaskSchedulingLanesBypassLaneActivePoolsDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkDatabricksTaskSchedulingLanesFastLaneActivePoolsDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkDatabricksTaskSchedulingLanesFastLaneActivePoolsDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkDatabricksTaskSchedulingLanesFinishedQueriesTotalTaskTimeDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkDatabricksTaskSchedulingLanesFinishedQueriesTotalTaskTimeDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupMarkedPoolsDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupMarkedPoolsDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupTwoPhasePoolsCleanedDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupTwoPhasePoolsCleanedDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupZombiePoolsCleanedDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupZombiePoolsCleanedDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferSuccessfulPreemptionIterationsCountDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferSuccessfulPreemptionIterationsCountDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferTasksPreemptedCountDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferTasksPreemptedCountDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferWastedTaskTimeDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferWastedTaskTimeDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationGradualDecreaseCountDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationGradualDecreaseCountDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickDropCountDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickDropCountDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickJumpCountDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickJumpCountDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationSlotsReservedDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationSlotsReservedDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkDatabricksTaskSchedulingLanesSlowLaneActivePoolsDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkDatabricksTaskSchedulingLanesSlowLaneActivePoolsDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkDatabricksTaskSchedulingLanesTotalquerygroupsfinishedDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkDatabricksTaskSchedulingLanesTotalquerygroupsfinishedDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkExecutorDiskUsedDataPoint(ts, 1, "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkExecutorDiskUsedDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "spark.executor.id-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkExecutorMaxMemoryDataPoint(ts, 1, "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkExecutorMaxMemoryDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "spark.executor.id-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkExecutorMemoryUsedDataPoint(ts, 1, "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkExecutorMemoryUsedDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "spark.executor.id-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkExecutorTotalInputBytesDataPoint(ts, 1, "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkExecutorTotalInputBytesDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "spark.executor.id-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkExecutorTotalShuffleReadDataPoint(ts, 1, "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkExecutorTotalShuffleReadDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "spark.executor.id-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkExecutorTotalShuffleWriteDataPoint(ts, 1, "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkExecutorTotalShuffleWriteDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "spark.executor.id-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkExecutorMetricsDirectPoolMemoryDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkExecutorMetricsDirectPoolMemoryDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkExecutorMetricsJvmHeapMemoryDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkExecutorMetricsJvmHeapMemoryDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkExecutorMetricsJvmOffHeapMemoryDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkExecutorMetricsJvmOffHeapMemoryDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkExecutorMetricsMajorGcCountDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkExecutorMetricsMajorGcCountDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkExecutorMetricsMajorGcTimeDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkExecutorMetricsMajorGcTimeDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkExecutorMetricsMappedPoolMemoryDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkExecutorMetricsMappedPoolMemoryDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkExecutorMetricsMinorGcCountDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkExecutorMetricsMinorGcCountDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkExecutorMetricsMinorGcTimeDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkExecutorMetricsMinorGcTimeDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkExecutorMetricsOffHeapExecutionMemoryDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkExecutorMetricsOffHeapExecutionMemoryDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkExecutorMetricsOffHeapStorageMemoryDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkExecutorMetricsOffHeapStorageMemoryDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkExecutorMetricsOffHeapUnifiedMemoryDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkExecutorMetricsOffHeapUnifiedMemoryDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkExecutorMetricsOnHeapExecutionMemoryDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkExecutorMetricsOnHeapExecutionMemoryDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkExecutorMetricsOnHeapStorageMemoryDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkExecutorMetricsOnHeapStorageMemoryDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkExecutorMetricsOnHeapUnifiedMemoryDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkExecutorMetricsOnHeapUnifiedMemoryDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkExecutorMetricsProcessTreeJvmRssMemoryDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkExecutorMetricsProcessTreeJvmRssMemoryDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkExecutorMetricsProcessTreeJvmVMemoryDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkExecutorMetricsProcessTreeJvmVMemoryDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkExecutorMetricsProcessTreeOtherRssMemoryDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkExecutorMetricsProcessTreeOtherRssMemoryDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkExecutorMetricsProcessTreeOtherVMemoryDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkExecutorMetricsProcessTreeOtherVMemoryDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkExecutorMetricsProcessTreePythonRssMemoryDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkExecutorMetricsProcessTreePythonRssMemoryDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkExecutorMetricsProcessTreePythonVMemoryDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkExecutorMetricsProcessTreePythonVMemoryDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkHiveExternalCatalogFileCacheHitsDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkHiveExternalCatalogFileCacheHitsDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkHiveExternalCatalogFilesDiscoveredDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkHiveExternalCatalogFilesDiscoveredDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkHiveExternalCatalogHiveClientCallsDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkHiveExternalCatalogHiveClientCallsDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkHiveExternalCatalogParallelListingJobsCountDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkHiveExternalCatalogParallelListingJobsCountDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkHiveExternalCatalogPartitionsFetchedDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkHiveExternalCatalogPartitionsFetchedDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkJobNumActiveStagesDataPoint(ts, 1, "attr-val", "attr-val", 1)
+			mb.RecordDatabricksSparkJobNumActiveStagesDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", 12)
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkJobNumActiveTasksDataPoint(ts, 1, "attr-val", "attr-val", 1)
+			mb.RecordDatabricksSparkJobNumActiveTasksDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", 12)
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkJobNumCompletedStagesDataPoint(ts, 1, "attr-val", "attr-val", 1)
+			mb.RecordDatabricksSparkJobNumCompletedStagesDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", 12)
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkJobNumCompletedTasksDataPoint(ts, 1, "attr-val", "attr-val", 1)
+			mb.RecordDatabricksSparkJobNumCompletedTasksDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", 12)
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkJobNumFailedStagesDataPoint(ts, 1, "attr-val", "attr-val", 1)
+			mb.RecordDatabricksSparkJobNumFailedStagesDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", 12)
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkJobNumFailedTasksDataPoint(ts, 1, "attr-val", "attr-val", 1)
+			mb.RecordDatabricksSparkJobNumFailedTasksDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", 12)
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkJobNumSkippedStagesDataPoint(ts, 1, "attr-val", "attr-val", 1)
+			mb.RecordDatabricksSparkJobNumSkippedStagesDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", 12)
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkJobNumSkippedTasksDataPoint(ts, 1, "attr-val", "attr-val", 1)
+			mb.RecordDatabricksSparkJobNumSkippedTasksDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", 12)
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkJobNumTasksDataPoint(ts, 1, "attr-val", "attr-val", 1)
+			mb.RecordDatabricksSparkJobNumTasksDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", 12)
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkJvmCPUTimeDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkJvmCPUTimeDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkLiveListenerBusEventsPostedCountDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkLiveListenerBusEventsPostedCountDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkLiveListenerBusQueueAppStatusDroppedEventsCountDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkLiveListenerBusQueueAppStatusDroppedEventsCountDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkLiveListenerBusQueueAppstatusSizeDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkLiveListenerBusQueueAppstatusSizeDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkLiveListenerBusQueueExecutorManagementDroppedEventsCountDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkLiveListenerBusQueueExecutorManagementDroppedEventsCountDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkLiveListenerBusQueueExecutormanagementSizeDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkLiveListenerBusQueueExecutormanagementSizeDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkLiveListenerBusQueueSharedDroppedEventsCountDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkLiveListenerBusQueueSharedDroppedEventsCountDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkLiveListenerBusQueueSharedSizeDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkLiveListenerBusQueueSharedSizeDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkLiveListenerBusQueueStreamsDroppedEventsCountDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkLiveListenerBusQueueStreamsDroppedEventsCountDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkLiveListenerBusQueueStreamsSizeDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkLiveListenerBusQueueStreamsSizeDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkSparkSQLOperationManagerHiveOperationsCountDataPoint(ts, 1, "attr-val", "attr-val", "attr-val", "attr-val")
+			mb.RecordDatabricksSparkSparkSQLOperationManagerHiveOperationsCountDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", "pipeline.id-val", "pipeline.name-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkStageDiskBytesSpilledDataPoint(ts, 1, "attr-val", "attr-val", 1)
+			mb.RecordDatabricksSparkStageDiskBytesSpilledDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", 12)
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkStageExecutorRunTimeDataPoint(ts, 1, "attr-val", "attr-val", 1)
+			mb.RecordDatabricksSparkStageExecutorRunTimeDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", 12)
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkStageInputBytesDataPoint(ts, 1, "attr-val", "attr-val", 1)
+			mb.RecordDatabricksSparkStageInputBytesDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", 12)
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkStageInputRecordsDataPoint(ts, 1, "attr-val", "attr-val", 1)
+			mb.RecordDatabricksSparkStageInputRecordsDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", 12)
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkStageMemoryBytesSpilledDataPoint(ts, 1, "attr-val", "attr-val", 1)
+			mb.RecordDatabricksSparkStageMemoryBytesSpilledDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", 12)
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkStageOutputBytesDataPoint(ts, 1, "attr-val", "attr-val", 1)
+			mb.RecordDatabricksSparkStageOutputBytesDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", 12)
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkStageOutputRecordsDataPoint(ts, 1, "attr-val", "attr-val", 1)
+			mb.RecordDatabricksSparkStageOutputRecordsDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val", 12)
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkTimerDagSchedulerMessageProcessingTimeDataPoint(ts, 1, "attr-val", "attr-val")
+			mb.RecordDatabricksSparkTimerDagSchedulerMessageProcessingTimeDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionStreamingQueryListenerBusTimeDataPoint(ts, 1, "attr-val", "attr-val")
+			mb.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionStreamingQueryListenerBusTimeDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionTimeDataPoint(ts, 1, "attr-val", "attr-val")
+			mb.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionTimeDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionUISQLAppStatusListenerTimeDataPoint(ts, 1, "attr-val", "attr-val")
+			mb.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionUISQLAppStatusListenerTimeDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLHiveThriftserverUIHiveThriftServer2listenerTimeDataPoint(ts, 1, "attr-val", "attr-val")
+			mb.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLHiveThriftserverUIHiveThriftServer2listenerTimeDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLSparkSessionTimeDataPoint(ts, 1, "attr-val", "attr-val")
+			mb.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLSparkSessionTimeDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLUtilExecutionListenerBusTimeDataPoint(ts, 1, "attr-val", "attr-val")
+			mb.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLUtilExecutionListenerBusTimeDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkStatusAppStatusListenerTimeDataPoint(ts, 1, "attr-val", "attr-val")
+			mb.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkStatusAppStatusListenerTimeDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkUtilProfilerEnvTimeDataPoint(ts, 1, "attr-val", "attr-val")
+			mb.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkUtilProfilerEnvTimeDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBackendDaemonDriverDataPlaneEventListenerTimeDataPoint(ts, 1, "attr-val", "attr-val")
+			mb.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBackendDaemonDriverDataPlaneEventListenerTimeDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBackendDaemonDriverDbcEventLoggingListenerTimeDataPoint(ts, 1, "attr-val", "attr-val")
+			mb.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBackendDaemonDriverDbcEventLoggingListenerTimeDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksPhotonPhotonCleanupListenerTimeDataPoint(ts, 1, "attr-val", "attr-val")
+			mb.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksPhotonPhotonCleanupListenerTimeDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSparkUtilExecutorTimeLoggingListenerTimeDataPoint(ts, 1, "attr-val", "attr-val")
+			mb.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSparkUtilExecutorTimeLoggingListenerTimeDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSparkUtilUsageLoggingListenerTimeDataPoint(ts, 1, "attr-val", "attr-val")
+			mb.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSparkUtilUsageLoggingListenerTimeDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLAdviceAdvisorListenerTimeDataPoint(ts, 1, "attr-val", "attr-val")
+			mb.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLAdviceAdvisorListenerTimeDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLDebuggerQueryWatchdogListenerTimeDataPoint(ts, 1, "attr-val", "attr-val")
+			mb.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLDebuggerQueryWatchdogListenerTimeDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLExecutionUIIoCacheListenerTimeDataPoint(ts, 1, "attr-val", "attr-val")
+			mb.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLExecutionUIIoCacheListenerTimeDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLIoCachingRepeatedReadsEstimatorTimeDataPoint(ts, 1, "attr-val", "attr-val")
+			mb.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLIoCachingRepeatedReadsEstimatorTimeDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkTimerLiveListenerBusQueueAppStatusListenerProcessingTimeDataPoint(ts, 1, "attr-val", "attr-val")
+			mb.RecordDatabricksSparkTimerLiveListenerBusQueueAppStatusListenerProcessingTimeDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkTimerLiveListenerBusQueueExecutorManagementListenerProcessingTimeDataPoint(ts, 1, "attr-val", "attr-val")
+			mb.RecordDatabricksSparkTimerLiveListenerBusQueueExecutorManagementListenerProcessingTimeDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkTimerLiveListenerBusQueueSharedListenerProcessingTimeDataPoint(ts, 1, "attr-val", "attr-val")
+			mb.RecordDatabricksSparkTimerLiveListenerBusQueueSharedListenerProcessingTimeDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksSparkTimerLiveListenerBusQueueStreamsListenerProcessingTimeDataPoint(ts, 1, "attr-val", "attr-val")
+			mb.RecordDatabricksSparkTimerLiveListenerBusQueueStreamsListenerProcessingTimeDataPoint(ts, 1, "cluster.id-val", "spark.app.id-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksTasksRunDurationDataPoint(ts, 1, 1, "attr-val")
+			mb.RecordDatabricksTasksRunDurationDataPoint(ts, 1, 6, "task.id-val")
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordDatabricksTasksScheduleStatusDataPoint(ts, 1, 1, "attr-val", AttributeTaskType(1))
+			mb.RecordDatabricksTasksScheduleStatusDataPoint(ts, 1, 6, "task.id-val", AttributeTaskTypeNotebookTask)
 
-			metrics := mb.Emit(WithDatabricksInstanceName("attr-val"), WithSparkAppID("attr-val"), WithSparkClusterID("attr-val"), WithSparkClusterName("attr-val"))
+			res := pcommon.NewResource()
+			res.Attributes().PutStr("k1", "v1")
+			metrics := mb.Emit(WithResource(res))
 
 			if test.configSet == testSetNone {
 				assert.Equal(t, 0, metrics.ResourceMetrics().Len())
@@ -623,39 +625,7 @@ func TestMetricsBuilder(t *testing.T) {
 
 			assert.Equal(t, 1, metrics.ResourceMetrics().Len())
 			rm := metrics.ResourceMetrics().At(0)
-			attrCount := 0
-			enabledAttrCount := 0
-			attrVal, ok := rm.Resource().Attributes().Get("databricks.instance.name")
-			attrCount++
-			assert.Equal(t, mb.resourceAttributesConfig.DatabricksInstanceName.Enabled, ok)
-			if mb.resourceAttributesConfig.DatabricksInstanceName.Enabled {
-				enabledAttrCount++
-				assert.EqualValues(t, "attr-val", attrVal.Str())
-			}
-			attrVal, ok = rm.Resource().Attributes().Get("spark.app.id")
-			attrCount++
-			assert.Equal(t, mb.resourceAttributesConfig.SparkAppID.Enabled, ok)
-			if mb.resourceAttributesConfig.SparkAppID.Enabled {
-				enabledAttrCount++
-				assert.EqualValues(t, "attr-val", attrVal.Str())
-			}
-			attrVal, ok = rm.Resource().Attributes().Get("spark.cluster.id")
-			attrCount++
-			assert.Equal(t, mb.resourceAttributesConfig.SparkClusterID.Enabled, ok)
-			if mb.resourceAttributesConfig.SparkClusterID.Enabled {
-				enabledAttrCount++
-				assert.EqualValues(t, "attr-val", attrVal.Str())
-			}
-			attrVal, ok = rm.Resource().Attributes().Get("spark.cluster.name")
-			attrCount++
-			assert.Equal(t, mb.resourceAttributesConfig.SparkClusterName.Enabled, ok)
-			if mb.resourceAttributesConfig.SparkClusterName.Enabled {
-				enabledAttrCount++
-				assert.EqualValues(t, "attr-val", attrVal.Str())
-			}
-			assert.Equal(t, enabledAttrCount, rm.Resource().Attributes().Len())
-			assert.Equal(t, attrCount, 4)
-
+			assert.Equal(t, res, rm.Resource())
 			assert.Equal(t, 1, rm.ScopeMetrics().Len())
 			ms := rm.ScopeMetrics().At(0).Metrics()
 			if test.configSet == testSetDefault {
@@ -693,7 +663,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("job.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, 1, attrVal.Int())
+					assert.EqualValues(t, 6, attrVal.Int())
 				case "databricks.jobs.schedule.status":
 					assert.False(t, validatedMetrics["databricks.jobs.schedule.status"], "Found a duplicate in the metrics slice: databricks.jobs.schedule.status")
 					validatedMetrics["databricks.jobs.schedule.status"] = true
@@ -708,7 +678,7 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("job.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, 1, attrVal.Int())
+					assert.EqualValues(t, 6, attrVal.Int())
 				case "databricks.jobs.total":
 					assert.False(t, validatedMetrics["databricks.jobs.total"], "Found a duplicate in the metrics slice: databricks.jobs.total")
 					validatedMetrics["databricks.jobs.total"] = true
@@ -735,16 +705,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.block_manager.memory.max":
 					assert.False(t, validatedMetrics["databricks.spark.block_manager.memory.max"], "Found a duplicate in the metrics slice: databricks.spark.block_manager.memory.max")
 					validatedMetrics["databricks.spark.block_manager.memory.max"] = true
@@ -759,16 +729,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.block_manager.memory.off_heap.max":
 					assert.False(t, validatedMetrics["databricks.spark.block_manager.memory.off_heap.max"], "Found a duplicate in the metrics slice: databricks.spark.block_manager.memory.off_heap.max")
 					validatedMetrics["databricks.spark.block_manager.memory.off_heap.max"] = true
@@ -783,16 +753,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.block_manager.memory.off_heap.used":
 					assert.False(t, validatedMetrics["databricks.spark.block_manager.memory.off_heap.used"], "Found a duplicate in the metrics slice: databricks.spark.block_manager.memory.off_heap.used")
 					validatedMetrics["databricks.spark.block_manager.memory.off_heap.used"] = true
@@ -807,16 +777,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.block_manager.memory.on_heap.max":
 					assert.False(t, validatedMetrics["databricks.spark.block_manager.memory.on_heap.max"], "Found a duplicate in the metrics slice: databricks.spark.block_manager.memory.on_heap.max")
 					validatedMetrics["databricks.spark.block_manager.memory.on_heap.max"] = true
@@ -831,16 +801,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.block_manager.memory.on_heap.used":
 					assert.False(t, validatedMetrics["databricks.spark.block_manager.memory.on_heap.used"], "Found a duplicate in the metrics slice: databricks.spark.block_manager.memory.on_heap.used")
 					validatedMetrics["databricks.spark.block_manager.memory.on_heap.used"] = true
@@ -855,16 +825,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.block_manager.memory.remaining":
 					assert.False(t, validatedMetrics["databricks.spark.block_manager.memory.remaining"], "Found a duplicate in the metrics slice: databricks.spark.block_manager.memory.remaining")
 					validatedMetrics["databricks.spark.block_manager.memory.remaining"] = true
@@ -879,16 +849,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.block_manager.memory.remaining.off_heap":
 					assert.False(t, validatedMetrics["databricks.spark.block_manager.memory.remaining.off_heap"], "Found a duplicate in the metrics slice: databricks.spark.block_manager.memory.remaining.off_heap")
 					validatedMetrics["databricks.spark.block_manager.memory.remaining.off_heap"] = true
@@ -903,16 +873,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.block_manager.memory.remaining.on_heap":
 					assert.False(t, validatedMetrics["databricks.spark.block_manager.memory.remaining.on_heap"], "Found a duplicate in the metrics slice: databricks.spark.block_manager.memory.remaining.on_heap")
 					validatedMetrics["databricks.spark.block_manager.memory.remaining.on_heap"] = true
@@ -927,16 +897,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.block_manager.memory.used":
 					assert.False(t, validatedMetrics["databricks.spark.block_manager.memory.used"], "Found a duplicate in the metrics slice: databricks.spark.block_manager.memory.used")
 					validatedMetrics["databricks.spark.block_manager.memory.used"] = true
@@ -951,16 +921,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.code_generator.compilation.time":
 					assert.False(t, validatedMetrics["databricks.spark.code_generator.compilation.time"], "Found a duplicate in the metrics slice: databricks.spark.code_generator.compilation.time")
 					validatedMetrics["databricks.spark.code_generator.compilation.time"] = true
@@ -975,16 +945,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.code_generator.generated_class_size":
 					assert.False(t, validatedMetrics["databricks.spark.code_generator.generated_class_size"], "Found a duplicate in the metrics slice: databricks.spark.code_generator.generated_class_size")
 					validatedMetrics["databricks.spark.code_generator.generated_class_size"] = true
@@ -999,16 +969,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.code_generator.generated_method_size":
 					assert.False(t, validatedMetrics["databricks.spark.code_generator.generated_method_size"], "Found a duplicate in the metrics slice: databricks.spark.code_generator.generated_method_size")
 					validatedMetrics["databricks.spark.code_generator.generated_method_size"] = true
@@ -1023,16 +993,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.code_generator.sourcecode_size":
 					assert.False(t, validatedMetrics["databricks.spark.code_generator.sourcecode_size"], "Found a duplicate in the metrics slice: databricks.spark.code_generator.sourcecode_size")
 					validatedMetrics["databricks.spark.code_generator.sourcecode_size"] = true
@@ -1047,16 +1017,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.dag_scheduler.jobs.active":
 					assert.False(t, validatedMetrics["databricks.spark.dag_scheduler.jobs.active"], "Found a duplicate in the metrics slice: databricks.spark.dag_scheduler.jobs.active")
 					validatedMetrics["databricks.spark.dag_scheduler.jobs.active"] = true
@@ -1071,16 +1041,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.dag_scheduler.jobs.all":
 					assert.False(t, validatedMetrics["databricks.spark.dag_scheduler.jobs.all"], "Found a duplicate in the metrics slice: databricks.spark.dag_scheduler.jobs.all")
 					validatedMetrics["databricks.spark.dag_scheduler.jobs.all"] = true
@@ -1095,16 +1065,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.dag_scheduler.stages.failed":
 					assert.False(t, validatedMetrics["databricks.spark.dag_scheduler.stages.failed"], "Found a duplicate in the metrics slice: databricks.spark.dag_scheduler.stages.failed")
 					validatedMetrics["databricks.spark.dag_scheduler.stages.failed"] = true
@@ -1119,16 +1089,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.dag_scheduler.stages.running":
 					assert.False(t, validatedMetrics["databricks.spark.dag_scheduler.stages.running"], "Found a duplicate in the metrics slice: databricks.spark.dag_scheduler.stages.running")
 					validatedMetrics["databricks.spark.dag_scheduler.stages.running"] = true
@@ -1143,16 +1113,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.dag_scheduler.stages.waiting":
 					assert.False(t, validatedMetrics["databricks.spark.dag_scheduler.stages.waiting"], "Found a duplicate in the metrics slice: databricks.spark.dag_scheduler.stages.waiting")
 					validatedMetrics["databricks.spark.dag_scheduler.stages.waiting"] = true
@@ -1167,16 +1137,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.databricks.directory_commit.auto_vacuum.count":
 					assert.False(t, validatedMetrics["databricks.spark.databricks.directory_commit.auto_vacuum.count"], "Found a duplicate in the metrics slice: databricks.spark.databricks.directory_commit.auto_vacuum.count")
 					validatedMetrics["databricks.spark.databricks.directory_commit.auto_vacuum.count"] = true
@@ -1193,16 +1163,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.databricks.directory_commit.deleted_files_filtered":
 					assert.False(t, validatedMetrics["databricks.spark.databricks.directory_commit.deleted_files_filtered"], "Found a duplicate in the metrics slice: databricks.spark.databricks.directory_commit.deleted_files_filtered")
 					validatedMetrics["databricks.spark.databricks.directory_commit.deleted_files_filtered"] = true
@@ -1219,16 +1189,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.databricks.directory_commit.filter_listing.count":
 					assert.False(t, validatedMetrics["databricks.spark.databricks.directory_commit.filter_listing.count"], "Found a duplicate in the metrics slice: databricks.spark.databricks.directory_commit.filter_listing.count")
 					validatedMetrics["databricks.spark.databricks.directory_commit.filter_listing.count"] = true
@@ -1245,16 +1215,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.databricks.directory_commit.job_commit_completed":
 					assert.False(t, validatedMetrics["databricks.spark.databricks.directory_commit.job_commit_completed"], "Found a duplicate in the metrics slice: databricks.spark.databricks.directory_commit.job_commit_completed")
 					validatedMetrics["databricks.spark.databricks.directory_commit.job_commit_completed"] = true
@@ -1271,16 +1241,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.databricks.directory_commit.marker_read.errors":
 					assert.False(t, validatedMetrics["databricks.spark.databricks.directory_commit.marker_read.errors"], "Found a duplicate in the metrics slice: databricks.spark.databricks.directory_commit.marker_read.errors")
 					validatedMetrics["databricks.spark.databricks.directory_commit.marker_read.errors"] = true
@@ -1297,16 +1267,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.databricks.directory_commit.marker_refresh.count":
 					assert.False(t, validatedMetrics["databricks.spark.databricks.directory_commit.marker_refresh.count"], "Found a duplicate in the metrics slice: databricks.spark.databricks.directory_commit.marker_refresh.count")
 					validatedMetrics["databricks.spark.databricks.directory_commit.marker_refresh.count"] = true
@@ -1323,16 +1293,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.databricks.directory_commit.marker_refresh.errors":
 					assert.False(t, validatedMetrics["databricks.spark.databricks.directory_commit.marker_refresh.errors"], "Found a duplicate in the metrics slice: databricks.spark.databricks.directory_commit.marker_refresh.errors")
 					validatedMetrics["databricks.spark.databricks.directory_commit.marker_refresh.errors"] = true
@@ -1349,16 +1319,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.databricks.directory_commit.markers.read":
 					assert.False(t, validatedMetrics["databricks.spark.databricks.directory_commit.markers.read"], "Found a duplicate in the metrics slice: databricks.spark.databricks.directory_commit.markers.read")
 					validatedMetrics["databricks.spark.databricks.directory_commit.markers.read"] = true
@@ -1375,16 +1345,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.databricks.directory_commit.repeated_list.count":
 					assert.False(t, validatedMetrics["databricks.spark.databricks.directory_commit.repeated_list.count"], "Found a duplicate in the metrics slice: databricks.spark.databricks.directory_commit.repeated_list.count")
 					validatedMetrics["databricks.spark.databricks.directory_commit.repeated_list.count"] = true
@@ -1401,16 +1371,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.databricks.directory_commit.uncommitted_files.filtered":
 					assert.False(t, validatedMetrics["databricks.spark.databricks.directory_commit.uncommitted_files.filtered"], "Found a duplicate in the metrics slice: databricks.spark.databricks.directory_commit.uncommitted_files.filtered")
 					validatedMetrics["databricks.spark.databricks.directory_commit.uncommitted_files.filtered"] = true
@@ -1427,16 +1397,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.databricks.directory_commit.untracked_files.found":
 					assert.False(t, validatedMetrics["databricks.spark.databricks.directory_commit.untracked_files.found"], "Found a duplicate in the metrics slice: databricks.spark.databricks.directory_commit.untracked_files.found")
 					validatedMetrics["databricks.spark.databricks.directory_commit.untracked_files.found"] = true
@@ -1453,16 +1423,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.databricks.directory_commit.vacuum.count":
 					assert.False(t, validatedMetrics["databricks.spark.databricks.directory_commit.vacuum.count"], "Found a duplicate in the metrics slice: databricks.spark.databricks.directory_commit.vacuum.count")
 					validatedMetrics["databricks.spark.databricks.directory_commit.vacuum.count"] = true
@@ -1479,16 +1449,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.databricks.directory_commit.vacuum.errors":
 					assert.False(t, validatedMetrics["databricks.spark.databricks.directory_commit.vacuum.errors"], "Found a duplicate in the metrics slice: databricks.spark.databricks.directory_commit.vacuum.errors")
 					validatedMetrics["databricks.spark.databricks.directory_commit.vacuum.errors"] = true
@@ -1505,16 +1475,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.databricks.preemption.checks.count":
 					assert.False(t, validatedMetrics["databricks.spark.databricks.preemption.checks.count"], "Found a duplicate in the metrics slice: databricks.spark.databricks.preemption.checks.count")
 					validatedMetrics["databricks.spark.databricks.preemption.checks.count"] = true
@@ -1531,16 +1501,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.databricks.preemption.pools_autoexpired.count":
 					assert.False(t, validatedMetrics["databricks.spark.databricks.preemption.pools_autoexpired.count"], "Found a duplicate in the metrics slice: databricks.spark.databricks.preemption.pools_autoexpired.count")
 					validatedMetrics["databricks.spark.databricks.preemption.pools_autoexpired.count"] = true
@@ -1557,16 +1527,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.databricks.preemption.poolstarvation.time":
 					assert.False(t, validatedMetrics["databricks.spark.databricks.preemption.poolstarvation.time"], "Found a duplicate in the metrics slice: databricks.spark.databricks.preemption.poolstarvation.time")
 					validatedMetrics["databricks.spark.databricks.preemption.poolstarvation.time"] = true
@@ -1583,16 +1553,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.databricks.preemption.scheduler_overhead.time":
 					assert.False(t, validatedMetrics["databricks.spark.databricks.preemption.scheduler_overhead.time"], "Found a duplicate in the metrics slice: databricks.spark.databricks.preemption.scheduler_overhead.time")
 					validatedMetrics["databricks.spark.databricks.preemption.scheduler_overhead.time"] = true
@@ -1609,16 +1579,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.databricks.preemption.task_wasted.time":
 					assert.False(t, validatedMetrics["databricks.spark.databricks.preemption.task_wasted.time"], "Found a duplicate in the metrics slice: databricks.spark.databricks.preemption.task_wasted.time")
 					validatedMetrics["databricks.spark.databricks.preemption.task_wasted.time"] = true
@@ -1635,16 +1605,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.databricks.preemption.tasks_preempted.count":
 					assert.False(t, validatedMetrics["databricks.spark.databricks.preemption.tasks_preempted.count"], "Found a duplicate in the metrics slice: databricks.spark.databricks.preemption.tasks_preempted.count")
 					validatedMetrics["databricks.spark.databricks.preemption.tasks_preempted.count"] = true
@@ -1661,16 +1631,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.databricks.task_scheduling_lanes.active_pools":
 					assert.False(t, validatedMetrics["databricks.spark.databricks.task_scheduling_lanes.active_pools"], "Found a duplicate in the metrics slice: databricks.spark.databricks.task_scheduling_lanes.active_pools")
 					validatedMetrics["databricks.spark.databricks.task_scheduling_lanes.active_pools"] = true
@@ -1687,16 +1657,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.databricks.task_scheduling_lanes.bypass_lane_active_pools":
 					assert.False(t, validatedMetrics["databricks.spark.databricks.task_scheduling_lanes.bypass_lane_active_pools"], "Found a duplicate in the metrics slice: databricks.spark.databricks.task_scheduling_lanes.bypass_lane_active_pools")
 					validatedMetrics["databricks.spark.databricks.task_scheduling_lanes.bypass_lane_active_pools"] = true
@@ -1713,16 +1683,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.databricks.task_scheduling_lanes.fast_lane_active_pools":
 					assert.False(t, validatedMetrics["databricks.spark.databricks.task_scheduling_lanes.fast_lane_active_pools"], "Found a duplicate in the metrics slice: databricks.spark.databricks.task_scheduling_lanes.fast_lane_active_pools")
 					validatedMetrics["databricks.spark.databricks.task_scheduling_lanes.fast_lane_active_pools"] = true
@@ -1739,16 +1709,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.databricks.task_scheduling_lanes.finished_queries_total_task.time":
 					assert.False(t, validatedMetrics["databricks.spark.databricks.task_scheduling_lanes.finished_queries_total_task.time"], "Found a duplicate in the metrics slice: databricks.spark.databricks.task_scheduling_lanes.finished_queries_total_task.time")
 					validatedMetrics["databricks.spark.databricks.task_scheduling_lanes.finished_queries_total_task.time"] = true
@@ -1765,16 +1735,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.databricks.task_scheduling_lanes.lane_cleanup.marked_pools":
 					assert.False(t, validatedMetrics["databricks.spark.databricks.task_scheduling_lanes.lane_cleanup.marked_pools"], "Found a duplicate in the metrics slice: databricks.spark.databricks.task_scheduling_lanes.lane_cleanup.marked_pools")
 					validatedMetrics["databricks.spark.databricks.task_scheduling_lanes.lane_cleanup.marked_pools"] = true
@@ -1791,16 +1761,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.databricks.task_scheduling_lanes.lane_cleanup.two_phase_pools_cleaned":
 					assert.False(t, validatedMetrics["databricks.spark.databricks.task_scheduling_lanes.lane_cleanup.two_phase_pools_cleaned"], "Found a duplicate in the metrics slice: databricks.spark.databricks.task_scheduling_lanes.lane_cleanup.two_phase_pools_cleaned")
 					validatedMetrics["databricks.spark.databricks.task_scheduling_lanes.lane_cleanup.two_phase_pools_cleaned"] = true
@@ -1817,16 +1787,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.databricks.task_scheduling_lanes.lane_cleanup.zombie_pools_cleaned":
 					assert.False(t, validatedMetrics["databricks.spark.databricks.task_scheduling_lanes.lane_cleanup.zombie_pools_cleaned"], "Found a duplicate in the metrics slice: databricks.spark.databricks.task_scheduling_lanes.lane_cleanup.zombie_pools_cleaned")
 					validatedMetrics["databricks.spark.databricks.task_scheduling_lanes.lane_cleanup.zombie_pools_cleaned"] = true
@@ -1843,16 +1813,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.databricks.task_scheduling_lanes.preemption.slot_transfer_successful_preemption_iterations.count":
 					assert.False(t, validatedMetrics["databricks.spark.databricks.task_scheduling_lanes.preemption.slot_transfer_successful_preemption_iterations.count"], "Found a duplicate in the metrics slice: databricks.spark.databricks.task_scheduling_lanes.preemption.slot_transfer_successful_preemption_iterations.count")
 					validatedMetrics["databricks.spark.databricks.task_scheduling_lanes.preemption.slot_transfer_successful_preemption_iterations.count"] = true
@@ -1869,16 +1839,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.databricks.task_scheduling_lanes.preemption.slot_transfer_tasks_preempted.count":
 					assert.False(t, validatedMetrics["databricks.spark.databricks.task_scheduling_lanes.preemption.slot_transfer_tasks_preempted.count"], "Found a duplicate in the metrics slice: databricks.spark.databricks.task_scheduling_lanes.preemption.slot_transfer_tasks_preempted.count")
 					validatedMetrics["databricks.spark.databricks.task_scheduling_lanes.preemption.slot_transfer_tasks_preempted.count"] = true
@@ -1895,16 +1865,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.databricks.task_scheduling_lanes.preemption.slot_transfer_wasted_task.time":
 					assert.False(t, validatedMetrics["databricks.spark.databricks.task_scheduling_lanes.preemption.slot_transfer_wasted_task.time"], "Found a duplicate in the metrics slice: databricks.spark.databricks.task_scheduling_lanes.preemption.slot_transfer_wasted_task.time")
 					validatedMetrics["databricks.spark.databricks.task_scheduling_lanes.preemption.slot_transfer_wasted_task.time"] = true
@@ -1921,16 +1891,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.databricks.task_scheduling_lanes.slot_reservation.gradual_decrease.count":
 					assert.False(t, validatedMetrics["databricks.spark.databricks.task_scheduling_lanes.slot_reservation.gradual_decrease.count"], "Found a duplicate in the metrics slice: databricks.spark.databricks.task_scheduling_lanes.slot_reservation.gradual_decrease.count")
 					validatedMetrics["databricks.spark.databricks.task_scheduling_lanes.slot_reservation.gradual_decrease.count"] = true
@@ -1947,16 +1917,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.databricks.task_scheduling_lanes.slot_reservation.quick_drop.count":
 					assert.False(t, validatedMetrics["databricks.spark.databricks.task_scheduling_lanes.slot_reservation.quick_drop.count"], "Found a duplicate in the metrics slice: databricks.spark.databricks.task_scheduling_lanes.slot_reservation.quick_drop.count")
 					validatedMetrics["databricks.spark.databricks.task_scheduling_lanes.slot_reservation.quick_drop.count"] = true
@@ -1973,16 +1943,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.databricks.task_scheduling_lanes.slot_reservation.quick_jump.count":
 					assert.False(t, validatedMetrics["databricks.spark.databricks.task_scheduling_lanes.slot_reservation.quick_jump.count"], "Found a duplicate in the metrics slice: databricks.spark.databricks.task_scheduling_lanes.slot_reservation.quick_jump.count")
 					validatedMetrics["databricks.spark.databricks.task_scheduling_lanes.slot_reservation.quick_jump.count"] = true
@@ -1999,16 +1969,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.databricks.task_scheduling_lanes.slot_reservation.slots_reserved":
 					assert.False(t, validatedMetrics["databricks.spark.databricks.task_scheduling_lanes.slot_reservation.slots_reserved"], "Found a duplicate in the metrics slice: databricks.spark.databricks.task_scheduling_lanes.slot_reservation.slots_reserved")
 					validatedMetrics["databricks.spark.databricks.task_scheduling_lanes.slot_reservation.slots_reserved"] = true
@@ -2025,16 +1995,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.databricks.task_scheduling_lanes.slow_lane_active_pools":
 					assert.False(t, validatedMetrics["databricks.spark.databricks.task_scheduling_lanes.slow_lane_active_pools"], "Found a duplicate in the metrics slice: databricks.spark.databricks.task_scheduling_lanes.slow_lane_active_pools")
 					validatedMetrics["databricks.spark.databricks.task_scheduling_lanes.slow_lane_active_pools"] = true
@@ -2051,16 +2021,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.databricks.task_scheduling_lanes.totalquerygroupsfinished":
 					assert.False(t, validatedMetrics["databricks.spark.databricks.task_scheduling_lanes.totalquerygroupsfinished"], "Found a duplicate in the metrics slice: databricks.spark.databricks.task_scheduling_lanes.totalquerygroupsfinished")
 					validatedMetrics["databricks.spark.databricks.task_scheduling_lanes.totalquerygroupsfinished"] = true
@@ -2077,16 +2047,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.executor.disk_used":
 					assert.False(t, validatedMetrics["databricks.spark.executor.disk_used"], "Found a duplicate in the metrics slice: databricks.spark.executor.disk_used")
 					validatedMetrics["databricks.spark.executor.disk_used"] = true
@@ -2101,13 +2071,13 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.executor.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.executor.id-val", attrVal.Str())
 				case "databricks.spark.executor.max_memory":
 					assert.False(t, validatedMetrics["databricks.spark.executor.max_memory"], "Found a duplicate in the metrics slice: databricks.spark.executor.max_memory")
 					validatedMetrics["databricks.spark.executor.max_memory"] = true
@@ -2122,13 +2092,13 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.executor.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.executor.id-val", attrVal.Str())
 				case "databricks.spark.executor.memory_used":
 					assert.False(t, validatedMetrics["databricks.spark.executor.memory_used"], "Found a duplicate in the metrics slice: databricks.spark.executor.memory_used")
 					validatedMetrics["databricks.spark.executor.memory_used"] = true
@@ -2143,13 +2113,13 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.executor.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.executor.id-val", attrVal.Str())
 				case "databricks.spark.executor.total_input_bytes":
 					assert.False(t, validatedMetrics["databricks.spark.executor.total_input_bytes"], "Found a duplicate in the metrics slice: databricks.spark.executor.total_input_bytes")
 					validatedMetrics["databricks.spark.executor.total_input_bytes"] = true
@@ -2166,13 +2136,13 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.executor.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.executor.id-val", attrVal.Str())
 				case "databricks.spark.executor.total_shuffle_read":
 					assert.False(t, validatedMetrics["databricks.spark.executor.total_shuffle_read"], "Found a duplicate in the metrics slice: databricks.spark.executor.total_shuffle_read")
 					validatedMetrics["databricks.spark.executor.total_shuffle_read"] = true
@@ -2189,13 +2159,13 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.executor.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.executor.id-val", attrVal.Str())
 				case "databricks.spark.executor.total_shuffle_write":
 					assert.False(t, validatedMetrics["databricks.spark.executor.total_shuffle_write"], "Found a duplicate in the metrics slice: databricks.spark.executor.total_shuffle_write")
 					validatedMetrics["databricks.spark.executor.total_shuffle_write"] = true
@@ -2212,13 +2182,13 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.executor.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.executor.id-val", attrVal.Str())
 				case "databricks.spark.executor_metrics.direct_pool.memory":
 					assert.False(t, validatedMetrics["databricks.spark.executor_metrics.direct_pool.memory"], "Found a duplicate in the metrics slice: databricks.spark.executor_metrics.direct_pool.memory")
 					validatedMetrics["databricks.spark.executor_metrics.direct_pool.memory"] = true
@@ -2233,16 +2203,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.executor_metrics.jvm.heap.memory":
 					assert.False(t, validatedMetrics["databricks.spark.executor_metrics.jvm.heap.memory"], "Found a duplicate in the metrics slice: databricks.spark.executor_metrics.jvm.heap.memory")
 					validatedMetrics["databricks.spark.executor_metrics.jvm.heap.memory"] = true
@@ -2257,16 +2227,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.executor_metrics.jvm.off_heap.memory":
 					assert.False(t, validatedMetrics["databricks.spark.executor_metrics.jvm.off_heap.memory"], "Found a duplicate in the metrics slice: databricks.spark.executor_metrics.jvm.off_heap.memory")
 					validatedMetrics["databricks.spark.executor_metrics.jvm.off_heap.memory"] = true
@@ -2281,16 +2251,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.executor_metrics.major_gc.count":
 					assert.False(t, validatedMetrics["databricks.spark.executor_metrics.major_gc.count"], "Found a duplicate in the metrics slice: databricks.spark.executor_metrics.major_gc.count")
 					validatedMetrics["databricks.spark.executor_metrics.major_gc.count"] = true
@@ -2305,16 +2275,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.executor_metrics.major_gc.time":
 					assert.False(t, validatedMetrics["databricks.spark.executor_metrics.major_gc.time"], "Found a duplicate in the metrics slice: databricks.spark.executor_metrics.major_gc.time")
 					validatedMetrics["databricks.spark.executor_metrics.major_gc.time"] = true
@@ -2329,16 +2299,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.executor_metrics.mapped_pool.memory":
 					assert.False(t, validatedMetrics["databricks.spark.executor_metrics.mapped_pool.memory"], "Found a duplicate in the metrics slice: databricks.spark.executor_metrics.mapped_pool.memory")
 					validatedMetrics["databricks.spark.executor_metrics.mapped_pool.memory"] = true
@@ -2353,16 +2323,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.executor_metrics.minor_gc.count":
 					assert.False(t, validatedMetrics["databricks.spark.executor_metrics.minor_gc.count"], "Found a duplicate in the metrics slice: databricks.spark.executor_metrics.minor_gc.count")
 					validatedMetrics["databricks.spark.executor_metrics.minor_gc.count"] = true
@@ -2377,16 +2347,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.executor_metrics.minor_gc.time":
 					assert.False(t, validatedMetrics["databricks.spark.executor_metrics.minor_gc.time"], "Found a duplicate in the metrics slice: databricks.spark.executor_metrics.minor_gc.time")
 					validatedMetrics["databricks.spark.executor_metrics.minor_gc.time"] = true
@@ -2401,16 +2371,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.executor_metrics.off_heap.execution.memory":
 					assert.False(t, validatedMetrics["databricks.spark.executor_metrics.off_heap.execution.memory"], "Found a duplicate in the metrics slice: databricks.spark.executor_metrics.off_heap.execution.memory")
 					validatedMetrics["databricks.spark.executor_metrics.off_heap.execution.memory"] = true
@@ -2425,16 +2395,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.executor_metrics.off_heap.storage.memory":
 					assert.False(t, validatedMetrics["databricks.spark.executor_metrics.off_heap.storage.memory"], "Found a duplicate in the metrics slice: databricks.spark.executor_metrics.off_heap.storage.memory")
 					validatedMetrics["databricks.spark.executor_metrics.off_heap.storage.memory"] = true
@@ -2449,16 +2419,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.executor_metrics.off_heap.unified.memory":
 					assert.False(t, validatedMetrics["databricks.spark.executor_metrics.off_heap.unified.memory"], "Found a duplicate in the metrics slice: databricks.spark.executor_metrics.off_heap.unified.memory")
 					validatedMetrics["databricks.spark.executor_metrics.off_heap.unified.memory"] = true
@@ -2473,16 +2443,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.executor_metrics.on_heap.execution.memory":
 					assert.False(t, validatedMetrics["databricks.spark.executor_metrics.on_heap.execution.memory"], "Found a duplicate in the metrics slice: databricks.spark.executor_metrics.on_heap.execution.memory")
 					validatedMetrics["databricks.spark.executor_metrics.on_heap.execution.memory"] = true
@@ -2497,16 +2467,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.executor_metrics.on_heap.storage.memory":
 					assert.False(t, validatedMetrics["databricks.spark.executor_metrics.on_heap.storage.memory"], "Found a duplicate in the metrics slice: databricks.spark.executor_metrics.on_heap.storage.memory")
 					validatedMetrics["databricks.spark.executor_metrics.on_heap.storage.memory"] = true
@@ -2521,16 +2491,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.executor_metrics.on_heap.unified.memory":
 					assert.False(t, validatedMetrics["databricks.spark.executor_metrics.on_heap.unified.memory"], "Found a duplicate in the metrics slice: databricks.spark.executor_metrics.on_heap.unified.memory")
 					validatedMetrics["databricks.spark.executor_metrics.on_heap.unified.memory"] = true
@@ -2545,16 +2515,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.executor_metrics.process_tree.jvm_rss.memory":
 					assert.False(t, validatedMetrics["databricks.spark.executor_metrics.process_tree.jvm_rss.memory"], "Found a duplicate in the metrics slice: databricks.spark.executor_metrics.process_tree.jvm_rss.memory")
 					validatedMetrics["databricks.spark.executor_metrics.process_tree.jvm_rss.memory"] = true
@@ -2569,16 +2539,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.executor_metrics.process_tree.jvm_v.memory":
 					assert.False(t, validatedMetrics["databricks.spark.executor_metrics.process_tree.jvm_v.memory"], "Found a duplicate in the metrics slice: databricks.spark.executor_metrics.process_tree.jvm_v.memory")
 					validatedMetrics["databricks.spark.executor_metrics.process_tree.jvm_v.memory"] = true
@@ -2593,16 +2563,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.executor_metrics.process_tree.other_rss.memory":
 					assert.False(t, validatedMetrics["databricks.spark.executor_metrics.process_tree.other_rss.memory"], "Found a duplicate in the metrics slice: databricks.spark.executor_metrics.process_tree.other_rss.memory")
 					validatedMetrics["databricks.spark.executor_metrics.process_tree.other_rss.memory"] = true
@@ -2617,16 +2587,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.executor_metrics.process_tree.other_v.memory":
 					assert.False(t, validatedMetrics["databricks.spark.executor_metrics.process_tree.other_v.memory"], "Found a duplicate in the metrics slice: databricks.spark.executor_metrics.process_tree.other_v.memory")
 					validatedMetrics["databricks.spark.executor_metrics.process_tree.other_v.memory"] = true
@@ -2641,16 +2611,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.executor_metrics.process_tree.python_rss.memory":
 					assert.False(t, validatedMetrics["databricks.spark.executor_metrics.process_tree.python_rss.memory"], "Found a duplicate in the metrics slice: databricks.spark.executor_metrics.process_tree.python_rss.memory")
 					validatedMetrics["databricks.spark.executor_metrics.process_tree.python_rss.memory"] = true
@@ -2665,16 +2635,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.executor_metrics.process_tree.python_v.memory":
 					assert.False(t, validatedMetrics["databricks.spark.executor_metrics.process_tree.python_v.memory"], "Found a duplicate in the metrics slice: databricks.spark.executor_metrics.process_tree.python_v.memory")
 					validatedMetrics["databricks.spark.executor_metrics.process_tree.python_v.memory"] = true
@@ -2689,16 +2659,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.hive_external_catalog.file_cache.hits":
 					assert.False(t, validatedMetrics["databricks.spark.hive_external_catalog.file_cache.hits"], "Found a duplicate in the metrics slice: databricks.spark.hive_external_catalog.file_cache.hits")
 					validatedMetrics["databricks.spark.hive_external_catalog.file_cache.hits"] = true
@@ -2715,16 +2685,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.hive_external_catalog.files_discovered":
 					assert.False(t, validatedMetrics["databricks.spark.hive_external_catalog.files_discovered"], "Found a duplicate in the metrics slice: databricks.spark.hive_external_catalog.files_discovered")
 					validatedMetrics["databricks.spark.hive_external_catalog.files_discovered"] = true
@@ -2741,16 +2711,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.hive_external_catalog.hive_client_calls":
 					assert.False(t, validatedMetrics["databricks.spark.hive_external_catalog.hive_client_calls"], "Found a duplicate in the metrics slice: databricks.spark.hive_external_catalog.hive_client_calls")
 					validatedMetrics["databricks.spark.hive_external_catalog.hive_client_calls"] = true
@@ -2767,16 +2737,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.hive_external_catalog.parallel_listing_jobs.count":
 					assert.False(t, validatedMetrics["databricks.spark.hive_external_catalog.parallel_listing_jobs.count"], "Found a duplicate in the metrics slice: databricks.spark.hive_external_catalog.parallel_listing_jobs.count")
 					validatedMetrics["databricks.spark.hive_external_catalog.parallel_listing_jobs.count"] = true
@@ -2793,16 +2763,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.hive_external_catalog.partitions_fetched":
 					assert.False(t, validatedMetrics["databricks.spark.hive_external_catalog.partitions_fetched"], "Found a duplicate in the metrics slice: databricks.spark.hive_external_catalog.partitions_fetched")
 					validatedMetrics["databricks.spark.hive_external_catalog.partitions_fetched"] = true
@@ -2819,16 +2789,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.job.num_active_stages":
 					assert.False(t, validatedMetrics["databricks.spark.job.num_active_stages"], "Found a duplicate in the metrics slice: databricks.spark.job.num_active_stages")
 					validatedMetrics["databricks.spark.job.num_active_stages"] = true
@@ -2843,13 +2813,13 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.job.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, 1, attrVal.Int())
+					assert.EqualValues(t, 12, attrVal.Int())
 				case "databricks.spark.job.num_active_tasks":
 					assert.False(t, validatedMetrics["databricks.spark.job.num_active_tasks"], "Found a duplicate in the metrics slice: databricks.spark.job.num_active_tasks")
 					validatedMetrics["databricks.spark.job.num_active_tasks"] = true
@@ -2864,13 +2834,13 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.job.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, 1, attrVal.Int())
+					assert.EqualValues(t, 12, attrVal.Int())
 				case "databricks.spark.job.num_completed_stages":
 					assert.False(t, validatedMetrics["databricks.spark.job.num_completed_stages"], "Found a duplicate in the metrics slice: databricks.spark.job.num_completed_stages")
 					validatedMetrics["databricks.spark.job.num_completed_stages"] = true
@@ -2885,13 +2855,13 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.job.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, 1, attrVal.Int())
+					assert.EqualValues(t, 12, attrVal.Int())
 				case "databricks.spark.job.num_completed_tasks":
 					assert.False(t, validatedMetrics["databricks.spark.job.num_completed_tasks"], "Found a duplicate in the metrics slice: databricks.spark.job.num_completed_tasks")
 					validatedMetrics["databricks.spark.job.num_completed_tasks"] = true
@@ -2906,13 +2876,13 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.job.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, 1, attrVal.Int())
+					assert.EqualValues(t, 12, attrVal.Int())
 				case "databricks.spark.job.num_failed_stages":
 					assert.False(t, validatedMetrics["databricks.spark.job.num_failed_stages"], "Found a duplicate in the metrics slice: databricks.spark.job.num_failed_stages")
 					validatedMetrics["databricks.spark.job.num_failed_stages"] = true
@@ -2927,13 +2897,13 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.job.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, 1, attrVal.Int())
+					assert.EqualValues(t, 12, attrVal.Int())
 				case "databricks.spark.job.num_failed_tasks":
 					assert.False(t, validatedMetrics["databricks.spark.job.num_failed_tasks"], "Found a duplicate in the metrics slice: databricks.spark.job.num_failed_tasks")
 					validatedMetrics["databricks.spark.job.num_failed_tasks"] = true
@@ -2948,13 +2918,13 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.job.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, 1, attrVal.Int())
+					assert.EqualValues(t, 12, attrVal.Int())
 				case "databricks.spark.job.num_skipped_stages":
 					assert.False(t, validatedMetrics["databricks.spark.job.num_skipped_stages"], "Found a duplicate in the metrics slice: databricks.spark.job.num_skipped_stages")
 					validatedMetrics["databricks.spark.job.num_skipped_stages"] = true
@@ -2969,13 +2939,13 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.job.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, 1, attrVal.Int())
+					assert.EqualValues(t, 12, attrVal.Int())
 				case "databricks.spark.job.num_skipped_tasks":
 					assert.False(t, validatedMetrics["databricks.spark.job.num_skipped_tasks"], "Found a duplicate in the metrics slice: databricks.spark.job.num_skipped_tasks")
 					validatedMetrics["databricks.spark.job.num_skipped_tasks"] = true
@@ -2990,13 +2960,13 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.job.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, 1, attrVal.Int())
+					assert.EqualValues(t, 12, attrVal.Int())
 				case "databricks.spark.job.num_tasks":
 					assert.False(t, validatedMetrics["databricks.spark.job.num_tasks"], "Found a duplicate in the metrics slice: databricks.spark.job.num_tasks")
 					validatedMetrics["databricks.spark.job.num_tasks"] = true
@@ -3011,13 +2981,13 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.job.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, 1, attrVal.Int())
+					assert.EqualValues(t, 12, attrVal.Int())
 				case "databricks.spark.jvm.cpu.time":
 					assert.False(t, validatedMetrics["databricks.spark.jvm.cpu.time"], "Found a duplicate in the metrics slice: databricks.spark.jvm.cpu.time")
 					validatedMetrics["databricks.spark.jvm.cpu.time"] = true
@@ -3034,16 +3004,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.live_listener_bus.events_posted.count":
 					assert.False(t, validatedMetrics["databricks.spark.live_listener_bus.events_posted.count"], "Found a duplicate in the metrics slice: databricks.spark.live_listener_bus.events_posted.count")
 					validatedMetrics["databricks.spark.live_listener_bus.events_posted.count"] = true
@@ -3060,16 +3030,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.live_listener_bus.queue.app_status.dropped_events.count":
 					assert.False(t, validatedMetrics["databricks.spark.live_listener_bus.queue.app_status.dropped_events.count"], "Found a duplicate in the metrics slice: databricks.spark.live_listener_bus.queue.app_status.dropped_events.count")
 					validatedMetrics["databricks.spark.live_listener_bus.queue.app_status.dropped_events.count"] = true
@@ -3086,16 +3056,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.live_listener_bus.queue.appstatus.size":
 					assert.False(t, validatedMetrics["databricks.spark.live_listener_bus.queue.appstatus.size"], "Found a duplicate in the metrics slice: databricks.spark.live_listener_bus.queue.appstatus.size")
 					validatedMetrics["databricks.spark.live_listener_bus.queue.appstatus.size"] = true
@@ -3110,16 +3080,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.live_listener_bus.queue.executor_management.dropped_events.count":
 					assert.False(t, validatedMetrics["databricks.spark.live_listener_bus.queue.executor_management.dropped_events.count"], "Found a duplicate in the metrics slice: databricks.spark.live_listener_bus.queue.executor_management.dropped_events.count")
 					validatedMetrics["databricks.spark.live_listener_bus.queue.executor_management.dropped_events.count"] = true
@@ -3136,16 +3106,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.live_listener_bus.queue.executormanagement.size":
 					assert.False(t, validatedMetrics["databricks.spark.live_listener_bus.queue.executormanagement.size"], "Found a duplicate in the metrics slice: databricks.spark.live_listener_bus.queue.executormanagement.size")
 					validatedMetrics["databricks.spark.live_listener_bus.queue.executormanagement.size"] = true
@@ -3160,16 +3130,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.live_listener_bus.queue.shared.dropped_events.count":
 					assert.False(t, validatedMetrics["databricks.spark.live_listener_bus.queue.shared.dropped_events.count"], "Found a duplicate in the metrics slice: databricks.spark.live_listener_bus.queue.shared.dropped_events.count")
 					validatedMetrics["databricks.spark.live_listener_bus.queue.shared.dropped_events.count"] = true
@@ -3186,16 +3156,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.live_listener_bus.queue.shared.size":
 					assert.False(t, validatedMetrics["databricks.spark.live_listener_bus.queue.shared.size"], "Found a duplicate in the metrics slice: databricks.spark.live_listener_bus.queue.shared.size")
 					validatedMetrics["databricks.spark.live_listener_bus.queue.shared.size"] = true
@@ -3210,16 +3180,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.live_listener_bus.queue.streams.dropped_events.count":
 					assert.False(t, validatedMetrics["databricks.spark.live_listener_bus.queue.streams.dropped_events.count"], "Found a duplicate in the metrics slice: databricks.spark.live_listener_bus.queue.streams.dropped_events.count")
 					validatedMetrics["databricks.spark.live_listener_bus.queue.streams.dropped_events.count"] = true
@@ -3236,16 +3206,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.live_listener_bus.queue.streams.size":
 					assert.False(t, validatedMetrics["databricks.spark.live_listener_bus.queue.streams.size"], "Found a duplicate in the metrics slice: databricks.spark.live_listener_bus.queue.streams.size")
 					validatedMetrics["databricks.spark.live_listener_bus.queue.streams.size"] = true
@@ -3260,16 +3230,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.spark_sql_operation_manager.hive_operations.count":
 					assert.False(t, validatedMetrics["databricks.spark.spark_sql_operation_manager.hive_operations.count"], "Found a duplicate in the metrics slice: databricks.spark.spark_sql_operation_manager.hive_operations.count")
 					validatedMetrics["databricks.spark.spark_sql_operation_manager.hive_operations.count"] = true
@@ -3284,16 +3254,16 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("pipeline.name")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "pipeline.name-val", attrVal.Str())
 				case "databricks.spark.stage.disk_bytes_spilled":
 					assert.False(t, validatedMetrics["databricks.spark.stage.disk_bytes_spilled"], "Found a duplicate in the metrics slice: databricks.spark.stage.disk_bytes_spilled")
 					validatedMetrics["databricks.spark.stage.disk_bytes_spilled"] = true
@@ -3308,13 +3278,13 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.job.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, 1, attrVal.Int())
+					assert.EqualValues(t, 12, attrVal.Int())
 				case "databricks.spark.stage.executor_run_time":
 					assert.False(t, validatedMetrics["databricks.spark.stage.executor_run_time"], "Found a duplicate in the metrics slice: databricks.spark.stage.executor_run_time")
 					validatedMetrics["databricks.spark.stage.executor_run_time"] = true
@@ -3329,13 +3299,13 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.job.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, 1, attrVal.Int())
+					assert.EqualValues(t, 12, attrVal.Int())
 				case "databricks.spark.stage.input_bytes":
 					assert.False(t, validatedMetrics["databricks.spark.stage.input_bytes"], "Found a duplicate in the metrics slice: databricks.spark.stage.input_bytes")
 					validatedMetrics["databricks.spark.stage.input_bytes"] = true
@@ -3350,13 +3320,13 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.job.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, 1, attrVal.Int())
+					assert.EqualValues(t, 12, attrVal.Int())
 				case "databricks.spark.stage.input_records":
 					assert.False(t, validatedMetrics["databricks.spark.stage.input_records"], "Found a duplicate in the metrics slice: databricks.spark.stage.input_records")
 					validatedMetrics["databricks.spark.stage.input_records"] = true
@@ -3371,13 +3341,13 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.job.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, 1, attrVal.Int())
+					assert.EqualValues(t, 12, attrVal.Int())
 				case "databricks.spark.stage.memory_bytes_spilled":
 					assert.False(t, validatedMetrics["databricks.spark.stage.memory_bytes_spilled"], "Found a duplicate in the metrics slice: databricks.spark.stage.memory_bytes_spilled")
 					validatedMetrics["databricks.spark.stage.memory_bytes_spilled"] = true
@@ -3392,13 +3362,13 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.job.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, 1, attrVal.Int())
+					assert.EqualValues(t, 12, attrVal.Int())
 				case "databricks.spark.stage.output_bytes":
 					assert.False(t, validatedMetrics["databricks.spark.stage.output_bytes"], "Found a duplicate in the metrics slice: databricks.spark.stage.output_bytes")
 					validatedMetrics["databricks.spark.stage.output_bytes"] = true
@@ -3413,13 +3383,13 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.job.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, 1, attrVal.Int())
+					assert.EqualValues(t, 12, attrVal.Int())
 				case "databricks.spark.stage.output_records":
 					assert.False(t, validatedMetrics["databricks.spark.stage.output_records"], "Found a duplicate in the metrics slice: databricks.spark.stage.output_records")
 					validatedMetrics["databricks.spark.stage.output_records"] = true
@@ -3434,13 +3404,13 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.job.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, 1, attrVal.Int())
+					assert.EqualValues(t, 12, attrVal.Int())
 				case "databricks.spark.timer.dag_scheduler.message_processing.time":
 					assert.False(t, validatedMetrics["databricks.spark.timer.dag_scheduler.message_processing.time"], "Found a duplicate in the metrics slice: databricks.spark.timer.dag_scheduler.message_processing.time")
 					validatedMetrics["databricks.spark.timer.dag_scheduler.message_processing.time"] = true
@@ -3457,10 +3427,10 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 				case "databricks.spark.timer.live_listener_bus.listener_processing.apache.spark.sql.execution.streaming.query_listener_bus.time":
 					assert.False(t, validatedMetrics["databricks.spark.timer.live_listener_bus.listener_processing.apache.spark.sql.execution.streaming.query_listener_bus.time"], "Found a duplicate in the metrics slice: databricks.spark.timer.live_listener_bus.listener_processing.apache.spark.sql.execution.streaming.query_listener_bus.time")
 					validatedMetrics["databricks.spark.timer.live_listener_bus.listener_processing.apache.spark.sql.execution.streaming.query_listener_bus.time"] = true
@@ -3477,10 +3447,10 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 				case "databricks.spark.timer.live_listener_bus.listener_processing.apache.spark.sql.execution.time":
 					assert.False(t, validatedMetrics["databricks.spark.timer.live_listener_bus.listener_processing.apache.spark.sql.execution.time"], "Found a duplicate in the metrics slice: databricks.spark.timer.live_listener_bus.listener_processing.apache.spark.sql.execution.time")
 					validatedMetrics["databricks.spark.timer.live_listener_bus.listener_processing.apache.spark.sql.execution.time"] = true
@@ -3497,10 +3467,10 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 				case "databricks.spark.timer.live_listener_bus.listener_processing.apache.spark.sql.execution.ui.sql_app_status_listener.time":
 					assert.False(t, validatedMetrics["databricks.spark.timer.live_listener_bus.listener_processing.apache.spark.sql.execution.ui.sql_app_status_listener.time"], "Found a duplicate in the metrics slice: databricks.spark.timer.live_listener_bus.listener_processing.apache.spark.sql.execution.ui.sql_app_status_listener.time")
 					validatedMetrics["databricks.spark.timer.live_listener_bus.listener_processing.apache.spark.sql.execution.ui.sql_app_status_listener.time"] = true
@@ -3517,10 +3487,10 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 				case "databricks.spark.timer.live_listener_bus.listener_processing.apache.spark.sql.hive.thriftserver.ui.hive_thrift_server2listener.time":
 					assert.False(t, validatedMetrics["databricks.spark.timer.live_listener_bus.listener_processing.apache.spark.sql.hive.thriftserver.ui.hive_thrift_server2listener.time"], "Found a duplicate in the metrics slice: databricks.spark.timer.live_listener_bus.listener_processing.apache.spark.sql.hive.thriftserver.ui.hive_thrift_server2listener.time")
 					validatedMetrics["databricks.spark.timer.live_listener_bus.listener_processing.apache.spark.sql.hive.thriftserver.ui.hive_thrift_server2listener.time"] = true
@@ -3537,10 +3507,10 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 				case "databricks.spark.timer.live_listener_bus.listener_processing.apache.spark.sql.spark_session.time":
 					assert.False(t, validatedMetrics["databricks.spark.timer.live_listener_bus.listener_processing.apache.spark.sql.spark_session.time"], "Found a duplicate in the metrics slice: databricks.spark.timer.live_listener_bus.listener_processing.apache.spark.sql.spark_session.time")
 					validatedMetrics["databricks.spark.timer.live_listener_bus.listener_processing.apache.spark.sql.spark_session.time"] = true
@@ -3557,10 +3527,10 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 				case "databricks.spark.timer.live_listener_bus.listener_processing.apache.spark.sql.util.execution_listener_bus.time":
 					assert.False(t, validatedMetrics["databricks.spark.timer.live_listener_bus.listener_processing.apache.spark.sql.util.execution_listener_bus.time"], "Found a duplicate in the metrics slice: databricks.spark.timer.live_listener_bus.listener_processing.apache.spark.sql.util.execution_listener_bus.time")
 					validatedMetrics["databricks.spark.timer.live_listener_bus.listener_processing.apache.spark.sql.util.execution_listener_bus.time"] = true
@@ -3577,10 +3547,10 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 				case "databricks.spark.timer.live_listener_bus.listener_processing.apache.spark.status.app_status_listener.time":
 					assert.False(t, validatedMetrics["databricks.spark.timer.live_listener_bus.listener_processing.apache.spark.status.app_status_listener.time"], "Found a duplicate in the metrics slice: databricks.spark.timer.live_listener_bus.listener_processing.apache.spark.status.app_status_listener.time")
 					validatedMetrics["databricks.spark.timer.live_listener_bus.listener_processing.apache.spark.status.app_status_listener.time"] = true
@@ -3597,10 +3567,10 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 				case "databricks.spark.timer.live_listener_bus.listener_processing.apache.spark.util.profiler_env.time":
 					assert.False(t, validatedMetrics["databricks.spark.timer.live_listener_bus.listener_processing.apache.spark.util.profiler_env.time"], "Found a duplicate in the metrics slice: databricks.spark.timer.live_listener_bus.listener_processing.apache.spark.util.profiler_env.time")
 					validatedMetrics["databricks.spark.timer.live_listener_bus.listener_processing.apache.spark.util.profiler_env.time"] = true
@@ -3617,10 +3587,10 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 				case "databricks.spark.timer.live_listener_bus.listener_processing.databricks.backend.daemon.driver.data_plane_event_listener.time":
 					assert.False(t, validatedMetrics["databricks.spark.timer.live_listener_bus.listener_processing.databricks.backend.daemon.driver.data_plane_event_listener.time"], "Found a duplicate in the metrics slice: databricks.spark.timer.live_listener_bus.listener_processing.databricks.backend.daemon.driver.data_plane_event_listener.time")
 					validatedMetrics["databricks.spark.timer.live_listener_bus.listener_processing.databricks.backend.daemon.driver.data_plane_event_listener.time"] = true
@@ -3637,10 +3607,10 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 				case "databricks.spark.timer.live_listener_bus.listener_processing.databricks.backend.daemon.driver.dbc_event_logging_listener.time":
 					assert.False(t, validatedMetrics["databricks.spark.timer.live_listener_bus.listener_processing.databricks.backend.daemon.driver.dbc_event_logging_listener.time"], "Found a duplicate in the metrics slice: databricks.spark.timer.live_listener_bus.listener_processing.databricks.backend.daemon.driver.dbc_event_logging_listener.time")
 					validatedMetrics["databricks.spark.timer.live_listener_bus.listener_processing.databricks.backend.daemon.driver.dbc_event_logging_listener.time"] = true
@@ -3657,10 +3627,10 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 				case "databricks.spark.timer.live_listener_bus.listener_processing.databricks.photon.photon_cleanup_listener.time":
 					assert.False(t, validatedMetrics["databricks.spark.timer.live_listener_bus.listener_processing.databricks.photon.photon_cleanup_listener.time"], "Found a duplicate in the metrics slice: databricks.spark.timer.live_listener_bus.listener_processing.databricks.photon.photon_cleanup_listener.time")
 					validatedMetrics["databricks.spark.timer.live_listener_bus.listener_processing.databricks.photon.photon_cleanup_listener.time"] = true
@@ -3677,10 +3647,10 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 				case "databricks.spark.timer.live_listener_bus.listener_processing.databricks.spark.util.executor_time_logging_listener.time":
 					assert.False(t, validatedMetrics["databricks.spark.timer.live_listener_bus.listener_processing.databricks.spark.util.executor_time_logging_listener.time"], "Found a duplicate in the metrics slice: databricks.spark.timer.live_listener_bus.listener_processing.databricks.spark.util.executor_time_logging_listener.time")
 					validatedMetrics["databricks.spark.timer.live_listener_bus.listener_processing.databricks.spark.util.executor_time_logging_listener.time"] = true
@@ -3697,10 +3667,10 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 				case "databricks.spark.timer.live_listener_bus.listener_processing.databricks.spark.util.usage_logging_listener.time":
 					assert.False(t, validatedMetrics["databricks.spark.timer.live_listener_bus.listener_processing.databricks.spark.util.usage_logging_listener.time"], "Found a duplicate in the metrics slice: databricks.spark.timer.live_listener_bus.listener_processing.databricks.spark.util.usage_logging_listener.time")
 					validatedMetrics["databricks.spark.timer.live_listener_bus.listener_processing.databricks.spark.util.usage_logging_listener.time"] = true
@@ -3717,10 +3687,10 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 				case "databricks.spark.timer.live_listener_bus.listener_processing.databricks.sql.advice.advisor_listener.time":
 					assert.False(t, validatedMetrics["databricks.spark.timer.live_listener_bus.listener_processing.databricks.sql.advice.advisor_listener.time"], "Found a duplicate in the metrics slice: databricks.spark.timer.live_listener_bus.listener_processing.databricks.sql.advice.advisor_listener.time")
 					validatedMetrics["databricks.spark.timer.live_listener_bus.listener_processing.databricks.sql.advice.advisor_listener.time"] = true
@@ -3737,10 +3707,10 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 				case "databricks.spark.timer.live_listener_bus.listener_processing.databricks.sql.debugger.query_watchdog_listener.time":
 					assert.False(t, validatedMetrics["databricks.spark.timer.live_listener_bus.listener_processing.databricks.sql.debugger.query_watchdog_listener.time"], "Found a duplicate in the metrics slice: databricks.spark.timer.live_listener_bus.listener_processing.databricks.sql.debugger.query_watchdog_listener.time")
 					validatedMetrics["databricks.spark.timer.live_listener_bus.listener_processing.databricks.sql.debugger.query_watchdog_listener.time"] = true
@@ -3757,10 +3727,10 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 				case "databricks.spark.timer.live_listener_bus.listener_processing.databricks.sql.execution.ui.io_cache_listener.time":
 					assert.False(t, validatedMetrics["databricks.spark.timer.live_listener_bus.listener_processing.databricks.sql.execution.ui.io_cache_listener.time"], "Found a duplicate in the metrics slice: databricks.spark.timer.live_listener_bus.listener_processing.databricks.sql.execution.ui.io_cache_listener.time")
 					validatedMetrics["databricks.spark.timer.live_listener_bus.listener_processing.databricks.sql.execution.ui.io_cache_listener.time"] = true
@@ -3777,10 +3747,10 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 				case "databricks.spark.timer.live_listener_bus.listener_processing.databricks.sql.io.caching.repeated_reads_estimator.time":
 					assert.False(t, validatedMetrics["databricks.spark.timer.live_listener_bus.listener_processing.databricks.sql.io.caching.repeated_reads_estimator.time"], "Found a duplicate in the metrics slice: databricks.spark.timer.live_listener_bus.listener_processing.databricks.sql.io.caching.repeated_reads_estimator.time")
 					validatedMetrics["databricks.spark.timer.live_listener_bus.listener_processing.databricks.sql.io.caching.repeated_reads_estimator.time"] = true
@@ -3797,10 +3767,10 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 				case "databricks.spark.timer.live_listener_bus.queue.app_status.listener_processing.time":
 					assert.False(t, validatedMetrics["databricks.spark.timer.live_listener_bus.queue.app_status.listener_processing.time"], "Found a duplicate in the metrics slice: databricks.spark.timer.live_listener_bus.queue.app_status.listener_processing.time")
 					validatedMetrics["databricks.spark.timer.live_listener_bus.queue.app_status.listener_processing.time"] = true
@@ -3817,10 +3787,10 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 				case "databricks.spark.timer.live_listener_bus.queue.executor_management.listener_processing.time":
 					assert.False(t, validatedMetrics["databricks.spark.timer.live_listener_bus.queue.executor_management.listener_processing.time"], "Found a duplicate in the metrics slice: databricks.spark.timer.live_listener_bus.queue.executor_management.listener_processing.time")
 					validatedMetrics["databricks.spark.timer.live_listener_bus.queue.executor_management.listener_processing.time"] = true
@@ -3837,10 +3807,10 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 				case "databricks.spark.timer.live_listener_bus.queue.shared.listener_processing.time":
 					assert.False(t, validatedMetrics["databricks.spark.timer.live_listener_bus.queue.shared.listener_processing.time"], "Found a duplicate in the metrics slice: databricks.spark.timer.live_listener_bus.queue.shared.listener_processing.time")
 					validatedMetrics["databricks.spark.timer.live_listener_bus.queue.shared.listener_processing.time"] = true
@@ -3857,10 +3827,10 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 				case "databricks.spark.timer.live_listener_bus.queue.streams.listener_processing.time":
 					assert.False(t, validatedMetrics["databricks.spark.timer.live_listener_bus.queue.streams.listener_processing.time"], "Found a duplicate in the metrics slice: databricks.spark.timer.live_listener_bus.queue.streams.listener_processing.time")
 					validatedMetrics["databricks.spark.timer.live_listener_bus.queue.streams.listener_processing.time"] = true
@@ -3877,10 +3847,10 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, float64(1), dp.DoubleValue())
 					attrVal, ok := dp.Attributes().Get("cluster.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "cluster.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("spark.app.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "spark.app.id-val", attrVal.Str())
 				case "databricks.tasks.run.duration":
 					assert.False(t, validatedMetrics["databricks.tasks.run.duration"], "Found a duplicate in the metrics slice: databricks.tasks.run.duration")
 					validatedMetrics["databricks.tasks.run.duration"] = true
@@ -3895,10 +3865,10 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("job.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, 1, attrVal.Int())
+					assert.EqualValues(t, 6, attrVal.Int())
 					attrVal, ok = dp.Attributes().Get("task.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "task.id-val", attrVal.Str())
 				case "databricks.tasks.schedule.status":
 					assert.False(t, validatedMetrics["databricks.tasks.schedule.status"], "Found a duplicate in the metrics slice: databricks.tasks.schedule.status")
 					validatedMetrics["databricks.tasks.schedule.status"] = true
@@ -3913,13 +3883,13 @@ func TestMetricsBuilder(t *testing.T) {
 					assert.Equal(t, int64(1), dp.IntValue())
 					attrVal, ok := dp.Attributes().Get("job.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, 1, attrVal.Int())
+					assert.EqualValues(t, 6, attrVal.Int())
 					attrVal, ok = dp.Attributes().Get("task.id")
 					assert.True(t, ok)
-					assert.EqualValues(t, "attr-val", attrVal.Str())
+					assert.EqualValues(t, "task.id-val", attrVal.Str())
 					attrVal, ok = dp.Attributes().Get("task.type")
 					assert.True(t, ok)
-					assert.Equal(t, "NotebookTask", attrVal.Str())
+					assert.EqualValues(t, "NotebookTask", attrVal.Str())
 				}
 			}
 		})

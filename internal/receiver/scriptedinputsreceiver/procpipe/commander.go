@@ -30,12 +30,6 @@ import (
 func (c *Commander) Start(ctx context.Context) error {
 	c.logger.Info("Starting script", zap.String("script", c.execFilePath))
 
-	_, ok := scripts[c.execFilePath]
-	if !ok {
-		c.logger.Error("Unsupported script", zap.Any("script_name", c.execFilePath))
-		return nil
-	}
-
 	stdout, _ := exec.Command("which", "sh").Output()
 	shLocation := strings.TrimSpace(string(stdout))
 	c.logger.Info("shell process started", zap.Any("shLocation", shLocation))

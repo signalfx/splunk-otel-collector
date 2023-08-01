@@ -34,7 +34,11 @@ var psScript string
 var commonScript string
 
 var scripts = map[string]string{
-	"cpu": strings.Replace(cpuScript, includePattern, commonScript, 1),
-	"df":  strings.Replace(dfScript, includePattern, commonScript, 1),
-	"ps":  strings.Replace(psScript, includePattern, commonScript, 1),
+	"cpu": replaceCommon(cpuScript),
+	"df":  replaceCommon(dfScript),
+	"ps":  replaceCommon(psScript),
+}
+
+func replaceCommon(script string) string {
+	return strings.Replace(script, includePattern, commonScript, 1)
 }

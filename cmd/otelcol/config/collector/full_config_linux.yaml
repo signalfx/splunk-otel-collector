@@ -167,14 +167,6 @@ receivers:
   fluentforward:
     endpoint: 0.0.0.0:8006
 
-  # Enables scripted inputs receiver
-  # Full configuration here: https://github.com/signalfx/splunk-otel-collector/tree/main/internal/receiver/scriptedinputsreceiver
-  scripted_inputs/cpu:
-    script_name: cpu
-    collection_interval: 30s
-    source: cpu
-    sourcetype: cpu
-
 ###############################################################################
 # Processors
 # What to do with data as it passes from receivers to exporters
@@ -588,6 +580,6 @@ service:
       processors: [memory_limiter, batch]
       exporters: [signalfx]
     logs:
-      receivers: [fluentforward, otlp, scripted_inputs/cpu]
+      receivers: [fluentforward, otlp]
       processors: [memory_limiter, batch]
       exporters: [splunk_hec]

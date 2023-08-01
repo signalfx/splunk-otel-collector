@@ -66,12 +66,6 @@ func (c *Config) Build(logger *zap.SugaredLogger) (operator.Operator, error) {
 		c.CollectionInterval = strconv.Itoa(DefaultIntervalSeconds)
 	}
 
-	if c.MaxLogSize < minMaxLogSize {
-		return nil, fmt.Errorf(
-			"invalid value for parameter 'max_log_size', must be equal to or greater than %d bytes", minMaxLogSize,
-		)
-	}
-
 	encoding, err := c.Encoding.Build()
 	if err != nil {
 		return nil, err

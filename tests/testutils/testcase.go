@@ -252,25 +252,6 @@ func AssertAllLogsReceived(
 	require.NoError(t, tc.OTLPReceiverSink.AssertAllLogsReceived(t, *expectedResourceLogs, 30*time.Second))
 }
 
-func AssertValidLogsHeader(
-	t testing.TB, resourceLogsFilename, collectorConfigFilename string,
-	containers []Container, builders []CollectorBuilder,
-) {
-	tc := NewTestcase(t)
-	defer tc.PrintLogsOnFailure()
-	defer tc.ShutdownOTLPReceiverSink()
-
-	expectedResourceLogs := tc.ResourceLogs(resourceLogsFilename)
-
-	_, stop := tc.Containers(containers...)
-	defer stop()
-
-	_, shutdown := tc.SplunkOtelCollector(collectorConfigFilename, builders...)
-	defer shutdown()
-
-	require.NoError(t, tc.OTLPReceiverSink.AssertValidLogsHeader(t, *expectedResourceLogs, 30*time.Second))
-}
-
 // AssertAllMetricsReceived is a central helper, designed to avoid most boilerplate. Using the desired
 // ResourceMetrics and Collector Config filenames, a slice of Container builders, and a slice of CollectorBuilder
 // AssertAllMetricsReceived creates a Testcase, builds and starts all Container and CollectorBuilder-determined Collector

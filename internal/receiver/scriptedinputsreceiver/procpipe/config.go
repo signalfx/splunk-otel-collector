@@ -15,6 +15,8 @@
 package procpipe
 
 import (
+	"errors"
+	"fmt"
 	"io"
 	"os/exec"
 
@@ -37,6 +39,18 @@ func NewConfig() *Config {
 type Config struct {
 	helper.InputConfig `mapstructure:",squash"`
 	BaseConfig         `mapstructure:",squash"`
+}
+
+func (c *Config) Validate() error {
+	_, ok := scripts[c.ScriptName]
+	if !ok {
+		return errors.New("Unsupported script " + c.ScriptName)
+	}
+
+	if c.MaxLogSize != 0 && c.MaxLogSize < minMaxLogSize {
+		return errors.New(fmt.Sprintf("invalid value for parameter 'max_log_size', must be equal to or greater than %d bytes", minMaxLogSize))
+	}
+	return nil
 }
 
 // BaseConfig is the detailed configuration of a tcp input operator.

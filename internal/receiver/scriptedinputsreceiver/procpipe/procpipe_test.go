@@ -41,12 +41,11 @@ func TestCreateDefaultWithSmallLogSize(t *testing.T) {
 	config.ScriptName = "aasd"
 	config.OperatorType = "test-operator"
 	config.MaxLogSize = 2
+	err := config.Validate()
+	if err != nil {
+		return
+	}
 
-	logger, _ := zap.NewProduction()
-	sugar := logger.Sugar()
-
-	builded, err := config.Build(sugar)
-	assert.Nil(t, builded, "failed to create default config")
 	assert.Equal(t, err.Error(), "invalid value for parameter 'max_log_size', must be equal to or greater than 65536 bytes")
 }
 
@@ -55,11 +54,11 @@ func TestCreateDefaultWithMissingExecFile(t *testing.T) {
 	config.OperatorType = "test-operator"
 	config.MaxLogSize = 2
 
-	logger, _ := zap.NewProduction()
-	sugar := logger.Sugar()
+	err := config.Validate()
+	if err != nil {
+		return
+	}
 
-	builded, err := config.Build(sugar)
-	assert.Nil(t, builded, "failed to create default config")
 	assert.Equal(t, err.Error(), "'exec_file' must be specified")
 }
 

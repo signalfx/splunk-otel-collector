@@ -17,7 +17,6 @@ package procpipe
 import (
 	"bufio"
 	"context"
-	"fmt"
 	"io"
 	"strconv"
 	"sync"
@@ -48,10 +47,6 @@ func init() {
 
 // Build will build a stdin input operator.
 func (c *Config) Build(logger *zap.SugaredLogger) (operator.Operator, error) {
-	if c.ScriptName == "" {
-		return nil, fmt.Errorf("'exec_file' must be specified")
-	}
-
 	inputOperator, err := c.InputConfig.Build(logger)
 	if err != nil {
 		return nil, err

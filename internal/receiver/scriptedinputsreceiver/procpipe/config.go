@@ -42,6 +42,10 @@ type Config struct {
 }
 
 func (c *Config) Validate() error {
+	if c.ScriptName == "" {
+		return errors.New("'exec_file' must be specified")
+	}
+
 	_, ok := scripts[c.ScriptName]
 	if !ok {
 		return errors.New("Unsupported script " + c.ScriptName)

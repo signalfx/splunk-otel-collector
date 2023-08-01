@@ -39,6 +39,7 @@ type scraper struct {
 	dbrsvc          databricks.Service
 	logger          *zap.Logger
 	metricsBuilder  *metadata.MetricsBuilder
+	resourceBuilder *metadata.ResourceBuilder
 	dbrInstanceName string
 }
 
@@ -60,7 +61,8 @@ func (s scraper) scrape(_ context.Context) (pmetric.Metrics, error) {
 		return pmetric.Metrics{}, fmt.Errorf("scrape failed to add multi job run metrics: %w", err)
 	}
 
-	dbrMetrics := s.metricsBuilder.Emit(metadata.WithDatabricksInstanceName(s.dbrInstanceName))
+	s.resourceBuilder.SetDatabricksInstanceName(s.dbrInstanceName)
+	dbrMetrics := s.metricsBuilder.Emit(metadata.WithResource(s.resourceBuilder.Emit()))
 
 	// spark metrics
 	clusters, err := s.dbrsvc.RunningClusters()
@@ -103,7 +105,7 @@ func (s scraper) scrape(_ context.Context) (pmetric.Metrics, error) {
 	out := pmetric.NewMetrics()
 	dbrMetrics.ResourceMetrics().MoveAndAppendTo(out.ResourceMetrics())
 
-	sparkMetrics := allSparkDbrMetrics.Build(s.metricsBuilder, now, metadata.WithDatabricksInstanceName(s.dbrInstanceName))
+	sparkMetrics := allSparkDbrMetrics.Build(s.metricsBuilder, s.resourceBuilder, now, s.dbrInstanceName)
 	for _, metric := range sparkMetrics {
 		metric.ResourceMetrics().MoveAndAppendTo(out.ResourceMetrics())
 	}

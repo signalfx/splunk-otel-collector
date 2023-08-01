@@ -24,6 +24,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/pmetric"
 
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/commontest"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/metadata"
 )
 
 func TestStripSparkMetricKey(t *testing.T) {
@@ -47,7 +48,8 @@ func TestClusterMetricsBuilder_GeneratedMetrics(t *testing.T) {
 	const expectedCount = 112
 
 	testBuilder := commontest.NewTestMetricsBuilder()
-	built := coreMetrics.Build(testBuilder, pcommon.NewTimestampFromTime(time.Now()))
+	rb := metadata.NewResourceBuilder(metadata.DefaultResourceAttributesConfig())
+	built := coreMetrics.Build(testBuilder, rb, pcommon.NewTimestampFromTime(time.Now()), "my-app-id")
 	pm := pmetric.NewMetrics()
 	for _, metric := range built {
 		metric.ResourceMetrics().MoveAndAppendTo(pm.ResourceMetrics())

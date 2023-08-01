@@ -41,15 +41,15 @@ func TestNameNormalization(t *testing.T) {
 		resourceMetricsFilename string
 		builder                 testutils.CollectorBuilder
 	}{
-		{"without flag", "non_normalized_httpd.yaml", nil},
-		{"enabled flag", "normalized_httpd.yaml",
+		{"default", "non_normalized_httpd.yaml", nil},
+		{"trim_metric_suffixes_true", "normalized_httpd.yaml",
 			func(collector testutils.Collector) testutils.Collector {
-				return collector.WithArgs("--feature-gates=+pkg.translator.prometheus.NormalizeName")
+				return collector.WithArgs("--set=receivers.prometheus.trim_metric_suffixes=true")
 			},
 		},
-		{"disabled flag", "non_normalized_httpd.yaml",
+		{"trim_metric_suffixes_false", "non_normalized_httpd.yaml",
 			func(collector testutils.Collector) testutils.Collector {
-				return collector.WithArgs("--feature-gates=-pkg.translator.prometheus.NormalizeName")
+				return collector.WithArgs("--set=receivers.prometheus.trim_metric_suffixes=false")
 			},
 		},
 	} {

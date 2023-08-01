@@ -23,6 +23,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/pmetric"
 
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/commontest"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/metadata"
 )
 
 func TestSparkDbrMetrics_Append(t *testing.T) {
@@ -45,8 +46,9 @@ func TestSparkDbrMetrics_Append(t *testing.T) {
 	})
 	outerRM.Append(rmSub2)
 
-	builder := commontest.NewTestMetricsBuilder()
-	built := outerRM.Build(builder, pcommon.NewTimestampFromTime(time.Now()))
+	mb := commontest.NewTestMetricsBuilder()
+	rb := metadata.NewResourceBuilder(metadata.DefaultResourceAttributesConfig())
+	built := outerRM.Build(mb, rb, pcommon.NewTimestampFromTime(time.Now()), "my-app-id")
 	allMetrics := pmetric.NewMetrics()
 	for _, metrics := range built {
 		metrics.ResourceMetrics().CopyTo(allMetrics.ResourceMetrics())

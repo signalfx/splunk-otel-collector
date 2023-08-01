@@ -24,6 +24,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/commontest"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/metadata"
 )
 
 func TestSparkExtraMetricsBuilder_Executors(t *testing.T) {
@@ -32,7 +33,8 @@ func TestSparkExtraMetricsBuilder_Executors(t *testing.T) {
 	require.NoError(t, err)
 
 	builder := commontest.NewTestMetricsBuilder()
-	built := execMetrics.Build(builder, pcommon.NewTimestampFromTime(time.Now()))
+	rb := metadata.NewResourceBuilder(metadata.DefaultResourceAttributesConfig())
+	built := execMetrics.Build(builder, rb, pcommon.NewTimestampFromTime(time.Now()), "my-app-id")
 	pm := pmetric.NewMetrics()
 	for _, metrics := range built {
 		metrics.ResourceMetrics().MoveAndAppendTo(pm.ResourceMetrics())
@@ -53,7 +55,8 @@ func TestSparkExtraMetricsBuilder_Jobs(t *testing.T) {
 	require.NoError(t, err)
 
 	builder := commontest.NewTestMetricsBuilder()
-	built := jobMetrics.Build(builder, pcommon.NewTimestampFromTime(time.Now()))
+	rb := metadata.NewResourceBuilder(metadata.DefaultResourceAttributesConfig())
+	built := jobMetrics.Build(builder, rb, pcommon.NewTimestampFromTime(time.Now()), "my-app-id")
 	pm := pmetric.NewMetrics()
 	for _, metrics := range built {
 		metrics.ResourceMetrics().MoveAndAppendTo(pm.ResourceMetrics())
@@ -77,7 +80,8 @@ func TestSparkExtraMetricsBuilder_Stages(t *testing.T) {
 	require.NoError(t, err)
 
 	builder := commontest.NewTestMetricsBuilder()
-	built := stageMetrics.Build(builder, pcommon.NewTimestampFromTime(time.Now()))
+	rb := metadata.NewResourceBuilder(metadata.DefaultResourceAttributesConfig())
+	built := stageMetrics.Build(builder, rb, pcommon.NewTimestampFromTime(time.Now()), "my-app-id")
 	pm := pmetric.NewMetrics()
 	for _, metrics := range built {
 		metrics.ResourceMetrics().MoveAndAppendTo(pm.ResourceMetrics())

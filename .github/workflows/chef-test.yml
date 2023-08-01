@@ -79,7 +79,7 @@ jobs:
 
   chef-kitchen-linux:
     # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
+    runs-on: ${{ fromJSON('["ubuntu-20.04", "ubuntu-22.04"]')[matrix.DISTRO == 'amazonlinux-2023'] }}
     needs: chef-kitchen-matrix
     strategy:
       matrix: ${{ fromJSON(needs.chef-kitchen-matrix.outputs.linux-matrix) }}
@@ -92,6 +92,13 @@ jobs:
         uses: actionshub/chef-install@2.0.4
         with:
           version: 21.12.720
+
+      - run: |
+          sudo chef gem list --all
+          sudo chef gem install kitchen-dokken -v 2.18.0
+          sudo chef gem list --all
+          sudo chef gem cleanup kitchen-dokken
+          sudo chef gem list --all
 
       - run: kitchen test ${{ matrix.SUITE }}-${{ matrix.DISTRO }}
 

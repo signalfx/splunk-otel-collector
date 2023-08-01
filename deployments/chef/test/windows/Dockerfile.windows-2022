@@ -2,6 +2,8 @@ FROM mcr.microsoft.com/windows/servercore:ltsc2022
 
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 
+ENV chocolateyVersion=1.4.0
+
 RUN Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
 
 RUN choco install -y -f --no-progress chef-client --version=17.6.18
@@ -13,6 +15,5 @@ RUN gem install serverspec -v 2.42.0
 COPY test/integration C:/test
 COPY test/windows/spec_helper.rb C:/test/default/serverspec/spec_helper.rb
 COPY test/windows/spec_helper.rb C:/test/custom_vars/serverspec/spec_helper.rb
-COPY test/windows/spec_helper.rb C:/test/without_fluentd/serverspec/spec_helper.rb
 
 WORKDIR C:\\test

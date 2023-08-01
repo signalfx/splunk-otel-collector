@@ -25,6 +25,15 @@ platforms:
       volumes:
         - /sys/fs/cgroup:/sys/fs/cgroup:ro
 
+  - name: amazonlinux-2023
+    driver:
+      image: dokken/amazonlinux-2023
+      pid_one_command: /usr/lib/systemd/systemd
+      volumes:
+        - /sys/fs/cgroup:/sys/fs/cgroup:rw
+      privileged: true
+      cgroupns_host: true
+
   - name: centos-7
     driver:
       image: dokken/centos-7
@@ -35,6 +44,13 @@ platforms:
   - name: centos-8
     driver:
       image: dokken/centos-8
+      pid_one_command: /usr/lib/systemd/systemd
+      volumes:
+        - /sys/fs/cgroup:/sys/fs/cgroup:ro
+
+  - name: centos-9
+    driver:
+      image: dokken/centos-stream-9
       pid_one_command: /usr/lib/systemd/systemd
       volumes:
         - /sys/fs/cgroup:/sys/fs/cgroup:ro
@@ -151,15 +167,7 @@ suites:
         collector_additional_env_vars:
           MY_CUSTOM_VAR1: value1
           MY_CUSTOM_VAR2: value2
-
-  - name: without_fluentd
-    run_list:
-      - recipe[splunk_otel_collector]
-    attributes:
-      splunk_otel_collector:
-        splunk_access_token: testing123
-        splunk_realm: test
-        with_fluentd: false
+        with_fluentd: true
 
   - name: with_instrumentation
     run_list:

@@ -102,7 +102,10 @@ elsif platform_family?('debian', 'rhel', 'amazon', 'suse')
     if platform_family?('debian')
       include_recipe 'splunk_otel_collector::fluentd_deb_repo'
       include_recipe 'splunk_otel_collector::fluentd_linux_install'
-    elsif platform_family?('rhel', 'amazon')
+    elsif platform_family?('rhel')
+      include_recipe 'splunk_otel_collector::fluentd_yum_repo'
+      include_recipe 'splunk_otel_collector::fluentd_linux_install'
+    elsif platform_family?('amazon') && node['platform_version'] != '2023'
       include_recipe 'splunk_otel_collector::fluentd_yum_repo'
       include_recipe 'splunk_otel_collector::fluentd_linux_install'
     end
@@ -112,5 +115,5 @@ elsif platform_family?('debian', 'rhel', 'amazon', 'suse')
     include_recipe 'splunk_otel_collector::auto_instrumentation'
   end
 else
-  raise "Platform family #{platform_family} not supported."
+  raise "Platform family #{node['platform_family']} not supported."
 end

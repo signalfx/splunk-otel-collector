@@ -155,6 +155,14 @@ def test_installer_default(distro, arch, mode):
             run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"}, timeout=INSTALLER_TIMEOUT)
             time.sleep(5)
 
+            # verify td-agent is not installed
+            if distro in DEB_DISTROS:
+                assert container.exec_run("dpkg -s td-agent").exit_code != 0
+            else:
+                assert container.exec_run("rpm -q td-agent").exit_code != 0
+
+            assert container.exec_run("systemctl status td-agent").exit_code != 0
+
             # verify splunk-otel-auto-instrumentation is not installed
             if distro in DEB_DISTROS:
                 assert container.exec_run("dpkg -s splunk-otel-auto-instrumentation").exit_code != 0
@@ -167,19 +175,12 @@ def test_installer_default(distro, arch, mode):
             # verify collector service status
             assert wait_for(lambda: service_is_running(container, service_owner=SERVICE_OWNER))
 
-            if fluentd_supported(distro, arch):
-                assert container.exec_run("systemctl status td-agent").exit_code == 0
-
             # test support bundle script
             verify_support_bundle(container)
 
             verify_uninstall(container, distro)
 
         finally:
-            if fluentd_supported(distro, arch):
-                run_container_cmd(container, "journalctl -u td-agent --no-pager")
-                if container.exec_run("test -f /var/log/td-agent/td-agent.log").exit_code == 0:
-                    run_container_cmd(container, "cat /var/log/td-agent/td-agent.log")
             run_container_cmd(container, f"journalctl -u {SERVICE_NAME} --no-pager")
 
 
@@ -201,7 +202,7 @@ def test_installer_custom(distro, arch):
 
     install_cmd = " ".join((
         get_installer_cmd(),
-        "--without-fluentd",
+        "--with-fluentd",
         "--memory 256 --ballast 64",
         f"--service-user {service_owner} --service-group {service_owner}",
         f"--collector-config {custom_config}",
@@ -238,16 +239,22 @@ def test_installer_custom(distro, arch):
             config_owner = container.exec_run("stat -c '%U:%G' /etc/otel").output.decode("utf-8")
             assert config_owner.strip() == f"{service_owner}:{service_owner}"
 
-            # verify td-agent was not installed
-            if distro in DEB_DISTROS:
-                assert container.exec_run("dpkg -s td-agent").exit_code != 0
-            else:
-                assert container.exec_run("rpm -q td-agent").exit_code != 0
+            if fluentd_supported(distro, arch):
+                # verify td-agent was installed
+                if distro in DEB_DISTROS:
+                    assert container.exec_run("dpkg -s td-agent").exit_code == 0
+                else:
+                    assert container.exec_run("rpm -q td-agent").exit_code == 0
+                assert container.exec_run("systemctl status td-agent").exit_code == 0
 
             verify_uninstall(container, distro)
 
         finally:
             run_container_cmd(container, f"journalctl -u {SERVICE_NAME} --no-pager")
+            if fluentd_supported(distro, arch):
+                run_container_cmd(container, "journalctl -u td-agent --no-pager")
+                if container.exec_run("test -f /var/log/td-agent/td-agent.log").exit_code == 0:
+                    run_container_cmd(container, "cat /var/log/td-agent/td-agent.log")
 
 
 @pytest.mark.installer

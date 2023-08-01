@@ -61,9 +61,9 @@
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -hec_token "HECTOKEN"
 .PARAMETER with_fluentd
-    (OPTIONAL) Whether to install and configure fluentd to forward log events to the collector (default: $true)
+    (OPTIONAL) Whether to install and configure fluentd to forward log events to the collector (default: $false)
     .EXAMPLE
-    .\install.ps1 -access_token "ACCESSTOKEN" -with_fluentd $false
+    .\install.ps1 -access_token "ACCESSTOKEN" -with_fluentd $true
 .PARAMETER with_dotnet_instrumentation
     (OPTIONAL) Whether to install and configure .NET tracing to forward .NET application traces to the local collector (default: $false)
     .EXAMPLE
@@ -116,7 +116,7 @@ param (
     [string]$hec_token = "",
     [bool]$insecure = $false,
     [string]$collector_version = "",
-    [bool]$with_fluentd = $true,
+    [bool]$with_fluentd = $false,
     [bool]$with_dotnet_instrumentation = $false,
     [string]$bundle_dir = "",
     [ValidateSet('test','beta','release')][string]$stage = "release",

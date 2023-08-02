@@ -6,12 +6,48 @@
 
 - (Splunk) `jmxreceiver`: Enable running in Docker on Windows and Linux ([#3262](https://github.com/signalfx/splunk-otel-collector/pull/3262))
 
+## v0.82.0
+
 ### 🛑 Breaking changes 🛑
 
 - (Splunk) Fluentd installation ***disabled*** by default for the Linux and Windows installer scripts ([#3369](https://github.com/signalfx/splunk-otel-collector/pull/3369))
   - Specify the `--with-fluentd` (Linux) or `with_fluentd = 1` (Windows) option to enable installation
 - (Splunk) Fluentd installation ***disabled*** by default for the Windows Chocolatey package ([#3377](https://github.com/signalfx/splunk-otel-collector/pull/3377))
   - Specify the `/WITH_FLUENTD:true` parameter to enable installation
+- (Contrib) `receiver/prometheus`: Remove unused `buffer_period` and `buffer_count` configuration options ([#24258](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/24258))
+- (Contrib) `receiver/prometheus`: Add the `trim_metric_suffixes` configuration option to allow enable metric suffix trimming.  ([#21743](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/21743), [#8950](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/8950)) 
+  - When enabled, suffixes for unit and type are trimmed from metric names. If you previously enabled the `pkg.translator.prometheus.NormalizeName` feature gate, you will need to enable this option to have suffixes trimmed.
+
+### 💡 Enhancements 💡
+
+- (Core) `service`: Add support for exporting internal metrics to the console ([#7641](https://github.com/open-telemetry/opentelemetry-collector/issues/7641)) 
+  - Internal collector metrics can now be exported to the console using the otel-go stdout exporter.
+- (Core) `service`: Add support for interval and timeout configuration in periodic reader ([#7641](https://github.com/open-telemetry/opentelemetry-collector/issues/7641))
+- (Core) `service`: Add support for OTLP export for internal metrics ([#7641](https://github.com/open-telemetry/opentelemetry-collector/issues/7641)) 
+  - Internal collector metrics can now be exported via OTLP using the otel-go otlpgrpc and otlphttp exporters.
+- (Core) `scraperhelper`: Adding optional timeout field to scrapers ([#7951](https://github.com/open-telemetry/opentelemetry-collector/pull/7951))
+- (Core) `receiver/otlp`: Add http url paths per signal config options to otlpreceiver ([#7511](https://github.com/open-telemetry/opentelemetry-collector/issues/7511))
+- (Core) `exporter/otlphttp`: Add support for trailing slash in endpoint URL ([#8084](https://github.com/open-telemetry/opentelemetry-collector/issues/8084))
+  - URLs like http://localhost:4318/ will now be treated as if they were http://localhost:4318
+- (Contrib) `processor/resourcedetection`: Add an option to add `host.arch` resource attributio in `system` detector semantic convention ([#22939](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/22939))
+- (Contrib) `pkg/ottl`: Add new Len converter that computes the length of strings, slices, and maps. ([#23847](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/23847))
+- (Contrib) `pkg/ottl`: Improve error reporting for errors during statement parsing ([#23840](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/23840))
+  - Failures are now printed for all statements within a context, and the statements are printed next to the errors.
+  - Erroneous values found during parsing are now quoted in error logs.
+- (Contrib) `exporter/prometheusremotewrite`: Improve the latency and memory utilisation of the conversion from OpenTelemetry to Prometheus remote write ([#24288](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/24288))
+- (Contrib) `exporter/prometheusremotewrite`, `exporter/prometheus`: Add `add_metric_suffixes` configuration option, which can disable the addition of type and unit suffixes. ([#21743](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/21743), [#8950](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/8950))
+- (Contrib) `exporter/prometheusremotewrite`: Downscale exponential histograms to fit prometheus native histograms if necessary ([#17565](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/17565))
+- (Contrib) `processor/routing`: Enables processor to extract metadata from client.Info ([#20913](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/20913))
+- (Contrib) `processor/transform`: Report all errors from parsing OTTL statements ([#24245](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/24245))
+
+### 🧰 Bug fixes 🧰
+
+- (Contrib) `receiver/prometheus`: Don't fail the whole scrape on invalid data ([#24030](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/24030))
+- (Contrib) `pkg/stanza`: Fix issue where nil body would be converted to string ([#24017](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/24017))
+- (Contrib) `pkg/stanza`: Fix issue where syslog input ignored enable_octet_counting setting ([#24073](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/24073))
+- (Contrib) `receiver/filelog`: Fix issue where files were deduplicated unnecessarily ([#24235](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/24235))
+- (Contrib) `processor/tailsamplingprocessor`: Fix data race when accessing spans during policies evaluation ([#24283](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/24283))
+- (Contrib) `zipkintranslator`: Stop dropping error tags from Zipkin spans. The old code removes all errors from those spans, rendering them useless if an actual error happened. In addition, no longer delete error tags if they contain useful information ([#16530](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16530))
 
 ## v0.81.1
 

@@ -7,12 +7,6 @@ receivers:
     collection_interval: 1s
     log_level: debug
 
-processors:
-  resource:
-    attributes:
-      - key: telemetry.sdk.version
-        action: delete
-
 exporters:
   otlp:
     endpoint: "${OTLP_ENDPOINT}"
@@ -23,5 +17,4 @@ service:
   pipelines:
     metrics:
       receivers: [jmx]
-      processors: [resource]
       exporters: [otlp]

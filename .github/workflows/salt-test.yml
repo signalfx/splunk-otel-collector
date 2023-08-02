@@ -21,7 +21,6 @@ concurrency:
 env:
   PYTHON_VERSION: '3.10'
   REQUIREMENTS_PATH: "internal/buildscripts/packaging/tests/requirements.txt"
-  RESULT_PATH: "~/testresults"
 
 jobs:
   salt-lint-test:
@@ -36,15 +35,37 @@ jobs:
         run: |
           make -C deployments/salt lint
 
+  salt-test-matrix:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Get matrix
+        id: get-matrix
+        run: |
+          # create test matrix for distro
+          dockerfiles=$(find internal/buildscripts/packaging/tests/deployments/salt/images/ -name "Dockerfile.*" | cut -d '.' -f2- | sort -u)
+          if [ -z "$dockerfiles" ]; then
+            echo "Failed to get dockerfiles from internal/buildscripts/packaging/tests/deployments/salt/images!" >&2
+            exit 1
+          fi
+          distro=$(for d in $dockerfiles; do echo -n "\"$d\","; done)
+          arch="\"amd64\", \"arm64\""
+          matrix="{\"DISTRO\": [${distro%,}]}"
+          echo "$matrix" | jq
+          echo "matrix=${matrix}" >> $GITHUB_OUTPUT
+    outputs:
+      matrix: ${{ steps.get-matrix.outputs.matrix }}
+
   salt-test:
     name: salt-test
     # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
-    needs: [salt-lint-test]
+    runs-on: ${{ fromJSON('["ubuntu-20.04", "ubuntu-22.04"]')[matrix.DISTRO == 'amazonlinux-2023'] }}
+    needs: [salt-lint-test, salt-test-matrix]
     strategy:
-      matrix:
-        PACKAGE_TYPE: [ "deb", "rpm" ]
-        TEST_CASE: [ "with_fluentd", "without_fluentd", "with_instrumentation", "service_owner", "custom_env_vars" ]
+      matrix: ${{ fromJSON(needs.salt-test-matrix.outputs.matrix) }}
+      fail-fast: false
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v3
@@ -62,16 +83,9 @@ jobs:
       - name: Test salt deployment
         timeout-minutes: 45
         run: |
-          mkdir -p ${{ env.RESULT_PATH }}
-          pytest -n2 --verbose -m ${{ matrix.PACKAGE_TYPE }} \
-            -k ${{ matrix.TEST_CASE }} \
-            --junitxml=${{ env.RESULT_PATH }}/results.xml \
-            --html=${{ env.RESULT_PATH }}/results.html \
-            --self-contained-html \
-            internal/buildscripts/packaging/tests/deployments/salt/salt_test.py
-
-      - name: Uploading test result
-        uses: actions/upload-artifact@v3
-        with:
-          name: salt-test-${{ matrix.TEST_CASE}}-${{ matrix.PACKAGE_TYPE }}-result
-          path: ${{ env.RESULT_PATH }}
+          distro="${{ matrix.DISTRO }}"
+          if [[ "$distro" = "amazonlinux-2" ]]; then
+            # workaround for pytest substring matching
+            distro="amazonlinux-2 and not amazonlinux-2023"
+          fi
+          pytest -svx --verbose -k "$distro" internal/buildscripts/packaging/tests/deployments/salt/salt_test.py

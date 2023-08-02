@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### 🛑 Breaking changes 🛑
+
+- (Splunk) Fluentd installation ***disabled*** by default for the [`splunk-otel-collector` salt formula](https://github.com/signalfx/splunk-otel-collector/tree/main/deployments/salt)
+  - Specify the `install_fluentd: True` attribute in your pillar to enable installation
+
 ## v0.82.0
 
 ### 🛑 Breaking changes 🛑

@@ -68,7 +68,7 @@ Install FluentD Linux capability module dependencies:
     - pkgs:
       - libcap-ng
       - libcap-ng-devel
-{%- if grains['osmajorrelease'] == 8 %}
+{%- if grains['osmajorrelease'] == 8 or grains['osmajorrelease'] == 9 %}
       - pkgconf-pkg-config
 {%- else %}
       - pkgconfig

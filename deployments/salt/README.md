@@ -7,8 +7,8 @@ Observability Cloud](https://www.splunk.com/en_us/observability.html).
 ## Linux
 Currently, the following Linux distributions and versions are supported:
 
-- Amazon Linux: 2
-- CentOS / Red Hat / Oracle: 7, 8
+- Amazon Linux: 2, 2023 (**Note:** Log collection with Fluentd not currently supported for Amazon Linux 2023.)
+- CentOS / Red Hat / Oracle: 7, 8, 9
 - Debian: 9, 10, 11
 - SUSE: 12, 15 (**Note:** Only for collector versions v0.34.0 or higher. Log collection with fluentd not currently supported.)
 - Ubuntu: 16.04, 18.04, 20.04, 22.04
@@ -32,7 +32,6 @@ splunk-otel-collector:
   splunk_otel_collector_config: '/etc/otel/collector/agent_config.yaml'
   splunk_service_user: splunk-otel-collector
   splunk_service_group: splunk-otel-collector
-
 ```
 
 ## This Salt Formula accepts the following attributes:
@@ -121,7 +120,7 @@ splunk-otel-collector:
   [fluent-plugin-systemd](
   https://github.com/fluent-plugin-systemd/fluent-plugin-systemd) for systemd
   journal log collection, and the required libraries/development tools.
-  (**default:** `True`)
+  (**default:** `False`)
 
 - `td_agent_version`: Version of [td-agent](
   https://td-agent-package-browser.herokuapp.com/) (fluentd package) that will

@@ -154,7 +154,10 @@ RUN sed -i -e '/^deb-src/d' /etc/apt/sources.list &&\
       zlib1g-dev
 
 RUN wget -nv https://dev.mysql.com/get/mysql-apt-config_0.8.12-1_all.deb && \
-    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 467B942D3A79BD29 && \
+    mkdir -p ~/.gnupg && \
+    chmod 700 ~/.gnupg && \
+    echo "disable-ipv6" >> ~/.gnupg/dirmngr.conf && \
+    apt-key adv --homedir ~/.gnupg --keyserver keyserver.ubuntu.com --recv-keys 467B942D3A79BD29 && \
     dpkg -i mysql-apt-config_0.8.12-1_all.deb && \
     rm -f mysql-apt-config_0.8.12-1_all.deb && \
     apt-get update -qq && apt-get install -qq -y libmysqlclient-dev libcurl4-gnutls-dev

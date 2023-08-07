@@ -28,13 +28,13 @@
     - name: Check fluentdwinsvc service
       ansible.windows.win_service:
         name: fluentdwinsvc
-        state: started
+        state: absent
       check_mode: yes
       register: service_status
 
-    - name: Assert fluentdwinsvc service status
+    - name: Assert fluentdwinsvc service does not exist
       assert:
-        that: not service_status.changed
+        that: not service_status.exists
 
     - name: Verify env vars
       include_tasks: ../shared/verify_registry_key.yml

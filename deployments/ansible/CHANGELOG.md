@@ -1,5 +1,12 @@
 # Changelog
 
+## ansible-v0.20.0
+
+### 🛑 Breaking changes 🛑
+
+- Fluentd installation is ***disabled*** by default.
+  - Specify the `install_fluentd: yes` role variable in your playbook to enable installation.
+
 ## ansible-v0.19.0
 
 ### 💡 Enhancements 💡

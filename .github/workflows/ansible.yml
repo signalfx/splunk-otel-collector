@@ -141,7 +141,6 @@ jobs:
         scenario:
           - default
           - custom_vars
-          - without_fluentd
           - with_instrumentation
     steps:
       - name: Check out the codebase.

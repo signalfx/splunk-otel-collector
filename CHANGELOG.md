@@ -2,9 +2,15 @@
 
 ## Unreleased
 
+
 ### 💡 Enhancements 💡
 
 - (Splunk) `jmxreceiver`: Enable running in Docker on Windows and Linux ([#3262](https://github.com/signalfx/splunk-otel-collector/pull/3262))
+
+### 🛑 Breaking changes 🛑
+
+- (Splunk) Fluentd installation ***disabled*** by default for the [`splunk-otel-collector` salt formula](https://github.com/signalfx/splunk-otel-collector/tree/main/deployments/salt) ([#3448](https://github.com/signalfx/splunk-otel-collector/pull/3448))
+  - Specify the `install_fluentd: True` attribute in your pillar to enable installation
 
 ## v0.82.0
 

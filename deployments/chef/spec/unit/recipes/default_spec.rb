@@ -84,22 +84,6 @@ describe 'splunk_otel_collector::default' do
       it_behaves_like 'collector conf'
       it_behaves_like 'splunk-otel-collector linux service status'
       it_behaves_like 'install splunk-otel-collector package'
-
-      it 'enables td-agent service on startup' do
-        expect(chef_run).not_to enable_service('td-agent')
-      end
-
-      it 'restart td-agent service on config change' do
-        expect(chef_run.package('td-agent')).not_to notify('service[td-agent]').delayed
-      end
-
-      it 'starts the td-agent service' do
-        expect(chef_run).not_to start_service 'td-agent'
-      end
-
-      it 'installs td-agent package' do
-        expect(chef_run).not_to install_package('td-agent')
-      end
     end
   end
   context 'on the Windows platform family' do

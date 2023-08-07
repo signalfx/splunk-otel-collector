@@ -112,5 +112,5 @@ elsif platform_family?('debian', 'rhel', 'amazon', 'suse')
     include_recipe 'splunk_otel_collector::auto_instrumentation'
   end
 else
-  raise "Platform family #{platform_family} not supported."
+  raise "Platform family #{node['platform_family']} not supported."
 end

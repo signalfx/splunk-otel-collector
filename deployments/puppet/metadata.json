@@ -1,6 +1,6 @@
 {
   "name": "signalfx-splunk_otel_collector",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "author": "Splunk, Inc.",
   "summary": "This module installs the Splunk OpenTelemetry Collector via distro packages and configures it.",
   "license": "Apache-2.0",
@@ -27,24 +27,34 @@
   ],
   "operatingsystem_support": [
     {
+      "operatingsystem": "Amazon",
+      "operatingsystemrelease": [
+        "2",
+        "2023"
+      ]
+    },
+    {
       "operatingsystem": "CentOS",
       "operatingsystemrelease": [
         "7",
-        "8"
+        "8",
+        "9"
       ]
     },
     {
       "operatingsystem": "OracleLinux",
       "operatingsystemrelease": [
         "7",
-        "8"
+        "8",
+        "9"
       ]
     },
     {
       "operatingsystem": "RedHat",
       "operatingsystemrelease": [
         "7",
-        "8"
+        "8",
+        "9"
       ]
     },
     {

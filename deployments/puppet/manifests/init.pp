@@ -23,7 +23,7 @@ class splunk_otel_collector (
   $service_group           = 'splunk-otel-collector',  # linux only
   $apt_gpg_key             = 'https://splunk.jfrog.io/splunk/otel-collector-deb/splunk-B3CD4420.gpg',
   $yum_gpg_key             = 'https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub',
-  $with_fluentd            = true,
+  $with_fluentd            = false,
   $fluentd_repo_base       = 'https://packages.treasuredata.com',
   $fluentd_gpg_key         = 'https://packages.treasuredata.com/GPG-KEY-td-agent',
   $fluentd_version         = $splunk_otel_collector::params::fluentd_version,
@@ -46,25 +46,6 @@ class splunk_otel_collector (
   $collector_additional_env_vars            = {}
 ) inherits splunk_otel_collector::params {
 
-  $collector_service_name = 'splunk-otel-collector'
-  $collector_package_name = $::osfamily ? {
-    'windows' => 'Splunk OpenTelemetry Collector',
-    default   => $collector_service_name,
-  }
-  $fluentd_service_name = $::osfamily ? {
-    'windows' => 'fluentdwinsvc',
-    default   => 'td-agent',
-  }
-  $fluentd_package_name = $::osfamily ? {
-    'windows' => "Td-agent v${fluentd_version}",
-    default   => $fluentd_service_name,
-  }
-
-  $install_fluentd = $::osfamily ? {
-    'suse'   => false,
-    default  => $with_fluentd,
-  }
-
   if empty($splunk_access_token) {
     fail('The splunk_access_token parameter is required')
   }
@@ -80,6 +61,26 @@ class splunk_otel_collector (
     if $with_fluentd and empty($fluentd_version) {
       fail('The $fluentd_version parameter is required for Windows')
     }
+  }
+
+  $collector_service_name = 'splunk-otel-collector'
+  $collector_package_name = $::osfamily ? {
+    'windows' => 'Splunk OpenTelemetry Collector',
+    default   => $collector_service_name,
+  }
+  $fluentd_service_name = $::osfamily ? {
+    'windows' => 'fluentdwinsvc',
+    default   => 'td-agent',
+  }
+  $fluentd_package_name = $::osfamily ? {
+    'windows' => "Td-agent v${fluentd_version}",
+    default   => $fluentd_service_name,
+  }
+
+  if $::osfamily == 'suse' or ($facts['os']['name'] == 'Amazon' and $facts['os']['release']['full'] == '2023') {
+    $install_fluentd = false
+  } else {
+    $install_fluentd = $with_fluentd
   }
 
   case $::osfamily {

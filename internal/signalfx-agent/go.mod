@@ -82,8 +82,7 @@ require (
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657
 	github.com/signalfx/golib/v3 v3.3.50
-	github.com/signalfx/ingest-protocols v0.2.0
-	github.com/signalfx/signalfx-go v1.33.0
+	github.com/signalfx/signalfx-go v1.16.13
 	github.com/sirupsen/logrus v1.9.3
 	github.com/snowflakedb/gosnowflake v1.6.23
 	github.com/stretchr/testify v1.8.4
@@ -98,9 +97,9 @@ require (
 	google.golang.org/grpc v1.56.2
 	gopkg.in/go-playground/validator.v9 v9.31.0
 	gopkg.in/yaml.v2 v2.4.0
-	k8s.io/api v0.27.3
+	k8s.io/api v0.27.4
 	k8s.io/apimachinery v0.27.4
-	k8s.io/client-go v0.27.3
+	k8s.io/client-go v0.27.4
 	k8s.io/kubelet v0.27.2
 )
 
@@ -122,6 +121,7 @@ require (
 	github.com/go-errors/errors v1.4.2
 	github.com/hashicorp/golang-lru v0.6.0
 	github.com/kr/pretty v0.3.1
+	github.com/signalfx/ingest-protocols v0.2.0
 	github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-00010101000000-000000000000
 	github.com/smartystreets/goconvey v1.8.1
 	gotest.tools v2.2.0+incompatible
@@ -268,7 +268,7 @@ require (
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/power-devops/perfstat v0.0.0-20210106213030-5aafc221ea8c // indirect
-	github.com/rogpeppe/go-internal v1.10.0 // indirect
+	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/ryanuber/go-glob v1.0.0 // indirect
 	github.com/shirou/gopsutil/v3 v3.22.8 // indirect
 	github.com/signalfx/gohistogram v0.0.0-20160107210732-1ccfd2ff5083 // indirect

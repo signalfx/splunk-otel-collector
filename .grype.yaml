@@ -4,3 +4,10 @@ exclude:
   - './instrumentation/packaging/**'
   - './internal/buildscripts/packaging/**'
   - './tests/**'
+ignore:
+  # false positive since the detected version is 2023.7.22 but expects 2023.07.22
+  - vulnerability: GHSA-xqr8-7jwr-rhp7
+    package:
+      name: certifi
+      version: 2023.7.22
+      type: python

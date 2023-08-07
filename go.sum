@@ -203,8 +203,8 @@ github.com/aws/aws-sdk-go v1.34.0/go.mod h1:5zCpMtNQVjRREroY7sYe8lOMRSxkhG6MZveU
 github.com/aws/aws-sdk-go v1.35.24/go.mod h1:tlPOdRjfxPBpNIwqDj61rmsnA85v9jc0Ps9+muhnW+k=
 github.com/aws/aws-sdk-go v1.38.35/go.mod h1:hcU610XS61/+aQV88ixoOzUoG7v3b31pl2zKMmprdro=
 github.com/aws/aws-sdk-go v1.40.45/go.mod h1:585smgzpB/KqRA+K3y/NL/oYRqQvpNJYvLm+LY1U59Q=
-github.com/aws/aws-sdk-go v1.44.312 h1:llrElfzeqG/YOLFFKjg1xNpZCFJ2xraIi3PqSuP+95k=
-github.com/aws/aws-sdk-go v1.44.312/go.mod h1:aVsgQcEevwlmQ7qHE9I3h+dtQgpqhFB+i8Phjh7fkwI=
+github.com/aws/aws-sdk-go v1.44.317 h1:+8XWrLmGMwPPXSRSLPzhgcGnzJ2mYkgkrcB9C/GnSOU=
+github.com/aws/aws-sdk-go v1.44.317/go.mod h1:aVsgQcEevwlmQ7qHE9I3h+dtQgpqhFB+i8Phjh7fkwI=
 github.com/aws/aws-sdk-go-v2 v1.9.1/go.mod h1:cK/D0BBs0b/oWPIcX/Z/obahJK1TT7IPVjy53i/mX/4=
 github.com/aws/aws-sdk-go-v2 v1.9.2/go.mod h1:cK/D0BBs0b/oWPIcX/Z/obahJK1TT7IPVjy53i/mX/4=
 github.com/aws/aws-sdk-go-v2 v1.17.7/go.mod h1:uzbQtefpm44goOPmdKyAlXSNcwlRgF3ePWVW6EtJvvw=
@@ -1222,8 +1222,6 @@ github.com/open-telemetry/opentelemetry-collector-contrib/processor/metricstrans
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/metricstransformprocessor v0.82.0/go.mod h1:WksfpqoJ0O5IKYn57Qs3uoQRjKEoidlG1Axy/VFDc2U=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/probabilisticsamplerprocessor v0.82.0 h1:FMfmm1qOrd/UTFydSaLdDq27dz5/Z6vk9lf9WhLB0YM=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/probabilisticsamplerprocessor v0.82.0/go.mod h1:UTtjfRbvrkSypo7gHWkOO6l3LjmWaf3JxjtCbnCuAAE=
-github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor v0.82.0 h1:ToEAh/x/66CfvlNdMzAa9hh0zzZOa2hneCdnDBj+U4U=
-github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor v0.82.0/go.mod h1:SvJsVQdfVYVJ0/uG7jzesLDj97ej/8Pkq88MOLD4Ko8=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor v0.82.1-0.20230729024045-19f2a53e42f9 h1:C0/Aoiqw85Iw+1gN8JuLatGnO3M8UAsGvXpHxcFiQa0=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor v0.82.1-0.20230729024045-19f2a53e42f9/go.mod h1:SvJsVQdfVYVJ0/uG7jzesLDj97ej/8Pkq88MOLD4Ko8=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceprocessor v0.82.0 h1:iIzRlJaR5YPuRLjtbeSALwn0IxdgdbOwlO8DEUPkDz4=

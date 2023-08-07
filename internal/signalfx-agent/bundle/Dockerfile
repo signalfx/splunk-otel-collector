@@ -291,6 +291,10 @@ RUN /usr/local/bin/python3 -m pip install -r /opt/requirements.txt
 RUN mkdir -p /opt/collectd-python &&\
     /usr/local/bin/python3 -u /opt/scripts/get-collectd-plugins.py /opt/collectd-python
 
+# Update pip dependencies after collected plugins are installed
+COPY scripts/security-requirements.txt /tmp/
+RUN /usr/local/bin/python3 -m pip install -r /tmp/security-requirements.txt
+
 # Delete *requirements.txt files after plugins are installed
 RUN find /opt/collectd-python -name "*requirements.txt" -delete
 

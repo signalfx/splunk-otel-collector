@@ -1,5 +1,10 @@
 # Changelog
 
+## chef-v0.6.0
+
+- **Breaking Changes**: Fluentd installation ***disabled*** by default.
+  - Specify the `with_fluentd: true` option to enable installation
+
 ## chef-v0.5.0
 
 - Add support for additional options for Splunk OpenTelemetry Auto Instrumentation for Java (Linux only)

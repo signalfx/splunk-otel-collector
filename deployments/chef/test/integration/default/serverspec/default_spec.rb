@@ -32,8 +32,8 @@ if os[:family] == 'windows'
     it { should have_property_value('SPLUNK_TRACE_URL', :type_string, splunk_trace_url) }
   end
   describe service('fluentdwinsvc') do
-    it { should be_enabled }
-    it { should be_running }
+    it { should_not be_enabled }
+    it { should_not be_running }
   end
 else
   bundle_dir = '/usr/lib/splunk-otel-collector/agent-bundle'
@@ -56,15 +56,9 @@ else
     its('content') { should match /^User=splunk-otel-collector$/ }
     its('content') { should match /^Group=splunk-otel-collector$/ }
   end
-  if os[:family] != 'suse' && os[:family] != 'opensuse'
-    fluentd_config_path = '/etc/otel/collector/fluentd/fluent.conf'
-    describe service('td-agent') do
-      it { should be_enabled }
-      it { should be_running }
-    end
-    describe file('/etc/systemd/system/td-agent.service.d/splunk-otel-collector.conf') do
-      its('content') { should match /^Environment=FLUENT_CONF=#{fluentd_config_path}$/ }
-    end
+  describe service('td-agent') do
+    it { should_not be_enabled }
+    it { should_not be_running }
   end
   describe package('splunk-otel-auto-instrumentation') do
     it { should_not be_installed }

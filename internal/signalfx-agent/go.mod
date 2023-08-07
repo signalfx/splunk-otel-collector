@@ -51,7 +51,7 @@ require (
 	github.com/google/cadvisor v0.47.3
 	github.com/gorilla/mux v1.8.0
 	github.com/hashicorp/consul/api v1.22.0
-	github.com/hashicorp/vault v1.14.0 // required for newer google.golang.org/api compatibility
+	github.com/hashicorp/vault v1.14.1 // required for newer google.golang.org/api compatibility
 	github.com/hashicorp/vault-plugin-auth-gcp v0.16.0
 	github.com/hashicorp/vault/api v1.9.2
 	github.com/iancoleman/strcase v0.3.0
@@ -212,7 +212,7 @@ require (
 	github.com/hashicorp/go-plugin v1.4.9 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.2 // indirect
 	github.com/hashicorp/go-rootcerts v1.0.2 // indirect
-	github.com/hashicorp/go-secure-stdlib/awsutil v0.2.2 // indirect
+	github.com/hashicorp/go-secure-stdlib/awsutil v0.2.3 // indirect
 	github.com/hashicorp/go-secure-stdlib/mlock v0.1.3 // indirect
 	github.com/hashicorp/go-secure-stdlib/parseutil v0.1.7 // indirect
 	github.com/hashicorp/go-secure-stdlib/strutil v0.1.2 // indirect

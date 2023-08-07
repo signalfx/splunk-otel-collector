@@ -13,7 +13,7 @@ require (
 	github.com/hashicorp/vault v1.14.0
 	github.com/hashicorp/vault-plugin-auth-gcp v0.16.0
 	github.com/hashicorp/vault/api v1.9.2
-	github.com/jaegertracing/jaeger v1.41.0
+	github.com/jaegertracing/jaeger v1.47.0
 	github.com/knadh/koanf v1.5.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/countconnector v0.82.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector v0.82.0
@@ -322,7 +322,7 @@ require (
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
 	github.com/hashicorp/go-kms-wrapping/entropy/v2 v2.0.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
-	github.com/hashicorp/go-plugin v1.4.9 // indirect
+	github.com/hashicorp/go-plugin v1.4.10 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.4 // indirect
 	github.com/hashicorp/go-rootcerts v1.0.2 // indirect
 	github.com/hashicorp/go-secure-stdlib/awsutil v0.2.2 // indirect

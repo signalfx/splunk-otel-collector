@@ -14,7 +14,9 @@ RUN chmod 755 /translatesfx
 RUN chmod 755 /migratecheckpoint
 RUN echo "splunk-otel-collector:x:999:999::/:" > /etc_passwd
 # create base dirs since we cannot chown in scratch image except via COPY
-RUN mkdir -p /otel/collector/tmp /splunk-otel-collector
+RUN mkdir -p /otel/collector /splunk-otel-collector /tmp/tmp
+# used by jmx receiver to pass tmp properties. Nested to avoid inheriting existing tmp files.
+RUN chmod 755 /tmp/tmp
 
 FROM ${DOCKER_REPO}/alpine:3.17.0 AS agent-bundle
 ARG ARCH="amd64"
@@ -52,8 +54,6 @@ ENV SPLUNK_BUNDLE_DIR=/usr/lib/splunk-otel-collector/agent-bundle
 ENV SPLUNK_COLLECTD_DIR=${SPLUNK_BUNDLE_DIR}/run/collectd
 ENV PATH=${PATH}:${SPLUNK_BUNDLE_DIR}/bin
 ENV PATH=${PATH}:${SPLUNK_BUNDLE_DIR}/jre/bin
-# currently required for the jmx receiver to pass tmp properties
-ENV TMPDIR=/etc/otel/collector/tmp
 
 COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=otelcol /etc_passwd /etc/passwd
@@ -62,6 +62,7 @@ COPY --from=otelcol --chown=999 /translatesfx /
 COPY --from=otelcol --chown=999 /migratecheckpoint /
 COPY --from=otelcol --chown=999 /otel /etc/otel
 COPY --from=otelcol --chown=999 /otel/collector /etc/otel/collector
+COPY --from=otelcol --chown=999 /tmp/tmp /tmp
 COPY --from=agent-bundle --chown=999 /usr/lib/splunk-otel-collector /usr/lib/splunk-otel-collector
 COPY --from=jmx --chown=999 /tmp/opentelemetry-jmx-metrics.jar /opt/opentelemetry-java-contrib-jmx-metrics.jar
 

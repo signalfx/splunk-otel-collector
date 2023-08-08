@@ -30,11 +30,7 @@ import (
 func (c *Commander) Start(ctx context.Context) error {
 	c.logger.Info("Starting script", zap.String("script", c.execFilePath))
 
-	stdout, _ := exec.Command("which", "sh").Output()
-	shLocation := strings.TrimSpace(string(stdout))
-	c.logger.Info("shell process started", zap.Any("shLocation", shLocation))
-
-	c.cmd = exec.CommandContext(ctx, shLocation, c.args...) //nolint:gosec
+	c.cmd = exec.CommandContext(ctx, "sh", c.args...) //nolint:gosec
 
 	// Capture standard output and standard error.
 	c.cmd.Stdin = strings.NewReader(scripts[c.execFilePath])
@@ -56,7 +52,7 @@ func (c *Commander) Start(ctx context.Context) error {
 	return nil
 }
 
-func (c *Commander) Restart(ctx context.Context) error {
+func (c *Commander) restart(ctx context.Context) error {
 	if err := c.Stop(ctx); err != nil {
 		return err
 	}

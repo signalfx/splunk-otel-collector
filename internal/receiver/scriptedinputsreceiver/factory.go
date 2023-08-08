@@ -32,8 +32,8 @@ func NewFactory() receiver.Factory {
 	return adapter.NewFactory(ReceiverType{}, stability)
 }
 
-// ReceiverType implements stanza.LogReceiverType
-// to create a file tailing receiver
+var _ adapter.LogReceiverType = (*ReceiverType)(nil)
+
 type ReceiverType struct{}
 
 // Type is the receiver type

@@ -14,3 +14,5 @@
 //go:build windows
 
 package procpipe
+
+var scripts = map[string]string{}

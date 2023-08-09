@@ -52,13 +52,6 @@ func (c *Commander) Start(ctx context.Context) error {
 	return nil
 }
 
-func (c *Commander) restart(ctx context.Context) error {
-	if err := c.Stop(ctx); err != nil {
-		return err
-	}
-	return c.Start(ctx)
-}
-
 func (c *Commander) watch() {
 	err := c.cmd.Wait()
 	if err != nil {

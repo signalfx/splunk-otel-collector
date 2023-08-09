@@ -1542,8 +1542,8 @@ github.com/stvp/go-udp-testing v0.0.0-20201019212854-469649b16807/go.mod h1:7jxm
 github.com/subosito/gotenv v1.4.1 h1:jyEFiXpy21Wm81FBN71l9VoMMV8H8jG+qIK3GCpY6Qs=
 github.com/syndtr/gocapability v0.0.0-20200815063812-42c35b437635/go.mod h1:hkRG7XYTFWNJGYcbNJQlaLq0fg1yr4J4t/NcTQtrfww=
 github.com/tencentcloud/tencentcloud-sdk-go v1.0.162 h1:8fDzz4GuVg4skjY2B0nMN7h6uN61EDVkuLyI2+qGHhI=
-github.com/testcontainers/testcontainers-go v0.21.0 h1:syePAxdeTzfkap+RrJaQZpJQ/s/fsUgn11xIvHrOE9U=
-github.com/testcontainers/testcontainers-go v0.21.0/go.mod h1:c1ez3WVRHq7T/Aj+X3TIipFBwkBaNT5iNCY8+1b83Ng=
+github.com/testcontainers/testcontainers-go v0.20.1 h1:mK15UPJ8c5P+NsQKmkqzs/jMdJt6JMs5vlw2y4j92c0=
+github.com/testcontainers/testcontainers-go v0.20.1/go.mod h1:zb+NOlCQBkZ7RQp4QI+YMIHyO2CQ/qsXzNF5eLJ24SY=
 github.com/tg123/go-htpasswd v1.2.1 h1:i4wfsX1KvvkyoMiHZzjS0VzbAPWfxzI8INcZAKtutoU=
 github.com/tg123/go-htpasswd v1.2.1/go.mod h1:erHp1B86KXdwQf1X5ZrLb7erXZnWueEQezb2dql4q58=
 github.com/tidwall/gjson v1.10.2 h1:APbLGOM0rrEkd8WBw9C24nllro4ajFuJu0Sc9hRz8Bo=

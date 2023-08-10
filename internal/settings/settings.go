@@ -40,6 +40,7 @@ const (
 	ConfigServerEnabledEnvVar = "SPLUNK_DEBUG_CONFIG_SERVER"
 	ConfigYamlEnvVar          = "SPLUNK_CONFIG_YAML"
 	HecLogIngestURLEnvVar     = "SPLUNK_HEC_URL"
+	ListenInterfaceEnvVar     = "SPLUNK_LISTEN_INTERFACE"
 	// nolint:gosec
 	HecTokenEnvVar    = "SPLUNK_HEC_TOKEN" // this isn't a hardcoded token
 	IngestURLEnvVar   = "SPLUNK_INGEST_URL"
@@ -56,6 +57,7 @@ const (
 	DefaultMemoryBallastPercentage = 33
 	DefaultMemoryLimitPercentage   = 90
 	DefaultMemoryTotalMiB          = 512
+	DefaultListenInterface         = "0.0.0.0"
 )
 
 var (
@@ -344,6 +346,10 @@ func checkRuntimeParams(settings *Settings) error {
 	if 2*ballastSize > memLimit {
 		return fmt.Errorf("memory limit (%d) is less than 2x ballast (%d). Increase memory limit or decrease ballast size", memLimit, ballastSize)
 	}
+	if os.Getenv(ListenInterfaceEnvVar) == "" {
+		os.Setenv(ListenInterfaceEnvVar, DefaultListenInterface)
+	}
+
 	return nil
 }
 
@@ -358,6 +364,7 @@ func setDefaultEnvVars() error {
 			ev{e: IngestURLEnvVar, v: fmt.Sprintf("https://ingest.%s.signalfx.com", realm)},
 			ev{e: TraceIngestURLEnvVar, v: fmt.Sprintf("https://ingest.%s.signalfx.com/v2/trace", realm)},
 			ev{e: HecLogIngestURLEnvVar, v: fmt.Sprintf("https://ingest.%s.signalfx.com/v1/log", realm)},
+			ev{e: ListenInterfaceEnvVar, v: "0.0.0.0"},
 		)
 	}
 

@@ -209,6 +209,7 @@ func TestCheckRuntimeParams_Default(t *testing.T) {
 	require.NotNil(t, settings)
 	require.Equal(t, "168", os.Getenv(BallastEnvVar))
 	require.Equal(t, "460", os.Getenv(MemLimitMiBEnvVar))
+	require.Equal(t, "0.0.0.0", os.Getenv(ListenInterfaceEnvVar))
 }
 
 func TestCheckRuntimeParams_MemTotalEnv(t *testing.T) {
@@ -220,6 +221,15 @@ func TestCheckRuntimeParams_MemTotalEnv(t *testing.T) {
 	require.NotNil(t, settings)
 	require.Equal(t, "330", os.Getenv(BallastEnvVar))
 	require.Equal(t, "900", os.Getenv(MemLimitMiBEnvVar))
+}
+
+func TestCheckRuntimeParams_ListenInterface(t *testing.T) {
+	t.Cleanup(setRequiredEnvVars(t))
+	require.NoError(t, os.Setenv(ListenInterfaceEnvVar, "127.0.0.1"))
+	settings, err := New([]string{})
+	require.NoError(t, err)
+	require.NotNil(t, settings)
+	require.Equal(t, "127.0.0.1", os.Getenv(ListenInterfaceEnvVar))
 }
 
 func TestCheckRuntimeParams_MemTotalAndBallastEnvs(t *testing.T) {
@@ -251,7 +261,7 @@ func TestCheckRuntimeParams_LimitAndBallastEnvs(t *testing.T) {
 func TestSetDefaultEnvVars(t *testing.T) {
 	t.Cleanup(clearEnv(t))
 
-	testArgs := []string{"SPLUNK_API_URL", "SPLUNK_INGEST_URL", "SPLUNK_TRACE_URL", "SPLUNK_HEC_URL", "SPLUNK_HEC_TOKEN"}
+	testArgs := []string{"SPLUNK_API_URL", "SPLUNK_INGEST_URL", "SPLUNK_TRACE_URL", "SPLUNK_HEC_URL", "SPLUNK_HEC_TOKEN", "SPLUNK_LISTEN_INTERFACE"}
 	for _, v := range testArgs {
 		setDefaultEnvVars()
 		_, ok := os.LookupEnv(v)
@@ -272,6 +282,7 @@ func TestSetDefaultEnvVars(t *testing.T) {
 		{"SPLUNK_TRACE_URL", fmt.Sprintf("https://ingest.%s.signalfx.com/v2/trace", realm)},
 		{"SPLUNK_HEC_URL", fmt.Sprintf("https://ingest.%s.signalfx.com/v1/log", realm)},
 		{"SPLUNK_HEC_TOKEN", token},
+		{"SPLUNK_LISTEN_INTERFACE", "0.0.0.0"},
 	}
 	for _, v := range testArgs2 {
 		val, _ := os.LookupEnv(v[0])

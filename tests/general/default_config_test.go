@@ -154,6 +154,7 @@ func TestDefaultGatewayConfig(t *testing.T) {
 			},
 		},
 		"service": map[string]any{
+			"telemetry":  map[string]any{"metrics": map[string]any{"address": "0.0.0.0:8888"}},
 			"extensions": []any{"health_check", "http_forwarder", "zpages", "memory_ballast"},
 			"pipelines": map[string]any{
 				"logs": map[string]any{
@@ -325,6 +326,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 			"zipkin": map[string]any{
 				"endpoint": "0.0.0.0:9411"}},
 		"service": map[string]any{
+			"telemetry":  map[string]any{"metrics": map[string]any{"address": "0.0.0.0:8888"}},
 			"extensions": []any{"health_check", "http_forwarder", "zpages", "memory_ballast", "smartagent"},
 			"pipelines": map[string]any{
 				"logs": map[string]any{

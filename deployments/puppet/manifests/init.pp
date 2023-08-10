@@ -11,6 +11,7 @@ class splunk_otel_collector (
   $splunk_collectd_dir     = $splunk_otel_collector::params::splunk_collectd_dir,
   $splunk_memory_total_mib = '512',
   $splunk_ballast_size_mib = '',
+  $splunk_listen_interface = '0.0.0.0',
   $collector_version       = $splunk_otel_collector::params::collector_version,
   $collector_config_source = $splunk_otel_collector::params::collector_config_source,
   $collector_config_dest   = $splunk_otel_collector::params::collector_config_dest,

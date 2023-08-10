@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Splunk Ideas
+    url: https://ideas.splunk.com/
+    about: Proposes enhancements through Splunk Ideas (requires a Splunk.com login)
+  - name: Splunk Support
+    url: https://splunk.my.site.com/customer/s/need-help/create-case
+    about: Open a support case (requires Splunk Support entitlement)

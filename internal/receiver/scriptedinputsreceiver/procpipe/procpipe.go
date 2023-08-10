@@ -108,12 +108,12 @@ func createTicker(intervalStr string) (*time.Ticker, error) {
 }
 
 // Start will start generating log entries.
-func (g *Input) Start(_ operator.Persister) error {
+func (i *Input) Start(_ operator.Persister) error {
 
 	ctx, cancelAll := context.WithCancel(context.Background())
-	g.cancelAll = cancelAll
+	i.cancelAll = cancelAll
 
-	ticker, err := createTicker(g.baseConfig.CollectionInterval)
+	ticker, err := createTicker(i.baseConfig.CollectionInterval)
 	if err != nil {
 		// TODO: move ticker verification to Start() so that we cannot error here.
 		return err
@@ -123,9 +123,9 @@ func (g *Input) Start(_ operator.Persister) error {
 		for {
 			_, cancelCycle := context.WithCancel(ctx)
 
-			err := g.beginCycle(ctx)
+			err := i.beginCycle(ctx)
 			if err != nil {
-				g.logger.Errorf("Error running script: %v", err)
+				i.logger.Errorf("Error running script: %v", err)
 			}
 
 			select {
@@ -134,7 +134,7 @@ func (g *Input) Start(_ operator.Persister) error {
 				return
 			case <-ticker.C:
 				cancelCycle()
-				g.wg.Wait()
+				i.wg.Wait()
 			}
 		}
 	}()
@@ -142,10 +142,10 @@ func (g *Input) Start(_ operator.Persister) error {
 	return nil
 }
 
-func (g *Input) beginCycle(ctx context.Context) error {
+func (i *Input) beginCycle(ctx context.Context) error {
 
 	stdOutReader, stdOutWriter := io.Pipe()
-	commander, err := NewCommander(g.logger.Desugar(), g.baseConfig.ScriptName, stdOutWriter)
+	commander, err := NewCommander(i.logger.Desugar(), i.baseConfig.ScriptName, stdOutWriter)
 	if err != nil {
 		return err
 	}
@@ -154,15 +154,15 @@ func (g *Input) beginCycle(ctx context.Context) error {
 		return err
 	}
 
-	g.wg.Add(2)
+	i.wg.Add(2)
 
 	readerCtx, cancelReader := context.WithCancel(ctx)
 
 	go func() {
-		defer g.wg.Done()
+		defer i.wg.Done()
 		select {
 		case <-commander.Done():
-			g.logger.Debug("Script finished", zap.String("exec_file", g.baseConfig.ScriptName))
+			i.logger.Debug("Script finished", zap.String("script_name", i.baseConfig.ScriptName))
 			// Close the write pipe. This will result in subsequent read by scanner to return EOF and finish
 			// the goroutine that processes the script output.
 			err := stdOutWriter.Close()
@@ -171,7 +171,7 @@ func (g *Input) beginCycle(ctx context.Context) error {
 			}
 
 		case <-ctx.Done():
-			g.logger.Info("Script run too long. Stopping.", zap.String("exec_file", g.baseConfig.ScriptName))
+			i.logger.Info("Script run too long. Stopping.", zap.String("script_name", i.baseConfig.ScriptName))
 			err := commander.Stop(context.Background())
 			if err != nil {
 				return
@@ -184,50 +184,50 @@ func (g *Input) beginCycle(ctx context.Context) error {
 		cancelReader()
 	}()
 
-	go g.readOutput(readerCtx, stdOutReader)
+	go i.readOutput(readerCtx, stdOutReader)
 
 	return nil
 }
 
-func (g *Input) readOutput(ctx context.Context, r io.Reader) {
-	defer g.wg.Done()
+func (i *Input) readOutput(ctx context.Context, r io.Reader) {
+	defer i.wg.Done()
 
-	buf := make([]byte, 0, g.MaxLogSize)
+	buf := make([]byte, 0, i.MaxLogSize)
 	scanner := bufio.NewScanner(r)
-	scanner.Buffer(buf, g.MaxLogSize)
+	scanner.Buffer(buf, i.MaxLogSize)
 
-	scanner.Split(g.splitFunc)
+	scanner.Split(i.splitFunc)
 
 	for scanner.Scan() {
-		decoded, err := g.encoding.Decode(scanner.Bytes())
+		decoded, err := i.encoding.Decode(scanner.Bytes())
 		if err != nil {
-			g.Errorw("Failed to decode data", zap.Error(err))
+			i.Errorw("Failed to decode data", zap.Error(err))
 			continue
 		}
 
-		entry, err := g.NewEntry(string(decoded))
+		entry, err := i.NewEntry(string(decoded))
 		if err != nil {
-			g.Errorw("Failed to create entry", zap.Error(err))
+			i.Errorw("Failed to create entry", zap.Error(err))
 			continue
 		}
 
-		if g.baseConfig.Source != "" {
-			entry.AddAttribute("com.splunk.source", g.baseConfig.Source)
+		if i.baseConfig.Source != "" {
+			entry.AddAttribute("com.splunk.source", i.baseConfig.Source)
 		}
-		if g.baseConfig.SourceType != "" {
-			entry.AddAttribute("com.splunk.sourcetype", g.baseConfig.SourceType)
+		if i.baseConfig.SourceType != "" {
+			entry.AddAttribute("com.splunk.sourcetype", i.baseConfig.SourceType)
 		}
 
-		g.Write(ctx, entry)
+		i.Write(ctx, entry)
 	}
 	if err := scanner.Err(); err != nil {
-		g.Errorw("Scanner error", zap.Error(err))
+		i.Errorw("Scanner error", zap.Error(err))
 	}
 }
 
 // Stop will stop generating logs.
-func (g *Input) Stop() error {
-	g.cancelAll()
-	g.wg.Wait()
+func (i *Input) Stop() error {
+	i.cancelAll()
+	i.wg.Wait()
 	return nil
 }

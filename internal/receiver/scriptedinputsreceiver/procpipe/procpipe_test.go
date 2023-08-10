@@ -55,7 +55,7 @@ func TestCreateDefaultWithMissingExecFile(t *testing.T) {
 
 	err := config.Validate()
 
-	assert.Equal(t, err.Error(), "'exec_file' must be specified")
+	assert.Equal(t, err.Error(), "'script_name' must be specified")
 }
 
 func TestCreateDefaultWithNonEmptyMultiline(t *testing.T) {

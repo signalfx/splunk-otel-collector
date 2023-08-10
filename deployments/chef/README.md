@@ -104,6 +104,9 @@ required `splunk_access_token` attribute and some optional attributes:
   `SPLUNK_BALLAST_SIZE_MIB` environment variable will be set with this value
   for the Collector service. (**default:** `''`)
 
+- `splunk_listen_interface`: The network interface the collector receivers
+  will listen on (**default** `0.0.0.0`).
+
 - `splunk_service_user` and `splunk_service_group` (Linux only): Set the
   user/group ownership for the Collector service. The user/group will be
   created if they do not exist. (**default:** `splunk-otel-collector`)

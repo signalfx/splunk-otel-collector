@@ -31,6 +31,7 @@ splunk_memory_total_mib: 512
 # 1/3 of memory_mib by default
 splunk_ballast_size_mib: ""
 
+splunk_listen_interface: "0.0.0.0"
 install_fluentd: false
 # Whether to start the services installed by the role (splunk-otel-collector and td-agent).
 start_service: true

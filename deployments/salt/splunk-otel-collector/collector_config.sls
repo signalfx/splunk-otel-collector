@@ -26,6 +26,8 @@
 
 {% set splunk_ballast_size_mib = salt['pillar.get']('splunk-otel-collector:splunk_ballast_size_mib', '') %}
 
+{% set splunk_listen_interface = salt['pillar.get']('splunk-otel-collector:splunk_listen_interface', '0.0.0.0') %}
+
 {% set collector_additional_env_vars = salt['pillar.get']('splunk-otel-collector:collector_additional_env_vars', {}) %}
 
 /etc/otel/collector/splunk-otel-collector.conf:
@@ -41,6 +43,7 @@
         SPLUNK_HEC_TOKEN={{ splunk_hec_token }}
         SPLUNK_MEMORY_TOTAL_MIB={{ splunk_memory_total_mib }}
         SPLUNK_BALLAST_SIZE_MIB={{ splunk_ballast_size_mib }}
+        SPLUNK_LISTEN_INTERFACE={{ splunk_listen_interface }}
         SPLUNK_BUNDLE_DIR={{ splunk_bundle_dir }}
         SPLUNK_COLLECTD_DIR={{ splunk_collectd_dir }}
 {% for key, value in collector_additional_env_vars.items() %}

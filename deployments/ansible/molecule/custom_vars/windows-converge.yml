@@ -14,6 +14,7 @@
     splunk_memory_total_mib: 256
     splunk_ballast_size_mib: 100
     install_fluentd: yes
+    splunk_listen_interface: 127.0.0.1
     splunk_fluentd_config: '{{ansible_env.ProgramFiles}}\Splunk\OpenTelemetry Collector\fluentd\custom_config.conf'
     splunk_fluentd_config_source: ./custom_fluentd_config.conf
     splunk_otel_collector_additional_env_vars:

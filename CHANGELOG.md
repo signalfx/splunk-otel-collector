@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Use `SPLUNK_LISTEN_INTERFACE` and associated installer option to configure the network interface used by the collector for default configurations ([#3421](https://github.com/signalfx/splunk-otel-collector/pull/3421))
 
 ### 🛑 Breaking changes 🛑
 

@@ -93,6 +93,13 @@
         state: present
       check_mode: yes
 
+    - name: Assert SPLUNK_LISTEN_INTERFACE env var is set
+      ansible.builtin.lineinfile:
+        line: SPLUNK_LISTEN_INTERFACE=127.0.0.1
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: present
+      check_mode: yes
+
     - name: Look for ballast config in collector service output
       ansible.builtin.shell:
         cmd: 'journalctl -u splunk-otel-collector | grep "Set ballast to 100 MiB"'

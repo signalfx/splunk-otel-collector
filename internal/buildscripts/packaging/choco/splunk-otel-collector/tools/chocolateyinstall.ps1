@@ -17,6 +17,7 @@ $SPLUNK_HEC_TOKEN = $pp['SPLUNK_HEC_TOKEN']
 $SPLUNK_HEC_URL = $pp['SPLUNK_HEC_URL']
 $SPLUNK_TRACE_URL = $pp['SPLUNK_TRACE_URL']
 $SPLUNK_BUNDLE_DIR = $pp['SPLUNK_BUNDLE_DIR']
+$SPLUNK_LISTEN_INTERFACE = $pp['SPLUNK_LISTEN_INTERFACE']
 $SPLUNK_REALM = $pp['SPLUNK_REALM']
 $SPLUNK_MEMORY_TOTAL_MIB = $pp['SPLUNK_MEMORY_TOTAL_MIB']
 
@@ -129,6 +130,16 @@ catch {
 }
 
 try {
+    if (!$SPLUNK_LISTEN_INTERFACE) {
+        $SPLUNK_LISTEN_INTERFACE = Get-ItemPropertyValue -PATH "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" -name "SPLUNK_LISTEN_INTERFACE" -ErrorAction SilentlyContinue
+    }
+}
+catch {
+    $SPLUNK_LISTEN_INTERFACE = "0.0.0.0"
+    write-host "The SPLUNK_LISTEN_INTERFACE parameter is not specified. Using default configuration."
+}
+
+try {
     if (!$SPLUNK_BUNDLE_DIR) {
         $SPLUNK_BUNDLE_DIR = Get-ItemPropertyValue -PATH "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" -name "SPLUNK_BUNDLE_DIR" -ErrorAction SilentlyContinue
     }
@@ -156,6 +167,7 @@ try {
 
 update_registry -path "$regkey" -name "SPLUNK_API_URL" -value "$SPLUNK_API_URL"
 update_registry -path "$regkey" -name "SPLUNK_BUNDLE_DIR" -value "$SPLUNK_BUNDLE_DIR"
+update_registry -path "$regkey" -name "SPLUNK_LISTEN_INTERFACE" -value "$SPLUNK_LISTEN_INTERFACE"
 update_registry -path "$regkey" -name "SPLUNK_HEC_TOKEN" -value "$SPLUNK_HEC_TOKEN"
 update_registry -path "$regkey" -name "SPLUNK_HEC_URL" -value "$SPLUNK_HEC_URL"
 update_registry -path "$regkey" -name "SPLUNK_INGEST_URL" -value "$SPLUNK_INGEST_URL"

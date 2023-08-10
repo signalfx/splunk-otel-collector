@@ -97,6 +97,9 @@ splunk-otel-collector:
 - `splunk_ballast_size_mib`: Memory ballast size in MiB that will be set to the Splunk 
   OTel Collector. (**default:** 1/3 of `splunk_memory_total_mib`)
 
+- `splunk_listen_interface`: The network interface the collector receivers will listen
+  on. (**default:** `0.0.0.0`)
+
 - `collector_additional_env_vars`: Dictionary of additional environment
   variables from the collector configuration file for the collector service
   (**default:** `{}`). For example, if the collector configuration file

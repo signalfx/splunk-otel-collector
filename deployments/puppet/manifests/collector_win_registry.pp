@@ -27,6 +27,13 @@ class splunk_otel_collector::collector_win_registry () {
     require => Registry_key[$registry_key],
   }
 
+    registry_value { "${registry_key}\\SPLUNK_LISTEN_INTERFACE":
+      ensure  => 'present',
+      type    => 'string',
+      data    => $splunk_otel_collector::splunk_listen_interface,
+      require => Registry_key[$registry_key],
+    }
+
   registry_value { "${registry_key}\\SPLUNK_BUNDLE_DIR":
     ensure  => 'present',
     type    => 'string',

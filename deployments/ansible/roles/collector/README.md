@@ -129,6 +129,9 @@ $> ansible-playbook playbook.yaml -e start_service=false
 - `splunk_ballast_size_mib`: Memory ballast size in MiB that will be set to the Splunk 
   OTel Collector. (**default:** 1/3 of `splunk_memory_total_mib`)
 
+- `splunk_listen_interface`: The network interface the collector receivers will listen on.
+  (**default** `0.0.0.0`).
+
 - `splunk_skip_repo` (Linux only): If installing the collector from a custom or self-hosted
   apt/yum repo, set to `true` to skip the installation of the default repo
   (**default:** `false`)

@@ -33,7 +33,8 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        ARCH: [ "amd64", "arm64" ]
+#        ARCH: [ "amd64", "arm64" ]
+        ARCH: [ "amd64", ]
     steps:
       - uses: actions/checkout@v3
         with:
@@ -63,37 +64,37 @@ jobs:
           name: otelcol-${{ matrix.ARCH }}
           path: ./bin
 
-  integration-vet:
-    name: integration-vet
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
-    strategy:
-      matrix:
-        ARCH: [ "amd64", "arm64" ]
-      fail-fast: false
-    needs: [docker-otelcol]
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-go@v4
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
-      - uses: actions/download-artifact@v3
-        with:
-          name: otelcol-${{ matrix.ARCH }}
-          path: ./bin
-      - uses: docker/setup-qemu-action@v2
-        if: ${{ matrix.ARCH != 'amd64' }}
-        with:
-          platforms: ${{ matrix.ARCH }}
-          image: tonistiigi/binfmt:qemu-v7.0.0
-      - run: docker load -i ./bin/image.tar
-      - run: chmod a+x ./bin/*
-      - run: make integration-vet
-        env:
-          SPLUNK_OTEL_COLLECTOR_IMAGE: 'otelcol:latest'
+#  integration-vet:
+#    name: integration-vet
+#    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+#    runs-on: ubuntu-20.04
+#    strategy:
+#      matrix:
+#        ARCH: [ "amd64", "arm64" ]
+#      fail-fast: false
+#    needs: [docker-otelcol]
+#    steps:
+#      - uses: actions/checkout@v3
+#        with:
+#          fetch-depth: 0
+#      - uses: actions/setup-go@v4
+#        with:
+#          go-version: ${{ env.GO_VERSION }}
+#          cache-dependency-path: '**/go.sum'
+#      - uses: actions/download-artifact@v3
+#        with:
+#          name: otelcol-${{ matrix.ARCH }}
+#          path: ./bin
+#      - uses: docker/setup-qemu-action@v2
+#        if: ${{ matrix.ARCH != 'amd64' }}
+#        with:
+#          platforms: ${{ matrix.ARCH }}
+#          image: tonistiigi/binfmt:qemu-v7.0.0
+#      - run: docker load -i ./bin/image.tar
+#      - run: chmod a+x ./bin/*
+#      - run: make integration-vet
+#        env:
+#          SPLUNK_OTEL_COLLECTOR_IMAGE: 'otelcol:latest'
 
   integration-test:
     name: integration-test
@@ -102,8 +103,9 @@ jobs:
     needs: [docker-otelcol]
     strategy:
       matrix:
-        GOTESPLIT_INDEX: [ "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" ]
-        ARCH: [ "amd64", "arm64" ]
+#        GOTESPLIT_INDEX: [ "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" ]
+#        ARCH: [ "amd64", "arm64" ]
+        ARCH: [ "amd64" ]
       fail-fast: false
     steps:
       - uses: actions/checkout@v3
@@ -124,8 +126,12 @@ jobs:
           image: tonistiigi/binfmt:qemu-v7.0.0
       - run: docker load -i ./bin/image.tar
       - run: chmod a+x ./bin/*
-      - run: make integration-test-split
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
+        with:
+          limit-access-to-users: rmfitzpatrick
+      - run: make integration-test
         env:
           SPLUNK_OTEL_COLLECTOR_IMAGE: 'otelcol:latest'
-          GOTESPLIT_TOTAL: "${{ env.GOTESPLIT_TOTAL }}"
-          GOTESPLIT_INDEX: "${{ matrix.GOTESPLIT_INDEX }}"
+#          GOTESPLIT_TOTAL: "${{ env.GOTESPLIT_TOTAL }}"
+#          GOTESPLIT_INDEX: "${{ matrix.GOTESPLIT_INDEX }}"

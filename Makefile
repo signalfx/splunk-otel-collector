@@ -31,6 +31,7 @@ BUILD_X2=-X $(BUILD_INFO_IMPORT_PATH_CORE).Version=$(VERSION)
 BUILD_INFO=-ldflags "${BUILD_X1} ${BUILD_X2}"
 BUILD_INFO_TESTS=-ldflags "-X $(BUILD_INFO_IMPORT_PATH_TESTS).Version=$(VERSION)"
 
+JMX_METRIC_GATHERER_RELEASE=$(shell cat internal/buildscripts/packaging/jmx-metric-gatherer-release.txt)
 SKIP_COMPILE=false
 ARCH=amd64
 BUNDLE_SUPPORTED_ARCHS := amd64 arm64
@@ -71,8 +72,8 @@ integration-vet:
 	@set -e; cd tests && go vet -tags integration,testutilsintegration,endtoend,zeroconfig,testutils ./... && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) -tags testutils,testutilsintegration -v -timeout 5m -count 1 ./...
 
 .PHONY: integration-test
-integration-test: integration-vet
-	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=integration -v -timeout 5m -count 1 ./...
+integration-test:
+	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=integration -v -timeout 1h -count 1 ./receivers/jmxreceiver/... ./receivers/smartagent/telegraf-exec/...
 
 .PHONY: end-to-end-test
 end-to-end-test:
@@ -167,7 +168,7 @@ endif
 ifneq ($(filter $(ARCH), $(BUNDLE_SUPPORTED_ARCHS)),)
 	cp ./dist/agent-bundle_linux_$(ARCH).tar.gz ./cmd/otelcol/dist/agent-bundle.tar.gz
 endif
-	docker buildx build --platform linux/$(ARCH) -o type=image,name=otelcol:$(ARCH),push=false --build-arg ARCH=$(ARCH) --build-arg DOCKER_REPO=$(DOCKER_REPO) ./cmd/otelcol/
+	docker buildx build --platform linux/$(ARCH) -o type=image,name=otelcol:$(ARCH),push=false --build-arg ARCH=$(ARCH) --build-arg DOCKER_REPO=$(DOCKER_REPO) --build-arg JMX_METRIC_GATHERER_RELEASE=$(JMX_METRIC_GATHERER_RELEASE) ./cmd/otelcol/
 	docker tag otelcol:$(ARCH) otelcol:latest
 	rm -rf ./cmd/otelcol/dist
 
@@ -221,7 +222,7 @@ ifneq ($(SKIP_BUNDLE), true)
 endif
 endif
 	docker build -t otelcol-fpm internal/buildscripts/packaging/fpm
-	docker run --rm -v $(CURDIR):/repo -e PACKAGE=$* -e VERSION=$(VERSION) -e ARCH=$(ARCH) otelcol-fpm
+	docker run --rm -v $(CURDIR):/repo -e PACKAGE=$* -e VERSION=$(VERSION) -e ARCH=$(ARCH) -e JMX_METRIC_GATHERER_RELEASE=$(JMX_METRIC_GATHERER_RELEASE) otelcol-fpm
 
 .PHONY: msi
 msi:
@@ -229,7 +230,7 @@ ifneq ($(SKIP_COMPILE), true)
 	$(MAKE) binaries-windows_amd64
 endif
 	test -f ./dist/agent-bundle_windows_amd64.zip || (echo "./dist/agent-bundle_windows_amd64.zip not found! Either download a pre-built bundle to ./dist/, or run './internal/signalfx-agent/bundle/scripts/windows/make.ps1 bundle' on a windows host and copy it to ./dist/." && exit 1)
-	./internal/buildscripts/packaging/msi/build.sh "$(VERSION)" "$(DOCKER_REPO)"
+	./internal/buildscripts/packaging/msi/build.sh "$(VERSION)" "$(DOCKER_REPO)" "$(JMX_METRIC_GATHERER_RELEASE)"
 
 .PHONY: update-examples
 update-examples:

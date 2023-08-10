@@ -27,6 +27,24 @@ RUN Add-Type -AssemblyName System.IO.Compression.FileSystem ;\
     [System.IO.Compression.ZipFile]::ExtractToDirectory('agent-bundle_windows_amd64.zip', '.')
 RUN Remove-Item agent-bundle_windows_amd64.zip -force
 
+# Download JMX Metric Gatherer
+ARG JMX_METRIC_GATHERER_RELEASE
+RUN New-Item -Path "C:\\" -Name "opt" -ItemType "directory"
+RUN Invoke-WebRequest -Uri "https://github.com/open-telemetry/opentelemetry-java-contrib/releases/download/v${env:JMX_METRIC_GATHERER_RELEASE}/opentelemetry-jmx-metrics.jar" -Outfile "c:\opt\opentelemetry-java-contrib-jmx-metrics.jar"
+
+ARG JDK_VERSION="11.0.20_8"
+ARG OPENJDK_BASE_URL="https://github.com/adoptium/temurin11-binaries/releases/download"
+ENV JAVA_HOME="C:\java\jdk"
+ENV JAVA_PATH="$JAVA_HOME\bin"
+RUN Set-Variable -Name "ENCODED_VER" -Value "\"$env:JDK_VERSION\".replace(\"_\", \"%2B\")"; \
+    Invoke-WebRequest -Uri "${env:OPENJDK_BASE_URL}/jdk-${ENCODED_VER}/OpenJDK11U-jdk_x64_windows_hotspot_${env:JDK_VERSION}.zip" -OutFile "openjdk.zip" ; \
+    Expand-Archive "openjdk.zip" -DestinationPath "C:\java" ;
+RUN Move-Item -Path C:\java\jdk-* -Destination ${Env:JAVA_HOME}
+RUN setx PATH %PATH%;${env:JAVA_PATH}
+
+# Delete unnecessary files
+RUN Remove-Item "openjdk.zip" -force
+
 # Setting environment variables
 ENV SPLUNK_BUNDLE_DIR="C:\Program Files\Splunk\OpenTelemetry Collector\agent-bundle"
 ENV SPLUNK_CONFIG="C:\ProgramData\Splunk\OpenTelemetry Collector\gateway_config.yaml"

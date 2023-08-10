@@ -53,11 +53,6 @@ variable will then be picked up by the Java instrumentation jar. Typically, it w
 
 to set the deployment environment for the Splunk backend.
 
-#### `disable_telemetry` (optional)
-
-Set this value to `true` to disable the preloader from sending the `splunk.linux-autoinstr.executions` metric to the
-local collector. Default: `false`.
-
 #### `generate_service_name` (optional)
 
 Set this value to `false` to prevent the preloader from setting the `OTEL_SERVICE_NAME` environment variable. If this

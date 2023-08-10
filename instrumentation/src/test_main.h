@@ -87,10 +87,6 @@ void test_is_legal_module(logger l);
 
 void test_str_to_bool(logger l);
 
-void test_enable_telemetry(logger l);
-
-void test_disable_telemetry(logger l);
-
 void test_enable_profiling(logger l);
 
 void test_enable_profiling_memory(logger l);
@@ -111,8 +107,6 @@ void test_auto_instrument_gen_svcname_disabled_but_specified(logger l);
 
 // fakes/testdata
 
-void fake_send_otlp_metric(logger log, char *service_name);
-
 void fake_config_svcname_explicitly_specified(logger log, struct config *cfg, char *path);
 
 void fake_config_generate_svcname_enabled(logger log, struct config *cfg, char *path);
@@ -122,10 +116,6 @@ void fake_config_generate_svcname_disabled(logger log, struct config *cfg, char 
 void fake_config_generate_svcname_disabled_but_explicitly_specified(logger log, struct config *cfg, char *path);
 
 void fake_config_no_svcname(logger log, struct config *cfg, char *path);
-
-void fake_config_disable_telemetry_not_specified(logger log, struct config *cfg, char *path);
-
-void fake_config_disable_telemetry_true(logger log, struct config *cfg, char *path);
 
 void fake_config_enable_profiler(logger log, struct config *cfg, char *path);
 

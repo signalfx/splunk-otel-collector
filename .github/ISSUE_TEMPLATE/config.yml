@@ -5,4 +5,4 @@ contact_links:
     about: Proposes enhancements through Splunk Ideas (requires a Splunk.com login)
   - name: Splunk Support
     url: https://splunk.my.site.com/customer/s/need-help/create-case
-    about: Open a support case (requires Splunk Support entitlement)
+    about: Report an issue or request help (requires Splunk Support entitlement)

@@ -348,3 +348,12 @@ effect.
   Check the [Advanced Configuration Guide](
   https://docs.splunk.com/Observability/gdi/get-data-in/application/dotnet/configuration/advanced-dotnet-configuration.html)
   for more details about the options above and other supported options.
+
+To uninstall the `signalfx-dotnet-tracing` MSI and disable auto
+instrumentation, include the following in your recipe and restart all
+applicable services:
+```
+windows_package 'SignalFx .NET Tracing 64-bit' do
+  action :remove
+end
+```

@@ -29,7 +29,7 @@ remote_file msi_path do
   action :create
 end
 
-windows_package 'signalfx-dotnet-tracing' do
+windows_package 'SignalFx .NET Tracing 64-bit' do
   source msi_path
   action :install
   notifies :run, 'powershell_script[iisreset]', :delayed

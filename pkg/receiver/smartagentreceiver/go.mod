@@ -7,6 +7,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.82.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.82.0
 	github.com/openzipkin/zipkin-go v0.4.2
+	github.com/shirou/gopsutil/v3 v3.23.7
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657
 	github.com/signalfx/golib/v3 v3.3.50
 	github.com/signalfx/signalfx-agent v1.0.1-0.20230104182534-9eee411fe305
@@ -239,7 +240,6 @@ require (
 	github.com/ryanuber/go-glob v1.0.0 // indirect
 	github.com/samuel/go-zookeeper v0.0.0-20200724154423-2164a8ac840e // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
-	github.com/shirou/gopsutil/v3 v3.23.7 // indirect
 	github.com/shoenig/go-m1cpu v0.1.6 // indirect
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3 // indirect
 	github.com/signalfx/gohistogram v0.0.0-20160107210732-1ccfd2ff5083 // indirect

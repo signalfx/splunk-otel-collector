@@ -356,4 +356,23 @@ applicable services:
 windows_package 'SignalFx .NET Tracing 64-bit' do
   action :remove
 end
+
+# If the "signalfx_dotnet_auto_instrumentation_system_wide" option was set to
+# "true", include the following to remove the values from the
+# "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
+# registry key:
+
+registry_key 'HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment' do
+  values [
+    { name: 'COR_ENABLE_PROFILING', type: :string, data: '' },
+    { name: 'COR_PROFILER', type: :string, data: '' },
+    { name: 'CORECLR_ENABLE_PROFILING', type: :string, data: '' },
+    { name: 'CORECLR_PROFILER', type: :string, data: '' },
+    { name: 'SIGNALFX_ENV', type: :string, data: '' },
+    { name: 'SIGNALFX_PROFILER_ENABLED', type: :string, data: '' },
+    { name: 'SIGNALFX_PROFILER_MEMORY_ENABLED', type: :string, data: '' },
+    { name: 'SIGNALFX_SERVICE_NAME', type: :string, data: '' },
+  ]
+  action :delete
+end
 ```

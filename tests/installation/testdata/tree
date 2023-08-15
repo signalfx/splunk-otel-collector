@@ -5,7 +5,6 @@
 |   |-- docker-observer.discovery.yaml
 |   |-- host-observer.discovery.yaml
 |   `-- k8s-observer.discovery.yaml
-|-- processors
 |-- properties.discovery.yaml
 |-- properties.discovery.yaml.example
 |-- receivers
@@ -15,4 +14,4 @@
 |   `-- smartagent-postgresql.discovery.yaml
 `-- service.yaml
 
-4 directories, 11 files
+3 directories, 11 files

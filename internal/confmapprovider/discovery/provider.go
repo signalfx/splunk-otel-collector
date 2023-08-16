@@ -71,7 +71,7 @@ type mapProvider struct {
 	logger     *zap.Logger
 	configs    map[string]*Config
 	discoverer *discoverer
-	retrieved *confmap.Retrieved
+	retrieved  *confmap.Retrieved
 }
 
 func New() (Provider, error) {

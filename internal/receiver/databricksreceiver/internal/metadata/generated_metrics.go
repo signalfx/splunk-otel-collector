@@ -7817,6 +7817,7 @@ type MetricsBuilder struct {
 	metricDatabricksTasksScheduleStatus                                                                                      metricDatabricksTasksScheduleStatus
 	startTime                                                                                                                pcommon.Timestamp
 	metricsCapacity                                                                                                          int
+	config                                                                                                                   MetricsBuilderConfig
 }
 
 // metricBuilderOption applies changes to default metrics builder.
@@ -7831,6 +7832,7 @@ func WithStartTime(startTime pcommon.Timestamp) metricBuilderOption {
 
 func NewMetricsBuilder(mbc MetricsBuilderConfig, settings receiver.CreateSettings, options ...metricBuilderOption) *MetricsBuilder {
 	mb := &MetricsBuilder{
+		config:                             mbc,
 		startTime:                          pcommon.NewTimestampFromTime(time.Now()),
 		metricsBuffer:                      pmetric.NewMetrics(),
 		buildInfo:                          settings.BuildInfo,
@@ -7979,6 +7981,11 @@ func NewMetricsBuilder(mbc MetricsBuilderConfig, settings receiver.CreateSetting
 		op(mb)
 	}
 	return mb
+}
+
+// NewResourceBuilder returns a new resource builder that should be used to build a resource associated with for the emitted metrics.
+func (mb *MetricsBuilder) NewResourceBuilder() *ResourceBuilder {
+	return NewResourceBuilder(mb.config.ResourceAttributes)
 }
 
 // updateCapacity updates max length of metrics and resource attributes that will be used for the slice capacity.

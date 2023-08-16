@@ -22,7 +22,6 @@ void load_config(logger log, struct config *cfg, char *file_name) {
     log_config_field(log, "service_name", cfg->service_name);
     log_config_field(log, "java_agent_jar", cfg->java_agent_jar);
     log_config_field(log, "resource_attributes", cfg->resource_attributes);
-    log_config_field(log, "disable_telemetry", cfg->disable_telemetry);
     log_config_field(log, "generate_service_name", cfg->generate_service_name);
     log_config_field(log, "enable_profiler", cfg->enable_profiler);
     log_config_field(log, "enable_profiler_memory", cfg->enable_profiler_memory);
@@ -69,8 +68,6 @@ void read_lines(struct config *cfg, FILE *fp) {
             cfg->service_name = strdup(pair.v);
         } else if (streq(pair.k, "resource_attributes")) {
             cfg->resource_attributes = strdup(pair.v);
-        } else if (streq(pair.k, "disable_telemetry")) {
-            cfg->disable_telemetry = strdup(pair.v);
         } else if (streq(pair.k, "generate_service_name")) {
             cfg->generate_service_name = strdup(pair.v);
         } else if (streq(pair.k, "enable_profiler")) {
@@ -107,9 +104,6 @@ void free_config(struct config *cfg) {
     }
     if (cfg->resource_attributes != NULL) {
         free(cfg->resource_attributes);
-    }
-    if (cfg->disable_telemetry != NULL) {
-        free(cfg->disable_telemetry);
     }
     if (cfg->generate_service_name != NULL) {
         free(cfg->generate_service_name);

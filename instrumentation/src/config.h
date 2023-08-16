@@ -7,7 +7,6 @@ struct config {
     char *java_agent_jar;
     char *service_name;
     char *resource_attributes;
-    char *disable_telemetry;
     char *generate_service_name;
     char *enable_profiler;
     char *enable_profiler_memory;

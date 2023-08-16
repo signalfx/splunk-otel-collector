@@ -169,6 +169,10 @@ By default the Splunk OpenTelemetry Collector provides a sensitive value-redacti
 set the `SPLUNK_DEBUG_CONFIG_SERVER` environment variable to any value other than `true`. To set the desired port to
 listen to configure the `SPLUNK_DEBUG_CONFIG_SERVER_PORT` environment variable.
 
+You can use the environment variable `SPLUNK_LISTEN_INTERFACE` and associated installer option to configure the network
+interface on which the collector's receivers and telemetry endpoints will listen.
+The default value of `SPLUNK_LISTEN_INTERFACE` is set to `0.0.0.0`.
+
 ## Upgrade guidelines
 
 The following changes need to be done to configuration files for Splunk OTel Collector for specific

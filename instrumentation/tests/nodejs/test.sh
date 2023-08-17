@@ -5,8 +5,8 @@ set -euo pipefail
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 cp "${SCRIPT_DIR}/../../dist/libsplunk_amd64.so" libsplunk.so
-docker build -q -t zeroconfig-test-java .
-OUTPUT=$(docker run --rm -it zeroconfig-test-java)
+docker build -q -t zeroconfig-test-nodejs .
+OUTPUT=$(docker run -it zeroconfig-test-nodejs)
 echo "$OUTPUT"
 echo "Test presence of OTEL_RESOURCE_ATTRIBUTES"
 echo $OUTPUT | grep "OTEL_RESOURCE_ATTRIBUTES=foo=bar,this=that" || exit 1

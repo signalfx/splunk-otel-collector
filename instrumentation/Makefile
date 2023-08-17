@@ -76,3 +76,7 @@ tests: test-java
 .PHONY: test-java
 test-java: dist
 	(cd tests/java && ./test.sh)
+
+.PHONY: test-nodejs
+test-nodejs: dist
+	(cd tests/nodejs && ./test.sh)

@@ -11,7 +11,7 @@ COPY zeroconfig.conf /etc/splunk/zeroconfig.conf
 
 CMD java -jar Main.jar
 
-COPY libsplunk.so /etc/ld.preload.so/libsplunk.so
-
 ENV LD_PRELOAD /etc/ld.preload.so/libsplunk.so
+
+COPY libsplunk.so /etc/ld.preload.so/libsplunk.so
 

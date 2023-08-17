@@ -32,7 +32,7 @@ import (
 
 // TestDockerObserver verifies basic discovery mode functionality within the collector container by
 // starting a collector with the daemon domain socket mounted and the container running with its group id
-// before starting a prometheus container with a label the receiver creator rule matches against.
+// to detect a prometheus container with a test.id label the receiver creator rule matches against.
 func TestDockerObserver(t *testing.T) {
 	testutils.SkipIfNotContainerTest(t)
 	if runtime.GOOS == "darwin" {
@@ -41,6 +41,12 @@ func TestDockerObserver(t *testing.T) {
 	tc := testutils.NewTestcase(t)
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
+
+	cntrs, shutdownPrometheus := tc.Containers(
+		testutils.NewContainer().WithImage("bitnami/prometheus").WithLabel("test.id", tc.ID).WillWaitForLogs("Server is ready to receive web requests."),
+	)
+	defer shutdownPrometheus()
+	prometheus := cntrs[0]
 
 	cc, shutdown := tc.SplunkOtelCollectorContainer(
 		"docker-otlp-exporter-no-internal-prometheus.yaml",
@@ -82,12 +88,6 @@ func TestDockerObserver(t *testing.T) {
 		},
 	)
 	defer shutdown()
-
-	cntrs, shutdownPrometheus := tc.Containers(
-		testutils.NewContainer().WithImage("bitnami/prometheus").WithLabel("test.id", tc.ID).WillWaitForLogs("Server is ready to receive web requests."),
-	)
-	defer shutdownPrometheus()
-	prometheus := cntrs[0]
 
 	expectedResourceMetrics := tc.ResourceMetrics("docker-observer-internal-prometheus.yaml")
 	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))

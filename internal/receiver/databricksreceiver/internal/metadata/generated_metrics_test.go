@@ -614,8 +614,12 @@ func TestMetricsBuilder(t *testing.T) {
 			allMetricsCount++
 			mb.RecordDatabricksTasksScheduleStatusDataPoint(ts, 1, 6, "task.id-val", AttributeTaskTypeNotebookTask)
 
-			res := pcommon.NewResource()
-			res.Attributes().PutStr("k1", "v1")
+			rb := mb.NewResourceBuilder()
+			rb.SetDatabricksInstanceName("databricks.instance.name-val")
+			rb.SetSparkAppID("spark.app.id-val")
+			rb.SetSparkClusterID("spark.cluster.id-val")
+			rb.SetSparkClusterName("spark.cluster.name-val")
+			res := rb.Emit()
 			metrics := mb.Emit(WithResource(res))
 
 			if test.configSet == testSetNone {

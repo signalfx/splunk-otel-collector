@@ -71,6 +71,7 @@ type mapProvider struct {
 	logger     *zap.Logger
 	configs    map[string]*Config
 	discoverer *discoverer
+	retrieved  *confmap.Retrieved
 }
 
 func New() (Provider, error) {
@@ -170,6 +171,12 @@ func (m *mapProvider) retrieve(scheme string) func(context.Context, string, conf
 		}
 
 		if strings.HasPrefix(uri, discoveryModeScheme) {
+			// https://github.com/open-telemetry/opentelemetry-collector/pull/6833/
+			// introduced repeated config resolution call so we need to memoize the provider to avoid
+			// duplicate loading. TODO: expand this to be uri based for all providers
+			if m.retrieved != nil {
+				return m.retrieved, nil
+			}
 			var bundledCfg *Config
 			if bundledCfg, ok = m.configs["<bundled>"]; !ok {
 				m.logger.Debug("loading bundle.d")
@@ -188,7 +195,8 @@ func (m *mapProvider) retrieve(scheme string) func(context.Context, string, conf
 			if err != nil {
 				return nil, fmt.Errorf("failed to successfully discover target services: %w", err)
 			}
-			return confmap.NewRetrieved(discoveryCfg)
+			m.retrieved, err = confmap.NewRetrieved(discoveryCfg)
+			return m.retrieved, err
 		}
 
 		return nil, fmt.Errorf("unsupported %s scheme %q", scheme, uri)

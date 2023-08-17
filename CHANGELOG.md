@@ -49,6 +49,7 @@
   - This allows providing the Collector's configuration as a marshaled confmap.Conf object from a ConfigProvider
 - (Core) `service`: Add `CollectorConf` field to `service.Settings` ([#6596])[https://github.com/open-telemetry/opentelemetry-collector/issues/6596]
   This field is intended to be used by the Collector to pass its effective configuration to the service.
+
 ### 🧰 Bug fixes 🧰
 
 - (Contrib) `carbonreceiver`: Fix Carbon receiver obsrecv operations memory leak ([#24275])[https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/24275]

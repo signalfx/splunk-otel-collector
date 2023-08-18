@@ -15,10 +15,10 @@ The intended use case for the `prometheus_exec` receiver was to leverage the ric
 
 If no equivalent reciever exists for a given prometheus exporter, or if you simply wish to continue using prometheus exporters, you will need to manually run the relevant prometheus exporter ([list](https://prometheus.io/docs/instrumenting/exporters/)) on your own infrastructure.  While the details of how you decide to deploy and manage your infrastructure is beyond the scope of this migration, we have provided an [example configuration](../../examples/prometheusexec-migration/README.md) using the [node exporter](https://github.com/prometheus/node_exporter#readme) in `examples/prometheusexec-migration` in this git repo.
 
-#### non-standard usage
+#### Non-standard usage
 If you needed to federate between a prometheus server and otel, you can [enable federation](https://prometheus.io/docs/prometheus/latest/federation/) on your prometheus server, you can see our [prometheus-federation](./examples/prometheus-federation/README.md) example under [`examples/prometheus-federation`](./examples/prometheus-federation) in this git repository.  Ensure your endpoint is accessible from your otel collector, and feel free to ask in the [#otel-prometheus-wg](https://cloud-native.slack.com/archives/C01LSCJBXDZ), [#otel-collector](https://cloud-native.slack.com/archives/C01N6P7KR6W), or [#prometheus](https://cloud-native.slack.com/archives/C167KFM6C) slack channels for any help.  You can also feel free to cut us an issue, or reach out to your support representative.
 
-For more novel use cases such as running arbitrary code, this is no loner supported 
+For more novel use cases such as running arbitrary code, this is no longer supported.
 
 ### Moving configuration to the prometheus receiver
 

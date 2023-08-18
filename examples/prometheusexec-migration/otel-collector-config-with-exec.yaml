@@ -9,9 +9,6 @@ exporters:
   logging:
     verbosity: Detailed
 service:
-  #telemetry:
-  #  metrics:
-  #    address: ":19291"
   pipelines:
     metrics:
       receivers: ["prometheus_exec"]

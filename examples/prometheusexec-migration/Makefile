@@ -13,4 +13,4 @@ run-sample-exec:
 run-sample-noexec:
 	docker-compose up --build
 
-.PHONY: run-sample-exec run-sample-prom
+.PHONY: run-sample-exec run-sample-noexec

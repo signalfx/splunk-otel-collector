@@ -47,7 +47,6 @@ endif
 .PHONY: install
 install: all uninstall
 	mkdir -p $(INSTALL_DIR)
-	cp install/instrumentation.conf $(INSTALL_DIR)
 	cp splunk-otel-javaagent.jar $(INSTALL_DIR)
 	cp so/libsplunk.so $(INSTALL_DIR)
 	echo $(INSTALL_DIR)/libsplunk.so > /etc/ld.so.preload

@@ -1,4 +1,4 @@
-FROM eclipse-temurin:11
+FROM ${BASE}
 
 COPY Main.java .
 

@@ -3,10 +3,15 @@
 set -euxo pipefail
 
 arch="${ARCH:-amd64}"
+base="eclipse/tumerin:11"
+if [[ arch = "arm64" ]]; then
+  base="arm64v8/eclipse-temurin:11"
+fi
+
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 cp "${SCRIPT_DIR}/../../dist/libsplunk_${arch}.so" libsplunk.so
-docker build -q -t zeroconfig-test-java .
+docker build -q -t zeroconfig-test-java -e BASE=$base .
 OUTPUT=$(docker run --rm zeroconfig-test-java)
 echo "========== OUTPUT =========="
 echo "$OUTPUT"

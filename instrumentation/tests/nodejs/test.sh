@@ -3,6 +3,10 @@
 set -euo pipefail
 
 arch="${ARCH:-amd64}"
+base="node:16"
+if [[ arch = "arm64" ]]; then
+  base="arm64v8/node:16"
+fi
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 cp "${SCRIPT_DIR}/../../dist/libsplunk_${arch}.so" libsplunk.so

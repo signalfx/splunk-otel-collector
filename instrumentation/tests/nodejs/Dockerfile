@@ -1,4 +1,4 @@
-FROM node:16
+FROM ${BASE}
 
 COPY index.js .
 

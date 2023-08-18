@@ -2,9 +2,10 @@
 
 set -euo pipefail
 
+arch="${ARCH:-amd64}"
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-cp "${SCRIPT_DIR}/../../dist/libsplunk_*.so" libsplunk.so
+cp "${SCRIPT_DIR}/../../dist/libsplunk_${arch}.so" libsplunk.so
 docker build -q -t zeroconfig-test-java .
 OUTPUT=$(docker run --rm zeroconfig-test-java)
 echo "========== OUTPUT =========="

@@ -6,7 +6,7 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 cp "${SCRIPT_DIR}/../../dist/libsplunk_amd64.so" libsplunk.so
 docker build -q -t zeroconfig-test-java .
-OUTPUT=$(docker run --rm -it zeroconfig-test-java)
+OUTPUT=$(docker run --rm zeroconfig-test-java)
 echo "========== OUTPUT =========="
 echo "$OUTPUT"
 echo "============================"

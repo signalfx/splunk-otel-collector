@@ -8,12 +8,11 @@
 
 - (Splunk) Fluentd installation ***disabled*** by default for the [`splunk-otel-collector` salt formula](https://github.com/signalfx/splunk-otel-collector/tree/main/deployments/salt) ([#3448](https://github.com/signalfx/splunk-otel-collector/pull/3448))
   - Specify the `install_fluentd: True` attribute in your pillar to enable installation
-- (Splunk) Removes `receiver/prometheus_exec` receiver, matching upstream. Please see [migration guide](docs/deprecations/migrating-from-prometheus-exec-to-prometheus.md) for further details.
+- (Splunk/Contrib) Removes the deprecated `receiver/prometheus_exec` receiver. Please see [migration guide](docs/deprecations/migrating-from-prometheus-exec-to-prometheus.md) for further details. ([#24740])[https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/24740] ([#3512])[https://github.com/signalfx/splunk-otel-collector/pull/3512]
 - (Contrib) `receiver/k8scluster`: Unify predefined and custom node metrics. ([#24776])[https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/24776]
   - Update metrics description and units to be consistent
   - Remove predefined metrics definitions from metadata.yaml because they are controlled by `node_conditions_to_report`
     and `allocatable_types_to_report` config options.
-- (Contrib) `receiver/prometheus_exec`: Removes the deprecated prometheus_exec receiver ([#24740])[https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/24740]
 
 ### 💡 Enhancements 💡
 

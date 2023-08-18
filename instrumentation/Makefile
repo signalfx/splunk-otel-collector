@@ -71,7 +71,7 @@ docker-run:
 	docker run --rm -it -v `pwd`:/instr instr-devel
 
 .PHONY: tests
-tests: test-java
+tests: test-java test-nodejs
 
 .PHONY: test-java
 test-java: dist

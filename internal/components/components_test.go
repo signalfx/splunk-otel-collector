@@ -65,7 +65,6 @@ func TestDefaultComponents(t *testing.T) {
 		"otlp",
 		"postgresql",
 		"prometheus",
-		"prometheus_exec",
 		"prometheus_simple",
 		"receiver_creator",
 		"redis",

@@ -8,8 +8,8 @@
 
 - (Splunk) Fluentd installation ***disabled*** by default for the [`splunk-otel-collector` salt formula](https://github.com/signalfx/splunk-otel-collector/tree/main/deployments/salt) ([#3448](https://github.com/signalfx/splunk-otel-collector/pull/3448))
   - Specify the `install_fluentd: True` attribute in your pillar to enable installation
-- (Splunk/Contrib) Removes the deprecated `receiver/prometheus_exec` receiver. Please see [migration guide](docs/deprecations/migrating-from-prometheus-exec-to-prometheus.md) for further details. ([#24740])[https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/24740] ([#3512])[https://github.com/signalfx/splunk-otel-collector/pull/3512]
-- (Contrib) `receiver/k8scluster`: Unify predefined and custom node metrics. ([#24776])[https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/24776]
+- (Splunk/Contrib) Removes the deprecated `receiver/prometheus_exec` receiver. Please see [migration guide](docs/deprecations/migrating-from-prometheus-exec-to-prometheus.md) for further details. ([#24740](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/24740)) ([#3512](https://github.com/signalfx/splunk-otel-collector/pull/3512))
+- (Contrib) `receiver/k8scluster`: Unify predefined and custom node metrics. ([#24776](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/24776))
   - Update metrics description and units to be consistent
   - Remove predefined metrics definitions from metadata.yaml because they are controlled by `node_conditions_to_report`
     and `allocatable_types_to_report` config options.
@@ -18,48 +18,48 @@
 
 - (Splunk) Use `SPLUNK_LISTEN_INTERFACE` and associated installer option to configure the network interface used by the collector for default configurations ([#3421](https://github.com/signalfx/splunk-otel-collector/pull/3421))
   - Existing installations will rely on the default value of `SPLUNK_LISTEN_INTERFACE` set to `0.0.0.0`. Users must add `SPLUNK_LISTEN_INTERFACE` to their collector configuration to take advantage of this new option.
-- (Contrib) `receiver/collectdreceiver`: Migrate from opencensus to pdata, change collectd, test to match pdata format. ([#20760])[https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/20760]
-- (Contrib) `pkg/ottl`: Add support for using addition and subtraction with time and duration ([#22009])[https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/22009]
-- (Contrib) `transformprocessor`: Add extract_count_metric OTTL function to transform processor ([#22853])[https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/22853]
-- (Contrib) `transformprocessor`: Add extract_sum_metric OTTL function to transform processor ([#22853])[https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/22853]
-- (Contrib) `prometheusreceiver`: Don't drop histograms without buckets ([#22070])[https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/22070]
-- (Contrib) `pkg/ottl`: Add a new Function Getter to the OTTL package, to allow passing Converters as literal parameters. ([#22961])[https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/22961]
+- (Contrib) `receiver/collectdreceiver`: Migrate from opencensus to pdata, change collectd, test to match pdata format. ([#20760](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/20760))
+- (Contrib) `pkg/ottl`: Add support for using addition and subtraction with time and duration ([#22009](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/22009))
+- (Contrib) `transformprocessor`: Add extract_count_metric OTTL function to transform processor ([#22853](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/22853))
+- (Contrib) `transformprocessor`: Add extract_sum_metric OTTL function to transform processor ([#22853](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/22853))
+- (Contrib) `prometheusreceiver`: Don't drop histograms without buckets ([#22070](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/22070))
+- (Contrib) `pkg/ottl`: Add a new Function Getter to the OTTL package, to allow passing Converters as literal parameters. ([#22961](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/22961))
   Currently OTTL provides no way to use any defined Converter within another Editor/Converter.
   Although Converters can be passed as a parameter, they are always executed and the result is what is actually passed as the parameter.
   This allows OTTL to pass Converters themselves as a parameter so they can be executed within the function.
-- (Contrib) `resourcedetectionprocessor`: GCP resource detection processor can automatically add `gcp.gce.instance.hostname` and `gcp.gce.instance.name` attributes. ([#24598])[https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/24598]
-- `splunkhecexporter`: Add heartbeat check while startup and new config param, heartbeat/startup (defaults to false). This is different than the healtcheck_startup, as the latter doesn't take token or index into account. ([#24411])[https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/24411]
-- (Contrib) `hostmetricsreceiver`: Report  logical and physical number of CPUs as metric. ([#22099])[https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/22099]
+- (Contrib) `resourcedetectionprocessor`: GCP resource detection processor can automatically add `gcp.gce.instance.hostname` and `gcp.gce.instance.name` attributes. ([#24598](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/24598))
+- `splunkhecexporter`: Add heartbeat check while startup and new config param, heartbeat/startup (defaults to false). This is different than the healtcheck_startup, as the latter doesn't take token or index into account. ([#24411](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/24411))
+- (Contrib) `hostmetricsreceiver`: Report  logical and physical number of CPUs as metric. ([#22099](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/22099))
   - Use the `system.cpu.logical.count::enabled` and `system.cpu.physical.count::enabled` flags to enable them
-- (Contrib) `k8sclusterreceiver`: Allows disabling metrics and resource attributes ([#24568])[https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/24568]
-- (Contrib) `k8sclusterreceiver`: Reduce memory utilization ([#24769])[https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/24769]
-- (Contrib) `k8sattributes`: Added k8s.cluster.uid to k8sattributes processor to add cluster uid ([#21974])[https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/21974]
-- (Contrib) `resourcedetectionprocessor`: Collect heroku metadata available instead of exiting early. Log at debug level if metadata is missing to help troubleshooting. ([#25059])[https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/25059]
-- (Contrib) `hostmetricsreceiver`: Improved description of the system.cpu.utilization metrics. ([#25115])[https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/25115]
-- (Contrib) `cmd/mdatagen`: Avoid reusing the same ResourceBuilder instance for multiple ResourceMetrics ([#24762])[https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/24762]
-- (Contrib) `resourcedetectionprocessor`: Add detection of os.description to system detector ([#24541])[https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/24541]
-- (Contrib) `filelogreceiver`: Bump 'filelog.allowHeaderMetadataParsing' feature gate to beta ([#18198])[https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/18198]
-- (Contrib) `receiver/prometheusreceiver`: Add config `report-extra-scrape-metrics` to report additional prometheus scraping metrics ([#21040])[https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/21040]
+- (Contrib) `k8sclusterreceiver`: Allows disabling metrics and resource attributes ([#24568](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/24568))
+- (Contrib) `k8sclusterreceiver`: Reduce memory utilization ([#24769](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/24769))
+- (Contrib) `k8sattributes`: Added k8s.cluster.uid to k8sattributes processor to add cluster uid ([#21974](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/21974))
+- (Contrib) `resourcedetectionprocessor`: Collect heroku metadata available instead of exiting early. Log at debug level if metadata is missing to help troubleshooting. ([#25059](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/25059))
+- (Contrib) `hostmetricsreceiver`: Improved description of the system.cpu.utilization metrics. ([#25115](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/25115))
+- (Contrib) `cmd/mdatagen`: Avoid reusing the same ResourceBuilder instance for multiple ResourceMetrics ([#24762](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/24762))
+- (Contrib) `resourcedetectionprocessor`: Add detection of os.description to system detector ([#24541](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/24541))
+- (Contrib) `filelogreceiver`: Bump 'filelog.allowHeaderMetadataParsing' feature gate to beta ([#18198](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/18198))
+- (Contrib) `receiver/prometheusreceiver`: Add config `report-extra-scrape-metrics` to report additional prometheus scraping metrics ([#21040](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/21040))
   - Emits additional metrics - scrape_body_size_bytes, scrape_sample_limit, scrape_timeout_seconds. scrape_body_size_bytes metric can be used for checking failed scrapes due to body-size-limit.
-- (Contrib) `receiver/sqlquery`: Set ObservedTimestamp on collected logs ([#23776])[https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/23776]
-- (Core) `extension`: Add optional `ConfigWatcher` interface ([#6596])[https://github.com/open-telemetry/opentelemetry-collector/issues/6596]
+- (Contrib) `receiver/sqlquery`: Set ObservedTimestamp on collected logs ([#23776](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/23776))
+- (Core) `extension`: Add optional `ConfigWatcher` interface ([#6596](https://github.com/open-telemetry/opentelemetry-collector/issues/6596))
   - Extensions implementing this interface will be notified of the Collector's effective config.
-- (Core) `otelcol`: Add optional `ConfmapProvider` interface for Config Providers ([#6596])[https://github.com/open-telemetry/opentelemetry-collector/issues/6596]
+- (Core) `otelcol`: Add optional `ConfmapProvider` interface for Config Providers ([#6596](https://github.com/open-telemetry/opentelemetry-collector/issues/6596))
   - This allows providing the Collector's configuration as a marshaled confmap.Conf object from a ConfigProvider
-- (Core) `service`: Add `CollectorConf` field to `service.Settings` ([#6596])[https://github.com/open-telemetry/opentelemetry-collector/issues/6596]
+- (Core) `service`: Add `CollectorConf` field to `service.Settings` ([#6596](https://github.com/open-telemetry/opentelemetry-collector/issues/6596))
   This field is intended to be used by the Collector to pass its effective configuration to the service.
 
 ### 🧰 Bug fixes 🧰
 
-- (Contrib) `carbonreceiver`: Fix Carbon receiver obsrecv operations memory leak ([#24275])[https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/24275]
+- (Contrib) `carbonreceiver`: Fix Carbon receiver obsrecv operations memory leak ([#24275](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/24275))
   - The carbonreceiver has a memory leak where it will repeatedly open new obsrecv operations but not close them afterwards. Those operations eventually create a burden. The fix is to make sure the receiver only creates an operation per interaction over TCP.
-- (Contrib) `pkg/stanza`: Create a new decoder for each TCP/UDP connection to prevent concurrent write to buffer. ([#24980])[https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/24980]
-- (Contrib) `exporter/kafkaexporter`: Fixes a panic when SASL configuration is not present ([#24797])[https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/24797]
-- (Contrib) `receiver/k8sobjects`: Fix bug where duplicate data would be ingested for watch mode if the client connection got reset. ([#24806])[https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/24806]
-- (Contrib) `zipkinreceiver`: Respects zipkin's serialised status tags to be converted to span status ([#14965])[https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/14965]
-- (Contrib) `processor/resourcedetection`: Do not drop all system attributes if `host.id` cannot be fetched. ([#24669])[https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/24669]
-- (Contrib) `signalfxexporter`: convert vmpage_io* translated metrics to pages ([#25064])[https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/25064]
-- (Contrib) `splunkhecreceiver`: aligns success resp body w/ splunk enterprise ([#19219])[https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/19219]
+- (Contrib) `pkg/stanza`: Create a new decoder for each TCP/UDP connection to prevent concurrent write to buffer. ([#24980](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/24980))
+- (Contrib) `exporter/kafkaexporter`: Fixes a panic when SASL configuration is not present ([#24797](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/24797))
+- (Contrib) `receiver/k8sobjects`: Fix bug where duplicate data would be ingested for watch mode if the client connection got reset. ([#24806](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/24806))
+- (Contrib) `zipkinreceiver`: Respects zipkin's serialised status tags to be converted to span status ([#14965](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/14965))
+- (Contrib) `processor/resourcedetection`: Do not drop all system attributes if `host.id` cannot be fetched. ([#24669](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/24669))
+- (Contrib) `signalfxexporter`: convert vmpage_io* translated metrics to pages ([#25064](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/25064))
+- (Contrib) `splunkhecreceiver`: aligns success resp body w/ splunk enterprise ([#19219](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/19219))
   - changes resp from plaintext "ok" to json {"text"："success", "code"：0}
 
 ## v0.82.0

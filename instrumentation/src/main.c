@@ -6,7 +6,9 @@
 #define MAX_LINE_LENGTH 1023
 #define MAX_LINES 50
 
-static char *const env_var_file = "/etc/splunk/zeroconfig.conf";
+// TODO change to systemd drop in file paths
+static char *const env_var_file_java = "/etc/splunk/zeroconfig_java.conf";
+static char *const env_var_file_node = "/etc/splunk/zeroconfig_node.conf";
 
 static char *const allowed_env_vars[] = {
     "OTEL_SERVICE_NAME",
@@ -19,9 +21,19 @@ static char *const allowed_env_vars[] = {
 
 const size_t allowed_env_vars_size = sizeof(allowed_env_vars) / sizeof(*allowed_env_vars);
 
+extern char *program_invocation_short_name;
 
 // The entry point for all executables prior to their execution.
 void __attribute__((constructor)) enter() {
+    char *env_var_file;
+    if (strcmp("java", program_invocation_short_name) == 0) {
+        env_var_file = env_var_file_java;
+    } else if (strcmp("node", program_invocation_short_name) == 0) {
+        env_var_file = env_var_file_node;
+    } else {
+        // we don't want to inject environment variables for this program.
+        return;
+    }
     const size_t buffer_size = MAX_LINE_LENGTH + 1;
     char buffer[buffer_size];
 

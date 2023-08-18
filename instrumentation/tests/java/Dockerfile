@@ -7,7 +7,7 @@ RUN javac Main.java && \
 
 RUN mkdir -p /etc/splunk/
 
-COPY zeroconfig.conf /etc/splunk/zeroconfig.conf
+COPY zeroconfig.conf /etc/splunk/zeroconfig_java.conf
 
 CMD java -jar Main.jar
 

@@ -1,0 +1,20 @@
+receivers:
+  prometheus_exec:
+    exec: ./node_exporter
+    port: 9100
+    scrape_interval: 10s
+processors:
+  batch:
+exporters:
+  logging:
+    verbosity: Detailed
+service:
+  #telemetry:
+  #  metrics:
+  #    address: ":19291"
+  pipelines:
+    metrics:
+      receivers: ["prometheus_exec"]
+      processors: ["batch"]
+      exporters: 
+        - "logging"

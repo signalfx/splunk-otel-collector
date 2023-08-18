@@ -29,6 +29,7 @@ import (
 	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/cpu"
+	"github.com/signalfx/signalfx-agent/pkg/utils/hostfs"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
@@ -350,11 +351,11 @@ func TestSmartAgentConfigProviderOverrides(t *testing.T) {
 		require.Equal(t, filepath.Join("/opt", "jre"), os.Getenv("JAVA_HOME"))
 	}
 
-	require.Equal(t, "/proc", os.Getenv("HOST_PROC"))
-	require.Equal(t, "/sys", os.Getenv("HOST_SYS"))
-	require.Equal(t, "/run", os.Getenv("HOST_RUN"))
-	require.Equal(t, "/var", os.Getenv("HOST_VAR"))
-	require.Equal(t, "/etc", os.Getenv("HOST_ETC"))
+	require.Equal(t, "/proc", hostfs.HostProc())
+	require.Equal(t, "/sys", hostfs.HostSys())
+	require.Equal(t, "/run", hostfs.HostRun())
+	require.Equal(t, "/var", hostfs.HostVar())
+	require.Equal(t, "/etc", hostfs.HostEtc())
 }
 
 func getSmartAgentExtensionConfig(t *testing.T) []*smartagentextension.Config {

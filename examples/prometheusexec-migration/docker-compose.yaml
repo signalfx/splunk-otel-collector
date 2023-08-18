@@ -1,0 +1,24 @@
+version: "3.8"
+services:
+  otelcollector:
+    image: quay.io/signalfx/splunk-otel-collector:0.82.0
+    container_name: otelcollector-prometheus-exec
+    command: ["--config=/etc/otel-collector-config.yaml", "--set=service.telemetry.logs.level=debug"]
+    volumes:
+      - ./otel-collector-config-without-exec.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "19291:19291"
+      - "8888:8888"
+    depends_on:
+      node_exporter:
+        condition: service_started
+  node_exporter:
+    image: quay.io/prometheus/node-exporter:v1.6.1
+    container_name: node_exporter-prometheus-exec
+    command:
+      - '--path.rootfs=/host'
+    network_mode: host
+    pid: host
+    restart: unless-stopped
+    volumes:
+      - '/:/host:ro,rslave'

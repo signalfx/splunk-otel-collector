@@ -1,0 +1,20 @@
+receivers:
+  prometheus:
+    config:
+        scrape_configs:
+          - job_name: 'scrape-node-exporter'
+            scrape_interval: 5s
+            static_configs:
+              - targets: ['0.0.0.0:9100']
+processors:
+  batch:
+exporters:
+  logging:
+    verbosity: Detailed
+service:
+  pipelines:
+    metrics:
+      receivers: ["prometheus"]
+      processors: ["batch"]
+      exporters: 
+        - "logging"

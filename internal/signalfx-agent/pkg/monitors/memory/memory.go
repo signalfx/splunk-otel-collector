@@ -4,13 +4,14 @@ import (
 	"context"
 	"time"
 
-	"github.com/shirou/gopsutil/mem"
+	"github.com/shirou/gopsutil/v3/mem"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/types"
 	"github.com/signalfx/signalfx-agent/pkg/utils"
+	"github.com/signalfx/signalfx-agent/pkg/utils/hostfs"
 )
 
 func init() {
@@ -31,14 +32,14 @@ type Monitor struct {
 
 // EmitDatapoints emits a set of memory datapoints
 func (m *Monitor) emitDatapoints() {
-	// mem.VirtualMemory is a gopsutil function
-	memInfo, err := mem.VirtualMemory()
+	// mem.VirtualMemoryWithContext is a gopsutil function
+	memInfo, err := mem.VirtualMemoryWithContext(hostfs.Context())
 	if err != nil {
 		m.logger.WithError(err).Errorf("Unable to collect memory stats")
 		return
 	}
 
-	swapInfo, err := mem.SwapMemory()
+	swapInfo, err := mem.SwapMemoryWithContext(hostfs.Context())
 	if err != nil {
 		m.logger.WithError(err).Errorf("Unable to collect swap memory stats")
 		return

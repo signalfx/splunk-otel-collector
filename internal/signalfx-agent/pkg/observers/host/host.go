@@ -8,13 +8,14 @@ import (
 	"strconv"
 	"syscall"
 
-	"github.com/shirou/gopsutil/net"
-	"github.com/shirou/gopsutil/process"
+	"github.com/shirou/gopsutil/v3/net"
+	"github.com/shirou/gopsutil/v3/process"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/core/services"
 	"github.com/signalfx/signalfx-agent/pkg/observers"
+	"github.com/signalfx/signalfx-agent/pkg/utils/hostfs"
 )
 
 const (
@@ -96,7 +97,7 @@ func portTypeToProtocol(t uint32) services.PortType {
 }
 
 func (o *Observer) discover() []services.Endpoint {
-	conns, err := net.Connections("all")
+	conns, err := net.ConnectionsWithContext(hostfs.Context(), "all")
 	if err != nil {
 		o.logger.WithError(err).Error("Could not get local network listeners")
 		return nil
@@ -133,7 +134,7 @@ func (o *Observer) discover() []services.Endpoint {
 	}
 
 	for pid, conns := range connsByPID {
-		proc, err := process.NewProcess(pid)
+		proc, err := process.NewProcessWithContext(hostfs.Context(), pid)
 
 		if err != nil {
 			o.logger.WithFields(log.Fields{

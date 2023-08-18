@@ -14,6 +14,7 @@ import (
 	"github.com/mitchellh/hashstructure"
 	log "github.com/sirupsen/logrus"
 
+	"github.com/shirou/gopsutil/v3/common"
 	"github.com/signalfx/signalfx-agent/pkg/core/common/constants"
 	"github.com/signalfx/signalfx-agent/pkg/core/config/sources"
 	"github.com/signalfx/signalfx-agent/pkg/core/config/validation"
@@ -209,11 +210,13 @@ func (c *Config) setupEnvironment() {
 
 	os.Setenv("JAVA_HOME", filepath.Join(c.BundleDir, "jre"))
 	// set the environment variables for gopsutil based on configured values
-	os.Setenv(hostfs.HostProcVar, c.ProcPath)
-	os.Setenv(hostfs.HostEtcVar, c.EtcPath)
-	os.Setenv(hostfs.HostVarVar, c.VarPath)
-	os.Setenv(hostfs.HostRunVar, c.RunPath)
-	os.Setenv(hostfs.HostSysVar, c.SysPath)
+	hostfs.SetEnvMap(common.EnvMap{
+		common.HostProcEnvKey: c.ProcPath,
+		common.HostEtcEnvKey:  c.EtcPath,
+		common.HostVarEnvKey:  c.VarPath,
+		common.HostRunEnvKey:  c.RunPath,
+		common.HostSysEnvKey:  c.SysPath,
+	})
 }
 
 // Validate everything that we can about the main config

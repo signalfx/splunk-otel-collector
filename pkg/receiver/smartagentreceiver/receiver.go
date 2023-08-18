@@ -25,6 +25,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/shirou/gopsutil/v3/common"
 	"github.com/signalfx/signalfx-agent/pkg/core/common/constants"
 	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
@@ -257,9 +258,11 @@ func setUpEnvironment() {
 		os.Setenv("JAVA_HOME", filepath.Join(saConfig.BundleDir, "jre"))
 	}
 
-	os.Setenv(hostfs.HostProcVar, saConfig.ProcPath)
-	os.Setenv(hostfs.HostEtcVar, saConfig.EtcPath)
-	os.Setenv(hostfs.HostVarVar, saConfig.VarPath)
-	os.Setenv(hostfs.HostRunVar, saConfig.RunPath)
-	os.Setenv(hostfs.HostSysVar, saConfig.SysPath)
+	hostfs.SetEnvMap(common.EnvMap{
+		common.HostProcEnvKey: saConfig.ProcPath,
+		common.HostEtcEnvKey:  saConfig.EtcPath,
+		common.HostVarEnvKey:  saConfig.VarPath,
+		common.HostRunEnvKey:  saConfig.RunPath,
+		common.HostSysEnvKey:  saConfig.SysPath,
+	})
 }

@@ -1,43 +1,61 @@
 package hostfs
 
 import (
-	"os"
+	"context"
+	"sync"
+
+	"github.com/shirou/gopsutil/v3/common"
 )
 
-const (
-	// HostProcVar is the environment variable name that is set with the host's /proc path
-	HostProcVar = "HOST_PROC"
-	// HostSysVar is the environment variable name that is set with the host's /sys path
-	HostSysVar = "HOST_SYS"
-	// HostRunVar is the environment variable name that is set with the host's /run path
-	HostRunVar = "HOST_RUN"
-	// HostVarVar is the environment variable name that is set with the host's /var path
-	HostVarVar = "HOST_VAR"
-	// HostEtcVar is the environment variable name that is set with the host's /etc path
-	HostEtcVar = "HOST_ETC"
+var (
+	lock   sync.RWMutex
+	envMap common.EnvMap
 )
+
+func SetEnvMap(m common.EnvMap) {
+	lock.Lock()
+	defer lock.Unlock()
+	envMap = m
+}
+
+// Context returns a context for gopsutil function calls.
+func Context() context.Context {
+	lock.RLock()
+	defer lock.RUnlock()
+	return context.WithValue(context.Background(), common.EnvKey, envMap)
+}
 
 // HostProc returns the configured /proc path
 func HostProc() string {
-	return os.Getenv(HostProcVar)
+	lock.RLock()
+	defer lock.RUnlock()
+	return envMap[common.HostProcEnvKey]
 }
 
 // HostEtc returns the configured /etc path
 func HostEtc() string {
-	return os.Getenv(HostEtcVar)
+	lock.RLock()
+	defer lock.RUnlock()
+	return envMap[common.HostEtcEnvKey]
 }
 
 // HostRun returns the configured /run path
 func HostRun() string {
-	return os.Getenv(HostRunVar)
+	lock.RLock()
+	defer lock.RUnlock()
+	return envMap[common.HostRunEnvKey]
 }
 
 // HostVar returns the configured /var path
 func HostVar() string {
-	return os.Getenv(HostVarVar)
+	lock.RLock()
+	defer lock.RUnlock()
+	return envMap[common.HostVarEnvKey]
 }
 
 // HostSys returns the configured host /sys path
 func HostSys() string {
-	return os.Getenv(HostSysVar)
+	lock.RLock()
+	defer lock.RUnlock()
+	return envMap[common.HostSysEnvKey]
 }

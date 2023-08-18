@@ -3,7 +3,7 @@ package memory
 import (
 	"time"
 
-	"github.com/shirou/gopsutil/mem"
+	"github.com/shirou/gopsutil/v3/mem"
 	"github.com/signalfx/golib/v3/datapoint"
 )
 

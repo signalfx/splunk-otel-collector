@@ -6,11 +6,12 @@ package filesystems
 import (
 	"path/filepath"
 
-	gopsutil "github.com/shirou/gopsutil/disk"
+	gopsutil "github.com/shirou/gopsutil/v3/disk"
+	"github.com/signalfx/signalfx-agent/pkg/utils/hostfs"
 )
 
 func getPartitions(all bool) ([]gopsutil.PartitionStat, error) {
-	return gopsutil.Partitions(all)
+	return gopsutil.PartitionsWithContext(hostfs.Context(), all)
 }
 
 // getUsage prepends the hostFSPath to the partition mountpoint. This is needed
@@ -20,5 +21,5 @@ func getUsage(hostFSPath string, path string) (*gopsutil.UsageStat, error) {
 	if hostFSPath != "" {
 		path = filepath.Join(hostFSPath, path)
 	}
-	return gopsutil.Usage(path)
+	return gopsutil.UsageWithContext(hostfs.Context(), path)
 }

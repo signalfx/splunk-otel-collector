@@ -9,12 +9,18 @@ import (
 	"syscall"
 	"unicode/utf16"
 
-	gopsutil "github.com/shirou/gopsutil/disk"
+	gopsutil "github.com/shirou/gopsutil/v3/disk"
 	"golang.org/x/sys/windows"
 )
 
 const volumeNameBufferLength = uint32(windows.MAX_PATH + 1)
 const volumePathBufferLength = volumeNameBufferLength
+
+// Copied from https://github.com/shirou/gopsutil/blob/master/disk/disk_windows.go#L25C1-L25C1
+var (
+	fileFileCompression = int64(16)     // 0x00000010
+	fileReadOnlyVolume  = int64(524288) // 0x00080000
+)
 
 func getPartitions(all bool) ([]gopsutil.PartitionStat, error) {
 	return getPartitionsWin(getDriveType, findFirstVolume, findNextVolume, findVolumeClose, getVolumePaths, getFsNameAndFlags)
@@ -176,12 +182,12 @@ func getPartitionStats(
 				continue
 			}
 
-			opts := "rw"
-			if int64(fsFlags)&gopsutil.FileReadOnlyVolume != 0 {
-				opts = "ro"
+			opts := []string{"rw"}
+			if int64(fsFlags)&fileReadOnlyVolume != 0 {
+				opts = []string{"ro"}
 			}
-			if int64(fsFlags)&gopsutil.FileFileCompression != 0 {
-				opts += ".compress"
+			if int64(fsFlags)&fileFileCompression != 0 {
+				opts = append(opts, ".compress")
 			}
 
 			p := strings.TrimRight(volPath, "\\")

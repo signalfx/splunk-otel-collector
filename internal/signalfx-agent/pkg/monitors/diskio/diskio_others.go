@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/shirou/gopsutil/disk"
+	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/signalfx/golib/v3/datapoint"
 	"github.com/signalfx/golib/v3/sfxclient"
 	"github.com/sirupsen/logrus"
@@ -16,9 +16,10 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/monitors/types"
 	"github.com/signalfx/signalfx-agent/pkg/utils"
 	"github.com/signalfx/signalfx-agent/pkg/utils/filter"
+	"github.com/signalfx/signalfx-agent/pkg/utils/hostfs"
 )
 
-var iOCounters = disk.IOCounters
+var iOCounters = disk.IOCountersWithContext
 
 // Monitor for Utilization
 type Monitor struct {
@@ -46,7 +47,7 @@ func (m *Monitor) makeLinuxDatapoints(disk disk.IOCountersStat, dimensions map[s
 
 // EmitDatapoints emits a set of memory datapoints
 func (m *Monitor) emitDatapoints() {
-	iocounts, err := iOCounters()
+	iocounts, err := iOCounters(hostfs.Context())
 	if err != nil {
 		m.logger.WithError(err).Errorf("Failed to load disk io counters")
 		return

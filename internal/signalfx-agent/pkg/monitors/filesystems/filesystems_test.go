@@ -3,7 +3,7 @@ package filesystems
 import (
 	"testing"
 
-	gopsutil "github.com/shirou/gopsutil/disk"
+	gopsutil "github.com/shirou/gopsutil/v3/disk"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
@@ -20,7 +20,7 @@ func TestCommonDimensions(t *testing.T) {
 				Device:     "/dev/sdb1",
 				Mountpoint: "/hostfs/var/lib",
 				Fstype:     "ext4",
-				Opts:       "rw,relatime",
+				Opts:       []string{"rw", "relatime"},
 			},
 			expectedDims: map[string]string{
 				"mountpoint": "/var/lib",
@@ -35,7 +35,7 @@ func TestCommonDimensions(t *testing.T) {
 				Device:     "/dev/sdb1",
 				Mountpoint: "/hostfs",
 				Fstype:     "ext4",
-				Opts:       "ro,relatime",
+				Opts:       []string{"ro", "relatime"},
 			},
 			expectedDims: map[string]string{
 				"mountpoint": "/",
@@ -50,7 +50,7 @@ func TestCommonDimensions(t *testing.T) {
 				Device:     "/dev/sdb1",
 				Mountpoint: "/",
 				Fstype:     "ext4",
-				Opts:       "rx,relatime",
+				Opts:       []string{"rx", "relatime"},
 			},
 			expectedDims: map[string]string{
 				"mountpoint": "/",

@@ -5,7 +5,7 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/shirou/gopsutil/load"
+	"github.com/shirou/gopsutil/v3/load"
 	"github.com/signalfx/golib/v3/datapoint"
 	"github.com/sirupsen/logrus"
 
@@ -13,6 +13,7 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/types"
 	"github.com/signalfx/signalfx-agent/pkg/utils"
+	"github.com/signalfx/signalfx-agent/pkg/utils/hostfs"
 )
 
 func init() {
@@ -45,7 +46,7 @@ func (m *Monitor) Configure(conf *Config) error {
 
 	// gather metrics on the specified interval
 	utils.RunOnInterval(ctx, func() {
-		avgLoad, err := load.Avg()
+		avgLoad, err := load.AvgWithContext(hostfs.Context())
 		if err != nil {
 			m.logger.WithError(err).Error("Failed to get load statistics")
 			return

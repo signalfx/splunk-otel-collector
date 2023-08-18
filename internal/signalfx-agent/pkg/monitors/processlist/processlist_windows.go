@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/StackExchange/wmi"
-	"github.com/shirou/gopsutil/mem"
+	"github.com/shirou/gopsutil/v3/mem"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sys/windows"
 )

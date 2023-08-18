@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	gopsutil "github.com/shirou/gopsutil/disk"
+	gopsutil "github.com/shirou/gopsutil/v3/disk"
 	"github.com/signalfx/golib/v3/datapoint"
 	log "github.com/sirupsen/logrus"
 
@@ -72,7 +72,7 @@ func (m *Monitor) getCommonDimensions(partition *gopsutil.PartitionStat) map[str
 	}
 	if m.sendModeDimension {
 		var mode string
-		opts := strings.Split(partition.Opts, ",")
+		opts := partition.Opts
 		for _, opt := range opts {
 			if opt == "ro" || opt == "rw" {
 				mode = opt

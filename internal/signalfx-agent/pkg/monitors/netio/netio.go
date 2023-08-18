@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/shirou/gopsutil/net"
+	"github.com/shirou/gopsutil/v3/net"
 	"github.com/signalfx/golib/v3/datapoint"
 	log "github.com/sirupsen/logrus"
 
@@ -14,10 +14,11 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/monitors/types"
 	"github.com/signalfx/signalfx-agent/pkg/utils"
 	"github.com/signalfx/signalfx-agent/pkg/utils/filter"
+	"github.com/signalfx/signalfx-agent/pkg/utils/hostfs"
 )
 
-//nolint:gochecknoglobals setting net.IOCounters to a package variable for testing purposes
-var iOCounters = net.IOCounters
+//nolint:gochecknoglobals setting net.IOCountersWithContext to a package variable for testing purposes
+var iOCounters = net.IOCountersWithContext
 
 func init() {
 	monitors.Register(&monitorMetadata, func() interface{} { return &Monitor{} }, &Config{})
@@ -75,7 +76,7 @@ func (m *Monitor) updateTotals(iface string, intf *net.IOCountersStat) {
 
 // EmitDatapoints emits a set of memory datapoints
 func (m *Monitor) EmitDatapoints() {
-	info, err := iOCounters(true)
+	info, err := iOCounters(hostfs.Context(), true)
 	if err != nil {
 		m.logger.WithError(err).Error("Failed to load net io counters")
 		return

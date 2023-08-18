@@ -2,7 +2,6 @@ package procstat
 
 import (
 	"context"
-	"os"
 	"path"
 	"strings"
 	"time"
@@ -18,7 +17,7 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/common/emitter/baseemitter"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/types"
 	"github.com/signalfx/signalfx-agent/pkg/utils"
-	"github.com/signalfx/signalfx-agent/pkg/utils/gopsutilhelper"
+	"github.com/signalfx/signalfx-agent/pkg/utils/hostfs"
 )
 
 var logger = log.WithFields(log.Fields{"monitorType": monitorType})
@@ -74,7 +73,7 @@ func (m *Monitor) Configure(conf *Config) (err error) {
 
 	// use the agent's configured host sys to get cgroup information
 	if conf.CGroup != "" {
-		conf.CGroup = path.Join(os.Getenv(gopsutilhelper.HostSys), "fs", "cgroup", conf.CGroup)
+		conf.CGroup = path.Join(hostfs.HostSys(), "fs", "cgroup", conf.CGroup)
 	}
 
 	// Hard code the plugin name because the emitter will parse out the

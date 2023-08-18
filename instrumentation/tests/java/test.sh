@@ -11,7 +11,7 @@ fi
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 cp "${SCRIPT_DIR}/../../dist/libsplunk_${arch}.so" libsplunk.so
-docker build -q -t zeroconfig-test-java --build-arg BASE=$BASE .
+docker buildx build -q --platform linux/${arch} --build-arg BASE=$BASE -o type=image,name=zeroconfig-test-java,push=false .
 OUTPUT=$(docker run --rm zeroconfig-test-java)
 echo "========== OUTPUT =========="
 echo "$OUTPUT"

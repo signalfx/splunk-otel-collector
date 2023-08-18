@@ -13,7 +13,7 @@ services:
       node_exporter:
         condition: service_started
   node_exporter:
-    image: quay.io/prometheus/node-exporter:latest
+    image: quay.io/prometheus/node-exporter:v1.6.1
     container_name: node_exporter-prometheus-exec
     command:
       - '--path.rootfs=/host'

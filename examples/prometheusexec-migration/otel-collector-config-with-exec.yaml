@@ -1,6 +1,7 @@
 receivers:
   prometheus_exec:
-    exec: ./node_exporter
+    #exec: docker run quay.io/prometheus/node-exporter:v1.6.1
+    exec: /usr/bin/node_exporter
     port: 9100
     scrape_interval: 10s
 processors:

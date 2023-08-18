@@ -4,12 +4,9 @@ OS=linux
 OTEL_VERSION=0.82.0
 
 run-sample-exec:
-	wget --no-clobber https://github.com/signalfx/splunk-otel-collector/releases/download/v$(OTEL_VERSION)/otelcol_$(OS)_$(ARCH)
-	wget --no-clobber https://github.com/prometheus/node_exporter/releases/download/v$(NODE_EXPORTER_VERSION)/node_exporter-$(NODE_EXPORTER_VERSION).$(OS)-$(ARCH).tar.gz
-	tar -xzvf node_exporter-$(NODE_EXPORTER_VERSION).$(OS)-$(ARCH).tar.gz
-	mv node_exporter-$(NODE_EXPORTER_VERSION).$(OS)-$(ARCH)/node_exporter ./
-	chmod +x ./otelcol_$(OS)_$(ARCH)
-	./otelcol_$(OS)_$(ARCH) --config otel-collector-config-with-exec.yaml
+	#cd ../../ && $$(make otelcol)
+	docker build -t prometheus-exec-sample . && \
+	docker run -v ./otel-collector-config-with-exec.yaml:/etc/otel-collector-config.yaml prometheus-exec-example  --config /etc/otel-collector-config.yaml --set=service.telemetry.logs.level=debug
 run-sample-noexec:
 	docker-compose up --build
 

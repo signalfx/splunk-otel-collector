@@ -1,4 +1,5 @@
-FROM ${BASE}
+ARG BASE=busybox
+FROM $BASE
 
 COPY Main.java .
 

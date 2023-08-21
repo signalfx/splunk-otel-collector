@@ -3,7 +3,7 @@ module github.com/signalfx/signalfx-agent/pkg/apm
 go 1.19
 
 require (
-	github.com/signalfx/golib/v3 v3.3.50
+	github.com/signalfx/golib/v3 v3.3.52
 	github.com/stretchr/testify v1.8.4
 )
 
@@ -21,6 +21,7 @@ require (
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3 // indirect
 	github.com/signalfx/gohistogram v0.0.0-20160107210732-1ccfd2ff5083 // indirect
 	github.com/signalfx/sapm-proto v0.12.0 // indirect
+	github.com/twmb/murmur3 v1.1.7 // indirect
 	github.com/uber/jaeger-client-go v2.30.0+incompatible // indirect
 	github.com/uber/jaeger-lib v2.4.1+incompatible // indirect
 	go.uber.org/atomic v1.10.0 // indirect

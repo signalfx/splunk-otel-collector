@@ -68,7 +68,6 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mongodbatlasreceiver v0.83.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/oracledbreceiver v0.83.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/postgresqlreceiver v0.83.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusexecreceiver v0.82.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.83.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/receivercreator v0.83.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/redisreceiver v0.83.0
@@ -86,7 +85,7 @@ require (
 	github.com/prometheus/client_model v0.4.0
 	github.com/prometheus/common v0.44.0
 	github.com/prometheus/prometheus v0.46.0
-	github.com/signalfx/golib/v3 v3.3.50
+	github.com/signalfx/golib/v3 v3.3.52
 	github.com/signalfx/signalfx-agent v1.0.1-0.20230222185249-54e5d1064c5b
 	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension v0.72.0
 	github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor v0.72.0
@@ -174,6 +173,7 @@ require (
 	github.com/shoenig/go-m1cpu v0.1.6 // indirect
 	github.com/tg123/go-htpasswd v1.2.1 // indirect
 	github.com/tilinna/clock v1.1.0 // indirect
+	github.com/twmb/murmur3 v1.1.7 // indirect
 	github.com/zeebo/xxh3 v1.0.2 // indirect
 	go.opentelemetry.io/collector/config/configauth v0.83.0 // indirect
 	go.opentelemetry.io/collector/config/configcompression v0.83.0 // indirect

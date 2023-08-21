@@ -7,8 +7,10 @@ import (
 	"fmt"
 	"unsafe"
 
-	"github.com/shirou/gopsutil/cpu"
+	"github.com/shirou/gopsutil/v3/cpu"
 	"golang.org/x/sys/windows"
+
+	"github.com/signalfx/signalfx-agent/pkg/utils/hostfs"
 )
 
 const (
@@ -25,7 +27,7 @@ const (
 
 // set gopsutil function to package variable for easier testing
 var (
-	gopsutilTimes = cpu.Times
+	gopsutilTimes = cpu.TimesWithContext
 
 	// Windows API DLL
 	ntdll        = windows.NewLazySystemDLL("Ntdll.dll")
@@ -129,7 +131,7 @@ func (m *Monitor) times(perCore bool) ([]cpu.TimesStat, error) {
 	// non-percore utilization in gopsutil does not rely on wmi so it's fine to
 	// utilize it as is
 	if !perCore {
-		return gopsutilTimes(perCore)
+		return gopsutilTimes(hostfs.Context(), perCore)
 	}
 	// Underneath the hood gopsutil relies on a wmi query for per core cpu utilization information
 	// this wmi query has proven to be problematic under unclear conditions.  It will hang
@@ -147,5 +149,5 @@ func (m *Monitor) times(perCore bool) ([]cpu.TimesStat, error) {
 
 	// fall back to gopsutil if there was an error or the dll and proc weren't loaded/found
 	m.logger.WithField("debug", err).Debugf("falling back to gopsutil for per core cpu times")
-	return gopsutilTimes(perCore)
+	return gopsutilTimes(hostfs.Context(), perCore)
 }

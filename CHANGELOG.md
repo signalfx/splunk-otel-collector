@@ -2,12 +2,11 @@
 
 ## Unreleased
 
-## v0.83.0
-
-
 ### 💡 Enhancements 💡
 
 - (Splunk) `jmxreceiver`: Bundle latest [JMX Metric Gatherer](https://github.com/open-telemetry/opentelemetry-java-contrib/tree/main/jmx-metrics) in installer packages and images for Windows and Linux ([#3262](https://github.com/signalfx/splunk-otel-collector/pull/3262))
+
+## v0.83.0
 
 ### 🛑 Breaking changes 🛑
 

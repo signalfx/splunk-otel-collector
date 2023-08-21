@@ -110,6 +110,7 @@ instrumentation_config_path="/usr/lib/splunk-instrumentation/instrumentation.con
 instrumentation_so_path="/usr/lib/splunk-instrumentation/libsplunk.so"
 instrumentation_jar_path="/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar"
 generate_service_name="true"
+systemd_instrumentation_config_path="/usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf"
 service_name=""
 disable_telemetry="false"
 enable_profiler="false"
@@ -465,15 +466,19 @@ disable_preload() {
 }
 
 create_instrumentation_config() {
-  local deployment_environment="$1"
   local version="$( get_package_version splunk-otel-auto-instrumentation )"
   local resource_attributes="splunk.zc.method=splunk-otel-auto-instrumentation-${version}"
+
+  if [ -n "$deployment_environment" ]; then
+    resource_attributes="${resource_attributes},deployment.environment=${deployment_environment}"
+  fi
 
   backup_file "$instrumentation_config_path"
 
   echo "Creating ${instrumentation_config_path}"
   cat <<EOH > $instrumentation_config_path
 java_agent_jar=${instrumentation_jar_path}
+resource_attributes=${resource_attributes}
 generate_service_name=${generate_service_name}
 disable_telemetry=${disable_telemetry}
 enable_profiler=${enable_profiler}
@@ -481,15 +486,40 @@ enable_profiler_memory=${enable_profiler_memory}
 enable_metrics=${enable_metrics}
 EOH
 
+  if [ -n "$service_name" ]; then
+    echo "service_name=${service_name}" >> $instrumentation_config_path
+  fi
+}
+
+create_systemd_instrumentation_config() {
+  local otlp_endpoint="$1"
+  local version="$( get_package_version splunk-otel-auto-instrumentation )"
+  local resource_attributes="splunk.zc.method=splunk-otel-auto-instrumentation-${version}-systemd"
+
   if [ -n "$deployment_environment" ]; then
     resource_attributes="${resource_attributes},deployment.environment=${deployment_environment}"
   fi
 
-  echo "resource_attributes=${resource_attributes%,}" >> $instrumentation_config_path
+  mkdir -p "$(dirname $systemd_instrumentation_config_path)"
+
+  backup_file "$systemd_instrumentation_config_path"
+
+  echo "Creating ${systemd_instrumentation_config_path}"
+  cat <<EOH > $systemd_instrumentation_config_path
+[Manager]
+DefaultEnvironment="JAVA_TOOL_OPTIONS=-javaagent:${instrumentation_jar_path}"
+DefaultEnvironment="OTEL_RESOURCE_ATTRIBUTES=${resource_attributes}"
+DefaultEnvironment="SPLUNK_PROFILER_ENABLED=${enable_profiler}"
+DefaultEnvironment="SPLUNK_PROFILER_MEMORY_ENABLED=${enable_profiler_memory}"
+DefaultEnvironment="SPLUNK_METRICS_ENABLED=${enable_metrics}"
+DefaultEnvironment="OTEL_EXPORTER_OTLP_ENDPOINT=${otlp_endpoint}"
+EOH
 
   if [ -n "$service_name" ]; then
-    echo "service_name=${service_name}" >> $instrumentation_config_path
+    echo "DefaultEnvironment=\"OTEL_SERVICE_NAME=${service_name}\"" >> $systemd_instrumentation_config_path
   fi
+
+  systemctl daemon-reload
 }
 
 install() {
@@ -594,6 +624,12 @@ uninstall() {
             fi
             apt-get purge -y $pkg 2>&1
             echo "Successfully removed the $pkg package"
+            if [ "$pkg" = "splunk-otel-auto-instrumentation" ] && [ -f "$systemd_instrumentation_config_path" ]; then
+              backup_file "$systemd_instrumentation_config_path"
+              echo "Removing ${systemd_instrumentation_config_path}"
+              rm -f "$systemd_instrumentation_config_path"
+              systemctl daemon-reload
+            fi
           else
             agent_path="$( command -v agent )"
             echo "$agent_path exists but the $pkg package is not installed" >&2
@@ -614,6 +650,12 @@ uninstall() {
               zypper remove -y $pkg
             fi
             echo "Successfully removed the $pkg package"
+            if [ "$pkg" = "splunk-otel-auto-instrumentation" ] && [ -f "$systemd_instrumentation_config_path" ]; then
+              backup_file "$systemd_instrumentation_config_path"
+              echo "Removing ${systemd_instrumentation_config_path}"
+              rm -f "$systemd_instrumentation_config_path"
+              systemctl daemon-reload
+            fi
           else
             agent_path="$( command -v agent )"
             echo "$agent_path exists but the $pkg package is not installed" >&2
@@ -703,16 +745,28 @@ Auto Instrumentation:
   --with[out]-instrumentation           Whether to install the splunk-otel-auto-instrumentation package and add the
                                         libsplunk.so shared object library to /etc/ld.so.preload to enable auto
                                         instrumentation for all supported processes on the host.
+                                        Cannot be combined with the '--with-systemd-instrumentation' option.
                                         (default: --without-instrumentation)
+  --with[out]-systemd-instrumentation   Whether to install the splunk-otel-auto-instrumentation package and configure a
+                                        systemd drop-in file to enable auto instrumentation for all supported
+                                        applications running as systemd services.
+                                        Cannot be combined with the '--with-instrumentation' option.
+                                        (default: --without-systemd-instrumentation)
   --deployment-environment <value>      Set the 'deployment.environment' resource attribute to the specified value.
                                         If not specified, the "Environment" in the Splunk APM UI will appear as
                                         "unknown" for the auto instrumented application(s).
-                                        Only applicable if the '--with-instrumentation' option is also specified.
+                                        Only applicable if the '--with-instrumentation' or
+                                        '--with-systemd-instrumentation' option is also specified.
                                         (default: empty)
   --service-name <name>                 Override the auto-generated service names for all instrumented Java applications
                                         on this host with '<name>'.
-                                        Only applicable if the '--with-instrumentation' option is also specified.
+                                        Only applicable if the '--with-instrumentation' or
+                                        '--with-systemd-instrumentation' option is also specified.
                                         (default: empty)
+  --otlp-endpoint <host:port>           Set the OTLP gRPC endpoint for captured traces.
+                                        Only applicable if the '--with-systemd-instrumentation' option is also specified.
+                                        (default: http://LISTEN_INTERFACE:4317, where LISTEN_INTERFACE is 0.0.0.0 by
+                                        default or the value from the --listen-interface option, if also specified)
   --[no-]generate-service-name          Specify '--no-generate-service-name' to prevent the preloader from setting the
                                         OTEL_SERVICE_NAME environment variable.
                                         Only applicable if the '--with-instrumentation' option is also specified.
@@ -722,16 +776,20 @@ Auto Instrumentation:
                                         Only applicable if the '--with-instrumentation' option is also specified.
                                         (default: --enable-telemetry)
   --[enable|disable]-profiler           Enable or disable AlwaysOn CPU Profiling.
-                                        Only applicable if the '--with-instrumentation' option is also specified.
+                                        Only applicable if the '--with-instrumentation' or
+                                        '--with-systemd-instrumentation' option is also specified.
                                         (default: --disable-profiler)
   --[enable|disable]-profiler-memory    Enable or disable AlwaysOn Memory Profiling.
-                                        Only applicable if the '--with-instrumentation' option is also specified.
+                                        Only applicable if the '--with-instrumentation' or
+                                        '--with-systemd-instrumentation' option is also specified.
                                         (default: --disable-profiler-memory)
   --[enable|disable]-metrics            Enable or disable exporting Micrometer metrics.
-                                        Only applicable if the '--with-instrumentation' option is also specified.
+                                        Only applicable if the '--with-instrumentation' or
+                                        '--with-systemd-instrumentation' option is also specified.
                                         (default: --disable-metrics)
   --instrumentation-version             The splunk-otel-auto-instrumentation package version to install.
-                                        Only applicable if the '--with-instrumentation' option is also specified.
+                                        Only applicable if the '--with-instrumentation' or
+                                        '--with-systemd-instrumentation' option is also specified.
                                         (default: $default_instrumentation_version)
 
 Uninstall:
@@ -883,9 +941,11 @@ parse_args_and_install() {
   local skip_collector_repo="false"
   local skip_fluentd_repo="false"
   local with_instrumentation="false"
+  local with_systemd_instrumentation="false"
   local instrumentation_version="$default_instrumentation_version"
   local deployment_environment="$default_deployment_environment"
   local discovery=
+  local otlp_endpoint=""
 
   while [ -n "${1-}" ]; do
     case $1 in
@@ -990,6 +1050,12 @@ parse_args_and_install() {
       --without-instrumentation)
         with_instrumentation="false"
         ;;
+      --with-systemd-instrumentation)
+        with_systemd_instrumentation="true"
+        ;;
+      --without-systemd-instrumentation)
+        with_systemd_instrumentation="false"
+        ;;
       --instrumentation-version)
         instrumentation_version="$2"
         shift 1
@@ -1000,6 +1066,10 @@ parse_args_and_install() {
         ;;
       --service-name)
         service_name="$2"
+        shift 1
+        ;;
+      --otlp-endpoint)
+        otlp_endpoint="$2"
         shift 1
         ;;
       --generate-service-name)
@@ -1062,6 +1132,11 @@ parse_args_and_install() {
       exit 0
   fi
 
+  if [ "$with_instrumentation" = "true" ] && [ "$with_systemd_instrumentation" = "true" ]; then
+    echo "ERROR: Both --with-instrumentation and --with-systemd-instrumentation options were specified. Only one option is allowed." >&2
+    exit 1
+  fi
+
   if [ -z "$access_token" ]; then
     access_token=$(request_access_token)
   fi
@@ -1086,12 +1161,16 @@ parse_args_and_install() {
     td_agent_version=""
   fi
 
-  if [ "$with_instrumentation" != "true" ]; then
+  if [ "$with_instrumentation" != "true" ] && [ "$with_systemd_instrumentation" != "true" ]; then
     instrumentation_version=""
   fi
 
   if [ -z "$trace_url" ]; then
     trace_url="${ingest_url}/v2/trace"
+  fi
+
+  if [ -z "$otlp_endpoint" ]; then
+    otlp_endpoint="http://${listen_interface}:4317"
   fi
 
   check_support
@@ -1126,6 +1205,7 @@ parse_args_and_install() {
     fi
     echo "  AlwaysOn Profiling enabled: $enable_profiler"
     echo "  AlwaysOn Memory Profiling enabled: $enable_profiler_memory"
+    echo "  OTLP Endpoint: $otlp_endpoint"
   fi
   echo
 
@@ -1139,7 +1219,11 @@ parse_args_and_install() {
   if [ "$with_instrumentation" = "true" ]; then
     # add libsplunk.so to /etc/ld.so.preload if it was not added automatically by the instrumentation package
     enable_preload
-    create_instrumentation_config "$deployment_environment"
+    create_instrumentation_config
+  elif [ "$with_systemd_instrumentation" = "true" ]; then
+    # remove libsplunk.so from /etc/ld.so.preload if it was added automatically by the instrumentation package
+    disable_preload
+    create_systemd_instrumentation_config "$otlp_endpoint"
   fi
 
   create_user_group "$service_user" "$service_group"
@@ -1294,6 +1378,15 @@ The Splunk OpenTelemetry Auto Instrumentation package has been installed.
 The configuration file is located at $instrumentation_config_path.
 
 Reboot the system or restart the Java application(s) for auto instrumentation to take effect.
+
+EOH
+  elif [ "$with_systemd_instrumentation" = "true" ]; then
+    cat <<EOH
+The Splunk OpenTelemetry Auto Instrumentation package has been installed.
+Systemd has been configured for auto instrumentation within the
+$systemd_instrumentation_config_path drop-in file.
+
+Reboot the system or restart the Java service(s) for auto instrumentation to take effect.
 
 EOH
   fi

@@ -33,6 +33,7 @@ function get_collectd_plugins ([string]$buildDir=$BUILD_DIR) {
     mkdir "$buildDir\collectd-python" -ErrorAction Ignore
     $collectdPlugins = Resolve-Path "$buildDir\collectd-python"
     $requirements = Resolve-Path "$scriptDir\..\requirements.txt"
+    $security_requirements = Resolve-Path "$scriptDir\..\security-requirements.txt"
     $script = Resolve-Path "$scriptDir\..\get-collectd-plugins.py"
     $python = Resolve-Path "$buildDir\python\python.exe"
 
@@ -42,9 +43,16 @@ function get_collectd_plugins ([string]$buildDir=$BUILD_DIR) {
 
     & $python -m pip install -qq -r $requirements
     if ($lastexitcode -ne 0){ throw }
+
     & $python $script $collectdPlugins
     if ($lastexitcode -ne 0){ throw }
+
+    # Update pip dependencies after collected plugins are installed
+    & $python -m pip install -qq -r $security_requirements
+    if ($lastexitcode -ne 0){ throw }
+
     & $python -m pip list
+
     & $python -m pip uninstall pip -y
     if ($lastexitcode -ne 0){ throw }
 }

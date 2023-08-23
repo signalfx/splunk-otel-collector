@@ -12,6 +12,10 @@ COPY zeroconfig.conf /etc/splunk/zeroconfig_java.conf
 
 CMD java -jar Main.jar
 
+ENV OTEL_SERVICE_NAME iknowmyownservicename
+
+ENV ANOTHER_VAR foo
+
 ENV LD_PRELOAD /etc/ld.preload.so/libsplunk.so
 
 COPY libsplunk.so /etc/ld.preload.so/libsplunk.so

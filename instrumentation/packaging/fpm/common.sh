@@ -34,6 +34,11 @@ EXAMPLES_DIR="${FPM_DIR}/examples"
 
 JAVA_AGENT_RELEASE_PATH="${FPM_DIR}/../java-agent-release.txt"
 JAVA_AGENT_RELEASE_URL="https://github.com/signalfx/splunk-otel-java/releases/"
+JAVA_AGENT_INSTALL_PATH="${INSTALL_DIR}/splunk-otel-javaagent.jar"
+
+NODEJS_AGENT_RELEASE_PATH="${FPM_DIR}/../nodejs-agent-release.txt"
+NODEJS_AGENT_RELEASE_URL="https://github.com/signalfx/splunk-otel-js/releases/"
+NODEJS_AGENT_INSTALL_PATH="${INSTALL_DIR}/splunk-otel-js.tgz"
 
 PREUNINSTALL_PATH="$FPM_DIR/preuninstall.sh"
 
@@ -66,28 +71,40 @@ download_java_agent() {
     curl -sfL "$dl_url" -o "$dest"
 }
 
+download_nodejs_agent() {
+    local tag="$1"
+    local dest="$2"
+    local dl_url="$NODEJS_AGENT_RELEASE_URL/download/$tag/splunk-otel-${tag#v}.tgz"
+
+    echo "Downloading $dl_url ..."
+    mkdir -p "$( dirname $dest )"
+    curl -sfL "$dl_url" -o "$dest"
+}
+
 setup_files_and_permissions() {
-    local libsplunk="$1"
-    local java_agent="$2"
-    local buildroot="$3"
+    local arch="$1"
+    local buildroot="$2"
+    local libsplunk="$REPO_DIR/instrumentation/dist/libsplunk_${arch}.so"
+    local java_agent_release="$(cat "$JAVA_AGENT_RELEASE_PATH")"
+    local nodejs_agent_release="$(cat "$NODEJS_AGENT_RELEASE_PATH")"
 
     mkdir -p "$buildroot/$(dirname $LIBSPLUNK_INSTALL_PATH)"
     cp -f "$libsplunk" "$buildroot/$LIBSPLUNK_INSTALL_PATH"
-    sudo chown root:root "$buildroot/$LIBSPLUNK_INSTALL_PATH"
     sudo chmod 755 "$buildroot/$LIBSPLUNK_INSTALL_PATH"
 
-    mkdir -p "$buildroot/$(dirname $JAVA_AGENT_INSTALL_PATH)"
-    cp -f "$java_agent" "$buildroot/$JAVA_AGENT_INSTALL_PATH"
-    sudo chown root:root "$buildroot/$JAVA_AGENT_INSTALL_PATH"
+    download_java_agent "$java_agent_release" "${buildroot}/${JAVA_AGENT_INSTALL_PATH}"
     sudo chmod 755 "$buildroot/$JAVA_AGENT_INSTALL_PATH"
+
+    download_nodejs_agent "$nodejs_agent_release" "${buildroot}/${NODEJS_AGENT_INSTALL_PATH}"
+    sudo chmod 644 "$buildroot/$NODEJS_AGENT_INSTALL_PATH"
 
     mkdir -p  "$buildroot/$(dirname $JAVA_CONFIG_INSTALL_PATH)"
     cp -f "$JAVA_CONFIG_REPO_PATH" "$buildroot/$JAVA_CONFIG_INSTALL_PATH"
-    sudo chown root:root "$buildroot/$JAVA_CONFIG_INSTALL_PATH"
     sudo chmod 644 "$buildroot/$JAVA_CONFIG_INSTALL_PATH"
 
     mkdir -p "$buildroot/$INSTALL_DIR"
     cp -rf "$EXAMPLES_DIR" "$buildroot/$INSTALL_DIR/"
-    sudo chown -R root:root "$buildroot/$EXAMPLES_INSTALL_DIR"
     sudo chmod -R 644 "$buildroot/$EXAMPLES_INSTALL_DIR"
+
+    sudo chown -R root:root "$buildroot"
 }

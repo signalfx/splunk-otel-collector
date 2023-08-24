@@ -19,7 +19,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"sort"
 	"time"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator"
@@ -33,26 +32,17 @@ const (
 	minMaxLogSize = 64 * 1024
 )
 
-var availableScripts = func() []string {
-	var s []string
-	for _, sn := range scripts {
-		s = append(s, sn)
-	}
-	sort.Strings(s)
-	return s
-}()
-
 type Config struct {
-	helper.InputConfig `mapstructure:",squash"`
 	Multiline          helper.MultilineConfig `mapstructure:"multiline,omitempty"`
 	ScriptName         string                 `mapstructure:"script_name,omitempty"`
 	Encoding           helper.EncodingConfig  `mapstructure:",squash,omitempty"`
 	Source             string                 `mapstructure:"source"`
 	SourceType         string                 `mapstructure:"sourcetype"`
 	CollectionInterval string                 `mapstructure:"collection_interval"`
-	MaxLogSize         helper.ByteSize        `mapstructure:"max_log_size,omitempty"`
-	AddAttributes      bool                   `mapstructure:"add_attributes,omitempty"`
+	helper.InputConfig `mapstructure:",squash"`
+	MaxLogSize         helper.ByteSize `mapstructure:"max_log_size,omitempty"`
 	interval           time.Duration
+	AddAttributes      bool `mapstructure:"add_attributes,omitempty"`
 }
 
 func createDefaultConfig() *Config {

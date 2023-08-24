@@ -37,7 +37,7 @@ var psScript string
 var commonScript string
 
 var scripts = func() map[string]string {
-	scripts := map[string]string{}
+	scriptsMap := map[string]string{}
 	for _, s := range []struct {
 		name    string
 		content string
@@ -46,13 +46,13 @@ var scripts = func() map[string]string {
 		{"df", dfScript},
 		{"ps", psScript},
 	} {
-		if _, ok := scripts[s.name]; ok {
+		if _, ok := scriptsMap[s.name]; ok {
 			panic(fmt.Errorf("duplicate script_name %q detected", s.name))
 		}
-		scripts[s.name] = replaceCommon(s.content)
+		scriptsMap[s.name] = replaceCommon(s.content)
 	}
 
-	return scripts
+	return scriptsMap
 }()
 
 func replaceCommon(script string) string {

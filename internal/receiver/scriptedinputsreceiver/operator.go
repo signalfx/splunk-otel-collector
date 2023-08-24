@@ -21,7 +21,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/adapter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator/helper"
 	"go.uber.org/zap"
@@ -40,15 +39,14 @@ const (
 
 // stdoutOperator is an operator that reads input from stdout
 type stdoutOperator struct {
-	helper.InputOperator
 	cfg           *Config
 	logger        *zap.SugaredLogger
 	cancelAll     context.CancelFunc
 	splitFunc     bufio.SplitFunc
 	decoder       *helper.Decoder
-	baseConfig    adapter.BaseConfig
-	wg            sync.WaitGroup
 	scriptContent string
+	helper.InputOperator
+	wg sync.WaitGroup
 }
 
 // Start will start generating log entries.

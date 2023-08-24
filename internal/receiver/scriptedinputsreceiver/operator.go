@@ -82,10 +82,7 @@ func (i *stdoutOperator) Start(_ operator.Persister) error {
 
 func (i *stdoutOperator) beginCycle(ctx context.Context) error {
 	stdOutReader, stdOutWriter := io.Pipe()
-	commander, err := newCommander(i.logger.Desugar(), i.cfg.ScriptName, i.scriptContent, stdOutWriter)
-	if err != nil {
-		return err
-	}
+	commander := newCommander(i.logger.Desugar(), i.cfg.ScriptName, i.scriptContent, stdOutWriter)
 
 	if err := commander.Start(ctx); err != nil {
 		return err

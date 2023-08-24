@@ -40,14 +40,14 @@ type commander struct {
 	running int64
 }
 
-func newCommander(logger *zap.Logger, name string, content string, stdout io.Writer, args ...string) (*commander, error) {
+func newCommander(logger *zap.Logger, name string, content string, stdout io.Writer, args ...string) *commander {
 	return &commander{
 		name:    name,
 		content: content,
 		logger:  logger,
 		args:    args,
 		stdout:  stdout,
-	}, nil
+	}
 }
 
 // Start the shell and begin watching the process.

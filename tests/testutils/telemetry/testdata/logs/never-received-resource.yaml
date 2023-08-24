@@ -6,7 +6,7 @@ resource_logs:
           name: with_logs
           version: another_version
         logs:
-          - body: true
+          - body: <RE2(.*)>
             severity_text: arbitrary
             severity: 24
           - body: 0.123

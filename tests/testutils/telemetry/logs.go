@@ -91,14 +91,16 @@ func (resourceLogs *ResourceLogs) FillDefaultValues() {
 			if sls.Scope.Version == buildVersionPlaceholder {
 				resourceLogs.ResourceLogs[i].ScopeLogs[j].Scope.Version = version.Version
 			}
-			for _, sl := range sls.Logs {
-				if sl.Attributes != nil {
-					for k, v := range *sl.Attributes {
-						if v == buildVersionPlaceholder {
-							(*sl.Attributes)[k] = version.Version
-						}
+			for k, sl := range sls.Logs {
+				if sl.Body != nil {
+					bodyMap := &map[string]any{
+						"body": sl.Body,
 					}
+					populateDirectives(bodyMap)
+					sl.Body = (*bodyMap)["body"]
+					sls.Logs[k] = sl
 				}
+				populateDirectives(sl.Attributes)
 			}
 		}
 	}
@@ -129,7 +131,19 @@ func (scopeLogs ScopeLogs) String() string {
 }
 
 func (log Log) String() string {
-	return marshal(log)
+	cp := log
+	if cp.Body != "" {
+		bodyMap := map[string]any{
+			"body": cp.Body,
+		}
+		directiveMapToMarshal(bodyMap)
+		cp.Body = bodyMap["body"]
+	}
+	if cp.Attributes != nil {
+		attrs := directiveMapToMarshal(*cp.Attributes)
+		cp.Attributes = &attrs
+	}
+	return marshal(cp)
 }
 
 // Hash provides an md5 hash determined by Log content.
@@ -150,9 +164,14 @@ func (log Log) RelaxedEquals(toCompare Log) bool {
 
 // equals determines if receiver Log is equal to toCompare Log, relaxed if not strict
 func (log Log) equals(toCompare Log, strict bool) bool {
-	if log.Body != toCompare.Body && (strict || log.Body != nil) {
+	if isDirective, equal := directiveEquality(log.Body, toCompare.Body); isDirective {
+		if !equal {
+			return false
+		}
+	} else if log.Body != toCompare.Body && (strict || log.Body != nil) {
 		return false
 	}
+
 	if log.SeverityText != toCompare.SeverityText && (strict || log.SeverityText != "") {
 		return false
 	}

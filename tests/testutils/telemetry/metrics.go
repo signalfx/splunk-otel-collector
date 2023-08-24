@@ -138,13 +138,7 @@ func (resourceMetrics *ResourceMetrics) FillDefaultValues() {
 			}
 
 			for _, m := range sms.Metrics {
-				if m.Attributes != nil {
-					for k, v := range *m.Attributes {
-						if v == buildVersionPlaceholder {
-							(*m.Attributes)[k] = version.Version
-						}
-					}
-				}
+				populateDirectives(m.Attributes)
 			}
 		}
 	}
@@ -197,7 +191,7 @@ func (metric Metric) MarshalYAML() (any, error) {
 		ms["description"] = metric.Description
 	}
 	if metric.Attributes != nil && len(*metric.Attributes) > 0 {
-		ms["attributes"] = metric.Attributes
+		ms["attributes"] = directiveMapToMarshal(*metric.Attributes)
 	}
 	for _, s := range []struct {
 		v any

@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package procpipe
+package scriptedinputsreceiver
 
 import (
 	"context"
+	"io"
 	"os/exec"
 	"strings"
 	"sync/atomic"
@@ -25,15 +26,39 @@ import (
 	"go.uber.org/zap"
 )
 
+// commander can start/stop/restart the shell executable and also watch for a signal
+// for the shell process to finish.
+type commander struct {
+	name    string
+	content string
+	stdout  io.Writer
+	logger  *zap.Logger
+	cmd     *exec.Cmd
+	doneCh  chan struct{}
+	waitCh  chan struct{}
+	args    []string
+	running int64
+}
+
+func newCommander(logger *zap.Logger, name string, content string, stdout io.Writer, args ...string) (*commander, error) {
+	return &commander{
+		name:    name,
+		content: content,
+		logger:  logger,
+		args:    args,
+		stdout:  stdout,
+	}, nil
+}
+
 // Start the shell and begin watching the process.
 // shell's stdout and stderr are written to a file.
-func (c *Commander) Start(ctx context.Context) error {
-	c.logger.Info("Starting script", zap.String("script", c.execFilePath))
+func (c *commander) Start(ctx context.Context) error {
+	c.logger.Info("Starting script.", zap.String("script", c.name))
 
 	c.cmd = exec.CommandContext(ctx, "sh", c.args...) //nolint:gosec
 
 	// Capture standard output and standard error.
-	c.cmd.Stdin = strings.NewReader(scripts[c.execFilePath])
+	c.cmd.Stdin = strings.NewReader(c.content)
 	c.cmd.Stdout = c.stdout
 	c.cmd.Stderr = c.stdout
 
@@ -52,7 +77,7 @@ func (c *Commander) Start(ctx context.Context) error {
 	return nil
 }
 
-func (c *Commander) watch() {
+func (c *commander) watch() {
 	err := c.cmd.Wait()
 	if err != nil {
 		return
@@ -63,12 +88,12 @@ func (c *Commander) watch() {
 }
 
 // Done returns a channel that will send a signal when the shell process is finished.
-func (c *Commander) Done() <-chan struct{} {
+func (c *commander) Done() <-chan struct{} {
 	return c.doneCh
 }
 
 // Pid returns shell process PID if it is started or 0 if it is not.
-func (c *Commander) Pid() int {
+func (c *commander) Pid() int {
 	if c.cmd == nil || c.cmd.Process == nil {
 		return 0
 	}
@@ -76,21 +101,21 @@ func (c *Commander) Pid() int {
 }
 
 // ExitCode returns shell process exit code if it exited or 0 if it is not.
-func (c *Commander) ExitCode() int {
+func (c *commander) ExitCode() int {
 	if c.cmd == nil || c.cmd.ProcessState == nil {
 		return 0
 	}
 	return c.cmd.ProcessState.ExitCode()
 }
 
-func (c *Commander) IsRunning() bool {
+func (c *commander) IsRunning() bool {
 	return atomic.LoadInt64(&c.running) != 0
 }
 
 // Stop the shell process. Sends SIGTERM to the process and wait for up 10 seconds
 // and if the process does not finish kills it forcedly by sending SIGKILL.
 // Returns after the process is terminated.
-func (c *Commander) Stop(ctx context.Context) error {
+func (c *commander) Stop(ctx context.Context) error {
 	if c.cmd == nil || c.cmd.Process == nil {
 		// Not started, nothing to do.
 		return nil
@@ -110,11 +135,10 @@ func (c *Commander) Stop(ctx context.Context) error {
 	var innerErr error
 	go func() {
 		// Wait 10 seconds.
-		t := time.After(10 * time.Second)
 		select {
 		case <-ctx.Done():
 			break
-		case <-t:
+		case <-time.After(10 * time.Second):
 			break
 		case <-finished:
 			// Process is successfully finished.

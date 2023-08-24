@@ -12,15 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package scriptedinputreceiver
+package scriptedinputsreceiver
 
 import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/adapter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/receiver"
-
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/scriptedinputsreceiver/procpipe"
 )
 
 const (
@@ -29,40 +27,26 @@ const (
 )
 
 func NewFactory() receiver.Factory {
-	return adapter.NewFactory(ReceiverType{}, stability)
+	return adapter.NewFactory(scriptedInputsReceiver{}, stability)
 }
 
-var _ adapter.LogReceiverType = (*ReceiverType)(nil)
+var _ adapter.LogReceiverType = (*scriptedInputsReceiver)(nil)
 
-type ReceiverType struct{}
+type scriptedInputsReceiver struct{}
 
-// Type is the receiver type
-func (f ReceiverType) Type() component.Type {
+func (f scriptedInputsReceiver) Type() component.Type {
 	return typeStr
 }
 
-// CreateDefaultConfig creates a config with type and version
-func (f ReceiverType) CreateDefaultConfig() component.Config {
-	return &ScriptConfig{
-		BaseConfig: adapter.BaseConfig{
-			Operators: []operator.Config{},
-		},
-		InputConfig: *procpipe.NewConfig(),
-	}
+func (f scriptedInputsReceiver) CreateDefaultConfig() component.Config {
+	return createDefaultConfig()
 }
 
-// BaseConfig gets the base config from config, for now
-func (f ReceiverType) BaseConfig(cfg component.Config) adapter.BaseConfig {
-	return cfg.(*ScriptConfig).BaseConfig
+func (f scriptedInputsReceiver) BaseConfig(component.Config) adapter.BaseConfig {
+	// unused by this component so just satisfy the interface with empty defaults used
+	return adapter.BaseConfig{}
 }
 
-// ScriptConfig defines configuration for the filelog receiver
-type ScriptConfig struct {
-	InputConfig        procpipe.Config `mapstructure:",squash"`
-	adapter.BaseConfig `mapstructure:",squash"`
-}
-
-// InputConfig unmarshals the input operator
-func (f ReceiverType) InputConfig(cfg component.Config) operator.Config {
-	return operator.NewConfig(&cfg.(*ScriptConfig).InputConfig)
+func (f scriptedInputsReceiver) InputConfig(cfg component.Config) operator.Config {
+	return operator.NewConfig(cfg.(*Config))
 }

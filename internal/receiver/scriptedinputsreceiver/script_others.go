@@ -14,10 +14,11 @@
 
 //go:build !windows
 
-package procpipe
+package scriptedinputsreceiver
 
 import (
 	_ "embed"
+	"fmt"
 	"strings"
 )
 
@@ -35,11 +36,24 @@ var psScript string
 //go:embed scripts/common.sh
 var commonScript string
 
-var scripts = map[string]string{
-	"cpu": replaceCommon(cpuScript),
-	"df":  replaceCommon(dfScript),
-	"ps":  replaceCommon(psScript),
-}
+var scripts = func() map[string]string {
+	scripts := map[string]string{}
+	for _, s := range []struct {
+		name    string
+		content string
+	}{
+		{"cpu", cpuScript},
+		{"df", dfScript},
+		{"ps", psScript},
+	} {
+		if _, ok := scripts[s.name]; ok {
+			panic(fmt.Errorf("duplicate script_name %q detected", s.name))
+		}
+		scripts[s.name] = replaceCommon(s.content)
+	}
+
+	return scripts
+}()
 
 func replaceCommon(script string) string {
 	return strings.Replace(script, includePattern, commonScript, 1)

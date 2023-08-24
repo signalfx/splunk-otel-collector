@@ -4,7 +4,11 @@ resource_metrics:
           name: with_metrics
           version: another_version
         metrics:
-          - name: another_int_gauge
+          - attributes:
+              metric_attr_a: one_value
+              metric_attr_b: <RE2(^this.*match an RE2.*$)>
+              metric_attr_c: <ANY>
+            name: another_int_gauge
             type: IntGauge
           - name: another_double_gauge
             type: DoubleGauge

@@ -6,7 +6,7 @@ resource_metrics:
             attributes:
               foo: bar
               system.type: prometheus-exporter
-              service_instance_id: <ANY>
+              service_instance_id: <RE2(^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$)>
               service_name: otelcol
               service_version: <VERSION_FROM_BUILD>
           - name: otelcol_process_memory_rss
@@ -14,7 +14,7 @@ resource_metrics:
             attributes:
               foo: bar
               system.type: prometheus-exporter
-              service_instance_id: <ANY>
+              service_instance_id: <RE2(^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$)>
               service_name: otelcol
               service_version: <VERSION_FROM_BUILD>
           - name: otelcol_process_cpu_seconds
@@ -22,7 +22,7 @@ resource_metrics:
             attributes:
               foo: bar
               system.type: prometheus-exporter
-              service_instance_id: <ANY>
+              service_instance_id: <RE2(^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$)>
               service_name: otelcol
               service_version: <VERSION_FROM_BUILD>
           - name: otelcol_process_uptime
@@ -30,7 +30,7 @@ resource_metrics:
             attributes:
               foo: bar
               system.type: prometheus-exporter
-              service_instance_id: <ANY>
+              service_instance_id: <RE2(^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$)>
               service_name: otelcol
               service_version: <VERSION_FROM_BUILD>
           - name: otelcol_process_runtime_total_alloc_bytes
@@ -38,7 +38,7 @@ resource_metrics:
             attributes:
               foo: bar
               system.type: prometheus-exporter
-              service_instance_id: <ANY>
+              service_instance_id: <RE2(^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$)>
               service_name: otelcol
               service_version: <VERSION_FROM_BUILD>
           - name: otelcol_process_runtime_heap_alloc_bytes
@@ -46,7 +46,7 @@ resource_metrics:
             attributes:
               foo: bar
               system.type: prometheus-exporter
-              service_instance_id: <ANY>
+              service_instance_id: <RE2(^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$)>
               service_name: otelcol
               service_version: <VERSION_FROM_BUILD>
           - name: otelcol_exporter_enqueue_failed_log_records
@@ -55,7 +55,7 @@ resource_metrics:
               system.type: prometheus-exporter
               exporter: otlp
               foo: bar
-              service_instance_id: <ANY>
+              service_instance_id: <RE2(^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$)>
               service_name: otelcol
               service_version: <VERSION_FROM_BUILD>
           - name: otelcol_exporter_enqueue_failed_metric_points
@@ -64,7 +64,7 @@ resource_metrics:
               system.type: prometheus-exporter
               exporter: otlp
               foo: bar
-              service_instance_id: <ANY>
+              service_instance_id: <RE2(^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$)>
               service_name: otelcol
               service_version: <VERSION_FROM_BUILD>
           - name: otelcol_exporter_enqueue_failed_spans
@@ -73,7 +73,7 @@ resource_metrics:
               system.type: prometheus-exporter
               exporter: otlp
               foo: bar
-              service_instance_id: <ANY>
+              service_instance_id: <RE2(^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$)>
               service_name: otelcol
               service_version: <VERSION_FROM_BUILD>
           - name: otelcol_exporter_queue_capacity
@@ -82,7 +82,7 @@ resource_metrics:
               system.type: prometheus-exporter
               exporter: otlp
               foo: bar
-              service_instance_id: <ANY>
+              service_instance_id: <RE2(^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$)>
               service_name: otelcol
               service_version: <VERSION_FROM_BUILD>
           - name: otelcol_exporter_queue_size
@@ -91,7 +91,7 @@ resource_metrics:
               system.type: prometheus-exporter
               exporter: otlp
               foo: bar
-              service_instance_id: <ANY>
+              service_instance_id: <RE2(^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$)>
               service_name: otelcol
               service_version: <VERSION_FROM_BUILD>
           - name: otelcol_exporter_sent_metric_points
@@ -100,7 +100,7 @@ resource_metrics:
               system.type: prometheus-exporter
               exporter: otlp
               foo: bar
-              service_instance_id: <ANY>
+              service_instance_id: <RE2(^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$)>
               service_name: otelcol
               service_version: <VERSION_FROM_BUILD>
           - name: otelcol_receiver_accepted_metric_points
@@ -109,7 +109,7 @@ resource_metrics:
               foo: bar
               system.type: prometheus-exporter
               receiver: smartagent/prometheus-exporter
-              service_instance_id: <ANY>
+              service_instance_id: <RE2(^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$)>
               service_name: otelcol
               service_version: <VERSION_FROM_BUILD>
               transport: internal
@@ -119,7 +119,7 @@ resource_metrics:
               foo: bar
               system.type: prometheus-exporter
               receiver: smartagent/prometheus-exporter
-              service_instance_id: <ANY>
+              service_instance_id: <RE2(^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$)>
               service_name: otelcol
               service_version: <VERSION_FROM_BUILD>
               transport: internal

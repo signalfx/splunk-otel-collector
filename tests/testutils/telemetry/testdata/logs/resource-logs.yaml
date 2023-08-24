@@ -19,7 +19,11 @@ resource_logs:
           name: with_logs
           version: another_version
         logs:
-          - body: true
+          - body: this should match an RE2 directive
+            attributes:
+              log_attr_a: one_value
+              log_attr_b: this should match another RE2 directive
+              log_attr_c: this should match an ANY directive
             severity: 24
             severity_text: arbitrary
           - body: 0.123

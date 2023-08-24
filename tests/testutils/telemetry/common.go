@@ -19,6 +19,7 @@ import (
 	"crypto/md5" // #nosec this is not for cryptographic purposes
 	"fmt"
 	"reflect"
+	"regexp"
 
 	"gopkg.in/yaml.v3"
 
@@ -28,17 +29,10 @@ import (
 const (
 	anyValue                = "<ANY>"
 	buildVersionPlaceholder = "<VERSION_FROM_BUILD>"
+	regexValue              = "^<RE2\\((?P<pattern>.*)\\)>$"
 )
 
-func marshal(y any) string {
-	b := &bytes.Buffer{}
-	enc := yaml.NewEncoder(b)
-	enc.SetIndent(2)
-	if err := enc.Encode(y); err != nil {
-		panic(err)
-	}
-	return b.String()
-}
+var reValueRegexp = regexp.MustCompile(regexValue)
 
 type Resource struct {
 	Attributes *map[string]any `yaml:"attributes,omitempty"`
@@ -59,11 +53,27 @@ func (resource Resource) Equals(toCompare Resource) bool {
 }
 
 func (resource Resource) FillDefaultValues() {
-	if resource.Attributes != nil {
-		for k, v := range *resource.Attributes {
-			if v == buildVersionPlaceholder {
-				(*resource.Attributes)[k] = version.Version
+	populateDirectives(resource.Attributes)
+}
+
+func populateDirectives(attrs *map[string]any) {
+	if attrs == nil {
+		return
+	}
+	attributes := *attrs
+	for k, v := range attributes {
+		if v == buildVersionPlaceholder {
+			attributes[k] = version.Version
+			continue
+		}
+
+		if subs := reValueRegexp.FindStringSubmatch(toString(v)); len(subs) == 2 {
+			pattern := subs[1]
+			rec, err := regexp.Compile(pattern)
+			if err != nil {
+				panic(fmt.Errorf("failed compiling resource attributes RE2: %w", err))
 			}
+			attributes[k] = rec
 		}
 	}
 }
@@ -119,7 +129,10 @@ func attributesAreEqual(attrs, toCompare *map[string]any) bool {
 		if !ok {
 			return false
 		}
-		if v == anyValue {
+		if isDirective, equal := directiveEquality(v, tcV); isDirective {
+			if !equal {
+				return false
+			}
 			continue
 		}
 		rAttrs[k] = v
@@ -127,4 +140,44 @@ func attributesAreEqual(attrs, toCompare *map[string]any) bool {
 	}
 
 	return reflect.DeepEqual(rAttrs, tcAttrs)
+}
+
+func directiveEquality(expected, actual any) (isDirective, equal bool) {
+	switch t := expected.(type) {
+	case string:
+		if t == anyValue {
+			return true, true
+		}
+	case *regexp.Regexp:
+		if t == nil {
+			return true, false
+		}
+		return true, t.MatchString(toString(actual))
+	}
+	return false, false
+}
+
+func marshal(y any) string {
+	b := &bytes.Buffer{}
+	enc := yaml.NewEncoder(b)
+	enc.SetIndent(2)
+	if err := enc.Encode(y); err != nil {
+		panic(err)
+	}
+	return b.String()
+}
+
+func directiveMapToMarshal(m map[string]any) map[string]any {
+	cp := map[string]any{}
+	for k, v := range m {
+		if t, ok := v.(*regexp.Regexp); ok {
+			v = fmt.Sprintf("<RE2(%s)>", t.String())
+		}
+		cp[k] = v
+	}
+	return cp
+}
+
+func toString(v any) string {
+	return fmt.Sprintf("%v", v)
 }

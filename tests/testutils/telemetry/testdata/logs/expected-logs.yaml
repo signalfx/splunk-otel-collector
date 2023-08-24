@@ -4,6 +4,10 @@ resource_logs:
           name: with_logs
           version: another_version
         logs:
-          - body: true
+          - body: <RE2(^this should match an .* directive$)>
+            attributes:
+              log_attr_a: one_value
+              log_attr_b: <RE2(^this.*match an.* RE2.*$)>
+              log_attr_c: <ANY>
             severity_text: arbitrary
           - body: 0.123

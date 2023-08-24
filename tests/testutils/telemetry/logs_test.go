@@ -102,10 +102,14 @@ func TestLoadLogsHappyPath(t *testing.T) {
 	require.Equal(t, 2, len(secondRLFirstSL.Logs))
 	secondRLFirstSLFirstLog := secondRLFirstSL.Logs[0]
 	require.NotNil(t, secondRLFirstSLFirstLog)
-	assert.Equal(t, true, secondRLFirstSLFirstLog.Body)
+	assert.Equal(t, "this should match an RE2 directive", secondRLFirstSLFirstLog.Body)
 	assert.Equal(t, plog.SeverityNumber(24), *secondRLFirstSLFirstLog.Severity)
 	assert.Equal(t, "arbitrary", secondRLFirstSLFirstLog.SeverityText)
-	assert.Nil(t, secondRLFirstSLFirstLog.Attributes)
+	assert.Equal(t, &map[string]any{
+		"log_attr_a": "one_value",
+		"log_attr_b": "this should match another RE2 directive",
+		"log_attr_c": "this should match an ANY directive",
+	}, secondRLFirstSLFirstLog.Attributes)
 
 	secondRLFirstScopeLogSecondLog := secondRLFirstSL.Logs[1]
 	require.NotNil(t, secondRLFirstScopeLogSecondLog)
@@ -358,7 +362,7 @@ func TestLogContainsAllNoBijection(t *testing.T) {
 	require.False(t, containsAll)
 	require.Error(t, err)
 	require.Contains(t, err.Error(),
-		"Missing Logs: [body: true\nseverity: 24\nseverity_text: arbitrary\n body: 0.123\nseverity: 9\n]",
+		"Missing Logs: [body: this should match an RE2 directive\nattributes:\n  log_attr_a: one_value\n  log_attr_b: this should match another RE2 directive\n  log_attr_c: this should match an ANY directive\nseverity: 24\nseverity_text: arbitrary\n body: 0.123\nseverity: 9\n]",
 	)
 }
 

@@ -410,7 +410,7 @@ func TestMetricContainsAllNoBijection(t *testing.T) {
 	require.False(t, containsAll)
 	require.Error(t, err)
 	require.Contains(t, err.Error(),
-		"Missing Metrics: [name: another_int_gauge\ntype: IntGauge\nvalue: 456\n name: another_double_gauge\ntype: DoubleGauge\nvalue: 567.89\n]",
+		"Missing Metrics: [attributes:\n  metric_attr_a: one_value\n  metric_attr_b: this should match an RE2 directive\n  metric_attr_c: this should match an ANY directive\nname: another_int_gauge\ntype: IntGauge\nvalue: 456\n name: another_double_gauge\ntype: DoubleGauge\nvalue: 567.89\n",
 	)
 }
 

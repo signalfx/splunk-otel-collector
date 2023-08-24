@@ -20,7 +20,11 @@ resource_metrics:
           name: with_metrics
           version: another_version
         metrics:
-          - name: another_int_gauge
+          - attributes:
+              metric_attr_a: one_value
+              metric_attr_b: this should match an RE2 directive
+              metric_attr_c: this should match an ANY directive
+            name: another_int_gauge
             type: IntGauge
             value: 456
           - name: another_double_gauge

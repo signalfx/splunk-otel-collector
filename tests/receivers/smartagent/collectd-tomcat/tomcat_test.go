@@ -25,7 +25,7 @@ import (
 var apache = []testutils.Container{
 	testutils.NewContainer().WithContext(
 		path.Join(".", "testdata", "server"),
-	).WithExposedPorts("5000:5000").WithName("tomcat").WillWaitForPorts("5000"),
+	).WithName("tomcat").WithExposedPorts("5000:5000").WillWaitForLogs("Server startup in").WillWaitForPorts("5000"),
 }
 
 func TestCollectdTomcatReceiverProvidesDefaultMetrics(t *testing.T) {

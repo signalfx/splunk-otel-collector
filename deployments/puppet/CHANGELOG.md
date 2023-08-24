@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## puppet-v0.10.0
+
+- **Breaking Changes**: Fluentd installation ***disabled*** by default.
+  - Specify the `with_fluentd => true` option to enable installation
+
 ## puppet-v0.9.0
 
 - Add support for additional options for Splunk OpenTelemetry Auto Instrumentation for Java (Linux only)

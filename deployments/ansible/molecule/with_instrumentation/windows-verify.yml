@@ -1,0 +1,63 @@
+---
+- name: Verify scenario with the default configuration
+  hosts: all
+  gather_facts: true
+  become: no
+  vars:
+    reg_values:
+      SPLUNK_CONFIG: '{{ ansible_env.ProgramData }}\Splunk\OpenTelemetry Collector\agent_config.yaml'
+      SPLUNK_ACCESS_TOKEN: fake-token
+      SPLUNK_REALM: fake-realm
+      SPLUNK_API_URL: https://api.fake-realm.signalfx.com
+      SPLUNK_HEC_TOKEN: fake-token
+      SPLUNK_HEC_URL: https://ingest.fake-realm.signalfx.com/v1/log
+      SPLUNK_INGEST_URL: https://ingest.fake-realm.signalfx.com
+      SPLUNK_TRACE_URL: https://ingest.fake-realm.signalfx.com/v2/trace
+      SIGNALFX_DOTNET_TRACER_HOME: '{{ ansible_env.ProgramFiles }}\SignalFx\.NET Tracing\'
+    dotnet_reg_values:
+      COR_ENABLE_PROFILING: "true"
+      COR_PROFILER: "{B4C89B0F-9908-4F73-9F59-0D77C5A06874}"
+      CORECLR_ENABLE_PROFILING: "true"
+      CORECLR_PROFILER: "{B4C89B0F-9908-4F73-9F59-0D77C5A06874}"
+      SIGNALFX_ENV: ""
+      SIGNALFX_SERVICE_NAME: ""
+      SIGNALFX_PROFILER_ENABLED: "false"
+      SIGNALFX_PROFILER_MEMORY_ENABLED: "false"
+  tasks:
+    - name: Check splunk-otel-collector service
+      ansible.windows.win_service:
+        name: splunk-otel-collector
+        state: started
+      check_mode: yes
+      register: service_status
+
+    - name: Assert splunk-otel-collector service status
+      assert:
+        that: not service_status.changed
+
+    - name: Verify collector env vars
+      include_tasks: ../shared/verify_registry_key.yml
+      vars:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+        name: "{{ item.key }}"
+        value: "{{ item.value }}"
+      loop: "{{ reg_values | dict2items }}"
+
+    - name: Get IIS env vars
+      ansible.windows.win_reg_stat:
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\W3SVC
+        name: Environment
+      register: iis_env
+
+    - name: Verify IIS env vars
+      assert:
+        that: (item.key + '=' + item.value) in iis_env.value
+      loop: "{{ dotnet_reg_values | dict2items }}"
+
+    - name: Verify .NET tracing env vars were not added to the system
+      include_tasks: ../shared/verify_registry_key.yml
+      vars:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+        name: "{{ item.key }}"
+        exists: false
+      loop: "{{ dotnet_reg_values | dict2items }}"

@@ -19,6 +19,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -61,22 +62,23 @@ const (
 // of the underlying receivers were successfully discovered by the
 // discovery receiver from its emitted log records.
 type discoverer struct {
-	factories           otelcol.Factories
-	expandConverter     confmap.Converter
-	configs             map[string]*Config
-	extensions          map[component.ID]otelcolextension.Extension
-	logger              *zap.Logger
-	discoveredReceivers map[component.ID]discovery.StatusType
+	factories       otelcol.Factories
+	expandConverter confmap.Converter
 	// receiverID -> observerID -> config
 	unexpandedReceiverEntries map[component.ID]map[component.ID]map[string]any
+	extensions                map[component.ID]otelcolextension.Extension
+	logger                    *zap.Logger
+	discoveredReceivers       map[component.ID]discovery.StatusType
+	configs                   map[string]*Config
 	discoveredConfig          map[component.ID]map[string]any
 	discoveredObservers       map[component.ID]discovery.StatusType
 	// propertiesConf is a store of all properties from cmdline args and env vars
 	// that's merged with receiver/observer configs before creation
-	propertiesConf *confmap.Conf
-	info           component.BuildInfo
-	duration       time.Duration
-	mu             sync.Mutex
+	propertiesConf          *confmap.Conf
+	info                    component.BuildInfo
+	duration                time.Duration
+	mu                      sync.Mutex
+	propertiesFileSpecified bool
 }
 
 func newDiscoverer(logger *zap.Logger) (*discoverer, error) {
@@ -97,7 +99,7 @@ func newDiscoverer(logger *zap.Logger) (*discoverer, error) {
 	if err != nil {
 		return (*discoverer)(nil), err
 	}
-	m := &discoverer{
+	d := &discoverer{
 		logger:                    logger,
 		info:                      info,
 		factories:                 factories,
@@ -111,8 +113,8 @@ func newDiscoverer(logger *zap.Logger) (*discoverer, error) {
 		discoveredConfig:          map[component.ID]map[string]any{},
 		discoveredObservers:       map[component.ID]discovery.StatusType{},
 	}
-	m.propertiesConf = m.propertiesConfFromEnv()
-	return m, nil
+	d.propertiesConf = d.propertiesConfFromEnv()
+	return d, nil
 }
 
 func (d *discoverer) propertiesConfFromEnv() *confmap.Conf {
@@ -139,8 +141,10 @@ func (d *discoverer) propertiesConfFromEnv() *confmap.Conf {
 // discover will create all .discovery.yaml components, start them, wait the configured
 // duration, and tear them down before returning the discovery config.
 func (d *discoverer) discover(cfg *Config) (map[string]any, error) {
-	if err := d.mergeDiscoveryPropertiesEntry(cfg); err != nil {
-		return nil, fmt.Errorf("failed reconciling properties.discovery: %w", err)
+	if !d.propertiesFileSpecified {
+		if err := d.mergeDiscoveryPropertiesEntry(cfg); err != nil {
+			return nil, fmt.Errorf("failed reconciling properties.discovery: %w", err)
+		}
 	}
 	discoveryReceivers, discoveryObservers, err := d.createDiscoveryReceiversAndObservers(cfg)
 	if err != nil {
@@ -478,9 +482,19 @@ func (d *discoverer) discoveryConfig(cfg *Config) (map[string]any, error) {
 	}
 
 	if len(observers) > 0 {
+		sort.Strings(observers)
 		if err := dCfg.Merge(
 			confmap.NewFromStringMap(
-				map[string]any{"service": map[string]any{discovery.DiscoExtensionsKey: observers}},
+				map[string]any{
+					"receivers": map[string]any{
+						"receiver_creator/discovery": map[string]any{
+							"watch_observers": observers,
+						},
+					},
+					"service": map[string]any{
+						discovery.DiscoExtensionsKey: observers,
+					},
+				},
 			),
 		); err != nil {
 			return nil, fmt.Errorf("failed forming suggested discovery observer extensions array: %w", err)

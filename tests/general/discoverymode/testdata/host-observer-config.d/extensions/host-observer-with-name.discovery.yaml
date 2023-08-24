@@ -1,0 +1,3 @@
+host_observer/with-name:
+  config:
+    refresh_interval: 1s

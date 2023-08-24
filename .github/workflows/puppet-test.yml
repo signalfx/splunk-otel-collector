@@ -12,6 +12,7 @@ on:
       - 'internal/buildscripts/packaging/tests/deployments/puppet/**'
       - 'internal/buildscripts/packaging/tests/helpers/**'
       - 'internal/buildscripts/packaging/tests/requirements.txt'
+      - '!**.md'
 
 concurrency:
   group: puppet-test-${{ github.event.pull_request.number || github.ref }}
@@ -20,7 +21,6 @@ concurrency:
 env:
   PYTHON_VERSION: "3.10"
   REQUIREMENTS_PATH: "internal/buildscripts/packaging/tests/requirements.txt"
-  RESULT_PATH: "testresults"
 
 jobs:
   puppet-lint:
@@ -47,18 +47,39 @@ jobs:
         run: |
           make -C deployments/puppet rake-spec
 
+  puppet-test-matrix:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Get matrix
+        id: get-matrix
+        run: |
+          # create test matrix for distro and arch
+          dockerfiles=$(find internal/buildscripts/packaging/tests/deployments/puppet/images/ -name "Dockerfile.*" | cut -d '.' -f2- | sort -u)
+          if [ -z "$dockerfiles" ]; then
+            echo "Failed to get dockerfiles from internal/buildscripts/packaging/tests/deployments/puppet/images/!" >&2
+            exit 1
+          fi
+          distro=$(for d in $dockerfiles; do echo -n "\"$d\","; done)
+          matrix="{\"DISTRO\": [${distro%,}], \"PUPPET_RELEASE\": [\"6\",\"7\"]}"
+          echo "$matrix" | jq
+          echo "matrix=${matrix}" >> $GITHUB_OUTPUT
+    outputs:
+      matrix: ${{ steps.get-matrix.outputs.matrix }}
+
   puppet-test:
     name: puppet-test
     # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
+    runs-on: ${{ fromJSON('["ubuntu-20.04", "ubuntu-22.04"]')[matrix.DISTRO == 'amazonlinux-2023'] }}
     needs:
       - puppet-lint
       - puppet-rake-spec
+      - puppet-test-matrix
     strategy:
-      matrix:
-        PACKAGE_TYPE: [ "deb", "rpm" ]
-        PUPPET_RELEASE: [ "6", "7" ]
-        TEST_CASE: [ "with_fluentd", "without_fluentd", "with_instrumentation", "custom_vars" ]
+      matrix: ${{ fromJSON(needs.puppet-test-matrix.outputs.matrix) }}
+      fail-fast: false
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v3
@@ -76,21 +97,14 @@ jobs:
       - name: Test puppet deployment
         timeout-minutes: 45
         run: |
-          export PUPPET_RELEASE=${{ matrix.PUPPET_RELEASE }}
-          mkdir -p ${{ env.RESULT_PATH }}
-          echo ${{ matrix.PACKAGE_TYPE }}
-          pytest -n2 --verbose -m ${{ matrix.PACKAGE_TYPE }} \
-            -k ${{ matrix.TEST_CASE }} \
-            --junitxml=${{ env.RESULT_PATH }}/results.xml \
-            --html=${{ env.RESULT_PATH }}/results.html \
-            --self-contained-html \
-            internal/buildscripts/packaging/tests/deployments/puppet/puppet_test.py
-      
-      - name: Uploading artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: puppet-${{ matrix.PUPPET_RELEASE }}-${{ matrix.PACKAGE_TYPE }}-${{ matrix.TEST_CASE }}-result
-          path: ${{ env.RESULT_PATH }}
+          distro="${{ matrix.DISTRO }}"
+          if [[ "$distro" = "amazonlinux-2" ]]; then
+            # workaround for pytest substring matching
+            distro="amazonlinux-2 and not amazonlinux-2023"
+          fi
+          pytest -sx --verbose -k "$distro" internal/buildscripts/packaging/tests/deployments/puppet/puppet_test.py
+        env:
+          PUPPET_RELEASE: "${{ matrix.PUPPET_RELEASE }}"
 
   puppet-test-windows:
     name: puppet-test-windows
@@ -103,6 +117,7 @@ jobs:
         OS: [ "windows-2019", "windows-2022" ]
         PUPPET_RELEASE: [ "6.0.2", "7.21.0" ]
         TEST_CASE: [ "default", "custom_vars" ]
+      fail-fast: false
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v3
@@ -120,17 +135,8 @@ jobs:
       - name: Test puppet deployment
         timeout-minutes: 45
         run: |
-          $env:PUPPET_RELEASE = "${{ matrix.PUPPET_RELEASE }}"
-          mkdir ${{ env.RESULT_PATH }}
-          pytest --verbose -m windows `
+          pytest -sx --verbose -m windows `
             -k ${{ matrix.TEST_CASE }} `
-            --junitxml=${{ env.RESULT_PATH }}/results.xml `
-            --html=${{ env.RESULT_PATH }}/results.html `
-            --self-contained-html `
             internal/buildscripts/packaging/tests/deployments/puppet/puppet_test.py
-
-      - name: Uploading artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: puppet-${{ matrix.PUPPET_RELEASE }}-${{ matrix.OS }}-${{ matrix.TEST_CASE }}-result
-          path: ${{ env.RESULT_PATH }}
+        env:
+          PUPPET_RELEASE: "${{ matrix.PUPPET_RELEASE }}"

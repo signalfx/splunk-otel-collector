@@ -38,8 +38,7 @@ type prometheusRemoteWriteReceiver struct {
 	settings     receiver.CreateSettings
 }
 
-// New creates the PrometheusRemoteWrite receiver with the given parameters.
-func New(
+func newReceiver(
 	settings receiver.CreateSettings,
 	config *Config,
 	nextConsumer consumer.Metrics,
@@ -74,16 +73,19 @@ func (receiver *prometheusRemoteWriteReceiver) Start(ctx context.Context, host c
 		Host:               host,
 		Parser:             newPrometheusRemoteOtelParser(),
 	}
-	ctx, receiver.cancel = context.WithCancel(ctx)
-	server, err := newPrometheusRemoteWriteServer(cfg)
-	if err != nil {
-		return err
-	}
-	if nil != receiver.server {
+	if receiver.server != nil {
 		err := receiver.server.close()
 		if err != nil {
 			return err
 		}
+	}
+	if receiver.cancel != nil {
+		receiver.cancel()
+	}
+	ctx, receiver.cancel = context.WithCancel(ctx)
+	server, err := newPrometheusRemoteWriteServer(cfg)
+	if err != nil {
+		return err
 	}
 	receiver.server = server
 

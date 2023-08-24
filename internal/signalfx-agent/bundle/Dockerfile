@@ -13,7 +13,7 @@
 # limitations under the License.
 
 ARG ARCH=amd64
-ARG JDK_VERSION=11.0.19_7
+ARG JDK_VERSION=11.0.20_8
 ARG MAVEN_VERSION=3.6.0
 ARG PYTHON_VERSION=3.11.3
 ARG PIP_VERSION=21.0.1
@@ -154,7 +154,10 @@ RUN sed -i -e '/^deb-src/d' /etc/apt/sources.list &&\
       zlib1g-dev
 
 RUN wget -nv https://dev.mysql.com/get/mysql-apt-config_0.8.12-1_all.deb && \
-    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 467B942D3A79BD29 && \
+    mkdir -p ~/.gnupg && \
+    chmod 700 ~/.gnupg && \
+    echo "disable-ipv6" >> ~/.gnupg/dirmngr.conf && \
+    apt-key adv --homedir ~/.gnupg --keyserver keyserver.ubuntu.com --recv-keys 467B942D3A79BD29 && \
     dpkg -i mysql-apt-config_0.8.12-1_all.deb && \
     rm -f mysql-apt-config_0.8.12-1_all.deb && \
     apt-get update -qq && apt-get install -qq -y libmysqlclient-dev libcurl4-gnutls-dev
@@ -282,10 +285,18 @@ COPY scripts/get-collectd-plugins.py /opt/scripts/
 COPY scripts/requirements.txt /opt/
 COPY collectd-plugins.yaml /opt/
 
+# workaround for https://github.com/yaml/pyyaml/issues/724
+RUN /usr/local/bin/python3 -m pip install 'wheel==0.40.0'
+RUN /usr/local/bin/python3 -m pip install 'Cython<3.0' 'PyYaml~=5.0' --no-build-isolation
+
 RUN /usr/local/bin/python3 -m pip install -r /opt/requirements.txt
 
 RUN mkdir -p /opt/collectd-python &&\
     /usr/local/bin/python3 -u /opt/scripts/get-collectd-plugins.py /opt/collectd-python
+
+# Update pip dependencies after collected plugins are installed
+COPY scripts/security-requirements.txt /tmp/
+RUN /usr/local/bin/python3 -m pip install -r /tmp/security-requirements.txt
 
 # Delete *requirements.txt files after plugins are installed
 RUN find /opt/collectd-python -name "*requirements.txt" -delete

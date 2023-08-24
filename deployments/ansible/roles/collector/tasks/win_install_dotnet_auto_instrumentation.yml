@@ -1,0 +1,93 @@
+---
+- name: Get latest signalfx-dotnet-tracing release json
+  ansible.windows.win_uri:
+    url: "https://api.github.com/repos/signalfx/signalfx-dotnet-tracing/releases/latest"
+    return_content: yes
+    content_type: "application/json"
+    headers:
+      Authorization: "{{ signalfx_dotnet_auto_instrumentation_github_token | default(omit) }}"
+    proxy_password: "{{ win_proxy_password | default(omit) }}"
+    proxy_url: "{{ win_proxy_url | default(omit) }}"
+    proxy_username: "{{ win_proxy_username | default(omit) }}"
+    use_proxy: "{{ win_use_proxy }}"
+  register: latest_dotnet_release
+  when: signalfx_dotnet_auto_instrumentation_version == "latest" and not signalfx_dotnet_auto_instrumentation_msi_url
+
+- name: Set dotnet_download_url fact
+  set_fact:
+    dotnet_download_url: |-
+      {%- if signalfx_dotnet_auto_instrumentation_msi_url -%}
+        {{ signalfx_dotnet_auto_instrumentation_msi_url }}
+      {%- else -%}
+        {%- if signalfx_dotnet_auto_instrumentation_version != "latest" -%}
+          {%- set version = signalfx_dotnet_auto_instrumentation_version.lstrip("v") -%}
+          {{ base_url }}/v{{ version }}/signalfx-dotnet-tracing-{{ version }}-x64.msi
+        {%- elif signalfx_dotnet_auto_instrumentation_version == "latest" and latest_dotnet_release is defined -%}
+          {%- set version = latest_dotnet_release.json.tag_name.lstrip("v") -%}
+          {{ base_url }}/v{{ version }}/signalfx-dotnet-tracing-{{ version }}-x64.msi
+        {%- endif -%}
+      {%- endif -%}
+  vars:
+    base_url: https://github.com/signalfx/signalfx-dotnet-tracing/releases/download
+
+- name: Download signalfx-dotnet-tracing MSI
+  ansible.windows.win_get_url:
+    url: "{{ dotnet_download_url }}"
+    dest: "%TEMP%"
+    proxy_password: "{{ win_proxy_password | default(omit) }}"
+    proxy_url: "{{ win_proxy_url | default(omit) }}"
+    proxy_username: "{{ win_proxy_username | default(omit) }}"
+    use_proxy: "{{ win_use_proxy }}"
+  register: dotnet_msi
+
+- name: Install signalfx-dotnet-tracing MSI
+  ansible.windows.win_package:
+    path: "{{ dotnet_msi.dest }}"
+    state: present
+  notify: "reset iis"
+
+- name: Create registry path
+  ansible.windows.win_regedit:
+    path: "{{ iis_registry_key }}"
+    state: present
+
+- name: Get IIS options list
+  set_fact:
+    options_list: |-
+      {%- set value = item.value -%}
+      {%- if (item.value | type_debug) == "bool" -%}
+        {%- set value = item.value | string | lower -%}
+      {%- endif -%}
+      {{ (options_list | default([])) + [item.key + '=' + (value | string)] }}
+  loop: "{{ dotnet_options | combine(signalfx_dotnet_auto_instrumentation_additional_options) | dict2items }}"
+
+- name: Set IIS registry value
+  ansible.windows.win_regedit:
+    path: "{{ iis_registry_key }}"
+    state: present
+    name: Environment
+    data: "{{ options_list | sort }}"
+    type: multistring
+  notify: "reset iis"
+
+- name: Create registry path
+  ansible.windows.win_regedit:
+    path: "{{ registry_key }}"
+    state: present
+  when: signalfx_dotnet_auto_instrumentation_system_wide
+
+- name: Set system-wide registry value
+  ansible.windows.win_regedit:
+    path: "{{ registry_key }}"
+    state: present
+    name: "{{ item.key }}"
+    data: |-
+      {%- set value = item.value -%}
+      {%- if (item.value | type_debug) == "bool" -%}
+        {%- set value = item.value | string | lower -%}
+      {%- endif -%}
+      {{ value | string }}
+    type: string
+  loop: "{{ dotnet_options | combine(signalfx_dotnet_auto_instrumentation_additional_options) | dict2items }}"
+  when: signalfx_dotnet_auto_instrumentation_system_wide
+  notify: "reset iis"

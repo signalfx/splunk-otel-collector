@@ -99,7 +99,7 @@ The following resources are available:
 
 All you need to get started is:
 
-- [Splunk Access Token](https://docs.splunk.com/Observability/admin/authentication-tokens/org-tokens.html#admin-org-tokens)
+- [Splunk Access Token](https://docs.splunk.com/observability/admin/authentication/authentication-tokens/org-tokens.html)
 - [Splunk Realm](https://dev.splunk.com/observability/docs/realms_in_endpoints/)
 - [Agent or Gateway mode](docs/agent-vs-gateway.md)
 - [Confirm exposed
@@ -168,6 +168,10 @@ By default the Splunk OpenTelemetry Collector provides a sensitive value-redacti
 `http://localhost:55554/debug/configz/effective` that is helpful in troubleshooting. To disable this feature please
 set the `SPLUNK_DEBUG_CONFIG_SERVER` environment variable to any value other than `true`. To set the desired port to
 listen to configure the `SPLUNK_DEBUG_CONFIG_SERVER_PORT` environment variable.
+
+You can use the environment variable `SPLUNK_LISTEN_INTERFACE` and associated installer option to configure the network
+interface on which the collector's receivers and telemetry endpoints will listen.
+The default value of `SPLUNK_LISTEN_INTERFACE` is set to `0.0.0.0`.
 
 ## Upgrade guidelines
 

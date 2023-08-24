@@ -64,6 +64,18 @@ func TestDefaultGatewayConfig(t *testing.T) {
 				"realm":              "not.real",
 				"sync_host_metadata": true,
 			},
+			"splunk_hec": map[string]any{
+				"endpoint":               "https://ingest.not.real.signalfx.com/v1/log",
+				"source":                 "otel",
+				"sourcetype":             "otel",
+				"token":                  "<redacted>",
+				"profiling_data_enabled": false,
+			},
+			"splunk_hec/profiling": map[string]any{
+				"endpoint":         "https://ingest.not.real.signalfx.com/v1/log",
+				"token":            "<redacted>",
+				"log_data_enabled": false,
+			},
 		},
 		"extensions": map[string]any{
 			"health_check": map[string]any{
@@ -142,12 +154,18 @@ func TestDefaultGatewayConfig(t *testing.T) {
 			},
 		},
 		"service": map[string]any{
+			"telemetry":  map[string]any{"metrics": map[string]any{"address": "0.0.0.0:8888"}},
 			"extensions": []any{"health_check", "http_forwarder", "zpages", "memory_ballast"},
 			"pipelines": map[string]any{
 				"logs": map[string]any{
+					"exporters":  []any{"splunk_hec", "splunk_hec/profiling"},
+					"processors": []any{"memory_limiter", "batch"},
+					"receivers":  []any{"otlp"},
+				},
+				"logs/signalfx": map[string]any{
 					"exporters":  []any{"signalfx"},
 					"processors": []any{"memory_limiter", "batch"},
-					"receivers":  []any{"otlp", "signalfx"},
+					"receivers":  []any{"signalfx"},
 				},
 				"metrics": map[string]any{
 					"exporters":  []any{"signalfx"},
@@ -211,10 +229,16 @@ func TestDefaultAgentConfig(t *testing.T) {
 				"sync_host_metadata": true,
 			},
 			"splunk_hec": map[string]any{
-				"endpoint":   "https://ingest.not.real.signalfx.com/v1/log",
-				"source":     "otel",
-				"sourcetype": "otel",
-				"token":      "<redacted>",
+				"endpoint":               "https://ingest.not.real.signalfx.com/v1/log",
+				"source":                 "otel",
+				"sourcetype":             "otel",
+				"token":                  "<redacted>",
+				"profiling_data_enabled": false,
+			},
+			"splunk_hec/profiling": map[string]any{
+				"endpoint":         "https://ingest.not.real.signalfx.com/v1/log",
+				"token":            "<redacted>",
+				"log_data_enabled": false,
 			},
 		},
 		"extensions": map[string]any{
@@ -302,10 +326,11 @@ func TestDefaultAgentConfig(t *testing.T) {
 			"zipkin": map[string]any{
 				"endpoint": "0.0.0.0:9411"}},
 		"service": map[string]any{
+			"telemetry":  map[string]any{"metrics": map[string]any{"address": "0.0.0.0:8888"}},
 			"extensions": []any{"health_check", "http_forwarder", "zpages", "memory_ballast", "smartagent"},
 			"pipelines": map[string]any{
 				"logs": map[string]any{
-					"exporters":  []any{"splunk_hec"},
+					"exporters":  []any{"splunk_hec", "splunk_hec/profiling"},
 					"processors": []any{"memory_limiter", "batch", "resourcedetection"},
 					"receivers":  []any{"fluentforward", "otlp"}},
 				"logs/signalfx": map[string]any{

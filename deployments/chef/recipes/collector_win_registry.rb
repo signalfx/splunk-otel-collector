@@ -12,6 +12,7 @@ registry_values = [
   { name: 'SPLUNK_HEC_TOKEN', type: :string, data: node['splunk_otel_collector']['splunk_hec_token'].to_s },
   { name: 'SPLUNK_MEMORY_TOTAL_MIB', type: :string, data: node['splunk_otel_collector']['splunk_memory_total_mib'].to_s },
   { name: 'SPLUNK_BALLAST_SIZE_MIB', type: :string, data: node['splunk_otel_collector']['splunk_ballast_size_mib'].to_s },
+  { name: 'SPLUNK_LISTEN_INTERFACE', type: :string, data: node['splunk_otel_collector']['splunk_listen_interface'].to_s },
   { name: 'SPLUNK_BUNDLE_DIR', type: :string, data: node['splunk_otel_collector']['splunk_bundle_dir'].to_s },
   { name: 'SPLUNK_COLLECTD_DIR', type: :string, data: node['splunk_otel_collector']['splunk_collectd_dir'].to_s },
 ]

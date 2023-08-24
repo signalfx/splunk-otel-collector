@@ -12,6 +12,7 @@ on:
     paths:
       - '.github/workflows/chef-test.yml'
       - 'deployments/chef/**'
+      - '!**.md'
 
 concurrency:
   group: chef-test-${{ github.event.pull_request.number || github.ref }}

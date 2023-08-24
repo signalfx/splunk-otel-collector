@@ -33,13 +33,26 @@ function get_collectd_plugins ([string]$buildDir=$BUILD_DIR) {
     mkdir "$buildDir\collectd-python" -ErrorAction Ignore
     $collectdPlugins = Resolve-Path "$buildDir\collectd-python"
     $requirements = Resolve-Path "$scriptDir\..\requirements.txt"
+    $security_requirements = Resolve-Path "$scriptDir\..\security-requirements.txt"
     $script = Resolve-Path "$scriptDir\..\get-collectd-plugins.py"
     $python = Resolve-Path "$buildDir\python\python.exe"
+
+    # workaround for https://github.com/yaml/pyyaml/issues/724
+    & $python -m pip install 'wheel==0.40.0'
+    & $python -m pip install 'Cython<3.0' 'PyYaml~=5.0' --no-build-isolation
+
     & $python -m pip install -qq -r $requirements
     if ($lastexitcode -ne 0){ throw }
+
     & $python $script $collectdPlugins
     if ($lastexitcode -ne 0){ throw }
+
+    # Update pip dependencies after collected plugins are installed
+    & $python -m pip install -qq -r $security_requirements
+    if ($lastexitcode -ne 0){ throw }
+
     & $python -m pip list
+
     & $python -m pip uninstall pip -y
     if ($lastexitcode -ne 0){ throw }
 }

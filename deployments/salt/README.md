@@ -7,15 +7,15 @@ Observability Cloud](https://www.splunk.com/en_us/observability.html).
 ## Linux
 Currently, the following Linux distributions and versions are supported:
 
-- Amazon Linux: 2
-- CentOS / Red Hat / Oracle: 7, 8
+- Amazon Linux: 2, 2023 (**Note:** Log collection with Fluentd not currently supported for Amazon Linux 2023.)
+- CentOS / Red Hat / Oracle: 7, 8, 9
 - Debian: 9, 10, 11
 - SUSE: 12, 15 (**Note:** Only for collector versions v0.34.0 or higher. Log collection with fluentd not currently supported.)
 - Ubuntu: 16.04, 18.04, 20.04, 22.04
 
 ## Prerequisites
 
-- [Splunk Access Token](https://docs.splunk.com/Observability/admin/authentication-tokens/org-tokens.html#admin-org-tokens)
+- [Splunk Access Token](https://docs.splunk.com/observability/admin/authentication/authentication-tokens/org-tokens.html)
 - [Splunk Realm](https://dev.splunk.com/observability/docs/realms_in_endpoints/)
 - [Double-check exposed ports](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/security.md#exposed-endpoints) 
   to make sure your environment doesn't have conflicts. Ports can be changed in the collector's configuration.
@@ -32,7 +32,6 @@ splunk-otel-collector:
   splunk_otel_collector_config: '/etc/otel/collector/agent_config.yaml'
   splunk_service_user: splunk-otel-collector
   splunk_service_group: splunk-otel-collector
-
 ```
 
 ## This Salt Formula accepts the following attributes:
@@ -98,6 +97,9 @@ splunk-otel-collector:
 - `splunk_ballast_size_mib`: Memory ballast size in MiB that will be set to the Splunk 
   OTel Collector. (**default:** 1/3 of `splunk_memory_total_mib`)
 
+- `splunk_listen_interface`: The network interface the collector receivers will listen
+  on. (**default:** `0.0.0.0`)
+
 - `collector_additional_env_vars`: Dictionary of additional environment
   variables from the collector configuration file for the collector service
   (**default:** `{}`). For example, if the collector configuration file
@@ -121,7 +123,7 @@ splunk-otel-collector:
   [fluent-plugin-systemd](
   https://github.com/fluent-plugin-systemd/fluent-plugin-systemd) for systemd
   journal log collection, and the required libraries/development tools.
-  (**default:** `True`)
+  (**default:** `False`)
 
 - `td_agent_version`: Version of [td-agent](
   https://td-agent-package-browser.herokuapp.com/) (fluentd package) that will

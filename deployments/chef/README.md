@@ -7,7 +7,7 @@ https://www.splunk.com/en_us/observability.html).
 
 ## Prerequisites
 
-- [Splunk Access Token](https://docs.splunk.com/Observability/admin/authentication-tokens/org-tokens.html)
+- [Splunk Access Token](https://docs.splunk.com/observability/admin/authentication/authentication-tokens/org-tokens.html)
 - [Splunk Realm](https://dev.splunk.com/observability/docs/realms_in_endpoints/)
 - [Double-check exposed ports](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/security.md#exposed-endpoints) 
   to make sure your environment doesn't have conflicts. Ports can be changed in the collector's configuration.
@@ -17,7 +17,7 @@ https://www.splunk.com/en_us/observability.html).
 Currently, the following Linux distributions and versions are supported:
 
 - Amazon Linux: 2
-- CentOS / Red Hat / Oracle: 7, 8
+- CentOS / Red Hat / Oracle: 7, 8, 9
 - Debian: 9, 10, 11
 - SUSE: 12, 15 (**Note:** Only for Collector versions v0.34.0 or higher. Log collection with Fluentd not currently supported.)
 - Ubuntu: 18.04, 20.04, 22.04
@@ -33,7 +33,7 @@ Currently, the following Windows versions are supported:
 
 This cookbook can be downloaded and installed from [Chef Supermarket](https://supermarket.chef.io/cookbooks/splunk_otel_collector).
 
-To install the Collector and Fluentd, include the
+To install the Collector, include the
 `splunk_otel_collector::default` recipe in the `run_list`, and set the
 attributes on the node's `run_state`. Below is an example to configure the
 required `splunk_access_token` attribute and some optional attributes:
@@ -51,7 +51,7 @@ required `splunk_access_token` attribute and some optional attributes:
 ### Collector
 
 - `splunk_access_token` (**Required**): The [Splunk access token](
-  https://docs.splunk.com/Observability/admin/authentication-tokens/org-tokens.html)
+  https://docs.splunk.com/observability/admin/authentication/authentication-tokens/org-tokens.html)
   to authenticate requests.
 
 - `splunk_realm`: Which Splunk realm to send the data to, e.g. `us1`. The
@@ -104,6 +104,9 @@ required `splunk_access_token` attribute and some optional attributes:
   `SPLUNK_BALLAST_SIZE_MIB` environment variable will be set with this value
   for the Collector service. (**default:** `''`)
 
+- `splunk_listen_interface`: The network interface the collector receivers
+  will listen on (**default** `0.0.0.0`).
+
 - `splunk_service_user` and `splunk_service_group` (Linux only): Set the
   user/group ownership for the Collector service. The user/group will be
   created if they do not exist. (**default:** `splunk-otel-collector`)
@@ -153,7 +156,7 @@ required `splunk_access_token` attribute and some optional attributes:
   [fluent-plugin-systemd](
   https://github.com/fluent-plugin-systemd/fluent-plugin-systemd) for systemd
   journal log collection, and the required libraries/development tools.
-  (**default:** `true`)
+  (**default:** `false`)
 
 - `fluentd_version`: Version of the [td-agent](
   https://www.fluentd.org/download) (Fluentd) package to install (**default:**

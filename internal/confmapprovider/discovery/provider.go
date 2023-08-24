@@ -31,9 +31,10 @@ import (
 )
 
 const (
-	discoveryModeScheme = "splunk.discovery"
-	propertyScheme      = "splunk.property"
-	configDScheme       = "splunk.configd"
+	discoveryModeScheme  = "splunk.discovery"
+	propertyScheme       = "splunk.property"
+	propertiesFileScheme = "splunk.properties"
+	configDScheme        = "splunk.configd"
 )
 
 var _ confmap.Provider = (*providerShim)(nil)
@@ -45,6 +46,8 @@ type Provider interface {
 	DiscoveryModeProvider() confmap.Provider
 	PropertyScheme() string
 	PropertyProvider() confmap.Provider
+	PropertiesFileScheme() string
+	PropertiesFileProvider() confmap.Provider
 }
 
 type providerShim struct {
@@ -68,6 +71,7 @@ type mapProvider struct {
 	logger     *zap.Logger
 	configs    map[string]*Config
 	discoverer *discoverer
+	retrieved  *confmap.Retrieved
 }
 
 func New() (Provider, error) {
@@ -112,6 +116,13 @@ func (m *mapProvider) PropertyProvider() confmap.Provider {
 	}
 }
 
+func (m *mapProvider) PropertiesFileProvider() confmap.Provider {
+	return &providerShim{
+		scheme:   m.PropertiesFileScheme(),
+		retrieve: m.retrieve(m.PropertiesFileScheme()),
+	}
+}
+
 func (m *mapProvider) retrieve(scheme string) func(context.Context, string, confmap.WatcherFunc) (*confmap.Retrieved, error) {
 	return func(ctx context.Context, uri string, _ confmap.WatcherFunc) (*confmap.Retrieved, error) {
 		schemePrefix := fmt.Sprintf("%s:", scheme)
@@ -120,6 +131,11 @@ func (m *mapProvider) retrieve(scheme string) func(context.Context, string, conf
 		}
 
 		uriVal := uri[len(schemePrefix):]
+
+		if schemePrefix == fmt.Sprintf("%s:", propertiesFileScheme) {
+			return m.loadPropertiesFile(uriVal)
+		}
+
 		if schemePrefix == fmt.Sprintf("%s:", propertyScheme) {
 			return m.parsedProperty(uriVal)
 		}
@@ -129,6 +145,7 @@ func (m *mapProvider) retrieve(scheme string) func(context.Context, string, conf
 		if uriVal != "" {
 			if cfg, ok = m.configs[uriVal]; !ok {
 				cfg = NewConfig(m.logger)
+				cfg.propertiesAlreadyLoaded = m.discoverer.propertiesFileSpecified
 				m.logger.Debug("loading config.d", zap.String("config-dir", uriVal))
 				if err := cfg.Load(uriVal); err != nil {
 					// ignore if we're attempting to load a default that hasn't been installed to expected path
@@ -154,6 +171,12 @@ func (m *mapProvider) retrieve(scheme string) func(context.Context, string, conf
 		}
 
 		if strings.HasPrefix(uri, discoveryModeScheme) {
+			// https://github.com/open-telemetry/opentelemetry-collector/pull/6833/
+			// introduced repeated config resolution call so we need to memoize the provider to avoid
+			// duplicate loading. TODO: expand this to be uri based for all providers
+			if m.retrieved != nil {
+				return m.retrieved, nil
+			}
 			var bundledCfg *Config
 			if bundledCfg, ok = m.configs["<bundled>"]; !ok {
 				m.logger.Debug("loading bundle.d")
@@ -172,7 +195,8 @@ func (m *mapProvider) retrieve(scheme string) func(context.Context, string, conf
 			if err != nil {
 				return nil, fmt.Errorf("failed to successfully discover target services: %w", err)
 			}
-			return confmap.NewRetrieved(discoveryCfg)
+			m.retrieved, err = confmap.NewRetrieved(discoveryCfg)
+			return m.retrieved, err
 		}
 
 		return nil, fmt.Errorf("unsupported %s scheme %q", scheme, uri)
@@ -189,6 +213,24 @@ func (m *mapProvider) DiscoveryModeScheme() string {
 
 func (m *mapProvider) PropertyScheme() string {
 	return propertyScheme
+}
+
+func (m *mapProvider) PropertiesFileScheme() string {
+	return propertiesFileScheme
+}
+
+func (m *mapProvider) loadPropertiesFile(path string) (*confmap.Retrieved, error) {
+	propertiesCfg := NewConfig(m.logger)
+	m.logger.Debug("loading discovery properties", zap.String("file", path))
+	if err := propertiesCfg.LoadProperties(path); err != nil {
+		return nil, err
+	}
+	if err := m.discoverer.mergeDiscoveryPropertiesEntry(propertiesCfg); err != nil {
+		return nil, err
+	}
+	m.discoverer.propertiesFileSpecified = true
+	// return nil confmap to satisfy signature
+	return confmap.NewRetrieved(nil)
 }
 
 func (m *mapProvider) parsedProperty(rawProperty string) (*confmap.Retrieved, error) {

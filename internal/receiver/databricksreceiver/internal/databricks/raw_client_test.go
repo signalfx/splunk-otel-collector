@@ -30,7 +30,7 @@ func TestRawHTTPClient(t *testing.T) {
 	svr := httptest.NewServer(h)
 	defer svr.Close()
 	c := rawHTTPClient{
-		authClient: httpauth.NewClient(http.DefaultClient, "abc123"),
+		authClient: httpauth.NewClient(http.DefaultClient, "abc123", zap.NewNop()),
 		endpoint:   svr.URL,
 		logger:     zap.NewNop(),
 	}

@@ -24,6 +24,7 @@ import (
 
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/commontest"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/databricks"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/metadata"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/spark"
 )
 
@@ -39,6 +40,7 @@ func TestScraper_Success(t *testing.T) {
 		logger:          nopLogger,
 		dbrInstanceName: "my-instance",
 		metricsBuilder:  commontest.NewTestMetricsBuilder(),
+		resourceBuilder: metadata.NewResourceBuilder(metadata.DefaultResourceAttributesConfig()),
 		rmp:             databricks.NewRunMetricsProvider(dbrsvc),
 		dbrmp:           databricks.MetricsProvider{Svc: dbrsvc},
 		scmb:            spark.ClusterMetricsBuilder{Ssvc: ssvc},
@@ -71,6 +73,7 @@ func TestScraper_Forbidden(t *testing.T) {
 		logger:          nopLogger,
 		dbrInstanceName: "my-instance",
 		metricsBuilder:  commontest.NewTestMetricsBuilder(),
+		resourceBuilder: metadata.NewResourceBuilder(metadata.DefaultResourceAttributesConfig()),
 		rmp:             databricks.NewRunMetricsProvider(dbrsvc),
 		dbrmp:           databricks.MetricsProvider{Svc: dbrsvc},
 		scmb:            spark.ClusterMetricsBuilder{Ssvc: ssvc},
@@ -94,6 +97,7 @@ func TestScraper_MultiCluster_Forbidden(t *testing.T) {
 		logger:          nopLogger,
 		dbrInstanceName: "my-instance",
 		metricsBuilder:  commontest.NewTestMetricsBuilder(),
+		resourceBuilder: metadata.NewResourceBuilder(metadata.DefaultResourceAttributesConfig()),
 		rmp:             databricks.NewRunMetricsProvider(dbrsvc),
 		dbrmp:           databricks.MetricsProvider{Svc: dbrsvc},
 		scmb:            spark.ClusterMetricsBuilder{Ssvc: ssvc},

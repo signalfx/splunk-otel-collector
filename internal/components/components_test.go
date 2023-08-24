@@ -26,6 +26,7 @@ import (
 
 func TestDefaultComponents(t *testing.T) {
 	expectedExtensions := []component.Type{
+		"basicauth",
 		"ecs_observer",
 		"ecs_task_observer",
 		"docker_observer",
@@ -64,7 +65,6 @@ func TestDefaultComponents(t *testing.T) {
 		"otlp",
 		"postgresql",
 		"prometheus",
-		"prometheus_exec",
 		"prometheus_simple",
 		"receiver_creator",
 		"redis",

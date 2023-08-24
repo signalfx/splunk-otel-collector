@@ -35,6 +35,7 @@ var (
 	anotherConfigPath    = filepath.Join(".", "testdata", "another-config.yaml")
 	localGatewayConfig   = filepath.Join("..", "..", "cmd/otelcol/config/collector/gateway_config.yaml")
 	localOTLPLinuxConfig = filepath.Join("..", "..", "cmd/otelcol/config/collector/otlp_config_linux.yaml")
+	propertiesPath       = filepath.Join(".", "testdata", "properties.yaml")
 )
 
 func TestNewSettingsWithUnknownFlagsNotAcceptable(t *testing.T) {
@@ -98,12 +99,16 @@ func TestNewSettingsConfMapProviders(t *testing.T) {
 	require.Contains(t, confMapProviders, settings.discovery.DiscoveryModeScheme())
 	discoveryModeProvider := confMapProviders[settings.discovery.DiscoveryModeScheme()]
 
+	require.Contains(t, confMapProviders, settings.discovery.PropertiesFileScheme())
+	propertiesFileProvider := confMapProviders[settings.discovery.PropertiesFileScheme()]
+
 	require.Equal(t, map[string]confmap.Provider{
-		envProvider.Scheme():                     envProvider,
-		fileProvider.Scheme():                    fileProvider,
-		settings.discovery.PropertyScheme():      propertyProvider,
-		settings.discovery.ConfigDScheme():       configdProvider,
-		settings.discovery.DiscoveryModeScheme(): discoveryModeProvider,
+		envProvider.Scheme():                      envProvider,
+		fileProvider.Scheme():                     fileProvider,
+		settings.discovery.PropertyScheme():       propertyProvider,
+		settings.discovery.ConfigDScheme():        configdProvider,
+		settings.discovery.DiscoveryModeScheme():  discoveryModeProvider,
+		settings.discovery.PropertiesFileScheme(): propertiesFileProvider,
 	}, confMapProviders)
 }
 
@@ -204,6 +209,7 @@ func TestCheckRuntimeParams_Default(t *testing.T) {
 	require.NotNil(t, settings)
 	require.Equal(t, "168", os.Getenv(BallastEnvVar))
 	require.Equal(t, "460", os.Getenv(MemLimitMiBEnvVar))
+	require.Equal(t, "0.0.0.0", os.Getenv(ListenInterfaceEnvVar))
 }
 
 func TestCheckRuntimeParams_MemTotalEnv(t *testing.T) {
@@ -215,6 +221,15 @@ func TestCheckRuntimeParams_MemTotalEnv(t *testing.T) {
 	require.NotNil(t, settings)
 	require.Equal(t, "330", os.Getenv(BallastEnvVar))
 	require.Equal(t, "900", os.Getenv(MemLimitMiBEnvVar))
+}
+
+func TestCheckRuntimeParams_ListenInterface(t *testing.T) {
+	t.Cleanup(setRequiredEnvVars(t))
+	require.NoError(t, os.Setenv(ListenInterfaceEnvVar, "127.0.0.1"))
+	settings, err := New([]string{})
+	require.NoError(t, err)
+	require.NotNil(t, settings)
+	require.Equal(t, "127.0.0.1", os.Getenv(ListenInterfaceEnvVar))
 }
 
 func TestCheckRuntimeParams_MemTotalAndBallastEnvs(t *testing.T) {
@@ -246,7 +261,7 @@ func TestCheckRuntimeParams_LimitAndBallastEnvs(t *testing.T) {
 func TestSetDefaultEnvVars(t *testing.T) {
 	t.Cleanup(clearEnv(t))
 
-	testArgs := []string{"SPLUNK_API_URL", "SPLUNK_INGEST_URL", "SPLUNK_TRACE_URL", "SPLUNK_HEC_URL", "SPLUNK_HEC_TOKEN"}
+	testArgs := []string{"SPLUNK_API_URL", "SPLUNK_INGEST_URL", "SPLUNK_TRACE_URL", "SPLUNK_HEC_URL", "SPLUNK_HEC_TOKEN", "SPLUNK_LISTEN_INTERFACE"}
 	for _, v := range testArgs {
 		setDefaultEnvVars()
 		_, ok := os.LookupEnv(v)
@@ -267,6 +282,7 @@ func TestSetDefaultEnvVars(t *testing.T) {
 		{"SPLUNK_TRACE_URL", fmt.Sprintf("https://ingest.%s.signalfx.com/v2/trace", realm)},
 		{"SPLUNK_HEC_URL", fmt.Sprintf("https://ingest.%s.signalfx.com/v1/log", realm)},
 		{"SPLUNK_HEC_TOKEN", token},
+		{"SPLUNK_LISTEN_INTERFACE", "0.0.0.0"},
 	}
 	for _, v := range testArgs2 {
 		val, _ := os.LookupEnv(v[0])
@@ -524,6 +540,7 @@ func TestDefaultDiscoveryConfigDir(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, settings.discoveryMode)
 	require.False(t, settings.configD)
+	require.Nil(t, settings.discoveryPropertiesFile.value)
 
 	require.Equal(t, []string{
 		localGatewayConfig,
@@ -546,16 +563,29 @@ func TestInheritedDiscoveryConfigDir(t *testing.T) {
 
 func TestInheritedDiscoveryConfigDirWithConfigD(t *testing.T) {
 	t.Cleanup(setRequiredEnvVars(t))
-	settings, err := New([]string{"--discovery", "--config-dir", "/some/config.d", "--configd"})
+	settings, err := New([]string{
+		"--discovery", "--config-dir", "/some/config.d", "--configd", "--discovery-properties", propertiesPath,
+	})
 	require.NoError(t, err)
 	require.True(t, settings.discoveryMode)
 	require.True(t, settings.configD)
 
+	require.NotNil(t, settings.discoveryPropertiesFile.value)
+	require.Equal(t, propertiesPath, settings.discoveryPropertiesFile.String())
+
 	require.Equal(t, []string{
 		localGatewayConfig,
+		fmt.Sprintf("splunk.properties:%s", propertiesPath),
 		"splunk.configd:/some/config.d",
 		"splunk.discovery:/some/config.d",
 	}, settings.ResolverURIs())
+}
+
+func TestDiscoveryPropertiesMustExist(t *testing.T) {
+	t.Cleanup(setRequiredEnvVars(t))
+	settings, err := New([]string{"--discovery", "--discovery-properties", "notafile"})
+	require.ErrorContains(t, err, "unable to find discovery properties file notafile. Ensure flag '--discovery-properties' is set correctly:")
+	require.Nil(t, settings)
 }
 
 // to satisfy Settings generation

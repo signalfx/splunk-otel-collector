@@ -7,14 +7,16 @@ script deploys and configures:
 
 - Splunk OpenTelemetry Collector for Linux (**x86_64/amd64 and aarch64/arm64 platforms only**)
 - [SignalFx Smart Agent and collectd bundle](https://github.com/signalfx/signalfx-agent/releases) (**x86_64/amd64 platforms only**)
-- [Fluentd (via the TD Agent)](https://www.fluentd.org/)
-  - Optional, **enabled** by default for supported Linux distributions
-  - See the [Fluentd Configuration](#fluentd-configuration) section for additional information, including how to skip installation.
+- Log Collection with [Fluentd (via the TD Agent)](https://www.fluentd.org/)
+  - Optional, **disabled** by default
+  - See the [Fluentd Configuration](#fluentd-configuration) section for additional information, including how to enable installation for [supported platforms](#supported-platforms).
 - [Splunk OpenTelemetry Auto Instrumentation for Java](https://github.com/signalfx/splunk-otel-collector/tree/main/instrumentation#linux-java-auto-instrumentation)
   - Optional, **disabled** by default
   - See the [Auto Instrumentation](#auto-instrumentation) section for additional information, including how to enable installation.
 
 > IMPORTANT: systemd is required to use this script.
+
+### Supported Platforms
 
 Currently, the following Linux distributions and versions are supported:
 
@@ -85,7 +87,7 @@ sudo sh /tmp/splunk-otel-collector.sh --realm SPLUNK_REALM --memory SPLUNK_MEMOR
 ```
 
 By default, apt/yum/zypper repo definition files will be created to download
-the Collector and Fluentd deb/rpm packages from
+the Collector and Fluentd (if enabled) deb/rpm packages from
 [https://splunk.jfrog.io/splunk](https://splunk.jfrog.io/splunk) and
 [https://packages.treasuredata.com](https://packages.treasuredata.com),
 respectively.  To skip these steps and use pre-configured repos on the target
@@ -95,7 +97,7 @@ packages, specify the `--skip-collector-repo` and/or
 
 ```sh
 curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-collector.sh && \
-sudo sh /tmp/splunk-otel-collector.sh --realm SPLUNK_REALM --skip-collector-repo --skip-fluentd-repo \
+sudo sh /tmp/splunk-otel-collector.sh --realm SPLUNK_REALM --with-fluentd --skip-collector-repo --skip-fluentd-repo \
     -- SPLUNK_ACCESS_TOKEN
 ```
 
@@ -183,14 +185,21 @@ To upgrade the Collector, run the following commands on your system (requires
 
 ### Fluentd Configuration
 
-> If log collection is not required, run the installer script with the
-> `--without-fluentd` option to skip installation of Fluentd and the
-> plugins/dependencies listed below.
+If log collection with Fluentd is required and your platform is [supported](
+#supported-platforms), run the installer script with the `--with-fluentd`
+option to install/configure Fluentd and the plugins/dependencies listed below.
+For example:
 
-By default, the Fluentd service will be installed and configured to forward log
-events with the `@SPLUNK` label to the Collector (see below for how to add
-custom Fluentd log sources), and the Collector will send these events to the
-HEC ingest endpoint determined by the `--realm SPLUNK_REALM` option, e.g.
+```sh
+curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-collector.sh && \
+sudo sh /tmp/splunk-otel-collector.sh --realm SPLUNK_REALM --with-fluentd -- SPLUNK_ACCESS_TOKEN
+```
+
+The Fluentd deb/rpm package (`td-agent`) will be installed, and the `td-agent`
+service will be configured to forward log events with the `@SPLUNK` label to
+the Collector (see below for how to add custom Fluentd log sources). The
+Collector will then send these events to the HEC ingest endpoint determined by
+the `--realm SPLUNK_REALM` option, i.e.
 `https://ingest.SPLUNK_REALM.signalfx.com/v1/log`.
 
 The following Fluentd plugins will also be installed:
@@ -358,6 +367,11 @@ system (requires `root` privileges):
 
 **Note:** After successful upgrade, the Java application(s) on the host need to
 be manually started/restarted in order for the changes to take effect.
+
+### Discovery mode
+
+If you wish to start the collector with discovery mode you can add the `--discovery` installation option.
+For more information see the discovery config provider [documentation](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/confmapprovider/discovery#discovery-mode).
 
 ### Uninstall
 

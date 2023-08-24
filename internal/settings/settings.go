@@ -40,6 +40,7 @@ const (
 	ConfigServerEnabledEnvVar = "SPLUNK_DEBUG_CONFIG_SERVER"
 	ConfigYamlEnvVar          = "SPLUNK_CONFIG_YAML"
 	HecLogIngestURLEnvVar     = "SPLUNK_HEC_URL"
+	ListenInterfaceEnvVar     = "SPLUNK_LISTEN_INTERFACE"
 	// nolint:gosec
 	HecTokenEnvVar    = "SPLUNK_HEC_TOKEN" // this isn't a hardcoded token
 	IngestURLEnvVar   = "SPLUNK_INGEST_URL"
@@ -56,6 +57,7 @@ const (
 	DefaultMemoryBallastPercentage = 33
 	DefaultMemoryLimitPercentage   = 90
 	DefaultMemoryTotalMiB          = 512
+	DefaultListenInterface         = "0.0.0.0"
 )
 
 var (
@@ -64,20 +66,21 @@ var (
 )
 
 type Settings struct {
-	discovery           discovery.Provider
-	configPaths         *stringArrayFlagValue
-	setOptionArguments  *stringArrayFlagValue
-	configDir           *stringPointerFlagValue
-	confMapProviders    map[string]confmap.Provider
-	discoveryProperties []string
-	setProperties       []string
-	colCoreArgs         []string
-	supportedURISchemes []string
-	versionFlag         bool
-	noConvertConfig     bool
-	configD             bool
-	discoveryMode       bool
-	dryRun              bool
+	discovery               discovery.Provider
+	configPaths             *stringArrayFlagValue
+	setOptionArguments      *stringArrayFlagValue
+	configDir               *stringPointerFlagValue
+	confMapProviders        map[string]confmap.Provider
+	discoveryPropertiesFile *stringPointerFlagValue
+	setProperties           []string
+	colCoreArgs             []string
+	supportedURISchemes     []string
+	discoveryProperties     []string
+	versionFlag             bool
+	noConvertConfig         bool
+	configD                 bool
+	discoveryMode           bool
+	dryRun                  bool
 }
 
 func New(args []string) (*Settings, error) {
@@ -112,6 +115,10 @@ func (s *Settings) ResolverURIs() []string {
 	}
 
 	configDir := getConfigDir(s)
+
+	if s.discoveryPropertiesFile.value != nil {
+		configPaths = append(configPaths, fmt.Sprintf("%s:%s", s.discovery.PropertiesFileScheme(), s.discoveryPropertiesFile.String()))
+	}
 
 	for _, property := range s.discoveryProperties {
 		configPaths = append(configPaths, fmt.Sprintf("%s:%s", s.discovery.PropertyScheme(), property))
@@ -176,6 +183,7 @@ func loadConfMapProviders(s *Settings) error {
 	s.confMapProviders[s.discovery.PropertyScheme()] = s.discovery.PropertyProvider()
 	s.confMapProviders[s.discovery.ConfigDScheme()] = s.discovery.ConfigDProvider()
 	s.confMapProviders[s.discovery.DiscoveryModeScheme()] = s.discovery.DiscoveryModeProvider()
+	s.confMapProviders[s.discovery.PropertiesFileScheme()] = s.discovery.PropertiesFileProvider()
 	return nil
 }
 
@@ -213,9 +221,10 @@ func parseArgs(args []string) (*Settings, error) {
 	flagSet := flag.NewFlagSet("otelcol", flag.ContinueOnError)
 
 	settings := &Settings{
-		configPaths:        new(stringArrayFlagValue),
-		setOptionArguments: new(stringArrayFlagValue),
-		configDir:          new(stringPointerFlagValue),
+		configPaths:             new(stringArrayFlagValue),
+		setOptionArguments:      new(stringArrayFlagValue),
+		configDir:               new(stringPointerFlagValue),
+		discoveryPropertiesFile: new(stringPointerFlagValue),
 	}
 
 	if err := loadConfMapProviders(settings); err != nil {
@@ -245,6 +254,11 @@ func parseArgs(args []string) (*Settings, error) {
 	flagSet.MarkHidden("configd")
 	flagSet.BoolVar(&settings.discoveryMode, "discovery", false, "")
 	flagSet.MarkHidden("discovery")
+	flagSet.Var(
+		settings.discoveryPropertiesFile, "discovery-properties",
+		"Location to a single discovery properties file. If set, default <config.d>/properties.discovery.yaml content will be disregarded.",
+	)
+	flagSet.MarkHidden("discovery-properties")
 
 	// OTel Collector Core flags
 	colCoreFlags := []string{"version", "feature-gates"}
@@ -255,6 +269,13 @@ func parseArgs(args []string) (*Settings, error) {
 
 	if err := flagSet.Parse(args); err != nil {
 		return nil, err
+	}
+
+	if settings.discoveryPropertiesFile.value != nil {
+		propertiesFile := settings.discoveryPropertiesFile.String()
+		if _, err := os.Stat(propertiesFile); err != nil {
+			return nil, fmt.Errorf("unable to find discovery properties file %s. Ensure flag '--discovery-properties' is set correctly: %w", propertiesFile, err)
+		}
 	}
 
 	settings.setProperties, settings.discoveryProperties = parseSetOptionArguments(settings.setOptionArguments.value)
@@ -325,6 +346,10 @@ func checkRuntimeParams(settings *Settings) error {
 	if 2*ballastSize > memLimit {
 		return fmt.Errorf("memory limit (%d) is less than 2x ballast (%d). Increase memory limit or decrease ballast size", memLimit, ballastSize)
 	}
+	if os.Getenv(ListenInterfaceEnvVar) == "" {
+		os.Setenv(ListenInterfaceEnvVar, DefaultListenInterface)
+	}
+
 	return nil
 }
 
@@ -339,6 +364,7 @@ func setDefaultEnvVars() error {
 			ev{e: IngestURLEnvVar, v: fmt.Sprintf("https://ingest.%s.signalfx.com", realm)},
 			ev{e: TraceIngestURLEnvVar, v: fmt.Sprintf("https://ingest.%s.signalfx.com/v2/trace", realm)},
 			ev{e: HecLogIngestURLEnvVar, v: fmt.Sprintf("https://ingest.%s.signalfx.com/v1/log", realm)},
+			ev{e: ListenInterfaceEnvVar, v: "0.0.0.0"},
 		)
 	}
 

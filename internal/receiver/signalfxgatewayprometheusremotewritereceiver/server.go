@@ -15,6 +15,7 @@
 package signalfxgatewayprometheusremotewritereceiver
 
 import (
+	"io"
 	"net/http"
 	"sync"
 
@@ -33,13 +34,13 @@ type prometheusRemoteWriteServer struct {
 }
 
 type serverConfig struct {
+	confighttp.HTTPServerSettings
+	component.TelemetrySettings
 	Reporter reporter
 	component.Host
-	Mc chan<- pmetric.Metrics
-	component.TelemetrySettings
-	Path   string
+	Mc     chan<- pmetric.Metrics
 	Parser *prometheusRemoteOtelParser
-	confighttp.HTTPServerSettings
+	Path   string
 }
 
 func newPrometheusRemoteWriteServer(config *serverConfig) (*prometheusRemoteWriteServer, error) {
@@ -47,7 +48,11 @@ func newPrometheusRemoteWriteServer(config *serverConfig) (*prometheusRemoteWrit
 	handler := newHandler(config.Parser, config, config.Mc)
 	mx.HandleFunc(config.Path, handler)
 	mx.Host(config.Endpoint)
-	server, err := config.HTTPServerSettings.ToServer(config.Host, config.TelemetrySettings, mx)
+	server, err := config.HTTPServerSettings.ToServer(config.Host, config.TelemetrySettings, mx,
+		// ensure we support the snappy Content-Encoding, but leave it to the prometheus remotewrite lib to decompress.
+		confighttp.WithDecoder("snappy", func(body io.ReadCloser) (io.ReadCloser, error) {
+			return body, nil
+		}))
 	server.Addr = config.Endpoint
 	if err != nil {
 		return nil, err

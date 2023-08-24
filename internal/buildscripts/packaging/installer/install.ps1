@@ -40,6 +40,10 @@
     (OPTIONAL) Configure the collector service to run in "agent" or "gateway" mode (default: "agent").
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -mode "gateway"
+.PARAMETER network_interface
+    (OPTIONAL) The network interface the collector receivers listen on. (default: "0.0.0.0")
+    .EXAMPLE
+    .\install.ps1 -access_token "ACCESSTOKEN" -network_interface "127.0.0.1"
 .PARAMETER ingest_url
     (OPTIONAL) Set the base ingest URL explicitly instead of the URL inferred from the specified realm (default: https://ingest.REALM.signalfx.com).
     .EXAMPLE
@@ -61,9 +65,9 @@
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -hec_token "HECTOKEN"
 .PARAMETER with_fluentd
-    (OPTIONAL) Whether to install and configure fluentd to forward log events to the collector (default: $true)
+    (OPTIONAL) Whether to install and configure fluentd to forward log events to the collector (default: $false)
     .EXAMPLE
-    .\install.ps1 -access_token "ACCESSTOKEN" -with_fluentd $false
+    .\install.ps1 -access_token "ACCESSTOKEN" -with_fluentd $true
 .PARAMETER with_dotnet_instrumentation
     (OPTIONAL) Whether to install and configure .NET tracing to forward .NET application traces to the local collector (default: $false)
     .EXAMPLE
@@ -109,6 +113,7 @@ param (
     [string]$realm = "us0",
     [string]$memory = "512",
     [ValidateSet('agent','gateway')][string]$mode = "agent",
+    [string]$network_interface = "0.0.0.0",
     [string]$ingest_url = "",
     [string]$api_url = "",
     [string]$trace_url = "",
@@ -116,7 +121,7 @@ param (
     [string]$hec_token = "",
     [bool]$insecure = $false,
     [string]$collector_version = "",
-    [bool]$with_fluentd = $true,
+    [bool]$with_fluentd = $false,
     [bool]$with_dotnet_instrumentation = $false,
     [string]$bundle_dir = "",
     [ValidateSet('test','beta','release')][string]$stage = "release",
@@ -577,6 +582,7 @@ update_registry -path "$regkey" -name "SPLUNK_HEC_TOKEN" -value "$hec_token"
 update_registry -path "$regkey" -name "SPLUNK_HEC_URL" -value "$hec_url"
 update_registry -path "$regkey" -name "SPLUNK_INGEST_URL" -value "$ingest_url"
 update_registry -path "$regkey" -name "SPLUNK_MEMORY_TOTAL_MIB" -value "$memory"
+update_registry -path "$regkey" -name "SPLUNK_LISTEN_INTERFACE" -value "$network_interface"
 update_registry -path "$regkey" -name "SPLUNK_REALM" -value "$realm"
 update_registry -path "$regkey" -name "SPLUNK_TRACE_URL" -value "$trace_url"
 

@@ -21,10 +21,11 @@ default['splunk_otel_collector']['splunk_hec_url'] = "#{node['splunk_otel_collec
 default['splunk_otel_collector']['splunk_hec_token'] = "#{node['splunk_otel_collector']['splunk_access_token']}"
 default['splunk_otel_collector']['splunk_memory_total_mib'] = '512'
 default['splunk_otel_collector']['splunk_ballast_size_mib'] = ''
+default['splunk_otel_collector']['splunk_listen_interface'] = '0.0.0.0'
 
 default['splunk_otel_collector']['collector_config'] = {}
 
-default['splunk_otel_collector']['with_fluentd'] = true
+default['splunk_otel_collector']['with_fluentd'] = false
 default['splunk_otel_collector']['fluentd_base_url'] = 'https://packages.treasuredata.com'
 default['splunk_otel_collector']['fluentd_version'] = if platform_family?('debian')
                                                         case node['lsb']['codename']

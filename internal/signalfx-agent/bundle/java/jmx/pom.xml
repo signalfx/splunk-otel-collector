@@ -30,22 +30,22 @@
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy</artifactId>
-            <version>3.0.17</version>
+            <version>3.0.18</version>
         </dependency>
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy-jmx</artifactId>
-            <version>3.0.17</version>
+            <version>3.0.18</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.12.0</version>
+            <version>3.13.0</version>
         </dependency>
         <dependency>
             <groupId>org.terracotta</groupId>
             <artifactId>jmxremote_optional-tc</artifactId>
-            <version>1.0.5</version>
+            <version>1.0.8</version>
             <scope>runtime</scope>
         </dependency>
     </dependencies>

@@ -8,7 +8,7 @@ import (
 	"testing"
 	"unsafe"
 
-	gopsutil "github.com/shirou/gopsutil/disk"
+	gopsutil "github.com/shirou/gopsutil/v3/disk"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/sys/windows"
@@ -104,10 +104,10 @@ func TestGetPartitionsWin(t *testing.T) {
 				numStats: 4,
 				hasError: false,
 				stats: []gopsutil.PartitionStat{
-					{Device: "C:", Mountpoint: "C:", Fstype: "NTFS", Opts: "rw.compress"},
-					{Device: "D:", Mountpoint: "D:", Fstype: "NTFS", Opts: "ro.compress"},
-					{Device: "C:\\mnt\\driveD", Mountpoint: "C:\\mnt\\driveD", Fstype: "NTFS", Opts: "ro.compress"},
-					{Device: "A:", Mountpoint: "A:", Fstype: "FAT16", Opts: "rw.compress"}},
+					{Device: "C:", Mountpoint: "C:", Fstype: "NTFS", Opts: []string{"rw", ".compress"}},
+					{Device: "D:", Mountpoint: "D:", Fstype: "NTFS", Opts: []string{"ro", ".compress"}},
+					{Device: "C:\\mnt\\driveD", Mountpoint: "C:\\mnt\\driveD", Fstype: "NTFS", Opts: []string{"ro", ".compress"}},
+					{Device: "A:", Mountpoint: "A:", Fstype: "FAT16", Opts: []string{"rw", ".compress"}}},
 			},
 		},
 		{
@@ -136,8 +136,8 @@ func TestGetPartitionsWin(t *testing.T) {
 				numStats: 2,
 				hasError: true,
 				stats: []gopsutil.PartitionStat{
-					{Device: "C:", Mountpoint: "C:", Fstype: "NTFS", Opts: "rw.compress"},
-					{Device: "A:", Mountpoint: "A:", Fstype: "FAT16", Opts: "rw.compress"}},
+					{Device: "C:", Mountpoint: "C:", Fstype: "NTFS", Opts: []string{"rw", ".compress"}},
+					{Device: "A:", Mountpoint: "A:", Fstype: "FAT16", Opts: []string{"rw", ".compress"}}},
 			},
 		},
 	}

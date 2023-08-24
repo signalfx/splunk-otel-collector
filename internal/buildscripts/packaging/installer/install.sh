@@ -90,6 +90,7 @@ td_agent_gpg_key_url="${td_agent_repo_base}/GPG-KEY-td-agent"
 default_stage="release"
 default_realm="us0"
 default_memory_size="512"
+default_listen_interface="0.0.0.0"
 
 default_collector_version="latest"
 default_td_agent_version="4.3.2"
@@ -641,6 +642,7 @@ Options:
                                         effect.
   --collector-version <version>         The splunk-otel-collector package version to install.
                                         (default: "$default_collector_version")
+  --discovery                           Enable discovery mode on collector startup (disabled by default).
   --hec-token <token>                   Set the HEC token if different than the specified access_token.
   --hec-url <url>                       Set the HEC endpoint URL explicitly instead of the endpoint inferred from the
                                         specified realm.
@@ -653,6 +655,8 @@ Options:
                                         (default: "$default_memory_size")
   --mode <agent|gateway>                Configure the collector service to run in agent or gateway mode.
                                         (default: "agent")
+  --listen-interface <ip>               network interface the collector receivers listen on.
+                                        (default: "$default_listen_interface")
   --realm <us0|us1|eu0|...>             The Splunk realm to use. The ingest, api, trace, and HEC endpoint URLs will
                                         automatically be inferred by this value.
                                         (default: "$default_realm")
@@ -676,7 +680,7 @@ Options:
                                         (default: https://ingest.REALM.signalfx.com/v2/trace)
   --uninstall                           Removes the Splunk OpenTelemetry Collector for Linux.
   --with[out]-fluentd                   Whether to install and configure fluentd to forward log events to the collector.
-                                        (default: --with-fluentd)
+                                        (default: --without-fluentd)
   --with[out]-instrumentation           Whether to install and configure the splunk-otel-auto-instrumentation package.
                                         (default: --without-instrumentation)
   --deployment-environment <value>      Set the 'deployment.environment' resource attribute to the specified value.
@@ -839,6 +843,7 @@ parse_args_and_install() {
   local ingest_url=
   local insecure=
   local memory="$default_memory_size"
+  local listen_interface="$default_listen_interface"
   local realm="$default_realm"
   local service_group="$default_service_group"
   local stage="$default_stage"
@@ -847,13 +852,14 @@ parse_args_and_install() {
   local trace_url=
   local uninstall="false"
   local mode="agent"
-  local with_fluentd="true"
+  local with_fluentd="false"
   local collector_config_path=
   local skip_collector_repo="false"
   local skip_fluentd_repo="false"
   local with_instrumentation="false"
   local instrumentation_version="$default_instrumentation_version"
   local deployment_environment="$default_deployment_environment"
+  local discovery=
 
   while [ -n "${1-}" ]; do
     case $1 in
@@ -909,6 +915,10 @@ parse_args_and_install() {
             exit 1
             ;;
         esac
+        shift 1
+        ;;
+      --listen-interface)
+        listen_interface="$2"
         shift 1
         ;;
       --realm)
@@ -998,6 +1008,9 @@ parse_args_and_install() {
       --disable-metrics)
         enable_metrics="false"
         ;;
+      --discovery)
+        discovery="true"
+        ;;
       --)
         access_token="$2"
         shift 1
@@ -1069,6 +1082,7 @@ parse_args_and_install() {
     echo "Ballast Size in MIB: $ballast"
   fi
   echo "Memory Size in MIB: $memory"
+  echo "Listen network interface: $listen_interface"
   echo "Realm: $realm"
   echo "Ingest Endpoint: $ingest_url"
   echo "API Endpoint: $api_url"
@@ -1141,6 +1155,7 @@ parse_args_and_install() {
     rm -f "$collector_env_path"
   fi
 
+  configure_env_file "SPLUNK_LISTEN_INTERFACE" "$listen_interface" "$collector_env_path"
   configure_env_file "SPLUNK_CONFIG" "$collector_config_path" "$collector_env_path"
   configure_env_file "SPLUNK_ACCESS_TOKEN" "$access_token" "$collector_env_path"
   configure_env_file "SPLUNK_REALM" "$realm" "$collector_env_path"
@@ -1162,6 +1177,10 @@ parse_args_and_install() {
     configure_env_file "SPLUNK_COLLECTD_DIR" "$collectd_config_dir" "$collector_env_path"
     # ensure the collector service owner has access to the collectd dir
     chown -R $service_user:$service_group "$(dirname $collectd_config_dir)"
+  fi
+
+  if [ "$discovery" = "true" ]; then
+    configure_env_file "OTELCOL_OPTIONS" "--discovery" "$collector_env_path"
   fi
 
   # ensure the collector service owner has access to the config dir

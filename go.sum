@@ -633,8 +633,8 @@ github.com/google/renameio v0.1.0/go.mod h1:KWCgfxg9yswjAJkECMjeO8J8rahYeXnNhOm4
 github.com/google/s2a-go v0.1.4 h1:1kZ/sQM3srePvKs3tXAvQzo66XfcReoqFpIpIccE7Oc=
 github.com/google/s2a-go v0.1.4/go.mod h1:Ej+mSEMGRnqRzjc7VtF+jdBwYG5fuJfiZ8ELkjEwM0A=
 github.com/google/uuid v1.1.2/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
-github.com/google/uuid v1.3.0 h1:t6JiXgmwXMjEs8VusXIJk2BXHsn+wx8BZdTaoZ5fu7I=
-github.com/google/uuid v1.3.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
+github.com/google/uuid v1.3.1 h1:KjJaJ9iWZ3jOFZIf1Lqf4laDRCasjl0BCmnEGxkdLb4=
+github.com/google/uuid v1.3.1/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/googleapis/enterprise-certificate-proxy v0.2.5 h1:UR4rDjcgpgEnqpIEvkiqTYKBCKLNmlge2eVjoZfySzM=
 github.com/googleapis/enterprise-certificate-proxy v0.2.5/go.mod h1:RxW0N9901Cko1VOCW3SXCpWP+mlIEkk2tP7jnHy9a3w=
 github.com/googleapis/gax-go/v2 v2.0.4/go.mod h1:0Wqv26UfaUD9n4G6kQubkQ+KchISgw+vpHVxEJEs9eg=
@@ -1246,8 +1246,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsre
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver v0.83.0/go.mod h1:BtoPj2YDHhWy8LRxlWWjK+vOu3MJ6r8pRW56eJ7fk+g=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver v0.83.0 h1:wu0ZdOTDqjl0Ug6J7rAO43GIe7nW/hvPXZ/Kcs7Hmis=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver v0.83.0/go.mod h1:qhWK3ADYGvYaS54XbaH6yK8/iPGQLtimdtIcXevTLkw=
-github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver v0.83.0 h1:5ix9FlAdeMWdGcWgoXoDswZj6UknsVi4aner2igA/+s=
-github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver v0.83.0/go.mod h1:rZVBP7d3WfsXWv47HsG0zF97WBkcHseJpnIsNPq/cIA=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver v0.83.1-0.20230824192551-2c559459cf6c h1:DBhqI71lEBTLbejLNshua+5C3zDE8lMbIGhFXMH+qAM=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver v0.83.1-0.20230824192551-2c559459cf6c/go.mod h1:MSmgdhxc1dbbMQq6/cW/YPPfxd/92L03feKoqigR1nA=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/journaldreceiver v0.83.0 h1:e2P2HmEgHf81QIVllRitiueDxxVj3C7Ph++hxXBodmY=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/journaldreceiver v0.83.0/go.mod h1:Ota92x/vC7FBTvP6l6gCe5Ftq1YTP0yg/mp2nrNFyv0=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sclusterreceiver v0.83.0 h1:NSW1bxQ1J48dnT5MZvRqZMWsZi/cYCQUekp4nB8SJ4I=

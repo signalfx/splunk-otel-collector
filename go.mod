@@ -57,7 +57,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/fluentforwardreceiver v0.83.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver v0.83.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver v0.83.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver v0.83.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver v0.83.1-0.20230824192551-2c559459cf6c
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/journaldreceiver v0.83.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sclusterreceiver v0.83.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8seventsreceiver v0.83.0
@@ -306,7 +306,7 @@ require (
 	github.com/google/go-cmp v0.5.9
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
-	github.com/google/uuid v1.3.0 // indirect
+	github.com/google/uuid v1.3.1 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.5 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.0 // indirect
 	github.com/gophercloud/gophercloud v1.5.0 // indirect

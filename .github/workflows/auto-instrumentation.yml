@@ -34,6 +34,9 @@ jobs:
       - name: Build libsplunk.so
         run: make -C instrumentation dist ARCH=${{ matrix.ARCH }}
 
+      - name: Run tests
+        run: make -C instrumentation tests ARCH=${{ matrix.ARCH }}
+
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:

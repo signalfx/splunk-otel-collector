@@ -18,34 +18,11 @@ obj:
 clean:
 	rm -f tests so/* obj/*
 
-obj/logger.o: obj src/logger.c src/logger.h
-	gcc -c -Wall -Werror -fpic -o obj/logger.o src/logger.c
+obj/main.o: obj src/main.c
+	gcc -c -Wall -Werror -fpic -o obj/main.o src/main.c
 
-obj/config.o: obj src/config.c src/config.h
-	gcc -c -Wall -Werror -fpic -o obj/config.o src/config.c
-
-obj/metrics_client.o: obj src/metrics_client.c src/metrics_client.h
-	gcc -c -Wall -Werror -fpic -o obj/metrics_client.o src/metrics_client.c
-
-obj/splunk.o: obj src/splunk.c src/splunk.h
-	gcc -c -Wall -Werror -fpic -o obj/splunk.o src/splunk.c
-
-obj/args.o: obj src/args.c src/args.h
-	gcc -c -Wall -Werror -fpic -o obj/args.o src/args.c
-
-obj/cmdline_reader.o: obj src/cmdline_reader.c src/cmdline_reader.h
-	gcc -c -Wall -Werror -fpic -o obj/cmdline_reader.o src/cmdline_reader.c
-
-so/libsplunk.so: obj so obj/logger.o obj/config.o obj/metrics_client.o obj/cmdline_reader.o obj/args.o obj/splunk.o
-	gcc -shared -o so/libsplunk.so obj/logger.o obj/config.o obj/metrics_client.o obj/cmdline_reader.o obj/args.o obj/splunk.o
-
-tests: src/test_main.h src/test_main.c src/test_utils.h src/test_utils.c src/logger.h src/test_logger.c \
-src/metrics_client.h src/cmdline_reader.h src/cmdline_reader_test.c obj/config.o obj/metrics_client.o obj/args.o obj/splunk.o
-	gcc -g -o tests src/test_main.c src/test_utils.c src/test_logger.c src/cmdline_reader_test.c obj/config.o obj/metrics_client.o obj/args.o obj/splunk.o
-
-.PHONY: test
-test: tests
-	./tests
+so/libsplunk.so: obj so obj/main.o
+	gcc -shared -o so/libsplunk.so obj/main.o
 
 .PHONY: dist
 dist:
@@ -53,7 +30,7 @@ dist:
 	docker buildx build --platform linux/$(ARCH) --build-arg DOCKER_REPO=$(DOCKER_REPO) -o type=image,name=libsplunk-builder:$(ARCH),push=false .
 	docker rm -f libsplunk-builder 2>/dev/null || true
 	docker run -d --platform linux/$(ARCH) --name libsplunk-builder libsplunk-builder:$(ARCH) sleep inf
-	docker exec libsplunk-builder make test all
+	docker exec libsplunk-builder make all
 	docker cp libsplunk-builder:/libsplunk/so/libsplunk.so dist/libsplunk_$(ARCH).so
 	docker rm -f libsplunk-builder
 
@@ -70,7 +47,6 @@ endif
 .PHONY: install
 install: all uninstall
 	mkdir -p $(INSTALL_DIR)
-	cp install/instrumentation.conf $(INSTALL_DIR)
 	cp splunk-otel-javaagent.jar $(INSTALL_DIR)
 	cp so/libsplunk.so $(INSTALL_DIR)
 	echo $(INSTALL_DIR)/libsplunk.so > /etc/ld.so.preload
@@ -92,3 +68,14 @@ docker-build:
 .PHONY: docker-run
 docker-run:
 	docker run --rm -it -v `pwd`:/instr instr-devel
+
+.PHONY: tests
+tests: test-java test-nodejs
+
+.PHONY: test-java
+test-java: dist
+	(cd tests/java && ./test.sh)
+
+.PHONY: test-nodejs
+test-nodejs: dist
+	(cd tests/nodejs && ./test.sh)

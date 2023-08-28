@@ -37,5 +37,14 @@ func TestJMXReceiverProvidesAllJVMMetrics(t *testing.T) {
 		).WithExposedPorts("7199:7199").WithName("jmx").WillWaitForPorts("7199"),
 	}
 
-	testutils.AssertAllMetricsReceived(t, expectedMetrics, "all_metrics_config.yaml", containers, nil)
+	testutils.AssertAllMetricsReceived(
+		t, expectedMetrics, "all_metrics_config.yaml", containers,
+		[]testutils.CollectorBuilder{
+			func(collector testutils.Collector) testutils.Collector {
+				return collector.WithEnv(map[string]string{
+					"OTEL_TRACES_EXPORTER": "none",
+					"OTEL_LOGS_EXPORTER":   "none",
+				})
+			},
+		})
 }

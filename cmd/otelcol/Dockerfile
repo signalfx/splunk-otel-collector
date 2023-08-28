@@ -54,9 +54,6 @@ ENV SPLUNK_BUNDLE_DIR=/usr/lib/splunk-otel-collector/agent-bundle
 ENV SPLUNK_COLLECTD_DIR=${SPLUNK_BUNDLE_DIR}/run/collectd
 ENV PATH=${PATH}:${SPLUNK_BUNDLE_DIR}/bin
 ENV PATH=${PATH}:${SPLUNK_BUNDLE_DIR}/jre/bin
-# avoid otel-java/autoconfigure default env vars for jmx receiver
-ENV OTEL_TRACES_EXPORTER=none
-ENV OTEL_LOGS_EXPORTER=none
 
 COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=otelcol /etc_passwd /etc/passwd

@@ -43,8 +43,6 @@ RUN Move-Item -Path C:\java\jdk-* -Destination ${Env:JAVA_HOME}
 RUN Remove-Item "openjdk_jre.zip" -force
 RUN setx /M PATH $(${Env:PATH} + \";${Env:JAVA_PATH}\")
 # update otel-java/autoconfigure defaults to prevent undesired telemetry
-RUN setx /M OTEL_TRACES_EXPORTER "none"
-RUN setx /M OTEL_LOGS_EXPORTER "none"
 
 # Setting environment variables
 ENV SPLUNK_BUNDLE_DIR="C:\Program Files\Splunk\OpenTelemetry Collector\agent-bundle"

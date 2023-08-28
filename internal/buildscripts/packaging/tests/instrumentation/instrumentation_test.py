@@ -42,12 +42,13 @@ OTELCOL_BIN_DIR = REPO_DIR / "bin"
 INSTALLER_PATH = REPO_DIR / "internal" / "buildscripts" / "packaging" / "installer" / "install.sh"
 COLLECTOR_CONFIG_PATH = TESTS_DIR / "instrumentation" / "config.yaml"
 JAVA_AGENT_PATH = "/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar"
-NODEJS_AGENT_PATH = "/usr/lib/splunk-instrumentation/splunk-otel-js.tgz"
+NODE_AGENT_PATH = "/usr/lib/splunk-instrumentation/splunk-otel-js.tgz"
 
 PKG_NAME = "splunk-otel-auto-instrumentation"
 LIBSPLUNK_PATH = "/usr/lib/splunk-instrumentation/libsplunk.so"
 JAVA_CONFIG_PATH = "/etc/splunk/zeroconfig_java.conf"
 CUSTOM_JAVA_CONFIG_PATH = TESTS_DIR / "instrumentation" / "libsplunk-java-test.conf"
+NODE_CONFIG_PATH = "/etc/splunk/zeroconfig_node.conf"
 SAMPLE_JAVA_SYSTEMD_CONF_PATH = "/usr/lib/splunk-instrumentation/examples/systemd/00-splunk-otel-javaagent.conf"
 SAMPLE_NODE_SYSTEMD_CONF_PATH = "/usr/lib/splunk-instrumentation/examples/systemd/00-splunk-otel-js.conf"
 CUSTOM_SYSTEMD_CONF_PATH = TESTS_DIR / "instrumentation" / "systemd-test.conf"
@@ -56,9 +57,10 @@ PRELOAD_PATH = "/etc/ld.so.preload"
 
 INSTALLED_FILES = [
     JAVA_AGENT_PATH,
-    NODEJS_AGENT_PATH,
+    NODE_AGENT_PATH,
     LIBSPLUNK_PATH,
     JAVA_CONFIG_PATH,
+    NODE_CONFIG_PATH,
     SAMPLE_JAVA_SYSTEMD_CONF_PATH,
     SAMPLE_NODE_SYSTEMD_CONF_PATH,
 ]

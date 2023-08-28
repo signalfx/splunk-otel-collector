@@ -37,7 +37,7 @@ RUN if [[ "$ARCH" = "amd64" || "$ARCH" = "arm64" ]]; then \
         mkdir -p /usr/lib/splunk-otel-collector/agent-bundle; \
     fi
 
-FROM alpine:3.17.0 AS jmx
+FROM ${DOCKER_REPO}/alpine:3.17.0 AS jmx
 ARG JMX_METRIC_GATHERER_RELEASE
 RUN JMX_METRICS_JAR=opentelemetry-jmx-metrics.jar && \
 URL=https://github.com/open-telemetry/opentelemetry-java-contrib/releases/download/v${JMX_METRIC_GATHERER_RELEASE}/${JMX_METRICS_JAR} && \

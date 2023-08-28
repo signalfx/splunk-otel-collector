@@ -31,12 +31,13 @@ void __attribute__((constructor)) enter() {
         // we don't want to inject environment variables for this program.
         return;
     }
-    const size_t buffer_size = MAX_LINE_LENGTH + 1;
-    char buffer[buffer_size];
 
     if (MAX_LINES <= 0 || MAX_LINE_LENGTH <= 0) {
         return;
     }
+
+    const size_t buffer_size = MAX_LINE_LENGTH + 1;
+    char buffer[buffer_size];
 
     FILE *fp = fopen(env_var_file, "r");
     if (fp == NULL) {
@@ -51,7 +52,7 @@ void __attribute__((constructor)) enter() {
             break;
         }
 
-        char *newline = strchr(buffer, '\n');
+        char *newline = memchr(buffer, '\n', buffer_size);
         if (newline != NULL) {
             // terminate the string inside buffer at the newline
             *newline = '\0';
@@ -64,14 +65,14 @@ void __attribute__((constructor)) enter() {
         if (newline == NULL) {
             break;
         }
-        if (strlen(buffer) == 0) {
+        if (strnlen(buffer, buffer_size) == 0) {
             continue;
         }
         if (buffer[0] == '#') {
     		continue;
     	}
 
-        char *equals = strchr(buffer, '=');
+        char *equals = memchr(buffer, '=', buffer_size);
         if (equals == NULL) {
             continue;
         }

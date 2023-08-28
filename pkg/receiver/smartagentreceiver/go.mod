@@ -248,7 +248,7 @@ require (
 	github.com/signalfx/sapm-proto v0.12.0 // indirect
 	github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20230104182534-9eee411fe305 // indirect
 	github.com/signalfx/signalfx-go v1.33.0 // indirect
-	github.com/snowflakedb/gosnowflake v1.6.23 // indirect
+	github.com/snowflakedb/gosnowflake v1.6.24 // indirect
 	github.com/soniah/gosnmp v0.0.0-20190220004421-68e8beac0db9 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/objx v0.5.0 // indirect

@@ -22,9 +22,6 @@ SCRIPT_DIR="$( cd "$( dirname ${BASH_SOURCE[0]} )" && pwd )"
 VERSION="${1:-}"
 ARCH="${2:-amd64}"
 OUTPUT_DIR="${3:-$REPO_DIR/instrumentation/dist}"
-LIBSPLUNK_PATH="$REPO_DIR/instrumentation/dist/libsplunk_${ARCH}.so"
-JAVA_AGENT_PATH="$REPO_DIR/instrumentation/dist/splunk-otel-javaagent.jar"
-JAVA_AGENT_RELEASE="$(cat $JAVA_AGENT_RELEASE_PATH)"
 
 if [[ -z "$VERSION" ]]; then
     VERSION="$( get_version )"
@@ -34,11 +31,9 @@ fi
 VERSION="${VERSION/'-'/'~'}"
 VERSION="${VERSION#v}"
 
-download_java_agent "$JAVA_AGENT_RELEASE" "$JAVA_AGENT_PATH"
-
 buildroot="$(mktemp -d)"
 
-setup_files_and_permissions "$LIBSPLUNK_PATH" "$JAVA_AGENT_PATH" "$buildroot"
+setup_files_and_permissions "$ARCH" "$buildroot"
 
 mkdir -p "$OUTPUT_DIR"
 
@@ -62,6 +57,7 @@ sudo fpm -s dir -t rpm -n "$PKG_NAME" -v "$VERSION" -f -p "$OUTPUT_DIR" \
     --depends sed \
     --depends grep \
     --config-files "$JAVA_CONFIG_INSTALL_PATH" \
+    --config-files "$NODE_CONFIG_INSTALL_PATH" \
     "$buildroot/"=/
 
 rpm -qpli "${OUTPUT_DIR}/${PKG_NAME}-${VERSION}-1.${ARCH}.rpm"

@@ -113,6 +113,7 @@ func TestEventToPDataLogs(tt *testing.T) {
 			}(), 0),
 		},
 	} {
+		test := test
 		tt.Run(test.name, func(t *testing.T) {
 			log := sfxEventToPDataLogs(&test.event, zap.NewNop())
 			assertLogsEqual(t, test.expectedLog, log)

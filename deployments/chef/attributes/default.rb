@@ -56,6 +56,21 @@ if platform_family?('windows')
   default['splunk_otel_collector']['fluentd_config_dest'] = "#{ENV['SystemDrive']}\\opt\\td-agent\\etc\\td-agent\\td-agent.conf"
   default['splunk_otel_collector']['fluentd_version_file'] = "#{collector_install_dir}\\fluentd_version.txt"
 
+  default['splunk_otel_collector']['with_signalfx_dotnet_auto_instrumentation'] = false
+  default['splunk_otel_collector']['signalfx_dotnet_auto_instrumentation_version'] = '1.1.0'
+
+  signalfx_dotnet_base_url = 'https://github.com/signalfx/signalfx-dotnet-tracing/releases/download'
+  signalfx_dotnet_version = node['splunk_otel_collector']['signalfx_dotnet_auto_instrumentation_version'].sub(/^v/, '')
+  signalfx_dotnet_msi_name = "signalfx-dotnet-tracing-#{signalfx_dotnet_version}-x64.msi"
+  default['splunk_otel_collector']['signalfx_dotnet_auto_instrumentation_msi_url'] = "#{signalfx_dotnet_base_url}/v#{signalfx_dotnet_version}/#{signalfx_dotnet_msi_name}"
+
+  default['splunk_otel_collector']['signalfx_dotnet_auto_instrumentation_iisreset'] = true
+  default['splunk_otel_collector']['signalfx_dotnet_auto_instrumentation_system_wide'] = false
+  default['splunk_otel_collector']['signalfx_dotnet_auto_instrumentation_environment'] = ''
+  default['splunk_otel_collector']['signalfx_dotnet_auto_instrumentation_service_name'] = ''
+  default['splunk_otel_collector']['signalfx_dotnet_auto_instrumentation_enable_profiler'] = false
+  default['splunk_otel_collector']['signalfx_dotnet_auto_instrumentation_enable_profiler_memory'] = false
+  default['splunk_otel_collector']['signalfx_dotnet_auto_instrumentation_additional_options'] = {}
 elsif platform_family?('debian', 'rhel', 'amazon', 'suse')
   default['splunk_otel_collector']['collector_version'] = 'latest'
 

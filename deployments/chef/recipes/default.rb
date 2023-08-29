@@ -36,6 +36,10 @@ if platform_family?('windows')
   if node['splunk_otel_collector']['with_fluentd'].to_s.downcase == 'true'
     include_recipe 'splunk_otel_collector::fluentd_win_install'
   end
+
+  if node['splunk_otel_collector']['with_signalfx_dotnet_auto_instrumentation'].to_s.downcase == 'true'
+    include_recipe 'splunk_otel_collector::dotnet_instrumentation_win_install'
+  end
 elsif platform_family?('debian', 'rhel', 'amazon', 'suse')
   if platform_family?('debian')
     package %w(apt-transport-https gnupg)

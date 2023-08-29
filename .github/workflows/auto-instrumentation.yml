@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - zero-config-dev
   pull_request:
     paths:
       - '.github/workflows/auto-instrumentation.yml'

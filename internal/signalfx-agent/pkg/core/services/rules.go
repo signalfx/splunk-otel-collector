@@ -8,6 +8,7 @@ import (
 
 	"github.com/antonmedv/expr"
 	"github.com/antonmedv/expr/ast"
+	"github.com/antonmedv/expr/builtin"
 	"github.com/antonmedv/expr/parser"
 	"github.com/davecgh/go-spew/spew"
 	log "github.com/sirupsen/logrus"
@@ -96,7 +97,11 @@ func EvaluateRule(si Endpoint, originalText string, errorOnMissing bool, doValid
 
 func ExecuteRule(originalText string, variables map[string]interface{}) (interface{}, error) {
 	env := utils.MergeInterfaceMaps(ruleFunctions, variables)
-	ruleProg, err := expr.Compile(preprocessRuleText(originalText), expr.Env(env))
+	ruleProg, err := expr.Compile(preprocessRuleText(originalText), expr.Env(env),
+		expr.DisableBuiltin("type"),
+		expr.Function("typeOf", func(params ...interface{}) (interface{}, error) {
+			return builtin.Type(params[0]), nil
+		}, new(func(interface{}) string)))
 	if err != nil {
 		return nil, err
 	}

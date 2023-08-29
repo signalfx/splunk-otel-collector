@@ -21,6 +21,7 @@ import (
 	"sync"
 
 	"github.com/antonmedv/expr"
+	"github.com/antonmedv/expr/builtin"
 	"github.com/antonmedv/expr/vm"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
 	"go.opentelemetry.io/collector/component"
@@ -83,7 +84,14 @@ func (e *evaluator) evaluateMatch(match Match, pattern string, status discovery.
 		env := e.exprEnv(pattern)
 		env["ExprEnv"] = env
 		// TODO: cache compiled programs for performance benefit
-		if program, err = expr.Compile(match.Expr, expr.Env(env)); err != nil {
+		program, err = expr.Compile(
+			match.Expr,
+			expr.Env(env),
+			expr.DisableBuiltin("type"),
+			expr.Function("typeOf", func(params ...interface{}) (interface{}, error) {
+				return builtin.Type(params[0]), nil
+			}, new(func(interface{}) string)))
+		if err != nil {
 			err = fmt.Errorf("invalid match expr statement: %w", err)
 		} else {
 			matchFunc = func(p string) (bool, error) {

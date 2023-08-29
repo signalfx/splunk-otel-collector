@@ -328,24 +328,43 @@ and install it with the following commands (requires `root` privileges).
 
 #### Auto Instrumentation Post-Install Configuration
 
-- The `/etc/ld.so.preload` file will be automatically created/updated with the
-  default path to the installed instrumentation library
-  (`/usr/lib/splunk-instrumentation/libsplunk.so`).  If necessary, custom
-  library paths can be manually added to this file.
-- The `/usr/lib/splunk-instrumentation/instrumentation.conf` configuration file
-  can be manually configured for resource attributes and other parameters.  By
-  default, this file will contain the `java_agent_jar` parameter set to the
-  path of the installed [Java Instrumentation Agent](
-  https://github.com/signalfx/splunk-otel-java)
-  (`/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar`).
+Choose one of the following methods to activate and configure Splunk
+OpenTelemetry Auto Instrumentation ***globally*** with either the provided
+`libsplunk.so` shared object library or sample `systemd` drop-in files. To
+activate and configure auto instrumentation for individual services or
+applications, see
+[Instrument back-end applications to send spans to Splunk APM](
+https://docs.splunk.com/Observability/gdi/get-data-in/application/application.html).
 
-See [Linux Java Auto Instrumentation](https://github.com/signalfx/splunk-otel-collector/tree/main/instrumentation#linux-java-auto-instrumentation)
-for more details.
+1. Preload method
+   - The `/usr/lib/splunk-instrumentation/libsplunk.so` shared object library
+     can be added to the [`/etc/ld.so.preload`](
+     https://man7.org/linux/man-pages/man8/ld.so.8.html#FILES) file to activate
+     auto instrumentation for ***all*** supported processes.
+   - The `/usr/lib/splunk-instrumentation/instrumentation.conf` configuration
+     file can be configured for resource attributes and other supported
+     parameters. By default, this file will contain the `java_agent_jar`
+     parameter set to the path of the installed [Java Instrumentation Agent](
+     https://github.com/signalfx/splunk-otel-java)
+     (`/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar`).
+   - See [Linux Java Auto Instrumentation](../../instrumentation/libsplunk.md)
+     for more details.
 
-**Note:** After installation/upgrade or any configuration changes, the Java
-application(s) on the host need to be manually started/restarted for automatic
-instrumentation to take effect and/or to source the updated values in the
-configuration file.
+2. `Systemd` method
+   - The sample `systemd` drop-in files in the
+     `/usr/lib/splunk-instrumentation/examples/systemd/` directory can be
+     configured and copied to the host's [`systemd` configuration
+     directory](
+     https://www.freedesktop.org/software/systemd/man/systemd-system.conf.html),
+     for example `/usr/lib/systemd/system.conf.d/`, to activate and
+     configure auto instrumentation for ***all*** supported applications
+     running as `systemd` services.
+   - See [Splunk OpenTelemetry Zero Configuration Auto Instrumentation for
+     Systemd](../../instrumentation/systemd.md) for more details.
+
+**Note:** After installation/upgrade or any configuration changes, reboot the
+system or restart the application(s) on the host for automatic instrumentation
+to take effect and/or to source the updated values.
 
 #### Fluentd
 

@@ -48,11 +48,11 @@ sudo fpm -s dir -t deb -n "$PKG_NAME" -v "$VERSION" -f -p "$OUTPUT_DIR" \
     --architecture "$ARCH" \
     --deb-dist "stable" \
     --deb-use-file-permissions \
-    --after-install "$POSTINSTALL_PATH" \
     --before-remove "$PREUNINSTALL_PATH" \
     --deb-no-default-config-files \
     --depends sed \
     --depends grep \
+    --config-files "$JAVA_CONFIG_INSTALL_PATH" \
     "$buildroot/"=/
 
 dpkg -c "${OUTPUT_DIR}/${PKG_NAME}_${VERSION}_${ARCH}.deb"

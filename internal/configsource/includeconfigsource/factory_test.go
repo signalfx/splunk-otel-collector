@@ -69,6 +69,7 @@ func TestIncludeConfigSourceFactory_CreateConfigSource(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			tt := tt
 			actual, err := factory.CreateConfigSource(context.Background(), &tt.config, zap.NewNop())
 			if tt.wantErr {
 				assert.Error(t, err)

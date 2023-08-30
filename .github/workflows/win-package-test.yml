@@ -371,3 +371,9 @@ jobs:
             echo "Failing job execution: fail to start otelcol docker container in 10 seconds."
             exit 1
           }
+
+          $JavaCmdOutput=$(docker exec -it otelcol java -version)
+          if ( !contains($JavaCmdOutput, 'openjdk version' ) {
+            docker logs otelcol
+            echo "Failing job execution: Failed to run java, command output: ${JavaCmdOutput}"
+          }

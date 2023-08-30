@@ -55,6 +55,12 @@ tar_setup_files_and_permissions() {
         sudo chown -R root:root "$buildroot/$BUNDLE_BASE_DIR"
         sudo chmod -R 755 "$buildroot/$BUNDLE_BASE_DIR"
     fi
+
+    JMX_INSTALL_PATH="$buildroot/opt/opentelemetry-java-contrib-jmx-metrics.jar"
+    if [[ -e "$JMX_INSTALL_PATH" ]]; then
+        sudo chown root:root "$JMX_INSTALL_PATH"
+        sudo chmod 755 "$JMX_INSTALL_PATH"
+    fi
 }
 
 if [[ -z "$VERSION" ]]; then
@@ -68,6 +74,8 @@ config_folder_path="$REPO_DIR/cmd/otelcol/config/collector"
 agent_bundle_path="$REPO_DIR/dist/agent-bundle_linux_${ARCH}.tar.gz"
 
 buildroot="$(mktemp -d)"
+
+download_jmx_metric_gatherer "$JMX_METRIC_GATHERER_RELEASE_PATH" "$buildroot"
 
 tar_setup_files_and_permissions "$otelcol_path" "$translatesfx_path" "$config_folder_path" "$buildroot" "$agent_bundle_path"
 

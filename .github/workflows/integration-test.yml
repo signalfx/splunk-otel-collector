@@ -32,7 +32,7 @@ jobs:
     strategy:
       matrix:
         ARCH: [ "amd64", "arm64" ]
-    runs-on: ${{ matrix.ARCH == 'arm64' && 'self-hosted' || 'ubuntu-20.04'  }}
+    runs-on: ${{ matrix.ARCH == 'arm64' && 'ampere' || 'ubuntu-20.04'  }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -63,7 +63,7 @@ jobs:
       matrix:
         ARCH: [ "amd64", "arm64" ]
       fail-fast: false
-    runs-on: ${{ matrix.ARCH == 'arm64' && 'self-hosted' || 'ubuntu-20.04'  }}
+    runs-on: ${{ matrix.ARCH == 'arm64' && 'ampere' || 'ubuntu-20.04'  }}
     needs: [docker-otelcol]
     steps:
       - uses: actions/checkout@v3
@@ -91,7 +91,7 @@ jobs:
         GOTESPLIT_INDEX: [ "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" ]
         ARCH: [ "amd64", "arm64" ]
       fail-fast: false
-    runs-on: ${{ matrix.ARCH == 'arm64' && 'self-hosted' || 'ubuntu-20.04'  }}
+    runs-on: ${{ matrix.ARCH == 'arm64' && 'ampere' || 'ubuntu-20.04'  }}
     steps:
       - uses: actions/checkout@v3
         with:

@@ -18,7 +18,7 @@ jobs:
     strategy:
       matrix:
         ARCH: [ "amd64", "arm64" ]
-    runs-on: ${{ matrix.ARCH == 'arm64' && 'self-hosted' || 'ubuntu-20.04'  }}
+    runs-on: ${{ matrix.ARCH == 'arm64' && 'ampere' || 'ubuntu-20.04'  }}
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v3
@@ -39,7 +39,7 @@ jobs:
       matrix:
         SYS_PACKAGE: [ "deb", "rpm" ]
         ARCH: [ "amd64", "arm64"]
-    runs-on: ${{ matrix.ARCH == 'arm64' && 'self-hosted' || 'ubuntu-20.04'  }}
+    runs-on: ${{ matrix.ARCH == 'arm64' && 'ampere' || 'ubuntu-20.04'  }}
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v3
@@ -79,7 +79,7 @@ jobs:
         exclude:
           - DISTRO: debian:8
             ARCH: arm64
-    runs-on: ${{ matrix.ARCH == 'arm64' && 'self-hosted' || 'ubuntu-20.04'  }}
+    runs-on: ${{ matrix.ARCH == 'arm64' && 'ampere' || 'ubuntu-20.04'  }}
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v3
@@ -100,7 +100,7 @@ jobs:
       matrix:
         DISTRO: [ "centos:7", "centos:8", "amazonlinux:2", "opensuse/leap:42", "opensuse/leap:15", "oraclelinux:7", "oraclelinux:8" ]
         ARCH: [ "amd64", "arm64" ]
-    runs-on: ${{ matrix.ARCH == 'arm64' && 'self-hosted' || 'ubuntu-20.04'  }}
+    runs-on: ${{ matrix.ARCH == 'arm64' && 'ampere' || 'ubuntu-20.04'  }}
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v3

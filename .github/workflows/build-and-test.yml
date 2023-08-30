@@ -32,7 +32,7 @@ env:
 jobs:
   setup-environment:
     name: setup-environment
-    runs-on: self-hosted
+    runs-on: [self-hosted, Linux ]
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v3
@@ -49,7 +49,7 @@ jobs:
 
   gofmt:
     name: gofmt
-    runs-on: self-hosted
+    runs-on: [self-hosted, Linux]
     needs: [setup-environment]
     steps:
       - name: Check out the codebase.
@@ -72,7 +72,7 @@ jobs:
 
   generate-metrics:
     name: generate-metrics
-    runs-on: self-hosted
+    runs-on: [self-hosted, Linux]
     needs: [setup-environment]
     steps:
       - name: Check out the codebase.
@@ -97,7 +97,7 @@ jobs:
 
   lint:
     name: lint
-    runs-on: self-hosted
+    runs-on: [self-hosted, Linux]
     needs: [setup-environment]
     steps:
       - name: Check out the codebase.
@@ -123,7 +123,7 @@ jobs:
 
   test:
     name: test
-    runs-on: self-hosted
+    runs-on: [self-hosted, Linux]
     needs: [setup-environment]
     steps:
       - name: Check out the codebase.
@@ -151,7 +151,7 @@ jobs:
 
   coverage:
     name: coverage
-    runs-on: self-hosted
+    runs-on: [self-hosted, Linux]
     needs: [setup-environment]
     steps:
       - name: Check out the codebase.
@@ -181,7 +181,7 @@ jobs:
 
   cross-compile:
     name: cross-compile
-    runs-on: self-hosted
+    runs-on: [self-hosted, Linux]
     needs: [setup-environment]
     strategy:
       matrix:

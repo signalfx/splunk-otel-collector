@@ -1,4 +1,5 @@
-> The official Splunk documentation for this page is [Use Splunk Distribution of OpenTelemetry Collector](https://docs.splunk.com/Observability/gdi/opentelemetry/resources.html). For instructions on how to contribute to the docs, see [CONTRIBUTING.md](../CONTRIBUTING.md#documentation).
+> The official Splunk documentation for this page is [Components](https://docs.splunk.com/Observability/gdi/opentelemetry/components.html). 
+> For instructions on how to contribute to the docs, see [CONTRIBUTING.md](../CONTRIBUTING.md#documentation).
 
 # Components
 

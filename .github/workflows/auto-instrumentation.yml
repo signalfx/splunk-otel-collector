@@ -19,7 +19,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  PYTHON_VERSION: '3.10'
+  PYTHON_VERSION: '3.11'
   PIP_VERSION: '22.0.4'
   REQUIREMENTS_PATH: "internal/buildscripts/packaging/tests/requirements.txt"
   GO_VERSION: 1.20.6
@@ -52,7 +52,7 @@ jobs:
           path: |
             ./bin/*
 
-  instrumentation-package:
+  build-package:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
@@ -82,7 +82,7 @@ jobs:
           name: splunk-otel-auto-instrumentation-${{ matrix.ARCH }}-${{ matrix.SYS_PACKAGE }}
           path: ./instrumentation/dist/*.${{ matrix.SYS_PACKAGE }}
 
-  test-instrumentation-matrix:
+  test-package-matrix:
     runs-on: ubuntu-20.04
     steps:
       - name: Check out code
@@ -105,13 +105,13 @@ jobs:
     outputs:
       matrix: ${{ steps.get-matrix.outputs.matrix }}
 
-  test-instrumentation-package:
+  test-package:
     # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
     runs-on: ${{ fromJSON('["ubuntu-20.04", "ubuntu-22.04"]')[matrix.DISTRO == 'amazonlinux-2023'] }}
     timeout-minutes: 60
-    needs: [cross-compile, instrumentation-package, test-instrumentation-matrix]
+    needs: [cross-compile, build-package, test-package-matrix]
     strategy:
-      matrix: ${{ fromJSON(needs.test-instrumentation-matrix.outputs.matrix) }}
+      matrix: ${{ fromJSON(needs.test-package-matrix.outputs.matrix) }}
       fail-fast: false
     steps:
       - name: Check out the codebase.
@@ -162,11 +162,25 @@ jobs:
           pip install -r "${{ env.REQUIREMENTS_PATH }}"
 
       - name: Test ${{ env.SYS_PACKAGE }} on ${{ matrix.DISTRO }} ${{ matrix.ARCH }}
+        id: pytest
         run: |
           distro="${{ matrix.DISTRO }}"
           if [[ "$distro" = "amazonlinux-2" ]]; then
             # workaround for pytest substring matching
             distro="amazonlinux-2 and not amazonlinux-2023"
           fi
-          python3 -u -m pytest -sx --verbose -k "$distro and ${{ matrix.ARCH }}" \
+          python3 -u -m pytest -s --verbose -k "$distro and ${{ matrix.ARCH }}" \
+            internal/buildscripts/packaging/tests/instrumentation/instrumentation_test.py
+
+      # qemu, networking, running systemd in containers, etc., can be flaky
+      - name: Re-run failed tests
+        if: ${{ failure() && steps.pytest.conclusion == 'failure' }}
+        run: |
+          distro="${{ matrix.DISTRO }}"
+          if [[ "$distro" = "amazonlinux-2" ]]; then
+            # workaround for pytest substring matching
+            distro="amazonlinux-2 and not amazonlinux-2023"
+          fi
+          python3 -u -m pytest -s --verbose -k "$distro and ${{ matrix.ARCH }}" \
+            --last-failed \
             internal/buildscripts/packaging/tests/instrumentation/instrumentation_test.py

@@ -62,6 +62,7 @@ func TestEvaluateMatch(t *testing.T) {
 		{typ: "strict", m: Match{Strict: "must.match"}},
 		{typ: "regexp", m: Match{Regexp: "must.*"}},
 		{typ: "expr", m: Match{Expr: "item == 'must.match'"}},
+		{typ: "expr", m: Match{Expr: "item == 'must.match' and typeOf('hello') == 'string'"}},
 	} {
 		t.Run(tc.typ, func(t *testing.T) {
 			tc.m.FirstOnly = true

@@ -1,10 +1,17 @@
 name: puppet-test
 
-# Only run tests for main branch or if the PR has relevant changes
-on: 
+# Only run tests if there are relevant changes
+on:
   push:
     branches:
       - main
+    paths:
+      - '.github/workflows/puppet-test.yml'
+      - 'deployments/puppet/**'
+      - 'internal/buildscripts/packaging/tests/deployments/puppet/**'
+      - 'internal/buildscripts/packaging/tests/helpers/**'
+      - 'internal/buildscripts/packaging/tests/requirements.txt'
+      - '!**.md'
   pull_request:
     paths:
       - '.github/workflows/puppet-test.yml'
@@ -19,7 +26,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  PYTHON_VERSION: "3.10"
+  PYTHON_VERSION: "3.11"
   REQUIREMENTS_PATH: "internal/buildscripts/packaging/tests/requirements.txt"
 
 jobs:
@@ -73,6 +80,7 @@ jobs:
     name: puppet-test
     # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
     runs-on: ${{ fromJSON('["ubuntu-20.04", "ubuntu-22.04"]')[matrix.DISTRO == 'amazonlinux-2023'] }}
+    timeout-minutes: 60
     needs:
       - puppet-lint
       - puppet-rake-spec
@@ -95,20 +103,38 @@ jobs:
         run: pip install -r "${{ env.REQUIREMENTS_PATH }}"
 
       - name: Test puppet deployment
-        timeout-minutes: 45
+        id: pytest
         run: |
           distro="${{ matrix.DISTRO }}"
           if [[ "$distro" = "amazonlinux-2" ]]; then
             # workaround for pytest substring matching
             distro="amazonlinux-2 and not amazonlinux-2023"
           fi
-          pytest -sx --verbose -k "$distro" internal/buildscripts/packaging/tests/deployments/puppet/puppet_test.py
+          python3 -u -m pytest -s --verbose -k "$distro" \
+            internal/buildscripts/packaging/tests/deployments/puppet/puppet_test.py
+        env:
+          PUPPET_RELEASE: "${{ matrix.PUPPET_RELEASE }}"
+
+      # qemu, networking, running systemd in containers, etc., can be flaky
+      - name: Re-run failed tests
+        if: ${{ failure() && steps.pytest.conclusion == 'failure' }}
+        run: |
+          distro="${{ matrix.DISTRO }}"
+          if [[ "$distro" = "amazonlinux-2" ]]; then
+            # workaround for pytest substring matching
+            distro="amazonlinux-2 and not amazonlinux-2023"
+          fi
+          python3 -u -m pytest -s --verbose -k "$distro" \
+            --last-failed \
+            internal/buildscripts/packaging/tests/deployments/puppet/puppet_test.py
+          exit 1
         env:
           PUPPET_RELEASE: "${{ matrix.PUPPET_RELEASE }}"
 
   puppet-test-windows:
     name: puppet-test-windows
     runs-on: ${{ matrix.OS }}
+    timeout-minutes: 60
     needs:
       - puppet-lint
       - puppet-rake-spec
@@ -133,9 +159,19 @@ jobs:
         run: pip install -r "${{ env.REQUIREMENTS_PATH }}"
 
       - name: Test puppet deployment
-        timeout-minutes: 45
+        id: pytest
         run: |
-          pytest -sx --verbose -m windows `
+          pytest -s --verbose -m windows `
+            -k ${{ matrix.TEST_CASE }} `
+            internal/buildscripts/packaging/tests/deployments/puppet/puppet_test.py
+        env:
+          PUPPET_RELEASE: "${{ matrix.PUPPET_RELEASE }}"
+
+      - name: Re-run failed tests
+        if: ${{ failure() && steps.pytest.conclusion == 'failure' }}
+        run: |
+          pytest -s --verbose -m windows `
+            --last-failed `
             -k ${{ matrix.TEST_CASE }} `
             internal/buildscripts/packaging/tests/deployments/puppet/puppet_test.py
         env:

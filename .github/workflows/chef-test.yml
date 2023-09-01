@@ -1,13 +1,14 @@
 name: chef-test
 
-# Only run tests for main branch or if the PR has relevant changes
-on: 
+# Only run tests if there are relevant changes
+on:
   push:
     branches:
       - main
     paths:
       - '.github/workflows/chef-test.yml'
       - 'deployments/chef/**'
+      - '!**.md'
   pull_request:
     paths:
       - '.github/workflows/chef-test.yml'

@@ -76,7 +76,8 @@ agent_bundle_path="$REPO_DIR/dist/agent-bundle_linux_${ARCH}.tar.gz"
 
 buildroot="$(mktemp -d)"
 
-download_jmx_metric_gatherer "$JMX_METRIC_GATHERER_RELEASE_PATH" "$buildroot/opt"
+JMX_METRIC_GATHERER_RELEASE="$(cat $JMX_METRIC_GATHERER_RELEASE_PATH)"
+download_jmx_metric_gatherer "$JMX_METRIC_GATHERER_RELEASE" "$buildroot"
 
 tar_setup_files_and_permissions "$otelcol_path" "$translatesfx_path" "$config_folder_path" "$buildroot" "$agent_bundle_path"
 

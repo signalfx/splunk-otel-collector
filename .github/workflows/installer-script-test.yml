@@ -46,15 +46,15 @@ jobs:
   linux-installer-script-test:
     # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
     runs-on: ${{ fromJSON('["ubuntu-20.04", "ubuntu-22.04"]')[matrix.DISTRO == 'amazonlinux-2023'] }}
+    timeout-minutes: 60
     needs: installer-test-matrix
     strategy:
       matrix: ${{ fromJSON(needs.installer-test-matrix.outputs.matrix) }}
       fail-fast: false
     env:
-      PYTHON_VERSION: '3.10'
+      PYTHON_VERSION: '3.11'
       PIP_VERSION: '22.0.4'
       REQUIREMENTS_PATH: "internal/buildscripts/packaging/tests/requirements.txt"
-      RESULT_PATH: "~/testresults"
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v3
@@ -83,22 +83,25 @@ jobs:
           pip install -r "${{ env.REQUIREMENTS_PATH }}"
 
       - name: Test installer script
-        timeout-minutes: 60
+        id: pytest
         run: |
-          mkdir -p ${{ env.RESULT_PATH }}
           distro="${{ matrix.DISTRO }}"
           if [[ "$distro" = "amazonlinux-2" ]]; then
             # workaround for pytest substring matching
             distro="amazonlinux-2 and not amazonlinux-2023"
           fi
-          pytest -n auto --verbose -k "$distro and ${{ matrix.ARCH }}" \
-            --junitxml=${{ env.RESULT_PATH }}/results.xml \
-            --html=${{ env.RESULT_PATH }}/results.html \
-            --self-contained-html \
+          python3 -u -m pytest -s --verbose -k "$distro and ${{ matrix.ARCH }}" \
             internal/buildscripts/packaging/tests/installer_test.py
 
-      - name: Uploading artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: linux-installer-script-test-${{ matrix.DISTRO }}-${{ matrix.ARCH }}-result
-          path: ${{ env.RESULT_PATH }}
+      # qemu, networking, running systemd in containers, etc., can be flaky
+      - name: Re-run failed tests
+        if: ${{ failure() && steps.pytest.conclusion == 'failure' }}
+        run: |
+          distro="${{ matrix.DISTRO }}"
+          if [[ "$distro" = "amazonlinux-2" ]]; then
+            # workaround for pytest substring matching
+            distro="amazonlinux-2 and not amazonlinux-2023"
+          fi
+          python3 -u -m pytest -s --verbose -k "$distro and ${{ matrix.ARCH }}" \
+            --last-failed \
+            internal/buildscripts/packaging/tests/installer_test.py

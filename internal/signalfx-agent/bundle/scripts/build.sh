@@ -50,10 +50,13 @@ if [[ "$CI" = "true" || "$PUSH_CACHE" = "yes" ]]; then
     if [[ -d "$CACHE_DIR" ]]; then
         # use the restored CI cache if it exists
         CACHE_FROM_OPTS="--cache-from=type=local,src=${CACHE_DIR}"
+        USE_REGISTRY_CACHE="no"
+        if [[ "${BUNDLE_CACHE_HIT:-}" != "true" ]]; then
+            # export current build cache to temporary directory
+            CACHE_TEMP_DIR="$(mktemp -d)"
+            CACHE_TO_OPTS="--cache-to=type=local,mode=max,dest=${CACHE_TEMP_DIR}"
+        fi
     fi
-    # export current build cache to temporary directory
-    CACHE_TEMP_DIR="$(mktemp -d)"
-    CACHE_TO_OPTS="--cache-to=type=local,mode=max,dest=${CACHE_TEMP_DIR}"
 fi
 
 if [[ "$PUSH_CACHE" = "yes" ]]; then

@@ -59,6 +59,7 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
       - uses: actions/cache@v3
+        id: bundle-cache
         with:
           path: .cache/buildx/agent-bundle-${{ matrix.ARCH }}
           key: agent-bundle-buildx-${{ matrix.ARCH }}-${{ hashFiles('internal/signalfx-agent/bundle/**') }}
@@ -73,6 +74,7 @@ jobs:
           make docker-otelcol ARCH=${{ matrix.ARCH }}
         env:
           DOCKER_BUILDKIT: '1'
+          BUNDLE_CACHE_HIT: "${{ steps.bundle-cache.outputs.cache-hit }}"
       - run: mkdir -p dist && docker save -o dist/image.tar otelcol:latest
       - uses: actions/upload-artifact@v3
         with:

@@ -92,7 +92,6 @@ def test_tar_collector_package_install(distro, arch):
         run_container_cmd(container, f"test -d {bundle_dir}/bin")
         run_container_cmd(container, f"test -f {bundle_dir}/bin/otelcol")
         run_container_cmd(container, f"test -f {bundle_dir}/opt/opentelemetry-java-contrib-jmx-metrics.jar")
-        run_container_cmd(container, f"test -f {bundle_dir}/bin/opt/opentelemetry-java-contrib-jmx-metrics.jar")
         run_container_cmd(container, f"test -f {bundle_dir}/bin/translatesfx")
         run_container_cmd(container, f"test -f {bundle_dir}/config/agent_config.yaml")
         run_container_cmd(container, f"test -f {bundle_dir}/config/gateway_config.yaml")

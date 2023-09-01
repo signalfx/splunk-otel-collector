@@ -49,7 +49,9 @@ tar_setup_files_and_permissions() {
     sudo chown root:root "$buildroot/$TRANSLATESFX_INSTALL_PATH"
     sudo chmod 755 "$buildroot/$TRANSLATESFX_INSTALL_PATH"
 
-    JMX_INSTALL_PATH="$buildroot/opt/opentelemetry-java-contrib-jmx-metrics.jar"
+    JMX_METRIC_GATHERER_RELEASE="$(cat $JMX_METRIC_GATHERER_RELEASE_PATH)"
+    download_jmx_metric_gatherer "$JMX_METRIC_GATHERER_RELEASE" "$buildroot/$BUNDLE_BASE_DIR"
+    JMX_INSTALL_PATH="$buildroot/$BUNDLE_BASE_DIR/opt/opentelemetry-java-contrib-jmx-metrics.jar"
     if [[ -e "$JMX_INSTALL_PATH" ]]; then
         sudo chown root:root "$JMX_INSTALL_PATH"
         sudo chmod 755 "$JMX_INSTALL_PATH"
@@ -75,9 +77,6 @@ config_folder_path="$REPO_DIR/cmd/otelcol/config/collector"
 agent_bundle_path="$REPO_DIR/dist/agent-bundle_linux_${ARCH}.tar.gz"
 
 buildroot="$(mktemp -d)"
-
-JMX_METRIC_GATHERER_RELEASE="$(cat $JMX_METRIC_GATHERER_RELEASE_PATH)"
-download_jmx_metric_gatherer "$JMX_METRIC_GATHERER_RELEASE" "$buildroot"
 
 tar_setup_files_and_permissions "$otelcol_path" "$translatesfx_path" "$config_folder_path" "$buildroot" "$agent_bundle_path"
 

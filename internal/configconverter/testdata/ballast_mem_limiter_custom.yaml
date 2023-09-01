@@ -14,7 +14,7 @@ processors:
     ballast_size_mib: 64
 exporters:
   logging:
-    loglevel: info
+    verbosity: normal
     sampling_initial: 2
     sampling_thereafter: 500
 service:

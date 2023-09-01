@@ -6,7 +6,7 @@ receivers:
     collection_interval: 10s
 exporters:
   logging:
-    loglevel: info
+    verbosity: normal
   signalfx:
     realm: us1
     access_token: s3cr3t

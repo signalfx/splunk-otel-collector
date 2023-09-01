@@ -34,5 +34,5 @@ replace (
 	github.com/hashicorp/consul/sdk => github.com/hashicorp/consul/sdk v0.13.1
 	golang.org/x/crypto => golang.org/x/crypto v0.5.0
 	golang.org/x/net => golang.org/x/net v0.7.0
-	gopkg.in/yaml.v3 => gopkg.in/yaml.v3 v3.0.0
+	gopkg.in/yaml.v3 => gopkg.in/yaml.v3 v3.0.1
 )

@@ -22,7 +22,6 @@ replace (
 	github.com/signalfx/sapm-proto => github.com/signalfx/sapm-proto v0.12.0
 	github.com/spf13/viper => github.com/spf13/viper v1.11.0 // required to drop dependency on deprecated github.com/coreos/etcd and github.com/coreos/go-etcd
 	go.mongodb.org/mongo-driver => go.mongodb.org/mongo-driver v1.5.1
-	gopkg.in/yaml.v3 => gopkg.in/yaml.v3 v3.0.0
 	k8s.io/apiserver => k8s.io/apiserver v0.24.1 // required to drop dependency on go.etcd.io/etcd for CVE-2018-1099
 )
 

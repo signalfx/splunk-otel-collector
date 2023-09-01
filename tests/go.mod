@@ -188,7 +188,6 @@ replace (
 	github.com/opencontainers/image-spec => github.com/opencontainers/image-spec v1.0.2
 	golang.org/x/crypto => golang.org/x/crypto v0.5.0
 	golang.org/x/net => golang.org/x/net v0.7.0
-	gopkg.in/yaml.v3 => gopkg.in/yaml.v3 v3.0.0
 )
 
 // required until all deps adopt something like https://github.com/open-telemetry/opentelemetry-collector/commit/6059751e64e0d7b857abff50f1d8ab90424d0306

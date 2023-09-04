@@ -24,7 +24,6 @@ import (
 	"time"
 
 	"github.com/scaleway/scaleway-sdk-go/logger"
-
 	"go.uber.org/zap"
 )
 

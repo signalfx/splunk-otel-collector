@@ -19,6 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"sort"
 	"time"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator"
@@ -31,6 +32,15 @@ const (
 	// minMaxLogSize is the minimal size which can be used for buffering TCP input
 	minMaxLogSize = 64 * 1024
 )
+
+var availableScripts = func() []string {
+	var s []string
+	for _, sn := range scripts {
+		s = append(s, sn)
+	}
+	sort.Strings(s)
+	return s
+}()
 
 type Config struct {
 	Multiline          helper.MultilineConfig `mapstructure:"multiline,omitempty"`
@@ -62,7 +72,7 @@ func (c *Config) Validate() error {
 
 	_, ok := scripts[c.ScriptName]
 	if !ok {
-		return fmt.Errorf("unsupported 'script_name' %q. must be one of ", c.ScriptName)
+		return fmt.Errorf("unsupported 'script_name' %q. must be one of %v", c.ScriptName, availableScripts)
 	}
 
 	if c.MaxLogSize != 0 && c.MaxLogSize < minMaxLogSize {

@@ -16,6 +16,7 @@ package scriptedinputsreceiver
 
 import (
 	"context"
+	"github.com/scaleway/scaleway-sdk-go/logger"
 	"io"
 	"os/exec"
 	"strings"
@@ -51,7 +52,6 @@ func newCommander(logger *zap.Logger, name string, content string, stdout io.Wri
 }
 
 // Start the shell and begin watching the process.
-// shell's stdout and stderr are written to a file.
 func (c *commander) Start(ctx context.Context) error {
 	c.logger.Info("Starting script.", zap.String("script", c.name))
 
@@ -60,6 +60,7 @@ func (c *commander) Start(ctx context.Context) error {
 	// Capture standard output and standard error.
 	c.cmd.Stdin = strings.NewReader(c.content)
 	c.cmd.Stdout = c.stdout
+	// TODO: handle this separately for data integrity and diagnostics
 	c.cmd.Stderr = c.stdout
 
 	c.doneCh = make(chan struct{}, 1)
@@ -80,6 +81,7 @@ func (c *commander) Start(ctx context.Context) error {
 func (c *commander) watch() {
 	err := c.cmd.Wait()
 	if err != nil {
+		logger.Errorf("Error in cmd wait: %v", err)
 		return
 	}
 	c.doneCh <- struct{}{}
@@ -103,7 +105,7 @@ func (c *commander) Pid() int {
 // ExitCode returns shell process exit code if it exited or 0 if it is not.
 func (c *commander) ExitCode() int {
 	if c.cmd == nil || c.cmd.ProcessState == nil {
-		return 0
+		return -1
 	}
 	return c.cmd.ProcessState.ExitCode()
 }
@@ -139,19 +141,18 @@ func (c *commander) Stop(ctx context.Context) error {
 		case <-ctx.Done():
 			break
 		case <-time.After(10 * time.Second):
+			// Time is out. Kill the process.
+			// c.logger.Debugf(
+			//	"shell process PID=%d is not responding to SIGTERM. Sending SIGKILL to kill forcedly.",
+			//	c.cmd.Process.Pid,
+			//)
+			if innerErr = c.cmd.Process.Signal(syscall.SIGKILL); innerErr != nil {
+				return
+			}
 			break
 		case <-finished:
 			// Process is successfully finished.
 			// c.logger.Debugf("shell process PID=%v successfully stopped.", c.cmd.Process.Pid)
-			return
-		}
-
-		// Time is out. Kill the process.
-		// c.logger.Debugf(
-		//	"shell process PID=%d is not responding to SIGTERM. Sending SIGKILL to kill forcedly.",
-		//	c.cmd.Process.Pid,
-		//)
-		if innerErr = c.cmd.Process.Signal(syscall.SIGKILL); innerErr != nil {
 			return
 		}
 	}()

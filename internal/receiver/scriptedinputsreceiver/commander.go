@@ -16,13 +16,14 @@ package scriptedinputsreceiver
 
 import (
 	"context"
-	"github.com/scaleway/scaleway-sdk-go/logger"
 	"io"
 	"os/exec"
 	"strings"
 	"sync/atomic"
 	"syscall"
 	"time"
+
+	"github.com/scaleway/scaleway-sdk-go/logger"
 
 	"go.uber.org/zap"
 )

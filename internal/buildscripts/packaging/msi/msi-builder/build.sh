@@ -26,7 +26,7 @@ FLUENTD_CONFD="/project/internal/buildscripts/packaging/msi/fluentd/conf.d"
 SUPPORT_BUNDLE_SCRIPT="/project/internal/buildscripts/packaging/msi/splunk-support-bundle.ps1"
 SPLUNK_ICON="/project/internal/buildscripts/packaging/msi/splunk.ico"
 OUTPUT_DIR="/project/dist"
-JMX_METRIC_GATHERER_RELEASE="1.28.0"
+JMX_METRIC_GATHERER_RELEASE="1.29.0"
 
 usage() {
     cat <<EOH >&2

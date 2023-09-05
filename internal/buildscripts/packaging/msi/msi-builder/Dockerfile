@@ -53,7 +53,7 @@ RUN cp /project/internal/buildscripts/packaging/msi/msi-builder/docker-entrypoin
     chmod a+x /docker-entrypoint.sh
 
 ENV OUTPUT_DIR=/project/dist
-ENV JMX_METRIC_GATHERER_RELEASE=1.28.0
+ENV JMX_METRIC_GATHERER_RELEASE=1.29.0
 ENV VERSION=""
 
 WORKDIR /work

@@ -24,8 +24,6 @@ import (
 )
 
 func TestJMXReceiverProvidesAllJVMMetrics(t *testing.T) {
-	// JMX metrics are missing when running on arm so the test only checks a subset
-	// of what would be received otherwise.
 	expectedMetrics := "all.yaml"
 	if testutils.CollectorImageIsForArm(t) {
 		t.Skip("apparent metric gathering issue on qemu")

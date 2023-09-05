@@ -347,8 +347,6 @@ In this case `some.field.with.periods` can be referenced via:
 expr: 'ExprEnv["some.field.with.periods"] contains "value"'
 ```
 
-Note: `typeOf` should be used instead of `type` for matching types.
-
 ### LogRecord
 
 | Name             | Type              | Default                                                 | Docs                                                                        |

@@ -24,6 +24,8 @@ monitors:
     This monitor collects cluster level and index level stats only from the current master
     in an Elasticsearch cluster by default. It is possible to override this with the
     `clusterHealthStatsMasterOnly` and `indexStatsMasterOnly` config options respectively.
+    NOTE: When the master node is running in failover mode, `clusterHealthStatsMasterOnly`
+    must be set to false to receive health statistics and cluster metrics.
 
     A simple configuration that collects only default (non-custom) metrics
     looks like the following:

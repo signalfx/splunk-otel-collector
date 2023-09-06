@@ -10,8 +10,8 @@ require (
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/go-zookeeper/zk v1.0.3
 	github.com/gogo/protobuf v1.3.2
-	github.com/hashicorp/vault v1.14.1
-	github.com/hashicorp/vault-plugin-auth-gcp v0.16.0
+	github.com/hashicorp/vault v1.14.2
+	github.com/hashicorp/vault-plugin-auth-gcp v0.16.1
 	github.com/hashicorp/vault/api v1.9.2
 	github.com/jaegertracing/jaeger v1.41.0
 	github.com/knadh/koanf v1.5.0
@@ -121,7 +121,7 @@ require (
 	go.uber.org/atomic v1.11.0
 	go.uber.org/multierr v1.11.0
 	go.uber.org/zap v1.25.0
-	golang.org/x/sys v0.11.0
+	golang.org/x/sys v0.12.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
@@ -148,8 +148,8 @@ require (
 	github.com/go-redis/redis/v7 v7.4.1 // indirect
 	github.com/goccy/go-json v0.10.0 // indirect
 	github.com/google/gnostic-models v0.6.8 // indirect
-	github.com/google/s2a-go v0.1.4 // indirect
-	github.com/hashicorp/go-kms-wrapping/v2 v2.0.9 // indirect
+	github.com/google/s2a-go v0.1.5 // indirect
+	github.com/hashicorp/go-kms-wrapping/v2 v2.0.10 // indirect
 	github.com/hetznercloud/hcloud-go/v2 v2.0.0 // indirect
 	github.com/klauspost/asmfmt v1.3.2 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.3 // indirect
@@ -338,7 +338,7 @@ require (
 	github.com/hashicorp/hcl v1.0.1-vault-5 // indirect
 	github.com/hashicorp/nomad/api v0.0.0-20230718173136-3a687930bd3e // indirect
 	github.com/hashicorp/serf v0.10.1 // indirect
-	github.com/hashicorp/vault/sdk v0.9.2-0.20230530190758-08ee474850e0 // indirect
+	github.com/hashicorp/vault/sdk v0.9.2 // indirect
 	github.com/hashicorp/yamux v0.1.1 // indirect
 	github.com/hpcloud/tail v1.0.0 // indirect
 	github.com/iancoleman/strcase v0.3.0 // indirect
@@ -442,7 +442,7 @@ require (
 	github.com/ryanuber/go-glob v1.0.0 // indirect
 	github.com/samuel/go-zookeeper v0.0.0-20200724154423-2164a8ac840e // indirect
 	github.com/scaleway/scaleway-sdk-go v1.0.0-beta.19 // indirect
-	github.com/shirou/gopsutil/v3 v3.23.7 // indirect
+	github.com/shirou/gopsutil/v3 v3.23.8 // indirect
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3 // indirect
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657 // indirect
 	github.com/signalfx/gohistogram v0.0.0-20160107210732-1ccfd2ff5083 // indirect
@@ -462,8 +462,8 @@ require (
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/tinylib/msgp v1.1.8 // indirect
-	github.com/tklauser/go-sysconf v0.3.11 // indirect
-	github.com/tklauser/numcpus v0.6.0 // indirect
+	github.com/tklauser/go-sysconf v0.3.12 // indirect
+	github.com/tklauser/numcpus v0.6.1 // indirect
 	github.com/uber/jaeger-client-go v2.30.0+incompatible // indirect
 	github.com/uber/jaeger-lib v2.4.1+incompatible // indirect
 	github.com/ulule/deepcopier v0.0.0-20171107155558-ca99b135e50f // indirect
@@ -503,7 +503,7 @@ require (
 	golang.org/x/tools v0.12.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	gonum.org/v1/gonum v0.14.0 // indirect
-	google.golang.org/api v0.136.0 // indirect
+	google.golang.org/api v0.138.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20230803162519-f966b187b2e5 // indirect
 	google.golang.org/grpc v1.57.0 // indirect

@@ -1,10 +1,17 @@
 name: salt-test
 
-# Only run tests for main branch or if the PR has relevant changes
-on: 
+# Only run tests if there are relevant changes
+on:
   push:
     branches:
       - main
+    paths:
+      - '.github/workflows/salt-test.yml'
+      - 'deployments/salt/**'
+      - 'internal/buildscripts/packaging/tests/deployments/salt/**'
+      - 'internal/buildscripts/packaging/tests/helpers/**'
+      - 'internal/buildscripts/packaging/tests/requirements.txt'
+      - '!**.md'
   pull_request:
     paths:
       - '.github/workflows/salt-test.yml'
@@ -19,7 +26,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  PYTHON_VERSION: '3.10'
+  PYTHON_VERSION: '3.11'
   REQUIREMENTS_PATH: "internal/buildscripts/packaging/tests/requirements.txt"
 
 jobs:
@@ -62,6 +69,7 @@ jobs:
     name: salt-test
     # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
     runs-on: ${{ fromJSON('["ubuntu-20.04", "ubuntu-22.04"]')[matrix.DISTRO == 'amazonlinux-2023'] }}
+    timeout-minutes: 60
     needs: [salt-lint-test, salt-test-matrix]
     strategy:
       matrix: ${{ fromJSON(needs.salt-test-matrix.outputs.matrix) }}
@@ -81,11 +89,25 @@ jobs:
         run: pip install -r "${{ env.REQUIREMENTS_PATH }}"
 
       - name: Test salt deployment
-        timeout-minutes: 45
+        id: pytest
         run: |
           distro="${{ matrix.DISTRO }}"
           if [[ "$distro" = "amazonlinux-2" ]]; then
             # workaround for pytest substring matching
             distro="amazonlinux-2 and not amazonlinux-2023"
           fi
-          pytest -svx --verbose -k "$distro" internal/buildscripts/packaging/tests/deployments/salt/salt_test.py
+          python3 -u -m pytest -s --verbose -k "$distro" \
+            internal/buildscripts/packaging/tests/deployments/salt/salt_test.py
+
+      # qemu, networking, running systemd in containers, etc., can be flaky
+      - name: Re-run failed tests
+        if: ${{ failure() && steps.pytest.conclusion == 'failure' }}
+        run: |
+          distro="${{ matrix.DISTRO }}"
+          if [[ "$distro" = "amazonlinux-2" ]]; then
+            # workaround for pytest substring matching
+            distro="amazonlinux-2 and not amazonlinux-2023"
+          fi
+          python3 -u -m pytest -s --verbose -k "$distro" \
+            --last-failed \
+            internal/buildscripts/packaging/tests/deployments/salt/salt_test.py

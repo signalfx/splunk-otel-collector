@@ -14,7 +14,7 @@ require (
 )
 
 require (
-	cloud.google.com/go/compute v1.20.0 // indirect
+	cloud.google.com/go/compute v1.20.1 // indirect
 	cloud.google.com/go/compute/metadata v0.2.4-0.20230617002413-005d2dfb6b68 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161 // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
@@ -50,7 +50,7 @@ require (
 	github.com/google/s2a-go v0.1.4 // indirect
 	github.com/google/uuid v1.3.1 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.3 // indirect
-	github.com/googleapis/gax-go/v2 v2.10.0 // indirect
+	github.com/googleapis/gax-go/v2 v2.11.0 // indirect
 	github.com/hashicorp/consul/api v1.24.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
@@ -58,7 +58,7 @@ require (
 	github.com/hashicorp/go-hclog v1.5.0 // indirect
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
 	github.com/hashicorp/go-kms-wrapping/entropy/v2 v2.0.0 // indirect
-	github.com/hashicorp/go-kms-wrapping/v2 v2.0.9 // indirect
+	github.com/hashicorp/go-kms-wrapping/v2 v2.0.10 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/go-plugin v1.4.9 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.2 // indirect
@@ -73,10 +73,10 @@ require (
 	github.com/hashicorp/golang-lru v1.0.2 // indirect
 	github.com/hashicorp/hcl v1.0.1-vault-5 // indirect
 	github.com/hashicorp/serf v0.10.1 // indirect
-	github.com/hashicorp/vault v1.14.1 // indirect
+	github.com/hashicorp/vault v1.14.2 // indirect
 	github.com/hashicorp/vault-plugin-auth-gcp v0.16.0 // indirect
 	github.com/hashicorp/vault/api v1.9.2 // indirect
-	github.com/hashicorp/vault/sdk v0.9.2-0.20230530190758-08ee474850e0 // indirect
+	github.com/hashicorp/vault/sdk v0.9.2 // indirect
 	github.com/hashicorp/yamux v0.1.1 // indirect
 	github.com/iancoleman/strcase v0.3.0 // indirect
 	github.com/imdario/mergo v0.3.15 // indirect
@@ -119,7 +119,7 @@ require (
 	github.com/rs/cors v1.9.0 // indirect
 	github.com/ryanuber/go-glob v1.0.0 // indirect
 	github.com/samuel/go-zookeeper v0.0.0-20200724154423-2164a8ac840e // indirect
-	github.com/shirou/gopsutil/v3 v3.23.7 // indirect
+	github.com/shirou/gopsutil/v3 v3.23.8 // indirect
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3 // indirect
 	github.com/signalfx/gohistogram v0.0.0-20160107210732-1ccfd2ff5083 // indirect
 	github.com/signalfx/golib/v3 v3.3.52 // indirect
@@ -165,12 +165,12 @@ require (
 	golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df // indirect
 	golang.org/x/mod v0.11.0 // indirect
 	golang.org/x/net v0.14.0 // indirect
-	golang.org/x/oauth2 v0.8.0 // indirect
+	golang.org/x/oauth2 v0.10.0 // indirect
 	golang.org/x/sys v0.11.0 // indirect
 	golang.org/x/text v0.12.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/tools v0.9.3 // indirect
-	google.golang.org/api v0.125.0 // indirect
+	google.golang.org/api v0.126.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230530153820-e85fd2cbaebc // indirect
 	google.golang.org/grpc v1.57.0 // indirect

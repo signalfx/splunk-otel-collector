@@ -14,4 +14,5 @@ exclude = [
     "splunk_gateway_url",
     ".*.cf-app.com",
     "https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.63.1",  # release was deleted
+    "ideas.splunk.com",
 ]

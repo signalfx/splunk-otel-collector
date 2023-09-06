@@ -79,6 +79,7 @@ func (c *commander) Start(ctx context.Context) error {
 }
 
 func (c *commander) watch() {
+	defer func() { close(c.waitCh) }()
 	err := c.cmd.Wait()
 	if err != nil {
 		logger.Errorf("Error in cmd wait: %v", err)
@@ -86,7 +87,6 @@ func (c *commander) watch() {
 	}
 	c.doneCh <- struct{}{}
 	atomic.StoreInt64(&c.running, 0)
-	close(c.waitCh)
 }
 
 // Done returns a channel that will send a signal when the shell process is finished.

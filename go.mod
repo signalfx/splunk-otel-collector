@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/alecthomas/participle/v2 v2.0.0
-	github.com/antonmedv/expr v1.13.0
+	github.com/antonmedv/expr v1.14.3
 	github.com/apache/pulsar-client-go v0.11.0
 	github.com/cenkalti/backoff/v4 v4.2.1
 	github.com/fsnotify/fsnotify v1.6.0
@@ -69,7 +69,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/oracledbreceiver v0.83.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/postgresqlreceiver v0.83.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.83.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/receivercreator v0.83.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/receivercreator v0.83.1-0.20230823190113-3a0c2d14ed91
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/redisreceiver v0.83.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sapmreceiver v0.83.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/signalfxreceiver v0.83.0
@@ -502,7 +502,7 @@ require (
 	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/tools v0.12.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
-	gonum.org/v1/gonum v0.13.0 // indirect
+	gonum.org/v1/gonum v0.14.0 // indirect
 	google.golang.org/api v0.138.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20230803162519-f966b187b2e5 // indirect

@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	"github.com/antonmedv/expr"
+	"github.com/antonmedv/expr/builtin"
 	"github.com/antonmedv/expr/parser"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -41,7 +42,11 @@ func TestDiscoveryRuleToRCRule_HasPort(t *testing.T) {
 	saRule := `target == "hostport" && has_port == true`
 	rcRule, err := discoveryRuleToRCRule(saRule, nil)
 	require.NoError(t, err)
-	program, err := expr.Compile(rcRule)
+	program, err := expr.Compile(rcRule,
+		expr.DisableBuiltin("type"),
+		expr.Function("typeOf", func(params ...interface{}) (interface{}, error) {
+			return builtin.Type(params[0]), nil
+		}, new(func(interface{}) string)))
 	require.NoError(t, err)
 	output, err := expr.Run(program, map[string]any{
 		"port": nil,

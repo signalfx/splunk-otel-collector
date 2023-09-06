@@ -2,7 +2,6 @@ package service
 
 import (
 	"github.com/antonmedv/expr"
-	"github.com/antonmedv/expr/builtin"
 	"github.com/antonmedv/expr/vm"
 )
 
@@ -16,10 +15,7 @@ func NewFilter(expression string) (InvFilter, error) {
 	}
 	f := filter{v: vm.VM{}}
 	var err error
-	f.program, err = expr.Compile(expression, expr.DisableBuiltin("type"),
-		expr.Function("typeOf", func(params ...interface{}) (interface{}, error) {
-			return builtin.Type(params[0]), nil
-		}, new(func(interface{}) string)))
+	f.program, err = expr.Compile(expression)
 	if err != nil {
 		return nopFilter{}, err
 	}

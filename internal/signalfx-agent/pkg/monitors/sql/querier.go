@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/antonmedv/expr"
-	"github.com/antonmedv/expr/builtin"
 	"github.com/antonmedv/expr/vm"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/signalfx/golib/v3/datapoint"
@@ -70,10 +69,7 @@ func newQuerier(query *Query, logQueries bool, logger logrus.FieldLogger) (*quer
 
 	compiledExprs := make([]*vm.Program, len(query.DatapointExpressions))
 	for i, dpExpr := range query.DatapointExpressions {
-		ruleProg, err := expr.Compile(dpExpr, expr.DisableBuiltin("type"),
-			expr.Function("typeOf", func(params ...interface{}) (interface{}, error) {
-				return builtin.Type(params[0]), nil
-			}, new(func(interface{}) string)))
+		ruleProg, err := expr.Compile(dpExpr)
 		if err != nil {
 			return nil, fmt.Errorf("failed to compile expression: %v", err)
 		}

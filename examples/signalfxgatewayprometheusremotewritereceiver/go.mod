@@ -1,4 +1,4 @@
-module fake-metrics-generator
+module github.com/signalfx/splunk-otel-collector/examples/signalfxgatewayprometheusremotewritereceiver/fake-metrics-generator
 
 go 1.19
 

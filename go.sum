@@ -1280,6 +1280,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/signalfxrecei
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/signalfxreceiver v0.83.0/go.mod h1:oKch7fKCrlP+JEEzhuk4mAHHm1KWulPQl9DzkwcZjgo=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/simpleprometheusreceiver v0.83.0 h1:L45mckI3wbOIkxaz5P9MdKwu+TK6erlhlqqm23np02E=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/simpleprometheusreceiver v0.83.0/go.mod h1:xhhAR2uoo5AFup5IZEmXCO1c1sqXHLE9eVz9Vl/Ff+4=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/solacereceiver v0.83.0 h1:D3LETb4/3aawGRUDMMyr1MaqepIC6c+RpDlXSAvuQBc=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/solacereceiver v0.83.0/go.mod h1:4GeCRLS3BerFkRbwHLxxlpftmVd59aceKFWc4EabV1o=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver v0.83.0 h1:OqnxnU8Ny5lqjGhkmhJpx+P5GoFI41djKkQn39jNrCY=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver v0.83.0/go.mod h1:T1jbxVNo0XY2nA/3aMwoFHChra1GocCBxUuB5BZMarw=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sqlqueryreceiver v0.83.0 h1:UZA8TNrJr59mUMDX5kNBLWxSdd0Z/hrxNHdeZofR0+A=
@@ -1319,8 +1321,8 @@ github.com/openzipkin/zipkin-go v0.4.2 h1:zjqfqHjUpPmB3c1GlCvvgsM1G4LkvqQbBDueDO
 github.com/openzipkin/zipkin-go v0.4.2/go.mod h1:ZeVkFjuuBiSy13y8vpSDCjMi9GoI3hPpCJSBx/EYFhY=
 github.com/oracle/oci-go-sdk v24.3.0+incompatible h1:x4mcfb4agelf1O4/1/auGlZ1lr97jXRSSN5MxTgG/zU=
 github.com/oracle/oci-go-sdk/v60 v60.0.0 h1:EJAWjEi4SY5Raha6iUzq4LTQ0uM5YFw/wat/L1ehIEM=
-github.com/ovh/go-ovh v1.4.1 h1:VBGa5wMyQtTP7Zb+w97zRCh9sLtM/2YKRyy+MEJmWaM=
-github.com/ovh/go-ovh v1.4.1/go.mod h1:6bL6pPyUT7tBfI0pqOegJgRjgjuO+mOo+MyXd1EEC0M=
+github.com/ovh/go-ovh v1.4.2 h1:ub4jVK6ERbiBTo4y5wbLCjeKCjGY+K36e7BviW+MaAU=
+github.com/ovh/go-ovh v1.4.2/go.mod h1:AkPXVtgwB6xlKblMjRKJJmjRp+ogrE7fz2lVgcQY8SY=
 github.com/packethost/packngo v0.1.1-0.20180711074735-b9cb5096f54c h1:vwpFWvAO8DeIZfFeqASzZfsxuWPno9ncAebBEP0N3uE=
 github.com/pascaldekloe/goe v0.0.0-20180627143212-57f6aae5913c/go.mod h1:lzWF7FIEvWOWxwDKqyGYQf6ZUaNfKdP144TG7ZOy1lc=
 github.com/pascaldekloe/goe v0.1.0 h1:cBOtyMzM9HTpWjXfbbunk26uA6nG3a8n06Wieeh0MwY=

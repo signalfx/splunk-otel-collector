@@ -74,6 +74,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sapmreceiver v0.83.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/signalfxreceiver v0.83.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/simpleprometheusreceiver v0.83.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/solacereceiver v0.83.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver v0.83.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sqlqueryreceiver v0.83.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceiver v0.83.0
@@ -163,7 +164,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatautil v0.83.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza v0.83.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus v0.83.0 // indirect
-	github.com/ovh/go-ovh v1.4.1 // indirect
+	github.com/ovh/go-ovh v1.4.2 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_golang v1.16.0 // indirect
 	github.com/prometheus/common/sigv4 v0.1.0 // indirect

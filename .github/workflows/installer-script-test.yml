@@ -84,6 +84,7 @@ jobs:
 
       - name: Test installer script
         id: pytest
+        continue-on-error: true
         run: |
           distro="${{ matrix.DISTRO }}"
           if [[ "$distro" = "amazonlinux-2" ]]; then
@@ -95,7 +96,7 @@ jobs:
 
       # qemu, networking, running systemd in containers, etc., can be flaky
       - name: Re-run failed tests
-        if: ${{ failure() && steps.pytest.conclusion == 'failure' }}
+        if: ${{ steps.pytest.outcome == 'failure' }}
         run: |
           distro="${{ matrix.DISTRO }}"
           if [[ "$distro" = "amazonlinux-2" ]]; then

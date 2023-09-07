@@ -104,6 +104,7 @@ jobs:
 
       - name: Test puppet deployment
         id: pytest
+        continue-on-error: true
         run: |
           distro="${{ matrix.DISTRO }}"
           if [[ "$distro" = "amazonlinux-2" ]]; then
@@ -117,7 +118,7 @@ jobs:
 
       # qemu, networking, running systemd in containers, etc., can be flaky
       - name: Re-run failed tests
-        if: ${{ failure() && steps.pytest.conclusion == 'failure' }}
+        if: ${{ steps.pytest.outcome == 'failure' }}
         run: |
           distro="${{ matrix.DISTRO }}"
           if [[ "$distro" = "amazonlinux-2" ]]; then
@@ -160,6 +161,7 @@ jobs:
 
       - name: Test puppet deployment
         id: pytest
+        continue-on-error: true
         run: |
           pytest -s --verbose -m windows `
             -k ${{ matrix.TEST_CASE }} `
@@ -168,7 +170,7 @@ jobs:
           PUPPET_RELEASE: "${{ matrix.PUPPET_RELEASE }}"
 
       - name: Re-run failed tests
-        if: ${{ failure() && steps.pytest.conclusion == 'failure' }}
+        if: ${{ steps.pytest.outcome == 'failure' }}
         run: |
           pytest -s --verbose -m windows `
             --last-failed `

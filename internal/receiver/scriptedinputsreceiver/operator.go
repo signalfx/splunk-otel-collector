@@ -59,9 +59,9 @@ func (i *stdoutOperator) Start(_ operator.Persister) error {
 
 	go func() {
 		for {
-			_, cancelCycle := context.WithCancel(ctx)
+			internalCtx, cancelCycle := context.WithCancel(ctx)
 
-			err := i.beginCycle(ctx)
+			err := i.beginCycle(internalCtx)
 			if err != nil {
 				i.logger.Errorf("Error running script: %v", err)
 			}

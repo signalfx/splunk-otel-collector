@@ -11,6 +11,7 @@
 
 ### 💡 Enhancements 💡
 
+- (Splunk) `solacereceiver`: Added solace receiver to the splunk otel collector ([#3590](https://github.com/signalfx/splunk-otel-collector/pull/3590))
 - (Splunk) `receiver/smartagent`: Move to gopsutil 3.23.7 and remove the need to set environment variables ([#3509](https://github.com/signalfx/splunk-otel-collector/pull/3509))
 - (Splunk) Update splunk-otel-javaagent to 1.27.0 ([#3537](https://github.com/signalfx/splunk-otel-collector/pull/3537))
 - (Splunk) `receiver/smartagent`: Use `Leases` instead of `ConfigMapLeases` for leader-election in k8s. ([#3521](https://github.com/signalfx/splunk-otel-collector/pull/3521))
@@ -34,7 +35,6 @@
 - (Core) `configgrpc`: Allow any registered gRPC load balancer name to be used. ([#8262](https://github.com/open-telemetry/opentelemetry-collector/issues/8262))
 - (Core) `service`: add OTLP export for internal traces ([#8106](https://github.com/open-telemetry/opentelemetry-collector/issues/8106))
 - (Core) `configgrpc`: Add support for :authority pseudo-header in grpc client ([#8228](https://github.com/open-telemetry/opentelemetry-collector/issues/8228))
-
 
 ### 🧰 Bug fixes 🧰
 

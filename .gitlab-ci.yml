@@ -529,7 +529,6 @@ sign-ps-installer:
     ARTIFACT: dist/install.ps1
     SIGN_TYPE: WIN
     DOWNLOAD_DIR: dist/signed
-    TARGET_ENV: velocity
   before_script:
     - mkdir -p dist
     - cp internal/buildscripts/packaging/installer/install.ps1 dist/install.ps1

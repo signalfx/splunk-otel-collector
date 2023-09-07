@@ -195,8 +195,9 @@ jobs:
           Start-Sleep -s 30
           & ${{ github.workspace }}\.github\workflows\scripts\win-test-services.ps1 -mode "${{ matrix.MODE }}" -access_token "${{ env.token }}" -realm "${{ env.realm }}" -memory "${{ env.memory }}" -with_fluentd "${{ matrix.WITH_FLUENTD }}"
           & ${{ github.workspace }}\.github\workflows\scripts\win-test-support-bundle.ps1 -mode "${{ matrix.MODE }}" -with_fluentd "${{ matrix.WITH_FLUENTD }}"
-          Test-Path -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector\agent-bundle\python\python.exe"
-          Test-Path -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector\agent-bundle\collectd-python"
+          Resolve-Path -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector\agent-bundle\python\python.exe"
+          Resolve-Path -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector\agent-bundle\collectd-python"
+          Resolve-Path -Path "$env:SYSTEMDRIVE\opt\opentelemetry-java-contrib-jmx-metrics.jar"
 
       - name: splunk-otel-collector logs
         if: ${{ always() }}
@@ -351,9 +352,9 @@ jobs:
           Copy-Item .\bin\translatesfx_windows_amd64.exe .\cmd\otelcol\translatesfx.exe
           Copy-Item .\dist\agent-bundle_windows_amd64.zip .\cmd\otelcol\agent-bundle_windows_amd64.zip
           if ("${{ matrix.OS }}" -eq "windows-2019") {
-            docker build -t otelcol-windows --build-arg BASE_IMAGE=mcr.microsoft.com/windows/servercore:1809 -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
+            docker build -t otelcol-windows --build-arg BASE_IMAGE=mcr.microsoft.com/windows/servercore:1809 --build-arg JMX_METRIC_GATHERER_RELEASE=$(Get-Content internal\buildscripts\packaging\jmx-metric-gatherer-release.txt) -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
           } else {
-            docker build -t otelcol-windows --build-arg BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022 -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
+            docker build -t otelcol-windows --build-arg BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022 --build-arg JMX_METRIC_GATHERER_RELEASE=$(Get-Content internal\buildscripts\packaging\jmx-metric-gatherer-release.txt) -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
           }
           Remove-Item .\cmd\otelcol\otelcol.exe
           Remove-Item .\cmd\otelcol\translatesfx.exe
@@ -369,4 +370,10 @@ jobs:
             docker logs otelcol
             echo "Failing job execution: fail to start otelcol docker container in 10 seconds."
             exit 1
+          }
+
+          $JavaCmdOutput=$(docker exec -it otelcol java -version)
+          if ( ${JavaCmdOutput:0::15} -ne 'openjdk version' ) {
+            docker logs otelcol
+            echo "Failing job execution: Failed to run java, command output: ${JavaCmdOutput}"
           }

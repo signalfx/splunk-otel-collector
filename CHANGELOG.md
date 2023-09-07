@@ -6,6 +6,7 @@
 
 - (Splunk) `jmxreceiver`: Bundle latest [JMX Metric Gatherer](https://github.com/open-telemetry/opentelemetry-java-contrib/tree/main/jmx-metrics) in installer packages and images for Windows and Linux ([#3262](https://github.com/signalfx/splunk-otel-collector/pull/3262))
 - (Splunk) `receiver/smartagent`: Use `Leases` instead of `ConfigMapLeases` for leader-election in k8s. ([#3521](https://github.com/signalfx/splunk-otel-collector/pull/3521))
+- (Splunk) Update bundled python to 3.11.5 ([#3543](https://github.com/signalfx/splunk-otel-collector/pull/3543))
 
 ## v0.83.0
 

@@ -13,25 +13,32 @@
 # limitations under the License.
 
 ARG ARCH=amd64
-ARG JDK_VERSION=11.0.20_8
+ARG JDK_VERSION=11.0.20.1_1
 ARG MAVEN_VERSION=3.6.0
-ARG PYTHON_VERSION=3.11.3
+ARG PYTHON_VERSION=3.11.5
 ARG PIP_VERSION=21.0.1
 ARG COLLECTD_VERSION=5.8.0-sfx0
 ARG COLLECTD_COMMIT=4d3327b14cf4359029613baf4f90c4952702105e
 ARG DOCKER_REPO=docker.io
 
-######### Java monitor dependencies and monitor jar compilation
-FROM ${DOCKER_REPO}/ubuntu:18.04 as java
+
+######## Base image for subsequent stages ########
+FROM ${DOCKER_REPO}/ubuntu:18.04 as base
 
 ARG ARCH
+ENV DEBIAN_FRONTEND noninteractive
+
+RUN sed -i -e '/^deb-src/d' /etc/apt/sources.list && \
+    apt-get update
+
+
+######## Java monitor dependencies and monitor jar compilation ########
+FROM base as java
+
 ARG JDK_VERSION
 ARG MAVEN_VERSION
 
-ENV DEBIAN_FRONTEND noninteractive
-
-RUN apt-get update -qq &&\
-    apt-get install -qq -y wget
+RUN apt-get install -qq -y wget
 
 ENV OPENJDK_BASE_URL="https://github.com/adoptium/temurin11-binaries/releases/download"
 
@@ -76,17 +83,12 @@ RUN cd /usr/src/agent-java/jmx &&\
 RUN rm -rf /tmp/apache-maven*
 
 
-###### Python bundle builder image ######
-FROM ${DOCKER_REPO}/ubuntu:18.04 as python
+######## Python bundle builder image ########
+FROM base as python
 
-ARG ARCH
 ARG PYTHON_VERSION
 
-ENV DEBIAN_FRONTEND noninteractive
-
-RUN sed -i -e '/^deb-src/d' /etc/apt/sources.list &&\
-    apt-get update -qq &&\
-    apt-get install -qq -y \
+RUN apt-get install -qq -y \
       curl \
       dpkg \
       net-tools \
@@ -173,12 +175,22 @@ RUN wget -nv -O /tmp/Python-${PYTHON_VERSION}.tgz https://www.python.org/ftp/pyt
 RUN rm -rf /tmp/Python*
 
 
-###### Collectd builder image ######
+######## Collectd builder image ########
 FROM python as collectd
 
-ARG ARCH
 ARG COLLECTD_VERSION
 ARG COLLECTD_COMMIT
+
+# Compile patchelf statically from source
+RUN cd /tmp &&\
+    wget -nv https://nixos.org/releases/patchelf/patchelf-0.11/patchelf-0.11.tar.gz &&\
+    tar -xzf patchelf*.tar.gz &&\
+    cd patchelf-0.11* &&\
+    ./configure LDFLAGS="-static" &&\
+    make &&\
+    make install
+
+RUN rm -rf /tmp/patchelf*
 
 RUN cd /tmp &&\
     wget -nv https://github.com/signalfx/collectd/archive/${COLLECTD_COMMIT}.tar.gz &&\
@@ -257,23 +269,12 @@ RUN make -j`nproc` &&\
 COPY scripts/collect-libs /opt/collect-libs
 RUN /opt/collect-libs /opt/deps /usr/sbin/collectd /usr/lib/collectd/
 
-# Compile patchelf statically from source
-RUN cd /tmp &&\
-    wget -nv https://nixos.org/releases/patchelf/patchelf-0.11/patchelf-0.11.tar.gz &&\
-    tar -xzf patchelf*.tar.gz &&\
-    cd patchelf-0.11* &&\
-    ./configure LDFLAGS="-static" &&\
-    make &&\
-    make install
-
-RUN rm -rf /tmp/patchelf*
-
 # For some reason libvarnishapi doesn't properly depend on libm, so make it
 # right.
 RUN patchelf --add-needed libm-2.23.so /opt/deps/libvarnishapi.so.1.0.6
 
 
-###### Python Plugin Image ######
+######## Python Plugin Image ########
 FROM collectd as python-plugins
 
 ARG PIP_VERSION
@@ -320,13 +321,10 @@ RUN find /usr/local/lib/python3.11 -type d -name __pycache__ | xargs rm -rf {} \
 RUN find /usr/local/lib/python3.11 -wholename "*test*.key" -delete -or -wholename "*test*.pem" -delete
 
 
-####### Extra packages that don't make sense to pull down in any other stage ########
-FROM ${DOCKER_REPO}/ubuntu:18.04 as extra-packages
+######## Extra packages that don't make sense to pull down in any other stage ########
+FROM base as extra-packages
 
-ENV DEBIAN_FRONTEND noninteractive
-
-RUN apt-get update -qq &&\
-    apt-get install -qq -y \
+RUN apt-get install -qq -y \
         curl \
         host \
         iproute2 \
@@ -387,7 +385,7 @@ COPY scripts/patch-rpath /usr/bin/
 RUN patch-rpath /opt/root
 
 
-###### Final Agent Image #######
+######## Final Agent Image ########
 # This build stage is meant as the final target when running the agent in a
 # container environment (e.g. directly with Docker or on K8s).  The stages
 # below this are special-purpose.

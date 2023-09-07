@@ -1,13 +1,14 @@
 name: chef-test
 
-# Only run tests for main branch or if the PR has relevant changes
-on: 
+# Only run tests if there are relevant changes
+on:
   push:
     branches:
       - main
     paths:
       - '.github/workflows/chef-test.yml'
       - 'deployments/chef/**'
+      - '!**.md'
   pull_request:
     paths:
       - '.github/workflows/chef-test.yml'
@@ -80,7 +81,7 @@ jobs:
   chef-kitchen-linux:
     # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
     runs-on: ubuntu-20.04
-    needs: chef-kitchen-matrix
+    needs: [chef-lint-spec-test, chef-kitchen-matrix]
     strategy:
       matrix: ${{ fromJSON(needs.chef-kitchen-matrix.outputs.linux-matrix) }}
       fail-fast: false
@@ -103,7 +104,7 @@ jobs:
 
   chef-kitchen-windows:
     runs-on: ${{ matrix.DISTRO }}
-    needs: chef-kitchen-matrix
+    needs: [chef-lint-spec-test, chef-kitchen-matrix]
     strategy:
       matrix: ${{ fromJSON(needs.chef-kitchen-matrix.outputs.win-matrix) }}
       fail-fast: false

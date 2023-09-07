@@ -1,5 +1,11 @@
 # Changelog
 
+## chef-v0.7.0
+
+- Add support for the `splunk_listen_interface` option to configure the network interface the collector receivers
+  will listen on (default: `0.0.0.0`)
+- Add support for SignalFx .NET Auto Instrumentation on Windows (disabled by default)
+
 ## chef-v0.6.0
 
 - **Breaking Changes**: Fluentd installation ***disabled*** by default.

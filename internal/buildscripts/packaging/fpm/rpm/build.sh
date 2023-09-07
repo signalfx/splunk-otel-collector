@@ -22,6 +22,7 @@ SCRIPT_DIR="$( cd "$( dirname ${BASH_SOURCE[0]} )" && pwd )"
 VERSION="${1:-}"
 ARCH="${2:-amd64}"
 OUTPUT_DIR="${3:-$REPO_DIR/dist}"
+JMX_METRIC_GATHERER_RELEASE="${4:-}"
 
 if [[ -z "$VERSION" ]]; then
     VERSION="$( get_version )"
@@ -30,6 +31,10 @@ fi
 # rpm doesn't like dashes in the version, replace with tildas
 VERSION="${VERSION/'-'/'~'}"
 VERSION="${VERSION#v}"
+
+if [[ -z "$JMX_METRIC_GATHERER_RELEASE" ]]; then
+    JMX_METRIC_GATHERER_RELEASE="$(cat $JMX_METRIC_GATHERER_RELEASE_PATH)"
+fi
 
 otelcol_path="$REPO_DIR/bin/otelcol_linux_${ARCH}"
 translatesfx_path="$REPO_DIR/bin/translatesfx_linux_${ARCH}"
@@ -42,6 +47,8 @@ if [[ "$ARCH" = "arm64" ]]; then
 elif [[ "$ARCH" = "amd64" ]]; then
     ARCH="x86_64"
 fi
+
+download_jmx_metric_gatherer "$JMX_METRIC_GATHERER_RELEASE" "$buildroot"
 
 setup_files_and_permissions "$otelcol_path" "$translatesfx_path" "$buildroot" "$agent_bundle_path"
 

@@ -8,10 +8,9 @@ FROM ${SPLUNK_OTEL_COLLECTOR_IMAGE}
 
 ENV PATH=/some/path/go/bin:$PATH
 ENV GOROOT=/some/path/go
-ENV GOCACHE=/tmp/.cache/go-build
+ENV GOCACHE=/some/path/go/.cache/go-build
 
 COPY telegraf-exec.go /opt/telegraf-exec.go
 COPY config.yaml /etc/config.yaml
-COPY --from=golang --chown=999 /tmp /tmp
 COPY --from=golang --chown=999 /some/path /some/path
 COPY --from=golang --chown=999 /usr/local/go /some/path/go

@@ -18,9 +18,11 @@ set -euxo pipefail
 
 SCRIPT_DIR="$( cd "$( dirname ${BASH_SOURCE[0]} )" && pwd )"
 REPO_DIR="$( cd "$SCRIPT_DIR/../../../../" && pwd )"
+JMX_METRIC_GATHERER_RELEASE_PATH="${SCRIPT_DIR}/../jmx-metric-gatherer-release.txt"
 
 VERSION="${1:-}"
 DOCKER_REPO="${2:-docker.io}"
+JMX_METRIC_GATHERER_RELEASE="${3:-}"
 
 get_version() {
     commit_tag="$( git -C "$REPO_DIR" describe --abbrev=0 --tags --exact-match --match 'v[0-9]*' 2>/dev/null || true )"
@@ -36,6 +38,10 @@ get_version() {
     fi
 }
 
+if [ -z "$JMX_METRIC_GATHERER_RELEASE" ]; then
+    JMX_METRIC_GATHERER_RELEASE=$(cat "$JMX_METRIC_GATHERER_RELEASE_PATH")
+fi
+
 if [ -z "$VERSION" ]; then
     VERSION="$( get_version )"
 fi
@@ -44,6 +50,7 @@ docker build -t msi-builder --build-arg DOCKER_REPO="$DOCKER_REPO" -f "${SCRIPT_
 docker rm -fv msi-builder 2>/dev/null || true
 docker run -d --name msi-builder msi-builder sleep inf
 docker exec \
+    -e JMX_METRIC_GATHERER_RELEASE="${JMX_METRIC_GATHERER_RELEASE}" \
     -e OUTPUT_DIR=/project/dist \
     -e VERSION="${VERSION#v}" \
     msi-builder /docker-entrypoint.sh

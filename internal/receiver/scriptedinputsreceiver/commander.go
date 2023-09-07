@@ -1,4 +1,4 @@
-// Copyright Copyright Splunk, Inc.
+// Copyright Splunk, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/scaleway/scaleway-sdk-go/logger"
 	"go.uber.org/zap"
 )
 
@@ -82,7 +81,7 @@ func (c *commander) watch() {
 	defer func() { close(c.waitCh) }()
 	err := c.cmd.Wait()
 	if err != nil {
-		logger.Errorf("Error in cmd wait: %v", err)
+		c.logger.Error("Error in cmd wait: %v", zap.Error(err))
 		return
 	}
 	c.doneCh <- struct{}{}
@@ -123,7 +122,7 @@ func (c *commander) Stop(ctx context.Context) error {
 		return nil
 	}
 
-	// c.logger.Debugf("Stopping shell process, PID=%v", c.cmd.Process.Pid)
+	c.logger.Debug("Stopping shell process", zap.Any("PID", c.cmd.Process.Pid))
 
 	// Gracefully signal process to stop.
 	if err := c.cmd.Process.Signal(syscall.SIGTERM); err != nil {
@@ -142,17 +141,16 @@ func (c *commander) Stop(ctx context.Context) error {
 			break
 		case <-time.After(10 * time.Second):
 			// Time is out. Kill the process.
-			// c.logger.Debugf(
-			//	"shell process PID=%d is not responding to SIGTERM. Sending SIGKILL to kill forcedly.",
-			//	c.cmd.Process.Pid,
-			//)
+			c.logger.Debug(
+				"shell process PID=%d is not responding to SIGTERM. Sending SIGKILL to kill forcedly.",
+				zap.Any("PID", c.cmd.Process.Pid))
 			if innerErr = c.cmd.Process.Signal(syscall.SIGKILL); innerErr != nil {
 				return
 			}
 			break
 		case <-finished:
 			// Process is successfully finished.
-			// c.logger.Debugf("shell process PID=%v successfully stopped.", c.cmd.Process.Pid)
+			c.logger.Debug("shell process PID=%v successfully stopped.", zap.Any("PID", c.cmd.Process.Pid))
 			return
 		}
 	}()

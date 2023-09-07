@@ -105,7 +105,7 @@ func (i *stdoutOperator) beginCycle(ctx context.Context) error {
 			}
 
 		case <-ctx.Done():
-			i.logger.Info("Script run too long. Stopping.", zap.String("script_name", i.cfg.ScriptName))
+			i.logger.Warn("Script didn't complete within configured interval.", zap.String("script_name", i.cfg.ScriptName))
 			err := commander.Stop(context.Background())
 			if err != nil {
 				return

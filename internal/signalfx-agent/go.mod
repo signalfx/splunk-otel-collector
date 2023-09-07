@@ -22,7 +22,6 @@ replace (
 	github.com/signalfx/sapm-proto => github.com/signalfx/sapm-proto v0.12.0
 	github.com/spf13/viper => github.com/spf13/viper v1.11.0 // required to drop dependency on deprecated github.com/coreos/etcd and github.com/coreos/go-etcd
 	go.mongodb.org/mongo-driver => go.mongodb.org/mongo-driver v1.5.1
-	gopkg.in/yaml.v3 => gopkg.in/yaml.v3 v3.0.0
 	k8s.io/apiserver => k8s.io/apiserver v0.24.1 // required to drop dependency on go.etcd.io/etcd for CVE-2018-1099
 )
 
@@ -32,7 +31,7 @@ require (
 	github.com/SAP/go-hdb v1.3.10
 	github.com/Sectorbob/mlab-ns2 v0.0.0-20171030222938-d3aa0c295a8a
 	github.com/Showmax/go-fqdn v1.0.0
-	github.com/antonmedv/expr v1.13.0
+	github.com/antonmedv/expr v1.15.1
 	github.com/aws/aws-sdk-go v1.44.327
 	github.com/beevik/ntp v1.3.0
 	github.com/cloudfoundry-incubator/uaago v0.0.0-20190307164349-8136b7bbe76e
@@ -50,7 +49,7 @@ require (
 	github.com/google/cadvisor v0.47.3
 	github.com/gorilla/mux v1.8.0
 	github.com/hashicorp/consul/api v1.24.0
-	github.com/hashicorp/vault v1.14.1 // required for newer google.golang.org/api compatibility
+	github.com/hashicorp/vault v1.14.2 // required for newer google.golang.org/api compatibility
 	github.com/hashicorp/vault-plugin-auth-gcp v0.16.0
 	github.com/hashicorp/vault/api v1.9.2
 	github.com/iancoleman/strcase v0.3.0
@@ -84,10 +83,10 @@ require (
 	github.com/signalfx/ingest-protocols v0.2.0
 	github.com/signalfx/signalfx-go v1.33.0
 	github.com/sirupsen/logrus v1.9.3
-	github.com/snowflakedb/gosnowflake v1.6.23
+	github.com/snowflakedb/gosnowflake v1.6.24
 	github.com/stretchr/testify v1.8.4
 	github.com/ulule/deepcopier v0.0.0-20171107155558-ca99b135e50f
-	github.com/vmware/govmomi v0.30.6
+	github.com/vmware/govmomi v0.30.7
 	github.com/yalp/jsonpath v0.0.0-20180802001716-5cc68e5049a0
 	go.etcd.io/etcd/client/v2 v2.305.9
 	golang.org/x/net v0.14.0
@@ -97,9 +96,9 @@ require (
 	google.golang.org/grpc v1.56.2
 	gopkg.in/go-playground/validator.v9 v9.31.0
 	gopkg.in/yaml.v2 v2.4.0
-	k8s.io/api v0.28.0
-	k8s.io/apimachinery v0.28.0
-	k8s.io/client-go v0.28.0
+	k8s.io/api v0.28.1
+	k8s.io/apimachinery v0.28.1
+	k8s.io/client-go v0.28.1
 	k8s.io/kubelet v0.27.2
 )
 
@@ -128,13 +127,13 @@ require (
 )
 
 require (
-	cloud.google.com/go/compute v1.20.0 // indirect
+	cloud.google.com/go/compute v1.20.1 // indirect
 	cloud.google.com/go/compute/metadata v0.2.4-0.20230617002413-005d2dfb6b68 // indirect
 	code.cloudfoundry.org/go-diodes v0.0.0-20180905200951-72629b5276e3 // indirect
 	code.cloudfoundry.org/rfc5424 v0.0.0-20180905210152-236a6d29298a // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.2 // indirect
-	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.6.0 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.7.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/internal v1.3.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.0.0 // indirect
 	github.com/JohnCGriffin/overflow v0.0.0-20211019200055-46fa312c352c // indirect
@@ -197,7 +196,7 @@ require (
 	github.com/google/s2a-go v0.1.4 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.3 // indirect
-	github.com/googleapis/gax-go/v2 v2.10.0 // indirect
+	github.com/googleapis/gax-go/v2 v2.11.0 // indirect
 	github.com/gophercloud/gophercloud v0.16.0 // indirect
 	github.com/gopherjs/gopherjs v1.17.2 // indirect
 	github.com/gsterjov/go-libsecret v0.0.0-20161001094733-a6f4afe4910c // indirect
@@ -207,7 +206,7 @@ require (
 	github.com/hashicorp/go-hclog v1.5.0 // indirect
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
 	github.com/hashicorp/go-kms-wrapping/entropy/v2 v2.0.0 // indirect
-	github.com/hashicorp/go-kms-wrapping/v2 v2.0.9 // indirect
+	github.com/hashicorp/go-kms-wrapping/v2 v2.0.10 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/go-plugin v1.4.9 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.2 // indirect
@@ -221,7 +220,7 @@ require (
 	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/hashicorp/hcl v1.0.1-vault-5 // indirect
 	github.com/hashicorp/serf v0.10.1 // indirect
-	github.com/hashicorp/vault/sdk v0.9.2-0.20230530190758-08ee474850e0 // indirect
+	github.com/hashicorp/vault/sdk v0.9.2 // indirect
 	github.com/hashicorp/yamux v0.1.1 // indirect
 	github.com/hpcloud/tail v1.0.0 // indirect
 	github.com/imdario/mergo v0.3.15 // indirect
@@ -296,12 +295,12 @@ require (
 	golang.org/x/crypto v0.12.0 // indirect
 	golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df // indirect
 	golang.org/x/mod v0.11.0 // indirect
-	golang.org/x/oauth2 v0.8.0 // indirect
+	golang.org/x/oauth2 v0.10.0 // indirect
 	golang.org/x/term v0.11.0 // indirect
 	golang.org/x/text v0.12.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
-	google.golang.org/api v0.125.0 // indirect
+	google.golang.org/api v0.126.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230530153820-e85fd2cbaebc // indirect
 	google.golang.org/protobuf v1.31.0 // indirect

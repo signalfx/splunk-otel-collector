@@ -1,32 +1,7 @@
-> The official Splunk documentation for this page is [Use Splunk Distribution of OpenTelemetry Collector](https://docs.splunk.com/Observability/gdi/opentelemetry/resources.html). For instructions on how to contribute to the docs, see [CONTRIBUTING.md](../CONTRIBUTING#documentation.md).
+The official Splunk documentation for this page is [Overview of the Splunk Distribution of OpenTelemetry Collector](https://docs.splunk.com/Observability/gdi/opentelemetry/resources.html). 
 
-# Architecture
+See architecture diagrams and deployment modes in [Collector deployment modes](https://docs.splunk.com/Observability/gdi/opentelemetry/deployment-modes.html).
 
-This distribution can be deployed in the below ways.
+For instructions on how to contribute to the docs, see [CONTRIBUTING.md](../CONTRIBUTING.md#documentation).
 
-## Helm or Installer Script (Recommended)
 
-![splunk-otel-collector-recommended-arch](images/splunk-otel-collector-recommended-arch.png)
-
-If Helm or the installer script is used then the architecture will look similar
-to above. The default configuration of the components is as follows:
-
-- [splunk-otel-collector (otelcol)](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/otelcol/config/collector/agent_config.yaml)
-- [td-agent (fluentd)](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/buildscripts/packaging/fpm/etc/otel/collector/fluentd)
-
-## Standalone
-
-![splunk-otel-collector-standalone-arch](images/splunk-otel-collector-standalone-arch.png)
-
-If deployed in standalone, only the splunk-otel-collector is deployed and
-configured. Note the default configuration for standalone is gateway-mode instead of agent-mode like above:
-
-- [splunk-otel-collector (otelcol)](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/otelcol/config/collector/gateway_config.yaml)
-
-## Advanced
-
-![splunk-otel-collector-recommended-gateway-arch](images/splunk-otel-collector-recommended-gateway-arch.png)
-
-It is possible to manually configure the splunk-otel-collector running as an
-agent to send to a splunk-otel-collector gateway instance/cluster. This
-requires changing the pipeline exporters in the agent to point to the gateway.

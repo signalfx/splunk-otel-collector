@@ -33,12 +33,12 @@ output_tar=$(basename "$OUTPUT" .gz)
 
 CACHE_REPO="quay.io/signalfx/agent-bundle-stage-cache"
 CACHE_DIR="${REPO_DIR}/.cache/buildx/${IMAGE_NAME}-${ARCH}"
-CACHE_TO_DIR=""
+CACHE_TEMP_DIR=""
 CACHE_FROM_OPTS=""
 CACHE_TO_OPTS=""
 BUILDER=""
 
-ALL_STAGES=$( grep 'FROM .* as .*' ${SCRIPT_DIR}/../Dockerfile | sed -e 's/.*as //' )
+ALL_STAGES=$( grep '^FROM .* as .*' ${SCRIPT_DIR}/../Dockerfile | sed -e 's/.*as //' )
 
 export DOCKER_BUILDKIT=1
 
@@ -48,11 +48,15 @@ if [[ "$CI" = "true" || "$PUSH_CACHE" = "yes" ]]; then
     BUILDER="--builder ${IMAGE_NAME}"
     DOCKER_OPTS="$BUILDER $DOCKER_OPTS"
     if [[ -d "$CACHE_DIR" ]]; then
+        # use the restored CI cache if it exists
         CACHE_FROM_OPTS="--cache-from=type=local,src=${CACHE_DIR}"
+        USE_REGISTRY_CACHE="no"
+        if [[ "${BUNDLE_CACHE_HIT:-}" != "true" ]]; then
+            # export current build cache to temporary directory
+            CACHE_TEMP_DIR="$(mktemp -d)"
+            CACHE_TO_OPTS="--cache-to=type=local,mode=max,dest=${CACHE_TEMP_DIR}"
+        fi
     fi
-    # export to local cache when running in CI
-    CACHE_TO_DIR="$(mktemp -d)"
-    CACHE_TO_OPTS="--cache-to=type=local,mode=max,dest=${CACHE_TO_DIR}"
 fi
 
 if [[ "$PUSH_CACHE" = "yes" ]]; then
@@ -64,7 +68,6 @@ if [[ "$PUSH_CACHE" = "yes" ]]; then
             --target $stage \
             --push \
             $CACHE_TO_OPTS --cache-to=type=inline \
-            $CACHE_FROM_OPTS --cache-from=type=registry,ref=${stage_image} \
             $DOCKER_OPTS
     done
 fi
@@ -97,11 +100,11 @@ rm -rf ${tmpdir}/${IMAGE_NAME}/{proc,sys,dev,etc} ${tmpdir}/${IMAGE_NAME}/.docke
 mkdir -p "$OUTPUT_DIR"
 (cd $tmpdir && tar -zcf ${OUTPUT_DIR}/${OUTPUT} *)
 
-if [[ -n "$CACHE_TO_DIR" && -d "$CACHE_TO_DIR" ]]; then
+if [[ -n "$CACHE_TEMP_DIR" && -d "$CACHE_TEMP_DIR" ]]; then
     # replace cache directory with the current build to avoid snowballing
     mkdir -p "$CACHE_DIR"
     rm -rf "$CACHE_DIR"
-    mv "$CACHE_TO_DIR" "$CACHE_DIR"
+    mv "$CACHE_TEMP_DIR" "$CACHE_DIR"
 fi
 
 if [[ -n "$BUILDER" ]]; then

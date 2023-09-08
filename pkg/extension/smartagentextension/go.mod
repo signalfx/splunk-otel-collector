@@ -122,7 +122,7 @@ require (
 	github.com/shirou/gopsutil/v3 v3.23.8 // indirect
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3 // indirect
 	github.com/signalfx/gohistogram v0.0.0-20160107210732-1ccfd2ff5083 // indirect
-	github.com/signalfx/golib/v3 v3.3.52 // indirect
+	github.com/signalfx/golib/v3 v3.3.53 // indirect
 	github.com/signalfx/sapm-proto v0.12.0 // indirect
 	github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20230104182534-9eee411fe305 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect

@@ -94,7 +94,7 @@ gendependabot:
 .PHONY: tidy-all
 tidy-all:
 	$(MAKE) $(FOR_GROUP_TARGET) TARGET="tidy"
-	go mod tidy -compat=1.19
+	$(MAKE) tidy
 
 .PHONY: install-tools
 install-tools:

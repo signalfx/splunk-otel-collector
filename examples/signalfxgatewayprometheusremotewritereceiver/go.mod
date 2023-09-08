@@ -1,6 +1,6 @@
 module github.com/signalfx/splunk-otel-collector/examples/signalfxgatewayprometheusremotewritereceiver/fake-metrics-generator
 
-go 1.19
+go 1.20
 
 require (
 	github.com/gogo/protobuf v1.3.2

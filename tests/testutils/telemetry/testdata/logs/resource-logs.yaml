@@ -1,7 +1,9 @@
 resource_logs:
   - attributes:
       one_attr: one_value
-      two_attr: two_value
+      two_attr:
+        nested_attr_a: one_nested_value
+        nested_attr_b: two_nested_value
     scope_logs:
       - instrumentation_scope:
           name: without_logs
@@ -24,6 +26,9 @@ resource_logs:
               log_attr_a: one_value
               log_attr_b: this should match another RE2 directive
               log_attr_c: this should match an ANY directive
+              log_attr_d:
+                nested_attr_a: 123
+                nested_attr_b: this should match yet another RE2 directive
             severity: 24
             severity_text: arbitrary
           - body: 0.123

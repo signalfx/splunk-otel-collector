@@ -50,7 +50,10 @@ func TestLoadMetricsHappyPath(t *testing.T) {
 	require.NotNil(t, firstRMAttrs["one_attr"])
 	assert.Equal(t, "one_value", firstRMAttrs["one_attr"])
 	require.NotNil(t, firstRMAttrs["two_attr"])
-	assert.Equal(t, "two_value", firstRMAttrs["two_attr"])
+	assert.Equal(t, map[string]any{
+		"nested_attr_a": "one_nested_value",
+		"nested_attr_b": "two_nested_value",
+	}, firstRMAttrs["two_attr"])
 
 	assert.Equal(t, 2, len(firstRM.ScopeMetrics))
 	firstRMFirstSM := firstRM.ScopeMetrics[0]
@@ -409,9 +412,20 @@ func TestMetricContainsAllNoBijection(t *testing.T) {
 	containsAll, err = expected.ContainsAll(received)
 	require.False(t, containsAll)
 	require.Error(t, err)
-	require.Contains(t, err.Error(),
-		"Missing Metrics: [attributes:\n  metric_attr_a: one_value\n  metric_attr_b: this should match an RE2 directive\n  metric_attr_c: this should match an ANY directive\nname: another_int_gauge\ntype: IntGauge\nvalue: 456\n name: another_double_gauge\ntype: DoubleGauge\nvalue: 567.89\n",
-	)
+	require.Contains(t, err.Error(), `Missing Metrics: [attributes:
+  metric_attr_a: one_value
+  metric_attr_b: this should match an RE2 directive
+  metric_attr_c: this should match an ANY directive
+  metric_attr_d:
+    nested_attr_a: 123
+    nested_attr_b: this should match yet another RE2 directive
+name: another_int_gauge
+type: IntGauge
+value: 456
+ name: another_double_gauge
+type: DoubleGauge
+value: 567.89
+]`)
 }
 
 func TestMetricContainsAllValueNeverReceived(t *testing.T) {

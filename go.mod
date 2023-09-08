@@ -34,7 +34,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/pprofextension v0.84.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/storage v0.84.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.84.0
-  github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza v0.84.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza v0.84.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.84.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor v0.84.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/filterprocessor v0.84.0
@@ -162,7 +162,6 @@ require (
 	github.com/moby/sys/sequential v0.5.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/ottl v0.84.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatautil v0.84.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza v0.84.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus v0.84.0 // indirect
 	github.com/ovh/go-ovh v1.4.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect

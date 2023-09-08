@@ -21,6 +21,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/knadh/koanf/maps"
 	"go.opentelemetry.io/collector/pdata/plog"
 	"gopkg.in/yaml.v2"
 
@@ -75,6 +76,20 @@ func LoadResourceLogs(path string) (*ResourceLogs, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	for _, rl := range loaded.ResourceLogs {
+		if rl.Resource.Attributes != nil {
+			maps.IntfaceKeysToStrings(*rl.Resource.Attributes)
+		}
+		for _, sl := range rl.ScopeLogs {
+			for _, l := range sl.Logs {
+				if l.Attributes != nil {
+					maps.IntfaceKeysToStrings(*l.Attributes)
+				}
+			}
+		}
+	}
+
 	loaded.FillDefaultValues()
 	err = loaded.Validate() // in lieu of json/yaml schema adoption
 	if err != nil {

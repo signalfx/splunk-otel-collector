@@ -51,7 +51,10 @@ func TestLoadLogsHappyPath(t *testing.T) {
 	require.NotNil(t, firstRLAttrs["one_attr"])
 	assert.Equal(t, "one_value", firstRLAttrs["one_attr"])
 	require.NotNil(t, firstRLAttrs["two_attr"])
-	assert.Equal(t, "two_value", firstRLAttrs["two_attr"])
+	assert.Equal(t, map[string]any{
+		"nested_attr_a": "one_nested_value",
+		"nested_attr_b": "two_nested_value",
+	}, firstRLAttrs["two_attr"])
 
 	assert.Equal(t, 2, len(firstRL.ScopeLogs))
 	firstRLFirstSL := firstRL.ScopeLogs[0]
@@ -79,7 +82,10 @@ func TestLoadLogsHappyPath(t *testing.T) {
 	require.NotNil(t, firstRLSecondSLFirstLogAttrs["one_attr"])
 	assert.Equal(t, "one_value", firstRLSecondSLFirstLogAttrs["one_attr"])
 	require.NotNil(t, firstRLSecondSLFirstLogAttrs["two_attr"])
-	assert.Equal(t, "two_value", firstRLSecondSLFirstLogAttrs["two_attr"])
+	assert.Equal(t, map[string]any{
+		"nested_attr_a": "one_nested_value",
+		"nested_attr_b": "two_nested_value",
+	}, firstRLSecondSLFirstLogAttrs["two_attr"])
 
 	firstRLSecondScopeLogSecondLog := firstRLSecondSL.Logs[1]
 	require.NotNil(t, firstRLSecondScopeLogSecondLog)
@@ -109,6 +115,10 @@ func TestLoadLogsHappyPath(t *testing.T) {
 		"log_attr_a": "one_value",
 		"log_attr_b": "this should match another RE2 directive",
 		"log_attr_c": "this should match an ANY directive",
+		"log_attr_d": map[string]any{
+			"nested_attr_a": 123,
+			"nested_attr_b": "this should match yet another RE2 directive",
+		},
 	}, secondRLFirstSLFirstLog.Attributes)
 
 	secondRLFirstScopeLogSecondLog := secondRLFirstSL.Logs[1]
@@ -362,8 +372,19 @@ func TestLogContainsAllNoBijection(t *testing.T) {
 	require.False(t, containsAll)
 	require.Error(t, err)
 	require.Contains(t, err.Error(),
-		"Missing Logs: [body: this should match an RE2 directive\nattributes:\n  log_attr_a: one_value\n  log_attr_b: this should match another RE2 directive\n  log_attr_c: this should match an ANY directive\nseverity: 24\nseverity_text: arbitrary\n body: 0.123\nseverity: 9\n]",
-	)
+		`Missing Logs: [body: this should match an RE2 directive
+attributes:
+  log_attr_a: one_value
+  log_attr_b: this should match another RE2 directive
+  log_attr_c: this should match an ANY directive
+  log_attr_d:
+    nested_attr_a: 123
+    nested_attr_b: this should match yet another RE2 directive
+severity: 24
+severity_text: arbitrary
+ body: 0.123
+severity: 9
+]`)
 }
 
 func TestLogContainsAllSeverityTextNeverReceived(t *testing.T) {

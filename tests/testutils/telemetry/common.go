@@ -62,6 +62,11 @@ func populateDirectives(attrs *map[string]any) {
 	}
 	attributes := *attrs
 	for k, v := range attributes {
+		if subMap, ok := v.(map[string]any); ok {
+			populateDirectives(&subMap)
+			continue
+		}
+
 		if v == buildVersionPlaceholder {
 			attributes[k] = version.Version
 			continue
@@ -129,6 +134,16 @@ func attributesAreEqual(attrs, toCompare *map[string]any) bool {
 		if !ok {
 			return false
 		}
+		if vMap, isMap := v.(map[string]any); isMap {
+			tcVMap, tcIsMap := tcV.(map[string]any)
+			if !tcIsMap {
+				return false
+			}
+			if !attributesAreEqual(&vMap, &tcVMap) {
+				return false
+			}
+			continue
+		}
 		if isDirective, equal := directiveEquality(v, tcV); isDirective {
 			if !equal {
 				return false
@@ -170,6 +185,9 @@ func marshal(y any) string {
 func directiveMapToMarshal(m map[string]any) map[string]any {
 	cp := map[string]any{}
 	for k, v := range m {
+		if vMap, ok := v.(map[string]any); ok {
+			v = directiveMapToMarshal(vMap)
+		}
 		if t, ok := v.(*regexp.Regexp); ok {
 			v = fmt.Sprintf("<RE2(%s)>", t.String())
 		}

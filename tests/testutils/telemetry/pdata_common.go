@@ -14,7 +14,10 @@
 
 package telemetry
 
-import "gopkg.in/yaml.v2"
+import (
+	"github.com/knadh/koanf/maps"
+	"gopkg.in/yaml.v2"
+)
 
 // sanitizeAttributes helps ensure that unmarshaled yaml mappings and
 // pcommon.Map items have the same map[string]any representation
@@ -28,5 +31,6 @@ func sanitizeAttributes(attributes map[string]any) map[string]any {
 	if err = yaml.Unmarshal(b, &sanitized); err != nil {
 		panic(err)
 	}
+	maps.IntfaceKeysToStrings(sanitized)
 	return sanitized
 }

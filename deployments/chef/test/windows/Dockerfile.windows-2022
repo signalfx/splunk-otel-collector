@@ -11,14 +11,6 @@ RUN Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointMa
 
 RUN choco install -y -f --no-progress chef-client --version=18.2.7
 
-RUN $env:PATH += ';C:\opscode\chef\embedded\bin'; Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment\' -Name Path -Value $env:PATH
-
-RUN gem install serverspec -v 2.42.0
-
 COPY test/integration C:/test
-COPY test/windows/spec_helper.rb C:/test/default/serverspec/spec_helper.rb
-COPY test/windows/spec_helper.rb C:/test/custom_vars/serverspec/spec_helper.rb
-COPY test/windows/spec_helper.rb C:/test/with_custom_dotnet_instrumentation/serverspec/spec_helper.rb
-COPY test/windows/spec_helper.rb C:/test/with_default_dotnet_instrumentation/serverspec/spec_helper.rb
 
 WORKDIR C:\\test

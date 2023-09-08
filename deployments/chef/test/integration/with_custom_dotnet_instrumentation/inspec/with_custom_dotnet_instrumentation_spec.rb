@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 describe service('splunk-otel-collector') do
   it { should be_enabled }
   it { should be_running }
@@ -23,18 +21,18 @@ env_vars = [
   { name: 'MY_CUSTOM_OPTION2', type: :string, data: 'value2' },
 ]
 
-describe windows_registry_key('HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment') do
-  it { should have_property_value('SIGNALFX_DOTNET_TRACER_HOME', :type_string, "#{ENV['ProgramFiles']}\\SignalFx\\.NET Tracing\\") }
+describe registry_key('HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment') do
+  its('SIGNALFX_DOTNET_TRACER_HOME') { should cmp "#{ENV['ProgramFiles']}\\SignalFx\\.NET Tracing\\" }
   env_vars.each do |item|
-    it { should have_property_value(item[:name], item[:type], item[:data]) }
+    its(item[:name]) { should eq item[:data] }
   end
 end
 
-iis_env = ''
+iis_env = []
 env_vars.each do |item|
-  iis_env += "#{item[:name]}=#{item[:data]}\n"
+  iis_env |= [ "#{item[:name]}=#{item[:data]}" ]
 end
 
-describe windows_registry_key('HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\W3SVC') do
-  it { should have_property_value('Environment', :type_multistring, iis_env.rstrip) }
+describe registry_key('HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\W3SVC') do
+  it { should have_property_value('Environment', :multi_string, iis_env) }
 end

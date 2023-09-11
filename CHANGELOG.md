@@ -2,6 +2,50 @@
 
 ## Unreleased
 
+## v0.85.0
+
+***ADVANCED NOTICE - SPLUNK_LISTEN_INTERFACE DEFAULTS***
+
+Starting with version 0.86.0 (next release), the collector installer will change the default value of the network listening interface option from `0.0.0.0` to `127.0.0.1`.
+
+### 🛑 Breaking changes 🛑
+
+- (Contrib) `k8sclusterreceiver`: Remove deprecated Kubernetes API resources ([#23612](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/23612), [#26551](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/26551))
+Drop support of `HorizontalPodAutoscaler` `v2beta2` version and `CronJob` `v1beta1` version.
+Note that metrics for those resources will not be emitted anymore on Kubernetes 1.22 and older.
+- (Contrib) `prometheusexporters`: Append prometheus type and unit suffixes by default in prometheus exporters. ([#26488](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/26488))
+Suffixes can be disabled by setting add_metric_suffixes to false on the exporter.
+- (Contrib) `attributesprocessor`, `resourceprocessor`: Transition featuregate `coreinternal.attraction.hash.sha256` to stable ([#4759](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/4759))
+
+### 💡 Enhancements 💡
+
+- (Splunk) `wavefrontreceiver`: Add wavefrontreceiver ([#3629](https://github.com/signalfx/splunk-otel-collector/pull/3629))
+- (Splunk) Update `splunk-otel-javaagent` to 1.28.0 ([#3647](https://github.com/signalfx/splunk-otel-collector/pull/3647))
+- (Contrib) `postgresqlreceiver`: Added postgresql.database.locks metric. ([#26317](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/26317))
+- (Contrib) `receiver/statsdreceiver`: Add support for distribution type metrics in the statsdreceiver. ([#24768](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/24768))
+- (Contrib) `pkg/ottl`: Add converters to convert time to unix nanoseconds, unix microseconds, unix milliseconds or unix seconds ([#24686](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/24686))
+- (Contrib) `receiver/hostmetrics`: Don't collect connections data from the host if system.network.connections metric is disabled to not waste CPU cycles. ([#25815](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/25815))
+- (Contrib) `jaegerreceiver`,`jaegerremotesamplingextension`: Add featuregates to replace Thrift-gen with Proto-gen types for sampling strategies ([#18401](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/18401))
+  
+  Available featuregates are:
+  * `extension.jaegerremotesampling.replaceThriftWithProto`
+  *  `receiver.jaegerreceiver.replaceThriftWithProto`
+- (Contrib) `k8sclusterreceiver`: Add optional `k8s.kubelet.version`, `k8s.kubeproxy.version` node resource attributes ([#24835](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/24835))
+- (Contrib) `k8sclusterreceiver`: Add `k8s.pod.status_reason` option metric ([#24034](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/24034))
+- (Contrib) `k8sobjectsreceiver`: Adds logic to properly handle 410 response codes when watching. This improves the reliability of the receiver. ([#26098](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/26098))
+- (Contrib) `k8sobjectreceiver`: Adds option to exclude event types (`MODIFIED`, `DELETED`, etc) in watch mode. ([#26042](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/26042))
+- (Core) `confighttp`: Add option to disable HTTP keep-alives ([#8260](https://github.com/open-telemetry/opentelemetry-collector/issues/8260))
+
+### 🧰 Bug fixes 🧰
+
+- (Splunk) `fluentd`: Update fluentd url for windows ([#3635](https://github.com/signalfx/splunk-otel-collector/pull/3635))
+- (Contrib) `processor/routing`: When using attributes instead of resource attributes, the routing processor would crash the collector. This does not affect the connector version of this component. ([#26462](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/26462))
+- (Contrib) `processor/tailsampling`: Added saving instrumentation library information for tail-sampling ([#13642](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/13642))
+- (Contrib) `receiver/kubeletstats`: Fixes client to refresh service account token when authenticating with kubelet ([#26120](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/26120))
+- (Contrib) `filelogreceiver`: Fix the behavior of the add operator to continue to support `EXPR(env("MY_ENV_VAR"))` expressions ([#26373](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/26373))
+- (Contrib) `pkg/stanza`: Fix issue unsupported type 'syslog_parser' ([#26452](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/26452))
+- (Core) `confmap`: fix bugs of unmarshalling slice values ([#4001](https://github.com/open-telemetry/opentelemetry-collector/issues/4001))
+
 ## v0.84.0
 
 ### 🛑 Breaking changes 🛑

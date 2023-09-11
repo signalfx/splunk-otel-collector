@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Go
         uses: actions/setup-go@v4
@@ -57,7 +57,7 @@ jobs:
         SYS_BINARIES: [ "binaries-linux_amd64", "binaries-linux_arm64", "binaries-linux_ppc64le" ]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Go
         uses: actions/setup-go@v4
@@ -83,7 +83,7 @@ jobs:
         ARCH: ["amd64", "arm64"]
       fail-fast: false
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: actions/cache@v3
         id: bundle-cache
@@ -93,7 +93,7 @@ jobs:
           restore-keys: |
             agent-bundle-buildx-${{ matrix.ARCH }}-
 
-      - uses: docker/setup-qemu-action@v2
+      - uses: docker/setup-qemu-action@v3
         if: ${{ matrix.ARCH != 'amd64' }}
         with:
           platforms: ${{ matrix.ARCH }}
@@ -119,7 +119,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -153,7 +153,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Get matrix
         id: get-matrix
@@ -182,7 +182,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Get package type for ${{ matrix.DISTRO }}
         run: |
@@ -200,7 +200,7 @@ jobs:
           name: ${{ env.SYS_PACKAGE }}-${{ matrix.ARCH }}-package
           path: ./dist
 
-      - uses: docker/setup-qemu-action@v2
+      - uses: docker/setup-qemu-action@v3
         if: ${{ matrix.ARCH != 'amd64' }}
         with:
           platforms: ${{ matrix.ARCH }}
@@ -259,7 +259,7 @@ jobs:
         ARCH: [ "amd64", "arm64", "ppc64le" ]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Go
         uses: actions/setup-go@v4
@@ -269,7 +269,7 @@ jobs:
 
       - name: Set up QEMU
         if: ${{ matrix.ARCH != 'amd64' }}
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
         with:
           platforms: ${{ matrix.ARCH }}
           image: tonistiigi/binfmt:qemu-v7.0.0

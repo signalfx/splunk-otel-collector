@@ -8,47 +8,7 @@ import (
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/signalfx/golib/v3/log"
 	"github.com/sirupsen/logrus"
-
-	apmlog "github.com/signalfx/signalfx-agent/pkg/apm/log"
 )
-
-func NewAPMShim(log logrus.FieldLogger) apmlog.Logger {
-	return apmShim{log: log}
-}
-
-type apmShim struct {
-	log logrus.FieldLogger
-}
-
-func (a apmShim) Debug(msg string) {
-	a.log.Debug(msg)
-}
-
-func (a apmShim) Warn(msg string) {
-	a.log.Warn(msg)
-}
-
-func (a apmShim) Error(msg string) {
-	a.log.Error(msg)
-}
-
-func (a apmShim) Info(msg string) {
-	a.log.Info(msg)
-}
-
-func (a apmShim) Panic(msg string) {
-	a.log.Panic(msg)
-}
-
-func (a apmShim) WithFields(fields apmlog.Fields) apmlog.Logger {
-	return apmShim{log: a.log.WithFields(logrus.Fields(fields))}
-}
-
-func (a apmShim) WithError(err error) apmlog.Logger {
-	return apmShim{log: a.log.WithError(err)}
-}
-
-var _ apmlog.Logger = &apmShim{}
 
 // LogrusGolibShim makes a Logrus logger conform to the golib Log interface
 type LogrusGolibShim struct {

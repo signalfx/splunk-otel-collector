@@ -46,20 +46,6 @@ func YAMLNameOfField(field reflect.StructField) string {
 	return parts[0]
 }
 
-// YAMLNameOfFieldInStruct returns the YAML key that is used for the given
-// struct field, looking up fieldName in the given st struct.  If the field has
-// no key (e.g. if the `yaml:"-"` tag is set, this will return an empty string.
-// It uses YAMLNameOfField under the covers.  If st is not a struct, this will
-// panic.
-func YAMLNameOfFieldInStruct(fieldName string, st interface{}) string {
-	stType := reflect.Indirect(reflect.ValueOf(st)).Type()
-	field, ok := stType.FieldByName(fieldName)
-	if !ok {
-		return ""
-	}
-	return YAMLNameOfField(field)
-}
-
 var yamlLineNumberRE = regexp.MustCompile(`line (\d+): `)
 
 // ParseLineNumberFromYAMLError takes an error message nested in yaml.TypeError

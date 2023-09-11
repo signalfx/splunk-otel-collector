@@ -103,6 +103,7 @@ if [ "$distro_codename" = "stretch" ]; then
   default_td_agent_version="$default_td_agent_version_stretch"
 fi
 
+preload_path="/etc/ld.so.preload"
 default_instrumentation_version="latest"
 default_deployment_environment=""
 instrumentation_config_path="/usr/lib/splunk-instrumentation/instrumentation.conf"
@@ -292,23 +293,24 @@ install_yum_package() {
 ensure_not_installed() {
   local with_fluentd="$1"
   local with_instrumentation="$2"
-  local agents="otelcol"
+  local otelcol_path=$( command -v otelcol 2>/dev/null || true )
+  local td_agent_path=$( command -v td-agent 2>/dev/null || true )
 
-  if [ "$with_fluentd" = "true" ]; then
-    agents="$agents td-agent"
+  if [ -n "$otelcol_path" ]; then
+    echo "$otelcol_path already exists which implies that the collector is already installed." >&2
+    echo "Please uninstall the collector, or try running this script with the '--uninstall' option." >&2
+    exit 1
   fi
 
-  for agent in $agents; do
-    if command -v $agent >/dev/null 2>&1; then
-      echo "An agent binary already exists at $( command -v $agent ) which implies that the agent has already been installed." >&2
-      echo "Please uninstall the agent and re-run this script." >&2
-      exit 1
-    fi
-  done
+  if [ "$with_fluentd" = "true" ] && [ -n "$td_agent_path" ]; then
+    echo "$td_agent_path already exists which implies that fluentd/td-agent is already installed." >&2
+    echo "Please uninstall fluentd/td-agent, or try running this script with the '--uninstall' option." >&2
+    exit 1
+  fi
 
   if [ "$with_instrumentation" = "true" ] && [ -f "$instrumentation_so_path" ]; then
-    echo "$instrumentation_so_path already exists which implies that the instrumentation library has already been installed." >&2
-    echo "Please uninstall the instrumentation library and re-run this script" >&2
+    echo "$instrumentation_so_path already exists which implies that auto instrumentation is already installed." >&2
+    echo "Please uninstall auto instrumentation, or try running this script with the '--uninstall' option." >&2
     exit 1
   fi
 }
@@ -411,71 +413,82 @@ configure_fluentd() {
   fi
 }
 
-update_deployment_environment() {
-  local deployment_environment="$1"
+backup_file() {
+  local path="$1"
 
-  if grep -q -E "^resource_attributes=.*deployment\.environment=${deployment_environment}(,|$)" "$instrumentation_config_path"; then
-    echo "The 'deployment.environment=${deployment_environment}' resource attribute already exists in ${instrumentation_config_path}"
-  else
-    echo "Adding 'deployment.environment=${deployment_environment}' resource attribute to $instrumentation_config_path"
-    if grep -q '^resource_attributes=' "$instrumentation_config_path"; then
-      # traverse through existing resource attributes to add/update deployment.environment
-      deployment_environment_found="false"
-      attributes=""
-      for i in $(grep '^resource_attributes=' "$instrumentation_config_path" | sed 's|^resource_attributes=||' | sed 's|,| |g'); do
-        key="$(echo "$i" | cut -d= -f1)"
-        value="$(echo "$i" | cut -d= -f2)"
-        if [ "$key" = "deployment.environment" ]; then
-          deployment_environment_found="true"
-          value="$deployment_environment"
-        fi
-        attributes="${attributes},${key}=${value}"
-      done
-      if [ "$deployment_environment_found" != "true" ]; then
-        attributes="${attributes},deployment.environment=${deployment_environment}"
-      fi
-      sed -i "s|^resource_attributes=.*|resource_attributes=${attributes#,}|" "$instrumentation_config_path"
-    else
-      # "resource_attributes=" line not found, simply append the line to the config file
-      echo "resource_attributes=deployment.environment=${deployment_environment}" >> "$instrumentation_config_path"
-    fi
-  fi
-}
-
-update_instrumentation_option() {
-  local option="$1"
-  local value="$2"
-
-  if grep -q -E "^${option}=.*" "$instrumentation_config_path"; then
-    # overwrite existing option=value
-    sed -i "s|^${option}=.*|${option}=${value}|" "$instrumentation_config_path"
-  else
-    # append option=value
-    echo "${option}=${value}" >> "$instrumentation_config_path"
-  fi
-}
-
-update_instrumentation_config() {
-  local deployment_environment="$1"
-
-  if [ -f "$instrumentation_config_path" ]; then
+  if [ -f "$path" ]; then
     ts="$(date '+%Y%m%d-%H%M%S')"
-    echo "Backing up $instrumentation_config_path as ${instrumentation_config_path}.bak.${ts}"
-    cp "$instrumentation_config_path" "${instrumentation_config_path}.bak.${ts}"
-    if [ -n "$deployment_environment" ]; then
-      update_deployment_environment "$deployment_environment"
+    echo "Backing up $path as ${path}.bak.${ts}"
+    cp "$path" "${path}.bak.${ts}"
+  fi
+}
+
+get_package_version() {
+  local package="$1"
+  local version=""
+
+  case "$distro" in
+    ubuntu|debian)
+      version="$( dpkg-query --showformat='${Version}' --show $package )"
+      ;;
+    *)
+      version="$( rpm -q --queryformat='%{VERSION}' $package )"
+      ;;
+  esac
+
+  echo -n "$version"
+}
+
+enable_preload() {
+  if [ -f "$preload_path" ]; then
+    if ! grep -q "$instrumentation_so_path" "$preload_path"; then
+      backup_file "$preload_path"
+      echo "Adding $instrumentation_so_path to $preload_path"
+      echo "$instrumentation_so_path" >> "$preload_path"
     fi
-    if [ -n "$service_name" ]; then
-      update_instrumentation_option "service_name" "$service_name"
-    fi
-    update_instrumentation_option "generate_service_name" "$generate_service_name"
-    update_instrumentation_option "disable_telemetry" "$disable_telemetry"
-    update_instrumentation_option "enable_profiler" "$enable_profiler"
-    update_instrumentation_option "enable_profiler_memory" "$enable_profiler_memory"
-    update_instrumentation_option "enable_metrics" "$enable_metrics"
   else
-    echo "$instrumentation_config_path not found!" >&2
-    exit 1
+    echo "Adding $instrumentation_so_path to $preload_path"
+    echo "$instrumentation_so_path" >> "$preload_path"
+  fi
+}
+
+disable_preload() {
+  if [ -f "$preload_path" ] && grep -q "$instrumentation_so_path" "$preload_path"; then
+    backup_file "$preload_path"
+    echo "Removing ${instrumentation_so_path} from ${preload_path}"
+    sed -i -e "s|$instrumentation_so_path||" "$preload_path"
+    if [ ! -s "$preload_path" ] || ! grep -q '[^[:space:]]' "$preload_path"; then
+      echo "Removing empty ${preload_path}"
+      rm -f "$preload_path"
+    fi
+  fi
+}
+
+create_instrumentation_config() {
+  local deployment_environment="$1"
+  local version="$( get_package_version splunk-otel-auto-instrumentation )"
+  local resource_attributes="splunk.zc.method=splunk-otel-auto-instrumentation-${version}"
+
+  backup_file "$instrumentation_config_path"
+
+  echo "Creating ${instrumentation_config_path}"
+  cat <<EOH > $instrumentation_config_path
+java_agent_jar=${instrumentation_jar_path}
+generate_service_name=${generate_service_name}
+disable_telemetry=${disable_telemetry}
+enable_profiler=${enable_profiler}
+enable_profiler_memory=${enable_profiler_memory}
+enable_metrics=${enable_metrics}
+EOH
+
+  if [ -n "$deployment_environment" ]; then
+    resource_attributes="${resource_attributes},deployment.environment=${deployment_environment}"
+  fi
+
+  echo "resource_attributes=${resource_attributes%,}" >> $instrumentation_config_path
+
+  if [ -n "$service_name" ]; then
+    echo "service_name=${service_name}" >> $instrumentation_config_path
   fi
 }
 
@@ -626,6 +639,8 @@ If access_token is not provided, it will be prompted for on stdin.
 
 Options:
 
+Collector:
+  -- <access_token>                     Use '--' if access_token starts with '-'.
   --api-url <url>                       Set the api endpoint URL explicitly instead of the endpoint inferred from the
                                         specified realm.
                                         (default: https://api.REALM.signalfx.com)
@@ -670,20 +685,28 @@ Options:
                                         the collector deb/rpm package from $repo_base.
                                         Specify this option to skip this step and use a pre-configured repo on the
                                         target system that provides the 'splunk-otel-collector' deb/rpm package.
-  --skip-fluentd-repo                   By default, a apt/yum repo definition file will be created to download the
-                                        fluentd deb/rpm package from $td_agent_repo_base.
-                                        Specify this option to skip this step and use a pre-configured repo on the
-                                        target system that provides the 'td-agent' deb/rpm package.
   --test                                Use the test package repo instead of the primary.
   --trace-url <url>                     Set the trace endpoint URL explicitly instead of the endpoint inferred from the
                                         specified realm.
                                         (default: https://ingest.REALM.signalfx.com/v2/trace)
-  --uninstall                           Removes the Splunk OpenTelemetry Collector for Linux.
+
+Fluentd:
   --with[out]-fluentd                   Whether to install and configure fluentd to forward log events to the collector.
                                         (default: --without-fluentd)
-  --with[out]-instrumentation           Whether to install and configure the splunk-otel-auto-instrumentation package.
+  --skip-fluentd-repo                   By default, a apt/yum repo definition file will be created to download the
+                                        fluentd deb/rpm package from $td_agent_repo_base.
+                                        Specify this option to skip this step and use a pre-configured repo on the
+                                        target system that provides the 'td-agent' deb/rpm package.
+                                        Only applicable if the '--with-fluentd' is also specified.
+
+Auto Instrumentation:
+  --with[out]-instrumentation           Whether to install the splunk-otel-auto-instrumentation package and add the
+                                        libsplunk.so shared object library to /etc/ld.so.preload to enable auto
+                                        instrumentation for all supported processes on the host.
                                         (default: --without-instrumentation)
   --deployment-environment <value>      Set the 'deployment.environment' resource attribute to the specified value.
+                                        If not specified, the "Environment" in the Splunk APM UI will appear as
+                                        "unknown" for the auto instrumented application(s).
                                         Only applicable if the '--with-instrumentation' option is also specified.
                                         (default: empty)
   --service-name <name>                 Override the auto-generated service names for all instrumented Java applications
@@ -710,7 +733,10 @@ Options:
   --instrumentation-version             The splunk-otel-auto-instrumentation package version to install.
                                         Only applicable if the '--with-instrumentation' option is also specified.
                                         (default: $default_instrumentation_version)
-  --                                    Use '--' if access_token starts with '-'.
+
+Uninstall:
+  --uninstall                           Removes the Splunk OpenTelemetry Collector for Linux, Fluentd, and Splunk
+                                        OpenTelemetry Auto Instrumentation packages, if installed.
 
 EOH
   exit 0
@@ -950,11 +976,9 @@ parse_args_and_install() {
         uninstall="true"
         ;;
       --with-fluentd)
+        with_fluentd="true"
         if ! fluentd_supported; then
           echo "WARNING: Ignoring the --with-fluentd option since fluentd is currently not supported for ${distro}:${distro_version} ${distro_arch}." >&2
-          with_fluentd="false"
-        else
-          with_fluentd="true"
         fi
         ;;
       --without-fluentd)
@@ -1038,12 +1062,6 @@ parse_args_and_install() {
       exit 0
   fi
 
-  if ! fluentd_supported; then
-    with_fluentd="false"
-  fi
-
-  ensure_not_installed "$with_fluentd" "$with_instrumentation"
-
   if [ -z "$access_token" ]; then
     access_token=$(request_access_token)
   fi
@@ -1064,18 +1082,21 @@ parse_args_and_install() {
     hec_url="${ingest_url}/v1/log"
   fi
 
-  if [ "$with_fluentd" != "true" ]; then
+  if [ "$with_fluentd" != "true" ] || ! fluentd_supported; then
     td_agent_version=""
   fi
 
   if [ "$with_instrumentation" != "true" ]; then
     instrumentation_version=""
-    deployment_environment=""
   fi
 
   if [ -z "$trace_url" ]; then
     trace_url="${ingest_url}/v2/trace"
   fi
+
+  check_support
+
+  ensure_not_installed "$with_fluentd" "$with_instrumentation"
 
   echo "Splunk OpenTelemetry Collector Version: ${collector_version}"
   if [ -n "$ballast" ]; then
@@ -1088,15 +1109,25 @@ parse_args_and_install() {
   echo "API Endpoint: $api_url"
   echo "Trace Endpoint: $trace_url"
   echo "HEC Endpoint: $hec_url"
-  if [ "$with_fluentd" = "true" ]; then
+  if [ -n "$td_agent_version" ]; then
     echo "TD Agent (Fluentd) Version: $td_agent_version"
   fi
-  if [ "$with_instrumentation" = "true" ]; then
+  if [ -n "$instrumentation_version" ]; then
     echo "Splunk OpenTelemetry Auto Instrumentation Version: $instrumentation_version"
     if [ -n "$deployment_environment" ]; then
-      echo "  Resource Attribute: deployment.environment=${deployment_environment}"
+      echo "  Deployment environment: $deployment_environment"
+    else
+      echo "  Deployment environment: unknown"
     fi
+    if [ -n "$service_name" ]; then
+      echo "  Service name: $service_name"
+    else
+      echo "  Service name: auto-generated"
+    fi
+    echo "  AlwaysOn Profiling enabled: $enable_profiler"
+    echo "  AlwaysOn Memory Profiling enabled: $enable_profiler_memory"
   fi
+  echo
 
   if [ "${VERIFY_ACCESS_TOKEN:-true}" = "true" ] && ! verify_access_token "$access_token" "$ingest_url" "$insecure"; then
     echo "Your access token could not be verified. This may be due to a network connectivity issue or an invalid access token." >&2
@@ -1106,7 +1137,9 @@ parse_args_and_install() {
   install "$stage" "$collector_version" "$td_agent_version" "$skip_collector_repo" "$skip_fluentd_repo" "$instrumentation_version"
 
   if [ "$with_instrumentation" = "true" ]; then
-    update_instrumentation_config "$deployment_environment"
+    # add libsplunk.so to /etc/ld.so.preload if it was not added automatically by the instrumentation package
+    enable_preload
+    create_instrumentation_config "$deployment_environment"
   fi
 
   create_user_group "$service_user" "$service_group"
@@ -1200,7 +1233,7 @@ parse_args_and_install() {
   systemctl daemon-reload
   systemctl restart splunk-otel-collector
 
-  if [ "$with_fluentd" = "true" ]; then
+  if [ -n "$td_agent_version" ]; then
     # only start fluentd with our custom config to avoid port conflicts within the default config
     systemctl stop td-agent
     if [ -f "$fluent_config_path" ]; then
@@ -1214,6 +1247,7 @@ parse_args_and_install() {
     fi
   fi
 
+  echo
   cat <<EOH
 The Splunk OpenTelemetry Collector for Linux has been successfully installed.
 
@@ -1229,7 +1263,7 @@ must be restarted to apply the changes by running the following command as root:
 
 EOH
 
-  if [ "$with_fluentd" = "true" ] && [ -f "$fluent_config_path" ]; then
+  if [ -n "$td_agent_version" ] && [ -f "$fluent_config_path" ]; then
     cat <<EOH
 Fluentd has been installed and configured to forward log events to the Splunk OpenTelemetry Collector.
 By default, all log events with the @SPLUNK label will be forwarded to the collector.
@@ -1259,13 +1293,23 @@ The Splunk OpenTelemetry Auto Instrumentation package has been installed.
 /etc/ld.so.preload has been configured for the instrumentation library at $instrumentation_so_path.
 The configuration file is located at $instrumentation_config_path.
 
-The Java application(s) on the host need to be manually started/restarted.
+Reboot the system or restart the Java application(s) for auto instrumentation to take effect.
 
 EOH
   fi
+
+  if [ "$with_fluentd" = "true" ] && ! fluentd_supported; then
+    cat <<EOH >&2
+WARNING: Fluentd was not installed since it is currently not supported for ${distro}:${distro_version} ${distro_arch}
+
+EOH
+  fi
+
+  if [ "$listen_interface" = "0.0.0.0" ]; then
+    echo "[NOTICE] Starting with version 0.86.0, the collector installer will change its default network listening interface from 0.0.0.0 to 127.0.0.1. Please consult the release notes for more information and configuration options."
+  fi
+
   exit 0
 }
-
-check_support
 
 parse_args_and_install $@

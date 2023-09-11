@@ -12,6 +12,7 @@ class splunk_otel_collector::params {
     $splunk_collectd_dir = "${splunk_bundle_dir}/run/collectd"
     $collector_config_source = "${collector_config_dir}/agent_config.yaml"
     $collector_config_dest = $collector_config_source
+    $fluentd_base_url = 'https://packages.treasuredata.com'
     if $::osfamily == 'debian' {
       $fluentd_version = downcase($facts['os']['distro']['codename']) ? {
         'stretch' => $fluentd_version_stretch,
@@ -33,6 +34,7 @@ class splunk_otel_collector::params {
     $splunk_collectd_dir = "${splunk_bundle_dir}\\run\\collectd"
     $collector_config_source = "${collector_install_dir}\\agent_config.yaml"
     $collector_config_dest = "${collector_config_dir}\\agent_config.yaml"
+    $fluentd_base_url = 'https://s3.amazonaws.com/packages.treasuredata.com'
     $fluentd_version = $fluentd_version_default
     $fluentd_config_source = "${collector_install_dir}\\fluentd\\td-agent.conf"
     $fluentd_config_dest = ''

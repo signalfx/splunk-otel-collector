@@ -78,6 +78,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/syslogreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tcplogreceiver"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/wavefrontreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowseventlogreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsperfcountersreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver"
@@ -104,6 +105,7 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/lightprometheusreceiver"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/scriptedinputsreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/signalfxgatewayprometheusremotewritereceiver"
 	"github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension"
 	"github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor"
@@ -159,6 +161,7 @@ func Get() (otelcol.Factories, error) {
 		receivercreator.NewFactory(),
 		redisreceiver.NewFactory(),
 		sapmreceiver.NewFactory(),
+		scriptedinputsreceiver.NewFactory(),
 		signalfxreceiver.NewFactory(),
 		signalfxgatewayprometheusremotewritereceiver.NewFactory(),
 		simpleprometheusreceiver.NewFactory(),
@@ -169,6 +172,7 @@ func Get() (otelcol.Factories, error) {
 		statsdreceiver.NewFactory(),
 		syslogreceiver.NewFactory(),
 		tcplogreceiver.NewFactory(),
+		wavefrontreceiver.NewFactory(),
 		windowsperfcountersreceiver.NewFactory(),
 		windowseventlogreceiver.NewFactory(),
 		zipkinreceiver.NewFactory(),

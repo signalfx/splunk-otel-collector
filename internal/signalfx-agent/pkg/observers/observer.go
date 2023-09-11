@@ -10,14 +10,9 @@
 package observers
 
 import (
-	"fmt"
-
 	log "github.com/sirupsen/logrus"
 
-	"github.com/signalfx/signalfx-agent/pkg/core/config"
-	"github.com/signalfx/signalfx-agent/pkg/core/config/validation"
 	"github.com/signalfx/signalfx-agent/pkg/core/services"
-	"github.com/signalfx/signalfx-agent/pkg/utils"
 )
 
 // Shutdownable describes an observer that has a shutdown routine.  Observers
@@ -55,22 +50,4 @@ func Register(_type string, factory ObserverFactory, configTemplate interface{})
 type ServiceCallbacks struct {
 	Added   func(services.Endpoint)
 	Removed func(services.Endpoint)
-}
-
-func configureObserver(observer interface{}, conf *config.ObserverConfig) error {
-	log.WithFields(log.Fields{
-		"config": *conf,
-	}).Debug("Configuring observer")
-
-	finalConfig := utils.CloneInterface(ConfigTemplates[conf.Type])
-
-	if err := config.FillInConfigTemplate("ObserverConfig", finalConfig, conf); err != nil {
-		return err
-	}
-
-	if err := validation.ValidateCustomConfig(finalConfig); err != nil {
-		return fmt.Errorf("observer config is invalid: %w", err)
-	}
-
-	return config.CallConfigure(observer, finalConfig)
 }

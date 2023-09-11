@@ -3,6 +3,7 @@ resource_metrics:
       oracledb.instance.name: localhost:1521/XE
     scope_metrics:
       - instrumentation_scope:
+          attributes: {}
           name: otelcol/oracledbreceiver
           version: <VERSION_FROM_BUILD>
         metrics:

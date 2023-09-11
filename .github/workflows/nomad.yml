@@ -8,6 +8,7 @@ on:
     paths:
       - 'deployments/nomad/**'
       - '.github/workflows/nomad.yml'
+      - '!**.md'
 
 permissions:
   contents: write
@@ -28,7 +29,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install Nomad and Consul.
         run: |

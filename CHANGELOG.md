@@ -2,10 +2,46 @@
 
 ## Unreleased
 
+## v0.84.0
+
+### 🛑 Breaking changes 🛑
+
+- (Contrib) `jaegerreceiver`: Deprecate remote_sampling config in the jaeger receiver ([#24186](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/24186))
+  The jaeger receiver will fail to start if remote_sampling config is specified in it.  The `receiver.jaeger.DisableRemoteSampling` feature gate can be set to let the receiver start and treat  remote_sampling config as no-op. In a future version this feature gate will be removed and the receiver will always  fail when remote_sampling config is specified.
+
 ### 💡 Enhancements 💡
 
+- (Splunk) `jmxreceiver`: Bundle latest [JMX Metric Gatherer](https://github.com/open-telemetry/opentelemetry-java-contrib/tree/main/jmx-metrics) in installer packages and images for Windows and Linux ([#3262](https://github.com/signalfx/splunk-otel-collector/pull/3262))
+- (Splunk) `solacereceiver`: Added solace receiver to the splunk otel collector ([#3590](https://github.com/signalfx/splunk-otel-collector/pull/3590))
+- (Splunk) `receiver/smartagent`: Move to gopsutil 3.23.7 and remove the need to set environment variables ([#3509](https://github.com/signalfx/splunk-otel-collector/pull/3509))
+- (Splunk) Update splunk-otel-javaagent to 1.27.0 ([#3537](https://github.com/signalfx/splunk-otel-collector/pull/3537))
 - (Splunk) `receiver/smartagent`: Use `Leases` instead of `ConfigMapLeases` for leader-election in k8s. ([#3521](https://github.com/signalfx/splunk-otel-collector/pull/3521))
 - (Splunk) Update bundled python to 3.11.5 ([#3543](https://github.com/signalfx/splunk-otel-collector/pull/3543))
+- (Contrib) `redisreceiver`: Adding username parameter for connecting to redis ([#24408](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/24408))
+- (Contrib) `postgresqlreceiver`: Added `postgresql.temp_files` metric. ([#26080](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/26080))
+- (Contrib) `signalfxexporter`: Added a mechanism to drop histogram buckets ([#25845](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/25845))
+- (Contrib) `journaldreceiver`: add support for identifiers ([#20295](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/20295))
+- (Contrib) `journaldreceiver`: add support for dmesg ([#20295](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/20295))
+- (Contrib) `pkg/ottl`: Add converters to covert duration to nanoseconds, microseconds, milliseconds, seconds, minutes or hours ([#24686](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/24686))
+- (Contrib) `snmpreceiver`: Support scalar OID resource attributes ([#23373](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/23373))
+  Add column and scalar OID metrics to resources that have scalar OID attributes
+- (Contrib) `kubeletstatsreceiver`: Add a new `uptime` metric for nodes, pods, and containers to track how many seconds have passed since the object started  ([#25867](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/25867))
+- (Contrib) `pkg/ottl`: Add new `ExtractPatterns` converter that extract regex pattern from string.  ([#25834](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/25834), [#25856](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/25856))
+- (Contrib) `pkg/ottl`: Add support for Log, Metric and Trace Slices to `Len` converter ([#25868](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/25868))
+- (Contrib) `postgresqlreceiver`: Added `postgresql.deadlocks` metric. ([#25688](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/25688))
+- (Contrib) `postgresqlreceiver`: Added `postgresql.sequential_scans` metric. ([#26096](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/26096))
+- (Contrib) `prometheusreceiver`: The otel_scope_name and otel_scope_version labels are used to populate scope name and version. otel_scope_info is used to populate scope attributes. ([#25870](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/20295))
+- (Contrib) `receiver/prometheus`: translate units from prometheus to UCUM ([#23208](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/23208))
+- (Core) `loggingexporter`: Adds exemplars logging to the logging exporter when `detailed` verbosity level is set. ([#7912](https://github.com/open-telemetry/opentelemetry-collector/issues/7912))
+- (Core) `configgrpc`: Allow any registered gRPC load balancer name to be used. ([#8262](https://github.com/open-telemetry/opentelemetry-collector/issues/8262))
+- (Core) `service`: add OTLP export for internal traces ([#8106](https://github.com/open-telemetry/opentelemetry-collector/issues/8106))
+- (Core) `configgrpc`: Add support for :authority pseudo-header in grpc client ([#8228](https://github.com/open-telemetry/opentelemetry-collector/issues/8228))
+
+### 🧰 Bug fixes 🧰
+
+- (Core) `otlphttpexporter`: Fix the handling of the HTTP response to ignore responses not encoded as protobuf ([#8263](https://github.com/open-telemetry/opentelemetry-collector/issues/8263))
+- (Contrib) `receiver_creator`: Update expr and relocate breaking `type` function to `typeOf` ([#26038](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/26038))
+- (Splunk) `deployment/cloudfoundry`: Add missing system resource detection ([#3541](https://github.com/signalfx/splunk-otel-collector/pull/3541))
 
 ## v0.83.0
 

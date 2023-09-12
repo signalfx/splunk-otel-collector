@@ -49,12 +49,21 @@ tar_setup_files_and_permissions() {
     sudo chown root:root "$buildroot/$TRANSLATESFX_INSTALL_PATH"
     sudo chmod 755 "$buildroot/$TRANSLATESFX_INSTALL_PATH"
 
+    JMX_METRIC_GATHERER_RELEASE="$(cat $JMX_METRIC_GATHERER_RELEASE_PATH)"
+    download_jmx_metric_gatherer "$JMX_METRIC_GATHERER_RELEASE" "$buildroot/$BUNDLE_BASE_DIR"
+    JMX_INSTALL_PATH="$buildroot/$BUNDLE_BASE_DIR/opt/opentelemetry-java-contrib-jmx-metrics.jar"
+    if [[ -e "$JMX_INSTALL_PATH" ]]; then
+        sudo chown root:root "$JMX_INSTALL_PATH"
+        sudo chmod 755 "$JMX_INSTALL_PATH"
+    fi
+
     if [[ -n "$bundle_path" ]]; then
         mkdir -p "$buildroot/$BUNDLE_BASE_DIR"
         tar -xzf "$bundle_path" -C "$buildroot/$BUNDLE_BASE_DIR"
         sudo chown -R root:root "$buildroot/$BUNDLE_BASE_DIR"
         sudo chmod -R 755 "$buildroot/$BUNDLE_BASE_DIR"
     fi
+
 }
 
 if [[ -z "$VERSION" ]]; then

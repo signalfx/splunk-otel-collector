@@ -1,9 +1,9 @@
 module github.com/signalfx/signalfx-agent/pkg/apm
 
-go 1.19
+go 1.20
 
 require (
-	github.com/signalfx/golib/v3 v3.3.52
+	github.com/signalfx/golib/v3 v3.3.53
 	github.com/stretchr/testify v1.8.4
 )
 

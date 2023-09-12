@@ -11,7 +11,7 @@ on:
       - '.trivyignore'
 
 env:
-  GO_VERSION: '1.20.6'
+  GO_VERSION: '1.20.8'
 
 concurrency:
   group: vuln-scans-${{ github.event.pull_request.number || github.ref }}

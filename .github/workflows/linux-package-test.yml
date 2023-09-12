@@ -28,7 +28,7 @@ env:
   PYTHON_VERSION: '3.11'
   PIP_VERSION: '22.0.4'
   REQUIREMENTS_PATH: "internal/buildscripts/packaging/tests/requirements.txt"
-  GO_VERSION: 1.20.6
+  GO_VERSION: 1.20.8
 
 jobs:
   setup-environment:
@@ -225,6 +225,7 @@ jobs:
 
       - name: Test ${{ env.SYS_PACKAGE }} on ${{ matrix.DISTRO }} ${{ matrix.ARCH }}
         id: pytest
+        continue-on-error: true
         run: |
           distro="${{ matrix.DISTRO }}"
           if [[ "$distro" = "amazonlinux-2" ]]; then
@@ -237,7 +238,7 @@ jobs:
 
       # qemu, networking, running systemd in containers, etc., can be flaky
       - name: Re-run failed tests
-        if: ${{ failure() && steps.pytest.conclusion == 'failure' }}
+        if: ${{ steps.pytest.outcome == 'failure' }}
         run: |
           distro="${{ matrix.DISTRO }}"
           if [[ "$distro" = "amazonlinux-2" ]]; then

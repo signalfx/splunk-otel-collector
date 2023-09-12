@@ -22,6 +22,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/knadh/koanf/maps"
 	"gopkg.in/yaml.v2"
 
 	"github.com/signalfx/splunk-otel-collector/tests/internal/version"
@@ -120,6 +121,20 @@ func LoadResourceMetrics(path string) (*ResourceMetrics, error) {
 	if err = yaml.UnmarshalStrict(by, &loaded); err != nil {
 		return nil, err
 	}
+
+	for _, rm := range loaded.ResourceMetrics {
+		if rm.Resource.Attributes != nil {
+			maps.IntfaceKeysToStrings(*rm.Resource.Attributes)
+		}
+		for _, sm := range rm.ScopeMetrics {
+			for _, m := range sm.Metrics {
+				if m.Attributes != nil {
+					maps.IntfaceKeysToStrings(*m.Attributes)
+				}
+			}
+		}
+	}
+
 	loaded.FillDefaultValues()
 	err = loaded.Validate() // in lieu of json/yaml schema adoption
 	if err != nil {

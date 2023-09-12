@@ -8,6 +8,9 @@ resource_metrics:
               metric_attr_a: one_value
               metric_attr_b: <RE2(^this.*match an RE2.*$)>
               metric_attr_c: <ANY>
+              metric_attr_d:
+                nested_attr_a: <ANY>
+                nested_attr_b: <RE2(^this should match yet.*RE2.*$)>
             name: another_int_gauge
             type: IntGauge
           - name: another_double_gauge

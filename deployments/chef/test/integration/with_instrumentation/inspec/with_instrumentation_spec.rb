@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 libsplunk_path = '/usr/lib/splunk-instrumentation/libsplunk.so'
 java_agent_path = '/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar'
 resource_attribute = 'deployment.environment=test'

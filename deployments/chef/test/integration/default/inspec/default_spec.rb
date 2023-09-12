@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 splunk_access_token = 'testing123'
 splunk_realm = 'test'
 splunk_api_url = "https://api.#{splunk_realm}.signalfx.com"
@@ -15,21 +13,21 @@ describe service('splunk-otel-collector') do
 end
 
 if os[:family] == 'windows'
-  bundle_dir = 'C:\Program Files\Splunk\OpenTelemetry Collector\agent-bundle'
+  bundle_dir = "#{ENV['ProgramFiles']}\\Splunk\\OpenTelemetry Collector\\agent-bundle"
   collectd_dir = "#{bundle_dir}\\run\\collectd"
-  config_path = 'C:\ProgramData\Splunk\OpenTelemetry Collector\agent_config.yaml'
-  describe windows_registry_key('HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment') do
-    it { should have_property_value('SPLUNK_ACCESS_TOKEN', :type_string, splunk_access_token) }
-    it { should have_property_value('SPLUNK_API_URL', :type_string, splunk_api_url) }
-    it { should have_property_value('SPLUNK_BUNDLE_DIR', :type_string, bundle_dir) }
-    it { should have_property_value('SPLUNK_COLLECTD_DIR', :type_string, collectd_dir) }
-    it { should have_property_value('SPLUNK_CONFIG', :type_string, config_path) }
-    it { should have_property_value('SPLUNK_HEC_TOKEN', :type_string, splunk_hec_token) }
-    it { should have_property_value('SPLUNK_HEC_URL', :type_string, splunk_hec_url) }
-    it { should have_property_value('SPLUNK_INGEST_URL', :type_string, splunk_ingest_url) }
-    it { should have_property_value('SPLUNK_MEMORY_TOTAL_MIB', :type_string, splunk_memory_total) }
-    it { should have_property_value('SPLUNK_REALM', :type_string, splunk_realm) }
-    it { should have_property_value('SPLUNK_TRACE_URL', :type_string, splunk_trace_url) }
+  config_path = "#{ENV['ProgramData']}\\Splunk\\OpenTelemetry Collector\\agent_config.yaml"
+  describe registry_key('HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment') do
+    its('SPLUNK_ACCESS_TOKEN') { should eq splunk_access_token }
+    its('SPLUNK_API_URL') { should eq splunk_api_url }
+    its('SPLUNK_BUNDLE_DIR') { should eq bundle_dir }
+    its('SPLUNK_COLLECTD_DIR') { should eq collectd_dir }
+    its('SPLUNK_CONFIG') { should eq config_path }
+    its('SPLUNK_HEC_TOKEN') { should eq splunk_hec_token }
+    its('SPLUNK_HEC_URL') { should eq splunk_hec_url }
+    its('SPLUNK_INGEST_URL') { should eq splunk_ingest_url }
+    its('SPLUNK_MEMORY_TOTAL_MIB') { should eq splunk_memory_total }
+    its('SPLUNK_REALM') { should eq splunk_realm }
+    its('SPLUNK_TRACE_URL') { should eq splunk_trace_url }
   end
   describe service('fluentdwinsvc') do
     it { should_not be_enabled }

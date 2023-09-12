@@ -15,13 +15,15 @@ provisioner:
   multiple_converge: 2
   install_strategy: skip
 
+verifier:
+  name: inspec
+
 platforms:
   - name: windows-2019
     driver:
       dockerfile: test/windows/Dockerfile.windows-2019
       build_context: true
       platform: windows
-
   - name: windows-2022
     driver:
       dockerfile: test/windows/Dockerfile.windows-2022
@@ -39,7 +41,7 @@ suites:
     verifier:
       name: shell
       remote_exec: true
-      command: rspec -Idefault/serverspec --format documentation default/serverspec/default_spec.rb
+      command: inspec exec default/inspec/default_spec.rb
 
   - name: custom_vars
     run_list:
@@ -60,7 +62,7 @@ suites:
     verifier:
       name: shell
       remote_exec: true
-      command: rspec -Idefault/serverspec --format documentation custom_vars/serverspec/custom_vars_spec.rb
+      command: inspec exec custom_vars/inspec/custom_vars_spec.rb
 
   - name: with_default_dotnet_instrumentation
     run_list:
@@ -73,7 +75,7 @@ suites:
     verifier:
       name: shell
       remote_exec: true
-      command: rspec -Idefault/serverspec --format documentation with_default_dotnet_instrumentation/serverspec/with_default_dotnet_instrumentation_spec.rb
+      command: inspec exec with_default_dotnet_instrumentation/inspec/with_default_dotnet_instrumentation_spec.rb
 
   - name: with_custom_dotnet_instrumentation
     run_list:
@@ -96,5 +98,4 @@ suites:
     verifier:
       name: shell
       remote_exec: true
-      command: rspec -Idefault/serverspec --format documentation with_custom_dotnet_instrumentation/serverspec/with_custom_dotnet_instrumentation_spec.rb
-
+      command: inspec exec with_custom_dotnet_instrumentation/inspec/with_custom_dotnet_instrumentation_spec.rb

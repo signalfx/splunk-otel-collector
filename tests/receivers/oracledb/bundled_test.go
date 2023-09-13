@@ -44,6 +44,7 @@ func TestOracledbDockerObserver(t *testing.T) {
 	)
 	
 	defer stop()
+	fmt.Println("Now starting Otel Collector")
 
 	_, shutdown := tc.SplunkOtelCollectorContainer(
 		"otlp_exporter.yaml",
@@ -58,21 +59,22 @@ func TestOracledbDockerObserver(t *testing.T) {
 		func(c testutils.Collector) testutils.Collector {
 			return c.WithEnv(map[string]string{
 				// runner seems to be slow
-				"SPLUNK_DISCOVERY_DURATION": "600s",
+				"SPLUNK_DISCOVERY_DURATION": "90s",
 				// confirm that debug logging doesn't affect runtime
 				"SPLUNK_DISCOVERY_LOG_LEVEL": "debug",
 			}).WithArgs(
 				"--discovery",
 				"--set", "splunk.discovery.receivers.oracledb.config.username=otel",
-				"--set", "splunk.discovery.receivers.oracledb.config.password=mysecurepassword",
+				"--set", "splunk.discovery.receivers.oracledb.config.password=password",
 				"--set", `splunk.discovery.extensions.k8s_observer.enabled=false`,
 				"--set", `splunk.discovery.extensions.host_observer.enabled=false`,
 			)
 		},
 	)
+	fmt.Println("Collector started (or not)")
 	
 	defer shutdown()
 
 	expectedResourceMetrics := tc.ResourceMetrics("all.yaml")
-	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Minute))
+	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 15*time.Minute))
 }

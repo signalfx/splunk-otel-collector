@@ -14,10 +14,10 @@ oracledb:
     k8s_observer: type == "port" and pod.name matches "(?i)oracle"
   config:
     default:
-      type: oracledb
-      username: splunk.discovery.default
-      password: splunk.discovery.default
-      datasource: splunk.discovery.default
+      endpoint: localhost:1521
+      username: otel
+      password: password
+      service: xe
   status:
     metrics:
       successful:
@@ -40,7 +40,7 @@ oracledb:
             severity_text: info
             append_pattern: true
             body: Unable to connect and scrape metrics.
-    partial:
+      partial:
         - regexp: 'invalid username/password'
           first_only: true
           log_record:

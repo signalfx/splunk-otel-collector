@@ -1,0 +1,19 @@
+version: "3"
+services:
+  httpd:
+    image: dragas/thttpd
+    container_name: thttpd
+    restart: always
+    volumes:
+      - ./content:/var/www/http:ro
+    ports:
+      - 80:80
+    depends_on:
+      - otelcollector
+  # OpenTelemetry Collector
+  otelcollector:
+    image:  quay.io/signalfx/splunk-otel-collector:0.84.0
+    container_name: otelcollector
+    command: ["--config=/etc/otel-collector-config.yml", "--set=service.telemetry.logs.level=debug"]
+    volumes:
+      - ./otel-collector-config.yml:/etc/otel-collector-config.yml

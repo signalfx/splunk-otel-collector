@@ -76,5 +76,5 @@ func TestOracledbDockerObserver(t *testing.T) {
 	defer shutdown()
 
 	expectedResourceMetrics := tc.ResourceMetrics("all.yaml")
-	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 15*time.Minute))
+	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 5*time.Minute))
 }

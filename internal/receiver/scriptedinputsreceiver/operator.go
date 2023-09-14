@@ -21,6 +21,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/decode"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator/helper"
 	"go.uber.org/zap"
@@ -43,7 +44,7 @@ type stdoutOperator struct {
 	logger        *zap.SugaredLogger
 	cancelAll     context.CancelFunc
 	splitFunc     bufio.SplitFunc
-	decoder       *helper.Decoder
+	decoder       *decode.Decoder
 	scriptContent string
 	helper.InputOperator
 	wg sync.WaitGroup

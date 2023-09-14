@@ -21,6 +21,7 @@ import (
 	"testing"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator/helper"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/split"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
@@ -64,12 +65,12 @@ func TestValidConfig(t *testing.T) {
 					OperatorType: "scripted_inputs",
 				}, OutputIDs: []string(nil)},
 		},
-		Multiline: helper.MultilineConfig{
+		Multiline: split.Config{
 			LineStartPattern: "",
 			LineEndPattern:   "",
 		},
 		ScriptName:         "cpu",
-		Encoding:           helper.EncodingConfig{Encoding: "utf-8"},
+		Encoding:           "utf-8",
 		Source:             "",
 		SourceType:         "",
 		CollectionInterval: "60s",
@@ -123,7 +124,7 @@ func TestCreateWithNonEmptyMultiline(t *testing.T) {
 	config.ScriptName = "aasd"
 	config.OperatorType = "test-operator"
 
-	config.Multiline = helper.MultilineConfig{
+	config.Multiline = split.Config{
 		LineStartPattern: "a",
 		LineEndPattern:   "",
 	}

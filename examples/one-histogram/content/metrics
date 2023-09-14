@@ -1,0 +1,16 @@
+# HELP istio_agent_go_gc_heap_allocs_by_size_bytes_total Distribution of heap allocations by approximate size. Note that this  does not include tiny objects as defined by /gc/heap/tiny/allocs:objects, only tiny blocks.
+# TYPE istio_agent_go_gc_heap_allocs_by_size_bytes_total histogram
+istio_agent_go_gc_heap_allocs_by_size_bytes_total_bucket{le="8.999999999999998"} 69482
+istio_agent_go_gc_heap_allocs_by_size_bytes_total_bucket{le="24.999999999999996"} 3.331236e+06
+istio_agent_go_gc_heap_allocs_by_size_bytes_total_bucket{le="64.99999999999999"} 3.4379917e+07
+istio_agent_go_gc_heap_allocs_by_size_bytes_total_bucket{le="144.99999999999997"} 1.57242824e+08
+istio_agent_go_gc_heap_allocs_by_size_bytes_total_bucket{le="320.99999999999994"} 1.74101606e+08
+istio_agent_go_gc_heap_allocs_by_size_bytes_total_bucket{le="704.9999999999999"} 1.89289766e+08
+istio_agent_go_gc_heap_allocs_by_size_bytes_total_bucket{le="1536.9999999999998"} 2.18787074e+08
+istio_agent_go_gc_heap_allocs_by_size_bytes_total_bucket{le="3200.9999999999995"} 2.18855996e+08
+istio_agent_go_gc_heap_allocs_by_size_bytes_total_bucket{le="6528.999999999999"} 2.18891888e+08
+istio_agent_go_gc_heap_allocs_by_size_bytes_total_bucket{le="13568.999999999998"} 2.18921794e+08
+istio_agent_go_gc_heap_allocs_by_size_bytes_total_bucket{le="27264.999999999996"} 2.19043605e+08
+istio_agent_go_gc_heap_allocs_by_size_bytes_total_bucket{le="+Inf"} 2.19116234e+08
+istio_agent_go_gc_heap_allocs_by_size_bytes_total_sum 3.10449604208e+11
+istio_agent_go_gc_heap_allocs_by_size_bytes_total_count 2.19116234e+08

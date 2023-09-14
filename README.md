@@ -172,7 +172,16 @@ listen to configure the `SPLUNK_DEBUG_CONFIG_SERVER_PORT` environment variable.
 You can use the environment variable `SPLUNK_LISTEN_INTERFACE` and associated installer option to configure the network
 interface on which the collector's receivers and telemetry endpoints will listen.
 The default value of `SPLUNK_LISTEN_INTERFACE` is set to `0.0.0.0`, except on Chocolatey and
-the Windows and  Linux standalone installers, where it defaults to `127.0.0.1`.
+the Windows and Linux standalone installers, where it defaults to `127.0.0.1`.
+
+The table below shows the configuration switches to use at installation time:
+
+| Method     | Command                                                                             |
+|------------|-------------------------------------------------------------------------------------|
+| Chocolatey | `choco install splunk-otel-collector --params="'/SPLUNK_LISTEN_INTERFACE:0.0.0.0'"` |
+| Linux      | `sudo install.sh  --listen-interface=0.0.0.0`                                       |
+| Windows    | `install.ps1 --network_interface=0.0.0.0`                                           |
+
 
 ## Upgrade guidelines
 

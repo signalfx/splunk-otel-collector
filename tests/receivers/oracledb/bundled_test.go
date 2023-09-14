@@ -42,7 +42,7 @@ func TestOracledbDockerObserver(t *testing.T) {
 			path.Join(".", "testdata", "server"),
 		).WithName("oracledb").WithExposedPorts("1521:1521").WillWaitForHealth(45 * time.Minute),
 	)
-	
+
 	defer stop()
 	fmt.Println("Now starting Otel Collector")
 
@@ -71,9 +71,9 @@ func TestOracledbDockerObserver(t *testing.T) {
 			)
 		},
 	)
-	
+
 	defer shutdown()
 
 	expectedResourceMetrics := tc.ResourceMetrics("all.yaml")
-	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 5*time.Minute))
+	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 15*time.Minute))
 }

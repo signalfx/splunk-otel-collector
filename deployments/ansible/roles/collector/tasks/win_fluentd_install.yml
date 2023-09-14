@@ -1,7 +1,7 @@
 ---
 - name: Set fluentd package sources
   ansible.builtin.set_fact:
-    td_agent_base_url: https://packages.treasuredata.com
+    td_agent_base_url: https://s3.amazonaws.com/packages.treasuredata.com
     win_fluentd_msi: td-agent-{{td_agent_version}}-x64.msi
 
 - name: Push Custom Config file for fluentd, if provided

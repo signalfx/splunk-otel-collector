@@ -25,7 +25,7 @@ class splunk_otel_collector (
   $apt_gpg_key             = 'https://splunk.jfrog.io/splunk/otel-collector-deb/splunk-B3CD4420.gpg',
   $yum_gpg_key             = 'https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub',
   $with_fluentd            = false,
-  $fluentd_repo_base       = 'https://packages.treasuredata.com',
+  $fluentd_repo_base       = $splunk_otel_collector::params::fluentd_base_url,
   $fluentd_gpg_key         = 'https://packages.treasuredata.com/GPG-KEY-td-agent',
   $fluentd_version         = $splunk_otel_collector::params::fluentd_version,
   $fluentd_config_source   = $splunk_otel_collector::params::fluentd_config_source,

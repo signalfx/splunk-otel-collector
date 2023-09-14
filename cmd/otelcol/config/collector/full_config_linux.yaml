@@ -622,6 +622,6 @@ service:
       processors: [memory_limiter, batch]
       exporters: [signalfx]
     logs:
-      receivers: [fluentforward, otlp, filelog]
+      receivers: [fluentforward, otlp]
       processors: [memory_limiter, batch]
       exporters: [splunk_hec]

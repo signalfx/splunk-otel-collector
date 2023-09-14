@@ -41,7 +41,7 @@
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -mode "gateway"
 .PARAMETER network_interface
-    (OPTIONAL) The network interface the collector receivers listen on. (default: "0.0.0.0")
+    (OPTIONAL) The network interface the collector receivers listen on. (default: "127.0.0.1")
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -network_interface "127.0.0.1"
 .PARAMETER ingest_url
@@ -113,7 +113,7 @@ param (
     [string]$realm = "us0",
     [string]$memory = "512",
     [ValidateSet('agent','gateway')][string]$mode = "agent",
-    [string]$network_interface = "0.0.0.0",
+    [string]$network_interface = "127.0.0.1",
     [string]$ingest_url = "",
     [string]$api_url = "",
     [string]$trace_url = "",

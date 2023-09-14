@@ -135,7 +135,7 @@ try {
     }
 }
 catch {
-    $SPLUNK_LISTEN_INTERFACE = "0.0.0.0"
+    $SPLUNK_LISTEN_INTERFACE = "127.0.0.1"
     write-host "The SPLUNK_LISTEN_INTERFACE parameter is not specified. Using default configuration."
 }
 

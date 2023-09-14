@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### 🛑 Breaking changes 🛑
+
+- (Splunk) `SPLUNK_LISTEN_INTERFACE`: Move to use 127.0.0.1 for the network listen interface of the collector by default on Windows and Linux installers, as well as Chocolatey.
+  Users can override this behavior by configuring the installers and Chocolatey to use `0.0.0.0` to continue to use the previous default value.
+
 ## v0.85.0
 
 ***ADVANCED NOTICE - SPLUNK_LISTEN_INTERFACE DEFAULTS***

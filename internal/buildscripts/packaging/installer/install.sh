@@ -90,7 +90,7 @@ td_agent_gpg_key_url="${td_agent_repo_base}/GPG-KEY-td-agent"
 default_stage="release"
 default_realm="us0"
 default_memory_size="512"
-default_listen_interface="0.0.0.0"
+default_listen_interface="127.0.0.1"
 
 default_collector_version="latest"
 default_td_agent_version="4.3.2"

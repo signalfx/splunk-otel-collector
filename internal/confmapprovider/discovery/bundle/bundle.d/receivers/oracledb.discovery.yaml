@@ -2,10 +2,6 @@
 #                               Do not edit manually!                               #
 # All changes must be made to associated .tmpl file before running 'make bundle.d'. #
 #####################################################################################
-#####################################################################################
-#                               Do not edit manually!                               #
-# All changes must be made to associated .tmpl file before running 'make bundle.d'. #
-#####################################################################################
 oracledb:
   enabled: true
   rule:
@@ -14,10 +10,10 @@ oracledb:
     k8s_observer: type == "port" and pod.name matches "(?i)oracle"
   config:
     default:
-      endpoint: localhost:1521
-      username: otel
-      password: password
-      service: xe
+      endpoint: splunk.discovery.default
+      username: splunk.discovery.default
+      password: splunk.discovery.default
+      service: splunk.discovery.default
   status:
     metrics:
       successful:
@@ -41,6 +37,24 @@ oracledb:
             append_pattern: true
             body: Unable to connect and scrape metrics.
       partial:
+        - regexp: "listener does not currently know of service requested"
+          first_only: true
+          log_record:
+            severity_text: info
+            append_pattern: true
+            body: >-
+              Make sure your oracledb service is correctly specified using the
+              `--set splunk.discovery.receivers.oracledb.config.service="<service>"` command or the
+              `SPLUNK_DISCOVERY_RECEIVERS_oracledb_CONFIG_service="<service>"` environment variable. 
+        - regexp: "dial tcp: lookup"
+          first_only: true
+          log_record:
+            severity_text: info
+            append_pattern: true
+            body: >-
+              Make sure your oracledb endpoint is correctly specified using the
+              `--set splunk.discovery.receivers.oracledb.config.endpoint="<endpoint>"` command or the
+              `SPLUNK_DISCOVERY_RECEIVERS_oracledb_CONFIG_endpoint="<endpoint>"` environment variable.    
         - regexp: 'invalid username/password'
           first_only: true
           log_record:

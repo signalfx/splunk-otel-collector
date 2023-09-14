@@ -1,8 +1,4 @@
-#####################################################################################
-#                               Do not edit manually!                               #
-# All changes must be made to associated .tmpl file before running 'make bundle.d'. #
-#####################################################################################
-oracledb:
+{{ receiver "oracledb" }}:
   enabled: true
   rule:
     docker_observer: type == "container" and any([name, image, command], {# matches "(?i)oracle"}) and not (command matches "splunk.discovery")
@@ -10,10 +6,10 @@ oracledb:
     k8s_observer: type == "port" and pod.name matches "(?i)oracle"
   config:
     default:
-      endpoint: localhost:1521
-      username: otel
-      password: password
-      service: xe
+      endpoint: {{ defaultValue }}
+      username: {{ defaultValue }}
+      password: {{ defaultValue }}
+      service: {{ defaultValue }}
   status:
     metrics:
       successful:
@@ -37,6 +33,24 @@ oracledb:
             append_pattern: true
             body: Unable to connect and scrape metrics.
       partial:
+        - regexp: "listener does not currently know of service requested"
+          first_only: true
+          log_record:
+            severity_text: info
+            append_pattern: true
+            body: >-
+              Make sure your oracledb service is correctly specified using the
+              `--set {{ configProperty "service" "<service>" }}` command or the
+              `{{ configPropertyEnvVar "service" "<service>" }}` environment variable. 
+        - regexp: "dial tcp: lookup"
+          first_only: true
+          log_record:
+            severity_text: info
+            append_pattern: true
+            body: >-
+              Make sure your oracledb endpoint is correctly specified using the
+              `--set {{ configProperty "endpoint" "<endpoint>" }}` command or the
+              `{{ configPropertyEnvVar "endpoint" "<endpoint>" }}` environment variable.    
         - regexp: 'invalid username/password'
           first_only: true
           log_record:
@@ -44,7 +58,7 @@ oracledb:
             append_pattern: true
             body: >-
               Make sure your user credentials are correctly specified using the
-              `--set splunk.discovery.receivers.oracledb.config.username="<username>"` and
-              `--set splunk.discovery.receivers.oracledb.config.password="<password>"` command or the
-              `SPLUNK_DISCOVERY_RECEIVERS_oracledb_CONFIG_username="<username>"` and
-              `SPLUNK_DISCOVERY_RECEIVERS_oracledb_CONFIG_password="<password>"` environment variables.
+              `--set {{ configProperty "username" "<username>" }}` and
+              `--set {{ configProperty "password" "<password>" }}` command or the
+              `{{ configPropertyEnvVar "username" "<username>" }}` and
+              `{{ configPropertyEnvVar "password" "<password>" }}` environment variables.

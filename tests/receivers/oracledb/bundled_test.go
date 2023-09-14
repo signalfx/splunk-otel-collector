@@ -19,7 +19,7 @@ package tests
 import (
 	"fmt"
 	"path"
-	// "runtime"
+	"runtime"
 	"testing"
 	"time"
 
@@ -29,10 +29,10 @@ import (
 )
 
 func TestOracledbDockerObserver(t *testing.T) {
-	// testutils.SkipIfNotContainerTest(t)
-	// if runtime.GOOS == "darwin" {
-	// 	t.Skip("unable to share sockets between mac and d4m vm: https://github.com/docker/for-mac/issues/483#issuecomment-758836836")
-	// }
+	testutils.SkipIfNotContainerTest(t)
+	if runtime.GOOS == "darwin" {
+		t.Skip("unable to share sockets between mac and d4m vm: https://github.com/docker/for-mac/issues/483#issuecomment-758836836")
+	}
 	tc := testutils.NewTestcase(t)
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
@@ -71,7 +71,6 @@ func TestOracledbDockerObserver(t *testing.T) {
 			)
 		},
 	)
-	fmt.Println("Collector started (or not)")
 	
 	defer shutdown()
 

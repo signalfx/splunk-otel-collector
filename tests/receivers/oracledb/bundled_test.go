@@ -59,13 +59,15 @@ func TestOracledbDockerObserver(t *testing.T) {
 		func(c testutils.Collector) testutils.Collector {
 			return c.WithEnv(map[string]string{
 				// runner seems to be slow
-				"SPLUNK_DISCOVERY_DURATION": "90s",
+				"SPLUNK_DISCOVERY_DURATION": "30s",
 				// confirm that debug logging doesn't affect runtime
 				"SPLUNK_DISCOVERY_LOG_LEVEL": "debug",
 			}).WithArgs(
 				"--discovery",
 				"--set", "splunk.discovery.receivers.oracledb.config.username=otel",
 				"--set", "splunk.discovery.receivers.oracledb.config.password=password",
+				"--set", "splunk.discovery.receivers.oracledb.config.endpoint=localhost:1521",
+				"--set", "splunk.discovery.receivers.oracledb.config.service=xe",
 				"--set", `splunk.discovery.extensions.k8s_observer.enabled=false`,
 				"--set", `splunk.discovery.extensions.host_observer.enabled=false`,
 			)
@@ -75,5 +77,5 @@ func TestOracledbDockerObserver(t *testing.T) {
 	defer shutdown()
 
 	expectedResourceMetrics := tc.ResourceMetrics("all.yaml")
-	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 15*time.Minute))
+	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 5*time.Minute))
 }

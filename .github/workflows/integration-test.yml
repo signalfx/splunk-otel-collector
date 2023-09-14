@@ -35,7 +35,7 @@ jobs:
       matrix:
         ARCH: [ "amd64", "arm64" ]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - uses: actions/setup-go@v4
@@ -75,7 +75,7 @@ jobs:
       fail-fast: false
     needs: [docker-otelcol]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - uses: actions/setup-go@v4
@@ -108,7 +108,7 @@ jobs:
         ARCH: [ "amd64", "arm64" ]
       fail-fast: false
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - uses: actions/setup-go@v4

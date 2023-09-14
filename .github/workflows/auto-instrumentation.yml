@@ -22,7 +22,7 @@ jobs:
         ARCH: [ "amd64", "arm64" ]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up QEMU
         if: ${{ matrix.ARCH == 'arm64' }}
@@ -51,7 +51,7 @@ jobs:
         ARCH: [ "amd64", "arm64"]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -92,7 +92,7 @@ jobs:
             ARCH: arm64
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Downloading splunk-otel-auto-instrumentation-${{ matrix.ARCH }}-deb
         uses: actions/download-artifact@v3
@@ -121,7 +121,7 @@ jobs:
         ARCH: [ "amd64", "arm64" ]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Downloading splunk-otel-auto-instrumentation-${{ matrix.ARCH }}-rpm
         uses: actions/download-artifact@v3

@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Go
         uses: actions/setup-go@v4
@@ -52,7 +52,7 @@ jobs:
         SYS_BINARIES: [ "binaries-windows_amd64" ]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Go
         uses: actions/setup-go@v4
@@ -76,7 +76,7 @@ jobs:
     env:
       PIP_CACHE_DIR: ${{ github.workspace }}/.cache/pip
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: actions/cache@v3
         with:
@@ -96,7 +96,7 @@ jobs:
     needs: [cross-compile, agent-bundle-windows]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -133,7 +133,7 @@ jobs:
     needs: [msi-build]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Go
         uses: actions/setup-go@v4
@@ -173,7 +173,7 @@ jobs:
         WITH_FLUENTD: [ "true", "false" ]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Downloading msi build
         uses: actions/download-artifact@v3
@@ -212,7 +212,7 @@ jobs:
     needs: [msi-build]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Downloading msi build
         uses: actions/download-artifact@v3
@@ -263,7 +263,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Downloading choco build
         uses: actions/download-artifact@v3
@@ -332,7 +332,7 @@ jobs:
         OS: [ "windows-2019", "windows-2022" ]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Downloading binaries-windows_amd64
         uses: actions/download-artifact@v3

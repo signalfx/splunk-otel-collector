@@ -13,15 +13,9 @@ import (
 	// Import for side-effect of registering http handler
 	_ "net/http/pprof"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/signalfx/golib/v3/datapoint"
 	"github.com/signalfx/golib/v3/sfxclient"
 	log "github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v2"
-
-	"github.com/signalfx/signalfx-agent/pkg/core/dpfilters"
-	"github.com/signalfx/signalfx-agent/pkg/core/writer/tap"
-	"github.com/signalfx/signalfx-agent/pkg/utils"
 )
 
 // VersionLine should be populated by the startup logic to contain version
@@ -38,7 +32,6 @@ func (a *Agent) serveDiagnosticInfo(host string, port uint16) {
 	mux := http.NewServeMux()
 	mux.Handle("/", http.HandlerFunc(a.diagnosticTextHandler))
 	mux.Handle("/metrics", http.HandlerFunc(a.internalMetricsHandler))
-	mux.Handle("/tap-dps", http.HandlerFunc(a.datapointTapHandler))
 
 	a.diagnosticServer = &http.Server{
 		Addr:        fmt.Sprintf("%s:%d", host, port),
@@ -152,72 +145,6 @@ func (a *Agent) ensureProfileServerRunning(host string, port int) {
 			log.Println(http.ListenAndServe(fmt.Sprintf("%s:%d", host, port), nil))
 		}()
 	}
-}
-
-func (a *Agent) datapointTapHandler(rw http.ResponseWriter, req *http.Request) {
-	metricQuery := utils.DecodeValueGenerically(req.URL.Query().Get("metric"))
-	dimQuery := utils.DecodeValueGenerically(req.URL.Query().Get("dims"))
-
-	var metricFilter []string
-	if metricQuery != "" {
-		switch v := metricQuery.(type) {
-		case string:
-			metricFilter = []string{v}
-		case []string:
-			metricFilter = v
-		default:
-			rw.WriteHeader(400)
-			_, _ = rw.Write([]byte("bad metric query: " + spew.Sdump(v)))
-			return
-		}
-	}
-
-	var dimFilter map[string][]string
-	if dimQuery != "" {
-		switch v := dimQuery.(type) {
-		case yaml.MapSlice:
-			dimFilter = make(map[string][]string)
-			for i := range v {
-				var vals []string
-				switch v2 := v[i].Value.(type) {
-				case []interface{}:
-					vals = utils.InterfaceSliceToStringSlice(v2)
-				default:
-					vals = []string{fmt.Sprintf("%v", v2)}
-				}
-
-				dimFilter[fmt.Sprintf("%v", v[i].Key)] = vals
-			}
-		default:
-			rw.WriteHeader(400)
-			_, _ = rw.Write([]byte("bad dims query: " + spew.Sdump(v)))
-			return
-		}
-	}
-
-	var filter dpfilters.DatapointFilter
-	if metricFilter == nil && dimFilter == nil {
-		filter = &dpfilters.AlwaysMatchFilter{}
-	} else {
-		var err error
-		filter, err = dpfilters.NewOverridable(metricFilter, dimFilter)
-		if err != nil {
-			rw.WriteHeader(400)
-			_, _ = rw.Write([]byte("could not make filter: " + err.Error()))
-			return
-		}
-	}
-
-	rw.WriteHeader(200)
-	dpTap := tap.New(filter, rw)
-
-	log.Infof("Datapoint tap started")
-	a.writer.SetTap(dpTap)
-
-	dpTap.Run(req.Context())
-
-	a.writer.SetTap(nil)
-	log.Infof("Datapoint tap cleared")
 }
 
 func streamDatapoints(host string, port uint16, metric string, dims string) (io.ReadCloser, error) {

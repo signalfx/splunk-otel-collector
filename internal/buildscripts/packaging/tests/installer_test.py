@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import os
+import re
 import time
 
 import pytest
@@ -38,6 +39,7 @@ STAGE = os.environ.get("STAGE", "release")
 VERSION = os.environ.get("VERSION", "latest")
 SPLUNK_ACCESS_TOKEN = os.environ.get("SPLUNK_ACCESS_TOKEN", "testing123")
 SPLUNK_REALM = os.environ.get("SPLUNK_REALM", "fake-realm")
+DEBUG = os.environ.get("DEBUG", "no")
 TOTAL_MEMORY = "512"
 
 SPLUNK_ENV_PATH = "/etc/otel/collector/splunk-otel-collector.conf"
@@ -47,12 +49,16 @@ GATEWAY_CONFIG_PATH = "/etc/otel/collector/gateway_config.yaml"
 OLD_CONFIG_PATH = "/etc/otel/collector/splunk_config_linux.yaml"
 INSTR_CONF_PATH = "/usr/lib/splunk-instrumentation/instrumentation.conf"
 LIBSPLUNK_PATH = "/usr/lib/splunk-instrumentation/libsplunk.so"
+JAVA_AGENT_PATH = "/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar"
+PRELOAD_PATH = "/etc/ld.so.preload"
 
 INSTALLER_TIMEOUT = "30m"
 
 
 def get_installer_cmd():
-    install_cmd = f"sh -x /test/install.sh -- {SPLUNK_ACCESS_TOKEN} --realm {SPLUNK_REALM}"
+    debug_flag = "-x" if DEBUG == "yes" else ""
+
+    install_cmd = f"sh {debug_flag} /test/install.sh -- {SPLUNK_ACCESS_TOKEN} --realm {SPLUNK_REALM}"
 
     if VERSION != "latest":
         install_cmd = f"{install_cmd} --collector-version {VERSION.lstrip('v')}"
@@ -64,7 +70,22 @@ def get_installer_cmd():
     return install_cmd
 
 
-def verify_env_file(container, mode="agent", config_path=None, memory=TOTAL_MEMORY, ballast=None):
+def verify_config_file(container, path, key, value, exists=True):
+    code, output = container.exec_run(f"cat {path}")
+    config = output.decode("utf-8")
+    assert code == 0, f"failed to get file content from {path}:\n{config}"
+
+    line = f"{key}={value}" if value else key
+
+    match = re.search(f"^{line}$", config, re.MULTILINE)
+
+    if exists:
+        assert match, f"'{line}' not found in {path}:\n{config}"
+    else:
+        assert not match, f"'{line}' found in {path}:\n{config}"
+
+
+def verify_env_file(container, mode="agent", config_path=None, memory=TOTAL_MEMORY, listen_addr="0.0.0.0", ballast=None):
     env_path = SPLUNK_ENV_PATH
     if container.exec_run(f"test -f {OLD_SPLUNK_ENV_PATH}").exit_code == 0:
         env_path = OLD_SPLUNK_ENV_PATH
@@ -79,18 +100,19 @@ def verify_env_file(container, mode="agent", config_path=None, memory=TOTAL_MEMO
     ingest_url = f"https://ingest.{SPLUNK_REALM}.signalfx.com"
     api_url = f"https://api.{SPLUNK_REALM}.signalfx.com"
 
-    run_container_cmd(container, f"grep '^SPLUNK_CONFIG={config_path}$' {env_path}")
-    run_container_cmd(container, f"grep '^SPLUNK_ACCESS_TOKEN={SPLUNK_ACCESS_TOKEN}$' {env_path}")
-    run_container_cmd(container, f"grep '^SPLUNK_REALM={SPLUNK_REALM}$' {env_path}")
-    run_container_cmd(container, f"grep '^SPLUNK_API_URL={api_url}$' {env_path}")
-    run_container_cmd(container, f"grep '^SPLUNK_INGEST_URL={ingest_url}$' {env_path}")
-    run_container_cmd(container, f"grep '^SPLUNK_TRACE_URL={ingest_url}/v2/trace$' {env_path}")
-    run_container_cmd(container, f"grep '^SPLUNK_HEC_URL={ingest_url}/v1/log$' {env_path}")
-    run_container_cmd(container, f"grep '^SPLUNK_HEC_TOKEN={SPLUNK_ACCESS_TOKEN}$' {env_path}")
-    run_container_cmd(container, f"grep '^SPLUNK_MEMORY_TOTAL_MIB={memory}$' {env_path}")
+    verify_config_file(container, env_path, "SPLUNK_CONFIG", config_path)
+    verify_config_file(container, env_path, "SPLUNK_ACCESS_TOKEN", SPLUNK_ACCESS_TOKEN)
+    verify_config_file(container, env_path, "SPLUNK_REALM", SPLUNK_REALM)
+    verify_config_file(container, env_path, "SPLUNK_API_URL", api_url)
+    verify_config_file(container, env_path, "SPLUNK_INGEST_URL", ingest_url)
+    verify_config_file(container, env_path, "SPLUNK_TRACE_URL", f"{ingest_url}/v2/trace")
+    verify_config_file(container, env_path, "SPLUNK_HEC_URL", f"{ingest_url}/v1/log")
+    verify_config_file(container, env_path, "SPLUNK_HEC_TOKEN", SPLUNK_ACCESS_TOKEN)
+    verify_config_file(container, env_path, "SPLUNK_MEMORY_TOTAL_MIB", memory)
+    verify_config_file(container, env_path, "SPLUNK_LISTEN_INTERFACE", listen_addr)
 
     if ballast:
-        run_container_cmd(container, f"grep '^SPLUNK_BALLAST_SIZE_MIB={ballast}$' {env_path}")
+        verify_config_file(container, env_path, "SPLUNK_BALLAST_SIZE_MIB", ballast)
 
 
 def verify_support_bundle(container):
@@ -110,7 +132,9 @@ def verify_support_bundle(container):
 
 
 def verify_uninstall(container, distro):
-    run_container_cmd(container, "sh -x /test/install.sh --uninstall")
+    debug_flag = "-x" if DEBUG == "yes" else ""
+
+    run_container_cmd(container, f"sh {debug_flag} /test/install.sh --uninstall")
 
     for pkg in ("splunk-otel-collector", "td-agent", "splunk-otel-auto-instrumentation"):
         if distro in DEB_DISTROS:
@@ -197,13 +221,15 @@ def test_installer_custom(distro, arch):
 
     collector_version = "0.74.0"
     service_owner = "test-user"
-    custom_config = "/etc/my-config.yaml"
     config_url = f"https://raw.githubusercontent.com/signalfx/splunk-otel-collector/v{collector_version}/cmd/otelcol/config/collector/gateway_config.yaml"
+    custom_config = "/etc/my-custom-config.yaml"
 
     install_cmd = " ".join((
         get_installer_cmd(),
         "--with-fluentd",
-        "--memory 256 --ballast 64",
+        "--listen-interface 127.0.0.1",
+        "--memory 256",
+        "--ballast 64",
         f"--service-user {service_owner} --service-group {service_owner}",
         f"--collector-config {custom_config}",
         f"--collector-version {collector_version}",
@@ -211,7 +237,7 @@ def test_installer_custom(distro, arch):
 
     print(f"Testing installation on {distro} from {STAGE} stage ...")
     with run_distro_container(distro, arch) as container:
-        run_container_cmd(container, f"wget -nv -O /etc/my-config.yaml {config_url}")
+        run_container_cmd(container, f"wget -nv -O {custom_config} {config_url}")
         copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
 
         try:
@@ -224,7 +250,7 @@ def test_installer_custom(distro, arch):
             assert output.decode("utf-8").strip() == f"otelcol version v{collector_version}"
 
             # verify env file created with configured parameters
-            verify_env_file(container, config_path=custom_config, memory="256", ballast="64")
+            verify_env_file(container, config_path=custom_config, memory="256", listen_addr="127.0.0.1", ballast="64")
 
             # verify collector service status
             assert wait_for(lambda: service_is_running(container, service_owner=service_owner))
@@ -269,49 +295,56 @@ def test_installer_with_instrumentation_default(distro, arch):
     if distro == "opensuse-12" and arch == "arm64":
         pytest.skip("opensuse-12 arm64 no longer supported")
 
-    install_cmd = get_installer_cmd()
-    install_cmd = f"{install_cmd} --without-fluentd"
-    install_cmd = f"{install_cmd} --with-instrumentation"
+    install_cmd = " ".join((
+        get_installer_cmd(),
+        "--with-instrumentation",
+    ))
 
     print(f"Testing installation on {distro} from {STAGE} stage ...")
-    with run_distro_container(distro, arch) as container:
+    with run_distro_container(distro, arch=arch) as container:
         copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
+        run_container_cmd(container, f"sh -c 'echo \"# This line should be preserved\" >> {PRELOAD_PATH}'")
 
-        try:
-            # run installer script
-            run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"}, timeout=INSTALLER_TIMEOUT)
-            time.sleep(5)
+        # run installer script
+        run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"}, timeout=INSTALLER_TIMEOUT)
+        time.sleep(5)
 
-            # verify env file created with configured parameters
-            verify_env_file(container)
+        # verify env file created with configured parameters
+        verify_env_file(container)
 
-            # verify collector service status
-            assert wait_for(lambda: service_is_running(container, service_owner=SERVICE_OWNER))
+        verify_config_file(container, PRELOAD_PATH, "# This line should be preserved", None)
 
-            # verify splunk-otel-auto-instrumentation is installed
-            if distro in DEB_DISTROS:
-                assert container.exec_run("dpkg -s splunk-otel-auto-instrumentation").exit_code == 0
-            else:
-                assert container.exec_run("rpm -q splunk-otel-auto-instrumentation").exit_code == 0
+        # verify collector service status
+        assert wait_for(lambda: service_is_running(container, service_owner=SERVICE_OWNER))
 
-            # verify /etc/ld.so.preload is configured
-            run_container_cmd(container, f"grep '^{LIBSPLUNK_PATH}$' /etc/ld.so.preload")
+        # verify splunk-otel-auto-instrumentation is installed
+        if distro in DEB_DISTROS:
+            assert container.exec_run("dpkg -s splunk-otel-auto-instrumentation").exit_code == 0
+        else:
+            assert container.exec_run("rpm -q splunk-otel-auto-instrumentation").exit_code == 0
 
-            # verify deployment.environment attribute is not set
-            run_container_cmd(container, f"grep -v '^resource_attributes=deployment.environment=.*$' {INSTR_CONF_PATH}")
+        # verify libsplunk.so was added to /etc/ld.so.preload
+        verify_config_file(container, PRELOAD_PATH, LIBSPLUNK_PATH, None)
 
-            # verify default options
-            run_container_cmd(container, f"grep '^disable_telemetry=false$' {INSTR_CONF_PATH}")
-            run_container_cmd(container, f"grep '^generate_service_name=true$' {INSTR_CONF_PATH}")
-            run_container_cmd(container, f"grep -v '^service_name=.*$' {INSTR_CONF_PATH}")
-            run_container_cmd(container, f"grep '^enable_profiler=false$' {INSTR_CONF_PATH}")
-            run_container_cmd(container, f"grep '^enable_profiler_memory=false$' {INSTR_CONF_PATH}")
-            run_container_cmd(container, f"grep '^enable_metrics=false$' {INSTR_CONF_PATH}")
+        zc_method = r"splunk-otel-auto-instrumentation-\d+\.\d+\.\d+"
+        attributes = rf"splunk\.zc\.method={zc_method}"
 
-            verify_uninstall(container, distro)
+        # verify default options
+        verify_config_file(container, INSTR_CONF_PATH, "java_agent_jar", JAVA_AGENT_PATH)
+        verify_config_file(container, INSTR_CONF_PATH, "disable_telemetry", "false")
+        verify_config_file(container, INSTR_CONF_PATH, "enable_profiler", "false")
+        verify_config_file(container, INSTR_CONF_PATH, "enable_profiler_memory", "false")
+        verify_config_file(container, INSTR_CONF_PATH, "enable_metrics", "false")
+        verify_config_file(container, INSTR_CONF_PATH, "resource_attributes", attributes)
 
-        finally:
-            run_container_cmd(container, f"journalctl -u {SERVICE_NAME} --no-pager")
+        # verify service name is not set
+        verify_config_file(container, INSTR_CONF_PATH, "service_name", ".*", exists=False)
+
+        verify_uninstall(container, distro)
+
+        # verify libsplunk.so was removed from /etc/ld.so.preload
+        verify_config_file(container, PRELOAD_PATH, f".*{LIBSPLUNK_PATH}.*", None, exists=False)
+        verify_config_file(container, PRELOAD_PATH, "# This line should be preserved", None)
 
 
 @pytest.mark.installer
@@ -326,55 +359,61 @@ def test_installer_with_instrumentation_custom(distro, arch):
     if distro == "opensuse-12" and arch == "arm64":
         pytest.skip("opensuse-12 arm64 no longer supported")
 
+    environment = "test-environment"
+    service_name = "test-service"
+
     install_cmd = " ".join((
         get_installer_cmd(),
-        "--without-fluentd",
         "--with-instrumentation",
-        "--deployment-environment test",
+        "--instrumentation-version 0.81.0",
+        f"--deployment-environment {environment}",
         "--disable-telemetry",
-        "--service-name test",
-        "--no-generate-service-name",
+        f"--service-name {service_name}",
         "--enable-profiler",
         "--enable-profiler-memory",
         "--enable-metrics",
     ))
 
     print(f"Testing installation on {distro} from {STAGE} stage ...")
-    with run_distro_container(distro, arch) as container:
+    with run_distro_container(distro, arch=arch) as container:
         copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
+        run_container_cmd(container, f"sh -c 'echo \"# This line should be preserved\" >> {PRELOAD_PATH}'")
 
-        try:
-            # run installer script
-            run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"}, timeout=INSTALLER_TIMEOUT)
-            time.sleep(5)
+        # run installer script
+        run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"}, timeout=INSTALLER_TIMEOUT)
+        time.sleep(5)
 
-            # verify env file created with configured parameters
-            verify_env_file(container)
+        # verify env file created with configured parameters
+        verify_env_file(container)
 
-            # verify collector service status
-            assert wait_for(lambda: service_is_running(container, service_owner=SERVICE_OWNER))
+        verify_config_file(container, PRELOAD_PATH, "# This line should be preserved", None)
 
-            # verify splunk-otel-auto-instrumentation is installed
-            if distro in DEB_DISTROS:
-                assert container.exec_run("dpkg -s splunk-otel-auto-instrumentation").exit_code == 0
-            else:
-                assert container.exec_run("rpm -q splunk-otel-auto-instrumentation").exit_code == 0
+        # verify collector service status
+        assert wait_for(lambda: service_is_running(container, service_owner=SERVICE_OWNER))
 
-            # verify /etc/ld.so.preload is configured
-            run_container_cmd(container, f"grep '^{LIBSPLUNK_PATH}$' /etc/ld.so.preload")
+        # verify splunk-otel-auto-instrumentation is installed
+        if distro in DEB_DISTROS:
+            assert container.exec_run("dpkg -s splunk-otel-auto-instrumentation").exit_code == 0
+        else:
+            assert container.exec_run("rpm -q splunk-otel-auto-instrumentation").exit_code == 0
 
-            # verify deployment.environment is set
-            run_container_cmd(container, f"grep '^resource_attributes=deployment.environment=test$' {INSTR_CONF_PATH}")
+        # verify libsplunk.so was added to /etc/ld.so.preload
+        verify_config_file(container, PRELOAD_PATH, LIBSPLUNK_PATH, None)
 
-            # verify custom options
-            run_container_cmd(container, f"grep '^disable_telemetry=true$' {INSTR_CONF_PATH}")
-            run_container_cmd(container, f"grep '^generate_service_name=false$' {INSTR_CONF_PATH}")
-            run_container_cmd(container, f"grep '^service_name=test$' {INSTR_CONF_PATH}")
-            run_container_cmd(container, f"grep '^enable_profiler=true$' {INSTR_CONF_PATH}")
-            run_container_cmd(container, f"grep '^enable_profiler_memory=true$' {INSTR_CONF_PATH}")
-            run_container_cmd(container, f"grep '^enable_metrics=true$' {INSTR_CONF_PATH}")
+        zc_method = r"splunk-otel-auto-instrumentation-0\.81\.0"
+        attributes = rf"splunk\.zc\.method={zc_method},deployment\.environment={environment}"
 
-            verify_uninstall(container, distro)
+        # verify configured options
+        verify_config_file(container, INSTR_CONF_PATH, "java_agent_jar", JAVA_AGENT_PATH)
+        verify_config_file(container, INSTR_CONF_PATH, "disable_telemetry", "true")
+        verify_config_file(container, INSTR_CONF_PATH, "enable_profiler", "true")
+        verify_config_file(container, INSTR_CONF_PATH, "enable_profiler_memory", "true")
+        verify_config_file(container, INSTR_CONF_PATH, "enable_metrics", "true")
+        verify_config_file(container, INSTR_CONF_PATH, "resource_attributes", attributes)
+        verify_config_file(container, INSTR_CONF_PATH, "service_name", service_name)
 
-        finally:
-            run_container_cmd(container, f"journalctl -u {SERVICE_NAME} --no-pager")
+        verify_uninstall(container, distro)
+
+        # verify libsplunk.so was removed from /etc/ld.so.preload
+        verify_config_file(container, PRELOAD_PATH, f".*{LIBSPLUNK_PATH}.*", None, exists=False)
+        verify_config_file(container, PRELOAD_PATH, "# This line should be preserved", None)

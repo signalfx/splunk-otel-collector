@@ -1103,9 +1103,6 @@ parse_args_and_install() {
     echo "Ballast Size in MIB: $ballast"
   fi
   echo "Memory Size in MIB: $memory"
-  if [ "$listen_interface" = "0.0.0.0" ]; then
-    echo "Starting with version 0.86.0, the collector installer will change its default network listening interface from 0.0.0.0 to 127.0.0.1. Please consult the release notes for more information and configuration options."
-  fi
   echo "Listen network interface: $listen_interface"
   echo "Realm: $realm"
   echo "Ingest Endpoint: $ingest_url"
@@ -1306,6 +1303,10 @@ EOH
 WARNING: Fluentd was not installed since it is currently not supported for ${distro}:${distro_version} ${distro_arch}
 
 EOH
+  fi
+
+  if [ "$listen_interface" = "0.0.0.0" ]; then
+    echo "[NOTICE] Starting with version 0.86.0, the collector installer will change its default network listening interface from 0.0.0.0 to 127.0.0.1. Please consult the release notes for more information and configuration options."
   fi
 
   exit 0

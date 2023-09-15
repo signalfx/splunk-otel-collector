@@ -285,21 +285,40 @@ applicable for `td-agent` versions 4.1 or newer):
 
 ### Auto Instrumentation
 
->To see all supported options and defaults **before** installation, run:
->```sh
->curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-collector.sh && \
->sh /tmp/splunk-otel-collector.sh -h
->```
+[Splunk OpenTelemetry Auto Instrumentation](../../instrumentation/README.md)
+installs and supports configuration of the following Auto Instrumentation
+agent(s):
+
+- [Java](https://docs.splunk.com/Observability/gdi/get-data-in/application/java/get-started.html)
+
+> To see all supported options and defaults **before** installation, run:
+> ```sh
+> curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-collector.sh && \
+> sh /tmp/splunk-otel-collector.sh -h
+> ```
 
 #### Installation
 
-To install the Collector and the Splunk OpenTelemetry Auto Instrumentation for
-Java packages, run the installer script with the `--with-instrumentation`
-option:
-```sh
-curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-collector.sh && \
-sudo sh /tmp/splunk-otel-collector.sh --with-instrumentation --realm SPLUNK_REALM -- SPLUNK_ACCESS_TOKEN
-```
+To install the Collector and the [Splunk OpenTelemetry Auto Instrumentation](
+../../instrumentation/README.md) packages, run the installer script with either
+of the following options:
+
+- `--with-instrumentation`: Install and activate the provided Auto
+  Instrumentation agent(s) for ***all*** supported processes by automatically
+  adding the [`libsplunk.so`](../../instrumentation/libsplunk.md) shared object
+  library to `/etc/ld.so.preload`:
+  ```sh
+  curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-collector.sh && \
+  sudo sh /tmp/splunk-otel-collector.sh --with-instrumentation --realm SPLUNK_REALM -- SPLUNK_ACCESS_TOKEN
+  ```
+
+- `--with-systemd-instrumentation`: Install and activate the provided Auto
+  Instrumentation agent(s) for ***all*** supported `systemd` services by
+  installing a [`systemd` drop-in file](../../instrumentation/systemd.md):
+  ```sh
+  curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-collector.sh && \
+  sudo sh /tmp/splunk-otel-collector.sh --with-systemd-instrumentation --realm SPLUNK_REALM -- SPLUNK_ACCESS_TOKEN
+  ```
 
 To automatically define the optional `deployment.environment` resource
 attribute at installation time, run the installer script with the
@@ -307,35 +326,46 @@ attribute at installation time, run the installer script with the
 attribute value, for example, `prod`):
 ```sh
 curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-collector.sh && \
-sudo sh /tmp/splunk-otel-collector.sh --with-instrumentation --deployment-environment VALUE --realm SPLUNK_REALM -- SPLUNK_ACCESS_TOKEN
+sudo sh /tmp/splunk-otel-collector.sh --with-[systemd]-instrumentation --deployment-environment VALUE --realm SPLUNK_REALM -- SPLUNK_ACCESS_TOKEN
 ```
 
-**Note:** After successful installation, the Java application(s) on the host
-need to be manually started/restarted for automatic instrumentation to take
-effect.
+**Note:** After successful installation, reboot the host or manually
+start/restart the Java application(s) on the host for Auto Instrumentation to
+take effect.
 
 #### Post-Install Configuration
 
-- The `/etc/ld.so.preload` file will be automatically created/updated with the
-  default path to the installed instrumentation library
-  (`/usr/lib/splunk-instrumentation/libsplunk.so`).  If necessary, custom
-  library paths can be manually added to this file.
-- The `/usr/lib/splunk-instrumentation/instrumentation.conf` configuration file
-  can be manually configured for resource attributes and other parameters.  By
-  default, this file will contain the `java_agent_jar` parameter set to the
-  path of the installed [Java Instrumentation Agent](
-  https://github.com/signalfx/splunk-otel-java)
-  (`/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar`).  If the
-  `--deployment-environment VALUE` installer script option was specified,
-  the `deployment.environment=VALUE` resource attribute will be automatically
-  added to this file.
+> The activation and configuration of Auto Instrumentation with the steps below
+> will be applied ***globally*** on the host, either for ***all*** supported
+> processes with the `--with-instrumentation` option, or for ***all***
+> supported `systemd` services with the `--with-systemd-instrumentation`
+> option. Configuration of individual processes/services to override the global
+> configuration will need to be managed separately and manually.
 
-See [Linux Java Auto Instrumentation](https://github.com/signalfx/splunk-otel-collector/tree/main/instrumentation#linux-java-auto-instrumentation)
-for more details.
+- If the `--with-instrumentation` option was used:
+  - The `/etc/ld.so.preload` file will be automatically created/updated with the
+    default path to the installed instrumentation library
+    (`/usr/lib/splunk-instrumentation/libsplunk.so`).  If necessary, custom
+    library paths can be manually added to this file.
+  - The `/usr/lib/splunk-instrumentation/instrumentation.conf` configuration
+    file will be automatically created to configure the provided Auto
+    Instrumentation agent(s), and can be manually configured for additional
+    resource attributes and other supported options.
+  - See [Configuration File](
+    ../../instrumentation/libsplunk.md#configuration-file) for more details.
 
-**Note:** After any configuration changes, the Java application(s) on the host
-need to be manually started/restarted to source the updated values from the
-configuration file.
+- If the `--with-systemd-instrumentation` option was used:
+  - The `/usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf`
+    `systemd` drop-in file will be automatically created to include environment
+    variables that activate and configure the provided Auto Instrumentation
+    agent(s), and can be manually configured for additional environment
+    variables.
+  - See [Configuration](../../instrumentation/systemd.md#configuration) for
+    more details.
+
+**Note:** After any configuration changes, reboot the host or manually
+start/restart the Java application(s) on the host for the changes to take
+effect.
 
 #### Upgrade
 

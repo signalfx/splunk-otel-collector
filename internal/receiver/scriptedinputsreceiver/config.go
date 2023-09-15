@@ -111,7 +111,7 @@ func (c *Config) Build(logger *zap.SugaredLogger) (operator.Operator, error) {
 	if c.Multiline.LineStartPattern == "" && c.Multiline.LineEndPattern == "" {
 		splitFunc = split.NoSplitFunc(int(c.MaxLogSize))
 	} else {
-		splitFunc, err = c.Multiline.Func(enc, true, int(c.MaxLogSize), nil)
+		splitFunc, err = c.Multiline.Func(enc, true, int(c.MaxLogSize))
 		if err != nil {
 			return nil, err
 		}

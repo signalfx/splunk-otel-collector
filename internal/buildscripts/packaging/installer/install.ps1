@@ -693,3 +693,7 @@ if ($with_fluentd) {
     start_service -name "$fluentd_service_name" -config_path "$fluentd_config_path"
     echo "- Started"
 }
+
+if ($network_interface -Eq "0.0.0.0") {
+    echo "[NOTICE] Starting with version 0.86.0, the collector installer will change its default network listening interface from 0.0.0.0 to 127.0.0.1. Please consult the release notes for more information and configuration options."
+}

@@ -190,9 +190,6 @@ def verify_attributes(stream, attributes, timeout=300):
 def verify_app_instrumentation(container, app, method, attributes, otelcol_path=None):
     systemd = True if method == "systemd" else False
 
-    if systemd and container_file_exists(container, "/etc/ld.so.preload"):
-        run_container_cmd(container, "rm -f /etc/ld.so.preload")
-
     try:
         stop_app(container, app)
     except AssertionError:
@@ -255,6 +252,8 @@ def test_tomcat_instrumentation(distro, arch):
                 # install the sample drop-in file to enable the agent
                 run_container_cmd(container, f"mkdir -p {SYSTEMD_CONF_DIR}")
                 run_container_cmd(container, f"cp -f {SAMPLE_JAVA_SYSTEMD_CONF_PATH} {SYSTEMD_CONF_DIR}/")
+                if container_file_exists(container, "/etc/ld.so.preload"):
+                    run_container_cmd(container, "rm -f /etc/ld.so.preload")
             else:
                 # add libsplunk.so to /etc/ld.so.preload
                 run_container_cmd(container, f"sh -c 'echo {LIBSPLUNK_PATH} > /etc/ld.so.preload'")
@@ -347,6 +346,8 @@ def test_express_instrumentation(distro, arch):
                 # install the sample drop-in file to enable the agent
                 run_container_cmd(container, f"mkdir -p {SYSTEMD_CONF_DIR}")
                 run_container_cmd(container, f"cp -f {SAMPLE_NODE_SYSTEMD_CONF_PATH} {SYSTEMD_CONF_DIR}/")
+                if container_file_exists(container, "/etc/ld.so.preload"):
+                    run_container_cmd(container, "rm -f /etc/ld.so.preload")
             else:
                 # add libsplunk.so to /etc/ld.so.preload
                 run_container_cmd(container, f"sh -c 'echo {LIBSPLUNK_PATH} > /etc/ld.so.preload'")

@@ -1305,6 +1305,10 @@ WARNING: Fluentd was not installed since it is currently not supported for ${dis
 EOH
   fi
 
+  if [ "$listen_interface" = "0.0.0.0" ]; then
+    echo "[NOTICE] Starting with version 0.86.0, the collector installer will change its default network listening interface from 0.0.0.0 to 127.0.0.1. Please consult the release notes for more information and configuration options."
+  fi
+
   exit 0
 }
 

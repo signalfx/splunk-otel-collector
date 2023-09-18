@@ -9,4 +9,4 @@ RUN go get
 
 RUN go build
 
-CMD /go/src/app/app
+CMD /go/src/app/logging

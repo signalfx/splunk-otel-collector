@@ -216,10 +216,6 @@ agent-bundle-linux:
         TAG: arm
   tags:
     - $TAG
-  cache:
-    key: agent-bundle-${ARCH}
-    paths:
-      - .cache/buildx/agent-bundle-${ARCH}
   script:
     - *docker-reader-role
     - docker login -u $CIRCLECI_QUAY_USERNAME -p $CIRCLECI_QUAY_PASSWORD quay.io

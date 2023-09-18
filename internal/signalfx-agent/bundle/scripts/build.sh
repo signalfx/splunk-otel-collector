@@ -42,21 +42,11 @@ ALL_STAGES=$( grep '^FROM .* as .*' ${SCRIPT_DIR}/../Dockerfile | sed -e 's/.*as
 
 export DOCKER_BUILDKIT=1
 
-if [[ "$CI" = "true" || "$PUSH_CACHE" = "yes" ]]; then
+if [[ "$CI" = "true" ]]; then
     # create and use the docker-container builder for caching when running in github or gitlab
     docker buildx create --name $IMAGE_NAME --driver docker-container || true
     BUILDER="--builder ${IMAGE_NAME}"
     DOCKER_OPTS="$BUILDER $DOCKER_OPTS"
-    if [[ -d "$CACHE_DIR" ]]; then
-        # use the restored CI cache if it exists
-        CACHE_FROM_OPTS="--cache-from=type=local,src=${CACHE_DIR}"
-        USE_REGISTRY_CACHE="no"
-        if [[ "${BUNDLE_CACHE_HIT:-}" != "true" ]]; then
-            # export current build cache to temporary directory
-            CACHE_TEMP_DIR="$(mktemp -d)"
-            CACHE_TO_OPTS="--cache-to=type=local,mode=max,dest=${CACHE_TEMP_DIR}"
-        fi
-    fi
 fi
 
 if [[ "$PUSH_CACHE" = "yes" ]]; then
@@ -67,9 +57,20 @@ if [[ "$PUSH_CACHE" = "yes" ]]; then
             --tag $stage_image \
             --target $stage \
             --push \
-            $CACHE_TO_OPTS --cache-to=type=inline \
+            --cache-to=type=inline \
             $DOCKER_OPTS
     done
+else
+    if [[ -d "$CACHE_DIR" ]]; then
+        # only use the restored CI cache if it exists to save time and disk space
+        CACHE_FROM_OPTS="--cache-from=type=local,src=${CACHE_DIR}"
+        USE_REGISTRY_CACHE="no"
+    fi
+    if [[ "$CI" = "true" && "${BUNDLE_CACHE_HIT:-}" != "true" ]]; then
+        # only export local build cache to replace the existing CI cache when there are changes
+        CACHE_TEMP_DIR="$(mktemp -d)"
+        CACHE_TO_OPTS="--cache-to=type=local,mode=max,dest=${CACHE_TEMP_DIR}"
+    fi
 fi
 
 if [[ "$USE_REGISTRY_CACHE" = "yes" ]]; then

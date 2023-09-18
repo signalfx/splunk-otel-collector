@@ -698,7 +698,7 @@ github.com/hashicorp/go-kms-wrapping/v2 v2.0.10/go.mod h1:NtMaPhqSlfQ72XWDD2g80o
 github.com/hashicorp/go-kms-wrapping/wrappers/aead/v2 v2.0.7-1 h1:ZV26VJYcITBom0QqYSUOIj4HOHCVPEFjLqjxyXV/AbA=
 github.com/hashicorp/go-kms-wrapping/wrappers/alicloudkms/v2 v2.0.1 h1:ydUCtmr8f9F+mHZ1iCsvzqFTXqNVpewX3s9zcYipMKI=
 github.com/hashicorp/go-kms-wrapping/wrappers/awskms/v2 v2.0.7 h1:E3eEWpkofgPNrYyYznfS1+drq4/jFcqHQVNcL7WhUCo=
-github.com/hashicorp/go-kms-wrapping/wrappers/azurekeyvault/v2 v2.0.7 h1:X27JWuPW6Gmi2l7NMm0pvnp7z7hhtns2TeIOQU93mqI=
+github.com/hashicorp/go-kms-wrapping/wrappers/azurekeyvault/v2 v2.0.8-0.20230905162003-bfa3347a7c85 h1:yZqD2ZQ4kWyVI2reKGC8Hl78ywWBtl1iLz/Bb5GBvMA=
 github.com/hashicorp/go-kms-wrapping/wrappers/gcpckms/v2 v2.0.8 h1:16I8OqBEuxZIowwn3jiLvhlx+z+ia4dJc9stvz0yUBU=
 github.com/hashicorp/go-kms-wrapping/wrappers/ocikms/v2 v2.0.7 h1:KeG3QGrbxbr2qAqCJdf3NR4ijAYwdcWLTmwSbR0yusM=
 github.com/hashicorp/go-kms-wrapping/wrappers/transit/v2 v2.0.7 h1:G25tZFw/LrAzJWxvS0/BFI7V1xAP/UsAIsgBwiE0mwo=
@@ -772,8 +772,8 @@ github.com/hashicorp/serf v0.9.5/go.mod h1:UWDWwZeL5cuWDJdl0C6wrvrUwEqtQ4ZKBKKEN
 github.com/hashicorp/serf v0.9.6/go.mod h1:TXZNMjZQijwlDvp+r0b63xZ45H7JmCmgg4gpTwn9UV4=
 github.com/hashicorp/serf v0.10.1 h1:Z1H2J60yRKvfDYAOZLd2MU0ND4AH/WDz7xYHDWQsIPY=
 github.com/hashicorp/serf v0.10.1/go.mod h1:yL2t6BqATOLGc5HF7qbFkTfXoPIY0WZdWHfEvMqbG+4=
-github.com/hashicorp/vault v1.14.2 h1:wgJSMMGlBpJcUR/L7F7/OkK8E3/nzXo5mCtJtNh6pIU=
-github.com/hashicorp/vault v1.14.2/go.mod h1:9JtUETMikpprXcdwRssyxRVKyON/9jZ2fAcwQPt5ItE=
+github.com/hashicorp/vault v1.14.3 h1:Q9wvxTRcIxdiGVHFnEJbRofh+Dotc/4YdBf3+qCpvM0=
+github.com/hashicorp/vault v1.14.3/go.mod h1:w9/QkPZlVfpDShSDrISE+N/k82m4qvkB6OjgxOJfuPQ=
 github.com/hashicorp/vault-plugin-auth-gcp v0.16.1 h1:KasqciAWHP3Htruowdu8fhO5X1YFfY0Qi3nrsBlpDkU=
 github.com/hashicorp/vault-plugin-auth-gcp v0.16.1/go.mod h1:pLF4l4SjTMR24/FTsE1idVpKEeO8ah0x1Kpulw+I09I=
 github.com/hashicorp/vault/api v1.0.4/go.mod h1:gDcqh3WGcR1cpF5AJz/B1UFheUEneMoIospckxBxk6Q=

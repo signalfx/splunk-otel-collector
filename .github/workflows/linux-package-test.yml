@@ -93,7 +93,7 @@ jobs:
           restore-keys: |
             agent-bundle-buildx-${{ matrix.ARCH }}-
 
-      - uses: docker/setup-qemu-action@v2
+      - uses: docker/setup-qemu-action@v3
         if: ${{ matrix.ARCH != 'amd64' }}
         with:
           platforms: ${{ matrix.ARCH }}
@@ -200,7 +200,7 @@ jobs:
           name: ${{ env.SYS_PACKAGE }}-${{ matrix.ARCH }}-package
           path: ./dist
 
-      - uses: docker/setup-qemu-action@v2
+      - uses: docker/setup-qemu-action@v3
         if: ${{ matrix.ARCH != 'amd64' }}
         with:
           platforms: ${{ matrix.ARCH }}
@@ -269,7 +269,7 @@ jobs:
 
       - name: Set up QEMU
         if: ${{ matrix.ARCH != 'amd64' }}
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
         with:
           platforms: ${{ matrix.ARCH }}
           image: tonistiigi/binfmt:qemu-v7.0.0

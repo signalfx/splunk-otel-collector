@@ -278,6 +278,7 @@ sign-exe:
     - .trigger-filter
     - .submit-signing-request
   stage: sign-binaries
+  retry: 2
   needs:
     - compile
   parallel:
@@ -296,6 +297,7 @@ sign-osx:
     - .trigger-filter
     - .submit-signing-request
   stage: sign-binaries
+  retry: 2
   needs:
     - compile
   parallel:
@@ -405,6 +407,7 @@ sign-debs:
     - .trigger-filter
     - .submit-signing-request
   stage: sign-packages
+  retry: 2
   needs:
     - build-deb
     - instrumentation-deb
@@ -427,6 +430,7 @@ sign-rpms:
     - .trigger-filter
     - .submit-signing-request
   stage: sign-packages
+  retry: 2
   needs:
     - build-rpm
     - instrumentation-rpm
@@ -449,6 +453,7 @@ sign-tar:
     - .trigger-filter
     - .submit-signing-request
   stage: sign-packages
+  retry: 2
   needs:
     - build-tar
   variables:
@@ -472,6 +477,7 @@ sign-msi:
     - .trigger-filter
     - .submit-signing-request
   stage: sign-packages
+  retry: 2
   needs:
     - build-msi
   variables:
@@ -493,6 +499,7 @@ sign-agent-bundles:
     - .trigger-filter
     - .submit-signing-request
   stage: sign-packages
+  retry: 2
   needs:
     - agent-bundle-linux
     - agent-bundle-windows
@@ -520,6 +527,7 @@ sign-ps-installer:
     - .trigger-filter
     - .submit-signing-request
   stage: sign-packages
+  retry: 2
   dependencies: []
   variables:
     ARTIFACT: dist/install.ps1
@@ -814,6 +822,7 @@ sign-apt-metadata:
     - .trigger-filter
     - .submit-signing-request
   stage: sign-metadata
+  retry: 2
   resource_group: artifactory-deb
   needs:
     - release-debs
@@ -832,6 +841,7 @@ sign-yum-metadata:
     - .trigger-filter
     - .submit-signing-request
   stage: sign-metadata
+  retry: 2
   parallel:
     matrix:
       - ARCH: ['x86_64', 'aarch64']

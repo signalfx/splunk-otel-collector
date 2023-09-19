@@ -21,3 +21,4 @@ resource_spans:
         net.peer.ip: <ANY>
         signalfx.tracing.library: dotnet-tracing
         signalfx.tracing.version: <ANY>
+        splunk.zc.method: <ANY>

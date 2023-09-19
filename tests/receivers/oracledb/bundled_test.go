@@ -40,7 +40,7 @@ func TestOracledbDockerObserver(t *testing.T) {
 	_, stop := tc.Containers(
 		testutils.NewContainer().WithContext(
 			path.Join(".", "testdata", "server"),
-		).WithName("oracledb").WithExposedPorts("1521:1521").WillWaitForHealth(45 * time.Minute),
+		).WithName("oracledb").WithExposedPorts("1521:1521").WillWaitForHealth(5 * time.Minute),
 	)
 
 	defer stop()

@@ -140,7 +140,10 @@ I. Smart Agent receiver
 * `collectd/nginx` monitor type ([Linux](./bundle/bundle.d/receivers/smartagent-collectd-nginx.discovery.yaml))
 * `postgresql` monitor type ([Linux and Windows](./bundle/bundle.d/receivers/smartagent-postgresql.discovery.yaml))
 
-II. Extensions
+II. OpenTelemetry receiver
+* `oracledb` monitor type ([Linux](./bundle/bundle.d/receivers/oracledb.discovery.yaml))
+
+III. Extensions
 * `docker_observer` ([Linux and Windows](./bundle/bundle.d/extensions/docker-observer.discovery.yaml))
 * `host_observer` ([Linux and Windows](./bundle/bundle.d/extensions/host-observer.discovery.yaml))
 * `k8s_observer` ([Linux and Windows](./bundle/bundle.d/extensions/k8s-observer.discovery.yaml))

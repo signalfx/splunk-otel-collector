@@ -9,7 +9,6 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/core/writer/signalfx"
 	"github.com/signalfx/signalfx-agent/pkg/core/writer/splunk"
-	"github.com/signalfx/signalfx-agent/pkg/core/writer/tap"
 	"github.com/signalfx/signalfx-agent/pkg/core/writer/tracetracker"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/types"
 	"github.com/signalfx/signalfx-agent/pkg/utils"
@@ -129,12 +128,4 @@ func (w *MultiWriter) DiagnosticText() string {
 		return w.signalFxWriter.DiagnosticText()
 	}
 	return "No writer information available"
-}
-
-// SetTap allows you to set one datapoint tap at a time to inspect datapoints
-// going out of the agent.
-func (w *MultiWriter) SetTap(dpTap *tap.DatapointTap) {
-	if w.signalFxWriter != nil {
-		w.signalFxWriter.SetTap(dpTap)
-	}
 }

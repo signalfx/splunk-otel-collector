@@ -58,8 +58,7 @@ func TestOracledbDockerObserver(t *testing.T) {
 
 		func(c testutils.Collector) testutils.Collector {
 			return c.WithEnv(map[string]string{
-				// runner seems to be slow
-				"SPLUNK_DISCOVERY_DURATION": "30s",
+				"SPLUNK_DISCOVERY_DURATION": "10s",
 				// confirm that debug logging doesn't affect runtime
 				"SPLUNK_DISCOVERY_LOG_LEVEL": "debug",
 			}).WithArgs(

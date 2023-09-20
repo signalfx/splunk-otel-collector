@@ -61,10 +61,11 @@ func TestOracledbDockerObserver(t *testing.T) {
 				"SPLUNK_DISCOVERY_DURATION": "10s",
 				// confirm that debug logging doesn't affect runtime
 				"SPLUNK_DISCOVERY_LOG_LEVEL": "debug",
+				"ORACLE_PASSWORD": "password",
 			}).WithArgs(
 				"--discovery",
 				"--set", "splunk.discovery.receivers.oracledb.config.username=otel",
-				"--set", "splunk.discovery.receivers.oracledb.config.password=password",
+				"--set", "splunk.discovery.receivers.oracledb.config.password='${ORACLE_PASSWORD}'",
 				"--set", "splunk.discovery.receivers.oracledb.config.endpoint=localhost:1521",
 				"--set", "splunk.discovery.receivers.oracledb.config.service=xe",
 				"--set", `splunk.discovery.extensions.k8s_observer.enabled=false`,

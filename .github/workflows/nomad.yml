@@ -8,6 +8,7 @@ on:
     paths:
       - 'deployments/nomad/**'
       - '.github/workflows/nomad.yml'
+      - '!**.md'
 
 permissions:
   contents: write

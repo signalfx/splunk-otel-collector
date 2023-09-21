@@ -1,6 +1,6 @@
 # Splunk OpenTelemetry Collector for HashiCorp Nomad
 
-The Splunk OpenTelemetry Collector for HashiCorp Nomad is an orchestrator deployment to create a job which provides a unified way to receive, process and export metric, and trace data for [Splunk Observability Cloud](https://www.observability.splunk.com/).
+The Splunk OpenTelemetry Collector for HashiCorp Nomad is an orchestrator deployment to create a job which provides a unified way to receive, process and export metric, and trace data for [Splunk Observability Cloud](https://docs.splunk.com/Observability).
 
 **NOTE**: _Job files are provided as a reference only and are not intended for production use._
 

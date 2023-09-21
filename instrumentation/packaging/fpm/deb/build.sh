@@ -47,8 +47,7 @@ sudo fpm -s dir -t deb -n "$PKG_NAME" -v "$VERSION" -f -p "$OUTPUT_DIR" \
     --deb-no-default-config-files \
     --depends sed \
     --depends grep \
-    --config-files "$JAVA_CONFIG_INSTALL_PATH" \
-    --config-files "$NODE_CONFIG_INSTALL_PATH" \
+    --config-files "$CONFIG_DIR_INSTALL_PATH" \
     "$buildroot/"=/
 
 dpkg -c "${OUTPUT_DIR}/${PKG_NAME}_${VERSION}_${ARCH}.deb"

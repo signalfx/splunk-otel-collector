@@ -56,8 +56,7 @@ sudo fpm -s dir -t rpm -n "$PKG_NAME" -v "$VERSION" -f -p "$OUTPUT_DIR" \
     --before-remove "$PREUNINSTALL_PATH" \
     --depends sed \
     --depends grep \
-    --config-files "$JAVA_CONFIG_INSTALL_PATH" \
-    --config-files "$NODE_CONFIG_INSTALL_PATH" \
+    --config-files "$CONFIG_DIR_INSTALL_PATH" \
     "$buildroot/"=/
 
 rpm -qpli "${OUTPUT_DIR}/${PKG_NAME}-${VERSION}-1.${ARCH}.rpm"

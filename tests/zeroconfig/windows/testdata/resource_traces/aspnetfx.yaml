@@ -18,7 +18,7 @@ resource_spans:
         net.peer.ip: <ANY>
         signalfx.tracing.library: dotnet-tracing
         signalfx.tracing.version: <ANY>
-        splunk.zc.method: <ANY>
+        splunk.zc.method: signalfx-dotnet-tracing-SIGNALFX_DOTNET_TRACING_VERSION
     - name: GET /api/values/{id}
       attributes:
         aspnet.controller: values
@@ -29,4 +29,4 @@ resource_spans:
         http.url: http://localhost/aspnetfxapp/api/values/4
         http.user_agent: Go-http-client/1.1
         net.peer.ip: <ANY>
-        splunk.zc.method: <ANY>
+        splunk.zc.method: signalfx-dotnet-tracing-SIGNALFX_DOTNET_TRACING_VERSION

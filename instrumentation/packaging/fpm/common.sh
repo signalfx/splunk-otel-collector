@@ -27,10 +27,8 @@ PKG_URL="https://github.com/signalfx/splunk-otel-collector"
 INSTALL_DIR="/usr/lib/splunk-instrumentation"
 LIBSPLUNK_INSTALL_PATH="${INSTALL_DIR}/libsplunk.so"
 JAVA_AGENT_INSTALL_PATH="${INSTALL_DIR}/splunk-otel-javaagent.jar"
-JAVA_CONFIG_REPO_PATH="${FPM_DIR}/zeroconfig_java.conf"
-JAVA_CONFIG_INSTALL_PATH="/etc/splunk/zeroconfig_java.conf"
-NODE_CONFIG_REPO_PATH="${FPM_DIR}/zeroconfig_node.conf"
-NODE_CONFIG_INSTALL_PATH="/etc/splunk/zeroconfig_node.conf"
+CONFIG_DIR_REPO_PATH="${FPM_DIR}/etc/splunk/zeroconfig"
+CONFIG_DIR_INSTALL_PATH="/etc/splunk/zeroconfig"
 EXAMPLES_INSTALL_DIR="${INSTALL_DIR}/examples"
 EXAMPLES_DIR="${FPM_DIR}/examples"
 
@@ -100,13 +98,9 @@ setup_files_and_permissions() {
     download_nodejs_agent "$nodejs_agent_release" "${buildroot}/${NODEJS_AGENT_INSTALL_PATH}"
     sudo chmod 644 "$buildroot/$NODEJS_AGENT_INSTALL_PATH"
 
-    mkdir -p  "$buildroot/$(dirname $JAVA_CONFIG_INSTALL_PATH)"
-    cp -f "$JAVA_CONFIG_REPO_PATH" "$buildroot/$JAVA_CONFIG_INSTALL_PATH"
-    sudo chmod 644 "$buildroot/$JAVA_CONFIG_INSTALL_PATH"
-
-    mkdir -p  "$buildroot/$(dirname $NODE_CONFIG_INSTALL_PATH)"
-    cp -f "$NODE_CONFIG_REPO_PATH" "$buildroot/$NODE_CONFIG_INSTALL_PATH"
-    sudo chmod 644 "$buildroot/$NODE_CONFIG_INSTALL_PATH"
+    mkdir -p  "$buildroot/$CONFIG_DIR_INSTALL_PATH"
+    cp -rf "$CONFIG_DIR_REPO_PATH"/* "$buildroot/$CONFIG_DIR_INSTALL_PATH"/
+    sudo chmod -R 644 "$buildroot/$CONFIG_DIR_INSTALL_PATH"
 
     mkdir -p "$buildroot/$INSTALL_DIR"
     cp -rf "$EXAMPLES_DIR" "$buildroot/$INSTALL_DIR/"

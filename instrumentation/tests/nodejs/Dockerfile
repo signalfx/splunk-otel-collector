@@ -3,9 +3,9 @@ FROM $BASE
 
 COPY index.js .
 
-RUN mkdir -p /etc/splunk/
+RUN mkdir -p /etc/splunk/zeroconfig
 
-COPY zeroconfig.conf /etc/splunk/zeroconfig_node.conf
+COPY zeroconfig.conf /etc/splunk/zeroconfig/node.conf
 
 CMD node index.js
 

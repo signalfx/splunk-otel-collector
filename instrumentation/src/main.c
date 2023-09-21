@@ -11,8 +11,8 @@
 static char *const allowed_env_vars[] = {ALLOWED_ENV_VARS};
 static size_t const allowed_env_vars_size = sizeof(allowed_env_vars) / sizeof(*allowed_env_vars);
 
-#define JAVA_ENV_VAR_FILE "/etc/splunk/zeroconfig_java.conf"
-#define NODEJS_ENV_VAR_FILE "/etc/splunk/zeroconfig_node.conf"
+#define JAVA_ENV_VAR_FILE "/etc/splunk/zeroconfig/java.conf"
+#define NODEJS_ENV_VAR_FILE "/etc/splunk/zeroconfig/node.conf"
 
 // TODO change to systemd drop in file paths
 static char *const env_var_file_java = JAVA_ENV_VAR_FILE;

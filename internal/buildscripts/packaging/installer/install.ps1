@@ -669,6 +669,13 @@ if ($with_dotnet_instrumentation) {
         echo "SIGNALFX_ENV environment variable not set. Unless otherwise defined, will appear as 'unknown' in the UI."
     }
 
+    try {
+        $dotnet_version = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where { $_.DisplayName -eq "SignalFx .NET Tracing 64-bit" }).DisplayVersion
+        update_registry -path "$regkey" -name "SIGNALFX_GLOBAL_TAGS" "splunk.zc.method:signalfx-dotnet-tracing-${dotnet_version}"
+    } catch {
+        continue
+    }
+
     $message = "
 SignalFx .NET Instrumentation has been installed and configured to forward traces to the Splunk OpenTelemetry Collector.
 By default, .NET Instrumentation will automatically generate traces for applications running on IIS.

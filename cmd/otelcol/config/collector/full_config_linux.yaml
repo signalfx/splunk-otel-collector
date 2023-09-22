@@ -167,6 +167,48 @@ receivers:
   fluentforward:
     endpoint: 0.0.0.0:8006
 
+  # Enables filelog receiver
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/filelogreceiver
+  filelog:
+    include:
+      - /Library/Logs/*
+      - /var/log/*.log*
+      - /var/log/*log
+      - /var/log/*messages*
+      - /var/log/*secure*
+      - /var/log/*auth*
+      - /var/log/*mesg
+      - /var/log/*cron
+      - /var/log/*acpid
+      - /var/log/*.out*
+      - /var/adm/*.log*
+      - /var/adm/*log
+      - /var/adm/*messages*
+      - /etc/*.conf*
+      - /etc/*.cfg*
+      - /etc/*config
+      - /etc/*.ini*
+      - /etc/*.init*
+      - /etc/*.cf*
+      - /etc/*.cnf*
+      - /etc/*shrc
+      - /etc/ifcfg*
+      - /etc/*.profile*
+      - /etc/*.rc*
+      - /etc/*.rules*
+      - /etc/*.tab*
+      - /etc/*tab
+      - /etc/*.login*
+      - /etc/*policy
+      - /root/.bash_history
+      - /home/*/.bash_history
+    exclude:
+      - /var/log/*lastlog*
+      - /var/log/*anaconda.syslog*
+
+    include_file_name: false
+    include_file_path: true
+
 ###############################################################################
 # Processors
 # What to do with data as it passes from receivers to exporters

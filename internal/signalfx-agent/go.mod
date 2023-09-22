@@ -60,7 +60,6 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/mailru/easyjson v0.7.7
 	github.com/mattn/go-xmlrpc v0.0.3
-	github.com/mauricelam/genny v0.0.0-20190320071652-0800202903e5 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.1
 	github.com/mitchellh/hashstructure v1.1.0
 	github.com/mongodb/go-client-mongodb-atlas v0.2.0
@@ -81,7 +80,6 @@ require (
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657
 	github.com/signalfx/golib/v3 v3.3.53
 	github.com/signalfx/ingest-protocols v0.2.0
-	github.com/signalfx/signalfx-go v1.33.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/snowflakedb/gosnowflake v1.6.24
 	github.com/stretchr/testify v1.8.4

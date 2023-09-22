@@ -69,3 +69,4 @@ oracledb:
               `--set splunk.discovery.receivers.oracledb.config.password="<password>"` command or the
               `SPLUNK_DISCOVERY_RECEIVERS_oracledb_CONFIG_username="<username>"` and
               `SPLUNK_DISCOVERY_RECEIVERS_oracledb_CONFIG_password="<password>"` environment variables.
+              

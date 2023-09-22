@@ -135,15 +135,13 @@ By default, the discovery mode is provided with pre-made discovery config compon
 
 The following components have bundled discovery configurations in the last Splunk OpenTelemetry Collector release:
 
-I. Smart Agent receiver
+I. Receivers
 * `collectd/mysql` monitor type ([Linux](./bundle/bundle.d/receivers/smartagent-collectd-mysql.discovery.yaml))
 * `collectd/nginx` monitor type ([Linux](./bundle/bundle.d/receivers/smartagent-collectd-nginx.discovery.yaml))
+* `oracledb` monitor type ([Linux](./bundle/bundle.d/receivers/oracledb.discovery.yaml))
 * `postgresql` monitor type ([Linux and Windows](./bundle/bundle.d/receivers/smartagent-postgresql.discovery.yaml))
 
-II. OpenTelemetry receiver
-* `oracledb` monitor type ([Linux](./bundle/bundle.d/receivers/oracledb.discovery.yaml))
-
-III. Extensions
+II. Extensions
 * `docker_observer` ([Linux and Windows](./bundle/bundle.d/extensions/docker-observer.discovery.yaml))
 * `host_observer` ([Linux and Windows](./bundle/bundle.d/extensions/host-observer.discovery.yaml))
 * `k8s_observer` ([Linux and Windows](./bundle/bundle.d/extensions/k8s-observer.discovery.yaml))

@@ -1179,8 +1179,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.85.0/
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatautil v0.85.0 h1:spVx9VQV8KV6EsvyeBjoz7lfZxApg0InR8Ju6j3Yyk0=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatautil v0.85.0/go.mod h1:h5h6CZwte3hBoitlWffAO2OHtc38jBRdr1UAS9hyXFs=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/resourcetotelemetry v0.85.0 h1:HxYC9D6ghO9qjUbuNscASG6D2ONTmf3izq3Pb8Kb7/s=
-github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza v0.85.1-0.20230914192633-636cd78c3909 h1:F2kDKJa+7+8BC/tlJRR1q1EKlOq5fgn/7o8jlEhTD0s=
-github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza v0.85.1-0.20230914192633-636cd78c3909/go.mod h1:EYLs6dtnqmHxLpjz/T/ik+CvcF8MhsGZ4y9OA5Ms6bc=
+github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza v0.85.0 h1:Y/J4GknLNfn1u2I1Ncys42uuBVYSGkbmsFynZlCd4k0=
+github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza v0.85.0/go.mod h1:Ngii/WWPVHwJKVFvGnmp35Tm8/5kI3OQ6FxWv3zVLC4=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.85.0 h1:QKGCvj0d39TS9UqgATvxZw7Uv1T7K3ltQDZCqvuIA70=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.85.0/go.mod h1:KY3tDk0Qw1ljMm0ZURFirGzK0CDQ2FdcO2bAUbO4Ces=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus v0.85.0 h1:xM+OELzJqaDJrYt+GoDdVgjruJVPL4jtaaUxM3CNvM8=
@@ -1228,8 +1228,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/cloudfoundryr
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/cloudfoundryreceiver v0.85.0/go.mod h1:KyFheIY+UVPE5mPi1uV6CHvReIpDP/r+HbKyz/Nnw9s=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdreceiver v0.85.0 h1:NPXaK+Sau5bgAKrFYso/gy+BnZVNFIUl4YERFmNd9nM=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdreceiver v0.85.0/go.mod h1:8zWYGfcFXX8crwY5w8aVlzsxNnWF37Z4AvVvJCAc/GY=
-github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filelogreceiver v0.85.1-0.20230914192633-636cd78c3909 h1:oePV0eGwUSfHui9ZcvKTk5DFYwYfnuZCdBzUHKrdvg8=
-github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filelogreceiver v0.85.1-0.20230914192633-636cd78c3909/go.mod h1:5pzTyB2Ag2zhYF5yFMuEPDSJ0AoMdrNULWp1ZNMMTQw=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filelogreceiver v0.85.0 h1:1IX7pCdRNaQD0akmvi3rz1JU8BXwytgUE9e4a2z7vao=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filelogreceiver v0.85.0/go.mod h1:UyvwxidXlU4YaVeEFMIZHege+0BWzHCdkiuyYWzoJYI=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/fluentforwardreceiver v0.85.0 h1:HASNtwfyXe/d7PX+WHOAIK2CgfLcxv7f7Icn20KOM98=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/fluentforwardreceiver v0.85.0/go.mod h1:vVncCfYLK/J9RKJ9AfKyaRIPGR/XS6HjGBz52fObfZY=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver v0.85.0 h1:18q+cnYgHm3J0tR99YOv6pX/uszMqzBtnA1s3liPJMY=

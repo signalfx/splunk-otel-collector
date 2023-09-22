@@ -41,7 +41,7 @@ func TestOracledbDockerObserver(t *testing.T) {
 			},
 			func(collector testutils.Collector) testutils.Collector {
 				return collector.WithEnv(map[string]string{
-					"ORACLEDB_URL":              "oracle://otel:password@localhost:1521/xe",
+					"ORACLEDB_URL":              "oracle://otel:password@localhost:1521/XE",
 					"SPLUNK_DISCOVERY_DURATION": "10s",
 					// confirm that debug logging doesn't affect runtime
 					"SPLUNK_DISCOVERY_LOG_LEVEL": "debug",
@@ -51,7 +51,7 @@ func TestOracledbDockerObserver(t *testing.T) {
 					"--set", "splunk.discovery.receivers.oracledb.config.username=otel",
 					"--set", "splunk.discovery.receivers.oracledb.config.password='${ORACLE_PASSWORD}'",
 					"--set", "splunk.discovery.receivers.oracledb.config.endpoint=localhost:1521",
-					"--set", "splunk.discovery.receivers.oracledb.config.service=xe",
+					"--set", "splunk.discovery.receivers.oracledb.config.service=XE",
 					"--set", `splunk.discovery.extensions.k8s_observer.enabled=false`,
 					"--set", `splunk.discovery.extensions.host_observer.enabled=false`,
 				)

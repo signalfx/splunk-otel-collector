@@ -37,7 +37,7 @@ func TestOracleDBIntegration(t *testing.T) {
 	testutils.AssertAllMetricsReceived(t, "all.yaml", "all_metrics_config.yaml",
 		oracledb, []testutils.CollectorBuilder{
 			func(collector testutils.Collector) testutils.Collector {
-				return collector.WithEnv(map[string]string{"ORACLEDB_URL": "oracle://otel:password@localhost:1521/xe"})
+				return collector.WithEnv(map[string]string{"ORACLEDB_URL": "oracle://otel:password@localhost:1521/XE"})
 			},
 		},
 	)

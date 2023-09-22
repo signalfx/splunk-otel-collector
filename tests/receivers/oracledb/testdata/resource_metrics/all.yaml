@@ -1,5 +1,9 @@
 resource_metrics:
-  - scope_metrics:
+  - attributes:
+      container.image.name: <ANY>
+      container.name: oracledb
+      oracledb.instance.name: localhost:1521/XE
+    scope_metrics:
       - instrumentation_scope:
           attributes: {}
           name: otelcol/oracledbreceiver

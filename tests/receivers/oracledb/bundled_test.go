@@ -30,7 +30,7 @@ func TestOracledbDockerObserver(t *testing.T) {
 		t.Skip("unable to share sockets between mac and d4m vm: https://github.com/docker/for-mac/issues/483#issuecomment-758836836")
 	}
 
-	testutils.AssertAllMetricsReceived(t, "all.yaml", "otlp_exporter.yaml",
+	testutils.AssertAllMetricsReceived(t, "bundled.yaml", "otlp_exporter.yaml",
 		oracledb, []testutils.CollectorBuilder{
 			func(c testutils.Collector) testutils.Collector {
 				cc := c.(*testutils.CollectorContainer)

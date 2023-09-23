@@ -120,13 +120,3 @@ func RegisterFakeMonitors() func() map[types.MonitorID]MockMonitor {
 		return instances
 	}
 }
-
-func findMonitorsByType(monitors map[types.MonitorID]MockMonitor, _type string) []MockMonitor {
-	mons := []MockMonitor{}
-	for _, m := range monitors {
-		if m.Type() == _type {
-			mons = append(mons, m)
-		}
-	}
-	return mons
-}

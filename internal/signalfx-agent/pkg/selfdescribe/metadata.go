@@ -2,7 +2,6 @@ package selfdescribe
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -79,7 +78,7 @@ func CollectMetadata(root string) ([]PackageMetadata, error) {
 
 		var pkg PackageMetadata
 
-		if bytes, err := ioutil.ReadFile(path); err != nil {
+		if bytes, err := os.ReadFile(path); err != nil {
 			return fmt.Errorf("unable to read metadata file %s: %w", path, err)
 		} else if err := yaml.UnmarshalStrict(bytes, &pkg); err != nil {
 			return fmt.Errorf("unable to unmarshal file %s: %w", path, err)

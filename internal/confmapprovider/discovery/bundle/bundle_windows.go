@@ -27,5 +27,6 @@ import (
 // build errors.
 //
 //go:embed bundle.d/extensions/*.discovery.yaml
+//go:embed bundle.d/receivers/oracledb.discovery.yaml
 //go:embed bundle.d/receivers/smartagent-postgresql.discovery.yaml
 var BundledFS embed.FS

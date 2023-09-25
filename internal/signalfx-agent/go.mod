@@ -58,7 +58,6 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/mailru/easyjson v0.7.7
 	github.com/mattn/go-xmlrpc v0.0.3
-	github.com/mitchellh/go-wordwrap v1.0.1
 	github.com/mitchellh/hashstructure v1.1.0
 	github.com/mongodb/go-client-mongodb-atlas v0.2.0
 	github.com/olekukonko/tablewriter v0.0.5

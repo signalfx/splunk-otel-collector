@@ -1,15 +1,9 @@
 package monitors
 
 import (
-	"fmt"
-	"reflect"
-
 	"github.com/signalfx/golib/v3/datapoint"
-	log "github.com/sirupsen/logrus"
-
 	"github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/core/services"
-	"github.com/signalfx/signalfx-agent/pkg/utils"
 )
 
 // MonitorFactory is a niladic function that creates an unconfigured instance
@@ -93,45 +87,6 @@ func Register(metadata *Metadata, factory MonitorFactory, configTemplate config.
 	MonitorMetadatas[metadata.MonitorType] = metadata
 }
 
-// DeregisterAll unregisters all monitor types.  Primarily intended for testing
-// purposes.
-func DeregisterAll() {
-	for k := range MonitorFactories {
-		delete(MonitorFactories, k)
-	}
-
-	for k := range ConfigTemplates {
-		delete(ConfigTemplates, k)
-	}
-}
-
-func newUninitializedMonitor(_type string) interface{} {
-	if factory, ok := MonitorFactories[_type]; ok {
-		return factory()
-	}
-
-	log.WithFields(log.Fields{
-		"monitorType": _type,
-	}).Error("Monitor type not supported")
-	return nil
-}
-
-// Creates a new, unconfigured instance of a monitor of _type.  Returns nil if
-// the monitor type is not registered.
-func newMonitor(_type string) interface{} {
-	mon := newUninitializedMonitor(_type)
-	if initMon, ok := mon.(Initializable); ok {
-		if err := initMon.Init(); err != nil {
-			log.WithFields(log.Fields{
-				"error":       err,
-				"monitorType": _type,
-			}).Error("Could not initialize monitor")
-			return nil
-		}
-	}
-	return mon
-}
-
 // Initializable represents a monitor that has a distinct InitMonitor method.
 // This should be called once after the monitor is created and before any of
 // its other methods are called.  It is useful for things that are not
@@ -144,40 +99,4 @@ type Initializable interface {
 // resources before being destroyed.
 type Shutdownable interface {
 	Shutdown()
-}
-
-// Takes a generic MonitorConfig and pulls out monitor-specific config to
-// populate a clone of the config template that was registered for the monitor
-// type specified in conf.  This will also validate the config and return nil
-// if validation fails.
-func getCustomConfigForMonitor(conf *config.MonitorConfig) (config.MonitorCustomConfig, error) {
-	confTemplate, ok := ConfigTemplates[conf.Type]
-	if !ok {
-		return nil, fmt.Errorf("unknown monitor type %s", conf.Type)
-	}
-	monConfig := utils.CloneInterface(confTemplate).(config.MonitorCustomConfig)
-
-	if err := config.FillInConfigTemplate("MonitorConfig", monConfig, conf); err != nil {
-		return nil, err
-	}
-
-	return monConfig, nil
-}
-
-func anyMarkedSolo(confs []config.MonitorConfig) bool {
-	for i := range confs {
-		if confs[i].Solo {
-			return true
-		}
-	}
-	return false
-}
-
-func configOnlyAllowsSingleInstance(monConfig config.MonitorCustomConfig) bool {
-	confVal := reflect.Indirect(reflect.ValueOf(monConfig))
-	coreConfField, ok := confVal.Type().FieldByName("MonitorConfig")
-	if !ok {
-		return false
-	}
-	return coreConfField.Tag.Get("singleInstance") == "true"
 }

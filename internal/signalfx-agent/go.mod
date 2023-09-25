@@ -113,7 +113,7 @@ require (
 
 require (
 	github.com/StackExchange/wmi v1.2.1
-	github.com/go-errors/errors v1.5.0
+	github.com/go-errors/errors v1.5.1
 	github.com/hashicorp/golang-lru v1.0.2
 	github.com/kr/pretty v0.3.1
 	github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-00010101000000-000000000000

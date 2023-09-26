@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"errors"
 	"io"
-	"regexp"
 	"strings"
 	"unicode"
 )
@@ -53,33 +52,6 @@ func LowercaseFirstChar(s string) string {
 		return string(unicode.ToLower(v)) + s[i+1:]
 	}
 	return ""
-}
-
-// StripIndent looks at the first line in s and strips off whatever whitespace
-// indentation it has from every line in s.  If subsequent lines do not start
-// with the same indentation as the first line, results are undefined.
-// If the first line is blank, it will be removed before processing.
-func StripIndent(s string) string {
-	lines := strings.Split(strings.TrimLeft(s, "\n"), "\n")
-	re := regexp.MustCompile(`^(\s+)`)
-	matches := re.FindStringSubmatch(lines[0])
-	if len(matches) > 0 {
-		indent := matches[1]
-		for i := range lines {
-			lines[i] = strings.Replace(lines[i], indent, "", 1)
-		}
-	}
-
-	return strings.TrimSpace(strings.Join(lines, "\n"))
-}
-
-// EnsurePrefix ensures that string s starts with the given prefix.  If it
-// already starts with that prefix, the original string is returned unaltered.
-func EnsurePrefix(s, prefix string) string {
-	if strings.HasPrefix(s, prefix) {
-		return s
-	}
-	return prefix + s
 }
 
 // ChunkScanner looks for a line and all subsequent indented lines and

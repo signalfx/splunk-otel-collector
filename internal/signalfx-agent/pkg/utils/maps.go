@@ -3,7 +3,6 @@ package utils
 
 import (
 	"fmt"
-	"sort"
 
 	"github.com/iancoleman/strcase"
 )
@@ -96,32 +95,6 @@ func CloneFullInterfaceMap(m map[interface{}]interface{}) map[interface{}]interf
 	return m2
 }
 
-// CloneAndFilterStringMapWithFunc clones a string map and only includes
-// key/value pairs for which the filter function returns true
-func CloneAndFilterStringMapWithFunc(in map[string]string, filter func(string, string) bool) (out map[string]string) {
-	out = make(map[string]string, len(in))
-	for k, v := range in {
-		if filter(k, v) {
-			out[k] = v
-		}
-	}
-	return out
-}
-
-// CloneAndExcludeStringMapByKey clones a string map excluding the specified keys
-func CloneAndExcludeStringMapByKey(in map[string]string, exclude map[string]bool) map[string]string {
-	if len(exclude) == 0 {
-		return CloneStringMap(in)
-	}
-	var out = make(map[string]string, len(in))
-	for k, v := range in {
-		if exclude[k] {
-			out[k] = v
-		}
-	}
-	return out
-}
-
 // InterfaceMapToStringMap converts a map[interface{}]interface{} to a
 // map[string]string.  Keys and values will be converted with fmt.Sprintf so
 // the original key/values don't have to be strings.
@@ -133,21 +106,6 @@ func InterfaceMapToStringMap(m map[interface{}]interface{}) map[string]string {
 	return out
 }
 
-// SortMapKeys returns a slice of all of the keys of a map sorted
-// alphabetically ascending.
-func SortMapKeys(m map[string]interface{}) []string {
-	if len(m) == 0 {
-		return nil
-	}
-
-	keys := make([]string, 0, len(m))
-	for k := range m {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	return keys
-}
-
 // StringInterfaceMapToAllInterfaceMap converts a map[string]interface{} to a
 // map[interface{}]interface{}
 func StringInterfaceMapToAllInterfaceMap(in map[string]interface{}) map[interface{}]interface{} {
@@ -156,22 +114,6 @@ func StringInterfaceMapToAllInterfaceMap(in map[string]interface{}) map[interfac
 		out[k] = v
 	}
 	return out
-}
-
-// FormatStringMapCompact formats a string map as a string in a compact form
-func FormatStringMapCompact(in map[string]string) string {
-	out := "{"
-
-	for k, v := range in {
-		out += k + ": " + v + ", "
-	}
-
-	if len(in) > 0 {
-		// Strip last comma
-		out = out[:len(out)-2]
-	}
-
-	return out + "}"
 }
 
 func StringInterfaceMapToStringMap(in map[string]interface{}) map[string]string {

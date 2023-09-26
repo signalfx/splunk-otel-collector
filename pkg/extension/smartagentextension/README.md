@@ -6,7 +6,7 @@
 The `smartagent` extension provides a mechanism to specify config options that are not
 just specific to a single instance of the [Smart Agent Receiver](../../receiver/smartagentreceiver/README.md) but are applicable to
 all instances.  This component provides a means of migrating your existing
-[Smart Agent configuration](https://docs.signalfx.com/en/latest/integrations/agent/config-schema.html#config-schema)
+[Smart Agent configuration](https://docs.splunk.com/observability/en/gdi/smart-agent/smart-agent-resources.html#configure-the-smart-agent)
 to the Splunk Distribution of OpenTelemetry Collector.
 
 As the Smart Agent Receiver doesn't provide 1:1 functional parity with the SignalFx Smart Agent in itself,
@@ -15,7 +15,7 @@ only a subset of existing configuration fields are supported by the Smart Agent 
 1. The `bundleDir` field refers to the path of a supported Smart Agent release bundle.  The
 x86_64/amd64 Splunk Distribution of OpenTelemetry Collector packages include the agent bundle, and their installers
 source its value via the `SPLUNK_BUNDLE_DIR` environment variable by default.
-1. The [`collectd`](https://docs.signalfx.com/en/latest/integrations/agent/config-schema.html#collectd)
+1. The [`collectd`](https://docs.splunk.com/observability/en/gdi/opentelemetry/smart-agent-migration-monitors.html#smart-agent-extension)
 field refers to performance and debugging configurables for the collectd subprocess and associated mechanisms.
 If the Smart Agent Extension or this field are not configured, the Agent defaults will be inherited.
 This configuration object's `configDir` refers to the location for internal configuration files and is set to the value

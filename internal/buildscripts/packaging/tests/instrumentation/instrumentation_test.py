@@ -332,7 +332,7 @@ def test_express_instrumentation(distro, arch):
             run_container_cmd(container, "apt-get install -y build-essential python3")
 
         # install splunk-otel-js
-        run_container_cmd(container, f"bash -l -c 'npm install --prefix /opt/express {NODE_AGENT_PATH}'")
+        run_container_cmd(container, f"bash -l -c 'npm install --global {NODE_AGENT_PATH}'")
 
         for method in ["systemd", "libsplunk"]:
             # attributes from default config

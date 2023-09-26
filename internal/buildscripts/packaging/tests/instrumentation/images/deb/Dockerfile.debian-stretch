@@ -27,7 +27,6 @@ COPY instrumentation/setup-tomcat.sh /opt/
 RUN bash /opt/setup-tomcat.sh
 
 ARG NODE_VERSION=v14
-ENV NODE_PATH=/opt/express/node_modules
 COPY instrumentation/setup-express.sh /opt
 RUN bash /opt/setup-express.sh
 

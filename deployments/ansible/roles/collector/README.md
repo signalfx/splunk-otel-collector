@@ -326,6 +326,7 @@ For proxy options, see the [Windows Proxy](#windows-proxy) section.
   CORECLR_ENABLE_PROFILING: true  # Required
   CORECLR_PROFILER: "{B4C89B0F-9908-4F73-9F59-0D77C5A06874}"  # Required
   SIGNALFX_ENV: "{{ signalfx_dotnet_auto_instrumentation_environment }}"
+  SIGNALFX_GLOBAL_TAGS: "{{ signalfx_dotnet_auto_instrumentation_global_tags }}"
   SIGNALFX_PROFILER_ENABLED: "{{ signalfx_dotnet_auto_instrumentation_enable_profiler }}"
   SIGNALFX_PROFILER_MEMORY_ENABLED: "{{ signalfx_dotnet_auto_instrumentation_enable_profiler_memory }}"
   SIGNALFX_SERVICE_NAME: "{{ signalfx_dotnet_auto_instrumentation_service_name }}"
@@ -360,6 +361,12 @@ For proxy options, see the [Windows Proxy](#windows-proxy) section.
   Set this option to `true` to enable AlwaysOn Memory Profiling. The value will
   be assigned to the `SIGNALFX_PROFILER_MEMORY_ENABLED` environment variable in
   the Windows registry. (**default:** `false`)
+
+- `signalfx_dotnet_auto_instrumentation_global_tags` (Windows only):
+  Comma-separated list of `key:value` pairs that specify global tags added to
+  all telemetry signals, for example `key1:val1,key2:val2`. The value will be
+  assigned to the `SIGNALFX_GLOBAL_TAGS` environment variable in the Windows
+  registry. (**default**: ``)
 
 - `signalfx_dotnet_auto_instrumentation_additional_options` (Windows only):
   Dictionary of environment variables to be added to the Windows registry

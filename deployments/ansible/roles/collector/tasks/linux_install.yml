@@ -80,6 +80,16 @@
     dest: /etc/ld.so.preload
   when: install_splunk_otel_auto_instrumentation
 
+- name: Get installed package facts
+  package_facts:
+    manager: auto
+  when: install_splunk_otel_auto_instrumentation
+
+- name: Get splunk-otel-auto-instrumentation version
+  set_fact:
+    auto_instrumentation_version: "{{ ansible_facts.packages['splunk-otel-auto-instrumentation'][0].version }}"
+  when: install_splunk_otel_auto_instrumentation
+
 - name: Set up the Splunk OpenTelemetry Auto Instrumentation config file
   ansible.builtin.template:
     src: splunk-otel-auto-instrumentation.conf.j2

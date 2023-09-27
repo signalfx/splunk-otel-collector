@@ -25,6 +25,7 @@
       SIGNALFX_SERVICE_NAME: test-service-name
       SIGNALFX_PROFILER_ENABLED: "true"
       SIGNALFX_PROFILER_MEMORY_ENABLED: "true"
+      SIGNALFX_GLOBAL_TAGS: splunk.zc.method:signalfx-dotnet-tracing-1.0.0,dotnet-tag:dotnet-tag-value
       SIGNALFX_DOTNET_VAR1: dotnet-value1
       SIGNALFX_DOTNET_VAR2: dotnet-value2
   tasks:

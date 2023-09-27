@@ -35,6 +35,21 @@
       assert:
         that: not service_status.changed
 
+    - name: Get installed signalfx-dotnet-tracing MSI version
+      ansible.windows.win_shell: |
+        $msi_version = ""
+        $msi_name = "SignalFx .NET Tracing 64-bit"
+        $regkey = "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall"
+        $msi_version = (Get-ItemProperty ${regkey}\* |  Where { $_.DisplayName -eq "$msi_name" }).DisplayVersion
+        echo $msi_version
+      register: msi_version
+
+    - name: Add SIGNALFX_GLOBAL_TAGS to dotnet_reg_values
+      set_fact:
+        dotnet_reg_values: |-
+          {%- set tags = "splunk.zc.method:signalfx-dotnet-tracing-" + (msi_version.stdout | trim) -%}
+          {{ dotnet_reg_values | combine({"SIGNALFX_GLOBAL_TAGS": tags}) }}
+
     - name: Verify collector env vars
       include_tasks: ../shared/verify_registry_key.yml
       vars:

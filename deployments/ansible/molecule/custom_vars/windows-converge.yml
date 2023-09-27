@@ -27,6 +27,7 @@
     signalfx_dotnet_auto_instrumentation_service_name: test-service-name
     signalfx_dotnet_auto_instrumentation_enable_profiler: true
     signalfx_dotnet_auto_instrumentation_enable_profiler_memory: true
+    signalfx_dotnet_auto_instrumentation_global_tags: dotnet-tag:dotnet-tag-value
     signalfx_dotnet_auto_instrumentation_additional_options:
       SIGNALFX_DOTNET_VAR1: dotnet-value1
       SIGNALFX_DOTNET_VAR2: dotnet-value2

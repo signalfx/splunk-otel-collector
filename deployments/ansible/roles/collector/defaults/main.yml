@@ -86,5 +86,6 @@ signalfx_dotnet_auto_instrumentation_environment: ""
 signalfx_dotnet_auto_instrumentation_service_name: ""
 signalfx_dotnet_auto_instrumentation_enable_profiler: false
 signalfx_dotnet_auto_instrumentation_enable_profiler_memory: false
+signalfx_dotnet_auto_instrumentation_global_tags: ""
 signalfx_dotnet_auto_instrumentation_iisreset: true
 signalfx_dotnet_auto_instrumentation_additional_options: {}

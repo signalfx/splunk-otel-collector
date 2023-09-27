@@ -299,19 +299,15 @@ def test_express_instrumentation(distro, arch):
     pkg_base = os.path.basename(pkg_path)
 
     # minimum supported node version required for profiling
-    node_version = "v16"
-
+    node_version = 16
     if distro in ("centos-7", "oraclelinux-7"):
         # g++ for these distros is too old to install splunk-otel-js with node v16:
-        #  g++: error: unrecognized command line option '-std=gnu++14'
+        #   g++: error: unrecognized command line option '-std=gnu++14'
         # use the minimum supported node version without profiling instead
-        node_version = "v14"
-    elif distro in ("debian-stretch", "ubuntu-xenial"):
-        # these distros only provide python 3.5, but node v16 requires python 3.6+
-        # use the minimum supported node version without profiling instead
-        node_version = "v14"
+        node_version = 14
 
-    buildargs = {"NODE_VERSION": node_version}
+    buildargs = {"NODE_VERSION": f"v{node_version}"}
+
     with run_distro_container(distro, dockerfile=get_dockerfile(distro), arch=arch, buildargs=buildargs) as container:
         copy_file_into_container(container, COLLECTOR_CONFIG_PATH, "/test/config.yaml")
         copy_file_into_container(container, pkg_path, f"/test/{pkg_base}")
@@ -320,16 +316,20 @@ def test_express_instrumentation(distro, arch):
 
         install_package(container, distro, f"/test/{pkg_base}")
 
-        # install dependencies for splunk-otel-js
-        if "opensuse" in distro:
-            run_container_cmd(container, "zypper -n install -t pattern devel_basis")
-            run_container_cmd(container, "zypper -n install -t pattern devel_C_C++")
-            run_container_cmd(container, "zypper -n install python3")
-        elif distro in RPM_DISTROS:
-            run_container_cmd(container, "yum groupinstall -y 'Development Tools'")
-            run_container_cmd(container, "yum install -y python3")
-        else:
-            run_container_cmd(container, "apt-get install -y build-essential python3")
+        if arch == "arm64" or distro in ("centos-7", "oraclelinux-7"):
+            # dev packages and libs required to build splunk-otel-js
+            if "opensuse" in distro:
+                run_container_cmd(container, "zypper -n install -t pattern devel_basis")
+                run_container_cmd(container, "zypper -n install -t pattern devel_C_C++")
+            elif distro in RPM_DISTROS:
+                run_container_cmd(container, "yum groupinstall -y 'Development Tools'")
+            else:
+                run_container_cmd(container, "apt-get install -y build-essential")
+
+        if distro in ("debian-stretch", "ubuntu-xenial"):
+            # npm installed with node v16 only supports python 3.6+, but these distros only provide python 3.5
+            # downgrade npm to support python 3.5
+            run_container_cmd(container, "bash -l -c 'npm install --global npm@^6'")
 
         # install splunk-otel-js
         run_container_cmd(container, f"bash -l -c 'npm install --global {NODE_AGENT_PATH}'")
@@ -359,7 +359,7 @@ def test_express_instrumentation(distro, arch):
                 r"telemetry\.sdk\.language": r"Str\(nodejs\)",
                 r"service\.name": rf"Str\(service_name_from_{method}_node\)",
                 r"deployment\.environment": rf"Str\(deployment_environment_from_{method}_node\)",
-                r"com\.splunk\.sourcetype": None if node_version == "v14" else r"Str\(otel\.profiling\)",
+                r"com\.splunk\.sourcetype": None if node_version < 16 else r"Str\(otel\.profiling\)",
             }
 
             if method == "systemd":

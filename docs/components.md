@@ -87,7 +87,7 @@ The distribution offers support for the following components.
 | [file](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/fileexporter)            | [alpha]          |
 | [kafka](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/kafkaexporter)          | [beta]           |
 | [httpsink](../internal/exporter/httpsinkexporter)                                                                    | [in development] |
-| [logging](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/loggingexporter)              | [in development] |
+| [debug](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/debugexporter)              | [in development] |
 | [otlp](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlpexporter)                    | [stable]         |
 | [otlphttp](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlphttpexporter)            | [stable]         |
 | [pulsar](../internal/exporter/pulsarexporter)                                                                        | [deprecated]     |

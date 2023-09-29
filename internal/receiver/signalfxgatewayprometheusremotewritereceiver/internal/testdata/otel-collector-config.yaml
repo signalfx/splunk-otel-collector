@@ -20,7 +20,7 @@ service:
     metrics/debug:
       receivers: [signalfxgatewayprometheusremotewrite]
       processors: [batch]
-      exporters: [logging]
+      exporters: [debug]
     metrics/sfx:
       receivers: [signalfxgatewayprometheusremotewrite]
       processors: [batch]

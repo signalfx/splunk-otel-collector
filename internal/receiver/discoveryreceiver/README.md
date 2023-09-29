@@ -37,7 +37,7 @@ service:
   pipelines:
     logs:
       receivers: [discovery]
-      exporters: [logging]
+      exporters: [debug]
 ```
 
 ```

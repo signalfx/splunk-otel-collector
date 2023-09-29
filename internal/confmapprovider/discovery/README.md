@@ -10,7 +10,7 @@ the ability to define Collector service config through individual component yaml
 graph LR
   config.d[/config.d/] --> 1>service.yaml]
   subgraph 1a[service.yaml]
-    1 --> 1a1[[pipelines:<br>metrics:<br>receivers:<br>- otlp<br>exporters:<br>- logging]]
+    1 --> 1a1[[pipelines:<br>metrics:<br>receivers:<br>- otlp<br>exporters:<br>- debug]]
   end
   config.d --> 2[/exporters/]
   subgraph 2a[exporters]

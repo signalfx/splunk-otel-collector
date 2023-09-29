@@ -347,7 +347,7 @@ service:
   pipelines:
     metrics:
       receivers: [hostmetrics]
-      exporters: [logging]`
+      exporters: [debug]`
 
 	tests := []struct {
 		name                string

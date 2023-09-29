@@ -19,4 +19,4 @@ service:
     metrics:
       receivers:
         - smartagent/collectd_solr
-      exporters: [otlp, logging]
+      exporters: [otlp, debug]

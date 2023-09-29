@@ -547,7 +547,7 @@ service:
    pipelines:
       metrics:
          receivers: [hostmetrics]
-         exporters: [logging]
+         exporters: [debug]
 END
 )
 

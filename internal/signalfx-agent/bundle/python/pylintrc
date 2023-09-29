@@ -185,7 +185,7 @@ max-nested-blocks=5
 never-returning-functions=optparse.Values,sys.exit
 
 
-[LOGGING]
+[debug]
 
 # Logging modules to check that the string format arguments are in logging
 # function parameter format

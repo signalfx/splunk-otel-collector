@@ -184,11 +184,11 @@ service:
   extensions: [health_check, http_forwarder, zpages]
   pipelines:
     metrics:
-      exporters: [logging, signalfx]
+      exporters: [debug, signalfx]
       processors: [memory_limiter, batch, resourcedetection]
       receivers: [prometheus/collector]
     traces:
-      exporters: [logging, signalfx]
+      exporters: [debug, signalfx]
       processors: [memory_limiter, batch, resource/add_environment]
       receivers: [otlp]
 EOF
@@ -376,7 +376,7 @@ service:
   - zpages
   pipelines:
     traces:
-      exporters: [logging, otlp]
+      exporters: [debug, otlp]
       processors: [memory_limiter, batch, resourcedetection]
       receivers: [jaeger, zipkin]
 EOF

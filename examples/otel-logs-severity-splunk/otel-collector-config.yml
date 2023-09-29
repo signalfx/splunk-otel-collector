@@ -59,4 +59,4 @@ service:
       logs:
         receivers: [filelog]
         processors: [batch, transform/log]
-        exporters: [splunk_hec/logs, logging]
+        exporters: [splunk_hec/logs, debug]

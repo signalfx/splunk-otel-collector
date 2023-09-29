@@ -34,4 +34,4 @@ service:
     metrics/debug:
       receivers: [redis]
       processors: [batch]
-      exporters: [logging]
+      exporters: [debug]

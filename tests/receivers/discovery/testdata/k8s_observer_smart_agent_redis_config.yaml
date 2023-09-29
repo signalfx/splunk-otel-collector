@@ -65,4 +65,4 @@ service:
     logs:
       receivers: [discovery]
       processors: [attributes]
-      exporters: [otlp, logging]
+      exporters: [otlp, debug]

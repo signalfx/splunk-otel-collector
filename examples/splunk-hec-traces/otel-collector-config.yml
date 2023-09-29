@@ -49,4 +49,4 @@ service:
       traces:
         receivers: [otlp]
         processors: [batch]
-        exporters: [splunk_hec/traces, logging]
+        exporters: [splunk_hec/traces, debug]

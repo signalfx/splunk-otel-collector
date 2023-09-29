@@ -4,7 +4,7 @@ signalFxRealm: us1
 
 intervalSeconds: 10
 
-logging:
+debug:
   level: info
 
 monitors:

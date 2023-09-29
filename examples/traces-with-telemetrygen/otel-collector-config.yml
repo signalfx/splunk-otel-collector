@@ -7,7 +7,7 @@ receivers:
           endpoint: 0.0.0.0:4317
 
 exporters:
-    logging:
+    debug:
       verbosity: detailed
 
 processors:

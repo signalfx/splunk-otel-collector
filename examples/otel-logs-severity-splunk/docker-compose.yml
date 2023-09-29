@@ -1,6 +1,6 @@
 version: "3"
 services:
-  logging:
+  debug:
     image: bash:latest
     container_name: logging
     command: 'bash -c "while(true) do /output.sh DETAIL >> /output/file.log ; sleep 1; done"'

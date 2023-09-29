@@ -125,7 +125,7 @@ monitors:
         closed.
       default: false
       type: gauge
-    apache_scoreboard.logging:
+    apache_scoreboard.debug:
       description: >
         This metric shows how many worker threads are busy writing to the log
         file.  If this number is consistently high, your logging level may be

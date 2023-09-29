@@ -228,7 +228,7 @@ func defaultConfig() Config {
 				MetricsToExclude:                      nil,
 				PropertiesToExclude:                   nil,
 			},
-			Logging: saconfig.LogConfig{
+			debug: saconfig.LogConfig{
 				Level:  "info",
 				Format: "text",
 			},

@@ -192,7 +192,7 @@ exporters:
     access_token: ${SPLUNK_ACCESS_TOKEN}
     api_url: https://api.${SPLUNK_REALM}.signalfx.com
     ingest_url: https://ingest.${SPLUNK_REALM}.signalfx.com
-  logging:
+  debug:
     verbosity: detailed
 service:
   extensions:

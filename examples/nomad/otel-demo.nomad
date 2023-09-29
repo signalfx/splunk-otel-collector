@@ -174,7 +174,7 @@ processors:
         value: demo-nomad
         key: deployment.environment
 exporters:
-  logging:
+  debug:
     verbosity: detailed
   signalfx:
     access_token: ${SPLUNK_ACCESS_TOKEN}
@@ -368,7 +368,7 @@ exporters:
     endpoint: "{{ with service "otlp.otel-gateway" }}{{ with index . 0 }}{{ .Address }}:{{ .Port }}{{ end }}{{ end }}"
     tls:
       insecure: true
-  logging:
+  debug:
     verbosity: detailed
 service:
   extensions:

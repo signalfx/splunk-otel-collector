@@ -12,7 +12,7 @@ exporters:
     tls:
       insecure: true
 
-  logging:
+  debug:
 
 service:
   pipelines:

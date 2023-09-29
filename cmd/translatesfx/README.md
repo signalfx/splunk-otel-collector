@@ -75,7 +75,7 @@ traceEndpointUrl: {"#from": 'trace_endpoint_url', default: "https://ingest.signa
 
 intervalSeconds: 10
 
-logging:
+debug:
   level: info
 
 monitors:

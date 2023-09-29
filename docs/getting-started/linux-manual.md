@@ -541,7 +541,7 @@ receivers:
       scrapers:
          cpu:
 exporters:
-   logging:
+   debug:
       verbosity: detailed
 service:
    pipelines:

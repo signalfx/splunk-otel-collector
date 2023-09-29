@@ -1,7 +1,7 @@
 signalFxAccessToken: abc123
 signalFxRealm: us1
 
-logging:
+debug:
   level: debug
 
 monitors:

@@ -1,7 +1,7 @@
 version: "3"
 services:
   # Sample bash script producing logs.
-  logging:
+  debug:
     image: bash:latest
     container_name: logging
     command: 'bash -c "while(true) do echo \"$$(date) new message\" >> /output/file.log ; sleep 1; done"'

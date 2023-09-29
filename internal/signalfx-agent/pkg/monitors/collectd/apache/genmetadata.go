@@ -39,7 +39,7 @@ var metricSet = map[string]monitors.MetricInfo{
 	apacheScoreboardFinishing:   {Type: datapoint.Gauge},
 	apacheScoreboardIdleCleanup: {Type: datapoint.Gauge},
 	apacheScoreboardKeepalive:   {Type: datapoint.Gauge},
-	apacheScoreboardLogging:     {Type: datapoint.Gauge},
+	apacheScoreboarddebug:     {Type: datapoint.Gauge},
 	apacheScoreboardOpen:        {Type: datapoint.Gauge},
 	apacheScoreboardReading:     {Type: datapoint.Gauge},
 	apacheScoreboardSending:     {Type: datapoint.Gauge},

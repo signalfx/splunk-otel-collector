@@ -66,7 +66,7 @@ Example config:
 ---
 signalFxAccessToken: <signalfx token>
 intervalSeconds: 10
-logging:
+debug:
   level: debug
 monitors:
   - type: cloudfoundry-firehose-nozzle

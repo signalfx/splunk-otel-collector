@@ -6,7 +6,7 @@ traceEndpointUrl: {"#from": '/etc/signalfx/trace_endpoint_url', default: "https:
 
 intervalSeconds: 10
 
-logging:
+debug:
   level: info
 
 observers:

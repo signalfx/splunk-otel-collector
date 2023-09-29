@@ -1,12 +1,12 @@
 version: "3"
 services:
   # Sample Go application producing logs.
-  logging:
+  debug:
     container_name: logging
     build:
       context: logging
     restart: always
-    logging:
+    debug:
       driver: "splunk"
       options:
         splunk-token: "00000000-0000-0000-0000-0000000000000"

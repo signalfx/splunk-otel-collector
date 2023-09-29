@@ -6,7 +6,7 @@ traceEndpointUrl: {"#from": 'testdata/trace_endpoint_url', default: "https://ing
 
 intervalSeconds: 10
 
-logging:
+debug:
   level: info
 
 monitors:

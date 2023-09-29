@@ -10,7 +10,7 @@ globalDimensions:
   foo: bar
   baz: glarch
 
-logging:
+debug:
   level: info
 
 monitors:

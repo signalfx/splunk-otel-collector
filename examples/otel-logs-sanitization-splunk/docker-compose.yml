@@ -1,7 +1,7 @@
 version: "3"
 services:
   # Sample Go application producing logs.
-  logging:
+  debug:
     image: bash:latest
     container_name: logging
     command: 'bash -c "while(true) do echo \"$$(date) my SSN is $$(($$RANDOM % 9))$$(($$RANDOM % 9))$$(($$RANDOM % 9))$$(($$RANDOM % 9))-$$(($$RANDOM % 9))$$(($$RANDOM % 9))$$(($$RANDOM % 9))-$$(($$RANDOM % 9))$$(($$RANDOM % 9))$$(($$RANDOM % 9))$$(($$RANDOM % 9)). Please do not share.\" >> /output/file.log ; sleep 1; done"'

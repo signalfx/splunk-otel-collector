@@ -17,7 +17,7 @@ graph LR
     2 --> 2a1>otlp.yaml]
     2a1 --> 2b1[[otlp:<br>endpoint: 1.2.3.4:2345]]
     2 --> 2a2>logging.yaml]
-    2a2 --> 2b2[[logging:<br>verbosity: detailed]]
+    2a2 --> 2b2[[debug:<br>verbosity: detailed]]
   end
   config.d --> 3[/extensions/]
   subgraph 3a[extensions]
@@ -59,7 +59,7 @@ $ bin/otelcol --config /dev/null --configd --config-dir ./config.d --dry-run
 2023/02/24 19:54:23 settings.go:384: Set ballast to 168 MiB
 2023/02/24 19:54:23 settings.go:400: Set memory limit to 460 MiB
 exporters:
-  logging:
+  debug:
     verbosity: detailed
   otlp:
     endpoint: 1.2.3.4:2345

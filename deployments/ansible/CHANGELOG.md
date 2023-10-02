@@ -1,5 +1,15 @@
 # Changelog
 
+## ansible-v0.21.0
+
+### 💡 Enhancements 💡
+
+- Add support for the `splunk_listen_interface` and `signalfx_dotnet_auto_instrumentation_global_tags` options
+
+### 🧰 Bug fixes 🧰
+
+- Update default base url for downloading `td-agent` on Windows to `https://s3.amazonaws.com/packages.treasuredata.com`
+
 ## ansible-v0.20.0
 
 ### 🛑 Breaking changes 🛑

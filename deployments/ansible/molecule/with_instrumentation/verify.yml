@@ -33,7 +33,7 @@
 
     - name: Assert instrumentation config contains resource attribute
       ansible.builtin.lineinfile:
-        line: resource_attributes=deployment.environment=test
+        line: resource_attributes=splunk.zc.method=splunk-otel-auto-instrumentation-0.50.0,deployment.environment=test
         dest: /usr/lib/splunk-instrumentation/instrumentation.conf
         state: present
       check_mode: yes

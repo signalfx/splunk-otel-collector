@@ -344,19 +344,20 @@ To manually activate and configure the Auto Instrumentation agents:
 1. Check agent compatibility and requirements:
    - [Java](https://docs.splunk.com/Observability/gdi/get-data-in/application/java/java-otel-requirements.html)
    - [Node.js](https://docs.splunk.com/Observability/en/gdi/get-data-in/application/nodejs/nodejs-otel-requirements.html)
-2. If Auto Instrumentation for Node.js is required, manually install the
-   provided Node.js package with `npm`. For example:
+2. If Auto Instrumentation for Node.js is required, install the provided
+   `/usr/lib/splunk-instrumentation/splunk-otel-js.tgz` Node.js package with
+   `npm`. For example:
    ```sh
    sudo npm install --global /usr/lib/splunk-instrumentation/splunk-otel-js.tgz
    ```
    > **Notes:**
    > - Ensure that all Node.js applications/services to be instrumented have
    >   access to the installation path of the Node.js package.
-   > - On certain Linux distributions and architectures, it may be necessary
-   >   to build/compile the Node.js package when installing with `npm`. Ensure
-   >   that any required tools/libraries are installed on these systems, for
-   >   example, `sudo apt-get install build-essential` on Debian-based systems
-   >   or `sudo yum groupinstall 'Development Tools'` on RPM-based systems.
+   > - On `arm64` architectures, it may be necessary to build/compile the
+   >   Node.js package when installing with `npm`. Ensure that any required
+   >   tools/libraries are installed on these systems, for example,
+   >   `sudo apt-get install build-essential` on Debian-based systems or
+   >   `sudo yum groupinstall 'Development Tools'` on RPM-based systems.
 3. See [Activation and Configuration](
    ../../instrumentation/README.md#activation-and-configuration) for supported
    methods and options.

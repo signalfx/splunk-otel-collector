@@ -90,7 +90,7 @@ The distribution offers support for the following components.
 | [logging](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/loggingexporter)              | [in development] |
 | [otlp](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlpexporter)                    | [stable]         |
 | [otlphttp](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlphttpexporter)            | [stable]         |
-| [pulsar](../internal/exporter/pulsarexporter)                                                                        | [deprecated]     |
+| [pulsar](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/pulsarexporter)                                                                        | [alpha]          |
 | [signalfx](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/signalfxexporter)    | [beta]           |
 | [sapm](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/sapmexporter)            | [beta]           |
 | [splunk_hec](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/splunkhecexporter) | [beta]           |

@@ -1113,6 +1113,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter 
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.86.0 h1:qWJSdSMVOiYuPwPc3XDJ6ZbxjgCFZ6ve9sWB/Vyv+x8=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.86.0/go.mod h1:oEIS5mVCrn/xiZFW7dH/a94wT9RNNGS36ZwBDx1kjxU=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter v0.86.0 h1:c5xos7UDoRJgWu6ejFtLwq9TIZTcL2YhU/Y9n/D1kHE=
+github.com/open-telemetry/opentelemetry-collector-contrib/exporter/pulsarexporter v0.86.0 h1:fwyFdYkaH0LMMAoxc0dE2eiCoUx2xsZka77fjCuFSUA=
+github.com/open-telemetry/opentelemetry-collector-contrib/exporter/pulsarexporter v0.86.0/go.mod h1:XgmIjwM6hTQvyzm6ClJLMtr6eubx1DmRqil9NDj2NiU=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.86.0 h1:K7eu4hTp5LVhJROR34vjWFNiThSa6wgb4eZryBH3hsY=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.86.0/go.mod h1:67Z4qrkVOem4TfOijxTlioJ4ZJewnJkg1RhTZ72b6x4=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.86.0 h1:LjDMbehWLH+t6fkp6uQdpiu9sc3XgyG9Wjve4qV+wOU=

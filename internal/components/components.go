@@ -20,6 +20,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/pulsarexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter"
@@ -100,8 +101,6 @@ import (
 	"go.uber.org/multierr"
 
 	"github.com/signalfx/splunk-otel-collector/internal/exporter/httpsinkexporter"
-	//lint:ignore SA1019 We will replace the exporter in future versions
-	"github.com/signalfx/splunk-otel-collector/internal/exporter/pulsarexporter"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/lightprometheusreceiver"
@@ -191,7 +190,6 @@ func Get() (otelcol.Factories, error) {
 		signalfxexporter.NewFactory(),
 		splunkhecexporter.NewFactory(),
 		httpsinkexporter.NewFactory(),
-		//lint:ignore SA1019 We will replace the exporter in future versions
 		pulsarexporter.NewFactory(),
 	)
 	if err != nil {

@@ -5,10 +5,12 @@ on:
     paths:
       - '**.md'
       - '.github/workflows/lychee.yml'
+      - '.lychee.toml'
   pull_request:
     paths:
       - '**.md'
       - '.github/workflows/lychee.yml'
+      - '.lychee.toml'
   schedule:
     - cron: "0 0 * * 1"
 

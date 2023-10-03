@@ -300,6 +300,11 @@ def test_express_instrumentation(distro, arch):
 
     # minimum supported node version required for profiling
     node_version = 16
+    if arch == "arm64" and distro in ("centos-7", "oraclelinux-7"):
+        # g++ for these distros is too old to install splunk-otel-js with node v16:
+        #   g++: error: unrecognized command line option '-std=gnu++14'
+        # use the minimum supported node version without profiling instead
+        node_version = 14
 
     buildargs = {"NODE_VERSION": f"v{node_version}"}
 

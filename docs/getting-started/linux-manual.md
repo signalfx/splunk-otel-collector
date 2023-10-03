@@ -166,7 +166,7 @@ installed on x86_64/amd64 platforms.
      sudo apt-get install --only-upgrade splunk-otel-auto-instrumentation
      ```
      **Note:** You may be prompted to keep or overwrite the configuration files
-     in the `/etc/splunk/zeroconfig` directory.  Choosing to overwrite will
+     in the `/etc/splunk/zeroconfig` directory. Choosing to overwrite will
      revert this file to the default file provided by the new package.
    - RPM:
      - `yum`

@@ -75,13 +75,13 @@ forms:
 
   - name: cloudfoundry_uaa_username
     type: string
-    label: UAA username
+    label: UAA client username
     description: Name of the UAA client. This UAA client must have the client_credentials and refresh_token authorized grant types, and the logs.admin authority.
     optional: false
 
   - name: cloudfoundry_uaa_password
     type: secret
-    label: UAA password
+    label: UAA client password
     description: Password of the UAA client
     optional: false
 

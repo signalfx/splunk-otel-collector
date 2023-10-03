@@ -5,7 +5,6 @@ go 1.20
 require (
 	github.com/alecthomas/participle/v2 v2.1.0
 	github.com/antonmedv/expr v1.15.3
-	github.com/apache/pulsar-client-go v0.11.0
 	github.com/cenkalti/backoff/v4 v4.2.1
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/go-zookeeper/zk v1.0.3
@@ -19,6 +18,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector v0.86.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.86.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.86.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/pulsarexporter v0.86.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.86.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.86.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.86.0
@@ -102,7 +102,6 @@ require (
 	go.opentelemetry.io/collector v0.86.0
 	go.opentelemetry.io/collector/config/confighttp v0.86.0
 	go.opentelemetry.io/collector/config/configtelemetry v0.86.0
-	go.opentelemetry.io/collector/config/configtls v0.86.0
 	go.opentelemetry.io/collector/confmap v0.86.0
 	go.opentelemetry.io/collector/connector v0.86.0
 	go.opentelemetry.io/collector/connector/forwardconnector v0.86.0
@@ -145,6 +144,7 @@ require (
 	github.com/JohnCGriffin/overflow v0.0.0-20211019200055-46fa312c352c // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/apache/arrow/go/v12 v12.0.1 // indirect
+	github.com/apache/pulsar-client-go v0.11.0 // indirect
 	github.com/bits-and-blooms/bitset v1.4.0 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.6.0 // indirect
 	github.com/cpuguy83/dockercfg v0.3.1 // indirect
@@ -184,6 +184,7 @@ require (
 	go.opentelemetry.io/collector/config/configgrpc v0.86.0 // indirect
 	go.opentelemetry.io/collector/config/confignet v0.86.0 // indirect
 	go.opentelemetry.io/collector/config/configopaque v0.86.0 // indirect
+	go.opentelemetry.io/collector/config/configtls v0.86.0 // indirect
 	go.opentelemetry.io/collector/config/internal v0.86.0 // indirect
 	go.opentelemetry.io/collector/extension/auth v0.86.0 // indirect
 	go.opentelemetry.io/collector/service v0.86.0 // indirect

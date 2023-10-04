@@ -627,6 +627,6 @@ service:
       processors: [memory_limiter, batch]
       exporters: [signalfx]
     logs:
-      receivers: [fluentforward, otlp]
+      receivers: [fluentforward, otlp, scripted_inputs/cpu]
       processors: [memory_limiter, batch]
       exporters: [splunk_hec, splunk_hec/profiling]

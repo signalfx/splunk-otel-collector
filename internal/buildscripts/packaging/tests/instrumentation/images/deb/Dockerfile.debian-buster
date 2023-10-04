@@ -7,7 +7,7 @@ FROM debian:buster
 ENV DEBIAN_FRONTEND noninteractive
 
 RUN apt-get update &&\
-    apt-get install -yq ca-certificates curl procps systemd wget
+    apt-get install -yq ca-certificates curl procps python3 systemd wget
 
 ENV container docker
 RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i = \
@@ -24,7 +24,6 @@ COPY instrumentation/setup-tomcat.sh /opt/
 RUN bash /opt/setup-tomcat.sh
 
 ARG NODE_VERSION=v16
-ENV NODE_PATH=/opt/express/node_modules
 COPY instrumentation/setup-express.sh /opt
 RUN bash /opt/setup-express.sh
 

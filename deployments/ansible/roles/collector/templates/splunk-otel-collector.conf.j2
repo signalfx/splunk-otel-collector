@@ -17,7 +17,7 @@ SPLUNK_HEC_URL={{ splunk_ingest_url + "/v1/log" }}
 {% else %}
 SPLUNK_HEC_URL={{ "https://ingest." + splunk_realm + ".signalfx.com/v1/log" }}
 {% endif %}
-SPLUNK_HEC_TOKEN={{ splunk_access_token }}
+SPLUNK_HEC_TOKEN={{ splunk_hec_token }}
 SPLUNK_MEMORY_TOTAL_MIB={{ splunk_memory_total_mib }}
 SPLUNK_BALLAST_SIZE_MIB={{ splunk_ballast_size_mib }}
 SPLUNK_LISTEN_INTERFACE={{ splunk_listen_interface }}

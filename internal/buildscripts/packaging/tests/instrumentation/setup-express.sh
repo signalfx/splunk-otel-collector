@@ -13,9 +13,15 @@ NVM_DIR="$NVM_HOME/.nvm"
 
 nvm install --default ${NODE_VERSION:-v16}
 
-echo "PATH=\$PATH:${NVM_BIN}" >> /etc/profile
+npm config --global set user root
 
-npm install --prefix $EXPRESS_HOME express
+NODE_PATH="$( npm root -g )"
+
+mkdir -p /etc/profile.d
+echo "export PATH=\$PATH:${NVM_BIN}" >> /etc/profile.d/node.sh
+echo "export NODE_PATH=${NODE_PATH}" >> /etc/profile.d/node.sh
+
+npm install --global express
 
 cat <<EOH > ${EXPRESS_HOME}/app.js
 var express = require('express');
@@ -44,7 +50,7 @@ After=network.target
 Type=simple
 User=express
 Group=express
-Environment=NODE_PATH=${EXPRESS_HOME}/node_modules
+Environment=NODE_PATH=${NODE_PATH}
 ExecStart=${NVM_BIN}/node ${EXPRESS_HOME}/app.js
 ExecStop=/bin/kill -TERM \$MAINPID
 Restart=on-failure

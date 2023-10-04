@@ -43,20 +43,20 @@ INSTALLER_PATH = REPO_DIR / "internal" / "buildscripts" / "packaging" / "install
 COLLECTOR_CONFIG_PATH = TESTS_DIR / "instrumentation" / "config.yaml"
 
 PKG_NAME = "splunk-otel-auto-instrumentation"
-LIBSPLUNK_PATH = "/usr/lib/splunk-instrumentation/libsplunk.so"
+LIB_DIR = "/usr/lib/splunk-instrumentation"
+LIBSPLUNK_PATH = f"{LIB_DIR}/libsplunk.so"
 PRELOAD_PATH = "/etc/ld.so.preload"
 SYSTEMD_CONF_DIR = "/usr/lib/systemd/system.conf.d"
+SAMPLE_SYSTEMD_CONF_PATH = f"{LIB_DIR}/examples/systemd/00-splunk-otel-auto-instrumentation.conf"
 
-JAVA_AGENT_PATH = "/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar"
+JAVA_AGENT_PATH = f"{LIB_DIR}/splunk-otel-javaagent.jar"
 JAVA_CONFIG_PATH = "/etc/splunk/zeroconfig/java.conf"
 CUSTOM_JAVA_CONFIG_PATH = TESTS_DIR / "instrumentation" / "libsplunk-java-test.conf"
-SAMPLE_JAVA_SYSTEMD_CONF_PATH = "/usr/lib/splunk-instrumentation/examples/systemd/00-splunk-otel-javaagent.conf"
 CUSTOM_JAVA_SYSTEMD_CONF_PATH = TESTS_DIR / "instrumentation" / "systemd-java-test.conf"
 
-NODE_AGENT_PATH = "/usr/lib/splunk-instrumentation/splunk-otel-js.tgz"
+NODE_AGENT_PATH = f"{LIB_DIR}/splunk-otel-js.tgz"
 NODE_CONFIG_PATH = "/etc/splunk/zeroconfig/node.conf"
 CUSTOM_NODE_CONFIG_PATH = TESTS_DIR / "instrumentation" / "libsplunk-node-test.conf"
-SAMPLE_NODE_SYSTEMD_CONF_PATH = "/usr/lib/splunk-instrumentation/examples/systemd/00-splunk-otel-js.conf"
 CUSTOM_NODE_SYSTEMD_CONF_PATH = TESTS_DIR / "instrumentation" / "systemd-node-test.conf"
 
 INSTALLED_FILES = [
@@ -65,8 +65,7 @@ INSTALLED_FILES = [
     LIBSPLUNK_PATH,
     JAVA_CONFIG_PATH,
     NODE_CONFIG_PATH,
-    SAMPLE_JAVA_SYSTEMD_CONF_PATH,
-    SAMPLE_NODE_SYSTEMD_CONF_PATH,
+    SAMPLE_SYSTEMD_CONF_PATH,
 ]
 
 TOMCAT_PIDFILE = "/usr/local/tomcat/temp/tomcat.pid"
@@ -251,7 +250,7 @@ def test_tomcat_instrumentation(distro, arch):
             if method == "systemd":
                 # install the sample drop-in file to enable the agent
                 run_container_cmd(container, f"mkdir -p {SYSTEMD_CONF_DIR}")
-                run_container_cmd(container, f"cp -f {SAMPLE_JAVA_SYSTEMD_CONF_PATH} {SYSTEMD_CONF_DIR}/")
+                run_container_cmd(container, f"cp -f {SAMPLE_SYSTEMD_CONF_PATH} {SYSTEMD_CONF_DIR}/")
                 if container_file_exists(container, "/etc/ld.so.preload"):
                     run_container_cmd(container, "rm -f /etc/ld.so.preload")
             else:
@@ -300,19 +299,15 @@ def test_express_instrumentation(distro, arch):
     pkg_base = os.path.basename(pkg_path)
 
     # minimum supported node version required for profiling
-    node_version = "v16"
-
-    if distro in ("centos-7", "oraclelinux-7"):
+    node_version = 16
+    if arch == "arm64" and distro in ("centos-7", "oraclelinux-7"):
         # g++ for these distros is too old to install splunk-otel-js with node v16:
-        #  g++: error: unrecognized command line option '-std=gnu++14'
+        #   g++: error: unrecognized command line option '-std=gnu++14'
         # use the minimum supported node version without profiling instead
-        node_version = "v14"
-    elif distro in ("debian-stretch", "ubuntu-xenial"):
-        # these distros only provide python 3.5, but node v16 requires python 3.6+
-        # use the minimum supported node version without profiling instead
-        node_version = "v14"
+        node_version = 14
 
-    buildargs = {"NODE_VERSION": node_version}
+    buildargs = {"NODE_VERSION": f"v{node_version}"}
+
     with run_distro_container(distro, dockerfile=get_dockerfile(distro), arch=arch, buildargs=buildargs) as container:
         copy_file_into_container(container, COLLECTOR_CONFIG_PATH, "/test/config.yaml")
         copy_file_into_container(container, pkg_path, f"/test/{pkg_base}")
@@ -321,19 +316,23 @@ def test_express_instrumentation(distro, arch):
 
         install_package(container, distro, f"/test/{pkg_base}")
 
-        # install dependencies for splunk-otel-js
-        if "opensuse" in distro:
-            run_container_cmd(container, "zypper -n install -t pattern devel_basis")
-            run_container_cmd(container, "zypper -n install -t pattern devel_C_C++")
-            run_container_cmd(container, "zypper -n install python3")
-        elif distro in RPM_DISTROS:
-            run_container_cmd(container, "yum groupinstall -y 'Development Tools'")
-            run_container_cmd(container, "yum install -y python3")
-        else:
-            run_container_cmd(container, "apt-get install -y build-essential python3")
+        if arch == "arm64":
+            # dev packages and libs required to build splunk-otel-js
+            if "opensuse" in distro:
+                run_container_cmd(container, "zypper -n install -t pattern devel_basis")
+                run_container_cmd(container, "zypper -n install -t pattern devel_C_C++")
+            elif distro in RPM_DISTROS:
+                run_container_cmd(container, "yum groupinstall -y 'Development Tools'")
+            else:
+                run_container_cmd(container, "apt-get install -y build-essential")
+
+        if distro in ("debian-stretch", "ubuntu-xenial"):
+            # npm installed with node v16 only supports python 3.6+, but these distros only provide python 3.5
+            # downgrade npm to support python 3.5
+            run_container_cmd(container, "bash -l -c 'npm install --global npm@^6'")
 
         # install splunk-otel-js
-        run_container_cmd(container, f"bash -l -c 'npm install --prefix /opt/express {NODE_AGENT_PATH}'")
+        run_container_cmd(container, f"bash -l -c 'npm install --global {NODE_AGENT_PATH}'")
 
         for method in ["systemd", "libsplunk"]:
             # attributes from default config
@@ -345,7 +344,7 @@ def test_express_instrumentation(distro, arch):
             if method == "systemd":
                 # install the sample drop-in file to enable the agent
                 run_container_cmd(container, f"mkdir -p {SYSTEMD_CONF_DIR}")
-                run_container_cmd(container, f"cp -f {SAMPLE_NODE_SYSTEMD_CONF_PATH} {SYSTEMD_CONF_DIR}/")
+                run_container_cmd(container, f"cp -f {SAMPLE_SYSTEMD_CONF_PATH} {SYSTEMD_CONF_DIR}/")
                 if container_file_exists(container, "/etc/ld.so.preload"):
                     run_container_cmd(container, "rm -f /etc/ld.so.preload")
             else:
@@ -360,7 +359,7 @@ def test_express_instrumentation(distro, arch):
                 r"telemetry\.sdk\.language": r"Str\(nodejs\)",
                 r"service\.name": rf"Str\(service_name_from_{method}_node\)",
                 r"deployment\.environment": rf"Str\(deployment_environment_from_{method}_node\)",
-                r"com\.splunk\.sourcetype": None if node_version == "v14" else r"Str\(otel\.profiling\)",
+                r"com\.splunk\.sourcetype": None if node_version < 16 else r"Str\(otel\.profiling\)",
             }
 
             if method == "systemd":

@@ -8,7 +8,7 @@ ENV container docker
 
 RUN sed -i 's|download.opensuse.org|ftp5.gwdg.de/pub/opensuse/discontinued|' /etc/zypp/repos.d/*.repo
 RUN zypper -n clean && zypper -n refresh
-RUN zypper -n install -l curl dbus-1 gzip procps systemd-sysvinit tar wget
+RUN zypper -n install -l curl dbus-1 gzip procps python3 systemd-sysvinit tar wget
 
 RUN (cd /usr/lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i = \
     "systemd-tmpfiles-setup.service" ] || rm -f $i; done); \
@@ -25,7 +25,6 @@ COPY instrumentation/setup-tomcat.sh /opt/
 RUN bash /opt/setup-tomcat.sh
 
 ARG NODE_VERSION=v16
-ENV NODE_PATH=/opt/express/node_modules
 COPY instrumentation/setup-express.sh /opt
 RUN bash /opt/setup-express.sh
 

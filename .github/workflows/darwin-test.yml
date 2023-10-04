@@ -28,7 +28,8 @@ jobs:
     runs-on: ${{ matrix.OS }}
     strategy:
       matrix:
-        OS: [ "macos-11", "macos-12", "macos-11-arm64" ]
+        # The "macos-13-xlarge" runner is arm64: https://github.com/actions/runner-images/issues/8439
+        OS: [ "macos-11", "macos-12", "macos-13", "macos-13-xlarge" ]
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4

@@ -47,11 +47,13 @@ func TestRedisDockerObserver(t *testing.T) {
 			func(collector testutils.Collector) testutils.Collector {
 				return collector.WithEnv(map[string]string{
 					"REDIS_ENDPOINT": "0.0.0.0:6379",
+					//"REDIS_PASSWORD": "securepassword",
 					// confirm that debug logging doesn't affect runtime
 					"SPLUNK_DISCOVERY_LOG_LEVEL": "debug",
 				}).WithArgs(
 					"--discovery",
 					"--set", "splunk.discovery.receivers.redis.config.endpoint=${REDIS_ENDPOINT}",
+					//"--set", "splunk.discovery.receivers.redis.config.password=securepassword",
 					"--set", `splunk.discovery.extensions.k8s_observer.enabled=false`,
 					"--set", `splunk.discovery.extensions.host_observer.enabled=false`,
 				)

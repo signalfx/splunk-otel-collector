@@ -1,4 +1,4 @@
-{{ receiver "oracledb" }}:
+{{ receiver "redis" }}:
   enabled: true
   rule:
     docker_observer: type == "container" and any([name, image, command], {# matches "(?i)redis"}) and not (command matches "splunk.discovery")
@@ -34,7 +34,7 @@
           log_record:
             severity_text: info
             append_pattern: true
-            body: Unable to resolve oracledb tcp endpoint
+            body: Unable to resolve redis tcp endpoint
       partial:
         - regexp: "listener does not currently know of service requested"
           first_only: true
@@ -42,18 +42,24 @@
             severity_text: info
             append_pattern: true
             body: >-
-              Make sure your oracledb service is correctly specified using the
+              Make sure your redis service is correctly specified using the
               `--set {{ configProperty "service" "<service>" }}` command or the
               `{{ configPropertyEnvVar "service" "<service>" }}` environment variable. 
-        - regexp: 'invalid username/password'
+        - regexp: 'NOAUTH Authentication required.'
           first_only: true
           log_record:
             severity_text: info
             append_pattern: true
             body: >-
               Make sure your user credentials are correctly specified using the
-              `--set {{ configProperty "username" "<username>" }}` and
               `--set {{ configProperty "password" "<password>" }}` command or the
-              `{{ configPropertyEnvVar "username" "<username>" }}` and
               `{{ configPropertyEnvVar "password" "<password>" }}` environment variables.
-              
+        - regexp: 'ERR AUTH <password> called without any password configured for the default user'
+          first_only: true
+          log_record:
+            severity_text: info
+            append_pattern: true
+            body: >-
+              Make sure your user credentials are correctly specified using the
+              `--set {{ configProperty "password" "<password>" }}` command or the
+              `{{ configPropertyEnvVar "password" "<password>" }}` environment variables.      

@@ -2,7 +2,7 @@
 #                               Do not edit manually!                               #
 # All changes must be made to associated .tmpl file before running 'make bundle.d'. #
 #####################################################################################
-oracledb:
+redis:
   enabled: true
   rule:
     docker_observer: type == "container" and any([name, image, command], {# matches "(?i)redis"}) and not (command matches "splunk.discovery")
@@ -38,7 +38,7 @@ oracledb:
           log_record:
             severity_text: info
             append_pattern: true
-            body: Unable to resolve oracledb tcp endpoint
+            body: Unable to resolve redis tcp endpoint
       partial:
         - regexp: "listener does not currently know of service requested"
           first_only: true
@@ -46,18 +46,24 @@ oracledb:
             severity_text: info
             append_pattern: true
             body: >-
-              Make sure your oracledb service is correctly specified using the
-              `--set splunk.discovery.receivers.oracledb.config.service="<service>"` command or the
-              `SPLUNK_DISCOVERY_RECEIVERS_oracledb_CONFIG_service="<service>"` environment variable. 
-        - regexp: 'invalid username/password'
+              Make sure your redis service is correctly specified using the
+              `--set splunk.discovery.receivers.redis.config.service="<service>"` command or the
+              `SPLUNK_DISCOVERY_RECEIVERS_redis_CONFIG_service="<service>"` environment variable. 
+        - regexp: 'NOAUTH Authentication required.'
           first_only: true
           log_record:
             severity_text: info
             append_pattern: true
             body: >-
               Make sure your user credentials are correctly specified using the
-              `--set splunk.discovery.receivers.oracledb.config.username="<username>"` and
-              `--set splunk.discovery.receivers.oracledb.config.password="<password>"` command or the
-              `SPLUNK_DISCOVERY_RECEIVERS_oracledb_CONFIG_username="<username>"` and
-              `SPLUNK_DISCOVERY_RECEIVERS_oracledb_CONFIG_password="<password>"` environment variables.
-              
+              `--set splunk.discovery.receivers.redis.config.password="<password>"` command or the
+              `SPLUNK_DISCOVERY_RECEIVERS_redis_CONFIG_password="<password>"` environment variables.
+        - regexp: 'ERR AUTH <password> called without any password configured for the default user'
+          first_only: true
+          log_record:
+            severity_text: info
+            append_pattern: true
+            body: >-
+              Make sure your user credentials are correctly specified using the
+              `--set splunk.discovery.receivers.redis.config.password="<password>"` command or the
+              `SPLUNK_DISCOVERY_RECEIVERS_redis_CONFIG_password="<password>"` environment variables.      

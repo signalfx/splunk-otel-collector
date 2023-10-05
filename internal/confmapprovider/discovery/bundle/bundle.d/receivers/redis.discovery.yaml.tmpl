@@ -37,16 +37,7 @@
             severity_text: info
             append_pattern: true
             body: Unable to resolve redis tcp endpoint
-      partial:
-        - regexp: "listener does not currently know of service requested"
-          first_only: true
-          log_record:
-            severity_text: info
-            append_pattern: true
-            body: >-
-              Make sure your redis service is correctly specified using the
-              `--set {{ configProperty "service" "<service>" }}` command or the
-              `{{ configPropertyEnvVar "service" "<service>" }}` environment variable. 
+      partial: 
         - regexp: 'NOAUTH Authentication required.'
           first_only: true
           log_record:

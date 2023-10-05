@@ -42,7 +42,7 @@ OTELCOL_BIN_DIR = REPO_DIR / "bin"
 INSTALLER_PATH = REPO_DIR / "internal" / "buildscripts" / "packaging" / "installer" / "install.sh"
 COLLECTOR_CONFIG_PATH = TESTS_DIR / "instrumentation" / "config.yaml"
 
-PKG_NAME = "splunk-otel-auto-instrumentation"
+PKG_NAME = "splunk-otel-auto-instrumentation-ng"
 LIB_DIR = "/usr/lib/splunk-instrumentation"
 LIBSPLUNK_PATH = f"{LIB_DIR}/libsplunk.so"
 PRELOAD_PATH = "/etc/ld.so.preload"
@@ -80,6 +80,15 @@ TOMCAT_ENV = {
 
 EXPRESS_PIDFILE = "/opt/express/express.pid"
 
+OLD_DEB_PACKAGE = {
+    "amd64": "https://splunk.jfrog.io/artifactory/otel-collector-deb/pool/release/amd64/splunk-otel-auto-instrumentation_0.84.0_amd64.deb",
+    "arm64": "https://splunk.jfrog.io/artifactory/otel-collector-deb/pool/release/arm64/splunk-otel-auto-instrumentation_0.84.0_arm64.deb",
+}
+OLD_RPM_PACKAGE = {
+    "amd64": "https://splunk.jfrog.io/artifactory/otel-collector-rpm/release/x86_64/splunk-otel-auto-instrumentation-0.84.0-1.x86_64.rpm",
+    "arm64": "https://splunk.jfrog.io/artifactory/otel-collector-rpm/release/aarch64/splunk-otel-auto-instrumentation-0.84.0-1.aarch64.rpm",
+}
+
 
 def get_dockerfile(distro):
     if distro in DEB_DISTROS:
@@ -110,24 +119,44 @@ def container_file_exists(container, path):
     return container.exec_run(f"test -f {path}").exit_code == 0
 
 
+def install_old_package(container, distro, arch):
+    if distro in DEB_DISTROS:
+        run_container_cmd(container, f"wget -nv {OLD_DEB_PACKAGE[arch]}")
+        run_container_cmd(container, f"dpkg -i {OLD_DEB_PACKAGE[arch].split('/')[-1]}")
+    else:
+        run_container_cmd(container, f"wget -nv {OLD_RPM_PACKAGE[arch]}")
+        run_container_cmd(container, f"rpm -i {OLD_RPM_PACKAGE[arch].split('/')[-1]}")
+
+    # verify the old package added libsplunk.so to /etc/ld.so.preload
+    verify_preload(container, LIBSPLUNK_PATH)
+
+
 def install_package(container, distro, path):
     if distro in DEB_DISTROS:
         run_container_cmd(container, f"dpkg -i {path}")
     else:
-        run_container_cmd(container, f"rpm -ivh {path}")
+        run_container_cmd(container, f"rpm -Uvh {path}")
+
+    # verify that libsplunk.so was not added or removed from /etc/ld.so.preload
+    verify_preload(container, LIBSPLUNK_PATH, line_exists=False)
 
     for path in INSTALLED_FILES:
         assert container_file_exists(container, path), f"{path} not found"
 
 
-def verify_preload(container, line, exists=True):
+def verify_preload(container, line, line_exists=True):
+    if not line_exists and not container_file_exists(container, PRELOAD_PATH):
+        return
+    elif line_exists:
+        assert container_file_exists(container, PRELOAD_PATH)
+
     code, output = container.exec_run(f"cat {PRELOAD_PATH}")
     assert code == 0, f"failed to get contents from {PRELOAD_PATH}"
-    config = output.decode("utf-8")
+    content = output.decode("utf-8")
 
-    match = re.search(f"^{line}$", config, re.MULTILINE)
+    match = re.search(f"^{line}$", content, re.MULTILINE)
 
-    if exists:
+    if line_exists:
         assert match, f"'{line}' not found in {PRELOAD_PATH}"
     else:
         assert not match, f"'{line}' found in {PRELOAD_PATH}"
@@ -238,6 +267,10 @@ def test_tomcat_instrumentation(distro, arch):
         copy_file_into_container(container, otelcol_bin_path, f"/test/{otelcol_bin}")
         run_container_cmd(container, f"chmod a+x /test/{otelcol_bin}")
 
+        # download and install the old instrumentation package
+        install_old_package(container, distro, arch)
+
+        # install the new test package
         install_package(container, distro, f"/test/{pkg_base}")
 
         for method in ["systemd", "libsplunk"]:
@@ -314,6 +347,10 @@ def test_express_instrumentation(distro, arch):
         copy_file_into_container(container, otelcol_bin_path, otelcol)
         run_container_cmd(container, f"chmod a+x /test/{otelcol_bin}")
 
+        # download and install the old instrumentation package
+        install_old_package(container, distro, arch)
+
+        # install the new test package
         install_package(container, distro, f"/test/{pkg_base}")
 
         if arch == "arm64":
@@ -391,13 +428,13 @@ def test_package_uninstall(distro, arch):
         copy_file_into_container(container, pkg_path, f"/test/{pkg_base}")
         run_container_cmd(container, f"sh -c 'echo \"# This line should be preserved\" >> {PRELOAD_PATH}'")
 
-        # install the package
+        # download and install the old instrumentation package
+        install_old_package(container, distro, arch)
+
+        # install the new test package
         install_package(container, distro, f"/test/{pkg_base}")
 
         verify_preload(container, "# This line should be preserved")
-
-        # verify libsplunk.so was not automatically added to /etc/ld.so.preload
-        verify_preload(container, LIBSPLUNK_PATH, exists=False)
 
         # explicitly add libsplunk.so to /etc/ld.so.preload
         run_container_cmd(container, f"sh -c 'echo {LIBSPLUNK_PATH} >> {PRELOAD_PATH}'")
@@ -419,6 +456,6 @@ def test_package_uninstall(distro, arch):
             assert not container_file_exists(container, path)
 
         # verify libsplunk.so was removed from /etc/ld.so.preload
-        verify_preload(container, LIBSPLUNK_PATH, exists=False)
+        verify_preload(container, LIBSPLUNK_PATH, line_exists=False)
 
         verify_preload(container, "# This line should be preserved")

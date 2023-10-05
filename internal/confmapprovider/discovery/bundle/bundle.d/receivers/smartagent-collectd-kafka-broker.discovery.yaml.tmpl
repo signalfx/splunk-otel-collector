@@ -1,0 +1,28 @@
+{{ receiver "smartagent/collectd/kafka" }}:
+  enabled: true
+  rule:
+    docker_observer: type == "container" and any([name, image, command], {# matches "(?i)kafka"}) and not (command matches "splunk.discovery")
+    host_observer: type == "hostport" and command matches "(?i)kafka"
+    k8s_observer: type == "port" and pod.name matches "(?i)kafka"
+  config:
+    default:
+      type: collectd/kafka
+      host: {{ defaultValue }}
+      port: {{ defaultValue }}
+      isolatedCollectd: true
+  status:
+    metrics:
+      successful:
+        - strict: counter.kafka-bytes-in
+          first_only: true
+          log_record:
+            severity_text: info
+            body: smartagent/collectd/kafka receiver is working!
+    statements:
+      failed:
+        - regexp: "kafka plugin: Failed to connect to database .* at server .* Can't connect to kafka server on .* [(]111[)]"
+          first_only: true
+          log_record:
+            severity_text: info
+            append_pattern: true
+            body: The container is refusing kafka connections.

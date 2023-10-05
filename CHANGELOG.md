@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 🛑 Breaking changes 🛑
+
+- (Splunk) Set `SPLUNK_LISTEN_INTERFACE` environment variable value to 127.0.0.1 for agent mode by default, as determined by config path. 0.0.0.0 will be set otherwise, with existing environment values respected. The installers have been updated to only set the environment variable for collector service if configured directly.
+
 ## v0.85.0
 
 ***ADVANCED NOTICE - SPLUNK_LISTEN_INTERFACE DEFAULTS***

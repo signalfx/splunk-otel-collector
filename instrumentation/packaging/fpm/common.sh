@@ -17,7 +17,7 @@
 FPM_DIR="$( cd "$( dirname ${BASH_SOURCE[0]} )" && pwd )"
 REPO_DIR="$( cd "$FPM_DIR/../../../" && pwd )"
 
-PKG_NAME="splunk-otel-auto-instrumentation"
+PKG_NAME="splunk-otel-auto-instrumentation-ng"
 PKG_VENDOR="Splunk, Inc."
 PKG_MAINTAINER="Splunk, Inc."
 PKG_DESCRIPTION="Splunk OpenTelemetry Auto Instrumentation"

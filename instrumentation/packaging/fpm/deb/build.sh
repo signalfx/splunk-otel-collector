@@ -48,6 +48,10 @@ sudo fpm -s dir -t deb -n "$PKG_NAME" -v "$VERSION" -f -p "$OUTPUT_DIR" \
     --depends sed \
     --depends grep \
     --config-files "$CONFIG_DIR_INSTALL_PATH" \
+    --provides "$PKG_NAME" \
+    --provides "splunk-otel-auto-instrumentation" \
+    --conflicts "splunk-otel-auto-instrumentation" \
+    --replaces "splunk-otel-auto-instrumentation" \
     "$buildroot/"=/
 
 dpkg -c "${OUTPUT_DIR}/${PKG_NAME}_${VERSION}_${ARCH}.deb"

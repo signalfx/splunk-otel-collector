@@ -35,7 +35,7 @@ func TestRedisDockerObserver(t *testing.T) {
 	client := testutils.NewContainer().WithContext(path.Join(".", "testdata", "client")).WithName("redis-client").WithNetworks("redis_network").WillWaitForLogs("redis client started")
 	containers := []testutils.Container{server, client}
 
-	testutils.AssertAllMetricsReceived(t, "all_server.yaml", "all_metrics_config.yaml",
+	testutils.AssertAllMetricsReceived(t, "all_server_bundled.yaml", "otlp_exporter.yaml",
 		containers, []testutils.CollectorBuilder{
 			func(c testutils.Collector) testutils.Collector {
 				cc := c.(*testutils.CollectorContainer)
@@ -47,13 +47,15 @@ func TestRedisDockerObserver(t *testing.T) {
 			func(collector testutils.Collector) testutils.Collector {
 				return collector.WithEnv(map[string]string{
 					"REDIS_ENDPOINT": "0.0.0.0:6379",
-					//"REDIS_PASSWORD": "securepassword",
+					"REDIS_PASSWORD": "securepassword",
+					"REDIS_USERNAME": "otel",
 					// confirm that debug logging doesn't affect runtime
 					"SPLUNK_DISCOVERY_LOG_LEVEL": "debug",
 				}).WithArgs(
 					"--discovery",
 					"--set", "splunk.discovery.receivers.redis.config.endpoint=${REDIS_ENDPOINT}",
-					//"--set", "splunk.discovery.receivers.redis.config.password=securepassword",
+					"--set", "splunk.discovery.receivers.redis.config.password=${REDIS_PASSWORD}",
+					"--set", "splunk.discovery.receivers.redis.config.username=${REDIS_USERNAME}",
 					"--set", `splunk.discovery.extensions.k8s_observer.enabled=false`,
 					"--set", `splunk.discovery.extensions.host_observer.enabled=false`,
 				)

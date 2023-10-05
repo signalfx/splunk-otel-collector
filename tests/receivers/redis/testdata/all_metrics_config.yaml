@@ -1,7 +1,8 @@
 receivers:
   redis:
     endpoint: 0.0.0.0:6379
-    ##password: "securepassword"
+    password: "securepassword"
+    username: "otel"
 exporters:
   otlp:
     endpoint: "${OTLP_ENDPOINT}"

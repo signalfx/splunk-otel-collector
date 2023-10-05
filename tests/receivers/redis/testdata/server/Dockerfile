@@ -1,3 +1,5 @@
 FROM redis
 
-//CMD ["sh", "-c", "exec redis-server --requirepass \"securepassword\""]
+COPY redis.conf /usr/local/etc/redis/redis.conf
+
+CMD [ "redis-server", "/usr/local/etc/redis/redis.conf" ]

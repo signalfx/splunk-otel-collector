@@ -31,8 +31,11 @@ how to use the role in a playbook with minimal required configuration:
         name: "signalfx.splunk_otel_collector.collector"
       vars:
         splunk_access_token: YOUR_ACCESS_TOKEN
+        splunk_hec_token: YOUR_HEC_TOKEN
         splunk_realm: SPLUNK_REALM
 ```
+
+> **_NOTE:_**  Setting splunk_hec_token is optional.
 
 You can disable starting the collector and fluentd services by setting 
 the argument `start_service` to `false`:

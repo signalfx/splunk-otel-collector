@@ -15,6 +15,8 @@
 #   config:
 #     default:
 #       endpoint: splunk.discovery.default
+#       password: splunk.discovery.default
+#       username: splunk.discovery.default
 #   status:
 #     metrics:
 #       successful:
@@ -60,9 +62,11 @@
 #             append_pattern: true
 #             body: >-
 #               Make sure your user credentials are correctly specified using the
-#               `--set splunk.discovery.receivers.redis.config.password="<password>"` command or the
+#               `--set splunk.discovery.receivers.redis.config.password="<password>"` and 
+#               `--set splunk.discovery.receivers.redis.config.username="<username>"` commands or the
+#               `SPLUNK_DISCOVERY_RECEIVERS_redis_CONFIG_password="<password>"` and 
 #               `SPLUNK_DISCOVERY_RECEIVERS_redis_CONFIG_password="<password>"` environment variables.
-#         - regexp: 'ERR AUTH <password> called without any password configured for the default user'
+#         - regexp: 'called without any password configured for the default user'
 #           first_only: true
 #           log_record:
 #             severity_text: info
@@ -71,3 +75,14 @@
 #               Make sure your user credentials are correctly specified using the
 #               `--set splunk.discovery.receivers.redis.config.password="<password>"` command or the
 #               `SPLUNK_DISCOVERY_RECEIVERS_redis_CONFIG_password="<password>"` environment variables.      
+#         - regexp: 'WRONGPASS invalid username-password pair or user is disabled'
+#           first_only: true
+#           log_record:
+#             severity_text: info
+#             append_pattern: true
+#             body: >-
+#               Make sure your user credentials are correctly specified using the
+#               `--set splunk.discovery.receivers.redis.config.password="<password>"` and 
+#               `--set splunk.discovery.receivers.redis.config.username="<username>"` commands or the
+#               `SPLUNK_DISCOVERY_RECEIVERS_redis_CONFIG_password="<password>"` and 
+#               `SPLUNK_DISCOVERY_RECEIVERS_redis_CONFIG_password="<password>"` environment variables.           

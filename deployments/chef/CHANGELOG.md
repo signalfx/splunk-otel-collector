@@ -1,5 +1,10 @@
 # Changelog
 
+## unreleased
+
+- Update `splunk_listen_interface` default to only set target SPLUNK_LISTEN_INTERFACE environment variable if
+  configure.
+
 ## chef-v0.7.0
 
 - Add support for the `splunk_listen_interface` option to configure the network interface the collector receivers

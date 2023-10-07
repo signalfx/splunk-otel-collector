@@ -671,7 +671,7 @@ Collector:
   --mode <agent|gateway>                Configure the collector service to run in agent or gateway mode.
                                         (default: "agent")
   --listen-interface <ip>               network interface the collector receivers listen on.
-                                        (default: "$default_listen_interface")
+                                        (default: "127.0.0.1" for agent mode and "0.0.0.0" otherwise)
   --realm <us0|us1|eu0|...>             The Splunk realm to use. The ingest, api, trace, and HEC endpoint URLs will
                                         automatically be inferred by this value.
                                         (default: "$default_realm")
@@ -869,7 +869,7 @@ parse_args_and_install() {
   local ingest_url=
   local insecure=
   local memory="$default_memory_size"
-  local listen_interface="$default_listen_interface"
+  local listen_interface=
   local realm="$default_realm"
   local service_group="$default_service_group"
   local stage="$default_stage"
@@ -1103,7 +1103,10 @@ parse_args_and_install() {
     echo "Ballast Size in MIB: $ballast"
   fi
   echo "Memory Size in MIB: $memory"
-  echo "Listen network interface: $listen_interface"
+
+  if [ -n "$listen_interface" ]; then
+    echo "Listen network interface: $listen_interface"
+  fi
   echo "Realm: $realm"
   echo "Ingest Endpoint: $ingest_url"
   echo "API Endpoint: $api_url"
@@ -1188,7 +1191,9 @@ parse_args_and_install() {
     rm -f "$collector_env_path"
   fi
 
-  configure_env_file "SPLUNK_LISTEN_INTERFACE" "$listen_interface" "$collector_env_path"
+  if [ -n "$listen_interface" ]; then
+    configure_env_file "SPLUNK_LISTEN_INTERFACE" "$listen_interface" "$collector_env_path"
+  fi
   configure_env_file "SPLUNK_CONFIG" "$collector_config_path" "$collector_env_path"
   configure_env_file "SPLUNK_ACCESS_TOKEN" "$access_token" "$collector_env_path"
   configure_env_file "SPLUNK_REALM" "$realm" "$collector_env_path"
@@ -1305,8 +1310,8 @@ WARNING: Fluentd was not installed since it is currently not supported for ${dis
 EOH
   fi
 
-  if [ "$listen_interface" = "0.0.0.0" ]; then
-    echo "[NOTICE] Starting with version 0.86.0, the collector installer will change its default network listening interface from 0.0.0.0 to 127.0.0.1. Please consult the release notes for more information and configuration options."
+  if [ -z "$listen_interface" ] && [ "$mode" = "agent" ]; then
+    echo "[NOTICE] Starting with version 0.86.0, the collector installer changed its default network listening interface from 0.0.0.0 to 127.0.0.1 for agent mode with default configuration. Please consult the release notes for more information and configuration options."
   fi
 
   exit 0

@@ -153,6 +153,7 @@ suites:
         splunk_api_url: https://fake-splunk-api.com
         splunk_memory_total_mib: "256"
         splunk_hec_token: fake-hec-token
+        splunk_listen_interface: "0.0.0.0"
         user: custom-user
         group: custom-group
         collector_additional_env_vars:

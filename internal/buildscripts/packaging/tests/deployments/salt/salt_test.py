@@ -76,7 +76,7 @@ def run_salt_apply(container, config):
     run_container_cmd(container, SALT_CMD)
 
 
-def verify_env_file(container):
+def verify_env_file(container, listen_interface=None):
     run_container_cmd(container, f"grep '^SPLUNK_CONFIG={SPLUNK_CONFIG}$' {SPLUNK_ENV_PATH}")
     run_container_cmd(container, f"grep '^SPLUNK_ACCESS_TOKEN={SPLUNK_ACCESS_TOKEN}$' {SPLUNK_ENV_PATH}")
     run_container_cmd(container, f"grep '^SPLUNK_REALM={SPLUNK_REALM}$' {SPLUNK_ENV_PATH}")
@@ -88,6 +88,10 @@ def verify_env_file(container):
     run_container_cmd(container, f"grep '^SPLUNK_MEMORY_TOTAL_MIB={SPLUNK_MEMORY_TOTAL_MIB}$' {SPLUNK_ENV_PATH}")
     run_container_cmd(container, f"grep '^SPLUNK_BUNDLE_DIR={SPLUNK_BUNDLE_DIR}$' {SPLUNK_ENV_PATH}")
     run_container_cmd(container, f"grep '^SPLUNK_COLLECTD_DIR={SPLUNK_COLLECTD_DIR}$' {SPLUNK_ENV_PATH}")
+    if listen_interface:
+        run_container_cmd(container, f"grep '^SPLUNK_LISTEN_INTERFACE={listen_interface}$' {SPLUNK_ENV_PATH}")
+    else:
+        assert container.exec_run(f"grep '^SPLUNK_LISTEN_INTERFACE=.*' {SPLUNK_ENV_PATH}").exit_code != 0
 
 
 @pytest.mark.salt
@@ -268,6 +272,7 @@ CUSTOM_ENV_VARS_CONFIG = f"""
 splunk-otel-collector:
   splunk_access_token: '{SPLUNK_ACCESS_TOKEN}'
   splunk_realm: '{SPLUNK_REALM}'
+  splunk_listen_interface: '0.0.0.0'
   collector_additional_env_vars:
     MY_CUSTOM_VAR1: value1
     MY_CUSTOM_VAR2: value2
@@ -289,7 +294,7 @@ def test_salt_custom_env_vars(distro):
     with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR) as container:
         try:
             run_salt_apply(container, CUSTOM_ENV_VARS_CONFIG)
-            verify_env_file(container)
+            verify_env_file(container, listen_interface="0.0.0.0")
             run_container_cmd(container, f"grep '^MY_CUSTOM_VAR1=value1$' {SPLUNK_ENV_PATH}")
             run_container_cmd(container, f"grep '^MY_CUSTOM_VAR2=value2$' {SPLUNK_ENV_PATH}")
             assert wait_for(lambda: service_is_running(container))

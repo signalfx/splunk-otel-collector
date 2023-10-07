@@ -80,6 +80,7 @@ def verify_env_file(container):
     run_container_cmd(container, f"grep '^SPLUNK_INGEST_URL={SPLUNK_INGEST_URL}$' {SPLUNK_ENV_PATH}")
     run_container_cmd(container, f"grep '^SPLUNK_REALM={SPLUNK_REALM}$' {SPLUNK_ENV_PATH}")
     run_container_cmd(container, f"grep '^SPLUNK_TRACE_URL={SPLUNK_INGEST_URL}/v2/trace$' {SPLUNK_ENV_PATH}")
+    assert container.exec_run(f"grep '^SPLUNK_LISTEN_INTERFACE=.*' {SPLUNK_ENV_PATH}").exit_code != 0
 
 
 def skip_if_necessary(distro, puppet_release):
@@ -234,6 +235,7 @@ class {{ splunk_otel_collector:
     splunk_api_url => '$api_url',
     splunk_ingest_url => '$ingest_url',
     splunk_hec_token => 'fake-hec-token',
+    splunk_listen_interface => '0.0.0.0',
     collector_version => '$version',
     with_fluentd => $fluentd,
     collector_additional_env_vars => {{ 'MY_CUSTOM_VAR1' => 'value1', 'MY_CUSTOM_VAR2' => 'value2' }},
@@ -268,6 +270,7 @@ def test_puppet_with_custom_vars(distro, puppet_release):
             run_container_cmd(container, f"grep '^SPLUNK_HEC_TOKEN=fake-hec-token$' {SPLUNK_ENV_PATH}")
             run_container_cmd(container, f"grep '^SPLUNK_HEC_URL={ingest_url}/v1/log$' {SPLUNK_ENV_PATH}")
             run_container_cmd(container, f"grep '^SPLUNK_INGEST_URL={ingest_url}$' {SPLUNK_ENV_PATH}")
+            run_container_cmd(container, f"grep '^SPLUNK_LISTEN_INTERFACE=0.0.0.0$' {SPLUNK_ENV_PATH}")
             run_container_cmd(container, f"grep '^SPLUNK_REALM={SPLUNK_REALM}$' {SPLUNK_ENV_PATH}")
             run_container_cmd(container, f"grep '^SPLUNK_TRACE_URL={ingest_url}/v2/trace$' {SPLUNK_ENV_PATH}")
             run_container_cmd(container, f"grep '^MY_CUSTOM_VAR1=value1$' {SPLUNK_ENV_PATH}")
@@ -327,6 +330,11 @@ def test_win_puppet_default():
     assert get_registry_value("SPLUNK_HEC_URL") == f"{SPLUNK_INGEST_URL}/v1/log"
     assert get_registry_value("SPLUNK_TRACE_URL") == f"{SPLUNK_INGEST_URL}/v2/trace"
     assert get_registry_value("SPLUNK_HEC_TOKEN") == SPLUNK_ACCESS_TOKEN
+    try:
+        listen_interface = get_registry_value("SPLUNK_LISTEN_INTERFACE")
+    except FileNotFoundError:
+        listen_interface = None
+    assert listen_interface is None
 
     assert psutil.win_service_get("splunk-otel-collector").status() == psutil.STATUS_RUNNING
     for service in psutil.win_service_iter():
@@ -349,6 +357,7 @@ def test_win_puppet_custom_vars():
     assert get_registry_value("SPLUNK_API_URL") == api_url
     assert get_registry_value("SPLUNK_INGEST_URL") == ingest_url
     assert get_registry_value("SPLUNK_HEC_URL") == f"{ingest_url}/v1/log"
+    assert get_registry_value("SPLUNK_LISTEN_INTERFACE") == "0.0.0.0"
     assert get_registry_value("SPLUNK_TRACE_URL") == f"{ingest_url}/v2/trace"
     assert get_registry_value("SPLUNK_HEC_TOKEN") == "fake-hec-token"
     assert get_registry_value("MY_CUSTOM_VAR1") == "value1"

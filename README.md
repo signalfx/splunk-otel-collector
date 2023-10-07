@@ -171,7 +171,7 @@ listen to configure the `SPLUNK_DEBUG_CONFIG_SERVER_PORT` environment variable.
 
 You can use the environment variable `SPLUNK_LISTEN_INTERFACE` and associated installer option to configure the network
 interface on which the collector's receivers and telemetry endpoints will listen.
-The default value of `SPLUNK_LISTEN_INTERFACE` is set to `0.0.0.0`.
+The default value of `SPLUNK_LISTEN_INTERFACE` is set to `127.0.0.1` for the default agent configuration and `0.0.0.0` otherwise.
 
 ## Upgrade guidelines
 

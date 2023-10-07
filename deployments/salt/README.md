@@ -98,7 +98,7 @@ splunk-otel-collector:
   OTel Collector. (**default:** 1/3 of `splunk_memory_total_mib`)
 
 - `splunk_listen_interface`: The network interface the collector receivers will listen
-  on. (**default:** `0.0.0.0`)
+  on. (**default:** `127.0.0.1` for agent config, `0.0.0.0` otherwise)
 
 - `collector_additional_env_vars`: Dictionary of additional environment
   variables from the collector configuration file for the collector service

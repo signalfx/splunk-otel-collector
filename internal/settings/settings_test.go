@@ -24,6 +24,7 @@ import (
 	"testing"
 
 	flag "github.com/spf13/pflag"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/confmap"
 
@@ -225,11 +226,11 @@ func TestCheckRuntimeParams_MemTotalEnv(t *testing.T) {
 
 func TestCheckRuntimeParams_ListenInterface(t *testing.T) {
 	t.Cleanup(setRequiredEnvVars(t))
-	require.NoError(t, os.Setenv(ListenInterfaceEnvVar, "127.0.0.1"))
+	require.NoError(t, os.Setenv(ListenInterfaceEnvVar, "1.2.3.4"))
 	settings, err := New([]string{})
 	require.NoError(t, err)
 	require.NotNil(t, settings)
-	require.Equal(t, "127.0.0.1", os.Getenv(ListenInterfaceEnvVar))
+	require.Equal(t, "1.2.3.4", os.Getenv(ListenInterfaceEnvVar))
 }
 
 func TestCheckRuntimeParams_MemTotalAndBallastEnvs(t *testing.T) {
@@ -258,55 +259,99 @@ func TestCheckRuntimeParams_LimitAndBallastEnvs(t *testing.T) {
 	require.Equal(t, "250", os.Getenv(MemLimitMiBEnvVar))
 }
 
-func TestSetDefaultEnvVars(t *testing.T) {
+func TestSetDefaultEnvVarsOnlySetsURLsWithRealmSet(t *testing.T) {
+	t.Cleanup(clearEnv(t))
+	envVars := []string{"SPLUNK_API_URL", "SPLUNK_INGEST_URL", "SPLUNK_TRACE_URL", "SPLUNK_HEC_URL", "SPLUNK_HEC_TOKEN"}
+	for _, v := range envVars {
+		require.NoError(t, setDefaultEnvVars(nil))
+		_, ok := os.LookupEnv(v)
+		require.False(t, ok, fmt.Sprintf("Expected %q unset given SPLUNK_REALM is unset", v))
+	}
+}
+
+func TestSetDefaultEnvVarsOnlySetsHECTokenWithTokenSet(t *testing.T) {
+	t.Cleanup(clearEnv(t))
+	require.NoError(t, setDefaultEnvVars(nil))
+	_, ok := os.LookupEnv("SPLUNK_HEC_TOKEN")
+	require.False(t, ok, "Expected SPLUNK_HEC_TOKEN unset given SPLUNK_ACCESS_TOKEN is unset")
+}
+
+func TestSetDefaultEnvVarsSetsURLsFromRealm(t *testing.T) {
 	t.Cleanup(clearEnv(t))
 
-	testArgs := []string{"SPLUNK_API_URL", "SPLUNK_INGEST_URL", "SPLUNK_TRACE_URL", "SPLUNK_HEC_URL", "SPLUNK_HEC_TOKEN", "SPLUNK_LISTEN_INTERFACE"}
-	for _, v := range testArgs {
-		setDefaultEnvVars()
-		_, ok := os.LookupEnv(v)
-		require.False(t, ok, fmt.Sprintf("Expected %q unset given SPLUNK_ACCESS_TOKEN or SPLUNK_TOKEN is unset", v))
-	}
-
 	realm := "us1"
-	token := "1234"
-	valTest := "test"
-	valEmpty := ""
-
 	os.Setenv("SPLUNK_REALM", realm)
-	os.Setenv("SPLUNK_ACCESS_TOKEN", token)
-	setDefaultEnvVars()
-	testArgs2 := [][]string{
+	require.NoError(t, setDefaultEnvVars(nil))
+
+	expectedEnvVars := [][]string{
 		{"SPLUNK_API_URL", fmt.Sprintf("https://api.%s.signalfx.com", realm)},
 		{"SPLUNK_INGEST_URL", fmt.Sprintf("https://ingest.%s.signalfx.com", realm)},
 		{"SPLUNK_TRACE_URL", fmt.Sprintf("https://ingest.%s.signalfx.com/v2/trace", realm)},
 		{"SPLUNK_HEC_URL", fmt.Sprintf("https://ingest.%s.signalfx.com/v1/log", realm)},
-		{"SPLUNK_HEC_TOKEN", token},
-		{"SPLUNK_LISTEN_INTERFACE", "0.0.0.0"},
 	}
-	for _, v := range testArgs2 {
-		val, _ := os.LookupEnv(v[0])
-		if val != v[1] {
-			t.Errorf("Expected %v got %v for %v", v[1], val, v[0])
-		}
+	for _, v := range expectedEnvVars {
+		val, ok := os.LookupEnv(v[0])
+		assert.True(t, ok, v[0])
+		assert.Equal(t, val, v[1])
+	}
+}
+
+func TestSetDefaultEnvVarsSetsHECTokenFromAccessTokenEnvVar(t *testing.T) {
+	t.Cleanup(clearEnv(t))
+
+	token := "1234"
+	os.Setenv("SPLUNK_ACCESS_TOKEN", token)
+	require.NoError(t, setDefaultEnvVars(nil))
+
+	val, ok := os.LookupEnv("SPLUNK_HEC_TOKEN")
+	assert.True(t, ok)
+	assert.Equal(t, token, val)
+}
+
+func TestSetDefaultEnvVarsRespectsSetEnvVars(t *testing.T) {
+	t.Cleanup(clearEnv(t))
+	envVars := []string{"SPLUNK_API_URL", "SPLUNK_INGEST_URL", "SPLUNK_TRACE_URL", "SPLUNK_HEC_URL", "SPLUNK_HEC_TOKEN", "SPLUNK_LISTEN_INTERFACE"}
+
+	someValue := "some.value"
+	for _, v := range envVars {
+		os.Setenv(v, someValue)
+		require.NoError(t, setDefaultEnvVars(nil))
+		val, ok := os.LookupEnv(v)
+		assert.True(t, ok, v[0])
+		assert.Equal(t, someValue, val)
 	}
 
-	for _, v := range testArgs {
-		os.Setenv(v, valTest)
-		setDefaultEnvVars()
-		val, _ := os.LookupEnv(v)
-		if val != valTest {
-			t.Errorf("Expected %v got %v for %v", valTest, val, v)
-		}
+	for _, v := range envVars {
+		os.Setenv(v, "")
+		require.NoError(t, setDefaultEnvVars(nil))
+		val, ok := os.LookupEnv(v)
+		assert.True(t, ok, v[0])
+		assert.Empty(t, val)
 	}
+}
 
-	for _, v := range testArgs {
-		os.Setenv(v, valEmpty)
-		setDefaultEnvVars()
-		val, _ := os.LookupEnv(v)
-		if val != valEmpty {
-			t.Errorf("Expected %v got %v for %v", valEmpty, val, v)
-		}
+func TestSetDefaultEnvVarsSetsInterfaceFromConfigOption(t *testing.T) {
+	for _, tc := range []struct{ config, expectedIP string }{
+		{"/etc/otel/collector/agent_config.yaml", "127.0.0.1"},
+		{"file:/etc/otel/collector/agent_config.yaml", "127.0.0.1"},
+		{"/etc/otel/collector/gateway_config.yaml", "0.0.0.0"},
+		{"file:/etc/otel/collector/gateway_config.yaml", "0.0.0.0"},
+		{"some-other-config.yaml", "0.0.0.0"},
+		{"file:some-other-config.yaml", "0.0.0.0"},
+	} {
+		tc := tc
+		t.Run(fmt.Sprintf("%v->%v", tc.config, tc.expectedIP), func(t *testing.T) {
+			t.Cleanup(clearEnv(t))
+			os.Setenv("SPLUNK_REALM", "noop")
+			os.Setenv("SPLUNK_ACCESS_TOKEN", "noop")
+			s, err := parseArgs([]string{"--config", tc.config})
+			require.NoError(t, err)
+			require.NoError(t, setDefaultEnvVars(s))
+
+			val, ok := os.LookupEnv("SPLUNK_LISTEN_INTERFACE")
+			assert.True(t, ok)
+			assert.Equal(t, tc.expectedIP, val)
+		})
 	}
 }
 

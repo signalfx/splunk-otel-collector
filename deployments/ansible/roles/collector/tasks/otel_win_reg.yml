@@ -76,6 +76,7 @@
     name: SPLUNK_LISTEN_INTERFACE
     data: "{{splunk_listen_interface}}"
     type: string
+  when: splunk_listen_interface is defined and not (splunk_listen_interface | trim) == ""
 
 - name: Set registry values
   ansible.windows.win_regedit:

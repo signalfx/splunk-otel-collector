@@ -6,6 +6,7 @@ splunk_trace_url = "#{splunk_ingest_url}/v2/trace"
 splunk_hec_url = "#{splunk_ingest_url}/v1/log"
 splunk_hec_token = 'fake-hec-token'
 splunk_memory_total = '256'
+splunk_listen_interface = '0.0.0.0'
 
 describe service('splunk-otel-collector') do
   it { should be_enabled }
@@ -25,6 +26,7 @@ if os[:family] == 'windows'
     its('SPLUNK_HEC_TOKEN') { should eq splunk_hec_token }
     its('SPLUNK_HEC_URL') { should eq splunk_hec_url }
     its('SPLUNK_INGEST_URL') { should eq splunk_ingest_url }
+    its('SPLUNK_LISTEN_INTERFACE') { should eq splunk_listen_interface }
     its('SPLUNK_MEMORY_TOTAL_MIB') { should eq splunk_memory_total }
     its('SPLUNK_REALM') { should eq splunk_realm }
     its('SPLUNK_TRACE_URL') { should eq splunk_trace_url }
@@ -48,6 +50,7 @@ else
     its('content') { should match /^SPLUNK_HEC_TOKEN=#{splunk_hec_token}$/ }
     its('content') { should match /^SPLUNK_HEC_URL=#{splunk_hec_url}$/ }
     its('content') { should match /^SPLUNK_INGEST_URL=#{splunk_ingest_url}$/ }
+    its('content') { should match /^SPLUNK_LISTEN_INTERFACE=#{splunk_listen_interface}$/ }
     its('content') { should match /^SPLUNK_MEMORY_TOTAL_MIB=#{splunk_memory_total}$/ }
     its('content') { should match /^SPLUNK_REALM=test$/ }
     its('content') { should match /^SPLUNK_TRACE_URL=#{splunk_trace_url}$/ }

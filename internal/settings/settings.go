@@ -18,7 +18,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"regexp"
+	"runtime"
 	"sort"
 	"strconv"
 	"strings"
@@ -58,7 +60,18 @@ const (
 	DefaultMemoryLimitPercentage   = 90
 	DefaultMemoryTotalMiB          = 512
 	DefaultListenInterface         = "0.0.0.0"
+	DefaultAgentConfigLinux        = "/etc/otel/collector/agent_config.yaml"
 )
+
+var DefaultAgentConfigWindows = func() string {
+	path := filepath.Join("Splunk", "OpenTelemetry Collector", "agent_config.yaml")
+	if runtime.GOOS == "windows" {
+		if pd, ok := os.LookupEnv("ProgramData"); ok {
+			path = filepath.Join(pd, path)
+		}
+	}
+	return filepath.Clean(path)
+}()
 
 var (
 	envProvider  = envprovider.New()
@@ -98,7 +111,7 @@ func New(args []string) (*Settings, error) {
 		return nil, err
 	}
 
-	if err = setDefaultEnvVars(); err != nil {
+	if err = setDefaultEnvVars(s); err != nil {
 		return nil, err
 	}
 
@@ -346,17 +359,20 @@ func checkRuntimeParams(settings *Settings) error {
 	if 2*ballastSize > memLimit {
 		return fmt.Errorf("memory limit (%d) is less than 2x ballast (%d). Increase memory limit or decrease ballast size", memLimit, ballastSize)
 	}
-	if os.Getenv(ListenInterfaceEnvVar) == "" {
-		os.Setenv(ListenInterfaceEnvVar, DefaultListenInterface)
-	}
 
 	return nil
 }
 
-func setDefaultEnvVars() error {
-	type ev struct{ e, v string }
+func setDefaultEnvVars(s *Settings) error {
+	type ev struct {
+		e, v string
+		log  bool
+	}
 
-	envVars := []ev{{e: ConfigServerEnabledEnvVar, v: "true"}}
+	envVars := []ev{
+		{e: ListenInterfaceEnvVar, v: defaultListenAddr(s), log: true},
+		{e: ConfigServerEnabledEnvVar, v: "true"},
+	}
 
 	if realm, ok := os.LookupEnv(RealmEnvVar); ok {
 		envVars = append(envVars,
@@ -364,7 +380,6 @@ func setDefaultEnvVars() error {
 			ev{e: IngestURLEnvVar, v: fmt.Sprintf("https://ingest.%s.signalfx.com", realm)},
 			ev{e: TraceIngestURLEnvVar, v: fmt.Sprintf("https://ingest.%s.signalfx.com/v2/trace", realm)},
 			ev{e: HecLogIngestURLEnvVar, v: fmt.Sprintf("https://ingest.%s.signalfx.com/v1/log", realm)},
-			ev{e: ListenInterfaceEnvVar, v: "0.0.0.0"},
 		)
 	}
 
@@ -377,9 +392,31 @@ func setDefaultEnvVars() error {
 			if err := os.Setenv(envVar.e, envVar.v); err != nil {
 				return err
 			}
+			if envVar.log {
+				log.Printf("set %q to %q", envVar.e, envVar.v)
+			}
 		}
 	}
 	return nil
+}
+
+func defaultListenAddr(s *Settings) string {
+	if s != nil {
+		for _, path := range s.configPaths.value {
+			scheme, location, isURI := parseURI(path)
+			if isURI && scheme == "file" {
+				path = location
+			}
+			cleaned := filepath.Clean(path)
+			if path == DefaultAgentConfigLinux ||
+				cleaned == DefaultAgentConfigLinux ||
+				path == DefaultAgentConfigWindows ||
+				cleaned == DefaultAgentConfigWindows {
+				return "127.0.0.1"
+			}
+		}
+	}
+	return DefaultListenInterface
 }
 
 // Config priority (highest to lowest):
@@ -517,19 +554,19 @@ func checkInputConfigs(settings *Settings) error {
 }
 
 func checkConfigPathEnvVar(settings *Settings) error {
-	configPathVar := os.Getenv(ConfigEnvVar)
+	configPath := os.Getenv(ConfigEnvVar)
 	configYaml := os.Getenv(ConfigYamlEnvVar)
 
-	if _, err := os.Stat(configPathVar); err != nil {
-		return fmt.Errorf("unable to find the configuration file (%s), ensure %s environment variable is set properly: %w", configPathVar, ConfigEnvVar, err)
+	if _, err := os.Stat(configPath); err != nil {
+		return fmt.Errorf("unable to find the configuration file (%s), ensure %s environment variable is set properly: %w", configPath, ConfigEnvVar, err)
 	}
 
 	if configYaml != "" {
-		log.Printf("Both %s and %s were specified. Using %s environment variable value %s for this session", ConfigEnvVar, ConfigYamlEnvVar, ConfigEnvVar, configPathVar)
+		log.Printf("Both %s and %s were specified. Using %s environment variable value %s for this session", ConfigEnvVar, ConfigYamlEnvVar, ConfigEnvVar, configPath)
 	}
 
-	if !settings.configPaths.contains(configPathVar) {
-		_ = settings.configPaths.Set(configPathVar)
+	if !settings.configPaths.contains(configPath) {
+		_ = settings.configPaths.Set(configPath)
 	}
 
 	return confirmRequiredEnvVarsForDefaultConfigs(settings.configPaths.value)

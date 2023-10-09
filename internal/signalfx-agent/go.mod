@@ -85,7 +85,7 @@ require (
 	go.etcd.io/etcd/client/v2 v2.305.9
 	golang.org/x/net v0.15.0
 	golang.org/x/sync v0.3.0
-	golang.org/x/sys v0.12.0
+	golang.org/x/sys v0.13.0
 	golang.org/x/tools v0.12.0 // indirect
 	google.golang.org/grpc v1.58.2
 	gopkg.in/go-playground/validator.v9 v9.31.0

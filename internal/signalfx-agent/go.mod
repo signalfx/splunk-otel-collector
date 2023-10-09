@@ -67,7 +67,7 @@ require (
 	github.com/opentracing/opentracing-go v1.2.1-0.20220228012449-10b1cf09e00b
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/prometheus/client_model v0.4.1-0.20230718164431-9a2bf3000d16
+	github.com/prometheus/client_model v0.5.0
 	github.com/prometheus/common v0.44.0
 	github.com/prometheus/procfs v0.12.0
 	github.com/samuel/go-zookeeper v0.0.0-20200724154423-2164a8ac840e

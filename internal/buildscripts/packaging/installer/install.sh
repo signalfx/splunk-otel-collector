@@ -765,8 +765,9 @@ Auto Instrumentation:
                                         (default: empty)
   --otlp-endpoint <host:port>           Set the OTLP gRPC endpoint for captured traces.
                                         Only applicable if the '--with-systemd-instrumentation' option is also specified.
-                                        (default: http://LISTEN_INTERFACE:4317, where LISTEN_INTERFACE is 0.0.0.0 by
-                                        default or the value from the --listen-interface option, if also specified)
+                                        (default: http://LISTEN_INTERFACE:4317 where LISTEN_INTERFACE is the value from
+                                        the --listen-interface option if specified, "127.0.0.1" for agent mode, or
+                                        "0.0.0.0" otherwise)
   --[no-]generate-service-name          Specify '--no-generate-service-name' to prevent the preloader from setting the
                                         OTEL_SERVICE_NAME environment variable.
                                         Only applicable if the '--with-instrumentation' option is also specified.
@@ -1170,7 +1171,13 @@ parse_args_and_install() {
   fi
 
   if [ -z "$otlp_endpoint" ]; then
-    otlp_endpoint="http://${listen_interface}:4317"
+    if [ -n "$listen_interface" ]; then
+      otlp_endpoint="http://${listen_interface}:4317"
+    elif [ "$mode" = "agent" ]; then
+      otlp_endpoint="http://127.0.0.1:4317"
+    else
+      otlp_endpoint="http://0.0.0.0:4317"
+    fi
   fi
 
   check_support

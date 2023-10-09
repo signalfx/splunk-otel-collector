@@ -76,6 +76,7 @@ processors:
 exporters:
   # Traces
   otlphttp:
+    metrics_endpoint: "https://ingest.${SPLUNK_REALM}.signalfx.com/v2/datapoint/otlp"
     traces_endpoint: "https://ingest.${SPLUNK_REALM}.signalfx.com/v2/trace/otlp"
     compression: gzip
     headers:
@@ -117,7 +118,7 @@ service:
     metrics:
       receivers: [otlp, signalfx, smartagent/signalfx-forwarder]
       processors: [memory_limiter, batch]
-      exporters: [signalfx]
+      exporters: [otlphttp, signalfx]
     metrics/internal:
       receivers: [prometheus/internal]
       processors: [memory_limiter, batch, resourcedetection/internal]

@@ -28,6 +28,11 @@
   notify: "restart splunk-otel-collector"
   when: splunk_otel_collector_proxy_http != "" or splunk_otel_collector_proxy_https != ""
 
+- name: Set default hec token
+  set_fact:
+    splunk_hec_token: "{{splunk_access_token}}"
+  when: splunk_hec_token is not defined or (splunk_hec_token | trim) == ""
+
 - name: Set up env file for Splunk OTel Collector service
   ansible.builtin.template:
     src: splunk-otel-collector.conf.j2

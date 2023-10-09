@@ -1,5 +1,17 @@
 # Changelog
 
+## unreleased
+
+### 💡 Enhancements 💡
+
+- Only propagate `splunk_listen_interface` to target SPLUNK_LISTEN_INTERFACE service environment variable if set.
+
+## ansible-v0.22.0
+
+### 💡 Enhancements 💡
+
+- Support the `splunk_hec_token` option for Linux (thanks @chepati)
+
 ## ansible-v0.21.0
 
 ### 💡 Enhancements 💡

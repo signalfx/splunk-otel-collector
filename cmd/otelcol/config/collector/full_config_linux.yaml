@@ -167,6 +167,14 @@ receivers:
   fluentforward:
     endpoint: 0.0.0.0:8006
 
+  # Enables scripted inputs receiver
+  # Full configuration here: https://github.com/signalfx/splunk-otel-collector/blob/main/internal/receiver/scriptedinputsreceiver/README.md
+  scripted_inputs/cpu:
+    script_name: cpu
+    collection_interval: 30s
+    source: cpu
+    sourcetype: cpu
+
   # Enables filelog receiver
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/filelogreceiver
   filelog:
@@ -619,6 +627,6 @@ service:
       processors: [memory_limiter, batch]
       exporters: [signalfx]
     logs:
-      receivers: [fluentforward, otlp]
+      receivers: [fluentforward, otlp, scripted_inputs/cpu]
       processors: [memory_limiter, batch]
       exporters: [splunk_hec, splunk_hec/profiling]

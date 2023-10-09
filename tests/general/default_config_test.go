@@ -242,13 +242,13 @@ func TestDefaultAgentConfig(t *testing.T) {
 			},
 		},
 		"extensions": map[string]any{
-			"health_check": map[string]any{"endpoint": "0.0.0.0:13133"},
+			"health_check": map[string]any{"endpoint": "127.0.0.1:13133"},
 			"http_forwarder": map[string]any{
 				"egress": map[string]any{
 					"endpoint": "https://api.not.real.signalfx.com",
 				},
 				"ingress": map[string]any{
-					"endpoint": "0.0.0.0:6060",
+					"endpoint": "127.0.0.1:6060",
 				},
 			},
 			"memory_ballast": map[string]any{"size_mib": "168"},
@@ -285,14 +285,14 @@ func TestDefaultAgentConfig(t *testing.T) {
 			},
 			"jaeger": map[string]any{
 				"protocols": map[string]any{
-					"grpc":           map[string]any{"endpoint": "0.0.0.0:14250"},
-					"thrift_binary":  map[string]any{"endpoint": "0.0.0.0:6832"},
-					"thrift_compact": map[string]any{"endpoint": "0.0.0.0:6831"},
-					"thrift_http":    map[string]any{"endpoint": "0.0.0.0:14268"}}},
+					"grpc":           map[string]any{"endpoint": "127.0.0.1:14250"},
+					"thrift_binary":  map[string]any{"endpoint": "127.0.0.1:6832"},
+					"thrift_compact": map[string]any{"endpoint": "127.0.0.1:6831"},
+					"thrift_http":    map[string]any{"endpoint": "127.0.0.1:14268"}}},
 			"otlp": map[string]any{
 				"protocols": map[string]any{
-					"grpc": map[string]any{"endpoint": "0.0.0.0:4317"},
-					"http": map[string]any{"endpoint": "0.0.0.0:4318"},
+					"grpc": map[string]any{"endpoint": "127.0.0.1:4317"},
+					"http": map[string]any{"endpoint": "127.0.0.1:4318"},
 				},
 			},
 			"prometheus/internal": map[string]any{
@@ -310,23 +310,23 @@ func TestDefaultAgentConfig(t *testing.T) {
 							"scrape_interval": "10s",
 							"static_configs": []any{
 								map[string]any{
-									"targets": []any{"0.0.0.0:8888"},
+									"targets": []any{"127.0.0.1:8888"},
 								},
 							},
 						},
 					},
 				},
 			},
-			"signalfx":               map[string]any{"endpoint": "0.0.0.0:9943"},
+			"signalfx":               map[string]any{"endpoint": "127.0.0.1:9943"},
 			"smartagent/processlist": map[string]any{"type": "processlist"},
 			"smartagent/signalfx-forwarder": map[string]any{
-				"listenAddress": "0.0.0.0:9080",
+				"listenAddress": "127.0.0.1:9080",
 				"type":          "signalfx-forwarder",
 			},
 			"zipkin": map[string]any{
-				"endpoint": "0.0.0.0:9411"}},
+				"endpoint": "127.0.0.1:9411"}},
 		"service": map[string]any{
-			"telemetry":  map[string]any{"metrics": map[string]any{"address": "0.0.0.0:8888"}},
+			"telemetry":  map[string]any{"metrics": map[string]any{"address": "127.0.0.1:8888"}},
 			"extensions": []any{"health_check", "http_forwarder", "zpages", "memory_ballast", "smartagent"},
 			"pipelines": map[string]any{
 				"logs": map[string]any{

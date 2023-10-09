@@ -13,6 +13,7 @@
 ## Overview
 The scripted inputs receiver is a component that performs log collection equivalent to what the UF does when the
 [Unix and Linux Technical Add-on](https://docs.splunk.com/Documentation/AddOns/released/UnixLinux/About) is installed.
+It must be run directly on host and is not supported in container.
 
 
 ## Configuration

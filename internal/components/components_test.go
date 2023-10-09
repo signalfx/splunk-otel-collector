@@ -69,6 +69,7 @@ func TestDefaultComponents(t *testing.T) {
 		"receiver_creator",
 		"redis",
 		"sapm",
+		"scripted_inputs",
 		"signalfx",
 		"signalfxgatewayprometheusremotewrite",
 		"smartagent",
@@ -103,6 +104,7 @@ func TestDefaultComponents(t *testing.T) {
 		"transform",
 	}
 	expectedExporters := []component.Type{
+		"debug",
 		"file",
 		"kafka",
 		"logging",

@@ -46,7 +46,7 @@ processors:
         key: scrape_timestamp
 
 exporters:
-  logging:
+  debug:
     verbosity: detailed
   otlp:
     endpoint: "${OTLP_ENDPOINT}"
@@ -65,4 +65,4 @@ service:
     logs:
       receivers: [discovery]
       processors: [attributes]
-      exporters: [otlp, logging]
+      exporters: [otlp, debug]

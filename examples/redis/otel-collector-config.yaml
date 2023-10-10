@@ -20,7 +20,7 @@ exporters:
     # to configure, see https://github:com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/signalfxexporter
     access_token: ${SPLUNK_ACCESS_TOKEN}
     realm: "${SPLUNK_REALM}"
-  logging:
+  debug:
     verbosity: detailed
 service:
   telemetry:
@@ -34,4 +34,4 @@ service:
     metrics/logging:
       receivers: [redis]
       processors: [batch]
-      exporters: [logging]
+      exporters: [debug]

@@ -213,7 +213,7 @@ exporters:
     correlation: null
     ingest_url: https://ingest.${SPLUNK_REALM}.signalfx.com
     sync_host_metadata: true
-  logging:
+  debug:
     verbosity: detailed
 service:
   extensions:

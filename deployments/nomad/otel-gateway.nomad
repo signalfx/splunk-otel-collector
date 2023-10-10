@@ -203,7 +203,7 @@ service:
     logs/signalfx-events:
       exporters:
       - signalfx
-      - logging
+      - debug
       processors:
       - memory_limiter
       - batch
@@ -212,7 +212,7 @@ service:
     metrics:
       exporters:
       - signalfx
-      - logging
+      - debug
       processors:
       - memory_limiter
       - batch
@@ -222,7 +222,7 @@ service:
     traces:
       exporters:
       - sapm
-      - logging
+      - debug
       processors:
       - memory_limiter
       - batch
@@ -233,7 +233,7 @@ service:
     metrics/collector:
       exporters:
       - signalfx
-      - logging
+      - debug
       processors:
       - memory_limiter
       - batch

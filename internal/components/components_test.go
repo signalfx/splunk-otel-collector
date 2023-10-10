@@ -104,6 +104,7 @@ func TestDefaultComponents(t *testing.T) {
 		"transform",
 	}
 	expectedExporters := []component.Type{
+		"debug",
 		"file",
 		"kafka",
 		"logging",

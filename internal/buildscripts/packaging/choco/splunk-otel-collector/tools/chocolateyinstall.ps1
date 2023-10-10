@@ -135,8 +135,6 @@ try {
     }
 }
 catch {
-    $SPLUNK_LISTEN_INTERFACE = "0.0.0.0"
-    write-host "The SPLUNK_LISTEN_INTERFACE parameter is not specified. Using default configuration."
 }
 
 try {
@@ -167,7 +165,9 @@ try {
 
 update_registry -path "$regkey" -name "SPLUNK_API_URL" -value "$SPLUNK_API_URL"
 update_registry -path "$regkey" -name "SPLUNK_BUNDLE_DIR" -value "$SPLUNK_BUNDLE_DIR"
-update_registry -path "$regkey" -name "SPLUNK_LISTEN_INTERFACE" -value "$SPLUNK_LISTEN_INTERFACE"
+if ($SPLUNK_LISTEN_INTERFACE) {
+    update_registry -path "$regkey" -name "SPLUNK_LISTEN_INTERFACE" -value "$SPLUNK_LISTEN_INTERFACE"
+}
 update_registry -path "$regkey" -name "SPLUNK_HEC_TOKEN" -value "$SPLUNK_HEC_TOKEN"
 update_registry -path "$regkey" -name "SPLUNK_HEC_URL" -value "$SPLUNK_HEC_URL"
 update_registry -path "$regkey" -name "SPLUNK_INGEST_URL" -value "$SPLUNK_INGEST_URL"

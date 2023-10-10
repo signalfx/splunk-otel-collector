@@ -95,7 +95,7 @@
 
     - name: Assert SPLUNK_LISTEN_INTERFACE env var is set
       ansible.builtin.lineinfile:
-        line: SPLUNK_LISTEN_INTERFACE=127.0.0.1
+        line: SPLUNK_LISTEN_INTERFACE=1.2.3.4
         dest: /etc/otel/collector/splunk-otel-collector.conf
         state: present
       check_mode: yes

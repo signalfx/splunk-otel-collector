@@ -28,6 +28,7 @@ if os[:family] == 'windows'
     its('SPLUNK_MEMORY_TOTAL_MIB') { should eq splunk_memory_total }
     its('SPLUNK_REALM') { should eq splunk_realm }
     its('SPLUNK_TRACE_URL') { should eq splunk_trace_url }
+    it { should_not have_property('SPLUNK_LISTEN_INTERFACE') }
   end
   describe service('fluentdwinsvc') do
     it { should_not be_enabled }
@@ -49,6 +50,7 @@ else
     its('content') { should match /^SPLUNK_MEMORY_TOTAL_MIB=#{splunk_memory_total}$/ }
     its('content') { should match /^SPLUNK_REALM=test$/ }
     its('content') { should match /^SPLUNK_TRACE_URL=#{splunk_trace_url}$/ }
+    its('content') { should_not match /^SPLUNK_LISTEN_INTERFACE=.*$/ }
   end
   describe file('/etc/systemd/system/splunk-otel-collector.service.d/service-owner.conf') do
     its('content') { should match /^User=splunk-otel-collector$/ }

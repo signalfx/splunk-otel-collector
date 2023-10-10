@@ -117,7 +117,7 @@ This distribution is supported on and packaged for a variety of platforms includ
 - Linux
   - [Installer script](./docs/getting-started/linux-installer.md) (recommended for single-host demo/test environments)
   - Configuration management (recommended for multi-host production environments)
-    - [Ansible](https://galaxy.ansible.com/signalfx/splunk_otel_collector)
+    - [Ansible](https://galaxy.ansible.com/ui/repo/published/signalfx/splunk_otel_collector/)
     - [Chef](https://supermarket.chef.io/cookbooks/splunk_otel_collector)
     - [Puppet](https://forge.puppet.com/modules/signalfx/splunk_otel_collector)
     - [Salt](https://github.com/signalfx/splunk-otel-collector/tree/main/deployments/salt)
@@ -127,7 +127,7 @@ This distribution is supported on and packaged for a variety of platforms includ
 - Windows
   - [Installer script](./docs/getting-started/windows-installer.md) (recommended for single-host demo/test environments)
   - Configuration management (recommended for multi-host production environments)
-    - [Ansible](https://galaxy.ansible.com/signalfx/splunk_otel_collector)
+    - [Ansible](https://galaxy.ansible.com/ui/repo/published/signalfx/splunk_otel_collector/)
     - [Chef](https://supermarket.chef.io/cookbooks/splunk_otel_collector)
     - [Puppet](https://forge.puppet.com/modules/signalfx/splunk_otel_collector)
   - [Manual](./docs/getting-started/windows-manual.md) including MSI with GUI and Powershell, Chocolatey, and Docker

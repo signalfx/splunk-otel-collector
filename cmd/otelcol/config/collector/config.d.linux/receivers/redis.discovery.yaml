@@ -15,8 +15,6 @@
 #   config:
 #     default:
 #       endpoint: splunk.discovery.default
-#       password: splunk.discovery.default
-#       username: splunk.discovery.default
 #   status:
 #     metrics:
 #       successful:

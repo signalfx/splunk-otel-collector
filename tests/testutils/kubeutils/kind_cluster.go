@@ -26,6 +26,7 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/Masterminds/sprig/v3"
 	"github.com/docker/docker/api/types"
 	docker "github.com/docker/docker/client"
 	"github.com/stretchr/testify/require"
@@ -45,7 +46,13 @@ const kindConfigTemplate = `kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
   - role: control-plane
-    image: kindest/node:v1.26.0
+    {{- if .KubeAdmConfigPatches }}
+    kubeadmConfigPatches:
+    {{- range $configPatch := .KubeAdmConfigPatches }}
+      - |
+{{ $configPatch | indent 8 }}
+    {{- end }}
+    {{- end }}
     {{- if .ExposedPorts }}
     extraPortMappings:
     {{- range $hostPort, $containerPort := .ExposedPorts }}
@@ -58,12 +65,14 @@ nodes:
 `
 
 type KindCluster struct {
-	Testcase     *testutils.Testcase
-	Clientset    *kubernetes.Clientset
-	ExposedPorts map[uint16]uint16
-	Name         string
-	Kubeconfig   string
-	Config       string
+	Testcase             *testutils.Testcase
+	Clientset            *kubernetes.Clientset
+	ExposedPorts         map[uint16]uint16
+	Name                 string
+	Kubeconfig           string
+	Config               string
+	Image                string
+	KubeAdmConfigPatches []string
 }
 
 func NewKindCluster(t *testutils.Testcase) *KindCluster {
@@ -71,6 +80,7 @@ func NewKindCluster(t *testutils.Testcase) *KindCluster {
 		Name:         fmt.Sprintf("cluster-%s", t.ID),
 		Testcase:     t,
 		ExposedPorts: map[uint16]uint16{},
+		Image:        "kindest/node:v1.26.0",
 	}
 }
 
@@ -90,6 +100,7 @@ func (k *KindCluster) Create() {
 		"--name", k.Name,
 		"--kubeconfig", k.Kubeconfig,
 		"--config", k.Config,
+		"--image", k.Image,
 	})
 
 	restConfig, err := clientcmd.BuildConfigFromFlags("", k.Kubeconfig)
@@ -198,9 +209,10 @@ func (k KindCluster) runKindCmd(args []string) {
 
 func (k KindCluster) renderConfig() string {
 	out := &bytes.Buffer{}
-	tpl, err := template.New("").Parse(kindConfigTemplate)
+	tpl, err := template.New("").Funcs(sprig.TxtFuncMap()).Parse(kindConfigTemplate)
 	require.NoError(k.Testcase, err)
 	err = tpl.Execute(out, k)
 	require.NoError(k.Testcase, err)
+	fmt.Println(out.String())
 	return out.String()
 }

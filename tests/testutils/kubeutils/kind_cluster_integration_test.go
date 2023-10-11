@@ -42,6 +42,12 @@ func TestKindCluster(t *testing.T) {
 	portOne, portTwo := uint16(ports[0]), uint16(ports[1])
 	cluster.ExposedPorts[portOne] = 12345
 	cluster.ExposedPorts[portTwo] = 23456
+	cluster.KubeAdmConfigPatches = []string{
+		`kind: InitConfiguration
+nodeRegistration:
+  kubeletExtraArgs:
+    node-labels: "ingress-ready=true"`,
+	}
 
 	defer func() {
 		cluster.Delete()
@@ -66,7 +72,12 @@ func TestKindCluster(t *testing.T) {
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
   - role: control-plane
-    image: kindest/node:v1.26.0
+    kubeadmConfigPatches:
+      - |
+        kind: InitConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            node-labels: "ingress-ready=true"
     extraPortMappings:
       - containerPort: 12345
         hostPort: %d

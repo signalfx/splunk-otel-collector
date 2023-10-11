@@ -208,7 +208,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 	config := collector.EffectiveConfig(t, 55554)
 	require.Equal(t, map[string]any{
 		"exporters": map[string]any{
-			"logging": map[string]any{
+			"debug": map[string]any{
 				"verbosity": "detailed",
 			},
 			"otlp": map[string]any{

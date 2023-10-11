@@ -1,0 +1,26 @@
+version: "3"
+services:
+  # Sample bash script producing logs.
+  logging:
+    image: alpine/curl:latest
+    container_name: logging
+    entrypoint: /curl.sh
+    depends_on:
+      - otelcollector
+    networks:
+      - test
+    volumes:
+      - ./curl.sh:/curl.sh
+  # OpenTelemetry Collector
+  otelcollector:
+    image:  quay.io/signalfx/splunk-otel-collector:0.86.0
+    container_name: otelcollector
+    command: ["--config=/etc/otel-collector-config.yml"]
+    volumes:
+      - ./otel-collector-config.yml:/etc/otel-collector-config.yml
+    ports:
+      - 18088:8088
+    networks:
+      - test
+networks:
+  test:

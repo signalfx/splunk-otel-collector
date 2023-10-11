@@ -81,7 +81,7 @@ service:
   pipelines:
     metrics:
       exporters:
-      - logging
+      - debug
       receivers:
       - otlp
 ```

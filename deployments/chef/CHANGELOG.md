@@ -2,8 +2,10 @@
 
 ## unreleased
 
+## chef-v0.8.0
+
 - Update `splunk_listen_interface` default to only set target SPLUNK_LISTEN_INTERFACE environment variable if
-  configure.
+  configured.
 
 ## chef-v0.7.0
 

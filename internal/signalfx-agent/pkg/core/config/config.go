@@ -104,7 +104,7 @@ type Config struct {
 	// Configuration of the datapoint/event writer
 	Writer WriterConfig `yaml:"writer"`
 	// Log configuration
-	Logging LogConfig `yaml:"logging" default:"{}"`
+	Logging LogConfig `yaml:"debug" default:"{}"`
 	// Configuration of the managed collectd subprocess
 	Collectd CollectdConfig `yaml:"collectd" default:"{}"`
 	// This must be unset or explicitly set to true. In prior versions of the

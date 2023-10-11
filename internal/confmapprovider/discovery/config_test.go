@@ -165,7 +165,7 @@ var expectedConfig = Config{
 			},
 			"pipelines": map[string]any{
 				"metrics": map[string]any{
-					"exporters": []any{"debug"},
+					"exporters": []any{"logging"},
 				},
 			},
 		},
@@ -381,10 +381,10 @@ var expectedServiceConfig = map[string]any{
 		"extensions": []any{"zpages"},
 		"pipelines": map[string]any{
 			"metrics": map[string]any{
-				"exporters": []any{"debug"}}},
+				"exporters": []any{"logging"}}},
 		"telemetry": map[string]any{
 			"logs": map[string]any{
-				"level": "debug"},
+				"level": "logging"},
 		},
 	},
 }

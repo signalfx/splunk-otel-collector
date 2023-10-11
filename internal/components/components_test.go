@@ -107,7 +107,7 @@ func TestDefaultComponents(t *testing.T) {
 		"debug",
 		"file",
 		"kafka",
-		"debug",
+		"logging",
 		"otlp",
 		"otlphttp",
 		"pulsar",

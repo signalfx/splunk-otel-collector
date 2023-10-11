@@ -2,7 +2,9 @@
 
 ## Unreleased
 
-- Add support for `splunk_listen_interface` used by default configurations as `SPLUNK_LISTEN_INTERFACE` environment variable.
+## puppet-v0.11.0
+
+- Add support for `splunk_listen_interface` used by default configurations as `SPLUNK_LISTEN_INTERFACE` environment variable (only populated if set).
 - Update fluentd url for Windows.
 
 ## puppet-v0.10.0

@@ -2,6 +2,8 @@
 
 ## unreleased
 
+## ansible-v0.23.0
+
 ### 💡 Enhancements 💡
 
 - Only propagate `splunk_listen_interface` to target SPLUNK_LISTEN_INTERFACE service environment variable if set.

@@ -86,5 +86,5 @@ func TestDockerObserver(t *testing.T) {
 	} {
 		t.Run(args.name, func(tt *testing.T) {
 			testutils.AssertAllMetricsReceived(tt, args.resourceMetricsFilename, args.collectorConfigFilename, containers, collector)
-	}
+	})
 }

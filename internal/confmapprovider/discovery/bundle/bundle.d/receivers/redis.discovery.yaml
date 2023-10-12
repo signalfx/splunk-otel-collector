@@ -10,7 +10,7 @@ redis:
     k8s_observer: type == "port" and pod.name matches "(?i)redis"
   config:
     default:
-      endpoint: splunk.discovery.default
+      endpoint: '`endpoint`'
   status:
     metrics:
       successful:

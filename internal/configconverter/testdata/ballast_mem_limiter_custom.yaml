@@ -13,7 +13,7 @@ processors:
     spike_limit_mib: 800
     ballast_size_mib: 64
 exporters:
-  logging:
+  debug:
     verbosity: normal
     sampling_initial: 2
     sampling_thereafter: 500

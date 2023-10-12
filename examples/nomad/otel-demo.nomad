@@ -174,7 +174,7 @@ processors:
         value: demo-nomad
         key: deployment.environment
 exporters:
-  logging:
+  debug:
     verbosity: detailed
   signalfx:
     access_token: ${SPLUNK_ACCESS_TOKEN}
@@ -184,11 +184,11 @@ service:
   extensions: [health_check, http_forwarder, zpages]
   pipelines:
     metrics:
-      exporters: [logging, signalfx]
+      exporters: [debug, signalfx]
       processors: [memory_limiter, batch, resourcedetection]
       receivers: [prometheus/collector]
     traces:
-      exporters: [logging, signalfx]
+      exporters: [debug, signalfx]
       processors: [memory_limiter, batch, resource/add_environment]
       receivers: [otlp]
 EOF
@@ -368,7 +368,7 @@ exporters:
     endpoint: "{{ with service "otlp.otel-gateway" }}{{ with index . 0 }}{{ .Address }}:{{ .Port }}{{ end }}{{ end }}"
     tls:
       insecure: true
-  logging:
+  debug:
     verbosity: detailed
 service:
   extensions:
@@ -376,7 +376,7 @@ service:
   - zpages
   pipelines:
     traces:
-      exporters: [logging, otlp]
+      exporters: [debug, otlp]
       processors: [memory_limiter, batch, resourcedetection]
       receivers: [jaeger, zipkin]
 EOF

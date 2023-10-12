@@ -15,7 +15,7 @@ receivers:
       http:
 
 exporters:
-  logging/noop:
+  debug/noop:
 
 processors:
   resource:
@@ -32,4 +32,4 @@ service:
     metrics:
       receivers: [otlp/noop]
       processors: [resource]
-      exporters: [logging/noop]
+      exporters: [debug/noop]

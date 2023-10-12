@@ -6,7 +6,7 @@ receivers:
 processors:
   batch:
 exporters:
-  logging:
+  debug:
     verbosity: Detailed
 service:
   pipelines:

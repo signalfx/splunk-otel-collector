@@ -12,7 +12,7 @@ resource_metrics:
           - name: otelcol_exporter_enqueue_failed_log_records
             type: DoubleMonotonicCumulativeSum
             attributes:
-              exporter: logging
+              exporter: debug
               label_one: actual.label.one.value.from.env.var
               label_two: actual.label.two.value.from.env.var
               label_three: actual.label.three.value.from.cmdline.property

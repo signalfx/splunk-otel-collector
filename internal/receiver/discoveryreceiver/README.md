@@ -30,14 +30,14 @@ receivers:
     watch_observers: [docker_observer]
     log_endpoints: true
 exporters:
-  logging:
+  debug:
     verbosity: detailed
 service:
   extensions: [docker_observer]
   pipelines:
     logs:
       receivers: [discovery]
-      exporters: [logging]
+      exporters: [debug]
 ```
 
 ```
@@ -171,7 +171,7 @@ receivers:
                    severity_text: debug
                    body: Container appears to not be accepting redis connections.
 exporters:
-  logging:
+  debug:
     verbosity: detailed
     sampling_initial: 1
     sampling_thereafter: 1

@@ -213,7 +213,7 @@ exporters:
     correlation: null
     ingest_url: https://ingest.${SPLUNK_REALM}.signalfx.com
     sync_host_metadata: true
-  logging:
+  debug:
     verbosity: detailed
 service:
   extensions:
@@ -222,7 +222,7 @@ service:
   pipelines:
     metrics:
       exporters:
-      - logging
+      - debug
       - signalfx
       processors:
       - memory_limiter
@@ -233,7 +233,7 @@ service:
       - signalfx
     metrics/agent:
       exporters:
-      - logging
+      - debug
       - signalfx
       processors:
       - memory_limiter
@@ -243,7 +243,7 @@ service:
       - prometheus/agent
     traces:
       exporters:
-      - logging
+      - debug
       - sapm
       - signalfx
       processors:

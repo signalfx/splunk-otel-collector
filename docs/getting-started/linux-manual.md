@@ -541,13 +541,13 @@ receivers:
       scrapers:
          cpu:
 exporters:
-   logging:
+   debug:
       verbosity: detailed
 service:
    pipelines:
       metrics:
          receivers: [hostmetrics]
-         exporters: [logging]
+         exporters: [debug]
 END
 )
 

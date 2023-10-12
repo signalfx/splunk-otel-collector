@@ -27,7 +27,7 @@ exporters:
         # For this demo, we use a self-signed certificate on the Splunk docker instance, so this flag is set to true.
         tls:
           insecure_skip_verify: true
-    logging:
+    debug:
       verbosity: detailed
       sampling_initial: 5
       sampling_thereafter: 200
@@ -49,4 +49,4 @@ service:
       traces:
         receivers: [otlp]
         processors: [batch]
-        exporters: [splunk_hec/traces, logging]
+        exporters: [splunk_hec/traces, debug]

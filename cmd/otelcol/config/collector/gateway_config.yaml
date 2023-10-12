@@ -108,7 +108,7 @@ exporters:
     realm: "${SPLUNK_REALM}"
     sync_host_metadata: true
   # Debug
-  #logging:
+  #debug:
     #verbosity: detailed
   # Logs
   splunk_hec:

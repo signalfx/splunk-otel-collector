@@ -43,31 +43,15 @@ func TestDockerObserver(t *testing.T) {
 		"KAFKA_ZOOKEEPER_CONNECT": "zookeeper:2181",
 	}).WithNetworks("kafka")
 
-    kafkaZookeeper := testutils.NewContainer()
-        .WithImage("zookeeper:3.5")
-        .WithName("zookeeper")
-        .WithNetworks("kafka")
-        .WithExposedPorts("2181:2181")
-        .WillWaitForPorts("2181")
+    kafkaZookeeper := testutils.NewContainer().WithImage("zookeeper:3.5").WithName("zookeeper").WithNetworks("kafka").WithExposedPorts("2181:2181").WillWaitForPorts("2181")
 
-    kafkaBroker := kafka.WithName("kafka-broker")
-        .WithEnvVar("START_AS", "broker")
-        .WithExposedPorts("7099:7099", "9092:9092")
-        .WillWaitForPorts("7099", "9092")
+    kafkaBroker := kafka.WithName("kafka-broker").WithEnvVar("START_AS", "broker").WithExposedPorts("7099:7099", "9092:9092").WillWaitForPorts("7099", "9092")
 
-    kafkaConsumer := kafka.WithName("kafka-consumer")
-        .WithEnv(map[string]string{"START_AS": "consumer", "KAFKA_BROKER": "kafka-broker:9092", "JMX_PORT": "9099",})
-        .WithExposedPorts("9099:9099")
-        .WillWaitForPorts("9099")
+    kafkaConsumer := kafka.WithName("kafka-consumer").WithEnv(map[string]string{"START_AS": "consumer", "KAFKA_BROKER": "kafka-broker:9092", "JMX_PORT": "9099",}).WithExposedPorts("9099:9099").WillWaitForPorts("9099")
 
-    kafkaProducer := kafka.WithName("kafka-producer")
-        .WithEnv(map[string]string{"START_AS": "producer", "KAFKA_BROKER": "kafka-broker:9092", "JMX_PORT": "8099",})
-        .WithExposedPorts("8099:8099")
-        .WillWaitForPorts("8099")
+    kafkaProducer := kafka.WithName("kafka-producer").WithEnv(map[string]string{"START_AS": "producer", "KAFKA_BROKER": "kafka-broker:9092", "JMX_PORT": "8099",}).WithExposedPorts("8099:8099").WillWaitForPorts("8099")
 
-    kafkaTopicCreator := kafka.WithName("kafka-topic-creator")
-        .WithEnvVar("START_AS", "create-topic",)
-        .WillWaitForLogs(`Created topic "sfx-employee".`)
+    kafkaTopicCreator := kafka.WithName("kafka-topic-creator").WithEnvVar("START_AS", "create-topic",).WillWaitForLogs(`Created topic "sfx-employee".`)
 
     containers := []testutils.Container{kafkaZookeeper, kafkaBroker, kafkaConsumer, kafkaProducer, kafkaTopicCreator}
 

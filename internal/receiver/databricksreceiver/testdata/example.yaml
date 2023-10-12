@@ -5,7 +5,7 @@ receivers:
     token: abc123
     collection_interval: 10s
 exporters:
-  logging:
+  debug:
     verbosity: normal
   signalfx:
     realm: us1

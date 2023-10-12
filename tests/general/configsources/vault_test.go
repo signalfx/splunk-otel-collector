@@ -87,7 +87,7 @@ func TestBasicSecretAccess(t *testing.T) {
 		delete(effective["service"].(map[string]any), "telemetry")
 	}
 	require.Equal(t, map[string]any{
-		"exporters": map[string]any{"logging/noop": nil},
+		"exporters": map[string]any{"debug/noop": nil},
 		"processors": map[string]any{
 			"resource": map[string]any{
 				"attributes": []any{
@@ -97,7 +97,7 @@ func TestBasicSecretAccess(t *testing.T) {
 		"service": map[string]any{
 			"pipelines": map[string]any{
 				"metrics": map[string]any{
-					"exporters":  []any{"logging/noop"},
+					"exporters":  []any{"debug/noop"},
 					"processors": []any{"resource"},
 					"receivers":  []any{"otlp/noop"}}}}}, effective)
 }

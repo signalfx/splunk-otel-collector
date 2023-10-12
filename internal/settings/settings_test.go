@@ -386,13 +386,13 @@ func TestConfigPrecedence(t *testing.T) {
     scrapers:
       cpu:
 exporters:
-  logging:
+  debug:
     verbosity: detailed
 service:
   pipelines:
     metrics:
       receivers: [hostmetrics]
-      exporters: [logging]`
+      exporters: [debug]`
 
 	tests := []struct {
 		name                string

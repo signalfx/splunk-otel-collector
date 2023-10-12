@@ -3,7 +3,7 @@ extensions:
 pipelines:
   metrics:
     exporters:
-      - logging
+      - debug
 telemetry:
   logs:
     level: debug

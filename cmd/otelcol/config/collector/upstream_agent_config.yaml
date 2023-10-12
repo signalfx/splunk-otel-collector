@@ -148,7 +148,7 @@ exporters:
     tls:
       insecure: true
   # Debug
-  logging:
+  debug:
     verbosity: detailed
 
 service:

@@ -75,7 +75,19 @@ Once changes are successfully applied, you should see data populating the charts
      - If no logs are found, go to `Status` tab, and click the download button in the `Logs` column. You can download
      the logs from the `Logs` tab once the download is finished.
 
-2. Tile shows up as running, but charts aren't populating data. This is most likely a metric naming mismatch. TAS v3.0+
+1. Tile starts successfully, but spamming logs with a message that looks like this:
+
+    ```
+    "kind": "receiver", "name": "cloudfoundry", "data_type": "metrics"} 2023-06-23T16:10:11.143Z info go-loggregator@v7.4.0+incompatible/rlp_gateway_client.go:87 unexpected status code 404: {"message":"resource not found","error":"not_found"} {"kind": "receiver", "name": "cloudfoundry", "data_type": "metrics"}
+    ```
+   This is likely a UAA client permissions issue. Here's how to check:
+
+     - `uaac client get INSERT_USERNAME_HERE`
+     - Check the `authorities` key in the output, ensure it has the `logs.admin` authority listed. If the user does not have the proper authority, add it using this command:
+       - `uaac client update INSERT_USERNAME_HERE --authorities "EXISTING-PERMISSIONS logs.admin"`
+         - Where `EXISTING-PERMISSIONS` is the current contents of the scope section from the output from uaac contexts. Reference [here.](https://docs.cloudfoundry.org/uaa/uaa-user-management.html#changing-passwords)
+
+1. Tile shows up as running, but charts aren't populating data. This is most likely a metric naming mismatch. TAS v3.0+
 is currently unsupported due to metric name format changes.
     - Check logs to make sure no errors are showing up
     - Check metrics manually coming from Tanzu to see if they match charts.

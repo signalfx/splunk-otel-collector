@@ -6,7 +6,7 @@
 # Please note that any changes made to this file will need to be reconciled during  #
 # upgrades of the Collector.                                                        #
 #####################################################################################
-# smartagent/collectd/kafka:
+# smartagent/collectd/kafka_broker:
 #   enabled: true
 #   rule:
 #     docker_observer: type == "container" and any([name, image, command], {# matches "(?i)kafka"}) and not (command matches "splunk.discovery")
@@ -15,8 +15,8 @@
 #   config:
 #     default:
 #       type: collectd/kafka
-#       host: splunk.discovery.default
-#       port: splunk.discovery.default
+#       host: '`<no value>`'
+#       port: '`<no value>`'
 #       isolatedCollectd: true
 #   status:
 #     metrics:

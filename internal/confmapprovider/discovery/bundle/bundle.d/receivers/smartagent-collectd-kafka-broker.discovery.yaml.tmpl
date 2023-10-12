@@ -1,4 +1,4 @@
-{{ receiver "smartagent/collectd/kafka" }}:
+{{ receiver "smartagent/collectd/kafka_broker" }}:
   enabled: true
   rule:
     docker_observer: type == "container" and any([name, image, command], {# matches "(?i)kafka"}) and not (command matches "splunk.discovery")

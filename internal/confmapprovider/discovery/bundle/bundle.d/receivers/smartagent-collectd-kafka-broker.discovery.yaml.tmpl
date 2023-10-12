@@ -7,8 +7,8 @@
   config:
     default:
       type: collectd/kafka
-      host: {{ defaultValue }}
-      port: {{ defaultValue }}
+      host: '`{{.Host}}`'
+      port: '`{{.Port}}`'
       isolatedCollectd: true
   status:
     metrics:

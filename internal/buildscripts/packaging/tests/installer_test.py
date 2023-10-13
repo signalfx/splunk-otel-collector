@@ -386,7 +386,7 @@ def test_installer_with_instrumentation_default(distro, arch, method):
             verify_config_file(container, config_path, "SPLUNK_PROFILER_ENABLED", "false")
             verify_config_file(container, config_path, "SPLUNK_PROFILER_MEMORY_ENABLED", "false")
             verify_config_file(container, config_path, "SPLUNK_METRICS_ENABLED", "false")
-            verify_config_file(container, config_path, "OTEL_EXPORTER_OTLP_ENDPOINT", "http://0.0.0.0:4317")
+            verify_config_file(container, config_path, "OTEL_EXPORTER_OTLP_ENDPOINT", "http://127.0.0.1:4317")
             verify_config_file(container, config_path, "OTEL_SERVICE_NAME", ".*", exists=False)
 
         tomcat_attributes = {
@@ -443,6 +443,7 @@ def test_installer_with_instrumentation_custom(distro, arch, method):
         "--enable-profiler",
         "--enable-profiler-memory",
         "--enable-metrics",
+        "--listen-interface 0.0.0.0",
         "--otlp-endpoint http://127.0.0.1:4317",
     ))
 

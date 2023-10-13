@@ -107,10 +107,9 @@ exporters:
     access_token: "${SPLUNK_ACCESS_TOKEN}"
     realm: "${SPLUNK_REALM}"
     sync_host_metadata: true
-  # Debug exporter
-  # If using version 0.85 or lower of the Collector
-  # replace 'debug' with 'logging'
-  #debug:
+  # This component has been deprecated by the "debug" exporter,
+  # which will be adopted in a future release.
+  # logging:
     #verbosity: detailed
   # Logs
   splunk_hec:

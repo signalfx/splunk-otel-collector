@@ -156,10 +156,9 @@ exporters:
     endpoint: "${SPLUNK_GATEWAY_URL}:4317"
     tls:
       insecure: true
-  # Debug exporter
-  # If using version 0.85 or lower of the Collector
-  # replace 'debug' with 'logging'
-  debug:
+  # This component has been deprecated by the "debug" exporter,
+  # which will be adopted in a future release.
+  logging:
     verbosity: detailed
 
 service:

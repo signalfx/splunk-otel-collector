@@ -10,6 +10,9 @@ exporters:
     # to configure, see https://github:com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/signalfxexporter
     access_token: "${SPLUNK_ACCESS_TOKEN}"
     realm: "${SPLUNK_REALM}"
+  # Debug exporter
+  # If using version 0.85 or lower of the Collector
+  # replace 'debug' with 'logging'
   debug:
     verbosity: detailed
 service:

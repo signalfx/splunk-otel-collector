@@ -5,6 +5,9 @@ receivers:
     token: abc123
     collection_interval: 10s
 exporters:
+  # Debug exporter
+  # If using version 0.85 or lower of the Collector
+  # replace 'debug' with 'logging'
   debug:
     verbosity: normal
   signalfx:

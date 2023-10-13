@@ -6,6 +6,9 @@ receivers:
 processors:
   batch:
 exporters:
+  # Debug exporter
+  # If using version 0.85 or lower of the Collector
+  # replace 'debug' with 'logging'
   debug:
     verbosity: Detailed
 service:

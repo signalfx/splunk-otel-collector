@@ -11,7 +11,9 @@ exporters:
     endpoint: "${OTLP_ENDPOINT}"
     tls:
       insecure: true
-
+  # Debug exporter
+  # If using version 0.85 or lower of the Collector
+  # replace 'debug' with 'logging'
   debug:
 
 service:

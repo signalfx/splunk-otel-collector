@@ -528,8 +528,9 @@ exporters:
   file:
     path: ./filename.json
 
-  # Enables the logging exporter
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/loggingexporter
+  # Debug exporter
+  # If using version 0.85 or lower of the Collector
+  # replace 'debug' with 'logging'
   # NOTE: This exporter is very helpful in troubleshooting issues
   debug:
     verbosity: detailed

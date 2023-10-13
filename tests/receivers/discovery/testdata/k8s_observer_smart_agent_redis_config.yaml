@@ -46,6 +46,9 @@ processors:
         key: scrape_timestamp
 
 exporters:
+  # Debug exporter
+  # If using version 0.85 or lower of the Collector
+  # replace 'debug' with 'logging'
   debug:
     verbosity: detailed
   otlp:

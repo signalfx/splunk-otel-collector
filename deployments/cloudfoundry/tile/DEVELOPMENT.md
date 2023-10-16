@@ -82,10 +82,10 @@ Once changes are successfully applied, you should see data populating the charts
     ```
    This is likely a UAA client permissions issue. Here's how to check:
 
-     - `uaac client get INSERT_USERNAME_HERE`
+     - `uaac client get <USERNAME>`
      - Check the `authorities` key in the output, ensure it has the `logs.admin` authority listed. If the user does not have the proper authority, add it using this command:
-       - `uaac client update INSERT_USERNAME_HERE --authorities "EXISTING-PERMISSIONS logs.admin"`
-         - Where `EXISTING-PERMISSIONS` is the current contents of the scope section from the output from uaac contexts. Reference [here.](https://docs.cloudfoundry.org/uaa/uaa-user-management.html#changing-passwords)
+       - `uaac client update <USERNAME> --authorities "<EXISTING-PERMISSIONS> logs.admin"`
+         - Where `<EXISTING-PERMISSIONS>` is the current contents of the scope section from the output from uaac contexts. Reference [here.](https://docs.cloudfoundry.org/uaa/uaa-user-management.html#changing-passwords)
 
 1. Tile shows up as running, but charts aren't populating data. This is most likely a metric naming mismatch. TAS v3.0+
 is currently unsupported due to metric name format changes.

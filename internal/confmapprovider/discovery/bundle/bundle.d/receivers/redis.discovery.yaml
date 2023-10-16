@@ -9,8 +9,7 @@ redis:
     host_observer: type == "hostport" and command matches "(?i)redis" and not (command matches "splunk.discovery")
     k8s_observer: type == "port" and pod.name matches "(?i)redis"
   config:
-    default:
-      endpoint: '`endpoint`'
+    default: {}
   status:
     metrics:
       successful:

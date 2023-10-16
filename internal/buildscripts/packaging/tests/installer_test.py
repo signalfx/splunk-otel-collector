@@ -153,6 +153,8 @@ def fluentd_supported(distro, arch):
         return False
     elif distro in ("debian-stretch", "ubuntu-xenial") and arch == "arm64":
         return False
+    elif distro == "debian-bookworm":
+        return False
 
     return True
 

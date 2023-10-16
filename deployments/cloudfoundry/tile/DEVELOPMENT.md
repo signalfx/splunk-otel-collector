@@ -95,7 +95,7 @@ Once changes are successfully applied, you should see data populating the charts
    - Check the `authorities` key in the output, ensure it has the `logs.admin` authority listed. If the user does not have the proper authority, add it using this command:
 
    ```
-   $ uaac client update <USERNAME> --authorities "<EXISTING-PERMISSIONS> logs.admin"
+    $ uaac client update <USERNAME> --authorities "<EXISTING-PERMISSIONS> logs.admin"
    ```
    - Where `<EXISTING-PERMISSIONS>` is the current contents of the scope section from the output from uaac contexts. Reference [here.](https://docs.cloudfoundry.org/uaa/uaa-user-management.html#changing-passwords)
    - Check again to ensure `logs.admin` is shown in the `authorities` list.

@@ -229,7 +229,7 @@ require (
 	github.com/DataDog/zstd v1.5.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.19.1 // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
-	github.com/SAP/go-hdb v1.3.10 // indirect
+	github.com/SAP/go-hdb v1.5.7 // indirect
 	github.com/Sectorbob/mlab-ns2 v0.0.0-20171030222938-d3aa0c295a8a // indirect
 	github.com/Showmax/go-fqdn v1.0.0 // indirect
 	github.com/StackExchange/wmi v1.2.1 // indirect
@@ -490,15 +490,15 @@ require (
 	go.opentelemetry.io/otel/sdk v1.19.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v0.41.0 // indirect
 	golang.org/x/crypto v0.14.0 // indirect
-	golang.org/x/exp v0.0.0-20230713183714-613f0c0eb8a1
-	golang.org/x/mod v0.12.0 // indirect
+	golang.org/x/exp v0.0.0-20231006140011-7918f672742d
+	golang.org/x/mod v0.13.0 // indirect
 	golang.org/x/net v0.16.0 // indirect
 	golang.org/x/oauth2 v0.12.0 // indirect
 	golang.org/x/sync v0.4.0 // indirect
 	golang.org/x/term v0.13.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
-	golang.org/x/tools v0.13.0 // indirect
+	golang.org/x/tools v0.14.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	gonum.org/v1/gonum v0.14.0 // indirect
 	google.golang.org/api v0.141.0 // indirect

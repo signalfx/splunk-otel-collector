@@ -158,7 +158,7 @@ exporters:
       insecure: true
   # This component has been deprecated by the "debug" exporter,
   # which will be adopted in a future release.
-  logging:
+  debug:
     verbosity: detailed
 
 service:

@@ -188,6 +188,7 @@ replace (
 	github.com/hashicorp/consul/sdk => github.com/hashicorp/consul/sdk v0.13.1
 	github.com/opencontainers/image-spec => github.com/opencontainers/image-spec v1.0.2
 	golang.org/x/crypto => golang.org/x/crypto v0.5.0
+	golang.org/x/net => golang.org/x/net v0.17.0
 )
 
 // required until all deps adopt something like https://github.com/open-telemetry/opentelemetry-collector/commit/6059751e64e0d7b857abff50f1d8ab90424d0306

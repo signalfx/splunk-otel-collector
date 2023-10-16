@@ -46,4 +46,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace golang.org/x/crypto => golang.org/x/crypto v0.5.0
+replace (
+	golang.org/x/crypto => golang.org/x/crypto v0.5.0
+	golang.org/x/net => golang.org/x/net v0.17.0
+)

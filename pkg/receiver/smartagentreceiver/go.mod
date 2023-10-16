@@ -341,4 +341,5 @@ replace (
 	github.com/soheilhy/cmux => github.com/soheilhy/cmux v0.1.5-0.20210205191134-5ec6847320e5 // required for smartagentreceiver to drop google.golang.org/grpc/examples/helloworld/helloworld test dep
 	github.com/valyala/fasthttp => github.com/valyala/fasthttp v1.36.0
 	golang.org/x/crypto => golang.org/x/crypto v0.5.0
+	golang.org/x/net => golang.org/x/net v0.17.0
 )

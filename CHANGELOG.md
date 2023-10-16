@@ -5,6 +5,7 @@
 ### 💡 Enhancements 💡
 
 - (Splunk) Update golang to 1.20.10 ([#3770](https://github.com/signalfx/splunk-otel-collector/pull/3770))
+- (Splunk) Add debian 12 support to installer ([#3766](https://github.com/signalfx/splunk-otel-collector/pull/3766))
 
 ## v0.86.0
 

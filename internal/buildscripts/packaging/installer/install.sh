@@ -49,6 +49,9 @@ get_distro_codename() {
       11)
         codename="bullseye"
         ;;
+      12)
+        codename="bookworm"
+        ;;
       *)
         codename=""
         ;;
@@ -753,7 +756,7 @@ distro_is_supported() {
       ;;
     debian)
       case "$distro_codename" in
-        bullseye|buster|stretch)
+        bookworm|bullseye|buster|stretch)
           return 0
           ;;
       esac
@@ -806,6 +809,8 @@ fluentd_supported() {
       ;;
     debian)
       if [ "$distro_version" = "9" ] && [ "$distro_arch" = "aarch64" ]; then
+        return 1
+      elif [ "$distro_version" = "12" ]; then
         return 1
       fi
       ;;

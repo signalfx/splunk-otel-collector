@@ -98,6 +98,24 @@ Once changes are successfully applied, you should see data populating the charts
     $ uaac client update <USERNAME> --authorities "<EXISTING-PERMISSIONS> logs.admin"
    ```
    - Where `<EXISTING-PERMISSIONS>` is the current contents of the scope section from the output from uaac contexts. Reference [here.](https://docs.cloudfoundry.org/uaa/uaa-user-management.html#changing-passwords)
+   ```
+    # Example update command sequence
+    $ uaac contexts
+    ...
+    [29]*[https://uaa.sys.tas_env.cf-app.com]
+
+    [0]*[identity]
+    client_id: identity
+    access_token: ...
+    token_type: bearer
+    expires_in: 43199
+    scope: zones.read uaa.resource zones.write scim.zones uaa.admin cloud_controller.admin
+    jti: ...
+
+    ...
+    $ uaac client update <USERNAME> --authorities "zones.read uaa.resource zones.write scim.zones uaa.admin cloud_controller.admin logs.admin"
+   ```
+
    - Check again to ensure `logs.admin` is shown in the `authorities` list.
 
    ```
@@ -107,7 +125,7 @@ Once changes are successfully applied, you should see data populating the charts
     resource_ids: none
     authorized_grant_types: client_credentials
     autoapprove:
-    authorities: clients.read password.write clients.secret clients.write uaa.admin scim.write scim.read logs.admin
+    authorities: zones.read logs.admin uaa.resource zones.write scim.zones uaa.admin cloud_controller.admin
     lastmodified: 1694730760000
    ```
 

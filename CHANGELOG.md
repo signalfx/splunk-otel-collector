@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 💡 Enhancements 💡
+
+- (Splunk) Update golang to 1.20.10 ([#3770](https://github.com/signalfx/splunk-otel-collector/pull/3770))
+
 ## v0.86.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.86.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.86.0) and the [opentelemetry-collector-contrib v0.86.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.86.0) releases where appropriate.

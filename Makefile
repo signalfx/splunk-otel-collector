@@ -12,7 +12,7 @@ GO_ACC=go-acc
 GOARCH=$(shell go env GOARCH)
 GOOS=$(shell go env GOOS)
 
-FIND_MOD_ARGS=-type f -name "go.mod" -not -path '*/signalfx-agent/pkg/apm/*'
+FIND_MOD_ARGS=-type f -name "go.mod"
 TO_MOD_DIR=dirname {} \; | sort | egrep  '^./'
 # NONROOT_MODS includes ./* dirs (excludes . dir)
 NONROOT_MODS := $(shell find . $(FIND_MOD_ARGS) -exec $(TO_MOD_DIR) )

@@ -23,9 +23,9 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configtelemetry"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/obsreport"
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/receiver"
+	"go.opentelemetry.io/collector/receiver/receiverhelper"
 	"go.opentelemetry.io/otel/metric/noop"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
@@ -54,7 +54,7 @@ type discoveryReceiver struct {
 	statementEvaluator *statementEvaluator
 	logger             *zap.Logger
 	config             *Config
-	obsreportReceiver  *obsreport.Receiver
+	obsreportReceiver  *receiverhelper.ObsReport
 	pLogs              chan plog.Logs
 	observables        map[component.ID]observer.Observable
 	loopFinished       *sync.WaitGroup
@@ -66,7 +66,7 @@ func newDiscoveryReceiver(
 	config *Config,
 	consumer consumer.Logs,
 ) (*discoveryReceiver, error) {
-	obsReceiver, err := obsreport.NewReceiver(obsreport.ReceiverSettings{
+	obsReceiver, err := receiverhelper.NewObsReport(receiverhelper.ObsReportSettings{
 		ReceiverID:             settings.ID,
 		Transport:              "none",
 		ReceiverCreateSettings: settings,

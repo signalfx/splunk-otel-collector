@@ -1,0 +1,25 @@
+version: "3"
+services:
+  tomcat:
+    image: bitnami/tomcat
+    volumes:
+      - ./splunk-otel-javaagent.jar:/splunk/splunk-otel-javaagent.jar
+    environment:
+      # The image requires a password to be set on the administrator account.
+      # Setting ALLOW_EMPTY_PASSWORD to true should only be used in development environments.
+      - ALLOW_EMPTY_PASSWORD=yes
+      # OpenTelemetry instrumentation options:
+      - JAVA_TOOL_OPTIONS=-javaagent:/splunk/splunk-otel-javaagent.jar
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otelcollector:4317
+      - SPLUNK_METRICS_ENABLED=true
+      - SPLUNK_METRICS_ENDPOINT=http://otelcollector:9943
+    ports:
+      - 8080:8080
+  # OpenTelemetry Collector
+  otelcollector:
+    image:  quay.io/signalfx/splunk-otel-collector:0.86.0
+    container_name: otelcollector
+    command: ["--config=/etc/otel-collector-config.yml", "--set=service.telemetry.logs.level=debug"]
+    volumes:
+      - ./otel-collector-config.yml:/etc/otel-collector-config.yml
+      - ./output.txt:/var/output.txt

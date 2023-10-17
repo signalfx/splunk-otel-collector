@@ -1,0 +1,41 @@
+receivers:
+    otlp:
+      protocols:
+        http:
+        grpc:
+    signalfx:
+      endpoint: 0.0.0.0:9943
+
+exporters:
+    debug:
+      verbosity: detailed
+    file:
+      path: /var/output.txt
+
+
+processors:
+    batch:
+
+extensions:
+    health_check:
+      endpoint: 0.0.0.0:13133
+    pprof:
+      endpoint: :1888
+    zpages:
+      endpoint: :55679
+
+service:
+    extensions: [pprof, zpages, health_check]
+    pipelines:
+      logs:
+        receivers: [ otlp ]
+        processors: [ batch ]
+        exporters: [ debug, file ]
+      metrics:
+        receivers: [ otlp, signalfx ]
+        processors: [ batch ]
+        exporters: [ debug, file ]
+      traces:
+        receivers: [ otlp ]
+        processors: [ batch ]
+        exporters: [ debug, file ]

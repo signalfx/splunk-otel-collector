@@ -1,0 +1,21 @@
+receivers:
+  scripted_inputs/interfaces:
+    script_name: interfaces
+    collection_interval: 10s
+    source: interfaces
+    sourcetype: interfaces
+
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+
+service:
+  telemetry:
+    logs:
+      level: debug
+  pipelines:
+    logs:
+      receivers: [scripted_inputs/interfaces]
+      exporters: [otlp]

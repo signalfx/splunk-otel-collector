@@ -1,0 +1,4 @@
+resource_logs:
+  - scope_logs:
+      - logs:
+          - body: <RE2(PID\s+USER\s+PR\s+NI\s+VIRT\s+RES\s+SHR\s+S\s+pctCPU\s+pctMEM\s+cpuTIME\s+COMMAND)>

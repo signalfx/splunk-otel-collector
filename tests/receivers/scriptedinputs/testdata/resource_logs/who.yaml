@@ -1,0 +1,4 @@
+resource_logs:
+  - scope_logs:
+      - logs:
+          - body: <RE2(USERNAME\s+LINE\s+HOSTNAME\s+TIME)>

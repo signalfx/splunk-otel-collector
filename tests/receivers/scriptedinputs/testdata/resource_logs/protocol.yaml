@@ -1,0 +1,4 @@
+resource_logs:
+  - scope_logs:
+      - logs:
+          - body: <RE2(IPdropped\s+TCPrexmits\s+TCPreorder\s+TCPpktRecv\s+TCPpktSent\s+UDPpktLost\s+UDPunkPort\s+UDPpktRecv\s+UDPpktSent)>

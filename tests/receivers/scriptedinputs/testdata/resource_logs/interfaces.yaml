@@ -1,0 +1,4 @@
+resource_logs:
+  - scope_logs:
+      - logs:
+          - body: <RE2(Name\s+MAC\s+inetAddr\s+inet6Addr\s+Collisions\s+RXbytes\s+RXerrors\s+RXdropped\s+TXbytes\s+TXerrors\s+TXdropped\s+Speed\s+Duplex)>

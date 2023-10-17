@@ -1,0 +1,4 @@
+resource_logs:
+  - scope_logs:
+      - logs:
+          - body: <RE2(Proto\s+Recv-Q\s+Send-Q\s+LocalAddress\s+ForeignAddress\s+State)>

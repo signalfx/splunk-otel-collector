@@ -21,9 +21,6 @@ import (
 	"path"
 	"runtime"
 	"testing"
-	"time"
-
-	"github.com/stretchr/testify/require"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )

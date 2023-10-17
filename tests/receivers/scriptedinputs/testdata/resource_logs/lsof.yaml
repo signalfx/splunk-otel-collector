@@ -1,0 +1,4 @@
+resource_logs:
+  - scope_logs:
+      - logs:
+          - body: <RE2(COMMAND\s+PID\s+USER\s+FD\s+TYPE\s+DEVICE\s+SIZE\s+NODE\s+NAME)>

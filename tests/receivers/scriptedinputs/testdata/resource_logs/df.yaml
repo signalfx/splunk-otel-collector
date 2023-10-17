@@ -1,0 +1,4 @@
+resource_logs:
+  - scope_logs:
+      - logs:
+          - body: <RE2(Filesystem\s+Type\s+Size\s+Used\s+Avail\s+Use%\s+Inodes\s+IUsed\s+IFree\s+IUse%\s+MountedOn)>

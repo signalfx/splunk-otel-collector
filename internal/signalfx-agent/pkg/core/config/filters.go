@@ -55,58 +55,6 @@ func (mf *MetricFilter) Normalize() (map[string][]string, error) {
 	return dimSet, nil
 }
 
-// MakeFilter returns an actual filter instance from the config
-func (mf *MetricFilter) MakeFilter() (dpfilters.DatapointFilter, error) {
-	dimSet, err := mf.Normalize()
-	if err != nil {
-		return nil, err
-	}
-
-	return dpfilters.New(mf.MonitorType, mf.MetricNames, dimSet, mf.Negated)
-}
-
-func makeOldFilterSet(excludes []MetricFilter, includes []MetricFilter) (*dpfilters.FilterSet, error) {
-	excludeSet := make([]dpfilters.DatapointFilter, 0)
-	includeSet := make([]dpfilters.DatapointFilter, 0)
-	mtes := make([]MetricFilter, 0, len(excludes))
-	mtis := make([]MetricFilter, 0, len(includes))
-
-	for _, mte := range excludes {
-		mtes = AddOrMerge(mtes, mte)
-	}
-
-	for _, mti := range includes {
-		mtis = AddOrMerge(mtis, mti)
-	}
-
-	for _, mte := range mtes {
-		f, err := mte.MakeFilter()
-		if err != nil {
-			return nil, err
-		}
-		excludeSet = append(excludeSet, f)
-	}
-
-	for _, mti := range mtis {
-		dimSet, err := mti.Normalize()
-		if err != nil {
-			return nil, err
-		}
-
-		f, err := dpfilters.New(mti.MonitorType, mti.MetricNames, dimSet, mti.Negated)
-		if err != nil {
-			return nil, err
-		}
-
-		includeSet = append(includeSet, f)
-	}
-
-	return &dpfilters.FilterSet{
-		ExcludeFilters: excludeSet,
-		IncludeFilters: includeSet,
-	}, nil
-}
-
 // This should be the preferred filter set creator from now on.  It is much
 // simpler to understand.
 func makeNewFilterSet(excludes []MetricFilter) (*dpfilters.FilterSet, error) {

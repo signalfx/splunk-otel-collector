@@ -3,12 +3,10 @@
 package config
 
 import (
-	"errors"
 	"fmt"
 	"net/url"
 	"path/filepath"
 	"runtime"
-	"strings"
 
 	"github.com/mitchellh/hashstructure"
 	log "github.com/sirupsen/logrus"
@@ -26,37 +24,45 @@ const (
 type Config struct {
 	// The access token for the org that should receive the metrics emitted by
 	// the agent.
+	// Deprecated: this field is no longer used in configuration and will be removed in an upcoming release.
 	SignalFxAccessToken string `yaml:"signalFxAccessToken" neverLog:"true"`
 	// The URL of SignalFx ingest server.  Should be overridden if using the
 	// SignalFx Gateway.  If not set, this will be determined by the
 	// `signalFxRealm` option below.  If you want to send trace spans to a
 	// different location, set the `traceEndpointUrl` option.  If you want to
 	// send events to a different location, set the `eventEndpointUrl` option.
+	// Deprecated: this field is no longer used in configuration and will be removed in an upcoming release.
 	IngestURL string `yaml:"ingestUrl"`
 	// The full URL (including path) to the event ingest server.  If this is
 	// not set, all events will be sent to the same place as `ingestUrl`
 	// above.
+	// Deprecated: this field is no longer used in configuration and will be removed in an upcoming release.
 	EventEndpointURL string `yaml:"eventEndpointUrl"`
 	// The full URL (including path) to the trace ingest server.  If this is
 	// not set, all trace spans will be sent to the same place as `ingestUrl`
 	// above.
+	// Deprecated: this field is no longer used in configuration and will be removed in an upcoming release.
 	TraceEndpointURL string `yaml:"traceEndpointUrl"`
 	// The SignalFx API base URL.  If not set, this will determined by the
 	// `signalFxRealm` option below.
+	// Deprecated: this field is no longer used in configuration and will be removed in an upcoming release.
 	APIURL string `yaml:"apiUrl"`
 	// The SignalFx Realm that the organization you want to send to is a part
 	// of.  This defaults to the original realm (`us0`) but if you are setting
 	// up the agent for the first time, you quite likely need to change this.
+	// Deprecated: this field is no longer used in configuration and will be removed in an upcoming release.
 	SignalFxRealm string `yaml:"signalFxRealm" default:"us0"`
 	// The hostname that will be reported as the `host` dimension. If blank,
 	// this will be auto-determined by the agent based on a reverse lookup of
 	// the machine's IP address.
+	// Deprecated: this field is no longer used in configuration and will be removed in an upcoming release.
 	Hostname string `yaml:"hostname"`
 	// If true (the default), and the `hostname` option is not set, the
 	// hostname will be determined by doing a reverse DNS query on the IP
 	// address that is returned by querying for the bare hostname.  This is
 	// useful in cases where the hostname reported by the kernel is a short
 	// name. (**default**: `true`)
+	// Deprecated: this field is no longer used in configuration and will be removed in an upcoming release.
 	UseFullyQualifiedHost *bool `yaml:"useFullyQualifiedHost" noDefault:"true"`
 	// Our standard agent model is to collect metrics for services running on
 	// the same host as the agent.  Therefore, host-specific dimensions (e.g.
@@ -64,17 +70,22 @@ type Config struct {
 	// that is emitted from the agent by default.  Set this to true if you are
 	// using the agent primarily to monitor things on other hosts.  You can set
 	// this option at the monitor level as well.
+	// Deprecated: this field is no longer used in configuration and will be removed in an upcoming release.
 	DisableHostDimensions bool `yaml:"disableHostDimensions" default:"false"`
 	// How often to send metrics to SignalFx.  Monitors can override this
 	// individually.
+	// Deprecated: this field is no longer used in configuration and will be removed in an upcoming release.
 	IntervalSeconds int `yaml:"intervalSeconds" default:"10"`
 	// This flag sets the HTTP timeout duration for metadata queries from AWS, Azure and GCP.
 	// This should be a duration string that is accepted by https://golang.org/pkg/time/#ParseDuration
+	// Deprecated: this field is no longer used in configuration and will be removed in an upcoming release.
 	CloudMetadataTimeout timeutil.Duration `yaml:"cloudMetadataTimeout" default:"2s"`
 	// Dimensions (key:value pairs) that will be added to every datapoint emitted by the agent.
 	// To specify that all metrics should be high-resolution, add the dimension `sf_hires: 1`
+	// Deprecated: this field is no longer used in configuration and will be removed in an upcoming release.
 	GlobalDimensions map[string]string `yaml:"globalDimensions" default:"{}"`
 	// Tags (key:value pairs) that will be added to every span emitted by the agent.
+	// Deprecated: this field is no longer used in configuration and will be removed in an upcoming release.
 	GlobalSpanTags map[string]string `yaml:"globalSpanTags" default:"{}"`
 	// The logical environment/cluster that this agent instance is running in.
 	// All of the services that this instance monitors should be in the same
@@ -82,22 +93,29 @@ type Config struct {
 	// property onto the `host` dimension, or onto any cloud-provided specific
 	// dimensions (`AWSUniqueId`, `gcp_id`, and `azure_resource_id`) when
 	// available. Example values: "prod-usa", "dev"
+	// Deprecated: this field is no longer used in configuration and will be removed in an upcoming release.
 	Cluster string `yaml:"cluster"`
 	// If true, force syncing of the `cluster` property on the `host` dimension,
 	// even when cloud-specific dimensions are present.
+	// Deprecated: this field is no longer used in configuration and will be removed in an upcoming release.
 	SyncClusterOnHostDimension bool `yaml:"syncClusterOnHostDimension"`
 	// If true, a warning will be emitted if a discovery rule contains
 	// variables that will never possibly match a rule.  If using multiple
 	// observers, it is convenient to set this to false to suppress spurious
 	// errors.
+	// Deprecated: this field is no longer used in configuration and will be removed in an upcoming release.
 	ValidateDiscoveryRules *bool `yaml:"validateDiscoveryRules" default:"false"`
 	// A list of observers to use (see observer config)
+	// Deprecated: this field is no longer used in configuration and will be removed in an upcoming release.
 	Observers []ObserverConfig `yaml:"observers" default:"[]"`
 	// A list of monitors to use (see monitor config)
+	// Deprecated: this field is no longer used in configuration and will be removed in an upcoming release.
 	Monitors []MonitorConfig `yaml:"monitors" default:"[]"`
 	// Configuration of the datapoint/event writer
+	// Deprecated: this field is no longer used in configuration and will be removed in an upcoming release.
 	Writer WriterConfig `yaml:"writer"`
 	// Log configuration
+	// Deprecated: this field is no longer used in configuration and will be removed in an upcoming release.
 	Logging LogConfig `yaml:"logging" default:"{}"`
 	// Configuration of the managed collectd subprocess
 	Collectd CollectdConfig `yaml:"collectd" default:"{}"`
@@ -106,13 +124,17 @@ type Config struct {
 	// external whitelist.json file to determine which metrics were sent by
 	// default.  This is all inherent to the agent now and the old style of
 	// filtering is no longer available.
+	// Deprecated: this field is no longer used in configuration and will be removed in an upcoming release.
 	EnableBuiltInFiltering *bool `yaml:"enableBuiltInFiltering" default:"true"`
 	// A list of metric filters that will include metrics.  These
 	// filters take priority over the filters specified in `metricsToExclude`.
+	// Deprecated: this field is no longer used in configuration and will be removed in an upcoming release.
 	MetricsToInclude []MetricFilter `yaml:"metricsToInclude" default:"[]"`
 	// A list of metric filters
+	// Deprecated: this field is no longer used in configuration and will be removed in an upcoming release.
 	MetricsToExclude []MetricFilter `yaml:"metricsToExclude" default:"[]"`
 	// A list of properties filters
+	// Deprecated: this field is no longer used in configuration and will be removed in an upcoming release.
 	PropertiesToExclude []PropertyFilterConfig `yaml:"propertiesToExclude" default:"[]"`
 
 	// The host on which the internal status server will listen.  The internal
@@ -121,19 +143,24 @@ type Config struct {
 	// Can be set to `0.0.0.0` if you want to monitor the agent from another
 	// host.  If you set this to blank/null, the internal status server will
 	// not be started.  See `internalStatusPort`.
+	// Deprecated: this field is no longer used in configuration and will be removed in an upcoming release.
 	InternalStatusHost string `yaml:"internalStatusHost" default:"localhost"`
 	// The port on which the internal status server will listen.  See
 	// `internalStatusHost`.
+	// Deprecated: this field is no longer used in configuration and will be removed in an upcoming release.
 	InternalStatusPort uint16 `yaml:"internalStatusPort" default:"8095"`
 
 	// Enables Go pprof endpoint on port 6060 that serves profiling data for
 	// development
+	// Deprecated: this field is no longer used in configuration and will be removed in an upcoming release.
 	EnableProfiling bool `yaml:"profiling" default:"false"`
 	// The host/ip address for the pprof profile server to listen on.
 	// `profiling` must be enabled for this to have any effect.
+	// Deprecated: this field is no longer used in configuration and will be removed in an upcoming release.
 	ProfilingHost string `yaml:"profilingHost" default:"127.0.0.1"`
 	// The port for the pprof profile server to listen on. `profiling` must be
 	// enabled for this to have any effect.
+	// Deprecated: this field is no longer used in configuration and will be removed in an upcoming release.
 	ProfilingPort int `yaml:"profilingPort" default:"6060"`
 	// Path to the directory holding the agent dependencies.  This will
 	// normally be derived automatically. Overrides the envvar
@@ -143,6 +170,7 @@ type Config struct {
 	// reference in other parts of the config file.
 	Scratch interface{} `yaml:"scratch" neverLog:"omit"`
 	// Configuration of remote config stores
+	// Deprecated: this field is no longer used in configuration and will be removed in an upcoming release.
 	Sources sources.SourceConfig `yaml:"configSources"`
 	// Path to the host's `/proc` filesystem.
 	// This is useful for containerized environments.
@@ -203,6 +231,7 @@ func (c *Config) validate() error {
 }
 
 // LogConfig contains configuration related to logging
+// Deprecated: this struct is no longer used in configuration and will be removed in an upcoming release.
 type LogConfig struct {
 	// Valid levels include `debug`, `info`, `warn`, `error`.  Note that
 	// `debug` logging may leak sensitive configuration (e.g. passwords) to the
@@ -211,32 +240,6 @@ type LogConfig struct {
 	// The log output format to use.  Valid values are: `text`, `json`.
 	Format string `yaml:"format" validate:"oneof=text json" default:"text"`
 	// TODO: Support log file output and other log targets
-}
-
-// LogrusLevel returns a logrus log level based on the configured level in
-// LogConfig.
-func (lc *LogConfig) LogrusLevel() *log.Level {
-	if lc.Level != "" {
-		level, err := log.ParseLevel(lc.Level)
-		if err != nil {
-			log.WithFields(log.Fields{
-				"level": lc.Level,
-			}).Error("Invalid log level")
-			return nil
-		}
-		return &level
-	}
-	return nil
-}
-
-// LogrusFormatter returns the formatter to use based on the config
-func (lc *LogConfig) LogrusFormatter() log.Formatter {
-	switch lc.Format {
-	case "json":
-		return &log.JSONFormatter{}
-	default:
-		return &log.TextFormatter{}
-	}
 }
 
 // CollectdConfig high-level configurations
@@ -353,11 +356,6 @@ type StoreConfig struct {
 func (sc *StoreConfig) ExtraConfig() map[string]interface{} {
 	return sc.OtherConfig
 }
-
-var (
-	// EnvReplacer replaces . and - with _
-	EnvReplacer = strings.NewReplacer(".", "_", "-", "_")
-)
 
 // BundlePythonHomeEnvvar returns an envvar string that sets the PYTHONHOME envvar to
 // the bundled Python runtime.  It is in a form that is ready to append to

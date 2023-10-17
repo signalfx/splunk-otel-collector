@@ -2,20 +2,14 @@ package config
 
 import (
 	"errors"
-	"fmt"
-	"net/url"
-	"strings"
 
 	"golang.org/x/net/http/httpguts"
 
-	"github.com/mitchellh/hashstructure"
-	"github.com/signalfx/signalfx-agent/pkg/core/dpfilters"
-	"github.com/signalfx/signalfx-agent/pkg/core/propfilters"
 	"github.com/signalfx/signalfx-agent/pkg/utils/timeutil"
-	log "github.com/sirupsen/logrus"
 )
 
 // WriterConfig holds configuration for the datapoint writer.
+// Deprecated: this struct is no longer used in configuration and will be removed in an upcoming release.
 type WriterConfig struct {
 	// The maximum number of datapoints to include in a batch before sending the
 	// batch to the ingest server.  Smaller batch sizes than this will be sent
@@ -124,10 +118,13 @@ type WriterConfig struct {
 	// hardware/networking.
 	MaxTraceSpansInFlight uint `yaml:"maxTraceSpansInFlight" default:"100000"`
 	// Configures the writer specifically writing to Splunk.
+	// Deprecated: This field is no longer in use and will be removed in a future release.
 	Splunk *SplunkConfig `yaml:"splunk"`
 	// If set to `false`, output to SignalFx will be disabled.
+	// Deprecated: this field is no longer used in configuration and will be removed in an upcoming release.
 	SignalFxEnabled *bool `yaml:"signalFxEnabled" default:"true"`
 	// Additional headers to add to any outgoing HTTP requests from the agent.
+	// Deprecated: this field is no longer used in configuration and will be removed in an upcoming release.
 	ExtraHeaders map[string]string `yaml:"extraHeaders"`
 	// The following are propagated from elsewhere
 	HostIDDims          map[string]string      `yaml:"-"`
@@ -143,98 +140,12 @@ type WriterConfig struct {
 	PropertiesToExclude []PropertyFilterConfig `yaml:"-"`
 }
 
-func (wc *WriterConfig) IsSplunkOutputEnabled() bool {
-	return wc.Splunk != nil && wc.Splunk.Enabled
-}
-
-func (wc *WriterConfig) IsSignalFxOutputEnabled() bool {
-	return wc.SignalFxEnabled == nil || *wc.SignalFxEnabled
-}
-
 func (wc *WriterConfig) Validate() error {
-	if !wc.IsSplunkOutputEnabled() && !wc.IsSignalFxOutputEnabled() {
-		return errors.New("both SignalFx and Splunk output are disabled, at least one must be enabled")
-	}
-
 	if !httpguts.ValidHeaderFieldValue(wc.SignalFxAccessToken) {
 		return errors.New("the SignalFx Access Token does not pass http header validation and is likely malformed")
 	}
 
-	if _, err := wc.DatapointFilters(); err != nil {
-		return fmt.Errorf("datapoint filters are invalid: %v", err)
-	}
-
 	return nil
-}
-
-// ParsedIngestURL parses and returns the ingest URL
-func (wc *WriterConfig) ParsedIngestURL() *url.URL {
-	ingestURL, err := url.Parse(wc.IngestURL)
-	if err != nil {
-		panic("IngestURL was supposed to be validated already")
-	}
-	return ingestURL
-}
-
-// ParsedAPIURL parses and returns the API server URL
-func (wc *WriterConfig) ParsedAPIURL() *url.URL {
-	apiURL, err := url.Parse(wc.APIURL)
-	if err != nil {
-		panic("apiUrl was supposed to be validated already")
-	}
-	return apiURL
-}
-
-// ParsedEventEndpointURL parses and returns the event endpoint server URL
-func (wc *WriterConfig) ParsedEventEndpointURL() *url.URL {
-	if wc.EventEndpointURL != "" {
-		eventEndpointURL, err := url.Parse(wc.EventEndpointURL)
-		if err != nil {
-			panic("eventEndpointUrl was supposed to be validated already")
-		}
-		return eventEndpointURL
-	}
-	return nil
-}
-
-// ParsedTraceEndpointURL parses and returns the trace endpoint server URL
-func (wc *WriterConfig) ParsedTraceEndpointURL() *url.URL {
-	if wc.TraceEndpointURL != "" {
-		traceEndpointURL, err := url.Parse(wc.TraceEndpointURL)
-		if err != nil {
-			panic("traceEndpointUrl was supposed to be validated already")
-		}
-		return traceEndpointURL
-	}
-	return nil
-}
-
-// DatapointFilters creates the filter set for datapoints
-func (wc *WriterConfig) DatapointFilters() (*dpfilters.FilterSet, error) {
-	return makeOldFilterSet(wc.MetricsToExclude, wc.MetricsToInclude)
-}
-
-// PropertyFilters creates the filter set for dimension properties
-func (wc *WriterConfig) PropertyFilters() (*propfilters.FilterSet, error) {
-	return makePropertyFilterSet(wc.PropertiesToExclude)
-}
-
-// Hash calculates a unique hash value for this config struct
-func (wc *WriterConfig) Hash() uint64 {
-	hash, err := hashstructure.Hash(wc, nil)
-	if err != nil {
-		log.WithError(err).Error("Could not get hash of WriterConfig struct")
-		return 0
-	}
-	return hash
-}
-
-// DefaultTraceEndpointPath returns the default path based on the export format.
-func (wc *WriterConfig) DefaultTraceEndpointPath() string {
-	if strings.ToLower(wc.TraceExportFormat) == TraceExportFormatSAPM {
-		return "/v2/trace"
-	}
-	return "/v1/trace"
 }
 
 // SplunkConfig configures the writer specifically writing to Splunk.

@@ -160,13 +160,6 @@ func defaultConfig() Config {
 	return Config{
 		Config: saconfig.Config{
 			BundleDir:              bundleDir,
-			SignalFxRealm:          "us0",
-			IntervalSeconds:        10,
-			CloudMetadataTimeout:   timeutil.Duration(2 * time.Second),
-			GlobalDimensions:       map[string]string{},
-			GlobalSpanTags:         map[string]string{},
-			ValidateDiscoveryRules: &flse,
-			Observers:              []saconfig.ObserverConfig{},
 			Monitors:               []saconfig.MonitorConfig{},
 			EnableBuiltInFiltering: &tru,
 			InternalStatusHost:     "localhost",
@@ -214,7 +207,6 @@ func defaultConfig() Config {
 				TraceHostCorrelationMaxRequestRetries: 2,
 				MaxTraceSpansInFlight:                 100000,
 				Splunk:                                nil,
-				SignalFxEnabled:                       &tru,
 				ExtraHeaders:                          nil,
 				HostIDDims:                            nil,
 				IngestURL:                             "",
@@ -226,15 +218,11 @@ func defaultConfig() Config {
 				GlobalSpanTags:                        nil,
 				MetricsToInclude:                      nil,
 				MetricsToExclude:                      nil,
-				PropertiesToExclude:                   nil,
 			},
 			Logging: saconfig.LogConfig{
 				Level:  "info",
 				Format: "text",
 			},
-			PropertiesToExclude: []saconfig.PropertyFilterConfig{},
-			MetricsToExclude:    []saconfig.MetricFilter{},
-			MetricsToInclude:    []saconfig.MetricFilter{},
 			Sources: sources.SourceConfig{
 				Watch: &tru,
 				File: file.Config{

@@ -6,7 +6,7 @@
     k8s_observer: type == "port" and pod.name matches "(?i)kafka"
   config:
     default:
-      type: collectd/kafka
+      type: collectd/kafka_broker
       host: '`{{.Host}}`'
       port: '`{{.Port}}`'
       isolatedCollectd: true

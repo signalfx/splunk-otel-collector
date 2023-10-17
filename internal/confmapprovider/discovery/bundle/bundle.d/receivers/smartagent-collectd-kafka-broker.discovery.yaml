@@ -10,7 +10,7 @@ smartagent/collectd/kafka_broker:
     k8s_observer: type == "port" and pod.name matches "(?i)kafka"
   config:
     default:
-      type: collectd/kafka
+      type: collectd/kafka_broker
       host: '`<no value>`'
       port: '`<no value>`'
       isolatedCollectd: true

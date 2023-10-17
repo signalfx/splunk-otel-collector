@@ -1,0 +1,4 @@
+resource_logs:
+  - scope_logs:
+      - logs:
+          - body: <RE2(NAME\s+VERSION\s+RELEASE\s+ARCH\s+VENDOR\s+GROUP)>

@@ -1,0 +1,4 @@
+resource_logs:
+  - scope_logs:
+      - logs:
+          - body: <RE2(Device\s+r/s\s+rkB/s\s+rrqm/s\s+%rrqm\s+r_await\s+rareq-sz\s+w/s\s+wkB/s\s+wrqm/s\s+%wrqm\s+w_await\s+wareq-sz\s+d/s\s+dkB/s\s+drqm/s\s+%drqm\s+d_await\s+dareq-sz\s+aqu-sz\s+%util)>

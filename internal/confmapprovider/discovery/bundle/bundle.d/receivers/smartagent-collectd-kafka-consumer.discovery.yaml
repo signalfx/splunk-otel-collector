@@ -2,7 +2,7 @@
 #                               Do not edit manually!                               #
 # All changes must be made to associated .tmpl file before running 'make bundle.d'. #
 #####################################################################################
-smartagent/collectd/kafka_consumer:
+smartagent/collectd/kafka_consumer_poo:
   enabled: true
   rule:
     docker_observer: type == "container" and any([name, image, command], {# matches "(?i)kafka-consumer"}) and not (command matches "splunk.discovery")
@@ -11,8 +11,6 @@ smartagent/collectd/kafka_consumer:
   config:
     default:
       type: collectd/kafka_consumer
-      host: '`<no value>`' 
-      port: '`<no value>`'
       isolatedCollectd: true
   status:
     metrics:

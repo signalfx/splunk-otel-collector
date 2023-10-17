@@ -1,4 +1,4 @@
-{{ receiver "smartagent/collectd/kafka_broker" }}:
+{{ receiver "smartagent/collectd/kafka_broker_sooo" }}:
   enabled: true
   rule:
     docker_observer: type == "container" and any([name, image, command], {# matches "(?i)kafka-broker"}) and not (command matches "splunk.discovery")
@@ -6,9 +6,7 @@
     k8s_observer: type == "port" and pod.name matches "(?i)kafka-broker"
   config:
     default:
-      type: collectd/kafka_broker
-      host: '`{{.Host}}`'
-      port: '`{{.Port}}`'
+      type: collectd/kafka
       isolatedCollectd: true
   status:
     metrics:

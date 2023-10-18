@@ -31,7 +31,6 @@ otelcollector  | Trace ID:
 otelcollector  | Span ID: 
 otelcollector  | Flags: 0
 otelcollector  |        {"kind": "exporter", "data_type": "logs", "name": "debug"}
-
 ```
 
 You can also perform this on your desktop with:

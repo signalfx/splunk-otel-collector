@@ -137,6 +137,7 @@ The following components have bundled discovery configurations in the last Splun
 
 I. Receivers
 * `oracledb` ([Linux and Windows](./bundle/bundle.d/receivers/oracledb.discovery.yaml))
+* `redis` ([Linux and Windows](./bundle/bundle.d/receivers/redis.discovery.yaml))
 * `smartagent` with `collectd/mysql` monitor type ([Linux](./bundle/bundle.d/receivers/smartagent-collectd-mysql.discovery.yaml))
 * `smartagent` with `collectd/nginx` monitor type ([Linux](./bundle/bundle.d/receivers/smartagent-collectd-nginx.discovery.yaml))
 * `smartagent` with `postgresql` monitor type ([Linux and Windows](./bundle/bundle.d/receivers/smartagent-postgresql.discovery.yaml))

@@ -108,6 +108,7 @@ func TestK8sObserver(t *testing.T) {
 		`SPLUNK_DEBUG_CONFIG_SERVER=false \
 SPLUNK_DISCOVERY_EXTENSIONS_host_observer_ENABLED=false \
 SPLUNK_DISCOVERY_EXTENSIONS_docker_observer_ENABLED=false \
+SPLUNK_DISCOVERY_RECEIVERS_redis_ENABLED=false \
 SPLUNK_DISCOVERY_RECEIVERS_smartagent_CONFIG_extraDimensions_x3a__x3a_three_x2e_key='three.value.from.env.var.property' \
 /otelcol --config=/config/config.yaml --config-dir=/config.d --discovery --dry-run`)
 	require.NoError(t, err)

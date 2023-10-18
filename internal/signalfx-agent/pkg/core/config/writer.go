@@ -2,14 +2,12 @@ package config
 
 import (
 	"errors"
-	"fmt"
 	"net/url"
 	"strings"
 
 	"golang.org/x/net/http/httpguts"
 
 	"github.com/mitchellh/hashstructure"
-	"github.com/signalfx/signalfx-agent/pkg/core/dpfilters"
 	"github.com/signalfx/signalfx-agent/pkg/core/propfilters"
 	"github.com/signalfx/signalfx-agent/pkg/utils/timeutil"
 	log "github.com/sirupsen/logrus"
@@ -130,15 +128,17 @@ type WriterConfig struct {
 	// Additional headers to add to any outgoing HTTP requests from the agent.
 	ExtraHeaders map[string]string `yaml:"extraHeaders"`
 	// The following are propagated from elsewhere
-	HostIDDims          map[string]string      `yaml:"-"`
-	IngestURL           string                 `yaml:"-"`
-	APIURL              string                 `yaml:"-"`
-	EventEndpointURL    string                 `yaml:"-"`
-	TraceEndpointURL    string                 `yaml:"-"`
-	SignalFxAccessToken string                 `yaml:"-"`
-	GlobalDimensions    map[string]string      `yaml:"-"`
-	GlobalSpanTags      map[string]string      `yaml:"-"`
-	MetricsToInclude    []MetricFilter         `yaml:"-"`
+	HostIDDims          map[string]string `yaml:"-"`
+	IngestURL           string            `yaml:"-"`
+	APIURL              string            `yaml:"-"`
+	EventEndpointURL    string            `yaml:"-"`
+	TraceEndpointURL    string            `yaml:"-"`
+	SignalFxAccessToken string            `yaml:"-"`
+	GlobalDimensions    map[string]string `yaml:"-"`
+	GlobalSpanTags      map[string]string `yaml:"-"`
+	// Deprecated: this field is not used and will be removed in a future release.
+	MetricsToInclude []MetricFilter `yaml:"-"`
+	// Deprecated: this field is not used and will be removed in a future release.
 	MetricsToExclude    []MetricFilter         `yaml:"-"`
 	PropertiesToExclude []PropertyFilterConfig `yaml:"-"`
 }
@@ -178,10 +178,6 @@ func (wc *WriterConfig) Validate() error {
 
 	if !httpguts.ValidHeaderFieldValue(wc.SignalFxAccessToken) {
 		return errors.New("the SignalFx Access Token does not pass http header validation and is likely malformed")
-	}
-
-	if _, err := wc.DatapointFilters(); err != nil {
-		return fmt.Errorf("datapoint filters are invalid: %v", err)
 	}
 
 	return nil
@@ -227,11 +223,6 @@ func (wc *WriterConfig) ParsedTraceEndpointURL() *url.URL {
 		return traceEndpointURL
 	}
 	return nil
-}
-
-// DatapointFilters creates the filter set for datapoints
-func (wc *WriterConfig) DatapointFilters() (*dpfilters.FilterSet, error) {
-	return makeOldFilterSet(wc.MetricsToExclude, wc.MetricsToInclude)
 }
 
 // PropertyFilters creates the filter set for dimension properties

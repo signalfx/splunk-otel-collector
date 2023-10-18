@@ -506,14 +506,6 @@ func interfaceMapToStringMap(in map[any]any) map[string]any {
 	return out
 }
 
-func stringMapToInterfaceMap(in map[string]any) map[any]any {
-	out := map[any]any{}
-	for k, v := range in {
-		out[k] = v
-	}
-	return out
-}
-
 func saMonitorToRCReceiver(monitor map[string]any, observers []any) (cmp component, warnings []error) {
 	baseName := "smartagent/" + monitor["type"].(string)
 	dr := monitor[discoveryRule].(string)

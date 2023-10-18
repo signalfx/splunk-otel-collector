@@ -11,7 +11,10 @@ smartagent/collectd/kafka_producer_boo:
   config:
     default:
       type: collectd/kafka_producer
-      isolatedCollectd: true
+      host: '`host`'
+      port: 8099
+      extraMetrics: ["*"]
+      intervalSeconds: 1
   status:
     metrics:
       successful:

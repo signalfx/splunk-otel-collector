@@ -50,7 +50,7 @@ func TestDockerObserver(t *testing.T) {
 
     kafkaTopicCreator := kafka.WithName("kafka-topic-creator").WithEnvVar("START_AS", "create-topic",).WillWaitForLogs(`Created topic "sfx-employee".`)
 
-    containers := []testutils.Container{kafkaZookeeper, kafkaBroker, kafkaConsumer, kafkaProducer, kafkaTopicCreator}
+    containers := []testutils.Container{kafkaZookeeper, kafkaBroker, kafkaTopicCreator, kafkaConsumer, kafkaProducer}
 
     collector := []testutils.CollectorBuilder {
                 func(c testutils.Collector) testutils.Collector {

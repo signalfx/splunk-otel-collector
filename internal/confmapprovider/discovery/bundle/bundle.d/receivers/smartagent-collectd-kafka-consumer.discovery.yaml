@@ -11,7 +11,10 @@ smartagent/collectd/kafka_consumer_poo:
   config:
     default:
       type: collectd/kafka_consumer
-      isolatedCollectd: true
+      host: '`host`'
+      port: 9099
+      extraMetrics: ["*"]
+      intervalSeconds: 1
   status:
     metrics:
       successful:

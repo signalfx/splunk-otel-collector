@@ -7,7 +7,11 @@
   config:
     default:
       type: collectd/kafka
-      isolatedCollectd: true
+      host: '`host`'
+      port: 7099
+      clusterName: testCluster
+      extraMetrics: ["*"]
+      intervalSeconds: 1
   status:
     metrics:
       successful:

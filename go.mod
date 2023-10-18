@@ -451,7 +451,6 @@ require (
 	github.com/signalfx/gohistogram v0.0.0-20160107210732-1ccfd2ff5083 // indirect
 	github.com/signalfx/ingest-protocols v0.2.0 // indirect
 	github.com/signalfx/sapm-proto v0.13.0 // indirect
-	github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20230222185249-54e5d1064c5b // indirect
 	github.com/sijms/go-ora/v2 v2.7.19 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/snowflakedb/gosnowflake v1.6.25 // indirect
@@ -546,7 +545,6 @@ replace (
 	github.com/influxdata/telegraf => github.com/signalfx/telegraf v0.10.2-0.20210820123244-82265917ca87
 
 	github.com/signalfx/signalfx-agent => ./internal/signalfx-agent
-	github.com/signalfx/signalfx-agent/pkg/apm => ./internal/signalfx-agent/pkg/apm
 
 	github.com/soheilhy/cmux => github.com/soheilhy/cmux v0.1.5-0.20210205191134-5ec6847320e5 // required for smartagentreceiver to drop google.golang.org/grpc/examples/helloworld/helloworld test dep
 )

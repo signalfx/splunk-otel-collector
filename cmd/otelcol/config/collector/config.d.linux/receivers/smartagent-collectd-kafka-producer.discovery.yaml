@@ -18,6 +18,7 @@
 #       host: '`host`'
 #       port: 8099
 #       extraMetrics: ["*"]
+#       isolatedCollectd: true
 #       intervalSeconds: 1
 #   status:
 #     metrics:

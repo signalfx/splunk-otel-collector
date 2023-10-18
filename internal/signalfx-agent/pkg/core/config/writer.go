@@ -143,26 +143,6 @@ type WriterConfig struct {
 	PropertiesToExclude []PropertyFilterConfig `yaml:"-"`
 }
 
-func (wc *WriterConfig) initialize() {
-	if wc.DatapointMaxRequests != 0 {
-		wc.MaxRequests = wc.DatapointMaxRequests
-	} else {
-		wc.DatapointMaxRequests = wc.MaxRequests
-	}
-
-	if wc.Splunk != nil {
-		if wc.Splunk.MaxBuffered == 0 {
-			wc.Splunk.MaxBuffered = wc.MaxDatapointsBuffered
-		}
-		if wc.Splunk.MaxRequests == 0 {
-			wc.Splunk.MaxRequests = wc.MaxRequests
-		}
-		if wc.Splunk.MaxBatchSize == 0 {
-			wc.Splunk.MaxBatchSize = wc.DatapointMaxBatchSize
-		}
-	}
-}
-
 func (wc *WriterConfig) IsSplunkOutputEnabled() bool {
 	return wc.Splunk != nil && wc.Splunk.Enabled
 }

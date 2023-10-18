@@ -1,0 +1,68 @@
+{{ receiver "redis" }}:
+  enabled: true
+  rule:
+    docker_observer: type == "container" and any([name, image, command], {# matches "(?i)redis"}) and not (command matches "splunk.discovery")
+    host_observer: type == "hostport" and command matches "(?i)redis" and not (command matches "splunk.discovery")
+    k8s_observer: type == "port" and pod.name matches "(?i)redis"
+  config:
+    default: {}
+  status:
+    metrics:
+      successful:
+        - strict: redis.uptime
+          first_only: true
+          log_record:
+            severity_text: info
+            body: redis receiver is working!
+    statements:
+      failed:
+        - regexp: "connection refused"
+          first_only: true
+          log_record:
+            severity_text: info
+            append_pattern: true
+            body: The container is not serving http connections.
+        - regexp: "received goaway and there are no active streams"
+          first_only: true
+          log_record:
+            severity_text: info
+            append_pattern: true
+            body: Unable to connect and scrape metrics.
+        - regexp: "dial tcp: lookup"
+          first_only: true
+          log_record:
+            severity_text: info
+            append_pattern: true
+            body: Unable to resolve redis tcp endpoint
+      partial: 
+        - regexp: 'NOAUTH Authentication required.'
+          first_only: true
+          log_record:
+            severity_text: info
+            append_pattern: true
+            body: >-
+              Make sure your user credentials are correctly specified using the
+              `--set {{ configProperty "password" "<password>" }}` and 
+              `--set {{ configProperty "username" "<username>" }}` commands or the
+              `{{ configPropertyEnvVar "password" "<password>" }}` and 
+              `{{ configPropertyEnvVar "password" "<password>" }}` environment variables.
+        - regexp: 'called without any password configured for the default user'
+          first_only: true
+          log_record:
+            severity_text: info
+            append_pattern: true
+            body: >-
+              Make sure your user credentials are correctly specified using the
+              `--set {{ configProperty "password" "<password>" }}` command or the
+              `{{ configPropertyEnvVar "password" "<password>" }}` environment variables.      
+        - regexp: 'WRONGPASS invalid username-password pair or user is disabled'
+          first_only: true
+          log_record:
+            severity_text: info
+            append_pattern: true
+            body: >-
+              Make sure your user credentials are correctly specified using the
+              `--set {{ configProperty "password" "<password>" }}` and 
+              `--set {{ configProperty "username" "<username>" }}` commands or the
+              `{{ configPropertyEnvVar "password" "<password>" }}` and 
+              `{{ configPropertyEnvVar "password" "<password>" }}` environment variables.           

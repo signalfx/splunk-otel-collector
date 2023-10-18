@@ -26,8 +26,8 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/utils"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/obsreport"
 	otelcolreceiver "go.opentelemetry.io/collector/receiver"
+	"go.opentelemetry.io/collector/receiver/receiverhelper"
 	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver/converter"
@@ -47,7 +47,7 @@ type output struct {
 	extraSpanTags        map[string]string
 	defaultSpanTags      map[string]string
 	logger               *zap.Logger
-	reporter             *obsreport.Receiver
+	reporter             *receiverhelper.ObsReport
 	translator           converter.Translator
 	monitorFiltering     *monitorFiltering
 	receiverID           component.ID
@@ -62,7 +62,7 @@ func newOutput(
 	nextLogsConsumer consumer.Logs, nextTracesConsumer consumer.Traces, host component.Host,
 	params otelcolreceiver.CreateSettings,
 ) (*output, error) {
-	obsReceiver, err := obsreport.NewReceiver(obsreport.ReceiverSettings{
+	obsReceiver, err := receiverhelper.NewObsReport(receiverhelper.ObsReportSettings{
 		ReceiverID:             params.ID,
 		Transport:              internalTransport,
 		ReceiverCreateSettings: params,

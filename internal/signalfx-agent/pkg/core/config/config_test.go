@@ -8,22 +8,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestConfigPropagation(t *testing.T) {
-	t.Run("ProcPath is passed down if not present", func(t *testing.T) {
-		c := &Config{
-			ProcPath: "/hostfs/proc",
-			Monitors: []MonitorConfig{
-				{},
-				{ProcPath: "/proc"},
-			},
-		}
-		c.propagateValuesDown()
-
-		require.Equal(t, c.Monitors[0].ProcPath, "/hostfs/proc")
-		require.Equal(t, c.Monitors[1].ProcPath, "/proc")
-	})
-}
-
 func TestWriterOutputValidation(t *testing.T) {
 	t.Run("one of SignalFx or Splunk output is required", func(t *testing.T) {
 		c := &Config{

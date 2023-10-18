@@ -18,8 +18,8 @@ import (
 	"context"
 
 	"go.opencensus.io/trace"
-	"go.opentelemetry.io/collector/obsreport"
 	"go.opentelemetry.io/collector/receiver"
+	"go.opentelemetry.io/collector/receiver/receiverhelper"
 	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/signalfxgatewayprometheusremotewritereceiver/internal/metadata"
@@ -32,11 +32,11 @@ var _ reporter = (*otelReporter)(nil)
 type otelReporter struct {
 	logger        *zap.Logger
 	sugaredLogger *zap.SugaredLogger // Used for generic debug logging
-	obsrecv       *obsreport.Receiver
+	obsrecv       *receiverhelper.ObsReport
 }
 
 func newOtelReporter(settings receiver.CreateSettings) (reporter, error) {
-	obsrecv, err := obsreport.NewReceiver(obsreport.ReceiverSettings{
+	obsrecv, err := receiverhelper.NewObsReport(receiverhelper.ObsReportSettings{
 		ReceiverID:             settings.ID,
 		Transport:              "tcp",
 		ReceiverCreateSettings: settings,

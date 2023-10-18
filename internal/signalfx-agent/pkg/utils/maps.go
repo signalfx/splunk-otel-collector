@@ -86,15 +86,6 @@ func CloneInterfaceMap(m map[string]interface{}) map[string]interface{} {
 	return m2
 }
 
-// CloneFullInterfaceMap makes a shallow copy of a map[interface{}]interface{}
-func CloneFullInterfaceMap(m map[interface{}]interface{}) map[interface{}]interface{} {
-	m2 := make(map[interface{}]interface{}, len(m))
-	for k, v := range m {
-		m2[k] = v
-	}
-	return m2
-}
-
 // InterfaceMapToStringMap converts a map[interface{}]interface{} to a
 // map[string]string.  Keys and values will be converted with fmt.Sprintf so
 // the original key/values don't have to be strings.

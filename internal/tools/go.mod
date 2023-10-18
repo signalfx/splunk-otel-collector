@@ -17,7 +17,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/cmd/mdatagen v0.87.0
 	github.com/ory/go-acc v0.2.8
 	github.com/pavius/impi v0.0.3
-	github.com/tcnksm/ghr v0.16.1
+	github.com/tcnksm/ghr v0.16.2
 	golang.org/x/tools v0.14.0
 )
 

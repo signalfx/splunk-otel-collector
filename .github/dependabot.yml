@@ -53,13 +53,6 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "gomod"
-    directory: "/internal/signalfx-agent/pkg/apm"
-    ignore:
-      - dependency-name: "go.opentelemetry.io/*"
-      - dependency-name: "github.com/open-telemetry/*"
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "gomod"
     directory: "/internal/tools"
     ignore:
       - dependency-name: "go.opentelemetry.io/*"

@@ -4,7 +4,8 @@ This example shows how to use the collector as a passthrough for a HEC token.
 
 The collector receives a request from a local curl command with an authorization token.
 
-To deploy the example, check out this git repository, open a terminal and in this directory type:
+## Example Deployment
+Checkout this git repository, open a terminal and in this directory type:
 ```bash
 $> docker-compose up
 ```

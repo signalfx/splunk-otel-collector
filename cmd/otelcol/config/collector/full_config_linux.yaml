@@ -169,11 +169,179 @@ receivers:
 
   # Enables scripted inputs receiver
   # Full configuration here: https://github.com/signalfx/splunk-otel-collector/blob/main/internal/receiver/scriptedinputsreceiver/README.md
+  scripted_inputs/bandwidth:
+    script_name: bandwidth
+    collection_interval: 60s
+    source: bandwidth
+    sourcetype: bandwidth
+
   scripted_inputs/cpu:
     script_name: cpu
     collection_interval: 30s
     source: cpu
     sourcetype: cpu
+
+  scripted_inputs/df:
+    script_name: df
+    collection_interval: 10s
+    source: df
+    sourcetype: df
+
+  scripted_inputs/hardware:
+    script_name: hardware
+    collection_interval: 36000s
+    source: hardware
+    sourcetype: hardware
+
+  scripted_inputs/interfaces:
+    script_name: interfaces
+    collection_interval: 60s
+    source: interfaces
+    sourcetype: interfaces
+
+  scripted_inputs/iostat:
+    script_name: iostat
+    collection_interval: 60s
+    source: iostat
+    sourcetype: iostat
+
+  scripted_inputs/lastlog:
+    script_name: lastlog
+    collection_interval: 300s
+    source: lastlog
+    sourcetype: lastlog
+
+  scripted_inputs/lsof:
+    script_name: lsof
+    collection_interval: 600s
+    source: lsof
+    sourcetype: lsof
+
+  scripted_inputs/netstat:
+    script_name: netstat
+    collection_interval: 60s
+    source: netstat
+    sourcetype: netstat
+
+  scripted_inputs/nfsiostat:
+    script_name: nfsiostat
+    collection_interval: 60s
+    source: nfsiostat
+    sourcetype: nfsiostat
+
+  scripted_inputs/openPorts:
+    script_name: openPorts
+    collection_interval: 300s
+    source: openPorts
+    sourcetype: openPorts
+
+  scripted_inputs/openPortsEnhanced:
+    script_name: openPortsEnhanced
+    collection_interval: 3600s
+    source: openPortsEnhanced
+    sourcetype: openPortsEnhanced
+
+  scripted_inputs/package:
+    script_name: package
+    collection_interval: 3600s
+    source: package
+    sourcetype: package
+
+  scripted_inputs/passwd:
+    script_name: passwd
+    collection_interval: 3600s
+    source: passwd
+    sourcetype: passwd
+
+  scripted_inputs/protocol:
+    script_name: protocol
+    collection_interval: 60s
+    source: protocol
+    sourcetype: protocol
+
+  scripted_inputs/ps:
+    script_name: ps
+    collection_interval: 30s
+    source: ps
+    sourcetype: ps
+
+  scripted_inputs/rlog:
+    script_name: rlog
+    collection_interval: 60s
+    source: rlog
+    sourcetype: rlog
+
+  scripted_inputs/selinuxChecker:
+    script_name: selinuxChecker
+    collection_interval: 3600s
+    source: selinuxChecker
+    sourcetype: selinuxChecker
+
+  scripted_inputs/service:
+    script_name: service
+    collection_interval: 3600s
+    source: service
+    sourcetype: service
+
+  scripted_inputs/sshdChecker:
+    script_name: sshdChecker
+    collection_interval: 3600s
+    source: sshdChecker
+    sourcetype: sshdChecker
+
+  scripted_inputs/time:
+    script_name: time
+    collection_interval: 21600s
+    source: time
+    sourcetype: time
+
+  scripted_inputs/top:
+    script_name: top
+    collection_interval: 60s
+    source: top
+    sourcetype: top
+
+  scripted_inputs/update:
+    script_name: update
+    collection_interval: 86400s
+    source: update
+    sourcetype: update
+
+  scripted_inputs/uptime:
+    script_name: uptime
+    collection_interval: 86400s
+    source: uptime
+    sourcetype: uptime
+
+  scripted_inputs/usersWithLoginPrivs:
+    script_name: usersWithLoginPrivs
+    collection_interval: 3600s
+    source: usersWithLoginPrivs
+    sourcetype: usersWithLoginPrivs
+
+  scripted_inputs/version:
+    script_name: version
+    collection_interval: 86400s
+    source: version
+    sourcetype: version
+
+  scripted_inputs/vmstat:
+    script_name: vmstat
+    collection_interval: 60s
+    source: vmstat
+    sourcetype: vmstat
+
+  scripted_inputs/vsftpdChecker:
+    script_name: vsftpdChecker
+    collection_interval: 86400s
+    source: vsftpdChecker
+    sourcetype: vsftpdChecker
+
+  scripted_inputs/who:
+    script_name: who
+    collection_interval: 150s
+    source: who
+    sourcetype: who
 
   # Enables filelog receiver
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/filelogreceiver
@@ -627,6 +795,6 @@ service:
       processors: [memory_limiter, batch]
       exporters: [signalfx]
     logs:
-      receivers: [fluentforward, otlp, scripted_inputs/cpu]
+      receivers: [fluentforward, otlp, scripted_inputs/bandwidth, scripted_inputs/cpu, scripted_inputs/df, scripted_inputs/hardware, scripted_inputs/interfaces, scripted_inputs/iostat, scripted_inputs/lastlog, scripted_inputs/lsof, scripted_inputs/netstat, scripted_inputs/nfsiostat, scripted_inputs/openPorts, scripted_inputs/openPortsEnhanced, scripted_inputs/package, scripted_inputs/passwd, scripted_inputs/protocol, scripted_inputs/ps, scripted_inputs/rlog, scripted_inputs/selinuxChecker, scripted_inputs/service, scripted_inputs/sshdChecker, scripted_inputs/time, scripted_inputs/top, scripted_inputs/update, scripted_inputs/uptime, scripted_inputs/usersWithLoginPrivs, scripted_inputs/version, scripted_inputs/vmstat, scripted_inputs/vsftpdChecker, scripted_inputs/who]
       processors: [memory_limiter, batch]
       exporters: [splunk_hec, splunk_hec/profiling]

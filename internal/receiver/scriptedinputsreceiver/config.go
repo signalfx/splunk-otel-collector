@@ -38,7 +38,7 @@ const (
 
 var availableScripts = func() []string {
 	var s []string
-	for sn, _ := range scripts {
+	for sn := range scripts {
 		s = append(s, sn)
 	}
 	sort.Strings(s)

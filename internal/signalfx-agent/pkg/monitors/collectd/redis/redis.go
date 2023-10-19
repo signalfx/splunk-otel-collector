@@ -90,8 +90,8 @@ func (rm *Monitor) Configure(conf *Config) error {
 		Host:          conf.Host,
 		Port:          conf.Port,
 		ModuleName:    "redis_info",
-		ModulePaths:   []string{collectd.MakePythonPluginPath("redis")},
-		TypesDBPaths:  []string{collectd.DefaultTypesDBPath()},
+		ModulePaths:   []string{collectd.MakePythonPluginPath(conf.BundleDir, "redis")},
+		TypesDBPaths:  []string{collectd.DefaultTypesDBPath(conf.BundleDir)},
 		PluginConfig: map[string]interface{}{
 			"Host":     conf.Host,
 			"Port":     conf.Port,

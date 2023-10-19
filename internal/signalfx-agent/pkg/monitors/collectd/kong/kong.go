@@ -202,8 +202,8 @@ func (m *Monitor) Configure(c *Config) error {
 		Host:          conf.Host,
 		Port:          conf.Port,
 		ModuleName:    "kong_plugin",
-		ModulePaths:   []string{collectd.MakePythonPluginPath("kong")},
-		TypesDBPaths:  []string{collectd.DefaultTypesDBPath()},
+		ModulePaths:   []string{collectd.MakePythonPluginPath(conf.BundleDir, "kong")},
+		TypesDBPaths:  []string{collectd.DefaultTypesDBPath(conf.BundleDir)},
 		PluginConfig: map[string]interface{}{
 			"URL":                    conf.URL,
 			"Interval":               conf.IntervalSeconds,

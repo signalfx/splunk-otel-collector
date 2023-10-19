@@ -69,8 +69,8 @@ func (m *Monitor) Configure(conf *Config) error {
 		Host:          conf.Host,
 		Port:          conf.Port,
 		ModuleName:    "marathon",
-		ModulePaths:   []string{collectd.MakePythonPluginPath("marathon")},
-		TypesDBPaths:  []string{collectd.DefaultTypesDBPath()},
+		ModulePaths:   []string{collectd.MakePythonPluginPath(conf.BundleDir, "marathon")},
+		TypesDBPaths:  []string{collectd.DefaultTypesDBPath(conf.BundleDir)},
 		PluginConfig: map[string]interface{}{
 			"verbose": false,
 		},

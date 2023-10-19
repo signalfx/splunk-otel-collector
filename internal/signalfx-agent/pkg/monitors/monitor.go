@@ -3,7 +3,6 @@ package monitors
 import (
 	"github.com/signalfx/golib/v3/datapoint"
 	"github.com/signalfx/signalfx-agent/pkg/core/config"
-	"github.com/signalfx/signalfx-agent/pkg/core/services"
 )
 
 // MonitorFactory is a niladic function that creates an unconfigured instance
@@ -19,13 +18,6 @@ var ConfigTemplates = map[string]config.MonitorCustomConfig{}
 
 // MonitorMetadatas contains a mapping of monitor type to its metadata.
 var MonitorMetadatas = map[string]*Metadata{}
-
-// InjectableMonitor should be implemented by a dynamic monitor that needs to
-// know when services are added and removed.
-type InjectableMonitor interface {
-	AddService(services.Endpoint)
-	RemoveService(services.Endpoint)
-}
 
 // MetricInfo contains metadata about a metric.
 type MetricInfo struct {

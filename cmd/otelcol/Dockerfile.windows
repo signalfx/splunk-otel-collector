@@ -32,7 +32,7 @@ ARG JMX_METRIC_GATHERER_RELEASE
 RUN New-Item -Path "C:\\" -Name "opt" -ItemType "directory"
 RUN Invoke-WebRequest -Uri "https://github.com/open-telemetry/opentelemetry-java-contrib/releases/download/v${env:JMX_METRIC_GATHERER_RELEASE}/opentelemetry-jmx-metrics.jar" -Outfile "c:\opt\opentelemetry-java-contrib-jmx-metrics.jar"
 
-ARG JDK_VERSION="11.0.20.1_1"
+ARG JDK_VERSION="11.0.21_9"
 ARG OPENJDK_BASE_URL="https://github.com/adoptium/temurin11-binaries/releases/download"
 ENV JAVA_HOME="C:\java\jre"
 ENV JAVA_PATH="$JAVA_HOME\bin"

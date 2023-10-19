@@ -38,7 +38,7 @@ require (
 	k8s.io/apimachinery v0.28.3
 	k8s.io/cli-runtime v0.28.3
 	k8s.io/client-go v0.28.3
-	k8s.io/kubectl v0.28.2
+	k8s.io/kubectl v0.28.3
 	sigs.k8s.io/kind v0.20.0-alpha
 	sigs.k8s.io/yaml v1.3.0
 )
@@ -162,11 +162,11 @@ require (
 	google.golang.org/grpc v1.58.2 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
-	k8s.io/component-base v0.28.2 // indirect
-	k8s.io/component-helpers v0.28.2 // indirect
+	k8s.io/component-base v0.28.3 // indirect
+	k8s.io/component-helpers v0.28.3 // indirect
 	k8s.io/klog/v2 v2.100.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20230717233707-2695361300d9 // indirect
-	k8s.io/metrics v0.28.2 // indirect
+	k8s.io/metrics v0.28.3 // indirect
 	k8s.io/utils v0.0.0-20230406110748-d93618cff8a2 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/kustomize/api v0.13.5-0.20230601165947-6ce0bf390ce3 // indirect

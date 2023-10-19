@@ -710,8 +710,8 @@ github.com/subosito/gotenv v1.4.1 h1:jyEFiXpy21Wm81FBN71l9VoMMV8H8jG+qIK3GCpY6Qs
 github.com/subosito/gotenv v1.4.1/go.mod h1:ayKnFf/c6rvx/2iiLrJUk1e6plDbT3edrFNGqEflhK0=
 github.com/t-yuki/gocover-cobertura v0.0.0-20180217150009-aaee18c8195c h1:+aPplBwWcHBo6q9xrfWdMrT9o4kltkmmvpemgIjep/8=
 github.com/t-yuki/gocover-cobertura v0.0.0-20180217150009-aaee18c8195c/go.mod h1:SbErYREK7xXdsRiigaQiQkI9McGRzYMvlKYaP3Nimdk=
-github.com/tcnksm/ghr v0.16.1 h1:ApX6fLAvN2lL7/Rbdrp+4OPTr6lhqk4mQQY9hIGN1Ls=
-github.com/tcnksm/ghr v0.16.1/go.mod h1:OABk8DNpekV+fT3cMujDVwKp2sXvXGBAUn86T82Lmaw=
+github.com/tcnksm/ghr v0.16.2 h1:CBeuo3kx7cftMXxX0keJIkj+PY5DYjRaAqTEjlYlgeY=
+github.com/tcnksm/ghr v0.16.2/go.mod h1:OABk8DNpekV+fT3cMujDVwKp2sXvXGBAUn86T82Lmaw=
 github.com/tcnksm/go-gitconfig v0.1.2 h1:iiDhRitByXAEyjgBqsKi9QU4o2TNtv9kPP3RgPgXBPw=
 github.com/tcnksm/go-gitconfig v0.1.2/go.mod h1:/8EhP4H7oJZdIPyT+/UIsG87kTzrzM4UsLGSItWYCpE=
 github.com/tcnksm/go-latest v0.0.0-20170313132115-e3007ae9052e h1:IWllFTiDjjLIf2oeKxpIUmtiDV5sn71VgeQgg6vcE7k=

@@ -92,9 +92,4 @@ import (
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/vsphere"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/windowsiis"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/windowslegacy"
-	_ "github.com/signalfx/signalfx-agent/pkg/observers/docker"
-	_ "github.com/signalfx/signalfx-agent/pkg/observers/ecs"
-	_ "github.com/signalfx/signalfx-agent/pkg/observers/host"
-	_ "github.com/signalfx/signalfx-agent/pkg/observers/kubelet"
-	_ "github.com/signalfx/signalfx-agent/pkg/observers/kubernetes"
 )

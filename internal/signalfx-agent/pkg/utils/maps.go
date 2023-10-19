@@ -3,19 +3,7 @@ package utils
 
 import (
 	"fmt"
-
-	"github.com/iancoleman/strcase"
 )
-
-// DuplicateInterfaceMapKeysAsCamelCase takes a map[string]interface{} and camel cases the keys
-func DuplicateInterfaceMapKeysAsCamelCase(m map[string]interface{}) map[string]interface{} {
-	out := make(map[string]interface{})
-	for k, v := range m {
-		out[k] = v
-		out[strcase.ToLowerCamel(k)] = v
-	}
-	return out
-}
 
 // MergeStringMaps merges n maps with a later map's keys overriding earlier maps
 func MergeStringMaps(maps ...map[string]string) map[string]string {

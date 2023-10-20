@@ -4,11 +4,8 @@
 package subproc
 
 import (
-	"os"
 	"path/filepath"
 	"syscall"
-
-	"github.com/signalfx/signalfx-agent/pkg/core/common/constants"
 )
 
 // The Windows specific process attributes
@@ -18,8 +15,8 @@ func procAttrs() *syscall.SysProcAttr {
 	}
 }
 
-func defaultPythonBinaryExecutable() string {
-	return filepath.Join(os.Getenv(constants.BundleDirEnvVar), "python", "python.exe")
+func defaultPythonBinaryExecutable(bundleDir string) string {
+	return filepath.Join(bundleDir, "python", "python.exe")
 }
 
 func defaultPythonBinaryArgs(pkgName string) []string {

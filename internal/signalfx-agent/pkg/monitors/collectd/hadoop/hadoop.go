@@ -53,8 +53,8 @@ func (m *Monitor) Configure(conf *Config) error {
 		Host:          conf.Host,
 		Port:          conf.Port,
 		ModuleName:    "hadoop_plugin",
-		ModulePaths:   []string{collectd.MakePythonPluginPath("hadoop")},
-		TypesDBPaths:  []string{collectd.DefaultTypesDBPath()},
+		ModulePaths:   []string{collectd.MakePythonPluginPath(conf.BundleDir, "hadoop")},
+		TypesDBPaths:  []string{collectd.DefaultTypesDBPath(conf.BundleDir)},
 		PluginConfig: map[string]interface{}{
 			"ResourceManagerURL":  fmt.Sprintf("http://%s", conf.Host),
 			"ResourceManagerPort": conf.Port,

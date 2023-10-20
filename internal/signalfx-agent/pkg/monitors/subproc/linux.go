@@ -4,11 +4,8 @@
 package subproc
 
 import (
-	"os"
 	"path/filepath"
 	"syscall"
-
-	"github.com/signalfx/signalfx-agent/pkg/core/common/constants"
 )
 
 // The Linux specific process attribute that make the Python runner be in the
@@ -21,8 +18,8 @@ func procAttrs() *syscall.SysProcAttr {
 	}
 }
 
-func defaultPythonBinaryExecutable() string {
-	return filepath.Join(os.Getenv(constants.BundleDirEnvVar), "bin", "python")
+func defaultPythonBinaryExecutable(bundleDir string) string {
+	return filepath.Join(bundleDir, "bin", "python")
 }
 
 func defaultPythonBinaryArgs(pkgName string) []string {

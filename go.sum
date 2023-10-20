@@ -1288,6 +1288,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/syslogreceive
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/syslogreceiver v0.87.0/go.mod h1:bqbSRWfqF4MeiC0bnra9YjH7UW8v60FJh9IdmSm1vSE=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tcplogreceiver v0.87.0 h1:Uh/apfRa2vMSxN3AEYbBTcsTVJF07x24U7bL/M067GI=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tcplogreceiver v0.87.0/go.mod h1:NDw094XyxT5U+RK5mdUKdySOZldf3CkgW9h2CMeW3h8=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/udplogreceiver v0.87.0 h1:ntksrnj1gr8jFDS/QOe0k9kWC2z55N14/gptx8KIxR4=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/udplogreceiver v0.87.0/go.mod h1:7rtr8vHU5zQ9DHc2k3FQ2m5nYyaMpXMyynmi+D5AsVE=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/wavefrontreceiver v0.87.0 h1:YGlQNpV72+KLHq1OBP+fH9dvpi3Q2Q4qGw2e9cPodUs=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/wavefrontreceiver v0.87.0/go.mod h1:Ythe6IiQlNOhcpVgX2wZ/AvwL7LVy4pFko0PExzmX0Y=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowseventlogreceiver v0.87.0 h1:ieyr3uxUf/k+MThGIXdd4+T2dLeexljF1ep+oZ05q88=

@@ -2,12 +2,9 @@ package config
 
 import (
 	"fmt"
-	"reflect"
 	"regexp"
 	"strings"
 
-	"github.com/mitchellh/hashstructure"
-	log "github.com/sirupsen/logrus"
 	yaml "gopkg.in/yaml.v2"
 
 	"github.com/signalfx/signalfx-agent/pkg/core/dpfilters"
@@ -145,8 +142,6 @@ type MonitorConfig struct {
 	BundleDir       string          `yaml:"-" json:"-"`
 }
 
-var _ CustomConfigurable = &MonitorConfig{}
-
 // Validate ensures the config is correct beyond what basic YAML parsing
 // ensures
 func (mc *MonitorConfig) Validate() error {
@@ -192,48 +187,10 @@ func (mc *MonitorConfig) MetricNameExprs() ([]*RegexpWithReplace, error) {
 	return out, nil
 }
 
-// Equals tests if two monitor configs are sufficiently equal to each other.
-// Two monitors should only be equal if it doesn't make sense for two
-// configurations to be active at the same time.
-func (mc *MonitorConfig) Equals(other *MonitorConfig) bool {
-	return mc.Type == other.Type && mc.DiscoveryRule == other.DiscoveryRule &&
-		reflect.DeepEqual(mc.OtherConfig, other.OtherConfig)
-}
-
-// ExtraConfig returns generic config as a map
-func (mc *MonitorConfig) ExtraConfig() (map[string]interface{}, error) {
-	return mc.OtherConfig, nil
-}
-
-// HasAutoDiscovery returns whether the monitor is static (i.e. doesn't rely on
-// autodiscovered services and is manually configured) or dynamic.
-func (mc *MonitorConfig) HasAutoDiscovery() bool {
-	return mc.DiscoveryRule != ""
-}
-
-// ShouldValidateDiscoveryRule return ValidateDiscoveryRule or false if that is
-// nil.
-func (mc *MonitorConfig) ShouldValidateDiscoveryRule() bool {
-	if mc.ValidateDiscoveryRule == nil || !*mc.ValidateDiscoveryRule {
-		return false
-	}
-	return true
-}
-
 // MonitorConfigCore provides a way of getting the MonitorConfig when embedded
 // in a struct that is referenced through a more generic interface.
 func (mc *MonitorConfig) MonitorConfigCore() *MonitorConfig {
 	return mc
-}
-
-// Hash calculates a unique hash value for this config struct
-func (mc *MonitorConfig) Hash() uint64 {
-	hash, err := hashstructure.Hash(mc, nil)
-	if err != nil {
-		log.WithError(err).Error("Could not get hash of MonitorConfig struct")
-		return 0
-	}
-	return hash
 }
 
 // IsCollectdBased returns whether this montior type depends on the

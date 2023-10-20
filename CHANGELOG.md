@@ -37,6 +37,9 @@
     where `LISTEN_INTERFACE` is the value from the `--listen-interface` option if specified, or `127.0.0.1` otherwise)
   - See [Linux Installer Script](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/getting-started/linux-installer.md)
     for more details.
+- (Splunk) Add the loadbalancing exporter to the distribution ([#3825](https://github.com/signalfx/splunk-otel-collector/pull/3825))
+- (Splunk) Add UDP log receiver ([#3826](https://github.com/signalfx/splunk-otel-collector/pull/3826))
+
 
 ## v0.86.0
 

@@ -17,7 +17,6 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/signalfx/signalfx-agent/pkg/core/services"
 	"github.com/signalfx/signalfx-agent/pkg/utils"
 )
 
@@ -139,10 +138,7 @@ func InjectTemplateFuncs(tmpl *template.Template) *template.Template {
 				}
 				return "", fmt.Errorf("value %#v cannot be converted to bool", v)
 			},
-			"toMap": utils.ConvertToMapViaYAML,
-			"toServiceID": func(s string) services.ID {
-				return services.ID(s)
-			},
+			"toMap":       utils.ConvertToMapViaYAML,
 			"toStringMap": utils.InterfaceMapToStringMap,
 			"spew": func(obj interface{}) string {
 				return spew.Sdump(obj)

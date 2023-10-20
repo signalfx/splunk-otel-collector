@@ -79,8 +79,8 @@ func (m *Monitor) Configure(conf *Config) error {
 	}
 	conf.pyConf = &python.Config{
 		ModuleName:    "openstack_metrics",
-		ModulePaths:   []string{collectd.MakePythonPluginPath("openstack")},
-		TypesDBPaths:  []string{collectd.DefaultTypesDBPath()},
+		ModulePaths:   []string{collectd.MakePythonPluginPath(conf.BundleDir, "openstack")},
+		TypesDBPaths:  []string{collectd.DefaultTypesDBPath(conf.MonitorConfig.BundleDir)},
 		MonitorConfig: conf.MonitorConfig,
 		PluginConfig: map[string]interface{}{
 			"AuthURL":                   conf.AuthURL,

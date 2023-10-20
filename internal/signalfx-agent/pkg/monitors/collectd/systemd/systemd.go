@@ -85,8 +85,8 @@ func (m *Monitor) Configure(conf *Config) error {
 	conf.pyConf = &python.Config{
 		MonitorConfig: conf.MonitorConfig,
 		ModuleName:    "collectd_systemd",
-		ModulePaths:   []string{collectd.MakePythonPluginPath("systemd")},
-		TypesDBPaths:  []string{collectd.DefaultTypesDBPath()},
+		ModulePaths:   []string{collectd.MakePythonPluginPath(conf.BundleDir, "systemd")},
+		TypesDBPaths:  []string{collectd.DefaultTypesDBPath(conf.BundleDir)},
 		PluginConfig: map[string]interface{}{
 			"Service":       services,
 			"Interval":      conf.IntervalSeconds,

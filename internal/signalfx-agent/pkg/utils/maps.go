@@ -3,19 +3,7 @@ package utils
 
 import (
 	"fmt"
-
-	"github.com/iancoleman/strcase"
 )
-
-// DuplicateInterfaceMapKeysAsCamelCase takes a map[string]interface{} and camel cases the keys
-func DuplicateInterfaceMapKeysAsCamelCase(m map[string]interface{}) map[string]interface{} {
-	out := make(map[string]interface{})
-	for k, v := range m {
-		out[k] = v
-		out[strcase.ToLowerCamel(k)] = v
-	}
-	return out
-}
 
 // MergeStringMaps merges n maps with a later map's keys overriding earlier maps
 func MergeStringMaps(maps ...map[string]string) map[string]string {
@@ -71,24 +59,6 @@ func MergeInterfaceMaps(maps ...map[string]interface{}) map[string]interface{} {
 // CloneStringMap makes a shallow copy of a map[string]string
 func CloneStringMap(m map[string]string) map[string]string {
 	m2 := make(map[string]string, len(m))
-	for k, v := range m {
-		m2[k] = v
-	}
-	return m2
-}
-
-// CloneInterfaceMap makes a shallow copy of a map[string]interface{}
-func CloneInterfaceMap(m map[string]interface{}) map[string]interface{} {
-	m2 := make(map[string]interface{}, len(m))
-	for k, v := range m {
-		m2[k] = v
-	}
-	return m2
-}
-
-// CloneFullInterfaceMap makes a shallow copy of a map[interface{}]interface{}
-func CloneFullInterfaceMap(m map[interface{}]interface{}) map[interface{}]interface{} {
-	m2 := make(map[interface{}]interface{}, len(m))
 	for k, v := range m {
 		m2[k] = v
 	}

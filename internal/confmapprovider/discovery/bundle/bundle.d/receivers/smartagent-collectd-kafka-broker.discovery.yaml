@@ -2,7 +2,7 @@
 #                               Do not edit manually!                               #
 # All changes must be made to associated .tmpl file before running 'make bundle.d'. #
 #####################################################################################
-smartagent/collectd/kafka_broker_sooo:
+smartagent/collectd/kafka_broker:
   enabled: true
   rule:
     docker_observer: type == "container" and any([name, image, command], {# matches "(?i)kafka-broker"}) and not (command matches "splunk.discovery")
@@ -16,6 +16,7 @@ smartagent/collectd/kafka_broker_sooo:
       clusterName: testCluster
       extraMetrics: ["*"]
       intervalSeconds: 1
+      isolatedCollectd: true
   status:
     metrics:
       successful:

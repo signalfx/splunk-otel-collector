@@ -1,4 +1,4 @@
-{{ receiver "smartagent/collectd/kafka_consumer_poo" }}:
+{{ receiver "smartagent/collectd/kafka_consumer" }}:
   enabled: true
   rule:
     docker_observer: type == "container" and any([name, image, command], {# matches "(?i)kafka-consumer"}) and not (command matches "splunk.discovery")
@@ -10,8 +10,8 @@
       host: '`host`'
       port: 9099
       extraMetrics: ["*"]
-      isolatedCollectd: true
       intervalSeconds: 1
+      isolatedCollectd: true
   status:
     metrics:
       successful:

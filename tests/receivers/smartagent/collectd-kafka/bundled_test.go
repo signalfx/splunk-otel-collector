@@ -44,9 +44,9 @@ func TestBrokerMetrics(t *testing.T) {
 
 	kafkaBroker := kafka.WithName("kafka-broker").WithEnvVar("START_AS", "broker").WithExposedPorts("7099:7099", "9092:9092").WillWaitForPorts("7099", "9092")
 
-	kafkaConsumer := kafka.WithName("kafka-consumer").WithEnv(map[string]string{"START_AS": "consumer", "KAFKA_BROKER": "kafka-broker:9092", "JMX_PORT": "9099"}).WithExposedPorts("9099:9099").WillWaitForPorts("9099")
+	kafkaConsumer := kafka.WithName("consumer").WithEnv(map[string]string{"START_AS": "consumer", "KAFKA_BROKER": "kafka-broker:9092", "JMX_PORT": "9099"}).WithExposedPorts("9099:9099").WillWaitForPorts("9099")
 
-	kafkaProducer := kafka.WithName("kafka-producer").WithEnv(map[string]string{"START_AS": "producer", "KAFKA_BROKER": "kafka-broker:9092", "JMX_PORT": "8099"}).WithExposedPorts("8099:8099").WillWaitForPorts("8099")
+	kafkaProducer := kafka.WithName("producer").WithEnv(map[string]string{"START_AS": "producer", "KAFKA_BROKER": "kafka-broker:9092", "JMX_PORT": "8099"}).WithExposedPorts("8099:8099").WillWaitForPorts("8099")
 
 	kafkaTopicCreator := kafka.WithName("kafka-topic-creator").WithEnvVar("START_AS", "create-topic").WillWaitForLogs(`Created topic "sfx-employee".`)
 
@@ -62,7 +62,7 @@ func TestBrokerMetrics(t *testing.T) {
 		},
 		func(c testutils.Collector) testutils.Collector {
 			return c.WithEnv(map[string]string{
-				"SPLUNK_DISCOVERY_DURATION":  "20S",
+				"SPLUNK_DISCOVERY_DURATION":  "10s",
 				"SPLUNK_DISCOVERY_LOG_LEVEL": "debug",
 			}).WithArgs(
 				"--discovery",
@@ -94,11 +94,11 @@ func TestProducerMetrics(t *testing.T) {
 
 	kafkaZookeeper := testutils.NewContainer().WithImage("zookeeper:3.5").WithName("zookeeper").WithNetworks("kafka").WithExposedPorts("2181:2181").WillWaitForPorts("2181")
 
-	kafkaBroker := kafka.WithName("kafka-broker").WithEnvVar("START_AS", "broker").WithExposedPorts("7099:7099", "9092:9092").WillWaitForPorts("7099", "9092")
+	kafkaBroker := kafka.WithName("broker").WithEnvVar("START_AS", "broker").WithExposedPorts("7099:7099", "9092:9092").WillWaitForPorts("7099", "9092")
 
-	kafkaConsumer := kafka.WithName("kafka-consumer").WithEnv(map[string]string{"START_AS": "consumer", "KAFKA_BROKER": "kafka-broker:9092", "JMX_PORT": "9099"}).WithExposedPorts("9099:9099").WillWaitForPorts("9099")
+	kafkaConsumer := kafka.WithName("consumer").WithEnv(map[string]string{"START_AS": "consumer", "KAFKA_BROKER": "broker:9092", "JMX_PORT": "9099"}).WithExposedPorts("9099:9099").WillWaitForPorts("9099")
 
-	kafkaProducer := kafka.WithName("kafka-producer").WithEnv(map[string]string{"START_AS": "producer", "KAFKA_BROKER": "kafka-broker:9092", "JMX_PORT": "8099"}).WithExposedPorts("8099:8099").WillWaitForPorts("8099")
+	kafkaProducer := kafka.WithName("kafka-producer").WithEnv(map[string]string{"START_AS": "producer", "KAFKA_BROKER": "broker:9092", "JMX_PORT": "8099"}).WithExposedPorts("8099:8099").WillWaitForPorts("8099")
 
 	kafkaTopicCreator := kafka.WithName("kafka-topic-creator").WithEnvVar("START_AS", "create-topic").WillWaitForLogs(`Created topic "sfx-employee".`)
 
@@ -114,7 +114,7 @@ func TestProducerMetrics(t *testing.T) {
 		},
 		func(c testutils.Collector) testutils.Collector {
 			return c.WithEnv(map[string]string{
-				"SPLUNK_DISCOVERY_DURATION":  "20S",
+				"SPLUNK_DISCOVERY_DURATION":  "10s",
 				"SPLUNK_DISCOVERY_LOG_LEVEL": "debug",
 			}).WithArgs(
 				"--discovery",
@@ -146,11 +146,11 @@ func TestConsumerMetrics(t *testing.T) {
 
 	kafkaZookeeper := testutils.NewContainer().WithImage("zookeeper:3.5").WithName("zookeeper").WithNetworks("kafka").WithExposedPorts("2181:2181").WillWaitForPorts("2181")
 
-	kafkaBroker := kafka.WithName("kafka-broker").WithEnvVar("START_AS", "broker").WithExposedPorts("7099:7099", "9092:9092").WillWaitForPorts("7099", "9092")
+	kafkaBroker := kafka.WithName("broker").WithEnvVar("START_AS", "broker").WithExposedPorts("7099:7099", "9092:9092").WillWaitForPorts("7099", "9092")
 
-	kafkaConsumer := kafka.WithName("kafka-consumer").WithEnv(map[string]string{"START_AS": "consumer", "KAFKA_BROKER": "kafka-broker:9092", "JMX_PORT": "9099"}).WithExposedPorts("9099:9099").WillWaitForPorts("9099")
+	kafkaConsumer := kafka.WithName("kafka-consumer").WithEnv(map[string]string{"START_AS": "consumer", "KAFKA_BROKER": "broker:9092", "JMX_PORT": "9099"}).WithExposedPorts("9099:9099").WillWaitForPorts("9099")
 
-	kafkaProducer := kafka.WithName("kafka-producer").WithEnv(map[string]string{"START_AS": "producer", "KAFKA_BROKER": "kafka-broker:9092", "JMX_PORT": "8099"}).WithExposedPorts("8099:8099").WillWaitForPorts("8099")
+	kafkaProducer := kafka.WithName("producer").WithEnv(map[string]string{"START_AS": "producer", "KAFKA_BROKER": "broker:9092", "JMX_PORT": "8099"}).WithExposedPorts("8099:8099").WillWaitForPorts("8099")
 
 	kafkaTopicCreator := kafka.WithName("kafka-topic-creator").WithEnvVar("START_AS", "create-topic").WillWaitForLogs(`Created topic "sfx-employee".`)
 
@@ -166,7 +166,7 @@ func TestConsumerMetrics(t *testing.T) {
 		},
 		func(c testutils.Collector) testutils.Collector {
 			return c.WithEnv(map[string]string{
-				"SPLUNK_DISCOVERY_DURATION":  "20S",
+				"SPLUNK_DISCOVERY_DURATION":  "10s",
 				"SPLUNK_DISCOVERY_LOG_LEVEL": "debug",
 			}).WithArgs(
 				"--discovery",

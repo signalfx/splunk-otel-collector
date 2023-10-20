@@ -26,6 +26,7 @@
     the `libsplunk.so` shared object library (default: `--without-systemd-instrumentation`)
   - `--otlp-endpoint host:port`: Set the OTLP gRPC endpoint for captured traces (default: `http://LISTEN_INTERFACE:4317`
     where `LISTEN_INTERFACE` is the value from the `--listen-interface` option if specified, or `127.0.0.1` otherwise)
+- (Splunk) Add the loadbalancing exporter to the distribution ([#3825](https://github.com/signalfx/splunk-otel-collector/pull/3825))
 
 ## v0.86.0
 

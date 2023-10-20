@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"os"
 	"reflect"
 	"regexp"
 	"strings"
@@ -11,7 +10,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	yaml "gopkg.in/yaml.v2"
 
-	"github.com/signalfx/signalfx-agent/pkg/core/common/constants"
 	"github.com/signalfx/signalfx-agent/pkg/core/dpfilters"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/types"
 )
@@ -144,6 +142,7 @@ type MonitorConfig struct {
 	// so that diagnostics can output it.
 	ValidationError string          `yaml:"-" json:"-" hash:"ignore"`
 	MonitorID       types.MonitorID `yaml:"-" hash:"ignore"`
+	BundleDir       string          `yaml:"-" json:"-"`
 }
 
 var _ CustomConfigurable = &MonitorConfig{}
@@ -235,11 +234,6 @@ func (mc *MonitorConfig) Hash() uint64 {
 		return 0
 	}
 	return hash
-}
-
-// BundleDir returns the path to the agent's bundle directory.
-func (mc *MonitorConfig) BundleDir() string {
-	return os.Getenv(constants.BundleDirEnvVar)
 }
 
 // IsCollectdBased returns whether this montior type depends on the

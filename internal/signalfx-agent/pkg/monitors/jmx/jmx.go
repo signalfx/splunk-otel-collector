@@ -70,7 +70,7 @@ func (m *Monitor) Configure(conf *Config) error {
 		MonitorConfig: conf.MonitorConfig,
 		Host:          conf.Host,
 		Port:          conf.Port,
-		JarFilePath:   filepath.Join(conf.BundleDir(), "lib/jmx-monitor.jar"),
+		JarFilePath:   filepath.Join(conf.BundleDir, "lib/jmx-monitor.jar"),
 		CustomConfig: map[string]interface{}{
 			"serviceURL":         serviceURL,
 			"groovyScript":       conf.GroovyScript,

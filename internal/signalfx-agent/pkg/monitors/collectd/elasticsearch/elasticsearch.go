@@ -80,8 +80,8 @@ func (m *Monitor) Configure(conf *Config) error {
 		Host:          conf.Host,
 		Port:          conf.Port,
 		ModuleName:    "elasticsearch_collectd",
-		ModulePaths:   []string{collectd.MakePythonPluginPath("elasticsearch")},
-		TypesDBPaths:  []string{collectd.DefaultTypesDBPath()},
+		ModulePaths:   []string{collectd.MakePythonPluginPath(conf.BundleDir, "elasticsearch")},
+		TypesDBPaths:  []string{collectd.DefaultTypesDBPath(conf.BundleDir)},
 		PluginConfig: map[string]interface{}{
 			"Host":                 conf.Host,
 			"Port":                 conf.Port,

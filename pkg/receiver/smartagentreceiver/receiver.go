@@ -26,7 +26,6 @@ import (
 	"sync"
 
 	"github.com/shirou/gopsutil/v3/common"
-	"github.com/signalfx/signalfx-agent/pkg/core/common/constants"
 	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd"
@@ -131,6 +130,7 @@ func (r *receiver) Start(_ context.Context, host component.Host) error {
 	}
 
 	configCore.ProcPath = saConfig.ProcPath
+	configCore.BundleDir = saConfig.BundleDir
 
 	return saconfig.CallConfigure(r.monitor, r.config.monitorConfig)
 }
@@ -253,7 +253,6 @@ func (r *receiver) setUpSmartAgentConfigProvider(extensions map[component.ID]ote
 }
 
 func setUpEnvironment() {
-	os.Setenv(constants.BundleDirEnvVar, saConfig.BundleDir)
 	if runtime.GOOS != "windows" { // Agent bundle doesn't include jre for Windows
 		os.Setenv("JAVA_HOME", filepath.Join(saConfig.BundleDir, "jre"))
 	}

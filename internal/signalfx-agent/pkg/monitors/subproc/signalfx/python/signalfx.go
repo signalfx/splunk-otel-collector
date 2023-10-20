@@ -87,7 +87,7 @@ type PyMonitor struct {
 
 // Configure starts the subprocess and configures the plugin
 func (m *PyMonitor) Configure(conf *Config) error {
-	runtimeConf := subproc.DefaultPythonRuntimeConfig("sfxmonitor")
+	runtimeConf := subproc.DefaultPythonRuntimeConfig(conf.BundleDir, "sfxmonitor")
 	if conf.PythonBinary != "" {
 		runtimeConf.Binary = conf.PythonBinary
 		runtimeConf.Env = os.Environ()

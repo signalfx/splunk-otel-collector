@@ -103,8 +103,8 @@ func (m *Monitor) Configure(conf *Config) error {
 		Host:          conf.Host,
 		Port:          conf.Port,
 		ModuleName:    "rabbitmq",
-		ModulePaths:   []string{collectd.MakePythonPluginPath("rabbitmq")},
-		TypesDBPaths:  []string{collectd.DefaultTypesDBPath()},
+		ModulePaths:   []string{collectd.MakePythonPluginPath(conf.BundleDir, "rabbitmq")},
+		TypesDBPaths:  []string{collectd.DefaultTypesDBPath(conf.BundleDir)},
 		PluginConfig: map[string]interface{}{
 			"Host":               conf.Host,
 			"Port":               conf.Port,

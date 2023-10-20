@@ -390,8 +390,7 @@ var (
 // BundlePythonHomeEnvvar returns an envvar string that sets the PYTHONHOME envvar to
 // the bundled Python runtime.  It is in a form that is ready to append to
 // cmd.Env.
-func BundlePythonHomeEnvvar() string {
-	bundleDir := os.Getenv(constants.BundleDirEnvVar)
+func BundlePythonHomeEnvvar(bundleDir string) string {
 	if runtime.GOOS == "windows" {
 		return "PYTHONHOME=" + filepath.Join(bundleDir, "python")
 	}

@@ -491,7 +491,7 @@ func (cm *Manager) makeChildCommand() (*exec.Cmd, io.ReadCloser) {
 	cmd.Stdout = w
 	cmd.Stderr = w
 	cmd.Env = os.Environ()
-	cmd.Env = append(cmd.Env, config.BundlePythonHomeEnvvar())
+	cmd.Env = append(cmd.Env, config.BundlePythonHomeEnvvar(cm.conf.BundleDir))
 
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		// This is Linux-specific and will cause collectd to be killed by the OS if

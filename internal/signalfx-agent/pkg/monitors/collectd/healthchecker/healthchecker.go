@@ -80,8 +80,8 @@ func (m *Monitor) Configure(conf *Config) error {
 		Host:          conf.Host,
 		Port:          conf.Port,
 		ModuleName:    "health_checker",
-		ModulePaths:   []string{collectd.MakePythonPluginPath("health_checker")},
-		TypesDBPaths:  []string{collectd.DefaultTypesDBPath()},
+		ModulePaths:   []string{collectd.MakePythonPluginPath(conf.BundleDir, "health_checker")},
+		TypesDBPaths:  []string{collectd.DefaultTypesDBPath(conf.BundleDir)},
 		PluginConfig: map[string]interface{}{
 			"Instance": conf.Name,
 			"JSONKey":  conf.JSONKey,

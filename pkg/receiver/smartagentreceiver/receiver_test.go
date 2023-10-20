@@ -342,9 +342,6 @@ func TestSmartAgentConfigProviderOverrides(t *testing.T) {
 		WriteServerQuery:     "",
 	}, saConfig.Collectd)
 
-	// Ensure envs are setup.
-	require.Equal(t, "/opt/", os.Getenv("SIGNALFX_BUNDLE_DIR"))
-
 	if runtime.GOOS == "windows" {
 		require.NotEqual(t, filepath.Join("/opt", "jre"), os.Getenv("JAVA_HOME"))
 	} else {

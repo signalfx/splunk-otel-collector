@@ -96,7 +96,7 @@ func (m *PyMonitor) Configure(conf PyConfig) error {
 	// get the python config from the supplied config
 	pyconf := conf.PythonConfig()
 	if len(pyconf.TypesDBPaths) == 0 {
-		pyconf.TypesDBPaths = append(pyconf.TypesDBPaths, collectd.DefaultTypesDBPath())
+		pyconf.TypesDBPaths = append(pyconf.TypesDBPaths, collectd.DefaultTypesDBPath(conf.MonitorConfigCore().BundleDir))
 	}
 
 	for k := range pyconf.PluginConfig {
@@ -132,7 +132,7 @@ func (m *PyMonitor) Configure(conf PyConfig) error {
 		}
 	}
 
-	runtimeConf := subproc.DefaultPythonRuntimeConfig("sfxcollectd")
+	runtimeConf := subproc.DefaultPythonRuntimeConfig(conf.MonitorConfigCore().BundleDir, "sfxcollectd")
 	pyBin := conf.PythonConfig().PythonBinary
 	if pyBin != "" {
 		args := strings.Fields(pyBin)

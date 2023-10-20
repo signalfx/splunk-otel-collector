@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
-	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -14,17 +13,13 @@ import (
 	"github.com/mitchellh/hashstructure"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/shirou/gopsutil/v3/common"
-	"github.com/signalfx/signalfx-agent/pkg/core/common/constants"
 	"github.com/signalfx/signalfx-agent/pkg/core/config/sources"
 	"github.com/signalfx/signalfx-agent/pkg/core/config/validation"
-	"github.com/signalfx/signalfx-agent/pkg/utils/hostfs"
 	"github.com/signalfx/signalfx-agent/pkg/utils/timeutil"
 )
 
 const (
-	TraceExportFormatSAPM   = "sapm"
-	TraceExportFormatZipkin = "zipkin"
+	TraceExportFormatSAPM = "sapm"
 )
 
 // Config is the top level config struct for configurations that are common to all platforms
@@ -166,22 +161,6 @@ type Config struct {
 	SysPath string `yaml:"sysPath" default:"/sys"`
 }
 
-// Setup envvars that will be used by collectd to use the bundled dependencies
-// instead of looking to the normal system paths.
-func (c *Config) setupEnvironment() {
-	os.Setenv(constants.BundleDirEnvVar, c.BundleDir)
-
-	os.Setenv("JAVA_HOME", filepath.Join(c.BundleDir, "jre"))
-	// set the environment variables for gopsutil based on configured values
-	hostfs.SetEnvMap(common.EnvMap{
-		common.HostProcEnvKey: c.ProcPath,
-		common.HostEtcEnvKey:  c.EtcPath,
-		common.HostVarEnvKey:  c.VarPath,
-		common.HostRunEnvKey:  c.RunPath,
-		common.HostSysEnvKey:  c.SysPath,
-	})
-}
-
 // Validate everything that we can about the main config
 func (c *Config) validate() error {
 	if err := validation.ValidateStruct(c); err != nil {
@@ -221,13 +200,6 @@ func (c *Config) validate() error {
 	}
 
 	return c.Writer.Validate()
-}
-
-// CustomConfigurable should be implemented by config structs that have the
-// concept of generic other config that is initially deserialized into a
-// map[string]interface{} to be later transformed to another form.
-type CustomConfigurable interface {
-	ExtraConfig() (map[string]interface{}, error)
 }
 
 // LogConfig contains configuration related to logging

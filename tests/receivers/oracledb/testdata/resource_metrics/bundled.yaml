@@ -2,7 +2,7 @@ resource_metrics:
   - attributes:
       container.image.name: <ANY>
       container.name: oracledb
-      oracledb.instance.name: localhost:1521/XE
+      oracledb.instance.name: <ANY>
     scope_metrics:
       - instrumentation_scope:
           attributes: {}

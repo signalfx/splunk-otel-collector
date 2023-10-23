@@ -6,7 +6,6 @@
     k8s_observer: type == "port" and pod.name matches "(?i)oracle"
   config:
     default:
-      endpoint: {{ defaultValue }}
       username: {{ defaultValue }}
       password: {{ defaultValue }}
       service: {{ defaultValue }}

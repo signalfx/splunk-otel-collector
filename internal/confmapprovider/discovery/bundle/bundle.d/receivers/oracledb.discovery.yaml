@@ -10,7 +10,6 @@ oracledb:
     k8s_observer: type == "port" and pod.name matches "(?i)oracle"
   config:
     default:
-      endpoint: splunk.discovery.default
       username: splunk.discovery.default
       password: splunk.discovery.default
       service: splunk.discovery.default

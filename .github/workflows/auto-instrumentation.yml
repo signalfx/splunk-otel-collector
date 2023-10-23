@@ -63,7 +63,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: docker/setup-qemu-action@v2
+      - uses: docker/setup-qemu-action@v3
         if: ${{ matrix.ARCH != 'amd64' }}
         with:
           platforms: ${{ matrix.ARCH }}

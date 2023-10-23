@@ -24,10 +24,22 @@
 - (Splunk) Add new Auto Instrumentation options for the Linux installer script ([#3791](https://github.com/signalfx/splunk-otel-collector/pull/3791)):
   - `--with[out]-systemd-instrumentation`: Activate auto instrumentation for only `systemd` services without preloading
     the `libsplunk.so` shared object library (default: `--without-systemd-instrumentation`)
+  - Initial support for [Splunk OpenTelemetry Auto Instrumentation for Node.js](https://github.com/signalfx/splunk-otel-js):
+    - Activated by default if the `--with-instrumentation` or `--with-systemd-instrumentation` option is specified.
+    - Use the `--without-node-instrumentation` option to explicitly skip Node.js.
+    - `npm` is required to install the Node.js Auto Instrumentation package. If the `npm` is not installed, Node.js will
+      be skipped automatically.
+    - By default, the Node.js Auto Instrumentation package is installed with the `npm install --global` command. Use the
+      `--npm-command "<command>"` option to specify a custom command.
+  - Auto Instrumentation for Java is also activated by default if the `--with-instrumentation` or
+    `--with-systemd-instrumentation` option is specified. Use the `--without-java-instrumentation` option to skip Java.
   - `--otlp-endpoint host:port`: Set the OTLP gRPC endpoint for captured traces (default: `http://LISTEN_INTERFACE:4317`
     where `LISTEN_INTERFACE` is the value from the `--listen-interface` option if specified, or `127.0.0.1` otherwise)
+  - See [Linux Installer Script](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/getting-started/linux-installer.md)
+    for more details.
 - (Splunk) Add the loadbalancing exporter to the distribution ([#3825](https://github.com/signalfx/splunk-otel-collector/pull/3825))
 - (Splunk) Add UDP log receiver ([#3826](https://github.com/signalfx/splunk-otel-collector/pull/3826))
+
 
 ## v0.86.0
 

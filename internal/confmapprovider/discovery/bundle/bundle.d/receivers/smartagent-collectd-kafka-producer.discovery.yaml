@@ -1,0 +1,34 @@
+#####################################################################################
+#                               Do not edit manually!                               #
+# All changes must be made to associated .tmpl file before running 'make bundle.d'. #
+#####################################################################################
+smartagent/collectd/kafka_producer:
+  enabled: true
+  rule:
+    docker_observer: type == "container" and any([name, image, command], {# matches "(?i)kafka-producer"}) and not (command matches "splunk.discovery")
+    host_observer: type == "hostport" and command matches "(?i)kafka-producer"
+    k8s_observer: type == "port" and pod.name matches "(?i)kafka-producer"
+  config:
+    default:
+      type: collectd/kafka_producer
+      host: '`host`'
+      port: 8099
+      extraMetrics: ["*"]
+      intervalSeconds: 1
+      isolatedCollectd: true
+  status:
+    metrics:
+      successful:
+        - strict: gauge.kafka.producer.byte-rate
+          first_only: true
+          log_record:
+            severity_text: info
+            body: smartagent/collectd/kafka_producer receiver is working!
+    statements:
+      failed:
+        - regexp: "kafka plugin: Failed to connect to database .* at server .* Can't connect to kafka server on .* [(]111[)]"
+          first_only: true
+          log_record:
+            severity_text: info
+            append_pattern: true
+            body: The container is refusing kafka connections.

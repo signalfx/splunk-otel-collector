@@ -1,0 +1,30 @@
+{{ receiver "smartagent/collectd/kafka_consumer" }}:
+  enabled: true
+  rule:
+    docker_observer: type == "container" and any([name, image, command], {# matches "(?i)kafka-consumer"}) and not (command matches "splunk.discovery")
+    host_observer: type == "hostport" and command matches "(?i)kafka-consumer"
+    k8s_observer: type == "port" and pod.name matches "(?i)kafka-consumer"
+  config:
+    default:
+      type: collectd/kafka_consumer
+      host: '`host`'
+      port: 9099
+      extraMetrics: ["*"]
+      intervalSeconds: 1
+      isolatedCollectd: true
+  status:
+    metrics:
+      successful:
+        - strict: gauge.kafka.consumer.bytes-consumed-rate
+          first_only: true
+          log_record:
+            severity_text: info
+            body: smartagent/collectd/kafka_consumer receiver is working!
+    statements:
+      failed:
+        - regexp: "kafka plugin: Failed to connect to Apache Kafka Consumer .* at server .* Can't connect to Kafka consumer on .* [(]111[)]"
+          first_only: true
+          log_record:
+            severity_text: info
+            append_pattern: true
+            body: The container is refusing Kafka connections.

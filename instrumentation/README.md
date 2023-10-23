@@ -28,6 +28,12 @@ https://docs.splunk.com/Observability/en/gdi/get-data-in/application/application
 
 ## Installation
 
+### Installer Script
+
+The [Linux Installer Script](../docs/getting-started/linux-installer.md) is available to automate the installation and
+configuration of the Collector and Auto Instrumentation for supported platforms. See
+[Auto Instrumentation](../docs/getting-started/linux-installer.md#auto-instrumentation) for details.
+
 ### Manual
 
 1. [Install and configure](https://docs.splunk.com/Observability/gdi/opentelemetry/install-linux.html) the Splunk

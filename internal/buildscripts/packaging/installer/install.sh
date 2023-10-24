@@ -1203,7 +1203,7 @@ parse_args_and_install() {
                 with_java_instrumentation="true"
             elif [[ "$lang" -eq "node" ]]; then
                 with_node_instrumentation="true"
-            else then
+            else
                 echo "Unknown instrumentation SDK $1" >&2
                 usage
             fi
@@ -1215,7 +1215,7 @@ parse_args_and_install() {
                 with_java_instrumentation="false"
             elif [[ "$lang" -eq "node" ]]; then
                 with_node_instrumentation="false"
-            else then
+            else
                 echo "Unknown instrumentation SDK $1" >&2
                 usage
             fi

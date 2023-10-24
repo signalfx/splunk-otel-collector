@@ -26,13 +26,13 @@
     the `libsplunk.so` shared object library (default: `--without-systemd-instrumentation`)
   - Initial support for [Splunk OpenTelemetry Auto Instrumentation for Node.js](https://github.com/signalfx/splunk-otel-js):
     - Activated by default if the `--with-instrumentation` or `--with-systemd-instrumentation` option is specified.
-    - Use the `--without-node-instrumentation` option to explicitly skip Node.js.
+    - Use the `--without-instrumentation-sdk node` option to explicitly skip Node.js.
     - `npm` is required to install the Node.js Auto Instrumentation package. If the `npm` is not installed, Node.js will
       be skipped automatically.
     - By default, the Node.js Auto Instrumentation package is installed with the `npm install --global` command. Use the
       `--npm-command "<command>"` option to specify a custom command.
   - Auto Instrumentation for Java is also activated by default if the `--with-instrumentation` or
-    `--with-systemd-instrumentation` option is specified. Use the `--without-java-instrumentation` option to skip Java.
+    `--with-systemd-instrumentation` option is specified. Use the `--without-instrumentation-sdk java` option to skip Java.
   - `--otlp-endpoint host:port`: Set the OTLP gRPC endpoint for captured traces (default: `http://LISTEN_INTERFACE:4317`
     where `LISTEN_INTERFACE` is the value from the `--listen-interface` option if specified, or `127.0.0.1` otherwise)
   - See [Linux Installer Script](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/getting-started/linux-installer.md)

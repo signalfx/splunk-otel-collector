@@ -1309,7 +1309,7 @@ parse_args_and_install() {
 
   if [ "$with_instrumentation" = "true" ]; then
     if [ "$with_java_instrumentation" = "false" ] && [ "$with_node_instrumentation" = "false" ]; then
-      echo "[ERROR] The --with-instrumentation option was specified, but --without-instrumentation-sdk java,node options was also specified." >&2
+      echo "[ERROR] The --with-instrumentation option was specified, but --without-instrumentation-sdk java,node was also specified." >&2
       echo "[ERROR] At least one language must be enabled for auto instrumentation" >&2
       exit 1
     fi

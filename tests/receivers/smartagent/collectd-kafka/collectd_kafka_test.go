@@ -44,9 +44,9 @@ func TestCollectdKafkaReceiversProvideAllMetrics(t *testing.T) {
 			"START_AS", "broker",
 		).WithExposedPorts("7099:7099", "9092:9092").WillWaitForPorts("7099", "9092"),
 
-		kafka.WithName("kafka-topic-creator").WithEnvVar(
-			"START_AS", "create-topic",
-		).WillWaitForLogs(`Created topic "sfx-employee".`),
+		kafka.WithName("kafka-topic-creator").WithEnv(map[string]string{
+			"START_AS": "create-topic", "KAFKA_BROKER": "kafka-broker:9092",
+		}).WillWaitForLogs(`Created topic sfx-employee.`),
 
 		kafka.WithName("kafka-producer").WithEnv(map[string]string{
 			"START_AS": "producer", "KAFKA_BROKER": "kafka-broker:9092", "JMX_PORT": "8099",

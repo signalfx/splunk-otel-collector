@@ -1315,7 +1315,7 @@ parse_args_and_install() {
     fi
   elif [ "$with_systemd_instrumentation" = "true" ]; then
     if [ "$with_java_instrumentation" = "false" ] && [ "$with_node_instrumentation" = "false" ]; then
-      echo "[ERROR] The --with-systemd-instrumentation option was specified, but both --without-instrumentation-sdk java,node was also specified." >&2
+      echo "[ERROR] The --with-systemd-instrumentation option was specified, but --without-instrumentation-sdk java,node was also specified." >&2
       echo "[ERROR] At least one language must be enabled for auto instrumentation" >&2
       exit 1
     fi

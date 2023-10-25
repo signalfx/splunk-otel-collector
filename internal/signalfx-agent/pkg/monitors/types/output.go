@@ -14,7 +14,7 @@ import (
 type Output interface {
 	Copy() Output
 	SendDatapoints(...*datapoint.Datapoint)
-	SendEvent(event *event.Event)
+	SendEvent(e *event.Event)
 	SendSpans(...*trace.Span)
 	SendDimensionUpdate(*Dimension)
 	AddExtraDimension(key string, value string)

@@ -13,7 +13,7 @@ type Emitter interface {
 	// through the agent.  Please note that if the emitter is a BatchEmitter
 	// you will have to invoke the Send() function to send the batch of
 	// datapoints and events collected by the Emit function
-	AddMetric(metric telegraf.Metric)
+	AddMetric(m telegraf.Metric)
 	// AddTag adds a key/value pair to all measurement tags.  If a key conflicts
 	// the key value pair in AddTag will override the original key on the
 	// measurement

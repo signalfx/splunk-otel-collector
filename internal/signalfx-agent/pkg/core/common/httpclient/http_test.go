@@ -3,7 +3,6 @@ package httpclient
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"errors"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -152,7 +151,7 @@ func TestHttpTimeout(t *testing.T) {
 		}
 		req.Error(err)
 		var uerr *url.Error
-		req.True(errors.As(err, &uerr))
+		req.ErrorAs(err, &uerr)
 		req.True(uerr.Timeout())
 	})
 }

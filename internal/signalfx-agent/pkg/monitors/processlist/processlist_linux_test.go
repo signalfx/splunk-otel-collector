@@ -12,8 +12,8 @@ func TestProcessListLinux(t *testing.T) {
 	cache := initOSCache()
 
 	tps, err := ProcessList(&Config{}, cache, nil)
-	require.Nil(t, err)
-	require.Greater(t, len(tps), 0)
+	require.NoError(t, err)
+	require.NotEmpty(t, len(tps))
 
 	selfPID := os.Getpid()
 	for _, proc := range tps {

@@ -96,6 +96,8 @@ type Monitor struct {
 	logger logrus.FieldLogger
 }
 
+const dbNamePrefix = " dbname="
+
 // Configure the monitor and kick off metric collection
 func (m *Monitor) Configure(conf *Config) error {
 	m.conf = conf
@@ -118,7 +120,7 @@ func (m *Monitor) Configure(conf *Config) error {
 	m.connectionString = connStr
 	m.Output.AddExtraDimension("postgres_port", port)
 
-	connectionStringWithMasterDB := m.connectionString + " dbname=" + m.conf.MasterDBName
+	connectionStringWithMasterDB := m.connectionString + dbNamePrefix + m.conf.MasterDBName
 
 	var dbFilter filter.StringFilter
 	if len(conf.Databases) > 0 {
@@ -235,7 +237,7 @@ func (m *Monitor) startMonitoringDatabase(name string) (*sql.Monitor, error) {
 
 	return sqlMon, sqlMon.Configure(&sql.Config{
 		MonitorConfig:    m.conf.MonitorConfig,
-		ConnectionString: m.connectionString + " dbname=" + name,
+		ConnectionString: m.connectionString + dbNamePrefix + name,
 		DBDriver:         "postgres",
 		Queries:          makeDefaultDBQueries(name),
 		LogQueries:       m.conf.LogQueries,
@@ -338,7 +340,7 @@ func (m *Monitor) monitorReplication() (*sql.Monitor, error) {
 
 	return sqlMon, sqlMon.Configure(&sql.Config{
 		MonitorConfig:    m.conf.MonitorConfig,
-		ConnectionString: connStr + " dbname=" + m.conf.MasterDBName,
+		ConnectionString: connStr + dbNamePrefix + m.conf.MasterDBName,
 		DBDriver:         "postgres",
 		Queries:          defaultReplicationQueries,
 		LogQueries:       m.conf.LogQueries,

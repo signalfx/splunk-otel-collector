@@ -15,7 +15,7 @@ import (
 func TestTooManyInvObjects(t *testing.T) {
 	g := fakePaginatorGateway{}
 	_, err := g.queryPerf(invObjs(100), 1)
-	require.NotNil(t, err)
+	require.Error(t, err)
 }
 
 func TestNumPages(t *testing.T) {
@@ -33,23 +33,23 @@ func TestMultiPage1(t *testing.T) {
 	p := multiPagePerfFetcher{pageSize: 4, gateway: &fakePaginatorGateway{}, log: testLog}
 	it := p.invIterator(invObjs(4), 1)
 	page, hasNext, err := it.nextInvPage()
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.False(t, hasNext)
-	require.Equal(t, 4, len(page))
+	require.Len(t, page, 4)
 }
 
 func TestMultiPage2(t *testing.T) {
 	p := multiPagePerfFetcher{pageSize: 4, gateway: &fakePaginatorGateway{}, log: testLog}
 	it := p.invIterator(invObjs(5), 1)
 	page, hasNext, err := it.nextInvPage()
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.True(t, hasNext)
-	require.Equal(t, 4, len(page))
+	require.Len(t, page, 4)
 
 	page, hasNext, err = it.nextInvPage()
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.False(t, hasNext)
-	require.Equal(t, 1, len(page))
+	require.Len(t, page, 1)
 }
 
 func invObjs(n int) []*model.InventoryObject {

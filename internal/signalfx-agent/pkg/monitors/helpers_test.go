@@ -28,7 +28,7 @@ type DynamicConfig struct {
 }
 
 type MockMonitor interface {
-	SetConfigHook(func(types.MonitorID, MockMonitor))
+	SetConfigHook(configHook func(types.MonitorID, MockMonitor))
 	AddShutdownHook(fn func())
 	Type() string
 	MyVar() string

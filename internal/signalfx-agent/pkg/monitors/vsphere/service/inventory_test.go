@@ -15,7 +15,7 @@ func TestNopFilter(t *testing.T) {
 	svc := NewInventorySvc(gateway, testLog, f, model.GuestIP)
 	inv, err := svc.RetrieveInventory()
 	require.NoError(t, err)
-	require.Equal(t, 4, len(inv.Objects))
+	assert.Len(t, inv.Objects, 4)
 }
 
 func TestExprFilterOutAllInventory(t *testing.T) {
@@ -24,8 +24,8 @@ func TestExprFilterOutAllInventory(t *testing.T) {
 	require.NoError(t, err)
 	svc := NewInventorySvc(gateway, testLog, f, model.GuestIP)
 	inv, err := svc.RetrieveInventory()
-	assert.NoError(t, err)
-	assert.Equal(t, 0, len(inv.Objects))
+	require.NoError(t, err)
+	assert.Len(t, inv.Objects, 0)
 }
 
 func TestExprFilterInAllInventoryInClusters(t *testing.T) {
@@ -34,8 +34,8 @@ func TestExprFilterInAllInventoryInClusters(t *testing.T) {
 	require.NoError(t, err)
 	svc := NewInventorySvc(gateway, testLog, f, model.GuestIP)
 	inv, err := svc.RetrieveInventory()
-	assert.NoError(t, err)
-	assert.Equal(t, 2, len(inv.Objects))
+	require.NoError(t, err)
+	assert.Len(t, inv.Objects, 2)
 }
 
 func TestExprFilterInAllInventory(t *testing.T) {
@@ -45,8 +45,8 @@ func TestExprFilterInAllInventory(t *testing.T) {
 	require.NoError(t, err)
 	svc := NewInventorySvc(gateway, testLog, f, model.GuestIP)
 	inv, err := svc.RetrieveInventory()
-	assert.NoError(t, err)
-	assert.Equal(t, 4, len(inv.Objects))
+	require.NoError(t, err)
+	assert.Len(t, inv.Objects, 4)
 }
 
 func TestFilterInInventory(t *testing.T) {
@@ -55,8 +55,8 @@ func TestFilterInInventory(t *testing.T) {
 	require.NoError(t, err)
 	svc := NewInventorySvc(gateway, testLog, f, model.GuestIP)
 	inv, err := svc.RetrieveInventory()
-	assert.NoError(t, err)
-	assert.True(t, len(inv.Objects) > 0)
+	require.NoError(t, err)
+	assert.Greater(t, len(inv.Objects), 0)
 }
 
 func TestFilterEmptyDC(t *testing.T) {
@@ -65,8 +65,8 @@ func TestFilterEmptyDC(t *testing.T) {
 	require.NoError(t, err)
 	svc := NewInventorySvc(gateway, testLog, f, model.GuestIP)
 	inv, err := svc.RetrieveInventory()
-	assert.NoError(t, err)
-	assert.True(t, len(inv.Objects) > 0)
+	require.NoError(t, err)
+	assert.Greater(t, len(inv.Objects), 0)
 }
 
 func TestRetrieveInventory(t *testing.T) {

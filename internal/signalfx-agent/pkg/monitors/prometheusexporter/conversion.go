@@ -30,17 +30,17 @@ func convertMetricFamily(mf *dto.MetricFamily) []*datapoint.Datapoint {
 	}
 	switch *mf.Type {
 	case dto.MetricType_GAUGE:
-		return makeSimpleDatapoints(*mf.Name, mf.Metric, sfxclient.GaugeF, gaugeExtractor)
+		return makeSimpleDatapoints(mf.GetName(), mf.GetMetric(), sfxclient.GaugeF, gaugeExtractor)
 	case dto.MetricType_COUNTER:
-		return makeSimpleDatapoints(*mf.Name, mf.Metric, sfxclient.CumulativeF, counterExtractor)
+		return makeSimpleDatapoints(mf.GetName(), mf.GetMetric(), sfxclient.CumulativeF, counterExtractor)
 	case dto.MetricType_UNTYPED:
-		return makeSimpleDatapoints(*mf.Name, mf.Metric, sfxclient.GaugeF, untypedExtractor)
+		return makeSimpleDatapoints(mf.GetName(), mf.GetMetric(), sfxclient.GaugeF, untypedExtractor)
 	case dto.MetricType_SUMMARY:
-		return makeSummaryDatapoints(*mf.Name, mf.Metric)
+		return makeSummaryDatapoints(mf.GetName(), mf.GetMetric())
 	// TODO: figure out how to best convert histograms, in particular the
 	// upper bound value
 	case dto.MetricType_HISTOGRAM:
-		return makeHistogramDatapoints(*mf.Name, mf.Metric)
+		return makeHistogramDatapoints(mf.GetName(), mf.GetMetric())
 	default:
 		return nil
 	}
@@ -49,7 +49,7 @@ func convertMetricFamily(mf *dto.MetricFamily) []*datapoint.Datapoint {
 func makeSimpleDatapoints(name string, ms []*dto.Metric, dpf dpFactory, e extractor) []*datapoint.Datapoint {
 	dps := make([]*datapoint.Datapoint, len(ms))
 	for i, m := range ms {
-		dps[i] = dpf(name, labelsToDims(m.Label), e(m))
+		dps[i] = dpf(name, labelsToDims(m.GetLabel()), e(m))
 	}
 	return dps
 }
@@ -57,7 +57,7 @@ func makeSimpleDatapoints(name string, ms []*dto.Metric, dpf dpFactory, e extrac
 func makeSummaryDatapoints(name string, ms []*dto.Metric) []*datapoint.Datapoint {
 	var dps []*datapoint.Datapoint
 	for _, m := range ms {
-		dims := labelsToDims(m.Label)
+		dims := labelsToDims(m.GetLabel())
 		s := m.GetSummary()
 		if s == nil {
 			continue
@@ -85,7 +85,7 @@ func makeSummaryDatapoints(name string, ms []*dto.Metric) []*datapoint.Datapoint
 func makeHistogramDatapoints(name string, ms []*dto.Metric) []*datapoint.Datapoint {
 	var dps []*datapoint.Datapoint
 	for _, m := range ms {
-		dims := labelsToDims(m.Label)
+		dims := labelsToDims(m.GetLabel())
 		h := m.GetHistogram()
 		if h == nil {
 			continue

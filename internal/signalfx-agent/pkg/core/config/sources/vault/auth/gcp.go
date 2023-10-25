@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"fmt"
+	"strconv"
 
 	gcpauth "github.com/hashicorp/vault-plugin-auth-gcp/plugin"
 	"github.com/hashicorp/vault/api"
@@ -61,7 +61,7 @@ func (ic *GCPConfig) GetToken(client *api.Client) (*api.Secret, error) {
 		data["credentials"] = *ic.Credentials
 	}
 	if ic.JWTExp != nil {
-		data["jwt_exp"] = fmt.Sprintf("%d", *ic.JWTExp)
+		data["jwt_exp"] = strconv.Itoa(*ic.JWTExp)
 	}
 	if ic.ServiceAccount != nil {
 		data["service_account"] = *ic.ServiceAccount

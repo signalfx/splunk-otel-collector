@@ -184,7 +184,7 @@ func TestNewFilters(t *testing.T) {
 				},
 			},
 		})
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 
 		assert.True(t, f.Matches(&datapoint.Datapoint{Metric: "disk.utilization"}))
 		assert.True(t, f.Matches(&datapoint.Datapoint{

@@ -7,11 +7,7 @@
   config:
     default:
       type: collectd/kafka
-      host: '`host`'
-      port: 7099
-      clusterName: testCluster
       extraMetrics: ["*"]
-      intervalSeconds: 1
       isolatedCollectd: true
   status:
     metrics:
@@ -29,3 +25,13 @@
             severity_text: info
             append_pattern: true
             body: The container is refusing kafka connections.
+      partial:
+        - regexp: "clusterName is a required field"
+          first_only: true
+          log_record:
+            severity_text: info
+            append_pattern: true
+            body: >-
+              Make sure your Kafka clusterName is correctly specified using the
+              `--set {{ configProperty "clusterName" "<clusterName>" }}` command or the
+              `{{ configPropertyEnvVar "clusterName" "<clusterName>" }}` environment variable. 

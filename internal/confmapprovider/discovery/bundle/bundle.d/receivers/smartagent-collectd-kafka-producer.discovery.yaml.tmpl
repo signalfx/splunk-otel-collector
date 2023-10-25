@@ -7,10 +7,7 @@
   config:
     default:
       type: collectd/kafka_producer
-      host: '`host`'
-      port: 8099
       extraMetrics: ["*"]
-      intervalSeconds: 1
       isolatedCollectd: true
   status:
     metrics:

@@ -11,11 +11,7 @@ smartagent/collectd/kafka_broker:
   config:
     default:
       type: collectd/kafka
-      host: '`host`'
-      port: 7099
-      clusterName: testCluster
       extraMetrics: ["*"]
-      intervalSeconds: 1
       isolatedCollectd: true
   status:
     metrics:
@@ -33,3 +29,13 @@ smartagent/collectd/kafka_broker:
             severity_text: info
             append_pattern: true
             body: The container is refusing kafka connections.
+      partial:
+        - regexp: "clusterName is a required field"
+          first_only: true
+          log_record:
+            severity_text: info
+            append_pattern: true
+            body: >-
+              Make sure your Kafka clusterName is correctly specified using the
+              `--set splunk.discovery.receivers.smartagent/collectd/kafka_broker.config.clusterName="<clusterName>"` command or the
+              `SPLUNK_DISCOVERY_RECEIVERS_smartagent_x2f_collectd_x2f_kafka_x5f_broker_CONFIG_clusterName="<clusterName>"` environment variable. 

@@ -20,7 +20,7 @@ type StringFilter interface {
 
 // StringMapFilter matches against the values of a map[string]string.
 type StringMapFilter interface {
-	Matches(stringMapeFilter map[string]string) bool
+	Matches(stringMapFilter map[string]string) bool
 }
 
 // BasicStringFilter will match if any one of the given strings is a match.

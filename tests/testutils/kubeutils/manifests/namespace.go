@@ -17,30 +17,19 @@ package manifests
 
 import "testing"
 
-type ConfigMap struct {
-	Namespace string
-	Name      string
-	Data      string
+type Namespace struct {
+	Name string
 }
 
-const configMapTemplate = `---
+const namespaceTemplate = `---
 apiVersion: v1
-kind: ConfigMap
+kind: Namespace
 metadata:
-{{- if .Name }}
   name: {{ .Name }}
-{{- end -}}
-{{- if .Namespace }}
-  namespace: {{ .Namespace }}
-{{- end }}
-data:
-{{- if .Data }}
-{{ .Data | indent 2 -}}
-{{ end }}
 `
 
-var cmm = Manifest[ConfigMap](configMapTemplate)
+var nm = Manifest[Namespace](namespaceTemplate)
 
-func (cm ConfigMap) Render(t testing.TB) string {
-	return cmm.Render(cm, t)
+func (n Namespace) Render(t testing.TB) string {
+	return nm.Render(n, t)
 }

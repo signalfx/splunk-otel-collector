@@ -44,7 +44,7 @@ func TestK8sObserver(t *testing.T) {
 	defer tc.ShutdownOTLPReceiverSink()
 
 	cluster := testCluster{kubeutils.NewKindCluster(tc)}
-	defer cluster.Delete()
+	defer cluster.Teardown()
 	cluster.Create()
 	cluster.LoadLocalCollectorImageIfNecessary()
 
@@ -223,10 +223,7 @@ service:
 		Name:      "collector.config",
 		Data:      string(data),
 	}
-	cmm, err := cm.Render()
-	require.NoError(cluster.Testcase, err)
-
-	sout, serr, err := cluster.Apply(cmm)
+	sout, serr, err := cluster.Apply(cm.Render(cluster.Testcase))
 	cluster.Testcase.Logger.Debug("applying ConfigMap", zap.String("stdout", sout.String()), zap.String("stderr", serr.String()))
 	require.NoError(cluster.Testcase, err)
 	return cm.Name
@@ -298,9 +295,7 @@ func (cluster testCluster) createClusterRoleAndRoleBinding(namespace, serviceAcc
 			},
 		},
 	}
-	crManifest, err := cr.Render()
-	require.NoError(cluster.Testcase, err)
-	sout, serr, err := cluster.Apply(crManifest)
+	sout, serr, err := cluster.Apply(cr.Render(cluster.Testcase))
 	cluster.Testcase.Logger.Debug("applying ClusterRole", zap.String("stdout", sout.String()), zap.String("stderr", serr.String()))
 	require.NoError(cluster.Testcase, err)
 
@@ -310,10 +305,7 @@ func (cluster testCluster) createClusterRoleAndRoleBinding(namespace, serviceAcc
 		ClusterRoleName:    cr.Name,
 		ServiceAccountName: serviceAccount,
 	}
-	crbManifest, err := crb.Render()
-	require.NoError(cluster.Testcase, err)
-
-	sout, serr, err = cluster.Apply(crbManifest)
+	sout, serr, err = cluster.Apply(crb.Render(cluster.Testcase))
 	cluster.Testcase.Logger.Debug("applying ClusterRoleBinding", zap.String("stdout", sout.String()), zap.String("stderr", serr.String()))
 	require.NoError(cluster.Testcase, err)
 }
@@ -381,9 +373,7 @@ func (cluster testCluster) daemonSetManifest(namespace, serviceAccount, configMa
 			},
 		},
 	}
-	dsm, err := ds.Render()
-	require.NoError(cluster.Testcase, err)
-	sout, serr, err := cluster.Apply(dsm)
+	sout, serr, err := cluster.Apply(ds.Render(cluster.Testcase))
 	cluster.Testcase.Logger.Debug("applying DaemonSet", zap.String("stdout", sout.String()), zap.String("stderr", serr.String()))
 	require.NoError(cluster.Testcase, err)
 	return ds.Name

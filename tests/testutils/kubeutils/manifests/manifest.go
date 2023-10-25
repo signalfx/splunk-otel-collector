@@ -18,9 +18,11 @@ package manifests
 import (
 	"bytes"
 	"strings"
+	"testing"
 	"text/template"
 
 	"github.com/Masterminds/sprig/v3"
+	"github.com/stretchr/testify/require"
 	"sigs.k8s.io/yaml"
 )
 
@@ -36,16 +38,13 @@ func Manifest[T any](template string) M[T] {
 
 // Render takes an instance of the type argument and renders the Manifest's
 // template w/ its fields.
-func (m M[T]) Render(t T) (string, error) {
+func (m M[T]) Render(t T, tb testing.TB) string {
 	out := &bytes.Buffer{}
 	tpl, err := template.New("").Funcs(funcMap()).Parse(m.template)
-	if err != nil {
-		return "", err
-	}
-	if err = tpl.Execute(out, t); err != nil {
-		return "", err
-	}
-	return out.String(), nil
+	require.NoError(tb, err)
+	err = tpl.Execute(out, t)
+	require.NoError(tb, err)
+	return out.String()
 }
 
 // funcMap provides all sprig functions with an additional k8s yaml helper.

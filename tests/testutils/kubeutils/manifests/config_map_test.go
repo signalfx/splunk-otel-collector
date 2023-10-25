@@ -34,8 +34,7 @@ func TestConfigMap(t *testing.T) {
     nested.key.two: nested.value.two`,
 	}
 
-	manifest, err := cm.Render()
-	require.NoError(t, err)
+	manifest := cm.Render(t)
 	require.Equal(t,
 		`---
 apiVersion: v1
@@ -54,8 +53,7 @@ data:
 
 func TestEmptyConfigMap(t *testing.T) {
 	cm := ConfigMap{}
-	manifest, err := cm.Render()
-	require.NoError(t, err)
+	manifest := cm.Render(t)
 	require.Equal(t,
 		`---
 apiVersion: v1

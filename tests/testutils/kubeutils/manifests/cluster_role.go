@@ -16,6 +16,8 @@
 package manifests
 
 import (
+	"testing"
+
 	rbacv1 "k8s.io/api/rbac/v1"
 )
 
@@ -51,6 +53,6 @@ rules:
 
 var crm = Manifest[ClusterRole](clusterRoleTemplate)
 
-func (cr ClusterRole) Render() (string, error) {
-	return crm.Render(cr)
+func (cr ClusterRole) Render(t testing.TB) string {
+	return crm.Render(cr, t)
 }

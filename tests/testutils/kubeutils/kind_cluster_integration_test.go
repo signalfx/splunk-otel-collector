@@ -44,7 +44,7 @@ func TestKindCluster(t *testing.T) {
 	cluster.ExposedPorts[portTwo] = 23456
 
 	defer func() {
-		cluster.Delete()
+		cluster.Teardown()
 
 		// confirm node unavailable
 		_, err := cluster.Clientset.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{})

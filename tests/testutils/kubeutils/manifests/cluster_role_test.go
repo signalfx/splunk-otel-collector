@@ -91,8 +91,7 @@ func TestClusterRole(t *testing.T) {
 			},
 		},
 	}
-	manifest, err := cr.Render()
-	require.NoError(t, err)
+	manifest := cr.Render(t)
 	require.Equal(t,
 		`---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -172,8 +171,7 @@ rules:
 
 func TestEmptyClusterRole(t *testing.T) {
 	cr := ClusterRole{}
-	manifest, err := cr.Render()
-	require.NoError(t, err)
+	manifest := cr.Render(t)
 	require.Equal(t,
 		`---
 apiVersion: rbac.authorization.k8s.io/v1

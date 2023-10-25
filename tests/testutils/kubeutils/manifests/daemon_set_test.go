@@ -71,8 +71,7 @@ func TestDaemonSet(t *testing.T) {
 		},
 	}
 
-	manifest, err := ds.Render()
-	require.NoError(t, err)
+	manifest := ds.Render(t)
 	require.Equal(t,
 		`---
 apiVersion: apps/v1
@@ -120,8 +119,7 @@ spec:
 
 func TestEmptyDaemonSet(t *testing.T) {
 	ds := DaemonSet{}
-	manifest, err := ds.Render()
-	require.NoError(t, err)
+	manifest := ds.Render(t)
 	require.Equal(t,
 		`---
 apiVersion: apps/v1

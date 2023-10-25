@@ -31,8 +31,7 @@ func TestClusterRoleBinding(t *testing.T) {
 		ClusterRoleName:    "some.cluster.role",
 		ServiceAccountName: "some.service.account",
 	}
-	manifest, err := crb.Render()
-	require.NoError(t, err)
+	manifest := crb.Render(t)
 	require.Equal(t,
 		`---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -71,8 +70,7 @@ func TestClusterRoleBindingWithRoleRefAndSubjects(t *testing.T) {
 			},
 		},
 	}
-	manifest, err := crb.Render()
-	require.NoError(t, err)
+	manifest := crb.Render(t)
 	require.Equal(t,
 		`---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -94,8 +92,7 @@ subjects:
 
 func TestEmptyClusterRoleBinding(t *testing.T) {
 	crb := ClusterRoleBinding{}
-	manifest, err := crb.Render()
-	require.NoError(t, err)
+	manifest := crb.Render(t)
 	require.Equal(t,
 		`---
 apiVersion: rbac.authorization.k8s.io/v1

@@ -31,13 +31,11 @@ func TestManifest(t *testing.T) {
 	}
 
 	man := Manifest[One]("{{.Thing}}")
-	manifest, err := man.Render(One{Thing: "thing"})
-	require.NoError(t, err)
+	manifest := man.Render(One{Thing: "thing"}, t)
 	require.Equal(t, "thing", manifest)
 
 	man = Manifest[One]("{{ .AnotherThing | upper }}")
-	manifest, err = man.Render(One{AnotherThing: "another.thing"})
-	require.NoError(t, err)
+	manifest = man.Render(One{AnotherThing: "another.thing"}, t)
 	require.Equal(t, "ANOTHER.THING", manifest)
 }
 
@@ -49,15 +47,14 @@ func TestK8sYaml(t *testing.T) {
 	man := Manifest[Thing](`container:
 {{ .Container | toYaml | indent 2 }}
 `)
-	manifest, err := man.Render(Thing{Container: corev1.Container{
+	manifest := man.Render(Thing{Container: corev1.Container{
 		Name:       "container-name",
 		Image:      "container-image",
 		Command:    []string{"container", "command"},
 		Args:       []string{"arg.one", "arg.two"},
 		WorkingDir: "/working/dir",
 		Ports:      []corev1.ContainerPort{{Name: "a.port", HostPort: 123, ContainerPort: 234, Protocol: corev1.ProtocolUDP, HostIP: "1.2.3.4"}},
-	}})
-	require.NoError(t, err)
+	}}, t)
 	require.Equal(t, `container:
   args:
   - arg.one

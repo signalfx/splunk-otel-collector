@@ -45,7 +45,7 @@ func TestK8sObserver(t *testing.T) {
 	defer tc.ShutdownOTLPReceiverSink()
 
 	cluster := kubeutils.NewKindCluster(tc)
-	defer cluster.Delete()
+	defer cluster.Teardown()
 	cluster.Create()
 	cluster.LoadLocalCollectorImageIfNecessary()
 
@@ -237,9 +237,7 @@ func configToConfigMapManifest(t testing.TB, cfg, namespace string) (name, manif
 		Name: "collector.config", Namespace: namespace,
 		Data: string(configYaml),
 	}
-	cmm, err := cm.Render()
-	require.NoError(t, err)
-	return cm.Name, cmm
+	return cm.Name, cm.Render(t)
 }
 
 func clusterRoleAndBindingManifests(t testing.TB, namespace, serviceAccount string) (string, string) {
@@ -308,8 +306,6 @@ func clusterRoleAndBindingManifests(t testing.TB, namespace, serviceAccount stri
 			},
 		},
 	}
-	crManifest, err := cr.Render()
-	require.NoError(t, err)
 
 	crb := manifests.ClusterRoleBinding{
 		Namespace:          namespace,
@@ -317,10 +313,8 @@ func clusterRoleAndBindingManifests(t testing.TB, namespace, serviceAccount stri
 		ClusterRoleName:    cr.Name,
 		ServiceAccountName: serviceAccount,
 	}
-	crbManifest, err := crb.Render()
-	require.NoError(t, err)
 
-	return crManifest, crbManifest
+	return cr.Render(t), crb.Render(t)
 }
 
 func daemonSetManifest(cluster *kubeutils.KindCluster, namespace, serviceAccount, configMap string) (name, manifest string) {
@@ -404,7 +398,5 @@ func daemonSetManifest(cluster *kubeutils.KindCluster, namespace, serviceAccount
 			},
 		},
 	}
-	dsm, err := ds.Render()
-	require.NoError(cluster.Testcase, err)
-	return ds.Name, dsm
+	return ds.Name, ds.Render(cluster.Testcase)
 }

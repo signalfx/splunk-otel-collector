@@ -104,7 +104,6 @@ jobs:
     needs: [docker-otelcol]
     strategy:
       matrix:
-        GOTESPLIT_INDEX: [ "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" ]
         ARCH: [ "amd64", "arm64" ]
       fail-fast: false
     steps:
@@ -126,8 +125,10 @@ jobs:
           image: tonistiigi/binfmt:qemu-v7.0.0
       - run: docker load -i ./bin/image.tar
       - run: chmod a+x ./bin/*
-      - run: make integration-test-split
+#      - name: Setup upterm session
+#        uses: lhotari/action-upterm@v1
+#        with:
+#           limit-access-to-actor: true
+      - run: make integration-test
         env:
           SPLUNK_OTEL_COLLECTOR_IMAGE: 'otelcol:latest'
-          GOTESPLIT_TOTAL: "${{ env.GOTESPLIT_TOTAL }}"
-          GOTESPLIT_INDEX: "${{ matrix.GOTESPLIT_INDEX }}"

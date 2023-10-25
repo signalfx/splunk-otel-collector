@@ -16,6 +16,8 @@
 package manifests
 
 import (
+	"testing"
+
 	rbacv1 "k8s.io/api/rbac/v1"
 )
 
@@ -70,6 +72,6 @@ subjects:
 
 var crbm = Manifest[ClusterRoleBinding](clusterRoleBindingTemplate)
 
-func (crb ClusterRoleBinding) Render() (string, error) {
-	return crbm.Render(crb)
+func (crb ClusterRoleBinding) Render(t testing.TB) string {
+	return crbm.Render(crb, t)
 }

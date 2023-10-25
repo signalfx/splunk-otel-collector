@@ -931,7 +931,6 @@ Uninstall:
                                         OpenTelemetry Auto Instrumentation packages, if installed.
 
 EOH
-  exit 0
 }
 
 distro_is_supported() {

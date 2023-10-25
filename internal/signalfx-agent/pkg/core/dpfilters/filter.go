@@ -13,7 +13,7 @@ import (
 type DatapointFilter interface {
 	// Matches takes a datapoint and returns whether it is matched by the
 	// filter
-	Matches(*datapoint.Datapoint) bool
+	Matches(dp *datapoint.Datapoint) bool
 }
 
 // BasicDatapointFilter is designed to filter SignalFx datapoint objects.  It

@@ -1206,6 +1206,7 @@ parse_args_and_install() {
             else
                 echo "Unknown instrumentation SDK $1" >&2
                 usage
+                exit 1
             fi
         done
         ;;
@@ -1218,6 +1219,7 @@ parse_args_and_install() {
             else
                 echo "Unknown instrumentation SDK $1" >&2
                 usage
+                exit 1
             fi
         done
         ;;

@@ -1217,8 +1217,8 @@ parse_args_and_install() {
             elif [[ "$lang" -eq "node" ]]; then
                 with_node_instrumentation="false"
             else
-                echo "Unknown instrumentation SDK $1" >&2
                 usage
+                echo "[ERROR] Unknown instrumentation SDK: $lang" >&2
                 exit 1
             fi
         done

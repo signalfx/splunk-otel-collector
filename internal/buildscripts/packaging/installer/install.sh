@@ -1209,6 +1209,7 @@ parse_args_and_install() {
                 exit 1
             fi
         done
+        shift 1
         ;;
       --without-instrumentation-sdk)
         echo "$2" | tr ',' '\n' | while read lang; do

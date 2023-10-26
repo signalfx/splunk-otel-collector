@@ -29,11 +29,11 @@ env:
 jobs:
   docker-otelcol:
     name: docker-otelcol
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
     strategy:
       matrix:
         ARCH: [ "amd64", "arm64" ]
+    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+    runs-on: ${{ matrix.ARCH == 'arm64' && 'ampere' || 'ubuntu-20.04'  }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -49,11 +49,6 @@ jobs:
           key: agent-bundle-buildx-${{ matrix.ARCH }}-${{ hashFiles('internal/signalfx-agent/bundle/**') }}
           restore-keys: |
             agent-bundle-buildx-${{ matrix.ARCH }}-
-      - uses: docker/setup-qemu-action@v3
-        if: ${{ matrix.ARCH != 'amd64' }}
-        with:
-          platforms: ${{ matrix.ARCH }}
-          image: tonistiigi/binfmt:qemu-v7.0.0
       - run: |
           make docker-otelcol ARCH=${{ matrix.ARCH }}
         env:
@@ -67,12 +62,12 @@ jobs:
 
   integration-vet:
     name: integration-vet
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
     strategy:
       matrix:
         ARCH: [ "amd64", "arm64" ]
       fail-fast: false
+    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+    runs-on: ${{ matrix.ARCH == 'arm64' && 'ampere' || 'ubuntu-20.04'  }}
     needs: [docker-otelcol]
     steps:
       - uses: actions/checkout@v4
@@ -86,11 +81,6 @@ jobs:
         with:
           name: otelcol-${{ matrix.ARCH }}
           path: ./bin
-      - uses: docker/setup-qemu-action@v3
-        if: ${{ matrix.ARCH != 'amd64' }}
-        with:
-          platforms: ${{ matrix.ARCH }}
-          image: tonistiigi/binfmt:qemu-v7.0.0
       - run: docker load -i ./bin/image.tar
       - run: chmod a+x ./bin/*
       - run: make integration-vet
@@ -99,14 +89,14 @@ jobs:
 
   integration-test:
     name: integration-test
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
     needs: [docker-otelcol]
     strategy:
       matrix:
         GOTESPLIT_INDEX: [ "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" ]
         ARCH: [ "amd64", "arm64" ]
       fail-fast: false
+    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+    runs-on: ${{ matrix.ARCH == 'arm64' && 'ampere' || 'ubuntu-20.04'  }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -119,11 +109,6 @@ jobs:
         with:
           name: otelcol-${{ matrix.ARCH }}
           path: ./bin
-      - uses: docker/setup-qemu-action@v3
-        if: ${{ matrix.ARCH != 'amd64' }}
-        with:
-          platforms: ${{ matrix.ARCH }}
-          image: tonistiigi/binfmt:qemu-v7.0.0
       - run: docker load -i ./bin/image.tar
       - run: chmod a+x ./bin/*
       - run: make integration-test-split

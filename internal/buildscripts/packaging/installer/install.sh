@@ -1212,7 +1212,7 @@ parse_args_and_install() {
         shift 1
         ;;
       --without-instrumentation-sdk)
-        echo "$2" | tr ',' '\n' | while read lang; do
+        for lang in $(echo "$2" | tr ',' ' '); do
             if [ "$lang" = "java" ]; then
                 with_java_instrumentation="false"
             elif [ "$lang" = "node" ]; then

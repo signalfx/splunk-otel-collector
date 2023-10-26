@@ -1199,9 +1199,9 @@ parse_args_and_install() {
         with_java_instrumentation="false"
         with_node_instrumentation="false"
         for lang in $(echo "$2" | tr ',' ' '); do
-            if [[ "$lang" -eq "java" ]]; then
+            if [ "$lang" = "java" ]; then
                 with_java_instrumentation="true"
-            elif [[ "$lang" -eq "node" ]]; then
+            elif [ "$lang" = "node" ]; then
                 with_node_instrumentation="true"
             else
                 usage

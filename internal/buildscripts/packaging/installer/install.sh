@@ -1223,6 +1223,7 @@ parse_args_and_install() {
                 exit 1
             fi
         done
+        shift 1
         ;;
       --npm-command)
         npm_command="$2"

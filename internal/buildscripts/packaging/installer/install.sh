@@ -1213,9 +1213,9 @@ parse_args_and_install() {
         ;;
       --without-instrumentation-sdk)
         echo "$2" | tr ',' '\n' | while read lang; do
-            if [[ "$lang" -eq "java" ]]; then
+            if [ "$lang" = "java" ]; then
                 with_java_instrumentation="false"
-            elif [[ "$lang" -eq "node" ]]; then
+            elif [ "$lang" = "node" ]; then
                 with_node_instrumentation="false"
             else
                 usage

@@ -18,6 +18,7 @@ package tests
 
 import (
 	"path"
+	"runtime"
 	"testing"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
@@ -28,12 +29,18 @@ var activemq = []testutils.Container{testutils.NewContainer().WithContext(
 ).WithExposedPorts("1099:1099").WithName("activemq").WillWaitForPorts("1099")}
 
 func TestCollectdActiveMQReceiverProvidesAllMetrics(t *testing.T) {
+	if runtime.GOARCH == "arm64" {
+		t.Skip("Docker image incompatible with arm64, skipping")
+	}
 	testutils.AssertAllMetricsReceived(
 		t, "all.yaml", "all_metrics_config.yaml", activemq, nil,
 	)
 }
 
 func TestCollectdActiveMQReceiverProvidesDefaultMetrics(t *testing.T) {
+	if runtime.GOARCH == "arm64" {
+		t.Skip("Docker image incompatible with arm64, skipping")
+	}
 	testutils.AssertAllMetricsReceived(
 		t, "default.yaml", "default_metrics_config.yaml", activemq, nil,
 	)

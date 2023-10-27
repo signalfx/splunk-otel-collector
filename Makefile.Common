@@ -17,7 +17,6 @@ else
 	NUM_CORES := $(shell getconf _NPROCESSORS_ONLN)
 endif
 
-
 # SRC_ROOT is the top of the source tree.
 SRC_ROOT := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
 

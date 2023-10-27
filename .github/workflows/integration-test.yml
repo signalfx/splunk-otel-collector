@@ -12,7 +12,7 @@ on:
       - 'pkg/**'
       - 'tests/**'
       - 'Makefile'
-      - 'Makefile.common'
+      - 'Makefile.Common'
       - 'go.mod'
       - 'go.sum'
       - '!**.md'

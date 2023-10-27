@@ -17,7 +17,7 @@ on:
       - 'internal/buildscripts/packaging/tests/requirements.txt'
       - 'internal/signalfx-agent/bundle/**'
       - 'Makefile'
-      - 'Makefile.common'
+      - 'Makefile.Common'
       - '!**.md'
 
 concurrency:

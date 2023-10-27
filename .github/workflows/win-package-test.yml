@@ -14,7 +14,7 @@ on:
       - 'internal/buildscripts/packaging/msi/**'
       - 'internal/signalfx-agent/bundle/**'
       - 'Makefile'
-      - 'Makefile.common'
+      - 'Makefile.Common'
       - 'tests/zeroconfig/windows/**'
       - '!**.md'
 
@@ -149,7 +149,7 @@ jobs:
 
       - uses: actions/setup-dotnet@v3.2.0
         with:
-          dotnet-version: | 
+          dotnet-version: |
             6.0.407
 
       - name: Download Splunk OTel Collector msi

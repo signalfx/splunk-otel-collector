@@ -12,7 +12,7 @@ on:
       - 'pkg/**'
       - 'tests/**'
       - 'Makefile'
-      - 'Makefile.common'
+      - 'Makefile.Common'
       - 'go.mod'
       - 'go.sum'
       - '!**.md'
@@ -167,7 +167,7 @@ jobs:
           mkdir -p unit-test-results/junit
           trap "go-junit-report  -set-exit-code < unit-test-results/go-unit-tests.out > unit-test-results/junit/results.xml" EXIT
           make for-all CMD="make test" | tee unit-test-results/go-unit-tests.out
-      
+
       - name: Uploading artifacts
         uses: actions/upload-artifact@v3
         with:
@@ -193,7 +193,7 @@ jobs:
         run: |
           make install-tools
           make test-with-cover
-      
+
       - name: Uploading artifacts
         uses: actions/upload-artifact@v3
         with:
@@ -226,7 +226,7 @@ jobs:
       - name: Build Collector
         run: |
           make ${{ matrix.SYS_BINARIES }}
-      
+
       - name: Uploading binaries
         uses: actions/upload-artifact@v3
         with:

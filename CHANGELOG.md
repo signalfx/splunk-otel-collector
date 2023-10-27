@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v0.87.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.87.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.87.0) and the [opentelemetry-collector-contrib v0.87.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.87.0) releases where appropriate.
+
 ### 🛑 Breaking changes 🛑
 
 - (Splunk) Auto Instrumentation for Linux ([#3791](https://github.com/signalfx/splunk-otel-collector/pull/3791)):
@@ -21,6 +25,16 @@
     - Chef: `auto_instrumentation_version`
     - Puppet: `auto_instrumentation_version`
     - Salt: `auto_instrumentation_version`
+- (Contrib) `kubeletstatsreceiver`: Fixes a bug where the "insecure_skip_verify" config was not being honored when "auth_type" is "serviceAccount" in kubelet client. ([#26319](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/26319))
+  - Before the fix, the kubelet client was not verifying kubelet's certificate. The default value of the config is false,
+    so with the fix the client will start verifying tls cert unless the config is explicitly set to true.
+- (Contrib) `tailsamplingprocessor`: Improve counting for the `count_traces_sampled` metric ([#25882](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/25882))
+- (Contrib) `extension/filestorage`: Replace path-unsafe characters in component names ([#3148](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/3148))
+
+### 🚀 New components 🚀
+
+- (Splunk) Add the loadbalancing exporter to the distribution ([#3825](https://github.com/signalfx/splunk-otel-collector/pull/3825))
+- (Splunk) Add UDP log receiver ([#3826](https://github.com/signalfx/splunk-otel-collector/pull/3826))
 
 ### 🚩 Deprecations 🚩
 
@@ -41,19 +55,42 @@
   - Initial support for [Splunk OpenTelemetry Auto Instrumentation for Node.js](https://github.com/signalfx/splunk-otel-js):
     - Activated by default if the `--with-instrumentation` or `--with-systemd-instrumentation` option is specified.
     - Use the `--without-instrumentation-sdk node` option to explicitly skip Node.js.
-    - `npm` is required to install the Node.js Auto Instrumentation package. If the `npm` is not installed, Node.js will
+    - `npm` is required to install the Node.js Auto Instrumentation package. If `npm` is not installed, Node.js will
       be skipped automatically.
     - By default, the Node.js Auto Instrumentation package is installed with the `npm install --global` command. Use the
       `--npm-command "<command>"` option to specify a custom command.
+    - Environment variables to activate and configure Node.js auto instrumentation are added to `/etc/splunk/zeroconfig/node.conf` (for `--with-instrumentation`) or
+      `/usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf` (for `--with-systemd-instrumentation`) based on defaults and specified installation options.
   - Auto Instrumentation for Java is also activated by default if the `--with-instrumentation` or
     `--with-systemd-instrumentation` option is specified. Use the `--without-instrumentation-sdk java` option to skip Java.
   - `--otlp-endpoint host:port`: Set the OTLP gRPC endpoint for captured traces (default: `http://LISTEN_INTERFACE:4317`
     where `LISTEN_INTERFACE` is the value from the `--listen-interface` option if specified, or `127.0.0.1` otherwise)
   - See [Linux Installer Script](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/getting-started/linux-installer.md)
     for more details.
-- (Splunk) Add the loadbalancing exporter to the distribution ([#3825](https://github.com/signalfx/splunk-otel-collector/pull/3825))
-- (Splunk) Add UDP log receiver ([#3826](https://github.com/signalfx/splunk-otel-collector/pull/3826))
+- (Splunk) Update splunk-otel-javaagent to [v1.29.0](https://github.com/signalfx/splunk-otel-java/releases/tag/v1.29.0) ([#3788](https://github.com/signalfx/splunk-otel-collector/pull/3788))
+- (Splunk) Redis discovery ([#3731](https://github.com/signalfx/splunk-otel-collector/pull/3731))
+- (Splunk) Update Bundled OpenJDK to [11.0.21+9](https://github.com/adoptium/temurin11-binaries/releases/tag/jdk-11.0.21%2B9) ([#3819](https://github.com/signalfx/splunk-otel-collector/pull/3819))
+- (Splunk) Oracledb discovery tweaks (remove static endpoint) ([#3836](https://github.com/signalfx/splunk-otel-collector/pull/3836))
+- (Contrib) `probabilisticsamplerprocessor`: Allow non-bytes values to be used as the source for the sampling decision ([#18222](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/18222))
+- (Contrib) `kafkareceiver`: Allow users to attach kafka header metadata with the log/metric/trace record in the pipeline. Introduce a new config param, 'header_extraction' and some examples. ([#24367](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/24367))
+- (Contrib) `kafkaexporter`: Adding Zipkin encoding option for traces to kafkaexporter ([#21102](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/21102))
+- (Contrib) `kubeletstatsreceiver`: Support specifying context for `kubeConfig` `auth_type` ([#26665](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/26665))
+- (Contrib) `kubeletstatsreceiver`: Adds new `k8s.pod.cpu_limit_utilization`, `k8s.pod.cpu_request_utilization`, `k8s.container.cpu_limit_utilization`, and `k8s.container.cpu_request_utilization` metrics that represent the ratio of cpu used vs set limits and requests. ([#27276](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/27276))
+- (Contrib) `kubeletstatsreceiver`: Adds new `k8s.pod.memory_limit_utilization`, `k8s.pod.memory_request_utilization`, `k8s.container.memory_limit_utilization`, and `k8s.container.memory_request_utilization` metrics that represent the ratio of memory used vs set limits and requests. ([#25894](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/25894))
+- (Core) `service/telemetry exporter/exporterhelper`: Enable sampling logging by default and apply it to all components. ([#8134](https://github.com/open-telemetry/opentelemetry-collector/pull/8134]))
+  - The sampled logger configuration can be disabled easily by setting the `service::telemetry::logs::sampling::enabled` to `false`.
 
+### 🧰 Bug fixes 🧰
+
+- (Contrib) `spanmetricsprocessor`: Prune histograms when dimension cache is pruned. ([#27080](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27080))
+  - Dimension cache was always pruned but histograms were not being pruned. This caused metric series created
+    by processor/spanmetrics to grow unbounded.
+- (Contrib) `splunkhecreceiver`: Fix receiver behavior when used for metrics and logs at the same time; metrics are no longer dropped. ([#27473](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27473))
+- (Contrib) `metricstransformprocessor`: Fixes a nil pointer dereference when copying an exponential histogram ([#27409](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27409))
+- (contrib) `k8sclusterreceiver`: change k8s.container.ready, k8s.pod.phase, k8s.pod.status_reason, k8s.namespace.phase units to empty ([#10553](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/10553))
+- (Contrib) `k8sclusterreceiver`: Change k8s.node.condition* metric units to empty ([#10553](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/10553))
+- (Contrib) `syslogreceiver`: Fix issue where long tokens would be truncated prematurely ([#27294](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/27294))
+- (Core) `telemetry`: remove workaround to ignore errors when an instrument includes a `/` ([#8346](https://github.com/open-telemetry/opentelemetry-collector/issues/8346))
 
 ## v0.86.0
 

@@ -874,6 +874,8 @@ Auto Instrumentation:
   --with[out]-instrumentation-sdk "<s>" Whether to enable Auto Instrumentation for a specific language. This option
                                         takes a comma separated set of values representing supported
                                         auto-instrumentation SDKs. Currently supported: java,node.
+                                        Use --with-instrumentation-sdk to enable only the specified language(s),
+                                        for example "--with-instrumentation-sdk java".
                                         (default: --with-instrumentation-sdk "java,node" if --with-instrumentation or
                                         --with-systemd-instrumentation is also specified)
   --npm-command "<command>"             If Auto Instrumentation for Node.js is enabled, npm is required to install the

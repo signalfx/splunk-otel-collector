@@ -9,11 +9,11 @@ import (
 // Emitter interface to telegraf accumulator for processing metrics from
 // telegraf
 type Emitter interface {
-	// Add is a function used by the telegraf accumulator to emit events
-	// through the agent.  Pleaes note that if the emitter is a BatchEmitter
+	// AddMetric Add is a function used by the telegraf accumulator to emit events
+	// through the agent.  Please note that if the emitter is a BatchEmitter
 	// you will have to invoke the Send() function to send the batch of
 	// datapoints and events collected by the Emit function
-	AddMetric(telegraf.Metric)
+	AddMetric(m telegraf.Metric)
 	// AddTag adds a key/value pair to all measurement tags.  If a key conflicts
 	// the key value pair in AddTag will override the original key on the
 	// measurement

@@ -27,4 +27,4 @@ jobs:
           branch: main
           path-to-signatures: signatures/version1/cla.json
           path-to-document: https://github.com/splunk/cla-agreement/blob/main/CLA.md
-          allowlist: dependabot[bot],renovate[bot]
+          allowlist: dependabot[bot],renovate[bot],srv-gh-o11y-gdi

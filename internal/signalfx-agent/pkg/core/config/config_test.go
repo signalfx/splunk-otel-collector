@@ -20,10 +20,10 @@ func TestWriterOutputValidation(t *testing.T) {
 				{ProcPath: "/proc"},
 			},
 		}
-		require.Nil(t, defaults.Set(c))
+		require.NoError(t, defaults.Set(c))
 
 		err := c.validate()
-		require.NotNil(t, err)
+		require.Error(t, err)
 		require.Contains(t, err.Error(), "output are disabled")
 	})
 
@@ -37,9 +37,9 @@ func TestWriterOutputValidation(t *testing.T) {
 				{ProcPath: "/proc"},
 			},
 		}
-		require.Nil(t, defaults.Set(c))
+		require.NoError(t, defaults.Set(c))
 
 		err := c.validate()
-		require.Nil(t, err)
+		require.NoError(t, err)
 	})
 }

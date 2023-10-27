@@ -108,9 +108,9 @@ func TestBasicStringFilter(t *testing.T) {
 	} {
 		f, err := NewBasicStringFilter(tc.filter)
 		if tc.shouldError {
-			assert.NotNil(t, err, spew.Sdump(tc))
+			assert.Error(t, err, spew.Sdump(tc))
 		} else {
-			assert.Nil(t, err, spew.Sdump(tc))
+			assert.NoError(t, err, spew.Sdump(tc))
 		}
 
 		assert.Equal(t, tc.shouldMatch, f.Matches(tc.input), "%s\n%s", spew.Sdump(tc), spew.Sdump(f))
@@ -196,9 +196,9 @@ func TestStringMapFilter(t *testing.T) {
 	} {
 		f, err := NewStringMapFilter(tc.filter)
 		if tc.shouldError {
-			assert.NotNil(t, err, spew.Sdump(tc))
+			assert.Error(t, err, spew.Sdump(tc))
 		} else {
-			assert.Nil(t, err, spew.Sdump(tc))
+			assert.NoError(t, err, spew.Sdump(tc))
 		}
 
 		assert.Equal(t, tc.shouldMatch, f.Matches(tc.input), "%s\n%s", spew.Sdump(tc), spew.Sdump(f))

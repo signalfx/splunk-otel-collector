@@ -132,9 +132,9 @@ func TestOverridableStringFilter(t *testing.T) {
 	} {
 		f, err := NewOverridableStringFilter(tc.filter)
 		if tc.shouldError {
-			assert.NotNil(t, err, spew.Sdump(tc))
+			assert.Error(t, err, spew.Sdump(tc))
 		} else {
-			assert.Nil(t, err, spew.Sdump(tc))
+			assert.NoError(t, err, spew.Sdump(tc))
 		}
 		for i := range tc.inputs {
 			assert.Equal(t, tc.shouldMatch[i], f.Matches(tc.inputs[i]), "input[%d] of %s\n%s", i, spew.Sdump(tc), spew.Sdump(f))

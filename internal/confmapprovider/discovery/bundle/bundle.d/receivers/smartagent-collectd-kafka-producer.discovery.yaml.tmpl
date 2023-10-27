@@ -19,9 +19,15 @@
             body: smartagent/collectd/kafka_producer receiver is working!
     statements:
       failed:
-        - regexp: "kafka plugin: Failed to connect to database .* at server .* Can't connect to kafka server on .* [(]111[)]"
+        - regexp: "Creating MBean server connection failed"
           first_only: true
           log_record:
             severity_text: info
             append_pattern: true
-            body: The container is refusing kafka connections.
+            body: The container is unable to connnect to the MBean server to retreive kafka metrics.
+        - regexp: "java.rmi.UnknownHostException: Unknown host"
+          first_only: true
+          log_record:
+            severity_text: info
+            append_pattern: true
+            body: Kafka host was discovered but is unresolvable.

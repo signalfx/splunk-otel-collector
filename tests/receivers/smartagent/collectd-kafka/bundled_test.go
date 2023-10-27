@@ -69,7 +69,7 @@ func TestBrokerMetrics(t *testing.T) {
 				"SPLUNK_DISCOVERY_LOG_LEVEL": "debug",
 			}).WithArgs(
 				"--discovery",
-				"--set", "splunk.discovery.receivers.smartagent/collectd/kafka_broker.config.clusterName==testCluster",
+				"--set", "splunk.discovery.receivers.smartagent/collectd/kafka_broker.config.clusterName=testCluster",
 				"--set", `splunk.discovery.extensions.k8s_observer.enabled=false`,
 				"--set", `splunk.discovery.extensions.host_observer.enabled=false`,
 			)

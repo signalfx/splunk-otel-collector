@@ -19,6 +19,7 @@ package tests
 
 import (
 	"path"
+	"runtime"
 	"testing"
 	"time"
 
@@ -34,6 +35,9 @@ var oracledb = []testutils.Container{testutils.NewContainer().WithContext(
 // This test ensures the collector can connect to an Oracle DB, and properly get metrics. It's not intended to
 // test the receiver itself.
 func TestOracleDBIntegration(t *testing.T) {
+	if runtime.GOARCH == "arm64" {
+		t.Skip("Docker image incompatible with arm64, skipping")
+	}
 	testutils.AssertAllMetricsReceived(t, "all.yaml", "all_metrics_config.yaml",
 		oracledb, []testutils.CollectorBuilder{
 			func(collector testutils.Collector) testutils.Collector {

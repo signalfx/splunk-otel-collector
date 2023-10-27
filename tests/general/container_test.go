@@ -19,6 +19,7 @@ package tests
 import (
 	"fmt"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -162,6 +163,9 @@ service:
 
 // This test also exercises collectd binary usage and managed config writing
 func TestNonDefaultGIDCanAccessJavaInAgentBundle(t *testing.T) {
+	if runtime.GOARCH == "arm64" {
+		t.Skip("Docker image incompatible with arm64, skipping")
+	}
 	testutils.SkipIfNotContainerTest(t)
 	testutils.AssertAllMetricsReceived(t, "activemq.yaml", "activemq_config.yaml",
 		[]testutils.Container{testutils.NewContainer().WithContext(

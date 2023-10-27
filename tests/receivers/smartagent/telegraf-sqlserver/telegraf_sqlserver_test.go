@@ -18,12 +18,16 @@ package tests
 
 import (
 	"path"
+	"runtime"
 	"testing"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
 func TestTelegrafSQLServerReceiverProvidesAllMetrics(t *testing.T) {
+	if runtime.GOARCH == "arm64" {
+		t.Skip("Docker image incompatible with arm64, skipping")
+	}
 	server := testutils.NewContainer().WithContext(
 		path.Join(".", "testdata", "server"),
 	).WithExposedPorts("1433:1433").WithName("sql-server").WithNetworks(

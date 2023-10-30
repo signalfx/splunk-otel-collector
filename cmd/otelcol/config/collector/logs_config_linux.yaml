@@ -1,0 +1,740 @@
+# Example configuration file for logs collection.
+
+# If the collector is installed without the Linux/Windows installer script, the following
+# environment variables are required to be manually defined or configured below:
+# - SPLUNK_ACCESS_TOKEN: The Splunk access token to authenticate requests
+# - SPLUNK_HEC_TOKEN: The Splunk HEC authentication token
+# - SPLUNK_HEC_URL: The Splunk HEC endpoint URL, e.g. https://ingest.us0.signalfx.com/v1/log
+# - SPLUNK_INGEST_URL: The Splunk ingest URL, e.g. https://ingest.us0.signalfx.com
+# - SPLUNK_LISTEN_INTERFACE: The network interface the agent receivers listen on.
+# - SPLUNK_BALLAST_SIZE_MIB: This size of the ballast which should be 1/3 to 1/2 of memory allocated
+# - SPLUNK_MEMORY_LIMIT_MIB: 90% of memory allocated
+
+receivers:
+  # Receivers for tailing and parsing log files coming from various services.
+  #
+  # The 'regex_parser' operator parses a log entry body. Using named capturing
+  # regex groups -- (?<name>pattern) syntax -- the operator assigns one or more
+  # attributes using values that were captured by corresponding capture groups
+  # (see https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/pkg/stanza/docs/operators/regex_parser.md)
+  #
+  # The 'timestamp' operator sets the timestamp on a log entry by parsing a
+  # textual date-and-time value from one of the attributes
+  # (see https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/pkg/stanza/docs/operators/time_parser.md).
+  #
+  # Similarly, the 'severity' operator sets the severity on a log entry by
+  # parsing a value from one of the attributes
+  # (see https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/pkg/stanza/docs/operators/severity_parser.md).
+  #
+  # The 'retain' operator allows us to select which attributes we want to keep.
+  # Attributes not listed will be removed from the log entry.
+  # If the 'retain' operator is not used, then all attributes are kept.
+  #
+  # For a filelog receiver to be enabled it must be listed in the 'service' block
+  # at the end of this file.
+
+  # Apache access log.
+  # Configured using the LogFormat directive.
+  # By default, date and time are in the 'day/Month/year:hour:minute:second zone' format.
+  # See https://httpd.apache.org/docs/current/mod/mod_log_config.html#logformat
+  filelog/apache-access:
+    include: [ "/var/log/apache*/access.log", "/var/log/apache*/access_log", "/var/log/httpd/access.log", "/var/log/httpd/access_log" ]
+    operators:
+      - type: regex_parser
+        regex: '^(?P<host>.+) (?P<remote_logname>.+) (?P<user>.+) \[(?P<time>.+)\] "(?P<method>.+) (?P<path>.+) (?P<protocol>.+)" (?P<code>\d+) (?P<size>\d+) "(?P<referer>.+)" "(?P<agent>.+)"$'
+        timestamp:
+          parse_from: attributes.time
+          layout: '%d/%b/%Y:%H:%M:%S %z'
+    include_file_name: false
+    include_file_path: true
+    storage: file_storage/filelogs
+
+  # Apache error log.
+  # Configured using the ErrorLogFormat directive.
+  # By default, date and time are in the locale-specific representation (%c in strftime).
+  # See https://httpd.apache.org/docs/current/mod/core.html#errorlogformat
+  filelog/apache-error:
+    include: [ "/var/log/apache*/error.log", "/var/log/apache*/error_log", "/var/log/httpd/error.log", "/var/log/httpd/error_log" ]
+    operators:
+      - type: regex_parser
+        regex: '^\[(?P<time>.+?)\] \[(?P<module>\w+):(?P<level>\w+)\] \[pid (?P<pid>\d+):tid (?P<tid>\d+)\] (?P<log>.*)$'
+        timestamp:
+          parse_from: attributes.time
+          layout: '%c' # locale specific
+        severity:
+          parse_from: attributes.level
+          mapping:
+            fatal: emerg
+            error3: alert
+            error2: crit
+            info2: notice
+      - type: move
+        from: attributes.log
+        to: body
+      - type: retain
+        fields:
+          - attributes.module
+          - attributes["log.file.path"]
+    include_file_name: false
+    include_file_path: true
+    storage: file_storage/filelogs
+
+  # Apache Cassandra default log.
+  # Configured in /etc/cassandra/logback.xml, SYSTEMLOG appender section.
+  # Default date and time format is ISO-8601 (year-month-day hour:minute:second).
+  # See https://cassandra.apache.org/doc/latest/cassandra/troubleshooting/reading_logs.html
+  filelog/cassandra:
+    include: [ "/var/log/cassandra/cassandra.log", "/var/log/cassandra/system.log" ]
+    multiline:
+      line_start_pattern: '^[A-Z]+\s+\[[\w:]+\]\s\d'
+    operators:
+      - type: regex_parser
+        regex: '^(?P<level>\w+) +\[(?P<thread>[\w:]+)\] (?P<time>.+) (?P<source_file>\S+):(?P<source_line>\d+) - (?P<log>[\s\S]*)$'
+        timestamp:
+          parse_from: attributes.time
+          layout: "%Y-%m-%d %H:%M:%S"
+        severity:
+          parse_from: attributes.level
+      - type: move
+        from: attributes.log
+        to: body
+      - type: retain
+        fields:
+          - attributes.thread
+          - attributes["log.file.path"]
+    include_file_name: false
+    include_file_path: true
+    storage: file_storage/filelogs
+
+  # Apache Cassandra debug log. Contains additional debugging information.
+  # Configured in /etc/cassandra/logback.xml, DEBUGLOG appender section.
+  # Default date and time format is ISO-8601 (year-month-day hour:minute:second).
+  # See https://cassandra.apache.org/doc/latest/cassandra/troubleshooting/reading_logs.html
+  filelog/cassandra-debug:
+    include: [ "/var/log/cassandra/debug.log" ]
+    multiline:
+      line_start_pattern: '^[A-Z]+\s+\[[\w:]+\]\s\d'
+    operators:
+      - type: regex_parser
+        regex: '^(?P<level>\w+) +\[(?P<thread>[\w:]+)\] (?P<time>.+) (?P<source_file>\S+):(?P<source_line>\d+) - (?P<log>[\s\S]*)$'
+        timestamp:
+          parse_from: attributes.time
+          layout: "%Y-%m-%d %H:%M:%S"
+        severity:
+          parse_from: attributes.level
+      - type: move
+        from: attributes.log
+        to: body
+      - type: retain
+        fields:
+          - attributes.thread
+          - attributes["log.file.path"]
+    include_file_name: false
+    include_file_path: true
+    storage: file_storage/filelogs
+
+  # This file is written if Cassandra process' standard output stream (stdout)
+  # is redirected to a file.
+  filelog/cassandra-output:
+    include: [ "/var/log/cassandra/output.log" ]
+    include_file_name: false
+    include_file_path: true
+    storage: file_storage/filelogs
+
+  # Docker container logs.
+  # If the default json-file logging driver is used, Docker will store container
+  # stdout and stderr output on the host filesystem as JSON files.
+  # See https://docs.docker.com/config/containers/logging/configure
+  filelog/docker:
+    include: [ "/var/lib/docker/containers/*/*-json.log" ]
+    operators:
+      - type: json_parser
+        timestamp:
+          parse_from: attributes.time
+          layout: '%Y-%m-%dT%H:%M:%S.%fZ'
+      - type: move
+        from: attributes.log
+        to: body
+      - type: retain
+        fields:
+          - attributes.stream
+          - attributes["log.file.path"]
+    include_file_name: false
+    include_file_path: true
+    storage: file_storage/filelogs
+
+  # Etcd versions 3.4 and prior are loging using the capnslog library.
+  # (https://etcd.io/docs/v3.4/dev-internal/logging/).
+  # Versions 3.5 and later are logging using the zap library
+  # (https://etcd.io/docs/v3.5/dev-internal/logging/).
+  filelog/etcd:
+    include: [ "/var/log/etcd.log" ]
+    operators:
+      - type: regex_parser
+        regex: '^(?P<time>.+?) (?P<level>\w) \| (?P<log>.*)$'
+        timestamp:
+          parse_from: attributes.time
+          layout: "%Y-%m-%d %H:%M:%S"
+        severity:
+          parse_from: attributes.level
+          mapping:
+            fatal: C
+            error: E
+            warning: W
+            info2: N
+            info: I
+            debug: D
+            trace: T
+      - type: move
+        from: attributes.log
+        to: body
+      - type: retain
+        fields:
+          - attributes["log.file.path"]
+    include_file_name: false
+    include_file_path: true
+    storage: file_storage/filelogs
+
+  # Jetty default log.
+  # By default, Jetty will log to standard error stream (stderr). To redirect
+  # this output to a log file, the console-capture module should be enabled.
+  # This will create files named yyyy_mm_dd.jetty.log in the log firectory
+  # (default is /var/log/jetty9/).
+  # See https://eclipse.dev/jetty/documentation/jetty-9/index.html#configuring-logging
+  # for more information on Jetty9 logging.
+  filelog/jetty9:
+    include: [ "/var/log/jetty9/*.jetty.log" ]
+    operators:
+      - type: regex_parser
+        regex: '^(?P<time>[\d-]{10} [\d:.]{12}):(?P<level>\w+):(?P<class>[\w.]+):(?P<thread>[\w:]+?): (?P<log>.*)$'
+        timestamp:
+          parse_from: attributes.time
+          layout: '%Y-%m-%d %H:%M:%S.%L'
+        severity:
+          parse_from: attributes.level
+      - type: move
+        from: attributes.log
+        to: body
+      - type: retain
+        fields:
+          - attributes["log.file.path"]
+    include_file_name: false
+    include_file_path: true
+    storage: file_storage/filelogs
+
+  # Jetty debug log.
+  # Enabled with the jetty-debuglog module.
+  filelog/jetty9-debug:
+    include: [ "/var/log/jetty9/*.debug.log" ]
+    operators:
+      - type: regex_parser
+        regex: '^(?P<time>\d{2}:\d{2}:\d{2}\.\d{3}):(?P<log>.*)$'
+        timestamp:
+          parse_from: attributes.time
+          layout: '%H:%M:%S.%L'
+      - type: move
+        from: attributes.log
+        to: body
+      - type: retain
+        fields:
+          - attributes["log.file.path"]
+    include_file_name: false
+    include_file_path: true
+    storage: file_storage/filelogs
+
+  # Jetty request logs.
+  # Enabled with the jetty-requestlog module.
+  # Request logs are in standard NCSA Common Log Format.
+  filelog/jetty9-request:
+    include: [ "/var/log/jetty9/*.request.log" ]
+    operators:
+      - type: regex_parser
+        regex: '^(?P<host>.+) (?P<remote_logname>.+) (?P<user>.+) \[(?P<time>.+)\] "(?P<method>.+) (?P<path>.+) (?P<protocol>.+)" (?P<code>\d+) (?P<size>\d+)$'
+        timestamp:
+          parse_from: attributes.time
+          layout: '%d/%b/%Y:%H:%M:%S %z'
+    include_file_name: false
+    include_file_path: true
+    storage: file_storage/filelogs
+
+  # Memcached.
+  filelog/memcached:
+    include: [ "/var/log/memcached.log" ]
+    include_file_name: false
+    include_file_path: true
+    storage: file_storage/filelogs
+
+  # MongoDB v4.4 and later outputs all log messages in a structured JSON format.
+  # See https://www.mongodb.com/docs/manual/reference/log-messages/
+  filelog/mongodb:
+    include: [ "/var/log/mongodb/*.log" ]
+    operators:
+      - type: json_parser
+        timestamp:
+          parse_from: attributes.t.$$date
+          layout: '%Y-%m-%dT%H:%M:%S.%L%z'
+        severity:
+          parse_from: attributes.s
+          mapping:
+            fatal: F
+            error: E
+            warning: W
+            info: I
+            debug: D1
+            debug2: D2
+            debug3: D3
+            debug4: D4
+      - type: move
+        from: attributes.msg
+        to: body
+      - type: retain
+        fields:
+          - attributes.ctx
+          - attributes["log.file.path"]
+    include_file_name: false
+    include_file_path: true
+    storage: file_storage/filelogs
+
+  # MySQL server error log. Contains critical errors that occurred during the
+  # server's operation, table corruption, start and stop information.
+  # When running under Systemd, error logging goes to journald. To enable
+  # logging to a file, use the log_error variable.
+  # See https://mariadb.com/kb/en/error-log/
+  filelog/mysql-error:
+    include: [ "/var/log/mysql/error.log" ]
+    multiline:
+      # e.g. "2023-10-09 13:40:48 0 [Note] ..."
+      line_start_pattern: '^[\w-]+ [\d:.]+ \w+ \[\w+\]'
+    operators:
+      - type: regex_parser
+        regex: '^(?P<time>.+?) \d+ \[(?P<level>\w+)\] (?P<log>[\s\S]*)$'
+        timestamp:
+          parse_from: attributes.time
+          layout: '%Y-%m-%d %H:%M:%S'
+        severity:
+          parse_from: attributes.level
+      - type: move
+        from: attributes.log
+        to: body
+      - type: retain
+        fields:
+          - attributes["log.file.path"]
+    include_file_name: false
+    include_file_path: true
+    storage: file_storage/filelogs
+
+  # MySQL general query log. Contains a log of every SQL query received from a
+  # client, as well as each client connect and disconnect.
+  # Disabled by default. To enable, use the general_log_file variable.
+  # See https://mariadb.com/kb/en/general-query-log/
+  filelog/mysql-query:
+    include: [ "/var/log/mysql.log", "/var/log/mysql/mysql.log" ]
+    multiline:
+      line_start_pattern: '^\d{6} [\d:.]+'
+    operators:
+      - type: router
+        routes:
+          - output: parse_query_log
+            expr: 'body matches "^\\d+"'
+      - type: regex_parser
+        id: parse_query_log
+        regex: '^(?P<time>\d{6} [\d:.]+)\s+(?P<log>[\s\S]*)$'
+        timestamp:
+          parse_from: attributes.time
+          layout: '%y%m%d %H:%M:%S'
+      - type: move
+        from: attributes.log
+        to: body
+      - type: retain
+        fields:
+          - attributes["log.file.path"]
+    include_file_name: false
+    include_file_path: true
+    storage: file_storage/filelogs
+
+  # MySQL slow query log. Contains a log of SQL queries that took a long time to perform.
+  # Disabled by default. To enable, use the slow_query_log variable.
+  # See https://mariadb.com/kb/en/slow-query-log/
+  filelog/mysql-slow_query:
+    include: [ "/var/log/mysql/mysql-slow.log", "/var/log/mysql/mariadb-slow.log" ]
+    multiline:
+      line_start_pattern: '^# Time: '
+    include_file_name: false
+    include_file_path: true
+    storage: file_storage/filelogs
+
+  # Nginx access log.
+  # By default, client requests are logged in the standard NCSA Common Log Format.
+  # See https://docs.nginx.com/nginx/admin-guide/monitoring/logging/
+  filelog/nginx-access:
+    include: [ "/var/log/nginx/access.log" ]
+    operators:
+      - type: regex_parser
+        regex: '^(?P<host>.+) (?P<remote_logname>.+) (?P<user>.+) \[(?P<time>.+)\] "(?P<method>.+) (?P<path>.+) (?P<protocol>.+)" (?P<code>\d+) (?P<size>\d+) "(?P<referer>.+)" "(?P<agent>.+)"$'
+        timestamp:
+          parse_from: attributes.time
+          layout: '%d/%b/%Y:%H:%M:%S %z'
+    include_file_name: false
+    include_file_path: true
+    storage: file_storage/filelogs
+
+  # Nginx error log.
+  # See https://docs.nginx.com/nginx/admin-guide/monitoring/logging/
+  filelog/nginx-error:
+    include: [ "/var/log/nginx/error.log" ]
+    operators:
+      - type: regex_parser
+        regex: '^(?P<time>.+?) \[(?P<level>\w+)\] (?P<pid>\d+)#(?P<tid>\d+): (?P<log>.*)$'
+        timestamp:
+          parse_from: attributes.time
+          layout: '%Y/%m/%d %H:%M:%S'
+        severity:
+          parse_from: attributes.level
+          mapping:
+            fatal: emerg
+            error3: alert
+            error2: crit
+            info2: notice
+      - type: move
+        from: attributes.log
+        to: body
+      - type: retain
+        fields:
+          - attributes["log.file.path"]
+    include_file_name: false
+    include_file_path: true
+    storage: file_storage/filelogs
+
+  # PostgreSQL server log.
+  # See https://www.postgresql.org/docs/current/runtime-config-logging.html
+  filelog/postgresql:
+    include: [ "/var/log/postgres*/*.log", "/var/log/pgsql/*.log" ]
+    operators:
+      - type: regex_parser
+        regex: '^(?P<time>.+?) \[(?P<pid>\d+)\] (?P<log>.*)$'
+        timestamp:
+          parse_from: attributes.time
+          layout: '%Y-%m-%d %H:%M:%S.%L %Z'
+      - type: move
+        from: attributes.log
+        to: body
+      - type: retain
+        fields:
+          - attributes["log.file.path"]
+    include_file_name: false
+    include_file_path: true
+    storage: file_storage/filelogs
+
+  # RabbitMQ broker node log.
+  # See https://www.rabbitmq.com/logging.html
+  filelog/rabbitmq:
+    include: [ "/var/log/rabbitmq/rabbit@*.log" ]
+    multiline:
+      # e.g. "2023-10-16 13:00:19.461 [debug] <0.289.0> ..."
+      line_start_pattern: '^[\w-]+ [\d:.]+ \[\w+\]'
+    operators:
+      - type: regex_parser
+        regex: '^(?P<time>.+?) \[(?P<level>\w+)\] <(?P<erlang_pid>[\d.]+)> (?P<log>[\s\S]*)$'
+        timestamp:
+          parse_from: attributes.time
+          layout: '%Y-%m-%d %H:%M:%S.%L'
+        severity:
+          parse_from: attributes.level
+      - type: move
+        from: attributes.log
+        to: body
+      - type: retain
+        fields:
+          - attributes["log.file.path"]
+    include_file_name: false
+    include_file_path: true
+    storage: file_storage/filelogs
+
+  # RabbitMQ server startup log.
+  filelog/rabbitmq-startup:
+    include: [ "/var/log/rabbitmq/startup_log", "/var/log/rabbitmq/rabbitmq-server.log" ]
+    include_file_name: false
+    include_file_path: true
+    storage: file_storage/filelogs
+
+  # RabbitMQ server startup error log.
+  filelog/rabbitmq-startup_err:
+    include: [ "/var/log/rabbitmq/startup_err", "/var/log/rabbitmq/rabbitmq-server.error.log" ]
+    include_file_name: false
+    include_file_path: true
+    storage: file_storage/filelogs
+
+  # Redis logging.
+  # By default configured to log to a file (logfile directive in redis.conf).
+  filelog/redis:
+    include: [ "/var/log/redis*.log", "/var/log/redis/*.log"]
+    operators:
+      - type: router
+        routes:
+          - output: parse_handler_log
+            expr: 'body matches "^[0-9]+:[\\w-]+ \\([0-9]+\\) .*$"'
+          - output: parse_server_log
+            expr: 'body matches "^[0-9]+:[A-Z] .*$"'
+      - type: regex_parser
+        id: parse_server_log
+        regex: '^(?P<pid>\d+):(?P<role>\S*) (?P<time>.+?) (?P<level>.) (?P<log>.*)$'
+        timestamp:
+          parse_from: attributes.time
+          layout: '%d %b %Y %H:%M:%S.%L'
+        severity:
+          parse_from: attributes.level
+          mapping:
+            warning: '#'
+            info: '*'
+            info2: '-'
+            debug: '.'
+        output: move_log
+      - type: regex_parser
+        id: parse_handler_log
+        regex: '^(?P<pid>\d+):(?P<role>\S*) \((?P<time>\d+)\) (?P<log>.*)$'
+        timestamp:
+          parse_from: attributes.time
+          layout_type: epoch
+          layout: s
+      - type: move
+        id: move_log
+        from: attributes.log
+        to: body
+      - type: retain
+        fields:
+          - attributes.role
+          - attributes["log.file.path"]
+    include_file_name: false
+    include_file_path: true
+    storage: file_storage/filelogs
+
+  # Syslog and messages log files.
+  # These are not in the RFC3164 format.
+  filelog/syslog:
+    include: [ "/var/log/syslog", "/var/log/messages"]
+    operators:
+      - type: regex_parser
+        regex: '^(?P<time>.+?) (?P<hostname>\S+) (?P<program>[^ :\[]+)\[?(?P<pid>\d+)?\]?: (?P<log>.*)$'
+        timestamp:
+          parse_from: attributes.time
+          layout: '%b %e %H:%M:%S'
+      - type: move
+        from: attributes.log
+        to: body
+      - type: retain
+        fields:
+          - attributes.program
+          - attributes["log.file.path"]
+    include_file_name: false
+    include_file_path: true
+    storage: file_storage/filelogs
+
+  # Apache Tomcat.
+  # See https://tomcat.apache.org/tomcat-9.0-doc/logging.html
+  filelog/tomcat:
+    include: [ "/var/log/tomcat*/catalina.*.log", "/var/log/tomcat*/localhost.*.log" ]
+    multiline:
+      # e.g. "11-Oct-2023 12:55:33.425 INFO [Thread-3] ..."
+      line_start_pattern: '^[\w-]+ [\d:.]+ \w+ \[[\w:-]+\]'
+    operators:
+      - type: regex_parser
+        regex: '^(?P<time>.+?) (?P<level>\w+) \[(?P<thread>[\w:-]+)\] (?P<function>\S+) (?P<log>[\s\S]*)$'
+        timestamp:
+          parse_from: attributes.time
+          layout: '%d-%b-%Y %H:%M:%S'
+        severity:
+          parse_from: attributes.level
+      - type: move
+        from: attributes.log
+        to: body
+      - type: retain
+        fields:
+          - attributes.thread
+          - attributes.function
+          - attributes["log.file.path"]
+    include_file_name: false
+    include_file_path: true
+    storage: file_storage/filelogs
+
+  # Apache Tomcat console output.
+  # See https://tomcat.apache.org/tomcat-9.0-doc/logging.html#Console
+  filelog/tomcat-out:
+    include: [ "/var/log/tomcat*/catalina.out" ]
+    operators:
+      - type: regex_parser
+        regex: '^\[(?P<time>.+?)\] \[(?P<level>\w+)\] (?P<log>.*)$'
+        timestamp:
+          parse_from: attributes.time
+          layout: '%Y-%m-%d %H:%M:%S'
+        severity:
+          parse_from: attributes.level
+      - type: move
+        from: attributes.log
+        to: body
+      - type: retain
+        fields:
+          - attributes["log.file.path"]
+    include_file_name: false
+    include_file_path: true
+    storage: file_storage/filelogs
+
+  # Apache Tomcat access log.
+  # Entries are in the standard NCSA Common Log Format.
+  # See https://tomcat.apache.org/tomcat-9.0-doc/logging.html#Access_logging and
+  # https://tomcat.apache.org/tomcat-9.0-doc/config/valve.html#Access_Logging
+  filelog/tomcat-localhost_access_log:
+    include: [ "/var/log/tomcat*/localhost_access_log.*.txt" ]
+    operators:
+      - type: regex_parser
+        regex: '^(?P<host>.+) (?P<remote_logname>.+) (?P<user>.+) \[(?P<time>.+)\] "(?P<method>.+) (?P<path>.+) (?P<protocol>.+)" (?P<code>\d+) (?P<size>\d+)$'
+        timestamp:
+          parse_from: attributes.time
+          layout: '%d/%b/%Y:%H:%M:%S %z'
+    include_file_name: false
+    include_file_path: true
+    storage: file_storage/filelogs
+
+  # Zookeper log.
+  # Configured in /etc/zookeeper/conf/log4j.properties
+  filelog/zookeeper:
+    include: [ "/var/log/zookeeper/zookeeper.log" ]
+    operators:
+      - type: regex_parser
+        regex: '^(?P<time>.+?) - (?P<level>\w+) +\[(?P<thread>[\w:]+?):(?P<class>\w+)@(?P<line>\d+|\?)\] - (?P<log>.*)$'
+        timestamp:
+          parse_from: attributes.time
+          layout: '%Y-%m-%d %H:%M:%S'
+        severity:
+          parse_from: attributes.level
+      - type: move
+        from: attributes.log
+        to: body
+      - type: retain
+        fields:
+          - attributes.thread
+          - attributes.class
+          - attributes["log.file.path"]
+    include_file_name: false
+    include_file_path: true
+    storage: file_storage/filelogs
+
+  # Zookeeper tracefile.
+  # Configured in /etc/zookeeper/conf/log4j.properties
+  filelog/zookeeper-trace:
+    include: [ "/var/log/zookeeper/zookeeper_trace.log" ]
+    operators:
+      - type: regex_parser
+        regex: '^(?P<time>.+?) - (?P<level>\w+) +\[(?P<thread>[\w:]+?):(?P<class>\w+)@(?P<line>\d+|\?)\]\[(?P<context>.+?)?\] - (?P<log>.*)$'
+        timestamp:
+          parse_from: attributes.time
+          layout: '%Y-%m-%d %H:%M:%S'
+        severity:
+          parse_from: attributes.level
+      - type: move
+        from: attributes.log
+        to: body
+      - type: retain
+        fields:
+          - attributes.thread
+          - attributes.class
+          - attributes["log.file.path"]
+    include_file_name: false
+    include_file_path: true
+    storage: file_storage/filelogs
+
+
+processors:
+  # Enables the batch processor with default settings.
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/batchprocessor
+  batch:
+
+  # Enabling the memory_limiter is strongly recommended for every pipeline.
+  # Configuration is based on the amount of memory allocated to the collector.
+  # For more information about memory limiter, see
+  # https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiter/README.md
+  memory_limiter:
+    check_interval: 2s
+    limit_mib: ${SPLUNK_MEMORY_LIMIT_MIB}
+
+
+exporters:
+  # Enables the Splunk HEC exporter.
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/splunkhecexporter
+  splunk_hec:
+    # Splunk HTTP Event Collector token.
+    token: "${SPLUNK_HEC_TOKEN}"
+    # URL to a Splunk instance to send data to.
+    endpoint: "${SPLUNK_HEC_URL}"
+    # Optional Splunk source: https://docs.splunk.com/Splexicon:Source
+    source: "otel"
+    # Optional Splunk source type: https://docs.splunk.com/Splexicon:Sourcetype
+    sourcetype: "otel"
+    # Profiling data should always be sent to Splunk Observability Cloud which is configured in the next section.
+    profiling_data_enabled: false
+
+  # Enables the Splunk HEC exporter to send profiling data to Splunk Observability Cloud.
+  splunk_hec/profiling:
+    # Splunk Observability Cloud access token.
+    token: "${SPLUNK_ACCESS_TOKEN}"
+    # Splunk Observability Cloud endpoint.
+    endpoint: "${SPLUNK_INGEST_URL}/v1/log"
+    # Disabling logs as only profiling data should be sent to Splunk Observability Cloud.
+    log_data_enabled: false
+
+
+
+extensions:
+  health_check:
+    endpoint: "${SPLUNK_LISTEN_INTERFACE}:13133"
+
+  memory_ballast:
+    # In general, the ballast should be set to 1/3 of the collector's memory.
+    # The simplest way to specify the ballast size is set the value of SPLUNK_BALLAST_SIZE_MIB env variable.
+    size_mib: ${SPLUNK_BALLAST_SIZE_MIB}
+
+  # Storage extension for storing filelog checkpoints.
+  # Checkpoints allow the receiver to pick up where it left off in the case of a
+  # collector restart.
+  file_storage/filelogs:
+    # Location where checkpoint files are stored. This directory must exist and
+    # must be writable by the collector..
+    directory: /var/lib/otelcol/filelogs
+    compaction:
+      on_start: true
+      directory: /tmp/
+
+
+service:
+  extensions: [health_check, memory_ballast, file_storage/filelogs]
+  pipelines:
+    logs:
+      receivers:
+        #- filelog/apache-access
+        #- filelog/apache-error
+        #- filelog/cassandra
+        #- filelog/cassandra-debug
+        #- filelog/cassandra-output
+        #- filelog/docker
+        #- filelog/etcd
+        #- filelog/jetty9
+        #- filelog/jetty9-debug
+        #- filelog/jetty9-request
+        #- filelog/mongodb
+        #- filelog/mysql-error
+        #- filelog/mysql-query
+        #- filelog/mysql-slow_query
+        #- filelog/nginx-access
+        #- filelog/nginx-error
+        #- filelog/postgresql
+        #- filelog/rabbitmq
+        #- filelog/rabbitmq-startup
+        #- filelog/rabbitmq-startup_err
+        #- filelog/redis
+        - filelog/syslog
+        #- filelog/tomcat
+        #- filelog/tomcat-out
+        #- filelog/tomcat-localhost_access_log
+        #- filelog/zookeeper
+        #- filelog/zookeeper-trace
+      processors: [memory_limiter, batch]
+      exporters: [splunk_hec, splunk_hec/profiling]

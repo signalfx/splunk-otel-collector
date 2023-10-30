@@ -141,8 +141,9 @@ A variety of default configuration files are provided:
 - [OpenTelemetry
   Collector](https://github.com/signalfx/splunk-otel-collector/tree/main/cmd/otelcol/config/collector)
   see `full_config_linux.yaml` for a commented configuration with links to full
-  documentation. `agent_config.yaml` is the recommended starting
-  configuration for most environments.
+  documentation. The `logs_config_linux.yaml` is a good starting point for using
+  the collector for collecting application logs on Linux environments.
+  `agent_config.yaml` is the recommended starting configuration for most environments.
 - [Fluentd](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/buildscripts/packaging/fpm/etc/otel/collector/fluentd)
   applicable to Helm or installer script installations only. See the `*.conf`
   files as well as the `conf.d` directory. Common sources including filelog,

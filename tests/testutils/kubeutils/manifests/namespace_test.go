@@ -12,34 +12,47 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//go:build testutils
+
 package manifests
 
-import "testing"
+import (
+	"testing"
 
-type ConfigMap struct {
-	Namespace string
-	Name      string
-	Data      string
+	"github.com/stretchr/testify/require"
+)
+
+func TestNamespace(t *testing.T) {
+	ns := Namespace{
+		Name: "some.namespace",
+	}
+
+	require.Equal(t,
+		`---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: some.namespace
+`, ns.Render(t))
 }
 
-const configMapTemplate = `---
+func TestNamespaceWithLabels(t *testing.T) {
+	ns := Namespace{
+		Name: "some.namespace",
+		Labels: map[string]string{
+			"label.one": "value.one",
+			"label.two": "value.two",
+		},
+	}
+
+	require.Equal(t,
+		`---
 apiVersion: v1
-kind: ConfigMap
+kind: Namespace
 metadata:
-{{- if .Name }}
-  name: {{ .Name }}
-{{- end -}}
-{{- if .Namespace }}
-  namespace: {{ .Namespace }}
-{{- end }}
-data:
-{{- if .Data }}
-{{ .Data | indent 2 -}}
-{{ end }}
-`
-
-var cmm = Manifest[ConfigMap](configMapTemplate)
-
-func (cm ConfigMap) Render(t testing.TB) string {
-	return cmm.Render(cm, t)
+  name: some.namespace
+  labels:
+    label.one: value.one
+    label.two: value.two
+`, ns.Render(t))
 }

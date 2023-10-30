@@ -20,19 +20,21 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-// DaemonSet is a "k8s.io/api/apps/v1.DaemonSet" convenience type
-type DaemonSet struct {
+// Deployment is a "k8s.io/api/apps/v1.Deployment" convenience type
+type Deployment struct {
+	Labels         map[string]string
+	MatchLabels    map[string]string
 	Namespace      string
 	Name           string
 	ServiceAccount string
-	Labels         map[string]string
 	Containers     []corev1.Container
 	Volumes        []corev1.Volume
+	Replicas       int
 }
 
-const daemonSetTemplate = `---
+const deploymentTemplate = `---
 apiVersion: apps/v1
-kind: DaemonSet
+kind: Deployment
 metadata:
 {{- if .Name }}
   name: {{ .Name }}
@@ -47,10 +49,16 @@ metadata:
   {{- end }}
 {{- end }}
 spec:
+  replicas: {{ .Replicas }}
   selector:
     matchLabels:
 {{- if .Name }}
       name: {{ .Name }}
+{{- end }}
+{{- if .MatchLabels }}
+  {{- range $key, $value := .MatchLabels }}
+      {{ $key }}: {{ $value }}
+  {{- end }}
 {{- end }}
   template:
     metadata:
@@ -58,9 +66,12 @@ spec:
 {{- if .Name }}
         name: {{ .Name }}
 {{- end }}
+{{- if .MatchLabels }}
+  {{- range $key, $value := .MatchLabels }}
+        {{ $key }}: {{ $value }}
+  {{- end }}
+{{- end }}
     spec:
-      hostNetwork: true
-      dnsPolicy: ClusterFirstWithHostNet
 {{- if .ServiceAccount }}
       serviceAccountName: {{ .ServiceAccount }}
 {{- end }}
@@ -74,8 +85,8 @@ spec:
 {{- end }}
 `
 
-var dsm = Manifest[DaemonSet](daemonSetTemplate)
+var dm = Manifest[Deployment](deploymentTemplate)
 
-func (d DaemonSet) Render(t testing.TB) string {
-	return dsm.Render(d, t)
+func (d Deployment) Render(t testing.TB) string {
+	return dm.Render(d, t)
 }

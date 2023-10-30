@@ -901,13 +901,15 @@ Auto Instrumentation:
                                         Only applicable if the '--with-systemd-instrumentation' option is also specified.
                                         (default: http://LISTEN_INTERFACE:4317 where LISTEN_INTERFACE is the value from
                                         the --listen-interface option if specified, or "127.0.0.1" otherwise)
-  --[no-]generate-service-name          Specify '--no-generate-service-name' to prevent the preloader from setting the
-                                        OTEL_SERVICE_NAME environment variable.
-                                        Only applicable if the '--with-instrumentation' option is also specified.
+  --[no-]generate-service-name          DEPRECATED: Specify '--no-generate-service-name' to prevent the preloader from
+                                        setting the OTEL_SERVICE_NAME environment variable.
+                                        Only applicable if the '--with-instrumentation' option is also specified and the
+                                        '--instrumentation-version' value is 0.86.0 or older.
                                         (default: --generate-service-name)
-  --[enable|disable]-telemetry          Enable or disable the instrumentation preloader from sending the
+  --[enable|disable]-telemetry          DEPRECATED: Enable or disable the instrumentation preloader from sending the
                                         'splunk.linux-autoinstr.executions' metric to the collector.
-                                        Only applicable if the '--with-instrumentation' option is also specified.
+                                        Only applicable if the '--with-instrumentation' option is also specified and the
+                                        '--instrumentation-version' value is 0.86.0 or older.
                                         (default: --enable-telemetry)
   --[enable|disable]-profiler           Enable or disable AlwaysOn Profiling.
                                         Only applicable if the '--with-instrumentation' or

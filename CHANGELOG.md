@@ -30,7 +30,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
     so with the fix the client will start verifying tls cert unless the config is explicitly set to true.
 - (Contrib) `tailsamplingprocessor`: Improve counting for the `count_traces_sampled` metric ([#25882](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/25882))
 - (Contrib) `extension/filestorage`: Replace path-unsafe characters in component names ([#3148](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/3148))
-- (Core) `service/telemetry exporter/exporterhelper`: Enable sampling logging by default and apply it to all components. ([#8134](https://github.com/open-telemetry/opentelemetry-collector/pull/8134]))
+- (Core) `service/telemetry exporter/exporterhelper`: Enable sampling logging by default and apply it to all components. ([#8134](https://github.com/open-telemetry/opentelemetry-collector/pull/8134))
   - The sampled logger configuration can be disabled easily by setting the `service::telemetry::logs::sampling::enabled` to `false`.
 
 ### 🚀 New components 🚀

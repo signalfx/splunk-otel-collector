@@ -17,10 +17,13 @@
 package telemetry
 
 import (
+	"regexp"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/signalfx/splunk-otel-collector/tests/internal/version"
 )
 
 func TestResourceHashFunctionConsistency(t *testing.T) {
@@ -77,6 +80,32 @@ func TestResourceEquivalence(t *testing.T) {
 	(*rOne.Attributes)["five"].(map[string]any)["another"] = "item"
 	assert.True(t, rOne.Equals(rTwo))
 	assert.True(t, rTwo.Equals(rOne))
+}
+
+func TestResourceFillDefaultValues(t *testing.T) {
+	r := Resource{Attributes: &map[string]any{
+		"version": "<VERSION_FROM_BUILD>",
+		"any":     "<ANY>",
+		"re2":     "<RE2(.*)>",
+	}}
+	r.FillDefaultValues()
+	require.NotNil(t, r.Attributes)
+	regex := regexp.MustCompile(".*")
+	require.Equal(t, map[string]any{
+		"version": version.Version,
+		"any":     "<ANY>",
+		"re2":     regex,
+	}, *r.Attributes)
+}
+
+func TestResourceFillDefaultValuesInvalidRE2(t *testing.T) {
+	r := Resource{Attributes: &map[string]any{
+		"key": "<RE2(*)>",
+	}}
+	require.PanicsWithError(
+		t, "failed compiling resource attributes RE2 (key): error parsing regexp: missing argument to repetition operator: `*`",
+		r.FillDefaultValues,
+	)
 }
 
 func TestInstrumentationScopeEquivalence(t *testing.T) {

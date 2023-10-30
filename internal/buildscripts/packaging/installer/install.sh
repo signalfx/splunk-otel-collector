@@ -871,12 +871,13 @@ Auto Instrumentation:
                                         applications running as systemd services.
                                         Cannot be combined with the '--with-instrumentation' option.
                                         (default: --without-systemd-instrumentation)
-  --with[out]-java-instrumentation      Whether to enable Auto Instrumentation for Java.
-                                        (default: --with-java-instrumentation if --with-instrumentation or
+  --with[out]-instrumentation-sdk "<s>" Whether to enable Auto Instrumentation for a specific language. This option
+                                        takes a comma separated set of values representing supported
+                                        auto-instrumentation SDKs. Currently supported: java,node.
+                                        Use --with-instrumentation-sdk to enable only the specified language(s),
+                                        for example "--with-instrumentation-sdk java".
+                                        (default: --with-instrumentation-sdk "java,node" if --with-instrumentation or
                                         --with-systemd-instrumentation is also specified)
-  --with[out]-node-instrumentation      Whether to enable Auto Instrumentation for Node.js.
-                                        (default: --with-node-instrumentation if --with-instrumentation or
-                                        --with-systemd-instrumentation' is also specified)
   --npm-command "<command>"             If Auto Instrumentation for Node.js is enabled, npm is required to install the
                                         included Splunk OpenTelemetry Auto Instrumentation for Node.js package with the
                                         following command:
@@ -1197,17 +1198,35 @@ parse_args_and_install() {
       --without-systemd-instrumentation)
         with_systemd_instrumentation="false"
         ;;
-      --with-java-instrumentation)
-        with_java_instrumentation="true"
-        ;;
-      --without-java-instrumentation)
+      --with-instrumentation-sdk)
         with_java_instrumentation="false"
-        ;;
-      --with-node-instrumentation)
-        with_node_instrumentation="true"
-        ;;
-      --without-node-instrumentation)
         with_node_instrumentation="false"
+        for lang in $(echo "$2" | tr ',' ' '); do
+            if [ "$lang" = "java" ]; then
+                with_java_instrumentation="true"
+            elif [ "$lang" = "node" ]; then
+                with_node_instrumentation="true"
+            else
+                usage
+                echo "[ERROR] Unknown instrumentation SDK: $lang" >&2
+                exit 1
+            fi
+        done
+        shift 1
+        ;;
+      --without-instrumentation-sdk)
+        for lang in $(echo "$2" | tr ',' ' '); do
+            if [ "$lang" = "java" ]; then
+                with_java_instrumentation="false"
+            elif [ "$lang" = "node" ]; then
+                with_node_instrumentation="false"
+            else
+                usage
+                echo "[ERROR] Unknown instrumentation SDK: $lang" >&2
+                exit 1
+            fi
+        done
+        shift 1
         ;;
       --npm-command)
         npm_command="$2"
@@ -1297,13 +1316,13 @@ parse_args_and_install() {
 
   if [ "$with_instrumentation" = "true" ]; then
     if [ "$with_java_instrumentation" = "false" ] && [ "$with_node_instrumentation" = "false" ]; then
-      echo "[ERROR] The --with-instrumentation option was specified, but both --without-java-instrumentation and --without-node-instrumentation options were also specified." >&2
+      echo "[ERROR] The --with-instrumentation option was specified, but --without-instrumentation-sdk java,node was also specified." >&2
       echo "[ERROR] At least one language must be enabled for auto instrumentation" >&2
       exit 1
     fi
   elif [ "$with_systemd_instrumentation" = "true" ]; then
     if [ "$with_java_instrumentation" = "false" ] && [ "$with_node_instrumentation" = "false" ]; then
-      echo "[ERROR] The --with-systemd-instrumentation option was specified, but both --without-java-instrumentation and --without-node-instrumentation options were also specified." >&2
+      echo "[ERROR] The --with-systemd-instrumentation option was specified, but --without-instrumentation-sdk java,node was also specified." >&2
       echo "[ERROR] At least one language must be enabled for auto instrumentation" >&2
       exit 1
     fi

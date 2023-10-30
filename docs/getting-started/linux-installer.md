@@ -332,11 +332,11 @@ of the following options:
 
 By default, both the Java and Node.js Auto Instrumentation agents will be
 installed and activated. Run the installer script with either the
-`--without-java-instrumentation` or `--without-node-instrumentation` option to
+`--without-instrumentation-sdk java` or `--without-instrumentation-sdk node` option to
 skip installation and activation of the respective agent. For example:
 ```sh
 curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-collector.sh && \
-sudo sh /tmp/splunk-otel-collector.sh --with-instrumentation --without-node-instrumentation --realm SPLUNK_REALM -- SPLUNK_ACCESS_TOKEN
+sudo sh /tmp/splunk-otel-collector.sh --with-instrumentation --without-instrumentation-sdk node --realm SPLUNK_REALM -- SPLUNK_ACCESS_TOKEN
 ```
 
 Additional options include:
@@ -363,7 +363,7 @@ following are required:
   `npm` is not installed or not found in the user's default `PATH`, the
   installer script will automatically skip installation and configuration of
   the Node.js agent. Run the installer script with the
-  `--without-node-instrumentation` option to explicitly skip Node.js.
+  `--without-instrumentation-sdk node` option to explicitly skip Node.js.
 - By default, the Node.js Auto Instrumentation package will be installed with
   the `npm install --global` command. Run the installer script with the
   `--npm-command "<command>"` option to specify a custom command (wrapped in

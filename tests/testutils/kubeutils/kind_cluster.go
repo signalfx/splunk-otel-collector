@@ -213,6 +213,5 @@ func (k KindCluster) renderConfig() string {
 	require.NoError(k.Testcase, err)
 	err = tpl.Execute(out, k)
 	require.NoError(k.Testcase, err)
-	fmt.Println(out.String())
 	return out.String()
 }

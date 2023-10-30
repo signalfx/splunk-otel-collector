@@ -30,11 +30,13 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
     so with the fix the client will start verifying tls cert unless the config is explicitly set to true.
 - (Contrib) `tailsamplingprocessor`: Improve counting for the `count_traces_sampled` metric ([#25882](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/25882))
 - (Contrib) `extension/filestorage`: Replace path-unsafe characters in component names ([#3148](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/3148))
+- (Core) `service/telemetry exporter/exporterhelper`: Enable sampling logging by default and apply it to all components. ([#8134](https://github.com/open-telemetry/opentelemetry-collector/pull/8134]))
+  - The sampled logger configuration can be disabled easily by setting the `service::telemetry::logs::sampling::enabled` to `false`.
 
 ### 🚀 New components 🚀
 
-- (Splunk) Add the loadbalancing exporter to the distribution ([#3825](https://github.com/signalfx/splunk-otel-collector/pull/3825))
-- (Splunk) Add UDP log receiver ([#3826](https://github.com/signalfx/splunk-otel-collector/pull/3826))
+- (Splunk) Add the `loadbalancing` exporter ([#3825](https://github.com/signalfx/splunk-otel-collector/pull/3825))
+- (Splunk) Add the `udplog` receiver ([#3826](https://github.com/signalfx/splunk-otel-collector/pull/3826))
 
 ### 🚩 Deprecations 🚩
 
@@ -77,8 +79,6 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 - (Contrib) `kubeletstatsreceiver`: Support specifying context for `kubeConfig` `auth_type` ([#26665](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/26665))
 - (Contrib) `kubeletstatsreceiver`: Adds new `k8s.pod.cpu_limit_utilization`, `k8s.pod.cpu_request_utilization`, `k8s.container.cpu_limit_utilization`, and `k8s.container.cpu_request_utilization` metrics that represent the ratio of cpu used vs set limits and requests. ([#27276](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/27276))
 - (Contrib) `kubeletstatsreceiver`: Adds new `k8s.pod.memory_limit_utilization`, `k8s.pod.memory_request_utilization`, `k8s.container.memory_limit_utilization`, and `k8s.container.memory_request_utilization` metrics that represent the ratio of memory used vs set limits and requests. ([#25894](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/25894))
-- (Core) `service/telemetry exporter/exporterhelper`: Enable sampling logging by default and apply it to all components. ([#8134](https://github.com/open-telemetry/opentelemetry-collector/pull/8134]))
-  - The sampled logger configuration can be disabled easily by setting the `service::telemetry::logs::sampling::enabled` to `false`.
 
 ### 🧰 Bug fixes 🧰
 

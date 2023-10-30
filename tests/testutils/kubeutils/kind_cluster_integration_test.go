@@ -44,7 +44,7 @@ func TestKindCluster(t *testing.T) {
 	cluster.ExposedPorts[portTwo] = 23456
 
 	defer func() {
-		cluster.Delete()
+		cluster.Teardown()
 
 		// confirm node unavailable
 		_, err := cluster.Clientset.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{})
@@ -90,4 +90,21 @@ nodes:
 	require.Equal(t, "test-namespace", ns.Name)
 
 	require.NotEmpty(t, cluster.GetDefaultGatewayIP())
+
+	nsManifest := `---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: another-namespace
+`
+
+	stdout, stderr, err := cluster.Apply(nsManifest)
+	require.NoError(t, err)
+	require.Equal(t, "namespace/another-namespace created\n", stdout.String())
+	require.Empty(t, stderr.String())
+
+	stdout, stderr, err = cluster.Delete(nsManifest)
+	require.NoError(t, err)
+	require.Equal(t, "namespace \"another-namespace\" deleted\n", stdout.String())
+	require.Empty(t, "", stderr.String())
 }

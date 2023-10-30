@@ -98,7 +98,7 @@ func (k *KindCluster) Create() {
 	require.NoError(k.Testcase, err)
 }
 
-func (k *KindCluster) Delete() {
+func (k *KindCluster) Teardown() {
 	defer func() { require.NoError(k.Testcase, os.Remove(k.Kubeconfig)) }()
 	defer func() { require.NoError(k.Testcase, os.Remove(k.Config)) }()
 	k.runKindCmd([]string{"delete", "cluster", "--name", k.Name})
@@ -137,19 +137,24 @@ func (k KindCluster) Kubectl(args ...string) (stdOut, stdErr bytes.Buffer, err e
 	return k.runKubectl(nil, args...)
 }
 
-func (k KindCluster) Apply(manifests string) (stdOut, stdErr bytes.Buffer, err error) {
+func (k KindCluster) tmpManifestFile(manifests string) string {
 	sha := sha256.Sum256([]byte(manifests))
-	f, err := os.CreateTemp("", fmt.Sprintf("manifests-%x", sha[:8]))
+	f, err := os.CreateTemp(k.Testcase.TempDir(), fmt.Sprintf("manifests-%x", sha[:8]))
 	require.NoError(k.Testcase, err)
 	n, err := f.Write([]byte(manifests))
 	require.NoError(k.Testcase, err)
 	require.Equal(k.Testcase, len(manifests), n)
 	require.NoError(k.Testcase, f.Sync())
 	require.NoError(k.Testcase, f.Close())
+	return f.Name()
+}
 
-	stdin := bytes.NewReader([]byte(manifests))
+func (k KindCluster) Apply(manifests string) (stdOut, stdErr bytes.Buffer, err error) {
+	return k.runKubectl(bytes.NewReader([]byte(manifests)), "apply", "-f", k.tmpManifestFile(manifests))
+}
 
-	return k.runKubectl(stdin, "apply", "-f", f.Name())
+func (k KindCluster) Delete(manifests string) (stdOut, stdErr bytes.Buffer, err error) {
+	return k.runKubectl(bytes.NewReader([]byte(manifests)), "delete", "-f", k.tmpManifestFile(manifests))
 }
 
 func (k KindCluster) runKubectl(stdin io.Reader, args ...string) (stdOut, stdErr bytes.Buffer, err error) {

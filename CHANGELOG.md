@@ -17,6 +17,15 @@
   - See [Splunk OpenTelemetry Zero Configuration Auto Instrumentation for Linux](https://github.com/signalfx/splunk-otel-collector/blob/main/instrumentation/README.md)
     for manual installation/configuration details.
 
+### 🚩 Deprecations 🚩
+
+- (Splunk) The following Auto Instrumentation options for the Linux installer script are deprecated and will only apply if the `--instrumentation-version <version>`
+  option is specified for version `0.86.0` or older:
+  - `--[no-]generate-service-name`: `libsplunk.so` no longer generates service names for instrumented applications. The default behavior is for the activated Java
+    and/or Node.js Auto Instrumentation agents to automatically generate service names. Use the `--service-name <name>` option to override the auto-generated service
+    names for all instrumented applications.
+  - `--[enable|disable]-telemetry`: `libsplunk.so` no longer generates the `splunk.linux-autoinstr.executions` telemetry metric.
+
 ### 💡 Enhancements 💡
 
 - (Splunk) Update golang to 1.20.10 ([#3770](https://github.com/signalfx/splunk-otel-collector/pull/3770))

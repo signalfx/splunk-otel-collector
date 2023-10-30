@@ -33,11 +33,6 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 - (Core) `service/telemetry exporter/exporterhelper`: Enable sampling logging by default and apply it to all components. ([#8134](https://github.com/open-telemetry/opentelemetry-collector/pull/8134))
   - The sampled logger configuration can be disabled easily by setting the `service::telemetry::logs::sampling::enabled` to `false`.
 
-### 🚀 New components 🚀
-
-- (Splunk) Add the `loadbalancing` exporter ([#3825](https://github.com/signalfx/splunk-otel-collector/pull/3825))
-- (Splunk) Add the `udplog` receiver ([#3826](https://github.com/signalfx/splunk-otel-collector/pull/3826))
-
 ### 🚩 Deprecations 🚩
 
 - (Splunk) The following Auto Instrumentation options for the Linux installer script are deprecated and will only apply if the `--instrumentation-version <version>`
@@ -46,6 +41,11 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
     and/or Node.js Auto Instrumentation agents to automatically generate service names. Use the `--service-name <name>` option to override the auto-generated service
     names for all instrumented applications.
   - `--[enable|disable]-telemetry`: `libsplunk.so` no longer generates the `splunk.linux-autoinstr.executions` telemetry metric.
+
+### 🚀 New components 🚀
+
+- (Splunk) Add the `loadbalancing` exporter ([#3825](https://github.com/signalfx/splunk-otel-collector/pull/3825))
+- (Splunk) Add the `udplog` receiver ([#3826](https://github.com/signalfx/splunk-otel-collector/pull/3826))
 
 ### 💡 Enhancements 💡
 

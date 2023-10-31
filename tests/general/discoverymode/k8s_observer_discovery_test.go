@@ -45,7 +45,7 @@ func TestK8sObserver(t *testing.T) {
 	defer tc.ShutdownOTLPReceiverSink()
 
 	cluster := kubeutils.NewKindCluster(tc)
-	defer cluster.Delete()
+	defer cluster.Teardown()
 	cluster.Create()
 	cluster.LoadLocalCollectorImageIfNecessary()
 

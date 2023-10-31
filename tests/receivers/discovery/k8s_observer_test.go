@@ -45,7 +45,7 @@ func TestDiscoveryReceiverWithK8sObserverProvidesEndpointLogs(t *testing.T) {
 	defer tc.ShutdownOTLPReceiverSink()
 
 	cluster := kubeutils.NewKindCluster(tc)
-	defer cluster.Delete()
+	defer cluster.Teardown()
 	cluster.Create()
 	cluster.LoadLocalCollectorImageIfNecessary()
 
@@ -119,7 +119,7 @@ func TestDiscoveryReceiverWithK8sObserverAndSmartAgentRedisReceiverProvideStatus
 	defer tc.ShutdownOTLPReceiverSink()
 
 	cluster := kubeutils.NewKindCluster(tc)
-	defer cluster.Delete()
+	defer cluster.Teardown()
 	cluster.Create()
 	cluster.LoadLocalCollectorImageIfNecessary()
 

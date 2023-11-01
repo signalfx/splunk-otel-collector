@@ -1,5 +1,4 @@
 // Copyright Splunk, Inc.
-// Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -71,8 +70,7 @@ func TestDaemonSet(t *testing.T) {
 		},
 	}
 
-	manifest, err := ds.Render()
-	require.NoError(t, err)
+	manifest := ds.Render(t)
 	require.Equal(t,
 		`---
 apiVersion: apps/v1
@@ -120,8 +118,7 @@ spec:
 
 func TestEmptyDaemonSet(t *testing.T) {
 	ds := DaemonSet{}
-	manifest, err := ds.Render()
-	require.NoError(t, err)
+	manifest := ds.Render(t)
 	require.Equal(t,
 		`---
 apiVersion: apps/v1

@@ -1,5 +1,4 @@
 // Copyright Splunk, Inc.
-// Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,6 +15,8 @@
 package manifests
 
 import (
+	"testing"
+
 	rbacv1 "k8s.io/api/rbac/v1"
 )
 
@@ -51,6 +52,6 @@ rules:
 
 var crm = Manifest[ClusterRole](clusterRoleTemplate)
 
-func (cr ClusterRole) Render() (string, error) {
-	return crm.Render(cr)
+func (cr ClusterRole) Render(t testing.TB) string {
+	return crm.Render(cr, t)
 }

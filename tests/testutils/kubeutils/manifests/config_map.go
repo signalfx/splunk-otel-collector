@@ -1,5 +1,4 @@
 // Copyright Splunk, Inc.
-// Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,6 +13,8 @@
 // limitations under the License.
 
 package manifests
+
+import "testing"
 
 type ConfigMap struct {
 	Namespace string
@@ -39,6 +40,6 @@ data:
 
 var cmm = Manifest[ConfigMap](configMapTemplate)
 
-func (cm ConfigMap) Render() (string, error) {
-	return cmm.Render(cm)
+func (cm ConfigMap) Render(t testing.TB) string {
+	return cmm.Render(cm, t)
 }

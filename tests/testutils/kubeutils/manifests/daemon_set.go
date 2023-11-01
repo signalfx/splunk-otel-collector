@@ -1,5 +1,4 @@
 // Copyright Splunk, Inc.
-// Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,6 +15,8 @@
 package manifests
 
 import (
+	"testing"
+
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -75,6 +76,6 @@ spec:
 
 var dsm = Manifest[DaemonSet](daemonSetTemplate)
 
-func (d DaemonSet) Render() (string, error) {
-	return dsm.Render(d)
+func (d DaemonSet) Render(t testing.TB) string {
+	return dsm.Render(d, t)
 }

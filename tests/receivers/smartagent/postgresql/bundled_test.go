@@ -49,19 +49,40 @@ func TestK8sObserver(t *testing.T) {
 	cluster.Create()
 	cluster.LoadLocalCollectorImageIfNecessary()
 
-	namespace, serviceAccount := cluster.createNamespaceAndServiceAccount()
-	postgresUID := cluster.createPostgres("target.postgres", namespace, serviceAccount)
-	cluster.createClusterRoleAndRoleBinding(namespace, serviceAccount)
-	configMap := cluster.createConfigMap(namespace)
-	daemonSet := cluster.daemonSetManifest(namespace, serviceAccount, configMap)
+	namespace := manifests.Namespace{Name: "test-namespace"}
+	serviceAccount := manifests.ServiceAccount{Name: "some.serviceacount", Namespace: namespace.Name}
+	clusterRole, clusterRoleBinding := clusterRoleAndBinding(namespace.Name, serviceAccount.Name)
+	sout, serr, err := cluster.Apply(manifests.RenderAll(t, namespace, serviceAccount, clusterRole, clusterRoleBinding))
+	require.NoError(t, err, "stdout: %s, stderr: %s", sout, serr)
+
+	postgresUID := cluster.createPostgres("target.postgres", namespace.Name, serviceAccount.Name)
+
+	configMap := manifests.ConfigMap{
+		Name: "collector.config", Namespace: namespace.Name,
+		Data: `config: |
+  exporters:
+    otlp:
+      endpoint: ${OTLP_ENDPOINT}
+      tls:
+        insecure: true
+  service:
+    pipelines:
+      metrics:
+        exporters:
+          - otlp
+`}
+
+	ds := cluster.daemonSet(namespace.Name, serviceAccount.Name, configMap.Name)
+	sout, serr, err = cluster.Apply(manifests.RenderAll(t, configMap, ds))
+	require.NoError(t, err, "stdout: %s, stderr: %s", sout, serr)
 
 	var collectorName string
 	// wait for collector to run
 	require.Eventually(t, func() bool {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		dsPods, err := cluster.Clientset.CoreV1().Pods(namespace).List(ctx, metav1.ListOptions{
-			LabelSelector: fmt.Sprintf("name = %s", daemonSet),
+		dsPods, err := cluster.Clientset.CoreV1().Pods(namespace.Name).List(ctx, metav1.ListOptions{
+			LabelSelector: fmt.Sprintf("name = %s", ds.Name),
 		})
 		require.NoError(t, err)
 		if len(dsPods.Items) > 0 {
@@ -78,7 +99,7 @@ func TestK8sObserver(t *testing.T) {
 	expectedMetrics := tc.ResourceMetrics("all.yaml")
 	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedMetrics, 30*time.Second))
 
-	stdOut, stdErr, err := cluster.Kubectl("logs", "-n", namespace, collectorName)
+	stdOut, stdErr, err := cluster.Kubectl("logs", "-n", namespace.Name, collectorName)
 	require.NoError(t, err)
 	require.Contains(
 		t, stdOut.String(),
@@ -110,9 +131,7 @@ func (cluster testCluster) createPostgres(name, namespace, serviceAccount string
 		Name:      "postgres",
 		Data:      string(configMapContent),
 	}
-	cmm, err := cm.Render()
-	require.NoError(cluster.Testcase, err)
-	sout, serr, err := cluster.Apply(cmm)
+	sout, serr, err := cluster.Apply(cm.Render(cluster.Testcase))
 	cluster.Testcase.Logger.Debug("applying ConfigMap", zap.String("stdout", sout.String()), zap.String("stderr", serr.String()))
 	require.NoError(cluster.Testcase, err)
 
@@ -239,60 +258,7 @@ func (cluster testCluster) createPostgres(name, namespace, serviceAccount string
 	return string(postgres.UID)
 }
 
-func (cluster testCluster) createNamespaceAndServiceAccount() (string, string) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	ns, err := cluster.Clientset.CoreV1().Namespaces().Create(
-		ctx, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "test-namespace"}},
-		metav1.CreateOptions{},
-	)
-	require.NoError(cluster.Testcase, err)
-	namespace := ns.Name
-
-	ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	serviceAccount, err := cluster.Clientset.CoreV1().ServiceAccounts(namespace).Create(
-		ctx, &corev1.ServiceAccount{
-			ObjectMeta: metav1.ObjectMeta{Name: "some.serviceaccount"},
-		},
-		metav1.CreateOptions{})
-	require.NoError(cluster.Testcase, err)
-	return namespace, serviceAccount.Name
-}
-
-func (cluster testCluster) createConfigMap(namespace string) string {
-	config := map[string]any{
-		"config": `exporters:
-  otlp:
-    endpoint: ${OTLP_ENDPOINT}
-    tls:
-      insecure: true
-service:
-  pipelines:
-    metrics:
-      exporters:
-        - otlp
-`,
-	}
-
-	data, err := yaml.Marshal(config)
-	require.NoError(cluster.Testcase, err)
-
-	cm := manifests.ConfigMap{
-		Namespace: namespace,
-		Name:      "collector.config",
-		Data:      string(data),
-	}
-	cmm, err := cm.Render()
-	require.NoError(cluster.Testcase, err)
-
-	sout, serr, err := cluster.Apply(cmm)
-	cluster.Testcase.Logger.Debug("applying ConfigMap", zap.String("stdout", sout.String()), zap.String("stderr", serr.String()))
-	require.NoError(cluster.Testcase, err)
-	return cm.Name
-}
-
-func (cluster testCluster) createClusterRoleAndRoleBinding(namespace, serviceAccount string) {
+func clusterRoleAndBinding(namespace, serviceAccount string) (manifests.ClusterRole, manifests.ClusterRoleBinding) {
 	cr := manifests.ClusterRole{
 		Name:      "cluster-role",
 		Namespace: namespace,
@@ -358,11 +324,6 @@ func (cluster testCluster) createClusterRoleAndRoleBinding(namespace, serviceAcc
 			},
 		},
 	}
-	crManifest, err := cr.Render()
-	require.NoError(cluster.Testcase, err)
-	sout, serr, err := cluster.Apply(crManifest)
-	cluster.Testcase.Logger.Debug("applying ClusterRole", zap.String("stdout", sout.String()), zap.String("stderr", serr.String()))
-	require.NoError(cluster.Testcase, err)
 
 	crb := manifests.ClusterRoleBinding{
 		Namespace:          namespace,
@@ -370,15 +331,10 @@ func (cluster testCluster) createClusterRoleAndRoleBinding(namespace, serviceAcc
 		ClusterRoleName:    cr.Name,
 		ServiceAccountName: serviceAccount,
 	}
-	crbManifest, err := crb.Render()
-	require.NoError(cluster.Testcase, err)
-
-	sout, serr, err = cluster.Apply(crbManifest)
-	cluster.Testcase.Logger.Debug("applying ClusterRoleBinding", zap.String("stdout", sout.String()), zap.String("stderr", serr.String()))
-	require.NoError(cluster.Testcase, err)
+	return cr, crb
 }
 
-func (cluster testCluster) daemonSetManifest(namespace, serviceAccount, configMap string) string {
+func (cluster testCluster) daemonSet(namespace, serviceAccount, configMap string) manifests.DaemonSet {
 	splat := strings.Split(cluster.Testcase.OTLPEndpoint, ":")
 	port := splat[len(splat)-1]
 	var hostFromContainer string
@@ -389,7 +345,7 @@ func (cluster testCluster) daemonSetManifest(namespace, serviceAccount, configMa
 	}
 	otlpEndpoint := fmt.Sprintf("%s:%s", hostFromContainer, port)
 
-	ds := manifests.DaemonSet{
+	return manifests.DaemonSet{
 		Name:           "an.agent.daemonset",
 		Namespace:      namespace,
 		ServiceAccount: serviceAccount,
@@ -440,10 +396,4 @@ func (cluster testCluster) daemonSetManifest(namespace, serviceAccount, configMa
 			},
 		},
 	}
-	dsm, err := ds.Render()
-	require.NoError(cluster.Testcase, err)
-	sout, serr, err := cluster.Apply(dsm)
-	cluster.Testcase.Logger.Debug("applying DaemonSet", zap.String("stdout", sout.String()), zap.String("stderr", serr.String()))
-	require.NoError(cluster.Testcase, err)
-	return ds.Name
 }

@@ -16,21 +16,17 @@ package manifests
 
 import (
 	"testing"
-
-	rbacv1 "k8s.io/api/rbac/v1"
 )
 
-// ClusterRole is a "k8s.io/api/rbac/v1.ClusterRole" convenience type
-type ClusterRole struct {
-	Namespace string
+// ServiceAccount is a "k8s.io/api/core/v1.ServiceAccount" convenience type
+type ServiceAccount struct {
 	Name      string
-	Labels    map[string]string
-	Rules     []rbacv1.PolicyRule
+	Namespace string
 }
 
-const clusterRoleTemplate = `---
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
+const serviceAccountTemplate = `---
+apiVersion: v1
+kind: ServiceAccount
 metadata:
 {{- if .Name }}
   name: {{ .Name }}
@@ -38,20 +34,10 @@ metadata:
 {{- if .Namespace }}
   namespace: {{ .Namespace }}
 {{- end }}
-{{- if .Labels }}
-  labels:
-  {{- range $key, $value := .Labels }}
-    {{ $key }}: {{ $value }}
-  {{- end }}
-{{- end }}
-{{- if .Rules }}
-rules:
-{{ .Rules | toYaml }}
-{{- end }}
 `
 
-var crm = Manifest[ClusterRole](clusterRoleTemplate)
+var sam = Manifest[ServiceAccount](serviceAccountTemplate)
 
-func (cr ClusterRole) Render(t testing.TB) string {
-	return crm.Render(cr, t)
+func (sa ServiceAccount) Render(t testing.TB) string {
+	return sam.Render(sa, t)
 }

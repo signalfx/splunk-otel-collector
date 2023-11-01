@@ -1,5 +1,4 @@
 // Copyright Splunk, Inc.
-// Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,21 +23,44 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-func TestManifest(t *testing.T) {
-	type One struct {
-		Thing        string
-		AnotherThing string
-	}
+type one struct {
+	Thing        string
+	AnotherThing string
+}
 
-	man := Manifest[One]("{{.Thing}}")
-	manifest, err := man.Render(One{Thing: "thing"})
-	require.NoError(t, err)
+func (o one) Render(tb testing.TB) string {
+	tmplt := `---
+thing: "{{.Thing}}"
+anotherThing: "{{.AnotherThing}}"
+`
+	man := Manifest[one](tmplt)
+	return man.Render(o, tb)
+}
+
+func TestManifest(t *testing.T) {
+	man := Manifest[one]("{{.Thing}}")
+	manifest := man.Render(one{Thing: "thing"}, t)
 	require.Equal(t, "thing", manifest)
 
-	man = Manifest[One]("{{ .AnotherThing | upper }}")
-	manifest, err = man.Render(One{AnotherThing: "another.thing"})
-	require.NoError(t, err)
+	man = Manifest[one]("{{ .AnotherThing | upper }}")
+	manifest = man.Render(one{AnotherThing: "another.thing"}, t)
 	require.Equal(t, "ANOTHER.THING", manifest)
+}
+
+func TestRenderAll(t *testing.T) {
+	first := one{}
+	second := one{Thing: "some", AnotherThing: "thing"}
+	third := one{AnotherThing: "another.thing"}
+	require.Equal(t, `---
+thing: ""
+anotherThing: ""
+---
+thing: "some"
+anotherThing: "thing"
+---
+thing: ""
+anotherThing: "another.thing"
+`, RenderAll(t, first, second, third))
 }
 
 func TestK8sYaml(t *testing.T) {
@@ -49,15 +71,14 @@ func TestK8sYaml(t *testing.T) {
 	man := Manifest[Thing](`container:
 {{ .Container | toYaml | indent 2 }}
 `)
-	manifest, err := man.Render(Thing{Container: corev1.Container{
+	manifest := man.Render(Thing{Container: corev1.Container{
 		Name:       "container-name",
 		Image:      "container-image",
 		Command:    []string{"container", "command"},
 		Args:       []string{"arg.one", "arg.two"},
 		WorkingDir: "/working/dir",
 		Ports:      []corev1.ContainerPort{{Name: "a.port", HostPort: 123, ContainerPort: 234, Protocol: corev1.ProtocolUDP, HostIP: "1.2.3.4"}},
-	}})
-	require.NoError(t, err)
+	}}, t)
 	require.Equal(t, `container:
   args:
   - arg.one

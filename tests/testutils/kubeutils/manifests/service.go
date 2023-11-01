@@ -17,41 +17,38 @@ package manifests
 import (
 	"testing"
 
-	rbacv1 "k8s.io/api/rbac/v1"
+	corev1 "k8s.io/api/core/v1"
 )
 
-// ClusterRole is a "k8s.io/api/rbac/v1.ClusterRole" convenience type
-type ClusterRole struct {
-	Namespace string
+// Service is a "k8s.io/api/core/v1.Service" convenience type
+type Service struct {
 	Name      string
-	Labels    map[string]string
-	Rules     []rbacv1.PolicyRule
+	Namespace string
+	Type      corev1.ServiceType
+	Selector  map[string]string
+	Ports     []corev1.ServicePort
 }
 
-const clusterRoleTemplate = `---
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
+const serviceTemplate = `---
+apiVersion: v1
+kind: Service
 metadata:
-{{- if .Name }}
   name: {{ .Name }}
-{{- end -}}
-{{- if .Namespace }}
   namespace: {{ .Namespace }}
-{{- end }}
-{{- if .Labels }}
-  labels:
-  {{- range $key, $value := .Labels }}
+spec:
+  type: {{ .Type }}
+  selector:
+  {{- range $key, $value := .Selector }}
     {{ $key }}: {{ $value }}
   {{- end }}
-{{- end }}
-{{- if .Rules }}
-rules:
-{{ .Rules | toYaml }}
+{{- if .Ports }}
+  ports:
+{{ .Ports | toYaml | indent 4 }}
 {{- end }}
 `
 
-var crm = Manifest[ClusterRole](clusterRoleTemplate)
+var sm = Manifest[Service](serviceTemplate)
 
-func (cr ClusterRole) Render(t testing.TB) string {
-	return crm.Render(cr, t)
+func (s Service) Render(t testing.TB) string {
+	return sm.Render(s, t)
 }

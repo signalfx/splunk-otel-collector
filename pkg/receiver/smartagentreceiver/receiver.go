@@ -254,7 +254,9 @@ func (r *receiver) setUpSmartAgentConfigProvider(extensions map[component.ID]ote
 
 func setUpEnvironment() {
 	if runtime.GOOS != "windows" { // Agent bundle doesn't include jre for Windows
-		os.Setenv("JAVA_HOME", filepath.Join(saConfig.BundleDir, "jre"))
+		if _, ok := os.LookupEnv("JAVA_HOME"); !ok {
+			os.Setenv("JAVA_HOME", filepath.Join(saConfig.BundleDir, "jre"))
+		}
 	}
 
 	hostfs.SetEnvMap(common.EnvMap{

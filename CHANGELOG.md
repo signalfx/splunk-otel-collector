@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 🛑 Breaking changes 🛑
+
+- (Splunk) `smartagent`: Respect `JAVA_HOME` environment variable instead of enforcing bundle-relative value ([#3877](https://github.com/signalfx/splunk-otel-collector/pull/3877))
+
 ## v0.87.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.87.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.87.0) and the [opentelemetry-collector-contrib v0.87.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.87.0) releases where appropriate.

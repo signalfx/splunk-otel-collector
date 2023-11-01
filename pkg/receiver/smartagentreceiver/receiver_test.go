@@ -51,8 +51,16 @@ import (
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
-func cleanUp() {
-	configureEnvironmentOnce = sync.Once{}
+func cleanUp() func() {
+	jh := "JAVA_HOME"
+	existing, ok := os.LookupEnv(jh)
+	os.Unsetenv(jh)
+	return func() {
+		configureEnvironmentOnce = sync.Once{}
+		if ok {
+			os.Setenv(jh, existing)
+		}
+	}
 }
 
 func newReceiverCreateSettings(name string) otelcolreceiver.CreateSettings {
@@ -101,7 +109,7 @@ func newConfig(monitorType string, intervalSeconds int) Config {
 }
 
 func TestSmartAgentReceiver(t *testing.T) {
-	t.Cleanup(cleanUp)
+	t.Cleanup(cleanUp())
 	cfg := newConfig("cpu", 10)
 	consumer := new(consumertest.MetricsSink)
 	receiver := newReceiver(newReceiverCreateSettings("valid"), cfg)
@@ -192,7 +200,7 @@ func TestStripMonitorTypePrefix(t *testing.T) {
 }
 
 func TestStartReceiverWithInvalidMonitorConfig(t *testing.T) {
-	t.Cleanup(cleanUp)
+	t.Cleanup(cleanUp())
 	cfg := newConfig("cpu", -123)
 	receiver := newReceiver(newReceiverCreateSettings("invalid"), cfg)
 	err := receiver.Start(context.Background(), componenttest.NewNopHost())
@@ -202,7 +210,7 @@ func TestStartReceiverWithInvalidMonitorConfig(t *testing.T) {
 }
 
 func TestStartReceiverWithUnknownMonitorType(t *testing.T) {
-	t.Cleanup(cleanUp)
+	t.Cleanup(cleanUp())
 	cfg := newConfig("notamonitortype", 1)
 	receiver := newReceiver(newReceiverCreateSettings("invalid"), cfg)
 	err := receiver.Start(context.Background(), componenttest.NewNopHost())
@@ -212,7 +220,7 @@ func TestStartReceiverWithUnknownMonitorType(t *testing.T) {
 }
 
 func TestStartAndShutdown(t *testing.T) {
-	t.Cleanup(cleanUp)
+	t.Cleanup(cleanUp())
 	cfg := newConfig("cpu", 1)
 	receiver := newReceiver(newReceiverCreateSettings("valid"), cfg)
 	err := receiver.Start(context.Background(), componenttest.NewNopHost())
@@ -223,7 +231,7 @@ func TestStartAndShutdown(t *testing.T) {
 }
 
 func TestOutOfOrderShutdownInvocations(t *testing.T) {
-	t.Cleanup(cleanUp)
+	t.Cleanup(cleanUp())
 	cfg := newConfig("cpu", 1)
 	receiver := newReceiver(newReceiverCreateSettings("valid"), cfg)
 
@@ -235,7 +243,7 @@ func TestOutOfOrderShutdownInvocations(t *testing.T) {
 }
 
 func TestMultipleInstancesOfSameMonitorType(t *testing.T) {
-	t.Cleanup(cleanUp)
+	t.Cleanup(cleanUp())
 	cfg := newConfig("cpu", 1)
 	fstRcvr := newReceiver(newReceiverCreateSettings("valid"), cfg)
 
@@ -250,7 +258,7 @@ func TestMultipleInstancesOfSameMonitorType(t *testing.T) {
 }
 
 func TestInvalidMonitorStateAtShutdown(t *testing.T) {
-	t.Cleanup(cleanUp)
+	t.Cleanup(cleanUp())
 	cfg := newConfig("cpu", 1)
 	receiver := newReceiver(newReceiverCreateSettings("valid"), cfg)
 	receiver.monitor = new(any)
@@ -261,7 +269,7 @@ func TestInvalidMonitorStateAtShutdown(t *testing.T) {
 }
 
 func TestConfirmStartingReceiverWithInvalidMonitorInstancesDoesntPanic(t *testing.T) {
-	t.Cleanup(cleanUp)
+	t.Cleanup(cleanUp())
 	tests := []struct {
 		name           string
 		monitorFactory func() any
@@ -291,7 +299,7 @@ func TestConfirmStartingReceiverWithInvalidMonitorInstancesDoesntPanic(t *testin
 }
 
 func TestFilteringNoMetadata(t *testing.T) {
-	t.Cleanup(cleanUp)
+	t.Cleanup(cleanUp())
 	monitors.MonitorFactories["fakemonitor"] = func() any { return struct{}{} }
 	cfg := newConfig("fakemonitor", 1)
 	receiver := newReceiver(newReceiverCreateSettings("valid"), cfg)
@@ -300,7 +308,7 @@ func TestFilteringNoMetadata(t *testing.T) {
 }
 
 func TestSmartAgentConfigProviderOverrides(t *testing.T) {
-	t.Cleanup(cleanUp)
+	t.Cleanup(cleanUp())
 	cfg := newConfig("cpu", 1)
 	observedLogger, logs := observer.New(zapcore.WarnLevel)
 	logger := zap.New(observedLogger)
@@ -353,6 +361,22 @@ func TestSmartAgentConfigProviderOverrides(t *testing.T) {
 	require.Equal(t, "/run", hostfs.HostRun())
 	require.Equal(t, "/var", hostfs.HostVar())
 	require.Equal(t, "/etc", hostfs.HostEtc())
+}
+
+func TestJavaHomeRespected(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("non-windows only")
+	}
+	t.Cleanup(cleanUp())
+	os.Setenv("JAVA_HOME", "/existing/java/home")
+	cfg := newConfig("cpu", 1)
+	rcs := newReceiverCreateSettings("valid")
+	r := newReceiver(rcs, cfg)
+
+	require.NoError(t, r.Start(context.Background(), componenttest.NewNopHost()))
+	require.NoError(t, r.Shutdown(context.Background()))
+
+	require.Equal(t, "/existing/java/home", os.Getenv("JAVA_HOME"))
 }
 
 func getSmartAgentExtensionConfig(t *testing.T) []*smartagentextension.Config {

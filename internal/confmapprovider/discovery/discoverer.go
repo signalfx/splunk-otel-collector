@@ -33,6 +33,8 @@ import (
 	"go.opentelemetry.io/collector/config/configtelemetry"
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/confmap/converter/expandconverter"
+	"go.opentelemetry.io/collector/confmap/provider/envprovider"
+	"go.opentelemetry.io/collector/confmap/provider/yamlprovider"
 	"go.opentelemetry.io/collector/consumer"
 	otelcolextension "go.opentelemetry.io/collector/extension"
 	"go.opentelemetry.io/collector/otelcol"
@@ -54,6 +56,11 @@ import (
 const (
 	durationEnvVar = "SPLUNK_DISCOVERY_DURATION"
 	logLevelEnvVar = "SPLUNK_DISCOVERY_LOG_LEVEL"
+)
+
+var (
+	yamlProvider = yamlprovider.New()
+	envProvider  = envprovider.New()
 )
 
 // discoverer provides the mechanism for a "preflight" collector service
@@ -115,6 +122,35 @@ func newDiscoverer(logger *zap.Logger) (*discoverer, error) {
 	}
 	d.propertiesConf = d.propertiesConfFromEnv()
 	return d, nil
+}
+
+func (d *discoverer) resolveConfig(discoveryReceiverRaw map[string]any) (*confmap.Conf, error) {
+	providers := map[string]confmap.Provider{
+		"yaml": yamlProvider,
+		"env":  envProvider,
+	}
+	out, err := yaml.Marshal(discoveryReceiverRaw)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal discovery receiver config for uri: %w", err)
+	}
+	uris := []string{fmt.Sprintf("yaml:%s", out)}
+	resolver, err := confmap.NewResolver(confmap.ResolverSettings{
+		URIs:       uris,
+		Providers:  providers,
+		Converters: []confmap.Converter{d.expandConverter},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create a resolver from the given uris. %w", err)
+	}
+
+	conf, err := resolver.Resolve(context.Background())
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve configuration from the resovler %w", err)
+	}
+	if err = resolver.Shutdown(context.Background()); err != nil {
+		d.logger.Warn("error shutting down resolver", zap.Error(err))
+	}
+	return conf, nil
 }
 
 func (d *discoverer) propertiesConfFromEnv() *confmap.Conf {
@@ -295,9 +331,10 @@ func (d *discoverer) createDiscoveryReceiversAndObservers(cfg *Config) (map[comp
 		}
 
 		discoveryReceiverRaw["receivers"] = receivers
-		discoveryReceiverConfMap := confmap.NewFromStringMap(discoveryReceiverRaw)
-		if err = d.expandConverter.Convert(context.Background(), discoveryReceiverConfMap); err != nil {
-			return nil, nil, fmt.Errorf("error converting environment variables in receiver config: %w", err)
+		discoveryReceiverConfMap, err := d.resolveConfig(discoveryReceiverRaw)
+
+		if err != nil {
+			return nil, nil, fmt.Errorf("error preparing discovery receiver config: %w", err)
 		}
 
 		if err = component.UnmarshalConfig(discoveryReceiverConfMap, discoveryReceiverConfig); err != nil {

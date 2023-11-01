@@ -170,12 +170,16 @@ These properties can be in `config.d/properties.discovery.yaml` or specified at 
 
 You can also specify a `--discovery-properties=<filepath.yaml>` argument to disregard `config.d/properties.discovery.yaml` properties and load properties not to be shared with another Collector service, while still benefiting from existing discovery component definitions.
 
-The `config.d/properties.discovery.yaml` file supports specifying the property values directly as well within a mapped form:
+The `config.d/properties.discovery.yaml` file supports specifying the property values directly as well within a mapped form. The property values can also be environment
+variables:
 
 ```yaml
 # --set form will take priority to mapped values
 splunk.discovery.receivers.prometheus_simple.config.labels::my_label: my_label_value
 splunk.discovery.receivers.prometheus_simple.enabled: true
+
+splunk.discovery.receivers.smartagent/postgresql.config.params::username: '${env:PG_USERNAME}'
+splunk.discovery.receivers.smartagent/postgresql.config.params::password: '${env:PG_PASSWORD}'
 
 # mapped property form
 splunk.discovery:

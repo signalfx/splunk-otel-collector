@@ -175,7 +175,7 @@ func TestHostObserver(t *testing.T) {
 							"config": map[string]any{
 								"collection_interval": "1s",
 								"labels": map[string]any{
-									"label_one":   "${LABEL_ONE_VALUE}",
+									"label_one":   "${env:LABEL_ONE_VALUE}",
 									"label_two":   "${LABEL_TWO_VALUE}",
 									"label_three": "actual.label.three.value.from.cmdline.property",
 								},
@@ -301,7 +301,7 @@ receivers:
         config:
           collection_interval: 1s
           labels:
-            label_one: ${LABEL_ONE_VALUE}
+            label_one: ${env:LABEL_ONE_VALUE}
             label_three: actual.label.three.value.from.env.var.property
             label_two: ${LABEL_TWO_VALUE}
         resource_attributes: {}

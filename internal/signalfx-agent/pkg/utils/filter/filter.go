@@ -15,12 +15,12 @@ import (
 
 // StringFilter matches against simple strings
 type StringFilter interface {
-	Matches(string) bool
+	Matches(str string) bool
 }
 
 // StringMapFilter matches against the values of a map[string]string.
 type StringMapFilter interface {
-	Matches(map[string]string) bool
+	Matches(str map[string]string) bool
 }
 
 // BasicStringFilter will match if any one of the given strings is a match.

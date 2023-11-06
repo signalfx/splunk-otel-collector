@@ -192,8 +192,8 @@ func makePipes() (*messageReadWriter, io.ReadCloser, io.WriteCloser, error) {
 // subprocess.  MontiorCore.ConfigureInSubproc handles configuring the
 // subprocess monitor and collecting the result.
 type MessageHandler interface {
-	ProcessMessages(context.Context, MessageReceiver)
-	HandleLogMessage(io.Reader) error
+	ProcessMessages(ctx context.Context, messageReceiver MessageReceiver)
+	HandleLogMessage(r io.Reader) error
 }
 
 // ConfigureInSubproc sends the given config to the subproc and returns whether

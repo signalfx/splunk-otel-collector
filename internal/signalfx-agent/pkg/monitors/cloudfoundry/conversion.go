@@ -17,28 +17,28 @@ func envelopeToDatapoints(env *loggregator_v2.Envelope) ([]*datapoint.Datapoint,
 	// We intentionally modify the Tags map on the envelope, assuming that the
 	// loggregator code that generated it is not going to reuse envelope
 	// instances or tag maps.
-	dims := env.Tags
+	dims := env.GetTags()
 
 	prefix := ""
 
-	if env.SourceId != "" {
-		dims["source_id"] = env.SourceId
-		if hexIDRegexp.MatchString(env.SourceId) {
-			prefix = env.Tags["origin"] + "."
+	if env.GetSourceId() != "" {
+		dims["source_id"] = env.GetSourceId()
+		if hexIDRegexp.MatchString(env.GetSourceId()) {
+			prefix = env.GetTags()["origin"] + "."
 		} else {
-			prefix = env.SourceId + "."
+			prefix = env.GetSourceId() + "."
 		}
 	}
 
-	if env.InstanceId != "" {
-		dims["instance_id"] = env.InstanceId
+	if env.GetInstanceId() != "" {
+		dims["instance_id"] = env.GetInstanceId()
 	}
 
 	var metricType datapoint.MetricType
 
 	namesToValues := make(map[string]float64)
 
-	switch m := env.Message.(type) {
+	switch m := env.GetMessage().(type) {
 	case *loggregator_v2.Envelope_Log:
 	case *loggregator_v2.Envelope_Counter:
 		metricType = datapoint.Counter
@@ -46,7 +46,7 @@ func envelopeToDatapoints(env *loggregator_v2.Envelope) ([]*datapoint.Datapoint,
 	case *loggregator_v2.Envelope_Gauge:
 		metricType = datapoint.Gauge
 		for name, gauge := range m.Gauge.GetMetrics() {
-			namesToValues[name] = gauge.Value
+			namesToValues[name] = gauge.GetValue()
 		}
 	case *loggregator_v2.Envelope_Timer:
 	case *loggregator_v2.Envelope_Event:
@@ -56,7 +56,7 @@ func envelopeToDatapoints(env *loggregator_v2.Envelope) ([]*datapoint.Datapoint,
 
 	var dps []*datapoint.Datapoint
 	for name, val := range namesToValues {
-		dps = append(dps, datapoint.New(prefix+cleanupName(name), dims, datapoint.NewFloatValue(val), metricType, time.Unix(0, env.Timestamp)))
+		dps = append(dps, datapoint.New(prefix+cleanupName(name), dims, datapoint.NewFloatValue(val), metricType, time.Unix(0, env.GetTimestamp())))
 	}
 
 	return dps, nil

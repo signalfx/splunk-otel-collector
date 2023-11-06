@@ -14,14 +14,14 @@ import (
 type Output interface {
 	Copy() Output
 	SendDatapoints(...*datapoint.Datapoint)
-	SendEvent(*event.Event)
+	SendEvent(e *event.Event)
 	SendSpans(...*trace.Span)
 	SendDimensionUpdate(*Dimension)
-	AddExtraDimension(key, value string)
+	AddExtraDimension(key string, value string)
 	RemoveExtraDimension(key string)
-	AddExtraSpanTag(key, value string)
+	AddExtraSpanTag(key string, value string)
 	RemoveExtraSpanTag(key string)
-	AddDefaultSpanTag(key, value string)
+	AddDefaultSpanTag(key string, value string)
 	RemoveDefaultSpanTag(key string)
 }
 

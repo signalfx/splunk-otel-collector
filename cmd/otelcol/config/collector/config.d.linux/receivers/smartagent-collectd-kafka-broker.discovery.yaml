@@ -9,9 +9,9 @@
 # smartagent/collectd/kafka_broker:
 #   enabled: true
 #   rule:
-#     docker_observer: type == "container" and any([name, image, command], {# matches "(?i)kafka-broker"}) and not (command matches "splunk.discovery")
-#     host_observer: type == "hostport" and command matches "(?i)kafka-broker"
-#     k8s_observer: type == "port" and pod.name matches "(?i)kafka-broker"
+#     docker_observer: type == "container" and any([name, image, command], {# matches "(?i)kafka.*broker"}) and not (command matches "splunk.discovery")
+#     host_observer: type == "hostport" and command matches "(?i)kafka.*broker"
+#     k8s_observer: type == "port" and pod.name matches "(?i)kafka.*broker"
 #   config:
 #     default:
 #       type: collectd/kafka

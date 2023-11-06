@@ -43,14 +43,14 @@ func TestBrokerMetrics(t *testing.T) {
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
 
-	kafkaBroker := kafka.WithName("kafka-broker").WithEnvVar("START_AS", "broker").WithExposedPorts("7099:7099", "9092:9092").WillWaitForPorts("7099", "9092")
+	kafkaBroker := kafka.WithName("kafka-onprem-dc0-all-broker").WithEnvVar("START_AS", "broker").WithExposedPorts("7099:7099", "9092:9092").WillWaitForPorts("7099", "9092")
 
-	kafkaConsumer := kafka.WithName("consumer").WithEnv(map[string]string{"START_AS": "consumer", "KAFKA_BROKER": "kafka-broker:9092", "JMX_PORT": "9099"}).WithExposedPorts("9099:9099").WillWaitForPorts("9099")
+	kafkaConsumer := kafka.WithName("consumer").WithEnv(map[string]string{"START_AS": "consumer", "KAFKA_BROKER": "kafka-onprem-dc0-all-broker:9092", "JMX_PORT": "9099"}).WithExposedPorts("9099:9099").WillWaitForPorts("9099")
 
-	kafkaProducer := kafka.WithName("producer").WithEnv(map[string]string{"START_AS": "producer", "KAFKA_BROKER": "kafka-broker:9092", "JMX_PORT": "8099"}).WithExposedPorts("8099:8099").WillWaitForPorts("8099")
+	kafkaProducer := kafka.WithName("producer").WithEnv(map[string]string{"START_AS": "producer", "KAFKA_BROKER": "kafka-onprem-dc0-all-broker:9092", "JMX_PORT": "8099"}).WithExposedPorts("8099:8099").WillWaitForPorts("8099")
 
 	kafkaTopicCreator := kafka.WithName("kafka-topic-creator").WithEnv(map[string]string{
-		"START_AS": "create-topic", "KAFKA_BROKER": "kafka-broker:9092",
+		"START_AS": "create-topic", "KAFKA_BROKER": "kafka-onprem-dc0-all-broker:9092",
 	}).WillWaitForLogs(`Created topic sfx-employee.`)
 
 	containers := []testutils.Container{kafkaZookeeper, kafkaBroker, kafkaTopicCreator, kafkaConsumer, kafkaProducer}
@@ -94,7 +94,7 @@ func TestProducerMetrics(t *testing.T) {
 
 	kafkaConsumer := kafka.WithName("consumer").WithEnv(map[string]string{"START_AS": "consumer", "KAFKA_BROKER": "broker:9092", "JMX_PORT": "9099"}).WithExposedPorts("9099:9099").WillWaitForPorts("9099")
 
-	kafkaProducer := kafka.WithName("kafka-producer").WithEnv(map[string]string{"START_AS": "producer", "KAFKA_BROKER": "broker:9092", "JMX_PORT": "8099"}).WithExposedPorts("8099:8099").WillWaitForPorts("8099")
+	kafkaProducer := kafka.WithName("kafka-onprem-dc0-all-producer").WithEnv(map[string]string{"START_AS": "producer", "KAFKA_BROKER": "broker:9092", "JMX_PORT": "8099"}).WithExposedPorts("8099:8099").WillWaitForPorts("8099")
 
 	kafkaTopicCreator := kafka.WithName("kafka-topic-creator").WithEnv(map[string]string{
 		"START_AS": "create-topic", "KAFKA_BROKER": "broker:9092",
@@ -138,7 +138,7 @@ func TestConsumerMetrics(t *testing.T) {
 
 	kafkaBroker := kafka.WithName("broker").WithEnvVar("START_AS", "broker").WithExposedPorts("7099:7099", "9092:9092").WillWaitForPorts("7099", "9092")
 
-	kafkaConsumer := kafka.WithName("kafka-consumer").WithEnv(map[string]string{"START_AS": "consumer", "KAFKA_BROKER": "broker:9092", "JMX_PORT": "9099"}).WithExposedPorts("9099:9099").WillWaitForPorts("9099")
+	kafkaConsumer := kafka.WithName("kafka-onprem-dc0-all-consumer").WithEnv(map[string]string{"START_AS": "consumer", "KAFKA_BROKER": "broker:9092", "JMX_PORT": "9099"}).WithExposedPorts("9099:9099").WillWaitForPorts("9099")
 
 	kafkaProducer := kafka.WithName("producer").WithEnv(map[string]string{"START_AS": "producer", "KAFKA_BROKER": "broker:9092", "JMX_PORT": "8099"}).WithExposedPorts("8099:8099").WillWaitForPorts("8099")
 

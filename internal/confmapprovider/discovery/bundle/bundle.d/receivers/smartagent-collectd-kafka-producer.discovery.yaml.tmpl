@@ -1,9 +1,9 @@
 {{ receiver "smartagent/collectd/kafka_producer" }}:
   enabled: true
   rule:
-    docker_observer: type == "container" and any([name, image, command], {# matches "(?i)kafka-producer"}) and not (command matches "splunk.discovery")
-    host_observer: type == "hostport" and command matches "(?i)kafka-producer"
-    k8s_observer: type == "port" and pod.name matches "(?i)kafka-producer"
+    docker_observer: type == "container" and any([name, image, command], {# matches "(?i)kafka.*producer"}) and not (command matches "splunk.discovery")
+    host_observer: type == "hostport" and command matches "(?i)kafka.*producer"
+    k8s_observer: type == "port" and pod.name matches "(?i)kafka.*producer"
   config:
     default:
       type: collectd/kafka_producer

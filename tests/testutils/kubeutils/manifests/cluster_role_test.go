@@ -1,5 +1,4 @@
 // Copyright Splunk, Inc.
-// Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -91,8 +90,6 @@ func TestClusterRole(t *testing.T) {
 			},
 		},
 	}
-	manifest, err := cr.Render()
-	require.NoError(t, err)
 	require.Equal(t,
 		`---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -167,17 +164,15 @@ rules:
   - get
   - list
   - watch
-`, manifest)
+`, cr.Render(t))
 }
 
 func TestEmptyClusterRole(t *testing.T) {
 	cr := ClusterRole{}
-	manifest, err := cr.Render()
-	require.NoError(t, err)
 	require.Equal(t,
 		`---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-`, manifest)
+`, cr.Render(t))
 }

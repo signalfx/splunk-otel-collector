@@ -14,44 +14,28 @@
 
 package manifests
 
-import (
-	"testing"
+import "testing"
 
-	rbacv1 "k8s.io/api/rbac/v1"
-)
-
-// ClusterRole is a "k8s.io/api/rbac/v1.ClusterRole" convenience type
-type ClusterRole struct {
-	Namespace string
-	Name      string
-	Labels    map[string]string
-	Rules     []rbacv1.PolicyRule
+type Namespace struct {
+	Labels map[string]string
+	Name   string
 }
 
-const clusterRoleTemplate = `---
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
+const namespaceTemplate = `---
+apiVersion: v1
+kind: Namespace
 metadata:
-{{- if .Name }}
   name: {{ .Name }}
-{{- end -}}
-{{- if .Namespace }}
-  namespace: {{ .Namespace }}
-{{- end }}
 {{- if .Labels }}
   labels:
   {{- range $key, $value := .Labels }}
     {{ $key }}: {{ $value }}
   {{- end }}
 {{- end }}
-{{- if .Rules }}
-rules:
-{{ .Rules | toYaml }}
-{{- end }}
 `
 
-var crm = Manifest[ClusterRole](clusterRoleTemplate)
+var nm = Manifest[Namespace](namespaceTemplate)
 
-func (cr ClusterRole) Render(t testing.TB) string {
-	return crm.Render(cr, t)
+func (n Namespace) Render(t testing.TB) string {
+	return nm.Render(n, t)
 }

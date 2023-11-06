@@ -1,5 +1,4 @@
 // Copyright Splunk, Inc.
-// Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,11 +17,17 @@ package manifests
 import (
 	"bytes"
 	"strings"
+	"testing"
 	"text/template"
 
 	"github.com/Masterminds/sprig/v3"
+	"github.com/stretchr/testify/require"
 	"sigs.k8s.io/yaml"
 )
+
+type renderable interface {
+	Render(tb testing.TB) string
+}
 
 type M[T any] struct {
 	template string
@@ -36,16 +41,21 @@ func Manifest[T any](template string) M[T] {
 
 // Render takes an instance of the type argument and renders the Manifest's
 // template w/ its fields.
-func (m M[T]) Render(t T) (string, error) {
+func (m M[T]) Render(t T, tb testing.TB) string {
 	out := &bytes.Buffer{}
 	tpl, err := template.New("").Funcs(funcMap()).Parse(m.template)
-	if err != nil {
-		return "", err
+	require.NoError(tb, err)
+	err = tpl.Execute(out, t)
+	require.NoError(tb, err)
+	return out.String()
+}
+
+func RenderAll(tb testing.TB, manifests ...renderable) string {
+	var rendered []string
+	for _, m := range manifests {
+		rendered = append(rendered, m.Render(tb))
 	}
-	if err = tpl.Execute(out, t); err != nil {
-		return "", err
-	}
-	return out.String(), nil
+	return strings.Join(rendered, "")
 }
 
 // funcMap provides all sprig functions with an additional k8s yaml helper.

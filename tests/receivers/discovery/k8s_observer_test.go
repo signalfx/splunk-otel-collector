@@ -27,7 +27,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -45,15 +44,23 @@ func TestDiscoveryReceiverWithK8sObserverProvidesEndpointLogs(t *testing.T) {
 	defer tc.ShutdownOTLPReceiverSink()
 
 	cluster := kubeutils.NewKindCluster(tc)
-	defer cluster.Delete()
+	defer cluster.Teardown()
 	cluster.Create()
 	cluster.LoadLocalCollectorImageIfNecessary()
 
-	namespace, serviceAccount := createNamespaceAndServiceAccount(cluster)
+	namespace := manifests.Namespace{Name: "test-namespace"}
+	serviceAccount := manifests.ServiceAccount{Name: "some.serviceacount", Namespace: namespace.Name}
+	configMap := manifests.ConfigMap{
+		Name: "collector.config", Namespace: namespace.Name,
+		Data: configMapData(t, "k8s_observer_endpoints_config.yaml"),
+	}
+
+	sout, serr, err := cluster.Apply(manifests.RenderAll(t, namespace, serviceAccount, configMap))
+	require.NoError(t, err, "stdout: %s, stderr: %s", sout, serr)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
-	_, err := cluster.Clientset.CoreV1().Nodes().Create(ctx, &corev1.Node{
+	_, err = cluster.Clientset.CoreV1().Nodes().Create(ctx, &corev1.Node{
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{
 				"some.annotation": "annotation.value",
@@ -70,32 +77,19 @@ func TestDiscoveryReceiverWithK8sObserverProvidesEndpointLogs(t *testing.T) {
 	}, metav1.CreateOptions{})
 	require.NoError(t, err)
 
-	_ = createRedis(cluster, "some.pod", namespace, serviceAccount)
+	_ = createRedis(cluster, "some.pod", namespace.Name, serviceAccount.Name)
 
-	configMap, configMapManifest := configToConfigMapManifest(t, "k8s_observer_endpoints_config.yaml", namespace)
-	sout, serr, err := cluster.Apply(configMapManifest)
-	tc.Logger.Debug("applying ConfigMap", zap.String("stdout", sout.String()), zap.String("stderr", serr.String()))
-	require.NoError(t, err)
+	clusterRole, clusterRoleBinding := clusterRoleAndBinding(namespace.Name, serviceAccount.Name)
+	ds := daemonSet(cluster, namespace.Name, serviceAccount.Name, configMap.Name)
 
-	crManifest, crbManifest := clusterRoleAndBindingManifests(t, namespace, serviceAccount)
-	sout, serr, err = cluster.Apply(crManifest)
-	tc.Logger.Debug("applying ClusterRole", zap.String("stdout", sout.String()), zap.String("stderr", serr.String()))
-	require.NoError(t, err)
-
-	sout, serr, err = cluster.Apply(crbManifest)
-	tc.Logger.Debug("applying ClusterRoleBinding", zap.String("stdout", sout.String()), zap.String("stderr", serr.String()))
-	require.NoError(t, err)
-
-	daemonSet, dsManifest := daemonSetManifest(cluster, namespace, serviceAccount, configMap)
-	sout, serr, err = cluster.Apply(dsManifest)
-	tc.Logger.Debug("applying DaemonSet", zap.String("stdout", sout.String()), zap.String("stderr", serr.String()))
-	require.NoError(t, err)
+	sout, serr, err = cluster.Apply(manifests.RenderAll(t, clusterRole, clusterRoleBinding, ds))
+	require.NoError(t, err, "stdout: %s, stderr: %s", sout, serr)
 
 	require.Eventually(t, func() bool {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		dsPods, err := cluster.Clientset.CoreV1().Pods(namespace).List(ctx, metav1.ListOptions{
-			LabelSelector: fmt.Sprintf("name = %s", daemonSet),
+		dsPods, err := cluster.Clientset.CoreV1().Pods(namespace.Name).List(ctx, metav1.ListOptions{
+			LabelSelector: fmt.Sprintf("name = %s", ds.Name),
 		})
 		require.NoError(t, err)
 		if len(dsPods.Items) > 0 {
@@ -119,37 +113,32 @@ func TestDiscoveryReceiverWithK8sObserverAndSmartAgentRedisReceiverProvideStatus
 	defer tc.ShutdownOTLPReceiverSink()
 
 	cluster := kubeutils.NewKindCluster(tc)
-	defer cluster.Delete()
+	defer cluster.Teardown()
 	cluster.Create()
 	cluster.LoadLocalCollectorImageIfNecessary()
 
-	namespace, serviceAccount := createNamespaceAndServiceAccount(cluster)
+	namespace := manifests.Namespace{Name: "test-namespace"}
+	serviceAccount := manifests.ServiceAccount{Name: "some.serviceacount", Namespace: namespace.Name}
+	configMap := manifests.ConfigMap{
+		Name: "collector.config", Namespace: namespace.Name,
+		Data: configMapData(t, "k8s_observer_smart_agent_redis_config.yaml"),
+	}
 
-	configMap, configMapManifest := configToConfigMapManifest(t, "k8s_observer_smart_agent_redis_config.yaml", namespace)
-	sout, serr, err := cluster.Apply(configMapManifest)
-	tc.Logger.Debug("applying ConfigMap", zap.String("stdout", sout.String()), zap.String("stderr", serr.String()))
-	require.NoError(t, err)
+	sout, serr, err := cluster.Apply(manifests.RenderAll(t, namespace, serviceAccount, configMap))
+	require.NoError(t, err, "stdout: %s, stderr: %s", sout, serr)
 
-	redis := createRedis(cluster, "target.redis", namespace, serviceAccount)
+	redis := createRedis(cluster, "target.redis", namespace.Name, serviceAccount.Name)
 
-	crManifest, crbManifest := clusterRoleAndBindingManifests(t, namespace, serviceAccount)
-	sout, serr, err = cluster.Apply(crManifest)
-	tc.Logger.Debug("applying ClusterRole", zap.String("stdout", sout.String()), zap.String("stderr", serr.String()))
-	require.NoError(t, err)
+	clusterRole, clusterRoleBinding := clusterRoleAndBinding(namespace.Name, serviceAccount.Name)
+	ds := daemonSet(cluster, namespace.Name, serviceAccount.Name, configMap.Name)
 
-	sout, serr, err = cluster.Apply(crbManifest)
-	tc.Logger.Debug("applying ClusterRoleBinding", zap.String("stdout", sout.String()), zap.String("stderr", serr.String()))
-	require.NoError(t, err)
-
-	daemonSet, dsManifest := daemonSetManifest(cluster, namespace, serviceAccount, configMap)
-	sout, serr, err = cluster.Apply(dsManifest)
-	tc.Logger.Debug("applying DaemonSet", zap.String("stdout", sout.String()), zap.String("stderr", serr.String()))
-	require.NoError(t, err)
+	sout, serr, err = cluster.Apply(manifests.RenderAll(t, clusterRole, clusterRoleBinding, ds))
+	require.NoError(t, err, "stdout: %s, stderr: %s", sout, serr)
 
 	require.Eventually(t, func() bool {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		rPod, err := cluster.Clientset.CoreV1().Pods(namespace).Get(ctx, redis, metav1.GetOptions{})
+		rPod, err := cluster.Clientset.CoreV1().Pods(namespace.Name).Get(ctx, redis, metav1.GetOptions{})
 		require.NoError(t, err)
 		tc.Logger.Debug(fmt.Sprintf("redis is: %s\n", rPod.Status.Phase))
 		return rPod.Status.Phase == corev1.PodRunning
@@ -158,8 +147,8 @@ func TestDiscoveryReceiverWithK8sObserverAndSmartAgentRedisReceiverProvideStatus
 	require.Eventually(t, func() bool {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		dsPods, err := cluster.Clientset.CoreV1().Pods(namespace).List(ctx, metav1.ListOptions{
-			LabelSelector: fmt.Sprintf("name = %s", daemonSet),
+		dsPods, err := cluster.Clientset.CoreV1().Pods(namespace.Name).List(ctx, metav1.ListOptions{
+			LabelSelector: fmt.Sprintf("name = %s", ds.Name),
 		})
 		require.NoError(t, err)
 		if len(dsPods.Items) > 0 {
@@ -208,42 +197,15 @@ func createRedis(cluster *kubeutils.KindCluster, name, namespace, serviceAccount
 	return redis.Name
 }
 
-func createNamespaceAndServiceAccount(cluster *kubeutils.KindCluster) (string, string) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	ns, err := cluster.Clientset.CoreV1().Namespaces().Create(
-		ctx, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "test-namespace"}},
-		metav1.CreateOptions{},
-	)
-	require.NoError(cluster.Testcase, err)
-	namespace := ns.Name
-
-	ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	serviceAccount, err := cluster.Clientset.CoreV1().ServiceAccounts(namespace).Create(
-		ctx, &corev1.ServiceAccount{
-			ObjectMeta: metav1.ObjectMeta{Name: "some.serviceaccount"},
-		},
-		metav1.CreateOptions{})
-	require.NoError(cluster.Testcase, err)
-	return namespace, serviceAccount.Name
-}
-
-func configToConfigMapManifest(t testing.TB, configPath, namespace string) (name, manifest string) {
+func configMapData(t testing.TB, configPath string) string {
 	config, err := os.ReadFile(filepath.Join(".", "testdata", configPath))
 	configStore := map[string]any{"config": string(config)}
 	configYaml, err := yaml.Marshal(configStore)
 	require.NoError(t, err)
-	cm := manifests.ConfigMap{
-		Name: "collector.config", Namespace: namespace,
-		Data: string(configYaml),
-	}
-	cmm, err := cm.Render()
-	require.NoError(t, err)
-	return cm.Name, cmm
+	return string(configYaml)
 }
 
-func clusterRoleAndBindingManifests(t testing.TB, namespace, serviceAccount string) (string, string) {
+func clusterRoleAndBinding(namespace, serviceAccount string) (manifests.ClusterRole, manifests.ClusterRoleBinding) {
 	cr := manifests.ClusterRole{
 		Name:      "cluster-role",
 		Namespace: namespace,
@@ -309,22 +271,17 @@ func clusterRoleAndBindingManifests(t testing.TB, namespace, serviceAccount stri
 			},
 		},
 	}
-	crManifest, err := cr.Render()
-	require.NoError(t, err)
-
 	crb := manifests.ClusterRoleBinding{
 		Namespace:          namespace,
 		Name:               "cluster-role-binding",
 		ClusterRoleName:    cr.Name,
 		ServiceAccountName: serviceAccount,
 	}
-	crbManifest, err := crb.Render()
-	require.NoError(t, err)
 
-	return crManifest, crbManifest
+	return cr, crb
 }
 
-func daemonSetManifest(cluster *kubeutils.KindCluster, namespace, serviceAccount, configMap string) (name, manifest string) {
+func daemonSet(cluster *kubeutils.KindCluster, namespace, serviceAccount, configMap string) manifests.DaemonSet {
 	splat := strings.Split(cluster.Testcase.OTLPEndpoint, ":")
 	port := splat[len(splat)-1]
 	var hostFromContainer string
@@ -375,7 +332,5 @@ func daemonSetManifest(cluster *kubeutils.KindCluster, namespace, serviceAccount
 			},
 		},
 	}
-	dsm, err := ds.Render()
-	require.NoError(cluster.Testcase, err)
-	return ds.Name, dsm
+	return ds
 }

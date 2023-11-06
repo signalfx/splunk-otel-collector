@@ -76,7 +76,7 @@ func populateDirectives(attrs *map[string]any) {
 			pattern := subs[1]
 			rec, err := regexp.Compile(pattern)
 			if err != nil {
-				panic(fmt.Errorf("failed compiling resource attributes RE2: %w", err))
+				panic(fmt.Errorf("failed compiling resource attributes RE2 (%s): %w", k, err))
 			}
 			attributes[k] = rec
 		}

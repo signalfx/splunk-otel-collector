@@ -12,34 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//go:build testutils
+
 package manifests
 
-import "testing"
+import (
+	"testing"
 
-type ConfigMap struct {
-	Namespace string
-	Name      string
-	Data      string
-}
+	"github.com/stretchr/testify/require"
+)
 
-const configMapTemplate = `---
+func TestServiceAccount(t *testing.T) {
+	sa := ServiceAccount{
+		Name:      "some.service.account",
+		Namespace: "some.namespace",
+	}
+
+	require.Equal(t,
+		`---
 apiVersion: v1
-kind: ConfigMap
+kind: ServiceAccount
 metadata:
-{{- if .Name }}
-  name: {{ .Name }}
-{{- end -}}
-{{- if .Namespace }}
-  namespace: {{ .Namespace }}
-{{- end }}
-data:
-{{- if .Data }}
-{{ .Data | indent 2 -}}
-{{ end }}
-`
-
-var cmm = Manifest[ConfigMap](configMapTemplate)
-
-func (cm ConfigMap) Render(t testing.TB) string {
-	return cmm.Render(cm, t)
+  name: some.service.account
+  namespace: some.namespace
+`, sa.Render(t))
 }

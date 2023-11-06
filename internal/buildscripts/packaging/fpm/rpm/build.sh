@@ -28,8 +28,8 @@ if [[ -z "$VERSION" ]]; then
     VERSION="$( get_version )"
 fi
 
-# rpm doesn't like dashes in the version, replace with tildas
-VERSION="${VERSION/'-'/'~'}"
+# rpm doesn't like dashes in the version, replace with underscore
+VERSION="${VERSION/'-'/'_'}"
 VERSION="${VERSION#v}"
 
 if [[ -z "$JMX_METRIC_GATHERER_RELEASE" ]]; then

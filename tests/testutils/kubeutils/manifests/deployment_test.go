@@ -23,14 +23,19 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
-func TestDaemonSet(t *testing.T) {
-	ds := DaemonSet{
-		Name:      "some.daemon.set",
+func TestDeployment(t *testing.T) {
+	dep := Deployment{
+		Name:      "some.deployment",
 		Namespace: "some.namespace",
 		Labels: map[string]string{
 			"label.one": "value.one",
 			"label.two": "value.two",
 		},
+		MatchLabels: map[string]string{
+			"match.label.one": "match.value.one",
+			"match.label.two": "match.value.two",
+		},
+		Replicas: 123,
 		Containers: []v1.Container{
 			{
 				Name:  "a.container",
@@ -70,28 +75,30 @@ func TestDaemonSet(t *testing.T) {
 		},
 	}
 
-	manifest := ds.Render(t)
 	require.Equal(t,
 		`---
 apiVersion: apps/v1
-kind: DaemonSet
+kind: Deployment
 metadata:
-  name: some.daemon.set
+  name: some.deployment
   namespace: some.namespace
   labels:
     label.one: value.one
     label.two: value.two
 spec:
+  replicas: 123
   selector:
     matchLabels:
-      name: some.daemon.set
+      name: some.deployment
+      match.label.one: match.value.one
+      match.label.two: match.value.two
   template:
     metadata:
       labels:
-        name: some.daemon.set
+        name: some.deployment
+        match.label.one: match.value.one
+        match.label.two: match.value.two
     spec:
-      hostNetwork: true
-      dnsPolicy: ClusterFirstWithHostNet
       serviceAccountName: some.service.account
       containers:
       - env:
@@ -113,25 +120,5 @@ spec:
             path: config.yaml
           name: some-config-map
         name: config-map-volume
-`, manifest)
-}
-
-func TestEmptyDaemonSet(t *testing.T) {
-	ds := DaemonSet{}
-	manifest := ds.Render(t)
-	require.Equal(t,
-		`---
-apiVersion: apps/v1
-kind: DaemonSet
-metadata:
-spec:
-  selector:
-    matchLabels:
-  template:
-    metadata:
-      labels:
-    spec:
-      hostNetwork: true
-      dnsPolicy: ClusterFirstWithHostNet
-`, manifest)
+`, dep.Render(t))
 }

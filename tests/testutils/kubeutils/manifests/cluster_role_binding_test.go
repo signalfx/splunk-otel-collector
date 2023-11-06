@@ -1,5 +1,4 @@
 // Copyright Splunk, Inc.
-// Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -31,8 +30,7 @@ func TestClusterRoleBinding(t *testing.T) {
 		ClusterRoleName:    "some.cluster.role",
 		ServiceAccountName: "some.service.account",
 	}
-	manifest, err := crb.Render()
-	require.NoError(t, err)
+	manifest := crb.Render(t)
 	require.Equal(t,
 		`---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -71,8 +69,7 @@ func TestClusterRoleBindingWithRoleRefAndSubjects(t *testing.T) {
 			},
 		},
 	}
-	manifest, err := crb.Render()
-	require.NoError(t, err)
+	manifest := crb.Render(t)
 	require.Equal(t,
 		`---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -94,8 +91,7 @@ subjects:
 
 func TestEmptyClusterRoleBinding(t *testing.T) {
 	crb := ClusterRoleBinding{}
-	manifest, err := crb.Render()
-	require.NoError(t, err)
+	manifest := crb.Render(t)
 	require.Equal(t,
 		`---
 apiVersion: rbac.authorization.k8s.io/v1

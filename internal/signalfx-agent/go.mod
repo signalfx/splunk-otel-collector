@@ -30,7 +30,7 @@ require (
 	github.com/SAP/go-hdb v1.3.10
 	github.com/Sectorbob/mlab-ns2 v0.0.0-20171030222938-d3aa0c295a8a
 	github.com/antonmedv/expr v1.15.3
-	github.com/aws/aws-sdk-go v1.45.12 // indirect
+	github.com/aws/aws-sdk-go v1.45.26 // indirect
 	github.com/beevik/ntp v1.3.0
 	github.com/cloudfoundry-incubator/uaago v0.0.0-20190307164349-8136b7bbe76e
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
@@ -52,7 +52,7 @@ require (
 	github.com/iancoleman/strcase v0.3.0
 	github.com/influxdata/telegraf v0.0.0-00010101000000-000000000000
 	github.com/jackc/pgx/v4 v4.18.1
-	github.com/jaegertracing/jaeger v1.50.0
+	github.com/jaegertracing/jaeger v1.51.0
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/lib/pq v1.10.9
 	github.com/mailru/easyjson v0.7.7
@@ -85,7 +85,7 @@ require (
 	golang.org/x/net v0.17.0
 	golang.org/x/sync v0.4.0
 	golang.org/x/sys v0.13.0
-	golang.org/x/tools v0.12.0 // indirect
+	golang.org/x/tools v0.13.0 // indirect
 	google.golang.org/grpc v1.59.0
 	gopkg.in/go-playground/validator.v9 v9.31.0
 	gopkg.in/yaml.v2 v2.4.0
@@ -162,7 +162,7 @@ require (
 	github.com/fatih/color v1.15.0 // indirect
 	github.com/form3tech-oss/jwt-go v3.2.5+incompatible // indirect
 	github.com/frankban/quicktest v1.14.4 // indirect
-	github.com/fsnotify/fsnotify v1.6.0 // indirect
+	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
 	github.com/go-jose/go-jose/v3 v3.0.0 // indirect
 	github.com/go-logfmt/logfmt v0.5.1 // indirect
@@ -230,7 +230,7 @@ require (
 	github.com/jtolds/gls v4.20.0+incompatible // indirect
 	github.com/karrick/godirwalk v1.17.0 // indirect
 	github.com/klauspost/asmfmt v1.3.2 // indirect
-	github.com/klauspost/compress v1.17.0 // indirect
+	github.com/klauspost/compress v1.17.1 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.3 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
@@ -284,7 +284,7 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.26.0 // indirect
 	golang.org/x/crypto v0.14.0 // indirect
-	golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df // indirect
+	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect
 	golang.org/x/mod v0.12.0 // indirect
 	golang.org/x/oauth2 v0.12.0 // indirect
 	golang.org/x/term v0.13.0 // indirect
@@ -293,7 +293,7 @@ require (
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/api v0.138.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20230822172742-b8732ec3820d // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20231012201019-e917dd12ba7a // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/fsnotify.v1 v1.4.7 // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect

@@ -62,6 +62,7 @@ splunk_otel_collector_proxy_https: ""
 splunk_otel_collector_no_proxy: "localhost,127.0.0.1,::1"
 
 install_splunk_otel_auto_instrumentation: false
+splunk_otel_auto_instrumentation_systemd: false
 splunk_otel_auto_instrumentation_version: latest
 splunk_otel_auto_instrumentation_ld_so_preload: ""
 splunk_otel_auto_instrumentation_java_agent_jar: /usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar
@@ -72,6 +73,7 @@ splunk_otel_auto_instrumentation_disable_telemetry: false
 splunk_otel_auto_instrumentation_enable_profiler: false
 splunk_otel_auto_instrumentation_enable_profiler_memory: false
 splunk_otel_auto_instrumentation_enable_metrics: false
+splunk_otel_auto_instrumentation_otlp_endpoint: http://127.0.0.1:4317
 
 # Custom environment variables for the collector service
 splunk_otel_collector_additional_env_vars: {}

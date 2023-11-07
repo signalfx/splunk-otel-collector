@@ -2,6 +2,21 @@
 
 ## unreleased
 
+## ansible-v0.24.0
+
+### 🚩 Deprecations 🚩
+
+- The `splunk_otel_auto_instrumentation_generate_service_name` and `splunk_otel_auto_instrumentation_disable_telemetry`
+  options are deprecated and only applicable if `splunk_otel_auto_instrumentation_version` is < `0.87.0`.
+
+### 💡 Enhancements 💡
+
+- Support Splunk OpenTelemetry Auto Instrumentation [v0.87.0](
+  https://github.com/signalfx/splunk-otel-collector/releases/tag/v0.87.0) and newer (Java only).
+- Support activation and configuration of auto instrumentation for only `systemd` services.
+- Support setting the OTLP exporter endpoint for auto instrumentation (default: `http://127.0.0.1:4317`). Only
+  applicable if `splunk_otel_auto_instrumentation_version` is `latest` or >= `0.87.0`.
+
 ## ansible-v0.23.0
 
 ### 💡 Enhancements 💡

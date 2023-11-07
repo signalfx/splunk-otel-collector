@@ -36,8 +36,9 @@ jobs:
           fi
           distro=$(for d in $dockerfiles; do echo -n "\"$d\","; done)
           arch='"amd64","arm64"'
+          instrumentation='"none","preload","systemd"'
           exclude='{"DISTRO": "opensuse-12", "ARCH": "arm64"}'  # opensuse-12 (leap 42) does not support arm64
-          matrix="{\"DISTRO\": [${distro%,}], \"ARCH\": [${arch}], \"exclude\": [${exclude}]}"
+          matrix="{\"DISTRO\": [${distro%,}], \"ARCH\": [${arch}], \"INSTRUMENTATION\": [${instrumentation}], \"exclude\": [${exclude}]}"
           echo "$matrix" | jq
           echo "matrix=${matrix}" >> $GITHUB_OUTPUT
     outputs:
@@ -46,7 +47,7 @@ jobs:
   linux-installer-script-test:
     # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
     runs-on: ${{ fromJSON('["ubuntu-20.04", "ubuntu-22.04"]')[matrix.DISTRO == 'amazonlinux-2023'] }}
-    timeout-minutes: 60
+    timeout-minutes: 90
     needs: installer-test-matrix
     strategy:
       matrix: ${{ fromJSON(needs.installer-test-matrix.outputs.matrix) }}
@@ -91,7 +92,12 @@ jobs:
             # workaround for pytest substring matching
             distro="amazonlinux-2 and not amazonlinux-2023"
           fi
-          python3 -u -m pytest -s --verbose -k "$distro and ${{ matrix.ARCH }}" \
+          if [[ "${{ matrix.INSTRUMENTATION }}" = "none" ]]; then
+            tests="$distro and ${{ matrix.ARCH }} and not instrumentation"
+          else
+            tests="$distro and ${{ matrix.ARCH }} and ${{ matrix.INSTRUMENTATION }}"
+          fi
+          python3 -u -m pytest -s --verbose -k "$tests" \
             internal/buildscripts/packaging/tests/installer_test.py
 
       # qemu, networking, running systemd in containers, etc., can be flaky
@@ -103,6 +109,11 @@ jobs:
             # workaround for pytest substring matching
             distro="amazonlinux-2 and not amazonlinux-2023"
           fi
-          python3 -u -m pytest -s --verbose -k "$distro and ${{ matrix.ARCH }}" \
+          if [[ "${{ matrix.INSTRUMENTATION }}" = "none" ]]; then
+            tests="$distro and ${{ matrix.ARCH }} and not instrumentation"
+          else
+            tests="$distro and ${{ matrix.ARCH }} and ${{ matrix.INSTRUMENTATION }}"
+          fi
+          python3 -u -m pytest -s --verbose -k "$tests" \
             --last-failed \
             internal/buildscripts/packaging/tests/installer_test.py

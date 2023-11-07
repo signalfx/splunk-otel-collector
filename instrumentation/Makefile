@@ -74,8 +74,8 @@ tests: test-java test-nodejs
 
 .PHONY: test-java
 test-java: dist
-	(cd tests/java && ./test.sh)
+	(cd tests/java && ARCH=$(ARCH) ./test.sh)
 
 .PHONY: test-nodejs
 test-nodejs: dist
-	(cd tests/nodejs && ./test.sh)
+	(cd tests/nodejs && ARCH=$(ARCH) ./test.sh)

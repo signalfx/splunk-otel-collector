@@ -4,14 +4,14 @@ set -euo pipefail
 
 arch="${ARCH:-amd64}"
 BASE="node:16"
-if [[ arch = "arm64" ]]; then
+if [[ "$arch" = "arm64" ]]; then
   BASE="arm64v8/node:16"
 fi
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 cp "${SCRIPT_DIR}/../../dist/libsplunk_${arch}.so" libsplunk.so
 docker buildx build -q --platform linux/${arch} --build-arg BASE=$BASE -o type=image,name=zeroconfig-test-nodejs,push=false .
-OUTPUT=$(docker run --rm zeroconfig-test-nodejs)
+OUTPUT=$(docker run --platform linux/${arch} --rm zeroconfig-test-nodejs)
 echo "========== OUTPUT =========="
 echo "$OUTPUT"
 echo "============================"

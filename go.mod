@@ -126,7 +126,7 @@ require (
 	go.uber.org/atomic v1.11.0
 	go.uber.org/multierr v1.11.0
 	go.uber.org/zap v1.26.0
-	golang.org/x/sys v0.13.0
+	golang.org/x/sys v0.14.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
@@ -313,7 +313,7 @@ require (
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/golang/snappy v0.0.4
-	github.com/google/cadvisor v0.47.3 // indirect
+	github.com/google/cadvisor v0.48.1 // indirect
 	github.com/google/flatbuffers v23.1.21+incompatible // indirect
 	github.com/google/go-cmp v0.6.0
 	github.com/google/go-querystring v1.1.0 // indirect
@@ -322,7 +322,7 @@ require (
 	github.com/googleapis/enterprise-certificate-proxy v0.3.1 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.0 // indirect
 	github.com/gophercloud/gophercloud v1.5.0 // indirect
-	github.com/gorilla/mux v1.8.0
+	github.com/gorilla/mux v1.8.1
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/grafana/regexp v0.0.0-20221122212121-6b5c0a4cb7fd // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.18.0 // indirect
@@ -432,7 +432,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/winperfcounters v0.87.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0-rc4 // indirect
-	github.com/opencontainers/runc v1.1.6 // indirect
+	github.com/opencontainers/runc v1.1.9 // indirect
 	github.com/openshift/api v3.9.0+incompatible // indirect
 	github.com/openshift/client-go v0.0.0-20230419131419-497c7032c581 // indirect
 	github.com/opentracing/opentracing-go v1.2.1-0.20220228012449-10b1cf09e00b // indirect
@@ -449,7 +449,7 @@ require (
 	github.com/ryanuber/go-glob v1.0.0 // indirect
 	github.com/samuel/go-zookeeper v0.0.0-20200724154423-2164a8ac840e // indirect
 	github.com/scaleway/scaleway-sdk-go v1.0.0-beta.20 // indirect
-	github.com/shirou/gopsutil/v3 v3.23.9 // indirect
+	github.com/shirou/gopsutil/v3 v3.23.10 // indirect
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3 // indirect
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657 // indirect
 	github.com/signalfx/gohistogram v0.0.0-20160107210732-1ccfd2ff5083 // indirect
@@ -471,7 +471,7 @@ require (
 	github.com/tklauser/numcpus v0.6.1 // indirect
 	github.com/ulule/deepcopier v0.0.0-20171107155558-ca99b135e50f // indirect
 	github.com/vjeantet/grok v1.0.0 // indirect
-	github.com/vmware/govmomi v0.33.0 // indirect
+	github.com/vmware/govmomi v0.33.1 // indirect
 	github.com/vultr/govultr/v2 v2.17.2 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.1.2 // indirect

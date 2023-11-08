@@ -43,7 +43,7 @@ require (
 	github.com/go-test/deep v1.1.0
 	github.com/gobwas/glob v0.2.4-0.20181002190808-e7a84e9525fe
 	github.com/gogo/protobuf v1.3.2
-	github.com/google/cadvisor v0.47.3
+	github.com/google/cadvisor v0.48.1
 	github.com/gorilla/mux v1.8.0
 	github.com/hashicorp/consul/api v1.25.1
 	github.com/hashicorp/vault v1.14.3 // required for newer google.golang.org/api compatibility
@@ -70,7 +70,7 @@ require (
 	github.com/prometheus/common v0.45.0
 	github.com/prometheus/procfs v0.12.0
 	github.com/samuel/go-zookeeper v0.0.0-20200724154423-2164a8ac840e
-	github.com/shirou/gopsutil/v3 v3.23.9
+	github.com/shirou/gopsutil/v3 v3.23.10
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657
 	github.com/signalfx/golib/v3 v3.3.53
@@ -79,7 +79,7 @@ require (
 	github.com/snowflakedb/gosnowflake v1.6.25
 	github.com/stretchr/testify v1.8.4
 	github.com/ulule/deepcopier v0.0.0-20171107155558-ca99b135e50f
-	github.com/vmware/govmomi v0.33.0
+	github.com/vmware/govmomi v0.33.1
 	github.com/yalp/jsonpath v0.0.0-20180802001716-5cc68e5049a0
 	go.etcd.io/etcd/client/v2 v2.305.10
 	golang.org/x/net v0.17.0

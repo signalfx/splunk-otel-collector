@@ -4,7 +4,7 @@ set -euo pipefail
 
 arch="${ARCH:-amd64}"
 BASE="eclipse-temurin:11"
-if [[ arch = "arm64" ]]; then
+if [[ "$arch" = "arm64" ]]; then
   BASE="arm64v8/eclipse-temurin:11"
 fi
 
@@ -12,7 +12,7 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 cp "${SCRIPT_DIR}/../../dist/libsplunk_${arch}.so" libsplunk.so
 docker buildx build -q --platform linux/${arch} --build-arg BASE=$BASE -o type=image,name=zeroconfig-test-java,push=false .
-OUTPUT=$(docker run --rm zeroconfig-test-java)
+OUTPUT=$(docker run --platform linux/${arch} --rm zeroconfig-test-java)
 echo "========== OUTPUT =========="
 echo "$OUTPUT"
 echo "============================"
@@ -30,7 +30,7 @@ echo "Test absence of OTEL_EXPORTER_OTLP_ENDPOINT"
 echo "$OUTPUT" | grep -v "OTEL_EXPORTER_OTLP_ENDPOINT" > /dev/null && echo "Test passes"  || exit 1
 
 # Check we didn't inject env vars into processes outside of java.
-OUTPUT_BASH=$(docker run --rm zeroconfig-test-java /usr/bin/env)
+OUTPUT_BASH=$(docker run --platform linux/${arch} --rm zeroconfig-test-java /usr/bin/env)
 echo "======= BASH OUTPUT ========"
 echo "$OUTPUT_BASH"
 echo "============================"

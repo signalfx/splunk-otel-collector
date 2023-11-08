@@ -34,9 +34,9 @@ from tests.helpers.util import (
 
 from tests.instrumentation.instrumentation_test import (
     COLLECTOR_CONFIG_PATH as CUSTOM_COLLECTOR_CONFIG,
-    IMAGES_DIR as TOMCAT_IMAGES_DIR,
-    DEB_DISTROS as TOMCAT_DEB_DISTROS,
-    RPM_DISTROS as TOMCAT_RPM_DISTROS,
+    IMAGES_DIR as INSTR_IMAGES_DIR,
+    DEB_DISTROS as INSTR_DEB_DISTROS,
+    RPM_DISTROS as INSTR_RPM_DISTROS,
     verify_app_instrumentation,
 )
 
@@ -47,6 +47,8 @@ STAGE = os.environ.get("STAGE", "release")
 VERSION = os.environ.get("VERSION", "latest")
 SPLUNK_ACCESS_TOKEN = os.environ.get("SPLUNK_ACCESS_TOKEN", "testing123")
 SPLUNK_REALM = os.environ.get("SPLUNK_REALM", "fake-realm")
+LOCAL_COLLECTOR_PACKAGE = os.environ.get("LOCAL_COLLECTOR_PACKAGE")
+LOCAL_INSTRUMENTATION_PACKAGE = os.environ.get("LOCAL_INSTRUMENTATION_PACKAGE")
 DEBUG = os.environ.get("DEBUG", "no")
 TOTAL_MEMORY = "512"
 
@@ -60,14 +62,28 @@ LIBSPLUNK_PATH = "/usr/lib/splunk-instrumentation/libsplunk.so"
 JAVA_AGENT_PATH = "/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar"
 PRELOAD_PATH = "/etc/ld.so.preload"
 SYSTEMD_CONFIG_PATH = "/usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf"
+NODE_PACKAGE_PATH = "/usr/lib/splunk-instrumentation/splunk-otel-js.tgz"
+JAVA_ZEROCONFIG_PATH = "/etc/splunk/zeroconfig/java.conf"
+NODE_ZEROCONFIG_PATH = "/etc/splunk/zeroconfig/node.conf"
 
 INSTALLER_TIMEOUT = "30m"
+
+
+def container_file_exists(container, path):
+    return container.exec_run(f"test -f {path}").exit_code == 0
+
+
+def package_is_installed(container, distro, name):
+    if distro in DEB_DISTROS:
+        return container.exec_run(f"dpkg -s {name}").exit_code == 0
+    else:
+        return container.exec_run(f"rpm -q {name}").exit_code == 0
 
 
 def get_installer_cmd():
     debug_flag = "-x" if DEBUG == "yes" else ""
 
-    install_cmd = f"sh {debug_flag} /test/install.sh -- {SPLUNK_ACCESS_TOKEN} --realm {SPLUNK_REALM}"
+    install_cmd = f"sh -l {debug_flag} /test/install.sh -- {SPLUNK_ACCESS_TOKEN} --realm {SPLUNK_REALM}"
 
     if VERSION != "latest":
         install_cmd = f"{install_cmd} --collector-version {VERSION.lstrip('v')}"
@@ -80,6 +96,11 @@ def get_installer_cmd():
 
 
 def verify_config_file(container, path, key, value, exists=True):
+    if exists:
+        assert container_file_exists(container, path), f"{path} does not exist"
+    elif not container_file_exists(container, path):
+        return True
+
     code, output = container.exec_run(f"cat {path}")
     config = output.decode("utf-8")
     assert code == 0, f"failed to get file content from {path}:\n{config}"
@@ -98,14 +119,14 @@ def verify_config_file(container, path, key, value, exists=True):
 
 def verify_env_file(container, mode="agent", config_path=None, memory=TOTAL_MEMORY, listen_addr="", ballast=None):
     env_path = SPLUNK_ENV_PATH
-    if container.exec_run(f"test -f {OLD_SPLUNK_ENV_PATH}").exit_code == 0:
+    if container_file_exists(container, OLD_SPLUNK_ENV_PATH):
         env_path = OLD_SPLUNK_ENV_PATH
 
     if not config_path:
         config_path = AGENT_CONFIG_PATH if mode == "agent" else GATEWAY_CONFIG_PATH
-        if container.exec_run(f"test -f {OLD_CONFIG_PATH}").exit_code == 0:
+        if container_file_exists(container, OLD_CONFIG_PATH):
             config_path = OLD_CONFIG_PATH
-        elif mode == "gateway" and container.exec_run(f"test -f {GATEWAY_CONFIG_PATH}").exit_code != 0:
+        elif mode == "gateway" and not container_file_exists(container, GATEWAY_CONFIG_PATH):
             config_path = AGENT_CONFIG_PATH
 
     ingest_url = f"https://ingest.{SPLUNK_REALM}.signalfx.com"
@@ -131,30 +152,37 @@ def verify_env_file(container, mode="agent", config_path=None, memory=TOTAL_MEMO
 
 def verify_support_bundle(container):
     run_container_cmd(container, "/etc/otel/collector/splunk-support-bundle.sh -t /tmp/splunk-support-bundle")
-    run_container_cmd(container, "test -f /tmp/splunk-support-bundle/config/agent_config.yaml")
-    run_container_cmd(container, "test -f /tmp/splunk-support-bundle/logs/splunk-otel-collector.log")
-    run_container_cmd(container, "test -f /tmp/splunk-support-bundle/logs/splunk-otel-collector.txt")
-    if container.exec_run("test -f /etc/otel/collector/fluentd/fluent.conf").exit_code == 0:
-        run_container_cmd(container, "test -f /tmp/splunk-support-bundle/logs/td-agent.log")
-        run_container_cmd(container, "test -f /tmp/splunk-support-bundle/logs/td-agent.txt")
-    run_container_cmd(container, "test -f /tmp/splunk-support-bundle/metrics/collector-metrics.txt")
-    run_container_cmd(container, "test -f /tmp/splunk-support-bundle/metrics/df.txt")
-    run_container_cmd(container, "test -f /tmp/splunk-support-bundle/metrics/free.txt")
-    run_container_cmd(container, "test -f /tmp/splunk-support-bundle/metrics/top.txt")
-    run_container_cmd(container, "test -f /tmp/splunk-support-bundle/zpages/tracez.html")
-    run_container_cmd(container, "test -f /tmp/splunk-support-bundle.tar.gz")
+    assert container_file_exists(container, "/tmp/splunk-support-bundle/config/agent_config.yaml")
+    assert container_file_exists(container, "/tmp/splunk-support-bundle/logs/splunk-otel-collector.log")
+    assert container_file_exists(container, "/tmp/splunk-support-bundle/logs/splunk-otel-collector.txt")
+    if container_file_exists(container, "/etc/otel/collector/fluentd/fluent.conf"):
+        assert container_file_exists(container, "/tmp/splunk-support-bundle/logs/td-agent.log")
+        assert container_file_exists(container, "/tmp/splunk-support-bundle/logs/td-agent.txt")
+    assert container_file_exists(container, "/tmp/splunk-support-bundle/metrics/collector-metrics.txt")
+    assert container_file_exists(container, "/tmp/splunk-support-bundle/metrics/df.txt")
+    assert container_file_exists(container, "/tmp/splunk-support-bundle/metrics/free.txt")
+    assert container_file_exists(container, "/tmp/splunk-support-bundle/metrics/top.txt")
+    assert container_file_exists(container, "/tmp/splunk-support-bundle/zpages/tracez.html")
+    assert container_file_exists(container, "/tmp/splunk-support-bundle.tar.gz")
 
 
 def verify_uninstall(container, distro):
     debug_flag = "-x" if DEBUG == "yes" else ""
 
-    run_container_cmd(container, f"sh {debug_flag} /test/install.sh --uninstall")
+    run_container_cmd(container, f"sh -l {debug_flag} /test/install.sh --uninstall")
 
     for pkg in ("splunk-otel-collector", "td-agent", "splunk-otel-auto-instrumentation"):
-        if distro in DEB_DISTROS:
-            assert container.exec_run(f"dpkg -s {pkg}").exit_code != 0
-        else:
-            assert container.exec_run(f"rpm -q {pkg}").exit_code != 0
+        assert not package_is_installed(container, distro, pkg), f"{pkg} was not uninstalled"
+
+    # verify libsplunk.so was removed from /etc/ld.so.preload after uninstall
+    verify_config_file(container, PRELOAD_PATH, f".*{LIBSPLUNK_PATH}.*", None, exists=False)
+
+    # verify the systemd config file was removed after uninstall
+    assert not container_file_exists(container, SYSTEMD_CONFIG_PATH)
+
+    if container_file_exists(container, NODE_PACKAGE_PATH):
+        # verify splunk-otel-js was uninstalled
+        assert not node_package_installed(container)
 
 
 def fluentd_supported(distro, arch):
@@ -195,19 +223,10 @@ def test_installer_default(distro, arch, mode):
             run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"}, timeout=INSTALLER_TIMEOUT)
             time.sleep(5)
 
-            # verify td-agent is not installed
-            if distro in DEB_DISTROS:
-                assert container.exec_run("dpkg -s td-agent").exit_code != 0
-            else:
-                assert container.exec_run("rpm -q td-agent").exit_code != 0
+            for pkg in ("td-agent", "splunk-otel-auto-instrumentation"):
+                assert not package_is_installed(container, distro, "td-agent"), f"{pkg} was installed"
 
             assert container.exec_run("systemctl status td-agent").exit_code != 0
-
-            # verify splunk-otel-auto-instrumentation is not installed
-            if distro in DEB_DISTROS:
-                assert container.exec_run("dpkg -s splunk-otel-auto-instrumentation").exit_code != 0
-            else:
-                assert container.exec_run("rpm -q splunk-otel-auto-instrumentation").exit_code != 0
 
             # verify env file created with configured parameters
             verify_env_file(container, mode=mode)
@@ -235,7 +254,7 @@ def test_installer_custom(distro, arch):
     if distro == "opensuse-12" and arch == "arm64":
         pytest.skip("opensuse-12 arm64 no longer supported")
 
-    collector_version = "0.74.0"
+    collector_version = "0.75.0"
     service_owner = "test-user"
     custom_config = "/etc/my-custom-config.yaml"
 
@@ -281,11 +300,7 @@ def test_installer_custom(distro, arch):
             assert config_owner.strip() == f"{service_owner}:{service_owner}"
 
             if fluentd_supported(distro, arch):
-                # verify td-agent was installed
-                if distro in DEB_DISTROS:
-                    assert container.exec_run("dpkg -s td-agent").exit_code == 0
-                else:
-                    assert container.exec_run("rpm -q td-agent").exit_code == 0
+                assert package_is_installed(container, distro, "td-agent"), "td-agent was not installed"
                 assert container.exec_run("systemctl status td-agent").exit_code == 0
 
             verify_uninstall(container, distro)
@@ -294,62 +309,88 @@ def test_installer_custom(distro, arch):
             run_container_cmd(container, f"journalctl -u {SERVICE_NAME} --no-pager")
             if fluentd_supported(distro, arch):
                 run_container_cmd(container, "journalctl -u td-agent --no-pager")
-                if container.exec_run("test -f /var/log/td-agent/td-agent.log").exit_code == 0:
+                if container_file_exists(container, "/var/log/td-agent/td-agent.log"):
                     run_container_cmd(container, "cat /var/log/td-agent/td-agent.log")
 
 
-def get_tomcat_dockerfile(distro):
-    if distro in DEB_DISTROS:
-        return TOMCAT_IMAGES_DIR / "deb" / f"Dockerfile.{distro}"
+def get_instrumentation_dockerfile(distro):
+    if distro in INSTR_DEB_DISTROS:
+        return INSTR_IMAGES_DIR / "deb" / f"Dockerfile.{distro}"
     else:
-        return TOMCAT_IMAGES_DIR / "rpm" / f"Dockerfile.{distro}"
+        return INSTR_IMAGES_DIR / "rpm" / f"Dockerfile.{distro}"
+
+
+def get_zc_method(container, distro, method):
+    package = "splunk-otel-auto-instrumentation"
+
+    if distro in INSTR_DEB_DISTROS:
+        _, output = run_container_cmd(container, f"dpkg-query --showformat='${{Version}}' --show {package}")
+    else:
+        _, output = run_container_cmd(container, f"rpm -q --queryformat='%{{VERSION}}' {package}")
+
+    version = output.decode("utf-8").replace("~", "-").strip()
+    zc_method = rf"{package}-{version}"
+    if method == "systemd":
+        zc_method = f"{zc_method}-systemd"
+
+    return zc_method
+
+
+def node_package_installed(container):
+    return container.exec_run("sh -l -c 'npm ls --global @splunk/otel'").exit_code == 0
 
 
 @pytest.mark.installer
 @pytest.mark.instrumentation
 @pytest.mark.parametrize(
     "distro",
-    [pytest.param(distro, marks=pytest.mark.deb) for distro in TOMCAT_DEB_DISTROS]
-    + [pytest.param(distro, marks=pytest.mark.rpm) for distro in TOMCAT_RPM_DISTROS],
+    [pytest.param(distro, marks=pytest.mark.deb) for distro in INSTR_DEB_DISTROS]
+    + [pytest.param(distro, marks=pytest.mark.rpm) for distro in INSTR_RPM_DISTROS],
     )
 @pytest.mark.parametrize("arch", ["amd64", "arm64"])
-@pytest.mark.parametrize("method", ["libsplunk", "systemd"])
+@pytest.mark.parametrize("method", ["preload", "systemd"])
 def test_installer_with_instrumentation_default(distro, arch, method):
     if distro == "opensuse-12" and arch == "arm64":
         pytest.skip("opensuse-12 arm64 no longer supported")
 
-    zc_method = r"splunk-otel-auto-instrumentation-\d+\.\d+\.\d+"
+    # minimum supported node version required for profiling
+    node_version = 16
+    if arch == "arm64" and distro in ("centos-7", "oraclelinux-7"):
+        # g++ for these distros is too old to build/compile splunk-otel-js with node v16:
+        #   g++: error: unrecognized command line option '-std=gnu++14'
+        # use the minimum supported node version without profiling instead
+        node_version = 14
 
-    if method == "libsplunk":
-        config_path = INSTR_CONF_PATH
-        # service name auto-generated by libsplunk.so
-        service_name = "org-apache-catalina-startup-bootstrap"
-    else:
-        config_path = SYSTEMD_CONFIG_PATH
-        zc_method = f"{zc_method}-systemd"
-        # service name auto-generated by java agent
-        service_name = "Hello, World Application"
-
-    custom_config = "/etc/my-custom-config.yaml"
-
-    install_cmd = " ".join((
-        get_installer_cmd(),
-        "--with-systemd-instrumentation" if method == "systemd" else "--with-instrumentation",
-        f"--collector-config {custom_config}",
-    ))
+    buildargs = {"NODE_VERSION": f"v{node_version}"}
 
     print(f"Testing installation on {distro} from {STAGE} stage ...")
-    with run_distro_container(distro, dockerfile=get_tomcat_dockerfile(distro), arch=arch) as container:
+    dockerfile = get_instrumentation_dockerfile(distro)
+    with run_distro_container(distro, dockerfile=dockerfile, arch=arch, buildargs=buildargs) as container:
         copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
-        copy_file_into_container(container, CUSTOM_COLLECTOR_CONFIG, custom_config)
         run_container_cmd(container, f"sh -c 'echo \"# This line should be preserved\" >> {PRELOAD_PATH}'")
+        if LOCAL_INSTRUMENTATION_PACKAGE:
+            copy_file_into_container(container, LOCAL_INSTRUMENTATION_PACKAGE, f"/test/instrumentation.pkg")
+
+        if arch == "arm64" and distro in ("debian-stretch", "ubuntu-xenial"):
+            # npm installed with node v16 only supports python 3.6+, but these distros only provide python 3.5
+            # downgrade npm to support python 3.5 in order to build/compile splunk-otel-js
+            run_container_cmd(container, "bash -l -c 'npm install --global npm@^6'")
+
+        install_cmd = " ".join((
+            get_installer_cmd(),
+            "--with-systemd-instrumentation" if method == "systemd" else "--with-instrumentation",
+        ))
+        if LOCAL_INSTRUMENTATION_PACKAGE:
+            install_cmd = f"{install_cmd} --instrumentation-version /test/instrumentation.pkg"
 
         # run installer script
         run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"}, timeout=INSTALLER_TIMEOUT)
         time.sleep(5)
 
+        zc_method = get_zc_method(container, distro, method)
+
         # verify env file created with configured parameters
-        verify_env_file(container, config_path=custom_config)
+        verify_env_file(container)
 
         verify_config_file(container, PRELOAD_PATH, "# This line should be preserved", None)
 
@@ -357,108 +398,126 @@ def test_installer_with_instrumentation_default(distro, arch, method):
         assert wait_for(lambda: service_is_running(container, service_owner=SERVICE_OWNER))
 
         # verify splunk-otel-auto-instrumentation is installed
-        if distro in DEB_DISTROS:
-            assert container.exec_run("dpkg -s splunk-otel-auto-instrumentation").exit_code == 0
-        else:
-            assert container.exec_run("rpm -q splunk-otel-auto-instrumentation").exit_code == 0
+        assert package_is_installed(container, distro, "splunk-otel-auto-instrumentation"), \
+            "splunk-otel-auto-instrumentation was not installed"
+
+        # only the "new" instrumentation includes the node package
+        has_node_package = container_file_exists(container, NODE_PACKAGE_PATH)
+
+        if has_node_package:
+            assert node_package_installed(container)
 
         config_attributes = rf"splunk\.zc\.method={zc_method}"
 
-        if method == "libsplunk":
+        if method == "preload" and has_node_package:
+            # verify libsplunk.so was added to /etc/ld.so.preload
+            verify_config_file(container, PRELOAD_PATH, LIBSPLUNK_PATH, None)
+
+            # verify default options for both java and node.js
+            verify_config_file(container, JAVA_ZEROCONFIG_PATH, "JAVA_TOOL_OPTIONS", f"-javaagent:{JAVA_AGENT_PATH}")
+            verify_config_file(container, NODE_ZEROCONFIG_PATH, "NODE_OPTIONS", "-r @splunk/otel/instrument")
+            for config_path in (JAVA_ZEROCONFIG_PATH, NODE_ZEROCONFIG_PATH):
+                verify_config_file(container, config_path, "OTEL_RESOURCE_ATTRIBUTES", config_attributes)
+                verify_config_file(container, config_path, "SPLUNK_PROFILER_ENABLED", "false")
+                verify_config_file(container, config_path, "SPLUNK_PROFILER_MEMORY_ENABLED", "false")
+                verify_config_file(container, config_path, "SPLUNK_METRICS_ENABLED", "false")
+                verify_config_file(container, config_path, "OTEL_EXPORTER_OTLP_ENDPOINT", "http://127.0.0.1:4317")
+                verify_config_file(container, config_path, "OTEL_SERVICE_NAME", ".*", exists=False)
+        elif method == "preload" and not has_node_package:
             # verify libsplunk.so was added to /etc/ld.so.preload
             verify_config_file(container, PRELOAD_PATH, LIBSPLUNK_PATH, None)
 
             # verify default options
-            verify_config_file(container, config_path, "java_agent_jar", JAVA_AGENT_PATH)
-            verify_config_file(container, config_path, "resource_attributes", config_attributes)
-            verify_config_file(container, config_path, "disable_telemetry", "false")
-            verify_config_file(container, config_path, "enable_profiler", "false")
-            verify_config_file(container, config_path, "enable_profiler_memory", "false")
-            verify_config_file(container, config_path, "enable_metrics", "false")
-            verify_config_file(container, config_path, "service_name", ".*", exists=False)
+            verify_config_file(container, INSTR_CONF_PATH, "java_agent_jar", JAVA_AGENT_PATH)
+            verify_config_file(container, INSTR_CONF_PATH, "resource_attributes", config_attributes)
+            verify_config_file(container, INSTR_CONF_PATH, "disable_telemetry", "false")
+            verify_config_file(container, INSTR_CONF_PATH, "enable_profiler", "false")
+            verify_config_file(container, INSTR_CONF_PATH, "enable_profiler_memory", "false")
+            verify_config_file(container, INSTR_CONF_PATH, "enable_metrics", "false")
+            verify_config_file(container, INSTR_CONF_PATH, "service_name", ".*", exists=False)
         else:
             # verify libsplunk.so was not added to /etc/ld.so.preload
             verify_config_file(container, PRELOAD_PATH, f".*{LIBSPLUNK_PATH}.*", None, exists=False)
 
             # verify default options
-            verify_config_file(container, config_path, "JAVA_TOOL_OPTIONS", f"-javaagent:{JAVA_AGENT_PATH}")
-            verify_config_file(container, config_path, "OTEL_RESOURCE_ATTRIBUTES", config_attributes)
-            verify_config_file(container, config_path, "SPLUNK_PROFILER_ENABLED", "false")
-            verify_config_file(container, config_path, "SPLUNK_PROFILER_MEMORY_ENABLED", "false")
-            verify_config_file(container, config_path, "SPLUNK_METRICS_ENABLED", "false")
-            verify_config_file(container, config_path, "OTEL_EXPORTER_OTLP_ENDPOINT", "http://127.0.0.1:4317")
-            verify_config_file(container, config_path, "OTEL_SERVICE_NAME", ".*", exists=False)
-
-        tomcat_attributes = {
-            r"telemetry\.sdk\.language": r"Str\(java\)",
-            r"service\.name": rf"Str\({service_name}\)",
-            r"splunk\.zc\.method": rf"Str\({zc_method}\)",
-        }
-
-        verify_app_instrumentation(container, "tomcat", method, tomcat_attributes)
+            if has_node_package:
+                verify_config_file(container, SYSTEMD_CONFIG_PATH, "NODE_OPTIONS", "-r @splunk/otel/instrument")
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "JAVA_TOOL_OPTIONS", f"-javaagent:{JAVA_AGENT_PATH}")
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_RESOURCE_ATTRIBUTES", config_attributes)
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "SPLUNK_PROFILER_ENABLED", "false")
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "SPLUNK_PROFILER_MEMORY_ENABLED", "false")
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "SPLUNK_METRICS_ENABLED", "false")
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_EXPORTER_OTLP_ENDPOINT", "http://127.0.0.1:4317")
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_SERVICE_NAME", ".*", exists=False)
 
         verify_uninstall(container, distro)
 
-        # verify libsplunk.so was removed from /etc/ld.so.preload
-        verify_config_file(container, PRELOAD_PATH, f".*{LIBSPLUNK_PATH}.*", None, exists=False)
         verify_config_file(container, PRELOAD_PATH, "# This line should be preserved", None)
-
-        # verify the systemd config file was not created or was deleted
-        run_container_cmd(container, f"test ! -f {SYSTEMD_CONFIG_PATH}")
 
 
 @pytest.mark.installer
 @pytest.mark.instrumentation
 @pytest.mark.parametrize(
     "distro",
-    [pytest.param(distro, marks=pytest.mark.deb) for distro in TOMCAT_DEB_DISTROS]
-    + [pytest.param(distro, marks=pytest.mark.rpm) for distro in TOMCAT_RPM_DISTROS],
+    [pytest.param(distro, marks=pytest.mark.deb) for distro in INSTR_DEB_DISTROS]
+    + [pytest.param(distro, marks=pytest.mark.rpm) for distro in INSTR_RPM_DISTROS],
     )
 @pytest.mark.parametrize("arch", ["amd64", "arm64"])
-@pytest.mark.parametrize("method", ["libsplunk", "systemd"])
-def test_installer_with_instrumentation_custom(distro, arch, method):
+@pytest.mark.parametrize("method", ["preload", "systemd"])
+@pytest.mark.parametrize("sdk", ["java", "node"])
+def test_installer_with_instrumentation_custom(distro, arch, method, sdk):
     if distro == "opensuse-12" and arch == "arm64":
         pytest.skip("opensuse-12 arm64 no longer supported")
 
-    service_name = f"service_name_from_{method}"
-    environment = f"deployment_environment_from_{method}"
-    zc_method = r"splunk-otel-auto-instrumentation-0\.81\.0"
+    # minimum supported node version required for profiling
+    node_version = 16
+    if arch == "arm64" and distro in ("centos-7", "oraclelinux-7"):
+        # g++ for these distros is too old to build/compile splunk-otel-js with node v16:
+        #   g++: error: unrecognized command line option '-std=gnu++14'
+        # use the minimum supported node version without profiling instead
+        node_version = 14
 
-    if method == "libsplunk":
-        config_path = INSTR_CONF_PATH
-    else:
-        config_path = SYSTEMD_CONFIG_PATH
-        zc_method = f"{zc_method}-systemd"
-
-    custom_config = "/etc/my-custom-config.yaml"
-
-    install_cmd = " ".join((
-        get_installer_cmd(),
-        "--with-systemd-instrumentation" if method == "systemd" else "--with-instrumentation",
-        "--instrumentation-version 0.81.0",
-        f"--collector-config {custom_config}",
-        f"--deployment-environment deployment_environment_from_{method}",
-        "--disable-telemetry",
-        f"--service-name service_name_from_{method}",
-        "--enable-profiler",
-        "--enable-profiler-memory",
-        "--enable-metrics",
-        "--listen-interface 0.0.0.0",
-        "--otlp-endpoint http://127.0.0.1:4317",
-    ))
+    buildargs = {"NODE_VERSION": f"v{node_version}"}
 
     print(f"Testing installation on {distro} from {STAGE} stage ...")
-    with run_distro_container(distro, dockerfile=get_tomcat_dockerfile(distro), arch=arch) as container:
+    dockerfile = get_instrumentation_dockerfile(distro)
+    with run_distro_container(distro, dockerfile=dockerfile, arch=arch, buildargs=buildargs) as container:
         copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
-        copy_file_into_container(container, CUSTOM_COLLECTOR_CONFIG, custom_config)
         run_container_cmd(container, f"sh -c 'echo \"# This line should be preserved\" >> {PRELOAD_PATH}'")
+        if LOCAL_INSTRUMENTATION_PACKAGE:
+            copy_file_into_container(container, LOCAL_INSTRUMENTATION_PACKAGE, f"/test/instrumentation.pkg")
+
+        if arch == "arm64" and distro in ("debian-stretch", "ubuntu-xenial"):
+            # npm installed with node v16 only supports python 3.6+, but these distros only provide python 3.5
+            # downgrade npm to support python 3.5 in order to build/compile splunk-otel-js
+            run_container_cmd(container, "bash -l -c 'npm install --global npm@^6'")
+
+        service_name = f"service_name_from_{method}"
+        environment = f"deployment_environment_from_{method}"
+
+        install_cmd = " ".join((
+            get_installer_cmd(),
+            "--with-systemd-instrumentation" if method == "systemd" else "--with-instrumentation",
+            f"--with-instrumentation-sdk {sdk}",
+            f"--deployment-environment {environment}",
+            f"--service-name {service_name}",
+            "--disable-telemetry",
+            "--enable-profiler",
+            "--enable-profiler-memory",
+            "--enable-metrics",
+            "--listen-interface 0.0.0.0",
+        ))
+        if LOCAL_INSTRUMENTATION_PACKAGE:
+            install_cmd = f"{install_cmd} --instrumentation-version /test/instrumentation.pkg"
 
         # run installer script
         run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"}, timeout=INSTALLER_TIMEOUT)
         time.sleep(5)
 
+        zc_method = get_zc_method(container, distro, method)
+
         # verify env file created with configured parameters
-        verify_env_file(container, config_path=custom_config)
+        verify_env_file(container)
 
         verify_config_file(container, PRELOAD_PATH, "# This line should be preserved", None)
 
@@ -466,56 +525,75 @@ def test_installer_with_instrumentation_custom(distro, arch, method):
         assert wait_for(lambda: service_is_running(container, service_owner=SERVICE_OWNER))
 
         # verify splunk-otel-auto-instrumentation is installed
-        if distro in DEB_DISTROS:
-            assert container.exec_run("dpkg -s splunk-otel-auto-instrumentation").exit_code == 0
-        else:
-            assert container.exec_run("rpm -q splunk-otel-auto-instrumentation").exit_code == 0
+        assert package_is_installed(container, distro, "splunk-otel-auto-instrumentation"), \
+            "splunk-otel-auto-instrumentation was not installed"
+
+        # only the "new" instrumentation includes the node package
+        has_node_package = container_file_exists(container, NODE_PACKAGE_PATH)
+
+        if has_node_package:
+            if sdk == "java":
+                assert not node_package_installed(container)
+            else:
+                assert node_package_installed(container)
 
         config_attributes = ",".join((
             rf"splunk\.zc\.method={zc_method}",
             rf"deployment\.environment={environment}",
         ))
 
-        if method == "libsplunk":
+        if method == "preload" and has_node_package:
             # verify libsplunk.so was added to /etc/ld.so.preload
             verify_config_file(container, PRELOAD_PATH, LIBSPLUNK_PATH, None)
 
             # verify configured options
-            verify_config_file(container, config_path, "java_agent_jar", JAVA_AGENT_PATH)
-            verify_config_file(container, config_path, "resource_attributes", config_attributes)
-            verify_config_file(container, config_path, "disable_telemetry", "true")
-            verify_config_file(container, config_path, "enable_profiler", "true")
-            verify_config_file(container, config_path, "enable_profiler_memory", "true")
-            verify_config_file(container, config_path, "enable_metrics", "true")
-            verify_config_file(container, config_path, "service_name", service_name)
+            if sdk == "java":
+                config_path = JAVA_ZEROCONFIG_PATH
+                verify_config_file(container, config_path, "JAVA_TOOL_OPTIONS", f"-javaagent:{JAVA_AGENT_PATH}")
+                assert not container_file_exists(container, NODE_ZEROCONFIG_PATH)
+            else:
+                config_path = NODE_ZEROCONFIG_PATH
+                verify_config_file(container, config_path, "NODE_OPTIONS", "-r @splunk/otel/instrument")
+                assert not container_file_exists(container, JAVA_ZEROCONFIG_PATH)
+            verify_config_file(container, config_path, "OTEL_RESOURCE_ATTRIBUTES", config_attributes)
+            verify_config_file(container, config_path, "SPLUNK_PROFILER_ENABLED", "true")
+            verify_config_file(container, config_path, "SPLUNK_PROFILER_MEMORY_ENABLED", "true")
+            verify_config_file(container, config_path, "SPLUNK_METRICS_ENABLED", "true")
+            verify_config_file(container, config_path, "OTEL_EXPORTER_OTLP_ENDPOINT", "http://0.0.0.0:4317")
+            verify_config_file(container, config_path, "OTEL_SERVICE_NAME", service_name)
+        elif method == "preload" and not has_node_package:
+            # verify libsplunk.so was added to /etc/ld.so.preload
+            verify_config_file(container, PRELOAD_PATH, LIBSPLUNK_PATH, None)
+
+            # verify splunk-otel-js was not installed
+            assert not node_package_installed(container)
+
+            # verify configured options
+            verify_config_file(container, INSTR_CONF_PATH, "java_agent_jar", JAVA_AGENT_PATH)
+            verify_config_file(container, INSTR_CONF_PATH, "resource_attributes", config_attributes)
+            verify_config_file(container, INSTR_CONF_PATH, "disable_telemetry", "true")
+            verify_config_file(container, INSTR_CONF_PATH, "enable_profiler", "true")
+            verify_config_file(container, INSTR_CONF_PATH, "enable_profiler_memory", "true")
+            verify_config_file(container, INSTR_CONF_PATH, "enable_metrics", "true")
+            verify_config_file(container, INSTR_CONF_PATH, "service_name", service_name)
         else:
             # verify libsplunk.so was not added to /etc/ld.so.preload
             verify_config_file(container, PRELOAD_PATH, f".*{LIBSPLUNK_PATH}.*", None, exists=False)
 
             # verify configured options
-            verify_config_file(container, config_path, "JAVA_TOOL_OPTIONS", f"-javaagent:{JAVA_AGENT_PATH}")
-            verify_config_file(container, config_path, "OTEL_RESOURCE_ATTRIBUTES", config_attributes)
-            verify_config_file(container, config_path, "SPLUNK_PROFILER_ENABLED", "true")
-            verify_config_file(container, config_path, "SPLUNK_PROFILER_MEMORY_ENABLED", "true")
-            verify_config_file(container, config_path, "SPLUNK_METRICS_ENABLED", "true")
-            verify_config_file(container, config_path, "OTEL_EXPORTER_OTLP_ENDPOINT", "http://127.0.0.1:4317")
-            verify_config_file(container, config_path, "OTEL_SERVICE_NAME", service_name)
-
-        tomcat_attributes = {
-            r"telemetry\.sdk\.language": r"Str\(java\)",
-            r"service\.name": rf"Str\({service_name}\)",
-            r"deployment\.environment": rf"Str\({environment}\)",
-            r"com\.splunk\.sourcetype": r"Str\(otel\.profiling\)",
-            r"splunk\.zc\.method": rf"Str\({zc_method}\)",
-        }
-
-        verify_app_instrumentation(container, "tomcat", method, tomcat_attributes)
+            if sdk == "java":
+                verify_config_file(container, SYSTEMD_CONFIG_PATH, "JAVA_TOOL_OPTIONS", f"-javaagent:{JAVA_AGENT_PATH}")
+                verify_config_file(container, SYSTEMD_CONFIG_PATH, "NODE_OPTIONS", ".*", exists=False)
+            elif has_node_package:
+                verify_config_file(container, SYSTEMD_CONFIG_PATH, "NODE_OPTIONS", "-r @splunk/otel/instrument")
+                verify_config_file(container, SYSTEMD_CONFIG_PATH, "JAVA_TOOL_OPTIONS", ".*", exists=False)
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_RESOURCE_ATTRIBUTES", config_attributes)
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "SPLUNK_PROFILER_ENABLED", "true")
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "SPLUNK_PROFILER_MEMORY_ENABLED", "true")
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "SPLUNK_METRICS_ENABLED", "true")
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_EXPORTER_OTLP_ENDPOINT", "http://0.0.0.0:4317")
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_SERVICE_NAME", service_name)
 
         verify_uninstall(container, distro)
 
-        # verify libsplunk.so was removed from /etc/ld.so.preload
-        verify_config_file(container, PRELOAD_PATH, f".*{LIBSPLUNK_PATH}.*", None, exists=False)
         verify_config_file(container, PRELOAD_PATH, "# This line should be preserved", None)
-
-        # verify the systemd config file was not created or was deleted
-        run_container_cmd(container, f"test ! -f {SYSTEMD_CONFIG_PATH}")

@@ -7,7 +7,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.87.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.87.0
 	github.com/openzipkin/zipkin-go v0.4.2
-	github.com/shirou/gopsutil/v3 v3.23.9
+	github.com/shirou/gopsutil/v3 v3.23.10
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657
 	github.com/signalfx/golib/v3 v3.3.53
 	github.com/signalfx/signalfx-agent v1.0.1-0.20230104182534-9eee411fe305
@@ -117,7 +117,7 @@ require (
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
-	github.com/google/cadvisor v0.47.3 // indirect
+	github.com/google/cadvisor v0.48.1 // indirect
 	github.com/google/flatbuffers v23.1.21+incompatible // indirect
 	github.com/google/gnostic-models v0.6.8 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
@@ -217,7 +217,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatautil v0.87.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0-rc4 // indirect
-	github.com/opencontainers/runc v1.1.6 // indirect
+	github.com/opencontainers/runc v1.1.9 // indirect
 	github.com/openshift/api v0.0.0-20230417092139-1b2161d23365 // indirect
 	github.com/openshift/client-go v0.0.0-20230419131419-497c7032c581 // indirect
 	github.com/opentracing/opentracing-go v1.2.1-0.20220228012449-10b1cf09e00b // indirect
@@ -253,7 +253,7 @@ require (
 	github.com/twmb/murmur3 v1.1.7 // indirect
 	github.com/ulule/deepcopier v0.0.0-20171107155558-ca99b135e50f // indirect
 	github.com/vjeantet/grok v1.0.0 // indirect
-	github.com/vmware/govmomi v0.33.0 // indirect
+	github.com/vmware/govmomi v0.33.1 // indirect
 	github.com/yalp/jsonpath v0.0.0-20180802001716-5cc68e5049a0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.3 // indirect
 	github.com/zeebo/xxh3 v1.0.2 // indirect

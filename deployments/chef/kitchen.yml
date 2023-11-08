@@ -161,7 +161,16 @@ suites:
           MY_CUSTOM_VAR2: value2
         with_fluentd: true
 
-  - name: with_instrumentation
+  - name: with_default_preload_instrumentation
+    run_list:
+      - recipe[splunk_otel_collector]
+    attributes:
+      splunk_otel_collector:
+        splunk_access_token: testing123
+        splunk_realm: test
+        with_auto_instrumentation: true
+
+  - name: with_custom_preload_instrumentation
     run_list:
       - recipe[splunk_otel_collector]
     attributes:
@@ -176,3 +185,32 @@ suites:
         auto_instrumentation_enable_profiler: true
         auto_instrumentation_enable_profiler_memory: true
         auto_instrumentation_enable_metrics: true
+        auto_instrumentation_otlp_endpoint: http://0.0.0.0:4317
+
+  - name: with_default_systemd_instrumentation
+    run_list:
+      - recipe[splunk_otel_collector]
+    attributes:
+      splunk_otel_collector:
+        splunk_access_token: testing123
+        splunk_realm: test
+        with_auto_instrumentation: true
+        auto_instrumentation_systemd: true
+
+  - name: with_custom_systemd_instrumentation
+    run_list:
+      - recipe[splunk_otel_collector]
+    attributes:
+      splunk_otel_collector:
+        splunk_access_token: testing123
+        splunk_realm: test
+        with_auto_instrumentation: true
+        auto_instrumentation_systemd: true
+        auto_instrumentation_resource_attributes: deployment.environment=test
+        auto_instrumentation_service_name: test
+        auto_instrumentation_generate_service_name: false
+        auto_instrumentation_disable_telemetry: true
+        auto_instrumentation_enable_profiler: true
+        auto_instrumentation_enable_profiler_memory: true
+        auto_instrumentation_enable_metrics: true
+        auto_instrumentation_otlp_endpoint: http://0.0.0.0:4317

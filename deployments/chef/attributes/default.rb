@@ -89,6 +89,7 @@ elsif platform_family?('debian', 'rhel', 'amazon', 'suse')
 
   default['splunk_otel_collector']['with_auto_instrumentation'] = false
   default['splunk_otel_collector']['auto_instrumentation_version'] = 'latest'
+  default['splunk_otel_collector']['auto_instrumentation_systemd'] = false
   default['splunk_otel_collector']['auto_instrumentation_ld_so_preload'] = ''
   default['splunk_otel_collector']['auto_instrumentation_java_agent_jar'] = '/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar'
   default['splunk_otel_collector']['auto_instrumentation_resource_attributes'] = ''
@@ -98,4 +99,5 @@ elsif platform_family?('debian', 'rhel', 'amazon', 'suse')
   default['splunk_otel_collector']['auto_instrumentation_enable_profiler'] = false
   default['splunk_otel_collector']['auto_instrumentation_enable_profiler_memory'] = false
   default['splunk_otel_collector']['auto_instrumentation_enable_metrics'] = false
+  default['splunk_otel_collector']['auto_instrumentation_otlp_endpoint'] = 'http://127.0.0.1:4317'
 end

@@ -1,6 +1,8 @@
 java_agent_jar=<%= node['splunk_otel_collector']['auto_instrumentation_java_agent_jar'] %>
 <% if defined?(node['splunk_otel_collector']['auto_instrumentation_resource_attributes']) && node['splunk_otel_collector']['auto_instrumentation_resource_attributes'] != "" -%>
-resource_attributes=<%= node['splunk_otel_collector']['auto_instrumentation_resource_attributes'] %>
+resource_attributes=splunk.zc.method=splunk-otel-auto-instrumentation-<%= @installed_version %>,<%= node['splunk_otel_collector']['auto_instrumentation_resource_attributes'] %>
+<% else -%>
+resource_attributes=splunk.zc.method=splunk-otel-auto-instrumentation-<%= @installed_version %>
 <% end -%>
 <% if defined?(node['splunk_otel_collector']['auto_instrumentation_service_name']) && node['splunk_otel_collector']['auto_instrumentation_service_name'] != "" -%>
 service_name=<%= node['splunk_otel_collector']['auto_instrumentation_service_name'] %>

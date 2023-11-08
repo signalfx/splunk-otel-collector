@@ -1,0 +1,13 @@
+JAVA_TOOL_OPTIONS=-javaagent:<%= node['splunk_otel_collector']['auto_instrumentation_java_agent_jar'] %>
+<% if defined?(node['splunk_otel_collector']['auto_instrumentation_resource_attributes']) && node['splunk_otel_collector']['auto_instrumentation_resource_attributes'] != "" -%>
+OTEL_RESOURCE_ATTRIBUTES=splunk.zc.method=splunk-otel-auto-instrumentation-<%= @installed_version %>,<%= node['splunk_otel_collector']['auto_instrumentation_resource_attributes'] %>
+<% else -%>
+OTEL_RESOURCE_ATTRIBUTES=splunk.zc.method=splunk-otel-auto-instrumentation-<%= @installed_version %>
+<% end -%>
+<% if defined?(node['splunk_otel_collector']['auto_instrumentation_service_name']) && node['splunk_otel_collector']['auto_instrumentation_service_name'] != "" -%>
+OTEL_SERVICE_NAME=<%= node['splunk_otel_collector']['auto_instrumentation_service_name'] %>
+<% end -%>
+SPLUNK_PROFILER_ENABLED=<%= node['splunk_otel_collector']['auto_instrumentation_enable_profiler'].to_s.downcase %>
+SPLUNK_PROFILER_MEMORY_ENABLED=<%= node['splunk_otel_collector']['auto_instrumentation_enable_profiler_memory'].to_s.downcase %>
+SPLUNK_METRICS_ENABLED=<%= node['splunk_otel_collector']['auto_instrumentation_enable_metrics'].to_s.downcase %>
+OTEL_EXPORTER_OTLP_ENDPOINT=<%= node['splunk_otel_collector']['auto_instrumentation_otlp_endpoint'] %>

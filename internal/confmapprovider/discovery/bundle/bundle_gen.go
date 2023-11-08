@@ -29,6 +29,12 @@
 //go:generate discoverybundler -r -c -d ../../../../cmd/otelcol/config/collector/config.d.linux/receivers -t bundle.d/receivers/oracledb.discovery.yaml.tmpl
 //go:generate discoverybundler -r -t bundle.d/receivers/redis.discovery.yaml.tmpl
 //go:generate discoverybundler -r -c -d ../../../../cmd/otelcol/config/collector/config.d.linux/receivers -t bundle.d/receivers/redis.discovery.yaml.tmpl
+//go:generate discoverybundler -r -t bundle.d/receivers/smartagent-collectd-kafka-broker.discovery.yaml.tmpl
+//go:generate discoverybundler -r -c -d ../../../../cmd/otelcol/config/collector/config.d.linux/receivers -t bundle.d/receivers/smartagent-collectd-kafka-broker.discovery.yaml.tmpl
+//go:generate discoverybundler -r -t bundle.d/receivers/smartagent-collectd-kafka-producer.discovery.yaml.tmpl
+//go:generate discoverybundler -r -c -d ../../../../cmd/otelcol/config/collector/config.d.linux/receivers -t bundle.d/receivers/smartagent-collectd-kafka-producer.discovery.yaml.tmpl
+//go:generate discoverybundler -r -t bundle.d/receivers/smartagent-collectd-kafka-consumer.discovery.yaml.tmpl
+//go:generate discoverybundler -r -c -d ../../../../cmd/otelcol/config/collector/config.d.linux/receivers -t bundle.d/receivers/smartagent-collectd-kafka-consumer.discovery.yaml.tmpl
 
 //go:generate discoverybundler -r -t bundle.d/extensions/docker-observer.discovery.yaml.tmpl
 //go:generate discoverybundler -r -c -d ../../../../cmd/otelcol/config/collector/config.d.linux/extensions -t bundle.d/extensions/docker-observer.discovery.yaml.tmpl

@@ -1,0 +1,47 @@
+#####################################################################################
+#                               Do not edit manually!                               #
+# All changes must be made to associated .tmpl file before running 'make bundle.d'. #
+#####################################################################################
+smartagent/collectd/kafka_broker:
+  enabled: true
+  rule:
+    docker_observer: type == "container" and any([name, image, command], {# matches "(?i)kafka-broker"}) and not (command matches "splunk.discovery")
+    host_observer: type == "hostport" and command matches "(?i)kafka-broker"
+    k8s_observer: type == "port" and pod.name matches "(?i)kafka-broker"
+  config:
+    default:
+      type: collectd/kafka
+      extraMetrics: ["*"]
+      isolatedCollectd: true
+  status:
+    metrics:
+      successful:
+        - strict: counter.kafka-bytes-in
+          first_only: true
+          log_record:
+            severity_text: info
+            body: smartagent/collectd/kafka receiver is working!
+    statements:
+      failed:
+        - regexp: "Creating MBean server connection failed"
+          first_only: true
+          log_record:
+            severity_text: info
+            append_pattern: true
+            body: The container is unable to connnect to the MBean server to retrieve kafka metrics.
+        - regexp: "java.rmi.UnknownHostException: Unknown host"
+          first_only: true
+          log_record:
+            severity_text: info
+            append_pattern: true
+            body: Kafka host was discovered but is unresolvable.
+      partial:
+        - regexp: "clusterName is a required field"
+          first_only: true
+          log_record:
+            severity_text: info
+            append_pattern: true
+            body: >-
+              Make sure your Kafka clusterName is correctly specified using the
+              `--set splunk.discovery.receivers.smartagent/collectd/kafka_broker.config.clusterName="<clusterName>"` command or the
+              `SPLUNK_DISCOVERY_RECEIVERS_smartagent_x2f_collectd_x2f_kafka_x5f_broker_CONFIG_clusterName="<clusterName>"` environment variable. 

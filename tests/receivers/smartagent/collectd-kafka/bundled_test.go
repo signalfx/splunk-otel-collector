@@ -33,7 +33,6 @@ var kafka = testutils.NewContainer().WithContext(
 
 var kafkaZookeeper = testutils.NewContainer().WithImage("zookeeper:3.5").WithName("zookeeper").WithNetworks("kafka").WithExposedPorts("2181:2181").WillWaitForPorts("2181")
 
-
 func TestBrokerMetrics(t *testing.T) {
 	testutils.SkipIfNotContainerTest(t)
 	if runtime.GOOS == "darwin" {

@@ -11,7 +11,7 @@ function produce() {
     while true; do
         echo "Hello World $i"
         (( i += 1))
-        sleep $((1 + RANDOM % 10))
+        sleep 2
     done
 }
 

@@ -42,17 +42,22 @@ func TestBrokerMetrics(t *testing.T) {
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
 
-	kafkaBroker := kafka.WithName("kafka-broker").WithEnvVar("START_AS", "broker").WithExposedPorts("7099:7099", "9092:9092").WillWaitForPorts("7099", "9092")
-
-	kafkaConsumer := kafka.WithName("consumer").WithEnv(map[string]string{"START_AS": "consumer", "KAFKA_BROKER": "kafka-broker:9092", "JMX_PORT": "9099"}).WithExposedPorts("9099:9099").WillWaitForPorts("9099")
-
-	kafkaProducer := kafka.WithName("producer").WithEnv(map[string]string{"START_AS": "producer", "KAFKA_BROKER": "kafka-broker:9092", "JMX_PORT": "8099"}).WithExposedPorts("8099:8099").WillWaitForPorts("8099")
+	kafkaBroker := kafka.WithName("prefix-kafka-test-broker-suffix").WithEnvVar("START_AS", "broker",
+	).WithExposedPorts("7099:7099", "9092:9092").WillWaitForPorts("7099", "9092").WillWaitForLogs("INFO Opening socket connection to server")
+	
+	kafkaProducer := kafka.WithName("producer").WithEnv(map[string]string{
+		"START_AS": "producer", "KAFKA_BROKER": "prefix-kafka-test-broker-suffix:9092", "JMX_PORT": "8099",
+		}).WithExposedPorts("8099:8099").WillWaitForPorts("8099").WillWaitForLogs("running producer")
+	
+	kafkaConsumer := kafka.WithName("consumer").WithEnv(map[string]string{
+		"START_AS": "consumer", "KAFKA_BROKER": "prefix-kafka-test-broker-suffix:9092", "JMX_PORT": "9099",
+		}).WithExposedPorts("9099:9099").WillWaitForPorts("9099").WillWaitForLogs("Hello World")
 
 	kafkaTopicCreator := kafka.WithName("kafka-topic-creator").WithEnv(map[string]string{
-		"START_AS": "create-topic", "KAFKA_BROKER": "kafka-broker:9092",
+		"START_AS": "create-topic", "KAFKA_BROKER": "prefix-kafka-test-broker-suffix:9092",
 	}).WillWaitForLogs(`Created topic sfx-employee.`)
 
-	containers := []testutils.Container{kafkaZookeeper, kafkaBroker, kafkaTopicCreator, kafkaConsumer, kafkaProducer}
+	containers := []testutils.Container{kafkaZookeeper, kafkaBroker, kafkaTopicCreator, kafkaProducer, kafkaConsumer}
 
 	collector := []testutils.CollectorBuilder{
 		func(c testutils.Collector) testutils.Collector {
@@ -64,7 +69,6 @@ func TestBrokerMetrics(t *testing.T) {
 		},
 		func(c testutils.Collector) testutils.Collector {
 			return c.WithEnv(map[string]string{
-				"SPLUNK_DISCOVERY_DURATION":  "10s",
 				"SPLUNK_DISCOVERY_LOG_LEVEL": "debug",
 			}).WithArgs(
 				"--discovery",
@@ -89,17 +93,22 @@ func TestProducerMetrics(t *testing.T) {
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
 
-	kafkaBroker := kafka.WithName("broker").WithEnvVar("START_AS", "broker").WithExposedPorts("7099:7099", "9092:9092").WillWaitForPorts("7099", "9092")
-
-	kafkaConsumer := kafka.WithName("consumer").WithEnv(map[string]string{"START_AS": "consumer", "KAFKA_BROKER": "broker:9092", "JMX_PORT": "9099"}).WithExposedPorts("9099:9099").WillWaitForPorts("9099")
-
-	kafkaProducer := kafka.WithName("kafka-producer").WithEnv(map[string]string{"START_AS": "producer", "KAFKA_BROKER": "broker:9092", "JMX_PORT": "8099"}).WithExposedPorts("8099:8099").WillWaitForPorts("8099")
+	kafkaBroker := kafka.WithName("broker").WithEnvVar("START_AS", "broker").WithExposedPorts("7099:7099", "9092:9092",
+	).WillWaitForPorts("7099", "9092").WillWaitForLogs("INFO Opening socket connection to server")
+	
+	kafkaProducer := kafka.WithName("prefix-kafka-test-producer-suffix").WithEnv(map[string]string{
+		"START_AS": "producer", "KAFKA_BROKER": "broker:9092", "JMX_PORT": "8099",
+		}).WithExposedPorts("8099:8099").WillWaitForPorts("8099").WillWaitForLogs("running producer")
+	
+	kafkaConsumer := kafka.WithName("consumer").WithEnv(map[string]string{
+		"START_AS": "consumer", "KAFKA_BROKER": "broker:9092", "JMX_PORT": "9099",
+		}).WithExposedPorts("9099:9099").WillWaitForPorts("9099").WillWaitForLogs("Hello World")
 
 	kafkaTopicCreator := kafka.WithName("kafka-topic-creator").WithEnv(map[string]string{
 		"START_AS": "create-topic", "KAFKA_BROKER": "broker:9092",
 	}).WillWaitForLogs(`Created topic sfx-employee.`)
 
-	containers := []testutils.Container{kafkaZookeeper, kafkaBroker, kafkaTopicCreator, kafkaConsumer, kafkaProducer}
+	containers := []testutils.Container{kafkaZookeeper, kafkaBroker, kafkaTopicCreator, kafkaProducer, kafkaConsumer}
 
 	collector := []testutils.CollectorBuilder{
 		func(c testutils.Collector) testutils.Collector {
@@ -111,7 +120,6 @@ func TestProducerMetrics(t *testing.T) {
 		},
 		func(c testutils.Collector) testutils.Collector {
 			return c.WithEnv(map[string]string{
-				"SPLUNK_DISCOVERY_DURATION":  "10s",
 				"SPLUNK_DISCOVERY_LOG_LEVEL": "debug",
 			}).WithArgs(
 				"--discovery",
@@ -135,17 +143,22 @@ func TestConsumerMetrics(t *testing.T) {
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
 
-	kafkaBroker := kafka.WithName("broker").WithEnvVar("START_AS", "broker").WithExposedPorts("7099:7099", "9092:9092").WillWaitForPorts("7099", "9092")
-
-	kafkaConsumer := kafka.WithName("kafka-consumer").WithEnv(map[string]string{"START_AS": "consumer", "KAFKA_BROKER": "broker:9092", "JMX_PORT": "9099"}).WithExposedPorts("9099:9099").WillWaitForPorts("9099")
-
-	kafkaProducer := kafka.WithName("producer").WithEnv(map[string]string{"START_AS": "producer", "KAFKA_BROKER": "broker:9092", "JMX_PORT": "8099"}).WithExposedPorts("8099:8099").WillWaitForPorts("8099")
+	kafkaBroker := kafka.WithName("broker").WithEnvVar("START_AS", "broker").WithExposedPorts("7099:7099", 
+	"9092:9092").WillWaitForPorts("7099", "9092").WillWaitForLogs("INFO Opening socket connection to server")
+	
+	kafkaProducer := kafka.WithName("producer").WithEnv(map[string]string{
+		"START_AS": "producer", "KAFKA_BROKER": "broker:9092", "JMX_PORT": "8099",
+		}).WithExposedPorts("8099:8099").WillWaitForPorts("8099").WillWaitForLogs("running producer")
+	
+	kafkaConsumer := kafka.WithName("prefix-kafka-test-consumer-suffix").WithEnv(map[string]string{
+		"START_AS": "consumer", "KAFKA_BROKER": "broker:9092", "JMX_PORT": "9099"}).WithExposedPorts("9099:9099",
+		).WillWaitForPorts("9099").WillWaitForLogs("Hello World")
 
 	kafkaTopicCreator := kafka.WithName("kafka-topic-creator").WithEnv(map[string]string{
 		"START_AS": "create-topic", "KAFKA_BROKER": "broker:9092",
 	}).WillWaitForLogs(`Created topic sfx-employee.`)
 
-	containers := []testutils.Container{kafkaZookeeper, kafkaBroker, kafkaTopicCreator, kafkaConsumer, kafkaProducer}
+	containers := []testutils.Container{kafkaZookeeper, kafkaBroker, kafkaTopicCreator, kafkaProducer, kafkaConsumer}
 
 	collector := []testutils.CollectorBuilder{
 		func(c testutils.Collector) testutils.Collector {
@@ -157,7 +170,6 @@ func TestConsumerMetrics(t *testing.T) {
 		},
 		func(c testutils.Collector) testutils.Collector {
 			return c.WithEnv(map[string]string{
-				"SPLUNK_DISCOVERY_DURATION":  "10s",
 				"SPLUNK_DISCOVERY_LOG_LEVEL": "debug",
 			}).WithArgs(
 				"--discovery",

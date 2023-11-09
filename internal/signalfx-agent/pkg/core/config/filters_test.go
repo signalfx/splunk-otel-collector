@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/stretchr/testify/require"
 	"testing"
 
 	"github.com/signalfx/golib/v3/datapoint"
@@ -184,7 +185,7 @@ func TestNewFilters(t *testing.T) {
 				},
 			},
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		assert.True(t, f.Matches(&datapoint.Datapoint{Metric: "disk.utilization"}))
 		assert.True(t, f.Matches(&datapoint.Datapoint{

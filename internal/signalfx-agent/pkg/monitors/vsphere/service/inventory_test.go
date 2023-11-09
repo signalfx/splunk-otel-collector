@@ -25,7 +25,7 @@ func TestExprFilterOutAllInventory(t *testing.T) {
 	svc := NewInventorySvc(gateway, testLog, f, model.GuestIP)
 	inv, err := svc.RetrieveInventory()
 	require.NoError(t, err)
-	assert.Len(t, inv.Objects, 0)
+	assert.Empty(t, inv.Objects)
 }
 
 func TestExprFilterInAllInventoryInClusters(t *testing.T) {
@@ -56,7 +56,7 @@ func TestFilterInInventory(t *testing.T) {
 	svc := NewInventorySvc(gateway, testLog, f, model.GuestIP)
 	inv, err := svc.RetrieveInventory()
 	require.NoError(t, err)
-	assert.Greater(t, len(inv.Objects), 0)
+	assert.NotEmpty(t, inv.Objects)
 }
 
 func TestFilterEmptyDC(t *testing.T) {
@@ -66,7 +66,7 @@ func TestFilterEmptyDC(t *testing.T) {
 	svc := NewInventorySvc(gateway, testLog, f, model.GuestIP)
 	inv, err := svc.RetrieveInventory()
 	require.NoError(t, err)
-	assert.Greater(t, len(inv.Objects), 0)
+	assert.NotEmpty(t, inv.Objects)
 }
 
 func TestRetrieveInventory(t *testing.T) {

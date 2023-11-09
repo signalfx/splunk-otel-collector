@@ -96,7 +96,7 @@ func TestParseMetrics(t *testing.T) {
 				prefix:     "",
 			}
 			sm := sl.parseMetrics([]string{tt.raw})
-			require.Equal(t, 1, len(sm))
+			require.Len(t, sm, 1)
 			require.Equal(t, tt.parsed, *sm[0])
 		})
 	}

@@ -5,6 +5,7 @@ package processlist
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/StackExchange/wmi"
@@ -151,7 +152,7 @@ func ProcessList(conf *Config, cache *osCache, logger logrus.FieldLogger) ([]*To
 		if command == "" {
 			command = p.Name
 		}
-		status := statusMapping(processMap[fmt.Sprint(p.ProcessID)])
+		status := statusMapping(processMap[strconv.FormatUint(p.ProcessID)])
 		//example process "3":["root",20,"0",0,0,0,"S",0.0,0.0,"01:28.31","[ksoftirqd/0]"]
 		procs = append(procs, &TopProcess{
 			ProcessID:           int(p.ProcessID),

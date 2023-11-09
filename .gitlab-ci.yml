@@ -10,7 +10,6 @@ stages:
   - cve-scan
   - sign-packages
   - release
-  - sign-metadata
   - github-release
 
 include:
@@ -734,22 +733,45 @@ build-push-windows2022-image:
 release-debs:
   extends:
     - .trigger-filter
-    - .deploy-release
+    - .submit-signing-request
   stage: release
   resource_group: artifactory-deb
   dependencies:
     - sign-debs
+  retry: 2
+  before_script:
+    - *get-artifactory-stage
+    - pip3 install -r internal/buildscripts/packaging/release/requirements.txt
+    - apt update && apt install -y curl
+    - |
+      set -ex
+      for path in dist/signed/*.deb; do
+        if [ ! -f "$path" ]; then
+          echo "$path not found!"
+          exit 1
+        fi
+        python3 internal/buildscripts/packaging/release/release.py --force --stage=${STAGE} --path=$path
+      done
+    - test -f Release
   variables:
-    PATHS: dist/signed/*.deb
+    ARTIFACT: Release
+    SIGN_TYPE: GPG
+  after_script:
+    - *get-artifactory-stage
+    - |
+      set -ex
+      if [[ "$CI_JOB_STATUS" = "success" ]] && [[ -f signed/Release.asc ]]; then
+        curl -fu ${ARTIFACTORY_USERNAME}:${ARTIFACTORY_TOKEN} -X PUT "https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/${STAGE}/Release.gpg" -T signed/Release.asc
+      fi
   artifacts:
     paths:
       - dist/signed/*.deb
-      - Release
+      - signed/Release.asc
 
 release-rpms:
   extends:
     - .trigger-filter
-    - .deploy-release
+    - .submit-signing-request
   stage: release
   parallel:
     matrix:
@@ -757,15 +779,54 @@ release-rpms:
   resource_group: artifactory-rpm
   dependencies:
     - sign-rpms
+  retry: 2
+  before_script:
+    - *get-artifactory-stage
+    - pip3 install -r internal/buildscripts/packaging/release/requirements.txt
+    - apt update && apt install -y curl
+    - |
+      set -ex
+      for path in dist/signed/*${ARCH}.rpm; do
+        if [ ! -f "$path" ]; then
+          echo "$path not found!"
+          exit 1
+        fi
+        python3 internal/buildscripts/packaging/release/release.py --force --stage=${STAGE} --path=$path
+      done
+    - test -f repomd.xml
   variables:
-    PATHS: dist/signed/*${ARCH}.rpm
+    ARTIFACT: repomd.xml
+    SIGN_TYPE: GPG
+    DOWNLOAD_DIR: signed/${ARCH}
   after_script:
-    - mkdir ${ARCH}
-    - mv repomd.xml ${ARCH}/repomd.xml
+    - *get-artifactory-stage
+    - |
+      set -ex
+      if [[ "$CI_JOB_STATUS" = "success" ]] && [[ -f signed/${ARCH}/repomd.xml.asc ]]; then
+        curl -fu ${ARTIFACTORY_USERNAME}:${ARTIFACTORY_TOKEN} -X PUT "https://splunk.jfrog.io/artifactory/otel-collector-rpm/${STAGE}/${ARCH}/repodata/repomd.xml.asc" -T signed/${ARCH}/repomd.xml.asc
+      fi
   artifacts:
     paths:
       - dist/signed/*${ARCH}.rpm
-      - ${ARCH}/repomd.xml
+      - signed/${ARCH}/repomd.xml.asc
+
+# since "after_script" failures or missing artifacts will not fail the job, use this job to verify that the signatures were uploaded successfully
+verify-signed-metadata:
+  extends: .trigger-filter
+  stage: release
+  needs:
+    - release-debs
+    - release-rpms
+  retry: 2
+  before_script:
+    - apt update && apt install -y curl
+  script:
+    - *get-artifactory-stage
+    - |
+      set -exo pipefail
+      curl -fq https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/${STAGE}/Release.gpg | diff - signed/Release.asc
+      curl -fq https://splunk.jfrog.io/artifactory/otel-collector-rpm/${STAGE}/x86_64/repodata/repomd.xml.asc | diff - signed/x86_64/repomd.xml.asc
+      curl -fq https://splunk.jfrog.io/artifactory/otel-collector-rpm/${STAGE}/aarch64/repodata/repomd.xml.asc | diff - signed/aarch64/repomd.xml.asc
 
 # only upload the msi to S3 for stable release tags
 release-msi:
@@ -826,73 +887,6 @@ choco-release:
   artifacts:
     paths:
       - dist/signed/*.nupkg
-
-sign-apt-metadata:
-  extends:
-    - .trigger-filter
-    - .submit-signing-request
-  stage: sign-metadata
-  retry: 2
-  resource_group: artifactory-deb
-  needs:
-    - release-debs
-  variables:
-    ARTIFACT: Release
-    SIGN_TYPE: GPG
-  after_script:
-    - mv Release signed/Release
-  artifacts:
-    paths:
-      - signed/Release
-      - signed/Release.asc
-
-sign-yum-metadata:
-  extends:
-    - .trigger-filter
-    - .submit-signing-request
-  stage: sign-metadata
-  retry: 2
-  parallel:
-    matrix:
-      - ARCH: ['x86_64', 'aarch64']
-  resource_group: artifactory-rpm
-  needs:
-    - release-rpms
-  variables:
-    ARTIFACT: ${ARCH}/repomd.xml
-    SIGN_TYPE: GPG
-    DOWNLOAD_DIR: signed/${ARCH}
-  after_script:
-    - mv ${ARCH}/repomd.xml signed/${ARCH}/repomd.xml
-  artifacts:
-    paths:
-      - signed/${ARCH}/repomd.xml
-      - signed/${ARCH}/repomd.xml.asc
-
-upload-apt-signature:
-  extends: .trigger-filter
-  stage: sign-metadata
-  resource_group: artifactory-deb
-  needs:
-    - sign-apt-metadata
-  before_script:
-    - *get-artifactory-stage
-  script:
-    - curl -u ${ARTIFACTORY_USERNAME}:${ARTIFACTORY_TOKEN} -X PUT "https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/${STAGE}/Release.gpg" -T signed/Release.asc
-
-upload-yum-signature:
-  extends: .trigger-filter
-  stage: sign-metadata
-  resource_group: artifactory-rpm
-  parallel:
-    matrix:
-      - ARCH: ['x86_64', 'aarch64']
-  needs:
-    - sign-yum-metadata
-  before_script:
-    - *get-artifactory-stage
-  script:
-    - curl -u ${ARTIFACTORY_USERNAME}:${ARTIFACTORY_TOKEN} -X PUT "https://splunk.jfrog.io/artifactory/otel-collector-rpm/${STAGE}/${ARCH}/repodata/repomd.xml.asc" -T signed/${ARCH}/repomd.xml.asc
 
 github-release:
   extends:

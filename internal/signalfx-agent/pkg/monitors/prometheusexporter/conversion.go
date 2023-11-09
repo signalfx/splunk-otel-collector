@@ -25,7 +25,7 @@ func counterExtractor(m *dto.Metric) float64 {
 }
 
 func convertMetricFamily(mf *dto.MetricFamily) []*datapoint.Datapoint {
-	if mf.Name == nil {
+	if mf.GetName() == "" {
 		return nil
 	}
 	switch mf.GetType() {

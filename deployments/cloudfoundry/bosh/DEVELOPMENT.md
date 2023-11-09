@@ -55,12 +55,16 @@ https://bosh.io/d/stemcells/bosh-warden-boshlite-ubuntu-bionic-go_agent?v=1.71
 # Check release script for more environment variables that can be set.
 export IS_DEV_RELEASE=1
 ./release
+bosh -e <director-name> upload-release latest-release.tgz
 ```
 
 ## BOSH Release Usage
 
 ```shell
-bosh -d splunk-otel-collector deploy deployment.yaml
+# Deploy BOSH Release
+bosh -e <director-name> -d splunk-otel-collector deploy deployment.yaml
+# Delete BOSH Release
+bosh -e <director-name> delete-deployment -d splunk-otel-collector
 ```
 Further explanation of the `deployment.yaml` file is found [here.](#deployment-config)
 
@@ -124,7 +128,7 @@ splunk.access_token: "..."
 Note: Depending on configuration, all `bosh` commands may require the director name to be explicitly provided.
 This is the `-e <director-name>` option.
 ```shell
-# Ensure director is up and running
+# Ensure director is up and running. Director name is "vbox" if created using automated script.
 $ bosh -e <director-name> env
 
 # View all bosh releases
@@ -167,4 +171,7 @@ $ exec /var/vcap/packages/splunk_otel_collector/splunk_otel_collector \
 # Useful VM log files:
 /var/vcap/sys/log/splunk-otel-collector/splunk-otel-collector.stdout.log
 /var/vcap/sys/log/splunk-otel-collector/splunk-otel-collector.stderr.log
+
+# Proxy settings
+/var/vcap/jobs/splunk-otel-collector/bin/config/splunk-otel-collector.conf
 ```

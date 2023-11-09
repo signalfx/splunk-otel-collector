@@ -73,25 +73,9 @@ func TestK8sObserver(t *testing.T) {
 	sout, serr, err = cluster.Apply(manifests.RenderAll(t, clusterRole, clusterRoleBinding, ds))
 	require.NoError(t, err, "stdout: %s, stderr: %s", sout, serr)
 
-	var collectorName string
-	// wait for collector to run
-	require.Eventually(t, func() bool {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		dsPods, err := cluster.Clientset.CoreV1().Pods(namespace.Name).List(ctx, metav1.ListOptions{
-			LabelSelector: fmt.Sprintf("name = %s", ds.Name),
-		})
-		require.NoError(t, err)
-		if len(dsPods.Items) > 0 {
-			collectorPod := dsPods.Items[0]
-			tc.Logger.Debug(fmt.Sprintf("collector is: %s\n", collectorPod.Status.Phase))
-			cPod, err := cluster.Clientset.CoreV1().Pods(collectorPod.Namespace).Get(ctx, collectorPod.Name, metav1.GetOptions{})
-			require.NoError(t, err)
-			collectorName = cPod.Name
-			return cPod.Status.Phase == corev1.PodRunning
-		}
-		return false
-	}, 5*time.Minute, 1*time.Second)
+	pods := cluster.WaitForPods(ds.Name, namespace.Name, 5*time.Minute)
+	require.Len(t, pods, 1)
+	collectorName := pods[0].Name
 
 	expectedMetrics := tc.ResourceMetrics("all.yaml")
 	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedMetrics, 30*time.Second))
@@ -149,14 +133,7 @@ func (cluster testCluster) createMySQL(name, namespace, serviceAccount string) s
 	)
 	require.NoError(cluster.Testcase, err)
 
-	require.Eventually(cluster.Testcase, func() bool {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		rPod, err := cluster.Clientset.CoreV1().Pods(namespace).Get(ctx, mysql.Name, metav1.GetOptions{})
-		require.NoError(cluster.Testcase, err)
-		cluster.Testcase.Logger.Debug(fmt.Sprintf("mysql is: %s\n", rPod.Status.Phase))
-		return rPod.Status.Phase == corev1.PodRunning
-	}, 5*time.Minute, 1*time.Second)
+	cluster.WaitForPods(mysql.Name, namespace, 5*time.Minute)
 
 	require.Eventually(cluster.Testcase, func() bool {
 		stdOut, _, err := cluster.Kubectl("logs", "-n", namespace, mysql.Name)

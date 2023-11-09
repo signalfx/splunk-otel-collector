@@ -208,12 +208,12 @@ jobs:
           $msi_path = Resolve-Path .\dist\splunk-otel-collector*.msi
           $env:VERIFY_ACCESS_TOKEN = "false"
           .\internal\buildscripts\packaging\installer\install.ps1 -access_token "${{ env.token }}" -realm "${{ env.realm }}" -msi_path "$msi_path" -mode "${{ matrix.MODE }}" -memory "${{ env.memory }}" -with_fluentd $${{ matrix.WITH_FLUENTD }}
-          Start-Sleep -s 45
+          Start-Sleep -s 30
           & ${{ github.workspace }}\.github\workflows\scripts\win-test-services.ps1 -mode "${{ matrix.MODE }}" -access_token "${{ env.token }}" -realm "${{ env.realm }}" -memory "${{ env.memory }}" -with_fluentd "${{ matrix.WITH_FLUENTD }}"
           & ${{ github.workspace }}\.github\workflows\scripts\win-test-support-bundle.ps1 -mode "${{ matrix.MODE }}" -with_fluentd "${{ matrix.WITH_FLUENTD }}"
           Resolve-Path -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector\agent-bundle\python\python.exe"
           Resolve-Path -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector\agent-bundle\collectd-python"
-          Resolve-Path -Path "$env:SYSTEMDRIVE\opt\opentelemetry-java-contrib-jmx-metrics.jar"
+          Resolve-Path -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector\opentelemetry-java-contrib-jmx-metrics.jar"
 
       - name: splunk-otel-collector logs
         if: ${{ always() }}

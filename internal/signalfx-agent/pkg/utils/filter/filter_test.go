@@ -1,11 +1,11 @@
 package filter
 
 import (
-	"github.com/stretchr/testify/require"
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestBasicStringFilter(t *testing.T) {

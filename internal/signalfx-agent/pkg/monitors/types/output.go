@@ -13,10 +13,10 @@ import (
 
 type Output interface {
 	Copy() Output
-	SendDatapoints(...*datapoint.Datapoint)
+	SendDatapoints(dps ...*datapoint.Datapoint)
 	SendEvent(e *event.Event)
-	SendSpans(...*trace.Span)
-	SendDimensionUpdate(*Dimension)
+	SendSpans(spans ...*trace.Span)
+	SendDimensionUpdate(dim *Dimension)
 	AddExtraDimension(key string, value string)
 	RemoveExtraDimension(key string)
 	AddExtraSpanTag(key string, value string)

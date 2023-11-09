@@ -33,7 +33,7 @@ var kafka = testutils.NewContainer().WithContext(
 
 var kafkaZookeeper = testutils.NewContainer().WithImage("zookeeper:3.5").WithName("zookeeper").WithNetworks("kafka").WithExposedPorts("2181:2181").WillWaitForPorts("2181")
 
-func TestBrokerMetrics(t *testing.T) {
+func TestKafkaBrokerMetrics(t *testing.T) {
 	testutils.SkipIfNotContainerTest(t)
 	if runtime.GOOS == "darwin" {
 		t.Skip("unable to share sockets between mac and d4m vm: https://github.com/docker/for-mac/issues/483#issuecomment-758836836")
@@ -42,16 +42,15 @@ func TestBrokerMetrics(t *testing.T) {
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
 
-	kafkaBroker := kafka.WithName("prefix-kafka-test-broker-suffix").WithEnvVar("START_AS", "broker",
-	).WithExposedPorts("7099:7099", "9092:9092").WillWaitForPorts("7099", "9092").WillWaitForLogs("INFO Opening socket connection to server")
-	
+	kafkaBroker := kafka.WithName("prefix-kafka-test-broker-suffix").WithEnvVar("START_AS", "broker").WithExposedPorts("7099:7099", "9092:9092").WillWaitForPorts("7099", "9092").WillWaitForLogs("INFO Opening socket connection to server")
+
 	kafkaProducer := kafka.WithName("producer").WithEnv(map[string]string{
 		"START_AS": "producer", "KAFKA_BROKER": "prefix-kafka-test-broker-suffix:9092", "JMX_PORT": "8099",
-		}).WithExposedPorts("8099:8099").WillWaitForPorts("8099").WillWaitForLogs("running producer")
-	
+	}).WithExposedPorts("8099:8099").WillWaitForPorts("8099").WillWaitForLogs("running producer")
+
 	kafkaConsumer := kafka.WithName("consumer").WithEnv(map[string]string{
 		"START_AS": "consumer", "KAFKA_BROKER": "prefix-kafka-test-broker-suffix:9092", "JMX_PORT": "9099",
-		}).WithExposedPorts("9099:9099").WillWaitForPorts("9099").WillWaitForLogs("Hello World")
+	}).WithExposedPorts("9099:9099").WillWaitForPorts("9099").WillWaitForLogs("Hello World")
 
 	kafkaTopicCreator := kafka.WithName("kafka-topic-creator").WithEnv(map[string]string{
 		"START_AS": "create-topic", "KAFKA_BROKER": "prefix-kafka-test-broker-suffix:9092",
@@ -84,7 +83,7 @@ func TestBrokerMetrics(t *testing.T) {
 	})
 }
 
-func TestProducerMetrics(t *testing.T) {
+func TestKafkaProducerMetrics(t *testing.T) {
 	testutils.SkipIfNotContainerTest(t)
 	if runtime.GOOS == "darwin" {
 		t.Skip("unable to share sockets between mac and d4m vm: https://github.com/docker/for-mac/issues/483#issuecomment-758836836")
@@ -93,16 +92,15 @@ func TestProducerMetrics(t *testing.T) {
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
 
-	kafkaBroker := kafka.WithName("broker").WithEnvVar("START_AS", "broker").WithExposedPorts("7099:7099", "9092:9092",
-	).WillWaitForPorts("7099", "9092").WillWaitForLogs("INFO Opening socket connection to server")
-	
+	kafkaBroker := kafka.WithName("broker").WithEnvVar("START_AS", "broker").WithExposedPorts("7099:7099", "9092:9092").WillWaitForPorts("7099", "9092").WillWaitForLogs("INFO Opening socket connection to server")
+
 	kafkaProducer := kafka.WithName("prefix-kafka-test-producer-suffix").WithEnv(map[string]string{
 		"START_AS": "producer", "KAFKA_BROKER": "broker:9092", "JMX_PORT": "8099",
-		}).WithExposedPorts("8099:8099").WillWaitForPorts("8099").WillWaitForLogs("running producer")
-	
+	}).WithExposedPorts("8099:8099").WillWaitForPorts("8099").WillWaitForLogs("running producer")
+
 	kafkaConsumer := kafka.WithName("consumer").WithEnv(map[string]string{
 		"START_AS": "consumer", "KAFKA_BROKER": "broker:9092", "JMX_PORT": "9099",
-		}).WithExposedPorts("9099:9099").WillWaitForPorts("9099").WillWaitForLogs("Hello World")
+	}).WithExposedPorts("9099:9099").WillWaitForPorts("9099").WillWaitForLogs("Hello World")
 
 	kafkaTopicCreator := kafka.WithName("kafka-topic-creator").WithEnv(map[string]string{
 		"START_AS": "create-topic", "KAFKA_BROKER": "broker:9092",
@@ -134,7 +132,7 @@ func TestProducerMetrics(t *testing.T) {
 	})
 }
 
-func TestConsumerMetrics(t *testing.T) {
+func TestKafkaConsumerMetrics(t *testing.T) {
 	testutils.SkipIfNotContainerTest(t)
 	if runtime.GOOS == "darwin" {
 		t.Skip("unable to share sockets between mac and d4m vm: https://github.com/docker/for-mac/issues/483#issuecomment-758836836")
@@ -143,16 +141,15 @@ func TestConsumerMetrics(t *testing.T) {
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
 
-	kafkaBroker := kafka.WithName("broker").WithEnvVar("START_AS", "broker").WithExposedPorts("7099:7099", 
-	"9092:9092").WillWaitForPorts("7099", "9092").WillWaitForLogs("INFO Opening socket connection to server")
-	
+	kafkaBroker := kafka.WithName("broker").WithEnvVar("START_AS", "broker").WithExposedPorts("7099:7099",
+		"9092:9092").WillWaitForPorts("7099", "9092").WillWaitForLogs("INFO Opening socket connection to server")
+
 	kafkaProducer := kafka.WithName("producer").WithEnv(map[string]string{
 		"START_AS": "producer", "KAFKA_BROKER": "broker:9092", "JMX_PORT": "8099",
-		}).WithExposedPorts("8099:8099").WillWaitForPorts("8099").WillWaitForLogs("running producer")
-	
+	}).WithExposedPorts("8099:8099").WillWaitForPorts("8099").WillWaitForLogs("running producer")
+
 	kafkaConsumer := kafka.WithName("prefix-kafka-test-consumer-suffix").WithEnv(map[string]string{
-		"START_AS": "consumer", "KAFKA_BROKER": "broker:9092", "JMX_PORT": "9099"}).WithExposedPorts("9099:9099",
-		).WillWaitForPorts("9099").WillWaitForLogs("Hello World")
+		"START_AS": "consumer", "KAFKA_BROKER": "broker:9092", "JMX_PORT": "9099"}).WithExposedPorts("9099:9099").WillWaitForPorts("9099").WillWaitForLogs("Hello World")
 
 	kafkaTopicCreator := kafka.WithName("kafka-topic-creator").WithEnv(map[string]string{
 		"START_AS": "create-topic", "KAFKA_BROKER": "broker:9092",

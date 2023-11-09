@@ -85,22 +85,7 @@ func TestDiscoveryReceiverWithK8sObserverProvidesEndpointLogs(t *testing.T) {
 	sout, serr, err = cluster.Apply(manifests.RenderAll(t, clusterRole, clusterRoleBinding, ds))
 	require.NoError(t, err, "stdout: %s, stderr: %s", sout, serr)
 
-	require.Eventually(t, func() bool {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		dsPods, err := cluster.Clientset.CoreV1().Pods(namespace.Name).List(ctx, metav1.ListOptions{
-			LabelSelector: fmt.Sprintf("name = %s", ds.Name),
-		})
-		require.NoError(t, err)
-		if len(dsPods.Items) > 0 {
-			collectorPod := dsPods.Items[0]
-			tc.Logger.Debug(fmt.Sprintf("collector is: %s\n", collectorPod.Status.Phase))
-			cPod, err := cluster.Clientset.CoreV1().Pods(collectorPod.Namespace).Get(ctx, collectorPod.Name, metav1.GetOptions{})
-			require.NoError(t, err)
-			return cPod.Status.Phase == corev1.PodRunning
-		}
-		return false
-	}, 5*time.Minute, 1*time.Second)
+	cluster.WaitForPods(ds.Name, namespace.Name, 5*time.Minute)
 
 	expectedResourceLogs := tc.ResourceLogs("k8s_observer_endpoints.yaml")
 	require.NoError(t, tc.OTLPReceiverSink.AssertAllLogsReceived(t, *expectedResourceLogs, 30*time.Second))
@@ -135,31 +120,8 @@ func TestDiscoveryReceiverWithK8sObserverAndSmartAgentRedisReceiverProvideStatus
 	sout, serr, err = cluster.Apply(manifests.RenderAll(t, clusterRole, clusterRoleBinding, ds))
 	require.NoError(t, err, "stdout: %s, stderr: %s", sout, serr)
 
-	require.Eventually(t, func() bool {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		rPod, err := cluster.Clientset.CoreV1().Pods(namespace.Name).Get(ctx, redis, metav1.GetOptions{})
-		require.NoError(t, err)
-		tc.Logger.Debug(fmt.Sprintf("redis is: %s\n", rPod.Status.Phase))
-		return rPod.Status.Phase == corev1.PodRunning
-	}, 5*time.Minute, 1*time.Second)
-
-	require.Eventually(t, func() bool {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		dsPods, err := cluster.Clientset.CoreV1().Pods(namespace.Name).List(ctx, metav1.ListOptions{
-			LabelSelector: fmt.Sprintf("name = %s", ds.Name),
-		})
-		require.NoError(t, err)
-		if len(dsPods.Items) > 0 {
-			collectorPod := dsPods.Items[0]
-			tc.Logger.Debug(fmt.Sprintf("collector is: %s\n", collectorPod.Status.Phase))
-			cPod, err := cluster.Clientset.CoreV1().Pods(collectorPod.Namespace).Get(ctx, collectorPod.Name, metav1.GetOptions{})
-			require.NoError(t, err)
-			return cPod.Status.Phase == corev1.PodRunning
-		}
-		return false
-	}, 5*time.Minute, 1*time.Second)
+	cluster.WaitForPods(redis, namespace.Name, 5*time.Minute)
+	cluster.WaitForPods(ds.Name, namespace.Name, 5*time.Minute)
 
 	expectedResourceLogs := tc.ResourceLogs("k8s_observer_smart_agent_redis_statuses.yaml")
 	require.NoError(t, tc.OTLPReceiverSink.AssertAllLogsReceived(t, *expectedResourceLogs, 30*time.Second))

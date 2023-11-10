@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"regexp"
 	"strings"
 	"text/template"
 	"time"
@@ -30,6 +31,8 @@ import (
 	docker "github.com/docker/docker/client"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/multierr"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
@@ -96,6 +99,13 @@ func (k *KindCluster) Create() {
 	require.NoError(k.Testcase, err)
 	k.Clientset, err = kubernetes.NewForConfig(restConfig)
 	require.NoError(k.Testcase, err)
+
+	for _, pod := range []string{
+		"kube-apiserver", "kube-controller-manager", "kube-scheduler", "etcd-cluster", "coredns", "kindnet", "kube-proxy",
+	} {
+		k.WaitForPods(pod, "kube-system", 2*time.Minute)
+	}
+	k.WaitForPods("local-path-provisioner", "local-path-storage", 2*time.Minute)
 }
 
 func (k *KindCluster) Teardown() {
@@ -155,6 +165,65 @@ func (k KindCluster) Apply(manifests string) (stdOut, stdErr bytes.Buffer, err e
 
 func (k KindCluster) Delete(manifests string) (stdOut, stdErr bytes.Buffer, err error) {
 	return k.runKubectl(bytes.NewReader([]byte(manifests)), "delete", "-f", k.tmpManifestFile(manifests))
+}
+
+func (k KindCluster) WaitForPods(podNameRegex, namespaceName string, duration time.Duration) []*corev1.Pod {
+	return k.WaitForPodFn(podNameRegex, namespaceName, duration, func(pod *corev1.Pod) bool {
+		k.Testcase.Logger.Debug(fmt.Sprintf("%s status %v", pod.Name, pod.Status))
+		for _, cond := range pod.Status.Conditions {
+			if cond.Type == corev1.PodReady {
+				return cond.Status == corev1.ConditionTrue
+			}
+		}
+		return false
+	})
+}
+
+func (k KindCluster) WaitForPodFn(podNameRegex, namespaceName string, duration time.Duration, podFn func(*corev1.Pod) bool) []*corev1.Pod {
+	namePattern, e := regexp.Compile(podNameRegex)
+	require.NoError(k.Testcase, e)
+
+	var running []*corev1.Pod
+	require.Eventually(k.Testcase, func() bool {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		pods, err := k.Clientset.CoreV1().Pods(namespaceName).List(ctx, metav1.ListOptions{})
+		require.NoError(k.Testcase, err)
+		cancel()
+
+		matches := map[string]struct{}{}
+
+		for i := range pods.Items {
+			pod := pods.Items[i]
+			if namePattern.MatchString(pod.Name) {
+				matches[pod.Name] = struct{}{}
+			}
+		}
+
+		if len(matches) == 0 {
+			return false
+		}
+
+		var matched []*corev1.Pod
+		for name := range matches {
+			ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
+			pod, err := k.Clientset.CoreV1().Pods(namespaceName).Get(ctx, name, metav1.GetOptions{})
+			require.NoError(k.Testcase, err)
+			cancel()
+			if podFn(pod) {
+				delete(matches, name)
+				matched = append(matched, pod)
+			}
+		}
+
+		if len(matches) == 0 {
+			running = matched
+			return true
+		}
+		return false
+	}, duration, time.Second)
+
+	return running
 }
 
 func (k KindCluster) runKubectl(stdin io.Reader, args ...string) (stdOut, stdErr bytes.Buffer, err error) {

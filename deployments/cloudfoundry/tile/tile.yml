@@ -48,7 +48,7 @@ packages:
             proxy:
               http: (( .properties.otel_proxy_http.value ))
               https: (( .properties.otel_proxy_https.value ))
-              no: (( .properties.otel_proxy_no.value ))
+              exclusions: (( .properties.otel_proxy_exclusions.value ))
           splunk:
             access_token: (( .properties.splunk_access_token.value ))
             api_url: (( .properties.splunk_api_url.value ))
@@ -94,16 +94,16 @@ forms:
   - name: otel_proxy_http
     type: string
     label: HTTP proxy URL
-    description: URL used as the proxy URL for HTTP requests unless overridden by otel_proxy_no
+    description: URL used as the proxy URL for HTTP requests unless overridden by "Proxy exclusions"
     optional: true
 
   - name: otel_proxy_https
     type: string
     label: HTTPS proxy URL
-    description: URL used as the proxy for HTTPS requests unless overridden by otel_proxy_no
+    description: URL used as the proxy for HTTPS requests unless overridden by "Proxy exclusions"
     optional: true
 
-  - name: otel_proxy_no
+  - name: otel_proxy_exclusions
     type: string
     label: Proxy exclusions
     description: Comma-separated hosts that should be excluded from proxying. Hosts should be in the form of an IP address prefix (regular or CIDR notation), a domain name, or a special DNS label (*).

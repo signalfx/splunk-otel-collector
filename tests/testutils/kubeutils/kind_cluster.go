@@ -1,5 +1,4 @@
 // Copyright Splunk, Inc.
-// Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,6 +22,7 @@ import (
 	"io"
 	"os"
 	"regexp"
+	"runtime"
 	"strings"
 	"text/template"
 	"time"
@@ -61,12 +61,13 @@ nodes:
 `
 
 type KindCluster struct {
-	Testcase     *testutils.Testcase
-	Clientset    *kubernetes.Clientset
-	ExposedPorts map[uint16]uint16
-	Name         string
-	Kubeconfig   string
-	Config       string
+	Testcase          *testutils.Testcase
+	Clientset         *kubernetes.Clientset
+	ExposedPorts      map[uint16]uint16
+	Name              string
+	Kubeconfig        string
+	Config            string
+	hostFromContainer string
 }
 
 func NewKindCluster(t *testutils.Testcase) *KindCluster {
@@ -141,6 +142,25 @@ func (k KindCluster) GetDefaultGatewayIP() string {
 	}
 	k.Testcase.Fatal("no kind network gateway detected. Host IP is inaccessible.")
 	return ""
+}
+
+func (k *KindCluster) HostFromContainer() string {
+	if k.hostFromContainer != "" {
+		return k.hostFromContainer
+	}
+	if runtime.GOOS == "darwin" {
+		k.hostFromContainer = "host.docker.internal"
+	} else {
+		k.hostFromContainer = k.GetDefaultGatewayIP()
+	}
+	return k.hostFromContainer
+}
+
+func (k KindCluster) OTLPEndointFromContainer() string {
+	hostFromContainer := k.HostFromContainer()
+	splat := strings.Split(k.Testcase.OTLPEndpoint, ":")
+	port := splat[len(splat)-1]
+	return fmt.Sprintf("%s:%s", hostFromContainer, port)
 }
 
 func (k KindCluster) Kubectl(args ...string) (stdOut, stdErr bytes.Buffer, err error) {

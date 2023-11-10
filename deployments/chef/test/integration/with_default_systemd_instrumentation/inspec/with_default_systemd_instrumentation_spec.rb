@@ -1,3 +1,4 @@
+libsplunk_path = '/usr/lib/splunk-instrumentation/libsplunk.so'
 java_tool_options = '-javaagent:/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar'
 resource_attributes = 'splunk.zc.method=splunk-otel-auto-instrumentation-\d+\.\d+\.\d+-systemd'
 otlp_endpoint = 'http://127.0.0.1:4317'
@@ -7,7 +8,7 @@ describe package('splunk-otel-auto-instrumentation') do
 end
 
 describe file('/etc/ld.so.preload') do
-  it { should_not exist }
+  its('content') { should_not match /^#{libsplunk_path}$/ }
 end
 
 describe file('/usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf') do

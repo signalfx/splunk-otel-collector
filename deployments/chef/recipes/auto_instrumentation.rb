@@ -18,6 +18,10 @@ package 'splunk-otel-auto-instrumentation' do
   notifies :reload, 'ohai[reload packages]', :immediately
 end
 
+template '/etc/ld.so.preload' do
+  source 'ld.so.preload.erb'
+end
+
 if node['splunk_otel_collector']['auto_instrumentation_systemd'].to_s.downcase == 'true'
   execute 'reload systemd' do
     command 'systemctl daemon-reload'
@@ -35,8 +39,8 @@ if node['splunk_otel_collector']['auto_instrumentation_systemd'].to_s.downcase =
     notifies :run, 'execute[reload systemd]', :immediately
   end
 else
-  template '/etc/ld.so.preload' do
-    source 'ld.so.preload.erb'
+  file '/usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf' do
+    action :delete
   end
   if node['splunk_otel_collector']['auto_instrumentation_version'] == 'latest' || Gem::Version.new(node['splunk_otel_collector']['auto_instrumentation_version']) >= Gem::Version.new('0.87.0')
     template '/etc/splunk/zeroconfig/java.conf' do

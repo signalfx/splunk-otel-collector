@@ -201,15 +201,16 @@ after installation/configuration in order for any change to take effect.
   configure auto instrumentation system-wide for all supported applications.
   Alternatively, set this option to `true` to activate and configure auto
   instrumentation ***only*** for supported applications running as `systemd`
-  services. If this option is set to `true`, the
+  services. If this option is set to `true`,
+  `/usr/lib/splunk-instrumentation/libsplunk.so` will not be added to
+  `/etc/ld.so.preload`. Instead, the
   `/usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf`
   `systemd` drop-in file will be created and configured for environment
   variables based on the default and specified options. (**default:** `false`)
 
 - `auto_instrumentation_ld_so_preload` (Linux only): Configure this variable to
   include additional library paths, e.g. `/path/to/my.library.so`, to
-  `/etc/ld.so.preload`. Only applicable if the `auto_instrumentation_systemd`
-  option is `false`. (**default:** ``)
+  `/etc/ld.so.preload`. (**default:** ``)
 
 - `auto_instrumentation_java_agent_path`: Path to the [Splunk OpenTelemetry
   Java agent](https://github.com/signalfx/splunk-otel-java). The default path

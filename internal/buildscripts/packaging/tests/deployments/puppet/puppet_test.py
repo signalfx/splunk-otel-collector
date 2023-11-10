@@ -14,6 +14,7 @@
 
 import glob
 import os
+import re
 import shutil
 import string
 import sys
@@ -49,17 +50,11 @@ SPLUNK_REALM = "test"
 SPLUNK_INGEST_URL = f"https://ingest.{SPLUNK_REALM}.signalfx.com"
 SPLUNK_API_URL = f"https://api.{SPLUNK_REALM}.signalfx.com"
 PUPPET_RELEASE = os.environ.get("PUPPET_RELEASE", "6,7").split(",")
-
-CONFIG = string.Template(
-    f"""
-class {{ splunk_otel_collector:
-    splunk_access_token => '{SPLUNK_ACCESS_TOKEN}',
-    splunk_realm => '{SPLUNK_REALM}',
-    collector_version => '$collector_version',
-    with_fluentd => $with_fluentd,
-}}
-"""
-)
+LIBSPLUNK_PATH = "/usr/lib/splunk-instrumentation/libsplunk.so"
+JAVA_AGENT_PATH = "/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar"
+INSTRUMENTATION_CONFIG_PATH = "/usr/lib/splunk-instrumentation/instrumentation.conf"
+SYSTEMD_CONFIG_PATH = "/usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf"
+JAVA_CONFIG_PATH = "/etc/splunk/zeroconfig/java.conf"
 
 
 def run_puppet_apply(container, config):
@@ -72,15 +67,40 @@ def run_puppet_apply(container, config):
     run_container_cmd(container, "puppet apply /root/test.pp")
 
 
-def verify_env_file(container):
-    run_container_cmd(container, f"grep '^SPLUNK_ACCESS_TOKEN={SPLUNK_ACCESS_TOKEN}$' {SPLUNK_ENV_PATH}")
-    run_container_cmd(container, f"grep '^SPLUNK_API_URL={SPLUNK_API_URL}$' {SPLUNK_ENV_PATH}")
-    run_container_cmd(container, f"grep '^SPLUNK_HEC_TOKEN={SPLUNK_ACCESS_TOKEN}$' {SPLUNK_ENV_PATH}")
-    run_container_cmd(container, f"grep '^SPLUNK_HEC_URL={SPLUNK_INGEST_URL}/v1/log$' {SPLUNK_ENV_PATH}")
-    run_container_cmd(container, f"grep '^SPLUNK_INGEST_URL={SPLUNK_INGEST_URL}$' {SPLUNK_ENV_PATH}")
-    run_container_cmd(container, f"grep '^SPLUNK_REALM={SPLUNK_REALM}$' {SPLUNK_ENV_PATH}")
-    run_container_cmd(container, f"grep '^SPLUNK_TRACE_URL={SPLUNK_INGEST_URL}/v2/trace$' {SPLUNK_ENV_PATH}")
-    assert container.exec_run(f"grep '^SPLUNK_LISTEN_INTERFACE=.*' {SPLUNK_ENV_PATH}").exit_code != 0
+def container_file_exists(container, path):
+    return container.exec_run(f"test -f {path}").exit_code == 0
+
+
+def verify_config_file(container, path, key, value=None, exists=True):
+    if exists:
+        assert container_file_exists(container, path), f"{path} does not exist"
+    elif not container_file_exists(container, path):
+        return True
+
+    code, output = container.exec_run(f"cat {path}")
+    config = output.decode("utf-8")
+    assert code == 0, f"failed to get file content from {path}:\n{config}"
+
+    line = key if value is None else f"{key}={value}"
+    if path == SYSTEMD_CONFIG_PATH:
+        line = f"DefaultEnvironment=\"{line}\""
+
+    match = re.search(f"^{line}$", config, re.MULTILINE)
+
+    if exists:
+        assert match, f"'{line}' not found in {path}:\n{config}"
+    else:
+        assert not match, f"'{line}' found in {path}:\n{config}"
+
+
+def verify_env_file(container, api_url=SPLUNK_API_URL, ingest_url=SPLUNK_INGEST_URL, hec_token=SPLUNK_ACCESS_TOKEN):
+    verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_ACCESS_TOKEN", SPLUNK_ACCESS_TOKEN)
+    verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_API_URL", api_url)
+    verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_HEC_TOKEN", hec_token)
+    verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_HEC_URL", f"{ingest_url}/v1/log")
+    verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_INGEST_URL", ingest_url)
+    verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_REALM", SPLUNK_REALM)
+    verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_TRACE_URL", f"{ingest_url}/v2/trace")
 
 
 def skip_if_necessary(distro, puppet_release):
@@ -88,122 +108,23 @@ def skip_if_necessary(distro, puppet_release):
         pytest.skip("requires https://github.com/puppetlabs/puppetlabs-release/issues/271 to be resolved")
 
 
-@pytest.mark.puppet
-@pytest.mark.parametrize(
-    "distro",
-    [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
-    + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
-)
-@pytest.mark.parametrize("puppet_release", PUPPET_RELEASE)
-def test_puppet_with_fluentd(distro, puppet_release):
-    skip_if_necessary(distro, puppet_release)
-    if distro in DEB_DISTROS:
-        dockerfile = IMAGES_DIR / "deb" / f"Dockerfile.{distro}"
-    else:
-        dockerfile = IMAGES_DIR / "rpm" / f"Dockerfile.{distro}"
-
-    buildargs = {"PUPPET_RELEASE": puppet_release}
-    with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR, buildargs=buildargs) as container:
-        try:
-            for collector_version in ["0.34.0", "latest"]:
-                config = CONFIG.substitute(collector_version=collector_version, with_fluentd="true")
-                run_puppet_apply(container, config)
-                verify_env_file(container)
-                assert wait_for(lambda: service_is_running(container))
-                if "opensuse" not in distro and distro != "amazonlinux-2023":
-                    assert container.exec_run("systemctl status td-agent").exit_code == 0
-                if collector_version == "latest":
-                    verify_package_version(container, "splunk-otel-collector", collector_version, "0.34.0")
-                else:
-                    verify_package_version(container, "splunk-otel-collector", collector_version)
-        finally:
-            run_container_cmd(container, f"journalctl -u {SERVICE_NAME} --no-pager")
-            if "opensuse" not in distro:
-                run_container_cmd(container, "journalctl -u td-agent --no-pager")
-                if container.exec_run("test -f /var/log/td-agent/td-agent.log").exit_code == 0:
-                    run_container_cmd(container, "cat /var/log/td-agent/td-agent.log")
-
-
-@pytest.mark.puppet
-@pytest.mark.parametrize(
-    "distro",
-    [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
-    + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
-)
-@pytest.mark.parametrize("puppet_release", PUPPET_RELEASE)
-def test_puppet_without_fluentd(distro, puppet_release):
-    skip_if_necessary(distro, puppet_release)
-    if distro in DEB_DISTROS:
-        dockerfile = IMAGES_DIR / "deb" / f"Dockerfile.{distro}"
-    else:
-        dockerfile = IMAGES_DIR / "rpm" / f"Dockerfile.{distro}"
-
-    buildargs = {"PUPPET_RELEASE": puppet_release}
-    with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR, buildargs=buildargs) as container:
-        try:
-            config = CONFIG.substitute(collector_version="latest", with_fluentd="false")
-            run_puppet_apply(container, config)
-            verify_env_file(container)
-            assert wait_for(lambda: service_is_running(container))
-            assert container.exec_run("systemctl status td-agent").exit_code != 0
-            if distro in DEB_DISTROS:
-                assert container.exec_run("dpkg -s splunk-otel-auto-instrumentation").exit_code != 0
-            else:
-                assert container.exec_run("rpm -q splunk-otel-auto-instrumentation").exit_code != 0
-        finally:
-            run_container_cmd(container, f"journalctl -u {SERVICE_NAME} --no-pager")
-
-
-INSTRUMENTATION_CONFIG = string.Template(
-    f"""
+DEFAULT_CONFIG = f"""
 class {{ splunk_otel_collector:
     splunk_access_token => '{SPLUNK_ACCESS_TOKEN}',
     splunk_realm => '{SPLUNK_REALM}',
-    collector_version => '$version',
-    with_auto_instrumentation => true,
-    auto_instrumentation_version => '$version',
-    auto_instrumentation_resource_attributes => 'deployment.environment=test',
-    auto_instrumentation_service_name => 'test',
-    auto_instrumentation_generate_service_name => false,
-    auto_instrumentation_disable_telemetry => true,
-    auto_instrumentation_enable_profiler => true,
-    auto_instrumentation_enable_profiler_memory => true,
-    auto_instrumentation_enable_metrics => true,
 }}
 """
-)
-
-
-def verify_instrumentation_config(container):
-    config_path = "/usr/lib/splunk-instrumentation/instrumentation.conf"
-    libsplunk_path = "/usr/lib/splunk-instrumentation/libsplunk.so"
-    java_agent_path = "/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar"
-
-    try:
-        run_container_cmd(container, f"grep '^{libsplunk_path}' /etc/ld.so.preload")
-        run_container_cmd(container, f"grep '^java_agent_jar={java_agent_path}$' {config_path}")
-        run_container_cmd(container, f"grep '^resource_attributes=deployment.environment=test$' {config_path}")
-        run_container_cmd(container, f"grep '^service_name=test$' {config_path}")
-        run_container_cmd(container, f"grep '^generate_service_name=false$' {config_path}")
-        run_container_cmd(container, f"grep '^disable_telemetry=true$' {config_path}")
-        run_container_cmd(container, f"grep '^enable_profiler=true$' {config_path}")
-        run_container_cmd(container, f"grep '^enable_profiler_memory=true$' {config_path}")
-        run_container_cmd(container, f"grep '^enable_metrics=true$' {config_path}")
-    finally:
-        run_container_cmd(container, "cat /etc/ld.so.preload")
-        run_container_cmd(container, f"cat {config_path}")
 
 
 @pytest.mark.puppet
-@pytest.mark.instrumentation
 @pytest.mark.parametrize(
     "distro",
     [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
     + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
 )
 @pytest.mark.parametrize("puppet_release", PUPPET_RELEASE)
-def test_puppet_with_instrumentation(distro, puppet_release):
-    skip_if_necessary(distro, puppet_release)
+def test_puppet_default(distro, puppet_release):
+    #skip_if_necessary(distro, puppet_release)
     if distro in DEB_DISTROS:
         dockerfile = IMAGES_DIR / "deb" / f"Dockerfile.{distro}"
     else:
@@ -212,17 +133,10 @@ def test_puppet_with_instrumentation(distro, puppet_release):
     buildargs = {"PUPPET_RELEASE": puppet_release}
     with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR, buildargs=buildargs) as container:
         try:
-            for version in ["0.48.0", "latest"]:
-                config = INSTRUMENTATION_CONFIG.substitute(version=version)
-                run_puppet_apply(container, config)
-                verify_env_file(container)
-                assert wait_for(lambda: service_is_running(container))
-                assert container.exec_run("systemctl status td-agent").exit_code != 0
-                if version == "latest":
-                    verify_package_version(container, "splunk-otel-auto-instrumentation", version, "0.48.0")
-                else:
-                    verify_package_version(container, "splunk-otel-auto-instrumentation", version)
-                verify_instrumentation_config(container)
+            run_puppet_apply(container, DEFAULT_CONFIG)
+            verify_env_file(container)
+            verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_LISTEN_INTERFACE", ".*", exists=False)
+            assert wait_for(lambda: service_is_running(container))
         finally:
             run_container_cmd(container, f"journalctl -u {SERVICE_NAME} --no-pager")
 
@@ -237,7 +151,7 @@ class {{ splunk_otel_collector:
     splunk_hec_token => 'fake-hec-token',
     splunk_listen_interface => '0.0.0.0',
     collector_version => '$version',
-    with_fluentd => $fluentd,
+    with_fluentd => true,
     collector_additional_env_vars => {{ 'MY_CUSTOM_VAR1' => 'value1', 'MY_CUSTOM_VAR2' => 'value2' }},
 }}
 """
@@ -252,34 +166,177 @@ class {{ splunk_otel_collector:
     )
 @pytest.mark.parametrize("puppet_release", PUPPET_RELEASE)
 def test_puppet_with_custom_vars(distro, puppet_release):
-    skip_if_necessary(distro, puppet_release)
+    #skip_if_necessary(distro, puppet_release)
     if distro in DEB_DISTROS:
         dockerfile = IMAGES_DIR / "deb" / f"Dockerfile.{distro}"
     else:
         dockerfile = IMAGES_DIR / "rpm" / f"Dockerfile.{distro}"
 
     buildargs = {"PUPPET_RELEASE": puppet_release}
-    api_url = "https://fake-splunk-api.com"
-    ingest_url = "https://fake-splunk-ingest.com"
     with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR, buildargs=buildargs) as container:
         try:
-            config = CUSTOM_VARS_CONFIG.substitute(api_url=api_url, ingest_url=ingest_url, version="latest", fluentd="false")
+            api_url = "https://fake-splunk-api.com"
+            ingest_url = "https://fake-splunk-ingest.com"
+            config = CUSTOM_VARS_CONFIG.substitute(api_url=api_url, ingest_url=ingest_url, version="0.86.0")
             run_puppet_apply(container, config)
-            run_container_cmd(container, f"grep '^SPLUNK_ACCESS_TOKEN={SPLUNK_ACCESS_TOKEN}$' {SPLUNK_ENV_PATH}")
-            run_container_cmd(container, f"grep '^SPLUNK_API_URL={api_url}$' {SPLUNK_ENV_PATH}")
-            run_container_cmd(container, f"grep '^SPLUNK_HEC_TOKEN=fake-hec-token$' {SPLUNK_ENV_PATH}")
-            run_container_cmd(container, f"grep '^SPLUNK_HEC_URL={ingest_url}/v1/log$' {SPLUNK_ENV_PATH}")
-            run_container_cmd(container, f"grep '^SPLUNK_INGEST_URL={ingest_url}$' {SPLUNK_ENV_PATH}")
-            run_container_cmd(container, f"grep '^SPLUNK_LISTEN_INTERFACE=0.0.0.0$' {SPLUNK_ENV_PATH}")
-            run_container_cmd(container, f"grep '^SPLUNK_REALM={SPLUNK_REALM}$' {SPLUNK_ENV_PATH}")
-            run_container_cmd(container, f"grep '^SPLUNK_TRACE_URL={ingest_url}/v2/trace$' {SPLUNK_ENV_PATH}")
-            run_container_cmd(container, f"grep '^MY_CUSTOM_VAR1=value1$' {SPLUNK_ENV_PATH}")
-            run_container_cmd(container, f"grep '^MY_CUSTOM_VAR2=value2$' {SPLUNK_ENV_PATH}")
-
+            verify_package_version(container, "splunk-otel-collector", "0.86.0")
+            verify_env_file(container, api_url, ingest_url, "fake-hec-token")
+            verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_LISTEN_INTERFACE", "0.0.0.0")
+            verify_config_file(container, SPLUNK_ENV_PATH, "MY_CUSTOM_VAR1", "value1")
+            verify_config_file(container, SPLUNK_ENV_PATH, "MY_CUSTOM_VAR2", "value2")
             assert wait_for(lambda: service_is_running(container))
-            assert container.exec_run("systemctl status td-agent").exit_code != 0
+            if "opensuse" not in distro and distro != "amazonlinux-2023":
+                assert container.exec_run("systemctl status td-agent").exit_code == 0
         finally:
             run_container_cmd(container, f"journalctl -u {SERVICE_NAME} --no-pager")
+            if "opensuse" not in distro and distro != "amazonlinux-2023":
+                run_container_cmd(container, "journalctl -u td-agent --no-pager")
+                if container.exec_run("test -f /var/log/td-agent/td-agent.log").exit_code == 0:
+                    run_container_cmd(container, "cat /var/log/td-agent/td-agent.log")
+
+
+DEFAULT_INSTRUMENTATION_CONFIG = string.Template(
+    f"""
+class {{ splunk_otel_collector:
+    splunk_access_token => '{SPLUNK_ACCESS_TOKEN}',
+    splunk_realm => '{SPLUNK_REALM}',
+    with_auto_instrumentation => true,
+    auto_instrumentation_version => '$version',
+    auto_instrumentation_systemd => $with_systemd,
+}}
+"""
+)
+
+
+@pytest.mark.puppet
+@pytest.mark.instrumentation
+@pytest.mark.parametrize(
+    "distro",
+    [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
+    + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
+)
+@pytest.mark.parametrize("puppet_release", PUPPET_RELEASE)
+@pytest.mark.parametrize("version", ["0.86.0", "latest"])
+@pytest.mark.parametrize("with_systemd", ["true", "false"])
+def test_puppet_with_default_instrumentation(distro, puppet_release, version, with_systemd):
+    #skip_if_necessary(distro, puppet_release)
+    if distro in DEB_DISTROS:
+        dockerfile = IMAGES_DIR / "deb" / f"Dockerfile.{distro}"
+    else:
+        dockerfile = IMAGES_DIR / "rpm" / f"Dockerfile.{distro}"
+
+    buildargs = {"PUPPET_RELEASE": puppet_release}
+    with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR, buildargs=buildargs) as container:
+        config = DEFAULT_INSTRUMENTATION_CONFIG.substitute(version=version, with_systemd=with_systemd)
+        run_puppet_apply(container, config)
+        verify_env_file(container)
+        assert wait_for(lambda: service_is_running(container))
+        assert container.exec_run("systemctl status td-agent").exit_code != 0
+        resource_attributes = r"splunk.zc.method=splunk-otel-auto-instrumentation-.*"
+        if with_systemd == "true":
+            resource_attributes = rf"{resource_attributes}-systemd"
+            verify_config_file(container, "/etc/ld.so.preload", LIBSPLUNK_PATH, exists=False)
+        else:
+            verify_config_file(container, "/etc/ld.so.preload", LIBSPLUNK_PATH)
+            assert not container_file_exists(container, SYSTEMD_CONFIG_PATH)
+        if version == "latest" or with_systemd == "true":
+            config_path = SYSTEMD_CONFIG_PATH if with_systemd == "true" else JAVA_CONFIG_PATH
+            verify_config_file(container, config_path, "JAVA_TOOL_OPTIONS", rf"-javaagent:{JAVA_AGENT_PATH}")
+            verify_config_file(container, config_path, "OTEL_RESOURCE_ATTRIBUTES", resource_attributes)
+            verify_config_file(container, config_path, "OTEL_SERVICE_NAME", ".*", exists=False)
+            verify_config_file(container, config_path, "SPLUNK_PROFILER_ENABLED", "false")
+            verify_config_file(container, config_path, "SPLUNK_PROFILER_MEMORY_ENABLED", "false")
+            verify_config_file(container, config_path, "SPLUNK_METRICS_ENABLED", "false")
+            verify_config_file(container, config_path, "OTEL_EXPORTER_OTLP_ENDPOINT", r"http://127.0.0.1:4317")
+        else:
+            config_path = INSTRUMENTATION_CONFIG_PATH
+            verify_package_version(container, "splunk-otel-auto-instrumentation", version)
+            verify_config_file(container, config_path, "java_agent_jar", JAVA_AGENT_PATH)
+            verify_config_file(container, config_path, "resource_attributes", resource_attributes)
+            verify_config_file(container, config_path, "service_name", ".*", exists=False)
+            verify_config_file(container, config_path, "generate_service_name", "true")
+            verify_config_file(container, config_path, "disable_telemetry", "false")
+            verify_config_file(container, config_path, "enable_profiler", "false")
+            verify_config_file(container, config_path, "enable_profiler_memory", "false")
+            verify_config_file(container, config_path, "enable_metrics", "false")
+
+
+CUSTOM_INSTRUMENTATION_CONFIG = string.Template(
+    f"""
+class {{ splunk_otel_collector:
+    splunk_access_token => '{SPLUNK_ACCESS_TOKEN}',
+    splunk_realm => '{SPLUNK_REALM}',
+    with_auto_instrumentation => true,
+    auto_instrumentation_version => '$version',
+    auto_instrumentation_systemd => $with_systemd,
+    auto_instrumentation_ld_so_preload => '# my extra library',
+    auto_instrumentation_resource_attributes => 'deployment.environment=test',
+    auto_instrumentation_generate_service_name => false,
+    auto_instrumentation_disable_telemetry => true,
+    auto_instrumentation_service_name => 'test',
+    auto_instrumentation_enable_profiler => true,
+    auto_instrumentation_enable_profiler_memory => true,
+    auto_instrumentation_enable_metrics => true,
+    auto_instrumentation_otlp_endpoint => 'http://0.0.0.0:4317',
+}}
+"""
+)
+
+
+@pytest.mark.puppet
+@pytest.mark.instrumentation
+@pytest.mark.parametrize(
+    "distro",
+    [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
+    + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
+    )
+@pytest.mark.parametrize("puppet_release", PUPPET_RELEASE)
+@pytest.mark.parametrize("version", ["0.86.0", "latest"])
+@pytest.mark.parametrize("with_systemd", ["true", "false"])
+def test_puppet_with_custom_instrumentation(distro, puppet_release, version, with_systemd):
+    #skip_if_necessary(distro, puppet_release)
+    if distro in DEB_DISTROS:
+        dockerfile = IMAGES_DIR / "deb" / f"Dockerfile.{distro}"
+    else:
+        dockerfile = IMAGES_DIR / "rpm" / f"Dockerfile.{distro}"
+
+    buildargs = {"PUPPET_RELEASE": puppet_release}
+    with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR, buildargs=buildargs) as container:
+        config = CUSTOM_INSTRUMENTATION_CONFIG.substitute(version=version, with_systemd=with_systemd)
+        run_puppet_apply(container, config)
+        verify_env_file(container)
+        assert wait_for(lambda: service_is_running(container))
+        assert container.exec_run("systemctl status td-agent").exit_code != 0
+        resource_attributes = r"splunk.zc.method=splunk-otel-auto-instrumentation-.*"
+        if with_systemd == "true":
+            resource_attributes = rf"{resource_attributes}-systemd"
+            verify_config_file(container, "/etc/ld.so.preload", LIBSPLUNK_PATH, exists=False)
+            verify_config_file(container, "/etc/ld.so.preload", r"# my extra library")
+        else:
+            verify_config_file(container, "/etc/ld.so.preload", LIBSPLUNK_PATH)
+            verify_config_file(container, "/etc/ld.so.preload", r"# my extra library")
+            assert not container_file_exists(container, SYSTEMD_CONFIG_PATH)
+        resource_attributes = rf"{resource_attributes},deployment.environment=test"
+        if version == "latest" or with_systemd == "true":
+            config_path = SYSTEMD_CONFIG_PATH if with_systemd == "true" else JAVA_CONFIG_PATH
+            verify_config_file(container, config_path, "JAVA_TOOL_OPTIONS", rf"-javaagent:{JAVA_AGENT_PATH}")
+            verify_config_file(container, config_path, "OTEL_RESOURCE_ATTRIBUTES", resource_attributes)
+            verify_config_file(container, config_path, "OTEL_SERVICE_NAME", "test")
+            verify_config_file(container, config_path, "SPLUNK_PROFILER_ENABLED", "true")
+            verify_config_file(container, config_path, "SPLUNK_PROFILER_MEMORY_ENABLED", "true")
+            verify_config_file(container, config_path, "SPLUNK_METRICS_ENABLED", "true")
+            verify_config_file(container, config_path, "OTEL_EXPORTER_OTLP_ENDPOINT", r"http://0.0.0.0:4317")
+        else:
+            config_path = INSTRUMENTATION_CONFIG_PATH
+            verify_package_version(container, "splunk-otel-auto-instrumentation", version)
+            verify_config_file(container, config_path, "java_agent_jar", JAVA_AGENT_PATH)
+            verify_config_file(container, config_path, "resource_attributes", resource_attributes)
+            verify_config_file(container, config_path, "service_name", "test")
+            verify_config_file(container, config_path, "generate_service_name", "false")
+            verify_config_file(container, config_path, "disable_telemetry", "true")
+            verify_config_file(container, config_path, "enable_profiler", "true")
+            verify_config_file(container, config_path, "enable_profiler_memory", "true")
+            verify_config_file(container, config_path, "enable_metrics", "true")
 
 
 WIN_PUPPET_RELEASE = os.environ.get("PUPPET_RELEASE", "latest")
@@ -316,12 +373,20 @@ def run_win_puppet_agent(config):
         run_win_command(cmd, returncodes=[0, 2])
 
 
+
 @pytest.mark.windows
 @pytest.mark.skipif(sys.platform != "win32", reason="only runs on windows")
 def test_win_puppet_default():
     run_win_puppet_setup(WIN_PUPPET_RELEASE)
 
-    run_win_puppet_agent(CONFIG.substitute(collector_version="0.48.0", with_fluentd="false"))
+    config = f"""
+    class {{ splunk_otel_collector:
+        splunk_access_token => '{SPLUNK_ACCESS_TOKEN}',
+        splunk_realm => '{SPLUNK_REALM}',
+        collector_version => '0.86.0',
+    }}
+    """
+    run_win_puppet_agent(config)
 
     assert get_registry_value("SPLUNK_REALM") == SPLUNK_REALM
     assert get_registry_value("SPLUNK_ACCESS_TOKEN") == SPLUNK_ACCESS_TOKEN
@@ -348,7 +413,7 @@ def test_win_puppet_custom_vars():
 
     api_url = "https://fake-splunk-api.com"
     ingest_url = "https://fake-splunk-ingest.com"
-    config = CUSTOM_VARS_CONFIG.substitute(api_url=api_url, ingest_url=ingest_url, version="0.48.0", fluentd="true")
+    config = CUSTOM_VARS_CONFIG.substitute(api_url=api_url, ingest_url=ingest_url, version="0.48.0")
 
     run_win_puppet_agent(config)
 

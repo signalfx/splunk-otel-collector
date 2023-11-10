@@ -51,15 +51,15 @@ properties:
     # See also https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter#proxy-support
     otel.proxy.http:
         description: |
-            URL used as the proxy URL for HTTP requests unless overridden by otel.proxy.no.
+            URL used as the proxy URL for HTTP requests unless overridden by otel.proxy.exclusions.
         required: false
 
     otel.proxy.https:
         description: |
-            URL used as the proxy URL for HTTPS requests unless overridden by otel.proxy.no.
+            URL used as the proxy URL for HTTPS requests unless overridden by otel.proxy.exclusions.
         required: false
 
-    otel.proxy.no:
+    otel.proxy.exclusions:
         description: |
             specifies a string that contains comma-separated values specifying hosts that should be excluded
             from proxying. Each value is represented by an IP address prefix (1.2.3.4), an IP address prefix

@@ -68,7 +68,7 @@ func TestKafkaBrokerMetrics(t *testing.T) {
 		},
 		func(c testutils.Collector) testutils.Collector {
 			return c.WithEnv(map[string]string{
-				"SPLUNK_DISCOVERY_DURATION": "20s",
+				"SPLUNK_DISCOVERY_DURATION":  "20s",
 				"SPLUNK_DISCOVERY_LOG_LEVEL": "debug",
 			}).WithArgs(
 				"--discovery",
@@ -119,7 +119,7 @@ func TestKafkaProducerMetrics(t *testing.T) {
 		},
 		func(c testutils.Collector) testutils.Collector {
 			return c.WithEnv(map[string]string{
-				"SPLUNK_DISCOVERY_DURATION": "20s",
+				"SPLUNK_DISCOVERY_DURATION":  "20s",
 				"SPLUNK_DISCOVERY_LOG_LEVEL": "debug",
 			}).WithArgs(
 				"--discovery",
@@ -169,7 +169,7 @@ func TestKafkaConsumerMetrics(t *testing.T) {
 		},
 		func(c testutils.Collector) testutils.Collector {
 			return c.WithEnv(map[string]string{
-				"SPLUNK_DISCOVERY_DURATION": "20s",
+				"SPLUNK_DISCOVERY_DURATION":  "20s",
 				"SPLUNK_DISCOVERY_LOG_LEVEL": "debug",
 			}).WithArgs(
 				"--discovery",

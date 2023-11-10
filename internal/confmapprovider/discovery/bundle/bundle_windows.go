@@ -29,8 +29,5 @@ import (
 //go:embed bundle.d/extensions/*.discovery.yaml
 //go:embed bundle.d/receivers/oracledb.discovery.yaml
 //go:embed bundle.d/receivers/redis.discovery.yaml
-//go:embed bundle.d/receivers/smartagent-collectd-kafka-broker.discovery.yaml
-//go:embed bundle.d/receivers/smartagent-collectd-kafka-producer.discovery.yaml
-//go:embed bundle.d/receivers/smartagent-collectd-kafka-consumer.discovery.yaml
 //go:embed bundle.d/receivers/smartagent-postgresql.discovery.yaml
 var BundledFS embed.FS

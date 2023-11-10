@@ -25,10 +25,10 @@ func counterExtractor(m *dto.Metric) float64 {
 }
 
 func convertMetricFamily(mf *dto.MetricFamily) []*datapoint.Datapoint {
-	if mf.GetName() == "" {
+	if mf.Type == nil || mf.Name == nil {
 		return nil
 	}
-	switch mf.GetType() {
+	switch *mf.Type {
 	case dto.MetricType_GAUGE:
 		return makeSimpleDatapoints(mf.GetName(), mf.GetMetric(), sfxclient.GaugeF, gaugeExtractor)
 	case dto.MetricType_COUNTER:
@@ -63,8 +63,13 @@ func makeSummaryDatapoints(name string, ms []*dto.Metric) []*datapoint.Datapoint
 			continue
 		}
 
-		dps = append(dps, sfxclient.Cumulative(name+"_count", dims, int64(s.GetSampleCount())))
-		dps = append(dps, sfxclient.CumulativeF(name, dims, s.GetSampleSum()))
+		if s.SampleCount != nil {
+			dps = append(dps, sfxclient.Cumulative(name+"_count", dims, int64(s.GetSampleCount())))
+		}
+
+		if s.SampleSum != nil {
+			dps = append(dps, sfxclient.CumulativeF(name, dims, s.GetSampleSum()))
+		}
 
 		qs := s.GetQuantile()
 		for i := range qs {
@@ -86,8 +91,13 @@ func makeHistogramDatapoints(name string, ms []*dto.Metric) []*datapoint.Datapoi
 			continue
 		}
 
-		dps = append(dps, sfxclient.Cumulative(name+"_count", dims, int64(h.GetSampleCount())))
-		dps = append(dps, sfxclient.CumulativeF(name, dims, h.GetSampleSum()))
+		if h.SampleCount != nil {
+			dps = append(dps, sfxclient.Cumulative(name+"_count", dims, int64(h.GetSampleCount())))
+		}
+
+		if h.SampleSum != nil {
+			dps = append(dps, sfxclient.CumulativeF(name, dims, h.GetSampleSum()))
+		}
 
 		buckets := h.GetBucket()
 		for i := range buckets {

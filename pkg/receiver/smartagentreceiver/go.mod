@@ -152,7 +152,7 @@ require (
 	github.com/hashicorp/golang-lru v1.0.2 // indirect
 	github.com/hashicorp/hcl v1.0.1-vault-5 // indirect
 	github.com/hashicorp/serf v0.10.1 // indirect
-	github.com/hashicorp/vault v1.14.3 // indirect
+	github.com/hashicorp/vault v1.14.6 // indirect
 	github.com/hashicorp/vault-plugin-auth-gcp v0.16.1 // indirect
 	github.com/hashicorp/vault/api v1.10.0 // indirect
 	github.com/hashicorp/vault/sdk v0.9.2 // indirect

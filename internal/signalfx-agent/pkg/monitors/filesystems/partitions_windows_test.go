@@ -158,7 +158,7 @@ func TestGetPartitionsWin(t *testing.T) {
 			} else {
 				require.Error(t, err)
 			}
-			require.Len(t, test.want.numStats, stats, "Number of partition stats not equal to expected")
+			require.Len(t, stats, test.want.numStats, "Number of partition stats not equal to expected")
 
 			for i := 0; i < test.want.numStats; i++ {
 				assert.Equal(t, test.want.stats[i], stats[i])

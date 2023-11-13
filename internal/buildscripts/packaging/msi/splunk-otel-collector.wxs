@@ -43,11 +43,13 @@
                         <RegistryValue Type="string" Name="SPLUNK_CONFIG" Value="[CommonAppDataFolder]Splunk\OpenTelemetry Collector\agent_config.yaml"/>
                      </RegistryKey>
                   </Component>
-                  <Component Id="JmxMetricsJarComponent" Guid="c2aca15f-813a-4497-9bad-1c97e7bff618">
-                    <File Id="JmxMetricsJar" Name="opentelemetry-java-contrib-jmx-metrics.jar" KeyPath="yes" Source="$(var.JmxMetricsJar)"/>
-                  </Component>
                </Directory>
             </Directory>
+         </Directory>
+         <Directory Id="OptDir" Name="opt">
+            <Component Id="JmxMetricsJarComponent" Guid="c2aca15f-813a-4497-9bad-1c97e7bff618">
+                <File Id="JmxMetricsJar" Name="opentelemetry-java-contrib-jmx-metrics.jar" KeyPath="yes" Source="$(var.JmxMetricsJar)"/>
+            </Component>
          </Directory>
       </Directory>
 

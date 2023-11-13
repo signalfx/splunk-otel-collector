@@ -5,6 +5,7 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestBasicStringFilter(t *testing.T) {
@@ -108,9 +109,9 @@ func TestBasicStringFilter(t *testing.T) {
 	} {
 		f, err := NewBasicStringFilter(tc.filter)
 		if tc.shouldError {
-			assert.Error(t, err, spew.Sdump(tc))
+			require.Error(t, err, spew.Sdump(tc))
 		} else {
-			assert.NoError(t, err, spew.Sdump(tc))
+			require.NoError(t, err, spew.Sdump(tc))
 		}
 
 		assert.Equal(t, tc.shouldMatch, f.Matches(tc.input), "%s\n%s", spew.Sdump(tc), spew.Sdump(f))
@@ -196,9 +197,9 @@ func TestStringMapFilter(t *testing.T) {
 	} {
 		f, err := NewStringMapFilter(tc.filter)
 		if tc.shouldError {
-			assert.Error(t, err, spew.Sdump(tc))
+			require.Error(t, err, spew.Sdump(tc))
 		} else {
-			assert.NoError(t, err, spew.Sdump(tc))
+			require.NoError(t, err, spew.Sdump(tc))
 		}
 
 		assert.Equal(t, tc.shouldMatch, f.Matches(tc.input), "%s\n%s", spew.Sdump(tc), spew.Sdump(f))

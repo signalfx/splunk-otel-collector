@@ -5,6 +5,7 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestOverridableStringFilter(t *testing.T) {
@@ -132,9 +133,9 @@ func TestOverridableStringFilter(t *testing.T) {
 	} {
 		f, err := NewOverridableStringFilter(tc.filter)
 		if tc.shouldError {
-			assert.Error(t, err, spew.Sdump(tc))
+			require.Error(t, err, spew.Sdump(tc))
 		} else {
-			assert.NoError(t, err, spew.Sdump(tc))
+			require.NoError(t, err, spew.Sdump(tc))
 		}
 		for i := range tc.inputs {
 			assert.Equal(t, tc.shouldMatch[i], f.Matches(tc.inputs[i]), "input[%d] of %s\n%s", i, spew.Sdump(tc), spew.Sdump(f))

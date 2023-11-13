@@ -5,6 +5,7 @@ import (
 
 	"github.com/signalfx/golib/v3/datapoint"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestOldFilters(t *testing.T) {
@@ -184,7 +185,7 @@ func TestNewFilters(t *testing.T) {
 				},
 			},
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		assert.True(t, f.Matches(&datapoint.Datapoint{Metric: "disk.utilization"}))
 		assert.True(t, f.Matches(&datapoint.Datapoint{

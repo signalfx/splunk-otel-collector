@@ -776,7 +776,7 @@ github.com/onsi/gomega v1.5.0/go.mod h1:ex+gbHU/CVuBBDIJjb2X0qEXbFg53c61hWP/1Cpa
 github.com/onsi/gomega v1.7.1/go.mod h1:XdKZgCCFLUoM/7CFJVPcG8C1xQ1AJ0vpAezJrB7JYyY=
 github.com/onsi/gomega v1.10.1/go.mod h1:iN09h71vgCQne3DLsj+A5owkum+a2tYe+TOCB1ybHNo=
 github.com/onsi/gomega v1.13.0/go.mod h1:lRk9szgn8TxENtWd0Tp4c3wjlRfMTMH27I+3Je41yGY=
-github.com/onsi/gomega v1.29.0 h1:KIA/t2t5UBzoirT4H9tsML45GEbo3ouUnBHsCfD2tVg=
+github.com/onsi/gomega v1.30.0 h1:hvMK7xYz4D3HapigLTeGdId/NcfQx1VHMJc60ew99+8=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.87.0 h1:ekT4/I9J484j4yR/0VHj5AGtgv8KmNd+e4oXxNJNR/o=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.87.0/go.mod h1:waI3VDdKYW7es1LmLY35SHJYNwUX+JJN719wXmP3WAc=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.87.0 h1:In1MvDALXpwvKssEX9FAWS1aAAhw2XIBsTb5ti2iFMg=

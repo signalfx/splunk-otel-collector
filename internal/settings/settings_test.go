@@ -92,16 +92,16 @@ func TestNewSettingsConfMapProviders(t *testing.T) {
 	confMapProviders := settings.ConfMapProviders()
 
 	require.Contains(t, confMapProviders, settings.discovery.PropertyScheme())
-	propertyProvider := confMapProviders[settings.discovery.PropertyScheme()]
+	propertyProvider := confMapProviders[settings.discovery.PropertyScheme()] //nolint:typecheck
 
 	require.Contains(t, confMapProviders, settings.discovery.ConfigDScheme())
-	configdProvider := confMapProviders[settings.discovery.ConfigDScheme()]
+	configdProvider := confMapProviders[settings.discovery.ConfigDScheme()] //nolint:typecheck
 
 	require.Contains(t, confMapProviders, settings.discovery.DiscoveryModeScheme())
-	discoveryModeProvider := confMapProviders[settings.discovery.DiscoveryModeScheme()]
+	discoveryModeProvider := confMapProviders[settings.discovery.DiscoveryModeScheme()] //nolint:typecheck
 
 	require.Contains(t, confMapProviders, settings.discovery.PropertiesFileScheme())
-	propertiesFileProvider := confMapProviders[settings.discovery.PropertiesFileScheme()]
+	propertiesFileProvider := confMapProviders[settings.discovery.PropertiesFileScheme()] //nolint:typecheck
 
 	require.Equal(t, map[string]confmap.Provider{
 		envProvider.Scheme():                      envProvider,

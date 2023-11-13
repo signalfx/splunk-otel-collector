@@ -5,6 +5,7 @@ package cpu
 
 import (
 	"fmt"
+	"strconv"
 	"unsafe"
 
 	"github.com/shirou/gopsutil/v3/cpu"
@@ -56,7 +57,7 @@ type systemProcessorPerformanceInformation struct {
 // converts the SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION struct to a gopsutil cpu.TimesStat
 func systemProcessorPerformanceInfoToCPUTimesStat(core int, s *systemProcessorPerformanceInformation) cpu.TimesStat {
 	return cpu.TimesStat{
-		CPU:    fmt.Sprintf("%d", core),
+		CPU:    strconv.Itoa(core),
 		Idle:   float64(s.IdleTime) * hundredNSToJiffy,
 		System: float64(s.KernelTime-s.IdleTime) * hundredNSToJiffy,
 		User:   float64(s.UserTime) * hundredNSToJiffy,

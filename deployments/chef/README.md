@@ -247,10 +247,9 @@ after installation/configuration in order for any change to take effect.
 - `auto_instrumentation_enable_metrics` (Linux only): Enable or disable
   exporting instrumentation metrics. (**default**: `false`)
 
-- `splunk_otel_auto_instrumentation_otlp_endpoint` (Linux only): Set the OTLP
-  gRPC endpoint for captured traces. Only applicable if
-  `auto_instrumentation_version` is `latest` or >= `0.87.0`. (**default:**
-  `http://127.0.0.1:4317`)
+- `auto_instrumentation_otlp_endpoint` (Linux only): Set the OTLP gRPC endpoint
+  for captured traces. Only applicable if `auto_instrumentation_version` is
+  `latest` or >= `0.87.0`. (**default:** `http://127.0.0.1:4317`)
 
 ### Auto Instrumentation for .NET on Windows
 

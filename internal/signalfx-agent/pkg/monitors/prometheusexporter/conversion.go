@@ -25,11 +25,11 @@ func counterExtractor(m *dto.Metric) float64 {
 }
 
 func convertMetricFamily(mf *dto.MetricFamily) []*datapoint.Datapoint {
-	//nolint:golint
+	//nolint:protogetter
 	if mf.Type == nil || mf.Name == nil {
 		return nil
 	}
-	switch *mf.Type { //nolint:golint
+	switch *mf.Type { //nolint:protogetter
 	case dto.MetricType_GAUGE:
 		return makeSimpleDatapoints(mf.GetName(), mf.GetMetric(), sfxclient.GaugeF, gaugeExtractor)
 	case dto.MetricType_COUNTER:
@@ -64,12 +64,12 @@ func makeSummaryDatapoints(name string, ms []*dto.Metric) []*datapoint.Datapoint
 			continue
 		}
 
-		//nolint:golint
+		//nolint:protogetter
 		if s.SampleCount != nil {
 			dps = append(dps, sfxclient.Cumulative(name+"_count", dims, int64(s.GetSampleCount())))
 		}
 
-		//nolint:golint
+		//nolint:protogetter
 		if s.SampleSum != nil {
 			dps = append(dps, sfxclient.CumulativeF(name, dims, s.GetSampleSum()))
 		}
@@ -94,12 +94,12 @@ func makeHistogramDatapoints(name string, ms []*dto.Metric) []*datapoint.Datapoi
 			continue
 		}
 
-		//nolint:golint
+		//nolint:protogetter
 		if h.SampleCount != nil {
 			dps = append(dps, sfxclient.Cumulative(name+"_count", dims, int64(h.GetSampleCount())))
 		}
 
-		//nolint:golint
+		//nolint:protogetter
 		if h.SampleSum != nil {
 			dps = append(dps, sfxclient.CumulativeF(name, dims, h.GetSampleSum()))
 		}

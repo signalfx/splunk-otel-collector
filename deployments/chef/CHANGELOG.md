@@ -6,11 +6,11 @@
 
 - **Deprecations**: The `auto_instrumentation_generate_service_name` and `auto_instrumentation_disable_telemetry`
   options are deprecated and only applicable if the `auto_instrumentation_version` option is < `0.87.0`.
-- Support Splunk OpenTelemetry Auto Instrumentation [v0.87.0](
+- Support Splunk OpenTelemetry Auto Instrumentation for Linux [v0.87.0](
   https://github.com/signalfx/splunk-otel-collector/releases/tag/v0.87.0) and newer (Java only).
 - Support activation and configuration of auto instrumentation for only `systemd` services.
-- Support setting the OTLP exporter endpoint for auto instrumentation. Only applicable if `auto_instrumentation_version`
-  is `latest` or >= `0.87.0`. (default: `http://127.0.0.1:4317`)
+- Support setting the OTLP exporter endpoint for auto instrumentation (default: `http://127.0.0.1:4317`). Only
+  applicable if the `auto_instrumentation_version` option is `latest` or >= `0.87.0`.
 
 ## chef-v0.8.0
 

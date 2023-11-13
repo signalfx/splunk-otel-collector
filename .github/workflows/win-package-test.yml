@@ -213,8 +213,12 @@ jobs:
           & ${{ github.workspace }}\.github\workflows\scripts\win-test-support-bundle.ps1 -mode "${{ matrix.MODE }}" -with_fluentd "${{ matrix.WITH_FLUENTD }}"
           Resolve-Path -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector\agent-bundle\python\python.exe"
           Resolve-Path -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector\agent-bundle\collectd-python"
-          Resolve-Path -Path "$env:SYSTEMDRIVE\opt\opentelemetry-java-contrib-jmx-metrics.jar"
-
+          # The JMX file is installed under Disk:\opt, so we need to check each available disk to see if it's installed
+          $found_jmx = $false
+          (Get-PSDrive -PSProvider FileSystem).Root | ForEach-Object {
+            $found_jmx = $found_jmx -Or (Test-Path (Join-Path "$_" "opt\opentelemetry-java-contrib-jmx-metrics.jar"))
+          }
+          if (-not $found_jmx) { throw "Could not find expected jar file" }
       - name: splunk-otel-collector logs
         if: ${{ always() }}
         run: Get-WinEvent -ProviderName splunk-otel-collector | Sort-Object -Property TimeCreated | Select-Object -Property Message | Format-List

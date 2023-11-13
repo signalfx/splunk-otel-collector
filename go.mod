@@ -491,7 +491,7 @@ require (
 	go.opentelemetry.io/contrib/propagators/b3 v1.19.0 // indirect
 	go.opentelemetry.io/contrib/zpages v0.45.0 // indirect
 	go.opentelemetry.io/otel v1.20.0 // indirect
-	go.opentelemetry.io/otel/sdk v1.19.0 // indirect
+	go.opentelemetry.io/otel/sdk v1.20.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.19.0 // indirect
 	golang.org/x/crypto v0.14.0 // indirect
 	golang.org/x/exp v0.0.0-20230713183714-613f0c0eb8a1

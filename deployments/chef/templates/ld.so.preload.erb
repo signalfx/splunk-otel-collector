@@ -1,4 +1,6 @@
+<% if defined?(node['splunk_otel_collector']['auto_instrumentation_systemd']) && node['splunk_otel_collector']['auto_instrumentation_systemd'].to_s.downcase == "false" -%>
 /usr/lib/splunk-instrumentation/libsplunk.so
+<% end -%>
 <% if defined?(node['splunk_otel_collector']['auto_instrumentation_ld_so_preload']) && node['splunk_otel_collector']['auto_instrumentation_ld_so_preload'] != "" -%>
 <%= node['splunk_otel_collector']['auto_instrumentation_ld_so_preload'] %>
 <% end -%>

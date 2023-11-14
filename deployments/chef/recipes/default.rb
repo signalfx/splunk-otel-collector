@@ -60,7 +60,6 @@ elsif platform_family?('debian', 'rhel', 'amazon', 'suse')
       && node['packages'] \
       && node['packages']['apt'] \
       && Gem::Version.new(node['packages']['apt']['version'].split('~')[0]) >= Gem::Version.new('1.1.0')
-
     allow_downgrade true if platform_family?('amazon', 'rhel', 'suse')
     notifies :restart, 'service[splunk-otel-collector]', :delayed
   end

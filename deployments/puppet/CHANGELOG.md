@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## puppet-v0.12.0
+
+- **Deprecations**: The `auto_instrumentation_generate_service_name` and `auto_instrumentation_disable_telemetry`
+  options are deprecated and only applicable if the `auto_instrumentation_version` option is < `0.87.0`.
+- Support Splunk OpenTelemetry Auto Instrumentation for Linux [v0.87.0](
+  https://github.com/signalfx/splunk-otel-collector/releases/tag/v0.87.0) and newer (Java only).
+- Support activation and configuration of auto instrumentation for only `systemd` services.
+- Support setting the OTLP exporter endpoint for auto instrumentation (default: `http://127.0.0.1:4317`). Only
+  applicable if the `auto_instrumentation_version` option is `latest` or >= `0.87.0`.
+
 ## puppet-v0.11.0
 
 - Add support for `splunk_listen_interface` used by default configurations as `SPLUNK_LISTEN_INTERFACE` environment variable (only populated if set).

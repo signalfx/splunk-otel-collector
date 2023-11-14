@@ -70,7 +70,9 @@ jobs:
             exit 1
           fi
           distro=$(for d in $dockerfiles; do echo -n "\"$d\","; done)
-          matrix="{\"DISTRO\": [${distro%,}], \"PUPPET_RELEASE\": [\"6\",\"7\"]}"
+          puppet_release='"6","7"'
+          with_instrumentation='"true","false"'
+          matrix="{\"DISTRO\": [${distro%,}], \"PUPPET_RELEASE\": [${puppet_release}], \"WITH_INSTRUMENTATION\": [${with_instrumentation}]}"
           echo "$matrix" | jq
           echo "matrix=${matrix}" >> $GITHUB_OUTPUT
     outputs:
@@ -111,7 +113,12 @@ jobs:
             # workaround for pytest substring matching
             distro="amazonlinux-2 and not amazonlinux-2023"
           fi
-          python3 -u -m pytest -s --verbose -k "$distro" \
+          if [[ "${{ matrix.WITH_INSTRUMENTATION }}" = "true" ]]; then
+            tests="$distro and instrumentation"
+          else
+            tests="$distro and not instrumentation"
+          fi
+          python3 -u -m pytest -s --verbose -k "$tests" \
             internal/buildscripts/packaging/tests/deployments/puppet/puppet_test.py
         env:
           PUPPET_RELEASE: "${{ matrix.PUPPET_RELEASE }}"
@@ -125,10 +132,14 @@ jobs:
             # workaround for pytest substring matching
             distro="amazonlinux-2 and not amazonlinux-2023"
           fi
-          python3 -u -m pytest -s --verbose -k "$distro" \
+          if [[ "${{ matrix.WITH_INSTRUMENTATION }}" = "true" ]]; then
+            tests="$distro and instrumentation"
+          else
+            tests="$distro and not instrumentation"
+          fi
+          python3 -u -m pytest -s --verbose -k "$tests" \
             --last-failed \
             internal/buildscripts/packaging/tests/deployments/puppet/puppet_test.py
-          exit 1
         env:
           PUPPET_RELEASE: "${{ matrix.PUPPET_RELEASE }}"
 

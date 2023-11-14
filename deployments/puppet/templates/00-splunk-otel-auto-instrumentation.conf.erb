@@ -1,0 +1,14 @@
+[Manager]
+DefaultEnvironment="JAVA_TOOL_OPTIONS=-javaagent:<%= @auto_instrumentation_java_agent_jar %>"
+<% if defined?(@auto_instrumentation_resource_attributes) && @auto_instrumentation_resource_attributes != "" -%>
+DefaultEnvironment="OTEL_RESOURCE_ATTRIBUTES=splunk.zc.method=splunk-otel-auto-instrumentation-<%= @auto_instrumentation_version %>-systemd,<%= @auto_instrumentation_resource_attributes %>"
+<% else -%>
+DefaultEnvironment="OTEL_RESOURCE_ATTRIBUTES=splunk.zc.method=splunk-otel-auto-instrumentation-<%= @auto_instrumentation_version %>-systemd"
+<% end -%>
+<% if defined?(@auto_instrumentation_service_name) && @auto_instrumentation_service_name != "" -%>
+DefaultEnvironment="OTEL_SERVICE_NAME=<%= @auto_instrumentation_service_name %>"
+<% end -%>
+DefaultEnvironment="SPLUNK_PROFILER_ENABLED=<%= @auto_instrumentation_enable_profiler.to_s.downcase %>"
+DefaultEnvironment="SPLUNK_PROFILER_MEMORY_ENABLED=<%= @auto_instrumentation_enable_profiler_memory.to_s.downcase %>"
+DefaultEnvironment="SPLUNK_METRICS_ENABLED=<%= @auto_instrumentation_enable_metrics.to_s.downcase %>"
+DefaultEnvironment="OTEL_EXPORTER_OTLP_ENDPOINT=<%= @auto_instrumentation_otlp_endpoint %>"

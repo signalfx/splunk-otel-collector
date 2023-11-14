@@ -35,6 +35,7 @@ class splunk_otel_collector (
   $manage_repo             = true,  # linux only
   $with_auto_instrumentation                = false,  # linux only
   $auto_instrumentation_version             = $splunk_otel_collector::params::auto_instrumentation_version,  # linux only
+  $auto_instrumentation_systemd             = false,  # linux only
   $auto_instrumentation_ld_so_preload       = '',  # linux only
   $auto_instrumentation_java_agent_jar      = $splunk_otel_collector::params::auto_instrumentation_java_agent_jar,  # linux only
   $auto_instrumentation_resource_attributes = '',  # linux only
@@ -44,6 +45,7 @@ class splunk_otel_collector (
   $auto_instrumentation_enable_profiler         = false,  # linux only
   $auto_instrumentation_enable_profiler_memory  = false,  # linux only
   $auto_instrumentation_enable_metrics          = false,  # linux only
+  $auto_instrumentation_otlp_endpoint           = 'http://127.0.0.1:4317',  # linux only
   $collector_additional_env_vars            = {}
 ) inherits splunk_otel_collector::params {
 
@@ -363,7 +365,10 @@ class splunk_otel_collector (
   if $with_auto_instrumentation {
     $auto_instrumentation_package_name = 'splunk-otel-auto-instrumentation'
     $ld_so_preload_path =  '/etc/ld.so.preload'
+    $libsplunk_path = '/usr/lib/splunk-instrumentation/libsplunk.so'
     $instrumentation_config_path = '/usr/lib/splunk-instrumentation/instrumentation.conf'
+    $zeroconfig_java_config_path = '/etc/splunk/zeroconfig/java.conf'
+    $zeroconfig_systemd_config_path = '/usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf'
 
     if $::osfamily == 'debian' {
       package { $auto_instrumentation_package_name:
@@ -385,10 +390,33 @@ class splunk_otel_collector (
       require => Package[$auto_instrumentation_package_name],
     }
 
-    file { $instrumentation_config_path:
-      ensure  => file,
-      content => template('splunk_otel_collector/instrumentation.conf.erb'),
-      require => Package[$auto_instrumentation_package_name],
+    if $auto_instrumentation_systemd {
+      file { ['/usr/lib/systemd', '/usr/lib/systemd/system.conf.d']:
+        ensure => directory,
+      }
+      -> file { $zeroconfig_systemd_config_path:
+        ensure  => file,
+        content => template('splunk_otel_collector/00-splunk-otel-auto-instrumentation.conf.erb'),
+        require => Package[$auto_instrumentation_package_name],
+        notify  => Exec['systemctl daemon-reload'],
+      }
+    } else {
+      file { $zeroconfig_systemd_config_path:
+        ensure => absent,
+      }
+      if $auto_instrumentation_version == 'latest' or versioncmp($auto_instrumentation_version, '0.87.0') >= 0 {
+        file { $zeroconfig_java_config_path:
+          ensure  => file,
+          content => template('splunk_otel_collector/java.conf.erb'),
+          require => Package[$auto_instrumentation_package_name],
+        }
+      } else {
+        file { $instrumentation_config_path:
+          ensure  => file,
+          content => template('splunk_otel_collector/instrumentation.conf.erb'),
+          require => Package[$auto_instrumentation_package_name],
+        }
+      }
     }
   }
 }

@@ -124,7 +124,6 @@ class {{ splunk_otel_collector:
 )
 @pytest.mark.parametrize("puppet_release", PUPPET_RELEASE)
 def test_puppet_default(distro, puppet_release):
-    #skip_if_necessary(distro, puppet_release)
     if distro in DEB_DISTROS:
         dockerfile = IMAGES_DIR / "deb" / f"Dockerfile.{distro}"
     else:
@@ -163,10 +162,9 @@ class {{ splunk_otel_collector:
     "distro",
     [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
     + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
-    )
+)
 @pytest.mark.parametrize("puppet_release", PUPPET_RELEASE)
 def test_puppet_with_custom_vars(distro, puppet_release):
-    #skip_if_necessary(distro, puppet_release)
     if distro in DEB_DISTROS:
         dockerfile = IMAGES_DIR / "deb" / f"Dockerfile.{distro}"
     else:
@@ -219,7 +217,6 @@ class {{ splunk_otel_collector:
 @pytest.mark.parametrize("version", ["0.86.0", "latest"])
 @pytest.mark.parametrize("with_systemd", ["true", "false"])
 def test_puppet_with_default_instrumentation(distro, puppet_release, version, with_systemd):
-    #skip_if_necessary(distro, puppet_release)
     if distro in DEB_DISTROS:
         dockerfile = IMAGES_DIR / "deb" / f"Dockerfile.{distro}"
     else:
@@ -289,12 +286,11 @@ class {{ splunk_otel_collector:
     "distro",
     [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
     + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
-    )
+)
 @pytest.mark.parametrize("puppet_release", PUPPET_RELEASE)
 @pytest.mark.parametrize("version", ["0.86.0", "latest"])
 @pytest.mark.parametrize("with_systemd", ["true", "false"])
 def test_puppet_with_custom_instrumentation(distro, puppet_release, version, with_systemd):
-    #skip_if_necessary(distro, puppet_release)
     if distro in DEB_DISTROS:
         dockerfile = IMAGES_DIR / "deb" / f"Dockerfile.{distro}"
     else:

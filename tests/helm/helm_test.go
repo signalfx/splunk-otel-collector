@@ -110,6 +110,13 @@ splunkObservability:
   tracesEnabled: false
   logsEnabled: false
 
+clusterReceiver:
+  config:
+    receivers:
+      k8s_cluster:
+        # required until breaking opencensus.resourcetype is released
+        # https://github.com/signalfx/splunk-otel-collector-chart/commit/1c06636ec4f0beff90c54773cb3e645df048261e
+        resource_attributes: null
 agent:
   config:
     receivers:

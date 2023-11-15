@@ -1,6 +1,6 @@
 receivers:
   lightprometheus/myjob:
-    collection_interval: 1s
+    collection_interval: 5ms
     endpoint: "http://localhost:8889/metrics"
 exporters:
   otlp:

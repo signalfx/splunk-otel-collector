@@ -21,26 +21,25 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 - (Contrib) `receiver/prometheus`: Warn instead of failing when users rename using metric_relabel_configs in the prometheus receiver ([#5001](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/5001))
 - (Contrib) `k8sobjectsreceiver`: Move k8sobjectsreceiver from Alpha stability to Beta stability for logs. ([#27635](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/27635))
 - (Contrib) `doubleconverter`: Adding a double converter into pkg/ottl ([#22056](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/22056))
-- (Contrib) `syslogreceiver`: validate protocol name ([#27581](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27581))
+- (Contrib) `syslogreceiver`: validate protocol name ([#27581](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/27581))
 - (Contrib) `entension/storage/filestorage`: Add support for setting bbolt fsync option ([#20266](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/20266))
 - (Contrib) `filelogreceiver`: Add a new "top_n" option to specify the number of files to track when using ordering criteria ([#23788](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/23788))
 - (Contrib) `k8sclusterreceiver`: add optional k8s.pod.qos_class resource attribute ([#27483](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27483))
-- (Contrib) `pkg/stanza`: Log warning, instead of error, when Windows Event Log publisher metadata is not available and cache the successfully retrieved ones. ([#27658](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27658))
-- (Contrib) `pkg/ottl`: Add optional Converter parameters to replacement Editors ([#27235](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27235))
-- (Contrib) `signalfxexporter`: Add an option to control the dimension client timeout ([#27815](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27815))
+- (Contrib) `pkg/stanza`: Log warning, instead of error, when Windows Event Log publisher metadata is not available and cache the successfully retrieved ones. ([#27658](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/27658))
+- (Contrib) `pkg/ottl`: Add optional Converter parameters to replacement Editors ([#27235](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/27235))
+- (Contrib) `signalfxexporter`: Add an option to control the dimension client timeout ([#27815](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/27815))
 - (Contrib) `signalfxexporter`: Add the build version to the user agent of the SignalFx exporter ([#16841](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16841))
-- (Contrib) `splunkentreceiver`: Users can now use auth settings and basicauth extension to connect to their Splunk enterprise deployments ([#27026](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27026))
 
 ### 🧰 Bug fixes 🧰
 
 - (Splunk) Fix Tanzu Tile to properly set proxy exclusions. ([#3902](https://github.com/signalfx/splunk-otel-collector/pull/3902))
 - (Contrib) `syslog`: add integration tests and fix related bugs ([#21245](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/21245))
-- (Contrib) `processor/resourcedetection`: Don't parse the field `cpuInfo.Model` if it's blank. ([#27678](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27678))
+- (Contrib) `processor/resourcedetection`: Don't parse the field `cpuInfo.Model` if it's blank. ([#27678](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/27678))
 - (Contrib) `k8sclusterreceiver`: Change clusterquota and resourcequota metrics to use {resource} unit ([#10553](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/10553))
-- (Contrib) `pkg/ottl`: Fix bug where named parameters needed a space after the equal sign (`=`). ([#28511](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/28511))
-- (Contrib) `filelogreceiver`: Fix issue where batching of files could result in ignoring start_at setting. ([#27773](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27773))
+- (Contrib) `pkg/ottl`: Fix bug where named parameters needed a space after the equal sign (`=`). ([#28511](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/28511))
+- (Contrib) `filelogreceiver`: Fix issue where batching of files could result in ignoring start_at setting. ([#27773](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/27773))
 - (Core) `exporterhelper`: make enqueue failures available for otel metrics ([#8673](https://github.com/open-telemetry/opentelemetry-collector/issues/8673))
-- (Core) `exporterhelper`: Fix nil pointer dereference when stopping persistent queue after a start encountered an error ([#8718](https://github.com/open-telemetry/opentelemetry-collector/issues/8718))
+- (Core) `exporterhelper`: Fix nil pointer dereference when stopping persistent queue after a start encountered an error ([#8718](https://github.com/open-telemetry/opentelemetry-collector/pull/8718))
 
 
 ## v0.87.0

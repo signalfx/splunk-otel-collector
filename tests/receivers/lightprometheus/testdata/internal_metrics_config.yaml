@@ -1,16 +1,12 @@
 receivers:
   lightprometheus/myjob:
-    collection_interval: 50ms
+    collection_interval: 1s
     endpoint: "http://localhost:8889/metrics"
 exporters:
   otlp:
     endpoint: "${OTLP_ENDPOINT}"
     tls:
       insecure: true
-    sending_queue:
-      # Explicitly set small queue size in an attempt to ensure we receiver queue failure messages.
-      queue_size: 1
-      num_consumers: 1
 
 service:
   telemetry:

@@ -7,6 +7,9 @@ exporters:
     endpoint: "${OTLP_ENDPOINT}"
     tls:
       insecure: true
+    sending_queue:
+      # Explicitly set small queue size in an attempt to ensure we receiver queue failure messages.
+      queue_size: 1
 
 service:
   telemetry:

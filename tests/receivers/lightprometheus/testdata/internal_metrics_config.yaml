@@ -10,6 +10,7 @@ exporters:
     sending_queue:
       # Explicitly set small queue size in an attempt to ensure we receiver queue failure messages.
       queue_size: 1
+      num_consumers: 1
 
 service:
   telemetry:

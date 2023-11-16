@@ -96,15 +96,15 @@ setup_files_and_permissions() {
     sudo chmod 755 "$buildroot/$JAVA_AGENT_INSTALL_PATH"
 
     download_nodejs_agent "$nodejs_agent_release" "${buildroot}/${NODEJS_AGENT_INSTALL_PATH}"
-    sudo chmod 644 "$buildroot/$NODEJS_AGENT_INSTALL_PATH"
+    sudo chmod 755 "$buildroot/$NODEJS_AGENT_INSTALL_PATH"
 
     mkdir -p  "$buildroot/$CONFIG_DIR_INSTALL_PATH"
     cp -rf "$CONFIG_DIR_REPO_PATH"/* "$buildroot/$CONFIG_DIR_INSTALL_PATH"/
-    sudo chmod -R 644 "$buildroot/$CONFIG_DIR_INSTALL_PATH"
+    sudo chmod -R 755 "$buildroot/$CONFIG_DIR_INSTALL_PATH"
 
     mkdir -p "$buildroot/$INSTALL_DIR"
     cp -rf "$EXAMPLES_DIR" "$buildroot/$INSTALL_DIR/"
-    sudo chmod -R 644 "$buildroot/$EXAMPLES_INSTALL_DIR"
+    sudo chmod -R 755 "$buildroot/$EXAMPLES_INSTALL_DIR"
 
     sudo chown -R root:root "$buildroot"
 }

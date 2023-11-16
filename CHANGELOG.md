@@ -16,7 +16,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 
 
 ### 💡 Enhancements 💡
-
+- (Splunk) Add an option, `-msi_public_properties`, to allow passing MSI public properties when installing the Splunk OpenTelemetry Collector using the Windows installer script ([#3921](https://github.com/signalfx/splunk-otel-collector/pull/3921))
 - (Splunk) Add support for config map providers in discovery configuration. ([#3874](https://github.com/signalfx/splunk-otel-collector/pull/3874))
 - (Splunk) Add zero config support for chef deployments ([#3903](https://github.com/signalfx/splunk-otel-collector/pull/3903))
 - (Splunk) Add zero config support for puppet deployments ([#3922](https://github.com/signalfx/splunk-otel-collector/pull/3922))
@@ -216,7 +216,7 @@ Suffixes can be disabled by setting add_metric_suffixes to false on the exporter
 - (Contrib) `pkg/ottl`: Add converters to convert time to unix nanoseconds, unix microseconds, unix milliseconds or unix seconds ([#24686](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/24686))
 - (Contrib) `receiver/hostmetrics`: Don't collect connections data from the host if system.network.connections metric is disabled to not waste CPU cycles. ([#25815](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/25815))
 - (Contrib) `jaegerreceiver`,`jaegerremotesamplingextension`: Add featuregates to replace Thrift-gen with Proto-gen types for sampling strategies ([#18401](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/18401))
-  
+
   Available featuregates are:
   * `extension.jaegerremotesampling.replaceThriftWithProto`
   *  `receiver.jaegerreceiver.replaceThriftWithProto`

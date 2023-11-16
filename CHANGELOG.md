@@ -12,6 +12,8 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
   - use `max_idle_conns` or `max_idle_conns_per_host` instead.
 - (Contrib) `signalfxexporter`: Remove `max_connections` configuration setting. ([#27610](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27610))
   - use `max_idle_conns` or `max_idle_conns_per_host` instead.
+- (Core) `exporterhelper`: make enqueue failures available for otel metrics ([#8673](https://github.com/open-telemetry/opentelemetry-collector/issues/8673)). This will prevent internal Collector `otelcol_exporter_enqueue_failed_<telemetry_type>` metrics from being reported unless greater than 0.
+
 
 ### 💡 Enhancements 💡
 

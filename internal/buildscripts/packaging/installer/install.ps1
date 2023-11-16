@@ -106,6 +106,11 @@
     If specified, the -collector_version and -stage parameters will be ignored.
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -msi_path "C:\SOME_FOLDER\splunk-otel-collector-1.2.3-amd64.msi"
+.PARAMETER msi_public_properties
+    (OPTIONAL) Specify public MSI properties to be used when installing the Splunk OpenTelemetry Collector MSI package.
+    For information about the public MSI properties see https://learn.microsoft.com/en-us/windows/win32/msi/property-reference#configuration-properties
+    .EXAMPLE
+    .\install.ps1 -access_token "ACCESSTOKEN" -msi_public_properties "ALLUSERS=1" 
 #>
 
 param (
@@ -126,6 +131,7 @@ param (
     [string]$bundle_dir = "",
     [ValidateSet('test','beta','release')][string]$stage = "release",
     [string]$msi_path = "",
+    [string]$msi_public_properties = "",
     [string]$collector_msi_url = "",
     [string]$fluentd_msi_url = "",
     [string]$deployment_env = "",
@@ -417,7 +423,7 @@ function update_registry([string]$path, [string]$name, [string]$value) {
 function install_msi([string]$path) {
     Write-Host "Installing $path ..."
     $startTime = Get-Date
-    $proc = (Start-Process msiexec.exe -Wait -PassThru -ArgumentList "/qn /norestart /i `"$path`"")
+    $proc = (Start-Process msiexec.exe -Wait -PassThru -ArgumentList "/i `"$path`" /qn /norestart $msi_public_properties")
     if ($proc.ExitCode -ne 0 -and $proc.ExitCode -ne 3010) {
         Write-Warning "The installer failed with error code ${proc.ExitCode}."
         try {

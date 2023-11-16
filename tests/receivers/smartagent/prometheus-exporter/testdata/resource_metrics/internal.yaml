@@ -49,33 +49,6 @@ resource_metrics:
               service_instance_id: <RE2(^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$)>
               service_name: otelcol
               service_version: <VERSION_FROM_BUILD>
-          - name: otelcol_exporter_enqueue_failed_log_records
-            type: DoubleMonotonicCumulativeSum
-            attributes:
-              system.type: prometheus-exporter
-              exporter: otlp
-              foo: bar
-              service_instance_id: <RE2(^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$)>
-              service_name: otelcol
-              service_version: <VERSION_FROM_BUILD>
-          - name: otelcol_exporter_enqueue_failed_metric_points
-            type: DoubleMonotonicCumulativeSum
-            attributes:
-              system.type: prometheus-exporter
-              exporter: otlp
-              foo: bar
-              service_instance_id: <RE2(^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$)>
-              service_name: otelcol
-              service_version: <VERSION_FROM_BUILD>
-          - name: otelcol_exporter_enqueue_failed_spans
-            type: DoubleMonotonicCumulativeSum
-            attributes:
-              system.type: prometheus-exporter
-              exporter: otlp
-              foo: bar
-              service_instance_id: <RE2(^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$)>
-              service_name: otelcol
-              service_version: <VERSION_FROM_BUILD>
           - name: otelcol_exporter_queue_capacity
             type: DoubleGauge
             attributes:

@@ -19,7 +19,7 @@ prometheus_simple:
   status:
     metrics:
       successful:
-        - strict: otelcol_exporter_enqueue_failed_metric_points
+        - strict: otelcol_process_uptime
           first_only: true
           log_record:
             severity_text: info

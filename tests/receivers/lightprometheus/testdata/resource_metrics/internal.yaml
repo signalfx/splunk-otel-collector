@@ -46,30 +46,6 @@ resource_metrics:
               service_instance_id: <ANY>
               service_name: otelcol
               service_version: <VERSION_FROM_BUILD>
-          - name: otelcol_exporter_enqueue_failed_log_records
-            description: Number of log records failed to be added to the sending queue.
-            type: DoubleMonotonicCumulativeSum
-            attributes:
-              exporter: otlp
-              service_instance_id: <ANY>
-              service_name: otelcol
-              service_version: <VERSION_FROM_BUILD>
-          - name: otelcol_exporter_enqueue_failed_metric_points
-            description: Number of metric points failed to be added to the sending queue.
-            type: DoubleMonotonicCumulativeSum
-            attributes:
-              exporter: otlp
-              service_instance_id: <ANY>
-              service_name: otelcol
-              service_version: <VERSION_FROM_BUILD>
-          - name: otelcol_exporter_enqueue_failed_spans
-            description: Number of spans failed to be added to the sending queue.
-            type: DoubleMonotonicCumulativeSum
-            attributes:
-              exporter: otlp
-              service_instance_id: <ANY>
-              service_name: otelcol
-              service_version: <VERSION_FROM_BUILD>
           - name: otelcol_exporter_queue_capacity
             description: Fixed capacity of the retry queue (in batches)
             type: DoubleGauge

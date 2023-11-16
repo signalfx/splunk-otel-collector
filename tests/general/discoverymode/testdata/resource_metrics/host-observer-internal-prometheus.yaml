@@ -9,10 +9,9 @@ resource_metrics:
           name: otelcol/prometheusreceiver
           version: <VERSION_FROM_BUILD>
         metrics:
-          - name: otelcol_exporter_enqueue_failed_log_records
+          - name: otelcol_process_uptime
             type: DoubleMonotonicCumulativeSum
             attributes:
-              exporter: debug
               label_one: actual.label.one.value.from.env.var
               label_two: actual.label.two.value.from.env.var
               label_three: actual.label.three.value.from.cmdline.property

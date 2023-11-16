@@ -6,6 +6,10 @@
 
 - (Splunk) `smartagent`: Respect `JAVA_HOME` environment variable instead of enforcing bundle-relative value ([#3877](https://github.com/signalfx/splunk-otel-collector/pull/3877))
 
+### 💡 Enhancements 💡
+
+- (Splunk) Add an option, `-msi_public_properties`, to allow passing MSI public properties when installing the Splunk OpenTelemetry Collector using the Windows installer script ([#3921](https://github.com/signalfx/splunk-otel-collector/pull/3921))
+
 ## v0.87.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.87.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.87.0) and the [opentelemetry-collector-contrib v0.87.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.87.0) releases where appropriate.

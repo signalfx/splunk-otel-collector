@@ -131,46 +131,6 @@ resource_metrics:
             name: scrape_samples_scraped
             type: DoubleGauge
           - attributes:
-              exporter: signalfx
-              host.name: <RE2(splunk-otel-collector-.*-k8s-cluster-receiver-.*)>
-              http.scheme: http
-              k8s.cluster.name: test-cluster
-              k8s.namespace.name: monitoring
-              k8s.node.name: <RE2(cluster-.*-control-plane)>
-              k8s.pod.name: <RE2(splunk-otel-collector-.*-cluster-receiver-.*)>
-              k8s.pod.uid: <ANY>
-              metric_source: kubernetes
-              net.host.name: <ANY>
-              net.host.port: '8889'
-              os.type: linux
-              service.instance.id: <RE2(.*:8889)>
-              service.name: otel-k8s-cluster-receiver
-              service_instance_id: <ANY>
-              service_name: otelcol
-              service_version: <VERSION_FROM_BUILD>
-            name: otelcol_exporter_enqueue_failed_log_records
-            type: DoubleMonotonicCumulativeSum
-          - attributes:
-              exporter: signalfx
-              host.name: <RE2(splunk-otel-collector-.*-k8s-cluster-receiver-.*)>
-              http.scheme: http
-              k8s.cluster.name: test-cluster
-              k8s.namespace.name: monitoring
-              k8s.node.name: <RE2(cluster-.*-control-plane)>
-              k8s.pod.name: <RE2(splunk-otel-collector-.*-cluster-receiver-.*)>
-              k8s.pod.uid: <ANY>
-              metric_source: kubernetes
-              net.host.name: <ANY>
-              net.host.port: '8889'
-              os.type: linux
-              service.instance.id: <RE2(.*:8889)>
-              service.name: otel-k8s-cluster-receiver
-              service_instance_id: <ANY>
-              service_name: otelcol
-              service_version: <VERSION_FROM_BUILD>
-            name: otelcol_exporter_enqueue_failed_metric_points
-            type: DoubleMonotonicCumulativeSum
-          - attributes:
               host.name: <RE2(splunk-otel-collector-.*-k8s-cluster-receiver-.*)>
               http.scheme: http
               k8s.cluster.name: test-cluster
@@ -207,26 +167,6 @@ resource_metrics:
               service_name: otelcol
               service_version: <VERSION_FROM_BUILD>
             name: otelcol_process_uptime
-            type: DoubleMonotonicCumulativeSum
-          - attributes:
-              exporter: signalfx
-              host.name: <RE2(splunk-otel-collector-.*-k8s-cluster-receiver-.*)>
-              http.scheme: http
-              k8s.cluster.name: test-cluster
-              k8s.namespace.name: monitoring
-              k8s.node.name: <RE2(cluster-.*-control-plane)>
-              k8s.pod.name: <RE2(splunk-otel-collector-.*-cluster-receiver-.*)>
-              k8s.pod.uid: <ANY>
-              metric_source: kubernetes
-              net.host.name: <ANY>
-              net.host.port: '8889'
-              os.type: linux
-              service.instance.id: <RE2(.*:8889)>
-              service.name: otel-k8s-cluster-receiver
-              service_instance_id: <ANY>
-              service_name: otelcol
-              service_version: <VERSION_FROM_BUILD>
-            name: otelcol_exporter_enqueue_failed_spans
             type: DoubleMonotonicCumulativeSum
           - attributes:
               exporter: signalfx

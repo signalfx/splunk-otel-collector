@@ -138,7 +138,7 @@ func TestHostObserver(t *testing.T) {
 						"include": map[string]any{
 							"match_type": "strict",
 							"metric_names": []any{
-								"otelcol_exporter_enqueue_failed_log_records",
+								"otelcol_process_uptime",
 							},
 						},
 					},
@@ -215,7 +215,7 @@ func TestHostObserver(t *testing.T) {
 					"include": map[string]any{
 						"match_type": "strict",
 						"metric_names": []any{
-							"otelcol_exporter_enqueue_failed_log_records",
+							"otelcol_process_uptime",
 						},
 					},
 				},
@@ -293,7 +293,7 @@ processors:
       include:
         match_type: strict
         metric_names:
-        - otelcol_exporter_enqueue_failed_log_records
+        - otelcol_process_uptime
 receivers:
   receiver_creator/discovery:
     receivers:

@@ -8,7 +8,7 @@ processors:
     metrics:
       include:
         match_type: strict
-        metric_names: [otelcol_exporter_enqueue_failed_log_records]
+        metric_names: [otelcol_process_uptime]
 service:
   telemetry:
     metrics:

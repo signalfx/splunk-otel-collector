@@ -332,7 +332,7 @@ resource_metrics:
           - description: Duration of the scrape
             name: scrape_duration_seconds
             type: DoubleGauge
-            unit: seconds
+            unit: s
           - attributes:
               receiver: <ANY>
               service_instance_id: <ANY>
@@ -345,22 +345,6 @@ resource_metrics:
           - description: The number of samples remaining after metric relabeling was applied
             name: scrape_samples_post_metric_relabeling
             type: DoubleGauge
-          - attributes:
-              exporter: otlp
-              service_instance_id: <ANY>
-              service_name: otelcol
-              service_version: <VERSION_FROM_BUILD>
-            description: Number of log records failed to be added to the sending queue.
-            name: otelcol_exporter_enqueue_failed_log_records
-            type: DoubleMonotonicCumulativeSum
-          - attributes:
-              exporter: otlp
-              service_instance_id: <ANY>
-              service_name: otelcol
-              service_version: <VERSION_FROM_BUILD>
-            description: Number of metric points failed to be added to the sending queue.
-            name: otelcol_exporter_enqueue_failed_metric_points
-            type: DoubleMonotonicCumulativeSum
           - attributes:
               exporter: otlp
               service_instance_id: <ANY>
@@ -385,14 +369,6 @@ resource_metrics:
           - description: The approximate number of new series in this scrape
             name: scrape_series_added
             type: DoubleGauge
-          - attributes:
-              exporter: otlp
-              service_instance_id: <ANY>
-              service_name: otelcol
-              service_version: <VERSION_FROM_BUILD>
-            description: Number of spans failed to be added to the sending queue.
-            name: otelcol_exporter_enqueue_failed_spans
-            type: DoubleMonotonicCumulativeSum
           - attributes:
               service_instance_id: <ANY>
               service_name: otelcol

@@ -139,6 +139,40 @@ function remove_otel_registry_entries() {
     }
 }
 
+function set_env_var_value_from_package_params([hashtable] $env_vars, [hashtable] $package_params, [string]$name, [string]$default_value) {
+    $value = $package_params[$name]
+    if ($value) {
+        # If the variable was passed as a package parameter, use that value.
+        $env_vars[$name] = $value
+        return
+    }
+
+    # If the variable was not passed as a package parameter, check if it was already set in the environment.
+    $value = $env_vars[$name]
+    if ($value) {
+        # If the variable already exists in the environment, use that value.
+        return
+    }
+
+    $value = "$default_value" # Env. var values are always strings.
+    $env_vars[$name] = $value
+    Write-Host "The $name package parameter was not set, using the default value: '$value'"
+}
+
+function set_service_environment([string]$service_name, [hashtable]$env_vars) {
+    # Transform the $env_vars to an array of strings so the Set-ItemProperty correctly create the
+    # 'Environment' REG_MULTI_SZ value.
+    [string []] $multi_sz_value = ($env_vars.Keys | foreach-object { "$_=$($env_vars[$_])" })
+
+    $target_service_reg_key = Join-Path "HKLM:\SYSTEM\CurrentControlSet\Services" $service_name
+    if (Test-Path $target_service_reg_key) {
+        Set-ItemProperty $target_service_reg_key -Name "Environment" -Value $multi_sz_value
+    }
+    else {
+        throw "Invalid service '$service_name'. Registry key '$target_service_reg_key' doesn't exist."
+    }
+}
+
 function update_registry([string]$path, [string]$name, [string]$value) {
     write-host "Updating $path for $name..."
     Set-ItemProperty -path "$path" -name "$name" -value "$value"

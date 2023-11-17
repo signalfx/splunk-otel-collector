@@ -10,17 +10,6 @@ $pp = Get-PackageParameters
 
 $MODE = $pp['MODE']
 
-$SPLUNK_ACCESS_TOKEN = $pp['SPLUNK_ACCESS_TOKEN']
-$SPLUNK_INGEST_URL = $pp['SPLUNK_INGEST_URL']
-$SPLUNK_API_URL = $pp['SPLUNK_API_URL']
-$SPLUNK_HEC_TOKEN = $pp['SPLUNK_HEC_TOKEN']
-$SPLUNK_HEC_URL = $pp['SPLUNK_HEC_URL']
-$SPLUNK_TRACE_URL = $pp['SPLUNK_TRACE_URL']
-$SPLUNK_BUNDLE_DIR = $pp['SPLUNK_BUNDLE_DIR']
-$SPLUNK_LISTEN_INTERFACE = $pp['SPLUNK_LISTEN_INTERFACE']
-$SPLUNK_REALM = $pp['SPLUNK_REALM']
-$SPLUNK_MEMORY_TOTAL_MIB = $pp['SPLUNK_MEMORY_TOTAL_MIB']
-
 if ($MODE -and ($MODE -ne "agent") -and ($MODE -ne "gateway")) {
     throw "Invalid value of MODE option is specified. Collector service can only run in agent or gateway mode."
 }
@@ -44,108 +33,33 @@ if ($WITH_FLUENTD) {
     check_policy
 }
 
-$regkey = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
-
-# default values if parameters not passed
-try{
-    if (!$SPLUNK_ACCESS_TOKEN) {
-        $SPLUNK_ACCESS_TOKEN = Get-ItemPropertyValue -PATH "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" -name "SPLUNK_ACCESS_TOKEN" -ErrorAction SilentlyContinue
-    }
-    else{
-        update_registry -path "$regkey" -name "SPLUNK_ACCESS_TOKEN" -value "$SPLUNK_ACCESS_TOKEN"
-    }
+# Read splunk-otel-collector service Environment variables from the registry, if it exists.
+$env_vars = @{}
+$service_name = "splunk-otel-collector"
+$regkey = Join-Path "HKLM:\SYSTEM\CurrentControlSet\Services" $service_name
+foreach ($entry in (Get-ItemPropertyValue -Path "$regkey" -Name "Environment" -ErrorAction SilentlyContinue)) {
+    $k, $v = $entry.Split("=", 2)
+    $env_vars[$k] = "$v"
 }
-catch{
+
+# Use default values if package parameters not set
+$access_token = $pp["SPLUNK_ACCESS_TOKEN"]
+if ($access_token) {
+    $env_vars["SPLUNK_ACCESS_TOKEN"] = "$access_token" # Env. var values are always strings
+} elseif (!$env_vars["SPLUNK_ACCESS_TOKEN"]) {
     write-host "The SPLUNK_ACCESS_TOKEN parameter is not specified."
 }
 
-try {
-    if (!$SPLUNK_REALM) {
-        $SPLUNK_REALM = Get-ItemPropertyValue -PATH "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" -name "SPLUNK_REALM" -ErrorAction SilentlyContinue
-    }
-}
-catch {
-    $SPLUNK_REALM = "us0"
-    write-host "The SPLUNK_REALM parameter is not specified. Using default configuration."
-}
+set_env_var_value_from_package_params $env_vars $pp "SPLUNK_REALM" "us0"
+$realm = $env_vars["SPLUNK_REALM"] # Cache the realm since it is used to build various default values.
 
-try {
-    if (!$SPLUNK_INGEST_URL) {
-        $SPLUNK_INGEST_URL =  Get-ItemPropertyValue -PATH "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" -name "SPLUNK_INGEST_URL" -ErrorAction SilentlyContinue
-    }
-}
-catch {
-    $SPLUNK_INGEST_URL = "https://ingest.$SPLUNK_REALM.signalfx.com"
-    write-host "The SPLUNK_INGEST_URL parameter is not specified. Using default configuration."
-}
-
-try {
-    if (!$SPLUNK_API_URL) {
-        $SPLUNK_API_URL = Get-ItemPropertyValue -PATH "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" -name "SPLUNK_API_URL" -ErrorAction SilentlyContinue
-    }
-}
-catch {
-    $SPLUNK_API_URL = "https://api.$SPLUNK_REALM.signalfx.com"
-    write-host "The SPLUNK_INGEST_URL parameter is not specified. Using default configuration."
-}
-
-try {
-    if (!$SPLUNK_HEC_TOKEN) {
-        $SPLUNK_HEC_TOKEN = Get-ItemPropertyValue -PATH "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" -name "SPLUNK_HEC_TOKEN" -ErrorAction SilentlyContinue
-    }
-}
-catch {
-    $SPLUNK_HEC_TOKEN = $SPLUNK_ACCESS_TOKEN
-    write-host "The SPLUNK_HEC_TOKEN parameter is not specified. Using default configuration."
-}
-
-try {
-    if (!$SPLUNK_HEC_URL) {
-        $SPLUNK_HEC_URL = Get-ItemPropertyValue -PATH "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" -name "SPLUNK_HEC_URL" -ErrorAction SilentlyContinue
-    }
-}
-catch {
-    $SPLUNK_HEC_URL = "https://ingest.$SPLUNK_REALM.signalfx.com/v1/log"
-    write-host "The SPLUNK_HEC_URL parameter is not specified. Using default configuration."
-}
-
-try {
-    if (!$SPLUNK_TRACE_URL) {
-        $SPLUNK_TRACE_URL = Get-ItemPropertyValue -PATH "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" -name "SPLUNK_TRACE_URL" -ErrorAction SilentlyContinue
-    }
-}
-catch {
-    $SPLUNK_TRACE_URL = "https://ingest.$SPLUNK_REALM.signalfx.com/v2/trace"
-    write-host "The SPLUNK_TRACE_URL parameter is not specified. Using default configuration."
-}
-
-try {
-    if (!$SPLUNK_MEMORY_TOTAL_MIB) {
-        $SPLUNK_MEMORY_TOTAL_MIB = Get-ItemPropertyValue -PATH "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" -name "SPLUNK_MEMORY_TOTAL_MIB" -ErrorAction SilentlyContinue
-    }
-}
-catch {
-    $SPLUNK_MEMORY_TOTAL_MIB = "512"
-    write-host "The SPLUNK_MEMORY_TOTAL_MIB parameter is not specified. Using default configuration."
-}
-
-try {
-    if (!$SPLUNK_LISTEN_INTERFACE) {
-        $SPLUNK_LISTEN_INTERFACE = Get-ItemPropertyValue -PATH "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" -name "SPLUNK_LISTEN_INTERFACE" -ErrorAction SilentlyContinue
-    }
-}
-catch {
-}
-
-try {
-    if (!$SPLUNK_BUNDLE_DIR) {
-        $SPLUNK_BUNDLE_DIR = Get-ItemPropertyValue -PATH "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" -name "SPLUNK_BUNDLE_DIR" -ErrorAction SilentlyContinue
-    }
-}
-catch {
-    $SPLUNK_BUNDLE_DIR = "$installation_path\agent-bundle"
-    write-host "The SPLUNK_BUNDLE_DIR parameter is not specified. Using default configuration."
-}
+set_env_var_value_from_package_params $env_vars $pp "SPLUNK_INGEST_URL"         "https://ingest.$realm.signalfx.com"
+set_env_var_value_from_package_params $env_vars $pp "SPLUNK_API_URL"            "https://api.$realm.signalfx.com"
+set_env_var_value_from_package_params $env_vars $pp "SPLUNK_HEC_TOKEN"          $env_vars["SPLUNK_ACCESS_TOKEN"]
+set_env_var_value_from_package_params $env_vars $pp "SPLUNK_HEC_URL"            "https://ingest.$realm.signalfx.com/v1/log"
+set_env_var_value_from_package_params $env_vars $pp "SPLUNK_TRACE_URL"          "https://ingest.$realm.signalfx.com/v2/trace"
+set_env_var_value_from_package_params $env_vars $pp "SPLUNK_MEMORY_TOTAL_MIB"   "512"
+set_env_var_value_from_package_params $env_vars $pp "SPLUNK_BUNDLE_DIR"         "$installation_path\agent-bundle"
 
 # remove orphaned service or when upgrading from bundle installation
 if (service_installed -name "$service_name") {
@@ -162,18 +76,6 @@ try {
 } catch {
     write-host "$_"
 }
-
-update_registry -path "$regkey" -name "SPLUNK_API_URL" -value "$SPLUNK_API_URL"
-update_registry -path "$regkey" -name "SPLUNK_BUNDLE_DIR" -value "$SPLUNK_BUNDLE_DIR"
-if ($SPLUNK_LISTEN_INTERFACE) {
-    update_registry -path "$regkey" -name "SPLUNK_LISTEN_INTERFACE" -value "$SPLUNK_LISTEN_INTERFACE"
-}
-update_registry -path "$regkey" -name "SPLUNK_HEC_TOKEN" -value "$SPLUNK_HEC_TOKEN"
-update_registry -path "$regkey" -name "SPLUNK_HEC_URL" -value "$SPLUNK_HEC_URL"
-update_registry -path "$regkey" -name "SPLUNK_INGEST_URL" -value "$SPLUNK_INGEST_URL"
-update_registry -path "$regkey" -name "SPLUNK_MEMORY_TOTAL_MIB" -value "$SPLUNK_MEMORY_TOTAL_MIB"
-update_registry -path "$regkey" -name "SPLUNK_REALM" -value "$SPLUNK_REALM"
-update_registry -path "$regkey" -name "SPLUNK_TRACE_URL" -value "$SPLUNK_TRACE_URL"
 
 $packageArgs = @{
     packageName    = $env:ChocolateyPackageName
@@ -203,7 +105,7 @@ elseif ($MODE -eq "gateway"){
     }
 }
 
-update_registry -path "$regkey" -name "SPLUNK_CONFIG" -value "$config_path"
+$env_vars["SPLUNK_CONFIG"] = "$config_path"
 
 # Install and configure fluentd to forward log events to the collector.
 if ($WITH_FLUENTD) {
@@ -215,6 +117,8 @@ if ($WITH_FLUENTD) {
         . $toolsDir\fluentd.ps1
     }
 }
+
+set_service_environment $service_name $env_vars
 
 # Try starting the service(s) only after all components were successfully installed and SPLUNK_ACCESS_TOKEN was found.
 if (!$SPLUNK_ACCESS_TOKEN) {

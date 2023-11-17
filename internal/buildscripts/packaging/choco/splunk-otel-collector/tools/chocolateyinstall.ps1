@@ -33,8 +33,39 @@ if ($WITH_FLUENTD) {
     check_policy
 }
 
-# Read splunk-otel-collector service Environment variables from the registry, if it exists.
+# Read splunk-otel-collector environment variables.
 $env_vars = @{}
+$env_var_names = @(
+    "SPLUNK_ACCESS_TOKEN",
+    "SPLUNK_REALM",
+    "SPLUNK_INGEST_URL",
+    "SPLUNK_API_URL",
+    "SPLUNK_HEC_TOKEN",
+    "SPLUNK_HEC_URL",
+    "SPLUNK_TRACE_URL",
+    "SPLUNK_MEMORY_TOTAL_MIB",
+    "SPLUNK_BUNDLE_DIR",
+    "SPLUNK_LISTEN_INTERFACE"
+)
+$upgraded_from_version_with_machine_wide_env_vars = $false
+
+# First check if any previous version of the collector is installed.
+$collector_package = Get-Package -Name "Splunk OpenTelemetry Collector" -ErrorAction SilentlyContinue
+if ($collector_package) {
+    # The package is already present, so this is an upgrade.
+    $installed_version = [Version]$collector_package.Version # Version for chocolatey doesn't include the prefilx 'v', this conversion is fine.
+    $last_version_with_machine_wide_env_vars = [Version]"0.88.0"
+    if ($installed_version -le $last_version_with_machine_wide_env_vars) {
+        $upgraded_from_version_with_machine_wide_env_vars = $true
+        foreach ($name in $env_var_names) {
+            $value = [Environment]::GetEnvironmentVariable($name, "Machine")
+            if ($value) {
+                $env_vars[$name] = "$value"
+            }
+        }
+    }
+}
+
 $regkey = Join-Path "HKLM:\SYSTEM\CurrentControlSet\Services" $service_name
 foreach ($entry in (Get-ItemPropertyValue -Path "$regkey" -Name "Environment" -ErrorAction SilentlyContinue)) {
     $k, $v = $entry.Split("=", 2)
@@ -74,6 +105,13 @@ try {
     remove_otel_registry_entries
 } catch {
     write-host "$_"
+}
+
+if ($upgraded_from_version_with_machine_wide_env_vars) {
+    # Remove the machine-wide environment variables that were set by previous versions of the collector.
+    foreach ($name in $env_var_names) {
+        [Environment]::SetEnvironmentVariable($name, $null, "Machine")
+    }
 }
 
 $packageArgs = @{

@@ -117,11 +117,11 @@ def run_distro_container(distro, arch="amd64", dockerfile=None, path=TESTS_DIR, 
         container.remove(force=True, v=True)
 
 
-def run_container_cmd(container, cmd, env=None, exit_code=0, timeout=None):
+def run_container_cmd(container, cmd, env=None, exit_code=0, timeout=None, user=''):
     if timeout:
         cmd = f"timeout {timeout} {cmd}"
     print(f"Running '{cmd}' ...")
-    code, output = container.exec_run(cmd, environment=env)
+    code, output = container.exec_run(cmd, environment=env, user=user)
     print(output.decode("utf-8"))
     if exit_code is not None:
         assert code == exit_code

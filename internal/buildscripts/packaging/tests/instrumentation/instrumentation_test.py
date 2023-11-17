@@ -140,9 +140,11 @@ def start_app(container, app, systemd, timeout=300):
     else:
         print(f"Starting {app} from a shell ...")
         if app == "tomcat":
-            run_container_cmd(container, "bash -c /usr/local/tomcat/bin/startup.sh", env=TOMCAT_ENV)
+            run_container_cmd(container, "bash -c /usr/local/tomcat/bin/startup.sh", env=TOMCAT_ENV, user='tomcat:tomcat')
         elif app == "express":
-            run_container_cmd(container, f"bash -l -c 'node /opt/express/app.js & echo $! > {EXPRESS_PIDFILE}'")
+            run_container_cmd(
+                container, f"bash -l -c 'node /opt/express/app.js & echo $! > {EXPRESS_PIDFILE}'", user='express:express',
+            )
 
     if app == "tomcat":
         print("Waiting for http://127.0.0.1:8080/sample ...")

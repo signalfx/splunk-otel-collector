@@ -3,12 +3,9 @@
 package config
 
 import (
-	"errors"
 	"fmt"
-	"net/url"
 	"path/filepath"
 	"runtime"
-	"strings"
 
 	"github.com/mitchellh/hashstructure"
 	log "github.com/sirupsen/logrus"
@@ -24,40 +21,49 @@ const (
 
 // Config is the top level config struct for configurations that are common to all platforms
 type Config struct {
+	// Deprecated: this setting has no effect and will be removed.
 	// The access token for the org that should receive the metrics emitted by
 	// the agent.
 	SignalFxAccessToken string `yaml:"signalFxAccessToken" neverLog:"true"`
+	// Deprecated: this setting has no effect and will be removed.
 	// The URL of SignalFx ingest server.  Should be overridden if using the
 	// SignalFx Gateway.  If not set, this will be determined by the
 	// `signalFxRealm` option below.  If you want to send trace spans to a
 	// different location, set the `traceEndpointUrl` option.  If you want to
 	// send events to a different location, set the `eventEndpointUrl` option.
 	IngestURL string `yaml:"ingestUrl"`
+	// Deprecated: this setting has no effect and will be removed.
 	// The full URL (including path) to the event ingest server.  If this is
 	// not set, all events will be sent to the same place as `ingestUrl`
 	// above.
 	EventEndpointURL string `yaml:"eventEndpointUrl"`
+	// Deprecated: this setting has no effect and will be removed.
 	// The full URL (including path) to the trace ingest server.  If this is
 	// not set, all trace spans will be sent to the same place as `ingestUrl`
 	// above.
 	TraceEndpointURL string `yaml:"traceEndpointUrl"`
+	// Deprecated: this setting has no effect and will be removed.
 	// The SignalFx API base URL.  If not set, this will determined by the
 	// `signalFxRealm` option below.
 	APIURL string `yaml:"apiUrl"`
+	// Deprecated: this setting has no effect and will be removed.
 	// The SignalFx Realm that the organization you want to send to is a part
 	// of.  This defaults to the original realm (`us0`) but if you are setting
 	// up the agent for the first time, you quite likely need to change this.
 	SignalFxRealm string `yaml:"signalFxRealm" default:"us0"`
+	// Deprecated: this setting has no effect and will be removed.
 	// The hostname that will be reported as the `host` dimension. If blank,
 	// this will be auto-determined by the agent based on a reverse lookup of
 	// the machine's IP address.
 	Hostname string `yaml:"hostname"`
+	// Deprecated: this setting has no effect and will be removed.
 	// If true (the default), and the `hostname` option is not set, the
 	// hostname will be determined by doing a reverse DNS query on the IP
 	// address that is returned by querying for the bare hostname.  This is
 	// useful in cases where the hostname reported by the kernel is a short
 	// name. (**default**: `true`)
 	UseFullyQualifiedHost *bool `yaml:"useFullyQualifiedHost" noDefault:"true"`
+	// Deprecated: this setting has no effect and will be removed.
 	// Our standard agent model is to collect metrics for services running on
 	// the same host as the agent.  Therefore, host-specific dimensions (e.g.
 	// `host`, `AWSUniqueId`, etc) are automatically added to every datapoint
@@ -65,17 +71,22 @@ type Config struct {
 	// using the agent primarily to monitor things on other hosts.  You can set
 	// this option at the monitor level as well.
 	DisableHostDimensions bool `yaml:"disableHostDimensions" default:"false"`
+	// Deprecated: this setting has no effect and will be removed.
 	// How often to send metrics to SignalFx.  Monitors can override this
 	// individually.
 	IntervalSeconds int `yaml:"intervalSeconds" default:"10"`
+	// Deprecated: this setting has no effect and will be removed.
 	// This flag sets the HTTP timeout duration for metadata queries from AWS, Azure and GCP.
 	// This should be a duration string that is accepted by https://golang.org/pkg/time/#ParseDuration
 	CloudMetadataTimeout timeutil.Duration `yaml:"cloudMetadataTimeout" default:"2s"`
+	// Deprecated: this setting has no effect and will be removed.
 	// Dimensions (key:value pairs) that will be added to every datapoint emitted by the agent.
 	// To specify that all metrics should be high-resolution, add the dimension `sf_hires: 1`
 	GlobalDimensions map[string]string `yaml:"globalDimensions" default:"{}"`
+	// Deprecated: this setting has no effect and will be removed.
 	// Tags (key:value pairs) that will be added to every span emitted by the agent.
 	GlobalSpanTags map[string]string `yaml:"globalSpanTags" default:"{}"`
+	// Deprecated: this setting has no effect and will be removed.
 	// The logical environment/cluster that this agent instance is running in.
 	// All of the services that this instance monitors should be in the same
 	// environment as well. This value, if provided, will be synced as a
@@ -83,38 +94,49 @@ type Config struct {
 	// dimensions (`AWSUniqueId`, `gcp_id`, and `azure_resource_id`) when
 	// available. Example values: "prod-usa", "dev"
 	Cluster string `yaml:"cluster"`
+	// Deprecated: this setting has no effect and will be removed.
 	// If true, force syncing of the `cluster` property on the `host` dimension,
 	// even when cloud-specific dimensions are present.
 	SyncClusterOnHostDimension bool `yaml:"syncClusterOnHostDimension"`
+	// Deprecated: this setting has no effect and will be removed.
 	// If true, a warning will be emitted if a discovery rule contains
 	// variables that will never possibly match a rule.  If using multiple
 	// observers, it is convenient to set this to false to suppress spurious
 	// errors.
 	ValidateDiscoveryRules *bool `yaml:"validateDiscoveryRules" default:"false"`
+	// Deprecated: this setting has no effect and will be removed.
 	// A list of observers to use (see observer config)
 	Observers []ObserverConfig `yaml:"observers" default:"[]"`
+	// Deprecated: this setting has no effect and will be removed.
 	// A list of monitors to use (see monitor config)
 	Monitors []MonitorConfig `yaml:"monitors" default:"[]"`
+	// Deprecated: this setting has no effect and will be removed.
 	// Configuration of the datapoint/event writer
 	Writer WriterConfig `yaml:"writer"`
+	// Deprecated: this setting has no effect and will be removed.
 	// Log configuration
 	Logging LogConfig `yaml:"logging" default:"{}"`
 	// Configuration of the managed collectd subprocess
 	Collectd CollectdConfig `yaml:"collectd" default:"{}"`
+	// Deprecated: this setting has no effect and will be removed.
 	// This must be unset or explicitly set to true. In prior versions of the
 	// agent, there was a filtering mechanism that relied heavily on an
 	// external whitelist.json file to determine which metrics were sent by
 	// default.  This is all inherent to the agent now and the old style of
 	// filtering is no longer available.
 	EnableBuiltInFiltering *bool `yaml:"enableBuiltInFiltering" default:"true"`
+	// Deprecated: this setting has no effect and will be removed.
 	// A list of metric filters that will include metrics.  These
 	// filters take priority over the filters specified in `metricsToExclude`.
 	MetricsToInclude []MetricFilter `yaml:"metricsToInclude" default:"[]"`
+	// Deprecated: this setting has no effect and will be removed.
 	// A list of metric filters
 	MetricsToExclude []MetricFilter `yaml:"metricsToExclude" default:"[]"`
+	// Deprecated: this setting has no effect and will be removed.
 	// A list of properties filters
 	PropertiesToExclude []PropertyFilterConfig `yaml:"propertiesToExclude" default:"[]"`
 
+	// Deprecated: this setting has no effect and will be removed.
 	// The host on which the internal status server will listen.  The internal
 	// status HTTP server serves internal metrics and diagnostic information
 	// about the agent and can be scraped by the `internal-metrics` monitor.
@@ -122,16 +144,19 @@ type Config struct {
 	// host.  If you set this to blank/null, the internal status server will
 	// not be started.  See `internalStatusPort`.
 	InternalStatusHost string `yaml:"internalStatusHost" default:"localhost"`
+	// Deprecated: this setting has no effect and will be removed.
 	// The port on which the internal status server will listen.  See
 	// `internalStatusHost`.
 	InternalStatusPort uint16 `yaml:"internalStatusPort" default:"8095"`
-
+	// Deprecated: this setting has no effect and will be removed.
 	// Enables Go pprof endpoint on port 6060 that serves profiling data for
 	// development
 	EnableProfiling bool `yaml:"profiling" default:"false"`
+	// Deprecated: this setting has no effect and will be removed.
 	// The host/ip address for the pprof profile server to listen on.
 	// `profiling` must be enabled for this to have any effect.
 	ProfilingHost string `yaml:"profilingHost" default:"127.0.0.1"`
+	// Deprecated: this setting has no effect and will be removed.
 	// The port for the pprof profile server to listen on. `profiling` must be
 	// enabled for this to have any effect.
 	ProfilingPort int `yaml:"profilingPort" default:"6060"`
@@ -142,6 +167,7 @@ type Config struct {
 	// This exists purely to give the user a place to put common yaml values to
 	// reference in other parts of the config file.
 	Scratch interface{} `yaml:"scratch" neverLog:"omit"`
+	// Deprecated: this setting has no effect and will be removed.
 	// Configuration of remote config stores
 	Sources sources.SourceConfig `yaml:"configSources"`
 	// Path to the host's `/proc` filesystem.
@@ -167,41 +193,14 @@ func (c *Config) validate() error {
 		return err
 	}
 
-	if c.EnableBuiltInFiltering != nil && !*c.EnableBuiltInFiltering {
-		return errors.New("enableBuiltInFiltering must be true or unset, false is no longer supported")
-	}
-
-	if _, err := url.Parse(c.IngestURL); err != nil {
-		return fmt.Errorf("%s is not a valid ingest URL: %v", c.IngestURL, err)
-	}
-
-	if _, err := url.Parse(c.APIURL); err != nil {
-		return fmt.Errorf("%s is not a valid API URL: %v", c.APIURL, err)
-	}
-
-	if _, err := url.Parse(c.EventEndpointURL); err != nil {
-		return fmt.Errorf("%s is not a valid event endpoint URL: %v", c.EventEndpointURL, err)
-	}
-
-	if c.TraceEndpointURL != "" {
-		if _, err := url.Parse(c.TraceEndpointURL); err != nil {
-			return fmt.Errorf("%s is not a valid trace endpoint URL: %v", c.TraceEndpointURL, err)
-		}
-	}
-
 	if err := c.Collectd.Validate(); err != nil {
 		return err
 	}
 
-	for i := range c.Monitors {
-		if err := c.Monitors[i].Validate(); err != nil {
-			return fmt.Errorf("monitor config for type '%s' is invalid: %v", c.Monitors[i].Type, err)
-		}
-	}
-
-	return c.Writer.Validate()
+	return nil
 }
 
+// Deprecated: this setting has no effect and will be removed.
 // LogConfig contains configuration related to logging
 type LogConfig struct {
 	// Valid levels include `debug`, `info`, `warn`, `error`.  Note that
@@ -213,37 +212,13 @@ type LogConfig struct {
 	// TODO: Support log file output and other log targets
 }
 
-// LogrusLevel returns a logrus log level based on the configured level in
-// LogConfig.
-func (lc *LogConfig) LogrusLevel() *log.Level {
-	if lc.Level != "" {
-		level, err := log.ParseLevel(lc.Level)
-		if err != nil {
-			log.WithFields(log.Fields{
-				"level": lc.Level,
-			}).Error("Invalid log level")
-			return nil
-		}
-		return &level
-	}
-	return nil
-}
-
-// LogrusFormatter returns the formatter to use based on the config
-func (lc *LogConfig) LogrusFormatter() log.Formatter {
-	switch lc.Format {
-	case "json":
-		return &log.JSONFormatter{}
-	default:
-		return &log.TextFormatter{}
-	}
-}
-
 // CollectdConfig high-level configurations
 type CollectdConfig struct {
+	// Deprecated: this setting has no effect and will be removed.
 	// If you won't be using any collectd monitors, this can be set to true to
 	// prevent collectd from pre-initializing
 	DisableCollectd bool `yaml:"disableCollectd" default:"false"`
+	// Deprecated: this setting has no effect and will be removed.
 	// How many read intervals before abandoning a metric. Doesn't affect much
 	// in normal usage.
 	// See [Timeout](https://collectd.org/documentation/manpages/collectd.conf.5.shtml#timeout_iterations).
@@ -266,6 +241,7 @@ type CollectdConfig struct {
 	// begin being randomly dropped.  See
 	// [WriteQueueLimitLow](https://collectd.org/documentation/manpages/collectd.conf.5.shtml#writequeuelimitlow_lownum)
 	WriteQueueLimitLow int `yaml:"writeQueueLimitLow" default:"400000"`
+	// Deprecated: this setting has no effect and will be removed.
 	// Collectd's log level -- info, notice, warning, or err
 	LogLevel string `yaml:"logLevel" default:"notice"`
 	// A default read interval for collectd plugins.  If zero or undefined,
@@ -300,13 +276,6 @@ type CollectdConfig struct {
 
 // Validate the collectd specific config
 func (cc *CollectdConfig) Validate() error {
-	switch cc.LogLevel {
-	case "debug", "info", "notice", "warning", "err":
-	default:
-		return fmt.Errorf("invalid collectd log level %s, valid choices are \"debug\", \"info\", \"notice\", \"warning\", \"err\"",
-			cc.LogLevel)
-	}
-
 	return nil
 }
 
@@ -343,21 +312,18 @@ func (cc *CollectdConfig) ManagedConfigDir() string {
 	return filepath.Join(cc.InstanceConfigDir(), "managed_config")
 }
 
+// Deprecated: no longer in use.
 // StoreConfig holds configuration related to config stores (e.g. filesystem,
 // zookeeper, etc)
 type StoreConfig struct {
 	OtherConfig map[string]interface{} `yaml:",inline,omitempty" default:"{}"`
 }
 
+// Deprecated: no longer in use.
 // ExtraConfig returns generic config as a map
 func (sc *StoreConfig) ExtraConfig() map[string]interface{} {
 	return sc.OtherConfig
 }
-
-var (
-	// EnvReplacer replaces . and - with _
-	EnvReplacer = strings.NewReplacer(".", "_", "-", "_")
-)
 
 // BundlePythonHomeEnvvar returns an envvar string that sets the PYTHONHOME envvar to
 // the bundled Python runtime.  It is in a form that is ready to append to

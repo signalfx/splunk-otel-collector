@@ -594,7 +594,7 @@ if ($config_path -Eq "") {
     }
 }
 
-@collector_env_vars = @{
+$collector_env_vars = @{
     "SPLUNK_ACCESS_TOKEN"     = "$access_token";
     "SPLUNK_API_URL"          = "$api_url";
     "SPLUNK_BUNDLE_DIR"       = "$bundle_dir";
@@ -607,11 +607,11 @@ if ($config_path -Eq "") {
     "SPLUNK_TRACE_URL"        = "$trace_url";
 }
 if ($network_interface -Ne "") {
-    @collector_env_vars.Add("SPLUNK_LISTEN_INTERFACE", "$network_interface")
+    $collector_env_vars.Add("SPLUNK_LISTEN_INTERFACE", "$network_interface")
 }
 
 # set the environment variables for the collector service
-set_service_environment $service_name @collector_env_vars
+set_service_environment $service_name $collector_env_vars
 
 $message = "
 The Splunk OpenTelemetry Collector for Windows has been successfully installed.

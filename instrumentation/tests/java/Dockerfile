@@ -6,8 +6,6 @@ COPY Main.java .
 RUN javac Main.java && \
     jar cfe Main.jar Main Main.class
 
-RUN mkdir -p /etc/splunk/zerconfig
-
 COPY zeroconfig.conf /etc/splunk/zeroconfig/java.conf
 
 CMD java -jar Main.jar

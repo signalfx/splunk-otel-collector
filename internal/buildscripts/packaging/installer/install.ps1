@@ -420,6 +420,20 @@ function update_registry([string]$path, [string]$name, [string]$value) {
     Set-ItemProperty -path "$path" -name "$name" -value "$value"
 }
 
+function set_service_environment([string]$service_name, [hashtable]$env_vars) {
+    # Transform the $env_vars to an array of strings so the Set-ItemProperty correctly create the
+    # 'Environment' REG_MULTI_SZ value.
+    [string []] $multi_sz_value = ($env_vars.Keys | foreach-object { "$_=$($env_vars[$_])" })
+
+    $target_service_reg_key = Join-Path "HKLM:\SYSTEM\CurrentControlSet\Services" $service_name
+    if (Test-Path $target_service_reg_key) {
+        Set-ItemProperty $target_service_reg_key -Name "Environment" -Value $multi_sz_value
+    }
+    else {
+        throw "Invalid service '$service_name'. Registry key '$target_service_reg_key' doesn't exist."
+    }
+}
+
 function install_msi([string]$path) {
     Write-Host "Installing $path ..."
     $startTime = Get-Date
@@ -580,19 +594,24 @@ if ($config_path -Eq "") {
     }
 }
 
-update_registry -path "$regkey" -name "SPLUNK_ACCESS_TOKEN" -value "$access_token"
-update_registry -path "$regkey" -name "SPLUNK_API_URL" -value "$api_url"
-update_registry -path "$regkey" -name "SPLUNK_BUNDLE_DIR" -value "$bundle_dir"
-update_registry -path "$regkey" -name "SPLUNK_CONFIG" -value "$config_path"
-update_registry -path "$regkey" -name "SPLUNK_HEC_TOKEN" -value "$hec_token"
-update_registry -path "$regkey" -name "SPLUNK_HEC_URL" -value "$hec_url"
-update_registry -path "$regkey" -name "SPLUNK_INGEST_URL" -value "$ingest_url"
-update_registry -path "$regkey" -name "SPLUNK_MEMORY_TOTAL_MIB" -value "$memory"
-if ($network_interface -Ne "") {
-  update_registry -path "$regkey" -name "SPLUNK_LISTEN_INTERFACE" -value "$network_interface"
+@collector_env_vars = @{
+    "SPLUNK_ACCESS_TOKEN"     = "$access_token";
+    "SPLUNK_API_URL"          = "$api_url";
+    "SPLUNK_BUNDLE_DIR"       = "$bundle_dir";
+    "SPLUNK_CONFIG"           = "$config_path";
+    "SPLUNK_HEC_TOKEN"        = "$hec_token";
+    "SPLUNK_HEC_URL"          = "$hec_url";
+    "SPLUNK_INGEST_URL"       = "$ingest_url";
+    "SPLUNK_MEMORY_TOTAL_MIB" = "$memory";
+    "SPLUNK_REALM"            = "$realm";
+    "SPLUNK_TRACE_URL"        = "$trace_url";
 }
-update_registry -path "$regkey" -name "SPLUNK_REALM" -value "$realm"
-update_registry -path "$regkey" -name "SPLUNK_TRACE_URL" -value "$trace_url"
+if ($network_interface -Ne "") {
+    @collector_env_vars.Add("SPLUNK_LISTEN_INTERFACE", "$network_interface")
+}
+
+# set the environment variables for the collector service
+set_service_environment $service_name @collector_env_vars
 
 $message = "
 The Splunk OpenTelemetry Collector for Windows has been successfully installed.

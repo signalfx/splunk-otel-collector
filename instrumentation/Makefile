@@ -70,7 +70,11 @@ docker-run:
 	docker run --rm -it -v `pwd`:/instr instr-devel
 
 .PHONY: tests
-tests: test-java test-nodejs
+tests: test-java test-nodejs test-dotnet
+
+.PHONY: test-dotnet
+test-dotnet: dist
+	(cd tests/dotnet && ARCH=$(ARCH) ./test.sh)
 
 .PHONY: test-java
 test-java: dist

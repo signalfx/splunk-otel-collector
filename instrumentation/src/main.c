@@ -11,10 +11,11 @@
 static char *const allowed_env_vars[] = {ALLOWED_ENV_VARS};
 static size_t const allowed_env_vars_size = sizeof(allowed_env_vars) / sizeof(*allowed_env_vars);
 
+#define DOTNET_ENV_VAR_FILE "/etc/splunk/zeroconfig/dotnet.conf"
 #define JAVA_ENV_VAR_FILE "/etc/splunk/zeroconfig/java.conf"
 #define NODEJS_ENV_VAR_FILE "/etc/splunk/zeroconfig/node.conf"
 
-// TODO change to systemd drop in file paths
+static char *const env_var_file_dotnet = DOTNET_ENV_VAR_FILE;
 static char *const env_var_file_java = JAVA_ENV_VAR_FILE;
 static char *const env_var_file_node = NODEJS_ENV_VAR_FILE;
 
@@ -23,7 +24,9 @@ extern char *program_invocation_short_name;
 // The entry point for all executables prior to their execution.
 void __attribute__((constructor)) enter() {
     char *env_var_file;
-    if (strcmp("java", program_invocation_short_name) == 0) {
+    if (strcmp("dotnet", program_invocation_short_name) == 0) {
+        env_var_file = env_var_file_dotnet;
+    } else if (strcmp("java", program_invocation_short_name) == 0) {
         env_var_file = env_var_file_java;
     } else if (strcmp("node", program_invocation_short_name) == 0) {
         env_var_file = env_var_file_node;

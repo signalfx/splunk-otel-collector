@@ -35,7 +35,6 @@ if ($WITH_FLUENTD) {
 
 # Read splunk-otel-collector service Environment variables from the registry, if it exists.
 $env_vars = @{}
-$service_name = "splunk-otel-collector"
 $regkey = Join-Path "HKLM:\SYSTEM\CurrentControlSet\Services" $service_name
 foreach ($entry in (Get-ItemPropertyValue -Path "$regkey" -Name "Environment" -ErrorAction SilentlyContinue)) {
     $k, $v = $entry.Split("=", 2)
@@ -121,11 +120,13 @@ if ($WITH_FLUENTD) {
 set_service_environment $service_name $env_vars
 
 # Try starting the service(s) only after all components were successfully installed and SPLUNK_ACCESS_TOKEN was found.
-if (!$SPLUNK_ACCESS_TOKEN) {
+if (!$env_vars["SPLUNK_ACCESS_TOKEN"]) {
     write-host ""
     write-host "*NOTICE*: SPLUNK_ACCESS_TOKEN was not specified as an installation parameter and not found in the Windows Registry."
     write-host "This is required for the default configuration to reach Splunk Observability Cloud and can be configured with:"
-    write-host "  PS> Set-ItemProperty -path `"HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment`" -name `"SPLUNK_ACCESS_TOKEN`" -value `"ACTUAL_ACCESS_TOKEN`""
+    write-host '  PS> $values = Get-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -Name "Environment" | Select-Object -ExpandProperty Environment'
+    write-host '  PS> $values += "SPLUNK_ACCESS_TOKEN=<your_access_token>"'
+    write-host '  PS> Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -Name $propertyName -Value $values -Type MultiString'
     write-host "before starting the $service_name service with:"
     write-host "  PS> Start-Service -Name `"${service_name}`""
     if ($WITH_FLUENTD) {

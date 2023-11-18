@@ -687,6 +687,7 @@ if ($with_dotnet_instrumentation) {
     echo "Installing SignalFx Dotnet Auto Instrumentation..."
     Install-SignalFxDotnet
 
+    $regkey = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
     if ($deployment_env -ne "") {
         echo "Setting SIGNALFX_ENV environment variable to $deployment_env ..."
         update_registry -path "$regkey" -name "SIGNALFX_ENV" -value "$deployment_env"

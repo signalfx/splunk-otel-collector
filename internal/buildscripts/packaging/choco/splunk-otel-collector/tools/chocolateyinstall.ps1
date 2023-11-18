@@ -70,11 +70,17 @@ if ($installed_collector) {
     }
 }
 
-Write-Host "Getting service level environment variables..."
-$regkey = Join-Path "HKLM:\SYSTEM\CurrentControlSet\Services" $service_name
-foreach ($entry in (Get-ItemPropertyValue -Path "$regkey" -Name "Environment" -ErrorAction SilentlyContinue)) {
-    $k, $v = $entry.Split("=", 2)
-    $env_vars[$k] = $v
+$reg_path = Join-Path "HKLM:\SYSTEM\CurrentControlSet\Services" $service_name
+if (Test-Path $reg_path) {
+    Write-Host "Service registry entry key found: $reg_path"
+    $previous_environment = Get-ItemProperty $reg_path -Name "Environment" -ErrorAction SilentlyContinue
+    if ($previous_environment) {
+        Write-Host "Found previous environment variables for the $service_name service."
+        foreach ($entry in $previous_environment) {
+            $k, $v = $entry.Split("=", 2)
+            $env_vars[$k] = $v
+        }
+    }
 }
 
 # Use default values if package parameters not set

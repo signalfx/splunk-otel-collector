@@ -15,6 +15,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// Deprecated: this setting has no effect and will be removed.
 // WriterConfig holds configuration for the datapoint writer.
 type WriterConfig struct {
 	// The maximum number of datapoints to include in a batch before sending the

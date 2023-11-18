@@ -160,6 +160,7 @@ function set_env_var_value_from_package_params([hashtable] $env_vars, [hashtable
 }
 
 function set_service_environment([string]$service_name, [hashtable]$env_vars) {
+    Write-Host "Setting environment variables for the $service_name service..."
     # Transform the $env_vars to an array of strings so the Set-ItemProperty correctly create the
     # 'Environment' REG_MULTI_SZ value.
     [string []] $multi_sz_value = ($env_vars.Keys | foreach-object { "$_=$($env_vars[$_])" })
@@ -171,11 +172,6 @@ function set_service_environment([string]$service_name, [hashtable]$env_vars) {
     else {
         throw "Invalid service '$service_name'. Registry key '$target_service_reg_key' doesn't exist."
     }
-}
-
-function update_registry([string]$path, [string]$name, [string]$value) {
-    write-host "Updating $path for $name..."
-    Set-ItemProperty -path "$path" -name "$name" -value "$value"
 }
 
 # check that we're not running with a restricted execution policy

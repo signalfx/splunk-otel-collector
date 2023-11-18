@@ -49,14 +49,15 @@ $env_var_names = @(
 )
 $upgraded_from_version_with_machine_wide_env_vars = $false
 
+Write-Host "Checking for previous installation..."
 # First check if any previous version of the collector is installed.
 $installed_collector = Get-ItemProperty "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*" -ErrorAction SilentlyContinue |
     Where-Object { $_.DisplayName -eq "Splunk OpenTelemetry Collector" }
 if ($installed_collector) {
     # The package is already present, so this is an upgrade.
     $installed_version = [Version]$installed_collector.DisplayVersion # Version for chocolatey doesn't include the prefilx 'v', this conversion is fine.
-    $last_version_with_machine_wide_env_vars = [Version]"0.88.0"
-    if ($installed_version -le $last_version_with_machine_wide_env_vars) {
+    $first_version_with_service_env_vars = [Version]"0.89.0.0"
+    if ($installed_version -lt $first_version_with_service_env_vars) {
         $upgraded_from_version_with_machine_wide_env_vars = $true
         foreach ($name in $env_var_names) {
             $value = [Environment]::GetEnvironmentVariable($name, "Machine")
@@ -74,6 +75,7 @@ foreach ($entry in (Get-ItemPropertyValue -Path "$regkey" -Name "Environment" -E
 }
 
 # Use default values if package parameters not set
+Write-Host "Setting default values for missing parameters..."
 $access_token = $pp["SPLUNK_ACCESS_TOKEN"]
 if ($access_token) {
     $env_vars["SPLUNK_ACCESS_TOKEN"] = "$access_token" # Env. var values are always strings

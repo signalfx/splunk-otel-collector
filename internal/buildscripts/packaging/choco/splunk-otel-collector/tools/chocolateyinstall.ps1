@@ -55,10 +55,12 @@ $installed_collector = Get-ItemProperty "HKLM:\Software\Microsoft\Windows\Curren
     Where-Object { $_.DisplayName -eq "Splunk OpenTelemetry Collector" }
 if ($installed_collector) {
     # The package is already present, so this is an upgrade.
+    Write-Host "Found a previous installation..."
     $installed_version = [Version]$installed_collector.DisplayVersion # Version for chocolatey doesn't include the prefilx 'v', this conversion is fine.
     $first_version_with_service_env_vars = [Version]"0.89.0.0"
     if ($installed_version -lt $first_version_with_service_env_vars) {
         $upgraded_from_version_with_machine_wide_env_vars = $true
+        Write-Host "Getting machine wide environment variables..."
         foreach ($name in $env_var_names) {
             $value = [Environment]::GetEnvironmentVariable($name, "Machine")
             if ($value) {
@@ -68,6 +70,7 @@ if ($installed_collector) {
     }
 }
 
+Write-Host "Getting service level environment variables..."
 $regkey = Join-Path "HKLM:\SYSTEM\CurrentControlSet\Services" $service_name
 foreach ($entry in (Get-ItemPropertyValue -Path "$regkey" -Name "Environment" -ErrorAction SilentlyContinue)) {
     $k, $v = $entry.Split("=", 2)

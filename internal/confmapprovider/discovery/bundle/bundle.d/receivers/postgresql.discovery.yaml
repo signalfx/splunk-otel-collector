@@ -2,39 +2,22 @@
 #                               Do not edit manually!                               #
 # All changes must be made to associated .tmpl file before running 'make bundle.d'. #
 #####################################################################################
-smartagent/postgresql:
+postgresql:
   enabled: true
   rule:
     docker_observer: type == "container" and any([name, image, command], {# matches "(?i)postgres"}) and not (command matches "splunk.discovery")
     host_observer: type == "hostport" and command matches "(?i)postgres" and not (command matches "splunk.discovery")
     k8s_observer: type == "port" and pod.name matches "(?i)postgres"
   config:
-    default:
-      type: postgresql
-      connectionString: 'sslmode=disable user={{.username}} password={{.password}}'
-      params:
-        username: splunk.discovery.default
-        password: splunk.discovery.default
-      masterDBName: splunk.discovery.default
+    default: {}
   status:
     metrics:
       successful:
-        - strict: postgres_query_count
+        - strict: postgresql.commits
           first_only: true
           log_record:
             severity_text: info
             body: PostgreSQL receiver is working!
-      partial:
-        - strict: postgres_rows_inserted
-          first_only: true
-          log_record:
-            severity_text: info
-            body: >-
-              Make sure that
-              `CREATE EXTENSION IF NOT EXISTS pg_stat_statements;`
-              has been run for each database you would like to monitor.
-              For example:
-              `psql --dbname "<db-name>" -c "CREATE EXTENSION IF NOT EXISTS pg_stat_statements;"`
     statements:
       failed:
         - regexp: 'connect: network is unreachable'
@@ -57,10 +40,10 @@ smartagent/postgresql:
             append_pattern: true
             body: >-
               Please ensure your user credentials are correctly specified with
-              `--set splunk.discovery.receivers.smartagent/postgresql.config.params::username="<username>"` and
-              `--set splunk.discovery.receivers.smartagent/postgresql.config.params::password="<password>"` or
-              `SPLUNK_DISCOVERY_RECEIVERS_smartagent_x2f_postgresql_CONFIG_params_x3a__x3a_username="<username>"` and
-              `SPLUNK_DISCOVERY_RECEIVERS_smartagent_x2f_postgresql_CONFIG_params_x3a__x3a_password="<password>"` environment variables.
+              `--set splunk.discovery.receivers.postgresql.config.params::username="<username>"` and
+              `--set splunk.discovery.receivers.postgresql.config.params::password="<password>"` or
+              `SPLUNK_DISCOVERY_RECEIVERS_postgresql_CONFIG_params_x3a__x3a_username="<username>"` and
+              `SPLUNK_DISCOVERY_RECEIVERS_postgresql_CONFIG_params_x3a__x3a_password="<password>"` environment variables.
         - regexp: 'pq: database .* does not exist'
           first_only: true
           log_record:
@@ -68,8 +51,17 @@ smartagent/postgresql:
             append_pattern: true
             body: >-
               Make sure the target database is correctly specified using the
-              `--set splunk.discovery.receivers.smartagent/postgresql.config.masterDBName="<db>"` command or the
-              `SPLUNK_DISCOVERY_RECEIVERS_smartagent_x2f_postgresql_CONFIG_masterDBName="<db>"` environment variable.
+              `--set splunk.discovery.receivers.postgresql.config.databases="[<db>]"` command or the
+              `SPLUNK_DISCOVERY_RECEIVERS_postgresql_CONFIG_daatabases="[<db>]"` environment variable.
+        - regexp: 'pq: SSL is not enabled on the server'
+          first_only: true
+          log_record:
+            severity_text: info
+            append_pattern: true
+            body: >-
+              Make sure the target database has SSL enabled or set insecure using the
+              `--set splunk.discovery.receivers.postgresql.config.tls::insecure="<boolean>"` command or the
+              `SPLUNK_DISCOVERY_RECEIVERS_postgresql_CONFIG_tls_x3a__x3a_insecure="<boolean>"` environment variable.
         - regexp: 'pq: pg_stat_statements must be loaded via shared_preload_libraries'
           first_only: true
           log_record:

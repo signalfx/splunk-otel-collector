@@ -1,36 +1,19 @@
-{{ receiver "smartagent/postgresql" }}:
+{{ receiver "postgresql" }}:
   enabled: true
   rule:
     docker_observer: type == "container" and any([name, image, command], {# matches "(?i)postgres"}) and not (command matches "splunk.discovery")
     host_observer: type == "hostport" and command matches "(?i)postgres" and not (command matches "splunk.discovery")
     k8s_observer: type == "port" and pod.name matches "(?i)postgres"
   config:
-    default:
-      type: postgresql
-      connectionString: 'sslmode=disable user={{ "{{.username}}" }} password={{ "{{.password}}" }}'
-      params:
-        username: {{ defaultValue }}
-        password: {{ defaultValue }}
-      masterDBName: {{ defaultValue }}
+    default: {}
   status:
     metrics:
       successful:
-        - strict: postgres_query_count
+        - strict: postgresql.commits
           first_only: true
           log_record:
             severity_text: info
             body: PostgreSQL receiver is working!
-      partial:
-        - strict: postgres_rows_inserted
-          first_only: true
-          log_record:
-            severity_text: info
-            body: >-
-              Make sure that
-              `CREATE EXTENSION IF NOT EXISTS pg_stat_statements;`
-              has been run for each database you would like to monitor.
-              For example:
-              `psql --dbname "<db-name>" -c "CREATE EXTENSION IF NOT EXISTS pg_stat_statements;"`
     statements:
       failed:
         - regexp: 'connect: network is unreachable'
@@ -64,8 +47,17 @@
             append_pattern: true
             body: >-
               Make sure the target database is correctly specified using the
-              `--set {{ configProperty "masterDBName" "<db>" }}` command or the
-              `{{ configPropertyEnvVar "masterDBName" "<db>" }}` environment variable.
+              `--set {{ configProperty "databases" "[<db>]" }}` command or the
+              `{{ configPropertyEnvVar "daatabases" "[<db>]" }}` environment variable.
+        - regexp: 'pq: SSL is not enabled on the server'
+          first_only: true
+          log_record:
+            severity_text: info
+            append_pattern: true
+            body: >-
+              Make sure the target database has SSL enabled or set insecure using the
+              `--set {{ configProperty "tls::insecure" "<boolean>" }}` command or the
+              `{{ configPropertyEnvVar "tls::insecure" "<boolean>" }}` environment variable.
         - regexp: 'pq: pg_stat_statements must be loaded via shared_preload_libraries'
           first_only: true
           log_record:

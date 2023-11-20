@@ -27,8 +27,8 @@ import (
 	"go.opentelemetry.io/collector/confmap/confmaptest"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	otelcolreceiver "go.opentelemetry.io/collector/receiver"
-	"go.opentelemetry.io/otel/metric/noop"
-	"go.opentelemetry.io/otel/trace"
+	mnoop "go.opentelemetry.io/otel/metric/noop"
+	tnoop "go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/zap"
 )
 
@@ -49,8 +49,8 @@ func TestCreateReceiver(t *testing.T) {
 		otelcolreceiver.CreateSettings{
 			TelemetrySettings: component.TelemetrySettings{
 				Logger:         zap.NewNop(),
-				MeterProvider:  noop.NewMeterProvider(),
-				TracerProvider: trace.NewNoopTracerProvider(),
+				MeterProvider:  mnoop.NewMeterProvider(),
+				TracerProvider: tnoop.NewTracerProvider(),
 			},
 		},
 		createDefaultConfig(),

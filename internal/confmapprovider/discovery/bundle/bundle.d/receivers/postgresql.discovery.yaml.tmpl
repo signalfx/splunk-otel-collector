@@ -36,10 +36,10 @@
             append_pattern: true
             body: >-
               Please ensure your user credentials are correctly specified with
-              `--set {{ configProperty "params" "username" "<username>" }}` and
-              `--set {{ configProperty "params" "password" "<password>" }}` or
-              `{{ configPropertyEnvVar "params" "username" "<username>" }}` and
-              `{{ configPropertyEnvVar "params" "password" "<password>" }}` environment variables.
+              `--set {{ configProperty "username" "<username>" }}` and
+              `--set {{ configProperty "password" "<password>" }}` or
+              `{{ configPropertyEnvVar "username" "<username>" }}` and
+              `{{ configPropertyEnvVar "password" "<password>" }}` environment variables.
         - regexp: 'pq: database .* does not exist'
           first_only: true
           log_record:
@@ -48,7 +48,7 @@
             body: >-
               Make sure the target database is correctly specified using the
               `--set {{ configProperty "databases" "[<db>]" }}` command or the
-              `{{ configPropertyEnvVar "daatabases" "[<db>]" }}` environment variable.
+              `{{ configPropertyEnvVar "databases" "[<db>]" }}` environment variable.
         - regexp: 'pq: SSL is not enabled on the server'
           first_only: true
           log_record:

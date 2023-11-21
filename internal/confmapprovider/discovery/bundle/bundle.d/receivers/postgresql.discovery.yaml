@@ -40,10 +40,10 @@ postgresql:
             append_pattern: true
             body: >-
               Please ensure your user credentials are correctly specified with
-              `--set splunk.discovery.receivers.postgresql.config.params::username="<username>"` and
-              `--set splunk.discovery.receivers.postgresql.config.params::password="<password>"` or
-              `SPLUNK_DISCOVERY_RECEIVERS_postgresql_CONFIG_params_x3a__x3a_username="<username>"` and
-              `SPLUNK_DISCOVERY_RECEIVERS_postgresql_CONFIG_params_x3a__x3a_password="<password>"` environment variables.
+              `--set splunk.discovery.receivers.postgresql.config.username="<username>"` and
+              `--set splunk.discovery.receivers.postgresql.config.password="<password>"` or
+              `SPLUNK_DISCOVERY_RECEIVERS_postgresql_CONFIG_username="<username>"` and
+              `SPLUNK_DISCOVERY_RECEIVERS_postgresql_CONFIG_password="<password>"` environment variables.
         - regexp: 'pq: database .* does not exist'
           first_only: true
           log_record:
@@ -52,7 +52,7 @@ postgresql:
             body: >-
               Make sure the target database is correctly specified using the
               `--set splunk.discovery.receivers.postgresql.config.databases="[<db>]"` command or the
-              `SPLUNK_DISCOVERY_RECEIVERS_postgresql_CONFIG_daatabases="[<db>]"` environment variable.
+              `SPLUNK_DISCOVERY_RECEIVERS_postgresql_CONFIG_databases="[<db>]"` environment variable.
         - regexp: 'pq: SSL is not enabled on the server'
           first_only: true
           log_record:

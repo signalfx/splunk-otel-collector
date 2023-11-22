@@ -120,6 +120,8 @@ func TestSmartAgentConfigProvider(t *testing.T) {
 
 	require.Equal(t, func() saconfig.CollectdConfig {
 		return saconfig.CollectdConfig{
+			Timeout:              40,
+			LogLevel:             "notice",
 			ReadThreads:          1,
 			WriteThreads:         4,
 			WriteQueueLimitHigh:  5,
@@ -154,6 +156,8 @@ func defaultConfig() Config {
 			RunPath:   "/run",
 			SysPath:   "/sys",
 			Collectd: saconfig.CollectdConfig{
+				Timeout:              40,
+				LogLevel:             "notice",
 				ReadThreads:          5,
 				WriteThreads:         2,
 				WriteQueueLimitHigh:  500000,

@@ -218,11 +218,10 @@ type CollectdConfig struct {
 	// If you won't be using any collectd monitors, this can be set to true to
 	// prevent collectd from pre-initializing
 	DisableCollectd bool `yaml:"disableCollectd" default:"false"`
-	// Deprecated: this setting has no effect and will be removed.
 	// How many read intervals before abandoning a metric. Doesn't affect much
 	// in normal usage.
 	// See [Timeout](https://collectd.org/documentation/manpages/collectd.conf.5.shtml#timeout_iterations).
-	Timeout int `yaml:"timeout"`
+	Timeout int `yaml:"timeout" default:"40"`
 	// Number of threads dedicated to executing read callbacks. See
 	// [ReadThreads](https://collectd.org/documentation/manpages/collectd.conf.5.shtml#readthreads_num)
 	ReadThreads int `yaml:"readThreads" default:"5"`
@@ -241,9 +240,8 @@ type CollectdConfig struct {
 	// begin being randomly dropped.  See
 	// [WriteQueueLimitLow](https://collectd.org/documentation/manpages/collectd.conf.5.shtml#writequeuelimitlow_lownum)
 	WriteQueueLimitLow int `yaml:"writeQueueLimitLow" default:"400000"`
-	// Deprecated: this setting has no effect and will be removed.
 	// Collectd's log level -- info, notice, warning, or err
-	LogLevel string `yaml:"logLevel"`
+	LogLevel string `yaml:"logLevel" default:"notice"`
 	// A default read interval for collectd plugins.  If zero or undefined,
 	// will default to the global agent interval.  Some collectd python
 	// monitors do not support overridding the interval at the monitor level,

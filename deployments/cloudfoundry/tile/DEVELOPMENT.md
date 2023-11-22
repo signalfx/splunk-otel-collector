@@ -54,7 +54,7 @@ splunk_access_token: <ACCESS_TOKEN>
 splunk_realm: us0
 otel_proxy_http: ""
 otel_proxy_https: ""
-otel_proxy_no: ""
+otel_proxy_exclusions: ""
 splunk_api_url: ""
 splunk_ingest_url: ""
 ```

@@ -52,7 +52,7 @@ func main() {
 
 	i := 0
 	for {
-		e := client.Store(context.Background(), getWriteRequest(cfg, i))
+		e := client.Store(context.Background(), getWriteRequest(cfg, i), 0)
 		if e != nil {
 			fmt.Println(e)
 		}

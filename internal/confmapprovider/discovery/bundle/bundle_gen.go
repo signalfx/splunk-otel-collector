@@ -19,6 +19,8 @@
 // TODO: add a pre-bundle.d step that generates these generate directives for easier maintenance/management across platforms
 //go:generate go install github.com/signalfx/splunk-otel-collector/internal/confmapprovider/discovery/bundle/cmd/discoverybundler
 
+//go:generate discoverybundler -r -t bundle.d/receivers/smartagent-postgresql.discovery.yaml.tmpl
+//go:generate discoverybundler -r -c -d ../../../../cmd/otelcol/config/collector/config.d.linux/receivers -t bundle.d/receivers/smartagent-postgresql.discovery.yaml.tmpl
 //go:generate discoverybundler -r -t bundle.d/receivers/smartagent-collectd-mysql.discovery.yaml.tmpl
 //go:generate discoverybundler -r -c -d ../../../../cmd/otelcol/config/collector/config.d.linux/receivers -t bundle.d/receivers/smartagent-collectd-mysql.discovery.yaml.tmpl
 //go:generate discoverybundler -r -t bundle.d/receivers/smartagent-collectd-nginx.discovery.yaml.tmpl

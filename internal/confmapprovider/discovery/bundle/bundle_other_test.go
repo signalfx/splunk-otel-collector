@@ -32,6 +32,7 @@ func TestBundleDir(t *testing.T) {
 		"bundle.d/receivers/redis.discovery.yaml",
 		"bundle.d/receivers/smartagent-collectd-mysql.discovery.yaml",
 		"bundle.d/receivers/smartagent-collectd-nginx.discovery.yaml",
+		"bundle.d/receivers/smartagent-postgresql.discovery.yaml",
 	}, receivers)
 
 	extensions, err := fs.Glob(BundledFS, "bundle.d/extensions/*.discovery.yaml")

@@ -30,4 +30,5 @@ import (
 //go:embed bundle.d/receivers/oracledb.discovery.yaml
 //go:embed bundle.d/receivers/postgresql.discovery.yaml
 //go:embed bundle.d/receivers/redis.discovery.yaml
+//go:embed bundle.d/receivers/smartagent-postgresql.discovery.yaml
 var BundledFS embed.FS

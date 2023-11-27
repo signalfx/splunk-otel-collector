@@ -22,7 +22,7 @@
         <dependency>
             <groupId>com.signalfx.public</groupId>
             <artifactId>signalfx-protoc</artifactId>
-            <version>1.0.36</version>
+            <version>1.0.37</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>

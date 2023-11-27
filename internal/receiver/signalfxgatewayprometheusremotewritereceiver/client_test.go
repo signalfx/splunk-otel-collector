@@ -68,7 +68,7 @@ func (prwc *mockPrwClient) sendWriteRequest(wr *prompb.WriteRequest) error {
 	defer cancel()
 	retry := 10
 	for retry > 0 {
-		err = prwc.Client.Store(ctx, compressed)
+		err = prwc.Client.Store(ctx, compressed, 0)
 		if nil == err {
 			return nil
 		}

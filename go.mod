@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/alecthomas/participle/v2 v2.1.0
-	github.com/antonmedv/expr v1.15.3
+	github.com/antonmedv/expr v1.15.5
 	github.com/cenkalti/backoff/v4 v4.2.1
 	github.com/fsnotify/fsnotify v1.7.0
 	github.com/go-zookeeper/zk v1.0.3

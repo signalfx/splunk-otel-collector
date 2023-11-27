@@ -17,6 +17,10 @@
 - Support setting the OTLP exporter endpoint for auto instrumentation (default: `http://127.0.0.1:4317`). Only
   applicable if `splunk_otel_auto_instrumentation_version` is `latest` or >= `0.87.0`.
 
+### 🧰 Bug fixes 🧰
+
+- Ensure loop variables for Windows tasks are defined
+
 ## ansible-v0.23.0
 
 ### 💡 Enhancements 💡

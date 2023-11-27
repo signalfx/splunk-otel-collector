@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### 🛑 Breaking changes 🛑
+
+- (Splunk) On Windows the `SPLUNK_*` environment variables were moved from the machine scope to the collector service scope.
+It is possible that some instrumentations are relying on the machine-wide environment variables set by the installation. ([#3930](https://github.com/signalfx/splunk-otel-collector/pull/3930))
+
 ## v0.88.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.88.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.88.0) and the [opentelemetry-collector-contrib v0.88.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.88.0) releases where appropriate.

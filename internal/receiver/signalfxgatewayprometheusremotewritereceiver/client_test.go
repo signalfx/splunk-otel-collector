@@ -66,14 +66,14 @@ func (prwc *mockPrwClient) sendWriteRequest(wr *prompb.WriteRequest) error {
 
 	ctx, cancel := context.WithTimeout(context.Background(), prwc.Timeout)
 	defer cancel()
-	retry := 10
-	for retry > 0 {
-		err = prwc.Client.Store(ctx, compressed, 0)
+	retry, attempt := 10, 0
+	for attempt < retry {
+		err = prwc.Client.Store(ctx, compressed, attempt)
 		if nil == err {
 			return nil
 		}
 		if errors.Is(err, syscall.ECONNREFUSED) {
-			retry--
+			attempt++
 			time.Sleep(2 * time.Second)
 		} else {
 			return err

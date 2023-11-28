@@ -30,8 +30,8 @@ func TestProcessList(t *testing.T) {
 			unknownStatusProcesses = append(unknownStatusProcesses, p)
 		}
 	}
-	assert.GreaterOrEqual(t, len(runningProcesses), 1)
-	assert.GreaterOrEqual(t, len(waitingProcesses), 1)
+	assert.NotEmpty(t, runningProcesses)
+	assert.NotEmpty(t, waitingProcesses)
 	assert.Empty(t, unknownStatusProcesses)
 
 	t.Logf("Running processes:")

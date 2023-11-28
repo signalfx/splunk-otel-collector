@@ -63,7 +63,7 @@
 - (Contrib) `receiver/hostmetrics`: Fix panic on load_scraper_windows shutdown ([#28678](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/28678))
 - (Contrib) `splunkhecreceiver`: Do not encode JSON response objects as string. ([#27604](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27604))
 - (Contrib) `processor/k8sattributes`: Set attributes from namespace/node labels or annotations even if node/namespaces name attribute are not set. ([#28837](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/28837))
-- (Contrib) `pkg/stanza`: Fix data-corruption/race-condition issue in udp async (reuse of buffer); use buffer pool isntead. (#27613)
+- (Contrib) `pkg/stanza`: Fix data-corruption/race-condition issue in udp async (reuse of buffer); use buffer pool instead. (#27613)
 - (Contrib) `zipkinreceiver`: Return BadRequest in case of permanent errors ([#4335](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/4335))
 - (Core) `exporterhelper`: fix bug with queue size and capacity metrics ([#8682](https://github.com/open-telemetry/opentelemetry-collector/issues/8682))
 

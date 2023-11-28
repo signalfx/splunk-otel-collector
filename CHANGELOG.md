@@ -28,6 +28,7 @@
 
 ### 💡 Enhancements 💡
 
+-  (Splunk) `receiver/mongodbreceiver`: Adds mongobdreceiver in Splunk collector distro ([#3979](https://github.com/signalfx/splunk-otel-collector/pull/3979/))
 - (Contrib) `processor/tailsampling`: adds optional upper bound duration for sampling ([#26115](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/26115))
 - (Contrib) `collectdreceiver`: Add support of confighttp.HTTPServerSettings ([#28811](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/28811))
 - (Contrib) `collectdreceiver`: Promote collectdreceiver as beta component ([#28658](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/28658))

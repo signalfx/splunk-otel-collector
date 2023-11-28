@@ -5,8 +5,8 @@ package processlist
 
 import (
 	"fmt"
-	"time"
 	"strconv"
+	"time"
 
 	"github.com/StackExchange/wmi"
 	"github.com/shirou/gopsutil/v3/mem"

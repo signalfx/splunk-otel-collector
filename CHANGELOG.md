@@ -2,6 +2,8 @@
 
 ## v0.89.0
 
+### 🛑 Breaking changes 🛑
+
 - (Contrib) `pkg/stanza`/`receiver/windowseventlog`: Improve parsing of Windows Event XML by handling anonymous `Data` elements. ([#21491](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/21491))  
   This improves the contents of Windows log events for which the publisher manifest is unavailable. Previously, anonymous `Data` elements were ignored. This is a breaking change for users who were relying on the previous data format.
 
@@ -50,7 +52,6 @@
 - (Contrib) `spanmetricsconnector`: Add exemplars to sum metric ([#27451](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27451))
 - (Core) `service/extensions`: Allow extensions to declare dependencies on other extensions and guarantee start/stop/notification order accordingly. ([#8732](https://github.com/open-telemetry/opentelemetry-collector/issues/8732))
 - (Core) `exporterhelper`: Log export errors when retry is not used by the component. ([#8791](https://github.com/open-telemetry/opentelemetry-collector/issues/8791))
-
 
 ### 🧰 Bug fixes 🧰
 

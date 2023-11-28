@@ -170,6 +170,7 @@ require (
 	github.com/minio/c2goasm v0.0.0-20190812172519-36a3d3bbc4f3 // indirect
 	github.com/moby/patternmatcher v0.6.0 // indirect
 	github.com/moby/sys/sequential v0.5.0 // indirect
+	github.com/montanaflynn/stats v0.7.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/collectd v0.89.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/kafka v0.89.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchpersignal v0.89.0 // indirect
@@ -191,6 +192,7 @@ require (
 	github.com/twmb/murmur3 v1.1.7 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
 	github.com/zeebo/xxh3 v1.0.2 // indirect
+	go.mongodb.org/mongo-driver v1.13.0 // indirect
 	go.opentelemetry.io/collector v0.89.0 // indirect
 	go.opentelemetry.io/collector/config/configauth v0.89.0 // indirect
 	go.opentelemetry.io/collector/config/configcompression v0.89.0 // indirect

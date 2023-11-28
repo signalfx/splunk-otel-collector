@@ -21,13 +21,15 @@ echo "$OUTPUT" | grep "SPLUNK_METRICS_ENABLED=abcd" > /dev/null && echo "Test pa
 echo "Test presence of ANOTHER_VAR"
 echo "$OUTPUT" | grep "ANOTHER_VAR=foo" > /dev/null && echo "Test passes"  || exit 1
 echo "Test absence of FOO"
-echo "$OUTPUT" | grep -v "FOO" > /dev/null && echo "Test passes"  || exit 1
+[[ ! "$OUTPUT" =~ FOO ]] && echo "Test passes"  || exit 1
 echo "Test absence of OTEL_EXPORTER_OTLP_ENDPOINT"
-echo "$OUTPUT" | grep -v "OTEL_EXPORTER_OTLP_ENDPOINT" > /dev/null && echo "Test passes"  || exit 1
+[[ ! "$OUTPUT" =~ OTEL_EXPORTER_OTLP_ENDPOINT ]] && echo "Test passes"  || exit 1
 
 # Check we didn't inject env vars into processes outside of dotnet.
 OUTPUT_BASH=$(docker run --platform linux/${arch} --rm zeroconfig-test-dotnet /usr/bin/env)
 echo "======= BASH OUTPUT ========"
 echo "$OUTPUT_BASH"
 echo "============================"
-echo "$OUTPUT_BASH" | grep -v "OTEL_RESOURCE_ATTRIBUTES" | grep -v "OTEL_SERVICE_NAME" | grep -v "SPLUNK_METRICS_ENABLED" > /dev/null && echo "Test passes"  || exit 1
+[[ ! "$OUTPUT_BASH" =~ OTEL_RESOURCE_ATTRIBUTES ]] && echo "Test passes"  || exit 1
+[[ ! "$OUTPUT_BASH" =~ SPLUNK_METRICS_ENABLED ]] && echo "Test passes"  || exit 1
+

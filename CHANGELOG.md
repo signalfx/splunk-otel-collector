@@ -2,16 +2,16 @@
 
 ## v0.89.0
 
-- (Contrib) `pkg/stanza`/`receiver/windowseventlog``: Improve parsing of Windows Event XML by handling anonymous `Data` elements. ([#21491](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/21491))
+- (Contrib) `pkg/stanza`/`receiver/windowseventlog`: Improve parsing of Windows Event XML by handling anonymous `Data` elements. ([#21491](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/21491))  
   This improves the contents of Windows log events for which the publisher manifest is unavailable. Previously, anonymous `Data` elements were ignored. This is a breaking change for users who were relying on the previous data format.
 
-- (Contrib) `processor/k8sattributes`: Graduate "k8sattr.rfc3339" feature gate to Beta. ([#28817](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/28817))
+- (Contrib) `processor/k8sattributes`: Graduate "k8sattr.rfc3339" feature gate to Beta. ([#28817](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/28817))  
   Time format of `k8s.pod.start_time` attribute value migrated from RFC3339:
   Before: 2023-07-10 12:34:39.740638 -0700 PDT m=+0.020184946
   After: 2023-07-10T12:39:53.112485-07:00
   The feature gate can be temporary reverted back by adding `--feature-gate=-k8sattr.rfc3339` to the command line.
 
-- (Contrib) `receiver/filelogreceiver`: Change "Started watching file" log behavior ([#28491](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/28491))
+- (Contrib) `receiver/filelogreceiver`: Change "Started watching file" log behavior ([#28491](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/28491))  
   Previously, every unique file path which was found by the receiver would be remembered indefinitely.
   This list was kept independently of the uniqueness / checkpointing mechanism (which does not rely on the file path).
   The purpose of this list was to allow us to emit a log whenever a path was seen for the first time.

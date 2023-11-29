@@ -333,7 +333,6 @@ func TestSmartAgentConfigProviderOverrides(t *testing.T) {
 		return false
 	}())
 	require.Equal(t, saconfig.CollectdConfig{
-		DisableCollectd:      false,
 		Timeout:              10,
 		ReadThreads:          1,
 		WriteThreads:         4,

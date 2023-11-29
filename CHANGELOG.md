@@ -56,6 +56,7 @@
 
 ### 🧰 Bug fixes 🧰
 
+- (Splunk) `smartagent/processlist`: Reduce CPU usage when collecting process information on Windows ([#3980](https://github.com/signalfx/splunk-otel-collector/pull/3980))
 - (Contrib) `filelogreceiver`: Fix issue where counting number of logs emitted could cause panic ([#27469](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27469), [#29107](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29107))
 - (Contrib) `kafkareceiver`: Fix issue where counting number of logs emitted could cause panic ([#27469](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27469), [#29107](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29107))
 - (Contrib) `k8sobjectsreceiver`: Fix issue where counting number of logs emitted could cause panic ([#27469](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27469), [#29107](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29107))

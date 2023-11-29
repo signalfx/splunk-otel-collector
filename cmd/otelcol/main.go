@@ -48,11 +48,6 @@ func main() {
 		log.Fatalf(`invalid settings detected: %v. Use "--help" to show valid usage`, err)
 	}
 
-	factories, err := components.Get()
-	if err != nil {
-		log.Fatalf("failed to build default components: %v", err)
-	}
-
 	info := component.BuildInfo{
 		Command: "otelcol",
 		Version: version.Version,
@@ -85,7 +80,7 @@ func main() {
 
 	serviceSettings := otelcol.CollectorSettings{
 		BuildInfo:      info,
-		Factories:      factories,
+		Factories:      components.Get,
 		ConfigProvider: serviceConfigProvider,
 	}
 

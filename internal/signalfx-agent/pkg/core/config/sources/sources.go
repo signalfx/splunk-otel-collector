@@ -36,7 +36,7 @@ type SourceConfig struct {
 	// main disadvantage of watching is slightly greater network and compute
 	// resource usage. This option is not itself watched for changes. If you
 	// change the value of this option, you must restart the agent.
-	Watch *bool `yaml:"watch" default:"true"`
+	Watch *bool `yaml:"watch"`
 	// Whether to watch remote config sources for changes.  If this is `true`
 	// and the remote configs changes, the agent will dynamically reconfigure
 	// itself with minimal disruption.
@@ -45,9 +45,9 @@ type SourceConfig struct {
 	// main disadvantage of watching is slightly greater network and compute
 	// resource usage. This option is not itself watched for changes. If you
 	// change the value of this option, you must restart the agent.
-	RemoteWatch *bool `yaml:"remoteWatch" default:"true"`
+	RemoteWatch *bool `yaml:"remoteWatch"`
 	// Configuration for other file sources
-	File file.Config `yaml:"file" default:"{}"`
+	File file.Config `yaml:"file"`
 	// Configuration for a Zookeeper remote config source
 	Zookeeper *zookeeper.Config `yaml:"zookeeper"`
 	// Configuration for an Etcd 2 remote config source

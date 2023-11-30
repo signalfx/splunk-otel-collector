@@ -87,7 +87,7 @@ createTempDir() {
 #######################################
 checkCommands() {
     echo "INFO: Checking for commands..."
-    for EXE in systemctl journalctl curl wget pgrep; do
+    for EXE in systemctl journalctl wget pgrep; do
       if ! command -v $EXE &> /dev/null; then
           echo "WARN: $EXE could not be found."
           echo "      Please install to capture full support bundle."
@@ -125,8 +125,8 @@ getConfig() {
     # Also need to get config in memory as dynamic config may modify stored config
     # It's possible user has disabled collecting in memory config
     if timeout 1 bash -c 'cat < /dev/null > /dev/tcp/localhost/55554'; then
-        curl -s http://localhost:55554/debug/configz/initial >"$TMPDIR"/config/initial.yaml 2>&1
-        curl -s http://localhost:55554/debug/configz/effective >"$TMPDIR"/config/effective.yaml 2>&1
+        wget -q http://localhost:55554/debug/configz/initial -O "$TMPDIR"/config/initial.yaml 2>&1
+        wget -q http://localhost:55554/debug/configz/effective -O "$TMPDIR"/config/effective.yaml 2>&1
     else
         echo "WARN: localhost:55554 unavailable so in memory configuration not collected"
     fi
@@ -176,7 +176,7 @@ getMetrics() {
     echo "INFO: Getting metric information..."
     # It's possible user has disabled prometheus receiver in metrics pipeline
     if timeout 1 bash -c 'cat < /dev/null > /dev/tcp/localhost/8888'; then
-        curl -s http://localhost:8888/metrics >"$TMPDIR"/metrics/collector-metrics.txt 2>&1
+        wget -q http://localhost:8888/metrics -O "$TMPDIR"/metrics/collector-metrics.txt 2>&1
     else
         echo "WARN: localhost:8888/metrics unavailable so metrics not collected"
     fi
@@ -193,7 +193,7 @@ getZpages() {
     echo "INFO: Getting zpages information..."
     # It's possible user has disabled zpages extension
     if timeout 1 bash -c 'cat < /dev/null > /dev/tcp/localhost/55679'; then
-        curl -s http://localhost:55679/debug/tracez >"$TMPDIR"/zpages/tracez.html 2>&1
+        wget -q http://localhost:55679/debug/tracez -O "$TMPDIR"/zpages/tracez.html 2>&1
         # Recursively get pages to see output of samples
         wget -q -r -np -l 1 -P "$TMPDIR/zpages" http://localhost:55679/debug/tracez
     else

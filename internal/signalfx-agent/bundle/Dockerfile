@@ -325,7 +325,7 @@ RUN find /usr/local/lib/python3.11 -wholename "*test*.key" -delete -or -wholenam
 FROM base as extra-packages
 
 RUN apt-get install -qq -y \
-        curl \
+        wget \
         host \
         iproute2 \
         netcat \
@@ -352,7 +352,7 @@ ENV useful_bins=" \
   /bin/ss \
   /bin/tar \
   /bin/umount \
-  /usr/bin/curl \
+  /usr/bin/wget \
   /usr/bin/dirname \
   /usr/bin/find \
   /usr/bin/host \

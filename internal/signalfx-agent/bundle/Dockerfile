@@ -23,7 +23,7 @@ ARG DOCKER_REPO=docker.io
 
 
 ######## Base image for subsequent stages ########
-FROM ${DOCKER_REPO}/ubuntu:18.04 as base
+FROM ${DOCKER_REPO}/ubuntu:20.04 as base
 
 ARG ARCH
 ENV DEBIAN_FRONTEND noninteractive
@@ -109,7 +109,6 @@ RUN apt-get install -qq -y \
       flex \
       gcc \
       git-core \
-      iptables-dev \
       libatasmart-dev \
       libcurl4-openssl-dev \
       libdbi0-dev \
@@ -120,8 +119,9 @@ RUN apt-get install -qq -y \
       libexpat1-dev \
       libffi-dev \
       libganglia1-dev \
-      libgcrypt11-dev \
+      libgcrypt20-dev \
       libglib2.0-dev \
+      libiptc-dev \
       libldap2-dev \
       libltdl-dev \
       libmemcached-dev \
@@ -134,11 +134,10 @@ RUN apt-get install -qq -y \
       libpcap-dev \
       libperl-dev \
       libpq-dev \
-      libprotobuf-c0-dev \
+      libprotobuf-c-dev \
       librabbitmq-dev \
       librdkafka-dev \
       librrd-dev \
-      libsensors4-dev \
       libsnmp-dev \
       libssl-dev \
       libtool \
@@ -192,6 +191,15 @@ RUN cd /tmp &&\
 
 RUN rm -rf /tmp/patchelf*
 
+# Ubuntu 20.04 only provides lm-sensors 3.6, but collectd 5.8 needs lm-sensors 3.4.
+RUN cd /tmp &&\
+    wget -O lm-sensors.tar.gz https://github.com/lm-sensors/lm-sensors/archive/refs/tags/V3-4-0.tar.gz &&\
+    tar -xf lm-sensors.tar.gz &&\
+    cd lm-sensors-3-4-0 &&\
+    make install PREFIX=/usr &&\
+    cd /tmp &&\
+    rm -rf lm-sensors*
+
 RUN cd /tmp &&\
     wget -nv https://github.com/signalfx/collectd/archive/${COLLECTD_COMMIT}.tar.gz &&\
     tar -xzf ${COLLECTD_COMMIT}.tar.gz &&\
@@ -208,7 +216,7 @@ COPY --from=java /opt/root/jdk/ /opt/root/jdk/
 WORKDIR /usr/src/collectd
 
 ARG extra_cflags="-O2"
-ENV CFLAGS "-Wno-deprecated-declarations -Wno-format-truncation -fPIC $extra_cflags"
+ENV CFLAGS "-Wno-error -fPIC $extra_cflags"
 ENV CXXFLAGS $CFLAGS
 ENV JAVA_HOME /opt/root/jdk
 
@@ -271,7 +279,7 @@ RUN /opt/collect-libs /opt/deps /usr/sbin/collectd /usr/lib/collectd/
 
 # For some reason libvarnishapi doesn't properly depend on libm, so make it
 # right.
-RUN patchelf --add-needed libm-2.23.so /opt/deps/libvarnishapi.so.1.0.6
+RUN patchelf --add-needed libm-2.31.so /opt/deps/libvarnishapi.so.2.0.0
 
 
 ######## Python Plugin Image ########
@@ -400,7 +408,7 @@ COPY --from=collectd /usr/local/bin/patchelf /bin/
 # Pull in the Linux dynamic link loader at a fixed path across all
 # architectures.  Binaries will later be patched to use this interpreter
 # natively.
-COPY --from=extra-packages /lib/*-linux-gnu/ld-2.27.so /bin/ld-linux.so
+COPY --from=extra-packages /lib/*-linux-gnu/ld-2.31.so /bin/ld-linux.so
 
 # Java dependencies
 COPY --from=extra-packages /opt/root/jre/ /jre

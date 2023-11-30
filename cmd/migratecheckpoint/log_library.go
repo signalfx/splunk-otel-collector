@@ -30,8 +30,8 @@ type Fingerprint struct {
 
 type Reader struct {
 	Fingerprint    *Fingerprint
-	Offset         int64
 	FileAttributes map[string]any
+	Offset         int64
 }
 
 type journaldCursor struct {

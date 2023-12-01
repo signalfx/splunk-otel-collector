@@ -19,21 +19,14 @@ import (
 	"path"
 	"path/filepath"
 	"testing"
-	"time"
 
 	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
-	"github.com/signalfx/signalfx-agent/pkg/core/config/sources"
-	"github.com/signalfx/signalfx-agent/pkg/core/config/sources/file"
-	"github.com/signalfx/signalfx-agent/pkg/utils/timeutil"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
 	"go.opentelemetry.io/collector/extension"
 )
-
-var tru = true
-var flse = false
 
 func TestLoadConfig(t *testing.T) {
 	cfg, err := confmaptest.LoadConf(path.Join(".", "testdata", "config.yaml"))
@@ -70,12 +63,10 @@ func TestLoadConfig(t *testing.T) {
 		c.VarPath = "/my_var"
 		c.RunPath = "/my_run"
 		c.SysPath = "/my_sys"
-		c.Collectd.Timeout = 10
 		c.Collectd.ReadThreads = 1
 		c.Collectd.WriteThreads = 4
 		c.Collectd.WriteQueueLimitHigh = 5
 		c.Collectd.WriteQueueLimitLow = 1
-		c.Collectd.LogLevel = "info"
 		c.Collectd.IntervalSeconds = 5
 		c.Collectd.WriteServerIPAddr = "10.100.12.1"
 		c.Collectd.WriteServerPort = 9090
@@ -96,7 +87,6 @@ func TestLoadConfig(t *testing.T) {
 	require.Equal(t, func() *Config {
 		c := defaultConfig()
 		c.BundleDir = "/opt/"
-		c.Collectd.Timeout = 10
 		c.Collectd.ReadThreads = 1
 		c.Collectd.WriteThreads = 4
 		c.Collectd.WriteQueueLimitHigh = 5
@@ -130,12 +120,12 @@ func TestSmartAgentConfigProvider(t *testing.T) {
 
 	require.Equal(t, func() saconfig.CollectdConfig {
 		return saconfig.CollectdConfig{
-			Timeout:              10,
+			Timeout:              40,
+			LogLevel:             "notice",
 			ReadThreads:          1,
 			WriteThreads:         4,
 			WriteQueueLimitHigh:  5,
 			WriteQueueLimitLow:   1,
-			LogLevel:             "info",
 			IntervalSeconds:      5,
 			WriteServerIPAddr:    "10.100.12.1",
 			WriteServerPort:      9090,
@@ -159,88 +149,25 @@ func TestLoadInvalidConfig(t *testing.T) {
 func defaultConfig() Config {
 	return Config{
 		Config: saconfig.Config{
-			BundleDir:              bundleDir,
-			SignalFxRealm:          "us0",
-			IntervalSeconds:        10,
-			CloudMetadataTimeout:   timeutil.Duration(2 * time.Second),
-			GlobalDimensions:       map[string]string{},
-			GlobalSpanTags:         map[string]string{},
-			ValidateDiscoveryRules: &flse,
-			Observers:              []saconfig.ObserverConfig{},
-			Monitors:               []saconfig.MonitorConfig{},
-			EnableBuiltInFiltering: &tru,
-			InternalStatusHost:     "localhost",
-			InternalStatusPort:     8095,
-			ProfilingHost:          "127.0.0.1",
-			ProfilingPort:          6060,
-			ProcPath:               "/proc",
-			EtcPath:                "/etc",
-			VarPath:                "/var",
-			RunPath:                "/run",
-			SysPath:                "/sys",
+			BundleDir: bundleDir,
+			ProcPath:  "/proc",
+			EtcPath:   "/etc",
+			VarPath:   "/var",
+			RunPath:   "/run",
+			SysPath:   "/sys",
 			Collectd: saconfig.CollectdConfig{
 				Timeout:              40,
+				LogLevel:             "notice",
 				ReadThreads:          5,
 				WriteThreads:         2,
 				WriteQueueLimitHigh:  500000,
 				WriteQueueLimitLow:   400000,
-				LogLevel:             "notice",
 				IntervalSeconds:      10,
 				WriteServerIPAddr:    "127.9.8.7",
 				WriteServerPort:      0,
 				ConfigDir:            filepath.Join(bundleDir, "run", "collectd"),
 				BundleDir:            bundleDir,
 				HasGenericJMXMonitor: false,
-			},
-			Writer: saconfig.WriterConfig{
-				DatapointMaxBatchSize:                 1000,
-				MaxDatapointsBuffered:                 25000,
-				TraceSpanMaxBatchSize:                 1000,
-				TraceExportFormat:                     "zipkin",
-				MaxRequests:                           10,
-				Timeout:                               timeutil.Duration(5 * time.Second),
-				EventSendIntervalSeconds:              1,
-				PropertiesMaxRequests:                 20,
-				PropertiesMaxBuffered:                 10000,
-				PropertiesSendDelaySeconds:            30,
-				PropertiesHistorySize:                 10000,
-				LogTraceSpans:                         false,
-				LogDimensionUpdates:                   false,
-				LogDroppedDatapoints:                  false,
-				SendTraceHostCorrelationMetrics:       &tru,
-				StaleServiceTimeout:                   timeutil.Duration(5 * time.Minute),
-				TraceHostCorrelationPurgeInterval:     timeutil.Duration(1 * time.Minute),
-				TraceHostCorrelationMetricsInterval:   timeutil.Duration(1 * time.Minute),
-				TraceHostCorrelationMaxRequestRetries: 2,
-				MaxTraceSpansInFlight:                 100000,
-				Splunk:                                nil,
-				SignalFxEnabled:                       &tru,
-				ExtraHeaders:                          nil,
-				HostIDDims:                            nil,
-				IngestURL:                             "",
-				APIURL:                                "",
-				EventEndpointURL:                      "",
-				TraceEndpointURL:                      "",
-				SignalFxAccessToken:                   "",
-				GlobalDimensions:                      nil,
-				GlobalSpanTags:                        nil,
-				MetricsToInclude:                      nil,
-				MetricsToExclude:                      nil,
-				PropertiesToExclude:                   nil,
-			},
-			Logging: saconfig.LogConfig{
-				Level:  "info",
-				Format: "text",
-			},
-			PropertiesToExclude: []saconfig.PropertyFilterConfig{},
-			MetricsToExclude:    []saconfig.MetricFilter{},
-			MetricsToInclude:    []saconfig.MetricFilter{},
-			Sources: sources.SourceConfig{
-				Watch: &tru,
-				File: file.Config{
-					PollRateSeconds: 5,
-				},
-				RemoteWatch: &tru,
 			},
 		},
 	}

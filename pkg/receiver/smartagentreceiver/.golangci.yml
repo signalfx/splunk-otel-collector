@@ -1,0 +1,6 @@
+run:
+  timeout: 5m
+issues:
+  exclude-rules:
+    - path: output.go
+      text: 'SA1019: host.GetExporters is deprecated'

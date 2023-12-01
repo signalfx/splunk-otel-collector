@@ -18,7 +18,7 @@ type Config struct {
 	// files than rely on that.
 	// This option is not subject to watching and changes to it will require an
 	// agent restart.
-	PollRateSeconds int `yaml:"pollRateSeconds" default:"5"`
+	PollRateSeconds int `yaml:"pollRateSeconds"`
 }
 
 // New creates a new file remote config source from the target config

@@ -31,8 +31,8 @@ import (
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
-	"go.opentelemetry.io/otel/metric/noop"
-	"go.opentelemetry.io/otel/trace"
+	mnoop "go.opentelemetry.io/otel/metric/noop"
+	tnoop "go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils/telemetry"
@@ -98,8 +98,8 @@ func (otlp OTLPReceiverSink) Build() (*OTLPReceiverSink, error) {
 	params := receiver.CreateSettings{
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         otlp.Logger,
-			MeterProvider:  noop.NewMeterProvider(),
-			TracerProvider: trace.NewNoopTracerProvider(),
+			MeterProvider:  mnoop.NewMeterProvider(),
+			TracerProvider: tnoop.NewTracerProvider(),
 			ReportComponentStatus: func(*component.StatusEvent) error {
 				return nil
 			},

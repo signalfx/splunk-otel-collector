@@ -1,4 +1,4 @@
-> The official Splunk documentation for this page is [Components](https://docs.splunk.com/Observability/gdi/opentelemetry/components.html). 
+> The official Splunk documentation for this page is [Components](https://docs.splunk.com/Observability/gdi/opentelemetry/components.html).
 > For instructions on how to contribute to the docs, see [CONTRIBUTING.md](../CONTRIBUTING.md#documentation).
 
 # Components
@@ -16,7 +16,7 @@ The distribution offers support for the following components.
 | [azureeventhub](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/azureeventhubreceiver)             | [alpha]          |
 | [carbon](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/carbonreceiver)                           | [alpha]          |
 | [cloudfoundry](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/cloudfoundryreceiver)               | [beta]           |
-| [collectd](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/collectdreceiver)                       | [alpha]          |
+| [collectd](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/collectdreceiver)                       | [beta]          |
 | [databricks](../internal/receiver/databricksreceiver)                                                                                   | [alpha]          |
 | [discovery](../internal/receiver/discoveryreceiver)                                                                                     | [in development] |
 | [filelog](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/filelogreceiver)                         | [beta]           |

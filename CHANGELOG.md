@@ -1,5 +1,75 @@
 # Changelog
 
+## v0.89.0
+
+### 🛑 Breaking changes 🛑
+
+- (Contrib) `pkg/stanza`/`receiver/windowseventlog`: Improve parsing of Windows Event XML by handling anonymous `Data` elements. ([#21491](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/21491))  
+  This improves the contents of Windows log events for which the publisher manifest is unavailable. Previously, anonymous `Data` elements were ignored. This is a breaking change for users who were relying on the previous data format.
+
+- (Contrib) `processor/k8sattributes`: Graduate "k8sattr.rfc3339" feature gate to Beta. ([#28817](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/28817))  
+  Time format of `k8s.pod.start_time` attribute value migrated from RFC3339:
+  Before: 2023-07-10 12:34:39.740638 -0700 PDT m=+0.020184946
+  After: 2023-07-10T12:39:53.112485-07:00
+  The feature gate can be temporary reverted back by adding `--feature-gate=-k8sattr.rfc3339` to the command line.
+
+- (Contrib) `receiver/filelogreceiver`: Change "Started watching file" log behavior ([#28491](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/28491))  
+  Previously, every unique file path which was found by the receiver would be remembered indefinitely.
+  This list was kept independently of the uniqueness / checkpointing mechanism (which does not rely on the file path).
+  The purpose of this list was to allow us to emit a log whenever a path was seen for the first time.
+  This removes the separate list and relies instead on the same mechanism as checkpointing. Now, a similar log is emitted
+  any time a file is found which is not currently checkpointed. Because the checkpointing mechanism does not maintain history
+  indefinitely, it is now possible that a log will be emitted for the same file path. This will happen when no file exists at
+  the path for a period of time.
+
+### 🚩 Deprecations 🚩
+
+- (Contrib) `postgresqlreceiver`: Deprecation of postgresql replication lag metrics `postgresql.wal.lag` in favor of more precise 'postgresql.wal.delay' ([#26714](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/26714))
+
+### 💡 Enhancements 💡
+
+- (Splunk) `receiver/mongodbreceiver`: Adds mongobdreceiver in Splunk collector distro ([#3979](https://github.com/signalfx/splunk-otel-collector/pull/3979/))
+- (Contrib) `processor/tailsampling`: adds optional upper bound duration for sampling ([#26115](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/26115))
+- (Contrib) `collectdreceiver`: Add support of confighttp.HTTPServerSettings ([#28811](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/28811))
+- (Contrib) `collectdreceiver`: Promote collectdreceiver as beta component ([#28658](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/28658))
+- (Contrib) `receiver/hostmetricsreceiver`: Added support for host's cpuinfo frequnecies. ([#27445](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27445))
+  In Linux the current frequency is populated using the values from /proc/cpuinfo. An os specific implementation will be needed for Windows and others.
+- (Contrib) `receiver/hostmetrics/scrapers/process`: add configuration option to mute `error reading username for process` ([#14311](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/14311), [#17187](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/17187))
+- (Contrib) `azureevenhubreceiver`: Allow the Consumer Group to be set in the Configuration. ([#28633](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/28633))
+- (Contrib) `spanmetricsconnector`: Add Events metric to span metrics connector that adds list of event attributes as dimensions ([#27451](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27451))
+- (Contrib) `processor/k8sattribute`: support adding labels and annotations from node ([#22620](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/22620))
+- (Contrib) `windowseventlogreceiver`: Add parsing for Security and Execution event fields. ([#27810](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27810))
+- (Contrib) `filelogreceiver`: Add the ability to order files by mtime, to only read the most recently modified files ([#27812](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27812))
+- (Contrib) `wavefrontreceiver`: Wrap metrics receiver under carbon receiver instead of using export function ([#27248](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27248))
+- (Contrib) `pkg/ottl`: Add IsBool function into OTTL ([#27897](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27897))
+- (Contrib) `k8sclusterreceiver`: add k8s.node.condition metric ([#27617](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27617))
+- (Contrib) `kafkaexporter`/`kafkametricsreceiver`/`kafkareceiver`: Expose resolve_canonical_bootstrap_servers_only config ([#26022](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/26022))
+- (Contrib) `receiver/mongodbatlasreceiver`: Enhanced collector logs to include more information about the MongoDB Atlas API calls being made during logs retrieval. ([#28851](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/28851))
+- (Contrib) `receiver/mongodbatlasreceiver`: emit resource attributes "`mongodb_atlas.region.name`" and "`mongodb_atlas.provider.name`" on metric scrape. ([#28833](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/28833))
+- (Contrib) `processor/resourcedetection`: Add `processor.resourcedetection.hostCPUModelAndFamilyAsString` feature gate to change the type of `host.cpu.family` and `host.cpu.model.id` attributes from `int` to `string`. ([#29025](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29025))
+  This feature gate will graduate to beta in the next release.
+- (Contrib) `processor/tailsampling`: Optimize performance of tailsamplingprocessor ([#27889](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27889))
+- (Contrib) `redisreceiver`: include server.address and server.port resource attributes ([#22044](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/22044))
+- (Contrib) `spanmetricsconnector`: Add exemplars to sum metric ([#27451](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27451))
+- (Core) `service/extensions`: Allow extensions to declare dependencies on other extensions and guarantee start/stop/notification order accordingly. ([#8732](https://github.com/open-telemetry/opentelemetry-collector/issues/8732))
+- (Core) `exporterhelper`: Log export errors when retry is not used by the component. ([#8791](https://github.com/open-telemetry/opentelemetry-collector/issues/8791))
+
+### 🧰 Bug fixes 🧰
+
+- (Splunk) `smartagent/processlist`: Reduce CPU usage when collecting process information on Windows ([#3980](https://github.com/signalfx/splunk-otel-collector/pull/3980))
+- (Contrib) `filelogreceiver`: Fix issue where counting number of logs emitted could cause panic ([#27469](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27469), [#29107](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29107))
+- (Contrib) `kafkareceiver`: Fix issue where counting number of logs emitted could cause panic ([#27469](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27469), [#29107](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29107))
+- (Contrib) `k8sobjectsreceiver`: Fix issue where counting number of logs emitted could cause panic ([#27469](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27469), [#29107](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29107))
+- (Contrib) `fluentforwardreceiver`: Fix issue where counting number of logs emitted could cause panic ([#27469](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27469), [#29107](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29107))
+- (Contrib) `azureeventhubreceiver`: Updated documentation around Azure Metric to OTel mapping. ([#28622](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/28622))
+- (Contrib) `receiver/hostmetrics`: Fix panic on load_scraper_windows shutdown ([#28678](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/28678))
+- (Contrib) `splunkhecreceiver`: Do not encode JSON response objects as string. ([#27604](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27604))
+- (Contrib) `processor/k8sattributes`: Set attributes from namespace/node labels or annotations even if node/namespaces name attribute are not set. ([#28837](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/28837))
+- (Contrib) `pkg/stanza`: Fix data-corruption/race-condition issue in udp async (reuse of buffer); use buffer pool instead. (#27613)
+- (Contrib) `zipkinreceiver`: Return BadRequest in case of permanent errors ([#4335](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/4335))
+- (Core) `exporterhelper`: fix bug with queue size and capacity metrics ([#8682](https://github.com/open-telemetry/opentelemetry-collector/issues/8682))
+
+
 ## v0.88.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.88.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.88.0) and the [opentelemetry-collector-contrib v0.88.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.88.0) releases where appropriate.

@@ -93,11 +93,14 @@ func pdataMetrics(dataType pmetric.MetricType, value any, timeReceived time.Time
 	}
 
 	attributes.Clear()
-	attributes.FromRaw(map[string]any{
+	err := attributes.FromRaw(map[string]any{
 		"k0": "v0",
 		"k1": "v1",
 		"k2": "v2",
 	})
+	if err != nil {
+		panic(err)
+	}
 
 	return metrics
 }

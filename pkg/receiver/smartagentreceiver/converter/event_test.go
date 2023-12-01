@@ -68,7 +68,7 @@ func TestEventToPDataLogs(tt *testing.T) {
 					"dimension_name":                     pcommon.NewValueStr("dimension_value"),
 				}
 				properties := pcommon.NewValueMap()
-				properties.FromRaw(
+				require.NoError(tt, properties.FromRaw(
 					map[string]any{
 						"bool_property_name":    true,
 						"string_property_name":  "some value",
@@ -80,7 +80,7 @@ func TestEventToPDataLogs(tt *testing.T) {
 						"float32_property_name": 12345.678,
 						"float64_property_name": 23456.789,
 					},
-				)
+				))
 				attrs["com.splunk.signalfx.event_properties"] = properties
 				return attrs
 			}(), 1000000001),
@@ -102,12 +102,12 @@ func TestEventToPDataLogs(tt *testing.T) {
 					"com.splunk.signalfx.event_type":     pcommon.NewValueStr("some_event_type"),
 				}
 				properties := pcommon.NewValueMap()
-				properties.FromRaw(
+				require.NoError(tt, properties.FromRaw(
 					map[string]any{
 						"struct_property": "{something}",
 						"uint_property":   "12345",
 					},
-				)
+				))
 				attrs["com.splunk.signalfx.event_properties"] = properties
 				return attrs
 			}(), 0),

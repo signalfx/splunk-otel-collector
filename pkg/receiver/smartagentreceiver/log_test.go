@@ -264,16 +264,16 @@ func TestRedirectMonitorLogs(t *testing.T) {
 			msg3 := fmt.Sprintf("%v - yet another log msg", zapLevel.String())
 			asserter(t, func() { logAt(logrus3, logrusLevel, msg3) })
 
-			zap1.Sync()
+			require.NoError(t, zap1.Sync())
 			require.Equal(t, 1, zap1Logs.Len())
 			require.Equal(t, msg1, zap1Logs.All()[0].Message)
 
-			zap2.Sync()
+			require.NoError(t, zap2.Sync())
 			require.Equal(t, 1, zap2Logs.Len())
 			require.Equal(t, msg2, zap2Logs.All()[0].Message)
 
-			zap3.Sync()
-			defaultZap.Sync()
+			require.NoError(t, zap3.Sync())
+			require.NoError(t, defaultZap.Sync())
 			require.Equal(t, 0, zap3Logs.Len())
 			require.Equal(t, 1, defaultLogs.Len())
 			require.Equal(t, msg3, defaultLogs.All()[0].Message)
@@ -307,8 +307,8 @@ func TestRedirectMonitorLogsWithMissingMapEntryUsesDefaultLogger(t *testing.T) {
 			msg1 := fmt.Sprintf("%v - a log msg", zapLevel.String())
 			asserter(t, func() { logAt(logrus1, logrusLevel, msg1) })
 
-			zap1.Sync()
-			defaultZap.Sync()
+			require.NoError(t, zap1.Sync())
+			require.NoError(t, defaultZap.Sync())
 			assert.Equal(t, 0, zap1Logs.Len())
 			require.Equal(t, 1, defaultZapLogs.Len())
 			require.Equal(t, msg1, defaultZapLogs.All()[0].Message)
@@ -347,8 +347,8 @@ func TestRedirectSameMonitorManyInstancesLogs(t *testing.T) {
 			asserter(t, func() { logAt(logrus1, logrusLevel, msg1) })
 			asserter(t, func() { logAt(logrus2, logrusLevel, msg2) })
 
-			zap1.Sync()
-			zap2.Sync()
+			require.NoError(t, zap1.Sync())
+			require.NoError(t, zap2.Sync())
 			require.Equal(t, 1, zap1Logs.Len())
 			require.Equal(t, msg1, zap1Logs.All()[0].Message)
 			require.Equal(t, 1, zap2Logs.Len())

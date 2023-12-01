@@ -69,6 +69,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kubeletstatsreceiver v0.90.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mongodbatlasreceiver v0.90.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mongodbreceiver v0.90.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mysqlreceiver v0.90.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/oracledbreceiver v0.90.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/postgresqlreceiver v0.90.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.90.0

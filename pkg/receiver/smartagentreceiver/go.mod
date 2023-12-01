@@ -18,7 +18,7 @@ require (
 	go.opentelemetry.io/collector/component v0.90.0
 	go.opentelemetry.io/collector/confmap v0.90.0
 	go.opentelemetry.io/collector/consumer v0.90.0
-	go.opentelemetry.io/collector/exporter v0.90.0
+	go.opentelemetry.io/collector/exporter v0.90.1-0.20231130221722-cefe1b7d647c
 	go.opentelemetry.io/collector/extension v0.90.0
 	go.opentelemetry.io/collector/pdata v1.0.0
 	go.opentelemetry.io/collector/receiver v0.90.0
@@ -287,7 +287,7 @@ require (
 	golang.org/x/net v0.18.0 // indirect
 	golang.org/x/oauth2 v0.12.0 // indirect
 	golang.org/x/sync v0.5.0 // indirect
-	golang.org/x/sys v0.14.0 // indirect
+	golang.org/x/sys v0.15.0 // indirect
 	golang.org/x/term v0.14.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.3.0 // indirect

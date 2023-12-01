@@ -107,7 +107,7 @@ require (
 	go.opentelemetry.io/collector/confmap v0.90.0
 	go.opentelemetry.io/collector/connector v0.90.0
 	go.opentelemetry.io/collector/connector/forwardconnector v0.90.0
-	go.opentelemetry.io/collector/exporter v0.90.0
+	go.opentelemetry.io/collector/exporter v0.90.1-0.20231130221722-cefe1b7d647c
 	go.opentelemetry.io/collector/exporter/debugexporter v0.90.0
 	go.opentelemetry.io/collector/exporter/loggingexporter v0.90.0
 	go.opentelemetry.io/collector/exporter/otlpexporter v0.90.0

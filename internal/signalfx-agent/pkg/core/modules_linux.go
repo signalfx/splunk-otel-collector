@@ -28,7 +28,6 @@ import (
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/memory"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/metadata"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/mysql"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/netinterface"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/nginx"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/postgresql"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/processes"

@@ -33,10 +33,6 @@
   version: v0.0.4
   repo: signalfx/collectd-kong
 
-- name: mesos
-  version: v1.2.1
-  repo: signalfx/collectd-mesos
-
 - name: marathon
   version: v1.0.3
   repo: signalfx/collectd-marathon

@@ -57,7 +57,7 @@ type Monitor struct {
 
 // Configure configures and runs the plugin in collectd
 func (m *Monitor) Configure(conf *Config) error {
-	m.Logger().Warn("The ectd-collectd plugin is deprecated. Please use the etcd plugin instead. See https://docs.splunk.com/observability/en/gdi/monitors-databases/etcd.html for more information. This plugin will be removed in a future release.")
+	m.Logger().Warn("The ectd-collectd plugin is deprecated. Please use the etcd monitor instead. See https://docs.splunk.com/observability/en/gdi/monitors-databases/etcd.html for more information. This plugin will be removed in a future release.")
 	conf.pyConf = &python.Config{
 		MonitorConfig: conf.MonitorConfig,
 		Host:          conf.Host,

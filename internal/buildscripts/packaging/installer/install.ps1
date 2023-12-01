@@ -111,6 +111,11 @@
     For information about the public MSI properties see https://learn.microsoft.com/en-us/windows/win32/msi/property-reference#configuration-properties
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -msi_public_properties "ALLUSERS=1" 
+.PARAMETER config_path
+    (OPTIONAL) Specify a local path to an alternative configuration file for the Splunk OpenTelemetry Collector.
+    If specified, the -mode parameter will be ignored.
+    .EXAMPLE
+    .\install.ps1 -config_path "C:\SOME_FOLDER\my_config.yaml"
 #>
 
 param (
@@ -132,6 +137,7 @@ param (
     [ValidateSet('test','beta','release')][string]$stage = "release",
     [string]$msi_path = "",
     [string]$msi_public_properties = "",
+    [string]$config_path = "",
     [string]$collector_msi_url = "",
     [string]$fluentd_msi_url = "",
     [string]$deployment_env = "",
@@ -157,7 +163,6 @@ try {
 $old_config_path = "$program_data_path\config.yaml"
 $agent_config_path = "$program_data_path\agent_config.yaml"
 $gateway_config_path = "$program_data_path\gateway_config.yaml"
-$config_path = ""
 
 try {
     Resolve-Path $env:TEMP 2>&1>$null
@@ -578,18 +583,18 @@ if (!(Test-Path -Path "$old_config_path") -And (Test-Path -Path "$installation_p
     Copy-Item "$installation_path\config.yaml" "$old_config_path"
 }
 
-if (($mode -Eq "agent") -And (Test-Path -Path "$agent_config_path")) {
-    $config_path = $agent_config_path
-} elseif (($mode -Eq "gateway") -And (Test-Path -Path "$gateway_config_path")) {
-    $config_path = $gateway_config_path
+if ($config_path -Eq "") {
+    if (($mode -Eq "agent") -And (Test-Path -Path "$agent_config_path")) {
+        $config_path = $agent_config_path
+    } elseif (($mode -Eq "gateway") -And (Test-Path -Path "$gateway_config_path")) {
+        $config_path = $gateway_config_path
+    } elseif (Test-Path -Path "$old_config_path") {
+        $config_path = $old_config_path
+    }
 }
 
-if ($config_path -Eq "") {
-    if (Test-Path -Path "$old_config_path") {
-        $config_path = $old_config_path
-    } else {
-        throw "Valid Collector configuration file not found."
-    }
+if (!(Test-Path -Path "$config_path")) {
+    throw "Valid Collector configuration file not found at $config_path."
 }
 
 $collector_env_vars = @{
@@ -604,6 +609,7 @@ $collector_env_vars = @{
     "SPLUNK_REALM"            = "$realm";
     "SPLUNK_TRACE_URL"        = "$trace_url";
 }
+
 if ($network_interface -Ne "") {
     $collector_env_vars.Add("SPLUNK_LISTEN_INTERFACE", "$network_interface")
 }

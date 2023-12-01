@@ -14,7 +14,7 @@ require (
 	github.com/golangci/golangci-lint v1.55.2
 	github.com/google/addlicense v1.1.1
 	github.com/jstemmer/go-junit-report v1.0.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/cmd/mdatagen v0.89.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/cmd/mdatagen v0.90.0
 	github.com/ory/go-acc v0.2.8
 	github.com/pavius/impi v0.0.3
 	github.com/tcnksm/ghr v0.16.2
@@ -204,9 +204,9 @@ require (
 	github.com/ykadowak/zerologlint v0.1.3 // indirect
 	gitlab.com/bosi/decorder v0.4.1 // indirect
 	go-simpler.org/sloglint v0.1.2 // indirect
-	go.opentelemetry.io/collector/confmap v0.89.0 // indirect
-	go.opentelemetry.io/collector/featuregate v1.0.0-rcv0018 // indirect
-	go.opentelemetry.io/collector/pdata v1.0.0-rcv0018 // indirect
+	go.opentelemetry.io/collector/confmap v0.90.0 // indirect
+	go.opentelemetry.io/collector/featuregate v1.0.0 // indirect
+	go.opentelemetry.io/collector/pdata v1.0.0 // indirect
 	go.tmz.dev/musttag v0.7.2 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.26.0 // indirect

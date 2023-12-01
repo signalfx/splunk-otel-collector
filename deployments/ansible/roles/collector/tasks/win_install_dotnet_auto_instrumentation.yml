@@ -80,7 +80,8 @@
         {%- set value = (method + "," + signalfx_dotnet_auto_instrumentation_global_tags) | trim(",") -%}
       {%- endif -%}
       {{ (options_list | default([])) + [item.key + '=' + (value | string)] }}
-  loop: "{{ dotnet_options | combine(signalfx_dotnet_auto_instrumentation_additional_options) | dict2items }}"
+  loop: >
+    {{ dotnet_options | default({}) | combine(signalfx_dotnet_auto_instrumentation_additional_options) | dict2items }}
 
 - name: Set IIS registry value
   ansible.windows.win_regedit:
@@ -116,6 +117,7 @@
       {%- endif -%}
       {{ value | string }}
     type: string
-  loop: "{{ dotnet_options | combine(signalfx_dotnet_auto_instrumentation_additional_options) | dict2items }}"
+  loop: >
+    {{ dotnet_options | default({}) | combine(signalfx_dotnet_auto_instrumentation_additional_options) | dict2items }}
   when: signalfx_dotnet_auto_instrumentation_system_wide
   notify: "reset iis"

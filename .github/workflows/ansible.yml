@@ -42,7 +42,7 @@ jobs:
       - name: Set up Python 3.
         uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
+          python-version: '3.11'
 
       - name: Install yamllint.
         run: pip3 install yamllint
@@ -100,7 +100,7 @@ jobs:
       - name: Set up Python 3.
         uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
+          python-version: '3.11'
           cache: 'pip'
           cache-dependency-path: "${{ github.workspace }}/requirements.txt"
 
@@ -160,7 +160,7 @@ jobs:
       - name: Set up Python 3.
         uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
+          python-version: '3.11'
           cache: 'pip'
           cache-dependency-path: "${{ github.workspace }}/requirements.txt"
 

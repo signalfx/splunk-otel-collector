@@ -20,6 +20,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"syscall"
 
 	"go.opentelemetry.io/collector/otelcol"
@@ -45,8 +46,8 @@ func run(params otelcol.CollectorSettings) error {
 		return runInteractive(params)
 	}
 
-	// do not need to supply service name when startup is invoked through
-	// Service Control Manager directly
+	// No need to supply service name when startup is invoked through
+	// the Service Control Manager directly.
 	if err := svc.Run("", otelcol.NewSvcHandler(params)); err != nil {
 		errno, ok := err.(syscall.Errno)
 		if ok && errno == windows.ERROR_FAILED_SERVICE_CONTROLLER_CONNECT {

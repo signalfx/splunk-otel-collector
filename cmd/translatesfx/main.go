@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"os"
 
+	//nolint: staticcheck
 	"github.com/signalfx/splunk-otel-collector/cmd/translatesfx/translatesfx"
 )
 

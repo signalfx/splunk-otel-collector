@@ -7,9 +7,9 @@ require (
 	github.com/signalfx/signalfx-agent v1.0.1-0.20230104182534-9eee411fe305
 	github.com/signalfx/splunk-otel-collector/tests v0.83.0
 	github.com/stretchr/testify v1.8.4
-	go.opentelemetry.io/collector/component v0.90.0
-	go.opentelemetry.io/collector/confmap v0.90.0
-	go.opentelemetry.io/collector/extension v0.90.0
+	go.opentelemetry.io/collector/component v0.90.1
+	go.opentelemetry.io/collector/confmap v0.90.1
+	go.opentelemetry.io/collector/extension v0.90.1
 	gopkg.in/yaml.v2 v2.4.0
 )
 
@@ -131,19 +131,19 @@ require (
 	go.opentelemetry.io/collector v0.90.0 // indirect
 	go.opentelemetry.io/collector/config/configauth v0.90.0 // indirect
 	go.opentelemetry.io/collector/config/configcompression v0.90.0 // indirect
-	go.opentelemetry.io/collector/config/configgrpc v0.90.0 // indirect
+	go.opentelemetry.io/collector/config/configgrpc v0.90.1 // indirect
 	go.opentelemetry.io/collector/config/confighttp v0.90.0 // indirect
-	go.opentelemetry.io/collector/config/confignet v0.90.0 // indirect
+	go.opentelemetry.io/collector/config/confignet v0.90.1 // indirect
 	go.opentelemetry.io/collector/config/configopaque v0.90.0 // indirect
 	go.opentelemetry.io/collector/config/configtelemetry v0.90.0 // indirect
-	go.opentelemetry.io/collector/config/configtls v0.90.0 // indirect
+	go.opentelemetry.io/collector/config/configtls v0.90.1 // indirect
 	go.opentelemetry.io/collector/config/internal v0.90.0 // indirect
-	go.opentelemetry.io/collector/consumer v0.90.0 // indirect
+	go.opentelemetry.io/collector/consumer v0.90.1 // indirect
 	go.opentelemetry.io/collector/extension/auth v0.90.0 // indirect
 	go.opentelemetry.io/collector/featuregate v1.0.0 // indirect
 	go.opentelemetry.io/collector/pdata v1.0.0 // indirect
-	go.opentelemetry.io/collector/receiver v0.90.0 // indirect
-	go.opentelemetry.io/collector/receiver/otlpreceiver v0.90.0 // indirect
+	go.opentelemetry.io/collector/receiver v0.90.1 // indirect
+	go.opentelemetry.io/collector/receiver/otlpreceiver v0.90.1 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.46.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.46.1 // indirect
 	go.opentelemetry.io/otel v1.21.0 // indirect

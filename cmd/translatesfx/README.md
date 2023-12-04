@@ -1,5 +1,12 @@
 # SignalFx Smart Agent Configuration Translation Tool
 
+> # :warning: End of Support (EoS) Notice
+> **The SignalFx Smart Agent has reached End of Support.**
+>
+> The [Splunk Distribution of OpenTelemetry Collector](https://docs.splunk.com/Observability/gdi/opentelemetry/opentelemetry.html) is the successor. Smart Agent monitors are available and supported through the [Smart Agent receiver](https://docs.splunk.com/Observability/gdi/opentelemetry/components/smartagent-receiver.html) in the Splunk Distribution of OpenTelemetry Collector.
+>
+> To learn how to migrate, see [Migrate from SignalFx Smart Agent to the Splunk Distribution of OpenTelemetry Collector](https://docs.splunk.com/Observability/gdi/opentelemetry/smart-agent-migration-to-otel-collector.html).
+
 This package provides a command-line tool, `translatesfx`, that translates a 
 SignalFx Smart Agent configuration file into a configuration that can be
 used by a Splunk Distribution of OpenTelemetry Collector. The `translatesfx`

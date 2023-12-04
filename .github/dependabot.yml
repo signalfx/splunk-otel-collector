@@ -110,6 +110,9 @@ updates:
       interval: "weekly"
   - package-ecosystem: "pip"
     directory: "/internal/signalfx-agent/bundle/scripts"
+    ignore:
+      - dependency-name: "urllib3"
+        versions: [">=2"]
     schedule:
       interval: "weekly"
   - package-ecosystem: "docker"

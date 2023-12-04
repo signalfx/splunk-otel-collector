@@ -23,6 +23,8 @@
         dest: /etc/ld.so.preload
         state: present
       check_mode: yes
+      register: preload
+      failed_when: preload is changed
 
     - name: Assert instrumentation config contains path to java agent
       ansible.builtin.lineinfile:
@@ -30,6 +32,8 @@
         dest: /usr/lib/splunk-instrumentation/instrumentation.conf
         state: present
       check_mode: yes
+      register: config
+      failed_when: config is changed
 
     - name: Assert instrumentation config contains resource attribute
       ansible.builtin.lineinfile:
@@ -37,6 +41,8 @@
         dest: /usr/lib/splunk-instrumentation/instrumentation.conf
         state: present
       check_mode: yes
+      register: config
+      failed_when: config is changed
 
     - name: Assert instrumentation config contains service name
       ansible.builtin.lineinfile:
@@ -44,6 +50,8 @@
         dest: /usr/lib/splunk-instrumentation/instrumentation.conf
         state: present
       check_mode: yes
+      register: config
+      failed_when: config is changed
 
     - name: Assert instrumentation config contains generate_service_name
       ansible.builtin.lineinfile:
@@ -51,6 +59,8 @@
         dest: /usr/lib/splunk-instrumentation/instrumentation.conf
         state: present
       check_mode: yes
+      register: config
+      failed_when: config is changed
 
     - name: Assert instrumentation config contains disable_telemetry
       ansible.builtin.lineinfile:
@@ -58,6 +68,8 @@
         dest: /usr/lib/splunk-instrumentation/instrumentation.conf
         state: present
       check_mode: yes
+      register: config
+      failed_when: config is changed
 
     - name: Assert instrumentation config contains enable_profiler
       ansible.builtin.lineinfile:
@@ -65,6 +77,8 @@
         dest: /usr/lib/splunk-instrumentation/instrumentation.conf
         state: present
       check_mode: yes
+      register: config
+      failed_when: config is changed
 
     - name: Assert instrumentation config contains enable_profiler_memory
       ansible.builtin.lineinfile:
@@ -72,6 +86,8 @@
         dest: /usr/lib/splunk-instrumentation/instrumentation.conf
         state: present
       check_mode: yes
+      register: config
+      failed_when: config is changed
 
     - name: Assert instrumentation config contains enable_metrics
       ansible.builtin.lineinfile:
@@ -79,3 +95,5 @@
         dest: /usr/lib/splunk-instrumentation/instrumentation.conf
         state: present
       check_mode: yes
+      register: config
+      failed_when: config is changed

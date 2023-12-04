@@ -7,7 +7,7 @@ REPO_DIR=$( cd "$SCRIPT_DIR/../../.." && pwd )
 DEPENDABOT_PATH="$SCRIPT_DIR/../../dependabot.yml"
 ALL_GO_MODULES=$( cd "$REPO_DIR" && find . -type f -name "go.mod" -exec dirname {} \; | sort | egrep  '^./' )
 ALL_PYTHON_DEPS=$( cd "$REPO_DIR" && find . -type f \( -name "setup.py" -o -name "requirements.txt" \) -exec dirname {} \; | sort | egrep  '^./' )
-ALL_DOCKERFILES=$( cd "$REPO_DIR" && find . -type f -name Dockerfile -exec dirname {} \; | grep -v '^./tests' | grep -v './deployments' | sort | egrep  '^./' )
+ALL_DOCKERFILES=$( cd "$REPO_DIR" && find . -type f -name Dockerfile -exec dirname {} \; | grep -vE '^./(instrumentation/)?tests' | grep -v './deployments' | sort | egrep  '^./' )
 ALL_MAVEN_DEPS=$( cd "$REPO_DIR" && find . -type f -name pom.xml -exec dirname {} \; | grep -v '^./tests' | sort | egrep  '^./' )
 
 if [[ ! -f "$DEPENDABOT_PATH" ]]; then
@@ -30,6 +30,18 @@ EOH
         cat <<EOH >&1
       - dependency-name: "github.com/openshift/*"
         versions: ["v3.9.0+incompatible"]
+EOH
+    esac
+}
+
+get_pip_ignores() {
+    dir=${1#.}
+    case "$dir" in /|*bundle/scripts)
+        cat <<EOH >&1
+
+    ignore:
+      - dependency-name: "urllib3"
+        versions: [">=2"]
 EOH
     esac
 }
@@ -65,7 +77,7 @@ for dir in $ALL_PYTHON_DEPS; do
     echo "Add pip entry for \"${dir#.}\""
     cat <<EOH >> "$DEPENDABOT_PATH"
   - package-ecosystem: "pip"
-    directory: "${dir#.}"
+    directory: "${dir#.}"$(get_pip_ignores "$dir")
     schedule:
       interval: "weekly"
 EOH

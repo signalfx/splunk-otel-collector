@@ -15,11 +15,14 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
+	//nolint: staticcheck
 	"github.com/signalfx/splunk-otel-collector/cmd/translatesfx/translatesfx"
 )
 
 func main() {
+	fmt.Println("[NOTICE] translatesfx is deprecated and will be removed from the distribution of the collector in an upcoming release.")
 	translatesfx.CLI(os.Args)
 }

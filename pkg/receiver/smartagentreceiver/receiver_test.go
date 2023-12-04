@@ -42,7 +42,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	otelcolreceiver "go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/otel/metric/noop"
-	"go.opentelemetry.io/otel/trace"
+	nooptrace "go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
@@ -68,7 +68,7 @@ func newReceiverCreateSettings(name string) otelcolreceiver.CreateSettings {
 		ID: component.NewIDWithName("smartagent", name),
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         zap.NewNop(),
-			TracerProvider: trace.NewNoopTracerProvider(),
+			TracerProvider: nooptrace.NewTracerProvider(),
 			MeterProvider:  noop.NewMeterProvider(),
 		},
 	}
@@ -333,7 +333,6 @@ func TestSmartAgentConfigProviderOverrides(t *testing.T) {
 		return false
 	}())
 	require.Equal(t, saconfig.CollectdConfig{
-		DisableCollectd:      false,
 		Timeout:              10,
 		ReadThreads:          1,
 		WriteThreads:         4,

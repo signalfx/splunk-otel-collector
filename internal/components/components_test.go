@@ -60,6 +60,8 @@ func TestDefaultComponents(t *testing.T) {
 		"kafkametrics",
 		"kubeletstats",
 		"mongodbatlas",
+		"mongodb",
+		"mysql",
 		"lightprometheus",
 		"oracledb",
 		"otlp",

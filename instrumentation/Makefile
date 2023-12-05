@@ -72,9 +72,9 @@ docker-run:
 .PHONY: tests
 tests: test-java test-nodejs test-dotnet
 
-.PHONY: test-dotnet
-test-dotnet: dist
-	(cd tests/dotnet && ARCH=$(ARCH) ./test.sh)
+.PHONY: test-dotnet-java-nodejs
+test-%: dist
+	(cd tests/$* && ARCH=$(ARCH) ./test.sh)
 
 .PHONY: test-java
 test-java: dist

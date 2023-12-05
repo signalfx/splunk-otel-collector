@@ -76,10 +76,3 @@ tests: test-java test-nodejs test-dotnet
 test-%: dist
 	(cd tests/$* && ARCH=$(ARCH) ./test.sh)
 
-.PHONY: test-java
-test-java: dist
-	(cd tests/java && ARCH=$(ARCH) ./test.sh)
-
-.PHONY: test-nodejs
-test-nodejs: dist
-	(cd tests/nodejs && ARCH=$(ARCH) ./test.sh)

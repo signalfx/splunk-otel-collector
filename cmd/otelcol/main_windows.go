@@ -21,40 +21,41 @@ package main
 import (
 	"fmt"
 	"os"
+	"syscall"
 
 	"go.opentelemetry.io/collector/otelcol"
+	"golang.org/x/sys/windows"
 	"golang.org/x/sys/windows/svc"
 )
 
 func run(params otelcol.CollectorSettings) error {
-	if useInteractiveMode, err := checkUseInteractiveMode(); err != nil {
-		return err
-	} else if useInteractiveMode {
-		return runInteractive(params)
-	} else {
-		return runService(params)
-	}
-}
-
-func checkUseInteractiveMode() (bool, error) {
-	// If environment variable NO_WINDOWS_SERVICE is set with any value other
-	// than 0, use interactive mode instead of running as a service. This should
-	// be set in case running as a service is not possible or desired even
-	// though the current session is not detected to be interactive
+	// There shouldn't be any reason to use NO_WINDOWS_SERVICE anymore, but,
+	// keeping it as a forcing mechanism or if someone is concerned about
+	// the cost of attempting to run as a service before falling back to
+	// interactive mode.
+	//
+	// The BenchmarkSvcRunFail measures the overhead of attempting and failing to
+	// run as a service:
+	//
+	// goos: windows
+	// goarch: amd64
+	// cpu: Intel(R) Core(TM) i9-10885H CPU @ 2.40GHz
+	// BenchmarkSvcRunFail-16           8232412              4369 ns/op
+	//
 	if value, present := os.LookupEnv("NO_WINDOWS_SERVICE"); present && value != "0" {
-		return true, nil
+		return runInteractive(params)
 	}
 
-	if isInteractiveSession, err := svc.IsAnInteractiveSession(); err != nil {
-		return false, fmt.Errorf("failed to determine if we are running in an interactive session %w", err)
-	} else {
-		return isInteractiveSession, nil
-	}
-}
-
-func runService(params otelcol.CollectorSettings) error {
-	// do not need to supply service name when startup is invoked through Service Control Manager directly
+	// No need to supply service name when startup is invoked through
+	// the Service Control Manager directly.
 	if err := svc.Run("", otelcol.NewSvcHandler(params)); err != nil {
+		errno, ok := err.(syscall.Errno)
+		if ok && errno == windows.ERROR_FAILED_SERVICE_CONTROLLER_CONNECT {
+			// Per https://learn.microsoft.com/en-us/windows/win32/api/winsvc/nf-winsvc-startservicectrldispatchera#return-value
+			// this means that the process is not running as a service, so run interactively.
+			return runInteractive(params)
+		}
+
 		return fmt.Errorf("failed to start service: %w", err)
 	}
 

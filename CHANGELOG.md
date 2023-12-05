@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### 🧰 Bug fixes 🧰
+
+- (Splunk) `cmd/otelcol`: Fix the code detecting if the collector is running as a service on Windows. The fix should make
+  setting the `NO_WINDOWS_SERVICE` environment variable unnecessary. ([#4002](https://github.com/signalfx/splunk-otel-collector/pull/4002))
+
 ## v0.89.0
 
 ### 🛑 Breaking changes 🛑

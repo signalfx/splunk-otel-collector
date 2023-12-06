@@ -65,9 +65,9 @@ func (mc *MonitorCore) collectdInstance() *Manager {
 
 type ConfigurationOption func(mc *MonitorCore)
 
-func WithDeprecationWarningLog(message string) ConfigurationOption {
+func WithDeprecationWarningLog(replacement string) ConfigurationOption {
 	return func(mc *MonitorCore) {
-		mc.logger.Warn(message)
+		mc.logger.Warn(fmt.Sprintf("[NOTICE] The %s plugin is deprecated and will be removed in a future release. Please migrate to the %s monitor.", mc.config.MonitorConfigCore().Type, replacement))
 	}
 }
 

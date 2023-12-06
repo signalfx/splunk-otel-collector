@@ -80,7 +80,7 @@ func (m *Monitor) Configure(config *Config) error {
 		conf.ReportInodes = true
 		conf.ValuesPercentage = true
 	}
-	return m.SetConfigurationAndRun(&conf, collectd.WithDeprecationWarningLog("[NOTICE] The collectd/df is deprecated and will be removed in a future release. Please migrate to the filesystems monitor."))
+	return m.SetConfigurationAndRun(&conf, collectd.WithDeprecationWarningLog("filesystems"))
 }
 
 func (m *Monitor) isReportInodesAndValuesPercentageMetric() bool {

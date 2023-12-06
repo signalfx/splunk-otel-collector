@@ -81,7 +81,6 @@ accurate guidance:
 1. Model from or use recorded telemetry from actual host and cloud services instead of generic load generator content.
 1. Exercise and incorporate exporter helper sending queue configuration to suite (`num_consumers`, queue size tuning,
    etc.)
-1. Don't include service startup or teardown in benchmarking in workflow analysis (i.e. sleep a few seconds before
    evaluating procfs and stop evaluating before teardown).
 
 After these are delivered our guidance can be more readily updated and evaluated per release. However, meeting more

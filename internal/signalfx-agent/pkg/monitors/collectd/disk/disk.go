@@ -38,5 +38,5 @@ type Monitor struct {
 
 // Configure configures and runs the plugin in collectd
 func (m *Monitor) Configure(conf *Config) error {
-	return m.SetConfigurationAndRun(conf, collectd.WithDeprecationWarningLog("[NOTICE] The collectd/disk plugin is deprecated and will be removed in a future release. Please migrate to the disk-io plugin."))
+	return m.SetConfigurationAndRun(conf, collectd.WithDeprecationWarningLog("[NOTICE] The collectd/disk plugin is deprecated and will be removed in a future release. Please migrate to the disk-io monitor."))
 }

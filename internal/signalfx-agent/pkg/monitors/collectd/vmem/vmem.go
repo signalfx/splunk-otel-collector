@@ -31,5 +31,5 @@ type Monitor struct {
 
 // Configure configures and runs the plugin in collectd
 func (m *Monitor) Configure(conf *Config) error {
-	return m.SetConfigurationAndRun(conf, collectd.WithDeprecationWarningLog("[NOTICE] The collectd/vmem plugin is deprecated and will be removed in a future release. Please migrate to the vmem plugin."))
+	return m.SetConfigurationAndRun(conf, collectd.WithDeprecationWarningLog("[NOTICE] The collectd/vmem plugin is deprecated and will be removed in a future release. Please migrate to the vmem monitor."))
 }

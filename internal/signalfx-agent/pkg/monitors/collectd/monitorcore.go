@@ -63,23 +63,11 @@ func (mc *MonitorCore) collectdInstance() *Manager {
 	return MainInstance()
 }
 
-type ConfigurationOption interface {
-	applies(mc *MonitorCore)
-}
-
-type configOption struct {
-	applyFn func(mc *MonitorCore)
-}
-
-func (c configOption) applies(mc *MonitorCore) {
-	c.applyFn(mc)
-}
+type ConfigurationOption func(mc *MonitorCore)
 
 func WithDeprecationWarningLog(message string) ConfigurationOption {
-	return configOption{
-		applyFn: func(mc *MonitorCore) {
-			mc.logger.Warn(message)
-		},
+	return func(mc *MonitorCore) {
+		mc.logger.Warn(message)
 	}
 }
 
@@ -115,7 +103,7 @@ func (mc *MonitorCore) SetConfigurationAndRun(conf config.MonitorCustomConfig, o
 		return err
 	}
 	for _, opt := range opts {
-		opt.applies(mc)
+		opt(mc)
 	}
 	return mc.SetConfiguration()
 }

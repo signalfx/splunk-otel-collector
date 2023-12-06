@@ -16,12 +16,12 @@ echo "========== OUTPUT =========="
 echo "$OUTPUT"
 echo "============================"
 echo "Test presence of OTEL_RESOURCE_ATTRIBUTES"
-echo $OUTPUT | grep "OTEL_RESOURCE_ATTRIBUTES=foo=bar,this=that" > /dev/null && echo "Test passes"  || exit 1
+echo "$OUTPUT" | grep "OTEL_RESOURCE_ATTRIBUTES=foo=bar,this=that" > /dev/null && echo "Test passes"  || exit 1
 echo "Test presence of OTEL_SERVICE_NAME"
-echo $OUTPUT | grep "OTEL_SERVICE_NAME=myservice" > /dev/null && echo "Test passes"  || exit 1
+echo "$OUTPUT" | grep "OTEL_SERVICE_NAME=myservice" > /dev/null && echo "Test passes"  || exit 1
 echo "Test presence of SPLUNK_METRICS_ENABLED"
-echo $OUTPUT | grep "SPLUNK_METRICS_ENABLED=abcd" > /dev/null && echo "Test passes"  || exit 1
+echo "$OUTPUT" | grep "SPLUNK_METRICS_ENABLED=abcd" > /dev/null && echo "Test passes"  || exit 1
 echo "Test absence of FOO"
-echo $OUTPUT | grep -v "FOO" > /dev/null && echo "Test passes"  || exit 1
+[[ ! "$OUTPUT" =~ FOO ]] && echo "Test passes"  || exit 1
 echo "Test absence of OTEL_EXPORTER_OTLP_ENDPOINT"
-echo $OUTPUT | grep -v "OTEL_EXPORTER_OTLP_ENDPOINT" > /dev/null && echo "Test passes"  || exit 1
+[[ ! "$OUTPUT" =~ OTEL_EXPORTER_OTLP_ENDPOINT ]] && echo "Test passes"  || exit 1

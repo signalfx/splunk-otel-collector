@@ -12,8 +12,6 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 - (Core) `service`: use WithNamespace instead of WrapRegistererWithPrefix ([#8988](https://github.com/open-telemetry/opentelemetry-collector/issues/8988))
   Using this functionality in the otel prom exporter fixes a bug where the
   target_info was prefixed as otelcol_target_info previously.
-- (Contrib) `dockerstatsreceiver`: Add `container.cpu.limit`, `container.cpu.shares` and `container.restarts` metrics from docker container api ([#21087](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/21087))
-  It requires API version 1.25 or greater.
 
 ### 🚩 Deprecations 🚩
 

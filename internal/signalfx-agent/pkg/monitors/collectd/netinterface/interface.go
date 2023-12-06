@@ -46,5 +46,5 @@ func (m *Monitor) Configure(conf *Config) error {
 	if len(newConf.IncludedInterfaces) > 0 {
 		newConf.ExcludedInterfaces = nil
 	}
-	return m.SetConfigurationAndRun(&newConf)
+	return m.SetConfigurationAndRun(conf, collectd.WithDeprecationWarningLog("[NOTICE] The collectd/netinterface plugin is deprecated and will be removed in a future release. Please migrate to the net-io plugin."))
 }

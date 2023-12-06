@@ -63,9 +63,29 @@ func (mc *MonitorCore) collectdInstance() *Manager {
 	return MainInstance()
 }
 
+type ConfigurationOption interface {
+	applies(mc *MonitorCore)
+}
+
+type configOption struct {
+	applyFn func(mc *MonitorCore)
+}
+
+func (c configOption) applies(mc *MonitorCore) {
+	c.applyFn(mc)
+}
+
+func WithDeprecationWarningLog(message string) ConfigurationOption {
+	return configOption{
+		applyFn: func(mc *MonitorCore) {
+			mc.logger.Warn(message)
+		},
+	}
+}
+
 // SetConfigurationAndRun sets the configuration to be used when rendering
 // templates, and writes config before queueing a collectd restart.
-func (mc *MonitorCore) SetConfigurationAndRun(conf config.MonitorCustomConfig) error {
+func (mc *MonitorCore) SetConfigurationAndRun(conf config.MonitorCustomConfig, opts ...ConfigurationOption) error {
 	mc.lock.Lock()
 	defer mc.lock.Unlock()
 
@@ -93,6 +113,9 @@ func (mc *MonitorCore) SetConfigurationAndRun(conf config.MonitorCustomConfig) e
 
 	if err := mc.WriteConfigForPlugin(); err != nil {
 		return err
+	}
+	for _, opt := range opts {
+		opt.applies(mc)
 	}
 	return mc.SetConfiguration()
 }

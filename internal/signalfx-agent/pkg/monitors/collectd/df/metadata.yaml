@@ -8,6 +8,8 @@ monitors:
     namespace that the agent is running in for this monitor to be able to
     collect statistics about that filesystem.  This is mostly an issue when
     running the agent in a container.
+    
+    **This plugin is deprecated in favor of the `filesystems` monitor.**
   metrics:
     df_complex.free:
       description: |-

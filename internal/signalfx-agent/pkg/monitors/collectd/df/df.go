@@ -80,7 +80,7 @@ func (m *Monitor) Configure(config *Config) error {
 		conf.ReportInodes = true
 		conf.ValuesPercentage = true
 	}
-	return m.SetConfigurationAndRun(&conf)
+	return m.SetConfigurationAndRun(&conf, collectd.WithDeprecationWarningLog("filesystems"))
 }
 
 func (m *Monitor) isReportInodesAndValuesPercentageMetric() bool {

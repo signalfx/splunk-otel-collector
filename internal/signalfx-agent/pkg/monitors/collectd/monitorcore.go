@@ -63,9 +63,17 @@ func (mc *MonitorCore) collectdInstance() *Manager {
 	return MainInstance()
 }
 
+type ConfigurationOption func(mc *MonitorCore)
+
+func WithDeprecationWarningLog(replacement string) ConfigurationOption {
+	return func(mc *MonitorCore) {
+		mc.logger.Warn(fmt.Sprintf("[NOTICE] The %s plugin is deprecated and will be removed in a future release. Please migrate to the %s monitor.", mc.config.MonitorConfigCore().Type, replacement))
+	}
+}
+
 // SetConfigurationAndRun sets the configuration to be used when rendering
 // templates, and writes config before queueing a collectd restart.
-func (mc *MonitorCore) SetConfigurationAndRun(conf config.MonitorCustomConfig) error {
+func (mc *MonitorCore) SetConfigurationAndRun(conf config.MonitorCustomConfig, opts ...ConfigurationOption) error {
 	mc.lock.Lock()
 	defer mc.lock.Unlock()
 
@@ -93,6 +101,9 @@ func (mc *MonitorCore) SetConfigurationAndRun(conf config.MonitorCustomConfig) e
 
 	if err := mc.WriteConfigForPlugin(); err != nil {
 		return err
+	}
+	for _, opt := range opts {
+		opt(mc)
 	}
 	return mc.SetConfiguration()
 }

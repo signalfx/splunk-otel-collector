@@ -22,7 +22,7 @@ RUN ssh-keygen -t rsa -f /root/.ssh/id_rsa -P '' \
 RUN mkdir -p /usr/local/hadoop
 
 # specify the hadoop verison to use
-ARG HADOOP_VER=2.10.1
+ARG HADOOP_VER=2.10.2
 
 # curl down hadoop and untar it into place
 RUN curl -Lks -o hadoop.tar.gz https://dlcdn.apache.org/hadoop/common/hadoop-${HADOOP_VER}/hadoop-${HADOOP_VER}.tar.gz \

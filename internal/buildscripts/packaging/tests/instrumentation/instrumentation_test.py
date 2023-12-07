@@ -333,6 +333,11 @@ def test_express_instrumentation(distro, arch):
             # downgrade npm to support python 3.5
             run_container_cmd(container, "bash -l -c 'npm install --global npm@^6'")
 
+        rc, output = container.exec_run("bash -l -c 'npm root --global'", stderr=False)
+        assert rc == 0, "failed to get global NODE_PATH"
+        output = output.decode("utf-8").strip()
+        node_path = f"NODE_PATH={output}"
+
         # install splunk-otel-js
         run_container_cmd(container, f"bash -l -c 'npm install --global {NODE_AGENT_PATH}'")
 
@@ -346,10 +351,15 @@ def test_express_instrumentation(distro, arch):
             if method == "systemd":
                 # install the sample drop-in file to enable the agent
                 run_container_cmd(container, f"mkdir -p {SYSTEMD_CONF_DIR}")
-                run_container_cmd(container, f"cp -f {SAMPLE_SYSTEMD_CONF_PATH} {SYSTEMD_CONF_DIR}/")
+                systemd_config = f"{SYSTEMD_CONF_DIR}/00-splunk-otel-auto-instrumentation.conf"
+                run_container_cmd(container, f"cp -f {SAMPLE_SYSTEMD_CONF_PATH} {systemd_config}")
+                run_container_cmd(container, f"sh -c 'echo DefaultEnvironment={node_path} >> {systemd_config}'")
+                # add NODE_PATH to systemd config
                 if container_file_exists(container, "/etc/ld.so.preload"):
                     run_container_cmd(container, "rm -f /etc/ld.so.preload")
             else:
+                # add NODE_PATH to libsplunk config
+                run_container_cmd(container, f"sh -c 'echo {node_path} >> {NODE_CONFIG_PATH}'")
                 # add libsplunk.so to /etc/ld.so.preload
                 run_container_cmd(container, f"sh -c 'echo {LIBSPLUNK_PATH} > /etc/ld.so.preload'")
 
@@ -370,6 +380,9 @@ def test_express_instrumentation(distro, arch):
             else:
                 # overwrite the default libsplunk config with the custom one for testing
                 copy_file_into_container(container, CUSTOM_NODE_CONFIG_PATH, NODE_CONFIG_PATH)
+                # add NODE_PATH to libsplunk config
+                run_container_cmd(container, f"sh -c 'echo {node_path} >> {NODE_CONFIG_PATH}'")
+                run_container_cmd(container, f"cat {NODE_CONFIG_PATH}")
 
             # verify custom config
             verify_app_instrumentation(container, "express", method, attributes, otelcol_path=otelcol)

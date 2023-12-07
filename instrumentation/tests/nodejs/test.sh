@@ -15,6 +15,8 @@ OUTPUT=$(docker run --platform linux/${arch} --rm zeroconfig-test-nodejs)
 echo "========== OUTPUT =========="
 echo "$OUTPUT"
 echo "============================"
+echo "Test presence of NODE_PATH"
+echo "$OUTPUT" | grep "NODE_PATH=/foo/bar" > /dev/null && echo "Test passes"  || exit 1
 echo "Test presence of OTEL_RESOURCE_ATTRIBUTES"
 echo "$OUTPUT" | grep "OTEL_RESOURCE_ATTRIBUTES=foo=bar,this=that" > /dev/null && echo "Test passes"  || exit 1
 echo "Test presence of OTEL_SERVICE_NAME"

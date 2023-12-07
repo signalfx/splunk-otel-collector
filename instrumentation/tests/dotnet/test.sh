@@ -1,18 +1,14 @@
 #!/bin/bash
 
-set -euo pipefail
+set -euox pipefail
 
 arch="${ARCH:-amd64}"
-BASE="eclipse-temurin:11"
-if [[ "$arch" = "arm64" ]]; then
-  BASE="arm64v8/eclipse-temurin:11"
-fi
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 cp "${SCRIPT_DIR}/../../dist/libsplunk_${arch}.so" libsplunk.so
-docker buildx build -q --platform linux/${arch} --build-arg BASE=$BASE -o type=image,name=zeroconfig-test-java,push=false .
-OUTPUT=$(docker run --platform linux/${arch} --rm zeroconfig-test-java)
+docker buildx build -q --platform linux/${arch} --build-arg TARGETARCH=${arch} -o type=image,name=zeroconfig-test-dotnet,push=false .
+OUTPUT=$(docker run --platform linux/${arch} --rm zeroconfig-test-dotnet)
 echo "========== OUTPUT =========="
 echo "$OUTPUT"
 echo "============================"
@@ -29,10 +25,11 @@ echo "Test absence of FOO"
 echo "Test absence of OTEL_EXPORTER_OTLP_ENDPOINT"
 [[ ! "$OUTPUT" =~ OTEL_EXPORTER_OTLP_ENDPOINT ]] && echo "Test passes"  || exit 1
 
-# Check we didn't inject env vars into processes outside of java.
-OUTPUT_BASH=$(docker run --platform linux/${arch} --rm zeroconfig-test-java /usr/bin/env)
+# Check we didn't inject env vars into processes outside of dotnet.
+OUTPUT_BASH=$(docker run --platform linux/${arch} --rm zeroconfig-test-dotnet /usr/bin/env)
 echo "======= BASH OUTPUT ========"
 echo "$OUTPUT_BASH"
 echo "============================"
 [[ ! "$OUTPUT_BASH" =~ OTEL_RESOURCE_ATTRIBUTES ]] && echo "Test passes"  || exit 1
 [[ ! "$OUTPUT_BASH" =~ SPLUNK_METRICS_ENABLED ]] && echo "Test passes"  || exit 1
+

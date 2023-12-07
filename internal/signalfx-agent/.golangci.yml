@@ -97,6 +97,7 @@ linters:
     - gosec
     - gosimple
     - ifshort
+    - interfacer
     - ireturn
     - maintidx
     - nestif

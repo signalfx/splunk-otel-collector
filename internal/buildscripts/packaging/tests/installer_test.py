@@ -65,6 +65,8 @@ SYSTEMD_CONFIG_PATH = "/usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instru
 NODE_PACKAGE_PATH = "/usr/lib/splunk-instrumentation/splunk-otel-js.tgz"
 JAVA_ZEROCONFIG_PATH = "/etc/splunk/zeroconfig/java.conf"
 NODE_ZEROCONFIG_PATH = "/etc/splunk/zeroconfig/node.conf"
+NODE_PREFIX = "/usr/lib/splunk-instrumentation/splunk-otel-js"
+NODE_OPTIONS = f"-r {NODE_PREFIX}/node_modules/@splunk/otel/instrument"
 
 INSTALLER_TIMEOUT = "30m"
 
@@ -337,7 +339,7 @@ def get_zc_method(container, distro, method):
 
 
 def node_package_installed(container):
-    return container.exec_run("sh -l -c 'npm ls --global @splunk/otel'").exit_code == 0
+    return container.exec_run(f"sh -l -c 'npm ls --prefix {NODE_PREFIX} @splunk/otel'").exit_code == 0
 
 
 @pytest.mark.installer
@@ -415,7 +417,7 @@ def test_installer_with_instrumentation_default(distro, arch, method):
 
             # verify default options for both java and node.js
             verify_config_file(container, JAVA_ZEROCONFIG_PATH, "JAVA_TOOL_OPTIONS", f"-javaagent:{JAVA_AGENT_PATH}")
-            verify_config_file(container, NODE_ZEROCONFIG_PATH, "NODE_OPTIONS", "-r @splunk/otel/instrument")
+            verify_config_file(container, NODE_ZEROCONFIG_PATH, "NODE_OPTIONS", NODE_OPTIONS)
             for config_path in (JAVA_ZEROCONFIG_PATH, NODE_ZEROCONFIG_PATH):
                 verify_config_file(container, config_path, "OTEL_RESOURCE_ATTRIBUTES", config_attributes)
                 verify_config_file(container, config_path, "SPLUNK_PROFILER_ENABLED", "false")
@@ -441,7 +443,7 @@ def test_installer_with_instrumentation_default(distro, arch, method):
 
             # verify default options
             if has_node_package:
-                verify_config_file(container, SYSTEMD_CONFIG_PATH, "NODE_OPTIONS", "-r @splunk/otel/instrument")
+                verify_config_file(container, SYSTEMD_CONFIG_PATH, "NODE_OPTIONS", NODE_OPTIONS)
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "JAVA_TOOL_OPTIONS", f"-javaagent:{JAVA_AGENT_PATH}")
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_RESOURCE_ATTRIBUTES", config_attributes)
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "SPLUNK_PROFILER_ENABLED", "false")
@@ -553,7 +555,7 @@ def test_installer_with_instrumentation_custom(distro, arch, method, sdk):
                 assert not container_file_exists(container, NODE_ZEROCONFIG_PATH)
             else:
                 config_path = NODE_ZEROCONFIG_PATH
-                verify_config_file(container, config_path, "NODE_OPTIONS", "-r @splunk/otel/instrument")
+                verify_config_file(container, config_path, "NODE_OPTIONS", NODE_OPTIONS)
                 assert not container_file_exists(container, JAVA_ZEROCONFIG_PATH)
             verify_config_file(container, config_path, "OTEL_RESOURCE_ATTRIBUTES", config_attributes)
             verify_config_file(container, config_path, "SPLUNK_PROFILER_ENABLED", "true")
@@ -585,7 +587,7 @@ def test_installer_with_instrumentation_custom(distro, arch, method, sdk):
                 verify_config_file(container, SYSTEMD_CONFIG_PATH, "JAVA_TOOL_OPTIONS", f"-javaagent:{JAVA_AGENT_PATH}")
                 verify_config_file(container, SYSTEMD_CONFIG_PATH, "NODE_OPTIONS", ".*", exists=False)
             elif has_node_package:
-                verify_config_file(container, SYSTEMD_CONFIG_PATH, "NODE_OPTIONS", "-r @splunk/otel/instrument")
+                verify_config_file(container, SYSTEMD_CONFIG_PATH, "NODE_OPTIONS", NODE_OPTIONS)
                 verify_config_file(container, SYSTEMD_CONFIG_PATH, "JAVA_TOOL_OPTIONS", ".*", exists=False)
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_RESOURCE_ATTRIBUTES", config_attributes)
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "SPLUNK_PROFILER_ENABLED", "true")

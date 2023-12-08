@@ -333,8 +333,9 @@ def test_express_instrumentation(distro, arch):
             # downgrade npm to support python 3.5
             run_container_cmd(container, "bash -l -c 'npm install --global npm@^6'")
 
-        # install splunk-otel-js
-        run_container_cmd(container, f"bash -l -c 'npm install --global {NODE_AGENT_PATH}'")
+        # install splunk-otel-js to /usr/lib/splunk-instrumentation/splunk-otel-js
+        run_container_cmd(container, f"mkdir -p {LIB_DIR}/splunk-otel-js")
+        run_container_cmd(container, f"bash -l -c 'npm install --prefix {LIB_DIR}/splunk-otel-js {NODE_AGENT_PATH}'")
 
         for method in ["systemd", "libsplunk"]:
             # attributes from default config

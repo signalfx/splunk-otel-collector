@@ -360,26 +360,26 @@ Auto Instrumentation to take effect.
 If running the installer script ***with*** Node.js Auto Instrumentation, the
 following are required:
 - `npm` is required to install the Node.js Auto Instrumentation package. If
-  `npm` is not installed or not found in the user's default `PATH`, the
-  installer script will automatically skip installation and configuration of
-  the Node.js agent. Run the installer script with the
-  `--without-instrumentation-sdk node` option to explicitly skip Node.js.
-- By default, the Node.js Auto Instrumentation package will be installed with
-  the `npm install --global` command. Run the installer script with the
-  `--npm-command "<command>"` option to specify a custom command (wrapped in
-  quotes). For example:
+  `npm` is not installed or not found with the `command -v npm` shell command,
+  the installer script will automatically skip installation and configuration
+  of the Node.js agent. Use the `--npm-path <path>` option to specify a custom
+  path to `npm`. For example:
   ```
   curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-collector.sh && \
-  sudo sh /tmp/splunk-otel-collector.sh --with-instrumentation --npm-command "/path/to/npm install --prefix /my/custom/path" --realm SPLUNK_REALM -- SPLUNK_ACCESS_TOKEN
+  sudo sh /tmp/splunk-otel-collector.sh --with-instrumentation --npm-path /path/to/npm --realm SPLUNK_REALM -- SPLUNK_ACCESS_TOKEN
   ```
-- Ensure that all Node.js applications/services to be instrumented have access
-  to the installation path of the Node.js Auto Instrumentation package.
 - For `arm64/aarch64` architectures, the following package groups will
   automatically be installed in order to build/compile the Node.js Auto
   Instrumentation package:
   - Debian/Ubuntu: `build-essential`
   - CentOS/Oracle/Red Hat/Amazon: `Development Tools`
   - Suse: `devel_basis` and `devel_C_C++`
+- To explicitly skip Node.js Auto Instrumentation, run the installer script
+  with the `--without-instrumentation-sdk node` option. For example:
+  ```
+  curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-collector.sh && \
+  sudo sh /tmp/splunk-otel-collector.sh --with-instrumentation --without-instrumentation-sdk node --realm SPLUNK_REALM -- SPLUNK_ACCESS_TOKEN
+  ```
 
 #### Post-Install Configuration
 
@@ -441,6 +441,24 @@ system (requires `root` privileges):
     sudo zypper refresh
     sudo zypper update splunk-otel-auto-instrumentation
     ```
+
+The latest `splunk-otel-auto-instrumentation` deb/rpm package may provide an
+updated version of the Node.js Auto Instrumentation agent (check the
+[GitHub Release notes](
+https://github.com/signalfx/splunk-otel-collector/releases)). To update the
+Node.js agent to the latest provided version, run the following command
+(requires `npm`):
+```
+sudo npm install --prefix /usr/lib/splunk-instrumentation/splunk-otel-js /usr/lib/splunk-instrumentation/splunk-otel-js.tgz
+
+# WARNING: The default Auto Instrumentation configuration expects the Node.js
+# agent to be installed under the /usr/lib/splunk-instrumentation/splunk-otel-js
+# prefix, as specified the command above. If the prefix is changed to a
+# different path, manually update the path for the NODE_OPTIONS
+# environment variable in either /etc/splunk/zeroconfig/node.conf or
+# /usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf
+# accordingly.
+```
 
 **Important**: After the `splunk-otel-auto-instrumentation` is upgraded, the
 `/usr/lib/splunk-instrumentation/libsplunk.so` shared object library path will

@@ -122,6 +122,7 @@ enable_metrics="false"
 java_zeroconfig_path="/etc/splunk/zeroconfig/java.conf"
 node_zeroconfig_path="/etc/splunk/zeroconfig/node.conf"
 node_package_path="/usr/lib/splunk-instrumentation/splunk-otel-js.tgz"
+node_install_prefix="/usr/lib/splunk-instrumentation/splunk-otel-js"
 
 repo_for_stage() {
   local repo_url=$1
@@ -307,6 +308,7 @@ ensure_not_installed() {
   local with_fluentd="$1"
   local with_instrumentation="$2"
   local with_systemd_instrumentation="$3"
+  local npm_path="$4"
   local otelcol_path=$( command -v otelcol 2>/dev/null || true )
   local td_agent_path=$( command -v td-agent 2>/dev/null || true )
 
@@ -333,8 +335,8 @@ ensure_not_installed() {
       echo "Please uninstall auto instrumentation, or try running this script with the '--uninstall' option." >&2
       exit 1
     fi
-    if command -v npm >/dev/null 2>&1 && npm ls --global @splunk/otel >/dev/null 2>&1; then
-      echo "The @splunk/otel npm package is already globally installed." >&2
+    if [ -n "$npm_path" ] && $npm_path ls --prefix $node_install_prefix @splunk/otel >/dev/null 2>&1; then
+      echo "The @splunk/otel npm package is already installed in $node_install_prefix." >&2
       echo "Please uninstall @splunk/otel, or try running this script with the '--uninstall' option." >&2
       exit 1
     fi
@@ -543,7 +545,7 @@ EOH
 }
 
 install_node_package() {
-  local npm_command="$1"
+  local npm_path="$1"
 
   if [ "$distro_arch" = "arm64" ] || [ "$distro_arch" = "aarch64" ]; then
     echo "Installing dependencies for the Node.js Auto Instrumentation package ..."
@@ -566,8 +568,9 @@ install_node_package() {
   fi
 
   echo "Installing the Node.js Auto Instrumentation package ..."
-  echo "Running '$npm_command $node_package_path':"
-  $npm_command $node_package_path
+  mkdir -p $node_install_prefix
+  echo "Running '$npm_path install --prefix $node_install_prefix $node_package_path':"
+  $npm_path install --prefix $node_install_prefix $node_package_path
 }
 
 create_zeroconfig_node() {
@@ -583,7 +586,7 @@ create_zeroconfig_node() {
 
   echo "Creating ${node_zeroconfig_path}"
   cat <<EOH > $node_zeroconfig_path
-NODE_OPTIONS=-r @splunk/otel/instrument
+NODE_OPTIONS=-r ${node_install_prefix}/node_modules/@splunk/otel/instrument
 OTEL_RESOURCE_ATTRIBUTES=${resource_attributes}
 SPLUNK_PROFILER_ENABLED=${enable_profiler}
 SPLUNK_PROFILER_MEMORY_ENABLED=${enable_profiler_memory}
@@ -630,7 +633,7 @@ EOH
   fi
 
   if [ "$with_node" = "true" ]; then
-    echo "DefaultEnvironment=\"NODE_OPTIONS=-r @splunk/otel/instrument\"" >> $systemd_instrumentation_config_path
+    echo "DefaultEnvironment=\"NODE_OPTIONS=-r ${node_install_prefix}/node_modules/@splunk/otel/instrument\"" >> $systemd_instrumentation_config_path
   fi
 
   systemctl daemon-reload
@@ -785,9 +788,9 @@ uninstall() {
     fi
   done
 
-  if command -v npm >/dev/null 2>&1 && npm ls --global @splunk/otel >/dev/null 2>&1; then
-    npm uninstall --global @splunk/otel
-    echo "Successfully uninstalled the @splunk/otel npm package"
+  if command -v npm >/dev/null 2>&1 && npm ls --prefix $node_install_prefix @splunk/otel >/dev/null 2>&1; then
+    npm uninstall --prefix $node_install_prefix @splunk/otel
+    echo "Successfully uninstalled the @splunk/otel npm package from $node_install_prefix"
   fi
 }
 
@@ -878,15 +881,12 @@ Auto Instrumentation:
                                         for example "--with-instrumentation-sdk java".
                                         (default: --with-instrumentation-sdk "java,node" if --with-instrumentation or
                                         --with-systemd-instrumentation is also specified)
-  --npm-command "<command>"             If Auto Instrumentation for Node.js is enabled, npm is required to install the
-                                        included Splunk OpenTelemetry Auto Instrumentation for Node.js package with the
-                                        following command:
-                                          npm install --global
-                                        Use this option to specify a custom command (with quotes), for example:
-                                          --npm-command "/path/to/npm install --prefix /my/custom/directory"
-                                        *Note*: If npm is not in the user's PATH or if installation fails,
-                                        Auto Instrumentation for Node.js will not be enabled.
-                                        (default: "npm install --global")
+  --npm-path <path>                     If Auto Instrumentation for Node.js is enabled, npm is required to install the
+                                        included Splunk OpenTelemetry Auto Instrumentation for Node.js package. If npm
+                                        is not found via the 'command -v npm' shell command or if installation fails,
+                                        Auto Instrumentation for Node.js will not be activated. Use this option to
+                                        specify a custom path to npm, for example "/my/path/to/npm".
+                                        (default: npm)
   --deployment-environment <value>      Set the 'deployment.environment' resource attribute to the specified value.
                                         If not specified, the "Environment" in the Splunk APM UI will appear as
                                         "unknown" for the auto instrumented application(s).
@@ -1086,7 +1086,7 @@ parse_args_and_install() {
   local otlp_endpoint=""
   local with_java_instrumentation="true"
   local with_node_instrumentation="true"
-  local npm_command=""
+  local npm_path=""
   local node_package_installed="false"
 
   while [ -n "${1-}" ]; do
@@ -1228,8 +1228,12 @@ parse_args_and_install() {
         done
         shift 1
         ;;
-      --npm-command)
-        npm_command="$2"
+      --npm-path)
+        npm_path="$2"
+        if ! command -v "$npm_path" >/dev/null 2>&1; then
+          echo "[ERROR] $npm_path not found!" >&2
+          exit 1
+        fi
         shift 1
         ;;
       --instrumentation-version)
@@ -1359,10 +1363,8 @@ parse_args_and_install() {
   fi
 
   if [ "$with_node_instrumentation" = "true" ]; then
-    if [ -z "$npm_command" ]; then
-      if command -v npm >/dev/null 2>&1; then
-        npm_command="npm install --global"
-      fi
+    if [ -z "$npm_path" ] && command -v npm >/dev/null 2>&1; then
+      npm_path="npm"
     fi
   fi
 
@@ -1380,7 +1382,7 @@ parse_args_and_install() {
 
   check_support
 
-  ensure_not_installed "$with_fluentd" "$with_instrumentation" "$with_systemd_instrumentation"
+  ensure_not_installed "$with_fluentd" "$with_instrumentation" "$with_systemd_instrumentation" "$npm_path"
 
   echo "Splunk OpenTelemetry Collector Version: ${collector_version}"
   if [ -n "$ballast" ]; then
@@ -1443,11 +1445,11 @@ parse_args_and_install() {
         rm -f "$java_zeroconfig_path"
       fi
       if [ "$with_node_instrumentation" = "true" ]; then
-        if [ -n "$npm_command" ] && install_node_package "$npm_command"; then
+        if [ -n "$npm_path" ] && install_node_package "$npm_path"; then
           node_package_installed="true"
           create_zeroconfig_node "$otlp_endpoint"
         fi
-        if [ -z "$npm_command" ] || [ "$node_package_installed" = "false" ]; then
+        if [ -z "$npm_path" ] || [ "$node_package_installed" = "false" ]; then
           backup_file "$node_zeroconfig_path"
           rm -f "$node_zeroconfig_path"
         fi
@@ -1467,7 +1469,7 @@ parse_args_and_install() {
     # remove libsplunk.so from /etc/ld.so.preload if it was added automatically by the instrumentation package
     disable_preload
     if [ "$with_node_instrumentation" = "true" ] && [ -f "$node_package_path" ]; then
-      if install_node_package "$npm_command"; then
+      if install_node_package "$npm_path"; then
         node_package_installed="true"
       fi
     fi
@@ -1692,7 +1694,7 @@ EOH
       fi
     fi
     if [ "$with_node_instrumentation" = "true" ] && [ -f "$node_package_path" ]; then
-      if [ -z "$npm_command" ]; then
+      if [ -z "$npm_path" ]; then
         cat <<EOH
 [WARNING] Auto Instrumentation for Node.js was not installed since npm was not found.
 

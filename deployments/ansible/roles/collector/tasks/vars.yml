@@ -37,7 +37,7 @@
 
 - name: set default vars for Windows
   set_fact:
-    splunk_api_url: |- 
+    splunk_api_url: |-
       {%- if splunk_api_url -%}
         {{ splunk_api_url }}
       {%- else -%}
@@ -61,19 +61,19 @@
       {%- else -%}
         {{ansible_env.ProgramFiles}}\Splunk\OpenTelemetry Collector\fluentd\td-agent.conf
       {%- endif -%}
-    splunk_ingest_url: |- 
+    splunk_ingest_url: |-
       {%- if splunk_ingest_url -%}
         {{ splunk_ingest_url }}
       {%- else -%}
         https://ingest.{{splunk_realm}}.signalfx.com
       {%- endif -%}
-    splunk_hec_token: |- 
+    splunk_hec_token: |-
       {%- if splunk_hec_token -%}
         {{ splunk_hec_token }}
       {%- else -%}
         {{ splunk_access_token }}
       {%- endif -%}
-    splunk_hec_url: |- 
+    splunk_hec_url: |-
       {%- if splunk_hec_url -%}
         {{ splunk_hec_url }}
       {%- else -%}
@@ -85,7 +85,7 @@
       {%- else -%}
         {{ansible_env.ProgramData}}\Splunk\OpenTelemetry Collector\agent_config.yaml
       {%- endif -%}
-    splunk_trace_url: |- 
+    splunk_trace_url: |-
       {%- if splunk_trace_url -%}
         {{ splunk_trace_url }}
       {%- else -%}
@@ -122,7 +122,7 @@
       SPLUNK_INGEST_URL: "{{ splunk_ingest_url }}"
       SPLUNK_HEC_TOKEN: "{{ splunk_hec_token }}"
       SPLUNK_HEC_URL: "{{ splunk_hec_url }}"
-      SPLUNK_LISTEN_INTERFACE: {{ splunk_listen_interface if splunk_listen_interface is defined else omit}}
+      SPLUNK_LISTEN_INTERFACE: {{ splunk_listen_interface if splunk_listen_interface is defined else omit }}
       SPLUNK_MEMORY_TOTAL_MIB: "{{ splunk_memory_total_mib }}"
       SPLUNK_REALM: "{{ splunk_realm }}"
       SPLUNK_TRACE_URL: "{{ splunk_trace_url }}"

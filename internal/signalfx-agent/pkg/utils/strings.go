@@ -9,17 +9,6 @@ import (
 	"unicode"
 )
 
-// FirstNonEmpty returns the first string that is not empty, otherwise ""
-func FirstNonEmpty(s ...string) string {
-	for _, str := range s {
-		if str != "" {
-			return str
-		}
-	}
-
-	return ""
-}
-
 // LowercaseFirstChar make the first character of a string lowercase
 func LowercaseFirstChar(s string) string {
 	for i, v := range s {

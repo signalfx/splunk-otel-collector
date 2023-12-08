@@ -14,9 +14,9 @@
       SPLUNK_INGEST_URL: https://ingest.fake-realm.signalfx.com
       SPLUNK_TRACE_URL: https://ingest.fake-realm.signalfx.com/v2/trace
     dotnet_reg_values:
-      COR_ENABLE_PROFILING: 1
+      COR_ENABLE_PROFILING: "1"
       COR_PROFILER: "{B4C89B0F-9908-4F73-9F59-0D77C5A06874}"
-      CORECLR_ENABLE_PROFILING: 1
+      CORECLR_ENABLE_PROFILING: "1"
       CORECLR_PROFILER: "{B4C89B0F-9908-4F73-9F59-0D77C5A06874}"
       SIGNALFX_DOTNET_TRACER_HOME: '{{ ansible_env.ProgramFiles }}\SignalFx\.NET Tracing\'
       SIGNALFX_ENV: ""

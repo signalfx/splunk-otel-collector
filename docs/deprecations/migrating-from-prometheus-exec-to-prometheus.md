@@ -1,10 +1,10 @@
-# Removal of deprecated prometheusexec receiever
+# Removal of deprecated prometheusexec receiver
 ## Why is this happening?
-There exist [security concerns](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/6722) using the promethusexec receiver.  All prometheus specific functionality should be supported in the "normal" prometheus (scraping) receiver, along with others.
+There exist [security concerns](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/6722) using the prometheusexec receiver.  All prometheus specific functionality should be supported in the "normal" prometheus (scraping) receiver, along with others.
 
 ## If I'm using the prometheusexec receiver, what should I do?
 
-We recommend you migrate your configuration to use the [prometheus](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/prometheusreceiver) opentelemetry receiver.
+We recommend you migrate your configuration to use the [prometheus](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/prometheusreceiver) OpenTelemetry receiver.
 
 ### Natively your metrics for scraping
 The exact method of your migration will depend on why you needed to use the `prometheus_exec` scraper in the first place.

@@ -1,144 +1,17 @@
 ---
-- name: Set default ingest url
+- name: Get Splunk OpenTelemetry Collector options list
   set_fact:
-    splunk_ingest_url: https://ingest.{{splunk_realm}}.signalfx.com
-  when: splunk_ingest_url is not defined or (splunk_ingest_url | trim) == ""
+    splunk_otel_collector_options_list: |-
+      {%- set value = item.value -%}
+      {{ (splunk_otel_collector_options_list | default([])) + [item.key + '=' + (value | string)] }}
+  loop: >
+    {{ splunk_otel_collector_options | default({}) | combine(splunk_otel_collector_additional_env_vars) | dict2items }}
 
-- name: Set default api url
-  set_fact:
-    splunk_api_url: https://api.{{splunk_realm}}.signalfx.com
-  when: splunk_api_url is not defined or (splunk_api_url | trim) == ""
-
-- name: Set default trace url
-  set_fact:
-    splunk_trace_url: "{{splunk_ingest_url}}/v2/trace"
-  when: splunk_trace_url is not defined or (splunk_trace_url | trim) == ""
-
-- name: Set default hec url
-  set_fact:
-    splunk_hec_url: "{{splunk_ingest_url}}/v1/log"
-  when: splunk_hec_url is not defined or (splunk_hec_url | trim) == ""
-
-- name: Set default hec token
-  set_fact:
-    splunk_hec_token: "{{splunk_access_token}}"
-  when: splunk_hec_token is not defined or (splunk_hec_token | trim) == ""
-
-- name: Create registry path for collector
+- name: Set Splunk OpenTelemetry Collector registry value
   ansible.windows.win_regedit:
-    path: "{{registry_key}}"
+    path: "{{ splunk_otel_collector_registry_key }}"
     state: present
-
-- name: Set registry values
-  ansible.windows.win_regedit:
-    path: "{{registry_key}}"
-    state: present
-    name: SPLUNK_ACCESS_TOKEN
-    data: "{{splunk_access_token}}"
-    type: string
-
-- name: Set registry values
-  ansible.windows.win_regedit:
-    path: "{{registry_key}}"
-    state: present
-    name: SPLUNK_REALM
-    data: "{{splunk_realm}}"
-    type: string
-
-- name: Set registry values
-  ansible.windows.win_regedit:
-    path: "{{registry_key}}"
-    state: present
-    name: SPLUNK_CONFIG
-    data: "{{splunk_otel_collector_config}}"
-    type: string
-
-- name: Set registry values
-  ansible.windows.win_regedit:
-    path: "{{registry_key}}"
-    state: present
-    name: SPLUNK_API_URL
-    data: "{{splunk_api_url}}"
-    type: string
-
-- name: Set registry values
-  ansible.windows.win_regedit:
-    path: "{{registry_key}}"
-    state: present
-    name: SPLUNK_BALLAST_SIZE_MIB
-    data: "{{splunk_ballast_size_mib}}"
-    type: string
-
-- name: Set registry values
-  ansible.windows.win_regedit:
-    path: "{{registry_key}}"
-    state: present
-    name: SPLUNK_LISTEN_INTERFACE
-    data: "{{splunk_listen_interface}}"
-    type: string
-  when: splunk_listen_interface is defined and not (splunk_listen_interface | trim) == ""
-
-- name: Set registry values
-  ansible.windows.win_regedit:
-    path: "{{registry_key}}"
-    state: present
-    name: SPLUNK_BUNDLE_DIR
-    data: "{{splunk_bundle_dir}}"
-    type: string
-
-- name: Set registry values
-  ansible.windows.win_regedit:
-    path: "{{registry_key}}"
-    state: present
-    name: SPLUNK_COLLECTD_DIR
-    data: "{{splunk_collectd_dir}}"
-    type: string
-
-- name: Set registry values
-  ansible.windows.win_regedit:
-    path: "{{registry_key}}"
-    state: present
-    name: SPLUNK_HEC_TOKEN
-    data: "{{splunk_hec_token}}"
-    type: string
-
-- name: Set registry values
-  ansible.windows.win_regedit:
-    path: "{{registry_key}}"
-    state: present
-    name: SPLUNK_HEC_URL
-    data: "{{splunk_hec_url}}"
-    type: string
-
-- name: Set registry values
-  ansible.windows.win_regedit:
-    path: "{{registry_key}}"
-    state: present
-    name: SPLUNK_INGEST_URL
-    data: "{{splunk_ingest_url}}"
-    type: string
-
-- name: Set registry values
-  ansible.windows.win_regedit:
-    path: "{{registry_key}}"
-    state: present
-    name: SPLUNK_MEMORY_TOTAL_MIB
-    data: "{{splunk_memory_total_mib}}"
-    type: string
-
-- name: Set registry values
-  ansible.windows.win_regedit:
-    path: "{{registry_key}}"
-    state: present
-    name: SPLUNK_TRACE_URL
-    data: "{{splunk_trace_url}}"
-    type: string
-
-- name: Set registry values
-  ansible.windows.win_regedit:
-    path: "{{registry_key}}"
-    state: present
-    name: "{{item.key}}"
-    data: "{{item.value}}"
-    type: string
-  loop: "{{ splunk_otel_collector_additional_env_vars | default({}) | dict2items }}"
+    name: Environment
+    data: "{{ splunk_otel_collector_options_list | sort }}"
+    type: multistring
+  notify: "reset windows splunk-otel-collector"

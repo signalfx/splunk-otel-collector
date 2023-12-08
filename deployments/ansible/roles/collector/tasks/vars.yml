@@ -37,6 +37,12 @@
 
 - name: set default vars for Windows
   set_fact:
+    splunk_api_url: |- 
+      {%- if splunk_api_url -%}
+        {{ splunk_api_url }}
+      {%- else -%}
+        https://api.{{splunk_realm}}.signalfx.com
+      {%- endif -%}
     splunk_bundle_dir: |-
       {%- if splunk_bundle_dir -%}
         {{ splunk_bundle_dir }}
@@ -49,17 +55,41 @@
       {%- else -%}
         {{ansible_env.ProgramFiles}}\Splunk\OpenTelemetry Collector\agent-bundle\run\collectd
       {%- endif -%}
+    splunk_fluentd_config: |-
+      {%- if splunk_fluentd_config -%}
+        {{ splunk_fluentd_config }}
+      {%- else -%}
+        {{ansible_env.ProgramFiles}}\Splunk\OpenTelemetry Collector\fluentd\td-agent.conf
+      {%- endif -%}
+    splunk_ingest_url: |- 
+      {%- if splunk_ingest_url -%}
+        {{ splunk_ingest_url }}
+      {%- else -%}
+        https://ingest.{{splunk_realm}}.signalfx.com
+      {%- endif -%}
+    splunk_hec_token: |- 
+      {%- if splunk_hec_token -%}
+        {{ splunk_hec_token }}
+      {%- else -%}
+        {{ splunk_access_token }}
+      {%- endif -%}
+    splunk_hec_url: |- 
+      {%- if splunk_hec_url -%}
+        {{ splunk_hec_url }}
+      {%- else -%}
+        {{ splunk_ingest_url }}/v1/log
+      {%- endif -%}
     splunk_otel_collector_config: |-
       {%- if splunk_otel_collector_config -%}
         {{ splunk_otel_collector_config }}
       {%- else -%}
         {{ansible_env.ProgramData}}\Splunk\OpenTelemetry Collector\agent_config.yaml
       {%- endif -%}
-    splunk_fluentd_config: |-
-      {%- if splunk_fluentd_config -%}
-        {{ splunk_fluentd_config }}
+    splunk_trace_url: |- 
+      {%- if splunk_trace_url -%}
+        {{ splunk_trace_url }}
       {%- else -%}
-        {{ansible_env.ProgramFiles}}\Splunk\OpenTelemetry Collector\fluentd\td-agent.conf
+        {{ splunk_ingest_url }}/v2/trace
       {%- endif -%}
     td_agent_version: |-
       {%- if td_agent_version -%}
@@ -82,4 +112,19 @@
       SIGNALFX_PROFILER_ENABLED: "{{ signalfx_dotnet_auto_instrumentation_enable_profiler }}"
       SIGNALFX_PROFILER_MEMORY_ENABLED: "{{ signalfx_dotnet_auto_instrumentation_enable_profiler_memory }}"
     iis_registry_key: HKLM:\SYSTEM\CurrentControlSet\Services\W3SVC
+    splunk_otel_collector_options:
+      SPLUNK_ACCESS_TOKEN: "{{ splunk_access_token }}"
+      SPLUNK_API_URL: "{{ splunk_api_url }}"
+      SPLUNK_BALLAST_SIZE_MIB: "{{ splunk_ballast_size_mib }}"
+      SPLUNK_BUNDLE_DIR: "{{ splunk_bundle_dir }}"
+      SPLUNK_COLLECTD_DIR: "{{ splunk_collectd_dir }}"
+      SPLUNK_CONFIG: "{{ splunk_otel_collector_config }}"
+      SPLUNK_INGEST_URL: "{{ splunk_ingest_url }}"
+      SPLUNK_HEC_TOKEN: "{{ splunk_hec_token }}"
+      SPLUNK_HEC_URL: "{{ splunk_hec_url }}"
+      SPLUNK_LISTEN_INTERFACE: {{ splunk_listen_interface if splunk_listen_interface is defined else omit}}
+      SPLUNK_MEMORY_TOTAL_MIB: "{{ splunk_memory_total_mib }}"
+      SPLUNK_REALM: "{{ splunk_realm }}"
+      SPLUNK_TRACE_URL: "{{ splunk_trace_url }}"
+    splunk_otel_collector_service_registry_key: HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector
   when: ansible_os_family == "Windows"

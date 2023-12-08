@@ -10,6 +10,9 @@ monitors:
 
     The `defaultSpanTagsFromEndpoint` and `extraSpanTagsFromEndpoint` config
     options are not compatible with the `signalfx-forwarder` monitor.
+    
+    **This monitor is deprecated, the [otlpreceiver](https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/otlpreceiver)
+    should be used instead.**
   metrics:
   monitorType: signalfx-forwarder
   properties:

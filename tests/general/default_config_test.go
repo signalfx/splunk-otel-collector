@@ -346,11 +346,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 					},
 					"signalfx":               map[string]any{"endpoint": fmt.Sprintf("%s:9943", ip)},
 					"smartagent/processlist": map[string]any{"type": "processlist"},
-					"smartagent/signalfx-forwarder": map[string]any{
-						"listenAddress": fmt.Sprintf("%s:9080", ip),
-						"type":          "signalfx-forwarder",
-					},
-					"zipkin": map[string]any{"endpoint": fmt.Sprintf("%s:9411", ip)}},
+					"zipkin":                 map[string]any{"endpoint": fmt.Sprintf("%s:9411", ip)}},
 				"service": map[string]any{
 					"telemetry":  map[string]any{"metrics": map[string]any{"address": fmt.Sprintf("%s:8888", ip)}},
 					"extensions": []any{"health_check", "http_forwarder", "zpages", "memory_ballast", "smartagent"},
@@ -366,7 +362,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 						"metrics": map[string]any{
 							"exporters":  []any{"signalfx"},
 							"processors": []any{"memory_limiter", "batch", "resourcedetection"},
-							"receivers":  []any{"hostmetrics", "otlp", "signalfx", "smartagent/signalfx-forwarder"}},
+							"receivers":  []any{"hostmetrics", "otlp", "signalfx"}},
 						"metrics/internal": map[string]any{
 							"exporters":  []any{"signalfx"},
 							"processors": []any{"memory_limiter", "batch", "resourcedetection"},
@@ -374,7 +370,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 						"traces": map[string]any{
 							"exporters":  []any{"sapm", "signalfx"},
 							"processors": []any{"memory_limiter", "batch", "resourcedetection"},
-							"receivers":  []any{"jaeger", "otlp", "smartagent/signalfx-forwarder", "zipkin"},
+							"receivers":  []any{"jaeger", "otlp", "zipkin"},
 						},
 					},
 				},

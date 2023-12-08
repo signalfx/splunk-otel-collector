@@ -55,9 +55,6 @@ receivers:
     #access_token_passthrough: true
   zipkin:
     endpoint: 0.0.0.0:9411
-  smartagent/signalfx-forwarder:
-    type: signalfx-forwarder
-    listenAddress: 0.0.0.0:9080
   smartagent/ecs-metadata:
     type: ecs-metadata
     excludedImages: ${env:ECS_METADATA_EXCLUDED_IMAGES}
@@ -120,7 +117,7 @@ service:
   extensions: [health_check, http_forwarder, zpages, memory_ballast]
   pipelines:
     traces:
-      receivers: [jaeger, otlp, zipkin, smartagent/signalfx-forwarder]
+      receivers: [jaeger, otlp, zipkin]
       processors:
         - memory_limiter
         - batch
@@ -128,7 +125,7 @@ service:
         #- resource/add_environment
       exporters: [sapm, signalfx]
     metrics:
-      receivers: [otlp, signalfx, smartagent/signalfx-forwarder, smartagent/ecs-metadata, prometheus/internal]
+      receivers: [otlp, signalfx, smartagent/ecs-metadata, prometheus/internal]
       processors: [memory_limiter, batch, resourcedetection]
       exporters: [signalfx]
     logs:

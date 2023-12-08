@@ -38,12 +38,6 @@ receivers:
     #access_token_passthrough: true
   signalfx:
     endpoint: 0.0.0.0:9943
-    # Whether to preserve incoming access token and use instead of exporter token
-    # default = false
-    #access_token_passthrough: true
-  smartagent/signalfx-forwarder:
-    type: signalfx-forwarder
-    listenAddress: 0.0.0.0:9080
   zipkin:
     endpoint: 0.0.0.0:9411
 
@@ -108,14 +102,14 @@ service:
   extensions: [health_check, http_forwarder, zpages, memory_ballast]
   pipelines:
     traces:
-      receivers: [jaeger, otlp, smartagent/signalfx-forwarder, zipkin]
+      receivers: [jaeger, otlp, zipkin]
       processors:
       - memory_limiter
       - batch
       #- resource/add_environment
       exporters: [otlphttp, signalfx]
     metrics:
-      receivers: [otlp, signalfx, smartagent/signalfx-forwarder]
+      receivers: [otlp, signalfx]
       processors: [memory_limiter, batch]
       exporters: [signalfx]
     metrics/internal:

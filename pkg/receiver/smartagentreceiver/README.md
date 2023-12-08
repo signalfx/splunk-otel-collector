@@ -27,12 +27,6 @@ of your Collector configuration.
 1. Instead of using `discoveryRule`, use the Collector's
 [Receiver Creator](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/receivercreator/README.md)
 and [Observer extensions](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/observer/README.md).
-1. If you're using a [SignalFx Forwarder](https://github.com/signalfx/signalfx-agent/blob/main/docs/monitors/signalfx-forwarder.md)
-monitor, add it to both a `traces` and a `metrics` pipeline, and use a
-[Sapm exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/exporter/sapmexporter/README.md)
-and a 
-[SignalFx exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/exporter/signalfxexporter/README.md),
-as each pipeline's exporter, respectively.
 1. To replace or modify metrics, use
 [Collector processors](https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/README.md).
 1. If you have a monitor that sends [events](https://dev.splunk.com/observability/docs/datamodel/custom_events) (e.g. `kubernetes-events`,
@@ -51,8 +45,6 @@ Example:
 
 ```yaml
 receivers:
-  smartagent/signalfx-forwarder:
-    type: signalfx-forwarder
   smartagent/postgresql:
     type: postgresql
     host: mypostgresinstance
@@ -87,7 +79,6 @@ service:
       receivers:
         - smartagent/postgresql
         - smartagent/kafka
-        - smartagent/signalfx-forwarder
       processors:
         - resourcedetection
       exporters:
@@ -101,7 +92,7 @@ service:
         - signalfx
     traces:
       receivers:
-        - smartagent/signalfx-forwarder
+        - otlp
       processors:
         - resourcedetection
       exporters:

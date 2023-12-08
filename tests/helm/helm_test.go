@@ -64,12 +64,20 @@ func getHelmChartPath(t testing.TB) string {
 // for a helm chart installation are exported. The target chart is determined from first hit of
 // 1. SPLUNK_COLLECTOR_HELM_CHART_PATH env var value
 // 2. SPLUNK_COLLECTOR_HELM_CHART_VERSION env var set in helmRepoTmpl
-// 3. parsed version.Version (with decremented minor to check previous release compatibility) set in helmRepoTmpl
+// 3. parsed version.Version (pinned to 0.90.0 for now, see TODO) set in helmRepoTmpl
 func TestHelmChartMetricsHappyPath(t *testing.T) {
 	testutils.SkipIfNotContainerTest(t)
 	if testutils.CollectorImageIsForArm(t) {
 		t.Skip("Apparent metric loss on qemu. Deferring.")
 	}
+	// TODO pinning to 0.90.0 since there was no 0.89.0 chart release.
+	// may make sense to keep this until expanded strategy established
+	t.Cleanup(func() func() {
+		require.NoError(t, os.Setenv(chartVersionEnvVar, "0.90.0"))
+		return func() {
+			require.NoError(t, os.Unsetenv(chartVersionEnvVar))
+		}
+	}())
 	helmChartPath := getHelmChartPath(t)
 	tc := testutils.NewTestcase(t, testutils.OTLPReceiverSinkAllInterfaces)
 	defer tc.PrintLogsOnFailure()

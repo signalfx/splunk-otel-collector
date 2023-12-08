@@ -13,9 +13,8 @@
   Collector allow us to move fast.
 - **Can AWS Distro for OpenTelemetry be used?** For Splunk APM and
   Infrastructure Monitoring if the data goes through the AWS OTel Collector
-  then yes. Splunk Log Observer is not supported today. The AWS Lambda
-  instrumentation included in the AWS Distro of OpenTelemetry does not support
-  sending to the OTel Collector or directly to Splunk today.
+  then yes. The AWS Lambda instrumentation included in the AWS Distro of 
+  OpenTelemetry does not support sending to the OTel Collector or directly to Splunk today.
 - **Can I deploy Splunk OpenTelemetry Collector without fluentd?** Yes, manual
   installation does not include fluentd. The installer script offers a way to
   exclude fluentd via a runtime parameter.

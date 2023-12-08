@@ -7,10 +7,58 @@
 - (Splunk) On Windows the `SPLUNK_*` environment variables were moved from the machine scope to the collector service scope.
 It is possible that some instrumentations are relying on the machine-wide environment variables set by the installation. ([#3930](https://github.com/signalfx/splunk-otel-collector/pull/3930))
 
+## v0.90.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.90.1](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.90.1) and the [opentelemetry-collector-contrib v0.90.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.90.0) releases where appropriate.
+
+### 🛑 Breaking changes 🛑
+
+- (Core) `service`: To remain backwards compatible w/ the metrics generated today, otel generated metrics will be generated without the `_total` suffix ([#7454](https://github.com/open-telemetry/opentelemetry-collector/issues/7454))
+- (Core) `service`: use WithNamespace instead of WrapRegistererWithPrefix ([#8988](https://github.com/open-telemetry/opentelemetry-collector/issues/8988))
+  Using this functionality in the otel prom exporter fixes a bug where the
+  target_info was prefixed as otelcol_target_info previously.
+
+### 🚩 Deprecations 🚩
+
+- (Splunk) Deprecate `collectd/marathon` ([#3992](https://github.com/signalfx/splunk-otel-collector/pull/3992))
+- (Splunk) Add deprecation notice to `collectd/etcd` (use `etcd` instead) ([#3990](https://github.com/signalfx/splunk-otel-collector/pull/3990))
+- (Splunk) Mark translatesfx as deprecated ([#3984](https://github.com/signalfx/splunk-otel-collector/pull/3984))
+
+### 💡 Enhancements 💡
+
+- (Splunk) `mysqlreceiver`: Add mysqlreceiver to the Splunk distribution ([#3989](https://github.com/signalfx/splunk-otel-collector/pull/3989))
+- (Core) `exporter/debug`: Change default `verbosity` from `normal` to `basic` ([#8844](https://github.com/open-telemetry/opentelemetry-collector/issues/8844))
+  This change has currently no effect, as `basic` and `normal` verbosity share the same behavior. This might change in the future though, with the `normal` verbosity being more verbose than it currently is (see https://github.com/open-telemetry/opentelemetry-collector/issues/7806). This is why we are changing the default to `basic`, which is expected to stay at the current level of verbosity (one line per batch).
+- (Core) `exporterhelper`: Fix shutdown logic in persistent queue to not require consumers to be closed first ([#8899](https://github.com/open-telemetry/opentelemetry-collector/issues/8899))
+- (Core) `confighttp`: Support proxy configuration field in all exporters that support confighttp ([#5761](https://github.com/open-telemetry/opentelemetry-collector/issues/5761))
+- (Contrib) `resourcedetectionprocessor`: Add k8s cluster name detection when running in EKS ([#26794](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/26794))
+- (Contrib) `pkg/ottl`: Add new IsDouble function to facilitate type checking. ([#27895](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27895))
+- (Contrib) `mysqlreceiver`: expose tls in mysqlreceiver ([#29269](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/29269))
+  If tls is not set, the default is to disable TLS connections.
+- (Contrib) `processor/transform`: Convert between sum and gauge in metric context when alpha feature gate `processor.transform.ConvertBetweenSumAndGaugeMetricContext` enabled ([#20773](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/20773))
+- (Contrib) `receiver/mongodbatlasreceiver`: adds project config to mongodbatlas metrics to filter by project name and clusters. ([#28865](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/28865))
+- (Contrib) `pkg/stanza`: Add "namedpipe" operator. ([#27234](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27234))
+- (Contrib) `pkg/resourcetotelemetry`: Do not clone data in pkg/resourcetotelemetry by default ([#29327](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/29327))
+  The resulting consumer will be marked as MutatesData instead
+- (Contrib) `pkg/stanza`: Improve performance by not calling decode when nop encoding is defined ([#28899](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/28899))
+- (Contrib) `receivercreator`: Added support for discovery of endpoints based on K8s services ([#29022](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/29022))
+  By discovering endpoints based on K8s services, a dynamic probing of K8s service leveraging for example the httpcheckreceiver get enabled
+- (Contrib) `signalfxexporter`: change default timeout to 10 seconds ([#29436](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/29436))
+- (Contrib) `hostmetricsreceiver`: Add optional Linux-only metric system.linux.memory.available ([#7417](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/7417))
+  This is an alternative to `system.memory.usage` metric with state=free.
+  Linux starting from 3.14 exports "available" memory. It takes "free" memory as a baseline, and then factors in kernel-specific values.
+  This is supposed to be more accurate than just "free" memory.
+  For reference, see the calculations [here](https://superuser.com/a/980821).
+  See also `MemAvailable` in `/proc/meminfo`.
+
 ### 🧰 Bug fixes 🧰
 
 - (Splunk) `cmd/otelcol`: Fix the code detecting if the collector is running as a service on Windows. The fix should make
   setting the `NO_WINDOWS_SERVICE` environment variable unnecessary. ([#4002](https://github.com/signalfx/splunk-otel-collector/pull/4002))
+- (Core) `exporterhelper`: Fix invalid write index updates in the persistent queue ([#8115](https://github.com/open-telemetry/opentelemetry-collector/issues/8115))
+- (Contrib) `filelogreceiver`: Fix issue where files were unnecessarily kept open on Windows ([#29149](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29149))
+- (Contrib) `mongodbreceiver`: add receiver.mongodb.removeDatabaseAttr Alpha feature gate to remove duplicate database name attribute ([#24972](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/24972))
+- (Contrib) `pkg/stanza`: Fix panic during stop for udp async mode only. ([#29120](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29120))
 
 ## v0.89.0
 

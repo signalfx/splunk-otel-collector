@@ -24,14 +24,12 @@ ARCH="${2:-amd64}"
 OUTPUT_DIR="${3:-$REPO_DIR/dist}"
 BUNDLE_BASE_DIR="/splunk-otel-collector"
 OTELCOL_INSTALL_PATH="$BUNDLE_BASE_DIR/bin/otelcol"
-TRANSLATESFX_INSTALL_PATH="$BUNDLE_BASE_DIR/bin/translatesfx"
 
 tar_setup_files_and_permissions() {
     local otelcol="$1"
-    local translatesfx="$2"
-    local config_folder="$3"
-    local buildroot="$4"
-    local bundle_path="$5"
+    local config_folder="$2"
+    local buildroot="$3"
+    local bundle_path="$4"
 
     create_user_group
 
@@ -43,11 +41,6 @@ tar_setup_files_and_permissions() {
     mkdir -p "$buildroot/$BUNDLE_BASE_DIR/config"
     cp "$config_folder/gateway_config.yaml" "$buildroot/$BUNDLE_BASE_DIR/config/"
     cp "$config_folder/agent_config.yaml" "$buildroot/$BUNDLE_BASE_DIR/config/"
-
-    mkdir -p "$buildroot/$(dirname $TRANSLATESFX_INSTALL_PATH)"
-    cp -f "$translatesfx" "$buildroot/$TRANSLATESFX_INSTALL_PATH"
-    sudo chown root:root "$buildroot/$TRANSLATESFX_INSTALL_PATH"
-    sudo chmod 755 "$buildroot/$TRANSLATESFX_INSTALL_PATH"
 
     JMX_METRIC_GATHERER_RELEASE="$(cat $JMX_METRIC_GATHERER_RELEASE_PATH)"
     download_jmx_metric_gatherer "$JMX_METRIC_GATHERER_RELEASE" "$buildroot/$BUNDLE_BASE_DIR"
@@ -72,13 +65,12 @@ fi
 VERSION="${VERSION#v}"
 
 otelcol_path="$REPO_DIR/bin/otelcol_linux_${ARCH}"
-translatesfx_path="$REPO_DIR/bin/translatesfx_linux_${ARCH}"
 config_folder_path="$REPO_DIR/cmd/otelcol/config/collector"
 agent_bundle_path="$REPO_DIR/dist/agent-bundle_linux_${ARCH}.tar.gz"
 
 buildroot="$(mktemp -d)"
 
-tar_setup_files_and_permissions "$otelcol_path" "$translatesfx_path" "$config_folder_path" "$buildroot" "$agent_bundle_path"
+tar_setup_files_and_permissions "$otelcol_path" "$config_folder_path" "$buildroot" "$agent_bundle_path"
 
 mkdir -p "$OUTPUT_DIR"
 

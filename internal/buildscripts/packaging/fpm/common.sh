@@ -29,7 +29,6 @@ SERVICE_USER="splunk-otel-collector"
 SERVICE_GROUP="splunk-otel-collector"
 
 OTELCOL_INSTALL_PATH="/usr/bin/otelcol"
-TRANSLATESFX_INSTALL_PATH="/usr/bin/translatesfx"
 CONFIG_DIR_REPO_PATH="$REPO_DIR/cmd/otelcol/config/collector/config.d.linux"
 CONFIG_DIR_INSTALL_PATH="/etc/otel/collector/config.d"
 AGENT_CONFIG_REPO_PATH="$REPO_DIR/cmd/otelcol/config/collector/agent_config.yaml"
@@ -81,9 +80,8 @@ download_jmx_metric_gatherer() {
 
 setup_files_and_permissions() {
     local otelcol="$1"
-    local translatesfx="$2"
-    local buildroot="$3"
-    local bundle_path="$4"
+    local buildroot="$2"
+    local bundle_path="$3"
 
     create_user_group
 
@@ -91,11 +89,6 @@ setup_files_and_permissions() {
     cp -f "$otelcol" "$buildroot/$OTELCOL_INSTALL_PATH"
     sudo chown root:root "$buildroot/$OTELCOL_INSTALL_PATH"
     sudo chmod 755 "$buildroot/$OTELCOL_INSTALL_PATH"
-
-    mkdir -p "$buildroot/$(dirname $TRANSLATESFX_INSTALL_PATH)"
-    cp -f "$translatesfx" "$buildroot/$TRANSLATESFX_INSTALL_PATH"
-    sudo chown root:root "$buildroot/$TRANSLATESFX_INSTALL_PATH"
-    sudo chmod 755 "$buildroot/$TRANSLATESFX_INSTALL_PATH"
 
     cp -r "$FPM_DIR/etc" "$buildroot/etc"
     cp -r "$CONFIG_DIR_REPO_PATH" "$buildroot/$CONFIG_DIR_INSTALL_PATH"

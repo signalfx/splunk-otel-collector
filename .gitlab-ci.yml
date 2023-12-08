@@ -188,12 +188,10 @@ compile:
   script: make $TARGET
   after_script:
     - if [ -e bin/otelcol ]; then rm -f bin/otelcol; fi  # remove the symlink
-    - if [ -e bin/translatesfx ]; then rm -f bin/translatesfx; fi  # remove the symlink
     - if [ -e bin/migratecheckpoint ]; then rm -f bin/migratecheckpoint; fi  # remove the symlink
   artifacts:
     paths:
       - bin/otelcol_*
-      - bin/translatesfx_*
       - bin/migratecheckpoint_*
 
 libsplunk:
@@ -292,7 +290,7 @@ sign-exe:
     - compile
   parallel:
     matrix:
-      - TARGET: [otelcol, translatesfx]
+      - TARGET: [otelcol]
   variables:
     ARTIFACT: bin/${TARGET}_windows_amd64.exe
     SIGN_TYPE: WIN
@@ -319,14 +317,13 @@ sign-osx:
     DOWNLOAD_DIR: dist/signed
   before_script:
     - mkdir -p dist
-    - pushd bin && tar -czvf packages.tar.gz otelcol_darwin_${ARCH} translatesfx_darwin_${ARCH} && popd
+    - pushd bin && tar -czvf packages.tar.gz otelcol_darwin_${ARCH} && popd
   after_script:
     - tar -xzvf dist/signed/packages.tar.gz -C dist/signed/
     - rm dist/signed/packages.tar.gz
   artifacts:
     paths:
       - dist/signed/otelcol_darwin_${ARCH}
-      - dist/signed/translatesfx_darwin_${ARCH}
 
 build-linux-image:
   extends: .trigger-filter
@@ -403,7 +400,6 @@ build-msi:
     # build the MSI with the signed exe
     - mkdir -p bin
     - cp -f dist/signed/otelcol_windows_amd64.exe bin/otelcol_windows_amd64.exe
-    - cp -f dist/signed/translatesfx_windows_amd64.exe bin/translatesfx_windows_amd64.exe
   script:
     - *docker-reader-role
     - make msi SKIP_COMPILE=true VERSION=${CI_COMMIT_TAG:-} DOCKER_REPO=${DOCKER_HUB_REPO}
@@ -655,7 +651,6 @@ build-push-windows-image:
   retry: 2
   before_script:
     - Copy-Item .\dist\signed\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
-    - Copy-Item .\dist\signed\translatesfx_windows_amd64.exe .\cmd\otelcol\translatesfx.exe
     - Copy-Item .\dist\agent-bundle_windows_amd64.zip .\cmd\otelcol\agent-bundle_windows_amd64.zip
   script:
     - docker login -u $env:CIRCLECI_QUAY_USERNAME -p $env:CIRCLECI_QUAY_PASSWORD quay.io
@@ -697,7 +692,6 @@ build-push-windows2022-image:
   retry: 2
   before_script:
     - Copy-Item .\dist\signed\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
-    - Copy-Item .\dist\signed\translatesfx_windows_amd64.exe .\cmd\otelcol\translatesfx.exe
     - Copy-Item .\dist\agent-bundle_windows_amd64.zip .\cmd\otelcol\agent-bundle_windows_amd64.zip
   script:
     - docker login -u $env:CIRCLECI_QUAY_USERNAME -p $env:CIRCLECI_QUAY_PASSWORD quay.io
@@ -910,7 +904,6 @@ github-release:
   script:
     - mkdir -p dist/assets
     - cp bin/otelcol_linux_* dist/assets/
-    - cp bin/translatesfx_linux_* dist/assets/
     - cp instrumentation/dist/libsplunk_*.so dist/assets/
     - cp dist/signed/* dist/assets/
     - |

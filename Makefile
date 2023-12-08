@@ -121,12 +121,6 @@ otelcol:
 	GO111MODULE=on CGO_ENABLED=0 go build -trimpath -o ./bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/otelcol
 	ln -sf otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/otelcol
 
-.PHONY: translatesfx
-translatesfx:
-	go generate ./...
-	GO111MODULE=on CGO_ENABLED=0 go build -trimpath -o ./bin/translatesfx_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/translatesfx
-	ln -sf translatesfx_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/translatesfx
-
 .PHONY: migratecheckpoint
 migratecheckpoint:
 	go generate ./...
@@ -162,7 +156,6 @@ endif
 	rm -rf ./cmd/otelcol/dist
 	mkdir -p ./cmd/otelcol/dist
 	cp ./bin/otelcol_linux_$(ARCH) ./cmd/otelcol/dist/otelcol
-	cp ./bin/translatesfx_linux_$(ARCH) ./cmd/otelcol/dist/translatesfx
 	cp ./bin/migratecheckpoint_linux_$(ARCH) ./cmd/otelcol/dist/migratecheckpoint
 	cp ./internal/buildscripts/packaging/collect-libs.sh ./cmd/otelcol/dist/collect-libs.sh
 ifneq ($(filter $(ARCH), $(BUNDLE_SUPPORTED_ARCHS)),)
@@ -178,37 +171,31 @@ binaries-all-sys: binaries-darwin_amd64 binaries-darwin_arm64 binaries-linux_amd
 .PHONY: binaries-darwin_amd64
 binaries-darwin_amd64:
 	GOOS=darwin  GOARCH=amd64 $(MAKE) otelcol
-	GOOS=darwin  GOARCH=amd64 $(MAKE) translatesfx
 	GOOS=darwin  GOARCH=amd64 $(MAKE) migratecheckpoint
 
 .PHONY: binaries-darwin_arm64
 binaries-darwin_arm64:
 	GOOS=darwin  GOARCH=arm64 $(MAKE) otelcol
-	GOOS=darwin  GOARCH=arm64 $(MAKE) translatesfx
 	GOOS=darwin  GOARCH=arm64 $(MAKE) migratecheckpoint
 
 .PHONY: binaries-linux_amd64
 binaries-linux_amd64:
 	GOOS=linux   GOARCH=amd64 $(MAKE) otelcol
-	GOOS=linux   GOARCH=amd64 $(MAKE) translatesfx
 	GOOS=linux   GOARCH=amd64 $(MAKE) migratecheckpoint
 
 .PHONY: binaries-linux_arm64
 binaries-linux_arm64:
 	GOOS=linux   GOARCH=arm64 $(MAKE) otelcol
-	GOOS=linux   GOARCH=arm64 $(MAKE) translatesfx
 	GOOS=linux   GOARCH=arm64 $(MAKE) migratecheckpoint
 
 .PHONY: binaries-windows_amd64
 binaries-windows_amd64:
 	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) otelcol
-	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) translatesfx
 	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) migratecheckpoint
 
 .PHONY: binaries-linux_ppc64le
 binaries-linux_ppc64le:
 	GOOS=linux GOARCH=ppc64le $(MAKE) otelcol
-	GOOS=linux GOARCH=ppc64le $(MAKE) translatesfx
 	GOOS=linux GOARCH=ppc64le $(MAKE) migratecheckpoint
 
 .PHONY: deb-rpm-tar-package

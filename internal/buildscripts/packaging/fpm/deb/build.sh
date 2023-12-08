@@ -34,14 +34,13 @@ if [[ -z "$JMX_METRIC_GATHERER_RELEASE" ]]; then
 fi
 
 otelcol_path="$REPO_DIR/bin/otelcol_linux_${ARCH}"
-translatesfx_path="$REPO_DIR/bin/translatesfx_linux_${ARCH}"
 agent_bundle_path="$REPO_DIR/dist/agent-bundle_linux_${ARCH}.tar.gz"
 
 buildroot="$(mktemp -d)"
 
 download_jmx_metric_gatherer "$JMX_METRIC_GATHERER_RELEASE" "$buildroot"
 
-setup_files_and_permissions "$otelcol_path" "$translatesfx_path" "$buildroot" "$agent_bundle_path"
+setup_files_and_permissions "$otelcol_path" "$buildroot" "$agent_bundle_path"
 
 mkdir -p "$OUTPUT_DIR"
 

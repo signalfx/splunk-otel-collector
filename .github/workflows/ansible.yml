@@ -71,6 +71,7 @@ jobs:
           - debian9
           - debian10
           - debian11
+          - debian12
           - opensuse12
           - opensuse15
           - ubuntu1604

@@ -339,7 +339,7 @@ def get_zc_method(container, distro, method):
 
 
 def node_package_installed(container):
-    return container.exec_run(f"sh -l -c 'npm ls --prefix {NODE_PREFIX} @splunk/otel'").exit_code == 0
+    return container.exec_run(f"sh -l -c 'cd {NODE_PREFIX} && npm ls @splunk/otel'").exit_code == 0
 
 
 @pytest.mark.installer

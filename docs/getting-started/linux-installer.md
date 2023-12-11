@@ -449,12 +449,13 @@ https://github.com/signalfx/splunk-otel-collector/releases)). To update the
 Node.js agent to the latest provided version, run the following command
 (requires `npm`):
 ```
-sudo npm install --prefix /usr/lib/splunk-instrumentation/splunk-otel-js /usr/lib/splunk-instrumentation/splunk-otel-js.tgz
+cd /usr/lib/splunk-instrumentation/splunk-otel-js && \
+sudo npm install /usr/lib/splunk-instrumentation/splunk-otel-js.tgz
 
 # WARNING: The default Auto Instrumentation configuration expects the Node.js
-# agent to be installed under the /usr/lib/splunk-instrumentation/splunk-otel-js
-# prefix, as specified the command above. If the prefix is changed to a
-# different path, manually update the path for the NODE_OPTIONS
+# agent to be installed the /usr/lib/splunk-instrumentation/splunk-otel-js
+# directory, as specified the command above. If the installation is changed to
+# a different path, manually update the path for the NODE_OPTIONS
 # environment variable in either /etc/splunk/zeroconfig/node.conf or
 # /usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf
 # accordingly.

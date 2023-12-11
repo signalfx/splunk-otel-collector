@@ -100,7 +100,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.4
 	go.etcd.io/bbolt v1.3.8
-	go.etcd.io/etcd/client/v2 v2.305.10
+	go.etcd.io/etcd/client/v2 v2.305.11
 	go.opentelemetry.io/collector/config/confighttp v0.90.1
 	go.opentelemetry.io/collector/config/configtelemetry v0.90.1
 	go.opentelemetry.io/collector/confmap v0.90.1
@@ -486,8 +486,8 @@ require (
 	github.com/xdg-go/scram v1.1.2 // indirect
 	github.com/xdg-go/stringprep v1.0.4 // indirect
 	github.com/yusufpapurcu/wmi v1.2.3 // indirect
-	go.etcd.io/etcd/api/v3 v3.5.10 // indirect
-	go.etcd.io/etcd/client/pkg/v3 v3.5.10 // indirect
+	go.etcd.io/etcd/api/v3 v3.5.11 // indirect
+	go.etcd.io/etcd/client/pkg/v3 v3.5.11 // indirect
 	go.mongodb.org/atlas v0.35.0 // indirect
 	go.opencensus.io v0.24.0
 	go.opentelemetry.io/collector/component v0.90.1

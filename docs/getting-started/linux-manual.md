@@ -346,13 +346,18 @@ To manually activate and configure the Auto Instrumentation agents:
    - [Node.js](https://docs.splunk.com/Observability/en/gdi/get-data-in/application/nodejs/nodejs-otel-requirements.html)
 2. If Auto Instrumentation for Node.js is required, install the provided
    `/usr/lib/splunk-instrumentation/splunk-otel-js.tgz` Node.js package with
-   `npm`. For example:
+   the following commands (requires `npm`):
    ```sh
-   sudo npm install --global /usr/lib/splunk-instrumentation/splunk-otel-js.tgz
+   sudo mkdir -p /usr/lib/splunk-instrumentation/splunk-otel-js && \
+   cd /usr/lib/splunk-instrumentation/splunk-otel-js && \
+   sudo npm install /usr/lib/splunk-instrumentation/splunk-otel-js.tgz
    ```
    > **Notes:**
-   > - Ensure that all Node.js applications/services to be instrumented have
-   >   access to the installation path of the Node.js package.
+   > - The default configuration files expect the Node.js package to be
+   >   installed in the `/usr/lib/splunk-instrumentation/splunk-otel-js`
+   >   directory. If installing the Node.js package globally or in a different
+   >   directory, update the path for `NODE_OPTIONS` in the configuration files
+   >   accordingly.
    > - On `arm64` architectures, it may be necessary to build/compile the
    >   Node.js package when installing with `npm`. Ensure that any required
    >   tools/libraries are installed on these systems, for example,

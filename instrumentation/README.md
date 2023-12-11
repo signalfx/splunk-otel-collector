@@ -71,7 +71,7 @@ The following methods are supported to manually activate and configure Auto Inst
      ```
    - `/etc/splunk/zeroconfig/node.conf`:
      ```
-     NODE_OPTIONS=-r @splunk/otel/instrument
+     NODE_OPTIONS=-r /usr/lib/splunk-instrumentation/splunk-otel-js/node_modules/@splunk/otel/instrument
      ```
    Configuration of the respective agents is supported by the adding/updating the following environment variables in
    each of these files (***any environment variable not in this list will be ignored***):
@@ -113,7 +113,7 @@ The following methods are supported to manually activate and configure Auto Inst
      ```
    - Node.js:
      ```
-     DefaultEnvironment="NODE_OPTIONS=-r @splunk/otel/instrument"
+     DefaultEnvironment="NODE_OPTIONS=-r /usr/lib/splunk-instrumentation/splunk-otel-js/node_modules/@splunk/otel/instrument"
      ```
 2. To configure the activated agents, add/update [`DefaultEnvironment`](
    https://www.freedesktop.org/software/systemd/man/systemd-system.conf.html#DefaultEnvironment=) within the target file

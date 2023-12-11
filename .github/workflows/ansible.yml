@@ -174,7 +174,7 @@ jobs:
           ANSIBLE_FORCE_COLOR: '1'
 
       - name: Display any failure logs
-        if: ${{ job.status == 'failure' }}
+        if: always()
         run: |
           echo "Failure logs:"
           cat /Users/runner/.cache/molecule/ansible/default/vagrant.err

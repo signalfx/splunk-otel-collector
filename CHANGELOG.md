@@ -20,8 +20,37 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 
 ### 💡 Enhancements 💡
 
+- (Contrib) `spanmetricsconnector`: Add exemplars to sum metric ([#27451](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27451))
+- (Contrib) `jaegerreceiver`: mark featuregates to replace Thrift-gen with Proto-gen types for sampling strategies as stable ([#27636](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/27636))
+  The following featuregate is stable:
+    `receiver.jaegerreceiver.replaceThriftWithProto`
+- (Contrib) `kafkareceiver`: Add the ability to consume logs from Azure Diagnostic Settings streamed through Event Hubs using the Kafka API. ([#18210](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/18210))
+- (Contrib) `resourcedetectionprocessor`: Add detection of host.ip to system detector. ([#24450](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/24450))
+- (Contrib) `resourcedetectionprocessor`: Add detection of host.mac to system detector. ([#29587](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29587))
+- (Contrib) `pkg/ottl`: Add silent ErrorMode to allow disabling logging of errors that are ignored. ([#29710](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29710))
+- (Contrib) `postgresqlreceiver`: Add config property for excluding specific databases from scraping ([#29605](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29605))
+- (Contrib) `redisreceiver`: Upgrade the redis library dependency to resolve security vulns in v7 ([#29600](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29600))
+- (Contrib) `signalfxexporter`: Enable HTTP/2 health check by default ([#29716](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29716))
+- (Contrib) `splunkhecexporter`: Enable HTTP/2 health check by default ([#29717](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29717))
+- (Contrib) `statsdreceiver`: Add support for 'simple' tags that do not have a defined value, to accommodate DogStatsD metrics that may utilize these. ([#29012](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29012))
+  This functionality is gated behind a new `enable_simple_tags` config boolean, as it is not part of the StatsD spec.
+- (Core) `service`: add resource attributes as labels to otel metrics to ensures backwards compatibility with OpenCensus metrics. ([#9029](https://github.com/open-telemetry/opentelemetry-collector/issues/9029))
+- (Core) `config/confighttp`: Exposes http/2 transport settings to enable health check and workaround golang http/2 issue https://github.com/golang/go/issues/59690 ([#9022](https://github.com/open-telemetry/opentelemetry-collector/issues/9022))
+
 ### 🧰 Bug fixes 🧰
 
+- (Splunk) `migratecheckpoint`: Migrating offsets from SCK to SCK-Otel doesn't work. This is because of incorrect keys we use to populate the boltdb cache. ([#3879](https://github.com/signalfx/splunk-otel-collector/pull/3879))
+- (Contrib) `connector/spanmetrics`: Fix memory leak when the cumulative temporality is used. ([#27654](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27654))
+- (Contrib) `splunkhecexporter`: Do not send null event field values in HEC events. Replace null values with an empty string. ([#29551](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29551))
+- (Contrib) `k8sobjectsreceiver`: fix k8sobjects receiver fails when some unrelated Kubernetes API is down ([#29706](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29706))
+- (Contrib) `resourcedetectionprocessor`: Change type of `host.cpu.model.id` and `host.cpu.model.family` from int to string. ([#29025](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29025))
+  Disable the `processor.resourcedetection.hostCPUModelAndFamilyAsString` feature gate to get the old behavior.
+- (Contrib) `filelogreceiver`: Fix problem where checkpoints could be lost when collector is shutdown abruptly ([#29609](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29609), [#29491](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29491))
+- (Contrib) `pkg/stanza`: Allow `key_value_parser` to parse values that contain the delimiter string. ([#29629](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29629)
+- (Core) `exporterhelper`: fix missed metric aggregations ([#9048](https://github.com/open-telemetry/opentelemetry-collector/issues/9048))
+  This ensures that context cancellation in the exporter doesn't interfere with metric aggregation. The OTel
+  SDK currently returns if there's an error in the context used in `Add`. This means that if there's a
+  cancelled context in an export, the metrics are now recorded.
 
 ## v0.90.0
 

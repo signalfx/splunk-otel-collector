@@ -2,12 +2,26 @@
 
 ## Unreleased
 
-### 🛑 Breaking changes 🛑
+## v0.91.0
 
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.91.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.91.0) and the [opentelemetry-collector-contrib v0.91.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.91.0) releases where appropriate.
+
+### 🛑 Breaking changes 🛑
 - (Splunk) Node.js Auto Instrumentation:
   - The `NODE_OPTIONS` environment variable in the default config file has been updated to load the Node.js SDK from an absolute path (`/usr/lib/splunk-instrumentation/splunk-otel-js/node_modules/@splunk/otel/instrument`).
   - The Linux installer script now installs the Node.js SDK to `/usr/lib/splunk-instrumentation/splunk-otel-js` instead of globally.
   - The `--npm-command` Linux installer script option is no longer supported. To specify a custom path to `npm`, use the `--npm-path <path>` option.
+- (Splunk) `translatesfx`: Remove `translatesfx` ([#4028](https://github.com/signalfx/splunk-otel-collector/pull/4028))
+- (Splunk) `collectd/elasticsearch`: Remove `collectd/elasticsearch` monitor ([#3997](https://github.com/signalfx/splunk-otel-collector/pull/3997))
+
+### 🚩 Deprecations 🚩
+
+- (Splunk) `collectd/cpu`: Deprecate `collectd/cpu` explicitly. Please migrate to the `cpu` monitor ([#4036](https://github.com/signalfx/splunk-otel-collector/pull/4036))
+
+### 💡 Enhancements 💡
+
+### 🧰 Bug fixes 🧰
+
 
 ## v0.90.0
 

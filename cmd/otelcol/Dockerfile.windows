@@ -9,8 +9,6 @@ WORKDIR "C:\\Program Files\Splunk\OpenTelemetry Collector"
 
 # Copy the pre-built local binary
 COPY otelcol.exe ./
-COPY translatesfx.exe ./
-
 # Copy the local config
 WORKDIR "C:\ProgramData\Splunk\OpenTelemetry Collector"
 COPY config/collector/gateway_config.yaml ./
@@ -47,9 +45,6 @@ RUN setx /M PATH $(${Env:PATH} + \";${Env:JAVA_PATH}\")
 # Setting environment variables
 ENV SPLUNK_BUNDLE_DIR="C:\Program Files\Splunk\OpenTelemetry Collector\agent-bundle"
 ENV SPLUNK_CONFIG="C:\ProgramData\Splunk\OpenTelemetry Collector\gateway_config.yaml"
-# Category ENV_VAR: Forcing interactive mode instead of running as a service. 
-# Reference - https://github.com/signalfx/splunk-otel-collector/pull/254
-ENV NO_WINDOWS_SERVICE="1"
 
 ENTRYPOINT [ "otelcol.exe" ]
 EXPOSE 13133 14250 14268 4317 6060 8888 9411 9443 9080

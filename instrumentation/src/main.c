@@ -6,15 +6,16 @@
 #define MAX_LINE_LENGTH 1023
 #define MAX_LINES 50
 
-#define ALLOWED_ENV_VARS "OTEL_SERVICE_NAME", "OTEL_EXPORTER_OTLP_ENDPOINT", "OTEL_RESOURCE_ATTRIBUTES", "SPLUNK_PROFILER_ENABLED", "SPLUNK_PROFILER_MEMORY_ENABLED", "SPLUNK_METRICS_ENABLED", "JAVA_TOOL_OPTIONS", "NODE_OPTIONS"
+#define ALLOWED_ENV_VARS "OTEL_SERVICE_NAME", "OTEL_EXPORTER_OTLP_ENDPOINT", "OTEL_RESOURCE_ATTRIBUTES", "SPLUNK_PROFILER_ENABLED", "SPLUNK_PROFILER_MEMORY_ENABLED", "SPLUNK_METRICS_ENABLED", "JAVA_TOOL_OPTIONS", "NODE_OPTIONS", "CORECLR_ENABLE_PROFILING", "CORECLR_PROFILER", "CORECLR_PROFILER_PATH", "DOTNET_ADDITIONAL_DEPS", "DOTNET_SHARED_STORE", "DOTNET_STARTUP_HOOKS", "OTEL_DOTNET_AUTO_HOME", "OTEL_DOTNET_AUTO_PLUGINS"
 
 static char *const allowed_env_vars[] = {ALLOWED_ENV_VARS};
 static size_t const allowed_env_vars_size = sizeof(allowed_env_vars) / sizeof(*allowed_env_vars);
 
+#define DOTNET_ENV_VAR_FILE "/etc/splunk/zeroconfig/dotnet.conf"
 #define JAVA_ENV_VAR_FILE "/etc/splunk/zeroconfig/java.conf"
 #define NODEJS_ENV_VAR_FILE "/etc/splunk/zeroconfig/node.conf"
 
-// TODO change to systemd drop in file paths
+static char *const env_var_file_dotnet = DOTNET_ENV_VAR_FILE;
 static char *const env_var_file_java = JAVA_ENV_VAR_FILE;
 static char *const env_var_file_node = NODEJS_ENV_VAR_FILE;
 
@@ -23,7 +24,9 @@ extern char *program_invocation_short_name;
 // The entry point for all executables prior to their execution.
 void __attribute__((constructor)) enter() {
     char *env_var_file;
-    if (strcmp("java", program_invocation_short_name) == 0) {
+    if (strcmp("dotnet", program_invocation_short_name) == 0) {
+        env_var_file = env_var_file_dotnet;
+    } else if (strcmp("java", program_invocation_short_name) == 0) {
         env_var_file = env_var_file_java;
     } else if (strcmp("node", program_invocation_short_name) == 0) {
         env_var_file = env_var_file_node;

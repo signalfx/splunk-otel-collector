@@ -10,23 +10,23 @@ require (
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/google/uuid v1.4.0
 	github.com/knadh/koanf v1.5.0
-	github.com/shirou/gopsutil/v3 v3.23.10
+	github.com/shirou/gopsutil/v3 v3.23.11
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3
 	github.com/signalfx/signalfx-go v1.33.0
-	github.com/signalfx/signalfx-go/signalflow/v2 v2.1.1
+	github.com/signalfx/signalfx-go/signalflow/v2 v2.2.0
 	github.com/stretchr/testify v1.8.4
 	github.com/testcontainers/testcontainers-go v0.20.1
-	go.opentelemetry.io/collector/component v0.90.0
-	go.opentelemetry.io/collector/config/configgrpc v0.90.0
-	go.opentelemetry.io/collector/config/confignet v0.90.0
-	go.opentelemetry.io/collector/config/configtls v0.90.0
-	go.opentelemetry.io/collector/confmap v0.90.0
-	go.opentelemetry.io/collector/consumer v0.90.0
-	go.opentelemetry.io/collector/exporter v0.90.0
-	go.opentelemetry.io/collector/exporter/otlpexporter v0.90.0
+	go.opentelemetry.io/collector/component v0.90.1
+	go.opentelemetry.io/collector/config/configgrpc v0.90.1
+	go.opentelemetry.io/collector/config/confignet v0.90.1
+	go.opentelemetry.io/collector/config/configtls v0.90.1
+	go.opentelemetry.io/collector/confmap v0.90.1
+	go.opentelemetry.io/collector/consumer v0.90.1
+	go.opentelemetry.io/collector/exporter v0.90.1
+	go.opentelemetry.io/collector/exporter/otlpexporter v0.90.1
 	go.opentelemetry.io/collector/pdata v1.0.0
-	go.opentelemetry.io/collector/receiver v0.90.0
-	go.opentelemetry.io/collector/receiver/otlpreceiver v0.90.0
+	go.opentelemetry.io/collector/receiver v0.90.1
+	go.opentelemetry.io/collector/receiver/otlpreceiver v0.90.1
 	go.opentelemetry.io/otel/metric v1.21.0
 	go.opentelemetry.io/otel/trace v1.21.0
 	go.uber.org/atomic v1.11.0
@@ -188,7 +188,7 @@ require (
 	golang.org/x/net v0.18.0 // indirect
 	golang.org/x/oauth2 v0.12.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect
-	golang.org/x/sys v0.14.0 // indirect
+	golang.org/x/sys v0.15.0 // indirect
 	golang.org/x/term v0.13.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.3.0 // indirect

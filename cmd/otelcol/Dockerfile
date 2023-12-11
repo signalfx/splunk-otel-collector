@@ -5,12 +5,10 @@ RUN apk --update add ca-certificates
 FROM ${DOCKER_REPO}/alpine:3.17.0 AS otelcol
 COPY dist/* /dist/
 RUN mv /dist/otelcol /
-RUN mv /dist/translatesfx /
 RUN mv /dist/migratecheckpoint /
 # Note that this shouldn't be necessary, but in some cases the file seems to be
 # copied with the execute bit lost (see https://github.com/open-telemetry/opentelemetry-collector/issues/1317)
 RUN chmod 755 /otelcol
-RUN chmod 755 /translatesfx
 RUN chmod 755 /migratecheckpoint
 RUN echo "splunk-otel-collector:x:999:999::/:" > /etc_passwd
 # create base dirs since we cannot chown in scratch image except via COPY
@@ -58,7 +56,6 @@ ENV PATH=${PATH}:${SPLUNK_BUNDLE_DIR}/jre/bin
 COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=otelcol /etc_passwd /etc/passwd
 COPY --from=otelcol --chown=999 /otelcol /
-COPY --from=otelcol --chown=999 /translatesfx /
 COPY --from=otelcol --chown=999 /migratecheckpoint /
 COPY --from=otelcol --chown=999 /otel /etc/otel
 COPY --from=otelcol --chown=999 /otel/collector /etc/otel/collector

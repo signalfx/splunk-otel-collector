@@ -86,7 +86,7 @@
         {{ansible_env.ProgramData}}\Splunk\OpenTelemetry Collector\agent_config.yaml
       {%- endif -%}
     splunk_trace_url: |-
-      {%- if splunk_trace_url -%}
+      {%- if splunk_trace_url is defined and splunk_trace_url -%}
         {{ splunk_trace_url }}
       {%- else -%}
         {{ splunk_ingest_url }}/v2/trace

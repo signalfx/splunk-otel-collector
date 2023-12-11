@@ -45,7 +45,7 @@ require (
 	github.com/JohnCGriffin/overflow v0.0.0-20211019200055-46fa312c352c // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/Microsoft/hcsshim v0.11.1 // indirect
-	github.com/SAP/go-hdb v1.6.1 // indirect
+	github.com/SAP/go-hdb v1.6.5 // indirect
 	github.com/Sectorbob/mlab-ns2 v0.0.0-20171030222938-d3aa0c295a8a // indirect
 	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137 // indirect
@@ -231,7 +231,7 @@ require (
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.16.0 // indirect
-	golang.org/x/exp v0.0.0-20231110203233-9a3e6036ecaa // indirect
+	golang.org/x/exp v0.0.0-20231206192017-f3f8817b8deb // indirect
 	golang.org/x/mod v0.14.0 // indirect
 	golang.org/x/net v0.19.0 // indirect
 	golang.org/x/oauth2 v0.12.0 // indirect
@@ -240,7 +240,7 @@ require (
 	golang.org/x/term v0.15.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
-	golang.org/x/tools v0.15.0 // indirect
+	golang.org/x/tools v0.16.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20231120223509-83a465c0220f // indirect

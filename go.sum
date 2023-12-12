@@ -728,8 +728,8 @@ github.com/hashicorp/serf v0.9.5/go.mod h1:UWDWwZeL5cuWDJdl0C6wrvrUwEqtQ4ZKBKKEN
 github.com/hashicorp/serf v0.9.6/go.mod h1:TXZNMjZQijwlDvp+r0b63xZ45H7JmCmgg4gpTwn9UV4=
 github.com/hashicorp/serf v0.10.1 h1:Z1H2J60yRKvfDYAOZLd2MU0ND4AH/WDz7xYHDWQsIPY=
 github.com/hashicorp/serf v0.10.1/go.mod h1:yL2t6BqATOLGc5HF7qbFkTfXoPIY0WZdWHfEvMqbG+4=
-github.com/hashicorp/vault v1.14.6 h1:AX2SbugINVB/C4gbvRgKy4YouprQKvuId7jEsVEZkLs=
-github.com/hashicorp/vault v1.14.6/go.mod h1:fAEMKz7IfcNrXWDRg8o8VlUrIzf4gTQg7511Cmyoxbs=
+github.com/hashicorp/vault v1.14.8 h1:YWj+v3sntJIyYkNh0aY2CQHiQCp2rjGBBXqzI0UUm3s=
+github.com/hashicorp/vault v1.14.8/go.mod h1:76cd6z3lH30+cKO0uxGlNVJOP7IufByUP9Y+JfR/WM8=
 github.com/hashicorp/vault-plugin-auth-gcp v0.16.1 h1:KasqciAWHP3Htruowdu8fhO5X1YFfY0Qi3nrsBlpDkU=
 github.com/hashicorp/vault-plugin-auth-gcp v0.16.1/go.mod h1:pLF4l4SjTMR24/FTsE1idVpKEeO8ah0x1Kpulw+I09I=
 github.com/hashicorp/vault/api v1.0.4/go.mod h1:gDcqh3WGcR1cpF5AJz/B1UFheUEneMoIospckxBxk6Q=

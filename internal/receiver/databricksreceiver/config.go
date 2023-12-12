@@ -41,11 +41,11 @@ func createDefaultConfig() component.Config {
 }
 
 type Config struct {
-	confighttp.HTTPClientSettings           `mapstructure:",squash"`
 	InstanceName                            string `mapstructure:"instance_name"`
 	Token                                   string `mapstructure:"token"`
 	SparkOrgID                              string `mapstructure:"spark_org_id"`
 	SparkEndpoint                           string `mapstructure:"spark_endpoint"`
+	confighttp.HTTPClientSettings           `mapstructure:",squash"`
 	scraperhelper.ScraperControllerSettings `mapstructure:",squash"`
 	MaxResults                              int                           `mapstructure:"max_results"`
 	SparkUIPort                             int                           `mapstructure:"spark_ui_port"`

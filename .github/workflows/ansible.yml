@@ -173,11 +173,15 @@ jobs:
           PY_COLORS: '1'
           ANSIBLE_FORCE_COLOR: '1'
 
-      - name: Display any failure logs
+      - name: Get Application log event
         if: always()
         run: |
-          echo "Failure logs:"
-          cat /Users/runner/.cache/molecule/ansible/default/vagrant.err
+          Get-WinEvent Application -MaxEvents 30 | Select-Object Message, ProviderName | Format-List
+
+      - name: Get System log event
+        if: always()
+        run: |
+          Get-WinEvent System -MaxEvents 30 | Select-Object Message, ProviderName | Format-List
 
   push-release-tag:
     name: Push Release Tag

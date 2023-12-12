@@ -302,11 +302,6 @@ def test_express_instrumentation(distro, arch):
 
     # minimum supported node version required for profiling
     node_version = 16
-    if arch == "arm64" and distro in ("centos-7", "oraclelinux-7"):
-        # g++ for these distros is too old to install splunk-otel-js with node v16:
-        #   g++: error: unrecognized command line option '-std=gnu++14'
-        # use the minimum supported node version without profiling instead
-        node_version = 14
 
     buildargs = {"NODE_VERSION": f"v{node_version}"}
 
@@ -317,21 +312,6 @@ def test_express_instrumentation(distro, arch):
         run_container_cmd(container, f"chmod a+x /test/{otelcol_bin}")
 
         install_package(container, distro, f"/test/{pkg_base}")
-
-        if arch == "arm64":
-            # dev packages and libs required to build splunk-otel-js
-            if "opensuse" in distro:
-                run_container_cmd(container, "zypper -n install -t pattern devel_basis")
-                run_container_cmd(container, "zypper -n install -t pattern devel_C_C++")
-            elif distro in RPM_DISTROS:
-                run_container_cmd(container, "yum groupinstall -y 'Development Tools'")
-            else:
-                run_container_cmd(container, "apt-get install -y build-essential")
-
-        if distro in ("debian-stretch", "ubuntu-xenial"):
-            # npm installed with node v16 only supports python 3.6+, but these distros only provide python 3.5
-            # downgrade npm to support python 3.5
-            run_container_cmd(container, "bash -l -c 'npm install --global npm@^6'")
 
         # install splunk-otel-js to /usr/lib/splunk-instrumentation/splunk-otel-js
         run_container_cmd(container, f"mkdir -p {LIB_DIR}/splunk-otel-js")

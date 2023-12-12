@@ -86,7 +86,7 @@ func (m *Migrator) MigrateContainerPos(lines []string) {
 	defer client.Close()
 	_, buf := m.ConvertFilePos(lines)
 
-	err = client.Set("$.file_input.knownFiles", buf.Bytes())
+	err = client.Set("file_input.knownFiles", buf.Bytes())
 	if err != nil {
 		log.Printf("error storing container checkpoints: %v", err)
 	}
@@ -110,7 +110,7 @@ func (m *Migrator) MigrateCustomPos(matches []string) {
 				if err != nil {
 					log.Printf("error creating a new DB client for host file checkpoints: %v", err)
 				}
-				err = client.Set("$.file_input.knownFiles", buf.Bytes())
+				err = client.Set("file_input.knownFiles", buf.Bytes())
 				if err != nil {
 					log.Printf("error storing host file checkpoints: %v", err)
 				}
@@ -141,7 +141,7 @@ func (m *Migrator) MigrateJournaldPos(matches []string) {
 			if err != nil {
 				log.Printf("error creating a new DB client for journald checkpoints: %v", err)
 			}
-			err = client.Set("$.journald_input.lastReadCursor", []byte(cursor.Cursor))
+			err = client.Set("journald_input.lastReadCursor", []byte(cursor.Cursor))
 			if err != nil {
 				log.Printf("error storing journald checkpoints: %v", err)
 			}
@@ -218,8 +218,9 @@ func convertToOtel(path string, hexPos string) (*Reader, error) {
 	}
 
 	reader := &Reader{
-		Fingerprint: fp,
-		Offset:      offset,
+		Fingerprint:    fp,
+		Offset:         offset,
+		FileAttributes: map[string]any{},
 	}
 	return reader, nil
 }

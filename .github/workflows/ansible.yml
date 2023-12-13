@@ -115,7 +115,7 @@ jobs:
           pip3 install --use-pep517 -r ${GITHUB_WORKSPACE}/requirements.txt
 
       - name: Run Molecule tests.
-        run: molecule --base-config ./molecule/config/docker.yml test --all
+        run: molecule --debug -v --base-config ./molecule/config/docker.yml test --all
         env:
           PY_COLORS: '1'
           ANSIBLE_FORCE_COLOR: '1'
@@ -127,8 +127,8 @@ jobs:
     # Need to run on macos-12 since it is the only image with native support for ansible, vagrant, and virtualbox.
     # https://docs.ansible.com/ansible/latest/os_guide/windows_faq.html#windows-faq-ansible
     # https://github.com/actions/runner-images/blob/main/images/macos/macos-12-Readme.md
-    runs-on: macos-12
-    timeout-minutes: 75
+    runs-on: macos-12-xl
+    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:

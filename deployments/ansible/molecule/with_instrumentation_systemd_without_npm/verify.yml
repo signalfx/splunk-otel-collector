@@ -21,6 +21,8 @@
       shell: npm ls @splunk/otel
       args:
         chdir: /usr/lib/splunk-instrumentation/splunk-otel-js
+      register: npm_ls
+      failed_when: npm_ls.rc == 0
 
     - name: Assert /etc/ld.so.preload does not contain path to libsplunk.so
       ansible.builtin.lineinfile:
@@ -55,12 +57,11 @@
       register: config
       failed_when: config is changed
 
-    - name: Assert instrumentation config contains NODE_OPTIONS
+    - name: Assert instrumentation config does not contain NODE_OPTIONS
       ansible.builtin.lineinfile:
-        line: "DefaultEnvironment=\"NODE_OPTIONS=-r \
-              /usr/lib/splunk-instrumentation/splunk-otel-js/node_modules/@splunk/otel/instrument\""
+        regexp: '.*NODE_OPTIONS.*'
         dest: /usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf
-        state: present
+        state: absent
       check_mode: yes
       register: config
       failed_when: config is changed

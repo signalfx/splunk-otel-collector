@@ -193,10 +193,11 @@ which allows setting up a proxy to download the collector binaries.
   e.g. `./custom_fluentd_config.conf`. (**default:** `""` meaning 
   that nothing will be copied and existing `splunk_fluentd_config` will be used)
 
-### Auto Instrumentation for Java on Linux
+### Auto Instrumentation on Linux
 
-**Note:** The Java application(s) on the node need to be restarted separately
-after installation/configuration in order for any change to take effect.
+**Note:** The application(s) to be instrumented on the node need to be
+restarted separately after installation/configuration in order for any change
+to take effect.
 
 - `install_splunk_otel_auto_instrumentation` (Linux only): Whether to
   install/manage [Splunk OpenTelemetry Auto Instrumentation for Java](
@@ -205,9 +206,23 @@ after installation/configuration in order for any change to take effect.
   will be downloaded and installed from the Collector repository. (**default:**
   `false`)
 
+- `splunk_otel_auto_instrumentation_sdks`: List of Splunk OpenTelemetry Auto
+  Instrumentation SDKs to install, configure, and activate. (**default:**
+  `['java', 'nodejs']`)
+
+  Currently, the following values are supported:
+  - `java`: [Splunk OpenTelemetry for Java](https://github.com/signalfx/splunk-otel-java)
+  - `nodejs`: [Splunk OpenTelemetry for Node.js](https://github.com/signalfx/splunk-otel-js)
+
+  **Note:** This role does not manage the installation/configuration of
+  Node.js, `npm`, or Node.js applications. If `nodejs` is included in this
+  option, Node.js and `npm` are required to be pre-installed on the node in
+  order to install and activate the Node.js SDK.
+
 - `splunk_otel_auto_instrumentation_version` (Linux only): Version of the
   `splunk-otel-auto-instrumentation` package to install, e.g. `0.50.0`.
-  The minimum supported version is `0.48.0`. (**default:** `latest`)
+  The minimum supported version is `0.48.0`. The minimum supported version for
+  Node.js auto instrumentation is `0.87.0`. (**default:** `latest`)
 
 - `splunk_otel_auto_instrumentation_systemd` (Linux only): By default, the
   `/etc/ld.so.preload` file on the node will be configured for the
@@ -234,6 +249,15 @@ after installation/configuration in order for any change to take effect.
   by the `splunk-otel-auto-instrumentation` package. If the path is changed
   from the default value, the path should be an existing file on the node.
   (**default:** `/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar`)
+
+- `splunk_otel_auto_instrumentation_npm_path`: If the
+  `splunk_otel_auto_instrumentation_sdks` option includes `nodejs`, the Splunk
+  OpenTelemetry for Node.js SDK will be installed only if the `npm --version`
+  shell command is successful. Use this option to specify a custom path on the
+  node for `npm`, for example `/my/custom/path/to/npm`. (**default:** `npm`)
+
+  **Note:** This role does not manage the installation/configuration of
+  Node.js or `npm`.
 
 - `splunk_otel_auto_instrumentation_resource_attributes` (Linux only):
   Configure the OpenTelemetry instrumentation resource attributes,

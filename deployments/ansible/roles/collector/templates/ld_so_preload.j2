@@ -1,4 +1,4 @@
-{% if splunk_otel_auto_instrumentation_systemd is defined and not splunk_otel_auto_instrumentation_systemd %}
+{% if not with_systemd and (with_java or (with_nodejs and npm_found)) %}
 /usr/lib/splunk-instrumentation/libsplunk.so
 {% endif %}
 {% if splunk_otel_auto_instrumentation_ld_so_preload is defined and splunk_otel_auto_instrumentation_ld_so_preload %}

@@ -167,6 +167,9 @@ jobs:
       - name: Install test dependencies.
         run: pip3 install --use-pep517 -r ${GITHUB_WORKSPACE}/requirements.txt
 
+      - name: Launch vagrant
+        run: /usr/local/bin/vagrant up --no-provision
+
       - name: Run Molecule tests.
         run: molecule --debug -v --base-config ./molecule/config/windows.yml test -s ${{ matrix.scenario }} -p ${{ matrix.distro }}
         env:

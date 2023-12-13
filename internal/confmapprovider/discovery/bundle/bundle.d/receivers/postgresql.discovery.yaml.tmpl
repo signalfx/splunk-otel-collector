@@ -5,7 +5,9 @@
     host_observer: type == "hostport" and command matches "(?i)postgres" and not (command matches "splunk.discovery")
     k8s_observer: type == "port" and pod.name matches "(?i)postgres"
   config:
-    default: {}
+    default:
+        username: {{ defaultValue }}
+        password: {{ defaultValue }}
   status:
     metrics:
       successful:

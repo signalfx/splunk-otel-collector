@@ -167,6 +167,9 @@ jobs:
       - name: Install test dependencies.
         run: pip3 install --use-pep517 -r ${GITHUB_WORKSPACE}/requirements.txt
 
+      - name: Init vagrant
+        run: /usr/local/bin/vagrant init
+
       - name: Launch vagrant
         run: /usr/local/bin/vagrant up --no-provision
 

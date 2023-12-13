@@ -7,4 +7,4 @@ USE otel;
 
 CREATE TABLE dummytable (myfield VARCHAR(20));
 
-INSERT INTO mytable VALUES ('bar'), ('foo');
+INSERT INTO dummytable VALUES ('bar'), ('foo');

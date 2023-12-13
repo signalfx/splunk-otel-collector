@@ -24,20 +24,23 @@ import (
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
-var mysql = []testutils.Container{testutils.NewContainer().WithContext(
-	path.Join(".", "testdata", "server"),
-).WithName("mysql").WithExposedPorts("3306:3306").WillWaitForLogs("database system is ready to accept connections")}
-
-// This test ensures the collector can connect to a MySQL DB, and properly get metrics. It's not intended to
-// test the receiver itself.
+// These test ensures the collector can connect to a MySQL DB, and properly get metrics. It's not intended to
+// test the receiver itself. The tests are partially intended to test the underlying components.
+// The reported telemetry may need to be updated (resource metric file changes),
+// They can detect breaking changes or bugs that may have been missed upstream.
 func TestMysqlIntegration(t *testing.T) {
+	port := "3306"
+	mysql := []testutils.Container{testutils.NewContainer().WithContext(
+		path.Join(".", "testdata", "server"),
+	).WithName("mysql").WithExposedPorts(port + ":" + port).WillWaitForPorts(port).WillWaitForLogs("X Plugin ready for connections. Bind-address:")}
+
 	testutils.AssertAllMetricsReceived(t, "all.yaml", "all_metrics_config.yaml",
 		mysql, []testutils.CollectorBuilder{
 			func(collector testutils.Collector) testutils.Collector {
 				return collector.WithEnv(map[string]string{
-					"MYSQLDB_ENDPOINT": "localhost:3306",
-					"MYSQLDB_USERNAME": "otelu",
-					"MYSQLDB_PASSWORD": "otelp",
+					"MYSQLDB_ENDPOINT": "127.0.0.1:" + port,
+					"MYSQLDB_USERNAME": "root",
+					"MYSQLDB_PASSWORD": "testuser",
 				})
 			},
 		},

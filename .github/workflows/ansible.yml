@@ -170,9 +170,6 @@ jobs:
       - name: Init vagrant
         run: /usr/local/bin/vagrant init
 
-      - name: Launch vagrant
-        run: /usr/local/bin/vagrant up --no-provision
-
       - name: Run Molecule tests.
         run: molecule --debug -v --base-config ./molecule/config/windows.yml test -s ${{ matrix.scenario }} -p ${{ matrix.distro }}
         env:

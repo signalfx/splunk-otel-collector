@@ -74,6 +74,10 @@ splunk_otel_auto_instrumentation_enable_profiler: false
 splunk_otel_auto_instrumentation_enable_profiler_memory: false
 splunk_otel_auto_instrumentation_enable_metrics: false
 splunk_otel_auto_instrumentation_otlp_endpoint: http://127.0.0.1:4317
+splunk_otel_auto_instrumentation_sdks:
+  - java
+  - nodejs
+splunk_otel_auto_instrumentation_npm_path: npm
 
 # Custom environment variables for the collector service
 splunk_otel_collector_additional_env_vars: {}

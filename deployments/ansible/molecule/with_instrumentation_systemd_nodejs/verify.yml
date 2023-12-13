@@ -45,12 +45,11 @@
         that: not item.stat.exists
       loop: "{{ config_files.results }}"
 
-    - name: Assert instrumentation config contains path to java agent
+    - name: Assert instrumentation config does not contain JAVA_TOOL_OPTIONS
       ansible.builtin.lineinfile:
-        line: "DefaultEnvironment=\"JAVA_TOOL_OPTIONS=\
-              -javaagent:/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar\""
+        regexp: '.*JAVA_TOOL_OPTIONS.*'
         dest: /usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf
-        state: present
+        state: absent
       check_mode: yes
       register: config
       failed_when: config is changed

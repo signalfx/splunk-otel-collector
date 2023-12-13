@@ -130,15 +130,15 @@ func TestK8sObserver(t *testing.T) {
 type testCluster struct{ *kubeutils.KindCluster }
 
 func (cluster testCluster) createPostgres(name, namespace, serviceAccount string) string {
-	dbsql, err := os.ReadFile(filepath.Join(".", "testdata", "server_k8s", "initdb.d", "db.sql"))
+	dbsql, err := os.ReadFile(filepath.Join("..", "smartagent", "postgresql", "testdata", "server", "initdb.d", "db.sql"))
 	require.NoError(cluster.Testcase, err)
 	cmContent := map[string]any{"db.sql": string(dbsql)}
 
-	initsh, err := os.ReadFile(filepath.Join(".", "testdata", "server_k8s", "initdb.d", "init.sh"))
+	initsh, err := os.ReadFile(filepath.Join("..", "smartagent", "postgresql", "testdata", "server", "initdb.d", "init.sh"))
 	require.NoError(cluster.Testcase, err)
 	cmContent["init.sh"] = string(initsh)
 
-	requests, err := os.ReadFile(filepath.Join(".", "testdata", "client", "requests.sh"))
+	requests, err := os.ReadFile(filepath.Join("..", "smartagent", "postgresql", "testdata", "client", "requests.sh"))
 	require.NoError(cluster.Testcase, err)
 	cmContent["requests.sh"] = string(requests)
 

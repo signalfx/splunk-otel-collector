@@ -70,6 +70,13 @@ platforms:
       volumes:
         - /sys/fs/cgroup:/sys/fs/cgroup:ro
 
+  - name: debian-12
+    driver:
+      image: dokken/debian-12
+      pid_one_command: /bin/systemd
+      volumes:
+        - /sys/fs/cgroup:/sys/fs/cgroup:ro
+
   - name: opensuse-12
     driver:
       image: opensuse/leap:42

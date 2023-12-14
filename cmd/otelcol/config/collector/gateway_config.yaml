@@ -42,7 +42,7 @@ receivers:
       - job_name: 'otel-collector'
         scrape_interval: 10s
         static_configs:
-        - targets: ['0.0.0.0:8888']
+        - targets: ['${SPLUNK_LISTEN_INTERFACE}:8888']
         metric_relabel_configs:
           - source_labels: [ __name__ ]
             regex: '.*grpc_io.*'

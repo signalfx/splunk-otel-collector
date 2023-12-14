@@ -1,4 +1,4 @@
-// Copyright  Splunk, Inc.
+// Copyright Splunk, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,27 +16,24 @@
 
 // These are the discovery config component generating statements.
 // In order to update run go generate -tags bundle.d ./...
-// TODO: add a pre-bundle.d step that generates these generate directives for easier maintenance/management across platforms
-//go:generate go install github.com/signalfx/splunk-otel-collector/internal/confmapprovider/discovery/bundle/cmd/discoverybundler
-
-//go:generate discoverybundler -r -t bundle.d/receivers/smartagent-postgresql.discovery.yaml.tmpl
-//go:generate discoverybundler -r -c -d ../../../../cmd/otelcol/config/collector/config.d.linux/receivers -t bundle.d/receivers/smartagent-postgresql.discovery.yaml.tmpl
-//go:generate discoverybundler -r -t bundle.d/receivers/smartagent-collectd-mysql.discovery.yaml.tmpl
-//go:generate discoverybundler -r -c -d ../../../../cmd/otelcol/config/collector/config.d.linux/receivers -t bundle.d/receivers/smartagent-collectd-mysql.discovery.yaml.tmpl
-//go:generate discoverybundler -r -t bundle.d/receivers/smartagent-collectd-nginx.discovery.yaml.tmpl
-//go:generate discoverybundler -r -c -d ../../../../cmd/otelcol/config/collector/config.d.linux/receivers -t bundle.d/receivers/smartagent-collectd-nginx.discovery.yaml.tmpl
-//go:generate discoverybundler -r -t bundle.d/receivers/postgresql.discovery.yaml.tmpl
-//go:generate discoverybundler -r -c -d ../../../../cmd/otelcol/config/collector/config.d.linux/receivers -t bundle.d/receivers/postgresql.discovery.yaml.tmpl
-//go:generate discoverybundler -r -t bundle.d/receivers/oracledb.discovery.yaml.tmpl
-//go:generate discoverybundler -r -c -d ../../../../cmd/otelcol/config/collector/config.d.linux/receivers -t bundle.d/receivers/oracledb.discovery.yaml.tmpl
-//go:generate discoverybundler -r -t bundle.d/receivers/redis.discovery.yaml.tmpl
-//go:generate discoverybundler -r -c -d ../../../../cmd/otelcol/config/collector/config.d.linux/receivers -t bundle.d/receivers/redis.discovery.yaml.tmpl
-
 //go:generate discoverybundler -r -t bundle.d/extensions/docker-observer.discovery.yaml.tmpl
 //go:generate discoverybundler -r -c -d ../../../../cmd/otelcol/config/collector/config.d.linux/extensions -t bundle.d/extensions/docker-observer.discovery.yaml.tmpl
 //go:generate discoverybundler -r -t bundle.d/extensions/host-observer.discovery.yaml.tmpl
 //go:generate discoverybundler -r -c -d ../../../../cmd/otelcol/config/collector/config.d.linux/extensions -t bundle.d/extensions/host-observer.discovery.yaml.tmpl
 //go:generate discoverybundler -r -t bundle.d/extensions/k8s-observer.discovery.yaml.tmpl
 //go:generate discoverybundler -r -c -d ../../../../cmd/otelcol/config/collector/config.d.linux/extensions -t bundle.d/extensions/k8s-observer.discovery.yaml.tmpl
+
+//go:generate discoverybundler -r -t bundle.d/receivers/oracledb.discovery.yaml.tmpl
+//go:generate discoverybundler -r -c -d ../../../../cmd/otelcol/config/collector/config.d.linux/receivers -t bundle.d/receivers/oracledb.discovery.yaml.tmpl
+//go:generate discoverybundler -r -t bundle.d/receivers/postgresql.discovery.yaml.tmpl
+//go:generate discoverybundler -r -c -d ../../../../cmd/otelcol/config/collector/config.d.linux/receivers -t bundle.d/receivers/postgresql.discovery.yaml.tmpl
+//go:generate discoverybundler -r -t bundle.d/receivers/redis.discovery.yaml.tmpl
+//go:generate discoverybundler -r -c -d ../../../../cmd/otelcol/config/collector/config.d.linux/receivers -t bundle.d/receivers/redis.discovery.yaml.tmpl
+//go:generate discoverybundler -r -t bundle.d/receivers/smartagent-collectd-mysql.discovery.yaml.tmpl
+//go:generate discoverybundler -r -c -d ../../../../cmd/otelcol/config/collector/config.d.linux/receivers -t bundle.d/receivers/smartagent-collectd-mysql.discovery.yaml.tmpl
+//go:generate discoverybundler -r -t bundle.d/receivers/smartagent-collectd-nginx.discovery.yaml.tmpl
+//go:generate discoverybundler -r -c -d ../../../../cmd/otelcol/config/collector/config.d.linux/receivers -t bundle.d/receivers/smartagent-collectd-nginx.discovery.yaml.tmpl
+//go:generate discoverybundler -r -t bundle.d/receivers/smartagent-postgresql.discovery.yaml.tmpl
+//go:generate discoverybundler -r -c -d ../../../../cmd/otelcol/config/collector/config.d.linux/receivers -t bundle.d/receivers/smartagent-postgresql.discovery.yaml.tmpl
 
 package bundle

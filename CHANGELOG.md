@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 💡 Enhancements 💡
+
+- (Splunk) Update splunk-otel-js to [v2.6.0](https://github.com/signalfx/splunk-otel-js/releases/tag/v2.6.0) ([#4064](https://github.com/signalfx/splunk-otel-collector/pull/4064))
+
 ## v0.91.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.91.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.91.0) and the [opentelemetry-collector-contrib v0.91.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.91.0) releases where appropriate.

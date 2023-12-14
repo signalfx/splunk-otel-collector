@@ -36,7 +36,7 @@ extensions:
 
 receivers:
   fluentforward:
-    endpoint: 127.0.0.1:8006
+    endpoint: "${SPLUNK_LISTEN_INTERFACE}:8006"
   hostmetrics:
     collection_interval: 10s
     scrapers:

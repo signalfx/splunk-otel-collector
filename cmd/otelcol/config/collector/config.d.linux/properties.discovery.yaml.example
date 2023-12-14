@@ -16,4 +16,6 @@ splunk.discovery:
     smartagent/collectd/nginx:
       enabled: true
     smartagent/postgresql:
+      enabled: false
+    postgresql:
       enabled: true

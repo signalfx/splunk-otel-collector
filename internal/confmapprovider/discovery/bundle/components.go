@@ -32,6 +32,7 @@ var (
 	// in Components.Linux. If desired in windows BundledFS, ensure they are included in Components.Windows.
 	receivers = []string{
 		"oracledb",
+		"postgresql",
 		"redis",
 		"smartagent-collectd-mysql",
 		"smartagent-collectd-nginx",
@@ -60,6 +61,7 @@ var (
 		Windows: func() map[string]struct{} {
 			windows := map[string]struct{}{
 				"oracledb":              {},
+				"postgresql":            {},
 				"redis":                 {},
 				"smartagent-postgresql": {},
 			}

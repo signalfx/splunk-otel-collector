@@ -129,6 +129,8 @@ migratecheckpoint:
 
 .PHONY: bundle.d
 bundle.d:
+	go install github.com/signalfx/splunk-otel-collector/internal/confmapprovider/discovery/bundle/cmd/discoverybundler
+	go generate -tags bootstrap.bundle.d ./...
 	go generate -tags bundle.d ./...
 
 .PHONY: add-tag

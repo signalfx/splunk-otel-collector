@@ -51,6 +51,7 @@ type settings struct {
 	dir          string
 	render       bool
 	commented    bool
+	bootstrap    bool
 }
 
 func panicOnError(err error) {
@@ -64,6 +65,7 @@ func loadSettings() *settings {
 	flagSet := flag.NewFlagSet("discoverybundler", flag.ContinueOnError)
 	flagSet.StringVarP(&s.templateFile, "template", "t", "", "the discovery config template (.tmpl) to render")
 	flagSet.BoolVarP(&s.render, "render", "r", false, `whether to render in parent dir (default) or to --dir`)
+	flagSet.BoolVarP(&s.bootstrap, "bootstrap", "b", false, `run the bootstrap`)
 	flagSet.StringVarP(&s.dir, "dir", "d", "", `target directory to render to (sans ".tmpl")`)
 	flagSet.BoolVarP(&s.commented, "commented", "c", false, `whether to comment out all lines`)
 	panicOnError(flagSet.Parse(os.Args[1:]))
@@ -72,6 +74,11 @@ func loadSettings() *settings {
 
 func main() {
 	s := loadSettings()
+	if s.bootstrap {
+		bootstrap()
+		return
+	}
+
 	if s.templateFile == "" {
 		panic("empty templateFile")
 	}
@@ -131,4 +138,52 @@ func commentedTemplate(tmpl []byte) []byte {
 		}
 	}
 	return commented
+}
+
+// bootstrap will generate the bundle_gen.go file that invokes this lib, as
+// well as the bundledfs.go files for default discovery mode content.
+func bootstrap() {
+	bundleGenTmpl, err := os.ReadFile(filepath.Join("..", "..", "bundle_gen.tmpl"))
+	panicOnError(err)
+
+	t, err := template.New("bundle_gen").Parse(string(bundleGenTmpl))
+	panicOnError(err)
+
+	out := &bytes.Buffer{}
+	panicOnError(t.Execute(out, bundle.Components))
+
+	filename := filepath.Join("..", "..", "bundle_gen.go")
+	if err = os.WriteFile(filename, out.Bytes(), 0644); err != nil { // nolint:gosec // existing project file permissions
+		panicOnError(fmt.Errorf("failed writing to %s: %w", filename, err))
+	}
+
+	genBundledFS()
+}
+
+func genBundledFS() {
+	bundleFSTmpl, err := os.ReadFile(filepath.Join("..", "..", "bundledfs.tmpl"))
+	panicOnError(err)
+
+	for _, tup := range []struct {
+		components map[string]struct{}
+		tag        string
+		suffix     string
+	}{
+		{tag: "windows", suffix: "windows", components: bundle.Components.Windows},
+		{tag: "!windows", suffix: "others", components: bundle.Components.Linux},
+	} {
+		t, err := template.New(fmt.Sprintf("bundledfs_%s", tup.suffix)).Funcs(map[string]any{
+			"tag":      func() string { return tup.tag },
+			"included": func(s string) bool { _, ok := tup.components[s]; return ok },
+		}).Parse(string(bundleFSTmpl))
+		panicOnError(err)
+
+		out := &bytes.Buffer{}
+		panicOnError(t.Execute(out, bundle.Components))
+
+		filename := filepath.Join("..", "..", fmt.Sprintf("bundledfs_%s.go", tup.suffix))
+		if err = os.WriteFile(filename, out.Bytes(), 0644); err != nil { // nolint:gosec // existing project file permissions
+			panicOnError(fmt.Errorf("failed writing to %s: %w", filename, err))
+		}
+	}
 }

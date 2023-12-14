@@ -38,13 +38,8 @@ Example `redis.discovery.yaml.tmpl`:
               `{{ configPropertyEnvVar "password" "<username>" }}` environment variable.
 ```
 
-After adding the required generate directive to `bundle_gen.go` and running `make bundle.d`:
-
-```go
-//go:generate discoverybundler -r -t bundle.d/receivers/redis.discovery.yaml.tmpl
-```
-
-There is now a corresponding `bundle.d/receiver/redis.discovery.yaml`:
+After adding the required new component filename prefix to the `Components` instance in [`components.go`](./components.go)
+and running `make bundle.d`, there's now a corresponding `bundle.d/receivers/redis.discovery.yaml`:
 
 ```yaml
 #####################################################################################
@@ -68,6 +63,10 @@ redis:
               `--set splunk.discovery.receivers.redis.config.password="<password>"` or
               `SPLUNK_DISCOVERY_RECEIVERS_redis_CONFIG_password="<username>"` environment variable.
 ```
+
+In order for this to be included in the [Windows](./bundledfs_windows.go) and [Linux](./bundledfs_others.go) `BundledFS`
+be sure to include the component filename prefix in the corresponding `Components.Linux` and `Components.Windows`
+functions.
 
 When building the collector afterward, this redis receiver discovery config is now made available to discovery mode, and
 it can be disabled by `--set splunk.discovery.receivers.redis.enabled=false` or

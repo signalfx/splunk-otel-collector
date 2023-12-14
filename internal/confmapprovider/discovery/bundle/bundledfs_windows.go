@@ -1,4 +1,4 @@
-// Copyright  Splunk, Inc.
+// Copyright Splunk, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build !windows
+//go:build windows
 
 package bundle
 
@@ -21,11 +21,11 @@ import (
 )
 
 // BundledFS is the in-executable filesystem that contains all bundled discovery config.d components.
-//
-// If you are bootstrapping bundle_gen.go or the `discoverybundler` cmd without any rendered files in bundle.d,
-// comment out the below embed directives before installing to prevent "no matching files found"
-// build errors.
-//
-//go:embed bundle.d/extensions/*.discovery.yaml
-//go:embed bundle.d/receivers/*.discovery.yaml
+
+//go:embed bundle.d/extensions/docker-observer.discovery.yaml
+//go:embed bundle.d/extensions/host-observer.discovery.yaml
+//go:embed bundle.d/extensions/k8s-observer.discovery.yaml
+//go:embed bundle.d/receivers/oracledb.discovery.yaml
+//go:embed bundle.d/receivers/redis.discovery.yaml
+//go:embed bundle.d/receivers/smartagent-postgresql.discovery.yaml
 var BundledFS embed.FS

@@ -335,7 +335,7 @@ ensure_not_installed() {
       echo "Please uninstall auto instrumentation, or try running this script with the '--uninstall' option." >&2
       exit 1
     fi
-    if [ -n "$npm_path" ] && (cd $node_install_prefix && $npm_path ls @splunk/otel >/dev/null 2>&1); then
+    if [ -n "$npm_path" ] && (cd $node_install_prefix && $npm_path ls --global=false @splunk/otel >/dev/null 2>&1); then
       echo "The @splunk/otel npm package is already installed in $node_install_prefix." >&2
       echo "Please uninstall @splunk/otel, or try running this script with the '--uninstall' option." >&2
       exit 1
@@ -568,9 +568,9 @@ install_node_package() {
   fi
 
   echo "Installing the Node.js Auto Instrumentation package ..."
-  mkdir -p $node_install_prefix
-  echo "Running 'cd $node_install_prefix && $npm_path install $node_package_path':"
-  (cd $node_install_prefix && $npm_path install $node_package_path)
+  mkdir -p ${node_install_prefix}/node_modules
+  echo "Running 'cd $node_install_prefix && $npm_path install --global=false $node_package_path':"
+  (cd $node_install_prefix && $npm_path install --global=false $node_package_path)
 }
 
 create_zeroconfig_node() {
@@ -788,8 +788,8 @@ uninstall() {
     fi
   done
 
-  if command -v npm >/dev/null 2>&1 && (cd $node_install_prefix && npm ls @splunk/otel >/dev/null 2>&1); then
-    (cd $node_install_prefix && npm uninstall @splunk/otel)
+  if command -v npm >/dev/null 2>&1 && (cd $node_install_prefix && npm ls --global=false @splunk/otel >/dev/null 2>&1); then
+    (cd $node_install_prefix && npm uninstall --global=false @splunk/otel)
     echo "Successfully uninstalled the @splunk/otel npm package from $node_install_prefix"
   fi
 }

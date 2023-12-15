@@ -339,7 +339,11 @@ def get_zc_method(container, distro, method):
 
 
 def node_package_installed(container):
-    return container.exec_run(f"sh -l -c 'cd {NODE_PREFIX} && npm ls @splunk/otel'").exit_code == 0
+    cmd = f"sh -l -c 'cd {NODE_PREFIX} && npm ls --global=false @splunk/otel'"
+    print(f"Running '{cmd}':")
+    rc, output = container.exec_run(cmd)
+    print(output.decode("utf-8"))
+    return rc == 0
 
 
 @pytest.mark.installer
@@ -377,6 +381,9 @@ def test_installer_with_instrumentation_default(distro, arch, method):
             # npm installed with node v16 only supports python 3.6+, but these distros only provide python 3.5
             # downgrade npm to support python 3.5 in order to build/compile splunk-otel-js
             run_container_cmd(container, "bash -l -c 'npm install --global npm@^6'")
+
+        # set global=true for npm to test that splunk-otel-js is still installed locally
+        run_container_cmd(container, "sh -l -c 'npm config set global true'")
 
         install_cmd = " ".join((
             get_installer_cmd(),
@@ -493,6 +500,9 @@ def test_installer_with_instrumentation_custom(distro, arch, method, sdk):
             # npm installed with node v16 only supports python 3.6+, but these distros only provide python 3.5
             # downgrade npm to support python 3.5 in order to build/compile splunk-otel-js
             run_container_cmd(container, "bash -l -c 'npm install --global npm@^6'")
+
+        # set global=true for npm to test that splunk-otel-js is still installed locally
+        run_container_cmd(container, "sh -l -c 'npm config set global true'")
 
         service_name = f"service_name_from_{method}"
         environment = f"deployment_environment_from_{method}"

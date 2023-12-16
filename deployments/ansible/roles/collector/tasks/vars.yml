@@ -72,9 +72,13 @@
       SPLUNK_ACCESS_TOKEN: "{{ splunk_access_token }}"
       SPLUNK_API_URL: "{{ splunk_api_url }}"
       SPLUNK_BALLAST_SIZE_MIB: "{{ splunk_ballast_size_mib if splunk_ballast_size_mib != '' else omit }}"
-      SPLUNK_BUNDLE_DIR: "{{ splunk_bundle_dir if splunk_bundle_dir != '' else '{{ansible_env.ProgramFiles}}\\Splunk\\OpenTelemetry Collector\\agent-bundle' }}"
+      SPLUNK_BUNDLE_DIR: >
+        "{{ splunk_bundle_dir if splunk_bundle_dir != '' else
+        '{{ansible_env.ProgramFiles}}\\Splunk\\OpenTelemetry Collector\\agent-bundle' }}"
       SPLUNK_COLLECTD_DIR: "{{ splunk_collectd_dir if splunk_collectd_dir != '' else omit }}"
-      SPLUNK_CONFIG: "{{ splunk_otel_collector_config if splunk_otel_collector_config != '' else '{{ ansible_env.ProgramData }}\\Splunk\\OpenTelemetry Collector\\agent_config.yaml' }}"
+      SPLUNK_CONFIG: >
+        "{{ splunk_otel_collector_config if splunk_otel_collector_config != '' else
+        '{{ ansible_env.ProgramData }}\\Splunk\\OpenTelemetry Collector\\agent_config.yaml' }}"
       SPLUNK_INGEST_URL: "{{ splunk_ingest_url }}"
       SPLUNK_HEC_TOKEN: "{{ splunk_hec_token }}"
       SPLUNK_HEC_URL: "{{ splunk_hec_url }}"

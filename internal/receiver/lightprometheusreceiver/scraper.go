@@ -34,11 +34,11 @@ import (
 )
 
 type scraper struct {
-	startTime pcommon.Timestamp
-	client    *http.Client
 	settings  component.TelemetrySettings
+	client    *http.Client
 	cfg       *Config
 	name      string
+	startTime pcommon.Timestamp
 }
 
 func newScraper(

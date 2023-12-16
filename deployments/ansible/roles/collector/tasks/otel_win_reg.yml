@@ -9,9 +9,9 @@
 
 - name: Set Splunk OpenTelemetry Collector registry value
   ansible.windows.win_regedit:
-    path: "{{ splunk_otel_collector_registry_key }}"
+    path: "{{ splunk_otel_collector_service_registry_key }}"
     state: present
     name: Environment
     data: "{{ splunk_otel_collector_options_list | sort }}"
     type: multistring
-  notify: "reset windows splunk-otel-collector"
+  notify: "restart windows splunk-otel-collector"

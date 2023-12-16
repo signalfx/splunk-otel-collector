@@ -13,16 +13,17 @@
       SPLUNK_HEC_URL: https://ingest.fake-realm.signalfx.com/v1/log
       SPLUNK_INGEST_URL: https://ingest.fake-realm.signalfx.com
       SPLUNK_TRACE_URL: https://ingest.fake-realm.signalfx.com/v2/trace
-    dotnet_reg_values:
+    iis_reg_values:
       COR_ENABLE_PROFILING: "1"
       COR_PROFILER: "{B4C89B0F-9908-4F73-9F59-0D77C5A06874}"
       CORECLR_ENABLE_PROFILING: "1"
       CORECLR_PROFILER: "{B4C89B0F-9908-4F73-9F59-0D77C5A06874}"
-      SIGNALFX_DOTNET_TRACER_HOME: '{{ ansible_env.ProgramFiles }}\SignalFx\.NET Tracing\'
       SIGNALFX_ENV: ""
       SIGNALFX_SERVICE_NAME: ""
       SIGNALFX_PROFILER_ENABLED: "false"
       SIGNALFX_PROFILER_MEMORY_ENABLED: "false"
+    machine_reg_values:
+      SIGNALFX_DOTNET_TRACER_HOME: '{{ ansible_env.ProgramFiles }}\SignalFx\.NET Tracing\'
   tasks:
     - name: Check splunk-otel-collector service
       ansible.windows.win_service:
@@ -44,11 +45,11 @@
         echo $msi_version
       register: msi_version
 
-    - name: Add SIGNALFX_GLOBAL_TAGS to dotnet_reg_values
+    - name: Add SIGNALFX_GLOBAL_TAGS to iis_reg_values
       set_fact:
-        dotnet_reg_values: |-
+        iis_reg_values: |-
           {%- set tags = "splunk.zc.method:signalfx-dotnet-tracing-" + (msi_version.stdout | trim) -%}
-          {{ dotnet_reg_values | combine({"SIGNALFX_GLOBAL_TAGS": tags}) }}
+          {{ iis_reg_values | combine({"SIGNALFX_GLOBAL_TAGS": tags}) }}
 
     - name: Get IIS env vars
       ansible.windows.win_reg_stat:
@@ -59,7 +60,7 @@
     - name: Verify IIS env vars
       assert:
         that: (item.key + '=' + item.value) in iis_env.value
-      loop: "{{ dotnet_reg_values | dict2items }}"
+      loop: "{{ iis_reg_values | dict2items }}"
 
     - name: Get splunk-otel-collector service env vars
       ansible.windows.win_reg_stat:
@@ -78,4 +79,12 @@
         path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
         name: "{{ item.key }}"
         exists: false
-      loop: "{{ dotnet_reg_values | dict2items }}"
+      loop: "{{ iis_reg_values | dict2items }}"
+
+    - name: Verify .NET tracing MSI env vars were added to the system
+      include_tasks: ../shared/verify_registry_key.yml
+      vars:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+        name: "{{ item.key }}"
+        value: "{{ item.value }}"
+      loop: "{{ machine_reg_values | dict2items }}"

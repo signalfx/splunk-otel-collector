@@ -15,7 +15,7 @@
       SPLUNK_BALLAST_SIZE_MIB: "100"
       MY_CUSTOM_VAR1: value1
       MY_CUSTOM_VAR2: value2
-    dotnet_reg_values:
+    iis_reg_values:
       COR_ENABLE_PROFILING: "1"
       COR_PROFILER: "{B4C89B0F-9908-4F73-9F59-0D77C5A06874}"
       CORECLR_ENABLE_PROFILING: "1"
@@ -25,9 +25,10 @@
       SIGNALFX_PROFILER_ENABLED: "true"
       SIGNALFX_PROFILER_MEMORY_ENABLED: "true"
       SIGNALFX_GLOBAL_TAGS: splunk.zc.method:signalfx-dotnet-tracing-1.0.0,dotnet-tag:dotnet-tag-value
-      SIGNALFX_DOTNET_TRACER_HOME: '{{ ansible_env.ProgramFiles }}\SignalFx\.NET Tracing\'
       SIGNALFX_DOTNET_VAR1: dotnet-value1
       SIGNALFX_DOTNET_VAR2: dotnet-value2
+    machine_reg_values:
+      SIGNALFX_DOTNET_TRACER_HOME: '{{ ansible_env.ProgramFiles }}\SignalFx\.NET Tracing\'
   tasks:
     - name: Check splunk-otel-collector service
       ansible.windows.win_service:
@@ -124,7 +125,7 @@
     - name: Verify IIS env vars
       assert:
         that: (item.key + '=' + item.value) in iis_env.value
-      loop: "{{ dotnet_reg_values | dict2items }}"
+      loop: "{{ iis_reg_values | dict2items }}"
 
     - name: Get splunk-otel-collector service env vars
       ansible.windows.win_reg_stat:
@@ -143,4 +144,4 @@
         path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
         name: "{{ item.key }}"
         value: "{{ item.value }}"
-      loop: "{{ dotnet_reg_values | dict2items }}"
+      loop: "{{ machine_reg_values | dict2items }}"

@@ -336,6 +336,7 @@ func (cluster testCluster) daemonSet(namespace, serviceAccount, configMap string
 					"--set", "splunk.discovery.receivers.smartagent/postgresql.config.params::password='${env:PG_PASSWORD}'",
 					"--set", "splunk.discovery.receivers.smartagent/postgresql.config.masterDBName=test_db",
 					"--set", `splunk.discovery.receivers.smartagent/postgresql.config.extraMetrics=["*"]`,
+					"--set", `splunk.discovery.receivers.smartagent/postgresql.enabled=true`,
 				},
 				Env: []corev1.EnvVar{
 					{Name: "PG_USERNAME", Value: "test_user"},

@@ -66,9 +66,6 @@ data for [Splunk Observability Cloud](https://www.splunk.com/en_us/observability
   exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/signalfxexporter).
   More information available
   [here](https://docs.splunk.com/Observability/gdi/opentelemetry/opentelemetry.html#nav-Install-and-configure-Splunk-Distribution-of-OpenTelemetry-Collector).
-- [Splunk Log Observer](https://docs.splunk.com/Observability/logs/intro-to-logs.html#nav-Introduction-to-Splunk-Log-Observer) via
-  the [`splunk_hec`
-  exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/splunkhecexporter).
 
 While it is recommended to use [Splunk
 Forwarders](https://docs.splunk.com/Documentation/Splunk/latest/Data/Usingforwardingagents)

@@ -96,7 +96,7 @@ jobs:
         with:
           platforms: ${{ matrix.ARCH }}
           image: tonistiigi/binfmt:qemu-v7.0.0
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: otelcol-${{ matrix.ARCH }}
           path: ./dist
@@ -127,7 +127,7 @@ jobs:
         with:
           platforms: ${{ matrix.ARCH }}
           image: tonistiigi/binfmt:qemu-v7.0.0
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: otelcol-${{ matrix.ARCH }}
           path: ./dist

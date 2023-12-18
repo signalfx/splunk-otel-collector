@@ -186,14 +186,14 @@ service:
       exporters: [signalfx]
       # Use instead when sending to gateway
       #exporters: [otlp]
-    # Required for Splunk Log Observer
+    # Required for profiling
     logs:
-      receivers: [fluentforward, otlp]
+      receivers: [otlp]
       processors:
       - memory_limiter
       - batch
       - resourcedetection
       #- resource/add_environment
-      exporters: [splunk_hec, splunk_hec/profiling]
+      exporters: [splunk_hec/profiling]
       # Use instead when sending to gateway
       #exporters: [otlp]

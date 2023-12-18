@@ -8,11 +8,9 @@
 
 Use-case: An existing Splunk Enterprise or Splunk Cloud customer with the
 Universal or Heavy Forwarder already deployed wants to send some/all data
-from the forwarder to Splunk Log Observer.
+from the forwarder to the OpenTelemetry Collector.
 
-The only supported way to collect and send logs to Splunk Log Observer is via
-Splunk OpenTelemetry Collector using one of the [recommended
-ways](../#getting-started). It is possible, but not supported, to configure a
+It is possible, but not supported, to configure a
 Splunk Forwarder to send data to Splunk OpenTelemetry Collector in the
 following ways:
 

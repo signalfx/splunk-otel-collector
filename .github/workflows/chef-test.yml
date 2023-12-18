@@ -53,12 +53,7 @@ jobs:
             echo "Failed to get platforms from kitchen.yml!" >&2
             exit 1
           fi
-          suites=$(yq '[.suites[] | "\"" + (.name | sub("_", "-") | sub("\.", "")) + "\""] | join(", ")' kitchen.yml)
-          if [ -z "$suites" ]; then
-            echo "Failed to get suites from kitchen.yml!" >&2
-            exit 1
-          fi
-          echo "matrix={'DISTRO': [${distros}], 'SUITE': [${suites}]}" >> $GITHUB_OUTPUT
+          echo "matrix={'DISTRO': [${distros}]}" >> $GITHUB_OUTPUT
 
       - name: Get windows distros and suites
         id: get-win-matrix
@@ -94,12 +89,12 @@ jobs:
         with:
           version: 21.12.720
 
-      - run: kitchen test ${{ matrix.SUITE }}-${{ matrix.DISTRO }}
+      - run: kitchen test ${{ matrix.DISTRO }}
 
       - uses: actions/upload-artifact@v3
         if: always()
         with:
-          name: ${{ matrix.SUITE }}-${{ matrix.DISTRO }}
+          name: ${{ matrix.DISTRO }}
           path: deployments/chef/.kitchen/logs/*
 
   chef-kitchen-windows:

@@ -25,6 +25,8 @@
 
 //go:generate discoverybundler -r -t bundle.d/receivers/oracledb.discovery.yaml.tmpl
 //go:generate discoverybundler -r -c -d ../../../../cmd/otelcol/config/collector/config.d.linux/receivers -t bundle.d/receivers/oracledb.discovery.yaml.tmpl
+//go:generate discoverybundler -r -t bundle.d/receivers/postgresql.discovery.yaml.tmpl
+//go:generate discoverybundler -r -c -d ../../../../cmd/otelcol/config/collector/config.d.linux/receivers -t bundle.d/receivers/postgresql.discovery.yaml.tmpl
 //go:generate discoverybundler -r -t bundle.d/receivers/redis.discovery.yaml.tmpl
 //go:generate discoverybundler -r -c -d ../../../../cmd/otelcol/config/collector/config.d.linux/receivers -t bundle.d/receivers/redis.discovery.yaml.tmpl
 //go:generate discoverybundler -r -t bundle.d/receivers/smartagent-collectd-mysql.discovery.yaml.tmpl

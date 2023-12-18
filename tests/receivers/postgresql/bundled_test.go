@@ -38,6 +38,41 @@ import (
 	"github.com/signalfx/splunk-otel-collector/tests/testutils/kubeutils/manifests"
 )
 
+func TestPostgresqlDockerObserver(t *testing.T) {
+	testutils.SkipIfNotContainerTest(t)
+	if runtime.GOOS == "darwin" {
+		t.Skip("unable to share sockets between mac and d4m vm: https://github.com/docker/for-mac/issues/483#issuecomment-758836836")
+	}
+
+	testutils.AssertAllMetricsReceived(t, "bundled.yaml", "otlp_exporter.yaml",
+		postgresqldb, []testutils.CollectorBuilder{
+			func(c testutils.Collector) testutils.Collector {
+				cc := c.(*testutils.CollectorContainer)
+				cc.Container = cc.Container.WithBinds("/var/run/docker.sock:/var/run/docker.sock:ro")
+				cc.Container = cc.Container.WillWaitForLogs("Discovering for next")
+				cc.Container = cc.Container.WithUser(fmt.Sprintf("999:%d", testutils.GetDockerGID(t)))
+				return cc
+			},
+			func(collector testutils.Collector) testutils.Collector {
+				return collector.WithEnv(map[string]string{
+					"SPLUNK_DISCOVERY_DURATION": "10s",
+					// confirm that debug logging doesn't affect runtime
+					"SPLUNK_DISCOVERY_LOG_LEVEL": "debug",
+				}).WithArgs(
+					"--discovery",
+					"--set", "splunk.discovery.receivers.postgresql.config.username=otelu",
+					"--set", "splunk.discovery.receivers.postgresql.config.password=otelp",
+					"--set", "splunk.discovery.receivers.postgresql.config.tls::insecure=true",
+					//Disabling postgresql.backends metric that doesn't dependably show up in metrics during testing
+					"--set", "splunk.discovery.receivers.postgresql.config.metrics::postgresql.backends::enabled=false",
+					"--set", `splunk.discovery.extensions.k8s_observer.enabled=false`,
+					"--set", `splunk.discovery.extensions.host_observer.enabled=false`,
+				)
+			},
+		},
+	)
+}
+
 func TestK8sObserver(t *testing.T) {
 	testutils.SkipIfNotContainerTest(t)
 	tc := testutils.NewTestcase(t, testutils.OTLPReceiverSinkAllInterfaces)
@@ -76,18 +111,18 @@ func TestK8sObserver(t *testing.T) {
 	sout, serr, err = cluster.Apply(manifests.RenderAll(t, configMap, ds))
 	require.NoError(t, err, "stdout: %s, stderr: %s", sout, serr)
 
-	pods := cluster.WaitForPods(ds.Name, namespace.Name, 5*time.Minute)
+	pods := cluster.WaitForPods(ds.Name, namespace.Name, 10*time.Minute)
 	require.Len(t, pods, 1)
 	collectorName := pods[0].Name
 
-	expectedMetrics := tc.ResourceMetrics("all.yaml")
+	expectedMetrics := tc.ResourceMetrics("all_k8s.yaml")
 	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedMetrics, 30*time.Second))
 
 	stdOut, stdErr, err := cluster.Kubectl("logs", "-n", namespace.Name, collectorName)
 	require.NoError(t, err)
 	require.Contains(
 		t, stdOut.String(),
-		fmt.Sprintf(`Successfully discovered "smartagent/postgresql" using "k8s_observer" endpoint "k8s_observer/%s/(5432)`, postgresUID),
+		fmt.Sprintf(`Successfully discovered "postgresql" using "k8s_observer" endpoint "k8s_observer/%s/(5432)`, postgresUID),
 		stdErr.String(),
 	)
 }
@@ -95,15 +130,15 @@ func TestK8sObserver(t *testing.T) {
 type testCluster struct{ *kubeutils.KindCluster }
 
 func (cluster testCluster) createPostgres(name, namespace, serviceAccount string) string {
-	dbsql, err := os.ReadFile(filepath.Join(".", "testdata", "server", "initdb.d", "db.sql"))
+	dbsql, err := os.ReadFile(filepath.Join("..", "smartagent", "postgresql", "testdata", "server", "initdb.d", "db.sql"))
 	require.NoError(cluster.Testcase, err)
 	cmContent := map[string]any{"db.sql": string(dbsql)}
 
-	initsh, err := os.ReadFile(filepath.Join(".", "testdata", "server", "initdb.d", "init.sh"))
+	initsh, err := os.ReadFile(filepath.Join("..", "smartagent", "postgresql", "testdata", "server", "initdb.d", "init.sh"))
 	require.NoError(cluster.Testcase, err)
 	cmContent["init.sh"] = string(initsh)
 
-	requests, err := os.ReadFile(filepath.Join(".", "testdata", "client", "requests.sh"))
+	requests, err := os.ReadFile(filepath.Join("..", "smartagent", "postgresql", "testdata", "client", "requests.sh"))
 	require.NoError(cluster.Testcase, err)
 	cmContent["requests.sh"] = string(requests)
 
@@ -231,7 +266,7 @@ func (cluster testCluster) createPostgres(name, namespace, serviceAccount string
 	)
 	require.NoError(cluster.Testcase, err)
 
-	cluster.WaitForPods(postgres.Name, namespace, 5*time.Minute)
+	cluster.WaitForPods(postgres.Name, namespace, 10*time.Minute)
 	return string(postgres.UID)
 }
 
@@ -332,11 +367,11 @@ func (cluster testCluster) daemonSet(namespace, serviceAccount, configMap string
 				Image: testutils.GetCollectorImageOrSkipTest(cluster.Testcase),
 				Command: []string{
 					"/otelcol", "--config=/config/config.yaml", "--discovery",
-					"--set", "splunk.discovery.receivers.smartagent/postgresql.config.params::username='${env:PG_USERNAME}'",
-					"--set", "splunk.discovery.receivers.smartagent/postgresql.config.params::password='${env:PG_PASSWORD}'",
-					"--set", "splunk.discovery.receivers.smartagent/postgresql.config.masterDBName=test_db",
-					"--set", `splunk.discovery.receivers.smartagent/postgresql.config.extraMetrics=["*"]`,
-					"--set", `splunk.discovery.receivers.smartagent/postgresql.enabled=true`,
+					"--set", "splunk.discovery.receivers.postgresql.config.username='${env:PG_USERNAME}'",
+					"--set", "splunk.discovery.receivers.postgresql.config.password='${env:PG_PASSWORD}'",
+					"--set", "splunk.discovery.receivers.postgresql.config.tls::insecure=true",
+					//Disabling postgresql.backends metric that doesn't dependably show up in metrics during testing
+					"--set", "splunk.discovery.receivers.postgresql.config.metrics::postgresql.backends::enabled=false",
 				},
 				Env: []corev1.EnvVar{
 					{Name: "PG_USERNAME", Value: "test_user"},

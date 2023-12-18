@@ -169,7 +169,7 @@ jobs:
           make for-all CMD="make test" | tee unit-test-results/go-unit-tests.out
 
       - name: Uploading artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: unit-test-results
           path: ./unit-test-results
@@ -203,7 +203,7 @@ jobs:
           make test-with-cover
 
       - name: Uploading artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-results
           path: ./coverage.html
@@ -236,7 +236,7 @@ jobs:
           make ${{ matrix.SYS_BINARIES }}
 
       - name: Uploading binaries
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.SYS_BINARIES }}
           path: |

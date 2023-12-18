@@ -60,7 +60,7 @@ jobs:
           DOCKER_BUILDKIT: '1'
           BUNDLE_CACHE_HIT: "${{ steps.bundle-cache.outputs.cache-hit }}"
       - run: docker save -o ./bin/image.tar otelcol:latest
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: otelcol-${{ matrix.ARCH }}
           path: ./bin

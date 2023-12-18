@@ -70,7 +70,7 @@ jobs:
           make ${{ matrix.SYS_BINARIES }}
 
       - name: Uploading binaries
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.SYS_BINARIES }}
           path: |
@@ -103,7 +103,7 @@ jobs:
         env:
           BUNDLE_CACHE_HIT: "${{ steps.bundle-cache.outputs.cache-hit }}"
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: agent-bundle-linux-${{ matrix.ARCH }}
           path: ./dist/agent-bundle_linux_${{ matrix.ARCH }}.tar.gz
@@ -144,7 +144,7 @@ jobs:
         run: make ${{ matrix.SYS_PACKAGE }}-package SKIP_COMPILE=true SKIP_BUNDLE=true VERSION="" ARCH="${{ matrix.ARCH }}"
 
       - name: Uploading ${{ matrix.SYS_PACKAGE }} ${{ matrix.ARCH }} package artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.SYS_PACKAGE }}-${{ matrix.ARCH }}-package
           path: ./dist/splunk-otel-collector*

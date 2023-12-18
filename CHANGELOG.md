@@ -8,6 +8,7 @@
 
 - (Splunk) Remove the project beta label ([#4070](https://github.com/signalfx/splunk-otel-collector/pull/4070))
 - (Splunk) Source SPLUNK_LISTEN_INTERFACE on all host endpoints([#4065](https://github.com/signalfx/splunk-otel-collector/pull/4065))
+- (Splunk) Add support for start timestamps when using the light prometheus receiver ([#4037](https://github.com/signalfx/splunk-otel-collector/pull/4037))
 - (Splunk) Node.js Auto Instrumentation:
   - Update splunk-otel-js to [v2.6.0](https://github.com/signalfx/splunk-otel-js/releases/tag/v2.6.0) ([#4064](https://github.com/signalfx/splunk-otel-collector/pull/4064))
   - Update linux installer script to use `--global=false` for local npm versions and configurations ([#4068](https://github.com/signalfx/splunk-otel-collector/pull/4068))

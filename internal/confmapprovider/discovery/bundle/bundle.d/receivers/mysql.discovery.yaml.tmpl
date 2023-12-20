@@ -1,0 +1,38 @@
+{{ receiver "mysql" }}:
+  enabled: false
+  rule:
+    docker_observer: type == "container" and port != 33060 and any([name, image, command], {# matches "(?i)mysql"}) and not (command matches "splunk.discovery")
+    host_observer: type == "hostport" and port != 33060 and  command matches "(?i)mysqld"
+    k8s_observer: type == "port" and port != 33060 and pod.name matches "(?i)mysql"
+  config:
+    default:
+      username: {{ defaultValue }}
+      password: {{ defaultValue }}
+  status:
+    metrics:
+      successful:
+        - strict: mysql.locks
+          first_only: true
+          log_record:
+            severity_text: info
+            body: Mysql receiver is working!
+    statements:
+      failed:
+        - regexp: "Can't connect to MySQL server on .* [(]111[)]"
+          first_only: true
+          log_record:
+            severity_text: info
+            append_pattern: true
+            body:  The container cannot be reached by the Collector. The container is refusing MySQL connections.
+      partial:
+        - regexp: 'Access denied for user'
+          first_only: true
+          log_record:
+            severity_text: info
+            append_pattern: true
+            body: >-
+              Make sure your user credentials are correctly specified using the
+              `--set {{ configProperty "username" "<username>" }}` and
+              `--set {{ configProperty "password" "<password>" }}` command or the
+              `{{ configPropertyEnvVar "username" "<username>" }}` and
+              `{{ configPropertyEnvVar "password" "<password>" }}` environment variables.

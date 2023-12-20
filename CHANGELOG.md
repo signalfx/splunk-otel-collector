@@ -17,6 +17,11 @@
 
 - `postgresql` Discovery now uses the OpenTelemetry Collector Contrib receiver by default instead of the smartagent receiver ([#3957](https://github.com/signalfx/splunk-otel-collector/pull/3957))
 
+### 🛑 Breaking changes 🛑
+
+- `postgresql` discovery now uses the OpenTelemetry Collector Contrib receiver by default instead of the smartagent receiver.
+- `mysql` discovery now uses the OpenTelemetry Collector Contrib receiver by default instead of the smartagent receiver.
+
 ## v0.91.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.91.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.91.0) and the [opentelemetry-collector-contrib v0.91.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.91.0) releases where appropriate.

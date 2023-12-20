@@ -11,10 +11,12 @@ splunk.discovery:
     k8s_observer:
       enabled: true
   receivers:
+    mysql:
+      enabled: true
     postgresql:
       enabled: true
     smartagent/collectd/mysql:
-      enabled: true
+      enabled: false
     smartagent/collectd/nginx:
       enabled: true
     smartagent/postgresql:

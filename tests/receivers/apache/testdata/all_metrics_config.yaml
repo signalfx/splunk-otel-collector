@@ -1,0 +1,23 @@
+receivers:
+  smartagent:
+    type: collectd/apache
+    host: "localhost"
+    port: 8000
+    url: "http://{{.Host}}:{{.Port}}/mod_status?auto"
+
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+
+
+service:
+  telemetry:
+    logs:
+      level: "debug"
+  pipelines:
+    metrics:
+      receivers:
+        - smartagent
+      exporters: [otlp]

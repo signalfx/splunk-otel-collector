@@ -10,6 +10,8 @@ require (
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/google/uuid v1.5.0
 	github.com/knadh/koanf v1.5.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/golden v0.91.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.91.0
 	github.com/shirou/gopsutil/v3 v3.23.11
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3
 	github.com/signalfx/signalfx-go v1.33.0
@@ -140,6 +142,7 @@ require (
 	github.com/mostynb/go-grpc-compression v1.2.2 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/mxk/go-flowrate v0.0.0-20140419014527-cca7078d478f // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatautil v0.91.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0-rc5 // indirect
 	github.com/opencontainers/runc v1.1.6 // indirect

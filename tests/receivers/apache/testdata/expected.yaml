@@ -1,0 +1,99 @@
+resourceMetrics:
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - name: apache_requests
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: foo
+                    - key: plugin
+                      value:
+                        stringValue: apache
+                    - key: system.type
+                      value:
+                        stringValue: apache
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - gauge:
+              dataPoints:
+                - asInt: "1"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: docker-desktop
+                    - key: plugin
+                      value:
+                        stringValue: apache
+                    - key: system.type
+                      value:
+                        stringValue: apache
+                  timeUnixNano: "1000000"
+            name: apache_connections
+          - gauge:
+              dataPoints:
+                - asInt: "74"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: docker-desktop
+                    - key: plugin
+                      value:
+                        stringValue: apache
+                    - key: system.type
+                      value:
+                        stringValue: apache
+                  timeUnixNano: "1000000"
+            name: apache_idle_workers
+          - gauge:
+              dataPoints:
+                - asInt: "325"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: docker-desktop
+                    - key: plugin
+                      value:
+                        stringValue: apache
+                    - key: system.type
+                      value:
+                        stringValue: apache
+                  timeUnixNano: "1000000"
+            name: apache_scoreboard.open
+          - name: apache_bytes
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: docker-desktop
+                    - key: plugin
+                      value:
+                        stringValue: apache
+                    - key: system.type
+                      value:
+                        stringValue: apache
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+        scope: {}

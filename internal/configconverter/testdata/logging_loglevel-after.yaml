@@ -21,11 +21,10 @@ processors:
 
 exporters:
   logging:
-    loglevel: debug
+    verbosity: Detailed
   logging/info:
-    loglevel: info
+    verbosity: Normal
   logging/with_verbosity:
-    loglevel: info
     verbosity: normal
   logging/invalid:
     loglevel: foo

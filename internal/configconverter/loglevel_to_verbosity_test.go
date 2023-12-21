@@ -18,7 +18,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
 )
@@ -28,12 +27,12 @@ func TestLogLevelToVerbosity(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfgMap)
 
+	expectedCfgMap, err := confmaptest.LoadConf("testdata/logging_loglevel-after.yaml")
+	require.NoError(t, err)
+	require.NotNil(t, expectedCfgMap)
+
 	err = LogLevelToVerbosity{}.Convert(context.Background(), cfgMap)
 	require.NoError(t, err)
 
-	assert.False(t, cfgMap.IsSet("exporters::logging::loglevel"))
-	assert.Equal(t, "Detailed", cfgMap.Get("exporters::logging::verbosity"))
-
-	assert.False(t, cfgMap.IsSet("exporters::logging/info::loglevel"))
-	assert.Equal(t, "Normal", cfgMap.Get("exporters::logging/info::verbosity"))
+	require.Equal(t, expectedCfgMap, cfgMap)
 }

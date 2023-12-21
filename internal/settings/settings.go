@@ -214,6 +214,7 @@ func (s *Settings) ConfMapConverters() []confmap.Converter {
 			configconverter.MoveHecTLS{},
 			configconverter.RenameK8sTagger{},
 			configconverter.NormalizeGcp{},
+			configconverter.LogLevelToVerbosity{},
 		)
 	}
 	return confMapConverters

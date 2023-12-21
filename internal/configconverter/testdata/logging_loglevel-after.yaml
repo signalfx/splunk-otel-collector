@@ -28,6 +28,10 @@ exporters:
     verbosity: normal
   logging/invalid:
     loglevel: foo
+  logging/invalid_verbosity:
+    verbosity: false
+  logging/loglevel_with_invalid_verbosity:
+    verbosity: false
 
 service:
   pipelines:

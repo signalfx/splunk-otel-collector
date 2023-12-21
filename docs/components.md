@@ -16,7 +16,7 @@ The distribution offers support for the following components.
 | [azureeventhub](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/azureeventhubreceiver)             | [alpha]          |
 | [carbon](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/carbonreceiver)                           | [alpha]          |
 | [cloudfoundry](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/cloudfoundryreceiver)               | [beta]           |
-| [collectd](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/collectdreceiver)                       | [beta]          |
+| [collectd](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/collectdreceiver)                       | [beta]           |
 | [databricks](../internal/receiver/databricksreceiver)                                                                                   | [alpha]          |
 | [discovery](../internal/receiver/discoveryreceiver)                                                                                     | [in development] |
 | [filelog](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/filelogreceiver)                         | [beta]           |
@@ -48,7 +48,7 @@ The distribution offers support for the following components.
 | [solace](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/solacereceiver)                           | [beta]           |
 | [splunk_hec](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/splunkhecreceiver)                    | [beta]           |
 | [sqlquery](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/sqlqueryreceiver)                       | [alpha]          |
-| [sshcheck](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/sshcheckreceiver) | alpha |
+| [sshcheck](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/sshcheckreceiver)                       | alpha            |
 | [statsd](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/statsdreceiver)                           | [beta]           |
 | [syslog](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/syslogreceiver)                           | [alpha]          |
 | [tcplog](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/tcplogreceiver)                           | [alpha]          |

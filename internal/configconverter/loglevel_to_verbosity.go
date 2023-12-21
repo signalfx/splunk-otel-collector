@@ -29,10 +29,10 @@ type LogLevelToVerbosity struct{}
 
 func (LogLevelToVerbosity) Convert(_ context.Context, in *confmap.Conf) error {
 	if in == nil {
-		return fmt.Errorf("cannot MoveHecTLS on nil *confmap.Conf")
+		return fmt.Errorf("cannot LogLevelToVerbosity on nil *confmap.Conf")
 	}
 
-	const expression = "exporters::logging(/\\w+)?::loglevel"
+	const expression = "exporters::logging(/.+)?::loglevel"
 	re := regexp.MustCompile(expression)
 	out := map[string]any{}
 	unsupportedKeyFound := false

@@ -25,7 +25,12 @@ import (
 
 var sshd = testutils.NewContainer().WithContext(path.Join(".", "testdata", "server")).WithExposedPorts("2222:22").WithName("sshd-server").WillWaitForPorts("22")
 
-func TestSSHCheckReceiver(t *testing.T) {
-	testutils.AssertAllMetricsReceived(t, "sshcheck.yaml", "sshcheck_config.yaml",
+func TestSSHCheckReceiverBadPassword(t *testing.T) {
+	testutils.AssertAllMetricsReceived(t, "sshcheck_bad_password.yaml", "sshcheck_config_bad_password.yaml",
+		[]testutils.Container{sshd}, nil)
+}
+
+func TestSSHCheckReceiverHappyPath(t *testing.T) {
+	testutils.AssertAllMetricsReceived(t, "sshcheck_happy_path.yaml", "sshcheck_config_happy_path.yaml",
 		[]testutils.Container{sshd}, nil)
 }

@@ -23,6 +23,7 @@ import (
 	"strings"
 
 	"github.com/knadh/koanf/maps"
+	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v2"
 
 	"github.com/signalfx/splunk-otel-collector/tests/internal/version"
@@ -256,21 +257,11 @@ func (metric Metric) equals(toCompare Metric, strict bool) bool {
 		return false
 	}
 
-	if !valuesEqual(metric.Value, toCompare.Value) && (strict || metric.Value != nil) {
+	if !assert.ObjectsAreEqualValues(metric.Value, toCompare.Value) && (strict || metric.Value != nil) {
 		return false
 	}
 
 	return attributesAreEqual(metric.Attributes, toCompare.Attributes)
-}
-
-func valuesEqual(value any, toCompare any) bool {
-	if i, ok := value.(int); ok {
-		value = int64(i)
-	}
-	if i, ok := toCompare.(int); ok {
-		toCompare = int64(i)
-	}
-	return value == toCompare
 }
 
 // FlattenResourceMetrics takes multiple instances of ResourceMetrics and flattens them

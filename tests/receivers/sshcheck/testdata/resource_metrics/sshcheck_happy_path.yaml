@@ -1,0 +1,17 @@
+resource_metrics:
+  - attributes: {}
+    scope_metrics:
+      - instrumentation_scope:
+          attributes: {}
+          name: otelcol/sshcheckreceiver
+          version: <ANY>
+        metrics:
+          - description: Measures the duration of SSH connection.
+            name: sshcheck.duration
+            type: IntGauge
+            unit: ms
+          - description: 1 if the SSH client successfully connected, otherwise 0.
+            name: sshcheck.status
+            type: IntNonmonotonicCumulativeSum
+            unit: 1
+            value: 1

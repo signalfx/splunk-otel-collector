@@ -7,9 +7,20 @@
 - (Splunk) On Windows the `SPLUNK_*` environment variables were moved from the machine scope to the collector service scope.
   It is possible that some instrumentations are relying on the machine-wide environment variables set by the installation. ([#3930](https://github.com/signalfx/splunk-otel-collector/pull/3930))
 
+## v0.91.1
+
 ### 💡 Enhancements 💡
 
-- (Splunk) Update splunk-otel-js to [v2.6.0](https://github.com/signalfx/splunk-otel-js/releases/tag/v2.6.0) ([#4064](https://github.com/signalfx/splunk-otel-collector/pull/4064))
+- (Splunk) Remove the project beta label ([#4070](https://github.com/signalfx/splunk-otel-collector/pull/4070))
+- (Splunk) Source SPLUNK_LISTEN_INTERFACE on all host endpoints([#4065](https://github.com/signalfx/splunk-otel-collector/pull/4065))
+- (Splunk) Add support for start timestamps when using the light prometheus receiver ([#4037](https://github.com/signalfx/splunk-otel-collector/pull/4037))
+- (Splunk) Node.js Auto Instrumentation:
+  - Update splunk-otel-js to [v2.6.0](https://github.com/signalfx/splunk-otel-js/releases/tag/v2.6.0) ([#4064](https://github.com/signalfx/splunk-otel-collector/pull/4064))
+  - Update linux installer script to use `--global=false` for local npm versions and configurations ([#4068](https://github.com/signalfx/splunk-otel-collector/pull/4068))
+
+### 🛑 Breaking changes 🛑
+
+- `postgresql` Discovery now uses the OpenTelemetry Collector Contrib receiver by default instead of the smartagent receiver ([#3957](https://github.com/signalfx/splunk-otel-collector/pull/3957))
 
 ## v0.91.0
 

@@ -3,7 +3,7 @@
 # All changes must be made to associated .tmpl file before running 'make bundle.d'. #
 #####################################################################################
 smartagent/postgresql:
-  enabled: true
+  enabled: false
   rule:
     docker_observer: type == "container" and any([name, image, command], {# matches "(?i)postgres"}) and not (command matches "splunk.discovery")
     host_observer: type == "hostport" and command matches "(?i)postgres" and not (command matches "splunk.discovery")

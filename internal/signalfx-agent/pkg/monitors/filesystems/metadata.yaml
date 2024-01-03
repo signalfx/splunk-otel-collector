@@ -13,28 +13,6 @@ monitors:
      - type: filesystems
        hostFSPath: /hostfs
     ```
-
-    ## Migrating from collectd/df
-    The `collectd/df` monitor is being deprecated in favor of the `filesystems`
-    monitor.  While the `collectd/df` monitor will still be available in
-    5.0, it is recommended that you switch to the `filesystems` monitor soon
-    after upgrading.  There are a few incompatibilities to be aware of between
-    the two monitors:
-
-     - `collectd/df` used a dimension called `plugin_instance` to identify the
-       mount point or device of the filesystem.  This dimension is completely
-       removed in the `filesystems` monitor and replaced by the `mountpoint`
-       and `device` dimensions.  You no longer have to select between the two
-       (the `reportByDevice` option on `collectd/df`) as both are always
-       reported.
-
-     - The mountpoints in the `plugin_instance` dimension of `collectd/df`
-       were reported with `-` instead of the more conventional `/` separated
-       path segments.  The `filesystems` monitor always reports mountpoints in
-       the `mountpoint` dimension and uses the conventional `/` separator.
-
-     - The `collectd/df` plugin set a dimension `plugin: df` on all datapoints,
-       but `filesystems` has no such comparable dimension.
   metrics:
     df_complex.free:
       description: Free disk space in bytes

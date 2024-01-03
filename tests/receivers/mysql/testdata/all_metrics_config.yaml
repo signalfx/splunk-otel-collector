@@ -1,0 +1,26 @@
+receivers:
+  mysql:
+    endpoint: "${MYSQLDB_ENDPOINT}"
+    username: "${MYSQLDB_USERNAME}"
+    password: "${MYSQLDB_PASSWORD}"
+    database: otel
+    tls:
+      insecure: true
+    statement_events:                                                                                                                                                                                                           
+      digest_text_limit: 120                                                                                                                                                                                                    
+      time_limit: 24h                                                                                                                                                                                                           
+      limit: 250         
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+service:
+  telemetry:
+    logs:
+      level: "info"
+  pipelines:
+    metrics:
+      receivers:
+        - mysql
+      exporters: [otlp]

@@ -41,7 +41,6 @@ function Install-Tools {
 
 function New-MSI(
     [string]$Otelcol="./bin/otelcol_windows_amd64.exe",
-    [string]$Translatesfx="./bin/translatesfx_windows_amd64.exe",
     [string]$Version,
     [string]$BuildDir="./dist",
     [string]$Config="./cmd/otelcol/config/collector/agent_config.yaml",
@@ -59,7 +58,7 @@ function New-MSI(
     Copy-Item "$FluentdConfDir\*.conf" "$filesDir\fluentd\conf.d" -Recurse
     heat dir "$filesDir" -srd -sreg -gg -template fragment -cg ConfigFiles -dr INSTALLDIR -out "$BuildDir\configfiles.wsx"
     candle -arch x64 -out "$BuildDir\configfiles.wixobj" "$BuildDir\configfiles.wsx"
-    candle -arch x64 -out "$BuildDir\splunk-otel-collector.wixobj" -dVersion="$Version" -dOtelcol="$Otelcol" -dTranslatesfx="$Translatesfx" .\internal\buildscripts\packaging\msi\splunk-otel-collector.wxs
+    candle -arch x64 -out "$BuildDir\splunk-otel-collector.wixobj" -dVersion="$Version" -dOtelcol="$Otelcol" .\internal\buildscripts\packaging\msi\splunk-otel-collector.wxs
     light -ext WixUtilExtension.dll -sval -spdb -out "$BuildDir\$msiName" -b "$filesDir" "$BuildDir\splunk-otel-collector.wixobj" "$BuildDir\configfiles.wixobj"
     if (!(Test-Path "$BuildDir\$msiName")) {
         throw "$BuildDir\$msiName not found!"

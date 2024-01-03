@@ -34,10 +34,11 @@ import (
 )
 
 type scraper struct {
-	client   *http.Client
-	settings component.TelemetrySettings
-	cfg      *Config
-	name     string
+	settings  component.TelemetrySettings
+	client    *http.Client
+	cfg       *Config
+	name      string
+	startTime pcommon.Timestamp
 }
 
 func newScraper(
@@ -54,6 +55,7 @@ func newScraper(
 }
 
 func (s *scraper) start(_ context.Context, host component.Host) error {
+	s.startTime = pcommon.NewTimestampFromTime(time.Now())
 	var err error
 	s.client, err = s.cfg.ToClient(host, s.settings)
 	return err
@@ -160,6 +162,7 @@ func (s *scraper) convertMetricFamilies(metricFamilies []*dto.MetricFamily, rm p
 			for _, fm := range family.GetMetric() {
 				dp := sum.DataPoints().AppendEmpty()
 				dp.SetTimestamp(now)
+				dp.SetStartTimestamp(s.startTime)
 				dp.SetDoubleValue(fm.GetCounter().GetValue())
 				for _, l := range fm.GetLabel() {
 					if l.GetValue() != "" {
@@ -173,6 +176,7 @@ func (s *scraper) convertMetricFamilies(metricFamilies []*dto.MetricFamily, rm p
 				dp := gauge.DataPoints().AppendEmpty()
 				dp.SetDoubleValue(fm.GetGauge().GetValue())
 				dp.SetTimestamp(now)
+				dp.SetStartTimestamp(s.startTime)
 				for _, l := range fm.GetLabel() {
 					if l.GetValue() != "" {
 						dp.Attributes().PutStr(l.GetName(), l.GetValue())
@@ -185,6 +189,7 @@ func (s *scraper) convertMetricFamilies(metricFamilies []*dto.MetricFamily, rm p
 			for _, fm := range family.Metric {
 				dp := histogram.DataPoints().AppendEmpty()
 				dp.SetTimestamp(now)
+				dp.SetStartTimestamp(s.startTime)
 
 				// Translate histogram buckets from Prometheus to the OTLP schema.
 				// The bucket counts in Prometheus are cumulative, while in OTLP they are not.
@@ -219,6 +224,7 @@ func (s *scraper) convertMetricFamilies(metricFamilies []*dto.MetricFamily, rm p
 			for _, fm := range family.Metric {
 				dp := sum.DataPoints().AppendEmpty()
 				dp.SetTimestamp(now)
+				dp.SetStartTimestamp(s.startTime)
 				for _, q := range fm.GetSummary().GetQuantile() {
 					newQ := dp.QuantileValues().AppendEmpty()
 					newQ.SetValue(q.GetValue())
@@ -238,6 +244,7 @@ func (s *scraper) convertMetricFamilies(metricFamilies []*dto.MetricFamily, rm p
 				dp := gauge.DataPoints().AppendEmpty()
 				dp.SetDoubleValue(fm.GetUntyped().GetValue())
 				dp.SetTimestamp(now)
+				dp.SetStartTimestamp(s.startTime)
 				for _, l := range fm.GetLabel() {
 					if l.GetValue() != "" {
 						dp.Attributes().PutStr(l.GetName(), l.GetValue())

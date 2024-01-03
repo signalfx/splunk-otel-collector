@@ -38,12 +38,12 @@ var (
 	errDimensionClientValue = fmt.Errorf("dimensionClients must be an array of compatible exporter names")
 	nonWindowsMonitors      = map[string]bool{
 		"collectd/activemq": true, "collectd/apache": true, "collectd/cassandra": true, "collectd/chrony": true,
-		"collectd/cpu": true, "collectd/cpufreq": true, "collectd/custom": true, "collectd/df": true, "collectd/disk": true,
+		"collectd/cpu": true, "collectd/cpufreq": true, "collectd/custom": true, "collectd/disk": true,
 		"collectd/genericjmx": true, "collectd/hadoopjmx": true, "collectd/kafka": true, "collectd/kafka_consumer": true,
 		"collectd/kafka_producer": true, "collectd/load": true, "collectd/memcached": true, "collectd/memory": true,
-		"collectd/mysql": true, "collectd/netinterface": true, "collectd/nginx": true, "collectd/php-fpm": true,
+		"collectd/mysql": true, "collectd/nginx": true, "collectd/php-fpm": true,
 		"collectd/processes": true, "collectd/protocols": true,
-		"collectd/signalfx-metadata": true, "collectd/statsd": true, "collectd/uptime": true, "collectd/vmem": true,
+		"collectd/signalfx-metadata": true, "collectd/statsd": true, "collectd/uptime": true,
 	}
 )
 

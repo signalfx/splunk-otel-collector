@@ -35,7 +35,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
@@ -98,7 +98,8 @@ jobs:
           fi
           distro=$(for d in $dockerfiles; do echo -n "\"$d\","; done)
           arch="\"amd64\", \"arm64\""
-          matrix="{\"DISTRO\": [${distro%,}], \"ARCH\": [${arch}]}"
+          testcase="\"express\",\"tomcat\""
+          matrix="{\"DISTRO\": [${distro%,}], \"ARCH\": [${arch}], \"TESTCASE\": [${testcase}]}"
           echo "$matrix" | jq
           echo "matrix=${matrix}" >> $GITHUB_OUTPUT
     outputs:
@@ -169,7 +170,8 @@ jobs:
             # workaround for pytest substring matching
             distro="amazonlinux-2 and not amazonlinux-2023"
           fi
-          python3 -u -m pytest -s --verbose -k "$distro and ${{ matrix.ARCH }}" \
+          testcase="${{ matrix.TESTCASE }} or uninstall"
+          python3 -u -m pytest -s --verbose -k "$distro and ${{ matrix.ARCH }} and ($testcase)" \
             internal/buildscripts/packaging/tests/instrumentation/instrumentation_test.py
 
       # qemu, networking, running systemd in containers, etc., can be flaky
@@ -181,6 +183,7 @@ jobs:
             # workaround for pytest substring matching
             distro="amazonlinux-2 and not amazonlinux-2023"
           fi
-          python3 -u -m pytest -s --verbose -k "$distro and ${{ matrix.ARCH }}" \
+          testcase="${{ matrix.TESTCASE }} or uninstall"
+          python3 -u -m pytest -s --verbose -k "$distro and ${{ matrix.ARCH }} and ($testcase)" \
             --last-failed \
             internal/buildscripts/packaging/tests/instrumentation/instrumentation_test.py

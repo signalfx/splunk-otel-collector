@@ -179,6 +179,7 @@ func TestNewSettingsConvertConfig(t *testing.T) {
 		configconverter.MoveHecTLS{},
 		configconverter.RenameK8sTagger{},
 		configconverter.NormalizeGcp{},
+		configconverter.LogLevelToVerbosity{},
 	}, settings.ConfMapConverters())
 	require.Equal(t, []string{"--feature-gates", "foo", "--feature-gates", "-bar"}, settings.ColCoreArgs())
 }

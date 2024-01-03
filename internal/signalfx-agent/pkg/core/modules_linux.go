@@ -16,7 +16,6 @@ import (
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/cpu"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/cpufreq"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/custom"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/df"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/disk"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/genericjmx"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/hadoopjmx"

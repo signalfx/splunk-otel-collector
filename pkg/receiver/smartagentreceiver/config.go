@@ -43,7 +43,7 @@ var (
 		"collectd/kafka_producer": true, "collectd/load": true, "collectd/memcached": true, "collectd/memory": true,
 		"collectd/mysql": true, "collectd/nginx": true, "collectd/php-fpm": true,
 		"collectd/postgresql": true, "collectd/processes": true, "collectd/protocols": true,
-		"collectd/signalfx-metadata": true, "collectd/statsd": true, "collectd/uptime": true, "collectd/vmem": true,
+		"collectd/signalfx-metadata": true, "collectd/statsd": true, "collectd/uptime": true,
 	}
 )
 

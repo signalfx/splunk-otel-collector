@@ -1,5 +1,4 @@
 // Copyright Splunk, Inc.
-// Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,11 +24,11 @@ import (
 )
 
 var kong = []testutils.Container{testutils.NewContainer().WithContext(
-	path.Join(".", "testdata", "server"),
+	path.Join(".", "testdata", "kong"),
 ).WithName("kong").WithExposedPorts("8001:8001").WillWaitForPorts("8001")}
 
 func TestKongMetrics(t *testing.T) {
 	testutils.AssertAllMetricsReceived(
-		t, "all.yaml", "all_metrics_config.yaml", kong, nil,
+		t, "kong_metrics.yaml", "kong_metrics_config.yaml", kong, nil,
 	)
 }

@@ -2,7 +2,7 @@ _format_version: "3.0"
 _transform: true
 
 services:
-  - host: httpbin.org
+  - host: localhost
     name: example_service
     port: 80
     protocol: http

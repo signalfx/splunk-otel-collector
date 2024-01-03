@@ -208,11 +208,6 @@ jobs:
           name: coverage-results
           path: ./coverage.html
 
-      # DISABLE CODECOV UNTIL THE SCRIPT IS AUDITED AND WE ARE CERTAIN IT IS OK TO TO EXECUTE IT.
-      # - name: Code coverage
-      #   run: |
-      #     bash <(curl -s https://codecov.io/bash)
-
   cross-compile:
     name: cross-compile
     # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved

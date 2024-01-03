@@ -974,7 +974,7 @@ puppet-release:
   except:
     - schedules
   before_script:
-    - gem install bundler
+    - gem install bundler -v 2.4.22
     - cd deployments/puppet
     - bundle install
     - bundle exec rake module:clean

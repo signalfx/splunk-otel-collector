@@ -1068,6 +1068,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/connector/countconnect
 github.com/open-telemetry/opentelemetry-collector-contrib/connector/countconnector v0.91.0/go.mod h1:CKI97YHL7IrmG++V7eFcV8Hoq7YIxMlQXjgorLhibiw=
 github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector v0.91.0 h1:fJOWUu4jQytFmzJLFYU0+rcnEt1vfAyqSZ622tdd81Q=
 github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector v0.91.0/go.mod h1:B0NLW0AU9C/cJgBDWsQKGKJhEI6/sCz9cQgObbfoA8U=
+github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awss3exporter v0.91.0 h1:pcLvFlYlGebRNMv7UVLQ8Fvt294r2rVnyX5uH7lTbyU=
+github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awss3exporter v0.91.0/go.mod h1:zIZ0u5z7DGBcC3Lt0x3gojrgHT6EXvGJoBnHqVmlb3E=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.91.0 h1:p8gP126reF8nK4HvgpQ+6R3+CVxnYohjInD67uKqfDw=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.91.0/go.mod h1:j26btuTJfz02X+urX9Qk73I13BdfuJoyjLm+edN1G94=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.91.0 h1:iU2St2YduQzbuXu68gjFB0CpPoQmo7kvl97IThw4aRE=

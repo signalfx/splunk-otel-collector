@@ -18,7 +18,7 @@ RUN wget https://apt.puppet.com/puppet-tools-release-buster.deb && \
 
 WORKDIR /etc/puppetlabs/code/modules/splunk_otel_collector
 COPY ./ ./
-RUN gem install bundler && bundle install
+RUN gem install bundler -v 2.4.22 && bundle install
 
 RUN mkdir -p /root/.config/puppet && \
     echo "---\n\

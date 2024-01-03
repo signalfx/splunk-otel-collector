@@ -1,0 +1,891 @@
+resource_metrics:
+  - attributes:
+      http.scheme: http
+      net.host.port: "8001"
+      service.instance.id: localhost:8001
+      service.name: kong
+    scope_metrics:
+      - instrumentation_scope:
+          attributes: {}
+          name: otelcol/prometheusreceiver
+          version: <VERSION_FROM_BUILD>
+        metrics:
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              pid: <ANY>
+            description: Allocated bytes in worker Lua VM
+            name: kong_memory_workers_lua_vms_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              pid: <ANY>
+            description: Allocated bytes in worker Lua VM
+            name: kong_memory_workers_lua_vms_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              pid: <ANY>
+            description: Allocated bytes in worker Lua VM
+            name: kong_memory_workers_lua_vms_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              pid: <ANY>
+            description: Allocated bytes in worker Lua VM
+            name: kong_memory_workers_lua_vms_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              pid: <ANY>
+            description: Allocated bytes in worker Lua VM
+            name: kong_memory_workers_lua_vms_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              pid: <ANY>
+            description: Allocated bytes in worker Lua VM
+            name: kong_memory_workers_lua_vms_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              pid: <ANY>
+            description: Allocated bytes in worker Lua VM
+            name: kong_memory_workers_lua_vms_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              pid: <ANY>
+            description: Allocated bytes in worker Lua VM
+            name: kong_memory_workers_lua_vms_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              pid: <ANY>
+            description: Allocated bytes in worker Lua VM
+            name: kong_memory_workers_lua_vms_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              pid: <ANY>
+            description: Allocated bytes in worker Lua VM
+            name: kong_memory_workers_lua_vms_bytes
+            type: DoubleGauge
+          - attributes:
+              node_id: <ANY>
+              state: accepted
+              subsystem: http
+            description: Number of connections by subsystem
+            name: kong_nginx_connections_total
+            type: DoubleGauge
+          - attributes:
+              node_id: <ANY>
+              state: active
+              subsystem: http
+            description: Number of connections by subsystem
+            name: kong_nginx_connections_total
+            type: DoubleGauge
+          - attributes:
+              node_id: <ANY>
+              state: handled
+              subsystem: http
+            description: Number of connections by subsystem
+            name: kong_nginx_connections_total
+            type: DoubleGauge
+          - attributes:
+              node_id: <ANY>
+              state: reading
+              subsystem: http
+            description: Number of connections by subsystem
+            name: kong_nginx_connections_total
+            type: DoubleGauge
+          - attributes:
+              node_id: <ANY>
+              state: total
+              subsystem: http
+            description: Number of connections by subsystem
+            name: kong_nginx_connections_total
+            type: DoubleGauge
+          - attributes:
+              node_id: <ANY>
+              state: waiting
+              subsystem: http
+            description: Number of connections by subsystem
+            name: kong_nginx_connections_total
+            type: DoubleGauge
+          - attributes:
+              node_id: <ANY>
+              state: writing
+              subsystem: http
+            description: Number of connections by subsystem
+            name: kong_nginx_connections_total
+            type: DoubleGauge
+          - attributes:
+              state: pending
+            description: Number of nginx timers
+            name: kong_nginx_timers
+            type: DoubleGauge
+          - attributes:
+              state: running
+            description: Number of nginx timers
+            name: kong_nginx_timers
+            type: DoubleGauge
+          - description: The scraping was successful
+            name: up
+            type: DoubleGauge
+          - description: The number of samples remaining after metric relabeling was applied
+            name: scrape_samples_post_metric_relabeling
+            type: DoubleGauge
+          - description: The approximate number of new series in this scrape
+            name: scrape_series_added
+            type: DoubleGauge
+          - description: Datastore reachable from Kong, 0 is unreachable
+            name: kong_datastore_reachable
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              shared_dict: kong
+            description: Allocated slabs in bytes in a shared_dict
+            name: kong_memory_lua_shared_dict_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              shared_dict: kong_cluster_events
+            description: Allocated slabs in bytes in a shared_dict
+            name: kong_memory_lua_shared_dict_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              shared_dict: kong_core_db_cache
+            description: Allocated slabs in bytes in a shared_dict
+            name: kong_memory_lua_shared_dict_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              shared_dict: kong_core_db_cache_miss
+            description: Allocated slabs in bytes in a shared_dict
+            name: kong_memory_lua_shared_dict_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              shared_dict: kong_counters
+            description: Allocated slabs in bytes in a shared_dict
+            name: kong_memory_lua_shared_dict_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              shared_dict: kong_db_cache
+            description: Allocated slabs in bytes in a shared_dict
+            name: kong_memory_lua_shared_dict_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              shared_dict: kong_db_cache_miss
+            description: Allocated slabs in bytes in a shared_dict
+            name: kong_memory_lua_shared_dict_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              shared_dict: kong_healthchecks
+            description: Allocated slabs in bytes in a shared_dict
+            name: kong_memory_lua_shared_dict_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              shared_dict: kong_keyring
+            description: Allocated slabs in bytes in a shared_dict
+            name: kong_memory_lua_shared_dict_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              shared_dict: kong_locks
+            description: Allocated slabs in bytes in a shared_dict
+            name: kong_memory_lua_shared_dict_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              shared_dict: kong_profiling_state
+            description: Allocated slabs in bytes in a shared_dict
+            name: kong_memory_lua_shared_dict_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              shared_dict: kong_rate_limiting_counters
+            description: Allocated slabs in bytes in a shared_dict
+            name: kong_memory_lua_shared_dict_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              shared_dict: kong_reports_consumers
+            description: Allocated slabs in bytes in a shared_dict
+            name: kong_memory_lua_shared_dict_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              shared_dict: kong_reports_routes
+            description: Allocated slabs in bytes in a shared_dict
+            name: kong_memory_lua_shared_dict_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              shared_dict: kong_reports_services
+            description: Allocated slabs in bytes in a shared_dict
+            name: kong_memory_lua_shared_dict_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              shared_dict: kong_reports_workspaces
+            description: Allocated slabs in bytes in a shared_dict
+            name: kong_memory_lua_shared_dict_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              shared_dict: kong_secrets
+            description: Allocated slabs in bytes in a shared_dict
+            name: kong_memory_lua_shared_dict_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              shared_dict: kong_vitals
+            description: Allocated slabs in bytes in a shared_dict
+            name: kong_memory_lua_shared_dict_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              shared_dict: kong_vitals_counters
+            description: Allocated slabs in bytes in a shared_dict
+            name: kong_memory_lua_shared_dict_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              shared_dict: kong_vitals_lists
+            description: Allocated slabs in bytes in a shared_dict
+            name: kong_memory_lua_shared_dict_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              shared_dict: prometheus_metrics
+            description: Allocated slabs in bytes in a shared_dict
+            name: kong_memory_lua_shared_dict_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              shared_dict: kong
+            description: Total capacity in bytes of a shared_dict
+            name: kong_memory_lua_shared_dict_total_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              shared_dict: kong_cluster_events
+            description: Total capacity in bytes of a shared_dict
+            name: kong_memory_lua_shared_dict_total_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              shared_dict: kong_core_db_cache
+            description: Total capacity in bytes of a shared_dict
+            name: kong_memory_lua_shared_dict_total_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              shared_dict: kong_core_db_cache_miss
+            description: Total capacity in bytes of a shared_dict
+            name: kong_memory_lua_shared_dict_total_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              shared_dict: kong_counters
+            description: Total capacity in bytes of a shared_dict
+            name: kong_memory_lua_shared_dict_total_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              shared_dict: kong_db_cache
+            description: Total capacity in bytes of a shared_dict
+            name: kong_memory_lua_shared_dict_total_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              shared_dict: kong_db_cache_miss
+            description: Total capacity in bytes of a shared_dict
+            name: kong_memory_lua_shared_dict_total_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              shared_dict: kong_healthchecks
+            description: Total capacity in bytes of a shared_dict
+            name: kong_memory_lua_shared_dict_total_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              shared_dict: kong_keyring
+            description: Total capacity in bytes of a shared_dict
+            name: kong_memory_lua_shared_dict_total_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              shared_dict: kong_locks
+            description: Total capacity in bytes of a shared_dict
+            name: kong_memory_lua_shared_dict_total_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              shared_dict: kong_profiling_state
+            description: Total capacity in bytes of a shared_dict
+            name: kong_memory_lua_shared_dict_total_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              shared_dict: kong_rate_limiting_counters
+            description: Total capacity in bytes of a shared_dict
+            name: kong_memory_lua_shared_dict_total_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              shared_dict: kong_reports_consumers
+            description: Total capacity in bytes of a shared_dict
+            name: kong_memory_lua_shared_dict_total_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              shared_dict: kong_reports_routes
+            description: Total capacity in bytes of a shared_dict
+            name: kong_memory_lua_shared_dict_total_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              shared_dict: kong_reports_services
+            description: Total capacity in bytes of a shared_dict
+            name: kong_memory_lua_shared_dict_total_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              shared_dict: kong_reports_workspaces
+            description: Total capacity in bytes of a shared_dict
+            name: kong_memory_lua_shared_dict_total_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              shared_dict: kong_secrets
+            description: Total capacity in bytes of a shared_dict
+            name: kong_memory_lua_shared_dict_total_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              shared_dict: kong_vitals
+            description: Total capacity in bytes of a shared_dict
+            name: kong_memory_lua_shared_dict_total_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              shared_dict: kong_vitals_counters
+            description: Total capacity in bytes of a shared_dict
+            name: kong_memory_lua_shared_dict_total_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              shared_dict: kong_vitals_lists
+            description: Total capacity in bytes of a shared_dict
+            name: kong_memory_lua_shared_dict_total_bytes
+            type: DoubleGauge
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              shared_dict: prometheus_metrics
+            description: Total capacity in bytes of a shared_dict
+            name: kong_memory_lua_shared_dict_total_bytes
+            type: DoubleGauge
+          - attributes:
+              node_id: <ANY>
+              subsystem: http
+            description: Number of requests total
+            name: kong_nginx_requests_total
+            type: DoubleGauge
+          - attributes:
+              node_id: <ANY>
+              version: 3.5.0.2
+            description: Kong Node metadata information
+            name: kong_node_info
+            type: DoubleGauge
+          - description: Duration of the scrape
+            name: scrape_duration_seconds
+            type: DoubleGauge
+            unit: s
+          - description: The number of samples the target exposed
+            name: scrape_samples_scraped
+            type: DoubleGauge
+          - attributes:
+              node_id: <ANY>
+              subsystem: http
+            description: Number of requests total
+            name: kong_nginx_requests_total
+            type: DoubleGauge
+          - attributes:
+              node_id: <ANY>
+              state: total
+              subsystem: http
+            description: Number of connections by subsystem
+            name: kong_nginx_connections_total
+            type: DoubleGauge
+          - description: Duration of the scrape
+            name: scrape_duration_seconds
+            type: DoubleGauge
+            unit: s
+          - attributes:
+              node_id: <ANY>
+              state: total
+              subsystem: http
+            description: Number of connections by subsystem
+            name: kong_nginx_connections_total
+            type: DoubleGauge
+          - description: Duration of the scrape
+            name: scrape_duration_seconds
+            type: DoubleGauge
+            unit: s
+          - attributes:
+              node_id: <ANY>
+              subsystem: http
+            description: Number of requests total
+            name: kong_nginx_requests_total
+            type: DoubleGauge
+          - attributes:
+              node_id: <ANY>
+              subsystem: http
+            description: Number of requests total
+            name: kong_nginx_requests_total
+            type: DoubleGauge
+          - attributes:
+              node_id: <ANY>
+              state: total
+              subsystem: http
+            description: Number of connections by subsystem
+            name: kong_nginx_connections_total
+            type: DoubleGauge
+          - description: Duration of the scrape
+            name: scrape_duration_seconds
+            type: DoubleGauge
+            unit: s
+          - description: Duration of the scrape
+            name: scrape_duration_seconds
+            type: DoubleGauge
+            unit: s
+          - attributes:
+              node_id: <ANY>
+              state: total
+              subsystem: http
+            description: Number of connections by subsystem
+            name: kong_nginx_connections_total
+            type: DoubleGauge
+          - attributes:
+              node_id: <ANY>
+              subsystem: http
+            description: Number of requests total
+            name: kong_nginx_requests_total
+            type: DoubleGauge
+          - attributes:
+              node_id: <ANY>
+              subsystem: http
+            description: Number of requests total
+            name: kong_nginx_requests_total
+            type: DoubleGauge
+          - attributes:
+              node_id: <ANY>
+              state: total
+              subsystem: http
+            description: Number of connections by subsystem
+            name: kong_nginx_connections_total
+            type: DoubleGauge
+          - attributes:
+              state: running
+            description: Number of nginx timers
+            name: kong_nginx_timers
+            type: DoubleGauge
+          - description: Duration of the scrape
+            name: scrape_duration_seconds
+            type: DoubleGauge
+            unit: s
+          - attributes:
+              node_id: <ANY>
+              state: total
+              subsystem: http
+            description: Number of connections by subsystem
+            name: kong_nginx_connections_total
+            type: DoubleGauge
+          - attributes:
+              node_id: <ANY>
+              subsystem: http
+            description: Number of requests total
+            name: kong_nginx_requests_total
+            type: DoubleGauge
+          - description: Duration of the scrape
+            name: scrape_duration_seconds
+            type: DoubleGauge
+            unit: s
+          - description: Duration of the scrape
+            name: scrape_duration_seconds
+            type: DoubleGauge
+            unit: s
+          - attributes:
+              kong_subsystem: http
+              node_id: <ANY>
+              shared_dict: kong_counters
+            description: Allocated slabs in bytes in a shared_dict
+            name: kong_memory_lua_shared_dict_bytes
+            type: DoubleGauge
+          - attributes:
+              node_id: <ANY>
+              subsystem: http
+            description: Number of requests total
+            name: kong_nginx_requests_total
+            type: DoubleGauge
+          - attributes:
+              node_id: <ANY>
+              state: total
+              subsystem: http
+            description: Number of connections by subsystem
+            name: kong_nginx_connections_total
+            type: DoubleGauge
+          - description: Duration of the scrape
+            name: scrape_duration_seconds
+            type: DoubleGauge
+            unit: s
+          - attributes:
+              node_id: <ANY>
+              subsystem: http
+            description: Number of requests total
+            name: kong_nginx_requests_total
+            type: DoubleGauge
+          - attributes:
+              node_id: <ANY>
+              state: total
+              subsystem: http
+            description: Number of connections by subsystem
+            name: kong_nginx_connections_total
+            type: DoubleGauge
+          - description: Duration of the scrape
+            name: scrape_duration_seconds
+            type: DoubleGauge
+            unit: s
+          - attributes:
+              node_id: <ANY>
+              state: total
+              subsystem: http
+            description: Number of connections by subsystem
+            name: kong_nginx_connections_total
+            type: DoubleGauge
+          - attributes:
+              node_id: <ANY>
+              subsystem: http
+            description: Number of requests total
+            name: kong_nginx_requests_total
+            type: DoubleGauge
+          - description: Duration of the scrape
+            name: scrape_duration_seconds
+            type: DoubleGauge
+            unit: s
+          - attributes:
+              node_id: <ANY>
+              state: total
+              subsystem: http
+            description: Number of connections by subsystem
+            name: kong_nginx_connections_total
+            type: DoubleGauge
+          - attributes:
+              node_id: <ANY>
+              subsystem: http
+            description: Number of requests total
+            name: kong_nginx_requests_total
+            type: DoubleGauge
+          - attributes:
+              node_id: <ANY>
+              state: total
+              subsystem: http
+            description: Number of connections by subsystem
+            name: kong_nginx_connections_total
+            type: DoubleGauge
+          - description: Duration of the scrape
+            name: scrape_duration_seconds
+            type: DoubleGauge
+            unit: s
+          - attributes:
+              node_id: <ANY>
+              subsystem: http
+            description: Number of requests total
+            name: kong_nginx_requests_total
+            type: DoubleGauge
+          - attributes:
+              node_id: <ANY>
+              subsystem: http
+            description: Number of requests total
+            name: kong_nginx_requests_total
+            type: DoubleGauge
+          - attributes:
+              node_id: <ANY>
+              state: total
+              subsystem: http
+            description: Number of connections by subsystem
+            name: kong_nginx_connections_total
+            type: DoubleGauge
+          - description: Duration of the scrape
+            name: scrape_duration_seconds
+            type: DoubleGauge
+            unit: s
+          - attributes:
+              node_id: <ANY>
+              state: total
+              subsystem: http
+            description: Number of connections by subsystem
+            name: kong_nginx_connections_total
+            type: DoubleGauge
+          - description: Duration of the scrape
+            name: scrape_duration_seconds
+            type: DoubleGauge
+            unit: s
+          - attributes:
+              node_id: <ANY>
+              subsystem: http
+            description: Number of requests total
+            name: kong_nginx_requests_total
+            type: DoubleGauge
+          - attributes:
+              node_id: <ANY>
+              state: total
+              subsystem: http
+            description: Number of connections by subsystem
+            name: kong_nginx_connections_total
+            type: DoubleGauge
+          - description: Duration of the scrape
+            name: scrape_duration_seconds
+            type: DoubleGauge
+            unit: s
+          - attributes:
+              node_id: <ANY>
+              subsystem: http
+            description: Number of requests total
+            name: kong_nginx_requests_total
+            type: DoubleGauge
+          - attributes:
+              state: running
+            description: Number of nginx timers
+            name: kong_nginx_timers
+            type: DoubleGauge
+          - attributes:
+              node_id: <ANY>
+              state: total
+              subsystem: http
+            description: Number of connections by subsystem
+            name: kong_nginx_connections_total
+            type: DoubleGauge
+          - attributes:
+              node_id: <ANY>
+              subsystem: http
+            description: Number of requests total
+            name: kong_nginx_requests_total
+            type: DoubleGauge
+          - description: Duration of the scrape
+            name: scrape_duration_seconds
+            type: DoubleGauge
+            unit: s
+          - attributes:
+              node_id: <ANY>
+              subsystem: http
+            description: Number of requests total
+            name: kong_nginx_requests_total
+            type: DoubleGauge
+          - attributes:
+              node_id: <ANY>
+              state: total
+              subsystem: http
+            description: Number of connections by subsystem
+            name: kong_nginx_connections_total
+            type: DoubleGauge
+          - description: Duration of the scrape
+            name: scrape_duration_seconds
+            type: DoubleGauge
+            unit: s
+          - attributes:
+              node_id: <ANY>
+              subsystem: http
+            description: Number of requests total
+            name: kong_nginx_requests_total
+            type: DoubleGauge
+          - attributes:
+              node_id: <ANY>
+              state: total
+              subsystem: http
+            description: Number of connections by subsystem
+            name: kong_nginx_connections_total
+            type: DoubleGauge
+          - description: Duration of the scrape
+            name: scrape_duration_seconds
+            type: DoubleGauge
+            unit: s
+          - attributes:
+              node_id: <ANY>
+              state: total
+              subsystem: http
+            description: Number of connections by subsystem
+            name: kong_nginx_connections_total
+            type: DoubleGauge
+          - description: Duration of the scrape
+            name: scrape_duration_seconds
+            type: DoubleGauge
+            unit: s
+          - attributes:
+              node_id: <ANY>
+              subsystem: http
+            description: Number of requests total
+            name: kong_nginx_requests_total
+            type: DoubleGauge
+          - attributes:
+              node_id: <ANY>
+              subsystem: http
+            description: Number of requests total
+            name: kong_nginx_requests_total
+            type: DoubleGauge
+          - description: Duration of the scrape
+            name: scrape_duration_seconds
+            type: DoubleGauge
+            unit: s
+          - attributes:
+              node_id: <ANY>
+              state: total
+              subsystem: http
+            description: Number of connections by subsystem
+            name: kong_nginx_connections_total
+            type: DoubleGauge
+          - attributes:
+              node_id: <ANY>
+              state: total
+              subsystem: http
+            description: Number of connections by subsystem
+            name: kong_nginx_connections_total
+            type: DoubleGauge
+          - attributes:
+              node_id: <ANY>
+              subsystem: http
+            description: Number of requests total
+            name: kong_nginx_requests_total
+            type: DoubleGauge
+          - description: Duration of the scrape
+            name: scrape_duration_seconds
+            type: DoubleGauge
+            unit: s
+          - attributes:
+              node_id: <ANY>
+              state: total
+              subsystem: http
+            description: Number of connections by subsystem
+            name: kong_nginx_connections_total
+            type: DoubleGauge
+          - attributes:
+              node_id: <ANY>
+              subsystem: http
+            description: Number of requests total
+            name: kong_nginx_requests_total
+            type: DoubleGauge
+          - description: Duration of the scrape
+            name: scrape_duration_seconds
+            type: DoubleGauge
+            unit: s
+          - attributes:
+              node_id: <ANY>
+              state: total
+              subsystem: http
+            description: Number of connections by subsystem
+            name: kong_nginx_connections_total
+            type: DoubleGauge
+          - description: Duration of the scrape
+            name: scrape_duration_seconds
+            type: DoubleGauge
+            unit: s
+          - attributes:
+              node_id: <ANY>
+              subsystem: http
+            description: Number of requests total
+            name: kong_nginx_requests_total
+            type: DoubleGauge
+          - attributes:
+              node_id: <ANY>
+              subsystem: http
+            description: Number of requests total
+            name: kong_nginx_requests_total
+            type: DoubleGauge
+          - attributes:
+              node_id: <ANY>
+              state: total
+              subsystem: http
+            description: Number of connections by subsystem
+            name: kong_nginx_connections_total
+            type: DoubleGauge
+          - description: Duration of the scrape
+            name: scrape_duration_seconds
+            type: DoubleGauge
+            unit: s
+          - attributes:
+              node_id: <ANY>
+              subsystem: http
+            description: Number of requests total
+            name: kong_nginx_requests_total
+            type: DoubleGauge
+          - description: Duration of the scrape
+            name: scrape_duration_seconds
+            type: DoubleGauge
+            unit: s
+          - attributes:
+              node_id: <ANY>
+              state: total
+              subsystem: http
+            description: Number of connections by subsystem
+            name: kong_nginx_connections_total
+            type: DoubleGauge

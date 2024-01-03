@@ -418,7 +418,6 @@ COPY --from=extra-packages /opt/root/lib/ /lib/
 COPY --from=extra-packages /opt/root/bin/ /bin/
 
 # Some extra non-binary collectd resources
-COPY --from=collectd /usr/share/collectd/postgresql_default.conf /postgresql_default.conf
 COPY --from=collectd /usr/share/collectd/types.db /types.db
 COPY --from=collectd /usr/share/collectd/java/ /collectd-java/
 COPY signalfx_types.db /signalfx_types.db

@@ -22,7 +22,6 @@ import (
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/kafka"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/kafkaconsumer"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/kafkaproducer"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/load"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/memcached"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/memory"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/metadata"

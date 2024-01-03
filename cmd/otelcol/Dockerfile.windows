@@ -9,8 +9,6 @@ WORKDIR "C:\\Program Files\Splunk\OpenTelemetry Collector"
 
 # Copy the pre-built local binary
 COPY otelcol.exe ./
-COPY translatesfx.exe ./
-
 # Copy the local config
 WORKDIR "C:\ProgramData\Splunk\OpenTelemetry Collector"
 COPY config/collector/gateway_config.yaml ./

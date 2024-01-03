@@ -41,7 +41,7 @@ suites:
     verifier:
       name: shell
       remote_exec: true
-      command: inspec exec default/inspec/default_spec.rb
+      command: inspec exec default/test.rb
 
   - name: custom_vars
     run_list:
@@ -63,7 +63,7 @@ suites:
     verifier:
       name: shell
       remote_exec: true
-      command: inspec exec custom_vars/inspec/custom_vars_spec.rb
+      command: inspec exec custom_vars/test.rb
 
   - name: with_default_dotnet_instrumentation
     run_list:
@@ -76,7 +76,7 @@ suites:
     verifier:
       name: shell
       remote_exec: true
-      command: inspec exec with_default_dotnet_instrumentation/inspec/with_default_dotnet_instrumentation_spec.rb
+      command: inspec exec with_default_dotnet_instrumentation/test.rb
 
   - name: with_custom_dotnet_instrumentation
     run_list:
@@ -99,4 +99,4 @@ suites:
     verifier:
       name: shell
       remote_exec: true
-      command: inspec exec with_custom_dotnet_instrumentation/inspec/with_custom_dotnet_instrumentation_spec.rb
+      command: inspec exec with_custom_dotnet_instrumentation/test.rb

@@ -16,6 +16,7 @@ require (
 	github.com/knadh/koanf v1.5.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/countconnector v0.91.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector v0.91.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awss3exporter v0.91.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.91.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.91.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter v0.91.0

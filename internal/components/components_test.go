@@ -83,6 +83,7 @@ func TestDefaultComponents(t *testing.T) {
 		"syslog",
 		"tcplog",
 		"udplog",
+		"vcenter",
 		"wavefront",
 		"windowseventlog",
 		"windowsperfcounters",

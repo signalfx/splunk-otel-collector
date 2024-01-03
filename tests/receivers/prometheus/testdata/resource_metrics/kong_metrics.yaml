@@ -8,7 +8,7 @@ resource_metrics:
       - instrumentation_scope:
           attributes: {}
           name: otelcol/prometheusreceiver
-          version: v0.91.1
+          version: <VERSION_FROM_BUILD>
         metrics:
           - attributes:
               kong_subsystem: http

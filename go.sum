@@ -252,6 +252,7 @@ github.com/aws/smithy-go v1.13.5/go.mod h1:Tg+OJXh4MB2R/uN61Ko2f6hTZwB/ZYGOtib8J
 github.com/aws/smithy-go v1.16.0 h1:gJZEH/Fqh+RsvlJ1Zt4tVAtV6bKkp3cC+R6FCZMNzik=
 github.com/aws/smithy-go v1.16.0/go.mod h1:NukqUGpCZIILqqiV0NIjeFh24kd/FAa4beRb6nbIUPE=
 github.com/axiomhq/hyperloglog v0.0.0-20220105174342-98591331716a h1:eqjiAL3qooftPm8b9C1GsSSRcmlw7iOva8vdBTmV2PY=
+github.com/basgys/goxml2json v1.1.0 h1:4ln5i4rseYfXNd86lGEB+Vi652IsIXIvggKM/BhUKVw=
 github.com/beevik/ntp v1.3.0 h1:/w5VhpW5BGKS37vFm1p9oVk/t4HnnkKZAZIubHM6F7Q=
 github.com/beevik/ntp v1.3.0/go.mod h1:vD6h1um4kzXpqmLTuu0cCLcC+NfvC0IC+ltmEDA8E78=
 github.com/benbjohnson/clock v1.1.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=
@@ -1259,6 +1260,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tcplogreceive
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tcplogreceiver v0.91.0/go.mod h1:DmNJ5t0dzPMOjz+Zlr7/iPj2Rr/VE39WGpVPpKQg9AI=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/udplogreceiver v0.91.0 h1:09COmmflABR0yYosFTjxGDxtPIRrjPJS90zOPK4+HAk=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/udplogreceiver v0.91.0/go.mod h1:FWp6LUbBHWZogquzlwdpExQIKhs/OUW0xwJ1obYV+hE=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/vcenterreceiver v0.91.0 h1:vBLQTyH4XojVxeqa7BHEQZDShHpz6aB2RfSSSm7ag9E=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/vcenterreceiver v0.91.0/go.mod h1:ro3N3Am+Ki9518bbjVu+/qxCsYhYSIAzS2jQGrfm+S0=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/wavefrontreceiver v0.91.0 h1:u6CLNEa0Y/4BEMNDZ6jYLKtcsX7OZaYljiuq5KEsYrA=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/wavefrontreceiver v0.91.0/go.mod h1:lDZICaBP3S1MrZ2SOJfvcG6fKwugzQDAFtxpEB0POIA=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowseventlogreceiver v0.91.0 h1:ph4RcGR3Tbr/lhuRa545O2C7xfYz5LO9kk2ty2RMbkA=

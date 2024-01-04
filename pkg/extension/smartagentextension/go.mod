@@ -113,7 +113,7 @@ replace (
 	github.com/hashicorp/consul/sdk => github.com/hashicorp/consul/sdk v0.14.0
 	github.com/influxdata/telegraf => github.com/signalfx/telegraf v0.10.2-0.20210820123244-82265917ca87
 	github.com/valyala/fasthttp => github.com/valyala/fasthttp v1.36.0
-	golang.org/x/crypto => golang.org/x/crypto v0.5.0
+	golang.org/x/crypto => golang.org/x/crypto v0.17.0
 	golang.org/x/net => golang.org/x/net v0.17.0
 )
 

@@ -6,7 +6,7 @@ replace (
 	github.com/dgrijalva/jwt-go => github.com/form3tech-oss/jwt-go v3.2.5+incompatible
 	github.com/form3tech-oss/jwt-go => github.com/golang-jwt/jwt/v4 v4.4.3
 	github.com/gorilla/websocket => github.com/gorilla/websocket v1.4.1
-	golang.org/x/crypto => golang.org/x/crypto v0.5.0
+	golang.org/x/crypto => golang.org/x/crypto v0.17.0
 )
 
 require (

@@ -25,9 +25,11 @@
     - (start_service | default(true) | bool)
 
 - name: Restart Splunk OpenTelemetry Collector for windows
-  ansible.windows.win_service:
-    name: splunk-otel-collector
-    state: restarted
+  ansible.windows.win_shell: |
+    Get-Item HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector
+    Restart-Service splunk-otel-collector
+    Get-WinEvent -Log Application -MaxEvents 15 | Format-List TimeCreated, ProviderName, Message
+    Get-WinEvent -Log System -MaxEvents 15 | Format-List TimeCreated, ProviderName, Message
   listen: "restart windows splunk-otel-collector"
   when:
     - (start_service | default(true) | bool)

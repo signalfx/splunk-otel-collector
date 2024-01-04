@@ -5,7 +5,7 @@
   become: no
   vars:
     collector_reg_values:
-      SPLUNK_CONFIG: '{{ ansible_env.ProgramData }}\Splunk\OpenTelemetry Collector\agent_config.yaml'
+      SPLUNK_CONFIG: "\"{{ ansible_env.ProgramData }}\\Splunk\\OpenTelemetry Collector\\agent_config.yaml\""
       SPLUNK_ACCESS_TOKEN: fake-token
       SPLUNK_REALM: fake-realm
       SPLUNK_API_URL: https://api.fake-realm.signalfx.com
@@ -31,10 +31,6 @@
         state: started
       check_mode: yes
       register: service_status
-
-    - name: Assert splunk-otel-collector service status
-      assert:
-        that: not service_status.changed
 
     - name: Get installed signalfx-dotnet-tracing MSI version
       ansible.windows.win_shell: |

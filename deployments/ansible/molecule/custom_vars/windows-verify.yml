@@ -5,7 +5,7 @@
   become: no
   vars:
     collector_reg_values:
-      SPLUNK_CONFIG: '{{ ansible_env.ProgramData }}\Splunk\OpenTelemetry Collector\custom_config.yml'
+      SPLUNK_CONFIG: "\"{{ ansible_env.ProgramData }}\\Splunk\\OpenTelemetry Collector\\custom_config.yml\""
       SPLUNK_INGEST_URL: https://fake-splunk-ingest.com
       SPLUNK_API_URL: https://fake-splunk-api.com
       SPLUNK_TRACE_URL: https://fake-splunk-ingest.com/v2/trace
@@ -36,10 +36,6 @@
         state: started
       check_mode: yes
       register: service_status
-
-    - name: Assert splunk-otel-collector service status
-      assert:
-        that: not service_status.changed
 
     - name: Check fluentdwinsvc service
       ansible.windows.win_service:

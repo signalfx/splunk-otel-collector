@@ -6,6 +6,7 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    rebase-strategy: "auto"
   - package-ecosystem: "gomod"
     directory: "/"
     ignore:
@@ -15,6 +16,7 @@ updates:
         versions: ["v3.9.0+incompatible"]
     schedule:
       interval: "weekly"
+    rebase-strategy: "auto"
   - package-ecosystem: "gomod"
     directory: "/examples/prometheus-federation/prom-counter"
     ignore:
@@ -22,6 +24,7 @@ updates:
       - dependency-name: "github.com/open-telemetry/*"
     schedule:
       interval: "weekly"
+    rebase-strategy: "auto"
   - package-ecosystem: "gomod"
     directory: "/examples/signalfxgatewayprometheusremotewritereceiver"
     ignore:
@@ -29,13 +32,7 @@ updates:
       - dependency-name: "github.com/open-telemetry/*"
     schedule:
       interval: "weekly"
-  - package-ecosystem: "gomod"
-    directory: "/examples/splunk-hec-traces/tracing"
-    ignore:
-      - dependency-name: "go.opentelemetry.io/*"
-      - dependency-name: "github.com/open-telemetry/*"
-    schedule:
-      interval: "weekly"
+    rebase-strategy: "auto"
   - package-ecosystem: "gomod"
     directory: "/examples/splunk-hec/logging"
     ignore:
@@ -43,6 +40,15 @@ updates:
       - dependency-name: "github.com/open-telemetry/*"
     schedule:
       interval: "weekly"
+    rebase-strategy: "auto"
+  - package-ecosystem: "gomod"
+    directory: "/examples/splunk-hec-traces/tracing"
+    ignore:
+      - dependency-name: "go.opentelemetry.io/*"
+      - dependency-name: "github.com/open-telemetry/*"
+    schedule:
+      interval: "weekly"
+    rebase-strategy: "auto"
   - package-ecosystem: "gomod"
     directory: "/internal/signalfx-agent"
     ignore:
@@ -52,6 +58,7 @@ updates:
         versions: ["v3.9.0+incompatible"]
     schedule:
       interval: "weekly"
+    rebase-strategy: "auto"
   - package-ecosystem: "gomod"
     directory: "/internal/tools"
     ignore:
@@ -59,6 +66,7 @@ updates:
       - dependency-name: "github.com/open-telemetry/*"
     schedule:
       interval: "weekly"
+    rebase-strategy: "auto"
   - package-ecosystem: "gomod"
     directory: "/pkg/extension/smartagentextension"
     ignore:
@@ -66,6 +74,7 @@ updates:
       - dependency-name: "github.com/open-telemetry/*"
     schedule:
       interval: "weekly"
+    rebase-strategy: "auto"
   - package-ecosystem: "gomod"
     directory: "/pkg/processor/timestampprocessor"
     ignore:
@@ -73,6 +82,7 @@ updates:
       - dependency-name: "github.com/open-telemetry/*"
     schedule:
       interval: "weekly"
+    rebase-strategy: "auto"
   - package-ecosystem: "gomod"
     directory: "/pkg/receiver/smartagentreceiver"
     ignore:
@@ -82,6 +92,7 @@ updates:
         versions: ["v3.9.0+incompatible"]
     schedule:
       interval: "weekly"
+    rebase-strategy: "auto"
   - package-ecosystem: "gomod"
     directory: "/tests"
     ignore:
@@ -89,6 +100,7 @@ updates:
       - dependency-name: "github.com/open-telemetry/*"
     schedule:
       interval: "weekly"
+    rebase-strategy: "auto"
   - package-ecosystem: "gomod"
     directory: "/tests/tools"
     ignore:
@@ -96,18 +108,22 @@ updates:
       - dependency-name: "github.com/open-telemetry/*"
     schedule:
       interval: "weekly"
+    rebase-strategy: "auto"
   - package-ecosystem: "pip"
     directory: "/internal/buildscripts/packaging/release"
     schedule:
       interval: "weekly"
+    rebase-strategy: "auto"
   - package-ecosystem: "pip"
     directory: "/internal/buildscripts/packaging/tests"
     schedule:
       interval: "weekly"
+    rebase-strategy: "auto"
   - package-ecosystem: "pip"
     directory: "/internal/signalfx-agent/bundle/python"
     schedule:
       interval: "weekly"
+    rebase-strategy: "auto"
   - package-ecosystem: "pip"
     directory: "/internal/signalfx-agent/bundle/scripts"
     ignore:
@@ -115,51 +131,64 @@ updates:
         versions: [">=2"]
     schedule:
       interval: "weekly"
+    rebase-strategy: "auto"
   - package-ecosystem: "docker"
     directory: "/cmd/otelcol"
     schedule:
       interval: "weekly"
-  - package-ecosystem: "docker"
-    directory: "/examples/prometheus-federation/prom-counter"
-    schedule:
-      interval: "weekly"
+    rebase-strategy: "auto"
   - package-ecosystem: "docker"
     directory: "/examples/prometheusexec-migration"
     schedule:
       interval: "weekly"
+    rebase-strategy: "auto"
   - package-ecosystem: "docker"
-    directory: "/examples/splunk-hec-traces/tracing"
+    directory: "/examples/prometheus-federation/prom-counter"
     schedule:
       interval: "weekly"
+    rebase-strategy: "auto"
   - package-ecosystem: "docker"
     directory: "/examples/splunk-hec/logging"
     schedule:
       interval: "weekly"
+    rebase-strategy: "auto"
+  - package-ecosystem: "docker"
+    directory: "/examples/splunk-hec-traces/tracing"
+    schedule:
+      interval: "weekly"
+    rebase-strategy: "auto"
   - package-ecosystem: "docker"
     directory: "/instrumentation"
     schedule:
       interval: "weekly"
+    rebase-strategy: "auto"
   - package-ecosystem: "docker"
     directory: "/instrumentation/packaging/fpm"
     schedule:
       interval: "weekly"
+    rebase-strategy: "auto"
   - package-ecosystem: "docker"
     directory: "/internal/buildscripts/packaging/fpm"
     schedule:
       interval: "weekly"
+    rebase-strategy: "auto"
   - package-ecosystem: "docker"
     directory: "/internal/buildscripts/packaging/msi/msi-builder"
     schedule:
       interval: "weekly"
+    rebase-strategy: "auto"
   - package-ecosystem: "docker"
     directory: "/internal/signalfx-agent/bundle"
     schedule:
       interval: "weekly"
+    rebase-strategy: "auto"
   - package-ecosystem: "maven"
     directory: "/internal/signalfx-agent/bundle/java/jmx"
     schedule:
       interval: "weekly"
+    rebase-strategy: "auto"
   - package-ecosystem: "maven"
     directory: "/internal/signalfx-agent/bundle/java/runner"
     schedule:
       interval: "weekly"
+    rebase-strategy: "auto"

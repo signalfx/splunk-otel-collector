@@ -15,6 +15,8 @@ if [[ ! -f "$DEPENDABOT_PATH" ]]; then
     exit 1
 fi
 
+
+
 get_gomod_ignores() {
     dir=${1#.}
 
@@ -60,6 +62,7 @@ cat <<EOH >> "$DEPENDABOT_PATH"
     directory: "/"
     schedule:
       interval: "weekly"
+    rebase-strategy: "auto"
 EOH
 
 for dir in "/" $ALL_GO_MODULES; do
@@ -70,6 +73,7 @@ for dir in "/" $ALL_GO_MODULES; do
 $(get_gomod_ignores "$dir")
     schedule:
       interval: "weekly"
+    rebase-strategy: "auto"
 EOH
 done
 
@@ -80,6 +84,7 @@ for dir in $ALL_PYTHON_DEPS; do
     directory: "${dir#.}"$(get_pip_ignores "$dir")
     schedule:
       interval: "weekly"
+    rebase-strategy: "auto"
 EOH
 done
 
@@ -90,6 +95,7 @@ for dir in $ALL_DOCKERFILES; do
     directory: "${dir#.}"
     schedule:
       interval: "weekly"
+    rebase-strategy: "auto"
 EOH
 done
 
@@ -100,5 +106,6 @@ for dir in $ALL_MAVEN_DEPS; do
     directory: "${dir#.}"
     schedule:
       interval: "weekly"
+    rebase-strategy: "auto"
 EOH
 done

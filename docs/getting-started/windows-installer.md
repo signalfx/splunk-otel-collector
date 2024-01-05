@@ -1,4 +1,4 @@
-> The official Splunk documentation for this page is [Install the Collector for Windows with the installer script](https://docs.splunk.com/Observability/gdi/opentelemetry/install-windows.html). For instructions on how to contribute to the docs, see [CONTRIBUTING.md](../CONTRIBUTING#documentation.md).
+> The official Splunk documentation for this page is [Install the Collector for Windows with the installer script](https://docs.splunk.com/observability/en/gdi/opentelemetry/collector-windows/install-windows.html). For instructions on how to contribute to the docs, see [CONTRIBUTING.md](../CONTRIBUTING#documentation.md).
 
 # Windows Installer Script
 

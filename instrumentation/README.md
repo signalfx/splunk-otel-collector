@@ -22,8 +22,8 @@ https://docs.splunk.com/Observability/en/gdi/get-data-in/application/application
 - Check agent compatibility and requirements:
   - [Java](https://docs.splunk.com/Observability/gdi/get-data-in/application/java/java-otel-requirements.html)
   - [Node.js](https://docs.splunk.com/Observability/en/gdi/get-data-in/application/nodejs/nodejs-otel-requirements.html)
-- [Install and configure](https://docs.splunk.com/Observability/gdi/opentelemetry/install-linux.html) the Splunk
-  OpenTelemetry Collector.
+- [Install and configure](https://docs.splunk.com/observability/en/gdi/opentelemetry/collector-linux/install-linux.html)
+  the Splunk OpenTelemetry Collector.
 - Debian or RPM based Linux distribution (amd64/x86_64 or arm64/aarch64).
 
 ## Installation
@@ -36,8 +36,8 @@ configuration of the Collector and Auto Instrumentation for supported platforms.
 
 ### Manual
 
-1. [Install and configure](https://docs.splunk.com/Observability/gdi/opentelemetry/install-linux.html) the Splunk
-   OpenTelemetry Collector
+1. [Install and configure](https://docs.splunk.com/observability/en/gdi/opentelemetry/collector-linux/install-linux.html)
+   the Splunk OpenTelemetry Collector.
 2. [Install](../docs/getting-started/linux-manual.md#auto-instrumentation-debianrpm-packages) the
    `splunk-otel-auto-instrumentation` deb/rpm package
 3. If Auto Instrumentation for Node.js is required, [install](

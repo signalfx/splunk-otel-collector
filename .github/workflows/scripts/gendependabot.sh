@@ -5,10 +5,11 @@ set -euo pipefail
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 REPO_DIR=$( cd "$SCRIPT_DIR/../../.." && pwd )
 DEPENDABOT_PATH="$SCRIPT_DIR/../../dependabot.yml"
-ALL_GO_MODULES=$( cd "$REPO_DIR" && find . -type f -name "go.mod" -exec dirname {} \; | LC_ALL=C sort | egrep  '^./' )
-ALL_PYTHON_DEPS=$( cd "$REPO_DIR" && find . -type f \( -name "setup.py" -o -name "requirements.txt" \) -exec dirname {} \; | LC_ALL=C sort | egrep  '^./' )
-ALL_DOCKERFILES=$( cd "$REPO_DIR" && find . -type f -name Dockerfile -exec dirname {} \; | grep -vE '^./(instrumentation/)?tests' | grep -v './deployments' | LC_ALL=C sort | egrep  '^./' )
-ALL_MAVEN_DEPS=$( cd "$REPO_DIR" && find . -type f -name pom.xml -exec dirname {} \; | grep -v '^./tests' | LC_ALL=C sort | egrep  '^./' )
+# Set LC_ALL=C if there are issues with stable sorting in these enumerations
+ALL_GO_MODULES=$( cd "$REPO_DIR" && find . -type f -name "go.mod" -exec dirname {} \; | sort | egrep  '^./' )
+ALL_PYTHON_DEPS=$( cd "$REPO_DIR" && find . -type f \( -name "setup.py" -o -name "requirements.txt" \) -exec dirname {} \; | sort | egrep  '^./' )
+ALL_DOCKERFILES=$( cd "$REPO_DIR" && find . -type f -name Dockerfile -exec dirname {} \; | grep -vE '^./(instrumentation/)?tests' | grep -v './deployments' | sort | egrep  '^./' )
+ALL_MAVEN_DEPS=$( cd "$REPO_DIR" && find . -type f -name pom.xml -exec dirname {} \; | grep -v '^./tests' | sort | egrep  '^./' )
 
 if [[ ! -f "$DEPENDABOT_PATH" ]]; then
     echo "$DEPENDABOT_PATH not found!"

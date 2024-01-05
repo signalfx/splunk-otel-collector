@@ -34,7 +34,7 @@ updates:
       interval: "weekly"
     rebase-strategy: "auto"
   - package-ecosystem: "gomod"
-    directory: "/examples/splunk-hec/logging"
+    directory: "/examples/splunk-hec-traces/tracing"
     ignore:
       - dependency-name: "go.opentelemetry.io/*"
       - dependency-name: "github.com/open-telemetry/*"
@@ -42,7 +42,7 @@ updates:
       interval: "weekly"
     rebase-strategy: "auto"
   - package-ecosystem: "gomod"
-    directory: "/examples/splunk-hec-traces/tracing"
+    directory: "/examples/splunk-hec/logging"
     ignore:
       - dependency-name: "go.opentelemetry.io/*"
       - dependency-name: "github.com/open-telemetry/*"
@@ -138,22 +138,22 @@ updates:
       interval: "weekly"
     rebase-strategy: "auto"
   - package-ecosystem: "docker"
-    directory: "/examples/prometheusexec-migration"
-    schedule:
-      interval: "weekly"
-    rebase-strategy: "auto"
-  - package-ecosystem: "docker"
     directory: "/examples/prometheus-federation/prom-counter"
     schedule:
       interval: "weekly"
     rebase-strategy: "auto"
   - package-ecosystem: "docker"
-    directory: "/examples/splunk-hec/logging"
+    directory: "/examples/prometheusexec-migration"
     schedule:
       interval: "weekly"
     rebase-strategy: "auto"
   - package-ecosystem: "docker"
     directory: "/examples/splunk-hec-traces/tracing"
+    schedule:
+      interval: "weekly"
+    rebase-strategy: "auto"
+  - package-ecosystem: "docker"
+    directory: "/examples/splunk-hec/logging"
     schedule:
       interval: "weekly"
     rebase-strategy: "auto"

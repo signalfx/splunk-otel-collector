@@ -1,7 +1,7 @@
 max-concurrency = 20
 accept = [
-    200,
-    429,
+    "200",
+    "429",
 ]
 exclude = [
     "my.host",

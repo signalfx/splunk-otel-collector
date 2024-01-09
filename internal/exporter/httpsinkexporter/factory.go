@@ -13,6 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Deprecated: This exporter is only used for testing and should not be relied upon for production data.
 package httpsinkexporter
 
 import (

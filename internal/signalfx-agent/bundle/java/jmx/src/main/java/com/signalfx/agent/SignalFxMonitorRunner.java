@@ -53,11 +53,6 @@ public class SignalFxMonitorRunner<T extends MonitorConfig> {
                             shutdownMsg.type));
         }
         monitor.shutdown();
-        return;
-    }
-
-    public void runDebug() {
-
     }
 
     private void setUpLogging(AgentOutput output) {

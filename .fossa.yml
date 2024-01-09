@@ -5,8 +5,6 @@ targets:
     - type: gomod
     - type: maven
       path: internal/signalfx-agent/bundle/java/jmx
-    - type: maven
-      path: internal/signalfx-agent/bundle/java/runner
     - type: setuptools
       path: internal/signalfx-agent/bundle/python
     - type: setuptools

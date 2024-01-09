@@ -74,8 +74,6 @@ RUN wget -nv -O /tmp/maven.tar.gz ${MAVEN_BASE_URL}/${MAVEN_VERSION}/binaries/ap
 ENV PATH=$PATH:/tmp/apache-maven-${MAVEN_VERSION}/bin
 
 COPY java/ /usr/src/agent-java/
-RUN cd /usr/src/agent-java/runner &&\
-    mvn -V -q clean install
 
 RUN cd /usr/src/agent-java/jmx &&\
     mvn -V -q clean package

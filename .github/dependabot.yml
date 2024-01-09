@@ -159,7 +159,3 @@ updates:
     directory: "/internal/signalfx-agent/bundle/java/jmx"
     schedule:
       interval: "weekly"
-  - package-ecosystem: "maven"
-    directory: "/internal/signalfx-agent/bundle/java/runner"
-    schedule:
-      interval: "weekly"

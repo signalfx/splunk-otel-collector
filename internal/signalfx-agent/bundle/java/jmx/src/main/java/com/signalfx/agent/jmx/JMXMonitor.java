@@ -14,7 +14,7 @@ import com.signalfx.agent.MonitorUtil;
 import org.apache.commons.lang3.StringUtils;
 
 public class JMXMonitor implements SignalFxMonitor<JMXMonitor.JMXConfig> {
-    private static Logger logger = Logger.getLogger(JMXMonitor.class.getName());
+    private static final Logger logger = Logger.getLogger(JMXMonitor.class.getName());
 
     private final Timer timer = new Timer();
 

@@ -6,6 +6,7 @@ import (
 	"github.com/signalfx/golib/v3/datapoint"
 	"github.com/signalfx/golib/v3/event"
 	"github.com/signalfx/golib/v3/trace"
+
 	"github.com/signalfx/signalfx-agent/pkg/core/dpfilters"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/types"
 )
@@ -18,6 +19,11 @@ type TestOutput struct {
 	spanChan  chan []*trace.Span
 	dimChan   chan *types.Dimension
 }
+
+var _ types.Output = (*TestOutput)(nil)
+
+// Currently just satisfying the interface (noop implementation)
+var _ types.FilteringOutput = (*TestOutput)(nil)
 
 // NewTestOutput creates a new initialized TestOutput instance
 func NewTestOutput() *TestOutput {
@@ -166,4 +172,16 @@ loop:
 
 // AddDatapointExclusionFilter is a noop here.
 func (to *TestOutput) AddDatapointExclusionFilter(f dpfilters.DatapointFilter) {
+}
+
+func (to *TestOutput) EnabledMetrics() []string {
+	return nil
+}
+
+func (to *TestOutput) HasEnabledMetricInGroup(group string) bool {
+	return false
+}
+
+func (to *TestOutput) HasAnyExtraMetrics() bool {
+	return false
 }

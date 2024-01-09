@@ -27,6 +27,11 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/utils/filter"
 )
 
+const (
+	ctrNameDim = "container_name"
+	ctrIDDim   = "container_id"
+)
+
 var logger = log.WithFields(log.Fields{"monitorType": monitorType})
 
 func init() {
@@ -53,7 +58,11 @@ type Config struct {
 	// A list of filters of images to exclude.  Supports literals, globs, and
 	// regex.
 	ExcludedImages []string `yaml:"excludedImages"`
+	// The dimension to update with `known_status` property syncing. Supported options are "container_id" (default) and "container_name".
+	DimensionToUpdate string `yaml:"dimensionToUpdate" default:"container_id"`
 }
+
+type dimensionValueFn func(ctr ecs.Container) (string, string)
 
 // Monitor for ECS Metadata
 type Monitor struct {
@@ -68,9 +77,10 @@ type Monitor struct {
 	// shouldIgnore - key : container docker id, tells if stats for the container should be ignored.
 	// Usually the container was filtered out by excludedImages
 	// or container metadata is not received.
-	shouldIgnore map[string]bool
-	imageFilter  filter.StringFilter
-	logger       log.FieldLogger
+	shouldIgnore      map[string]bool
+	imageFilter       filter.StringFilter
+	logger            log.FieldLogger
+	dimensionToUpdate dimensionValueFn
 }
 
 // Configure the monitor and kick off volume metric syncing
@@ -80,6 +90,14 @@ func (m *Monitor) Configure(conf *Config) error {
 	m.imageFilter, err = filter.NewOverridableStringFilter(conf.ExcludedImages)
 	if err != nil {
 		return fmt.Errorf("could not load excluded image filter: %w", err)
+	}
+
+	if conf.DimensionToUpdate == ctrNameDim {
+		m.dimensionToUpdate = func(ctr ecs.Container) (string, string) { return ctrNameDim, ctr.Name }
+	} else if conf.DimensionToUpdate == ctrIDDim {
+		m.dimensionToUpdate = func(ctr ecs.Container) (string, string) { return ctrIDDim, ctr.DockerID }
+	} else {
+		return fmt.Errorf("unsupported `dimensionToUpdate` %q. Must be one of %q or %q", conf.DimensionToUpdate, ctrNameDim, ctrIDDim)
 	}
 
 	m.conf = conf
@@ -202,9 +220,10 @@ func (m *Monitor) fetchStatsForAll(enhancedMetricsConfig dmonitor.EnhancedMetric
 
 		m.Output.SendDatapoints(dps...)
 
+		name, value := m.dimensionToUpdate(container)
 		containerProps := &types.Dimension{
-			Name:       "container_name",
-			Value:      container.Name,
+			Name:       name,
+			Value:      value,
 			Properties: map[string]string{"known_status": container.KnownStatus},
 			Tags:       nil,
 		}
@@ -301,10 +320,10 @@ func getTaskLimitMetrics(container ecs.Container, enhancedMetricsConfig dmonitor
 		cpuDp.Dimensions = map[string]string{}
 		cpuDp.Dimensions["plugin"] = "ecs"
 		name := strings.TrimPrefix(container.Name, "/")
-		cpuDp.Dimensions["container_name"] = name
+		cpuDp.Dimensions[ctrNameDim] = name
 		cpuDp.Dimensions["plugin_instance"] = name
 		cpuDp.Dimensions["container_image"] = container.Image
-		cpuDp.Dimensions["container_id"] = container.DockerID
+		cpuDp.Dimensions[ctrNameDim] = container.DockerID
 		cpuDp.Dimensions["container_hostname"] = container.Networks[0].IPAddresses[0]
 
 		taskLimitDps = append(taskLimitDps, cpuDp)

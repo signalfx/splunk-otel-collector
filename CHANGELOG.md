@@ -14,10 +14,9 @@
 - (Splunk) Removes `collectd/postgresql` monitor ([#3994](https://github.com/signalfx/splunk-otel-collector/pull/3994))
 
 ### 💡 Enhancements 💡
-- (Splunk) Adds a `vcenter` receiver ([#4291](https://github.com/signalfx/splunk-otel-collector/pull/4121))
-- (Splunk) Adds `sshcheck` receiver to the distribution ([#4099](https://github.com/signalfx/splunk-otel-collector/pull/4099))
-- (Splunk) Adds `awss3` exporter ([#4117](https://github.com/signalfx/splunk-otel-collector/pull/4117))
-- (Splunk) Adds `kong` support ([#4119](https://github.com/signalfx/splunk-otel-collector/pull/4119))
+- (Splunk) Adopt `vcenter` receiver ([#4291](https://github.com/signalfx/splunk-otel-collector/pull/4121))
+- (Splunk) Adopt `sshcheck` receiver ([#4099](https://github.com/signalfx/splunk-otel-collector/pull/4099))
+- (Splunk) Adopt `awss3` exporter ([#4117](https://github.com/signalfx/splunk-otel-collector/pull/4117))
 - (Splunk) Convert loglevel to verbosity on logging exporter ([#4097](https://github.com/signalfx/splunk-otel-collector/pull/4097))
 
 

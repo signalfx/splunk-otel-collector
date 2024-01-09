@@ -15,6 +15,7 @@
 - (Splunk) Removes `netinterface` monitor ([#3991](https://github.com/signalfx/splunk-otel-collector/pull/3991))
    This monitor is deprecated in favor of the `net-io` monitor.
 - (Splunk) Removes `collectd/vmem` monitor ([#3993](https://github.com/signalfx/splunk-otel-collector/pull/3993))
+   This monitor is deprecated in favor of the `vmem` monitor.  The metrics should be fully compatible with this monitor.
 - (Splunk) Removes `collectd/load` monitor ([#3995](https://github.com/signalfx/splunk-otel-collector/pull/3995))
 - (Splunk) Removes `collectd/postgresql` monitor ([#3994](https://github.com/signalfx/splunk-otel-collector/pull/3994))
 

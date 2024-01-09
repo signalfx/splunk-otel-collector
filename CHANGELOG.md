@@ -7,6 +7,9 @@
 ### 🛑 Breaking changes 🛑
 - (Splunk) - `ecs-metadata` sync the `known_status` property on the `container_id` dimension instead of lower cardinality `container_name`. This can be prevented by configuring `dimensionToUpdate` to `container_name` ([#4091](https://github.com/signalfx/splunk-otel-collector/pull/4091))
 - (Splunk) Removes `collectd/disk` monitor ([#3998](https://github.com/signalfx/splunk-otel-collector/pull/3998))
+   This monitor has been deprecated in favor of the `disk-io` monitor.
+   Note that the `disk-io` monitor has a different dimension (`disk` 
+   instead of `plugin_instance`) to specify the disk.
 - (Splunk) Removes `collectd/df` monitor ([#3996](https://github.com/signalfx/splunk-otel-collector/pull/3996))
 - (Splunk) Removes `netinterface` monitor ([#3991](https://github.com/signalfx/splunk-otel-collector/pull/3991))
 - (Splunk) Removes `collectd/vmem` monitor ([#3993](https://github.com/signalfx/splunk-otel-collector/pull/3993))

@@ -73,7 +73,7 @@ require (
 	github.com/snowflakedb/gosnowflake v1.7.1
 	github.com/stretchr/testify v1.8.4
 	github.com/ulule/deepcopier v0.0.0-20171107155558-ca99b135e50f
-	github.com/vmware/govmomi v0.34.1
+	github.com/vmware/govmomi v0.34.2
 	golang.org/x/net v0.19.0 // indirect
 	golang.org/x/sync v0.5.0
 	golang.org/x/sys v0.16.0

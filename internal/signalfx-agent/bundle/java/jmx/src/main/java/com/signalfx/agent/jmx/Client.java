@@ -18,7 +18,7 @@ import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 
 public class Client {
-    private static Logger logger = Logger.getLogger(Client.class.getName());
+    private static final Logger logger = Logger.getLogger(Client.class.getName());
 
     private final JMXServiceURL url;
     private final String username;

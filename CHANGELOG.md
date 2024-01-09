@@ -2,9 +2,24 @@
 
 ## Unreleased
 
-### 🛑 Breaking changes 🛑
+## v0.91.2
 
-- `ecs-metadata` sync the `known_status` property on the `container_id` dimension instead of lower cardinality `container_name`. This can be prevented by configuring `dimensionToUpdate` to `container_name` ([#4091](https://github.com/signalfx/splunk-otel-collector/pull/4091))
+### 🛑 Breaking changes 🛑
+- (Splunk) - `ecs-metadata` sync the `known_status` property on the `container_id` dimension instead of lower cardinality `container_name`. This can be prevented by configuring `dimensionToUpdate` to `container_name` ([#4091](https://github.com/signalfx/splunk-otel-collector/pull/4091))
+- (Splunk) Removes `collectd/disk` monitor ([#3998](https://github.com/signalfx/splunk-otel-collector/pull/3998))
+- (Splunk) Removes `collectd/df` monitor ([#3996](https://github.com/signalfx/splunk-otel-collector/pull/3996))
+- (Splunk) Removes `netinterface` monitor ([#3991](https://github.com/signalfx/splunk-otel-collector/pull/3991))
+- (Splunk) Removes `collectd/vmem` monitor ([#3993](https://github.com/signalfx/splunk-otel-collector/pull/3993))
+- (Splunk) Removes `collectd/load` monitor ([#3995](https://github.com/signalfx/splunk-otel-collector/pull/3995))
+- (Splunk) Removes `collectd/postgresql` monitor ([#3994](https://github.com/signalfx/splunk-otel-collector/pull/3994))
+
+### 💡 Enhancements 💡
+- (Splunk) Adds a `vcenter` receiver ([#4291](https://github.com/signalfx/splunk-otel-collector/pull/4121))
+- (Splunk) Adds `sshcheck` receiver to the distribution ([#4099](https://github.com/signalfx/splunk-otel-collector/pull/4099))
+- (Splunk) Adds `awss3` exporter ([#4117](https://github.com/signalfx/splunk-otel-collector/pull/4117))
+- (Splunk) Adds `kong` support ([#4119](https://github.com/signalfx/splunk-otel-collector/pull/4119))
+- (Splunk) Convert loglevel to verbosity on logging exporter ([#4097](https://github.com/signalfx/splunk-otel-collector/pull/4097))
+
 
 ## v0.91.1
 

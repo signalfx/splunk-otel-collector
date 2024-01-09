@@ -17,6 +17,7 @@
 - (Splunk) Removes `collectd/vmem` monitor ([#3993](https://github.com/signalfx/splunk-otel-collector/pull/3993))
    This monitor is deprecated in favor of the `vmem` monitor.  The metrics should be fully compatible with this monitor.
 - (Splunk) Removes `collectd/load` monitor ([#3995](https://github.com/signalfx/splunk-otel-collector/pull/3995))
+   This monitor has been deprecated in favor of the `load` monitor. That monitor emits the same metrics and is fully compatible.
 - (Splunk) Removes `collectd/postgresql` monitor ([#3994](https://github.com/signalfx/splunk-otel-collector/pull/3994))
 
 ### 💡 Enhancements 💡

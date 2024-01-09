@@ -11,6 +11,7 @@
    Note that the `disk-io` monitor has a different dimension (`disk` 
    instead of `plugin_instance`) to specify the disk.
 - (Splunk) Removes `collectd/df` monitor ([#3996](https://github.com/signalfx/splunk-otel-collector/pull/3996))
+   The monitor is deprecated and the filesystems monitor should be used instead.
 - (Splunk) Removes `netinterface` monitor ([#3991](https://github.com/signalfx/splunk-otel-collector/pull/3991))
    This monitor is deprecated in favor of the `net-io` monitor.
 - (Splunk) Removes `collectd/vmem` monitor ([#3993](https://github.com/signalfx/splunk-otel-collector/pull/3993))

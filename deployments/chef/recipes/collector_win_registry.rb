@@ -33,7 +33,7 @@ registry_key 'HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\splunk-otel-c
   values [{
     name: 'Environment',
     type: :multi_string,
-    data: collector_service_environment,
+    data: collector_env_vars_strings,
   }]
   action :create
   notifies :restart, 'windows_service[splunk-otel-collector]', :delayed

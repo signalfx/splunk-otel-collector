@@ -24,11 +24,16 @@ node['splunk_otel_collector']['collector_additional_env_vars'].each do |key, val
   collector_env_vars.push({ name: key, type: :string, data: value.to_s })
 end
 
+collector_env_vars_strings = []
+collector_env_vars.each do |item|
+  collector_env_vars_strings |= [ "#{item[:name]}=#{item[:data]}" ]
+end
+
 registry_key 'HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\splunk-otel-collector' do
   values [{
     name: 'Environment',
     type: :multi_string,
-    data: collector_env_vars,
+    data: collector_service_environment,
   }]
   action :create
   notifies :restart, 'windows_service[splunk-otel-collector]', :delayed

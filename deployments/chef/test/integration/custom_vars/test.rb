@@ -33,8 +33,12 @@ if os[:family] == 'windows'
     { name: 'MY_CUSTOM_VAR1', type: :string, data: 'value1' },
     { name: 'MY_CUSTOM_VAR2', type: :string, data: 'value2' },
   ]
+  collector_env_vars_strings = []
+  collector_env_vars.each do |item|
+    collector_env_vars_strings |= [ "#{item[:name]}=#{item[:data]}" ]
+  end
   describe registry_key('HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\splunk-otel-collector') do
-    it { should have_property_value('Environment', :multi_string, collector_env_vars) }
+    it { should have_property_value('Environment', :multi_string, collector_env_vars_strings) }
   end
   describe service('fluentdwinsvc') do
     it { should be_enabled }

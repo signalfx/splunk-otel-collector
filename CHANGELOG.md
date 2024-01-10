@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+## v0.91.3
+- (Splunk) Properly sign and associate changelog to release.  This should be otherwise identical to v0.91.2
+
 ## v0.91.2
 
 ### 🛑 Breaking changes 🛑

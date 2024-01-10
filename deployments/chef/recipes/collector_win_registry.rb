@@ -1,7 +1,7 @@
 # Cookbook:: splunk_otel_collector
 # Recipe:: collector_win_registry
 
-registry_values = [
+collector_env_vars = [
   { name: 'SPLUNK_CONFIG', type: :string, data: node['splunk_otel_collector']['collector_config_dest'].to_s },
   { name: 'SPLUNK_ACCESS_TOKEN', type: :string, data: node['splunk_otel_collector']['splunk_access_token'].to_s },
   { name: 'SPLUNK_REALM', type: :string, data: node['splunk_otel_collector']['splunk_realm'].to_s },
@@ -17,15 +17,19 @@ registry_values = [
 ]
 
 unless node['splunk_otel_collector']['splunk_listen_interface'].to_s.strip.empty?
-  registry_values.push({ name: 'SPLUNK_LISTEN_INTERFACE', type: :string, data: node['splunk_otel_collector']['splunk_listen_interface'].to_s })
+  collector_env_vars.push({ name: 'SPLUNK_LISTEN_INTERFACE', type: :string, data: node['splunk_otel_collector']['splunk_listen_interface'].to_s })
 end
 
 node['splunk_otel_collector']['collector_additional_env_vars'].each do |key, value|
-  registry_values.push({ name: key, type: :string, data: value.to_s })
+  collector_env_vars.push({ name: key, type: :string, data: value.to_s })
 end
 
-registry_key 'HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment' do
-  values registry_values
+registry_key 'HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\splunk-otel-collector' do
+  values [{
+    name: 'Environment',
+    type: :multi_string,
+    data: collector_env_vars,
+  }]
   action :create
   notifies :restart, 'windows_service[splunk-otel-collector]', :delayed
 end

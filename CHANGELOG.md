@@ -7,6 +7,10 @@
 - (Splunk) On Windows the `SPLUNK_*` environment variables were moved from the machine scope to the collector service scope.
   It is possible that some instrumentations are relying on the machine-wide environment variables set by the installation. ([#3930](https://github.com/signalfx/splunk-otel-collector/pull/3930))
 
+## v0.91.3
+- (Splunk) Properly sign and associate changelog to release.  This should be otherwise identical to v0.91.2
+
+
 ## v0.91.2
 
 ### 🛑 Breaking changes 🛑

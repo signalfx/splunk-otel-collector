@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## v0.91.2.1
+
+### 🧰 Bug fixes 🧰
+- (Splunk) Fixes changelog association with commit/digests/versions in our release pipeline; this release is otherwise identical to v0.91.2
+
 ## v0.91.2
 
 ### 🛑 Breaking changes 🛑

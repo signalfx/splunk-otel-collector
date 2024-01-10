@@ -7,6 +7,31 @@
 - (Splunk) On Windows the `SPLUNK_*` environment variables were moved from the machine scope to the collector service scope.
   It is possible that some instrumentations are relying on the machine-wide environment variables set by the installation. ([#3930](https://github.com/signalfx/splunk-otel-collector/pull/3930))
 
+## v0.91.2
+
+### 🛑 Breaking changes 🛑
+- (Splunk) - `ecs-metadata` sync the `known_status` property on the `container_id` dimension instead of lower cardinality `container_name`. This can be prevented by configuring `dimensionToUpdate` to `container_name` ([#4091](https://github.com/signalfx/splunk-otel-collector/pull/4091))
+- (Splunk) Removes `collectd/disk` monitor ([#3998](https://github.com/signalfx/splunk-otel-collector/pull/3998))
+   This monitor has been deprecated in favor of the `disk-io` monitor.
+   Note that the `disk-io` monitor has a different dimension (`disk` 
+   instead of `plugin_instance`) to specify the disk.
+- (Splunk) Removes `collectd/df` monitor ([#3996](https://github.com/signalfx/splunk-otel-collector/pull/3996))
+   The monitor is deprecated and the filesystems monitor should be used instead.
+- (Splunk) Removes `netinterface` monitor ([#3991](https://github.com/signalfx/splunk-otel-collector/pull/3991))
+   This monitor is deprecated in favor of the `net-io` monitor.
+- (Splunk) Removes `collectd/vmem` monitor ([#3993](https://github.com/signalfx/splunk-otel-collector/pull/3993))
+   This monitor is deprecated in favor of the `vmem` monitor.  The metrics should be fully compatible with this monitor.
+- (Splunk) Removes `collectd/load` monitor ([#3995](https://github.com/signalfx/splunk-otel-collector/pull/3995))
+   This monitor has been deprecated in favor of the `load` monitor. That monitor emits the same metrics and is fully compatible.
+- (Splunk) Removes `collectd/postgresql` monitor ([#3994](https://github.com/signalfx/splunk-otel-collector/pull/3994))
+   This monitor is deprecated in favor of the postgresql monitor.
+
+### 💡 Enhancements 💡
+- (Splunk) Adopt `vcenter` receiver ([#4291](https://github.com/signalfx/splunk-otel-collector/pull/4121))
+- (Splunk) Adopt `sshcheck` receiver ([#4099](https://github.com/signalfx/splunk-otel-collector/pull/4099))
+- (Splunk) Adopt `awss3` exporter ([#4117](https://github.com/signalfx/splunk-otel-collector/pull/4117))
+- (Splunk) Convert loglevel to verbosity on logging exporter ([#4097](https://github.com/signalfx/splunk-otel-collector/pull/4097))
+
 ## v0.91.1
 
 ### 💡 Enhancements 💡

@@ -20,7 +20,7 @@ import groovy.lang.GroovyShell;
 import groovy.lang.Script;
 
 public class GroovyRunner {
-    private static Logger logger = Logger.getLogger(GroovyRunner.class.getName());
+    private static final Logger logger = Logger.getLogger(GroovyRunner.class.getName());
 
     private final GroovyShell gshell = new GroovyShell();
 

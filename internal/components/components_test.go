@@ -83,6 +83,7 @@ func TestDefaultComponents(t *testing.T) {
 		"syslog",
 		"tcplog",
 		"udplog",
+		"vcenter",
 		"wavefront",
 		"windowseventlog",
 		"windowsperfcounters",
@@ -108,6 +109,7 @@ func TestDefaultComponents(t *testing.T) {
 		"transform",
 	}
 	expectedExporters := []component.Type{
+		"awss3",
 		"debug",
 		"file",
 		"kafka",

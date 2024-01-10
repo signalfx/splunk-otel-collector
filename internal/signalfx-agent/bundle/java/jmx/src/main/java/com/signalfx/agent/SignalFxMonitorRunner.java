@@ -9,7 +9,7 @@ import java.util.logging.Logger;
 import com.signalfx.agent.logging.Handler;
 
 public class SignalFxMonitorRunner<T extends MonitorConfig> {
-    private static Logger logger = Logger.getLogger(SignalFxMonitorRunner.class.getName());
+    private static final Logger logger = Logger.getLogger(SignalFxMonitorRunner.class.getName());
 
     private final SignalFxMonitor monitor;
     private final Class configCls;
@@ -53,11 +53,6 @@ public class SignalFxMonitorRunner<T extends MonitorConfig> {
                             shutdownMsg.type));
         }
         monitor.shutdown();
-        return;
-    }
-
-    public void runDebug() {
-
     }
 
     private void setUpLogging(AgentOutput output) {

@@ -28,7 +28,7 @@ collector_env_vars_strings = []
 collector_env_vars.each do |item|
   collector_env_vars_strings |= [ "#{item[:name]}=#{item[:data]}" ]
 end
-
+collector_env_vars_strings.sort!
 registry_key 'HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\splunk-otel-collector' do
   values [{
     name: 'Environment',

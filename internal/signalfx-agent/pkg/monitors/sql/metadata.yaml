@@ -108,7 +108,7 @@ monitors:
 
       - `postgres`: https://godoc.org/github.com/lib/pq#hdr-Connection_String_Parameters
       - `mysql`: https://github.com/go-sql-driver/mysql#dsn-data-source-name
-      - `sqlserver`: https://github.com/denisenkom/go-mssqldb#connection-parameters-and-dsn
+      - `sqlserver`: https://github.com/microsoft/go-mssqldb#connection-parameters-and-dsn
       - `snowflake`: https://pkg.go.dev/github.com/snowflakedb/gosnowflake#hdr-Connection_Parameters
 
     ## Parameterized Connection String

@@ -33,6 +33,12 @@ if os[:family] == 'windows'
     { name: 'MY_CUSTOM_VAR1', type: :string, data: 'value1' },
     { name: 'MY_CUSTOM_VAR2', type: :string, data: 'value2' },
   ]
+  unless splunk_ballast_size_mib.to_s.strip.empty?
+    collector_env_vars.push({ name: 'SPLUNK_BALLAST_SIZE_MIB', type: :string, data: splunk_ballast_size_mib })
+  end
+  unless splunk_listen_interface.to_s.strip.empty?
+    collector_env_vars.push({ name: 'SPLUNK_LISTEN_INTERFACE', type: :string, data: splunk_listen_interface })
+  end
   collector_env_vars_strings = []
   collector_env_vars.each do |item|
     collector_env_vars_strings |= [ "#{item[:name]}=#{item[:data]}" ]

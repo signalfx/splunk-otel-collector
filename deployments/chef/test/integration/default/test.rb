@@ -25,15 +25,25 @@ if os[:family] == 'windows'
     { name: 'SPLUNK_HEC_TOKEN', type: :string, data: splunk_hec_token },
     { name: 'SPLUNK_HEC_URL', type: :string, data: splunk_hec_url },
     { name: 'SPLUNK_INGEST_URL', type: :string, data: splunk_ingest_url },
+    { name: 'SPLUNK_LISTEN_INTERFACE', type: :string, data: splunk_listen_interface },
     { name: 'SPLUNK_MEMORY_TOTAL_MIB', type: :string, data: splunk_memory_total },
     { name: 'SPLUNK_REALM', type: :string, data: splunk_realm },
     { name: 'SPLUNK_TRACE_URL', type: :string, data: splunk_trace_url },
   ]
+  unless splunk_ballast_size_mib.to_s.strip.empty?
+    collector_env_vars.push({ name: 'SPLUNK_BALLAST_SIZE_MIB', type: :string, data: splunk_ballast_size_mib })
+  end
+  unless splunk_listen_interface.to_s.strip.empty?
+    collector_env_vars.push({ name: 'SPLUNK_LISTEN_INTERFACE', type: :string, data: splunk_listen_interface })
+  end
   collector_env_vars_strings = []
   collector_env_vars.each do |item|
     collector_env_vars_strings |= [ "#{item[:name]}=#{item[:data]}" ]
   end
   collector_env_vars_strings.sort!
+  describe registry_key('HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\splunk-otel-collector') do
+    it { should exist('Environment', :multi_string) }
+  end
   describe registry_key('HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\splunk-otel-collector') do
     it { should have_property_value('Environment', :multi_string, collector_env_vars_strings) }
   end

@@ -61,6 +61,7 @@ const (
 	DefaultMemoryTotalMiB          = 512
 	DefaultListenInterface         = "0.0.0.0"
 	DefaultAgentConfigLinux        = "/etc/otel/collector/agent_config.yaml"
+	featureGates                   = "feature-gates"
 )
 
 var DefaultAgentConfigWindows = func() string {
@@ -76,6 +77,12 @@ var DefaultAgentConfigWindows = func() string {
 var (
 	envProvider  = envprovider.New()
 	fileProvider = fileprovider.New()
+
+	defaultFeatureGates = []string{
+		// disabling until all new metrics categorized and rpc histograms are evaluated
+		// https://github.com/open-telemetry/opentelemetry-collector/issues/7454
+		"-telemetry.useOtelForInternalMetrics",
+	}
 )
 
 type Settings struct {
@@ -275,15 +282,17 @@ func parseArgs(args []string) (*Settings, error) {
 	flagSet.MarkHidden("discovery-properties")
 
 	// OTel Collector Core flags
-	colCoreFlags := []string{"version", "feature-gates"}
+	colCoreFlags := []string{"version", featureGates}
 	flagSet.BoolVarP(&settings.versionFlag, colCoreFlags[0], "v", false, "Version of the collector.")
-	flagSet.Var(new(stringArrayFlagValue), colCoreFlags[1],
+	flagSet.Var(new(stringArrayFlagValue), featureGates,
 		"Comma-delimited list of feature gate identifiers. Prefix with '-' to disable the feature. "+
 			"'+' or no prefix will enable the feature.")
 
 	if err := flagSet.Parse(args); err != nil {
 		return nil, err
 	}
+
+	setDefaultFeatureGates(flagSet)
 
 	if settings.discoveryPropertiesFile.value != nil {
 		propertiesFile := settings.discoveryPropertiesFile.String()
@@ -399,6 +408,30 @@ func setDefaultEnvVars(s *Settings) error {
 		}
 	}
 	return nil
+}
+
+func setDefaultFeatureGates(flagSet *flag.FlagSet) {
+	// don't set defaults if service won't actually run
+	if flagSet.Lookup("version").Changed {
+		return
+	}
+	fgFlag := flagSet.Lookup(featureGates)
+	arrVal, ok := fgFlag.Value.(*stringArrayFlagValue)
+	if !ok {
+		// programming error - should only happen w/ invalid changes over time.
+		log.Printf("unexpected feature-gates flag value %T. Not setting default gates.", fgFlag.Value)
+		return
+	}
+	for _, fg := range defaultFeatureGates {
+		bareGate := fg
+		if strings.HasPrefix(fg, "+") || strings.HasPrefix(fg, "-") {
+			bareGate = fg[1:]
+		}
+		if !arrVal.contains(bareGate) && !arrVal.contains(fmt.Sprintf("-%s", bareGate)) && !arrVal.contains(fmt.Sprintf("+%s", bareGate)) {
+			arrVal.value = append(arrVal.value, fg)
+		}
+		fgFlag.Changed = true
+	}
 }
 
 func defaultListenAddr(s *Settings) string {

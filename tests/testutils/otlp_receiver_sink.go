@@ -100,9 +100,7 @@ func (otlp OTLPReceiverSink) Build() (*OTLPReceiverSink, error) {
 			Logger:         otlp.Logger,
 			MeterProvider:  mnoop.NewMeterProvider(),
 			TracerProvider: tnoop.NewTracerProvider(),
-			ReportComponentStatus: func(*component.StatusEvent) error {
-				return nil
-			},
+			ReportStatus:   func(*component.StatusEvent) {},
 		},
 	}
 

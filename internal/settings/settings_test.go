@@ -147,7 +147,7 @@ func TestNewSettingsNoConvertConfig(t *testing.T) {
 		configconverter.NewOverwritePropertiesConverter(settings.setProperties),
 		configconverter.Discovery{},
 	}, settings.ConfMapConverters())
-	require.Equal(t, []string{"--feature-gates", "foo", "--feature-gates", "-bar"}, settings.ColCoreArgs())
+	require.Equal(t, []string{"--feature-gates", "foo", "--feature-gates", "-bar", "--feature-gates", "-telemetry.useOtelForInternalMetrics"}, settings.ColCoreArgs())
 }
 
 func TestNewSettingsConvertConfig(t *testing.T) {
@@ -181,7 +181,7 @@ func TestNewSettingsConvertConfig(t *testing.T) {
 		configconverter.NormalizeGcp{},
 		configconverter.LogLevelToVerbosity{},
 	}, settings.ConfMapConverters())
-	require.Equal(t, []string{"--feature-gates", "foo", "--feature-gates", "-bar"}, settings.ColCoreArgs())
+	require.Equal(t, []string{"--feature-gates", "foo", "--feature-gates", "-bar", "--feature-gates", "-telemetry.useOtelForInternalMetrics"}, settings.ColCoreArgs())
 }
 
 func TestSplunkConfigYamlUtilizedInResolverURIs(t *testing.T) {
@@ -352,6 +352,21 @@ func TestSetDefaultEnvVarsSetsInterfaceFromConfigOption(t *testing.T) {
 			val, ok := os.LookupEnv("SPLUNK_LISTEN_INTERFACE")
 			assert.True(t, ok)
 			assert.Equal(t, tc.expectedIP, val)
+		})
+	}
+}
+
+func TestSetDefaultFeatureGatesRespectsOverrides(t *testing.T) {
+	t.Cleanup(setRequiredEnvVars(t))
+	for _, args := range [][]string{
+		{"--feature-gates", "some-gate", "--feature-gates", "telemetry.useOtelForInternalMetrics", "--feature-gates", "another-gate"},
+		{"--feature-gates", "some-gate", "--feature-gates", "+telemetry.useOtelForInternalMetrics", "--feature-gates", "another-gate"},
+		{"--feature-gates", "some-gate", "--feature-gates", "-telemetry.useOtelForInternalMetrics", "--feature-gates", "another-gate"},
+	} {
+		t.Run(strings.Join(args, " "), func(t *testing.T) {
+			settings, err := New(args)
+			require.NoError(t, err)
+			require.Equal(t, args, settings.ColCoreArgs())
 		})
 	}
 }
@@ -527,7 +542,7 @@ func TestConfigDirFromArgs(t *testing.T) {
 			require.NotNil(t, settings.configDir.value)
 			require.Equal(t, "/from/args", settings.configDir.String())
 			require.Equal(t, "/from/args", getConfigDir(settings))
-			require.Nil(t, settings.ColCoreArgs())
+			require.Equal(t, []string{"--feature-gates", "-telemetry.useOtelForInternalMetrics"}, settings.ColCoreArgs())
 		})
 	}
 }

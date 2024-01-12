@@ -1,54 +1,102 @@
 # Main class that installs and configures the agent
+#
+# @param splunk_access_token
+# @param splunk_realm
+# @param splunk_ingest_url
+# @param splunk_api_url
+# @param splunk_trace_url
+# @param splunk_hec_url
+# @param splunk_hec_token
+# @param splunk_bundle_dir
+# @param splunk_collectd_dir
+# @param splunk_memory_total_mib
+# @param splunk_ballast_size_mib
+# @param splunk_listen_interface
+# @param collector_version
+# @param collector_config_source
+# @param collector_config_dest
+# @param package_stage
+# @param apt_repo_url
+# @param apt_repo
+# @param yum_repo_url
+# @param win_repo_url
+# @param service_user
+# @param service_group
+# @param apt_gpg_key
+# @param yum_gpg_key
+# @param with_fluentd
+# @param fluentd_repo_base
+# @param fluentd_gpg_key
+# @param fluentd_version
+# @param fluentd_config_source
+# @param fluentd_config_dest
+# @param fluentd_capng_c_version
+# @param fluentd_systemd_version
+# @param manage_repo
+# @param auto_instrumentation_version
+# @param with_auto_instrumentation
+# @param auto_instrumentation_systemd
+# @param auto_instrumentation_ld_so_preload
+# @param auto_instrumentation_java_agent_jar
+# @param auto_instrumentation_resource_attributes
+# @param auto_instrumentation_service_name
+# @param auto_instrumentation_generate_service_name
+# @param auto_instrumentation_disable_telemetry
+# @param auto_instrumentation_enable_profiler
+# @param auto_instrumentation_enable_profiler_memory
+# @param auto_instrumentation_enable_metrics
+# @param auto_instrumentation_otlp_endpoint
+# @param collector_additional_env_vars
+#
 class splunk_otel_collector (
-  $splunk_access_token     = '',  # required
-  $splunk_realm            = '',  # required
-  $splunk_ingest_url       = "https://ingest.${splunk_realm}.signalfx.com",
-  $splunk_api_url          = "https://api.${splunk_realm}.signalfx.com",
-  $splunk_trace_url        = "${splunk_ingest_url}/v2/trace",
-  $splunk_hec_url          = "${splunk_ingest_url}/v1/log",
-  $splunk_hec_token        = $splunk_access_token,
-  $splunk_bundle_dir       = $splunk_otel_collector::params::splunk_bundle_dir,
-  $splunk_collectd_dir     = $splunk_otel_collector::params::splunk_collectd_dir,
-  $splunk_memory_total_mib = '512',
-  $splunk_ballast_size_mib = '',
-  $splunk_listen_interface = '',
-  $collector_version       = $splunk_otel_collector::params::collector_version,
-  $collector_config_source = $splunk_otel_collector::params::collector_config_source,
-  $collector_config_dest   = $splunk_otel_collector::params::collector_config_dest,
-  $package_stage           = 'release',  # collector package repository stage: release, beta, or test
-  $apt_repo_url            = 'https://splunk.jfrog.io/splunk/otel-collector-deb',
-  $apt_repo                = 'main',
-  $yum_repo_url            = "https://splunk.jfrog.io/splunk/otel-collector-rpm/${package_stage}/\$basearch",
-  $win_repo_url            = "https://dl.signalfx.com/splunk-otel-collector/msi/${package_stage}",
-  $service_user            = 'splunk-otel-collector',  # linux only
-  $service_group           = 'splunk-otel-collector',  # linux only
-  $apt_gpg_key             = 'https://splunk.jfrog.io/splunk/otel-collector-deb/splunk-B3CD4420.gpg',
-  $yum_gpg_key             = 'https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub',
-  $with_fluentd            = false,
-  $fluentd_repo_base       = $splunk_otel_collector::params::fluentd_base_url,
-  $fluentd_gpg_key         = 'https://packages.treasuredata.com/GPG-KEY-td-agent',
-  $fluentd_version         = $splunk_otel_collector::params::fluentd_version,
-  $fluentd_config_source   = $splunk_otel_collector::params::fluentd_config_source,
-  $fluentd_config_dest     = $splunk_otel_collector::params::fluentd_config_dest,
-  $fluentd_capng_c_version = '<=0.2.2',  # linux only
-  $fluentd_systemd_version = '<=1.0.2',  # linux only
-  $manage_repo             = true,  # linux only
-  $with_auto_instrumentation                = false,  # linux only
-  $auto_instrumentation_version             = $splunk_otel_collector::params::auto_instrumentation_version,  # linux only
-  $auto_instrumentation_systemd             = false,  # linux only
-  $auto_instrumentation_ld_so_preload       = '',  # linux only
-  $auto_instrumentation_java_agent_jar      = $splunk_otel_collector::params::auto_instrumentation_java_agent_jar,  # linux only
-  $auto_instrumentation_resource_attributes = '',  # linux only
-  $auto_instrumentation_service_name        = '',  # linux only
-  $auto_instrumentation_generate_service_name   = true,   # linux only
-  $auto_instrumentation_disable_telemetry       = false,  # linux only
-  $auto_instrumentation_enable_profiler         = false,  # linux only
-  $auto_instrumentation_enable_profiler_memory  = false,  # linux only
-  $auto_instrumentation_enable_metrics          = false,  # linux only
-  $auto_instrumentation_otlp_endpoint           = 'http://127.0.0.1:4317',  # linux only
-  $collector_additional_env_vars            = {}
+  Optional[String] $splunk_access_token                      = undef,  # required
+  Optional[String] $splunk_realm                             = undef,  # required
+  String $splunk_ingest_url                                  = "https://ingest.${splunk_realm}.signalfx.com",
+  String $splunk_api_url                                     = "https://api.${splunk_realm}.signalfx.com",
+  String $splunk_trace_url                                   = "${splunk_ingest_url}/v2/trace",
+  String $splunk_hec_url                                     = "${splunk_ingest_url}/v1/log",
+  String $splunk_hec_token                                   = $splunk_access_token,
+  String $splunk_bundle_dir                                  = $splunk_otel_collector::params::splunk_bundle_dir,
+  String $splunk_collectd_dir                                = $splunk_otel_collector::params::splunk_collectd_dir,
+  String $splunk_memory_total_mib                            = '512',
+  Optional[String] $splunk_ballast_size_mib                  = undef,
+  Optional[String] $splunk_listen_interface                  = undef,
+  String $collector_version                                  = $splunk_otel_collector::params::collector_version,
+  String $collector_config_source                            = $splunk_otel_collector::params::collector_config_source,
+  String $collector_config_dest                              = $splunk_otel_collector::params::collector_config_dest,
+  String $package_stage                                      = 'release',  # collector package repository stage: release, beta, or test
+  String $apt_repo_url                                       = 'https://splunk.jfrog.io/splunk/otel-collector-deb',
+  String $apt_repo                                           = 'main',
+  String $yum_repo_url                                       = "https://splunk.jfrog.io/splunk/otel-collector-rpm/${package_stage}/\$basearch",
+  String $win_repo_url                                       = "https://dl.signalfx.com/splunk-otel-collector/msi/${package_stage}",
+  String $service_user                                       = 'splunk-otel-collector',  # linux only
+  String $service_group                                      = 'splunk-otel-collector',  # linux only
+  String $apt_gpg_key                                        = 'https://splunk.jfrog.io/splunk/otel-collector-deb/splunk-B3CD4420.gpg',
+  String $yum_gpg_key                                        = 'https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub',
+  Boolean $with_fluentd                                      = false,
+  String $fluentd_repo_base                                  = $splunk_otel_collector::params::fluentd_base_url,
+  String $fluentd_gpg_key                                    = 'https://packages.treasuredata.com/GPG-KEY-td-agent',
+  String $fluentd_version                                    = $splunk_otel_collector::params::fluentd_version,
+  String $fluentd_config_source                              = $splunk_otel_collector::params::fluentd_config_source,
+  String $fluentd_config_dest                                = $splunk_otel_collector::params::fluentd_config_dest,
+  String $fluentd_capng_c_version                            = '<=0.2.2',  # linux only
+  String $fluentd_systemd_version                            = '<=1.0.2',  # linux only
+  Boolean $manage_repo                                       = true,  # linux only
+  Boolean $with_auto_instrumentation                         = false,  # linux only
+  String $auto_instrumentation_version                       = $splunk_otel_collector::params::auto_instrumentation_version,  # linux only
+  Boolean $auto_instrumentation_systemd                      = false,  # linux only
+  Optional[String] $auto_instrumentation_ld_so_preload       = undef,  # linux only
+  String $auto_instrumentation_java_agent_jar                = $splunk_otel_collector::params::auto_instrumentation_java_agent_jar,  # linux only
+  Optional[String] $auto_instrumentation_resource_attributes = undef,  # linux only
+  Optional[String] $auto_instrumentation_service_name        = undef,  # linux only
+  String $auto_instrumentation_generate_service_name         = 'true',   # linux only
+  String $auto_instrumentation_disable_telemetry             = 'false',  # linux only
+  String $auto_instrumentation_enable_profiler               = 'false',  # linux only
+  String $auto_instrumentation_enable_profiler_memory        = 'false',  # linux only
+  String $auto_instrumentation_enable_metrics                = 'false',  # linux only
+  String $auto_instrumentation_otlp_endpoint                 = 'http://127.0.0.1:4317',  # linux only
+  Hash $collector_additional_env_vars                        = {},
 ) inherits splunk_otel_collector::params {
-
   if empty($splunk_access_token) {
     fail('The splunk_access_token parameter is required')
   }
@@ -57,7 +105,7 @@ class splunk_otel_collector (
     fail('The splunk_realm parameter is required')
   }
 
-  if $::osfamily == 'windows' {
+  if $facts['os']['family'] == 'windows' {
     if empty($collector_version) {
       fail('The $collector_version parameter is required for Windows')
     }
@@ -67,26 +115,26 @@ class splunk_otel_collector (
   }
 
   $collector_service_name = 'splunk-otel-collector'
-  $collector_package_name = $::osfamily ? {
+  $collector_package_name = $facts['os']['family'] ? {
     'windows' => 'Splunk OpenTelemetry Collector',
     default   => $collector_service_name,
   }
-  $fluentd_service_name = $::osfamily ? {
+  $fluentd_service_name = $facts['os']['family'] ? {
     'windows' => 'fluentdwinsvc',
     default   => 'td-agent',
   }
-  $fluentd_package_name = $::osfamily ? {
+  $fluentd_package_name = $facts['os']['family'] ? {
     'windows' => "Td-agent v${fluentd_version}",
     default   => $fluentd_service_name,
   }
 
-  if $::osfamily == 'suse' or ($facts['os']['name'] == 'Amazon' and $facts['os']['release']['full'] == '2023') {
+  if $facts['os']['family'] == 'suse' or ($facts['os']['name'] == 'Amazon' and $facts['os']['release']['full'] == '2023') {
     $install_fluentd = false
   } else {
     $install_fluentd = $with_fluentd
   }
 
-  case $::osfamily {
+  case $facts['os']['family'] {
     'debian': {
       if $facts['service_provider'] != 'systemd' {
         fail('Only systemd is currently supported')
@@ -153,11 +201,11 @@ class splunk_otel_collector (
       }
     }
     default: {
-      fail("Your OS (${::osfamily}) is not supported by the Splunk OpenTelemetry Collector")
+      fail("Your OS (${facts['os']['family']}) is not supported by the Splunk OpenTelemetry Collector")
     }
   }
 
-  if $::osfamily != 'windows' {
+  if $facts['os']['family'] != 'windows' {
     $collector_config_dir = $collector_config_dest.split('/')[0, - 2].join('/')
     $env_file_path = '/etc/otel/collector/splunk-otel-collector.conf'
 
@@ -207,7 +255,7 @@ class splunk_otel_collector (
   }
 
   if $install_fluentd {
-    case $::osfamily {
+    case $facts['os']['family'] {
       'debian': {
         package { ['build-essential', 'libcap-ng0', 'libcap-ng-dev', 'pkg-config']:
           ensure  => 'installed',
@@ -257,14 +305,14 @@ class splunk_otel_collector (
           provider => gem,
           command  => '/usr/sbin/td-agent-gem',
           require  => [Package[$fluentd_package_name, 'libcap-ng', 'libcap-ng-devel', 'pkgconfig'],
-            Yum::Group['Development Tools']],
+          Yum::Group['Development Tools']],
         }
         package { 'fluent-plugin-systemd':
           ensure   => $fluentd_systemd_version,
           provider => gem,
           command  => '/usr/sbin/td-agent-gem',
           require  => [Package[$fluentd_package_name, 'libcap-ng', 'libcap-ng-devel', 'pkgconfig'],
-            Yum::Group['Development Tools']],
+          Yum::Group['Development Tools']],
         }
       }
       'windows': {
@@ -276,11 +324,11 @@ class splunk_otel_collector (
         }
       }
       default: {
-        fail("Your OS (${::osfamily}) is not supported by the Splunk OpenTelemetry Collector")
+        fail("Your OS (${facts['os']['family']}) is not supported by the Splunk OpenTelemetry Collector")
       }
     }
 
-    if $::osfamily != 'windows' {
+    if $facts['os']['family'] != 'windows' {
       $fluentd_config_dir = $fluentd_config_dest.split('/')[0, - 2].join('/')
       $fluentd_config_override = '/etc/systemd/system/td-agent.service.d/splunk-otel-collector.conf'
       $fluentd_config_override_dir= $fluentd_config_override.split('/')[0, - 2].join('/')
@@ -325,8 +373,8 @@ class splunk_otel_collector (
         subscribe => File[$fluentd_config_dest, $fluentd_config_override],
       }
     } else {
-      $collector_install_dir = "${::win_programfiles}\\Splunk\\OpenTelemetry Collector"
-      $td_agent_config_dir = "${::win_systemdrive}\\opt\\td-agent\\etc\\td-agent"
+      $collector_install_dir = "${facts['win_programfiles']}\\Splunk\\OpenTelemetry Collector"
+      $td_agent_config_dir = "${facts['win_systemdrive']}\\opt\\td-agent\\etc\\td-agent"
       $td_agent_config_dest = "${td_agent_config_dir}\\td-agent.conf"
 
       file { $td_agent_config_dest:
@@ -370,18 +418,18 @@ class splunk_otel_collector (
     $zeroconfig_java_config_path = '/etc/splunk/zeroconfig/java.conf'
     $zeroconfig_systemd_config_path = '/usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf'
 
-    if $::osfamily == 'debian' {
+    if $facts['os']['family'] == 'debian' {
       package { $auto_instrumentation_package_name:
         ensure  => $auto_instrumentation_version,
         require => [Class['splunk_otel_collector::collector_debian_repo'], Package[$collector_package_name]],
       }
-    } elsif $::osfamily == 'redhat' or $::osfamily == 'suse' {
+    } elsif $facts['os']['family'] == 'redhat' or $facts['os']['family'] == 'suse' {
       package { $auto_instrumentation_package_name:
         ensure  => $auto_instrumentation_version,
         require => [Class['splunk_otel_collector::collector_yum_repo'], Package[$collector_package_name]],
       }
     } else {
-      fail("Splunk OpenTelemetry Auto Instrumentation is not supported for your OS family (${::osfamily})")
+      fail("Splunk OpenTelemetry Auto Instrumentation is not supported for your OS family (${facts['os']['family']})")
     }
 
     file { $ld_so_preload_path:

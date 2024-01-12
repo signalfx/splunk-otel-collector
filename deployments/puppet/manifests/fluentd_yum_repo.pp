@@ -1,6 +1,16 @@
 # Installs the fluentd yum package repostitory
-class splunk_otel_collector::fluentd_yum_repo ($repo_url, $gpg_key_url, $version, $manage_repo) {
-
+#
+# @param repo_url
+# @param gpg_key_url
+# @param version
+# @param manage_repo
+#
+class splunk_otel_collector::fluentd_yum_repo (
+  String $repo_url,
+  String $gpg_key_url,
+  String $version,
+  Boolean $manage_repo,
+) {
   if $manage_repo {
     $os_name = $facts['os']['name'] ? {
       'Amazon' => 'amazon',
@@ -18,8 +28,8 @@ class splunk_otel_collector::fluentd_yum_repo ($repo_url, $gpg_key_url, $version
         gpgkey=${gpg_key_url}
         enabled=1
         | EOH
-    ,
-    mode      => '0644',
+      ,
+      mode    => '0644',
     }
   } else {
     file { '/etc/yum.repos.d/splunk-td-agent.repo':

@@ -1,9 +1,17 @@
 # Sets the user/group for the splunk-otel-collector service.
 # If the user or group does not exist, they will be created.
-class splunk_otel_collector::collector_service_owner ($service_name, $service_user, $service_group) {
-
+#
+# @param service_name
+# @param service_user
+# @param service_group
+#
+class splunk_otel_collector::collector_service_owner (
+  String $service_name,
+  String $service_user,
+  String $service_group,
+) {
   if !defined(Group[$service_group]) {
-    if $service_group == 'splunk-otel-collector' or $service_group in split($::local_groups, ',') {
+    if $service_group == 'splunk-otel-collector' or $service_group in split($facts['local_groups'], ',') {
       group { $service_group:
         noop => true,
       }
@@ -17,12 +25,12 @@ class splunk_otel_collector::collector_service_owner ($service_name, $service_us
   }
 
   if !defined(User[$service_user]) {
-    if $service_user == 'splunk-otel-collector' or $service_user in split($::local_users, ',') {
+    if $service_user == 'splunk-otel-collector' or $service_user in split($facts['local_users'], ',') {
       user { $service_user:
-        noop => true, }
+      noop => true, }
     }
     else {
-      $shell = $::osfamily ? {
+      $shell = $facts['os']['family'] ? {
         'debian' => '/usr/sbin/nologin',
         default  => '/sbin/nologin',
       }
@@ -35,7 +43,7 @@ class splunk_otel_collector::collector_service_owner ($service_name, $service_us
     }
   }
 
-  case $::service_provider {
+  case $facts['service_provider'] {
     'systemd': {
       $tmpfile_path = "/etc/tmpfiles.d/${service_name}.conf"
       $tmpfile_dir = $tmpfile_path.split('/')[0, - 2].join('/')
@@ -58,10 +66,10 @@ class splunk_otel_collector::collector_service_owner ($service_name, $service_us
         $tmpfile_path:
           ensure  => file,
           content => "D /run/${service_name} 0755 ${service_user} ${service_group} - -",
-        ;
+          ;
         $override_path:
           ensure => file,
-        ;
+          ;
       }
 
       ~> file_line {
@@ -69,21 +77,21 @@ class splunk_otel_collector::collector_service_owner ($service_name, $service_us
           path  => $override_path,
           line  => '[Service]',
           match => '^[Service]',
-        ;
+          ;
         'set-service-user':
           path    => $override_path,
           line    => "User=${service_user}",
           match   => '^User=',
           after   => '^[Service]',
           require => File_Line[$override_path],
-        ;
+          ;
         'set-service-group':
           path    => $override_path,
           line    => "Group=${service_group}",
           match   => '^Group=',
           after   => '^User=',
           require => File_Line['set-service-user'],
-        ;
+          ;
       }
 
       ~> exec { ["systemd-tmpfiles --create --remove ${tmpfile_path}", 'systemctl daemon-reload']:

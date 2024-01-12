@@ -1,6 +1,16 @@
 # Installs the collector yum package repostitory for the given stage
-class splunk_otel_collector::collector_yum_repo ($repo_url, $yum_gpg_key, $manage_repo, $repo_path) {
-
+#
+# @param repo_url
+# @param yum_gpg_key
+# @param manage_repo
+# @param repo_path
+#
+class splunk_otel_collector::collector_yum_repo (
+  String $repo_url,
+  String $yum_gpg_key,
+  Boolean $manage_repo,
+  String $repo_path,
+) {
   if $manage_repo {
     file { "${repo_path}/splunk-otel-collector.repo":
       content => @("EOH")

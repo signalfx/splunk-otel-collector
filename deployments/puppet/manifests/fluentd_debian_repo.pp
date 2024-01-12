@@ -1,5 +1,16 @@
 # Installs the fluentd debian package repository config
-class splunk_otel_collector::fluentd_debian_repo ($repo_url, $gpg_key_url, $version, $manage_repo) {
+#
+# @param repo_url
+# @param gpg_key_url
+# @param version
+# @param manage_repo
+#
+class splunk_otel_collector::fluentd_debian_repo (
+  String $repo_url,
+  String $gpg_key_url,
+  String $version,
+  Boolean $manage_repo,
+) {
   $distro = downcase($facts['os']['distro']['id'])
   $codename = downcase($facts['os']['distro']['codename'])
   $major_version = $version.split('\.')[0]

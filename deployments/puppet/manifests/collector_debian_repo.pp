@@ -1,6 +1,18 @@
 # Installs the collector debian package repository config
-class splunk_otel_collector::collector_debian_repo ($repo_url, $package_stage, $repo, $apt_gpg_key, $manage_repo) {
-
+#
+# @param repo_url
+# @param package_stage
+# @param repo
+# @param apt_gpg_key
+# @param manage_repo
+#
+class splunk_otel_collector::collector_debian_repo (
+  String $repo_url,
+  String $package_stage,
+  String $repo,
+  String $apt_gpg_key,
+  Boolean $manage_repo,
+) {
   if $manage_repo {
     apt::source { 'splunk-otel-collector':
       location => $repo_url,

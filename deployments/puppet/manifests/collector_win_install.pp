@@ -1,18 +1,29 @@
 # Download and install the splunk-otel-collector MSI on Windows
-class splunk_otel_collector::collector_win_install ($repo_url, $version, $package_name, $service_name) {
+#
+# @param repo_url
+# @param version
+# @param package_name
+# @param service_name
+#
+class splunk_otel_collector::collector_win_install (
+  String $repo_url,
+  String $version,
+  String $package_name,
+  String $service_name,
+) {
   $msi_name = "splunk-otel-collector-${version}-amd64.msi"
-  $collector_path = "${::win_programfiles}\\Splunk\\OpenTelemetry Collector\\otelcol.exe"
+  $collector_path = "${facts['win_programfiles']}\\Splunk\\OpenTelemetry Collector\\otelcol.exe"
   $registry_key = 'HKLM\SYSTEM\CurrentControlSet\Services\splunk-otel-collector'
 
   # Only download and install if not already installed or version does not match
-  if $::win_collector_path != $collector_path or $::win_collector_version != $version {
-    file { "${::win_temp}\\${msi_name}":
-      source => "${repo_url}/${msi_name}"
+  if $facts['win_collector_path'] != $collector_path or $facts['win_collector_version'] != $version {
+    file { "${facts['win_temp']}\\${msi_name}":
+      source => "${repo_url}/${msi_name}",
     }
 
     -> package { $package_name:
       ensure => $version,
-      source => "${::win_temp}\\${msi_name}",
+      source => "${facts['win_temp']}\\${msi_name}",
     }
   }
 

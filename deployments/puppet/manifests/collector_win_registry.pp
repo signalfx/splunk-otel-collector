@@ -28,13 +28,7 @@ class splunk_otel_collector::collector_win_registry () {
 
   $collector_env_vars.sort()
 
-  $registry_key = 'HKLM\SYSTEM\CurrentControlSet\Services\splunk-otel-collector'
-
-  registry_key { $registry_key:
-    ensure => 'present',
-  }
-
-  registry_value { "${registry_key}\\Environment":
+  registry_value { "${splunk_otel_collector::registry_key}\\Environment":
     ensure  => 'present',
     type    => multi_string,
     data    => $collector_env_vars,

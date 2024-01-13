@@ -55,7 +55,7 @@ func (svc *PointsSvc) FetchPoints(vsInfo *model.VsphereInfo, numSamplesReqd int3
 			if !ok {
 				svc.log.WithField(
 					"baseMetric", baseMetric,
-				).Error("Type coersion to PerfEntityMetric failed")
+				).Error("Type coercion to PerfEntityMetric failed")
 				continue
 			}
 
@@ -69,7 +69,7 @@ func (svc *PointsSvc) FetchPoints(vsInfo *model.VsphereInfo, numSamplesReqd int3
 				if !ok {
 					svc.log.WithField(
 						"metric", metric,
-					).Error("Type coersion to PerfMetricIntSeries failed")
+					).Error("Type coercion to PerfMetricIntSeries failed")
 					continue
 				}
 

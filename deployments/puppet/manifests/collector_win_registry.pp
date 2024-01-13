@@ -15,18 +15,18 @@ class splunk_otel_collector::collector_win_registry () {
   ]
 
   unless $splunk_otel_collector::splunk_ballast_size_mib.strip().empty() {
-    $collector_env_vars.push("SPLUNK_BALLAST_SIZE_MIB=${splunk_otel_collector::splunk_ballast_size_mib}")
+    $collector_env_vars = push($collector_env_vars, "SPLUNK_BALLAST_SIZE_MIB=${splunk_otel_collector::splunk_ballast_size_mib}")
   }
 
   unless $splunk_otel_collector::splunk_listen_interface.strip().empty() {
-    $collector_env_vars.push("SPLUNK_LISTEN_INTERFACE=${splunk_otel_collector::splunk_listen_interface}")
+    $collector_env_vars = push($collector_env_vars, "SPLUNK_LISTEN_INTERFACE=${splunk_otel_collector::splunk_listen_interface}")
   }
 
   $splunk_otel_collector::collector_additional_env_vars.each |$var, $value| {
-    $collector_env_vars.push("${var}=${value}")
+    $collector_env_vars = push($collector_env_vars, "${var}=${value}")
   }
 
-  $collector_env_vars.sort()
+  $collector_env_vars = sort($collector_env_vars)
 
   registry_value { "HKLM\\SYSTEM\\CurrentControlSet\\Services\\splunk-otel-collector\\Environment":
     ensure  => 'present',

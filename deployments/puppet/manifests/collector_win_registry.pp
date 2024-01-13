@@ -30,7 +30,7 @@ class splunk_otel_collector::collector_win_registry () {
 
   registry_value { "HKLM\\SYSTEM\\CurrentControlSet\\Services\\splunk-otel-collector\\Environment":
     ensure  => 'present',
-    type    => multi_string,
+    type    => array,
     data    => $collector_env_vars,
     require => Registry_key["HKLM\\SYSTEM\\CurrentControlSet\\Services\\splunk-otel-collector"],
   }

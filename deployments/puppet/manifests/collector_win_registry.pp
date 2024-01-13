@@ -32,6 +32,6 @@ class splunk_otel_collector::collector_win_registry () {
     ensure  => 'present',
     type    => multi_string,
     data    => $collector_env_vars,
-    require => Registry_key[$registry_key],
+    require => Registry_key[$splunk_otel_collector::registry_key],
   }
 }

@@ -26,9 +26,9 @@ Currently, the following Windows versions are supported and requires PowerShell
 - Windows Server 2019 64-bit
 - Windows Server 2022 64-bit
 
-On Windows, the collector is installed as a Windows service and the environment
-variables used in the configuration are set at service scope, i.e.: they are
-only available to the collector service and not to the entire machine.
+On Windows, the collector is installed as a Windows service and its environment
+variables are set at the service scope, i.e.: they are only available to the
+collector service and not to the entire machine.
 
 ## Usage
 

@@ -29,6 +29,10 @@ Currently, the following Windows versions are supported:
 - Windows Server 2019 64-bit
 - Windows Server 2022 64-bit
 
+On Windows, the collector is installed as a Windows service and its environment
+variables are set at the service scope, i.e.: they are only available to the
+collector service and not to the entire machine.
+
 ## Usage
 
 This cookbook can be downloaded and installed from [Chef Supermarket](https://supermarket.chef.io/cookbooks/splunk_otel_collector).

@@ -16,11 +16,13 @@ class splunk_otel_collector::collector_win_registry () {
 
   $additional_collector_env_vars = []
   unless $splunk_otel_collector::splunk_ballast_size_mib.strip().empty() {
-    $additional_collector_env_vars = $additional_collector_env_vars + ["SPLUNK_BALLAST_SIZE_MIB=${splunk_otel_collector::splunk_ballast_size_mib}"]
+    $additional_collector_env_vars = $additional_collector_env_vars
+    + ["SPLUNK_BALLAST_SIZE_MIB=${splunk_otel_collector::splunk_ballast_size_mib}"]
   }
 
   unless $splunk_otel_collector::splunk_listen_interface.strip().empty() {
-    $additional_collector_env_vars = $additional_collector_env_vars + ["SPLUNK_LISTEN_INTERFACE=${splunk_otel_collector::splunk_listen_interface}"]
+    $additional_collector_env_vars = $additional_collector_env_vars
+    + ["SPLUNK_LISTEN_INTERFACE=${splunk_otel_collector::splunk_listen_interface}"]
   }
 
   $splunk_otel_collector::collector_additional_env_vars.each |$var, $value| {

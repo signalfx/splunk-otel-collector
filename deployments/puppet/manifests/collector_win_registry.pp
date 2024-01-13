@@ -1,6 +1,9 @@
 # Class for setting the registry values for the splunk-otel-collector service
 class splunk_otel_collector::collector_win_registry () {
-  $initial_collector_env_vars = [
+  $unordered_collector_env_vars = $splunk_otel_collector::collector_additional_env_vars.map |$var, $value| {
+    "${var}=${value}"
+  }
+  + [
     "SPLUNK_ACCESS_TOKEN=${splunk_otel_collector::splunk_access_token}",
     "SPLUNK_API_URL=${splunk_otel_collector::splunk_api_url}",
     "SPLUNK_BUNDLE_DIR=${splunk_otel_collector::splunk_bundle_dir}",
@@ -13,23 +16,18 @@ class splunk_otel_collector::collector_win_registry () {
     "SPLUNK_REALM=${splunk_otel_collector::splunk_realm}",
     "SPLUNK_TRACE_URL=${splunk_otel_collector::splunk_trace_url}",
   ]
-
-  $additional_collector_env_vars = []
-  unless $splunk_otel_collector::splunk_ballast_size_mib.strip().empty() {
-    $additional_collector_env_vars = $additional_collector_env_vars
-    + ["SPLUNK_BALLAST_SIZE_MIB=${splunk_otel_collector::splunk_ballast_size_mib}"]
+  + if !$splunk_otel_collector::splunk_ballast_size_mib.strip().empty() {
+    ["SPLUNK_BALLAST_SIZE_MIB=${splunk_otel_collector::splunk_ballast_size_mib}"]
+  } else {
+    []
+  }
+  + if !$splunk_otel_collector::splunk_listen_interface.strip().empty() {
+    ["SPLUNK_LISTEN_INTERFACE=${splunk_otel_collector::splunk_listen_interface}"]
+  } else {
+    []
   }
 
-  unless $splunk_otel_collector::splunk_listen_interface.strip().empty() {
-    $additional_collector_env_vars = $additional_collector_env_vars
-    + ["SPLUNK_LISTEN_INTERFACE=${splunk_otel_collector::splunk_listen_interface}"]
-  }
-
-  $splunk_otel_collector::collector_additional_env_vars.each |$var, $value| {
-    $additional_collector_env_vars = $additional_collector_env_vars + ["${var}=${value}"]
-  }
-
-  $collector_env_vars = sort($initial_collector_env_vars + $additional_collector_env_vars)
+  $collector_env_vars = sort($unordered_collector_env_vars)
 
   registry_value { "HKLM\\SYSTEM\\CurrentControlSet\\Services\\splunk-otel-collector\\Environment":
     ensure  => 'present',

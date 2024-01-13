@@ -14,16 +14,16 @@ class splunk_otel_collector::collector_win_registry () {
     "SPLUNK_TRACE_URL=${splunk_otel_collector::splunk_trace_url}",
   ]
 
-  unless $splunk_otel_collector::splunk_ballast_size_mib.to_s.strip().empty?
+  unless $splunk_otel_collector::splunk_ballast_size_mib.to_s.strip().empty? {
     collector_env_vars.push("SPLUNK_BALLAST_SIZE_MIB=${splunk_otel_collector::splunk_ballast_size_mib}")
-  end
-  unless $splunk_otel_collector::splunk_listen_interface.to_s.strip().empty?
+  }
+  unless $splunk_otel_collector::splunk_listen_interface.to_s.strip().empty? {
     collector_env_vars.push("SPLUNK_LISTEN_INTERFACE=${splunk_otel_collector::splunk_listen_interface}")
-  end
+  }
 
-  $splunk_otel_collector::collector_additional_env_vars.each |$var, $value|
+  $splunk_otel_collector::collector_additional_env_vars.each |$var, $value| {
     collector_env_vars |= "${var}=${value}"
-  end
+  }
 
   collector_env_vars.sort!
 

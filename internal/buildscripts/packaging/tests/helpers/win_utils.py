@@ -38,7 +38,7 @@ def has_choco():
 
 def get_registry_value(name, registry=WIN_REGISTRY, key=WIN_REGISTRY_KEY):
     access_key = winreg.OpenKeyEx(registry, key)
-    environment, regtype = winreg.QueryValueEx(r"Environment", name)
+    environment, regtype = winreg.QueryValueEx(access_key, "Environment")
     winreg.CloseKey(access_key)
     if regtype != winreg.REG_MULTI_SZ:
         raise TypeError("Registry type is not REG_MULTI_SZ")

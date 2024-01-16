@@ -69,7 +69,7 @@ func (svc *PointsSvc) FetchPoints(vsInfo *model.VsphereInfo, numSamplesReqd int3
 				if !ok {
 					svc.log.WithField(
 						"metric", metric,
-					).Error("Type coercion to PerfMetricIntSeries failed")
+					).Error("Type assertion to PerfMetricIntSeries failed")
 					continue
 				}
 

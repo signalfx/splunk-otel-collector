@@ -26,10 +26,23 @@
 
 - name: Restart Splunk OpenTelemetry Collector for windows
   ansible.windows.win_shell: |
-    Get-Item HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector
-    Restart-Service splunk-otel-collector
-    Get-WinEvent -Log Application -MaxEvents 15 | Format-List TimeCreated, ProviderName, Message
-    Get-WinEvent -Log System -MaxEvents 15 | Format-List TimeCreated, ProviderName, Message
+    Try {
+      Restart-Service splunk-otel-collector
+    } Catch {
+      # Try to get some more helpful information given that the error message is not very helpful
+      Write-Host "Error restarting splunk-otel-collector service: $_"
+
+      Write-Host "Splunk OpenTelemetry Collector service registry entry:"
+      Get-Item HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector
+
+      Write-Host "Last 15 Application log events:"
+      Get-WinEvent -Log Application -MaxEvents 15 | Format-List TimeCreated, ProviderName, Message
+
+      Write-Host "Last 15 System log events:"
+      Get-WinEvent -Log System -MaxEvents 15 | Format-List TimeCreated, ProviderName, Message
+
+      Throw $_
+    }
   listen: "restart windows splunk-otel-collector"
   when:
     - (start_service | default(true) | bool)

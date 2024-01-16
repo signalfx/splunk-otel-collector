@@ -163,7 +163,7 @@ function set_service_environment([string]$service_name, [hashtable]$env_vars) {
     Write-Host "Setting environment variables for the $service_name service..."
     # Transform the $env_vars to an array of strings so the Set-ItemProperty correctly create the
     # 'Environment' REG_MULTI_SZ value.
-    [string []] $multi_sz_value = ($env_vars.Keys | foreach-object { "$_=$($env_vars[$_])" })
+    [string []] $multi_sz_value = ($env_vars.Keys | ForEach-Object { "$_=$($env_vars[$_])" } | Sort-Object)
 
     $target_service_reg_key = Join-Path "HKLM:\SYSTEM\CurrentControlSet\Services" $service_name
     if (Test-Path $target_service_reg_key) {

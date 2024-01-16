@@ -12,7 +12,7 @@ require (
 	github.com/knadh/koanf v1.5.0
 	github.com/shirou/gopsutil/v3 v3.23.12
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3
-	github.com/signalfx/signalfx-go v1.33.0
+	github.com/signalfx/signalfx-go v1.34.0
 	github.com/signalfx/signalfx-go/signalflow/v2 v2.2.0
 	github.com/stretchr/testify v1.8.4
 	github.com/testcontainers/testcontainers-go v0.20.1

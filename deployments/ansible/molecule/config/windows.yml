@@ -25,7 +25,7 @@ platforms:
       - "winrm.retry_delay = 10"
   - name: "2019"
     box: gusztavvargadr/windows-server-2019-standard
-    box_version: 1809.0.2305
+    box_version: 1809.0.2312
     cpus: 2
     memory: 4096
     instance_raw_config_args: *vagrant_args

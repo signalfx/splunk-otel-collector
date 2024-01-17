@@ -11,11 +11,16 @@ $ErrorActionPreference = 'Stop'
 Set-PSDebug -Trace 1
 
 function check_collector_svc_environment([hashtable]$expected_env_vars) {
-    $env_array = Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -Name "Environment"
     $actual_env_vars = @{}
-    foreach ($entry in $env_array) {
-        $key, $value = $entry.Split("=", 2)
-        $actual_env_vars.Add($key, $value)
+    try {
+        $env_array = Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -Name "Environment"
+        foreach ($entry in $env_array) {
+            $key, $value = $entry.Split("=", 2)
+            $actual_env_vars.Add($key, $value)
+        }
+    } catch {
+        Write-Host "Assuming an old version of the collector with environment variables at the machine scope"
+        $actual_env_vars = [Environment]::GetEnvironmentVariables("Machine")<#Do this if a terminating exception happens#>
     }
 
     foreach ($key in $expected_env_vars.Keys) {

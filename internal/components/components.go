@@ -17,6 +17,7 @@ package components
 
 import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/connector/countconnector"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/connector/routingconnector"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awss3exporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter"
@@ -238,6 +239,7 @@ func Get() (otelcol.Factories, error) {
 	connectors, err := connector.MakeFactoryMap(
 		countconnector.NewFactory(),
 		forwardconnector.NewFactory(),
+		routingconnector.NewFactory(),
 		spanmetricsconnector.NewFactory(),
 	)
 	if err != nil {

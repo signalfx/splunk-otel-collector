@@ -15,6 +15,7 @@ require (
 	github.com/jaegertracing/jaeger v1.53.0
 	github.com/knadh/koanf v1.5.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/countconnector v0.92.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/connector/routingconnector v0.92.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector v0.92.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awss3exporter v0.92.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.92.0

@@ -125,6 +125,7 @@ func TestDefaultComponents(t *testing.T) {
 	}
 	expectedConnectors := []component.Type{
 		"count",
+		"routing",
 		"spanmetrics",
 		"forward",
 	}

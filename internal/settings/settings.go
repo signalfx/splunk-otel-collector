@@ -304,7 +304,8 @@ func parseArgs(args []string) (*Settings, error) {
 	settings.setProperties, settings.discoveryProperties = parseSetOptionArguments(settings.setOptionArguments.value)
 
 	// Pass flags that are handled by the collector core service as raw command line arguments.
-	settings.colCoreArgs = flagSetToArgs(colCoreFlags, flagSet)
+	colCoreCommands := []string{"validate"}
+	settings.colCoreArgs = flagSetToArgs(colCoreFlags, colCoreCommands, flagSet)
 
 	return settings, nil
 }
@@ -320,12 +321,12 @@ func parseSetOptionArguments(arguments []string) (setProperties, discoveryProper
 	return
 }
 
-// flagSetToArgs takes a list of flag names and returns a list of corresponding command line arguments
-// using values from the provided flagSet.
+// flagSetToArgs takes slices of core service flag names and arguments and returns a slice of corresponding command line
+// arguments using values suitable for being passed to the underlying collector service.
 // The flagSet must be populated (flagSet.Parse is called), otherwise the returned list of arguments will be empty.
-func flagSetToArgs(flagNames []string, flagSet *flag.FlagSet) []string {
+func flagSetToArgs(colFlagNames, colCommands []string, flagSet *flag.FlagSet) []string {
 	var out []string
-	for _, flagName := range flagNames {
+	for _, flagName := range colFlagNames {
 		flag := flagSet.Lookup(flagName)
 		if flag.Changed {
 			switch fv := flag.Value.(type) {
@@ -336,6 +337,16 @@ func flagSetToArgs(flagNames []string, flagSet *flag.FlagSet) []string {
 			default:
 				out = append(out, "--"+flagName, flag.Value.String())
 			}
+		}
+	}
+
+	allowed := map[string]struct{}{}
+	for _, cmd := range colCommands {
+		allowed[cmd] = struct{}{}
+	}
+	for _, arg := range flagSet.Args() {
+		if _, ok := allowed[arg]; ok {
+			out = append(out, arg)
 		}
 	}
 	return out

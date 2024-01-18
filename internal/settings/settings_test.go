@@ -203,6 +203,14 @@ func TestSplunkConfigYamlNotUtilizedInResolverURIsWithConfigEnvVar(t *testing.T)
 	require.Equal(t, []string{localGatewayConfig}, settings.ResolverURIs())
 }
 
+func TestNewSettingsWithValidate(t *testing.T) {
+	t.Cleanup(setRequiredEnvVars(t))
+	settings, err := New([]string{"validate"})
+	require.NoError(t, err)
+	require.NotNil(t, settings)
+	require.Equal(t, []string{"--feature-gates", "-telemetry.useOtelForInternalMetrics", "validate"}, settings.ColCoreArgs())
+}
+
 func TestCheckRuntimeParams_Default(t *testing.T) {
 	t.Cleanup(setRequiredEnvVars(t))
 	require.NoError(t, os.Setenv(ConfigEnvVar, localGatewayConfig))

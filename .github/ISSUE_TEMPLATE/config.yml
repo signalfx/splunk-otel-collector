@@ -1,8 +1,8 @@
-blank_issues_enabled: true
+blank_issues_enabled: false
 contact_links:
   - name: Splunk Ideas
     url: https://ideas.splunk.com/
-    about: Proposes enhancements through Splunk Ideas (requires a Splunk.com login)
+    about: Request any enhancement, component addition, or new feature through Splunk Ideas. Requires a Splunk.com login.
   - name: Splunk Support
     url: https://splunk.my.site.com/customer/s/need-help/create-case
-    about: Report an issue or request help (requires Splunk Support entitlement)
+    about: Ask any question or report any issue by opening a support case. Requires Splunk Support entitlement.

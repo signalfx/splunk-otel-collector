@@ -57,7 +57,7 @@ if ($installed_collector) {
     # The package is already present, so this is an upgrade.
     Write-Host "Found a previous installation..."
     $installed_version = [Version]$installed_collector.DisplayVersion # Version for chocolatey doesn't include the prefilx 'v', this conversion is fine.
-    $last_version_with_machine_env_vars = [Version]"0.91.3.0"
+    $last_version_with_machine_env_vars = [Version]"0.92.0.0"
     if ($installed_version -le $last_version_with_machine_env_vars) {
         $upgraded_from_version_with_machine_wide_env_vars = $true
         Write-Host "Getting machine wide environment variables..."

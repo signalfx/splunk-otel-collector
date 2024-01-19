@@ -173,6 +173,13 @@ jobs:
           PY_COLORS: '1'
           ANSIBLE_FORCE_COLOR: '1'
 
+      - name: Uploading artifacts
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: vagrant-err-${{ matrix.scenario }}-${{ matrix.distro }}
+          path: /Users/runner/.cache/molecule/ansible/${{ matrix.scenario }}/vagrant.err
+
   push-release-tag:
     name: Push Release Tag
     needs: lint

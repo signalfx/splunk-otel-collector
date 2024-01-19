@@ -61,6 +61,7 @@ const (
 	DefaultMemoryTotalMiB          = 512
 	DefaultListenInterface         = "0.0.0.0"
 	DefaultAgentConfigLinux        = "/etc/otel/collector/agent_config.yaml"
+	featureGates                   = "feature-gates"
 )
 
 var DefaultAgentConfigWindows = func() string {
@@ -76,6 +77,12 @@ var DefaultAgentConfigWindows = func() string {
 var (
 	envProvider  = envprovider.New()
 	fileProvider = fileprovider.New()
+
+	defaultFeatureGates = []string{
+		// disabling until all new metrics categorized and rpc histograms are evaluated
+		// https://github.com/open-telemetry/opentelemetry-collector/issues/7454
+		"-telemetry.useOtelForInternalMetrics",
+	}
 )
 
 type Settings struct {
@@ -275,15 +282,17 @@ func parseArgs(args []string) (*Settings, error) {
 	flagSet.MarkHidden("discovery-properties")
 
 	// OTel Collector Core flags
-	colCoreFlags := []string{"version", "feature-gates"}
+	colCoreFlags := []string{"version", featureGates}
 	flagSet.BoolVarP(&settings.versionFlag, colCoreFlags[0], "v", false, "Version of the collector.")
-	flagSet.Var(new(stringArrayFlagValue), colCoreFlags[1],
+	flagSet.Var(new(stringArrayFlagValue), featureGates,
 		"Comma-delimited list of feature gate identifiers. Prefix with '-' to disable the feature. "+
 			"'+' or no prefix will enable the feature.")
 
 	if err := flagSet.Parse(args); err != nil {
 		return nil, err
 	}
+
+	setDefaultFeatureGates(flagSet)
 
 	if settings.discoveryPropertiesFile.value != nil {
 		propertiesFile := settings.discoveryPropertiesFile.String()
@@ -295,7 +304,8 @@ func parseArgs(args []string) (*Settings, error) {
 	settings.setProperties, settings.discoveryProperties = parseSetOptionArguments(settings.setOptionArguments.value)
 
 	// Pass flags that are handled by the collector core service as raw command line arguments.
-	settings.colCoreArgs = flagSetToArgs(colCoreFlags, flagSet)
+	colCoreCommands := []string{"validate"}
+	settings.colCoreArgs = flagSetToArgs(colCoreFlags, colCoreCommands, flagSet)
 
 	return settings, nil
 }
@@ -311,12 +321,12 @@ func parseSetOptionArguments(arguments []string) (setProperties, discoveryProper
 	return
 }
 
-// flagSetToArgs takes a list of flag names and returns a list of corresponding command line arguments
-// using values from the provided flagSet.
+// flagSetToArgs takes slices of core service flag names and arguments and returns a slice of corresponding command line
+// arguments using values suitable for being passed to the underlying collector service.
 // The flagSet must be populated (flagSet.Parse is called), otherwise the returned list of arguments will be empty.
-func flagSetToArgs(flagNames []string, flagSet *flag.FlagSet) []string {
+func flagSetToArgs(colFlagNames, colCommands []string, flagSet *flag.FlagSet) []string {
 	var out []string
-	for _, flagName := range flagNames {
+	for _, flagName := range colFlagNames {
 		flag := flagSet.Lookup(flagName)
 		if flag.Changed {
 			switch fv := flag.Value.(type) {
@@ -327,6 +337,16 @@ func flagSetToArgs(flagNames []string, flagSet *flag.FlagSet) []string {
 			default:
 				out = append(out, "--"+flagName, flag.Value.String())
 			}
+		}
+	}
+
+	allowed := map[string]struct{}{}
+	for _, cmd := range colCommands {
+		allowed[cmd] = struct{}{}
+	}
+	for _, arg := range flagSet.Args() {
+		if _, ok := allowed[arg]; ok {
+			out = append(out, arg)
 		}
 	}
 	return out
@@ -399,6 +419,30 @@ func setDefaultEnvVars(s *Settings) error {
 		}
 	}
 	return nil
+}
+
+func setDefaultFeatureGates(flagSet *flag.FlagSet) {
+	// don't set defaults if service won't actually run
+	if flagSet.Lookup("version").Changed {
+		return
+	}
+	fgFlag := flagSet.Lookup(featureGates)
+	arrVal, ok := fgFlag.Value.(*stringArrayFlagValue)
+	if !ok {
+		// programming error - should only happen w/ invalid changes over time.
+		log.Printf("unexpected feature-gates flag value %T. Not setting default gates.", fgFlag.Value)
+		return
+	}
+	for _, fg := range defaultFeatureGates {
+		bareGate := fg
+		if strings.HasPrefix(fg, "+") || strings.HasPrefix(fg, "-") {
+			bareGate = fg[1:]
+		}
+		if !arrVal.contains(bareGate) && !arrVal.contains(fmt.Sprintf("-%s", bareGate)) && !arrVal.contains(fmt.Sprintf("+%s", bareGate)) {
+			arrVal.value = append(arrVal.value, fg)
+		}
+		fgFlag.Changed = true
+	}
 }
 
 func defaultListenAddr(s *Settings) string {

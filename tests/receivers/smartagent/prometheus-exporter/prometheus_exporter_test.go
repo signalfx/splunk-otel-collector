@@ -31,6 +31,17 @@ func TestPrometheusExporterProvidesInternalMetrics(t *testing.T) {
 	)
 }
 
+func TestPrometheusExporterProvidesOTelInternalMetrics(t *testing.T) {
+	testutils.SkipIfNotContainerTest(t)
+	testutils.AssertAllMetricsReceived(
+		t, "otel_internal.yaml", "internal_metrics_config.yaml", nil, []testutils.CollectorBuilder{
+			func(collector testutils.Collector) testutils.Collector {
+				return collector.WithArgs("--feature-gates", "+telemetry.useOtelForInternalMetrics")
+			},
+		},
+	)
+}
+
 func TestPrometheusExporterScrapesTargets(t *testing.T) {
 	httpd := []testutils.Container{testutils.NewContainer().WithContext(
 		path.Join(".", "testdata", "httpd"),

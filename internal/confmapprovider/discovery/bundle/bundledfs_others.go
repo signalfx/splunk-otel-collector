@@ -25,6 +25,7 @@ import (
 //go:embed bundle.d/extensions/docker-observer.discovery.yaml
 //go:embed bundle.d/extensions/host-observer.discovery.yaml
 //go:embed bundle.d/extensions/k8s-observer.discovery.yaml
+//go:embed bundle.d/receivers/mysql.discovery.yaml
 //go:embed bundle.d/receivers/oracledb.discovery.yaml
 //go:embed bundle.d/receivers/postgresql.discovery.yaml
 //go:embed bundle.d/receivers/redis.discovery.yaml

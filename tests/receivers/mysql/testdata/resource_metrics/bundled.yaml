@@ -1,0 +1,758 @@
+resource_metrics: 
+  -  scope_metrics:
+      - instrumentation_scope:
+          attributes: {}
+          name: otelcol/mysqlreceiver
+          version: <VERSION_FROM_BUILD>
+        metrics:
+          - attributes:
+              status: dirty
+            description: The number of data pages in the InnoDB buffer pool.
+            name: mysql.buffer_pool.data_pages
+            type: IntNonmonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              status: clean
+            description: The number of data pages in the InnoDB buffer pool.
+            name: mysql.buffer_pool.data_pages
+            type: IntNonmonotonicCumulativeSum
+            unit: "1"
+            
+          - description: The configured size of the InnoDB buffer pool.
+            name: mysql.buffer_pool.limit
+            type: IntNonmonotonicCumulativeSum
+            unit: By
+            
+          - attributes:
+              operation: reads
+            description: The number of operations on the InnoDB buffer pool.
+            name: mysql.buffer_pool.operations
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              operation: write_requests
+            description: The number of operations on the InnoDB buffer pool.
+            name: mysql.buffer_pool.operations
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              operation: read_requests
+            description: The number of operations on the InnoDB buffer pool.
+            name: mysql.buffer_pool.operations
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              operation: read_ahead_evicted
+            description: The number of operations on the InnoDB buffer pool.
+            name: mysql.buffer_pool.operations
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              operation: read_ahead
+            description: The number of operations on the InnoDB buffer pool.
+            name: mysql.buffer_pool.operations
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              operation: wait_free
+            description: The number of operations on the InnoDB buffer pool.
+            name: mysql.buffer_pool.operations
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              operation: read_ahead_rnd
+            description: The number of operations on the InnoDB buffer pool.
+            name: mysql.buffer_pool.operations
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - description: The number of requests to flush pages from the InnoDB buffer pool.
+            name: mysql.buffer_pool.page_flushes
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: data
+            description: The number of pages in the InnoDB buffer pool.
+            name: mysql.buffer_pool.pages
+            type: IntNonmonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: free
+            description: The number of pages in the InnoDB buffer pool.
+            name: mysql.buffer_pool.pages
+            type: IntNonmonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: misc
+            description: The number of pages in the InnoDB buffer pool.
+            name: mysql.buffer_pool.pages
+            type: IntNonmonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              status: dirty
+            description: The number of bytes in the InnoDB buffer pool.
+            name: mysql.buffer_pool.usage
+            type: IntNonmonotonicCumulativeSum
+            unit: By
+            
+          - attributes:
+              status: clean
+            description: The number of bytes in the InnoDB buffer pool.
+            name: mysql.buffer_pool.usage
+            type: IntNonmonotonicCumulativeSum
+            unit: By
+            
+          - attributes:
+              kind: writes
+            description: The number of writes to the InnoDB doublewrite buffer.
+            name: mysql.double_writes
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: pages_written
+            description: The number of writes to the InnoDB doublewrite buffer.
+            name: mysql.double_writes
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: read_rnd_next
+            description: The number of requests to various MySQL handlers.
+            name: mysql.handlers
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: read_first
+            description: The number of requests to various MySQL handlers.
+            name: mysql.handlers
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: read_prev
+            description: The number of requests to various MySQL handlers.
+            name: mysql.handlers
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: delete
+            description: The number of requests to various MySQL handlers.
+            name: mysql.handlers
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: savepoint
+            description: The number of requests to various MySQL handlers.
+            name: mysql.handlers
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: read_key
+            description: The number of requests to various MySQL handlers.
+            name: mysql.handlers
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: update
+            description: The number of requests to various MySQL handlers.
+            name: mysql.handlers
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: write
+            description: The number of requests to various MySQL handlers.
+            name: mysql.handlers
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: commit
+            description: The number of requests to various MySQL handlers.
+            name: mysql.handlers
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: read_next
+            description: The number of requests to various MySQL handlers.
+            name: mysql.handlers
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: read_rnd
+            description: The number of requests to various MySQL handlers.
+            name: mysql.handlers
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: mrr_init
+            description: The number of requests to various MySQL handlers.
+            name: mysql.handlers
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: prepare
+            description: The number of requests to various MySQL handlers.
+            name: mysql.handlers
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: external_lock
+            description: The number of requests to various MySQL handlers.
+            name: mysql.handlers
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: savepoint_rollback
+            description: The number of requests to various MySQL handlers.
+            name: mysql.handlers
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: discover
+            description: The number of requests to various MySQL handlers.
+            name: mysql.handlers
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: read_last
+            description: The number of requests to various MySQL handlers.
+            name: mysql.handlers
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: rollback
+            description: The number of requests to various MySQL handlers.
+            name: mysql.handlers
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: waited
+            description: The number of MySQL locks.
+            name: mysql.locks
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: immediate
+            description: The number of MySQL locks.
+            name: mysql.locks
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              operation: write_requests
+            description: The number of InnoDB log operations.
+            name: mysql.log_operations
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              operation: writes
+            description: The number of InnoDB log operations.
+            name: mysql.log_operations
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              operation: waits
+            description: The number of InnoDB log operations.
+            name: mysql.log_operations
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              status: closed
+            description: The number of mysqlx connections.
+            name: mysql.mysqlx_connections
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              status: rejected
+            description: The number of mysqlx connections.
+            name: mysql.mysqlx_connections
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              status: accepted
+            description: The number of mysqlx connections.
+            name: mysql.mysqlx_connections
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: table_definition
+            description: The number of opened resources.
+            name: mysql.opened_resources
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: file
+            description: The number of opened resources.
+            name: mysql.opened_resources
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: table
+            description: The number of opened resources.
+            name: mysql.opened_resources
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              operation: reads
+            description: The number of InnoDB operations.
+            name: mysql.operations
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              operation: fsyncs
+            description: The number of InnoDB operations.
+            name: mysql.operations
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              operation: writes
+            description: The number of InnoDB operations.
+            name: mysql.operations
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              operation: read
+            description: The number of InnoDB page operations.
+            name: mysql.page_operations
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              operation: written
+            description: The number of InnoDB page operations.
+            name: mysql.page_operations
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              operation: created
+            description: The number of InnoDB page operations.
+            name: mysql.page_operations
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              command: send_long_data
+            description: The number of times each type of prepared statement command has been issued.
+            name: mysql.prepared_statements
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              command: fetch
+            description: The number of times each type of prepared statement command has been issued.
+            name: mysql.prepared_statements
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              command: reset
+            description: The number of times each type of prepared statement command has been issued.
+            name: mysql.prepared_statements
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              command: close
+            description: The number of times each type of prepared statement command has been issued.
+            name: mysql.prepared_statements
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              command: execute
+            description: The number of times each type of prepared statement command has been issued.
+            name: mysql.prepared_statements
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              command: prepare
+            description: The number of times each type of prepared statement command has been issued.
+            name: mysql.prepared_statements
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: waits
+            description: The number of InnoDB row locks.
+            name: mysql.row_locks
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: time
+            description: The number of InnoDB row locks.
+            name: mysql.row_locks
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              operation: read
+            description: The number of InnoDB row operations.
+            name: mysql.row_operations
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              operation: inserted
+            description: The number of InnoDB row operations.
+            name: mysql.row_operations
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              operation: updated
+            description: The number of InnoDB row operations.
+            name: mysql.row_operations
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              operation: deleted
+            description: The number of InnoDB row operations.
+            name: mysql.row_operations
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: scan
+            description: The number of MySQL sorts.
+            name: mysql.sorts
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: merge_passes
+            description: The number of MySQL sorts.
+            name: mysql.sorts
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: rows
+            description: The number of MySQL sorts.
+            name: mysql.sorts
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: range
+            description: The number of MySQL sorts.
+            name: mysql.sorts
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: created
+            description: The state of MySQL threads.
+            name: mysql.threads
+            type: IntNonmonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: cached
+            description: The state of MySQL threads.
+            name: mysql.threads
+            type: IntNonmonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: running
+            description: The state of MySQL threads.
+            name: mysql.threads
+            type: IntNonmonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: connected
+            description: The state of MySQL threads.
+            name: mysql.threads
+            type: IntNonmonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              resource: tables
+            description: The number of created temporary resources.
+            name: mysql.tmp_resources
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              resource: disk_tables
+            description: The number of created temporary resources.
+            name: mysql.tmp_resources
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              resource: files
+            description: The number of created temporary resources.
+            name: mysql.tmp_resources
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - description: The number of seconds that the server has been up.
+            name: mysql.uptime
+            type: IntMonotonicCumulativeSum
+            unit: s
+            
+          - attributes:
+              status: dirty
+            description: The number of data pages in the InnoDB buffer pool.
+            name: mysql.buffer_pool.data_pages
+            type: IntNonmonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              status: clean
+            description: The number of data pages in the InnoDB buffer pool.
+            name: mysql.buffer_pool.data_pages
+            type: IntNonmonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              operation: read_requests
+            description: The number of operations on the InnoDB buffer pool.
+            name: mysql.buffer_pool.operations
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              operation: write_requests
+            description: The number of operations on the InnoDB buffer pool.
+            name: mysql.buffer_pool.operations
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - description: The number of requests to flush pages from the InnoDB buffer pool.
+            name: mysql.buffer_pool.page_flushes
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              status: dirty
+            description: The number of bytes in the InnoDB buffer pool.
+            name: mysql.buffer_pool.usage
+            type: IntNonmonotonicCumulativeSum
+            unit: By
+            
+          - attributes:
+              status: clean
+            description: The number of bytes in the InnoDB buffer pool.
+            name: mysql.buffer_pool.usage
+            type: IntNonmonotonicCumulativeSum
+            unit: By
+            
+          - attributes:
+              kind: writes
+            description: The number of writes to the InnoDB doublewrite buffer.
+            name: mysql.double_writes
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: pages_written
+            description: The number of writes to the InnoDB doublewrite buffer.
+            name: mysql.double_writes
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: write
+            description: The number of requests to various MySQL handlers.
+            name: mysql.handlers
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: external_lock
+            description: The number of requests to various MySQL handlers.
+            name: mysql.handlers
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: read_rnd
+            description: The number of requests to various MySQL handlers.
+            name: mysql.handlers
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: read_rnd_next
+            description: The number of requests to various MySQL handlers.
+            name: mysql.handlers
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: immediate
+            description: The number of MySQL locks.
+            name: mysql.locks
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              operation: writes
+            description: The number of InnoDB log operations.
+            name: mysql.log_operations
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              operation: write_requests
+            description: The number of InnoDB log operations.
+            name: mysql.log_operations
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              operation: writes
+            description: The number of InnoDB operations.
+            name: mysql.operations
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              operation: fsyncs
+            description: The number of InnoDB operations.
+            name: mysql.operations
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              operation: written
+            description: The number of InnoDB page operations.
+            name: mysql.page_operations
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: scan
+            description: The number of MySQL sorts.
+            name: mysql.sorts
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: rows
+            description: The number of MySQL sorts.
+            name: mysql.sorts
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              resource: tables
+            description: The number of created temporary resources.
+            name: mysql.tmp_resources
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - description: The number of seconds that the server has been up.
+            name: mysql.uptime
+            type: IntMonotonicCumulativeSum
+            unit: s
+            
+          - attributes:
+              kind: read_rnd_next
+            description: The number of requests to various MySQL handlers.
+            name: mysql.handlers
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: write
+            description: The number of requests to various MySQL handlers.
+            name: mysql.handlers
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: external_lock
+            description: The number of requests to various MySQL handlers.
+            name: mysql.handlers
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: read_rnd
+            description: The number of requests to various MySQL handlers.
+            name: mysql.handlers
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: immediate
+            description: The number of MySQL locks.
+            name: mysql.locks
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: scan
+            description: The number of MySQL sorts.
+            name: mysql.sorts
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              kind: rows
+            description: The number of MySQL sorts.
+            name: mysql.sorts
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - attributes:
+              resource: tables
+            description: The number of created temporary resources.
+            name: mysql.tmp_resources
+            type: IntMonotonicCumulativeSum
+            unit: "1"
+            
+          - description: The number of seconds that the server has been up.
+            name: mysql.uptime
+            type: IntMonotonicCumulativeSum
+            unit: s
+            

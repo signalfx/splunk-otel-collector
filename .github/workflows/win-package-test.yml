@@ -78,7 +78,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: ${{ env.PIP_CACHE_DIR }}
           key: agent-bundle-windows-pip-${{ hashFiles('internal/signalfx-agent/bundle/collectd-plugins.yaml', 'internal/signalfx-agent/bundle/scripts/requirements.txt') }}

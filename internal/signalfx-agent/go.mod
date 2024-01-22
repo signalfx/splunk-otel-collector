@@ -54,7 +54,7 @@ require (
 	github.com/mitchellh/hashstructure v1.1.0
 	github.com/mongodb/go-client-mongodb-atlas v0.2.0
 	github.com/onsi/ginkgo v1.16.5
-	github.com/onsi/gomega v1.30.0
+	github.com/onsi/gomega v1.31.1
 	github.com/openshift/api v0.0.0-20230417092139-1b2161d23365
 	github.com/openshift/client-go v0.0.0-20230419131419-497c7032c581
 	github.com/opentracing/opentracing-go v1.2.1-0.20220228012449-10b1cf09e00b
@@ -76,7 +76,7 @@ require (
 	golang.org/x/net v0.20.0 // indirect
 	golang.org/x/sync v0.6.0
 	golang.org/x/sys v0.16.0
-	golang.org/x/tools v0.16.0 // indirect
+	golang.org/x/tools v0.16.1 // indirect
 	google.golang.org/grpc v1.60.1
 	gopkg.in/go-playground/validator.v9 v9.31.0
 	gopkg.in/yaml.v2 v2.4.0

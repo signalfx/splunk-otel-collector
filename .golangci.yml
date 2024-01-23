@@ -110,3 +110,9 @@ linters:
     - staticcheck
     - unconvert
     - unparam
+
+issues:
+  exclude-rules:
+    - text: "SA1019: \"github.com/signalfx/splunk-otel-collector/internal/exporter/httpsinkexporter"
+      linters:
+        - staticcheck

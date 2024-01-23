@@ -17,21 +17,38 @@ if os[:family] == 'windows'
   bundle_dir = "#{ENV['ProgramFiles']}\\Splunk\\OpenTelemetry Collector\\agent-bundle"
   collectd_dir = "#{bundle_dir}\\run\\collectd"
   config_path = "#{ENV['ProgramData']}\\Splunk\\OpenTelemetry Collector\\agent_config.yaml"
-  describe registry_key('HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment') do
-    its('SPLUNK_ACCESS_TOKEN') { should eq splunk_access_token }
-    its('SPLUNK_API_URL') { should eq splunk_api_url }
-    its('SPLUNK_BUNDLE_DIR') { should eq bundle_dir }
-    its('SPLUNK_COLLECTD_DIR') { should eq collectd_dir }
-    its('SPLUNK_CONFIG') { should eq config_path }
-    its('SPLUNK_HEC_TOKEN') { should eq splunk_hec_token }
-    its('SPLUNK_HEC_URL') { should eq splunk_hec_url }
-    its('SPLUNK_INGEST_URL') { should eq splunk_ingest_url }
-    its('SPLUNK_LISTEN_INTERFACE') { should eq splunk_listen_interface }
-    its('SPLUNK_MEMORY_TOTAL_MIB') { should eq splunk_memory_total }
-    its('SPLUNK_REALM') { should eq splunk_realm }
-    its('SPLUNK_TRACE_URL') { should eq splunk_trace_url }
-    its('MY_CUSTOM_VAR1') { should eq 'value1' }
-    its('MY_CUSTOM_VAR2') { should eq 'value2' }
+  collector_env_vars = [
+    { name: 'SPLUNK_ACCESS_TOKEN', type: :string, data: splunk_access_token },
+    { name: 'SPLUNK_API_URL', type: :string, data: splunk_api_url },
+    { name: 'SPLUNK_BUNDLE_DIR', type: :string, data: bundle_dir },
+    { name: 'SPLUNK_COLLECTD_DIR', type: :string, data: collectd_dir },
+    { name: 'SPLUNK_CONFIG', type: :string, data: config_path },
+    { name: 'SPLUNK_HEC_TOKEN', type: :string, data: splunk_hec_token },
+    { name: 'SPLUNK_HEC_URL', type: :string, data: splunk_hec_url },
+    { name: 'SPLUNK_INGEST_URL', type: :string, data: splunk_ingest_url },
+    { name: 'SPLUNK_LISTEN_INTERFACE', type: :string, data: splunk_listen_interface },
+    { name: 'SPLUNK_MEMORY_TOTAL_MIB', type: :string, data: splunk_memory_total },
+    { name: 'SPLUNK_REALM', type: :string, data: splunk_realm },
+    { name: 'SPLUNK_TRACE_URL', type: :string, data: splunk_trace_url },
+    { name: 'MY_CUSTOM_VAR1', type: :string, data: 'value1' },
+    { name: 'MY_CUSTOM_VAR2', type: :string, data: 'value2' },
+  ]
+  unless splunk_ballast_size_mib.to_s.strip.empty?
+    collector_env_vars.push({ name: 'SPLUNK_BALLAST_SIZE_MIB', type: :string, data: splunk_ballast_size_mib })
+  end
+  unless splunk_listen_interface.to_s.strip.empty?
+    collector_env_vars.push({ name: 'SPLUNK_LISTEN_INTERFACE', type: :string, data: splunk_listen_interface })
+  end
+  collector_env_vars_strings = []
+  collector_env_vars.each do |item|
+    collector_env_vars_strings |= [ "#{item[:name]}=#{item[:data]}" ]
+  end
+  collector_env_vars_strings.sort!
+  describe registry_key('HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\splunk-otel-collector') do
+    it { should exist('Environment', :multi_string) }
+  end
+  describe registry_key('HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\splunk-otel-collector') do
+    it { should have_property_value('Environment', :multi_string, collector_env_vars_strings) }
   end
   describe service('fluentdwinsvc') do
     it { should be_enabled }

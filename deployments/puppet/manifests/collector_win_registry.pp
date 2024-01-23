@@ -1,110 +1,38 @@
 # Class for setting the registry values for the splunk-otel-collector service
 class splunk_otel_collector::collector_win_registry () {
-  $registry_key = 'HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment'
-
-  registry_key { $registry_key:
-    ensure => 'present',
+  $unordered_collector_env_vars = $splunk_otel_collector::collector_additional_env_vars.map |$var, $value| {
+    "${var}=${value}"
+  }
+  + [
+    "SPLUNK_ACCESS_TOKEN=${splunk_otel_collector::splunk_access_token}",
+    "SPLUNK_API_URL=${splunk_otel_collector::splunk_api_url}",
+    "SPLUNK_BUNDLE_DIR=${splunk_otel_collector::splunk_bundle_dir}",
+    "SPLUNK_COLLECTD_DIR=${splunk_otel_collector::splunk_collectd_dir}",
+    "SPLUNK_CONFIG=${splunk_otel_collector::collector_config_dest}",
+    "SPLUNK_HEC_TOKEN=${splunk_otel_collector::splunk_hec_token}",
+    "SPLUNK_HEC_URL=${splunk_otel_collector::splunk_hec_url}",
+    "SPLUNK_INGEST_URL=${splunk_otel_collector::splunk_ingest_url}",
+    "SPLUNK_MEMORY_TOTAL_MIB=${splunk_otel_collector::splunk_memory_total_mib}",
+    "SPLUNK_REALM=${splunk_otel_collector::splunk_realm}",
+    "SPLUNK_TRACE_URL=${splunk_otel_collector::splunk_trace_url}",
+  ]
+  + if !$splunk_otel_collector::splunk_ballast_size_mib.strip().empty() {
+    ["SPLUNK_BALLAST_SIZE_MIB=${splunk_otel_collector::splunk_ballast_size_mib}"]
+  } else {
+    []
+  }
+  + if !$splunk_otel_collector::splunk_listen_interface.strip().empty() {
+    ["SPLUNK_LISTEN_INTERFACE=${splunk_otel_collector::splunk_listen_interface}"]
+  } else {
+    []
   }
 
-  registry_value { "${registry_key}\\SPLUNK_ACCESS_TOKEN":
+  $collector_env_vars = sort($unordered_collector_env_vars)
+
+  registry_value { "HKLM\\SYSTEM\\CurrentControlSet\\Services\\splunk-otel-collector\\Environment":
     ensure  => 'present',
-    type    => 'string',
-    data    => $splunk_otel_collector::splunk_access_token,
-    require => Registry_key[$registry_key],
-  }
-
-  registry_value { "${registry_key}\\SPLUNK_API_URL":
-    ensure  => 'present',
-    type    => 'string',
-    data    => $splunk_otel_collector::splunk_api_url,
-    require => Registry_key[$registry_key],
-  }
-
-  registry_value { "${registry_key}\\SPLUNK_BALLAST_SIZE_MIB":
-    ensure  => 'present',
-    type    => 'string',
-    data    => $splunk_otel_collector::splunk_ballast_size_mib,
-    require => Registry_key[$registry_key],
-  }
-
-  unless $splunk_otel_collector::splunk_listen_interface.strip().empty {
-    registry_value { "${registry_key}\\SPLUNK_LISTEN_INTERFACE":
-      ensure  => 'present',
-      type    => 'string',
-      data    => $splunk_otel_collector::splunk_listen_interface,
-      require => Registry_key[$registry_key],
-    }
-  }
-
-  registry_value { "${registry_key}\\SPLUNK_BUNDLE_DIR":
-    ensure  => 'present',
-    type    => 'string',
-    data    => $splunk_otel_collector::splunk_bundle_dir,
-    require => Registry_key[$registry_key],
-  }
-
-  registry_value { "${registry_key}\\SPLUNK_COLLECTD_DIR":
-    ensure  => 'present',
-    type    => 'string',
-    data    => $splunk_otel_collector::splunk_collectd_dir,
-    require => Registry_key[$registry_key],
-  }
-
-  registry_value { "${registry_key}\\SPLUNK_CONFIG":
-    ensure  => 'present',
-    type    => 'string',
-    data    => $splunk_otel_collector::collector_config_dest,
-    require => Registry_key[$registry_key],
-  }
-
-  registry_value { "${registry_key}\\SPLUNK_HEC_TOKEN":
-    ensure  => 'present',
-    type    => 'string',
-    data    => $splunk_otel_collector::splunk_hec_token,
-    require => Registry_key[$registry_key],
-  }
-
-  registry_value { "${registry_key}\\SPLUNK_HEC_URL":
-    ensure  => 'present',
-    type    => 'string',
-    data    => $splunk_otel_collector::splunk_hec_url,
-    require => Registry_key[$registry_key],
-  }
-
-  registry_value { "${registry_key}\\SPLUNK_INGEST_URL":
-    ensure  => 'present',
-    type    => 'string',
-    data    => $splunk_otel_collector::splunk_ingest_url,
-    require => Registry_key[$registry_key],
-  }
-
-  registry_value { "${registry_key}\\SPLUNK_MEMORY_TOTAL_MIB":
-    ensure  => 'present',
-    type    => 'string',
-    data    => $splunk_otel_collector::splunk_memory_total_mib,
-    require => Registry_key[$registry_key],
-  }
-
-  registry_value { "${registry_key}\\SPLUNK_REALM":
-    ensure  => 'present',
-    type    => 'string',
-    data    => $splunk_otel_collector::splunk_realm,
-    require => Registry_key[$registry_key],
-  }
-
-  registry_value { "${registry_key}\\SPLUNK_TRACE_URL":
-    ensure  => 'present',
-    type    => 'string',
-    data    => $splunk_otel_collector::splunk_trace_url,
-    require => Registry_key[$registry_key],
-  }
-
-  $splunk_otel_collector::collector_additional_env_vars.each |$var, $value| {
-    registry_value { "${registry_key}\\${var}":
-      ensure  => 'present',
-      type    => 'string',
-      data    => $value,
-      require => Registry_key[$registry_key],
-    }
+    type    => array,
+    data    => $collector_env_vars,
+    require => Registry_key["HKLM\\SYSTEM\\CurrentControlSet\\Services\\splunk-otel-collector"],
   }
 }

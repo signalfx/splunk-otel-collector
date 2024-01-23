@@ -68,18 +68,7 @@ following command in a PowerShell terminal:
 Start-Service splunk-otel-collector
 ```
 
-To modify the default path to the configuration file for the
-`splunk-otel-collector` service, run `regdit` and modify the `SPLUNK_CONFIG`
-value in the
-`HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment`
-registry key, or run the following PowerShell command (replace `PATH` with the
-full path to the new configuration file):
-
-```powershell
-Set-ItemProperty -path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" -name "SPLUNK_CONFIG" -value "PATH"
-```
-
-To add or remove command line options for the `splunk-otel-collector` service,
+To modify, add or remove command line options for the `splunk-otel-collector` service,
 run `regedit` and modify the `ImagePath` value in the
 `HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector` registry key,
 or run the following PowerShell command (replace `OPTIONS` with the desired
@@ -195,15 +184,15 @@ choco install splunk-otel-collector --params="'/SPLUNK_ACCESS_TOKEN:MY_SPLUNK_AC
 
 The following package parameters are available:
 
- * `/SPLUNK_ACCESS_TOKEN`: The Splunk access token (org token) used to send data to Splunk Observability Cloud. This parameter is saved to the `HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment\SPLUNK_ACCESS_TOKEN` registry value.
- * `/SPLUNK_REALM`: The Splunk realm to send the data to. This parameter is saved to the `HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment\SPLUNK_REALM` registry value. Default value is `us0`.
- * `/SPLUNK_INGEST_URL:`: URL of the Splunk ingest endpoint (e.g. `https://ingest.us1.signalfx.com`). This parameter is saved to the `HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment\SPLUNK_INGEST_URL` registry value. Default value is `https://ingest.$SPLUNK_REALM.signalfx.com`.
- * `/SPLUNK_API_URL`: URL of the Splunk API endpoint (e.g. `https://api.us1.signalfx.com`). This parameter is saved to the `HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment\SPLUNK_API_URL` registry value. Default value is `https://api.$SPLUNK_REALM.signalfx.com`.
- * `/SPLUNK_HEC_TOKEN`: The Splunk HEC authentication token. This parameter is saved to the `HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment\SPLUNK_HEC_TOKEN` registry value. Default value is the same as `SPLUNK_ACCESS_TOKEN`.
- * `/SPLUNK_HEC_URL`: URL of the Splunk HEC endpoint (e.g. `https://ingest.us1.signalfx.com/v1/log`). This parameter is saved to the `HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment\SPLUNK_HEC_URL` registry value. Default value is `https://ingest.$SPLUNK_REALM.signalfx.com/v1/log`
- * `/SPLUNK_TRACE_URL`: URL of the Splunk trace endpoint (e.g. `https://ingest.us1.signalfx.com/v2/trace`). This parameter is saved to the `HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment\SPLUNK_TRACE_URL` registry value. Default value is `https://ingest.$SPLUNK_REALM.signalfx.com/v2/trace`
- * `/SPLUNK_BUNDLE_DIR`: The path to the Smart Agent bundle directory for the `smartagent` receiver and extension. The default path is provided by the Collector package. If the specified path is changed from the default value, the path should be an existing directory on the system. This parameter is saved to the `HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment\SPLUNK_BUNDLE_DIR` registry value. Default value is `\Program Files\Splunk\OpenTelemetry Collector\agent-bundle`.
- * `/MODE`: This parameter is used for setting the `HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment\SPLUNK_CONFIG` registry value to `\ProgramData\Splunk\OpenTelemetry Collector\agent_config.yaml` or `\ProgramData\Splunk\OpenTelemetry Collector\gateway_config.yaml`. Possible values are `agent` and `gateway`. Default value is `agent`.
+ * `/SPLUNK_ACCESS_TOKEN`: The Splunk access token (org token) used to send data to Splunk Observability Cloud.
+ * `/SPLUNK_REALM`: The Splunk realm to send the data to. Default value is `us0`.
+ * `/SPLUNK_INGEST_URL:`: URL of the Splunk ingest endpoint (e.g. `https://ingest.us1.signalfx.com`). Default value is `https://ingest.$SPLUNK_REALM.signalfx.com`.
+ * `/SPLUNK_API_URL`: URL of the Splunk API endpoint (e.g. `https://api.us1.signalfx.com`). Default value is `https://api.$SPLUNK_REALM.signalfx.com`.
+ * `/SPLUNK_HEC_TOKEN`: The Splunk HEC authentication token. Default value is the same as `SPLUNK_ACCESS_TOKEN`.
+ * `/SPLUNK_HEC_URL`: URL of the Splunk HEC endpoint (e.g. `https://ingest.us1.signalfx.com/v1/log`). Default value is `https://ingest.$SPLUNK_REALM.signalfx.com/v1/log`
+ * `/SPLUNK_TRACE_URL`: URL of the Splunk trace endpoint (e.g. `https://ingest.us1.signalfx.com/v2/trace`). Default value is `https://ingest.$SPLUNK_REALM.signalfx.com/v2/trace`
+ * `/SPLUNK_BUNDLE_DIR`: The path to the Smart Agent bundle directory for the `smartagent` receiver and extension. The default path is provided by the Collector package. If the specified path is changed from the default value, the path should be an existing directory on the system. Default value is `\Program Files\Splunk\OpenTelemetry Collector\agent-bundle`.
+ * `/MODE`: This parameter is used for setting the `SPLUNK_CONFIG` value to `\ProgramData\Splunk\OpenTelemetry Collector\agent_config.yaml` or `\ProgramData\Splunk\OpenTelemetry Collector\gateway_config.yaml`. Possible values are `agent` and `gateway`. Default value is `agent`.
  * `/WITH_FLUENTD`: Whether to download, install, and configure Fluentd to collect and forward log events to the Collector. Possible values are `true` and `false`. If set to `true`, the Fluentd MSI package will be downloaded from `https://packages.treasuredata.com`. Default value is `false`.
 
 To pass parameters, use `--params "''"` (e.g. `choco install splunk-otel-collector --params="'/SPLUNK_ACCESS_TOKEN:MY_SPLUNK_ACCESS_TOKEN /SPLUNK_REALM:MY_SPLUNK_REALM'"`).
@@ -213,7 +202,7 @@ To have choco remember parameters on upgrade, be sure to set `choco feature enab
 #### Notes
 
  * If the `SPLUNK_ACCESS_TOKEN` parameter is not specified on initial installation, the Collector service will not be started. In order to start the Collector service, manually create/set the `HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment\SPLUNK_ACCESS_TOKEN` registry value to the Splunk access token and run the `Start-Service splunk-otel-collector` PowerShell command.
- * If the Collector configuration file or any of the `HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment\SPLUNK_*` registry values are modified after installation, restart the Collector service by restarting the system or by running the `Restart-Service splunk-otel-collector` PowerShell command.
+ * If the Collector configuration file or any of the service configuration settings are modified after installation, restart the Collector service by restarting the system or by running the `Restart-Service splunk-otel-collector` PowerShell command.
  * If the `WITH_FLUENTD` parameter is set to `true` and the `\opt\td-agent\etc\td-agent\td-agent.conf` Fluentd configuration file does not exist, this file will be created and customized to collect events from the Windows Event Log and forward the collected events to the Collector. If this file is modified after installation, restart the Fluentd service by restarting the system or by running the `Restart-Service fluentdwinsvc` PowerShell command.
  * See [Collector Configuration](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/getting-started/windows-installer.md#collector-configuration) for additional configuration details.
 

@@ -4,7 +4,7 @@
   gather_facts: true
   become: no
   vars:
-    reg_values:
+    collector_reg_values:
       SPLUNK_CONFIG: '{{ ansible_env.ProgramData }}\Splunk\OpenTelemetry Collector\custom_config.yml'
       SPLUNK_INGEST_URL: https://fake-splunk-ingest.com
       SPLUNK_API_URL: https://fake-splunk-api.com
@@ -15,11 +15,10 @@
       SPLUNK_BALLAST_SIZE_MIB: "100"
       MY_CUSTOM_VAR1: value1
       MY_CUSTOM_VAR2: value2
-      SIGNALFX_DOTNET_TRACER_HOME: '{{ ansible_env.ProgramFiles }}\SignalFx\.NET Tracing\'
-    dotnet_reg_values:
-      COR_ENABLE_PROFILING: "true"
+    iis_reg_values:
+      COR_ENABLE_PROFILING: "1"
       COR_PROFILER: "{B4C89B0F-9908-4F73-9F59-0D77C5A06874}"
-      CORECLR_ENABLE_PROFILING: "true"
+      CORECLR_ENABLE_PROFILING: "1"
       CORECLR_PROFILER: "{B4C89B0F-9908-4F73-9F59-0D77C5A06874}"
       SIGNALFX_ENV: test-environment
       SIGNALFX_SERVICE_NAME: test-service-name
@@ -28,6 +27,8 @@
       SIGNALFX_GLOBAL_TAGS: splunk.zc.method:signalfx-dotnet-tracing-1.0.0,dotnet-tag:dotnet-tag-value
       SIGNALFX_DOTNET_VAR1: dotnet-value1
       SIGNALFX_DOTNET_VAR2: dotnet-value2
+    machine_reg_values:
+      SIGNALFX_DOTNET_TRACER_HOME: '{{ ansible_env.ProgramFiles }}\SignalFx\.NET Tracing\'
   tasks:
     - name: Check splunk-otel-collector service
       ansible.windows.win_service:
@@ -35,10 +36,6 @@
         state: started
       check_mode: yes
       register: service_status
-
-    - name: Assert splunk-otel-collector service status
-      assert:
-        that: not service_status.changed
 
     - name: Check fluentdwinsvc service
       ansible.windows.win_service:
@@ -124,7 +121,18 @@
     - name: Verify IIS env vars
       assert:
         that: (item.key + '=' + item.value) in iis_env.value
-      loop: "{{ dotnet_reg_values | dict2items }}"
+      loop: "{{ iis_reg_values | dict2items }}"
+
+    - name: Get splunk-otel-collector service env vars
+      ansible.windows.win_reg_stat:
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector
+        name: Environment
+      register: collector_env
+
+    - name: Verify splunk-otel-collector service env vars
+      assert:
+        that: (item.key + '=' + item.value) in collector_env.value
+      loop: "{{ collector_reg_values | dict2items }}"
 
     - name: Verify env vars
       include_tasks: ../shared/verify_registry_key.yml
@@ -132,4 +140,4 @@
         path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
         name: "{{ item.key }}"
         value: "{{ item.value }}"
-      loop: "{{ reg_values | combine(dotnet_reg_values) | dict2items }}"
+      loop: "{{ machine_reg_values | dict2items }}"

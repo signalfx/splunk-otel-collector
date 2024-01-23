@@ -38,8 +38,10 @@
                      <RegistryKey Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\EventLog\Application\splunk-otel-collector">
                         <RegistryValue Type="expandable" Name="EventMessageFile" Value="%SystemRoot%\System32\EventCreate.exe"/>
                      </RegistryKey>
-                     <RegistryKey Root="HKLM" Key="SYSTEM\CurrentControlSet\Control\Session Manager\Environment">
-                        <RegistryValue Type="string" Name="SPLUNK_CONFIG" Value="[CommonAppDataFolder]Splunk\OpenTelemetry Collector\agent_config.yaml"/>
+                     <RegistryKey Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\splunk-otel-collector">
+                        <RegistryValue Type="multiString" Name="Environment">
+                           <MultiStringValue>SPLUNK_CONFIG=[CommonAppDataFolder]Splunk\OpenTelemetry Collector\agent_config.yaml"</MultiStringValue>
+                        </RegistryValue>
                      </RegistryKey>
                   </Component>
                </Directory>

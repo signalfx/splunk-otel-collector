@@ -35,26 +35,12 @@
       {%- endif -%}
   when: ansible_os_family != "Windows"
 
+- name: set configurable defaults for Windows
+  ansible.builtin.import_tasks: win_configurable_vars.yml
+  when: ansible_os_family == "Windows"
+
 - name: set default vars for Windows
   set_fact:
-    splunk_bundle_dir: |-
-      {%- if splunk_bundle_dir -%}
-        {{ splunk_bundle_dir }}
-      {%- else -%}
-        {{ansible_env.ProgramFiles}}\Splunk\OpenTelemetry Collector\agent-bundle
-      {%- endif -%}
-    splunk_collectd_dir: |-
-      {%- if splunk_collectd_dir -%}
-        {{ splunk_collectd_dir }}
-      {%- else -%}
-        {{ansible_env.ProgramFiles}}\Splunk\OpenTelemetry Collector\agent-bundle\run\collectd
-      {%- endif -%}
-    splunk_otel_collector_config: |-
-      {%- if splunk_otel_collector_config -%}
-        {{ splunk_otel_collector_config }}
-      {%- else -%}
-        {{ansible_env.ProgramData}}\Splunk\OpenTelemetry Collector\agent_config.yaml
-      {%- endif -%}
     splunk_fluentd_config: |-
       {%- if splunk_fluentd_config -%}
         {{ splunk_fluentd_config }}
@@ -72,9 +58,9 @@
     win_base_url: https://dl.signalfx.com
     win_use_proxy: "no"
     dotnet_options:
-      COR_ENABLE_PROFILING: true
+      COR_ENABLE_PROFILING: "1"
       COR_PROFILER: "{B4C89B0F-9908-4F73-9F59-0D77C5A06874}"
-      CORECLR_ENABLE_PROFILING: true
+      CORECLR_ENABLE_PROFILING: "1"
       CORECLR_PROFILER: "{B4C89B0F-9908-4F73-9F59-0D77C5A06874}"
       SIGNALFX_ENV: "{{ signalfx_dotnet_auto_instrumentation_environment }}"
       SIGNALFX_SERVICE_NAME: "{{ signalfx_dotnet_auto_instrumentation_service_name }}"
@@ -82,4 +68,23 @@
       SIGNALFX_PROFILER_ENABLED: "{{ signalfx_dotnet_auto_instrumentation_enable_profiler }}"
       SIGNALFX_PROFILER_MEMORY_ENABLED: "{{ signalfx_dotnet_auto_instrumentation_enable_profiler_memory }}"
     iis_registry_key: HKLM:\SYSTEM\CurrentControlSet\Services\W3SVC
+    splunk_otel_collector_options:
+      SPLUNK_ACCESS_TOKEN: "{{ splunk_access_token }}"
+      SPLUNK_API_URL: "{{ splunk_api_url }}"
+      SPLUNK_BALLAST_SIZE_MIB: "{{ splunk_ballast_size_mib if splunk_ballast_size_mib != '' else omit }}"
+      SPLUNK_BUNDLE_DIR: >-
+        {{ splunk_bundle_dir if splunk_bundle_dir != '' else
+        '{{ansible_env.ProgramFiles}}\Splunk\OpenTelemetry Collector\agent-bundle' }}
+      SPLUNK_COLLECTD_DIR: "{{ splunk_collectd_dir if splunk_collectd_dir != '' else omit }}"
+      SPLUNK_CONFIG: >-
+        {{ splunk_otel_collector_config if splunk_otel_collector_config != '' else
+        '{{ ansible_env.ProgramData }}\Splunk\OpenTelemetry Collector\agent_config.yaml' }}
+      SPLUNK_INGEST_URL: "{{ splunk_ingest_url }}"
+      SPLUNK_HEC_TOKEN: "{{ splunk_hec_token }}"
+      SPLUNK_HEC_URL: "{{ splunk_hec_url }}"
+      SPLUNK_LISTEN_INTERFACE: "{{ splunk_listen_interface if splunk_listen_interface != '' else omit }}"
+      SPLUNK_MEMORY_TOTAL_MIB: "{{ splunk_memory_total_mib }}"
+      SPLUNK_REALM: "{{ splunk_realm }}"
+      SPLUNK_TRACE_URL: "{{ splunk_trace_url }}"
+    splunk_otel_collector_service_registry_key: HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector
   when: ansible_os_family == "Windows"

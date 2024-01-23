@@ -111,6 +111,11 @@
     For information about the public MSI properties see https://learn.microsoft.com/en-us/windows/win32/msi/property-reference#configuration-properties
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -msi_public_properties "ALLUSERS=1" 
+.PARAMETER config_path
+    (OPTIONAL) Specify a local path to an alternative configuration file for the Splunk OpenTelemetry Collector.
+    If specified, the -mode parameter will be ignored.
+    .EXAMPLE
+    .\install.ps1 -config_path "C:\SOME_FOLDER\my_config.yaml"
 #>
 
 param (
@@ -132,6 +137,7 @@ param (
     [ValidateSet('test','beta','release')][string]$stage = "release",
     [string]$msi_path = "",
     [string]$msi_public_properties = "",
+    [string]$config_path = "",
     [string]$collector_msi_url = "",
     [string]$fluentd_msi_url = "",
     [string]$deployment_env = "",
@@ -157,7 +163,6 @@ try {
 $old_config_path = "$program_data_path\config.yaml"
 $agent_config_path = "$program_data_path\agent_config.yaml"
 $gateway_config_path = "$program_data_path\gateway_config.yaml"
-$config_path = ""
 
 try {
     Resolve-Path $env:TEMP 2>&1>$null
@@ -165,8 +170,6 @@ try {
 } catch {
     $tempdir = "\tmp\Splunk\OpenTelemetry Collector"
 }
-
-$regkey = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
 
 $fluentd_msi_name = "td-agent-4.3.2-x64.msi"
 $fluentd_dl_url = "https://s3.amazonaws.com/packages.treasuredata.com/4/windows/$fluentd_msi_name"
@@ -420,6 +423,20 @@ function update_registry([string]$path, [string]$name, [string]$value) {
     Set-ItemProperty -path "$path" -name "$name" -value "$value"
 }
 
+function set_service_environment([string]$service_name, [hashtable]$env_vars) {
+    # Transform the $env_vars to an array of strings so the Set-ItemProperty correctly create the
+    # 'Environment' REG_MULTI_SZ value.
+    [string []] $multi_sz_value = ($env_vars.Keys | ForEach-Object { "$_=$($env_vars[$_])" } | Sort-Object)
+
+    $target_service_reg_key = Join-Path "HKLM:\SYSTEM\CurrentControlSet\Services" $service_name
+    if (Test-Path $target_service_reg_key) {
+        Set-ItemProperty $target_service_reg_key -Name "Environment" -Value $multi_sz_value
+    }
+    else {
+        throw "Invalid service '$service_name'. Registry key '$target_service_reg_key' doesn't exist."
+    }
+}
+
 function install_msi([string]$path) {
     Write-Host "Installing $path ..."
     $startTime = Get-Date
@@ -566,33 +583,39 @@ if (!(Test-Path -Path "$old_config_path") -And (Test-Path -Path "$installation_p
     Copy-Item "$installation_path\config.yaml" "$old_config_path"
 }
 
-if (($mode -Eq "agent") -And (Test-Path -Path "$agent_config_path")) {
-    $config_path = $agent_config_path
-} elseif (($mode -Eq "gateway") -And (Test-Path -Path "$gateway_config_path")) {
-    $config_path = $gateway_config_path
-}
-
 if ($config_path -Eq "") {
-    if (Test-Path -Path "$old_config_path") {
+    if (($mode -Eq "agent") -And (Test-Path -Path "$agent_config_path")) {
+        $config_path = $agent_config_path
+    } elseif (($mode -Eq "gateway") -And (Test-Path -Path "$gateway_config_path")) {
+        $config_path = $gateway_config_path
+    } elseif (Test-Path -Path "$old_config_path") {
         $config_path = $old_config_path
-    } else {
-        throw "Valid Collector configuration file not found."
     }
 }
 
-update_registry -path "$regkey" -name "SPLUNK_ACCESS_TOKEN" -value "$access_token"
-update_registry -path "$regkey" -name "SPLUNK_API_URL" -value "$api_url"
-update_registry -path "$regkey" -name "SPLUNK_BUNDLE_DIR" -value "$bundle_dir"
-update_registry -path "$regkey" -name "SPLUNK_CONFIG" -value "$config_path"
-update_registry -path "$regkey" -name "SPLUNK_HEC_TOKEN" -value "$hec_token"
-update_registry -path "$regkey" -name "SPLUNK_HEC_URL" -value "$hec_url"
-update_registry -path "$regkey" -name "SPLUNK_INGEST_URL" -value "$ingest_url"
-update_registry -path "$regkey" -name "SPLUNK_MEMORY_TOTAL_MIB" -value "$memory"
-if ($network_interface -Ne "") {
-  update_registry -path "$regkey" -name "SPLUNK_LISTEN_INTERFACE" -value "$network_interface"
+if (!(Test-Path -Path "$config_path")) {
+    throw "Valid Collector configuration file not found at $config_path."
 }
-update_registry -path "$regkey" -name "SPLUNK_REALM" -value "$realm"
-update_registry -path "$regkey" -name "SPLUNK_TRACE_URL" -value "$trace_url"
+
+$collector_env_vars = @{
+    "SPLUNK_ACCESS_TOKEN"     = "$access_token";
+    "SPLUNK_API_URL"          = "$api_url";
+    "SPLUNK_BUNDLE_DIR"       = "$bundle_dir";
+    "SPLUNK_CONFIG"           = "$config_path";
+    "SPLUNK_HEC_TOKEN"        = "$hec_token";
+    "SPLUNK_HEC_URL"          = "$hec_url";
+    "SPLUNK_INGEST_URL"       = "$ingest_url";
+    "SPLUNK_MEMORY_TOTAL_MIB" = "$memory";
+    "SPLUNK_REALM"            = "$realm";
+    "SPLUNK_TRACE_URL"        = "$trace_url";
+}
+
+if ($network_interface -Ne "") {
+    $collector_env_vars.Add("SPLUNK_LISTEN_INTERFACE", "$network_interface")
+}
+
+# set the environment variables for the collector service
+set_service_environment $service_name $collector_env_vars
 
 $message = "
 The Splunk OpenTelemetry Collector for Windows has been successfully installed.
@@ -670,6 +693,7 @@ if ($with_dotnet_instrumentation) {
     echo "Installing SignalFx Dotnet Auto Instrumentation..."
     Install-SignalFxDotnet
 
+    $regkey = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
     if ($deployment_env -ne "") {
         echo "Setting SIGNALFX_ENV environment variable to $deployment_env ..."
         update_registry -path "$regkey" -name "SIGNALFX_ENV" -value "$deployment_env"

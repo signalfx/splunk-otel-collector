@@ -8,7 +8,7 @@ describe service('fluentdwinsvc') do
   it { should_not be_running }
 end
 
-env_vars = [
+dotnet_instrumentation_env_vars = [
   { name: 'COR_ENABLE_PROFILING', type: :string, data: 'true' },
   { name: 'COR_PROFILER', type: :string, data: '{B4C89B0F-9908-4F73-9F59-0D77C5A06874}' },
   { name: 'CORECLR_ENABLE_PROFILING', type: :string, data: 'true' },
@@ -23,13 +23,13 @@ env_vars = [
 
 describe registry_key('HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment') do
   its('SIGNALFX_DOTNET_TRACER_HOME') { should cmp "#{ENV['ProgramFiles']}\\SignalFx\\.NET Tracing\\" }
-  env_vars.each do |item|
+  dotnet_instrumentation_env_vars.each do |item|
     its(item[:name]) { should eq item[:data] }
   end
 end
 
 iis_env = []
-env_vars.each do |item|
+dotnet_instrumentation_env_vars.each do |item|
   iis_env |= [ "#{item[:name]}=#{item[:data]}" ]
 end
 

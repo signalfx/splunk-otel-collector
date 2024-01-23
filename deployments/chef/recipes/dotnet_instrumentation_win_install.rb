@@ -1,7 +1,7 @@
 # Cookbook:: splunk_otel_collector
 # Recipe:: dotnet_instrumentation_win_install
 
-env_vars = [
+dotnet_instrumentation_env_vars = [
   { name: 'COR_ENABLE_PROFILING', type: :string, data: 'true' },
   { name: 'COR_PROFILER', type: :string, data: '{B4C89B0F-9908-4F73-9F59-0D77C5A06874}' },
   { name: 'CORECLR_ENABLE_PROFILING', type: :string, data: 'true' },
@@ -13,11 +13,11 @@ env_vars = [
 ]
 
 node['splunk_otel_collector']['signalfx_dotnet_auto_instrumentation_additional_options'].each do |key, value|
-  env_vars.push({ name: key, type: :string, data: value.to_s })
+  dotnet_instrumentation_env_vars.push({ name: key, type: :string, data: value.to_s })
 end
 
 iis_env_vars = []
-env_vars.each do |item|
+dotnet_instrumentation_env_vars.each do |item|
   iis_env_vars |= [ "#{item[:name]}=#{item[:data]}" ]
 end
 
@@ -46,7 +46,7 @@ registry_key 'HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\W3SVC' do
 end
 
 registry_key 'HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment' do
-  values env_vars
+  values dotnet_instrumentation_env_vars
   action :create
   notifies :run, 'powershell_script[iisreset]', :delayed
   only_if { node['splunk_otel_collector']['signalfx_dotnet_auto_instrumentation_system_wide'].to_s.downcase == 'true' }

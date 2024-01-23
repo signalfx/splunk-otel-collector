@@ -25,6 +25,10 @@ Currently, the following Windows versions are supported:
 - Windows Server 2019 64-bit
 - Windows Server 2022 64-bit
 
+On Windows, the collector is installed as a Windows service and its environment
+variables are set at the service scope, i.e.: they are only available to the
+collector service and not to the entire machine.
+
 Ansible requires PowerShell 3.0 or newer and at least .NET 4.0 to be installed on Windows host.
 A WinRM listener should be created and activeted. 
 For setting up Windows Host refer [Ansible Docs](https://docs.ansible.com/ansible/latest/user_guide/windows_setup.html).

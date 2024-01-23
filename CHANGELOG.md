@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 🛑 Breaking changes 🛑
+
+- (Splunk) On Windows the `SPLUNK_*` environment variables were moved from the machine scope to the collector service scope. This avoids collisions with other agents and instrumentation. If any of these environment variables are required by your apps, please adopt them directly. ([#3930](https://github.com/signalfx/splunk-otel-collector/pull/3930))
+
 ## v0.92.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.92.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.92.0) and the [opentelemetry-collector-contrib v0.92.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.92.0) releases where appropriate.
@@ -86,6 +90,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 - (Core) `otlpexporter`: remove dependency of otlphttpreceiver on otlpexporter ([#6454](https://github.com/open-telemetry/opentelemetry-collector/issues/6454))
 
 ## v0.91.3
+
 - (Splunk) Properly sign and associate changelog to release.  This should be otherwise identical to v0.91.2
 
 ## v0.91.2
@@ -112,7 +117,6 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 - (Splunk) Adopt `sshcheck` receiver ([#4099](https://github.com/signalfx/splunk-otel-collector/pull/4099))
 - (Splunk) Adopt `awss3` exporter ([#4117](https://github.com/signalfx/splunk-otel-collector/pull/4117))
 - (Splunk) Convert loglevel to verbosity on logging exporter ([#4097](https://github.com/signalfx/splunk-otel-collector/pull/4097))
-
 
 ## v0.91.1
 
@@ -300,7 +304,6 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 - (Contrib) `pkg/stanza`: Fix data-corruption/race-condition issue in udp async (reuse of buffer); use buffer pool instead. (#27613)
 - (Contrib) `zipkinreceiver`: Return BadRequest in case of permanent errors ([#4335](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/4335))
 - (Core) `exporterhelper`: fix bug with queue size and capacity metrics ([#8682](https://github.com/open-telemetry/opentelemetry-collector/issues/8682))
-
 
 ## v0.88.0
 

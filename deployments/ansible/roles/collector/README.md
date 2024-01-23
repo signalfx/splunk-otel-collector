@@ -335,9 +335,9 @@ For proxy options, see the [Windows Proxy](#windows-proxy) section.
   `signalfx_dotnet_auto_instrumentation_additional_options` option to
   enable/configure auto instrumentation for ***only*** IIS applications:
   ```yaml
-  COR_ENABLE_PROFILING: true  # Required
+  COR_ENABLE_PROFILING: "1"  # Required
   COR_PROFILER: "{B4C89B0F-9908-4F73-9F59-0D77C5A06874}"  # Required
-  CORECLR_ENABLE_PROFILING: true  # Required
+  CORECLR_ENABLE_PROFILING: "1"  # Required
   CORECLR_PROFILER: "{B4C89B0F-9908-4F73-9F59-0D77C5A06874}"  # Required
   SIGNALFX_ENV: "{{ signalfx_dotnet_auto_instrumentation_environment }}"
   SIGNALFX_GLOBAL_TAGS: "{{ signalfx_dotnet_auto_instrumentation_global_tags }}"

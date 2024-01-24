@@ -17,5 +17,5 @@ exclude = [
     "ideas.splunk.com",
     "https://github.com/signalfx/splunk-otel-collector/tree/main/internal/exporter/pulsarexporter",  # exporter was deleted
     "https://github.com/signalfx/splunk-otel-collector/tree/main/cmd/translatesfx", # translatesfx was deleted
-    "docs.pivotal.io" # bad certificate and no alternatives
+    "docs.pivotal.io", # bad certificate and no alternatives
 ]

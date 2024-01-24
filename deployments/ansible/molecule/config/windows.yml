@@ -11,10 +11,10 @@ platforms:
   - name: "2012"
     box: devopsgroup-io/windows_server-2012r2-standard-amd64-nocm
     box_version: 1.67.0
-    cpus: 2
-    memory: 4096
+    cpus: 1
+    memory: 2048
     instance_raw_config_args: &vagrant_args
-      - "vm.boot_timeout = 1200"
+      - "vm.boot_timeout = 1500"
       - "vm.communicator = 'winrm'"
       - "vm.network 'forwarded_port', guest: 5985, host: 55985"
       - "winrm.basic_auth_only = true"

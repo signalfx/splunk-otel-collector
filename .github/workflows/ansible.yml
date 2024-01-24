@@ -178,7 +178,7 @@ jobs:
     needs: lint
     # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
     runs-on: ubuntu-20.04
-    if: github.ref == 'refs/heads/main' 
+    if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -189,7 +189,7 @@ jobs:
         with:
           file: deployments/ansible/galaxy.yml
           version: version
-      
+
       - name: Ensure version is fetched from galaxy.yml
         if: steps.read-galaxy-yaml.outputs.version == ''
         run: echo "Fail to read version from galaxy.yml" && exit 1

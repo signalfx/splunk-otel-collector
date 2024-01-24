@@ -1,9 +1,16 @@
 # Changelog
 
-## unreleased
+## ansible-v0.25.0
+
+### 💡 Enhancements 💡
 
 - On Windows the `SPLUNK_*` environment variables were moved from the machine scope to the collector service scope.
   It is possible that some instrumentations are relying on the machine-wide environment variables set by the installation. ([#3930](https://github.com/signalfx/splunk-otel-collector/pull/3930))
+
+### 🧰 Bug fixes 🧰
+
+- Use more secure assert calls ([#4024](https://github.com/signalfx/splunk-otel-collector/pull/4024))
+
 
 ## ansible-v0.24.0
 
@@ -198,5 +205,5 @@
 
 ## ansible-v0.1.0
 
-Initial version of `signalfx.splunk_otel_collector` Ansible Collection with 
+Initial version of `signalfx.splunk_otel_collector` Ansible Collection with
 Linux support.

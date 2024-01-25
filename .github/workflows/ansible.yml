@@ -173,7 +173,9 @@ jobs:
         run: pip3 install --use-pep517 -r ${GITHUB_WORKSPACE}/requirements.txt
 
       - name: Run Molecule tests.
-        run: molecule --debug -v --base-config ./molecule/config/windows.yml test -s ${{ matrix.scenario }} -p ${{ matrix.distro }}
+        run: |
+          molecule --debug -v --base-config ./molecule/config/windows.yml test -s ${{ matrix.scenario }} -p ${{ matrix.distro }}
+          cat /Users/runner/.cache/molecule/ansible/default/vagrant.err
         env:
           PY_COLORS: '1'
           ANSIBLE_FORCE_COLOR: '1'

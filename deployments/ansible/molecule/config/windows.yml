@@ -14,7 +14,7 @@ platforms:
     cpus: 2
     memory: 4096
     instance_raw_config_args: &vagrant_args
-      - "vm.boot_timeout = 1800"
+      - "vm.boot_timeout = 600"
       - "vm.communicator = 'winrm'"
       - "vm.network 'forwarded_port', guest: 5985, host: 55985"
       - "winrm.basic_auth_only = true"

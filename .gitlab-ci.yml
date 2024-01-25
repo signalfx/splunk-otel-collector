@@ -12,7 +12,6 @@ stages:
   - release
   - github-release
 
-
 include:
   - project: 'prodsec/scp-scanning/gitlab-checkmarx'
     ref: latest

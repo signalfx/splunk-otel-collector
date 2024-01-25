@@ -11,6 +11,7 @@ on:
       - 'internal/buildscripts/packaging/collect-libs.sh'
       - 'internal/buildscripts/packaging/fpm/**'
       - 'internal/buildscripts/packaging/installer/install.sh'
+      - 'internal/buildscripts/packaging/jmx-metric-gatherer-release.txt'
       - 'internal/buildscripts/packaging/tests/helpers/**'
       - 'internal/buildscripts/packaging/tests/images/**'
       - 'internal/buildscripts/packaging/tests/package_test.py'

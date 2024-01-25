@@ -38,6 +38,8 @@ RUN wine wineboot && \
 
 FROM wix as msi-builder
 
+ARG JMX_METRIC_GATHERER_RELEASE
+
 USER root
 RUN apt-get update -y
 RUN apt-get install -y curl unzip
@@ -52,7 +54,7 @@ RUN cp /project/internal/buildscripts/packaging/msi/msi-builder/docker-entrypoin
     chmod a+x /docker-entrypoint.sh
 
 ENV OUTPUT_DIR=/project/dist
-ENV JMX_METRIC_GATHERER_RELEASE=1.29.0
+ENV JMX_METRIC_GATHERER_RELEASE=${JMX_METRIC_GATHERER_RELEASE}
 ENV VERSION=""
 
 WORKDIR /work

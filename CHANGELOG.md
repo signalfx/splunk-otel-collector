@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 💡 Enhancements 💡
+
+- (Splunk) Update opentelemetry-jmx-metrics version to 1.32.0 ([#4201](https://github.com/signalfx/splunk-otel-collector/pull/4201))
+
 ### 🛑 Breaking changes 🛑
 
 - (Splunk) On Windows the `SPLUNK_*` environment variables were moved from the machine scope to the collector service scope. This avoids collisions with other agents and instrumentation. If any of these environment variables are required by your apps, please adopt them directly. ([#3930](https://github.com/signalfx/splunk-otel-collector/pull/3930))
@@ -67,7 +71,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 - (Core) `confignet`: Add `dialer_timeout` config option. ([#9066](https://github.com/open-telemetry/opentelemetry-collector/pull/9066))
 - (Core) `processor/memory_limiter`: Update config validation errors ([#9059](https://github.com/open-telemetry/opentelemetry-collector/pull/9059))
   - Fix names of the config fields that are validated in the error messages
-  - Move the validation from start to the initialization phrase 
+  - Move the validation from start to the initialization phrase
 - (Core) `exporterhelper`: Add config Validate for TimeoutSettings ([#9104](https://github.com/open-telemetry/opentelemetry-collector/pull/9104))
 
 ### 🧰 Bug fixes 🧰
@@ -99,7 +103,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 - (Splunk) - `ecs-metadata` sync the `known_status` property on the `container_id` dimension instead of lower cardinality `container_name`. This can be prevented by configuring `dimensionToUpdate` to `container_name` ([#4091](https://github.com/signalfx/splunk-otel-collector/pull/4091))
 - (Splunk) Removes `collectd/disk` monitor ([#3998](https://github.com/signalfx/splunk-otel-collector/pull/3998))
    This monitor has been deprecated in favor of the `disk-io` monitor.
-   Note that the `disk-io` monitor has a different dimension (`disk` 
+   Note that the `disk-io` monitor has a different dimension (`disk`
    instead of `plugin_instance`) to specify the disk.
 - (Splunk) Removes `collectd/df` monitor ([#3996](https://github.com/signalfx/splunk-otel-collector/pull/3996))
    The monitor is deprecated and the filesystems monitor should be used instead.
@@ -240,16 +244,16 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 
 ### 🛑 Breaking changes 🛑
 
-- (Contrib) `pkg/stanza`/`receiver/windowseventlog`: Improve parsing of Windows Event XML by handling anonymous `Data` elements. ([#21491](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/21491))  
+- (Contrib) `pkg/stanza`/`receiver/windowseventlog`: Improve parsing of Windows Event XML by handling anonymous `Data` elements. ([#21491](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/21491))
   This improves the contents of Windows log events for which the publisher manifest is unavailable. Previously, anonymous `Data` elements were ignored. This is a breaking change for users who were relying on the previous data format.
 
-- (Contrib) `processor/k8sattributes`: Graduate "k8sattr.rfc3339" feature gate to Beta. ([#28817](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/28817))  
+- (Contrib) `processor/k8sattributes`: Graduate "k8sattr.rfc3339" feature gate to Beta. ([#28817](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/28817))
   Time format of `k8s.pod.start_time` attribute value migrated from RFC3339:
   Before: 2023-07-10 12:34:39.740638 -0700 PDT m=+0.020184946
   After: 2023-07-10T12:39:53.112485-07:00
   The feature gate can be temporary reverted back by adding `--feature-gate=-k8sattr.rfc3339` to the command line.
 
-- (Contrib) `receiver/filelogreceiver`: Change "Started watching file" log behavior ([#28491](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/28491))  
+- (Contrib) `receiver/filelogreceiver`: Change "Started watching file" log behavior ([#28491](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/28491))
   Previously, every unique file path which was found by the receiver would be remembered indefinitely.
   This list was kept independently of the uniqueness / checkpointing mechanism (which does not rely on the file path).
   The purpose of this list was to allow us to emit a log whenever a path was seen for the first time.

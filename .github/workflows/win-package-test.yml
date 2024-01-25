@@ -11,6 +11,7 @@ on:
       - 'cmd/otelcol/**'
       - 'internal/buildscripts/packaging/choco/**'
       - 'internal/buildscripts/packaging/installer/install.ps1'
+      - 'internal/buildscripts/packaging/jmx-metric-gatherer-release.txt'
       - 'internal/buildscripts/packaging/msi/**'
       - 'internal/signalfx-agent/bundle/**'
       - 'Makefile'

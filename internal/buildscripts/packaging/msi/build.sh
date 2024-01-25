@@ -46,11 +46,14 @@ if [ -z "$VERSION" ]; then
     VERSION="$( get_version )"
 fi
 
-docker build -t msi-builder --build-arg DOCKER_REPO="$DOCKER_REPO" -f "${SCRIPT_DIR}/msi-builder/Dockerfile" "$REPO_DIR"
+docker build -t msi-builder \
+    --build-arg JMX_METRIC_GATHERER_RELEASE="${JMX_METRIC_GATHERER_RELEASE}" \
+    --build-arg DOCKER_REPO="$DOCKER_REPO" \
+    -f "${SCRIPT_DIR}/msi-builder/Dockerfile" \
+    "$REPO_DIR"
 docker rm -fv msi-builder 2>/dev/null || true
 docker run -d --name msi-builder msi-builder sleep inf
 docker exec \
-    -e JMX_METRIC_GATHERER_RELEASE="${JMX_METRIC_GATHERER_RELEASE}" \
     -e OUTPUT_DIR=/project/dist \
     -e VERSION="${VERSION#v}" \
     msi-builder /docker-entrypoint.sh

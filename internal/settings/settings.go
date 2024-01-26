@@ -81,7 +81,7 @@ var (
 	defaultFeatureGates = []string{
 		// disabling until all new metrics categorized and rpc histograms are evaluated
 		// https://github.com/open-telemetry/opentelemetry-collector/issues/7454
-		"-telemetry.useOtelForInternalMetrics",
+		// "-telemetry.useOtelForInternalMetrics",
 	}
 )
 

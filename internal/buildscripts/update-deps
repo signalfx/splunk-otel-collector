@@ -43,7 +43,7 @@ for gomod in $( find "$REPO_DIR" -name "go.mod" | grep -v "/examples/" | sort );
             pkg="$( echo "$line" | awk '{print $1}' )"
         fi
         go mod edit -replace="${pkg}"="${pkg}"@$(desired_contrib_version "$line")
-        [ -f Makefile ] && make tidy
+        [ -f Makefile ] && make tidy || echo "Error running mod tidy in ${gomod}"
     done
 
     lines="$( (grep 'go.opentelemetry.io/collector' "$gomod" | grep -v 'ignore-update-deps' | grep -v '^[[:space:]]*//' | grep -v '=>' | grep -v ' // indirect' | sort -u) || true )"

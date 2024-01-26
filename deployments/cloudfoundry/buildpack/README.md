@@ -5,7 +5,7 @@ the Splunk OpenTelemetry Collector for use with PCF apps.
 
 The buildpack's default functionality, as described in this document, is to deploy the OpenTelemetry Collector
 as a sidecar for the given app that's being deployed. The Collector is able to observe the app as a 
-[nozzle](https://docs.pivotal.io/tiledev/2-10/nozzle.html#nozzle) to
+[nozzle](https://docs.vmware.com/en/Tile-Developer-Guide/3.0/tile-dev-guide/nozzle.html) to
 the [Loggregator Firehose](https://docs.cloudfoundry.org/loggregator/architecture.html).
 The Loggregator Firehose is one of the architectures Cloud Foundry
 uses to emit logs and metrics. This means that the Splunk OpenTelemetry Collector will be observing all

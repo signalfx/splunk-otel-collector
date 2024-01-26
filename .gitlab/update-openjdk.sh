@@ -17,6 +17,7 @@ create_collector_pr() {
   local repo_url="https://srv-gh-o11y-gdi:${GITHUB_TOKEN}@github.com/${repo}.git"
   local branch="create-pull-request/update-openjdk"
   local message="Update Bundled OpenJDK to latest"
+  local jdk_repo="https://github.com/adoptium/temurin11-binaries"
 
   echo ">>> Cloning the $repo repository ..."
   git clone "$repo_url" collector-mirror
@@ -25,13 +26,26 @@ create_collector_pr() {
   setup_branch "$branch" "$repo_url"
 
   echo ">>> Getting latest openjdk release ..."
-  tag="$( gh release view --repo "https://github.com/adoptium/temurin11-binaries" --json tagName --jq 'select(.isDraft|not and .isPrelease|not) | .tagName' )"
+  tag="$( gh release view --repo "${jdk_repo}" --json tagName --jq 'select(.isDraft|not and .isPrelease|not) | .tagName' )"
   if [[ -n "$tag" ]]; then
     version=$( echo "$tag" | sed 's|^jdk-\(.*\)|\1|' | tr '+' '_' )
     if [[ -n "$version" ]]; then
-      echo ">>> Updating openjdk version to $version ..."
-      sed -i "s|^ARG JDK_VERSION=.*|ARG JDK_VERSION=${version}|" internal/signalfx-agent/bundle/Dockerfile
-      sed -i "s|^ARG JDK_VERSION=.*|ARG JDK_VERSION=\"${version}\"|" cmd/otelcol/Dockerfile.windows
+      local assets=$(gh release view --repo "${jdk_repo}" --json assets --jq '.assets[].name')
+      local any_updates=no
+      if [[ $assets == *"linux"* ]]; then
+        echo ">>> Updating openjdk version to $version for linux..."
+        sed -i "s|^ARG JDK_VERSION=.*|ARG JDK_VERSION=${version}|" internal/signalfx-agent/bundle/Dockerfile
+        any_updates=yes
+      fi
+      if [[ $assets == *"windows"* ]]; then
+        echo ">>> Updating openjdk version to $version for windows..."
+        sed -i "s|^ARG JDK_VERSION=.*|ARG JDK_VERSION=\"${version}\"|" cmd/otelcol/Dockerfile.windows
+        any_updates=yes
+      fi
+      if [[ $any_updates == "no" ]]; then
+        echo ">>> Did not find any linux/windows binaries for $version. Skipping $version..."
+        exit
+      fi
     else
       echo "ERROR: Failed to get version from tag name '${tag}'!" >&2
       exit 1

@@ -608,7 +608,7 @@ push-linux-image:
         echo "Tagging and pushing ${IMAGE_NAME}:${ARCH_TAG}"
         docker tag otelcol:${arch} ${IMAGE_NAME}:${ARCH_TAG}
         docker push ${IMAGE_NAME}:${ARCH_TAG}
-        artifact-ci sign docker ${IMAGE_NAME}:${ARCH_TAG} 
+        artifact-ci sign docker ${IMAGE_NAME}:${ARCH_TAG}
         if [[ "${CI_COMMIT_BRANCH:-}" = "main" ]] || [[ "${CI_COMMIT_TAG:-}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
           # only push latest tag for main and stable releases
           LATEST_TAG="latest-${arch}"
@@ -969,7 +969,7 @@ ansible-release:
     - pip3 install ansible==3.4.0 yq==2.12.0
   script:
     - export COLLECTION_VERSION=$(cat ./deployments/ansible/galaxy.yml | yq .version -r)
-    - ansible-galaxy collection publish ./dist/signalfx-splunk_otel_collector-${COLLECTION_VERSION}.tar.gz --token=${ANSIBLE_GALAXY_TOKEN} 
+    - ansible-galaxy collection publish ./dist/signalfx-splunk_otel_collector-${COLLECTION_VERSION}.tar.gz --token=${ANSIBLE_GALAXY_TOKEN}
 
 puppet-release:
   image: '${DOCKER_HUB_REPO}/ruby:2.6-buster'
@@ -1034,7 +1034,7 @@ chef-release:
     - mkdir -p ~/.chef
     - cat "$CHEF_PEM" > ~/.chef/signalfx.pem
     - cat "$CHEF_KNIFE_RB" > ~/.chef/knife.rb
-    - gem install knife -v 17.10.0
+    - gem install faraday:2.8.1 knife:17.10.0
     - mkdir -p /tmp/cookbooks
     - cp -r deployments/chef /tmp/cookbooks/splunk_otel_collector
   script:

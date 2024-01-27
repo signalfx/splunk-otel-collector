@@ -5,7 +5,7 @@
 - On Windows the `SPLUNK_*` environment variables were moved from the machine scope to the collector service scope.
   It is possible that some instrumentations are relying on the machine-wide environment variables set by the installation. ([#3930](https://github.com/signalfx/splunk-otel-collector/pull/3930))
 
-## chef-v0.10.0
+## chef-v0.10.1
 
 - Initial support for [Splunk OpenTelemetry for Node.js](https://github.com/signalfx/splunk-otel-js) Auto
   Instrumentation on Linux:

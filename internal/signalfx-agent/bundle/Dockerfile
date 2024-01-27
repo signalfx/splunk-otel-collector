@@ -23,7 +23,7 @@ ARG DOCKER_REPO=docker.io
 
 
 ######## Base image for subsequent stages ########
-FROM ${DOCKER_REPO}/ubuntu:20.04 as base
+FROM ${DOCKER_REPO}/ubuntu:22.04 as base
 
 ARG ARCH
 ENV DEBIAN_FRONTEND noninteractive
@@ -235,6 +235,7 @@ RUN DISABLE_XENCPU=""; if [ "$ARCH" = "ppc64le" ]; then DISABLE_XENCPU="--disabl
         --disable-barometer \
         --disable-dpdkstat \
         --disable-dpdkevents \
+        --disable-gmond \
         --disable-gps \
         --disable-grpc \
         --disable-intel_pmu \
@@ -335,7 +336,8 @@ RUN apt-get install -qq -y \
         host \
         iproute2 \
         netcat \
-        netcat.openbsd
+        netcat.openbsd \
+        libtirpc3
 
 COPY scripts/collect-libs /opt/collect-libs
 
@@ -406,7 +408,7 @@ COPY --from=collectd /usr/local/bin/patchelf /bin/
 # Pull in the Linux dynamic link loader at a fixed path across all
 # architectures.  Binaries will later be patched to use this interpreter
 # natively.
-COPY --from=extra-packages /lib/*-linux-gnu/ld-2.31.so /bin/ld-linux.so
+COPY --from=extra-packages /lib/*-linux-gnu/ld-* /bin/ld-linux.so
 
 # Java dependencies
 COPY --from=extra-packages /opt/root/jre/ /jre

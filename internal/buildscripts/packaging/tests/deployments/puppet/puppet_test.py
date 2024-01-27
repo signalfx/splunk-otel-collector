@@ -55,6 +55,7 @@ JAVA_AGENT_PATH = "/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar"
 INSTRUMENTATION_CONFIG_PATH = "/usr/lib/splunk-instrumentation/instrumentation.conf"
 SYSTEMD_CONFIG_PATH = "/usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf"
 JAVA_CONFIG_PATH = "/etc/splunk/zeroconfig/java.conf"
+NODE_CONFIG_PATH = "/etc/splunk/zeroconfig/node.conf"
 
 
 def run_puppet_apply(container, config):
@@ -245,6 +246,15 @@ def test_puppet_with_default_instrumentation(distro, puppet_release, version, wi
             verify_config_file(container, config_path, "SPLUNK_PROFILER_MEMORY_ENABLED", "false")
             verify_config_file(container, config_path, "SPLUNK_METRICS_ENABLED", "false")
             verify_config_file(container, config_path, "OTEL_EXPORTER_OTLP_ENDPOINT", r"http://127.0.0.1:4317")
+
+            config_path = SYSTEMD_CONFIG_PATH if with_systemd == "true" else NODE_CONFIG_PATH
+            verify_config_file(container, config_path, "NODE_OPTIONS", "-r /usr/lib/splunk-instrumentation/splunk-otel-js/node_modules/@splunk/otel/instrument")
+            verify_config_file(container, config_path, "OTEL_RESOURCE_ATTRIBUTES", resource_attributes)
+            verify_config_file(container, config_path, "OTEL_SERVICE_NAME", ".*", exists=False)
+            verify_config_file(container, config_path, "SPLUNK_PROFILER_ENABLED", "false")
+            verify_config_file(container, config_path, "SPLUNK_PROFILER_MEMORY_ENABLED", "false")
+            verify_config_file(container, config_path, "SPLUNK_METRICS_ENABLED", "false")
+            verify_config_file(container, config_path, "OTEL_EXPORTER_OTLP_ENDPOINT", r"http://127.0.0.1:4317")
         else:
             config_path = INSTRUMENTATION_CONFIG_PATH
             verify_package_version(container, "splunk-otel-auto-instrumentation", version)
@@ -316,6 +326,15 @@ def test_puppet_with_custom_instrumentation(distro, puppet_release, version, wit
         if version == "latest" or with_systemd == "true":
             config_path = SYSTEMD_CONFIG_PATH if with_systemd == "true" else JAVA_CONFIG_PATH
             verify_config_file(container, config_path, "JAVA_TOOL_OPTIONS", rf"-javaagent:{JAVA_AGENT_PATH}")
+            verify_config_file(container, config_path, "OTEL_RESOURCE_ATTRIBUTES", resource_attributes)
+            verify_config_file(container, config_path, "OTEL_SERVICE_NAME", "test")
+            verify_config_file(container, config_path, "SPLUNK_PROFILER_ENABLED", "true")
+            verify_config_file(container, config_path, "SPLUNK_PROFILER_MEMORY_ENABLED", "true")
+            verify_config_file(container, config_path, "SPLUNK_METRICS_ENABLED", "true")
+            verify_config_file(container, config_path, "OTEL_EXPORTER_OTLP_ENDPOINT", r"http://0.0.0.0:4317")
+
+            config_path = SYSTEMD_CONFIG_PATH if with_systemd == "true" else NODE_CONFIG_PATH
+            verify_config_file(container, config_path, "NODE_OPTIONS", "-r /usr/lib/splunk-instrumentation/splunk-otel-js/node_modules/@splunk/otel/instrument")
             verify_config_file(container, config_path, "OTEL_RESOURCE_ATTRIBUTES", resource_attributes)
             verify_config_file(container, config_path, "OTEL_SERVICE_NAME", "test")
             verify_config_file(container, config_path, "SPLUNK_PROFILER_ENABLED", "true")

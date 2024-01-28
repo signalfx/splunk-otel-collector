@@ -70,14 +70,13 @@ processors:
     check_interval: 2s
     limit_mib: ${SPLUNK_MEMORY_LIMIT_MIB}
 
-  # Optional: The following processor can be used to add a default "deployment.environment" attribute to the traces
+  # The following processor can be used to add a default "deployment.environment" attribute to the traces
   # when it's not populated by instrumentation libraries.
-  # If enabled, make sure to enable this processor in the pipeline below.
-  #resource/add_environment:
-    #attributes:
-      #- action: insert
-        #value: staging/production/...
-        #key: deployment.environment
+  resource/add_environment:
+    attributes:
+      - action: insert
+        value: default
+        key: deployment.environment
 
   # Detect if the collector is running on a cloud system. Overrides resource attributes set by receivers.
   # Detector order is important: the `system` detector goes last so it can't preclude cloud detectors from setting host/os info.
@@ -134,7 +133,7 @@ service:
       processors:
       - memory_limiter
       - batch
-      #- resource/add_environment
+      - resource/add_environment
       exporters: [sapm]
     metrics:
       receivers: [otlp, signalfx]

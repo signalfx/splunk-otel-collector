@@ -114,15 +114,14 @@ processors:
     detectors: [gcp, ecs, ec2, azure, system]
     override: true
 
-  # Optional: The following processor can be used to add a default "deployment.environment" attribute to the logs and 
+  # The following processor can be used to add a default "deployment.environment" attribute to the logs and
   # traces when it's not populated by instrumentation libraries.
-  # If enabled, make sure to enable this processor in a pipeline.
   # For more information, see https://docs.splunk.com/Observability/gdi/opentelemetry/components/resource-processor.html
-  #resource/add_environment:
-    #attributes:
-      #- action: insert
-        #value: staging/production/...
-        #key: deployment.environment
+  resource/add_environment:
+    attributes:
+      - action: insert
+        value: default
+        key: deployment.environment
 
 exporters:
   # Traces
@@ -172,7 +171,7 @@ service:
       - memory_limiter
       - batch
       - resourcedetection
-      #- resource/add_environment
+      - resource/add_environment
       exporters: [sapm, signalfx]
       # Use instead when sending to gateway
       #exporters: [otlp, signalfx]

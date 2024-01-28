@@ -408,36 +408,35 @@ class splunk_otel_collector (
         ensure => absent,
       }
       if $auto_instrumentation_version == 'latest' or versioncmp($auto_instrumentation_version, '0.87.0') >= 0 {
-        file { $zeroconfig_java_config_path:
-          ensure  => file,
-          content => template('splunk_otel_collector/java.conf.erb'),
-          require => Package[$auto_instrumentation_package_name],
-          onlyif  => 'java' in $with_auto_instrumentation_sdks
+        if 'java' in $with_auto_instrumentation_sdks {
+          file { $zeroconfig_java_config_path:
+            ensure  => file,
+            content => template('splunk_otel_collector/java.conf.erb'),
+            require => Package[$auto_instrumentation_package_name],
+          }
         }
-        $splunk_otel_js_path = '/usr/lib/splunk-instrumentation/splunk-otel-js.tgz'
-        $splunk_otel_js_prefix = '/usr/lib/splunk-instrumentation/splunk-otel-js'
+        if 'nodejs' in $with_auto_instrumentation_sdks {
+          $splunk_otel_js_path = '/usr/lib/splunk-instrumentation/splunk-otel-js.tgz'
+          $splunk_otel_js_prefix = '/usr/lib/splunk-instrumentation/splunk-otel-js'
 
-        exec { 'Check npm is present':
-          command  => "bash -c 'command -v ${$auto_instrumentation_npm_path}'",
-          provider => shell,
-          onlyif   => 'nodejs' in $with_auto_instrumentation_sdks
-        }
+          exec { 'Check npm is present':
+            command  => "bash -c 'command -v ${$auto_instrumentation_npm_path}'",
+            provider => shell,
+          }
 
-        file { "${$splunk_otel_js_prefix}/node_modules":
-          ensure => 'directory',
-          onlyif =>  'nodejs' in $with_auto_instrumentation_sdks,
-        }
-        exec { 'Install splunk-otel-js':
-          command  => "${$auto_instrumentation_npm_path} install ${$splunk_otel_js_path}",
-          provider => shell,
-          onlyif   => 'nodejs' in $with_auto_instrumentation_sdks,
-          cwd      => $splunk_otel_js_prefix,
-        }
-        file { $zeroconfig_node_config_path:
-          ensure  => file,
-          content => template('splunk_otel_collector/node.conf.erb'),
-          require => Package[$auto_instrumentation_package_name],
-          onlyif  =>  'nodejs' in $with_auto_instrumentation_sdks,
+          file { "${$splunk_otel_js_prefix}/node_modules":
+            ensure => 'directory',
+          }
+          exec { 'Install splunk-otel-js':
+            command  => "${$auto_instrumentation_npm_path} install ${$splunk_otel_js_path}",
+            provider => shell,
+            cwd      => $splunk_otel_js_prefix,
+          }
+          file { $zeroconfig_node_config_path:
+            ensure  => file,
+            content => template('splunk_otel_collector/node.conf.erb'),
+            require => Package[$auto_instrumentation_package_name],
+          }
         }
       } else {
         file { $instrumentation_config_path:

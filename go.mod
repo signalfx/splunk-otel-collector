@@ -11,7 +11,7 @@ require (
 	github.com/gogo/protobuf v1.3.2
 	github.com/hashicorp/vault v1.14.8
 	github.com/hashicorp/vault-plugin-auth-gcp v0.16.1
-	github.com/hashicorp/vault/api v1.10.0
+	github.com/hashicorp/vault/api v1.11.0
 	github.com/jaegertracing/jaeger v1.53.0
 	github.com/knadh/koanf v1.5.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/countconnector v0.92.0

@@ -303,6 +303,13 @@ func TestDefaultAgentConfig(t *testing.T) {
 					"resourcedetection": map[string]any{"detectors": []any{"gcp", "ecs", "ec2", "azure", "system"},
 						"override": true,
 					}},
+				"resource/add_environment": map[string]any{
+					"attributes": map[string]any{
+						"action": "insert",
+						"key":    "deployment.environment",
+						"value":  "default",
+					},
+				},
 				"receivers": map[string]any{"fluentforward": map[string]any{"endpoint": fmt.Sprintf("%s:8006", ip)},
 					"hostmetrics": map[string]any{
 						"collection_interval": "10s",
@@ -380,7 +387,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 							"receivers":  []any{"prometheus/internal"}},
 						"traces": map[string]any{
 							"exporters":  []any{"sapm", "signalfx"},
-							"processors": []any{"memory_limiter", "batch", "resourcedetection"},
+							"processors": []any{"memory_limiter", "batch", "resourcedetection", "resource/add_environment"},
 							"receivers":  []any{"jaeger", "otlp", "smartagent/signalfx-forwarder", "zipkin"},
 						},
 					},

@@ -70,7 +70,7 @@ processors:
     check_interval: 2s
     limit_mib: ${SPLUNK_MEMORY_LIMIT_MIB}
 
-  # The following processor can be used to add a default "deployment.environment" attribute to the traces
+  # The following processor is used to add a default "deployment.environment" attribute to the traces
   # when it's not populated by instrumentation libraries.
   resource/add_environment:
     attributes:

@@ -11,6 +11,7 @@ stages:
   - sign-packages
   - release
   - github-release
+  - sign-image
 
 include:
   - project: 'prodsec/scp-scanning/gitlab-checkmarx'
@@ -50,6 +51,13 @@ fossa:
   variables:
     jira_automation: "true"
   # allow_failure: false
+
+.sign-docker:
+  stage: sign-image
+  script:
+    - source image.env
+    - echo $TARGET
+    - artifact-ci sign docker $TARGET
 
 .get-artifactory-stage: &get-artifactory-stage
   - |
@@ -608,14 +616,14 @@ push-linux-image:
         echo "Tagging and pushing ${IMAGE_NAME}:${ARCH_TAG}"
         docker tag otelcol:${arch} ${IMAGE_NAME}:${ARCH_TAG}
         docker push ${IMAGE_NAME}:${ARCH_TAG}
-        artifact-ci sign docker ${IMAGE_NAME}:${ARCH_TAG}
+        echo "TARGET=${IMAGE_NAME}:${ARCH_TAG}" >> image.env
         if [[ "${CI_COMMIT_BRANCH:-}" = "main" ]] || [[ "${CI_COMMIT_TAG:-}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
           # only push latest tag for main and stable releases
           LATEST_TAG="latest-${arch}"
           echo "Tagging and pushing ${IMAGE_NAME}:${LATEST_TAG}"
           docker tag ${IMAGE_NAME}:${ARCH_TAG} ${IMAGE_NAME}:${LATEST_TAG}
           docker push ${IMAGE_NAME}:${LATEST_TAG}
-          artifact-ci sign docker ${IMAGE_NAME}:${LATEST_TAG}
+          echo "TARGET=${IMAGE_NAME}:${LATEST_TAG}" >> image.env
         fi
       done
     - |
@@ -641,6 +649,12 @@ push-linux-image:
       - dist/linux_arm64_digest.txt
       - dist/linux_ppc64le_digest.txt
       - dist/manifest_digest.txt
+      - image.env
+
+sign-linux-image:
+  extends: .sign-docker
+  dependencies:
+    - push-linux-image
 
 build-push-windows-image:
   extends: .trigger-filter
@@ -670,13 +684,13 @@ build-push-windows-image:
       docker build -t ${IMAGE_NAME}:${IMAGE_TAG} --build-arg BASE_IMAGE=mcr.microsoft.com/windows/servercore:1809 --build-arg JMX_METRIC_GATHERER_RELEASE=${JMX_METRIC_GATHERER_RELEASE} -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
       echo "Pushing ${IMAGE_NAME}:${IMAGE_TAG}"
       docker push ${IMAGE_NAME}:${IMAGE_TAG}
-      artifact-ci sign docker ${IMAGE_NAME}:${IMAGE_TAG}
+      echo "TARGET=${IMAGE_NAME}:${IMAGE_TAG}" >> image.env
       if ($env:CI_COMMIT_BRANCH -eq "main" -or $env:CI_COMMIT_TAG -match '^v\d+\.\d+\.\d+$') {
         # only push latest tag for main and stable releases
         echo "Tagging and pushing ${IMAGE_NAME}:latest"
         docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
         docker push ${IMAGE_NAME}:latest
-        artifact-ci sign docker ${IMAGE_NAME}:latest
+        echo "TARGET=${IMAGE_NAME}:latest" >> image.env
       }
     - docker inspect --format='{{.RepoDigests}}' ${IMAGE_NAME}:${IMAGE_TAG} | Tee-Object -FilePath dist/windows_digest.txt
   after_script:
@@ -684,6 +698,12 @@ build-push-windows-image:
   artifacts:
     paths:
       - dist/windows_digest.txt
+      - image.env
+
+sign-windows-image:
+  extends: .sign-docker
+  dependencies:
+    - build-push-windows-image
 
 build-push-windows2022-image:
   extends: .trigger-filter
@@ -714,13 +734,13 @@ build-push-windows2022-image:
       docker build -t ${IMAGE_NAME}:${IMAGE_TAG} --build-arg BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022 --build-arg JMX_METRIC_GATHERER_RELEASE=${JMX_METRIC_GATHERER_RELEASE} -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
       echo "Pushing ${IMAGE_NAME}:${IMAGE_TAG}"
       docker push ${IMAGE_NAME}:${IMAGE_TAG}
-      artifact-ci sign docker ${IMAGE_NAME}:${IMAGE_TAG}
+      echo "TARGET=${IMAGE_NAME}:${IMAGE_TAG}" >> image.env
       if ($env:CI_COMMIT_BRANCH -eq "main" -or $env:CI_COMMIT_TAG -match '^v\d+\.\d+\.\d+$') {
         # only push latest tag for main and stable releases
         echo "Tagging and pushing ${IMAGE_NAME}:latest-2022"
         docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest-2022
         docker push ${IMAGE_NAME}:latest-2022
-        artifact-ci sign docker ${IMAGE_NAME}:latest-2022
+        echo "TARGET=${IMAGE_NAME}:latest-2022" >> image.env
       }
     - docker inspect --format='{{.RepoDigests}}' ${IMAGE_NAME}:${IMAGE_TAG} | Tee-Object -FilePath dist/windows_2022_digest.txt
   after_script:
@@ -729,6 +749,12 @@ build-push-windows2022-image:
   artifacts:
     paths:
       - dist/windows_2022_digest.txt
+      - image.env
+
+sign-windows2022-image:
+  extends: .sign-docker
+  dependencies:
+    - build-push-windows2022-image
 
 release-debs:
   extends:

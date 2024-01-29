@@ -1,6 +1,12 @@
 monitors:
 - dimensions:
   doc: |
+    **This monitor is deprecated in favor of metrics collected by the
+    [Splunk Distribution of OpenTelemetry .NET](https://docs.splunk.com/observability/en/gdi/get-data-in/application/otel-dotnet/configuration/dotnet-metrics-attributes.html)
+    and the [SignalFx Instrumentation for .NET](https://docs.splunk.com/observability/en/gdi/get-data-in/application/dotnet/configuration/dotnet-metrics-attributes.html).
+    Please, update any monitoring configuration to use the metrics provided by the
+    instrumentation as this monitor will be removed in a future release.**
+
     (Windows Only) This monitor reports metrics about requests, errors, sessions,
     worker processes for ASP.NET applications.
 

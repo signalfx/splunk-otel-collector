@@ -8,7 +8,7 @@ require (
 	github.com/docker/docker v24.0.7+incompatible
 	github.com/docker/go-connections v0.5.0
 	github.com/go-sql-driver/mysql v1.7.1
-	github.com/google/uuid v1.5.0
+	github.com/google/uuid v1.6.0
 	github.com/knadh/koanf v1.5.0
 	github.com/shirou/gopsutil/v3 v3.23.12
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3

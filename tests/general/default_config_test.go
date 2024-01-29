@@ -119,6 +119,13 @@ func TestDefaultGatewayConfig(t *testing.T) {
 						"detectors": []any{"gcp", "ecs", "ec2", "azure", "system"},
 						"override":  true,
 					},
+					"resource/add_environment": map[string]any{
+						"attributes": map[string]any{
+							"action": "insert",
+							"key":    "deployment.environment",
+							"value":  "default",
+						},
+					},
 				},
 				"receivers": map[string]any{
 					"jaeger": map[string]any{
@@ -192,7 +199,7 @@ func TestDefaultGatewayConfig(t *testing.T) {
 						},
 						"traces": map[string]any{
 							"exporters":  []any{"sapm"},
-							"processors": []any{"memory_limiter", "batch"},
+							"processors": []any{"memory_limiter", "batch", "resource/add_environment"},
 							"receivers":  []any{"jaeger", "otlp", "sapm", "zipkin"},
 						},
 					},

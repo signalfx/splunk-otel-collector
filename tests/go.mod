@@ -1,6 +1,8 @@
 module github.com/signalfx/splunk-otel-collector/tests
 
-go 1.20
+go 1.21
+
+toolchain go1.21.6
 
 require (
 	github.com/Masterminds/semver v1.5.0

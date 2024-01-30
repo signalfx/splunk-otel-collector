@@ -20,7 +20,6 @@ Currently, the following Linux distributions and versions are supported:
 ## Windows
 Currently, the following Windows versions are supported:
 
-- Windows Server 2012 64-bit
 - Windows Server 2016 64-bit
 - Windows Server 2019 64-bit
 - Windows Server 2022 64-bit

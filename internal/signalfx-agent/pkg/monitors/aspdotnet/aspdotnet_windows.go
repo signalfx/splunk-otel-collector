@@ -21,6 +21,7 @@ var logger = logrus.WithField("monitorType", monitorType)
 // Configure the monitor and kick off metric syncing
 func (m *Monitor) Configure(conf *Config) error {
 	m.logger = logger.WithField("monitorID", conf.MonitorID)
+	m.logger.Warn("[NOTICE] The " + monitorType + " monitor is deprecated and will be removed in a future release. For more information visit https://docs.splunk.com/observability/en/gdi/monitors-languages/asp-dot-net.html")
 	perfcounterConf := &winperfcounters.Config{
 		CountersRefreshInterval: conf.CountersRefreshInterval,
 		PrintValid:              conf.PrintValid,

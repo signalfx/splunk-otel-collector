@@ -56,7 +56,6 @@ fossa:
   stage: sign-image
   script:
     - echo "listing images to be signed"
-    - CI_BUILDS_DIR
     - cat tags_to_sign
     - cat tags_to_sign | xargs -L1 artifact-ci sign docker
 

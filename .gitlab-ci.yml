@@ -53,6 +53,7 @@ fossa:
   # allow_failure: false
 
 .sign-docker:
+  extends: .trigger-filter
   stage: sign-image
   script:
     - echo "listing images to be signed"

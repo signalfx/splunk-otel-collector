@@ -17,6 +17,8 @@ on:
       - '.github/workflows/ansible.yml'
       - 'deployments/ansible/**'
       - '!**.md'
+  schedule:
+    - cron: '0 0 * * 1,4' # Every Monday and Thrusday at midnight UTC
 
 concurrency:
   group: ansible-${{ github.event.pull_request.number || github.ref }}

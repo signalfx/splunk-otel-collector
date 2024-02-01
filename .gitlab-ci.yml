@@ -705,6 +705,9 @@ build-push-windows-image:
       - tags_to_sign
 
 sign-windows-image:
+  before_script:
+    - *docker-reader-role
+    - docker login -u $CIRCLECI_QUAY_USERNAME -p $CIRCLECI_QUAY_PASSWORD quay.io
   extends: .sign-docker
   dependencies:
     - build-push-windows-image

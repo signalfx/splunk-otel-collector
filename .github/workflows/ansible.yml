@@ -59,9 +59,9 @@ jobs:
       fail-fast: false
       matrix:
         ansible:
-          - ansible~=2.10.0
-          - ansible~=6.0
-          - ansible~=7.0
+          # Testing only the versions currently supported per https://endoflife.date/ansible
+          - ansible~=9.2.0
+          - ansible~=8.7.0
         distro:
           - amazonlinux2
           - amazonlinux2023
@@ -77,10 +77,6 @@ jobs:
           - ubuntu1804
           - ubuntu2004
           - ubuntu2204
-        exclude:
-          # ansible<6 unsupported on Amazon Linux 2023
-          - distro: amazonlinux2023
-            ansible: ansible~=2.10.0
 
     steps:
       - name: Check out the codebase.
@@ -130,9 +126,9 @@ jobs:
       fail-fast: false
       matrix:
         ansible:
-          - ansible~=2.10.0
-          - ansible~=6.0
-          - ansible~=7.0
+          # Testing only the versions currently supported per https://endoflife.date/ansible
+          - ansible~=9.2.0
+          - ansible~=8.7.0
         distro:
           - "2016"
           - "2019"

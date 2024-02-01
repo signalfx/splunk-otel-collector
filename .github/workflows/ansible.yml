@@ -59,9 +59,9 @@ jobs:
       fail-fast: false
       matrix:
         ansible:
-          - ansible~=2.10.0
-          - ansible~=6.0
-          - ansible~=7.0
+          # Testing only the versions currently supported per https://endoflife.date/ansible
+          - ansible~=9.2.0
+          - ansible~=8.7.0
         distro:
           - amazonlinux2
           - amazonlinux2023
@@ -78,9 +78,9 @@ jobs:
           - ubuntu2004
           - ubuntu2204
         exclude:
-          # ansible<6 unsupported on Amazon Linux 2023
-          - distro: amazonlinux2023
-            ansible: ansible~=2.10.0
+          # ansible-core used by ansible 9.2.0 requires a minimum of Python2 version 2.7 or Python3 version 3.6. Current version: 3.5.2
+          - distro: ubuntu1604
+            ansible: ansible~=9.2.0
 
     steps:
       - name: Check out the codebase.
@@ -130,9 +130,9 @@ jobs:
       fail-fast: false
       matrix:
         ansible:
-          - ansible~=2.10.0
-          - ansible~=6.0
-          - ansible~=7.0
+          # Testing only the versions currently supported per https://endoflife.date/ansible
+          - ansible~=9.2.0
+          - ansible~=8.7.0
         distro:
           - "2016"
           - "2019"

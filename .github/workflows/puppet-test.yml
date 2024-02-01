@@ -20,6 +20,8 @@ on:
       - 'internal/buildscripts/packaging/tests/helpers/**'
       - 'internal/buildscripts/packaging/tests/requirements.txt'
       - '!**.md'
+  schedule:
+    - cron: '0 0 * * 3,6' # Every Wednesday and Saturday at midnight UTC
 
 concurrency:
   group: puppet-test-${{ github.event.pull_request.number || github.ref }}

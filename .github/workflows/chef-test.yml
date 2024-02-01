@@ -14,6 +14,8 @@ on:
       - '.github/workflows/chef-test.yml'
       - 'deployments/chef/**'
       - '!**.md'
+  schedule:
+    - cron: '0 0 * * 2,5' # Every Tuesday and Friday at midnight UTC
 
 concurrency:
   group: chef-test-${{ github.event.pull_request.number || github.ref }}

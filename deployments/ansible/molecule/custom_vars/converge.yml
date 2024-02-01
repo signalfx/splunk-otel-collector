@@ -23,4 +23,4 @@
   tasks:
     - name: "Include signalfx.splunk_otel_collector.collector role"
       include_role:
-        name: "collector"
+        name: "signalfx.splunk_otel_collector.collector"

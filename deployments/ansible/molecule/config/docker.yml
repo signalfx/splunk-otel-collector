@@ -19,5 +19,7 @@ platforms:
 
 provisioner:
   name: ansible
+  env:
+    ANSIBLE_ROLES_PATH: ../../roles
   playbooks:
     converge: ${MOLECULE_PLAYBOOK:-converge.yml}

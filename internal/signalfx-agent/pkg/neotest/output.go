@@ -67,21 +67,6 @@ func (to *TestOutput) SendDimensionUpdate(dims *types.Dimension) {
 // AddExtraDimension is a noop here
 func (to *TestOutput) AddExtraDimension(key, value string) {}
 
-// RemoveExtraDimension is a noop here
-func (to *TestOutput) RemoveExtraDimension(key string) {}
-
-// AddExtraSpanTag is a noop here
-func (to *TestOutput) AddExtraSpanTag(key, value string) {}
-
-// RemoveExtraSpanTag is a noop here
-func (to *TestOutput) RemoveExtraSpanTag(key string) {}
-
-// AddDefaultSpanTag is a noop here
-func (to *TestOutput) AddDefaultSpanTag(key, value string) {}
-
-// RemoveDefaultSpanTag is a noop here
-func (to *TestOutput) RemoveDefaultSpanTag(key string) {}
-
 // FlushDatapoints returns all of the datapoints injected into the channel so
 // far.
 func (to *TestOutput) FlushDatapoints() []*datapoint.Datapoint {

@@ -327,7 +327,6 @@ func (out *output) filterMetrics(metrics []pmetric.Metric) []pmetric.Metric {
 	return filteredMetrics
 }
 
->>>>>>> f7155d19 (wip)
 func (out *output) filterDatapoints(datapoints []*datapoint.Datapoint) []*datapoint.Datapoint {
 	filteredDatapoints := make([]*datapoint.Datapoint, 0, len(datapoints))
 	for _, dp := range datapoints {

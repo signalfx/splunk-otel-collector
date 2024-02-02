@@ -26,6 +26,7 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/core/dpfilters"
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
 	"github.com/signalfx/signalfx-agent/pkg/utils/filter"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.uber.org/zap"
 )
 
@@ -252,4 +253,31 @@ func (mf *extraMetricsFilter) Matches(dp *datapoint.Datapoint) bool {
 	// Lastly check if it matches filter. If it's a known metric from metadata will get matched
 	// above so this is a last check for unknown metrics.
 	return mf.stringFilter.Matches(dp.Metric)
+}
+
+func (mf *extraMetricsFilter) MatchesMetric(m pmetric.Metric) bool {
+	if len(mf.metadata.Metrics) == 0 {
+		// This monitor has no defined metrics so send everything by default.
+		return true
+	}
+
+	if !mf.metadata.HasMetric(m.Name()) && mf.metadata.SendUnknown {
+		// This metric is unknown to the metadata and the monitor has requested
+		// to send all unknown metrics.
+		return true
+	}
+
+	if mf.metadata.HasDefaultMetric(m.Name()) {
+		// It's an included metric so send by default.
+		return true
+	}
+
+	if mf.extraMetrics[m.Name()] {
+		// User has explicitly chosen to send this metric (or a group that this metric belongs to).
+		return true
+	}
+
+	// Lastly check if it matches filter. If it's a known metric from metadata will get matched
+	// above so this is a last check for unknown metrics.
+	return mf.stringFilter.Matches(m.Name())
 }

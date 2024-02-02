@@ -55,16 +55,6 @@ func (mf *MetricFilter) Normalize() (map[string][]string, error) {
 	return dimSet, nil
 }
 
-// MakeFilter returns an actual filter instance from the config
-func (mf *MetricFilter) MakeFilter() (dpfilters.DatapointFilter, error) {
-	dimSet, err := mf.Normalize()
-	if err != nil {
-		return nil, err
-	}
-
-	return dpfilters.New(mf.MonitorType, mf.MetricNames, dimSet, mf.Negated)
-}
-
 // This should be the preferred filter set creator from now on.  It is much
 // simpler to understand.
 func makeNewFilterSet(excludes []MetricFilter) (*dpfilters.FilterSet, error) {

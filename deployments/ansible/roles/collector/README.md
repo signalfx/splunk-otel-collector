@@ -40,7 +40,7 @@ how to use the role in a playbook with minimal required configuration:
 You can disable starting the collector and fluentd services by setting 
 the argument `start_service` to `false`:
 
-```
+```terminal
 $> ansible-playbook playbook.yaml -e start_service=false
 ```
 
@@ -153,8 +153,8 @@ $> ansible-playbook playbook.yaml -e start_service=false
   ```
   On Linux, the variables/values will be added to the
   `/etc/otel/collector/splunk-otel-collector.conf` systemd environment file.
-  On Windows, the variables/values will be added to the
-  `HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment`
+  On Windows, the variables/values will be added to the `Environment` value under the
+  `HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\splunk-otel-collector`
   registry key.
 
 #### Windows Proxy

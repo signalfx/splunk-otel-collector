@@ -9,6 +9,7 @@ collect metrics, traces and logs from Linux machines and send data to [Splunk
 Observability Cloud](https://www.splunk.com/en_us/observability.html). 
 
 ## Linux
+
 Currently, the following Linux distributions and versions are supported:
 
 - Amazon Linux: 2, 2023 (**Note:** Log collection with Fluentd not currently supported for Amazon Linux 2023.)
@@ -18,6 +19,7 @@ Currently, the following Linux distributions and versions are supported:
 - Ubuntu: 16.04, 18.04, 20.04, 22.04
 
 ## Windows
+
 Currently, the following Windows versions are supported:
 
 - Windows Server 2016 64-bit
@@ -29,12 +31,13 @@ variables are set at the service scope, i.e.: they are only available to the
 collector service and not to the entire machine.
 
 Ansible requires PowerShell 3.0 or newer and at least .NET 4.0 to be installed on Windows host.
-A WinRM listener should be created and activeted. 
+A WinRM listener should be created and activated.
 For setting up Windows Host refer [Ansible Docs](https://docs.ansible.com/ansible/latest/user_guide/windows_setup.html).
 
 ## Installation
 
 To install the Ansible collection from Ansible Galaxy:
+
 ```sh
 ansible-galaxy collection install signalfx.splunk_otel_collector
 ```

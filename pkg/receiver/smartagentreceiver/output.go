@@ -26,6 +26,7 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/utils"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 	otelcolreceiver "go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/receiverhelper"
 	"go.uber.org/zap"
@@ -207,6 +208,29 @@ func (out *output) Copy() types.Output {
 	return &cp
 }
 
+func (out *output) SendMetrics(metrics ...pmetric.Metric) {
+	if out.nextMetricsConsumer == nil {
+		return
+	}
+
+	ctx := out.reporter.StartMetricsOp(context.Background())
+
+	metrics = out.filterMetrics(metrics)
+	for _, dp := range datapoints {
+		// out's extraDimensions take priority over datapoint's
+		dp.Dimensions = utils.MergeStringMaps(dp.Dimensions, out.extraDimensions)
+	}
+
+	metrics, err := out.translator.ToMetrics(datapoints)
+	if err != nil {
+		out.logger.Error("error converting SFx datapoints to ptrace.Traces", zap.Error(err))
+	}
+
+	numPoints := metrics.DataPointCount()
+	err = out.nextMetricsConsumer.ConsumeMetrics(context.Background(), metrics)
+	out.reporter.EndMetricsOp(ctx, typeStr, numPoints, err)
+}
+
 func (out *output) SendDatapoints(datapoints ...*datapoint.Datapoint) {
 	if out.nextMetricsConsumer == nil {
 		return
@@ -281,6 +305,17 @@ func (out *output) AddExtraDimension(key, value string) {
 	out.extraDimensions[key] = value
 }
 
+func (out *output) filterMetrics(metrics []pmetric.Metric) []pmetric.Metric {
+	filteredMetrics := make([]pmetric.Metric, 0, len(metrics))
+	for _, m := range metrics {
+		if out.monitorFiltering.filterSet == nil || !out.monitorFiltering.filterSet.Matches(dp) {
+			filteredDatapoints = append(filteredDatapoints, dp)
+		}
+	}
+	return filteredMetrics
+}
+
+>>>>>>> f7155d19 (wip)
 func (out *output) filterDatapoints(datapoints []*datapoint.Datapoint) []*datapoint.Datapoint {
 	filteredDatapoints := make([]*datapoint.Datapoint, 0, len(datapoints))
 	for _, dp := range datapoints {

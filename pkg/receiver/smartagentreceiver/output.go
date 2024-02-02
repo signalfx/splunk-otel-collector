@@ -216,18 +216,30 @@ func (out *output) SendMetrics(metrics ...pmetric.Metric) {
 	ctx := out.reporter.StartMetricsOp(context.Background())
 
 	metrics = out.filterMetrics(metrics)
-	for _, dp := range datapoints {
-		// out's extraDimensions take priority over datapoint's
-		dp.Dimensions = utils.MergeStringMaps(dp.Dimensions, out.extraDimensions)
+	pm := pmetric.NewMetrics()
+	rm := pm.ResourceMetrics().AppendEmpty()
+	sm := rm.ScopeMetrics().AppendEmpty()
+	for _, dp := range metrics {
+		for k, v := range out.extraDimensions {
+			switch dp.Type() {
+			case pmetric.MetricTypeGauge:
+				for i := 0; i < dp.Gauge().DataPoints().Len(); i++ {
+					dp.Gauge().DataPoints().At(i).Attributes().PutStr(k, v)
+				}
+			case pmetric.MetricTypeSum:
+				for i := 0; i < dp.Sum().DataPoints().Len(); i++ {
+					dp.Gauge().DataPoints().At(i).Attributes().PutStr(k, v)
+				}
+			default:
+				out.logger.Error("Unsupported metric type", zap.Any("type", dp.Type()), zap.String("name", dp.Name()))
+			}
+
+		}
+		dp.MoveTo(sm.Metrics().AppendEmpty())
 	}
 
-	metrics, err := out.translator.ToMetrics(datapoints)
-	if err != nil {
-		out.logger.Error("error converting SFx datapoints to ptrace.Traces", zap.Error(err))
-	}
-
-	numPoints := metrics.DataPointCount()
-	err = out.nextMetricsConsumer.ConsumeMetrics(context.Background(), metrics)
+	numPoints := pm.MetricCount()
+	err := out.nextMetricsConsumer.ConsumeMetrics(context.Background(), pm)
 	out.reporter.EndMetricsOp(ctx, typeStr, numPoints, err)
 }
 
@@ -308,8 +320,8 @@ func (out *output) AddExtraDimension(key, value string) {
 func (out *output) filterMetrics(metrics []pmetric.Metric) []pmetric.Metric {
 	filteredMetrics := make([]pmetric.Metric, 0, len(metrics))
 	for _, m := range metrics {
-		if out.monitorFiltering.filterSet == nil || !out.monitorFiltering.filterSet.Matches(dp) {
-			filteredDatapoints = append(filteredDatapoints, dp)
+		if out.monitorFiltering.filterSet == nil || !out.monitorFiltering.filterSet.MatchesMetric(m) {
+			filteredMetrics = append(filteredMetrics, m)
 		}
 	}
 	return filteredMetrics

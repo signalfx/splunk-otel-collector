@@ -18,11 +18,6 @@ type Output interface {
 	SendSpans(spans ...*trace.Span)
 	SendDimensionUpdate(dim *Dimension)
 	AddExtraDimension(key string, value string)
-	RemoveExtraDimension(key string)
-	AddExtraSpanTag(key string, value string)
-	RemoveExtraSpanTag(key string)
-	AddDefaultSpanTag(key string, value string)
-	RemoveDefaultSpanTag(key string)
 }
 
 // FilteringOutput is Output enhanced with additional filtering mechanisms.

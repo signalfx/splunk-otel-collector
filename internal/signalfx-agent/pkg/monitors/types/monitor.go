@@ -4,6 +4,3 @@ package types
 
 // MonitorID is a unique identifier for a specific instance of a monitor
 type MonitorID string
-
-// UtilizationMetricPluginName is the name used for the plugin dimension on utilization metrics
-const UtilizationMetricPluginName = "signalfx-metadata"

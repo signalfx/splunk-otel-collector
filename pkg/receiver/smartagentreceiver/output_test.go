@@ -59,11 +59,6 @@ func TestOutput(t *testing.T) {
 	output.SendSpans()
 	output.SendDimensionUpdate(new(types.Dimension))
 	output.AddExtraDimension("", "")
-	output.RemoveExtraDimension("")
-	output.AddExtraSpanTag("", "")
-	output.RemoveExtraSpanTag("")
-	output.AddDefaultSpanTag("", "")
-	output.RemoveDefaultSpanTag("")
 }
 
 func TestHasEnabledMetric(t *testing.T) {
@@ -137,18 +132,12 @@ func TestExtraDimensions(t *testing.T) {
 	require.NoError(t, err)
 	assert.Empty(t, o.extraDimensions)
 
-	o.RemoveExtraDimension("not_a_known_dimension_name")
-
 	o.AddExtraDimension("a_dimension_name", "a_value")
 	assert.Equal(t, "a_value", o.extraDimensions["a_dimension_name"])
 
 	cp, ok := o.Copy().(*output)
 	require.True(t, ok)
 	assert.Equal(t, "a_value", cp.extraDimensions["a_dimension_name"])
-
-	cp.RemoveExtraDimension("a_dimension_name")
-	assert.Empty(t, cp.extraDimensions["a_dimension_name"])
-	assert.Equal(t, "a_value", o.extraDimensions["a_dimension_name"])
 
 	cp.AddExtraDimension("another_dimension_name", "another_dimension_value")
 	assert.Equal(t, "another_dimension_value", cp.extraDimensions["another_dimension_name"])

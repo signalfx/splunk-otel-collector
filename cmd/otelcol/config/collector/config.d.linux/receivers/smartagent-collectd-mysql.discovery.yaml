@@ -7,7 +7,7 @@
 # upgrades of the Collector.                                                        #
 #####################################################################################
 # smartagent/collectd/mysql:
-#   enabled: true
+#   enabled: false
 #   rule:
 #     docker_observer: type == "container" and any([name, image, command], {# matches "(?i)mysql"}) and not (command matches "splunk.discovery")
 #     host_observer: type == "hostport" and command matches "(?i)mysqld"

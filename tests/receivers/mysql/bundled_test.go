@@ -54,7 +54,6 @@ func TestMysqlDockerObserver(t *testing.T) {
 					"--set", `splunk.discovery.extensions.host_observer.enabled=false`,
 					"--set", `splunk.discovery.receivers.mysql.config.username=root`,
 					"--set", `splunk.discovery.receivers.mysql.config.password=testuser`,
-					"--set", `splunk.discovery.receivers.mysql.enabled=true`,
 				)
 			},
 		},

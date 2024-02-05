@@ -277,6 +277,7 @@ func (cluster testCluster) daemonSet(namespace, serviceAccount, configMap string
 					"--set", "splunk.discovery.receivers.smartagent/collectd/mysql.config.databases=[{name: 'testdb'}]",
 					"--set", "splunk.discovery.receivers.smartagent/collectd/mysql.config.innodbStats=true",
 					"--set", `splunk.discovery.receivers.smartagent/collectd/mysql.config.extraMetrics=["*"]`,
+					"--set", `splunk.discovery.receivers.smartagent/collectd/mysql.enabled=true`,
 				},
 				Env: []corev1.EnvVar{
 					{Name: "OTLP_ENDPOINT", Value: otlpEndpoint},

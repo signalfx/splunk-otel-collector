@@ -9,6 +9,7 @@
 ### 🛑 Breaking changes 🛑
 
 - (Splunk) On Windows the `SPLUNK_*` environment variables were moved from the machine scope to the collector service scope. This avoids collisions with other agents and instrumentation. If any of these environment variables are required by your apps, please adopt them directly. ([#3930](https://github.com/signalfx/splunk-otel-collector/pull/3930))
+- `mysql` discovery now uses the OpenTelemetry Collector Contrib receiver by default instead of the smartagent receiver.
 
 ## v0.92.0
 

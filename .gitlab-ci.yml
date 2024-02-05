@@ -697,7 +697,7 @@ build-push-windows-image:
         docker push ${IMAGE_NAME}:latest
       }
     - docker inspect --format='{{.RepoDigests}}' ${IMAGE_NAME}:${IMAGE_TAG} | Tee-Object -FilePath dist/windows_digest.txt
-    - cat tags | Out-File -Encoding UTF8 tags_to_sign
+    - (Get-Content -Raw -Path tags) -replace "`r`n", "`n"| Set-Content -NoNewline tags_to_sign
   after_script:
     - docker image prune --all --force
   artifacts:
@@ -750,7 +750,7 @@ build-push-windows2022-image:
         docker push ${IMAGE_NAME}:latest-2022
       }
     - docker inspect --format='{{.RepoDigests}}' ${IMAGE_NAME}:${IMAGE_TAG} | Tee-Object -FilePath dist/windows_2022_digest.txt
-    - cat tags | Out-File -Encoding UTF8 tags_to_sign
+    - (Get-Content -Raw -Path tags) -replace "`r`n", "`n"| Set-Content -NoNewline tags_to_sign
   after_script:
     - docker image prune --all --force
     - C:\Users\Administrator\Desktop\ops-scripts\docker-leak-check.exe -remove

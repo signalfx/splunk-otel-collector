@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: lychee Link Checker
         id: lychee
-        uses: lycheeverse/lychee-action@v1.9.2
+        uses: lycheeverse/lychee-action@v1.9.3
         with:
           args: -v -n --config .lychee.toml './*.md' './**/*.md'
           fail: true

@@ -10,7 +10,7 @@ require (
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/google/uuid v1.6.0
 	github.com/knadh/koanf v1.5.0
-	github.com/shirou/gopsutil/v3 v3.23.12
+	github.com/shirou/gopsutil/v3 v3.24.1
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3
 	github.com/signalfx/signalfx-go v1.34.0
 	github.com/signalfx/signalfx-go/signalflow/v2 v2.2.0

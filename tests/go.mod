@@ -41,7 +41,7 @@ require (
 	k8s.io/cli-runtime v0.29.1
 	k8s.io/client-go v0.29.1
 	k8s.io/kubectl v0.29.1
-	sigs.k8s.io/kind v0.20.0-alpha
+	sigs.k8s.io/kind v0.22.0-alpha
 	sigs.k8s.io/yaml v1.4.0
 )
 

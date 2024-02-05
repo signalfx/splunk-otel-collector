@@ -7,7 +7,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.92.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.92.0
 	github.com/openzipkin/zipkin-go v0.4.2
-	github.com/shirou/gopsutil/v3 v3.23.12
+	github.com/shirou/gopsutil/v3 v3.24.1
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657
 	github.com/signalfx/golib/v3 v3.3.53
 	github.com/signalfx/signalfx-agent v1.0.1-0.20230104182534-9eee411fe305

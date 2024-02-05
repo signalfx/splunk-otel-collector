@@ -465,7 +465,7 @@ require (
 	github.com/rs/cors v1.10.1 // indirect
 	github.com/ryanuber/go-glob v1.0.0 // indirect
 	github.com/scaleway/scaleway-sdk-go v1.0.0-beta.21 // indirect
-	github.com/shirou/gopsutil/v3 v3.23.12 // indirect
+	github.com/shirou/gopsutil/v3 v3.24.1 // indirect
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3 // indirect
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657 // indirect
 	github.com/signalfx/gohistogram v0.0.0-20160107210732-1ccfd2ff5083 // indirect

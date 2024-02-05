@@ -93,10 +93,10 @@ jobs:
           path: "${{ github.workspace }}/requirements.txt"
           contents: |
             ${{ matrix.ansible }}
-            molecule==3.3.0
-            molecule-docker==0.2.4
-            docker==5.0.0
-            ansible-lint==5.4.0
+            ansible-lint==6.22.2
+            molecule==6.0.3
+            molecule-plugins[docker]==23.5.0
+            docker==7.0.0
             urllib3<2
 
       - name: Set up Python 3.
@@ -152,10 +152,10 @@ jobs:
           path: "${{ github.workspace }}/requirements.txt"
           contents: |
             ${{ matrix.ansible }}
-            ansible-compat==2.2.7
-            ansible-lint==5.4.0
-            molecule==4.0.4
-            molecule-vagrant==2.0.0
+            ansible-compat==4.1.11
+            ansible-lint==6.22.2
+            molecule==6.0.3
+            molecule-plugins[vagrant]==23.5.0
             pywinrm==0.4.3
 
       - name: Set up Python 3.

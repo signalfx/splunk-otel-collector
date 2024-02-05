@@ -18,4 +18,6 @@ platforms:
   - name: amazonlinux
     box: bento/amazonlinux-2
 provisioner:
+  env:
+    ANSIBLE_ROLES_PATH: ../../roles
   name: ansible

@@ -349,7 +349,7 @@ github.com/ryanuber/columnize v2.1.0+incompatible/go.mod h1:sm1tb6uqfes/u+d4ooFo
 github.com/ryanuber/go-glob v1.0.0/go.mod h1:807d1WSdnB0XRJzKNil9Om6lcp/3a0v4qIHxIXzX/Yc=
 github.com/sean-/seed v0.0.0-20170313163322-e2103e2c3529/go.mod h1:DxrIzT+xaE7yg65j358z/aeFdxmN0P9QXhEzd20vsDc=
 github.com/shirou/gopsutil v3.21.11+incompatible h1:+1+c1VGhc88SSonWP6foOcLhvnKlUeu/erjjvaPEYiI=
-github.com/shirou/gopsutil/v3 v3.23.12 h1:z90NtUkp3bMtmICZKpC4+WaknU1eXtp5vtbQ11DgpE4=
+github.com/shirou/gopsutil/v3 v3.24.1 h1:R3t6ondCEvmARp3wxODhXMTLC/klMa87h2PHUw5m7QI=
 github.com/shoenig/go-m1cpu v0.1.6 h1:nxdKQNcEB6vzgA2E2bvzKIYRuNj7XNJ4S/aRSwKzFtM=
 github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3 h1:32k2QLgsKhcEs55q4REPKyIadvid5FPy2+VMgvbmKJ0=
 github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3/go.mod h1:gJrXWi7wSGXfiC7+VheQaz+ypdCt5SmZNL+BRxUe7y4=

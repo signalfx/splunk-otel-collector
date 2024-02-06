@@ -52,6 +52,10 @@ fossa:
     jira_automation: "true"
   # allow_failure: false
 
+.docker-reader-role: &docker-reader-role |
+  creds-helper init
+  eval $(creds-helper docker --eval "artifactory:v2/cloud/role/docker-reader-role")
+
 .sign-docker:
   extends: .trigger-filter
   stage: sign-image
@@ -133,10 +137,6 @@ fossa:
     paths:
       - .go/pkg/mod
       - .go/bin
-
-.docker-reader-role: &docker-reader-role |
-  creds-helper init
-  eval $(creds-helper docker --eval "artifactory:v2/cloud/role/docker-reader-role")
 
 update-otel-deps:
   only:

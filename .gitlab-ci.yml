@@ -54,7 +54,11 @@ fossa:
 
 .sign-docker:
   extends: .trigger-filter
+  allow_failure: true
   stage: sign-image
+  before_script:
+    - *docker-reader-role
+    - docker login -u $CIRCLECI_QUAY_USERNAME -p $CIRCLECI_QUAY_PASSWORD quay.io
   script:
     - echo "listing images to be signed"
     - cat tags_to_sign
@@ -654,9 +658,6 @@ push-linux-image:
       - tags_to_sign
 
 sign-linux-image:
-  before_script:
-    - *docker-reader-role
-    - docker login -u $CIRCLECI_QUAY_USERNAME -p $CIRCLECI_QUAY_PASSWORD quay.io
   extends: .sign-docker
   dependencies:
     - push-linux-image
@@ -706,9 +707,6 @@ build-push-windows-image:
       - tags_to_sign
 
 sign-windows-image:
-  before_script:
-    - *docker-reader-role
-    - docker login -u $CIRCLECI_QUAY_USERNAME -p $CIRCLECI_QUAY_PASSWORD quay.io
   extends: .sign-docker
   dependencies:
     - build-push-windows-image

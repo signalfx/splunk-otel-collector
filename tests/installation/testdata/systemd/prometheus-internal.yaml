@@ -6,6 +6,9 @@ prometheus/internal:
         static_configs:
         - targets: ['0.0.0.0:8888']
         metric_relabel_configs:
-           - source_labels: [ __name__ ]
-             regex: '.*grpc_io.*'
-             action: drop
+          - source_labels: [ __name__ ]
+            regex: 'otelcol_rpc_.*'
+            action: drop
+          - source_labels: [ __name__ ]
+            regex: 'otelcol_http_.*'
+            action: drop

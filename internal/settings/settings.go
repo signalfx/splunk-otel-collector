@@ -78,11 +78,7 @@ var (
 	envProvider  = envprovider.New()
 	fileProvider = fileprovider.New()
 
-	defaultFeatureGates = []string{
-		// disabling until all new metrics categorized and rpc histograms are evaluated
-		// https://github.com/open-telemetry/opentelemetry-collector/issues/7454
-		// "-telemetry.useOtelForInternalMetrics",
-	}
+	defaultFeatureGates = []string{}
 )
 
 type Settings struct {

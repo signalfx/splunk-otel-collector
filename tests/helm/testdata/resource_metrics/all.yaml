@@ -19,6 +19,9 @@ resource_metrics:
               os.type: linux
               service.instance.id: <RE2(.*:8889)>
               service.name: otel-k8s-cluster-receiver
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
             name: scrape_samples_post_metric_relabeling
             type: DoubleGauge
           - attributes:
@@ -112,6 +115,9 @@ resource_metrics:
               os.type: linux
               service.instance.id: <RE2(.*:8889)>
               service.name: otel-k8s-cluster-receiver
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
             name: up
             type: DoubleGauge
           - attributes:
@@ -128,6 +134,9 @@ resource_metrics:
               os.type: linux
               service.instance.id: <RE2(.*:8889)>
               service.name: otel-k8s-cluster-receiver
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
             name: scrape_samples_scraped
             type: DoubleGauge
           - attributes:
@@ -202,6 +211,9 @@ resource_metrics:
               os.type: linux
               service.instance.id: <RE2(.*:8889)>
               service.name: otel-k8s-cluster-receiver
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
             name: scrape_duration_seconds
             type: DoubleGauge
           - attributes:
@@ -218,6 +230,9 @@ resource_metrics:
               os.type: linux
               service.instance.id: <RE2(.*:8889)>
               service.name: otel-k8s-cluster-receiver
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
             name: scrape_series_added
             type: DoubleGauge
           - attributes:
@@ -1459,6 +1474,43 @@ resource_metrics:
               service_version: <VERSION_FROM_BUILD>
             name: otelcol_exporter_sent_metric_points
             type: DoubleMonotonicCumulativeSum
+          - attributes:
+              exporter: <RE2(signalfx|otlp)>
+              host.name: <ANY>
+              http.scheme: http
+              k8s.cluster.name: test-cluster
+              k8s.namespace.name: monitoring
+              k8s.node.name: <ANY>
+              k8s.pod.name: <RE2(splunk-otel-collector-.*)>
+              k8s.pod.uid: <ANY>
+              net.host.name: 172.18.0.2
+              net.host.port: <ANY>
+              os.type: linux
+              service.instance.id: <RE2(.*:8889)>
+              service.name: <RE2(otel-agent|otel-k8s-cluster-receiver)>
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+            name: otelcol_exporter_send_failed_metric_points
+            type: DoubleMonotonicCumulativeSum
+          - attributes:
+              host.name: <ANY>
+              http.scheme: http
+              k8s.cluster.name: test-cluster
+              k8s.namespace.name: monitoring
+              k8s.node.name: <ANY>
+              k8s.pod.name: <RE2(splunk-otel-collector-.*)>
+              k8s.pod.uid: <ANY>
+              net.host.name: 172.18.0.2
+              net.host.port: "8889"
+              os.type: linux
+              service.instance.id: <RE2(.*:8889)>
+              service.name: <RE2(otel-agent|otel-k8s-cluster-receiver)>
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+            name: otelcol_processor_batch_metadata_cardinality
+            type: DoubleGauge
           - attributes:
               host.name: <RE2(splunk-otel-collector-.*-k8s-cluster-receiver-.*)>
               http.scheme: http
@@ -3241,4 +3293,74 @@ resource_metrics:
               k8s.pod.uid: <ANY>
               os.type: linux
             name: container_cpu_utilization
+            type: IntMonotonicCumulativeSum
+          - name: otelcol_rpc_client_duration_sum
+            type: DoubleMonotonicCumulativeSum
+          - name: otelcol_rpc_client_duration_bucket
+            type: IntMonotonicCumulativeSum
+          - name: otelcol_rpc_client_duration_count
+            type: IntMonotonicCumulativeSum
+          - name: otelcol_rpc_client_request_size_sum
+            type: DoubleMonotonicCumulativeSum
+          - name: otelcol_rpc_client_request_size_bucket
+            type: IntMonotonicCumulativeSum
+          - name: otelcol_rpc_client_request_size_count
+            type: IntMonotonicCumulativeSum
+          - name: otelcol_rpc_client_requests_per_rpc_sum
+            type: DoubleMonotonicCumulativeSum
+          - name: otelcol_rpc_client_requests_per_rpc_bucket
+            type: IntMonotonicCumulativeSum
+          - name: otelcol_rpc_client_requests_per_rpc_count
+            type: IntMonotonicCumulativeSum
+          - name: otelcol_rpc_client_response_size_sum
+            type: DoubleMonotonicCumulativeSum
+          - name: otelcol_rpc_client_response_size_bucket
+            type: IntMonotonicCumulativeSum
+          - name: otelcol_rpc_client_response_size_count
+            type: IntMonotonicCumulativeSum
+          - name: otelcol_rpc_client_responses_per_rpc_sum
+            type: DoubleMonotonicCumulativeSum
+          - name: otelcol_rpc_client_responses_per_rpc_bucket
+            type: IntMonotonicCumulativeSum
+          - name: otelcol_rpc_client_responses_per_rpc_count
+            type: IntMonotonicCumulativeSum
+          - name: otelcol_rpc_server_duration_sum
+            type: DoubleMonotonicCumulativeSum
+          - name: otelcol_rpc_server_duration_bucket
+            type: IntMonotonicCumulativeSum
+          - name: otelcol_rpc_server_duration_count
+            type: IntMonotonicCumulativeSum
+          - name: otelcol_rpc_server_request_size_sum
+            type: DoubleMonotonicCumulativeSum
+          - name: otelcol_rpc_server_request_size_bucket
+            type: IntMonotonicCumulativeSum
+          - name: otelcol_rpc_server_request_size_count
+            type: IntMonotonicCumulativeSum
+          - name: otelcol_rpc_server_requests_per_rpc_sum
+            type: DoubleMonotonicCumulativeSum
+          - name: otelcol_rpc_server_requests_per_rpc_bucket
+            type: IntMonotonicCumulativeSum
+          - name: otelcol_rpc_server_requests_per_rpc_count
+            type: IntMonotonicCumulativeSum
+          - name: otelcol_rpc_server_response_size_sum
+            type: DoubleMonotonicCumulativeSum
+          - name: otelcol_rpc_server_response_size_bucket
+            type: IntMonotonicCumulativeSum
+          - name: otelcol_rpc_server_response_size_count
+            type: IntMonotonicCumulativeSum
+          - name: otelcol_rpc_server_responses_per_rpc_sum
+            type: DoubleMonotonicCumulativeSum
+          - name: otelcol_rpc_server_responses_per_rpc_bucket
+            type: IntMonotonicCumulativeSum
+          - name: otelcol_rpc_server_responses_per_rpc_count
+            type: IntMonotonicCumulativeSum
+          - name: otelcol_http_server_request_content_length
+            type: DoubleMonotonicCumulativeSum
+          - name: otelcol_http_server_response_content_length
+            type: DoubleMonotonicCumulativeSum
+          - name: otelcol_http_server_duration_sum
+            type: DoubleMonotonicCumulativeSum
+          - name: otelcol_http_server_duration_bucket
+            type: IntMonotonicCumulativeSum
+          - name: otelcol_http_server_duration_count
             type: IntMonotonicCumulativeSum

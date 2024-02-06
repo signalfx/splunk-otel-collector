@@ -550,7 +550,6 @@ func TestConfigDirFromArgs(t *testing.T) {
 			require.NotNil(t, settings.configDir.value)
 			require.Equal(t, "/from/args", settings.configDir.String())
 			require.Equal(t, "/from/args", getConfigDir(settings))
-			// require.Equal(t, []string{"--feature-gates", "-telemetry.useOtelForInternalMetrics"}, settings.ColCoreArgs())
 		})
 	}
 }

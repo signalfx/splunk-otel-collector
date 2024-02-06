@@ -155,7 +155,7 @@ func (mc *MonitorConfig) Validate() error {
 	return nil
 }
 
-// NewFilterSet makes a filter set using the new filter style
+// FilterSet makes a filter set using the new filter style
 func (mc *MonitorConfig) FilterSet() (*dpfilters.FilterSet, error) {
 	return makeNewFilterSet(mc.DatapointsToExclude)
 }
@@ -193,7 +193,7 @@ func (mc *MonitorConfig) MonitorConfigCore() *MonitorConfig {
 	return mc
 }
 
-// IsCollectdBased returns whether this montior type depends on the
+// IsCollectdBased returns whether this monitor type depends on the
 // collectd subprocess to run.
 func (mc *MonitorConfig) IsCollectdBased() bool {
 	return strings.HasPrefix(mc.Type, "collectd/")

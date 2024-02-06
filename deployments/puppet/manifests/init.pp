@@ -419,11 +419,6 @@ class splunk_otel_collector (
           $splunk_otel_js_path = '/usr/lib/splunk-instrumentation/splunk-otel-js.tgz'
           $splunk_otel_js_prefix = '/usr/lib/splunk-instrumentation/splunk-otel-js'
 
-          exec { 'Check npm is present':
-            command  => "bash -c 'command -v ${$auto_instrumentation_npm_path}'",
-            provider => shell,
-          }
-
           file { "${$splunk_otel_js_prefix}/node_modules":
             ensure => 'directory',
           }

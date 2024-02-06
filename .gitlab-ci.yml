@@ -54,7 +54,6 @@ fossa:
 
 .sign-docker:
   extends: .trigger-filter
-  allow_failure: true
   stage: sign-image
   before_script:
     - *docker-reader-role

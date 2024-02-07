@@ -145,6 +145,9 @@ receivers:
           - source_labels: [ __name__ ]
             regex: 'otelcol_http_.*'
             action: drop
+          - source_labels: [ __name__ ]
+            regex: 'otelcol_processor_batch_.*'
+            action: drop
   # Enables the prometheus simple receiver with default settings
   #  - grpc (default endpoint = 0.0.0.0:9090)
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/simpleprometheusreceiver

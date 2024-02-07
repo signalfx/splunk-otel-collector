@@ -7,6 +7,13 @@ receivers:
           static_configs:
             - targets:
                 - "localhost:8889"
+          metric_relabel_configs:
+          - source_labels: [ __name__ ]
+            regex: 'otelcol_rpc_.*'
+            action: drop
+          - source_labels: [ __name__ ]
+            regex: 'otelcol_http_.*'
+            action: drop
 exporters:
   otlp:
     endpoint: "${OTLP_ENDPOINT}"

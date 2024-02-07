@@ -67,6 +67,15 @@ resource_metrics:
               service_instance_id: <RE2(^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$)>
               service_name: otelcol
               service_version: <VERSION_FROM_BUILD>
+          - name: otelcol_exporter_send_failed_metric_points
+            type: DoubleMonotonicCumulativeSum
+            attributes:
+              foo: bar
+              system.type: prometheus-exporter
+              exporter: otlp
+              service_instance_id: <RE2(^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$)>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
           - name: otelcol_exporter_sent_metric_points
             type: DoubleMonotonicCumulativeSum
             attributes:
@@ -96,8 +105,6 @@ resource_metrics:
               service_name: otelcol
               service_version: <VERSION_FROM_BUILD>
               transport: internal
-          - name: otelcol_exporter_send_failed_metric_points
-            type: DoubleMonotonicCumulativeSum
           - name: otelcol_rpc_client_duration
             type: DoubleMonotonicCumulativeSum
           - name: otelcol_rpc_client_duration_bucket

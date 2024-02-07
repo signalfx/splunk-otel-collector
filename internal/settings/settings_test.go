@@ -180,6 +180,7 @@ func TestNewSettingsConvertConfig(t *testing.T) {
 		configconverter.RenameK8sTagger{},
 		configconverter.NormalizeGcp{},
 		configconverter.LogLevelToVerbosity{},
+		configconverter.DisableKubeletUtilizationMetrics{},
 	}, settings.ConfMapConverters())
 	require.Equal(t, []string{"--feature-gates", "foo", "--feature-gates", "-bar"}, settings.ColCoreArgs())
 }

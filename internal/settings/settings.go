@@ -218,6 +218,7 @@ func (s *Settings) ConfMapConverters() []confmap.Converter {
 			configconverter.RenameK8sTagger{},
 			configconverter.NormalizeGcp{},
 			configconverter.LogLevelToVerbosity{},
+			configconverter.DisableKubeletUtilizationMetrics{},
 		)
 	}
 	return confMapConverters

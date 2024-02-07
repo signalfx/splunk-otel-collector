@@ -72,6 +72,9 @@ receivers:
             - source_labels: [ __name__ ]
               regex: 'otelcol_http_.*'
               action: drop
+            - source_labels: [ __name__ ]
+              regex: 'otelcol_processor_batch_.*'
+              action: drop
   signalfx:
     endpoint: 0.0.0.0:9943
     # Whether to preserve incoming access token and use instead of exporter token

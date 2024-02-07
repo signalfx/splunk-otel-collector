@@ -85,6 +85,9 @@ receivers:
           - source_labels: [ __name__ ]
             regex: 'otelcol_http_.*'
             action: drop
+          - source_labels: [ __name__ ]
+            regex: 'otelcol_processor_batch_.*'
+            action: drop
   smartagent/signalfx-forwarder:
     type: signalfx-forwarder
     listenAddress: "${SPLUNK_LISTEN_INTERFACE}:9080"

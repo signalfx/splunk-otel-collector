@@ -123,9 +123,10 @@ processors:
 
 exporters:
   # Traces
-  sapm:
-    access_token: "${SPLUNK_ACCESS_TOKEN}"
-    endpoint: "${SPLUNK_TRACE_URL}"
+  otlp:
+    endpoint: "${SPLUNK_INGEST_URL}"
+    headers:
+      "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
   # Metrics + Events
   signalfx:
     access_token: "${SPLUNK_ACCESS_TOKEN}"
@@ -149,7 +150,7 @@ exporters:
     endpoint: "https://ingest.${SPLUNK_REALM}.signalfx.com/v1/log"
     log_data_enabled: false
   # Send to gateway
-  otlp:
+  otlp/gateway:
     endpoint: "${SPLUNK_GATEWAY_URL}:4317"
     tls:
       insecure: true
@@ -168,30 +169,30 @@ service:
       - batch
       - resourcedetection
       #- resource/add_environment
-      exporters: [sapm, signalfx]
+      exporters: [otlp, signalfx]
       # Use instead when sending to gateway
-      #exporters: [otlp, signalfx]
+      #exporters: [otlp/gateway, signalfx]
     # Required for Splunk Infrastructure Monitoring
     metrics:
       receivers: [hostmetrics, otlp, signalfx]
       processors: [memory_limiter, batch, resourcedetection]
       exporters: [signalfx]
       # Use instead when sending to gateway
-      #exporters: [otlp]
+      #exporters: [otlp/gateway]
     # Required for Splunk APM and/or Infrastructure Monitoring
     metrics/internal:
       receivers: [prometheus/internal]
       processors: [memory_limiter, batch, resourcedetection]
       exporters: [signalfx]
       # Use instead when sending to gateway
-      #exporters: [otlp]
+      #exporters: [otlp/gateway]
     # Required for Splunk Infrastructure Monitoring
     logs/signalfx:
       receivers: [signalfx]
       processors: [memory_limiter, batch]
       exporters: [signalfx]
       # Use instead when sending to gateway
-      #exporters: [otlp]
+      #exporters: [otlp/gateway]
     # Required for profiling
     logs:
       receivers: [otlp]
@@ -202,4 +203,4 @@ service:
       #- resource/add_environment
       exporters: [splunk_hec/profiling]
       # Use instead when sending to gateway
-      #exporters: [otlp]
+      #exporters: [otlp/gateway]

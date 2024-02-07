@@ -94,9 +94,10 @@ processors:
 
 exporters:
   # Traces
-  sapm:
-    access_token: "${SPLUNK_ACCESS_TOKEN}"
-    endpoint: "https://ingest.${SPLUNK_REALM}.signalfx.com/v2/trace"
+  otlp:
+    endpoint: "https://ingest.${SPLUNK_REALM}.signalfx.com"
+    headers:
+      "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
     sending_queue:
       num_consumers: 32
   # Metrics + Events
@@ -141,7 +142,7 @@ service:
       - memory_limiter
       - batch
       #- resource/add_environment
-      exporters: [sapm]
+      exporters: [otlp]
     metrics:
       receivers: [otlp, signalfx]
       processors: [memory_limiter, batch]

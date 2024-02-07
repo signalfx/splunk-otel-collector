@@ -58,9 +58,11 @@ func TestDefaultGatewayConfig(t *testing.T) {
 			config := collector.EffectiveConfig(t, 55554)
 			require.Equal(t, map[string]any{
 				"exporters": map[string]any{
-					"sapm": map[string]any{
-						"access_token": "<redacted>",
-						"endpoint":     "https://ingest.not.real.signalfx.com/v2/trace",
+					"otlp": map[string]any{
+						"headers": map[string]any{
+							"X-SF-Token": "<redacted>",
+						},
+						"endpoint": "https://ingest.not.real.signalfx.com",
 						"sending_queue": map[string]any{
 							"num_consumers": 32,
 						},
@@ -201,7 +203,7 @@ func TestDefaultGatewayConfig(t *testing.T) {
 							"receivers":  []any{"prometheus/internal"},
 						},
 						"traces": map[string]any{
-							"exporters":  []any{"sapm"},
+							"exporters":  []any{"otlp"},
 							"processors": []any{"memory_limiter", "batch"},
 							"receivers":  []any{"jaeger", "otlp", "sapm", "zipkin"},
 						},
@@ -248,15 +250,17 @@ func TestDefaultAgentConfig(t *testing.T) {
 					"debug": map[string]any{
 						"verbosity": "detailed",
 					},
-					"otlp": map[string]any{
+					"otlp/gateway": map[string]any{
 						"endpoint": ":4317",
 						"tls": map[string]any{
 							"insecure": true,
 						},
 					},
-					"sapm": map[string]any{
-						"access_token": "<redacted>",
-						"endpoint":     "https://ingest.not.real.signalfx.com/v2/trace",
+					"otlp": map[string]any{
+						"headers": map[string]any{
+							"X-SF-Token": "<redacted>",
+						},
+						"endpoint": "https://ingest.not.real.signalfx.com",
 					},
 					"signalfx": map[string]any{
 						"access_token":       "<redacted>",
@@ -392,7 +396,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 							"processors": []any{"memory_limiter", "batch", "resourcedetection"},
 							"receivers":  []any{"prometheus/internal"}},
 						"traces": map[string]any{
-							"exporters":  []any{"sapm", "signalfx"},
+							"exporters":  []any{"otlp", "signalfx"},
 							"processors": []any{"memory_limiter", "batch", "resourcedetection"},
 							"receivers":  []any{"jaeger", "otlp", "smartagent/signalfx-forwarder", "zipkin"},
 						},

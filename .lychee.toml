@@ -3,6 +3,7 @@ accept = [
     200,
     429,
 ]
+timeout = 30
 exclude = [
     "my.host",
     "file://*",

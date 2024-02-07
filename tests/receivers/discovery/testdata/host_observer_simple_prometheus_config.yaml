@@ -13,14 +13,14 @@ receivers:
     embed_receiver_config: true
     receivers:
       prometheus_simple:
-        rule: type == "hostport"
+        rule: type == "hostport" and command contains "otelcol"
         resource_attributes:
           one.key: one.value
           two.key: two.value
         status:
           metrics:
             successful:
-                - regexp: ^otelcol_receiver_accepted_metric_points$
+                - regexp: ^otelcol_process_uptime$
                   first_only: true
                   log_record:
                     severity_text: info
@@ -54,6 +54,10 @@ processors:
     actions:
       - action: delete
         key: scrape_timestamp
+      - action: delete
+        key: observed_timestamp
+      - action: delete
+        key: timestamp
 
 exporters:
   otlp:

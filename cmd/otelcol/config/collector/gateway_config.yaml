@@ -45,7 +45,10 @@ receivers:
         - targets: ['${SPLUNK_LISTEN_INTERFACE}:8888']
         metric_relabel_configs:
           - source_labels: [ __name__ ]
-            regex: '.*grpc_io.*'
+            regex: 'otelcol_rpc_.*'
+            action: drop
+          - source_labels: [ __name__ ]
+            regex: 'otelcol_http_.*'
             action: drop
   sapm:
     endpoint: "${SPLUNK_LISTEN_INTERFACE}:7276"

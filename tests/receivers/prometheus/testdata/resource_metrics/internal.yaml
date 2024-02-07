@@ -4,6 +4,9 @@ resource_metrics:
       net.host.port: "8889"
       service.instance.id: localhost:8889
       service.name: otel-agent
+      service_instance_id: <ANY>
+      service_name: otelcol
+      service_version: <VERSION_FROM_BUILD>
     scope_metrics:
       - instrumentation_scope:
           name: otelcol/prometheusreceiver
@@ -62,6 +65,14 @@ resource_metrics:
           - name: otelcol_exporter_queue_size
             description: Current size of the retry queue (in batches)
             type: DoubleGauge
+            attributes:
+              exporter: otlp
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+          - name: otelcol_exporter_send_failed_metric_points
+            description: Number of metric points in failed attempts to send to destination.
+            type: DoubleMonotonicCumulativeSum
             attributes:
               exporter: otlp
               service_instance_id: <ANY>

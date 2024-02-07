@@ -62,6 +62,14 @@ resource_metrics:
               service_instance_id: <ANY>
               service_name: otelcol
               service_version: <VERSION_FROM_BUILD>
+          - name: otelcol_exporter_send_failed_metric_points
+            description: Number of metric points in failed attempts to send to destination.
+            type: DoubleMonotonicCumulativeSum
+            attributes:
+              exporter: otlp
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
           - name: otelcol_exporter_sent_metric_points
             description: Number of metric points successfully sent to destination.
             type: DoubleMonotonicCumulativeSum
@@ -104,3 +112,63 @@ resource_metrics:
               service_instance_id: <ANY>
               service_name: otelcol
               service_version: <VERSION_FROM_BUILD>
+          - attributes:
+              rpc_grpc_status_code: "0"
+              rpc_method: <ANY>
+              rpc_service: opentelemetry.proto.collector.metrics.v1.MetricsService
+              rpc_system: grpc
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+            description: Measures the duration of inbound RPC.
+            name: otelcol_rpc_client_duration
+            type: Histogram
+          - attributes:
+              rpc_method: <ANY>
+              rpc_service: opentelemetry.proto.collector.metrics.v1.MetricsService
+              rpc_system: grpc
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+            description: Measures size of RPC request messages (uncompressed).
+            name: otelcol_rpc_client_request_size
+            type: Histogram
+          - attributes:
+              rpc_grpc_status_code: "0"
+              rpc_method: <ANY>
+              rpc_service: opentelemetry.proto.collector.metrics.v1.MetricsService
+              rpc_system: grpc
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+            description: Measures the number of messages received per RPC. Should be 1 for all non-streaming RPCs.
+            name: otelcol_rpc_client_requests_per_rpc
+            type: Histogram
+          - attributes:
+              rpc_method: <ANY>
+              rpc_service: opentelemetry.proto.collector.metrics.v1.MetricsService
+              rpc_system: grpc
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+            description: Measures size of RPC response messages (uncompressed).
+            name: otelcol_rpc_client_response_size
+            type: Histogram
+          - attributes:
+              rpc_grpc_status_code: "0"
+              rpc_method: <ANY>
+              rpc_service: opentelemetry.proto.collector.metrics.v1.MetricsService
+              rpc_system: grpc
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+            description: Measures the number of messages received per RPC. Should be 1 for all non-streaming RPCs.
+            name: otelcol_rpc_client_responses_per_rpc
+            type: Histogram
+          - attributes:
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+            description: Target metadata
+            name: target_info
+            type: DoubleGauge

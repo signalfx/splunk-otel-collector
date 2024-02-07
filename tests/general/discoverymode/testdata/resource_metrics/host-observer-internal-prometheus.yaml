@@ -4,6 +4,12 @@ resource_metrics:
       net.host.port: <ANY>
       service.instance.id: <ANY>
       service.name: <ANY>
+      label_one: actual.label.one.value.from.env.var
+      label_two: actual.label.two.value.from.env.var
+      label_three: actual.label.three.value.from.cmdline.property
+      service_instance_id: <ANY>
+      service_name: otelcol
+      service_version: <VERSION_FROM_BUILD>
     scope_metrics:
       - instrumentation_scope:
           name: otelcol/prometheusreceiver

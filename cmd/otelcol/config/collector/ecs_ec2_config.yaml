@@ -26,7 +26,7 @@ extensions:
 
 receivers:
   # The fluentforward receiver can be used to forward logs from the Docker fluentd logging driver.
-  fluentforward:	
+  fluentforward:
     endpoint: 0.0.0.0:8006
   hostmetrics:
     collection_interval: 10s
@@ -66,8 +66,11 @@ receivers:
           static_configs:
             - targets: ['0.0.0.0:8888']
           metric_relabel_configs:
-            - source_labels: [__name__]
-              regex: '.*grpc_io.*'
+            - source_labels: [ __name__ ]
+              regex: 'otelcol_rpc_.*'
+              action: drop
+            - source_labels: [ __name__ ]
+              regex: 'otelcol_http_.*'
               action: drop
   signalfx:
     endpoint: 0.0.0.0:9943

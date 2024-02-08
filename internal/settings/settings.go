@@ -219,6 +219,7 @@ func (s *Settings) ConfMapConverters() []confmap.Converter {
 			configconverter.NormalizeGcp{},
 			configconverter.LogLevelToVerbosity{},
 			configconverter.DisableKubeletUtilizationMetrics{},
+			configconverter.DisableExcessiveInternalMetrics{},
 		)
 	}
 	return confMapConverters

@@ -184,6 +184,11 @@ func TestDefaultConfigDDiscoversPostgres(t *testing.T) {
 												"regex":         "otelcol_http_.*",
 												"source_labels": []any{"__name__"},
 											},
+											map[string]any{
+												"action":        "drop",
+												"regex":         "otelcol_processor_batch_.*",
+												"source_labels": []any{"__name__"},
+											},
 										},
 										"scrape_interval": "10s",
 										"static_configs": []any{
@@ -267,6 +272,11 @@ func TestDefaultConfigDDiscoversPostgres(t *testing.T) {
 										map[string]any{
 											"action":        "drop",
 											"regex":         "otelcol_http_.*",
+											"source_labels": []any{"__name__"},
+										},
+										map[string]any{
+											"action":        "drop",
+											"regex":         "otelcol_processor_batch_.*",
 											"source_labels": []any{"__name__"},
 										},
 									},

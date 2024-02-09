@@ -181,6 +181,7 @@ func TestNewSettingsConvertConfig(t *testing.T) {
 		configconverter.NormalizeGcp{},
 		configconverter.LogLevelToVerbosity{},
 		configconverter.DisableKubeletUtilizationMetrics{},
+		configconverter.DisableExcessiveInternalMetrics{},
 	}, settings.ConfMapConverters())
 	require.Equal(t, []string{"--feature-gates", "foo", "--feature-gates", "-bar"}, settings.ColCoreArgs())
 }

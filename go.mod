@@ -10,7 +10,7 @@ require (
 	github.com/go-zookeeper/zk v1.0.3
 	github.com/gogo/protobuf v1.3.2
 	github.com/hashicorp/vault v1.14.8
-	github.com/hashicorp/vault-plugin-auth-gcp v0.16.1
+	github.com/hashicorp/vault-plugin-auth-gcp v0.16.2
 	github.com/hashicorp/vault/api v1.11.0
 	github.com/jaegertracing/jaeger v1.53.0
 	github.com/knadh/koanf v1.5.0
@@ -163,6 +163,7 @@ require (
 	github.com/google/gnostic-models v0.6.8 // indirect
 	github.com/google/s2a-go v0.1.7 // indirect
 	github.com/hashicorp/go-kms-wrapping/v2 v2.0.10 // indirect
+	github.com/hashicorp/go-secure-stdlib/plugincontainer v0.2.2 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/hetznercloud/hcloud-go/v2 v2.4.0 // indirect
 	github.com/jcmturner/goidentity/v6 v6.0.1 // indirect
@@ -225,7 +226,7 @@ require (
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.22.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.0.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240102182953-50ed04b92917 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240102182953-50ed04b92917 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240116215550-a9fa1716bcac // indirect
 	sigs.k8s.io/controller-runtime v0.16.3 // indirect
 )
 
@@ -350,7 +351,7 @@ require (
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-gcp-common v0.8.0 // indirect
-	github.com/hashicorp/go-hclog v1.6.1 // indirect
+	github.com/hashicorp/go-hclog v1.6.2 // indirect
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
 	github.com/hashicorp/go-kms-wrapping/entropy/v2 v2.0.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
@@ -359,16 +360,16 @@ require (
 	github.com/hashicorp/go-rootcerts v1.0.2 // indirect
 	github.com/hashicorp/go-secure-stdlib/awsutil v0.2.3 // indirect
 	github.com/hashicorp/go-secure-stdlib/mlock v0.1.3 // indirect
-	github.com/hashicorp/go-secure-stdlib/parseutil v0.1.7 // indirect
+	github.com/hashicorp/go-secure-stdlib/parseutil v0.1.8 // indirect
 	github.com/hashicorp/go-secure-stdlib/strutil v0.1.2 // indirect
-	github.com/hashicorp/go-sockaddr v1.0.2 // indirect
+	github.com/hashicorp/go-sockaddr v1.0.5 // indirect
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
 	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/hashicorp/golang-lru v1.0.2 // indirect
 	github.com/hashicorp/hcl v1.0.1-vault-5 // indirect
 	github.com/hashicorp/nomad/api v0.0.0-20230721134942-515895c7690c // indirect
 	github.com/hashicorp/serf v0.10.1 // indirect
-	github.com/hashicorp/vault/sdk v0.9.2 // indirect
+	github.com/hashicorp/vault/sdk v0.10.2 // indirect
 	github.com/hashicorp/yamux v0.1.1 // indirect
 	github.com/hpcloud/tail v1.0.0 // indirect
 	github.com/iancoleman/strcase v0.3.0 // indirect
@@ -517,13 +518,13 @@ require (
 	golang.org/x/sync v0.6.0 // indirect
 	golang.org/x/term v0.16.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
-	golang.org/x/time v0.4.0 // indirect
+	golang.org/x/time v0.5.0 // indirect
 	golang.org/x/tools v0.17.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	gonum.org/v1/gonum v0.14.0 // indirect
-	google.golang.org/api v0.150.0 // indirect
+	google.golang.org/api v0.161.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
-	google.golang.org/genproto v0.0.0-20231212172506-995d672761c0 // indirect
+	google.golang.org/genproto v0.0.0-20240102182953-50ed04b92917 // indirect
 	google.golang.org/grpc v1.61.0 // indirect
 	google.golang.org/protobuf v1.32.0 // indirect
 	gopkg.in/fsnotify.v1 v1.4.7 // indirect

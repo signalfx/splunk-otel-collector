@@ -88,7 +88,7 @@ jobs:
       - name: Check out the codebase.
         uses: actions/checkout@v4
 
-      - uses: DamianReeves/write-file-action@v1.2
+      - uses: DamianReeves/write-file-action@v1.3
         with:
           path: "${{ github.workspace }}/requirements.txt"
           contents: |
@@ -147,7 +147,7 @@ jobs:
       - name: Check out the codebase.
         uses: actions/checkout@v4
 
-      - uses: DamianReeves/write-file-action@v1.2
+      - uses: DamianReeves/write-file-action@v1.3
         with:
           path: "${{ github.workspace }}/requirements.txt"
           contents: |

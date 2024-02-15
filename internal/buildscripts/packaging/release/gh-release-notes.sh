@@ -43,7 +43,7 @@ linux_amd64_digest="$( get_digest "$LINUX_AMD64_DIGEST" )"
 linux_arm64_digest="$( get_digest "$LINUX_ARM64_DIGEST" )"
 linux_ppc64le_digest="$( get_digest "$LINUX_PPC64LE_DIGEST" )"
 
-windows_2019_digest="$( get_digest "$WINDOWS2019_DIGEST" )"
+windows_2019_digest="$( get_digest "$WINDOWS_2019_DIGEST" )"
 windows_2022_digest="$( get_digest "$WINDOWS_2022_DIGEST" )"
 windows_multiarch_digest="$( get_digest "$WINDOWS_MULTIARCH_DIGEST" )"
 

@@ -661,7 +661,7 @@ sign-linux-image:
   dependencies:
     - push-linux-image
 
-build-push-windows-image:
+build-push-windows2019-image:
   extends: .trigger-filter
   stage: release
   dependencies:
@@ -679,36 +679,39 @@ build-push-windows-image:
       $ErrorActionPreference = 'Stop'
       if ($env:CI_COMMIT_TAG) {
         $IMAGE_NAME = "quay.io/signalfx/splunk-otel-collector-windows"
-        $IMAGE_TAG = $env:CI_COMMIT_TAG.TrimStart("v")
+        $tagNumber = $env:CI_COMMIT_TAG.TrimStart("v")
+        $IMAGE_TAG = "${tagNumber}-2019"
       } else {
         $IMAGE_NAME = "quay.io/signalfx/splunk-otel-collector-windows-dev"
-        $IMAGE_TAG = $env:CI_COMMIT_SHA
+        $IMAGE_TAG = "${env:CI_COMMIT_SHA}-2019"
       }
       $JMX_METRIC_GATHERER_RELEASE = $(Get-Content internal\buildscripts\packaging\jmx-metric-gatherer-release.txt)
       echo "Building ${IMAGE_NAME}:${IMAGE_TAG}"
       docker build -t ${IMAGE_NAME}:${IMAGE_TAG} --build-arg BASE_IMAGE=mcr.microsoft.com/windows/servercore:1809 --build-arg JMX_METRIC_GATHERER_RELEASE=${JMX_METRIC_GATHERER_RELEASE} -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
+      $os_version=$(docker manifest inspect mcr.microsoft.com/windows/servercore:1809 | jq '.manifests[0].platform."os.version"')
+      docker manifest annotate --os "windows" --arch "amd64" --os-version "$os_version" ${IMAGE_NAME}:${IMAGE_TAG}
       echo "Pushing ${IMAGE_NAME}:${IMAGE_TAG}"
       docker push ${IMAGE_NAME}:${IMAGE_TAG}
       echo "${IMAGE_NAME}:${IMAGE_TAG}" >> tags
       if ($env:CI_COMMIT_BRANCH -eq "main" -or $env:CI_COMMIT_TAG -match '^v\d+\.\d+\.\d+$') {
         # only push latest tag for main and stable releases; no need to sign them as signing is made for digest
-        echo "Tagging and pushing ${IMAGE_NAME}:latest"
-        docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
-        docker push ${IMAGE_NAME}:latest
+        echo "Tagging and pushing ${IMAGE_NAME}:latest-2019"
+        docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest-2019
+        docker push ${IMAGE_NAME}:latest-2019
       }
-    - docker inspect --format='{{.RepoDigests}}' ${IMAGE_NAME}:${IMAGE_TAG} | Tee-Object -FilePath dist/windows_digest.txt
+    - docker inspect --format='{{.RepoDigests}}' ${IMAGE_NAME}:${IMAGE_TAG} | Tee-Object -FilePath dist/windows_2019_digest.txt
     - (Get-Content -Raw -Path tags) -replace "`r`n", "`n"| Set-Content -NoNewline tags_to_sign
   after_script:
     - docker image prune --all --force
   artifacts:
     paths:
-      - dist/windows_digest.txt
+      - dist/windows_2019_digest.txt
       - tags_to_sign
 
-sign-windows-image:
+sign-windows2019-image:
   extends: .sign-docker
   dependencies:
-    - build-push-windows-image
+    - build-push-windows2019-image
 
 build-push-windows2022-image:
   extends: .trigger-filter
@@ -737,6 +740,8 @@ build-push-windows2022-image:
       $JMX_METRIC_GATHERER_RELEASE = $(Get-Content internal\buildscripts\packaging\jmx-metric-gatherer-release.txt)
       echo "Building ${IMAGE_NAME}:${IMAGE_TAG}"
       docker build -t ${IMAGE_NAME}:${IMAGE_TAG} --build-arg BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022 --build-arg JMX_METRIC_GATHERER_RELEASE=${JMX_METRIC_GATHERER_RELEASE} -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
+      $os_version=$(docker manifest inspect mcr.microsoft.com/windows/servercore:ltsc2022 | jq '.manifests[0].platform."os.version"')
+      docker manifest annotate --os "windows" --arch "amd64" --os-version "$os_version" ${IMAGE_NAME}:${IMAGE_TAG}
       echo "Pushing ${IMAGE_NAME}:${IMAGE_TAG}"
       docker push ${IMAGE_NAME}:${IMAGE_TAG}
       echo "${IMAGE_NAME}:${IMAGE_TAG}" >> tags
@@ -760,6 +765,55 @@ sign-windows2022-image:
   extends: .sign-docker
   dependencies:
     - build-push-windows2022-image
+
+build-push-windows-multiarch-image:
+  extends: .trigger-filter
+  stage: release
+  dependencies:
+    - build-push-windows2019-image
+    - build-push-windows2022-image
+  tags:
+    - windows2022
+  retry: 2
+  script:
+    - docker login -u $env:CIRCLECI_QUAY_USERNAME -p $env:CIRCLECI_QUAY_PASSWORD quay.io
+    - |
+      $ErrorActionPreference = 'Stop'
+      if ($env:CI_COMMIT_TAG) {
+        $IMAGE_NAME = "quay.io/signalfx/splunk-otel-collector-windows"
+        $tagNumber = $env:CI_COMMIT_TAG.TrimStart("v")
+        $IMAGE_TAG = "${tagNumber}"
+      } else {
+        $IMAGE_NAME = "quay.io/signalfx/splunk-otel-collector-windows-dev"
+        $IMAGE_TAG = "${env:CI_COMMIT_SHA}"
+      }
+      echo "Building ${IMAGE_NAME}:${IMAGE_TAG}"
+      docker pull ${IMAGE_NAME}:${IMAGE_TAG}-2019
+      docker pull ${IMAGE_NAME}:${IMAGE_TAG}-2022
+      docker manifest create ${IMAGE_NAME}:${IMAGE_TAG} --amend ${IMAGE_NAME}:${IMAGE_TAG}-2019 --amend ${IMAGE_NAME}:${IMAGE_TAG}-2022
+      echo "Pushing ${IMAGE_NAME}:${IMAGE_TAG}"
+      docker manifest push ${IMAGE_NAME}:${IMAGE_TAG}
+      echo "${IMAGE_NAME}:${IMAGE_TAG}" >> tags
+      if ($env:CI_COMMIT_BRANCH -eq "main" -or $env:CI_COMMIT_TAG -match '^v\d+\.\d+\.\d+$') {
+        # only push latest tag for main and stable releases; no need to sign them as signing is made for digest
+        echo "Tagging and pushing ${IMAGE_NAME}:latest"
+        docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
+        docker push ${IMAGE_NAME}:latest
+      }
+    - docker inspect --format='{{.RepoDigests}}' ${IMAGE_NAME}:${IMAGE_TAG} | Tee-Object -FilePath dist/windows_multiarch_digest.txt
+    - (Get-Content -Raw -Path tags) -replace "`r`n", "`n"| Set-Content -NoNewline tags_to_sign
+  after_script:
+    - docker image prune --all --force
+    - C:\Users\Administrator\Desktop\ops-scripts\docker-leak-check.exe -remove
+  artifacts:
+    paths:
+      - dist/windows_multiarch_digest.txt
+      - tags_to_sign
+
+sign-windows-multiarch-image:
+  extends: .sign-docker
+  dependencies:
+    - build-push-windows-multiarch-image
 
 release-debs:
   extends:
@@ -934,8 +988,9 @@ github-release:
     - sign-msi
     - sign-tar
     - push-linux-image
-    - build-push-windows-image
+    - build-push-windows2019-image
     - build-push-windows2022-image
+    - build-push-windows-multiarch-image
     - choco-release
     - sign-agent-bundles
   script:

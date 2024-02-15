@@ -1,0 +1,5 @@
+internal/signalfx-agent/pkg/core/common/httpclient/test-certs/client.key
+internal/signalfx-agent/pkg/core/common/httpclient/test-certs/leaf.key
+internal/signalfx-agent/pkg/core/common/httpclient/test-certs/root.key
+internal/signalfx-agent/pkg/monitors/jaegergrpc/testdata/key.pem
+splunk-otel-collector-releaser.tmp/*

@@ -688,8 +688,8 @@ build-push-windows2019-image:
       $JMX_METRIC_GATHERER_RELEASE = $(Get-Content internal\buildscripts\packaging\jmx-metric-gatherer-release.txt)
       echo "Building ${IMAGE_NAME}:${IMAGE_TAG}"
       docker build -t ${IMAGE_NAME}:${IMAGE_TAG} --build-arg BASE_IMAGE=mcr.microsoft.com/windows/servercore:1809 --build-arg JMX_METRIC_GATHERER_RELEASE=${JMX_METRIC_GATHERER_RELEASE} -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
-      $os_version=$(docker manifest inspect mcr.microsoft.com/windows/servercore:1809 | jq '.manifests[0].platform."os.version"')
-      docker manifest annotate --os "windows" --arch "amd64" --os-version "$os_version" ${IMAGE_NAME}:${IMAGE_TAG}
+      $os_version = (docker manifest inspect mcr.microsoft.com/windows/servercore:1809 | ConvertFrom-Json).manifests[0].platform."os.version"
+      docker manifest annotate --os "windows" --arch "amd64" --os-version ${os_version} ${IMAGE_NAME}:${IMAGE_TAG}
       echo "Pushing ${IMAGE_NAME}:${IMAGE_TAG}"
       docker push ${IMAGE_NAME}:${IMAGE_TAG}
       echo "${IMAGE_NAME}:${IMAGE_TAG}" >> tags
@@ -740,8 +740,8 @@ build-push-windows2022-image:
       $JMX_METRIC_GATHERER_RELEASE = $(Get-Content internal\buildscripts\packaging\jmx-metric-gatherer-release.txt)
       echo "Building ${IMAGE_NAME}:${IMAGE_TAG}"
       docker build -t ${IMAGE_NAME}:${IMAGE_TAG} --build-arg BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022 --build-arg JMX_METRIC_GATHERER_RELEASE=${JMX_METRIC_GATHERER_RELEASE} -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
-      $os_version=$(docker manifest inspect mcr.microsoft.com/windows/servercore:ltsc2022 | jq '.manifests[0].platform."os.version"')
-      docker manifest annotate --os "windows" --arch "amd64" --os-version "$os_version" ${IMAGE_NAME}:${IMAGE_TAG}
+      $os_version = (docker manifest inspect mcr.microsoft.com/windows/servercore:ltsc2022 | ConvertFrom-Json).manifests[0].platform."os.version"
+      docker manifest annotate --os "windows" --arch "amd64" --os-version ${os_version} ${IMAGE_NAME}:${IMAGE_TAG}
       echo "Pushing ${IMAGE_NAME}:${IMAGE_TAG}"
       docker push ${IMAGE_NAME}:${IMAGE_TAG}
       echo "${IMAGE_NAME}:${IMAGE_TAG}" >> tags

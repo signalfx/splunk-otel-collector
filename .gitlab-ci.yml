@@ -795,10 +795,9 @@ build-push-windows-multiarch-image:
       docker manifest push ${IMAGE_NAME}:${IMAGE_TAG}
       echo "${IMAGE_NAME}:${IMAGE_TAG}" >> tags
       if ($env:CI_COMMIT_BRANCH -eq "main" -or $env:CI_COMMIT_TAG -match '^v\d+\.\d+\.\d+$') {
-        # only push latest tag for main and stable releases; no need to sign them as signing is made for digest
+        # only push latest tag for main and stable releases.
         echo "Tagging and pushing ${IMAGE_NAME}:latest"
-        docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
-        docker push ${IMAGE_NAME}:latest
+        docker buildx imagetools create --tag ${IMAGE_NAME}:latest ${IMAGE_NAME}:${IMAGE_TAG}
       }
     - docker inspect --format='{{.RepoDigests}}' ${IMAGE_NAME}:${IMAGE_TAG} | Tee-Object -FilePath dist/windows_multiarch_digest.txt
     - (Get-Content -Raw -Path tags) -replace "`r`n", "`n"| Set-Content -NoNewline tags_to_sign

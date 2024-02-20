@@ -96,7 +96,7 @@ func (r *otelReporter) OnMetricsProcessed(
 		})
 	}
 
-	r.obsrecv.EndMetricsOp(ctx, metadata.Type, numReceivedMessages, err)
+	r.obsrecv.EndMetricsOp(ctx, metadata.Type.String(), numReceivedMessages, err)
 }
 
 func (r *otelReporter) OnDebugf(template string, args ...interface{}) {

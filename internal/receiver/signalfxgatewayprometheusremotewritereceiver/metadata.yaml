@@ -4,3 +4,5 @@ status:
   stability:
     development: ["metrics"]
   distributions: ["splunk"]
+  codeowners:
+    active: ["hughesjj"]

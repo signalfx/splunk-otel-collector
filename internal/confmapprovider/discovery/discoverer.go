@@ -114,7 +114,7 @@ func newDiscoverer(logger *zap.Logger) (*discoverer, error) {
 		configs:                   map[string]*Config{},
 		duration:                  duration,
 		mu:                        sync.Mutex{},
-		expandConverter:           expandconverter.New(),
+		expandConverter:           expandconverter.New(confmap.ConverterSettings{}),
 		discoveredReceivers:       map[component.ID]discovery.StatusType{},
 		unexpandedReceiverEntries: map[component.ID]map[component.ID]map[string]any{},
 		discoveredConfig:          map[component.ID]map[string]any{},

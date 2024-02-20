@@ -41,8 +41,12 @@ func TestFuncMap(t *testing.T) {
 
 func TestReceiverValidatesComponentType(t *testing.T) {
 	dc := newDiscoveryConfig()
-	cid, err := dc.receiver("not.real")
-	require.EqualError(t, err, `no receiver "not.real" available in this distribution`)
+	cid, err := dc.receiver("notreal")
+	require.EqualError(t, err, `no receiver "notreal" available in this distribution`)
+	require.Empty(t, cid)
+
+	cid, err = dc.receiver("bad.character")
+	require.EqualError(t, err, `in "bad.character" id: invalid character(s) in type "bad.character"`)
 	require.Empty(t, cid)
 
 	cid, err = dc.receiver("otlp")
@@ -56,8 +60,12 @@ func TestReceiverValidatesComponentType(t *testing.T) {
 
 func TestExtensionValidatesComponentType(t *testing.T) {
 	dc := newDiscoveryConfig()
-	cid, err := dc.extension("not.real")
-	require.EqualError(t, err, `no extension "not.real" available in this distribution`)
+	cid, err := dc.extension("notreal")
+	require.EqualError(t, err, `no extension "notreal" available in this distribution`)
+	require.Empty(t, cid)
+
+	cid, err = dc.receiver("bad.character")
+	require.EqualError(t, err, `in "bad.character" id: invalid character(s) in type "bad.character"`)
 	require.Empty(t, cid)
 
 	cid, err = dc.extension("docker_observer")

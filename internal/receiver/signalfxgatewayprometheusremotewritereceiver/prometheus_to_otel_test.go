@@ -118,7 +118,7 @@ func TestAddMetrics(t *testing.T) {
 				result := pmetric.NewMetrics()
 				resourceMetrics := result.ResourceMetrics().AppendEmpty()
 				scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
-				scopeMetrics.Scope().SetName("signalfxgatewayprometheusremotewrite")
+				scopeMetrics.Scope().SetName("otelcol/signalfxgatewayprometheusremotewrite")
 				scopeMetrics.Scope().SetVersion("0.1")
 				return result
 			}(), 0, 0, 1),
@@ -142,7 +142,7 @@ func TestAddMetrics(t *testing.T) {
 				result := pmetric.NewMetrics()
 				resourceMetrics := result.ResourceMetrics().AppendEmpty()
 				scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
-				scopeMetrics.Scope().SetName("signalfxgatewayprometheusremotewrite")
+				scopeMetrics.Scope().SetName("otelcol/signalfxgatewayprometheusremotewrite")
 				scopeMetrics.Scope().SetVersion("0.1")
 				m := scopeMetrics.Metrics().AppendEmpty()
 				m.SetName("foo")
@@ -165,7 +165,7 @@ func TestAddMetrics(t *testing.T) {
 				result := pmetric.NewMetrics()
 				resourceMetrics := result.ResourceMetrics().AppendEmpty()
 				scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
-				scopeMetrics.Scope().SetName("signalfxgatewayprometheusremotewrite")
+				scopeMetrics.Scope().SetName("otelcol/signalfxgatewayprometheusremotewrite")
 				scopeMetrics.Scope().SetVersion("0.1")
 				m := scopeMetrics.Metrics().AppendEmpty()
 				m.SetName("foo")

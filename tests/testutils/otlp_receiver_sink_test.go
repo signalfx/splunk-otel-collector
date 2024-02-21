@@ -125,7 +125,7 @@ func TestReceiverMethodsWithoutBuildingDisallowed(t *testing.T) {
 
 func createOTLPFactoryParameters() (otlpexporter.Config, otelcolexporter.CreateSettings) {
 	exporterCfg := otlpexporter.Config{
-		GRPCClientSettings: configgrpc.GRPCClientSettings{
+		ClientConfig: configgrpc.ClientConfig{
 			Endpoint: "localhost:4317",
 			TLSSetting: configtls.TLSClientSetting{
 				Insecure: true,

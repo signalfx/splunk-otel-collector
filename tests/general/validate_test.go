@@ -116,7 +116,7 @@ func TestCoreValidateDetectsInvalidYamlProvider(t *testing.T) {
 	defer tc.ShutdownOTLPReceiverSink()
 
 	config := `exporters:
-  not-real:
+  notreal:
     endpoint: an-endpoint
 receivers:
   hostmetrics:
@@ -126,7 +126,7 @@ service:
   pipelines:
     metrics:
       exporters:
-      - not-real
+      - notreal
       receivers:
       - hostmetrics
 `
@@ -153,5 +153,5 @@ service:
 	)
 	require.Equal(t, 1, sc)
 	require.Empty(t, stdout)
-	require.Contains(t, stderr, `error decoding 'exporters': unknown type: "not-real"`)
+	require.Contains(t, stderr, `error decoding 'exporters': unknown type: "notreal"`)
 }

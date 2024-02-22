@@ -29,7 +29,7 @@ import (
 // account for startup time is to wait for the container to be healthy before continuing test.
 var oracledb = []testutils.Container{testutils.NewContainer().WithContext(
 	path.Join(".", "testdata", "server"),
-).WithName("oracledb").WithExposedPorts("1521:1521").WillWaitForHealth(15 * time.Minute)}
+).WithName("oracledb").WithExposedPorts("1521:1521").WillWaitForHealth(15 * time.Minute).WithStartupTimeout(15 * time.Minute)}
 
 // This test ensures the collector can connect to an Oracle DB, and properly get metrics. It's not intended to
 // test the receiver itself.

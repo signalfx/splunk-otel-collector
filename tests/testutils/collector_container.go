@@ -55,7 +55,7 @@ type CollectorContainer struct {
 
 // To be used as a builder whose Build() method provides the actual instance capable of launching the process.
 func NewCollectorContainer() CollectorContainer {
-	return CollectorContainer{Args: []string{}, Container: NewContainer(), Mounts: map[string]string{}}
+	return CollectorContainer{Args: []string{}, Container: NewContainer().WithStartupTimeout(15 * time.Minute), Mounts: map[string]string{}}
 }
 
 // quay.io/signalfx/splunk-otel-collector:latest by default

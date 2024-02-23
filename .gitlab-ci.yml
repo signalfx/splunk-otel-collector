@@ -770,9 +770,6 @@ sign-windows2022-image:
 build-push-windows-multiarch-image:
   extends: .trigger-filter
   stage: docker-manifest-release
-  dependencies:
-    - build-push-windows2019-image
-    - build-push-windows2022-image
   tags:
     - windows2022
   retry: 2
@@ -799,7 +796,8 @@ build-push-windows-multiarch-image:
         docker manifest create ${IMAGE_NAME}:latest --amend ${IMAGE_NAME}:${IMAGE_TAG}-2019 --amend ${IMAGE_NAME}:${IMAGE_TAG}-2022
         docker manifest push ${IMAGE_NAME}:latest
       }
-    - docker inspect --format='{{.RepoDigests}}' ${IMAGE_NAME}:${IMAGE_TAG} | Tee-Object -FilePath dist/windows_multiarch_digest.txt
+      docker pull ${IMAGE_NAME}:${IMAGE_TAG}
+      docker inspect --format='{{.RepoDigests}}' ${IMAGE_NAME}:${IMAGE_TAG} | Tee-Object -FilePath dist/windows_multiarch_digest.txt
     - (Get-Content -Raw -Path tags) -replace "`r`n", "`n"| Set-Content -NoNewline tags_to_sign
   after_script:
     - docker image prune --all --force

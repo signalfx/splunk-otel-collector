@@ -3,30 +3,30 @@ resource_spans:
     deployment.environment: zc-iis-test
     host.name: <ANY>
     os.type: windows
+    process.pid: <ANY>
+    process.runtime.description: .NET Framework 4.8.4645.0
+    process.runtime.name: .NET Framework
+    process.runtime.version: "4.8"
     service.name: Default Web Site/aspnetfxapp
+    splunk.distro.version: SPLUNK_OTEL_DOTNET_VERSION
+    splunk.zc.method: splunk-otel-dotnet-vSPLUNK_OTEL_DOTNET_VERSION
+    telemetry.distro.name: splunk-otel-dotnet
+    telemetry.distro.version: SPLUNK_OTEL_DOTNET_VERSION
+    telemetry.sdk.language: dotnet
+    telemetry.sdk.name: opentelemetry
+    telemetry.sdk.version: <ANY>
   scope_spans:
-  - instrumentation_scope:
-      attributes: {}
-    spans:
-    - name: GET /api/values/{id}
-      attributes:
-        http.host: localhost:8000
-        http.method: GET
-        http.status_code: "200"
-        http.url: http://localhost/aspnetfxapp/api/values/4
-        http.user_agent: Go-http-client/1.1
-        net.peer.ip: <ANY>
-        signalfx.tracing.library: dotnet-tracing
-        signalfx.tracing.version: <ANY>
-        splunk.zc.method: signalfx-dotnet-tracing-SIGNALFX_DOTNET_TRACING_VERSION
-    - name: GET /api/values/{id}
-      attributes:
-        aspnet.controller: values
-        aspnet.route: api/{controller}/{id}
-        http.host: localhost:8000
-        http.method: GET
-        http.status_code: "200"
-        http.url: http://localhost/aspnetfxapp/api/values/4
-        http.user_agent: Go-http-client/1.1
-        net.peer.ip: <ANY>
-        splunk.zc.method: signalfx-dotnet-tracing-SIGNALFX_DOTNET_TRACING_VERSION
+    - instrumentation_scope:
+        attributes: {}
+        name: OpenTelemetry.Instrumentation.AspNet.Telemetry
+        version: <ANY>
+      spans:
+        - attributes:
+            http.host: localhost
+            http.method: GET
+            http.route: api/{controller}/{id}
+            http.status_code: 200
+            http.target: /aspnetfxapp/api/values/4
+            http.url: http://localhost/aspnetfxapp/api/values/4
+            http.user_agent: Go-http-client/1.1
+          name: api/{controller}/{id}

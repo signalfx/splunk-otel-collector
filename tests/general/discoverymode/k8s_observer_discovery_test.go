@@ -129,6 +129,8 @@ service:
     metrics:
       address: ""
       level: none
+    resource:
+      splunk_autodiscovery: "true"
 `, stdout.String())
 	require.Contains(
 		t, stderr.String(),

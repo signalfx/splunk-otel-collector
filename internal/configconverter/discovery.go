@@ -69,8 +69,26 @@ func (Discovery) Convert(_ context.Context, in *confmap.Conf) error {
 		metricsPipeline["receivers"] = appendUnique(metricsReceivers, discoReceivers)
 	}
 
+	setAutoDiscoveryResourceAttribute(service)
+
 	*in = *confmap.NewFromStringMap(out)
 	return nil
+}
+
+func setAutoDiscoveryResourceAttribute(service map[string]any) {
+	telemetry := map[string]any{}
+	if tel, ok := service["telemetry"]; ok {
+		telemetry = tel.(map[string]any)
+	}
+	service["telemetry"] = telemetry
+
+	resAttrs := map[string]any{}
+	if ra, ok := telemetry["resource"]; ok {
+		resAttrs = ra.(map[string]any)
+	}
+	telemetry["resource"] = resAttrs
+
+	resAttrs["splunk_autodiscovery"] = "true"
 }
 
 func getServiceExtensions(out map[string]any) (map[string]any, []any, error) {

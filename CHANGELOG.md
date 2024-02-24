@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 💡 Enhancements 💡
+
+- (Splunk) Add a resource attribute to internal metrics to track discovery usage ([#4323](https://github.com/signalfx/splunk-otel-collector/pull/4323))
+
 ## v0.93.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.93.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.93.0) and the [opentelemetry-collector-contrib v0.93.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.93.0) releases where appropriate.

@@ -37,6 +37,9 @@ func TestDiscovery(t *testing.T) {
       processors: [proc/six, proc/seven, proc/eight]
       exporters: [exp/six, exp/seven, exp/eight]
   receivers/splunk.discovery: [recv/four, recv/five]
+  telemetry:
+    resource:
+      my-resource: test
 `)
 
 	expected := confFromYaml(t, `service:
@@ -50,6 +53,10 @@ func TestDiscovery(t *testing.T) {
       receivers: [recv/six, recv/seven, recv/eight]
       processors: [proc/six, proc/seven, proc/eight]
       exporters: [exp/six, exp/seven, exp/eight]
+  telemetry:
+    resource:
+      my-resource: test
+      splunk_autodiscovery: "true"
 `)
 
 	require.NoError(t, Discovery{}.Convert(context.Background(), in))
@@ -112,6 +119,9 @@ func TestDiscoveryExtensionsOnly(t *testing.T) {
       receivers: [recv/six, recv/seven, recv/eight]
       processors: [proc/six, proc/seven, proc/eight]
       exporters: [exp/six, exp/seven, exp/eight]
+  telemetry:
+    resource:
+      splunk_autodiscovery: "true"
 `)
 
 	require.NoError(t, Discovery{}.Convert(context.Background(), in))
@@ -143,6 +153,9 @@ func TestDiscoveryEmptyExtensions(t *testing.T) {
       receivers: [recv/six, recv/seven, recv/eight]
       processors: [proc/six, proc/seven, proc/eight]
       exporters: [exp/six, exp/seven, exp/eight]
+  telemetry:
+    resource:
+      splunk_autodiscovery: "true"
 `)
 
 	require.NoError(t, Discovery{}.Convert(context.Background(), in))
@@ -173,6 +186,9 @@ func TestDiscoveryReceiversOnly(t *testing.T) {
       receivers: [recv/six, recv/seven, recv/eight]
       processors: [proc/six, proc/seven, proc/eight]
       exporters: [exp/six, exp/seven, exp/eight]
+  telemetry:
+    resource:
+      splunk_autodiscovery: "true"
 `)
 
 	require.NoError(t, Discovery{}.Convert(context.Background(), in))
@@ -201,6 +217,9 @@ func TestDiscoveryEmptyReceivers(t *testing.T) {
       receivers: [recv/six, recv/seven, recv/eight]
       processors: [proc/six, proc/seven, proc/eight]
       exporters: [exp/six, exp/seven, exp/eight]
+  telemetry:
+    resource:
+      splunk_autodiscovery: "true"
 `)
 
 	require.NoError(t, Discovery{}.Convert(context.Background(), in))

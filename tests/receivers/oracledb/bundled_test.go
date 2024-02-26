@@ -54,9 +54,6 @@ func TestOracledbDockerObserver(t *testing.T) {
 					"--set", `splunk.discovery.extensions.host_observer.enabled=false`,
 				)
 			},
-			func(collector testutils.Collector) testutils.Collector {
-				return collector
-			},
 		},
 	)
 }

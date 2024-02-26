@@ -30,15 +30,15 @@ func TestMetricsToReceiverIDs(t *testing.T) {
 		eID   *string
 		name  string
 	}{
-		{name: "happy path", rType: sPtr("a.type"), rName: sPtr("a.name"), eID: sPtr("an.endpoint")},
+		{name: "happy path", rType: sPtr("a_type"), rName: sPtr("a.name"), eID: sPtr("an.endpoint")},
 		{name: "empty values", rType: sPtr(""), rName: sPtr(""), eID: sPtr("")},
 		{name: "missing values", rType: nil, rName: nil, eID: nil},
 		{name: "empty receiver type", rType: sPtr(""), rName: sPtr("a.name"), eID: sPtr("an.endpoint")},
 		{name: "missing receiver type", rType: nil, rName: sPtr("a.name"), eID: sPtr("an.endpoint")},
-		{name: "empty receiver name", rType: sPtr("a.type"), rName: sPtr(""), eID: sPtr("an.endpoint")},
-		{name: "missing receiver name", rType: sPtr("a.type"), rName: nil, eID: sPtr("an.endpoint")},
-		{name: "empty endpointID", rType: sPtr("a.type"), rName: sPtr("a.name"), eID: sPtr("")},
-		{name: "missing endpointID", rType: sPtr("a.type"), rName: sPtr("a.name"), eID: nil},
+		{name: "empty receiver name", rType: sPtr("a_type"), rName: sPtr(""), eID: sPtr("an.endpoint")},
+		{name: "missing receiver name", rType: sPtr("a_type"), rName: nil, eID: sPtr("an.endpoint")},
+		{name: "empty endpointID", rType: sPtr("a_type"), rName: sPtr("a.name"), eID: sPtr("")},
+		{name: "missing endpointID", rType: sPtr("a_type"), rName: sPtr("a.name"), eID: nil},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			md := pmetric.NewMetrics()
@@ -61,7 +61,7 @@ func TestMetricsToReceiverIDs(t *testing.T) {
 			if tc.rType != nil {
 				expectedRType = *tc.rType
 			}
-			require.Equal(t, component.Type(expectedRType), receiverID.Type())
+			require.Equal(t, component.MustNewType(expectedRType), receiverID.Type())
 
 			var expectedRName string
 			if tc.rName != nil {

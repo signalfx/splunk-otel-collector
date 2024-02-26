@@ -165,7 +165,7 @@ func TestReceiverCreatorFactoryAndConfig(t *testing.T) {
 	correlations := newCorrelationStore(zaptest.NewLogger(t), time.Second)
 	factory, rCfg, err := dCfg.receiverCreatorFactoryAndConfig(correlations)
 	require.NoError(t, err)
-	require.Equal(t, component.Type("receiver_creator"), factory.Type())
+	require.Equal(t, component.MustNewType("receiver_creator"), factory.Type())
 
 	require.NoError(t, component.ValidateConfig(rCfg))
 

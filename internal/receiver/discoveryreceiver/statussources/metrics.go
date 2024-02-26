@@ -38,5 +38,5 @@ func MetricsToReceiverIDs(md pmetric.Metrics) (component.ID, observer.EndpointID
 			endpointID = r.AsString()
 		}
 	}
-	return component.NewIDWithName(component.Type(receiverType), receiverName), observer.EndpointID(endpointID)
+	return component.MustNewIDWithName(receiverType, receiverName), observer.EndpointID(endpointID)
 }

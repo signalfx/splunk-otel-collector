@@ -317,7 +317,7 @@ func FuzzEndpointToPlogs(f *testing.F) {
 		namespace, transport string, port uint16) {
 		require.NotPanics(t, func() {
 			plogs, failed, err := endpointToPLogs(
-				component.NewIDWithName(component.Type(observerType), observerName), eventType, []observer.Endpoint{
+				component.MustNewIDWithName(observerType, observerName), eventType, []observer.Endpoint{
 					{
 						ID:     observer.EndpointID(endpointID),
 						Target: target,

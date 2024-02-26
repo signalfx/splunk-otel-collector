@@ -210,7 +210,7 @@ var expectedConfig = Config{
 		},
 	},
 	ReceiversToDiscover: map[component.ID]ReceiverToDiscoverEntry{
-		component.NewIDWithName(component.Type("smartagent"), "postgresql"): {
+		component.MustNewIDWithName("smartagent", "postgresql"): {
 			Enabled: &flse,
 			Rule: map[component.ID]string{
 				component.NewID("docker_observer"): `type == "container" and port == 5432`,
@@ -274,7 +274,7 @@ var expectedConfig = Config{
 				},
 			},
 		},
-		component.NewIDWithName(component.Type("smartagent"), "collectd/redis"): {
+		component.MustNewIDWithName("smartagent", "collectd/redis"): {
 			Rule: map[component.ID]string{
 				component.NewID("docker_observer"): `type == "container" and port == 6379`,
 			},

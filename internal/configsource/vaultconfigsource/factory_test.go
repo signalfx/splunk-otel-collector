@@ -29,7 +29,7 @@ import (
 func TestVaultFactory_CreateConfigSource(t *testing.T) {
 	emptyStr := ""
 	factory := NewFactory()
-	assert.Equal(t, component.Type("vault"), factory.Type())
+	assert.Equal(t, component.MustNewType("vault"), factory.Type())
 	tests := []struct {
 		config  *Config
 		wantErr error

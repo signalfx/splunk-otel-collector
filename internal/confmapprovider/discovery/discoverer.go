@@ -695,7 +695,7 @@ func (d *discoverer) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 
 		var rule string
 		var configSection map[string]any
-		receiverID := component.NewIDWithName(component.Type(receiverType), receiverName)
+		receiverID := component.MustNewIDWithName(receiverType, receiverName)
 		if rCfg, hasConfig := d.getUnexpandedReceiverConfig(receiverID, observerID); hasConfig {
 			if r, hasRule := rCfg["rule"]; hasRule {
 				rule = r.(string)

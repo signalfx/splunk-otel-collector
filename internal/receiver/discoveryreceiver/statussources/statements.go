@@ -38,6 +38,7 @@ var (
 	EndpointTargetRegexp  = regexp.MustCompile(`{endpoint=[^}]*}/`)
 	endpointIDRegexp      = regexp.MustCompile(`^.*{endpoint=.*}/(?P<id>.*)$`)
 	undesiredFields       = []string{"ts", "msg", "level"}
+	missingTypeSentinel   = component.MustNewType("SENTINEL_FOR_DISCOVERY_RECEIVER___")
 )
 
 // Statement models a zapcore.Entry but defined here for usability/maintainability
@@ -140,7 +141,7 @@ func ReceiverNameToIDs(record plog.LogRecord) (receiverID component.ID, endpoint
 	if nameMatches = receiverNameRegexp.FindStringSubmatch(nameSection); len(nameMatches) < 2 {
 		return discovery.NoType, ""
 	}
-	rType := nameMatches[1]
+	rTypeName := nameMatches[1]
 
 	var nameCandidate string
 	if len(nameMatches) > 2 {
@@ -157,5 +158,9 @@ func ReceiverNameToIDs(record plog.LogRecord) (receiverID component.ID, endpoint
 	if endpointMatches := endpointIDRegexp.FindStringSubmatch(endpointSection); len(endpointMatches) > 1 {
 		eID = endpointMatches[1]
 	}
-	return component.NewIDWithName(component.Type(rType), rName), observer.EndpointID(eID)
+	rType, err := component.NewType(rTypeName)
+	if err != nil {
+		rType = missingTypeSentinel
+	}
+	return component.MustNewIDWithName(rType.String(), rName), observer.EndpointID(eID)
 }

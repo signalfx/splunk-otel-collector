@@ -17,7 +17,6 @@ package testutils
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"testing"
@@ -33,7 +32,6 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/exec"
 	"github.com/testcontainers/testcontainers-go/wait"
-	"go.uber.org/multierr"
 )
 
 const (
@@ -275,16 +273,8 @@ func (container *Container) Start(ctx context.Context) error {
 	}
 
 	err := container.createNetworksIfNecessary(req)
-	if err != nil {
-		return nil
-	}
-	deadline, ok := ctx.Deadline()
-	deadlineErr := errors.New(fmt.Sprintf("failed to get deadline in time for context which should have no deadline: %s / %t", deadline, ok))
 
 	started, err := testcontainers.GenericContainer(ctx, req)
-	if err != nil {
-		err = multierr.Combine(err, deadlineErr)
-	}
 	container.container = &started
 	return err
 }

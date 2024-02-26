@@ -31,31 +31,31 @@ func TestValidEnvVarProperties(t *testing.T) {
 		envVar   string
 		val      string
 	}{
-		{envVar: "SPLUNK_DISCOVERY_RECEIVERS_receiver_x2d_type_x2f__CONFIG_one",
+		{envVar: "SPLUNK_DISCOVERY_RECEIVERS_receiver_type_x2f__CONFIG_one",
 			val: "val",
 			expected: &Property{
 				stringMap: map[string]any{
 					"receivers": map[string]any{
-						"receiver-type": map[string]any{
+						"receiver_type": map[string]any{
 							"config": map[string]any{
 								"one": "val"},
 						},
 					},
 				},
 				ComponentType: "receivers",
-				Component:     ComponentID{Type: "receiver-type"},
+				Component:     ComponentID{Type: "receiver_type"},
 				Type:          "config",
 				Key:           "one",
 				Val:           "val",
-				Input:         "splunk.discovery.receivers.receiver-type/.config.one",
+				Input:         "splunk.discovery.receivers.receiver_type/.config.one",
 			},
 		},
-		{envVar: "SPLUNK_DISCOVERY_EXTENSIONS_extension_x2e_type_x2f_extension____name_CONFIG_one_x3a__x3a_two",
+		{envVar: "SPLUNK_DISCOVERY_EXTENSIONS_extension_type_x2f_extension____name_CONFIG_one_x3a__x3a_two",
 			val: "a.val",
 			expected: &Property{
 				stringMap: map[string]any{
 					"extensions": map[string]any{
-						"extension.type/extension____name": map[string]any{
+						"extension_type/extension____name": map[string]any{
 							"config": map[string]any{
 								"one": map[string]any{
 									"two": "a.val",
@@ -65,45 +65,45 @@ func TestValidEnvVarProperties(t *testing.T) {
 					},
 				},
 				ComponentType: "extensions",
-				Component:     ComponentID{Type: "extension.type", Name: "extension____name"},
+				Component:     ComponentID{Type: "extension_type", Name: "extension____name"},
 				Type:          "config",
 				Key:           "one::two",
 				Val:           "a.val",
-				Input:         "splunk.discovery.extensions.extension.type/extension____name.config.one::two",
+				Input:         "splunk.discovery.extensions.extension_type/extension____name.config.one::two",
 			},
 		},
-		{envVar: "SPLUNK_DISCOVERY_EXTENSIONS_extension_x2e_type_x2f_extension____name_ENABLED",
+		{envVar: "SPLUNK_DISCOVERY_EXTENSIONS_extension_type_x2f_extension____name_ENABLED",
 			val: "False",
 			expected: &Property{
 				stringMap: map[string]any{
 					"extensions": map[string]any{
-						"extension.type/extension____name": map[string]any{
+						"extension_type/extension____name": map[string]any{
 							"enabled": "false",
 						},
 					},
 				},
 				ComponentType: "extensions",
-				Component:     ComponentID{Type: "extension.type", Name: "extension____name"},
+				Component:     ComponentID{Type: "extension_type", Name: "extension____name"},
 				Type:          "enabled",
 				Val:           "false",
-				Input:         "splunk.discovery.extensions.extension.type/extension____name.enabled",
+				Input:         "splunk.discovery.extensions.extension_type/extension____name.enabled",
 			},
 		},
-		{envVar: "SPLUNK_DISCOVERY_RECEIVERS_receiver_x2d_type_x2f__ENABLED",
+		{envVar: "SPLUNK_DISCOVERY_RECEIVERS_receiver_type_x2f__ENABLED",
 			val: "true",
 			expected: &Property{
 				stringMap: map[string]any{
 					"receivers": map[string]any{
-						"receiver-type": map[string]any{
+						"receiver_type": map[string]any{
 							"enabled": "true",
 						},
 					},
 				},
 				ComponentType: "receivers",
-				Component:     ComponentID{Type: "receiver-type"},
+				Component:     ComponentID{Type: "receiver_type"},
 				Type:          "enabled",
 				Val:           "true",
-				Input:         "splunk.discovery.receivers.receiver-type/.enabled",
+				Input:         "splunk.discovery.receivers.receiver_type/.enabled",
 			},
 		},
 	} {

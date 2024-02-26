@@ -59,10 +59,10 @@ func TestStatementEvaluation(t *testing.T) {
 									for _, firstOnly := range []bool{true, false} {
 										match.FirstOnly = firstOnly
 										t.Run(fmt.Sprintf("FirstOnly:%v", firstOnly), func(t *testing.T) {
-											observerID := component.NewIDWithName("an.observer", "observer.name")
+											observerID := component.MustNewIDWithName("an_observer", "observer.name")
 											cfg := &Config{
 												Receivers: map[component.ID]ReceiverEntry{
-													component.NewIDWithName("a.receiver", "receiver.name"): {
+													component.MustNewIDWithName("a_receiver", "receiver.name"): {
 														Rule:   "a.rule",
 														Status: &Status{Statements: map[discovery.StatusType][]Match{status: {match}}},
 													},
@@ -83,11 +83,11 @@ func TestStatementEvaluation(t *testing.T) {
 												addedState, observerID,
 											)
 
-											se, err := newStatementEvaluator(logger, component.NewID("some.type"), cfg, plogs, cStore)
+											se, err := newStatementEvaluator(logger, component.MustNewID("some_type"), cfg, plogs, cStore)
 											require.NoError(t, err)
 
 											evaluatedLogger := se.evaluatedLogger.With(
-												zap.String("name", `a.receiver/receiver.name/receiver_creator/rc.name/{endpoint=""}/endpoint.id`),
+												zap.String("name", `a_receiver/receiver.name/receiver_creator/rc.name/{endpoint=""}/endpoint.id`),
 											)
 
 											numExpected := 1
@@ -153,10 +153,10 @@ func TestStatementEvaluation(t *testing.T) {
 												require.Equal(t, map[string]any{
 													"discovery.endpoint.id":   "endpoint.id",
 													"discovery.event.type":    "statement.match",
-													"discovery.observer.id":   "an.observer/observer.name",
+													"discovery.observer.id":   "an_observer/observer.name",
 													"discovery.receiver.name": "receiver.name",
 													"discovery.receiver.rule": "a.rule",
-													"discovery.receiver.type": "a.receiver",
+													"discovery.receiver.type": "a_receiver",
 												}, rAttrs.AsRaw())
 
 												sLogs := rl.ScopeLogs()
@@ -185,7 +185,7 @@ func TestStatementEvaluation(t *testing.T) {
 
 												require.Equal(t, map[string]any{
 													"discovery.status": string(status),
-													"name":             `a.receiver/receiver.name/receiver_creator/rc.name/{endpoint=""}/endpoint.id`,
+													"name":             `a_receiver/receiver.name/receiver_creator/rc.name/{endpoint=""}/endpoint.id`,
 													"attr.one":         "attr.one.value",
 													"attr.two":         "attr.two.value",
 													"field.one":        "field.one.value",
@@ -216,10 +216,10 @@ func TestStatementEvaluation(t *testing.T) {
 }
 
 func TestLogRecordDefaultAndArbitrarySeverityText(t *testing.T) {
-	observerID := component.NewIDWithName("an.observer", "observer.name")
+	observerID := component.MustNewIDWithName("an_observer", "observer.name")
 	cfg := &Config{
 		Receivers: map[component.ID]ReceiverEntry{
-			component.NewIDWithName("a.receiver", "receiver.name"): {
+			component.MustNewIDWithName("a_receiver", "receiver.name"): {
 				Rule:   "a.rule",
 				Status: &Status{Statements: map[discovery.StatusType][]Match{discovery.Successful: {Match{Strict: "match.me"}}}},
 			},
@@ -247,7 +247,7 @@ func TestLogRecordDefaultAndArbitrarySeverityText(t *testing.T) {
 		Time:       time.Now(),
 		LoggerName: "logger.name",
 		Fields: map[string]any{
-			"name": `a.receiver/receiver.name/receiver_creator/rc.name/{endpoint=""}/endpoint.id`,
+			"name": `a_receiver/receiver.name/receiver_creator/rc.name/{endpoint=""}/endpoint.id`,
 		},
 	}
 

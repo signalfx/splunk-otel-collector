@@ -104,28 +104,28 @@ func TestReceiverNameToIDs(t *testing.T) {
 		expectedEndpointID observer.EndpointID
 	}{
 		{name: "happy path",
-			receiverName:       `receiver_type/receiver_name/receiver_creator/<receiver-creator.name>{endpoint="<Endpoint.Target>"}/<Endpoint.ID>`,
-			expectedReceiverID: component.MustNewIDWithName("receiver_type", "receiver_name"),
+			receiverName:       `receiver_type/receiver.name/receiver_creator/<receiver-creator.name>{endpoint="<Endpoint.Target>"}/<Endpoint.ID>`,
+			expectedReceiverID: component.MustNewIDWithName("receiver_type", "receiver.name"),
 			expectedEndpointID: observer.EndpointID("<Endpoint.ID>"),
 		},
 		{name: "missing receiver_creator separator",
-			receiverName:       `receiver_type/receiver_name/<receiver-creator.name>{endpoint="<Endpoint.Target>"}/<Endpoint.ID>`,
-			expectedReceiverID: component.NewID(""),
+			receiverName:       `receiver_type/receiver.name/<receiver-creator.name>{endpoint="<Endpoint.Target>"}/<Endpoint.ID>`,
+			expectedReceiverID: discovery.NoType,
 			expectedEndpointID: observer.EndpointID(""),
 		},
 		{name: "multiple receiver_creator separators",
-			receiverName:       `receiver_type/receiver_name/receiver_creator/receiver_creator/{endpoint="<Endpoint.Target>"}/<Endpoint.ID>`,
-			expectedReceiverID: component.NewID(""),
+			receiverName:       `receiver_type/receiver.name/receiver_creator/receiver_creator/{endpoint="<Endpoint.Target>"}/<Endpoint.ID>`,
+			expectedReceiverID: discovery.NoType,
 			expectedEndpointID: observer.EndpointID(""),
 		},
 		{name: "missing endpoint separator",
-			receiverName:       `receiver_type/receiver_name/receiver_creator/<receiver-creator.name>/<Endpoint.ID>`,
-			expectedReceiverID: component.NewID(""),
+			receiverName:       `receiver_type/receiver.name/receiver_creator/<receiver-creator.name>/<Endpoint.ID>`,
+			expectedReceiverID: discovery.NoType,
 			expectedEndpointID: observer.EndpointID(""),
 		},
 		{name: "multiple endpoint separators",
-			receiverName:       `receiver_type/receiver_name/receiver_creator/<receiver-creator.name>/{endpoint="<Endpoint.Target>"}/{endpoint="<Endpoint.Target>"}/<Endpoint.ID>`,
-			expectedReceiverID: component.NewID(""),
+			receiverName:       `receiver_type/receiver.name/receiver_creator/<receiver-creator.name>/{endpoint="<Endpoint.Target>"}/{endpoint="<Endpoint.Target>"}/<Endpoint.ID>`,
+			expectedReceiverID: discovery.NoType,
 			expectedEndpointID: observer.EndpointID(""),
 		},
 		{name: "missing name with forward slash hostport",
@@ -156,11 +156,11 @@ func TestReceiverNameToIDs(t *testing.T) {
 
 func FuzzReceiverNameToIDs(f *testing.F) {
 	for _, receiverName := range []string{
-		`invalid`, `receiver_type/receiver_name/<receiver-creator.name>{endpoint="<Endpoint.Target>"}/<Endpoint.ID>`,
-		`receiver_type/receiver_name/receiver_creator/<receiver-creator.name>/<Endpoint.ID>`,
-		`receiver_type/receiver_name/receiver_creator/<receiver-creator.name>/{endpoint="<Endpoint.Target>"}/{endpoint="<Endpoint.Target>"}/<Endpoint.ID>`,
-		`receiver_type/receiver_name/receiver_creator/<receiver-creator.name>/{endpoint="<Endpoint.Target>"}/<Endpoint.ID>`,
-		`receiver_type/receiver_name/receiver_creator/receiver_creator/{endpoint="<Endpoint.Target>"}/<Endpoint.ID>`,
+		`invalid`, `receiver_type/receiver.name/<receiver-creator.name>{endpoint="<Endpoint.Target>"}/<Endpoint.ID>`,
+		`receiver_type/receiver.name/receiver_creator/<receiver-creator.name>/<Endpoint.ID>`,
+		`receiver_type/receiver.name/receiver_creator/<receiver-creator.name>/{endpoint="<Endpoint.Target>"}/{endpoint="<Endpoint.Target>"}/<Endpoint.ID>`,
+		`receiver_type/receiver.name/receiver_creator/<receiver-creator.name>/{endpoint="<Endpoint.Target>"}/<Endpoint.ID>`,
+		`receiver_type/receiver.name/receiver_creator/receiver_creator/{endpoint="<Endpoint.Target>"}/<Endpoint.ID>`,
 		`debug//receiver_creator/discovery/discovery_name{endpoint="127.0.0.53:53"}/(host_observer/host)127.0.0.53-53-TCP)`,
 		`debug/receiver_creator/discovery/discovery_name{endpoint="127.0.0.53:53"}/(host_observer/host)127.0.0.53-53-TCP`,
 		`smartagent/redis/receiver_creator/discovery/discovery_name{endpoint="172.17.0.2:6379"}/d2ee077a262e23bf3fccdd6422f88ce3ec6ed2403bfe67c1d25fb3e5647a0bb7:6379`,
@@ -175,8 +175,8 @@ func FuzzReceiverNameToIDs(f *testing.F) {
 			// if we can't find a receiver we should never return an EndpointID
 			if receiverID == discovery.NoType {
 				require.Equal(t, observer.EndpointID(""), endpointID)
-			} else if receiverID.Type() == component.Type("") {
-				// if the receiver type is empty the name should also be empty
+			} else if receiverID.Type() == discovery.NoType.Type() {
+				// if the receiver type is indeterminate, the name should be empty
 				require.Equal(t, "", receiverID.Name())
 			}
 		})

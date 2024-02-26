@@ -492,7 +492,7 @@ $tempdir = create_temp_dir -tempdir $tempdir
 
 if ($with_dotnet_instrumentation) {
     if ((msi_installed -name "SignalFx .NET Tracing 64-bit") -Or (msi_installed -name "SignalFx .NET Tracing 32-bit")) {
-        throw "SignalFx .NET Instrumentation is already installed. Uninstall SignalFx Instrumentation for .NET and rerun this script."
+        throw "SignalFx .NET Instrumentation is already installed. Stop all instrumented applications and uninstall SignalFx Instrumentation for .NET before running this script again."
     }
     echo "Downloading Splunk Distribution of OpenTelemetry .NET ..."
     $module_name = "Splunk.OTel.DotNet.psm1"
@@ -719,6 +719,7 @@ if ($otel_resource_attributes -ne "") {
     try {
         update_registry -path "$regkey" -name "OTEL_RESOURCE_ATTRIBUTES" -value "$otel_resource_attributes"
     } catch {
+        Write-Warning "Failed to set OTEL_RESOURCE_ATTRIBUTES environment variable."
         continue
     }
 }

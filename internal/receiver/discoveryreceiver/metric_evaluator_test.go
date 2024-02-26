@@ -71,10 +71,10 @@ func TestMetricEvaluation(t *testing.T) {
 					for _, firstOnly := range []bool{true, false} {
 						match.FirstOnly = firstOnly
 						t.Run(fmt.Sprintf("FirstOnly:%v", firstOnly), func(t *testing.T) {
-							observerID := component.NewIDWithName("an.observer", "observer.name")
+							observerID := component.MustNewIDWithName("an_observer", "observer.name")
 							cfg := &Config{
 								Receivers: map[component.ID]ReceiverEntry{
-									component.NewIDWithName("a.receiver", "receiver.name"): {
+									component.MustNewIDWithName("a_receiver", "receiver.name"): {
 										Rule:   "a.rule",
 										Status: &Status{Metrics: map[discovery.StatusType][]Match{status: {match}}},
 									},
@@ -96,7 +96,7 @@ func TestMetricEvaluation(t *testing.T) {
 							rm := md.ResourceMetrics().AppendEmpty()
 
 							rAttrs := rm.Resource().Attributes()
-							rAttrs.PutStr("discovery.receiver.type", "a.receiver")
+							rAttrs.PutStr("discovery.receiver.type", "a_receiver")
 							rAttrs.PutStr("discovery.receiver.name", "receiver.name")
 							rAttrs.PutStr("discovery.endpoint.id", "endpoint.id")
 
@@ -121,10 +121,10 @@ func TestMetricEvaluation(t *testing.T) {
 							require.Equal(t, map[string]any{
 								"discovery.endpoint.id":   "endpoint.id",
 								"discovery.event.type":    "metric.match",
-								"discovery.observer.id":   "an.observer/observer.name",
+								"discovery.observer.id":   "an_observer/observer.name",
 								"discovery.receiver.name": "receiver.name",
 								"discovery.receiver.rule": "a.rule",
-								"discovery.receiver.type": "a.receiver",
+								"discovery.receiver.type": "a_receiver",
 							}, rAttrs.AsRaw())
 
 							sLogs := rl.ScopeLogs()

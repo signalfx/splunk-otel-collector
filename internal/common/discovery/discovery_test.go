@@ -41,5 +41,5 @@ func TestIsValidStatusType(t *testing.T) {
 }
 
 func TestNoTypeIsEmpty(t *testing.T) {
-	require.Equal(t, "", NoType.String())
+	require.Equal(t, "SENTINEL_FOR_DISCOVERY_RECEIVER___", NoType.String())
 }

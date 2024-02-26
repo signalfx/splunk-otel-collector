@@ -26,7 +26,7 @@ import (
 
 func TestEnvVarConfigSourceFactory_CreateConfigSource(t *testing.T) {
 	factory := NewFactory()
-	assert.Equal(t, component.Type("env"), factory.Type())
+	assert.Equal(t, component.MustNewType("env"), factory.Type())
 	tests := []struct {
 		config *Config
 		name   string

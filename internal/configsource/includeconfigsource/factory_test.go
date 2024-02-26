@@ -26,7 +26,7 @@ import (
 
 func TestIncludeConfigSourceFactory_CreateConfigSource(t *testing.T) {
 	factory := NewFactory()
-	assert.Equal(t, component.Type("include"), factory.Type())
+	assert.Equal(t, component.MustNewType("include"), factory.Type())
 
 	tests := []struct {
 		expected *includeConfigSource

@@ -17,8 +17,12 @@
 package tests
 
 import (
+	"context"
 	"path"
 	"testing"
+	"time"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
@@ -34,7 +38,7 @@ func TestCollectdKafkaReceiversProvideAllMetrics(t *testing.T) {
 		"KAFKA_ZOOKEEPER_CONNECT": "zookeeper:2181",
 	}).WithNetworks("kafka")
 
-	_, stop := tc.Containers(
+	containers, stop := tc.Containers(
 		testutils.NewContainer().WithImage(
 			"zookeeper:3.5",
 		).WithName("zookeeper").WithNetworks(
@@ -57,6 +61,19 @@ func TestCollectdKafkaReceiversProvideAllMetrics(t *testing.T) {
 		}).WithExposedPorts("9099:9099").WillWaitForPorts("9099"),
 	)
 	defer stop()
+
+	require.Eventually(t, func() bool {
+		for _, c := range containers {
+			s, err := c.State(context.Background())
+			if err != nil {
+				return false
+			}
+			if !s.Running {
+				return false
+			}
+		}
+		return true
+	}, 5*time.Minute, 1*time.Second)
 
 	for _, args := range []struct {
 		name                    string

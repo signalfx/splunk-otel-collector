@@ -160,24 +160,6 @@ func TestValidProperties(t *testing.T) {
 				Input: "splunk.discovery.receivers.receiver_type////.config.one::config",
 			},
 		},
-		{key: "splunk.discovery.extensions.extension--0-1-with-config-in-type-_x64__x86_🙈🙉🙊4:000x0;;0;;0;;-___-----type/e/x/t/e%ns<i>o<=n=>nam/e-with-config.config.o::n::e.config", val: "val",
-			expected: &Property{
-				ComponentType: "extensions",
-				Component:     ComponentID{Type: "extension--0-1-with-config-in-type-_x64__x86_🙈🙉🙊4:000x0;;0;;0;;-___-----type", Name: "e/x/t/e%ns<i>o<=n=>nam/e-with-config"},
-				Type:          "config",
-				Key:           "o::n::e.config",
-				Val:           "val",
-				stringMap: map[string]any{
-					"extensions": map[string]any{
-						"extension--0-1-with-config-in-type-_x64__x86_🙈🙉🙊4:000x0;;0;;0;;-___-----type/e/x/t/e%ns<i>o<=n=>nam/e-with-config": map[string]any{
-							"config": map[string]any{
-								"o": map[string]any{"n": map[string]any{"e.config": "val"}}},
-						},
-					},
-				},
-				Input: "splunk.discovery.extensions.extension--0-1-with-config-in-type-_x64__x86_🙈🙉🙊4:000x0;;0;;0;;-___-----type/e/x/t/e%ns<i>o<=n=>nam/e-with-config.config.o::n::e.config",
-			},
-		},
 		{key: "splunk.discovery.receivers.receiver_type////.enabled", val: "false",
 			expected: &Property{
 				stringMap: map[string]any{
@@ -245,6 +227,15 @@ func TestInvalidProperties(t *testing.T) {
 			require.Error(t, err)
 			require.EqualError(t, err, tt.expectedError)
 			require.Nil(t, p)
+		})
+	}
+	for _, tt := range []struct {
+		property, expectedError string
+	}{
+		{property: "splunk.discovery.extensions.extension--0-1-with-config-in-type-_x64__x86_🙈🙉🙊4:000x0;;0;;0;;-___-----type/e/x/t/e%ns<i>o<=n=>nam/e-with-config.config.o::n::e.config", expectedError: `invalid character(s) in type "extension--0-1-with-config-in-type-_x64__x86_🙈🙉🙊4:000x0;;0;;0;;-___-----type"`},
+	} {
+		t.Run(tt.property, func(t *testing.T) {
+			require.PanicsWithError(t, tt.expectedError, func() { NewProperty(tt.property, "val") })
 		})
 	}
 }

@@ -25,6 +25,8 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
+
+	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
 )
 
 func TestEndpointToPLogsHappyPath(t *testing.T) {
@@ -163,7 +165,7 @@ func TestEndpointToPLogsHappyPath(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t1 := time.Now()
 			plogs, failed, err := endpointToPLogs(
-				component.NewIDWithName("observer.type", "observer.name"),
+				component.NewIDWithName("observer_type", "observer.name"),
 				"event.type", []observer.Endpoint{test.endpoint}, t0,
 			)
 			t2 := time.Now()
@@ -285,7 +287,7 @@ func TestEndpointToPLogsInvalidEndpoints(t *testing.T) {
 		test := tt
 		t.Run(test.name, func(t *testing.T) {
 			plogs, failed, err := endpointToPLogs(
-				component.NewIDWithName("observer.type", "observer.name"),
+				component.NewIDWithName("observer_type", "observer.name"),
 				"event.type", []observer.Endpoint{test.endpoint}, t0,
 			)
 			if test.expectedError != "" {
@@ -304,20 +306,24 @@ func TestEndpointToPLogsInvalidEndpoints(t *testing.T) {
 }
 
 func FuzzEndpointToPlogs(f *testing.F) {
-	f.Add("observer.type", "observer.name", "event.type",
+	f.Add("observer_type", "observer.name", "event.type",
 		"port.endpoint.id", "port.target", "port.name", "pod.name", "uid",
 		"label.one", "label.value.one", "label.two", "label.value.two",
 		"annotation.one", "annotation.value.one", "annotation.two", "annotation.value.two",
 		"namespace", "transport", uint16(1))
-	f.Add("", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", uint16(0))
+	f.Add(discovery.NoType.Type().String(), "", discovery.NoType.Type().String(), "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", uint16(0))
 	f.Fuzz(func(t *testing.T, observerType, observerName, eventType,
 		endpointID, target, portName, podName, uid,
 		labelOne, labelValueOne, labelTwo, labelValueTwo,
 		annotationOne, annotationValueOne, annotationTwo, annotationValueTwo,
 		namespace, transport string, port uint16) {
 		require.NotPanics(t, func() {
+			observerTypeSanitized, err := component.NewType(observerType)
+			if err != nil {
+				observerTypeSanitized = discovery.NoType.Type()
+			}
 			plogs, failed, err := endpointToPLogs(
-				component.MustNewIDWithName(observerType, observerName), eventType, []observer.Endpoint{
+				component.MustNewIDWithName(observerTypeSanitized.String(), observerName), eventType, []observer.Endpoint{
 					{
 						ID:     observer.EndpointID(endpointID),
 						Target: target,
@@ -348,7 +354,7 @@ func FuzzEndpointToPlogs(f *testing.F) {
 			rAttrs := resourceLogs.Resource().Attributes()
 			rAttrs.PutStr("discovery.event.type", eventType)
 			rAttrs.PutStr("discovery.observer.name", observerName)
-			rAttrs.PutStr("discovery.observer.type", observerType)
+			rAttrs.PutStr("discovery.observer.type", observerTypeSanitized.String())
 			expectedLR := resourceLogs.ScopeLogs().At(0).LogRecords().At(0)
 			expectedLR.Body().SetStr(fmt.Sprintf("%s port endpoint %s", eventType, endpointID))
 			attrs := expectedLR.Attributes()
@@ -486,7 +492,7 @@ func expectedPLogs() plog.Logs {
 	rAttrs := plogs.ResourceLogs().AppendEmpty().Resource().Attributes()
 	rAttrs.PutStr("discovery.event.type", "event.type")
 	rAttrs.PutStr("discovery.observer.name", "observer.name")
-	rAttrs.PutStr("discovery.observer.type", "observer.type")
+	rAttrs.PutStr("discovery.observer.type", "observer_type")
 	sLogs := plogs.ResourceLogs().At(0).ScopeLogs().AppendEmpty()
 	lr := sLogs.LogRecords().AppendEmpty()
 	lr.SetTimestamp(pcommon.NewTimestampFromTime(t0))

@@ -174,16 +174,11 @@ func NewPropertyFromEnvVar(envVar, val string) (*Property, bool, error) {
 	return prop, true, err
 }
 
-// TODO hughesjj okay need to modify these.
 // wordify takes an arbitrary string (utf8) and will hex encode any rune not in \w, escaping with `_x<hex-encoded-rune>_`.
 func wordify(text string) string {
 	var wordified []rune
 	for _, c := range text {
 		// encoded all non-word characters to hex
-		// hughesjj TODO we should probably encode underscore as well given it's our escape character
-		// hughesjj TODO If not, could be bug if we ever pass "raw" _x<numbers>
-		// hughesjj TODO come to think of it, can we just *not* wordify the receiver name, given how restrictive the charset is now?
-		// hughesjj TODO at minimum I'd expect it to be mostly no-op
 		if c != '_' && c < '0' || (c > '9') && (c < 'A') || (c > 'Z') && (c < 'a') || (c > 'z') {
 			b := make([]byte, 4)
 			binary.BigEndian.PutUint32(b, uint32(c))
@@ -209,12 +204,11 @@ func wordify(text string) string {
 	return string(wordified)
 }
 
-// TODO hughesjj make this public an duse it at time of construction, unless we can encode config in name instea
 // unwordify takes any string, expanding `_x<.>_` content as hex-decoded utf8 strings
 func unwordify(text string) (string, error) {
 	var err error
 	unwordified := envVarHexRE.ReplaceAllStringFunc(text, func(s string) string {
-		s = s[2 : len(s)-1] // hughesjj perhaps check for literals here in range [0-9a-fA-F] and bail if outsider
+		s = s[2 : len(s)-1]
 		decoded, e := hex.DecodeString(s)
 		if e != nil {
 			err = multierr.Combine(err, fmt.Errorf("%q: %w", s, e))

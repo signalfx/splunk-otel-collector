@@ -32,7 +32,7 @@ const (
 	DiscoReceiversKey  = "receivers/splunk.discovery"
 )
 
-var NoType = component.NewID("")
+var NoType = component.MustNewID("SENTINEL_FOR_DISCOVERY_RECEIVER___")
 
 type StatusType string
 

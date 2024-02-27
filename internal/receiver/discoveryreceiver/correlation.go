@@ -103,6 +103,7 @@ func (s *store) UpdateEndpoint(endpoint observer.Endpoint, state endpointState, 
 	if !ok {
 		receiverMap.Store(discovery.NoType, &correlation{
 			endpoint:    endpoint,
+			receiverID:  discovery.NoType,
 			observerID:  observerID,
 			lastState:   state,
 			lastUpdated: time.Now(),
@@ -124,10 +125,6 @@ func (s *store) UpdateEndpoint(endpoint observer.Endpoint, state endpointState, 
 // GetOrCreate returns an existing receiver/endpoint correlation or creates a new one
 // based on the no-type ~singleton for the last endpoint update event.
 func (s *store) GetOrCreate(receiverID component.ID, endpointID observer.EndpointID) correlation {
-	_, err := component.NewType(receiverID.Type().String())
-	if err != nil {
-		receiverID = component.MustNewIDWithName(discovery.NoType.Type().String(), receiverID.Name())
-	}
 	endpointUnlock := s.endpointLocks.Lock(endpointID)
 	rMap, ok := s.correlations.LoadOrStore(endpointID, &sync.Map{})
 	receiverMap := rMap.(*sync.Map)
@@ -145,12 +142,15 @@ func (s *store) GetOrCreate(receiverID component.ID, endpointID observer.Endpoin
 	}
 	var noTypeCorrelation *correlation
 	// disregard ok since previous LoadOrStore handling guarantees existence
-	ntCorr, _ := receiverMap.Load(discovery.NoType)
+	ntCorr, ok := receiverMap.Load(discovery.NoType)
+	if !ok {
+		panic("not guaranteed apparently")
+	}
 	noTypeCorrelation = ntCorr.(*correlation)
 	cpCorr := *noTypeCorrelation
 	corr := &cpCorr
 	corr.receiverID = receiverID
-	receiverMap.Store(receiverID, corr)
+	receiverMap.Store(corr.receiverID, corr)
 	return *corr
 }
 

@@ -115,7 +115,7 @@ func TestDiscoveryObserverEntryPaths(t *testing.T) {
 	assert.False(t, isDiscoveryObserverEntryPath(fmt.Sprintf("%cextensions%cdir%cany.thing.at.all.discovery.yaml", os.PathSeparator, os.PathSeparator, os.PathSeparator)))
 	assert.True(t, isDiscoveryObserverEntryPath(fmt.Sprintf("%cextensions%cany.thing.at.all.discovery.yml", os.PathSeparator, os.PathSeparator)))
 	assert.True(t, isDiscoveryObserverEntryPath(fmt.Sprintf("%cextensions%cany.thing.at.all.discovery.yaml", os.PathSeparator, os.PathSeparator)))
-	assert.True(t, isDiscoveryObserverEntryPath(fmt.Sprintf("bundle.d%cextensions%ck8s-observer.discovery.yaml", os.PathSeparator, os.PathSeparator)))
+	assert.True(t, isDiscoveryObserverEntryPath(fmt.Sprintf("bundle.d%cextensions%ck8s_observer.discovery.yaml", os.PathSeparator, os.PathSeparator)))
 }
 
 func TestReceiverToDiscoverEntryPaths(t *testing.T) {
@@ -131,7 +131,7 @@ func TestReceiverToDiscoverEntryPaths(t *testing.T) {
 	assert.True(t, isReceiverToDiscoverEntryPath(fmt.Sprintf(".%creceivers%cany.thing.at.all.discovery.yaml", os.PathSeparator, os.PathSeparator)))
 	assert.False(t, isReceiverToDiscoverEntryPath(fmt.Sprintf(".%cdir%creceivers%cany.thing.at.all.discovery.yml", os.PathSeparator, os.PathSeparator, os.PathSeparator)))
 	assert.False(t, isReceiverToDiscoverEntryPath(fmt.Sprintf(".%cdir%creceivers%cany.thing.at.all.discovery.yaml", os.PathSeparator, os.PathSeparator, os.PathSeparator)))
-	assert.True(t, isReceiverToDiscoverEntryPath(fmt.Sprintf("bundle.d%creceivers%csmartagent-postgresql.discovery.yaml", os.PathSeparator, os.PathSeparator)))
+	assert.True(t, isReceiverToDiscoverEntryPath(fmt.Sprintf("bundle.d%creceivers%csmartagent_postgresql.discovery.yaml", os.PathSeparator, os.PathSeparator)))
 }
 
 func TestDiscoveryPropertiesEntryPath(t *testing.T) {

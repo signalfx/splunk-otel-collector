@@ -177,10 +177,6 @@ func (e *evaluator) correlateResourceAttributes(from, to pcommon.Map, corr corre
 }
 
 func addObserverToEncodedConfig(encoded, observerID string) (string, error) {
-	_, err := component.NewType(observerID)
-	if err != nil {
-		return "", err
-	}
 	cfg := map[string]any{}
 	dBytes, err := base64.StdEncoding.DecodeString(encoded)
 	if err != nil {
@@ -190,7 +186,7 @@ func addObserverToEncodedConfig(encoded, observerID string) (string, error) {
 		return "", err
 	}
 
-	cfg["watch_observers"] = []string{component.MustNewID(observerID).Type().String()}
+	cfg["watch_observers"] = []string{observerID}
 
 	var cfgYaml []byte
 	if cfgYaml, err = yaml.Marshal(cfg); err != nil {

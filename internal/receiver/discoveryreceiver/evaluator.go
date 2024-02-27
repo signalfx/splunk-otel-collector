@@ -157,7 +157,6 @@ func (e *evaluator) correlateResourceAttributes(from, to pcommon.Map, corr corre
 					// log failure and continue with existing config sans observer
 					e.logger.Debug(fmt.Sprintf("failed adding %q to %s", observerID, discovery.ReceiverConfigAttr), zap.String("receiver.type", receiverType), zap.String("receiver.name", receiverName), zap.Error(err))
 				} else {
-					// TODO hughesjj somewhere here
 					e.logger.Debug("Adding watch_observer to embedded receiver config receiver attrs", zap.String("observer", corr.observerID.String()), zap.String("receiver.type", receiverType), zap.String("receiver.name", receiverName), zap.String("receiverid", corr.receiverID.String()), zap.String("correp", corr.endpoint.String()))
 					e.correlations.UpdateAttrs(corr.receiverID, map[string]string{
 						updatedWithObserverAttr: updatedConfig,

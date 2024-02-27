@@ -122,11 +122,11 @@ func (e *evaluator) evaluateMatch(match Match, pattern string, status discovery.
 // updating embedded base64 config content, if configured, to include the correlated observer ID
 // that is otherwise unavailable to status sources.
 func (e *evaluator) correlateResourceAttributes(from, to pcommon.Map, corr correlation) {
-	receiverType := string(corr.receiverID.Type())
+	receiverType := corr.receiverID.Type().String()
 	receiverName := corr.receiverID.Name()
 
 	observerID := corr.observerID.String()
-	if observerID != "" {
+	if observerID != "" && observerID != discovery.NoType.String() {
 		to.PutStr(discovery.ObserverIDAttr, observerID)
 	}
 
@@ -158,7 +158,7 @@ func (e *evaluator) correlateResourceAttributes(from, to pcommon.Map, corr corre
 					e.logger.Debug(fmt.Sprintf("failed adding %q to %s", observerID, discovery.ReceiverConfigAttr), zap.String("receiver.type", receiverType), zap.String("receiver.name", receiverName), zap.Error(err))
 				} else {
 					// TODO hughesjj somewhere here
-					e.logger.Debug("Adding watch_observer to embedded receiver config receiver attrs", zap.String("observer", corr.observerID.String()), zap.String("receiver.type", receiverType), zap.String("receiver.name", receiverName))
+					e.logger.Debug("Adding watch_observer to embedded receiver config receiver attrs", zap.String("observer", corr.observerID.String()), zap.String("receiver.type", receiverType), zap.String("receiver.name", receiverName), zap.String("receiverid", corr.receiverID.String()), zap.String("correp", corr.endpoint.String()))
 					e.correlations.UpdateAttrs(corr.receiverID, map[string]string{
 						updatedWithObserverAttr: updatedConfig,
 					})
@@ -178,6 +178,10 @@ func (e *evaluator) correlateResourceAttributes(from, to pcommon.Map, corr corre
 }
 
 func addObserverToEncodedConfig(encoded, observerID string) (string, error) {
+	_, err := component.NewType(observerID)
+	if err != nil {
+		return "", err
+	}
 	cfg := map[string]any{}
 	dBytes, err := base64.StdEncoding.DecodeString(encoded)
 	if err != nil {
@@ -186,7 +190,8 @@ func addObserverToEncodedConfig(encoded, observerID string) (string, error) {
 	if err = yaml.Unmarshal(dBytes, &cfg); err != nil {
 		return "", err
 	}
-	cfg["watch_observers"] = []string{observerID}
+
+	cfg["watch_observers"] = []string{component.MustNewID(observerID).Type().String()}
 
 	var cfgYaml []byte
 	if cfgYaml, err = yaml.Marshal(cfg); err != nil {

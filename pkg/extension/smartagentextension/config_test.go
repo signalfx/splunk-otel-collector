@@ -105,7 +105,7 @@ func TestSmartAgentConfigProvider(t *testing.T) {
 
 	require.Equal(t, 3, len(cfg.ToStringMap()))
 
-	cm, err := cfg.Sub(component.MustNewIDWithName(typeStr, "all_settings").String())
+	cm, err := cfg.Sub(component.MustNewIDWithName(typeStr.String(), "all_settings").String())
 	require.NoError(t, err)
 	allSettingsConfig := createDefaultConfig()
 	err = component.UnmarshalConfig(cm, allSettingsConfig)

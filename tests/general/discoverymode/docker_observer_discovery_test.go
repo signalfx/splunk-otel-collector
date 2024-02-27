@@ -52,10 +52,10 @@ func TestDockerObserver(t *testing.T) {
 		"docker-otlp-exporter-no-internal-prometheus.yaml",
 		func(c testutils.Collector) testutils.Collector {
 			cc := c.(*testutils.CollectorContainer)
-			configd, err := filepath.Abs(filepath.Join(".", "testdata", "docker-observer-config.d"))
+			configd, err := filepath.Abs(filepath.Join(".", "testdata", "docker_observer-config.d"))
 			require.NoError(t, err)
 			cc.Container = cc.Container.WithMount(testcontainers.BindMount(configd, "/opt/config.d"))
-			properties, err := filepath.Abs(filepath.Join(".", "testdata", "docker-observer-properties.yaml"))
+			properties, err := filepath.Abs(filepath.Join(".", "testdata", "docker_observer-properties.yaml"))
 			require.NoError(t, err)
 			cc.Container = cc.Container.WithMount(testcontainers.BindMount(properties, "/opt/properties.yaml"))
 			cc.Container = cc.Container.WithBinds("/var/run/docker.sock:/var/run/dock.e.r.sock:ro")

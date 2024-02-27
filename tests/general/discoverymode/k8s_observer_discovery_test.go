@@ -178,10 +178,10 @@ func configMapData(t testing.TB, cfg string) string {
 	require.NoError(t, err)
 	configStore := map[string]any{"config": string(config)}
 
-	k8sObserver, err := os.ReadFile(filepath.Join(".", "testdata", "k8s-observer-config.d", "extensions", "k8s-observer.discovery.yaml"))
+	k8sObserver, err := os.ReadFile(filepath.Join(".", "testdata", "k8s_observer-config.d", "extensions", "k8s_observer.discovery.yaml"))
 	configStore["extensions"] = string(k8sObserver)
 
-	saReceiver, err := os.ReadFile(filepath.Join(".", "testdata", "k8s-observer-config.d", "receivers", "smart-agent-redis.discovery.yaml"))
+	saReceiver, err := os.ReadFile(filepath.Join(".", "testdata", "k8s_observer-config.d", "receivers", "smart_agent_redis.discovery.yaml"))
 	configStore["receivers"] = string(saReceiver)
 
 	configYaml, err := yaml.Marshal(configStore)
@@ -335,11 +335,11 @@ func daemonSet(cluster *kubeutils.KindCluster, namespace, serviceAccount, config
 						Items: []corev1.KeyToPath{
 							{
 								Key:  "extensions",
-								Path: "extensions/k8s-observer.discovery.yaml",
+								Path: "extensions/k8s_observer.discovery.yaml",
 							},
 							{
 								Key:  "receivers",
-								Path: "receivers/smart-agent-redis.discovery.yaml",
+								Path: "receivers/smart_agent_redis.discovery.yaml",
 							},
 						},
 					},

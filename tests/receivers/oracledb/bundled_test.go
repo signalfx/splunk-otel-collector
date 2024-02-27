@@ -25,6 +25,7 @@ import (
 )
 
 func TestOracledbDockerObserver(t *testing.T) {
+	t.Skipf("Skip until %s is resolved", "https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/31457")
 	testutils.SkipIfNotContainerTest(t)
 	if runtime.GOOS == "darwin" {
 		t.Skip("unable to share sockets between mac and d4m vm: https://github.com/docker/for-mac/issues/483#issuecomment-758836836")

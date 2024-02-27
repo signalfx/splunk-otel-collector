@@ -176,7 +176,7 @@ func (d *discoveryReceiver) createAndSetReceiverCreator() error {
 		return err
 	}
 	id := component.MustNewIDWithName(receiverCreatorFactory.Type().String(), d.settings.ID.String())
-	// receiverCreatorConfig.SetIDName(d.settings.ID.String()) // hughesjj TODO why is this commented out?
+	// receiverCreatorConfig.SetIDName(d.settings.ID.String())
 
 	receiverCreatorSettings := receiver.CreateSettings{
 		ID: id,

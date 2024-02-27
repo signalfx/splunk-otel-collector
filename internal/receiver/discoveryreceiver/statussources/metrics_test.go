@@ -33,10 +33,8 @@ func TestMetricsToReceiverIDs(t *testing.T) {
 		name  string
 	}{
 		{name: "happy path", rType: sPtr("a_type"), rName: sPtr("a.name"), eID: sPtr("an.endpoint")},
-		//{name: "empty values", rType: sPtr(""), rName: sPtr(""), eID: sPtr("")}, // TODO fill in sentinel here
-		//{name: "missing values", rType: nil, rName: nil, eID: nil},
+		{name: "empty values", rType: sPtr(discovery.NoType.Type().String()), rName: sPtr(""), eID: sPtr("")}, // TODO fill in sentinel here
 		{name: "empty receiver type", rType: sPtr(discovery.NoType.Type().String()), rName: sPtr("a.name"), eID: sPtr("an.endpoint")},
-		//{name: "missing receiver type", rType: nil, rName: sPtr("a.name"), eID: sPtr("an.endpoint")},
 		{name: "empty receiver name", rType: sPtr("a_type"), rName: sPtr(""), eID: sPtr("an.endpoint")},
 		{name: "missing receiver name", rType: sPtr("a_type"), rName: nil, eID: sPtr("an.endpoint")},
 		{name: "empty endpointID", rType: sPtr("a_type"), rName: sPtr("a.name"), eID: sPtr("")},

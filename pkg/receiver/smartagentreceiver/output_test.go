@@ -374,7 +374,7 @@ func getExporters() map[component.DataType]map[component.ID]component.Component 
 	)
 
 	// metricExporterMap[exampleExporterFactory.CreateDefaultConfig().ID()] = exampleExporter
-	metricExporterMap[component.MustNewID(exampleExporterFactory.Type())] = exampleExporter
+	metricExporterMap[component.MustNewID(exampleExporterFactory.Type().String())] = exampleExporter
 	metricExporterMap[component.MustNewID("metricsreceiver")] = &mockMetricsReceiver{}
 	metricExporterMap[component.MustNewID("notareceiver")] = &notAReceiver{}
 

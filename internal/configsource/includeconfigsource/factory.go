@@ -37,7 +37,7 @@ func (f *includeFactory) Type() component.Type {
 
 func (f *includeFactory) CreateDefaultConfig() configsource.Settings {
 	return &Config{
-		SourceSettings: configsource.NewSourceSettings(component.NewID(typeStr)),
+		SourceSettings: configsource.NewSourceSettings(component.MustNewID(typeStr)),
 	}
 }
 

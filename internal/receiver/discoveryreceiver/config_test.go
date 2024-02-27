@@ -49,7 +49,7 @@ func TestValidConfig(t *testing.T) {
 
 	require.Equal(t, &Config{
 		Receivers: map[component.ID]ReceiverEntry{
-			component.NewIDWithName("smartagent", "redis"): {
+			component.MustNewIDWithName("smartagent", "redis"): {
 				Config: map[string]any{
 					"auth": "password",
 					"host": "`host`",
@@ -114,8 +114,8 @@ func TestValidConfig(t *testing.T) {
 		EmbedReceiverConfig: true,
 		CorrelationTTL:      25 * time.Second,
 		WatchObservers: []component.ID{
-			component.NewID("an_observer"),
-			component.NewIDWithName("another_observer", "with_name"),
+			component.MustNewID("an_observer"),
+			component.MustNewIDWithName("another_observer", "with_name"),
 		},
 	},
 		cfg)
@@ -175,8 +175,8 @@ func TestReceiverCreatorFactoryAndConfig(t *testing.T) {
 
 	// receiver templates aren't exported so limited to WatchObservers
 	require.Equal(t, []component.ID{
-		component.NewID("an_observer"),
-		component.NewIDWithName("another_observer", "with_name"),
+		component.MustNewID("an_observer"),
+		component.MustNewIDWithName("another_observer", "with_name"),
 	}, creatorCfg.WatchObservers)
 
 	receiverTemplate, err := dCfg.receiverCreatorReceiversConfig(correlations)

@@ -66,7 +66,7 @@ func TestCreateReceiver(t *testing.T) {
 func TestParseConfig(t *testing.T) {
 	cfg, err := confmaptest.LoadConf(path.Join("testdata", "config.yaml"))
 	require.NoError(t, err)
-	cm, err := cfg.Sub(component.NewID(typeStr).String())
+	cm, err := cfg.Sub(component.MustNewID(typeStr).String())
 	require.NoError(t, err)
 	rcfg := createDefaultConfig().(*Config)
 	err = component.UnmarshalConfig(cm, rcfg)

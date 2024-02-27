@@ -26,10 +26,6 @@ import (
 	"testing"
 	"time"
 
-	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
-	"github.com/signalfx/signalfx-agent/pkg/monitors"
-	"github.com/signalfx/signalfx-agent/pkg/monitors/cpu"
-	"github.com/signalfx/signalfx-agent/pkg/utils/hostfs"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
@@ -46,6 +42,11 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
+
+	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
+	"github.com/signalfx/signalfx-agent/pkg/monitors"
+	"github.com/signalfx/signalfx-agent/pkg/monitors/cpu"
+	"github.com/signalfx/signalfx-agent/pkg/utils/hostfs"
 
 	"github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension"
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
@@ -65,7 +66,7 @@ func cleanUp() func() {
 
 func newReceiverCreateSettings(name string) otelcolreceiver.CreateSettings {
 	return otelcolreceiver.CreateSettings{
-		ID: component.NewIDWithName("smartagent", name),
+		ID: component.MustNewIDWithName("smartagent", name),
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         zap.NewNop(),
 			TracerProvider: nooptrace.NewTracerProvider(),
@@ -89,8 +90,8 @@ var (
 		"cpu.wait":                 pmetric.MetricTypeSum,
 	}
 
-	partialSettingsID = component.NewIDWithName(typeStr, "partial_settings")
-	extraSettingsID   = component.NewIDWithName(typeStr, "extra")
+	partialSettingsID = component.MustNewIDWithName(typeStr, "partial_settings")
+	extraSettingsID   = component.MustNewIDWithName(typeStr, "extra")
 )
 
 func newConfig(monitorType string, intervalSeconds int) Config {
@@ -416,9 +417,9 @@ func (m *mockHost) GetExtensions() map[component.ID]otelcolextension.Extension {
 	exampleFactory := extensiontest.NewNopFactory()
 	randomExtensionConfig := exampleFactory.CreateDefaultConfig()
 	return map[component.ID]otelcolextension.Extension{
-		partialSettingsID:                      getExtension(smartagentextension.NewFactory(), m.smartagentextensionConfig),
-		component.NewID(exampleFactory.Type()): getExtension(exampleFactory, randomExtensionConfig),
-		extraSettingsID:                        getExtension(smartagentextension.NewFactory(), m.smartagentextensionConfigExtra),
+		partialSettingsID:                          getExtension(smartagentextension.NewFactory(), m.smartagentextensionConfig),
+		component.MustNewID(exampleFactory.Type()): getExtension(exampleFactory, randomExtensionConfig),
+		extraSettingsID:                            getExtension(smartagentextension.NewFactory(), m.smartagentextensionConfigExtra),
 	}
 }
 

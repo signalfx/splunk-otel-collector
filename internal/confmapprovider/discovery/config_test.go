@@ -171,20 +171,20 @@ var expectedConfig = Config{
 		},
 	},
 	Exporters: map[component.ID]ExporterEntry{
-		component.NewID("signalfx"): {Entry{
+		component.MustNewID("signalfx"): {Entry{
 			"api_url":    "http://0.0.0.0/api",
 			"ingest_url": "http://0.0.0.0/ingest",
 		}},
 	},
 	Extensions: map[component.ID]ExtensionEntry{
-		component.NewID("zpages"): {
+		component.MustNewID("zpages"): {
 			Entry{
 				"endpoint": "0.0.0.0:1234",
 			},
 		},
 	},
 	DiscoveryObservers: map[component.ID]ObserverEntry{
-		component.NewID("docker_observer"): {
+		component.MustNewID("docker_observer"): {
 			Enabled: &tru,
 			Config: Entry{
 				"endpoint": "tcp://debian:54321",
@@ -193,10 +193,10 @@ var expectedConfig = Config{
 		},
 	},
 	Processors: map[component.ID]ProcessorEntry{
-		component.NewID("batch"): {},
+		component.MustNewID("batch"): {},
 	},
 	Receivers: map[component.ID]ReceiverEntry{
-		component.NewID("otlp"): {
+		component.MustNewID("otlp"): {
 			Entry{
 				"protocols": map[any]any{
 					"grpc": map[any]any{
@@ -213,8 +213,8 @@ var expectedConfig = Config{
 		component.MustNewIDWithName("smartagent", "postgresql"): {
 			Enabled: &flse,
 			Rule: map[component.ID]string{
-				component.NewID("docker_observer"): `type == "container" and port == 5432`,
-				component.NewID("host_observer"):   `type == "hostport" and command contains "pg" and port == 5432`,
+				component.MustNewID("docker_observer"): `type == "container" and port == 5432`,
+				component.MustNewID("host_observer"):   `type == "hostport" and command contains "pg" and port == 5432`,
 			},
 
 			Config: map[component.ID]map[string]any{
@@ -227,7 +227,7 @@ var expectedConfig = Config{
 					},
 					"masterDBName": "test_db",
 				},
-				component.NewID("docker_observer"): {
+				component.MustNewID("docker_observer"): {
 					"params": map[any]any{
 						"password": "`labels[\"auth\"]`",
 					},
@@ -276,7 +276,7 @@ var expectedConfig = Config{
 		},
 		component.MustNewIDWithName("smartagent", "collectd/redis"): {
 			Rule: map[component.ID]string{
-				component.NewID("docker_observer"): `type == "container" and port == 6379`,
+				component.MustNewID("docker_observer"): `type == "container" and port == 6379`,
 			},
 
 			Config: map[component.ID]map[string]any{
@@ -284,7 +284,7 @@ var expectedConfig = Config{
 					"type": "collectd/redis",
 					"auth": "password",
 				},
-				component.NewID("docker_observer"): {
+				component.MustNewID("docker_observer"): {
 					"auth": "`labels[\"auth\"]`",
 				},
 			},

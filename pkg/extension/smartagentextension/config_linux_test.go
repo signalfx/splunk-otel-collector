@@ -33,7 +33,7 @@ func TestBundleDirDefault(t *testing.T) {
 	require.NotNil(t, cfg)
 	require.Equal(t, 3, len(cfg.ToStringMap()))
 
-	defaultSettingsID := component.NewIDWithName("smartagent", "default_settings")
+	defaultSettingsID := component.MustNewIDWithName("smartagent", "default_settings")
 	cm, err := cfg.Sub(defaultSettingsID.String())
 	require.NoError(t, err)
 	emptyConfig := createDefaultConfig().(*Config)

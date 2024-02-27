@@ -44,7 +44,7 @@ const (
 )
 
 var (
-	defaultType = component.NewID("default")
+	defaultType = component.MustNewID("default")
 
 	configDirRootRegex            = fmt.Sprintf("^[^%s]*", pathSeparatorForCharacterRange)
 	serviceEntryRegex             = regexp.MustCompile(fmt.Sprintf("%s[%s]?service\\.(yaml|yml)$", configDirRootRegex, pathSeparatorForCharacterRange))

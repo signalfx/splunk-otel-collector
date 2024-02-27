@@ -22,14 +22,14 @@ import (
 
 // BundledFS is the in-executable filesystem that contains all bundled discovery config.d components.
 
-//go:embed bundle.d/extensions/docker-observer.discovery.yaml
-//go:embed bundle.d/extensions/host-observer.discovery.yaml
-//go:embed bundle.d/extensions/k8s-observer.discovery.yaml
+//go:embed bundle.d/extensions/docker_observer.discovery.yaml
+//go:embed bundle.d/extensions/host_observer.discovery.yaml
+//go:embed bundle.d/extensions/k8s_observer.discovery.yaml
 //go:embed bundle.d/receivers/mysql.discovery.yaml
 //go:embed bundle.d/receivers/oracledb.discovery.yaml
 //go:embed bundle.d/receivers/postgresql.discovery.yaml
 //go:embed bundle.d/receivers/redis.discovery.yaml
-//go:embed bundle.d/receivers/smartagent-collectd-mysql.discovery.yaml
-//go:embed bundle.d/receivers/smartagent-collectd-nginx.discovery.yaml
-//go:embed bundle.d/receivers/smartagent-postgresql.discovery.yaml
+//go:embed bundle.d/receivers/smartagent_collectd_mysql.discovery.yaml
+//go:embed bundle.d/receivers/smartagent_collectd_nginx.discovery.yaml
+//go:embed bundle.d/receivers/smartagent_postgresql.discovery.yaml
 var BundledFS embed.FS

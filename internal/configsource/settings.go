@@ -52,7 +52,7 @@ func (s *SourceSettings) ID() component.ID {
 
 // SetIDName updates the name part of the ID for the component that this configuration belongs to.
 func (s *SourceSettings) SetIDName(idName string) {
-	s.id = component.NewIDWithName(s.id.Type(), idName)
+	s.id = component.MustNewIDWithName(s.id.Type(), idName)
 }
 
 // NewSourceSettings return a new config.SourceSettings struct with the given ComponentID.

@@ -19,6 +19,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/confmap/confmaptest"
+
 	"github.com/signalfx/signalfx-agent/pkg/core/common/httpclient"
 	"github.com/signalfx/signalfx-agent/pkg/core/common/kubelet"
 	"github.com/signalfx/signalfx-agent/pkg/core/common/kubernetes"
@@ -38,10 +43,6 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/exec"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/ntpq"
 	"github.com/signalfx/signalfx-agent/pkg/utils/timeutil"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/confmap/confmaptest"
 )
 
 func TestLoadConfig(t *testing.T) {
@@ -53,7 +54,7 @@ func TestLoadConfig(t *testing.T) {
 
 	assert.Equal(t, 5, len(cfg.ToStringMap()))
 
-	cm, err := cfg.Sub(component.NewIDWithName(typeStr, "haproxy").String())
+	cm, err := cfg.Sub(component.MustNewIDWithName(typeStr, "haproxy").String())
 	require.NoError(t, err)
 	haproxyCfg := CreateDefaultConfig().(*Config)
 	require.NoError(t, component.UnmarshalConfig(cm, haproxyCfg))
@@ -77,7 +78,7 @@ func TestLoadConfig(t *testing.T) {
 	}, haproxyCfg)
 	require.NoError(t, haproxyCfg.validate())
 
-	cm, err = cfg.Sub(component.NewIDWithName(typeStr, "redis").String())
+	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "redis").String())
 	require.NoError(t, err)
 	redisCfg := CreateDefaultConfig().(*Config)
 	require.NoError(t, component.UnmarshalConfig(cm, redisCfg))
@@ -97,7 +98,7 @@ func TestLoadConfig(t *testing.T) {
 	}, redisCfg)
 	require.NoError(t, redisCfg.validate())
 
-	cm, err = cfg.Sub(component.NewIDWithName(typeStr, "hadoop").String())
+	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "hadoop").String())
 	require.NoError(t, err)
 	hadoopCfg := CreateDefaultConfig().(*Config)
 	require.NoError(t, component.UnmarshalConfig(cm, hadoopCfg))
@@ -117,7 +118,7 @@ func TestLoadConfig(t *testing.T) {
 	}, hadoopCfg)
 	require.NoError(t, hadoopCfg.validate())
 
-	cm, err = cfg.Sub(component.NewIDWithName(typeStr, "etcd").String())
+	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "etcd").String())
 	require.NoError(t, err)
 	etcdCfg := CreateDefaultConfig().(*Config)
 	require.NoError(t, component.UnmarshalConfig(cm, etcdCfg))
@@ -142,7 +143,7 @@ func TestLoadConfig(t *testing.T) {
 	require.NoError(t, etcdCfg.validate())
 
 	tr := true
-	cm, err = cfg.Sub(component.NewIDWithName(typeStr, "ntpq").String())
+	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "ntpq").String())
 	require.NoError(t, err)
 	ntpqCfg := CreateDefaultConfig().(*Config)
 	require.NoError(t, component.UnmarshalConfig(cm, ntpqCfg))
@@ -203,7 +204,7 @@ func TestLoadInvalidConfigs(t *testing.T) {
 
 	assert.Equal(t, 2, len(cfg.ToStringMap()))
 
-	cm, err := cfg.Sub(component.NewIDWithName(typeStr, "negativeintervalseconds").String())
+	cm, err := cfg.Sub(component.MustNewIDWithName(typeStr, "negativeintervalseconds").String())
 	require.NoError(t, err)
 	negativeIntervalCfg := CreateDefaultConfig().(*Config)
 	require.NoError(t, component.UnmarshalConfig(cm, negativeIntervalCfg))
@@ -221,7 +222,7 @@ func TestLoadInvalidConfigs(t *testing.T) {
 	require.Error(t, err)
 	require.EqualError(t, err, "intervalSeconds must be greater than 0s (-234 provided)")
 
-	cm, err = cfg.Sub(component.NewIDWithName(typeStr, "missingrequired").String())
+	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "missingrequired").String())
 	require.NoError(t, err)
 	missingRequiredCfg := CreateDefaultConfig().(*Config)
 	require.NoError(t, component.UnmarshalConfig(cm, missingRequiredCfg))
@@ -251,7 +252,7 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 
 	assert.Equal(t, 6, len(cfg.ToStringMap()))
 
-	cm, err := cfg.Sub(component.NewIDWithName(typeStr, "haproxy").String())
+	cm, err := cfg.Sub(component.MustNewIDWithName(typeStr, "haproxy").String())
 	require.NoError(t, err)
 	haproxyCfg := CreateDefaultConfig().(*Config)
 	require.NoError(t, component.UnmarshalConfig(cm, haproxyCfg))
@@ -275,7 +276,7 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 	}, haproxyCfg)
 	require.NoError(t, haproxyCfg.validate())
 
-	cm, err = cfg.Sub(component.NewIDWithName(typeStr, "redis").String())
+	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "redis").String())
 	require.NoError(t, err)
 	redisCfg := CreateDefaultConfig().(*Config)
 	require.NoError(t, component.UnmarshalConfig(cm, redisCfg))
@@ -294,7 +295,7 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 	}, redisCfg)
 	require.NoError(t, redisCfg.validate())
 
-	cm, err = cfg.Sub(component.NewIDWithName(typeStr, "hadoop").String())
+	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "hadoop").String())
 	require.NoError(t, err)
 	hadoopCfg := CreateDefaultConfig().(*Config)
 	require.NoError(t, component.UnmarshalConfig(cm, hadoopCfg))
@@ -314,7 +315,7 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 	}, hadoopCfg)
 	require.NoError(t, hadoopCfg.validate())
 
-	cm, err = cfg.Sub(component.NewIDWithName(typeStr, "etcd").String())
+	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "etcd").String())
 	require.NoError(t, err)
 	etcdCfg := CreateDefaultConfig().(*Config)
 	require.NoError(t, component.UnmarshalConfig(cm, etcdCfg))
@@ -338,7 +339,7 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 	}, etcdCfg)
 	require.NoError(t, etcdCfg.validate())
 
-	cm, err = cfg.Sub(component.NewIDWithName(typeStr, "elasticsearch").String())
+	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "elasticsearch").String())
 	require.NoError(t, err)
 	elasticCfg := CreateDefaultConfig().(*Config)
 	require.NoError(t, component.UnmarshalConfig(cm, elasticCfg))
@@ -368,7 +369,7 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 	}, elasticCfg)
 	require.NoError(t, elasticCfg.validate())
 
-	cm, err = cfg.Sub(component.NewIDWithName(typeStr, "kubelet-stats").String())
+	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "kubelet-stats").String())
 	require.NoError(t, err)
 	kubeletCfg := CreateDefaultConfig().(*Config)
 	require.NoError(t, component.UnmarshalConfig(cm, kubeletCfg))
@@ -394,7 +395,7 @@ func TestLoadInvalidConfigWithInvalidEndpoint(t *testing.T) {
 	cfg, err := confmaptest.LoadConf(path.Join(".", "testdata", "invalid_endpoint.yaml"))
 	require.NoError(t, err)
 
-	cm, err := cfg.Sub(component.NewIDWithName(typeStr, "haproxy").String())
+	cm, err := cfg.Sub(component.MustNewIDWithName(typeStr, "haproxy").String())
 	require.NoError(t, err)
 	haproxyCfg := CreateDefaultConfig().(*Config)
 	err = component.UnmarshalConfig(cm, haproxyCfg)
@@ -409,7 +410,7 @@ func TestLoadConfigWithUnsupportedEndpoint(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
-	cm, err := cfg.Sub(component.NewIDWithName(typeStr, "nagios").String())
+	cm, err := cfg.Sub(component.MustNewIDWithName(typeStr, "nagios").String())
 	require.NoError(t, err)
 	nagiosCfg := CreateDefaultConfig().(*Config)
 	require.NoError(t, component.UnmarshalConfig(cm, nagiosCfg))
@@ -433,7 +434,7 @@ func TestLoadConfigWithUnsupportedEndpoint(t *testing.T) {
 func TestLoadInvalidConfigWithNonArrayDimensionClients(t *testing.T) {
 	cfg, err := confmaptest.LoadConf(path.Join(".", "testdata", "invalid_nonarray_dimension_clients.yaml"))
 	require.NoError(t, err)
-	cm, err := cfg.Sub(component.NewIDWithName(typeStr, "haproxy").String())
+	cm, err := cfg.Sub(component.MustNewIDWithName(typeStr, "haproxy").String())
 	require.NoError(t, err)
 	haproxyCfg := CreateDefaultConfig().(*Config)
 	err = component.UnmarshalConfig(cm, haproxyCfg)
@@ -445,7 +446,7 @@ func TestLoadInvalidConfigWithNonArrayDimensionClients(t *testing.T) {
 func TestLoadInvalidConfigWithNonStringArrayDimensionClients(t *testing.T) {
 	cfg, err := confmaptest.LoadConf(path.Join(".", "testdata", "invalid_float_dimension_clients.yaml"))
 	require.NoError(t, err)
-	cm, err := cfg.Sub(component.NewIDWithName(typeStr, "haproxy").String())
+	cm, err := cfg.Sub(component.MustNewIDWithName(typeStr, "haproxy").String())
 	require.NoError(t, err)
 	haproxyCfg := CreateDefaultConfig().(*Config)
 	err = component.UnmarshalConfig(cm, haproxyCfg)
@@ -459,7 +460,7 @@ func TestFilteringConfig(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
-	cm, err := cfg.Sub(component.NewIDWithName(typeStr, "filesystems").String())
+	cm, err := cfg.Sub(component.MustNewIDWithName(typeStr, "filesystems").String())
 	require.NoError(t, err)
 	fsCfg := CreateDefaultConfig().(*Config)
 	require.NoError(t, component.UnmarshalConfig(cm, fsCfg))
@@ -490,7 +491,7 @@ func TestInvalidFilteringConfig(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
-	cm, err := cfg.Sub(component.NewIDWithName(typeStr, "filesystems").String())
+	cm, err := cfg.Sub(component.MustNewIDWithName(typeStr, "filesystems").String())
 	require.NoError(t, err)
 	fsCfg := CreateDefaultConfig().(*Config)
 	require.NoError(t, component.UnmarshalConfig(cm, fsCfg))
@@ -520,7 +521,7 @@ func TestLoadConfigWithNestedMonitorConfig(t *testing.T) {
 
 	assert.Equal(t, 2, len(cfg.ToStringMap()))
 
-	cm, err := cfg.Sub(component.NewIDWithName(typeStr, "exec").String())
+	cm, err := cfg.Sub(component.MustNewIDWithName(typeStr, "exec").String())
 	require.NoError(t, err)
 	telegrafExecCfg := CreateDefaultConfig().(*Config)
 	require.NoError(t, component.UnmarshalConfig(cm, telegrafExecCfg))
@@ -541,7 +542,7 @@ func TestLoadConfigWithNestedMonitorConfig(t *testing.T) {
 	}, telegrafExecCfg)
 	require.NoError(t, telegrafExecCfg.validate())
 
-	cm, err = cfg.Sub(component.NewIDWithName(typeStr, "kubernetes_volumes").String())
+	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "kubernetes_volumes").String())
 	require.NoError(t, err)
 	k8sVolumesCfg := CreateDefaultConfig().(*Config)
 	require.NoError(t, component.UnmarshalConfig(cm, k8sVolumesCfg))

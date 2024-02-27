@@ -40,7 +40,6 @@ import (
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	otelcolreceiver "go.opentelemetry.io/collector/receiver"
 	"go.uber.org/zap"
-
 )
 
 func TestOutput(t *testing.T) {

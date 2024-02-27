@@ -165,7 +165,7 @@ func TestEndpointToPLogsHappyPath(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t1 := time.Now()
 			plogs, failed, err := endpointToPLogs(
-				component.NewIDWithName("observer_type", "observer.name"),
+				component.MustNewIDWithName("observer_type", "observer.name"),
 				"event.type", []observer.Endpoint{test.endpoint}, t0,
 			)
 			t2 := time.Now()
@@ -287,7 +287,7 @@ func TestEndpointToPLogsInvalidEndpoints(t *testing.T) {
 		test := tt
 		t.Run(test.name, func(t *testing.T) {
 			plogs, failed, err := endpointToPLogs(
-				component.NewIDWithName("observer_type", "observer.name"),
+				component.MustNewIDWithName("observer_type", "observer.name"),
 				"event.type", []observer.Endpoint{test.endpoint}, t0,
 			)
 			if test.expectedError != "" {

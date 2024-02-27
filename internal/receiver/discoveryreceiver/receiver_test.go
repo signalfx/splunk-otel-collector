@@ -47,13 +47,13 @@ func TestNewDiscoveryReceiver(t *testing.T) {
 }
 
 func TestObservablesFromHost(t *testing.T) {
-	nopObsID := component.NewID("nop_observer")
+	nopObsID := component.MustNewID("nop_observer")
 	nopObs := &nopObserver{}
-	nopObsIDWithName := component.NewIDWithName("nop_observer", "with_name")
+	nopObsIDWithName := component.MustNewIDWithName("nop_observer", "with_name")
 	nopObsWithName := &nopObserver{}
-	nopObsvbleID := component.NewID("nop_observable")
+	nopObsvbleID := component.MustNewID("nop_observable")
 	nopObsvble := &nopObservable{}
-	nopObsvbleIDWithName := component.NewIDWithName("nop_observable", "with_name")
+	nopObsvbleIDWithName := component.MustNewIDWithName("nop_observable", "with_name")
 	nopObsvbleWithName := &nopObservable{}
 
 	for _, tt := range []struct {

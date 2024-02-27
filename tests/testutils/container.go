@@ -273,6 +273,9 @@ func (container *Container) Start(ctx context.Context) error {
 	}
 
 	err := container.createNetworksIfNecessary(req)
+	if err != nil {
+		return nil
+	}
 
 	started, err := testcontainers.GenericContainer(ctx, req)
 	container.container = &started

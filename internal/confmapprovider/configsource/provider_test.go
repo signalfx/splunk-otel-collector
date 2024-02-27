@@ -217,7 +217,7 @@ func (m *MockCfgSrcFactory) Type() component.Type {
 
 func (m *MockCfgSrcFactory) CreateDefaultConfig() configsource.Settings {
 	return &MockCfgSrcSettings{
-		SourceSettings: configsource.NewSourceSettings(component.NewID("tstcfgsrc")),
+		SourceSettings: configsource.NewSourceSettings(component.MustNewID("tstcfgsrc")),
 		Endpoint:       "default_endpoint",
 	}
 }

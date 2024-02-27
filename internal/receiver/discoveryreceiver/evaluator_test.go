@@ -165,7 +165,7 @@ func TestCorrelateResourceAttrsWithExistingConfig(t *testing.T) {
 			eval.config.EmbedReceiverConfig = embed
 
 			endpoint := observer.Endpoint{ID: endpointID}
-			observerID := component.NewIDWithName("type", "name")
+			observerID := component.MustNewIDWithName("type", "name")
 			eval.correlations.UpdateEndpoint(endpoint, addedState, observerID)
 
 			corr := eval.correlations.GetOrCreate(sampleType, endpointID)

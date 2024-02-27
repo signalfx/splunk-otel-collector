@@ -37,7 +37,7 @@ func (e *envVarFactory) Type() component.Type {
 
 func (e *envVarFactory) CreateDefaultConfig() configsource.Settings {
 	return &Config{
-		SourceSettings: configsource.NewSourceSettings(component.NewID(typeStr)),
+		SourceSettings: configsource.NewSourceSettings(component.MustNewID(typeStr)),
 	}
 }
 

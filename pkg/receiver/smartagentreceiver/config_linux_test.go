@@ -20,16 +20,17 @@ import (
 	"path"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/confmap/confmaptest"
+
 	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/apache"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/genericjmx"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/kafka"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/memcached"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/php"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/confmap/confmaptest"
 )
 
 func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
@@ -38,7 +39,7 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 
 	assert.Equal(t, 4, len(configs.ToStringMap()))
 
-	cm, err := configs.Sub(component.NewIDWithName(typeStr, "apache").String())
+	cm, err := configs.Sub(component.MustNewIDWithName(typeStr, "apache").String())
 	require.NoError(t, err)
 	apacheCfg := CreateDefaultConfig().(*Config)
 	err = component.UnmarshalConfig(cm, apacheCfg)
@@ -58,7 +59,7 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 	}, apacheCfg)
 	require.NoError(t, apacheCfg.validate())
 
-	cm, err = configs.Sub(component.NewIDWithName(typeStr, "kafka").String())
+	cm, err = configs.Sub(component.MustNewIDWithName(typeStr, "kafka").String())
 	require.NoError(t, err)
 	kafkaCfg := CreateDefaultConfig().(*Config)
 	err = component.UnmarshalConfig(cm, kafkaCfg)
@@ -81,7 +82,7 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 	}, kafkaCfg)
 	require.NoError(t, kafkaCfg.validate())
 
-	cm, err = configs.Sub(component.NewIDWithName(typeStr, "memcached").String())
+	cm, err = configs.Sub(component.MustNewIDWithName(typeStr, "memcached").String())
 	require.NoError(t, err)
 	memcachedCfg := CreateDefaultConfig().(*Config)
 	err = component.UnmarshalConfig(cm, memcachedCfg)
@@ -100,7 +101,7 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 	}, memcachedCfg)
 	require.NoError(t, memcachedCfg.validate())
 
-	cm, err = configs.Sub(component.NewIDWithName(typeStr, "php").String())
+	cm, err = configs.Sub(component.MustNewIDWithName(typeStr, "php").String())
 	require.NoError(t, err)
 	phpCfg := CreateDefaultConfig().(*Config)
 	err = component.UnmarshalConfig(cm, phpCfg)

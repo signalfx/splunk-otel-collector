@@ -43,11 +43,11 @@ func TestEtcd2LoadConfig(t *testing.T) {
 
 	expectedSettings := map[string]configsource.Settings{
 		"etcd2": &Config{
-			SourceSettings: configsource.NewSourceSettings(component.NewID(typeStr)),
+			SourceSettings: configsource.NewSourceSettings(component.MustNewID(typeStr)),
 			Endpoints:      []string{"http://localhost:1234"},
 		},
 		"etcd2/auth": &Config{
-			SourceSettings: configsource.NewSourceSettings(component.NewIDWithName(typeStr, "auth")),
+			SourceSettings: configsource.NewSourceSettings(component.MustNewIDWithName(typeStr, "auth")),
 			Endpoints:      []string{"https://localhost:3456"},
 			Authentication: &Authentication{
 				Username: "user",

@@ -350,7 +350,7 @@ func (d *discoverer) createDiscoveryReceiversAndObservers(cfg *Config) (map[comp
 		if lr, err = discoveryReceiverFactory.CreateLogsReceiver(context.Background(), discoveryReceiverSettings, discoveryReceiverDefaultConfig, d); err != nil {
 			return nil, nil, fmt.Errorf("failed creating discovery receiver: %w", err)
 		}
-		discoveryReceivers[component.NewIDWithName(discoveryReceiverFactory.Type(), observerID.String())] = lr
+		discoveryReceivers[component.MustNewIDWithName(discoveryReceiverFactory.Type(), observerID.String())] = lr
 	}
 
 	return discoveryReceivers, discoveryObservers, nil

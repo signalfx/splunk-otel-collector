@@ -19,11 +19,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/confmap/confmaptest"
-
 	"github.com/signalfx/signalfx-agent/pkg/core/common/httpclient"
 	"github.com/signalfx/signalfx-agent/pkg/core/common/kubelet"
 	"github.com/signalfx/signalfx-agent/pkg/core/common/kubernetes"
@@ -43,6 +38,10 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/exec"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/ntpq"
 	"github.com/signalfx/signalfx-agent/pkg/utils/timeutil"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/confmap/confmaptest"
 )
 
 func TestLoadConfig(t *testing.T) {

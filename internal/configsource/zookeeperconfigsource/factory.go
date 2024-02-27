@@ -43,7 +43,7 @@ func (v *zkFactory) Type() component.Type {
 
 func (v *zkFactory) CreateDefaultConfig() configsource.Settings {
 	return &Config{
-		SourceSettings: configsource.NewSourceSettings(component.NewID(typeStr)),
+		SourceSettings: configsource.NewSourceSettings(component.MustNewID(typeStr)),
 		Endpoints:      []string{defaultEndpoint},
 		Timeout:        defaultTimeout,
 	}

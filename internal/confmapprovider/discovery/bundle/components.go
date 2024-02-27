@@ -23,9 +23,9 @@ var (
 	// If they are desired for !windows BundledFS inclusion (and a default linux conf.d entry), ensure they are included
 	// in Components.Linux. If desired in windows BundledFS, ensure they are included in Components.Windows.
 	extensions = []string{
-		"docker-observer",
-		"host-observer",
-		"k8s-observer",
+		"docker_observer",
+		"host_observer",
+		"k8s_observer",
 	}
 	// These are receivers that must match corresponding bundle.d/receivers/<NAME>.discovery.yaml.tmpl files
 	// If they are desired for !windows BundledFS inclusion (and a default linux conf.d entry), ensure they are included
@@ -35,9 +35,9 @@ var (
 		"oracledb",
 		"postgresql",
 		"redis",
-		"smartagent-collectd-mysql",
-		"smartagent-collectd-nginx",
-		"smartagent-postgresql",
+		"smartagent_collectd_mysql",
+		"smartagent_collectd_nginx",
+		"smartagent_postgresql",
 	}
 
 	Components = DiscoComponents{
@@ -65,7 +65,7 @@ var (
 				"oracledb":              {},
 				"postgresql":            {},
 				"redis":                 {},
-				"smartagent-postgresql": {},
+				"smartagent_postgresql": {},
 			}
 			for _, extension := range extensions {
 				windows[extension] = struct{}{}

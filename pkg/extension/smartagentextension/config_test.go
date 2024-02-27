@@ -20,12 +20,13 @@ import (
 	"path/filepath"
 	"testing"
 
-	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
 	"go.opentelemetry.io/collector/extension"
+
+	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 )
 
 func TestLoadConfig(t *testing.T) {
@@ -34,7 +35,7 @@ func TestLoadConfig(t *testing.T) {
 	require.NotNil(t, cfg)
 	require.Equal(t, 3, len(cfg.ToStringMap()))
 
-	defaultSettingsID := component.NewIDWithName("smartagent", "default_settings")
+	defaultSettingsID := component.MustNewIDWithName("smartagent", "default_settings")
 	cm, err := cfg.Sub(defaultSettingsID.String())
 	require.NoError(t, err)
 	emptyConfig := createDefaultConfig()
@@ -47,7 +48,7 @@ func TestLoadConfig(t *testing.T) {
 		return &c
 	}(), emptyConfig)
 
-	allSettingsID := component.NewIDWithName("smartagent", "all_settings")
+	allSettingsID := component.MustNewIDWithName("smartagent", "all_settings")
 	cm, err = cfg.Sub(allSettingsID.String())
 	require.NoError(t, err)
 	allSettingsConfig := NewFactory().CreateDefaultConfig().(*Config)
@@ -76,7 +77,7 @@ func TestLoadConfig(t *testing.T) {
 		return &c
 	}(), allSettingsConfig)
 
-	partialSettingsID := component.NewIDWithName("smartagent", "partial_settings")
+	partialSettingsID := component.MustNewIDWithName("smartagent", "partial_settings")
 	cm, err = cfg.Sub(partialSettingsID.String())
 	require.NoError(t, err)
 	partialSettingsConfig := NewFactory().CreateDefaultConfig().(*Config)
@@ -104,7 +105,7 @@ func TestSmartAgentConfigProvider(t *testing.T) {
 
 	require.Equal(t, 3, len(cfg.ToStringMap()))
 
-	cm, err := cfg.Sub(component.NewIDWithName(typeStr, "all_settings").String())
+	cm, err := cfg.Sub(component.MustNewIDWithName(typeStr, "all_settings").String())
 	require.NoError(t, err)
 	allSettingsConfig := createDefaultConfig()
 	err = component.UnmarshalConfig(cm, allSettingsConfig)

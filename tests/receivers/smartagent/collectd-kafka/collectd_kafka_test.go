@@ -38,12 +38,27 @@ func TestCollectdKafkaReceiversProvideAllMetrics(t *testing.T) {
 		"KAFKA_ZOOKEEPER_CONNECT": "zookeeper:2181",
 	}).WithNetworks("kafka")
 
+	zookeepercontainers, stopZK := tc.Containers(testutils.NewContainer().WithImage(
+		"zookeeper:3.5",
+	).WithName("zookeeper").WithNetworks(
+		"kafka",
+	).WithExposedPorts("2181:2181").WillWaitForPorts("2181"))
+	defer stopZK()
+
+	require.Eventually(t, func() bool {
+		for _, c := range zookeepercontainers {
+			s, err := c.State(context.Background())
+			if err != nil {
+				return false
+			}
+			if !s.Running {
+				return false
+			}
+		}
+		return true
+	}, 5*time.Minute, 1*time.Second)
+
 	containers, stop := tc.Containers(
-		testutils.NewContainer().WithImage(
-			"zookeeper:3.5",
-		).WithName("zookeeper").WithNetworks(
-			"kafka",
-		).WithExposedPorts("2181:2181").WillWaitForPorts("2181"),
 		kafka.WithName("kafka-broker").WithEnvVar(
 			"START_AS", "broker",
 		).WithExposedPorts("7099:7099", "9092:9092").WillWaitForPorts("7099", "9092"),

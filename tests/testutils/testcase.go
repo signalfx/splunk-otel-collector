@@ -135,7 +135,7 @@ func (t *Testcase) ResourceMetrics(filename string) *telemetry.ResourceMetrics {
 // Builds and starts all provided Container builder instances, returning them and a validating stop function.
 func (t *Testcase) Containers(builders ...Container) (containers []*Container, stop func()) {
 	for _, builder := range builders {
-		containers = append(containers, builder.WithStartupTimeout(3*time.Minute).Build())
+		containers = append(containers, builder.Build())
 	}
 
 	for _, container := range containers {
@@ -288,7 +288,7 @@ func AssertAllMetricsReceived(
 	_, shutdown := tc.SplunkOtelCollector(collectorConfigFilename, builders...)
 	defer shutdown()
 
-	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 3*time.Minute))
+	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
 }
 
 // WaitForKeyboard is a helper for adding breakpoints during test creation

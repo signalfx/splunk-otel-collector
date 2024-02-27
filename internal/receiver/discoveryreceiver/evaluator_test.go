@@ -25,14 +25,14 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/pdata/pcommon"
-	"go.uber.org/zap/zaptest"
+	"go.uber.org/zap"
 )
 
-func setup(t *testing.T) (*evaluator, component.ID, observer.EndpointID) {
+func setup(_ *testing.T) (*evaluator, component.ID, observer.EndpointID) {
 	// If debugging tests, replace the Nop Logger with a test instance to see
 	// all statements. Not in regular use to avoid spamming output.
-	logger := zaptest.NewLogger(t)
-	//logger := zap.NewNop()
+	//logger := zaptest.NewLogger(t)
+	logger := zap.NewNop()
 	alreadyLogged := &sync.Map{}
 	eval := &evaluator{
 		logger:        logger,

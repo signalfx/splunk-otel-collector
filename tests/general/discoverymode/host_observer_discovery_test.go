@@ -61,7 +61,7 @@ func TestHostObserver(t *testing.T) {
 		"host-otlp-exporter-no-internal-prometheus.yaml",
 		func(c testutils.Collector) testutils.Collector {
 			cc := c.(*testutils.CollectorContainer)
-			configd, err := filepath.Abs(filepath.Join(".", "testdata", "host_observer-config.d"))
+			configd, err := filepath.Abs(filepath.Join(".", "testdata", "host-observer-config.d"))
 			require.NoError(t, err)
 			cc.Container = cc.Container.WithMount(testcontainers.BindMount(configd, "/opt/config.d"))
 			cc.Container = cc.Container.WillWaitForLogs("Discovering for next")

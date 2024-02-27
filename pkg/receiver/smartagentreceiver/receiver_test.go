@@ -417,9 +417,9 @@ func (m *mockHost) GetExtensions() map[component.ID]otelcolextension.Extension {
 	exampleFactory := extensiontest.NewNopFactory()
 	randomExtensionConfig := exampleFactory.CreateDefaultConfig()
 	return map[component.ID]otelcolextension.Extension{
-		partialSettingsID:                          getExtension(smartagentextension.NewFactory(), m.smartagentextensionConfig),
-		component.MustNewID(exampleFactory.Type()): getExtension(exampleFactory, randomExtensionConfig),
-		extraSettingsID:                            getExtension(smartagentextension.NewFactory(), m.smartagentextensionConfigExtra),
+		partialSettingsID: getExtension(smartagentextension.NewFactory(), m.smartagentextensionConfig),
+		component.MustNewID(exampleFactory.Type().String()): getExtension(exampleFactory, randomExtensionConfig),
+		extraSettingsID: getExtension(smartagentextension.NewFactory(), m.smartagentextensionConfigExtra),
 	}
 }
 

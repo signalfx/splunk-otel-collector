@@ -62,11 +62,6 @@ func TestCollectdKafkaReceiversProvideAllMetrics(t *testing.T) {
 		kafka.WithName("kafka-broker").WithEnvVar(
 			"START_AS", "broker",
 		).WithExposedPorts("7099:7099", "9092:9092").WillWaitForPorts("7099", "9092"),
-
-		kafka.WithName("kafka-topic-creator").WithEnv(map[string]string{
-			"START_AS": "create-topic", "KAFKA_BROKER": "kafka-broker:9092",
-		}).WillWaitForLogs(`Created topic sfx-employee.`),
-
 		kafka.WithName("kafka-producer").WithEnv(map[string]string{
 			"START_AS": "producer", "KAFKA_BROKER": "kafka-broker:9092", "JMX_PORT": "8099",
 		}).WithExposedPorts("8099:8099").WillWaitForPorts("8099"),
@@ -89,6 +84,14 @@ func TestCollectdKafkaReceiversProvideAllMetrics(t *testing.T) {
 		}
 		return true
 	}, 5*time.Minute, 1*time.Second)
+
+	_, stopCreatingTopic := tc.Containers(
+		kafka.WithName("kafka-topic-creator").WithEnv(map[string]string{
+			"START_AS": "create-topic", "KAFKA_BROKER": "kafka-broker:9092",
+		}).WillWaitForLogs(`Created topic sfx-employee.`),
+	)
+	defer stopCreatingTopic()
+	t.Parallel()
 
 	for _, args := range []struct {
 		name                    string

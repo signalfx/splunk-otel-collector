@@ -70,7 +70,6 @@
     .\install.ps1 -access_token "ACCESSTOKEN" -with_fluentd $true
 .PARAMETER with_dotnet_instrumentation
     (OPTIONAL) Whether to install and configure the Splunk Distribution of OpenTelemetry .NET to forward .NET application telemetry to the local collector (default: $false).
-    If the instrumentation is already installed the script will update it to the latest version - stop all instrumented applications before attempting to update the instrumentation.
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -with_dotnet_instrumentation $true
 .PARAMETER deployment_env
@@ -701,18 +700,11 @@ if ($deployment_env -ne "") {
 if ($with_dotnet_instrumentation) {
     echo "Installing Splunk Distribution of OpenTelemetry .NET..."
     $currentInstallVersion = Get-OpenTelemetryInstallVersion
-    if (-not $currentInstallVersion) {
-        Install-OpenTelemetryCore
-    } else {
-        Write-Warning "Splunk Distribution of OpenTelemetry .NET is already installed. Updating to the latest version..."
-        try {
-            Update-OpenTelemetryCore
-        }
-        catch {
-            Write-Error "Failed to update Splunk Distribution of OpenTelemetry .NET. Stop all instrumented applications and then try again."
-            throw $_
-        }
+    if ($currentInstallVersion) {
+        throw "The Splunk Distribution of OpenTelemetry .NET is already installed. Stop all instrumented applications and uninstall it and then rerun this script."
     }
+
+    Install-OpenTelemetryCore
 
     $installed_version = Get-OpenTelemetryInstallVersion
     if ($otel_resource_attributes -ne "") {

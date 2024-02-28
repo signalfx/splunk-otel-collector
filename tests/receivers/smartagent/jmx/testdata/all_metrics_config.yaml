@@ -1,6 +1,5 @@
 config_sources:
   include:
-
 receivers:
   smartagent/jmx:
     type: jmx

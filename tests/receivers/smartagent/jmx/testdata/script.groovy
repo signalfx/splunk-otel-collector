@@ -27,6 +27,7 @@ def parseFileSize(String value) {
 }
 
 localEndpoint = ss.HostIdToEndpoint.get(ss.LocalHostId)
+log.info(localEndpoint)
 dims = [host_id: ss.LocalHostId, cluster_name: ss.ClusterName]
 
 // Equivalent of "Up/Down" in the `nodetool status` output.
@@ -52,3 +53,4 @@ output.sendDatapoint(util.makeGauge(
   ss.Ownership.get(InetAddress.getByName(localEndpoint)),
   dims))
 
+log.info("groovy init script complete")

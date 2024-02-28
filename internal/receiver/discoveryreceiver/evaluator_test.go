@@ -31,7 +31,7 @@ import (
 func setup(_ *testing.T) (*evaluator, component.ID, observer.EndpointID) {
 	// If debugging tests, replace the Nop Logger with a test instance to see
 	// all statements. Not in regular use to avoid spamming output.
-	//logger := zaptest.NewLogger(t)
+	// logger := zaptest.NewLogger(t)
 	logger := zap.NewNop()
 	alreadyLogged := &sync.Map{}
 	eval := &evaluator{

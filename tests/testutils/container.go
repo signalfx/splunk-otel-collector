@@ -24,7 +24,6 @@ import (
 
 	"github.com/docker/docker/api/types"
 	dockerContainer "github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/errdefs"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/docker/go-connections/nat"
 	"github.com/stretchr/testify/assert"
@@ -272,11 +271,6 @@ func (container *Container) Start(ctx context.Context) error {
 		Started:          true,
 	}
 
-	err := container.createNetworksIfNecessary(req)
-	if err != nil {
-		return nil
-	}
-
 	started, err := testcontainers.GenericContainer(ctx, req)
 	container.container = &started
 	return err
@@ -474,34 +468,4 @@ func (container *Container) AssertExec(t testing.TB, timeout time.Duration, cmd 
 	_, err = stdcopy.StdCopy(&sout, &serr, reader)
 	require.NoError(t, err)
 	return rc, sout.String(), serr.String()
-}
-
-// Will create any networks that don't already exist on system.
-// Teardown/cleanup is handled by the testcontainers reaper.
-func (container *Container) createNetworksIfNecessary(req testcontainers.GenericContainerRequest) error {
-	provider, err := req.ProviderType.GetProvider()
-	if err != nil {
-		return err
-	}
-	for _, networkName := range container.ContainerNetworks {
-		query := testcontainers.NetworkRequest{
-			Name: networkName,
-		}
-		networkResource, err := provider.GetNetwork(context.Background(), query)
-		if err != nil && !errdefs.IsNotFound(err) {
-			return err
-		}
-		if networkResource.Name != networkName {
-			create := testcontainers.NetworkRequest{
-				Driver:     "bridge",
-				Name:       networkName,
-				Attachable: true,
-			}
-			_, err := provider.CreateNetwork(context.Background(), create)
-			if err != nil {
-				return err
-			}
-		}
-	}
-	return nil
 }

@@ -25,6 +25,8 @@ import (
 	"testing"
 	"time"
 
+	dockerContainer "github.com/docker/docker/api/types/container"
+	dockerMount "github.com/docker/docker/api/types/mount"
 	docker "github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/stretchr/testify/require"
@@ -151,7 +153,9 @@ func (collector CollectorContainer) Build() (Collector, error) {
 		collector.Container = collector.Container.WithCmd(collector.Args...)
 	}
 	for path, mountPoint := range collector.Mounts {
-		collector.Container = collector.Container.WithMount(testcontainers.BindMount(path, testcontainers.ContainerMountTarget(mountPoint)))
+		collector.Container = collector.Container.WithHostConfigModifier(func(hostConfig *dockerContainer.HostConfig) {
+			hostConfig.Mounts = append(hostConfig.Mounts, dockerMount.Mount{Source: path, Target: mountPoint, Type: dockerMount.TypeBind})
+		})
 	}
 
 	collector.Container = *(collector.Container.Build())

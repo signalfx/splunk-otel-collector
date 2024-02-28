@@ -142,7 +142,7 @@ func (s *store) GetOrCreate(receiverID component.ID, endpointID observer.Endpoin
 	}
 	var noTypeCorrelation *correlation
 	// disregard ok since previous LoadOrStore handling guarantees existence
-	ntCorr, ok := receiverMap.Load(discovery.NoType)
+	ntCorr, _ := receiverMap.Load(discovery.NoType)
 	noTypeCorrelation = ntCorr.(*correlation)
 	cpCorr := *noTypeCorrelation
 	corr := &cpCorr

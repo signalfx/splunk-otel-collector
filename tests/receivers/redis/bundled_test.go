@@ -31,8 +31,8 @@ func TestRedisDockerObserver(t *testing.T) {
 		t.Skip("unable to share sockets between mac and d4m vm: https://github.com/docker/for-mac/issues/483#issuecomment-758836836")
 	}
 
-	server := testutils.NewContainer().WithContext(path.Join(".", "testdata", "server")).WithExposedPorts("6379:6379").WithNetworks("redis_network").WithName("redis-server").WillWaitForLogs("Ready to accept connections")
-	client := testutils.NewContainer().WithContext(path.Join(".", "testdata", "client")).WithName("redis-client").WithNetworks("redis_network").WillWaitForLogs("redis client started")
+	server := testutils.NewContainer().WithContext(path.Join(".", "testdata", "server")).WithExposedPorts("6379:6379").WithName("redis-server").WillWaitForLogs("Ready to accept connections")
+	client := testutils.NewContainer().WithContext(path.Join(".", "testdata", "client")).WithName("redis-client").WillWaitForLogs("redis client started")
 	containers := []testutils.Container{server, client}
 
 	testutils.AssertAllMetricsReceived(t, "all_server_bundled.yaml", "otlp_exporter.yaml",

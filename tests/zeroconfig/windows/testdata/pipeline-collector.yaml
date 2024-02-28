@@ -8,6 +8,10 @@ receivers:
     endpoint: 0.0.0.0:9943
   sapm:
     endpoint: 0.0.0.0:7276
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
 
 processors:
   batch:
@@ -25,5 +29,5 @@ service:
       receivers: [signalfx]
       exporters: [otlp]
     traces:
-      receivers: [sapm]
+      receivers: [sapm, otlp]
       exporters: [otlp]

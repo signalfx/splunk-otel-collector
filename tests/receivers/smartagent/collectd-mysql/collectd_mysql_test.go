@@ -45,7 +45,9 @@ var mysqlServer = testutils.NewContainer().WithImage("mysql:latest").WithEnv(
 		"MYSQL_USER":          user,
 		"MYSQL_PASSWORD":      password,
 		"MYSQL_ROOT_PASSWORD": password,
-	}).WithExposedPorts("3306:3306").WithName("mysql-server").WillWaitForPorts("3306").WillWaitForLogs(
+	}).WithExposedPorts("3306:3306").WithName("mysql-server").WithNetworks(
+	"mysql",
+).WillWaitForPorts("3306").WillWaitForLogs(
 	"MySQL init process done. Ready for start up.",
 	"ready for connections. Bind-address:",
 )

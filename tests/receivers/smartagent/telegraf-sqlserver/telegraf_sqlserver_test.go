@@ -26,12 +26,14 @@ import (
 func TestTelegrafSQLServerReceiverProvidesAllMetrics(t *testing.T) {
 	server := testutils.NewContainer().WithContext(
 		path.Join(".", "testdata", "server"),
-	).WithExposedPorts("1433:1433").WithName("sql-server").WillWaitForPorts("1433").WillWaitForLogs(
+	).WithExposedPorts("1433:1433").WithName("sql-server").WithNetworks(
+		"mssql",
+	).WillWaitForPorts("1433").WillWaitForLogs(
 		"SQL Server is now ready for client connections.", "Recovery is complete.")
 
 	client := testutils.NewContainer().WithContext(
 		path.Join(".", "testdata", "client"),
-	).WithName("sql-client").WillWaitForLogs("name", "signalfxagent")
+	).WithName("sql-client").WithNetworks("mssql").WillWaitForLogs("name", "signalfxagent")
 	containers := []testutils.Container{server, client}
 
 	testutils.AssertAllMetricsReceived(t, "all.yaml", "all_metrics_config.yaml", containers, nil)

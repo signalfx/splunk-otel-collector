@@ -69,11 +69,11 @@
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -with_fluentd $true
 .PARAMETER with_dotnet_instrumentation
-    (OPTIONAL) Whether to install and configure .NET tracing to forward .NET application traces to the local collector (default: $false)
+    (OPTIONAL) Whether to install and configure the Splunk Distribution of OpenTelemetry .NET to forward .NET application telemetry to the local collector (default: $false).
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -with_dotnet_instrumentation $true
 .PARAMETER deployment_env
-    (OPTIONAL) A system-wide SignalFx "environment" used by .NET instrumentation. Sets the SIGNALFX_ENV environment variable. Ignored if -with_dotnet_instrumentation is false.
+    (OPTIONAL) A system-wide "deployment.environment" set via the environment variable 'OTEL_RESOURCE_ATTRIBUTES' for the whole machine. Ignored if -with_dotnet_instrumentation is false.
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -with_dotnet_instrumentation $true -deployment_env staging
 .PARAMETER bundle_dir
@@ -414,7 +414,7 @@ function download_collector_package([string]$collector_version=$collector_versio
 }
 
 # check registry for the agent msi package
-function msi_installed([string]$name="Splunk OpenTelemetry Collector") {
+function msi_installed([string]$name) {
     return (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where { $_.DisplayName -eq $name }) -ne $null
 }
 
@@ -471,7 +471,7 @@ if (!(check_if_admin)) {
 echo 'Checking execution policy'
 check_policy
 
-if (msi_installed) {
+if (msi_installed -name "Splunk OpenTelemetry Collector") {
     throw "The Splunk OpenTelemetry Collector is already installed. Remove or uninstall the Collector and rerun this script."
 }
 
@@ -491,16 +491,16 @@ if ($with_fluentd -And (Test-Path -Path "$fluentd_base_dir\bin\fluentd")) {
 $tempdir = create_temp_dir -tempdir $tempdir
 
 if ($with_dotnet_instrumentation) {
-    echo "Installing SignalFx Instrumentation for .NET ..."
-    $module_name = "Splunk.SignalFx.DotNet.psm1"
-    $download = "https://github.com/signalfx/signalfx-dotnet-tracing/releases/latest/download/Splunk.SignalFx.DotNet.psm1"
+    if ((msi_installed -name "SignalFx .NET Tracing 64-bit") -Or (msi_installed -name "SignalFx .NET Tracing 32-bit")) {
+        throw "SignalFx .NET Instrumentation is already installed. Stop all instrumented applications and uninstall SignalFx Instrumentation for .NET before running this script again."
+    }
+    echo "Downloading Splunk Distribution of OpenTelemetry .NET ..."
+    $module_name = "Splunk.OTel.DotNet.psm1"
+    $download = "https://github.com/signalfx/splunk-otel-dotnet/releases/latest/download/$module_name"
     $dotnet_autoinstr_path = Join-Path $tempdir $module_name
     echo "Downloading .NET Instrumentation installer ..."
     Invoke-WebRequest -Uri $download -OutFile $dotnet_autoinstr_path -UseBasicParsing
     Import-Module $dotnet_autoinstr_path
-    if (Get-IsSignalFxInstalled) {
-        throw "SignalFx Instrumentation for .NET is already installed. Remove or uninstall SignalFx Instrumentation for .NET and rerun this script."
-    }
 }
 
 if ($ingest_url -eq "") {
@@ -689,28 +689,50 @@ restarted to apply the changes by restarting the system or running the following
     echo "$message"
 }
 
-if ($with_dotnet_instrumentation) {
-    echo "Installing SignalFx Dotnet Auto Instrumentation..."
-    Install-SignalFxDotnet
+$otel_resource_attributes = ""
+if ($deployment_env -ne "") {
+    echo "Setting deployment environment to $deployment_env"
+    $otel_resource_attributes = "deployment.environment=$deployment_env"
+} else {
+    echo "Deployment environment was not specified. Unless otherwise defined, will appear as 'unknown' in the UI."
+}
 
-    $regkey = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
-    if ($deployment_env -ne "") {
-        echo "Setting SIGNALFX_ENV environment variable to $deployment_env ..."
-        update_registry -path "$regkey" -name "SIGNALFX_ENV" -value "$deployment_env"
-    } else {
-        echo "SIGNALFX_ENV environment variable not set. Unless otherwise defined, will appear as 'unknown' in the UI."
+if ($with_dotnet_instrumentation) {
+    echo "Installing Splunk Distribution of OpenTelemetry .NET..."
+    $currentInstallVersion = Get-OpenTelemetryInstallVersion
+    if ($currentInstallVersion) {
+        throw "The Splunk Distribution of OpenTelemetry .NET is already installed. Stop all instrumented applications and uninstall it and then rerun this script."
     }
 
+    Install-OpenTelemetryCore
+
+    $installed_version = Get-OpenTelemetryInstallVersion
+    if ($otel_resource_attributes -ne "") {
+        $otel_resource_attributes += ","
+    }
+    $otel_resource_attributes += "splunk.zc.method=splunk-otel-dotnet-$installed_version"
+}
+
+if ($otel_resource_attributes -ne "") {
+    # The OTEL_RESOURCE_ATTRIBUTES environment variable must be set before restarting IIS.
+    $regkey = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
     try {
-        $dotnet_version = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where { $_.DisplayName -eq "SignalFx .NET Tracing 64-bit" }).DisplayVersion
-        update_registry -path "$regkey" -name "SIGNALFX_GLOBAL_TAGS" "splunk.zc.method:signalfx-dotnet-tracing-${dotnet_version}"
+        update_registry -path "$regkey" -name "OTEL_RESOURCE_ATTRIBUTES" -value "$otel_resource_attributes"
     } catch {
+        Write-Warning "Failed to set OTEL_RESOURCE_ATTRIBUTES environment variable."
         continue
+    }
+}
+
+if ($with_dotnet_instrumentation) {
+    if (service_installed -name "W3SVC") {
+        echo "Registering OpenTelemetry for IIS..."
+        Register-OpenTelemetryForIIS
     }
 
     $message = "
-SignalFx .NET Instrumentation has been installed and configured to forward traces to the Splunk OpenTelemetry Collector.
-By default, .NET Instrumentation will automatically generate traces for applications running on IIS.
+Splunk Distribution of OpenTelemetry for .NET has been installed and configured to forward traces to the Splunk OpenTelemetry Collector.
+By default, the .NET instrumentation will automatically generate telemetry only for .NET applications running on IIS.
 "
     echo "$message"
 }

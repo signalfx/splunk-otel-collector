@@ -32,14 +32,12 @@ func TestCollectdKafkaReceiversProvideAllMetrics(t *testing.T) {
 		path.Join(".", "testdata", "kafka"),
 	).WithEnv(map[string]string{
 		"KAFKA_ZOOKEEPER_CONNECT": "zookeeper:2181",
-	}).WithNetworks("kafka")
+	})
 
 	_, stop := tc.Containers(
 		testutils.NewContainer().WithImage(
 			"zookeeper:3.5",
-		).WithName("zookeeper").WithNetworks(
-			"kafka",
-		).WithExposedPorts("2181:2181").WillWaitForPorts("2181"),
+		).WithName("zookeeper").WithExposedPorts("2181:2181").WillWaitForPorts("2181"),
 		kafka.WithName("kafka-broker").WithEnvVar(
 			"START_AS", "broker",
 		).WithExposedPorts("7099:7099", "9092:9092").WillWaitForPorts("7099", "9092"),

@@ -159,20 +159,20 @@ jobs:
           name: msi-build
           path: ./tests/zeroconfig/windows/testdata/docker-setup/
 
-      - name: Get latest signalfx-dotnet-tracing release
-        id: dotnet-tracing
+      - name: Get latest splunk-otel-dotnet release
+        id: dotnet-instrumentation
         uses: pozetroninc/github-action-get-latest-release@v0.7.0
         with:
           owner: signalfx
-          repo: signalfx-dotnet-tracing
+          repo: splunk-otel-dotnet
           excludes: prerelease, draft
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set SIGNALFX_DOTNET_TRACING_VERSION
+      - name: Set SPLUNK_OTEL_DOTNET_VERSION
         run: |
-          version="${{ steps.dotnet-tracing.outputs.release }}"
-          sed -i "s|SIGNALFX_DOTNET_TRACING_VERSION|${version#v}|" tests/zeroconfig/windows/testdata/resource_traces/aspnetcore.yaml
-          sed -i "s|SIGNALFX_DOTNET_TRACING_VERSION|${version#v}|" tests/zeroconfig/windows/testdata/resource_traces/aspnetfx.yaml
+          version="${{ steps.dotnet-instrumentation.outputs.release }}"
+          sed -i "s|SPLUNK_OTEL_DOTNET_VERSION|${version#v}|" tests/zeroconfig/windows/testdata/resource_traces/aspnetcore.yaml
+          sed -i "s|SPLUNK_OTEL_DOTNET_VERSION|${version#v}|" tests/zeroconfig/windows/testdata/resource_traces/aspnetfx.yaml
         shell: bash
 
       - name: Run the test script

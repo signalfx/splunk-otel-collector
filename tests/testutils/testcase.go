@@ -162,6 +162,7 @@ func (t *Testcase) SplunkOtelCollector(configFilename string, builders ...Collec
 // If SPLUNK_OTEL_COLLECTOR_IMAGE isn't set, tests that call this will be skipped.
 func (t *Testcase) SplunkOtelCollectorContainer(configFilename string, builders ...CollectorBuilder) (collector *CollectorContainer, shutdown func()) {
 	cc := NewCollectorContainer().WithImage(GetCollectorImageOrSkipTest(t))
+	// TODO why does darwin need special business logic?  Is this a proxy to say "is local dev"? If so that's wrong
 	if runtime.GOOS == "darwin" {
 		port := strings.Split(t.OTLPEndpointForCollector, ":")[1]
 		t.OTLPEndpointForCollector = fmt.Sprintf("host.docker.internal:%s", port)
@@ -288,7 +289,7 @@ func AssertAllMetricsReceived(
 	_, shutdown := tc.SplunkOtelCollector(collectorConfigFilename, builders...)
 	defer shutdown()
 
-	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
+	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 3*time.Minute))
 }
 
 // WaitForKeyboard is a helper for adding breakpoints during test creation

@@ -20,24 +20,32 @@ import (
 	"path"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
-var cassandra = []testutils.Container{
-	testutils.NewContainer().WithContext(
-		path.Join(".", "testdata", "server"),
-	).WithExposedPorts("7199:7199").WithName("cassandra").WillWaitForPorts("7199"),
-}
-
 func TestJmxReceiverProvidesAllMetrics(t *testing.T) {
+	// Note if you get a "Connection Refused" in the test it may be because the cassandra container doesn't properly start
+	var cassandra = []testutils.Container{
+		testutils.NewContainer().WithContext(
+			path.Join(".", "testdata", "server"),
+		).WithEnv(map[string]string{
+			"CASSANDRA_START_RPC": "true",
+			"LOCAL_JMX":           "no",
+		}).WithExposedPorts("7199:7199").
+			WithStartupTimeout(3 * time.Minute).
+			WithName("cassandra").WillWaitForPorts("7199").
+			WillWaitForLogs("Created default superuser role"),
+	}
 	testutils.SkipIfNotContainerTest(t)
 	testutils.AssertAllMetricsReceived(
 		t, "all.yaml", "all_metrics_config.yaml", cassandra,
 		[]testutils.CollectorBuilder{
 			func(collector testutils.Collector) testutils.Collector {
+				collector.WithLogLevel("debug")
 				p, err := filepath.Abs(filepath.Join(".", "testdata", "script.groovy"))
 				require.NoError(t, err)
 				return collector.WithMount(p, "/opt/script.groovy")

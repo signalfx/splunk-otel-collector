@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//lint:ignore SA1019
+
 package testutils
 
 import (
@@ -484,6 +486,7 @@ func (container *Container) createNetworksIfNecessary(req testcontainers.Generic
 		return err
 	}
 	for _, networkName := range container.ContainerNetworks {
+		//nolint:staticcheck
 		query := testcontainers.NetworkRequest{
 			Name: networkName,
 		}
@@ -492,6 +495,7 @@ func (container *Container) createNetworksIfNecessary(req testcontainers.Generic
 			return err
 		}
 		if networkResource.Name != networkName {
+			//nolint:staticcheck
 			create := testcontainers.NetworkRequest{
 				Driver:     "bridge",
 				Name:       networkName,

@@ -134,8 +134,10 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 )
 
+// until https://github.com/testcontainers/testcontainers-go/issues/1407 resolved
+replace github.com/testcontainers/testcontainers-go => github.com/testcontainers/testcontainers-go v0.20.1
+
 require (
-	dario.cat/mergo v1.0.0 // indirect
 	github.com/Azure/azure-amqp-common-go/v4 v4.2.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.8.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.4.0 // indirect

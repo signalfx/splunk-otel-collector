@@ -43,7 +43,6 @@ func TestConfigDInitialAndEffectiveConfig(t *testing.T) {
 			cc.Container = cc.Container.WithHostConfigModifier(func(hostConfig *dockerContainer.HostConfig) {
 				hostConfig.Mounts = append(hostConfig.Mounts, mount.Mount{Source: configd, Target: "/opt/config.d", Type: mount.TypeBind})
 			})
-			cc.Container = cc.Container.WithMount(testcontainers.BindMount(configd, "/opt/config.d"))
 
 			return cc
 		},

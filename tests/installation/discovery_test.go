@@ -76,13 +76,11 @@ func TestDefaultConfigDDiscoversPostgres(t *testing.T) {
 
 	server := testutils.NewContainer().WithContext(filepath.Join("..", "receivers", "smartagent", "postgresql", "testdata", "server")).WithEnv(
 		map[string]string{"POSTGRES_DB": "test_db", "POSTGRES_USER": "postgres", "POSTGRES_PASSWORD": "postgres"},
-	).WithExposedPorts("5432:5432").WithName("postgres-server").WithNetworks(
-		"postgres",
-	).WillWaitForPorts("5432").WillWaitForLogs("database system is ready to accept connections")
+	).WithExposedPorts("5432:5432").WithName("postgres-server").WillWaitForPorts("5432").WillWaitForLogs("database system is ready to accept connections")
 
 	client := testutils.NewContainer().WithContext(filepath.Join("..", "receivers", "smartagent", "postgresql", "testdata", "client")).WithEnv(
 		map[string]string{"POSTGRES_SERVER": "postgres-server"},
-	).WithName("postgres-client").WithNetworks("postgres").WillWaitForLogs("Beginning psql requests")
+	).WithName("postgres-client").WillWaitForLogs("Beginning psql requests")
 
 	_, stop := tc.Containers(server, client)
 	defer stop()
@@ -117,7 +115,7 @@ func TestDefaultConfigDDiscoversPostgres(t *testing.T) {
 							{Source: packagePath, Target: fmt.Sprintf("/opt/otel/splunk-otel-collector.%s", packageType), Type: dockerMount.TypeBind},
 							{Source: "/var/run/docker.sock", Target: "/opt/docker/docker.sock", ReadOnly: true, Type: dockerMount.TypeBind},
 						}
-					}).WithBuildArgs(map[string]*string{"DOCKER_GID": &dockerGID}).WithNetworks("postgres")
+					}).WithBuildArgs(map[string]*string{"DOCKER_GID": &dockerGID})
 					cc.Container.WillWaitForLogs()
 					cc.Container.WaitingFor = append(cc.Container.WaitingFor, waitForSystemd)
 					return cc.WithArgs("")

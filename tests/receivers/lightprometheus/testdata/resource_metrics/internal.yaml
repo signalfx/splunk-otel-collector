@@ -4,6 +4,36 @@ resource_metrics:
       service.name: myjob
     scope_metrics:
       - metrics:
+          - name: otelcol_http_client_request_size
+            description: Measures the size of HTTP request messages.
+            type: DoubleMonotonicCumulativeSum
+            attributes:
+              http_method: GET
+              http_status_code: "200"
+              net_peer_name: localhost
+              net_peer_port: "8889"
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+          - name: otelcol_http_client_response_size
+            description: Measures the size of HTTP response messages.
+            type: DoubleMonotonicCumulativeSum
+            attributes:
+              rpc_grpc_status_code: "0"
+              rpc_method: Export
+              rpc_service: opentelemetry.proto.collector.metrics.v1.MetricsService
+              rpc_system: grpc
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+          - name: otelcol_http_client_duration
+            description: Measures the duration of outbound HTTP requests.
+            type: Histogram
+            attributes:
+              receiver: lightprometheus/myjob
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
           - name: otelcol_process_runtime_total_sys_memory_bytes
             description: Total bytes of memory obtained from the OS (see 'go doc runtime.MemStats.Sys')
             type: DoubleGauge

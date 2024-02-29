@@ -204,9 +204,10 @@ processors:
     override: true
     timeout: 10s
 exporters:
-  sapm:
-    access_token: ${SPLUNK_ACCESS_TOKEN}
-    endpoint: https://ingest.${SPLUNK_REALM}.signalfx.com/v2/trace
+  otlp:
+    endpoint: https://ingest.${SPLUNK_REALM}.signalfx.com:443
+    headers:
+      X-SF-Token: ${SPLUNK_ACCESS_TOKEN}
   signalfx:
     access_token: ${SPLUNK_ACCESS_TOKEN}
     api_url: https://api.${SPLUNK_REALM}.signalfx.com
@@ -244,7 +245,7 @@ service:
     traces:
       exporters:
       - debug
-      - sapm
+      - otlp
       - signalfx
       processors:
       - memory_limiter

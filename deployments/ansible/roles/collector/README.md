@@ -65,9 +65,9 @@ $> ansible-playbook playbook.yaml -e start_service=false
   collector service. (**default:** `https://api.{{ splunk_realm }}.signalfx.com`)
 
 - `splunk_trace_url`: The Splunk trace endpoint URL, e.g.
-  `https://ingest.us0.signalfx.com/v2/trace`. The `SPLUNK_TRACE_URL` environment
+  `https://ingest.us0.signalfx.com:443`. The `SPLUNK_TRACE_URL` environment
   variable will be set with this value for the collector service. (**default:**
-  `{{ splunk_ingest_url }}/v2/trace`)
+  `{{ splunk_ingest_url }}:443`)
 
 - `splunk_hec_url`: The Splunk HEC endpoint URL, e.g.
   `https://ingest.us0.signalfx.com/v1/log`. The `SPLUNK_HEC_URL` environment

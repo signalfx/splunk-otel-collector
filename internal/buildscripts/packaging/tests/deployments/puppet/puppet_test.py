@@ -100,7 +100,7 @@ def verify_env_file(container, api_url=SPLUNK_API_URL, ingest_url=SPLUNK_INGEST_
     verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_HEC_URL", f"{ingest_url}/v1/log")
     verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_INGEST_URL", ingest_url)
     verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_REALM", SPLUNK_REALM)
-    verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_TRACE_URL", f"{ingest_url}/v2/trace")
+    verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_TRACE_URL", f"{ingest_url}:443")
 
 
 def skip_if_necessary(distro, puppet_release):
@@ -389,7 +389,7 @@ def test_win_puppet_default():
     assert get_registry_value("SPLUNK_API_URL") == SPLUNK_API_URL
     assert get_registry_value("SPLUNK_INGEST_URL") == SPLUNK_INGEST_URL
     assert get_registry_value("SPLUNK_HEC_URL") == f"{SPLUNK_INGEST_URL}/v1/log"
-    assert get_registry_value("SPLUNK_TRACE_URL") == f"{SPLUNK_INGEST_URL}/v2/trace"
+    assert get_registry_value("SPLUNK_TRACE_URL") == f"{SPLUNK_INGEST_URL}:443"
     assert get_registry_value("SPLUNK_HEC_TOKEN") == SPLUNK_ACCESS_TOKEN
     try:
         listen_interface = get_registry_value("SPLUNK_LISTEN_INTERFACE")
@@ -419,7 +419,7 @@ def test_win_puppet_custom_vars():
     assert get_registry_value("SPLUNK_INGEST_URL") == ingest_url
     assert get_registry_value("SPLUNK_HEC_URL") == f"{ingest_url}/v1/log"
     assert get_registry_value("SPLUNK_LISTEN_INTERFACE") == "0.0.0.0"
-    assert get_registry_value("SPLUNK_TRACE_URL") == f"{ingest_url}/v2/trace"
+    assert get_registry_value("SPLUNK_TRACE_URL") == f"{ingest_url}:443"
     assert get_registry_value("SPLUNK_HEC_TOKEN") == "fake-hec-token"
     assert get_registry_value("MY_CUSTOM_VAR1") == "value1"
     assert get_registry_value("MY_CUSTOM_VAR2") == "value2"

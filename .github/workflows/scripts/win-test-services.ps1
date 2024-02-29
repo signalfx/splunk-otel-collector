@@ -45,7 +45,7 @@ check_collector_svc_environment @{
   "SPLUNK_REALM"            = "$realm";
   "SPLUNK_API_URL"          = "$api_url";
   "SPLUNK_INGEST_URL"       = "$ingest_url";
-  "SPLUNK_TRACE_URL"        = "${ingest_url}/v2/trace";
+  "SPLUNK_TRACE_URL"        = "${ingest_url}:443";
   "SPLUNK_HEC_URL"          = "${ingest_url}/v1/log";
   "SPLUNK_HEC_TOKEN"        = "$access_token";
   "SPLUNK_BUNDLE_DIR"       = "${env:PROGRAMFILES}\Splunk\OpenTelemetry Collector\agent-bundle";

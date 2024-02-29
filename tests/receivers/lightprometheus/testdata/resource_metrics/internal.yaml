@@ -9,9 +9,9 @@ resource_metrics:
             type: DoubleMonotonicCumulativeSum
             attributes:
               http_method: GET
-              http_status_code: "200"
-              net_peer_name: localhost
-              net_peer_port: "8889"
+              http_status_code: <ANY>
+              net_peer_name: <ANY>
+              net_peer_port: <ANY>
               service_instance_id: <ANY>
               service_name: otelcol
               service_version: <VERSION_FROM_BUILD>

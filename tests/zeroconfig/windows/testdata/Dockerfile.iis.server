@@ -24,7 +24,7 @@ ENV ACCESS_TOKEN_TMP=$access_token
 RUN `
     $token = $Env:ACCESS_TOKEN_TMP; `
     $collector_msi_path = (dir "c:\setup\splunk-otel-collector-*.msi").FullName; `
-    c:\setup\install.ps1 -access_token $token -msi_path $collector_msi_path -with_dotnet_instrumentation $true -deployment_env zc-iis-test -ingest_url "http://splunk-otel-collector:9943" -trace_url "http://splunk-otel-collector:7276/v2/trace" -network_interface "0.0.0.0"
+    c:\setup\install.ps1 -access_token $token -msi_path $collector_msi_path -with_dotnet_instrumentation $true -deployment_env zc-iis-test -ingest_url "http://splunk-otel-collector:9943" -network_interface "0.0.0.0"
 ENV ACCESS_TOKEN_TMP=
 
 COPY apps/bin/aspnetfxapp/_PublishedWebsites/AspNet.WebApi.NetFramework/ /apps/aspnetfx

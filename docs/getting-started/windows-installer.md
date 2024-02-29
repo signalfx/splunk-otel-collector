@@ -88,7 +88,7 @@ key and set on the `Environment` entry:
 - `SPLUNK_INGEST_URL`: The Splunk ingest URL, e.g. `https://ingest.us0.signalfx.com`
 - `SPLUNK_MEMORY_TOTAL_MIB`: Total memory in MiB allocated to the Collector, e.g. `512`
 - `SPLUNK_REALM`: The Splunk realm to send the data to, e.g. `us0`
-- `SPLUNK_TRACE_URL`: The Splunk trace endpoint URL, e.g. `https://ingest.us0.signalfx.com/v2/trace`
+- `SPLUNK_TRACE_URL`: The Splunk trace endpoint URL, e.g. `https://ingest.us0.signalfx.com:443`
 
 To modify these values, run `regedit` and browse to the path.
 

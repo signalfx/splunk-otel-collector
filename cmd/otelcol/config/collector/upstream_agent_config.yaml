@@ -13,7 +13,7 @@
 # - SPLUNK_HEC_TOKEN: The Splunk HEC authentication token
 # - SPLUNK_HEC_URL: The Splunk HEC endpoint URL, e.g. https://ingest.us0.signalfx.com/v1/log
 # - SPLUNK_INGEST_URL: The Splunk ingest URL, e.g. https://ingest.us0.signalfx.com
-# - SPLUNK_TRACE_URL: The Splunk trace endpoint URL, e.g. https://ingest.us0.signalfx.com/v2/trace
+# - SPLUNK_TRACE_URL: The Splunk trace endpoint URL, e.g. https://ingest.us0.signalfx.com:443
 
 extensions:
   health_check:

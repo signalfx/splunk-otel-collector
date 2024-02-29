@@ -6,9 +6,9 @@ SPLUNK_INGEST_URL={{ splunk_ingest_url | default("https://ingest." + splunk_real
 {% if splunk_trace_url is defined and splunk_trace_url %}
 SPLUNK_TRACE_URL={{ splunk_trace_url }}
 {% elif splunk_ingest_url is defined and splunk_ingest_url %}
-SPLUNK_TRACE_URL={{ splunk_ingest_url + "/v2/trace" }}
+SPLUNK_TRACE_URL={{ splunk_ingest_url + ":443" }}
 {% else %}
-SPLUNK_TRACE_URL={{ "https://ingest." + splunk_realm + ".signalfx.com/v2/trace" }}
+SPLUNK_TRACE_URL={{ "https://ingest." + splunk_realm + ".signalfx.com:443" }}
 {% endif %}
 {% if splunk_hec_url is defined and splunk_hec_url %}
 SPLUNK_HEC_URL={{ splunk_hec_url }}

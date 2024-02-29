@@ -26,6 +26,7 @@ import (
 )
 
 func TestSignalFxExporterTranslatesOTelCPUMetrics(t *testing.T) {
+	t.Skip("Issues with test-containers networking, need to wait for -contrib to update the docker api version for us to update testcontainers-go locally")
 	testutils.AssertAllMetricsReceived(
 		t, "cpu_translations.yaml", "cpu_translations_config.yaml", nil,
 		[]testutils.CollectorBuilder{

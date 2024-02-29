@@ -630,6 +630,7 @@ push-linux-image:
     - |
       # Create and push image manifests
       set -e
+      echo "${IMAGE_NAME}:${MANIFEST_TAG}" >> tags
       echo "Creating and pushing ${IMAGE_NAME}:${MANIFEST_TAG} manifest"
       docker manifest create ${IMAGE_NAME}:${MANIFEST_TAG} --amend ${IMAGE_NAME}:${MANIFEST_TAG}-amd64 --amend ${IMAGE_NAME}:${MANIFEST_TAG}-arm64 --amend ${IMAGE_NAME}:${MANIFEST_TAG}-ppc64le
       docker manifest push ${IMAGE_NAME}:${MANIFEST_TAG}

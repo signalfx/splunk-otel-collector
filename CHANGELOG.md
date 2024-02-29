@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 💡 Enhancements 💡
+
+- (Splunk) MSI defaults to per machine install to avoid issues when different administrators install and update the collector on the same Windows machine ([#4352](https://github.com/signalfx/splunk-otel-collector/pull/4352))
+
 ## v0.94.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.94.1](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.94.1) and the [opentelemetry-collector-contrib v0.94.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.94.0) releases where appropriate.

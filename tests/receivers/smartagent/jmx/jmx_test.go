@@ -100,7 +100,9 @@ func GetDockerNetworkGateway(t testing.TB, dockerNetwork string) (string, error)
 	network, err := client.NetworkInspect(ctx, dockerNetwork, types.NetworkInspectOptions{})
 	require.NoError(t, err)
 	for _, ipam := range network.IPAM.Config {
-		return ipam.Gateway, nil
+		if ipam.Gateway != "" {
+			return ipam.Gateway, nil
+		}
 	}
 	return "", errors.New("Could not find gateway for network " + dockerNetwork)
 }

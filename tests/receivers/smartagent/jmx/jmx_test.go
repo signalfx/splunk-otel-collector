@@ -17,39 +17,109 @@
 package tests
 
 import (
+	"context"
+	"errors"
+	"fmt"
 	"path"
 	"path/filepath"
 	"testing"
 	"time"
 
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
+	docker "github.com/docker/docker/client"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"go.uber.org/zap/zaptest/observer"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
+const networkName = "cassandra"
+
+var cassandra = testutils.NewContainer().WithContext(
+	path.Join(".", "testdata", "server"),
+).WithEnv(map[string]string{
+	//"CASSANDRA_START_RPC": "true",
+	"LOCAL_JMX": "no",
+}).WithExposedPorts("7199:7199").
+	WithStartupTimeout(3 * time.Minute).
+	WithHostConfigModifier(func(cm *container.HostConfig) {
+		cm.NetworkMode = "bridge"
+		cm.AutoRemove = true
+	}).
+	WithName("cassandra").
+	WithNetworks("cassandra").
+	WillWaitForPorts("7199").
+	WillWaitForLogs("JMX is enabled to receive remote connections on port").
+	WillWaitForLogs("Startup complete")
+
 func TestJmxReceiverProvidesAllMetrics(t *testing.T) {
-	// Note if you get a "Connection Refused" in the test it may be because the cassandra container doesn't properly start
-	var cassandra = []testutils.Container{
-		testutils.NewContainer().WithContext(
-			path.Join(".", "testdata", "server"),
-		).WithEnv(map[string]string{
-			"CASSANDRA_START_RPC": "true",
-			"LOCAL_JMX":           "no",
-		}).WithExposedPorts("7199:7199").
-			WithStartupTimeout(3 * time.Minute).
-			WithName("cassandra").WillWaitForPorts("7199").
-			WillWaitForLogs("Created default superuser role"),
-	}
 	testutils.SkipIfNotContainerTest(t)
-	testutils.AssertAllMetricsReceived(
-		t, "all.yaml", "all_metrics_config.yaml", cassandra,
-		[]testutils.CollectorBuilder{
-			func(collector testutils.Collector) testutils.Collector {
-				collector.WithLogLevel("debug")
-				p, err := filepath.Abs(filepath.Join(".", "testdata", "script.groovy"))
-				require.NoError(t, err)
-				return collector.WithMount(p, "/opt/script.groovy")
-			},
-		},
-	)
+
+	tc := testutils.Testcase{TB: t}
+	_, stopDependentContainers := tc.Containers(cassandra)
+	defer stopDependentContainers()
+
+	endpoint, err := GetDockerNetworkGateway(t, networkName)
+	require.NoError(t, err)
+	require.NotEmpty(t, endpoint)
+	sinkBuilder, _ := GetSinkAndLogs(t, endpoint)
+	sink, err := sinkBuilder.Build()
+	require.NoError(t, err)
+	tc.OTLPEndpoint = sink.Endpoint
+	tc.OTLPEndpointForCollector = sink.Endpoint
+	require.Contains(t, tc.OTLPEndpointForCollector, ":")
+	require.NoError(t, sink.Start())
+	defer func() { require.NoError(t, sink.Shutdown()) }()
+
+	_, shutdown := tc.SplunkOtelCollector("all_metrics_config.yaml",
+		func(collector testutils.Collector) testutils.Collector {
+			collector = collector.WithEnv(map[string]string{"OTLP_ENDPOINT": tc.OTLPEndpointForCollector})
+			collector = collector.WithLogLevel("debug")
+			collectorContainer := collector.(*testutils.CollectorContainer)
+			collectorContainer.Container = collectorContainer.Container.WithHostConfigModifier(func(chc *container.HostConfig) {
+				chc.NetworkMode = "bridge"
+			}).WithName("otelcol-jmxtest").WithNetworks(networkName)
+			p, err := filepath.Abs(filepath.Join(".", "testdata", "script.groovy"))
+			require.NoError(t, err)
+			return collector.WithMount(p, "/opt/script.groovy")
+		})
+	defer shutdown()
+
+	resourceMetrics := tc.ResourceMetrics("all.yaml")
+	require.NoError(t, sink.AssertAllMetricsReceived(t, *resourceMetrics, time.Minute))
+
+}
+
+func GetDockerNetworkGateway(t testing.TB, dockerNetwork string) (string, error) {
+	client, err := docker.NewClientWithOpts(docker.FromEnv)
+	require.NoError(t, err)
+	client.NegotiateAPIVersion(context.Background())
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	network, err := client.NetworkInspect(ctx, dockerNetwork, types.NetworkInspectOptions{})
+	require.NoError(t, err)
+	for _, ipam := range network.IPAM.Config {
+		return ipam.Gateway, nil
+	}
+	return "", errors.New("Could not find gateway for network " + dockerNetwork)
+}
+
+func GetSinkAndLogs(t testing.TB, sinkHost string) (testutils.OTLPReceiverSink, *observer.ObservedLogs) {
+	otlpPort := testutils.GetAvailablePort(t)
+	endpoint := fmt.Sprintf("%s:%d", sinkHost, otlpPort)
+	var logCore zapcore.Core
+	logCore, ObservedLogs := observer.New(zap.DebugLevel)
+	logger := zap.New(logCore)
+	sink := testutils.NewOTLPReceiverSink().WithEndpoint(endpoint).WithLogger(logger)
+	//testCase := testutils.Testcase{
+	//	OTLPEndpoint:             endpoint,
+	//	OTLPEndpointForCollector: endpoint,
+	//	Logger:                   logger,
+	//	ObservedLogs:             ObservedLogs,
+	//	ID:                       "jmx-test",
+	//}
+	return sink, ObservedLogs
 }

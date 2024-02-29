@@ -41,13 +41,11 @@ const networkName = "cassandra"
 var cassandra = testutils.NewContainer().WithContext(
 	path.Join(".", "testdata", "server"),
 ).WithEnv(map[string]string{
-	//"CASSANDRA_START_RPC": "true",
 	"LOCAL_JMX": "no",
 }).WithExposedPorts("7199:7199").
 	WithStartupTimeout(3 * time.Minute).
 	WithHostConfigModifier(func(cm *container.HostConfig) {
 		cm.NetworkMode = "bridge"
-		cm.AutoRemove = true
 	}).
 	WithName("cassandra").
 	WithNetworks("cassandra").

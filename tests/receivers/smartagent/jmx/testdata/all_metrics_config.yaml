@@ -3,7 +3,8 @@ config_sources:
 receivers:
   smartagent/jmx:
     type: jmx
-    host: localhost
+    host: cassandra
+#    host: 127.0.0.1
     port: 7199
     username: cassandra
     password: cassandra
@@ -14,7 +15,6 @@ exporters:
     endpoint: "${OTLP_ENDPOINT}"
     tls:
       insecure: true
-
 service:
   pipelines:
     metrics:

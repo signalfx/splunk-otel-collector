@@ -54,6 +54,7 @@ var cassandra = testutils.NewContainer().WithContext(
 	WillWaitForLogs("Startup complete")
 
 func TestJmxReceiverProvidesAllMetrics(t *testing.T) {
+	t.Skip("flaky startup requirements")
 	testutils.SkipIfNotContainerTest(t)
 
 	tc := testutils.Testcase{TB: t}

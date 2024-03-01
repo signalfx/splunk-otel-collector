@@ -185,7 +185,7 @@ jobs:
     needs: [msi-build]
     strategy:
       matrix:
-        OS: [ "windows-2019", "windows-2022" ]
+        OS: [ "windows-2022" ]
         MODE: [ "agent", "gateway" ]
         WITH_FLUENTD: [ "true", "false" ]
     steps:
@@ -277,7 +277,7 @@ jobs:
     needs: [choco-build]
     strategy:
       matrix:
-        OS: [ "windows-2019", "windows-2022" ]
+        OS: [ "windows-2022" ]
         MODE: [ "agent", "gateway" ]
         WITH_FLUENTD: [ "true", "false" ]
         SCENARIO: [ "install", "upgrade" ]
@@ -350,7 +350,7 @@ jobs:
     needs: [cross-compile, agent-bundle-windows]
     strategy:
       matrix:
-        OS: [ "windows-2019", "windows-2022" ]
+        OS: [ "windows-2022" ]
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4

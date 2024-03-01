@@ -39,6 +39,8 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 ### 💡 Enhancements 💡
 
 - (Splunk) Add a resource attribute to internal metrics to track discovery usage ([#4323](https://github.com/signalfx/splunk-otel-collector/pull/4323))
+- (Splunk) Create a multi-architecture Windows docker image for the collector ([#4296](https://github.com/signalfx/splunk-otel-collector/pull/4296))
+- (Splunk) Bump `splunk-otel-javaagent` to `v1.30.2` ([#4300](https://github.com/signalfx/splunk-otel-collector/pull/4300))
 - (Core) `mdatagen`: Add a generated test that checks the config struct using `componenttest.CheckConfigStruct` ([#9438](https://github.com/open-telemetry/opentelemetry-collector/pull/9438))
 - (Core) `component`: Add `component.UseLocalHostAsDefaultHost` feature gate that changes default endpoints from 0.0.0.0 to localhost ([#8510](https://github.com/open-telemetry/opentelemetry-collector/pull/8510))
   The only component in this repository affected by this is the OTLP receiver.

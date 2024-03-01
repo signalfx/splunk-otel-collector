@@ -86,7 +86,7 @@ FROM base as python
 
 ARG PYTHON_VERSION
 
-RUN apt-get install -qq -y \
+RUN apt-get update && apt-get install -qq -y \
       curl \
       dpkg \
       net-tools \

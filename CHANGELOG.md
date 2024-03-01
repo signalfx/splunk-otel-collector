@@ -63,9 +63,9 @@
 
 ### 🧰 Bug fixes 🧰
 
-- (Core) `service`: fix opencensus bridge configuration in periodic readers (#9361)
-- (Core) `otlpreceiver`: Fix goroutine leak when GRPC server is started but HTTP server is unsuccessful (#9165)
-- (Core) `otlpexporter`: PartialSuccess is treated as success, logged as warning. (#9243)
+- (Core) `service`: fix opencensus bridge configuration in periodic readers ([#9361](https://github.com/open-telemetry/opentelemetry-collector/pull/9361))
+- (Core) `otlpreceiver`: Fix goroutine leak when GRPC server is started but HTTP server is unsuccessful ([#9165](https://github.com/open-telemetry/opentelemetry-collector/pull/9165))
+- (Core) `otlpexporter`: PartialSuccess is treated as success, logged as warning. ([#9243](https://github.com/open-telemetry/opentelemetry-collector/pull/9243))
 
 - (Contrib) `basicauthextension`: Accept empty usernames. ([#30470](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30470))
   Per https://datatracker.ietf.org/doc/html/rfc2617#section-2, username and password may be empty strings ("").

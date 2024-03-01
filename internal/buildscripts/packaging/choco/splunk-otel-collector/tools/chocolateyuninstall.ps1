@@ -9,32 +9,22 @@ $packageArgs = @{
     validExitCodes = @(0)
 }
 
-$softwareName = $packageArgs['softwareName']
-[array]$key = Get-UninstallRegistryKey -SoftwareName $softwareName
+[array]$key = Get-UninstallRegistryKey -SoftwareName $packageArgs['softwareName']
 
-if ($key.Count -eq 0) {
-    Write-Warning "$softwareName has already been uninstalled by other means."
-} else {
-    if ($key.Count -gt 1) {
-        Write-Host "Multiple entries found for $softwareName. This can happen when versions prior to 0.95.0 were installed."
-    }
-
-    Write-Host "Uninstalling $softwareName ..."
-
-    while ($key.Count -ge 1) {
-        $curr = $key[0]
-        Write-Host "Uninstalling Chocolatey Package $curr ..."
-        $packageArgs['file'] = "$($curr.UninstallString)" #NOTE: You may need to split this if it contains spaces, see below
+if ($key.Count -eq 1) {
+    $key | % {
+        $packageArgs['file'] = "$($_.UninstallString)" #NOTE: You may need to split this if it contains spaces, see below
         if ($packageArgs['fileType'] -eq 'MSI') {
-            $packageArgs['silentArgs'] = "$($curr.PSChildName) $($packageArgs['silentArgs'])"
+            $packageArgs['silentArgs'] = "$($_.PSChildName) $($packageArgs['silentArgs'])"
             $packageArgs['file'] = ''
         }
         Uninstall-ChocolateyPackage @packageArgs
-
-        Write-Host "Uninstall complete for Chocolatey Package $curr ..."
-        [array]$key = Get-UninstallRegistryKey -SoftwareName $softwareName
-        Write-Host "Remaining entries: $($key.Count)"
     }
-
-    Write-Host "$softwareName was uninstalled."
+} elseif ($key.Count -eq 0) {
+    Write-Warning "$packageName has already been uninstalled by other means."
+} elseif ($key.Count -gt 1) {
+    Write-Warning "$($key.Count) matches found!"
+    Write-Warning "To prevent accidental data loss, no programs will be uninstalled."
+    Write-Warning "Please alert package maintainer the following keys were matched:"
+    $key | % {Write-Warning "- $($_.DisplayName)"}
 }

@@ -67,6 +67,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 
 ### 🧰 Bug fixes 🧰
 
+- (Splunk) Fixes the value of a default environment variable used by Windows msi. ([#4361](https://github.com/signalfx/splunk-otel-collector/pull/4361))
 - (Core) `service`: fix opencensus bridge configuration in periodic readers ([#9361](https://github.com/open-telemetry/opentelemetry-collector/pull/9361))
 - (Core) `otlpreceiver`: Fix goroutine leak when GRPC server is started but HTTP server is unsuccessful ([#9165](https://github.com/open-telemetry/opentelemetry-collector/pull/9165))
 - (Core) `otlpexporter`: PartialSuccess is treated as success, logged as warning. ([#9243](https://github.com/open-telemetry/opentelemetry-collector/pull/9243))

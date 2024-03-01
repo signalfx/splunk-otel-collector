@@ -139,7 +139,7 @@ if ($installed_collector) {
     }
 
     Write-Host "Uninstalling previous version of the collector..."
-    Uninstall-ChocolateyPackage @$uninstallArgs
+    Uninstall-ChocolateyPackage @uninstallArgs
 }
 
 $packageArgs = @{

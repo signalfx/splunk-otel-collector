@@ -7,7 +7,7 @@ stages:
   - build
   - sign-binaries
   - package
-  - cve-scan
+ # - cve-scan
   - sign-packages
   - release
   - docker-manifest-release

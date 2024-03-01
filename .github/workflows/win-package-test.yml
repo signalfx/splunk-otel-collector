@@ -73,7 +73,7 @@ jobs:
             ./bin/*
 
   agent-bundle-windows:
-    runs-on: windows-2019
+    runs-on: windows-2022
     env:
       PIP_CACHE_DIR: ${{ github.workspace }}/.cache/pip
     steps:
@@ -229,7 +229,7 @@ jobs:
         run: Get-Content -Path "${env:SYSTEMDRIVE}\opt\td-agent\td-agent.log"
 
   choco-build:
-    runs-on: windows-2019
+    runs-on: windows-2022
     needs: [msi-build]
     steps:
       - name: Check out the codebase.
@@ -371,11 +371,7 @@ jobs:
           $ErrorActionPreference = 'Stop'
           Copy-Item .\bin\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
           Copy-Item .\dist\agent-bundle_windows_amd64.zip .\cmd\otelcol\agent-bundle_windows_amd64.zip
-          if ("${{ matrix.OS }}" -eq "windows-2019") {
-            docker build -t otelcol-windows --build-arg BASE_IMAGE=mcr.microsoft.com/windows/servercore:1809 --build-arg JMX_METRIC_GATHERER_RELEASE=$(Get-Content internal\buildscripts\packaging\jmx-metric-gatherer-release.txt) -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
-          } else {
-            docker build -t otelcol-windows --build-arg BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022 --build-arg JMX_METRIC_GATHERER_RELEASE=$(Get-Content internal\buildscripts\packaging\jmx-metric-gatherer-release.txt) -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
-          }
+          docker build -t otelcol-windows --build-arg BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022 --build-arg JMX_METRIC_GATHERER_RELEASE=$(Get-Content internal\buildscripts\packaging\jmx-metric-gatherer-release.txt) -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
           Remove-Item .\cmd\otelcol\otelcol.exe
           Remove-Item .\cmd\otelcol\agent-bundle_windows_amd64.zip
 

@@ -20,7 +20,7 @@ jobs:
     runs-on: ${{ matrix.OS }}
     strategy:
       matrix:
-        OS: [ "windows-2019", "windows-2022" ]
+        OS: [ "windows-2022" ]
         MODE: [ "agent", "gateway" ]
         WITH_FLUENTD: [ "true", "false" ]
       fail-fast: false

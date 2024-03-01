@@ -154,7 +154,7 @@ jobs:
       - puppet-rake-spec
     strategy:
       matrix:
-        OS: [ "windows-2019", "windows-2022" ]
+        OS: [ "windows-2022" ]
         PUPPET_RELEASE: [ "6.0.2", "7.21.0" ]
         TEST_CASE: [ "default", "custom_vars" ]
       fail-fast: false

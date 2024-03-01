@@ -9,22 +9,30 @@ $packageArgs = @{
     validExitCodes = @(0)
 }
 
-[array]$key = Get-UninstallRegistryKey -SoftwareName $packageArgs['softwareName']
+$softwareName = $packageArgs['softwareName']
+[array]$key = Get-UninstallRegistryKey -SoftwareName $softwareName
 
-if ($key.Count -eq 1) {
-    $key | % {
-        $packageArgs['file'] = "$($_.UninstallString)" #NOTE: You may need to split this if it contains spaces, see below
+if ($key.Count -eq 0) {
+    Write-Warning "$softwareName has already been uninstalled by other means."
+} else {
+    if ($key.Count -gt 1) {
+        Write-Information "Multiple entries found for $softwareName. This can happen when versions prior to 0.95.0 were installed."
+    }
+
+    Write-Information "Uninstalling $softwareName ..."
+
+    while ($key.Count -ge 1) {
+        Write-Debug "Uninstalling Chocolatey Package $key"
+        $curr = $key[0]
+        $packageArgs['file'] = "$($curr.UninstallString)" #NOTE: You may need to split this if it contains spaces, see below
         if ($packageArgs['fileType'] -eq 'MSI') {
-            $packageArgs['silentArgs'] = "$($_.PSChildName) $($packageArgs['silentArgs'])"
+            $packageArgs['silentArgs'] = "$($curr.PSChildName) $($packageArgs['silentArgs'])"
             $packageArgs['file'] = ''
         }
         Uninstall-ChocolateyPackage @packageArgs
+
+        [array]$key = Get-UninstallRegistryKey -SoftwareName $softwareName
     }
-} elseif ($key.Count -eq 0) {
-    Write-Warning "$packageName has already been uninstalled by other means."
-} elseif ($key.Count -gt 1) {
-    Write-Warning "$($key.Count) matches found!"
-    Write-Warning "To prevent accidental data loss, no programs will be uninstalled."
-    Write-Warning "Please alert package maintainer the following keys were matched:"
-    $key | % {Write-Warning "- $($_.DisplayName)"}
+
+    Write-Information "$softwareName was uninstalled."
 }

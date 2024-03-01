@@ -27,7 +27,7 @@ jobs:
     runs-on: ${{ matrix.OS }}
     strategy:
       matrix:
-        OS: [ "windows-2019", "windows-2022" ]
+        OS: [ "windows-2022" ]
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4

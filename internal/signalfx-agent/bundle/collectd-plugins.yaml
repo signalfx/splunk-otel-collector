@@ -27,10 +27,6 @@
   version: v0.0.4
   repo: signalfx/collectd-kong
 
-- name: marathon
-  version: v1.0.3
-  repo: signalfx/collectd-marathon
-
 - name: mongodb
   version: v1.3.7
   repo: signalfx/collectd-mongodb

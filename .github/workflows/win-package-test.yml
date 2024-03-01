@@ -336,7 +336,7 @@ jobs:
 
       - name: Uninstall test
         run: |
-          choco uninstall splunk-otel-collector -y
+          choco uninstall splunk-otel-collector -y --all-versions
           if ($LASTEXITCODE -ne 0) {
             throw "choco uninstall failed!"
           }

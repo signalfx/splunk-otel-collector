@@ -5,7 +5,7 @@ job "otel-gateway" {
   constraint {
     attribute = "${attr.nomad.version}"
     operator  = "semver"
-    value     = "< 1.3.0"
+    value     = "< 1.8.0"
   }
 
   group "otel-gateway" {
@@ -21,11 +21,11 @@ job "otel-gateway" {
         to = 4317
       }
 
-      port "jaeger-grpc" {
+      port "jaeger_grpc" {
         to = 14250
       }
 
-      port "jaeger-thrift-http" {
+      port "jaeger_thrift_http" {
         to = 14268
       }
 
@@ -38,7 +38,7 @@ job "otel-gateway" {
       }
 
       # Extensions
-      port "health-check" {
+      port "health_check" {
         to = 13133
       }
 
@@ -49,12 +49,12 @@ job "otel-gateway" {
 
     service {
       name = "otel-gateway"
-      port = "health-check"
+      port = "health_check"
       tags = ["health"]
 
       check {
         type     = "http"
-        port     = "health-check"
+        port     = "health_check"
         path     = "/"
         interval = "5s"
         timeout  = "2s"
@@ -69,14 +69,14 @@ job "otel-gateway" {
 
     service {
       name = "otel-gateway"
-      port = "jaeger-grpc"
-      tags = ["jaeger-grpc"]
+      port = "jaeger_grpc"
+      tags = ["jaeger_grpc"]
     }
 
     service {
       name = "otel-gateway"
-      port = "jaeger-thrift-http"
-      tags = ["jaeger-thrift-http"]
+      port = "jaeger_thrift_http"
+      tags = ["jaeger_thrift_http"]
     }
 
     service {
@@ -118,10 +118,10 @@ job "otel-gateway" {
         ports = [
           "metrics",
           "otlp",
-          "jaeger-grpc",
-          "jaeger-thrift-http",
+          "jaeger_grpc",
+          "jaeger_thrift_http",
           "zipkin",
-          "health-check",
+          "health_check",
           "zpages",
           "signalfx",
         ]

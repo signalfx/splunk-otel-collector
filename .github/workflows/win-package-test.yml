@@ -159,14 +159,11 @@ jobs:
           name: msi-build
           path: ./tests/zeroconfig/windows/testdata/docker-setup/
 
-      - name: Get latest splunk-otel-dotnet release
+      - name: Get splunk-otel-dotnet latest release name
         id: dotnet-instrumentation
-        uses: pozetroninc/github-action-get-latest-release@v0.7.0
-        with:
-          owner: signalfx
-          repo: splunk-otel-dotnet
-          excludes: prerelease, draft
-          token: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $release = gh release view --repo signalfx/splunk-otel-dotnet --json name | ConvertFrom-Json | select name
+          "release=$($release.name)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
       - name: Set SPLUNK_OTEL_DOTNET_VERSION
         run: |

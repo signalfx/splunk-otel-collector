@@ -235,7 +235,6 @@ jobs:
       - name: Uninstall the collector
         run: |
           $ErrorActionPreference = 'Stop'
-          Set-PSDebug -Trace 2
           $uninstall_info = Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\uninstall\* | Where { $_.DisplayName -eq "Splunk OpenTelemetry Collector" }
           Write-Host "Uninstalling $($uninstall_info.PSChildName) ..."
           $process = Start-Process -Wait -PassThru msiexec "/x $($uninstall_info.PSChildName) /qn /l*v msi-uninstall.log"

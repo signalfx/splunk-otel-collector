@@ -161,6 +161,8 @@ jobs:
 
       - name: Get splunk-otel-dotnet latest release name
         id: dotnet-instrumentation
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           $release = gh release view --repo signalfx/splunk-otel-dotnet --json name | ConvertFrom-Json | select name
           "release=$($release.name)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append

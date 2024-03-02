@@ -42,7 +42,7 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         id: bundle-cache
         with:
           path: .cache/buildx/agent-bundle-${{ matrix.ARCH }}
@@ -60,7 +60,7 @@ jobs:
           DOCKER_BUILDKIT: '1'
           BUNDLE_CACHE_HIT: "${{ steps.bundle-cache.outputs.cache-hit }}"
       - run: docker save -o ./bin/image.tar otelcol:latest
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: otelcol-${{ matrix.ARCH }}
           path: ./bin
@@ -82,7 +82,7 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: otelcol-${{ matrix.ARCH }}
           path: ./bin
@@ -115,7 +115,7 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: otelcol-${{ matrix.ARCH }}
           path: ./bin

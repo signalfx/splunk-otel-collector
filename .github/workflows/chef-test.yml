@@ -93,7 +93,7 @@ jobs:
 
       - run: kitchen test ${{ matrix.DISTRO }}
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: ${{ matrix.DISTRO }}
@@ -128,7 +128,7 @@ jobs:
         env:
           KITCHEN_YAML: kitchen.windows.yml
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: ${{ matrix.SUITE }}-${{ matrix.DISTRO }}

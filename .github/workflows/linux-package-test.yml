@@ -71,7 +71,7 @@ jobs:
           make ${{ matrix.SYS_BINARIES }}
 
       - name: Uploading binaries
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.SYS_BINARIES }}
           path: |
@@ -86,7 +86,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         id: bundle-cache
         with:
           path: .cache/buildx/agent-bundle-${{ matrix.ARCH }}
@@ -104,7 +104,7 @@ jobs:
         env:
           BUNDLE_CACHE_HIT: "${{ steps.bundle-cache.outputs.cache-hit }}"
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: agent-bundle-linux-${{ matrix.ARCH }}
           path: ./dist/agent-bundle_linux_${{ matrix.ARCH }}.tar.gz
@@ -131,12 +131,12 @@ jobs:
           cache-dependency-path: '**/go.sum'
 
       - name: Downloading binaries-linux_${{ matrix.ARCH }}
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: binaries-linux_${{ matrix.ARCH }}
           path: ./bin
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: agent-bundle-linux-${{ matrix.ARCH }}
           path: ./dist
@@ -145,7 +145,7 @@ jobs:
         run: make ${{ matrix.SYS_PACKAGE }}-package SKIP_COMPILE=true SKIP_BUNDLE=true VERSION="" ARCH="${{ matrix.ARCH }}"
 
       - name: Uploading ${{ matrix.SYS_PACKAGE }} ${{ matrix.ARCH }} package artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.SYS_PACKAGE }}-${{ matrix.ARCH }}-package
           path: ./dist/splunk-otel-collector*
@@ -196,7 +196,7 @@ jobs:
           echo "Unknown distro '${{ matrix.DISTRO }}'!"
           exit 1
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: ${{ env.SYS_PACKAGE }}-${{ matrix.ARCH }}-package
           path: ./dist
@@ -276,12 +276,12 @@ jobs:
           image: tonistiigi/binfmt:qemu-v7.0.0
 
       - name: Downloading binaries-linux_${{ matrix.ARCH }}
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: binaries-linux_${{ matrix.ARCH }}
           path: ./bin
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         if: ${{ matrix.ARCH != 'ppc64le' }}
         with:
           name: agent-bundle-linux-${{ matrix.ARCH }}

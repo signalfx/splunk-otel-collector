@@ -475,7 +475,7 @@ require (
 	github.com/signalfx/sapm-proto v0.14.0 // indirect
 	github.com/sijms/go-ora/v2 v2.8.6 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
-	github.com/snowflakedb/gosnowflake v1.7.2 // indirect
+	github.com/snowflakedb/gosnowflake v1.8.0 // indirect
 	github.com/soniah/gosnmp v0.0.0-20190220004421-68e8beac0db9 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/spf13/cobra v1.8.0 // indirect

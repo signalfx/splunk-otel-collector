@@ -41,7 +41,7 @@ require (
 	github.com/go-test/deep v1.1.0
 	github.com/gobwas/glob v0.2.4-0.20181002190808-e7a84e9525fe
 	github.com/gogo/protobuf v1.3.2
-	github.com/google/cadvisor v0.48.1
+	github.com/google/cadvisor v0.49.1
 	github.com/gorilla/mux v1.8.1
 	github.com/iancoleman/strcase v0.3.0
 	github.com/influxdata/telegraf v0.0.0-00010101000000-000000000000

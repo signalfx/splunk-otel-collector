@@ -4,7 +4,7 @@
 
 ### 💡 Enhancements 💡
 
-- (Splunk) Update golang to 1.21.5 ()
+- (Splunk) Update golang to 1.21.5 ([#4390](https://github.com/signalfx/splunk-otel-collector/pull/4390))
 
 ## v0.94.0
 

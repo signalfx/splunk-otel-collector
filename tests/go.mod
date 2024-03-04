@@ -14,7 +14,7 @@ require (
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3
 	github.com/signalfx/signalfx-go v1.34.0
 	github.com/signalfx/signalfx-go/signalflow/v2 v2.2.0
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 	github.com/testcontainers/testcontainers-go v0.20.1
 	go.opentelemetry.io/collector/component v0.94.1
 	go.opentelemetry.io/collector/config/configgrpc v0.94.1

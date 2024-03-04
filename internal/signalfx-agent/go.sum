@@ -498,8 +498,8 @@ github.com/smartystreets/assertions v1.13.1 h1:Ef7KhSmjZcK6AVf9YbJdvPYG9avaF0Zxu
 github.com/smartystreets/assertions v1.13.1/go.mod h1:cXr/IwVfSo/RbCSPhoAPv73p3hlSdrBH/b3SdnW/LMY=
 github.com/smartystreets/goconvey v1.8.1 h1:qGjIddxOk4grTu9JPOU31tVfq3cNdBlNa5sSznIX1xY=
 github.com/smartystreets/goconvey v1.8.1/go.mod h1:+/u4qLyY6x1jReYOp7GOM2FSt8aP9CzCZL03bI28W60=
-github.com/snowflakedb/gosnowflake v1.7.2 h1:HRSwva8YXC64WUppfmHcMNVVzSE1+EwXXaJxgS0EkTo=
-github.com/snowflakedb/gosnowflake v1.7.2/go.mod h1:03tW856vc3ceM4rJuj7KO4dzqN7qoezTm+xw7aPIIFo=
+github.com/snowflakedb/gosnowflake v1.8.0 h1:4bQj8eAYGMkou/nICiIEb9jSbBLDDp5cB6JaKx9WwiA=
+github.com/snowflakedb/gosnowflake v1.8.0/go.mod h1:7yyY2MxtDti2eXgtvlZ8QxzCN6KV2B4qb1HuygMI+0U=
 github.com/soniah/gosnmp v0.0.0-20190220004421-68e8beac0db9 h1:O4jq14rgUwG9Ssn0wZiRPl8Ya6q3a1h3xJzTAsBaRgo=
 github.com/soniah/gosnmp v0.0.0-20190220004421-68e8beac0db9/go.mod h1:DuEpAS0az51+DyVBQwITDsoq4++e3LTNckp2GoasF2I=
 github.com/spf13/pflag v1.0.5 h1:iy+VFUOCP1a+8yFto/drg2CJ5u0yRoB7fZw3DKv/JXA=

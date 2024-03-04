@@ -21,6 +21,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"runtime/debug"
 	"sort"
 	"strconv"
 	"strings"
@@ -43,6 +44,7 @@ const (
 	ConfigYamlEnvVar          = "SPLUNK_CONFIG_YAML"
 	HecLogIngestURLEnvVar     = "SPLUNK_HEC_URL"
 	ListenInterfaceEnvVar     = "SPLUNK_LISTEN_INTERFACE"
+	GoMemLimitEnvVar          = "GOMEMLIMIT"
 	// nolint:gosec
 	HecTokenEnvVar    = "SPLUNK_HEC_TOKEN" // this isn't a hardcoded token
 	IngestURLEnvVar   = "SPLUNK_INGEST_URL"
@@ -368,15 +370,13 @@ func checkRuntimeParams(settings *Settings) error {
 		}
 	}
 
-	ballastSize := setMemoryBallast(memTotalSize)
-	memLimit, err := setMemoryLimit(memTotalSize)
+	_, err := setMemoryLimit(memTotalSize)
 	if err != nil {
 		return err
 	}
 
-	// Validate memoryLimit and memoryBallast are sane
-	if 2*ballastSize > memLimit {
-		return fmt.Errorf("memory limit (%d) is less than 2x ballast (%d). Increase memory limit or decrease ballast size", memLimit, ballastSize)
+	if _, ok := os.LookupEnv(GoMemLimitEnvVar); !ok {
+		setSoftMemoryLimit(memTotalSize)
 	}
 
 	return nil
@@ -517,20 +517,11 @@ func envVarAsInt(env string) int {
 	return val
 }
 
-// Validate and set the memory ballast
-func setMemoryBallast(memTotalSizeMiB int) int {
-	ballastSize := memTotalSizeMiB * DefaultMemoryBallastPercentage / 100
-	// Check if the memory ballast is specified via the env var, if so, validate and set properly.
-	if os.Getenv(BallastEnvVar) != "" {
-		ballastSize = envVarAsInt(BallastEnvVar)
-		if 33 > ballastSize {
-			log.Fatalf("Expected a number greater than 33 for %s env variable but got %d", BallastEnvVar, ballastSize)
-		}
-	}
-
-	_ = os.Setenv(BallastEnvVar, strconv.Itoa(ballastSize))
-	log.Printf("Set ballast to %d MiB", ballastSize)
-	return ballastSize
+// Check if the GOMEMLIMIT is specified via the env var, if not set the soft memory limit to 90% of the MemLimitMiBEnvVar
+func setSoftMemoryLimit(memTotalSizeMiB int) {
+	memLimit := int64(memTotalSizeMiB * DefaultMemoryLimitPercentage / 100)
+	// 1 MiB = 1048576 bytes
+	debug.SetMemoryLimit(memLimit * 1048576)
 }
 
 // Validate and set the memory limit

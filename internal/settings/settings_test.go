@@ -20,6 +20,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime/debug"
 	"strings"
 	"testing"
 
@@ -219,7 +220,6 @@ func TestCheckRuntimeParams_Default(t *testing.T) {
 	settings, err := New([]string{})
 	require.NoError(t, err)
 	require.NotNil(t, settings)
-	require.Equal(t, "168", os.Getenv(BallastEnvVar))
 	require.Equal(t, "460", os.Getenv(MemLimitMiBEnvVar))
 	require.Equal(t, "0.0.0.0", os.Getenv(ListenInterfaceEnvVar))
 }
@@ -231,7 +231,6 @@ func TestCheckRuntimeParams_MemTotalEnv(t *testing.T) {
 	settings, err := New([]string{})
 	require.NoError(t, err)
 	require.NotNil(t, settings)
-	require.Equal(t, "330", os.Getenv(BallastEnvVar))
 	require.Equal(t, "900", os.Getenv(MemLimitMiBEnvVar))
 }
 
@@ -242,32 +241,6 @@ func TestCheckRuntimeParams_ListenInterface(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, settings)
 	require.Equal(t, "1.2.3.4", os.Getenv(ListenInterfaceEnvVar))
-}
-
-func TestCheckRuntimeParams_MemTotalAndBallastEnvs(t *testing.T) {
-	t.Cleanup(setRequiredEnvVars(t))
-	require.NoError(t, os.Setenv(ConfigEnvVar, localGatewayConfig))
-	require.NoError(t, os.Setenv(MemTotalEnvVar, "200"))
-	require.NoError(t, os.Setenv(BallastEnvVar, "90"))
-
-	settings, err := New([]string{})
-	require.NoError(t, err)
-	require.NotNil(t, settings)
-	require.Equal(t, "90", os.Getenv(BallastEnvVar))
-	require.Equal(t, "180", os.Getenv(MemLimitMiBEnvVar))
-}
-
-func TestCheckRuntimeParams_LimitAndBallastEnvs(t *testing.T) {
-	t.Cleanup(setRequiredEnvVars(t))
-	require.NoError(t, os.Setenv(ConfigEnvVar, localGatewayConfig))
-	require.NoError(t, os.Setenv(MemLimitMiBEnvVar, "250"))
-	require.NoError(t, os.Setenv(BallastEnvVar, "120"))
-
-	settings, err := New([]string{})
-	require.NoError(t, err)
-	require.NotNil(t, settings)
-	require.Equal(t, "120", os.Getenv(BallastEnvVar))
-	require.Equal(t, "250", os.Getenv(MemLimitMiBEnvVar))
 }
 
 func TestSetDefaultEnvVarsOnlySetsURLsWithRealmSet(t *testing.T) {
@@ -381,17 +354,22 @@ func TestSetDefaultFeatureGatesRespectsOverrides(t *testing.T) {
 	}
 }
 
-func TestCheckRuntimeParams_MemTotalLimitAndBallastEnvs(t *testing.T) {
+func TestSetSoftMemLimitWithoutGoMemLimitEnvVar(t *testing.T) {
+
+	// if GOLIMIT is not set, we expect soft limit to be 90% of the total memory env var or 90% of default total memory  512 Mib.
 	t.Cleanup(setRequiredEnvVars(t))
 	require.NoError(t, os.Setenv(MemTotalEnvVar, "200"))
-	require.NoError(t, os.Setenv(MemLimitMiBEnvVar, "150"))
-	require.NoError(t, os.Setenv(BallastEnvVar, "50"))
-
 	settings, err := New([]string{})
 	require.NoError(t, err)
 	require.NotNil(t, settings)
-	require.Equal(t, "50", os.Getenv(BallastEnvVar))
-	require.Equal(t, "150", os.Getenv(MemLimitMiBEnvVar))
+	require.Equal(t, int64(188743680), debug.SetMemoryLimit(100))
+
+	t.Cleanup(setRequiredEnvVars(t))
+	settings, err = New([]string{})
+	require.NoError(t, err)
+	require.NotNil(t, settings)
+	require.Equal(t, int64(482344960), debug.SetMemoryLimit(100))
+
 }
 
 func TestUseConfigPathsFromEnvVar(t *testing.T) {

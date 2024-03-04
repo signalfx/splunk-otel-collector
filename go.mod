@@ -102,7 +102,7 @@ require (
 	github.com/signalfx/splunk-otel-collector/tests v0.83.0
 	github.com/spf13/cast v1.6.0
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 	go.etcd.io/bbolt v1.3.9
 	go.etcd.io/etcd/client/v2 v2.305.12
 	go.opentelemetry.io/collector/config/confighttp v0.94.1
@@ -479,7 +479,7 @@ require (
 	github.com/soniah/gosnmp v0.0.0-20190220004421-68e8beac0db9 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/spf13/cobra v1.8.0 // indirect
-	github.com/stretchr/objx v0.5.0 // indirect
+	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/testcontainers/testcontainers-go v0.27.0 // indirect
 	github.com/tidwall/gjson v1.10.2 // indirect
 	github.com/tidwall/match v1.1.1 // indirect

@@ -2,10 +2,46 @@
 
 ## Unreleased
 
+## v0.95.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.95.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.95.0) and the [opentelemetry-collector-contrib v0.95.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.95.0) releases where appropriate.
+
+### 🛑 Breaking changes 🛑
+
+- (Splunk/Core/Contrib) Bump minimum version to go 1.21 ([#4390](https://github.com/signalfx/splunk-otel-collector/pull/4390))
+- (Core) `all`: scope name for all generated Meter/Tracer funcs now includes full package name ([#9494](https://github.com/open-telemetry/opentelemetry-collector/pull/9494))
+- (Contrib) `receiver/mongodb`: Bump receiver.mongodb.removeDatabaseAttr feature gate to beta ([#31212](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/31212))
+- (Contrib) `extension/filestorage`: The `filestorage` extension is now a standalone module. ([#31040](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/31040))
+
 ### 💡 Enhancements 💡
 
-- (Splunk) Update golang to 1.21.5 ([#4390](https://github.com/signalfx/splunk-otel-collector/pull/4390))
 - (Splunk) MSI defaults to per machine install to avoid issues when different administrators install and update the collector on the same Windows machine ([#4352](https://github.com/signalfx/splunk-otel-collector/pull/4352))
+- (Core) `confighttp`: Adds support for Snappy decompression of HTTP requests. ([#7632](https://github.com/open-telemetry/opentelemetry-collector/pull/7632))
+- (Core) `configretry`: Validate `max_elapsed_time`, ensure it is larger than `max_interval` and `initial_interval` respectively. ([#9489](https://github.com/open-telemetry/opentelemetry-collector/pull/9489))
+- (Core) `configopaque`: Mark module as stable ([#9167](https://github.com/open-telemetry/opentelemetry-collector/pull/9167))
+- (Core) `otlphttpexporter`: Add support for json content encoding when exporting telemetry ([#6945](https://github.com/open-telemetry/opentelemetry-collector/pull/6945))
+- (Core) `confmap/converter/expandconverter, confmap/provider/envprovider, confmap/provider/fileprovider, confmap/provider/httprovider, confmap/provider/httpsprovider, confmap/provider/yamlprovider`: Split confmap.Converter and confmap.Provider implementation packages out of confmap. ([#4759](https://github.com/open-telemetry/opentelemetry-collector/pull/4759), [#9460](https://github.com/open-telemetry/opentelemetry-collector/pull/9460))
+- (Contrib) `hostmetricsreceiver`: Add a new optional resource attribute `process.cgroup` to the `process` scraper of the `hostmetrics` receiver. ([#29282](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/29282))
+- (Contrib) `awss3exporter`: Add a marshaler that stores the body of log records in s3. ([#30318](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30318))
+- (Contrib) `pkg/ottl`: Adds a new ParseCSV converter that can be used to parse CSV strings. ([#30921](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30921))
+- (Contrib) `loadbalancingexporter`: Add benchmarks for Metrics and Traces ([#30915](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30915))
+- (Contrib) `pkg/ottl`: Add support to specify the format for a replacement string ([#27820](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/27820))
+- (Contrib) `pkg/ottl`: Add `ParseKeyValue` function for parsing key value pairs from a target string ([#30998](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30998))
+- (Contrib) `receivercreator`: Remove use of `ReportFatalError` ([#30596](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30596))
+- (Contrib) `processor/tail_sampling`: Add metrics that measure the number of sampled spans and the number of spans that are dropped due to sampling decisions. ([#30482](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30482))
+- (Contrib) `exporter/signalfx`: Send histograms in otlp format with new config `send_otlp_histograms` option ([#26298](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/26298))
+- (Contrib) `receiver/signalfx`: Accept otlp protobuf requests when content-type is "application/x-protobuf;format=otlp" ([#26298](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/26298))
+- (Contrib) `signalfxreceiver`: Remove deprecated use of `host.ReportFatalError` ([#30598](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30598))
+
+### 🧰 Bug fixes 🧰
+
+- (Contrib) `pkg/stanza`: Add 'allow_skip_pri_header' flag to syslog setting. ([#30397](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30397))
+  Allow parsing syslog records without PRI header. Currently pri header is beng enforced although it's not mandatory by the RFC standard. Since influxdata/go-syslog is not maintained we had to switch to haimrubinstein/go-syslog.
+
+- (Contrib) `extension/storage`: Ensure fsync is turned on after compaction ([#20266](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/20266))
+- (Contrib) `logstransformprocessor`: Fix potential panic on shutdown due to incorrect shutdown order ([#31139](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/31139))
+- (Contrib) `receiver/prometheusreceiver`: prometheusreceiver fix translation of metrics with _created suffix ([#30309](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30309))
+- (Contrib) `pkg/stanza`: Fixed a bug in the keyvalue_parser where quoted values could be split if they contained a delimited. ([#31034](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/31034))
 
 ## v0.94.0
 

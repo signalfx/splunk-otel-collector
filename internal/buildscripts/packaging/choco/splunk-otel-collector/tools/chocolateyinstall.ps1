@@ -126,6 +126,22 @@ if ($upgraded_from_version_with_machine_wide_env_vars) {
     }
 }
 
+if ($installed_collector) {
+    # If upgrading from a previous version, we need to remove the previous version because prior to 0.95.0
+    # the collector was installed for the user and not the machine, so remove any previous version.
+    $uninstallArgs = @{
+        packageName    = $env:ChocolateyPackageName
+        softwareName   = $env:ChocolateyPackageTitle
+        file           = '' # This is an MSI package, so the file is not needed.
+        fileType       = 'MSI'
+        silentArgs     = "$($installed_collector.PSChildName) /qn /norestart"
+        validExitCodes = @(0)
+    }
+
+    Write-Host "Uninstalling previous version of the collector..."
+    Uninstall-ChocolateyPackage @uninstallArgs
+}
+
 $packageArgs = @{
     packageName    = $env:ChocolateyPackageName
     fileType       = 'msi'

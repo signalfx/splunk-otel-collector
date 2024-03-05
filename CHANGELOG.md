@@ -4,6 +4,7 @@
 
 ### 💡 Enhancements 💡
 
+- (Splunk) Update golang to 1.21.5 ([#4390](https://github.com/signalfx/splunk-otel-collector/pull/4390))
 - (Splunk) MSI defaults to per machine install to avoid issues when different administrators install and update the collector on the same Windows machine ([#4352](https://github.com/signalfx/splunk-otel-collector/pull/4352))
 
 ## v0.94.0

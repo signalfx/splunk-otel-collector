@@ -1,6 +1,6 @@
 module github.com/signalfx/splunk-otel-collector/internal/tools
 
-go 1.20
+go 1.21
 
 replace (
 	github.com/dgrijalva/jwt-go => github.com/form3tech-oss/jwt-go v3.2.5+incompatible

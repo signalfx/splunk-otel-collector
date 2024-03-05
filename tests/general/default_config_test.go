@@ -62,7 +62,7 @@ func TestDefaultGatewayConfig(t *testing.T) {
 						"headers": map[string]any{
 							"X-SF-Token": "<redacted>",
 						},
-						"endpoint": "https://ingest.not.real.signalfx.com",
+						"endpoint": "https://ingest.not.real.signalfx.com:443",
 						"sending_queue": map[string]any{
 							"num_consumers": 32,
 						},

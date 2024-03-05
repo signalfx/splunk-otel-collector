@@ -103,7 +103,7 @@ func TestDefaultGatewayConfig(t *testing.T) {
 						},
 					},
 					"memory_ballast": map[string]any{
-						"size_mib": "168",
+						"size_mib": "",
 					},
 					"zpages": map[string]any{
 						"endpoint": fmt.Sprintf("%s:55679", ip),
@@ -288,7 +288,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 							"endpoint": fmt.Sprintf("%s:6060", ip),
 						},
 					},
-					"memory_ballast": map[string]any{"size_mib": "168"},
+					"memory_ballast": map[string]any{"size_mib": ""},
 					"smartagent": map[string]any{
 						"bundleDir": "/usr/lib/splunk-otel-collector/agent-bundle",
 						"collectd": map[string]any{

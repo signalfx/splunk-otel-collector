@@ -67,17 +67,17 @@ func (s *scraper) scrape(context.Context) (pmetric.Metrics, error) {
 	fetch := func() (io.ReadCloser, expfmt.Format, error) {
 		req, err := http.NewRequest("GET", s.cfg.Endpoint, nil)
 		if err != nil {
-			return nil, expfmt.FmtUnknown, err
+			return nil, expfmt.NewFormat(expfmt.TypeUnknown), err
 		}
 
 		resp, err := s.client.Do(req)
 		if err != nil {
-			return nil, expfmt.FmtUnknown, err
+			return nil, expfmt.NewFormat(expfmt.TypeUnknown), err
 		}
 
 		if resp.StatusCode != 200 {
 			body, _ := io.ReadAll(resp.Body)
-			return nil, expfmt.FmtUnknown, fmt.Errorf("light prometheus %s returned status %d: %s", s.cfg.Endpoint, resp.StatusCode, string(body))
+			return nil, expfmt.NewFormat(expfmt.TypeUnknown), fmt.Errorf("light prometheus %s returned status %d: %s", s.cfg.Endpoint, resp.StatusCode, string(body))
 		}
 		return resp.Body, expfmt.ResponseFormat(resp.Header), nil
 	}
@@ -124,7 +124,7 @@ func (s *scraper) doFetch(fetch fetcher) ([]*dto.MetricFamily, error) {
 	defer body.Close()
 	var decoder expfmt.Decoder
 	// some "text" responses are missing \n from the last line
-	if expformat != expfmt.FmtProtoDelim {
+	if expformat != expfmt.NewFormat(expfmt.TypeProtoDelim) {
 		decoder = expfmt.NewDecoder(io.MultiReader(body, strings.NewReader("\n")), expformat)
 	} else {
 		decoder = expfmt.NewDecoder(body, expformat)

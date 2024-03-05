@@ -25,7 +25,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
 	"go.uber.org/zap/zaptest"
 	"gopkg.in/yaml.v2"
@@ -160,7 +159,7 @@ func TestReceiverCreatorFactoryAndConfig(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, conf.ToStringMap())
 	dCfg := Config{}
-	require.NoError(t, conf.Unmarshal(&dCfg, confmap.WithErrorUnused()))
+	require.NoError(t, conf.Unmarshal(&dCfg))
 
 	correlations := newCorrelationStore(zaptest.NewLogger(t), time.Second)
 	factory, rCfg, err := dCfg.receiverCreatorFactoryAndConfig(correlations)

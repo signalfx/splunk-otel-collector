@@ -130,17 +130,17 @@ func (m *Monitor) Configure(conf *Config) error {
 	fetch := func() (io.ReadCloser, expfmt.Format, error) {
 		req, err := http.NewRequest("GET", url, nil)
 		if err != nil {
-			return nil, expfmt.FmtUnknown, err
+			return nil, expfmt.NewFormat(expfmt.TypeUnknown), err
 		}
 
 		resp, err := client.Do(req) // nolint:bodyclose  // We do actually close it after it is returned
 		if err != nil {
-			return nil, expfmt.FmtUnknown, err
+			return nil, expfmt.NewFormat(expfmt.TypeUnknown), err
 		}
 
 		if resp.StatusCode != 200 {
 			body, _ := ioutil.ReadAll(resp.Body)
-			return nil, expfmt.FmtUnknown, fmt.Errorf("prometheus exporter at %s returned status %d: %s", url, resp.StatusCode, string(body))
+			return nil, expfmt.NewFormat(expfmt.TypeUnknown), fmt.Errorf("prometheus exporter at %s returned status %d: %s", url, resp.StatusCode, string(body))
 		}
 
 		return resp.Body, expfmt.ResponseFormat(resp.Header), nil
@@ -183,7 +183,7 @@ func doFetch(fetch fetcher) ([]*dto.MetricFamily, error) {
 	defer body.Close()
 	var decoder expfmt.Decoder
 	// some "text" responses are missing \n from the last line
-	if expformat != expfmt.FmtProtoDelim {
+	if expformat != expfmt.NewFormat(expfmt.TypeProtoDelim) {
 		decoder = expfmt.NewDecoder(io.MultiReader(body, strings.NewReader("\n")), expformat)
 	} else {
 		decoder = expfmt.NewDecoder(body, expformat)

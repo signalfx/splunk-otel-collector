@@ -521,7 +521,7 @@ func setSoftMemoryLimit(memTotalSizeMiB int) {
 	memLimit := int64(memTotalSizeMiB * DefaultMemoryLimitPercentage / 100)
 	// 1 MiB = 1048576 bytes
 	debug.SetMemoryLimit(memLimit * 1048576)
-	log.Printf("Set soft memory limit set to %d MiB", memLimit)
+	log.Printf("Soft memory limit set to %d MiB", memLimit)
 }
 
 // Validate and set the memory limit

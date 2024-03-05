@@ -89,13 +89,13 @@ func (receiver *prometheusRemoteWriteReceiver) Start(ctx context.Context, host c
 	}
 	receiver.server = server
 
-	go receiver.startServer(host)
+	go receiver.startServer()
 	go receiver.manageServerLifecycle(ctx, metricsChannel)
 
 	return nil
 }
 
-func (receiver *prometheusRemoteWriteReceiver) startServer(host component.Host) {
+func (receiver *prometheusRemoteWriteReceiver) startServer() {
 	prometheusRemoteWriteServer := receiver.server
 	if prometheusRemoteWriteServer == nil {
 		receiver.settings.TelemetrySettings.ReportStatus(component.NewFatalErrorEvent(fmt.Errorf("start called on null prometheusRemoteWriteServer for receiver %s", metadata.Type)))

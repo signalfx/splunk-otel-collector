@@ -35,7 +35,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/hostobserver v0.95.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/k8sobserver v0.95.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/pprofextension v0.95.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/extension/storage/filestorage v0.96.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/storage/filestorage v0.95.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.95.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza v0.95.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.95.0
@@ -106,8 +106,8 @@ require (
 	go.etcd.io/bbolt v1.3.9
 	go.etcd.io/etcd/client/v2 v2.305.12
 	go.opentelemetry.io/collector/config/confighttp v0.95.0
-	go.opentelemetry.io/collector/config/configtelemetry v0.96.0
-	go.opentelemetry.io/collector/confmap v0.96.0
+	go.opentelemetry.io/collector/config/configtelemetry v0.95.0
+	go.opentelemetry.io/collector/confmap v0.95.0
 	go.opentelemetry.io/collector/confmap/converter/expandconverter v0.95.0
 	go.opentelemetry.io/collector/confmap/provider/envprovider v0.95.0
 	go.opentelemetry.io/collector/confmap/provider/fileprovider v0.95.0
@@ -119,7 +119,7 @@ require (
 	go.opentelemetry.io/collector/exporter/loggingexporter v0.95.0
 	go.opentelemetry.io/collector/exporter/otlpexporter v0.95.0
 	go.opentelemetry.io/collector/exporter/otlphttpexporter v0.95.0
-	go.opentelemetry.io/collector/extension v0.96.0
+	go.opentelemetry.io/collector/extension v0.95.0
 	go.opentelemetry.io/collector/extension/ballastextension v0.95.0
 	go.opentelemetry.io/collector/extension/zpagesextension v0.95.0
 	go.opentelemetry.io/collector/otelcol v0.95.0
@@ -505,7 +505,7 @@ require (
 	go.etcd.io/etcd/client/pkg/v3 v3.5.12 // indirect
 	go.mongodb.org/atlas v0.36.0 // indirect
 	go.opencensus.io v0.24.0
-	go.opentelemetry.io/collector/component v0.96.0
+	go.opentelemetry.io/collector/component v0.95.0
 	go.opentelemetry.io/collector/consumer v0.95.0
 	go.opentelemetry.io/collector/featuregate v1.3.0 // indirect
 	go.opentelemetry.io/collector/semconv v0.95.0

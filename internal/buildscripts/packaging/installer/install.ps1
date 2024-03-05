@@ -110,7 +110,7 @@
     (OPTIONAL) Specify public MSI properties to be used when installing the Splunk OpenTelemetry Collector MSI package.
     For information about the public MSI properties see https://learn.microsoft.com/en-us/windows/win32/msi/property-reference#configuration-properties
     .EXAMPLE
-    .\install.ps1 -access_token "ACCESSTOKEN" -msi_public_properties "ALLUSERS=1" 
+    .\install.ps1 -access_token "ACCESSTOKEN" -msi_public_properties "ARPCOMMENTS=DO_NOT_UNINSTALL" 
 .PARAMETER config_path
     (OPTIONAL) Specify a local path to an alternative configuration file for the Splunk OpenTelemetry Collector.
     If specified, the -mode parameter will be ignored.

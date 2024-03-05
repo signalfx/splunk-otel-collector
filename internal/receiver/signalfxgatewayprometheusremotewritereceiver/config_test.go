@@ -21,7 +21,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
-	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
 
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/signalfxgatewayprometheusremotewritereceiver/internal/metadata"
@@ -48,7 +47,7 @@ func TestParseConfig(t *testing.T) {
 	rawCfgs := make(map[string]map[component.ID]map[string]any)
 	conf, err := confmaptest.LoadConf("internal/testdata/otel-collector-config.yaml")
 	require.NoError(t, err)
-	require.NoError(t, conf.Unmarshal(&rawCfgs, confmap.WithErrorUnused()))
+	require.NoError(t, conf.Unmarshal(&rawCfgs))
 	require.NotEmpty(t, rawCfgs)
 
 	config := createDefaultConfig()

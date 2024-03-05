@@ -534,7 +534,7 @@ if ($api_url -eq "") {
 }
 
 if ($trace_url -eq "") {
-    $trace_url = "$ingest_url:443"
+    $trace_url = "${ingest_url}:443"
 }
 
 if ($hec_url -eq "") {

@@ -66,7 +66,7 @@ func (SapmToOtlp) Convert(_ context.Context, in *confmap.Conf) error {
 		)
 	}
 	if sapmExporterFound && sapmPipelineFound {
-		out["exporters::otlp/fromsapm::endpoint"] = "${SPLUNK_INGEST_URL}"
+		out["exporters::otlp/fromsapm::endpoint"] = "${SPLUNK_INGEST_URL}:443"
 		out["exporters::otlp/fromsapm::headers::X-SF-Token"] = "${SPLUNK_ACCESS_TOKEN}"
 		traceExporters = append(traceExporters, "otlp/fromsapm")
 		out["service::pipelines::traces::exporters"] = traceExporters

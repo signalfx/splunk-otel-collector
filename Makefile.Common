@@ -104,7 +104,6 @@ checklinks:
 fmt: addlicense misspell-correction
 	gofmt -w -s .
 	goimports -w  -local github.com/signalfx/splunk-otel-collector ./
-	fieldalignment -fix ./... || true
 
 .PHONY: lint
 lint: checklicense misspell impi

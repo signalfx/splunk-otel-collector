@@ -5,7 +5,7 @@ job "otel-agent" {
   constraint {
     attribute = "${attr.nomad.version}"
     operator  = "semver"
-    value     = "< 1.3.0"
+    value     = "< 1.8.0"
   }
 
   group "otel-agent" {
@@ -19,11 +19,11 @@ job "otel-agent" {
         to = 4317
       }
 
-      port "jaeger-grpc" {
+      port "jaeger_grpc" {
         to = 14250
       }
 
-      port "jaeger-thrift-http" {
+      port "jaeger_thrift_http" {
         to = 14268
       }
 
@@ -35,12 +35,12 @@ job "otel-agent" {
         to = 9943
       }
 
-      port "sfx-forwarder" {
+      port "sfx_forwarder" {
         to = 9080
       }
 
       # Extensions
-      port "health-check" {
+      port "health_check" {
         to = 13133
       }
 
@@ -51,12 +51,12 @@ job "otel-agent" {
 
     service {
       name = "otel-agent"
-      port = "health-check"
+      port = "health_check"
       tags = ["health"]
 
       check {
         type     = "http"
-        port     = "health-check"
+        port     = "health_check"
         path     = "/"
         interval = "5s"
         timeout  = "2s"
@@ -71,14 +71,14 @@ job "otel-agent" {
 
     service {
       name = "otel-agent"
-      port = "jaeger-grpc"
-      tags = ["jaeger-grpc"]
+      port = "jaeger_grpc"
+      tags = ["jaeger_grpc"]
     }
 
     service {
       name = "otel-agent"
-      port = "jaeger-thrift-http"
-      tags = ["jaeger-thrift-http"]
+      port = "jaeger_thrift_http"
+      tags = ["jaeger_thrift_http"]
     }
 
     service {
@@ -107,8 +107,8 @@ job "otel-agent" {
 
     service {
       name = "otel-agent"
-      port = "sfx-forwarder"
-      tags = ["sfx-forwarder"]
+      port = "sfx_forwarder"
+      tags = ["sfx_forwarder"]
     }
 
     task "otel-agent" {
@@ -126,13 +126,13 @@ job "otel-agent" {
         ports = [
           "metrics",
           "otlp",
-          "jaeger-grpc",
-          "jaeger-thrift-http",
+          "jaeger_grpc",
+          "jaeger_thrift_http",
           "zipkin",
-          "health-check",
+          "health_check",
           "zpages",
           "signalfx",
-          "sfx-forwarder",
+          "sfx_forwarder",
         ]
       }
 
@@ -143,7 +143,7 @@ job "otel-agent" {
       }
 
       resources {
-        cpu    = 500
+        cpu    = 100
         memory = 500
       }
 

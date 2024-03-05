@@ -21,7 +21,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
-	"runtime/debug"
 	"sort"
 	"strconv"
 	"strings"
@@ -37,13 +36,13 @@ import (
 
 const (
 	APIURLEnvVar              = "SPLUNK_API_URL"
+	BallastEnvVar             = "SPLUNK_BALLAST_SIZE_MIB"
 	ConfigEnvVar              = "SPLUNK_CONFIG"
 	ConfigDirEnvVar           = "SPLUNK_CONFIG_DIR"
 	ConfigServerEnabledEnvVar = "SPLUNK_DEBUG_CONFIG_SERVER"
 	ConfigYamlEnvVar          = "SPLUNK_CONFIG_YAML"
 	HecLogIngestURLEnvVar     = "SPLUNK_HEC_URL"
 	ListenInterfaceEnvVar     = "SPLUNK_LISTEN_INTERFACE"
-	GoMemLimitEnvVar          = "GOMEMLIMIT"
 	// nolint:gosec
 	HecTokenEnvVar    = "SPLUNK_HEC_TOKEN" // this isn't a hardcoded token
 	IngestURLEnvVar   = "SPLUNK_INGEST_URL"
@@ -369,13 +368,15 @@ func checkRuntimeParams(settings *Settings) error {
 		}
 	}
 
-	_, err := setMemoryLimit(memTotalSize)
+	ballastSize := setMemoryBallast(memTotalSize)
+	memLimit, err := setMemoryLimit(memTotalSize)
 	if err != nil {
 		return err
 	}
 
-	if _, ok := os.LookupEnv(GoMemLimitEnvVar); !ok {
-		setSoftMemoryLimit(memTotalSize)
+	// Validate memoryLimit and memoryBallast are sane
+	if 2*ballastSize > memLimit {
+		return fmt.Errorf("memory limit (%d) is less than 2x ballast (%d). Increase memory limit or decrease ballast size", memLimit, ballastSize)
 	}
 
 	return nil
@@ -516,12 +517,20 @@ func envVarAsInt(env string) int {
 	return val
 }
 
-// Check if the GOMEMLIMIT is specified via the env var, if not set the soft memory limit to 90% of the MemLimitMiBEnvVar
-func setSoftMemoryLimit(memTotalSizeMiB int) {
-	memLimit := int64(memTotalSizeMiB * DefaultMemoryLimitPercentage / 100)
-	// 1 MiB = 1048576 bytes
-	debug.SetMemoryLimit(memLimit * 1048576)
-	log.Printf("Soft memory limit set to %d MiB", memLimit)
+// Validate and set the memory ballast
+func setMemoryBallast(memTotalSizeMiB int) int {
+	ballastSize := memTotalSizeMiB * DefaultMemoryBallastPercentage / 100
+	// Check if the memory ballast is specified via the env var, if so, validate and set properly.
+	if os.Getenv(BallastEnvVar) != "" {
+		ballastSize = envVarAsInt(BallastEnvVar)
+		if 33 > ballastSize {
+			log.Fatalf("Expected a number greater than 33 for %s env variable but got %d", BallastEnvVar, ballastSize)
+		}
+	}
+
+	_ = os.Setenv(BallastEnvVar, strconv.Itoa(ballastSize))
+	log.Printf("Set ballast to %d MiB", ballastSize)
+	return ballastSize
 }
 
 // Validate and set the memory limit

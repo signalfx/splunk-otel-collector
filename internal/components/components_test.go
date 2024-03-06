@@ -92,6 +92,7 @@ func TestDefaultComponents(t *testing.T) {
 	expectedProcessors := []component.Type{
 		"attributes",
 		"batch",
+		"cumulativetodelta",
 		"filter",
 		"groupbyattrs",
 		"k8sattributes",

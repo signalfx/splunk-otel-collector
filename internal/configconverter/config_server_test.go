@@ -186,3 +186,36 @@ func assertValidYAMLPages(t *testing.T, expected map[string]any, path string) {
 
 	assert.Equal(t, expected, confmap.NewFromStringMap(unmarshalled).ToStringMap())
 }
+
+func TestSimpleRedact(t *testing.T) {
+	result := simpleRedact(map[string]any{
+		"foo":        "bar",
+		"access":     "bar",
+		"api_key":    "bar",
+		"apikey":     "bar",
+		"auth":       "bar",
+		"credential": "bar",
+		"creds":      "bar",
+		"login":      "bar",
+		"password":   "bar",
+		"pwd":        "bar",
+		"token":      "bar",
+		"user":       "bar",
+		"X-SF-Token": "bar",
+	})
+	assert.Equal(t, map[string]any{
+		"foo":        "bar",
+		"access":     "<redacted>",
+		"api_key":    "<redacted>",
+		"apikey":     "<redacted>",
+		"auth":       "<redacted>",
+		"credential": "<redacted>",
+		"creds":      "<redacted>",
+		"login":      "<redacted>",
+		"password":   "<redacted>",
+		"pwd":        "<redacted>",
+		"token":      "<redacted>",
+		"user":       "<redacted>",
+		"X-SF-Token": "<redacted>",
+	}, result)
+}

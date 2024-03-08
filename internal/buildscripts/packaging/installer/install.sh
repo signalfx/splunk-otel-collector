@@ -553,7 +553,7 @@ install_node_package() {
       ubuntu|debian)
         apt-get install -y build-essential
         ;;
-      amzn|centos|ol|rhel)
+      amzn|centos|ol|rhel|rocky)
         if command -v yum >/dev/null 2>&1; then
           yum group install -y 'Development Tools'
         else
@@ -676,7 +676,7 @@ install() {
         install_apt_package "splunk-otel-auto-instrumentation" "$instrumentation_version"
       fi
       ;;
-    amzn|centos|ol|rhel)
+    amzn|centos|ol|rhel|rocky)
       if [ -z "$distro_version" ]; then
         echo "The distribution version could not be determined" >&2
         exit 1
@@ -754,7 +754,7 @@ uninstall() {
             exit 1
           fi
           ;;
-        amzn|centos|ol|rhel|sles|opensuse*)
+        amzn|centos|ol|rhel|rocky|sles|opensuse*)
           if rpm -q $pkg >/dev/null 2>&1; then
             if [ "$pkg" != "splunk-otel-auto-instrumentation" ]; then
               systemctl stop $pkg || true
@@ -966,7 +966,7 @@ distro_is_supported() {
           ;;
       esac
       ;;
-    centos|ol|rhel)
+    centos|ol|rhel|rocky)
       case "$distro_version" in
         7*|8*|9*)
           return 0

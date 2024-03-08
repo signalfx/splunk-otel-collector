@@ -475,6 +475,7 @@ def test_installer_with_instrumentation_default(distro, arch, method):
 @pytest.mark.parametrize("method", ["preload", "systemd"])
 @pytest.mark.parametrize("sdk", ["java", "node"])
 def test_installer_with_instrumentation_custom(distro, arch, method, sdk):
+
     if distro == "opensuse-12" and arch == "arm64":
         pytest.skip("opensuse-12 arm64 no longer supported")
 

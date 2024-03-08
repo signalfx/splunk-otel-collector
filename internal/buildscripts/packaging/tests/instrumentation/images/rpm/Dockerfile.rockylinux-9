@@ -7,7 +7,7 @@ ENV container docker
 RUN rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-Rocky-9
 RUN echo 'fastestmirror=1' >> /etc/yum.conf
 RUN dnf install -y procps initscripts systemd wget
-RUN rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-rockyofficial
+RUN rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-Rocky-9
 RUN echo 'fastestmirror=1' >> /etc/yum.conf
 RUN dnf install -y procps initscripts systemd wget
 

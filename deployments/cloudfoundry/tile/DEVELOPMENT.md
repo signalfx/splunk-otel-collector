@@ -129,7 +129,7 @@ Once changes are successfully applied, you should see data populating the charts
     lastmodified: 1694730760000
    ```
 
-1. Tile shows up as running, but the logs are being spammed with the following message:
+1. Tile shows up as running, but charts aren't populating with data, and the logs are being spammed with the following message:
     ```
     2024-03-06T14:47:28.447-0800	error	exporterhelper/queue_sender.go:97	Exporting failed. Dropping data.	{"kind": "exporter", "data_type": "metrics", "name": "signalfx", "error": "not retryable error: Permanent error: \"HTTP/2.0 401 Unauthorized\\r\\nContent-Length: 0\\r\\nDate: Wed, 06 Mar 2024 22:47:28 GMT\\r\\nServer: istio-envoy\\r\\nWww-Authenticate: Basic realm=\\\"Splunk\\\"\\r\\nX-Envoy-Upstream-Service-Time: 0\\r\\n\\r\\n\"", "dropped_items": 1}
     go.opentelemetry.io/collector/exporter/exporterhelper.newQueueSender.func1

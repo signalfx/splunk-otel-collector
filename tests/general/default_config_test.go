@@ -257,7 +257,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 						"headers": map[string]any{
 							"X-SF-Token": "<redacted>",
 						},
-						"endpoint": "https://ingest.not.real.signalfx.com",
+						"endpoint": "https://ingest.not.real.signalfx.com:443",
 					},
 					"signalfx": map[string]any{
 						"access_token":       "<redacted>",

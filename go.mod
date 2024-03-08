@@ -139,13 +139,11 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 )
 
-// until https://github.com/testcontainers/testcontainers-go/issues/1407 resolved
-replace github.com/testcontainers/testcontainers-go => github.com/testcontainers/testcontainers-go v0.20.1
-
 require (
 	cloud.google.com/go/cloudsqlconn v1.7.0 // indirect
 	cloud.google.com/go/kms v1.15.7 // indirect
 	cloud.google.com/go/monitoring v1.18.0 // indirect
+	dario.cat/mergo v1.0.0 // indirect
 	github.com/Azure/azure-amqp-common-go/v4 v4.2.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.10.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.5.1 // indirect
@@ -255,6 +253,7 @@ require (
 	github.com/softlayer/softlayer-go v1.1.3 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/tencentcloud/tencentcloud-sdk-go v3.0.233+incompatible // indirect
+	github.com/testcontainers/testcontainers-go v0.29.1 // indirect
 	github.com/tg123/go-htpasswd v1.2.2 // indirect
 	github.com/tilinna/clock v1.1.0 // indirect
 	github.com/twmb/murmur3 v1.1.7 // indirect
@@ -346,7 +345,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cloudfoundry-incubator/uaago v0.0.0-20190307164349-8136b7bbe76e // indirect
 	github.com/cncf/xds/go v0.0.0-20240306133729-91a88dc4e959 // indirect
-	github.com/containerd/containerd v1.7.12 // indirect
+	github.com/containerd/containerd v1.7.13 // indirect
 	github.com/coreos/go-semver v0.3.1 // indirect
 	github.com/danieljoos/wincred v1.2.1 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
@@ -539,7 +538,6 @@ require (
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/spf13/cobra v1.8.0 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
-	github.com/testcontainers/testcontainers-go v0.27.0 // indirect
 	github.com/tidwall/gjson v1.10.2 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect

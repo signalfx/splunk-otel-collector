@@ -42,6 +42,7 @@ func TestDefaultComponents(t *testing.T) {
 	}
 	expectedReceivers := []string{
 		"awscontainerinsights",
+		"awsecscontainermetrics",
 		"azureeventhub",
 		"carbon",
 		"cloudfoundry",

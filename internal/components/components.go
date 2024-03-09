@@ -144,7 +144,7 @@ func Get() (otelcol.Factories, error) {
 
 	receivers, err := receiver.MakeFactoryMap(
 		awscontainerinsightreceiver.NewFactory(),
-		awsecscontainermetrics.NewFactory(),
+		awsecscontainermetricsreceiver.NewFactory(),
 		azureeventhubreceiver.NewFactory(),
 		carbonreceiver.NewFactory(),
 		cloudfoundryreceiver.NewFactory(),

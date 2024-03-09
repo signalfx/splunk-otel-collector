@@ -53,8 +53,8 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.96.1-0.20240322214757-420bdba2c55e
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor v0.96.1-0.20240322214757-420bdba2c55e
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor v0.96.1-0.20240322214757-420bdba2c55e
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/awscontainerinsightreceiver v0.96.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/awsecscontainermetricsreceiver v0.96.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/awscontainerinsightreceiver v0.96.1-0.20240322214757-420bdba2c55e
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/awsecscontainermetricsreceiver v0.96.1-0.20240322214757-420bdba2c55e
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/azureeventhubreceiver v0.96.1-0.20240322214757-420bdba2c55e
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/carbonreceiver v0.96.1-0.20240322214757-420bdba2c55e
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/cloudfoundryreceiver v0.96.1-0.20240322214757-420bdba2c55e
@@ -317,7 +317,6 @@ require (
 	go.opentelemetry.io/proto/otlp v1.1.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240318140521-94a12d6c2237 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240318140521-94a12d6c2237 // indirect
-	k8s.io/klog v1.0.0 // indirect
 	nhooyr.io/websocket v1.8.10 // indirect
 	sigs.k8s.io/controller-runtime v0.17.2 // indirect
 )

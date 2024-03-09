@@ -111,7 +111,6 @@ import (
 	"go.uber.org/multierr"
 
 	"github.com/signalfx/splunk-otel-collector/internal/exporter/httpsinkexporter"
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/lightprometheusreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/scriptedinputsreceiver"
@@ -147,7 +146,6 @@ func Get() (otelcol.Factories, error) {
 		carbonreceiver.NewFactory(),
 		cloudfoundryreceiver.NewFactory(),
 		collectdreceiver.NewFactory(),
-		databricksreceiver.NewFactory(),
 		lightprometheusreceiver.NewFactory(),
 		discoveryreceiver.NewFactory(),
 		fluentforwardreceiver.NewFactory(),

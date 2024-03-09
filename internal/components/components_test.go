@@ -45,7 +45,6 @@ func TestDefaultComponents(t *testing.T) {
 		"carbon",
 		"cloudfoundry",
 		"collectd",
-		"databricks",
 		"discovery",
 		"filelog",
 		"fluentforward",

@@ -20,4 +20,5 @@ exclude = [
     "https://github.com/signalfx/splunk-otel-collector/tree/main/cmd/translatesfx", # translatesfx was deleted
     "https://www.microsoft.com/en-us/evalcenter/download-windows-server-2022",
     "https://superuser.com/a/980821", # failing with 403 Forbidden
+    "https://github.com/signalfx/splunk-otel-collector/tree/main/internal/receiver/databricksreceiver", # databricsreceiver was deleted
 ]

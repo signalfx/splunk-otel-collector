@@ -18,64 +18,32 @@
 package tests
 
 import (
-	"context"
-	"fmt"
-	"io"
+	"os/exec"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
+// TestBasicSecretAccess relies on the presence of a vault container running alongside.
+// You can run this container with:
+// docker run --rm -it --name vault -p 8200:8200 -e VAULT_DEV_ROOT_TOKEN_ID=token -e VAULT_TOKEN=token -e VAULT_ADDR=http://0.0.0.0:8200 hashicorp/vault:latest
 func TestBasicSecretAccess(t *testing.T) {
 	tc := testutils.NewTestcase(t)
 	defer tc.PrintLogsOnFailure()
 
-	vaultHostname := "vault"
-	vault := testutils.NewContainer().WithImage("hashicorp/vault:latest").WithNetworks("vault").WithName("vault").WithEnv(
-		map[string]string{
-			"VAULT_DEV_ROOT_TOKEN_ID": "token",
-			"VAULT_TOKEN":             "token",
-			"VAULT_ADDR":              "http://0.0.0.0:8200",
-		}).WillWaitForLogs("Development mode should NOT be used in production installations!")
-
-	if !testutils.CollectorImageIsSet() {
-		// otelcol subprocess needs vault to be exposed and resolvable
-		vault = vault.WithExposedPorts("8200:8200")
-		vaultHostname = "localhost"
-	}
-
-	ctrs, shutdown := tc.Containers(vault)
-	defer shutdown()
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	sc, r, err := ctrs[0].Exec(ctx, []string{"vault", "kv", "put", "secret/kv", "k0=string.value", "k1=123.456"})
-	if r != nil {
-		defer func() {
-			if t.Failed() {
-				out, readErr := io.ReadAll(r)
-				require.NoError(t, readErr)
-				fmt.Printf("vault:\n%s\n", string(out))
-			}
-		}()
-	}
+	cmd := exec.Command("/bin/sh", "-c", "docker exec vault vault kv put secret/kv k0=string.value k1=123.456")
+	err := cmd.Run()
 	require.NoError(t, err)
-	require.Equal(t, 0, sc)
 
 	collector, stop := tc.SplunkOtelCollector(
 		"vault_config.yaml",
 		func(collector testutils.Collector) testutils.Collector {
 			collector = collector.WithEnv(map[string]string{
 				"INSERT_ACTION":  "insert",
-				"VAULT_HOSTNAME": vaultHostname,
+				"VAULT_HOSTNAME": "localhost",
 			})
-			if cc, ok := collector.(*testutils.CollectorContainer); ok {
-				cc.Container = cc.Container.WithNetworks("vault").WithNetworkMode("bridge")
-				return cc
-			}
 			return collector
 		},
 	)

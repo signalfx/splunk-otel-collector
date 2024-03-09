@@ -19,29 +19,56 @@ import (
 
 // Config for this monitor
 type Config struct {
-	EnableClusterHealth                    *bool `yaml:"enableClusterHealth" default:"true"`
-	EnableIndexStats                       *bool `yaml:"enableIndexStats" default:"true"`
-	ClusterHealthStatsMasterOnly           *bool `yaml:"clusterHealthStatsMasterOnly" default:"true"`
-	IndexStatsMasterOnly                   *bool `yaml:"indexStatsMasterOnly" default:"true"`
-	config.MonitorConfig                   `yaml:",inline" acceptsEndpoints:"true"`
-	httpclient.HTTPConfig                  `yaml:",inline"`
-	Port                                   string   `yaml:"port" validate:"required"`
-	Cluster                                string   `yaml:"cluster"`
-	Host                                   string   `yaml:"host" validate:"required"`
-	EnableEnhancedNodeStatsForIndexGroups  []string `yaml:"enableEnhancedNodeIndicesStats"`
-	Indexes                                []string `yaml:"indexes"`
+	config.MonitorConfig  `yaml:",inline" acceptsEndpoints:"true"`
+	httpclient.HTTPConfig `yaml:",inline"`
+
+	Host string `yaml:"host" validate:"required"`
+	Port string `yaml:"port" validate:"required"`
+
+	// Cluster name to which the node belongs. This is an optional config that
+	// will override the cluster name fetched from a node and will be used to
+	// populate the plugin_instance dimension
+	Cluster string `yaml:"cluster"`
+	// Enable Index stats. If set to true, by default the a subset of index
+	// stats will be collected (see docs for list of default index metrics collected).
+	EnableIndexStats *bool `yaml:"enableIndexStats" default:"true"`
+	// Indexes to collect stats from (by default stats from all indexes are collected)
+	Indexes []string `yaml:"indexes"`
+	// Interval to report IndexStats on
+	IndexStatsIntervalSeconds int `yaml:"indexStatsIntervalSeconds" default:"60"`
+	// Collect only aggregated index stats across all indexes
+	IndexSummaryOnly bool `yaml:"indexSummaryOnly"`
+	// Collect index stats only from Master node
+	IndexStatsMasterOnly *bool `yaml:"indexStatsMasterOnly" default:"true"`
+	// EnableClusterHealth enables reporting on the cluster health
+	EnableClusterHealth *bool `yaml:"enableClusterHealth" default:"true"`
+	// Whether or not non master nodes should report cluster health
+	ClusterHealthStatsMasterOnly *bool `yaml:"clusterHealthStatsMasterOnly" default:"true"`
+	// Enable enhanced HTTP stats
+	EnableEnhancedHTTPStats bool `yaml:"enableEnhancedHTTPStats"`
+	// Enable enhanced JVM stats
+	EnableEnhancedJVMStats bool `yaml:"enableEnhancedJVMStats"`
+	// Enable enhanced Process stats
+	EnableEnhancedProcessStats bool `yaml:"enableEnhancedProcessStats"`
+	// Enable enhanced ThreadPool stats
+	EnableEnhancedThreadPoolStats bool `yaml:"enableEnhancedThreadPoolStats"`
+	// Enable enhanced Transport stats
+	EnableEnhancedTransportStats bool `yaml:"enableEnhancedTransportStats"`
+	// Enable enhanced node level index stats groups. A list of index stats
+	// groups for which to collect enhanced stats
+	EnableEnhancedNodeStatsForIndexGroups []string `yaml:"enableEnhancedNodeIndicesStats"`
+	// ThreadPools to report threadpool node stats on
+	ThreadPools []string `yaml:"threadPools" default:"[\"search\", \"index\"]"`
+	// Enable Cluster level stats. These stats report only from master Elasticserach nodes
+	EnableEnhancedClusterHealthStats bool `yaml:"enableEnhancedClusterHealthStats"`
+	// Enable enhanced index level index stats groups. A list of index stats groups
+	// for which to collect enhanced stats
 	EnableEnhancedIndexStatsForIndexGroups []string `yaml:"enableEnhancedIndexStatsForIndexGroups"`
-	ThreadPools                            []string `yaml:"threadPools" default:"[\"search\", \"index\"]"`
-	MetadataRefreshIntervalSeconds         int      `yaml:"metadataRefreshIntervalSeconds" default:"30"`
-	IndexStatsIntervalSeconds              int      `yaml:"indexStatsIntervalSeconds" default:"60"`
-	EnableEnhancedProcessStats             bool     `yaml:"enableEnhancedProcessStats"`
-	EnableEnhancedThreadPoolStats          bool     `yaml:"enableEnhancedThreadPoolStats"`
-	EnableEnhancedTransportStats           bool     `yaml:"enableEnhancedTransportStats"`
-	EnableEnhancedJVMStats                 bool     `yaml:"enableEnhancedJVMStats"`
-	EnableEnhancedHTTPStats                bool     `yaml:"enableEnhancedHTTPStats"`
-	EnableEnhancedClusterHealthStats       bool     `yaml:"enableEnhancedClusterHealthStats"`
-	IndexSummaryOnly                       bool     `yaml:"indexSummaryOnly"`
-	EnableIndexStatsPrimaries              bool     `yaml:"enableIndexStatsPrimaries"`
+	// To enable index stats from only primary shards. By default the index stats collected
+	// are aggregated across all shards
+	EnableIndexStatsPrimaries bool `yaml:"enableIndexStatsPrimaries"`
+	// How often to refresh metadata about the node and cluster
+	MetadataRefreshIntervalSeconds int `yaml:"metadataRefreshIntervalSeconds" default:"30"`
 }
 
 // Monitor for elasticsearch metrics
@@ -57,11 +84,11 @@ func init() {
 }
 
 type sharedInfo struct {
+	nodeIsCurrentMaster  bool
 	defaultDimensions    map[string]string
 	nodeMetricDimensions map[string]string
-	logger               *utils.ThrottledLogger
 	lock                 sync.RWMutex
-	nodeIsCurrentMaster  bool
+	logger               *utils.ThrottledLogger
 }
 
 func (sinfo *sharedInfo) fetchNodeAndClusterMetadata(esClient ESStatsHTTPClient, configuredClusterName string) error {

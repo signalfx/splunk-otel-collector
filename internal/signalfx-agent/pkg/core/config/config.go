@@ -53,22 +53,62 @@ type LogConfig struct {
 
 // CollectdConfig high-level configurations
 type CollectdConfig struct {
-	Logger               log.FieldLogger `yaml:"-"`
-	WriteServerIPAddr    string          `yaml:"writeServerIPAddr" default:"127.9.8.7"`
-	WriteServerQuery     string          `yaml:"-"`
-	InstanceName         string          `yaml:"-"`
-	BundleDir            string          `yaml:"-"`
-	ConfigDir            string          `yaml:"configDir" default:"/var/run/signalfx-agent/collectd"`
-	LogLevel             string          `yaml:"logLevel" default:"notice"`
-	WriteQueueLimitHigh  int             `yaml:"writeQueueLimitHigh" default:"500000"`
-	IntervalSeconds      int             `yaml:"intervalSeconds" default:"0"`
-	WriteQueueLimitLow   int             `yaml:"writeQueueLimitLow" default:"400000"`
-	WriteThreads         int             `yaml:"writeThreads" default:"2"`
-	ReadThreads          int             `yaml:"readThreads" default:"5"`
-	Timeout              int             `yaml:"timeout" default:"40"`
-	WriteServerPort      uint16          `yaml:"writeServerPort" default:"0"`
-	DisableCollectd      bool            `yaml:"disableCollectd" default:"false"`
-	HasGenericJMXMonitor bool            `yaml:"-"`
+	// Deprecated: this setting has no effect and will be removed.
+	// If you won't be using any collectd monitors, this can be set to true to
+	// prevent collectd from pre-initializing
+	DisableCollectd bool `yaml:"disableCollectd" default:"false"`
+	// How many read intervals before abandoning a metric. Doesn't affect much
+	// in normal usage.
+	// See [Timeout](https://collectd.org/documentation/manpages/collectd.conf.5.shtml#timeout_iterations).
+	Timeout int `yaml:"timeout" default:"40"`
+	// Number of threads dedicated to executing read callbacks. See
+	// [ReadThreads](https://collectd.org/documentation/manpages/collectd.conf.5.shtml#readthreads_num)
+	ReadThreads int `yaml:"readThreads" default:"5"`
+	// Number of threads dedicated to writing value lists to write callbacks.
+	// This should be much less than readThreads because writing is batched in
+	// the write_http plugin that writes back to the agent.
+	// See [WriteThreads](https://collectd.org/documentation/manpages/collectd.conf.5.shtml#writethreads_num).
+	WriteThreads int `yaml:"writeThreads" default:"2"`
+	// The maximum numbers of values in the queue to be written back to the
+	// agent from collectd.  Since the values are written to a local socket
+	// that the agent exposes, there should be almost no queuing and the
+	// default should be more than sufficient. See
+	// [WriteQueueLimitHigh](https://collectd.org/documentation/manpages/collectd.conf.5.shtml#writequeuelimithigh_highnum)
+	WriteQueueLimitHigh int `yaml:"writeQueueLimitHigh" default:"500000"`
+	// The lowest number of values in the collectd queue before which metrics
+	// begin being randomly dropped.  See
+	// [WriteQueueLimitLow](https://collectd.org/documentation/manpages/collectd.conf.5.shtml#writequeuelimitlow_lownum)
+	WriteQueueLimitLow int `yaml:"writeQueueLimitLow" default:"400000"`
+	// Collectd's log level -- info, notice, warning, or err
+	LogLevel string `yaml:"logLevel" default:"notice"`
+	// A default read interval for collectd plugins.  If zero or undefined,
+	// will default to the global agent interval.  Some collectd python
+	// monitors do not support overridding the interval at the monitor level,
+	// but this setting will apply to them.
+	IntervalSeconds int `yaml:"intervalSeconds" default:"0"`
+	// The local IP address of the server that the agent exposes to which
+	// collectd will send metrics.  This defaults to an arbitrary address in
+	// the localhost subnet, but can be overridden if needed.
+	WriteServerIPAddr string `yaml:"writeServerIPAddr" default:"127.9.8.7"`
+	// The port of the agent's collectd metric sink server.  If set to zero
+	// (the default) it will allow the OS to assign it a free port.
+	WriteServerPort uint16 `yaml:"writeServerPort" default:"0"`
+	// This is where the agent will write the collectd config files that it
+	// manages.  If you have secrets in those files, consider setting this to a
+	// path on a tmpfs mount.  The files in this directory should be considered
+	// transient -- there is no value in editing them by hand.  If you want to
+	// add your own collectd config, see the collectd/custom monitor.
+	ConfigDir string `yaml:"configDir" default:"/var/run/signalfx-agent/collectd"`
+
+	// The following are propagated from the top-level config
+	BundleDir            string `yaml:"-"`
+	HasGenericJMXMonitor bool   `yaml:"-"`
+	// Assigned by manager, not by user
+	InstanceName string `yaml:"-"`
+	// A hack to allow custom collectd to easily specify a single monitorID via
+	// query parameter
+	WriteServerQuery string          `yaml:"-"`
+	Logger           log.FieldLogger `yaml:"-"`
 }
 
 // Validate the collectd specific config

@@ -18,17 +18,22 @@ func init() {
 
 // Config for the SAP Hana monitor
 type Config struct {
-	config.MonitorConfig  `yaml:",inline" acceptsEndpoints:"true"`
-	ConnectionString      string
-	Host                  string
-	Username              string
-	Password              string
-	TLSServerName         string   `yaml:"tlsServerName"`
-	TLSRootCAFiles        []string `yaml:"rootCAFiles"`
-	Port                  int
-	MaxExpensiveQueries   int
+	config.MonitorConfig `yaml:",inline" acceptsEndpoints:"true"`
+	ConnectionString     string
+	Host                 string
+	Username             string
+	Password             string
+
+	// ServerName to verify the hostname. Defaults to Host if not specified.
+	TLSServerName string `yaml:"tlsServerName"`
+	// Controls whether a client verifies the server's certificate chain and host name. Defaults to false.
 	TLSInsecureSkipVerify bool `yaml:"insecureSkipVerify"`
-	LogQueries            bool
+	// Path to root certificate(s) (optional)
+	TLSRootCAFiles []string `yaml:"rootCAFiles"`
+
+	Port                int
+	LogQueries          bool
+	MaxExpensiveQueries int
 }
 
 // Monitor that collects SAP Hana stats

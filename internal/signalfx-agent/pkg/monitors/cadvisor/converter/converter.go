@@ -43,13 +43,13 @@ type containerMetric struct {
 }
 
 type containerSpecMetric struct {
-	containerMetric
 	getValues func(s *info.ContainerInfo) metricValues
+	containerMetric
 }
 
 type machineInfoMetric struct {
-	containerMetric
 	getValues func(s *info.MachineInfo) metricValues
+	containerMetric
 }
 
 type podStatusMetric struct {
@@ -152,15 +152,15 @@ func getContainerMetrics() []containerMetric {
 			valueType:   datapoint.Counter,
 			extraLabels: []string{"cpu"},
 			getValues: func(s *info.ContainerStats) metricValues {
-				metricValues := make(metricValues, len(s.Cpu.Usage.PerCpu))
+				mv := make(metricValues, len(s.Cpu.Usage.PerCpu))
 				for index, coreUsage := range s.Cpu.Usage.PerCpu {
 					if coreUsage > 0 {
-						metricValues[index] = metricValue{value: datapoint.NewIntValue(int64(coreUsage / 10000000)), labels: []string{"cpu" + strconv.Itoa(index)}}
+						mv[index] = metricValue{value: datapoint.NewIntValue(int64(coreUsage / 10000000)), labels: []string{"cpu" + strconv.Itoa(index)}}
 					} else {
-						metricValues[index] = metricValue{value: datapoint.NewIntValue(int64(0)), labels: []string{strconv.Itoa(index)}}
+						mv[index] = metricValue{value: datapoint.NewIntValue(int64(0)), labels: []string{strconv.Itoa(index)}}
 					}
 				}
-				return metricValues
+				return mv
 			},
 		},
 		{

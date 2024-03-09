@@ -27,27 +27,36 @@ func init() {
 
 // Config is the monitor-specific config with the generic config embedded.
 type Config struct {
-	CollectExchanges     *bool `yaml:"collectExchanges"`
-	HTTPTimeout          *int  `yaml:"httpTimeout"`
-	pyConf               *python.Config
-	CollectQueues        *bool `yaml:"collectQueues"`
-	CollectNodes         *bool `yaml:"collectNodes"`
-	CollectChannels      *bool `yaml:"collectChannels"`
-	CollectConnections   *bool `yaml:"collectConnections"`
 	config.MonitorConfig `yaml:",inline" acceptsEndpoints:"true"`
-	BrokerName           string `yaml:"brokerName" default:"{{.host}}-{{.port}}"`
-	Host                 string `yaml:"host" validate:"required"`
 	python.CommonConfig  `yaml:",inline"`
-	VerbosityLevel       string `yaml:"verbosityLevel"`
-	Username             string `yaml:"username" validate:"required"`
-	Password             string `yaml:"password" validate:"required" neverLog:"true"`
-	SSLCACertFile        string `yaml:"sslCACertFile"`
-	SSLCertFile          string `yaml:"sslCertFile"`
-	SSLKeyFile           string `yaml:"sslKeyFile"`
-	SSLKeyPassphrase     string `yaml:"sslKeyPassphrase"`
+	pyConf               *python.Config
+	Host                 string `yaml:"host" validate:"required"`
 	Port                 uint16 `yaml:"port" validate:"required"`
-	UseHTTPS             bool   `yaml:"useHTTPS"`
-	SSLVerify            bool   `yaml:"sslVerify"`
+	// The name of the particular RabbitMQ instance.  Can be a Go template
+	// using other config options. This will be used as the `plugin_instance`
+	// dimension.
+	BrokerName         string `yaml:"brokerName" default:"{{.host}}-{{.port}}"`
+	CollectChannels    *bool  `yaml:"collectChannels"`
+	CollectConnections *bool  `yaml:"collectConnections"`
+	CollectExchanges   *bool  `yaml:"collectExchanges"`
+	CollectNodes       *bool  `yaml:"collectNodes"`
+	CollectQueues      *bool  `yaml:"collectQueues"`
+	HTTPTimeout        *int   `yaml:"httpTimeout"`
+	VerbosityLevel     string `yaml:"verbosityLevel"`
+	Username           string `yaml:"username" validate:"required"`
+	Password           string `yaml:"password" validate:"required" neverLog:"true"`
+	// Whether to enable HTTPS.
+	UseHTTPS bool `yaml:"useHTTPS"`
+	// Path to SSL/TLS certificates file of root Certificate Authorities implicitly trusted by this monitor.
+	SSLCACertFile string `yaml:"sslCACertFile"`
+	// Path to this monitor's own SSL/TLS certificate.
+	SSLCertFile string `yaml:"sslCertFile"`
+	// Path to this monitor's private SSL/TLS key file.
+	SSLKeyFile string `yaml:"sslKeyFile"`
+	// This monitor's private SSL/TLS key file password if any.
+	SSLKeyPassphrase string `yaml:"sslKeyPassphrase"`
+	// Should the monitor verify the RabbitMQ Management plugin SSL/TLS certificate.
+	SSLVerify bool `yaml:"sslVerify"`
 }
 
 // PythonConfig returns the embedded python.Config struct from the interface.

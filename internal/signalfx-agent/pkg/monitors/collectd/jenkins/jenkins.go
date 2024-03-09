@@ -24,23 +24,37 @@ func init() {
 
 // Config is the monitor-specific config with the generic config embedded
 type Config struct {
-	ExcludeJobMetrics    *bool `yaml:"excludeJobMetrics"`
-	pyConf               *python.Config
-	EnhancedMetrics      *bool `yaml:"enhancedMetrics"`
 	config.MonitorConfig `yaml:",inline" acceptsEndpoints:"true"`
-	MetricsKey           string `yaml:"metricsKey" validate:"required"`
-	Path                 string `yaml:"path"`
-	SSLCertificate       string `yaml:"sslCertificate"`
-	Host                 string `yaml:"host" validate:"required"`
 	python.CommonConfig  `yaml:",inline"`
-	Username             string   `yaml:"username"`
-	APIToken             string   `yaml:"apiToken" neverLog:"true"`
-	SSLCACerts           string   `yaml:"sslCACerts"`
-	SSLKeyFile           string   `yaml:"sslKeyFile"`
-	IncludeMetrics       []string `yaml:"includeMetrics"`
-	Port                 uint16   `yaml:"port" validate:"required"`
-	UseHTTPS             bool     `yaml:"useHTTPS"`
-	SkipVerify           bool     `yaml:"skipVerify"`
+	pyConf               *python.Config
+	Host                 string `yaml:"host" validate:"required"`
+	Port                 uint16 `yaml:"port" validate:"required"`
+	Path                 string `yaml:"path"`
+	// Key required for collecting metrics.  The access key located at
+	// `Manage Jenkins > Configure System > Metrics > ADD.`
+	// If empty, click `Generate`.
+	MetricsKey string `yaml:"metricsKey" validate:"required"`
+	// Whether to enable enhanced metrics
+	EnhancedMetrics *bool `yaml:"enhancedMetrics"`
+	// Set to *true* to exclude job metrics retrieved from `/api/json` endpoint
+	ExcludeJobMetrics *bool `yaml:"excludeJobMetrics"`
+	// Used to enable individual enhanced metrics when `enhancedMetrics` is
+	// false
+	IncludeMetrics []string `yaml:"includeMetrics"`
+	// User with security access to jenkins
+	Username string `yaml:"username"`
+	// API Token of the user
+	APIToken string `yaml:"apiToken" neverLog:"true"`
+	// Whether to enable HTTPS.
+	UseHTTPS bool `yaml:"useHTTPS"`
+	// Path to the keyfile
+	SSLKeyFile string `yaml:"sslKeyFile"`
+	// Path to the certificate
+	SSLCertificate string `yaml:"sslCertificate"`
+	// Path to the ca file
+	SSLCACerts string `yaml:"sslCACerts"`
+	// Skip SSL certificate validation
+	SkipVerify bool `yaml:"skipVerify"`
 }
 
 // PythonConfig returns the embedded python.Config struct from the interface

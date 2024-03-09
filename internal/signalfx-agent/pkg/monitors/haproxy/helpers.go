@@ -291,11 +291,12 @@ func socketReader(conf *Config, cmd string) (io.ReadCloser, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := f.SetDeadline(time.Now().Add(conf.Timeout.AsDuration())); err != nil {
+	if err = f.SetDeadline(time.Now().Add(conf.Timeout.AsDuration())); err != nil {
 		f.Close()
 		return nil, err
 	}
-	n, err := io.WriteString(f, cmd)
+	var n int
+	n, err = io.WriteString(f, cmd)
 	if err != nil {
 		f.Close()
 		return nil, err

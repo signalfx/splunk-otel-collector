@@ -44,24 +44,42 @@ type EnhancedMetricsConfig struct {
 
 // Config for this monitor
 type Config struct {
-	LabelsToDimensions    map[string]string `yaml:"labelsToDimensions"`
-	EnvToDimensions       map[string]string `yaml:"envToDimensions"`
 	config.MonitorConfig  `yaml:",inline" acceptsEndpoints:"false"`
-	DockerURL             string            `yaml:"dockerURL" default:"unix:///var/run/docker.sock"`
-	ExcludedImages        []string          `yaml:"excludedImages"`
-	TimeoutSeconds        int               `yaml:"timeoutSeconds" default:"5"`
-	CacheSyncInterval     timeutil.Duration `yaml:"cacheSyncInterval" default:"60m"`
 	EnhancedMetricsConfig `yaml:",inline"`
+
+	// The URL of the docker server
+	DockerURL string `yaml:"dockerURL" default:"unix:///var/run/docker.sock"`
+	// The maximum amount of time to wait for docker API requests
+	TimeoutSeconds int `yaml:"timeoutSeconds" default:"5"`
+	// The time to wait before resyncing the list of containers the monitor maintains
+	// through the docker event listener example: cacheSyncInterval: "20m"
+	CacheSyncInterval timeutil.Duration `yaml:"cacheSyncInterval" default:"60m"`
+	// A mapping of container label names to dimension names. The corresponding
+	// label values will become the dimension value for the mapped name.  E.g.
+	// `io.kubernetes.container.name: container_spec_name` would result in a
+	// dimension called `container_spec_name` that has the value of the
+	// `io.kubernetes.container.name` container label.
+	LabelsToDimensions map[string]string `yaml:"labelsToDimensions"`
+	// A mapping of container environment variable names to dimension
+	// names.  The corresponding env var values become the dimension values on
+	// the emitted metrics.  E.g. `APP_VERSION: version` would result in
+	// datapoints having a dimension called `version` whose value is the value
+	// of the `APP_VERSION` envvar configured for that particular container, if
+	// present.
+	EnvToDimensions map[string]string `yaml:"envToDimensions"`
+	// A list of filters of images to exclude.  Supports literals, globs, and
+	// regex.
+	ExcludedImages []string `yaml:"excludedImages"`
 }
 
 // Monitor for Docker
 type Monitor struct {
 	Output  types.FilteringOutput
-	ctx     context.Context
-	logger  logrus.FieldLogger
 	cancel  func()
+	ctx     context.Context
 	client  *docker.Client
 	timeout time.Duration
+	logger  logrus.FieldLogger
 }
 
 type dockerContainer struct {
@@ -78,7 +96,7 @@ func (m *Monitor) Configure(conf *Config) error {
 	defaultHeaders := map[string]string{"User-Agent": "signalfx-agent"}
 
 	var err error
-	m.client, err = docker.NewClientWithOpts(docker.WithHTTPHeaders(defaultHeaders), docker.WithVersion(dockerAPIVersion), docker.WithHost(conf.DockerURL))
+	m.client, err = docker.NewClientWithOpts(docker.WithHost(conf.DockerURL), docker.WithVersion(dockerAPIVersion), docker.WithHTTPHeaders(defaultHeaders))
 	if err != nil {
 		return fmt.Errorf("could not create docker client: %w", err)
 	}

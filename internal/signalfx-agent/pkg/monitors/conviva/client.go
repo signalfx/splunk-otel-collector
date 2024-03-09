@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 )
 
@@ -49,14 +49,14 @@ func (c *convivaHTTPClient) get(ctx context.Context, v interface{}, url string) 
 		return 0, err
 	}
 	defer res.Body.Close()
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return 0, err
 	}
 	if res.StatusCode != 200 {
-		responseError := responseError{}
-		if err := json.Unmarshal(body, &responseError); err == nil {
-			return res.StatusCode, fmt.Errorf("%+v", responseError)
+		r := responseError{}
+		if err = json.Unmarshal(body, &r); err == nil {
+			return res.StatusCode, fmt.Errorf("%+v", r)
 		}
 		return res.StatusCode, fmt.Errorf("%+v", res)
 	}

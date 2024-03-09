@@ -21,10 +21,17 @@ func init() {
 
 // Config for this monitor
 type Config struct {
-	SendInternalMetrics  *bool `yaml:"sendInternalMetrics" default:"false"`
 	config.MonitorConfig `yaml:",inline" acceptsEndpoints:"false" singleInstance:"true"`
-	ListenAddress        string            `yaml:"listenAddress" default:"127.0.0.1:9080"`
-	ServerTimeout        timeutil.Duration `yaml:"serverTimeout" default:"5s"`
+	// The host:port on which to listen for datapoints.  The listening server
+	// accepts datapoints on the same HTTP path that ingest/gateway accepts
+	// them (e.g. `/v2/datapoint`, `/v1/trace`).  Requests to other paths will
+	// return 404s.
+	ListenAddress string `yaml:"listenAddress" default:"127.0.0.1:9080"`
+	// HTTP timeout duration for both read and writes. This should be a
+	// duration string that is accepted by https://golang.org/pkg/time/#ParseDuration
+	ServerTimeout timeutil.Duration `yaml:"serverTimeout" default:"5s"`
+	// Whether to emit internal metrics about the HTTP listener
+	SendInternalMetrics *bool `yaml:"sendInternalMetrics" default:"false"`
 }
 
 // Monitor that accepts and forwards SignalFx data

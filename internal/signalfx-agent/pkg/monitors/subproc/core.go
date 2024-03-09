@@ -9,7 +9,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"sync"
@@ -46,12 +45,20 @@ type RuntimeCustomizable interface {
 // responsibility of modules that embed this MonitorCore, hence there are no
 // predefined "datapoint" message types.
 type MonitorCore struct {
-	ctx            context.Context
-	handler        MessageHandler
-	logger         log.FieldLogger
-	configResult   error
-	cancel         func()
-	configCond     sync.Cond
+	ctx     context.Context
+	cancel  func()
+	handler MessageHandler
+
+	logger log.FieldLogger
+
+	// Conditional signal that the goroutine that sends does the configuration
+	// request sets when configure has been completed.  configResult will hold
+	// the result of that configure call.
+	configCond   sync.Cond
+	configResult error
+
+	// Flag that should be set atomically to tell the goroutine that manages
+	// the subprocess whether the process is supposed to be alive or not.
 	shutdownCalled int32
 }
 
@@ -243,7 +250,7 @@ func (mc *MonitorCore) waitForConfigure(messages MessageReceiver) (*configResult
 			return nil, err
 		}
 
-		content, err := ioutil.ReadAll(payloadReader)
+		content, err := io.ReadAll(payloadReader)
 		if err != nil {
 			mc.logger.WithError(err).Error("Could not read message from subprocess monitor")
 		}

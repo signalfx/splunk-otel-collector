@@ -8,10 +8,10 @@ import (
 
 func TestParseMetrics(t *testing.T) {
 	cases := []struct {
-		parsed     statsDMetric
 		name       string
 		raw        string
 		converters []*converter
+		parsed     statsDMetric
 	}{
 		{
 			"tags",

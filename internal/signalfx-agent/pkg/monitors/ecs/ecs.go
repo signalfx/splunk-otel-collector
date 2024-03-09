@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -40,32 +40,47 @@ func init() {
 
 // Config for this monitor
 type Config struct {
-	LabelsToDimensions             map[string]string `yaml:"labelsToDimensions"`
 	config.MonitorConfig           `yaml:",inline" acceptsEndpoints:"false"`
-	MetadataEndpoint               string   `yaml:"metadataEndpoint" default:"http://169.254.170.2/v2/metadata"`
-	StatsEndpoint                  string   `yaml:"statsEndpoint" default:"http://169.254.170.2/v2/stats"`
-	DimensionToUpdate              string   `yaml:"dimensionToUpdate" default:"container_id"`
-	ExcludedImages                 []string `yaml:"excludedImages"`
-	TimeoutSeconds                 int      `yaml:"timeoutSeconds" default:"5"`
 	dmonitor.EnhancedMetricsConfig `yaml:",inline"`
+
+	// The URL of the ECS task metadata. Default is http://169.254.170.2/v2/metadata, which is hardcoded by AWS for version 2.
+	MetadataEndpoint string `yaml:"metadataEndpoint" default:"http://169.254.170.2/v2/metadata"`
+	// The URL of the ECS container stats. Default is http://169.254.170.2/v2/stats, which is hardcoded by AWS for version 2.
+	StatsEndpoint string `yaml:"statsEndpoint" default:"http://169.254.170.2/v2/stats"`
+	// The maximum amount of time to wait for API requests
+	TimeoutSeconds int `yaml:"timeoutSeconds" default:"5"`
+	// A mapping of container label names to dimension names. The corresponding
+	// label values will become the dimension value for the mapped name.  E.g.
+	// `io.kubernetes.container.name: container_spec_name` would result in a
+	// dimension called `container_spec_name` that has the value of the
+	// `io.kubernetes.container.name` container label.
+	LabelsToDimensions map[string]string `yaml:"labelsToDimensions"`
+	// A list of filters of images to exclude.  Supports literals, globs, and
+	// regex.
+	ExcludedImages []string `yaml:"excludedImages"`
+	// The dimension to update with `known_status` property syncing. Supported options are "container_id" (default) and "container_name".
+	DimensionToUpdate string `yaml:"dimensionToUpdate" default:"container_id"`
 }
 
 type dimensionValueFn func(ctr ecs.Container) (string, string)
 
 // Monitor for ECS Metadata
 type Monitor struct {
-	Output            types.FilteringOutput
-	ctx               context.Context
+	Output         types.FilteringOutput
+	cancel         func()
+	client         *http.Client
+	conf           *Config
+	ctx            context.Context
+	timeout        time.Duration
+	taskDimensions map[string]string
+	containers     map[string]ecs.Container
+	// shouldIgnore - key : container docker id, tells if stats for the container should be ignored.
+	// Usually the container was filtered out by excludedImages
+	// or container metadata is not received.
+	shouldIgnore      map[string]bool
 	imageFilter       filter.StringFilter
 	logger            log.FieldLogger
-	cancel            func()
-	client            *http.Client
-	conf              *Config
-	taskDimensions    map[string]string
-	containers        map[string]ecs.Container
-	shouldIgnore      map[string]bool
 	dimensionToUpdate dimensionValueFn
-	timeout           time.Duration
 }
 
 // Configure the monitor and kick off volume metric syncing
@@ -150,9 +165,9 @@ func (m *Monitor) fetchStatsForAll(enhancedMetricsConfig dmonitor.EnhancedMetric
 
 	var stats map[string]dtypes.StatsJSON
 
-	if err := json.Unmarshal(body, &stats); err != nil {
+	if err2 := json.Unmarshal(body, &stats); err2 != nil {
 		m.logger.WithFields(log.Fields{
-			"error": err,
+			"error": err2,
 		}).Error("Could not parse stats json")
 		return
 	}
@@ -258,7 +273,7 @@ func getMetadata(client *http.Client, endpoint string) ([]byte, error) {
 		return nil, fmt.Errorf("could not connect to %s : %s ", endpoint, http.StatusText(response.StatusCode))
 	}
 
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	return body, err
 }
 

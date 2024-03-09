@@ -18,15 +18,17 @@ import (
 )
 
 type DimensionHandler struct {
-	logger            log.FieldLogger
+	sync.Mutex
+
 	uidKindCache      map[types.UID]string
 	sendDimensionFunc func(*atypes.Dimension)
-	podCache          *k8sutil.PodCache
-	serviceCache      *k8sutil.ServiceCache
-	replicaSetCache   *k8sutil.ReplicaSetCache
-	jobCache          *k8sutil.JobCache
-	sync.Mutex
+
+	podCache                *k8sutil.PodCache
+	serviceCache            *k8sutil.ServiceCache
+	replicaSetCache         *k8sutil.ReplicaSetCache
+	jobCache                *k8sutil.JobCache
 	updatesForNodeDimension bool
+	logger                  log.FieldLogger
 }
 
 // NewDimensionHandler creates a handler for dimension updates

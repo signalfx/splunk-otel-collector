@@ -25,12 +25,20 @@ func init() {
 // Config for this monitor
 type Config struct {
 	config.MonitorConfig `yaml:",inline" singleInstance:"false" acceptsEndpoints:"true"`
-	Network              string            `yaml:"network" default:"udp"`
-	RecordType           string            `yaml:"recordType" default:"NS"`
-	Domains              []string          `yaml:"domains"`
-	Servers              []string          `yaml:"servers" validate:"required"`
-	Port                 int               `yaml:"port" default:"53"`
-	Timeout              timeutil.Duration `yaml:"timeout" default:"2s"`
+	// Domains or subdomains to query. If this is not provided it will be
+	// `["."]` and `RecordType` will be forced to `NS`.
+	Domains []string `yaml:"domains"`
+	// Network is the network protocol name.
+	Network string `yaml:"network" default:"udp"`
+	// Dns server port.
+	Port int `yaml:"port" default:"53"`
+	// Servers to query.
+	Servers []string `yaml:"servers" validate:"required"`
+	// Query record type (A, AAAA, CNAME, MX, NS, PTR, TXT, SOA, SPF, SRV).
+	RecordType string `yaml:"recordType" default:"NS"`
+	// Query timeout. This should be a duration string that is accepted
+	// by https://golang.org/pkg/time/#ParseDuration.
+	Timeout timeutil.Duration `yaml:"timeout" default:"2s"`
 }
 
 // Monitor for Utilization
@@ -95,8 +103,8 @@ func (m *Monitor) Configure(conf *Config) (err error) {
 
 	// gather metrics on the specified interval
 	utils.RunOnInterval(ctx, func() {
-		if err := plugin.Gather(accumulator); err != nil {
-			m.logger.WithError(err).Errorf("an error occurred while gathering metrics")
+		if err2 := plugin.Gather(accumulator); err2 != nil {
+			m.logger.WithError(err2).Errorf("an error occurred while gathering metrics")
 		}
 	}, time.Duration(conf.IntervalSeconds)*time.Second)
 

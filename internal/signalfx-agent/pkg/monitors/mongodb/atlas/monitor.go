@@ -27,13 +27,23 @@ func init() {
 // Config for this monitor
 type Config struct {
 	config.MonitorConfig `yaml:",inline"`
-	ProjectID            string            `yaml:"projectID" validate:"required" `
-	PublicKey            string            `yaml:"publicKey" validate:"required" `
-	PrivateKey           string            `yaml:"privateKey" validate:"required" neverLog:"true"`
-	Granularity          string            `yaml:"granularity" default:"PT1M"`
-	Period               string            `yaml:"period" default:"PT20M"`
-	Timeout              timeutil.Duration `yaml:"timeout" default:"5s"`
-	EnableCache          bool              `yaml:"enableCache" default:"true"`
+	// ProjectID is the Atlas project ID.
+	ProjectID string `yaml:"projectID" validate:"required" `
+	// PublicKey is the Atlas public API key
+	PublicKey string `yaml:"publicKey" validate:"required" `
+	// PrivateKey is the Atlas private API key
+	PrivateKey string `yaml:"privateKey" validate:"required" neverLog:"true"`
+	// Timeout for HTTP requests to get MongoDB process measurements from Atlas.
+	// This should be a duration string that is accepted by https://golang.org/pkg/time/#ParseDuration
+	Timeout timeutil.Duration `yaml:"timeout" default:"5s"`
+	// EnableCache enables locally cached Atlas metric measurements to be used when true. The metric measurements that
+	// were supposed to be fetched are in fact always fetched asynchronously and cached.
+	EnableCache bool `yaml:"enableCache" default:"true"`
+	// Granularity is the duration in ISO 8601 notation that specifies the interval between measurement data points
+	// from Atlas over the configured period. The default is shortest duration supported by Atlas of 1 minute.
+	Granularity string `yaml:"granularity" default:"PT1M"`
+	// Period the duration in ISO 8601 notation that specifies how far back in the past to retrieve measurements from Atlas.
+	Period string `yaml:"period" default:"PT20M"`
 }
 
 // Monitor for MongoDB Atlas metrics
@@ -110,7 +120,7 @@ func (m *Monitor) Shutdown() {
 }
 
 func newDigestClient(publicKey, privateKey string) (*mongodbatlas.Client, error) {
-	//Setup a transport to handle digest
+	// Setup a transport to handle digest
 	transport := digest.NewTransport(publicKey, privateKey)
 
 	client, err := transport.Client()

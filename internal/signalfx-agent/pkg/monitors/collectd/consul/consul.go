@@ -22,21 +22,30 @@ func init() {
 
 // Config is the monitor-specific config with the generic config embedded
 type Config struct {
-	pyConf               *python.Config
-	EnhancedMetrics      *bool `yaml:"enhancedMetrics"`
 	config.MonitorConfig `yaml:",inline" acceptsEndpoints:"true"`
-	CACertificate        string `yaml:"caCertificate"`
 	python.CommonConfig  `yaml:",inline"`
+	pyConf               *python.Config
 	Host                 string `yaml:"host" validate:"required"`
-	SignalFxAccessToken  string `yaml:"signalFxAccessToken" neverLog:"true"`
-	ACLToken             string `yaml:"aclToken" neverLog:"true"`
-	ClientKey            string `yaml:"clientKey"`
-	ClientCertificate    string `yaml:"clientCertificate"`
-	TelemetryHost        string `yaml:"telemetryHost" default:"0.0.0.0"`
-	TelemetryPort        int    `yaml:"telemetryPort" default:"8125"`
 	Port                 uint16 `yaml:"port" validate:"required"`
-	TelemetryServer      bool   `yaml:"telemetryServer"`
-	UseHTTPS             bool   `yaml:"useHTTPS"`
+	// Consul ACL token
+	ACLToken string `yaml:"aclToken" neverLog:"true"`
+	// Set to `true` to connect to Consul using HTTPS.  You can figure the
+	// certificate for the server with the `caCertificate` config option.
+	UseHTTPS        bool `yaml:"useHTTPS"`
+	TelemetryServer bool `yaml:"telemetryServer"`
+	// IP address or DNS to which Consul is configured to send telemetry UDP packets. Relevant only if `telemetryServer` is set to true.
+	TelemetryHost string `yaml:"telemetryHost" default:"0.0.0.0"`
+	// Port to which Consul is configured to send telemetry UDP packets. Relevant only if `telemetryServer` is set to true.
+	TelemetryPort int `yaml:"telemetryPort" default:"8125"`
+	// Set to *true* to enable collecting all metrics from Consul's runtime telemetry send via UDP or from the `/agent/metrics` endpoint.
+	EnhancedMetrics *bool `yaml:"enhancedMetrics"`
+	// If Consul server has HTTPS enabled for the API, specifies the path to the CA's Certificate.
+	CACertificate string `yaml:"caCertificate"`
+	// If client-side authentication is enabled, specifies the path to the certificate file.
+	ClientCertificate string `yaml:"clientCertificate"`
+	// If client-side authentication is enabled, specifies the path to the key file.
+	ClientKey           string `yaml:"clientKey"`
+	SignalFxAccessToken string `yaml:"signalFxAccessToken" neverLog:"true"`
 }
 
 // GetExtraMetrics takes into account the EnhancedMetrics flag

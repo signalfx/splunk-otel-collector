@@ -25,15 +25,27 @@ type CustomConfig map[string]interface{}
 
 // Config specifies configurations that are specific to the individual Java based monitor
 type Config struct {
-	CustomConfig         `yaml:",inline" json:"-" neverLog:"true"`
 	config.MonitorConfig `yaml:",inline" acceptsEndpoints:"true"`
-	Host                 string   `yaml:"host" json:"host,omitempty"`
-	JarFilePath          string   `yaml:"jarFilePath" json:"jarFilePath"`
-	JavaBinary           string   `yaml:"javaBinary" json:"javaBinary"`
-	MainClass            string   `yaml:"mainClass" json:"mainClass"`
-	ClassPath            []string `yaml:"classPath" json:"classPath"`
-	ExtraJavaArgs        []string `yaml:"extraJavaArgs" json:"extraJavaArgs"`
-	Port                 uint16   `yaml:"port" json:"port,omitempty"`
+	// Host will be filled in by auto-discovery if this monitor has a discovery
+	// rule.
+	Host string `yaml:"host" json:"host,omitempty"`
+	// Port will be filled in by auto-discovery if this monitor has a discovery
+	// rule.
+	Port uint16 `yaml:"port" json:"port,omitempty"`
+	// Path to the .jar file that implements the monitoring logic.
+	JarFilePath string `yaml:"jarFilePath" json:"jarFilePath"`
+	// By default, the agent will use its bundled Java runtime (Java 8) If you
+	// wish to use a Java runtime that already exists on the system, specify
+	// the full path to the `java` binary here, e.g. `/usr/bin/java`.
+	JavaBinary string `yaml:"javaBinary" json:"javaBinary"`
+	// The class within the specified `jarFilePath` that contains a main method
+	// to execute.
+	MainClass string `yaml:"mainClass" json:"mainClass"`
+	// Additional class paths to set on the invoked Java subprocess.
+	ClassPath []string `yaml:"classPath" json:"classPath"`
+	// Additional flags to the Java subprocess
+	ExtraJavaArgs []string `yaml:"extraJavaArgs" json:"extraJavaArgs"`
+	CustomConfig  `yaml:",inline" json:"-" neverLog:"true"`
 }
 
 // MarshalJSON flattens out the CustomConfig provided by the user into a single
@@ -46,7 +58,7 @@ func (c Config) MarshalJSON() ([]byte, error) {
 	}
 
 	var m map[string]json.RawMessage
-	if err := json.Unmarshal(b, &m); err != nil {
+	if err = json.Unmarshal(b, &m); err != nil {
 		return nil, err
 	}
 

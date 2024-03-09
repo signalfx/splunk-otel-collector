@@ -32,18 +32,39 @@ func TelegrafToSFXMetricType(m telegraf.Metric) (datapoint.MetricType, string) {
 // BaseEmitter immediately converts a telegraf measurement into datapoints and
 // sends them through Output
 type BaseEmitter struct {
-	Output                     types.Output
-	Logger                     log.FieldLogger
-	omittedTags                map[string]bool
-	addTags                    map[string]string
-	included                   map[string]bool
-	excluded                   map[string]bool
-	nameMap                    map[string]string
-	metricNameTransformations  []func(metricName string) string
+	Output              types.Output
+	Logger              log.FieldLogger
+	OmitPluginDimension bool
+
+	// omittedTags are tags that should be removed from measurements before
+	// being processed
+	omittedTags map[string]bool
+	// addTags are tags that should be added to all measurements
+	addTags map[string]string
+	// Telegraf has some junk events so we exclude all events by default
+	// and can enable them as needed by using IncludeEvent(string) or
+	// IncludeEvents([]string).
+	// You should look up included metrics using Included(string)bool.
+	included map[string]bool
+	// excluded metrics and events that should not be emitted.
+	// You can add metrics and events to exclude by name using
+	// ExcludeDatum(string) and ExcludeData(string).  You should look up
+	// excluded events and metrics using Excluded(string)bool
+	excluded map[string]bool
+	// name map is a map of metric names to their desired metricname
+	// this is used for overriding metric names
+	nameMap map[string]string
+	// metricNameTransformations is an array of functions to apply to parsed metric name
+	// from a telegraf metric.
+	metricNameTransformations []func(metricName string) string
+	// measurementTransformations is an array of functions to apply to an incoming measurement
+	// before retrieving the metric name, checking for inclusion/exclusion, etc.
+	// Use great discretion with this.
 	measurementTransformations []func(telegraf.Metric) error
 	datapointTransformations   []func(*datapoint.Datapoint) error
-	OmitPluginDimension        bool
-	omitOriginalMetricType     bool
+	// whether to omit the "telegraf_type"
+	// dimension for documenting original metric type
+	omitOriginalMetricType bool
 }
 
 // AddTag adds a key/value pair to all measurement tags.  If a key conflicts

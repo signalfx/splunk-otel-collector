@@ -31,18 +31,29 @@ func init() {
 
 // Config for this monitor
 type Config struct {
-	config.MonitorConfig  `yaml:",inline" singleInstance:"false" acceptsEndpoints:"true"`
+	config.MonitorConfig `yaml:",inline" singleInstance:"false" acceptsEndpoints:"true"`
+	// Host/IP to monitor
+	Host string `yaml:"host"`
+	// Port of the HTTP server to monitor
+	Port uint16 `yaml:"port"`
+	// HTTP path to use in the test request
+	Path string `yaml:"path"`
+
 	httpclient.HTTPConfig `yaml:",inline"`
-	Host                  string   `yaml:"host"`
-	Path                  string   `yaml:"path"`
-	RequestBody           string   `yaml:"requestBody"`
-	Method                string   `yaml:"method" default:"GET"`
-	Regex                 string   `yaml:"regex"`
-	URLs                  []string `yaml:"urls"`
-	DesiredCode           int      `yaml:"desiredCode" default:"200"`
-	Port                  uint16   `yaml:"port"`
-	NoRedirects           bool     `yaml:"noRedirects" default:"false"`
-	AddRedirectURL        bool     `yaml:"addRedirectURL" default:"false"`
+	// Optional HTTP request body as string like '{"foo":"bar"}'
+	RequestBody string `yaml:"requestBody"`
+	// Do not follow redirect.
+	NoRedirects bool `yaml:"noRedirects" default:"false"`
+	// HTTP request method to use.
+	Method string `yaml:"method" default:"GET"`
+	// Deprecated: list of HTTP URLs to monitor. Use `host`/`port`/`useHTTPS`/`path` instead.
+	URLs []string `yaml:"urls"`
+	// Optional Regex to match on URL(s) response(s).
+	Regex string `yaml:"regex"`
+	// Desired code to match for URL(s) response(s).
+	DesiredCode int `yaml:"desiredCode" default:"200"`
+	// Add `redirect_url` dimension which could differ from `url` when redirection is followed.
+	AddRedirectURL bool `yaml:"addRedirectURL" default:"false"`
 }
 
 // Monitor that collect metrics
@@ -110,11 +121,11 @@ func (m *Monitor) Configure(conf *Config) (err error) {
 			dps, redirectURL, err := m.getHTTPStats(site, logger)
 			if err == nil {
 				if redirectURL.Scheme == "https" {
-					tlsDps, err := m.getTLSStats(redirectURL, logger)
-					if err == nil {
+					tlsDps, err2 := m.getTLSStats(redirectURL, logger)
+					if err2 == nil {
 						dps = append(dps, tlsDps...)
 					} else {
-						logger.WithError(err).Error("Failed gathering TLS stats")
+						logger.WithError(err2).Error("Failed gathering TLS stats")
 					}
 				}
 			} else {
@@ -218,8 +229,8 @@ func (m *Monitor) getTLSStats(site *url.URL, logger *logrus.Entry) (dps []*datap
 		MinVersion: tls.VersionTLS12,
 	}
 
-	if _, err := auth.TLSConfig(tlsCfg, m.conf.CACertPath, m.conf.ClientCertPath, m.conf.ClientKeyPath); err != nil {
-		return nil, err
+	if _, err2 := auth.TLSConfig(tlsCfg, m.conf.CACertPath, m.conf.ClientCertPath, m.conf.ClientKeyPath); err2 != nil {
+		return nil, err2
 	}
 
 	conn := tls.Client(ipConn, tlsCfg)
@@ -279,8 +290,9 @@ func (m *Monitor) getHTTPStats(site fmt.Stringer, logger *logrus.Entry) (dps []*
 				continue
 			}
 			if strings.EqualFold(key, "content-length") {
-				if contentLenght, err := strconv.Atoi(val); err == nil {
-					req.ContentLength = int64(contentLenght)
+				var contentLength int
+				if contentLength, err = strconv.Atoi(val); err == nil {
+					req.ContentLength = int64(contentLength)
 				}
 				continue
 			}

@@ -56,7 +56,7 @@ func formatVariable(s string) (string, error) {
 	// Convert various characters to . for strings.Title to operate on.
 	replace := strings.NewReplacer("_", ".", "-", ".", "<", ".", ">", ".", "/", ".", ":", ".")
 	str := replace.Replace(s)
-	str = strings.Title(str) // golint: SA1019
+	str = strings.Title(str) // nolint: staticcheck
 	str = strings.ReplaceAll(str, ".", "")
 
 	var word string

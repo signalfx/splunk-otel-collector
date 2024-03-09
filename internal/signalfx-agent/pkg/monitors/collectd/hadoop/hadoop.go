@@ -24,12 +24,15 @@ func init() {
 
 // Config is the monitor-specific config with the generic config embedded
 type Config struct {
-	pyConf               *python.Config
-	Verbose              *bool `yaml:"verbose"`
 	config.MonitorConfig `yaml:",inline" acceptsEndpoints:"true"`
 	python.CommonConfig  `yaml:",inline"`
-	Host                 string `yaml:"host" validate:"required"`
-	Port                 uint16 `yaml:"port" validate:"required"`
+	pyConf               *python.Config
+	// Resource Manager Hostname
+	Host string `yaml:"host" validate:"required"`
+	// Resource Manager Port
+	Port uint16 `yaml:"port" validate:"required"`
+	// Log verbose information about the plugin
+	Verbose *bool `yaml:"verbose"`
 }
 
 // PythonConfig returns the embedded python.Config struct from the interface

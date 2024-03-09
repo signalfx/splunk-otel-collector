@@ -27,15 +27,25 @@ func init() {
 // Config for this monitor
 type Config struct {
 	config.MonitorConfig `yaml:",inline" acceptsEndpoints:"false"`
-	WatchMethod          string   `yaml:"watchMethod" default:"poll"`
-	MeasurementName      string   `yaml:"measurementName"`
-	CustomPatterns       string   `yaml:"customPatterns"`
-	Timezone             string   `yaml:"timezone"`
-	Files                []string `yaml:"files" validate:"required"`
-	Patterns             []string `yaml:"patterns"`
-	NamedPatterns        []string `yaml:"namedPatterns"`
-	CustomPatternFiles   []string `yaml:"customPatternFiles"`
-	FromBeginning        bool     `yaml:"fromBeginning" default:"false"`
+	// Paths to files to be tailed
+	Files []string `yaml:"files" validate:"required"`
+	// Method for watching changes to files ("ionotify" or "poll")
+	WatchMethod string `yaml:"watchMethod" default:"poll"`
+	// Whether to start tailing from the beginning of the file
+	FromBeginning bool `yaml:"fromBeginning" default:"false"`
+	// Name of the measurement
+	MeasurementName string `yaml:"measurementName"`
+	// A list of patterns to match.
+	Patterns []string `yaml:"patterns"`
+	// A list of named grok patterns to match.
+	NamedPatterns []string `yaml:"namedPatterns"`
+	// Custom grok patterns. (`grok` only)
+	CustomPatterns string `yaml:"customPatterns"`
+	// List of paths to custom grok pattern files.
+	CustomPatternFiles []string `yaml:"customPatternFiles"`
+	// Specifies the timezone.  The default is UTC time.  Other options are `Local` for the
+	// local time on the machine, `UTC`, and `Canada/Eastern` (unix style timezones).
+	Timezone string `yaml:"timezone"`
 }
 
 // Monitor for Utilization

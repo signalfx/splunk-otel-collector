@@ -52,10 +52,10 @@ type Config struct {
 // about pods.
 type Monitor struct {
 	Output        types.Output
-	logger        log.FieldLogger
 	stopper       chan struct{}
-	whitelistSet  map[EventInclusionSpec]bool
 	sendAllEvents bool
+	whitelistSet  map[EventInclusionSpec]bool
+	logger        log.FieldLogger
 }
 
 // Configure the monitor and kick off event syncing

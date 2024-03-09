@@ -46,12 +46,24 @@ var distributionToMonitorType = map[KubernetesDistribution]string{
 
 // Config for the K8s monitor
 type Config struct {
-	KubernetesAPI              *kubernetes.APIConfig `yaml:"kubernetesAPI" default:"{}"`
-	config.MonitorConfig       `yaml:",inline"`
-	Namespace                  string   `yaml:"namespace"`
+	config.MonitorConfig `yaml:",inline"`
+	// If `true`, leader election is skipped and metrics are always reported.
+	AlwaysClusterReporter bool `yaml:"alwaysClusterReporter"`
+	// If specified, only resources within the given namespace will be
+	// monitored.  If omitted (blank) all supported resources across all
+	// namespaces will be monitored.
+	Namespace string `yaml:"namespace"`
+	// Config for the K8s API client
+	KubernetesAPI *kubernetes.APIConfig `yaml:"kubernetesAPI" default:"{}"`
+	// A list of node status condition types to report as metrics.  The metrics
+	// will be reported as datapoints of the form `kubernetes.node_<type_snake_cased>`
+	// with a value of `0` corresponding to "False", `1` to "True", and `-1`
+	// to "Unknown".
 	NodeConditionTypesToReport []string `yaml:"nodeConditionTypesToReport" default:"[\"Ready\"]"`
-	AlwaysClusterReporter      bool     `yaml:"alwaysClusterReporter"`
-	UpdatesForNodeDimension    bool     `yaml:"updatesForNodeDimension" default:"false"`
+	// If set to true, the `kubernetes_node` dimension, in addition to the `kubernetes_node_uid` dimension, will get
+	// properties about each respective node synced to it. Do not enable this, if node names in the cluster are
+	// reused (can lead to colliding or stale properties).
+	UpdatesForNodeDimension bool `yaml:"updatesForNodeDimension" default:"false"`
 }
 
 // Validate the k8s-specific config
@@ -70,14 +82,16 @@ func (c *Config) GetExtraMetrics() []string {
 // Monitor for K8s Cluster Metrics.  Also handles syncing certain properties
 // about pods.
 type Monitor struct {
-	Output         types.Output
-	logger         logrus.FieldLogger
-	config         *Config
+	config       *Config
+	distribution KubernetesDistribution
+	Output       types.Output
+	// Since most datapoints will stay the same or only slightly different
+	// across reporting intervals, reuse them
 	datapointCache *metrics.DatapointCache
 	dimHandler     *metrics.DimensionHandler
 	restConfig     *rest.Config
 	stop           chan struct{}
-	distribution   KubernetesDistribution
+	logger         logrus.FieldLogger
 }
 
 func init() {

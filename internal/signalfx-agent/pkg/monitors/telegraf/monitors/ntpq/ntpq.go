@@ -60,7 +60,7 @@ func (m *Monitor) Configure(conf *Config) (err error) {
 	ctx, m.cancel = context.WithCancel(context.Background())
 
 	utils.RunOnInterval(ctx, func() {
-		if err := plugin.Gather(accumulator); err != nil {
+		if err = plugin.Gather(accumulator); err != nil {
 			m.logger.WithError(err).Errorf("an error occurred while gathering metrics")
 		}
 	}, time.Duration(conf.IntervalSeconds)*time.Second)

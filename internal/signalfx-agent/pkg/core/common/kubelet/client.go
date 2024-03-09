@@ -76,10 +76,11 @@ func NewClient(kubeletAPI *APIConfig, logger log.FieldLogger) (*Client, error) {
 		tlsConfig.InsecureSkipVerify = *kubeletAPI.SkipVerify
 	}
 
-	var transport http.RoundTripper = &(*http.DefaultTransport.(*http.Transport))
+	var transport http.RoundTripper = http.DefaultTransport.(*http.Transport).Clone()
 	switch kubeletAPI.AuthType {
 	case AuthTypeTLS:
-		tlsConfig, err := auth.TLSConfig(tlsConfig, kubeletAPI.CACertPath, kubeletAPI.ClientCertPath, kubeletAPI.ClientKeyPath)
+		var err error
+		tlsConfig, err = auth.TLSConfig(tlsConfig, kubeletAPI.CACertPath, kubeletAPI.ClientCertPath, kubeletAPI.ClientKeyPath)
 
 		if err != nil {
 			return nil, err
@@ -93,14 +94,15 @@ func NewClient(kubeletAPI *APIConfig, logger log.FieldLogger) (*Client, error) {
 			return nil, err
 		}
 		tokenPath := "/var/run/secrets/kubernetes.io/serviceaccount/token" // nolint: gosec
-		token, err := os.ReadFile(tokenPath)
+		var token []byte
+		token, err = os.ReadFile(tokenPath)
 		if err != nil {
 			return nil, fmt.Errorf("could not read service account token at default location, are "+
 				"you sure service account tokens are mounted into your containers by default?: %w", err)
 		}
 
 		rootCAFile := "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
-		if err := auth.AugmentCertPoolFromCAFile(certs, rootCAFile); err != nil {
+		if err = auth.AugmentCertPoolFromCAFile(certs, rootCAFile); err != nil {
 			return nil, fmt.Errorf("could not load root CA config from %s: %w", rootCAFile, err)
 		}
 

@@ -84,9 +84,7 @@ func RunOnArrayOfIntervals(ctx context.Context, fn func(), intervals []time.Dura
 
 	// copy intervals
 	intvs := make([]time.Duration, len(intervals))
-	for i, interval := range intervals {
-		intvs[i] = interval
-	}
+	copy(intvs, intervals)
 
 	// set up index and last indice
 	index := 0

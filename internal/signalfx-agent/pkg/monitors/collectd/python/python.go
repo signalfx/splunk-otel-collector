@@ -57,14 +57,26 @@ type CommonConfig struct {
 
 // Config specifies configurations that are specific to the individual python based monitor
 type Config struct {
-	PluginConfig         map[string]interface{} `yaml:"pluginConfig" json:"pluginConfig" neverLog:"true"`
 	config.MonitorConfig `yaml:",inline" acceptsEndpoints:"true"`
 	CommonConfig         `yaml:",inline"`
-	Host                 string   `yaml:"host"`
-	ModuleName           string   `yaml:"moduleName" json:"moduleName"`
-	ModulePaths          []string `yaml:"modulePaths" json:"modulePaths"`
-	TypesDBPaths         []string `yaml:"typesDBPaths" json:"typesDBPaths"`
-	Port                 uint16   `yaml:"port"`
+	// Host will be filled in by auto-discovery if this monitor has a discovery
+	// rule.  It can then be used under pluginConfig by the template
+	// `{{.Host}}`
+	Host string `yaml:"host"`
+	// Port will be filled in by auto-discovery if this monitor has a discovery
+	// rule.  It can then be used under pluginConfig by the template
+	// `{{.Port}}`
+	Port uint16 `yaml:"port"`
+	// Corresponds to the ModuleName option in collectd-python
+	ModuleName string `yaml:"moduleName" json:"moduleName"`
+	// Corresponds to a set of ModulePath options in collectd-python
+	ModulePaths []string `yaml:"modulePaths" json:"modulePaths"`
+	// This is a yaml form of the collectd config.
+	PluginConfig map[string]interface{} `yaml:"pluginConfig" json:"pluginConfig" neverLog:"true"`
+	// A set of paths to [../types.db files](https://collectd.org/documentation/manpages/types.db.5.shtml)
+	// that are needed by your plugin.  If not specified, the runner will use
+	// the global collectd ../types.db file.
+	TypesDBPaths []string `yaml:"typesDBPaths" json:"typesDBPaths"`
 }
 
 // PythonConfig returns the embedded python.CoreConfig struct from the interface

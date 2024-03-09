@@ -24,15 +24,23 @@ func init() {
 
 // Config is the monitor-specific config with the generic config embedded
 type Config struct {
-	pyConf               *python.Config
+	// Make this single instance since we can't add dimensions
 	config.MonitorConfig `yaml:",inline" acceptsEndpoints:"true" singleInstance:"true"`
 	python.CommonConfig  `yaml:",inline"`
+	pyConf               *python.Config
 	Host                 string `yaml:"host" validate:"required"`
-	Username             string `yaml:"username"`
-	Password             string `yaml:"password" neverLog:"true"`
-	Scheme               string `yaml:"scheme" default:"http"`
-	DCOSAuthURL          string `yaml:"dcosAuthURL"`
 	Port                 uint16 `yaml:"port" validate:"required"`
+	// Username used to authenticate with Marathon.
+	Username string `yaml:"username"`
+	// Password used to authenticate with Marathon.
+	Password string `yaml:"password" neverLog:"true"`
+	// Set to either `http` or `https`.
+	Scheme string `yaml:"scheme" default:"http"`
+	// The dcos authentication URL which the plugin uses to get authentication
+	// tokens from. Set scheme to "https" if operating DC/OS in strict mode and
+	// dcosAuthURL to "https://leader.mesos/acs/api/v1/auth/login"
+	// (which is the default DNS entry provided by DC/OS)
+	DCOSAuthURL string `yaml:"dcosAuthURL"`
 }
 
 // PythonConfig returns the embedded python.Config struct from the interface

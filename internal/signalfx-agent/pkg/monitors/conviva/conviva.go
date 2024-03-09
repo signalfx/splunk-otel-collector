@@ -28,21 +28,24 @@ const (
 // Config for this monitor
 type Config struct {
 	config.MonitorConfig `yaml:",inline"`
-	Username             string          `yaml:"pulseUsername" validate:"required"`
-	Password             string          `yaml:"pulsePassword" validate:"required" neverLog:"true"`
-	MetricConfigs        []*metricConfig `yaml:"metricConfigs"`
-	TimeoutSeconds       int             `yaml:"timeoutSeconds" default:"10"`
+	// Conviva Pulse username required with each API request.
+	Username string `yaml:"pulseUsername" validate:"required"`
+	// Conviva Pulse password required with each API request.
+	Password       string `yaml:"pulsePassword" validate:"required" neverLog:"true"`
+	TimeoutSeconds int    `yaml:"timeoutSeconds" default:"10"`
+	// Conviva metrics to fetch. The default is quality_metriclens metric with the "All Traffic" filter applied and all quality_metriclens dimensions.
+	MetricConfigs []*metricConfig `yaml:"metricConfigs"`
 }
 
 // Monitor for conviva metrics
 // This monitor does not implement GetExtraMetrics() in order to get configured extra metrics to allow through because all metrics are included/allowed.
 type Monitor struct {
 	Output  types.FilteringOutput
+	cancel  context.CancelFunc
 	ctx     context.Context
 	client  httpClient
-	logger  logrus.FieldLogger
-	cancel  context.CancelFunc
 	timeout time.Duration
+	logger  logrus.FieldLogger
 }
 
 func init() {
@@ -259,7 +262,6 @@ func simpleSeriesDatapoints(metricName string, metricValues []float64, timestamp
 }
 
 func tableDatapoints(metricNames []string, dimension string, rows [][]float64, xvalues []string, timestamp time.Time, accountName string, filterName string) (dps *[]*datapoint.Datapoint) {
-	//dps := make([]*datapoint.Datapoint, 0)
 	if len(rows) > 0 {
 		dps = &[]*datapoint.Datapoint{}
 		for rowIndex, row := range rows {

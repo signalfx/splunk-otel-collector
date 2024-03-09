@@ -11,17 +11,17 @@ import (
 // into the internals of the manager.
 
 type Config struct {
-	config.MonitorConfig
 	MyVar   string `yaml:"myVar"`
 	MySlice []string
+	config.MonitorConfig
 }
 
 type DynamicConfig struct {
-	config.MonitorConfig `acceptsEndpoints:"true"`
 	Host                 string `yaml:"host" validate:"required"`
 	Name                 string `yaml:"name"`
 	MyVar                string `yaml:"myVar"`
 	Password             string `yaml:"password"`
+	config.MonitorConfig `acceptsEndpoints:"true"`
 	Port                 uint16 `yaml:"port" validate:"required"`
 }
 

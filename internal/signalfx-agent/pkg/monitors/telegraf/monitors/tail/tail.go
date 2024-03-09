@@ -28,13 +28,19 @@ func init() {
 
 // Config for this monitor
 type Config struct {
-	parser               telegrafParsers.Parser
-	TelegrafParser       *parser.Config `yaml:"telegrafParser"`
 	config.MonitorConfig `yaml:",inline" acceptsEndpoints:"false"`
-	WatchMethod          string   `yaml:"watchMethod" default:"poll"`
-	Files                []string `yaml:"files" validate:"required"`
-	Pipe                 bool     `yaml:"pipe" default:"false"`
-	FromBeginning        bool     `yaml:"fromBeginning" default:"false"`
+	// Paths to files to be tailed
+	Files []string `yaml:"files" validate:"required"`
+	// Method for watching changes to files ("ionotify" or "poll")
+	WatchMethod string `yaml:"watchMethod" default:"poll"`
+	// Indicates if the file is a named pipe
+	Pipe bool `yaml:"pipe" default:"false"`
+	// Whether to start tailing from the beginning of the file
+	FromBeginning bool `yaml:"fromBeginning" default:"false"`
+	// telegrafParser is a nested object that defines configurations for a Telegraf parser.
+	// Please refer to the Telegraf documentation for more information on Telegraf parsers.
+	TelegrafParser *parser.Config `yaml:"telegrafParser"`
+	parser         telegrafParsers.Parser
 }
 
 // Monitor for Utilization

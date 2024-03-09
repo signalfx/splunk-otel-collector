@@ -27,9 +27,11 @@ func init() {
 
 // Config for this monitor
 type Config struct {
-	KubernetesAPI        *kubernetes.APIConfig `yaml:"kubernetesAPI" default:"{}"`
 	config.MonitorConfig `yaml:",inline"`
-	KubeletAPI           kubelet.APIConfig `yaml:"kubeletAPI" default:""`
+	// Kubelet kubeletClient configuration
+	KubeletAPI kubelet.APIConfig `yaml:"kubeletAPI" default:""`
+	// Configuration of the Kubernetes API kubeletClient
+	KubernetesAPI *kubernetes.APIConfig `yaml:"kubernetesAPI" default:"{}"`
 }
 
 // Monitor for K8s volume metrics as reported by kubelet

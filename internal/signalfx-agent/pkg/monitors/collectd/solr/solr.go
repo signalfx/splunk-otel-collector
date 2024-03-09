@@ -20,15 +20,19 @@ func init() {
 
 // Config is the monitor-specific config with the generic config embedded
 type Config struct {
-	pyConf               *python.Config
-	EnhancedMetrics      *bool `yaml:"enhancedMetrics" default:"false"`
 	config.MonitorConfig `yaml:",inline" acceptsEndpoints:"true"`
 	python.CommonConfig  `yaml:",inline"`
-	Host                 string   `yaml:"host" validate:"required"`
-	Cluster              string   `yaml:"cluster"`
-	IncludeMetrics       []string `yaml:"includeMetrics"`
-	ExcludeMetrics       []string `yaml:"excludeMetrics"`
-	Port                 uint16   `yaml:"port" validate:"required"`
+	pyConf               *python.Config
+	Host                 string `yaml:"host" validate:"required"`
+	Port                 uint16 `yaml:"port" validate:"required"`
+	// Cluster name of this solr cluster.
+	Cluster string `yaml:"cluster"`
+	// EnhancedMetrics boolean to indicate whether stats from /metrics are needed
+	EnhancedMetrics *bool `yaml:"enhancedMetrics" default:"false"`
+	// IncludeMetrics metric names from the /admin/metrics endpoint to include (valid when EnhancedMetrics is "false")
+	IncludeMetrics []string `yaml:"includeMetrics"`
+	// ExcludeMetrics metric names from the /admin/metrics endpoint to exclude (valid when EnhancedMetrics is "true")
+	ExcludeMetrics []string `yaml:"excludeMetrics"`
 }
 
 func (c *Config) GetExtraMetrics() []string {

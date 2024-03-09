@@ -31,13 +31,25 @@ type PyConfig interface {
 
 // Config specifies configurations that are specific to the individual python based monitor
 type Config struct {
-	config.AdditionalConfig `yaml:",inline" json:"-" neverLog:"true"`
-	config.MonitorConfig    `yaml:",inline" acceptsEndpoints:"true"`
-	Host                    string   `yaml:"host" json:"host,omitempty"`
-	ScriptFilePath          string   `yaml:"scriptFilePath" json:"scriptFilePath"`
-	PythonBinary            string   `yaml:"pythonBinary" json:"pythonBinary"`
+	config.MonitorConfig `yaml:",inline" acceptsEndpoints:"true"`
+	// Host will be filled in by auto-discovery if this monitor has a discovery
+	// rule.
+	Host string `yaml:"host" json:"host,omitempty"`
+	// Port will be filled in by auto-discovery if this monitor has a discovery
+	// rule.
+	Port uint16 `yaml:"port" json:"port,omitempty"`
+	// Path to the Python script that implements the monitoring logic.
+	ScriptFilePath string `yaml:"scriptFilePath" json:"scriptFilePath"`
+	// By default, the agent will use its bundled Python runtime (version 2.7).
+	// If you wish to use a Python runtime that already exists on the system,
+	// specify the full path to the `python` binary here, e.g.
+	// `/usr/bin/python3`.
+	PythonBinary string `yaml:"pythonBinary" json:"pythonBinary"`
+	// The PYTHONPATH that will be used when importing the script specified at
+	// `scriptFilePath`.  The directory of `scriptFilePath` will always be
+	// included in the path.
 	PythonPath              []string `yaml:"pythonPath" json:"pythonPath"`
-	Port                    uint16   `yaml:"port" json:"port,omitempty"`
+	config.AdditionalConfig `yaml:",inline" json:"-" neverLog:"true"`
 }
 
 // MarshalJSON flattens out the CustomConfig provided by the user into a single
@@ -50,7 +62,7 @@ func (c Config) MarshalJSON() ([]byte, error) {
 	}
 
 	var m map[string]json.RawMessage
-	if err := json.Unmarshal(b, &m); err != nil {
+	if err = json.Unmarshal(b, &m); err != nil {
 		return nil, err
 	}
 

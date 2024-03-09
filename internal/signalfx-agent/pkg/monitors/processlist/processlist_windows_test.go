@@ -22,11 +22,12 @@ func TestProcessList(t *testing.T) {
 	waitingProcesses := []*TopProcess{}
 	unknownStatusProcesses := []*TopProcess{}
 	for _, p := range processList {
-		if p.Status == "R" {
+		switch p.Status {
+		case "R":
 			runningProcesses = append(runningProcesses, p)
-		} else if p.Status == "S" {
+		case "S":
 			waitingProcesses = append(waitingProcesses, p)
-		} else {
+		default:
 			unknownStatusProcesses = append(unknownStatusProcesses, p)
 		}
 	}

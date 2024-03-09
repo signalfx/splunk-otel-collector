@@ -3,7 +3,7 @@ package expvar
 import (
 	"context"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -141,7 +141,7 @@ func (m *Monitor) fetchObj(url url.URL) (map[string]interface{}, error) {
 	defer func() {
 		_ = resp.Body.Close()
 	}()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}

@@ -3,7 +3,6 @@ package spark
 import (
 	"errors"
 	"fmt"
-	"strconv"
 
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd"
 
@@ -35,13 +34,17 @@ func init() {
 
 // Config is the monitor-specific config with the generic config embedded
 type Config struct {
-	pyConf                    *python.Config
-	config.MonitorConfig      `yaml:",inline" acceptsEndpoints:"true"`
-	python.CommonConfig       `yaml:",inline"`
-	Host                      string           `yaml:"host" validate:"required"`
+	config.MonitorConfig `yaml:",inline" acceptsEndpoints:"true"`
+	python.CommonConfig  `yaml:",inline"`
+	pyConf               *python.Config
+	Host                 string `yaml:"host" validate:"required"`
+	Port                 uint16 `yaml:"port" validate:"required"`
+	// Set to `true` when monitoring a master Spark node
+	IsMaster bool `yaml:"isMaster" default:"false"`
+	// Should be one of `Standalone` or `Mesos` or `Yarn`.  Cluster metrics will
+	// not be collected on Yarn.  Please use the collectd/hadoop monitor to gain
+	// insights to your cluster's health.
 	ClusterType               sparkClusterType `yaml:"clusterType" validate:"required"`
-	Port                      uint16           `yaml:"port" validate:"required"`
-	IsMaster                  bool             `yaml:"isMaster" default:"false"`
 	CollectApplicationMetrics bool             `yaml:"collectApplicationMetrics"`
 	EnhancedMetrics           bool             `yaml:"enhancedMetrics"`
 }
@@ -79,6 +82,14 @@ type Monitor struct {
 	python.PyMonitor
 }
 
+// formatCapitalizedBool returns "True" or "False" according to the value of b.
+func formatCapitalizedBool(b bool) string {
+	if b {
+		return "True"
+	}
+	return "False"
+}
+
 // Configure configures and runs the plugin in python
 func (m *Monitor) Configure(conf *Config) error {
 	conf.pyConf = &python.Config{
@@ -93,8 +104,8 @@ func (m *Monitor) Configure(conf *Config) error {
 			"Port":    conf.Port,
 			"Cluster": string(conf.ClusterType),
 			// Format as bools to work around subproc and collectd config type differences.
-			"Applications":    strconv.FormatCapitalizedBool(conf.CollectApplicationMetrics),
-			"EnhancedMetrics": strconv.FormatCapitalizedBool(conf.EnhancedMetrics),
+			"Applications":    formatCapitalizedBool(conf.CollectApplicationMetrics),
+			"EnhancedMetrics": formatCapitalizedBool(conf.EnhancedMetrics),
 		},
 	}
 

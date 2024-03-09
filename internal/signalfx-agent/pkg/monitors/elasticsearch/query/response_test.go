@@ -2,7 +2,7 @@ package query
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"os"
 	"reflect"
 	"testing"
 
@@ -1084,7 +1084,7 @@ func getAggregationTestContexts(responseFilePaths []string, expected []HTTPRespo
 }
 
 func loadJSON(filePath string) ([]byte, error) {
-	return ioutil.ReadFile(filePath)
+	return os.ReadFile(filePath)
 }
 
 func newInt64(num int64) *int64 {

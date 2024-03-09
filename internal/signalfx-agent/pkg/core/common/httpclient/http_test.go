@@ -3,7 +3,8 @@ package httpclient
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"io/ioutil"
+	"errors"
+	"io"
 	"net"
 	"net/http"
 	"net/url"
@@ -19,7 +20,6 @@ import (
 )
 
 func runServer(t *testing.T, h *HTTPConfig, cb func(host string)) {
-	var err error
 	req := require.New(t)
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
@@ -60,8 +60,8 @@ func runServer(t *testing.T, h *HTTPConfig, cb func(host string)) {
 	serveReturn := make(chan error)
 	defer func() {
 		server.Close()
-		err := <-serveReturn
-		if err != nil && err != http.ErrServerClosed {
+		err = <-serveReturn
+		if err != nil && !errors.Is(http.ErrServerClosed, err) {
 			t.Fatalf("failed stopping server: %s", err)
 		}
 	}()
@@ -107,7 +107,7 @@ func verify(t *testing.T, h *HTTPConfig) func(host string) {
 		}()
 		req.Equal(http.StatusOK, resp.StatusCode)
 
-		data, err := ioutil.ReadAll(resp.Body)
+		data, err := io.ReadAll(resp.Body)
 		req.NoError(err)
 
 		req.Equal("http body", string(data))
@@ -167,8 +167,8 @@ func TestHttpConfig_Scheme(t *testing.T) {
 		want   string
 		fields fields
 	}{
-		{"https enabled", fields{UseHTTPS: true}, "https"},
-		{"https disabled", fields{UseHTTPS: false}, "http"},
+		{name: "https enabled", fields: fields{UseHTTPS: true}, want: "https"},
+		{name: "https disabled", fields: fields{UseHTTPS: false}, want: "http"},
 	}
 	for i := range tests {
 		tt := tests[i]

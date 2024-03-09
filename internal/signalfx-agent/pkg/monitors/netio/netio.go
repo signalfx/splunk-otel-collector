@@ -23,10 +23,8 @@ func init() {
 
 // Config for this monitor
 type Config struct {
+	Interfaces           []string `yaml:"interfaces" default:"[\"*\", \"!/^lo\\\\d*$/\", \"!/^docker.*/\", \"!/^t(un|ap)\\\\d*$/\", \"!/^veth.*$/\", \"!/^Loopback*/\"]"`
 	config.MonitorConfig `yaml:",inline" singleInstance:"false" acceptsEndpoints:"false"`
-	// The network interfaces to send metrics about. This is an [overridable
-	// set](https://docs.splunk.com/observability/gdi/smart-agent/smart-agent-resources.html#filtering-data-using-the-smart-agent).
-	Interfaces []string `yaml:"interfaces" default:"[\"*\", \"!/^lo\\\\d*$/\", \"!/^docker.*/\", \"!/^t(un|ap)\\\\d*$/\", \"!/^veth.*$/\", \"!/^Loopback*/\"]"`
 }
 
 // structure for storing sent and received values

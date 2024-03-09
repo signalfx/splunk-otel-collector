@@ -15,17 +15,24 @@ func metricLensMetrics() map[string][]string {
 
 // metricConfig for configuring individual metric
 type metricConfig struct {
-	filtersMap                  map[string]string
-	metricLensDimensionMap      map[string]float64
-	Account                     string `yaml:"account"`
-	MetricParameter             string `yaml:"metricParameter" default:"quality_metriclens"`
-	accountID                   string
-	Filters                     []string `yaml:"filters"`
-	MetricLensDimensions        []string `yaml:"metricLensDimensions"`
+	// Conviva customer account name. The default account is fetched used if not specified.
+	Account         string `yaml:"account"`
+	MetricParameter string `yaml:"metricParameter" default:"quality_metriclens"`
+	// Filter names. The default is `All Traffic` filter
+	Filters []string `yaml:"filters"`
+	// MetricLens dimension names. The default is names of all MetricLens dimensions of the account
+	MetricLensDimensions []string `yaml:"metricLensDimensions"`
+	// MetricLens dimension names to exclude.
 	ExcludeMetricLensDimensions []string `yaml:"excludeMetricLensDimensions"`
-	MaxFiltersPerRequest        int      `yaml:"maxFiltersPerRequest"`
-	mutex                       sync.RWMutex
-	isInitialized               bool
+	// Max number of filters per request. The default is the number of filters. Multiple requests are made if the number of filters is more than maxFiltersPerRequest
+	MaxFiltersPerRequest int `yaml:"maxFiltersPerRequest"`
+	accountID            string
+	// id:name map of filters derived from the configured Filters
+	filtersMap map[string]string
+	// name:id map of MetricLens dimensions derived from configured MetricLensDimensions
+	metricLensDimensionMap map[string]float64
+	isInitialized          bool
+	mutex                  sync.RWMutex
 }
 
 func (mc *metricConfig) filterName(filterID string) string {
@@ -131,7 +138,7 @@ func (mc *metricConfig) setMetricLensDimensions(service accountsService) error {
 		} else {
 			mc.metricLensDimensionMap = make(map[string]float64, len(mc.MetricLensDimensions))
 			for i, name := range mc.MetricLensDimensions {
-				name := strings.TrimSpace(name)
+				name = strings.TrimSpace(name)
 				if id, err := service.getMetricLensDimensionID(mc.Account, name); err == nil {
 					mc.MetricLensDimensions[i] = name
 					mc.metricLensDimensionMap[name] = id
@@ -146,7 +153,7 @@ func (mc *metricConfig) setMetricLensDimensions(service accountsService) error {
 
 func (mc *metricConfig) excludeMetricLensDimensions(service accountsService) error {
 	for _, excludeName := range mc.ExcludeMetricLensDimensions {
-		excludeName := strings.TrimSpace(excludeName)
+		excludeName = strings.TrimSpace(excludeName)
 		if _, err := service.getMetricLensDimensionID(mc.Account, excludeName); err == nil {
 			delete(mc.metricLensDimensionMap, excludeName)
 		} else {

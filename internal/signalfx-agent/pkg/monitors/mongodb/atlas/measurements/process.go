@@ -56,10 +56,10 @@ func (getter *processesGetter) GetProcesses(ctx context.Context, timeout time.Du
 	go func() {
 		defer wg.Done()
 
-		ctx, cancel := context.WithTimeout(ctx, timeout)
+		cctx, cancel := context.WithTimeout(ctx, timeout)
 		defer cancel()
 
-		processes = getter.getProcessesHelper(ctx, 1)
+		processes = getter.getProcessesHelper(cctx, 1)
 
 		if getter.enableCache {
 			getter.processesCache.Store(processes)
@@ -123,10 +123,10 @@ func (getter *processesGetter) GetMeasurements(ctx context.Context, timeout time
 			go func(process Process) {
 				defer wg2.Done()
 
-				ctx, cancel := context.WithTimeout(ctx, timeout)
+				cctx, cancel := context.WithTimeout(ctx, timeout)
 				defer cancel()
 
-				getter.setMeasurements(ctx, process, processesMeasurements, 1)
+				getter.setMeasurements(cctx, process, processesMeasurements, 1)
 			}(process)
 		}
 		wg2.Wait()
@@ -152,7 +152,8 @@ func (getter *processesGetter) setMeasurements(ctx context.Context, process Proc
 
 	list, resp, err := getter.client.ProcessMeasurements.List(ctx, getter.projectID, process.Host, process.Port, opts)
 
-	if msg, err := errorMsg(err, resp); err != nil {
+	var msg string
+	if msg, err = errorMsg(err, resp); err != nil {
 		getter.logger.WithError(err).Errorf(msg, "process measurements", getter.projectID, process.Host, process.Port)
 		return
 	}

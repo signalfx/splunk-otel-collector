@@ -12,16 +12,39 @@ import (
 
 // HTTPConfig can be embedded inside a monitor config.
 type HTTPConfig struct {
-	HTTPHeaders    map[string]string `yaml:"httpHeaders,omitempty"`
-	Username       string            `yaml:"username"`
-	Password       string            `yaml:"password" neverLog:"true"`
-	SNIServerName  string            `yaml:"sniServerName"`
-	CACertPath     string            `yaml:"caCertPath"`
-	ClientCertPath string            `yaml:"clientCertPath"`
-	ClientKeyPath  string            `yaml:"clientKeyPath"`
-	HTTPTimeout    timeutil.Duration `yaml:"httpTimeout" default:"10s"`
-	UseHTTPS       bool              `yaml:"useHTTPS"`
-	SkipVerify     bool              `yaml:"skipVerify"`
+	// HTTP timeout duration for both read and writes. This should be a
+	// duration string that is accepted by https://golang.org/pkg/time/#ParseDuration
+	HTTPTimeout timeutil.Duration `yaml:"httpTimeout" default:"10s"`
+
+	// Basic Auth username to use on each request, if any.
+	Username string `yaml:"username"`
+	// Basic Auth password to use on each request, if any.
+	Password string `yaml:"password" neverLog:"true"`
+
+	// If true, the agent will connect to the server using HTTPS instead of plain HTTP.
+	UseHTTPS bool `yaml:"useHTTPS"`
+
+	// A map of HTTP header names to values. Comma separated multiple values
+	// for the same message-header is supported.
+	HTTPHeaders map[string]string `yaml:"httpHeaders,omitempty"`
+
+	// If useHTTPS is true and this option is also true, the exporter's TLS
+	// cert will not be verified.
+	SkipVerify bool `yaml:"skipVerify"`
+
+	// If useHTTPS is true and skipVerify is true, the sniServerName is used
+	// to verify the hostname on the returned certificates.
+	// It is also included in the client's handshake to support virtual hosting
+	// unless it is an IP address.
+	SNIServerName string `yaml:"sniServerName"`
+
+	// Path to the CA cert that has signed the TLS cert, unnecessary
+	// if `skipVerify` is set to false.
+	CACertPath string `yaml:"caCertPath"`
+	// Path to the client TLS cert to use for TLS required connections
+	ClientCertPath string `yaml:"clientCertPath"`
+	// Path to the client TLS key to use for TLS required connections
+	ClientKeyPath string `yaml:"clientKeyPath"`
 }
 
 // Scheme returns https if enabled, otherwise http

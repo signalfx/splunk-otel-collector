@@ -57,11 +57,26 @@ func (ks *KubeletStatsMonitor) Configure(conf *KubeletStatsConfig) error {
 }
 
 type statsRequest struct {
-	Start         time.Time `json:"start,omitempty"`
-	End           time.Time `json:"end,omitempty"`
-	ContainerName string    `json:"containerName,omitempty"`
-	NumStats      int       `json:"num_stats,omitempty"`
-	Subcontainers bool      `json:"subcontainers,omitempty"`
+	// The name of the container for which to request stats.
+	// Default: /
+	ContainerName string `json:"containerName,omitempty"`
+
+	// Max number of stats to return.
+	// If start and end time are specified this limit is ignored.
+	// Default: 60
+	NumStats int `json:"num_stats,omitempty"`
+
+	// Start time for which to query information.
+	// If omitted, the beginning of time is assumed.
+	Start time.Time `json:"start,omitempty"`
+
+	// End time for which to query information.
+	// If omitted, current time is assumed.
+	End time.Time `json:"end,omitempty"`
+
+	// Whether to also include information from subcontainers.
+	// Default: false.
+	Subcontainers bool `json:"subcontainers,omitempty"`
 }
 
 type kubeletInfoProvider struct {

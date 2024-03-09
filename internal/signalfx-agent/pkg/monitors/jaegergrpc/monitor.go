@@ -49,8 +49,8 @@ func (tls *TLSCreds) Credentials() (credentials.TransportCredentials, error) {
 // Config for this monitor
 type Config struct {
 	TLS                  *TLSCreds `yaml:"tls,omitempty"`
+	ListenAddress        string    `yaml:"listenAddress" default:"0.0.0.0:14250"`
 	config.MonitorConfig `yaml:",inline" acceptsEndpoints:"false" singleInstance:"true"`
-	ListenAddress        string `yaml:"listenAddress" default:"0.0.0.0:14250"`
 }
 
 // Monitor that accepts and forwards SignalFx data

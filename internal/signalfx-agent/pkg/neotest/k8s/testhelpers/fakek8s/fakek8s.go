@@ -3,7 +3,7 @@ package fakek8s
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -28,16 +28,21 @@ type resourceName string
 // FakeK8s is a mock K8s API server.  It can serve both list and watch
 // requests.
 type FakeK8s struct {
-	router        http.Handler
-	server        *httptest.Server
-	resources     map[resourceKind]map[string]map[resourceName]runtime.Object
-	eventInput    chan watch.Event
+	sync.RWMutex
+	server *httptest.Server
+	router http.Handler
+	// Resources that have been inserted on the ResourceInput channel
+	resources  map[resourceKind]map[string]map[resourceName]runtime.Object
+	eventInput chan watch.Event
+	// Channels to send new resources to watchers (we only support one watcher
+	// per resource)
 	subs          map[resourceKind]chan watch.Event
 	pendingEvents map[resourceKind][]watch.Event
-	eventStopper  chan struct{}
-	stoppers      map[resourceKind]chan struct{}
-	sync.RWMutex
-	subsMutex sync.Mutex
+	subsMutex     sync.Mutex
+	// Stops the resource accepter goroutine
+	eventStopper chan struct{}
+	// Stops all of the watchers
+	stoppers map[resourceKind]chan struct{}
 }
 
 // NewFakeK8s makes a new FakeK8s
@@ -106,7 +111,6 @@ func (f *FakeK8s) Close() {
 	}
 
 	f.server.Listener.Close()
-	//f.server.Close()
 
 }
 
@@ -167,7 +171,7 @@ func (f *FakeK8s) addToResources(resKind resourceKind, namespace string, name st
 }
 
 func (f *FakeK8s) handleCreateOrReplaceResource(_ http.ResponseWriter, r *http.Request) {
-	content, err := ioutil.ReadAll(r.Body)
+	content, err := io.ReadAll(r.Body)
 	r.Body.Close()
 	if err != nil {
 		panic("Got bad request")

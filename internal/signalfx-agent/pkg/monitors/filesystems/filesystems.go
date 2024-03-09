@@ -54,13 +54,13 @@ type Config struct {
 // Monitor for Utilization
 type Monitor struct {
 	Output            types.FilteringOutput
-	logger            log.FieldLogger
 	cancel            func()
 	conf              *Config
+	hostFSPath        string
 	fsTypes           *filter.OverridableStringFilter
 	mountPoints       *filter.OverridableStringFilter
-	hostFSPath        string
 	sendModeDimension bool
+	logger            log.FieldLogger
 }
 
 // returns common dimensions map for every filesystem
@@ -175,9 +175,9 @@ func (m *Monitor) emitDatapoints() {
 		}
 
 		// if we can't collect usage stats about the mountpoint then skip it
-		disk, err := getUsage(m.hostFSPath, partition.Mountpoint)
-		if err != nil {
-			m.logger.WithError(err).WithField("mountpoint", partition.Mountpoint).Debug("failed to collect usage for mountpoint")
+		disk, err2 := getUsage(m.hostFSPath, partition.Mountpoint)
+		if err2 != nil {
+			m.logger.WithError(err2).WithField("mountpoint", partition.Mountpoint).Debug("failed to collect usage for mountpoint")
 			continue
 		}
 

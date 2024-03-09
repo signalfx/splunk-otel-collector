@@ -26,18 +26,29 @@ func init() {
 
 // Config is the monitor-specific config with the generic config embedded
 type Config struct {
-	JSONVal              interface{} `yaml:"jsonVal"`
-	pyConf               *python.Config
 	config.MonitorConfig `yaml:",inline" acceptsEndpoints:"true"`
 	python.CommonConfig  `yaml:",inline"`
+	pyConf               *python.Config
 	Host                 string `yaml:"host" validate:"required"`
-	Name                 string `yaml:"name"`
-	Path                 string `yaml:"path" default:"/"`
-	JSONKey              string `yaml:"jsonKey"`
 	Port                 uint16 `yaml:"port" validate:"required"`
-	UseHTTPS             bool   `yaml:"useHTTPS"`
-	SkipSecurity         bool   `yaml:"skipSecurity"`
-	TCPCheck             bool   `yaml:"tcpCheck"`
+	Name                 string `yaml:"name"`
+	// The HTTP path that contains a JSON document to verify
+	Path string `yaml:"path" default:"/"`
+	// If `jsonKey` and `jsonVal` are given, the given endpoint will be
+	// interpreted as a JSON document and will be expected to contain the given
+	// key and value for the service to be considered healthy.
+	JSONKey string `yaml:"jsonKey"`
+	// This can be either a string or numeric type
+	JSONVal interface{} `yaml:"jsonVal"`
+	// If true, the endpoint will be connected to on HTTPS instead of plain
+	// HTTP.  It is invalid to specify this if `tcpCheck` is true.
+	UseHTTPS bool `yaml:"useHTTPS"`
+	// If true, and `useHTTPS` is true, the server's SSL/TLS cert will not be
+	// verified.
+	SkipSecurity bool `yaml:"skipSecurity"`
+	// If true, the plugin will verify that it can connect to the given
+	// host/port value. JSON checking is not supported.
+	TCPCheck bool `yaml:"tcpCheck"`
 }
 
 // PythonConfig returns the embedded python.Config struct from the interface

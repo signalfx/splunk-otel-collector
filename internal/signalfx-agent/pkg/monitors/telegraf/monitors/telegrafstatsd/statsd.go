@@ -26,21 +26,44 @@ func init() {
 
 // Config for this monitor
 type Config struct {
-	config.MonitorConfig   `yaml:",inline" acceptsEndpoints:"false"`
-	Protocol               string   `yaml:"protocol" default:"udp"`
-	ServiceAddress         string   `yaml:"serviceAddress" default:":8125"`
-	MetricSeparator        string   `yaml:"metricSeparator" default:"_"`
-	Percentiles            []int    `yaml:"percentiles"`
-	Templates              []string `yaml:"templates"`
-	MaxTCPConnections      int      `yaml:"maxTCPConnections" default:"250"`
-	AllowedPendingMessages int      `yaml:"allowedPendingMessages" default:"10000"`
-	PercentileLimit        int      `yaml:"percentileLimit" default:"1000"`
-	DeleteSets             bool     `yaml:"deleteSets" default:"true"`
-	DeleteTimings          bool     `yaml:"deleteTimings" default:"true"`
-	DeleteCounters         bool     `yaml:"deleteCounters" default:"true"`
-	DeleteGauges           bool     `yaml:"deleteGauges" default:"true"`
-	TCPKeepAlive           bool     `yaml:"TCPKeepAlive" default:"false"`
-	ParseDataDogTags       bool     `yaml:"parseDataDogTags" default:"false"`
+	config.MonitorConfig `yaml:",inline" acceptsEndpoints:"false"`
+	// Protocol to use with the listener: `tcp`, `udp4`, `udp6`, or `udp`.
+	Protocol string `yaml:"protocol" default:"udp"`
+	// The address and port to serve from
+	ServiceAddress string `yaml:"serviceAddress" default:":8125"`
+	// Maximum number of tcp connections allowed.
+	MaxTCPConnections int `yaml:"maxTCPConnections" default:"250"`
+	// Indicates whether to keep the tcp connection alive.
+	TCPKeepAlive bool `yaml:"TCPKeepAlive" default:"false"`
+	// Whether to clear the gauge cache every interval.  Setting this to false means the cache
+	// will only be cleared when the monitor is restarted.
+	DeleteGauges bool `yaml:"deleteGauges" default:"true"`
+	// Whether to clear the counter cache every interval.  Setting this to false means the cache
+	// will only be cleared when the monitor is restarted.
+	DeleteCounters bool `yaml:"deleteCounters" default:"true"`
+	// Whether to clear the sets cache every interval.  Setting this to false means the cache
+	// will only be cleared when the monitor is restarted.
+	DeleteSets bool `yaml:"deleteSets" default:"true"`
+	// Whether to clear the timings cache every interval.  Setting this to false means the cache
+	// will only be cleared when the monitor is restarted.
+	DeleteTimings bool `yaml:"deleteTimings" default:"true"`
+	// The percentiles that are collected for timing and histogram stats.
+	Percentiles []int `yaml:"percentiles"`
+	// Number of messages allowed to queue up between each collection interval.
+	// Packets will be dropped until the next collection interval if this buffer
+	// fills up.
+	AllowedPendingMessages int `yaml:"allowedPendingMessages" default:"10000"`
+	// The maximum number of histogram values to track each measurement when calculating percentiles.
+	// Increasing the limit will increase memory consumption but will also improve accuracy.
+	PercentileLimit int `yaml:"percentileLimit" default:"1000"`
+	// The separator used to separate parts of a metric name
+	MetricSeparator string `yaml:"metricSeparator" default:"_"`
+	// Templates that transform telegrafstatsd metrics into influx tags and measurements.
+	// Please refer to the Telegraf (documentation)[https://github.com/influxdata/telegraf/tree/master/plugins/inputs/statsd#statsd-bucket---influxdb-line-protocol-templates]
+	// for more information on templates.
+	Templates []string `yaml:"templates"`
+	// Indicates whether to parse dogstatsd tags
+	ParseDataDogTags bool `yaml:"parseDataDogTags" default:"false"`
 }
 
 // Monitor for Utilization
@@ -79,8 +102,8 @@ func (m *Monitor) Configure(conf *Config) (err error) {
 
 	// gather metrics on the specified interval
 	utils.RunOnInterval(ctx, func() {
-		if err := m.plugin.Gather(ac); err != nil {
-			m.logger.WithError(err).Errorf("an error occurred while gathering metrics")
+		if err2 := m.plugin.Gather(ac); err2 != nil {
+			m.logger.WithError(err2).Errorf("an error occurred while gathering metrics")
 		}
 	}, time.Duration(conf.IntervalSeconds)*time.Second)
 

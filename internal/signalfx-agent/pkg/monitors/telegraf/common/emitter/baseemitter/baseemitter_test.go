@@ -36,9 +36,9 @@ func TestImmediateEmitter_Emit(t *testing.T) {
 	ts := time.Now()
 	tests := []struct {
 		name           string
-		args           args
 		wantDatapoints []*datapoint.Datapoint
 		wantEvents     []*event.Event
+		args           args
 	}{
 		{
 			name: "emit datapoint without plugin tag",

@@ -20,11 +20,11 @@ func TestSecondsOrDuration_UnmarshalYAML(t *testing.T) {
 		d       time.Duration
 		wantErr bool
 	}{
-		{"5 seconds as integer", 5 * time.Second, args{"time: 5"}, false},
-		{"10 seconds as string", 10 * time.Second, args{"time: '10'"}, false},
-		{"15 seconds as duration", 15 * time.Second, args{"time: '15s'"}, false},
-		{"invalid syntax", 0, args{"time: invalid"}, true},
-		{"empty string", 0, args{"time:''"}, true},
+		{name: "5 seconds as integer", d: 5 * time.Second, args: args{"time: 5"}, wantErr: false},
+		{name: "10 seconds as string", d: 10 * time.Second, args: args{"time: '10'"}, wantErr: false},
+		{name: "15 seconds as duration", d: 15 * time.Second, args: args{"time: '15s'"}, wantErr: false},
+		{name: "invalid syntax", d: 0, args: args{"time: invalid"}, wantErr: true},
+		{name: "empty string", d: 0, args: args{"time:''"}, wantErr: true},
 	}
 	for _, tt := range tests {
 		tt := tt
@@ -50,7 +50,7 @@ func TestSecondsOrDuration_Defaults(t *testing.T) {
 		d       time.Duration
 		wantErr bool
 	}{
-		{"5 seconds as integer", 5 * time.Second, args{"{}"}, false},
+		{name: "5 seconds as integer", d: 5 * time.Second, args: args{"{}"}, wantErr: false},
 	}
 	for _, tt := range tests {
 		tt := tt
@@ -81,11 +81,11 @@ func TestDuration_UnmarshalJSON(t *testing.T) {
 		d       time.Duration
 		wantErr bool
 	}{
-		{"5 seconds as integer", 5 * time.Second, args{`{"time": 5}`}, false},
-		{"10 seconds as string", 10 * time.Second, args{`{"time": "10"}`}, false},
-		{"15 seconds as duration", 15 * time.Second, args{`{"time": "15s"}`}, false},
-		{"invalid syntax", 0, args{`{"time": "invalid"}`}, true},
-		{"empty string", 0, args{"time:''"}, true},
+		{name: "5 seconds as integer", d: 5 * time.Second, args: args{`{"time": 5}`}, wantErr: false},
+		{name: "10 seconds as string", d: 10 * time.Second, args: args{`{"time": "10"}`}, wantErr: false},
+		{name: "15 seconds as duration", d: 15 * time.Second, args: args{`{"time": "15s"}`}, wantErr: false},
+		{name: "invalid syntax", d: 0, args: args{`{"time": "invalid"}`}, wantErr: true},
+		{name: "empty string", d: 0, args: args{"time:''"}, wantErr: true},
 	}
 	for _, tt := range tests {
 		tt := tt

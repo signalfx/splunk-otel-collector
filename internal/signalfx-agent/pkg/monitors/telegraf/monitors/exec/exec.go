@@ -29,12 +29,19 @@ func init() {
 
 // Config for this monitor
 type Config struct {
-	TelegrafParser            *parser.Config `yaml:"telegrafParser"`
-	config.MonitorConfig      `yaml:",inline" acceptsEndpoints:"false"`
-	Command                   string            `yaml:"command"`
-	Commands                  []string          `yaml:"commands"`
-	SignalFxCumulativeMetrics []string          `yaml:"signalFxCumulativeMetrics"`
-	Timeout                   timeutil.Duration `yaml:"timeout" default:"5s"`
+	config.MonitorConfig `yaml:",inline" acceptsEndpoints:"false"`
+	Commands             []string          `yaml:"commands"`
+	Command              string            `yaml:"command"`
+	Timeout              timeutil.Duration `yaml:"timeout" default:"5s"`
+
+	// telegrafParser is a nested object that defines configurations for a Telegraf parser.
+	// Please refer to the Telegraf documentation for more information on Telegraf parsers.
+	TelegrafParser *parser.Config `yaml:"telegrafParser"`
+
+	// A list of metric names that should be typed as "cumulative counters" in
+	// SignalFx.  The Telegraf exec plugin only emits `untyped` metrics, which
+	// will by default be sent as SignalFx gauges.
+	SignalFxCumulativeMetrics []string `yaml:"signalFxCumulativeMetrics"`
 }
 
 // Monitor for Utilization
@@ -95,7 +102,7 @@ func (m *Monitor) Configure(conf *Config) (err error) {
 
 	// gather metrics on the specified interval
 	utils.RunOnInterval(ctx, func() {
-		if err := m.plugin.Gather(accumulator); err != nil {
+		if err = m.plugin.Gather(accumulator); err != nil {
 			m.logger.WithError(err).Errorf("an error occurred while gathering metrics")
 		}
 	}, time.Duration(conf.IntervalSeconds)*time.Second)

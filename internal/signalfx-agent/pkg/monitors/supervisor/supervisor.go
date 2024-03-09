@@ -23,11 +23,21 @@ func init() {
 // Config for this monitor
 type Config struct {
 	config.MonitorConfig `yaml:",inline" singleInstance:"false" acceptsEndpoints:"false"`
-	Host                 string `yaml:"host"`
-	Path                 string `yaml:"path" default:"/RPC2"`
-	URL                  string `yaml:"url"`
-	Port                 uint16 `yaml:"port" default:"9001"`
-	UseHTTPS             bool   `yaml:"useHTTPS" default:"false"`
+	// The host/ip address of the Supervisor XML-RPC API. This is used to construct
+	// the `url` option if not provided.
+	Host string `yaml:"host"`
+	// The port of the Supervisor XML-RPC API. This is used to construct the `url`
+	// option if not provided. (i.e. `localhost`)
+	Port uint16 `yaml:"port" default:"9001"`
+	// If true, the monitor will connect to Supervisor via HTTPS instead of
+	// HTTP.
+	UseHTTPS bool `yaml:"useHTTPS" default:"false"`
+	// The URL path to use for the scrape URL for Supervisor.
+	Path string `yaml:"path" default:"/RPC2"`
+	// URL on which to scrape Supervisor XML-RPC API. If this is not provided,
+	// it will be derive from the `host`, `port`, `useHTTPS`, and `path`
+	// options. (i.e. `http://localhost:9001/RPC2`)
+	URL string `yaml:"url"`
 }
 
 // Monitor that collect metrics

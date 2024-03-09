@@ -29,16 +29,28 @@ func init() {
 // Config for this monitor
 type Config struct {
 	config.MonitorConfig `yaml:",inline" acceptsEndpoints:"false"`
-	Exe                  string `yaml:"exe"`
-	Pattern              string `yaml:"pattern"`
-	User                 string `yaml:"user"`
-	PidFile              string `yaml:"pidFile"`
-	ProcessName          string `yaml:"processName"`
-	Prefix               string `yaml:"prefix"`
-	CGroup               string `yaml:"cGroup"`
-	WinService           string `yaml:"WinService"`
-	PidTag               bool   `yaml:"pidTag"`
-	CmdLineTag           bool   `yaml:"cmdLineTag"`
+	// The name of an executable to monitor.  (ie: `exe: "signalfx-agent*"`)
+	Exe string `yaml:"exe"`
+	// Regular expression pattern to match against.
+	Pattern string `yaml:"pattern"`
+	// Username to match against
+	User string `yaml:"user"`
+	// Path to Pid file to monitor.  (ie: `pidFile: "/var/run/signalfx-agent.pid"`)
+	PidFile string `yaml:"pidFile"`
+	// Used to override the process name dimension
+	ProcessName string `yaml:"processName"`
+	// Prefix to be added to each dimension
+	Prefix string `yaml:"prefix"`
+	// Whether to add PID as a dimension instead of part of the metric name
+	PidTag bool `yaml:"pidTag"`
+	// When true add the full cmdline as a dimension.
+	CmdLineTag bool `yaml:"cmdLineTag"`
+	// The name of the cgroup to monitor.  This cgroup name will be appended to
+	// the configured `sysPath`.  See the agent config schema for more information
+	// about the `sysPath` agent configuration.
+	CGroup string `yaml:"cGroup"`
+	// The name of a windows service to report procstat information on.
+	WinService string `yaml:"WinService"`
 }
 
 // Monitor for Utilization
@@ -87,8 +99,8 @@ func (m *Monitor) Configure(conf *Config) (err error) {
 
 	// gather metrics on the specified interval
 	utils.RunOnInterval(ctx, func() {
-		if err := plugin.Gather(ac); err != nil {
-			m.logger.WithError(err).Errorf("an error occurred while gathering metrics")
+		if err2 := plugin.Gather(ac); err2 != nil {
+			m.logger.WithError(err2).Errorf("an error occurred while gathering metrics")
 		}
 	}, time.Duration(conf.IntervalSeconds)*time.Second)
 

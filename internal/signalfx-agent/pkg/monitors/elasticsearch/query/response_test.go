@@ -147,9 +147,9 @@ func TestAdjacencyAggregation(t *testing.T) {
 }
 
 type testContext struct {
-	rawFile  string
 	actual   HTTPResponse
 	expected HTTPResponse
+	rawFile  string
 }
 
 func getAdjacenyMatrixAggregationTestContexts() ([]*testContext, *errors.Error) {
@@ -301,7 +301,7 @@ func getSingleBucketFilterAggregationTestContexts() ([]*testContext, *errors.Err
 	expected := []HTTPResponse{
 		{
 			Aggregations: aggregationsMap{
-				"favourite_host": {
+				"favorite_host": {
 					DocCount: newInt64(9398),
 					SubAggregations: aggregationsMap{
 						"metric_agg_1": {

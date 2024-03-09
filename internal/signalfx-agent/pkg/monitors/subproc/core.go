@@ -46,20 +46,12 @@ type RuntimeCustomizable interface {
 // responsibility of modules that embed this MonitorCore, hence there are no
 // predefined "datapoint" message types.
 type MonitorCore struct {
-	ctx     context.Context
-	cancel  func()
-	handler MessageHandler
-
-	logger log.FieldLogger
-
-	// Conditional signal that the goroutine that sends does the configuration
-	// request sets when configure has been completed.  configResult will hold
-	// the result of that configure call.
-	configCond   sync.Cond
-	configResult error
-
-	// Flag that should be set atomically to tell the goroutine that manages
-	// the subprocess whether the process is supposed to be alive or not.
+	ctx            context.Context
+	handler        MessageHandler
+	logger         log.FieldLogger
+	configResult   error
+	cancel         func()
+	configCond     sync.Cond
 	shutdownCalled int32
 }
 
@@ -86,7 +78,7 @@ func (mc *MonitorCore) Logger() log.FieldLogger {
 func (mc *MonitorCore) run(runtimeConf RuntimeConfig, stdin io.Reader, stdout io.Writer) error {
 	mc.logger.Debugf("Subprocess command: %s %v (env: %v)", runtimeConf.Binary, runtimeConf.Args, runtimeConf.Env)
 
-	cmd := exec.CommandContext(mc.ctx, runtimeConf.Binary, runtimeConf.Args...)
+	cmd := exec.CommandContext(mc.ctx, runtimeConf.Binary, runtimeConf.Args...) //nolint: gosec
 	cmd.SysProcAttr = procAttrs()
 	cmd.Stdin = stdin
 	cmd.Stdout = stdout

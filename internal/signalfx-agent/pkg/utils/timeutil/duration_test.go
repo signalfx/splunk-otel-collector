@@ -16,8 +16,8 @@ func TestSecondsOrDuration_UnmarshalYAML(t *testing.T) {
 	}
 	tests := []struct {
 		name    string
-		d       time.Duration
 		args    args
+		d       time.Duration
 		wantErr bool
 	}{
 		{"5 seconds as integer", 5 * time.Second, args{"time: 5"}, false},
@@ -46,8 +46,8 @@ func TestSecondsOrDuration_Defaults(t *testing.T) {
 	}
 	tests := []struct {
 		name    string
-		d       time.Duration
 		args    args
+		d       time.Duration
 		wantErr bool
 	}{
 		{"5 seconds as integer", 5 * time.Second, args{"{}"}, false},
@@ -77,8 +77,8 @@ func TestDuration_UnmarshalJSON(t *testing.T) {
 	}
 	tests := []struct {
 		name    string
-		d       time.Duration
 		args    args
+		d       time.Duration
 		wantErr bool
 	}{
 		{"5 seconds as integer", 5 * time.Second, args{`{"time": 5}`}, false},

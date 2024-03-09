@@ -50,7 +50,7 @@ func (cip *cadvisorInfoProvider) GetEphemeralStatsFromPods() ([]stats.PodStats, 
 	return nil, nil
 }
 
-func (cip *cadvisorInfoProvider) SubcontainersInfo(containerName string) ([]info.ContainerInfo, error) {
+func (cip *cadvisorInfoProvider) SubcontainersInfo(_ string) ([]info.ContainerInfo, error) {
 	curTime := time.Now()
 	info, err := cip.cc.AllDockerContainers(&info.ContainerInfoRequest{Start: cip.lastUpdate, End: curTime})
 	if len(info) > 0 {

@@ -25,10 +25,10 @@ type JSONDatapointV2 map[string][]*BodySendFormatV2
 //
 //easyjson:json
 type BodySendFormatV2 struct {
-	Metric     string            `json:"metric"`
-	Timestamp  int64             `json:"timestamp"`
 	Value      ValueToSend       `json:"value"`
 	Dimensions map[string]string `json:"dimensions"`
+	Metric     string            `json:"metric"`
+	Timestamp  int64             `json:"timestamp"`
 }
 
 func (bodySendFormat *BodySendFormatV2) String() string {
@@ -47,11 +47,11 @@ type JSONEventV2 []*EventSendFormatV2
 //
 //easyjson:json
 type EventSendFormatV2 struct {
-	EventType  string                 `json:"eventType"`
 	Category   *string                `json:"category"`
 	Dimensions map[string]string      `json:"dimensions"`
 	Properties map[string]interface{} `json:"properties"`
 	Timestamp  *int64                 `json:"timestamp"`
+	EventType  string                 `json:"eventType"`
 }
 
 // InputAnnotation associates an event that explains latency with a timestamp.

@@ -15,8 +15,8 @@ type table struct {
 }
 
 type meta struct {
-	Status                int64   `json:"status,omitempty"`
 	FiltersWarmup         []int64 `json:"filters_warmup,omitempty"`
 	FiltersNotExist       []int64 `json:"filters_not_exist,omitempty"`
 	FiltersIncompleteData []int64 `json:"filters_incomplete_data,omitempty"`
+	Status                int64   `json:"status,omitempty"`
 }

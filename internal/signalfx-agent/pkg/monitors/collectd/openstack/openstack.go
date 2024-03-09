@@ -24,36 +24,22 @@ func init() {
 
 // Config is the monitor-specific config with the generic config embedded
 type Config struct {
-	config.MonitorConfig `yaml:",inline" acceptsEndpoints:"false"`
-	python.CommonConfig  `yaml:",inline"`
-	pyConf               *python.Config
-	// Keystone authentication URL/endpoint for the OpenStack cloud
-	AuthURL string `yaml:"authURL" validate:"required"`
-	// Username to authenticate with keystone identity
-	Username string `yaml:"username" validate:"required"`
-	// Password to authenticate with keystone identity
-	Password string `yaml:"password" validate:"required"`
-	// Specify the name of Project to be monitored (**default**:"demo")
-	ProjectName string `yaml:"projectName"`
-	// The project domain (**default**:"default")
-	ProjectDomainID string `yaml:"projectDomainID"`
-	// The region name for URL discovery, defaults to the first region if multiple regions are available.
-	RegionName string `yaml:"regionName"`
-	// The user domain id (**default**:"default")
-	UserDomainID string `yaml:"userDomainID"`
-	// Skip SSL certificate validation
-	SkipVerify bool `yaml:"skipVerify"`
-	// The HTTP client timeout in seconds for all requests
-	HTTPTimeout float64 `yaml:"httpTimeout"`
-	// The maximum number of concurrent requests for each metric class
-	RequestBatchSize int `yaml:"requestBatchSize" default:"5"`
-	// Whether to query server metrics (useful to disable for TripleO Undercloud)
-	QueryServerMetrics *bool `yaml:"queryServerMetrics" default:"true"`
-	// Whether to query hypervisor metrics (useful to disable for TripleO Undercloud)
-	QueryHypervisorMetrics *bool `yaml:"queryHypervisorMetrics" default:"true"`
-	// Optional search_opts mapping for collectd-openstack Nova client servers.list(search_opts=novaListServerSearchOpts).
-	// For more information see https://docs.openstack.org/api-ref/compute/#list-servers.
 	NovaListServersSearchOpts map[string]string `yaml:"novaListServersSearchOpts"`
+	pyConf                    *python.Config
+	QueryHypervisorMetrics    *bool `yaml:"queryHypervisorMetrics" default:"true"`
+	QueryServerMetrics        *bool `yaml:"queryServerMetrics" default:"true"`
+	config.MonitorConfig      `yaml:",inline" acceptsEndpoints:"false"`
+	RegionName                string `yaml:"regionName"`
+	ProjectName               string `yaml:"projectName"`
+	ProjectDomainID           string `yaml:"projectDomainID"`
+	Password                  string `yaml:"password" validate:"required"`
+	UserDomainID              string `yaml:"userDomainID"`
+	Username                  string `yaml:"username" validate:"required"`
+	AuthURL                   string `yaml:"authURL" validate:"required"`
+	python.CommonConfig       `yaml:",inline"`
+	HTTPTimeout               float64 `yaml:"httpTimeout"`
+	RequestBatchSize          int     `yaml:"requestBatchSize" default:"5"`
+	SkipVerify                bool    `yaml:"skipVerify"`
 }
 
 // PythonConfig returns the embedded python.Config struct from the interface
@@ -71,11 +57,11 @@ type Monitor struct {
 func (m *Monitor) Configure(conf *Config) error {
 	novaListServersSearchOpts := "{}"
 	if len(conf.NovaListServersSearchOpts) > 0 {
-		marshalled, err := yaml.Marshal(conf.NovaListServersSearchOpts)
+		marshaled, err := yaml.Marshal(conf.NovaListServersSearchOpts)
 		if err != nil {
 			return fmt.Errorf("failed to parse novaListServersSearchOpts: %w", err)
 		}
-		novaListServersSearchOpts = string(marshalled)
+		novaListServersSearchOpts = string(marshaled)
 	}
 	conf.pyConf = &python.Config{
 		ModuleName:    "openstack_metrics",

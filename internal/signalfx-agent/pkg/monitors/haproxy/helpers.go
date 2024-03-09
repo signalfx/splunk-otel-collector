@@ -179,7 +179,6 @@ func (m *Monitor) infoSocket(conf *Config, _ proxies) []*datapoint.Datapoint {
 func statsMap(body io.Reader) (map[int]map[string]string, error) {
 	r := csv.NewReader(body)
 	r.TrimLeadingSpace = true
-	r.TrailingComma = true
 	rows := map[int]map[string]string{}
 	table, err := r.ReadAll()
 	if err != nil {
@@ -265,7 +264,7 @@ func parseStatusField(v string) int64 {
 func httpReader(conf *Config, method string) (io.ReadCloser, error) {
 	client := http.Client{
 		Timeout:   conf.Timeout.AsDuration(),
-		Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: !conf.SSLVerify}},
+		Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: !conf.SSLVerify}}, //nolint: gosec
 	}
 	req, err := http.NewRequest(method, conf.ScrapeURL(), nil)
 	if err != nil {

@@ -24,24 +24,17 @@ func init() {
 
 // Config is the monitor-specific config with the generic config embedded
 type Config struct {
+	pyConf               *python.Config
 	config.MonitorConfig `yaml:",inline" acceptsEndpoints:"true"`
 	python.CommonConfig  `yaml:",inline"`
-	pyConf               *python.Config
 	Host                 string `yaml:"host" validate:"required"`
+	ClusterName          string `yaml:"clusterName" validate:"required"`
+	SSLKeyFile           string `yaml:"sslKeyFile"`
+	SSLCertificate       string `yaml:"sslCertificate"`
+	SSLCACerts           string `yaml:"sslCACerts"`
 	Port                 uint16 `yaml:"port" validate:"required"`
-	// An arbitrary name of the etcd cluster to make it easier to group
-	// together and identify instances.
-	ClusterName string `yaml:"clusterName" validate:"required"`
-	// Client private key if using client certificate authentication.
-	SSLKeyFile string `yaml:"sslKeyFile"`
-	// Client public key if using client certificate authentication.
-	SSLCertificate string `yaml:"sslCertificate"`
-	// Certificate authority or host certificate to trust.
-	SSLCACerts string `yaml:"sslCACerts"`
-	// If `true`, etcd's SSL certificate will not be verified. Enabling this option
-	// results in the `sslCACerts` option being ignored.
-	SkipSSLValidation bool `yaml:"skipSSLValidation"`
-	EnhancedMetrics   bool `yaml:"enhancedMetrics"`
+	SkipSSLValidation    bool   `yaml:"skipSSLValidation"`
+	EnhancedMetrics      bool   `yaml:"enhancedMetrics"`
 }
 
 // PythonConfig returns the embedded python.Config struct from the interface

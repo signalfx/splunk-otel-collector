@@ -25,27 +25,17 @@ func init() {
 
 // Config is the monitor-specific config with the generic config embedded
 type Config struct {
+	pyConf               *python.Config
 	config.MonitorConfig `yaml:",inline" acceptsEndpoints:"true"`
 	python.CommonConfig  `yaml:",inline"`
-	pyConf               *python.Config
 	Host                 string `yaml:"host" validate:"required"`
+	CollectTarget        string `yaml:"collectTarget" validate:"required"`
+	CollectBucket        string `yaml:"collectBucket"`
+	ClusterName          string `yaml:"clusterName"`
+	CollectMode          string `yaml:"collectMode"`
+	Username             string `yaml:"username"`
+	Password             string `yaml:"password" neverLog:"true"`
 	Port                 uint16 `yaml:"port" validate:"required"`
-	// Define what this Module block will monitor: "NODE", for a Couchbase node,
-	// or "BUCKET" for a Couchbase bucket.
-	CollectTarget string `yaml:"collectTarget" validate:"required"`
-	// If CollectTarget is "BUCKET", CollectBucket specifies the name of the
-	// bucket that this will monitor.
-	CollectBucket string `yaml:"collectBucket"`
-	// Name of this Couchbase cluster. (**default**:"default")
-	ClusterName string `yaml:"clusterName"`
-	// Change to "detailed" to collect all available metrics from Couchbase
-	// stats API. Defaults to "default", collecting a curated set that works
-	// well with SignalFx.
-	CollectMode string `yaml:"collectMode"`
-	// Username to authenticate with
-	Username string `yaml:"username"`
-	// Password to authenticate with
-	Password string `yaml:"password" neverLog:"true"`
 }
 
 // PythonConfig returns the embedded python.Config struct from the interface

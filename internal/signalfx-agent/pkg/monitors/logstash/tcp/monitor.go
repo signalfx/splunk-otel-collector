@@ -29,25 +29,12 @@ type event map[string]interface{}
 // Config for this monitor
 type Config struct {
 	config.MonitorConfig `yaml:",inline" acceptsEndpoints:"true" singleInstance:"false"`
-	// If `mode: server`, the local IP address to listen on.  If `mode:
-	// client`, the Logstash host/ip to connect to.
-	Host string `yaml:"host" validate:"required"`
-	// If `mode: server`, the local port to listen on.  If `mode: client`, the
-	// port of the Logstash TCP output plugin.  If port is `0`, a random
-	// listening port is assigned by the kernel.
-	Port uint16 `yaml:"port"`
-
-	// Whether to act as a `server` or `client`.  The corresponding setting in
-	// the Logtash `tcp` output plugin should be set to the opposite of this.
-	Mode string `yaml:"mode" default:"client" validate:"oneof=server client"`
-
-	DesiredTimerFields []string `yaml:"desiredTimerFields" default:"[\"mean\",\"max\",\"p99\",\"count\"]"`
-	// How long to wait before reconnecting if the TCP connection cannot be
-	// made or after it gets broken.
-	ReconnectDelay timeutil.Duration `yaml:"reconnectDelay" default:"5s"`
-	// If true, events received from Logstash will be dumped to the agent's
-	// stdout in deserialized form
-	DebugEvents bool `yaml:"debugEvents"`
+	Host                 string            `yaml:"host" validate:"required"`
+	Mode                 string            `yaml:"mode" default:"client" validate:"oneof=server client"`
+	DesiredTimerFields   []string          `yaml:"desiredTimerFields" default:"[\"mean\",\"max\",\"p99\",\"count\"]"`
+	ReconnectDelay       timeutil.Duration `yaml:"reconnectDelay" default:"5s"`
+	Port                 uint16            `yaml:"port"`
+	DebugEvents          bool              `yaml:"debugEvents"`
 }
 
 func (c *Config) DesiredTimerFieldSet() map[string]bool {

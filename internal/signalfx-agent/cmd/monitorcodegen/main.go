@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"go/format"
 	"html/template"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -144,7 +143,7 @@ func generate(templateFile string) error {
 			return err
 		}
 
-		if err := ioutil.WriteFile(outputFile, formatted, 0644); err != nil {
+		if err := os.WriteFile(outputFile, formatted, 0600); err != nil {
 			return err
 		}
 	}

@@ -37,20 +37,13 @@ var MetricReplacements = []string{
 
 // PerfCounterObj represents a windows performance counter object to monitor
 type PerfCounterObj struct {
-	// The name of a windows performance counter object
-	ObjectName string `yaml:"objectName"`
-	// The name of the counters to collect from the performance counter object
-	Counters []string `yaml:"counters" default:"[]"`
-	// The windows performance counter instances to fetch for the performance counter object
-	Instances []string `yaml:"instances" default:"[]"`
-	// The name of the telegraf measurement that will be used as a metric name
-	Measurement string `yaml:"measurement"`
-	// Log a warning if the perf counter object is missing
-	WarnOnMissing bool `yaml:"warnOnMissing" default:"false"`
-	// Panic if the performance counter object is missing (this will stop the agent)
-	FailOnMissing bool `yaml:"failOnMissing" default:"false"`
-	// Include the total instance when collecting performance counter metrics
-	IncludeTotal bool `yaml:"includeTotal" default:"false"`
+	ObjectName    string   `yaml:"objectName"`
+	Measurement   string   `yaml:"measurement"`
+	Counters      []string `yaml:"counters" default:"[]"`
+	Instances     []string `yaml:"instances" default:"[]"`
+	WarnOnMissing bool     `yaml:"warnOnMissing" default:"false"`
+	FailOnMissing bool     `yaml:"failOnMissing" default:"false"`
+	IncludeTotal  bool     `yaml:"includeTotal" default:"false"`
 }
 
 // Config for this monitor

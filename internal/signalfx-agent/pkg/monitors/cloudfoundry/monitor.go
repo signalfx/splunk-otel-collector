@@ -20,28 +20,13 @@ func init() {
 // Config for this monitor
 type Config struct {
 	config.MonitorConfig `yaml:",inline" singleInstance:"false" acceptsEndpoints:"false"`
-
-	// The base URL to the RLP Gateway server. This is quite often of the form
-	// https://log-stream.<CLOUD CONTROLLER SYSTEM DOMAIN> if using PCF 2.4+.
-	RLPGatewayURL string `yaml:"rlpGatewayUrl" required:"true"`
-	// Whether to skip SSL/TLS verification when using HTTPS to connect to the
-	// RLP Gateway
-	RLPGatewaySkipVerify bool `yaml:"rlpGatewaySkipVerify"`
-	// The UAA username for a user that has the appropriate authority to fetch
-	// logs from the firehose (usually the `logs.admin` authority)
-	UAAUser string `yaml:"uaaUser" required:"true"`
-	// The password for the above UAA user
-	UAAPassword string `yaml:"uaaPassword" required:"true" neverLog:"true"`
-	// The URL to the UAA server. This monitor will obtain an access token
-	// from this server that it will use to authenticate with the RLP Gateway.
-	UAAURL string `yaml:"uaaUrl" required:"true"`
-	// Whether to skip SSL/TLS verification when using HTTPS to connect to the
-	// UAA server
-	UAASkipVerify bool `yaml:"uaaSkipVerify"`
-	// The nozzle's shard id.  All nozzle instances with the same id will
-	// receive an exclusive subset of the data from the firehose. The default
-	// should suffice in the vast majority of use cases.
-	ShardID string `yaml:"shardId" default:"signalfx_nozzle"`
+	RLPGatewayURL        string `yaml:"rlpGatewayUrl" required:"true"`
+	UAAUser              string `yaml:"uaaUser" required:"true"`
+	UAAPassword          string `yaml:"uaaPassword" required:"true" neverLog:"true"`
+	UAAURL               string `yaml:"uaaUrl" required:"true"`
+	ShardID              string `yaml:"shardId" default:"signalfx_nozzle"`
+	RLPGatewaySkipVerify bool   `yaml:"rlpGatewaySkipVerify"`
+	UAASkipVerify        bool   `yaml:"uaaSkipVerify"`
 }
 
 func (c *Config) Validate() error {

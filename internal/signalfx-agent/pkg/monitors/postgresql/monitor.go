@@ -25,37 +25,16 @@ func init() {
 
 // Config for the postgresql monitor
 type Config struct {
-	config.MonitorConfig `yaml:",inline" acceptsEndpoints:"true"`
-
-	Host string `yaml:"host"`
-	Port uint16 `yaml:"port"`
-	// The "master" database to which the agent first connects to query the
-	// list of databases available in the server.  This database should be
-	// accessible to the user specified with `connectionString` and `params`
-	// below, and that user should have permission to query `pg_database`.  If
-	// you want to filter which databases are monitored, use the `databases`
-	// option below.
-	MasterDBName string `yaml:"masterDBName" default:"postgres"`
-
-	// See
-	// https://godoc.org/github.com/lib/pq#hdr-Connection_String_Parameters.
-	ConnectionString string `yaml:"connectionString"`
-	// Parameters to the connection string that can be templated into the
-	// connection string with the syntax `{{.key}}`.
-	Params map[string]string `yaml:"params"`
-
-	// List of databases to send database-specific metrics about.  If omitted, metrics about all databases will be sent.  This is an [overridable set](https://docs.splunk.com/observability/gdi/smart-agent/smart-agent-resources.html#filtering-data-using-the-smart-agent).
-	Databases []string `yaml:"databases" default:"[\"*\"]"`
-
-	// How frequently to poll for new/deleted databases in the DB server.
-	// Defaults to the same as `intervalSeconds` if not set.
-	DatabasePollIntervalSeconds int `yaml:"databasePollIntervalSeconds"`
-
-	// If true, queries will be logged at the info level.
-	LogQueries bool `yaml:"logQueries"`
-
-	// The number of top queries to consider when publishing query-related metrics
-	TopQueryLimit int `default:"10" yaml:"topQueryLimit"`
+	Params                      map[string]string `yaml:"params"`
+	config.MonitorConfig        `yaml:",inline" acceptsEndpoints:"true"`
+	Host                        string   `yaml:"host"`
+	MasterDBName                string   `yaml:"masterDBName" default:"postgres"`
+	ConnectionString            string   `yaml:"connectionString"`
+	Databases                   []string `yaml:"databases" default:"[\"*\"]"`
+	DatabasePollIntervalSeconds int      `yaml:"databasePollIntervalSeconds"`
+	TopQueryLimit               int      `default:"10" yaml:"topQueryLimit"`
+	Port                        uint16   `yaml:"port"`
+	LogQueries                  bool     `yaml:"logQueries"`
 }
 
 func (c *Config) connStr() (template string, port string, err error) {
@@ -74,26 +53,19 @@ func (c *Config) connStr() (template string, port string, err error) {
 
 // Monitor that collects postgresql stats
 type Monitor struct {
-	sync.Mutex
-
-	Output types.FilteringOutput
-	ctx    context.Context
-	cancel context.CancelFunc
-	conf   *Config
-
-	database *dbsql.DB
-
+	logger             logrus.FieldLogger
+	Output             types.FilteringOutput
+	ctx                context.Context
 	monitoredDBs       map[string]*sql.Monitor
+	conf               *Config
+	database           *dbsql.DB
 	serverMonitor      *sql.Monitor
 	statementsMonitor  *sql.Monitor
 	replicationMonitor *sql.Monitor
-
-	// server connection string, without db name
-	connectionString string
-	// name for execution time column determined by information schema for pg_stat_statement
-	totalTimeColumn string
-
-	logger logrus.FieldLogger
+	cancel             context.CancelFunc
+	connectionString   string
+	totalTimeColumn    string
+	sync.Mutex
 }
 
 const dbNamePrefix = " dbname="

@@ -10,14 +10,14 @@ import (
 )
 
 type testEmitter struct {
-	measurement        string
-	fields             map[string]interface{}
-	tags               map[string]string
-	metricType         telegraf.ValueType
-	originalMetricType string
 	t                  time.Time
 	err                error
+	fields             map[string]interface{}
+	tags               map[string]string
+	measurement        string
+	originalMetricType string
 	deb                string
+	metricType         telegraf.ValueType
 }
 
 func (e *testEmitter) AddMetric(m telegraf.Metric) {
@@ -45,9 +45,9 @@ func (e *testEmitter) AddDebug(deb string, args ...interface{}) {
 func TestAccumulator(t *testing.T) {
 	ac := NewAccumulator(&testEmitter{})
 	tests := []struct {
-		name string
 		want *testEmitter
 		fn   func(string, map[string]interface{}, map[string]string, ...time.Time)
+		name string
 	}{
 		{
 			name: "AddFields()",

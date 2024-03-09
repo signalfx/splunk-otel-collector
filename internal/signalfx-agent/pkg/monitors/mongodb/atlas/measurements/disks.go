@@ -23,15 +23,15 @@ type DisksGetter interface {
 
 // disksGetter implements DisksGetter
 type disksGetter struct {
-	projectID         string
-	granularity       string
-	period            string
+	logger            log.FieldLogger
 	client            *mongodbatlas.Client
-	enableCache       bool
 	mutex             *sync.Mutex
 	measurementsCache *atomic.Value
 	disksCache        *atomic.Value
-	logger            log.FieldLogger
+	projectID         string
+	granularity       string
+	period            string
+	enableCache       bool
 }
 
 // NewDisksGetter returns a new DisksGetter.

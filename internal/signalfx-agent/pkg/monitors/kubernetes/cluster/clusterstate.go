@@ -25,15 +25,14 @@ import (
 // State makes use of the K8s client's "reflector" helper to watch the API
 // server for changes and keep the datapoint cache up to date,
 type State struct {
+	logger      log.FieldLogger
 	clientset   *k8s.Clientset
 	quotaClient *quotav1.QuotaV1Client
 	reflectors  map[string]*cache.Reflector
-	namespace   string
 	cancel      func()
-	logger      log.FieldLogger
-
 	metricCache *metrics.DatapointCache
 	dimHandler  *metrics.DimensionHandler
+	namespace   string
 }
 
 func newState(flavor KubernetesDistribution, restConfig *rest.Config, metricCache *metrics.DatapointCache,

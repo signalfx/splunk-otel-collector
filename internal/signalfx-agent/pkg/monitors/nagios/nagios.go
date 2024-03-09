@@ -151,7 +151,7 @@ func runCommand(command string, timeout int) (stdout []byte, stderr []byte, err 
 		return nil, nil, fmt.Errorf("exec: unable to parse command, %s", err)
 	}
 	// Prepare command exec
-	cmd := exec.Command(splitCmd[0], splitCmd[1:]...)
+	cmd := exec.Command(splitCmd[0], splitCmd[1:]...) //nolint: gosec
 	cmd.Stdout = &cmdOut
 	cmd.Stderr = &cmdErr
 	// Start command

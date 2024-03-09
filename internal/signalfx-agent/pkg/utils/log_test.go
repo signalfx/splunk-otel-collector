@@ -7,12 +7,33 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
-
-	"github.com/signalfx/signalfx-agent/pkg/neotest"
 )
 
+// FixedTime is always at 2016-01-05T15:04:05-06:00
+var fixedTime func() time.Time
+
+func init() {
+	f, err := time.Parse(time.RFC3339, "2016-01-05T15:04:05-06:00")
+	if err != nil {
+		panic("unable to parse time")
+	}
+	fixedTime = func() time.Time { return f }
+}
+
+// pinnedNow returns a function that is compatible with time.Now that always
+// returns the given t Time.
+func pinnedNow(t time.Time) func() time.Time {
+	return func() time.Time { return t }
+}
+
+// advancedNow returns a now time.Now-compatible function that returns the time
+// returned from oldNow advanced by the given Duration d.
+func advancedNow(oldNow func() time.Time, d time.Duration) func() time.Time {
+	return pinnedNow(oldNow().Add(d))
+}
+
 func TestThrottledLogger(t *testing.T) {
-	now = neotest.PinnedNow(neotest.FixedTime())
+	now = pinnedNow(fixedTime())
 
 	var output bytes.Buffer
 	rootLogger := logrus.New()
@@ -31,14 +52,14 @@ func TestThrottledLogger(t *testing.T) {
 	assert.Contains(t, output.String(), errMsg, "first error wasn't logged")
 	assert.Contains(t, output.String(), otherMsg, "second error wasn't logged")
 
-	now = neotest.AdvancedNow(now, 1*time.Second)
+	now = advancedNow(now, 1*time.Second)
 
 	output.Reset()
 	logger.ThrottledError(errMsg)
 	logger.ThrottledError(otherMsg)
 	assert.Equal(t, "", output.String(), "errors aren't logged twice within duration")
 
-	now = neotest.AdvancedNow(now, 11*time.Second)
+	now = advancedNow(now, 11*time.Second)
 	logger.ThrottledError(errMsg)
 	assert.Contains(t, output.String(), errMsg, "first error wasn't logged after duration expired")
 
@@ -55,7 +76,7 @@ func TestThrottledLogger(t *testing.T) {
 	derivedLogger.ThrottledError(errMsg)
 	assert.Equal(t, "", output.String(), "first error didn't get suppressed in derived logger")
 
-	now = neotest.AdvancedNow(now, 11*time.Second)
+	now = advancedNow(now, 11*time.Second)
 	derivedLogger.ThrottledError(errMsg)
 	assert.Contains(t, output.String(), "John", "fields weren't copied in derived logger")
 }

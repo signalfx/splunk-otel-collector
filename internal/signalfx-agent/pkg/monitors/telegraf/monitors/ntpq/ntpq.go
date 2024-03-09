@@ -22,9 +22,8 @@ func init() {
 
 // Config for this monitor
 type Config struct {
+	DNSLookup            *bool `yaml:"dnsLookup" default:"true"`
 	config.MonitorConfig `yaml:",inline" singleInstance:"false" acceptsEndpoints:"true"`
-	// If false, set the -n ntpq flag. Can reduce metric gather time.
-	DNSLookup *bool `yaml:"dnsLookup" default:"true"`
 }
 
 // Monitor for Utilization

@@ -15,24 +15,17 @@ func metricLensMetrics() map[string][]string {
 
 // metricConfig for configuring individual metric
 type metricConfig struct {
-	// Conviva customer account name. The default account is fetched used if not specified.
-	Account         string `yaml:"account"`
-	MetricParameter string `yaml:"metricParameter" default:"quality_metriclens"`
-	// Filter names. The default is `All Traffic` filter
-	Filters []string `yaml:"filters"`
-	// MetricLens dimension names. The default is names of all MetricLens dimensions of the account
-	MetricLensDimensions []string `yaml:"metricLensDimensions"`
-	// MetricLens dimension names to exclude.
+	filtersMap                  map[string]string
+	metricLensDimensionMap      map[string]float64
+	Account                     string `yaml:"account"`
+	MetricParameter             string `yaml:"metricParameter" default:"quality_metriclens"`
+	accountID                   string
+	Filters                     []string `yaml:"filters"`
+	MetricLensDimensions        []string `yaml:"metricLensDimensions"`
 	ExcludeMetricLensDimensions []string `yaml:"excludeMetricLensDimensions"`
-	// Max number of filters per request. The default is the number of filters. Multiple requests are made if the number of filters is more than maxFiltersPerRequest
-	MaxFiltersPerRequest int `yaml:"maxFiltersPerRequest"`
-	accountID            string
-	// id:name map of filters derived from the configured Filters
-	filtersMap map[string]string
-	// name:id map of MetricLens dimensions derived from configured MetricLensDimensions
-	metricLensDimensionMap map[string]float64
-	isInitialized          bool
-	mutex                  sync.RWMutex
+	MaxFiltersPerRequest        int      `yaml:"maxFiltersPerRequest"`
+	mutex                       sync.RWMutex
+	isInitialized               bool
 }
 
 func (mc *metricConfig) filterName(filterID string) string {

@@ -25,20 +25,12 @@ func init() {
 // Config for this monitor
 type Config struct {
 	config.MonitorConfig `yaml:",inline" singleInstance:"false" acceptsEndpoints:"true"`
-	// Domains or subdomains to query. If this is not provided it will be
-	// `["."]` and `RecordType` will be forced to `NS`.
-	Domains []string `yaml:"domains"`
-	// Network is the network protocol name.
-	Network string `yaml:"network" default:"udp"`
-	// Dns server port.
-	Port int `yaml:"port" default:"53"`
-	// Servers to query.
-	Servers []string `yaml:"servers" validate:"required"`
-	// Query record type (A, AAAA, CNAME, MX, NS, PTR, TXT, SOA, SPF, SRV).
-	RecordType string `yaml:"recordType" default:"NS"`
-	// Query timeout. This should be a duration string that is accepted
-	// by https://golang.org/pkg/time/#ParseDuration.
-	Timeout timeutil.Duration `yaml:"timeout" default:"2s"`
+	Network              string            `yaml:"network" default:"udp"`
+	RecordType           string            `yaml:"recordType" default:"NS"`
+	Domains              []string          `yaml:"domains"`
+	Servers              []string          `yaml:"servers" validate:"required"`
+	Port                 int               `yaml:"port" default:"53"`
+	Timeout              timeutil.Duration `yaml:"timeout" default:"2s"`
 }
 
 // Monitor for Utilization
@@ -79,7 +71,7 @@ func (m *Monitor) Configure(conf *Config) (err error) {
 	emitter.SetOmitOriginalMetricType(true)
 
 	// transform "dns_query" to "telegraf/dns"
-	emitter.AddTag("plugin", strings.Replace(monitorType, "dns_query", "dns", -1))
+	emitter.AddTag("plugin", strings.ReplaceAll(monitorType, "dns_query", "dns"))
 
 	for _, tag := range []string{"rcode", "result"} {
 		emitter.OmitTag(tag)
@@ -87,7 +79,7 @@ func (m *Monitor) Configure(conf *Config) (err error) {
 
 	// transform "dns_query.my_metric" to "dns.my_metric"
 	emitter.AddMetricNameTransformation(func(metric string) string {
-		name := strings.Replace(metric, "dns_query", "dns", -1)
+		name := strings.ReplaceAll(metric, "dns_query", "dns")
 		m.logger.WithFields(log.Fields{
 			"original_name": metric,
 			"new_name":      name,

@@ -12,10 +12,10 @@ const monitorMetadataFile = "metadata.yaml"
 
 // MetricMetadata contains a metric's metadata.
 type MetricMetadata struct {
+	Group       *string `json:"group"`
 	Alias       string  `json:"alias,omitempty"`
 	Type        string  `json:"type"`
 	Description string  `json:"description"`
-	Group       *string `json:"group"`
 	Default     bool    `json:"default" default:"false"`
 }
 
@@ -33,29 +33,25 @@ type GroupMetadata struct {
 
 // MonitorMetadata contains a monitor's metadata.
 type MonitorMetadata struct {
-	MonitorType  string                    `json:"monitorType" yaml:"monitorType"`
-	SendAll      bool                      `json:"sendAll" yaml:"sendAll"`
-	SendUnknown  bool                      `json:"sendUnknown" yaml:"sendUnknown"`
-	NoneIncluded bool                      `json:"noneIncluded" yaml:"noneIncluded"`
 	Dimensions   map[string]DimMetadata    `json:"dimensions"`
-	Doc          string                    `json:"doc"`
 	Groups       map[string]*GroupMetadata `json:"groups"`
 	Metrics      map[string]MetricMetadata `json:"metrics"`
 	Properties   map[string]PropMetadata   `json:"properties"`
+	MonitorType  string                    `json:"monitorType" yaml:"monitorType"`
+	Doc          string                    `json:"doc"`
+	SendAll      bool                      `json:"sendAll" yaml:"sendAll"`
+	SendUnknown  bool                      `json:"sendUnknown" yaml:"sendUnknown"`
+	NoneIncluded bool                      `json:"noneIncluded" yaml:"noneIncluded"`
 }
 
 // PackageMetadata describes a package directory that may have one or more monitors.
 type PackageMetadata struct {
-	// Common is a section to allow multiple monitors to place shared data.
-	Common map[string]interface{}
-	// PackageDir is the directory to output the generated code if not the same directory as the metadata.yaml.
-	PackageDir string `json:"packageDir" yaml:"packageDir"`
-	Monitors   []MonitorMetadata
-	// Name of the package in go. If not set defaults to the directory name.
-	GoPackage *string `json:"goPackage" yaml:"goPackage"`
-	// Filesystem path to the package directory.
-	PackagePath string `json:"-" yaml:"-"`
-	Path        string `json:"-" yaml:"-"`
+	Common      map[string]interface{}
+	GoPackage   *string `json:"goPackage" yaml:"goPackage"`
+	PackageDir  string  `json:"packageDir" yaml:"packageDir"`
+	PackagePath string  `json:"-" yaml:"-"`
+	Path        string  `json:"-" yaml:"-"`
+	Monitors    []MonitorMetadata
 }
 
 // DimMetadata contains a dimension's metadata.

@@ -54,21 +54,21 @@ type Config struct {
 // Monitor for Utilization
 type Monitor struct {
 	Output            types.FilteringOutput
+	logger            log.FieldLogger
 	cancel            func()
 	conf              *Config
-	hostFSPath        string
 	fsTypes           *filter.OverridableStringFilter
 	mountPoints       *filter.OverridableStringFilter
+	hostFSPath        string
 	sendModeDimension bool
-	logger            log.FieldLogger
 }
 
 // returns common dimensions map for every filesystem
 func (m *Monitor) getCommonDimensions(partition *gopsutil.PartitionStat) map[string]string {
 	dims := map[string]string{
-		"mountpoint": strings.Replace(partition.Mountpoint, " ", "_", -1),
-		"device":     strings.Replace(partition.Device, " ", "_", -1),
-		"fs_type":    strings.Replace(partition.Fstype, " ", "_", -1),
+		"mountpoint": strings.ReplaceAll(partition.Mountpoint, " ", "_"),
+		"device":     strings.ReplaceAll(partition.Device, " ", "_"),
+		"fs_type":    strings.ReplaceAll(partition.Fstype, " ", "_"),
 	}
 	if m.sendModeDimension {
 		var mode string

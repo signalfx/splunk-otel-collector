@@ -7,7 +7,7 @@ import (
 
 // DefaultJavaRuntimeConfig returns the runtime config that uses the bundled Java
 // runtime.
-func DefaultJavaRuntimeConfig(jarPath string) *RuntimeConfig {
+func DefaultJavaRuntimeConfig(_ string) *RuntimeConfig {
 	// The JAVA_HOME envvar is set in agent core when config is processed.
 	env := os.Environ()
 

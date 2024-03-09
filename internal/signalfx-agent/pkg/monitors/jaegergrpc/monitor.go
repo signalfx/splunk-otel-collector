@@ -48,21 +48,19 @@ func (tls *TLSCreds) Credentials() (credentials.TransportCredentials, error) {
 
 // Config for this monitor
 type Config struct {
+	TLS                  *TLSCreds `yaml:"tls,omitempty"`
 	config.MonitorConfig `yaml:",inline" acceptsEndpoints:"false" singleInstance:"true"`
-	// The host:port on which to listen for traces.
-	ListenAddress string `yaml:"listenAddress" default:"0.0.0.0:14250"`
-	// TLS are optional tls credential settings to configure the GRPC server with
-	TLS *TLSCreds `yaml:"tls,omitempty"`
+	ListenAddress        string `yaml:"listenAddress" default:"0.0.0.0:14250"`
 }
 
 // Monitor that accepts and forwards SignalFx data
 type Monitor struct {
 	Output       types.Output
-	grpc         *grpc.Server
-	listenerLock sync.Mutex
-	cancel       context.CancelFunc
 	ln           net.Listener
+	grpc         *grpc.Server
+	cancel       context.CancelFunc
 	logger       *utils.ThrottledLogger
+	listenerLock sync.Mutex
 }
 
 var _ api_v2.CollectorServiceServer = (*Monitor)(nil)

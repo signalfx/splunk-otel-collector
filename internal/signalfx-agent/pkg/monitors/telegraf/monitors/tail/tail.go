@@ -28,19 +28,13 @@ func init() {
 
 // Config for this monitor
 type Config struct {
+	parser               telegrafParsers.Parser
+	TelegrafParser       *parser.Config `yaml:"telegrafParser"`
 	config.MonitorConfig `yaml:",inline" acceptsEndpoints:"false"`
-	// Paths to files to be tailed
-	Files []string `yaml:"files" validate:"required"`
-	// Method for watching changes to files ("ionotify" or "poll")
-	WatchMethod string `yaml:"watchMethod" default:"poll"`
-	// Indicates if the file is a named pipe
-	Pipe bool `yaml:"pipe" default:"false"`
-	// Whether to start tailing from the beginning of the file
-	FromBeginning bool `yaml:"fromBeginning" default:"false"`
-	// telegrafParser is a nested object that defines configurations for a Telegraf parser.
-	// Please refer to the Telegraf documentation for more information on Telegraf parsers.
-	TelegrafParser *parser.Config `yaml:"telegrafParser"`
-	parser         telegrafParsers.Parser
+	WatchMethod          string   `yaml:"watchMethod" default:"poll"`
+	Files                []string `yaml:"files" validate:"required"`
+	Pipe                 bool     `yaml:"pipe" default:"false"`
+	FromBeginning        bool     `yaml:"fromBeginning" default:"false"`
 }
 
 // Monitor for Utilization
@@ -88,7 +82,7 @@ func (m *Monitor) Configure(conf *Config) (err error) {
 
 	// Hard code the plugin name because the emitter will parse out the
 	// configured measurement name as plugin and that is confusing.
-	em.AddTag("plugin", strings.Replace(monitorType, "/", "-", -1))
+	em.AddTag("plugin", strings.ReplaceAll(monitorType, "/", "-"))
 
 	// create the accumulator
 	ac := accumulator.NewAccumulator(em)

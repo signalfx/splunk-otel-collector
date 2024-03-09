@@ -30,32 +30,15 @@ func init() {
 
 // Config for this monitor
 type Config struct {
-	config.MonitorConfig  `yaml:",inline" acceptsEndpoints:"true"`
-	httpclient.HTTPConfig `yaml:",inline"`
-
-	// Host of the exporter
-	Host string `yaml:"host" validate:"required"`
-	// Port of the exporter
-	Port uint16 `yaml:"port" validate:"required"`
-
-	// Use pod service account to authenticate.
-	UseServiceAccount bool `yaml:"useServiceAccount"`
-
-	// Path to the metrics endpoint on the exporter server, usually `/metrics`
-	// (the default).
-	MetricPath string `yaml:"metricPath" default:"/metrics"`
-
-	// Control the log level to use if a scrape failure occurs when scraping
-	// a target. Modifying this configuration is useful for less stable
-	// targets. All logrus log levels are supported.
+	config.MonitorConfig     `yaml:",inline" acceptsEndpoints:"true"`
+	httpclient.HTTPConfig    `yaml:",inline"`
+	Host                     string `yaml:"host" validate:"required"`
+	MetricPath               string `yaml:"metricPath" default:"/metrics"`
 	ScrapeFailureLogLevel    string `yaml:"scrapeFailureLogLevel" default:"error"`
 	scrapeFailureLogrusLevel logrus.Level
-
-	// Send all the metrics that come out of the Prometheus exporter without
-	// any filtering.  This option has no effect when using the prometheus
-	// exporter monitor directly since there is no built-in filtering, only
-	// when embedding it in other monitors.
-	SendAllMetrics bool `yaml:"sendAllMetrics"`
+	Port                     uint16 `yaml:"port" validate:"required"`
+	UseServiceAccount        bool   `yaml:"useServiceAccount"`
+	SendAllMetrics           bool   `yaml:"sendAllMetrics"`
 }
 
 func (c *Config) Validate() error {
@@ -80,18 +63,13 @@ var _ config.ExtraMetrics = &Config{}
 
 // Monitor for prometheus exporter metrics
 type Monitor struct {
-	Output types.Output
-	// Optional set of metric names that will be sent by default, all other
-	// metrics derived from the exporter being dropped.
+	Output          types.Output
+	logger          logrus.FieldLogger
 	IncludedMetrics map[string]bool
-	// Extra dimensions to add in addition to those specified in the config.
 	ExtraDimensions map[string]string
-	// If true, IncludedMetrics is ignored and everything is sent.
-	SendAll bool
-
-	monitorName string
-	logger      logrus.FieldLogger
-	cancel      func()
+	cancel          func()
+	monitorName     string
+	SendAll         bool
 }
 
 type fetcher func() (io.ReadCloser, expfmt.Format, error)

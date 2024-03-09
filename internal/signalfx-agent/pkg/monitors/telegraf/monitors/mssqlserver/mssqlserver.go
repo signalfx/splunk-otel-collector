@@ -29,25 +29,15 @@ func init() {
 // Config for this monitor
 type Config struct {
 	config.MonitorConfig `yaml:",inline" acceptsEndpoints:"true"`
-	Host                 string `yaml:"host" validate:"required" default:"."`
-	Port                 uint16 `yaml:"port" validate:"required" default:"1433"`
-	// UserID used to access the SQL Server instance.
-	UserID string `yaml:"userID"`
-	// Password used to access the SQL Server instance.
-	Password string `yaml:"password" neverLog:"true"`
-	// The app name used by the monitor when connecting to the SQLServer.
-	AppName string `yaml:"appName" default:"signalfxagent"`
-	// The version of queries to use when accessing the cluster.
-	// Please refer to the telegraf documentation for more information.
-	QueryVersion int `yaml:"queryVersion" default:"2"`
-	// Whether the database is an azure database or not.
-	AzureDB bool `yaml:"azureDB"`
-	// Queries to exclude possible values are `PerformanceCounters`, `WaitStatsCategorized`,
-	// `DatabaseIO`, `DatabaseProperties`, `CPUHistory`, `DatabaseSize`, `DatabaseStats`, `MemoryClerk`
-	// `VolumeSpace`, and `PerformanceMetrics`.
-	ExcludeQuery []string `yaml:"excludedQueries"`
-	// Log level to use when accessing the database
-	Log uint `yaml:"log" default:"1"`
+	Host                 string   `yaml:"host" validate:"required" default:"."`
+	UserID               string   `yaml:"userID"`
+	Password             string   `yaml:"password" neverLog:"true"`
+	AppName              string   `yaml:"appName" default:"signalfxagent"`
+	ExcludeQuery         []string `yaml:"excludedQueries"`
+	QueryVersion         int      `yaml:"queryVersion" default:"2"`
+	Log                  uint     `yaml:"log" default:"1"`
+	Port                 uint16   `yaml:"port" validate:"required" default:"1433"`
+	AzureDB              bool     `yaml:"azureDB"`
 }
 
 // Monitor for Utilization
@@ -105,7 +95,7 @@ func (m *Monitor) Configure(conf *Config) error {
 
 			// if it's a sqlserver_memory_clerks metric remap clerk type to field
 			if ms.Name() == "sqlserver_memory_clerks" {
-				ms.SetName(fmt.Sprintf("sqlserver_memory_clerks.size_kb"))
+				ms.SetName("sqlserver_memory_clerks.size_kb")
 				emitter.RenameFieldWithTag(ms, "clerk_type", "size_kb", replacer)
 			}
 			return nil

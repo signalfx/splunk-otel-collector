@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
@@ -32,36 +31,24 @@ func init() {
 
 // Config for this monitor
 type Config struct {
-	config.MonitorConfig `yaml:",inline" singleInstance:"false" acceptsEndpoints:"true"`
-	// Host/IP to monitor
-	Host string `yaml:"host"`
-	// Port of the HTTP server to monitor
-	Port uint16 `yaml:"port"`
-	// HTTP path to use in the test request
-	Path string `yaml:"path"`
-
+	config.MonitorConfig  `yaml:",inline" singleInstance:"false" acceptsEndpoints:"true"`
 	httpclient.HTTPConfig `yaml:",inline"`
-	// Optional HTTP request body as string like '{"foo":"bar"}'
-	RequestBody string `yaml:"requestBody"`
-	// Do not follow redirect.
-	NoRedirects bool `yaml:"noRedirects" default:"false"`
-	// HTTP request method to use.
-	Method string `yaml:"method" default:"GET"`
-	// DEPRECATED: list of HTTP URLs to monitor. Use `host`/`port`/`useHTTPS`/`path` instead.
-	URLs []string `yaml:"urls"`
-	// Optional Regex to match on URL(s) response(s).
-	Regex string `yaml:"regex"`
-	// Desired code to match for URL(s) response(s).
-	DesiredCode int `yaml:"desiredCode" default:"200"`
-	// Add `redirect_url` dimension which could differ from `url` when redirection is followed.
-	AddRedirectURL bool `yaml:"addRedirectURL" default:"false"`
+	Host                  string   `yaml:"host"`
+	Path                  string   `yaml:"path"`
+	RequestBody           string   `yaml:"requestBody"`
+	Method                string   `yaml:"method" default:"GET"`
+	Regex                 string   `yaml:"regex"`
+	URLs                  []string `yaml:"urls"`
+	DesiredCode           int      `yaml:"desiredCode" default:"200"`
+	Port                  uint16   `yaml:"port"`
+	NoRedirects           bool     `yaml:"noRedirects" default:"false"`
+	AddRedirectURL        bool     `yaml:"addRedirectURL" default:"false"`
 }
 
 // Monitor that collect metrics
 type Monitor struct {
-	Output types.FilteringOutput
-	cancel context.CancelFunc
-	//ctx         context.Context
+	Output      types.FilteringOutput
+	cancel      context.CancelFunc
 	logger      logrus.FieldLogger
 	conf        *Config
 	monitorName string
@@ -228,6 +215,7 @@ func (m *Monitor) getTLSStats(site *url.URL, logger *logrus.Entry) (dps []*datap
 
 	tlsCfg := &tls.Config{
 		ServerName: serverName,
+		MinVersion: tls.VersionTLS12,
 	}
 
 	if _, err := auth.TLSConfig(tlsCfg, m.conf.CACertPath, m.conf.ClientCertPath, m.conf.ClientKeyPath); err != nil {
@@ -318,7 +306,7 @@ func (m *Monitor) getHTTPStats(site fmt.Stringer, logger *logrus.Entry) (dps []*
 
 	statusCode := int64(resp.StatusCode)
 
-	var matchCode int64 = 0
+	var matchCode int64
 	if statusCode == int64(m.conf.DesiredCode) {
 		matchCode = 1
 	}
@@ -329,14 +317,14 @@ func (m *Monitor) getHTTPStats(site fmt.Stringer, logger *logrus.Entry) (dps []*
 		datapoint.New(httpCodeMatched, dimensions, datapoint.NewIntValue(matchCode), datapoint.Gauge, time.Time{}),
 	)
 
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		logger.WithError(err).Error("could not parse body response")
 	} else {
 		dps = append(dps, datapoint.New(httpContentLength, dimensions, datapoint.NewIntValue(int64(len(bodyBytes))), datapoint.Gauge, time.Time{}))
 
 		if m.conf.Regex != "" {
-			var matchRegex int64 = 0
+			var matchRegex int64
 			if m.regex.Match(bodyBytes) {
 				matchRegex = 1
 			}

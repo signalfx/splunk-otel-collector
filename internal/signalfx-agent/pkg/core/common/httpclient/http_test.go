@@ -49,8 +49,9 @@ func runServer(t *testing.T, h *HTTPConfig, cb func(host string)) {
 		_, _ = writer.Write([]byte("http body"))
 	})
 	server := &http.Server{
-		Addr:    "localhost",
-		Handler: mux,
+		Addr:              "localhost",
+		Handler:           mux,
+		ReadHeaderTimeout: 10 * time.Second,
 	}
 
 	listener, err := net.Listen("tcp", "localhost:0")
@@ -74,6 +75,7 @@ func runServer(t *testing.T, h *HTTPConfig, cb func(host string)) {
 		server.TLSConfig = &tls.Config{
 			ClientCAs:  clientCA,
 			ClientAuth: tls.RequireAndVerifyClientCert,
+			MinVersion: tls.VersionTLS12,
 		}
 	}
 
@@ -162,8 +164,8 @@ func TestHttpConfig_Scheme(t *testing.T) {
 	}
 	tests := []struct {
 		name   string
-		fields fields
 		want   string
+		fields fields
 	}{
 		{"https enabled", fields{UseHTTPS: true}, "https"},
 		{"https disabled", fields{UseHTTPS: false}, "http"},

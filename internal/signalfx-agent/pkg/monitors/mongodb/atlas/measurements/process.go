@@ -21,15 +21,15 @@ type ProcessesGetter interface {
 
 // processesGetter implements ProcessesGetter
 type processesGetter struct {
-	projectID         string
-	granularity       string
-	period            string
+	logger            log.FieldLogger
 	client            *mongodbatlas.Client
-	enableCache       bool
 	mutex             *sync.Mutex
 	measurementsCache *atomic.Value
 	processesCache    *atomic.Value
-	logger            log.FieldLogger
+	projectID         string
+	granularity       string
+	period            string
+	enableCache       bool
 }
 
 // NewProcessesGetter returns a new ProcessesGetter.

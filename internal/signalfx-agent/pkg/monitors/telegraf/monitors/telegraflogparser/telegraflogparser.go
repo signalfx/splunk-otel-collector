@@ -27,25 +27,15 @@ func init() {
 // Config for this monitor
 type Config struct {
 	config.MonitorConfig `yaml:",inline" acceptsEndpoints:"false"`
-	// Paths to files to be tailed
-	Files []string `yaml:"files" validate:"required"`
-	// Method for watching changes to files ("ionotify" or "poll")
-	WatchMethod string `yaml:"watchMethod" default:"poll"`
-	// Whether to start tailing from the beginning of the file
-	FromBeginning bool `yaml:"fromBeginning" default:"false"`
-	// Name of the measurement
-	MeasurementName string `yaml:"measurementName"`
-	// A list of patterns to match.
-	Patterns []string `yaml:"patterns"`
-	// A list of named grok patterns to match.
-	NamedPatterns []string `yaml:"namedPatterns"`
-	// Custom grok patterns. (`grok` only)
-	CustomPatterns string `yaml:"customPatterns"`
-	// List of paths to custom grok pattern files.
-	CustomPatternFiles []string `yaml:"customPatternFiles"`
-	// Specifies the timezone.  The default is UTC time.  Other options are `Local` for the
-	// local time on the machine, `UTC`, and `Canada/Eastern` (unix style timezones).
-	Timezone string `yaml:"timezone"`
+	WatchMethod          string   `yaml:"watchMethod" default:"poll"`
+	MeasurementName      string   `yaml:"measurementName"`
+	CustomPatterns       string   `yaml:"customPatterns"`
+	Timezone             string   `yaml:"timezone"`
+	Files                []string `yaml:"files" validate:"required"`
+	Patterns             []string `yaml:"patterns"`
+	NamedPatterns        []string `yaml:"namedPatterns"`
+	CustomPatternFiles   []string `yaml:"customPatternFiles"`
+	FromBeginning        bool     `yaml:"fromBeginning" default:"false"`
 }
 
 // Monitor for Utilization
@@ -89,7 +79,7 @@ func (m *Monitor) Configure(conf *Config) (err error) {
 
 	// Hard code the plugin name because the emitter will parse out the
 	// configured measurement name as plugin and that is confusing.
-	em.AddTag("plugin", strings.Replace(monitorType, "/", "-", -1))
+	em.AddTag("plugin", strings.ReplaceAll(monitorType, "/", "-"))
 
 	// create the accumulator
 	ac := accumulator.NewAccumulator(em)

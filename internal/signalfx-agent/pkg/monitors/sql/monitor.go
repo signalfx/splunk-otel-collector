@@ -50,21 +50,11 @@ type Query struct {
 // Metric describes how to derive a metric from the individual rows of a query
 // result.
 type Metric struct {
-	// The name of the metric as it will appear in SignalFx.
-	MetricName string `yaml:"metricName" validate:"required"`
-	// The column name that holds the datapoint value
-	ValueColumn string `yaml:"valueColumn" validate:"required"`
-	// The names of the columns that should make up the dimensions of the
-	// datapoint.
-	DimensionColumns []string `yaml:"dimensionColumns"`
-	// Whether the value is a cumulative counters (true) or gauge
-	// (false).  If you set this to the wrong value and send in your first
-	// datapoint for the metric name with the wrong type, you will have to
-	// manually change the type in SignalFx, as it is set in the system based
-	// on the first type seen.
-	IsCumulative bool `yaml:"isCumulative"`
-	// The mapping between dimensions and the columns to be used to attach respective properties
 	DimensionPropertyColumns map[string][]string `yaml:"dimensionPropertyColumns"`
+	MetricName               string              `yaml:"metricName" validate:"required"`
+	ValueColumn              string              `yaml:"valueColumn" validate:"required"`
+	DimensionColumns         []string            `yaml:"dimensionColumns"`
+	IsCumulative             bool                `yaml:"isCumulative"`
 }
 
 func (m *Metric) NewDatapoint() *datapoint.Datapoint {
@@ -77,28 +67,14 @@ func (m *Metric) NewDatapoint() *datapoint.Datapoint {
 
 // Config for this monitor
 type Config struct {
+	Params               map[string]string `yaml:"params"`
 	config.MonitorConfig `yaml:",inline" acceptsEndpoints:"true"`
-
-	Host string `yaml:"host"`
-	Port uint16 `yaml:"port"`
-
-	// Parameters to the connectionString that can be templated into that option using
-	// Go template syntax (e.g. `{{.key}}`).
-	Params map[string]string `yaml:"params"`
-
-	// The database driver to use, valid values are `postgres`, `mysql`, `sqlserver`,
-	// and `snowflake`.
-	DBDriver string `yaml:"dbDriver"`
-	// A URL or simple option string used to connect to the database.
-	// For example, if using PostgreSQL, [see the list of connection string
-	// params](https://godoc.org/github.com/lib/pq#hdr-Connection_String_Parameters).
-	ConnectionString string `yaml:"connectionString"`
-
-	// A list of queries to make against the database that are used to generate
-	// datapoints.
-	Queries []Query `yaml:"queries" validate:"required"`
-	// If true, query results will be logged at the info level.
-	LogQueries bool `yaml:"logQueries"`
+	Host                 string  `yaml:"host"`
+	DBDriver             string  `yaml:"dbDriver"`
+	ConnectionString     string  `yaml:"connectionString"`
+	Queries              []Query `yaml:"queries" validate:"required"`
+	Port                 uint16  `yaml:"port"`
+	LogQueries           bool    `yaml:"logQueries"`
 }
 
 // Validate that the config is right

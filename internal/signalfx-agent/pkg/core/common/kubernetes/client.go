@@ -36,26 +36,11 @@ var authTypes = map[AuthType]bool{
 
 // APIConfig contains options relevant to connecting to the K8s API
 type APIConfig struct {
-	// How to authenticate to the K8s API server.  This can be one of `none`
-	// (for no auth), `tls` (to use manually specified TLS client certs, not
-	// recommended), `serviceAccount` (to use the standard service account
-	// token provided to the agent pod), or `kubeConfig` to use credentials
-	// from `~/.kube/config`.
-	AuthType AuthType `yaml:"authType" default:"serviceAccount"`
-	// Whether to skip verifying the TLS cert from the API server.  Almost
-	// never needed.
-	SkipVerify bool `yaml:"skipVerify" default:"false"`
-	// The path to the TLS client cert on the pod's filesystem, if using `tls`
-	// auth.
-	ClientCertPath string `yaml:"clientCertPath"`
-	// The path to the TLS client key on the pod's filesystem, if using `tls`
-	// auth.
-	ClientKeyPath string `yaml:"clientKeyPath"`
-	// Path to a CA certificate to use when verifying the API server's TLS
-	// cert.  Generally this is provided by K8s alongside the service account
-	// token, which will be picked up automatically, so this should rarely be
-	// necessary to specify.
-	CACertPath string `yaml:"caCertPath"`
+	AuthType       AuthType `yaml:"authType" default:"serviceAccount"`
+	ClientCertPath string   `yaml:"clientCertPath"`
+	ClientKeyPath  string   `yaml:"clientKeyPath"`
+	CACertPath     string   `yaml:"caCertPath"`
+	SkipVerify     bool     `yaml:"skipVerify" default:"false"`
 }
 
 // Validate validates the K8s API config

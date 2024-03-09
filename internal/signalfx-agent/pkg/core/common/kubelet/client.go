@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
@@ -70,7 +69,9 @@ func NewClient(kubeletAPI *APIConfig, logger log.FieldLogger) (*Client, error) {
 		kubeletAPI.URL = fmt.Sprintf("http://%s:10255", hostname)
 	}
 
-	tlsConfig := &tls.Config{}
+	tlsConfig := &tls.Config{
+		MinVersion: tls.VersionTLS12,
+	}
 	if kubeletAPI.SkipVerify != nil {
 		tlsConfig.InsecureSkipVerify = *kubeletAPI.SkipVerify
 	}
@@ -91,8 +92,8 @@ func NewClient(kubeletAPI *APIConfig, logger log.FieldLogger) (*Client, error) {
 		if err != nil {
 			return nil, err
 		}
-		tokenPath := "/var/run/secrets/kubernetes.io/serviceaccount/token"
-		token, err := ioutil.ReadFile(tokenPath)
+		tokenPath := "/var/run/secrets/kubernetes.io/serviceaccount/token" // nolint: gosec
+		token, err := os.ReadFile(tokenPath)
 		if err != nil {
 			return nil, fmt.Errorf("could not read service account token at default location, are "+
 				"you sure service account tokens are mounted into your containers by default?: %w", err)
@@ -146,7 +147,7 @@ func (kc *Client) DoRequestAndSetValue(req *http.Request, value interface{}) err
 	}
 	defer response.Body.Close()
 
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		return fmt.Errorf("failed to read Kubelet response body - %v", err)
 	}

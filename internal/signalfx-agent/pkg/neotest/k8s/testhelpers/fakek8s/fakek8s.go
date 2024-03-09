@@ -28,21 +28,16 @@ type resourceName string
 // FakeK8s is a mock K8s API server.  It can serve both list and watch
 // requests.
 type FakeK8s struct {
-	sync.RWMutex
-	server *httptest.Server
-	router http.Handler
-	// Resources that have been inserted on the ResourceInput channel
-	resources  map[resourceKind]map[string]map[resourceName]runtime.Object
-	eventInput chan watch.Event
-	// Channels to send new resources to watchers (we only support one watcher
-	// per resource)
+	router        http.Handler
+	server        *httptest.Server
+	resources     map[resourceKind]map[string]map[resourceName]runtime.Object
+	eventInput    chan watch.Event
 	subs          map[resourceKind]chan watch.Event
 	pendingEvents map[resourceKind][]watch.Event
-	subsMutex     sync.Mutex
-	// Stops the resource accepter goroutine
-	eventStopper chan struct{}
-	// Stops all of the watchers
-	stoppers map[resourceKind]chan struct{}
+	eventStopper  chan struct{}
+	stoppers      map[resourceKind]chan struct{}
+	sync.RWMutex
+	subsMutex sync.Mutex
 }
 
 // NewFakeK8s makes a new FakeK8s
@@ -171,7 +166,7 @@ func (f *FakeK8s) addToResources(resKind resourceKind, namespace string, name st
 	return !exists
 }
 
-func (f *FakeK8s) handleCreateOrReplaceResource(rw http.ResponseWriter, r *http.Request) {
+func (f *FakeK8s) handleCreateOrReplaceResource(_ http.ResponseWriter, r *http.Request) {
 	content, err := ioutil.ReadAll(r.Body)
 	r.Body.Close()
 	if err != nil {
@@ -202,7 +197,7 @@ func (f *FakeK8s) CreateOrReplaceResource(obj runtime.Object) {
 	f.eventInput <- watch.Event{Type: eType, Object: obj}
 }
 
-func (f *FakeK8s) handleDeleteResource(rw http.ResponseWriter, r *http.Request) {
+func (f *FakeK8s) handleDeleteResource(_ http.ResponseWriter, r *http.Request) {
 	f.DeleteResourceByName(string(pluralNameToKind(mux.Vars(r)["resource"])), mux.Vars(r)["namespace"], mux.Vars(r)["name"])
 }
 

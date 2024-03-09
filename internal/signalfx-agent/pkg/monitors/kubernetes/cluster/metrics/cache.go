@@ -26,10 +26,10 @@ type ContainerID string
 // cluster.  It is updated whenever the HandleAdd method is called with new
 // K8s resources.
 type DatapointCache struct {
-	sync.Mutex
+	logger                     log.FieldLogger
 	dpCache                    map[types.UID][]*datapoint.Datapoint
 	nodeConditionTypesToReport []string
-	logger                     log.FieldLogger
+	sync.Mutex
 }
 
 // NewDatapointCache creates a new clean cache

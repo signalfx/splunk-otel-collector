@@ -11,9 +11,9 @@ import (
 // responseError for Conviva error response
 type responseError struct {
 	Message string
-	Code    int64
 	Request string
 	Reason  string
+	Code    int64
 }
 
 // httpClient interface to provide for Conviva API specific implementation

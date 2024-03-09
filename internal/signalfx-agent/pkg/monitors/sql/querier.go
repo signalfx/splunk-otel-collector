@@ -19,6 +19,7 @@ import (
 )
 
 type querier struct {
+	logger                    logrus.FieldLogger
 	query                     *Query
 	valueColumnNamesToMetrics map[string]*Metric
 	metricToIndex             map[*Metric]int
@@ -26,7 +27,6 @@ type querier struct {
 	dimensions                [][]*types.Dimension
 	compiledExprs             []*vm.Program
 	rowSliceCached            []interface{}
-	logger                    logrus.FieldLogger
 	logQueries                bool
 }
 

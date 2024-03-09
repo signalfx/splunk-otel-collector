@@ -43,10 +43,10 @@ type Monitor struct {
 }
 
 type metricVal struct {
-	metric              string
-	keys                []string
 	value               datapoint.Value
 	arrayIndexDimension map[string]string
+	metric              string
+	keys                []string
 }
 
 // Configure monitor

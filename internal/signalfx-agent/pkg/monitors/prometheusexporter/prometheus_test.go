@@ -8,9 +8,9 @@ import (
 )
 
 type testCase struct {
+	expectedError         error
 	name                  string
 	scrapeFailureLogLevel string
-	expectedError         error
 }
 
 func TestConfigValidate(t *testing.T) {

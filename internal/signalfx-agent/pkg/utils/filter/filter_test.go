@@ -10,8 +10,8 @@ import (
 
 func TestBasicStringFilter(t *testing.T) {
 	for _, tc := range []struct {
-		filter      []string
 		input       string
+		filter      []string
 		shouldMatch bool
 		shouldError bool
 	}{

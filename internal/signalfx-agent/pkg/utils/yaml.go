@@ -8,7 +8,7 @@ import (
 )
 
 // ConvertToMapViaYAML takes a struct and converts it to map[string]interface{}
-// by marshalling it to yaml and back to a map.  This will return nil if the
+// by marshaling it to yaml and back to a map.  This will return nil if the
 // conversion was not successful.
 func ConvertToMapViaYAML(obj interface{}) (map[string]interface{}, error) {
 	str, err := yaml.Marshal(obj)

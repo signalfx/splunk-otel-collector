@@ -28,10 +28,10 @@ func NewServiceCache() *ServiceCache {
 // CachedService is used for holding only the neccesarry fields we need
 // for label syncing
 type CachedService struct {
+	Selector  map[string]string
 	UID       types.UID
 	Name      string
 	Namespace string
-	Selector  map[string]string
 }
 
 func (cs *CachedService) AsService() *v1.Service {

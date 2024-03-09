@@ -26,80 +26,46 @@ func init() {
 
 // Field represents an SNMP field
 type Field struct {
-	// Name of the field.  The OID will be used if no value is supplied.
-	Name string `yaml:"name"`
-	// The OID to fetch.
-	Oid string `yaml:"oid"`
-	// The sub-identifier to strip off when matching indexes to other fields.
+	Name           string `yaml:"name"`
+	Oid            string `yaml:"oid"`
 	OidIndexSuffix string `yaml:"oidIndexSuffix"`
-	// The index length after the table OID.  The index will be truncated after
-	// this length in order to remove length index suffixes or non-fixed values.
-	OidIndexLength int `yaml:"oidIndexLength"`
-	// Whether to output the field as a tag.
-	IsTag bool `yaml:"isTag"`
-	// Controls the type conversion applied to the value: `"float(X)"`, `"float"`,
-	// `"int"`, `"hwaddr"`, `"ipaddr"` or `""` (default).
-	Conversion string `yaml:"conversion"`
+	Conversion     string `yaml:"conversion"`
+	OidIndexLength int    `yaml:"oidIndexLength"`
+	IsTag          bool   `yaml:"isTag"`
 }
 
 // Table represents an SNMP table
 type Table struct {
-	// Metric name.  If not supplied the OID will be used.
-	Name string `yaml:"name"`
-	// Top level tags to inherit.
+	Name        string   `yaml:"name"`
+	Oid         string   `yaml:"oid"`
 	InheritTags []string `yaml:"inheritTags"`
-	// Add a tag for the table index for each row.
-	IndexAsTag bool `yaml:"indexAsTag"`
-	// Specifies the ags and values to look up.
-	Fields []Field `yaml:"field"`
-	// The OID to fetch.
-	Oid string `yaml:"oid"`
+	Fields      []Field  `yaml:"field"`
+	IndexAsTag  bool     `yaml:"indexAsTag"`
 }
 
 // Config for this monitor
 type Config struct {
 	config.MonitorConfig `yaml:",inline" acceptsEndpoints:"true"`
-	// Host and port will be concatenated and appended to the list of SNMP agents to connect to.
-	Host string `yaml:"host"`
-	// Port and Host will be concatenated and appended to the list of SNMP agents to connect to.
-	Port uint16 `yaml:"port"`
-	// SNMP agent address and ports to query for information.  An example address is `0.0.0.0:5555`
-	// If an address is supplied with out a port, the default port `161` will be used.
-	Agents []string `yaml:"agents"`
-	// The number of times to retry.
-	Retries int `yaml:"retries"`
-	// The SNMP protocol version to use (ie: `1`, `2`, `3`).
-	Version uint8
-	// The SNMP community to use.
-	Community string `yaml:"community" default:"public"`
-	// Maximum number of iterations for reqpeating variables
-	MaxRepetitions uint8 `yaml:"maxRepetitions" default:"50"`
-	// SNMP v3 context name to use with requests
-	ContextName string `yaml:"contextName"`
-	// Security level to use for SNMP v3 messages: `noAuthNoPriv` `authNoPriv`, `authPriv`.
-	SecLevel string `yaml:"secLevel" default:"noAuthNoPriv"`
-	// Name to used to authenticate with SNMP v3 requests.
-	SecName string `yaml:"secName"`
-	// Protocol to used to authenticate SNMP v3 requests: `"MD5"`, `"SHA"`, and `""` (default).
-	AuthProtocol string `yaml:"authProtocol" default:""`
-	// Password used to authenticate SNMP v3 requests.
-	AuthPassword string `yaml:"authPassword" default:"" neverLog:"true"`
-	// Protocol used for encrypted SNMP v3 messages: `DES`, `AES`, `""` (default).
-	PrivProtocol string `yaml:"privProtocol" default:""`
-	// Password used to encrypt SNMP v3 messages.
-	PrivPassword string `yaml:"privPassword"`
-	// The SNMP v3 engine ID.
-	EngineID string `yaml:"engineID"`
-	// The SNMP v3 engine boots.
-	EngineBoots uint32 `yaml:"engineBoots"`
-	// The SNMP v3 engine time.
-	EngineTime uint32 `yaml:"engineTime"`
-	// The top-level measurement name
-	Name string `yaml:"name"`
-	// The top-level SNMP fields
-	Fields []Field `yaml:"fields"`
-	// SNMP Tables
-	Tables []Table `yaml:"tables"`
+	EngineID             string   `yaml:"engineID"`
+	Name                 string   `yaml:"name"`
+	SecLevel             string   `yaml:"secLevel" default:"noAuthNoPriv"`
+	SecName              string   `yaml:"secName"`
+	Host                 string   `yaml:"host"`
+	Community            string   `yaml:"community" default:"public"`
+	PrivPassword         string   `yaml:"privPassword"`
+	AuthProtocol         string   `yaml:"authProtocol" default:""`
+	PrivProtocol         string   `yaml:"privProtocol" default:""`
+	AuthPassword         string   `yaml:"authPassword" default:"" neverLog:"true"`
+	ContextName          string   `yaml:"contextName"`
+	Tables               []Table  `yaml:"tables"`
+	Fields               []Field  `yaml:"fields"`
+	Agents               []string `yaml:"agents"`
+	Retries              int      `yaml:"retries"`
+	EngineBoots          uint32   `yaml:"engineBoots"`
+	EngineTime           uint32   `yaml:"engineTime"`
+	Port                 uint16   `yaml:"port"`
+	MaxRepetitions       uint8    `yaml:"maxRepetitions" default:"50"`
+	Version              uint8
 }
 
 // Monitor for Utilization

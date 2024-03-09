@@ -11,24 +11,24 @@ import (
 )
 
 type statsDListener struct {
+	udpConn      *net.UDPConn
+	logger       *utils.ThrottledLogger
+	ipAddr       string
+	prefix       string
+	converters   []*converter
+	metricBuffer []string
 	sync.Mutex
-	ipAddr         string
+	shutdownCalled int32
 	port           uint16
 	tcp            bool
-	udpConn        *net.UDPConn
-	prefix         string
-	converters     []*converter
-	metricBuffer   []string
-	shutdownCalled int32
-	logger         *utils.ThrottledLogger
 }
 
 type statsDMetric struct {
+	dimensions    map[string]string
 	rawMetricName string
 	metricName    string
 	metricType    string
 	value         float64
-	dimensions    map[string]string
 }
 
 func (sl *statsDListener) Listen() error {
@@ -88,7 +88,7 @@ func (sl *statsDListener) Read() {
 	}
 }
 
-func (sl *statsDListener) readTCP(chData chan []byte) {
+func (sl *statsDListener) readTCP(_ chan []byte) {
 }
 
 func (sl *statsDListener) readUDP(chData chan []byte) {

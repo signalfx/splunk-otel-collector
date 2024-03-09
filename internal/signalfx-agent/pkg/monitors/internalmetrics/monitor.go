@@ -20,13 +20,9 @@ import (
 // Config for internal metric monitoring
 type Config struct {
 	config.MonitorConfig `yaml:",inline" acceptsEndpoints:"true"`
-
-	// Defaults to the top-level `internalStatusHost` option
-	Host string `yaml:"host"`
-	// Defaults to the top-level `internalStatusPort` option
-	Port uint16 `yaml:"port" noDefault:"true"`
-	// The HTTP request path to use to retrieve the metrics
-	Path string `yaml:"path" default:"/metrics"`
+	Host                 string `yaml:"host"`
+	Path                 string `yaml:"path" default:"/metrics"`
+	Port                 uint16 `yaml:"port" noDefault:"true"`
 }
 
 // Monitor for collecting internal metrics from the simple server that dumps

@@ -40,7 +40,7 @@ func TestFactory(t *testing.T) {
 	freePort, err := getFreePort()
 	require.NoError(t, err)
 	assert.NoError(t, componenttest.CheckConfigStruct(cfg))
-	cfg.Endpoint = fmt.Sprintf("localhost:%d", freePort)
+	cfg.ServerConfig.Endpoint = fmt.Sprintf("localhost:%d", freePort)
 	cfg.ListenPath = "/metrics"
 
 	nopHost := componenttest.NewNopHost()

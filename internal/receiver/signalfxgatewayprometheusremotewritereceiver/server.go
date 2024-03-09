@@ -15,6 +15,7 @@
 package signalfxgatewayprometheusremotewritereceiver
 
 import (
+	"errors"
 	"io"
 	"net/http"
 	"sync"
@@ -34,7 +35,7 @@ type prometheusRemoteWriteServer struct {
 }
 
 type serverConfig struct {
-	confighttp.HTTPServerSettings
+	confighttp.ServerConfig
 	component.TelemetrySettings
 	Reporter reporter
 	component.Host
@@ -47,13 +48,13 @@ func newPrometheusRemoteWriteServer(config *serverConfig) (*prometheusRemoteWrit
 	mx := mux.NewRouter()
 	handler := newHandler(config.Parser, config, config.Mc)
 	mx.HandleFunc(config.Path, handler)
-	mx.Host(config.Endpoint)
-	server, err := config.HTTPServerSettings.ToServer(config.Host, config.TelemetrySettings, mx,
+	mx.Host(config.ServerConfig.Endpoint)
+	server, err := config.ServerConfig.ToServer(config.Host, config.TelemetrySettings, mx,
 		// ensure we support the snappy Content-Encoding, but leave it to the prometheus remotewrite lib to decompress.
 		confighttp.WithDecoder("snappy", func(body io.ReadCloser) (io.ReadCloser, error) {
 			return body, nil
 		}))
-	server.Addr = config.Endpoint
+	server.Addr = config.ServerConfig.Endpoint
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +79,7 @@ func (prw *prometheusRemoteWriteServer) ready() {
 
 func (prw *prometheusRemoteWriteServer) listenAndServe() error {
 	prw.Reporter.OnDebugf("Starting prometheus simple write server")
-	listener, err := prw.serverConfig.ToListener()
+	listener, err := prw.serverConfig.ServerConfig.ToListener()
 	if err != nil {
 		return err
 	}
@@ -86,7 +87,7 @@ func (prw *prometheusRemoteWriteServer) listenAndServe() error {
 	prw.listening.Done()
 	err = prw.Server.Serve(listener)
 	prw.listening.Add(1)
-	if err == http.ErrServerClosed {
+	if errors.Is(err, http.ErrServerClosed) {
 		return nil
 	}
 	return err

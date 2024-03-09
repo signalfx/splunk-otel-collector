@@ -40,12 +40,12 @@ func TestWriteEmpty(t *testing.T) {
 		Path:     "/metrics",
 		Reporter: mockReporter,
 		Mc:       mc,
-		HTTPServerSettings: confighttp.HTTPServerSettings{
+		ServerConfig: confighttp.ServerConfig{
 			Endpoint: expectedEndpoint,
 		},
 		Parser: parser,
 	}
-	require.Equal(t, expectedEndpoint, cfg.Endpoint)
+	require.Equal(t, expectedEndpoint, cfg.ServerConfig.Endpoint)
 	timeout := time.Second * 10
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
@@ -63,7 +63,7 @@ func TestWriteEmpty(t *testing.T) {
 	}()
 
 	client, err := newMockPrwClient(
-		cfg.Endpoint,
+		cfg.ServerConfig.Endpoint,
 		timeout,
 	)
 	require.NoError(t, err)
@@ -91,12 +91,12 @@ func TestWriteMany(t *testing.T) {
 		Path:     "/metrics",
 		Reporter: mockReporter,
 		Mc:       mc,
-		HTTPServerSettings: confighttp.HTTPServerSettings{
+		ServerConfig: confighttp.ServerConfig{
 			Endpoint: expectedEndpoint,
 		},
 		Parser: parser,
 	}
-	require.Equal(t, expectedEndpoint, cfg.Endpoint)
+	require.Equal(t, expectedEndpoint, cfg.ServerConfig.Endpoint)
 	timeout := time.Second * 1000
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
@@ -113,7 +113,7 @@ func TestWriteMany(t *testing.T) {
 	require.Eventually(t, func() bool { remoteWriteServer.ready(); return true }, time.Second*10, 50*time.Millisecond)
 
 	client, err := newMockPrwClient(
-		cfg.Endpoint,
+		cfg.ServerConfig.Endpoint,
 		timeout,
 	)
 	require.NoError(t, err)

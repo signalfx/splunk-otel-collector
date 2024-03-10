@@ -138,7 +138,7 @@ func (mc *metricConfig) setMetricLensDimensions(service accountsService) error {
 		} else {
 			mc.metricLensDimensionMap = make(map[string]float64, len(mc.MetricLensDimensions))
 			for i, name := range mc.MetricLensDimensions {
-				name := strings.TrimSpace(name)
+				name = strings.TrimSpace(name)
 				if id, err := service.getMetricLensDimensionID(mc.Account, name); err == nil {
 					mc.MetricLensDimensions[i] = name
 					mc.metricLensDimensionMap[name] = id
@@ -153,7 +153,7 @@ func (mc *metricConfig) setMetricLensDimensions(service accountsService) error {
 
 func (mc *metricConfig) excludeMetricLensDimensions(service accountsService) error {
 	for _, excludeName := range mc.ExcludeMetricLensDimensions {
-		excludeName := strings.TrimSpace(excludeName)
+		excludeName = strings.TrimSpace(excludeName)
 		if _, err := service.getMetricLensDimensionID(mc.Account, excludeName); err == nil {
 			delete(mc.metricLensDimensionMap, excludeName)
 		} else {

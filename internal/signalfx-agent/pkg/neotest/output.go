@@ -65,7 +65,7 @@ func (to *TestOutput) SendDimensionUpdate(dims *types.Dimension) {
 }
 
 // AddExtraDimension is a noop here
-func (to *TestOutput) AddExtraDimension(key, value string) {}
+func (to *TestOutput) AddExtraDimension(_, _ string) {}
 
 // FlushDatapoints returns all of the datapoints injected into the channel so
 // far.
@@ -156,14 +156,14 @@ loop:
 }
 
 // AddDatapointExclusionFilter is a noop here.
-func (to *TestOutput) AddDatapointExclusionFilter(f dpfilters.DatapointFilter) {
+func (to *TestOutput) AddDatapointExclusionFilter(_ dpfilters.DatapointFilter) {
 }
 
 func (to *TestOutput) EnabledMetrics() []string {
 	return nil
 }
 
-func (to *TestOutput) HasEnabledMetricInGroup(group string) bool {
+func (to *TestOutput) HasEnabledMetricInGroup(_ string) bool {
 	return false
 }
 

@@ -89,7 +89,7 @@ func (m *Monitor) Configure(conf *Config) (err error) {
 
 	// Hard code the plugin name because the emitter will parse out the
 	// configured measurement name as plugin and that is confusing.
-	em.AddTag("plugin", strings.Replace(monitorType, "/", "-", -1))
+	em.AddTag("plugin", strings.ReplaceAll(monitorType, "/", "-"))
 
 	// create the accumulator
 	ac := accumulator.NewAccumulator(em)

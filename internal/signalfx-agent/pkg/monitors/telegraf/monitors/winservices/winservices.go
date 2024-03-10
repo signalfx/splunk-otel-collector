@@ -16,9 +16,8 @@ func init() {
 
 // Config for this monitor
 type Config struct {
+	ServiceNames         []string `yaml:"serviceNames"`
 	config.MonitorConfig `yaml:",inline" acceptsEndpoints:"false"`
-	// Names of services to monitor.  All services will be monitored if none are specified.
-	ServiceNames []string `yaml:"serviceNames"`
 }
 
 // Monitor for Utilization

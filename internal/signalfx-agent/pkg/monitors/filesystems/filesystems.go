@@ -66,9 +66,9 @@ type Monitor struct {
 // returns common dimensions map for every filesystem
 func (m *Monitor) getCommonDimensions(partition *gopsutil.PartitionStat) map[string]string {
 	dims := map[string]string{
-		"mountpoint": strings.Replace(partition.Mountpoint, " ", "_", -1),
-		"device":     strings.Replace(partition.Device, " ", "_", -1),
-		"fs_type":    strings.Replace(partition.Fstype, " ", "_", -1),
+		"mountpoint": strings.ReplaceAll(partition.Mountpoint, " ", "_"),
+		"device":     strings.ReplaceAll(partition.Device, " ", "_"),
+		"fs_type":    strings.ReplaceAll(partition.Fstype, " ", "_"),
 	}
 	if m.sendModeDimension {
 		var mode string
@@ -175,9 +175,9 @@ func (m *Monitor) emitDatapoints() {
 		}
 
 		// if we can't collect usage stats about the mountpoint then skip it
-		disk, err := getUsage(m.hostFSPath, partition.Mountpoint)
-		if err != nil {
-			m.logger.WithError(err).WithField("mountpoint", partition.Mountpoint).Debug("failed to collect usage for mountpoint")
+		disk, err2 := getUsage(m.hostFSPath, partition.Mountpoint)
+		if err2 != nil {
+			m.logger.WithError(err2).WithField("mountpoint", partition.Mountpoint).Debug("failed to collect usage for mountpoint")
 			continue
 		}
 

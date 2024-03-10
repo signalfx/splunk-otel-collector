@@ -84,7 +84,7 @@ func TestScraper(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cfg := tt.cfg
-			cfg.Endpoint = fmt.Sprintf("%s%s", promMock.URL, "/metrics")
+			cfg.ClientConfig.Endpoint = fmt.Sprintf("%s%s", promMock.URL, "/metrics")
 			require.NoError(t, component.ValidateConfig(cfg))
 
 			scraper := newScraper(receivertest.NewNopCreateSettings(), cfg)

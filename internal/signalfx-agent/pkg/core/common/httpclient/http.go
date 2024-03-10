@@ -69,7 +69,7 @@ func (h *HTTPConfig) Build() (*http.Client, error) {
 
 		if h.UseHTTPS {
 			transport.TLSClientConfig = &tls.Config{
-				InsecureSkipVerify: h.SkipVerify,
+				InsecureSkipVerify: h.SkipVerify, // nolint: gosec
 				ServerName:         h.SNIServerName,
 			}
 			if _, err := auth.TLSConfig(transport.TLSClientConfig, h.CACertPath, h.ClientCertPath, h.ClientKeyPath); err != nil {

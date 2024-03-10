@@ -157,7 +157,7 @@
     ]
   },
   "aggregations": {
-    "favourite_host": {
+    "favorite_host": {
       "doc_count": 9398,
       "metric_agg_1": {
         "value": 49.55799106192807

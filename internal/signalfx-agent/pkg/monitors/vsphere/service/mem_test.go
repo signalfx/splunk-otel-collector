@@ -1,7 +1,6 @@
 package service
 
 import (
-	"fmt"
 	"runtime"
 	"testing"
 
@@ -40,8 +39,8 @@ func requireMaxHeapUsage(t *testing.T, maxMBBeforeGc int, maxMBAfterGc int, f fu
 	maxAfterGc = uint64(maxMBAfterGc) * 1_000_000
 	heapUsageBeforeGc, heapUsageAfterGc := heapInuseDelta(f)
 	if heapUsageBeforeGc > maxBeforeGc || heapUsageAfterGc > maxAfterGc {
-		t.Log(fmt.Sprintf("heapUsageBeforeGc max: %d actual: %d", maxBeforeGc, heapUsageBeforeGc))
-		t.Log(fmt.Sprintf("heapUsageAfterGc max: %d actual: %d", maxAfterGc, heapUsageAfterGc))
+		t.Logf("heapUsageBeforeGc max: %d actual: %d", maxBeforeGc, heapUsageBeforeGc)
+		t.Logf("heapUsageAfterGc max: %d actual: %d", maxAfterGc, heapUsageAfterGc)
 		t.Fail()
 	}
 }

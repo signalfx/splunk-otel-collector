@@ -22,9 +22,8 @@ func init() {
 
 // Config for this monitor
 type Config struct {
+	DNSLookup            *bool `yaml:"dnsLookup" default:"true"`
 	config.MonitorConfig `yaml:",inline" singleInstance:"false" acceptsEndpoints:"true"`
-	// If false, set the -n ntpq flag. Can reduce metric gather time.
-	DNSLookup *bool `yaml:"dnsLookup" default:"true"`
 }
 
 // Monitor for Utilization
@@ -61,7 +60,7 @@ func (m *Monitor) Configure(conf *Config) (err error) {
 	ctx, m.cancel = context.WithCancel(context.Background())
 
 	utils.RunOnInterval(ctx, func() {
-		if err := plugin.Gather(accumulator); err != nil {
+		if err = plugin.Gather(accumulator); err != nil {
 			m.logger.WithError(err).Errorf("an error occurred while gathering metrics")
 		}
 	}, time.Duration(conf.IntervalSeconds)*time.Second)

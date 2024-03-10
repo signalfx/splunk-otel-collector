@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
@@ -47,7 +46,7 @@ type Config struct {
 	NoRedirects bool `yaml:"noRedirects" default:"false"`
 	// HTTP request method to use.
 	Method string `yaml:"method" default:"GET"`
-	// DEPRECATED: list of HTTP URLs to monitor. Use `host`/`port`/`useHTTPS`/`path` instead.
+	// Deprecated: list of HTTP URLs to monitor. Use `host`/`port`/`useHTTPS`/`path` instead.
 	URLs []string `yaml:"urls"`
 	// Optional Regex to match on URL(s) response(s).
 	Regex string `yaml:"regex"`
@@ -59,9 +58,8 @@ type Config struct {
 
 // Monitor that collect metrics
 type Monitor struct {
-	Output types.FilteringOutput
-	cancel context.CancelFunc
-	//ctx         context.Context
+	Output      types.FilteringOutput
+	cancel      context.CancelFunc
 	logger      logrus.FieldLogger
 	conf        *Config
 	monitorName string
@@ -123,11 +121,11 @@ func (m *Monitor) Configure(conf *Config) (err error) {
 			dps, redirectURL, err := m.getHTTPStats(site, logger)
 			if err == nil {
 				if redirectURL.Scheme == "https" {
-					tlsDps, err := m.getTLSStats(redirectURL, logger)
-					if err == nil {
+					tlsDps, err2 := m.getTLSStats(redirectURL, logger)
+					if err2 == nil {
 						dps = append(dps, tlsDps...)
 					} else {
-						logger.WithError(err).Error("Failed gathering TLS stats")
+						logger.WithError(err2).Error("Failed gathering TLS stats")
 					}
 				}
 			} else {
@@ -228,10 +226,11 @@ func (m *Monitor) getTLSStats(site *url.URL, logger *logrus.Entry) (dps []*datap
 
 	tlsCfg := &tls.Config{
 		ServerName: serverName,
+		MinVersion: tls.VersionTLS12,
 	}
 
-	if _, err := auth.TLSConfig(tlsCfg, m.conf.CACertPath, m.conf.ClientCertPath, m.conf.ClientKeyPath); err != nil {
-		return nil, err
+	if _, err2 := auth.TLSConfig(tlsCfg, m.conf.CACertPath, m.conf.ClientCertPath, m.conf.ClientKeyPath); err2 != nil {
+		return nil, err2
 	}
 
 	conn := tls.Client(ipConn, tlsCfg)
@@ -291,8 +290,9 @@ func (m *Monitor) getHTTPStats(site fmt.Stringer, logger *logrus.Entry) (dps []*
 				continue
 			}
 			if strings.EqualFold(key, "content-length") {
-				if contentLenght, err := strconv.Atoi(val); err == nil {
-					req.ContentLength = int64(contentLenght)
+				var contentLength int
+				if contentLength, err = strconv.Atoi(val); err == nil {
+					req.ContentLength = int64(contentLength)
 				}
 				continue
 			}
@@ -318,7 +318,7 @@ func (m *Monitor) getHTTPStats(site fmt.Stringer, logger *logrus.Entry) (dps []*
 
 	statusCode := int64(resp.StatusCode)
 
-	var matchCode int64 = 0
+	var matchCode int64
 	if statusCode == int64(m.conf.DesiredCode) {
 		matchCode = 1
 	}
@@ -329,14 +329,14 @@ func (m *Monitor) getHTTPStats(site fmt.Stringer, logger *logrus.Entry) (dps []*
 		datapoint.New(httpCodeMatched, dimensions, datapoint.NewIntValue(matchCode), datapoint.Gauge, time.Time{}),
 	)
 
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		logger.WithError(err).Error("could not parse body response")
 	} else {
 		dps = append(dps, datapoint.New(httpContentLength, dimensions, datapoint.NewIntValue(int64(len(bodyBytes))), datapoint.Gauge, time.Time{}))
 
 		if m.conf.Regex != "" {
-			var matchRegex int64 = 0
+			var matchRegex int64
 			if m.regex.Match(bodyBytes) {
 				matchRegex = 1
 			}

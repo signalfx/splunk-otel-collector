@@ -10,8 +10,8 @@ type FixedFakeCustomStore struct {
 
 // Update calls the custom Update function if defined
 func (f *FixedFakeCustomStore) Update(obj interface{}) error {
-	if f.UpdateFunc != nil {
-		return f.UpdateFunc(obj)
+	if f.FakeCustomStore.UpdateFunc != nil {
+		return f.FakeCustomStore.UpdateFunc(obj)
 	}
 	return nil
 }

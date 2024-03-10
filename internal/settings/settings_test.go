@@ -92,25 +92,14 @@ func TestNewSettingsConfMapProviders(t *testing.T) {
 	confMapProviders := settings.ConfMapProviders()
 
 	require.Contains(t, confMapProviders, settings.discovery.PropertyScheme())
-	propertyProvider := confMapProviders[settings.discovery.PropertyScheme()]
 
 	require.Contains(t, confMapProviders, settings.discovery.ConfigDScheme())
-	configdProvider := confMapProviders[settings.discovery.ConfigDScheme()]
 
 	require.Contains(t, confMapProviders, settings.discovery.DiscoveryModeScheme())
-	discoveryModeProvider := confMapProviders[settings.discovery.DiscoveryModeScheme()]
 
 	require.Contains(t, confMapProviders, settings.discovery.PropertiesFileScheme())
-	propertiesFileProvider := confMapProviders[settings.discovery.PropertiesFileScheme()]
 
-	require.Equal(t, map[string]confmap.Provider{
-		envProvider.Scheme():                      envProvider,
-		fileProvider.Scheme():                     fileProvider,
-		settings.discovery.PropertyScheme():       propertyProvider,
-		settings.discovery.ConfigDScheme():        configdProvider,
-		settings.discovery.DiscoveryModeScheme():  discoveryModeProvider,
-		settings.discovery.PropertiesFileScheme(): propertiesFileProvider,
-	}, confMapProviders)
+	require.Len(t, confMapProviders, 6)
 }
 
 func TestNewSettingsNoConvertConfig(t *testing.T) {

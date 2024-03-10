@@ -4,9 +4,9 @@ import "testing"
 
 type SplitStringTest struct {
 	input  string
+	want   []string
 	sep    rune
 	escape rune
-	want   []string
 }
 
 var SplitStringTests = []SplitStringTest{

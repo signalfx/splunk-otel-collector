@@ -25,14 +25,14 @@ import (
 var _ component.Config = (*Config)(nil)
 
 type Config struct {
-	confighttp.HTTPServerSettings `mapstructure:",squash"`
-	ListenPath                    string `mapstructure:"path"`
-	BufferSize                    int    `mapstructure:"buffer_size"`
+	confighttp.ServerConfig `mapstructure:",squash"`
+	ListenPath              string `mapstructure:"path"`
+	BufferSize              int    `mapstructure:"buffer_size"`
 }
 
 func (c *Config) Validate() error {
 	var errs []error
-	if c.Endpoint == "" {
+	if c.ServerConfig.Endpoint == "" {
 		errs = append(errs, errors.New("endpoint must not be empty"))
 	}
 	if c.BufferSize < 0 {

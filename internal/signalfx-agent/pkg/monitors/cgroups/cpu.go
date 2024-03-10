@@ -43,7 +43,7 @@ func (m *Monitor) getCPUMetrics(controllerPath string, pathFilter filter.StringF
 				continue
 			}
 
-			var err error = nil
+			var err error
 			var fileDPs []*datapoint.Datapoint
 
 			err = withOpenFile(f, func(fd *os.File) {

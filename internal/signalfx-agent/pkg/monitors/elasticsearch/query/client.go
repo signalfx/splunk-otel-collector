@@ -3,7 +3,7 @@ package query
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	es "github.com/signalfx/signalfx-agent/pkg/monitors/elasticsearch/client"
@@ -42,5 +42,5 @@ func (es ESQueryHTTPClient) makeHTTPRequestFromConfig(index string, esSearchRequ
 
 	defer resp.Body.Close()
 
-	return ioutil.ReadAll(resp.Body)
+	return io.ReadAll(resp.Body)
 }

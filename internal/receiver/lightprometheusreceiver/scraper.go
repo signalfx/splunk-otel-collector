@@ -57,7 +57,7 @@ func newScraper(
 func (s *scraper) start(_ context.Context, host component.Host) error {
 	s.startTime = pcommon.NewTimestampFromTime(time.Now())
 	var err error
-	s.client, err = s.cfg.ToClient(host, s.settings)
+	s.client, err = s.cfg.ClientConfig.ToClient(host, s.settings)
 	return err
 }
 
@@ -65,7 +65,7 @@ type fetcher func() (io.ReadCloser, expfmt.Format, error)
 
 func (s *scraper) scrape(context.Context) (pmetric.Metrics, error) {
 	fetch := func() (io.ReadCloser, expfmt.Format, error) {
-		req, err := http.NewRequest("GET", s.cfg.Endpoint, nil)
+		req, err := http.NewRequest("GET", s.cfg.ClientConfig.Endpoint, nil)
 		if err != nil {
 			return nil, expfmt.NewFormat(expfmt.TypeUnknown), err
 		}
@@ -77,7 +77,7 @@ func (s *scraper) scrape(context.Context) (pmetric.Metrics, error) {
 
 		if resp.StatusCode != 200 {
 			body, _ := io.ReadAll(resp.Body)
-			return nil, expfmt.NewFormat(expfmt.TypeUnknown), fmt.Errorf("light prometheus %s returned status %d: %s", s.cfg.Endpoint, resp.StatusCode, string(body))
+			return nil, expfmt.NewFormat(expfmt.TypeUnknown), fmt.Errorf("light prometheus %s returned status %d: %s", s.cfg.ClientConfig.Endpoint, resp.StatusCode, string(body))
 		}
 		return resp.Body, expfmt.ResponseFormat(resp.Header), nil
 	}
@@ -91,7 +91,7 @@ func (s *scraper) fetchPrometheusMetrics(fetch fetcher) (pmetric.Metrics, error)
 		return m, err
 	}
 
-	u, err := url.Parse(s.cfg.Endpoint)
+	u, err := url.Parse(s.cfg.ClientConfig.Endpoint)
 	if err != nil {
 		return m, err
 	}

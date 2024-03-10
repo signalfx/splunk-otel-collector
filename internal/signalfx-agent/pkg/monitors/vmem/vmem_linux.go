@@ -6,7 +6,7 @@ package vmem
 import (
 	"bytes"
 	"context"
-	"io/ioutil"
+	"os"
 	"path"
 	"strconv"
 	"time"
@@ -76,7 +76,7 @@ func (m *Monitor) Configure(conf *Config) (err error) {
 
 	// gather metrics on the specified interval
 	utils.RunOnInterval(ctx, func() {
-		contents, err := ioutil.ReadFile(vmstatPath)
+		contents, err := os.ReadFile(vmstatPath)
 		if err != nil {
 			m.logger.WithError(err).Errorf("unable to load vmstat file from path '%s'", vmstatPath)
 			return

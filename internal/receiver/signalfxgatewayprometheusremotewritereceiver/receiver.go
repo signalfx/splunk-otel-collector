@@ -65,13 +65,13 @@ func newReceiver(
 func (receiver *prometheusRemoteWriteReceiver) Start(ctx context.Context, host component.Host) error {
 	metricsChannel := make(chan pmetric.Metrics, receiver.config.BufferSize)
 	cfg := &serverConfig{
-		HTTPServerSettings: receiver.config.HTTPServerSettings,
-		Path:               receiver.config.ListenPath,
-		Mc:                 metricsChannel,
-		TelemetrySettings:  receiver.settings.TelemetrySettings,
-		Reporter:           receiver.reporter,
-		Host:               host,
-		Parser:             newPrometheusRemoteOtelParser(),
+		ServerConfig:      receiver.config.ServerConfig,
+		Path:              receiver.config.ListenPath,
+		Mc:                metricsChannel,
+		TelemetrySettings: receiver.settings.TelemetrySettings,
+		Reporter:          receiver.reporter,
+		Host:              host,
+		Parser:            newPrometheusRemoteOtelParser(),
 	}
 	if receiver.server != nil {
 		err := receiver.server.close()

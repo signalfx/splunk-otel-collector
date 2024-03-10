@@ -20,12 +20,12 @@ type outputSink struct {
 	Output types.Output
 }
 
-func (os *outputSink) AddDatapoints(ctx context.Context, dps []*datapoint.Datapoint) error {
+func (os *outputSink) AddDatapoints(_ context.Context, dps []*datapoint.Datapoint) error {
 	os.Output.SendDatapoints(dps...)
 	return nil
 }
 
-func (os *outputSink) AddEvents(ctx context.Context, events []*event.Event) error {
+func (os *outputSink) AddEvents(_ context.Context, _ []*event.Event) error {
 	return nil
 }
 

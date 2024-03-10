@@ -48,7 +48,7 @@ func (m *Monitor) getMemoryMetrics(controllerPath string, pathFilter filter.Stri
 				continue
 			}
 
-			var err error = nil
+			var err error
 			var fileDPs []*datapoint.Datapoint
 
 			err = withOpenFile(f, func(fd *os.File) {

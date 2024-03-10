@@ -91,7 +91,7 @@ func (g *fakePaginatorGateway) queryPerfProviderSummary(types.ManagedObjectRefer
 	panic("implement me")
 }
 
-func (g *fakePaginatorGateway) queryPerf(invObjs []*model.InventoryObject, maxSample int32) (*types.QueryPerfResponse, error) {
+func (g *fakePaginatorGateway) queryPerf(invObjs []*model.InventoryObject, _ int32) (*types.QueryPerfResponse, error) {
 	// simulate api failure if too many inv objects are passed in
 	if len(invObjs) > 10 {
 		return nil, errors.New("too many inv objects")

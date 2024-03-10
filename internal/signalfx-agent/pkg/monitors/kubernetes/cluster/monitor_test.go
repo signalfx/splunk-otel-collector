@@ -6,8 +6,8 @@ import (
 	"os"
 	"testing"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"github.com/onsi/ginkgo"
+	"github.com/onsi/gomega"
 	"github.com/signalfx/golib/v3/datapoint"
 	log "github.com/sirupsen/logrus"
 	appsv1 "k8s.io/api/apps/v1"
@@ -18,16 +18,16 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/core/common/kubernetes"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/types"
 	"github.com/signalfx/signalfx-agent/pkg/neotest"
-	. "github.com/signalfx/signalfx-agent/pkg/neotest/k8s/testhelpers/fakek8s"
+	"github.com/signalfx/signalfx-agent/pkg/neotest/k8s/testhelpers/fakek8s"
 )
 
-var _ = Describe("Kubernetes plugin", func() {
+var _ = ginkgo.Describe("Kubernetes plugin", func() {
 	var config *Config
-	var fakeK8s *FakeK8s
+	var fakeK8s *fakek8s.FakeK8s
 	var monitor *Monitor
 	var output *neotest.TestOutput
 
-	BeforeEach(func() {
+	ginkgo.BeforeEach(func() {
 		config = &Config{}
 		config.IntervalSeconds = 1
 		config.KubernetesAPI = &kubernetes.APIConfig{
@@ -35,7 +35,7 @@ var _ = Describe("Kubernetes plugin", func() {
 			SkipVerify: true,
 		}
 
-		fakeK8s = NewFakeK8s()
+		fakeK8s = fakek8s.NewFakeK8s()
 		fakeK8s.Start()
 		K8sURL, _ := url.Parse(fakeK8s.URL())
 
@@ -63,7 +63,7 @@ var _ = Describe("Kubernetes plugin", func() {
 		}
 	}
 
-	AfterEach(func() {
+	ginkgo.AfterEach(func() {
 		monitor.Shutdown()
 		fakeK8s.Close()
 	})
@@ -76,7 +76,7 @@ var _ = Describe("Kubernetes plugin", func() {
 
 	waitForDatapoints := func(expected int) []*datapoint.Datapoint {
 		dps := output.WaitForDPs(expected, 3)
-		Expect(len(dps)).Should(BeNumerically(">=", expected))
+		gomega.Expect(len(dps)).Should(gomega.BeNumerically(">=", expected))
 		return dps
 	}
 
@@ -85,11 +85,11 @@ var _ = Describe("Kubernetes plugin", func() {
 		for _, dp := range dps {
 			dims := dp.Dimensions
 			if dp.Metric == metricName && dims[uidField] == objUid {
-				Expect(intValue(dp.Value)).To(Equal(int64(metricValue)), fmt.Sprintf("%s %s", objUid, metricName))
+				gomega.Expect(intValue(dp.Value)).To(gomega.Equal(int64(metricValue)), fmt.Sprintf("%s %s", objUid, metricName))
 				matched = true
 			}
 		}
-		Expect(matched).To(Equal(true), fmt.Sprintf("%s %s %d", objUid, metricName, metricValue))
+		gomega.Expect(matched).To(gomega.Equal(true), fmt.Sprintf("%s %s %d", objUid, metricName, metricValue))
 	}
 
 	expectIntMetricMissing := func(dps []*datapoint.Datapoint, uidField, objUid string, metricName string) {
@@ -100,10 +100,10 @@ var _ = Describe("Kubernetes plugin", func() {
 				matched = true
 			}
 		}
-		Expect(matched).To(Equal(false), fmt.Sprintf("%s %s", objUid, metricName))
+		gomega.Expect(matched).To(gomega.Equal(false), fmt.Sprintf("%s %s", objUid, metricName))
 	}
 
-	It("Sends pod phase metrics", func() {
+	ginkgo.It("Sends pod phase metrics", func() {
 		log.SetLevel(log.DebugLevel)
 		fakeK8s.SetInitialList([]runtime.Object{
 			&v1.Pod{
@@ -155,17 +155,17 @@ var _ = Describe("Kubernetes plugin", func() {
 
 		dps := waitForDatapoints(3)
 
-		Expect(dps[0].Metric).To(Equal("kubernetes.pod_phase"))
-		Expect(intValue(dps[0].Value)).To(Equal(int64(2)))
-		Expect(dps[1].Metric).To(Equal("kubernetes.container_restart_count"))
-		Expect(intValue(dps[1].Value)).To(Equal(int64(5)))
-		Expect(dps[2].Metric).To(Equal("kubernetes.container_ready"))
-		Expect(intValue(dps[2].Value)).To(Equal(int64(1)))
+		gomega.Expect(dps[0].Metric).To(gomega.Equal("kubernetes.pod_phase"))
+		gomega.Expect(intValue(dps[0].Value)).To(gomega.Equal(int64(2)))
+		gomega.Expect(dps[1].Metric).To(gomega.Equal("kubernetes.container_restart_count"))
+		gomega.Expect(intValue(dps[1].Value)).To(gomega.Equal(int64(5)))
+		gomega.Expect(dps[2].Metric).To(gomega.Equal("kubernetes.container_ready"))
+		gomega.Expect(intValue(dps[2].Value)).To(gomega.Equal(int64(1)))
 
 		dims := output.WaitForDimensions(2, 3)
-		Expect(len(dims)).Should(Equal(2))
+		gomega.Expect(len(dims)).Should(gomega.Equal(2))
 
-		Expect(dims).Should(ConsistOf(&types.Dimension{
+		gomega.Expect(dims).Should(gomega.ConsistOf(&types.Dimension{
 			Name:  "kubernetes_pod_uid",
 			Value: "abcd",
 			Properties: map[string]string{
@@ -190,7 +190,7 @@ var _ = Describe("Kubernetes plugin", func() {
 		}))
 
 		firstDim := dps[0].Dimensions
-		Expect(firstDim["metric_source"]).To(Equal("kubernetes"))
+		gomega.Expect(firstDim["metric_source"]).To(gomega.Equal("kubernetes"))
 
 		fakeK8s.CreateOrReplaceResource(&v1.Pod{
 			TypeMeta: metav1.TypeMeta{
@@ -225,9 +225,9 @@ var _ = Describe("Kubernetes plugin", func() {
 		expectIntMetric(dps, "kubernetes_pod_uid", "1234", "kubernetes.container_restart_count", 0)
 
 		dims = output.WaitForDimensions(2, 3)
-		Expect(len(dims)).Should(Equal(2))
+		gomega.Expect(len(dims)).Should(gomega.Equal(2))
 
-		Expect(dims).Should(ConsistOf(&types.Dimension{
+		gomega.Expect(dims).Should(gomega.ConsistOf(&types.Dimension{
 			Name:  "kubernetes_pod_uid",
 			Value: "1234",
 			Properties: map[string]string{
@@ -278,7 +278,7 @@ var _ = Describe("Kubernetes plugin", func() {
 
 		dims = output.WaitForDimensions(2, 3)
 
-		Expect(dims).Should(ConsistOf(&types.Dimension{
+		gomega.Expect(dims).Should(gomega.ConsistOf(&types.Dimension{
 			Name:  "kubernetes_pod_uid",
 			Value: "1234",
 			Properties: map[string]string{
@@ -355,7 +355,7 @@ var _ = Describe("Kubernetes plugin", func() {
 
 	}, 5)
 
-	It("Sends Deployment metrics", func() {
+	ginkgo.It("Sends Deployment metrics", func() {
 		fakeK8s.SetInitialList([]runtime.Object{
 			&v1.Pod{
 				TypeMeta: metav1.TypeMeta{
@@ -412,7 +412,7 @@ var _ = Describe("Kubernetes plugin", func() {
 
 		dps := waitForDatapoints(8)
 
-		By("Reporting on existing deployments")
+		ginkgo.By("Reporting on existing deployments")
 		expectIntMetric(dps, "kubernetes_uid", "abcd", "kubernetes.deployment.desired", 10)
 		expectIntMetric(dps, "kubernetes_uid", "abcd", "kubernetes.deployment.available", 5)
 		expectIntMetric(dps, "kubernetes_uid", "efgh", "kubernetes.deployment.desired", 1)
@@ -439,7 +439,7 @@ var _ = Describe("Kubernetes plugin", func() {
 
 		_ = waitForDatapoints(8)
 		dps = waitForDatapoints(8)
-		By("Responding to events pushed on the watch API")
+		ginkgo.By("Responding to events pushed on the watch API")
 		expectIntMetric(dps, "kubernetes_uid", "abcd", "kubernetes.deployment.desired", 10)
 		expectIntMetric(dps, "kubernetes_uid", "abcd", "kubernetes.deployment.available", 5)
 		expectIntMetric(dps, "kubernetes_uid", "efgh", "kubernetes.deployment.desired", 1)
@@ -450,6 +450,6 @@ var _ = Describe("Kubernetes plugin", func() {
 })
 
 func TestKubernetes(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Kubernetes Monitor Suite")
+	gomega.RegisterFailHandler(ginkgo.Fail)
+	ginkgo.RunSpecs(t, "Kubernetes Monitor Suite")
 }

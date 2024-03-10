@@ -12,8 +12,8 @@ import (
 // performance data is requested for all of the inventory objects in one call.
 type multiPagePerfFetcher struct {
 	gateway  IGateway
-	pageSize int
 	log      log.FieldLogger
+	pageSize int
 }
 
 func (f *multiPagePerfFetcher) invIterator(inv []*model.InventoryObject, maxSample int32) *invIterator {

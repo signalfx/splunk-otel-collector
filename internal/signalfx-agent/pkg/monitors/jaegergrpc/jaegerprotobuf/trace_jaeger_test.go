@@ -7,7 +7,7 @@ import (
 	"github.com/jaegertracing/jaeger/model"
 	"github.com/signalfx/golib/v3/pointer"
 	"github.com/signalfx/golib/v3/trace"
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/smartystreets/goconvey/convey"
 )
 
 // JaegerProtoTestProcess returns a jaeger protobuf Process to use in tests
@@ -365,7 +365,7 @@ func SFXTestSpans() []*trace.Span {
 
 // TestJaegerTraceDecoder tests the ability to decode jaeger protobuf to SignalFx
 func TestJaegerTraceDecoder(t *testing.T) {
-	Convey("Spans should be decoded properly", t, func() {
+	convey.Convey("Spans should be decoded properly", t, func() {
 		var batch = model.Batch{
 			Process: JaegerProtoTestProcess(),
 			Spans:   JaegerProtoTestSpans(),
@@ -373,6 +373,6 @@ func TestJaegerTraceDecoder(t *testing.T) {
 
 		spans := JaegerProtoBatchToSFX(&batch)
 
-		So(spans, ShouldResemble, SFXTestSpans())
+		convey.So(spans, convey.ShouldResemble, SFXTestSpans())
 	})
 }

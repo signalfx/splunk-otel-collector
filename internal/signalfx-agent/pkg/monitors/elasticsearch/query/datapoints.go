@@ -15,12 +15,12 @@ import (
 // An instance of this struct can be thought of as a datapoint
 // collector for a particular aggregation
 type dpCollector struct {
-	aggName       string
 	aggRes        aggregationResponse
 	aggsMeta      map[string]*AggregationMeta
 	sfxDimensions map[string]string
 	logger        *utils.ThrottledLogger
 	logFields     log.Fields
+	aggName       string
 }
 
 // Returns aggregation type

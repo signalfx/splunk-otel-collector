@@ -402,8 +402,8 @@ func TestMonitor_Configure(t *testing.T) {
 	}
 	tests := []struct {
 		name    string
-		args    args
 		want    []*trace.Span
+		args    args
 		wantErr bool
 	}{
 		{

@@ -64,6 +64,10 @@ jobs:
         with:
           name: otelcol-${{ matrix.ARCH }}
           path: ./bin
+      - uses: actions/upload-artifact@v4
+        with:
+          name: agent-bundle_linux_${{ matrix.ARCH }}.tar.gz
+          path: ./dist/
 
   integration-vet:
     name: integration-vet
@@ -127,6 +131,14 @@ jobs:
         with:
           name: otelcol-${{ matrix.ARCH }}
           path: ./bin
+      - uses: actions/download-artifact@v4
+        with:
+          name: agent-bundle_linux_${{ matrix.ARCH }}.tar.gz
+          path: ./dist
+      - name: Untar agent bundle
+        run: |
+          tar xzf ./dist/agent-bundle_linux_${{ matrix.ARCH }}.tar.gz -C dist
+          echo "SPLUNK_BUNDLE_DIR=$(realpath ./dist/agent-bundle)" >> $GITHUB_ENV
       - uses: docker/setup-qemu-action@v3
         if: ${{ matrix.ARCH != 'amd64' }}
         with:

@@ -18,6 +18,7 @@
 package tests
 
 import (
+	"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -32,17 +33,16 @@ import (
 )
 
 func TestCustomUpstatIntegration(t *testing.T) {
-	t.Skip("Issues with test-containers networking, need to wait for -contrib to update the docker api version for us to update testcontainers-go locally")
+	image := os.Getenv("SPLUNK_OTEL_COLLECTOR_IMAGE")
+	defer os.Setenv("SPLUNK_OTEL_COLLECTOR_IMAGE", image)
+	os.Setenv("SPLUNK_OTEL_COLLECTOR_IMAGE", "")
+
 	core, observed := observer.New(zap.DebugLevel)
 	path, err := filepath.Abs(path.Join(".", "testdata", "upstat"))
 	require.NoError(t, err)
 	testutils.AssertAllMetricsReceived(t, "all.yaml", "custom_upstat.yaml",
 		nil, []testutils.CollectorBuilder{func(collector testutils.Collector) testutils.Collector {
 			collector = collector.WithLogger(zap.New(core))
-			if cc, ok := collector.(*testutils.CollectorContainer); ok {
-				collector = cc.WithMount(path, "/var/collectd-python/upstat")
-				return collector.WithEnv(map[string]string{"PLUGIN_FOLDER": "/var/collectd-python/upstat"})
-			}
 			return collector.WithEnv(map[string]string{"PLUGIN_FOLDER": path})
 		}})
 

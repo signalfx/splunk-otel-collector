@@ -110,6 +110,65 @@ jobs:
           JAVA_TOOL_OPTIONS: "-Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.port=5000 -Dcom.sun.management.jmxremote.rmi.port=5000 -Dcom.sun.management.jmxremote.host=0.0.0.0 -Djava.rmi.server.hostname=0.0.0.0"
         ports:
           - "5000:5000"
+      # Kafka test, requires multiple Kafka containers and Zookeeper:
+      # Zookeeper image:
+      zookeeper:
+        image: zookeeper:3.5
+        ports:
+          - "2181:2181"
+        options: >-
+          --health-cmd "bash -c \"exec 6<> /dev/tcp/localhost/2181\""
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      kafka-broker:
+        image: quay.io/splunko11ytest/kafka:latest
+        env:
+          START_AS: broker
+          KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+          JMX_PORT: 7099
+        ports:
+          - "7099:7099"
+          - "9092:9092"
+        options: >-
+          --health-cmd "bash -c \"exec 6<> /dev/tcp/localhost/7099\""
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      kafka-topic-creator:
+        image: quay.io/splunko11ytest/kafka:latest
+        env:
+          START_AS: create-topic
+          KAFKA_BROKER: kafka-broker:9092
+          KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      kafka-producer:
+        image: quay.io/splunko11ytest/kafka:latest
+        env:
+          START_AS: producer
+          KAFKA_BROKER: kafka-broker:9092
+          JMX_PORT: 8099
+          KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+        ports:
+          - "8099:8099"
+        options: >-
+          --health-cmd "bash -c \"exec 6<> /dev/tcp/localhost/8099\""
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      kafka-consumer:
+        image: quay.io/splunko11ytest/kafka:latest
+        env:
+          START_AS: consumer
+          KAFKA_BROKER: kafka-broker:9092
+          JMX_PORT: 9099
+          KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+        ports:
+          - "9099:9099"
+        options: >-
+          --health-cmd "bash -c \"exec 6<> /dev/tcp/localhost/9099\""
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     strategy:
       matrix:
         GOTESPLIT_INDEX: [ "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" ]

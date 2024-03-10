@@ -179,7 +179,6 @@ func (m *Monitor) infoSocket(conf *Config, _ proxies) []*datapoint.Datapoint {
 func statsMap(body io.Reader) (map[int]map[string]string, error) {
 	r := csv.NewReader(body)
 	r.TrimLeadingSpace = true
-	r.TrailingComma = true
 	rows := map[int]map[string]string{}
 	table, err := r.ReadAll()
 	if err != nil {
@@ -265,7 +264,7 @@ func parseStatusField(v string) int64 {
 func httpReader(conf *Config, method string) (io.ReadCloser, error) {
 	client := http.Client{
 		Timeout:   conf.Timeout.AsDuration(),
-		Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: !conf.SSLVerify}},
+		Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: !conf.SSLVerify}}, //nolint: gosec
 	}
 	req, err := http.NewRequest(method, conf.ScrapeURL(), nil)
 	if err != nil {
@@ -292,11 +291,12 @@ func socketReader(conf *Config, cmd string) (io.ReadCloser, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := f.SetDeadline(time.Now().Add(conf.Timeout.AsDuration())); err != nil {
+	if err = f.SetDeadline(time.Now().Add(conf.Timeout.AsDuration())); err != nil {
 		f.Close()
 		return nil, err
 	}
-	n, err := io.WriteString(f, cmd)
+	var n int
+	n, err = io.WriteString(f, cmd)
 	if err != nil {
 		f.Close()
 		return nil, err

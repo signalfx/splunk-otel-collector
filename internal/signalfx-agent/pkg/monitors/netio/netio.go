@@ -17,19 +17,14 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/utils/hostfs"
 )
 
-//nolint:gochecknoglobals setting net.IOCountersWithContext to a package variable for testing purposes
-var iOCounters = net.IOCountersWithContext
-
 func init() {
 	monitors.Register(&monitorMetadata, func() interface{} { return &Monitor{} }, &Config{})
 }
 
 // Config for this monitor
 type Config struct {
+	Interfaces           []string `yaml:"interfaces" default:"[\"*\", \"!/^lo\\\\d*$/\", \"!/^docker.*/\", \"!/^t(un|ap)\\\\d*$/\", \"!/^veth.*$/\", \"!/^Loopback*/\"]"`
 	config.MonitorConfig `yaml:",inline" singleInstance:"false" acceptsEndpoints:"false"`
-	// The network interfaces to send metrics about. This is an [overridable
-	// set](https://docs.splunk.com/observability/gdi/smart-agent/smart-agent-resources.html#filtering-data-using-the-smart-agent).
-	Interfaces []string `yaml:"interfaces" default:"[\"*\", \"!/^lo\\\\d*$/\", \"!/^docker.*/\", \"!/^t(un|ap)\\\\d*$/\", \"!/^veth.*$/\", \"!/^Loopback*/\"]"`
 }
 
 // structure for storing sent and received values
@@ -41,12 +36,12 @@ type netio struct {
 // Monitor for Utilization
 type Monitor struct {
 	Output                 types.Output
+	logger                 log.FieldLogger
 	cancel                 func()
 	conf                   *Config
 	filter                 *filter.OverridableStringFilter
-	networkTotal           uint64
 	previousInterfaceStats map[string]*netio
-	logger                 log.FieldLogger
+	networkTotal           uint64
 }
 
 func (m *Monitor) updateTotals(iface string, intf *net.IOCountersStat) {
@@ -76,7 +71,7 @@ func (m *Monitor) updateTotals(iface string, intf *net.IOCountersStat) {
 
 // EmitDatapoints emits a set of memory datapoints
 func (m *Monitor) EmitDatapoints() {
-	info, err := iOCounters(hostfs.Context(), true)
+	info, err := net.IOCountersWithContext(hostfs.Context(), true)
 	if err != nil {
 		m.logger.WithError(err).Error("Failed to load net io counters")
 		return
@@ -92,7 +87,7 @@ func (m *Monitor) EmitDatapoints() {
 			continue
 		}
 
-		ifaceName := strings.Replace(intf.Name, " ", "_", -1)
+		ifaceName := strings.ReplaceAll(intf.Name, " ", "_")
 
 		m.updateTotals(ifaceName, &intf)
 

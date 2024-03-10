@@ -32,7 +32,7 @@ func NewSignalFxGatewayClient(gatewayAddr string, uaaToken string, skipVerify bo
 	errorCh := make(chan error)
 
 	transport := http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: skipVerify},
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: skipVerify}, //nolint: gosec
 		DialContext: (&net.Dialer{
 			Timeout: 10 * time.Second,
 		}).DialContext,
@@ -129,8 +129,8 @@ func (c *SignalFxGatewayClient) processEnvelopes(ctx context.Context, streamer l
 
 // Used to set the Authorization header on requests
 type tokenAttacher struct {
-	token  string
 	client *http.Client
+	token  string
 }
 
 func (a *tokenAttacher) Do(req *http.Request) (*http.Response, error) {

@@ -22,7 +22,7 @@ var (
 	fileReadOnlyVolume  = int64(524288) // 0x00080000
 )
 
-func getPartitions(all bool) ([]gopsutil.PartitionStat, error) {
+func getPartitions(_ bool) ([]gopsutil.PartitionStat, error) {
 	return getPartitionsWin(getDriveType, findFirstVolume, findNextVolume, findVolumeClose, getVolumePaths, getFsNameAndFlags)
 }
 
@@ -203,6 +203,6 @@ func getPartitionStats(
 	return stats, lastError
 }
 
-func getUsage(hostFSPath string, path string) (*gopsutil.UsageStat, error) {
+func getUsage(_ string, path string) (*gopsutil.UsageStat, error) {
 	return gopsutil.Usage(path)
 }

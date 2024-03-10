@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
@@ -139,7 +138,7 @@ func (m *Monitor) Configure(conf *Config) error {
 		}
 
 		if resp.StatusCode != 200 {
-			body, _ := ioutil.ReadAll(resp.Body)
+			body, _ := io.ReadAll(resp.Body)
 			return nil, expfmt.NewFormat(expfmt.TypeUnknown), fmt.Errorf("prometheus exporter at %s returned status %d: %s", url, resp.StatusCode, string(body))
 		}
 

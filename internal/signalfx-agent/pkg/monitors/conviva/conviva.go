@@ -262,7 +262,6 @@ func simpleSeriesDatapoints(metricName string, metricValues []float64, timestamp
 }
 
 func tableDatapoints(metricNames []string, dimension string, rows [][]float64, xvalues []string, timestamp time.Time, accountName string, filterName string) (dps *[]*datapoint.Datapoint) {
-	//dps := make([]*datapoint.Datapoint, 0)
 	if len(rows) > 0 {
 		dps = &[]*datapoint.Datapoint{}
 		for rowIndex, row := range rows {

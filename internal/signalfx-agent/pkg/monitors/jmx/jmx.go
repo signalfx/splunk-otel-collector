@@ -51,7 +51,7 @@ type Config struct {
 	TrustStorePassword string `yaml:"trustStorePassword" json:"trustStorePassword" neverLog:"true"`
 	// Supported JMX remote profiles are TLS in combination with SASL profiles: SASL/PLAIN, SASL/DIGEST-MD5 and
 	// SASL/CRAM-MD5. Thus valid `jmxRemoteProfiles` values are: `SASL/PLAIN`, `SASL/DIGEST-MD5`, `SASL/CRAM-MD5`,
-	//`TLS SASL/PLAIN`, `TLS SASL/DIGEST-MD5` and `TLS SASL/CRAM-MD5`.
+	// `TLS SASL/PLAIN`, `TLS SASL/DIGEST-MD5` and `TLS SASL/CRAM-MD5`.
 	JmxRemoteProfiles string `yaml:"jmxRemoteProfiles" json:"jmxRemoteProfiles"`
 	// The realm is required by profile SASL/DIGEST-MD5.
 	Realm string `yaml:"realm" json:"realm"`

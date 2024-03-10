@@ -86,7 +86,7 @@ func (m *Monitor) Configure(conf *Config) error {
 
 	// Hard code the plugin name because the emitter will parse out the
 	// configured measurement name as plugin and that is confusing.
-	emit.AddTag("plugin", strings.Replace(monitorType, "/", "-", -1))
+	emit.AddTag("plugin", strings.ReplaceAll(monitorType, "/", "-"))
 
 	// replacer sanitizes metrics according to our PCR reporter rules (ours have to come first).
 	replacer := strings.NewReplacer(append([]string{"%", "pct", "(s)", "_"}, winperfcounters.MetricReplacements...)...)
@@ -105,7 +105,7 @@ func (m *Monitor) Configure(conf *Config) error {
 
 			// if it's a sqlserver_memory_clerks metric remap clerk type to field
 			if ms.Name() == "sqlserver_memory_clerks" {
-				ms.SetName(fmt.Sprintf("sqlserver_memory_clerks.size_kb"))
+				ms.SetName("sqlserver_memory_clerks.size_kb")
 				emitter.RenameFieldWithTag(ms, "clerk_type", "size_kb", replacer)
 			}
 			return nil

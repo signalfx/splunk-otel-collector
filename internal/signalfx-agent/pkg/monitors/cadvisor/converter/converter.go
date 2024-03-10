@@ -35,41 +35,41 @@ type metricValue struct {
 type metricValues []metricValue
 
 type containerMetric struct {
+	getValues   func(s *info.ContainerStats) metricValues
 	name        string
 	help        string
-	valueType   datapoint.MetricType
 	extraLabels []string
-	getValues   func(s *info.ContainerStats) metricValues
+	valueType   datapoint.MetricType
 }
 
 type containerSpecMetric struct {
-	containerMetric
 	getValues func(s *info.ContainerInfo) metricValues
+	containerMetric
 }
 
 type machineInfoMetric struct {
-	containerMetric
 	getValues func(s *info.MachineInfo) metricValues
+	containerMetric
 }
 
 type podStatusMetric struct {
+	getValues func(s *stats.FsStats) metricValues
 	name      string
 	valueType datapoint.MetricType
-	getValues func(s *stats.FsStats) metricValues
 }
 
 // CadvisorCollector metric collector and converter
 type CadvisorCollector struct {
 	infoProvider               InfoProvider
+	logger                     log.FieldLogger
+	sendDPs                    func(...*datapoint.Datapoint)
+	defaultDimensions          map[string]string
 	containerMetrics           []containerMetric
 	containerSpecMetrics       []containerSpecMetric
 	containerSpecMemMetrics    []containerSpecMetric
 	containerSpecCPUMetrics    []containerSpecMetric
 	machineInfoMetrics         []machineInfoMetric
 	podEphemeralStorageMetrics []podStatusMetric
-	sendDPs                    func(...*datapoint.Datapoint)
-	defaultDimensions          map[string]string
-	logger                     log.FieldLogger
 }
 
 // fsValues is a helper method for assembling per-filesystem stats.
@@ -152,15 +152,15 @@ func getContainerMetrics() []containerMetric {
 			valueType:   datapoint.Counter,
 			extraLabels: []string{"cpu"},
 			getValues: func(s *info.ContainerStats) metricValues {
-				metricValues := make(metricValues, len(s.Cpu.Usage.PerCpu))
+				mv := make(metricValues, len(s.Cpu.Usage.PerCpu))
 				for index, coreUsage := range s.Cpu.Usage.PerCpu {
 					if coreUsage > 0 {
-						metricValues[index] = metricValue{value: datapoint.NewIntValue(int64(coreUsage / 10000000)), labels: []string{"cpu" + strconv.Itoa(index)}}
+						mv[index] = metricValue{value: datapoint.NewIntValue(int64(coreUsage / 10000000)), labels: []string{"cpu" + strconv.Itoa(index)}}
 					} else {
-						metricValues[index] = metricValue{value: datapoint.NewIntValue(int64(0)), labels: []string{strconv.Itoa(index)}}
+						mv[index] = metricValue{value: datapoint.NewIntValue(int64(0)), labels: []string{strconv.Itoa(index)}}
 					}
 				}
-				return metricValues
+				return mv
 			},
 		},
 		{
@@ -849,7 +849,6 @@ func (c *CadvisorCollector) collectMachineInfo() {
 	now := time.Now()
 	machineInfo, err := c.infoProvider.GetMachineInfo()
 	if err != nil {
-		//c.errors.Set(1)
 		c.logger.Errorf("Couldn't get machine info: %s", err)
 		return
 	}

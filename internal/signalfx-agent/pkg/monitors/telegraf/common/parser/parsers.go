@@ -91,7 +91,7 @@ type Config struct {
 	// local time on the machine, `UTC`, and `Canada/Eastern` (unix style timezones).  (`grok` only)
 	GrokTimeZone string `yaml:"grokTimezone"`
 
-	//csv
+	// csv
 
 	// The delimiter used between fields in the csv. (`csv` only)
 	CSVDelimiter string `yaml:"CSVDelimiter"`

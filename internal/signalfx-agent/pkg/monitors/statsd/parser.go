@@ -135,19 +135,18 @@ func convertMetric(name string, converters []*converter, fields map[string]strin
 				}
 				i++
 				break
-			} else {
-				next = strings.Index(name[w:], c.pattern.substrs[i+1])
-
-				// Pattern mismatch, skip.
-				if next == -1 {
-					break
-				}
-				if len(c.pattern.substrs[i]) > 0 {
-					fields[c.pattern.substrs[i]] = name[w : w+next]
-				}
-				w = w + next + len(c.pattern.substrs[i+1])
-				i += 2
 			}
+			next = strings.Index(name[w:], c.pattern.substrs[i+1])
+
+			// Pattern mismatch, skip.
+			if next == -1 {
+				break
+			}
+			if len(c.pattern.substrs[i]) > 0 {
+				fields[c.pattern.substrs[i]] = name[w : w+next]
+			}
+			w = w + next + len(c.pattern.substrs[i+1])
+			i += 2
 		}
 
 		// Pattern mismatch, skip.

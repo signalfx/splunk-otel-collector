@@ -9,8 +9,6 @@ import (
 
 	"github.com/mitchellh/hashstructure"
 	log "github.com/sirupsen/logrus"
-
-	"github.com/signalfx/signalfx-agent/pkg/core/config/validation"
 )
 
 // Config is the top level config struct for configurations that are common to all platforms
@@ -39,19 +37,6 @@ type Config struct {
 	// Path to the host's `/sys` directory.
 	// This is useful for containerized environments.
 	SysPath string `yaml:"sysPath" default:"/sys"`
-}
-
-// Validate everything that we can about the main config
-func (c *Config) validate() error {
-	if err := validation.ValidateStruct(c); err != nil {
-		return err
-	}
-
-	if err := c.Collectd.Validate(); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // Deprecated: this setting has no effect and will be removed.

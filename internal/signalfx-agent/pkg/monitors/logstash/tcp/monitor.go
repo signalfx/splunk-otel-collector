@@ -165,7 +165,8 @@ func (m *Monitor) handleConnection(conn net.Conn) error {
 			break
 		}
 
-		dps, err := m.convertEventToDatapoints(ev)
+		var dps []*datapoint.Datapoint
+		dps, err = m.convertEventToDatapoints(ev)
 		if err != nil {
 			m.logger.WithError(err).Errorf("Failed to convert event to datapoints: %v", ev)
 			continue

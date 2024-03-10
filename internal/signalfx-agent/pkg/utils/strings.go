@@ -39,8 +39,9 @@ func ChunkScanner(output io.Reader) *bufio.Scanner {
 		// log entry.  This requires that the whole entry be fed to this
 		// function in a single chunk, so some entries may get split up
 		// erroneously.
-		var i int
-		for i = 1; i < len(lines) && len(lines[i]) > 0 && (lines[i][0] == ' ' || lines[i][0] == '\t'); i++ {
+		i := 1
+		for i < len(lines) && len(lines[i]) > 0 && (lines[i][0] == ' ' || lines[i][0] == '\t') {
+			i++
 		}
 
 		entry := bytes.Join(lines[:i], []byte("\n"))

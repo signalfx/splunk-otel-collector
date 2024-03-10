@@ -59,18 +59,18 @@ type Monitor struct {
 // TopProcess is a platform-independent way of representing a process to be
 // reported to SignalFx
 type TopProcess struct {
-	ProcessID           int
 	CreatedTime         time.Time
-	Username            string
-	Priority            int
 	Nice                *int
+	Username            string
+	Status              string
+	Command             string
+	ProcessID           int
+	Priority            int
 	VirtualMemoryBytes  uint64
 	WorkingSetSizeBytes uint64
 	SharedMemBytes      uint64
-	Status              string
 	MemPercent          float64
 	TotalCPUTime        time.Duration
-	Command             string
 }
 
 type procKey string
@@ -143,7 +143,7 @@ func (m *Monitor) encodeEventMessage(procs []*TopProcess, sampleInterval time.Du
 	procsEncoded[len(procsEncoded)-1] = '}'
 
 	// escape and compress the process list
-	escapedBytes := bytes.Replace(procsEncoded, []byte{byte('\\')}, []byte{byte('\\'), byte('\\')}, -1)
+	escapedBytes := bytes.ReplaceAll(procsEncoded, []byte{byte('\\')}, []byte{byte('\\'), byte('\\')})
 	compressedBytes, err := compressBytes(escapedBytes)
 	if err != nil {
 		return "", fmt.Errorf("couldn't compress process list: %v", err)

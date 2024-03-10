@@ -37,7 +37,7 @@ func defaultServerQueries(totalTimeColumn string) []sql.Query {
 			},
 		},
 		{
-			Query: fmt.Sprintf(`SELECT datname as database, usename as user, SUM(calls) as total_calls, SUM(%s) as total_time FROM pg_stat_statements INNER JOIN pg_stat_database ON pg_stat_statements.dbid = pg_stat_database.datid INNER JOIN pg_user ON pg_stat_statements.userid = pg_user.usesysid GROUP BY pg_stat_database.datname, pg_user.usename;`, totalTimeColumn), //nolint,gosec // column name will only be total_time or total_exec_time.
+			Query: fmt.Sprintf(`SELECT datname as database, usename as user, SUM(calls) as total_calls, SUM(%s) as total_time FROM pg_stat_statements INNER JOIN pg_stat_database ON pg_stat_statements.dbid = pg_stat_database.datid INNER JOIN pg_user ON pg_stat_statements.userid = pg_user.usesysid GROUP BY pg_stat_database.datname, pg_user.usename;`, totalTimeColumn), // nolint: gosec // column name will only be total_time or total_exec_time.
 			Metrics: []sql.Metric{
 				{
 					MetricName:       "postgres_query_count",
@@ -199,7 +199,7 @@ var makeDefaultStatementsQueries = func(limit int, totalTimeColumn string) []sql
 			},
 		},
 		{
-			Query:  fmt.Sprintf(`SELECT datname as database, usename as user, queryid, query, %s as total_time FROM (SELECT * FROM (SELECT ROW_NUMBER() OVER (PARTITION BY dbid ORDER BY %s DESC) AS r, s.* FROM pg_stat_statements s) q WHERE q.r <= $1) p, pg_stat_database d, pg_user u WHERE p.dbid = d.datid AND p.userid = u.usesysid;`, totalTimeColumn, totalTimeColumn), //nolint,gosec // column name will only be total_time or total_exec_time.
+			Query:  fmt.Sprintf(`SELECT datname as database, usename as user, queryid, query, %s as total_time FROM (SELECT * FROM (SELECT ROW_NUMBER() OVER (PARTITION BY dbid ORDER BY %s DESC) AS r, s.* FROM pg_stat_statements s) q WHERE q.r <= $1) p, pg_stat_database d, pg_user u WHERE p.dbid = d.datid AND p.userid = u.usesysid;`, totalTimeColumn, totalTimeColumn), // nolint,gosec // column name will only be total_time or total_exec_time.
 			Params: []interface{}{limit},
 			Metrics: []sql.Metric{
 				{
@@ -212,7 +212,7 @@ var makeDefaultStatementsQueries = func(limit int, totalTimeColumn string) []sql
 			},
 		},
 		{
-			Query:  fmt.Sprintf(`SELECT datname as database, usename as user, queryid, query, (%s / calls) AS average_time FROM (SELECT * FROM (SELECT ROW_NUMBER() OVER (PARTITION BY dbid ORDER BY %s / calls DESC) AS r, s.* FROM pg_stat_statements s) q WHERE q.r <= $1) p, pg_stat_database d, pg_user u WHERE p.dbid = d.datid AND p.userid = u.usesysid;`, totalTimeColumn, totalTimeColumn), //nolint,gosec // column name will only be total_time or total_exec_time.
+			Query:  fmt.Sprintf(`SELECT datname as database, usename as user, queryid, query, (%s / calls) AS average_time FROM (SELECT * FROM (SELECT ROW_NUMBER() OVER (PARTITION BY dbid ORDER BY %s / calls DESC) AS r, s.* FROM pg_stat_statements s) q WHERE q.r <= $1) p, pg_stat_database d, pg_user u WHERE p.dbid = d.datid AND p.userid = u.usesysid;`, totalTimeColumn, totalTimeColumn), // nolint,gosec // column name will only be total_time or total_exec_time.
 			Params: []interface{}{limit},
 			Metrics: []sql.Metric{
 				{

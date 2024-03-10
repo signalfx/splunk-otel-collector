@@ -77,13 +77,14 @@ const (
 // immediately, you should specify a duration of 0 as the first element in the
 // intervals array.
 func RunOnArrayOfIntervals(ctx context.Context, fn func(), intervals []time.Duration, repeatPolicy RepeatPolicy) {
-	// copy intervals
-	intvs := append(intervals[:0:0], intervals...)
-
 	// return if the interval list is empty
-	if len(intvs) < 1 {
+	if len(intervals) < 1 {
 		return
 	}
+
+	// copy intervals
+	intvs := make([]time.Duration, len(intervals))
+	copy(intvs, intervals)
 
 	// set up index and last indice
 	index := 0

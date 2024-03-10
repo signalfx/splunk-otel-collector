@@ -123,5 +123,5 @@ func (s *WriteHTTPServer) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	// Ingest returns this response but write_http doesn't care if it's there
 	// or not and seems to dump the responses every couple of minutes for some
 	// reason.
-	//rw.Write([]byte(`"OK"`))
+	// rw.Write([]byte(`"OK"`))
 }

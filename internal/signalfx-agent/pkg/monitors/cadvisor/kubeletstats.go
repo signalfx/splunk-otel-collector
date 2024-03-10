@@ -91,7 +91,7 @@ func newKubeletInfoProvider(client *kubelet.Client, logger logrus.FieldLogger) *
 	}
 }
 
-func (kip *kubeletInfoProvider) SubcontainersInfo(containerName string) ([]info.ContainerInfo, error) {
+func (kip *kubeletInfoProvider) SubcontainersInfo(_ string) ([]info.ContainerInfo, error) {
 	containers, err := kip.getAllContainersLatestStats()
 	if err != nil {
 		return nil, err

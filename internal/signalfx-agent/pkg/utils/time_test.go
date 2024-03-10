@@ -30,10 +30,10 @@ func TestRunOnArrayOfIntervals(t *testing.T) {
 		repeatPolicy RepeatPolicy
 	}
 	tests := []struct {
-		name       string
-		args       args
 		comparison func(got int64) bool
+		name       string
 		want       string
+		args       args
 	}{
 		{
 			name: "test repeat none",

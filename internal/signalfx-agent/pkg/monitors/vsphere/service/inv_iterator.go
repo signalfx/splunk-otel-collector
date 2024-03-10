@@ -10,14 +10,13 @@ import (
 // Paginates through metrics in blocks of inventory objects. Max number of inv
 // objects per iteration is determined by pageSize.
 type invIterator struct {
+	gateway    IGateway
 	inv        []*model.InventoryObject
-	maxSample  int32
 	pageSize   int
 	numInvObjs int
 	numPages   int
-	gateway    IGateway
-
-	pageNum int
+	pageNum    int
+	maxSample  int32
 }
 
 func (it *invIterator) nextInvPage() (

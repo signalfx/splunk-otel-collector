@@ -11,20 +11,18 @@ import (
 // into the internals of the manager.
 
 type Config struct {
-	config.MonitorConfig
 	MyVar   string `yaml:"myVar"`
 	MySlice []string
+	config.MonitorConfig
 }
 
 type DynamicConfig struct {
+	Host                 string `yaml:"host" validate:"required"`
+	Name                 string `yaml:"name"`
+	MyVar                string `yaml:"myVar"`
+	Password             string `yaml:"password"`
 	config.MonitorConfig `acceptsEndpoints:"true"`
-
-	Host string `yaml:"host" validate:"required"`
-	Port uint16 `yaml:"port" validate:"required"`
-	Name string `yaml:"name"`
-
-	MyVar    string `yaml:"myVar"`
-	Password string `yaml:"password"`
+	Port                 uint16 `yaml:"port" validate:"required"`
 }
 
 type MockMonitor interface {
@@ -36,11 +34,11 @@ type MockMonitor interface {
 }
 
 type _MockMonitor struct {
+	configHook    func(types.MonitorID, MockMonitor)
 	MType         string
 	MMyVar        string
 	MPassword     string
 	shutdownHooks []func()
-	configHook    func(types.MonitorID, MockMonitor)
 }
 
 func (m *_MockMonitor) Configure(conf *Config) error {

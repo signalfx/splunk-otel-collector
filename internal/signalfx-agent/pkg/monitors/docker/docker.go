@@ -96,7 +96,7 @@ func (m *Monitor) Configure(conf *Config) error {
 	defaultHeaders := map[string]string{"User-Agent": "signalfx-agent"}
 
 	var err error
-	m.client, err = docker.NewClient(conf.DockerURL, dockerAPIVersion, nil, defaultHeaders)
+	m.client, err = docker.NewClientWithOpts(docker.WithHost(conf.DockerURL), docker.WithVersion(dockerAPIVersion), docker.WithHTTPHeaders(defaultHeaders))
 	if err != nil {
 		return fmt.Errorf("could not create docker client: %w", err)
 	}

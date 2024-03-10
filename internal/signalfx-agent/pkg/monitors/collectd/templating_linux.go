@@ -34,7 +34,7 @@ func WriteConfFile(content, filePath string) error {
 	defer f.Close()
 
 	// Lock the file down since it could contain credentials
-	if err := f.Chmod(0600); err != nil {
+	if err = f.Chmod(0600); err != nil {
 		return fmt.Errorf("failed to restrict permissions on collectd config file at %s: %w", filePath, err)
 	}
 

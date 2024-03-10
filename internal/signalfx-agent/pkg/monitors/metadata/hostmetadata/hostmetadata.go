@@ -2,7 +2,8 @@ package hostmetadata
 
 import (
 	"context"
-	"math/rand"
+	"crypto/rand"
+	"math/big"
 	"os"
 	"strings"
 	"time"
@@ -43,6 +44,11 @@ type Monitor struct {
 	logger    logrus.FieldLogger
 }
 
+func randInt(max int) int {
+	result, _ := rand.Int(rand.Reader, big.NewInt(int64(max)))
+	return int(result.Int64())
+}
+
 // Configure is the main function of the monitor, it will report host metadata
 // on a varied interval
 func (m *Monitor) Configure(conf *Config) error {
@@ -59,14 +65,14 @@ func (m *Monitor) Configure(conf *Config) error {
 
 	intervals := []time.Duration{
 		// on startup with some 0-60s dither
-		time.Duration(rand.Int63n(60)) * time.Second,
+		time.Duration(randInt(60)) * time.Second,
 		// 1 minute after the previous because sometimes pieces of metadata
 		// aren't available immediately on startup like aws identity information
 		time.Duration(60) * time.Second,
 		// 1 hour after the previous with some 0-60s dither
-		time.Duration(rand.Int63n(60)+3600) * time.Second,
+		time.Duration(randInt(60)+3600) * time.Second,
 		// 1 day after the previous with some 0-10m dither
-		time.Duration(rand.Int63n(600)+86400) * time.Second,
+		time.Duration(randInt(60)+86400) * time.Second,
 	}
 
 	// create contexts for managing the plugin loop

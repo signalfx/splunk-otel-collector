@@ -62,7 +62,7 @@ func (c Config) MarshalJSON() ([]byte, error) {
 	}
 
 	var m map[string]json.RawMessage
-	if err := json.Unmarshal(b, &m); err != nil {
+	if err = json.Unmarshal(b, &m); err != nil {
 		return nil, err
 	}
 

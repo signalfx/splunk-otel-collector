@@ -3,7 +3,7 @@ package fakek8s
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -111,7 +111,6 @@ func (f *FakeK8s) Close() {
 	}
 
 	f.server.Listener.Close()
-	//f.server.Close()
 
 }
 
@@ -171,8 +170,8 @@ func (f *FakeK8s) addToResources(resKind resourceKind, namespace string, name st
 	return !exists
 }
 
-func (f *FakeK8s) handleCreateOrReplaceResource(rw http.ResponseWriter, r *http.Request) {
-	content, err := ioutil.ReadAll(r.Body)
+func (f *FakeK8s) handleCreateOrReplaceResource(_ http.ResponseWriter, r *http.Request) {
+	content, err := io.ReadAll(r.Body)
 	r.Body.Close()
 	if err != nil {
 		panic("Got bad request")
@@ -202,7 +201,7 @@ func (f *FakeK8s) CreateOrReplaceResource(obj runtime.Object) {
 	f.eventInput <- watch.Event{Type: eType, Object: obj}
 }
 
-func (f *FakeK8s) handleDeleteResource(rw http.ResponseWriter, r *http.Request) {
+func (f *FakeK8s) handleDeleteResource(_ http.ResponseWriter, r *http.Request) {
 	f.DeleteResourceByName(string(pluralNameToKind(mux.Vars(r)["resource"])), mux.Vars(r)["namespace"], mux.Vars(r)["name"])
 }
 

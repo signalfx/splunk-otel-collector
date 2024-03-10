@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -159,7 +158,7 @@ func parseCPUAcctUsageSystemFile(fileReader io.Reader) (sfxclient.Collector, err
 }
 
 func parseCPUAcctUsagePerCPUFile(fileReader io.Reader) (sfxclient.Collector, error) {
-	usageBytes, err := ioutil.ReadAll(fileReader)
+	usageBytes, err := io.ReadAll(fileReader)
 	if err != nil {
 		return nil, err
 	}

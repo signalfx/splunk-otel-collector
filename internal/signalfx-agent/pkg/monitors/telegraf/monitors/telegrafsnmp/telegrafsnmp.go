@@ -137,7 +137,7 @@ func (m *Monitor) Configure(conf *Config) (err error) {
 
 	// Hard code the plugin name because the emitter will parse out the
 	// configured measurement name as plugin and that is confusing.
-	em.AddTag("plugin", strings.Replace(monitorType, "/", "-", -1))
+	em.AddTag("plugin", strings.ReplaceAll(monitorType, "/", "-"))
 
 	// create the accumulator
 	ac := accumulator.NewAccumulator(em)
@@ -170,8 +170,8 @@ func (m *Monitor) Configure(conf *Config) (err error) {
 	for i := range conf.Tables {
 		table := conf.Tables[i]
 		t := telegrafPlugin.Table{}
-		if err := deepcopier.Copy(&table).To(&t); err != nil {
-			return err
+		if err2 := deepcopier.Copy(&table).To(&t); err2 != nil {
+			return err2
 		}
 
 		// get telegraf fields
@@ -189,7 +189,7 @@ func (m *Monitor) Configure(conf *Config) (err error) {
 
 	// gather metrics on the specified interval
 	utils.RunOnInterval(ctx, func() {
-		if err := plugin.Gather(ac); err != nil {
+		if err = plugin.Gather(ac); err != nil {
 			m.logger.WithError(err).Errorf("an error occurred while gathering metrics")
 		}
 	}, time.Duration(conf.IntervalSeconds)*time.Second)

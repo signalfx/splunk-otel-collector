@@ -17,11 +17,11 @@ const (
 
 // account for Conviva account data
 type account struct {
-	id                   string
-	Name                 string
 	filters              map[string]string
 	metricLensFilters    map[string]string
 	metricLensDimensions map[string]float64
+	id                   string
+	Name                 string
 }
 
 // accountsService interface for accounts related methods
@@ -134,9 +134,9 @@ func (s *accountsServiceImpl) initAccounts() error {
 		ctx, cancel := context.WithTimeout(s.ctx, *s.timeout)
 		defer cancel()
 		res := struct {
+			Accounts map[string]string `json:"accounts"`
 			Default  string            `json:"default"`
 			Count    float64           `json:"count"`
-			Accounts map[string]string `json:"accounts"`
 		}{}
 		if _, err := s.client.get(ctx, &res, accountsURLFormat); err != nil {
 			return err

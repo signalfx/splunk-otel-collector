@@ -28,7 +28,7 @@ func TestHaproxyReceiverProvidesAllMetrics(t *testing.T) {
 		testutils.NewContainer().WithContext(
 			path.Join(".", "testdata", "server"),
 		).WithExposedPorts(
-			"8080:8080",
+			"8082:8080",
 		).WithName("haproxy").WillWaitForPorts(
 			"8080",
 		).WillWaitForLogs("New worker"),

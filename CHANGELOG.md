@@ -13,7 +13,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 ### 💡 Enhancements 💡
 
 - Bump github.com/prometheus/common from 0.46.0 to 0.49.0  ([#4353](https://github.com/signalfx/splunk-otel-collector/pull/4382))
-- Bumps [aquasecurity/trivy-action](https://github.com/aquasecurity/trivy-action) ([#4382] ) from 0.17.0 to 0.18.0.
+- Bumps [aquasecurity/trivy-action](https://github.com/aquasecurity/trivy-action) ([#4382](https://github.com/signalfx/splunk-otel-collector/pull/4382)) from 0.17.0 to 0.18.0.
 - Update splunk-otel-javaagent to latest ([#4402](https://github.com/signalfx/splunk-otel-collector/pull/4402))
 - Add X-SF-Token header to the configuration masked keys ([#4403](https://github.com/signalfx/splunk-otel-collector/pull/4403))
 - Bump setuptools in /internal/signalfx-agent/bundle/script([#4330](https://github.com/signalfx/splunk-otel-collector/pull/4403))

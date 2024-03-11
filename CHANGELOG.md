@@ -4,7 +4,7 @@
 
 ### 🛑 Breaking changes 🛑
 
-- (Splunk) `httpforwarder`: Remove extension named `httpforwarder`, use `httpforwarderextension` instead.
+- (Splunk) `httpforwarder`: Remove extension named `httpforwarder`, use `httpforwarderextension` instead. ([#4455](https://github.com/signalfx/splunk-otel-collector/pull/4455))
 
 ## v0.96.1
 

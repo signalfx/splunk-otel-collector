@@ -41,6 +41,7 @@
                      <RegistryKey Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\splunk-otel-collector">
                         <RegistryValue Type="multiString" Name="Environment">
                            <MultiStringValue>SPLUNK_CONFIG=[CommonAppDataFolder]Splunk\OpenTelemetry Collector\agent_config.yaml</MultiStringValue>
+                           <MultiStringValue>SPLUNK_API_URL=[SPLUNK_API_URL]</MultiStringValue>
                         </RegistryValue>
                      </RegistryKey>
                   </Component>
@@ -77,5 +78,14 @@
       <InstallExecuteSequence>
          <Custom Action="CopyConfig" After="InstallFiles">NOT CONFIG_FILE_EXISTS AND NOT Installed</Custom>
       </InstallExecuteSequence>
+
+      <Property Id="SPLUNK_REALM" Value="us0" />
+
+      <Property Id="SPLUNK_API_URL" Secure="yes" />
+      <CustomAction Id="SetSPLUNK_API_URL" Property="SPLUNK_API_URL" Value="https://api.[SPLUNK_REALM].splunk.com"/>
+      <InstallExecuteSequence>
+         <Custom Action="SetSPLUNK_API_URL" After="AppSearch">NOT SPLUNK_API_URL</Custom>
+      </InstallExecuteSequence>
+
    </Product>
 </Wix>

@@ -124,24 +124,3 @@ func TestRemovedPropertyAndPersistingTagWithSameName(t *testing.T) {
 	}
 	assert.Equal(t, expectedMetadataToRemove, metadataUpdate.MetadataToRemove)
 }
-
-func TestRemovedPropertyAndTagWithSameName(t *testing.T) {
-	t.Skipf("Not valid until use case is supported in SFx exporter")
-	dimension := types.Dimension{
-		Properties: map[string]string{
-			"shared_name": "",
-		},
-		Tags: map[string]bool{
-			"shared_name": false,
-		},
-	}
-	metadataUpdate := dimensionToMetadataUpdate(dimension)
-
-	assert.Empty(t, metadataUpdate.MetadataToAdd)
-	assert.Empty(t, metadataUpdate.MetadataToUpdate)
-
-	expectedMetadataToRemove := map[string]string{
-		"shared_name": "sf_delete_this_property",
-	}
-	assert.Equal(t, expectedMetadataToRemove, metadataUpdate.MetadataToRemove)
-}

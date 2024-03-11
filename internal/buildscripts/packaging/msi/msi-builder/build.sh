@@ -16,15 +16,19 @@
 
 set -euo pipefail
 
-WXS_PATH="/project/internal/buildscripts/packaging/msi/splunk-otel-collector.wxs"
-OTELCOL="/project/bin/otelcol_windows_amd64.exe"
-AGENT_CONFIG="/project/cmd/otelcol/config/collector/agent_config.yaml"
-GATEWAY_CONFIG="/project/cmd/otelcol/config/collector/gateway_config.yaml"
-FLUENTD_CONFIG="/project/internal/buildscripts/packaging/fpm/etc/otel/collector/fluentd/fluent.conf"
-FLUENTD_CONFD="/project/internal/buildscripts/packaging/msi/fluentd/conf.d"
-SUPPORT_BUNDLE_SCRIPT="/project/internal/buildscripts/packaging/msi/splunk-support-bundle.ps1"
-SPLUNK_ICON="/project/internal/buildscripts/packaging/msi/splunk.ico"
-OUTPUT_DIR="/project/dist"
+# This script builds the Splunk OpenTelemetry MSI from the project available at ${PROJECT_DIR}.
+PROJECT_DIR=${PROJECT_DIR:-/project}
+WORK_DIR=${WORK_DIR:-/work}
+
+WXS_PATH="${PROJECT_DIR}/internal/buildscripts/packaging/msi/splunk-otel-collector.wxs"
+OTELCOL="${PROJECT_DIR}/bin/otelcol_windows_amd64.exe"
+AGENT_CONFIG="${PROJECT_DIR}/cmd/otelcol/config/collector/agent_config.yaml"
+GATEWAY_CONFIG="${PROJECT_DIR}/cmd/otelcol/config/collector/gateway_config.yaml"
+FLUENTD_CONFIG="${PROJECT_DIR}/internal/buildscripts/packaging/fpm/etc/otel/collector/fluentd/fluent.conf"
+FLUENTD_CONFD="${PROJECT_DIR}/internal/buildscripts/packaging/msi/fluentd/conf.d"
+SUPPORT_BUNDLE_SCRIPT="${PROJECT_DIR}/internal/buildscripts/packaging/msi/splunk-support-bundle.ps1"
+SPLUNK_ICON="${PROJECT_DIR}/internal/buildscripts/packaging/msi/splunk.ico"
+OUTPUT_DIR="${PROJECT_DIR}/dist"
 JMX_METRIC_GATHERER_RELEASE="1.29.0"
 
 usage() {
@@ -32,7 +36,7 @@ usage() {
 usage: ${BASH_SOURCE[0]} [OPTIONS] VERSION
 
 Description:
-    Build the Splunk OpenTelemetry MSI from the project available at /project.
+    Build the Splunk OpenTelemetry MSI from the project available at ${PROJECT_DIR}.
     By default, the MSI is saved as '${OUTPUT_DIR}/splunk-otel-collector-VERSION-amd64.msi'.
 
 OPTIONS:
@@ -133,7 +137,7 @@ parse_args_and_build() {
     fi
 
     set -x
-    build_dir="/work/build"
+    build_dir="${WORK_DIR}/build"
     files_dir="${build_dir}/msi"
     msi_name="splunk-otel-collector-${version}-amd64.msi"
 
@@ -155,21 +159,21 @@ parse_args_and_build() {
     jmx_metrics_jar="${build_dir}/opentelemetry-java-contrib-jmx-metrics.jar"
 
     # kludge to satisfy relative path in splunk-otel-collector.wxs
-    mkdir -p /work/internal/buildscripts/packaging/msi
-    cp "${splunk_icon}" "/work/internal/buildscripts/packaging/msi/splunk.ico"
+    mkdir -p ${WORK_DIR}/internal/buildscripts/packaging/msi
+    cp "${splunk_icon}" "${WORK_DIR}/internal/buildscripts/packaging/msi/splunk.ico"
 
-    cd /work
+    cd ${WORK_DIR}
     configFilesWsx="${build_dir}/configfiles.wsx"
-    heat dir "$files_dir" -srd -sreg -gg -template fragment -cg ConfigFiles -dr INSTALLDIR -out "${configFilesWsx//\//\\}"
+    heat dir "$files_dir" -srd -sreg -gg -template fragment -cg ConfigFiles -dr INSTALLDIR -out "${configFilesWsx}"
 
     configFilesWixObj="${build_dir}/configfiles.wixobj"
-    candle -arch x64 -out "${configFilesWixObj//\//\\}" "${configFilesWsx//\//\\}"
+    candle -arch x64 -out "${configFilesWixObj}" "${configFilesWsx}"
 
     collectorWixObj="${build_dir}/splunk-otel-collector.wixobj"
-    candle -arch x64 -out "${collectorWixObj//\//\\}" -dVersion="$version" -dOtelcol="$otelcol" -dJmxMetricsJar="$jmx_metrics_jar" "${WXS_PATH//\//\\}"
+    candle -arch x64 -out "${collectorWixObj}" -dVersion="$version" -dOtelcol="$otelcol" -dJmxMetricsJar="$jmx_metrics_jar" "${WXS_PATH}"
 
     msi="${build_dir}/${msi_name}"
-    light -ext WixUtilExtension.dll -sval -out "${msi//\//\\}" -b "${files_dir//\//\\}" "${collectorWixObj//\//\\}" "${configFilesWixObj//\//\\}"
+    light -ext WixUtilExtension.dll -sval -out "${msi}" -b "${files_dir}" "${collectorWixObj}" "${configFilesWixObj}"
 
     mkdir -p $output
     cp "${msi}" "${output}/${msi_name}"

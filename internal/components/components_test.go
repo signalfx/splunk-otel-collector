@@ -103,7 +103,6 @@ func TestDefaultComponents(t *testing.T) {
 		"resourcedetection",
 		"routing",
 		"span",
-		"spanmetrics",
 		"tail_sampling",
 		"timestamp",
 		"transform",

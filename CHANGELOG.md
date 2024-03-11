@@ -2,9 +2,25 @@
 
 ## Unreleased
 
+## v0.96.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.96.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.96.0) and the [opentelemetry-collector-contrib v0.96.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.96.0) releases where appropriate.
+
 ### 🚀 New components 🚀
 
 - (Splunk) Add the `cumulativetodelta` processor ([#4401](https://github.com/signalfx/splunk-otel-collector/pull/4401))
+
+### 💡 Enhancements 💡
+
+- Bump github.com/prometheus/common from 0.46.0 to 0.49.0  ([#4353](https://github.com/signalfx/splunk-otel-collector/pull/4382))
+- Bumps [aquasecurity/trivy-action](https://github.com/aquasecurity/trivy-action) from 0.17.0 to 0.18.0 ([#4382](https://github.com/signalfx/splunk-otel-collector/pull/4382))
+- Update splunk-otel-javaagent to latest ([#4402](https://github.com/signalfx/splunk-otel-collector/pull/4402))
+- Add X-SF-Token header to the configuration masked keys ([#4403](https://github.com/signalfx/splunk-otel-collector/pull/4403))
+- Bump setuptools in /internal/signalfx-agent/bundle/script([#4330](https://github.com/signalfx/splunk-otel-collector/pull/4403))
+- Rocky Linux installation support ([#4398](https://github.com/signalfx/splunk-otel-collector/pull/4398 ))
+- Add a test to check what we choose to redact ([#4406](https://github.com/signalfx/splunk-otel-collector/pull/4406))
+- Fixed high alert vulnerabity ([#4407](https://github.com/signalfx/splunk-otel-collector/pull/4407))
+- Update pgproto to 2.3.3  ([#4409](https://github.com/signalfx/splunk-otel-collector/pull/4409))
 
 ## v0.95.0
 

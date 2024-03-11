@@ -120,6 +120,11 @@ jobs:
         image: quay.io/splunko11ytest/haproxy:latest
         ports:
           - "8082:80"
+      # Apache image for collectd-apache test
+      apache:
+        image: quay.io/splunko11ytest/apache
+        ports:
+          - "18080:80"
     strategy:
       matrix:
         GOTESPLIT_INDEX: [ "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" ]

@@ -17,26 +17,19 @@
 package tests
 
 import (
-	"path"
 	"testing"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
-var apache = []testutils.Container{
-	testutils.NewContainer().WithContext(
-		path.Join(".", "testdata", "server"),
-	).WithExposedPorts("8080:80").WithName("apache").WillWaitForPorts("80"),
-}
-
 func TestCollectdApacheReceiverProvidesAllMetrics(t *testing.T) {
 	testutils.AssertAllMetricsReceived(
-		t, "all.yaml", "all_metrics_config.yaml", apache, nil,
+		t, "all.yaml", "all_metrics_config.yaml", nil, nil,
 	)
 }
 
 func TestCollectdApacheReceiverProvidesDefaultMetrics(t *testing.T) {
 	testutils.AssertAllMetricsReceived(
-		t, "default.yaml", "default_metrics_config.yaml", apache, nil,
+		t, "default.yaml", "default_metrics_config.yaml", nil, nil,
 	)
 }

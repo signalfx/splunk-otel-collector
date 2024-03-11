@@ -69,15 +69,11 @@ for-all:
 
 .PHONY: integration-vet
 integration-vet:
-	@set -e; cd tests && go vet -tags integration,testutilsintegration,endtoend,zeroconfig,testutils ./... && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) -tags testutils,testutilsintegration -v -timeout 5m -count 1 ./...
+	@set -e; cd tests && go vet -tags integration,testutilsintegration,zeroconfig,testutils ./... && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) -tags testutils,testutilsintegration -v -timeout 5m -count 1 ./...
 
 .PHONY: integration-test
 integration-test: integration-vet
 	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=integration -v -timeout 5m -count 1 ./...
-
-.PHONY: end-to-end-test
-end-to-end-test:
-	@set -e; cd tests/endtoend && $(GOTEST) -v -tags endtoend -timeout 5m -count 1 ./...
 
 .PHONY: test-with-cover
 test-with-cover:

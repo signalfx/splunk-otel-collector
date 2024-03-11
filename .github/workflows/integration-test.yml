@@ -119,7 +119,7 @@ jobs:
       apache:
         image: quay.io/splunko11ytest/apache
         ports:
-          - "8080:80"
+          - "18080:80"
     strategy:
       matrix:
         GOTESPLIT_INDEX: [ "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" ]

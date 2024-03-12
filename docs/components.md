@@ -114,7 +114,7 @@ The distribution offers support for the following components.
 | [ecs_observer](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/observer/ecsobserver)          | [beta]     |
 | [ecs_task_observer](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/observer/ecstaskobserver) | [beta]     |
 | [healthcheck](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/healthcheckextension)           | [beta]     |
-| [httpforwarder](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/httpforwarder)                | [beta]     |
+| [httpforwarder](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/httpforwarderextension)       | [beta]     |
 | [host_observer](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/observer/hostobserver)        | [beta]     |
 | [k8s_observer](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/observer/k8sobserver)          | [beta]     |
 | [pprof](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/pprofextension)                       | [beta]     |

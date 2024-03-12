@@ -1295,8 +1295,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthext
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.96.0/go.mod h1:6M0tTAzffURxRHLEEL5JFn0XVIPkoixE1cBzDbXkkFI=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension v0.96.0 h1:9d5i2HtVZWbYWlxQX8VXm4IAZIcF/1Mm1wIvkmkoHNw=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension v0.96.0/go.mod h1:lEoPuXrAwWvXNh3Wo4kTMVLl/mJfDs9vrXm+wbAiYvQ=
-github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarder v0.95.0 h1:F+wTqUJGxND3Ym3Yu4Ceo5SkQ05bGurN5hSeJP8MAac=
-github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarder v0.95.0/go.mod h1:NGl9jTZEhvuB8x8XBpfclhJsY9ymCUaTPw6s8LYBEOs=
+github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarderextension v0.96.0 h1:9v5+v9h+mOKg5RQa9+HaUc51folU6+Hha1eMcO9IjwU=
+github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarderextension v0.96.0/go.mod h1:QpRNQX9ODrVjUVZFfuCsg0QYDK2vwleObzMqkUIphkY=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer v0.96.0 h1:CYXMAUgb85rKEwR478iyTUVasu2b4k7bCpqy8WXnLfg=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer v0.96.0/go.mod h1:7lCBSEGtKj1Q4BygzmhXnq/F3NJmkvK8GrOy1wmh9s0=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/dockerobserver v0.96.0 h1:fwUpqTV/Bld8jOP/DqdjFCMGZk9Sb9GAtqQt29xZ25k=

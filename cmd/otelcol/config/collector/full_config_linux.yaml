@@ -725,7 +725,7 @@ extensions:
     endpoint: 0.0.0.0:13133
 
   # Enables the http forwarder extension
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/httpforwarder
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/httpforwarderextension
   # TODO: Add realm
   http_forwarder:
     ingress:

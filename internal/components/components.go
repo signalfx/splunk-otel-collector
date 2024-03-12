@@ -29,7 +29,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarder"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarderextension"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/dockerobserver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecsobserver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecstaskobserver"
@@ -131,7 +131,7 @@ func Get() (otelcol.Factories, error) {
 		filestorage.NewFactory(),
 		healthcheckextension.NewFactory(),
 		hostobserver.NewFactory(),
-		httpforwarder.NewFactory(),
+		httpforwarderextension.NewFactory(),
 		k8sobserver.NewFactory(),
 		pprofextension.NewFactory(),
 		smartagentextension.NewFactory(),

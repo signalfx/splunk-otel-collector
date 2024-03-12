@@ -27,7 +27,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.96.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.96.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension v0.96.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarder v0.95.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarderextension v0.96.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer v0.96.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/dockerobserver v0.96.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecsobserver v0.96.0
@@ -50,7 +50,6 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor v0.96.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceprocessor v0.96.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/routingprocessor v0.96.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor v0.95.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.96.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor v0.96.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor v0.96.0
@@ -446,7 +445,7 @@ require (
 	github.com/jackc/pgproto3/v2 v2.3.3 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20231201235250-de7065d80cb9 // indirect
 	github.com/jackc/pgtype v1.14.2 // indirect
-	github.com/jackc/pgx/v4 v4.18.2 // indirect
+	github.com/jackc/pgx/v4 v4.18.3 // indirect
 	github.com/jcmturner/aescts/v2 v2.0.0 // indirect
 	github.com/jcmturner/dnsutils/v2 v2.0.0 // indirect
 	github.com/jcmturner/gofork v1.7.6 // indirect

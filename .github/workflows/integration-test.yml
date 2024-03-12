@@ -169,6 +169,11 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+      # Cassandra image for collectd-cassandra test:
+      cassandra:
+        image: quay.io/splunko11ytest/cassandra:latest
+        ports:
+          - "7199:7199"
       # Nginx image for collectd-nginx test:
       nginx:
         image: quay.io/splunko11ytest/nginx:latest
@@ -194,6 +199,16 @@ jobs:
         image: quay.io/splunko11ytest/apache
         ports:
           - "18080:80"
+      # httpd image for prometheus-exporter test
+      httpd:
+        image: quay.io/splunko11ytest/httpd:latest
+        ports:
+          - "8000:80"
+      # httpd_basicauth image for lightprometheus test
+      httpd_basicauth:
+        image: quay.io/splunko11ytest/httpd_basicauth:latest
+        ports:
+          - "8001:80"
     strategy:
       matrix:
         GOTESPLIT_INDEX: [ "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" ]

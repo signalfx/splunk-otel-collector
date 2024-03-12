@@ -17,24 +17,13 @@
 package tests
 
 import (
-	"path"
 	"testing"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
 func TestHaproxyReceiverProvidesAllMetrics(t *testing.T) {
-	containers := []testutils.Container{
-		testutils.NewContainer().WithContext(
-			path.Join(".", "testdata", "server"),
-		).WithExposedPorts(
-			"8082:8080",
-		).WithName("haproxy").WillWaitForPorts(
-			"8080",
-		).WillWaitForLogs("New worker"),
-	}
-
 	testutils.AssertAllMetricsReceived(
-		t, "all.yaml", "all_metrics_config.yaml", containers, nil,
+		t, "all.yaml", "all_metrics_config.yaml", nil, nil,
 	)
 }

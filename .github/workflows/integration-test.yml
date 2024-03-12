@@ -120,6 +120,21 @@ jobs:
         image: quay.io/splunko11ytest/couchbase:latest
         ports:
           - "8091:8091"
+      # ActiveMQ image for collectd-activemq test:
+      activemq:
+        image: quay.io/splunko11ytest/activemq:latest
+        ports:
+          - "1099:1099"
+      # Haproxy image for haproxy test:
+      nginx:
+        image: quay.io/splunko11ytest/haproxy:latest
+        ports:
+          - "8082:80"
+      # Apache image for collectd-apache test
+      apache:
+        image: quay.io/splunko11ytest/apache
+        ports:
+          - "18080:80"
     strategy:
       matrix:
         GOTESPLIT_INDEX: [ "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" ]

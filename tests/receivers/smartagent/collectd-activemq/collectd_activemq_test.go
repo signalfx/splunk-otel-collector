@@ -17,24 +17,19 @@
 package tests
 
 import (
-	"path"
 	"testing"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
-var activemq = []testutils.Container{testutils.NewContainer().WithContext(
-	path.Join(".", "testdata", "server"),
-).WithExposedPorts("1099:1099").WithName("activemq").WillWaitForPorts("1099")}
-
 func TestCollectdActiveMQReceiverProvidesAllMetrics(t *testing.T) {
 	testutils.AssertAllMetricsReceived(
-		t, "all.yaml", "all_metrics_config.yaml", activemq, nil,
+		t, "all.yaml", "all_metrics_config.yaml", nil, nil,
 	)
 }
 
 func TestCollectdActiveMQReceiverProvidesDefaultMetrics(t *testing.T) {
 	testutils.AssertAllMetricsReceived(
-		t, "default.yaml", "default_metrics_config.yaml", activemq, nil,
+		t, "default.yaml", "default_metrics_config.yaml", nil, nil,
 	)
 }

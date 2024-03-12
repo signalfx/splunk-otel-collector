@@ -140,6 +140,11 @@ jobs:
         image: quay.io/splunko11ytest/httpd:latest
         ports:
           - "8000:80"
+      # httpd_basicauth image for lightprometheus test
+      httpd_basicauth:
+        image: quay.io/splunko11ytest/httpd_basicauth:latest
+        ports:
+          - "8001:80"
     strategy:
       matrix:
         GOTESPLIT_INDEX: [ "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" ]

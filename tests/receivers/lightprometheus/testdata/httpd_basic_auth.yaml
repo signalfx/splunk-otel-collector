@@ -3,7 +3,7 @@ receivers:
     auth:
       authenticator: basicauth
     collection_interval: 1s
-    endpoint: "http://localhost:8000/metrics"
+    endpoint: "http://localhost:8001/metrics"
 exporters:
   otlp:
     endpoint: "${OTLP_ENDPOINT}"

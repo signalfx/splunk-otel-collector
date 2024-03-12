@@ -15,8 +15,6 @@ import (
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/hadoop"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/healthchecker"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/jenkins"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/kong"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/marathon"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/mongodb"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/opcache"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/openstack"

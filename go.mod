@@ -120,7 +120,6 @@ require (
 	go.opentelemetry.io/collector/exporter/otlpexporter v0.96.1-0.20240322165517-15201f1e5967
 	go.opentelemetry.io/collector/exporter/otlphttpexporter v0.96.1-0.20240322165517-15201f1e5967
 	go.opentelemetry.io/collector/extension v0.96.1-0.20240322165517-15201f1e5967
-	go.opentelemetry.io/collector/extension/ballastextension v0.96.1-0.20240322165517-15201f1e5967
 	go.opentelemetry.io/collector/extension/zpagesextension v0.96.1-0.20240322165517-15201f1e5967
 	go.opentelemetry.io/collector/otelcol v0.96.1-0.20240322165517-15201f1e5967
 	go.opentelemetry.io/collector/pdata v1.3.1-0.20240315172937-3b5aee0c7a16

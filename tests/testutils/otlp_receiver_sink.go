@@ -92,7 +92,7 @@ func (otlp OTLPReceiverSink) Build() (*OTLPReceiverSink, error) {
 
 	otlpFactory := otlpreceiver.NewFactory()
 	otlpConfig := otlpFactory.CreateDefaultConfig().(*otlpreceiver.Config)
-	otlpConfig.GRPC.NetAddr = confignet.NetAddr{Endpoint: otlp.Endpoint, Transport: "tcp"}
+	otlpConfig.GRPC.NetAddr = confignet.AddrConfig{Endpoint: otlp.Endpoint, Transport: "tcp"}
 	otlpConfig.HTTP = nil
 
 	params := receiver.CreateSettings{

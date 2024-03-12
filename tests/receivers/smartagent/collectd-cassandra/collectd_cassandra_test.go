@@ -17,26 +17,19 @@
 package tests
 
 import (
-	"path"
 	"testing"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
-var cassandra = []testutils.Container{
-	testutils.NewContainer().WithContext(
-		path.Join(".", "testdata", "server"),
-	).WithExposedPorts("7199:7199").WithName("cassandra").WillWaitForPorts("7199"),
-}
-
 func TestCollectdCassandraReceiverProvidesAllMetrics(t *testing.T) {
 	testutils.AssertAllMetricsReceived(
-		t, "all.yaml", "all_metrics_config.yaml", cassandra, nil,
+		t, "all.yaml", "all_metrics_config.yaml", nil, nil,
 	)
 }
 
 func TestCollectdCassandraReceiverProvidesDefaultMetrics(t *testing.T) {
 	testutils.AssertAllMetricsReceived(
-		t, "default.yaml", "default_metrics_config.yaml", cassandra, nil,
+		t, "default.yaml", "default_metrics_config.yaml", nil, nil,
 	)
 }

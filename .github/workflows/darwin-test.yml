@@ -29,7 +29,7 @@ jobs:
     strategy:
       matrix:
         # The "macos-13-xlarge" runner is arm64: https://github.com/actions/runner-images/issues/8439
-        OS: [ "macos-11", "macos-12", "macos-13", "macos-13-xlarge" ]
+        OS: [ "macos-12", "macos-13", "macos-13-xlarge", "macos-14" ]
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4

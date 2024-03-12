@@ -115,6 +115,11 @@ jobs:
         image: quay.io/splunko11ytest/nginx:latest
         ports:
           - "8123:80"
+      # Couchbase image for collectd-couchbase test:
+      couchbase:
+        image: quay.io/splunko11ytest/couchbase:latest
+        ports:
+          - "8091:8091"
       # ActiveMQ image for collectd-activemq test:
       activemq:
         image: quay.io/splunko11ytest/activemq:latest

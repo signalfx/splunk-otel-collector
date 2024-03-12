@@ -115,6 +115,11 @@ jobs:
         image: quay.io/splunko11ytest/nginx:latest
         ports:
           - "8123:80"
+      # ActiveMQ image for collectd-activemq test:
+      activemq:
+        image: quay.io/splunko11ytest/activemq:latest
+        ports:
+          - "1099:1099"
       # Haproxy image for haproxy test:
       nginx:
         image: quay.io/splunko11ytest/haproxy:latest

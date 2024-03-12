@@ -18,7 +18,6 @@
 package tests
 
 import (
-	"path"
 	"testing"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
@@ -32,19 +31,13 @@ func TestPrometheusExporterProvidesOTelInternalMetrics(t *testing.T) {
 }
 
 func TestPrometheusExporterScrapesTargets(t *testing.T) {
-	httpd := []testutils.Container{testutils.NewContainer().WithContext(
-		path.Join(".", "testdata", "httpd"),
-	).WithName("httpd").WithExposedPorts("8000:80").WillWaitForPorts("80")}
 	testutils.AssertAllMetricsReceived(
-		t, "httpd.yaml", "httpd_metrics_config.yaml", httpd, nil,
+		t, "httpd.yaml", "httpd_metrics_config.yaml", nil, nil,
 	)
 }
 
 func TestPrometheusExporterScrapesTargetsWithFilter(t *testing.T) {
-	httpd := []testutils.Container{testutils.NewContainer().WithContext(
-		path.Join(".", "testdata", "httpd"),
-	).WithName("httpd").WithExposedPorts("8000:80").WillWaitForPorts("80")}
 	testutils.AssertAllMetricsReceived(
-		t, "httpd_filtered.yaml", "httpd_metrics_config_with_filter.yaml", httpd, nil,
+		t, "httpd_filtered.yaml", "httpd_metrics_config_with_filter.yaml", nil, nil,
 	)
 }

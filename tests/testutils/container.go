@@ -64,6 +64,8 @@ type Container struct {
 	Privileged           bool
 }
 
+var _ testcontainers.Container = (*Container)(nil)
+
 // To be used as a builder whose Build() method provides the actual instance capable of being started, and that
 // implements a testcontainers.Container.
 func NewContainer() Container {

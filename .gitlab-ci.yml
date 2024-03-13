@@ -795,7 +795,7 @@ build-push-windows-multiarch-image:
         # only push latest tag for main and stable releases.
         echo "Tagging and pushing ${IMAGE_NAME}:latest"
         docker manifest rm ${IMAGE_NAME}:latest
-        docker manifest create ${IMAGE_NAME}:latest ${IMAGE_NAME}:latest-2019 --amend ${IMAGE_NAME}:latest-2022
+        docker manifest create ${IMAGE_NAME}:latest ${IMAGE_NAME}:latest-2019 ${IMAGE_NAME}:latest-2022
         docker manifest push ${IMAGE_NAME}:latest
       }
       docker pull ${IMAGE_NAME}:${IMAGE_TAG}

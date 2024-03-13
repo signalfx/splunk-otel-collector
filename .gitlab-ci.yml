@@ -794,8 +794,9 @@ build-push-windows-multiarch-image:
       if ($env:CI_COMMIT_BRANCH -eq "main" -or $env:CI_COMMIT_TAG -match '^v\d+\.\d+\.\d+$') {
         # only push latest tag for main and stable releases.
         echo "Tagging and pushing ${IMAGE_NAME}:latest"
-        docker manifest create ${IMAGE_NAME}:latest --amend ${IMAGE_NAME}:latest-2019 --amend ${IMAGE_NAME}:latest-2022
-        docker manifest push ${IMAGE_NAME}:latest
+        docker manifest rm ${IMAGE_NAME}:latest
+        docker manifest create ${IMAGE_NAME}:latest ${IMAGE_NAME}:latest-2019 ${IMAGE_NAME}:latest-2022
+        docker manifest push ${IMAGE_NAME}:latest --purge
       }
       docker pull ${IMAGE_NAME}:${IMAGE_TAG}
       docker inspect --format='{{.RepoDigests}}' ${IMAGE_NAME}:${IMAGE_TAG} | Tee-Object -FilePath dist/windows_multiarch_digest.txt

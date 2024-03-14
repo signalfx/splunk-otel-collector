@@ -209,6 +209,10 @@ jobs:
         image: quay.io/splunko11ytest/httpd_basicauth:latest
         ports:
           - "8001:80"
+      kong:
+        image: quay.io/splunko11ytest/kong:latest
+        ports:
+          - "18001:8001"
     strategy:
       matrix:
         GOTESPLIT_INDEX: [ "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" ]

@@ -6,7 +6,7 @@ receivers:
           scrape_interval: 1s
           static_configs:
             - targets:
-                - "localhost:8001"
+                - "localhost:18001"
 
 exporters:
   otlp:

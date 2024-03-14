@@ -1,5 +1,4 @@
 // Copyright Splunk, Inc.
-// Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,9 +22,8 @@ import (
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
-func TestInternalPrometheusMetrics(t *testing.T) {
-	testutils.SkipIfNotContainerTest(t) // TODO: enhance internal metric settings detection for process config
+func TestKongMetrics(t *testing.T) {
 	testutils.AssertAllMetricsReceived(
-		t, "internal.yaml", "internal_metrics_config.yaml", nil, nil,
+		t, "kong_metrics.yaml", "kong_metrics_config.yaml", nil, nil,
 	)
 }

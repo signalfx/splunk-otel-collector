@@ -106,6 +106,18 @@
     If specified, the -collector_version and -stage parameters will be ignored.
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -msi_path "C:\SOME_FOLDER\splunk-otel-collector-1.2.3-amd64.msi"
+.PARAMETER dotnet_psm1_path
+    (OPTIONAL) Specify a local path to a Splunk OpenTelemetry .NET Auto Instrumentation Powershell Module file (.psm1) instead of downloading the package.  This module will be used to install the .NET auto instrumentation files.  The most current PSM1 file can be downloaded at https://github.com/signalfx/splunk-otel-dotnet/releases
+    .EXAMPLE
+    .\install.ps1 -access_token "ACCESSTOKEN" -dotnet_psm1_path "C:\SOME_FOLDER\Splunk.OTel.DotNet.psm1"
+.PARAMETER dotnet_auto_zip_path
+    (OPTIONAL) Specify a local path to a Splunk OpenTelemetry .NET Auto Instrumentation zip package that will be installed by the dotnet psm1 module instead of downloading the package.  The most current zip file can be downloaded at https://github.com/signalfx/splunk-otel-dotnet/releases
+    .EXAMPLE
+    .\install.ps1 -access_token "ACCESSTOKEN" -dotnet_auto_zip_path "C:\SOME_FOLDER\splunk-otel-dotnet-1.2.3-amd64.zip"
+.PARAMETER force_skip_verify_access_token
+    (OPTIONAL) Forces the skipping the verification check of the Splunk Observability Access Token regardless of what is in the env variable VERIFY_ACCESS_TOKEN.  This is helpful on new installs where access might be an issue or the token isn't created yet.
+    .EXAMPLE
+    .\install.ps1 -access_token "ACCESSTOKEN" -force_skip_verify_access_token $true
 .PARAMETER msi_public_properties
     (OPTIONAL) Specify public MSI properties to be used when installing the Splunk OpenTelemetry Collector MSI package.
     For information about the public MSI properties see https://learn.microsoft.com/en-us/windows/win32/msi/property-reference#configuration-properties
@@ -140,6 +152,9 @@ param (
     [string]$config_path = "",
     [string]$collector_msi_url = "",
     [string]$fluentd_msi_url = "",
+    [string]$dotnet_psm1_path = "",
+    [string]$dotnet_auto_zip_path = "",
+    [bool]$force_skip_verify_access_token = $false,
     [string]$deployment_env = "",
     [bool]$UNIT_TEST = $false
 )
@@ -495,12 +510,19 @@ if ($with_dotnet_instrumentation) {
         throw "SignalFx .NET Instrumentation is already installed. Stop all instrumented applications and uninstall SignalFx Instrumentation for .NET before running this script again."
     }
     echo "Downloading Splunk Distribution of OpenTelemetry .NET ..."
-    $module_name = "Splunk.OTel.DotNet.psm1"
-    $download = "https://github.com/signalfx/splunk-otel-dotnet/releases/latest/download/$module_name"
-    $dotnet_autoinstr_path = Join-Path $tempdir $module_name
-    echo "Downloading .NET Instrumentation installer ..."
-    Invoke-WebRequest -Uri $download -OutFile $dotnet_autoinstr_path -UseBasicParsing
-    Import-Module $dotnet_autoinstr_path
+    if ($dotnet_psm1_path -eq "") {
+        $module_name = "Splunk.OTel.DotNet.psm1"
+        $download = "https://github.com/signalfx/splunk-otel-dotnet/releases/latest/download/$module_name"
+        $dotnet_autoinstr_path = Join-Path $tempdir $module_name
+        echo "Downloading .NET Instrumentation installer ..."
+        Invoke-WebRequest -Uri $download -OutFile $dotnet_autoinstr_path -UseBasicParsing
+        Import-Module $dotnet_autoinstr_path
+    } else {
+        $dotnet_autoinstr_path = $dotnet_psm1_path
+        echo "Using Local PSM1 file and ArgumentList values: $dotnet_psm1_path -ArgumentList $dotnet_auto_zip_path"
+        Import-Module $dotnet_autoinstr_path -ArgumentList $dotnet_auto_zip_path
+    }
+    
 }
 
 if ($ingest_url -eq "") {
@@ -527,14 +549,18 @@ if ($bundle_dir -eq "") {
     $bundle_dir = "$installation_path\agent-bundle"
 }
 
-if ("$env:VERIFY_ACCESS_TOKEN" -ne "false") {
-    # verify access token
-    echo 'Verifying Access Token...'
-    if (!(verify_access_token -access_token $access_token -ingest_url $ingest_url -insecure $insecure)) {
-        throw "Access token authentication failed. Verify that your access token is correct."
-    }
-    else {
-        echo '- Verified Access Token'
+if ("$force_skip_verify_access_token") {
+    echo 'Skipping Access Token verification'
+} else {   
+    if ("$env:VERIFY_ACCESS_TOKEN" -ne "false") {
+        # verify access token
+        echo 'Verifying Access Token...'
+        if (!(verify_access_token -access_token $access_token -ingest_url $ingest_url -insecure $insecure)) {
+            throw "Access token authentication failed. Verify that your access token is correct."
+        }
+        else {
+            echo '- Verified Access Token'
+        }
     }
 }
 
@@ -704,7 +730,7 @@ if ($with_dotnet_instrumentation) {
         throw "The Splunk Distribution of OpenTelemetry .NET is already installed. Stop all instrumented applications and uninstall it and then rerun this script."
     }
 
-    Install-OpenTelemetryCore
+    Install-OpenTelemetryCore -LocalPath $dotnet_auto_zip_path
 
     $installed_version = Get-OpenTelemetryInstallVersion
     if ($otel_resource_attributes -ne "") {

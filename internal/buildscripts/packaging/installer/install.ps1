@@ -730,6 +730,7 @@ if ($with_dotnet_instrumentation) {
         throw "The Splunk Distribution of OpenTelemetry .NET is already installed. Stop all instrumented applications and uninstall it and then rerun this script."
     }
 
+    # If the variable dotnet_auto_zip_path is an empty string, then the Installer will download the .NET Instrumentation from the default repository.
     Install-OpenTelemetryCore -LocalPath $dotnet_auto_zip_path
 
     $installed_version = Get-OpenTelemetryInstallVersion

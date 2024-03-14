@@ -549,7 +549,7 @@ if ($bundle_dir -eq "") {
     $bundle_dir = "$installation_path\agent-bundle"
 }
 
-if ("$force_skip_verify_access_token") {
+if ($force_skip_verify_access_token) {
     echo 'Skipping Access Token verification'
 } else {   
     if ("$env:VERIFY_ACCESS_TOKEN" -ne "false") {

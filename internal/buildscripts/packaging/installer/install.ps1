@@ -107,7 +107,7 @@
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -msi_path "C:\SOME_FOLDER\splunk-otel-collector-1.2.3-amd64.msi"
 .PARAMETER dotnet_psm1_path
-    (OPTIONAL) Specify a local path to a Splunk OpenTelemetry .NET Auto Instrumentation Powershell Module file (.psm1) instead of downloading the package.  This module will be used to install the .NET auto instrumentation files.  The most current PSM1 file can be downloaded at https://github.com/signalfx/splunk-otel-dotnet/releases
+    (OPTIONAL) Specify a local path to a Splunk OpenTelemetry .NET Auto Instrumentation Powershell Module file (.psm1) instead of downloading the package. This module will be used to install the .NET auto instrumentation files. The most current PSM1 file can be downloaded at https://github.com/signalfx/splunk-otel-dotnet/releases
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -dotnet_psm1_path "C:\SOME_FOLDER\Splunk.OTel.DotNet.psm1"
 .PARAMETER dotnet_auto_zip_path

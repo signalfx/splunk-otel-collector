@@ -62,29 +62,13 @@ func (otlp OTLPReceiverSink) WithEndpoint(endpoint string) OTLPReceiverSink {
 	return otlp
 }
 
-// WithHost is optional: if not set will use NopHost
-func (otlp OTLPReceiverSink) WithHost(host component.Host) OTLPReceiverSink {
-	otlp.Host = host
-	return otlp
-}
-
-// WithLogger is optional: if not set will use nop logger
-func (otlp OTLPReceiverSink) WithLogger(logger *zap.Logger) OTLPReceiverSink {
-	otlp.Logger = logger
-	return otlp
-}
-
 // Build will create, configure, and start an OTLPReceiver with GRPC listener and associated metric and log sinks
 func (otlp OTLPReceiverSink) Build() (*OTLPReceiverSink, error) {
 	if otlp.Endpoint == "" {
 		return nil, fmt.Errorf("must provide an Endpoint for OTLPReceiverSink")
 	}
-	if otlp.Logger == nil {
-		otlp.Logger = zap.NewNop()
-	}
-	if otlp.Host == nil {
-		otlp.Host = componenttest.NewNopHost()
-	}
+	otlp.Logger = zap.NewNop()
+	otlp.Host = componenttest.NewNopHost()
 
 	otlp.logsSink = new(consumertest.LogsSink)
 	otlp.metricsSink = new(consumertest.MetricsSink)

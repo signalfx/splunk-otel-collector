@@ -35,27 +35,6 @@ import (
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
-func TestCollectdKafkaReceiversProvideAllMetrics(t *testing.T) {
-	t.Skip("skiping")
-	tc := testutils.NewTestcase(t)
-	defer tc.PrintLogsOnFailure()
-	defer tc.ShutdownOTLPReceiverSink()
-
-	for _, args := range []struct {
-		name                    string
-		resourceMetricsFilename string
-		collectorConfigFilename string
-	}{
-		{"broker metrics", "all_broker.yaml", "all_broker_metrics_config.yaml"},
-		{"producer metrics", "all_producer.yaml", "all_producer_metrics_config.yaml"},
-		{"consumer metrics", "all_consumer.yaml", "all_consumer_metrics_config.yaml"},
-	} {
-		t.Run(args.name, func(tt *testing.T) {
-			testutils.AssertAllMetricsReceived(tt, args.resourceMetricsFilename, args.collectorConfigFilename, nil, nil)
-		})
-	}
-}
-
 func TestCollectdKafkaReceiversAllBrokerMetrics(t *testing.T) {
 	metricNames := []string{
 		"counter.kafka-bytes-in",

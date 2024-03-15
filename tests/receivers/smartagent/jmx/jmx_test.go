@@ -29,9 +29,6 @@ import (
 	"github.com/docker/docker/api/types/container"
 	docker "github.com/docker/docker/client"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
-	"go.uber.org/zap/zaptest/observer"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
@@ -64,7 +61,7 @@ func TestJmxReceiverProvidesAllMetrics(t *testing.T) {
 	endpoint, err := GetDockerNetworkGateway(t, networkName)
 	require.NoError(t, err)
 	require.NotEmpty(t, endpoint)
-	sinkBuilder, _ := GetSinkAndLogs(t, endpoint)
+	sinkBuilder := GetSinkAndLogs(t, endpoint)
 	sink, err := sinkBuilder.Build()
 	require.NoError(t, err)
 	tc.OTLPEndpoint = sink.Endpoint
@@ -108,19 +105,9 @@ func GetDockerNetworkGateway(t testing.TB, dockerNetwork string) (string, error)
 	return "", errors.New("Could not find gateway for network " + dockerNetwork)
 }
 
-func GetSinkAndLogs(t testing.TB, sinkHost string) (testutils.OTLPReceiverSink, *observer.ObservedLogs) {
+func GetSinkAndLogs(t testing.TB, sinkHost string) testutils.OTLPReceiverSink {
 	otlpPort := testutils.GetAvailablePort(t)
 	endpoint := fmt.Sprintf("%s:%d", sinkHost, otlpPort)
-	var logCore zapcore.Core
-	logCore, ObservedLogs := observer.New(zap.DebugLevel)
-	logger := zap.New(logCore)
-	sink := testutils.NewOTLPReceiverSink().WithEndpoint(endpoint).WithLogger(logger)
-	//testCase := testutils.Testcase{
-	//	OTLPEndpoint:             endpoint,
-	//	OTLPEndpointForCollector: endpoint,
-	//	Logger:                   logger,
-	//	ObservedLogs:             ObservedLogs,
-	//	ID:                       "jmx-test",
-	//}
-	return sink, ObservedLogs
+	sink := testutils.NewOTLPReceiverSink().WithEndpoint(endpoint)
+	return sink
 }

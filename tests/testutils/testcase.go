@@ -15,7 +15,6 @@
 package testutils
 
 import (
-	"bufio"
 	"context"
 	"fmt"
 	"os"
@@ -79,7 +78,7 @@ func NewTestcase(t testing.TB, opts ...TestOption) *Testcase {
 
 	tc.setOTLPEndpoint(opts)
 	var err error
-	tc.OTLPReceiverSink, err = NewOTLPReceiverSink().WithEndpoint(tc.OTLPEndpoint).WithLogger(tc.Logger).Build()
+	tc.OTLPReceiverSink, err = NewOTLPReceiverSink().WithEndpoint(tc.OTLPEndpoint).Build()
 	require.NoError(tc, err)
 	require.NoError(tc, tc.OTLPReceiverSink.Start())
 
@@ -289,13 +288,4 @@ func AssertAllMetricsReceived(
 	defer shutdown()
 
 	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 3*time.Minute))
-}
-
-// WaitForKeyboard is a helper for adding breakpoints during test creation
-func WaitForKeyboard(t testing.TB) {
-	tty, err := os.Open("/dev/tty")
-	require.NoError(t, err)
-	reader := bufio.NewReader(tty)
-	fmt.Print("Press ENTER to continue.\n")
-	_, _ = reader.ReadString('\n')
 }

@@ -48,7 +48,7 @@ func TestOutput(t *testing.T) {
 	output, err := newOutput(
 		Config{}, fakeMonitorFiltering(), consumertest.NewNop(),
 		consumertest.NewNop(), consumertest.NewNop(),
-		componenttest.NewNopHost(), newReceiverCreateSettings(""),
+		componenttest.NewNopHost(), newReceiverCreateSettings("", t),
 	)
 	require.NoError(t, err)
 	output.AddDatapointExclusionFilter(dpfilters.DatapointFilter(nil))
@@ -73,7 +73,7 @@ func TestHasEnabledMetric(t *testing.T) {
 	require.NoError(t, err)
 	output, err := newOutput(
 		Config{}, monitorFiltering, consumertest.NewNop(), consumertest.NewNop(),
-		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings(""),
+		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings("", t),
 	)
 	require.NoError(t, err)
 	assert.Equal(t, []string{"mem.used"}, output.EnabledMetrics())
@@ -83,7 +83,7 @@ func TestHasEnabledMetric(t *testing.T) {
 	require.NoError(t, err)
 	output, err = newOutput(
 		Config{}, monitorFiltering, consumertest.NewNop(), consumertest.NewNop(),
-		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings(""),
+		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings("", t),
 	)
 	require.NoError(t, err)
 	assert.Empty(t, output.EnabledMetrics())
@@ -107,7 +107,7 @@ func TestHasEnabledMetricInGroup(t *testing.T) {
 	require.NoError(t, err)
 	output, err := newOutput(
 		Config{}, monitorFiltering, consumertest.NewNop(), consumertest.NewNop(),
-		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings(""),
+		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings("", t),
 	)
 	require.NoError(t, err)
 	assert.True(t, output.HasEnabledMetricInGroup("mem"))
@@ -118,7 +118,7 @@ func TestHasEnabledMetricInGroup(t *testing.T) {
 	require.NoError(t, err)
 	output, err = newOutput(
 		Config{}, monitorFiltering, consumertest.NewNop(), consumertest.NewNop(),
-		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings(""),
+		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings("", t),
 	)
 	require.NoError(t, err)
 	assert.False(t, output.HasEnabledMetricInGroup("any"))
@@ -127,7 +127,7 @@ func TestHasEnabledMetricInGroup(t *testing.T) {
 func TestExtraDimensions(t *testing.T) {
 	o, err := newOutput(
 		Config{}, fakeMonitorFiltering(), consumertest.NewNop(), consumertest.NewNop(),
-		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings(""),
+		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings("", t),
 	)
 	require.NoError(t, err)
 	assert.Empty(t, o.extraDimensions)
@@ -148,7 +148,7 @@ func TestSendDimensionUpdate(t *testing.T) {
 	mmc := mockMetadataClient{id: component.MustNewID("signalfx")}
 	output, err := newOutput(
 		Config{}, fakeMonitorFiltering(), &mmc, consumertest.NewNop(), consumertest.NewNop(),
-		componenttest.NewNopHost(), newReceiverCreateSettings(""),
+		componenttest.NewNopHost(), newReceiverCreateSettings("", t),
 	)
 	require.NoError(t, err)
 
@@ -171,7 +171,7 @@ func TestSendDimensionUpdate(t *testing.T) {
 func TestSendDimensionUpdateWithInvalidExporter(t *testing.T) {
 	output, err := newOutput(
 		Config{}, fakeMonitorFiltering(), consumertest.NewNop(), consumertest.NewNop(),
-		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings(""),
+		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings("", t),
 	)
 	require.NoError(t, err)
 	dim := types.Dimension{Name: "error"}
@@ -191,7 +191,7 @@ func TestSendDimensionUpdateFromConfigMetadataExporters(t *testing.T) {
 		consumertest.NewNop(),
 		consumertest.NewNop(),
 		&hostWithExporters{exporter: &mmc},
-		newReceiverCreateSettings(""),
+		newReceiverCreateSettings("", t),
 	)
 	require.NoError(t, err)
 
@@ -209,7 +209,7 @@ func TestSendDimensionUpdateFromNextConsumerMetadataExporters(t *testing.T) {
 	mmc := mockMetadataClient{id: component.MustNewID("signalfx")}
 	output, err := newOutput(
 		Config{}, fakeMonitorFiltering(), &mmc, consumertest.NewNop(),
-		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings(""),
+		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings("", t),
 	)
 	require.NoError(t, err)
 	dim := types.Dimension{
@@ -226,7 +226,7 @@ func TestSendEvent(t *testing.T) {
 	mmc := mockMetadataClient{id: component.MustNewID("signalfx")}
 	output, err := newOutput(
 		Config{}, fakeMonitorFiltering(), consumertest.NewNop(), &mmc,
-		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings(""),
+		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings("", t),
 	)
 	require.NoError(t, err)
 
@@ -261,7 +261,7 @@ func TestDimensionClientDefaultsToSFxExporter(t *testing.T) {
 		consumertest.NewNop(),
 		consumertest.NewNop(),
 		&hostWithExporters{exporter: &mmc},
-		newReceiverCreateSettings(""),
+		newReceiverCreateSettings("", t),
 	)
 	require.NoError(t, err)
 
@@ -284,7 +284,7 @@ func TestDimensionClientDefaultsRequiresLoneSFxExporter(t *testing.T) {
 		consumertest.NewNop(),
 		consumertest.NewNop(),
 		&hostWithTwoSFxExporters{sfxExporter: &mmc},
-		newReceiverCreateSettings(""),
+		newReceiverCreateSettings("", t),
 	)
 	require.NoError(t, err)
 

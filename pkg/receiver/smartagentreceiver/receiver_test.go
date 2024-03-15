@@ -48,7 +48,6 @@ import (
 	"go.uber.org/zap/zaptest/observer"
 
 	"github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension"
-	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
 func cleanUp() func() {
@@ -63,13 +62,16 @@ func cleanUp() func() {
 	}
 }
 
-func newReceiverCreateSettings(name string) otelcolreceiver.CreateSettings {
+func newReceiverCreateSettings(name string, t *testing.T) otelcolreceiver.CreateSettings {
 	return otelcolreceiver.CreateSettings{
 		ID: component.MustNewIDWithName("smartagent", name),
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         zap.NewNop(),
 			TracerProvider: nooptrace.NewTracerProvider(),
 			MeterProvider:  noop.NewMeterProvider(),
+			ReportStatus: func(event *component.StatusEvent) {
+				require.NoError(t, event.Err())
+			},
 		},
 	}
 }
@@ -112,7 +114,7 @@ func TestSmartAgentReceiver(t *testing.T) {
 	t.Cleanup(cleanUp())
 	cfg := newConfig("cpu", 10)
 	consumer := new(consumertest.MetricsSink)
-	receiver := newReceiver(newReceiverCreateSettings("valid"), cfg)
+	receiver := newReceiver(newReceiverCreateSettings("valid", t), cfg)
 	receiver.registerMetricsConsumer(consumer)
 
 	require.NoError(t, receiver.Start(context.Background(), componenttest.NewNopHost()))
@@ -202,7 +204,7 @@ func TestStripMonitorTypePrefix(t *testing.T) {
 func TestStartReceiverWithInvalidMonitorConfig(t *testing.T) {
 	t.Cleanup(cleanUp())
 	cfg := newConfig("cpu", -123)
-	receiver := newReceiver(newReceiverCreateSettings("invalid"), cfg)
+	receiver := newReceiver(newReceiverCreateSettings("invalid", t), cfg)
 	err := receiver.Start(context.Background(), componenttest.NewNopHost())
 	assert.EqualError(t, err,
 		"config validation failed for \"smartagent/invalid\": intervalSeconds must be greater than 0s (-123 provided)",
@@ -212,7 +214,7 @@ func TestStartReceiverWithInvalidMonitorConfig(t *testing.T) {
 func TestStartReceiverWithUnknownMonitorType(t *testing.T) {
 	t.Cleanup(cleanUp())
 	cfg := newConfig("notamonitortype", 1)
-	receiver := newReceiver(newReceiverCreateSettings("invalid"), cfg)
+	receiver := newReceiver(newReceiverCreateSettings("invalid", t), cfg)
 	err := receiver.Start(context.Background(), componenttest.NewNopHost())
 	assert.EqualError(t, err,
 		"failed creating monitor \"notamonitortype\": unable to find MonitorFactory for \"notamonitortype\"",
@@ -222,7 +224,7 @@ func TestStartReceiverWithUnknownMonitorType(t *testing.T) {
 func TestStartAndShutdown(t *testing.T) {
 	t.Cleanup(cleanUp())
 	cfg := newConfig("cpu", 1)
-	receiver := newReceiver(newReceiverCreateSettings("valid"), cfg)
+	receiver := newReceiver(newReceiverCreateSettings("valid", t), cfg)
 	err := receiver.Start(context.Background(), componenttest.NewNopHost())
 	require.NoError(t, err)
 
@@ -233,7 +235,7 @@ func TestStartAndShutdown(t *testing.T) {
 func TestOutOfOrderShutdownInvocations(t *testing.T) {
 	t.Cleanup(cleanUp())
 	cfg := newConfig("cpu", 1)
-	receiver := newReceiver(newReceiverCreateSettings("valid"), cfg)
+	receiver := newReceiver(newReceiverCreateSettings("valid", t), cfg)
 
 	err := receiver.Shutdown(context.Background())
 	require.Error(t, err)
@@ -245,22 +247,22 @@ func TestOutOfOrderShutdownInvocations(t *testing.T) {
 func TestMultipleInstancesOfSameMonitorType(t *testing.T) {
 	t.Cleanup(cleanUp())
 	cfg := newConfig("cpu", 1)
-	fstRcvr := newReceiver(newReceiverCreateSettings("valid"), cfg)
+	fstRcvr := newReceiver(newReceiverCreateSettings("valid", t), cfg)
 
 	ctx := context.Background()
-	mh := testutils.NewAssertNoErrorHost(t)
-	require.NoError(t, fstRcvr.Start(ctx, mh))
+
+	require.NoError(t, fstRcvr.Start(ctx, componenttest.NewNopHost()))
 	require.NoError(t, fstRcvr.Shutdown(ctx))
 
-	sndRcvr := newReceiver(newReceiverCreateSettings("valid"), cfg)
-	assert.NoError(t, sndRcvr.Start(ctx, mh))
+	sndRcvr := newReceiver(newReceiverCreateSettings("valid", t), cfg)
+	assert.NoError(t, sndRcvr.Start(ctx, componenttest.NewNopHost()))
 	assert.NoError(t, sndRcvr.Shutdown(ctx))
 }
 
 func TestInvalidMonitorStateAtShutdown(t *testing.T) {
 	t.Cleanup(cleanUp())
 	cfg := newConfig("cpu", 1)
-	receiver := newReceiver(newReceiverCreateSettings("valid"), cfg)
+	receiver := newReceiver(newReceiverCreateSettings("valid", t), cfg)
 	receiver.monitor = new(any)
 
 	err := receiver.Shutdown(context.Background())
@@ -288,7 +290,7 @@ func TestConfirmStartingReceiverWithInvalidMonitorInstancesDoesntPanic(t *testin
 			monitors.MonitorMetadatas["notarealmonitor"] = &monitors.Metadata{MonitorType: "notarealmonitor"}
 
 			cfg := newConfig("notarealmonitor", 123)
-			receiver := newReceiver(newReceiverCreateSettings("invalid"), cfg)
+			receiver := newReceiver(newReceiverCreateSettings("invalid", t), cfg)
 			err := receiver.Start(context.Background(), componenttest.NewNopHost())
 			require.Error(tt, err)
 			assert.Contains(tt, err.Error(),
@@ -302,7 +304,7 @@ func TestFilteringNoMetadata(t *testing.T) {
 	t.Cleanup(cleanUp())
 	monitors.MonitorFactories["fakemonitor"] = func() any { return struct{}{} }
 	cfg := newConfig("fakemonitor", 1)
-	receiver := newReceiver(newReceiverCreateSettings("valid"), cfg)
+	receiver := newReceiver(newReceiverCreateSettings("valid", t), cfg)
 	err := receiver.Start(context.Background(), componenttest.NewNopHost())
 	require.EqualError(t, err, "failed creating monitor \"fakemonitor\": could not find monitor metadata of type fakemonitor")
 }
@@ -312,7 +314,7 @@ func TestSmartAgentConfigProviderOverrides(t *testing.T) {
 	cfg := newConfig("cpu", 1)
 	observedLogger, logs := observer.New(zapcore.WarnLevel)
 	logger := zap.New(observedLogger)
-	rcs := newReceiverCreateSettings("valid")
+	rcs := newReceiverCreateSettings("valid", t)
 	rcs.Logger = logger
 	r := newReceiver(rcs, cfg)
 
@@ -369,7 +371,7 @@ func TestJavaHomeRespected(t *testing.T) {
 	t.Cleanup(cleanUp())
 	os.Setenv("JAVA_HOME", "/existing/java/home")
 	cfg := newConfig("cpu", 1)
-	rcs := newReceiverCreateSettings("valid")
+	rcs := newReceiverCreateSettings("valid", t)
 	r := newReceiver(rcs, cfg)
 
 	require.NoError(t, r.Start(context.Background(), componenttest.NewNopHost()))

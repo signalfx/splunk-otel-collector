@@ -193,7 +193,7 @@ jobs:
       haproxy:
         image: quay.io/splunko11ytest/haproxy:latest
         ports:
-          - "8082:80"
+          - "8082:8080"
       # Apache image for collectd-apache test
       apache:
         image: quay.io/splunko11ytest/apache

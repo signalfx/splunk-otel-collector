@@ -4,9 +4,9 @@ resource_spans:
     host.name: <ANY>
     os.type: windows
     process.pid: <ANY>
-    process.runtime.description: .NET 6.0.27
+    process.runtime.description: <ANY>
     process.runtime.name: .NET
-    process.runtime.version: 6.0.27
+    process.runtime.version: <ANY>
     service.name: AspNetCore.WebApi.Net
     splunk.distro.version: SPLUNK_OTEL_DOTNET_VERSION
     splunk.zc.method: splunk-otel-dotnet-vSPLUNK_OTEL_DOTNET_VERSION

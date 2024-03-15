@@ -30,7 +30,7 @@ import (
 func TestSendSpansWithoutNextTracesConsumer(t *testing.T) {
 	output, err := newOutput(
 		Config{}, fakeMonitorFiltering(), consumertest.NewNop(), consumertest.NewNop(),
-		nil, componenttest.NewNopHost(), newReceiverCreateSettings(""),
+		nil, componenttest.NewNopHost(), newReceiverCreateSettings("", t),
 	)
 	require.NoError(t, err)
 	output.SendSpans(&trace.Span{TraceID: "12345678", ID: "23456789"}) // doesn't panic
@@ -40,7 +40,7 @@ func TestSendSpansWithConsumerError(t *testing.T) {
 	obs, logs := observer.New(zap.DebugLevel)
 	logger := zap.New(obs)
 
-	rcs := newReceiverCreateSettings("")
+	rcs := newReceiverCreateSettings("", t)
 	rcs.Logger = logger
 
 	err := fmt.Errorf("desired error")

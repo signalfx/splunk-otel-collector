@@ -3,8 +3,7 @@ config_sources:
 receivers:
   smartagent/jmx:
     type: jmx
-    host: cassandra
-#    host: 127.0.0.1
+    host: "${HOST}"
     port: 7199
     username: cassandra
     password: cassandra

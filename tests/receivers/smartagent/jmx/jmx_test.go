@@ -18,96 +18,91 @@ package tests
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"path"
 	"path/filepath"
+	"runtime"
 	"testing"
 	"time"
 
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/container"
-	docker "github.com/docker/docker/client"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/component/componenttest"
+	"go.opentelemetry.io/collector/consumer/consumertest"
+	"go.opentelemetry.io/collector/receiver/otlpreceiver"
+	"go.opentelemetry.io/collector/receiver/receivertest"
+	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
-const networkName = "cassandra"
-
-var cassandra = testutils.NewContainer().WithContext(
-	path.Join(".", "testdata", "server"),
-).WithEnv(map[string]string{
-	"LOCAL_JMX": "no",
-}).WithExposedPorts("7199:7199").
-	WithStartupTimeout(3 * time.Minute).
-	WithHostConfigModifier(func(cm *container.HostConfig) {
-		cm.NetworkMode = "bridge"
-	}).
-	WithName("cassandra").
-	WithNetworks("cassandra").
-	WillWaitForPorts("7199").
-	WillWaitForLogs("JMX is enabled to receive remote connections on port").
-	WillWaitForLogs("Startup complete")
-
 func TestJmxReceiverProvidesAllMetrics(t *testing.T) {
-	t.Skip("Issues with test-containers networking, need to wait for -contrib to update the docker api version for us to update testcontainers-go locally")
-	testutils.SkipIfNotContainerTest(t)
-
-	tc := testutils.Testcase{TB: t}
-	_, stopDependentContainers := tc.Containers(cassandra)
-	defer stopDependentContainers()
-
-	endpoint, err := GetDockerNetworkGateway(t, networkName)
-	require.NoError(t, err)
-	require.NotEmpty(t, endpoint)
-	sinkBuilder := GetSinkAndLogs(t, endpoint)
-	sink, err := sinkBuilder.Build()
-	require.NoError(t, err)
-	tc.OTLPEndpoint = sink.Endpoint
-	tc.OTLPEndpointForCollector = sink.Endpoint
-	require.Contains(t, tc.OTLPEndpointForCollector, ":")
-	require.NoError(t, sink.Start())
-	defer func() { require.NoError(t, sink.Shutdown()) }()
-
-	_, shutdown := tc.SplunkOtelCollector("all_metrics_config.yaml",
-		func(collector testutils.Collector) testutils.Collector {
-			collector = collector.WithEnv(map[string]string{"OTLP_ENDPOINT": tc.OTLPEndpointForCollector})
-			collector = collector.WithLogLevel("debug")
-			collectorContainer := collector.(*testutils.CollectorContainer)
-			collectorContainer.Container = collectorContainer.Container.WithHostConfigModifier(func(chc *container.HostConfig) {
-				chc.NetworkMode = "bridge"
-			}).WithName("otelcol-jmxtest").WithNetworks(networkName)
-			p, err := filepath.Abs(filepath.Join(".", "testdata", "script.groovy"))
-			require.NoError(t, err)
-			return collector.WithMount(p, "/opt/script.groovy")
-		})
-	defer shutdown()
-
-	resourceMetrics := tc.ResourceMetrics("all.yaml")
-	require.NoError(t, sink.AssertAllMetricsReceived(t, *resourceMetrics, time.Minute))
-
-}
-
-func GetDockerNetworkGateway(t testing.TB, dockerNetwork string) (string, error) {
-	client, err := docker.NewClientWithOpts(docker.FromEnv)
-	require.NoError(t, err)
-	client.NegotiateAPIVersion(context.Background())
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	network, err := client.NetworkInspect(ctx, dockerNetwork, types.NetworkInspectOptions{})
-	require.NoError(t, err)
-	for _, ipam := range network.IPAM.Config {
-		if ipam.Gateway != "" {
-			return ipam.Gateway, nil
-		}
+	metricNames := []string{
+		"cassandra.status",
+		"cassandra.state",
+		"cassandra.load",
+		"cassandra.ownership",
 	}
-	return "", errors.New("Could not find gateway for network " + dockerNetwork)
+
+	checkMetricsPresence(t, metricNames, "all_metrics_config.yaml")
 }
 
-func GetSinkAndLogs(t testing.TB, sinkHost string) testutils.OTLPReceiverSink {
-	otlpPort := testutils.GetAvailablePort(t)
-	endpoint := fmt.Sprintf("%s:%d", sinkHost, otlpPort)
-	sink := testutils.NewOTLPReceiverSink().WithEndpoint(endpoint)
-	return sink
+func checkMetricsPresence(t *testing.T, metricNames []string, configFile string) {
+	f := otlpreceiver.NewFactory()
+	port := testutils.GetAvailablePort(t)
+	c := f.CreateDefaultConfig().(*otlpreceiver.Config)
+	c.GRPC.NetAddr.Endpoint = fmt.Sprintf("localhost:%d", port)
+	sink := &consumertest.MetricsSink{}
+	receiver, err := f.CreateMetricsReceiver(context.Background(), receivertest.NewNopCreateSettings(), c, sink)
+	require.NoError(t, err)
+	require.NoError(t, receiver.Start(context.Background(), componenttest.NewNopHost()))
+	t.Cleanup(func() {
+		require.NoError(t, receiver.Shutdown(context.Background()))
+	})
+	logger, _ := zap.NewDevelopment()
+
+	dockerHost := "0.0.0.0"
+	if runtime.GOOS == "darwin" {
+		dockerHost = "host.docker.internal"
+	}
+	mountDir, err := filepath.Abs(filepath.Join("testdata", "script.groovy"))
+	require.NoError(t, err)
+	p, err := testutils.NewCollectorContainer().
+		WithConfigPath(filepath.Join("testdata", configFile)).
+		WithLogger(logger).
+		WithEnv(map[string]string{
+			"OTLP_ENDPOINT": fmt.Sprintf("%s:%d", dockerHost, port),
+			"HOST":          dockerHost,
+		}).
+		WithMount(mountDir, "/opt/script.groovy").
+		Build()
+	require.NoError(t, err)
+	require.NoError(t, p.Start())
+	t.Cleanup(func() {
+		require.NoError(t, p.Shutdown())
+	})
+
+	missingMetrics := make(map[string]any, len(metricNames))
+	for _, m := range metricNames {
+		missingMetrics[m] = struct{}{}
+	}
+
+	assert.EventuallyWithT(t, func(tt *assert.CollectT) {
+		for i := 0; i < len(sink.AllMetrics()); i++ {
+			m := sink.AllMetrics()[i]
+			for j := 0; j < m.ResourceMetrics().Len(); j++ {
+				rm := m.ResourceMetrics().At(j)
+				for k := 0; k < rm.ScopeMetrics().Len(); k++ {
+					sm := rm.ScopeMetrics().At(k)
+					for l := 0; l < sm.Metrics().Len(); l++ {
+						delete(missingMetrics, sm.Metrics().At(l).Name())
+					}
+				}
+			}
+		}
+		msg := "Missing metrics:\n"
+		for k := range missingMetrics {
+			msg += fmt.Sprintf("- %q\n", k)
+		}
+		assert.Len(tt, missingMetrics, 0, msg)
+	}, 1*time.Minute, 1*time.Second)
 }

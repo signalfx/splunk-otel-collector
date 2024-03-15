@@ -10,22 +10,6 @@ receivers:
             - source_labels: [ __name__ ]
               regex: '.*grpc_io.*'
               action: drop
-            - source_labels: [ __name__ ]
-              target_label: 'label1'
-              action: labeldrop
-            - source_labels: [subsystem, server]
-              separator: "@"
-              regex: "(.*)@(.*)"
-              replacement: "${2}/${1}"
-            - source_labels: [ __name__ ]
-              regex: 'otelcol_rpc_.*'
-              action: drop
-            - source_labels: [ __name__ ]
-              regex: 'otelcol_http_.*'
-              action: drop
-            - source_labels: [ __name__ ]
-              regex: 'otelcol_processor_batch_.*'
-              action: drop
 processors:
   memory_limiter:
     check_interval: 1s

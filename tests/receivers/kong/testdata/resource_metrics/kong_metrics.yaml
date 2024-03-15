@@ -1,8 +1,8 @@
 resource_metrics:
   - attributes:
       http.scheme: http
-      net.host.port: "8001"
-      service.instance.id: localhost:8001
+      net.host.port: "18001"
+      service.instance.id: localhost:18001
       service.name: kong
     scope_metrics:
       - instrumentation_scope:

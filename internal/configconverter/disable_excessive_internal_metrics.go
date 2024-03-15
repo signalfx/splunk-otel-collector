@@ -17,6 +17,7 @@ package configconverter
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"strings"
 
 	"github.com/prometheus/common/model"
@@ -24,15 +25,8 @@ import (
 	"go.opentelemetry.io/collector/confmap"
 )
 
-const (
-	// promJobNamePrefix is the name prefix of the prometheus jobs that scrapes internal otel-collector metrics.
-	promJobNamePrefix = "otel-"
-
-	// Metric patterns to drop.
-	rpcMetricPattern   = "otelcol_rpc_.*"
-	httpMetricPattern  = "otelcol_http_.*"
-	batchMetricPattern = "otelcol_processor_batch_.*"
-)
+// promJobNamePrefix is the name prefix of the prometheus jobs that scrapes internal otel-collector metrics.
+const promJobNamePrefix = "otel-"
 
 // promScrapeConfigsKeys are possible keys to get the config of a prometheus receiver scrapings internal collector metrics.
 var promScrapeConfigsKeys = []string{
@@ -40,6 +34,33 @@ var promScrapeConfigsKeys = []string{
 	"receivers::prometheus/agent::config::scrape_configs",
 	"receivers::prometheus/k8s_cluster_receiver::config::scrape_configs",
 	"receivers::prometheus/collector::config::scrape_configs",
+}
+
+// The metric_relabel_configs prometheus config section to replace.
+var metricRelabelConfigsToReplace = []any{
+	map[string]any{
+		"source_labels": []any{model.MetricNameLabel},
+		"regex":         ".*grpc_io.*",
+		"action":        string(relabel.Drop),
+	},
+}
+
+var metricRelabelConfigsToSet = []any{
+	map[string]any{
+		"source_labels": []any{model.MetricNameLabel},
+		"regex":         "otelcol_rpc_.*",
+		"action":        string(relabel.Drop),
+	},
+	map[string]any{
+		"source_labels": []any{model.MetricNameLabel},
+		"regex":         "otelcol_http_.*",
+		"action":        string(relabel.Drop),
+	},
+	map[string]any{
+		"source_labels": []any{model.MetricNameLabel},
+		"regex":         "otelcol_processor_batch_.*",
+		"action":        string(relabel.Drop),
+	},
 }
 
 // DisableExcessiveInternalMetrics is a MapConverter that updates config of the prometheus receiver scraping internal
@@ -77,41 +98,17 @@ func (DisableExcessiveInternalMetrics) Convert(_ context.Context, cfgMap *confma
 
 			metricRelabelConfigs := sc["metric_relabel_configs"]
 			if metricRelabelConfigs == nil {
-				metricRelabelConfigs = make([]any, 0, 3)
+				continue // Keep unset metric_relabel_configs as is.
 			}
 			mrcs, ok := metricRelabelConfigs.([]any)
 			if !ok {
 				continue // Ignore invalid metric_relabel_configs, as they will be caught by the config validation.
 			}
 
-			foundRegexPatterns := make(map[string]bool)
-			for _, metricRelabelConfig := range mrcs {
-				mrc, ok := metricRelabelConfig.(map[string]any)
-				if !ok {
-					continue // Ignore invalid metric_relabel_config, as they will be caught by the config validation.
-				}
-				sourceLabels, ok := mrc["source_labels"].([]any)
-				if !ok || len(sourceLabels) != 1 || sourceLabels[0] != model.MetricNameLabel {
-					continue
-				}
-				regex, ok := mrc["regex"].(string)
-				if !ok {
-					continue
-				}
-				foundRegexPatterns[regex] = true
+			// Replace the metric_relabel_configs only if it's set to the old default value.
+			if len(mrcs) == 1 && reflect.DeepEqual(mrcs[0], metricRelabelConfigsToReplace[0]) {
+				sc["metric_relabel_configs"] = metricRelabelConfigsToSet
 			}
-
-			for _, pattern := range []string{rpcMetricPattern, httpMetricPattern, batchMetricPattern} {
-				if !foundRegexPatterns[pattern] {
-					mrcs = append(mrcs, map[string]any{
-						"source_labels": []any{model.MetricNameLabel},
-						"regex":         pattern,
-						"action":        string(relabel.Drop),
-					})
-				}
-			}
-
-			sc["metric_relabel_configs"] = mrcs
 		}
 
 		// Update the config with the new scrape_configs.

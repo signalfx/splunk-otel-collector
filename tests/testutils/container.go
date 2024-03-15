@@ -64,6 +64,8 @@ type Container struct {
 	Privileged           bool
 }
 
+type LogProductionOption func(*Container)
+
 var _ testcontainers.Container = (*Container)(nil)
 
 // To be used as a builder whose Build() method provides the actual instance capable of being started, and that
@@ -367,7 +369,7 @@ func (container *Container) FollowOutput(consumer testcontainers.LogConsumer) {
 	}
 }
 
-func (container *Container) StartLogProducer(ctx context.Context) error {
+func (container *Container) StartLogProducer(ctx context.Context, _ ...testcontainers.LogProductionOption) error {
 	if err := container.assertStarted("StartLogProducer"); err != nil {
 		return err
 	}
@@ -507,5 +509,9 @@ func (container *Container) createNetworksIfNecessary(req testcontainers.Generic
 			}
 		}
 	}
+	return nil
+}
+
+func (container *Container) GetLogProductionErrorChannel() <-chan error {
 	return nil
 }

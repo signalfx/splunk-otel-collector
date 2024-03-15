@@ -1,6 +1,6 @@
 resource_metrics:
   - attributes:
-      service.instance.id: localhost:8000
+      service.instance.id: localhost:8001
       service.name: myjob
     scope_metrics:
       - instrumentation_scope:

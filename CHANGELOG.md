@@ -6,6 +6,13 @@
 
 - (Splunk) `spanmetricsprocessor`: Remove `spanmetricsprocessor`. Please use `spanmetrics` connector instead.
 
+### 🧰 Bug fixes 🧰
+
+- (Splunk) `telemetry`: Simplify the config converter setting the `metric_relabel_configs` in the Prometheus receiver 
+  to remove the excessive internal metrics. Now, it only overrides the old default rule excluding `.*grpc_io.*` metrics.
+  Any other custom setting is left untouched. Otherwise, customizing the `metric_relabel_configs` is very difficult.
+  ([#4482](https://github.com/signalfx/splunk-otel-collector/pull/4482))
+  
 ## v0.96.1
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.96.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.96.0) and the [opentelemetry-collector-contrib v0.96.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.96.0) releases where appropriate.

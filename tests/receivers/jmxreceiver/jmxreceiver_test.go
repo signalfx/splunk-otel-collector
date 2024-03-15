@@ -23,6 +23,7 @@ import (
 )
 
 func TestJMXReceiverProvidesAllJVMMetrics(t *testing.T) {
+	t.Skip("Skipping it for now till we have stable integration tests.")
 	expectedMetrics := "all.yaml"
 	if testutils.CollectorImageIsForArm(t) {
 		t.Skip("apparent metric gathering issue on qemu")

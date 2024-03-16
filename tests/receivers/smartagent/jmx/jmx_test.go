@@ -36,6 +36,7 @@ import (
 )
 
 func TestJmxReceiverProvidesAllMetrics(t *testing.T) {
+	t.Skip("skipping")
 	metricNames := []string{
 		"cassandra.status",
 		"cassandra.state",

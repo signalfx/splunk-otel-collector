@@ -89,7 +89,7 @@ func TestCollectdKafkaReceiversAllConsumerMetrics(t *testing.T) {
 		"jmx_memory.used",
 		"total_time_in_ms.collection_time",
 	}
-	checkMetricsPresence(t, metricNames, "all_producer_metrics_config.yaml")
+	checkMetricsPresence(t, metricNames, "all_consumer_metrics_config.yaml")
 }
 
 func TestCollectdKafkaReceiversAllProducerMetrics(t *testing.T) {

@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+
+
+### 💡 Enhancements 💡
+
+- (Splunk) 'memory_ballast` has been removed. If GOMEMLIMIT env var is not used a 90% of total memory limit is set by default. 
+
 ### 🛑 Breaking changes 🛑
 
 - (Splunk) `spanmetricsprocessor`: Remove `spanmetricsprocessor`. Please use `spanmetrics` connector instead.

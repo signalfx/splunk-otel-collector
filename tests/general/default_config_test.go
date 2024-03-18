@@ -369,7 +369,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 					"zipkin": map[string]any{"endpoint": fmt.Sprintf("%s:9411", ip)}},
 				"service": map[string]any{
 					"telemetry":  map[string]any{"metrics": map[string]any{"address": fmt.Sprintf("%s:8888", ip)}},
-					"extensions": []any{"health_check", "http_forwarder", "zpages", "memory_ballast", "smartagent"},
+					"extensions": []any{"health_check", "http_forwarder", "zpages", "smartagent"},
 					"pipelines": map[string]any{
 						"logs": map[string]any{
 							"exporters":  []any{"splunk_hec", "splunk_hec/profiling"},

@@ -16,8 +16,6 @@ receivers:
             - targets: ['127.0.0.1:8888']
 
 extensions:
-  memory_ballast:
-    size_mib: ${SPLUNK_BALLAST_SIZE_MIB}
 
 processors:
   memory_limiter:
@@ -31,7 +29,7 @@ exporters:
     verbosity: normal
 
 service:
-  extensions: [memory_ballast]
+  extensions:
   pipelines:
     metrics:
       receivers: [otlp, prometheus]

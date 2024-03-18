@@ -357,7 +357,7 @@ func TestSetSoftMemLimitWithoutGoMemLimitEnvVar(t *testing.T) {
 	settings, err = New([]string{})
 	require.NoError(t, err)
 	require.NotNil(t, settings)
-	require.Equal(t, int64(482344960), debug.SetMemoryLimit(100))
+	require.Equal(t, int64(482344960), debug.SetMemoryLimit(-1))
 
 }
 

@@ -1,13 +1,56 @@
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-   <Product Id="*" UpgradeCode="fde3e4d9-9ca5-4c82-be7b-81445ab5b605" Name="Splunk OpenTelemetry Collector" Version="$(var.Version)" Manufacturer="Splunk, Inc." Language="1033">
+   <Product Id="24E519F6-7F01-43DB-9E72-3B8AD8F065F4" UpgradeCode="fde3e4d9-9ca5-4c82-be7b-81445ab5b605" Name="Splunk OpenTelemetry Collector" Version="$(var.Version)" Manufacturer="Splunk, Inc." Language="1033">
       <Package InstallerVersion="200" Compressed="yes" Comments="Windows Installer Package" InstallPrivileges="elevated" InstallScope="perMachine" />
       <Media Id="1" Cabinet="product.cab" EmbedCab="yes"/>
-      <Icon Id="ProductIcon" SourceFile="./internal/buildscripts/packaging/msi/splunk.ico"/>
+      <Icon Id="ProductIcon" SourceFile="$(sys.SOURCEFILEDIR)/splunk.ico"/>
       <Property Id="ARPPRODUCTICON" Value="ProductIcon"/>
       <Property Id="ARPHELPLINK" Value="https://splunk.com/"/>
       <Property Id="ARPURLINFOABOUT" Value="https://splunk.com/"/>
       <Property Id="ARPNOREPAIR" Value="1"/>
       <Property Id="ARPNOMODIFY" Value="1"/>
+
+      <!-- Load the Splunk custom actions -->
+      <Binary Id="SplunkCustomActionsDll" SourceFile="$(sys.SOURCEFILEDIR)/SplunkCustomActions/bin/Release/SplunkCustomActions.CA.dll" />
+      <CustomAction Id="CheckLaunchConditions"  DllEntry="CheckLaunchConditions"  BinaryKey="SplunkCustomActionsDll" Execute="immediate" />
+      <CustomAction Id="SetAutomaticProperties" DllEntry="SetAutomaticProperties" BinaryKey="SplunkCustomActionsDll" Execute="immediate" />
+
+      <!-- SPLUNK setup control properties -->
+      <Property Id="SPLUNK_SETUP_COLLECTOR_MODE" Value="agent" Secure="yes" />
+
+      <!-- SPLUNK token properties -->
+      <Property Id="SPLUNK_ACCESS_TOKEN" Secure="yes" />
+
+      <Property Id="SPLUNK_HEC_TOKEN" Secure="yes" />
+      <CustomAction Id="Set_SPLUNK_HEC_TOKEN" Property="SPLUNK_HEC_TOKEN" Value="[SPLUNK_ACCESS_TOKEN]"/>
+
+      <!-- SPLUNK_*_URL properties required to start the collector -->
+      <Property Id="SPLUNK_REALM" Value="us0" />
+
+      <Property Id="SPLUNK_CONFIG"     Secure="yes" />
+      <Property Id="SPLUNK_API_URL"    Secure="yes" />
+      <Property Id="SPLUNK_INGEST_URL" Secure="yes" />
+      <Property Id="SPLUNK_HEC_URL"    Secure="yes" />
+      <Property Id="SPLUNK_TRACE_URL"  Secure="yes" />
+      <Property Id="SPLUNK_BUNDLE_DIR" Secure="yes" />
+
+      <CustomAction Id="Set_SPLUNK_CONFIG"     Property="SPLUNK_CONFIG"     Value="[CommonAppDataFolder]Splunk\OpenTelemetry Collector\[SPLUNK_SETUP_COLLECTOR_MODE]_config.yaml" />
+      <CustomAction Id="Set_SPLUNK_API_URL"    Property="SPLUNK_API_URL"    Value="https://api.[SPLUNK_REALM].signalfx.com"/>
+      <CustomAction Id="Set_SPLUNK_INGEST_URL" Property="SPLUNK_INGEST_URL" Value="https://ingest.[SPLUNK_REALM].signalfx.com"/>
+      <CustomAction Id="Set_SPLUNK_HEC_URL"    Property="SPLUNK_HEC_URL"    Value="[SPLUNK_INGEST_URL]/v1/log"/>
+      <CustomAction Id="Set_SPLUNK_TRACE_URL"  Property="SPLUNK_TRACE_URL"  Value="[SPLUNK_INGEST_URL]/v2/trace"/>
+      <CustomAction Id="Set_SPLUNK_BUNDLE_DIR" Property="SPLUNK_BUNDLE_DIR" Value="[INSTALLDIR]\OpenTelemetry Collector\agent-bundle" />
+
+      <!-- Condition Message="The SPLUNK_ACCESS_TOKEN property is required.">SPLUNK_ACCESS_TOKEN OR Installed</Condition -->
+      <InstallExecuteSequence>
+         <Custom Action="CheckLaunchConditions" After="LaunchConditions" />
+         <Custom Action="Set_SPLUNK_HEC_TOKEN"  After="LaunchConditions">NOT SPLUNK_HEC_TOKEN</Custom>
+         <Custom Action="Set_SPLUNK_CONFIG"     After="LaunchConditions">NOT SPLUNK_CONFIG</Custom>
+         <Custom Action="Set_SPLUNK_API_URL"    After="LaunchConditions">NOT SPLUNK_API_URL</Custom>
+         <Custom Action="Set_SPLUNK_INGEST_URL" After="LaunchConditions">NOT SPLUNK_INGEST_URL</Custom>
+         <Custom Action="Set_SPLUNK_HEC_URL"    After="Set_SPLUNK_INGEST_URL">NOT SPLUNK_HEC_URL</Custom>
+         <Custom Action="Set_SPLUNK_TRACE_URL"  After="Set_SPLUNK_INGEST_URL">NOT SPLUNK_TRACE_URL</Custom>
+         <Custom Action="Set_SPLUNK_BUNDLE_DIR" After="Set_SPLUNK_HEC_URL">NOT SPLUNK_BUNDLE_DIR</Custom>
+      </InstallExecuteSequence>
 
       <MajorUpgrade DowngradeErrorMessage="A later version of the Splunk OpenTelemetry Collector is already installed. Setup will now exit."/>
 
@@ -40,8 +83,11 @@
                      </RegistryKey>
                      <RegistryKey Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\splunk-otel-collector">
                         <RegistryValue Type="multiString" Name="Environment">
-                           <MultiStringValue>SPLUNK_CONFIG=[CommonAppDataFolder]Splunk\OpenTelemetry Collector\agent_config.yaml</MultiStringValue>
+                           <MultiStringValue>SPLUNK_CONFIG=</MultiStringValue>
                            <MultiStringValue>SPLUNK_API_URL=[SPLUNK_API_URL]</MultiStringValue>
+                           <MultiStringValue>SPLUNK_INGEST_URL=[SPLUNK_INGEST_URL]</MultiStringValue>
+                           <MultiStringValue>SPLUNK_HEC_URL=[SPLUNK_HEC_URL]</MultiStringValue>
+                           <MultiStringValue>SPLUNK_TRACE_URL=[SPLUNK_TRACE_URL]</MultiStringValue>
                         </RegistryValue>
                      </RegistryKey>
                   </Component>
@@ -74,17 +120,9 @@
       </Property>
 
       <!-- Copy the default agent config file to ProgramData if it does not already exist -->
-      <CustomAction Id="CopyConfig" ExeCommand="xcopy /y &quot;[INSTALLDIR]agent_config.yaml&quot; &quot;[CommonAppDataFolder]Splunk\OpenTelemetry Collector\agent_config.yaml*&quot;" Directory="INSTALLDIR" Impersonate="no" Execute="deferred" Return="check" />
+      <CustomAction Id="CopyConfig" ExeCommand="xcopy /y &quot;[INSTALLDIR]*_config.yaml&quot; &quot;[CommonAppDataFolder]Splunk\OpenTelemetry Collector\&quot;" Directory="INSTALLDIR" Impersonate="no" Execute="deferred" Return="check" />
       <InstallExecuteSequence>
          <Custom Action="CopyConfig" After="InstallFiles">NOT CONFIG_FILE_EXISTS AND NOT Installed</Custom>
-      </InstallExecuteSequence>
-
-      <Property Id="SPLUNK_REALM" Value="us0" />
-
-      <Property Id="SPLUNK_API_URL" Secure="yes" />
-      <CustomAction Id="SetSPLUNK_API_URL" Property="SPLUNK_API_URL" Value="https://api.[SPLUNK_REALM].splunk.com"/>
-      <InstallExecuteSequence>
-         <Custom Action="SetSPLUNK_API_URL" After="AppSearch">NOT SPLUNK_API_URL</Custom>
       </InstallExecuteSequence>
 
    </Product>

@@ -20,14 +20,15 @@ set -euo pipefail
 PROJECT_DIR=${PROJECT_DIR:-/project}
 WORK_DIR=${WORK_DIR:-/work}
 
-WXS_PATH="${PROJECT_DIR}/internal/buildscripts/packaging/msi/splunk-otel-collector.wxs"
+MSI_SRC_DIR="${PROJECT_DIR}/internal/buildscripts/packaging/msi"
+WXS_PATH="${MSI_SRC_DIR}/splunk-otel-collector.wxs"
 OTELCOL="${PROJECT_DIR}/bin/otelcol_windows_amd64.exe"
 AGENT_CONFIG="${PROJECT_DIR}/cmd/otelcol/config/collector/agent_config.yaml"
 GATEWAY_CONFIG="${PROJECT_DIR}/cmd/otelcol/config/collector/gateway_config.yaml"
 FLUENTD_CONFIG="${PROJECT_DIR}/internal/buildscripts/packaging/fpm/etc/otel/collector/fluentd/fluent.conf"
-FLUENTD_CONFD="${PROJECT_DIR}/internal/buildscripts/packaging/msi/fluentd/conf.d"
-SUPPORT_BUNDLE_SCRIPT="${PROJECT_DIR}/internal/buildscripts/packaging/msi/splunk-support-bundle.ps1"
-SPLUNK_ICON="${PROJECT_DIR}/internal/buildscripts/packaging/msi/splunk.ico"
+FLUENTD_CONFD="${MSI_SRC_DIR}/fluentd/conf.d"
+SUPPORT_BUNDLE_SCRIPT="${MSI_SRC_DIR}/splunk-support-bundle.ps1"
+SPLUNK_ICON="${MSI_SRC_DIR}/splunk.ico"
 OUTPUT_DIR="${PROJECT_DIR}/dist"
 JMX_METRIC_GATHERER_RELEASE="1.29.0"
 
@@ -40,25 +41,25 @@ Description:
     By default, the MSI is saved as '${OUTPUT_DIR}/splunk-otel-collector-VERSION-amd64.msi'.
 
 OPTIONS:
-    --otelcol PATH:                   Absolute path to the otelcol exe.
+    --otelcol PATH                    Absolute path to the otelcol exe.
                                       Defaults to '$OTELCOL'.
-    --agent-config PATH:              Absolute path to the agent config.
+    --agent-config PATH               Absolute path to the agent config.
                                       Defaults to '$AGENT_CONFIG'.
-    --gateway-config PATH:            Absolute path to the gateway config.
+    --gateway-config PATH             Absolute path to the gateway config.
                                       Defaults to '$GATEWAY_CONFIG'.
-    --fluentd PATH:                   Absolute path to the fluentd config.
+    --fluentd PATH                    Absolute path to the fluentd config.
                                       Defaults to '$FLUENTD_CONFIG'.
-    --fluentd-confd PATH:             Absolute path to the conf.d.
+    --fluentd-confd PATH              Absolute path to the conf.d.
                                       Defaults to '$FLUENTD_CONFD'.
-    --support-bundle PATH:            Absolute path to the support bundle script.
+    --support-bundle PATH             Absolute path to the support bundle script.
                                       Defaults to '$SUPPORT_BUNDLE_SCRIPT'.
-    --jmx-metric-gatherer VERSION:    The released version of the JMX Metric Gatherer JAR to include (will be downloaded).
+    --jmx-metric-gatherer VERSION     The released version of the JMX Metric Gatherer JAR to include (will be downloaded).
                                       Defaults to '$JMX_METRIC_GATHERER_RELEASE'.
-    --splunk-icon PATH:               Absolute path to the splunk.ico.
+    --splunk-icon PATH                Absolute path to the splunk.ico.
                                       Defaults to '$SPLUNK_ICON'.
-    --output DIR:                     Directory to save the MSI.
+    --output DIR                      Directory to save the MSI.
                                       Defaults to '$OUTPUT_DIR'.
-
+    --skip-build-dir-removal          Skip removing the build directory before building the MSI.
 EOH
 }
 
@@ -73,6 +74,7 @@ parse_args_and_build() {
     local splunk_icon="$SPLUNK_ICON"
     local output="$OUTPUT_DIR"
     local version=
+    local skip_build_dir_removal=
 
     while [ -n "${1-}" ]; do
         case $1 in
@@ -112,6 +114,9 @@ parse_args_and_build() {
                 output="$2"
                 shift 1
                 ;;
+            --skip-build-dir-removal)
+                skip_build_dir_removal=1
+                ;;
             -*)
                 echo "Unknown option '$1'"
                 echo
@@ -141,8 +146,10 @@ parse_args_and_build() {
     files_dir="${build_dir}/msi"
     msi_name="splunk-otel-collector-${version}-amd64.msi"
 
-    if [ -d "$build_dir" ]; then
+    if [ -z "$skip_build_dir_removal" && -d "$build_dir" ]; then
         rm -rf "$build_dir"
+    else
+        echo "Skipping build directory removal"
     fi
 
     mkdir -p "${files_dir}/fluentd/conf.d"
@@ -152,15 +159,16 @@ parse_args_and_build() {
     cp "$fluentd_config" "${files_dir}/fluentd/td-agent.conf"
     cp "${fluentd_confd}"/*.conf "${files_dir}/fluentd/conf.d/"
 
-    unzip -d "$files_dir" "${OUTPUT_DIR}/agent-bundle_windows_amd64.zip"
-    rm -f "${OUTPUT_DIR}/agent-bundle_windows_amd64.zip"
+    if [ -z "$skip_build_dir_removal" ]; then
+        unzip -d "$files_dir" "${OUTPUT_DIR}/agent-bundle_windows_amd64.zip"
+        rm -f "${OUTPUT_DIR}/agent-bundle_windows_amd64.zip"
 
-    download_jmx_metric_gatherer "$jmx_metric_gatherer_release" "$build_dir"
+        download_jmx_metric_gatherer "$jmx_metric_gatherer_release" "$build_dir"
+    else
+        echo "Skipping unzipping agent bundle and downloading JMX Metric Gatherer"
+    fi
+
     jmx_metrics_jar="${build_dir}/opentelemetry-java-contrib-jmx-metrics.jar"
-
-    # kludge to satisfy relative path in splunk-otel-collector.wxs
-    mkdir -p ${WORK_DIR}/internal/buildscripts/packaging/msi
-    cp "${splunk_icon}" "${WORK_DIR}/internal/buildscripts/packaging/msi/splunk.ico"
 
     cd ${WORK_DIR}
     configFilesWsx="${build_dir}/configfiles.wsx"
@@ -171,6 +179,13 @@ parse_args_and_build() {
 
     collectorWixObj="${build_dir}/splunk-otel-collector.wixobj"
     candle -arch x64 -out "${collectorWixObj}" -dVersion="$version" -dOtelcol="$otelcol" -dJmxMetricsJar="$jmx_metrics_jar" "${WXS_PATH}"
+
+    customActionsDll="${MSI_SRC_DIR}/SplunkCustomActions/bin/Release/SplunkCustomActions.CA.dll"
+    MakeSfxCA "${customActionsDll}" \
+        "$WIX\SDK\x64\sfxca.dll" \
+        "${MSI_SRC_DIR}/SplunkCustomActions/bin/Release/SplunkCustomActions.dll" \
+        "${MSI_SRC_DIR}/SplunkCustomActions/bin/Release/Microsoft.Deployment.WindowsInstaller.dll" \
+        "${MSI_SRC_DIR}/SplunkCustomActions/CustomAction.config"
 
     msi="${build_dir}/${msi_name}"
     light -ext WixUtilExtension.dll -sval -out "${msi}" -b "${files_dir}" "${collectorWixObj}" "${configFilesWixObj}"

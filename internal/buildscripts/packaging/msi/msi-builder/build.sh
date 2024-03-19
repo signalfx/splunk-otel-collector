@@ -162,33 +162,30 @@ parse_args_and_build() {
     if [ -z "$skip_build_dir_removal" ]; then
         unzip -d "$files_dir" "${OUTPUT_DIR}/agent-bundle_windows_amd64.zip"
         rm -f "${OUTPUT_DIR}/agent-bundle_windows_amd64.zip"
-
-        download_jmx_metric_gatherer "$jmx_metric_gatherer_release" "$build_dir"
     else
-        echo "Skipping unzipping agent bundle and downloading JMX Metric Gatherer"
+        echo "Skipping unzipping agent bundle"
     fi
 
     jmx_metrics_jar="${build_dir}/opentelemetry-java-contrib-jmx-metrics.jar"
+    if [ -f "${jmx_metrics_jar}" ]; then
+        echo "JMX Metric Gatherer already downloaded"
+    else
+        download_jmx_metric_gatherer "$jmx_metric_gatherer_release" "$build_dir"
+    fi
 
     cd ${WORK_DIR}
+
     configFilesWsx="${build_dir}/configfiles.wsx"
-    heat dir "$files_dir" -srd -sreg -gg -template fragment -cg ConfigFiles -dr INSTALLDIR -out "${configFilesWsx}"
+    heat dir "$files_dir" -srd -sreg -gg -template fragment -cg ConfigFiles -dr INSTALLDIR -out "${configFilesWsx//\//\\}"
 
     configFilesWixObj="${build_dir}/configfiles.wixobj"
-    candle -arch x64 -out "${configFilesWixObj}" "${configFilesWsx}"
+    candle -arch x64 -out "${configFilesWixObj//\//\\}" "${configFilesWsx//\//\\}"
 
     collectorWixObj="${build_dir}/splunk-otel-collector.wixobj"
-    candle -arch x64 -out "${collectorWixObj}" -dVersion="$version" -dOtelcol="$otelcol" -dJmxMetricsJar="$jmx_metrics_jar" "${WXS_PATH}"
-
-    customActionsDll="${MSI_SRC_DIR}/SplunkCustomActions/bin/Release/SplunkCustomActions.CA.dll"
-    MakeSfxCA "${customActionsDll}" \
-        "$WIX\SDK\x64\sfxca.dll" \
-        "${MSI_SRC_DIR}/SplunkCustomActions/bin/Release/SplunkCustomActions.dll" \
-        "${MSI_SRC_DIR}/SplunkCustomActions/bin/Release/Microsoft.Deployment.WindowsInstaller.dll" \
-        "${MSI_SRC_DIR}/SplunkCustomActions/CustomAction.config"
+    candle -arch x64 -out "${collectorWixObj//\//\\}" -dVersion="$version" -dOtelcol="$otelcol" -dJmxMetricsJar="$jmx_metrics_jar" "${WXS_PATH//\//\\}"
 
     msi="${build_dir}/${msi_name}"
-    light -ext WixUtilExtension.dll -sval -out "${msi}" -b "${files_dir}" "${collectorWixObj}" "${configFilesWixObj}"
+    light -ext WixUtilExtension.dll -sval -out "${msi//\//\\}" -b "${files_dir//\//\\}" "${collectorWixObj//\//\\}" "${configFilesWixObj//\//\\}"
 
     mkdir -p $output
     cp "${msi}" "${output}/${msi_name}"

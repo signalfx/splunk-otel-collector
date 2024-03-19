@@ -84,9 +84,18 @@ function bundle (
     zip_file -src "$buildDir\$BUNDLE_DIR" -dest "$outputDir\$BUNDLE_NAME"
 }
 
-if ($REMAINING.length -gt 0) {
-    $sb = [scriptblock]::create("$Target $REMAINING")
-    Invoke-Command -ScriptBlock $sb
-} else {
-    &$Target
+try {
+    $OriginalPref = $ProgressPreference
+    $ProgressPreference = "SilentlyContinue"
+    if ($REMAINING.length -gt 0) {
+        $sb = [scriptblock]::create("$Target $REMAINING")
+        Invoke-Command -ScriptBlock $sb
+    } else {
+        &$Target
+    }
 }
+finally {
+    Set-PSDebug -Trace 0
+    $ProgressPreference = $OriginalPref
+}
+

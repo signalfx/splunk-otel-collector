@@ -210,12 +210,16 @@ endif
 	docker run --rm -v $(CURDIR):/repo -e PACKAGE=$* -e VERSION=$(VERSION) -e ARCH=$(ARCH) -e JMX_METRIC_GATHERER_RELEASE=$(JMX_METRIC_GATHERER_RELEASE) otelcol-fpm
 
 .PHONY: msi
-msi:
+msi: msi-custom-actions
 ifneq ($(SKIP_COMPILE), true)
 	$(MAKE) binaries-windows_amd64
 endif
 	test -f ./dist/agent-bundle_windows_amd64.zip || (echo "./dist/agent-bundle_windows_amd64.zip not found! Either download a pre-built bundle to ./dist/, or run './internal/signalfx-agent/bundle/scripts/windows/make.ps1 bundle' on a windows host and copy it to ./dist/." && exit 1)
 	./internal/buildscripts/packaging/msi/build.sh "$(VERSION)" "$(DOCKER_REPO)" "$(JMX_METRIC_GATHERER_RELEASE)"
+
+.PHONY: msi-custom-actions
+msi-custom-actions:
+	dotnet publish ./internal/buildscripts/packaging/msi/SplunkCustomActions/SplunkCustomActions.csproj -c Release -o ./internal/buildscripts/packaging/msi/SplunkCustomActions/bin/Release
 
 .PHONY: update-examples
 update-examples:

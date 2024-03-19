@@ -6,8 +6,6 @@ extensions:
 receivers:
   signalfx:
     endpoint: 0.0.0.0:9943
-  sapm:
-    endpoint: 0.0.0.0:7276
   otlp:
     protocols:
       grpc:
@@ -29,5 +27,5 @@ service:
       receivers: [signalfx]
       exporters: [otlp]
     traces:
-      receivers: [sapm, otlp]
+      receivers: [otlp]
       exporters: [otlp]

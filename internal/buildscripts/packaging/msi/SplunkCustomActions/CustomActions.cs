@@ -32,15 +32,6 @@ public class CustomActions
             return ActionResult.Success;
         }
 
-        // If SPLUNK_ACCESS_TOKEN is not set, fail the check.
-        var splunkToken = session["SPLUNK_ACCESS_TOKEN"];
-        session.Log("Info: SPLUNK_ACCESS_TOKEN=" + splunkToken);
-        if (string.IsNullOrWhiteSpace(splunkToken))
-        {
-            LogAndShowError(session, "SPLUNK_ACCESS_TOKEN must be specified.");
-            return ActionResult.Failure;
-        }
-
         // If SPLUNK_SETUP_COLLECTOR_MODE is not one of the expected values, fail the check.
         var collectorMode = session["SPLUNK_SETUP_COLLECTOR_MODE"] ?? string.Empty;
         session.Log("Info: SPLUNK_SETUP_COLLECTOR_MODE=" + collectorMode);
@@ -48,29 +39,6 @@ public class CustomActions
         {
             LogAndShowError(session, "SPLUNK_SETUP_COLLECTOR_MODE must be either 'agent' or 'gateway'.");
             return ActionResult.Failure;
-        }
-
-        return ActionResult.Success;
-    }
-
-    /// <summary>
-    /// Set the values of "automatic" properties, i.e. properties that require some logic to be set.
-    /// </summary>
-    /// <param name="session">Carries information about the current installation session.</param>
-    /// <returns>An action result that indicates success or failure of the operation.</returns>
-    [CustomAction]
-    public static ActionResult SetAutomaticProperties(Session session)
-    {
-        var listenInterface = session["SPLUNK_SETUP_LISTEN_INTERFACE"];
-        if (string.IsNullOrWhiteSpace(listenInterface))
-        {
-            var collectorMode = session["SPLUNK_SETUP_COLLECTOR_MODE"];
-            session["SPLUNK_SETUP_LISTEN_INTERFACE"] = collectorMode switch {
-                "agent" => "127.0.0.1",
-                "gateway" => "0.0.0.0",
-                // It is an internal error if it doesn't match any of the expected values.
-                _ => throw new InvalidOperationException("SPLUNK_SETUP_COLLECTOR_MODE must be either 'agent' or 'gateway'.")
-            };
         }
 
         return ActionResult.Success;
@@ -91,8 +59,3 @@ public class CustomActions
         }
     }
 }
-
-/*
-dotnet publish SplunkCustomActions.csproj  --use-current-runtime -c Release -o bin\
-MakeSfxCA.exe $PWD\bin\SplunkCustomActions.CA.dll 'C:\Program Files (x86)\WiX Toolset v3.14\SDK\x64\sfxca.dll' $PWD\bin\SplunkCustomActions.dll $PWD\bin\Microsoft.Deployment.WindowsInstaller.dll $PWD\CustomAction.config
-*/

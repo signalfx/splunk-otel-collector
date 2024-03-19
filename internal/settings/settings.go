@@ -214,6 +214,7 @@ func (s *Settings) ConfMapConverters() []confmap.Converter {
 		confMapConverters = append(
 			confMapConverters,
 			configconverter.RemoveBallastKey{},
+			configconverter.RemoveMemoryBallastKey{},
 			configconverter.MoveOTLPInsecureKey{},
 			configconverter.MoveHecTLS{},
 			configconverter.RenameK8sTagger{},

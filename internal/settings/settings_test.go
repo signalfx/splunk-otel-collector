@@ -165,6 +165,7 @@ func TestNewSettingsConvertConfig(t *testing.T) {
 		configconverter.NewOverwritePropertiesConverter(settings.setProperties),
 		configconverter.Discovery{},
 		configconverter.RemoveBallastKey{},
+		configconverter.RemoveMemoryBallastKey{},
 		configconverter.MoveOTLPInsecureKey{},
 		configconverter.MoveHecTLS{},
 		configconverter.RenameK8sTagger{},

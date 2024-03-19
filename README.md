@@ -216,11 +216,8 @@ as a reference.
   Remove `ballast_size_mib` parameter from `memory_limiter` and make sure that it's added to
   `memory_ballast` extension as `size_mib` parameter instead:
 
-  ```yaml
-  extensions:
-    memory_ballast:
-      size_mib: ${SPLUNK_BALLAST_SIZE_MIB}
-  ```
+-  `memory_ballast` extension has been removed in favor of `GOMEMLIMIT` env var. If `GOMEMLIMIT` is not set, collector will enforce a soft limit automatically.
+
 
 ### Using Upstream OpenTelemetry Collector
 

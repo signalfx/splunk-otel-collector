@@ -76,8 +76,8 @@ can be modified as needed. Possible configuration options can be found in the
 
 Based on the specified installation parameters, the following environment
 variables will be saved to the
-`HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment` registry
-key and passed to the Collector service:
+`HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector` registry
+key and set on the `Environment` entry:
 
 - `SPLUNK_ACCESS_TOKEN`: The Splunk access token to authenticate requests
 - `SPLUNK_API_URL`: The Splunk API URL, e.g. `https://api.us0.signalfx.com`
@@ -90,13 +90,7 @@ key and passed to the Collector service:
 - `SPLUNK_REALM`: The Splunk realm to send the data to, e.g. `us0`
 - `SPLUNK_TRACE_URL`: The Splunk trace endpoint URL, e.g. `https://ingest.us0.signalfx.com/v2/trace`
 
-To modify these values, run `regdit` and browse to the path, or run the
-following PowerShell command (replace `ENV_VAR` and `VALUE` for the desired
-environment variable and value):
-
-```powershell
-Set-ItemProperty -path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" -name "ENV_VAR" -value "VALUE"
-```
+To modify these values, run `regedit` and browse to the path.
 
 To add or remove command line options for the `splunk-otel-collector` service,
 run `regedit` and modify the `ImagePath` value in the

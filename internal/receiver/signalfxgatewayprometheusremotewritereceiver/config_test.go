@@ -21,7 +21,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
-	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
 
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/signalfxgatewayprometheusremotewritereceiver/internal/metadata"
@@ -31,7 +30,7 @@ func TestValidateConfigAndDefaults(t *testing.T) {
 	// Remember to change the README.md if any of these change in config
 	cfg := createDefaultConfig().(*Config)
 	assert.NoError(t, cfg.Validate())
-	assert.Equal(t, "localhost:19291", cfg.Endpoint)
+	assert.Equal(t, "localhost:19291", cfg.ServerConfig.Endpoint)
 	assert.Equal(t, "/metrics", cfg.ListenPath)
 	assert.Equal(t, 100, cfg.BufferSize)
 }
@@ -48,14 +47,14 @@ func TestParseConfig(t *testing.T) {
 	rawCfgs := make(map[string]map[component.ID]map[string]any)
 	conf, err := confmaptest.LoadConf("internal/testdata/otel-collector-config.yaml")
 	require.NoError(t, err)
-	require.NoError(t, conf.Unmarshal(&rawCfgs, confmap.WithErrorUnused()))
+	require.NoError(t, conf.Unmarshal(&rawCfgs))
 	require.NotEmpty(t, rawCfgs)
 
 	config := createDefaultConfig()
 	sub, err := conf.Sub("receivers")
 	require.NoError(t, err)
 	require.NotEmpty(t, sub)
-	sub, err = sub.Sub(metadata.Type)
+	sub, err = sub.Sub(metadata.Type.String())
 	require.NoError(t, err)
 	require.NotEmpty(t, sub)
 	require.NoError(t, component.UnmarshalConfig(sub, config))

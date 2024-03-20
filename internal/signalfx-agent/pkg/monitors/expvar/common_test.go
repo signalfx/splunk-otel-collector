@@ -32,8 +32,8 @@ func TestSnakeCaseSlice(t *testing.T) {
 }
 
 type JoinWordsTest struct {
-	given []string
 	want  string
+	given []string
 }
 
 var JoinWordsTests = []JoinWordsTest{

@@ -45,7 +45,7 @@ func createMetricsReceiver(
 
 func createDefaultConfig() component.Config {
 	return &Config{
-		HTTPServerSettings: confighttp.HTTPServerSettings{
+		ServerConfig: confighttp.ServerConfig{
 			Endpoint: "localhost:19291", // While not IANA registered, convention is 19291 as a common PRW port
 		},
 		ListenPath: "/metrics",

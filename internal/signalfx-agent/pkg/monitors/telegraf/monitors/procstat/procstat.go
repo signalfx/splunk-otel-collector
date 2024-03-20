@@ -78,7 +78,7 @@ func (m *Monitor) Configure(conf *Config) (err error) {
 
 	// Hard code the plugin name because the emitter will parse out the
 	// configured measurement name as plugin and that is confusing.
-	em.AddTag("plugin", strings.Replace(monitorType, "/", "-", -1))
+	em.AddTag("plugin", strings.ReplaceAll(monitorType, "/", "-"))
 
 	// create the accumulator
 	ac := accumulator.NewAccumulator(em)
@@ -99,8 +99,8 @@ func (m *Monitor) Configure(conf *Config) (err error) {
 
 	// gather metrics on the specified interval
 	utils.RunOnInterval(ctx, func() {
-		if err := plugin.Gather(ac); err != nil {
-			m.logger.WithError(err).Errorf("an error occurred while gathering metrics")
+		if err2 := plugin.Gather(ac); err2 != nil {
+			m.logger.WithError(err2).Errorf("an error occurred while gathering metrics")
 		}
 	}, time.Duration(conf.IntervalSeconds)*time.Second)
 

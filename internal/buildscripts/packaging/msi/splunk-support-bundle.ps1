@@ -58,6 +58,23 @@ for ( $i = 0; $i -lt $args.count; $i++ ) {
 }
 
 #######################################
+# Extracts the environment variables configured for the splunk-otel-collector service
+# and sets them in the current PowerShell session. This is useful to directly run the
+# collector from the PowerShell console. This is not required for the support bundle.
+#  - GLOBALS: None
+#  - ARGUMENTS: None
+#  - OUTPUTS: None
+#  - RETURN: None
+#######################################
+function setCurrentEnvironmentForManualRun() {
+    $env_array = Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -Name "Environment"
+    foreach ($entry in $env_array) {
+        $key, $value = $entry.Split("=", 2)
+        [Environment]::SetEnvironmentVariable($key, $value)
+    }
+}
+
+#######################################
 # Creates a unique temporary directory to store the contents of the support
 # bundle. Do not attempt to cleanup to prevent any accidental deletions.
 # This command can only be run once per second or will error out.

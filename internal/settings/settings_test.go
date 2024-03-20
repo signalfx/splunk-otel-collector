@@ -92,25 +92,14 @@ func TestNewSettingsConfMapProviders(t *testing.T) {
 	confMapProviders := settings.ConfMapProviders()
 
 	require.Contains(t, confMapProviders, settings.discovery.PropertyScheme())
-	propertyProvider := confMapProviders[settings.discovery.PropertyScheme()]
 
 	require.Contains(t, confMapProviders, settings.discovery.ConfigDScheme())
-	configdProvider := confMapProviders[settings.discovery.ConfigDScheme()]
 
 	require.Contains(t, confMapProviders, settings.discovery.DiscoveryModeScheme())
-	discoveryModeProvider := confMapProviders[settings.discovery.DiscoveryModeScheme()]
 
 	require.Contains(t, confMapProviders, settings.discovery.PropertiesFileScheme())
-	propertiesFileProvider := confMapProviders[settings.discovery.PropertiesFileScheme()]
 
-	require.Equal(t, map[string]confmap.Provider{
-		envProvider.Scheme():                      envProvider,
-		fileProvider.Scheme():                     fileProvider,
-		settings.discovery.PropertyScheme():       propertyProvider,
-		settings.discovery.ConfigDScheme():        configdProvider,
-		settings.discovery.DiscoveryModeScheme():  discoveryModeProvider,
-		settings.discovery.PropertiesFileScheme(): propertiesFileProvider,
-	}, confMapProviders)
+	require.Len(t, confMapProviders, 6)
 }
 
 func TestNewSettingsNoConvertConfig(t *testing.T) {
@@ -147,7 +136,7 @@ func TestNewSettingsNoConvertConfig(t *testing.T) {
 		configconverter.NewOverwritePropertiesConverter(settings.setProperties),
 		configconverter.Discovery{},
 	}, settings.ConfMapConverters())
-	require.Equal(t, []string{"--feature-gates", "foo", "--feature-gates", "-bar", "--feature-gates", "-telemetry.useOtelForInternalMetrics"}, settings.ColCoreArgs())
+	require.Equal(t, []string{"--feature-gates", "foo", "--feature-gates", "-bar"}, settings.ColCoreArgs())
 }
 
 func TestNewSettingsConvertConfig(t *testing.T) {
@@ -180,8 +169,10 @@ func TestNewSettingsConvertConfig(t *testing.T) {
 		configconverter.RenameK8sTagger{},
 		configconverter.NormalizeGcp{},
 		configconverter.LogLevelToVerbosity{},
+		configconverter.DisableKubeletUtilizationMetrics{},
+		configconverter.DisableExcessiveInternalMetrics{},
 	}, settings.ConfMapConverters())
-	require.Equal(t, []string{"--feature-gates", "foo", "--feature-gates", "-bar", "--feature-gates", "-telemetry.useOtelForInternalMetrics"}, settings.ColCoreArgs())
+	require.Equal(t, []string{"--feature-gates", "foo", "--feature-gates", "-bar"}, settings.ColCoreArgs())
 }
 
 func TestSplunkConfigYamlUtilizedInResolverURIs(t *testing.T) {
@@ -201,6 +192,14 @@ func TestSplunkConfigYamlNotUtilizedInResolverURIsWithConfigEnvVar(t *testing.T)
 	require.NoError(t, err)
 	require.NotNil(t, settings)
 	require.Equal(t, []string{localGatewayConfig}, settings.ResolverURIs())
+}
+
+func TestNewSettingsWithValidate(t *testing.T) {
+	t.Cleanup(setRequiredEnvVars(t))
+	settings, err := New([]string{"validate"})
+	require.NoError(t, err)
+	require.NotNil(t, settings)
+	require.Equal(t, []string{"validate"}, settings.ColCoreArgs())
 }
 
 func TestCheckRuntimeParams_Default(t *testing.T) {
@@ -542,7 +541,6 @@ func TestConfigDirFromArgs(t *testing.T) {
 			require.NotNil(t, settings.configDir.value)
 			require.Equal(t, "/from/args", settings.configDir.String())
 			require.Equal(t, "/from/args", getConfigDir(settings))
-			require.Equal(t, []string{"--feature-gates", "-telemetry.useOtelForInternalMetrics"}, settings.ColCoreArgs())
 		})
 	}
 }

@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 
@@ -271,7 +271,7 @@ func getJSON(client *http.Client, endpoint string) (map[string]interface{}, erro
 		return nil, fmt.Errorf("could not connect to %s : %s ", endpoint, http.StatusText(response.StatusCode))
 	}
 
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		return nil, err
 	}

@@ -31,6 +31,7 @@ var (
 	// If they are desired for !windows BundledFS inclusion (and a default linux conf.d entry), ensure they are included
 	// in Components.Linux. If desired in windows BundledFS, ensure they are included in Components.Windows.
 	receivers = []string{
+		"mysql",
 		"oracledb",
 		"postgresql",
 		"redis",
@@ -60,6 +61,7 @@ var (
 		}(),
 		Windows: func() map[string]struct{} {
 			windows := map[string]struct{}{
+				"mysql":                 {},
 				"oracledb":              {},
 				"postgresql":            {},
 				"redis":                 {},

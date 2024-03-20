@@ -21,6 +21,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/pdata/pmetric"
+
+	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
 )
 
 func TestMetricsToReceiverIDs(t *testing.T) {
@@ -30,15 +32,13 @@ func TestMetricsToReceiverIDs(t *testing.T) {
 		eID   *string
 		name  string
 	}{
-		{name: "happy path", rType: sPtr("a.type"), rName: sPtr("a.name"), eID: sPtr("an.endpoint")},
-		{name: "empty values", rType: sPtr(""), rName: sPtr(""), eID: sPtr("")},
-		{name: "missing values", rType: nil, rName: nil, eID: nil},
-		{name: "empty receiver type", rType: sPtr(""), rName: sPtr("a.name"), eID: sPtr("an.endpoint")},
-		{name: "missing receiver type", rType: nil, rName: sPtr("a.name"), eID: sPtr("an.endpoint")},
-		{name: "empty receiver name", rType: sPtr("a.type"), rName: sPtr(""), eID: sPtr("an.endpoint")},
-		{name: "missing receiver name", rType: sPtr("a.type"), rName: nil, eID: sPtr("an.endpoint")},
-		{name: "empty endpointID", rType: sPtr("a.type"), rName: sPtr("a.name"), eID: sPtr("")},
-		{name: "missing endpointID", rType: sPtr("a.type"), rName: sPtr("a.name"), eID: nil},
+		{name: "happy path", rType: sPtr("a_type"), rName: sPtr("a.name"), eID: sPtr("an.endpoint")},
+		{name: "empty values", rType: sPtr(discovery.NoType.Type().String()), rName: sPtr(""), eID: sPtr("")},
+		{name: "empty receiver type", rType: sPtr(discovery.NoType.Type().String()), rName: sPtr("a.name"), eID: sPtr("an.endpoint")},
+		{name: "empty receiver name", rType: sPtr("a_type"), rName: sPtr(""), eID: sPtr("an.endpoint")},
+		{name: "missing receiver name", rType: sPtr("a_type"), rName: nil, eID: sPtr("an.endpoint")},
+		{name: "empty endpointID", rType: sPtr("a_type"), rName: sPtr("a.name"), eID: sPtr("")},
+		{name: "missing endpointID", rType: sPtr("a_type"), rName: sPtr("a.name"), eID: nil},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			md := pmetric.NewMetrics()
@@ -61,7 +61,9 @@ func TestMetricsToReceiverIDs(t *testing.T) {
 			if tc.rType != nil {
 				expectedRType = *tc.rType
 			}
-			require.Equal(t, component.Type(expectedRType), receiverID.Type())
+			expectedRtype, err := component.NewType(expectedRType)
+			require.NoError(t, err)
+			require.Equal(t, expectedRtype, receiverID.Type())
 
 			var expectedRName string
 			if tc.rName != nil {
@@ -81,7 +83,7 @@ func TestMetricsToReceiverIDs(t *testing.T) {
 func TestMetricsToReceiverIDsMissingRMetrics(t *testing.T) {
 	md := pmetric.NewMetrics()
 	receiverID, endpointID := MetricsToReceiverIDs(md)
-	require.Equal(t, component.Type(""), receiverID.Type())
+	require.Equal(t, discovery.NoType.Type(), receiverID.Type())
 	require.Equal(t, "", receiverID.Name())
 	require.Equal(t, observer.EndpointID(""), endpointID)
 }
@@ -92,7 +94,7 @@ func TestMetricsToReceiverIDsMissingRAttributes(t *testing.T) {
 	rm.Resource().Attributes().Clear()
 
 	receiverID, endpointID := MetricsToReceiverIDs(md)
-	require.Equal(t, component.Type(""), receiverID.Type())
+	require.Equal(t, discovery.NoType.Type(), receiverID.Type())
 	require.Equal(t, "", receiverID.Name())
 	require.Equal(t, observer.EndpointID(""), endpointID)
 }

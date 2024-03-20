@@ -21,20 +21,20 @@ var MonitorMetadatas = map[string]*Metadata{}
 
 // MetricInfo contains metadata about a metric.
 type MetricInfo struct {
-	Type       datapoint.MetricType
-	Group      string
 	Dimensions map[string]string
+	Group      string
+	Type       datapoint.MetricType
 }
 
 // Metadata describes information about a monitor.
 type Metadata struct {
-	MonitorType     string
-	SendAll         bool
-	SendUnknown     bool
 	DefaultMetrics  map[string]bool
 	Metrics         map[string]MetricInfo
 	Groups          map[string]bool
 	GroupMetricsMap map[string][]string
+	MonitorType     string
+	SendAll         bool
+	SendUnknown     bool
 }
 
 // HasMetric returns whether the metric exists at all (custom or included).

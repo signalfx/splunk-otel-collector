@@ -28,8 +28,9 @@ VERSION="$1"
 LINUX_AMD64_DIGEST="${2:-${REPO_DIR}/dist/linux_amd64_digest.txt}"
 LINUX_ARM64_DIGEST="${2:-${REPO_DIR}/dist/linux_arm64_digest.txt}"
 LINUX_PPC64LE_DIGEST="${2:-${REPO_DIR}/dist/linux_ppc64le_digest.txt}"
-WINDOWS_DIGEST="${3:-${REPO_DIR}/dist/windows_digest.txt}"
+WINDOWS_2019_DIGEST="${3:-${REPO_DIR}/dist/windows_2019_digest.txt}"
 WINDOWS_2022_DIGEST="${3:-${REPO_DIR}/dist/windows_2022_digest.txt}"
+WINDOWS_MULTIARCH_DIGEST="${3:-${REPO_DIR}/dist/windows_multiarch_digest.txt}"
 CHANGELOG="${4:-${REPO_DIR}/CHANGELOG.md}"
 
 changes="$( awk -v version="$VERSION" '/^## / { if (p) { exit }; if ($2 == version) { p=1; next } } p && NF' "$CHANGELOG" )"
@@ -42,8 +43,9 @@ linux_amd64_digest="$( get_digest "$LINUX_AMD64_DIGEST" )"
 linux_arm64_digest="$( get_digest "$LINUX_ARM64_DIGEST" )"
 linux_ppc64le_digest="$( get_digest "$LINUX_PPC64LE_DIGEST" )"
 
-windows_digest="$( get_digest "$WINDOWS_DIGEST" )"
+windows_2019_digest="$( get_digest "$WINDOWS_2019_DIGEST" )"
 windows_2022_digest="$( get_digest "$WINDOWS_2022_DIGEST" )"
+windows_multiarch_digest="$( get_digest "$WINDOWS_MULTIARCH_DIGEST" )"
 
 changes="""$changes
 
@@ -51,7 +53,8 @@ changes="""$changes
 > - \`quay.io/signalfx/splunk-otel-collector:${VERSION#v}-amd64\` (digest: \`$linux_amd64_digest\`)
 > - \`quay.io/signalfx/splunk-otel-collector:${VERSION#v}-arm64\` (digest: \`$linux_arm64_digest\`)
 > - \`quay.io/signalfx/splunk-otel-collector:${VERSION#v}-ppc64le\` (digest: \`$linux_ppc64le_digest\`)
-> - \`quay.io/signalfx/splunk-otel-collector-windows:${VERSION#v}\` (digest: \`$windows_digest\`)
+> - \`quay.io/signalfx/splunk-otel-collector-windows:${VERSION#v}\` (digest: \`$windows_multiarch_digest\`)
+> - \`quay.io/signalfx/splunk-otel-collector-windows:${VERSION#v}-2019\` (digest: \`$windows_2019_digest\`)
 > - \`quay.io/signalfx/splunk-otel-collector-windows:${VERSION#v}-2022\` (digest: \`$windows_2022_digest\`)
 """
 

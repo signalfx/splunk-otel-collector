@@ -27,7 +27,7 @@ import (
 
 func TestZookeeperFactory_CreateConfigSource(t *testing.T) {
 	factory := NewFactory()
-	assert.Equal(t, component.Type("zookeeper"), factory.Type())
+	assert.Equal(t, component.MustNewType("zookeeper"), factory.Type())
 	tests := []struct {
 		config  *Config
 		wantErr error

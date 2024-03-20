@@ -65,6 +65,8 @@ linters-settings:
           - (github.com/golangci/golangci-lint/pkg/logutils.Log).Fatalf
 
     enable-all: true
+    disable:
+      - fieldalignment
 
   revive:
     # minimal confidence for issues, default is 0.8
@@ -110,3 +112,9 @@ linters:
     - staticcheck
     - unconvert
     - unparam
+
+issues:
+  exclude-rules:
+    - text: "SA1019: \"github.com/signalfx/splunk-otel-collector/internal/exporter/httpsinkexporter"
+      linters:
+        - staticcheck

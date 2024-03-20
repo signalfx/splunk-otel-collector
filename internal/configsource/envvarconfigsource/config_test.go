@@ -43,10 +43,10 @@ func TestEnvVarConfigSourceLoadConfig(t *testing.T) {
 
 	expectedSettings := map[string]configsource.Settings{
 		"env": &Config{
-			SourceSettings: configsource.NewSourceSettings(component.NewID(typeStr)),
+			SourceSettings: configsource.NewSourceSettings(component.MustNewID(typeStr)),
 		},
 		"env/with_fallback": &Config{
-			SourceSettings: configsource.NewSourceSettings(component.NewIDWithName(typeStr, "with_fallback")),
+			SourceSettings: configsource.NewSourceSettings(component.MustNewIDWithName(typeStr, "with_fallback")),
 			Defaults: map[string]any{
 				"k0": 42,
 				"m0": map[string]any{

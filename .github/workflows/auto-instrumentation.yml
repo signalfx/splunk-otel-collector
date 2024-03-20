@@ -21,7 +21,7 @@ env:
   PYTHON_VERSION: '3.11'
   PIP_VERSION: '22.0.4'
   REQUIREMENTS_PATH: "internal/buildscripts/packaging/tests/requirements.txt"
-  GO_VERSION: 1.20.10
+  GO_VERSION: 1.21.5
 
 jobs:
   cross-compile:
@@ -45,7 +45,7 @@ jobs:
           make ${{ matrix.SYS_BINARIES }}
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.SYS_BINARIES }}
           path: |
@@ -76,7 +76,7 @@ jobs:
         run: make -C instrumentation/ ${{ matrix.SYS_PACKAGE }}-package ARCH="${{ matrix.ARCH }}"
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: splunk-otel-auto-instrumentation-${{ matrix.ARCH }}-${{ matrix.SYS_PACKAGE }}
           path: ./instrumentation/dist/*.${{ matrix.SYS_PACKAGE }}
@@ -128,12 +128,12 @@ jobs:
           echo "Unknown distro '${{ matrix.DISTRO }}'!"
           exit 1
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: binaries-linux_${{ matrix.ARCH }}
           path: ./bin
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: splunk-otel-auto-instrumentation-${{ matrix.ARCH }}-${{ env.SYS_PACKAGE }}
           path: ./instrumentation/dist
@@ -145,7 +145,7 @@ jobs:
           image: tonistiigi/binfmt:qemu-v7.0.0
 
       - name: Setup python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'

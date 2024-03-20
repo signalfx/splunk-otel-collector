@@ -45,7 +45,6 @@ func TestDefaultComponents(t *testing.T) {
 		"carbon",
 		"cloudfoundry",
 		"collectd",
-		"databricks",
 		"discovery",
 		"filelog",
 		"fluentforward",
@@ -92,6 +91,7 @@ func TestDefaultComponents(t *testing.T) {
 	expectedProcessors := []component.Type{
 		"attributes",
 		"batch",
+		"cumulativetodelta",
 		"filter",
 		"groupbyattrs",
 		"k8sattributes",
@@ -103,7 +103,6 @@ func TestDefaultComponents(t *testing.T) {
 		"resourcedetection",
 		"routing",
 		"span",
-		"spanmetrics",
 		"tail_sampling",
 		"timestamp",
 		"transform",
@@ -125,6 +124,7 @@ func TestDefaultComponents(t *testing.T) {
 	}
 	expectedConnectors := []component.Type{
 		"count",
+		"routing",
 		"spanmetrics",
 		"forward",
 	}

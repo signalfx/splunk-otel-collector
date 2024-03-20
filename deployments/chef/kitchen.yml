@@ -46,6 +46,20 @@ platforms:
       volumes:
         - /sys/fs/cgroup:/sys/fs/cgroup:ro
 
+  - name: rockylinux-8
+    driver:
+      image: dokken/rockylinux-8
+      pid_one_command: /usr/lib/systemd/systemd
+      volumes:
+        - /sys/fs/cgroup:/sys/fs/cgroup:ro
+
+  - name: rockylinux-9
+    driver:
+      image: dokken/rockylinux-9
+      pid_one_command: /usr/lib/systemd/systemd
+      volumes:
+        - /sys/fs/cgroup:/sys/fs/cgroup:ro
+
   - name: debian-9
     driver:
       image: dokken/debian-9

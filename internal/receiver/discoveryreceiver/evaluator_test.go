@@ -26,11 +26,9 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.uber.org/zap"
-
-	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
 )
 
-func setup() (*evaluator, component.ID, observer.EndpointID) {
+func setup(_ *testing.T) (*evaluator, component.ID, observer.EndpointID) {
 	// If debugging tests, replace the Nop Logger with a test instance to see
 	// all statements. Not in regular use to avoid spamming output.
 	// logger := zaptest.NewLogger(t)
@@ -46,14 +44,14 @@ func setup() (*evaluator, component.ID, observer.EndpointID) {
 		},
 	}
 
-	receiverID := component.NewIDWithName("type", "name")
+	receiverID := component.MustNewIDWithName("type", "name")
 	endpointID := observer.EndpointID("endpoint")
 	return eval, receiverID, endpointID
 }
 
 func TestEvaluateMatch(t *testing.T) {
-	eval, receiverID, endpointID := setup()
-	anotherReceiverID := component.NewIDWithName("type", "another.name")
+	eval, receiverID, endpointID := setup(t)
+	anotherReceiverID := component.MustNewIDWithName("type", "another.name")
 
 	for _, tc := range []struct {
 		typ string
@@ -90,7 +88,7 @@ func TestEvaluateMatch(t *testing.T) {
 }
 
 func TestEvaluateInvalidMatch(t *testing.T) {
-	eval, receiverID, endpointID := setup()
+	eval, receiverID, endpointID := setup(t)
 
 	for _, tc := range []struct {
 		typ           string
@@ -110,16 +108,17 @@ func TestEvaluateInvalidMatch(t *testing.T) {
 }
 
 func TestCorrelateResourceAttrs(t *testing.T) {
+	sampleType := component.MustNewID("SPLUNK_unit_test_receiver")
 	for _, embed := range []bool{false, true} {
 		t.Run(fmt.Sprintf("embed-%v", embed), func(t *testing.T) {
-			eval, _, endpointID := setup()
+			eval, _, endpointID := setup(t)
 			eval.config.EmbedReceiverConfig = embed
 
 			endpoint := observer.Endpoint{ID: endpointID}
-			observerID := component.NewIDWithName("type", "name")
+			observerID := component.MustNewIDWithName("type", "name")
 			eval.correlations.UpdateEndpoint(endpoint, addedState, observerID)
 
-			corr := eval.correlations.GetOrCreate(discovery.NoType, endpointID)
+			corr := eval.correlations.GetOrCreate(sampleType, endpointID)
 
 			from := pcommon.NewMap()
 			from.FromRaw(
@@ -130,7 +129,7 @@ func TestCorrelateResourceAttrs(t *testing.T) {
 
 			to := pcommon.NewMap()
 
-			require.Empty(t, eval.correlations.Attrs(discovery.NoType))
+			require.Empty(t, eval.correlations.Attrs(sampleType))
 			eval.correlateResourceAttributes(from, to, corr)
 
 			expectedResourceAttrs := map[string]any{
@@ -146,7 +145,7 @@ func TestCorrelateResourceAttrs(t *testing.T) {
 
 			require.Equal(t, expectedResourceAttrs, to.AsRaw())
 
-			attrs := eval.correlations.Attrs(discovery.NoType)
+			attrs := eval.correlations.Attrs(sampleType)
 
 			expectedAttrs := map[string]string{}
 			if embed {
@@ -159,16 +158,17 @@ func TestCorrelateResourceAttrs(t *testing.T) {
 }
 
 func TestCorrelateResourceAttrsWithExistingConfig(t *testing.T) {
+	sampleType := component.MustNewID("SPLUNK_unit_test_receiver")
 	for _, embed := range []bool{false, true} {
 		t.Run(fmt.Sprintf("embed-%v", embed), func(t *testing.T) {
-			eval, _, endpointID := setup()
+			eval, _, endpointID := setup(t)
 			eval.config.EmbedReceiverConfig = embed
 
 			endpoint := observer.Endpoint{ID: endpointID}
-			observerID := component.NewIDWithName("type", "name")
+			observerID := component.MustNewIDWithName("type", "name")
 			eval.correlations.UpdateEndpoint(endpoint, addedState, observerID)
 
-			corr := eval.correlations.GetOrCreate(discovery.NoType, endpointID)
+			corr := eval.correlations.GetOrCreate(sampleType, endpointID)
 
 			encodedConfig := base64.StdEncoding.EncodeToString([]byte("config: some config\nrule: some rule\n"))
 
@@ -182,7 +182,7 @@ func TestCorrelateResourceAttrsWithExistingConfig(t *testing.T) {
 
 			to := pcommon.NewMap()
 
-			require.Empty(t, eval.correlations.Attrs(discovery.NoType))
+			require.Empty(t, eval.correlations.Attrs(sampleType))
 			eval.correlateResourceAttributes(from, to, corr)
 
 			var receiverConfig string
@@ -201,7 +201,7 @@ func TestCorrelateResourceAttrsWithExistingConfig(t *testing.T) {
 
 			require.Equal(t, expectedResourceAttrs, to.AsRaw())
 
-			attrs := eval.correlations.Attrs(discovery.NoType)
+			attrs := eval.correlations.Attrs(sampleType)
 			expectedAttrs := map[string]string{}
 
 			if embed {

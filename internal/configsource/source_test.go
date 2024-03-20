@@ -671,7 +671,7 @@ func TestConfigSourceBuild(t *testing.T) {
 			name: "unknown_config_source",
 			configSettings: map[string]Settings{
 				"tstcfgsrc": &MockCfgSrcSettings{
-					SourceSettings: NewSourceSettings(component.NewIDWithName("unknown_config_source", "tstcfgsrc")),
+					SourceSettings: NewSourceSettings(component.MustNewIDWithName("unknown_config_source", "tstcfgsrc")),
 				},
 			},
 			factories: testFactories,
@@ -681,7 +681,7 @@ func TestConfigSourceBuild(t *testing.T) {
 			name: "creation_error",
 			configSettings: map[string]Settings{
 				"tstcfgsrc": &MockCfgSrcSettings{
-					SourceSettings: NewSourceSettings(component.NewID("tstcfgsrc")),
+					SourceSettings: NewSourceSettings(component.MustNewID("tstcfgsrc")),
 				},
 			},
 			factories: Factories{
@@ -695,7 +695,7 @@ func TestConfigSourceBuild(t *testing.T) {
 			name: "factory_return_nil",
 			configSettings: map[string]Settings{
 				"tstcfgsrc": &MockCfgSrcSettings{
-					SourceSettings: NewSourceSettings(component.NewID("tstcfgsrc")),
+					SourceSettings: NewSourceSettings(component.MustNewID("tstcfgsrc")),
 				},
 			},
 			factories: Factories{
@@ -707,7 +707,7 @@ func TestConfigSourceBuild(t *testing.T) {
 			name: "base_case",
 			configSettings: map[string]Settings{
 				"tstcfgsrc/named": &MockCfgSrcSettings{
-					SourceSettings: NewSourceSettings(component.NewIDWithName("tstcfgsrc", "named")),
+					SourceSettings: NewSourceSettings(component.MustNewIDWithName("tstcfgsrc", "named")),
 					Endpoint:       "some_endpoint",
 					Token:          "some_token",
 				},
@@ -718,7 +718,7 @@ func TestConfigSourceBuild(t *testing.T) {
 					ValueMap: map[string]valueEntry{
 						"tstcfgsrc/named": {
 							Value: &MockCfgSrcSettings{
-								SourceSettings: NewSourceSettings(component.NewIDWithName("tstcfgsrc", "named")),
+								SourceSettings: NewSourceSettings(component.MustNewIDWithName("tstcfgsrc", "named")),
 								Endpoint:       "some_endpoint",
 								Token:          "some_token",
 							},
@@ -752,7 +752,7 @@ var _ (Factory) = (*mockNilCfgSrcFactory)(nil)
 
 func (m *mockNilCfgSrcFactory) CreateDefaultConfig() Settings {
 	return &MockCfgSrcSettings{
-		SourceSettings: NewSourceSettings(component.NewID("tstcfgsrc")),
+		SourceSettings: NewSourceSettings(component.MustNewID("tstcfgsrc")),
 		Endpoint:       "default_endpoint",
 	}
 }
@@ -781,7 +781,7 @@ func (m *MockCfgSrcFactory) Type() component.Type {
 
 func (m *MockCfgSrcFactory) CreateDefaultConfig() Settings {
 	return &MockCfgSrcSettings{
-		SourceSettings: NewSourceSettings(component.NewID("tstcfgsrc")),
+		SourceSettings: NewSourceSettings(component.MustNewID("tstcfgsrc")),
 		Endpoint:       "default_endpoint",
 	}
 }

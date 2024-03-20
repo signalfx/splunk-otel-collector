@@ -122,11 +122,11 @@ func (e *evaluator) evaluateMatch(match Match, pattern string, status discovery.
 // updating embedded base64 config content, if configured, to include the correlated observer ID
 // that is otherwise unavailable to status sources.
 func (e *evaluator) correlateResourceAttributes(from, to pcommon.Map, corr correlation) {
-	receiverType := string(corr.receiverID.Type())
+	receiverType := corr.receiverID.Type().String()
 	receiverName := corr.receiverID.Name()
 
 	observerID := corr.observerID.String()
-	if observerID != "" {
+	if observerID != "" && observerID != discovery.NoType.String() {
 		to.PutStr(discovery.ObserverIDAttr, observerID)
 	}
 
@@ -185,6 +185,7 @@ func addObserverToEncodedConfig(encoded, observerID string) (string, error) {
 	if err = yaml.Unmarshal(dBytes, &cfg); err != nil {
 		return "", err
 	}
+
 	cfg["watch_observers"] = []string{observerID}
 
 	var cfgYaml []byte

@@ -19,26 +19,26 @@ import (
 
 func TestImmediateEmitter_Emit(t *testing.T) {
 	type args struct {
-		measurement                string
+		t                          time.Time
 		fields                     map[string]interface{}
 		tags                       map[string]string
-		metricType                 telegraf.ValueType
-		t                          time.Time
-		includeEvent               []string
+		nameMap                    map[string]string
+		addTag                     map[string]string
+		measurement                string
 		excludeData                []string
 		excludeTag                 []string
-		addTag                     map[string]string
-		nameMap                    map[string]string
+		includeEvent               []string
 		metricNameTransformations  []func(metricName string) string
 		measurementTransformations []func(telegraf.Metric) error
 		datapointTransformations   []func(*datapoint.Datapoint) error
+		metricType                 telegraf.ValueType
 	}
 	ts := time.Now()
 	tests := []struct {
 		name           string
-		args           args
 		wantDatapoints []*datapoint.Datapoint
 		wantEvents     []*event.Event
+		args           args
 	}{
 		{
 			name: "emit datapoint without plugin tag",
@@ -463,10 +463,10 @@ func TestTelegrafToSFXMetricType(t *testing.T) {
 		m telegraf.Metric
 	}
 	tests := []struct {
-		name     string
 		args     args
-		want     datapoint.MetricType
+		name     string
 		wantOrig string
+		want     datapoint.MetricType
 	}{
 		{
 			name:     "gauge",

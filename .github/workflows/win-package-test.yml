@@ -11,6 +11,7 @@ on:
       - 'cmd/otelcol/**'
       - 'internal/buildscripts/packaging/choco/**'
       - 'internal/buildscripts/packaging/installer/install.ps1'
+      - 'internal/buildscripts/packaging/jmx-metric-gatherer-release.txt'
       - 'internal/buildscripts/packaging/msi/**'
       - 'internal/signalfx-agent/bundle/**'
       - 'Makefile'
@@ -23,7 +24,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.20.10
+  GO_VERSION: 1.21.5
 
 jobs:
   setup-environment:
@@ -65,27 +66,27 @@ jobs:
           make ${{ matrix.SYS_BINARIES }}
 
       - name: Uploading binaries
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.SYS_BINARIES }}
           path: |
             ./bin/*
 
   agent-bundle-windows:
-    runs-on: windows-2019
+    runs-on: windows-2022
     env:
       PIP_CACHE_DIR: ${{ github.workspace }}/.cache/pip
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: ${{ env.PIP_CACHE_DIR }}
           key: agent-bundle-windows-pip-${{ hashFiles('internal/signalfx-agent/bundle/collectd-plugins.yaml', 'internal/signalfx-agent/bundle/scripts/requirements.txt') }}
 
       - run: ./internal/signalfx-agent/bundle/scripts/windows/make.ps1 bundle
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: agent-bundle-windows
           path: ./dist/agent-bundle_windows_amd64.zip
@@ -101,7 +102,7 @@ jobs:
           fetch-depth: 0
 
       - name: Downloading binaries-windows_amd64
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: binaries-windows_amd64
           path: ./bin
@@ -112,7 +113,7 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: agent-bundle-windows
           path: ./dist
@@ -123,7 +124,7 @@ jobs:
           make msi SKIP_COMPILE=true VERSION=""
 
       - name: Uploading msi build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: msi-build
           path: ./dist/*.msi
@@ -142,10 +143,10 @@ jobs:
           cache-dependency-path: '**/go.sum'
 
       - name: Setup NuGet
-        uses: nuget/setup-nuget@v1.2.0
+        uses: nuget/setup-nuget@v2.0.0
 
       - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v1.3
+        uses: microsoft/setup-msbuild@v2
 
       - uses: actions/setup-dotnet@v4.0.0
         with:
@@ -153,25 +154,24 @@ jobs:
             6.0.407
 
       - name: Download Splunk OTel Collector msi
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: msi-build
           path: ./tests/zeroconfig/windows/testdata/docker-setup/
 
-      - name: Get latest signalfx-dotnet-tracing release
-        id: dotnet-tracing
-        uses: pozetroninc/github-action-get-latest-release@v0.7.0
-        with:
-          owner: signalfx
-          repo: signalfx-dotnet-tracing
-          excludes: prerelease, draft
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Set SIGNALFX_DOTNET_TRACING_VERSION
+      - name: Get splunk-otel-dotnet latest release name
+        id: dotnet-instrumentation
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          version="${{ steps.dotnet-tracing.outputs.release }}"
-          sed -i "s|SIGNALFX_DOTNET_TRACING_VERSION|${version#v}|" tests/zeroconfig/windows/testdata/resource_traces/aspnetcore.yaml
-          sed -i "s|SIGNALFX_DOTNET_TRACING_VERSION|${version#v}|" tests/zeroconfig/windows/testdata/resource_traces/aspnetfx.yaml
+          $release = gh release view --repo signalfx/splunk-otel-dotnet --json name | ConvertFrom-Json | select name
+          "release=$($release.name)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Set SPLUNK_OTEL_DOTNET_VERSION
+        run: |
+          version="${{ steps.dotnet-instrumentation.outputs.release }}"
+          sed -i "s|SPLUNK_OTEL_DOTNET_VERSION|${version#v}|" tests/zeroconfig/windows/testdata/resource_traces/aspnetcore.yaml
+          sed -i "s|SPLUNK_OTEL_DOTNET_VERSION|${version#v}|" tests/zeroconfig/windows/testdata/resource_traces/aspnetfx.yaml
         shell: bash
 
       - name: Run the test script
@@ -179,12 +179,86 @@ jobs:
         run: |
           .\run-tests.ps1
 
+  msi-without-wrappers-test:
+    runs-on: ${{ matrix.OS }}
+    needs: [msi-build]
+    timeout-minutes: 5
+    strategy:
+      matrix:
+        OS: [ "windows-2022" ]
+    steps:
+      - name: Downloading msi build
+        uses: actions/download-artifact@v4
+        with:
+          name: msi-build
+          path: ./dist
+
+      - name: Install the collector
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $msi_path = Resolve-Path .\dist\splunk-otel-collector*.msi
+          Test-Path $msi_path
+          Write-Host "Installing $msi_path ..."
+          $process = Start-Process -Wait -PassThru msiexec "/i `"$msi_path`" /qn /l*v msi-install.log"
+          if ($process.ExitCode -ne 0) {
+            throw "MSI installation failed with exit code $($process.ExitCode)"
+          }
+
+      - name: "In case of failure: display the install logs"
+        if: ${{ failure() }}
+        run: Get-Content msi-install.log
+
+      - name: Set environment variables required to start the collector service
+        run: |
+          $ErrorActionPreference = 'Stop'
+          [Environment]::SetEnvironmentVariable("SPLUNK_ACCESS_TOKEN", "123456e", "Machine")
+          [Environment]::SetEnvironmentVariable("SPLUNK_API_URL", "https://non.existent.for.tests", "Machine")
+          [Environment]::SetEnvironmentVariable("SPLUNK_HEC_TOKEN", "098765e", "Machine")
+          [Environment]::SetEnvironmentVariable("SPLUNK_HEC_URL", "https://non.existent.for.tests/v1/log", "Machine")
+          [Environment]::SetEnvironmentVariable("SPLUNK_INGEST_URL", "https://non.existent.for.tests", "Machine")
+          [Environment]::SetEnvironmentVariable("SPLUNK_TRACE_URL", "https://non.existent.for.tests/v2/trace", "Machine")
+          [Environment]::SetEnvironmentVariable("SPLUNK_BUNDLE_DIR", "%ProgramFiles%\Splunk\OpenTelemetry", "Machine")
+
+      - name: Start the collector service
+        run:
+          Start-Service splunk-otel-collector
+
+      - name: Stop the collector service
+        run:
+          Stop-Service splunk-otel-collector
+
+      - name: "In case of failure: collect splunk-otel-collector events"
+        if: ${{ failure() }}
+        run: Get-WinEvent -ProviderName splunk-otel-collector | Sort-Object -Property TimeCreated | Select-Object -Property Message | Format-List
+
+      - name: Uninstall the collector
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $uninstall_info = Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\uninstall\* | Where { $_.DisplayName -eq "Splunk OpenTelemetry Collector" }
+          Write-Host "Uninstalling $($uninstall_info.PSChildName) ..."
+          $process = Start-Process -Wait -PassThru msiexec "/x $($uninstall_info.PSChildName) /qn /l*v msi-uninstall.log"
+          if ($process.ExitCode -ne 0) {
+            throw "MSI installation failed with exit code $($process.ExitCode)"
+          }
+
+      - name: Check no leftover on the registry
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $uninstall_info = Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\uninstall\* | Where { $_.DisplayName -eq "Splunk OpenTelemetry Collector" }
+          if ($uninstall_info -ne $null) {
+            throw "MSI uninstall failed"
+          }
+
+      - name: "In case of failure: display the uninstall logs"
+        if: ${{ failure() }}
+        run: Get-Content msi-uninstall.log
+
   msi-test:
     runs-on: ${{ matrix.OS }}
     needs: [msi-build]
     strategy:
       matrix:
-        OS: [ "windows-2019", "windows-2022" ]
+        OS: [ "windows-2022" ]
         MODE: [ "agent", "gateway" ]
         WITH_FLUENTD: [ "true", "false" ]
     steps:
@@ -192,7 +266,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Downloading msi build
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: msi-build
           path: ./dist
@@ -228,14 +302,14 @@ jobs:
         run: Get-Content -Path "${env:SYSTEMDRIVE}\opt\td-agent\td-agent.log"
 
   choco-build:
-    runs-on: windows-2019
+    runs-on: windows-2022
     needs: [msi-build]
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4
 
       - name: Downloading msi build
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: msi-build
           path: ./dist
@@ -266,7 +340,7 @@ jobs:
           }
 
       - name: Uploading choco build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: choco-build
           path: ./dist/*.nupkg
@@ -276,7 +350,7 @@ jobs:
     needs: [choco-build]
     strategy:
       matrix:
-        OS: [ "windows-2019", "windows-2022" ]
+        OS: [ "windows-2022" ]
         MODE: [ "agent", "gateway" ]
         WITH_FLUENTD: [ "true", "false" ]
         SCENARIO: [ "install", "upgrade" ]
@@ -286,7 +360,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Downloading choco build
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: choco-build
           path: ./dist
@@ -349,18 +423,18 @@ jobs:
     needs: [cross-compile, agent-bundle-windows]
     strategy:
       matrix:
-        OS: [ "windows-2019", "windows-2022" ]
+        OS: [ "windows-2022" ]
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4
 
       - name: Downloading binaries-windows_amd64
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: binaries-windows_amd64
           path: ./bin
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: agent-bundle-windows
           path: ./dist
@@ -370,11 +444,7 @@ jobs:
           $ErrorActionPreference = 'Stop'
           Copy-Item .\bin\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
           Copy-Item .\dist\agent-bundle_windows_amd64.zip .\cmd\otelcol\agent-bundle_windows_amd64.zip
-          if ("${{ matrix.OS }}" -eq "windows-2019") {
-            docker build -t otelcol-windows --build-arg BASE_IMAGE=mcr.microsoft.com/windows/servercore:1809 --build-arg JMX_METRIC_GATHERER_RELEASE=$(Get-Content internal\buildscripts\packaging\jmx-metric-gatherer-release.txt) -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
-          } else {
-            docker build -t otelcol-windows --build-arg BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022 --build-arg JMX_METRIC_GATHERER_RELEASE=$(Get-Content internal\buildscripts\packaging\jmx-metric-gatherer-release.txt) -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
-          }
+          docker build -t otelcol-windows --build-arg BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022 --build-arg JMX_METRIC_GATHERER_RELEASE=$(Get-Content internal\buildscripts\packaging\jmx-metric-gatherer-release.txt) -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
           Remove-Item .\cmd\otelcol\otelcol.exe
           Remove-Item .\cmd\otelcol\agent-bundle_windows_amd64.zip
 

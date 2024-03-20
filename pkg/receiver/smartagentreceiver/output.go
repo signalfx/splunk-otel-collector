@@ -44,8 +44,6 @@ type output struct {
 	nextLogsConsumer     consumer.Logs
 	nextTracesConsumer   consumer.Traces
 	extraDimensions      map[string]string
-	extraSpanTags        map[string]string
-	defaultSpanTags      map[string]string
 	logger               *zap.Logger
 	reporter             *receiverhelper.ObsReport
 	translator           converter.Translator
@@ -79,8 +77,6 @@ func newOutput(
 		logger:               params.Logger,
 		translator:           converter.NewTranslator(params.Logger),
 		extraDimensions:      map[string]string{},
-		extraSpanTags:        map[string]string{},
-		defaultSpanTags:      map[string]string{},
 		monitorFiltering:     filtering,
 		reporter:             obsReceiver,
 	}, nil
@@ -190,8 +186,6 @@ func (out *output) Copy() types.Output {
 	out.logger.Debug("Copying out", zap.Any("out", out))
 	cp := *out
 	cp.extraDimensions = utils.CloneStringMap(out.extraDimensions)
-	cp.extraSpanTags = utils.CloneStringMap(out.extraSpanTags)
-	cp.defaultSpanTags = utils.CloneStringMap(out.defaultSpanTags)
 	return &cp
 }
 
@@ -210,7 +204,7 @@ func (out *output) SendDatapoints(datapoints ...*datapoint.Datapoint) {
 
 	metrics, err := out.translator.ToMetrics(datapoints)
 	if err != nil {
-		out.logger.Error("error converting SFx datapoints to ptrace.Traces", zap.Error(err))
+		out.logger.Error("error converting SFx datapoints to pmetric.Metrics", zap.Error(err))
 	}
 
 	numPoints := metrics.DataPointCount()
@@ -237,21 +231,6 @@ func (out *output) SendEvent(event *event.Event) {
 func (out *output) SendSpans(spans ...*trace.Span) {
 	if out.nextTracesConsumer == nil {
 		return
-	}
-
-	for _, span := range spans {
-		if span.Tags == nil {
-			span.Tags = map[string]string{}
-		}
-
-		for name, value := range out.defaultSpanTags {
-			// If the tags are already set, don't override
-			if _, ok := span.Tags[name]; !ok {
-				span.Tags[name] = value
-			}
-		}
-
-		span.Tags = utils.MergeStringMaps(span.Tags, out.extraSpanTags)
 	}
 
 	traces, err := out.translator.ToTraces(spans)
@@ -282,27 +261,6 @@ func (out *output) SendDimensionUpdate(dimension *types.Dimension) {
 func (out *output) AddExtraDimension(key, value string) {
 	out.logger.Debug("Adding extra dimension", zap.String("key", key), zap.String("value", value))
 	out.extraDimensions[key] = value
-}
-
-func (out *output) RemoveExtraDimension(key string) {
-	out.logger.Debug("Removing extra dimension", zap.String("key", key))
-	delete(out.extraDimensions, key)
-}
-
-func (out *output) AddExtraSpanTag(key, value string) {
-	out.extraSpanTags[key] = value
-}
-
-func (out *output) RemoveExtraSpanTag(key string) {
-	delete(out.extraSpanTags, key)
-}
-
-func (out *output) AddDefaultSpanTag(key, value string) {
-	out.defaultSpanTags[key] = value
-}
-
-func (out *output) RemoveDefaultSpanTag(key string) {
-	delete(out.defaultSpanTags, key)
 }
 
 func (out *output) filterDatapoints(datapoints []*datapoint.Datapoint) []*datapoint.Datapoint {

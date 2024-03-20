@@ -140,7 +140,7 @@ func ReceiverNameToIDs(record plog.LogRecord) (receiverID component.ID, endpoint
 	if nameMatches = receiverNameRegexp.FindStringSubmatch(nameSection); len(nameMatches) < 2 {
 		return discovery.NoType, ""
 	}
-	rType := nameMatches[1]
+	rTypeName := nameMatches[1]
 
 	var nameCandidate string
 	if len(nameMatches) > 2 {
@@ -157,5 +157,9 @@ func ReceiverNameToIDs(record plog.LogRecord) (receiverID component.ID, endpoint
 	if endpointMatches := endpointIDRegexp.FindStringSubmatch(endpointSection); len(endpointMatches) > 1 {
 		eID = endpointMatches[1]
 	}
-	return component.NewIDWithName(component.Type(rType), rName), observer.EndpointID(eID)
+	rType, err := component.NewType(rTypeName)
+	if err != nil {
+		rType = discovery.NoType.Type()
+	}
+	return component.MustNewIDWithName(rType.String(), rName), observer.EndpointID(eID)
 }

@@ -141,7 +141,7 @@ GEM
       hocon (>= 1.0)
     puppet-strings (2.7.0)
       rgen
-      yard (~> 0.9.5)
+      yard (>= 0.9.36)
     puppet-syntax (3.1.0)
       puppet (>= 5)
       rake

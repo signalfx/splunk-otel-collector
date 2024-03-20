@@ -114,7 +114,7 @@ func newDiscoverer(logger *zap.Logger) (*discoverer, error) {
 		configs:                   map[string]*Config{},
 		duration:                  duration,
 		mu:                        sync.Mutex{},
-		expandConverter:           expandconverter.New(),
+		expandConverter:           expandconverter.New(confmap.ConverterSettings{}),
 		discoveredReceivers:       map[component.ID]discovery.StatusType{},
 		unexpandedReceiverEntries: map[component.ID]map[component.ID]map[string]any{},
 		discoveredConfig:          map[component.ID]map[string]any{},
@@ -350,7 +350,7 @@ func (d *discoverer) createDiscoveryReceiversAndObservers(cfg *Config) (map[comp
 		if lr, err = discoveryReceiverFactory.CreateLogsReceiver(context.Background(), discoveryReceiverSettings, discoveryReceiverDefaultConfig, d); err != nil {
 			return nil, nil, fmt.Errorf("failed creating discovery receiver: %w", err)
 		}
-		discoveryReceivers[component.NewIDWithName(discoveryReceiverFactory.Type(), observerID.String())] = lr
+		discoveryReceivers[component.MustNewIDWithName(discoveryReceiverFactory.Type().String(), observerID.String())] = lr
 	}
 
 	return discoveryReceivers, discoveryObservers, nil
@@ -695,7 +695,7 @@ func (d *discoverer) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 
 		var rule string
 		var configSection map[string]any
-		receiverID := component.NewIDWithName(component.Type(receiverType), receiverName)
+		receiverID := component.MustNewIDWithName(receiverType, receiverName)
 		if rCfg, hasConfig := d.getUnexpandedReceiverConfig(receiverID, observerID); hasConfig {
 			if r, hasRule := rCfg["rule"]; hasRule {
 				rule = r.(string)

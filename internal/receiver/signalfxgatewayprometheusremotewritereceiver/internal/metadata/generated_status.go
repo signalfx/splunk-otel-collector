@@ -8,15 +8,19 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
+var (
+	Type      = component.MustNewType("signalfxgatewayprometheusremotewrite")
+	scopeName = "go.opentelemetry.io/collector/receiver/signalfxgatewayprometheusremotewritereceiver"
+)
+
 const (
-	Type             = "signalfxgatewayprometheusremotewrite"
 	MetricsStability = component.StabilityLevelDevelopment
 )
 
 func Meter(settings component.TelemetrySettings) metric.Meter {
-	return settings.MeterProvider.Meter("otelcol/signalfxgatewayprometheusremotewritereceiver")
+	return settings.MeterProvider.Meter(scopeName)
 }
 
 func Tracer(settings component.TelemetrySettings) trace.Tracer {
-	return settings.TracerProvider.Tracer("otelcol/signalfxgatewayprometheusremotewritereceiver")
+	return settings.TracerProvider.Tracer(scopeName)
 }

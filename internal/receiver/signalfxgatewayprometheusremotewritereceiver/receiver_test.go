@@ -39,7 +39,7 @@ func TestEmptySend(t *testing.T) {
 	require.NoError(t, err)
 	expectedEndpoint := fmt.Sprintf("localhost:%d", freePort)
 
-	cfg.Endpoint = expectedEndpoint
+	cfg.ServerConfig.Endpoint = expectedEndpoint
 	cfg.ListenPath = "/metrics"
 
 	nopHost := componenttest.NewNopHost()
@@ -56,14 +56,14 @@ func TestEmptySend(t *testing.T) {
 	require.NotEmpty(t, remoteWriteReceiver.server)
 	require.NotEmpty(t, remoteWriteReceiver.cancel)
 	require.NotEmpty(t, remoteWriteReceiver.config)
-	require.Equal(t, remoteWriteReceiver.config.Endpoint, fmt.Sprintf("localhost:%d", freePort))
+	require.Equal(t, remoteWriteReceiver.config.ServerConfig.Endpoint, fmt.Sprintf("localhost:%d", freePort))
 	require.NotEmpty(t, remoteWriteReceiver.settings)
 	require.NotNil(t, remoteWriteReceiver.reporter)
 	require.Equal(t, expectedEndpoint, remoteWriteReceiver.server.Addr)
 	require.Eventually(t, func() bool { remoteWriteReceiver.server.ready(); return true }, time.Second*10, 50*time.Millisecond)
 
 	client, err := newMockPrwClient(
-		cfg.Endpoint,
+		cfg.ServerConfig.Endpoint,
 		time.Second*5,
 	)
 	require.NoError(t, err)
@@ -82,7 +82,7 @@ func TestSuccessfulSend(t *testing.T) {
 	require.NoError(t, err)
 	expectedEndpoint := fmt.Sprintf("localhost:%d", freePort)
 
-	cfg.Endpoint = expectedEndpoint
+	cfg.ServerConfig.Endpoint = expectedEndpoint
 	cfg.ListenPath = "/metrics"
 
 	nopHost := componenttest.NewNopHost()
@@ -105,14 +105,14 @@ func TestSuccessfulSend(t *testing.T) {
 	require.NotEmpty(t, remoteWriteReceiver.server)
 	require.NotEmpty(t, remoteWriteReceiver.cancel)
 	require.NotEmpty(t, remoteWriteReceiver.config)
-	require.Equal(t, remoteWriteReceiver.config.Endpoint, fmt.Sprintf("localhost:%d", freePort))
+	require.Equal(t, remoteWriteReceiver.config.ServerConfig.Endpoint, fmt.Sprintf("localhost:%d", freePort))
 	require.NotEmpty(t, remoteWriteReceiver.settings)
 	require.NotNil(t, remoteWriteReceiver.reporter)
 	require.Equal(t, expectedEndpoint, remoteWriteReceiver.server.Addr)
 	require.Eventually(t, func() bool { remoteWriteReceiver.server.ready(); return true }, time.Second*10, 50*time.Millisecond)
 
 	client, err := newMockPrwClient(
-		cfg.Endpoint,
+		cfg.ServerConfig.Endpoint,
 		time.Second*5,
 	)
 	require.NoError(t, err)
@@ -143,7 +143,7 @@ func TestRealReporter(t *testing.T) {
 	require.NoError(t, err)
 	expectedEndpoint := fmt.Sprintf("localhost:%d", freePort)
 
-	cfg.Endpoint = expectedEndpoint
+	cfg.ServerConfig.Endpoint = expectedEndpoint
 	cfg.ListenPath = "/metrics"
 
 	nopHost := componenttest.NewNopHost()
@@ -164,7 +164,7 @@ func TestRealReporter(t *testing.T) {
 	require.Eventually(t, func() bool { remoteWriteReceiver.server.ready(); return true }, time.Second*10, 50*time.Millisecond)
 
 	client, err := newMockPrwClient(
-		cfg.Endpoint,
+		cfg.ServerConfig.Endpoint,
 		time.Second*5,
 	)
 	require.NoError(t, err)

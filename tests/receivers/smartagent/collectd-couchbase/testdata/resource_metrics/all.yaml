@@ -28,7 +28,7 @@ resource_metrics:
           - name: gauge.storage.hdd.free
             type: IntGauge
           - name: gauge.nodes.system.cpu_utilization_rate
-            type: IntGauge
+            type: DoubleGauge
           - name: gauge.storage.hdd.usedByData
             type: IntGauge
           - name: gauge.nodes.system.mem_total

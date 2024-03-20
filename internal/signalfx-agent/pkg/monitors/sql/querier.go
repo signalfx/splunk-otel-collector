@@ -19,6 +19,7 @@ import (
 )
 
 type querier struct {
+	logger                    logrus.FieldLogger
 	query                     *Query
 	valueColumnNamesToMetrics map[string]*Metric
 	metricToIndex             map[*Metric]int
@@ -26,7 +27,6 @@ type querier struct {
 	dimensions                [][]*types.Dimension
 	compiledExprs             []*vm.Program
 	rowSliceCached            []interface{}
-	logger                    logrus.FieldLogger
 	logQueries                bool
 }
 
@@ -144,11 +144,7 @@ func (q *querier) convertCurrentRowToDatapointAndDimensions(rows *sql.Rows) ([]*
 	}
 
 	if len(q.query.DatapointExpressions) > 0 {
-		var err error
 		exprDPs := q.convertCurrentRowExpressions(rowSlice, columnNames)
-		if err != nil {
-			q.logger.WithError(err).Warn("Failed to convert row to datapoints")
-		}
 		dps = append(dps, exprDPs...)
 	}
 

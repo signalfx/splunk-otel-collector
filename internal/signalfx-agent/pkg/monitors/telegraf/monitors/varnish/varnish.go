@@ -31,7 +31,7 @@ type Config struct {
 	// The location of the varnishstat binary.
 	Binary string `yaml:"binary" default:"/usr/bin/varnishstat"`
 	// Which stats to gather. Glob matching can be used (i.e. `stats = ["MAIN.*"]`).
-	//Stats []string `yaml:"stats" default:"[\"MAIN.cache_hit\", \"MAIN.cache_miss\", \"MAIN.uptime\"]"`
+	// Stats []string `yaml:"stats" default:"[\"MAIN.cache_hit\", \"MAIN.cache_miss\", \"MAIN.uptime\"]"`
 	Stats []string `yaml:"stats" default:"[\"MAIN.*\"]"`
 	// Optional name for the varnish instance to query. It corresponds to `-n` parameter value.
 	InstanceName string `yaml:"instanceName"`
@@ -73,7 +73,7 @@ func (m *Monitor) Configure(conf *Config) (err error) {
 
 	// gather metrics on the specified interval
 	utils.RunOnInterval(ctx, func() {
-		if err := plugin.Gather(accumulator); err != nil {
+		if err = plugin.Gather(accumulator); err != nil {
 			m.logger.WithError(err).Errorf("an error occurred while gathering metrics")
 		}
 	}, time.Duration(conf.IntervalSeconds)*time.Second)

@@ -8,12 +8,7 @@ import (
 func init() {
 	monitors.Register(&monitorMetadata, func() interface{} {
 		return &Monitor{Monitor: prometheusexporter.Monitor{}}
-	}, &Config{})
-}
-
-// Config for this monitor
-type Config struct {
-	prometheusexporter.Config `yaml:",inline"`
+	}, &prometheusexporter.Config{})
 }
 
 // Monitor for Prometheus Nginx VTS Exporter
@@ -22,6 +17,6 @@ type Monitor struct {
 }
 
 // Configure the underlying Prometheus exporter monitor
-func (m *Monitor) Configure(conf *Config) error {
-	return m.Monitor.Configure(&conf.Config)
+func (m *Monitor) Configure(conf *prometheusexporter.Config) error {
+	return m.Monitor.Configure(conf)
 }

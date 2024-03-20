@@ -79,7 +79,7 @@ func (m *Monitor) Configure(conf *Config) (err error) {
 	emitter.SetOmitOriginalMetricType(true)
 
 	// transform "dns_query" to "telegraf/dns"
-	emitter.AddTag("plugin", strings.Replace(monitorType, "dns_query", "dns", -1))
+	emitter.AddTag("plugin", strings.ReplaceAll(monitorType, "dns_query", "dns"))
 
 	for _, tag := range []string{"rcode", "result"} {
 		emitter.OmitTag(tag)
@@ -87,7 +87,7 @@ func (m *Monitor) Configure(conf *Config) (err error) {
 
 	// transform "dns_query.my_metric" to "dns.my_metric"
 	emitter.AddMetricNameTransformation(func(metric string) string {
-		name := strings.Replace(metric, "dns_query", "dns", -1)
+		name := strings.ReplaceAll(metric, "dns_query", "dns")
 		m.logger.WithFields(log.Fields{
 			"original_name": metric,
 			"new_name":      name,
@@ -103,8 +103,8 @@ func (m *Monitor) Configure(conf *Config) (err error) {
 
 	// gather metrics on the specified interval
 	utils.RunOnInterval(ctx, func() {
-		if err := plugin.Gather(accumulator); err != nil {
-			m.logger.WithError(err).Errorf("an error occurred while gathering metrics")
+		if err2 := plugin.Gather(accumulator); err2 != nil {
+			m.logger.WithError(err2).Errorf("an error occurred while gathering metrics")
 		}
 	}, time.Duration(conf.IntervalSeconds)*time.Second)
 

@@ -24,11 +24,11 @@ var iOCounters = disk.IOCountersWithContext
 // Monitor for Utilization
 type Monitor struct {
 	Output      types.Output
+	logger      logrus.FieldLogger
 	cancel      func()
 	conf        *Config
 	filter      *filter.OverridableStringFilter
 	lastOpCount int64
-	logger      logrus.FieldLogger
 }
 
 func (m *Monitor) makeLinuxDatapoints(disk disk.IOCountersStat, dimensions map[string]string) []*datapoint.Datapoint {
@@ -63,7 +63,7 @@ func (m *Monitor) emitDatapoints() {
 			continue
 		}
 
-		diskName := strings.Replace(key, " ", "_", -1)
+		diskName := strings.ReplaceAll(key, " ", "_")
 
 		dps = append(dps, m.makeLinuxDatapoints(disk, map[string]string{"disk": diskName})...)
 

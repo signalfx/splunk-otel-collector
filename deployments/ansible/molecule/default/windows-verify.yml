@@ -4,7 +4,7 @@
   gather_facts: true
   become: no
   vars:
-    reg_values:
+    collector_reg_values:
       SPLUNK_CONFIG: '{{ ansible_env.ProgramData }}\Splunk\OpenTelemetry Collector\agent_config.yaml'
       SPLUNK_ACCESS_TOKEN: fake-token
       SPLUNK_REALM: fake-realm
@@ -21,10 +21,6 @@
       check_mode: yes
       register: service_status
 
-    - name: Assert splunk-otel-collector service status
-      assert:
-        that: not service_status.changed
-
     - name: Check fluentdwinsvc service
       ansible.windows.win_service:
         name: fluentdwinsvc
@@ -36,10 +32,13 @@
       assert:
         that: not service_status.exists
 
-    - name: Verify env vars
-      include_tasks: ../shared/verify_registry_key.yml
-      vars:
-        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
-        name: "{{ item.key }}"
-        value: "{{ item.value }}"
-      loop: "{{ reg_values | dict2items }}"
+    - name: Get splunk-otel-collector service env vars
+      ansible.windows.win_reg_stat:
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector
+        name: Environment
+      register: collector_env
+
+    - name: Verify splunk-otel-collector service env vars
+      assert:
+        that: (item.key + '=' + item.value) in collector_env.value
+      loop: "{{ collector_reg_values | dict2items }}"

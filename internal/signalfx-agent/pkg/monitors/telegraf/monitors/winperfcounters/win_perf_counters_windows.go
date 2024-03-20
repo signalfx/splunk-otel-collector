@@ -73,7 +73,7 @@ func (m *Monitor) Configure(conf *Config) error {
 
 	// Hard code the plugin name because the emitter will parse out the
 	// configured measurement name as plugin and that is confusing.
-	emitter.AddTag("plugin", strings.Replace(monitorType, "/", "-", -1))
+	emitter.AddTag("plugin", strings.ReplaceAll(monitorType, "/", "-"))
 
 	if conf.PCRMetricNames {
 		// set metric name replacements to match SignalFx PerfCounterReporter

@@ -127,7 +127,7 @@ func getUsername(id uint32) (username string, err error) {
 }
 
 // ProcessList takes a snapshot of running processes
-func ProcessList(conf *Config, cache *osCache, logger logrus.FieldLogger) ([]*TopProcess, error) {
+func ProcessList(_ *Config, _ *osCache, logger logrus.FieldLogger) ([]*TopProcess, error) {
 	var procs []*TopProcess
 
 	// Get all processes
@@ -171,7 +171,7 @@ func ProcessList(conf *Config, cache *osCache, logger logrus.FieldLogger) ([]*To
 			status = "R"
 		}
 
-		//example process "3":["root",20,"0",0,0,0,"S",0.0,0.0,"01:28.31","[ksoftirqd/0]"]
+		// example process "3":["root",20,"0",0,0,0,"S",0.0,0.0,"01:28.31","[ksoftirqd/0]"]
 		procs = append(procs, &TopProcess{
 			ProcessID:           int(p.ProcessID),
 			CreatedTime:         p.CreationDate,

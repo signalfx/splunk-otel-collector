@@ -140,9 +140,14 @@ receivers:
         - targets: ['0.0.0.0:8888']
         metric_relabel_configs:
           - source_labels: [ __name__ ]
-            regex: '.*grpc_io.*'
+            regex: 'otelcol_rpc_.*'
             action: drop
-
+          - source_labels: [ __name__ ]
+            regex: 'otelcol_http_.*'
+            action: drop
+          - source_labels: [ __name__ ]
+            regex: 'otelcol_processor_batch_.*'
+            action: drop
   # Enables the prometheus simple receiver with default settings
   #  - grpc (default endpoint = 0.0.0.0:9090)
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/simpleprometheusreceiver
@@ -720,7 +725,7 @@ extensions:
     endpoint: 0.0.0.0:13133
 
   # Enables the http forwarder extension
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/httpforwarder
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/httpforwarderextension
   # TODO: Add realm
   http_forwarder:
     ingress:

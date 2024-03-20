@@ -2,15 +2,15 @@
 
 ## VMware Tanzu Tile Documentation
 
-[Tanzu Tile Introduction](https://docs.pivotal.io/tiledev/2-10/tile-basics.html)
+[Tanzu Tile Introduction](https://docs.vmware.com/en/Tile-Developer-Guide/3.0/tile-dev-guide/tile-basics.html)
 
-[How Tiles Work](https://docs.pivotal.io/tiledev/2-10/tile-structure.html)
+[How Tiles Work](https://docs.vmware.com/en/Tile-Developer-Guide/3.0/tile-dev-guide/tile-structure.html)
 
 ## Tile Software Dependencies
 
-[Tile Generator](https://docs.pivotal.io/tiledev/2-10/tile-generator.html)
+[Tile Generator](https://docs.vmware.com/en/Tile-Developer-Guide/3.0/tile-dev-guide/tile-generator.html)
 
-[PCF CLI](https://docs.pivotal.io/tiledev/2-10/pcf-command.html)
+[PCF CLI](https://docs.vmware.com/en/Tile-Developer-Guide/3.0/tile-dev-guide/pcf-command.html)
 
 ## Development Workflow
 
@@ -129,12 +129,24 @@ Once changes are successfully applied, you should see data populating the charts
     lastmodified: 1694730760000
    ```
 
-1. Tile shows up as running, but charts aren't populating data. This is most likely a metric naming mismatch. TAS v3.0+
+1. Tile shows up as running, but charts aren't populating with data, and the logs are being spammed with the following message:
+    ```
+    2024-03-06T14:47:28.447-0800	error	exporterhelper/queue_sender.go:97	Exporting failed. Dropping data.	{"kind": "exporter", "data_type": "metrics", "name": "signalfx", "error": "not retryable error: Permanent error: \"HTTP/2.0 401 Unauthorized\\r\\nContent-Length: 0\\r\\nDate: Wed, 06 Mar 2024 22:47:28 GMT\\r\\nServer: istio-envoy\\r\\nWww-Authenticate: Basic realm=\\\"Splunk\\\"\\r\\nX-Envoy-Upstream-Service-Time: 0\\r\\n\\r\\n\"", "dropped_items": 1}
+    go.opentelemetry.io/collector/exporter/exporterhelper.newQueueSender.func1
+    go.opentelemetry.io/collector/exporter@v0.95.0/exporterhelper/queue_sender.go:97
+    go.opentelemetry.io/collector/exporter/internal/queue.(*boundedMemoryQueue[...]).Consume
+    go.opentelemetry.io/collector/exporter@v0.95.0/internal/queue/bounded_memory_queue.go:57
+    go.opentelemetry.io/collector/exporter/internal/queue.(*Consumers[...]).Start.func1
+    go.opentelemetry.io/collector/exporter@v0.95.0/internal/queue/consumers.go:43
+    ```
+   This is an access token issue. Please use a valid value for the `Access token` text box on the tile's `Splunk Observability Cloud` page.
+
+1. Tile shows up as running without error messages in the logs, but charts aren't populating data. This is most likely a metric naming mismatch. TAS v3.0+
 is currently unsupported due to metric name format changes.
     - Check logs to make sure no errors are showing up
     - Check metrics manually coming from Tanzu to see if they match charts.
       - Follow steps to
-      [Access Metrics Using the Firehose PLugin](https://docs.pivotal.io/application-service/2-13/loggregator/data-sources.html#cf-nozzle)
+      [Access Metrics Using the Firehose PLugin](https://docs.vmware.com/en/VMware-Tanzu-Application-Service/5.0/tas-for-vms/cli-plugin.html)
         - You can use the `hammer` login command instead of `cf login`
         - Example metric filter command:
         ```cf nozzle -no-filter | grep -i mem | grep -i percent```

@@ -41,6 +41,13 @@ type correlation struct {
 	observerID  component.ID
 }
 
+func newCorrelation() *correlation {
+	return &correlation{
+		receiverID: discovery.NoType,
+		observerID: discovery.NoType,
+	}
+}
+
 // correlationStore provides a centralized interface for up-to-date correlations
 // and receiver attributes as a message passing mechanism by observed components.
 // It manages a reaping loop to prevent stale endpoint buildup over time.
@@ -96,6 +103,7 @@ func (s *store) UpdateEndpoint(endpoint observer.Endpoint, state endpointState, 
 	if !ok {
 		receiverMap.Store(discovery.NoType, &correlation{
 			endpoint:    endpoint,
+			receiverID:  discovery.NoType,
 			observerID:  observerID,
 			lastState:   state,
 			lastUpdated: time.Now(),
@@ -124,7 +132,7 @@ func (s *store) GetOrCreate(receiverID component.ID, endpointID observer.Endpoin
 		// this zero value correlation suggests the observer has yet to emit an endpoint event
 		// and this could be an invalid collector state. Likely this flow results from delayed
 		// event handling and the correlation is eventually consistent in UpdateEndpoint.
-		receiverMap.Store(discovery.NoType, &correlation{})
+		receiverMap.Store(discovery.NoType, newCorrelation())
 	}
 	defer s.receiverLocks.Lock(receiverID)()
 	endpointUnlock()
@@ -139,7 +147,7 @@ func (s *store) GetOrCreate(receiverID component.ID, endpointID observer.Endpoin
 	cpCorr := *noTypeCorrelation
 	corr := &cpCorr
 	corr.receiverID = receiverID
-	receiverMap.Store(receiverID, corr)
+	receiverMap.Store(corr.receiverID, corr)
 	return *corr
 }
 

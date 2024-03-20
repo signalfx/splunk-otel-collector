@@ -37,17 +37,17 @@ func (task *TaskMetadata) GetDimensions() map[string]string {
 
 // Container struct represents container structure that is a part of ECS Task Metadata
 type Container struct {
+	Labels      map[string]string `json:"Labels"`
 	DockerID    string            `json:"DockerId"`
 	Name        string            `json:"DockerName"`
 	Image       string            `json:"Image"`
 	KnownStatus string            `json:"KnownStatus"`
 	Type        string            `json:"Type"`
-	Labels      map[string]string `json:"Labels"`
-	Limits      struct {
-		CPU int64 `json:"CPU"`
-	}
-	Networks []struct {
+	Networks    []struct {
 		NetworkMode string   `json:"NetworkMode"`
 		IPAddresses []string `json:"IPv4Addresses"`
+	}
+	Limits struct {
+		CPU int64 `json:"CPU"`
 	}
 }

@@ -97,7 +97,7 @@ func NewProperty(property, val string) (*Property, error) {
 	}
 	p.stringMap = map[string]any{
 		p.ComponentType: map[string]any{
-			component.NewIDWithName(component.Type(p.Component.Type), p.Component.Name).String(): subStringMap,
+			component.MustNewIDWithName(p.Component.Type, p.Component.Name).String(): subStringMap,
 		},
 	}
 	p.Input = property

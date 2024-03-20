@@ -4,14 +4,14 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"runtime"
 
 	log "github.com/sirupsen/logrus"
 )
 
 func AugmentCertPoolFromCAFile(basePool *x509.CertPool, caCertPath string) error {
-	bytes, err := ioutil.ReadFile(caCertPath)
+	bytes, err := os.ReadFile(caCertPath)
 	if err != nil {
 		return fmt.Errorf("CA cert path %s could not be read: %w", caCertPath, err)
 	}

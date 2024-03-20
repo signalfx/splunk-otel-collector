@@ -65,13 +65,13 @@ func newReceiver(
 func (receiver *prometheusRemoteWriteReceiver) Start(ctx context.Context, host component.Host) error {
 	metricsChannel := make(chan pmetric.Metrics, receiver.config.BufferSize)
 	cfg := &serverConfig{
-		HTTPServerSettings: receiver.config.HTTPServerSettings,
-		Path:               receiver.config.ListenPath,
-		Mc:                 metricsChannel,
-		TelemetrySettings:  receiver.settings.TelemetrySettings,
-		Reporter:           receiver.reporter,
-		Host:               host,
-		Parser:             newPrometheusRemoteOtelParser(),
+		ServerConfig:      receiver.config.ServerConfig,
+		Path:              receiver.config.ListenPath,
+		Mc:                metricsChannel,
+		TelemetrySettings: receiver.settings.TelemetrySettings,
+		Reporter:          receiver.reporter,
+		Host:              host,
+		Parser:            newPrometheusRemoteOtelParser(),
 	}
 	if receiver.server != nil {
 		err := receiver.server.close()
@@ -89,20 +89,20 @@ func (receiver *prometheusRemoteWriteReceiver) Start(ctx context.Context, host c
 	}
 	receiver.server = server
 
-	go receiver.startServer(host)
+	go receiver.startServer()
 	go receiver.manageServerLifecycle(ctx, metricsChannel)
 
 	return nil
 }
 
-func (receiver *prometheusRemoteWriteReceiver) startServer(host component.Host) {
+func (receiver *prometheusRemoteWriteReceiver) startServer() {
 	prometheusRemoteWriteServer := receiver.server
 	if prometheusRemoteWriteServer == nil {
-		host.ReportFatalError(fmt.Errorf("start called on null prometheusRemoteWriteServer for receiver %s", metadata.Type))
+		receiver.settings.TelemetrySettings.ReportStatus(component.NewFatalErrorEvent(fmt.Errorf("start called on null prometheusRemoteWriteServer for receiver %s", metadata.Type)))
 	}
 	if err := prometheusRemoteWriteServer.listenAndServe(); err != nil {
 		// our receiver swallows http's ErrServeClosed, and we should only get "concerning" issues at this point in the code.
-		host.ReportFatalError(err)
+		receiver.settings.TelemetrySettings.ReportStatus(component.NewFatalErrorEvent(err))
 		receiver.reporter.OnDebugf("Error in %s/%s listening on %s/%s: %s", metadata.Type, receiver.settings.ID, prometheusRemoteWriteServer.Addr, prometheusRemoteWriteServer.Path, err)
 	}
 }

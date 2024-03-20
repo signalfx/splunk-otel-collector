@@ -25,7 +25,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
 	"go.uber.org/zap/zaptest"
 	"gopkg.in/yaml.v2"
@@ -49,7 +48,7 @@ func TestValidConfig(t *testing.T) {
 
 	require.Equal(t, &Config{
 		Receivers: map[component.ID]ReceiverEntry{
-			component.NewIDWithName("smartagent", "redis"): {
+			component.MustNewIDWithName("smartagent", "redis"): {
 				Config: map[string]any{
 					"auth": "password",
 					"host": "`host`",
@@ -114,8 +113,8 @@ func TestValidConfig(t *testing.T) {
 		EmbedReceiverConfig: true,
 		CorrelationTTL:      25 * time.Second,
 		WatchObservers: []component.ID{
-			component.NewID("an_observer"),
-			component.NewIDWithName("another_observer", "with_name"),
+			component.MustNewID("an_observer"),
+			component.MustNewIDWithName("another_observer", "with_name"),
 		},
 	},
 		cfg)
@@ -160,12 +159,12 @@ func TestReceiverCreatorFactoryAndConfig(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, conf.ToStringMap())
 	dCfg := Config{}
-	require.NoError(t, conf.Unmarshal(&dCfg, confmap.WithErrorUnused()))
+	require.NoError(t, conf.Unmarshal(&dCfg))
 
 	correlations := newCorrelationStore(zaptest.NewLogger(t), time.Second)
 	factory, rCfg, err := dCfg.receiverCreatorFactoryAndConfig(correlations)
 	require.NoError(t, err)
-	require.Equal(t, component.Type("receiver_creator"), factory.Type())
+	require.Equal(t, component.MustNewType("receiver_creator"), factory.Type())
 
 	require.NoError(t, component.ValidateConfig(rCfg))
 
@@ -175,8 +174,8 @@ func TestReceiverCreatorFactoryAndConfig(t *testing.T) {
 
 	// receiver templates aren't exported so limited to WatchObservers
 	require.Equal(t, []component.ID{
-		component.NewID("an_observer"),
-		component.NewIDWithName("another_observer", "with_name"),
+		component.MustNewID("an_observer"),
+		component.MustNewIDWithName("another_observer", "with_name"),
 	}, creatorCfg.WatchObservers)
 
 	receiverTemplate, err := dCfg.receiverCreatorReceiversConfig(correlations)

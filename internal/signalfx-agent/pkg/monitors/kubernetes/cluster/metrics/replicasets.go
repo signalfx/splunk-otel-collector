@@ -19,7 +19,7 @@ func datapointsForReplicaSet(rs *appsv1.ReplicaSet) []*datapoint.Datapoint {
 		"kubernetes_name":      rs.Name,
 	}
 
-	if rs.Spec.Replicas == nil { //|| rs.Status.AvailableReplicas == nil {
+	if rs.Spec.Replicas == nil { // || rs.Status.AvailableReplicas == nil {
 		return nil
 	}
 	return makeReplicaDPs("replica_set", dimensions,

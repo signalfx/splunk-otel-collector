@@ -11,7 +11,7 @@ on:
       - '.trivyignore'
 
 env:
-  GO_VERSION: '1.20.10'
+  GO_VERSION: '1.21.5'
 
 concurrency:
   group: vuln-scans-${{ github.event.pull_request.number || github.ref }}
@@ -24,7 +24,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run trivy filesystem scan
-        uses: aquasecurity/trivy-action@0.16.1
+        uses: aquasecurity/trivy-action@0.18.0
         with:
           scan-type: 'fs'
           scan-ref: '.'
@@ -58,7 +58,7 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         id: bundle-cache
         with:
           path: .cache/buildx/agent-bundle-${{ matrix.ARCH }}
@@ -76,7 +76,7 @@ jobs:
           DOCKER_BUILDKIT: '1'
           BUNDLE_CACHE_HIT: "${{ steps.bundle-cache.outputs.cache-hit }}"
       - run: mkdir -p dist && docker save -o dist/image.tar otelcol:latest
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: otelcol-${{ matrix.ARCH }}
           path: ./dist
@@ -96,13 +96,13 @@ jobs:
         with:
           platforms: ${{ matrix.ARCH }}
           image: tonistiigi/binfmt:qemu-v7.0.0
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: otelcol-${{ matrix.ARCH }}
           path: ./dist
       - run: docker load -i ./dist/image.tar
       - name: Run trivy image scan
-        uses: aquasecurity/trivy-action@0.16.1
+        uses: aquasecurity/trivy-action@0.18.0
         with:
           scan-type: 'image'
           image-ref: 'otelcol:latest'
@@ -127,7 +127,7 @@ jobs:
         with:
           platforms: ${{ matrix.ARCH }}
           image: tonistiigi/binfmt:qemu-v7.0.0
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: otelcol-${{ matrix.ARCH }}
           path: ./dist
@@ -139,3 +139,45 @@ jobs:
           add-cpes-if-none: true
           output-format: "table"
           image: "otelcol:latest"
+
+  snyk-fs-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/golang@master
+        continue-on-error: true # To make sure that SARIF upload gets called
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: code test
+          args: --severity-threshold=high --sarif-file-output=snyk.sarif
+      - name: Upload result to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: snyk.sarif
+
+  snyk-docker-scan:
+    runs-on: ubuntu-latest
+    needs: docker-otelcol
+    strategy:
+      matrix:
+        ARCH: [ "amd64", "arm64" ]
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: otelcol-${{ matrix.ARCH }}
+          path: ./dist
+      - run: docker load -i ./dist/image.tar
+      - uses: snyk/actions/docker@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          image: "otelcol:latest"
+          args: --file=cmd/otelcol/Dockerfile --severity-threshold=high --sarif-file-output=snyk.sarif
+      - name: Upload result to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: snyk.sarif

@@ -15,7 +15,6 @@
 package testutils
 
 import (
-	"bufio"
 	"context"
 	"fmt"
 	"os"
@@ -79,7 +78,7 @@ func NewTestcase(t testing.TB, opts ...TestOption) *Testcase {
 
 	tc.setOTLPEndpoint(opts)
 	var err error
-	tc.OTLPReceiverSink, err = NewOTLPReceiverSink().WithEndpoint(tc.OTLPEndpoint).WithLogger(tc.Logger).Build()
+	tc.OTLPReceiverSink, err = NewOTLPReceiverSink().WithEndpoint(tc.OTLPEndpoint).Build()
 	require.NoError(tc, err)
 	require.NoError(tc, tc.OTLPReceiverSink.Start())
 
@@ -162,6 +161,7 @@ func (t *Testcase) SplunkOtelCollector(configFilename string, builders ...Collec
 // If SPLUNK_OTEL_COLLECTOR_IMAGE isn't set, tests that call this will be skipped.
 func (t *Testcase) SplunkOtelCollectorContainer(configFilename string, builders ...CollectorBuilder) (collector *CollectorContainer, shutdown func()) {
 	cc := NewCollectorContainer().WithImage(GetCollectorImageOrSkipTest(t))
+	// TODO why does darwin need special business logic?  Is this a proxy to say "is local dev"? Regardless need why comment
 	if runtime.GOOS == "darwin" {
 		port := strings.Split(t.OTLPEndpointForCollector, ":")[1]
 		t.OTLPEndpointForCollector = fmt.Sprintf("host.docker.internal:%s", port)
@@ -212,7 +212,6 @@ func (t *Testcase) newCollector(initial Collector, configFilename string, builde
 		split := strings.Split(s, "=")
 		if strings.HasPrefix(strings.ToUpper(split[0]), "SPLUNK_") {
 			splunkEnv[split[0]] = split[1]
-
 		}
 	}
 	collector = collector.WithEnv(splunkEnv)
@@ -289,13 +288,4 @@ func AssertAllMetricsReceived(
 	defer shutdown()
 
 	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
-}
-
-// WaitForKeyboard is a helper for adding breakpoints during test creation
-func WaitForKeyboard(t testing.TB) {
-	tty, err := os.Open("/dev/tty")
-	require.NoError(t, err)
-	reader := bufio.NewReader(tty)
-	fmt.Print("Press ENTER to continue.\n")
-	_, _ = reader.ReadString('\n')
 }

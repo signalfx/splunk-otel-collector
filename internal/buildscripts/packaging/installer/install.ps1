@@ -69,11 +69,11 @@
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -with_fluentd $true
 .PARAMETER with_dotnet_instrumentation
-    (OPTIONAL) Whether to install and configure .NET tracing to forward .NET application traces to the local collector (default: $false)
+    (OPTIONAL) Whether to install and configure the Splunk Distribution of OpenTelemetry .NET to forward .NET application telemetry to the local collector (default: $false).
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -with_dotnet_instrumentation $true
 .PARAMETER deployment_env
-    (OPTIONAL) A system-wide SignalFx "environment" used by .NET instrumentation. Sets the SIGNALFX_ENV environment variable. Ignored if -with_dotnet_instrumentation is false.
+    (OPTIONAL) A system-wide "deployment.environment" set via the environment variable 'OTEL_RESOURCE_ATTRIBUTES' for the whole machine. Ignored if -with_dotnet_instrumentation is false.
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -with_dotnet_instrumentation $true -deployment_env staging
 .PARAMETER bundle_dir
@@ -106,11 +106,28 @@
     If specified, the -collector_version and -stage parameters will be ignored.
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -msi_path "C:\SOME_FOLDER\splunk-otel-collector-1.2.3-amd64.msi"
+.PARAMETER dotnet_psm1_path
+    (OPTIONAL) Specify a local path to a Splunk OpenTelemetry .NET Auto Instrumentation Powershell Module file (.psm1) instead of downloading the package. This module will be used to install the .NET auto instrumentation files. The most current PSM1 file can be downloaded at https://github.com/signalfx/splunk-otel-dotnet/releases
+    .EXAMPLE
+    .\install.ps1 -access_token "ACCESSTOKEN" -dotnet_psm1_path "C:\SOME_FOLDER\Splunk.OTel.DotNet.psm1"
+.PARAMETER dotnet_auto_zip_path
+    (OPTIONAL) Specify a local path to a Splunk OpenTelemetry .NET Auto Instrumentation zip package that will be installed by the dotnet psm1 module instead of downloading the package.  The most current zip file can be downloaded at https://github.com/signalfx/splunk-otel-dotnet/releases
+    .EXAMPLE
+    .\install.ps1 -access_token "ACCESSTOKEN" -dotnet_auto_zip_path "C:\SOME_FOLDER\splunk-otel-dotnet-1.2.3-amd64.zip"
+.PARAMETER force_skip_verify_access_token
+    (OPTIONAL) Forces the skipping the verification check of the Splunk Observability Access Token regardless of what is in the env variable VERIFY_ACCESS_TOKEN.  This is helpful on new installs where access might be an issue or the token isn't created yet.
+    .EXAMPLE
+    .\install.ps1 -access_token "ACCESSTOKEN" -force_skip_verify_access_token $true
 .PARAMETER msi_public_properties
     (OPTIONAL) Specify public MSI properties to be used when installing the Splunk OpenTelemetry Collector MSI package.
     For information about the public MSI properties see https://learn.microsoft.com/en-us/windows/win32/msi/property-reference#configuration-properties
     .EXAMPLE
-    .\install.ps1 -access_token "ACCESSTOKEN" -msi_public_properties "ALLUSERS=1" 
+    .\install.ps1 -access_token "ACCESSTOKEN" -msi_public_properties "ARPCOMMENTS=DO_NOT_UNINSTALL" 
+.PARAMETER config_path
+    (OPTIONAL) Specify a local path to an alternative configuration file for the Splunk OpenTelemetry Collector.
+    If specified, the -mode parameter will be ignored.
+    .EXAMPLE
+    .\install.ps1 -config_path "C:\SOME_FOLDER\my_config.yaml"
 #>
 
 param (
@@ -132,8 +149,12 @@ param (
     [ValidateSet('test','beta','release')][string]$stage = "release",
     [string]$msi_path = "",
     [string]$msi_public_properties = "",
+    [string]$config_path = "",
     [string]$collector_msi_url = "",
     [string]$fluentd_msi_url = "",
+    [string]$dotnet_psm1_path = "",
+    [string]$dotnet_auto_zip_path = "",
+    [bool]$force_skip_verify_access_token = $false,
     [string]$deployment_env = "",
     [bool]$UNIT_TEST = $false
 )
@@ -157,7 +178,6 @@ try {
 $old_config_path = "$program_data_path\config.yaml"
 $agent_config_path = "$program_data_path\agent_config.yaml"
 $gateway_config_path = "$program_data_path\gateway_config.yaml"
-$config_path = ""
 
 try {
     Resolve-Path $env:TEMP 2>&1>$null
@@ -165,8 +185,6 @@ try {
 } catch {
     $tempdir = "\tmp\Splunk\OpenTelemetry Collector"
 }
-
-$regkey = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
 
 $fluentd_msi_name = "td-agent-4.3.2-x64.msi"
 $fluentd_dl_url = "https://s3.amazonaws.com/packages.treasuredata.com/4/windows/$fluentd_msi_name"
@@ -411,13 +429,27 @@ function download_collector_package([string]$collector_version=$collector_versio
 }
 
 # check registry for the agent msi package
-function msi_installed([string]$name="Splunk OpenTelemetry Collector") {
+function msi_installed([string]$name) {
     return (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where { $_.DisplayName -eq $name }) -ne $null
 }
 
 function update_registry([string]$path, [string]$name, [string]$value) {
     echo "Updating $path for $name..."
     Set-ItemProperty -path "$path" -name "$name" -value "$value"
+}
+
+function set_service_environment([string]$service_name, [hashtable]$env_vars) {
+    # Transform the $env_vars to an array of strings so the Set-ItemProperty correctly create the
+    # 'Environment' REG_MULTI_SZ value.
+    [string []] $multi_sz_value = ($env_vars.Keys | ForEach-Object { "$_=$($env_vars[$_])" } | Sort-Object)
+
+    $target_service_reg_key = Join-Path "HKLM:\SYSTEM\CurrentControlSet\Services" $service_name
+    if (Test-Path $target_service_reg_key) {
+        Set-ItemProperty $target_service_reg_key -Name "Environment" -Value $multi_sz_value
+    }
+    else {
+        throw "Invalid service '$service_name'. Registry key '$target_service_reg_key' doesn't exist."
+    }
 }
 
 function install_msi([string]$path) {
@@ -454,7 +486,7 @@ if (!(check_if_admin)) {
 echo 'Checking execution policy'
 check_policy
 
-if (msi_installed) {
+if (msi_installed -name "Splunk OpenTelemetry Collector") {
     throw "The Splunk OpenTelemetry Collector is already installed. Remove or uninstall the Collector and rerun this script."
 }
 
@@ -474,16 +506,23 @@ if ($with_fluentd -And (Test-Path -Path "$fluentd_base_dir\bin\fluentd")) {
 $tempdir = create_temp_dir -tempdir $tempdir
 
 if ($with_dotnet_instrumentation) {
-    echo "Installing SignalFx Instrumentation for .NET ..."
-    $module_name = "Splunk.SignalFx.DotNet.psm1"
-    $download = "https://github.com/signalfx/signalfx-dotnet-tracing/releases/latest/download/Splunk.SignalFx.DotNet.psm1"
-    $dotnet_autoinstr_path = Join-Path $tempdir $module_name
-    echo "Downloading .NET Instrumentation installer ..."
-    Invoke-WebRequest -Uri $download -OutFile $dotnet_autoinstr_path -UseBasicParsing
-    Import-Module $dotnet_autoinstr_path
-    if (Get-IsSignalFxInstalled) {
-        throw "SignalFx Instrumentation for .NET is already installed. Remove or uninstall SignalFx Instrumentation for .NET and rerun this script."
+    if ((msi_installed -name "SignalFx .NET Tracing 64-bit") -Or (msi_installed -name "SignalFx .NET Tracing 32-bit")) {
+        throw "SignalFx .NET Instrumentation is already installed. Stop all instrumented applications and uninstall SignalFx Instrumentation for .NET before running this script again."
     }
+    echo "Downloading Splunk Distribution of OpenTelemetry .NET ..."
+    if ($dotnet_psm1_path -eq "") {
+        $module_name = "Splunk.OTel.DotNet.psm1"
+        $download = "https://github.com/signalfx/splunk-otel-dotnet/releases/latest/download/$module_name"
+        $dotnet_autoinstr_path = Join-Path $tempdir $module_name
+        echo "Downloading .NET Instrumentation installer ..."
+        Invoke-WebRequest -Uri $download -OutFile $dotnet_autoinstr_path -UseBasicParsing
+        Import-Module $dotnet_autoinstr_path
+    } else {
+        $dotnet_autoinstr_path = $dotnet_psm1_path
+        echo "Using Local PSM1 file and ArgumentList values: $dotnet_psm1_path -ArgumentList $dotnet_auto_zip_path"
+        Import-Module $dotnet_autoinstr_path -ArgumentList $dotnet_auto_zip_path
+    }
+    
 }
 
 if ($ingest_url -eq "") {
@@ -510,14 +549,18 @@ if ($bundle_dir -eq "") {
     $bundle_dir = "$installation_path\agent-bundle"
 }
 
-if ("$env:VERIFY_ACCESS_TOKEN" -ne "false") {
-    # verify access token
-    echo 'Verifying Access Token...'
-    if (!(verify_access_token -access_token $access_token -ingest_url $ingest_url -insecure $insecure)) {
-        throw "Access token authentication failed. Verify that your access token is correct."
-    }
-    else {
-        echo '- Verified Access Token'
+if ($force_skip_verify_access_token) {
+    echo 'Skipping Access Token verification'
+} else {   
+    if ("$env:VERIFY_ACCESS_TOKEN" -ne "false") {
+        # verify access token
+        echo 'Verifying Access Token...'
+        if (!(verify_access_token -access_token $access_token -ingest_url $ingest_url -insecure $insecure)) {
+            throw "Access token authentication failed. Verify that your access token is correct."
+        }
+        else {
+            echo '- Verified Access Token'
+        }
     }
 }
 
@@ -566,33 +609,39 @@ if (!(Test-Path -Path "$old_config_path") -And (Test-Path -Path "$installation_p
     Copy-Item "$installation_path\config.yaml" "$old_config_path"
 }
 
-if (($mode -Eq "agent") -And (Test-Path -Path "$agent_config_path")) {
-    $config_path = $agent_config_path
-} elseif (($mode -Eq "gateway") -And (Test-Path -Path "$gateway_config_path")) {
-    $config_path = $gateway_config_path
-}
-
 if ($config_path -Eq "") {
-    if (Test-Path -Path "$old_config_path") {
+    if (($mode -Eq "agent") -And (Test-Path -Path "$agent_config_path")) {
+        $config_path = $agent_config_path
+    } elseif (($mode -Eq "gateway") -And (Test-Path -Path "$gateway_config_path")) {
+        $config_path = $gateway_config_path
+    } elseif (Test-Path -Path "$old_config_path") {
         $config_path = $old_config_path
-    } else {
-        throw "Valid Collector configuration file not found."
     }
 }
 
-update_registry -path "$regkey" -name "SPLUNK_ACCESS_TOKEN" -value "$access_token"
-update_registry -path "$regkey" -name "SPLUNK_API_URL" -value "$api_url"
-update_registry -path "$regkey" -name "SPLUNK_BUNDLE_DIR" -value "$bundle_dir"
-update_registry -path "$regkey" -name "SPLUNK_CONFIG" -value "$config_path"
-update_registry -path "$regkey" -name "SPLUNK_HEC_TOKEN" -value "$hec_token"
-update_registry -path "$regkey" -name "SPLUNK_HEC_URL" -value "$hec_url"
-update_registry -path "$regkey" -name "SPLUNK_INGEST_URL" -value "$ingest_url"
-update_registry -path "$regkey" -name "SPLUNK_MEMORY_TOTAL_MIB" -value "$memory"
-if ($network_interface -Ne "") {
-  update_registry -path "$regkey" -name "SPLUNK_LISTEN_INTERFACE" -value "$network_interface"
+if (!(Test-Path -Path "$config_path")) {
+    throw "Valid Collector configuration file not found at $config_path."
 }
-update_registry -path "$regkey" -name "SPLUNK_REALM" -value "$realm"
-update_registry -path "$regkey" -name "SPLUNK_TRACE_URL" -value "$trace_url"
+
+$collector_env_vars = @{
+    "SPLUNK_ACCESS_TOKEN"     = "$access_token";
+    "SPLUNK_API_URL"          = "$api_url";
+    "SPLUNK_BUNDLE_DIR"       = "$bundle_dir";
+    "SPLUNK_CONFIG"           = "$config_path";
+    "SPLUNK_HEC_TOKEN"        = "$hec_token";
+    "SPLUNK_HEC_URL"          = "$hec_url";
+    "SPLUNK_INGEST_URL"       = "$ingest_url";
+    "SPLUNK_MEMORY_TOTAL_MIB" = "$memory";
+    "SPLUNK_REALM"            = "$realm";
+    "SPLUNK_TRACE_URL"        = "$trace_url";
+}
+
+if ($network_interface -Ne "") {
+    $collector_env_vars.Add("SPLUNK_LISTEN_INTERFACE", "$network_interface")
+}
+
+# set the environment variables for the collector service
+set_service_environment $service_name $collector_env_vars
 
 $message = "
 The Splunk OpenTelemetry Collector for Windows has been successfully installed.
@@ -666,27 +715,51 @@ restarted to apply the changes by restarting the system or running the following
     echo "$message"
 }
 
-if ($with_dotnet_instrumentation) {
-    echo "Installing SignalFx Dotnet Auto Instrumentation..."
-    Install-SignalFxDotnet
+$otel_resource_attributes = ""
+if ($deployment_env -ne "") {
+    echo "Setting deployment environment to $deployment_env"
+    $otel_resource_attributes = "deployment.environment=$deployment_env"
+} else {
+    echo "Deployment environment was not specified. Unless otherwise defined, will appear as 'unknown' in the UI."
+}
 
-    if ($deployment_env -ne "") {
-        echo "Setting SIGNALFX_ENV environment variable to $deployment_env ..."
-        update_registry -path "$regkey" -name "SIGNALFX_ENV" -value "$deployment_env"
-    } else {
-        echo "SIGNALFX_ENV environment variable not set. Unless otherwise defined, will appear as 'unknown' in the UI."
+if ($with_dotnet_instrumentation) {
+    echo "Installing Splunk Distribution of OpenTelemetry .NET..."
+    $currentInstallVersion = Get-OpenTelemetryInstallVersion
+    if ($currentInstallVersion) {
+        throw "The Splunk Distribution of OpenTelemetry .NET is already installed. Stop all instrumented applications and uninstall it and then rerun this script."
     }
 
+    # If the variable dotnet_auto_zip_path is an empty string, then the Installer will download the .NET Instrumentation from the default repository.
+    Install-OpenTelemetryCore -LocalPath $dotnet_auto_zip_path
+
+    $installed_version = Get-OpenTelemetryInstallVersion
+    if ($otel_resource_attributes -ne "") {
+        $otel_resource_attributes += ","
+    }
+    $otel_resource_attributes += "splunk.zc.method=splunk-otel-dotnet-$installed_version"
+}
+
+if ($otel_resource_attributes -ne "") {
+    # The OTEL_RESOURCE_ATTRIBUTES environment variable must be set before restarting IIS.
+    $regkey = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
     try {
-        $dotnet_version = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where { $_.DisplayName -eq "SignalFx .NET Tracing 64-bit" }).DisplayVersion
-        update_registry -path "$regkey" -name "SIGNALFX_GLOBAL_TAGS" "splunk.zc.method:signalfx-dotnet-tracing-${dotnet_version}"
+        update_registry -path "$regkey" -name "OTEL_RESOURCE_ATTRIBUTES" -value "$otel_resource_attributes"
     } catch {
+        Write-Warning "Failed to set OTEL_RESOURCE_ATTRIBUTES environment variable."
         continue
+    }
+}
+
+if ($with_dotnet_instrumentation) {
+    if (service_installed -name "W3SVC") {
+        echo "Registering OpenTelemetry for IIS..."
+        Register-OpenTelemetryForIIS
     }
 
     $message = "
-SignalFx .NET Instrumentation has been installed and configured to forward traces to the Splunk OpenTelemetry Collector.
-By default, .NET Instrumentation will automatically generate traces for applications running on IIS.
+Splunk Distribution of OpenTelemetry for .NET has been installed and configured to forward traces to the Splunk OpenTelemetry Collector.
+By default, the .NET instrumentation will automatically generate telemetry only for .NET applications running on IIS.
 "
     echo "$message"
 }

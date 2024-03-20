@@ -16,7 +16,7 @@ import subprocess
 import winreg
 
 WIN_REGISTRY = winreg.HKEY_LOCAL_MACHINE
-WIN_REGISTRY_KEY = r"SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
+WIN_REGISTRY_KEY = r"SYSTEM\CurrentControlSet\Services\splunk-otel-collector"
 
 
 def run_win_command(cmd, returncodes=None, shell=True, **kwargs):
@@ -38,4 +38,11 @@ def has_choco():
 
 def get_registry_value(name, registry=WIN_REGISTRY, key=WIN_REGISTRY_KEY):
     access_key = winreg.OpenKeyEx(registry, key)
-    return winreg.QueryValueEx(access_key, name)[0]
+    environment, regtype = winreg.QueryValueEx(access_key, "Environment")
+    winreg.CloseKey(access_key)
+    if regtype != winreg.REG_MULTI_SZ:
+        raise TypeError("Registry type is not REG_MULTI_SZ")
+    env_var_line = next((line for line in environment if line.startswith(name)), None)
+    if env_var_line:
+        return env_var_line.split("=", 1)[1]
+    return None

@@ -17,20 +17,13 @@
 package tests
 
 import (
-	"path"
 	"testing"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
 func TestCollectdCouchbaseReceiverProvidesAllMetrics(t *testing.T) {
-	containers := []testutils.Container{
-		testutils.NewContainer().WithContext(
-			path.Join(".", "testdata", "server"),
-		).WithExposedPorts("8091:8091").WithName("couchbase").WillWaitForPorts("8091"),
-	}
-
 	testutils.AssertAllMetricsReceived(
-		t, "all.yaml", "all_metrics_config.yaml", containers, nil,
+		t, "all.yaml", "all_metrics_config.yaml", nil, nil,
 	)
 }

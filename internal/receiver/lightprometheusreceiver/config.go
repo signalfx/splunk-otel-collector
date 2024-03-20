@@ -29,8 +29,8 @@ func createDefaultConfig() component.Config {
 	// lowest job frequency of 1 minute
 	scs.CollectionInterval = time.Second * 30
 	return &Config{
-		ScraperControllerSettings: scs,
-		HTTPClientSettings:        confighttp.NewDefaultHTTPClientSettings(),
+		ControllerConfig: scs,
+		ClientConfig:     confighttp.NewDefaultClientConfig(),
 		ResourceAttributes: ResourceAttributesConfig{
 			ServiceInstanceID: ResourceAttributeConfig{Enabled: true},
 			ServiceName:       ResourceAttributeConfig{Enabled: true},
@@ -56,14 +56,14 @@ type ResourceAttributesConfig struct {
 }
 
 type Config struct {
-	confighttp.HTTPClientSettings           `mapstructure:",squash"`
-	scraperhelper.ScraperControllerSettings `mapstructure:",squash"`
+	confighttp.ClientConfig        `mapstructure:",squash"`
+	scraperhelper.ControllerConfig `mapstructure:",squash"`
 	// ResourceAttributes that added to scraped metrics.
 	ResourceAttributes ResourceAttributesConfig `mapstructure:"resource_attributes"`
 }
 
 func (cfg *Config) Validate() error {
-	if cfg.HTTPClientSettings.Endpoint == "" {
+	if cfg.ClientConfig.Endpoint == "" {
 		return errors.New(`"endpoint" is required`)
 	}
 	return nil

@@ -120,7 +120,7 @@ func (m *Monitor) Shutdown() {
 }
 
 func newDigestClient(publicKey, privateKey string) (*mongodbatlas.Client, error) {
-	//Setup a transport to handle digest
+	// Setup a transport to handle digest
 	transport := digest.NewTransport(publicKey, privateKey)
 
 	client, err := transport.Client()

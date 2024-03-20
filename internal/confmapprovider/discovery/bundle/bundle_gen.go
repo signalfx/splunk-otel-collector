@@ -23,6 +23,8 @@
 //go:generate discoverybundler -r -t bundle.d/extensions/k8s-observer.discovery.yaml.tmpl
 //go:generate discoverybundler -r -c -d ../../../../cmd/otelcol/config/collector/config.d.linux/extensions -t bundle.d/extensions/k8s-observer.discovery.yaml.tmpl
 
+//go:generate discoverybundler -r -t bundle.d/receivers/mysql.discovery.yaml.tmpl
+//go:generate discoverybundler -r -c -d ../../../../cmd/otelcol/config/collector/config.d.linux/receivers -t bundle.d/receivers/mysql.discovery.yaml.tmpl
 //go:generate discoverybundler -r -t bundle.d/receivers/oracledb.discovery.yaml.tmpl
 //go:generate discoverybundler -r -c -d ../../../../cmd/otelcol/config/collector/config.d.linux/receivers -t bundle.d/receivers/oracledb.discovery.yaml.tmpl
 //go:generate discoverybundler -r -t bundle.d/receivers/postgresql.discovery.yaml.tmpl

@@ -235,6 +235,9 @@ func TestHostObserver(t *testing.T) {
 					"address": "",
 					"level":   "none",
 				},
+				"resource": map[string]any{
+					"splunk_autodiscovery": "true",
+				},
 			},
 		},
 		"extensions": map[string]any{
@@ -325,6 +328,8 @@ service:
     metrics:
       address: ""
       level: none
+    resource:
+      splunk_autodiscovery: "true"
 `, stdout, errorContent)
 
 	split := strings.Split(stderr, "\n")

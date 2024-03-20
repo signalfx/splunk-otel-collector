@@ -44,12 +44,12 @@ func TestZookeeperLoadConfig(t *testing.T) {
 
 	expectedSettings := map[string]configsource.Settings{
 		"zookeeper": &Config{
-			SourceSettings: configsource.NewSourceSettings(component.NewID(typeStr)),
+			SourceSettings: configsource.NewSourceSettings(component.MustNewID(typeStr)),
 			Endpoints:      []string{"http://localhost:1234"},
 			Timeout:        time.Second * 10,
 		},
 		"zookeeper/timeout": &Config{
-			SourceSettings: configsource.NewSourceSettings(component.NewIDWithName(typeStr, "timeout")),
+			SourceSettings: configsource.NewSourceSettings(component.MustNewIDWithName(typeStr, "timeout")),
 			Endpoints:      []string{"https://localhost:3010"},
 			Timeout:        time.Second * 8,
 		},

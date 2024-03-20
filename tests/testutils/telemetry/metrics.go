@@ -70,6 +70,7 @@ var supportedMetricTypes = map[MetricType]bool{
 	IntMonotonicCumulativeSum: true, IntMonotonicDeltaSum: true,
 	IntMonotonicUnspecifiedSum: true, IntNonmonotonicCumulativeSum: true,
 	IntNonmonotonicDeltaSum: true, IntNonmonotonicUnspecifiedSum: true,
+	Histogram: true,
 }
 
 // ResourceMetrics is a convenience type for testing helpers and assertions.  Analogous to pdata form, with the exception that
@@ -92,7 +93,7 @@ type ScopeMetrics struct {
 }
 
 // Metric is the metric content, representing both the overall definition and a single datapoint.
-// TODO: Timestamps
+// TODO: Timestamps, additional Histogram fields
 type Metric struct {
 	Value       any             `yaml:"value,omitempty"`
 	Sum         any             `yaml:"sum,omitempty"`

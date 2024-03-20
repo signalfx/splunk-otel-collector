@@ -114,6 +114,9 @@ func testExpectedTracesForHTTPGetRequest(t *testing.T, otlp *testutils.OTLPRecei
 	require.NoError(t, err)
 	err = otlp.AssertAllTracesReceived(t, *expectedResourceTraces, 30*time.Second)
 	if err != nil {
+		t.Log("containers")
+		requireNoErrorExecCommand(t, "docker", "ps", "-a")
+		t.Log("end of containers")
 		t.Log("iis-server logs")
 		requireNoErrorExecCommand(t, "docker", "logs", "iis-server")
 		t.Log("end of iis-server logs")

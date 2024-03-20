@@ -215,6 +215,12 @@ jobs:
         image: quay.io/splunko11ytest/postgres:latest
         ports:
           - "15432:5432"
+      redis_client:
+        image: quay.io/splunko11ytest/redis_client:latest
+      redis_server:
+        image: quay.io/splunko11ytest/redis_server:latest
+        ports:
+          - "6379:6379"
     strategy:
       matrix:
         ARCH: [ "amd64", "arm64" ]

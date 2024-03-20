@@ -113,7 +113,7 @@ func TestConfigSourceResolved(t *testing.T) {
 
 	cp := confmap.NewFromStringMap(originalCfg)
 
-	res, closeFunc, err := ResolveWithConfigSources(context.Background(), cfgSources, nil, cp, func(event *confmap.ChangeEvent) {
+	res, closeFunc, err := ResolveWithConfigSources(context.Background(), cfgSources, nil, cp, func(*confmap.ChangeEvent) {
 		panic("must not be called")
 	})
 	require.NoError(t, err)
@@ -132,7 +132,7 @@ func TestConfigSourceManagerResolveRemoveConfigSourceSection(t *testing.T) {
 		"tstcfgsrc": &TestConfigSource{},
 	}
 
-	res, closeFunc, err := ResolveWithConfigSources(context.Background(), cfgSources, nil, confmap.NewFromStringMap(cfg), func(event *confmap.ChangeEvent) {
+	res, closeFunc, err := ResolveWithConfigSources(context.Background(), cfgSources, nil, confmap.NewFromStringMap(cfg), func(*confmap.ChangeEvent) {
 		panic("must not be called")
 	})
 	require.NoError(t, err)
@@ -172,7 +172,7 @@ func TestConfigSourceManagerResolveErrors(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			res, closeFunc, err := ResolveWithConfigSources(context.Background(), tt.configSourceMap, nil, confmap.NewFromStringMap(tt.config), func(event *confmap.ChangeEvent) {
+			res, closeFunc, err := ResolveWithConfigSources(context.Background(), tt.configSourceMap, nil, confmap.NewFromStringMap(tt.config), func(*confmap.ChangeEvent) {
 				panic("must not be called")
 			})
 			require.Error(t, err)
@@ -208,7 +208,7 @@ map:
 	require.NoError(t, err)
 	expectedCfg := expectedParser.ToStringMap()
 
-	res, closeFunc, err := ResolveWithConfigSources(context.Background(), cfgSources, nil, cp, func(event *confmap.ChangeEvent) {
+	res, closeFunc, err := ResolveWithConfigSources(context.Background(), cfgSources, nil, cp, func(*confmap.ChangeEvent) {
 		panic("must not be called")
 	})
 	require.NoError(t, err)
@@ -236,7 +236,7 @@ func TestConfigSourceManagerArraysAndMaps(t *testing.T) {
 	expectedParser, err := confmaptest.LoadConf(expectedFile)
 	require.NoError(t, err)
 
-	res, closeFunc, err := ResolveWithConfigSources(context.Background(), cfgSources, nil, cp, func(event *confmap.ChangeEvent) {
+	res, closeFunc, err := ResolveWithConfigSources(context.Background(), cfgSources, nil, cp, func(*confmap.ChangeEvent) {
 		panic("must not be called")
 	})
 	require.NoError(t, err)
@@ -287,7 +287,7 @@ func TestConfigSourceManagerParamsHandling(t *testing.T) {
 	expectedParser, err := confmaptest.LoadConf(expectedFile)
 	require.NoError(t, err)
 
-	res, closeFunc, err := ResolveWithConfigSources(context.Background(), map[string]ConfigSource{"tstcfgsrc": &tstCfgSrc}, nil, cp, func(event *confmap.ChangeEvent) {
+	res, closeFunc, err := ResolveWithConfigSources(context.Background(), map[string]ConfigSource{"tstcfgsrc": &tstCfgSrc}, nil, cp, func(*confmap.ChangeEvent) {
 		panic("must not be called")
 	})
 	require.NoError(t, err)
@@ -380,7 +380,7 @@ func TestConfigSourceManagerEnvVarHandling(t *testing.T) {
 	}
 
 	// Intercept "params_key" and create an entry with the params themselves.
-	tstCfgSrc.OnRetrieve = func(ctx context.Context, selector string, paramsConfigMap *confmap.Conf) error {
+	tstCfgSrc.OnRetrieve = func(_ context.Context, selector string, paramsConfigMap *confmap.Conf) error {
 		var val any
 		if paramsConfigMap != nil {
 			val = paramsConfigMap.ToStringMap()
@@ -836,7 +836,7 @@ func (t *TestConfigSource) Retrieve(ctx context.Context, selector string, params
 	if entry.WatchForUpdateCh != nil {
 		doneCh := make(chan struct{})
 		startWatch(entry.WatchForUpdateCh, doneCh, watcher)
-		return confmap.NewRetrieved(entry.Value, confmap.WithRetrievedClose(func(ctx context.Context) error {
+		return confmap.NewRetrieved(entry.Value, confmap.WithRetrievedClose(func(_ context.Context) error {
 			close(doneCh)
 			return nil
 		}))

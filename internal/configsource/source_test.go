@@ -270,7 +270,7 @@ func TestConfigSourceManagerParamsHandling(t *testing.T) {
 	}
 
 	// Set OnRetrieve to check if the parameters were parsed as expectedSettings.
-	tstCfgSrc.OnRetrieve = func(ctx context.Context, selector string, paramsConfigMap *confmap.Conf) error {
+	tstCfgSrc.OnRetrieve = func(_ context.Context, selector string, paramsConfigMap *confmap.Conf) error {
 		var val any
 		if paramsConfigMap != nil {
 			val = paramsConfigMap.ToStringMap()
@@ -399,7 +399,7 @@ func TestConfigSourceManagerEnvVarHandling(t *testing.T) {
 	expectedParser, err := confmaptest.LoadConf(expectedFile)
 	require.NoError(t, err)
 
-	res, closeFunc, err := ResolveWithConfigSources(context.Background(), map[string]ConfigSource{"tstcfgsrc": &tstCfgSrc}, nil, cp, func(event *confmap.ChangeEvent) {
+	res, closeFunc, err := ResolveWithConfigSources(context.Background(), map[string]ConfigSource{"tstcfgsrc": &tstCfgSrc}, nil, cp, func(_ *confmap.ChangeEvent) {
 		panic("must not be called")
 	})
 	require.NoError(t, err)
@@ -541,7 +541,7 @@ func TestManagerExpandString(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, closeFunc, err := resolveStringValue(ctx, cfgSources, nil, tt.input, func(event *confmap.ChangeEvent) {
+			got, closeFunc, err := resolveStringValue(ctx, cfgSources, nil, tt.input, func(_ *confmap.ChangeEvent) {
 				panic("must not be called")
 			})
 			if tt.wantErr != nil {
@@ -921,7 +921,7 @@ func TestConfigSourceConfmapProviderFallbackResolved(t *testing.T) {
 
 	res, closeFunc, err := ResolveWithConfigSources(
 		context.Background(), configSources, confmapProviders, cp,
-		func(event *confmap.ChangeEvent) {
+		func(_ *confmap.ChangeEvent) {
 			t.Fatal("shouldn't be called")
 		},
 	)
@@ -952,7 +952,7 @@ func TestConfigSourceConfmapProviderFallbackWithError(t *testing.T) {
 
 	res, closeFunc, err := ResolveWithConfigSources(
 		context.Background(), configSources, confmapProviders, cfg,
-		func(event *confmap.ChangeEvent) {
+		func(_ *confmap.ChangeEvent) {
 			t.Fatal("shouldn't be called")
 		},
 	)

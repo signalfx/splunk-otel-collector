@@ -23,7 +23,7 @@ import (
 )
 
 func newMockConnectFunc(conn zkConnection) connectFunc {
-	return func(ctx context.Context) (zkConnection, error) {
+	return func(_ context.Context) (zkConnection, error) {
 		return conn, nil
 	}
 }

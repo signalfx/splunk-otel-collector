@@ -247,9 +247,7 @@ jobs:
       - name: Run Integration Test
         run: |
           set -o pipefail
-          DATETIME=$(date +'%Y%m%d-%H%M%S')
-          echo $DATETIME >> $GITHUB_ENV
-          make integration-test 2>&1 | tee integration-test-${{ github.run_id }}-${{ github.job }}-$DATETIME.out
+          make integration-test 2>&1 | tee ${{ github.job }}-${{ github.run_id }}.out
           exit_status=${PIPESTATUS[0]}
           echo "Exit status: $exit_status"
           exit $exit_status
@@ -260,6 +258,6 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: integration-test-${{ github.run_id }}-${{ github.job }}-${{ env.DATETIME }}.out
-          path: integration-test-${{ github.run_id }}-${{ github.job }}-${{ env.DATETIME }}.out
+          name: ${{ github.job }}-${{ github.run_id }}.out
+          path: ${{ github.job }}-${{ github.run_id }}.out
           retention-days: 5

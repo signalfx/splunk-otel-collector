@@ -244,6 +244,20 @@ jobs:
           image: tonistiigi/binfmt:qemu-v7.0.0
       - run: docker load -i ./bin/image.tar
       - run: chmod a+x ./bin/*
-      - run: make integration-test
+      - name: Run Integration Test
+        run: |
+          set -o pipefail
+          make integration-test 2>&1 | tee ${{ github.job }}-${{ github.run_id }}.out
+          exit_status=${PIPESTATUS[0]}
+          echo "Exit status: $exit_status"
+          exit $exit_status
         env:
           SPLUNK_OTEL_COLLECTOR_IMAGE: 'otelcol:latest'
+      # The Integration Test output is extremely large so we upload it as an artifact
+      - name: Upload Integration Test Output as Artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ${{ github.job }}-${{ github.run_id }}.out
+          path: ${{ github.job }}-${{ github.run_id }}.out
+          retention-days: 5

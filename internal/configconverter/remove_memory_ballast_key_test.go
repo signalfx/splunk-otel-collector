@@ -33,11 +33,44 @@ func TestRemoveMemoryBallastConverter_Empty(t *testing.T) {
 	assert.Equal(t, map[string]interface{}{"foo": "bar"}, conf.ToStringMap())
 }
 
-func TestRemoveMemoryBallastConverter(t *testing.T) {
-	cfgMap, err := confmaptest.LoadConf("testdata/memory_ballast.yaml")
+func TestRemoveMemoryBallastConverter_With_Memory_Ballast(t *testing.T) {
+	cfgMap, err := confmaptest.LoadConf("testdata/with_memory_ballast.yaml")
 	require.NoError(t, err)
 	require.NotNil(t, cfgMap)
 	pmp := RemoveMemoryBallastKey{}
 	assert.NoError(t, pmp.Convert(context.Background(), cfgMap))
-	assert.Equal(t, map[string]interface{}{"service": map[string]interface{}{"extensions": []interface{}{"health_check", "http_forwarder", "zpages", "smartagent"}}}, cfgMap.ToStringMap())
+	cfgMapExpected, err := confmaptest.LoadConf("testdata/with_memory_ballast_config_expected.yaml")
+	require.NoError(t, err)
+	assert.Equal(t, cfgMapExpected.ToStringMap(), cfgMap.ToStringMap())
+}
+
+func TestMemoryBallastConverter_Without_Memory_Ballast(t *testing.T) {
+	cfgMap, err := confmaptest.LoadConf("testdata/without_memory_ballast_config.yaml")
+	require.NoError(t, err)
+	require.NotNil(t, cfgMap)
+	pmp := RemoveMemoryBallastKey{}
+	assert.NoError(t, pmp.Convert(context.Background(), cfgMap))
+	assert.Equal(t, cfgMap.ToStringMap(), cfgMap.ToStringMap())
+}
+
+func TestRemoveMemoryBallastStrElementFromSlice(t *testing.T) {
+	originalSlice := []interface{}{"foo", "bar", "memory_ballast", "item2"}
+	actual := removeMemoryBallastStrElementFromSlice(originalSlice)
+	expected := []interface{}{"foo", "bar", "item2"}
+	assert.Equal(t, actual, expected)
+
+	originalSlice1 := []interface{}{"foo", "bar", "foobar", "foobar1"}
+	actual = removeMemoryBallastStrElementFromSlice(originalSlice1)
+	assert.Equal(t, actual, originalSlice1)
+}
+
+func TestRemoveMemoryBallastConverter_With_Only_MemoryBallast_Value(t *testing.T) {
+	cfgMap, err := confmaptest.LoadConf("testdata/with_memory_ballast_only.yaml")
+	require.NoError(t, err)
+	require.NotNil(t, cfgMap)
+	pmp := RemoveMemoryBallastKey{}
+	assert.NoError(t, pmp.Convert(context.Background(), cfgMap))
+	cfgMapExpected, err := confmaptest.LoadConf("testdata/with_memory_ballast_only_expected.yaml")
+	require.NoError(t, err)
+	assert.Equal(t, cfgMapExpected.ToStringMap(), cfgMap.ToStringMap())
 }

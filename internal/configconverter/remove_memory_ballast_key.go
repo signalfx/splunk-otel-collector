@@ -27,7 +27,7 @@ import (
 // extension config if it exists.
 type RemoveMemoryBallastKey struct{}
 
-func removeMemoryBallast(strList []interface{}) []interface{} {
+func removeMemoryBallastStrElementFromSlice(strList []interface{}) []interface{} {
 	ret := make([]interface{}, 0)
 	for i, v := range strList {
 		if v == "memory_ballast" {
@@ -35,7 +35,7 @@ func removeMemoryBallast(strList []interface{}) []interface{} {
 			return append(ret, strList[i+1:]...)
 		}
 	}
-	return ret
+	return strList
 }
 
 func (RemoveMemoryBallastKey) Convert(_ context.Context, cfgMap *confmap.Conf) error {
@@ -52,21 +52,17 @@ func (RemoveMemoryBallastKey) Convert(_ context.Context, cfgMap *confmap.Conf) e
 	for _, k := range cfgMap.AllKeys() {
 		if firstRegExp.MatchString(k) {
 			log.Println("[WARNING]  `memory_ballast` parameter in extensions is deprecated. Please remove it from your configuration.")
-		} else {
-			out[k] = cfgMap.Get(k)
-			if secondRegExp.MatchString(k) {
-				temp := out[k]
-				switch temp := temp.(type) {
-				default:
-					continue
-				case []interface{}:
-					ret := removeMemoryBallast(temp)
-					if len(ret) > 0 {
-						out[k] = ret
-					}
-				}
-			}
+			continue
 		}
+		if secondRegExp.MatchString(k) {
+			out[k] = cfgMap.Get(k)
+			if extSlice, ok := out[k].([]any); ok {
+				ret := removeMemoryBallastStrElementFromSlice(extSlice)
+				out[k] = ret
+			}
+			continue
+		}
+		out[k] = cfgMap.Get(k)
 	}
 	*cfgMap = *confmap.NewFromStringMap(out)
 	return nil

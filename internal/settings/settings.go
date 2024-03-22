@@ -58,7 +58,7 @@ const (
 	DefaultGatewayConfig           = "/etc/otel/collector/gateway_config.yaml"
 	DefaultOTLPLinuxConfig         = "/etc/otel/collector/otlp_config_linux.yaml"
 	DefaultConfigDir               = "/etc/otel/collector/config.d"
-	DefaultMemoryBallastPercentage = 10
+	DefaultMemoryBallastPercentage = 33
 	DefaultMemoryLimitPercentage   = 90
 	DefaultMemoryTotalMiB          = 512
 	DefaultListenInterface         = "0.0.0.0"
@@ -524,14 +524,14 @@ func envVarAsInt(env string) int {
 }
 
 // Validate and set the memory ballast.
-// Note this will eventually be removed and here only for backwardcompatibility. Softlimit/GOMemlimit sets memory limit.
+// Note this will eventually be removed and here only for backward compatibility. Softlimit/GOMemlimit sets memory limit.
 func setMemoryBallast(memTotalSizeMiB int) int {
 	ballastSize := memTotalSizeMiB * DefaultMemoryBallastPercentage / 100
 	// Check if the memory ballast is specified via the env var, if so, validate and set properly.
 	if os.Getenv(BallastEnvVar) != "" {
 		ballastSize = envVarAsInt(BallastEnvVar)
-		if 10 > ballastSize {
-			log.Fatalf("Expected a number greater than 10 for %s env variable but got %d", BallastEnvVar, ballastSize)
+		if 33 > ballastSize {
+			log.Fatalf("Expected a number greater than 33 for %s env variable but got %d", BallastEnvVar, ballastSize)
 		}
 	}
 	_ = os.Setenv(BallastEnvVar, strconv.Itoa(ballastSize))

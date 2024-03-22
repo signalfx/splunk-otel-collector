@@ -612,12 +612,12 @@ func TestCheckRuntimeParams_MemTotal(t *testing.T) {
 func TestCheckRuntimeParams_Limit(t *testing.T) {
 	t.Cleanup(setRequiredEnvVars(t))
 	require.NoError(t, os.Setenv(ConfigEnvVar, localGatewayConfig))
-	require.NoError(t, os.Setenv(MemLimitMiBEnvVar, "250"))
+	require.NoError(t, os.Setenv(MemLimitMiBEnvVar, "337"))
 
 	settings, err := New([]string{})
 	require.NoError(t, err)
 	require.NotNil(t, settings)
-	require.Equal(t, "250", os.Getenv(MemLimitMiBEnvVar))
+	require.Equal(t, "337", os.Getenv(MemLimitMiBEnvVar))
 }
 
 func TestDefaultDiscoveryConfigDir(t *testing.T) {

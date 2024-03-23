@@ -253,6 +253,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatautil v0.96.1-0.20240322214757-420bdba2c55e // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/azure v0.96.1-0.20240322214757-420bdba2c55e // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus v0.96.1-0.20240322214757-420bdba2c55e // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/apachereceiver v0.96.1-0.20240322214757-420bdba2c55e // indirect
 	github.com/opencontainers/runc v1.1.12 // indirect
 	github.com/opencontainers/runtime-spec v1.0.3-0.20220909204839-494a5a6aca78 // indirect
 	github.com/opencontainers/selinux v1.10.1 // indirect

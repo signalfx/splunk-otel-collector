@@ -42,6 +42,7 @@ $expected_svc_env_vars = @{
   "SPLUNK_CONFIG"           = "${env:PROGRAMDATA}\Splunk\OpenTelemetry Collector\${mode}_config.yaml";
   "SPLUNK_ACCESS_TOKEN"     = "$access_token";
   "SPLUNK_REALM"            = "$realm";
+  "SPLUNK_API_URL"          = "$api_url";	
   "SPLUNK_INGEST_URL"       = "$ingest_url";
   "SPLUNK_TRACE_URL"        = "${ingest_url}/v2/trace";
   "SPLUNK_HEC_URL"          = "${ingest_url}/v1/log";
@@ -74,8 +75,6 @@ if ("$with_fluentd" -eq "true") {
         write-host "fluentdwinsvc service is not running."
     }
 }
-
-$api_url = "https://api.${realm}.signalfx.com"
 
 if ($with_msi_uninstall_comments -ne "") {
     $uninstallProperties = Get-ChildItem -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall" |

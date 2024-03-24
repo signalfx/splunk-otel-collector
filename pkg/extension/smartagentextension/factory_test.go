@@ -23,7 +23,7 @@ import (
 func TestFactory(t *testing.T) {
 	f := NewFactory()
 
-	require.EqualValues(t, typeStr, f.Type())
+	require.EqualValues(t, typeStr, f.Type().String())
 
 	cfg := f.CreateDefaultConfig()
 	config, ok := cfg.(*Config)

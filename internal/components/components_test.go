@@ -25,7 +25,7 @@ import (
 )
 
 func TestDefaultComponents(t *testing.T) {
-	expectedExtensions := []component.Type{
+	expectedExtensions := []string{
 		"basicauth",
 		"ecs_observer",
 		"ecs_task_observer",
@@ -40,7 +40,7 @@ func TestDefaultComponents(t *testing.T) {
 		"memory_ballast",
 		"file_storage",
 	}
-	expectedReceivers := []component.Type{
+	expectedReceivers := []string{
 		"azureeventhub",
 		"carbon",
 		"cloudfoundry",
@@ -88,7 +88,7 @@ func TestDefaultComponents(t *testing.T) {
 		"windowsperfcounters",
 		"zipkin",
 	}
-	expectedProcessors := []component.Type{
+	expectedProcessors := []string{
 		"attributes",
 		"batch",
 		"cumulativetodelta",
@@ -107,7 +107,7 @@ func TestDefaultComponents(t *testing.T) {
 		"timestamp",
 		"transform",
 	}
-	expectedExporters := []component.Type{
+	expectedExporters := []string{
 		"awss3",
 		"debug",
 		"file",
@@ -122,7 +122,7 @@ func TestDefaultComponents(t *testing.T) {
 		"splunk_hec",
 		"httpsink",
 	}
-	expectedConnectors := []component.Type{
+	expectedConnectors := []string{
 		"count",
 		"routing",
 		"spanmetrics",
@@ -135,40 +135,40 @@ func TestDefaultComponents(t *testing.T) {
 	exts := factories.Extensions
 	assert.Len(t, exts, len(expectedExtensions))
 	for _, k := range expectedExtensions {
-		v, ok := exts[k]
+		v, ok := exts[component.MustNewType(k)]
 		assert.True(t, ok)
-		assert.Equal(t, k, v.Type())
+		assert.Equal(t, k, v.Type().String())
 	}
 
 	recvs := factories.Receivers
 	assert.Len(t, recvs, len(expectedReceivers))
 	for _, k := range expectedReceivers {
-		v, ok := recvs[k]
+		v, ok := recvs[component.MustNewType(k)]
 		require.True(t, ok)
-		assert.Equal(t, k, v.Type())
+		assert.Equal(t, k, v.Type().String())
 	}
 
 	procs := factories.Processors
 	assert.Len(t, procs, len(expectedProcessors))
 	for _, k := range expectedProcessors {
-		v, ok := procs[k]
+		v, ok := procs[component.MustNewType(k)]
 		require.True(t, ok, fmt.Sprintf("Missing expected processor %s", k))
-		assert.Equal(t, k, v.Type())
+		assert.Equal(t, k, v.Type().String())
 	}
 
 	exps := factories.Exporters
 	assert.Len(t, exps, len(expectedExporters))
 	for _, k := range expectedExporters {
-		v, ok := exps[k]
+		v, ok := exps[component.MustNewType(k)]
 		require.True(t, ok)
-		assert.Equal(t, k, v.Type())
+		assert.Equal(t, k, v.Type().String())
 	}
 
 	conns := factories.Connectors
 	assert.Len(t, conns, len(expectedConnectors))
 	for _, k := range expectedConnectors {
-		v, ok := conns[k]
+		v, ok := conns[component.MustNewType(k)]
 		require.True(t, ok, fmt.Sprintf("Missing expected connector %s", k))
-		assert.Equal(t, k, v.Type())
+		assert.Equal(t, k, v.Type().String())
 	}
 }

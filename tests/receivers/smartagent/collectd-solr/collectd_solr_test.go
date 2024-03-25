@@ -51,6 +51,7 @@ func TestCollectdSolrReceiverProvidesAllMetrics(t *testing.T) {
 			"gauge.solr.jvm_total_memory_used",
 			"gauge.solr.jvm_memory_pools_Metaspace_usage",
 		),
+		pmetrictest.IgnoreResourceAttributeValue("node"),
 	)
 }
 

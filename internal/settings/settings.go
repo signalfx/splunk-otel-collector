@@ -37,6 +37,7 @@ import (
 
 const (
 	APIURLEnvVar              = "SPLUNK_API_URL"
+	BallastEnvVar             = "SPLUNK_BALLAST_SIZE_MIB"
 	ConfigEnvVar              = "SPLUNK_CONFIG"
 	ConfigDirEnvVar           = "SPLUNK_CONFIG_DIR"
 	ConfigServerEnabledEnvVar = "SPLUNK_DEBUG_CONFIG_SERVER"
@@ -57,7 +58,7 @@ const (
 	DefaultGatewayConfig           = "/etc/otel/collector/gateway_config.yaml"
 	DefaultOTLPLinuxConfig         = "/etc/otel/collector/otlp_config_linux.yaml"
 	DefaultConfigDir               = "/etc/otel/collector/config.d"
-	DefaultMemoryBallastPercentage = 33
+	DefaultMemoryBallastPercentage = 10
 	DefaultMemoryLimitPercentage   = 90
 	DefaultMemoryTotalMiB          = 512
 	DefaultListenInterface         = "0.0.0.0"
@@ -370,11 +371,16 @@ func checkRuntimeParams(settings *Settings) error {
 		}
 	}
 
-	_, err := setMemoryLimit(memTotalSize)
+	ballastSize := setMemoryBallast(memTotalSize)
+	memLimit, err := setMemoryLimit(memTotalSize)
 	if err != nil {
 		return err
 	}
 
+	// Validate memoryLimit and memoryBallast are sane
+	if 2*ballastSize > memLimit {
+		return fmt.Errorf("memory limit (%d) is less than 2x ballast (%d). Increase memory limit or decrease ballast size", memLimit, ballastSize)
+	}
 	if _, ok := os.LookupEnv(GoMemLimitEnvVar); !ok {
 		setSoftMemoryLimit(memTotalSize)
 	}
@@ -515,6 +521,21 @@ func envVarAsInt(env string) int {
 		log.Fatalf("Expected a number in %s env variable but got %s", env, envVal)
 	}
 	return val
+}
+
+// Validate and set the memory ballast.
+// Note this will eventually be removed and here only for backwardcompatibility. Softlimit/GOMemlimit sets memory limit.
+func setMemoryBallast(memTotalSizeMiB int) int {
+	ballastSize := memTotalSizeMiB * DefaultMemoryBallastPercentage / 100
+	// Check if the memory ballast is specified via the env var, if so, validate and set properly.
+	if os.Getenv(BallastEnvVar) != "" {
+		ballastSize = envVarAsInt(BallastEnvVar)
+		if 10 > ballastSize {
+			log.Fatalf("Expected a number greater than 10 for %s env variable but got %d", BallastEnvVar, ballastSize)
+		}
+	}
+	_ = os.Setenv(BallastEnvVar, strconv.Itoa(ballastSize))
+	return ballastSize
 }
 
 // Check if the GOMEMLIMIT is specified via the env var, if not set the soft memory limit to 90% of the MemLimitMiBEnvVar

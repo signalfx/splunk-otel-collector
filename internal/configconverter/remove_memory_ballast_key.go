@@ -27,23 +27,45 @@ import (
 // extension config if it exists.
 type RemoveMemoryBallastKey struct{}
 
+func removeMemoryBallast(strList []interface{}) []interface{} {
+	ret := make([]interface{}, 0)
+	for i, v := range strList {
+		if v == "memory_ballast" {
+			ret = append(ret, strList[:i]...)
+			return append(ret, strList[i+1:]...)
+		}
+	}
+	return ret
+}
+
 func (RemoveMemoryBallastKey) Convert(_ context.Context, cfgMap *confmap.Conf) error {
 	if cfgMap == nil {
 		return fmt.Errorf("cannot RemoveMemoryBallastKey on nil *confmap.Conf")
 	}
 
-	//const expr = "extensions::memory_ballast(/\\w+)?::size_mib"
-	const expr1 = "extensions::memory_ballast"
-	memoryBallastKeyRegexp := regexp.MustCompile(expr1)
+	const firstExp = "extensions::memory_ballast.*"
+	firstRegExp := regexp.MustCompile(firstExp)
+	const secondExp = "service::extensions"
+	secondRegExp := regexp.MustCompile(secondExp)
 
 	out := map[string]any{}
 	for _, k := range cfgMap.AllKeys() {
-		if memoryBallastKeyRegexp.MatchString(k) {
-			log.Println("[WARNING]  `memory_ballast` parameter in extension is " +
-				"deprecated/removed. Please update the config according to the guideline: " +
-				"https://github.com/signalfx/splunk-otel-collector#from-0340-to-0350.")
+		if firstRegExp.MatchString(k) {
+			log.Println("[WARNING]  `memory_ballast` parameter in extensions is deprecated. Please remove it from your configuration.")
 		} else {
 			out[k] = cfgMap.Get(k)
+			if secondRegExp.MatchString(k) {
+				temp := out[k]
+				switch temp := temp.(type) {
+				default:
+					continue
+				case []interface{}:
+					ret := removeMemoryBallast(temp)
+					if len(ret) > 0 {
+						out[k] = ret
+					}
+				}
+			}
 		}
 	}
 	*cfgMap = *confmap.NewFromStringMap(out)

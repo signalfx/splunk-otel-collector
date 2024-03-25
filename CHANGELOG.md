@@ -6,7 +6,7 @@
 
 ### 💡 Enhancements 💡
 
-- (Splunk) 'memory_ballast` has been removed. If GOMEMLIMIT env var is not used a 90% of total memory limit is set by default. 
+- (Splunk) 'memory_ballast` has been removed. If GOMEMLIMIT env var is not set, then 90% of the total available memory limit is set by default. 
 
 ### 🛑 Breaking changes 🛑
 

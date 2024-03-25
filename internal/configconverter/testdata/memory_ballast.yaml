@@ -1,0 +1,5 @@
+extensions:
+  memory_ballast:
+    size_mib: 120
+service:
+  extensions: [health_check, http_forwarder, zpages, memory_ballast, smartagent]

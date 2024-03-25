@@ -37,6 +37,7 @@ func TestDefaultComponents(t *testing.T) {
 		"pprof",
 		"smartagent",
 		"zpages",
+		"memory_ballast",
 		"file_storage",
 	}
 	expectedReceivers := []string{

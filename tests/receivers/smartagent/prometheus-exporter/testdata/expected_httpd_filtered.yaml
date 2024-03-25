@@ -1,0 +1,667 @@
+resourceMetrics:
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - gauge:
+              dataPoints:
+                - asDouble: 7.449418022755001e+06
+                  attributes:
+                    - key: resource_name
+                      value:
+                        stringValue: default
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                  timeUnixNano: "1000000"
+            name: istio_agent_cert_expiry_seconds
+          - name: istio_agent_go_gc_duration_seconds
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 3.420650096
+                  attributes:
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - gauge:
+              dataPoints:
+                - asDouble: 7.6654e-05
+                  attributes:
+                    - key: quantile
+                      value:
+                        stringValue: "0.000000"
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                  timeUnixNano: "1000000"
+            name: istio_agent_go_gc_duration_seconds_quantile
+          - gauge:
+              dataPoints:
+                - asDouble: 0.000134994
+                  attributes:
+                    - key: quantile
+                      value:
+                        stringValue: "0.250000"
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                  timeUnixNano: "1000000"
+            name: istio_agent_go_gc_duration_seconds_quantile
+          - gauge:
+              dataPoints:
+                - asDouble: 0.000204339
+                  attributes:
+                    - key: quantile
+                      value:
+                        stringValue: "0.500000"
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                  timeUnixNano: "1000000"
+            name: istio_agent_go_gc_duration_seconds_quantile
+          - gauge:
+              dataPoints:
+                - asDouble: 0.000471661
+                  attributes:
+                    - key: quantile
+                      value:
+                        stringValue: "0.750000"
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                  timeUnixNano: "1000000"
+            name: istio_agent_go_gc_duration_seconds_quantile
+          - gauge:
+              dataPoints:
+                - asDouble: 0.097528526
+                  attributes:
+                    - key: quantile
+                      value:
+                        stringValue: "1.000000"
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                  timeUnixNano: "1000000"
+            name: istio_agent_go_gc_duration_seconds_quantile
+          - name: istio_agent_go_gc_cycles_automatic_gc_cycles_total
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 5355
+                  attributes:
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - name: istio_requests_total
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 1
+                  attributes:
+                    - key: connection_security_policy
+                      value:
+                        stringValue: foo-bar-value
+                    - key: destination_app
+                      value:
+                        stringValue: foo-bar-value
+                    - key: destination_canonical_revision
+                      value:
+                        stringValue: foo-bar-value
+                    - key: destination_canonical_service
+                      value:
+                        stringValue: foo-bar-value
+                    - key: destination_cluster
+                      value:
+                        stringValue: foo-bar-value
+                    - key: destination_principal
+                      value:
+                        stringValue: foo-bar-value
+                    - key: destination_service
+                      value:
+                        stringValue: foo-bar-value
+                    - key: destination_service_name
+                      value:
+                        stringValue: foo-bar-value
+                    - key: destination_service_namespace
+                      value:
+                        stringValue: foo-bar-value
+                    - key: destination_version
+                      value:
+                        stringValue: foo-bar-value
+                    - key: destination_workload
+                      value:
+                        stringValue: foo-bar-value
+                    - key: destination_workload_namespace
+                      value:
+                        stringValue: foo-bar-value
+                    - key: grpc_response_status
+                      value:
+                        stringValue: foo-bar-value
+                    - key: reporter
+                      value:
+                        stringValue: foo-bar-value
+                    - key: request_protocol
+                      value:
+                        stringValue: foo-bar-value
+                    - key: response_code
+                      value:
+                        stringValue: foo-bar-value
+                    - key: response_flags
+                      value:
+                        stringValue: foo-bar-value
+                    - key: source_app
+                      value:
+                        stringValue: foo-bar-value
+                    - key: source_canonical_revision
+                      value:
+                        stringValue: foo-bar-value
+                    - key: source_canonical_service
+                      value:
+                        stringValue: foo-bar-value
+                    - key: source_cluster
+                      value:
+                        stringValue: foo-bar-value
+                    - key: source_principal
+                      value:
+                        stringValue: foo-bar-value
+                    - key: source_version
+                      value:
+                        stringValue: foo-bar-value
+                    - key: source_workload
+                      value:
+                        stringValue: foo-bar-value
+                    - key: source_workload_namespace
+                      value:
+                        stringValue: foo-bar-value
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - name: istio_requests_total
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 2
+                  attributes:
+                    - key: connection_security_policy
+                      value:
+                        stringValue: foo-bar-value
+                    - key: destination_app
+                      value:
+                        stringValue: foo-bar-value
+                    - key: destination_canonical_revision
+                      value:
+                        stringValue: foo-bar-value
+                    - key: destination_canonical_service
+                      value:
+                        stringValue: foo-bar-value
+                    - key: destination_cluster
+                      value:
+                        stringValue: foo-bar-value
+                    - key: destination_principal
+                      value:
+                        stringValue: foo-bar-value
+                    - key: destination_service
+                      value:
+                        stringValue: foo-bar-value
+                    - key: destination_service_name
+                      value:
+                        stringValue: foo-bar-value
+                    - key: destination_service_namespace
+                      value:
+                        stringValue: foo-bar-value
+                    - key: destination_version
+                      value:
+                        stringValue: foo-bar-value
+                    - key: destination_workload
+                      value:
+                        stringValue: foo-bar-value
+                    - key: destination_workload_namespace
+                      value:
+                        stringValue: foo-bar-value
+                    - key: grpc_response_status
+                      value:
+                        stringValue: foo-bar-value
+                    - key: reporter
+                      value:
+                        stringValue: foo-bar-value
+                    - key: request_protocol
+                      value:
+                        stringValue: foo-bar-value
+                    - key: response_code
+                      value:
+                        stringValue: foo-bar-value
+                    - key: response_flags
+                      value:
+                        stringValue: foo-bar-value
+                    - key: source_app
+                      value:
+                        stringValue: foo-bar-value
+                    - key: source_canonical_revision
+                      value:
+                        stringValue: foo-bar-value
+                    - key: source_canonical_service
+                      value:
+                        stringValue: foo-bar-value
+                    - key: source_cluster
+                      value:
+                        stringValue: foo-bar-value
+                    - key: source_principal
+                      value:
+                        stringValue: foo-bar-value
+                    - key: source_version
+                      value:
+                        stringValue: foo-bar-value
+                    - key: source_workload
+                      value:
+                        stringValue: foo-bar-value
+                    - key: source_workload_namespace
+                      value:
+                        stringValue: foo-bar-value
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - name: istio_requests_total
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 1
+                  attributes:
+                    - key: connection_security_policy
+                      value:
+                        stringValue: foo-bar-value
+                    - key: destination_app
+                      value:
+                        stringValue: foo-bar-value
+                    - key: destination_canonical_revision
+                      value:
+                        stringValue: foo-bar-value
+                    - key: destination_canonical_service
+                      value:
+                        stringValue: foo-bar-value
+                    - key: destination_cluster
+                      value:
+                        stringValue: foo-bar-value
+                    - key: destination_principal
+                      value:
+                        stringValue: foo-bar-value
+                    - key: destination_service
+                      value:
+                        stringValue: foo-bar-value
+                    - key: destination_service_name
+                      value:
+                        stringValue: foo-bar-value
+                    - key: destination_service_namespace
+                      value:
+                        stringValue: foo-bar-value
+                    - key: destination_version
+                      value:
+                        stringValue: foo-bar-value
+                    - key: destination_workload
+                      value:
+                        stringValue: foo-bar-value
+                    - key: destination_workload_namespace
+                      value:
+                        stringValue: foo-bar-value
+                    - key: grpc_response_status
+                      value:
+                        stringValue: foo-bar-value
+                    - key: reporter
+                      value:
+                        stringValue: foo-bar-value
+                    - key: request_protocol
+                      value:
+                        stringValue: foo-bar-value
+                    - key: response_code
+                      value:
+                        stringValue: foo-bar-value
+                    - key: response_flags
+                      value:
+                        stringValue: foo-bar-value
+                    - key: source_app
+                      value:
+                        stringValue: foo-bar-value
+                    - key: source_canonical_revision
+                      value:
+                        stringValue: foo-bar-value
+                    - key: source_canonical_service
+                      value:
+                        stringValue: foo-bar-value
+                    - key: source_cluster
+                      value:
+                        stringValue: foo-bar-value
+                    - key: source_principal
+                      value:
+                        stringValue: foo-bar-value
+                    - key: source_version
+                      value:
+                        stringValue: foo-bar-value
+                    - key: source_workload
+                      value:
+                        stringValue: foo-bar-value
+                    - key: source_workload_namespace
+                      value:
+                        stringValue: foo-bar-value
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - name: istio_agent_go_gc_cycles_forced_gc_cycles_total
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - name: istio_agent_go_gc_heap_allocs_by_size_bytes_total_count
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "219116234"
+                  attributes:
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - name: istio_agent_go_gc_heap_allocs_by_size_bytes_total
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 3.10449604208e+11
+                  attributes:
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - name: istio_agent_go_gc_heap_allocs_by_size_bytes_total_bucket
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "69482"
+                  attributes:
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                    - key: upper_bound
+                      value:
+                        stringValue: "9.000000"
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - name: istio_agent_go_gc_heap_allocs_by_size_bytes_total_bucket
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "3331236"
+                  attributes:
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                    - key: upper_bound
+                      value:
+                        stringValue: "25.000000"
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - name: istio_agent_go_gc_heap_allocs_by_size_bytes_total_bucket
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "34379917"
+                  attributes:
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                    - key: upper_bound
+                      value:
+                        stringValue: "65.000000"
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - name: istio_agent_go_gc_heap_allocs_by_size_bytes_total_bucket
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "157242824"
+                  attributes:
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                    - key: upper_bound
+                      value:
+                        stringValue: "145.000000"
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - name: istio_agent_go_gc_heap_allocs_by_size_bytes_total_bucket
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "174101606"
+                  attributes:
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                    - key: upper_bound
+                      value:
+                        stringValue: "321.000000"
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - name: istio_agent_go_gc_heap_allocs_by_size_bytes_total_bucket
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "189289766"
+                  attributes:
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                    - key: upper_bound
+                      value:
+                        stringValue: "705.000000"
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - name: istio_agent_go_gc_heap_allocs_by_size_bytes_total_bucket
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "218787074"
+                  attributes:
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                    - key: upper_bound
+                      value:
+                        stringValue: "1537.000000"
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - name: istio_agent_go_gc_heap_allocs_by_size_bytes_total_bucket
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "218855996"
+                  attributes:
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                    - key: upper_bound
+                      value:
+                        stringValue: "3201.000000"
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - name: istio_agent_go_gc_heap_allocs_by_size_bytes_total_bucket
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "218891888"
+                  attributes:
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                    - key: upper_bound
+                      value:
+                        stringValue: "6529.000000"
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - name: istio_agent_go_gc_heap_allocs_by_size_bytes_total_bucket
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "218921794"
+                  attributes:
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                    - key: upper_bound
+                      value:
+                        stringValue: "13569.000000"
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - name: istio_agent_go_gc_heap_allocs_by_size_bytes_total_bucket
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "219043605"
+                  attributes:
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                    - key: upper_bound
+                      value:
+                        stringValue: "27265.000000"
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - name: istio_agent_go_gc_heap_allocs_by_size_bytes_total_bucket
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "219116234"
+                  attributes:
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                    - key: upper_bound
+                      value:
+                        stringValue: +Inf
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                  timeUnixNano: "1000000"
+            name: istio_agent_endpoint_no_pod
+          - name: istio_agent_go_gc_cycles_total_gc_cycles_total
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 5355
+                  attributes:
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - name: istio_request_bytes_bucket
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: connection_security_policy
+                      value:
+                        stringValue: unknown
+                    - key: destination_app
+                      value:
+                        stringValue: foo-bar-value
+                    - key: destination_canonical_revision
+                      value:
+                        stringValue: foo-bar-value
+                    - key: destination_canonical_service
+                      value:
+                        stringValue: foo-bar-value
+                    - key: destination_cluster
+                      value:
+                        stringValue: foo-bar-value
+                    - key: destination_principal
+                      value:
+                        stringValue: foo-bar-value
+                    - key: destination_service
+                      value:
+                        stringValue: foo-bar-value
+                    - key: destination_service_name
+                      value:
+                        stringValue: foo-bar-value
+                    - key: destination_service_namespace
+                      value:
+                        stringValue: foo-bar-value
+                    - key: destination_version
+                      value:
+                        stringValue: foo-bar-value
+                    - key: destination_workload
+                      value:
+                        stringValue: foo-bar-value
+                    - key: destination_workload_namespace
+                      value:
+                        stringValue: foo-bar-value
+                    - key: grpc_response_status
+                      value:
+                        stringValue: foo-bar-value
+                    - key: reporter
+                      value:
+                        stringValue: foo-bar-value
+                    - key: request_protocol
+                      value:
+                        stringValue: foo-bar-value
+                    - key: response_code
+                      value:
+                        stringValue: "200"
+                    - key: response_flags
+                      value:
+                        stringValue: foo-bar-value
+                    - key: source_app
+                      value:
+                        stringValue: foo-bar-value
+                    - key: source_canonical_revision
+                      value:
+                        stringValue: foo-bar-value
+                    - key: source_canonical_service
+                      value:
+                        stringValue: foo-bar-value
+                    - key: source_cluster
+                      value:
+                        stringValue: foo-bar-value
+                    - key: source_principal
+                      value:
+                        stringValue: foo-bar-value
+                    - key: source_version
+                      value:
+                        stringValue: foo-bar-value
+                    - key: source_workload
+                      value:
+                        stringValue: foo-bar-value
+                    - key: source_workload_namespace
+                      value:
+                        stringValue: foo-bar-value
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                    - key: upper_bound
+                      value:
+                        stringValue: +Inf
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+        scope: {}

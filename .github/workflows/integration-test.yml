@@ -211,6 +211,10 @@ jobs:
         image: quay.io/splunko11ytest/kong:latest
         ports:
           - "18001:8001"
+      oracle:
+        image: quay.io/splunko11ytest/oracle:latest
+        ports:
+          - "1521:1521"
       postgres:
         image: quay.io/splunko11ytest/postgres:latest
         ports:
@@ -225,6 +229,10 @@ jobs:
         image: quay.io/splunko11ytest/solr:latest
         ports:
           - "8983:8983"
+      mysql:
+        image: quay.io/splunko11ytest/mysql:latest
+        ports:
+          - "3306:3306"
     strategy:
       matrix:
         ARCH: [ "amd64", "arm64" ]

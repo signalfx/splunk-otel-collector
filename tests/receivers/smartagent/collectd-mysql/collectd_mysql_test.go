@@ -17,10 +17,8 @@
 package tests
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
-	"io"
 	"strings"
 	"testing"
 	"time"
@@ -39,41 +37,10 @@ const (
 	dbName   = "testdb"
 )
 
-var mysqlServer = testutils.NewContainer().WithImage("mysql:latest").WithEnv(
-	map[string]string{
-		"MYSQL_DATABASE":      dbName,
-		"MYSQL_USER":          user,
-		"MYSQL_PASSWORD":      password,
-		"MYSQL_ROOT_PASSWORD": password,
-	}).WithExposedPorts("3306:3306").WithName("mysql-server").WithNetworks(
-	"mysql",
-).WillWaitForPorts("3306").WillWaitForLogs(
-	"MySQL init process done. Ready for start up.",
-	"ready for connections. Bind-address:",
-)
-
 func TestCollectdMySQLProvidesAllMetrics(t *testing.T) {
 	tc := testutils.NewTestcase(t)
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
-
-	cntrs, shutdown := tc.Containers(mysqlServer)
-	defer shutdown()
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	rc, r, err := cntrs[0].Exec(ctx, []string{"mysql", "-uroot", "-ptestpass", "-e", "grant PROCESS on *.* TO 'testuser'@'%'; flush privileges;"})
-	if r != nil {
-		defer func() {
-			if t.Failed() {
-				out, readErr := io.ReadAll(r)
-				require.NoError(t, readErr)
-				fmt.Printf("mysql:\n%s\n", string(out))
-			}
-		}()
-	}
-	require.NoError(t, err)
-	require.Zero(t, rc)
 
 	cfg := mysql.Config{
 		User:   user,
@@ -111,9 +78,6 @@ func TestCollectdMySQLProvidesAllMetrics(t *testing.T) {
 func TestCollectdIsolatedLogger(t *testing.T) {
 	tc := testutils.NewTestcase(t)
 	defer tc.ShutdownOTLPReceiverSink()
-
-	_, shutdown := tc.Containers(mysqlServer)
-	defer shutdown()
 
 	for _, test := range []struct {
 		config               string

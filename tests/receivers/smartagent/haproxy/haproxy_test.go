@@ -128,7 +128,7 @@ func checkGoldenFile(t *testing.T, configFile string, expectedFilePath string, o
 	})
 
 	expected, err := golden.ReadMetrics(filepath.Join("testdata", expectedFilePath))
-	//require.NoError(t, err)
+	require.NoError(t, err)
 
 	assert.EventuallyWithT(t, func(tt *assert.CollectT) {
 		if len(sink.AllMetrics()) == 0 {

@@ -98,7 +98,7 @@ func (cfg *Config) Validate() error {
 	var err error
 	for rName, rEntry := range cfg.Receivers {
 		name := rName.String()
-		if rName.Type() == "receiver_creator" {
+		if rName.Type() == component.MustNewType("receiver_creator") {
 			err = multierr.Combine(err, fmt.Errorf("receiver %q validation failure: receiver cannot be a receiver_creator", name))
 			continue
 		}
@@ -209,7 +209,7 @@ func (cfg *Config) receiverCreatorReceiversConfig(correlations correlationStore)
 			resourceAttributes[k] = v
 		}
 		resourceAttributes[discovery.ReceiverNameAttr] = receiverID.Name()
-		resourceAttributes[discovery.ReceiverTypeAttr] = string(receiverID.Type())
+		resourceAttributes[discovery.ReceiverTypeAttr] = receiverID.Type().String()
 		resourceAttributes[receiverRuleAttr] = rEntry.Rule
 		resourceAttributes[discovery.EndpointIDAttr] = "`id`"
 

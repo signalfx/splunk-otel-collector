@@ -8,9 +8,9 @@ driver:
   provider:
     name: virtualbox
 platforms:
-  - name: "2012"
-    box: devopsgroup-io/windows_server-2012r2-standard-amd64-nocm
-    box_version: 1.67.0
+  - name: "2016"
+    box: cdaf/WindowsServer
+    box_version: 2022.09.01
     cpus: 2
     memory: 4096
     instance_raw_config_args: &vagrant_args
@@ -23,15 +23,9 @@ platforms:
       - "winrm.password = 'vagrant'"
       - "winrm.retry_limit = 50"
       - "winrm.retry_delay = 10"
-  - name: "2016"
-    box: cdaf/WindowsServer
-    box_version: 2022.09.01
-    cpus: 2
-    memory: 4096
-    instance_raw_config_args: *vagrant_args
   - name: "2019"
     box: gusztavvargadr/windows-server-2019-standard
-    box_version: 1809.0.2310
+    box_version: 1809.0.2312
     cpus: 2
     memory: 4096
     instance_raw_config_args: *vagrant_args

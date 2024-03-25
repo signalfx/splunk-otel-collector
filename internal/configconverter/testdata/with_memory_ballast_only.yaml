@@ -1,0 +1,15 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+      http:
+
+extensions:
+  memory_ballast:
+    size_mib: 120
+
+service:
+  extensions: [memory_ballast]
+  pipelines:
+    metrics:
+      receivers: [otlp]

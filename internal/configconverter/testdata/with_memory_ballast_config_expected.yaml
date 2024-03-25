@@ -1,0 +1,11 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+      http:
+
+service:
+  extensions: [health_check, http_forwarder, zpages, smartagent]
+  pipelines:
+    metrics:
+      receivers: [otlp]

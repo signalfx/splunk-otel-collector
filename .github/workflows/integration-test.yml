@@ -221,6 +221,10 @@ jobs:
         image: quay.io/splunko11ytest/redis_server:latest
         ports:
           - "6379:6379"
+      mysql:
+        image: quay.io/splunko11ytest/mysql:latest
+        ports:
+          - "3306:3306"
     strategy:
       matrix:
         ARCH: [ "amd64", "arm64" ]

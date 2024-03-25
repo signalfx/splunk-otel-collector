@@ -225,6 +225,10 @@ jobs:
         image: quay.io/splunko11ytest/redis_server:latest
         ports:
           - "6379:6379"
+      solr:
+        image: quay.io/splunko11ytest/solr:latest
+        ports:
+          - "8983:8983"
       mysql:
         image: quay.io/splunko11ytest/mysql:latest
         ports:

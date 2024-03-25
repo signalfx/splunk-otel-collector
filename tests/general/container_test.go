@@ -18,7 +18,6 @@ package tests
 
 import (
 	"fmt"
-	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -177,13 +176,8 @@ func TestNonDefaultGIDCanAccessJavaInAgentBundle(t *testing.T) {
 func TestNonDefaultGIDCanAccessPythonInAgentBundle(t *testing.T) {
 	testutils.SkipIfNotContainerTest(t)
 	testutils.AssertAllMetricsReceived(t, "solr.yaml", "solr_config.yaml",
-		[]testutils.Container{
-			testutils.NewContainer().WithContext(
-				filepath.Join("..", "receivers", "smartagent", "collectd-solr", "testdata", "server"),
-			).WithExposedPorts("8983:8983").WithName(
-				"solr",
-			).WillWaitForPorts("8983").WillWaitForLogs("Time spent:"),
-		}, []testutils.CollectorBuilder{
+		nil,
+		[]testutils.CollectorBuilder{
 			func(collector testutils.Collector) testutils.Collector {
 				cc := collector.(*testutils.CollectorContainer)
 				cc.Container = cc.Container.WithUser("splunk-otel-collector:234567890")

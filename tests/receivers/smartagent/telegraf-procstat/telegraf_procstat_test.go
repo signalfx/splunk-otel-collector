@@ -17,13 +17,87 @@
 package tests
 
 import (
+	"context"
+	"fmt"
+	"path/filepath"
+	"runtime"
 	"testing"
+	"time"
+
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/golden"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/component/componenttest"
+	"go.opentelemetry.io/collector/consumer/consumertest"
+	"go.opentelemetry.io/collector/receiver/otlpreceiver"
+	"go.opentelemetry.io/collector/receiver/receivertest"
+	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
 func TestTelegrafProcstatReceiverProvidesAllMetrics(t *testing.T) {
-	// collector is monitoring itself so use container for env consistency
-	testutils.SkipIfNotContainerTest(t)
-	testutils.AssertAllMetricsReceived(t, "all.yaml", "all_metrics_config.yaml", nil, nil)
+	checkGoldenFile(t, "all_metrics_config.yaml", "all_expected.yaml",
+		pmetrictest.IgnoreMetricsOrder(),
+		pmetrictest.IgnoreResourceMetricsOrder(),
+		pmetrictest.IgnoreTimestamp(),
+		pmetrictest.IgnoreStartTimestamp(),
+		pmetrictest.IgnoreMetricValues(
+			"procstat.cpu_time_system",
+			"procstat.involuntary_context_switches",
+			"procstat.memory_data",
+			"procstat.memory_rss",
+			"procstat.memory_usage",
+			"procstat.memory_vms",
+			"procstat.num_threads",
+			"procstat.read_count",
+			"procstat.voluntary_context_switches",
+			"procstat.cpu_time_user",
+			"procstat.num_fds",
+			"procstat.write_count",
+		),
+	)
+}
+
+func checkGoldenFile(t *testing.T, configFile string, expectedFilePath string, options ...pmetrictest.CompareMetricsOption) {
+	f := otlpreceiver.NewFactory()
+	port := testutils.GetAvailablePort(t)
+	c := f.CreateDefaultConfig().(*otlpreceiver.Config)
+	c.GRPC.NetAddr.Endpoint = fmt.Sprintf("localhost:%d", port)
+	sink := &consumertest.MetricsSink{}
+	receiver, err := f.CreateMetricsReceiver(context.Background(), receivertest.NewNopCreateSettings(), c, sink)
+	require.NoError(t, err)
+	require.NoError(t, receiver.Start(context.Background(), componenttest.NewNopHost()))
+	t.Cleanup(func() {
+		require.NoError(t, receiver.Shutdown(context.Background()))
+	})
+	logger, _ := zap.NewDevelopment()
+
+	dockerHost := "0.0.0.0"
+	if runtime.GOOS == "darwin" {
+		dockerHost = "host.docker.internal"
+	}
+	p, err := testutils.NewCollectorContainer().
+		WithConfigPath(filepath.Join("testdata", configFile)).
+		WithLogger(logger).
+		WithEnv(map[string]string{"OTLP_ENDPOINT": fmt.Sprintf("%s:%d", dockerHost, port)}).
+		Build()
+	require.NoError(t, err)
+	require.NoError(t, p.Start())
+	t.Cleanup(func() {
+		require.NoError(t, p.Shutdown())
+	})
+
+	expected, err := golden.ReadMetrics(filepath.Join("testdata", expectedFilePath))
+	require.NoError(t, err)
+
+	assert.EventuallyWithT(t, func(tt *assert.CollectT) {
+		if len(sink.AllMetrics()) == 0 {
+			assert.Fail(tt, "No metrics collected")
+			return
+		}
+		err := pmetrictest.CompareMetrics(expected, sink.AllMetrics()[len(sink.AllMetrics())-1], options...)
+		assert.NoError(tt, err)
+	}, 10*time.Second, 1*time.Second)
 }

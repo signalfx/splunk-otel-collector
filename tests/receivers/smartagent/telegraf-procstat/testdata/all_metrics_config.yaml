@@ -9,9 +9,18 @@ exporters:
     tls:
       insecure: true
 
+processors:
+  batch: # batch a set of telegraf outputs
+    timeout: 1s
+  groupbyattrs: # merge all resources into one.
+    keys:
+      - host.name
+
+
 service:
   pipelines:
     metrics:
       receivers:
         - smartagent/telegraf_procstat
+      processors: [batch, groupbyattrs]
       exporters: [otlp]

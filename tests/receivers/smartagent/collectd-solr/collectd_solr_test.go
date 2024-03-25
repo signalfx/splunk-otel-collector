@@ -17,22 +17,13 @@
 package tests
 
 import (
-	"path"
 	"testing"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
 func TestCollectdSolrReceiverProvidesAllMetrics(t *testing.T) {
-	containers := []testutils.Container{
-		testutils.NewContainer().WithContext(
-			path.Join(".", "testdata", "server"),
-		).WithExposedPorts("8983:8983").WithName(
-			"solr",
-		).WillWaitForPorts("8983").WillWaitForLogs("Time spent:"),
-	}
-
 	testutils.AssertAllMetricsReceived(
-		t, "all.yaml", "all_metrics_config.yaml", containers, nil,
+		t, "all.yaml", "all_metrics_config.yaml", nil, nil,
 	)
 }

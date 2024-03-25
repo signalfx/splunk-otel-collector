@@ -52,7 +52,7 @@ func TestConfigSourceManagerNewManager(t *testing.T) {
 			name: "basic_config",
 			file: "basic_config",
 			factories: Factories{
-				"tstcfgsrc": &MockCfgSrcFactory{},
+				component.MustNewType("tstcfgsrc"): &MockCfgSrcFactory{},
 			},
 		},
 		{
@@ -65,7 +65,7 @@ func TestConfigSourceManagerNewManager(t *testing.T) {
 			name: "build_error",
 			file: "basic_config",
 			factories: Factories{
-				"tstcfgsrc": &MockCfgSrcFactory{
+				component.MustNewType("tstcfgsrc"): &MockCfgSrcFactory{
 					ErrOnCreateConfigSource: errors.New("forced test error"),
 				},
 			},
@@ -657,7 +657,7 @@ func callClose(closeFunc confmap.CloseFunc) error {
 func TestConfigSourceBuild(t *testing.T) {
 	ctx := context.Background()
 	testFactories := Factories{
-		"tstcfgsrc": &MockCfgSrcFactory{},
+		component.MustNewType("tstcfgsrc"): &MockCfgSrcFactory{},
 	}
 
 	tests := []struct {
@@ -685,7 +685,7 @@ func TestConfigSourceBuild(t *testing.T) {
 				},
 			},
 			factories: Factories{
-				"tstcfgsrc": &MockCfgSrcFactory{
+				component.MustNewType("tstcfgsrc"): &MockCfgSrcFactory{
 					ErrOnCreateConfigSource: errors.New("forced test error"),
 				},
 			},
@@ -699,7 +699,7 @@ func TestConfigSourceBuild(t *testing.T) {
 				},
 			},
 			factories: Factories{
-				"tstcfgsrc": &mockNilCfgSrcFactory{},
+				component.MustNewType("tstcfgsrc"): &mockNilCfgSrcFactory{},
 			},
 			wantErr: "factory for \"tstcfgsrc\" produced a nil extension",
 		},
@@ -745,7 +745,7 @@ func TestConfigSourceBuild(t *testing.T) {
 type mockNilCfgSrcFactory struct{}
 
 func (m *mockNilCfgSrcFactory) Type() component.Type {
-	return "tstcfgsrc"
+	return component.MustNewType("tstcfgsrc")
 }
 
 var _ (Factory) = (*mockNilCfgSrcFactory)(nil)
@@ -776,7 +776,7 @@ var _ Settings = (*MockCfgSrcSettings)(nil)
 var _ Factory = (*MockCfgSrcFactory)(nil)
 
 func (m *MockCfgSrcFactory) Type() component.Type {
-	return "tstcfgsrc"
+	return component.MustNewType("tstcfgsrc")
 }
 
 func (m *MockCfgSrcFactory) CreateDefaultConfig() Settings {

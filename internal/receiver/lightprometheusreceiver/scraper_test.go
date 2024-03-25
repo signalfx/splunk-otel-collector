@@ -101,6 +101,7 @@ func TestScraper(t *testing.T) {
 			require.NoError(t, expectedMetrics.ResourceMetrics().At(0).Resource().Attributes().FromRaw(tt.expectedResourceAttributes))
 
 			require.NoError(t, pmetrictest.CompareMetrics(expectedMetrics, actualMetrics,
+				pmetrictest.IgnoreResourceAttributeValue("service.name"),
 				pmetrictest.IgnoreMetricDataPointsOrder(), pmetrictest.IgnoreStartTimestamp(),
 				pmetrictest.IgnoreTimestamp(), pmetrictest.IgnoreMetricsOrder()))
 		})

@@ -121,7 +121,7 @@ func (se *statementEvaluator) Write(entry zapcore.Entry, fields []zapcore.Field)
 	if name, ok := statement.Fields["name"]; ok {
 		cid := &component.ID{}
 		if err := cid.UnmarshalText([]byte(fmt.Sprintf("%v", name))); err == nil {
-			if cid.Type() == "receiver_creator" && cid.Name() == se.id.String() {
+			if cid.Type() == component.MustNewType("receiver_creator") && cid.Name() == se.id.String() {
 				// this is from our internal Receiver Creator and not a generated receiver, so write
 				// it to our logger core without submitting the entry for evaluation
 				if ce := se.logger.Check(entry.Level, ""); ce != nil {
@@ -255,7 +255,7 @@ func (se *statementEvaluator) prepareMatchingLogs(rEntry ReceiverEntry, receiver
 	rLog := stagePLogs.ResourceLogs().AppendEmpty()
 	rAttrs := rLog.Resource().Attributes()
 	fromAttrs := pcommon.NewMap()
-	fromAttrs.PutStr(discovery.ReceiverTypeAttr, string(receiverID.Type()))
+	fromAttrs.PutStr(discovery.ReceiverTypeAttr, receiverID.Type().String())
 	fromAttrs.PutStr(discovery.ReceiverNameAttr, receiverID.Name())
 	fromAttrs.PutStr(discovery.EndpointIDAttr, string(endpointID))
 	se.correlateResourceAttributes(fromAttrs, rAttrs, se.correlations.GetOrCreate(receiverID, endpointID))

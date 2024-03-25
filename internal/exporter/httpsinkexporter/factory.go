@@ -32,7 +32,7 @@ const (
 // NewFactory creates a factory for httpsink exporter.
 func NewFactory() exporter.Factory {
 	return exporter.NewFactory(
-		typeStr,
+		component.MustNewType(typeStr),
 		createDefaultConfig,
 		exporter.WithMetrics(createMetricsExporter, component.StabilityLevelDevelopment),
 		exporter.WithTraces(createTracesExporter, component.StabilityLevelDevelopment),

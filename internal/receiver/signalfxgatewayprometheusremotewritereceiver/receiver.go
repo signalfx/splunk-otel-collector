@@ -43,10 +43,6 @@ func newReceiver(
 	config *Config,
 	nextConsumer consumer.Metrics,
 ) (receiver.Metrics, error) {
-	if nextConsumer == nil {
-		return nil, component.ErrNilNextConsumer
-	}
-
 	rep, err := newOtelReporter(settings)
 	if err != nil {
 		return nil, err

@@ -27,13 +27,13 @@ import (
 )
 
 const (
-	typeStr                component.Type = "smartagent"
-	defaultIntervalSeconds int            = 10
+	typeStr                    = "smartagent"
+	defaultIntervalSeconds int = 10
 )
 
 func NewFactory() extension.Factory {
 	return extension.NewFactory(
-		typeStr,
+		component.MustNewType(typeStr),
 		createDefaultConfig,
 		createExtension,
 		component.StabilityLevelAlpha,

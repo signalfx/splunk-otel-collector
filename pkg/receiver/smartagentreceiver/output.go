@@ -148,7 +148,7 @@ func getLoneSFxExporter(host component.Host, exporterType component.DataType) co
 	var sfxExporter component.Component
 	if builtExporters, ok := host.GetExporters()[exporterType]; ok {
 		for exporterConfig, exporter := range builtExporters {
-			if exporterConfig.Type() == "signalfx" {
+			if exporterConfig.Type().String() == "signalfx" {
 				if sfxExporter == nil {
 					sfxExporter = exporter
 				} else { // we've already found one so no lone instance to use as default

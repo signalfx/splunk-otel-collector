@@ -4,14 +4,17 @@
 
 ## v0.97.0
 
+### 🚀 New components 🚀
+
+- (Splunk) Add AWS container insights receiver ([#4125](https://github.com/signalfx/splunk-otel-collector/pull/4125))
+- (Splunk) Add AWS ECS container metrics receiver ([#4125](https://github.com/signalfx/splunk-otel-collector/pull/4125))
+
 ### 💡 Enhancements 💡
 
 - (Core) `configtls`: Validates TLS min_version and max_version ([#9475](https://github.com/open-telemetry/opentelemetry-collector/issues/9475))
   Introduces `Validate()` method in TLSSetting.
 - (Splunk) `memory_ballast` has been removed. If GOMEMLIMIT env var is not set, then 90% of the total available memory limit is set by default. ([#4404](https://github.com/signalfx/splunk-otel-collector/pull/4404))
 - (Splunk) Support Windows offline installations ([#4471](https://github.com/signalfx/splunk-otel-collector/pull/4471))
-- (Splunk) Add AWS container insights receiver ([#4125](https://github.com/signalfx/splunk-otel-collector/pull/4125))
-- (Splunk) Add AWS ECS container metrics receiver ([#4125](https://github.com/signalfx/splunk-otel-collector/pull/4125))
 
 ### 🛑 Breaking changes 🛑
 

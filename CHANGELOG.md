@@ -6,6 +6,8 @@
 
 ### 💡 Enhancements 💡
 
+- (Core) `configtls`: Validates TLS min_version and max_version ([#9475](https://github.com/open-telemetry/opentelemetry-collector/issues/9475))
+  Introduces `Validate()` method in TLSSetting.
 - (Splunk) `memory_ballast` has been removed. If GOMEMLIMIT env var is not set, then 90% of the total available memory limit is set by default. ([#4404](https://github.com/signalfx/splunk-otel-collector/pull/4404))
 - (Splunk) Support Windows offline installations ([#4471](https://github.com/signalfx/splunk-otel-collector/pull/4471))
 - (Splunk) Add AWS container insights receiver ([#4125](https://github.com/signalfx/splunk-otel-collector/pull/4125))
@@ -13,10 +15,15 @@
 
 ### 🛑 Breaking changes 🛑
 
+- (Core) `telemetry`: Remove telemetry.useOtelForInternalMetrics stable feature gate ([#9752](https://github.com/open-telemetry/opentelemetry-collector/pull/9752))
 - (Splunk) `spanmetricsprocessor`: Remove `spanmetricsprocessor`. Please use `spanmetrics` connector instead. ([#4454](https://github.com/signalfx/splunk-otel-collector/pull/4454))
 
 ### 🧰 Bug fixes 🧰
 
+- (Core) `exporterhelper`: Fix persistent queue size backup on reads.  ([#9740](https://github.com/open-telemetry/opentelemetry-collector/pull/9740))
+- (Core) `processor/batch`: Prevent starting unnecessary goroutines.  ([#9739](https://github.com/open-telemetry/opentelemetry-collector/issues/9739))
+- (Core) `otlphttpexporter`: prevent error on empty response body when content type is application/json  ([#9666](https://github.com/open-telemetry/opentelemetry-collector/issues/9666))
+- (Core) `otelcol`: Respect telemetry configuration when running as a Windows service  ([#5300](https://github.com/open-telemetry/opentelemetry-collector/issues/5300))
 - (Splunk) `telemetry`: Simplify the config converter setting the `metric_relabel_configs` in the Prometheus receiver 
   to remove the excessive internal metrics. Now, it only overrides the old default rule excluding `.*grpc_io.*` metrics.
   Any other custom setting is left untouched. Otherwise, customizing the `metric_relabel_configs` is very difficult.

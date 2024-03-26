@@ -123,8 +123,6 @@ jobs:
         image: quay.io/splunko11ytest/postgres:latest
         ports:
           - "15432:5432"
-      redis_client:
-        image: quay.io/splunko11ytest/redis_client:latest
       redis_server:
         image: quay.io/splunko11ytest/redis_server:latest
         ports:
@@ -156,6 +154,11 @@ jobs:
           image: tonistiigi/binfmt:qemu-v7.0.0
       - run: docker load -i ./bin/image.tar
       - run: chmod a+x ./bin/*
+      - uses: shogo82148/actions-setup-redis@v1
+        with:
+          redis-port: "6379"
+      - run: redis-cli ping
+      - run: redis-cli set tempkey tempvalue
       - name: Run Integration Test
         run: |
           set -o pipefail

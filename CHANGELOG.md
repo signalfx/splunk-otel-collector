@@ -8,6 +8,7 @@
 
 - (Splunk) Add AWS container insights receiver ([#4125](https://github.com/signalfx/splunk-otel-collector/pull/4125))
 - (Splunk) Add AWS ECS container metrics receiver ([#4125](https://github.com/signalfx/splunk-otel-collector/pull/4125))
+- (Splunk) Add Apache metrics receiver ([#4505](https://github.com/signalfx/splunk-otel-collector/pull/4505))
 
 ### 💡 Enhancements 💡
 

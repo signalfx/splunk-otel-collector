@@ -1,5 +1,9 @@
 resourceMetrics:
-  - resource: {}
+  - resource:
+      attributes:
+        - key: node
+          value:
+            stringValue: 172.17.0.3:8983_solr
     scopeMetrics:
       - metrics:
           - gauge:
@@ -21,9 +25,6 @@ resourceMetrics:
                     - key: leader
                       value:
                         stringValue: "true"
-                    - key: node
-                      value:
-                        stringValue: 172.17.0.3:8983_solr
                     - key: plugin
                       value:
                         stringValue: solr
@@ -57,9 +58,6 @@ resourceMetrics:
                     - key: leader
                       value:
                         stringValue: "true"
-                    - key: node
-                      value:
-                        stringValue: 172.17.0.3:8983_solr
                     - key: plugin
                       value:
                         stringValue: solr
@@ -93,9 +91,6 @@ resourceMetrics:
                     - key: leader
                       value:
                         stringValue: "true"
-                    - key: node
-                      value:
-                        stringValue: 172.17.0.3:8983_solr
                     - key: plugin
                       value:
                         stringValue: solr
@@ -112,7 +107,7 @@ resourceMetrics:
             name: gauge.solr.core_num_docs
           - gauge:
               dataPoints:
-                - asInt: "6"
+                - asInt: "5"
                   attributes:
                     - key: cluster
                       value:
@@ -129,9 +124,6 @@ resourceMetrics:
                     - key: leader
                       value:
                         stringValue: "true"
-                    - key: node
-                      value:
-                        stringValue: 172.17.0.3:8983_solr
                     - key: plugin
                       value:
                         stringValue: solr
@@ -165,9 +157,6 @@ resourceMetrics:
                     - key: leader
                       value:
                         stringValue: "true"
-                    - key: node
-                      value:
-                        stringValue: 172.17.0.3:8983_solr
                     - key: plugin
                       value:
                         stringValue: solr
@@ -184,7 +173,7 @@ resourceMetrics:
             name: gauge.solr.core_totalspace
           - gauge:
               dataPoints:
-                - asInt: "9201172480"
+                - asInt: "9464721408"
                   attributes:
                     - key: cluster
                       value:
@@ -201,9 +190,6 @@ resourceMetrics:
                     - key: leader
                       value:
                         stringValue: "true"
-                    - key: node
-                      value:
-                        stringValue: 172.17.0.3:8983_solr
                     - key: plugin
                       value:
                         stringValue: solr
@@ -237,9 +223,6 @@ resourceMetrics:
                     - key: leader
                       value:
                         stringValue: "true"
-                    - key: node
-                      value:
-                        stringValue: 172.17.0.3:8983_solr
                     - key: plugin
                       value:
                         stringValue: solr
@@ -273,9 +256,6 @@ resourceMetrics:
                     - key: leader
                       value:
                         stringValue: "true"
-                    - key: node
-                      value:
-                        stringValue: 172.17.0.3:8983_solr
                     - key: plugin
                       value:
                         stringValue: solr
@@ -309,9 +289,6 @@ resourceMetrics:
                     - key: leader
                       value:
                         stringValue: "true"
-                    - key: node
-                      value:
-                        stringValue: 172.17.0.3:8983_solr
                     - key: plugin
                       value:
                         stringValue: solr
@@ -345,9 +322,6 @@ resourceMetrics:
                     - key: leader
                       value:
                         stringValue: "true"
-                    - key: node
-                      value:
-                        stringValue: 172.17.0.3:8983_solr
                     - key: plugin
                       value:
                         stringValue: solr
@@ -364,7 +338,7 @@ resourceMetrics:
             name: gauge.solr.query_result_cache_cumulative_hitratio
           - gauge:
               dataPoints:
-                - asDouble: 48.730375
+                - asDouble: 40.119166
                   attributes:
                     - key: cluster
                       value:
@@ -381,9 +355,6 @@ resourceMetrics:
                     - key: leader
                       value:
                         stringValue: "true"
-                    - key: node
-                      value:
-                        stringValue: 172.17.0.3:8983_solr
                     - key: plugin
                       value:
                         stringValue: solr
@@ -419,9 +390,6 @@ resourceMetrics:
                     - key: leader
                       value:
                         stringValue: "true"
-                    - key: node
-                      value:
-                        stringValue: 172.17.0.3:8983_solr
                     - key: plugin
                       value:
                         stringValue: solr
@@ -455,9 +423,6 @@ resourceMetrics:
                     - key: leader
                       value:
                         stringValue: "true"
-                    - key: node
-                      value:
-                        stringValue: 172.17.0.3:8983_solr
                     - key: plugin
                       value:
                         stringValue: solr
@@ -493,9 +458,6 @@ resourceMetrics:
                     - key: leader
                       value:
                         stringValue: "true"
-                    - key: node
-                      value:
-                        stringValue: 172.17.0.3:8983_solr
                     - key: plugin
                       value:
                         stringValue: solr
@@ -512,7 +474,7 @@ resourceMetrics:
               isMonotonic: true
           - gauge:
               dataPoints:
-                - asDouble: 35.91122398996872
+                - asDouble: 33.717840184617316
                   attributes:
                     - key: cluster
                       value:
@@ -529,9 +491,6 @@ resourceMetrics:
                     - key: leader
                       value:
                         stringValue: "true"
-                    - key: node
-                      value:
-                        stringValue: 172.17.0.3:8983_solr
                     - key: plugin
                       value:
                         stringValue: solr
@@ -567,9 +526,6 @@ resourceMetrics:
                     - key: leader
                       value:
                         stringValue: "true"
-                    - key: node
-                      value:
-                        stringValue: 172.17.0.3:8983_solr
                     - key: plugin
                       value:
                         stringValue: solr
@@ -584,11 +540,19 @@ resourceMetrics:
                         stringValue: solr
                   timeUnixNano: "1000000"
               isMonotonic: true
+        scope: {}
+  - resource:
+      attributes:
+        - key: node
+          value:
+            stringValue: localhost:8983_solr
+    scopeMetrics:
+      - metrics:
           - name: counter.solr.node_collections_requests
             sum:
               aggregationTemporality: 2
               dataPoints:
-                - asInt: "136"
+                - asInt: "45"
                   attributes:
                     - key: cluster
                       value:
@@ -605,9 +569,6 @@ resourceMetrics:
                     - key: leader
                       value:
                         stringValue: "true"
-                    - key: node
-                      value:
-                        stringValue: localhost:8983_solr
                     - key: plugin
                       value:
                         stringValue: solr
@@ -643,9 +604,6 @@ resourceMetrics:
                     - key: leader
                       value:
                         stringValue: "true"
-                    - key: node
-                      value:
-                        stringValue: localhost:8983_solr
                     - key: plugin
                       value:
                         stringValue: solr
@@ -681,9 +639,6 @@ resourceMetrics:
                     - key: leader
                       value:
                         stringValue: "true"
-                    - key: node
-                      value:
-                        stringValue: localhost:8983_solr
                     - key: plugin
                       value:
                         stringValue: solr
@@ -702,7 +657,7 @@ resourceMetrics:
             sum:
               aggregationTemporality: 2
               dataPoints:
-                - asInt: "64"
+                - asInt: "20"
                   attributes:
                     - key: cluster
                       value:
@@ -719,9 +674,6 @@ resourceMetrics:
                     - key: leader
                       value:
                         stringValue: "true"
-                    - key: node
-                      value:
-                        stringValue: localhost:8983_solr
                     - key: plugin
                       value:
                         stringValue: solr
@@ -740,7 +692,7 @@ resourceMetrics:
             sum:
               aggregationTemporality: 2
               dataPoints:
-                - asInt: "218"
+                - asInt: "83"
                   attributes:
                     - key: cluster
                       value:
@@ -757,9 +709,6 @@ resourceMetrics:
                     - key: leader
                       value:
                         stringValue: "true"
-                    - key: node
-                      value:
-                        stringValue: localhost:8983_solr
                     - key: plugin
                       value:
                         stringValue: solr
@@ -795,9 +744,6 @@ resourceMetrics:
                     - key: leader
                       value:
                         stringValue: "true"
-                    - key: node
-                      value:
-                        stringValue: localhost:8983_solr
                     - key: plugin
                       value:
                         stringValue: solr
@@ -833,9 +779,6 @@ resourceMetrics:
                     - key: leader
                       value:
                         stringValue: "true"
-                    - key: node
-                      value:
-                        stringValue: localhost:8983_solr
                     - key: plugin
                       value:
                         stringValue: solr
@@ -854,7 +797,7 @@ resourceMetrics:
             sum:
               aggregationTemporality: 2
               dataPoints:
-                - asInt: "218"
+                - asInt: "83"
                   attributes:
                     - key: cluster
                       value:
@@ -871,9 +814,6 @@ resourceMetrics:
                     - key: leader
                       value:
                         stringValue: "true"
-                    - key: node
-                      value:
-                        stringValue: localhost:8983_solr
                     - key: plugin
                       value:
                         stringValue: solr
@@ -890,7 +830,7 @@ resourceMetrics:
               isMonotonic: true
           - gauge:
               dataPoints:
-                - asDouble: 16.155495352758063
+                - asDouble: 43.04387398328775
                   attributes:
                     - key: cluster
                       value:
@@ -907,9 +847,6 @@ resourceMetrics:
                     - key: leader
                       value:
                         stringValue: "true"
-                    - key: node
-                      value:
-                        stringValue: localhost:8983_solr
                     - key: plugin
                       value:
                         stringValue: solr
@@ -926,7 +863,7 @@ resourceMetrics:
             name: gauge.solr.jetty_request_latency
           - gauge:
               dataPoints:
-                - asDouble: 0.43362680077552795
+                - asDouble: 0.29572057723999023
                   attributes:
                     - key: cluster
                       value:
@@ -943,9 +880,6 @@ resourceMetrics:
                     - key: leader
                       value:
                         stringValue: "true"
-                    - key: node
-                      value:
-                        stringValue: localhost:8983_solr
                     - key: plugin
                       value:
                         stringValue: solr
@@ -979,9 +913,6 @@ resourceMetrics:
                     - key: leader
                       value:
                         stringValue: "true"
-                    - key: node
-                      value:
-                        stringValue: localhost:8983_solr
                     - key: plugin
                       value:
                         stringValue: solr
@@ -998,7 +929,7 @@ resourceMetrics:
             name: gauge.solr.jvm_total_memory
           - gauge:
               dataPoints:
-                - asInt: "334653232"
+                - asInt: "256516984"
                   attributes:
                     - key: cluster
                       value:
@@ -1015,9 +946,6 @@ resourceMetrics:
                     - key: leader
                       value:
                         stringValue: "true"
-                    - key: node
-                      value:
-                        stringValue: localhost:8983_solr
                     - key: plugin
                       value:
                         stringValue: solr
@@ -1034,7 +962,7 @@ resourceMetrics:
             name: gauge.solr.jvm_total_memory_used
           - gauge:
               dataPoints:
-                - asDouble: 0.9906743534041744
+                - asDouble: 0.9908465726163752
                   attributes:
                     - key: cluster
                       value:
@@ -1051,9 +979,6 @@ resourceMetrics:
                     - key: leader
                       value:
                         stringValue: "true"
-                    - key: node
-                      value:
-                        stringValue: localhost:8983_solr
                     - key: plugin
                       value:
                         stringValue: solr

@@ -101,6 +101,109 @@ jobs:
     runs-on: ubuntu-20.04
     needs: [docker-otelcol]
     services:
+      # Cassandra image for collectd-cassandra test:
+      cassandra:
+        image: quay.io/splunko11ytest/cassandra:latest
+        ports:
+          - "7199:7199"
+      # httpd_basicauth image for lightprometheus test
+      httpd_basicauth:
+        image: quay.io/splunko11ytest/httpd_basicauth:latest
+        ports:
+          - "8001:80"
+      kong:
+        image: quay.io/splunko11ytest/kong:latest
+        ports:
+          - "18001:8001"
+      oracle:
+        image: quay.io/splunko11ytest/oracle:latest
+        ports:
+          - "1521:1521"
+      postgres:
+        image: quay.io/splunko11ytest/postgres:latest
+        ports:
+          - "15432:5432"
+      redis_server:
+        image: quay.io/splunko11ytest/redis_server:latest
+        ports:
+          - "6379:6379"
+      mysql:
+        image: quay.io/splunko11ytest/mysql:latest
+        ports:
+          - "3306:3306"
+    strategy:
+      matrix:
+        ARCH: [ "amd64", "arm64" ]
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: '**/go.sum'
+      - uses: actions/download-artifact@v4
+        with:
+          name: otelcol-${{ matrix.ARCH }}
+          path: ./bin
+      - uses: docker/setup-qemu-action@v3
+        if: ${{ matrix.ARCH != 'amd64' }}
+        with:
+          platforms: ${{ matrix.ARCH }}
+          image: tonistiigi/binfmt:qemu-v7.0.0
+      - run: docker load -i ./bin/image.tar
+      - run: chmod a+x ./bin/*
+      - uses: shogo82148/actions-setup-redis@v1
+        with:
+          auto-start: false
+          redis-port: "6379"
+      - run: redis-cli ping
+      - run: redis-cli set tempkey tempvalue
+      - name: Run Integration Test
+        run: |
+          set -o pipefail
+          make integration-test 2>&1 | tee ${{ github.job }}-${{ github.run_id }}.out
+          exit_status=${PIPESTATUS[0]}
+          echo "Exit status: $exit_status"
+          exit $exit_status
+        env:
+          SPLUNK_OTEL_COLLECTOR_IMAGE: 'otelcol:latest'
+      # The Integration Test output is extremely large so we upload it as an artifact
+      - name: Upload Integration Test Output as Artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ${{ github.job }}-${{ github.run_id }}-${{ matrix.ARCH }}.out
+          path: ${{ github.job }}-${{ github.run_id }}-${{ matrix.ARCH }}.out
+          retention-days: 5
+
+  smartagent-integration-test:
+    name: smartagent-integration-test
+    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+    runs-on: ubuntu-20.04
+    needs: [docker-otelcol]
+    services:
+      # ActiveMQ image for collectd-activemq test:
+      activemq:
+        image: quay.io/splunko11ytest/activemq:latest
+        ports:
+          - "1099:1099"
+      # Apache image for collectd-apache test
+      apache:
+        image: quay.io/splunko11ytest/apache
+        ports:
+          - "18080:80"
+      # Cassandra image for collectd-cassandra test:
+      cassandra:
+        image: quay.io/splunko11ytest/cassandra:latest
+        ports:
+          - "7199:7199"
+      # Couchbase image for collectd-couchbase test:
+      couchbase:
+        image: quay.io/splunko11ytest/couchbase:latest
+        ports:
+          - "8091:8091"
       # Tomcat image for collectd-tomcat test:
       tomcat:
         image: tomcat
@@ -167,36 +270,16 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-      # Cassandra image for collectd-cassandra test:
-      cassandra:
-        image: quay.io/splunko11ytest/cassandra:latest
-        ports:
-          - "7199:7199"
       # Nginx image for collectd-nginx test:
       nginx:
         image: quay.io/splunko11ytest/nginx:latest
         ports:
           - "8123:80"
-      # Couchbase image for collectd-couchbase test:
-      couchbase:
-        image: quay.io/splunko11ytest/couchbase:latest
-        ports:
-          - "8091:8091"
-      # ActiveMQ image for collectd-activemq test:
-      activemq:
-        image: quay.io/splunko11ytest/activemq:latest
-        ports:
-          - "1099:1099"
       # Haproxy image for haproxy test:
       haproxy:
         image: quay.io/splunko11ytest/haproxy:latest
         ports:
           - "8082:8080"
-      # Apache image for collectd-apache test
-      apache:
-        image: quay.io/splunko11ytest/apache
-        ports:
-          - "18080:80"
       # httpd image for prometheus-exporter test
       httpd:
         image: quay.io/splunko11ytest/httpd:latest
@@ -207,24 +290,6 @@ jobs:
         image: quay.io/splunko11ytest/httpd_basicauth:latest
         ports:
           - "8001:80"
-      kong:
-        image: quay.io/splunko11ytest/kong:latest
-        ports:
-          - "18001:8001"
-      oracle:
-        image: quay.io/splunko11ytest/oracle:latest
-        ports:
-          - "1521:1521"
-      postgres:
-        image: quay.io/splunko11ytest/postgres:latest
-        ports:
-          - "15432:5432"
-      redis_client:
-        image: quay.io/splunko11ytest/redis_client:latest
-      redis_server:
-        image: quay.io/splunko11ytest/redis_server:latest
-        ports:
-          - "6379:6379"
       solr:
         image: quay.io/splunko11ytest/solr:latest
         ports:
@@ -259,7 +324,7 @@ jobs:
       - name: Run Integration Test
         run: |
           set -o pipefail
-          make integration-test 2>&1 | tee ${{ github.job }}-${{ github.run_id }}.out
+          make smartagent-integration-test 2>&1 | tee ${{ github.job }}-${{ github.run_id }}.out
           exit_status=${PIPESTATUS[0]}
           echo "Exit status: $exit_status"
           exit $exit_status
@@ -270,6 +335,6 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ${{ github.job }}-${{ github.run_id }}.out
-          path: ${{ github.job }}-${{ github.run_id }}.out
+          name: smartagent-${{ github.job }}-${{ github.run_id }}-${{ matrix.ARCH }}.out
+          path: smartagent-${{ github.job }}-${{ github.run_id }}-${{ matrix.ARCH }}.out
           retention-days: 5

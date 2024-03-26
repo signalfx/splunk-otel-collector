@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build integration
+//go:build smartagent_integration
 
 package tests
 
@@ -42,6 +42,7 @@ func TestPrometheusExporterProvidesOTelInternalMetrics(t *testing.T) {
 	checkGoldenFile(t, "internal_metrics_config.yaml", "expected_internal.yaml",
 		pmetrictest.IgnoreMetricsOrder(),
 		pmetrictest.IgnoreMetricAttributeValue("service_instance_id"),
+		pmetrictest.IgnoreMetricAttributeValue("service_version"),
 		pmetrictest.IgnoreTimestamp(),
 		pmetrictest.IgnoreStartTimestamp(),
 		pmetrictest.IgnoreMetricValues(

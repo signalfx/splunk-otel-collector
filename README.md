@@ -176,6 +176,18 @@ manually before the backward compatibility is dropped. For every configuration u
 [the default agent config](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/otelcol/config/collector/agent_config.yaml)
 as a reference.
 
+### From 0.96.1 to 0.97.0
+
+- `memory_ballast` is no longer effective. The garbage collection is now controlled by the soft memory limit set to 90%
+  of total memory (`SPLUNK_MEMORY_TOTAL_MIB` env var) by default.
+
+  If you haven't customized the `memory_ballast`, just remove it from the configuration. 
+
+  If you have customized it via `SPLUNK_BALLAST_SIZE_MIB` (or `extensions::memory_ballast::size_mib` config), you should
+  remove the `memory_ballast` extension and use the [`GOMEMLIMIT`](https://pkg.go.dev/runtime) environment variable to set a custom soft memory limit:
+  - To increase frequency of garbage collections: set `GOMEMLIMIT` to a higher value than the default 90% of total memory.
+  - To decrease frequency of garbage collections: set `GOMEMLIMIT` to a lower value than the default 90% of total memory.
+
 ### From 0.68.0 to 0.69.0
 
 - `gke` and `gce` resource detectors in `resourcedetection` processor are replaced with `gcp` resource detector. 

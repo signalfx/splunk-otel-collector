@@ -51,7 +51,8 @@ func (RemoveMemoryBallastKey) Convert(_ context.Context, cfgMap *confmap.Conf) e
 	out := map[string]any{}
 	for _, k := range cfgMap.AllKeys() {
 		if firstRegExp.MatchString(k) {
-			log.Println("[WARNING]  `memory_ballast` parameter in extensions is deprecated. Please remove it from your configuration.")
+			log.Println("[WARNING] `memory_ballast` extension is deprecated. Please remove it from your configuration. " +
+				"See https://github.com/signalfx/splunk-otel-collector#from-0961-to-0970 for more details")
 			continue
 		}
 		if secondRegExp.MatchString(k) {

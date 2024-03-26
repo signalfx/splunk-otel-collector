@@ -75,10 +75,6 @@ func (prw *prometheusRemoteWriteServer) close() error {
 	return prw.Server.Close()
 }
 
-func (prw *prometheusRemoteWriteServer) ready() {
-	prw.listening.Wait()
-}
-
 func (prw *prometheusRemoteWriteServer) listenAndServe() error {
 	prw.Reporter.OnDebugf("Starting prometheus simple write server")
 	listener, err := prw.serverConfig.ServerConfig.ToListener()

@@ -35,7 +35,7 @@ var _ adapter.LogReceiverType = (*scriptedInputsReceiver)(nil)
 type scriptedInputsReceiver struct{}
 
 func (f scriptedInputsReceiver) Type() component.Type {
-	return typeStr
+	return component.MustNewType(typeStr)
 }
 
 func (f scriptedInputsReceiver) CreateDefaultConfig() component.Config {

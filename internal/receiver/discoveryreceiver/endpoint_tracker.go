@@ -132,7 +132,7 @@ func endpointToPLogs(observerID component.ID, eventType string, endpoints []obse
 	rAttrs := rlog.Resource().Attributes()
 	rAttrs.PutStr(eventTypeAttr, eventType)
 	rAttrs.PutStr(observerNameAttr, observerID.Name())
-	rAttrs.PutStr(observerTypeAttr, string(observerID.Type()))
+	rAttrs.PutStr(observerTypeAttr, observerID.Type().String())
 	sl := rlog.ScopeLogs().AppendEmpty()
 	for _, endpoint := range endpoints {
 		logRecord := sl.LogRecords().AppendEmpty()

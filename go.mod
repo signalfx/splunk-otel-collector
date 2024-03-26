@@ -53,6 +53,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.96.1-0.20240322214757-420bdba2c55e
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor v0.96.1-0.20240322214757-420bdba2c55e
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor v0.96.1-0.20240322214757-420bdba2c55e
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/apachereceiver v0.96.1-0.20240322214757-420bdba2c55e
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/awscontainerinsightreceiver v0.96.1-0.20240322214757-420bdba2c55e
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/awsecscontainermetricsreceiver v0.96.1-0.20240322214757-420bdba2c55e
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/azureeventhubreceiver v0.96.1-0.20240322214757-420bdba2c55e

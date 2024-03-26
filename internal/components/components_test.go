@@ -44,6 +44,7 @@ func TestDefaultComponents(t *testing.T) {
 		"awscontainerinsightreceiver",
 		"awsecscontainermetrics",
 		"azureeventhub",
+		"apache",
 		"carbon",
 		"cloudfoundry",
 		"collectd",

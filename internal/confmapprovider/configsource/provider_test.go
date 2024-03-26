@@ -272,7 +272,7 @@ func (t *TestConfigSource) Retrieve(ctx context.Context, selector string, params
 	if entry.WatchForUpdateCh != nil {
 		doneCh := make(chan struct{})
 		startWatch(entry.WatchForUpdateCh, doneCh, watcher)
-		return confmap.NewRetrieved(entry.Value, confmap.WithRetrievedClose(func(ctx context.Context) error {
+		return confmap.NewRetrieved(entry.Value, confmap.WithRetrievedClose(func(_ context.Context) error {
 			close(doneCh)
 			return nil
 		}))

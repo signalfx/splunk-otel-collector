@@ -69,7 +69,7 @@ func newStatementEvaluator(logger *zap.Logger, id component.ID, config *Config, 
 		// https://github.com/uber-go/zap/blob/e06e09a6d396031c89b87383eef3cad6f647cf2c/logger.go#L315.
 		// Using an arbitrary action offset.
 		zap.WithFatalHook(zapcore.WriteThenFatal+100),
-		zap.WrapCore(func(core zapcore.Core) zapcore.Core { return se }),
+		zap.WrapCore(func(_ zapcore.Core) zapcore.Core { return se }),
 	); err != nil {
 		return nil, err
 	}

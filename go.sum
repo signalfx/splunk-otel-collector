@@ -1441,6 +1441,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsampling
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor v0.96.1-0.20240322214757-420bdba2c55e/go.mod h1:ol78/8fIfD9bci/S3SL9uemjERRM0vZ3qDqli9cqbtk=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor v0.96.1-0.20240322214757-420bdba2c55e h1:rrt7IaZzfp0/gJY95iVxaRvaNx12DmQQtKeJQ49kZb4=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor v0.96.1-0.20240322214757-420bdba2c55e/go.mod h1:aPfo8ePYzyljqUVGLSoFS4llU3Ef48shYLz2Iu9+i3I=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/apachereceiver v0.96.1-0.20240322214757-420bdba2c55e h1:IdpbJGReGBZ9I02bSiHL2PSHdLzX8G+FuLPTE653cYI=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/apachereceiver v0.96.1-0.20240322214757-420bdba2c55e/go.mod h1:Ti/K3CMEPIvacajkVXkyxz9eFTworyjn6qB6oDKZK3k=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/awscontainerinsightreceiver v0.96.1-0.20240322214757-420bdba2c55e h1:6ihicuqHV4XP5VwPzMwkKmFTRJhShz7C654RYtWlPRM=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/awscontainerinsightreceiver v0.96.1-0.20240322214757-420bdba2c55e/go.mod h1:awP7cczImu5JDICewmTBsgptj1XCs0gqjDbFylQzkK0=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/awsecscontainermetricsreceiver v0.96.1-0.20240322214757-420bdba2c55e h1:7dM3KVlEnGAgNHloYzETVgRGE+19HnqNxjLA2nnNA2E=

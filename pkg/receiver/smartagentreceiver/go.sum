@@ -38,8 +38,8 @@ github.com/Masterminds/semver/v3 v3.2.1 h1:RN9w6+7QoMeJVGyfmbcgs28Br8cvmnucEXnY0
 github.com/Masterminds/semver/v3 v3.2.1/go.mod h1:qvl/7zhW3nngYb5+80sSMF+FG2BjYrf8m9wsX0PNOMQ=
 github.com/Microsoft/go-winio v0.6.1 h1:9/kr64B9VUZrLm5YYwbGtUJnMgqWVOdUAXu6Migciow=
 github.com/Microsoft/go-winio v0.6.1/go.mod h1:LRdKpFKfdobln8UmuiYcKPot9D2v6svN5+sAH+4kjUM=
-github.com/SAP/go-hdb v1.8.9 h1:uAUwo7LnTz3Ey29XveERTkE7R2GaYauShVfFISnqK7Y=
-github.com/SAP/go-hdb v1.8.9/go.mod h1:frjMWB6XNP+fElxaWTyrZ0FYhLdRWx+StaH90wtbU2A=
+github.com/SAP/go-hdb v1.8.11 h1:CfzNLy9ymcwMbAMWYpkd8NezbVKYQcNxpRqOPfBNHAE=
+github.com/SAP/go-hdb v1.8.11/go.mod h1:AjSrmLmZEZcX17tS41J9/bFYvAKqLFuZ28v5h79Yn1c=
 github.com/Sectorbob/mlab-ns2 v0.0.0-20171030222938-d3aa0c295a8a h1:KFHLI4QGttB0i7M3qOkAo8Zn/GSsxwwCnInFqBaYtkM=
 github.com/Sectorbob/mlab-ns2 v0.0.0-20171030222938-d3aa0c295a8a/go.mod h1:D73UAuEPckrDorYZdtlCu2ySOLuPB5W4rhIkmmc/XbI=
 github.com/StackExchange/wmi v1.2.1 h1:VIkavFPXSjcnS+O8yTq7NI32k0R5Aj+v39y29VYDOSA=

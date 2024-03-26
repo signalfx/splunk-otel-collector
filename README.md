@@ -176,6 +176,11 @@ manually before the backward compatibility is dropped. For every configuration u
 [the default agent config](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/otelcol/config/collector/agent_config.yaml)
 as a reference.
 
+### From 0.96.1 to 0.97.0
+- `memory_ballast` is no longer effective rather GOMEMLIMIT env var should be used in the config to set a customized memory limit. Or else a soft limit of 90% of the total memory will be set automatically. If `SPLUNK_MEMORY_TOTAL_MIB` is set, total memory is deduced from it or else default is used.
+
+More details: https://github.com/signalfx/splunk-otel-collector/pull/4404.
+
 ### From 0.68.0 to 0.69.0
 
 - `gke` and `gce` resource detectors in `resourcedetection` processor are replaced with `gcp` resource detector. 

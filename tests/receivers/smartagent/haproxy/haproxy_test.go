@@ -97,6 +97,7 @@ func TestHaproxyReceiverProvidesAllMetrics(t *testing.T) {
 			"haproxy_session_total",
 			"haproxy_connection_rate_max",
 			"haproxy_session_max",
+			"haproxy_session_limit",
 		),
 	)
 }

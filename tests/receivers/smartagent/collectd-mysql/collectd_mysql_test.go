@@ -76,6 +76,7 @@ func TestCollectdMySQLProvidesAllMetrics(t *testing.T) {
 }
 
 func TestCollectdIsolatedLogger(t *testing.T) {
+	t.Skip("need to rework this test in accordance to MySQL setup")
 	tc := testutils.NewTestcase(t)
 	defer tc.ShutdownOTLPReceiverSink()
 

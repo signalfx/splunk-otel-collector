@@ -174,8 +174,8 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ${{ github.job }}-${{ github.run_id }}.out
-          path: ${{ github.job }}-${{ github.run_id }}.out
+          name: ${{ github.job }}-${{ github.run_id }}-${{ matrix.ARCH }}.out
+          path: ${{ github.job }}-${{ github.run_id }}-${{ matrix.ARCH }}.out
           retention-days: 5
 
   smartagent-integration-test:
@@ -335,6 +335,6 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ${{ github.job }}-${{ github.run_id }}.out
-          path: ${{ github.job }}-${{ github.run_id }}.out
+          name: smartagent-${{ github.job }}-${{ github.run_id }}-${{ matrix.ARCH }}.out
+          path: smartagent-${{ github.job }}-${{ github.run_id }}-${{ matrix.ARCH }}.out
           retention-days: 5

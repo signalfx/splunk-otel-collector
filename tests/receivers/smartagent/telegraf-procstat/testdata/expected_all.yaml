@@ -1,0 +1,1164 @@
+resourceMetrics:
+  - resource:
+      attributes:
+        - key: exe
+          value:
+            stringValue: otelcol
+    scopeMetrics:
+      - metrics:
+          - gauge:
+              dataPoints:
+                - asInt: "15"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.write_count
+          - gauge:
+              dataPoints:
+                - asDouble: 0.08
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.cpu_time_user
+          - gauge:
+              dataPoints:
+                - asInt: "119201792"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.memory_rss
+          - gauge:
+              dataPoints:
+                - asInt: "47790"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.rlimit_signals_pending_hard
+          - gauge:
+              dataPoints:
+                - asInt: "122"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.voluntary_context_switches
+          - gauge:
+              dataPoints:
+                - asInt: "2147483647"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.rlimit_memory_vms_soft
+          - gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.read_bytes
+          - gauge:
+              dataPoints:
+                - asInt: "910725120"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.memory_vms
+          - gauge:
+              dataPoints:
+                - asInt: "2147483647"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.rlimit_memory_data_soft
+          - gauge:
+              dataPoints:
+                - asInt: "2147483647"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.rlimit_file_locks_hard
+          - gauge:
+              dataPoints:
+                - asInt: "47790"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.rlimit_signals_pending_soft
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.cpu_time_iowait
+          - gauge:
+              dataPoints:
+                - asInt: "1048576"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.rlimit_num_fds_hard
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.cpu_time_guest_nice
+          - gauge:
+              dataPoints:
+                - asInt: "2147483647"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.rlimit_cpu_time_hard
+          - gauge:
+              dataPoints:
+                - asInt: "2147483647"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.rlimit_cpu_time_soft
+          - gauge:
+              dataPoints:
+                - asInt: "2147483647"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.rlimit_memory_data_hard
+          - gauge:
+              dataPoints:
+                - asInt: "135168"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.memory_stack
+          - gauge:
+              dataPoints:
+                - asInt: "20"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.nice_priority
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.cpu_time_guest
+          - gauge:
+              dataPoints:
+                - asInt: "113"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.read_count
+          - gauge:
+              dataPoints:
+                - asInt: "8388608"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.rlimit_memory_stack_soft
+          - gauge:
+              dataPoints:
+                - asInt: "4"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.involuntary_context_switches
+          - gauge:
+              dataPoints:
+                - asDouble: 0.02
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.cpu_time_system
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.cpu_time_steal
+          - gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.rlimit_realtime_priority_hard
+          - gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.rlimit_nice_priority_hard
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.cpu_time_soft_irq
+          - gauge:
+              dataPoints:
+                - asInt: "2147483647"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.rlimit_memory_stack_hard
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.cpu_time_idle
+          - gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.write_bytes
+          - gauge:
+              dataPoints:
+                - asInt: "13"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.num_threads
+          - gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.cpu_time
+          - gauge:
+              dataPoints:
+                - asInt: "10"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.num_fds
+          - gauge:
+              dataPoints:
+                - asInt: "83968000"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.rlimit_memory_locked_soft
+          - gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.memory_swap
+          - gauge:
+              dataPoints:
+                - asInt: "2147483647"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.rlimit_memory_rss_soft
+          - gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.realtime_priority
+          - gauge:
+              dataPoints:
+                - asInt: "2147483647"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.rlimit_memory_rss_hard
+          - gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.signals_pending
+          - gauge:
+              dataPoints:
+                - asDouble: 0.9510585069656372
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.memory_usage
+          - gauge:
+              dataPoints:
+                - asInt: "83968000"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.rlimit_memory_locked_hard
+          - gauge:
+              dataPoints:
+                - asInt: "2147483647"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.rlimit_memory_vms_hard
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.cpu_time_irq
+          - gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.rlimit_realtime_priority_soft
+          - gauge:
+              dataPoints:
+                - asInt: "2147483647"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.rlimit_file_locks_soft
+          - gauge:
+              dataPoints:
+                - asInt: "86151168"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.memory_data
+          - gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.rlimit_nice_priority_soft
+          - gauge:
+              dataPoints:
+                - asInt: "1048576"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.rlimit_num_fds_soft
+          - gauge:
+              dataPoints:
+                - asInt: "1"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.pid
+          - gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.memory_locked
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: process_name
+                      value:
+                        stringValue: otelcol
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: user
+                      value:
+                        stringValue: splunk-otel-collector
+                  timeUnixNano: "1000000"
+            name: procstat.cpu_time_nice
+          - gauge:
+              dataPoints:
+                - asInt: "1"
+                  attributes:
+                    - key: pid_finder
+                      value:
+                        stringValue: native
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: result
+                      value:
+                        stringValue: success
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: procstat_lookup.pid_count
+          - gauge:
+              dataPoints:
+                - asInt: "1"
+                  attributes:
+                    - key: pid_finder
+                      value:
+                        stringValue: native
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: result
+                      value:
+                        stringValue: success
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: procstat_lookup.running
+          - gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: pid_finder
+                      value:
+                        stringValue: native
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-procstat
+                    - key: result
+                      value:
+                        stringValue: success
+                    - key: system.type
+                      value:
+                        stringValue: procstat
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: procstat_lookup.result_code
+        scope: {}

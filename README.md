@@ -184,7 +184,7 @@ as a reference.
   If you haven't customized the `memory_ballast`, just remove it from the configuration. 
 
   If you have customized it via `SPLUNK_BALLAST_SIZE_MIB` (or `extensions::memory_ballast::size_mib` config), you should
-  remove the `memory_ballast` extension and use the [`GOMEMLIMIT`](https://pkg.go.dev/runtime) the environment variable to set a custom soft memory limit:
+  remove the `memory_ballast` extension and use the [`GOMEMLIMIT`](https://pkg.go.dev/runtime) environment variable to set a custom soft memory limit:
   - To increase frequency of garbage collections: set `GOMEMLIMIT` to a higher value than the default 90% of total memory.
   - To decrease frequency of garbage collections: set `GOMEMLIMIT` to a lower value than the default 90% of total memory.
 

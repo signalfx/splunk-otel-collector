@@ -20,8 +20,10 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/gogo/protobuf/proto"
+	"github.com/golang/snappy"
 	"github.com/gorilla/mux"
-	"github.com/prometheus/prometheus/storage/remote"
+	"github.com/prometheus/prometheus/prompb"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/confighttp"
 	"go.opentelemetry.io/collector/pdata/pmetric"
@@ -96,7 +98,7 @@ func (prw *prometheusRemoteWriteServer) listenAndServe() error {
 func newHandler(parser *prometheusRemoteOtelParser, sc *serverConfig, mc chan<- pmetric.Metrics) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		sc.Reporter.OnDebugf("Processing write request %s", r.RequestURI)
-		req, err := remote.DecodeWriteRequest(r.Body)
+		req, err := DecodeWriteRequest(r.Body)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -114,4 +116,25 @@ func newHandler(parser *prometheusRemoteOtelParser, sc *serverConfig, mc chan<- 
 		mc <- results
 		w.WriteHeader(http.StatusAccepted)
 	}
+}
+
+// DecodeWriteRequest from an io.Reader into a prompb.WriteRequest, handling
+// snappy decompression.
+func DecodeWriteRequest(r io.Reader) (*prompb.WriteRequest, error) {
+	compressed, err := io.ReadAll(r)
+	if err != nil {
+		return nil, err
+	}
+
+	reqBuf, err := snappy.Decode(nil, compressed)
+	if err != nil {
+		return nil, err
+	}
+
+	var req prompb.WriteRequest
+	if err := proto.Unmarshal(reqBuf, &req); err != nil {
+		return nil, err
+	}
+
+	return &req, nil
 }

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build integration
+//go:build smartagent_integration
 
 package tests
 
@@ -76,6 +76,7 @@ func TestCollectdMySQLProvidesAllMetrics(t *testing.T) {
 }
 
 func TestCollectdIsolatedLogger(t *testing.T) {
+	t.Skip("need to rework this test in accordance to MySQL setup")
 	tc := testutils.NewTestcase(t)
 	defer tc.ShutdownOTLPReceiverSink()
 

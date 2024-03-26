@@ -41,7 +41,7 @@ func TestDefaultComponents(t *testing.T) {
 		"file_storage",
 	}
 	expectedReceivers := []string{
-		"awscontainerinsights",
+		"awscontainerinsightreceiver",
 		"awsecscontainermetrics",
 		"azureeventhub",
 		"carbon",
@@ -146,7 +146,7 @@ func TestDefaultComponents(t *testing.T) {
 	assert.Len(t, recvs, len(expectedReceivers))
 	for _, k := range expectedReceivers {
 		v, ok := recvs[component.MustNewType(k)]
-		require.True(t, ok)
+		require.True(t, ok, k)
 		assert.Equal(t, k, v.Type().String())
 	}
 

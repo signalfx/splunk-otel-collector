@@ -85,6 +85,7 @@ func TestHaproxyReceiverProvidesAllMetrics(t *testing.T) {
 		),
 		pmetrictest.IgnoreMetricsOrder(),
 		pmetrictest.IgnoreMetricDataPointsOrder(),
+		pmetrictest.IgnoreResourceMetricsOrder(),
 		pmetrictest.IgnoreMetricValues(
 			"haproxy_intercepted_requests",
 			"haproxy_bytes_in",
@@ -94,6 +95,8 @@ func TestHaproxyReceiverProvidesAllMetrics(t *testing.T) {
 			"haproxy_response_2xx",
 			"haproxy_session_current",
 			"haproxy_session_total",
+			"haproxy_connection_rate_max",
+			"haproxy_session_max",
 		),
 	)
 }

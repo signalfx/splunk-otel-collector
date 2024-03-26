@@ -11,6 +11,8 @@
         false
       {%- elif ansible_distribution == "Amazon" and ansible_distribution_version == "2023" -%}
         false
+      {%- elif ansible_os_family == "Debian" and ansible_distribution_major_version == "12" -%}
+        false
       {%- else -%}
         true
       {%- endif -%}

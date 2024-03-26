@@ -177,9 +177,16 @@ manually before the backward compatibility is dropped. For every configuration u
 as a reference.
 
 ### From 0.96.1 to 0.97.0
-- `memory_ballast` is no longer effective rather GOMEMLIMIT env var should be used in the config to set a customized memory limit. Or else a soft limit of 90% of the total memory will be set automatically. If `SPLUNK_MEMORY_TOTAL_MIB` is set, total memory is deduced from it or else default is used.
 
-More details: https://github.com/signalfx/splunk-otel-collector/pull/4404.
+- `memory_ballast` is no longer effective. The garbage collection is now controlled by the soft memory limit set to 90%
+  of total memory (`SPLUNK_MEMORY_TOTAL_MIB` env var) by default.
+
+  If you haven't customized the `memory_ballast`, just remove it from the configuration. 
+
+  If you have customized it via `SPLUNK_BALLAST_SIZE_MIB` (or `extensions::memory_ballast::size_mib` config), you should
+  remove the `memory_ballast` extension and use `GOMEMLIMIT` env var to set a custom soft memory limit:
+  - To increase frequency of garbage collections: set `GOMEMLIMIT` to a higher value than the default 90% of total memory.
+  - To decrease frequency of garbage collections: set `GOMEMLIMIT` to a lower value than the default 90% of total memory.
 
 ### From 0.68.0 to 0.69.0
 

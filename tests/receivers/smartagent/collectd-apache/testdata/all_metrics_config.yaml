@@ -6,6 +6,9 @@ receivers:
     extraMetrics: ["*"]
     intervalSeconds: 1
 
+processors:
+  batch:
+
 exporters:
   otlp:
     endpoint: "${OTLP_ENDPOINT}"
@@ -17,4 +20,5 @@ service:
     metrics:
       receivers:
         - smartagent/collectd_apache
+      processors: [batch]
       exporters: [otlp]

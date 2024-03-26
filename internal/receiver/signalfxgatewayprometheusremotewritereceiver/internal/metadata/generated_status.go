@@ -9,8 +9,7 @@ import (
 )
 
 var (
-	Type      = component.MustNewType("signalfxgatewayprometheusremotewrite")
-	scopeName = "go.opentelemetry.io/collector/receiver/signalfxgatewayprometheusremotewritereceiver"
+	Type = component.MustNewType("signalfxgatewayprometheusremotewrite")
 )
 
 const (
@@ -18,9 +17,9 @@ const (
 )
 
 func Meter(settings component.TelemetrySettings) metric.Meter {
-	return settings.MeterProvider.Meter(scopeName)
+	return settings.MeterProvider.Meter("github.com/signalfx/splunk-otel-collector/internal/receiver/signalfxgatewayprometheusremotewritereceiver")
 }
 
 func Tracer(settings component.TelemetrySettings) trace.Tracer {
-	return settings.TracerProvider.Tracer(scopeName)
+	return settings.TracerProvider.Tracer("github.com/signalfx/splunk-otel-collector/internal/receiver/signalfxgatewayprometheusremotewritereceiver")
 }

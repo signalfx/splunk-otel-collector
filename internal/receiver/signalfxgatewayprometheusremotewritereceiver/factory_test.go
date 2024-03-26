@@ -16,7 +16,6 @@ package signalfxgatewayprometheusremotewritereceiver
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
@@ -37,10 +36,8 @@ func TestFactory(t *testing.T) {
 	defer cancel()
 
 	cfg := createDefaultConfig().(*Config)
-	freePort, err := getFreePort()
-	require.NoError(t, err)
 	assert.NoError(t, componenttest.CheckConfigStruct(cfg))
-	cfg.ServerConfig.Endpoint = fmt.Sprintf("localhost:%d", freePort)
+	cfg.ServerConfig.Endpoint = "localhost:0"
 	cfg.ListenPath = "/metrics"
 
 	nopHost := componenttest.NewNopHost()

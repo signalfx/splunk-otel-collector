@@ -55,7 +55,7 @@ func getOrCreateReceiver(cfg component.Config, params otelcolreceiver.CreateSett
 
 func NewFactory() otelcolreceiver.Factory {
 	return otelcolreceiver.NewFactory(
-		typeStr,
+		component.MustNewType(typeStr),
 		CreateDefaultConfig,
 		otelcolreceiver.WithMetrics(createMetricsReceiver, component.StabilityLevelBeta),
 		otelcolreceiver.WithLogs(createLogsReceiver, component.StabilityLevelBeta),

@@ -38,7 +38,7 @@ type errMissingEndpoint struct{ error }
 type zkFactory struct{}
 
 func (v *zkFactory) Type() component.Type {
-	return typeStr
+	return component.MustNewType(typeStr)
 }
 
 func (v *zkFactory) CreateDefaultConfig() configsource.Settings {

@@ -152,6 +152,11 @@ func TestDockerObserver(t *testing.T) {
 							"resource_attributes": map[string]any{},
 							"rule":                `type == "container" and labels['test.id'] == '${SPLUNK_TEST_ID}' and port == 9090`,
 						},
+						"redis": map[string]any{
+							"config":              map[string]any{},
+							"resource_attributes": map[string]any{},
+							"rule":                "type == \"container\" and any([name, image, command], {# matches \"(?i)redis\"}) and not (command matches \"splunk.discovery\")",
+						},
 					},
 					"watch_observers": []any{"docker_observer"},
 				},
@@ -228,6 +233,11 @@ func TestDockerObserver(t *testing.T) {
 						"resource_attributes": map[string]any{},
 						"rule":                fmt.Sprintf(`type == "container" and labels['test.id'] == '%s' and port == 9090`, tc.ID),
 					},
+					"redis": map[string]any{
+						"config":              map[string]any{},
+						"resource_attributes": map[string]any{},
+						"rule":                "type == \"container\" and any([name, image, command], {# matches \"(?i)redis\"}) and not (command matches \"splunk.discovery\")",
+					},
 				},
 				"watch_observers": []any{"docker_observer"},
 			},
@@ -277,6 +287,11 @@ receivers:
         resource_attributes: {}
         rule: type == "container" and labels['test.id'] == '${SPLUNK_TEST_ID}' and
           port == 9090
+      redis:
+        config: {}
+        resource_attributes: {}
+        rule: type == "container" and any([name, image, command], {# matches "(?i)redis"})
+          and not (command matches "splunk.discovery")
     watch_observers:
     - docker_observer
 service:
@@ -299,10 +314,7 @@ service:
 `, stdout)
 	require.Contains(
 		t, stderr,
-		fmt.Sprintf(`Discovering for next 20s...
-Successfully discovered "prometheus_simple" using "docker_observer" endpoint "%s:9090".
-Discovery complete.
-`, prometheus.GetContainerID()),
+		fmt.Sprintf(`Successfully discovered "prometheus_simple" using "docker_observer" endpoint "%s:32781".`, prometheus.GetContainerID()),
 	)
 	require.Zero(t, sc)
 }

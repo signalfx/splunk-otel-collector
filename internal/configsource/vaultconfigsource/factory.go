@@ -49,7 +49,7 @@ type (
 type vaultFactory struct{}
 
 func (v *vaultFactory) Type() component.Type {
-	return typeStr
+	return component.MustNewType(typeStr)
 }
 
 func (v *vaultFactory) CreateDefaultConfig() configsource.Settings {

@@ -6,4 +6,5 @@ if [[ -z "$KAFKA_ZOOKEEPER_CONNECT" ]]; then
     exit 1
 fi
 "$KAFKA_BIN"/kafka-server-start.sh "${KAFKA_BIN}/../config/server.properties" \
-    --override zookeeper.connect="$KAFKA_ZOOKEEPER_CONNECT"
+    --override zookeeper.connect="$KAFKA_ZOOKEEPER_CONNECT" \
+    --override log.segment.bytes="100"

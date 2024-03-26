@@ -30,17 +30,17 @@
         <dependency>
             <groupId>com.signalfx.public</groupId>
             <artifactId>signalfx-protoc</artifactId>
-            <version>1.0.39</version>
+            <version>1.0.40</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>33.0.0-jre</version>
+            <version>33.1.0-jre</version>
         </dependency>
         <dependency>
             <groupId>com.signalfx.public</groupId>
             <artifactId>signalfx-commons-protoc-java</artifactId>
-            <version>1.0.39</version>
+            <version>1.0.40</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.google.guava</groupId>

@@ -31,7 +31,7 @@ func TestConfigSourceParser(t *testing.T) {
 	ctx := context.Background()
 
 	testFactories := Factories{
-		"tstcfgsrc": &MockCfgSrcFactory{},
+		component.MustNewType("tstcfgsrc"): &MockCfgSrcFactory{},
 	}
 	tests := []struct {
 		factories        Factories
@@ -91,7 +91,7 @@ func TestConfigSourceParser(t *testing.T) {
 			name: "missing_factory",
 			file: "basic_config",
 			factories: Factories{
-				"not_in_basic_config": &MockCfgSrcFactory{},
+				component.MustNewType("not_in_basic_config"): &MockCfgSrcFactory{},
 			},
 			wantErr: "unknown config_sources type \"tstcfgsrc\"",
 		},

@@ -28,11 +28,6 @@ extensions:
       configDir: "${SPLUNK_COLLECTD_DIR}"
   zpages:
     #endpoint: "${SPLUNK_LISTEN_INTERFACE}:55679"
-  memory_ballast:
-    # In general, the ballast should be set to 1/3 of the collector's memory, the limit
-    # should be 90% of the collector's memory.
-    # The simplest way to specify the ballast size is set the value of SPLUNK_BALLAST_SIZE_MIB env variable.
-    size_mib: ${SPLUNK_BALLAST_SIZE_MIB}
 
 receivers:
   fluentforward:
@@ -170,7 +165,7 @@ service:
   telemetry:
     metrics:
       address: "${SPLUNK_LISTEN_INTERFACE}:8888"
-  extensions: [health_check, http_forwarder, zpages, memory_ballast, smartagent]
+  extensions: [health_check, http_forwarder, zpages, smartagent]
   pipelines:
     traces:
       receivers: [jaeger, otlp, smartagent/signalfx-forwarder, zipkin]

@@ -86,7 +86,7 @@ func (e *evaluator) evaluateMatch(match Match, pattern string, status discovery.
 		if program, err = expr.Compile(match.Expr, expr.Env(env)); err != nil {
 			err = fmt.Errorf("invalid match expr statement: %w", err)
 		} else {
-			matchFunc = func(p string) (bool, error) {
+			matchFunc = func(_ string) (bool, error) {
 				ret, runErr := vm.Run(program, env)
 				if runErr != nil {
 					return false, runErr

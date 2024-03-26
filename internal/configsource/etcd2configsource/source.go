@@ -105,7 +105,7 @@ func (s *etcd2ConfigSource) newWatcher(selector string, index uint64, watcherFun
 		}
 	}()
 
-	return func(ctx context.Context) error {
+	return func(_ context.Context) error {
 		cancel()
 		return nil
 	}

@@ -22,10 +22,6 @@ import (
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
-func TestRedisReceiverProvidesAllMetrics(t *testing.T) {
-	testutils.AssertAllMetricsReceived(t, "all.yaml", "all_metrics_config.yaml", nil, nil)
-}
-
 func TestRedisReceiverProvidesAllMetricsWithServer(t *testing.T) {
 	testutils.AssertAllMetricsReceived(t, "all_server.yaml", "all_metrics_config.yaml", nil, nil)
 }

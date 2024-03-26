@@ -10,7 +10,7 @@ processors:
   batch:
   groupbyattrs:
     keys:
-      - host.name
+      - node
 exporters:
   otlp:
     endpoint: "${OTLP_ENDPOINT}"

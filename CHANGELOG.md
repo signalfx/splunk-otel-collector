@@ -22,10 +22,6 @@
     Adds `max_streams` option that allows to set upper bound (default = unlimited)
     to the number of tracked streams. Any additional streams exceeding the limit
     are dropped.
-- (Contrib)`deltatocumulativeprocessor`: expire stale series ([#30705](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/30705), [#31016](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/31016))
-  Adds `max_stale` option that allows to set an interval (default = `5min`)
-  after which a series that no longer receives new samples is removed from
-  tracking.
 - (Contrib) `fileexporter`: Adopt the encoding extension with the file exporter. ([#31774](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/31774))
 - (Contrib) `pkg/ottl`: Add `ParseXML` function for parsing XML from a target string. ([#31133](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/31133))
 - (Contrib) `fileexporter`: Added the option to write telemetry data into multiple files, where the file path is based on a resource attribute. ([#24654](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/24654))

@@ -687,10 +687,6 @@ extensions:
   health_check:
     endpoint: "${SPLUNK_LISTEN_INTERFACE}:13133"
 
-  memory_ballast:
-    # In general, the ballast should be set to 1/3 of the collector's memory.
-    # The simplest way to specify the ballast size is set the value of SPLUNK_BALLAST_SIZE_MIB env variable.
-    size_mib: ${SPLUNK_BALLAST_SIZE_MIB}
 
   # Storage extension for storing filelog checkpoints.
   # Checkpoints allow the receiver to pick up where it left off in the case of a
@@ -705,7 +701,7 @@ extensions:
 
 
 service:
-  extensions: [health_check, memory_ballast, file_storage/filelogs]
+  extensions: [health_check, file_storage/filelogs]
   pipelines:
     logs:
       receivers:

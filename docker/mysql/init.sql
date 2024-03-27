@@ -1,3 +1,4 @@
+grant PROCESS on *.* TO 'testuser'@'%';
 CREATE USER 'otelu'@'localhost' IDENTIFIED BY 'otelp';
 GRANT ALL PRIVILEGES ON *.* TO 'otelu'@'localhost' WITH GRANT OPTION;
 
@@ -8,3 +9,4 @@ USE otel;
 CREATE TABLE dummytable (myfield VARCHAR(20));
 
 INSERT INTO dummytable VALUES ('bar'), ('foo');
+flush privileges;

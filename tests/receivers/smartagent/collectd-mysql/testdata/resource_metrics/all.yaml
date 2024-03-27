@@ -101,8 +101,8 @@ resource_metrics:
               plugin_instance: _testdb
               system.type: mysql
 #         - name: mysql_commands.get_diagnostics
-          - name: mysql_commands.grant
-            type: IntMonotonicCumulativeSum
+#          - name: mysql_commands.grant
+#            type: IntMonotonicCumulativeSum
 #         - name: mysql_commands.ha_close
 #         - name: mysql_commands.ha_open
 #         - name: mysql_commands.ha_read

@@ -129,7 +129,7 @@ func (is *includeConfigSource) watchFile(file string, watcherFunc confmap.Watche
 
 	is.watchedFiles[file] = struct{}{}
 
-	return func(ctx context.Context) error {
+	return func(_ context.Context) error {
 		err := is.watcher.Remove(file)
 		if err != nil {
 			return err

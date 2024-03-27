@@ -59,8 +59,8 @@ const (
 )
 
 var (
-	yamlProvider = yamlprovider.New()
-	envProvider  = envprovider.New()
+	yamlProvider = yamlprovider.NewWithSettings(confmap.ProviderSettings{})
+	envProvider  = envprovider.NewWithSettings(confmap.ProviderSettings{})
 )
 
 // discoverer provides the mechanism for a "preflight" collector service
@@ -459,10 +459,10 @@ func (d *discoverer) updateReceiverForObserver(receiverID component.ID, receiver
 
 func factoryForObserverType(extType component.Type) (otelcolextension.Factory, error) {
 	factories := map[component.Type]otelcolextension.Factory{
-		"docker_observer":   dockerobserver.NewFactory(),
-		"host_observer":     hostobserver.NewFactory(),
-		"k8s_observer":      k8sobserver.NewFactory(),
-		"ecs_task_observer": ecstaskobserver.NewFactory(),
+		component.MustNewType("docker_observer"):   dockerobserver.NewFactory(),
+		component.MustNewType("host_observer"):     hostobserver.NewFactory(),
+		component.MustNewType("k8s_observer"):      k8sobserver.NewFactory(),
+		component.MustNewType("ecs_task_observer"): ecstaskobserver.NewFactory(),
 	}
 	ef, ok := factories[extType]
 	if !ok {

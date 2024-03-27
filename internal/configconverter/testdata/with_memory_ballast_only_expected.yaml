@@ -1,0 +1,10 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+      http:
+service:
+  extensions: []
+  pipelines:
+    metrics:
+      receivers: [otlp]

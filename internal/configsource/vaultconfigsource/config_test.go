@@ -35,7 +35,7 @@ func TestVaultLoadConfig(t *testing.T) {
 	require.NoError(t, err)
 
 	factories := map[component.Type]configsource.Factory{
-		typeStr: NewFactory(),
+		component.MustNewType(typeStr): NewFactory(),
 	}
 
 	actualSettings, splitConf, err := configsource.SettingsFromConf(context.Background(), v, factories, nil)

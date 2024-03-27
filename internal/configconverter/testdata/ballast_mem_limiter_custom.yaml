@@ -1,6 +1,4 @@
 extensions:
-  memory_ballast:
-    size_mib: 64
 receivers:
   hostmetrics:
     collection_interval: 1s
@@ -26,5 +24,3 @@ service:
         - memory_limiter/foo
       exporters:
         - logging
-  extensions:
-    - memory_ballast

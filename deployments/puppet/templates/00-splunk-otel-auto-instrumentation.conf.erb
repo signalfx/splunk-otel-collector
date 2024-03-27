@@ -1,5 +1,10 @@
 [Manager]
+<% if @with_auto_instrumentation_sdks.include?('java') -%>
 DefaultEnvironment="JAVA_TOOL_OPTIONS=-javaagent:<%= @auto_instrumentation_java_agent_jar %>"
+<% end -%>
+<% if @with_auto_instrumentation_sdks.include?('nodejs') -%>
+DefaultEnvironment="NODE_OPTIONS=-r /usr/lib/splunk-instrumentation/splunk-otel-js/node_modules/@splunk/otel/instrument"
+<% end -%>
 <% if defined?(@auto_instrumentation_resource_attributes) && @auto_instrumentation_resource_attributes != "" -%>
 DefaultEnvironment="OTEL_RESOURCE_ATTRIBUTES=splunk.zc.method=splunk-otel-auto-instrumentation-<%= @auto_instrumentation_version %>-systemd,<%= @auto_instrumentation_resource_attributes %>"
 <% else -%>

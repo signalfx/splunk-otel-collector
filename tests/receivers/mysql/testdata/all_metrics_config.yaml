@@ -3,7 +3,7 @@ receivers:
     endpoint: "${MYSQLDB_ENDPOINT}"
     username: "${MYSQLDB_USERNAME}"
     password: "${MYSQLDB_PASSWORD}"
-    database: otel
+    database: testdb
     tls:
       insecure: true
     statement_events:                                                                                                                                                                                                           

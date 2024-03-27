@@ -18,24 +18,16 @@
 package tests
 
 import (
-	"path"
 	"testing"
-	"time"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
-
-// The Oracle DB container takes close to 10 minutes on a local machine to do the default setup, so the best way to
-// account for startup time is to wait for the container to be healthy before continuing test.
-var oracledb = []testutils.Container{testutils.NewContainer().WithContext(
-	path.Join(".", "testdata", "server"),
-).WithName("oracledb").WithExposedPorts("1521:1521").WillWaitForHealth(5 * time.Minute)}
 
 // This test ensures the collector can connect to an Oracle DB, and properly get metrics. It's not intended to
 // test the receiver itself.
 func TestOracleDBIntegration(t *testing.T) {
 	testutils.AssertAllMetricsReceived(t, "all.yaml", "all_metrics_config.yaml",
-		oracledb, []testutils.CollectorBuilder{
+		nil, []testutils.CollectorBuilder{
 			func(collector testutils.Collector) testutils.Collector {
 				return collector.WithEnv(map[string]string{"ORACLEDB_URL": "oracle://otel:password@localhost:1521/XE"})
 			},

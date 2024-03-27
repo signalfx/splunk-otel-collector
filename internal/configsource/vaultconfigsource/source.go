@@ -97,7 +97,7 @@ func (v *vaultConfigSource) Retrieve(_ context.Context, selector string, _ *conf
 				return nil, err
 			}
 
-			closeFunc = func(ctx context.Context) error {
+			closeFunc = func(_ context.Context) error {
 				close(doneCh)
 				return nil
 			}

@@ -1,0 +1,299 @@
+resourceMetrics:
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - name: apache_requests
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "128"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: docker-desktop
+                    - key: plugin
+                      value:
+                        stringValue: apache
+                    - key: system.type
+                      value:
+                        stringValue: apache
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - gauge:
+              dataPoints:
+                - asInt: "1"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: docker-desktop
+                    - key: plugin
+                      value:
+                        stringValue: apache
+                    - key: system.type
+                      value:
+                        stringValue: apache
+                  timeUnixNano: "1000000"
+            name: apache_connections
+          - gauge:
+              dataPoints:
+                - asInt: "74"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: docker-desktop
+                    - key: plugin
+                      value:
+                        stringValue: apache
+                    - key: system.type
+                      value:
+                        stringValue: apache
+                  timeUnixNano: "1000000"
+            name: apache_idle_workers
+          - gauge:
+              dataPoints:
+                - asInt: "325"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: docker-desktop
+                    - key: plugin
+                      value:
+                        stringValue: apache
+                    - key: system.type
+                      value:
+                        stringValue: apache
+                  timeUnixNano: "1000000"
+            name: apache_scoreboard.open
+          - gauge:
+              dataPoints:
+                - asInt: "74"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: docker-desktop
+                    - key: plugin
+                      value:
+                        stringValue: apache
+                    - key: system.type
+                      value:
+                        stringValue: apache
+                  timeUnixNano: "1000000"
+            name: apache_scoreboard.waiting
+          - gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: docker-desktop
+                    - key: plugin
+                      value:
+                        stringValue: apache
+                    - key: system.type
+                      value:
+                        stringValue: apache
+                  timeUnixNano: "1000000"
+            name: apache_scoreboard.starting
+          - gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: docker-desktop
+                    - key: plugin
+                      value:
+                        stringValue: apache
+                    - key: system.type
+                      value:
+                        stringValue: apache
+                  timeUnixNano: "1000000"
+            name: apache_scoreboard.reading
+          - name: apache_bytes
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "146432"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: docker-desktop
+                    - key: plugin
+                      value:
+                        stringValue: apache
+                    - key: system.type
+                      value:
+                        stringValue: apache
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: docker-desktop
+                    - key: plugin
+                      value:
+                        stringValue: apache
+                    - key: system.type
+                      value:
+                        stringValue: apache
+                  timeUnixNano: "1000000"
+            name: apache_scoreboard.keepalive
+          - gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: docker-desktop
+                    - key: plugin
+                      value:
+                        stringValue: apache
+                    - key: system.type
+                      value:
+                        stringValue: apache
+                  timeUnixNano: "1000000"
+            name: apache_scoreboard.dnslookup
+          - gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: docker-desktop
+                    - key: plugin
+                      value:
+                        stringValue: apache
+                    - key: system.type
+                      value:
+                        stringValue: apache
+                  timeUnixNano: "1000000"
+            name: apache_scoreboard.closing
+          - gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: docker-desktop
+                    - key: plugin
+                      value:
+                        stringValue: apache
+                    - key: system.type
+                      value:
+                        stringValue: apache
+                  timeUnixNano: "1000000"
+            name: apache_scoreboard.logging
+          - gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: docker-desktop
+                    - key: plugin
+                      value:
+                        stringValue: apache
+                    - key: system.type
+                      value:
+                        stringValue: apache
+                  timeUnixNano: "1000000"
+            name: apache_scoreboard.finishing
+          - gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: docker-desktop
+                    - key: plugin
+                      value:
+                        stringValue: apache
+                    - key: system.type
+                      value:
+                        stringValue: apache
+                  timeUnixNano: "1000000"
+            name: apache_scoreboard.idle_cleanup
+          - gauge:
+              dataPoints:
+                - asInt: "1"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: docker-desktop
+                    - key: plugin
+                      value:
+                        stringValue: apache
+                    - key: system.type
+                      value:
+                        stringValue: apache
+                  timeUnixNano: "1000000"
+            name: apache_scoreboard.sending
+          - name: apache_requests
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "129"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: docker-desktop
+                    - key: plugin
+                      value:
+                        stringValue: apache
+                    - key: system.type
+                      value:
+                        stringValue: apache
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+        scope: {}

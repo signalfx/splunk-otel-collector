@@ -204,7 +204,7 @@ func TestTimestampFromMetric(t *testing.T) {
 			md.SetEmptySummary()
 			return true
 		}},
-		{name: "MetricTypeNone", metricFunc: func(md pmetric.Metric) bool { return true }},
+		{name: "MetricTypeNone", metricFunc: func(_ pmetric.Metric) bool { return true }},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			me := newMetricEvaluator(zap.NewNop(), &Config{}, make(chan plog.Logs), nil)

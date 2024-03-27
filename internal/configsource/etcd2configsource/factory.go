@@ -42,7 +42,7 @@ type (
 type etcd2Factory struct{}
 
 func (v *etcd2Factory) Type() component.Type {
-	return typeStr
+	return component.MustNewType(typeStr)
 }
 
 func (v *etcd2Factory) CreateDefaultConfig() configsource.Settings {

@@ -63,7 +63,7 @@ func (s *sink) start(ctx context.Context) {
 		s.server = &http.Server{
 			Addr:    s.endpoint,
 			Handler: mux,
-			BaseContext: func(listener net.Listener) context.Context {
+			BaseContext: func(_ net.Listener) context.Context {
 				return ctx
 			},
 			ReadHeaderTimeout: 5 * time.Second,

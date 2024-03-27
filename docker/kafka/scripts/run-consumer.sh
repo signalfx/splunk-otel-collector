@@ -8,5 +8,4 @@ fi
 
 "$KAFKA_BIN"/kafka-console-consumer.sh \
    --bootstrap-server "$KAFKA_BROKER" \
-   --topic sfx-employee \
-   --max-messages $((10 + RANDOM % 100))
+   --topic sfx-employee

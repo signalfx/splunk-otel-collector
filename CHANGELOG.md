@@ -52,8 +52,6 @@
 - (Core) `otlphttpexporter`: prevent error on empty response body when content type is application/json  ([#9666](https://github.com/open-telemetry/opentelemetry-collector/issues/9666))
 - (Core) `otelcol`: Respect telemetry configuration when running as a Windows service  ([#5300](https://github.com/open-telemetry/opentelemetry-collector/issues/5300))
 - (Contrib) `carbonreceiver`: Do not report fatal error when closed normally ([#31913](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/31913))
-- (Contrib) `deltatocumulativeprocessor`: timer-based expiry ([#31615](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/31615))
-    converts expiry to 1m timer, eliminating a race condition and failing test
 - (Contrib)`exporter/loadbalancing`: Fix panic when a sub-exporter is shut down while still handling requests. ([#31410](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/31410))
 - (Contrib) `hostmetricsreceiver`: Adds the receiver.hostmetrics.normalizeProcessCPUUtilization feature gate to optionally normalize process.cpu.utilization values. ([#31368](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/31368))
     When enabled, the receiver.hostmetrics.normalizeProcessCPUUtilization feature gate will cause process.cpu.utilization values to be divided by the number of logical cores on the system. This is necessary to produce a value on the interval of [0-1], as the description of process.cpu.utilization the metric says.

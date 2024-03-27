@@ -57,13 +57,13 @@ func NewOTLPReceiverSink() OTLPReceiverSink {
 }
 
 // WithEndpoint is required or Build() will fail
-func (otlp *OTLPReceiverSink) WithEndpoint(endpoint string) OTLPReceiverSink {
+func (otlp OTLPReceiverSink) WithEndpoint(endpoint string) OTLPReceiverSink {
 	otlp.Endpoint = endpoint
 	return otlp
 }
 
 // Build will create, configure, and start an OTLPReceiver with GRPC listener and associated metric and log sinks
-func (otlp *OTLPReceiverSink) Build() (*OTLPReceiverSink, error) {
+func (otlp OTLPReceiverSink) Build() (*OTLPReceiverSink, error) {
 	if otlp.Endpoint == "" {
 		return nil, fmt.Errorf("must provide an Endpoint for OTLPReceiverSink")
 	}

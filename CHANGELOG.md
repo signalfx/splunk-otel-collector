@@ -63,7 +63,6 @@
 - (Contrib) `loadbalancingexporter`: Fix memory leaks on shutdown ([#31050](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/31050))
 - (Contrib) `signalfxexporter`: Fix memory leak in shutdown ([#30864](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30864), [#30438](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/30438))
 - (Contrib) `processor/k8sattributes`: Allows k8sattributes processor to work with k8s role/rolebindings when filter::namespace is set. ([#14742](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/14742))
-- (Contrib) `opencensusreceiver`: Refactor the opencensusreceiver to pass lifecycle tests and avoid leaking gRPC connections. ([#31643](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/31643))
 - (Contrib) `sqlqueryreceiver`: Fix memory leak on shutdown for log telemetry ([#31782](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/31782))
 - (Splunk) `telemetry`: Simplify the config converter setting the `metric_relabel_configs` in the Prometheus receiver 
   to remove the excessive internal metrics. Now, it only overrides the old default rule excluding `.*grpc_io.*` metrics.

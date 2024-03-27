@@ -40,9 +40,6 @@ function get_collectd_plugins ([string]$buildDir=$BUILD_DIR) {
     & $python -m pip install -qq -r $requirements
     if ($lastexitcode -ne 0){ throw }
 
-    # workaround for https://github.com/yaml/pyyaml/issues/724
-    & $python -m pip install 'Cython<3.0' 'PyYaml~=5.0' --no-build-isolation
-
     & $python $script $collectdPlugins
     if ($lastexitcode -ne 0){ throw }
 

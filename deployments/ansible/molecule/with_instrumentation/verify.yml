@@ -17,6 +17,28 @@
       assert:
         that: ansible_facts.packages['splunk-otel-auto-instrumentation'][0].version == '0.50.0'
 
+    - name: Check for the new config files
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      loop:
+        - /etc/splunk/zeroconfig/java.conf
+        - /etc/splunk/zeroconfig/node.conf
+      register: new_config_files
+
+    - name: Assert the new config files do not exist
+      assert:
+        that: not item.stat.exists
+      loop: "{{ new_config_files.results }}"
+
+    - name: Check for systemd drop-in file
+      ansible.builtin.stat:
+        path: /usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf
+      register: systemd
+
+    - name: Assert systemd drop-in file does not exist
+      assert:
+        that: not systemd.stat.exists
+
     - name: Assert /etc/ld.so.preload contains path to libsplunk.so
       ansible.builtin.lineinfile:
         line: /usr/lib/splunk-instrumentation/libsplunk.so

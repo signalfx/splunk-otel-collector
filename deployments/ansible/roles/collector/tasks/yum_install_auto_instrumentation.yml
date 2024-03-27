@@ -8,3 +8,4 @@
     state: "{% if splunk_otel_auto_instrumentation_version != 'latest' %}present{% else %}latest{% endif %}"
     allow_downgrade: yes
     update_cache: yes
+  register: yum_instrumentation_package

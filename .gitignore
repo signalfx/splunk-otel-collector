@@ -24,10 +24,6 @@ coverage_all.txt
 coverage_old.txt
 coverage.html
 
-# Exclude folders used to build MSI locally
-/build/
-/work/
-
 # Wix
 *.wixobj
 *.wixpdb

@@ -2,10 +2,6 @@
 dist/
 .local/
 
-# Exclude folders to build MSI locally
-/build/
-/work/
-
 # GoLand IDEA
 .idea
 *.iml

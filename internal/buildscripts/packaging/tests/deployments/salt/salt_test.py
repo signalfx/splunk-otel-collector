@@ -101,7 +101,7 @@ def verify_env_file(container, api_url=SPLUNK_API_URL, ingest_url=SPLUNK_INGEST_
     verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_REALM", SPLUNK_REALM)
     verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_API_URL", api_url)
     verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_INGEST_URL", ingest_url)
-    verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_TRACE_URL", f"{ingest_url}/v2/trace")
+    verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_TRACE_URL", f"{ingest_url}:443")
     verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_HEC_URL", f"{ingest_url}/v1/log")
     verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_HEC_TOKEN", hec_token)
     verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_MEMORY_TOTAL_MIB", SPLUNK_MEMORY_TOTAL_MIB)

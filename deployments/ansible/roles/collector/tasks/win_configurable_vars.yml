@@ -11,7 +11,7 @@
 
 - name: Set default trace url
   set_fact:
-    splunk_trace_url: "{{splunk_ingest_url}}/v2/trace"
+    splunk_trace_url: "{{splunk_ingest_url}}:443"
   when: splunk_trace_url is not defined or (splunk_trace_url | trim) == ""
 
 - name: Set default hec url

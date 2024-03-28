@@ -16,7 +16,7 @@ default['splunk_otel_collector']['splunk_realm'] = 'us0'
 
 default['splunk_otel_collector']['splunk_api_url'] = "https://api.#{node['splunk_otel_collector']['splunk_realm']}.signalfx.com"
 default['splunk_otel_collector']['splunk_ingest_url'] = "https://ingest.#{node['splunk_otel_collector']['splunk_realm']}.signalfx.com"
-default['splunk_otel_collector']['splunk_trace_url'] = "#{node['splunk_otel_collector']['splunk_ingest_url']}/v2/trace"
+default['splunk_otel_collector']['splunk_trace_url'] = "#{node['splunk_otel_collector']['splunk_ingest_url']}:443"
 default['splunk_otel_collector']['splunk_hec_url'] = "#{node['splunk_otel_collector']['splunk_ingest_url']}/v1/log"
 default['splunk_otel_collector']['splunk_hec_token'] = "#{node['splunk_otel_collector']['splunk_access_token']}"
 default['splunk_otel_collector']['splunk_memory_total_mib'] = '512'

@@ -14,6 +14,7 @@ networks:
 services:
 
   iis-server:
+    container_name: iis-server
     build:
       context: ./
       dockerfile: ./Dockerfile.iis.server
@@ -23,6 +24,7 @@ services:
       - "13133:13133" # health_check extension
 
   splunk-otel-collector:
+    container_name: splunk-otel-collector
     build:
       context: ./
       dockerfile: ./Dockerfile.pipeline.collector

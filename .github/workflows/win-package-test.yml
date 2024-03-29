@@ -91,10 +91,39 @@ jobs:
           name: agent-bundle-windows
           path: ./dist/agent-bundle_windows_amd64.zip
 
+  msi-custom-actions:
+    runs-on: windows-2022
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v4
+
+      - name: Build Custom Actions
+        working-directory: internal/buildscripts/packaging/msi/SplunkCustomActions
+        run: |
+          dotnet publish ./SplunkCustomActions.csproj -c Release -o ./bin/Release
+
+      - name: Package Custom Actions
+        run: |
+          $WixPath = "${Env:ProgramFiles(x86)}\WiX Toolset v3.14"
+          $sfxcaDll = "${WixPath}\SDK\x64\sfxca.dll"
+          $Env:PATH = "${WixPath}\SDK;" + $Env:PATH
+          $customActionDir = "${PWD}\internal\buildscripts\packaging\msi\SplunkCustomActions"
+          $customActionBinDir = "${customActionDir}\bin\Release"
+          MakeSfxCA.exe "${PWD}\dist\SplunkCustomActions.CA.dll" `
+            "${sfxcaDll}" `
+            "${customActionBinDir}\SplunkCustomActions.dll" `
+            "${customActionBinDir}\Microsoft.Deployment.WindowsInstaller.dll" `
+            "${customActionDir}\CustomAction.config"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: msi-custom-actions
+          path: ./dist/SplunkCustomActions.CA.dll
+
   msi-build:
     # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
     runs-on: ubuntu-20.04
-    needs: [cross-compile, agent-bundle-windows]
+    needs: [cross-compile, agent-bundle-windows, msi-custom-actions]
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4
@@ -113,10 +142,17 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
 
-      - uses: actions/download-artifact@v4
+      - name: Downloading agent-bundle-windows
+        uses: actions/download-artifact@v4
         with:
           name: agent-bundle-windows
           path: ./dist
+
+      - name: Downloading msi-custom-actions
+        uses: actions/download-artifact@v4
+        with:
+          name: msi-custom-actions
+          path: ./internal/buildscripts/packaging/msi/SplunkCustomActions/bin/Release
 
       - name: Build MSI
         run: |
@@ -186,7 +222,24 @@ jobs:
     strategy:
       matrix:
         OS: [ "windows-2022" ]
+        install-properties:
+
+          - install: "SPLUNK_ACCESS_TOKEN=fakeToken"
+            expected: "-mode agent -access_token fakeToken -realm us0 -memory $null -with_fluentd false"
+
+          - install: "SPLUNK_SETUP_COLLECTOR_MODE=gateway SPLUNK_ACCESS_TOKEN=testing123"
+            expected: "-mode gateway -access_token testing123 -realm us0 -memory $null -with_fluentd false"
+
+          - install: "SPLUNK_REALM=myrealm SPLUNK_ACCESS_TOKEN=testing"
+            expected: "-mode agent -access_token testing -realm myrealm -memory $null -with_fluentd false"
+
+          - install: "SPLUNK_INGEST_URL=https://fake.ingest.url SPLUNK_ACCESS_TOKEN=testing"
+            expected: "-mode agent -realm us0 -access_token testing -ingest_url \"https://fake.ingest.url\" -memory $null -with_fluentd false"
+
     steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v4
+
       - name: Downloading msi build
         uses: actions/download-artifact@v4
         with:
@@ -199,7 +252,7 @@ jobs:
           $msi_path = Resolve-Path .\dist\splunk-otel-collector*.msi
           Test-Path $msi_path
           Write-Host "Installing $msi_path ..."
-          $process = Start-Process -Wait -PassThru msiexec "/i `"$msi_path`" /qn /l*v msi-install.log"
+          $process = Start-Process -Wait -PassThru msiexec "/i `"$msi_path`" /qn /l*v msi-install.log ${{ matrix.install-properties.install }}"
           if ($process.ExitCode -ne 0) {
             throw "MSI installation failed with exit code $($process.ExitCode)"
           }
@@ -208,20 +261,14 @@ jobs:
         if: ${{ failure() }}
         run: Get-Content msi-install.log
 
-      - name: Set environment variables required to start the collector service
-        run: |
-          $ErrorActionPreference = 'Stop'
-          [Environment]::SetEnvironmentVariable("SPLUNK_ACCESS_TOKEN", "123456e", "Machine")
-          [Environment]::SetEnvironmentVariable("SPLUNK_API_URL", "https://non.existent.for.tests", "Machine")
-          [Environment]::SetEnvironmentVariable("SPLUNK_HEC_TOKEN", "098765e", "Machine")
-          [Environment]::SetEnvironmentVariable("SPLUNK_HEC_URL", "https://non.existent.for.tests/v1/log", "Machine")
-          [Environment]::SetEnvironmentVariable("SPLUNK_INGEST_URL", "https://non.existent.for.tests", "Machine")
-          [Environment]::SetEnvironmentVariable("SPLUNK_TRACE_URL", "https://non.existent.for.tests/v2/trace", "Machine")
-          [Environment]::SetEnvironmentVariable("SPLUNK_BUNDLE_DIR", "%ProgramFiles%\Splunk\OpenTelemetry", "Machine")
-
       - name: Start the collector service
         run:
           Start-Service splunk-otel-collector
+
+      - name: Check registry expectations
+        run: |
+          $ErrorActionPreference = 'Stop'
+          & ${{ github.workspace }}\.github\workflows\scripts\win-test-services.ps1 ${{ matrix.install-properties.expected }}
 
       - name: Stop the collector service
         run:

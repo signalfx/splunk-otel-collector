@@ -9,6 +9,11 @@ receivers:
     password: cassandra
     intervalSeconds: 1
     groovyScript: ${include:/opt/script.groovy}
+processors:
+  batch:
+  groupbyattrs:
+    keys:
+      - host.name
 exporters:
   otlp:
     endpoint: "${OTLP_ENDPOINT}"
@@ -19,4 +24,5 @@ service:
     metrics:
       receivers:
         - smartagent/jmx
+      processors: [batch, groupbyattrs]
       exporters: [otlp]

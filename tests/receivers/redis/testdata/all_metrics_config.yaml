@@ -3,6 +3,8 @@ receivers:
     endpoint: 0.0.0.0:6379
     password: "securepassword"
     username: "otel"
+processors:
+  batch:
 exporters:
   otlp:
     endpoint: "${OTLP_ENDPOINT}"
@@ -14,4 +16,5 @@ service:
     metrics:
       receivers:
         - redis
+      processors: [batch]
       exporters: [otlp]

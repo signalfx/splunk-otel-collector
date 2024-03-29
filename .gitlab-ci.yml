@@ -147,7 +147,18 @@ update-otel-deps:
   dependencies: []
   script:
     - .gitlab/install-gh-cli.sh
-    - .gitlab/update-otel-deps.sh
+    - .gitlab/update-otel-deps.sh latest create-pull-request/update-deps
+
+update-otel-deps-nightly:
+  only:
+    - schedules
+  extends: .go-cache
+  stage: update-deps
+  needs: []
+  dependencies: []
+  script:
+    - .gitlab/install-gh-cli.sh
+    - .gitlab/update-otel-deps.sh main create-pull-request/update-deps-nightly
 
 update-openjdk:
   only:

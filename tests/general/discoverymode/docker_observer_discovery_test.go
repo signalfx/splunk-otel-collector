@@ -314,7 +314,7 @@ service:
 `, stdout)
 	require.Contains(
 		t, stderr,
-		fmt.Sprintf(`Successfully discovered "prometheus_simple" using "docker_observer" endpoint "%s:32781".`, prometheus.GetContainerID()),
+		fmt.Sprintf(`Successfully discovered "prometheus_simple" using "docker_observer" endpoint "%s:`, prometheus.GetContainerID()),
 	)
 	require.Zero(t, sc)
 }

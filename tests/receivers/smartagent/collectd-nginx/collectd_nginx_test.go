@@ -19,11 +19,16 @@ package tests
 import (
 	"testing"
 
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
+
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
 func TestCollectdNginxReceiverProvidesAllMetrics(t *testing.T) {
-	testutils.AssertAllMetricsReceived(
-		t, "all.yaml", "all_metrics_config.yaml", nil, nil,
+	testutils.CheckGoldenFile(t, "all_metrics_config.yaml", "all_expected.yaml",
+		pmetrictest.IgnoreTimestamp(),
+		pmetrictest.IgnoreMetricsOrder(),
+		pmetrictest.IgnoreMetricValues(),
+		pmetrictest.IgnoreMetricAttributeValue("host"),
 	)
 }

@@ -12,6 +12,12 @@ receivers:
     extraMetrics: ["*"]
     intervalSeconds: 1
 
+processors:
+  batch:
+    timeout: 3s
+  groupbyattrs:
+    keys:
+      - host
 exporters:
   otlp:
     endpoint: "${OTLP_ENDPOINT}"
@@ -22,4 +28,5 @@ service:
   pipelines:
     metrics:
       receivers: [smartagent/collectd/mysql]
+      processors: [batch, groupbyattrs]
       exporters: [otlp]

@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/go-sql-driver/mysql"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest/observer"
@@ -72,7 +73,17 @@ func TestCollectdMySQLProvidesAllMetrics(t *testing.T) {
 	_, err = db.Exec("DELETE FROM a_table WHERE name = 'another.name'")
 	require.NoError(t, err)
 
-	testutils.AssertAllMetricsReceived(t, "all.yaml", "isolated_config.yaml", nil, nil)
+	testutils.CheckGoldenFile(t, "isolated_config.yaml", "isolated_expected.yaml",
+		pmetrictest.IgnoreTimestamp(),
+		pmetrictest.IgnoreMetricValues(
+			"operations.os_log_bytes_written",
+			"gauge.trx_rseg_history_len",
+		),
+		pmetrictest.IgnoreMetricsOrder(),
+		pmetrictest.IgnoreResourceAttributeValue("host"),
+		pmetrictest.IgnoreMetricValues(),
+		pmetrictest.IgnoreSubsequentDataPoints(),
+	)
 }
 
 func TestCollectdIsolatedLogger(t *testing.T) {

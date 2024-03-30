@@ -113,22 +113,5 @@ func testExpectedTracesForHTTPGetRequest(t *testing.T, otlp *testutils.OTLPRecei
 	)
 	require.NoError(t, err)
 	err = otlp.AssertAllTracesReceived(t, *expectedResourceTraces, 30*time.Second)
-	if err != nil {
-		t.Log("containers")
-		requireNoErrorExecCommand(t, "docker", "ps", "-a")
-		t.Log("end of containers")
-		t.Log("iis-server logs")
-		requireNoErrorExecCommand(t, "docker", "logs", "iis-server")
-		t.Log("end of iis-server logs")
-		t.Log("iis-server application logs")
-		requireNoErrorExecCommand(t, "docker", "exec", "iis-server", "Get-EventLog", "-LogName", "Application", "-Source", "splunk-otel-collector")
-		t.Log("end of iis-server application logs")
-		t.Log("splunk-otel-collector logs")
-		requireNoErrorExecCommand(t, "docker", "logs", "splunk-otel-collector")
-		t.Log("end of splunk-otel-collector logs")
-		t.Log("splunk-otel-collector application logs")
-		requireNoErrorExecCommand(t, "docker", "exec", "splunk-otel-collector", "Get-EventLog", "-LogName", "Application", "-Source", "splunk-otel-collector")
-		t.Log("end of splunk-otel-collector application logs")
-	}
 	require.NoError(t, err)
 }

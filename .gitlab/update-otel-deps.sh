@@ -26,7 +26,13 @@ create_collector_pr() {
   setup_branch "$BRANCH" "$repo_url"
 
   echo ">>> Updating otel deps to $OTEL_VERSION ..."
-  OTEL_VERSION="$OTEL_VERSION" ./internal/buildscripts/update-deps
+  if [[ "$OTEL_VERSION" == "main" ]]; then
+    CORE_VERSION=$(git ls-remote https://github.com/open-telemetry/opentelemetry-collector main | awk '{print $1}')
+    CONTRIB_VERSION=$(git ls-remote https://github.com/open-telemetry/opentelemetry-collector-contrib main | awk '{print $1}')
+    CORE_VERSION="$CORE_VERSION" CONTRIB_VERSION="$CONTRIB_VERSION" ./internal/buildscripts/update-deps
+  else
+    OTEL_VERSION="$OTEL_VERSION" ./internal/buildscripts/update-deps
+  fi
 
   # Only create the PR if there are changes
   if ! git diff --exit-code >/dev/null 2>&1; then

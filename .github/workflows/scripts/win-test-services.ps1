@@ -4,7 +4,9 @@ param (
     [string]$realm = "test",
     [string]$memory = "512",
     [string]$with_fluentd = "true",
-    [string]$with_msi_uninstall_comments = ""
+    [string]$with_msi_uninstall_comments = "",
+    [string]$api_url = "https://api.${realm}.signalfx.com",
+    [string]$ingest_url = "https://ingest.${realm}.signalfx.com"
 )
 
 $ErrorActionPreference = 'Stop'
@@ -36,10 +38,7 @@ function service_running([string]$name) {
     return ((Get-CimInstance -ClassName win32_service -Filter "Name = '$name'" | Select Name, State).State -Eq "Running")
 }
 
-$api_url = "https://api.${realm}.signalfx.com"
-$ingest_url = "https://ingest.${realm}.signalfx.com"
-
-check_collector_svc_environment @{
+$expected_svc_env_vars = @{
   "SPLUNK_CONFIG"           = "${env:PROGRAMDATA}\Splunk\OpenTelemetry Collector\${mode}_config.yaml";
   "SPLUNK_ACCESS_TOKEN"     = "$access_token";
   "SPLUNK_REALM"            = "$realm";
@@ -49,8 +48,13 @@ check_collector_svc_environment @{
   "SPLUNK_HEC_URL"          = "${ingest_url}/v1/log";
   "SPLUNK_HEC_TOKEN"        = "$access_token";
   "SPLUNK_BUNDLE_DIR"       = "${env:PROGRAMFILES}\Splunk\OpenTelemetry Collector\agent-bundle";
-  "SPLUNK_MEMORY_TOTAL_MIB" = "$memory";
 }
+
+if (![string]::IsNullOrWhitespace($memory)) {
+    $expected_svc_env_vars["SPLUNK_MEMORY_TOTAL_MIB"] = "$memory"
+}
+
+check_collector_svc_environment $expected_svc_env_vars
 
 if ((service_running -name "splunk-otel-collector")) {
     write-host "splunk-otel-collector service is running."

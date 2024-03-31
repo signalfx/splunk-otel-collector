@@ -1,7 +1,4 @@
-# SignalFx Smart Agent Extension
-
-> **Note:** The SignalFx Smart Agent extension is only supported on x86_64/amd64 platforms.  Support for arm64
-> platforms is currently **experimental**.
+# Smart Agent Extension
 
 The `smartagent` extension provides a mechanism to specify config options that are not
 just specific to a single instance of the [Smart Agent Receiver](../../receiver/smartagentreceiver/README.md) but are applicable to
@@ -10,7 +7,7 @@ all instances.  This component provides a means of migrating your existing
 to the Splunk Distribution of OpenTelemetry Collector.
 
 As the Smart Agent Receiver doesn't provide 1:1 functional parity with the SignalFx Smart Agent in itself,
-only a subset of existing configuration fields are supported by the Smart Agent Extension at this time:
+only a subset of existing configuration fields are supported by the Smart Agent Extension:
 
 1. The `bundleDir` field refers to the path of a supported Smart Agent release bundle.  The
 x86_64/amd64 Splunk Distribution of OpenTelemetry Collector packages include the agent bundle, and their installers

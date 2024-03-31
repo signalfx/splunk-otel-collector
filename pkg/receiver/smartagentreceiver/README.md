@@ -1,15 +1,17 @@
-# SignalFx Smart Agent Receiver
+# Smart Agent Receiver
 
-> **Note:** The SignalFx Smart Agent receiver is fully supported only on x86_64/amd64 platforms. Support for arm64
-> platforms is currently **experimental**.
+This receiver allows to use monitors.
 
-The Smart Agent Receiver lets you use [SignalFx Smart Agent monitors](https://github.com/signalfx/signalfx-agent#monitors)
-in the [Splunk Distribution of OpenTelemetry Collector](https://github.com/signalfx/splunk-otel-collector). Many
-monitors also require a [Smart Agent release bundle](https://github.com/signalfx/signalfx-agent/releases/latest),
-which is installed by the Splunk Distribution of OpenTelemetry Collector on supported x86_64/amd64 platforms.
+Monitors collect metrics from the host system and services. They are configured under the monitors list in the agent config. For application-specific monitors, you can define discovery rules in your monitor configuration. A separate monitor instance is created for each discovered instance of applications that match a discovery rule. See [Auto Discovery](https://github.com/signalfx/signalfx-agent/blob/main/docs/auto-discovery.md) for more information.
+
+Many of the monitors are built around [collectd](https://collectd.org/), an open source third-party monitor, and use it to collect metrics. Some other monitors do not use collectd. However, either type is configured in the same way.
+
+For a list of supported monitors and their configurations, see [Monitor Config](https://github.com/signalfx/signalfx-agent/blob/main/docs/monitor-config.md).
+
+The agent is primarily intended to monitor services/applications running on the same host as the agent. This is in keeping with the collectd model. The main issue with monitoring services on other hosts is that the host dimension that collectd sets on all metrics will currently get set to the hostname of the machine that the agent is running on. This allows everything to have a consistent host dimension so that metrics can be matched to a specific machine during metric analysis.
 
 See the
-[migration guide](../../../docs/signalfx-smart-agent-migration.md)
+[migration guide](https://docs.splunk.com/observability/en/gdi/opentelemetry/smart-agent/smart-agent-migration-to-otel-collector.html)
 for more information about migrating from the Smart Agent to the Splunk Distribution of the OpenTelemetry Collector.
 
 **Beta: All Smart Agent monitors are supported by Splunk. Configuration and behavior may change without notice.**

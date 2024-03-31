@@ -28,7 +28,7 @@ def run():
     logger.addHandler(PipeLogHandler(output_writer))
 
     runner = Runner(input_reader, output_writer)
-    logger.info("Starting up SignalFx Python monitor runner (python: %s)", sys.executable)
+    logger.info("Starting up Python monitor runner (python: %s)", sys.executable)
     runner.process()
 
 

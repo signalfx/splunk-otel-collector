@@ -420,6 +420,7 @@ build-msi:
   needs:
     - sign-exe
     - agent-bundle-windows
+    - msi-custom-actions-package
   before_script:
     # build the MSI with the signed exe
     - mkdir -p bin
@@ -430,6 +431,42 @@ build-msi:
   artifacts:
     paths:
       - dist/*.msi
+
+msi-custom-actions-package:
+  stage: package
+  needs:
+    - job: msi-custom-actions-assemblies
+      artifacts: true
+  tags:
+    - windows
+  script:
+    - $WixPath = "${Env:ProgramFiles(x86)}\WiX Toolset v3.14"
+    - $sfxcaDll = "${WixPath}\SDK\x64\sfxca.dll"
+    - $Env:PATH = "${WixPath}\SDK;" + $Env:PATH
+    - $customActionDir = "${PWD}\internal\buildscripts\packaging\msi\SplunkCustomActions"
+    - $customActionBinDir = "${customActionDir}\bin\Release"
+    - MakeSfxCA.exe "${customActionBinDir}\SplunkCustomActions.CA.dll" `
+      "${sfxcaDll}" `
+      "${customActionBinDir}\SplunkCustomActions.dll" `
+      "${customActionBinDir}\Microsoft.Deployment.WindowsInstaller.dll" `
+      "${customActionDir}\CustomAction.config"
+  artifacts:
+    paths:
+      - internal/buildscripts/packaging/msi/SplunkCustomActions/bin/Release/SplunkCustomActions.CA.dll
+
+msi-custom-actions-assemblies:
+  image: 'mcr.microsoft.com/dotnet/sdk:8.0'
+  stage: package
+  needs: []
+  dependencies: []
+  script:
+    - pushd ./internal/buildscripts/packaging/msi/SplunkCustomActions/
+    - dotnet publish ./SplunkCustomActions.csproj -c Release -o ./bin/Release
+    - popd
+  artifacts:
+    name: msi-custom-actions-assemblies
+    paths:
+      - internal/buildscripts/packaging/msi/SplunkCustomActions/bin/Release/*
 
 sign-debs:
   extends:

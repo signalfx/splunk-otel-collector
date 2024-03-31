@@ -122,9 +122,9 @@ func TestValidConfig(t *testing.T) {
 }
 
 func TestInvalidConfigs(t *testing.T) {
-
 	tests := []struct{ name, expectedError string }{
 		{name: "no_watch_observers", expectedError: "`watch_observers` must be defined and include at least one configured observer extension"},
+		{name: "no_receivers", expectedError: "`receivers` must be defined and include at least one receiver entry"},
 		{name: "missing_status", expectedError: "receiver \"a_receiver\" validation failure: `status` must be defined and contain at least one `metrics` or `statements` mapping"},
 		{name: "missing_status_metrics_and_statements", expectedError: "receiver \"a_receiver\" validation failure: `status` must be defined and contain at least one `metrics` or `statements` mapping"},
 		{name: "invalid_status_types", expectedError: `receiver "a_receiver" validation failure: invalid status "unsupported". must be one of [successful partial failed]; invalid status "another_unsupported". must be one of [successful partial failed]`},

@@ -95,6 +95,9 @@ type LogRecord struct {
 }
 
 func (cfg *Config) Validate() error {
+	if len(cfg.Receivers) == 0 {
+		return fmt.Errorf("`receivers` must be defined and include at least one receiver entry")
+	}
 	var err error
 	for rName, rEntry := range cfg.Receivers {
 		name := rName.String()

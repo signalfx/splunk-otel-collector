@@ -1,0 +1,3 @@
+discovery:
+  watch_observers:
+    - an_observer

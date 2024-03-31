@@ -45,7 +45,7 @@ func TestCreateLogsReceiver(t *testing.T) {
 	params := otelcolreceiver.CreateSettings{}
 	receiver, err := factory.CreateLogsReceiver(context.Background(), params, cfg, consumertest.NewNop())
 	assert.Error(t, err)
-	assert.EqualError(t, err, "`watch_observers` must be defined and include at least one configured observer extension")
+	assert.EqualError(t, err, "`receivers` must be defined and include at least one receiver entry")
 	assert.Nil(t, receiver)
 }
 

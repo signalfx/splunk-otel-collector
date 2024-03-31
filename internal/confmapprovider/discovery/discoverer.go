@@ -350,7 +350,7 @@ func (d *discoverer) createDiscoveryReceiversAndObservers(cfg *Config) (map[comp
 		if lr, err = discoveryReceiverFactory.CreateLogsReceiver(context.Background(), discoveryReceiverSettings, discoveryReceiverDefaultConfig, d); err != nil {
 			return nil, nil, fmt.Errorf("failed creating discovery receiver: %w", err)
 		}
-		discoveryReceivers[component.MustNewIDWithName(discoveryReceiverFactory.Type().String(), observerID.String())] = lr
+		discoveryReceivers[component.NewIDWithName(discoveryReceiverFactory.Type(), observerID.String())] = lr
 	}
 
 	return discoveryReceivers, discoveryObservers, nil
@@ -654,10 +654,11 @@ func (d *discoverer) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 	rlogs := ld.ResourceLogs()
 	for i := 0; i < rlogs.Len(); i++ {
 		var (
-			receiverType, receiverName string
-			receiverConfig, obsID      string
-			observerID                 component.ID
-			err                        error
+			receiverType          component.Type
+			receiverName          string
+			receiverConfig, obsID string
+			observerID            component.ID
+			err                   error
 		)
 		rlog := rlogs.At(i)
 		rAttrs := rlog.Resource().Attributes()
@@ -669,7 +670,11 @@ func (d *discoverer) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 			// nothing we can do without this one
 			continue
 		}
-		receiverType = rType.Str()
+		receiverType, err = component.NewType(rType.Str())
+		if err != nil {
+			d.logger.Debug("invalid receiver type", zap.Error(err))
+			continue
+		}
 		if rConfig, ok := rAttrs.Get(discovery.ReceiverConfigAttr); ok {
 			receiverConfig = rConfig.Str()
 		}
@@ -695,7 +700,7 @@ func (d *discoverer) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 
 		var rule string
 		var configSection map[string]any
-		receiverID := component.MustNewIDWithName(receiverType, receiverName)
+		receiverID := component.NewIDWithName(receiverType, receiverName)
 		if rCfg, hasConfig := d.getUnexpandedReceiverConfig(receiverID, observerID); hasConfig {
 			if r, hasRule := rCfg["rule"]; hasRule {
 				rule = r.(string)

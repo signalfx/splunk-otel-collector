@@ -207,10 +207,6 @@ class splunk_otel_collector (
     }
   }
 
-  if $collector_version != 'latest' or versioncmp($collector_version, '0.97.0') < 0 {
-    $splunk_ballast_size_mib = ''
-  }
-
   if $install_fluentd {
     case $::osfamily {
       'debian': {

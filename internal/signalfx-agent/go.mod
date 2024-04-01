@@ -69,7 +69,7 @@ require (
 	github.com/signalfx/golib/v3 v3.3.53
 	github.com/signalfx/ingest-protocols v0.2.0
 	github.com/sirupsen/logrus v1.9.3
-	github.com/snowflakedb/gosnowflake v1.8.0
+	github.com/snowflakedb/gosnowflake v1.9.0
 	github.com/stretchr/testify v1.9.0
 	github.com/ulule/deepcopier v0.0.0-20171107155558-ca99b135e50f
 	github.com/vmware/govmomi v0.36.1
@@ -96,7 +96,7 @@ require (
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/naoina/go-stringutil v0.1.0 // indirect
 	github.com/soniah/gosnmp v0.0.0-20190220004421-68e8beac0db9 // indirect; required; first version with go modules
-	github.com/tidwall/gjson v1.9.3 // indirect
+	github.com/tidwall/gjson v1.14.2 // indirect
 	github.com/vjeantet/grok v1.0.0 // indirect
 )
 
@@ -121,7 +121,7 @@ require (
 	github.com/JohnCGriffin/overflow v0.0.0-20211019200055-46fa312c352c // indirect
 	github.com/Masterminds/semver/v3 v3.2.1 // indirect
 	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137 // indirect
-	github.com/apache/arrow/go/v14 v14.0.2 // indirect
+	github.com/apache/arrow/go/v15 v15.0.0 // indirect
 	github.com/apache/thrift v0.19.0 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.17.7 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.10 // indirect

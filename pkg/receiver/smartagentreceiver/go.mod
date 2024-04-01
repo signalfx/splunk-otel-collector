@@ -45,7 +45,7 @@ require (
 	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137 // indirect
 	github.com/antonmedv/expr v1.15.5 // indirect
-	github.com/apache/arrow/go/v14 v14.0.2 // indirect
+	github.com/apache/arrow/go/v15 v15.0.0 // indirect
 	github.com/apache/thrift v0.19.0 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.17.7 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.10 // indirect
@@ -178,11 +178,11 @@ require (
 	github.com/signalfx/gohistogram v0.0.0-20160107210732-1ccfd2ff5083 // indirect
 	github.com/signalfx/ingest-protocols v0.2.0 // indirect
 	github.com/signalfx/sapm-proto v0.12.0 // indirect
-	github.com/snowflakedb/gosnowflake v1.8.0 // indirect
+	github.com/snowflakedb/gosnowflake v1.9.0 // indirect
 	github.com/soniah/gosnmp v0.0.0-20190220004421-68e8beac0db9 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
-	github.com/tidwall/gjson v1.10.2 // indirect
+	github.com/tidwall/gjson v1.14.2 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.12 // indirect

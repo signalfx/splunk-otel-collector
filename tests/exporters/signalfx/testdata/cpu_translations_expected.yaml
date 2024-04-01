@@ -66,96 +66,6 @@ resourceMetrics:
                       value:
                         stringValue: user
                   timeUnixNano: "1000000"
-                - asDouble: 1.86
-                  attributes:
-                    - key: cpu
-                      value:
-                        stringValue: cpu4
-                    - key: host.name
-                      value:
-                        stringValue: docker-desktop
-                    - key: os.type
-                      value:
-                        stringValue: linux
-                    - key: state
-                      value:
-                        stringValue: user
-                  timeUnixNano: "1000000"
-                - asDouble: 1.82
-                  attributes:
-                    - key: cpu
-                      value:
-                        stringValue: cpu5
-                    - key: host.name
-                      value:
-                        stringValue: docker-desktop
-                    - key: os.type
-                      value:
-                        stringValue: linux
-                    - key: state
-                      value:
-                        stringValue: user
-                  timeUnixNano: "1000000"
-                - asDouble: 2
-                  attributes:
-                    - key: cpu
-                      value:
-                        stringValue: cpu6
-                    - key: host.name
-                      value:
-                        stringValue: docker-desktop
-                    - key: os.type
-                      value:
-                        stringValue: linux
-                    - key: state
-                      value:
-                        stringValue: user
-                  timeUnixNano: "1000000"
-                - asDouble: 2.05
-                  attributes:
-                    - key: cpu
-                      value:
-                        stringValue: cpu7
-                    - key: host.name
-                      value:
-                        stringValue: docker-desktop
-                    - key: os.type
-                      value:
-                        stringValue: linux
-                    - key: state
-                      value:
-                        stringValue: user
-                  timeUnixNano: "1000000"
-                - asDouble: 2.01
-                  attributes:
-                    - key: cpu
-                      value:
-                        stringValue: cpu8
-                    - key: host.name
-                      value:
-                        stringValue: docker-desktop
-                    - key: os.type
-                      value:
-                        stringValue: linux
-                    - key: state
-                      value:
-                        stringValue: user
-                  timeUnixNano: "1000000"
-                - asDouble: 2.2
-                  attributes:
-                    - key: cpu
-                      value:
-                        stringValue: cpu9
-                    - key: host.name
-                      value:
-                        stringValue: docker-desktop
-                    - key: os.type
-                      value:
-                        stringValue: linux
-                    - key: state
-                      value:
-                        stringValue: user
-                  timeUnixNano: "1000000"
               isMonotonic: true
           - gauge:
               dataPoints:
@@ -171,7 +81,7 @@ resourceMetrics:
             name: cpu.utilization
           - gauge:
               dataPoints:
-                - asInt: "10"
+                - asInt: "4"
                   attributes:
                     - key: host.name
                       value:

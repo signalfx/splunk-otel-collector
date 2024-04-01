@@ -32,10 +32,7 @@ import (
 
 var _ zapcore.Core = (*statementEvaluator)(nil)
 
-const (
-	statementMatch      = "statement.match"
-	defaultSeverityText = "INFO"
-)
+const statementMatch = "statement.match"
 
 // statementEvaluator conforms to a zapcore.Core to intercept component log statements and
 // determine if they match any configured Status match rules. If so, they emit log records
@@ -209,14 +206,6 @@ func (se *statementEvaluator) evaluateStatement(statement *statussources.Stateme
 					logRecord.Attributes().PutStr(k, v)
 				}
 			}
-			severityText := desiredRecord.SeverityText
-			if severityText == "" {
-				severityText = logRecord.SeverityText()
-				if severityText == "" {
-					severityText = defaultSeverityText
-				}
-			}
-			logRecord.SetSeverityText(severityText)
 			logRecord.Attributes().PutStr(discovery.StatusAttr, string(status))
 			logRecord.SetTimestamp(pcommon.NewTimestampFromTime(statement.Time))
 			logRecord.SetObservedTimestamp(pcommon.NewTimestampFromTime(time.Now()))

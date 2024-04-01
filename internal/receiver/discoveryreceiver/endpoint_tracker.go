@@ -138,7 +138,6 @@ func endpointToPLogs(observerID component.ID, eventType string, endpoints []obse
 		logRecord := sl.LogRecords().AppendEmpty()
 		logRecord.SetTimestamp(pcommon.NewTimestampFromTime(received))
 		logRecord.SetObservedTimestamp(pcommon.NewTimestampFromTime(time.Now()))
-		logRecord.SetSeverityText("info")
 		attrs := logRecord.Attributes()
 		if endpoint.Details != nil {
 			logRecord.Body().SetStr(fmt.Sprintf("%s %s endpoint %s", eventType, endpoint.Details.Type(), endpoint.ID))

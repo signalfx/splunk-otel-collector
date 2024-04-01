@@ -17,7 +17,12 @@ class splunk_otel_collector::collector_win_registry () {
     "SPLUNK_TRACE_URL=${splunk_otel_collector::splunk_trace_url}",
   ]
   + if !$splunk_otel_collector::splunk_ballast_size_mib.strip().empty() {
-    ["SPLUNK_BALLAST_SIZE_MIB=${splunk_otel_collector::splunk_ballast_size_mib}"]
+      if $splunk_otel_collector::$collector_version == 'latest' or versioncmp($splunk_otel_collector::$collector_version, '0.97.0') >= 0 {
+        []
+      }
+      else {
+        ["SPLUNK_BALLAST_SIZE_MIB=${splunk_otel_collector::splunk_ballast_size_mib}"]
+      }
   } else {
     []
   }

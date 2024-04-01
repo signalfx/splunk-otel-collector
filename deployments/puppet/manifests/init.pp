@@ -10,7 +10,6 @@ class splunk_otel_collector (
   $splunk_bundle_dir       = $splunk_otel_collector::params::splunk_bundle_dir,
   $splunk_collectd_dir     = $splunk_otel_collector::params::splunk_collectd_dir,
   $splunk_memory_total_mib = '512',
-  $splunk_ballast_size_mib = '',
   $splunk_listen_interface = '',
   $collector_version       = $splunk_otel_collector::params::collector_version,
   $collector_config_source = $splunk_otel_collector::params::collector_config_source,
@@ -206,6 +205,10 @@ class splunk_otel_collector (
       enable    => true,
       subscribe => [Class['splunk_otel_collector::collector_win_registry'], File[$collector_config_dest]],
     }
+  }
+
+  if $collector_version != 'latest' or versioncmp($collector_version, '0.97.0') < 0 {
+    $splunk_ballast_size_mib = ''
   }
 
   if $install_fluentd {

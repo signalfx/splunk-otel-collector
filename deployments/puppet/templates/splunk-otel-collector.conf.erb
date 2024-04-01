@@ -13,6 +13,7 @@ SPLUNK_LISTEN_INTERFACE=<%= @splunk_listen_interface %>
 <% end -%>
 SPLUNK_REALM=<%= @splunk_realm %>
 SPLUNK_TRACE_URL=<%= @splunk_trace_url %>
+GOMEMLIMIT=<%= @gomemlimit %>
 
 # Custom environment variables.
 <% @collector_additional_env_vars.each do |key, value| %>

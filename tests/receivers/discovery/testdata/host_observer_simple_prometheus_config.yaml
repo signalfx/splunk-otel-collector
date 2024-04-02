@@ -26,6 +26,7 @@ receivers:
                     body: Successfully connected to prometheus server
           statements:
             failed:
+              # Only the first matching statement match will be logged
               - strict: Failed to scrape Prometheus endpoint
                 first_only: true
                 log_record:

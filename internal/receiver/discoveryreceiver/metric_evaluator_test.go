@@ -110,11 +110,7 @@ func TestMetricEvaluation(t *testing.T) {
 
 							emitted := me.evaluateMetrics(md)
 
-							numExpected := 1
-							if !firstOnly {
-								numExpected = 3
-							}
-							require.Equal(t, numExpected, emitted.LogRecordCount())
+							require.Equal(t, 1, emitted.LogRecordCount())
 
 							rl := emitted.ResourceLogs().At(0)
 							rAttrs = rl.Resource().Attributes()
@@ -131,20 +127,18 @@ func TestMetricEvaluation(t *testing.T) {
 							require.Equal(t, 1, sLogs.Len())
 							sl := sLogs.At(0)
 							lrs := sl.LogRecords()
-							require.Equal(t, numExpected, lrs.Len())
-							for i := 0; i < numExpected; i++ {
-								lr := sl.LogRecords().At(0)
+							require.Equal(t, 1, lrs.Len())
+							lr := sl.LogRecords().At(0)
 
-								lrAttrs := lr.Attributes()
-								require.Equal(t, map[string]any{
-									"discovery.status": string(status),
-									"metric.name":      "desired.name",
-									"one":              "one.value",
-									"two":              "two.value",
-								}, lrAttrs.AsRaw())
+							lrAttrs := lr.Attributes()
+							require.Equal(t, map[string]any{
+								"discovery.status": string(status),
+								"metric.name":      "desired.name",
+								"one":              "one.value",
+								"two":              "two.value",
+							}, lrAttrs.AsRaw())
 
-								require.Equal(t, "desired body content", lr.Body().AsString())
-							}
+							require.Equal(t, "desired body content", lr.Body().AsString())
 						})
 					}
 				})

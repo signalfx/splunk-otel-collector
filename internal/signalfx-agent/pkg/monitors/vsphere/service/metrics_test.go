@@ -15,7 +15,7 @@ func TestPopulateInvMetrics(t *testing.T) {
 	inv, _ := inventorySvc.RetrieveInventory()
 	metricsSvc.PopulateInvMetrics(inv)
 	invObj := inv.Objects[0]
-	perfMetricID := invObj.MetricIds[0]
+	perfMetricID := invObj.MetricIDs[0]
 	require.EqualValues(t, "instance-0", perfMetricID.Instance)
 }
 

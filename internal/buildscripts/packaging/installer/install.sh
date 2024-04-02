@@ -852,7 +852,7 @@ Collector:
   --test                                Use the test package repo instead of the primary.
   --trace-url <url>                     Set the trace endpoint URL explicitly instead of the endpoint inferred from the
                                         specified realm.
-                                        (default: https://ingest.REALM.signalfx.com/v2/trace)
+                                        (default: https://ingest.REALM.signalfx.com:443)
 
 Fluentd:
   --with[out]-fluentd                   Whether to install and configure fluentd to forward log events to the collector.
@@ -1369,7 +1369,7 @@ parse_args_and_install() {
   fi
 
   if [ -z "$trace_url" ]; then
-    trace_url="${ingest_url}/v2/trace"
+    trace_url="${ingest_url}:443"
   fi
 
   if [ -z "$otlp_endpoint" ]; then

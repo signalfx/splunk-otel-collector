@@ -82,7 +82,7 @@ type Dimensions map[string]string
 
 type InventoryObject struct {
 	Ref        types.ManagedObjectReference
-	MetricIds  []types.PerfMetricId
+	MetricIDs  []types.PerfMetricId
 	dimensions Dimensions
 }
 

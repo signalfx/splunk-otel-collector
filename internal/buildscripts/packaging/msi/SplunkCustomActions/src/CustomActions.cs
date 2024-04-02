@@ -45,6 +45,49 @@ public class CustomActions
     }
 
     /// <summary>
+    /// Custom action to add optional configuration options to the environment at the service scope.
+    /// </summary>
+    /// <remarks>
+    /// It is possible to add these as machine-wide environment variables, but, for consistency,
+    /// this custom action adds them to the service environment.
+    /// </remarks>
+    /// <param name="session">Carries information about the current installation session.</param>
+    /// <returns>Always success, in case of error the code will throw an exception and fails the install.</returns>
+    [CustomAction]
+    public static ActionResult AddOptionalConfigurations(Session session)
+    {
+        var optionalConfigurationKeys = new string[]
+        {
+            "SPLUNK_COLLECTD_DIR",
+            "SPLUNK_GATEWAY_URL",
+            "SPLUNK_LISTEN_INTERFACE",
+            "SPLUNK_MEMORY_LIMIT_MIB",
+            "SPLUNK_MEMORY_TOTAL_MIB"
+        };
+
+        var optionalEnvironmentVariables = new Dictionary<string, string>();
+        foreach (var key in optionalConfigurationKeys)
+        {
+            var value = session.CustomActionData[key];
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                session.Log($"Info: Setting environment variable {key}={value}");
+                optionalEnvironmentVariables[key] = value;
+            }
+        }
+
+        if (optionalEnvironmentVariables.Count > 0)
+        {
+            using (var environment = new MultiStringEnvironment())
+            {
+                environment.AddEnvironmentVariables(optionalEnvironmentVariables);
+            }
+        }
+
+        return ActionResult.Success;
+    }
+
+    /// <summary>
     /// Helper to log and show error messages if the installation fails.
     /// When running in silent mode no dialog is shown.
     /// <summary>

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 🛑 Breaking changes 🛑
+
+- (Splunk) `receiver/discovery`: Remove `severity_text` field from log evaluation statements. ([#4583](https://github.com/signalfx/splunk-otel-collector/pull/4583))
+
 ## v0.97.0
 
 ### 🚀 New components 🚀

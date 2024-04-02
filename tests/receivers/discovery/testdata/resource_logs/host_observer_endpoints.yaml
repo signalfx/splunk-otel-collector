@@ -6,7 +6,6 @@ resource_logs:
     scope_logs:
       - logs:
           - body: endpoint.added hostport endpoint (host_observer)127.0.0.1-55554-TCP-1
-            severity_text: info
             attributes:
               command: /otelcol --config /etc/config.yaml
               endpoint: 127.0.0.1:55554
@@ -17,7 +16,6 @@ resource_logs:
               transport: TCP
               type: hostport
           - body: endpoint.added hostport endpoint (host_observer)[::]-8888-TCP-1
-            severity_text: info
             attributes:
               command: /otelcol --config /etc/config.yaml
               endpoint: '[::]:8888'
@@ -34,7 +32,6 @@ resource_logs:
     scope_logs:
       - logs:
           - body: endpoint.added hostport endpoint (host_observer/with_name)127.0.0.1-55554-TCP-1
-            severity_text: info
             attributes:
               command: /otelcol --config /etc/config.yaml
               endpoint: 127.0.0.1:55554
@@ -45,7 +42,6 @@ resource_logs:
               transport: TCP
               type: hostport
           - body: endpoint.added hostport endpoint (host_observer/with_name)[::]-8888-TCP-1
-            severity_text: info
             attributes:
               command: /otelcol --config /etc/config.yaml
               endpoint: '[::]:8888'
@@ -62,7 +58,6 @@ resource_logs:
     scope_logs:
       - logs:
           - body: endpoint.added hostport endpoint (host_observer/with/another/name)127.0.0.1-55554-TCP-1
-            severity_text: info
             attributes:
               command: /otelcol --config /etc/config.yaml
               endpoint: 127.0.0.1:55554
@@ -73,7 +68,6 @@ resource_logs:
               transport: TCP
               type: hostport
           - body: endpoint.added hostport endpoint (host_observer/with/another/name)[::]-8888-TCP-1
-            severity_text: info
             attributes:
               command: /otelcol --config /etc/config.yaml
               endpoint: '[::]:8888'

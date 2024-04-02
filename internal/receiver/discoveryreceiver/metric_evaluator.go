@@ -148,11 +148,6 @@ func (m *metricEvaluator) evaluateMetrics(md pmetric.Metrics) plog.Logs {
 					for k, v := range desiredRecord.Attributes {
 						logRecord.Attributes().PutStr(k, v)
 					}
-					severityText := desiredRecord.SeverityText
-					if severityText == "" {
-						severityText = "info"
-					}
-					logRecord.SetSeverityText(severityText)
 					logRecord.Attributes().PutStr(metricNameAttr, metricName)
 					logRecord.Attributes().PutStr(discovery.StatusAttr, string(status))
 					if ts := m.timestampFromMetric(metric); ts != nil {

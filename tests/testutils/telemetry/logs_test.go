@@ -446,5 +446,5 @@ func TestLogContainsAllWithMissingAndEmptyAttributes(t *testing.T) {
 	containsAll, err = received.ContainsAll(*empty)
 	require.False(t, containsAll)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "Missing Logs: [body: a string body\nattributes: {}\nseverity: 1\nseverity_text: info\n]")
+	require.Contains(t, err.Error(), "Missing Logs: [body: a string body\nattributes: {}\nseverity: 1\n]")
 }

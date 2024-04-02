@@ -71,6 +71,8 @@ func (m *metricEvaluator) ConsumeMetrics(_ context.Context, md pmetric.Metrics) 
 	return nil
 }
 
+// evaluateMetrics parses the provided Metrics and returns plog.Logs with a single log record if it matches
+// against the first applicable configured Status match rule.
 func (m *metricEvaluator) evaluateMetrics(md pmetric.Metrics) plog.Logs {
 	if ce := m.logger.Check(zapcore.DebugLevel, "evaluating metrics"); ce != nil {
 		if mbytes, err := jsonMarshaler.MarshalMetrics(md); err == nil {
@@ -79,38 +81,24 @@ func (m *metricEvaluator) evaluateMetrics(md pmetric.Metrics) plog.Logs {
 			m.logger.Debug("failed json-marshaling metrics for logging", zap.Error(err))
 		}
 	}
-	pLogs := plog.NewLogs()
 	if md.MetricCount() == 0 {
-		return pLogs
+		return plog.NewLogs()
 	}
 
 	receiverID, endpointID := statussources.MetricsToReceiverIDs(md)
 	if receiverID == discovery.NoType || endpointID == "" {
 		m.logger.Debug("unable to evaluate metrics from receiver without corresponding name or Endpoint.ID", zap.Any("metrics", md))
-		return pLogs
+		return plog.NewLogs()
 	}
 
 	rEntry, ok := m.config.Receivers[receiverID]
 	if !ok {
 		m.logger.Info("No matching configured receiver for metric status evaluation", zap.String("receiver", receiverID.String()))
-		return pLogs
+		return plog.NewLogs()
 	}
 	if rEntry.Status == nil || len(rEntry.Status.Metrics) == 0 {
-		return pLogs
+		return plog.NewLogs()
 	}
-	var matchFound bool
-
-	stagePLogs := plog.NewLogs()
-	rLog := stagePLogs.ResourceLogs().AppendEmpty()
-	rAttrs := rLog.Resource().Attributes()
-	m.correlateResourceAttributes(
-		md.ResourceMetrics().At(0).Resource().Attributes(), rAttrs,
-		m.correlations.GetOrCreate(receiverID, endpointID),
-	)
-	rAttrs.PutStr(eventTypeAttr, metricMatch)
-	rAttrs.PutStr(receiverRuleAttr, rEntry.Rule)
-
-	logRecords := rLog.ScopeLogs().AppendEmpty().LogRecords()
 
 	receiverMetrics := map[string][]pmetric.Metric{}
 	for i := 0; i < md.ResourceMetrics().Len(); i++ {
@@ -134,7 +122,19 @@ func (m *metricEvaluator) evaluateMetrics(md pmetric.Metrics) plog.Logs {
 					} else if !shouldLog {
 						continue
 					}
-					matchFound = true
+
+					pLogs := plog.NewLogs()
+					rLog := pLogs.ResourceLogs().AppendEmpty()
+					rAttrs := rLog.Resource().Attributes()
+					m.correlateResourceAttributes(
+						md.ResourceMetrics().At(0).Resource().Attributes(), rAttrs,
+						m.correlations.GetOrCreate(receiverID, endpointID),
+					)
+					rAttrs.PutStr(eventTypeAttr, metricMatch)
+					rAttrs.PutStr(receiverRuleAttr, rEntry.Rule)
+
+					logRecords := rLog.ScopeLogs().AppendEmpty().LogRecords()
+
 					logRecord := logRecords.AppendEmpty()
 					desiredRecord := match.Record
 					if desiredRecord == nil {
@@ -154,14 +154,12 @@ func (m *metricEvaluator) evaluateMetrics(md pmetric.Metrics) plog.Logs {
 						logRecord.SetTimestamp(*ts)
 					}
 					logRecord.SetObservedTimestamp(pcommon.NewTimestampFromTime(time.Now()))
+					return pLogs
 				}
 			}
 		}
 	}
-	if matchFound {
-		pLogs = stagePLogs
-	}
-	return pLogs
+	return plog.NewLogs()
 }
 
 func (m *metricEvaluator) timestampFromMetric(metric pmetric.Metric) *pcommon.Timestamp {

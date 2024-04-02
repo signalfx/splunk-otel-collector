@@ -16,11 +16,19 @@ class splunk_otel_collector::collector_win_registry () {
     "SPLUNK_REALM=${splunk_otel_collector::splunk_realm}",
     "SPLUNK_TRACE_URL=${splunk_otel_collector::splunk_trace_url}",
   ]
-  + if ($splunk_otel_collector::params::collector_version != 'latest' or
+  + if ($splunk_otel_collector::params::collector_version != 'latest' and
   versioncmp($splunk_otel_collector::params::collector_version, '0.97.0') < 0 ) and
   !$splunk_otel_collector::splunk_ballast_size_mib.strip().empty()
   {
     ["SPLUNK_BALLAST_SIZE_MIB=${splunk_otel_collector::splunk_ballast_size_mib}"]
+  } else {
+    []
+  }
+  + if ($splunk_otel_collector::params::collector_version == 'latest' and
+  versioncmp($splunk_otel_collector::params::collector_version, '0.97.0') >= 0 ) and
+  !$splunk_otel_collector::gomemlimit.strip().empty()
+  {
+    ["GOMEMLIMIT=${splunk_otel_collector::gomemlimit}"]
   } else {
     []
   }

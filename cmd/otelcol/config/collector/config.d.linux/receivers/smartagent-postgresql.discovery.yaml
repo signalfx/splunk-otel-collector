@@ -26,13 +26,11 @@
 #         - strict: postgres_query_count
 #           first_only: true
 #           log_record:
-#             severity_text: info
 #             body: PostgreSQL receiver is working!
 #       partial:
 #         - strict: postgres_rows_inserted
 #           first_only: true
 #           log_record:
-#             severity_text: info
 #             body: >-
 #               Make sure that
 #               `CREATE EXTENSION IF NOT EXISTS pg_stat_statements;`
@@ -44,20 +42,17 @@
 #         - regexp: 'connect: network is unreachable'
 #           first_only: true
 #           log_record:
-#             severity_text: info
 #             append_pattern: true
 #             body: The container cannot be reached by the Collector. Make sure they're in the same network.
 #         - regexp: 'connect: connection refused'
 #           first_only: true
 #           log_record:
-#             severity_text: info
 #             append_pattern: true
 #             body: The container is refusing PostgreSQL connections.
 #       partial:
 #         - regexp: 'pq: password authentication failed for user'
 #           first_only: true
 #           log_record:
-#             severity_text: info
 #             append_pattern: true
 #             body: >-
 #               Please ensure your user credentials are correctly specified with
@@ -68,7 +63,6 @@
 #         - regexp: 'pq: database .* does not exist'
 #           first_only: true
 #           log_record:
-#             severity_text: info
 #             append_pattern: true
 #             body: >-
 #               Make sure the target database is correctly specified using the
@@ -77,7 +71,6 @@
 #         - regexp: 'pq: pg_stat_statements must be loaded via shared_preload_libraries'
 #           first_only: true
 #           log_record:
-#             severity_text: info
 #             append_pattern: true
 #             body: >-
 #               Make sure your PostgreSQL database has

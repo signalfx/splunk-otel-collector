@@ -45,7 +45,6 @@ func TestStatementFromZapCoreEntry(t *testing.T) {
 	require.NotNil(t, statement)
 
 	require.Equal(t, "a.message", statement.Message)
-	require.Equal(t, "debug", statement.Level)
 	require.Equal(t, now, statement.Time)
 	require.Equal(t, "logger.name", statement.LoggerName)
 	require.Equal(t, entry.Caller, statement.Caller)
@@ -86,7 +85,6 @@ func TestStatementToLogRecord(t *testing.T) {
 	lr := statement.ToLogRecord()
 
 	require.Equal(t, "a.message", lr.Body().AsString())
-	require.Equal(t, "debug", lr.SeverityText())
 	require.Equal(t, now.UTC(), lr.Timestamp().AsTime())
 	require.GreaterOrEqual(t, lr.ObservedTimestamp().AsTime(), t0)
 	require.Equal(t, map[string]any{

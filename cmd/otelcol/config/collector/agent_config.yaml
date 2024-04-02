@@ -131,7 +131,7 @@ exporters:
     endpoint: "${SPLUNK_TRACE_URL}"
     headers:
       "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
-    # Use instead when sending to gateway
+    # When sending to gateway use
     #endpoint: "${SPLUNK_GATEWAY_URL}:4317"
     #tls:
     #  insecure: true

@@ -15,7 +15,8 @@ via the instance's [zap.Logger](https://pkg.go.dev/go.uber.org/zap). It works si
 report their metric content to your metrics pipelines. Instead, the metrics are intercepted by an internal metrics
 consumer capable of translating desired metrics to log records based on the `status: metrics` rules you define. All
 component-level log statements are similarly intercepted by a log evaluator, and can be translated to emitted log
-records based on the `status: statements` rules you define.
+records based on the `status: statements` rules you define. The matching rules SHOULD NOT conflict with each other.
+The first matching rule in the list will be used to determine the status of the receiver.
 
 The receiver also allows you to emit log records for all
 [Endpoint](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/extension/observer/endpoints.go)

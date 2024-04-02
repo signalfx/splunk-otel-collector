@@ -142,19 +142,17 @@ func (se *statementEvaluator) Sync() error {
 	return nil
 }
 
-// evaluateStatement will convert the provided statussources.Statement into a plog.LogRecord
-// and match it against the applicable configured ReceiverEntry's status Statement.[]Match
+// evaluateStatement will convert the provided statussources.Statement into a plog.Logs with a single log record
+// if it matches against the first applicable configured ReceiverEntry's status Statement.[]Match
 func (se *statementEvaluator) evaluateStatement(statement *statussources.Statement) plog.Logs {
 	se.logger.Debug("evaluating statement", zap.Any("statement", statement))
-	pLogs := plog.NewLogs()
 
 	statementLogRecord := statement.ToLogRecord()
 	receiverID, endpointID, rEntry, shouldEvaluate := se.receiverEntryFromLogRecord(statementLogRecord)
 	if !shouldEvaluate {
-		return pLogs
+		return plog.NewLogs()
 	}
 
-	stagePLogs, logRecords := se.prepareMatchingLogs(rEntry, receiverID, endpointID)
 	patternMap := map[string]string{"message": statement.Message}
 	for k, v := range statement.Fields {
 		switch k {
@@ -174,7 +172,6 @@ func (se *statementEvaluator) evaluateStatement(statement *statussources.Stateme
 	}
 	se.logger.Debug("non-strict matches will be evaluated with pattern map", zap.String("map", patternMapStr))
 
-	var matchFound bool
 	for status, matches := range rEntry.Status.Statements {
 		for _, match := range matches {
 			p := patternMapStr
@@ -187,7 +184,8 @@ func (se *statementEvaluator) evaluateStatement(statement *statussources.Stateme
 			} else if !shouldLog {
 				continue
 			}
-			matchFound = true
+
+			pLogs, logRecords := se.prepareMatchingLogs(rEntry, receiverID, endpointID)
 			logRecord := logRecords.AppendEmpty()
 			var desiredRecord LogRecord
 			if match.Record != nil {
@@ -209,13 +207,10 @@ func (se *statementEvaluator) evaluateStatement(statement *statussources.Stateme
 			logRecord.Attributes().PutStr(discovery.StatusAttr, string(status))
 			logRecord.SetTimestamp(pcommon.NewTimestampFromTime(statement.Time))
 			logRecord.SetObservedTimestamp(pcommon.NewTimestampFromTime(time.Now()))
+			return pLogs
 		}
 	}
-
-	if matchFound {
-		pLogs = stagePLogs
-	}
-	return pLogs
+	return plog.NewLogs()
 }
 
 func (se *statementEvaluator) receiverEntryFromLogRecord(record plog.LogRecord) (component.ID, observer.EndpointID, ReceiverEntry, bool) {

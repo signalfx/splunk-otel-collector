@@ -57,7 +57,7 @@ your environment:
 - `${SPLUNK_HEC_TOKEN}`: The Splunk HEC authentication token
 - `${SPLUNK_HEC_URL}`: The Splunk HEC endpoint URL, e.g. `https://ingest.us0.signalfx.com/v1/log`
 - `${SPLUNK_INGEST_URL}`: The Splunk ingest URL, e.g. `https://ingest.us0.signalfx.com`
-- `${SPLUNK_TRACE_URL}`: The Splunk trace endpoint URL, e.g. `https://ingest.us0.signalfx.com/v2/trace`
+- `${SPLUNK_TRACE_URL}`: The Splunk trace endpoint URL, e.g. `https://ingest.us0.signalfx.com:443`
 - `${SPLUNK_BUNDLE_DIR}`: The location of your Smart Agent bundle for monitor functionality, e.g. `C:\Program Files\Splunk\OpenTelemetry Collector\agent-bundle`
 
 After updating all variables in the config file, start the
@@ -190,7 +190,7 @@ The following package parameters are available:
  * `/SPLUNK_API_URL`: URL of the Splunk API endpoint (e.g. `https://api.us1.signalfx.com`). Default value is `https://api.$SPLUNK_REALM.signalfx.com`.
  * `/SPLUNK_HEC_TOKEN`: The Splunk HEC authentication token. Default value is the same as `SPLUNK_ACCESS_TOKEN`.
  * `/SPLUNK_HEC_URL`: URL of the Splunk HEC endpoint (e.g. `https://ingest.us1.signalfx.com/v1/log`). Default value is `https://ingest.$SPLUNK_REALM.signalfx.com/v1/log`
- * `/SPLUNK_TRACE_URL`: URL of the Splunk trace endpoint (e.g. `https://ingest.us1.signalfx.com/v2/trace`). Default value is `https://ingest.$SPLUNK_REALM.signalfx.com/v2/trace`
+ * `/SPLUNK_TRACE_URL`: URL of the Splunk trace endpoint (e.g. `https://ingest.us1.signalfx.com:443`). Default value is `https://ingest.$SPLUNK_REALM.signalfx.com:443`
  * `/SPLUNK_BUNDLE_DIR`: The path to the Smart Agent bundle directory for the `smartagent` receiver and extension. The default path is provided by the Collector package. If the specified path is changed from the default value, the path should be an existing directory on the system. Default value is `\Program Files\Splunk\OpenTelemetry Collector\agent-bundle`.
  * `/MODE`: This parameter is used for setting the `SPLUNK_CONFIG` value to `\ProgramData\Splunk\OpenTelemetry Collector\agent_config.yaml` or `\ProgramData\Splunk\OpenTelemetry Collector\gateway_config.yaml`. Possible values are `agent` and `gateway`. Default value is `agent`.
  * `/WITH_FLUENTD`: Whether to download, install, and configure Fluentd to collect and forward log events to the Collector. Possible values are `true` and `false`. If set to `true`, the Fluentd MSI package will be downloaded from `https://packages.treasuredata.com`. Default value is `false`.

@@ -124,11 +124,8 @@ jobs:
   windows-test:
     name: Windows Test
     needs: lint
-    # Need to run on macos-12 since it is the only image with native support for ansible, vagrant, and virtualbox.
-    # https://docs.ansible.com/ansible/latest/os_guide/windows_faq.html#windows-faq-ansible
-    # https://github.com/actions/runner-images/blob/main/images/macos/macos-12-Readme.md
-    runs-on: macos-12-xl
-    timeout-minutes: 90
+    runs-on: ubuntu-20.04
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
@@ -145,8 +142,18 @@ jobs:
           - custom_vars
           - with_instrumentation
     steps:
+      - name: Free up disk space for vagrant box
+        uses: jlumbroso/free-disk-space@v1.3.1
+
       - name: Check out the codebase.
         uses: actions/checkout@v4
+
+      - name: Install vagrant and virtualbox
+        run: |
+          sudo apt update && sudo apt install -y virtualbox
+          wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+          sudo apt update && sudo apt install -y vagrant
 
       - uses: DamianReeves/write-file-action@v1.3
         with:

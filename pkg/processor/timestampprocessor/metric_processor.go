@@ -25,7 +25,7 @@ import (
 )
 
 func newMetricAttributesProcessor(_ *zap.Logger, offsetFn func(timestamp pcommon.Timestamp) pcommon.Timestamp) processorhelper.ProcessMetricsFunc {
-	return func(ctx context.Context, metrics pmetric.Metrics) (pmetric.Metrics, error) {
+	return func(_ context.Context, metrics pmetric.Metrics) (pmetric.Metrics, error) {
 		for i := 0; i < metrics.ResourceMetrics().Len(); i++ {
 			rs := metrics.ResourceMetrics().At(i)
 			for j := 0; j < rs.ScopeMetrics().Len(); j++ {

@@ -25,7 +25,7 @@ import (
 
 func newSpanAttributesProcessor(_ *zap.Logger, offsetFn func(timestamp pcommon.Timestamp) pcommon.Timestamp) processorhelper.ProcessTracesFunc {
 
-	return func(ctx context.Context, traces ptrace.Traces) (ptrace.Traces, error) {
+	return func(_ context.Context, traces ptrace.Traces) (ptrace.Traces, error) {
 		for i := 0; i < traces.ResourceSpans().Len(); i++ {
 			rs := traces.ResourceSpans().At(i)
 			for j := 0; j < rs.ScopeSpans().Len(); j++ {

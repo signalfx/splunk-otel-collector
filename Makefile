@@ -33,7 +33,7 @@ BUILD_INFO_TESTS=-ldflags "-X $(BUILD_INFO_IMPORT_PATH_TESTS).Version=$(VERSION)
 
 JMX_METRIC_GATHERER_RELEASE=$(shell cat internal/buildscripts/packaging/jmx-metric-gatherer-release.txt)
 SKIP_COMPILE=false
-ARCH=amd64
+ARCH?=amd64
 BUNDLE_SUPPORTED_ARCHS := amd64 arm64
 SKIP_BUNDLE=false
 

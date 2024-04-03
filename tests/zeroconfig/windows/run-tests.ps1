@@ -4,6 +4,7 @@
 #Requires -RunAsAdministrator
 
 $ErrorActionPreference = 'Stop'
+$ProgressPreference = 'SilentlyContinue'
 
 $repo_root = (git rev-parse --show-toplevel)
 $testdata_path = Join-Path $repo_root tests/zeroconfig/windows/testdata/

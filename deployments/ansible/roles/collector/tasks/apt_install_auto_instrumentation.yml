@@ -8,3 +8,4 @@
     state: "{% if splunk_otel_auto_instrumentation_version != 'latest' %}present{% else %}latest{% endif %}"
     force: yes
     update_cache: yes
+  register: apt_instrumentation_package

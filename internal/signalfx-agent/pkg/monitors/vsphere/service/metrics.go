@@ -39,7 +39,7 @@ func (svc *MetricsSvc) PopulateInvMetrics(inv *model.Inventory) {
 			svc.log.WithField("invObj.ref", invObj.Ref).WithError(err).Error("populateInvMetrics: queryAvailablePerfMetric failed")
 			continue
 		}
-		invObj.MetricIds = resp.Returnval
+		invObj.MetricIDs = resp.Returnval
 	}
 }
 

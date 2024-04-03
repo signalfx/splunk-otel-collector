@@ -14,6 +14,8 @@
     splunk_otel_auto_instrumentation_enable_metrics: true
     splunk_otel_auto_instrumentation_otlp_endpoint: http://0.0.0.0:4317
   tasks:
+    - name: "Install nodejs for tests"
+      ansible.builtin.import_tasks: ../shared/install_nodejs.yml
     - name: "Include signalfx.splunk_otel_collector.collector role"
       include_role:
         name: "signalfx.splunk_otel_collector.collector"

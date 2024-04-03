@@ -89,7 +89,6 @@ type Match struct {
 // LogRecord is a definition of the desired plog.LogRecord content to emit for a match.
 type LogRecord struct {
 	Attributes    map[string]string `mapstructure:"attributes"`
-	SeverityText  string            `mapstructure:"severity_text"`
 	Body          string            `mapstructure:"body"`
 	AppendPattern bool              `mapstructure:"append_pattern"`
 }
@@ -162,18 +161,10 @@ func (s *Status) validate() error {
 						"`%s` status source type `%s` match type validation failed. Must provide one of %v but received %v", statusSource.sourceType, statusType, allowedMatchTypes, matchTypes,
 					))
 				}
-				if e := logMatch.Record.validate(); e != nil {
-					err = multierr.Combine(err, fmt.Errorf(" %q log record validation failure: %w", statusType, e))
-				}
 			}
 		}
 	}
 	return err
-}
-
-func (lr *LogRecord) validate() error {
-	// TODO: supported severity text validation
-	return nil
 }
 
 // receiverCreatorFactoryAndConfig will embed the applicable receiver creator fields in a new receiver creator config

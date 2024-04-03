@@ -138,7 +138,7 @@ func (cs *State) beginSyncForType(ctx context.Context, resType runtime.Object, r
 
 		return nil
 	}
-	store.ReplaceFunc = func(list []interface{}, resourceVerion string) error {
+	store.ReplaceFunc = func(list []interface{}, _ string) error {
 		cs.metricCache.Lock()
 		defer cs.metricCache.Unlock()
 

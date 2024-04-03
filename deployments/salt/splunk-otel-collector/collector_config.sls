@@ -10,7 +10,7 @@
 
 {% set splunk_ingest_url = salt['pillar.get']('splunk-otel-collector:splunk_ingest_url', 'https://ingest.' + splunk_realm + '.signalfx.com') %}
 
-{% set splunk_trace_url = salt['pillar.get']('splunk-otel-collector:splunk_trace_url', splunk_ingest_url + '/v2/trace') %}
+{% set splunk_trace_url = salt['pillar.get']('splunk-otel-collector:splunk_trace_url', splunk_ingest_url + ':443') %}
 
 {% set splunk_hec_url = salt['pillar.get']('splunk-otel-collector:splunk_hec_url', splunk_ingest_url + '/v1/log') %}
 

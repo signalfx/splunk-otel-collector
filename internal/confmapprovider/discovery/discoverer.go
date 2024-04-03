@@ -350,7 +350,7 @@ func (d *discoverer) createDiscoveryReceiversAndObservers(cfg *Config) (map[comp
 		if lr, err = discoveryReceiverFactory.CreateLogsReceiver(context.Background(), discoveryReceiverSettings, discoveryReceiverDefaultConfig, d); err != nil {
 			return nil, nil, fmt.Errorf("failed creating discovery receiver: %w", err)
 		}
-		discoveryReceivers[component.MustNewIDWithName(discoveryReceiverFactory.Type().String(), observerID.String())] = lr
+		discoveryReceivers[component.NewIDWithName(discoveryReceiverFactory.Type(), observerID.String())] = lr
 	}
 
 	return discoveryReceivers, discoveryObservers, nil
@@ -654,10 +654,11 @@ func (d *discoverer) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 	rlogs := ld.ResourceLogs()
 	for i := 0; i < rlogs.Len(); i++ {
 		var (
-			receiverType, receiverName string
-			receiverConfig, obsID      string
-			observerID                 component.ID
-			err                        error
+			receiverType          component.Type
+			receiverName          string
+			receiverConfig, obsID string
+			observerID            component.ID
+			err                   error
 		)
 		rlog := rlogs.At(i)
 		rAttrs := rlog.Resource().Attributes()
@@ -669,7 +670,11 @@ func (d *discoverer) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 			// nothing we can do without this one
 			continue
 		}
-		receiverType = rType.Str()
+		receiverType, err = component.NewType(rType.Str())
+		if err != nil {
+			d.logger.Debug("invalid receiver type", zap.Error(err))
+			continue
+		}
 		if rConfig, ok := rAttrs.Get(discovery.ReceiverConfigAttr); ok {
 			receiverConfig = rConfig.Str()
 		}
@@ -695,7 +700,7 @@ func (d *discoverer) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 
 		var rule string
 		var configSection map[string]any
-		receiverID := component.MustNewIDWithName(receiverType, receiverName)
+		receiverID := component.NewIDWithName(receiverType, receiverName)
 		if rCfg, hasConfig := d.getUnexpandedReceiverConfig(receiverID, observerID); hasConfig {
 			if r, hasRule := rCfg["rule"]; hasRule {
 				rule = r.(string)
@@ -728,32 +733,26 @@ func (d *discoverer) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 		currentReceiverStatus := d.discoveredReceivers[receiverID]
 		currentObserverStatus := d.discoveredObservers[observerID]
 
-		slogs := rlog.ScopeLogs()
-		for j := 0; j < slogs.Len(); j++ {
-			slog := slogs.At(0)
-			lrs := slog.LogRecords()
-			for k := 0; k < lrs.Len(); k++ {
-				lr := lrs.At(k)
-				if currentReceiverStatus != discovery.Successful || currentObserverStatus != discovery.Successful {
-					if rStatusAttr, ok := lr.Attributes().Get(discovery.StatusAttr); ok {
-						rStatus := discovery.StatusType(rStatusAttr.Str())
-						if valid, e := discovery.IsValidStatus(rStatus); !valid {
-							d.logger.Debug("invalid status from log record", zap.Error(e), zap.Any("lr", lr.Body().AsRaw()))
-							continue
-						}
-						receiverStatus := determineCurrentStatus(currentReceiverStatus, rStatus)
-						switch receiverStatus {
-						case discovery.Failed:
-							d.logger.Info(fmt.Sprintf("failed to discover %q using %q endpoint %q: %s", receiverID, observerID, endpointID, lr.Body().AsString()))
-						case discovery.Partial:
-							fmt.Fprintf(os.Stderr, "Partially discovered %q using %q endpoint %q: %s\n", receiverID, observerID, endpointID, lr.Body().AsString())
-						case discovery.Successful:
-							fmt.Fprintf(os.Stderr, "Successfully discovered %q using %q endpoint %q.\n", receiverID, observerID, endpointID)
-						}
-						d.discoveredReceivers[receiverID] = receiverStatus
-						d.discoveredObservers[observerID] = determineCurrentStatus(currentObserverStatus, rStatus)
-					}
+		// We assume that every resource log has a single log record as per the current implementation of the discovery receiver.
+		lr := rlog.ScopeLogs().At(0).LogRecords().At(0)
+		if currentReceiverStatus != discovery.Successful || currentObserverStatus != discovery.Successful {
+			if rStatusAttr, ok := lr.Attributes().Get(discovery.StatusAttr); ok {
+				rStatus := discovery.StatusType(rStatusAttr.Str())
+				if valid, e := discovery.IsValidStatus(rStatus); !valid {
+					d.logger.Debug("invalid status from log record", zap.Error(e), zap.Any("lr", lr.Body().AsRaw()))
+					continue
 				}
+				receiverStatus := determineCurrentStatus(currentReceiverStatus, rStatus)
+				switch receiverStatus {
+				case discovery.Failed:
+					d.logger.Info(fmt.Sprintf("failed to discover %q using %q endpoint %q: %s", receiverID, observerID, endpointID, lr.Body().AsString()))
+				case discovery.Partial:
+					fmt.Fprintf(os.Stderr, "Partially discovered %q using %q endpoint %q: %s\n", receiverID, observerID, endpointID, lr.Body().AsString())
+				case discovery.Successful:
+					fmt.Fprintf(os.Stderr, "Successfully discovered %q using %q endpoint %q.\n", receiverID, observerID, endpointID)
+				}
+				d.discoveredReceivers[receiverID] = receiverStatus
+				d.discoveredObservers[observerID] = determineCurrentStatus(currentObserverStatus, rStatus)
 			}
 		}
 	}

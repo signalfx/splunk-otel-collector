@@ -649,13 +649,6 @@ exporters:
     headers:
       X-SF-TOKEN: "${SPLUNK_ACCESS_TOKEN}"
 
-  # Enables the sapm exporter
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/sapmexporter
-  # TODO: Add access token and realm
-  sapm:
-    access_token: "${SPLUNK_ACCESS_TOKEN}"
-    endpoint: "https://ingest.${SPLUNK_REALM}.signalfx.com/v2/trace"
-
   # Enables the zipkin exporter
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/zipkinexporter
   # NOTE: These settings should be updated to the proper destination

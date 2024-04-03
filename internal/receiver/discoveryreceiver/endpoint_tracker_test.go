@@ -497,7 +497,6 @@ func expectedPLogs() plog.Logs {
 	lr := sLogs.LogRecords().AppendEmpty()
 	lr.SetTimestamp(pcommon.NewTimestampFromTime(t0))
 	lr.SetObservedTimestamp(pcommon.NewTimestampFromTime(t0))
-	lr.SetSeverityText("info")
 	return plogs
 }
 

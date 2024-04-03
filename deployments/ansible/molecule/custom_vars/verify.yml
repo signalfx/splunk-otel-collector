@@ -39,7 +39,7 @@
 
     - name: Assert SPLUNK_TRACE_URL env var is set
       ansible.builtin.lineinfile:
-        line: SPLUNK_TRACE_URL=https://fake-splunk-ingest.com/v2/trace
+        line: SPLUNK_TRACE_URL=https://fake-splunk-ingest.com:443
         dest: /etc/otel/collector/splunk-otel-collector.conf
         state: present
       check_mode: yes

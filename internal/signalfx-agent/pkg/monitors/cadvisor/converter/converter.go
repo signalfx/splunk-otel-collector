@@ -101,7 +101,7 @@ func getContainerMetrics() []containerMetric {
 			name:      "container_last_seen",
 			help:      "Last time a container was seen by the exporter",
 			valueType: datapoint.Timestamp,
-			getValues: func(s *info.ContainerStats) metricValues {
+			getValues: func(*info.ContainerStats) metricValues {
 				return metricValues{{value: datapoint.NewIntValue(time.Now().UnixNano())}}
 			},
 		},

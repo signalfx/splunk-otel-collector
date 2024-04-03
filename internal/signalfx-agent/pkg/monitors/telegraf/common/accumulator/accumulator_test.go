@@ -123,7 +123,7 @@ func TestAccumulator(t *testing.T) {
 			}
 		})
 	}
-	t.Run("SetPrecision()", func(t *testing.T) {
+	t.Run("SetPrecision()", func(*testing.T) {
 		ac.emit = &testEmitter{}
 		ac.SetPrecision(time.Second*1, time.Second*1)
 	})

@@ -95,9 +95,13 @@ func NewProperty(property, val string) (*Property, error) {
 		}
 		subStringMap = map[string]any{"config": confmap.NewFromStringMap(dst).ToStringMap()}
 	}
+	receiverType, err := component.NewType(p.Component.Type)
+	if err != nil {
+		return nil, fmt.Errorf("invalid receiver type %q: %w", p.Component.Type, err)
+	}
 	p.stringMap = map[string]any{
 		p.ComponentType: map[string]any{
-			component.MustNewIDWithName(p.Component.Type, p.Component.Name).String(): subStringMap,
+			component.NewIDWithName(receiverType, p.Component.Name).String(): subStringMap,
 		},
 	}
 	p.Input = property

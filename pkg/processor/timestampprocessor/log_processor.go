@@ -24,7 +24,7 @@ import (
 )
 
 func newLogAttributesProcessor(_ *zap.Logger, offsetFn func(timestamp pcommon.Timestamp) pcommon.Timestamp) processorhelper.ProcessLogsFunc {
-	return func(ctx context.Context, logs plog.Logs) (plog.Logs, error) {
+	return func(_ context.Context, logs plog.Logs) (plog.Logs, error) {
 		for i := 0; i < logs.ResourceLogs().Len(); i++ {
 			rs := logs.ResourceLogs().At(i)
 			for j := 0; j < rs.ScopeLogs().Len(); j++ {

@@ -21,7 +21,6 @@ discovery/discovery-name:
             - regexp: '.*'
               first_only: true
               log_record:
-                severity_text: info
                 body: smartagent/redis receiver successful status
                 attributes:
                   attr_one: attr_one_val
@@ -32,11 +31,9 @@ discovery/discovery-name:
               first_only: true
               log_record:
                 attributes: {}
-                severity_text: info
                 body: container appears to not be accepting redis connections
           partial:
             - regexp: (WRONGPASS|NOAUTH|ERR AUTH)
               first_only: false
               log_record:
-                severity_text: warn
                 body: desired log invalid auth log body

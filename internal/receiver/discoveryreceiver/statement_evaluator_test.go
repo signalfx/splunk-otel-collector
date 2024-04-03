@@ -52,6 +52,7 @@ func TestStatementEvaluation(t *testing.T) {
 						},
 					}
 					for _, status := range discovery.StatusTypes {
+						match.Status = status
 						t.Run(string(status), func(t *testing.T) {
 							for _, firstOnly := range []bool{true, false} {
 								match.FirstOnly = firstOnly
@@ -61,7 +62,7 @@ func TestStatementEvaluation(t *testing.T) {
 										Receivers: map[component.ID]ReceiverEntry{
 											component.MustNewIDWithName("a_receiver", "receiver.name"): {
 												Rule:   "a.rule",
-												Status: &Status{Statements: map[discovery.StatusType][]Match{status: {match}}},
+												Status: &Status{Statements: []Match{match}},
 											},
 										},
 										WatchObservers: []component.ID{observerID},

@@ -172,43 +172,41 @@ func (se *statementEvaluator) evaluateStatement(statement *statussources.Stateme
 	}
 	se.logger.Debug("non-strict matches will be evaluated with pattern map", zap.String("map", patternMapStr))
 
-	for status, matches := range rEntry.Status.Statements {
-		for _, match := range matches {
-			p := patternMapStr
-			if match.Strict != "" {
-				p = statement.Message
-			}
-			if shouldLog, err := se.evaluateMatch(match, p, status, receiverID, endpointID); err != nil {
-				se.logger.Info(fmt.Sprintf("Error evaluating %s statement match", status), zap.Error(err))
-				continue
-			} else if !shouldLog {
-				continue
-			}
-
-			pLogs, logRecords := se.prepareMatchingLogs(rEntry, receiverID, endpointID)
-			logRecord := logRecords.AppendEmpty()
-			var desiredRecord LogRecord
-			if match.Record != nil {
-				desiredRecord = *match.Record
-			}
-			statementLogRecord.CopyTo(logRecord)
-			if desiredRecord.Body != "" {
-				body := desiredRecord.Body
-				if desiredRecord.AppendPattern {
-					body = fmt.Sprintf("%s (evaluated %q)", body, p)
-				}
-				logRecord.Body().SetStr(body)
-			}
-			if len(desiredRecord.Attributes) > 0 {
-				for k, v := range desiredRecord.Attributes {
-					logRecord.Attributes().PutStr(k, v)
-				}
-			}
-			logRecord.Attributes().PutStr(discovery.StatusAttr, string(status))
-			logRecord.SetTimestamp(pcommon.NewTimestampFromTime(statement.Time))
-			logRecord.SetObservedTimestamp(pcommon.NewTimestampFromTime(time.Now()))
-			return pLogs
+	for _, match := range rEntry.Status.Statements {
+		p := patternMapStr
+		if match.Strict != "" {
+			p = statement.Message
 		}
+		if shouldLog, err := se.evaluateMatch(match, p, match.Status, receiverID, endpointID); err != nil {
+			se.logger.Info("Error evaluating statement match", zap.Error(err))
+			continue
+		} else if !shouldLog {
+			continue
+		}
+
+		pLogs, logRecords := se.prepareMatchingLogs(rEntry, receiverID, endpointID)
+		logRecord := logRecords.AppendEmpty()
+		var desiredRecord LogRecord
+		if match.Record != nil {
+			desiredRecord = *match.Record
+		}
+		statementLogRecord.CopyTo(logRecord)
+		if desiredRecord.Body != "" {
+			body := desiredRecord.Body
+			if desiredRecord.AppendPattern {
+				body = fmt.Sprintf("%s (evaluated %q)", body, p)
+			}
+			logRecord.Body().SetStr(body)
+		}
+		if len(desiredRecord.Attributes) > 0 {
+			for k, v := range desiredRecord.Attributes {
+				logRecord.Attributes().PutStr(k, v)
+			}
+		}
+		logRecord.Attributes().PutStr(discovery.StatusAttr, string(match.Status))
+		logRecord.SetTimestamp(pcommon.NewTimestampFromTime(statement.Time))
+		logRecord.SetObservedTimestamp(pcommon.NewTimestampFromTime(time.Now()))
+		return pLogs
 	}
 	return plog.NewLogs()
 }

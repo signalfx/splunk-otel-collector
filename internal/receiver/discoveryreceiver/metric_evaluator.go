@@ -112,50 +112,48 @@ func (m *metricEvaluator) evaluateMetrics(md pmetric.Metrics) plog.Logs {
 		}
 	}
 
-	for status, matches := range rEntry.Status.Metrics {
-		for _, match := range matches {
-			for metricName, metrics := range receiverMetrics {
-				for _, metric := range metrics {
-					if shouldLog, err := m.evaluateMatch(match, metricName, status, receiverID, endpointID); err != nil {
-						m.logger.Info(fmt.Sprintf("Error evaluating %s metric match", status), zap.Error(err))
-						continue
-					} else if !shouldLog {
-						continue
-					}
-
-					pLogs := plog.NewLogs()
-					rLog := pLogs.ResourceLogs().AppendEmpty()
-					rAttrs := rLog.Resource().Attributes()
-					m.correlateResourceAttributes(
-						md.ResourceMetrics().At(0).Resource().Attributes(), rAttrs,
-						m.correlations.GetOrCreate(receiverID, endpointID),
-					)
-					rAttrs.PutStr(eventTypeAttr, metricMatch)
-					rAttrs.PutStr(receiverRuleAttr, rEntry.Rule)
-
-					logRecords := rLog.ScopeLogs().AppendEmpty().LogRecords()
-
-					logRecord := logRecords.AppendEmpty()
-					desiredRecord := match.Record
-					if desiredRecord == nil {
-						desiredRecord = &LogRecord{}
-					}
-					var desiredBody string
-					if desiredRecord.Body != "" {
-						desiredBody = desiredRecord.Body
-					}
-					logRecord.Body().SetStr(desiredBody)
-					for k, v := range desiredRecord.Attributes {
-						logRecord.Attributes().PutStr(k, v)
-					}
-					logRecord.Attributes().PutStr(metricNameAttr, metricName)
-					logRecord.Attributes().PutStr(discovery.StatusAttr, string(status))
-					if ts := m.timestampFromMetric(metric); ts != nil {
-						logRecord.SetTimestamp(*ts)
-					}
-					logRecord.SetObservedTimestamp(pcommon.NewTimestampFromTime(time.Now()))
-					return pLogs
+	for _, match := range rEntry.Status.Metrics {
+		for metricName, metrics := range receiverMetrics {
+			for _, metric := range metrics {
+				if shouldLog, err := m.evaluateMatch(match, metricName, match.Status, receiverID, endpointID); err != nil {
+					m.logger.Info(fmt.Sprintf("Error evaluating %s metric match", metricName), zap.Error(err))
+					continue
+				} else if !shouldLog {
+					continue
 				}
+
+				pLogs := plog.NewLogs()
+				rLog := pLogs.ResourceLogs().AppendEmpty()
+				rAttrs := rLog.Resource().Attributes()
+				m.correlateResourceAttributes(
+					md.ResourceMetrics().At(0).Resource().Attributes(), rAttrs,
+					m.correlations.GetOrCreate(receiverID, endpointID),
+				)
+				rAttrs.PutStr(eventTypeAttr, metricMatch)
+				rAttrs.PutStr(receiverRuleAttr, rEntry.Rule)
+
+				logRecords := rLog.ScopeLogs().AppendEmpty().LogRecords()
+
+				logRecord := logRecords.AppendEmpty()
+				desiredRecord := match.Record
+				if desiredRecord == nil {
+					desiredRecord = &LogRecord{}
+				}
+				var desiredBody string
+				if desiredRecord.Body != "" {
+					desiredBody = desiredRecord.Body
+				}
+				logRecord.Body().SetStr(desiredBody)
+				for k, v := range desiredRecord.Attributes {
+					logRecord.Attributes().PutStr(k, v)
+				}
+				logRecord.Attributes().PutStr(metricNameAttr, metricName)
+				logRecord.Attributes().PutStr(discovery.StatusAttr, string(match.Status))
+				if ts := m.timestampFromMetric(metric); ts != nil {
+					logRecord.SetTimestamp(*ts)
+				}
+				logRecord.SetObservedTimestamp(pcommon.NewTimestampFromTime(time.Now()))
+				return pLogs
 			}
 		}
 	}

@@ -44,7 +44,6 @@ var (
 type Statement struct {
 	Message    string
 	Fields     map[string]any
-	Level      string
 	Time       time.Time
 	LoggerName string
 	Caller     zapcore.EntryCaller
@@ -60,7 +59,6 @@ func NewZapCoreEncoder() zapcore.Encoder {
 func StatementFromZapCoreEntry(encoder zapcore.Encoder, entry zapcore.Entry, fields []zapcore.Field) (*Statement, error) {
 	statement := &Statement{
 		Message:    entry.Message,
-		Level:      entry.Level.String(),
 		Time:       entry.Time,
 		LoggerName: entry.LoggerName,
 		Caller:     entry.Caller,
@@ -94,7 +92,6 @@ func (s *Statement) ToLogRecord() plog.LogRecord {
 	logRecord.SetTimestamp(pcommon.NewTimestampFromTime(s.Time))
 	logRecord.SetObservedTimestamp(pcommon.NewTimestampFromTime(time.Now()))
 	logRecord.Body().SetStr(s.Message)
-	logRecord.SetSeverityText(s.Level)
 	logRecord.Attributes().FromRaw(s.Fields)
 	return logRecord
 }

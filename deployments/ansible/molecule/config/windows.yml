@@ -13,9 +13,13 @@ platforms:
     box_version: 2022.09.01
     cpus: 2
     memory: 4096
+    provider_options:
+      gui: false
+      linked_clone: true
     instance_raw_config_args: &vagrant_args
       - "vm.boot_timeout = 1200"
       - "vm.communicator = 'winrm'"
+      - "vm.guest = :windows"
       - "vm.network 'forwarded_port', guest: 5985, host: 55985"
       - "winrm.basic_auth_only = true"
       - "winrm.transport = 'plaintext'"
@@ -28,12 +32,18 @@ platforms:
     box_version: 1809.0.2312
     cpus: 2
     memory: 4096
+    provider_options:
+      gui: false
+      linked_clone: true
     instance_raw_config_args: *vagrant_args
   - name: "2022"
     box: gusztavvargadr/iis-windows-server
-    box_version: 10.2102.2310
+    box_version: 2102.0.2312
     cpus: 2
     memory: 4096
+    provider_options:
+      gui: false
+      linked_clone: true
     instance_raw_config_args: *vagrant_args
 provisioner:
   name: ansible

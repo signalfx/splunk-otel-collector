@@ -1,0 +1,42 @@
+receivers:
+    hostmetrics:
+      scrapers:
+        cpu:
+
+exporters:
+    debug:
+      verbosity: detailed
+
+processors:
+    batch:
+    transform:
+      metric_statements:
+        - context: datapoint
+          statements:
+            - set(attributes["myname"], Concat([metric.name, attributes["cpu"]], ".")) where IsMatch(metric.name,  "^system.cpu.time")
+    groupbyattrs:
+      keys:
+        - myname
+    transform/2:
+      metric_statements:
+        - context: datapoint
+          statements:
+            - set(metric.name, resource.attributes["myname"]) where IsMatch(metric.name, "^system.cpu.time")
+            - delete_key(attributes, "cpu") where IsMatch(metric.name,  "^system.cpu.time")
+            - delete_key(resource.attributes, "myname") where IsMatch(metric.name,  "^system.cpu.time")
+
+extensions:
+    health_check:
+      endpoint: 0.0.0.0:13133
+    pprof:
+      endpoint: :1888
+    zpages:
+      endpoint: :55679
+
+service:
+    extensions: [pprof, zpages, health_check]
+    pipelines:
+      metrics:
+        receivers: [hostmetrics]
+        processors: [batch, transform, groupbyattrs, transform/2]
+        exporters: [debug]

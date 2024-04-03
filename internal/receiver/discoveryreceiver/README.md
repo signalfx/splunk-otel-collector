@@ -15,7 +15,8 @@ via the instance's [zap.Logger](https://pkg.go.dev/go.uber.org/zap). It works si
 report their metric content to your metrics pipelines. Instead, the metrics are intercepted by an internal metrics
 consumer capable of translating desired metrics to log records based on the `status: metrics` rules you define. All
 component-level log statements are similarly intercepted by a log evaluator, and can be translated to emitted log
-records based on the `status: statements` rules you define.
+records based on the `status: statements` rules you define. The matching rules SHOULD NOT conflict with each other.
+The first matching rule in the list will be used to determine the status of the receiver.
 
 The receiver also allows you to emit log records for all
 [Endpoint](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/extension/observer/endpoints.go)
@@ -155,20 +156,17 @@ receivers:
                  // Only emit a single log record for this status entry instead of one for each matching received metric (`false`, the default)
                  first_only: true
                  log_record:
-                   severity_text: info
                    body: Successfully able to connect to Redis container.
            statements:
              partial:
                - regexp: (WRONGPASS|NOAUTH|ERR AUTH)
                  first_only: true
                  log_record:
-                   severity_text: warn
                    body: Container appears to be accepting redis connections but the default auth setting is incorrect.
              failed:
                - regexp: ConnectionRefusedError
                  first_only: true
                  log_record:
-                   severity_text: debug
                    body: Container appears to not be accepting redis connections.
 exporters:
   debug:
@@ -351,7 +349,6 @@ expr: 'ExprEnv["some.field.with.periods"] contains "value"'
 
 | Name             | Type              | Default                                                 | Docs                                                                        |
 |------------------|-------------------|---------------------------------------------------------|-----------------------------------------------------------------------------|
-| `severity_text`  | string            | Emitted log statement severity level, if any, or "info" | The emitted log record's severity text                                      |
 | `body`           | string            | Emitted log statement message                           | The emitted log record's body                                               |
 | `attributes`     | map[string]string | Emitted log statements fields                           | The emitted log record's attributes                                         |
 | `append_pattern` | bool              | false                                                   | Whether to append the evaluated statement to the configured log record body |

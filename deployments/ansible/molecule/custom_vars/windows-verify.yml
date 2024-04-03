@@ -8,7 +8,7 @@
       SPLUNK_CONFIG: '{{ ansible_env.ProgramData }}\Splunk\OpenTelemetry Collector\custom_config.yml'
       SPLUNK_INGEST_URL: https://fake-splunk-ingest.com
       SPLUNK_API_URL: https://fake-splunk-api.com
-      SPLUNK_TRACE_URL: https://fake-splunk-ingest.com/v2/trace
+      SPLUNK_TRACE_URL: https://fake-splunk-ingest.com:443
       SPLUNK_HEC_URL: https://fake-splunk-hec.com
       SPLUNK_HEC_TOKEN: fake-hec-token
       SPLUNK_MEMORY_TOTAL_MIB: "256"

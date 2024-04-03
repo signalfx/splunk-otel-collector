@@ -112,5 +112,6 @@ func testExpectedTracesForHTTPGetRequest(t *testing.T, otlp *testutils.OTLPRecei
 		path.Join(".", "testdata", "resource_traces", expectedTracesFileName),
 	)
 	require.NoError(t, err)
-	require.NoError(t, otlp.AssertAllTracesReceived(t, *expectedResourceTraces, 30*time.Second))
+	err = otlp.AssertAllTracesReceived(t, *expectedResourceTraces, 30*time.Second)
+	require.NoError(t, err)
 }

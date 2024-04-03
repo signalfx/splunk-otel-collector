@@ -99,7 +99,7 @@ func (g *Gateway) queryPerf(invObjs []*model.InventoryObject, maxSample int32) (
 			Entity:     invObj.Ref,
 			MaxSample:  maxSample,
 			IntervalId: model.RealtimeMetricsInterval,
-			MetricId:   invObj.MetricIds,
+			MetricId:   invObj.MetricIDs,
 		})
 	}
 	queryPerf := types.QueryPerf{

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 🛑 Breaking changes 🛑
+
+- (Splunk) `receiver/discovery`: Remove `severity_text` field from log evaluation statements. ([#4583](https://github.com/signalfx/splunk-otel-collector/pull/4583))
+
 ## v0.97.0
 
 ### 🚀 New components 🚀
@@ -1677,7 +1681,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 
 ### 🚀 New components 🚀
 
-- [`transform` processor](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/transformprocessor) to modify telemetry based on configuration using the [Telemetry Query Language](https://github.com/open-telemetry/opentelemetry-collector/blob/main/docs/processing.md#telemetry-query-language) (Alpha)
+- [`transform` processor](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/transformprocessor) to modify telemetry based on configuration using the [Telemetry Transformation Language](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/pkg/ottl) (Alpha)
 
 ### 💡 Enhancements 💡
 

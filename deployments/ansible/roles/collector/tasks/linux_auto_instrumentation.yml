@@ -20,20 +20,66 @@
   set_fact:
     auto_instrumentation_version: "{{ ansible_facts.packages['splunk-otel-auto-instrumentation'][0].version }}"
 
-- name: Set up /etc/ld.so.preload for Splunk OpenTelemetry Auto Instrumentation
-  ansible.builtin.template:
-    src: ld_so_preload.j2
-    dest: /etc/ld.so.preload
-    owner: root
-    group: root
-    mode: '644'
+- name: Set auto instrumentation facts
+  set_fact:
+    package_changed: "{{ apt_instrumentation_package is changed \
+      or yum_instrumentation_package is changed \
+      or zypper_instrumentation_package is changed }}"
+    npm_found: "{{ (splunk_otel_auto_instrumentation_npm_path | default('npm')) != 'npm' }}"
+    with_new_instrumentation: "{{ auto_instrumentation_version is version('0.87.0', '>=') }}"
+    with_systemd: "{{ splunk_otel_auto_instrumentation_systemd | bool }}"
+    with_java: "{{ 'java' in (splunk_otel_auto_instrumentation_sdks | default([])) }}"
+    with_nodejs: "{{ 'nodejs' in (splunk_otel_auto_instrumentation_sdks | default([])) \
+      and auto_instrumentation_version is version('0.87.0', '>=') }}"
+
+- name: Check for npm
+  shell: npm --version
+  register: npm_check
+  changed_when: false
+  ignore_errors: yes
+  when: with_nodejs and not npm_found
+
+- set_fact:
+    npm_found: yes
+  when: with_nodejs and not npm_found and npm_check is defined and npm_check.rc == 0
+
+- name: Create /usr/lib/splunk-instrumentation/splunk-otel-js/node_modules
+  ansible.builtin.file:
+    path: /usr/lib/splunk-instrumentation/splunk-otel-js/node_modules
+    state: directory
+  when: with_nodejs and npm_found and package_changed
+
+- name: Install splunk-otel-js
+  community.general.npm:
+    name: /usr/lib/splunk-instrumentation/splunk-otel-js.tgz
+    path: /usr/lib/splunk-instrumentation/splunk-otel-js
+    executable: "{{ splunk_otel_auto_instrumentation_npm_path | default('npm') }}"
+  when: with_nodejs and npm_found and package_changed
 
 - name: Delete the Splunk OpenTelemetry Auto Instrumentation systemd config
   ansible.builtin.file:
     path: /usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf
     state: absent
-  when: not (splunk_otel_auto_instrumentation_systemd | bool)
+  when: not with_systemd
   notify: "Reload systemd daemon"
+
+- name: Delete the old Splunk OpenTelemetry Auto Instrumentation config
+  ansible.builtin.file:
+    path: /usr/lib/splunk-instrumentation/instrumentation.conf
+    state: absent
+  when: with_systemd or with_new_instrumentation
+
+- name: Delete the Splunk OpenTelemetry Auto Instrumentation for Java config file
+  ansible.builtin.file:
+    path: /etc/splunk/zeroconfig/java.conf
+    state: absent
+  when: with_systemd or not with_new_instrumentation or not with_java
+
+- name: Delete the Splunk OpenTelemetry Auto Instrumentation for Node.js config file
+  ansible.builtin.file:
+    path: /etc/splunk/zeroconfig/node.conf
+    state: absent
+  when: with_systemd or not with_new_instrumentation or not with_nodejs or not npm_found
 
 - name: Set up the Splunk OpenTelemetry Auto Instrumentation config file
   ansible.builtin.template:
@@ -42,9 +88,7 @@
     owner: root
     group: root
     mode: '644'
-  when: >
-    auto_instrumentation_version is version('0.87.0', '<') and
-    not (splunk_otel_auto_instrumentation_systemd | bool)
+  when: with_java and not with_new_instrumentation and not with_systemd
 
 - name: Set up the Splunk OpenTelemetry Auto Instrumentation for Java config file
   ansible.builtin.template:
@@ -53,15 +97,22 @@
     owner: root
     group: root
     mode: '644'
-  when: >
-    auto_instrumentation_version is version('0.87.0', '>=') and
-    not (splunk_otel_auto_instrumentation_systemd | bool)
+  when: with_java and with_new_instrumentation and not with_systemd
+
+- name: Set up the Splunk OpenTelemetry Auto Instrumentation for Node.js config file
+  ansible.builtin.template:
+    src: node.conf.j2
+    dest: /etc/splunk/zeroconfig/node.conf
+    owner: root
+    group: root
+    mode: '644'
+  when: with_nodejs and npm_found and not with_systemd
 
 - name: Ensure the system.conf.d directory exists
   ansible.builtin.file:
     path: /usr/lib/systemd/system.conf.d
     state: directory
-  when: splunk_otel_auto_instrumentation_systemd | bool
+  when: with_systemd
 
 - name: Set up systemd for Splunk OpenTelemetry Auto Instrumentation
   ansible.builtin.template:
@@ -70,5 +121,13 @@
     owner: root
     group: root
     mode: '644'
-  when: splunk_otel_auto_instrumentation_systemd | bool
+  when: with_systemd and (with_java or (with_nodejs and npm_found))
   notify: "Reload systemd daemon"
+
+- name: Set up /etc/ld.so.preload for Splunk OpenTelemetry Auto Instrumentation
+  ansible.builtin.template:
+    src: ld_so_preload.j2
+    dest: /etc/ld.so.preload
+    owner: root
+    group: root
+    mode: '644'

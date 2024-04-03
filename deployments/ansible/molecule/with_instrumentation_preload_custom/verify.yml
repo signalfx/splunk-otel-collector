@@ -17,6 +17,20 @@
       set_fact:
         auto_instrumentation_version: "{{ ansible_facts.packages['splunk-otel-auto-instrumentation'][0].version }}"
 
+    - name: Check if splunk-otel-js is installed
+      shell: npm ls @splunk/otel
+      args:
+        chdir: /usr/lib/splunk-instrumentation/splunk-otel-js
+
+    - name: Check for the old config file
+      ansible.builtin.stat:
+        path: /usr/lib/splunk-instrumentation/instrumentation.conf
+      register: old_config
+
+    - name: Assert the old config file does not exist
+      assert:
+        that: not old_config.stat.exists
+
     - name: Check for systemd drop-in file
       ansible.builtin.stat:
         path: /usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf
@@ -53,58 +67,85 @@
       register: config
       failed_when: config is changed
 
+    - name: Assert instrumentation config contains NODE_OPTIONS
+      ansible.builtin.lineinfile:
+        line: NODE_OPTIONS=-r /usr/lib/splunk-instrumentation/splunk-otel-js/node_modules/@splunk/otel/instrument
+        dest: /etc/splunk/zeroconfig/node.conf
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
     - name: Assert instrumentation config contains OTEL_RESOURCE_ATTRIBUTES
       ansible.builtin.lineinfile:
         line: "OTEL_RESOURCE_ATTRIBUTES=\
               splunk.zc.method=splunk-otel-auto-instrumentation-{{ auto_instrumentation_version }},\
               deployment.environment=test"
-        dest: /etc/splunk/zeroconfig/java.conf
+        dest: "/etc/splunk/zeroconfig/{{ item }}"
         state: present
       check_mode: yes
       register: config
       failed_when: config is changed
+      loop:
+        - java.conf
+        - node.conf
 
     - name: Assert instrumentation config contains OTEL_SERVICE_NAME
       ansible.builtin.lineinfile:
         line: OTEL_SERVICE_NAME=test
-        dest: /etc/splunk/zeroconfig/java.conf
+        dest: "/etc/splunk/zeroconfig/{{ item }}"
         state: present
       check_mode: yes
       register: config
       failed_when: config is changed
+      loop:
+        - java.conf
+        - node.conf
 
     - name: Assert instrumentation config contains SPLUNK_PROFILER_ENABLED
       ansible.builtin.lineinfile:
         line: SPLUNK_PROFILER_ENABLED=true
-        dest: /etc/splunk/zeroconfig/java.conf
+        dest: "/etc/splunk/zeroconfig/{{ item }}"
         state: present
       check_mode: yes
       register: config
       failed_when: config is changed
+      loop:
+        - java.conf
+        - node.conf
 
     - name: Assert instrumentation config contains SPLUNK_PROFILER_MEMORY_ENABLED
       ansible.builtin.lineinfile:
         line: SPLUNK_PROFILER_MEMORY_ENABLED=true
-        dest: /etc/splunk/zeroconfig/java.conf
+        dest: "/etc/splunk/zeroconfig/{{ item }}"
         state: present
       check_mode: yes
       register: config
       failed_when: config is changed
+      loop:
+        - java.conf
+        - node.conf
 
     - name: Assert instrumentation config contains SPLUNK_METRICS_ENABLED
       ansible.builtin.lineinfile:
         line: SPLUNK_METRICS_ENABLED=true
-        dest: /etc/splunk/zeroconfig/java.conf
+        dest: "/etc/splunk/zeroconfig/{{ item }}"
         state: present
       check_mode: yes
       register: config
       failed_when: config is changed
+      loop:
+        - java.conf
+        - node.conf
 
     - name: Assert instrumentation config contains OTEL_EXPORTER_OTLP_ENDPOINT
       ansible.builtin.lineinfile:
         line: OTEL_EXPORTER_OTLP_ENDPOINT=http://0.0.0.0:4317
-        dest: /etc/splunk/zeroconfig/java.conf
+        dest: "/etc/splunk/zeroconfig/{{ item }}"
         state: present
       check_mode: yes
       register: config
       failed_when: config is changed
+      loop:
+        - java.conf
+        - node.conf

@@ -12,6 +12,12 @@
 - Use more secure assert calls ([#4024](https://github.com/signalfx/splunk-otel-collector/pull/4024))
 
 
+## ansible-v0.25.0
+
+### 💡 Enhancements 💡
+
+- Initial support for [Splunk OpenTelemetry for Node.js](https://github.com/signalfx/splunk-otel-js) Auto Instrumentation on Linux
+
 ## ansible-v0.24.0
 
 ### 🚩 Deprecations 🚩

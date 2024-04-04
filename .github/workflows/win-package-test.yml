@@ -305,6 +305,7 @@ jobs:
     runs-on: ${{ matrix.OS }}
     needs: [msi-build]
     strategy:
+      max-parallel: 2
       matrix:
         OS: [ "windows-2022" ]
         MODE: [ "agent", "gateway" ]

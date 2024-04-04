@@ -56,23 +56,13 @@ public class CustomActions
     [CustomAction]
     public static ActionResult AddOptionalConfigurations(Session session)
     {
-        var optionalConfigurationKeys = new string[]
-        {
-            "SPLUNK_COLLECTD_DIR",
-            "SPLUNK_GATEWAY_URL",
-            "SPLUNK_LISTEN_INTERFACE",
-            "SPLUNK_MEMORY_LIMIT_MIB",
-            "SPLUNK_MEMORY_TOTAL_MIB"
-        };
-
         var optionalEnvironmentVariables = new Dictionary<string, string>();
-        foreach (var key in optionalConfigurationKeys)
+        foreach (var kvp in session.CustomActionData)
         {
-            var value = session.CustomActionData[key];
-            if (!string.IsNullOrWhiteSpace(value))
+            if (!string.IsNullOrWhiteSpace(kvp.Value))
             {
-                session.Log($"Info: Setting environment variable {key}={value}");
-                optionalEnvironmentVariables[key] = value;
+                session.Log($"Info: Setting environment variable {kvp.Key}={kvp.Value}");
+                optionalEnvironmentVariables[kvp.Key] = kvp.Value;
             }
         }
 

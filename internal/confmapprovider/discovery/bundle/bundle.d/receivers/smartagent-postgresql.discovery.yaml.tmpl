@@ -16,12 +16,10 @@
     metrics:
       - status: successful
         strict: postgres_query_count
-        first_only: true
         log_record:
           body: PostgreSQL receiver is working!
       - status: partial
         strict: postgres_rows_inserted
-        first_only: true
         log_record:
           body: >-
             Make sure that
@@ -32,19 +30,16 @@
     statements:
       - status: failed
         regexp: 'connect: network is unreachable'
-        first_only: true
         log_record:
           append_pattern: true
           body: The container cannot be reached by the Collector. Make sure they're in the same network.
       - status: failed
         regexp: 'connect: connection refused'
-        first_only: true
         log_record:
           append_pattern: true
           body: The container is refusing PostgreSQL connections.
       - status: partial
         regexp: 'pq: password authentication failed for user'
-        first_only: true
         log_record:
           append_pattern: true
           body: >-
@@ -55,7 +50,6 @@
             `{{ configPropertyEnvVar "params" "password" "<password>" }}` environment variables.
       - status: partial
         regexp: 'pq: database .* does not exist'
-        first_only: true
         log_record:
           append_pattern: true
           body: >-
@@ -64,7 +58,6 @@
             `{{ configPropertyEnvVar "masterDBName" "<db>" }}` environment variable.
       - status: partial
         regexp: 'pq: pg_stat_statements must be loaded via shared_preload_libraries'
-        first_only: true
         log_record:
           append_pattern: true
           body: >-

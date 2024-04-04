@@ -32,6 +32,7 @@ class splunk_otel_collector (
   $fluentd_config_dest     = $splunk_otel_collector::params::fluentd_config_dest,
   $fluentd_capng_c_version = '<=0.2.2',  # linux only
   $fluentd_systemd_version = '<=1.0.2',  # linux only
+  $gomemlimit              = '',
   $manage_repo             = true,  # linux only
   $with_auto_instrumentation                = false,  # linux only
   $auto_instrumentation_version             = $splunk_otel_collector::params::auto_instrumentation_version,  # linux only
@@ -82,7 +83,7 @@ class splunk_otel_collector (
     default   => $fluentd_service_name,
   }
 
-  if $::osfamily == 'suse' or ($facts['os']['name'] == 'Amazon' and $facts['os']['release']['full'] == '2023') {
+  if $::osfamily == 'suse' or ('amazon' in downcase($facts['os']['name']) and $facts['os']['release']['major'] == '2023') {
     $install_fluentd = false
   } else {
     $install_fluentd = $with_fluentd

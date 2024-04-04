@@ -1,0 +1,11 @@
+discovery:
+  watch_observers:
+    - an_observer
+  receivers:
+    a_receiver:
+      rule: a rule
+      status:
+        metrics:
+          - regexp: '.*'
+        statements:
+          - regexp: '.*'

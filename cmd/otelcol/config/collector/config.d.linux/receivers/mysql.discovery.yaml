@@ -18,26 +18,26 @@
 #       password: splunk.discovery.default
 #   status:
 #     metrics:
-#       successful:
-#         - strict: mysql.locks
-#           first_only: true
-#           log_record:
-#             body: Mysql receiver is working!
+#       - status: successful
+#         strict: mysql.locks
+#         first_only: true
+#         log_record:
+#           body: Mysql receiver is working!
 #     statements:
-#       failed:
-#         - regexp: "Can't connect to MySQL server on .* [(]111[)]"
-#           first_only: true
-#           log_record:
-#             append_pattern: true
-#             body:  The container cannot be reached by the Collector. The container is refusing MySQL connections.
-#       partial:
-#         - regexp: 'Access denied for user'
-#           first_only: true
-#           log_record:
-#             append_pattern: true
-#             body: >-
-#               Make sure your user credentials are correctly specified using the
-#               `--set splunk.discovery.receivers.mysql.config.username="<username>"` and
-#               `--set splunk.discovery.receivers.mysql.config.password="<password>"` command or the
-#               `SPLUNK_DISCOVERY_RECEIVERS_mysql_CONFIG_username="<username>"` and
-#               `SPLUNK_DISCOVERY_RECEIVERS_mysql_CONFIG_password="<password>"` environment variables.
+#       - status: failed
+#         regexp: "Can't connect to MySQL server on .* [(]111[)]"
+#         first_only: true
+#         log_record:
+#           append_pattern: true
+#           body:  The container cannot be reached by the Collector. The container is refusing MySQL connections.
+#       - status: partial
+#         regexp: 'Access denied for user'
+#         first_only: true
+#         log_record:
+#           append_pattern: true
+#           body: >-
+#             Make sure your user credentials are correctly specified using the
+#             `--set splunk.discovery.receivers.mysql.config.username="<username>"` and
+#             `--set splunk.discovery.receivers.mysql.config.password="<password>"` command or the
+#             `SPLUNK_DISCOVERY_RECEIVERS_mysql_CONFIG_username="<username>"` and
+#             `SPLUNK_DISCOVERY_RECEIVERS_mysql_CONFIG_password="<password>"` environment variables.

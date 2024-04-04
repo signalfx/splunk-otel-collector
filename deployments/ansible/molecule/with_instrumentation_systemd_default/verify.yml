@@ -17,6 +17,11 @@
       set_fact:
         auto_instrumentation_version: "{{ ansible_facts.packages['splunk-otel-auto-instrumentation'][0].version }}"
 
+    - name: Check if splunk-otel-js is installed
+      shell: npm ls @splunk/otel
+      args:
+        chdir: /usr/lib/splunk-instrumentation/splunk-otel-js
+
     - name: Assert /etc/ld.so.preload does not contain path to libsplunk.so
       ansible.builtin.lineinfile:
         line: /usr/lib/splunk-instrumentation/libsplunk.so
@@ -26,10 +31,34 @@
       register: preload
       failed_when: preload is changed
 
+    - name: Check for preload config files
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      loop:
+        - /usr/lib/splunk-instrumentation/instrumentation.conf
+        - /etc/splunk/zeroconfig/java.conf
+        - /etc/splunk/zeroconfig/node.conf
+      register: config_files
+
+    - name: Assert preload config files do not exist
+      assert:
+        that: not item.stat.exists
+      loop: "{{ config_files.results }}"
+
     - name: Assert instrumentation config contains path to java agent
       ansible.builtin.lineinfile:
         line: "DefaultEnvironment=\"JAVA_TOOL_OPTIONS=\
               -javaagent:/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar\""
+        dest: /usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Assert instrumentation config contains NODE_OPTIONS
+      ansible.builtin.lineinfile:
+        line: "DefaultEnvironment=\"NODE_OPTIONS=-r \
+              /usr/lib/splunk-instrumentation/splunk-otel-js/node_modules/@splunk/otel/instrument\""
         dest: /usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf
         state: present
       check_mode: yes

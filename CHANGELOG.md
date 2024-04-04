@@ -4,7 +4,9 @@
 
 ### 🛑 Breaking changes 🛑
 
-- (Splunk) `receiver/discovery`: Remove `severity_text` field from log evaluation statements. ([#4583](https://github.com/signalfx/splunk-otel-collector/pull/4583))
+- (Splunk) `receiver/discovery`: Update metrics and logs evaluation statements schema:
+  - Remove `severity_text` field from log evaluation statements ([#4583](https://github.com/signalfx/splunk-otel-collector/pull/4583))
+  - Combine matching conditions with different statuses in one list ([#4588](https://github.com/signalfx/splunk-otel-collector/pull/4588))
 
 ## v0.97.0
 
@@ -1733,7 +1735,6 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 
 ### 💡 Enhancements 💡
 
-- Updated the [Migrating from SignalFx Smart Agent to Splunk Distribution of OpenTelemetry Collector](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/signalfx-smart-agent-migration.md) documentation (#1489)
 - Upgrade to Go 1.18.1 (#1464)
 - Initial support for [Cloud Foundry Buildpack](https://github.com/signalfx/splunk-otel-collector/tree/main/deployments/cloudfoundry/buildpack) (#1404)
 - Initial support for [BOSH Release](https://github.com/signalfx/splunk-otel-collector/tree/main/deployments/cloudfoundry/bosh) (#1480)

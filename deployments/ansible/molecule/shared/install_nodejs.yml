@@ -1,0 +1,38 @@
+---
+- name: "install tar with apt"
+  ansible.builtin.apt:
+    name: tar
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+
+- name: "install tar with yum"
+  ansible.builtin.yum:
+    name: tar
+    update_cache: yes
+  when: ansible_os_family == "RedHat"
+
+- name: "install gzip and tar with zypper"
+  community.general.zypper:
+    name:
+      - gzip
+      - tar
+    update_cache: yes
+  when: ansible_os_family == "Suse"
+
+- name: "download and extract nodejs"
+  unarchive:
+    src: https://nodejs.org/download/release/v16.20.2/node-v16.20.2-linux-x64.tar.gz
+    dest: /usr/local
+    remote_src: yes
+
+- name: "create symlinks in /usr/bin"
+  file:
+    src: "/usr/local/node-v16.20.2-linux-x64/bin/{{ item }}"
+    dest: "/usr/bin/{{ item }}"
+    state: link
+    mode: '755'
+  loop:
+    - corepack
+    - node
+    - npm
+    - npx

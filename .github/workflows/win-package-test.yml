@@ -286,7 +286,8 @@ jobs:
 
       - name: Uninstall the collector
         run: |
-        Start-Process -FilePath "msiexec" -ArgumentList "/x {24E519F6-7F01-43DB-9E72-3B8AD8F065F4} /qn /l* msi-uninstall.log" -Wait
+          Start-Process -FilePath "msiexec" -ArgumentList "/x {24E519F6-7F01-43DB-9E72-3B8AD8F065F4} /qn /l* msi-uninstall.log" -Wait
+
       - name: Check no leftover on the registry
         run: |
           $ErrorActionPreference = 'Stop'

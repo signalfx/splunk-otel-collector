@@ -9,10 +9,10 @@ require (
 	github.com/fsnotify/fsnotify v1.7.0
 	github.com/go-zookeeper/zk v1.0.3
 	github.com/gogo/protobuf v1.3.2
-	github.com/hashicorp/vault v1.16.0
+	github.com/hashicorp/vault v1.16.1
 	github.com/hashicorp/vault-plugin-auth-gcp v0.16.2
 	github.com/hashicorp/vault/api v1.12.2
-	github.com/jaegertracing/jaeger v1.55.0
+	github.com/jaegertracing/jaeger v1.56.0
 	github.com/knadh/koanf v1.5.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/countconnector v0.97.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/routingconnector v0.97.0
@@ -97,7 +97,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsperfcountersreceiver v0.97.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver v0.97.0
 	github.com/prometheus/client_model v0.6.0
-	github.com/prometheus/common v0.51.1
+	github.com/prometheus/common v0.52.2
 	github.com/prometheus/prometheus v0.51.1
 	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension v0.83.0
 	github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor v0.83.0
@@ -426,14 +426,14 @@ require (
 	github.com/gorilla/mux v1.8.1
 	github.com/gorilla/websocket v1.5.1 // indirect
 	github.com/grafana/regexp v0.0.0-20221122212121-6b5c0a4cb7fd // indirect
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.19.0 // indirect
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.19.1 // indirect
 	github.com/gsterjov/go-libsecret v0.0.0-20161001094733-a6f4afe4910c // indirect
 	github.com/hashicorp/consul/api v1.28.2 // indirect
 	github.com/hashicorp/cronexpr v1.1.2 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-gcp-common v0.8.0 // indirect
-	github.com/hashicorp/go-hclog v1.6.2 // indirect
+	github.com/hashicorp/go-hclog v1.6.3 // indirect
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
 	github.com/hashicorp/go-kms-wrapping/entropy/v2 v2.0.1 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect

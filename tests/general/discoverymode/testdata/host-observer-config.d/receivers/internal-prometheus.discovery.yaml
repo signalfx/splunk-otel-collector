@@ -20,6 +20,5 @@ prometheus_simple:
     metrics:
       - status: successful
         strict: otelcol_process_uptime
-        first_only: true
         log_record:
           body: internal collector prometheus exporter detected

@@ -24,7 +24,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.21.5
+  GO_VERSION: 1.21.9
 
 jobs:
   setup-environment:
@@ -173,12 +173,6 @@ jobs:
       - name: Check out the codebase.
         uses: actions/checkout@v4
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
-
       - name: Setup NuGet
         uses: nuget/setup-nuget@v2.0.0
 
@@ -219,8 +213,9 @@ jobs:
   msi-without-wrappers-test:
     runs-on: ${{ matrix.OS }}
     needs: [msi-build]
-    timeout-minutes: 5
+    timeout-minutes: 15
     strategy:
+      max-parallel: 1
       matrix:
         OS: [ "windows-2022" ]
         install-properties:
@@ -304,6 +299,7 @@ jobs:
     runs-on: ${{ matrix.OS }}
     needs: [msi-build]
     strategy:
+      max-parallel: 2
       matrix:
         OS: [ "windows-2022" ]
         MODE: [ "agent", "gateway" ]
@@ -396,6 +392,7 @@ jobs:
     runs-on: ${{ matrix.OS }}
     needs: [choco-build]
     strategy:
+      max-parallel: 4
       matrix:
         OS: [ "windows-2022" ]
         MODE: [ "agent", "gateway" ]

@@ -12,19 +12,16 @@
     metrics:
       - status: successful
         strict: mysql.locks
-        first_only: true
         log_record:
           body: Mysql receiver is working!
     statements:
       - status: failed
         regexp: "Can't connect to MySQL server on .* [(]111[)]"
-        first_only: true
         log_record:
           append_pattern: true
           body:  The container cannot be reached by the Collector. The container is refusing MySQL connections.
       - status: partial
         regexp: 'Access denied for user'
-        first_only: true
         log_record:
           append_pattern: true
           body: >-

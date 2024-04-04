@@ -18,18 +18,15 @@ smartagent/postgresql:
     metrics:
       successful:
        - strict: postgres_block_hit_ratio
-         first_only: true
          log_record:
            body: postgresql SA receiver working!
     statements:
        failed:
          - regexp: '.* connect: connection refused'
-           first_only: true
            log_record:
              body: container appears to not be accepting postgres connections
        partial:
          - regexp: '.*pq: password authentication failed for user.*'
-           first_only: true
            log_record:
              body: >-
                Please ensure that your password is correctly specified in `splunk.discovery.receivers.smartagent/postgresql.config.params.username`

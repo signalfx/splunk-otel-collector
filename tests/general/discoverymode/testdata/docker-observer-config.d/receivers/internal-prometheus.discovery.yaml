@@ -17,6 +17,5 @@ prometheus_simple:
     metrics:
       - status: successful
         strict: prometheus_tsdb_time_retentions_total
-        first_only: true
         log_record:
           body: prometheus detected

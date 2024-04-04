@@ -22,19 +22,16 @@
 #     metrics:
 #       - status: successful
 #         strict: connections.accepted
-#         first_only: true
 #         log_record:
 #           body: smartagent/collectd/nginx receiver is working!
 #     statements:
 #       - status: failed
 #         regexp: "nginx plugin: curl_easy_perform failed: Operation timed out after"
-#         first_only: true
 #         log_record:
 #           append_pattern: true
 #           body: The container is not serving http connections.
 #       - status: failed
 #         regexp: "read-function of plugin .* failed"
-#         first_only: true
 #         log_record:
 #           append_pattern: true
 #           body: The integration is unable to read metrics from this endpoint.

@@ -40,7 +40,7 @@ type evaluator struct {
 	logger       *zap.Logger
 	config       *Config
 	correlations correlationStore
-	// if match.FirstOnly this ~sync.Map(map[string]struct{}) keeps track of
+	// this ~sync.Map(map[string]struct{}) keeps track of
 	// whether we've already emitted a record for the statement and can skip processing.
 	alreadyLogged *sync.Map
 	exprEnv       exprEnvFunc
@@ -107,11 +107,9 @@ func (e *evaluator) evaluateMatch(match Match, pattern string, status discovery.
 		return false, err
 	}
 
-	if match.FirstOnly {
-		loggedKey := fmt.Sprintf("%s::%s::%s::%s", endpointID, receiverID.String(), status, matchPattern)
-		if _, ok := e.alreadyLogged.LoadOrStore(loggedKey, struct{}{}); ok {
-			shouldLog = false
-		}
+	loggedKey := fmt.Sprintf("%s::%s::%s::%s", endpointID, receiverID.String(), status, matchPattern)
+	if _, ok := e.alreadyLogged.LoadOrStore(loggedKey, struct{}{}); ok {
+		shouldLog = false
 	}
 
 	e.logger.Debug(fmt.Sprintf("evaluated match %v against %q (should log: %v)", matchPattern, pattern, shouldLog))

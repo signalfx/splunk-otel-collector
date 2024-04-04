@@ -29,7 +29,6 @@ Example `redis.discovery.yaml.tmpl`:
     statements:
       partial:
         - regexp: 'ERR AUTH.*'
-          first_only: true
           log_record:
             body: >-
               Please ensure your redis password is correctly specified with
@@ -54,7 +53,6 @@ redis:
     statements:
       partial:
         - regexp: 'ERR AUTH.*'
-          first_only: true
           log_record:
             body: >-
               Please ensure your redis password is correctly specified with

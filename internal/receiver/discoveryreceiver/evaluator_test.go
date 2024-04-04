@@ -62,7 +62,6 @@ func TestEvaluateMatch(t *testing.T) {
 		{typ: "expr", m: Match{Expr: "item == 'must.match'"}},
 	} {
 		t.Run(tc.typ, func(t *testing.T) {
-			tc.m.FirstOnly = true
 			shouldLog, err := eval.evaluateMatch(tc.m, "must.match", "some.status", receiverID, endpointID)
 			require.NoError(t, err)
 			require.True(t, shouldLog)
@@ -74,15 +73,6 @@ func TestEvaluateMatch(t *testing.T) {
 			shouldLog, err = eval.evaluateMatch(tc.m, "must.match", "some.status", anotherReceiverID, endpointID)
 			require.NoError(t, err)
 			require.True(t, shouldLog)
-
-			tc.m.FirstOnly = false
-			shouldLog, err = eval.evaluateMatch(tc.m, "must.match", "some.status", receiverID, endpointID)
-			require.NoError(t, err)
-			require.True(t, shouldLog)
-
-			shouldLog, err = eval.evaluateMatch(tc.m, "doesn't.match", "another.status", receiverID, endpointID)
-			require.NoError(t, err)
-			require.False(t, shouldLog)
 		})
 	}
 }
@@ -99,7 +89,6 @@ func TestEvaluateInvalidMatch(t *testing.T) {
 		{typ: "expr", m: Match{Expr: "not_a_thing"}, expectedError: "invalid match expr statement: unknown name not_a_thing (1:1)\n | not_a_thing\n | ^"},
 	} {
 		t.Run(tc.typ, func(t *testing.T) {
-			tc.m.FirstOnly = true
 			shouldLog, err := eval.evaluateMatch(tc.m, "a.pattern", "some.status", receiverID, endpointID)
 			require.EqualError(t, err, tc.expectedError)
 			require.False(t, shouldLog)

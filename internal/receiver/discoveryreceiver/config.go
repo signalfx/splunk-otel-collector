@@ -80,12 +80,11 @@ type Status struct {
 // Match defines the rules for the desired match type and resulting log record
 // content emitted by the Discovery receiver
 type Match struct {
-	Status    discovery.StatusType `mapstructure:"status"`
-	Record    *LogRecord           `mapstructure:"log_record"`
-	Strict    string               `mapstructure:"strict"`
-	Regexp    string               `mapstructure:"regexp"`
-	Expr      string               `mapstructure:"expr"`
-	FirstOnly bool                 `mapstructure:"first_only"`
+	Status discovery.StatusType `mapstructure:"status"`
+	Record *LogRecord           `mapstructure:"log_record"`
+	Strict string               `mapstructure:"strict"`
+	Regexp string               `mapstructure:"regexp"`
+	Expr   string               `mapstructure:"expr"`
 }
 
 // LogRecord is a definition of the desired plog.LogRecord content to emit for a match.

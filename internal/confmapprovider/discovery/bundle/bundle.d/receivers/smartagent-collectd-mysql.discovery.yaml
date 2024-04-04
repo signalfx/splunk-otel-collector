@@ -20,19 +20,16 @@ smartagent/collectd/mysql:
     metrics:
       - status: successful
         strict: mysql_octets.rx
-        first_only: true
         log_record:
           body: smartagent/collectd/mysql receiver is working!
     statements:
       - status: failed
         regexp: "mysql plugin: Failed to connect to database .* at server .* Can't connect to MySQL server on .* [(]111[)]"
-        first_only: true
         log_record:
           append_pattern: true
           body: The container is refusing MySQL connections.
       - status: partial
         regexp: 'mysql plugin: Failed to connect to database .* at server .* Access denied for user .* [(]using password: .*[)]'
-        first_only: true
         log_record:
           append_pattern: true
           body: >-
@@ -43,7 +40,6 @@ smartagent/collectd/mysql:
             `SPLUNK_DISCOVERY_RECEIVERS_smartagent_x2f_collectd_x2f_mysql_CONFIG_password="<password>"` environment variables.
       - status: partial
         regexp: 'mysql plugin: Failed to connect to database .* at server .* Unknown database'
-        first_only: true
         log_record:
           append_pattern: true
           body: >-
@@ -52,7 +48,6 @@ smartagent/collectd/mysql:
             `SPLUNK_DISCOVERY_RECEIVERS_smartagent_x2f_collectd_x2f_mysql_CONFIG_databases="[{name: '<db-name-0>'}, {name: '<db-name-1>', username: '<username>', password: '<password>'}]"` environment variable.
       - status: partial
         regexp: 'mysql plugin: Failed to connect to database .* at server .* Access denied for user .* to database'
-        first_only: true
         log_record:
           append_pattern: true
           body: >-

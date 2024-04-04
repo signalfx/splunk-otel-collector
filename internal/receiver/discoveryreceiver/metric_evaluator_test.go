@@ -16,7 +16,6 @@ package discoveryreceiver
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
@@ -69,79 +68,74 @@ func TestMetricEvaluation(t *testing.T) {
 			for _, status := range discovery.StatusTypes {
 				match.Status = status
 				t.Run(string(status), func(t *testing.T) {
-					for _, firstOnly := range []bool{true, false} {
-						match.FirstOnly = firstOnly
-						t.Run(fmt.Sprintf("FirstOnly:%v", firstOnly), func(t *testing.T) {
-							observerID := component.MustNewIDWithName("an_observer", "observer.name")
-							cfg := &Config{
-								Receivers: map[component.ID]ReceiverEntry{
-									component.MustNewIDWithName("a_receiver", "receiver.name"): {
-										Rule:   "a.rule",
-										Status: &Status{Metrics: []Match{match}},
-									},
-								},
-								WatchObservers: []component.ID{observerID},
-							}
-							require.NoError(t, cfg.Validate())
-
-							plogs := make(chan plog.Logs)
-							cStore := newCorrelationStore(logger, time.Hour)
-							cStore.UpdateEndpoint(
-								observer.Endpoint{ID: "endpoint.id"},
-								addedState, observerID,
-							)
-
-							me := newMetricEvaluator(logger, cfg, plogs, cStore)
-
-							md := pmetric.NewMetrics()
-							rm := md.ResourceMetrics().AppendEmpty()
-
-							rAttrs := rm.Resource().Attributes()
-							rAttrs.PutStr("discovery.receiver.type", "a_receiver")
-							rAttrs.PutStr("discovery.receiver.name", "receiver.name")
-							rAttrs.PutStr("discovery.endpoint.id", "endpoint.id")
-
-							sm := rm.ScopeMetrics().AppendEmpty()
-							sms := sm.Metrics()
-							sms.AppendEmpty().SetName("undesired.name")
-							sms.AppendEmpty().SetName("another.undesired.name")
-							sms.AppendEmpty().SetName("desired.name")
-							sms.AppendEmpty().SetName("desired.name")
-							sms.AppendEmpty().SetName("desired.name")
-
-							emitted := me.evaluateMetrics(md)
-
-							require.Equal(t, 1, emitted.LogRecordCount())
-
-							rl := emitted.ResourceLogs().At(0)
-							rAttrs = rl.Resource().Attributes()
-							require.Equal(t, map[string]any{
-								"discovery.endpoint.id":   "endpoint.id",
-								"discovery.event.type":    "metric.match",
-								"discovery.observer.id":   "an_observer/observer.name",
-								"discovery.receiver.name": "receiver.name",
-								"discovery.receiver.rule": "a.rule",
-								"discovery.receiver.type": "a_receiver",
-							}, rAttrs.AsRaw())
-
-							sLogs := rl.ScopeLogs()
-							require.Equal(t, 1, sLogs.Len())
-							sl := sLogs.At(0)
-							lrs := sl.LogRecords()
-							require.Equal(t, 1, lrs.Len())
-							lr := sl.LogRecords().At(0)
-
-							lrAttrs := lr.Attributes()
-							require.Equal(t, map[string]any{
-								"discovery.status": string(status),
-								"metric.name":      "desired.name",
-								"one":              "one.value",
-								"two":              "two.value",
-							}, lrAttrs.AsRaw())
-
-							require.Equal(t, "desired body content", lr.Body().AsString())
-						})
+					observerID := component.MustNewIDWithName("an_observer", "observer.name")
+					cfg := &Config{
+						Receivers: map[component.ID]ReceiverEntry{
+							component.MustNewIDWithName("a_receiver", "receiver.name"): {
+								Rule:   "a.rule",
+								Status: &Status{Metrics: []Match{match}},
+							},
+						},
+						WatchObservers: []component.ID{observerID},
 					}
+					require.NoError(t, cfg.Validate())
+
+					plogs := make(chan plog.Logs)
+					cStore := newCorrelationStore(logger, time.Hour)
+					cStore.UpdateEndpoint(
+						observer.Endpoint{ID: "endpoint.id"},
+						addedState, observerID,
+					)
+
+					me := newMetricEvaluator(logger, cfg, plogs, cStore)
+
+					md := pmetric.NewMetrics()
+					rm := md.ResourceMetrics().AppendEmpty()
+
+					rAttrs := rm.Resource().Attributes()
+					rAttrs.PutStr("discovery.receiver.type", "a_receiver")
+					rAttrs.PutStr("discovery.receiver.name", "receiver.name")
+					rAttrs.PutStr("discovery.endpoint.id", "endpoint.id")
+
+					sm := rm.ScopeMetrics().AppendEmpty()
+					sms := sm.Metrics()
+					sms.AppendEmpty().SetName("undesired.name")
+					sms.AppendEmpty().SetName("another.undesired.name")
+					sms.AppendEmpty().SetName("desired.name")
+					sms.AppendEmpty().SetName("desired.name")
+					sms.AppendEmpty().SetName("desired.name")
+
+					emitted := me.evaluateMetrics(md)
+
+					require.Equal(t, 1, emitted.LogRecordCount())
+
+					rl := emitted.ResourceLogs().At(0)
+					rAttrs = rl.Resource().Attributes()
+					require.Equal(t, map[string]any{
+						"discovery.endpoint.id":   "endpoint.id",
+						"discovery.event.type":    "metric.match",
+						"discovery.observer.id":   "an_observer/observer.name",
+						"discovery.receiver.name": "receiver.name",
+						"discovery.receiver.rule": "a.rule",
+						"discovery.receiver.type": "a_receiver",
+					}, rAttrs.AsRaw())
+
+					sLogs := rl.ScopeLogs()
+					require.Equal(t, 1, sLogs.Len())
+					sl := sLogs.At(0)
+					lrs := sl.LogRecords()
+					require.Equal(t, 1, lrs.Len())
+					lr := sl.LogRecords().At(0)
+
+					lrAttrs := lr.Attributes()
+					require.Equal(t, map[string]any{
+						"discovery.status": string(status),
+						"metric.name":      "desired.name",
+						"one":              "one.value",
+						"two":              "two.value",
+					}, lrAttrs.AsRaw())
+
+					require.Equal(t, "desired body content", lr.Body().AsString())
 				})
 			}
 		})

@@ -261,10 +261,7 @@ jobs:
           $msi_path = Resolve-Path .\dist\splunk-otel-collector*.msi
           Test-Path $msi_path
           Write-Host "Installing $msi_path ..."
-          $process = Start-Process -Wait -PassThru msiexec "/i `"$msi_path`" /qn /l*v msi-install.log ${{ matrix.install-properties.install }}"
-          if ($process.ExitCode -ne 0) {
-            throw "MSI installation failed with exit code $($process.ExitCode)"
-          }
+          Start-Process -FilePath "msiexec" -ArgumentList "/i `"$msi_path`" /qn /l* msi-install.log ${{ matrix.install-properties.install }}" -Wait 
 
       - name: "In case of failure: display the install logs"
         if: ${{ failure() }}
@@ -289,14 +286,7 @@ jobs:
 
       - name: Uninstall the collector
         run: |
-          $ErrorActionPreference = 'Stop'
-          $uninstall_info = Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\uninstall\* | Where { $_.DisplayName -eq "Splunk OpenTelemetry Collector" }
-          Write-Host "Uninstalling $($uninstall_info.PSChildName) ..."
-          $process = Start-Process -Wait -PassThru msiexec "/x $($uninstall_info.PSChildName) /qn /l*v msi-uninstall.log"
-          if ($process.ExitCode -ne 0) {
-            throw "MSI installation failed with exit code $($process.ExitCode)"
-          }
-
+        Start-Process -FilePath "msiexec" -ArgumentList "/x {24E519F6-7F01-43DB-9E72-3B8AD8F065F4} /qn /l* msi-uninstall.log" -Wait
       - name: Check no leftover on the registry
         run: |
           $ErrorActionPreference = 'Stop'

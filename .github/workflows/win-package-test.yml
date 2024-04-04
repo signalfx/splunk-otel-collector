@@ -397,6 +397,7 @@ jobs:
     runs-on: ${{ matrix.OS }}
     needs: [choco-build]
     strategy:
+      max-parallel: 4
       matrix:
         OS: [ "windows-2022" ]
         MODE: [ "agent", "gateway" ]

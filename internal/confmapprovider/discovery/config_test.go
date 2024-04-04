@@ -238,8 +238,7 @@ var expectedConfig = Config{
 					"metrics": map[any]any{
 						"successful": []any{
 							map[any]any{
-								"strict":     "postgres_block_hit_ratio",
-								"first_only": true,
+								"strict": "postgres_block_hit_ratio",
 								"log_record": map[any]any{
 									"body": "postgresql SA receiver working!",
 								},
@@ -249,8 +248,7 @@ var expectedConfig = Config{
 					"statements": map[any]any{
 						"failed": []any{
 							map[any]any{
-								"regexp":     ".* connect: connection refused",
-								"first_only": true,
+								"regexp": ".* connect: connection refused",
 								"log_record": map[any]any{
 									"body": "container appears to not be accepting postgres connections",
 								},
@@ -258,8 +256,7 @@ var expectedConfig = Config{
 						},
 						"partial": []any{
 							map[any]any{
-								"regexp":     ".*pq: password authentication failed for user.*",
-								"first_only": true,
+								"regexp": ".*pq: password authentication failed for user.*",
 								"log_record": map[any]any{
 									"body": "Please ensure that your password is correctly specified " +
 										"in `splunk.discovery.receivers.smartagent/postgresql.config.params.username` and " +
@@ -290,8 +287,7 @@ var expectedConfig = Config{
 					"metrics": map[any]any{
 						"successful": []any{
 							map[any]any{
-								"regexp":     ".*",
-								"first_only": true,
+								"regexp": ".*",
 								"log_record": map[any]any{
 									"body": "smartagent/collectd-redis receiver successful metric status",
 								},
@@ -301,15 +297,13 @@ var expectedConfig = Config{
 					"statements": map[any]any{
 						"failed": []any{
 							map[any]any{
-								"regexp":     `raise ValueError\(\"Unknown Redis response`,
-								"first_only": true,
+								"regexp": `raise ValueError\(\"Unknown Redis response`,
 								"log_record": map[any]any{
 									"body": "container appears to not actually be redis",
 								},
 							},
 							map[any]any{
-								"regexp":     "^redis_info plugin: Error connecting to .* - ConnectionRefusedError.*$",
-								"first_only": true,
+								"regexp": "^redis_info plugin: Error connecting to .* - ConnectionRefusedError.*$",
 								"log_record": map[any]any{
 									"body": "container appears to not be accepting redis connections",
 								},
@@ -317,8 +311,7 @@ var expectedConfig = Config{
 						},
 						"partial": []any{
 							map[any]any{
-								"regexp":     "^redis_info plugin: Error .* - RedisError\\('-(WRONGPASS|NOAUTH|ERR AUTH).*$",
-								"first_only": true,
+								"regexp": "^redis_info plugin: Error .* - RedisError\\('-(WRONGPASS|NOAUTH|ERR AUTH).*$",
 								"log_record": map[any]any{
 									"body": "Please ensure that your redis password is correctly specified in " +
 										"`splunk.discovery.receivers.smartagent/collectd/redis.config.auth` or via the " +

@@ -6,8 +6,8 @@ discovery:
       rule: a rule
       status:
         metrics:
-          unsupported:
-            - regexp: '.*'
+          - status: unsupported
+            regexp: '.*'
         statements:
-          another_unsupported:
-            - regexp: '.*'
+          - status: another_unsupported
+            regexp: '.*'

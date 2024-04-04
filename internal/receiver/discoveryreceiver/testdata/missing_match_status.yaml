@@ -2,9 +2,10 @@ discovery:
   watch_observers:
     - an_observer
   receivers:
-    receiver_creator/with-name:
+    a_receiver:
       rule: a rule
       status:
         metrics:
-          - status: successful
-            regexp: '.*'
+          - regexp: '.*'
+        statements:
+          - regexp: '.*'

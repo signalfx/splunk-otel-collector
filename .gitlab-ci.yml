@@ -433,6 +433,7 @@ build-msi:
       - dist/*.msi
 
 msi-custom-actions-package:
+  extends: .trigger-filter
   stage: package
   needs:
     - job: msi-custom-actions-assemblies
@@ -455,6 +456,7 @@ msi-custom-actions-package:
       - internal/buildscripts/packaging/msi/SplunkCustomActions/bin/Release/SplunkCustomActions.CA.dll
 
 msi-custom-actions-assemblies:
+  extends: .trigger-filter
   image: 'mcr.microsoft.com/dotnet/sdk:8.0'
   stage: package
   needs: []

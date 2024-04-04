@@ -11,50 +11,46 @@
       service: {{ defaultValue }}
   status:
     metrics:
-      successful:
-        - strict: oracledb.cpu_time
-          first_only: true
-          log_record:
-            body: oracledb receiver is working!
+      - status: successful
+        strict: oracledb.cpu_time
+        log_record:
+          body: oracledb receiver is working!
     statements:
-      failed:
-        - regexp: "connection refused"
-          first_only: true
-          log_record:
-            append_pattern: true
-            body: The container is not serving http connections.
-        - regexp: "received goaway and there are no active streams"
-          first_only: true
-          log_record:
-            append_pattern: true
-            body: Unable to connect and scrape metrics.
-        - regexp: "dial tcp: lookup"
-          first_only: true
-          log_record:
-            append_pattern: true
-            body: Unable to resolve oracledb tcp endpoint
-        - regexp: 'error executing select .*: EOF'
-          first_only: true
-          log_record:
-            append_pattern: true
-            body: Unable to execute select from oracledb. Verify endpoint and user permissions. 
-      partial:
-        - regexp: "listener does not currently know of service requested"
-          first_only: true
-          log_record:
-            append_pattern: true
-            body: >-
-              Make sure your oracledb service is correctly specified using the
-              `--set {{ configProperty "service" "<service>" }}` command or the
-              `{{ configPropertyEnvVar "service" "<service>" }}` environment variable. 
-        - regexp: 'invalid username/password'
-          first_only: true
-          log_record:
-            append_pattern: true
-            body: >-
-              Make sure your user credentials are correctly specified using the
-              `--set {{ configProperty "username" "<username>" }}` and
-              `--set {{ configProperty "password" "<password>" }}` command or the
-              `{{ configPropertyEnvVar "username" "<username>" }}` and
-              `{{ configPropertyEnvVar "password" "<password>" }}` environment variables.
-              
+      - status: failed
+        regexp: "connection refused"
+        log_record:
+          append_pattern: true
+          body: The container is not serving http connections.
+      - status: failed
+        regexp: "received goaway and there are no active streams"
+        log_record:
+          append_pattern: true
+          body: Unable to connect and scrape metrics.
+      - status: failed
+        regexp: "dial tcp: lookup"
+        log_record:
+          append_pattern: true
+          body: Unable to resolve oracledb tcp endpoint
+      - status: failed
+        regexp: 'error executing select .*: EOF'
+        log_record:
+          append_pattern: true
+          body: Unable to execute select from oracledb. Verify endpoint and user permissions.
+      - status: partial
+        regexp: "listener does not currently know of service requested"
+        log_record:
+          append_pattern: true
+          body: >-
+            Make sure your oracledb service is correctly specified using the
+            `--set {{ configProperty "service" "<service>" }}` command or the
+            `{{ configPropertyEnvVar "service" "<service>" }}` environment variable.
+      - status: partial
+        regexp: 'invalid username/password'
+        log_record:
+          append_pattern: true
+          body: >-
+            Make sure your user credentials are correctly specified using the
+            `--set {{ configProperty "username" "<username>" }}` and
+            `--set {{ configProperty "password" "<password>" }}` command or the
+            `{{ configPropertyEnvVar "username" "<username>" }}` and
+            `{{ configPropertyEnvVar "password" "<password>" }}` environment variables.

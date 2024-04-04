@@ -151,23 +151,19 @@ receivers:
            // the metric or log statement
          status:
            metrics:
-             successful:
-               - regexp: '.*'
-                 // Only emit a single log record for this status entry instead of one for each matching received metric (`false`, the default)
-                 first_only: true
-                 log_record:
-                   body: Successfully able to connect to Redis container.
+             - status: successful
+               regexp: '.*'
+               log_record:
+                 body: Successfully able to connect to Redis container.
            statements:
-             partial:
-               - regexp: (WRONGPASS|NOAUTH|ERR AUTH)
-                 first_only: true
-                 log_record:
-                   body: Container appears to be accepting redis connections but the default auth setting is incorrect.
-             failed:
-               - regexp: ConnectionRefusedError
-                 first_only: true
-                 log_record:
-                   body: Container appears to not be accepting redis connections.
+             - status: partial
+               regexp: (WRONGPASS|NOAUTH|ERR AUTH)
+               log_record:
+                 body: Container appears to be accepting redis connections but the default auth setting is incorrect.
+             - status: failed
+               regexp: ConnectionRefusedError
+               log_record:
+                 body: Container appears to not be accepting redis connections.
 exporters:
   debug:
     verbosity: detailed
@@ -313,7 +309,6 @@ Flags: 0
 | `strict`     | string    | <no value> | The string literal to compare equivalence against reported received metric names or component log statement message |
 | `regexp`     | string    | <no value> | The regexp pattern to evaluate reported received metric names or component log statements                           |
 | `expr`       | string    | <no value> | The expr program run with the reported received metric names or component log statements                            |
-| `first_only` | bool      | false      | Whether to emit only one log record for the first matching metric or log statement, ignoring all subsequent matches |
 | `record`     | LogRecord | <no value> | The emitted log record content                                                                                      |
 
 #### `strict`

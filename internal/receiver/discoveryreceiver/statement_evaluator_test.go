@@ -52,132 +52,111 @@ func TestStatementEvaluation(t *testing.T) {
 						},
 					}
 					for _, status := range discovery.StatusTypes {
+						match.Status = status
 						t.Run(string(status), func(t *testing.T) {
-							for _, firstOnly := range []bool{true, false} {
-								match.FirstOnly = firstOnly
-								t.Run(fmt.Sprintf("FirstOnly:%v", firstOnly), func(t *testing.T) {
-									observerID := component.MustNewIDWithName("an_observer", "observer.name")
-									cfg := &Config{
-										Receivers: map[component.ID]ReceiverEntry{
-											component.MustNewIDWithName("a_receiver", "receiver.name"): {
-												Rule:   "a.rule",
-												Status: &Status{Statements: map[discovery.StatusType][]Match{status: {match}}},
-											},
-										},
-										WatchObservers: []component.ID{observerID},
-									}
-									require.NoError(t, cfg.Validate())
-
-									plogs := make(chan plog.Logs)
-
-									// If debugging tests, replace the Nop Logger with a test instance to see
-									// all statements. Not in regular use to avoid spamming output.
-									// logger := zaptest.NewLogger(t)
-									logger := zap.NewNop()
-									cStore := newCorrelationStore(logger, time.Hour)
-									cStore.UpdateEndpoint(
-										observer.Endpoint{ID: "endpoint.id"},
-										addedState, observerID,
-									)
-
-									se, err := newStatementEvaluator(logger, component.MustNewID("some_type"), cfg, plogs, cStore)
-									require.NoError(t, err)
-
-									evaluatedLogger := se.evaluatedLogger.With(
-										zap.String("name", `a_receiver/receiver.name/receiver_creator/rc.name/{endpoint=""}/endpoint.id`),
-									)
-
-									numExpected := 1
-									if !firstOnly {
-										numExpected = 3
-									}
-
-									emitted := plog.NewLogs()
-									wg := sync.WaitGroup{}
-									wg.Add(numExpected)
-
-									go func() {
-										for i := 0; i < numExpected; i++ {
-											logs := <-plogs
-											if emitted.LogRecordCount() == 0 {
-												emitted = logs
-											} else {
-												logs.ResourceLogs().MoveAndAppendTo(emitted.ResourceLogs())
-											}
-											wg.Done()
-										}
-									}()
-
-									for _, statement := range []string{
-										"undesired.statement",
-										"another.undesired.statement",
-										"desired.statement",
-										"desired.statement",
-										"desired.statement",
-									} {
-										evaluatedLogger.Info(
-											statement,
-											zap.String("field.one", "field.one.value"),
-											zap.String("field_two", "field.two.value"),
-										)
-									}
-
-									require.Eventually(t, func() bool {
-										wg.Wait()
-										return true
-									}, 1*time.Second, time.Millisecond)
-									close(plogs)
-
-									for i := 0; i < numExpected; i++ {
-										rl := emitted.ResourceLogs().At(i)
-										rAttrs := rl.Resource().Attributes()
-										require.Equal(t, map[string]any{
-											"discovery.endpoint.id":   "endpoint.id",
-											"discovery.event.type":    "statement.match",
-											"discovery.observer.id":   "an_observer/observer.name",
-											"discovery.receiver.name": "receiver.name",
-											"discovery.receiver.rule": "a.rule",
-											"discovery.receiver.type": "a_receiver",
-										}, rAttrs.AsRaw())
-
-										sLogs := rl.ScopeLogs()
-										require.Equal(t, 1, sLogs.Len())
-										sl := sLogs.At(0)
-										lrs := sl.LogRecords()
-										require.Equal(t, 1, lrs.Len())
-										lr := sl.LogRecords().At(0)
-
-										lrAttrs := lr.Attributes().AsRaw()
-
-										require.Contains(t, lrAttrs, "caller")
-										_, expectedFile, _, _ := runtime.Caller(0)
-										// runtime doesn't use os.PathSeparator
-										splitPath := strings.Split(expectedFile, "/")
-										expectedCaller := splitPath[len(splitPath)-1]
-										require.Contains(t, lrAttrs["caller"], expectedCaller)
-										delete(lrAttrs, "caller")
-
-										require.Equal(t, map[string]any{
-											"discovery.status": string(status),
-											"name":             `a_receiver/receiver.name/receiver_creator/rc.name/{endpoint=""}/endpoint.id`,
-											"attr.one":         "attr.one.value",
-											"attr.two":         "attr.two.value",
-											"field.one":        "field.one.value",
-											"field_two":        "field.two.value",
-										}, lrAttrs)
-
-										expected := "desired body content"
-										if match.Record.AppendPattern {
-											if match.Strict != "" {
-												expected = fmt.Sprintf("%s (evaluated \"desired.statement\")", expected)
-											} else {
-												expected = fmt.Sprintf("%s (evaluated \"{\\\"field.one\\\":\\\"field.one.value\\\",\\\"field_two\\\":\\\"field.two.value\\\",\\\"message\\\":\\\"desired.statement\\\"}\")", expected)
-											}
-										}
-										require.Equal(t, expected, lr.Body().AsString())
-									}
-								})
+							observerID := component.MustNewIDWithName("an_observer", "observer.name")
+							cfg := &Config{
+								Receivers: map[component.ID]ReceiverEntry{
+									component.MustNewIDWithName("a_receiver", "receiver.name"): {
+										Rule:   "a.rule",
+										Status: &Status{Statements: []Match{match}},
+									},
+								},
+								WatchObservers: []component.ID{observerID},
 							}
+							require.NoError(t, cfg.Validate())
+
+							plogs := make(chan plog.Logs)
+
+							// If debugging tests, replace the Nop Logger with a test instance to see
+							// all statements. Not in regular use to avoid spamming output.
+							// logger := zaptest.NewLogger(t)
+							logger := zap.NewNop()
+							cStore := newCorrelationStore(logger, time.Hour)
+							cStore.UpdateEndpoint(
+								observer.Endpoint{ID: "endpoint.id"},
+								addedState, observerID,
+							)
+
+							se, err := newStatementEvaluator(logger, component.MustNewID("some_type"), cfg, plogs, cStore)
+							require.NoError(t, err)
+
+							evaluatedLogger := se.evaluatedLogger.With(
+								zap.String("name", `a_receiver/receiver.name/receiver_creator/rc.name/{endpoint=""}/endpoint.id`),
+							)
+
+							var emitted plog.Logs
+							wg := sync.WaitGroup{}
+							wg.Add(1)
+							go func() {
+								emitted = <-plogs
+								wg.Done()
+							}()
+
+							for _, statement := range []string{
+								"undesired.statement",
+								"another.undesired.statement",
+								"desired.statement",
+								"desired.statement",
+								"desired.statement",
+							} {
+								evaluatedLogger.Info(
+									statement,
+									zap.String("field.one", "field.one.value"),
+									zap.String("field_two", "field.two.value"),
+								)
+							}
+
+							wg.Wait()
+							close(plogs)
+
+							require.Equal(t, 1, emitted.ResourceLogs().Len())
+							rl := emitted.ResourceLogs().At(0)
+							rAttrs := rl.Resource().Attributes()
+							require.Equal(t, map[string]any{
+								"discovery.endpoint.id":   "endpoint.id",
+								"discovery.event.type":    "statement.match",
+								"discovery.observer.id":   "an_observer/observer.name",
+								"discovery.receiver.name": "receiver.name",
+								"discovery.receiver.rule": "a.rule",
+								"discovery.receiver.type": "a_receiver",
+							}, rAttrs.AsRaw())
+
+							sLogs := rl.ScopeLogs()
+							require.Equal(t, 1, sLogs.Len())
+							sl := sLogs.At(0)
+							lrs := sl.LogRecords()
+							require.Equal(t, 1, lrs.Len())
+							lr := sl.LogRecords().At(0)
+
+							lrAttrs := lr.Attributes().AsRaw()
+
+							require.Contains(t, lrAttrs, "caller")
+							_, expectedFile, _, _ := runtime.Caller(0)
+							// runtime doesn't use os.PathSeparator
+							splitPath := strings.Split(expectedFile, "/")
+							expectedCaller := splitPath[len(splitPath)-1]
+							require.Contains(t, lrAttrs["caller"], expectedCaller)
+							delete(lrAttrs, "caller")
+
+							require.Equal(t, map[string]any{
+								"discovery.status": string(status),
+								"name":             `a_receiver/receiver.name/receiver_creator/rc.name/{endpoint=""}/endpoint.id`,
+								"attr.one":         "attr.one.value",
+								"attr.two":         "attr.two.value",
+								"field.one":        "field.one.value",
+								"field_two":        "field.two.value",
+							}, lrAttrs)
+
+							expected := "desired body content"
+							if match.Record.AppendPattern {
+								if match.Strict != "" {
+									expected = fmt.Sprintf("%s (evaluated \"desired.statement\")", expected)
+								} else {
+									expected = fmt.Sprintf("%s (evaluated \"{\\\"field.one\\\":\\\"field.one.value\\\",\\\"field_two\\\":\\\"field.two.value\\\",\\\"message\\\":\\\"desired.statement\\\"}\")", expected)
+								}
+							}
+							require.Equal(t, expected, lr.Body().AsString())
 						})
 					}
 				})

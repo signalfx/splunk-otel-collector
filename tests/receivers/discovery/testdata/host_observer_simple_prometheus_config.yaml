@@ -19,26 +19,24 @@ receivers:
           two.key: two.value
         status:
           metrics:
-            successful:
-                - regexp: ^otelcol_process_uptime$
-                  first_only: true
-                  log_record:
-                    body: Successfully connected to prometheus server
+            - status: successful
+              regexp: ^otelcol_process_uptime$
+              log_record:
+                body: Successfully connected to prometheus server
           statements:
-            failed:
-              # Only the first matching statement match will be logged
-              - strict: Failed to scrape Prometheus endpoint
-                first_only: true
-                log_record:
-                  body: (strict) Port appears to not be serving prometheus metrics
-              - regexp: '"message":"Failed to scrape Prometheus endpoint"'
-                first_only: true
-                log_record:
-                  body: (regexp) Port appears to not be serving prometheus metrics
-              - expr: message == 'Failed to scrape Prometheus endpoint' && target_labels contains 'up'
-                first_only: true
-                log_record:
-                  body: (expr) Port appears to not be serving prometheus metrics
+            # Only the first matching statement match will be applied
+            - status: failed
+              strict: Failed to scrape Prometheus endpoint
+              log_record:
+                body: (strict) Port appears to not be serving prometheus metrics
+            - status: failed
+              regexp: '"message":"Failed to scrape Prometheus endpoint"'
+              log_record:
+                body: (regexp) Port appears to not be serving prometheus metrics
+            - status: failed
+              expr: message == 'Failed to scrape Prometheus endpoint' && target_labels contains 'up'
+              log_record:
+                body: (expr) Port appears to not be serving prometheus metrics
 
     watch_observers:
       - host_observer

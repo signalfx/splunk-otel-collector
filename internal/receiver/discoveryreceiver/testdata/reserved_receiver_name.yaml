@@ -6,5 +6,5 @@ discovery:
       rule: a rule
       status:
         metrics:
-          successful:
-            - regexp: '.*'
+          - status: successful
+            regexp: '.*'

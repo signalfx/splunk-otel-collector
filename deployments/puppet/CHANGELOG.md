@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## puppet-v0.14.0
+
+- For Splunk Otel Collector version `0.97.0` or greater, `GOMEMLIMIT` env var is introduced. The default is set to 90% of the `SPLUNK_TOTAL_MEM_MIB`. For more information regarding the usage, please follow the instructions ([here](https://github.com/signalfx/splunk-otel-collector?tab=readme-ov-file#from-0961-to-0970)).
+- The `splunk_ballast_size_mib` option is deprecated and no longer effective. It is only applicable for Splunk OpenTelemetry Collector version < `0.97.0`.
+
 ## puppet-v0.13.0
 
 - On Windows the `SPLUNK_*` environment variables were moved from the machine scope to the collector service scope.

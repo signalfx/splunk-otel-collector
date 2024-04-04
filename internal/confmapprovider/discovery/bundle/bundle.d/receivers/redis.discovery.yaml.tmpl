@@ -8,54 +8,51 @@
     default: {}
   status:
     metrics:
-      successful:
-        - strict: redis.uptime
-          first_only: true
-          log_record:
-            body: redis receiver is working!
+      - status: successful
+        strict: redis.uptime
+        log_record:
+          body: redis receiver is working!
     statements:
-      failed:
-        - regexp: "connection refused"
-          first_only: true
-          log_record:
-            append_pattern: true
-            body: The container is not serving http connections.
-        - regexp: "received goaway and there are no active streams"
-          first_only: true
-          log_record:
-            append_pattern: true
-            body: Unable to connect and scrape metrics.
-        - regexp: "dial tcp: lookup"
-          first_only: true
-          log_record:
-            append_pattern: true
-            body: Unable to resolve redis tcp endpoint
-      partial: 
-        - regexp: 'NOAUTH Authentication required.'
-          first_only: true
-          log_record:
-            append_pattern: true
-            body: >-
-              Make sure your user credentials are correctly specified using the
-              `--set {{ configProperty "password" "<password>" }}` and 
-              `--set {{ configProperty "username" "<username>" }}` commands or the
-              `{{ configPropertyEnvVar "password" "<password>" }}` and 
-              `{{ configPropertyEnvVar "password" "<password>" }}` environment variables.
-        - regexp: 'called without any password configured for the default user'
-          first_only: true
-          log_record:
-            append_pattern: true
-            body: >-
-              Make sure your user credentials are correctly specified using the
-              `--set {{ configProperty "password" "<password>" }}` command or the
-              `{{ configPropertyEnvVar "password" "<password>" }}` environment variables.      
-        - regexp: 'WRONGPASS invalid username-password pair or user is disabled'
-          first_only: true
-          log_record:
-            append_pattern: true
-            body: >-
-              Make sure your user credentials are correctly specified using the
-              `--set {{ configProperty "password" "<password>" }}` and 
-              `--set {{ configProperty "username" "<username>" }}` commands or the
-              `{{ configPropertyEnvVar "password" "<password>" }}` and 
-              `{{ configPropertyEnvVar "password" "<password>" }}` environment variables.           
+      - status: failed
+        regexp: "connection refused"
+        log_record:
+          append_pattern: true
+          body: The container is not serving http connections.
+      - status: failed
+        regexp: "received goaway and there are no active streams"
+        log_record:
+          append_pattern: true
+          body: Unable to connect and scrape metrics.
+      - status: failed
+        regexp: "dial tcp: lookup"
+        log_record:
+          append_pattern: true
+          body: Unable to resolve redis tcp endpoint
+      - status: partial
+        regexp: 'NOAUTH Authentication required.'
+        log_record:
+          append_pattern: true
+          body: >-
+            Make sure your user credentials are correctly specified using the
+            `--set {{ configProperty "password" "<password>" }}` and
+            `--set {{ configProperty "username" "<username>" }}` commands or the
+            `{{ configPropertyEnvVar "password" "<password>" }}` and
+            `{{ configPropertyEnvVar "password" "<password>" }}` environment variables.
+      - status: partial
+        regexp: 'called without any password configured for the default user'
+        log_record:
+          append_pattern: true
+          body: >-
+            Make sure your user credentials are correctly specified using the
+            `--set {{ configProperty "password" "<password>" }}` command or the
+            `{{ configPropertyEnvVar "password" "<password>" }}` environment variables.
+      - status: partial
+        regexp: 'WRONGPASS invalid username-password pair or user is disabled'
+        log_record:
+          append_pattern: true
+          body: >-
+            Make sure your user credentials are correctly specified using the
+            `--set {{ configProperty "password" "<password>" }}` and
+            `--set {{ configProperty "username" "<username>" }}` commands or the
+            `{{ configPropertyEnvVar "password" "<password>" }}` and
+            `{{ configPropertyEnvVar "password" "<password>" }}` environment variables.

@@ -18,8 +18,7 @@ prometheus_simple:
         label_two: ${LABEL_TWO_VALUE}
   status:
     metrics:
-      successful:
-        - strict: otelcol_process_uptime
-          first_only: true
-          log_record:
-            body: internal collector prometheus exporter detected
+      - status: successful
+        strict: otelcol_process_uptime
+        log_record:
+          body: internal collector prometheus exporter detected

@@ -56,46 +56,40 @@ func TestValidConfig(t *testing.T) {
 					"type": "collectd/redis",
 				},
 				Status: &Status{
-					Metrics: map[discovery.StatusType][]Match{
-						discovery.Successful: {
-							Match{
-								Record: &LogRecord{
-									Attributes: map[string]string{
-										"attr_one": "attr_one_val",
-										"attr_two": "attr_two_val",
-									},
-									Body: "smartagent/redis receiver successful status",
+					Metrics: []Match{
+						{
+							Status: discovery.Successful,
+							Record: &LogRecord{
+								Attributes: map[string]string{
+									"attr_one": "attr_one_val",
+									"attr_two": "attr_two_val",
 								},
-								Strict:    "",
-								Regexp:    ".*",
-								Expr:      "",
-								FirstOnly: true,
+								Body: "smartagent/redis receiver successful status",
 							},
+							Strict: "",
+							Regexp: ".*",
+							Expr:   "",
 						},
 					},
-					Statements: map[discovery.StatusType][]Match{
-						discovery.Failed: {
-							{
-								Strict:    "",
-								Regexp:    "ConnectionRefusedError",
-								Expr:      "",
-								FirstOnly: true,
-								Record: &LogRecord{
-									Attributes: map[string]string{},
-									Body:       "container appears to not be accepting redis connections",
-								},
+					Statements: []Match{
+						{
+							Status: discovery.Failed,
+							Strict: "",
+							Regexp: "ConnectionRefusedError",
+							Expr:   "",
+							Record: &LogRecord{
+								Attributes: map[string]string{},
+								Body:       "container appears to not be accepting redis connections",
 							},
 						},
-						discovery.Partial: {
-							{
-								Strict:    "",
-								Regexp:    "(WRONGPASS|NOAUTH|ERR AUTH)",
-								Expr:      "",
-								FirstOnly: false,
-								Record: &LogRecord{
-									Attributes: nil,
-									Body:       "desired log invalid auth log body",
-								},
+						{
+							Status: discovery.Partial,
+							Strict: "",
+							Regexp: "(WRONGPASS|NOAUTH|ERR AUTH)",
+							Expr:   "",
+							Record: &LogRecord{
+								Attributes: nil,
+								Body:       "desired log invalid auth log body",
 							},
 						},
 					},
@@ -119,13 +113,13 @@ func TestValidConfig(t *testing.T) {
 }
 
 func TestInvalidConfigs(t *testing.T) {
-
 	tests := []struct{ name, expectedError string }{
 		{name: "no_watch_observers", expectedError: "`watch_observers` must be defined and include at least one configured observer extension"},
 		{name: "missing_status", expectedError: "receiver \"a_receiver\" validation failure: `status` must be defined and contain at least one `metrics` or `statements` mapping"},
+		{name: "missing_match_status", expectedError: "receiver \"a_receiver\" validation failure: \"metrics\" status match validation failed: status cannot be empty; \"statements\" status match validation failed: status cannot be empty"},
 		{name: "missing_status_metrics_and_statements", expectedError: "receiver \"a_receiver\" validation failure: `status` must be defined and contain at least one `metrics` or `statements` mapping"},
-		{name: "invalid_status_types", expectedError: `receiver "a_receiver" validation failure: invalid status "unsupported". must be one of [successful partial failed]; invalid status "another_unsupported". must be one of [successful partial failed]`},
-		{name: "multiple_status_match_types", expectedError: "receiver \"a_receiver\" validation failure: `metrics` status source type `successful` match type validation failed. Must provide one of [regexp strict expr] but received [strict regexp]; `statements` status source type `failed` match type validation failed. Must provide one of [regexp strict expr] but received [strict expr]"},
+		{name: "invalid_status_types", expectedError: `receiver "a_receiver" validation failure: "metrics" status match validation failed: invalid status "unsupported". must be one of [successful partial failed]; "statements" status match validation failed: invalid status "another_unsupported". must be one of [successful partial failed]`},
+		{name: "multiple_status_match_types", expectedError: "receiver \"a_receiver\" validation failure: \"metrics\" status match validation failed. Must provide one of [regexp strict expr] but received [strict regexp]; \"statements\" status match validation failed. Must provide one of [regexp strict expr] but received [strict expr]"},
 		{name: "reserved_receiver_creator", expectedError: `receiver "receiver_creator/with-name" validation failure: receiver cannot be a receiver_creator`},
 		{name: "reserved_receiver_name", expectedError: `receiver "a_receiver/with-receiver_creator/in-name" validation failure: receiver name cannot contain "receiver_creator/"`},
 		{name: "reserved_receiver_name_with_endpoint", expectedError: `receiver "receiver/with{endpoint=}/" validation failure: receiver name cannot contain "{endpoint=[^}]*}/"`},

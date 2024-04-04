@@ -70,20 +70,21 @@ type ReceiverEntry struct {
 }
 
 // Status defines the Match rules for applicable app and telemetry sources.
+// The first matching rule determines status of the endpoint.
 // At this time only Metrics and zap logger Statements status source types are supported.
 type Status struct {
-	Metrics    map[discovery.StatusType][]Match `mapstructure:"metrics"`
-	Statements map[discovery.StatusType][]Match `mapstructure:"statements"`
+	Metrics    []Match `mapstructure:"metrics"`
+	Statements []Match `mapstructure:"statements"`
 }
 
 // Match defines the rules for the desired match type and resulting log record
 // content emitted by the Discovery receiver
 type Match struct {
-	Record    *LogRecord `mapstructure:"log_record"`
-	Strict    string     `mapstructure:"strict"`
-	Regexp    string     `mapstructure:"regexp"`
-	Expr      string     `mapstructure:"expr"`
-	FirstOnly bool       `mapstructure:"first_only"`
+	Status discovery.StatusType `mapstructure:"status"`
+	Record *LogRecord           `mapstructure:"log_record"`
+	Strict string               `mapstructure:"strict"`
+	Regexp string               `mapstructure:"regexp"`
+	Expr   string               `mapstructure:"expr"`
 }
 
 // LogRecord is a definition of the desired plog.LogRecord content to emit for a match.
@@ -131,36 +132,34 @@ func (s *Status) validate() error {
 	}
 
 	if len(s.Metrics) == 0 && len(s.Statements) == 0 {
-		return fmt.Errorf("`status` must contain at least one `metrics` or `statements` mapping with at least one of %v", discovery.StatusTypes)
+		return fmt.Errorf("`status` must contain at least one `metrics` or `statements` list")
 	}
 
 	var err error
 	statusSources := []struct {
-		matches    map[discovery.StatusType][]Match
 		sourceType string
-	}{{s.Metrics, "metrics"}, {s.Statements, "statements"}}
+		matches    []Match
+	}{{"metrics", s.Metrics}, {"statements", s.Statements}}
 	for _, statusSource := range statusSources {
-		for statusType, statements := range statusSource.matches {
-			if ok, e := discovery.IsValidStatus(statusType); !ok {
-				err = multierr.Combine(err, e)
+		for _, statement := range statusSource.matches {
+			if ok, e := discovery.IsValidStatus(statement.Status); !ok {
+				err = multierr.Combine(err, fmt.Errorf(`"%s" status match validation failed: %w`, statusSource.sourceType, e))
 				continue
 			}
-			for _, logMatch := range statements {
-				var matchTypes []string
-				if logMatch.Strict != "" {
-					matchTypes = append(matchTypes, "strict")
-				}
-				if logMatch.Regexp != "" {
-					matchTypes = append(matchTypes, "regexp")
-				}
-				if logMatch.Expr != "" {
-					matchTypes = append(matchTypes, "expr")
-				}
-				if len(matchTypes) != 1 {
-					err = multierr.Combine(err, fmt.Errorf(
-						"`%s` status source type `%s` match type validation failed. Must provide one of %v but received %v", statusSource.sourceType, statusType, allowedMatchTypes, matchTypes,
-					))
-				}
+			var matchTypes []string
+			if statement.Strict != "" {
+				matchTypes = append(matchTypes, "strict")
+			}
+			if statement.Regexp != "" {
+				matchTypes = append(matchTypes, "regexp")
+			}
+			if statement.Expr != "" {
+				matchTypes = append(matchTypes, "expr")
+			}
+			if len(matchTypes) != 1 {
+				err = multierr.Combine(err, fmt.Errorf(
+					`"%s" status match validation failed. Must provide one of %v but received %v`, statusSource.sourceType, allowedMatchTypes, matchTypes,
+				))
 			}
 		}
 	}

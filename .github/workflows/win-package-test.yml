@@ -220,8 +220,8 @@ jobs:
     needs: [msi-build]
     timeout-minutes: 60
     strategy:
+      max-parallel: 1
       matrix:
-        max-parallel: 1
         OS: [ "windows-2022" ]
         install-properties:
 

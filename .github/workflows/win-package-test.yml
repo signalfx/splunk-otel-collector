@@ -24,7 +24,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.21.5
+  GO_VERSION: 1.21.9
 
 jobs:
   setup-environment:
@@ -171,12 +171,6 @@ jobs:
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
 
       - name: Setup NuGet
         uses: nuget/setup-nuget@v2.0.0

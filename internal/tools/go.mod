@@ -19,6 +19,7 @@ require (
 	github.com/tcnksm/ghr v0.16.2
 	go.opentelemetry.io/collector/cmd/mdatagen v0.97.0
 	golang.org/x/tools v0.19.0
+	golang.org/x/vuln v1.0.4
 )
 
 require (

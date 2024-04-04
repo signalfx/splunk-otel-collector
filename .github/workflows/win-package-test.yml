@@ -212,8 +212,9 @@ jobs:
   msi-without-wrappers-test:
     runs-on: ${{ matrix.OS }}
     needs: [msi-build]
-    timeout-minutes: 5
+    timeout-minutes: 15
     strategy:
+      max-parallel: 1
       matrix:
         OS: [ "windows-2022" ]
         install-properties:
@@ -298,6 +299,7 @@ jobs:
     runs-on: ${{ matrix.OS }}
     needs: [msi-build]
     strategy:
+      max-parallel: 2
       matrix:
         OS: [ "windows-2022" ]
         MODE: [ "agent", "gateway" ]
@@ -390,6 +392,7 @@ jobs:
     runs-on: ${{ matrix.OS }}
     needs: [choco-build]
     strategy:
+      max-parallel: 4
       matrix:
         OS: [ "windows-2022" ]
         MODE: [ "agent", "gateway" ]

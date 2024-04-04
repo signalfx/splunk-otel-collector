@@ -221,6 +221,7 @@ jobs:
     timeout-minutes: 60
     strategy:
       matrix:
+        max-parallel: 1
         OS: [ "windows-2022" ]
         install-properties:
 

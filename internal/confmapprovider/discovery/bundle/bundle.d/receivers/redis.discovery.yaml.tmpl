@@ -10,31 +10,26 @@
     metrics:
       - status: successful
         strict: redis.uptime
-        first_only: true
         log_record:
           body: redis receiver is working!
     statements:
       - status: failed
         regexp: "connection refused"
-        first_only: true
         log_record:
           append_pattern: true
           body: The container is not serving http connections.
       - status: failed
         regexp: "received goaway and there are no active streams"
-        first_only: true
         log_record:
           append_pattern: true
           body: Unable to connect and scrape metrics.
       - status: failed
         regexp: "dial tcp: lookup"
-        first_only: true
         log_record:
           append_pattern: true
           body: Unable to resolve redis tcp endpoint
       - status: partial
         regexp: 'NOAUTH Authentication required.'
-        first_only: true
         log_record:
           append_pattern: true
           body: >-
@@ -45,7 +40,6 @@
             `{{ configPropertyEnvVar "password" "<password>" }}` environment variables.
       - status: partial
         regexp: 'called without any password configured for the default user'
-        first_only: true
         log_record:
           append_pattern: true
           body: >-
@@ -54,7 +48,6 @@
             `{{ configPropertyEnvVar "password" "<password>" }}` environment variables.
       - status: partial
         regexp: 'WRONGPASS invalid username-password pair or user is disabled'
-        first_only: true
         log_record:
           append_pattern: true
           body: >-

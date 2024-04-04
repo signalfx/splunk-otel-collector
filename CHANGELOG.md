@@ -6,6 +6,7 @@
 
 - (Splunk) `receiver/discovery`: Update metrics and logs evaluation statements schema:
   - Remove `severity_text` field from log evaluation statements ([#4583](https://github.com/signalfx/splunk-otel-collector/pull/4583))
+  - Remove `first_only`  field from match struct. Events are always emitted only once for first matching metric or log statement ([#4593](https://github.com/signalfx/splunk-otel-collector/pull/4593))
   - Combine matching conditions with different statuses in one list ([#4588](https://github.com/signalfx/splunk-otel-collector/pull/4588))
 
 ## v0.97.0

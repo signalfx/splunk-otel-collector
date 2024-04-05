@@ -11,7 +11,17 @@
 
       <!-- Load the Splunk custom actions -->
       <Binary Id="SplunkCustomActionsDll" SourceFile="$(sys.SOURCEFILEDIR)/SplunkCustomActions/bin/Release/SplunkCustomActions.CA.dll" />
-      <CustomAction Id="CheckLaunchConditions"  DllEntry="CheckLaunchConditions"  BinaryKey="SplunkCustomActionsDll" Execute="immediate" />
+      <CustomAction Id="CheckLaunchConditions" DllEntry="CheckLaunchConditions" BinaryKey="SplunkCustomActionsDll" Execute="immediate" />
+      <CustomAction
+         Id="AddOptionalConfigurationsCustomActionData"
+         Property="AddOptionalConfigurations"
+         Value="SPLUNK_COLLECTD_DIR=[SPLUNK_COLLECTD_DIR];SPLUNK_GATEWAY_URL=[SPLUNK_GATEWAY_URL];SPLUNK_LISTEN_INTERFACE=[SPLUNK_LISTEN_INTERFACE];SPLUNK_MEMORY_LIMIT_MIB=[SPLUNK_MEMORY_LIMIT_MIB];SPLUNK_MEMORY_TOTAL_MIB=[SPLUNK_MEMORY_TOTAL_MIB]" />
+      <CustomAction 
+         Id="AddOptionalConfigurations"
+         DllEntry="AddOptionalConfigurations"
+         BinaryKey="SplunkCustomActionsDll"
+         Execute="deferred"
+         Impersonate="no" /> 
 
       <!-- SPLUNK setup control properties -->
       <Property Id="SPLUNK_SETUP_COLLECTOR_MODE" Value="agent" Secure="yes" />
@@ -49,6 +59,9 @@
          <Custom Action="Set_SPLUNK_HEC_URL"    After="CostFinalize">NOT SPLUNK_HEC_URL</Custom>
          <Custom Action="Set_SPLUNK_TRACE_URL"  After="CostFinalize">NOT SPLUNK_TRACE_URL</Custom>
          <Custom Action="Set_SPLUNK_BUNDLE_DIR" After="CostFinalize">NOT SPLUNK_BUNDLE_DIR</Custom>
+         <!-- After files installation the registry is set for the service, check optional configurations -->
+         <Custom Action="AddOptionalConfigurationsCustomActionData" Before="AddOptionalConfigurations" />
+         <Custom Action="AddOptionalConfigurations" After="WriteRegistryValues" />
       </InstallExecuteSequence>
 
       <MajorUpgrade DowngradeErrorMessage="A later version of the Splunk OpenTelemetry Collector is already installed. Setup will now exit."/>
@@ -83,14 +96,14 @@
                      <RegistryKey Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\splunk-otel-collector">
                         <RegistryValue Type="multiString" Name="Environment">
                            <MultiStringValue>SPLUNK_ACCESS_TOKEN=[SPLUNK_ACCESS_TOKEN]</MultiStringValue>
-                           <MultiStringValue>SPLUNK_HEC_TOKEN=[SPLUNK_HEC_TOKEN]</MultiStringValue>
-                           <MultiStringValue>SPLUNK_CONFIG=[SPLUNK_CONFIG]</MultiStringValue>
                            <MultiStringValue>SPLUNK_API_URL=[SPLUNK_API_URL]</MultiStringValue>
-                           <MultiStringValue>SPLUNK_INGEST_URL=[SPLUNK_INGEST_URL]</MultiStringValue>
-                           <MultiStringValue>SPLUNK_HEC_URL=[SPLUNK_HEC_URL]</MultiStringValue>
-                           <MultiStringValue>SPLUNK_TRACE_URL=[SPLUNK_TRACE_URL]</MultiStringValue>
                            <MultiStringValue>SPLUNK_BUNDLE_DIR=[SPLUNK_BUNDLE_DIR]</MultiStringValue>
+                           <MultiStringValue>SPLUNK_CONFIG=[SPLUNK_CONFIG]</MultiStringValue>
+                           <MultiStringValue>SPLUNK_HEC_TOKEN=[SPLUNK_HEC_TOKEN]</MultiStringValue>
+                           <MultiStringValue>SPLUNK_HEC_URL=[SPLUNK_HEC_URL]</MultiStringValue>
+                           <MultiStringValue>SPLUNK_INGEST_URL=[SPLUNK_INGEST_URL]</MultiStringValue>
                            <MultiStringValue>SPLUNK_REALM=[SPLUNK_REALM]</MultiStringValue>
+                           <MultiStringValue>SPLUNK_TRACE_URL=[SPLUNK_TRACE_URL]</MultiStringValue>
                         </RegistryValue>
                      </RegistryKey>
                   </Component>

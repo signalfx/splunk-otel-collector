@@ -1,8 +1,11 @@
-﻿Microsoft Visual Studio Solution File, Format Version 12.00
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.002.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SplunkCustomActions", "SplunkCustomActions.csproj", "{CA568D0A-57DC-45B5-ADC7-EBBC06B6F580}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SplunkCustomActions", "src\SplunkCustomActions.csproj", "{CA568D0A-57DC-45B5-ADC7-EBBC06B6F580}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SplunkCustomActionsTests", "test\SplunkCustomActionsTests.csproj", "{8319D733-51E5-4BEE-A240-FF925F4DE537}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -14,6 +17,10 @@ Global
 		{CA568D0A-57DC-45B5-ADC7-EBBC06B6F580}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CA568D0A-57DC-45B5-ADC7-EBBC06B6F580}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CA568D0A-57DC-45B5-ADC7-EBBC06B6F580}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8319D733-51E5-4BEE-A240-FF925F4DE537}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8319D733-51E5-4BEE-A240-FF925F4DE537}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8319D733-51E5-4BEE-A240-FF925F4DE537}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8319D733-51E5-4BEE-A240-FF925F4DE537}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

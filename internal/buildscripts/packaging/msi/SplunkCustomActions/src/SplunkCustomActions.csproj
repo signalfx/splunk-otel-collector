@@ -17,7 +17,7 @@
   
   <ItemGroup>
     <!-- This doesn't directly bring the dependency needed to build the project but installs it on the NuGet cache -->
-    <PackageReference Include="wix" Version="3.14" />
+    <PackageReference Include="wix" Version="3.14.*" />
   </ItemGroup>
 
   <ItemGroup>

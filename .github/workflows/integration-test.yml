@@ -122,8 +122,8 @@ jobs:
         run: |
           for i in $CHANGED_SERVICES; do
             service=$( echo $i | cut -d '/' -f2 )
-            if [[ -f docker/${service}/Dockerfile ]]; then
-              docker compose -f docker/docker-compose.yml build $service
+            if [[ -f docker/${service}/Dockerfile ]] && grep -q "image: quay.io/splunko11ytest/${service}:latest" docker/docker-compose.yml; then
+              docker build -t quay.io/splunko11ytest/${service}:latest docker/${service}
             fi
           done
           docker images

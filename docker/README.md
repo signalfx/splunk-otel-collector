@@ -16,7 +16,7 @@ When testing locally,
   docker compose -f docker/docker-compose.yml --profile smartagent up --build --detach
   ```
 
-When adding/modifying service images, ensure the directory name under [docker](../docker) matches the service name in
+When adding/modifying service images, ensure the directory name under [docker](../docker) matches the image name in
 [docker-compose.yml](./docker-compose.yml).
 
 If you need to update an image, update the Dockerfile with a PR. After merge, push the image manually with:

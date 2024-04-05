@@ -9,7 +9,7 @@ services:
       - "1099:1099"
   # Apache image for collectd-apache test
   apache:
-    image: quay.io/splunko11ytest/apache
+    image: quay.io/splunko11ytest/apache:latest
     profiles:
       - smartagent
     build: ./apache
@@ -178,7 +178,7 @@ services:
       - "8983:8983"
   # Tomcat image for collectd-tomcat test:
   tomcat:
-    image: tomcat
+    image: tomcat:10
     profiles:
       - smartagent
     environment:

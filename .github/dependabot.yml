@@ -216,3 +216,23 @@ updates:
     directory: "/internal/signalfx-agent/bundle/java/jmx"
     schedule:
       interval: "weekly"
+  - package-ecosystem: "nuget"
+    directory: "/instrumentation/tests/dotnet"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "nuget"
+    directory: "/internal/buildscripts/packaging/msi/SplunkCustomActions/src"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "nuget"
+    directory: "/internal/buildscripts/packaging/msi/SplunkCustomActions/test"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "nuget"
+    directory: "/tests/zeroconfig/windows/testdata/apps/AspNet.WebApi.NetFramework"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "nuget"
+    directory: "/tests/zeroconfig/windows/testdata/apps/AspNetCore.WebApi.Net"
+    schedule:
+      interval: "weekly"

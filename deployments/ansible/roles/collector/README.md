@@ -129,8 +129,6 @@ $> ansible-playbook playbook.yaml -e start_service=false
 - `splunk_memory_total_mib`: Amount of memory in MiB allocated to the Splunk OTel 
   Collector. (**default:** `512`)
 
-- `splunk_ballast_size_mib`: Memory ballast size in MiB that will be set to the Splunk 
-  OTel Collector. (**default:** 1/3 of `splunk_memory_total_mib`)
 
 - `splunk_listen_interface`: The network interface the collector receivers will listen on.
   (**default** `0.0.0.0`).

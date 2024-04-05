@@ -73,7 +73,7 @@
     splunk_otel_collector_options:
       SPLUNK_ACCESS_TOKEN: "{{ splunk_access_token }}"
       SPLUNK_API_URL: "{{ splunk_api_url }}"
-      SPLUNK_BALLAST_SIZE_MIB: "{{ splunk_ballast_size_mib if splunk_ballast_size_mib != '' else omit }}"
+      GOMEMLIMIT: "{{ go_mem_limit if go_mem_limit != '' else omit }}"
       SPLUNK_BUNDLE_DIR: >-
         {{ splunk_bundle_dir if splunk_bundle_dir != '' else
         '{{ansible_env.ProgramFiles}}\Splunk\OpenTelemetry Collector\agent-bundle' }}

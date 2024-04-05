@@ -100,13 +100,6 @@
         state: present
       check_mode: yes
 
-    - name: Look for ballast config in collector service output
-      ansible.builtin.shell:
-        cmd: 'journalctl -u splunk-otel-collector | grep "Set ballast to 100 MiB"'
-      register: result
-      changed_when: false
-      failed_when: not result.stdout
-
     - name: Check custom_fluentd.conf
       stat:
         path: /etc/otel/collector/fluentd/custom_fluentd.conf

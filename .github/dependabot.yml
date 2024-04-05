@@ -216,3 +216,7 @@ updates:
     directory: "/internal/signalfx-agent/bundle/java/jmx"
     schedule:
       interval: "weekly"
+  - package-ecosystem: "nuget"
+    directory: "/internal/buildscripts/packaging/msi/SplunkCustomActions"
+    schedule:
+      interval: "daily"

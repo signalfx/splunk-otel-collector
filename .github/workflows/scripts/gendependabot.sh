@@ -9,6 +9,7 @@ ALL_GO_MODULES=$( cd "$REPO_DIR" && find . -type f -name "go.mod" -exec dirname 
 ALL_PYTHON_DEPS=$( cd "$REPO_DIR" && find . -type f \( -name "setup.py" -o -name "requirements.txt" \) -exec dirname {} \; | sort | egrep  '^./' )
 ALL_DOCKERFILES=$( cd "$REPO_DIR" && find . -type f -name Dockerfile -exec dirname {} \; | grep -vE '^./(instrumentation/)?tests' | grep -v './deployments' | sort | egrep  '^./' )
 ALL_MAVEN_DEPS=$( cd "$REPO_DIR" && find . -type f -name pom.xml -exec dirname {} \; | grep -v '^./tests' | sort | egrep  '^./' )
+ALL_CSPROJ_DEPS=$( cd "$REPO_DIR" && find . -type f -name '*.csproj' -exec dirname {} \; | sort | egrep  '^./' )
 
 if [[ ! -f "$DEPENDABOT_PATH" ]]; then
     echo "$DEPENDABOT_PATH not found!"
@@ -97,6 +98,16 @@ for dir in $ALL_MAVEN_DEPS; do
     echo "Add maven entry for \"${dir#.}\""
     cat <<EOH >> "$DEPENDABOT_PATH"
   - package-ecosystem: "maven"
+    directory: "${dir#.}"
+    schedule:
+      interval: "weekly"
+EOH
+done
+
+for dir in $ALL_CSPROJ_DEPS; do
+    echo "Add nuget entry for \"${dir#.}\""
+    cat <<EOH >> "$DEPENDABOT_PATH"
+  - package-ecosystem: "nuget"
     directory: "${dir#.}"
     schedule:
       interval: "weekly"

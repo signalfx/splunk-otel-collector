@@ -23,14 +23,14 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "gomod"
-    directory: "/examples/splunk-hec-traces/tracing"
+    directory: "/examples/splunk-hec/logging"
     ignore:
       - dependency-name: "go.opentelemetry.io/*"
       - dependency-name: "github.com/open-telemetry/*"
     schedule:
       interval: "weekly"
   - package-ecosystem: "gomod"
-    directory: "/examples/splunk-hec/logging"
+    directory: "/examples/splunk-hec-traces/tracing"
     ignore:
       - dependency-name: "go.opentelemetry.io/*"
       - dependency-name: "github.com/open-telemetry/*"
@@ -177,19 +177,19 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "docker"
-    directory: "/examples/prometheus-federation/prom-counter"
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "docker"
     directory: "/examples/prometheusexec-migration"
     schedule:
       interval: "weekly"
   - package-ecosystem: "docker"
-    directory: "/examples/splunk-hec-traces/tracing"
+    directory: "/examples/prometheus-federation/prom-counter"
     schedule:
       interval: "weekly"
   - package-ecosystem: "docker"
     directory: "/examples/splunk-hec/logging"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker"
+    directory: "/examples/splunk-hec-traces/tracing"
     schedule:
       interval: "weekly"
   - package-ecosystem: "docker"
@@ -217,6 +217,22 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "nuget"
-    directory: "/internal/buildscripts/packaging/msi/SplunkCustomActions"
+    directory: "/instrumentation/tests/dotnet"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+  - package-ecosystem: "nuget"
+    directory: "/internal/buildscripts/packaging/msi/SplunkCustomActions/src"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "nuget"
+    directory: "/internal/buildscripts/packaging/msi/SplunkCustomActions/test"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "nuget"
+    directory: "/tests/zeroconfig/windows/testdata/apps/AspNet.WebApi.NetFramework"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "nuget"
+    directory: "/tests/zeroconfig/windows/testdata/apps/AspNetCore.WebApi.Net"
+    schedule:
+      interval: "weekly"

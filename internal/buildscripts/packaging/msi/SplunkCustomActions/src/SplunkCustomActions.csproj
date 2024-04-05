@@ -7,7 +7,7 @@
     <RootNamespace>SplunkCustomActions</RootNamespace>
     <TargetFramework>net462</TargetFramework>
     <LangVersion>Latest</LangVersion>
-    <WindowsInstallerAssembliesDll Condition="'$(OS)' != 'Windows_NT'">$(HOME)/.nuget/packages/wix/3.14.0/tools/sdk</WindowsInstallerAssembliesDll>
+    <WindowsInstallerAssembliesDll Condition="'$(OS)' != 'Windows_NT'">$(HOME)/.nuget/packages/wix/3.14.1/tools/sdk</WindowsInstallerAssembliesDll>
     <WindowsInstallerAssembliesDll Condition="'$(OS)' == 'Windows_NT'">$(MSBuildProgramFiles32)\Wix Toolset v3.14\SDK</WindowsInstallerAssembliesDll>
   </PropertyGroup>
 

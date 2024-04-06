@@ -1,8 +1,6 @@
 module github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension
 
-go 1.22
-
-toolchain go1.22.1
+go 1.21
 
 require (
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657
@@ -59,6 +57,7 @@ require (
 )
 
 replace (
+	github.com/influxdata/telegraf => github.com/signalfx/telegraf v0.10.2-0.20240111190717-3494050f2933
 	github.com/signalfx/signalfx-agent => ../../../internal/signalfx-agent
 	github.com/signalfx/splunk-otel-collector/tests => ../../../tests
 )

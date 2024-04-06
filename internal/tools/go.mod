@@ -2,13 +2,6 @@ module github.com/signalfx/splunk-otel-collector/internal/tools
 
 go 1.21
 
-replace (
-	github.com/dgrijalva/jwt-go => github.com/form3tech-oss/jwt-go v3.2.5+incompatible
-	github.com/form3tech-oss/jwt-go => github.com/golang-jwt/jwt/v4 v4.4.3
-	github.com/gorilla/websocket => github.com/gorilla/websocket v1.4.1
-	golang.org/x/crypto => golang.org/x/crypto v0.17.0
-)
-
 require (
 	github.com/client9/misspell v0.3.4
 	github.com/golangci/golangci-lint v1.57.2

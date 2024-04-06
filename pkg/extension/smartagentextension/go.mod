@@ -16,7 +16,7 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
-	github.com/go-logfmt/logfmt v0.5.1 // indirect
+	github.com/go-logfmt/logfmt v0.6.0 // indirect
 	github.com/go-logr/logr v1.4.1 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-stack/stack v1.8.1 // indirect
@@ -50,22 +50,14 @@ require (
 	golang.org/x/net v0.22.0 // indirect
 	golang.org/x/sys v0.18.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240123012728-ef4313101c80 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240314234333-6e1732d8331c // indirect
 	google.golang.org/grpc v1.62.1 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/signalfx/splunk-otel-collector/tests => ../../../tests
-
 replace (
-	github.com/containerd/containerd => github.com/containerd/containerd v1.6.18
-	github.com/emicklei/go-restful => github.com/emicklei/go-restful v2.16.0+incompatible
-	github.com/hashicorp/consul/sdk => github.com/hashicorp/consul/sdk v0.14.0
 	github.com/influxdata/telegraf => github.com/signalfx/telegraf v0.10.2-0.20240111190717-3494050f2933
-	github.com/valyala/fasthttp => github.com/valyala/fasthttp v1.36.0
-	golang.org/x/crypto => golang.org/x/crypto v0.17.0
-	golang.org/x/net => golang.org/x/net v0.17.0
+	github.com/signalfx/signalfx-agent => ../../../internal/signalfx-agent
+	github.com/signalfx/splunk-otel-collector/tests => ../../../tests
 )
-
-replace github.com/signalfx/signalfx-agent => ../../../internal/signalfx-agent

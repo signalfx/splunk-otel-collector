@@ -2,28 +2,6 @@ module github.com/signalfx/signalfx-agent
 
 go 1.21
 
-replace (
-	code.cloudfoundry.org/go-loggregator => github.com/signalfx/go-loggregator v1.0.1-0.20200205155641-5ba5ca92118d
-	github.com/dancannon/gorethink => gopkg.in/gorethink/gorethink.v4 v4.0.0
-	github.com/dgrijalva/jwt-go => github.com/form3tech-oss/jwt-go v3.2.5+incompatible
-	github.com/form3tech-oss/jwt-go => github.com/golang-jwt/jwt/v4 v4.4.3
-	github.com/influxdata/telegraf => github.com/signalfx/telegraf v0.10.2-0.20240111190717-3494050f2933
-	github.com/soheilhy/cmux => github.com/soheilhy/cmux v0.1.5-0.20210205191134-5ec6847320e5 // required to drop google.golang.org/grpc/examples/helloworld/helloworld test dep
-)
-
-// security updates
-replace (
-	github.com/Azure/go-autorest/autorest/adal => github.com/Azure/go-autorest/autorest/adal v0.9.18
-	github.com/go-kit/kit => github.com/go-kit/kit v0.12.0
-	github.com/nats-io/jwt/v2 => github.com/nats-io/jwt/v2 v2.2.0
-	github.com/opencontainers/image-spec => github.com/opencontainers/image-spec v1.0.2
-	github.com/opencontainers/runc => github.com/opencontainers/runc v1.1.12
-	github.com/signalfx/sapm-proto => github.com/signalfx/sapm-proto v0.12.0
-	github.com/spf13/viper => github.com/spf13/viper v1.11.0 // required to drop dependency on deprecated github.com/coreos/etcd and github.com/coreos/go-etcd
-	go.mongodb.org/mongo-driver => go.mongodb.org/mongo-driver v1.5.1
-	k8s.io/apiserver => k8s.io/apiserver v0.24.1 // required to drop dependency on go.etcd.io/etcd for CVE-2018-1099
-)
-
 require (
 	code.cloudfoundry.org/go-loggregator v7.4.0+incompatible
 	github.com/Microsoft/go-winio v0.6.1 // indirect
@@ -44,7 +22,6 @@ require (
 	github.com/google/cadvisor v0.49.1
 	github.com/gorilla/mux v1.8.1
 	github.com/iancoleman/strcase v0.3.0
-	github.com/influxdata/telegraf v0.0.0-00010101000000-000000000000
 	github.com/jackc/pgx/v4 v4.18.3
 	github.com/jaegertracing/jaeger v1.55.0
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51

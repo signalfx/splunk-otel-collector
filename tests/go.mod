@@ -116,21 +116,3 @@ require (
 	google.golang.org/grpc v1.62.1 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
 )
-
-// https://github.com/go-logr/logr/issues/51
-replace k8s.io/klog/v2 => k8s.io/klog/v2 v2.80.1
-
-// security updates
-replace (
-	github.com/containerd/containerd => github.com/containerd/containerd v1.6.18
-	github.com/dgrijalva/jwt-go => github.com/form3tech-oss/jwt-go v3.2.5+incompatible
-	github.com/form3tech-oss/jwt-go => github.com/golang-jwt/jwt/v4 v4.4.3
-	github.com/hashicorp/consul/sdk => github.com/hashicorp/consul/sdk v0.13.1
-	github.com/opencontainers/image-spec => github.com/opencontainers/image-spec v1.0.2
-	golang.org/x/crypto => golang.org/x/crypto v0.17.0
-	golang.org/x/net => golang.org/x/net v0.17.0
-)
-
-// required until all deps adopt something like https://github.com/open-telemetry/opentelemetry-collector/commit/6059751e64e0d7b857abff50f1d8ab90424d0306
-// updating all cloud.google.com deps in this project doesn't resolve on its own.
-replace cloud.google.com/go => cloud.google.com/go v0.110.2

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	dtypes "github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	docker "github.com/docker/docker/client"
 	log "github.com/sirupsen/logrus"
@@ -42,7 +43,7 @@ func ListAndWatchContainers(ctx context.Context, client *docker.Client, changeHa
 	syncContainerList := func() error {
 		f := filters.NewArgs()
 		f.Add("status", "running")
-		options := dtypes.ContainerListOptions{
+		options := container.ListOptions{
 			Filters: f,
 		}
 		containerList, err := client.ContainerList(ctx, options)

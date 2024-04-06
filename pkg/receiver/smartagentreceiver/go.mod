@@ -236,6 +236,7 @@ require (
 )
 
 replace (
+	code.cloudfoundry.org/go-loggregator => github.com/signalfx/go-loggregator v1.0.1-0.20200205155641-5ba5ca92118d
 	github.com/influxdata/telegraf => github.com/signalfx/telegraf v0.10.2-0.20240111190717-3494050f2933
 	github.com/signalfx/signalfx-agent => ../../../internal/signalfx-agent
 	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension => ./../../extension/smartagentextension

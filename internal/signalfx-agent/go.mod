@@ -2,7 +2,10 @@ module github.com/signalfx/signalfx-agent
 
 go 1.21
 
-replace github.com/influxdata/telegraf => github.com/signalfx/telegraf v0.10.2-0.20240111190717-3494050f2933
+replace (
+	code.cloudfoundry.org/go-loggregator => github.com/signalfx/go-loggregator v1.0.1-0.20200205155641-5ba5ca92118d
+	github.com/influxdata/telegraf => github.com/signalfx/telegraf v0.10.2-0.20240111190717-3494050f2933
+)
 
 require (
 	code.cloudfoundry.org/go-loggregator v7.4.0+incompatible

@@ -7,7 +7,8 @@
     <RootNamespace>SplunkCustomActions</RootNamespace>
     <TargetFramework>net462</TargetFramework>
     <LangVersion>Latest</LangVersion>
-    <WindowsInstallerAssembliesDll Condition="'$(OS)' != 'Windows_NT'">$(HOME)/.nuget/packages/wix/3.14.0/tools/sdk</WindowsInstallerAssembliesDll>
+    <WiXPackageVersion>3.14.1</WiXPackageVersion>
+    <WindowsInstallerAssembliesDll Condition="'$(OS)' != 'Windows_NT'">$(HOME)/.nuget/packages/wix/$(WiXPackageVersion)/tools/sdk</WindowsInstallerAssembliesDll>
     <WindowsInstallerAssembliesDll Condition="'$(OS)' == 'Windows_NT'">$(MSBuildProgramFiles32)\Wix Toolset v3.14\SDK</WindowsInstallerAssembliesDll>
   </PropertyGroup>
 
@@ -17,7 +18,7 @@
   
   <ItemGroup>
     <!-- This doesn't directly bring the dependency needed to build the project but installs it on the NuGet cache -->
-    <PackageReference Include="wix" Version="3.14" />
+    <PackageReference Include="wix" Version="$(WiXPackageVersion)" />
   </ItemGroup>
 
   <ItemGroup>

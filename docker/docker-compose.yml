@@ -1,0 +1,199 @@
+services:
+  # ActiveMQ image for collectd-activemq test:
+  activemq:
+    image: quay.io/splunko11ytest/activemq:latest
+    profiles:
+      - smartagent
+    build: ./activemq
+    ports:
+      - "1099:1099"
+  # Apache image for collectd-apache test
+  apache:
+    image: quay.io/splunko11ytest/apache:latest
+    profiles:
+      - smartagent
+    build: ./apache
+    ports:
+      - "18080:80"
+  # Cassandra image for collectd-cassandra test:
+  cassandra:
+    image: quay.io/splunko11ytest/cassandra:latest
+    profiles:
+      - integration
+      - smartagent
+    build: ./cassandra
+    ports:
+      - "7199:7199"
+  # Couchbase image for collectd-couchbase test:
+  couchbase:
+    image: quay.io/splunko11ytest/couchbase:latest
+    profiles:
+      - smartagent
+    build: ./couchbase
+    ports:
+      - "8091:8091"
+  # Haproxy image for haproxy test:
+  haproxy:
+    image: quay.io/splunko11ytest/haproxy:latest
+    profiles:
+      - smartagent
+    build: ./haproxy
+    ports:
+      - "8082:8080"
+  # httpd image for prometheus-exporter test
+  httpd:
+    image: quay.io/splunko11ytest/httpd:latest
+    profiles:
+      - smartagent
+    build: ./httpd
+    ports:
+      - "8000:80"
+  # httpd_basicauth image for lightprometheus test
+  httpd_basicauth:
+    image: quay.io/splunko11ytest/httpd_basicauth:latest
+    profiles:
+      - integration
+      - smartagent
+    build: ./httpd_basicauth
+    ports:
+      - "8001:80"
+  kafka-broker:
+    image: quay.io/splunko11ytest/kafka:latest
+    depends_on:
+      - zookeeper
+    profiles:
+      - smartagent
+    build: ./kafka
+    environment:
+      START_AS: broker
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      JMX_PORT: 7099
+    ports:
+      - "7099:7099"
+      - "9092:9092"
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 6<> /dev/tcp/localhost/7099"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  kafka-consumer:
+    image: quay.io/splunko11ytest/kafka:latest
+    depends_on:
+      - zookeeper
+    profiles:
+      - smartagent
+    build: ./kafka
+    environment:
+      START_AS: consumer
+      KAFKA_BROKER: kafka-broker:9092
+      JMX_PORT: 9099
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+    ports:
+      - "9099:9099"
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 6<> /dev/tcp/localhost/9099"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  kafka-producer:
+    image: quay.io/splunko11ytest/kafka:latest
+    depends_on:
+      - zookeeper
+    profiles:
+      - smartagent
+    build: ./kafka
+    environment:
+      START_AS: producer
+      KAFKA_BROKER: kafka-broker:9092
+      JMX_PORT: 8099
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+    ports:
+      - "8099:8099"
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 6<> /dev/tcp/localhost/8099"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  kafka-topic-creator:
+    image: quay.io/splunko11ytest/kafka:latest
+    depends_on:
+      - zookeeper
+    profiles:
+      - smartagent
+    build: ./kafka
+    environment:
+      START_AS: create-topic
+      KAFKA_BROKER: kafka-broker:9092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+  kong:
+    image: quay.io/splunko11ytest/kong:latest
+    profiles:
+      - integration
+    build: ./kong
+    ports:
+      - "18001:8001"
+  mysql:
+    image: quay.io/splunko11ytest/mysql:latest
+    profiles:
+      - integration
+      - smartagent
+    build: ./mysql
+    ports:
+      - "3306:3306"
+  # Nginx image for collectd-nginx test:
+  nginx:
+    image: quay.io/splunko11ytest/nginx:latest
+    profiles:
+      - smartagent
+    build: ./nginx
+    ports:
+      - "8123:80"
+  oracle:
+    image: quay.io/splunko11ytest/oracle:latest
+    profiles:
+      - integration
+    build: ./oracle
+    ports:
+      - "1521:1521"
+  postgres:
+    image: quay.io/splunko11ytest/postgres:latest
+    profiles:
+      - integration
+    build: ./postgres
+    ports:
+      - "15432:5432"
+  redis_server:
+    image: quay.io/splunko11ytest/redis_server:latest
+    profiles:
+      - integration
+    build: ./redis_server
+    ports:
+      - "6379:6379"
+  solr:
+    image: quay.io/splunko11ytest/solr:latest
+    profiles:
+      - smartagent
+    build: ./solr
+    ports:
+      - "8983:8983"
+  # Tomcat image for collectd-tomcat test:
+  tomcat:
+    image: tomcat:10
+    profiles:
+      - smartagent
+    environment:
+      JAVA_TOOL_OPTIONS: "-Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.port=5000 -Dcom.sun.management.jmxremote.rmi.port=5000 -Dcom.sun.management.jmxremote.host=0.0.0.0 -Djava.rmi.server.hostname=0.0.0.0"
+    ports:
+      - "5000:5000"
+  # Kafka test, requires multiple Kafka containers and Zookeeper:
+  zookeeper:
+    image: zookeeper:3.5
+    profiles:
+      - smartagent
+    ports:
+      - "2181:2181"
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 6<> /dev/tcp/localhost/2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

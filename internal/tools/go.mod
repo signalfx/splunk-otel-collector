@@ -2,13 +2,6 @@ module github.com/signalfx/splunk-otel-collector/internal/tools
 
 go 1.21
 
-replace (
-	github.com/dgrijalva/jwt-go => github.com/form3tech-oss/jwt-go v3.2.5+incompatible
-	github.com/form3tech-oss/jwt-go => github.com/golang-jwt/jwt/v4 v4.4.3
-	github.com/gorilla/websocket => github.com/gorilla/websocket v1.4.1
-	golang.org/x/crypto => golang.org/x/crypto v0.17.0
-)
-
 require (
 	github.com/client9/misspell v0.3.4
 	github.com/golangci/golangci-lint v1.57.2
@@ -18,7 +11,7 @@ require (
 	github.com/pavius/impi v0.0.3
 	github.com/tcnksm/ghr v0.16.2
 	go.opentelemetry.io/collector/cmd/mdatagen v0.97.0
-	golang.org/x/tools v0.19.0
+	golang.org/x/tools v0.20.0
 	golang.org/x/vuln v1.0.4
 )
 
@@ -213,14 +206,14 @@ require (
 	go.uber.org/automaxprocs v1.5.3 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
-	golang.org/x/crypto v0.21.0 // indirect
+	golang.org/x/crypto v0.22.0 // indirect
 	golang.org/x/exp v0.0.0-20240103183307-be819d1f06fc // indirect
 	golang.org/x/exp/typeparams v0.0.0-20240314144324-c7f7c6466f7f // indirect
-	golang.org/x/mod v0.16.0 // indirect
-	golang.org/x/net v0.22.0 // indirect
+	golang.org/x/mod v0.17.0 // indirect
+	golang.org/x/net v0.24.0 // indirect
 	golang.org/x/oauth2 v0.16.0 // indirect
-	golang.org/x/sync v0.6.0 // indirect
-	golang.org/x/sys v0.18.0 // indirect
+	golang.org/x/sync v0.7.0 // indirect
+	golang.org/x/sys v0.19.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240123012728-ef4313101c80 // indirect

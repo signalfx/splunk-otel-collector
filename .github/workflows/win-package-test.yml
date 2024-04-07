@@ -100,7 +100,8 @@ jobs:
       - name: Build Custom Actions
         working-directory: internal/buildscripts/packaging/msi/SplunkCustomActions
         run: |
-          dotnet publish ./SplunkCustomActions.csproj -c Release -o ./bin/Release
+          dotnet test ./test/SplunkCustomActionsTests.csproj -c Release
+          dotnet publish ./src/SplunkCustomActions.csproj -c Release -o ./bin/Release
 
       - name: Package Custom Actions
         run: |
@@ -113,7 +114,7 @@ jobs:
             "${sfxcaDll}" `
             "${customActionBinDir}\SplunkCustomActions.dll" `
             "${customActionBinDir}\Microsoft.Deployment.WindowsInstaller.dll" `
-            "${customActionDir}\CustomAction.config"
+            "${customActionDir}\src\CustomAction.config"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -172,12 +173,6 @@ jobs:
       - name: Check out the codebase.
         uses: actions/checkout@v4
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
-
       - name: Setup NuGet
         uses: nuget/setup-nuget@v2.0.0
 
@@ -218,23 +213,32 @@ jobs:
   msi-without-wrappers-test:
     runs-on: ${{ matrix.OS }}
     needs: [msi-build]
-    timeout-minutes: 5
+    timeout-minutes: 15
     strategy:
+      max-parallel: 1
       matrix:
         OS: [ "windows-2022" ]
         install-properties:
 
-          - install: "SPLUNK_ACCESS_TOKEN=fakeToken"
+          - test: "default"
+            install: "SPLUNK_ACCESS_TOKEN=fakeToken"
             expected: "-mode agent -access_token fakeToken -realm us0 -memory $null -with_fluentd false"
 
-          - install: "SPLUNK_SETUP_COLLECTOR_MODE=gateway SPLUNK_ACCESS_TOKEN=testing123"
+          - test: "gateway"
+            install: "SPLUNK_SETUP_COLLECTOR_MODE=gateway SPLUNK_ACCESS_TOKEN=testing123"
             expected: "-mode gateway -access_token testing123 -realm us0 -memory $null -with_fluentd false"
 
-          - install: "SPLUNK_REALM=myrealm SPLUNK_ACCESS_TOKEN=testing"
+          - test: "realm"
+            install: "SPLUNK_REALM=myrealm SPLUNK_ACCESS_TOKEN=testing"
             expected: "-mode agent -access_token testing -realm myrealm -memory $null -with_fluentd false"
 
-          - install: "SPLUNK_INGEST_URL=https://fake.ingest.url SPLUNK_ACCESS_TOKEN=testing"
+          - test: "ingest-url"
+            install: "SPLUNK_INGEST_URL=https://fake.ingest.url SPLUNK_ACCESS_TOKEN=testing"
             expected: "-mode agent -realm us0 -access_token testing -ingest_url \"https://fake.ingest.url\" -memory $null -with_fluentd false"
+
+          - test: "optional-params"
+            install: "SPLUNK_ACCESS_TOKEN=fakeToken SPLUNK_MEMORY_TOTAL_MIB=256"
+            expected: "-mode agent -access_token fakeToken -realm us0 -memory 256 -with_fluentd false"
 
     steps:
       - name: Check out the codebase.
@@ -252,10 +256,7 @@ jobs:
           $msi_path = Resolve-Path .\dist\splunk-otel-collector*.msi
           Test-Path $msi_path
           Write-Host "Installing $msi_path ..."
-          $process = Start-Process -Wait -PassThru msiexec "/i `"$msi_path`" /qn /l*v msi-install.log ${{ matrix.install-properties.install }}"
-          if ($process.ExitCode -ne 0) {
-            throw "MSI installation failed with exit code $($process.ExitCode)"
-          }
+          Start-Process -FilePath "msiexec" -ArgumentList "/i `"$msi_path`" /qn /l* msi-install.log ${{ matrix.install-properties.install }}" -Wait 
 
       - name: "In case of failure: display the install logs"
         if: ${{ failure() }}
@@ -280,13 +281,7 @@ jobs:
 
       - name: Uninstall the collector
         run: |
-          $ErrorActionPreference = 'Stop'
-          $uninstall_info = Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\uninstall\* | Where { $_.DisplayName -eq "Splunk OpenTelemetry Collector" }
-          Write-Host "Uninstalling $($uninstall_info.PSChildName) ..."
-          $process = Start-Process -Wait -PassThru msiexec "/x $($uninstall_info.PSChildName) /qn /l*v msi-uninstall.log"
-          if ($process.ExitCode -ne 0) {
-            throw "MSI installation failed with exit code $($process.ExitCode)"
-          }
+          Start-Process -FilePath "msiexec" -ArgumentList "/x {24E519F6-7F01-43DB-9E72-3B8AD8F065F4} /qn /l* msi-uninstall.log" -Wait
 
       - name: Check no leftover on the registry
         run: |
@@ -304,6 +299,7 @@ jobs:
     runs-on: ${{ matrix.OS }}
     needs: [msi-build]
     strategy:
+      max-parallel: 2
       matrix:
         OS: [ "windows-2022" ]
         MODE: [ "agent", "gateway" ]
@@ -396,6 +392,7 @@ jobs:
     runs-on: ${{ matrix.OS }}
     needs: [choco-build]
     strategy:
+      max-parallel: 4
       matrix:
         OS: [ "windows-2022" ]
         MODE: [ "agent", "gateway" ]

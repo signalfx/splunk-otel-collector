@@ -1,3 +1,5 @@
 # Ignore the .NET build outputs
 bin/
 obj/
+
+.vs/

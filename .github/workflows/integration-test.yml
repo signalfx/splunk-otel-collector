@@ -8,6 +8,7 @@ on:
     paths:
       - '.github/workflows/integration-test.yml'
       - 'cmd/**'
+      - 'docker/**'
       - 'internal/**'
       - 'pkg/**'
       - 'tests/**'
@@ -100,45 +101,33 @@ jobs:
     # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
     runs-on: ubuntu-20.04
     needs: [docker-otelcol]
-    services:
-      # Cassandra image for collectd-cassandra test:
-      cassandra:
-        image: quay.io/splunko11ytest/cassandra:latest
-        ports:
-          - "7199:7199"
-      # httpd_basicauth image for lightprometheus test
-      httpd_basicauth:
-        image: quay.io/splunko11ytest/httpd_basicauth:latest
-        ports:
-          - "8001:80"
-      kong:
-        image: quay.io/splunko11ytest/kong:latest
-        ports:
-          - "18001:8001"
-      oracle:
-        image: quay.io/splunko11ytest/oracle:latest
-        ports:
-          - "1521:1521"
-      postgres:
-        image: quay.io/splunko11ytest/postgres:latest
-        ports:
-          - "15432:5432"
-      redis_server:
-        image: quay.io/splunko11ytest/redis_server:latest
-        ports:
-          - "6379:6379"
-      mysql:
-        image: quay.io/splunko11ytest/mysql:latest
-        ports:
-          - "3306:3306"
     strategy:
       matrix:
         ARCH: [ "amd64", "arm64" ]
+        PROFILE: [ "integration", "smartagent" ]
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Changed service files
+        id: changed-services
+        uses: tj-actions/changed-files@v44
+        with:
+          files: docker/*/**
+      - name: Build changed services
+        if: steps.changed-services.outputs.any_changed == 'true'
+        env:
+          CHANGED_SERVICES: ${{ steps.changed-services.outputs.all_changed_files }}
+        run: |
+          for i in $CHANGED_SERVICES; do
+            service=$( echo $i | cut -d '/' -f2 )
+            if [[ -f docker/${service}/Dockerfile ]] && grep -q "image: quay.io/splunko11ytest/${service}:latest" docker/docker-compose.yml; then
+              docker build -t quay.io/splunko11ytest/${service}:latest docker/${service}
+            fi
+          done
+          docker images
+      - run: docker compose -f docker/docker-compose.yml --profile ${{ matrix.PROFILE }} up -d --quiet-pull
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
@@ -155,15 +144,22 @@ jobs:
       - run: docker load -i ./bin/image.tar
       - run: chmod a+x ./bin/*
       - uses: shogo82148/actions-setup-redis@v1
+        if: matrix.PROFILE == 'integration'
         with:
           auto-start: false
           redis-port: "6379"
       - run: redis-cli ping
+        if: matrix.PROFILE == 'integration'
       - run: redis-cli set tempkey tempvalue
+        if: matrix.PROFILE == 'integration'
       - name: Run Integration Test
         run: |
           set -o pipefail
-          make integration-test 2>&1 | tee ${{ github.job }}-${{ github.run_id }}.out
+          target="integration-test"
+          if [[ "${{ matrix.PROFILE }}" = "smartagent" ]]; then
+            target="smartagent-integration-test"
+          fi
+          make $target 2>&1 | tee ${{ matrix.PROFILE }}-${{ github.run_id }}-${{ matrix.ARCH }}.out
           exit_status=${PIPESTATUS[0]}
           echo "Exit status: $exit_status"
           exit $exit_status
@@ -174,167 +170,6 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ${{ github.job }}-${{ github.run_id }}-${{ matrix.ARCH }}.out
-          path: ${{ github.job }}-${{ github.run_id }}-${{ matrix.ARCH }}.out
-          retention-days: 5
-
-  smartagent-integration-test:
-    name: smartagent-integration-test
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
-    needs: [docker-otelcol]
-    services:
-      # ActiveMQ image for collectd-activemq test:
-      activemq:
-        image: quay.io/splunko11ytest/activemq:latest
-        ports:
-          - "1099:1099"
-      # Apache image for collectd-apache test
-      apache:
-        image: quay.io/splunko11ytest/apache
-        ports:
-          - "18080:80"
-      # Cassandra image for collectd-cassandra test:
-      cassandra:
-        image: quay.io/splunko11ytest/cassandra:latest
-        ports:
-          - "7199:7199"
-      # Couchbase image for collectd-couchbase test:
-      couchbase:
-        image: quay.io/splunko11ytest/couchbase:latest
-        ports:
-          - "8091:8091"
-      # Tomcat image for collectd-tomcat test:
-      tomcat:
-        image: tomcat
-        env:
-          JAVA_TOOL_OPTIONS: "-Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.port=5000 -Dcom.sun.management.jmxremote.rmi.port=5000 -Dcom.sun.management.jmxremote.host=0.0.0.0 -Djava.rmi.server.hostname=0.0.0.0"
-        ports:
-          - "5000:5000"
-      # Kafka test, requires multiple Kafka containers and Zookeeper:
-      # Zookeeper image:
-      zookeeper:
-        image: zookeeper:3.5
-        ports:
-          - "2181:2181"
-        options: >-
-          --health-cmd "bash -c \"exec 6<> /dev/tcp/localhost/2181\""
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      kafka-broker:
-        image: quay.io/splunko11ytest/kafka:latest
-        env:
-          START_AS: broker
-          KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-          JMX_PORT: 7099
-        ports:
-          - "7099:7099"
-          - "9092:9092"
-        options: >-
-          --health-cmd "bash -c \"exec 6<> /dev/tcp/localhost/7099\""
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      kafka-topic-creator:
-        image: quay.io/splunko11ytest/kafka:latest
-        env:
-          START_AS: create-topic
-          KAFKA_BROKER: kafka-broker:9092
-          KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      kafka-producer:
-        image: quay.io/splunko11ytest/kafka:latest
-        env:
-          START_AS: producer
-          KAFKA_BROKER: kafka-broker:9092
-          JMX_PORT: 8099
-          KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-        ports:
-          - "8099:8099"
-        options: >-
-          --health-cmd "bash -c \"exec 6<> /dev/tcp/localhost/8099\""
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      kafka-consumer:
-        image: quay.io/splunko11ytest/kafka:latest
-        env:
-          START_AS: consumer
-          KAFKA_BROKER: kafka-broker:9092
-          JMX_PORT: 9099
-          KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-        ports:
-          - "9099:9099"
-        options: >-
-          --health-cmd "bash -c \"exec 6<> /dev/tcp/localhost/9099\""
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      # Nginx image for collectd-nginx test:
-      nginx:
-        image: quay.io/splunko11ytest/nginx:latest
-        ports:
-          - "8123:80"
-      # Haproxy image for haproxy test:
-      haproxy:
-        image: quay.io/splunko11ytest/haproxy:latest
-        ports:
-          - "8082:8080"
-      # httpd image for prometheus-exporter test
-      httpd:
-        image: quay.io/splunko11ytest/httpd:latest
-        ports:
-          - "8000:80"
-      # httpd_basicauth image for lightprometheus test
-      httpd_basicauth:
-        image: quay.io/splunko11ytest/httpd_basicauth:latest
-        ports:
-          - "8001:80"
-      solr:
-        image: quay.io/splunko11ytest/solr:latest
-        ports:
-          - "8983:8983"
-      mysql:
-        image: quay.io/splunko11ytest/mysql:latest
-        ports:
-          - "3306:3306"
-    strategy:
-      matrix:
-        ARCH: [ "amd64", "arm64" ]
-      fail-fast: false
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
-      - uses: actions/download-artifact@v4
-        with:
-          name: otelcol-${{ matrix.ARCH }}
-          path: ./bin
-      - uses: docker/setup-qemu-action@v3
-        if: ${{ matrix.ARCH != 'amd64' }}
-        with:
-          platforms: ${{ matrix.ARCH }}
-          image: tonistiigi/binfmt:qemu-v7.0.0
-      - run: docker load -i ./bin/image.tar
-      - run: chmod a+x ./bin/*
-      - name: Run Integration Test
-        run: |
-          set -o pipefail
-          make smartagent-integration-test 2>&1 | tee ${{ github.job }}-${{ github.run_id }}.out
-          exit_status=${PIPESTATUS[0]}
-          echo "Exit status: $exit_status"
-          exit $exit_status
-        env:
-          SPLUNK_OTEL_COLLECTOR_IMAGE: 'otelcol:latest'
-      # The Integration Test output is extremely large so we upload it as an artifact
-      - name: Upload Integration Test Output as Artifact
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: smartagent-${{ github.job }}-${{ github.run_id }}-${{ matrix.ARCH }}.out
-          path: smartagent-${{ github.job }}-${{ github.run_id }}-${{ matrix.ARCH }}.out
+          name: ${{ matrix.PROFILE }}-${{ github.run_id }}-${{ matrix.ARCH }}.out
+          path: ${{ matrix.PROFILE }}-${{ github.run_id }}-${{ matrix.ARCH }}.out
           retention-days: 5

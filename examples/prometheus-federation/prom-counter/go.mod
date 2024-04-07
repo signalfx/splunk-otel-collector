@@ -27,12 +27,3 @@ require (
 	golang.org/x/sys v0.15.0 // indirect
 	google.golang.org/protobuf v1.30.0 // indirect
 )
-
-replace (
-	github.com/dgrijalva/jwt-go => github.com/form3tech-oss/jwt-go v3.2.5+incompatible
-	github.com/form3tech-oss/jwt-go => github.com/golang-jwt/jwt/v4 v4.4.3
-	github.com/hashicorp/consul/sdk => github.com/hashicorp/consul/sdk v0.13.1
-	golang.org/x/crypto => golang.org/x/crypto v0.17.0
-	golang.org/x/net => golang.org/x/net v0.17.0
-	gopkg.in/yaml.v3 => gopkg.in/yaml.v3 v3.0.1
-)

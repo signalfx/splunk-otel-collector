@@ -12,6 +12,7 @@
       SPLUNK_HEC_URL: https://fake-splunk-hec.com
       SPLUNK_HEC_TOKEN: fake-hec-token
       SPLUNK_MEMORY_TOTAL_MIB: "256"
+      GOMEMLIMIT: 230
       MY_CUSTOM_VAR1: value1
       MY_CUSTOM_VAR2: value2
     iis_reg_values:

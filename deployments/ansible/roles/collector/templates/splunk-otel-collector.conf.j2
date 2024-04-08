@@ -20,8 +20,10 @@ SPLUNK_HEC_URL={{ "https://ingest." + splunk_realm + ".signalfx.com/v1/log" }}
 SPLUNK_HEC_TOKEN={{ splunk_hec_token }}
 SPLUNK_MEMORY_TOTAL_MIB={{ splunk_memory_total_mib }}
 {% if splunk_listen_interface is defined and splunk_listen_interface %}
-GOMEMLIMIT={{ go_mem_limit }}
 SPLUNK_LISTEN_INTERFACE={{ splunk_listen_interface }}
+{% endif %}
+{% if gomemlimit is defined and gomemlimit %}
+GOMEMLIMIT={{ gomemlimit }}
 {% endif %}
 SPLUNK_BUNDLE_DIR={{ splunk_bundle_dir }}
 SPLUNK_COLLECTD_DIR={{ splunk_collectd_dir }}

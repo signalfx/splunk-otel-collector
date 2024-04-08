@@ -1,7 +1,5 @@
 extensions:
   host_observer:
-  host_observer/with_name:
-  host_observer/with/another/name:
 
 receivers:
   # set up otlp receiver to use its endpoints as assertion material
@@ -40,19 +38,15 @@ receivers:
 
     watch_observers:
       - host_observer
-      - host_observer/with_name
-      - host_observer/with/another/name
 
 # drop scrape_timestamp attributes until we can accept arbitrary values
 processors:
-  attributes:
-    actions:
-      - action: delete
-        key: scrape_timestamp
-      - action: delete
-        key: observed_timestamp
-      - action: delete
-        key: timestamp
+  transform:
+    error_mode: ignore
+    log_statements:
+      - context: log
+        statements:
+          - delete_key(attributes["otel.entity.attributes"], "scrape_timestamp")
 
 exporters:
   otlp:
@@ -66,13 +60,11 @@ service:
       level: debug
   extensions:
     - host_observer
-    - host_observer/with_name
-    - host_observer/with/another/name
   pipelines:
     metrics:
       receivers: [otlp]
       exporters: [otlp]
     logs:
       receivers: [discovery]
-      processors: [attributes]
+      processors: [transform]
       exporters: [otlp]

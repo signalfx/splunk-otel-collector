@@ -17,9 +17,9 @@ package discoveryreceiver
 import (
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
@@ -147,8 +147,7 @@ func (se *statementEvaluator) Sync() error {
 func (se *statementEvaluator) evaluateStatement(statement *statussources.Statement) plog.Logs {
 	se.logger.Debug("evaluating statement", zap.Any("statement", statement))
 
-	statementLogRecord := statement.ToLogRecord()
-	receiverID, endpointID, rEntry, shouldEvaluate := se.receiverEntryFromLogRecord(statementLogRecord)
+	receiverID, endpointID, rEntry, shouldEvaluate := se.receiverEntryFromStatement(statement)
 	if !shouldEvaluate {
 		return plog.NewLogs()
 	}
@@ -184,35 +183,45 @@ func (se *statementEvaluator) evaluateStatement(statement *statussources.Stateme
 			continue
 		}
 
-		pLogs, logRecords := se.prepareMatchingLogs(rEntry, receiverID, endpointID)
-		logRecord := logRecords.AppendEmpty()
+		entityEvents := experimentalmetricmetadata.NewEntityEventsSlice()
+		entityEvent := entityEvents.AppendEmpty()
+		entityEvent.ID().PutStr(discovery.EndpointIDAttr, string(endpointID))
+		entityState := entityEvent.SetEntityState()
+		_ = entityState.Attributes().FromRaw(statement.Fields)
+		entityState.Attributes().PutStr(discovery.MessageAttr, statement.Message)
+
+		fromAttrs := pcommon.NewMap()
+		fromAttrs.PutStr(discovery.ReceiverTypeAttr, receiverID.Type().String())
+		fromAttrs.PutStr(discovery.ReceiverNameAttr, receiverID.Name())
+		se.correlateResourceAttributes(fromAttrs, entityState.Attributes(), se.correlations.GetOrCreate(receiverID, endpointID))
+		entityState.Attributes().PutStr(eventTypeAttr, statementMatch)
+		entityState.Attributes().PutStr(receiverRuleAttr, rEntry.Rule)
+
 		var desiredRecord LogRecord
 		if match.Record != nil {
 			desiredRecord = *match.Record
 		}
-		statementLogRecord.CopyTo(logRecord)
 		if desiredRecord.Body != "" {
 			body := desiredRecord.Body
 			if desiredRecord.AppendPattern {
 				body = fmt.Sprintf("%s (evaluated %q)", body, p)
 			}
-			logRecord.Body().SetStr(body)
+			entityState.Attributes().PutStr(discovery.MessageAttr, body)
 		}
 		if len(desiredRecord.Attributes) > 0 {
 			for k, v := range desiredRecord.Attributes {
-				logRecord.Attributes().PutStr(k, v)
+				entityState.Attributes().PutStr(k, v)
 			}
 		}
-		logRecord.Attributes().PutStr(discovery.StatusAttr, string(match.Status))
-		logRecord.SetTimestamp(pcommon.NewTimestampFromTime(statement.Time))
-		logRecord.SetObservedTimestamp(pcommon.NewTimestampFromTime(time.Now()))
-		return pLogs
+		entityState.Attributes().PutStr(discovery.StatusAttr, string(match.Status))
+		entityEvent.SetTimestamp(pcommon.NewTimestampFromTime(statement.Time))
+		return entityEvents.ConvertAndMoveToLogs()
 	}
 	return plog.NewLogs()
 }
 
-func (se *statementEvaluator) receiverEntryFromLogRecord(record plog.LogRecord) (component.ID, observer.EndpointID, ReceiverEntry, bool) {
-	receiverID, endpointID := statussources.ReceiverNameToIDs(record)
+func (se *statementEvaluator) receiverEntryFromStatement(statement *statussources.Statement) (component.ID, observer.EndpointID, ReceiverEntry, bool) {
+	receiverID, endpointID := statussources.ReceiverNameToIDs(statement)
 	if receiverID == discovery.NoType || endpointID == "" {
 		// statement evaluation requires both a populated receiver.ID and EndpointID
 		se.logger.Debug("unable to evaluate statement from receiver", zap.String("receiver", receiverID.String()))
@@ -230,18 +239,4 @@ func (se *statementEvaluator) receiverEntryFromLogRecord(record plog.LogRecord) 
 	}
 
 	return receiverID, endpointID, rEntry, true
-}
-
-func (se *statementEvaluator) prepareMatchingLogs(rEntry ReceiverEntry, receiverID component.ID, endpointID observer.EndpointID) (plog.Logs, plog.LogRecordSlice) {
-	stagePLogs := plog.NewLogs()
-	rLog := stagePLogs.ResourceLogs().AppendEmpty()
-	rAttrs := rLog.Resource().Attributes()
-	fromAttrs := pcommon.NewMap()
-	fromAttrs.PutStr(discovery.ReceiverTypeAttr, receiverID.Type().String())
-	fromAttrs.PutStr(discovery.ReceiverNameAttr, receiverID.Name())
-	fromAttrs.PutStr(discovery.EndpointIDAttr, string(endpointID))
-	se.correlateResourceAttributes(fromAttrs, rAttrs, se.correlations.GetOrCreate(receiverID, endpointID))
-	rAttrs.PutStr(eventTypeAttr, statementMatch)
-	rAttrs.PutStr(receiverRuleAttr, rEntry.Rule)
-	return stagePLogs, rLog.ScopeLogs().AppendEmpty().LogRecords()
 }

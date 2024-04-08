@@ -453,7 +453,7 @@ resource_metrics:
             type: DoubleGauge
           - attributes:
               node_id: <ANY>
-              version: 3.5.0.2
+              version: <ANY>
             description: Kong Node metadata information
             name: kong_node_info
             type: DoubleGauge

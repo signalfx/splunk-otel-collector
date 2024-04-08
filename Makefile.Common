@@ -131,3 +131,7 @@ impi:
 .PHONY: moddownload
 moddownload:
 	$(GOCMD) mod download
+
+.PHONY: govulncheck
+govulncheck: install-tools
+	govulncheck ./...

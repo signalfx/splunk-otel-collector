@@ -86,6 +86,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/solacereceiver v0.97.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver v0.97.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sqlqueryreceiver v0.97.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sqlserverreceiver v0.97.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sshcheckreceiver v0.97.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceiver v0.97.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/syslogreceiver v0.97.0

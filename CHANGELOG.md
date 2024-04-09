@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 🚀 New components 🚀
+
+- (Splunk) Add SQL Server receiver
+
 ### 🛑 Breaking changes 🛑
 
 - (Splunk) `receiver/discovery`: Update metrics and logs evaluation statements schema:

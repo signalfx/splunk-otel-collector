@@ -80,6 +80,7 @@ func TestDefaultComponents(t *testing.T) {
 		"solace",
 		"splunk_hec",
 		"sqlquery",
+		"sqlserver",
 		"sshcheck",
 		"statsd",
 		"syslog",

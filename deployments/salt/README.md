@@ -94,8 +94,7 @@ splunk-otel-collector:
 - `splunk_memory_total_mib`: Amount of memory in MiB allocated to the Splunk OTel 
   Collector. (**default:** `512`)
 
-- `splunk_ballast_size_mib`: Memory ballast size in MiB that will be set to the Splunk 
-  OTel Collector. (**default:** 1/3 of `splunk_memory_total_mib`)
+- `gomemlimit`: `splunk_ballast_size_mib` is deprecated and removed. For Splunk Otel Collector version `0.97.0` or greater, `GOMEMLIMIT` env var is introduced. The default is set to 90% of the `SPLUNK_TOTAL_MEM_MIB`. For more information regarding the usage, please follow the instructions ([here](https://github.com/signalfx/splunk-otel-collector?tab=readme-ov-file#from-0961-to-0970)).  (**default:** 90% of `splunk_memory_total_mib`, otherwise)
 
 - `splunk_listen_interface`: The network interface the collector receivers will listen
   on. (**default:** `127.0.0.1` for agent config, `0.0.0.0` otherwise)

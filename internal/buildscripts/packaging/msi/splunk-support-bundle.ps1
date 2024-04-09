@@ -136,7 +136,7 @@ function getServiceEnvironment($output_file = $null) {
     
     foreach ($entry in $service_env) {
         $key, $value = $entry.Split("=", 2)
-        if ($key.Contains("TOKEN", [System.StringComparison]::InvariantCultureIgnoreCase) -AND $value.Length -gt 0) {
+        if ($key.ToUpper().Contains("TOKEN") -AND $value.Length -gt 0) {
             $entry = "$key=********"
         }
 

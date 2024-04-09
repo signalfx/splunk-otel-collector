@@ -1,5 +1,10 @@
 # Changelog
 
+
+## ansible-v0.27.0
+
+- `splunk_ballast_size_mib` is deprecated and removed. For Splunk Otel Collector version `0.97.0` or greater, `GOMEMLIMIT` env var is introduced. The default is set to 90% of the `SPLUNK_TOTAL_MEM_MIB`. For more information regarding the usage, please follow the instructions ([here](https://github.com/signalfx/splunk-otel-collector?tab=readme-ov-file#from-0961-to-0970)).
+
 ## ansible-v0.26.0
 
 ### 💡 Enhancements 💡

@@ -24,7 +24,7 @@
 
 {% set splunk_memory_total_mib = salt['pillar.get']('splunk-otel-collector:splunk_memory_total_mib', '512') %}
 
-{% set splunk_ballast_size_mib = salt['pillar.get']('splunk-otel-collector:splunk_ballast_size_mib', '') %}
+{% set gomemlimit = salt['pillar.get']('splunk-otel-collector:gomemlimit', '') %}
 
 {% set splunk_listen_interface = salt['pillar.get']('splunk-otel-collector:splunk_listen_interface', '') %}
 
@@ -42,7 +42,7 @@
         SPLUNK_HEC_URL={{ splunk_hec_url }}
         SPLUNK_HEC_TOKEN={{ splunk_hec_token }}
         SPLUNK_MEMORY_TOTAL_MIB={{ splunk_memory_total_mib }}
-        SPLUNK_BALLAST_SIZE_MIB={{ splunk_ballast_size_mib }}
+        GOMEMLIMIT={{ gomemlimit }}
         {% if splunk_listen_interface -%}
         SPLUNK_LISTEN_INTERFACE={{ splunk_listen_interface }}
         {% endif -%}

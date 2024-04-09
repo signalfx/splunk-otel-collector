@@ -20,7 +20,7 @@ default['splunk_otel_collector']['splunk_trace_url'] = "#{node['splunk_otel_coll
 default['splunk_otel_collector']['splunk_hec_url'] = "#{node['splunk_otel_collector']['splunk_ingest_url']}/v1/log"
 default['splunk_otel_collector']['splunk_hec_token'] = "#{node['splunk_otel_collector']['splunk_access_token']}"
 default['splunk_otel_collector']['splunk_memory_total_mib'] = '512'
-default['splunk_otel_collector']['splunk_ballast_size_mib'] = ''
+default['splunk_otel_collector']['gomemlimit'] = ''
 default['splunk_otel_collector']['splunk_listen_interface'] = ''
 
 default['splunk_otel_collector']['collector_config'] = {}

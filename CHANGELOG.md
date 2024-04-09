@@ -13,6 +13,7 @@
   - Remove `first_only`  field from match struct. Events are always emitted only once for first matching metric or log statement ([#4593](https://github.com/signalfx/splunk-otel-collector/pull/4593))
   - Combine matching conditions with different statuses in one list ([#4588](https://github.com/signalfx/splunk-otel-collector/pull/4588))
   - Apply entity events schema to the logs emitted by the receiver ([#4638](https://github.com/signalfx/splunk-otel-collector/pull/4638))
+  - Remove the `bash`, `nc`, and `tar` command-line utilities from the collector packages/images and smart agent bundle ([#4646](https://github.com/signalfx/splunk-otel-collector/pull/4646))
 
 ## v0.97.0
 

@@ -258,6 +258,7 @@ jobs:
     strategy:
       matrix:
         ARCH: [ "amd64", "arm64", "ppc64le" ]
+      fail-fast: false
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4

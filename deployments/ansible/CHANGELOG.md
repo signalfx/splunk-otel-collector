@@ -1,5 +1,17 @@
 # Changelog
 
+## ansible-v0.26.0
+
+### 💡 Enhancements 💡
+
+- Initial support for [Splunk OpenTelemetry for Node.js](https://github.com/signalfx/splunk-otel-js) Auto
+  Instrumentation on Linux:
+  - The Node.js SDK is installed and activated by default if the `install_splunk_otel_auto_instrumentation` option is set to `true`
+    and the `npm --version` shell command is successful.
+  - Set the `splunk_otel_auto_instrumentation_sdks` option to only `[java]` to skip Node.js auto instrumentation.
+  - Use the `splunk_otel_auto_instrumentation_npm_path` option to specify a custom path for `npm`.
+  - **Note:** This role does not manage the installation/configuration of Node.js, `npm`, or Node.js applications.
+
 ## ansible-v0.25.0
 
 ### 💡 Enhancements 💡

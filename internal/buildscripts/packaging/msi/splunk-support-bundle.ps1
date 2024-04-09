@@ -125,12 +125,15 @@ function setServiceEnvironmentVariable($key, $value) {
 #######################################
 function getServiceEnvironment($output_file = $null) {
     Write-Output "INFO: Getting splunk-otel-collector service environment variables..."
-    $service_env = Get-ItemPropertyValue -Path $SVC_REGISTRY_KEY -Name "Environment" -ErrorAction SilentlyContinue
-    if (-NOT $service_env) {
-        Write-Output "ERROR: Could not find environment variables for splunk-otel-collector service."
-        return
+    $service_env = @()
+    try {
+        $service_env = Get-ItemPropertyValue -Path $SVC_REGISTRY_KEY -Name "Environment"
     }
-
+    catch {
+        Write-Output "ERROR: Could not find environment variables for splunk-otel-collector service: $($Error[0])"
+        $service_env = @()
+    }
+    
     foreach ($entry in $service_env) {
         $key, $value = $entry.Split("=", 2)
         if ($key.Contains("TOKEN", [System.StringComparison]::InvariantCultureIgnoreCase) -AND $value.Length -gt 0) {

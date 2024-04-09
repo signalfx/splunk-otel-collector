@@ -102,11 +102,7 @@ required `splunk_access_token` attribute and some optional attributes:
   Collector. The `SPLUNK_MEMORY_TOTAL_MIB` environment variable will be set
   with this value for the Collector service. (**default:** `512`)
 
-- `splunk_ballast_size_mib`: Explicitly set the ballast size for the Collector
-  instead of the value calculated from the `splunk_memory_total_mib` attribute.
-  This should be set to 1/3 to 1/2 of configured memory. The
-  `SPLUNK_BALLAST_SIZE_MIB` environment variable will be set with this value
-  for the Collector service. (**default:** `''`)
+- `gomemlimit`: The `GOMEMLIMIT` environment variable is introduced for the Splunk Otel Collector version >=0.97.0, allowing the limitation of memory usage in the GO runtime. This feature can help enhance GC (Garbage Collection) related performance and prevent GC related Out of Memory (OOM) situations.
 
 - `splunk_listen_interface`: The network interface the collector receivers
   will listen on (**default** `0.0.0.0`).

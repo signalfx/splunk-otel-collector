@@ -15,8 +15,8 @@ collector_env_vars = [
   { name: 'SPLUNK_TRACE_URL', type: :string, data: node['splunk_otel_collector']['splunk_trace_url'].to_s },
 ]
 
-unless node['splunk_otel_collector']['splunk_ballast_size_mib'].to_s.strip.empty?
-  collector_env_vars.push({ name: 'SPLUNK_BALLAST_SIZE_MIB', type: :string, data: node['splunk_otel_collector']['splunk_ballast_size_mib'].to_s })
+unless node['splunk_otel_collector']['gomemlimit'].to_s.strip.empty?
+  collector_env_vars.push({ name: 'GOMEMLIMIT', type: :string, data: node['splunk_otel_collector']['gomemlimit'].to_s })
 end
 unless node['splunk_otel_collector']['splunk_listen_interface'].to_s.strip.empty?
   collector_env_vars.push({ name: 'SPLUNK_LISTEN_INTERFACE', type: :string, data: node['splunk_otel_collector']['splunk_listen_interface'].to_s })

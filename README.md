@@ -49,18 +49,22 @@ provides a unified way to receive, process, and export metric, trace, and log
 data for [Splunk Observability Cloud](https://www.splunk.com/en_us/observability.html):
 
 - [Splunk APM](https://docs.splunk.com/Observability/apm/intro-to-apm.html#nav-Introduction-to-Splunk-APM) via the
-  [`sapm`
-  exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/sapmexporter).
+  [`otlp` exporter](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlpexporter).
+
   The [`otlphttp`
   exporter](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlphttpexporter)
-  can be used with a [custom
-  configuration](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/otelcol/config/collector/otlp_config_linux.yaml).
+  can be used [as well](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/otelcol/config/collector/otlp_config_linux.yaml).
+  
+  [The `sapm` exporter]((https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/sapmexporter)) is deprecated and supported until April 2025.
+  
   More information available
   [here](https://docs.splunk.com/Observability/gdi/opentelemetry/opentelemetry.html#nav-Install-and-configure-Splunk-Distribution-of-OpenTelemetry-Collector).
+
 - [Splunk Infrastructure
   Monitoring](https://docs.splunk.com/Observability/infrastructure/intro-to-infrastructure.html#nav-Introduction-to-Splunk-Infrastructure-Monitoring)
   via the [`signalfx`
   exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/signalfxexporter).
+  
   More information available
   [here](https://docs.splunk.com/Observability/gdi/opentelemetry/opentelemetry.html#nav-Install-and-configure-Splunk-Distribution-of-OpenTelemetry-Collector).
 
@@ -83,20 +87,19 @@ exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree
 
 The following resources are available:
 
-- [Architecture](docs/architecture.md): How the Collector can be deployed
-- [Components](docs/components.md): What the Collector supports with links to documentation
-- [Monitoring](docs/monitoring.md): How to ensure the Collector is healthy
-- [Security](docs/security.md): How to ensure the Collector is secure
-- [Sizing](docs/sizing.md): How to ensure the Collector is properly sized
-- [Troubleshooting](docs/troubleshooting.md): How to resolve common issues
+- [Architecture](https://docs.splunk.com/observability/en/gdi/opentelemetry/opentelemetry.html): How the Collector can be deployed
+- [Components](https://docs.splunk.com/observability/en/gdi/opentelemetry/components.html): What the Collector supports with links to documentation
+- [Monitoring](https://docs.splunk.com/observability/en/gdi/opentelemetry/opentelemetry.html#otel-monitoring): How to ensure the Collector is healthy
+- [Security](https://docs.splunk.com/Observability/gdi/opentelemetry/security.html): How to ensure the Collector is secure
+- [Sizing](https://docs.splunk.com/Observability/gdi/opentelemetry/sizing.html): How to ensure the Collector is properly sized
+- [Troubleshooting](https://docs.splunk.com/Observability/gdi/opentelemetry/troubleshooting.html): How to resolve common issues
 
 All you need to get started is:
 
 - [Splunk Access Token](https://docs.splunk.com/observability/admin/authentication/authentication-tokens/org-tokens.html)
 - [Splunk Realm](https://dev.splunk.com/observability/docs/realms_in_endpoints/)
-- [Agent or Gateway mode](docs/agent-vs-gateway.md)
-- [Confirm exposed
-  ports](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/security.md#exposed-endpoints)
+- [Agent or Gateway mode](https://docs.splunk.com/Observability/gdi/opentelemetry/deployment-modes.html)
+- [Confirm exposed ports](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/security.md#exposed-endpoints)
   to make sure your environment doesn't have conflicts and that firewalls are
   configured properly. Ports can be changed in the collector's configuration.
 
@@ -104,7 +107,7 @@ This distribution is supported on and packaged for a variety of platforms includ
 
 - Kubernetes
   - [Helm (recommended)](https://github.com/signalfx/splunk-otel-collector-chart)
-  - [Operator (in alpha)](https://github.com/signalfx/splunk-otel-collector-operator)
+  - [Operator (via Helm Chart)](https://github.com/signalfx/splunk-otel-collector-chart)
   - [YAML](https://github.com/signalfx/splunk-otel-collector-chart/tree/main/examples)
 - [HashiCorp Nomad](./deployments/nomad)
 - Linux
@@ -116,14 +119,14 @@ This distribution is supported on and packaged for a variety of platforms includ
     - [Salt](https://github.com/signalfx/splunk-otel-collector/tree/main/deployments/salt)
   - Platform as a Service
     - [Heroku](https://github.com/signalfx/splunk-otel-collector-heroku#getting-started)
-  - [Manual](./docs/getting-started/linux-manual.md) including DEB/RPM packages, Docker, and binary
+  - [Manual](https://docs.splunk.com/observability/en/gdi/opentelemetry/collector-linux/install-linux-manual.html) including DEB/RPM packages, Docker, and binary
 - Windows
-  - [Installer script](./docs/getting-started/windows-installer.md) (recommended for single-host demo/test environments)
+  - [Installer script](https://docs.splunk.com/observability/en/gdi/opentelemetry/collector-windows/install-windows.html) (recommended for single-host demo/test environments)
   - Configuration management (recommended for multi-host production environments)
     - [Ansible](https://galaxy.ansible.com/ui/repo/published/signalfx/splunk_otel_collector/)
     - [Chef](https://supermarket.chef.io/cookbooks/splunk_otel_collector)
     - [Puppet](https://forge.puppet.com/modules/signalfx/splunk_otel_collector)
-  - [Manual](./docs/getting-started/windows-manual.md) including MSI with GUI and Powershell, Chocolatey, and Docker
+  - [Manual](https://docs.splunk.com/observability/en/gdi/opentelemetry/collector-windows/install-windows-manual.html) including MSI with GUI and Powershell, Chocolatey, and Docker
 
 You can consult additional use cases in the [examples](./examples) directory.
 
@@ -131,8 +134,7 @@ You can consult additional use cases in the [examples](./examples) directory.
 
 A variety of default configuration files are provided:
 
-- [OpenTelemetry
-  Collector](https://github.com/signalfx/splunk-otel-collector/tree/main/cmd/otelcol/config/collector)
+- [OpenTelemetry Collector](https://github.com/signalfx/splunk-otel-collector/tree/main/cmd/otelcol/config/collector)
   see `full_config_linux.yaml` for a commented configuration with links to full
   documentation. The `logs_config_linux.yaml` is a good starting point for using
   the collector for collecting application logs on Linux environments.
@@ -150,13 +152,11 @@ In addition, the following components can be configured:
   - [Include](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/configsource/includeconfigsource)
   - [Vault](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/configsource/vaultconfigsource)
   - [Zookeeper](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/configsource/zookeeperconfigsource)
-- SignalFx Smart Agent
+- Smart Agent
   - [Extension](https://github.com/signalfx/splunk-otel-collector/tree/main/pkg/extension/smartagentextension)
     offering Collectd and Python extensions
   - [Receiver](https://github.com/signalfx/splunk-otel-collector/tree/main/pkg/receiver/smartagentreceiver)
     offering the complete set of Smart Agent monitors
-  - Information about migrating from the SignalFx Smart Agent can be found
-    [here](docs/signalfx-smart-agent-migration.md)
 
 By default the Splunk OpenTelemetry Collector provides a sensitive value-redacting, local config server listening at
 `http://localhost:55554/debug/configz/effective` that is helpful in troubleshooting. To disable this feature please

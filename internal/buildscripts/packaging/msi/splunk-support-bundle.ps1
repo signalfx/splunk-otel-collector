@@ -125,7 +125,12 @@ function setServiceEnvironmentVariable($key, $value) {
 #######################################
 function getServiceEnvironment($output_file = $null) {
     Write-Output "INFO: Getting splunk-otel-collector service environment variables..."
-    $service_env = Get-ItemPropertyValue -Path $SVC_REGISTRY_KEY -Name "Environment"
+    $service_env = Get-ItemPropertyValue -Path $SVC_REGISTRY_KEY -Name "Environment" -ErrorAction SilentlyContinue
+    if (-NOT $service_env) {
+        Write-Output "ERROR: Could not find environment variables for splunk-otel-collector service."
+        return
+    }
+
     foreach ($entry in $service_env) {
         $key, $value = $entry.Split("=", 2)
         if ($key.Contains("TOKEN", [System.StringComparison]::InvariantCultureIgnoreCase) -AND $value.Length -gt 0) {
@@ -369,6 +374,6 @@ $(getLogs) 2>&1 | Tee-Object -FilePath "$TMPDIR/stdout.log" -Append
 $(getMetrics) 2>&1 | Tee-Object -FilePath "$TMPDIR/stdout.log" -Append
 $(getZpages) 2>&1 | Tee-Object -FilePath "$TMPDIR/stdout.log" -Append
 $(getHostInfo) 2>&1 | Tee-Object -FilePath "$TMPDIR/stdout.log" -Append
-$(getServiceEnvironment("$TMPDIR/config/service_environment.txt")) 2>&1
+$(getServiceEnvironment("$TMPDIR/config/service_environment.txt")) 2>&1 `
     | Tee-Object -FilePath "$TMPDIR/stdout.log" -Append
 $(zipResults) 2>&1 | Tee-Object -FilePath "$TMPDIR/stdout.log" -Append

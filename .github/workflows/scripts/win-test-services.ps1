@@ -78,13 +78,24 @@ if ("$with_fluentd" -eq "true") {
     }
 }
 
+$uninstallProperties = Get-ChildItem -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall" |
+    ForEach-Object { Get-ItemProperty $_.PSPath } |
+    Where-Object { $_.DisplayName -eq "Splunk OpenTelemetry Collector" }
 if ($with_msi_uninstall_comments -ne "") {
-    $uninstallProperties = Get-ChildItem -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall" |
-        ForEach-Object { Get-ItemProperty $_.PSPath } |
-        Where-Object { $_.DisplayName -eq "Splunk OpenTelemetry Collector" }
     if ($with_msi_uninstall_comments -ne $uninstallProperties.Comments) {
         throw "Uninstall Comments in registry are not properly set. Found: '$uninstallProperties.Comments', Expected '$with_msi_uninstall_comments'"
     } else {
         write-host "Uninstall Comments in registry are properly set."
     }
+}
+
+$installed_version = [Version]$uninstallProperties.DisplayVersion
+if ($installed_version -gt [Version]"0.97.0.0") {
+    if (Test-Path -Path "${Env:ProgramFiles}\Splunk\OpenTelemetry Collector\*_config.yaml") {
+        throw "Found config files in '${Env:ProgramFiles}\Splunk\OpenTelemetry Collector' these files should not be present"
+    }
+}
+
+If (!(Test-Path -Path "${Env:ProgramData}\Splunk\OpenTelemetry Collector\*_config.yaml")) {
+    throw "No config files found in ${Env:ProgramData}\Splunk\OpenTelemetry Collector these files are expected after the install"
 }

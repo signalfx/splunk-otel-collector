@@ -40,5 +40,5 @@
 
     - name: Verify splunk-otel-collector service env vars
       assert:
-        that: (item.key + '=' + item.value) in collector_env.value
+        that: (item.key + '=' + (item.value | string)) in collector_env.value
       loop: "{{ collector_reg_values | dict2items }}"

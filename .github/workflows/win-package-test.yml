@@ -190,11 +190,6 @@ jobs:
           name: msi-build
           path: ./tests/zeroconfig/windows/testdata/docker-setup/
 
-      - name: Ensure required ports in the dynamic range are available
-        run: |
-          $ErrorActionPreference = 'Continue'
-          & ${{ github.workspace }}\.github\workflows\scripts\win-required-ports.ps1
-
       - name: Get splunk-otel-dotnet latest release name
         id: dotnet-instrumentation
         env:

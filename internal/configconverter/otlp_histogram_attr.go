@@ -17,6 +17,7 @@ package configconverter
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"regexp"
 
 	"go.opentelemetry.io/collector/confmap"
@@ -24,7 +25,7 @@ import (
 
 type AddOTLPHistogramAttr struct{}
 
-// Convert updates the service::telemetry::resource to add the attribute splunk.otlp.histograms=true.
+// Convert updates the service::telemetry::resource to add the attribute send_otlp_histograms=true.
 // This additional resource attr is only added if we see any signalfx exporter in use with the config
 // send_otlp_histograms set to true.
 func (AddOTLPHistogramAttr) Convert(_ context.Context, cfgMap *confmap.Conf) error {
@@ -32,7 +33,7 @@ func (AddOTLPHistogramAttr) Convert(_ context.Context, cfgMap *confmap.Conf) err
 		return nil
 	}
 
-	sfxExporters := map[string]bool{}
+	sfxExporters := map[string]struct{}{}
 	metricsPlRe := regexp.MustCompile(`^metrics($|/.*$)`)
 	signalfxExpRe := regexp.MustCompile(`^signalfx($|/.*$)`)
 
@@ -45,8 +46,10 @@ func (AddOTLPHistogramAttr) Convert(_ context.Context, cfgMap *confmap.Conf) err
 	for expName := range exp.ToStringMap() {
 		if signalfxExpRe.MatchString(expName) {
 			otlpHistoEnabled := cfgMap.Get(fmt.Sprintf("exporters::%s::send_otlp_histograms", expName))
-			if otlpHistoEnabled != nil && otlpHistoEnabled.(bool) {
-				sfxExporters[expName] = true
+			if otlpHistoEnabled != nil && reflect.ValueOf(otlpHistoEnabled).Kind() == reflect.Bool {
+				if otlpHistoEnabled.(bool) {
+					sfxExporters[expName] = struct{}{}
+				}
 			}
 		}
 	}
@@ -67,12 +70,13 @@ func (AddOTLPHistogramAttr) Convert(_ context.Context, cfgMap *confmap.Conf) err
 			mExps := cfgMap.Get(fmt.Sprintf("service::pipelines::%s::exporters", pipelineName))
 			if metricsExps, ok := mExps.([]any); ok {
 				for _, expName := range metricsExps {
-					if _, ok := sfxExporters[expName.(string)]; ok {
-						resAttrKey := "service::telemetry::resource::splunk_otlp_histograms"
-						if err = cfgMap.Merge(confmap.NewFromStringMap(map[string]any{resAttrKey: "true"})); err != nil {
-							return err
+					if expNameStr, ok := expName.(string); ok {
+						if _, ok := sfxExporters[expNameStr]; ok {
+							resAttrKey := "service::telemetry::resource::splunk_otlp_histograms"
+							if err = cfgMap.Merge(confmap.NewFromStringMap(map[string]any{resAttrKey: "true"})); err != nil {
+								return err
+							}
 						}
-						return nil
 					}
 				}
 			}

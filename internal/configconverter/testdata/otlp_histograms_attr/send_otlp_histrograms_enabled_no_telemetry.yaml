@@ -1,5 +1,7 @@
 receivers:
   hostmetrics:
+    scrapers:
+      cpu:
 exporters:
   otlp:
     endpoint: "https://ingest.signalfx.com:443"

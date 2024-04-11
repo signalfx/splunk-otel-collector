@@ -25,46 +25,47 @@ import (
 	"go.opentelemetry.io/collector/confmap/confmaptest"
 )
 
-func TestOTLPHistograms_Enabled(t *testing.T) {
-	cfgMap, err := confmaptest.LoadConf("testdata/otlp_histograms_attr/send_otlp_histrograms_enabled.yaml")
-	require.NoError(t, err)
-	require.NotNil(t, cfgMap)
-	pmp := AddOTLPHistogramAttr{}
-	assert.NoError(t, pmp.Convert(context.Background(), cfgMap))
-	cfgMapExpected, err := confmaptest.LoadConf("testdata/otlp_histograms_attr/send_otlp_histrograms_enabled_expected.yaml")
-	require.NoError(t, err)
-	assert.Equal(t, cfgMapExpected.ToStringMap(), cfgMap.ToStringMap())
-}
+func TestOTLPHistogramsAttrs(t *testing.T) {
+	tests := []struct {
+		name       string
+		input      string
+		wantOutput string
+	}{
+		{
+			name:       "enabled",
+			input:      "testdata/otlp_histograms_attr/send_otlp_histrograms_enabled.yaml",
+			wantOutput: "testdata/otlp_histograms_attr/send_otlp_histrograms_enabled_expected.yaml",
+		},
+		{
+			name:       "enabled_no_telemetry",
+			input:      "testdata/otlp_histograms_attr/send_otlp_histrograms_enabled_no_telemetry.yaml",
+			wantOutput: "testdata/otlp_histograms_attr/send_otlp_histrograms_enabled_no_telemetry_expected.yaml",
+		},
+		{
+			name:       "disabled",
+			input:      "testdata/otlp_histograms_attr/send_otlp_histrograms_disabled.yaml",
+			wantOutput: "testdata/otlp_histograms_attr/send_otlp_histrograms_disabled_expected.yaml",
+		},
+		{
+			name:       "disabled_not_in_use_exporter",
+			input:      "testdata/otlp_histograms_attr/send_otlp_histrograms_disabled_no_exp.yaml",
+			wantOutput: "testdata/otlp_histograms_attr/send_otlp_histrograms_disabled_no_exp_expected.yaml",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			expectedCfgMap, err := confmaptest.LoadConf(tt.wantOutput)
+			require.NoError(t, err)
+			require.NotNil(t, expectedCfgMap)
 
-func TestOTLPHistograms_EnabledNoTelemetry(t *testing.T) {
-	cfgMap, err := confmaptest.LoadConf("testdata/otlp_histograms_attr/send_otlp_histrograms_enabled_no_telemetry.yaml")
-	require.NoError(t, err)
-	require.NotNil(t, cfgMap)
-	pmp := AddOTLPHistogramAttr{}
-	assert.NoError(t, pmp.Convert(context.Background(), cfgMap))
-	cfgMapExpected, err := confmaptest.LoadConf("testdata/otlp_histograms_attr/send_otlp_histrograms_enabled_no_telemetry_expected.yaml")
-	require.NoError(t, err)
-	assert.Equal(t, cfgMapExpected.ToStringMap(), cfgMap.ToStringMap())
-}
+			cfgMap, err := confmaptest.LoadConf(tt.input)
+			require.NoError(t, err)
+			require.NotNil(t, cfgMap)
 
-func TestOTLPHistograms_Disabled(t *testing.T) {
-	cfgMap, err := confmaptest.LoadConf("testdata/otlp_histograms_attr/send_otlp_histrograms_disabled.yaml")
-	require.NoError(t, err)
-	require.NotNil(t, cfgMap)
-	pmp := AddOTLPHistogramAttr{}
-	assert.NoError(t, pmp.Convert(context.Background(), cfgMap))
-	cfgMapExpected, err := confmaptest.LoadConf("testdata/otlp_histograms_attr/send_otlp_histrograms_disabled_expected.yaml")
-	require.NoError(t, err)
-	assert.Equal(t, cfgMapExpected.ToStringMap(), cfgMap.ToStringMap())
-}
+			err = AddOTLPHistogramAttr{}.Convert(context.Background(), cfgMap)
+			require.NoError(t, err)
 
-func TestOTLPHistograms_DisabledExporterNotInUse(t *testing.T) {
-	cfgMap, err := confmaptest.LoadConf("testdata/otlp_histograms_attr/send_otlp_histrograms_disabled_no_exp.yaml")
-	require.NoError(t, err)
-	require.NotNil(t, cfgMap)
-	pmp := AddOTLPHistogramAttr{}
-	assert.NoError(t, pmp.Convert(context.Background(), cfgMap))
-	cfgMapExpected, err := confmaptest.LoadConf("testdata/otlp_histograms_attr/send_otlp_histrograms_disabled_no_exp_expected.yaml")
-	require.NoError(t, err)
-	assert.Equal(t, cfgMapExpected.ToStringMap(), cfgMap.ToStringMap())
+			assert.Equal(t, expectedCfgMap.ToStringMap(), cfgMap.ToStringMap())
+		})
+	}
 }

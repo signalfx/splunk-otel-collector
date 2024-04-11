@@ -1,5 +1,7 @@
 extensions:
   host_observer:
+  host_observer/with_name:
+  host_observer/with/another/name:
 
 receivers:
   # set up otlp receiver to use its endpoints as assertion material
@@ -38,6 +40,8 @@ receivers:
 
     watch_observers:
       - host_observer
+      - host_observer/with_name
+      - host_observer/with/another/name
 
 # drop scrape_timestamp attributes until we can accept arbitrary values
 processors:
@@ -60,6 +64,8 @@ service:
       level: debug
   extensions:
     - host_observer
+    - host_observer/with_name
+    - host_observer/with/another/name
   pipelines:
     metrics:
       receivers: [otlp]

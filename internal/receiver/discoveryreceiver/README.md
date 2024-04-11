@@ -121,57 +121,61 @@ Flags: 0
 ## Example Usage
 
 The following Collector configuration will create a Discovery receiver instance that receives
-endpoints from a [Docker Observer](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/extension/observer/dockerobserver/README.md)
-that reports log records denoting the status of a [Smart Agent receiver](https://github.com/signalfx/splunk-otel-collector/blob/main/pkg/receiver/smartagentreceiver/README.md)
-configured to use the `collectd/redis` monitor. The `status` mapping comprises entries that signal the Smart Agent
-receiver has been instantiated with a `successful`, `partial`, or `failed` status, based on reported `metrics` or
-recorded application log `statements`.
+endpoints from a [Kubernetes Observer](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/extension/observer/k8sobserver/README.md)
+that reports log records denoting the status of a [MySQL receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/mysqlreceiver/README.md).
+The `status` mapping comprises entries that signal the receiver has been instantiated with a `successful`, `partial`, 
+or `failed` status, based on reported `metrics` or recorded application log `statements`.
 
-The Redis receiver warrants the following log record with `discovery.status` from the Discovery receiver:
+The following rules are defined for the `mysql` receiver:
 
-* `successful` if it emits any metrics matching the `regexp: .*` pattern, denoting that metric gathering and the
-Receiver are functional.
-* `partial` if it internally logs a statement matching the `regexp: (WRONGPASS|NOAUTH|ERR AUTH)` pattern, suggesting
-there is a Redis server but it's receiving incorrect credentials.
-* `failed` if it internally logs a statement matching the `regexp: ConnectionRefusedError` pattern, suggesting that no
-Redis server is available at the endpoint.
+* `successful` if it emits any `mysql.locks` metrics, denoting that metric gathering and the Receiver are functional.
+* `partial` if it internally logs a statement matching the `Access denied for user` pattern, suggesting
+there is a MySQL server but it's receiving incorrect credentials.
+* `failed` if it internally logs a statement matching the `Can't connect to MySQL server on .* [(]111[)]` pattern,
+suggesting that no MySQL server is available at the endpoint.
 
 ```yaml
 extensions:
-  docker_observer:
+  k8s_observer:
+    auth_type: serviceAccount
+    node: ${K8S_NODE_NAME}
 receivers:
    discovery:
-     watch_observers: [docker_observer]
+     watch_observers: [k8s_observer]
      receivers:
-       smartagent/redis:
-         // Determine the functionality of the smartagent/redis receiver for any detected container
-         rule: type == "container"
+       mysql:
+         rule: type == "port" and port != 33060 and pod.name matches "(?i)mysql"
          config:
-           type: collectd/redis
-           // the metric or log statement
+           username: root
+           password: root
          status:
            metrics:
              - status: successful
-               regexp: '.*'
+               strict: mysql.locks
                log_record:
-                 body: Successfully able to connect to Redis container.
+                 body: Mysql receiver is working!
            statements:
-             - status: partial
-               regexp: (WRONGPASS|NOAUTH|ERR AUTH)
-               log_record:
-                 body: Container appears to be accepting redis connections but the default auth setting is incorrect.
              - status: failed
-               regexp: ConnectionRefusedError
+               regexp: "Can't connect to MySQL server on .* [(]111[)]"
                log_record:
-                 body: Container appears to not be accepting redis connections.
+                 append_pattern: true
+                 body:  The container cannot be reached by the Collector. The container is refusing MySQL connections.
+             - status: partial
+               regexp: 'Access denied for user'
+               log_record:
+                 append_pattern: true
+                 body: >-
+                   Make sure your user credentials are correctly specified using the
+                   `--set splunk.discovery.receivers.mysql.config.username="<username>"` and
+                   `--set splunk.discovery.receivers.mysql.config.password="<password>"` command or the
+                   `SPLUNK_DISCOVERY_RECEIVERS_mysql_CONFIG_username="<username>"` and
+                   `SPLUNK_DISCOVERY_RECEIVERS_mysql_CONFIG_password="<password>"` environment variables.
 exporters:
   debug:
     verbosity: detailed
-    sampling_initial: 1
-    sampling_thereafter: 1
 service:
   extensions:
-    - docker_observer
+    - k8s_observer
   pipelines:
     logs:
       receivers:
@@ -180,101 +184,81 @@ service:
         - logging
 ```
 
-Given this configuration, if the Discovery receiver's Docker observer instance reports an active Redis container, and
-the Smart Agent receiver's associated `collectd/redis` monitor is able to generate metrics for the container, the
-receiver will emit something similar to the following log records:
+Given this configuration, if the Discovery receiver's Kubernetes observer instance reports an active MySQL container, and
+the `mysql` receiver is able to generate metrics for the container, the receiver will emit the following entity event:
 
 ```
-2022-07-27T16:35:03.575Z	info	LogsExporter	{"kind": "exporter", "data_type": "logs", "name": "logging", "#logs": 1}
-2022-07-27T16:35:03.575Z	info	ResourceLog #0
+2024-04-08T06:08:58.204Z	info	LogsExporter	{"kind": "exporter", "data_type": "logs", "name": "debug", "resource logs": 1, "log records": 1}
+2024-04-08T06:08:58.204Z	info	ResourceLog #0
 Resource SchemaURL:
-Resource labels:
-     -> container.name: STRING(lucid_goldberg)
-     -> container.image.name: STRING(redis)
-     -> discovery.receiver.rule: STRING(type == "container" && image == "redis")
-     -> discovery.endpoint.id: STRING(2f0d88c1d93b2aafce4a725de370005f9e7e961144551a3df37a88b27ebed48f:6379)
-     -> discovery.receiver.name: STRING(smartagent/redis)
-     -> event.type: STRING(metric.match)
 ScopeLogs #0
 ScopeLogs SchemaURL:
 InstrumentationScope
+InstrumentationScope attributes:
+     -> otel.entity.event_as_log: Bool(true)
 LogRecord #0
-ObservedTimestamp: 2022-07-27 16:35:03.575234252 +0000 UTC
-Timestamp: 2022-07-27 16:35:01.522543616 +0000 UTC
-Severity: info
-Body: Successfully able to connect to Redis container.
+ObservedTimestamp: 1970-01-01 00:00:00 +0000 UTC
+Timestamp: 2024-04-08 06:08:58.194666193 +0000 UTC
+SeverityText:
+SeverityNumber: Unspecified(0)
+Body: Empty()
 Attributes:
-     -> metric.name: STRING(counter.expired_keys)
-     -> discovery.status: STRING(successful)
+     -> otel.entity.id: Map({"discovery.endpoint.id":"k8s_observer/05c6a212-730c-4295-8dd6-0c460c892034/mysql(3306)"})
+     -> otel.entity.event.type: Str(entity_state)
+     -> otel.entity.attributes: Map({"discovery.event.type":"metric.match","discovery.message":"Mysql receiver is working!","discovery.observer.id":"k8s_observer","discovery.receiver.rule":"type == \"port\" and port != 33060 and pod.name matches \"(?i)mysql\"","discovery.receiver.type":"mysql","discovery.status":"successful","k8s.namespace.name":"default","k8s.pod.name":"mysql-0","k8s.pod.uid":"05c6a212-730c-4295-8dd6-0c460c892034","metric.name":"mysql.locks","mysql.instance.endpoint":"192.168.161.105:3306"})
 Trace ID:
 Span ID:
 Flags: 0
 ```
 
-Instead, if the Docker observer reports an active Redis container but the `collectd/redis` authentication information is
+Instead, if the Docker observer reports an active MySQL container but the provided authentication information is
 incorrect, the Discovery receiver will emit something similar to the following log record:
 
 ```
-2022-07-27T17:11:27.271Z	info	LogsExporter	{"kind": "exporter", "data_type": "logs", "name": "logging", "#logs": 1}
-2022-07-27T17:11:27.271Z	info	ResourceLog #0
+2024-04-08T06:17:36.991Z	info	LogsExporter	{"kind": "exporter", "data_type": "logs", "name": "debug", "resource logs": 1, "log records": 1}
+2024-04-08T06:17:36.992Z	info	ResourceLog #0
 Resource SchemaURL:
-Resource labels:
-     -> event.type: STRING(statement.match)
 ScopeLogs #0
 ScopeLogs SchemaURL:
 InstrumentationScope
+InstrumentationScope attributes:
+     -> otel.entity.event_as_log: Bool(true)
 LogRecord #0
-ObservedTimestamp: 2022-07-27 17:11:27.27149884 +0000 UTC
-Timestamp: 2022-07-27 17:11:27.271444488 +0000 UTC
-Severity: warn
-Body: Container appears to be accepting redis connections but the default auth is incorrect.
+ObservedTimestamp: 1970-01-01 00:00:00 +0000 UTC
+Timestamp: 2024-04-08 06:17:36.991618675 +0000 UTC
+SeverityText:
+SeverityNumber: Unspecified(0)
+Body: Empty()
 Attributes:
-     -> runnerPID: STRING(119386)
-     -> monitorID: STRING(smartagentredisreceiver_creatordiscoveryendpoint1721702637958d3f3335daf83f7)
-     -> monitorType: STRING(collectd/redis)
-     -> caller: STRING(signalfx/handler.go:189)
-     -> name: STRING(smartagent/redis/receiver_creator/discovery{endpoint="172.17.0.2:6379"}(58d3f3335daf83f7))
-     -> createdTime: STRING(1.658941887269115e+09)
-     -> lineno: STRING(201)
-     -> logger: STRING(root)
-     -> sourcePath: STRING(/usr/lib/splunk-otel-collector/agent-bundle/collectd-python/redis/redis_info.py)
-     -> level: STRING(error)
-     -> receiver.name: STRING(smartagent/redis)
-     -> discovery.status: STRING(partial)
+     -> otel.entity.id: Map({"discovery.endpoint.id":"k8s_observer/05c6a212-730c-4295-8dd6-0c460c892034/mysql(3306)"})
+     -> otel.entity.event.type: Str(entity_state)
+     -> otel.entity.attributes: Map({"caller":"mysqlreceiver@v0.97.0/scraper.go:82","discovery.event.type":"statement.match","discovery.message":"Make sure your user credentials are correctly specified using the `--set splunk.discovery.receivers.mysql.config.username=\"\u003cusername\u003e\"` and `--set splunk.discovery.receivers.mysql.config.password=\"\u003cpassword\u003e\"` command or the `SPLUNK_DISCOVERY_RECEIVERS_mysql_CONFIG_username=\"\u003cusername\u003e\"` and `SPLUNK_DISCOVERY_RECEIVERS_mysql_CONFIG_password=\"\u003cpassword\u003e\"` environment variables. (evaluated \"{\\\"error\\\":\\\"Error 1045 (28000): Access denied for user 'root'@'192.168.174.232' (using password: YES)\\\",\\\"kind\\\":\\\"receiver\\\",\\\"message\\\":\\\"Failed to fetch InnoDB stats\\\"}\")","discovery.observer.id":"k8s_observer","discovery.receiver.name":"","discovery.receiver.rule":"type == \"port\" and port != 33060 and pod.name matches \"(?i)mysql\"","discovery.receiver.type":"mysql","discovery.status":"partial","error":"Error 1045 (28000): Access denied for user 'root'@'192.168.174.232' (using password: YES)","kind":"receiver","name":"mysql//receiver_creator/discovery/logs{endpoint=\"192.168.161.105:3306\"}/k8s_observer/05c6a212-730c-4295-8dd6-0c460c892034/mysql(3306)","stacktrace":"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mysqlreceiver.(*mySQLScraper).scrape\n\tgithub.com/open-telemetry/opentelemetry-collector-contrib/receiver/mysqlreceiver@v0.97.0/scraper.go:82\ngo.opentelemetry.io/collector/receiver/scraperhelper.ScrapeFunc.Scrape\n\tgo.opentelemetry.io/collector/receiver@v0.97.0/scraperhelper/scraper.go:20\ngo.opentelemetry.io/collector/receiver/scraperhelper.(*controller).scrapeMetricsAndReport\n\tgo.opentelemetry.io/collector/receiver@v0.97.0/scraperhelper/scrapercontroller.go:194\ngo.opentelemetry.io/collector/receiver/scraperhelper.(*controller).startScraping.func1\n\tgo.opentelemetry.io/collector/receiver@v0.97.0/scraperhelper/scrapercontroller.go:169"})
 Trace ID:
 Span ID:
 Flags: 0
 ```
 
-If the Docker observer reports an unrelated container that isn't running Redis, the following log record would be emitted:
+If the Kubernetes observer reports an unrelated container that isn't running MySQL, the following entity event would be emitted:
 
 ```
-2022-07-27T17:16:57.718Z	info	LogsExporter	{"kind": "exporter", "data_type": "logs", "name": "logging", "#logs": 1}
-2022-07-27T17:16:57.719Z	info	ResourceLog #0
+2024-04-08T07:06:49.502Z	info	LogsExporter	{"kind": "exporter", "data_type": "logs", "name": "debug", "resource logs": 1, "log records": 1}
+2024-04-08T07:06:49.502Z	info	ResourceLog #0
 Resource SchemaURL:
-Resource labels:
-     -> event.type: STRING(statement.match)
 ScopeLogs #0
 ScopeLogs SchemaURL:
 InstrumentationScope
+InstrumentationScope attributes:
+     -> otel.entity.event_as_log: Bool(true)
 LogRecord #0
-ObservedTimestamp: 2022-07-27 17:16:57.718720008 +0000 UTC
-Timestamp: 2022-07-27 17:16:57.718670678 +0000 UTC
-Severity: debug
-Body: Container appears to not be accepting redis connections.
+ObservedTimestamp: 1970-01-01 00:00:00 +0000 UTC
+Timestamp: 2024-04-08 07:06:49.502297226 +0000 UTC
+SeverityText:
+SeverityNumber: Unspecified(0)
+Body: Empty()
 Attributes:
-     -> name: STRING(smartagent/redis/receiver_creator/discovery{endpoint="172.17.0.2:80"}(54141aa1da2d2ad0))
-     -> monitorType: STRING(collectd/redis)
-     -> logger: STRING(root)
-     -> createdTime: STRING(1.6589422177182763e+09)
-     -> level: STRING(error)
-     -> monitorID: STRING(smartagentredisreceiver_creatordiscoveryendpoint17217028054141aa1da2d2ad0)
-     -> runnerPID: STRING(119590)
-     -> sourcePath: STRING(/usr/lib/splunk-otel-collector/agent-bundle/collectd-python/redis/redis_info.py)
-     -> lineno: STRING(198)
-     -> caller: STRING(signalfx/handler.go:189)
-     -> receiver.name: STRING(smartagent/redis)
-     -> discovery.status: STRING(failed)
+     -> otel.entity.id: Map({"discovery.endpoint.id":"k8s_observer/05c6a212-730c-4295-8dd6-0c460c892034/mysql(3306)"})
+     -> otel.entity.event.type: Str(entity_state)
+     -> otel.entity.attributes: Map({"caller":"receivercreator@v0.97.0/observerhandler.go:96","discovery.event.type":"statement.match","discovery.message":"The container cannot be reached by the Collector. The container is refusing MySQL connections. (evaluated \"{\\\"endpoint\\\":\\\"192.168.161.105:3306\\\",\\\"endpoint_id\\\":\\\"k8s_observer/05c6a212-730c-4295-8dd6-0c460c892034/mysql(3306)\\\",\\\"kind\\\":\\\"receiver\\\",\\\"message\\\":\\\"starting receiver\\\"}\")","discovery.observer.id":"k8s_observer","discovery.receiver.name":"","discovery.receiver.rule":"type == \"port\" and port != 33060 and pod.name matches \"(?i)mysql\"","discovery.receiver.type":"mysql","discovery.status":"failed","endpoint":"192.168.161.105:3306","endpoint_id":"k8s_observer/05c6a212-730c-4295-8dd6-0c460c892034/mysql(3306)","kind":"receiver","name":"mysql"})
 Trace ID:
 Span ID:
 Flags: 0

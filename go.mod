@@ -530,7 +530,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/sharedcomponent v0.97.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/splunk v0.97.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchperresourceattr v0.97.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.97.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.97.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/signalfx v0.97.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.97.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/winperfcounters v0.97.0 // indirect

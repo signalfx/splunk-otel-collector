@@ -27,6 +27,12 @@ const (
 	ReceiverNameAttr   = "discovery.receiver.name"
 	ReceiverTypeAttr   = "discovery.receiver.type"
 	StatusAttr         = "discovery.status"
+	MessageAttr        = "discovery.message"
+
+	OtelEntityAttributesAttr = "otel.entity.attributes"
+	OtelEntityIDAttr         = "otel.entity.id"
+	OtelEntityEventTypeAttr  = "otel.entity.event.type"
+	OtelEntityEventTypeState = "entity_state"
 
 	DiscoExtensionsKey = "extensions/splunk.discovery"
 	DiscoReceiversKey  = "receivers/splunk.discovery"

@@ -17,8 +17,8 @@ package discoveryreceiver
 import (
 	"context"
 	"fmt"
-	"time"
 
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
@@ -122,38 +122,40 @@ func (m *metricEvaluator) evaluateMetrics(md pmetric.Metrics) plog.Logs {
 					continue
 				}
 
-				pLogs := plog.NewLogs()
-				rLog := pLogs.ResourceLogs().AppendEmpty()
-				rAttrs := rLog.Resource().Attributes()
+				entityEvents := experimentalmetricmetadata.NewEntityEventsSlice()
+				entityEvent := entityEvents.AppendEmpty()
+				entityEvent.ID().PutStr(discovery.EndpointIDAttr, string(endpointID))
+				entityState := entityEvent.SetEntityState()
+
 				m.correlateResourceAttributes(
-					md.ResourceMetrics().At(0).Resource().Attributes(), rAttrs,
+					md.ResourceMetrics().At(0).Resource().Attributes(), entityState.Attributes(),
 					m.correlations.GetOrCreate(receiverID, endpointID),
 				)
-				rAttrs.PutStr(eventTypeAttr, metricMatch)
-				rAttrs.PutStr(receiverRuleAttr, rEntry.Rule)
+				// Remove the endpoint ID from the attributes as it's set in the entity ID.
+				entityState.Attributes().Remove(discovery.EndpointIDAttr)
 
-				logRecords := rLog.ScopeLogs().AppendEmpty().LogRecords()
+				entityState.Attributes().PutStr(eventTypeAttr, metricMatch)
+				entityState.Attributes().PutStr(receiverRuleAttr, rEntry.Rule)
 
-				logRecord := logRecords.AppendEmpty()
 				desiredRecord := match.Record
 				if desiredRecord == nil {
 					desiredRecord = &LogRecord{}
 				}
-				var desiredBody string
+				var desiredMsg string
 				if desiredRecord.Body != "" {
-					desiredBody = desiredRecord.Body
+					desiredMsg = desiredRecord.Body
 				}
-				logRecord.Body().SetStr(desiredBody)
+				entityState.Attributes().PutStr(discovery.MessageAttr, desiredMsg)
 				for k, v := range desiredRecord.Attributes {
-					logRecord.Attributes().PutStr(k, v)
+					entityState.Attributes().PutStr(k, v)
 				}
-				logRecord.Attributes().PutStr(metricNameAttr, metricName)
-				logRecord.Attributes().PutStr(discovery.StatusAttr, string(match.Status))
+				entityState.Attributes().PutStr(metricNameAttr, metricName)
+				entityState.Attributes().PutStr(discovery.StatusAttr, string(match.Status))
 				if ts := m.timestampFromMetric(metric); ts != nil {
-					logRecord.SetTimestamp(*ts)
+					entityEvent.SetTimestamp(*ts)
 				}
-				logRecord.SetObservedTimestamp(pcommon.NewTimestampFromTime(time.Now()))
-				return pLogs
+
+				return entityEvents.ConvertAndMoveToLogs()
 			}
 		}
 	}

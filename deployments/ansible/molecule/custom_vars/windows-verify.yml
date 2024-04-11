@@ -120,7 +120,7 @@
 
     - name: Verify IIS env vars
       assert:
-        that: (item.key + '=' + item.value) in iis_env.value
+        that: (item.key + '=' + (item.value | string)) in iis_env.value
       loop: "{{ iis_reg_values | dict2items }}"
 
     - name: Get splunk-otel-collector service env vars
@@ -131,7 +131,7 @@
 
     - name: Verify splunk-otel-collector service env vars
       assert:
-        that: (item.key + '=' + item.value) in collector_env.value
+        that: (item.key + '=' + (item.value | string)) in collector_env.value
       loop: "{{ collector_reg_values | dict2items }}"
 
     - name: Verify env vars

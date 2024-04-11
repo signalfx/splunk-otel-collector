@@ -73,9 +73,7 @@ func (AddOTLPHistogramAttr) Convert(_ context.Context, cfgMap *confmap.Conf) err
 					if expNameStr, ok := expName.(string); ok {
 						if _, ok := sfxExporters[expNameStr]; ok {
 							resAttrKey := "service::telemetry::resource::splunk_otlp_histograms"
-							if err = cfgMap.Merge(confmap.NewFromStringMap(map[string]any{resAttrKey: "true"})); err != nil {
-								return err
-							}
+							return cfgMap.Merge(confmap.NewFromStringMap(map[string]any{resAttrKey: "true"}))
 						}
 					}
 				}

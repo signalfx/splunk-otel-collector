@@ -222,6 +222,7 @@ func (s *Settings) ConfMapConverters() []confmap.Converter {
 			configconverter.LogLevelToVerbosity{},
 			configconverter.DisableKubeletUtilizationMetrics{},
 			configconverter.DisableExcessiveInternalMetrics{},
+			configconverter.AddOTLPHistogramAttr{},
 		)
 	}
 	return confMapConverters

@@ -39,7 +39,7 @@ func (AddOTLPHistogramAttr) Convert(_ context.Context, cfgMap *confmap.Conf) err
 
 	exp, err := cfgMap.Sub("exporters")
 	if err != nil {
-		return nil // Ignore invalid config. Rely on the config validation to catch this.
+		return err // In practice this should never happen: config parsing should have caught the error prior to here.
 	}
 
 	// get signalfx exporter names which have send_otlp_histograms enabled
@@ -61,7 +61,7 @@ func (AddOTLPHistogramAttr) Convert(_ context.Context, cfgMap *confmap.Conf) err
 
 	pl, err := cfgMap.Sub("service::pipelines")
 	if err != nil {
-		return nil
+		return err
 	}
 
 	// check if metrics pipelines use any of the signalfx exporters which have send_otlp_histograms enabled

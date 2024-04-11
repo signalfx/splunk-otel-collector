@@ -112,15 +112,7 @@ func TestStatementEvaluation(t *testing.T) {
 
 							require.Equal(t, 1, emitted.ResourceLogs().Len())
 							rl := emitted.ResourceLogs().At(0)
-							rAttrs := rl.Resource().Attributes()
-							require.Equal(t, map[string]any{
-								"discovery.endpoint.id":   "endpoint.id",
-								"discovery.event.type":    "statement.match",
-								"discovery.observer.id":   "an_observer/observer.name",
-								"discovery.receiver.name": "receiver.name",
-								"discovery.receiver.rule": "a.rule",
-								"discovery.receiver.type": "a_receiver",
-							}, rAttrs.AsRaw())
+							require.Equal(t, 0, rl.Resource().Attributes().Len())
 
 							sLogs := rl.ScopeLogs()
 							require.Equal(t, 1, sLogs.Len())
@@ -129,34 +121,49 @@ func TestStatementEvaluation(t *testing.T) {
 							require.Equal(t, 1, lrs.Len())
 							lr := sl.LogRecords().At(0)
 
-							lrAttrs := lr.Attributes().AsRaw()
+							oea, ok := lr.Attributes().Get(discovery.OtelEntityAttributesAttr)
+							require.True(t, ok)
+							entityAttrs := oea.Map()
 
-							require.Contains(t, lrAttrs, "caller")
+							// Validate "caller" attribute
+							callerAttr, ok := entityAttrs.Get("caller")
+							require.True(t, ok)
 							_, expectedFile, _, _ := runtime.Caller(0)
 							// runtime doesn't use os.PathSeparator
 							splitPath := strings.Split(expectedFile, "/")
 							expectedCaller := splitPath[len(splitPath)-1]
-							require.Contains(t, lrAttrs["caller"], expectedCaller)
-							delete(lrAttrs, "caller")
+							require.Contains(t, callerAttr.Str(), expectedCaller)
+							entityAttrs.Remove("caller")
 
-							require.Equal(t, map[string]any{
-								"discovery.status": string(status),
-								"name":             `a_receiver/receiver.name/receiver_creator/rc.name/{endpoint=""}/endpoint.id`,
-								"attr.one":         "attr.one.value",
-								"attr.two":         "attr.two.value",
-								"field.one":        "field.one.value",
-								"field_two":        "field.two.value",
-							}, lrAttrs)
-
-							expected := "desired body content"
+							// Validate the rest of the attributes
+							expectedMsg := "desired body content"
 							if match.Record.AppendPattern {
 								if match.Strict != "" {
-									expected = fmt.Sprintf("%s (evaluated \"desired.statement\")", expected)
+									expectedMsg = fmt.Sprintf("%s (evaluated \"desired.statement\")", expectedMsg)
 								} else {
-									expected = fmt.Sprintf("%s (evaluated \"{\\\"field.one\\\":\\\"field.one.value\\\",\\\"field_two\\\":\\\"field.two.value\\\",\\\"message\\\":\\\"desired.statement\\\"}\")", expected)
+									expectedMsg = fmt.Sprintf("%s (evaluated \"{\\\"field.one\\\":\\\"field.one.value\\\",\\\"field_two\\\":\\\"field.two.value\\\",\\\"message\\\":\\\"desired.statement\\\"}\")", expectedMsg)
 								}
 							}
-							require.Equal(t, expected, lr.Body().AsString())
+							require.Equal(t, map[string]any{
+								discovery.OtelEntityIDAttr: map[string]any{
+									"discovery.endpoint.id": "endpoint.id",
+								},
+								discovery.OtelEntityEventTypeAttr: discovery.OtelEntityEventTypeState,
+								discovery.OtelEntityAttributesAttr: map[string]any{
+									"discovery.event.type":    "statement.match",
+									"discovery.observer.id":   "an_observer/observer.name",
+									"discovery.receiver.name": "receiver.name",
+									"discovery.receiver.rule": "a.rule",
+									"discovery.receiver.type": "a_receiver",
+									"discovery.status":        string(status),
+									"discovery.message":       expectedMsg,
+									"name":                    `a_receiver/receiver.name/receiver_creator/rc.name/{endpoint=""}/endpoint.id`,
+									"attr.one":                "attr.one.value",
+									"attr.two":                "attr.two.value",
+									"field.one":               "field.one.value",
+									"field_two":               "field.two.value",
+								},
+							}, lr.Attributes().AsRaw())
 						})
 					}
 				})

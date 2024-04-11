@@ -23,8 +23,6 @@ import (
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/pdata/pcommon"
-	"go.opentelemetry.io/collector/pdata/plog"
 	"go.uber.org/zap"
 	"go.uber.org/zap/buffer"
 	"go.uber.org/zap/zapcore"
@@ -83,38 +81,25 @@ func StatementFromZapCoreEntry(encoder zapcore.Encoder, entry zapcore.Entry, fie
 	return statement, nil
 }
 
-func (s *Statement) ToLogRecord() plog.LogRecord {
-	logRecord := plog.NewLogRecord()
-	if s == nil {
-		return logRecord
-	}
-
-	logRecord.SetTimestamp(pcommon.NewTimestampFromTime(s.Time))
-	logRecord.SetObservedTimestamp(pcommon.NewTimestampFromTime(time.Now()))
-	logRecord.Body().SetStr(s.Message)
-	logRecord.Attributes().FromRaw(s.Fields)
-	return logRecord
-}
-
 // ReceiverNameToIDs parses the zap "name" field value according to
 // outcome of https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/12670
 // where receiver creator receiver names are of the form
 // `<receiver.type>/<receiver.name>/receiver_creator/<receiver-creator.name>{endpoint="<Endpoint.Target>"}/<Endpoint.ID>`.
 // If receiverName argument is not of this form empty Component and Endpoint IDs are returned.
-func ReceiverNameToIDs(record plog.LogRecord) (receiverID component.ID, endpointID observer.EndpointID) {
+func ReceiverNameToIDs(statement *Statement) (component.ID, observer.EndpointID) {
 	// The receiver creator sets dynamically created receiver names as the zap "name" field for their component logger.
-	nameAttr, ok := record.Attributes().Get("name")
+	nameField, ok := statement.Fields["name"]
 	if !ok {
 		// there is nothing we can do without a receiver name
 		return discovery.NoType, ""
 	}
-	receiverName := nameAttr.AsString()
+	receiverName := fmt.Sprintf("%s", nameField)
 
 	// The receiver creator will log an initial start statement not from the underlying receiver's logger.
 	// These statements have an "endpoint_id" field and the "name" field won't include the necessary "receiver_creator/"
 	// and "{endpoint=<endpoint.Target>}" separators. In this case we get the EndpointID, if any, and form a placeholder name of desired form.
-	if endpointIDAttr, hasEndpointID := record.Attributes().Get("endpoint_id"); hasEndpointID {
-		receiverName = fmt.Sprintf(`%s/receiver_creator/<PLACEHOLDER>/{endpoint="PLACEHOLDER"}/%s`, receiverName, endpointIDAttr.AsString())
+	if endpointID, hasEndpointID := statement.Fields["endpoint_id"]; hasEndpointID {
+		receiverName = fmt.Sprintf(`%s/receiver_creator/<PLACEHOLDER>/{endpoint="PLACEHOLDER"}/%s`, receiverName, endpointID)
 	}
 
 	// receiver creator generated and altered initial endpoint handler message names must contain

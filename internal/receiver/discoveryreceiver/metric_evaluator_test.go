@@ -110,15 +110,7 @@ func TestMetricEvaluation(t *testing.T) {
 					require.Equal(t, 1, emitted.LogRecordCount())
 
 					rl := emitted.ResourceLogs().At(0)
-					rAttrs = rl.Resource().Attributes()
-					require.Equal(t, map[string]any{
-						"discovery.endpoint.id":   "endpoint.id",
-						"discovery.event.type":    "metric.match",
-						"discovery.observer.id":   "an_observer/observer.name",
-						"discovery.receiver.name": "receiver.name",
-						"discovery.receiver.rule": "a.rule",
-						"discovery.receiver.type": "a_receiver",
-					}, rAttrs.AsRaw())
+					require.Equal(t, 0, rl.Resource().Attributes().Len())
 
 					sLogs := rl.ScopeLogs()
 					require.Equal(t, 1, sLogs.Len())
@@ -129,13 +121,23 @@ func TestMetricEvaluation(t *testing.T) {
 
 					lrAttrs := lr.Attributes()
 					require.Equal(t, map[string]any{
-						"discovery.status": string(status),
-						"metric.name":      "desired.name",
-						"one":              "one.value",
-						"two":              "two.value",
+						discovery.OtelEntityIDAttr: map[string]any{
+							"discovery.endpoint.id": "endpoint.id",
+						},
+						discovery.OtelEntityEventTypeAttr: discovery.OtelEntityEventTypeState,
+						discovery.OtelEntityAttributesAttr: map[string]any{
+							"discovery.event.type":    "metric.match",
+							"discovery.observer.id":   "an_observer/observer.name",
+							"discovery.receiver.name": "receiver.name",
+							"discovery.receiver.rule": "a.rule",
+							"discovery.receiver.type": "a_receiver",
+							"discovery.status":        string(status),
+							"discovery.message":       "desired body content",
+							"metric.name":             "desired.name",
+							"one":                     "one.value",
+							"two":                     "two.value",
+						},
 					}, lrAttrs.AsRaw())
-
-					require.Equal(t, "desired body content", lr.Body().AsString())
 				})
 			}
 		})

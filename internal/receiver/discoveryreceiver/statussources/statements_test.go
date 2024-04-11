@@ -21,7 +21,6 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/pdata/plog"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest"
@@ -64,34 +63,6 @@ func TestStatementFromZapCoreEntryUnsupportedEncoder(t *testing.T) {
 	statement, err := StatementFromZapCoreEntry(encoder, entry, nil)
 	require.ErrorContains(t, err, "failed representing encoded zapcore.Entry")
 	require.Nil(t, statement)
-}
-
-func TestStatementToLogRecord(t *testing.T) {
-	logger := zaptest.NewLogger(t).Named("logger.name")
-	encoder := NewZapCoreEncoder()
-	ce := logger.Check(zap.DebugLevel, "a.message")
-	entry := ce.Entry
-
-	now := time.Now()
-	entry.Time = now
-	statement, err := StatementFromZapCoreEntry(encoder, entry, []zapcore.Field{
-		zap.String("field.one", "field.value"), zap.String("field.two", "another.field.value"),
-		zap.Int("int", 1), zap.Bool("bool", true),
-	})
-	require.NoError(t, err)
-	require.NotNil(t, statement)
-
-	t0 := time.Now()
-	lr := statement.ToLogRecord()
-
-	require.Equal(t, "a.message", lr.Body().AsString())
-	require.Equal(t, now.UTC(), lr.Timestamp().AsTime())
-	require.GreaterOrEqual(t, lr.ObservedTimestamp().AsTime(), t0)
-	require.Equal(t, map[string]any{
-		"field.one": "field.value", "field.two": "another.field.value",
-		"logger": "logger.name", "bool": true, "int": float64(1), // becomes a float in json unmarshalling
-	}, lr.Attributes().AsRaw())
-
 }
 
 func TestReceiverNameToIDs(t *testing.T) {
@@ -143,9 +114,8 @@ func TestReceiverNameToIDs(t *testing.T) {
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			lr := plog.NewLogRecord()
-			lr.Attributes().PutStr("name", test.receiverName)
-			receiverID, endpointID := ReceiverNameToIDs(lr)
+			statement := &Statement{Fields: map[string]any{"name": test.receiverName}}
+			receiverID, endpointID := ReceiverNameToIDs(statement)
 			require.Equal(t, test.expectedReceiverID, receiverID)
 			require.Equal(t, test.expectedEndpointID, endpointID)
 		})
@@ -167,9 +137,8 @@ func FuzzReceiverNameToIDs(f *testing.F) {
 	}
 	f.Fuzz(func(t *testing.T, receiverName string) {
 		require.NotPanics(t, func() {
-			lr := plog.NewLogRecord()
-			lr.Attributes().PutStr("name", receiverName)
-			receiverID, endpointID := ReceiverNameToIDs(lr)
+			statement := &Statement{Fields: map[string]any{"name": receiverName}}
+			receiverID, endpointID := ReceiverNameToIDs(statement)
 			// if we can't find a receiver we should never return an EndpointID
 			if receiverID == discovery.NoType {
 				require.Equal(t, observer.EndpointID(""), endpointID)

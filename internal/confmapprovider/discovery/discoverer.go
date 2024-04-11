@@ -641,8 +641,8 @@ func (d *discoverer) Capabilities() consumer.Capabilities {
 	return consumer.Capabilities{}
 }
 
-// ConsumeLogs will walk through all discovery receiver-emitted logs and store all receiver and observer statuses,
-// including reported receiver configs from their discovery.receiver.config attribute. It is a consumer.Logs method.
+// ConsumeLogs will walk through all discovery receiver-emitted entity events and store all receiver and observer
+// statuses, including reported receiver configs from their discovery.receiver.config attribute. It is a consumer.Logs method.
 func (d *discoverer) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 	if ld.LogRecordCount() == 0 {
 		return nil
@@ -660,12 +660,26 @@ func (d *discoverer) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 			observerID            component.ID
 			err                   error
 		)
-		rlog := rlogs.At(i)
-		rAttrs := rlog.Resource().Attributes()
-		if rName, ok := rAttrs.Get(discovery.ReceiverNameAttr); ok {
+
+		// We assume that every resource log has a single log record as per the current implementation of the discovery receiver.
+		lr := rlogs.At(i).ScopeLogs().At(0).LogRecords().At(0)
+
+		// Only interested in entity events that are of type entity_state.
+		if entityEventType, ok := lr.Attributes().Get(discovery.OtelEntityEventTypeAttr); !ok || entityEventType.Str() != discovery.OtelEntityEventTypeState {
+			continue
+		}
+
+		oea, ok := lr.Attributes().Get(discovery.OtelEntityAttributesAttr)
+		if !ok {
+			d.logger.Debug("invalid entity event without attributes", zap.Any("log record", lr))
+			continue
+		}
+		entityAttrs := oea.Map()
+
+		if rName, hasName := entityAttrs.Get(discovery.ReceiverNameAttr); hasName {
 			receiverName = rName.Str()
 		}
-		rType, ok := rAttrs.Get(discovery.ReceiverTypeAttr)
+		rType, ok := entityAttrs.Get(discovery.ReceiverTypeAttr)
 		if !ok {
 			// nothing we can do without this one
 			continue
@@ -675,10 +689,11 @@ func (d *discoverer) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 			d.logger.Debug("invalid receiver type", zap.Error(err))
 			continue
 		}
-		if rConfig, ok := rAttrs.Get(discovery.ReceiverConfigAttr); ok {
+		if rConfig, hasConfig := entityAttrs.Get(discovery.ReceiverConfigAttr); hasConfig {
 			receiverConfig = rConfig.Str()
 		}
-		if rObsID, ok := rAttrs.Get(discovery.ObserverIDAttr); ok {
+
+		if rObsID, hasObsID := entityAttrs.Get(discovery.ObserverIDAttr); hasObsID {
 			obsID = rObsID.Str()
 		}
 
@@ -693,8 +708,14 @@ func (d *discoverer) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 			}
 		}
 
+		entityIDAttr, ok := lr.Attributes().Get(discovery.OtelEntityIDAttr)
+		if !ok {
+			d.logger.Debug("invalid entity event without id", zap.Any("log record", lr))
+			continue
+		}
+
 		endpointID := "unavailable"
-		if eid, k := rAttrs.Get(discovery.EndpointIDAttr); k {
+		if eid, k := entityIDAttr.Map().Get(discovery.EndpointIDAttr); k {
 			endpointID = eid.AsString()
 		}
 
@@ -733,21 +754,24 @@ func (d *discoverer) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 		currentReceiverStatus := d.discoveredReceivers[receiverID]
 		currentObserverStatus := d.discoveredObservers[observerID]
 
-		// We assume that every resource log has a single log record as per the current implementation of the discovery receiver.
-		lr := rlog.ScopeLogs().At(0).LogRecords().At(0)
 		if currentReceiverStatus != discovery.Successful || currentObserverStatus != discovery.Successful {
-			if rStatusAttr, ok := lr.Attributes().Get(discovery.StatusAttr); ok {
+			if rStatusAttr, ok := entityAttrs.Get(discovery.StatusAttr); ok {
 				rStatus := discovery.StatusType(rStatusAttr.Str())
 				if valid, e := discovery.IsValidStatus(rStatus); !valid {
-					d.logger.Debug("invalid status from log record", zap.Error(e), zap.Any("lr", lr.Body().AsRaw()))
+					d.logger.Debug("invalid status from log record", zap.Error(e), zap.Any("lr", lr))
 					continue
+				}
+				var msg string
+				msgAttr, hasMsg := entityAttrs.Get(discovery.MessageAttr)
+				if hasMsg {
+					msg = msgAttr.AsString()
 				}
 				receiverStatus := determineCurrentStatus(currentReceiverStatus, rStatus)
 				switch receiverStatus {
 				case discovery.Failed:
-					d.logger.Info(fmt.Sprintf("failed to discover %q using %q endpoint %q: %s", receiverID, observerID, endpointID, lr.Body().AsString()))
+					d.logger.Info(fmt.Sprintf("failed to discover %q using %q endpoint %q: %s", receiverID, observerID, endpointID, msg))
 				case discovery.Partial:
-					fmt.Fprintf(os.Stderr, "Partially discovered %q using %q endpoint %q: %s\n", receiverID, observerID, endpointID, lr.Body().AsString())
+					fmt.Fprintf(os.Stderr, "Partially discovered %q using %q endpoint %q: %s\n", receiverID, observerID, endpointID, msg)
 				case discovery.Successful:
 					fmt.Fprintf(os.Stderr, "Successfully discovered %q using %q endpoint %q.\n", receiverID, observerID, endpointID)
 				}

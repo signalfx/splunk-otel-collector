@@ -250,6 +250,11 @@ jobs:
           name: msi-build
           path: ./dist
 
+      - name: Ensure required ports in the dynamic range are available
+        run: |
+          $ErrorActionPreference = 'Continue'
+          & ${{ github.workspace }}\.github\workflows\scripts\win-required-ports.ps1
+
       - name: Install the collector
         run: |
           $ErrorActionPreference = 'Stop'
@@ -322,6 +327,11 @@ jobs:
         with:
           name: msi-build
           path: ./dist
+
+      - name: Ensure required ports in the dynamic range are available
+        run: |
+          $ErrorActionPreference = 'Continue'
+          & ${{ github.workspace }}\.github\workflows\scripts\win-required-ports.ps1
 
       - name: Installation test
         env:
@@ -417,6 +427,11 @@ jobs:
         with:
           name: choco-build
           path: ./dist
+
+      - name: Ensure required ports in the dynamic range are available
+        run: |
+          $ErrorActionPreference = 'Continue'
+          & ${{ github.workspace }}\.github\workflows\scripts\win-required-ports.ps1
 
       - name: Chocolatey ${{ matrix.SCENARIO }} test
         env:

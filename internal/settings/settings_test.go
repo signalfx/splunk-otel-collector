@@ -33,11 +33,10 @@ import (
 )
 
 var (
-	configPath           = filepath.Join(".", "testdata", "config.yaml")
-	anotherConfigPath    = filepath.Join(".", "testdata", "another-config.yaml")
-	localGatewayConfig   = filepath.Join("..", "..", "cmd/otelcol/config/collector/gateway_config.yaml")
-	localOTLPLinuxConfig = filepath.Join("..", "..", "cmd/otelcol/config/collector/otlp_config_linux.yaml")
-	propertiesPath       = filepath.Join(".", "testdata", "properties.yaml")
+	configPath         = filepath.Join(".", "testdata", "config.yaml")
+	anotherConfigPath  = filepath.Join(".", "testdata", "another-config.yaml")
+	localGatewayConfig = filepath.Join("..", "..", "cmd/otelcol/config/collector/gateway_config.yaml")
+	propertiesPath     = filepath.Join(".", "testdata", "properties.yaml")
 )
 
 func TestNewSettingsWithUnknownFlagsNotAcceptable(t *testing.T) {
@@ -423,25 +422,25 @@ service:
 		{
 			name:                "Flag --config precedences env SPLUNK_CONFIG and SPLUNK_CONFIG_YAML",
 			configFlagVals:      []string{localGatewayConfig},
-			splunkConfigVal:     localOTLPLinuxConfig,
+			splunkConfigVal:     anotherConfigPath,
 			splunkConfigYamlVal: validConfig,
 			expectedLogs: []string{
-				fmt.Sprintf("Both environment variable SPLUNK_CONFIG and flag '--config' were specified. Using the flag values and ignoring the environment variable value %s in this session", localOTLPLinuxConfig),
+				fmt.Sprintf("Both environment variable SPLUNK_CONFIG and flag '--config' were specified. Using the flag values and ignoring the environment variable value %s in this session", anotherConfigPath),
 				fmt.Sprintf("Set config to [%v]", localGatewayConfig),
 			},
 			unexpectedLogs: []string{
-				fmt.Sprintf("Set config to [%v]", localOTLPLinuxConfig),
+				fmt.Sprintf("Set config to [%v]", anotherConfigPath),
 				fmt.Sprintf("Using environment variable %s for configuration", ConfigYamlEnvVar),
 			},
 		},
 		{
 			name:                "env SPLUNK_CONFIG precedences SPLUNK_CONFIG_YAML",
 			configFlagVals:      []string{},
-			splunkConfigVal:     localOTLPLinuxConfig,
+			splunkConfigVal:     anotherConfigPath,
 			splunkConfigYamlVal: validConfig,
 			expectedLogs: []string{
-				fmt.Sprintf("Both %s and %s were specified. Using %s environment variable value %s for this session", ConfigEnvVar, ConfigYamlEnvVar, ConfigEnvVar, localOTLPLinuxConfig),
-				fmt.Sprintf("Set config to %v", localOTLPLinuxConfig),
+				fmt.Sprintf("Both %s and %s were specified. Using %s environment variable value %s for this session", ConfigEnvVar, ConfigYamlEnvVar, ConfigEnvVar, anotherConfigPath),
+				fmt.Sprintf("Set config to %v", anotherConfigPath),
 			},
 			unexpectedLogs: []string{
 				fmt.Sprintf("Set config to [%v]", localGatewayConfig),
@@ -458,17 +457,17 @@ service:
 			},
 			unexpectedLogs: []string{
 				fmt.Sprintf("Set config to %v", localGatewayConfig),
-				fmt.Sprintf("Set config to %v", localOTLPLinuxConfig),
+				fmt.Sprintf("Set config to %v", anotherConfigPath),
 			},
 		},
 		{
 			name:                "Flag --config precedences other envvars, works with multiple values",
-			configFlagVals:      []string{localGatewayConfig, localOTLPLinuxConfig},
+			configFlagVals:      []string{localGatewayConfig, anotherConfigPath},
 			splunkConfigVal:     "",
 			splunkConfigYamlVal: validConfig,
 			expectedLogs: []string{
 				fmt.Sprintf("Both environment variable %s and flag '--config' were specified. Using the flag values and ignoring the environment variable in this session", ConfigYamlEnvVar),
-				fmt.Sprintf("Set config to [%v,%v]", localGatewayConfig, localOTLPLinuxConfig),
+				fmt.Sprintf("Set config to [%v,%v]", localGatewayConfig, anotherConfigPath),
 			},
 			unexpectedLogs: []string{
 				fmt.Sprintf("Using environment variable %s for configuration", ConfigYamlEnvVar),

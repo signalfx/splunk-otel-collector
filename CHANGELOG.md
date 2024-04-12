@@ -13,6 +13,8 @@
   - Remove `first_only`  field from match struct. Events are always emitted only once for first matching metric or log statement ([#4593](https://github.com/signalfx/splunk-otel-collector/pull/4593))
   - Combine matching conditions with different statuses in one list ([#4588](https://github.com/signalfx/splunk-otel-collector/pull/4588))
   - Apply entity events schema to the logs emitted by the receiver ([#4638](https://github.com/signalfx/splunk-otel-collector/pull/4638))
+- (Splunk) Remove otlp_config_linux.yaml from docker image ([#4658](https://github.com/signalfx/splunk-otel-collector/pull/4658))
+  - It doesn't provide much value after the default configs migrated from SAPM to OTLP exporter.
 
 ## v0.97.0
 

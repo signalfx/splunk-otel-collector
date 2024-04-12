@@ -51,10 +51,6 @@ data for [Splunk Observability Cloud](https://www.splunk.com/en_us/observability
 - [Splunk APM](https://docs.splunk.com/Observability/apm/intro-to-apm.html#nav-Introduction-to-Splunk-APM) via the
   [`otlp` exporter](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlpexporter).
 
-  The [`otlphttp`
-  exporter](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlphttpexporter)
-  can be used [as well](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/otelcol/config/collector/otlp_config_linux.yaml).
-  
   [The `sapm` exporter]((https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/sapmexporter)) is deprecated and supported until April 2025.
   
   More information available

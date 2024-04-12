@@ -332,7 +332,6 @@ RUN find /usr/local/lib/python3.11 -wholename "*test*.key" -delete -or -wholenam
 FROM base as extra-packages
 
 RUN apt-get install -qq -y \
-        curl \
         host \
         iproute2 \
         libtirpc3
@@ -355,7 +354,6 @@ ENV useful_bins=" \
   /bin/sh \
   /bin/ss \
   /bin/umount \
-  /usr/bin/curl \
   /usr/bin/dirname \
   /usr/bin/find \
   /usr/bin/host \

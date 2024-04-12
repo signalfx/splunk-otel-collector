@@ -23,7 +23,7 @@
 
 ### 🚀 New components 🚀
 
-- (Splunk) Add SQL Server receiver
+- (Splunk) Add SQL Server receiver ([#4649](https://github.com/signalfx/splunk-otel-collector/pull/4649))
 
 ### 💡 Enhancements 💡
 

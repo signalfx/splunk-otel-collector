@@ -18,7 +18,7 @@
 
 ### 🚩 Deprecations 🚩
 
-- `postgresqlreceiver`: Minimal supported PostgreSQL version will be updated from 9.6 to 12.0 in a future release. ([#30923](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/30923))
+- (Contrib) `postgresqlreceiver`: Minimal supported PostgreSQL version will be updated from 9.6 to 12.0 in a future release. ([#30923](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/30923))
   Aligning on the supported versions as can be seen [in the PostgreSQL releases section](https://www.postgresql.org/support/versioning)
 
 ### 🚀 New components 🚀

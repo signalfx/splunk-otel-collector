@@ -12,6 +12,7 @@
   - Combine matching conditions with different statuses in one list ([#4588](https://github.com/signalfx/splunk-otel-collector/pull/4588))
   - Apply entity events schema to the logs emitted by the receiver ([#4638](https://github.com/signalfx/splunk-otel-collector/pull/4638))
   - Emit only one log record per matched endpoint ([#4586](https://github.com/signalfx/splunk-otel-collector/pull/4586))
+- (Core) `service`: emit internal collector metrics with _ instead of / with OTLP export ([#9774](https://github.com/open-telemetry/opentelemetry-collector/issues/9774))
 - (Contrib) `pkg/stanza`: Revert recombine operator's 'overwrite_with' default value. ([#30783](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/30783))
 - (Contrib) `processor/attributes, processor/resource`: Remove stable coreinternal.attraction.hash.sha256 feature gate. ([#31997](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/31997))
 
@@ -28,6 +29,8 @@
 
 - (Splunk) Use OTLP by default instead of SAPM ([#4270](https://github.com/signalfx/splunk-otel-collector/pull/4270))
 - (Splunk) Automatically set `splunk_otlp_histograms: true` for collector telemetry exported via `signalfx` metrics exporter ([#4655](https://github.com/signalfx/splunk-otel-collector/pull/4655))
+- (Core) `otlpexporter`: Checks for port in the config validation for the otlpexporter ([#9505](https://github.com/open-telemetry/opentelemetry-collector/issues/9505))
+- (Core) `service`: Validate pipeline type against component types ([#8007](https://github.com/open-telemetry/opentelemetry-collector/issues/8007))
 - (Contrib) `ottl`: Add new Unix function to convert from epoch timestamp to time.Time ([#27868](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27868))
 - (Contrib) `filelogreceiver`: When reading a file on filelogreceiver not on windows, if include_file_owner_name is true, it will add the file owner name as the attribute `log.file.owner.name` and if include_file_owner_group_name is true, it will add the file owner group name as the attribute `log.file.owner.group.name`. ([#30775](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/30775))
 - (Contrib) - `prometheusreceiver`: Allows receiving prometheus native histograms ([#26555](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/26555))
@@ -47,6 +50,10 @@
 ### 🧰 Bug fixes 🧰
 
 - (Splunk) `discovery`: Don't use component.MustNewIDWithName ([#4565](https://github.com/signalfx/splunk-otel-collector/pull/4565))
+- (Core) `configtls`: Fix issue where `IncludeSystemCACertsPool` was not consistently used between `ServerConfig` and `ClientConfig`. ([#9835](https://github.com/open-telemetry/opentelemetry-collector/issues/9863))
+- (Core) `component`: Fix issue where the `components` command wasn't properly printing the component type. ([#9856](https://github.com/open-telemetry/opentelemetry-collector/pull/9856))
+- (Core) `otelcol`: Fix issue where the `validate` command wasn't properly printing valid component type. ([#9866](https://github.com/open-telemetry/opentelemetry-collector/pull/9866))
+- (Core) `receiver/otlp`: Fix bug where the otlp receiver did not properly respond with a retryable error code when possible for http ([#9357](https://github.com/open-telemetry/opentelemetry-collector/pull/9357))
 - (Contrib) `filelogreceiver`: Fix missing scope name and group logs based on scope ([#23387](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/23387))
 - (Contrib) `jmxreceiver`: Fix memory leak during component shutdown ([#32289](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/32289))
 - (Contrib) `k8sobjectsreceiver`: Fix memory leak caused by the pull mode's interval ticker ([#31919](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/31919))

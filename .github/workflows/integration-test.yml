@@ -110,22 +110,17 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Changed service files
-        id: changed-services
-        uses: tj-actions/changed-files@v44
-        with:
-          files: docker/*/**
-      - name: Build changed services
-        if: steps.changed-services.outputs.any_changed == 'true'
-        env:
-          CHANGED_SERVICES: ${{ steps.changed-services.outputs.all_changed_files }}
+      - name: Build ${{ matrix.PROFILE }} service images
         run: |
-          for i in $CHANGED_SERVICES; do
-            service=$( echo $i | cut -d '/' -f2 )
-            if [[ -f docker/${service}/Dockerfile ]] && grep -q "image: quay.io/splunko11ytest/${service}:latest" docker/docker-compose.yml; then
-              docker build -t quay.io/splunko11ytest/${service}:latest docker/${service}
+          images=$(yq '.services[] | select(.profiles[] | contains("${{ matrix.PROFILE }}")) | .image' docker/docker-compose.yml | grep "quay.io/splunko11ytest/" | sort -u)
+          for image in $images; do
+            service=$(echo $image | sed 's|quay.io/splunko11ytest/\(.*\):latest|\1|')
+            if [[ -f docker/${service}/Dockerfile ]]; then
+              docker build --cache-from=quay.io/splunko11ytest/${service}:latest -t quay.io/splunko11ytest/${service}:latest docker/${service}
             fi
           done
+          docker system prune -f
+          docker builder prune -f
           docker images
       - run: docker compose -f docker/docker-compose.yml --profile ${{ matrix.PROFILE }} up -d --quiet-pull
       - uses: actions/setup-go@v5

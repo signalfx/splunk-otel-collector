@@ -29,6 +29,7 @@
 
 - (Splunk) Use OTLP by default instead of SAPM ([#4270](https://github.com/signalfx/splunk-otel-collector/pull/4270))
 - (Splunk) Automatically set `splunk_otlp_histograms: true` for collector telemetry exported via `signalfx` metrics exporter ([#4655](https://github.com/signalfx/splunk-otel-collector/pull/4655))
+- (Splunk) Windows installer now removes the unused configuration files from the installation directory ([#4645](https://github.com/signalfx/splunk-otel-collector/pull/4645))
 - (Core) `otlpexporter`: Checks for port in the config validation for the otlpexporter ([#9505](https://github.com/open-telemetry/opentelemetry-collector/issues/9505))
 - (Core) `service`: Validate pipeline type against component types ([#8007](https://github.com/open-telemetry/opentelemetry-collector/issues/8007))
 - (Contrib) `ottl`: Add new Unix function to convert from epoch timestamp to time.Time ([#27868](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27868))

@@ -3,7 +3,7 @@ discovery:
     - an_observer
   receivers:
     receiver/with{endpoint=}/:
-      rule: a rule
+      rule: type == "container"
       status:
         metrics:
           - status: successful

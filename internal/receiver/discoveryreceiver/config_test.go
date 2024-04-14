@@ -40,7 +40,7 @@ func TestValidConfig(t *testing.T) {
 
 	assert.Equal(t, 1, len(configs.ToStringMap()))
 
-	cm, err := configs.Sub("discovery/discovery-name")
+	cm, err := configs.Sub("discovery")
 	require.NoError(t, err)
 	cfg := createDefaultConfig().(*Config)
 	err = component.UnmarshalConfig(cm, cfg)
@@ -97,7 +97,7 @@ func TestValidConfig(t *testing.T) {
 				ResourceAttributes: map[string]string{
 					"receiver_attribute": "receiver_attribute_value",
 				},
-				Rule: "type == \"container\"",
+				Rule: mustNewRule(`type == "container" && name matches "(?i)redis"`),
 			},
 		},
 		LogEndpoints:        true,
@@ -146,7 +146,7 @@ func TestInvalidConfigs(t *testing.T) {
 func TestReceiverCreatorFactoryAndConfig(t *testing.T) {
 	conf, err := confmaptest.LoadConf(path.Join(".", "testdata", "config.yaml"))
 	require.NoError(t, err)
-	conf, err = conf.Sub("discovery/discovery-name")
+	conf, err = conf.Sub("discovery")
 	require.NoError(t, err)
 	require.NotEmpty(t, conf.ToStringMap())
 	dCfg := Config{}
@@ -171,7 +171,7 @@ func TestReceiverCreatorFactoryAndConfig(t *testing.T) {
 
 	receiverTemplate, err := dCfg.receiverCreatorReceiversConfig(correlations)
 	require.NoError(t, err)
-	expectedConfigHash := "cmVjZWl2ZXJzOgogIHNtYXJ0YWdlbnQvcmVkaXM6CiAgICBjb25maWc6CiAgICAgIGF1dGg6IHBhc3N3b3JkCiAgICAgIGhvc3Q6ICdgaG9zdGAnCiAgICAgIHBvcnQ6ICdgcG9ydGAnCiAgICAgIHR5cGU6IGNvbGxlY3RkL3JlZGlzCiAgICByZXNvdXJjZV9hdHRyaWJ1dGVzOgogICAgICByZWNlaXZlcl9hdHRyaWJ1dGU6IHJlY2VpdmVyX2F0dHJpYnV0ZV92YWx1ZQogICAgcnVsZTogdHlwZSA9PSAiY29udGFpbmVyIgo="
+	expectedConfigHash := "cmVjZWl2ZXJzOgogIHNtYXJ0YWdlbnQvcmVkaXM6CiAgICBjb25maWc6CiAgICAgIGF1dGg6IHBhc3N3b3JkCiAgICAgIGhvc3Q6ICdgaG9zdGAnCiAgICAgIHBvcnQ6ICdgcG9ydGAnCiAgICAgIHR5cGU6IGNvbGxlY3RkL3JlZGlzCiAgICByZXNvdXJjZV9hdHRyaWJ1dGVzOgogICAgICByZWNlaXZlcl9hdHRyaWJ1dGU6IHJlY2VpdmVyX2F0dHJpYnV0ZV92YWx1ZQogICAgcnVsZTogdHlwZSA9PSAiY29udGFpbmVyIiAmJiBuYW1lIG1hdGNoZXMgIig/aSlyZWRpcyIK"
 	expectedTemplate := map[string]any{
 		"smartagent/redis": map[string]any{
 			"config": map[string]any{
@@ -184,11 +184,11 @@ func TestReceiverCreatorFactoryAndConfig(t *testing.T) {
 				"discovery.endpoint.id":     "`id`",
 				"discovery.receiver.config": expectedConfigHash,
 				"discovery.receiver.name":   "redis",
-				"discovery.receiver.rule":   `type == "container"`,
+				"discovery.receiver.rule":   `type == "container" && name matches "(?i)redis"`,
 				"discovery.receiver.type":   "smartagent",
 				"receiver_attribute":        "receiver_attribute_value",
 			},
-			"rule": `type == "container"`,
+			"rule": `type == "container" && name matches "(?i)redis"`,
 		},
 	}
 	require.Equal(t, expectedTemplate, receiverTemplate)
@@ -209,7 +209,7 @@ func TestReceiverCreatorFactoryAndConfig(t *testing.T) {
 				"resource_attributes": map[any]any{
 					"receiver_attribute": "receiver_attribute_value",
 				},
-				"rule": `type == "container"`,
+				"rule": `type == "container" && name matches "(?i)redis"`,
 			},
 		},
 	}, embedded)

@@ -39,12 +39,12 @@ var (
 )
 
 type endpointTracker struct {
+	config       *Config
 	logger       *zap.Logger
 	pLogs        chan plog.Logs
 	observables  map[component.ID]observer.Observable
 	correlations correlationStore
 	notifies     []*notify
-	logEndpoints bool
 }
 
 type notify struct {
@@ -58,7 +58,7 @@ func newEndpointTracker(
 	observables map[component.ID]observer.Observable, config *Config, logger *zap.Logger,
 	pLogs chan plog.Logs, correlations correlationStore) *endpointTracker {
 	return &endpointTracker{
-		logEndpoints: config.LogEndpoints,
+		config:       config,
 		observables:  observables,
 		logger:       logger,
 		pLogs:        pLogs,
@@ -90,7 +90,7 @@ func (et *endpointTracker) stop() {
 }
 
 func (et *endpointTracker) emitEndpointLogs(observerCID component.ID, eventType endpointState, endpoints []observer.Endpoint, received time.Time) {
-	if et.logEndpoints && et.pLogs != nil {
+	if et.config.LogEndpoints && et.pLogs != nil {
 		pLogs, numFailed, err := endpointToPLogs(observerCID, fmt.Sprintf("endpoint.%s", eventType), endpoints, received)
 		if err != nil {
 			et.logger.Warn(fmt.Sprintf("failed converting %v endpoints to log records", numFailed), zap.Error(err))
@@ -103,8 +103,42 @@ func (et *endpointTracker) emitEndpointLogs(observerCID component.ID, eventType 
 
 func (et *endpointTracker) updateEndpoints(endpoints []observer.Endpoint, state endpointState, observerID component.ID) {
 	for _, endpoint := range endpoints {
-		et.correlations.UpdateEndpoint(endpoint, state, observerID)
+		endpointEnv, err := endpoint.Env()
+		if err != nil {
+			et.logger.Error("failed receiving endpoint environment", zap.String("endpoint", string(endpoint.ID)), zap.Error(err))
+			continue
+		}
+		receivers := et.matchingReceivers(endpointEnv)
+		if len(receivers) == 0 {
+			et.logger.Debug("endpoint matched no receivers, skipping", zap.String("endpoint", string(endpoint.ID)))
+			continue
+		}
+		if len(receivers) > 1 {
+			var receiverNames string
+			for _, receiverID := range receivers {
+				receiverNames += receiverID.String() + " "
+			}
+			et.logger.Warn("endpoint matched multiple receivers, skipping", zap.String("endpoint",
+				string(endpoint.ID)), zap.String("receivers", receiverNames))
+			continue
+		}
+		et.correlations.UpdateEndpoint(endpoint, receivers[0], state, observerID)
 	}
+}
+
+func (et *endpointTracker) matchingReceivers(endpointEnv observer.EndpointEnv) []component.ID {
+	var matchingReceivers []component.ID
+	for receiverID, receiverCfg := range et.config.Receivers {
+		ok, err := receiverCfg.Rule.eval(endpointEnv)
+		if err != nil {
+			et.logger.Error("failed matching rule", zap.String("rule", receiverCfg.Rule.String()), zap.Error(err))
+			continue
+		}
+		if ok {
+			matchingReceivers = append(matchingReceivers, receiverID)
+		}
+	}
+	return matchingReceivers
 }
 
 func (n *notify) ID() observer.NotifyID {

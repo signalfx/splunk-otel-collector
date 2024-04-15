@@ -247,6 +247,12 @@ func TestDefaultAgentConfig(t *testing.T) {
 					"debug": map[string]any{
 						"verbosity": "detailed",
 					},
+					"otlp/gateway": map[string]any{
+						"endpoint": ":4317",
+						"tls": map[string]any{
+							"insecure": true,
+						},
+					},
 					"otlp": map[string]any{
 						"headers": map[string]any{
 							"X-SF-Token": "<redacted>",

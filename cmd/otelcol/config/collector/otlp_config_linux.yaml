@@ -1,34 +1,23 @@
-# Configuration file that uses the Splunk exporters (SAPM, SignalFx) to push
-# data to Splunk products.
-
-extensions:
-  health_check:
-    endpoint: "${SPLUNK_LISTEN_INTERFACE}:13133"
-  http_forwarder:
-    ingress:
-      endpoint: "${SPLUNK_LISTEN_INTERFACE}:6060"
-    egress:
-      endpoint: "https://api.${SPLUNK_REALM}.signalfx.com"
-  zpages:
-    endpoint: "${SPLUNK_LISTEN_INTERFACE}:55679"
+# Configuration file that uses the OTLP exporters to push data to Splunk products.
+# Currently supports only tracing.
 
 receivers:
   jaeger:
     protocols:
       grpc:
-        endpoint: "${SPLUNK_LISTEN_INTERFACE}:14250"
+        endpoint: 0.0.0.0:14250
       thrift_binary:
-        endpoint: "${SPLUNK_LISTEN_INTERFACE}:6832"
+        endpoint: 0.0.0.0:6832
       thrift_compact:
-        endpoint: "${SPLUNK_LISTEN_INTERFACE}:6831"
+        endpoint: 0.0.0.0:6831
       thrift_http:
-        endpoint: "${SPLUNK_LISTEN_INTERFACE}:14268"
+        endpoint: 0.0.0.0:14268
   otlp:
     protocols:
       grpc:
-        endpoint: "${SPLUNK_LISTEN_INTERFACE}:4317"
+        endpoint: 0.0.0.0:4317
       http:
-        endpoint: "${SPLUNK_LISTEN_INTERFACE}:4318"
+        endpoint: 0.0.0.0:4318
   # This section is used to collect the OpenTelemetry Collector metrics
   # Even if just a Splunk APM customer, these metrics are included
   prometheus/internal:
@@ -37,7 +26,7 @@ receivers:
       - job_name: 'otel-collector'
         scrape_interval: 10s
         static_configs:
-        - targets: ['${SPLUNK_LISTEN_INTERFACE}:8888']
+        - targets: ['0.0.0.0:8888']
         metric_relabel_configs:
           - source_labels: [ __name__ ]
             regex: 'otelcol_rpc_.*'
@@ -49,17 +38,20 @@ receivers:
             regex: 'otelcol_processor_batch_.*'
             action: drop
   sapm:
-    endpoint: "${SPLUNK_LISTEN_INTERFACE}:7276"
+    endpoint: 0.0.0.0:7276
     # Whether to preserve incoming access token and use instead of exporter token
     # default = false
     #access_token_passthrough: true
   signalfx:
-    endpoint: "${SPLUNK_LISTEN_INTERFACE}:9943"
+    endpoint: 0.0.0.0:9943
     # Whether to preserve incoming access token and use instead of exporter token
     # default = false
     #access_token_passthrough: true
+  smartagent/signalfx-forwarder:
+    type: signalfx-forwarder
+    listenAddress: 0.0.0.0:9080
   zipkin:
-    endpoint: "${SPLUNK_LISTEN_INTERFACE}:9411"
+    endpoint: 0.0.0.0:9411
 
 processors:
   batch:
@@ -89,67 +81,49 @@ processors:
 
 exporters:
   # Traces
-  sapm:
-    access_token: "${SPLUNK_ACCESS_TOKEN}"
-    endpoint: "https://ingest.${SPLUNK_REALM}.signalfx.com/v2/trace"
-    sending_queue:
-      num_consumers: 32
+  otlphttp:
+    traces_endpoint: "https://ingest.${SPLUNK_REALM}.signalfx.com/v2/trace/otlp"
+    compression: gzip
+    headers:
+      "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
   # Metrics + Events
   signalfx:
     access_token: "${SPLUNK_ACCESS_TOKEN}"
     realm: "${SPLUNK_REALM}"
-    sending_queue:
-      num_consumers: 32
-    ## Uncomment below if your agents are sending via signalfx exporter
-    ## to avoid double translations and exclusions.
-    #translation_rules: []
-    #exclude_metrics: []
-  signalfx/internal:
-    access_token: "${SPLUNK_ACCESS_TOKEN}"
-    realm: "${SPLUNK_REALM}"
-    sync_host_metadata: true
   # Debug
   #debug:
     #verbosity: detailed
-  # Logs
-  splunk_hec:
-    token: "${SPLUNK_HEC_TOKEN}"
-    endpoint: "${SPLUNK_HEC_URL}"
-    source: "otel"
-    sourcetype: "otel"
-    profiling_data_enabled: false
-  # Profiling
-  splunk_hec/profiling:
-    token: "${SPLUNK_ACCESS_TOKEN}"
-    endpoint: "${SPLUNK_INGEST_URL}/v1/log"
-    log_data_enabled: false
+
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+  http_forwarder:
+    ingress:
+      endpoint: 0.0.0.0:6060
+    egress:
+      endpoint: "https://api.${SPLUNK_REALM}.signalfx.com"
+  zpages:
+    endpoint: 0.0.0.0:55679
 
 service:
-  telemetry:
-    metrics:
-      address: "${SPLUNK_LISTEN_INTERFACE}:8888"
   extensions: [health_check, http_forwarder, zpages]
   pipelines:
     traces:
-      receivers: [jaeger, otlp, sapm, zipkin]
+      receivers: [jaeger, otlp, smartagent/signalfx-forwarder, zipkin]
       processors:
       - memory_limiter
       - batch
       #- resource/add_environment
-      exporters: [sapm]
+      exporters: [otlphttp, signalfx]
     metrics:
-      receivers: [otlp, signalfx]
+      receivers: [otlp, signalfx, smartagent/signalfx-forwarder]
       processors: [memory_limiter, batch]
       exporters: [signalfx]
     metrics/internal:
       receivers: [prometheus/internal]
       processors: [memory_limiter, batch, resourcedetection/internal]
-      exporters: [signalfx/internal]
-    logs/signalfx:
+      exporters: [signalfx]
+    logs:
       receivers: [signalfx]
       processors: [memory_limiter, batch]
       exporters: [signalfx]
-    logs:
-      receivers: [otlp]
-      processors: [memory_limiter, batch]
-      exporters: [splunk_hec, splunk_hec/profiling]

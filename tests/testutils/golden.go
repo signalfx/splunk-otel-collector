@@ -53,7 +53,7 @@ func CheckGoldenFile(t *testing.T, configFile string, expectedFilePath string, o
 		dockerHost = "host.docker.internal"
 	}
 	p, err := NewCollectorContainer().
-		WithExposedPorts("55679:55679").
+		WithExposedPorts("55679:55679", "55554:55554"). // This is required for tests that read the zpages or the config.
 		WithConfigPath(filepath.Join("testdata", configFile)).
 		WithLogger(logger).
 		WithEnv(map[string]string{"OTLP_ENDPOINT": fmt.Sprintf("%s:%d", dockerHost, port)}).

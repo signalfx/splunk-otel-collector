@@ -36,7 +36,7 @@ SPLUNK_API_URL=https://api.us0.signalfx.com
 SPLUNK_INGEST_URL=https://ingest.us0.signalfx.com
 
 # Splunk trace endpoint URL.
-SPLUNK_TRACE_URL=https://ingest.us0.signalfx.com:443
+SPLUNK_TRACE_URL=https://ingest.us0.signalfx.com/v2/trace
 
 # Splunk HEC endpoint URL, if forwarding to Splunk Observability Cloud
 SPLUNK_HEC_URL=https://ingest.us0.signalfx.com/v1/log

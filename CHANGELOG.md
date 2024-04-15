@@ -14,8 +14,6 @@
   - Combine matching conditions with different statuses in one list ([#4588](https://github.com/signalfx/splunk-otel-collector/pull/4588))
   - Apply entity events schema to the logs emitted by the receiver ([#4638](https://github.com/signalfx/splunk-otel-collector/pull/4638))
 - (Splunk) Remove the `bash`, `curl`, `nc`, and `tar` command-line utilities from the collector packages/images and smart agent bundle ([#4646](https://github.com/signalfx/splunk-otel-collector/pull/4646))
-- (Splunk) Remove otlp_config_linux.yaml from docker image ([#4658](https://github.com/signalfx/splunk-otel-collector/pull/4658))
-  - It doesn't provide much value after the default configs migrated from SAPM to OTLP exporter.
 
 ## v0.97.0
 

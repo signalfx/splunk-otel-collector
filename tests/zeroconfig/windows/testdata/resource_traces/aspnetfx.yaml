@@ -2,6 +2,7 @@ resource_spans:
 - attributes:
     deployment.environment: zc-iis-test
     host.name: <ANY>
+    os.type: windows
     process.pid: <ANY>
     process.runtime.description: .NET Framework 4.8.4645.0
     process.runtime.name: .NET Framework

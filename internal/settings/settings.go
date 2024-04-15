@@ -54,8 +54,9 @@ const (
 	TokenEnvVar          = "SPLUNK_ACCESS_TOKEN" // this isn't a hardcoded token
 	TraceIngestURLEnvVar = "SPLUNK_TRACE_URL"
 
-	DefaultGatewayConfig = "/etc/otel/collector/gateway_config.yaml"
-	DefaultConfigDir     = "/etc/otel/collector/config.d"
+	DefaultGatewayConfig   = "/etc/otel/collector/gateway_config.yaml"
+	DefaultOTLPLinuxConfig = "/etc/otel/collector/otlp_config_linux.yaml"
+	DefaultConfigDir       = "/etc/otel/collector/config.d"
 
 	DefaultMemoryLimitPercentage = 90
 	DefaultMemoryTotalMiB        = 512
@@ -397,7 +398,7 @@ func setDefaultEnvVars(s *Settings) error {
 		envVars = append(envVars,
 			ev{e: APIURLEnvVar, v: fmt.Sprintf("https://api.%s.signalfx.com", realm)},
 			ev{e: IngestURLEnvVar, v: fmt.Sprintf("https://ingest.%s.signalfx.com", realm)},
-			ev{e: TraceIngestURLEnvVar, v: fmt.Sprintf("https://ingest.%s.signalfx.com:443", realm)},
+			ev{e: TraceIngestURLEnvVar, v: fmt.Sprintf("https://ingest.%s.signalfx.com/v2/trace", realm)},
 			ev{e: HecLogIngestURLEnvVar, v: fmt.Sprintf("https://ingest.%s.signalfx.com/v1/log", realm)},
 		)
 	}
@@ -610,7 +611,10 @@ func checkConfigPathEnvVar(settings *Settings) error {
 func confirmRequiredEnvVarsForDefaultConfigs(paths []string) error {
 	// Check environment variables required by default configuration.
 	for _, path := range paths {
-		if path == DefaultGatewayConfig {
+		switch path {
+		case
+			DefaultGatewayConfig,
+			DefaultOTLPLinuxConfig:
 			requiredEnvVars := []string{RealmEnvVar, TokenEnvVar}
 			for _, v := range requiredEnvVars {
 				if len(os.Getenv(v)) == 0 {

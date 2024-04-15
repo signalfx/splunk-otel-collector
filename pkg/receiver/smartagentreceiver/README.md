@@ -79,10 +79,9 @@ exporters:
   signalfx:
     access_token: "${SIGNALFX_ACCESS_TOKEN}"
     realm: us1
-  otlp:
-    endpoint: https://ingest.${SPLUNK_REALM}.signalfx.com:443
-    headers:
-      X-SF-Token: ${SPLUNK_ACCESS_TOKEN}
+  sapm:
+    access_token: "${SIGNALFX_ACCESS_TOKEN}"
+    endpoint: https://ingest.us1.signalfx.com/v2/trace
 
 service:
   pipelines:
@@ -108,5 +107,5 @@ service:
       processors:
         - resourcedetection
       exporters:
-        - otlp
+        - sapm
 ```

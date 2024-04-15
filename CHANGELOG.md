@@ -29,7 +29,6 @@
 
 ### 💡 Enhancements 💡
 
-- (Splunk) Use OTLP by default instead of SAPM ([#4270](https://github.com/signalfx/splunk-otel-collector/pull/4270))
 - (Splunk) Automatically set `splunk_otlp_histograms: true` for collector telemetry exported via `signalfx` metrics exporter ([#4655](https://github.com/signalfx/splunk-otel-collector/pull/4655))
 - (Splunk) Windows installer now removes the unused configuration files from the installation directory ([#4645](https://github.com/signalfx/splunk-otel-collector/pull/4645))
 - (Core) `otlpexporter`: Checks for port in the config validation for the otlpexporter ([#9505](https://github.com/open-telemetry/opentelemetry-collector/issues/9505))

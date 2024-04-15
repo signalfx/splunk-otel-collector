@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"strings"
 	"testing"
@@ -28,7 +29,6 @@ import (
 	dockerContainer "github.com/docker/docker/api/types/container"
 	dockerMount "github.com/docker/docker/api/types/mount"
 	docker "github.com/docker/docker/client"
-	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	"go.opentelemetry.io/collector/confmap"
@@ -274,26 +274,29 @@ func (collector *CollectorContainer) EffectiveConfig(t testing.TB, port uint16) 
 }
 
 func (collector *CollectorContainer) execConfigRequest(t testing.TB, uri string) map[string]any {
-	var n int
-	var r io.Reader
-	var err error
-	for i := 0; i < 3; i++ {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		n, r, err = collector.Container.Exec(ctx, []string{"curl", "-s", uri})
-		cancel()
-		if err == nil && n == 0 {
-			break
+	// Wait until the splunk-otel-collector is up: relying on the entrypoint of the image
+	// can have the request happening before the collector is ready.
+	var initial string
+	require.Eventually(t, func() bool {
+		httpClient := &http.Client{}
+		req, err := http.NewRequest("GET", uri, nil)
+		require.NoError(t, err)
+		resp, err := httpClient.Do(req)
+		if err != nil {
+			return false
 		}
-		time.Sleep(time.Second)
-	}
-	require.NoError(t, err)
-	require.Zero(t, n)
 
-	var sout, serr bytes.Buffer
-	_, err = stdcopy.StdCopy(&sout, &serr, r)
-	require.NoError(t, err)
+		defer resp.Body.Close()
+		arr, err := io.ReadAll(resp.Body)
+		if (err != nil) {
+			return false
+		}
 
-	initial := sout.String()
+		initial = string(arr)
+
+		return resp.StatusCode == http.StatusOK
+	}, 30*time.Second, 100*time.Millisecond)
+
 	actual := map[string]any{}
 	require.NoError(t, yaml.Unmarshal([]byte(initial), &actual))
 	return confmap.NewFromStringMap(actual).ToStringMap()

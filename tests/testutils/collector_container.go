@@ -288,7 +288,7 @@ func (collector *CollectorContainer) execConfigRequest(t testing.TB, uri string)
 
 		defer resp.Body.Close()
 		arr, err := io.ReadAll(resp.Body)
-		if (err != nil) {
+		if err != nil {
 			return false
 		}
 

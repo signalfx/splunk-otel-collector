@@ -18,7 +18,7 @@ type Config struct {
 	config.MonitorConfig `yaml:",inline" acceptsEndpoints:"true"`
 }
 
-// Monitor for Hereoku metadata
+// Monitor for Heroku metadata
 type Monitor struct {
 	Output types.Output
 	cancel context.CancelFunc

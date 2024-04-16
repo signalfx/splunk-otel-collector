@@ -65,7 +65,7 @@ service:
 				},
 			).WithArgs("-c", "trap exit SIGTERM ; echo ok ; while true; do : ; done")
 			cc := c.(*testutils.CollectorContainer)
-			cc.Container = cc.Container.WithEntrypoint("bash").WillWaitForLogs("ok")
+			cc.Container = cc.Container.WithEntrypoint("sh").WillWaitForLogs("ok")
 			return cc
 		},
 	)
@@ -73,13 +73,13 @@ service:
 	defer shutdown()
 
 	sc, stdout, _ := c.Container.AssertExec(t, 15*time.Second,
-		"bash", "-c", "/otelcol --dry-run 2>/dev/null",
+		"sh", "-c", "/otelcol --dry-run 2>/dev/null",
 	)
 	require.Equal(t, config, stdout)
 	require.Zero(t, sc)
 
 	// confirm successful service functionality
-	sc, _, _ = c.Container.AssertExec(t, 15*time.Second, "bash", "-c", "/otelcol &")
+	sc, _, _ = c.Container.AssertExec(t, 15*time.Second, "sh", "-c", "/otelcol &")
 	require.Zero(t, sc)
 
 	expectedResourceMetrics := tc.ResourceMetrics("cpu.yaml")

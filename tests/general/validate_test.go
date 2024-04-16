@@ -43,7 +43,7 @@ func TestCoreValidateDefaultConfig(t *testing.T) {
 				},
 			).WithArgs("-c", "trap exit SIGTERM ; echo ok ; while true; do : ; done")
 			cc := c.(*testutils.CollectorContainer)
-			cc.Container = cc.Container.WithEntrypoint("bash").WillWaitForLogs("ok")
+			cc.Container = cc.Container.WithEntrypoint("sh").WillWaitForLogs("ok")
 			return cc
 		},
 	)
@@ -54,7 +54,7 @@ func TestCoreValidateDefaultConfig(t *testing.T) {
 		config := config
 		t.Run(config, func(t *testing.T) {
 			sc, stdout, stderr := c.Container.AssertExec(t, 15*time.Second,
-				"bash", "-c", fmt.Sprintf("/otelcol --config /etc/otel/collector/%s_config.yaml validate", config),
+				"sh", "-c", fmt.Sprintf("/otelcol --config /etc/otel/collector/%s_config.yaml validate", config),
 			)
 			assert.Zero(t, sc)
 			require.Empty(t, stdout)
@@ -95,7 +95,7 @@ service:
 				},
 			).WithArgs("-c", "trap exit SIGTERM ; echo ok ; while true; do : ; done")
 			cc := c.(*testutils.CollectorContainer)
-			cc.Container = cc.Container.WithEntrypoint("bash").WillWaitForLogs("ok")
+			cc.Container = cc.Container.WithEntrypoint("sh").WillWaitForLogs("ok")
 			return cc
 		},
 	)
@@ -103,7 +103,7 @@ service:
 	defer shutdown()
 
 	sc, stdout, stderr := c.Container.AssertExec(t, 15*time.Second,
-		"bash", "-c", "/otelcol validate",
+		"sh", "-c", "/otelcol validate",
 	)
 	assert.Zero(t, sc)
 	require.Empty(t, stdout)
@@ -141,7 +141,7 @@ service:
 				},
 			).WithArgs("-c", "trap exit SIGTERM ; echo ok ; while true; do : ; done")
 			cc := c.(*testutils.CollectorContainer)
-			cc.Container = cc.Container.WithEntrypoint("bash").WillWaitForLogs("ok")
+			cc.Container = cc.Container.WithEntrypoint("sh").WillWaitForLogs("ok")
 			return cc
 		},
 	)
@@ -149,7 +149,7 @@ service:
 	defer shutdown()
 
 	sc, stdout, stderr := c.Container.AssertExec(t, 15*time.Second,
-		"bash", "-c", "/otelcol validate",
+		"sh", "-c", "/otelcol validate",
 	)
 	require.Equal(t, 1, sc)
 	require.Empty(t, stdout)

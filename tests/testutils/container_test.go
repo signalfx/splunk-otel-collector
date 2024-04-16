@@ -74,8 +74,8 @@ func TestDockerBuilderMethods(t *testing.T) {
 	assert.NotSame(t, builder, withEntrypoint)
 	assert.Empty(t, builder.Entrypoint)
 
-	withCmd := builder.WithCmd("bash", "-c", "'sleep inf'")
-	assert.Equal(t, []string{"bash", "-c", "'sleep inf'"}, withCmd.Cmd)
+	withCmd := builder.WithCmd("sh", "-c", "'sleep inf'")
+	assert.Equal(t, []string{"sh", "-c", "'sleep inf'"}, withCmd.Cmd)
 	assert.NotSame(t, builder, withCmd)
 	assert.Empty(t, builder.Cmd)
 

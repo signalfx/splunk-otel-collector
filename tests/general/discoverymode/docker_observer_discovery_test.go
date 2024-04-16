@@ -246,7 +246,7 @@ func TestDockerObserver(t *testing.T) {
 	require.Equal(t, expectedEffective, cc.EffectiveConfig(t, 55554))
 
 	sc, stdout, stderr := cc.Container.AssertExec(t, 25*time.Second,
-		"bash", "-c", `SPLUNK_DISCOVERY_LOG_LEVEL=error SPLUNK_DEBUG_CONFIG_SERVER=false \
+		"sh", "-c", `SPLUNK_DISCOVERY_LOG_LEVEL=error SPLUNK_DEBUG_CONFIG_SERVER=false \
 SPLUNK_DISCOVERY_EXTENSIONS_k8s_observer_ENABLED=false \
 SPLUNK_DISCOVERY_EXTENSIONS_docker_observer_ENABLED=true \
 SPLUNK_DISCOVERY_EXTENSIONS_docker_observer_CONFIG_endpoint=\${DOCKER_DOMAIN_SOCKET} \

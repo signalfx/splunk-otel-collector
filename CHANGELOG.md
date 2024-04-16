@@ -6,14 +6,13 @@
 
 ### 🛑 Breaking changes 🛑
 
+- (Splunk) Remove the `bash`, `curl`, `nc`, and `tar` command-line utilities from the collector packages/images and smart agent bundle ([#4646](https://github.com/signalfx/splunk-otel-collector/pull/4646))
 - (Splunk) `receiver/discovery`: Update metrics and logs evaluation statements schema:
   - Remove `severity_text` field from log evaluation statements ([#4583](https://github.com/signalfx/splunk-otel-collector/pull/4583))
   - Remove `first_only`  field from match struct. Events are always emitted only once for first matching metric or log statement ([#4593](https://github.com/signalfx/splunk-otel-collector/pull/4593))
   - Combine matching conditions with different statuses in one list ([#4588](https://github.com/signalfx/splunk-otel-collector/pull/4588))
   - Apply entity events schema to the logs emitted by the receiver ([#4638](https://github.com/signalfx/splunk-otel-collector/pull/4638))
   - Emit only one log record per matched endpoint ([#4586](https://github.com/signalfx/splunk-otel-collector/pull/4586))
-- (Splunk) Remove otlp_config_linux.yaml from docker image ([#4658](https://github.com/signalfx/splunk-otel-collector/pull/4658))
-  - It doesn't provide much value after the default configs migrated from SAPM to OTLP exporter.
 - (Core) `service`: emit internal collector metrics with _ instead of / with OTLP export ([#9774](https://github.com/open-telemetry/opentelemetry-collector/issues/9774))
 - (Contrib) `oracledbreceiver`: Fix incorrect values being set for oracledb.tablespace_size.limit and oracledb.tablespace_size.usage ([#31451](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/31451))
 - (Contrib) `pkg/stanza`: Revert recombine operator's 'overwrite_with' default value. ([#30783](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/30783))
@@ -98,6 +97,7 @@
 
 ### 🛑 Breaking changes 🛑
 
+- (Splunk) `collectd/kong`: Remove `collectd/kong`. Please use the [Prometheus receiver](https://docs.splunk.com/observability/en/gdi/monitors-cloud/kong.html) instead. ([#4420](https://github.com/signalfx/splunk-otel-collector/pull/4420))
 - (Splunk) `spanmetricsprocessor`: Remove `spanmetricsprocessor`. Please use `spanmetrics` connector instead. ([#4454](https://github.com/signalfx/splunk-otel-collector/pull/4454))
 - (Core) `telemetry`: Remove telemetry.useOtelForInternalMetrics stable feature gate ([#9752](https://github.com/open-telemetry/opentelemetry-collector/pull/9752))
 - (Contrib) `receiver/postgresql`: Bump postgresqlreceiver.preciselagmetrics gate to beta ([#31220](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/31220))

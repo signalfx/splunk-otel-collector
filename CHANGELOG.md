@@ -15,6 +15,7 @@
 - (Splunk) Remove otlp_config_linux.yaml from docker image ([#4658](https://github.com/signalfx/splunk-otel-collector/pull/4658))
   - It doesn't provide much value after the default configs migrated from SAPM to OTLP exporter.
 - (Core) `service`: emit internal collector metrics with _ instead of / with OTLP export ([#9774](https://github.com/open-telemetry/opentelemetry-collector/issues/9774))
+- (Contrib) `oracledbreceiver`: Fix incorrect values being set for oracledb.tablespace_size.limit and oracledb.tablespace_size.usage ([#31451](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/31451))
 - (Contrib) `pkg/stanza`: Revert recombine operator's 'overwrite_with' default value. ([#30783](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/30783))
 - (Contrib) `processor/attributes, processor/resource`: Remove stable coreinternal.attraction.hash.sha256 feature gate. ([#31997](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/31997))
 
@@ -60,7 +61,6 @@
 - (Contrib) `jmxreceiver`: Fix memory leak during component shutdown ([#32289](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/32289))
 - (Contrib) `k8sobjectsreceiver`: Fix memory leak caused by the pull mode's interval ticker ([#31919](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/31919))
 - (Contrib) `kafkareceiver`: fix kafka receiver panic on shutdown ([#31926](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/31926))
-- (Contrib) `oracledbreceiver`: Fix incorrect values being set for oracledb.tablespace_size.limit and oracledb.tablespace_size.usage ([#31451](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/31451))
 - (Contrib) `prometheusreceiver`: Fix a bug where a new prometheus receiver with the same name cannot be created after the previous receiver is Shutdown ([#32123](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/32123))
 - (Contrib) `resourcedetectionprocessor`: Only attempt to detect Kubernetes node resource attributes when they're enabled. ([#31941](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/31941))
 - (Contrib) `syslogreceiver`: Fix issue where static resource and attributes were ignored ([#31849](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/31849))

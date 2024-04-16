@@ -5,7 +5,7 @@ resource_metrics:
       - instrumentation_scope:
           attributes: {}
           name: otelcol/oracledbreceiver
-          version: <VERSION_FROM_BUILD>
+          version: <ANY>
         metrics:
           - name: oracledb.cpu_time
             type: DoubleMonotonicCumulativeSum
@@ -54,10 +54,6 @@ resource_metrics:
           - name: oracledb.dml_locks.usage
             type: IntGauge
           - name: oracledb.dml_locks.limit
-            type: IntGauge
-          - name: oracledb.tablespace_size.limit
-            type: IntGauge
-          - name: oracledb.tablespace_size.limit
             type: IntGauge
           - name: oracledb.tablespace_size.usage
             type: IntGauge

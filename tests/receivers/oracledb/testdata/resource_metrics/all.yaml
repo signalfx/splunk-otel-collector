@@ -55,5 +55,3 @@ resource_metrics:
             type: IntGauge
           - name: oracledb.dml_locks.limit
             type: IntGauge
-          - name: oracledb.tablespace_size.usage
-            type: IntGauge

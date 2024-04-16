@@ -117,7 +117,7 @@ func createOTLPFactoryParameters() (otlpexporter.Config, otelcolexporter.CreateS
 	exporterCfg := otlpexporter.Config{
 		ClientConfig: configgrpc.ClientConfig{
 			Endpoint: "localhost:4317",
-			TLSSetting: configtls.TLSClientSetting{
+			TLSSetting: configtls.ClientConfig{
 				Insecure: true,
 			},
 		},

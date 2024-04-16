@@ -57,5 +57,7 @@ resource_metrics:
             type: IntGauge
           - name: oracledb.tablespace_size.limit
             type: IntGauge
+          - name: oracledb.tablespace_size.limit
+            type: IntGauge
           - name: oracledb.tablespace_size.usage
             type: IntGauge

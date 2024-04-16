@@ -173,6 +173,7 @@ func TestNewSettingsConvertConfig(t *testing.T) {
 		configconverter.LogLevelToVerbosity{},
 		configconverter.DisableKubeletUtilizationMetrics{},
 		configconverter.DisableExcessiveInternalMetrics{},
+		configconverter.AddOTLPHistogramAttr{},
 	}, settings.ConfMapConverters())
 	require.Equal(t, []string{"--feature-gates", "foo", "--feature-gates", "-bar"}, settings.ColCoreArgs())
 }
@@ -283,7 +284,7 @@ func TestSetDefaultEnvVarsSetsURLsFromRealm(t *testing.T) {
 	expectedEnvVars := [][]string{
 		{"SPLUNK_API_URL", fmt.Sprintf("https://api.%s.signalfx.com", realm)},
 		{"SPLUNK_INGEST_URL", fmt.Sprintf("https://ingest.%s.signalfx.com", realm)},
-		{"SPLUNK_TRACE_URL", fmt.Sprintf("https://ingest.%s.signalfx.com:443", realm)},
+		{"SPLUNK_TRACE_URL", fmt.Sprintf("https://ingest.%s.signalfx.com/v2/trace", realm)},
 		{"SPLUNK_HEC_URL", fmt.Sprintf("https://ingest.%s.signalfx.com/v1/log", realm)},
 	}
 	for _, v := range expectedEnvVars {

@@ -30,6 +30,7 @@ import (
 )
 
 func TestBasicSecretAccess(t *testing.T) {
+	t.Skip("Skipping until follow up allow collector config to be pulled up without curl, see PR #4646")
 	tc := testutils.NewTestcase(t)
 	defer tc.PrintLogsOnFailure()
 

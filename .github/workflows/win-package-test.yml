@@ -292,7 +292,7 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $uninstall_info = Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\uninstall\* | Where { $_.DisplayName -eq "Splunk OpenTelemetry Collector" }
           Write-Host "Uninstalling $($uninstall_info.PSChildName) ..."
-          $process = Start-Process -Wait -PassThru msiexec "/x $($uninstall_info.PSChildName) /qn /l*v msi-uninstall.log"
+          $process = Start-Process -Wait -PassThru msiexec "/x $($uninstall_info.PSChildName) /qn /norestart"
           if ($process.ExitCode -ne 0) {
             throw "MSI installation failed with exit code $($process.ExitCode)"
           }
@@ -304,10 +304,6 @@ jobs:
           if ($uninstall_info -ne $null) {
             throw "MSI uninstall failed"
           }
-
-      - name: "In case of failure: display the uninstall logs"
-        if: ${{ failure() }}
-        run: Get-Content msi-uninstall.log
 
   msi-test:
     runs-on: ${{ matrix.OS }}

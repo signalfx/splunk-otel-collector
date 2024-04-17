@@ -19,11 +19,14 @@ import (
 	"time"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.uber.org/multierr"
 	"go.uber.org/zap"
+
+	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
 )
 
 type endpointState string
@@ -91,7 +94,7 @@ func (et *endpointTracker) stop() {
 
 func (et *endpointTracker) emitEndpointLogs(observerCID component.ID, eventType endpointState, endpoints []observer.Endpoint, received time.Time) {
 	if et.config.LogEndpoints && et.pLogs != nil {
-		pLogs, numFailed, err := endpointToPLogs(observerCID, fmt.Sprintf("endpoint.%s", eventType), endpoints, received)
+		pLogs, numFailed, err := endpointToPLogs(observerCID, eventType, endpoints, received)
 		if err != nil {
 			et.logger.Warn(fmt.Sprintf("failed converting %v endpoints to log records", numFailed), zap.Error(err))
 		}
@@ -160,36 +163,33 @@ func (n *notify) OnChange(changed []observer.Endpoint) {
 	n.endpointTracker.updateEndpoints(changed, changedState, n.observerID)
 }
 
-func endpointToPLogs(observerID component.ID, eventType string, endpoints []observer.Endpoint, received time.Time) (pLogs plog.Logs, failed int, err error) {
-	pLogs = plog.NewLogs()
-	rlog := pLogs.ResourceLogs().AppendEmpty()
-	rAttrs := rlog.Resource().Attributes()
-	rAttrs.PutStr(eventTypeAttr, eventType)
-	rAttrs.PutStr(observerNameAttr, observerID.Name())
-	rAttrs.PutStr(observerTypeAttr, observerID.Type().String())
-	sl := rlog.ScopeLogs().AppendEmpty()
+func endpointToPLogs(observerID component.ID, eventType endpointState, endpoints []observer.Endpoint, received time.Time) (pLogs plog.Logs, failed int, err error) {
+	entityEvents := experimentalmetricmetadata.NewEntityEventsSlice()
 	for _, endpoint := range endpoints {
-		logRecord := sl.LogRecords().AppendEmpty()
-		logRecord.SetTimestamp(pcommon.NewTimestampFromTime(received))
-		logRecord.SetObservedTimestamp(pcommon.NewTimestampFromTime(time.Now()))
-		attrs := logRecord.Attributes()
-		if endpoint.Details != nil {
-			logRecord.Body().SetStr(fmt.Sprintf("%s %s endpoint %s", eventType, endpoint.Details.Type(), endpoint.ID))
-			if envAttrs, e := endpointEnvToAttrs(endpoint.Details.Type(), endpoint.Details.Env()); e != nil {
-				err = multierr.Combine(err, fmt.Errorf("failed determining attributes for %q: %w", endpoint.ID, e))
-				failed++
-			} else {
-				// this must be the first mutation of attrs since it's destructive
-				envAttrs.CopyTo(attrs)
-			}
-			attrs.PutStr("type", string(endpoint.Details.Type()))
+		entityEvent := entityEvents.AppendEmpty()
+		entityEvent.SetTimestamp(pcommon.NewTimestampFromTime(received))
+		entityEvent.ID().PutStr(discovery.EndpointIDAttr, string(endpoint.ID))
+		if eventType == removedState {
+			entityEvent.SetEntityDelete()
 		} else {
-			logRecord.Body().SetStr(fmt.Sprintf("%s endpoint %s", eventType, endpoint.ID))
+			entityState := entityEvent.SetEntityState()
+			attrs := entityState.Attributes()
+			if endpoint.Details != nil {
+				if envAttrs, e := endpointEnvToAttrs(endpoint.Details.Type(), endpoint.Details.Env()); e != nil {
+					err = multierr.Combine(err, fmt.Errorf("failed determining attributes for %q: %w", endpoint.ID, e))
+					failed++
+				} else {
+					// this must be the first mutation of attrs since it's destructive
+					envAttrs.CopyTo(attrs)
+				}
+				attrs.PutStr("type", string(endpoint.Details.Type()))
+			}
+			attrs.PutStr("endpoint", endpoint.Target)
+			attrs.PutStr(observerNameAttr, observerID.Name())
+			attrs.PutStr(observerTypeAttr, observerID.Type().String())
 		}
-		attrs.PutStr("endpoint", endpoint.Target)
-		attrs.PutStr("id", string(endpoint.ID))
 	}
-	return
+	return entityEvents.ConvertAndMoveToLogs(), failed, err
 }
 
 func endpointEnvToAttrs(endpointType observer.EndpointType, endpointEnv observer.EndpointEnv) (pcommon.Map, error) {

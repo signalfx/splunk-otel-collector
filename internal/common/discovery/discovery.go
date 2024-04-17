@@ -29,10 +29,12 @@ const (
 	StatusAttr         = "discovery.status"
 	MessageAttr        = "discovery.message"
 
-	OtelEntityAttributesAttr = "otel.entity.attributes"
-	OtelEntityIDAttr         = "otel.entity.id"
-	OtelEntityEventTypeAttr  = "otel.entity.event.type"
-	OtelEntityEventTypeState = "entity_state"
+	OtelEntityAttributesAttr  = "otel.entity.attributes"
+	OtelEntityIDAttr          = "otel.entity.id"
+	OtelEntityEventTypeAttr   = "otel.entity.event.type"
+	OtelEntityEventTypeState  = "entity_state"
+	OtelEntityEventTypeDelete = "entity_delete"
+	OtelEntityEventAsLogAttr  = "otel.entity.event_as_log"
 
 	DiscoExtensionsKey = "extensions/splunk.discovery"
 	DiscoReceiversKey  = "receivers/splunk.discovery"

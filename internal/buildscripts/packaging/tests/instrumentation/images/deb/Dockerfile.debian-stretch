@@ -4,6 +4,8 @@ FROM tomcat:9-jre8 as tomcat
 
 FROM debian:stretch
 
+ARG TARGETARCH
+
 ENV DEBIAN_FRONTEND noninteractive
 
 RUN sed -i 's|http://.*.debian.org|http://archive.debian.org|' /etc/apt/sources.list
@@ -29,6 +31,13 @@ RUN bash /opt/setup-tomcat.sh
 ARG NODE_VERSION=v14
 COPY instrumentation/setup-express.sh /opt
 RUN bash /opt/setup-express.sh
+
+COPY instrumentation/setup-dotnet.sh /opt
+RUN if [ "$TARGETARCH" = "amd64" ]; then \
+    apt-get update && \
+    apt-get install -yq libicu57 && \
+    bash /opt/setup-dotnet.sh; \
+    fi
 
 RUN systemctl set-default multi-user.target
 ENV init /lib/systemd/systemd

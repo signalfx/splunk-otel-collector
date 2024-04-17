@@ -4,6 +4,8 @@ FROM tomcat:9-jre8 as tomcat
 
 FROM opensuse/leap:15
 
+ARG TARGETARCH
+
 ENV container docker
 
 RUN sed -i 's|download.opensuse.org|provo-mirror.opensuse.org|' /etc/zypp/repos.d/*.repo
@@ -25,6 +27,12 @@ RUN bash /opt/setup-tomcat.sh
 ARG NODE_VERSION=v16
 COPY instrumentation/setup-express.sh /opt
 RUN bash /opt/setup-express.sh
+
+COPY instrumentation/setup-dotnet.sh /opt
+RUN if [ "$TARGETARCH" = "amd64" ]; then \
+    zypper -n install libicu && \
+    bash /opt/setup-dotnet.sh; \
+    fi
 
 VOLUME [ "/sys/fs/cgroup" ]
 

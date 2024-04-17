@@ -12,6 +12,7 @@ Instrumentation agents:
 
 - [Java](https://docs.splunk.com/Observability/gdi/get-data-in/application/java/get-started.html)
 - [Node.js](https://docs.splunk.com/Observability/en/gdi/get-data-in/application/nodejs/get-started.html)
+- [.NET](https://docs.splunk.com/observability/en/gdi/get-data-in/application/otel-dotnet/get-started.html)
 
 For other languages or if the `splunk-otel-auto-instrumentation` deb/rpm package is not applicable for the target host
 or applications/services, see [Instrument back-end applications to send spans to Splunk APM](
@@ -22,9 +23,11 @@ https://docs.splunk.com/Observability/en/gdi/get-data-in/application/application
 - Check agent compatibility and requirements:
   - [Java](https://docs.splunk.com/Observability/gdi/get-data-in/application/java/java-otel-requirements.html)
   - [Node.js](https://docs.splunk.com/Observability/en/gdi/get-data-in/application/nodejs/nodejs-otel-requirements.html)
+  - [.NET](https://docs.splunk.com/observability/en/gdi/get-data-in/application/otel-dotnet/dotnet-requirements.html)
 - [Install and configure](https://docs.splunk.com/observability/en/gdi/opentelemetry/collector-linux/install-linux.html)
   the Splunk OpenTelemetry Collector.
 - Debian or RPM based Linux distribution (amd64/x86_64 or arm64/aarch64).
+  - **Note**: .NET only supported on amd64/x86_64
 
 ## Installation
 
@@ -73,6 +76,17 @@ The following methods are supported to manually activate and configure Auto Inst
      ```
      NODE_OPTIONS=-r /usr/lib/splunk-instrumentation/splunk-otel-js/node_modules/@splunk/otel/instrument
      ```
+   - `/etc/splunk/zeroconfig/dotnet.conf`:
+     ```
+     CORECLR_ENABLE_PROFILING=1
+     CORECLR_PROFILER={918728DD-259F-4A6A-AC2B-B85E1B658318}
+     CORECLR_PROFILER_PATH=/usr/lib/splunk-instrumentation/splunk-otel-dotnet/linux-x64/OpenTelemetry.AutoInstrumentation.Native.so
+     DOTNET_ADDITIONAL_DEPS=/usr/lib/splunk-instrumentation/splunk-otel-dotnet/AdditionalDeps
+     DOTNET_SHARED_STORE=/usr/lib/splunk-instrumentation/splunk-otel-dotnet/store
+     DOTNET_STARTUP_HOOKS=/usr/lib/splunk-instrumentation/splunk-otel-dotnet/net/OpenTelemetry.AutoInstrumentation.StartupHook.dll
+     OTEL_DOTNET_AUTO_HOME=/usr/lib/splunk-instrumentation/splunk-otel-dotnet
+     OTEL_DOTNET_AUTO_PLUGINS=Splunk.OpenTelemetry.AutoInstrumentation.Plugin,Splunk.OpenTelemetry.AutoInstrumentation
+     ```
    Configuration of the respective agents is supported by the adding/updating the following environment variables in
    each of these files (***any environment variable not in this list will be ignored***):
    - `OTEL_EXPORTER_OTLP_ENDPOINT`
@@ -85,6 +99,7 @@ The following methods are supported to manually activate and configure Auto Inst
    Check the following for details about these environment variables and default values:
    - [Java](https://docs.splunk.com/Observability/en/gdi/get-data-in/application/java/configuration/advanced-java-otel-configuration.html)
    - [Node.js](https://docs.splunk.com/Observability/en/gdi/get-data-in/application/nodejs/configuration/advanced-nodejs-otel-configuration.html)
+   - [.NET](https://docs.splunk.com/observability/en/gdi/get-data-in/application/otel-dotnet/configuration/advanced-dotnet-configuration.html)
 3. Reboot the system or restart the applications/services for any changes to take effect. The `libsplunk.so` shared
    object library will then be preloaded for all subsequent processes and inject the environment variables from the
    `/etc/splunk/zeroconfig` configuration files for Java and Node.js processes.
@@ -115,6 +130,17 @@ The following methods are supported to manually activate and configure Auto Inst
      ```
      DefaultEnvironment="NODE_OPTIONS=-r /usr/lib/splunk-instrumentation/splunk-otel-js/node_modules/@splunk/otel/instrument"
      ```
+   - .NET
+     ```
+     DefaultEnvironment="CORECLR_ENABLE_PROFILING=1"
+     DefaultEnvironment="CORECLR_PROFILER={918728DD-259F-4A6A-AC2B-B85E1B658318}"
+     DefaultEnvironment="CORECLR_PROFILER_PATH=/usr/lib/splunk-instrumentation/splunk-otel-dotnet/linux-x64/OpenTelemetry.AutoInstrumentation.Native.so"
+     DefaultEnvironment="DOTNET_ADDITIONAL_DEPS=/usr/lib/splunk-instrumentation/splunk-otel-dotnet/AdditionalDeps"
+     DefaultEnvironment="DOTNET_SHARED_STORE=/usr/lib/splunk-instrumentation/splunk-otel-dotnet/store"
+     DefaultEnvironment="DOTNET_STARTUP_HOOKS=/usr/lib/splunk-instrumentation/splunk-otel-dotnet/net/OpenTelemetry.AutoInstrumentation.StartupHook.dll"
+     DefaultEnvironment="OTEL_DOTNET_AUTO_HOME=/usr/lib/splunk-instrumentation/splunk-otel-dotnet"
+     DefaultEnvironment="OTEL_DOTNET_AUTO_PLUGINS=Splunk.OpenTelemetry.AutoInstrumentation.Plugin,Splunk.OpenTelemetry.AutoInstrumentation"
+     ```
 2. To configure the activated agents, add/update [`DefaultEnvironment`](
    https://www.freedesktop.org/software/systemd/man/systemd-system.conf.html#DefaultEnvironment=) within the target file
    from the previous step for the desired environment variables. For example:
@@ -131,5 +157,6 @@ The following methods are supported to manually activate and configure Auto Inst
    Check the following for all supported environment variables and default values:
    - [Java](https://docs.splunk.com/Observability/en/gdi/get-data-in/application/java/configuration/advanced-java-otel-configuration.html)
    - [Node.js](https://docs.splunk.com/Observability/en/gdi/get-data-in/application/nodejs/configuration/advanced-nodejs-otel-configuration.html)
+   - [.NET](https://docs.splunk.com/observability/en/gdi/get-data-in/application/otel-dotnet/configuration/advanced-dotnet-configuration.html)
 3. Reboot the system, or run `systemctl daemon-reload` and then restart the applicable `systemd` services for any
    changes to take effect.

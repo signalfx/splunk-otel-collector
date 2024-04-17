@@ -1,4 +1,4 @@
-discovery/discovery-name:
+discovery:
   watch_observers:
     - an_observer
     - another_observer/with_name
@@ -7,7 +7,7 @@ discovery/discovery-name:
   correlation_ttl: 25s
   receivers:
     smartagent/redis:
-      rule: type == "container"
+      rule: type == "container" && name matches "(?i)redis"
       config:
         type: collectd/redis
         auth: password

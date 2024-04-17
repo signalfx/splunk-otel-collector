@@ -15,7 +15,6 @@
 package discoveryreceiver
 
 import (
-	"sync"
 	"testing"
 	"time"
 
@@ -71,54 +70,17 @@ func TestGetOrCreateDiscoveredReceiver(t *testing.T) {
 	}
 	observerID := component.MustNewIDWithName("observer", "name")
 	now := time.Now()
-	cs.UpdateEndpoint(endpoint, "a.state", observerID)
+	receiverID := component.MustNewIDWithName("receiver", "name")
+	cs.UpdateEndpoint(endpoint, receiverID, "a.state", observerID)
 
 	corr := cs.GetOrCreate(discovery.NoType, endpointID)
 	require.NotNil(t, corr)
-	require.Equal(t, discovery.NoType, corr.receiverID)
+	require.Equal(t, receiverID, corr.receiverID)
 	require.Equal(t, observerID, corr.observerID)
 	require.Equal(t, endpoint, corr.endpoint)
 	require.Equal(t, endpointState("a.state"), corr.lastState)
 	require.GreaterOrEqual(t, corr.lastUpdated, now)
 
-	receiverID := component.MustNewIDWithName("receiver", "name")
-	typedReceiverCorr := cs.GetOrCreate(receiverID, endpointID)
-	require.NotNil(t, typedReceiverCorr)
-	require.Equal(t, receiverID, typedReceiverCorr.receiverID)
-	require.Equal(t, observerID, typedReceiverCorr.observerID)
-	require.Equal(t, endpoint, typedReceiverCorr.endpoint)
-	require.Equal(t, endpointState("a.state"), typedReceiverCorr.lastState)
-	require.GreaterOrEqual(t, typedReceiverCorr.lastUpdated, now)
-}
-
-func TestGetOrCreateLaterDiscoveredReceiver(t *testing.T) {
-	cs := newCorrelationStore(zaptest.NewLogger(t), time.Hour)
-	endpointID := observer.EndpointID("an.endpoint")
-	createdCorr := cs.GetOrCreate(discovery.NoType, endpointID)
-	require.NotNil(t, createdCorr)
-	require.Equal(t, discovery.NoType, createdCorr.receiverID)
-	require.Equal(t, discovery.NoType, createdCorr.observerID)
-	require.Zero(t, createdCorr.endpoint)
-	require.Empty(t, createdCorr.lastState)
-	require.Zero(t, createdCorr.lastUpdated)
-
-	endpoint := observer.Endpoint{
-		ID:     endpointID,
-		Target: "a.target",
-	}
-	observerID := component.MustNewIDWithName("observer", "name")
-	now := time.Now()
-	cs.UpdateEndpoint(endpoint, "a.state", observerID)
-
-	gotCorr := cs.GetOrCreate(discovery.NoType, endpointID)
-	require.NotNil(t, createdCorr)
-	require.Equal(t, discovery.NoType, gotCorr.receiverID)
-	require.Equal(t, observerID, gotCorr.observerID)
-	require.Equal(t, endpoint, gotCorr.endpoint)
-	require.Equal(t, endpointState("a.state"), gotCorr.lastState)
-	require.GreaterOrEqual(t, gotCorr.lastUpdated, now)
-
-	receiverID := component.MustNewIDWithName("receiver", "name")
 	typedReceiverCorr := cs.GetOrCreate(receiverID, endpointID)
 	require.NotNil(t, typedReceiverCorr)
 	require.Equal(t, receiverID, typedReceiverCorr.receiverID)
@@ -145,20 +107,20 @@ func TestGetOrCreateLaterDiscoveredReceiverWithUpdatedEndpoint(t *testing.T) {
 	}
 	observerID := component.MustNewIDWithName("observer", "name")
 	now := time.Now()
-	cs.UpdateEndpoint(endpoint, "a.state", observerID)
+	receiverID := component.MustNewIDWithName("receiver", "name")
+	cs.UpdateEndpoint(endpoint, receiverID, "a.state", observerID)
 
 	gotCorr := cs.GetOrCreate(discovery.NoType, endpointID)
 	require.NotNil(t, createdCorr)
-	require.Equal(t, discovery.NoType, gotCorr.receiverID)
+	require.Equal(t, receiverID, gotCorr.receiverID)
 	require.Equal(t, observerID, gotCorr.observerID)
 	require.Equal(t, endpoint, gotCorr.endpoint)
 	require.Equal(t, endpointState("a.state"), gotCorr.lastState)
 	require.GreaterOrEqual(t, gotCorr.lastUpdated, now)
 
 	now = time.Now()
-	cs.UpdateEndpoint(endpoint, "another.state", observerID)
+	cs.UpdateEndpoint(endpoint, receiverID, "another.state", observerID)
 
-	receiverID := component.MustNewIDWithName("receiver", "name")
 	typedReceiverCorr := cs.GetOrCreate(receiverID, endpointID)
 	require.NotNil(t, typedReceiverCorr)
 	require.Equal(t, receiverID, typedReceiverCorr.receiverID)
@@ -167,10 +129,10 @@ func TestGetOrCreateLaterDiscoveredReceiverWithUpdatedEndpoint(t *testing.T) {
 	require.Equal(t, endpointState("another.state"), typedReceiverCorr.lastState)
 	require.GreaterOrEqual(t, typedReceiverCorr.lastUpdated, now)
 
-	// confirm state change propagates to other receivers
+	// confirm state is if receiverID isn't provided
 	noTypedReceiverCorr := cs.GetOrCreate(discovery.NoType, endpointID)
 	require.NotNil(t, createdCorr)
-	require.Equal(t, discovery.NoType, noTypedReceiverCorr.receiverID)
+	require.Equal(t, receiverID, noTypedReceiverCorr.receiverID)
 	require.Equal(t, observerID, noTypedReceiverCorr.observerID)
 	require.Equal(t, endpoint, noTypedReceiverCorr.endpoint)
 	require.Equal(t, endpointState("another.state"), noTypedReceiverCorr.lastState)
@@ -218,28 +180,23 @@ func TestReaperLoop(t *testing.T) {
 	cs.Start()
 	t.Cleanup(cs.Stop)
 
-	cs.UpdateEndpoint(endpoint, addedState, observerID)
-
 	receiverID := component.MustNewIDWithName("receiver", "name")
+	cs.UpdateEndpoint(endpoint, receiverID, addedState, observerID)
+
 	corr := cs.GetOrCreate(receiverID, endpointID)
 	require.Equal(t, addedState, corr.lastState)
 	rMap, ok := cStore.correlations.Load(endpointID)
 	require.True(t, ok)
-	receiverMap, isMap := rMap.(*sync.Map)
-	require.True(t, isMap)
-
-	noTypeCorr, containsNoType := receiverMap.Load(discovery.NoType)
-	require.True(t, containsNoType)
-	noTypedReceiverCorr, isCorr := noTypeCorr.(*correlation)
+	fetchedCorr, isCorr := rMap.(*correlation)
 	require.True(t, isCorr)
-	require.Equal(t, addedState, noTypedReceiverCorr.lastState)
+	require.Equal(t, addedState, fetchedCorr.lastState)
 
-	cs.UpdateEndpoint(endpoint, removedState, observerID)
+	cs.UpdateEndpoint(endpoint, receiverID, removedState, observerID)
 
 	// repeat check once to ensure loop-driven removal
 	_, hasEndpoint := cStore.correlations.Load(endpointID)
 	require.True(t, hasEndpoint)
-	require.Equal(t, removedState, noTypedReceiverCorr.lastState)
+	require.Equal(t, removedState, fetchedCorr.lastState)
 
 	// confirm reaping occurs within interval
 	require.Eventually(t, func() bool {

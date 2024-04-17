@@ -66,7 +66,7 @@ type ReceiverEntry struct {
 	Config             map[string]any    `mapstructure:"config"`
 	Status             *Status           `mapstructure:"status"`
 	ResourceAttributes map[string]string `mapstructure:"resource_attributes"`
-	Rule               string            `mapstructure:"rule"`
+	Rule               Rule              `mapstructure:"rule"`
 }
 
 // Status defines the Match rules for applicable app and telemetry sources.
@@ -200,7 +200,7 @@ func (cfg *Config) receiverCreatorReceiversConfig(correlations correlationStore)
 		}
 		resourceAttributes[discovery.ReceiverNameAttr] = receiverID.Name()
 		resourceAttributes[discovery.ReceiverTypeAttr] = receiverID.Type().String()
-		resourceAttributes[receiverRuleAttr] = rEntry.Rule
+		resourceAttributes[receiverRuleAttr] = rEntry.Rule.String()
 		resourceAttributes[discovery.EndpointIDAttr] = "`id`"
 
 		if cfg.EmbedReceiverConfig {
@@ -227,7 +227,7 @@ func (cfg *Config) receiverCreatorReceiversConfig(correlations correlationStore)
 		}
 
 		rEntryMap := map[string]any{}
-		rEntryMap["rule"] = rEntry.Rule
+		rEntryMap["rule"] = rEntry.Rule.String()
 		rEntryMap["config"] = rEntry.Config
 		rEntryMap["resource_attributes"] = resourceAttributes
 		receiversConfig[receiverID.String()] = rEntryMap

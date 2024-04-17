@@ -44,9 +44,7 @@ $expected_svc_env_vars = @{
   "SPLUNK_REALM"            = "$realm";
   "SPLUNK_API_URL"          = "$api_url";
   "SPLUNK_INGEST_URL"       = "$ingest_url";
-  # We no longer test for this as we have moved to OTLP and it breaks upgrade tests.
-  # We have a configuration converter in place to catch old values as part of the collector startup.
-  #"SPLUNK_TRACE_URL"        = "${ingest_url}:443;
+  "SPLUNK_TRACE_URL"        = "${ingest_url}/v2/trace";
   "SPLUNK_HEC_URL"          = "${ingest_url}/v1/log";
   "SPLUNK_HEC_TOKEN"        = "$access_token";
   "SPLUNK_BUNDLE_DIR"       = "${env:PROGRAMFILES}\Splunk\OpenTelemetry Collector\agent-bundle";

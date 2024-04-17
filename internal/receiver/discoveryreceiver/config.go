@@ -46,8 +46,7 @@ type Config struct {
 	// The configured Observer extensions from which to receive Endpoint events.
 	// Must implement the observer.Observable interface.
 	WatchObservers []component.ID `mapstructure:"watch_observers"`
-	// Whether to emit log records for all endpoint activity, consisting of Endpoint
-	// content as record attributes.
+	// Whether to emit all endpoint activity as entity events.
 	LogEndpoints bool `mapstructure:"log_endpoints"`
 	// Whether to include the receiver config as a base64-encoded "discovery.receiver.config"
 	// resource attribute string value. Will also contain the configured observer that

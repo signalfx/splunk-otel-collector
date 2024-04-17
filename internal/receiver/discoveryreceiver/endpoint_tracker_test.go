@@ -15,7 +15,6 @@
 package discoveryreceiver
 
 import (
-	"fmt"
 	"path"
 	"testing"
 	"time"
@@ -42,14 +41,14 @@ func TestEndpointToPLogsHappyPath(t *testing.T) {
 			name:     "pod",
 			endpoint: podEndpoint,
 			expectedPLogs: func() plog.Logs {
-				plogs := expectedPLogs()
+				plogs := expectedPLogs("pod.endpoint.id")
 				lr := plogs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
-				attrs := lr.Attributes()
+				entityAttrsAttr, _ := lr.Attributes().Get(discovery.OtelEntityAttributesAttr)
+				attrs := entityAttrsAttr.Map()
 				annotationsMap := attrs.PutEmptyMap("annotations")
 				annotationsMap.PutStr("annotation.one", "value.one")
 				annotationsMap.PutStr("annotation.two", "value.two")
 				attrs.PutStr("endpoint", "pod.target")
-				attrs.PutStr("id", "pod.endpoint.id")
 				labelsMap := attrs.PutEmptyMap("labels")
 				labelsMap.PutStr("label.one", "value.one")
 				labelsMap.PutStr("label.two", "value.two")
@@ -57,7 +56,6 @@ func TestEndpointToPLogsHappyPath(t *testing.T) {
 				attrs.PutStr("namespace", "namespace")
 				attrs.PutStr("type", "pod")
 				attrs.PutStr("uid", "uid")
-				lr.Body().SetStr("event.type pod endpoint pod.endpoint.id")
 				return plogs
 			}(),
 		},
@@ -65,11 +63,11 @@ func TestEndpointToPLogsHappyPath(t *testing.T) {
 			name:     "port",
 			endpoint: portEndpoint,
 			expectedPLogs: func() plog.Logs {
-				plogs := expectedPLogs()
+				plogs := expectedPLogs("port.endpoint.id")
 				lr := plogs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
-				attrs := lr.Attributes()
+				entityAttrsAttr, _ := lr.Attributes().Get(discovery.OtelEntityAttributesAttr)
+				attrs := entityAttrsAttr.Map()
 				attrs.PutStr("endpoint", "port.target")
-				attrs.PutStr("id", "port.endpoint.id")
 				attrs.PutStr("name", "port.name")
 
 				podEnvMap := attrs.PutEmptyMap("pod")
@@ -86,7 +84,6 @@ func TestEndpointToPLogsHappyPath(t *testing.T) {
 				attrs.PutInt("port", 1)
 				attrs.PutStr("transport", "transport")
 				attrs.PutStr("type", "port")
-				lr.Body().SetStr("event.type port endpoint port.endpoint.id")
 				return plogs
 			}(),
 		},
@@ -94,18 +91,17 @@ func TestEndpointToPLogsHappyPath(t *testing.T) {
 			name:     "hostport",
 			endpoint: hostportEndpoint,
 			expectedPLogs: func() plog.Logs {
-				plogs := expectedPLogs()
+				plogs := expectedPLogs("hostport.endpoint.id")
 				lr := plogs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
-				attrs := lr.Attributes()
+				entityAttrsAttr, _ := lr.Attributes().Get(discovery.OtelEntityAttributesAttr)
+				attrs := entityAttrsAttr.Map()
 				attrs.PutStr("command", "command")
 				attrs.PutStr("endpoint", "hostport.target")
-				attrs.PutStr("id", "hostport.endpoint.id")
 				attrs.PutBool("is_ipv6", true)
 				attrs.PutInt("port", 1)
 				attrs.PutStr("process_name", "process.name")
 				attrs.PutStr("transport", "transport")
 				attrs.PutStr("type", "hostport")
-				lr.Body().SetStr("event.type hostport endpoint hostport.endpoint.id")
 				return plogs
 			}(),
 		},
@@ -113,15 +109,15 @@ func TestEndpointToPLogsHappyPath(t *testing.T) {
 			name:     "container",
 			endpoint: containerEndpoint,
 			expectedPLogs: func() plog.Logs {
-				plogs := expectedPLogs()
+				plogs := expectedPLogs("container.endpoint.id")
 				lr := plogs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
-				attrs := lr.Attributes()
+				entityAttrsAttr, _ := lr.Attributes().Get(discovery.OtelEntityAttributesAttr)
+				attrs := entityAttrsAttr.Map()
 				attrs.PutInt("alternate_port", 2)
 				attrs.PutStr("command", "command")
 				attrs.PutStr("container_id", "container.id")
 				attrs.PutStr("endpoint", "container.target")
 				attrs.PutStr("host", "host")
-				attrs.PutStr("id", "container.endpoint.id")
 				attrs.PutStr("image", "image")
 				labelsMap := attrs.PutEmptyMap("labels")
 				labelsMap.PutStr("label.one", "value.one")
@@ -131,7 +127,6 @@ func TestEndpointToPLogsHappyPath(t *testing.T) {
 				attrs.PutStr("tag", "tag")
 				attrs.PutStr("transport", "transport")
 				attrs.PutStr("type", "container")
-				lr.Body().SetStr("event.type container endpoint container.endpoint.id")
 				return plogs
 			}(),
 		},
@@ -139,9 +134,10 @@ func TestEndpointToPLogsHappyPath(t *testing.T) {
 			name:     "k8s.node",
 			endpoint: k8sNodeEndpoint,
 			expectedPLogs: func() plog.Logs {
-				plogs := expectedPLogs()
+				plogs := expectedPLogs("k8s.node.endpoint.id")
 				lr := plogs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
-				attrs := lr.Attributes()
+				entityAttrsAttr, _ := lr.Attributes().Get(discovery.OtelEntityAttributesAttr)
+				attrs := entityAttrsAttr.Map()
 				annotationsMap := attrs.PutEmptyMap("annotations")
 				annotationsMap.PutStr("annotation.one", "value.one")
 				annotationsMap.PutStr("annotation.two", "value.two")
@@ -149,7 +145,6 @@ func TestEndpointToPLogsHappyPath(t *testing.T) {
 				attrs.PutStr("external_dns", "external.dns")
 				attrs.PutStr("external_ip", "external.ip")
 				attrs.PutStr("hostname", "host.name")
-				attrs.PutStr("id", "k8s.node.endpoint.id")
 				attrs.PutStr("internal_dns", "internal.dns")
 				attrs.PutStr("internal_ip", "internal.ip")
 				attrs.PutInt("kubelet_endpoint_port", 1)
@@ -159,29 +154,19 @@ func TestEndpointToPLogsHappyPath(t *testing.T) {
 				attrs.PutStr("name", "k8s.node.name")
 				attrs.PutStr("type", "k8s.node")
 				attrs.PutStr("uid", "uid")
-				lr.Body().SetStr("event.type k8s.node endpoint k8s.node.endpoint.id")
 				return plogs
 			}(),
 		},
 	} {
 		test := tt
 		t.Run(test.name, func(t *testing.T) {
-			t1 := time.Now()
 			plogs, failed, err := endpointToPLogs(
 				component.MustNewIDWithName("observer_type", "observer.name"),
 				"event.type", []observer.Endpoint{test.endpoint}, t0,
 			)
-			t2 := time.Now()
 			require.NoError(t, err)
 			require.Zero(t, failed)
 			require.Equal(t, 1, plogs.LogRecordCount())
-
-			// confirm the observed timestamp is between our snapshots
-			// before setting to test-friendly expected value
-			lr := plogs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
-			require.LessOrEqual(t, t1, lr.ObservedTimestamp().AsTime())
-			require.GreaterOrEqual(t, t2, lr.ObservedTimestamp().AsTime())
-			lr.SetObservedTimestamp(pcommon.NewTimestampFromTime(t0))
 
 			require.NoError(t, plogtest.CompareLogs(test.expectedPLogs, plogs))
 		})
@@ -203,12 +188,11 @@ func TestEndpointToPLogsInvalidEndpoints(t *testing.T) {
 				Details: nil,
 			},
 			expectedPLogs: func() plog.Logs {
-				plogs := expectedPLogs()
+				plogs := expectedPLogs("endpoint.id")
 				lr := plogs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
-				attrs := lr.Attributes()
+				entityAttrsAttr, _ := lr.Attributes().Get(discovery.OtelEntityAttributesAttr)
+				attrs := entityAttrsAttr.Map()
 				attrs.PutStr("endpoint", "endpoint.target")
-				attrs.PutStr("id", "endpoint.id")
-				lr.Body().SetStr("event.type endpoint endpoint.id")
 				return plogs
 			}(),
 		},
@@ -220,13 +204,12 @@ func TestEndpointToPLogsInvalidEndpoints(t *testing.T) {
 				Details: emptyDetailsEnv{},
 			},
 			expectedPLogs: func() plog.Logs {
-				plogs := expectedPLogs()
+				plogs := expectedPLogs("endpoint.id")
 				lr := plogs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
-				attrs := lr.Attributes()
+				entityAttrsAttr, _ := lr.Attributes().Get(discovery.OtelEntityAttributesAttr)
+				attrs := entityAttrsAttr.Map()
 				attrs.PutStr("endpoint", "endpoint.target")
-				attrs.PutStr("id", "endpoint.id")
 				attrs.PutStr("type", "empty.details.env")
-				lr.Body().SetStr("event.type empty.details.env endpoint endpoint.id")
 				return plogs
 			}(),
 		},
@@ -238,15 +221,14 @@ func TestEndpointToPLogsInvalidEndpoints(t *testing.T) {
 				Details: unexpectedLabelsAndAnnotations{t: observer.EndpointType("unexpected.env")},
 			},
 			expectedPLogs: func() plog.Logs {
-				plogs := expectedPLogs()
+				plogs := expectedPLogs("endpoint.id")
 				lr := plogs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
-				attrs := lr.Attributes()
+				entityAttrsAttr, _ := lr.Attributes().Get(discovery.OtelEntityAttributesAttr)
+				attrs := entityAttrsAttr.Map()
 				attrs.PutBool("annotations", false)
 				attrs.PutStr("endpoint", "endpoint.target")
-				attrs.PutStr("id", "endpoint.id")
 				attrs.PutBool("labels", true)
 				attrs.PutStr("type", "unexpected.env")
-				lr.Body().SetStr("event.type unexpected.env endpoint endpoint.id")
 				return plogs
 			}(),
 		},
@@ -289,9 +271,10 @@ func TestEndpointToPLogsInvalidEndpoints(t *testing.T) {
 	} {
 		test := tt
 		t.Run(test.name, func(t *testing.T) {
+			// Validate entity_state event
 			plogs, failed, err := endpointToPLogs(
 				component.MustNewIDWithName("observer_type", "observer.name"),
-				"event.type", []observer.Endpoint{test.endpoint}, t0,
+				addedState, []observer.Endpoint{test.endpoint}, t0,
 			)
 			if test.expectedError != "" {
 				require.Error(t, err)
@@ -301,21 +284,33 @@ func TestEndpointToPLogsInvalidEndpoints(t *testing.T) {
 			require.NoError(t, err)
 			require.Zero(t, failed)
 			require.Equal(t, 1, plogs.LogRecordCount())
-			lr := plogs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
-			lr.SetObservedTimestamp(pcommon.NewTimestampFromTime(t0))
 			require.NoError(t, plogtest.CompareLogs(test.expectedPLogs, plogs))
+
+			// Validate entity_delete event
+			expectedDeleteEvent := test.expectedPLogs
+			lr := expectedDeleteEvent.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
+			lr.Attributes().PutStr(discovery.OtelEntityEventTypeAttr, discovery.OtelEntityEventTypeDelete)
+			lr.Attributes().Remove(discovery.OtelEntityAttributesAttr)
+			plogs, failed, err = endpointToPLogs(
+				component.MustNewIDWithName("observer_type", "observer.name"),
+				removedState, []observer.Endpoint{test.endpoint}, t0,
+			)
+			require.NoError(t, err)
+			require.Zero(t, failed)
+			require.Equal(t, 1, plogs.LogRecordCount())
+			require.NoError(t, plogtest.CompareLogs(expectedDeleteEvent, plogs))
 		})
 	}
 }
 
 func FuzzEndpointToPlogs(f *testing.F) {
-	f.Add("observer_type", "observer.name", "event.type",
+	f.Add("observer_type", "observer.name",
 		"port.endpoint.id", "port.target", "port.name", "pod.name", "uid",
 		"label.one", "label.value.one", "label.two", "label.value.two",
 		"annotation.one", "annotation.value.one", "annotation.two", "annotation.value.two",
 		"namespace", "transport", uint16(1))
-	f.Add(discovery.NoType.Type().String(), "", discovery.NoType.Type().String(), "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", uint16(0))
-	f.Fuzz(func(t *testing.T, observerType, observerName, eventType,
+	f.Add(discovery.NoType.Type().String(), "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", uint16(0))
+	f.Fuzz(func(t *testing.T, observerType, observerName,
 		endpointID, target, portName, podName, uid,
 		labelOne, labelValueOne, labelTwo, labelValueTwo,
 		annotationOne, annotationValueOne, annotationTwo, annotationValueTwo,
@@ -326,7 +321,7 @@ func FuzzEndpointToPlogs(f *testing.F) {
 				observerTypeSanitized = discovery.NoType.Type()
 			}
 			plogs, failed, err := endpointToPLogs(
-				component.MustNewIDWithName(observerTypeSanitized.String(), observerName), eventType, []observer.Endpoint{
+				component.MustNewIDWithName(observerTypeSanitized.String(), observerName), addedState, []observer.Endpoint{
 					{
 						ID:     observer.EndpointID(endpointID),
 						Target: target,
@@ -352,17 +347,13 @@ func FuzzEndpointToPlogs(f *testing.F) {
 				}, t0,
 			)
 
-			expectedLogs := expectedPLogs()
-			resourceLogs := expectedLogs.ResourceLogs().At(0)
-			rAttrs := resourceLogs.Resource().Attributes()
-			rAttrs.PutStr("discovery.event.type", eventType)
-			rAttrs.PutStr("discovery.observer.name", observerName)
-			rAttrs.PutStr("discovery.observer.type", observerTypeSanitized.String())
-			expectedLR := resourceLogs.ScopeLogs().At(0).LogRecords().At(0)
-			expectedLR.Body().SetStr(fmt.Sprintf("%s port endpoint %s", eventType, endpointID))
-			attrs := expectedLR.Attributes()
+			expectedLogs := expectedPLogs(endpointID)
+			lr := expectedLogs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
+			lr.SetTimestamp(pcommon.NewTimestampFromTime(t0))
+			attrs := lr.Attributes().PutEmptyMap(discovery.OtelEntityAttributesAttr)
+			attrs.PutStr(observerNameAttr, observerName)
+			attrs.PutStr(observerTypeAttr, observerTypeSanitized.String())
 			attrs.PutStr("endpoint", target)
-			attrs.PutStr("id", endpointID)
 			attrs.PutStr("name", portName)
 
 			podEnvMap := attrs.PutEmptyMap("pod")
@@ -379,9 +370,6 @@ func FuzzEndpointToPlogs(f *testing.F) {
 			attrs.PutStr("transport", transport)
 			attrs.PutStr("type", "port")
 			require.Equal(t, 1, plogs.LogRecordCount())
-
-			lr := plogs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
-			lr.SetObservedTimestamp(pcommon.NewTimestampFromTime(t0))
 
 			require.NoError(t, plogtest.CompareLogs(expectedLogs, plogs))
 			require.NoError(t, err)
@@ -490,16 +478,16 @@ var (
 	}
 )
 
-func expectedPLogs() plog.Logs {
+func expectedPLogs(endpointID string) plog.Logs {
 	plogs := plog.NewLogs()
-	rAttrs := plogs.ResourceLogs().AppendEmpty().Resource().Attributes()
-	rAttrs.PutStr("discovery.event.type", "event.type")
-	rAttrs.PutStr("discovery.observer.name", "observer.name")
-	rAttrs.PutStr("discovery.observer.type", "observer_type")
-	sLogs := plogs.ResourceLogs().At(0).ScopeLogs().AppendEmpty()
-	lr := sLogs.LogRecords().AppendEmpty()
-	lr.SetTimestamp(pcommon.NewTimestampFromTime(t0))
-	lr.SetObservedTimestamp(pcommon.NewTimestampFromTime(t0))
+	scopeLog := plogs.ResourceLogs().AppendEmpty().ScopeLogs().AppendEmpty()
+	scopeLog.Scope().Attributes().PutBool(discovery.OtelEntityEventAsLogAttr, true)
+	lr := scopeLog.LogRecords().AppendEmpty()
+	lr.Attributes().PutStr(discovery.OtelEntityEventTypeAttr, discovery.OtelEntityEventTypeState)
+	lr.Attributes().PutEmptyMap(discovery.OtelEntityIDAttr).PutStr(discovery.EndpointIDAttr, endpointID)
+	attrs := lr.Attributes().PutEmptyMap(discovery.OtelEntityAttributesAttr)
+	attrs.PutStr(observerNameAttr, "observer.name")
+	attrs.PutStr(observerTypeAttr, "observer_type")
 	return plogs
 }
 

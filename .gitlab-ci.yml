@@ -190,6 +190,16 @@ update-nodejs-agent:
     - .gitlab/install-gh-cli.sh
     - .gitlab/update-nodejs-agent.sh
 
+update-dotnet-agent:
+  only:
+    - schedules
+  stage: update-deps
+  needs: []
+  dependencies: []
+  script:
+    - .gitlab/install-gh-cli.sh
+    - .gitlab/update-dotnet-agent.sh
+
 tidy-dependabot-pr:
   rules:
     - if: $CI_COMMIT_BRANCH =~ /^dependabot\/go_modules\/.*/ && $CI_COMMIT_AUTHOR =~ /^dependabot.*/

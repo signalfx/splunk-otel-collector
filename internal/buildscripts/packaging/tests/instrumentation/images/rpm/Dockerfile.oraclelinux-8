@@ -4,6 +4,8 @@ FROM tomcat:9-jre8 as tomcat
 
 FROM oraclelinux:8
 
+ARG TARGETARCH
+
 ENV container docker
 
 RUN dnf install -y curl procps initscripts python3 systemd wget
@@ -25,6 +27,12 @@ RUN bash /opt/setup-tomcat.sh
 ARG NODE_VERSION=v16
 COPY instrumentation/setup-express.sh /opt
 RUN bash /opt/setup-express.sh
+
+COPY instrumentation/setup-dotnet.sh /opt
+RUN if [ "$TARGETARCH" = "amd64" ]; then \
+    dnf install -y libicu && \
+    bash /opt/setup-dotnet.sh; \
+    fi
 
 VOLUME [ "/sys/fs/cgroup" ]
 

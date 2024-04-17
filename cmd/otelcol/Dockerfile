@@ -68,6 +68,7 @@ COPY --from=journalctl --chown=999 /bin/journalctl /bin/journalctl
 COPY --from=journalctl --chown=999 /opt/journalctl /
 
 COPY --chown=999 config/collector/gateway_config.yaml /etc/otel/collector/gateway_config.yaml
+COPY --chown=999 config/collector/otlp_config_linux.yaml /etc/otel/collector/otlp_config_linux.yaml
 COPY --chown=999 config/collector/agent_config.yaml /etc/otel/collector/agent_config.yaml
 COPY --chown=999 config/collector/fargate_config.yaml /etc/otel/collector/fargate_config.yaml
 COPY --chown=999 config/collector/ecs_ec2_config.yaml /etc/otel/collector/ecs_ec2_config.yaml

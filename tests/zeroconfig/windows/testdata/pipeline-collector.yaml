@@ -4,12 +4,10 @@ extensions:
   zpages:
 
 receivers:
-  otlp:
-    protocols:
-      grpc:
-        endpoint: 0.0.0.0:4317
-      http:
-        endpoint: 0.0.0.0:4318
+  signalfx:
+    endpoint: 0.0.0.0:9943
+  sapm:
+    endpoint: 0.0.0.0:7276
 
 processors:
   batch:
@@ -24,8 +22,8 @@ service:
   extensions: [health_check, zpages]
   pipelines:
     metrics:
-      receivers: [otlp]
+      receivers: [signalfx]
       exporters: [otlp]
     traces:
-      receivers: [otlp]
+      receivers: [sapm]
       exporters: [otlp]

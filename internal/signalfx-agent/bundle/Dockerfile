@@ -332,17 +332,13 @@ RUN find /usr/local/lib/python3.11 -wholename "*test*.key" -delete -or -wholenam
 FROM base as extra-packages
 
 RUN apt-get install -qq -y \
-        curl \
         host \
         iproute2 \
-        netcat \
-        netcat.openbsd \
         libtirpc3
 
 COPY scripts/collect-libs /opt/collect-libs
 
 ENV useful_bins=" \
-  /bin/bash \
   /bin/cat \
   /bin/cp \
   /bin/date \
@@ -353,14 +349,11 @@ ENV useful_bins=" \
   /bin/ls \
   /bin/mkdir \
   /bin/mount \
-  /bin/nc \
   /bin/ps \
   /bin/rm \
   /bin/sh \
   /bin/ss \
-  /bin/tar \
   /bin/umount \
-  /usr/bin/curl \
   /usr/bin/dirname \
   /usr/bin/find \
   /usr/bin/host \

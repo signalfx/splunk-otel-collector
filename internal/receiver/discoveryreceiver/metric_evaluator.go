@@ -135,7 +135,7 @@ func (m *metricEvaluator) evaluateMetrics(md pmetric.Metrics) plog.Logs {
 				entityState.Attributes().Remove(discovery.EndpointIDAttr)
 
 				entityState.Attributes().PutStr(eventTypeAttr, metricMatch)
-				entityState.Attributes().PutStr(receiverRuleAttr, rEntry.Rule)
+				entityState.Attributes().PutStr(receiverRuleAttr, rEntry.Rule.String())
 
 				desiredRecord := match.Record
 				if desiredRecord == nil {

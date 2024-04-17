@@ -277,12 +277,12 @@ Flags: 0
 
 ### ReceiverConfig
 
-| Name                  | Type              | Default    | Docs                                                                                                                                            |
-|-----------------------|-------------------|------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
-| `rule` (required)     | string            | <no value> | The Receiver Creator compatible discover rule                                                                                                   |
-| `config`              | map[string]any    | <no value> | The receiver instance configuration, including any Receiver Creator endpoint env value expr program value expansion                             |
-| `resource_attributes` | map[string]string | <no value> | A mapping of string resource attributes and their (expr program compatible) values to include in reported metrics for status log record matches |
-| `status`              | map[string]Match  | <no value> | A mapping of `metrics` and/or `statements` to Match items for status evaluation                                                                 |
+| Name                  | Type              | Default    | Docs                                                                                                                                                                                              |
+|-----------------------|-------------------|------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `rule` (required)     | string            | <no value> | The Receiver Creator compatible discover rule. Ensure that rules defined in different receivers cannot match the same endpoint. Endpoints matching rules from multiple receivers will be ignored. |
+| `config`              | map[string]any    | <no value> | The receiver instance configuration, including any Receiver Creator endpoint env value expr program value expansion                                                                               |
+| `resource_attributes` | map[string]string | <no value> | A mapping of string resource attributes and their (expr program compatible) values to include in reported metrics for status log record matches                                                   |
+| `status`              | map[string]Match  | <no value> | A mapping of `metrics` and/or `statements` to Match items for status evaluation                                                                                                                   |
 
 ### Match
 

@@ -69,10 +69,11 @@ func TestMetricEvaluation(t *testing.T) {
 				match.Status = status
 				t.Run(string(status), func(t *testing.T) {
 					observerID := component.MustNewIDWithName("an_observer", "observer.name")
+					receiverID := component.MustNewIDWithName("a_receiver", "receiver.name")
 					cfg := &Config{
 						Receivers: map[component.ID]ReceiverEntry{
-							component.MustNewIDWithName("a_receiver", "receiver.name"): {
-								Rule:   "a.rule",
+							receiverID: {
+								Rule:   Rule{text: "a.rule", program: nil},
 								Status: &Status{Metrics: []Match{match}},
 							},
 						},
@@ -82,10 +83,7 @@ func TestMetricEvaluation(t *testing.T) {
 
 					plogs := make(chan plog.Logs)
 					cStore := newCorrelationStore(logger, time.Hour)
-					cStore.UpdateEndpoint(
-						observer.Endpoint{ID: "endpoint.id"},
-						addedState, observerID,
-					)
+					cStore.UpdateEndpoint(observer.Endpoint{ID: "endpoint.id"}, receiverID, addedState, observerID)
 
 					me := newMetricEvaluator(logger, cfg, plogs, cStore)
 

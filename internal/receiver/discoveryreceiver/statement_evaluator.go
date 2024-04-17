@@ -195,7 +195,7 @@ func (se *statementEvaluator) evaluateStatement(statement *statussources.Stateme
 		fromAttrs.PutStr(discovery.ReceiverNameAttr, receiverID.Name())
 		se.correlateResourceAttributes(fromAttrs, entityState.Attributes(), se.correlations.GetOrCreate(receiverID, endpointID))
 		entityState.Attributes().PutStr(eventTypeAttr, statementMatch)
-		entityState.Attributes().PutStr(receiverRuleAttr, rEntry.Rule)
+		entityState.Attributes().PutStr(receiverRuleAttr, rEntry.Rule.String())
 
 		var desiredRecord LogRecord
 		if match.Record != nil {

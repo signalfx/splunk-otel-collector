@@ -16,6 +16,7 @@ package discoveryreceiver
 
 import (
 	"fmt"
+	"path"
 	"testing"
 	"time"
 
@@ -23,8 +24,10 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/plogtest"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/confmap/confmaptest"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
+	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
 )
@@ -541,4 +544,92 @@ func (n unexpectedPodInEnv) Env() observer.EndpointEnv {
 
 func (n unexpectedPodInEnv) Type() observer.EndpointType {
 	return observer.PortType
+}
+
+func TestUpdateEndpoints(t *testing.T) {
+	tests := []struct {
+		name                 string
+		config               string
+		endpoints            []observer.Endpoint
+		expectedCorrelations int
+	}{
+		{
+			name:                 "no_endpoints",
+			config:               "config.yaml",
+			endpoints:            nil,
+			expectedCorrelations: 0,
+		},
+		{
+			name:                 "no_matching_endpoints",
+			config:               "config.yaml",
+			endpoints:            []observer.Endpoint{containerEndpoint},
+			expectedCorrelations: 0,
+		},
+		{
+			name:   "one_matching_endpoint",
+			config: "config.yaml",
+			endpoints: []observer.Endpoint{
+				{
+					ID:     observer.EndpointID("container.endpoint.id"),
+					Target: "container.target",
+					Details: &observer.Container{
+						Name:        "Redis-app",
+						Image:       "image",
+						Tag:         "tag",
+						Port:        1,
+						Command:     "command",
+						ContainerID: "container.id",
+						Host:        "host",
+					},
+				},
+			},
+			expectedCorrelations: 1,
+		},
+		{
+			name:   "multiple_matching_endpoints",
+			config: "conflicting_rules.yaml",
+			endpoints: []observer.Endpoint{
+				{
+					ID:     observer.EndpointID("container.endpoint.id"),
+					Target: "container.target",
+					Details: &observer.Container{
+						Name:  "app",
+						Image: "image1",
+						Port:  2,
+					},
+				},
+				{
+					ID:     observer.EndpointID("container.endpoint.id"),
+					Target: "container.target",
+					Details: &observer.Container{
+						Name:  "app",
+						Image: "image2",
+						Port:  1,
+					},
+				},
+			},
+			expectedCorrelations: 0,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			config, err := confmaptest.LoadConf(path.Join(".", "testdata", tt.config))
+			require.NoError(t, err)
+			cm, err := config.Sub(typeStr)
+			require.NoError(t, err)
+			cfg := createDefaultConfig().(*Config)
+			require.NoError(t, component.UnmarshalConfig(cm, cfg))
+
+			logger := zap.NewNop()
+			et := newEndpointTracker(nil, cfg, logger, make(chan plog.Logs), newCorrelationStore(logger, cfg.CorrelationTTL))
+			et.updateEndpoints(tt.endpoints, addedState, component.MustNewIDWithName("observer_type", "observer.name"))
+
+			var correlationsCount int
+			et.correlations.(*store).correlations.Range(func(_, _ interface{}) bool {
+				correlationsCount++
+				return true
+			})
+			require.Equal(t, tt.expectedCorrelations, correlationsCount)
+		})
+	}
 }

@@ -41,18 +41,11 @@ type correlation struct {
 	observerID  component.ID
 }
 
-func newCorrelation() *correlation {
-	return &correlation{
-		receiverID: discovery.NoType,
-		observerID: discovery.NoType,
-	}
-}
-
 // correlationStore provides a centralized interface for up-to-date correlations
 // and receiver attributes as a message passing mechanism by observed components.
 // It manages a reaping loop to prevent stale endpoint buildup over time.
 type correlationStore interface {
-	UpdateEndpoint(endpoint observer.Endpoint, state endpointState, observerID component.ID)
+	UpdateEndpoint(endpoint observer.Endpoint, receiverID component.ID, state endpointState, observerID component.ID)
 	GetOrCreate(receiverID component.ID, endpointID observer.EndpointID) correlation
 	Attrs(receiverID component.ID) map[string]string
 	UpdateAttrs(receiverID component.ID, attrs map[string]string)
@@ -63,14 +56,14 @@ type correlationStore interface {
 }
 
 // store is a collection of mappings used as an instantaneous record of
-// 1. endpoints to their associated receivers->correlations
+// 1. endpoints to their associated correlations
 // 2. receivers to their endpoint-agnostic Attrs used as a message
 // passing mechanism (currently just for embedded config values).
 // This way the pre-created receiver instances can have attrs
 // before they are created via endpoint.
 type store struct {
 	logger *zap.Logger
-	// correlations is a ~synchronized map[endpointID]map[receiverID]*corr
+	// correlations is a ~synchronized map[endpointID]*corr
 	correlations  *sync.Map
 	endpointLocks *keyLock
 	receiverAttrs *sync.Map
@@ -94,61 +87,43 @@ func newCorrelationStore(logger *zap.Logger, ttl time.Duration) correlationStore
 	}
 }
 
-// UpdateEndpoint will update all existing correlation timestamps and states by endpoint.ID, or
-// creates a new no-type ~singleton w/ the initial correlation info for later use in correlation creation.
-func (s *store) UpdateEndpoint(endpoint observer.Endpoint, state endpointState, observerID component.ID) {
-	defer s.endpointLocks.Lock(endpoint.ID)()
-	rMap, ok := s.correlations.LoadOrStore(endpoint.ID, &sync.Map{})
-	receiverMap := rMap.(*sync.Map)
-	if !ok {
-		receiverMap.Store(discovery.NoType, &correlation{
-			endpoint:    endpoint,
-			receiverID:  discovery.NoType,
-			observerID:  observerID,
-			lastState:   state,
-			lastUpdated: time.Now(),
-		})
-		// we've set NoType correlation, which is all we can do
-		return
-	}
-	receiverMap.Range(func(_, c any) bool {
+// UpdateEndpoint updates or creates correlation timestamps and states by endpoint.ID and receiverID.
+func (s *store) UpdateEndpoint(endpoint observer.Endpoint, receiverID component.ID, state endpointState, observerID component.ID) {
+	endpointUnlock := s.endpointLocks.Lock(endpoint.ID)
+	defer endpointUnlock()
+	c, ok := s.correlations.LoadOrStore(endpoint.ID, &correlation{
+		endpoint:    endpoint,
+		receiverID:  receiverID,
+		observerID:  observerID,
+		lastState:   state,
+		lastUpdated: time.Now(),
+	})
+	if ok {
 		corr := c.(*correlation)
+		corr.receiverID = receiverID
 		corr.endpoint = endpoint
 		// set here for unlikely out of order GetOrCreate eventual consistency
 		corr.observerID = observerID
 		corr.lastUpdated = time.Now()
 		corr.lastState = state
-		return true
-	})
+	}
 }
 
-// GetOrCreate returns an existing receiver/endpoint correlation or creates a new one
-// based on the no-type ~singleton for the last endpoint update event.
+// GetOrCreate returns an existing receiver/endpoint correlation or creates a new one.
 func (s *store) GetOrCreate(receiverID component.ID, endpointID observer.EndpointID) correlation {
 	endpointUnlock := s.endpointLocks.Lock(endpointID)
-	rMap, ok := s.correlations.LoadOrStore(endpointID, &sync.Map{})
-	receiverMap := rMap.(*sync.Map)
-	if !ok {
-		// this zero value correlation suggests the observer has yet to emit an endpoint event
-		// and this could be an invalid collector state. Likely this flow results from delayed
-		// event handling and the correlation is eventually consistent in UpdateEndpoint.
-		receiverMap.Store(discovery.NoType, newCorrelation())
-	}
-	defer s.receiverLocks.Lock(receiverID)()
-	endpointUnlock()
-	c, ok := receiverMap.Load(receiverID)
+	defer endpointUnlock()
+	c, ok := s.correlations.Load(endpointID)
 	if ok {
 		return *(c.(*correlation))
 	}
-	var noTypeCorrelation *correlation
-	// disregard ok since previous LoadOrStore handling guarantees existence
-	ntCorr, _ := receiverMap.Load(discovery.NoType)
-	noTypeCorrelation = ntCorr.(*correlation)
-	cpCorr := *noTypeCorrelation
-	corr := &cpCorr
-	corr.receiverID = receiverID
-	receiverMap.Store(corr.receiverID, corr)
-	return *corr
+	// The observer has yet to emit an endpoint event and this could be an invalid collector state.
+	corr := correlation{
+		receiverID: receiverID,
+		observerID: discovery.NoType,
+	}
+	s.correlations.Store(endpointID, &corr)
+	return corr
 }
 
 func (s *store) Attrs(receiverID component.ID) map[string]string {
@@ -193,16 +168,13 @@ func (s *store) Stop() {
 
 // reap will remove all removed endpoints whose last update is past the ttl
 func (s *store) reap() {
-	s.correlations.Range(func(eID, rMap any) bool {
+	s.correlations.Range(func(eID, c any) bool {
 		endpointID := eID.(observer.EndpointID)
-		defer s.endpointLocks.Lock(endpointID)()
-		receiverMap := rMap.(*sync.Map)
-		if c, ok := receiverMap.Load(discovery.NoType); ok {
-			corr := c.(*correlation)
-			if corr.lastState == removedState &&
-				time.Since(corr.lastUpdated) > s.ttl {
-				s.correlations.Delete(endpointID)
-			}
+		endpointUnlock := s.endpointLocks.Lock(endpointID)
+		defer endpointUnlock()
+		corr := c.(*correlation)
+		if corr.lastState == removedState && time.Since(corr.lastUpdated) > s.ttl {
+			s.correlations.Delete(endpointID)
 		}
 		return true
 	})

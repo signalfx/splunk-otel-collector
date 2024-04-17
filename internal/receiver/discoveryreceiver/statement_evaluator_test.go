@@ -58,7 +58,7 @@ func TestStatementEvaluation(t *testing.T) {
 							cfg := &Config{
 								Receivers: map[component.ID]ReceiverEntry{
 									component.MustNewIDWithName("a_receiver", "receiver.name"): {
-										Rule:   "a.rule",
+										Rule:   mustNewRule(`type == "container"`),
 										Status: &Status{Statements: []Match{match}},
 									},
 								},
@@ -73,10 +73,8 @@ func TestStatementEvaluation(t *testing.T) {
 							// logger := zaptest.NewLogger(t)
 							logger := zap.NewNop()
 							cStore := newCorrelationStore(logger, time.Hour)
-							cStore.UpdateEndpoint(
-								observer.Endpoint{ID: "endpoint.id"},
-								addedState, observerID,
-							)
+							receiverID := component.MustNewIDWithName("a_receiver", "receiver.name")
+							cStore.UpdateEndpoint(observer.Endpoint{ID: "endpoint.id"}, receiverID, addedState, observerID)
 
 							se, err := newStatementEvaluator(logger, component.MustNewID("some_type"), cfg, plogs, cStore)
 							require.NoError(t, err)
@@ -153,7 +151,7 @@ func TestStatementEvaluation(t *testing.T) {
 									"discovery.event.type":    "statement.match",
 									"discovery.observer.id":   "an_observer/observer.name",
 									"discovery.receiver.name": "receiver.name",
-									"discovery.receiver.rule": "a.rule",
+									"discovery.receiver.rule": `type == "container"`,
 									"discovery.receiver.type": "a_receiver",
 									"discovery.status":        string(status),
 									"discovery.message":       expectedMsg,

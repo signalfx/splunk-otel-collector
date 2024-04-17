@@ -97,7 +97,6 @@ func TestEvaluateInvalidMatch(t *testing.T) {
 }
 
 func TestCorrelateResourceAttrs(t *testing.T) {
-	sampleType := component.MustNewID("SPLUNK_unit_test_receiver")
 	for _, embed := range []bool{false, true} {
 		t.Run(fmt.Sprintf("embed-%v", embed), func(t *testing.T) {
 			eval, _, endpointID := setup(t)
@@ -105,9 +104,10 @@ func TestCorrelateResourceAttrs(t *testing.T) {
 
 			endpoint := observer.Endpoint{ID: endpointID}
 			observerID := component.MustNewIDWithName("type", "name")
-			eval.correlations.UpdateEndpoint(endpoint, addedState, observerID)
+			receiverID := component.MustNewIDWithName("receiver", "name")
+			eval.correlations.UpdateEndpoint(endpoint, receiverID, addedState, observerID)
 
-			corr := eval.correlations.GetOrCreate(sampleType, endpointID)
+			corr := eval.correlations.GetOrCreate(receiverID, endpointID)
 
 			from := pcommon.NewMap()
 			from.FromRaw(
@@ -118,7 +118,7 @@ func TestCorrelateResourceAttrs(t *testing.T) {
 
 			to := pcommon.NewMap()
 
-			require.Empty(t, eval.correlations.Attrs(sampleType))
+			require.Empty(t, eval.correlations.Attrs(receiverID))
 			eval.correlateResourceAttributes(from, to, corr)
 
 			expectedResourceAttrs := map[string]any{
@@ -134,7 +134,7 @@ func TestCorrelateResourceAttrs(t *testing.T) {
 
 			require.Equal(t, expectedResourceAttrs, to.AsRaw())
 
-			attrs := eval.correlations.Attrs(sampleType)
+			attrs := eval.correlations.Attrs(receiverID)
 
 			expectedAttrs := map[string]string{}
 			if embed {
@@ -147,7 +147,6 @@ func TestCorrelateResourceAttrs(t *testing.T) {
 }
 
 func TestCorrelateResourceAttrsWithExistingConfig(t *testing.T) {
-	sampleType := component.MustNewID("SPLUNK_unit_test_receiver")
 	for _, embed := range []bool{false, true} {
 		t.Run(fmt.Sprintf("embed-%v", embed), func(t *testing.T) {
 			eval, _, endpointID := setup(t)
@@ -155,9 +154,10 @@ func TestCorrelateResourceAttrsWithExistingConfig(t *testing.T) {
 
 			endpoint := observer.Endpoint{ID: endpointID}
 			observerID := component.MustNewIDWithName("type", "name")
-			eval.correlations.UpdateEndpoint(endpoint, addedState, observerID)
+			receiverID := component.MustNewIDWithName("receiver", "name")
+			eval.correlations.UpdateEndpoint(endpoint, receiverID, addedState, observerID)
 
-			corr := eval.correlations.GetOrCreate(sampleType, endpointID)
+			corr := eval.correlations.GetOrCreate(receiverID, endpointID)
 
 			encodedConfig := base64.StdEncoding.EncodeToString([]byte("config: some config\nrule: some rule\n"))
 
@@ -171,7 +171,7 @@ func TestCorrelateResourceAttrsWithExistingConfig(t *testing.T) {
 
 			to := pcommon.NewMap()
 
-			require.Empty(t, eval.correlations.Attrs(sampleType))
+			require.Empty(t, eval.correlations.Attrs(receiverID))
 			eval.correlateResourceAttributes(from, to, corr)
 
 			var receiverConfig string
@@ -190,7 +190,7 @@ func TestCorrelateResourceAttrsWithExistingConfig(t *testing.T) {
 
 			require.Equal(t, expectedResourceAttrs, to.AsRaw())
 
-			attrs := eval.correlations.Attrs(sampleType)
+			attrs := eval.correlations.Attrs(receiverID)
 			expectedAttrs := map[string]string{}
 
 			if embed {

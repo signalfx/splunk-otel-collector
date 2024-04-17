@@ -3,7 +3,7 @@ discovery:
     - an_observer
   receivers:
     a_receiver:
-      rule: a rule
+      rule: type == "container"
       status:
         metrics:
           - status: unsupported

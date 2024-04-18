@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### 🛑 Breaking changes 🛑
+
+- (Splunk) `receiver/discovery`: Emit entity events for discovered endpoints with log_endpoints: true ([#4684](https://github.com/signalfx/splunk-otel-collector/pull/4684))
+
+### 💡 Enhancements 💡
+
+- (Splunk) Include [`splunk-otel-dotnet`](https://github.com/signalfx/splunk-otel-dotnet) in the `splunk-otel-auto-instrumentation` deb/rpm packages (x86_64/amd64 only) ([#4679](https://github.com/signalfx/splunk-otel-collector/pull/4679))
+  - **Note**: Only manual activation/configuration for .NET auto instrumentation is currently supported. See [README.md](https://github.com/signalfx/splunk-otel-collector/blob/main/instrumentation/README.md) for details.
+
 ## v0.98.0
 
 ### 🛑 Breaking changes 🛑

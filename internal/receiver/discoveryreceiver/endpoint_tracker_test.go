@@ -22,6 +22,7 @@ import (
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/plogtest"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
@@ -161,15 +162,15 @@ func TestEndpointToPLogsHappyPath(t *testing.T) {
 	} {
 		test := tt
 		t.Run(test.name, func(t *testing.T) {
-			plogs, failed, err := endpointToPLogs(
+			events, failed, err := entityStateEvents(
 				component.MustNewIDWithName("observer_type", "observer.name"),
-				"event.type", []observer.Endpoint{test.endpoint}, t0,
+				[]observer.Endpoint{test.endpoint}, t0,
 			)
 			require.NoError(t, err)
 			require.Zero(t, failed)
-			require.Equal(t, 1, plogs.LogRecordCount())
+			require.Equal(t, 1, events.Len())
 
-			require.NoError(t, plogtest.CompareLogs(test.expectedPLogs, plogs))
+			require.NoError(t, plogtest.CompareLogs(test.expectedPLogs, events.ConvertAndMoveToLogs()))
 		})
 	}
 }
@@ -273,9 +274,9 @@ func TestEndpointToPLogsInvalidEndpoints(t *testing.T) {
 		test := tt
 		t.Run(test.name, func(t *testing.T) {
 			// Validate entity_state event
-			plogs, failed, err := endpointToPLogs(
+			events, failed, err := entityStateEvents(
 				component.MustNewIDWithName("observer_type", "observer.name"),
-				addedState, []observer.Endpoint{test.endpoint}, t0,
+				[]observer.Endpoint{test.endpoint}, t0,
 			)
 			if test.expectedError != "" {
 				require.Error(t, err)
@@ -284,22 +285,19 @@ func TestEndpointToPLogsInvalidEndpoints(t *testing.T) {
 			}
 			require.NoError(t, err)
 			require.Zero(t, failed)
-			require.Equal(t, 1, plogs.LogRecordCount())
-			require.NoError(t, plogtest.CompareLogs(test.expectedPLogs, plogs))
+			require.Equal(t, 1, events.Len())
+			require.NoError(t, plogtest.CompareLogs(test.expectedPLogs, events.ConvertAndMoveToLogs()))
 
 			// Validate entity_delete event
 			expectedDeleteEvent := test.expectedPLogs
 			lr := expectedDeleteEvent.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
 			lr.Attributes().PutStr(discovery.OtelEntityEventTypeAttr, discovery.OtelEntityEventTypeDelete)
 			lr.Attributes().Remove(discovery.OtelEntityAttributesAttr)
-			plogs, failed, err = endpointToPLogs(
-				component.MustNewIDWithName("observer_type", "observer.name"),
-				removedState, []observer.Endpoint{test.endpoint}, t0,
-			)
+			events = entityDeleteEvents([]observer.Endpoint{test.endpoint}, t0)
 			require.NoError(t, err)
 			require.Zero(t, failed)
-			require.Equal(t, 1, plogs.LogRecordCount())
-			require.NoError(t, plogtest.CompareLogs(expectedDeleteEvent, plogs))
+			require.Equal(t, 1, events.Len())
+			require.NoError(t, plogtest.CompareLogs(expectedDeleteEvent, events.ConvertAndMoveToLogs()))
 		})
 	}
 }
@@ -321,8 +319,8 @@ func FuzzEndpointToPlogs(f *testing.F) {
 			if err != nil {
 				observerTypeSanitized = discovery.NoType.Type()
 			}
-			plogs, failed, err := endpointToPLogs(
-				component.MustNewIDWithName(observerTypeSanitized.String(), observerName), addedState, []observer.Endpoint{
+			events, failed, err := entityStateEvents(
+				component.MustNewIDWithName(observerTypeSanitized.String(), observerName), []observer.Endpoint{
 					{
 						ID:     observer.EndpointID(endpointID),
 						Target: target,
@@ -370,9 +368,9 @@ func FuzzEndpointToPlogs(f *testing.F) {
 			attrs.PutInt("port", int64(port))
 			attrs.PutStr("transport", transport)
 			attrs.PutStr("type", "port")
-			require.Equal(t, 1, plogs.LogRecordCount())
+			require.Equal(t, 1, events.Len())
 
-			require.NoError(t, plogtest.CompareLogs(expectedLogs, plogs))
+			require.NoError(t, plogtest.CompareLogs(expectedLogs, events.ConvertAndMoveToLogs()))
 			require.NoError(t, err)
 			require.Zero(t, failed)
 		})
@@ -611,7 +609,7 @@ func TestUpdateEndpoints(t *testing.T) {
 
 			logger := zap.NewNop()
 			et := newEndpointTracker(nil, cfg, logger, make(chan plog.Logs), newCorrelationStore(logger, cfg.CorrelationTTL))
-			et.updateEndpoints(tt.endpoints, addedState, component.MustNewIDWithName("observer_type", "observer.name"))
+			et.updateEndpoints(tt.endpoints, component.MustNewIDWithName("observer_type", "observer.name"))
 
 			var correlationsCount int
 			et.correlations.(*store).correlations.Range(func(_, _ interface{}) bool {
@@ -623,7 +621,7 @@ func TestUpdateEndpoints(t *testing.T) {
 	}
 }
 
-func TestPeriodicEntityEmitting(t *testing.T) {
+func TestEntityEmittingLifecycle(t *testing.T) {
 	logger := zap.NewNop()
 	cfg := createDefaultConfig().(*Config)
 	cfg.LogEndpoints = true
@@ -642,7 +640,7 @@ func TestPeriodicEntityEmitting(t *testing.T) {
 		logger:       logger,
 		pLogs:        ch,
 		correlations: newCorrelationStore(logger, cfg.CorrelationTTL),
-		emitInterval: 100 * time.Millisecond,
+		emitInterval: 50 * time.Millisecond,
 		stopCh:       make(chan struct{}),
 	}
 	et.start()
@@ -657,28 +655,45 @@ func TestPeriodicEntityEmitting(t *testing.T) {
 
 	obs.onAdd([]observer.Endpoint{portEndpoint})
 
-	// Wait for at least 2 entity events to be emitted
+	// Wait for at least 2 entity events to be emitted to confirm periodic emitting is working.
 	require.Eventually(t, func() bool { return len(ch) >= 2 }, 1*time.Second, 50*time.Millisecond)
 
 	gotLogs := <-ch
 	require.Equal(t, 1, gotLogs.LogRecordCount())
 	// TODO: Use plogtest.IgnoreTimestamp once available
-	expectedLogs, failed, err := endpointToPLogs(obsID, addedState, []observer.Endpoint{portEndpoint},
+	expectedEvents, failed, err := entityStateEvents(obsID, []observer.Endpoint{portEndpoint},
 		gotLogs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0).Timestamp().AsTime())
 	require.NoError(t, err)
 	require.Zero(t, failed)
-	require.NoError(t, plogtest.CompareLogs(expectedLogs, gotLogs))
+	require.NoError(t, plogtest.CompareLogs(expectedEvents.ConvertAndMoveToLogs(), gotLogs))
+
+	// Remove the endpoint.
+	obs.onRemove([]observer.Endpoint{portEndpoint})
+
+	// Wait for an entity delete event.
+	expectedLogs := entityDeleteEvents([]observer.Endpoint{portEndpoint}, t0).ConvertAndMoveToLogs()
+	require.EventuallyWithT(t, func(c *assert.CollectT) {
+		logs := <-ch
+		logs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0).SetTimestamp(pcommon.NewTimestampFromTime(t0))
+		assert.NoError(c, plogtest.CompareLogs(expectedLogs, logs))
+	}, 1*time.Second, 50*time.Millisecond)
+
+	// Ensure that entities are not emitted anymore
+	time.Sleep(60 * time.Millisecond)
+	assert.Empty(t, ch)
 }
 
 type fakeObservable struct {
-	onAdd func([]observer.Endpoint)
-	lock  sync.Mutex
+	onAdd    func([]observer.Endpoint)
+	onRemove func([]observer.Endpoint)
+	lock     sync.Mutex
 }
 
 func (f *fakeObservable) ListAndWatch(notify observer.Notify) {
 	f.lock.Lock()
 	defer f.lock.Unlock()
 	f.onAdd = notify.OnAdd
+	f.onRemove = notify.OnRemove
 }
 
 func (f *fakeObservable) Unsubscribe(observer.Notify) {}

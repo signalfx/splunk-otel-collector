@@ -105,7 +105,7 @@ func TestCorrelateResourceAttrs(t *testing.T) {
 			endpoint := observer.Endpoint{ID: endpointID}
 			observerID := component.MustNewIDWithName("type", "name")
 			receiverID := component.MustNewIDWithName("receiver", "name")
-			eval.correlations.UpdateEndpoint(endpoint, receiverID, addedState, observerID)
+			eval.correlations.UpdateEndpoint(endpoint, receiverID, observerID)
 
 			corr := eval.correlations.GetOrCreate(receiverID, endpointID)
 
@@ -155,7 +155,7 @@ func TestCorrelateResourceAttrsWithExistingConfig(t *testing.T) {
 			endpoint := observer.Endpoint{ID: endpointID}
 			observerID := component.MustNewIDWithName("type", "name")
 			receiverID := component.MustNewIDWithName("receiver", "name")
-			eval.correlations.UpdateEndpoint(endpoint, receiverID, addedState, observerID)
+			eval.correlations.UpdateEndpoint(endpoint, receiverID, observerID)
 
 			corr := eval.correlations.GetOrCreate(receiverID, endpointID)
 

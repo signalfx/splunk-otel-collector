@@ -83,7 +83,7 @@ func TestMetricEvaluation(t *testing.T) {
 
 					plogs := make(chan plog.Logs)
 					cStore := newCorrelationStore(logger, time.Hour)
-					cStore.UpdateEndpoint(observer.Endpoint{ID: "endpoint.id"}, receiverID, addedState, observerID)
+					cStore.UpdateEndpoint(observer.Endpoint{ID: "endpoint.id"}, receiverID, observerID)
 
 					me := newMetricEvaluator(logger, cfg, plogs, cStore)
 

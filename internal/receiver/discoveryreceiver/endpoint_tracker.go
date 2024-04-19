@@ -29,14 +29,6 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
 )
 
-type endpointState string
-
-const (
-	addedState   endpointState = "added"
-	removedState endpointState = "removed"
-	changedState endpointState = "changed"
-)
-
 var (
 	_ observer.Notify = (*notify)(nil)
 )
@@ -102,9 +94,7 @@ func (et *endpointTracker) startEmitLoop() {
 		select {
 		case <-timer.C:
 			for obs := range et.observables {
-				activeEndpoints := et.correlations.Endpoints(time.Now().Add(-et.emitInterval))
-				// changedState just means that we want to report the current state of the endpoint.
-				et.emitEndpointLogs(obs, changedState, activeEndpoints, time.Now())
+				et.emitEntityStateEvents(obs, et.correlations.Endpoints(time.Now().Add(-et.emitInterval)))
 			}
 		case <-et.stopCh:
 			timer.Stop()
@@ -122,19 +112,28 @@ func (et *endpointTracker) stop() {
 	et.stopCh <- struct{}{}
 }
 
-func (et *endpointTracker) emitEndpointLogs(observerCID component.ID, eventType endpointState, endpoints []observer.Endpoint, received time.Time) {
+func (et *endpointTracker) emitEntityStateEvents(observerCID component.ID, endpoints []observer.Endpoint) {
 	if et.config.LogEndpoints && et.pLogs != nil {
-		pLogs, numFailed, err := endpointToPLogs(observerCID, eventType, endpoints, received)
+		entityEvents, numFailed, err := entityStateEvents(observerCID, endpoints, time.Now())
 		if err != nil {
 			et.logger.Warn(fmt.Sprintf("failed converting %v endpoints to log records", numFailed), zap.Error(err))
 		}
-		if pLogs.LogRecordCount() > 0 {
-			et.pLogs <- pLogs
+		if entityEvents.Len() > 0 {
+			et.pLogs <- entityEvents.ConvertAndMoveToLogs()
 		}
 	}
 }
 
-func (et *endpointTracker) updateEndpoints(endpoints []observer.Endpoint, state endpointState, observerID component.ID) {
+func (et *endpointTracker) emitEntityDeleteEvents(endpoints []observer.Endpoint) {
+	if et.config.LogEndpoints && et.pLogs != nil {
+		entityEvents := entityDeleteEvents(endpoints, time.Now())
+		if entityEvents.Len() > 0 {
+			et.pLogs <- entityEvents.ConvertAndMoveToLogs()
+		}
+	}
+}
+
+func (et *endpointTracker) updateEndpoints(endpoints []observer.Endpoint, observerID component.ID) {
 	for _, endpoint := range endpoints {
 		endpointEnv, err := endpoint.Env()
 		if err != nil {
@@ -155,7 +154,7 @@ func (et *endpointTracker) updateEndpoints(endpoints []observer.Endpoint, state 
 				string(endpoint.ID)), zap.String("receivers", receiverNames))
 			continue
 		}
-		et.correlations.UpdateEndpoint(endpoint, receivers[0], state, observerID)
+		et.correlations.UpdateEndpoint(endpoint, receivers[0], observerID)
 	}
 }
 
@@ -179,47 +178,56 @@ func (n *notify) ID() observer.NotifyID {
 }
 
 func (n *notify) OnAdd(added []observer.Endpoint) {
-	n.endpointTracker.emitEndpointLogs(n.observerID, addedState, added, time.Now())
-	n.endpointTracker.updateEndpoints(added, addedState, n.observerID)
+	n.endpointTracker.emitEntityStateEvents(n.observerID, added)
+	n.endpointTracker.updateEndpoints(added, n.observerID)
 }
 
 func (n *notify) OnRemove(removed []observer.Endpoint) {
-	n.endpointTracker.emitEndpointLogs(n.observerID, removedState, removed, time.Now())
-	n.endpointTracker.updateEndpoints(removed, removedState, n.observerID)
+	n.endpointTracker.emitEntityDeleteEvents(removed)
+	for _, endpoint := range removed {
+		n.endpointTracker.correlations.MarkStale(endpoint.ID)
+	}
 }
 
 func (n *notify) OnChange(changed []observer.Endpoint) {
-	n.endpointTracker.emitEndpointLogs(n.observerID, changedState, changed, time.Now())
-	n.endpointTracker.updateEndpoints(changed, changedState, n.observerID)
+	n.endpointTracker.emitEntityStateEvents(n.observerID, changed)
+	n.endpointTracker.updateEndpoints(changed, n.observerID)
 }
 
-func endpointToPLogs(observerID component.ID, eventType endpointState, endpoints []observer.Endpoint, received time.Time) (pLogs plog.Logs, failed int, err error) {
+func entityStateEvents(observerID component.ID, endpoints []observer.Endpoint, ts time.Time) (ees experimentalmetricmetadata.EntityEventsSlice, failed int, err error) {
 	entityEvents := experimentalmetricmetadata.NewEntityEventsSlice()
 	for _, endpoint := range endpoints {
 		entityEvent := entityEvents.AppendEmpty()
-		entityEvent.SetTimestamp(pcommon.NewTimestampFromTime(received))
+		entityEvent.SetTimestamp(pcommon.NewTimestampFromTime(ts))
 		entityEvent.ID().PutStr(discovery.EndpointIDAttr, string(endpoint.ID))
-		if eventType == removedState {
-			entityEvent.SetEntityDelete()
-		} else {
-			entityState := entityEvent.SetEntityState()
-			attrs := entityState.Attributes()
-			if endpoint.Details != nil {
-				if envAttrs, e := endpointEnvToAttrs(endpoint.Details.Type(), endpoint.Details.Env()); e != nil {
-					err = multierr.Combine(err, fmt.Errorf("failed determining attributes for %q: %w", endpoint.ID, e))
-					failed++
-				} else {
-					// this must be the first mutation of attrs since it's destructive
-					envAttrs.CopyTo(attrs)
-				}
-				attrs.PutStr("type", string(endpoint.Details.Type()))
+		entityState := entityEvent.SetEntityState()
+		attrs := entityState.Attributes()
+		if endpoint.Details != nil {
+			if envAttrs, e := endpointEnvToAttrs(endpoint.Details.Type(), endpoint.Details.Env()); e != nil {
+				err = multierr.Combine(err, fmt.Errorf("failed determining attributes for %q: %w", endpoint.ID, e))
+				failed++
+			} else {
+				// this must be the first mutation of attrs since it's destructive
+				envAttrs.CopyTo(attrs)
 			}
-			attrs.PutStr("endpoint", endpoint.Target)
-			attrs.PutStr(observerNameAttr, observerID.Name())
-			attrs.PutStr(observerTypeAttr, observerID.Type().String())
+			attrs.PutStr("type", string(endpoint.Details.Type()))
 		}
+		attrs.PutStr("endpoint", endpoint.Target)
+		attrs.PutStr(observerNameAttr, observerID.Name())
+		attrs.PutStr(observerTypeAttr, observerID.Type().String())
 	}
-	return entityEvents.ConvertAndMoveToLogs(), failed, err
+	return entityEvents, failed, err
+}
+
+func entityDeleteEvents(endpoints []observer.Endpoint, ts time.Time) experimentalmetricmetadata.EntityEventsSlice {
+	entityEvents := experimentalmetricmetadata.NewEntityEventsSlice()
+	for _, endpoint := range endpoints {
+		entityEvent := entityEvents.AppendEmpty()
+		entityEvent.SetTimestamp(pcommon.NewTimestampFromTime(ts))
+		entityEvent.ID().PutStr(discovery.EndpointIDAttr, string(endpoint.ID))
+		entityEvent.SetEntityDelete()
+	}
+	return entityEvents
 }
 
 func endpointEnvToAttrs(endpointType observer.EndpointType, endpointEnv observer.EndpointEnv) (pcommon.Map, error) {

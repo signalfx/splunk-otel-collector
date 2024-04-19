@@ -134,28 +134,40 @@ func (et *endpointTracker) emitEntityDeleteEvents(endpoints []observer.Endpoint)
 }
 
 func (et *endpointTracker) updateEndpoints(endpoints []observer.Endpoint, observerID component.ID) {
+	var matchingEndpoints []observer.Endpoint
 	for _, endpoint := range endpoints {
-		endpointEnv, err := endpoint.Env()
-		if err != nil {
-			et.logger.Error("failed receiving endpoint environment", zap.String("endpoint", string(endpoint.ID)), zap.Error(err))
-			continue
+		receiver := et.receiverMatchingEndpoint(endpoint)
+		if receiver != discovery.NoType {
+			matchingEndpoints = append(matchingEndpoints, endpoint)
+			et.correlations.UpdateEndpoint(endpoint, receiver, observerID)
 		}
-		receivers := et.matchingReceivers(endpointEnv)
-		if len(receivers) == 0 {
-			et.logger.Debug("endpoint matched no receivers, skipping", zap.String("endpoint", string(endpoint.ID)))
-			continue
-		}
-		if len(receivers) > 1 {
-			var receiverNames string
-			for _, receiverID := range receivers {
-				receiverNames += receiverID.String() + " "
-			}
-			et.logger.Warn("endpoint matched multiple receivers, skipping", zap.String("endpoint",
-				string(endpoint.ID)), zap.String("receivers", receiverNames))
-			continue
-		}
-		et.correlations.UpdateEndpoint(endpoint, receivers[0], observerID)
 	}
+	et.emitEntityStateEvents(observerID, matchingEndpoints)
+}
+
+// receiverMatchingEndpoint returns the receiver ID that matches the given endpoint.
+// If the endpoint doesn't match exactly one receiver, it returns discovery.NoType.
+func (et *endpointTracker) receiverMatchingEndpoint(endpoint observer.Endpoint) component.ID {
+	endpointEnv, err := endpoint.Env()
+	if err != nil {
+		et.logger.Error("failed receiving endpoint environment", zap.String("endpoint", string(endpoint.ID)), zap.Error(err))
+		return discovery.NoType
+	}
+	receivers := et.matchingReceivers(endpointEnv)
+	if len(receivers) == 0 {
+		et.logger.Debug("endpoint matched no receivers, skipping", zap.String("endpoint", string(endpoint.ID)))
+		return discovery.NoType
+	}
+	if len(receivers) > 1 {
+		var receiverNames string
+		for _, receiverID := range receivers {
+			receiverNames += receiverID.String() + " "
+		}
+		et.logger.Warn("endpoint matched multiple receivers, skipping", zap.String("endpoint",
+			string(endpoint.ID)), zap.String("receivers", receiverNames))
+		return discovery.NoType
+	}
+	return receivers[0]
 }
 
 func (et *endpointTracker) matchingReceivers(endpointEnv observer.EndpointEnv) []component.ID {
@@ -178,19 +190,22 @@ func (n *notify) ID() observer.NotifyID {
 }
 
 func (n *notify) OnAdd(added []observer.Endpoint) {
-	n.endpointTracker.emitEntityStateEvents(n.observerID, added)
 	n.endpointTracker.updateEndpoints(added, n.observerID)
 }
 
 func (n *notify) OnRemove(removed []observer.Endpoint) {
-	n.endpointTracker.emitEntityDeleteEvents(removed)
+	var matchingEndpoints []observer.Endpoint
 	for _, endpoint := range removed {
-		n.endpointTracker.correlations.MarkStale(endpoint.ID)
+		receiver := n.endpointTracker.receiverMatchingEndpoint(endpoint)
+		if receiver != discovery.NoType {
+			matchingEndpoints = append(matchingEndpoints, endpoint)
+			n.endpointTracker.correlations.MarkStale(endpoint.ID)
+		}
 	}
+	n.endpointTracker.emitEntityDeleteEvents(matchingEndpoints)
 }
 
 func (n *notify) OnChange(changed []observer.Endpoint) {
-	n.endpointTracker.emitEntityStateEvents(n.observerID, changed)
 	n.endpointTracker.updateEndpoints(changed, n.observerID)
 }
 

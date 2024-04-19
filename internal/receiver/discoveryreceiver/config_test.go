@@ -100,7 +100,7 @@ func TestValidConfig(t *testing.T) {
 				Rule: mustNewRule(`type == "container" && name matches "(?i)redis"`),
 			},
 		},
-		LogEndpoints:        true,
+		LogEndpoints:        false,
 		EmbedReceiverConfig: true,
 		CorrelationTTL:      25 * time.Second,
 		WatchObservers: []component.ID{

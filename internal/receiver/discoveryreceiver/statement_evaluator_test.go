@@ -74,7 +74,7 @@ func TestStatementEvaluation(t *testing.T) {
 							logger := zap.NewNop()
 							cStore := newCorrelationStore(logger, time.Hour)
 							receiverID := component.MustNewIDWithName("a_receiver", "receiver.name")
-							cStore.UpdateEndpoint(observer.Endpoint{ID: "endpoint.id"}, receiverID, addedState, observerID)
+							cStore.UpdateEndpoint(observer.Endpoint{ID: "endpoint.id"}, receiverID, observerID)
 
 							se, err := newStatementEvaluator(logger, component.MustNewID("some_type"), cfg, plogs, cStore)
 							require.NoError(t, err)

@@ -34,18 +34,19 @@ import (
 // observing observer via the Notify event where not available
 // through another means.
 type correlation struct {
-	lastState   endpointState
 	lastUpdated time.Time
 	endpoint    observer.Endpoint
 	receiverID  component.ID
 	observerID  component.ID
+	stale       bool
 }
 
 // correlationStore provides a centralized interface for up-to-date correlations
 // and receiver attributes as a message passing mechanism by observed components.
 // It manages a reaping loop to prevent stale endpoint buildup over time.
 type correlationStore interface {
-	UpdateEndpoint(endpoint observer.Endpoint, receiverID component.ID, state endpointState, observerID component.ID)
+	UpdateEndpoint(endpoint observer.Endpoint, receiverID component.ID, observerID component.ID)
+	MarkStale(endpointID observer.EndpointID)
 	GetOrCreate(receiverID component.ID, endpointID observer.EndpointID) correlation
 	Attrs(receiverID component.ID) map[string]string
 	UpdateAttrs(receiverID component.ID, attrs map[string]string)
@@ -89,14 +90,13 @@ func newCorrelationStore(logger *zap.Logger, ttl time.Duration) correlationStore
 }
 
 // UpdateEndpoint updates or creates correlation timestamps and states by endpoint.ID and receiverID.
-func (s *store) UpdateEndpoint(endpoint observer.Endpoint, receiverID component.ID, state endpointState, observerID component.ID) {
+func (s *store) UpdateEndpoint(endpoint observer.Endpoint, receiverID component.ID, observerID component.ID) {
 	endpointUnlock := s.endpointLocks.Lock(endpoint.ID)
 	defer endpointUnlock()
 	c, ok := s.correlations.LoadOrStore(endpoint.ID, &correlation{
 		endpoint:    endpoint,
 		receiverID:  receiverID,
 		observerID:  observerID,
-		lastState:   state,
 		lastUpdated: time.Now(),
 	})
 	if ok {
@@ -106,7 +106,17 @@ func (s *store) UpdateEndpoint(endpoint observer.Endpoint, receiverID component.
 		// set here for unlikely out of order GetOrCreate eventual consistency
 		corr.observerID = observerID
 		corr.lastUpdated = time.Now()
-		corr.lastState = state
+	}
+}
+
+// MarkStale marks an endpoint as stale to be reaped.
+func (s *store) MarkStale(endpointID observer.EndpointID) {
+	endpointUnlock := s.endpointLocks.Lock(endpointID)
+	defer endpointUnlock()
+	c, ok := s.correlations.Load(endpointID)
+	if ok {
+		corr := c.(*correlation)
+		corr.stale = true
 	}
 }
 
@@ -118,7 +128,7 @@ func (s *store) Endpoints(updatedBefore time.Time) []observer.Endpoint {
 		endpointUnlock := s.endpointLocks.Lock(endpointID)
 		defer endpointUnlock()
 		corr := c.(*correlation)
-		if corr.lastState != removedState && corr.lastUpdated.Before(updatedBefore) {
+		if !corr.stale && corr.lastUpdated.Before(updatedBefore) {
 			endpoints = append(endpoints, c.(*correlation).endpoint)
 		}
 		return true
@@ -190,7 +200,7 @@ func (s *store) reap() {
 		endpointUnlock := s.endpointLocks.Lock(endpointID)
 		defer endpointUnlock()
 		corr := c.(*correlation)
-		if corr.lastState == removedState && time.Since(corr.lastUpdated) > s.ttl {
+		if corr.stale && time.Since(corr.lastUpdated) > s.ttl {
 			s.correlations.Delete(endpointID)
 		}
 		return true

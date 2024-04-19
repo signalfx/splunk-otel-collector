@@ -49,6 +49,7 @@ type correlationStore interface {
 	GetOrCreate(receiverID component.ID, endpointID observer.EndpointID) correlation
 	Attrs(receiverID component.ID) map[string]string
 	UpdateAttrs(receiverID component.ID, attrs map[string]string)
+	Endpoints(updatedBefore time.Time) []observer.Endpoint
 	// Start the reaping loop to prevent unnecessary endpoint buildup
 	Start()
 	// Stop the reaping loop
@@ -107,6 +108,22 @@ func (s *store) UpdateEndpoint(endpoint observer.Endpoint, receiverID component.
 		corr.lastUpdated = time.Now()
 		corr.lastState = state
 	}
+}
+
+// Endpoints returns all active endpoints that have not been updated since the provided time.
+func (s *store) Endpoints(updatedBefore time.Time) []observer.Endpoint {
+	var endpoints []observer.Endpoint
+	s.correlations.Range(func(eID, c any) bool {
+		endpointID := eID.(observer.EndpointID)
+		endpointUnlock := s.endpointLocks.Lock(endpointID)
+		defer endpointUnlock()
+		corr := c.(*correlation)
+		if corr.lastState != removedState && corr.lastUpdated.Before(updatedBefore) {
+			endpoints = append(endpoints, c.(*correlation).endpoint)
+		}
+		return true
+	})
+	return endpoints
 }
 
 // GetOrCreate returns an existing receiver/endpoint correlation or creates a new one.

@@ -16,6 +16,7 @@ package discoveryreceiver
 
 import (
 	"path"
+	"sync"
 	"testing"
 	"time"
 
@@ -621,3 +622,63 @@ func TestUpdateEndpoints(t *testing.T) {
 		})
 	}
 }
+
+func TestPeriodicEntityEmitting(t *testing.T) {
+	logger := zap.NewNop()
+	cfg := createDefaultConfig().(*Config)
+	cfg.LogEndpoints = true
+	cfg.Receivers = map[component.ID]ReceiverEntry{
+		component.MustNewIDWithName("fake_receiver", ""): {
+			Rule: mustNewRule(`type == "port" && pod.name == "pod.name" && port == 1`),
+		},
+	}
+
+	ch := make(chan plog.Logs, 10)
+	obsID := component.MustNewIDWithName("fake_observer", "")
+	obs := &fakeObservable{}
+	et := &endpointTracker{
+		config:       cfg,
+		observables:  map[component.ID]observer.Observable{obsID: obs},
+		logger:       logger,
+		pLogs:        ch,
+		correlations: newCorrelationStore(logger, cfg.CorrelationTTL),
+		emitInterval: 100 * time.Millisecond,
+		stopCh:       make(chan struct{}),
+	}
+	et.start()
+	defer et.stop()
+
+	// Wait for obs.ListAndWatch called asynchronously in the et.start()
+	require.Eventually(t, func() bool {
+		obs.lock.Lock()
+		defer obs.lock.Unlock()
+		return obs.onAdd != nil
+	}, 200*time.Millisecond, 10*time.Millisecond)
+
+	obs.onAdd([]observer.Endpoint{portEndpoint})
+
+	// Wait for at least 2 entity events to be emitted
+	require.Eventually(t, func() bool { return len(ch) >= 2 }, 1*time.Second, 50*time.Millisecond)
+
+	gotLogs := <-ch
+	require.Equal(t, 1, gotLogs.LogRecordCount())
+	// TODO: Use plogtest.IgnoreTimestamp once available
+	expectedLogs, failed, err := endpointToPLogs(obsID, addedState, []observer.Endpoint{portEndpoint},
+		gotLogs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0).Timestamp().AsTime())
+	require.NoError(t, err)
+	require.Zero(t, failed)
+	require.NoError(t, plogtest.CompareLogs(expectedLogs, gotLogs))
+}
+
+type fakeObservable struct {
+	onAdd func([]observer.Endpoint)
+	lock  sync.Mutex
+}
+
+func (f *fakeObservable) ListAndWatch(notify observer.Notify) {
+	f.lock.Lock()
+	defer f.lock.Unlock()
+	f.onAdd = notify.OnAdd
+}
+
+func (f *fakeObservable) Unsubscribe(observer.Notify) {}

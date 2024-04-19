@@ -42,12 +42,16 @@ var (
 )
 
 type endpointTracker struct {
+	correlations correlationStore
 	config       *Config
 	logger       *zap.Logger
 	pLogs        chan plog.Logs
 	observables  map[component.ID]observer.Observable
-	correlations correlationStore
+	stopCh       chan struct{}
 	notifies     []*notify
+	// emitInterval defines an interval for emitting entity state events.
+	// Potentially can be exposed as a user config option if there is a need.
+	emitInterval time.Duration
 }
 
 type notify struct {
@@ -66,6 +70,13 @@ func newEndpointTracker(
 		logger:       logger,
 		pLogs:        pLogs,
 		correlations: correlations,
+		// 15 minutes is a reasonable default for emitting entity state events given the 1 hour TTL in the inventory
+		// service. Potentially we could expose it as a user config, but only if there is a need.
+		// Note that we emit entity state events on every entity change. Entities that were changed in the last
+		// 15 minutes are not emitted again. So the actual interval of emitting entity state events can be more than 15
+		// minutes but always less than 30 minutes.
+		emitInterval: 15 * time.Minute,
+		stopCh:       make(chan struct{}),
 	}
 }
 
@@ -82,6 +93,24 @@ func (et *endpointTracker) start() {
 		go observable.ListAndWatch(n)
 	}
 	et.correlations.Start()
+	go et.startEmitLoop()
+}
+
+func (et *endpointTracker) startEmitLoop() {
+	timer := time.NewTicker(et.emitInterval)
+	for {
+		select {
+		case <-timer.C:
+			for obs := range et.observables {
+				activeEndpoints := et.correlations.Endpoints(time.Now().Add(-et.emitInterval))
+				// changedState just means that we want to report the current state of the endpoint.
+				et.emitEndpointLogs(obs, changedState, activeEndpoints, time.Now())
+			}
+		case <-et.stopCh:
+			timer.Stop()
+			return
+		}
+	}
 }
 
 func (et *endpointTracker) stop() {
@@ -90,6 +119,7 @@ func (et *endpointTracker) stop() {
 		go n.observable.Unsubscribe(n)
 	}
 	et.correlations.Stop()
+	et.stopCh <- struct{}{}
 }
 
 func (et *endpointTracker) emitEndpointLogs(observerCID component.ID, eventType endpointState, endpoints []observer.Endpoint, received time.Time) {

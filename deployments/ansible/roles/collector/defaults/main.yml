@@ -27,7 +27,7 @@ splunk_config_override_list_merge: replace
 splunk_service_user: splunk-otel-collector
 splunk_service_group: splunk-otel-collector
 
-splunk_memory_total_mib: 512
+splunk_memory_total_mib: "512"
 
 gomemlimit: ""
 

@@ -97,6 +97,12 @@ jobs:
       - name: Check out the codebase.
         uses: actions/checkout@v4
 
+      - name: Uninstall default WiX
+        run: choco uninstall wixtoolset
+
+      - name: Install WiX 3.14.0
+        run: choco install wixtoolset --version 3.14.0 --allow-downgrade --force
+
       - name: Build Custom Actions
         working-directory: internal/buildscripts/packaging/msi/SplunkCustomActions
         run: |

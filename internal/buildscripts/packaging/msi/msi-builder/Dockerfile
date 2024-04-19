@@ -27,7 +27,7 @@ RUN wine wineboot && \
     wget https://dl.winehq.org/wine/wine-mono/6.4.0/wine-mono-6.4.0-x86.msi -nv -O mono.msi \
     && wine msiexec /i mono.msi \
     && rm -f mono.msi \
-    && wget https://github.com/wixtoolset/wix3/releases/download/wix3112rtm/wix311-binaries.zip -nv -O wix.zip \
+    && wget https://github.com/wixtoolset/wix3/releases/download/wix314rtm/wix314-binaries.zip -nv -O wix.zip \
     && mkdir wix \
     && unzip wix.zip -d wix \
     && rm -f wix.zip \

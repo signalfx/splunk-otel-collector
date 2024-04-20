@@ -2,7 +2,6 @@ discovery:
   watch_observers:
     - an_observer
     - another_observer/with_name
-  log_endpoints: false
   embed_receiver_config: true
   correlation_ttl: 25s
   receivers:

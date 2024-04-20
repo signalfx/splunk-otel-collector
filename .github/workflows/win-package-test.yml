@@ -278,7 +278,7 @@ jobs:
 
       - name: Start the collector service
         run: |
-          $sc = Start-Service splunk-otel-collector
+          $sc = Start-Service splunk-otel-collector -PassThru
           $sc.WaitForStatus('Running', '00:00:30')
 
       - name: Check registry expectations
@@ -288,7 +288,7 @@ jobs:
 
       - name: Stop the collector service
         run: |
-          $sc = Stop-Service splunk-otel-collector
+          $sc = Stop-Service splunk-otel-collector -PassThru
           $sc.WaitForStatus('Stopped', '00:00:30')
 
       - name: "In case of failure: collect splunk-otel-collector events"

@@ -277,8 +277,9 @@ jobs:
         run: Get-Content msi-install.log
 
       - name: Start the collector service
-        run:
-          Start-Service splunk-otel-collector
+        run: |
+          $sc = Start-Service splunk-otel-collector
+          $sc.WaitForStatus('Running', '00:00:30')
 
       - name: Check registry expectations
         run: |
@@ -286,8 +287,9 @@ jobs:
           & ${{ github.workspace }}\.github\workflows\scripts\win-test-services.ps1 ${{ matrix.install-properties.expected }}
 
       - name: Stop the collector service
-        run:
-          Stop-Service splunk-otel-collector
+        run: |
+          $sc = Stop-Service splunk-otel-collector
+          $sc.WaitForStatus('Stopped', '00:00:30')
 
       - name: "In case of failure: collect splunk-otel-collector events"
         if: ${{ failure() }}

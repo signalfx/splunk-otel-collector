@@ -5,7 +5,6 @@ extensions:
 
 receivers:
   discovery:
-    log_endpoints: true
     receivers:
       hostmetrics:
         rule: type == "hostport"

@@ -32,7 +32,6 @@ func TestCreateDefaultConfig(t *testing.T) {
 	assert.NotNil(t, cfg, "failed to create default config")
 	assert.NoError(t, componenttest.CheckConfigStruct(cfg))
 	require.Equal(t, &Config{
-		LogEndpoints:        false,
 		EmbedReceiverConfig: false,
 		CorrelationTTL:      10 * time.Minute,
 	}, cfg)

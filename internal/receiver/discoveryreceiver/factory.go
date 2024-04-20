@@ -36,7 +36,6 @@ func NewFactory() receiver.Factory {
 
 func createDefaultConfig() component.Config {
 	return &Config{
-		LogEndpoints:        false,
 		EmbedReceiverConfig: false,
 		CorrelationTTL:      10 * time.Minute,
 	}

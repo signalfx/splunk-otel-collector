@@ -18,28 +18,9 @@ component-level log statements are similarly intercepted by a log evaluator, and
 records based on the `status: statements` rules you define. The matching rules SHOULD NOT conflict with each other.
 The first matching rule in the list will be used to determine the status of the receiver.
 
-The receiver also allows you to emit entity events for all
-[Endpoint](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/extension/observer/endpoints.go)
-events from the specified `watch_observers`. This way you can report your environment as observed by platform-specific
-observers in real time, with or without discovering receiver statuses:
-
-```yaml
-extensions:
-  docker_observer:
-receivers:
-  discovery:
-    watch_observers: [docker_observer]
-    log_endpoints: true
-exporters:
-  debug:
-    verbosity: detailed
-service:
-  extensions: [docker_observer]
-  pipelines:
-    logs:
-      receivers: [discovery]
-      exporters: [debug]
-```
+The receiver emits entity events for 
+[Endpoints](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/extension/observer/endpoints.go)
+discovered by the specified `watch_observers` if they match a rule for any configured receiver.
 
 ```
 2024-04-17T19:53:24.285Z	info	LogsExporter	{"kind": "exporter", "data_type": "logs", "name": "debug", "resource logs": 1, "log records": 2}
@@ -231,7 +212,6 @@ Flags: 0
 | Name                         | Type                      | Default    | Docs                                                                                                                                                                                                 |
 |------------------------------|---------------------------|------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `watch_observers` (required) | []string                  | <no value> | The array of Observer extensions to receive Endpoint events from                                                                                                                                     |
-| `log_endpoints`              | bool                      | false      | Whether to emit all endpoint activity as entity events                                                                                                                                               |
 | `embed_receiver_config`      | bool                      | false      | Whether to embed a base64-encoded, minimal Receiver Creator config for the generated receiver as a reported metrics `discovery.receiver.rule` resource attribute value for status log record matches |
 | `receivers`                  | map[string]ReceiverConfig | <no value> | The mapping of receiver names to their Receiver sub-config                                                                                                                                           |
 

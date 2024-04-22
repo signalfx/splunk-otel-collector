@@ -349,8 +349,7 @@ function stop_service([string]$name, [int]$max_attempts=3, [int]$timeout=60) {
     try {
         $svc.Stop()
         $svc.WaitForStatus("Stopped", [TimeSpan]::FromSeconds($timeout))
-    }
-    catch {
+    } catch {
         $err = $_.Exception.Message
         $log_path = get_service_log_path -name "$name"
         Write-Warning "An error occurred while trying to stop the $name service:"

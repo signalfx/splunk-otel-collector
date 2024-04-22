@@ -608,7 +608,7 @@ func TestUpdateEndpoints(t *testing.T) {
 			require.NoError(t, component.UnmarshalConfig(cm, cfg))
 
 			logger := zap.NewNop()
-			et := newEndpointTracker(nil, cfg, logger, make(chan plog.Logs), newCorrelationStore(logger, cfg.CorrelationTTL))
+			et := newEndpointTracker(nil, cfg, logger, nil, newCorrelationStore(logger, cfg.CorrelationTTL))
 			et.updateEndpoints(tt.endpoints, component.MustNewIDWithName("observer_type", "observer.name"))
 
 			var correlationsCount int
@@ -624,7 +624,6 @@ func TestUpdateEndpoints(t *testing.T) {
 func TestEntityEmittingLifecycle(t *testing.T) {
 	logger := zap.NewNop()
 	cfg := createDefaultConfig().(*Config)
-	cfg.LogEndpoints = true
 	cfg.Receivers = map[component.ID]ReceiverEntry{
 		component.MustNewIDWithName("fake_receiver", ""): {
 			Rule: mustNewRule(`type == "port" && pod.name == "pod.name" && port == 1`),

@@ -113,7 +113,7 @@ func (et *endpointTracker) stop() {
 }
 
 func (et *endpointTracker) emitEntityStateEvents(observerCID component.ID, endpoints []observer.Endpoint) {
-	if et.config.LogEndpoints && et.pLogs != nil {
+	if et.pLogs != nil {
 		entityEvents, numFailed, err := entityStateEvents(observerCID, endpoints, time.Now())
 		if err != nil {
 			et.logger.Warn(fmt.Sprintf("failed converting %v endpoints to log records", numFailed), zap.Error(err))
@@ -125,7 +125,7 @@ func (et *endpointTracker) emitEntityStateEvents(observerCID component.ID, endpo
 }
 
 func (et *endpointTracker) emitEntityDeleteEvents(endpoints []observer.Endpoint) {
-	if et.config.LogEndpoints && et.pLogs != nil {
+	if et.pLogs != nil {
 		entityEvents := entityDeleteEvents(endpoints, time.Now())
 		if entityEvents.Len() > 0 {
 			et.pLogs <- entityEvents.ConvertAndMoveToLogs()

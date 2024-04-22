@@ -6,7 +6,7 @@ require (
 	github.com/alecthomas/participle/v2 v2.1.1
 	github.com/antonmedv/expr v1.15.5
 	github.com/cenkalti/backoff/v4 v4.3.0
-	github.com/expr-lang/expr v1.16.3
+	github.com/expr-lang/expr v1.16.5
 	github.com/fsnotify/fsnotify v1.7.0
 	github.com/go-zookeeper/zk v1.0.3
 	github.com/gogo/protobuf v1.3.2

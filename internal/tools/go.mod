@@ -12,7 +12,7 @@ require (
 	github.com/tcnksm/ghr v0.16.2
 	go.opentelemetry.io/collector/cmd/mdatagen v0.98.0
 	golang.org/x/tools v0.20.0
-	golang.org/x/vuln v1.0.4
+	golang.org/x/vuln v1.1.0
 )
 
 require (

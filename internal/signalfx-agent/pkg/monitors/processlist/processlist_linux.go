@@ -78,7 +78,7 @@ func ProcessList(conf *Config, cache *osCache, logger logrus.FieldLogger) ([]*To
 				cache.uidCache[uid] = user
 				username = user.Username
 			} else if logger != nil {
-				logger.WithError(err).Debugf("Could not lookup user id %s for process id %d", uid, p.PID)
+				logger.WithError(err).Debugf("Could not lookup user id %d for process id %d", uid, p.PID)
 			}
 		}
 

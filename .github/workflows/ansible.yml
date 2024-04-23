@@ -98,7 +98,7 @@ jobs:
             molecule==6.0.3
             molecule-plugins[docker]==23.5.0
             docker==7.0.0
-            urllib3>=1.26.18,<2
+            urllib3<2
 
       - name: Set up Python 3.
         uses: actions/setup-python@v5

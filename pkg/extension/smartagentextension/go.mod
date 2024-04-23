@@ -1,6 +1,8 @@
 module github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension
 
-go 1.21
+go 1.21.0
+
+toolchain go1.21.9
 
 require (
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657
@@ -32,8 +34,8 @@ require (
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/client_golang v1.19.0 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
-	github.com/prometheus/common v0.52.3 // indirect
-	github.com/prometheus/procfs v0.13.0 // indirect
+	github.com/prometheus/common v0.53.0 // indirect
+	github.com/prometheus/procfs v0.14.0 // indirect
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3 // indirect
 	github.com/signalfx/golib/v3 v3.3.53 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect

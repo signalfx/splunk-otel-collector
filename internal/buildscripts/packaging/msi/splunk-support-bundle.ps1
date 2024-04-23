@@ -168,6 +168,7 @@ function createTempDir {
         New-Item -Path $TMPDIR/logs -ItemType Directory | Out-Null
         New-Item -Path $TMPDIR/logs/td-agent -ItemType Directory | Out-Null
         New-Item -Path $TMPDIR/metrics -ItemType Directory | Out-Null
+        New-Item -Path $TMPDIR/msi -ItemType Directory | Out-Null
         New-Item -Path $TMPDIR/zpages -ItemType Directory | Out-Null
         # We can not create directory using special characters like : , ? 
         # So we have encoded it and then created new directory.
@@ -300,6 +301,21 @@ function getMetrics {
 #  - OUTPUTS: None
 #  - RETURN: 0
 #######################################
+function getMsiInfo {
+    Write-Output "INFO: Getting MSI information..."
+    Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\*\Products\*\InstallProperties' `
+        | Where-Object { $_.DisplayName -eq "Splunk OpenTelemetry Collector" } > $TMPDIR/msi/user-installs.txt 2>&1
+    Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*' `
+        | Where-Object { $_.DisplayName -eq "Splunk OpenTelemetry Collector" } > $TMPDIR/msi/uninstall-info.txt 2>&1
+}
+
+#######################################
+# Gather zpages
+#  - GLOBALS: TMPDIR
+#  - ARGUMENTS: None
+#  - OUTPUTS: None
+#  - RETURN: 0
+#######################################
 function getZpages {
     Write-Output "INFO: Getting zpages information..."
     try {
@@ -375,6 +391,7 @@ $(getConfig) 2>&1 | Tee-Object -FilePath "$TMPDIR/stdout.log" -Append
 $(getStatus) 2>&1 | Tee-Object -FilePath "$TMPDIR/stdout.log" -Append
 $(getLogs) 2>&1 | Tee-Object -FilePath "$TMPDIR/stdout.log" -Append
 $(getMetrics) 2>&1 | Tee-Object -FilePath "$TMPDIR/stdout.log" -Append
+$(getMsiInfo) 2>&1 | Tee-Object -FilePath "$TMPDIR/stdout.log" -Append
 $(getZpages) 2>&1 | Tee-Object -FilePath "$TMPDIR/stdout.log" -Append
 $(getHostInfo) 2>&1 | Tee-Object -FilePath "$TMPDIR/stdout.log" -Append
 $(getServiceEnvironment("$TMPDIR/config/service_environment.txt")) 2>&1 `

@@ -307,16 +307,6 @@ function create_temp_dir($tempdir=$tempdir) {
     mkdir "$tempdir" -ErrorAction Ignore
 }
 
-# whether the service is running
-function service_running([string]$name) {
-    return ((Get-CimInstance -ClassName win32_service -Filter "Name = '$name'" | Select Name, State).State -Eq "Running")
-}
-
-# whether the service is installed
-function service_installed([string]$name) {
-    return ((Get-CimInstance -ClassName win32_service -Filter "Name = '$name'" | Select Name, State).Name -Eq "$name")
-}
-
 function get_service_log_path([string]$name) {
     $log_path = "the Windows Event Viewer"
     if (($name -eq $fluentd_service_name) -and (Test-Path -Path "$fluentd_log_path")) {
@@ -325,93 +315,47 @@ function get_service_log_path([string]$name) {
     return $log_path
 }
 
-# wait for the service to start
-function wait_for_service([string]$name, [int]$timeout=60) {
-    $startTime = Get-Date
-    while (!(service_running -name "$name")){
-        if ((New-TimeSpan -Start $startTime -End (Get-Date)).TotalSeconds -gt $timeout) {
-            $err = "Timed out waiting for the $name service to be running."
-            $log_path = get_service_log_path -name "$name"
-            Write-Warning "$err"
-            Write-Warning "Please check $log_path for more details."
-            throw "$err"
-        }
-        # give windows a second to synchronize service status
-        Start-Sleep -Seconds 1
+# start the service if it's not already running
+function start_service([string]$name, [string]$config_path=$null, [int]$timeout=60) {
+    $svc = Get-Service -Name $name
+    if ($svc.Status -eq "Running") {
+        return
+    }
+
+    if (!($config_path -eq $null) -And !(Test-Path -Path $config_path)) {
+        throw "$config_path does not exist and is required to start the $name service"
+    }
+
+    try {
+        $svc.Start()
+        $svc.WaitForStatus("Running", [TimeSpan]::FromSeconds($timeout))
+    } catch {
+        $err = $_.Exception.Message
+        $log_path = get_service_log_path -name "$name"
+        Write-Warning "An error occurred while trying to start the $name service:"
+        Write-Warning "$err"
+        Write-Warning "Please check $log_path for more details."
+        throw "$err"
     }
 }
 
-# wait for the service to stop
-function wait_for_service_stop([string]$name, [int]$timeout=60) {
-    $startTime = Get-Date
-    while ((service_running -name "$name")){
-        if ((New-TimeSpan -Start $startTime -End (Get-Date)).TotalSeconds -gt $timeout) {
-            $err = "Timed out waiting for the $name service to be stopped."
-            $log_path = get_service_log_path -name "$name"
-            Write-Warning "$err"
-            Write-Warning "Please check $log_path for more details."
-            throw "$err"
-        }
-        # give windows a second to synchronize service status
-        Start-Sleep -Seconds 1
-    }
-}
-
-# start the service if it's stopped
-function start_service([string]$name, [string]$config_path=$config_path, [int]$max_attempts=3, [int]$timeout=60) {
-    if (!(service_installed -name "$name")) {
-        throw "The $name service does not exist!"
-    }
-    if (!(service_running -name "$name")) {
-        if (Test-Path -Path $config_path) {
-            for ($i=1; $i -le $max_attempts; $i++) {
-                try {
-                    Start-Service -Name "$name"
-                    break
-                } catch {
-                    $err = $_.Exception.Message
-                    if ($i -eq $max_attempts) {
-                        $log_path = get_service_log_path -name "$name"
-                        Write-Warning "An error occurred while trying to start the $name service:"
-                        Write-Warning "$err"
-                        Write-Warning "Please check $log_path for more details."
-                        throw "$err"
-                    } else {
-                        Stop-Service -Name "$name" -ErrorAction Ignore
-                        Start-Sleep -Seconds 10
-                        continue
-                    }
-                }
-            }
-            wait_for_service -name "$name" -timeout $timeout
-        } else {
-            throw "$config_path does not exist and is required to start the $name service"
-        }
-    }
-}
-
-# stop the service if it's running
+# stop the service
 function stop_service([string]$name, [int]$max_attempts=3, [int]$timeout=60) {
-    if ((service_running -name "$name")) {
-        for ($i=1; $i -le $max_attempts; $i++) {
-            try {
-                Stop-Service -Name "$name"
-                break
-            } catch {
-                $err = $_.Exception.Message
-                if ($i -eq $max_attempts) {
-                    $log_path = get_service_log_path -name "$name"
-                    Write-Warning "An error occurred while trying to start the $name service:"
-                    Write-Warning "$err"
-                    Write-Warning "Please check $log_path for more details."
-                    throw "$err"
-                } else {
-                    Start-Sleep -Seconds 10
-                    continue
-                }
-            }
-        }
-        wait_for_service_stop -name "$name" -timeout $timeout
+    $svc = Get-Service -Name "$name"
+    if ($svc.Status -eq "Stopped") {
+        return
+    }
+
+    try {
+        $svc.Stop()
+        $svc.WaitForStatus("Stopped", [TimeSpan]::FromSeconds($timeout))
+    } catch {
+        $err = $_.Exception.Message
+        $log_path = get_service_log_path -name "$name"
+        Write-Warning "An error occurred while trying to stop the $name service:"
+        Write-Warning "$err"
+        Write-Warning "Please check $log_path for more details."
+        throw "$err"
     }
 }
 
@@ -490,11 +434,11 @@ if (msi_installed -name "Splunk OpenTelemetry Collector") {
     throw "The Splunk OpenTelemetry Collector is already installed. Remove or uninstall the Collector and rerun this script."
 }
 
-if (service_installed -name "$service_name") {
+if (Get-Service -Name $service_name -ErrorAction SilentlyContinue) {
     throw "The $service_name service is already installed. Remove or uninstall the Collector and rerun this script."
 }
 
-if ($with_fluentd -And (service_installed -name "$fluentd_service_name")) {
+if ($with_fluentd -And (Get-Service -name $fluentd_service_name -ErrorAction SilentlyContinue)) {
     throw "The $fluentd_service_name service is already installed. Remove or uninstall fluentd and rerun this script."
 }
 
@@ -752,7 +696,7 @@ if ($otel_resource_attributes -ne "") {
 }
 
 if ($with_dotnet_instrumentation) {
-    if (service_installed -name "W3SVC") {
+    if (Get-Service -Name "W3SVC" -ErrorAction SilentlyContinue) {
         echo "Registering OpenTelemetry for IIS..."
         Register-OpenTelemetryForIIS
     }
@@ -776,7 +720,7 @@ if ($with_fluentd) {
     # The fluentd service is automatically started after msi installation.
     # Wait for it to be running before trying to restart it with our custom config.
     echo "Restarting $fluentd_service_name service..."
-    wait_for_service -name "$fluentd_service_name"
+    start_service -name "$fluentd_service_name"
     stop_service -name "$fluentd_service_name"
     start_service -name "$fluentd_service_name" -config_path "$fluentd_config_path"
     echo "- Started"

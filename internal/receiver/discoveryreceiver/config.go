@@ -15,7 +15,6 @@
 package discoveryreceiver
 
 import (
-	"encoding/base64"
 	"fmt"
 	"regexp"
 	"time"
@@ -25,7 +24,6 @@ import (
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/receiver"
 	"go.uber.org/multierr"
-	"gopkg.in/yaml.v2"
 
 	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
 )
@@ -165,7 +163,7 @@ func (s *Status) validate() error {
 
 // receiverCreatorFactoryAndConfig will embed the applicable receiver creator fields in a new receiver creator config
 // suitable for being used to create a receiver instance by the returned factory.
-func (cfg *Config) receiverCreatorFactoryAndConfig(correlations correlationStore) (receiver.Factory, component.Config, error) {
+func (cfg *Config) receiverCreatorFactoryAndConfig() (receiver.Factory, component.Config, error) {
 	receiverCreatorFactory := receivercreator.NewFactory()
 	receiverCreatorDefaultConfig := receiverCreatorFactory.CreateDefaultConfig()
 	receiverCreatorConfig, ok := receiverCreatorDefaultConfig.(*receivercreator.Config)
@@ -175,10 +173,7 @@ func (cfg *Config) receiverCreatorFactoryAndConfig(correlations correlationStore
 
 	receiverCreatorConfig.WatchObservers = cfg.WatchObservers
 
-	receiversConfig, err := cfg.receiverCreatorReceiversConfig(correlations)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to produce receiver creator receivers config: %w", err)
-	}
+	receiversConfig := cfg.receiverCreatorReceiversConfig()
 	receiverTemplates := confmap.NewFromStringMap(map[string]any{"receivers": receiversConfig})
 	if err := receiverCreatorConfig.Unmarshal(receiverTemplates); err != nil {
 		return nil, nil, fmt.Errorf("failed unmarshaling discoveryreceiver receiverTemplates into receiver_creator config: %w", err)
@@ -188,7 +183,7 @@ func (cfg *Config) receiverCreatorFactoryAndConfig(correlations correlationStore
 }
 
 // receiverCreatorReceiversConfig produces the actual config string map used by the receiver creator config unmarshaler.
-func (cfg *Config) receiverCreatorReceiversConfig(correlations correlationStore) (map[string]any, error) {
+func (cfg *Config) receiverCreatorReceiversConfig() map[string]any {
 	receiversConfig := map[string]any{}
 	for receiverID, rEntry := range cfg.Receivers {
 		resourceAttributes := map[string]string{}
@@ -200,29 +195,6 @@ func (cfg *Config) receiverCreatorReceiversConfig(correlations correlationStore)
 		resourceAttributes[receiverRuleAttr] = rEntry.Rule.String()
 		resourceAttributes[discovery.EndpointIDAttr] = "`id`"
 
-		if cfg.EmbedReceiverConfig {
-			embeddedConfig := map[string]any{}
-			embeddedReceiversConfig := map[string]any{}
-			receiverConfig := map[string]any{}
-			receiverConfig["rule"] = rEntry.Rule
-			receiverConfig["config"] = rEntry.Config
-			receiverConfig["resource_attributes"] = rEntry.ResourceAttributes
-			embeddedReceiversConfig[receiverID.String()] = receiverConfig
-			embeddedConfig["receivers"] = embeddedReceiversConfig
-
-			// we don't embed the `watch_observers` array here since it is added
-			// on statement or metric evaluator matches by looking up the
-			// Endpoint.ID to the originating observer ComponentID
-			var configYaml []byte
-			var err error
-			if configYaml, err = yaml.Marshal(embeddedConfig); err != nil {
-				return nil, fmt.Errorf("failed embedding %q receiver config: %w", receiverID.String(), err)
-			}
-			encoded := base64.StdEncoding.EncodeToString(configYaml)
-			resourceAttributes[discovery.ReceiverConfigAttr] = encoded
-			correlations.UpdateAttrs(receiverID, map[string]string{discovery.ReceiverConfigAttr: encoded})
-		}
-
 		rEntryMap := map[string]any{}
 		rEntryMap["rule"] = rEntry.Rule.String()
 		rEntryMap["config"] = rEntry.Config
@@ -230,5 +202,5 @@ func (cfg *Config) receiverCreatorReceiversConfig(correlations correlationStore)
 		receiversConfig[receiverID.String()] = rEntryMap
 	}
 
-	return receiversConfig, nil
+	return receiversConfig
 }

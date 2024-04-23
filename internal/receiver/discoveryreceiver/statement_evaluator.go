@@ -187,15 +187,15 @@ func (se *statementEvaluator) evaluateStatement(statement *statussources.Stateme
 		entityEvent := entityEvents.AppendEmpty()
 		entityEvent.ID().PutStr(discovery.EndpointIDAttr, string(endpointID))
 		entityState := entityEvent.SetEntityState()
-		_ = entityState.Attributes().FromRaw(statement.Fields)
-		entityState.Attributes().PutStr(discovery.MessageAttr, statement.Message)
-
-		fromAttrs := pcommon.NewMap()
-		fromAttrs.PutStr(discovery.ReceiverTypeAttr, receiverID.Type().String())
-		fromAttrs.PutStr(discovery.ReceiverNameAttr, receiverID.Name())
-		se.correlateResourceAttributes(fromAttrs, entityState.Attributes(), se.correlations.GetOrCreate(receiverID, endpointID))
-		entityState.Attributes().PutStr(eventTypeAttr, statementMatch)
-		entityState.Attributes().PutStr(receiverRuleAttr, rEntry.Rule.String())
+		attrs := entityState.Attributes()
+		_ = attrs.FromRaw(statement.Fields)
+		corr := se.correlations.GetOrCreate(receiverID, endpointID)
+		se.correlateResourceAttributes(se.config, attrs, corr)
+		attrs.PutStr(discovery.ReceiverTypeAttr, receiverID.Type().String())
+		attrs.PutStr(discovery.ReceiverNameAttr, receiverID.Name())
+		attrs.PutStr(discovery.MessageAttr, statement.Message)
+		attrs.PutStr(eventTypeAttr, statementMatch)
+		attrs.PutStr(receiverRuleAttr, rEntry.Rule.String())
 
 		var desiredRecord LogRecord
 		if match.Record != nil {

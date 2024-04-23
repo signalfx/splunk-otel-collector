@@ -116,79 +116,30 @@ func (e *evaluator) evaluateMatch(match Match, pattern string, status discovery.
 	return shouldLog, nil
 }
 
-// correlateResourceAttributes will copy all `from` attributes to `to` in addition to
-// updating embedded base64 config content, if configured, to include the correlated observer ID
-// that is otherwise unavailable to status sources.
-func (e *evaluator) correlateResourceAttributes(from, to pcommon.Map, corr correlation) {
-	receiverType := corr.receiverID.Type().String()
-	receiverName := corr.receiverID.Name()
-
+// correlateResourceAttributes sets correlation attributes including embedded base64 config content, if configured.
+func (e *evaluator) correlateResourceAttributes(cfg *Config, to pcommon.Map, corr correlation) {
 	observerID := corr.observerID.String()
 	if observerID != "" && observerID != discovery.NoType.String() {
 		to.PutStr(discovery.ObserverIDAttr, observerID)
 	}
 
-	var receiverAttrs map[string]string
-	hasTemporaryReceiverConfigAttr := false
-	receiverAttrs = e.correlations.Attrs(corr.receiverID)
-
 	if e.config.EmbedReceiverConfig {
-		if _, ok := from.Get(discovery.ReceiverConfigAttr); !ok {
-			// statements don't inherit embedded configs in their resource attributes
-			// from the receiver creator, so we should temporarily include it in `from`
-			// so as not to mutate the original while providing the desired receiver config
-			// value set by the initial receiver config parser.
-			from.PutStr(discovery.ReceiverConfigAttr, receiverAttrs[discovery.ReceiverConfigAttr])
-			hasTemporaryReceiverConfigAttr = true
+		embeddedConfig := map[string]any{}
+		rEntry := cfg.Receivers[corr.receiverID] // it's safe to assume this exists.
+		embeddedReceiversConfig := map[string]any{}
+		receiverConfig := map[string]any{}
+		receiverConfig["rule"] = rEntry.Rule
+		receiverConfig["config"] = rEntry.Config
+		receiverConfig["resource_attributes"] = rEntry.ResourceAttributes
+		embeddedReceiversConfig[corr.receiverID.String()] = receiverConfig
+		embeddedConfig["receivers"] = embeddedReceiversConfig
+		if observerID != "" && observerID != discovery.NoType.String() {
+			embeddedConfig["watch_observers"] = []string{observerID}
 		}
-	}
-
-	from.Range(func(k string, v pcommon.Value) bool {
-		if k == discovery.ReceiverConfigAttr && e.config.EmbedReceiverConfig {
-			configVal := v.AsString()
-			updatedWithObserverAttr := fmt.Sprintf("%s.%s", receiverUpdatedConfigAttr, observerID)
-			if updatedConfig, ok := receiverAttrs[updatedWithObserverAttr]; ok {
-				configVal = updatedConfig
-			} else if observerID != "" {
-				var err error
-				if updatedConfig, err = addObserverToEncodedConfig(configVal, observerID); err != nil {
-					// log failure and continue with existing config sans observer
-					e.logger.Debug(fmt.Sprintf("failed adding %q to %s", observerID, discovery.ReceiverConfigAttr), zap.String("receiver.type", receiverType), zap.String("receiver.name", receiverName), zap.Error(err))
-				} else {
-					e.logger.Debug("Adding watch_observer to embedded receiver config receiver attrs", zap.String("observer", corr.observerID.String()), zap.String("receiver.type", receiverType), zap.String("receiver.name", receiverName))
-					e.correlations.UpdateAttrs(corr.receiverID, map[string]string{
-						updatedWithObserverAttr: updatedConfig,
-					})
-					configVal = updatedConfig
-				}
-			}
-			v = pcommon.NewValueStr(configVal)
+		cfgYaml, err := yaml.Marshal(embeddedConfig)
+		if err != nil {
+			e.logger.Error("failed embedding receiver config", zap.String("observer", observerID), zap.Error(err))
 		}
-		if _, ok := to.Get(k); !ok {
-			v.CopyTo(to.PutEmpty(k))
-		}
-		return true
-	})
-	if hasTemporaryReceiverConfigAttr {
-		from.Remove(discovery.ReceiverConfigAttr)
+		to.PutStr(discovery.ReceiverConfigAttr, base64.StdEncoding.EncodeToString(cfgYaml))
 	}
-}
-
-func addObserverToEncodedConfig(encoded, observerID string) (string, error) {
-	cfg := map[string]any{}
-	dBytes, err := base64.StdEncoding.DecodeString(encoded)
-	if err != nil {
-		return "", err
-	}
-	if err = yaml.Unmarshal(dBytes, &cfg); err != nil {
-		return "", err
-	}
-
-	cfg["watch_observers"] = []string{observerID}
-
-	var cfgYaml []byte
-	if cfgYaml, err = yaml.Marshal(cfg); err != nil {
-		return "", fmt.Errorf("failed embedding receiver config to include %q: %w", observerID, err)
-	}
-	return base64.StdEncoding.EncodeToString(cfgYaml), nil
 }

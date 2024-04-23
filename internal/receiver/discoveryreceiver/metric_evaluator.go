@@ -127,10 +127,10 @@ func (m *metricEvaluator) evaluateMetrics(md pmetric.Metrics) plog.Logs {
 				entityEvent.ID().PutStr(discovery.EndpointIDAttr, string(endpointID))
 				entityState := entityEvent.SetEntityState()
 
-				m.correlateResourceAttributes(
-					md.ResourceMetrics().At(0).Resource().Attributes(), entityState.Attributes(),
-					m.correlations.GetOrCreate(receiverID, endpointID),
-				)
+				md.ResourceMetrics().At(0).Resource().Attributes().CopyTo(entityState.Attributes())
+				corr := m.correlations.GetOrCreate(receiverID, endpointID)
+				m.correlateResourceAttributes(m.config, entityState.Attributes(), corr)
+
 				// Remove the endpoint ID from the attributes as it's set in the entity ID.
 				entityState.Attributes().Remove(discovery.EndpointIDAttr)
 

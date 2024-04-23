@@ -1,6 +1,6 @@
 module github.com/signalfx/signalfx-agent
 
-go 1.21
+go 1.21.0
 
 replace (
 	code.cloudfoundry.org/go-loggregator => github.com/signalfx/go-loggregator v1.0.1-0.20200205155641-5ba5ca92118d
@@ -10,7 +10,7 @@ replace (
 require (
 	code.cloudfoundry.org/go-loggregator v7.4.0+incompatible
 	github.com/Microsoft/go-winio v0.6.1 // indirect
-	github.com/SAP/go-hdb v1.8.12
+	github.com/SAP/go-hdb v1.8.20
 	github.com/Sectorbob/mlab-ns2 v0.0.0-20171030222938-d3aa0c295a8a
 	github.com/antonmedv/expr v1.15.5
 	github.com/beevik/ntp v1.3.1
@@ -43,8 +43,8 @@ require (
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_model v0.6.1
-	github.com/prometheus/common v0.52.3
-	github.com/prometheus/procfs v0.13.0
+	github.com/prometheus/common v0.53.0
+	github.com/prometheus/procfs v0.14.0
 	github.com/shirou/gopsutil/v3 v3.24.3
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657

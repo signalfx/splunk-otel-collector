@@ -154,7 +154,8 @@ func (s *store) GetOrCreate(receiverID component.ID, endpointID observer.Endpoin
 }
 
 func (s *store) Attrs(receiverID component.ID) map[string]string {
-	defer s.receiverLocks.Lock(receiverID)()
+	unlock := s.receiverLocks.Lock(receiverID)
+	defer unlock()
 	rInfo, _ := s.receiverAttrs.LoadOrStore(receiverID, map[string]string{})
 	receiverInfo := rInfo.(map[string]string)
 	cp := map[string]string{}
@@ -165,7 +166,8 @@ func (s *store) Attrs(receiverID component.ID) map[string]string {
 }
 
 func (s *store) UpdateAttrs(receiverID component.ID, attrs map[string]string) {
-	defer s.receiverLocks.Lock(receiverID)()
+	unlock := s.receiverLocks.Lock(receiverID)
+	defer unlock()
 	rAttrs, _ := s.receiverAttrs.LoadOrStore(receiverID, map[string]string{})
 	receiverAttrs := rAttrs.(map[string]string)
 	for k, v := range attrs {

@@ -103,13 +103,9 @@ set_env_var_value_from_package_params $env_vars $pp "SPLUNK_TRACE_URL"          
 set_env_var_value_from_package_params $env_vars $pp "SPLUNK_MEMORY_TOTAL_MIB"   "512"
 set_env_var_value_from_package_params $env_vars $pp "SPLUNK_BUNDLE_DIR"         "$installation_path\agent-bundle"
 
-# remove orphaned service or when upgrading from bundle installation
-if (service_installed -name "$service_name") {
-    try {
-        stop_service -name "$service_name"
-    } catch {
-        write-host "$_"
-    }
+# stop orphaned service or when upgrading from bundle installation
+if (Get-Service -Name $service_name -ErrorAction SilentlyContinue) {
+    stop_service -name $service_name
 }
 
 # remove orphaned registry entries or when upgrading from bundle installation
@@ -175,7 +171,7 @@ $env_vars["SPLUNK_CONFIG"] = "$config_path"
 # Install and configure fluentd to forward log events to the collector.
 if ($WITH_FLUENTD) {
     # Skip installation of fluentd if already installed
-    if ((service_installed -name "$fluentd_service_name") -OR (Test-Path -Path "$fluentd_base_dir\bin\fluentd")) {
+    if ((Get-Service -Name $fluentd_service_name -ErrorAction SilentlyContinue) -OR (Test-Path -Path "$fluentd_base_dir\bin\fluentd")) {
         $SkipFluentd = $TRUE
         Write-Host "The $fluentd_service_name service is already installed. Skipping fluentd installation."
     } else {
@@ -210,7 +206,7 @@ if (!$env_vars["SPLUNK_ACCESS_TOKEN"]) {
             # The fluentd service is automatically started after msi installation.
             # Wait for it to be running before trying to restart it with our custom config.
             Write-Host "Restarting $fluentd_service_name service..."
-            wait_for_service -name "$fluentd_service_name"
+            start_service -name "$fluentd_service_name"
             stop_service -name "$fluentd_service_name"
             start_service -name "$fluentd_service_name" -config_path "$fluentd_config_path"
             Write-Host "- Started"

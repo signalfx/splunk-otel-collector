@@ -362,7 +362,7 @@ type hostWithExporters struct {
 	exporter *mockMetadataClient
 }
 
-func getExporters() map[component.DataType]map[component.ID]component.Component {
+func getExportersTest() map[component.DataType]map[component.ID]component.Component {
 	exporters := map[component.DataType]map[component.ID]component.Component{}
 	metricExporterMap := map[component.ID]component.Component{}
 	exporters[component.DataTypeMetrics] = metricExporterMap
@@ -381,7 +381,7 @@ func getExporters() map[component.DataType]map[component.ID]component.Component 
 }
 
 func (h *hostWithExporters) GetExporters() map[component.DataType]map[component.ID]component.Component {
-	exporters := getExporters()
+	exporters := getExportersTest()
 	exporterMap := exporters[component.DataTypeMetrics]
 
 	// Add internal exporter to the list.
@@ -395,7 +395,7 @@ type hostWithTwoSFxExporters struct {
 }
 
 func (h *hostWithTwoSFxExporters) GetExporters() map[component.DataType]map[component.ID]component.Component {
-	exporters := getExporters()
+	exporters := getExportersTest()
 	exporterMap := exporters[component.DataTypeMetrics]
 
 	meOne := component.MustNewIDWithName("signalfx", "sfx1")

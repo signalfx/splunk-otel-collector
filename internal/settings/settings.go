@@ -76,8 +76,8 @@ var DefaultAgentConfigWindows = func() string {
 }()
 
 var (
-	envProvider  = envprovider.NewWithSettings(confmap.ProviderSettings{})
-	fileProvider = fileprovider.NewWithSettings(confmap.ProviderSettings{})
+	envProvider  = envprovider.NewFactory().Create(confmap.ProviderSettings{})
+	fileProvider = fileprovider.NewFactory().Create(confmap.ProviderSettings{})
 
 	defaultFeatureGates = []string{}
 )

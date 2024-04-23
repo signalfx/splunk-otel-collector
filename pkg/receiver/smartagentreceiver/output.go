@@ -55,6 +55,12 @@ type output struct {
 var _ types.Output = (*output)(nil)
 var _ types.FilteringOutput = (*output)(nil)
 
+// Deprecated: This is a temporary workaround for the following issue:
+// https://github.com/open-telemetry/opentelemetry-collector/issues/7370
+type getExporters interface {
+	GetExporters() map[component.DataType]map[component.ID]component.Component
+}
+
 func newOutput(
 	config Config, filtering *monitorFiltering, nextMetricsConsumer consumer.Metrics,
 	nextLogsConsumer consumer.Logs, nextTracesConsumer consumer.Traces, host component.Host,
@@ -122,7 +128,13 @@ func getDimensionClientsFromMetricsExporters(
 		return
 	}
 
-	if builtExporters, ok := host.GetExporters()[component.DataTypeMetrics]; ok {
+	ge, ok := host.(getExporters)
+	if !ok {
+		return
+	}
+	exporters := ge.GetExporters()
+
+	if builtExporters, ok := exporters[component.DataTypeMetrics]; ok {
 		for _, client := range specifiedClients {
 			var found bool
 			for exporterConfig, exporter := range builtExporters {
@@ -146,7 +158,13 @@ func getDimensionClientsFromMetricsExporters(
 
 func getLoneSFxExporter(host component.Host, exporterType component.DataType) component.Component {
 	var sfxExporter component.Component
-	if builtExporters, ok := host.GetExporters()[exporterType]; ok {
+	ge, ok := host.(getExporters)
+	if !ok {
+		return sfxExporter
+	}
+	exporters := ge.GetExporters()
+
+	if builtExporters, ok := exporters[exporterType]; ok {
 		for exporterConfig, exporter := range builtExporters {
 			if exporterConfig.Type().String() == "signalfx" {
 				if sfxExporter == nil {

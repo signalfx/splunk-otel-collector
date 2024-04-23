@@ -57,7 +57,7 @@ func newScraper(
 func (s *scraper) start(ctx context.Context, host component.Host) error {
 	s.startTime = pcommon.NewTimestampFromTime(time.Now())
 	var err error
-	s.client, err = s.cfg.ClientConfig.ToClientContext(ctx, host, s.settings)
+	s.client, err = s.cfg.ClientConfig.ToClient(ctx, host, s.settings)
 	return err
 }
 

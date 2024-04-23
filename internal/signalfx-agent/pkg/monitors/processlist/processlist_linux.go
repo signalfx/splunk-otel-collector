@@ -6,6 +6,7 @@ package processlist
 import (
 	"os"
 	"os/user"
+	"strconv"
 	"strings"
 	"time"
 
@@ -16,13 +17,13 @@ import (
 // A place to hold system info that is assumed not to change (or rarely change)
 type osCache struct {
 	pageSize int
-	uidCache map[string]*user.User
+	uidCache map[uint64]*user.User
 }
 
 func initOSCache() *osCache {
 	return &osCache{
 		pageSize: os.Getpagesize(),
-		uidCache: map[string]*user.User{},
+		uidCache: map[uint64]*user.User{},
 	}
 }
 
@@ -68,18 +69,16 @@ func ProcessList(conf *Config, cache *osCache, logger logrus.FieldLogger) ([]*To
 
 		username := ""
 		uid := status.UIDs[0]
-		if uid != "" {
-			cachedUser := cache.uidCache[uid]
-			if cachedUser != nil {
-				username = cachedUser.Username
-			} else {
-				user, err := user.LookupId(uid)
-				if err == nil {
-					cache.uidCache[uid] = user
-					username = user.Username
-				} else if logger != nil {
-					logger.WithError(err).Debugf("Could not lookup user id %s for process id %d", uid, p.PID)
-				}
+		cachedUser := cache.uidCache[uid]
+		if cachedUser != nil {
+			username = cachedUser.Username
+		} else {
+			user, err := user.LookupId(strconv.FormatUint(uid, 10))
+			if err == nil {
+				cache.uidCache[uid] = user
+				username = user.Username
+			} else if logger != nil {
+				logger.WithError(err).Debugf("Could not lookup user id %s for process id %d", uid, p.PID)
 			}
 		}
 

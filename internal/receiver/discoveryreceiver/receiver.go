@@ -171,7 +171,7 @@ func (d *discoveryReceiver) consumerLoop(loopStarted *sync.WaitGroup) {
 }
 
 func (d *discoveryReceiver) createAndSetReceiverCreator() error {
-	receiverCreatorFactory, receiverCreatorConfig, err := d.config.receiverCreatorFactoryAndConfig(d.endpointTracker.correlations)
+	receiverCreatorFactory, receiverCreatorConfig, err := d.config.receiverCreatorFactoryAndConfig()
 	if err != nil {
 		return err
 	}

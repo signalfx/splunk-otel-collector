@@ -109,95 +109,45 @@ func TestCorrelateResourceAttrs(t *testing.T) {
 
 			corr := eval.correlations.GetOrCreate(receiverID, endpointID)
 
-			from := pcommon.NewMap()
-			from.FromRaw(
-				map[string]interface{}{
-					"one": "one.val",
-					"two": 2,
-				})
+			cfg := &Config{
+				Receivers: map[component.ID]ReceiverEntry{
+					receiverID: {
+						Rule: mustNewRule(`type == "container"`),
+						Config: map[string]any{
+							"config_option": "val",
+						},
+						ResourceAttributes: map[string]string{
+							"one": "one.val",
+							"two": "2",
+						},
+					},
+				},
+			}
 
 			to := pcommon.NewMap()
 
 			require.Empty(t, eval.correlations.Attrs(receiverID))
-			eval.correlateResourceAttributes(from, to, corr)
+			eval.correlateResourceAttributes(cfg, to, corr)
 
 			expectedResourceAttrs := map[string]any{
-				"one":                   "one.val",
-				"two":                   int64(2),
 				"discovery.observer.id": "type/name",
 			}
 
-			encodedWatchObserver := base64.StdEncoding.EncodeToString([]byte("watch_observers:\n- type/name\n"))
 			if embed {
-				expectedResourceAttrs["discovery.receiver.config"] = encodedWatchObserver
+				expectedResourceAttrs["discovery.receiver.config"] = base64.StdEncoding.EncodeToString([]byte(`receivers:
+  receiver/name:
+    config:
+      config_option: val
+    resource_attributes:
+      one: one.val
+      two: "2"
+    rule: type == "container"
+watch_observers:
+- type/name
+`))
 			}
 
 			require.Equal(t, expectedResourceAttrs, to.AsRaw())
-
-			attrs := eval.correlations.Attrs(receiverID)
-
-			expectedAttrs := map[string]string{}
-			if embed {
-				expectedAttrs["discovery.receiver.updated.config.type/name"] = encodedWatchObserver
-			}
-
-			require.Equal(t, expectedAttrs, attrs)
-		})
-	}
-}
-
-func TestCorrelateResourceAttrsWithExistingConfig(t *testing.T) {
-	for _, embed := range []bool{false, true} {
-		t.Run(fmt.Sprintf("embed-%v", embed), func(t *testing.T) {
-			eval, _, endpointID := setup(t)
-			eval.config.EmbedReceiverConfig = embed
-
-			endpoint := observer.Endpoint{ID: endpointID}
-			observerID := component.MustNewIDWithName("type", "name")
-			receiverID := component.MustNewIDWithName("receiver", "name")
-			eval.correlations.UpdateEndpoint(endpoint, receiverID, observerID)
-
-			corr := eval.correlations.GetOrCreate(receiverID, endpointID)
-
-			encodedConfig := base64.StdEncoding.EncodeToString([]byte("config: some config\nrule: some rule\n"))
-
-			from := pcommon.NewMap()
-			from.FromRaw(
-				map[string]interface{}{
-					"discovery.receiver.config": encodedConfig,
-					"one":                       "one.val",
-					"two":                       2,
-				})
-
-			to := pcommon.NewMap()
-
-			require.Empty(t, eval.correlations.Attrs(receiverID))
-			eval.correlateResourceAttributes(from, to, corr)
-
-			var receiverConfig string
-			if embed {
-				receiverConfig = base64.StdEncoding.EncodeToString([]byte("config: some config\nrule: some rule\nwatch_observers:\n- type/name\n"))
-			} else {
-				receiverConfig = encodedConfig
-			}
-
-			expectedResourceAttrs := map[string]any{
-				"one":                       "one.val",
-				"two":                       int64(2),
-				"discovery.observer.id":     "type/name",
-				"discovery.receiver.config": receiverConfig,
-			}
-
-			require.Equal(t, expectedResourceAttrs, to.AsRaw())
-
-			attrs := eval.correlations.Attrs(receiverID)
-			expectedAttrs := map[string]string{}
-
-			if embed {
-				expectedAttrs["discovery.receiver.updated.config.type/name"] = receiverConfig
-			}
-
-			require.Equal(t, expectedAttrs, attrs)
 		})
 	}
 }

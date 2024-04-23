@@ -59,8 +59,8 @@ const (
 )
 
 var (
-	yamlProvider = yamlprovider.NewWithSettings(confmap.ProviderSettings{})
-	envProvider  = envprovider.NewWithSettings(confmap.ProviderSettings{})
+	yamlProvider = yamlprovider.NewFactory().Create(confmap.ProviderSettings{})
+	envProvider  = envprovider.NewFactory().Create(confmap.ProviderSettings{})
 )
 
 // discoverer provides the mechanism for a "preflight" collector service
@@ -114,7 +114,7 @@ func newDiscoverer(logger *zap.Logger) (*discoverer, error) {
 		configs:                   map[string]*Config{},
 		duration:                  duration,
 		mu:                        sync.Mutex{},
-		expandConverter:           expandconverter.New(confmap.ConverterSettings{}),
+		expandConverter:           expandconverter.NewFactory().Create(confmap.ConverterSettings{}),
 		discoveredReceivers:       map[component.ID]discovery.StatusType{},
 		unexpandedReceiverEntries: map[component.ID]map[component.ID]map[string]any{},
 		discoveredConfig:          map[component.ID]map[string]any{},

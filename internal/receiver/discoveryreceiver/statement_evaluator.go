@@ -189,7 +189,7 @@ func (se *statementEvaluator) evaluateStatement(statement *statussources.Stateme
 		entityState := entityEvent.SetEntityState()
 		attrs := entityState.Attributes()
 		_ = attrs.FromRaw(statement.Fields)
-		corr := se.correlations.GetOrCreate(receiverID, endpointID)
+		corr := se.correlations.GetOrCreate(endpointID, receiverID)
 		se.correlateResourceAttributes(se.config, attrs, corr)
 		attrs.PutStr(discovery.ReceiverTypeAttr, receiverID.Type().String())
 		attrs.PutStr(discovery.ReceiverNameAttr, receiverID.Name())

@@ -47,9 +47,9 @@ type correlation struct {
 type correlationStore interface {
 	UpdateEndpoint(endpoint observer.Endpoint, receiverID component.ID, observerID component.ID)
 	MarkStale(endpointID observer.EndpointID)
-	GetOrCreate(receiverID component.ID, endpointID observer.EndpointID) correlation
-	Attrs(receiverID component.ID) map[string]string
-	UpdateAttrs(receiverID component.ID, attrs map[string]string)
+	GetOrCreate(endpointID observer.EndpointID, receiverID component.ID) correlation
+	Attrs(endpointID observer.EndpointID) map[string]string
+	UpdateAttrs(endpointID observer.EndpointID, attrs map[string]string)
 	Endpoints(updatedBefore time.Time) []observer.Endpoint
 	// Start the reaping loop to prevent unnecessary endpoint buildup
 	Start()
@@ -68,8 +68,7 @@ type store struct {
 	// correlations is a ~synchronized map[endpointID]*corr
 	correlations  *sync.Map
 	endpointLocks *keyLock
-	receiverAttrs *sync.Map
-	receiverLocks *keyLock
+	attrs         *sync.Map
 	// sentinel for terminating reaper loop
 	sentinel     chan struct{}
 	reapInterval time.Duration
@@ -81,8 +80,7 @@ func newCorrelationStore(logger *zap.Logger, ttl time.Duration) correlationStore
 		logger:        logger,
 		correlations:  &sync.Map{},
 		endpointLocks: newKeyLock(),
-		receiverAttrs: &sync.Map{},
-		receiverLocks: newKeyLock(),
+		attrs:         &sync.Map{},
 		reapInterval:  30 * time.Second,
 		ttl:           ttl,
 		sentinel:      make(chan struct{}, 1),
@@ -137,7 +135,7 @@ func (s *store) Endpoints(updatedBefore time.Time) []observer.Endpoint {
 }
 
 // GetOrCreate returns an existing receiver/endpoint correlation or creates a new one.
-func (s *store) GetOrCreate(receiverID component.ID, endpointID observer.EndpointID) correlation {
+func (s *store) GetOrCreate(endpointID observer.EndpointID, receiverID component.ID) correlation {
 	endpointUnlock := s.endpointLocks.Lock(endpointID)
 	defer endpointUnlock()
 	c, ok := s.correlations.Load(endpointID)
@@ -153,10 +151,10 @@ func (s *store) GetOrCreate(receiverID component.ID, endpointID observer.Endpoin
 	return corr
 }
 
-func (s *store) Attrs(receiverID component.ID) map[string]string {
-	unlock := s.receiverLocks.Lock(receiverID)
+func (s *store) Attrs(endpointID observer.EndpointID) map[string]string {
+	unlock := s.endpointLocks.Lock(endpointID)
 	defer unlock()
-	rInfo, _ := s.receiverAttrs.LoadOrStore(receiverID, map[string]string{})
+	rInfo, _ := s.attrs.LoadOrStore(endpointID, map[string]string{})
 	receiverInfo := rInfo.(map[string]string)
 	cp := map[string]string{}
 	for k, v := range receiverInfo {
@@ -165,15 +163,15 @@ func (s *store) Attrs(receiverID component.ID) map[string]string {
 	return cp
 }
 
-func (s *store) UpdateAttrs(receiverID component.ID, attrs map[string]string) {
-	unlock := s.receiverLocks.Lock(receiverID)
+func (s *store) UpdateAttrs(endpointID observer.EndpointID, attrs map[string]string) {
+	unlock := s.endpointLocks.Lock(endpointID)
 	defer unlock()
-	rAttrs, _ := s.receiverAttrs.LoadOrStore(receiverID, map[string]string{})
+	rAttrs, _ := s.attrs.LoadOrStore(endpointID, map[string]string{})
 	receiverAttrs := rAttrs.(map[string]string)
 	for k, v := range attrs {
 		receiverAttrs[k] = v
 	}
-	s.receiverAttrs.Store(receiverID, receiverAttrs)
+	s.attrs.Store(endpointID, receiverAttrs)
 }
 
 func (s *store) Start() {

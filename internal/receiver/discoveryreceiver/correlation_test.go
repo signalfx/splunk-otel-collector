@@ -35,17 +35,16 @@ func TestNewCorrelationStore(t *testing.T) {
 	require.Same(t, logger, cStore.logger)
 	require.Equal(t, time.Hour, cStore.ttl)
 	require.Equal(t, 30*time.Second, cStore.reapInterval)
-	require.NotNil(t, time.Hour, cStore.receiverAttrs)
+	require.NotNil(t, time.Hour, cStore.attrs)
 	require.NotNil(t, time.Hour, cStore.correlations)
 	require.NotNil(t, time.Hour, cStore.endpointLocks)
-	require.NotNil(t, time.Hour, cStore.receiverLocks)
 	require.NotZero(t, cStore.sentinel)
 }
 
 func TestGetOrCreateUndiscoveredReceiver(t *testing.T) {
 	cs := newCorrelationStore(zaptest.NewLogger(t), time.Hour)
 	endpointID := observer.EndpointID("an.endpoint")
-	createdCorr := cs.GetOrCreate(discovery.NoType, endpointID)
+	createdCorr := cs.GetOrCreate(endpointID, discovery.NoType)
 	require.NotNil(t, createdCorr)
 	require.Equal(t, discovery.NoType, createdCorr.receiverID)
 	require.Equal(t, discovery.NoType, createdCorr.observerID)
@@ -54,7 +53,7 @@ func TestGetOrCreateUndiscoveredReceiver(t *testing.T) {
 	require.Zero(t, createdCorr.lastUpdated)
 
 	createdCorr.observerID = component.MustNewID("an_observer")
-	gotCorr := cs.GetOrCreate(discovery.NoType, endpointID)
+	gotCorr := cs.GetOrCreate(endpointID, discovery.NoType)
 	require.NotNil(t, gotCorr)
 	// all returned correlations are copies whose mutations don't persist in storage
 	require.NotSame(t, createdCorr, gotCorr)
@@ -73,7 +72,7 @@ func TestGetOrCreateDiscoveredReceiver(t *testing.T) {
 	receiverID := component.MustNewIDWithName("receiver", "name")
 	cs.UpdateEndpoint(endpoint, receiverID, observerID)
 
-	corr := cs.GetOrCreate(discovery.NoType, endpointID)
+	corr := cs.GetOrCreate(endpointID, discovery.NoType)
 	require.NotNil(t, corr)
 	require.Equal(t, receiverID, corr.receiverID)
 	require.Equal(t, observerID, corr.observerID)
@@ -81,7 +80,7 @@ func TestGetOrCreateDiscoveredReceiver(t *testing.T) {
 	require.False(t, corr.stale)
 	require.GreaterOrEqual(t, corr.lastUpdated, now)
 
-	typedReceiverCorr := cs.GetOrCreate(receiverID, endpointID)
+	typedReceiverCorr := cs.GetOrCreate(endpointID, receiverID)
 	require.NotNil(t, typedReceiverCorr)
 	require.Equal(t, receiverID, typedReceiverCorr.receiverID)
 	require.Equal(t, observerID, typedReceiverCorr.observerID)
@@ -93,7 +92,7 @@ func TestGetOrCreateDiscoveredReceiver(t *testing.T) {
 func TestGetOrCreateLaterDiscoveredReceiverWithUpdatedEndpoint(t *testing.T) {
 	cs := newCorrelationStore(zaptest.NewLogger(t), time.Hour)
 	endpointID := observer.EndpointID("an.endpoint")
-	createdCorr := cs.GetOrCreate(discovery.NoType, endpointID)
+	createdCorr := cs.GetOrCreate(endpointID, discovery.NoType)
 	require.NotNil(t, createdCorr)
 	require.Equal(t, discovery.NoType, createdCorr.receiverID)
 	require.Equal(t, discovery.NoType, createdCorr.observerID)
@@ -110,7 +109,7 @@ func TestGetOrCreateLaterDiscoveredReceiverWithUpdatedEndpoint(t *testing.T) {
 	receiverID := component.MustNewIDWithName("receiver", "name")
 	cs.UpdateEndpoint(endpoint, receiverID, observerID)
 
-	gotCorr := cs.GetOrCreate(discovery.NoType, endpointID)
+	gotCorr := cs.GetOrCreate(endpointID, discovery.NoType)
 	require.NotNil(t, createdCorr)
 	require.Equal(t, receiverID, gotCorr.receiverID)
 	require.Equal(t, observerID, gotCorr.observerID)
@@ -119,7 +118,7 @@ func TestGetOrCreateLaterDiscoveredReceiverWithUpdatedEndpoint(t *testing.T) {
 	require.GreaterOrEqual(t, gotCorr.lastUpdated, now)
 
 	// confirm state is if receiverID isn't provided
-	noTypedReceiverCorr := cs.GetOrCreate(discovery.NoType, endpointID)
+	noTypedReceiverCorr := cs.GetOrCreate(endpointID, discovery.NoType)
 	require.NotNil(t, createdCorr)
 	require.Equal(t, receiverID, noTypedReceiverCorr.receiverID)
 	require.Equal(t, observerID, noTypedReceiverCorr.observerID)
@@ -130,20 +129,20 @@ func TestGetOrCreateLaterDiscoveredReceiverWithUpdatedEndpoint(t *testing.T) {
 
 func TestAttrs(t *testing.T) {
 	cs := newCorrelationStore(zaptest.NewLogger(t), time.Hour)
-	receiverID := component.MustNewIDWithName("receiver", "name")
-	attrs := cs.Attrs(receiverID)
+	endpointID := observer.EndpointID("an.endpoint")
+	attrs := cs.Attrs(endpointID)
 	require.Empty(t, attrs)
 	// all returned attrs are copies and don't persist changes in storage
 	attrs["key"] = "value"
-	require.Empty(t, cs.Attrs(receiverID))
+	require.Empty(t, cs.Attrs(endpointID))
 
 	attrs["another.key"] = "another.value"
-	cs.UpdateAttrs(receiverID, attrs)
-	updated := cs.Attrs(receiverID)
+	cs.UpdateAttrs(endpointID, attrs)
+	updated := cs.Attrs(endpointID)
 	require.Equal(t, map[string]string{"key": "value", "another.key": "another.value"}, updated)
 
-	cs.UpdateAttrs(receiverID, map[string]string{"key": "changed.value", "yet.another.key": "yet.another.value"})
-	updated = cs.Attrs(receiverID)
+	cs.UpdateAttrs(endpointID, map[string]string{"key": "changed.value", "yet.another.key": "yet.another.value"})
+	updated = cs.Attrs(endpointID)
 	require.Equal(t, map[string]string{
 		"key":             "changed.value",
 		"another.key":     "another.value",
@@ -172,7 +171,7 @@ func TestReaperLoop(t *testing.T) {
 	receiverID := component.MustNewIDWithName("receiver", "name")
 	cs.UpdateEndpoint(endpoint, receiverID, observerID)
 
-	corr := cs.GetOrCreate(receiverID, endpointID)
+	corr := cs.GetOrCreate(endpointID, receiverID)
 	require.False(t, corr.stale)
 	rMap, ok := cStore.correlations.Load(endpointID)
 	require.True(t, ok)

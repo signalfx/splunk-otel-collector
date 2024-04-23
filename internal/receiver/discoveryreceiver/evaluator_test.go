@@ -107,7 +107,7 @@ func TestCorrelateResourceAttrs(t *testing.T) {
 			receiverID := component.MustNewIDWithName("receiver", "name")
 			eval.correlations.UpdateEndpoint(endpoint, receiverID, observerID)
 
-			corr := eval.correlations.GetOrCreate(receiverID, endpointID)
+			corr := eval.correlations.GetOrCreate(endpointID, receiverID)
 
 			cfg := &Config{
 				Receivers: map[component.ID]ReceiverEntry{
@@ -126,7 +126,7 @@ func TestCorrelateResourceAttrs(t *testing.T) {
 
 			to := pcommon.NewMap()
 
-			require.Empty(t, eval.correlations.Attrs(receiverID))
+			require.Empty(t, eval.correlations.Attrs(endpointID))
 			eval.correlateResourceAttributes(cfg, to, corr)
 
 			expectedResourceAttrs := map[string]any{

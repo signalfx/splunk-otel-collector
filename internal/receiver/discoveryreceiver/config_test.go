@@ -15,7 +15,6 @@
 package discoveryreceiver
 
 import (
-	"encoding/base64"
 	"fmt"
 	"path"
 	"testing"
@@ -26,8 +25,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
-	"go.uber.org/zap/zaptest"
-	"gopkg.in/yaml.v2"
 
 	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
 )
@@ -151,8 +148,7 @@ func TestReceiverCreatorFactoryAndConfig(t *testing.T) {
 	dCfg := Config{}
 	require.NoError(t, conf.Unmarshal(&dCfg))
 
-	correlations := newCorrelationStore(zaptest.NewLogger(t), time.Second)
-	factory, rCfg, err := dCfg.receiverCreatorFactoryAndConfig(correlations)
+	factory, rCfg, err := dCfg.receiverCreatorFactoryAndConfig()
 	require.NoError(t, err)
 	require.Equal(t, component.MustNewType("receiver_creator"), factory.Type())
 
@@ -168,9 +164,7 @@ func TestReceiverCreatorFactoryAndConfig(t *testing.T) {
 		component.MustNewIDWithName("another_observer", "with_name"),
 	}, creatorCfg.WatchObservers)
 
-	receiverTemplate, err := dCfg.receiverCreatorReceiversConfig(correlations)
-	require.NoError(t, err)
-	expectedConfigHash := "cmVjZWl2ZXJzOgogIHNtYXJ0YWdlbnQvcmVkaXM6CiAgICBjb25maWc6CiAgICAgIGF1dGg6IHBhc3N3b3JkCiAgICAgIGhvc3Q6ICdgaG9zdGAnCiAgICAgIHBvcnQ6ICdgcG9ydGAnCiAgICAgIHR5cGU6IGNvbGxlY3RkL3JlZGlzCiAgICByZXNvdXJjZV9hdHRyaWJ1dGVzOgogICAgICByZWNlaXZlcl9hdHRyaWJ1dGU6IHJlY2VpdmVyX2F0dHJpYnV0ZV92YWx1ZQogICAgcnVsZTogdHlwZSA9PSAiY29udGFpbmVyIiAmJiBuYW1lIG1hdGNoZXMgIig/aSlyZWRpcyIK"
+	receiverTemplate := dCfg.receiverCreatorReceiversConfig()
 	expectedTemplate := map[string]any{
 		"smartagent/redis": map[string]any{
 			"config": map[string]any{
@@ -180,36 +174,14 @@ func TestReceiverCreatorFactoryAndConfig(t *testing.T) {
 				"type": "collectd/redis",
 			},
 			"resource_attributes": map[string]string{
-				"discovery.endpoint.id":     "`id`",
-				"discovery.receiver.config": expectedConfigHash,
-				"discovery.receiver.name":   "redis",
-				"discovery.receiver.rule":   `type == "container" && name matches "(?i)redis"`,
-				"discovery.receiver.type":   "smartagent",
-				"receiver_attribute":        "receiver_attribute_value",
+				"discovery.endpoint.id":   "`id`",
+				"discovery.receiver.name": "redis",
+				"discovery.receiver.rule": `type == "container" && name matches "(?i)redis"`,
+				"discovery.receiver.type": "smartagent",
+				"receiver_attribute":      "receiver_attribute_value",
 			},
 			"rule": `type == "container" && name matches "(?i)redis"`,
 		},
 	}
 	require.Equal(t, expectedTemplate, receiverTemplate)
-
-	decoded, err := base64.StdEncoding.DecodeString(expectedConfigHash)
-	require.NoError(t, err)
-	embedded := map[string]any{}
-	require.NoError(t, yaml.Unmarshal(decoded, &embedded))
-	require.Equal(t, map[string]any{
-		"receivers": map[any]any{
-			"smartagent/redis": map[any]any{
-				"config": map[any]any{
-					"auth": "password",
-					"host": "`host`",
-					"port": "`port`",
-					"type": "collectd/redis",
-				},
-				"resource_attributes": map[any]any{
-					"receiver_attribute": "receiver_attribute_value",
-				},
-				"rule": `type == "container" && name matches "(?i)redis"`,
-			},
-		},
-	}, embedded)
 }

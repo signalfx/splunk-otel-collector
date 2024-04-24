@@ -31,7 +31,7 @@
   version: v1.3.7
   repo: signalfx/collectd-mongodb
   pip_packages:
-    - pymongo[tls]==3.13.0
+    - pymongo[tls]==4.6.3
 
 - name: openstack
   version: v4.2.0

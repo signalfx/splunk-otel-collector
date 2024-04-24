@@ -55,4 +55,4 @@ mongodb:
           append_pattern: true
           body: >-
             Make sure to have a valid transport type inside the otel configuration. For more information check the documentation carefully.
-            `trasnport: tcp`
+            `transport: tcp`

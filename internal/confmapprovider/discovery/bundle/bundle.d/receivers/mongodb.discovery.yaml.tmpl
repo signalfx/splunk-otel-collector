@@ -1,0 +1,54 @@
+{{ receiver "mongodb" }}:
+  enabled: true
+  rule:
+    docker_observer: type == "container" and any([name, image, command], {# matches "(?i)mongo"}) and not (command matches "splunk.discovery")
+    host_observer: type == "hostport" and command matches "(?i)mongo" and not (command matches "splunk.discovery")
+    k8s_observer: type == "port" and pod.name matches "(?i)mongo"
+  config:
+    default:
+      username: {{ defaultValue }}
+      password: {{ defaultValue }}
+      tls:
+        insecure: true
+        insecure_skip_verify: true
+  status:
+    metrics:
+      - status: successful
+        strict: mongodb.database.count
+        log_record:
+          body: mongodb receiver is working!
+    statements:
+      - status: failed
+        regexp: 'connect: network is unreachable'
+        log_record:
+          append_pattern: true
+          body: The container cannot be reached by the Collector. Make sure they're in the same network.
+      - status: failed
+        regexp: 'connect: connection refused'
+        log_record:
+          append_pattern: true
+          body: The container is refusing mongodb connections.
+      - status: partial
+        regexp: '.* unable to authenticate using mechanism .*'
+        log_record:
+          append_pattern: true
+          body: >-
+              Please ensure your user credentials are correctly specified with
+              `--set {{ configProperty "username" "<username>" }}` and
+              `--set {{ configProperty "password" "<password>" }}` or
+              `{{ configPropertyEnvVar "username" "<username>" }}` and
+              `{{ configPropertyEnvVar "password" "<password>" }}` environment variables.
+      - status: partial
+        regexp: '.* failed to fetch index stats metrics: (Unauthorized) not authorized on admin to execute command .*'
+        log_record:
+          append_pattern: true
+          body: >-
+            Make sure the user has been given access admin db with full root access.
+            `db.grantRolesToUser('admin', [{ role: 'readWrite', db: 'admin' }])`
+      - status: partial
+        regexp: '.* error: invalid configuration: receivers::mongodb: invalid transport type .*'
+        log_record:
+          append_pattern: true
+          body: >-
+            Make sure to have a valid transport type inside the otel configuration. For more information check the documentation carefully.
+            `trasnport: tcp`

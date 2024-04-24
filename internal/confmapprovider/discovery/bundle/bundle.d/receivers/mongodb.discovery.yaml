@@ -47,12 +47,5 @@ mongodb:
         log_record:
           append_pattern: true
           body: >-
-            Make sure the user has been given access admin db with full root access.
-            `db.grantRolesToUser('admin', [{ role: 'readWrite', db: 'admin' }])`
-      - status: partial
-        regexp: '.* error: invalid configuration: receivers::mongodb: invalid transport type .*'
-        log_record:
-          append_pattern: true
-          body: >-
-            Make sure to have a valid transport type inside the otel configuration. For more information check the documentation carefully.
-            `transport: tcp`
+            Make sure the account used to access Mongodb has been given a clusterMonitor role in order to collect metrics.
+            `db.grantRolesToUser('someUser', [{ role: 'clusterMonitor', db: 'admin' }])`

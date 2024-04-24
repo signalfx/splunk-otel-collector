@@ -136,6 +136,7 @@ By default, the discovery mode is provided with pre-made discovery config compon
 The following components have bundled discovery configurations in the last Splunk OpenTelemetry Collector release:
 
 I. Receivers
+* `mongodb` ([Linux and Windows](./bundle/bundle.d/receivers/mongodb.discovery.yaml))
 * `mysql` ([Linux and Windows](./bundle/bundle.d/receivers/mysql.discovery.yaml))
 * `oracledb` ([Linux and Windows](./bundle/bundle.d/receivers/oracledb.discovery.yaml))
 * `postgresql` ([Linux and Windows](./bundle/bundle.d/receivers/postgresql.discovery.yaml))

@@ -18,7 +18,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata"
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
@@ -100,66 +102,69 @@ func (m *metricEvaluator) evaluateMetrics(md pmetric.Metrics) plog.Logs {
 		return plog.NewLogs()
 	}
 
-	receiverMetrics := map[string][]pmetric.Metric{}
+	for _, match := range rEntry.Status.Metrics {
+		res, metric, matched := m.findMatchedMetric(md, match, receiverID, endpointID)
+		if !matched {
+			continue
+		}
+
+		entityEvents := experimentalmetricmetadata.NewEntityEventsSlice()
+		entityEvent := entityEvents.AppendEmpty()
+		entityEvent.ID().PutStr(discovery.EndpointIDAttr, string(endpointID))
+		entityState := entityEvent.SetEntityState()
+
+		res.Attributes().CopyTo(entityState.Attributes())
+		corr := m.correlations.GetOrCreate(endpointID, receiverID)
+		m.correlateResourceAttributes(m.config, entityState.Attributes(), corr)
+
+		// Remove the endpoint ID from the attributes as it's set in the entity ID.
+		entityState.Attributes().Remove(discovery.EndpointIDAttr)
+
+		entityState.Attributes().PutStr(eventTypeAttr, metricMatch)
+		entityState.Attributes().PutStr(receiverRuleAttr, rEntry.Rule.String())
+
+		desiredRecord := match.Record
+		if desiredRecord == nil {
+			desiredRecord = &LogRecord{}
+		}
+		var desiredMsg string
+		if desiredRecord.Body != "" {
+			desiredMsg = desiredRecord.Body
+		}
+		entityState.Attributes().PutStr(discovery.MessageAttr, desiredMsg)
+		for k, v := range desiredRecord.Attributes {
+			entityState.Attributes().PutStr(k, v)
+		}
+		entityState.Attributes().PutStr(metricNameAttr, metric.Name())
+		entityState.Attributes().PutStr(discovery.StatusAttr, string(match.Status))
+		if ts := m.timestampFromMetric(metric); ts != nil {
+			entityEvent.SetTimestamp(*ts)
+		}
+
+		return entityEvents.ConvertAndMoveToLogs()
+	}
+	return plog.NewLogs()
+}
+
+// findMatchedMetric finds the metric that matches the provided match rule and return it along with the resource if found.
+func (m *metricEvaluator) findMatchedMetric(md pmetric.Metrics, match Match, receiverID component.ID, endpointID observer.EndpointID) (pcommon.Resource, pmetric.Metric, bool) {
 	for i := 0; i < md.ResourceMetrics().Len(); i++ {
 		rm := md.ResourceMetrics().At(i)
 		for j := 0; j < rm.ScopeMetrics().Len(); j++ {
 			sm := rm.ScopeMetrics().At(j)
 			for k := 0; k < sm.Metrics().Len(); k++ {
-				m := sm.Metrics().At(k)
-				receiverMetrics[m.Name()] = append(receiverMetrics[m.Name()], m)
-			}
-		}
-	}
-
-	for _, match := range rEntry.Status.Metrics {
-		for metricName, metrics := range receiverMetrics {
-			for _, metric := range metrics {
-				if shouldLog, err := m.evaluateMatch(match, metricName, match.Status, receiverID, endpointID); err != nil {
-					m.logger.Info(fmt.Sprintf("Error evaluating %s metric match", metricName), zap.Error(err))
+				metric := sm.Metrics().At(k)
+				if shouldLog, err := m.evaluateMatch(match, metric.Name(), match.Status, receiverID, endpointID); err != nil {
+					m.logger.Info(fmt.Sprintf("Error evaluating %s metric match", metric.Name()), zap.Error(err))
 					continue
 				} else if !shouldLog {
 					continue
 				}
-
-				entityEvents := experimentalmetricmetadata.NewEntityEventsSlice()
-				entityEvent := entityEvents.AppendEmpty()
-				entityEvent.ID().PutStr(discovery.EndpointIDAttr, string(endpointID))
-				entityState := entityEvent.SetEntityState()
-
-				md.ResourceMetrics().At(0).Resource().Attributes().CopyTo(entityState.Attributes())
-				corr := m.correlations.GetOrCreate(endpointID, receiverID)
-				m.correlateResourceAttributes(m.config, entityState.Attributes(), corr)
-
-				// Remove the endpoint ID from the attributes as it's set in the entity ID.
-				entityState.Attributes().Remove(discovery.EndpointIDAttr)
-
-				entityState.Attributes().PutStr(eventTypeAttr, metricMatch)
-				entityState.Attributes().PutStr(receiverRuleAttr, rEntry.Rule.String())
-
-				desiredRecord := match.Record
-				if desiredRecord == nil {
-					desiredRecord = &LogRecord{}
-				}
-				var desiredMsg string
-				if desiredRecord.Body != "" {
-					desiredMsg = desiredRecord.Body
-				}
-				entityState.Attributes().PutStr(discovery.MessageAttr, desiredMsg)
-				for k, v := range desiredRecord.Attributes {
-					entityState.Attributes().PutStr(k, v)
-				}
-				entityState.Attributes().PutStr(metricNameAttr, metricName)
-				entityState.Attributes().PutStr(discovery.StatusAttr, string(match.Status))
-				if ts := m.timestampFromMetric(metric); ts != nil {
-					entityEvent.SetTimestamp(*ts)
-				}
-
-				return entityEvents.ConvertAndMoveToLogs()
+				return rm.Resource(), metric, true
 			}
 		}
 	}
-	return plog.NewLogs()
+	return pcommon.NewResource(), pmetric.NewMetric(), false
 }
 
 func (m *metricEvaluator) timestampFromMetric(metric pmetric.Metric) *pcommon.Timestamp {

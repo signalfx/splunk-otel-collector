@@ -12,7 +12,7 @@
 
 ### 🚀 New components 🚀
 
-- (Splunk) Add Ack extension ([#4724](https://github.com/signalfx/splunk-otel-collector/pull/4724))
+- (Splunk) Add ack extension ([#4724](https://github.com/signalfx/splunk-otel-collector/pull/4724))
 
 ### 💡 Enhancements 💡
 

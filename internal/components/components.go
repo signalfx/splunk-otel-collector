@@ -27,6 +27,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/ackextension"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarderextension"
@@ -126,6 +127,7 @@ import (
 func Get() (otelcol.Factories, error) {
 	var errs []error
 	extensions, err := extension.MakeFactoryMap(
+		ackextension.NewFactory(),
 		ballastextension.NewFactory(),
 		basicauthextension.NewFactory(),
 		ecsobserver.NewFactory(),

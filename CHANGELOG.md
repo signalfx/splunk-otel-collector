@@ -12,7 +12,7 @@
 
 ### 🚩 Deprecations 🚩
 
-- (Splunk) `collectd-mongodb`: Monitor has been removed to resolve CVE-2024-21506
+- (Splunk) `collectd-mongodb`: Monitor has been removed to resolve CVE-2024-21506 ([#4731](https://github.com/signalfx/splunk-otel-collector/pull/4731))
 
 ### 🚀 New components 🚀
 

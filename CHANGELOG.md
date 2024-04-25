@@ -51,6 +51,7 @@
 - (Splunk) Update splunk-otel-javaagent to `v1.32.0` ([#4715](https://github.com/signalfx/splunk-otel-collector/pull/4715))
 - (Splunk) Enable collecting MSI information on Windows in the support bundle ([#4710](https://github.com/signalfx/splunk-otel-collector/pull/4710))
 - (Splunk) Bump version of bundled Python to 3.11.9 ([#4729](https://github.com/signalfx/splunk-otel-collector/pull/4729))
+- (Splunk) `receiver/mongodb`: Enable auto-discovery ([#4722](https://github.com/signalfx/splunk-otel-collector/pull/4722))
 - (Core) `confighttp`: Disable concurrency in zstd compression ([#8216](https://github.com/open-telemetry/opentelemetry-collector/pull/8216))
 - (Core) `cmd/builder`: Allow configuring `confmap.Provider`s in the builder. ([#4759](https://github.com/open-telemetry/opentelemetry-collector/pull/4759))
   If no providers are specified, the defaults are used.

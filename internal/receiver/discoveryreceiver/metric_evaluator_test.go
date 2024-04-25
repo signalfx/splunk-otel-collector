@@ -16,6 +16,7 @@ package discoveryreceiver
 
 import (
 	"context"
+	"sync"
 	"testing"
 	"time"
 
@@ -24,7 +25,6 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pcommon"
-	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.uber.org/zap"
 
@@ -34,10 +34,9 @@ import (
 func TestMetricEvaluatorBaseMetricConsumer(t *testing.T) {
 	logger := zap.NewNop()
 	cfg := &Config{}
-	plogs := make(chan plog.Logs)
 	cStore := newCorrelationStore(logger, time.Hour)
 
-	me := newMetricEvaluator(logger, cfg, plogs, cStore)
+	me := newMetricEvaluator(logger, cfg, cStore)
 	require.Equal(t, consumer.Capabilities{}, me.Capabilities())
 
 	md := pmetric.NewMetrics()
@@ -81,11 +80,20 @@ func TestMetricEvaluation(t *testing.T) {
 					}
 					require.NoError(t, cfg.Validate())
 
-					plogs := make(chan plog.Logs)
 					cStore := newCorrelationStore(logger, time.Hour)
+
+					emitCh := cStore.EmitCh()
+					emitWG := sync.WaitGroup{}
+					emitWG.Add(1)
+					var corr correlation
+					go func() {
+						corr = <-emitCh
+						emitWG.Done()
+					}()
+
 					cStore.UpdateEndpoint(observer.Endpoint{ID: "endpoint.id"}, receiverID, observerID)
 
-					me := newMetricEvaluator(logger, cfg, plogs, cStore)
+					me := newMetricEvaluator(logger, cfg, cStore)
 
 					expectedRes := pcommon.NewResource()
 					expectedRes.Attributes().PutStr("discovery.receiver.type", "a_receiver")
@@ -113,10 +121,16 @@ func TestMetricEvaluation(t *testing.T) {
 					sms.AppendEmpty().SetName("desired.name")
 					sms.AppendEmpty().SetName("desired.name")
 
-					emitted := me.evaluateMetrics(md)
+					me.evaluateMetrics(md)
 
-					require.Equal(t, 1, emitted.LogRecordCount())
+					// wait for the emit channel to be processed
+					emitWG.Wait()
 
+					entityEvents, numFailed, err := entityStateEvents(corr.observerID,
+						[]observer.Endpoint{corr.endpoint}, cStore, time.Now())
+					require.NoError(t, err)
+					require.Equal(t, 0, numFailed)
+					emitted := entityEvents.ConvertAndMoveToLogs()
 					rl := emitted.ResourceLogs().At(0)
 					require.Equal(t, 0, rl.Resource().Attributes().Len())
 
@@ -145,77 +159,12 @@ func TestMetricEvaluation(t *testing.T) {
 							"one":                     "one.value",
 							"two":                     "two.value",
 							"extra_attr":              "target_resource",
+							"discovery.observer.name": "observer.name",
+							"discovery.observer.type": "an_observer",
+							"endpoint":                "",
 						},
 					}, lrAttrs.AsRaw())
 				})
-			}
-		})
-	}
-}
-
-func TestTimestampFromMetric(t *testing.T) {
-	expectedTime := pcommon.NewTimestampFromTime(time.Now())
-	for _, test := range []struct {
-		metricFunc func(pmetric.Metric) (shouldBeNil bool)
-		name       string
-	}{
-		{name: "MetricTypeGauge", metricFunc: func(md pmetric.Metric) bool {
-			md.SetEmptyGauge()
-			md.Gauge().DataPoints().AppendEmpty().SetTimestamp(expectedTime)
-			return false
-		}},
-		{name: "empty MetricTypeGauge", metricFunc: func(md pmetric.Metric) bool {
-			md.SetEmptyGauge()
-			return true
-		}},
-		{name: "MetricTypeSum", metricFunc: func(md pmetric.Metric) bool {
-			md.SetEmptySum()
-			md.Sum().DataPoints().AppendEmpty().SetTimestamp(expectedTime)
-			return false
-		}},
-		{name: "empty MetricTypeSum", metricFunc: func(md pmetric.Metric) bool {
-			md.SetEmptySum()
-			return true
-		}},
-		{name: "MetricTypeHistogram", metricFunc: func(md pmetric.Metric) bool {
-			md.SetEmptyHistogram()
-			md.Histogram().DataPoints().AppendEmpty().SetTimestamp(expectedTime)
-			return false
-		}},
-		{name: "empty MetricTypeHistogram", metricFunc: func(md pmetric.Metric) bool {
-			md.SetEmptyHistogram()
-			return true
-		}},
-		{name: "MetricTypeExponentialHistogram", metricFunc: func(md pmetric.Metric) bool {
-			md.SetEmptyExponentialHistogram()
-			md.ExponentialHistogram().DataPoints().AppendEmpty().SetTimestamp(expectedTime)
-			return false
-		}},
-		{name: "empty MetricTypeExponentialHistogram", metricFunc: func(md pmetric.Metric) bool {
-			md.SetEmptyExponentialHistogram()
-			return true
-		}},
-		{name: "MetricTypeSummary", metricFunc: func(md pmetric.Metric) bool {
-			md.SetEmptySummary()
-			md.Summary().DataPoints().AppendEmpty().SetTimestamp(expectedTime)
-			return false
-		}},
-		{name: "empty MetricTypeSummary", metricFunc: func(md pmetric.Metric) bool {
-			md.SetEmptySummary()
-			return true
-		}},
-		{name: "MetricTypeNone", metricFunc: func(_ pmetric.Metric) bool { return true }},
-	} {
-		t.Run(test.name, func(t *testing.T) {
-			me := newMetricEvaluator(zap.NewNop(), &Config{}, make(chan plog.Logs), nil)
-			md := pmetric.NewMetrics().ResourceMetrics().AppendEmpty().ScopeMetrics().AppendEmpty().Metrics().AppendEmpty()
-			shouldBeNil := test.metricFunc(md)
-			actual := me.timestampFromMetric(md)
-			if shouldBeNil {
-				require.Nil(t, actual)
-			} else {
-				require.NotNil(t, actual)
-				require.Equal(t, expectedTime, *actual)
 			}
 		})
 	}

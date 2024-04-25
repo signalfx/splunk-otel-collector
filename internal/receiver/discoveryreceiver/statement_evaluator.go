@@ -19,10 +19,7 @@ import (
 	"fmt"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/pdata/pcommon"
-	"go.opentelemetry.io/collector/pdata/plog"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
@@ -39,14 +36,13 @@ const statementMatch = "statement.match"
 // for the matching statement.
 type statementEvaluator struct {
 	*evaluator
-	pLogs chan plog.Logs
 	// this is the logger to share with other components to evaluate their statements and produce plog.Logs
 	evaluatedLogger *zap.Logger
 	encoder         zapcore.Encoder
 	id              component.ID
 }
 
-func newStatementEvaluator(logger *zap.Logger, id component.ID, config *Config, pLogs chan plog.Logs, correlations correlationStore) (*statementEvaluator, error) {
+func newStatementEvaluator(logger *zap.Logger, id component.ID, config *Config, correlations correlationStore) (*statementEvaluator, error) {
 	zapConfig := zap.NewProductionConfig()
 	zapConfig.Level = zap.NewAtomicLevelAt(zap.DebugLevel)
 	zapConfig.Sampling.Initial = 1
@@ -54,7 +50,6 @@ func newStatementEvaluator(logger *zap.Logger, id component.ID, config *Config, 
 	encoder := statussources.NewZapCoreEncoder()
 
 	se := &statementEvaluator{
-		pLogs:   pLogs,
 		encoder: encoder,
 		id:      id,
 	}
@@ -130,10 +125,7 @@ func (se *statementEvaluator) Write(entry zapcore.Entry, fields []zapcore.Field)
 		}
 	}
 
-	if pLogs := se.evaluateStatement(statement); pLogs.LogRecordCount() > 0 {
-		se.pLogs <- pLogs
-	}
-
+	se.evaluateStatement(statement)
 	return nil
 }
 
@@ -144,12 +136,12 @@ func (se *statementEvaluator) Sync() error {
 
 // evaluateStatement will convert the provided statussources.Statement into a plog.Logs with a single log record
 // if it matches against the first applicable configured ReceiverEntry's status Statement.[]Match
-func (se *statementEvaluator) evaluateStatement(statement *statussources.Statement) plog.Logs {
+func (se *statementEvaluator) evaluateStatement(statement *statussources.Statement) {
 	se.logger.Debug("evaluating statement", zap.Any("statement", statement))
 
 	receiverID, endpointID, rEntry, shouldEvaluate := se.receiverEntryFromStatement(statement)
 	if !shouldEvaluate {
-		return plog.NewLogs()
+		return
 	}
 
 	patternMap := map[string]string{"message": statement.Message}
@@ -183,19 +175,23 @@ func (se *statementEvaluator) evaluateStatement(statement *statussources.Stateme
 			continue
 		}
 
-		entityEvents := experimentalmetricmetadata.NewEntityEventsSlice()
-		entityEvent := entityEvents.AppendEmpty()
-		entityEvent.ID().PutStr(discovery.EndpointIDAttr, string(endpointID))
-		entityState := entityEvent.SetEntityState()
-		attrs := entityState.Attributes()
-		_ = attrs.FromRaw(statement.Fields)
 		corr := se.correlations.GetOrCreate(endpointID, receiverID)
+		attrs := se.correlations.Attrs(endpointID)
+
+		// If the status is already the same as desired, we don't need to update the entity state.
+		if match.Status == discovery.StatusType(attrs[discovery.StatusAttr]) {
+			return
+		}
+
+		for k, v := range statement.Fields {
+			attrs[k] = fmt.Sprintf("%v", v)
+		}
 		se.correlateResourceAttributes(se.config, attrs, corr)
-		attrs.PutStr(discovery.ReceiverTypeAttr, receiverID.Type().String())
-		attrs.PutStr(discovery.ReceiverNameAttr, receiverID.Name())
-		attrs.PutStr(discovery.MessageAttr, statement.Message)
-		attrs.PutStr(eventTypeAttr, statementMatch)
-		attrs.PutStr(receiverRuleAttr, rEntry.Rule.String())
+		attrs[discovery.ReceiverTypeAttr] = receiverID.Type().String()
+		attrs[discovery.ReceiverNameAttr] = receiverID.Name()
+		attrs[discovery.MessageAttr] = statement.Message
+		attrs[eventTypeAttr] = statementMatch
+		attrs[receiverRuleAttr] = rEntry.Rule.String()
 
 		var desiredRecord LogRecord
 		if match.Record != nil {
@@ -206,18 +202,19 @@ func (se *statementEvaluator) evaluateStatement(statement *statussources.Stateme
 			if desiredRecord.AppendPattern {
 				body = fmt.Sprintf("%s (evaluated %q)", body, p)
 			}
-			entityState.Attributes().PutStr(discovery.MessageAttr, body)
+			attrs[discovery.MessageAttr] = body
 		}
 		if len(desiredRecord.Attributes) > 0 {
 			for k, v := range desiredRecord.Attributes {
-				entityState.Attributes().PutStr(k, v)
+				attrs[k] = v
 			}
 		}
-		entityState.Attributes().PutStr(discovery.StatusAttr, string(match.Status))
-		entityEvent.SetTimestamp(pcommon.NewTimestampFromTime(statement.Time))
-		return entityEvents.ConvertAndMoveToLogs()
+		attrs[discovery.StatusAttr] = string(match.Status)
+		se.correlations.UpdateAttrs(endpointID, attrs)
+
+		se.correlations.EmitCh() <- corr
+		return
 	}
-	return plog.NewLogs()
 }
 
 func (se *statementEvaluator) receiverEntryFromStatement(statement *statussources.Statement) (component.ID, observer.EndpointID, ReceiverEntry, bool) {

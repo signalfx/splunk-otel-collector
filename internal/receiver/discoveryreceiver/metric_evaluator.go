@@ -19,11 +19,9 @@ import (
 	"fmt"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pcommon"
-	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -47,12 +45,10 @@ var (
 // Status match rules. If so, they emit log records for the matching metric.
 type metricEvaluator struct {
 	*evaluator
-	pLogs chan plog.Logs
 }
 
-func newMetricEvaluator(logger *zap.Logger, cfg *Config, pLogs chan plog.Logs, correlations correlationStore) *metricEvaluator {
+func newMetricEvaluator(logger *zap.Logger, cfg *Config, correlations correlationStore) *metricEvaluator {
 	return &metricEvaluator{
-		pLogs: pLogs,
 		evaluator: newEvaluator(logger, cfg, correlations,
 			// TODO: provide more capable env w/ resource and metric attributes
 			func(pattern string) map[string]any {
@@ -67,15 +63,13 @@ func (m *metricEvaluator) Capabilities() consumer.Capabilities {
 }
 
 func (m *metricEvaluator) ConsumeMetrics(_ context.Context, md pmetric.Metrics) error {
-	if pLogs := m.evaluateMetrics(md); pLogs.LogRecordCount() > 0 {
-		m.pLogs <- pLogs
-	}
+	m.evaluateMetrics(md)
 	return nil
 }
 
 // evaluateMetrics parses the provided Metrics and returns plog.Logs with a single log record if it matches
 // against the first applicable configured Status match rule.
-func (m *metricEvaluator) evaluateMetrics(md pmetric.Metrics) plog.Logs {
+func (m *metricEvaluator) evaluateMetrics(md pmetric.Metrics) {
 	if ce := m.logger.Check(zapcore.DebugLevel, "evaluating metrics"); ce != nil {
 		if mbytes, err := jsonMarshaler.MarshalMetrics(md); err == nil {
 			ce.Write(zap.ByteString("metrics", mbytes))
@@ -84,22 +78,22 @@ func (m *metricEvaluator) evaluateMetrics(md pmetric.Metrics) plog.Logs {
 		}
 	}
 	if md.MetricCount() == 0 {
-		return plog.NewLogs()
+		return
 	}
 
 	receiverID, endpointID := statussources.MetricsToReceiverIDs(md)
 	if receiverID == discovery.NoType || endpointID == "" {
 		m.logger.Debug("unable to evaluate metrics from receiver without corresponding name or Endpoint.ID", zap.Any("metrics", md))
-		return plog.NewLogs()
+		return
 	}
 
 	rEntry, ok := m.config.Receivers[receiverID]
 	if !ok {
 		m.logger.Info("No matching configured receiver for metric status evaluation", zap.String("receiver", receiverID.String()))
-		return plog.NewLogs()
+		return
 	}
 	if rEntry.Status == nil || len(rEntry.Status.Metrics) == 0 {
-		return plog.NewLogs()
+		return
 	}
 
 	for _, match := range rEntry.Status.Metrics {
@@ -108,20 +102,26 @@ func (m *metricEvaluator) evaluateMetrics(md pmetric.Metrics) plog.Logs {
 			continue
 		}
 
-		entityEvents := experimentalmetricmetadata.NewEntityEventsSlice()
-		entityEvent := entityEvents.AppendEmpty()
-		entityEvent.ID().PutStr(discovery.EndpointIDAttr, string(endpointID))
-		entityState := entityEvent.SetEntityState()
-
-		res.Attributes().CopyTo(entityState.Attributes())
 		corr := m.correlations.GetOrCreate(endpointID, receiverID)
-		m.correlateResourceAttributes(m.config, entityState.Attributes(), corr)
+		attrs := m.correlations.Attrs(endpointID)
 
-		// Remove the endpoint ID from the attributes as it's set in the entity ID.
-		entityState.Attributes().Remove(discovery.EndpointIDAttr)
+		// If the status is already the same as desired, we don't need to update the entity state.
+		if match.Status == discovery.StatusType(attrs[discovery.StatusAttr]) {
+			return
+		}
 
-		entityState.Attributes().PutStr(eventTypeAttr, metricMatch)
-		entityState.Attributes().PutStr(receiverRuleAttr, rEntry.Rule.String())
+		res.Attributes().Range(func(k string, v pcommon.Value) bool {
+			// skip endpoint ID attr since it's set in the entity ID
+			if k == discovery.EndpointIDAttr {
+				return true
+			}
+			attrs[k] = v.AsString()
+			return true
+		})
+		m.correlateResourceAttributes(m.config, attrs, corr)
+
+		attrs[eventTypeAttr] = metricMatch
+		attrs[receiverRuleAttr] = rEntry.Rule.String()
 
 		desiredRecord := match.Record
 		if desiredRecord == nil {
@@ -131,19 +131,17 @@ func (m *metricEvaluator) evaluateMetrics(md pmetric.Metrics) plog.Logs {
 		if desiredRecord.Body != "" {
 			desiredMsg = desiredRecord.Body
 		}
-		entityState.Attributes().PutStr(discovery.MessageAttr, desiredMsg)
+		attrs[discovery.MessageAttr] = desiredMsg
 		for k, v := range desiredRecord.Attributes {
-			entityState.Attributes().PutStr(k, v)
+			attrs[k] = v
 		}
-		entityState.Attributes().PutStr(metricNameAttr, metric.Name())
-		entityState.Attributes().PutStr(discovery.StatusAttr, string(match.Status))
-		if ts := m.timestampFromMetric(metric); ts != nil {
-			entityEvent.SetTimestamp(*ts)
-		}
+		attrs[metricNameAttr] = metric.Name()
+		attrs[discovery.StatusAttr] = string(match.Status)
+		m.correlations.UpdateAttrs(endpointID, attrs)
 
-		return entityEvents.ConvertAndMoveToLogs()
+		m.correlations.EmitCh() <- corr
+		return
 	}
-	return plog.NewLogs()
 }
 
 // findMatchedMetric finds the metric that matches the provided match rule and return it along with the resource if found.
@@ -165,43 +163,4 @@ func (m *metricEvaluator) findMatchedMetric(md pmetric.Metrics, match Match, rec
 		}
 	}
 	return pcommon.NewResource(), pmetric.NewMetric(), false
-}
-
-func (m *metricEvaluator) timestampFromMetric(metric pmetric.Metric) *pcommon.Timestamp {
-	var ts *pcommon.Timestamp
-	switch dt := metric.Type(); dt {
-	case pmetric.MetricTypeGauge:
-		dps := metric.Gauge().DataPoints()
-		if dps.Len() > 0 {
-			t := dps.At(0).Timestamp()
-			ts = &t
-		}
-	case pmetric.MetricTypeSum:
-		dps := metric.Sum().DataPoints()
-		if dps.Len() > 0 {
-			t := dps.At(0).Timestamp()
-			ts = &t
-		}
-	case pmetric.MetricTypeHistogram:
-		dps := metric.Histogram().DataPoints()
-		if dps.Len() > 0 {
-			t := dps.At(0).Timestamp()
-			ts = &t
-		}
-	case pmetric.MetricTypeExponentialHistogram:
-		dps := metric.ExponentialHistogram().DataPoints()
-		if dps.Len() > 0 {
-			t := dps.At(0).Timestamp()
-			ts = &t
-		}
-	case pmetric.MetricTypeSummary:
-		dps := metric.Summary().DataPoints()
-		if dps.Len() > 0 {
-			t := dps.At(0).Timestamp()
-			ts = &t
-		}
-	default:
-		m.logger.Debug("cannot get timestamp from data type", zap.String("data type", dt.String()))
-	}
-	return ts
 }

@@ -50,6 +50,7 @@ type correlationStore interface {
 	GetOrCreate(endpointID observer.EndpointID, receiverID component.ID) correlation
 	Attrs(endpointID observer.EndpointID) map[string]string
 	UpdateAttrs(endpointID observer.EndpointID, attrs map[string]string)
+	EmitCh() chan correlation
 	Endpoints(updatedBefore time.Time) []observer.Endpoint
 	// Start the reaping loop to prevent unnecessary endpoint buildup
 	Start()
@@ -71,6 +72,7 @@ type store struct {
 	attrs         *sync.Map
 	// sentinel for terminating reaper loop
 	sentinel     chan struct{}
+	emitCh       chan correlation
 	reapInterval time.Duration
 	ttl          time.Duration
 }
@@ -84,6 +86,7 @@ func newCorrelationStore(logger *zap.Logger, ttl time.Duration) correlationStore
 		reapInterval:  30 * time.Second,
 		ttl:           ttl,
 		sentinel:      make(chan struct{}, 1),
+		emitCh:        make(chan correlation),
 	}
 }
 
@@ -116,6 +119,11 @@ func (s *store) MarkStale(endpointID observer.EndpointID) {
 		corr := c.(*correlation)
 		corr.stale = true
 	}
+}
+
+// EmitCh returns a channel to emit endpoints immediately.
+func (s *store) EmitCh() chan correlation {
+	return s.emitCh
 }
 
 // Endpoints returns all active endpoints that have not been updated since the provided time.

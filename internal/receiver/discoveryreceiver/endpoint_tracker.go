@@ -92,6 +92,8 @@ func (et *endpointTracker) startEmitLoop() {
 	timer := time.NewTicker(et.emitInterval)
 	for {
 		select {
+		case corr := <-et.correlations.EmitCh():
+			et.emitEntityStateEvents(corr.observerID, []observer.Endpoint{corr.endpoint})
 		case <-timer.C:
 			for obs := range et.observables {
 				et.emitEntityStateEvents(obs, et.correlations.Endpoints(time.Now().Add(-et.emitInterval)))
@@ -114,7 +116,7 @@ func (et *endpointTracker) stop() {
 
 func (et *endpointTracker) emitEntityStateEvents(observerCID component.ID, endpoints []observer.Endpoint) {
 	if et.pLogs != nil {
-		entityEvents, numFailed, err := entityStateEvents(observerCID, endpoints, time.Now())
+		entityEvents, numFailed, err := entityStateEvents(observerCID, endpoints, et.correlations, time.Now())
 		if err != nil {
 			et.logger.Warn(fmt.Sprintf("failed converting %v endpoints to log records", numFailed), zap.Error(err))
 		}
@@ -209,7 +211,7 @@ func (n *notify) OnChange(changed []observer.Endpoint) {
 	n.endpointTracker.updateEndpoints(changed, n.observerID)
 }
 
-func entityStateEvents(observerID component.ID, endpoints []observer.Endpoint, ts time.Time) (ees experimentalmetricmetadata.EntityEventsSlice, failed int, err error) {
+func entityStateEvents(observerID component.ID, endpoints []observer.Endpoint, correlations correlationStore, ts time.Time) (ees experimentalmetricmetadata.EntityEventsSlice, failed int, err error) {
 	entityEvents := experimentalmetricmetadata.NewEntityEventsSlice()
 	for _, endpoint := range endpoints {
 		entityEvent := entityEvents.AppendEmpty()
@@ -230,6 +232,9 @@ func entityStateEvents(observerID component.ID, endpoints []observer.Endpoint, t
 		attrs.PutStr("endpoint", endpoint.Target)
 		attrs.PutStr(observerNameAttr, observerID.Name())
 		attrs.PutStr(observerTypeAttr, observerID.Type().String())
+		for k, v := range correlations.Attrs(endpoint.ID) {
+			attrs.PutStr(k, v)
+		}
 	}
 	return entityEvents, failed, err
 }

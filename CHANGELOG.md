@@ -10,7 +10,7 @@
   - Emit entity events only for matching receivers ([#4691](https://github.com/signalfx/splunk-otel-collector/pull/4691))
   - Remove `log_endpoints` config option ([#4692](https://github.com/signalfx/splunk-otel-collector/pull/4692))
 
-- (Splunk) `collectd-mongodb`: Monitor has been removed to resolve CVE-2024-21506 ([#4731](https://github.com/signalfx/splunk-otel-collector/pull/4731))
+- (Splunk) `smartagent/collectd-mongodb`: Monitor has been removed to resolve CVE-2024-21506 ([#4731](https://github.com/signalfx/splunk-otel-collector/pull/4731))
 
 ### 🚀 New components 🚀
 

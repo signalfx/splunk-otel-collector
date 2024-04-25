@@ -659,13 +659,11 @@ func TestEntityEmittingLifecycle(t *testing.T) {
 
 	gotLogs := <-ch
 	require.Equal(t, 1, gotLogs.LogRecordCount())
-	// TODO: Use plogtest.IgnoreTimestamp once available
 	expectedEvents, failed, err := entityStateEvents(obsID, []observer.Endpoint{portEndpoint},
-		newCorrelationStore(zap.NewNop(), time.Hour),
-		gotLogs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0).Timestamp().AsTime())
+		newCorrelationStore(logger, time.Hour), t0)
 	require.NoError(t, err)
 	require.Zero(t, failed)
-	require.NoError(t, plogtest.CompareLogs(expectedEvents.ConvertAndMoveToLogs(), gotLogs))
+	require.NoError(t, plogtest.CompareLogs(expectedEvents.ConvertAndMoveToLogs(), gotLogs, plogtest.IgnoreTimestamp()))
 
 	// Remove the endpoint.
 	obs.onRemove([]observer.Endpoint{portEndpoint})
@@ -674,8 +672,7 @@ func TestEntityEmittingLifecycle(t *testing.T) {
 	expectedLogs := entityDeleteEvents([]observer.Endpoint{portEndpoint}, t0).ConvertAndMoveToLogs()
 	require.EventuallyWithT(t, func(c *assert.CollectT) {
 		logs := <-ch
-		logs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0).SetTimestamp(pcommon.NewTimestampFromTime(t0))
-		assert.NoError(c, plogtest.CompareLogs(expectedLogs, logs))
+		assert.NoError(c, plogtest.CompareLogs(expectedLogs, logs, plogtest.IgnoreTimestamp()))
 	}, 1*time.Second, 50*time.Millisecond)
 
 	// Ensure that entities are not emitted anymore

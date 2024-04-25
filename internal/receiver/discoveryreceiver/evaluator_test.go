@@ -24,7 +24,6 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.uber.org/zap"
 )
 
@@ -124,12 +123,11 @@ func TestCorrelateResourceAttrs(t *testing.T) {
 				},
 			}
 
-			to := pcommon.NewMap()
-
+			to := map[string]string{}
 			require.Empty(t, eval.correlations.Attrs(endpointID))
 			eval.correlateResourceAttributes(cfg, to, corr)
 
-			expectedResourceAttrs := map[string]any{
+			expectedResourceAttrs := map[string]string{
 				"discovery.observer.id": "type/name",
 			}
 
@@ -147,7 +145,7 @@ watch_observers:
 `))
 			}
 
-			require.Equal(t, expectedResourceAttrs, to.AsRaw())
+			require.Equal(t, expectedResourceAttrs, to)
 		})
 	}
 }

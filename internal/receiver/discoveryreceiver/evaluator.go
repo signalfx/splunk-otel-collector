@@ -24,7 +24,6 @@ import (
 	"github.com/antonmedv/expr/vm"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
 
@@ -117,10 +116,10 @@ func (e *evaluator) evaluateMatch(match Match, pattern string, status discovery.
 }
 
 // correlateResourceAttributes sets correlation attributes including embedded base64 config content, if configured.
-func (e *evaluator) correlateResourceAttributes(cfg *Config, to pcommon.Map, corr correlation) {
+func (e *evaluator) correlateResourceAttributes(cfg *Config, to map[string]string, corr correlation) {
 	observerID := corr.observerID.String()
 	if observerID != "" && observerID != discovery.NoType.String() {
-		to.PutStr(discovery.ObserverIDAttr, observerID)
+		to[discovery.ObserverIDAttr] = observerID
 	}
 
 	if e.config.EmbedReceiverConfig {
@@ -140,6 +139,6 @@ func (e *evaluator) correlateResourceAttributes(cfg *Config, to pcommon.Map, cor
 		if err != nil {
 			e.logger.Error("failed embedding receiver config", zap.String("observer", observerID), zap.Error(err))
 		}
-		to.PutStr(discovery.ReceiverConfigAttr, base64.StdEncoding.EncodeToString(cfgYaml))
+		to[discovery.ReceiverConfigAttr] = base64.StdEncoding.EncodeToString(cfgYaml)
 	}
 }

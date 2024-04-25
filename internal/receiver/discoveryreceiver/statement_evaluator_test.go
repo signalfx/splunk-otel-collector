@@ -25,7 +25,6 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/pdata/plog"
 	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
@@ -66,30 +65,30 @@ func TestStatementEvaluation(t *testing.T) {
 							}
 							require.NoError(t, cfg.Validate())
 
-							plogs := make(chan plog.Logs)
-
 							// If debugging tests, replace the Nop Logger with a test instance to see
 							// all statements. Not in regular use to avoid spamming output.
 							// logger := zaptest.NewLogger(t)
 							logger := zap.NewNop()
 							cStore := newCorrelationStore(logger, time.Hour)
+
+							emitCh := cStore.EmitCh()
+							emitWG := sync.WaitGroup{}
+							emitWG.Add(1)
+							var corr correlation
+							go func() {
+								corr = <-emitCh
+								emitWG.Done()
+							}()
+
 							receiverID := component.MustNewIDWithName("a_receiver", "receiver.name")
 							cStore.UpdateEndpoint(observer.Endpoint{ID: "endpoint.id"}, receiverID, observerID)
 
-							se, err := newStatementEvaluator(logger, component.MustNewID("some_type"), cfg, plogs, cStore)
+							se, err := newStatementEvaluator(logger, component.MustNewID("some_type"), cfg, cStore)
 							require.NoError(t, err)
 
 							evaluatedLogger := se.evaluatedLogger.With(
 								zap.String("name", `a_receiver/receiver.name/receiver_creator/rc.name/{endpoint=""}/endpoint.id`),
 							)
-
-							var emitted plog.Logs
-							wg := sync.WaitGroup{}
-							wg.Add(1)
-							go func() {
-								emitted = <-plogs
-								wg.Done()
-							}()
 
 							for _, statement := range []string{
 								"undesired.statement",
@@ -105,8 +104,14 @@ func TestStatementEvaluation(t *testing.T) {
 								)
 							}
 
-							wg.Wait()
-							close(plogs)
+							// wait for the emit channel to be processed
+							emitWG.Wait()
+
+							entityEvents, numFailed, err := entityStateEvents(corr.observerID,
+								[]observer.Endpoint{corr.endpoint}, cStore, time.Now())
+							require.NoError(t, err)
+							require.Equal(t, 0, numFailed)
+							emitted := entityEvents.ConvertAndMoveToLogs()
 
 							require.Equal(t, 1, emitted.ResourceLogs().Len())
 							rl := emitted.ResourceLogs().At(0)
@@ -160,6 +165,9 @@ func TestStatementEvaluation(t *testing.T) {
 									"attr.two":                "attr.two.value",
 									"field.one":               "field.one.value",
 									"field_two":               "field.two.value",
+									"discovery.observer.name": "observer.name",
+									"discovery.observer.type": "an_observer",
+									"endpoint":                "",
 								},
 							}, lr.Attributes().AsRaw())
 						})

@@ -81,6 +81,23 @@ jobs:
           name: otelcol-${{ matrix.ARCH }}
           path: ./dist
 
+  binaries-windows_amd64:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: '**/go.sum'
+      - run: make binaries-windows_amd64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: binaries-windows_amd64
+          path: |
+            ./bin/*
+
   trivy-image-scan:
     # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
     runs-on: ubuntu-20.04
@@ -139,6 +156,35 @@ jobs:
           add-cpes-if-none: true
           output-format: "table"
           image: "otelcol:latest"
+
+  anchore-win-image-scan:
+    runs-on: windows-2022
+    needs: [ "binaries-windows_amd64" ]
+    env:
+      PIP_CACHE_DIR: ${{ github.workspace }}/.cache/pip
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v4
+      - name: Downloading binaries-windows_amd64
+        uses: actions/download-artifact@v4
+        with:
+          name: binaries-windows_amd64
+          path: ./bin
+      - uses: actions/cache@v4
+        with:
+          path: ${{ env.PIP_CACHE_DIR }}
+          key: agent-bundle-windows-pip-${{ hashFiles('internal/signalfx-agent/bundle/collectd-plugins.yaml', 'internal/signalfx-agent/bundle/scripts/requirements.txt') }}
+      - run: ./internal/signalfx-agent/bundle/scripts/windows/make.ps1 bundle
+      - name: Build docker image
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Copy-Item .\bin\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
+          Copy-Item .\dist\agent-bundle_windows_amd64.zip .\cmd\otelcol\agent-bundle_windows_amd64.zip
+          docker build -t otelcol-windows --build-arg BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022 --build-arg JMX_METRIC_GATHERER_RELEASE=$(Get-Content internal\buildscripts\packaging\jmx-metric-gatherer-release.txt) -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
+          Remove-Item .\cmd\otelcol\otelcol.exe
+          Remove-Item .\cmd\otelcol\agent-bundle_windows_amd64.zip
+      - run: choco install -y grype
+      - run: grype --fail-on high --only-fixed -o table otelcol-windows:latest
 
   snyk-fs-scan:
     runs-on: ubuntu-latest

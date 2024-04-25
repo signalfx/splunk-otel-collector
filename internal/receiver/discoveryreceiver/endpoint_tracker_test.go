@@ -164,7 +164,7 @@ func TestEndpointToPLogsHappyPath(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			events, failed, err := entityStateEvents(
 				component.MustNewIDWithName("observer_type", "observer.name"),
-				[]observer.Endpoint{test.endpoint}, t0,
+				[]observer.Endpoint{test.endpoint}, newCorrelationStore(zap.NewNop(), time.Hour), t0,
 			)
 			require.NoError(t, err)
 			require.Zero(t, failed)
@@ -276,7 +276,7 @@ func TestEndpointToPLogsInvalidEndpoints(t *testing.T) {
 			// Validate entity_state event
 			events, failed, err := entityStateEvents(
 				component.MustNewIDWithName("observer_type", "observer.name"),
-				[]observer.Endpoint{test.endpoint}, t0,
+				[]observer.Endpoint{test.endpoint}, newCorrelationStore(zap.NewNop(), time.Hour), t0,
 			)
 			if test.expectedError != "" {
 				require.Error(t, err)
@@ -343,7 +343,7 @@ func FuzzEndpointToPlogs(f *testing.F) {
 							Transport: observer.Transport(transport),
 						},
 					},
-				}, t0,
+				}, newCorrelationStore(zap.NewNop(), time.Hour), t0,
 			)
 
 			expectedLogs := expectedPLogs(endpointID)
@@ -661,6 +661,7 @@ func TestEntityEmittingLifecycle(t *testing.T) {
 	require.Equal(t, 1, gotLogs.LogRecordCount())
 	// TODO: Use plogtest.IgnoreTimestamp once available
 	expectedEvents, failed, err := entityStateEvents(obsID, []observer.Endpoint{portEndpoint},
+		newCorrelationStore(zap.NewNop(), time.Hour),
 		gotLogs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0).Timestamp().AsTime())
 	require.NoError(t, err)
 	require.Zero(t, failed)

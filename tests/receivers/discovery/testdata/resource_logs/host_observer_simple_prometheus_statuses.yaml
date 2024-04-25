@@ -23,6 +23,15 @@ resource_logs:
                 discovery.status: successful
                 discovery.message: Successfully connected to prometheus server
                 metric.name: otelcol_process_uptime
+                discovery.observer.type: host_observer
+                discovery.observer.name: ""
+                command: /otelcol --config /etc/config.yaml
+                endpoint: '[::]:8888'
+                is_ipv6: true
+                port: 8888
+                process_name: otelcol
+                transport: TCP
+                type: hostport
   - scope_logs:
       - logs:
           - attributes:
@@ -42,3 +51,12 @@ resource_logs:
                 kind: receiver
                 name: prometheus_simple//receiver_creator/discovery{endpoint="[::]:4318"}/(host_observer)[::]-4318-TCP-1
                 target_labels: '{__name__="up", instance="[::]:4318", job="prometheus_simple/[::]:4318"}'
+                discovery.observer.name: ""
+                discovery.observer.type: host_observer
+                command: /otelcol --config /etc/config.yaml
+                endpoint: '[::]:4318'
+                is_ipv6: true
+                port: 4318
+                process_name: otelcol
+                transport: TCP
+                type: hostport

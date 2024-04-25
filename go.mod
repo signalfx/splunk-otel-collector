@@ -26,6 +26,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.99.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.99.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.99.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/ackextension v0.99.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.99.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension v0.99.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarderextension v0.99.0
@@ -240,7 +241,6 @@ require (
 	github.com/montanaflynn/stats v0.7.1 // indirect
 	github.com/mrunalp/fileutils v0.5.1 // indirect
 	github.com/okta/okta-sdk-golang/v2 v2.20.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/extension/ackextension v0.99.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/awsutil v0.99.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/containerinsight v0.99.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/k8s v0.99.0 // indirect

@@ -26,6 +26,7 @@ import (
 
 func TestDefaultComponents(t *testing.T) {
 	expectedExtensions := []string{
+		"ack",
 		"basicauth",
 		"ecs_observer",
 		"ecs_task_observer",

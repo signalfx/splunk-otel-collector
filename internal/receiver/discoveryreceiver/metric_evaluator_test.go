@@ -87,13 +87,23 @@ func TestMetricEvaluation(t *testing.T) {
 
 					me := newMetricEvaluator(logger, cfg, plogs, cStore)
 
-					md := pmetric.NewMetrics()
-					rm := md.ResourceMetrics().AppendEmpty()
+					expectedRes := pcommon.NewResource()
+					expectedRes.Attributes().PutStr("discovery.receiver.type", "a_receiver")
+					expectedRes.Attributes().PutStr("discovery.receiver.name", "receiver.name")
+					expectedRes.Attributes().PutStr("discovery.endpoint.id", "endpoint.id")
 
-					rAttrs := rm.Resource().Attributes()
-					rAttrs.PutStr("discovery.receiver.type", "a_receiver")
-					rAttrs.PutStr("discovery.receiver.name", "receiver.name")
-					rAttrs.PutStr("discovery.endpoint.id", "endpoint.id")
+					md := pmetric.NewMetrics()
+
+					// This resource should be ignored
+					rm := md.ResourceMetrics().AppendEmpty()
+					expectedRes.CopyTo(rm.Resource())
+					rm.Resource().Attributes().PutStr("extra_attr", "undesired_resource")
+					rm.ScopeMetrics().AppendEmpty().Metrics().AppendEmpty().SetName("undesired.name")
+
+					// This resource should be processed
+					rm = md.ResourceMetrics().AppendEmpty()
+					expectedRes.CopyTo(rm.Resource())
+					rm.Resource().Attributes().PutStr("extra_attr", "target_resource")
 
 					sm := rm.ScopeMetrics().AppendEmpty()
 					sms := sm.Metrics()
@@ -134,6 +144,7 @@ func TestMetricEvaluation(t *testing.T) {
 							"metric.name":             "desired.name",
 							"one":                     "one.value",
 							"two":                     "two.value",
+							"extra_attr":              "target_resource",
 						},
 					}, lrAttrs.AsRaw())
 				})

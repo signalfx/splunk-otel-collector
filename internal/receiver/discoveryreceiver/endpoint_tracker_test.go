@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/plogtest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -378,7 +379,7 @@ func FuzzEndpointToPlogs(f *testing.F) {
 }
 
 var (
-	t0 = time.Unix(0, 0)
+	t0 = time.Unix(0, 0).UTC()
 
 	podEndpoint = observer.Endpoint{
 		ID:     observer.EndpointID("pod.endpoint.id"),
@@ -694,3 +695,64 @@ func (f *fakeObservable) ListAndWatch(notify observer.Notify) {
 }
 
 func (f *fakeObservable) Unsubscribe(observer.Notify) {}
+
+func TestEntityStateEvents(t *testing.T) {
+	logger := zap.NewNop()
+	cfg := createDefaultConfig().(*Config)
+	cfg.Receivers = map[component.ID]ReceiverEntry{
+		component.MustNewIDWithName("fake_receiver", ""): {
+			Rule: mustNewRule(`type == "port" && pod.name == "pod.name" && port == 1`),
+		},
+	}
+
+	cStore := newCorrelationStore(logger, cfg.CorrelationTTL)
+	cStore.UpdateAttrs(portEndpoint.ID, map[string]string{
+		"attr1": "val1",
+		"attr2": "val2",
+	})
+
+	events, failed, err := entityStateEvents(component.MustNewIDWithName("observer_type", "observer.name"),
+		[]observer.Endpoint{portEndpoint}, cStore, t0)
+	require.NoError(t, err)
+	require.Zero(t, failed)
+	require.Equal(t, 1, events.Len())
+
+	event := events.At(0)
+	assert.Equal(t, experimentalmetricmetadata.EventTypeState, event.EventType())
+	assert.Equal(t, t0, event.Timestamp().AsTime())
+	assert.Equal(t, map[string]any{discovery.EndpointIDAttr: string(portEndpoint.ID)}, event.ID().AsRaw())
+	assert.Equal(t, map[string]any{
+		observerNameAttr: "observer.name",
+		observerTypeAttr: "observer_type",
+		"endpoint":       "port.target",
+		"name":           "port.name",
+		"port":           int64(1),
+		"pod": map[string]any{
+			"annotations": map[string]any{
+				"annotation.one": "value.one",
+				"annotation.two": "value.two",
+			},
+			"labels": map[string]any{
+				"label.one": "value.one",
+				"label.two": "value.two",
+			},
+			"name":      "pod.name",
+			"namespace": "namespace",
+			"uid":       "uid",
+		},
+		"transport": "transport",
+		"type":      "port",
+		"attr1":     "val1",
+		"attr2":     "val2",
+	}, event.EntityStateDetails().Attributes().AsRaw())
+}
+
+func TestEntityDeleteEvents(t *testing.T) {
+	events := entityDeleteEvents([]observer.Endpoint{portEndpoint}, t0)
+	require.Equal(t, 1, events.Len())
+
+	event := events.At(0)
+	assert.Equal(t, experimentalmetricmetadata.EventTypeDelete, event.EventType())
+	assert.Equal(t, t0, event.Timestamp().AsTime())
+	assert.Equal(t, map[string]any{discovery.EndpointIDAttr: string(portEndpoint.ID)}, event.ID().AsRaw())
+}

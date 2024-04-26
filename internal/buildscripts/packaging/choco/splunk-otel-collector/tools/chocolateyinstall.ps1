@@ -149,6 +149,15 @@ $packageArgs = @{
     validExitCodes = @(0)
 }
 
+$use_msi_properties = [Version]$env:chocolateyPackageVersion -ge [Version]"0.99.0"
+if ($use_msi_properties) {
+    $msi_properties_args = ""
+    foreach ($entry in $env_vars.GetEnumerator()) {
+        $msi_properties_args += " $entry.Key=`"$entry.Value`""
+    }
+    $packageArgs["silentArgs"] += $msi_properties_args
+}
+
 Install-ChocolateyInstallPackage @packageArgs
 
 if ($MODE -eq "agent" -or !$MODE) {
@@ -179,7 +188,10 @@ if ($WITH_FLUENTD) {
     }
 }
 
-set_service_environment $service_name $env_vars
+if (!$use_msi_properties) {
+    # Set the environment variables for the service(s) after the MSI installation.
+    set_service_environment $service_name $env_vars
+}
 
 # Try starting the service(s) only after all components were successfully installed and SPLUNK_ACCESS_TOKEN was found.
 if (!$env_vars["SPLUNK_ACCESS_TOKEN"]) {

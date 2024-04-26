@@ -63,6 +63,7 @@
 ### 🧰 Bug fixes 🧰
 
 - (Splunk) `receiver/discovery`: Fix locking mechanism on attributes ([#4712](https://github.com/signalfx/splunk-otel-collector/pull/4712))
+- (Splunk) Fix MSI installs that required elevation. ([#4688](https://github.com/signalfx/splunk-otel-collector/pull/4688))
 - (Core) `exporter/otlp`: Allow DNS scheme to be used in endpoint ([#4274](https://github.com/open-telemetry/opentelemetry-collector/pull/4274))
 - (Core) `service`: fix record sampler configuration ([#9968](https://github.com/open-telemetry/opentelemetry-collector/pull/9968))
 - (Core) `service`: ensure the tracer provider is configured via go.opentelemetry.io/contrib/config ([#9967](https://github.com/open-telemetry/opentelemetry-collector/pull/9967))

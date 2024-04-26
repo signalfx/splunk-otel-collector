@@ -38,7 +38,7 @@ FROM base as java
 ARG JDK_VERSION
 ARG MAVEN_VERSION
 
-RUN apt-get install -qq -y wget
+RUN apt-get update && apt-get install -qq -y wget
 
 ENV OPENJDK_BASE_URL="https://github.com/adoptium/temurin11-binaries/releases/download"
 
@@ -331,7 +331,7 @@ RUN find /usr/local/lib/python3.11 -wholename "*test*.key" -delete -or -wholenam
 ######## Extra packages that don't make sense to pull down in any other stage ########
 FROM base as extra-packages
 
-RUN apt-get install -qq -y \
+RUN apt-get update && apt-get install -qq -y \
         host \
         iproute2 \
         libtirpc3

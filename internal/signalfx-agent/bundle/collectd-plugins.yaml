@@ -10,6 +10,8 @@
 - name: etcd
   version: v2.0.0
   repo: signalfx/collectd-etcd
+  can_remove:
+    - integration-test
 
 - name: hadoop
   version: v1.1.0

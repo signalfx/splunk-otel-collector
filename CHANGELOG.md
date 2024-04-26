@@ -7,7 +7,7 @@
 ### 🛑 Breaking changes 🛑
 
 - (Splunk) `receiver/discovery`: Update the component to emit entity events 
-  - The `log_endpoints` config option has been removed. Endpoints are now only reported that match the configured receiver rules, and are now emitted as entity events.
+  - The `log_endpoints` config option has been removed. Endpoints are now only reported if they match the configured receiver rules, and are now emitted as entity events.
   ([#4692](https://github.com/signalfx/splunk-otel-collector/pull/4692)), ([#4684](https://github.com/signalfx/splunk-otel-collector/pull/4684)),
   ([#4684](https://github.com/signalfx/splunk-otel-collector/pull/4684)), and ([#4691](https://github.com/signalfx/splunk-otel-collector/pull/4691))
 - (Core) `telemetry`: Distributed internal metrics across different levels. ([#7890](https://github.com/open-telemetry/opentelemetry-collector/pull/7890))

@@ -7,10 +7,9 @@
 ### 🛑 Breaking changes 🛑
 
 - (Splunk) `receiver/discovery`: Update the component to emit entity events 
-  - Emit entity events for discovered endpoints with log_endpoints: true ([#4684](https://github.com/signalfx/splunk-otel-collector/pull/4684))
-  - Ensure active endpoints emitted as entity events periodically ([#4684](https://github.com/signalfx/splunk-otel-collector/pull/4684))
-  - Emit entity events only for matching receivers ([#4691](https://github.com/signalfx/splunk-otel-collector/pull/4691))
-  - Remove `log_endpoints` config option ([#4692](https://github.com/signalfx/splunk-otel-collector/pull/4692))
+  - The `log_endpoints` config option has been removed. Endpoints are now only reported that match the configured receiver rules, and are now emitted as entity events.
+  ([#4692](https://github.com/signalfx/splunk-otel-collector/pull/4692)), ([#4684](https://github.com/signalfx/splunk-otel-collector/pull/4684)),
+  ([#4684](https://github.com/signalfx/splunk-otel-collector/pull/4684)), and ([#4691](https://github.com/signalfx/splunk-otel-collector/pull/4691))
 - (Core) `telemetry`: Distributed internal metrics across different levels. ([#7890](https://github.com/open-telemetry/opentelemetry-collector/pull/7890))
   The internal metrics levels are updated along with reported metrics:
   - The default level is changed from `basic` to `normal`, which can be overridden with `service::telmetry::metrics::level` configuration.

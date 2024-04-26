@@ -149,24 +149,43 @@ $packageArgs = @{
     validExitCodes = @(0)
 }
 
+$use_msi_properties = [Version]$env:chocolateyPackageVersion -ge [Version]"0.99.0"
+if ($use_msi_properties) {
+    $msi_properties_args = ""
+    foreach ($entry in $env_vars.GetEnumerator()) {
+        $msi_properties_args += " $($entry.Key)=`"$($entry.Value)`""
+    }
+
+    if ($MODE) {
+        $msi_properties_args += " SPLUNK_SETUP_COLLECTOR_MODE=`"$MODE`""
+    }
+    Write-Host "Using MSI properties: $msi_properties_args"
+    Write-Host "SilentArgs: $($packageArgs["silentArgs"])"
+    $packageArgs["silentArgs"] += $msi_properties_args
+    Write-Host "SilentArgs: $($packageArgs["silentArgs"])"
+}
+
 Install-ChocolateyInstallPackage @packageArgs
 
-if ($MODE -eq "agent" -or !$MODE) {
-    $config_path = "$program_data_path\agent_config.yaml"
-    if (-NOT (Test-Path -Path "$config_path")) {
-        write-host "Copying agent_config.yaml to $config_path"
-        Copy-Item "$installation_path\agent_config.yaml" "$config_path"
+if (!$use_msi_properties) {
+    if ($MODE -eq "agent" -or !$MODE) {
+        $config_path = "$program_data_path\agent_config.yaml"
+        if (-NOT (Test-Path -Path "$config_path")) {
+            write-host "Copying agent_config.yaml to $config_path"
+            Copy-Item "$installation_path\agent_config.yaml" "$config_path"
+        }
     }
-}
-elseif ($MODE -eq "gateway"){
-    $config_path = "$program_data_path\gateway_config.yaml"
-    if (-NOT (Test-Path -Path "$config_path")) {
-        write-host "Copying gateway_config.yaml to $config_path"
-        Copy-Item "$installation_path\gateway_config.yaml" "$config_path"
+    elseif ($MODE -eq "gateway"){
+        $config_path = "$program_data_path\gateway_config.yaml"
+        if (-NOT (Test-Path -Path "$config_path")) {
+            write-host "Copying gateway_config.yaml to $config_path"
+            Copy-Item "$installation_path\gateway_config.yaml" "$config_path"
+        }
     }
+
+    $env_vars["SPLUNK_CONFIG"] = "$config_path"
 }
 
-$env_vars["SPLUNK_CONFIG"] = "$config_path"
 
 # Install and configure fluentd to forward log events to the collector.
 if ($WITH_FLUENTD) {
@@ -179,7 +198,10 @@ if ($WITH_FLUENTD) {
     }
 }
 
-set_service_environment $service_name $env_vars
+if (!$use_msi_properties) {
+    # Set the environment variables for the service(s) after the MSI installation.
+    set_service_environment $service_name $env_vars
+}
 
 # Try starting the service(s) only after all components were successfully installed and SPLUNK_ACCESS_TOKEN was found.
 if (!$env_vars["SPLUNK_ACCESS_TOKEN"]) {

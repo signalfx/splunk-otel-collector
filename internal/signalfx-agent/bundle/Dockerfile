@@ -23,13 +23,13 @@ ARG DOCKER_REPO=docker.io
 
 
 ######## Base image for subsequent stages ########
-FROM ${DOCKER_REPO}/ubuntu:22.04 as base
+FROM ${DOCKER_REPO}/python:${PYTHON_VERSION}-bookworm as base
 
 ARG ARCH
 ENV DEBIAN_FRONTEND noninteractive
 
-RUN sed -i -e '/^deb-src/d' /etc/apt/sources.list && \
-    apt-get update
+RUN apt-get update -qq && \
+    apt-get upgrade -qq -y
 
 
 ######## Java monitor dependencies and monitor jar compilation ########
@@ -38,7 +38,8 @@ FROM base as java
 ARG JDK_VERSION
 ARG MAVEN_VERSION
 
-RUN apt-get update && apt-get install -qq -y wget
+RUN apt-get update && \
+    apt-get install -qq -y wget
 
 ENV OPENJDK_BASE_URL="https://github.com/adoptium/temurin11-binaries/releases/download"
 
@@ -81,12 +82,14 @@ RUN cd /usr/src/agent-java/jmx &&\
 RUN rm -rf /tmp/apache-maven*
 
 
-######## Python bundle builder image ########
-FROM base as python
+######## Collectd builder image ########
+FROM base as collectd
 
-ARG PYTHON_VERSION
+ARG COLLECTD_VERSION
+ARG COLLECTD_COMMIT
 
-RUN apt-get update && apt-get install -qq -y \
+RUN apt-get update -qq && \
+    apt-get install -qq -y \
       curl \
       dpkg \
       net-tools \
@@ -100,15 +103,15 @@ RUN apt-get update && apt-get install -qq -y \
       debhelper \
       debian-archive-keyring \
       debootstrap \
+      default-libmysqlclient-dev \
       devscripts \
       dh-make \
-      dpatch \
       fakeroot \
       flex \
       gcc \
       git-core \
       libatasmart-dev \
-      libcurl4-openssl-dev \
+      libcurl4-gnutls-dev \
       libdbi0-dev \
       libdbus-1-dev \
       libdbus-glib-1-dev \
@@ -142,6 +145,7 @@ RUN apt-get update && apt-get install -qq -y \
       libudev-dev \
       libvarnishapi-dev \
       libvirt-dev \
+      libxen-dev \
       libxml2-dev \
       libyajl-dev \
       lsb-release \
@@ -151,32 +155,6 @@ RUN apt-get update && apt-get install -qq -y \
       protobuf-c-compiler \
       quilt \
       zlib1g-dev
-
-RUN wget -nv https://dev.mysql.com/get/mysql-apt-config_0.8.12-1_all.deb && \
-    mkdir -p ~/.gnupg && \
-    chmod 700 ~/.gnupg && \
-    echo "disable-ipv6" >> ~/.gnupg/dirmngr.conf && \
-    apt-key adv --homedir ~/.gnupg --keyserver keyserver.ubuntu.com --recv-keys B7B3B788A8D3785C && \
-    dpkg -i mysql-apt-config_0.8.12-1_all.deb && \
-    rm -f mysql-apt-config_0.8.12-1_all.deb && \
-    apt-get update -qq && apt-get install -qq -y libmysqlclient-dev libcurl4-gnutls-dev
-
-RUN wget -nv -O /tmp/Python-${PYTHON_VERSION}.tgz https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz &&\
-    cd /tmp &&\
-    tar -xzf Python-${PYTHON_VERSION}.tgz && \
-    cd Python-${PYTHON_VERSION} && \
-    ./configure --enable-shared --enable-ipv6 --with-system-ffi --with-system-expat && \
-    make -j`nproc` && make install libinstall && \
-    ldconfig
-
-RUN rm -rf /tmp/Python*
-
-
-######## Collectd builder image ########
-FROM python as collectd
-
-ARG COLLECTD_VERSION
-ARG COLLECTD_COMMIT
 
 # Compile patchelf statically from source
 RUN cd /tmp &&\
@@ -265,9 +243,9 @@ RUN DISABLE_XENCPU=""; if [ "$ARCH" = "ppc64le" ]; then DISABLE_XENCPU="--disabl
         --disable-silent-rules \
         --disable-static \
         --with-java=${JAVA_HOME} \
-        LIBPYTHON_LDFLAGS="$(python3.11-config --ldflags) -lpython3.11" \
-        LIBPYTHON_CPPFLAGS="$(python3.11-config --includes)/cpython" \
-        LIBPYTHON_LIBS="$(python3.11-config --libs) -lpython3.11"
+        LIBPYTHON_LDFLAGS="$(/usr/local/bin/python3.11-config --ldflags) -lpython3.11" \
+        LIBPYTHON_CPPFLAGS="$(/usr/local/bin/python3.11-config --includes)/cpython" \
+        LIBPYTHON_LIBS="$(/usr/local/bin/python3.11-config --libs) -lpython3.11"
 
 # Compile all of collectd first, including plugins
 RUN make -j`nproc` &&\
@@ -276,17 +254,13 @@ RUN make -j`nproc` &&\
 COPY scripts/collect-libs /opt/collect-libs
 RUN /opt/collect-libs /opt/deps /usr/sbin/collectd /usr/lib/collectd/
 
-# For some reason libvarnishapi doesn't properly depend on libm, so make it
-# right.
-RUN patchelf --add-needed libm-2.31.so /opt/deps/libvarnishapi.so.2.0.0
-
 
 ######## Python Plugin Image ########
 FROM collectd as python-plugins
 
 ARG PIP_VERSION
 
-RUN /usr/local/bin/python3 -m pip install --upgrade pip==$PIP_VERSION
+RUN /usr/local/bin/python3.11 -m pip install --upgrade pip==$PIP_VERSION
 
 # Mirror the same dir structure that exists in the original source
 COPY scripts/get-collectd-plugins.py /opt/scripts/
@@ -294,28 +268,28 @@ COPY scripts/requirements.txt /opt/
 COPY collectd-plugins.yaml /opt/
 
 # workaround for https://github.com/yaml/pyyaml/issues/724
-RUN /usr/local/bin/python3 -m pip install 'wheel==0.40.0'
-RUN /usr/local/bin/python3 -m pip install 'Cython<3.0' 'PyYaml~=5.0' --no-build-isolation
+RUN /usr/local/bin/python3.11 -m pip install 'wheel==0.40.0'
+RUN /usr/local/bin/python3.11 -m pip install 'Cython<3.0' 'PyYaml~=5.0' --no-build-isolation
 
-RUN /usr/local/bin/python3 -m pip install -r /opt/requirements.txt
+RUN /usr/local/bin/python3.11 -m pip install -r /opt/requirements.txt
 
 RUN mkdir -p /opt/collectd-python &&\
-    /usr/local/bin/python3 -u /opt/scripts/get-collectd-plugins.py /opt/collectd-python
+    /usr/local/bin/python3.11 -u /opt/scripts/get-collectd-plugins.py /opt/collectd-python
 
 # Update pip dependencies after collected plugins are installed
 COPY scripts/security-requirements.txt /tmp/
-RUN /usr/local/bin/python3 -m pip install -r /tmp/security-requirements.txt
+RUN /usr/local/bin/python3.11 -m pip install -r /tmp/security-requirements.txt
 
 # Delete *requirements.txt files after plugins are installed
 RUN find /opt/collectd-python -name "*requirements.txt" -delete
 
 COPY python/ /opt/sfxpython/
-RUN cd /opt/sfxpython && /usr/local/bin/python3 -m pip install .
+RUN cd /opt/sfxpython && /usr/local/bin/python3.11 -m pip install .
 
-RUN /usr/local/bin/python3 -m pip list
+RUN /usr/local/bin/python3.11 -m pip list
 
 # Remove pip to avoid usage in python monitor and in exec'd container
-RUN /usr/local/bin/python3 -m pip uninstall pip -y
+RUN /usr/local/bin/python3.11 -m pip uninstall pip -y
 # Delete all bundled wheels
 RUN find /usr/local/lib/python3.11 -name "*.whl" -delete
 
@@ -331,9 +305,11 @@ RUN find /usr/local/lib/python3.11 -wholename "*test*.key" -delete -or -wholenam
 ######## Extra packages that don't make sense to pull down in any other stage ########
 FROM base as extra-packages
 
-RUN apt-get update && apt-get install -qq -y \
+RUN apt-get update && \
+    apt-get install -qq -y \
         host \
         iproute2 \
+        procps \
         libtirpc3
 
 COPY scripts/collect-libs /opt/collect-libs

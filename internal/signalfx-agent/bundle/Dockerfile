@@ -19,6 +19,7 @@ ARG PYTHON_VERSION=3.12.5
 ARG PIP_VERSION=24.2
 ARG COLLECTD_VERSION=5.8.0-sfx0
 ARG COLLECTD_COMMIT=4d3327b14cf4359029613baf4f90c4952702105e
+ARG PATCHELF_VERSION=0.18.0
 ARG DOCKER_REPO=docker.io
 
 
@@ -179,12 +180,13 @@ FROM python AS collectd
 
 ARG COLLECTD_VERSION
 ARG COLLECTD_COMMIT
+ARG PATCHELF_VERSION
 
 # Compile patchelf statically from source
 RUN cd /tmp &&\
-    wget -nv https://nixos.org/releases/patchelf/patchelf-0.11/patchelf-0.11.tar.gz &&\
+    wget -nv https://github.com/NixOS/patchelf/releases/download/${PATCHELF_VERSION}/patchelf-${PATCHELF_VERSION}.tar.gz &&\
     tar -xzf patchelf*.tar.gz &&\
-    cd patchelf-0.11* &&\
+    cd patchelf-${PATCHELF_VERSION}* &&\
     ./configure LDFLAGS="-static" &&\
     make &&\
     make install

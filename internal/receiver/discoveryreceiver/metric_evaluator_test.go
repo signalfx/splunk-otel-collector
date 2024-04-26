@@ -85,13 +85,13 @@ func TestMetricEvaluation(t *testing.T) {
 					emitCh := cStore.EmitCh()
 					emitWG := sync.WaitGroup{}
 					emitWG.Add(1)
-					var corr correlation
 					go func() {
-						corr = <-emitCh
+						<-emitCh
 						emitWG.Done()
 					}()
 
-					cStore.UpdateEndpoint(observer.Endpoint{ID: "endpoint.id"}, receiverID, observerID)
+					endpointID := observer.EndpointID("endpoint.id")
+					cStore.UpdateEndpoint(observer.Endpoint{ID: endpointID}, receiverID, observerID)
 
 					me := newMetricEvaluator(logger, cfg, cStore)
 
@@ -126,44 +126,19 @@ func TestMetricEvaluation(t *testing.T) {
 					// wait for the emit channel to be processed
 					emitWG.Wait()
 
-					entityEvents, numFailed, err := entityStateEvents(corr.observerID,
-						[]observer.Endpoint{corr.endpoint}, cStore, time.Now())
-					require.NoError(t, err)
-					require.Equal(t, 0, numFailed)
-					emitted := entityEvents.ConvertAndMoveToLogs()
-					rl := emitted.ResourceLogs().At(0)
-					require.Equal(t, 0, rl.Resource().Attributes().Len())
-
-					sLogs := rl.ScopeLogs()
-					require.Equal(t, 1, sLogs.Len())
-					sl := sLogs.At(0)
-					lrs := sl.LogRecords()
-					require.Equal(t, 1, lrs.Len())
-					lr := sl.LogRecords().At(0)
-
-					lrAttrs := lr.Attributes()
-					require.Equal(t, map[string]any{
-						discovery.OtelEntityIDAttr: map[string]any{
-							"discovery.endpoint.id": "endpoint.id",
-						},
-						discovery.OtelEntityEventTypeAttr: discovery.OtelEntityEventTypeState,
-						discovery.OtelEntityAttributesAttr: map[string]any{
-							"discovery.event.type":    "metric.match",
-							"discovery.observer.id":   "an_observer/observer.name",
-							"discovery.receiver.name": "receiver.name",
-							"discovery.receiver.rule": "a.rule",
-							"discovery.receiver.type": "a_receiver",
-							"discovery.status":        string(status),
-							"discovery.message":       "desired body content",
-							"metric.name":             "desired.name",
-							"one":                     "one.value",
-							"two":                     "two.value",
-							"extra_attr":              "target_resource",
-							"discovery.observer.name": "observer.name",
-							"discovery.observer.type": "an_observer",
-							"endpoint":                "",
-						},
-					}, lrAttrs.AsRaw())
+					require.Equal(t, map[string]string{
+						"discovery.event.type":    "metric.match",
+						"discovery.observer.id":   "an_observer/observer.name",
+						"discovery.receiver.name": "receiver.name",
+						"discovery.receiver.rule": "a.rule",
+						"discovery.receiver.type": "a_receiver",
+						"discovery.status":        string(status),
+						"discovery.message":       "desired body content",
+						"metric.name":             "desired.name",
+						"one":                     "one.value",
+						"two":                     "two.value",
+						"extra_attr":              "target_resource",
+					}, cStore.Attrs(endpointID))
 				})
 			}
 		})

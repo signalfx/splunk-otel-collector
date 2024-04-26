@@ -11,11 +11,6 @@
   - Ensure active endpoints emitted as entity events periodically ([#4684](https://github.com/signalfx/splunk-otel-collector/pull/4684))
   - Emit entity events only for matching receivers ([#4691](https://github.com/signalfx/splunk-otel-collector/pull/4691))
   - Remove `log_endpoints` config option ([#4692](https://github.com/signalfx/splunk-otel-collector/pull/4692))
-- (Core)`builder`: Add strict version checking when using the builder. Add the temporary flag `--skip-strict-versioning `for skipping this check. ([#9896](https://github.com/open-telemetry/opentelemetry-collector/pull/9896))
-    Strict version checking will error on major and minor version mismatches
-    between the `otelcol_version` configured and the builder version or versions
-    in the go.mod. This check can be temporarily disabled by using the `--skip-strict-versioning`
-    flag. This flag will be removed in a future minor version.
 - (Core) `telemetry`: Distributed internal metrics across different levels. ([#7890](https://github.com/open-telemetry/opentelemetry-collector/pull/7890))
   The internal metrics levels are updated along with reported metrics:
   - The default level is changed from `basic` to `normal`, which can be overridden with `service::telmetry::metrics::level` configuration.
@@ -29,10 +24,12 @@
     - http.server.* metrics
     - rpc.server.* metrics
     - rpc.client.* metrics
+  - Note: These metrics are all excluded by default in the Splunk distribution of the Opentelemetry Collector.
+    This change only affects users who have modified the default configuration's dropping rules (`metric_relabel_configs`)
+    in the Prometheus receiver that scrapes internal metrics.
 - (Contrib) `extension/filestorage`: Replace path-unsafe characters in component names ([#3148](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/3148))
   The feature gate `extension.filestorage.replaceUnsafeCharacters` is now stable and cannot be disabled.
   See the File Storage extension's README for details.
-- (Contrib) `all`: Bump minimum version to go 1.21.0 ([#32451](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/32451))
 - (Contrib) `exporter/loadbalancing`: Change AWS Cloud map resolver config fields from camelCase to snake_case. ([#32331](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/32331))
   The snake_case is required in OTel Collector config fields. It used to be enforced by tests in cmd/oteltestbedcol,
   but we had to disable them. Now, the tests are going to be enforced on every component independently.
@@ -53,20 +50,7 @@
 - (Splunk) Bump version of bundled Python to 3.11.9 ([#4729](https://github.com/signalfx/splunk-otel-collector/pull/4729))
 - (Splunk) `receiver/mongodb`: Enable auto-discovery ([#4722](https://github.com/signalfx/splunk-otel-collector/pull/4722))
 - (Core) `confighttp`: Disable concurrency in zstd compression ([#8216](https://github.com/open-telemetry/opentelemetry-collector/pull/8216))
-- (Core) `cmd/builder`: Allow configuring `confmap.Provider`s in the builder. ([#4759](https://github.com/open-telemetry/opentelemetry-collector/pull/4759))
-  If no providers are specified, the defaults are used.
-  The default providers are: env, file, http, https, and yaml.
-
-  To configure providers, use the `providers` key in your OCB build
-  manifest with a list of Go modules for your providers.
-  The modules will work the same as other Collector components.
-
-- (Core) `mdatagen`: enable goleak tests by default via mdatagen ([#9959](https://github.com/open-telemetry/opentelemetry-collector/pull/9959))
 - (Core) `cmd/mdatagen`: support excluding some metrics based on string and regexes in resource_attributes ([#9661](https://github.com/open-telemetry/opentelemetry-collector/pull/9661))
-- (Core) `cmd/mdatagen`: Generate config and factory tests covering their requirements. ([#9940](https://github.com/open-telemetry/opentelemetry-collector/pull/9940))
-  The tests are moved from cmd/builder.
-- (Core) `confmap`: Add `ProviderSettings`, `ConverterSettings`, `ProviderFactories`, and `ConverterFactories` fields to `confmap.ResolverSettings` ([#9516](https://github.com/open-telemetry/opentelemetry-collector/pull/9516))
-  This allows configuring providers and converters, which are instantiated by `NewResolver` using the given factories.
 - (Contrib) `vcenterreceiver`: Changes process for collecting VMs & VM perf metrics used by the `vccenterreceiver` to be more efficient (one call now for all VMs) ([#31837](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/31837))
 - (Contrib) `splunkhecreceiver`: adding support for ack in the splunkhecreceiver ([#26376](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/26376))
 - (Contrib) `hostmetricsreceiver`: The hostmetricsreceiver now caches the system boot time at receiver start and uses it for all subsequent calls. The featuregate `hostmetrics.process.bootTimeCache` can be disabled to restore previous behaviour. ([#28849](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/28849))

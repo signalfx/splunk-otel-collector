@@ -74,14 +74,14 @@ func TestStatementEvaluation(t *testing.T) {
 							emitCh := cStore.EmitCh()
 							emitWG := sync.WaitGroup{}
 							emitWG.Add(1)
-							var corr correlation
 							go func() {
-								corr = <-emitCh
+								<-emitCh
 								emitWG.Done()
 							}()
 
 							receiverID := component.MustNewIDWithName("a_receiver", "receiver.name")
-							cStore.UpdateEndpoint(observer.Endpoint{ID: "endpoint.id"}, receiverID, observerID)
+							endpointID := observer.EndpointID("endpoint.id")
+							cStore.UpdateEndpoint(observer.Endpoint{ID: endpointID}, receiverID, observerID)
 
 							se, err := newStatementEvaluator(logger, component.MustNewID("some_type"), cfg, cStore)
 							require.NoError(t, err)
@@ -107,36 +107,17 @@ func TestStatementEvaluation(t *testing.T) {
 							// wait for the emit channel to be processed
 							emitWG.Wait()
 
-							entityEvents, numFailed, err := entityStateEvents(corr.observerID,
-								[]observer.Endpoint{corr.endpoint}, cStore, time.Now())
-							require.NoError(t, err)
-							require.Equal(t, 0, numFailed)
-							emitted := entityEvents.ConvertAndMoveToLogs()
-
-							require.Equal(t, 1, emitted.ResourceLogs().Len())
-							rl := emitted.ResourceLogs().At(0)
-							require.Equal(t, 0, rl.Resource().Attributes().Len())
-
-							sLogs := rl.ScopeLogs()
-							require.Equal(t, 1, sLogs.Len())
-							sl := sLogs.At(0)
-							lrs := sl.LogRecords()
-							require.Equal(t, 1, lrs.Len())
-							lr := sl.LogRecords().At(0)
-
-							oea, ok := lr.Attributes().Get(discovery.OtelEntityAttributesAttr)
-							require.True(t, ok)
-							entityAttrs := oea.Map()
+							attrs := cStore.Attrs(endpointID)
 
 							// Validate "caller" attribute
-							callerAttr, ok := entityAttrs.Get("caller")
+							callerAttr, ok := attrs["caller"]
 							require.True(t, ok)
 							_, expectedFile, _, _ := runtime.Caller(0)
 							// runtime doesn't use os.PathSeparator
 							splitPath := strings.Split(expectedFile, "/")
 							expectedCaller := splitPath[len(splitPath)-1]
-							require.Contains(t, callerAttr.Str(), expectedCaller)
-							entityAttrs.Remove("caller")
+							require.Contains(t, callerAttr, expectedCaller)
+							delete(attrs, "caller")
 
 							// Validate the rest of the attributes
 							expectedMsg := "desired body content"
@@ -147,29 +128,20 @@ func TestStatementEvaluation(t *testing.T) {
 									expectedMsg = fmt.Sprintf("%s (evaluated \"{\\\"field.one\\\":\\\"field.one.value\\\",\\\"field_two\\\":\\\"field.two.value\\\",\\\"message\\\":\\\"desired.statement\\\"}\")", expectedMsg)
 								}
 							}
-							require.Equal(t, map[string]any{
-								discovery.OtelEntityIDAttr: map[string]any{
-									"discovery.endpoint.id": "endpoint.id",
-								},
-								discovery.OtelEntityEventTypeAttr: discovery.OtelEntityEventTypeState,
-								discovery.OtelEntityAttributesAttr: map[string]any{
-									"discovery.event.type":    "statement.match",
-									"discovery.observer.id":   "an_observer/observer.name",
-									"discovery.receiver.name": "receiver.name",
-									"discovery.receiver.rule": `type == "container"`,
-									"discovery.receiver.type": "a_receiver",
-									"discovery.status":        string(status),
-									"discovery.message":       expectedMsg,
-									"name":                    `a_receiver/receiver.name/receiver_creator/rc.name/{endpoint=""}/endpoint.id`,
-									"attr.one":                "attr.one.value",
-									"attr.two":                "attr.two.value",
-									"field.one":               "field.one.value",
-									"field_two":               "field.two.value",
-									"discovery.observer.name": "observer.name",
-									"discovery.observer.type": "an_observer",
-									"endpoint":                "",
-								},
-							}, lr.Attributes().AsRaw())
+							require.Equal(t, map[string]string{
+								"discovery.event.type":    "statement.match",
+								"discovery.observer.id":   "an_observer/observer.name",
+								"discovery.receiver.name": "receiver.name",
+								"discovery.receiver.rule": `type == "container"`,
+								"discovery.receiver.type": "a_receiver",
+								"discovery.status":        string(status),
+								"discovery.message":       expectedMsg,
+								"name":                    `a_receiver/receiver.name/receiver_creator/rc.name/{endpoint=""}/endpoint.id`,
+								"attr.one":                "attr.one.value",
+								"attr.two":                "attr.two.value",
+								"field.one":               "field.one.value",
+								"field_two":               "field.two.value",
+							}, attrs)
 						})
 					}
 				})

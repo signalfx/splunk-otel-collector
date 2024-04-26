@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - python-bookworm
   pull_request:
     paths:
       - '.github/workflows/linux-package-test.yml'

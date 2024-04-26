@@ -24,7 +24,7 @@
     - http.server.* metrics
     - rpc.server.* metrics
     - rpc.client.* metrics
-  - Note: These metrics are all excluded by default in the Splunk distribution of the Opentelemetry Collector.
+  - Note: These metrics are all excluded by default in the Splunk distribution of the OpenTelemetry Collector.
     This change only affects users who have modified the default configuration's dropping rules (`metric_relabel_configs`)
     in the Prometheus receiver that scrapes internal metrics.
 - (Contrib) `extension/filestorage`: Replace path-unsafe characters in component names ([#3148](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/3148))

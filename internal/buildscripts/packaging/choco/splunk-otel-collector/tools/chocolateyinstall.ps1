@@ -155,7 +155,10 @@ if ($use_msi_properties) {
     foreach ($entry in $env_vars.GetEnumerator()) {
         $msi_properties_args += " $entry.Key=`"$entry.Value`""
     }
+    Write-Host "Using MSI properties: $msi_properties_args"
+    Write-Host "SilentArgs: $($packageArgs["silentArgs"])"
     $packageArgs["silentArgs"] += $msi_properties_args
+    Write-Host "SilentArgs: $($packageArgs["silentArgs"])"
 }
 
 Install-ChocolateyInstallPackage @packageArgs

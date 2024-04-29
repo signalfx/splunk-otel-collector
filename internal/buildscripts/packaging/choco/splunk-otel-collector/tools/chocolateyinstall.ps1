@@ -155,6 +155,10 @@ if ($use_msi_properties) {
     foreach ($entry in $env_vars.GetEnumerator()) {
         $msi_properties_args += " $($entry.Key)=`"$($entry.Value)`""
     }
+
+    if ($MODE) {
+        $msi_properties_args += " SPLUNK_SETUP_COLLECTOR_MODE=`"$MODE`""
+    }
     Write-Host "Using MSI properties: $msi_properties_args"
     Write-Host "SilentArgs: $($packageArgs["silentArgs"])"
     $packageArgs["silentArgs"] += $msi_properties_args
@@ -163,18 +167,20 @@ if ($use_msi_properties) {
 
 Install-ChocolateyInstallPackage @packageArgs
 
-if ($MODE -eq "agent" -or !$MODE) {
-    $config_path = "$program_data_path\agent_config.yaml"
-    if (-NOT (Test-Path -Path "$config_path")) {
-        write-host "Copying agent_config.yaml to $config_path"
-        Copy-Item "$installation_path\agent_config.yaml" "$config_path"
+if (!$use_msi_properties) {
+    if ($MODE -eq "agent" -or !$MODE) {
+        $config_path = "$program_data_path\agent_config.yaml"
+        if (-NOT (Test-Path -Path "$config_path")) {
+            write-host "Copying agent_config.yaml to $config_path"
+            Copy-Item "$installation_path\agent_config.yaml" "$config_path"
+        }
     }
-}
-elseif ($MODE -eq "gateway"){
-    $config_path = "$program_data_path\gateway_config.yaml"
-    if (-NOT (Test-Path -Path "$config_path")) {
-        write-host "Copying gateway_config.yaml to $config_path"
-        Copy-Item "$installation_path\gateway_config.yaml" "$config_path"
+    elseif ($MODE -eq "gateway"){
+        $config_path = "$program_data_path\gateway_config.yaml"
+        if (-NOT (Test-Path -Path "$config_path")) {
+            write-host "Copying gateway_config.yaml to $config_path"
+            Copy-Item "$installation_path\gateway_config.yaml" "$config_path"
+        }
     }
 }
 

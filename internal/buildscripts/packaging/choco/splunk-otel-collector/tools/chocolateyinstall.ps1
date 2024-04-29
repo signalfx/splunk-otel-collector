@@ -182,9 +182,10 @@ if (!$use_msi_properties) {
             Copy-Item "$installation_path\gateway_config.yaml" "$config_path"
         }
     }
+
+    $env_vars["SPLUNK_CONFIG"] = "$config_path"
 }
 
-$env_vars["SPLUNK_CONFIG"] = "$config_path"
 
 # Install and configure fluentd to forward log events to the collector.
 if ($WITH_FLUENTD) {

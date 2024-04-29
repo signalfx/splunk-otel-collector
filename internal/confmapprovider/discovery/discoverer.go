@@ -708,14 +708,8 @@ func (d *discoverer) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 			}
 		}
 
-		entityIDAttr, ok := lr.Attributes().Get(discovery.OtelEntityIDAttr)
-		if !ok {
-			d.logger.Debug("invalid entity event without id", zap.Any("log record", lr))
-			continue
-		}
-
 		endpointID := "unavailable"
-		if eid, k := entityIDAttr.Map().Get(discovery.EndpointIDAttr); k {
+		if eid, k := entityAttrs.Get(discovery.EndpointIDAttr); k {
 			endpointID = eid.AsString()
 		}
 

@@ -3,9 +3,10 @@ resource_logs:
       - logs:
           - attributes:
               otel.entity.id:
-                discovery.endpoint.id: (host_observer)[::]-8888-TCP-1
+                source.port: 8888
               otel.entity.event.type: entity_state
               otel.entity.attributes:
+                discovery.endpoint.id: (host_observer)[::]-8888-TCP-1
                 discovery.event.type: metric.match
                 discovery.observer.id: host_observer
                 discovery.receiver.config: cmVjZWl2ZXJzOgogIHByb21ldGhldXNfc2ltcGxlOgogICAgY29uZmlnOiB7fQogICAgcmVzb3VyY2VfYXR0cmlidXRlczoKICAgICAgb25lLmtleTogb25lLnZhbHVlCiAgICAgIHR3by5rZXk6IHR3by52YWx1ZQogICAgcnVsZTogdHlwZSA9PSAiaG9zdHBvcnQiIGFuZCBjb21tYW5kIGNvbnRhaW5zICJvdGVsY29sIgp3YXRjaF9vYnNlcnZlcnM6Ci0gaG9zdF9vYnNlcnZlcgo=
@@ -28,7 +29,6 @@ resource_logs:
                 command: /otelcol --config /etc/config.yaml
                 endpoint: '[::]:8888'
                 is_ipv6: true
-                port: 8888
                 process_name: otelcol
                 transport: TCP
                 type: hostport
@@ -36,9 +36,10 @@ resource_logs:
       - logs:
           - attributes:
               otel.entity.id:
-                discovery.endpoint.id: (host_observer)[::]-4318-TCP-1
+                source.port: 4318
               otel.entity.event.type: entity_state
               otel.entity.attributes:
+                discovery.endpoint.id: (host_observer)[::]-4318-TCP-1
                 discovery.event.type: statement.match
                 discovery.observer.id: host_observer
                 discovery.receiver.config: cmVjZWl2ZXJzOgogIHByb21ldGhldXNfc2ltcGxlOgogICAgY29uZmlnOiB7fQogICAgcmVzb3VyY2VfYXR0cmlidXRlczoKICAgICAgb25lLmtleTogb25lLnZhbHVlCiAgICAgIHR3by5rZXk6IHR3by52YWx1ZQogICAgcnVsZTogdHlwZSA9PSAiaG9zdHBvcnQiIGFuZCBjb21tYW5kIGNvbnRhaW5zICJvdGVsY29sIgp3YXRjaF9vYnNlcnZlcnM6Ci0gaG9zdF9vYnNlcnZlcgo=
@@ -56,7 +57,6 @@ resource_logs:
                 command: /otelcol --config /etc/config.yaml
                 endpoint: '[::]:4318'
                 is_ipv6: true
-                port: 4318
                 process_name: otelcol
                 transport: TCP
                 type: hostport

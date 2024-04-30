@@ -2,6 +2,7 @@ resource_logs:
   - scope_logs:
       - logs:
           - attributes:
+              otel.entity.type: service
               otel.entity.id:
                 source.port: 8888
               otel.entity.event.type: entity_state
@@ -36,6 +37,7 @@ resource_logs:
   - scope_logs:
       - logs:
           - attributes:
+              otel.entity.type: service
               otel.entity.id:
                 source.port: 4318
               otel.entity.event.type: entity_state

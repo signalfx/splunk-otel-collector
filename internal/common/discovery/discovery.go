@@ -29,6 +29,7 @@ const (
 	StatusAttr         = "discovery.status"
 	MessageAttr        = "discovery.message"
 
+	OtelEntityTypeAttr        = "otel.entity.type"
 	OtelEntityAttributesAttr  = "otel.entity.attributes"
 	OtelEntityIDAttr          = "otel.entity.id"
 	OtelEntityEventTypeAttr   = "otel.entity.event.type"

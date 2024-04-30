@@ -148,25 +148,7 @@ delete-tag:
 
 .PHONY: docker-otelcol
 docker-otelcol:
-ifneq ($(SKIP_COMPILE), true)
-	$(MAKE) binaries-linux_$(ARCH)
-endif
-ifneq ($(filter $(ARCH), $(BUNDLE_SUPPORTED_ARCHS)),)
-ifneq ($(SKIP_BUNDLE), true)
-	$(MAKE) -C internal/signalfx-agent/bundle agent-bundle-linux ARCH=$(ARCH) DOCKER_REPO=$(DOCKER_REPO)
-endif
-endif
-	rm -rf ./cmd/otelcol/dist
-	mkdir -p ./cmd/otelcol/dist
-	cp ./bin/otelcol_linux_$(ARCH) ./cmd/otelcol/dist/otelcol
-	cp ./bin/migratecheckpoint_linux_$(ARCH) ./cmd/otelcol/dist/migratecheckpoint
-	cp ./internal/buildscripts/packaging/collect-libs.sh ./cmd/otelcol/dist/collect-libs.sh
-ifneq ($(filter $(ARCH), $(BUNDLE_SUPPORTED_ARCHS)),)
-	cp ./dist/agent-bundle_linux_$(ARCH).tar.gz ./cmd/otelcol/dist/agent-bundle.tar.gz
-endif
-	docker buildx build --platform linux/$(ARCH) -o type=image,name=otelcol:$(ARCH),push=false --build-arg ARCH=$(ARCH) --build-arg DOCKER_REPO=$(DOCKER_REPO) --build-arg JMX_METRIC_GATHERER_RELEASE=$(JMX_METRIC_GATHERER_RELEASE) ./cmd/otelcol/
-	docker tag otelcol:$(ARCH) otelcol:latest
-	rm -rf ./cmd/otelcol/dist
+	ARCH=$(ARCH) SKIP_COMPILE=$(SKIP_COMPILE) SKIP_BUNDLE=$(SKIP_BUNDLE) DOCKER_REPO=$(DOCKER_REPO) JMX_METRIC_GATHERER_RELEASE=$(JMX_METRIC_GATHERER_RELEASE) ./cmd/otelcol/docker-otelcol.sh
 
 .PHONY: binaries-all-sys
 binaries-all-sys: binaries-darwin_amd64 binaries-darwin_arm64 binaries-linux_amd64 binaries-linux_arm64 binaries-windows_amd64 binaries-linux_ppc64le

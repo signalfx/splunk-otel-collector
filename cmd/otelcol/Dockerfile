@@ -3,9 +3,9 @@ FROM ${DOCKER_REPO}/alpine:3.17.0 as certs
 RUN apk --update add ca-certificates
 
 FROM ${DOCKER_REPO}/alpine:3.17.0 AS otelcol
-COPY dist/* /dist/
-RUN mv /dist/otelcol /
-RUN mv /dist/migratecheckpoint /
+ARG TARGETARCH
+COPY bin/otelcol_linux_${TARGETARCH} /otelcol
+COPY bin/migratecheckpoint_linux_${TARGETARCH} /migratecheckpoint
 # Note that this shouldn't be necessary, but in some cases the file seems to be
 # copied with the execute bit lost (see https://github.com/open-telemetry/opentelemetry-collector/issues/1317)
 RUN chmod 755 /otelcol
@@ -17,16 +17,16 @@ RUN mkdir -p /otel/collector /splunk-otel-collector /tmp/tmp
 RUN chmod 755 /tmp/tmp
 
 FROM ${DOCKER_REPO}/alpine:3.17.0 AS agent-bundle
-ARG ARCH="amd64"
+ARG TARGETARCH
 
 COPY --from=otelcol /etc_passwd /etc_passwd
 RUN cat /etc_passwd >> /etc/passwd
 COPY --from=otelcol --chown=999 /splunk-otel-collector /usr/lib/splunk-otel-collector
-COPY --from=otelcol --chown=999 /dist/* /dist/
+COPY --chown=999 dist/agent-bundle_linux_*.tar.gz /dist/
 USER splunk-otel-collector
-RUN if [[ "$ARCH" = "amd64" || "$ARCH" = "arm64" ]]; then \
-        mv /dist/agent-bundle.tar.gz /usr/lib/splunk-otel-collector && \
-        cd /usr/lib/splunk-otel-collector && tar -xzf agent-bundle.tar.gz && \
+RUN if [[ "$TARGETARCH" = "amd64" || "$TARGETARCH" = "arm64" ]]; then \
+        mv /dist/agent-bundle_linux_${TARGETARCH}.tar.gz /usr/lib/splunk-otel-collector && \
+        cd /usr/lib/splunk-otel-collector && tar -xzf agent-bundle_linux_${TARGETARCH}.tar.gz && \
         # Absolute path of interpreter in smart agent dir is set in dependent binaries
         # requiring the interpreter location not to change.
         /usr/lib/splunk-otel-collector/agent-bundle/bin/patch-interpreter /usr/lib/splunk-otel-collector/agent-bundle && \
@@ -38,13 +38,13 @@ RUN if [[ "$ARCH" = "amd64" || "$ARCH" = "arm64" ]]; then \
 FROM ${DOCKER_REPO}/alpine:3.17.0 AS jmx
 ARG JMX_METRIC_GATHERER_RELEASE
 RUN JMX_METRICS_JAR=opentelemetry-jmx-metrics.jar && \
-URL=https://github.com/open-telemetry/opentelemetry-java-contrib/releases/download/v${JMX_METRIC_GATHERER_RELEASE}/${JMX_METRICS_JAR} && \
-cd /tmp && wget "$URL";
+    URL=https://github.com/open-telemetry/opentelemetry-java-contrib/releases/download/v${JMX_METRIC_GATHERER_RELEASE}/${JMX_METRICS_JAR} && \
+    cd /tmp && wget "$URL";
 
 FROM ${DOCKER_REPO}/debian:11.5 as journalctl
 RUN apt update
 RUN apt install -y systemd
-COPY dist/collect-libs.sh /collect-libs.sh
+COPY internal/buildscripts/packaging/collect-libs.sh /collect-libs.sh
 RUN /collect-libs.sh /opt/journalctl /bin/journalctl
 
 FROM scratch
@@ -67,11 +67,11 @@ COPY --from=jmx --chown=999 /tmp/opentelemetry-jmx-metrics.jar /opt/opentelemetr
 COPY --from=journalctl --chown=999 /bin/journalctl /bin/journalctl
 COPY --from=journalctl --chown=999 /opt/journalctl /
 
-COPY --chown=999 config/collector/gateway_config.yaml /etc/otel/collector/gateway_config.yaml
-COPY --chown=999 config/collector/otlp_config_linux.yaml /etc/otel/collector/otlp_config_linux.yaml
-COPY --chown=999 config/collector/agent_config.yaml /etc/otel/collector/agent_config.yaml
-COPY --chown=999 config/collector/fargate_config.yaml /etc/otel/collector/fargate_config.yaml
-COPY --chown=999 config/collector/ecs_ec2_config.yaml /etc/otel/collector/ecs_ec2_config.yaml
+COPY --chown=999 cmd/otelcol/config/collector/gateway_config.yaml /etc/otel/collector/gateway_config.yaml
+COPY --chown=999 cmd/otelcol/config/collector/otlp_config_linux.yaml /etc/otel/collector/otlp_config_linux.yaml
+COPY --chown=999 cmd/otelcol/config/collector/agent_config.yaml /etc/otel/collector/agent_config.yaml
+COPY --chown=999 cmd/otelcol/config/collector/fargate_config.yaml /etc/otel/collector/fargate_config.yaml
+COPY --chown=999 cmd/otelcol/config/collector/ecs_ec2_config.yaml /etc/otel/collector/ecs_ec2_config.yaml
 
 USER splunk-otel-collector
 ENTRYPOINT ["/otelcol"]

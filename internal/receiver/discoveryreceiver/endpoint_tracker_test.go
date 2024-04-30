@@ -58,9 +58,11 @@ func TestEndpointToPLogsHappyPath(t *testing.T) {
 				labelsMap := attrs.PutEmptyMap("labels")
 				labelsMap.PutStr("label.one", "value.one")
 				labelsMap.PutStr("label.two", "value.two")
-				attrs.PutStr("k8s.pod.name", "pod.name")
+				attrs.PutStr("k8s.pod.name", "my-mysql-0")
 				attrs.PutStr("k8s.namespace.name", "namespace")
 				attrs.PutStr("type", "pod")
+				attrs.PutStr("service.type", "unknown")
+				attrs.PutStr("service.name", "my-mysql")
 				return plogs
 			}(),
 		},
@@ -78,7 +80,7 @@ func TestEndpointToPLogsHappyPath(t *testing.T) {
 				attrs.PutStr(discovery.EndpointIDAttr, "port.endpoint.id")
 				attrs.PutStr("endpoint", "port.target")
 				attrs.PutStr("name", "port.name")
-				attrs.PutStr("k8s.pod.name", "pod.name")
+				attrs.PutStr("k8s.pod.name", "redis-cart-657b69bb49-8csql")
 				attrs.PutStr("k8s.namespace.name", "namespace")
 				annotationsMap := attrs.PutEmptyMap("annotations")
 				annotationsMap.PutStr("annotation.one", "value.one")
@@ -88,6 +90,8 @@ func TestEndpointToPLogsHappyPath(t *testing.T) {
 				labelsMap.PutStr("label.two", "value.two")
 				attrs.PutStr("transport", "transport")
 				attrs.PutStr("type", "port")
+				attrs.PutStr("service.type", "unknown")
+				attrs.PutStr("service.name", "redis-cart")
 				return plogs
 			}(),
 		},
@@ -108,6 +112,8 @@ func TestEndpointToPLogsHappyPath(t *testing.T) {
 				attrs.PutStr("process_name", "process.name")
 				attrs.PutStr("transport", "transport")
 				attrs.PutStr("type", "hostport")
+				attrs.PutStr("service.type", "unknown")
+				attrs.PutStr("service.name", "process.name")
 				return plogs
 			}(),
 		},
@@ -135,6 +141,8 @@ func TestEndpointToPLogsHappyPath(t *testing.T) {
 				attrs.PutStr("tag", "tag")
 				attrs.PutStr("transport", "transport")
 				attrs.PutStr("type", "container")
+				attrs.PutStr("service.type", "unknown")
+				attrs.PutStr("service.name", "container.name")
 				return plogs
 			}(),
 		},
@@ -164,6 +172,8 @@ func TestEndpointToPLogsHappyPath(t *testing.T) {
 				labelsMap.PutStr("label.two", "value.two")
 				attrs.PutStr("k8s.node.name", "k8s.node.name")
 				attrs.PutStr("type", "k8s.node")
+				attrs.PutStr("service.type", "unknown")
+				attrs.PutStr("service.name", "unknown")
 				return plogs
 			}(),
 		},
@@ -214,6 +224,8 @@ func TestEndpointToPLogsInvalidEndpoints(t *testing.T) {
 				attrs.PutStr(discovery.EndpointIDAttr, "endpoint.id")
 				attrs.PutStr("endpoint", "endpoint.target")
 				attrs.PutStr("type", "empty.details.env")
+				attrs.PutStr("service.type", "unknown")
+				attrs.PutStr("service.name", "unknown")
 				return plogs
 			}(),
 		},
@@ -234,6 +246,8 @@ func TestEndpointToPLogsInvalidEndpoints(t *testing.T) {
 				attrs.PutStr("endpoint", "endpoint.target")
 				attrs.PutBool("labels", true)
 				attrs.PutStr("type", "unexpected.env")
+				attrs.PutStr("service.type", "unknown")
+				attrs.PutStr("service.name", "unknown")
 				return plogs
 			}(),
 		},
@@ -372,6 +386,8 @@ func FuzzEndpointToPlogs(f *testing.F) {
 			attrs.PutStr("k8s.namespace.name", namespace)
 			attrs.PutStr("transport", transport)
 			attrs.PutStr("type", "port")
+			attrs.PutStr("service.type", "unknown")
+			attrs.PutStr("service.name", portName)
 			require.Equal(t, 1, events.Len())
 
 			require.NoError(t, plogtest.CompareLogs(expectedLogs, events.ConvertAndMoveToLogs()))
@@ -388,7 +404,7 @@ var (
 		ID:     observer.EndpointID("pod.endpoint.id"),
 		Target: "pod.target",
 		Details: &observer.Pod{
-			Name: "pod.name",
+			Name: "my-mysql-0",
 			UID:  "uid",
 			Labels: map[string]string{
 				"label.one": "value.one",
@@ -408,7 +424,7 @@ var (
 		Details: &observer.Port{
 			Name: "port.name",
 			Pod: observer.Pod{
-				Name: "pod.name",
+				Name: "redis-cart-657b69bb49-8csql",
 				UID:  "uid",
 				Labels: map[string]string{
 					"label.one": "value.one",
@@ -630,7 +646,7 @@ func TestEntityEmittingLifecycle(t *testing.T) {
 	cfg := createDefaultConfig().(*Config)
 	cfg.Receivers = map[component.ID]ReceiverEntry{
 		component.MustNewIDWithName("fake_receiver", ""): {
-			Rule: mustNewRule(`type == "port" && pod.name == "pod.name" && port == 1`),
+			Rule: mustNewRule(`type == "port" && pod.name matches "(?i)redis" && port == 1`),
 		},
 	}
 
@@ -706,15 +722,16 @@ func TestEntityStateEvents(t *testing.T) {
 	logger := zap.NewNop()
 	cfg := createDefaultConfig().(*Config)
 	cfg.Receivers = map[component.ID]ReceiverEntry{
-		component.MustNewIDWithName("fake_receiver", ""): {
-			Rule: mustNewRule(`type == "port" && pod.name == "pod.name" && port == 1`),
+		component.MustNewIDWithName("redis", ""): {
+			Rule: mustNewRule(`type == "port" && pod.name matches "(?i)redis" && port == 1`),
 		},
 	}
 
 	cStore := newCorrelationStore(logger, cfg.CorrelationTTL)
 	cStore.UpdateAttrs(portEndpoint.ID, map[string]string{
-		"attr1": "val1",
-		"attr2": "val2",
+		discovery.ReceiverTypeAttr: "redis",
+		"attr1":                    "val1",
+		"attr2":                    "val2",
 	})
 
 	events, failed, err := entityStateEvents(component.MustNewIDWithName("observer_type", "observer.name"),
@@ -740,13 +757,16 @@ func TestEntityStateEvents(t *testing.T) {
 			"label.one": "value.one",
 			"label.two": "value.two",
 		},
-		"discovery.endpoint.id": "port.endpoint.id",
-		"k8s.pod.name":          "pod.name",
-		"k8s.namespace.name":    "namespace",
-		"transport":             "transport",
-		"type":                  "port",
-		"attr1":                 "val1",
-		"attr2":                 "val2",
+		"discovery.receiver.type": "redis",
+		"discovery.endpoint.id":   "port.endpoint.id",
+		"k8s.pod.name":            "redis-cart-657b69bb49-8csql",
+		"k8s.namespace.name":      "namespace",
+		"transport":               "transport",
+		"type":                    "port",
+		"attr1":                   "val1",
+		"attr2":                   "val2",
+		"service.type":            "redis",
+		"service.name":            "redis-cart",
 	}, event.EntityStateDetails().Attributes().AsRaw())
 }
 
@@ -763,4 +783,74 @@ func TestEntityDeleteEvents(t *testing.T) {
 		sourcePortAttr: int64(1),
 		"k8s.pod.uid":  "uid",
 	}, event.ID().AsRaw())
+}
+
+func TestDeduceServiceName(t *testing.T) {
+	tests := []struct {
+		name     string
+		attrs    map[string]any
+		expected string
+	}{
+		{
+			name: "service.name",
+			attrs: map[string]any{
+				"service.name": "my-mysql",
+			},
+			expected: "my-mysql",
+		},
+		{
+			name: "k8s.pod.name",
+			attrs: map[string]any{
+				"k8s.pod.name": "my-daemonset-f6pxf",
+				"name":         "my-name",
+			},
+			expected: "my-daemonset",
+		},
+		{
+			name: "labels.app",
+			attrs: map[string]any{
+				"labels": map[string]any{
+					"app": "my-app",
+				},
+			},
+			expected: "my-app",
+		},
+		{
+			name: "labels.app-name",
+			attrs: map[string]any{
+				"labels": map[string]any{
+					"app.kubernetes.io/name": "my-app-new-name",
+					"app":                    "my-app-old-name",
+				},
+				"process_name": "my-process",
+			},
+			expected: "my-app-new-name",
+		},
+		{
+			name: "name",
+			attrs: map[string]any{
+				"name": "my-name",
+			},
+			expected: "my-name",
+		},
+		{
+			name: "process_name",
+			attrs: map[string]any{
+				"process_name": "my-process",
+			},
+			expected: "my-process",
+		},
+		{
+			name:     "empty",
+			attrs:    map[string]any{},
+			expected: "unknown",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			attrs := pcommon.NewMap()
+			attrs.FromRaw(tt.attrs)
+			assert.Equal(t, tt.expected, deduceServiceName(attrs))
+		})
+	}
 }

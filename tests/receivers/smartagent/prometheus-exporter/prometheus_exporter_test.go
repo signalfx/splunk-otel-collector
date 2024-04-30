@@ -41,21 +41,6 @@ func TestPrometheusExporterProvidesOTelInternalMetrics(t *testing.T) {
 			"otelcol_process_runtime_total_sys_memory_bytes",
 			"otelcol_process_uptime",
 			"otelcol_receiver_accepted_metric_points",
-			"otelcol_rpc_client_duration",
-			"otelcol_rpc_client_duration_bucket",
-			"otelcol_rpc_client_duration_count",
-			"otelcol_rpc_client_request_size",
-			"otelcol_rpc_client_request_size_bucket",
-			"otelcol_rpc_client_request_size_count",
-			"otelcol_rpc_client_requests_per_rpc",
-			"otelcol_rpc_client_requests_per_rpc_bucket",
-			"otelcol_rpc_client_requests_per_rpc_count",
-			"otelcol_rpc_client_response_size",
-			"otelcol_rpc_client_response_size_bucket",
-			"otelcol_rpc_client_response_size_count",
-			"otelcol_rpc_client_responses_per_rpc",
-			"otelcol_rpc_client_responses_per_rpc_bucket",
-			"otelcol_rpc_client_responses_per_rpc_count",
 		))
 }
 

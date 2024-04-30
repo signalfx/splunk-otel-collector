@@ -16,6 +16,7 @@ package discoveryreceiver
 
 import (
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
@@ -30,7 +31,10 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
 )
 
-const sourcePortAttr = "source.port"
+const (
+	sourcePortAttr  = "source.port"
+	serviceTypeAttr = "service.type"
+)
 
 // identifyingAttrKeys are the keys of attributes that are used to identify an entity.
 var identifyingAttrKeys = []string{
@@ -40,6 +44,10 @@ var identifyingAttrKeys = []string{
 	semconv.AttributeHostID,
 	sourcePortAttr,
 }
+
+// k8sPodRegexp is a regular expression to extract the owner object name from a pod name.
+// Built based on https://github.com/kubernetes/apimachinery/blob/d5c9711b77ee5a0dde0fef41c9ca86a67f5ddb4e/pkg/util/rand/rand.go#L92-L127
+var k8sPodRegexp = regexp.MustCompile(`^(.+?)-(?:(?:[0-9bcdf]+-)?[bcdfghjklmnpqrstvwxz2456789]{5}|[0-9]+)$`)
 
 var _ observer.Notify = (*notify)(nil)
 
@@ -252,6 +260,8 @@ func entityStateEvents(observerID component.ID, endpoints []observer.Endpoint, c
 		for k, v := range correlations.Attrs(endpoint.ID) {
 			attrs.PutStr(k, v)
 		}
+		attrs.PutStr(serviceTypeAttr, deduceServiceType(attrs))
+		attrs.PutStr(semconv.AttributeServiceName, deduceServiceName(attrs))
 		extractIdentifyingAttrs(attrs, entityEvent.ID())
 	}
 	return entityEvents, failed, err
@@ -359,4 +369,43 @@ func extractIdentifyingAttrs(from pcommon.Map, to pcommon.Map) {
 			from.Remove(k)
 		}
 	}
+}
+
+func deduceServiceName(attrs pcommon.Map) string {
+	if val, ok := attrs.Get(semconv.AttributeServiceName); ok {
+		return val.AsString()
+	}
+	if labels, labelsFound := attrs.Get("labels"); labelsFound && labels.Type() == pcommon.ValueTypeMap {
+		if val, ok := labels.Map().Get("app.kubernetes.io/name"); ok {
+			return val.AsString()
+		}
+		if val, ok := labels.Map().Get("app"); ok {
+			return val.AsString()
+		}
+	}
+	// TODO: Update the observer upstream to set the deployment/statefulset name in addition to the pod name,
+	//       so we don't have to extract it from the pod name.
+	if podName, ok := attrs.Get("k8s.pod.name"); ok {
+		matches := k8sPodRegexp.FindStringSubmatch(podName.AsString())
+		if len(matches) > 1 {
+			return matches[1]
+		}
+	}
+	if val, ok := attrs.Get("name"); ok {
+		return val.AsString()
+	}
+	if val, ok := attrs.Get("process_name"); ok {
+		return val.AsString()
+	}
+	return "unknown"
+}
+
+func deduceServiceType(attrs pcommon.Map) string {
+	if val, ok := attrs.Get(serviceTypeAttr); ok {
+		return val.AsString()
+	}
+	if val, ok := attrs.Get(discovery.ReceiverTypeAttr); ok {
+		return val.AsString()
+	}
+	return "unknown"
 }

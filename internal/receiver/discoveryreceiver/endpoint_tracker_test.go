@@ -309,6 +309,7 @@ func TestEndpointToPLogsInvalidEndpoints(t *testing.T) {
 			expectedDeleteEvent := test.expectedPLogs
 			lr := expectedDeleteEvent.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
 			lr.Attributes().PutStr(discovery.OtelEntityEventTypeAttr, discovery.OtelEntityEventTypeDelete)
+			lr.Attributes().Remove(discovery.OtelEntityTypeAttr)
 			lr.Attributes().Remove(discovery.OtelEntityAttributesAttr)
 			events, failed, err = entityDeleteEvents([]observer.Endpoint{test.endpoint}, t0)
 			require.NoError(t, err)
@@ -502,6 +503,7 @@ func expectedPLogs() plog.Logs {
 	scopeLog := plogs.ResourceLogs().AppendEmpty().ScopeLogs().AppendEmpty()
 	scopeLog.Scope().Attributes().PutBool(discovery.OtelEntityEventAsLogAttr, true)
 	lr := scopeLog.LogRecords().AppendEmpty()
+	lr.Attributes().PutStr(discovery.OtelEntityTypeAttr, entityType)
 	lr.Attributes().PutStr(discovery.OtelEntityEventTypeAttr, discovery.OtelEntityEventTypeState)
 	lr.Attributes().PutEmptyMap(discovery.OtelEntityIDAttr)
 	attrs := lr.Attributes().PutEmptyMap(discovery.OtelEntityAttributesAttr)

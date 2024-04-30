@@ -32,6 +32,7 @@ import (
 )
 
 const (
+	entityType      = "service"
 	sourcePortAttr  = "source.port"
 	serviceTypeAttr = "service.type"
 )
@@ -244,6 +245,7 @@ func entityStateEvents(observerID component.ID, endpoints []observer.Endpoint, c
 		entityEvent := entityEvents.AppendEmpty()
 		entityEvent.SetTimestamp(pcommon.NewTimestampFromTime(ts))
 		entityState := entityEvent.SetEntityState()
+		entityState.SetEntityType(entityType)
 		attrs := entityState.Attributes()
 		if envAttrs, e := endpointEnvToAttrs(endpoint.Details.Type(), endpoint.Details.Env()); e != nil {
 			err = multierr.Combine(err, fmt.Errorf("failed determining attributes for %q: %w", endpoint.ID, e))

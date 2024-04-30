@@ -24,7 +24,7 @@ if platform_family?('windows')
 
   remote_file node['splunk_otel_collector']['collector_config_dest'] do
     source "#{node['splunk_otel_collector']['collector_config_source']}"
-    only_if { node['splunk_otel_collector']['collector_config'] == {} }
+    only_if { ::File.exist?(node['splunk_otel_collector']['collector_config_source']) && node['splunk_otel_collector']['collector_config'] == {} }
     notifies :restart, 'windows_service[splunk-otel-collector]', :delayed
   end
 

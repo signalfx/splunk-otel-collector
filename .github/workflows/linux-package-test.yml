@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - docker-otelcol-multiarch
   pull_request:
     paths:
       - '.github/workflows/linux-package-test.yml'
@@ -255,10 +256,6 @@ jobs:
     # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
     runs-on: ubuntu-20.04
     needs: [cross-compile, agent-bundle-linux]
-    strategy:
-      matrix:
-        ARCH: [ "amd64", "arm64", "ppc64le" ]
-      fail-fast: false
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4
@@ -270,37 +267,80 @@ jobs:
           cache-dependency-path: '**/go.sum'
 
       - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: amd64,arm64,ppc64le
+          image: tonistiigi/binfmt:qemu-v7.0.0
+
+      - name: Downloading binaries-linux_amd64
+        uses: actions/download-artifact@v4
+        with:
+          name: binaries-linux_amd64
+          path: ./bin
+
+      - name: Downloading binaries-linux_arm64
+        uses: actions/download-artifact@v4
+        with:
+          name: binaries-linux_arm64
+          path: ./bin
+
+      - name: Downloading binaries-linux_ppc64le
+        uses: actions/download-artifact@v4
+        with:
+          name: binaries-linux_ppc64le
+          path: ./bin
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: agent-bundle-linux-amd64
+          path: ./dist
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: agent-bundle-linux-arm64
+          path: ./dist
+
+      - name: Build multiarch docker image
+        run: |
+          make docker-otelcol SKIP_COMPILE=true SKIP_BUNDLE=true ARCH=amd64,arm64,ppc64le
+          docker inspect otelcol:latest
+
+      - run: docker save -o image.tar otelcol:latest
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: docker-otelcol
+          path: image.tar
+
+  docker-otelcol-test:
+    runs-on: ubuntu-20.04
+    needs: [docker-otelcol]
+    strategy:
+      matrix:
+        ARCH: [ "amd64", "arm64", "ppc64le" ]
+      fail-fast: false
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
         if: ${{ matrix.ARCH != 'amd64' }}
         uses: docker/setup-qemu-action@v3
         with:
           platforms: ${{ matrix.ARCH }}
           image: tonistiigi/binfmt:qemu-v7.0.0
 
-      - name: Downloading binaries-linux_${{ matrix.ARCH }}
-        uses: actions/download-artifact@v4
-        with:
-          name: binaries-linux_${{ matrix.ARCH }}
-          path: ./bin
-
       - uses: actions/download-artifact@v4
-        if: ${{ matrix.ARCH != 'ppc64le' }}
         with:
-          name: agent-bundle-linux-${{ matrix.ARCH }}
-          path: ./dist
+          name: docker-otelcol
+          path: image.tar
 
-      - name: Build ${{ matrix.ARCH }} docker image
-        run: |
-          make docker-otelcol SKIP_COMPILE=true SKIP_BUNDLE=true ARCH=${{ matrix.ARCH }}
-
-      - name: Check image arch
-        run: |
-          # ensure that the arch in the image manifest is correct
-          [ "$( docker inspect --format='{{.Architecture}}' otelcol:${{ matrix.ARCH }} )" = "${{ matrix.ARCH }}" ] || exit 1
+      - run: docker load -i image.tar
 
       - name: Run docker image
         run: |
           # ensure the collector can start with the default config file
-          docker run --platform linux/${{ matrix.ARCH }} -d -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=fake-realm --name otelcol otelcol:${{ matrix.ARCH }}
+          docker run --platform linux/${{ matrix.ARCH }} -d -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=fake-realm --name otelcol otelcol:latest
           sleep 10
           if [ -z "$( docker ps --filter=status=running --filter=name=otelcol -q )" ]; then
             docker logs otelcol
@@ -320,7 +360,7 @@ jobs:
             exit 1
           fi
           for config in $configs; do
-            docker run --platform linux/${{ matrix.ARCH }} -d -e SPLUNK_CONFIG=/etc/otel/collector/${config} -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=fake-realm --name otelcol otelcol:${{ matrix.ARCH }}
+            docker run --platform linux/${{ matrix.ARCH }} -d -e SPLUNK_CONFIG=/etc/otel/collector/${config} -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=fake-realm --name otelcol otelcol:latest
             sleep 10
             if [ -z "$( docker ps --filter=status=running --filter=name=otelcol -q )" ]; then
               docker logs otelcol
@@ -328,6 +368,7 @@ jobs:
               exit 1
             fi
             docker rm -f otelcol
+          done
           done
 
       - name: Check journalctl

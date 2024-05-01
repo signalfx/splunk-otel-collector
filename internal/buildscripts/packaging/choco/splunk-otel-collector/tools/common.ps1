@@ -103,21 +103,6 @@ function set_env_var_value_from_package_params([hashtable] $env_vars, [hashtable
     Write-Host "The $name package parameter was not set, using the default value: '$value'"
 }
 
-function set_service_environment([string]$service_name, [hashtable]$env_vars) {
-    Write-Host "Setting environment variables for the $service_name service..."
-    # Transform the $env_vars to an array of strings so the Set-ItemProperty correctly create the
-    # 'Environment' REG_MULTI_SZ value.
-    [string []] $multi_sz_value = ($env_vars.Keys | ForEach-Object { "$_=$($env_vars[$_])" } | Sort-Object)
-
-    $target_service_reg_key = Join-Path "HKLM:\SYSTEM\CurrentControlSet\Services" $service_name
-    if (Test-Path $target_service_reg_key) {
-        Set-ItemProperty $target_service_reg_key -Name "Environment" -Value $multi_sz_value
-    }
-    else {
-        throw "Invalid service '$service_name'. Registry key '$target_service_reg_key' doesn't exist."
-    }
-}
-
 # check that we're not running with a restricted execution policy
 function check_policy() {
     $executionPolicy  = (Get-ExecutionPolicy)

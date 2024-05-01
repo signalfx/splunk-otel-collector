@@ -2,6 +2,7 @@ resource_logs:
   - scope_logs:
       - logs:
           - attributes:
+              otel.entity.type: service
               otel.entity.id:
                 source.port: 8888
               otel.entity.event.type: entity_state
@@ -32,9 +33,11 @@ resource_logs:
                 process_name: otelcol
                 transport: TCP
                 type: hostport
+                service.type: prometheus_simple
   - scope_logs:
       - logs:
           - attributes:
+              otel.entity.type: service
               otel.entity.id:
                 source.port: 4318
               otel.entity.event.type: entity_state
@@ -60,3 +63,5 @@ resource_logs:
                 process_name: otelcol
                 transport: TCP
                 type: hostport
+                service.type: prometheus_simple
+                service.name: prometheus_simple//receiver_creator/discovery{endpoint="[::]:4318"}/(host_observer)[::]-4318-TCP-1

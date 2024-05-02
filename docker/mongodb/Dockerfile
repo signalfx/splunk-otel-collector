@@ -4,7 +4,6 @@ ENV MONGO_INITDB_ROOT_USERNAME="admin"
 ENV MONGO_INITDB_ROOT_PASSWORD="pass"
 
 COPY scripts /home/mongodb/scripts
-COPY ssl /home/mongodb/
 COPY mongod.conf /home/mongodb
 
 WORKDIR /home/mongodb

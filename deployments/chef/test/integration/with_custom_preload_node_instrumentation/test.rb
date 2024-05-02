@@ -25,6 +25,10 @@ describe file('/etc/splunk/zeroconfig/java.conf') do
   it { should_not exist }
 end
 
+describe file('/etc/splunk/zeroconfig/dotnet.conf') do
+  it { should_not exist }
+end
+
 describe file('/usr/lib/splunk-instrumentation/instrumentation.conf') do
   it { should_not exist }
 end

@@ -1,7 +1,7 @@
 libsplunk_path = '/usr/lib/splunk-instrumentation/libsplunk.so'
-java_tool_options = '-javaagent:/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar'
 resource_attributes = 'splunk.zc.method=splunk-otel-auto-instrumentation-\d+\.\d+\.\d+'
 otlp_endpoint = 'http://127.0.0.1:4317'
+dotnet_home = '/usr/lib/splunk-instrumentation/splunk-otel-dotnet'
 
 describe package('splunk-otel-auto-instrumentation') do
   it { should be_installed }
@@ -19,11 +19,11 @@ describe file('/usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentatio
   it { should_not exist }
 end
 
-describe file('/etc/splunk/zeroconfig/node.conf') do
+describe file('/etc/splunk/zeroconfig/java.conf') do
   it { should_not exist }
 end
 
-describe file('/etc/splunk/zeroconfig/dotnet.conf') do
+describe file('/etc/splunk/zeroconfig/node.conf') do
   it { should_not exist }
 end
 
@@ -31,8 +31,15 @@ describe file('/usr/lib/splunk-instrumentation/instrumentation.conf') do
   it { should_not exist }
 end
 
-describe file('/etc/splunk/zeroconfig/java.conf') do
-  its('content') { should match /^JAVA_TOOL_OPTIONS=#{java_tool_options}$/ }
+describe file('/etc/splunk/zeroconfig/dotnet.conf') do
+  its('content') { should match /^CORECLR_ENABLE_PROFILING=1$/ }
+  its('content') { should match /^CORECLR_PROFILER=\{918728DD-259F-4A6A-AC2B-B85E1B658318\}$/ }
+  its('content') { should match %r{^CORECLR_PROFILER_PATH=#{dotnet_home}/linux-x64/OpenTelemetry.AutoInstrumentation.Native.so$} }
+  its('content') { should match %r{^DOTNET_ADDITIONAL_DEPS=#{dotnet_home}/AdditionalDeps$} }
+  its('content') { should match %r{^DOTNET_SHARED_STORE=#{dotnet_home}/store$} }
+  its('content') { should match %r{^DOTNET_STARTUP_HOOKS=#{dotnet_home}/net/OpenTelemetry.AutoInstrumentation.StartupHook.dll$} }
+  its('content') { should match /^OTEL_DOTNET_AUTO_HOME=#{dotnet_home}$/ }
+  its('content') { should match /^OTEL_DOTNET_AUTO_PLUGINS=Splunk.OpenTelemetry.AutoInstrumentation.Plugin,Splunk.OpenTelemetry.AutoInstrumentation$/ }
   its('content') { should match /^OTEL_RESOURCE_ATTRIBUTES=#{resource_attributes}$/ }
   its('content') { should_not match /.*OTEL_SERVICE_NAME.*/ }
   its('content') { should match /^SPLUNK_PROFILER_ENABLED=false$/ }

@@ -83,7 +83,7 @@
          </Directory>
       </Directory>
 
-      <Component Id="ServiceComponent" Guid="92ff732f-f418-4927-bcc4-a63ba1bab73d">
+      <Component Id="ServiceComponent" Guid="92ff732f-f418-4927-bcc4-a63ba1bab73d" Directory="INSTALLDIR">
          <ServiceInstall
             Id="Service"
             Name="splunk-otel-collector"
@@ -103,7 +103,7 @@
             Wait="yes" />
       </Component>
 
-      <Component Id="RegistryComponent" Guid="*">
+      <Component Id="RegistryComponent" Guid="8d6d2a92-9952-4251-8f6b-d85c5b2182e4" Directory="INSTALLDIR">
          <RegistryKey Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\EventLog\Application\splunk-otel-collector">
             <RegistryValue Type="expandable" Name="EventMessageFile" Value="%SystemRoot%\System32\EventCreate.exe"/>
          </RegistryKey>

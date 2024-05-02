@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## puppet-v0.15.0
+
+- Fix installation of `splunk-otel-js` for Node.js auto instrumentation.
+
 ## puppet-v0.14.0
 
 - For Splunk Otel Collector version `0.97.0` or greater, `GOMEMLIMIT` env var is introduced. The default is set to 90% of the `SPLUNK_TOTAL_MEM_MIB`. For more information regarding the usage, please follow the instructions ([here](https://github.com/signalfx/splunk-otel-collector?tab=readme-ov-file#from-0961-to-0970)).

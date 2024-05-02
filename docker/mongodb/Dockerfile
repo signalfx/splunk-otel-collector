@@ -1,0 +1,15 @@
+FROM mongo:4.4
+
+ENV MONGO_INITDB_ROOT_USERNAME="admin" 
+ENV MONGO_INITDB_ROOT_PASSWORD="pass"
+
+COPY scripts /home/mongodb/scripts
+COPY ssl /home/mongodb/
+COPY mongod.conf /home/mongodb
+
+WORKDIR /home/mongodb
+
+RUN chmod +x /home/mongodb/scripts/*.sh
+
+CMD ["/bin/bash", "/home/mongodb/scripts/run.sh"]
+

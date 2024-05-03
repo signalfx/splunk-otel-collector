@@ -9,7 +9,12 @@ RUN wget https://apt.puppetlabs.com/puppet${PUPPET_RELEASE}-release-buster.deb &
     apt-get update && \
     apt-get install -y puppet-agent
 
-ENV PATH=/opt/puppetlabs/bin:$PATH
+RUN wget -O /tmp/nodejs.tar.gz https://nodejs.org/dist/v16.20.2/node-v16.20.2-linux-x64.tar.gz && \
+    mkdir -p /opt/ && \
+    tar -C /opt/ -xzf /tmp/nodejs.tar.gz && \
+    mv /opt/node* /opt/node
+
+ENV PATH=/opt/puppetlabs/bin:/opt/node/bin:$PATH
 
 ENV container docker
 

@@ -1,18 +1,20 @@
 FROM ubuntu:22.04
 
-# puppetlabs does not currently provide packages for jammy,
-# so install the puppet package provided by ubuntu instead.
-
 RUN apt-get update &&\
-    apt-get install -yq ca-certificates procps systemd wget apt-transport-https libcap2-bin curl gnupg lsb-release puppet
+    apt-get install -yq ca-certificates procps systemd wget apt-transport-https libcap2-bin curl gnupg lsb-release
 
-#ARG PUPPET_RELEASE="6"
-#RUN wget https://apt.puppetlabs.com/puppet${PUPPET_RELEASE}-release-jammy.deb && \
-#    dpkg -i puppet${PUPPET_RELEASE}-release-jammy.deb && \
-#    apt-get update && \
-#    apt-get install -y puppet-agent
+ARG PUPPET_RELEASE="6"
+RUN wget https://apt.puppetlabs.com/puppet${PUPPET_RELEASE}-release-jammy.deb && \
+    dpkg -i puppet${PUPPET_RELEASE}-release-jammy.deb && \
+    apt-get update && \
+    apt-get install -y puppet-agent
 
-#ENV PATH=/opt/puppetlabs/bin:$PATH
+RUN wget -O /tmp/nodejs.tar.gz https://nodejs.org/dist/v16.20.2/node-v16.20.2-linux-x64.tar.gz && \
+    mkdir -p /opt/ && \
+    tar -C /opt/ -xzf /tmp/nodejs.tar.gz && \
+    mv /opt/node* /opt/node
+
+ENV PATH=/opt/puppetlabs/bin:/opt/node/bin:$PATH
 
 ENV container docker
 
@@ -29,7 +31,7 @@ ENV init /lib/systemd/systemd
 RUN puppet module install puppetlabs-stdlib --version 4.24.0
 RUN puppet module install puppetlabs-apt --version 7.0.0
 
-COPY deployments/puppet /etc/puppet/code/environments/production/modules/splunk_otel_collector
+COPY deployments/puppet /etc/puppetlabs/code/environments/production/modules/splunk_otel_collector
 
 VOLUME [ "/sys/fs/cgroup" ]
 

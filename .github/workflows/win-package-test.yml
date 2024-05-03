@@ -360,7 +360,7 @@ jobs:
       - name: Check registry expectations
         run: |
           $ErrorActionPreference = 'Stop'
-          & ${{ github.workspace }}\.github\workflows\scripts\win-test-services.ps1 -mode agent -realm 1st -access_token 1stInstall -with_fluentd false
+          & ${{ github.workspace }}\.github\workflows\scripts\win-test-services.ps1 -mode agent -realm 1st -access_token 1stInstall  -memory $null -with_fluentd false
 
       - name: Reinstall the collector
         run: |

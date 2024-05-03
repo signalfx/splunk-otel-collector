@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ARG ARCH=amd64
 ARG JDK_VERSION=11.0.23_9
 ARG MAVEN_VERSION=3.6.0
 ARG PYTHON_VERSION=3.11.9
@@ -25,7 +24,6 @@ ARG DOCKER_REPO=docker.io
 ######## Base image for subsequent stages ########
 FROM ${DOCKER_REPO}/ubuntu:22.04 as base
 
-ARG ARCH
 ENV DEBIAN_FRONTEND noninteractive
 
 RUN sed -i -e '/^deb-src/d' /etc/apt/sources.list && \
@@ -35,6 +33,7 @@ RUN sed -i -e '/^deb-src/d' /etc/apt/sources.list && \
 ######## Java monitor dependencies and monitor jar compilation ########
 FROM base as java
 
+ARG TARGETARCH
 ARG JDK_VERSION
 ARG MAVEN_VERSION
 
@@ -43,9 +42,9 @@ RUN apt-get update && apt-get install -qq -y wget
 ENV OPENJDK_BASE_URL="https://github.com/adoptium/temurin11-binaries/releases/download"
 
 RUN ENCODED_VER=$(echo $JDK_VERSION | sed 's/_/%2B/g') && \
-    if [ "$ARCH" = "amd64" ]; then \
+    if [ "$TARGETARCH" = "amd64" ]; then \
     OPENJDK_URL="${OPENJDK_BASE_URL}/jdk-${ENCODED_VER}/OpenJDK11U-jdk_x64_linux_hotspot_${JDK_VERSION}.tar.gz"; \
-    elif [ "$ARCH" = "arm64" ]; then \
+    elif [ "$TARGETARCH" = "arm64" ]; then \
     OPENJDK_URL="${OPENJDK_BASE_URL}/jdk-${ENCODED_VER}/OpenJDK11U-jdk_aarch64_linux_hotspot_${JDK_VERSION}.tar.gz"; \
     else \
     OPENJDK_URL="${OPENJDK_BASE_URL}/jdk-${ENCODED_VER}/OpenJDK11U-jdk_${ARCH}_linux_hotspot_${JDK_VERSION}.tar.gz"; \
@@ -175,6 +174,7 @@ RUN rm -rf /tmp/Python*
 ######## Collectd builder image ########
 FROM python as collectd
 
+ARG TARGETARCH
 ARG COLLECTD_VERSION
 ARG COLLECTD_COMMIT
 
@@ -223,7 +223,7 @@ ENV JAVA_HOME /opt/root/jdk
 ENV JAVA_LDFLAGS "-Wl,-rpath -Wl,\$\$\ORIGIN/../../jre/lib/server"
 
 # xencpu plugin is not supported on ppc64le
-RUN DISABLE_XENCPU=""; if [ "$ARCH" = "ppc64le" ]; then DISABLE_XENCPU="--disable-xencpu"; fi; \
+RUN DISABLE_XENCPU=""; if [ "$TARGETARCH" = "ppc64le" ]; then DISABLE_XENCPU="--disable-xencpu"; fi; \
     autoreconf -vif &&\
     ./configure $DISABLE_XENCPU \
         --prefix="/usr" \

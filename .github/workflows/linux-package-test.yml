@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - agent-bundle-cache
   pull_request:
     paths:
       - '.github/workflows/linux-package-test.yml'
@@ -86,7 +87,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Get changed agent-bundle files
+        id: changed-agent-bundle-files
+        uses: tj-actions/changed-files@v44
+        with:
+          files: internal/signalfx-agent/bundle/**
+
       - uses: actions/cache@v4
+        if: steps.changed-agent-bundle-files.outputs.any_changed == 'true'
         id: bundle-cache
         with:
           path: .cache/buildx/agent-bundle-${{ matrix.ARCH }}
@@ -103,6 +111,7 @@ jobs:
       - run: make -C internal/signalfx-agent/bundle agent-bundle-linux ARCH=${{ matrix.ARCH }}
         env:
           BUNDLE_CACHE_HIT: "${{ steps.bundle-cache.outputs.cache-hit }}"
+          BUNDLE_HAS_CHANGES: "${{ steps.changed-agent-bundle-files.outputs.any_changed }}"
 
       - uses: actions/upload-artifact@v4
         with:

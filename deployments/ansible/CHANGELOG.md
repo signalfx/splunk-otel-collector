@@ -1,5 +1,12 @@
 # Changelog
 
+## ansible-v0.28.0
+
+- Initial support for [Splunk OpenTelemetry for .NET](https://github.com/signalfx/splunk-otel-dotnet) Auto
+  Instrumentation on Linux (x86_64/amd64 only):
+  - The .NET SDK is activated by default if the `install_splunk_otel_auto_instrumentation` option is set to `true` and
+    `splunk_otel_auto_instrumentation_version` is `latest` or >= `0.99.0`.
+  - Set the `splunk_otel_auto_instrumentation_sdks` option to `java` and/or `nodejs` to skip .NET auto instrumentation.
 
 ## ansible-v0.27.0
 

@@ -77,6 +77,7 @@ splunk_otel_auto_instrumentation_otlp_endpoint: http://127.0.0.1:4317
 splunk_otel_auto_instrumentation_sdks:
   - java
   - nodejs
+  - dotnet
 splunk_otel_auto_instrumentation_npm_path: npm
 
 # Custom environment variables for the collector service

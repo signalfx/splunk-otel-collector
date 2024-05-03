@@ -49,6 +49,15 @@
       assert:
         that: not java_config.stat.exists
 
+    - name: Check for .NET config file
+      ansible.builtin.stat:
+        path: /etc/splunk/zeroconfig/dotnet.conf
+      register: dotnet_config
+
+    - name: Assert .NET config file does not exist
+      assert:
+        that: not dotnet_config.stat.exists
+
     - name: Assert /etc/ld.so.preload contains path to libsplunk.so
       ansible.builtin.lineinfile:
         line: /usr/lib/splunk-instrumentation/libsplunk.so

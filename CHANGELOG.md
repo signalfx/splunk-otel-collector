@@ -2,9 +2,21 @@
 
 ## Unreleased
 
+### 🛑 Breaking changes 🛑
+
+- (Splunk) Linux installer script:
+  - Removed support for the deprecated `--[no-]generate-service-name` and `--[enable|disable]-telemetry` options.
+  - The minimum supported version for the `--instrumentation-version` option is `0.87.0`.
+
 ### 🚀 New components 🚀
 
 - (Splunk) Add Redaction processor ([#4766](https://github.com/signalfx/splunk-otel-collector/pull/4766))
+
+### 💡 Enhancements 💡
+
+- (Splunk) Linux installer script: Initial support for [Splunk OpenTelemetry Auto Instrumentation for .NET](https://github.com/signalfx/splunk-otel-dotnet) (x86_64/amd64 only)
+  - Activated by default when the `--with-instrumentation` or `--with-systemd-instrumentation` option is specified.
+  - Use the `--without-instrumentation-sdk dotnet` option to skip activation.
 
 ## v0.99.0
 

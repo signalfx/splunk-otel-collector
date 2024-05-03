@@ -57,16 +57,30 @@ OLD_SPLUNK_ENV_PATH = "/etc/otel/collector/splunk_env"
 AGENT_CONFIG_PATH = "/etc/otel/collector/agent_config.yaml"
 GATEWAY_CONFIG_PATH = "/etc/otel/collector/gateway_config.yaml"
 OLD_CONFIG_PATH = "/etc/otel/collector/splunk_config_linux.yaml"
-INSTR_CONF_PATH = "/usr/lib/splunk-instrumentation/instrumentation.conf"
 LIBSPLUNK_PATH = "/usr/lib/splunk-instrumentation/libsplunk.so"
 JAVA_AGENT_PATH = "/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar"
+JAVA_TOOL_OPTIONS = f"-javaagent:{JAVA_AGENT_PATH}"
 PRELOAD_PATH = "/etc/ld.so.preload"
 SYSTEMD_CONFIG_PATH = "/usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf"
 NODE_PACKAGE_PATH = "/usr/lib/splunk-instrumentation/splunk-otel-js.tgz"
 JAVA_ZEROCONFIG_PATH = "/etc/splunk/zeroconfig/java.conf"
 NODE_ZEROCONFIG_PATH = "/etc/splunk/zeroconfig/node.conf"
+DOTNET_ZEROCONFIG_PATH = "/etc/splunk/zeroconfig/dotnet.conf"
 NODE_PREFIX = "/usr/lib/splunk-instrumentation/splunk-otel-js"
 NODE_OPTIONS = f"-r {NODE_PREFIX}/node_modules/@splunk/otel/instrument"
+DOTNET_HOME = "/usr/lib/splunk-instrumentation/splunk-otel-dotnet"
+DOTNET_AGENT_PATH = f"{DOTNET_HOME}/linux-x64/OpenTelemetry.AutoInstrumentation.Native.so"
+DOTNET_VARS = {
+    "CORECLR_ENABLE_PROFILING": "1",
+    "CORECLR_PROFILER": "{918728DD-259F-4A6A-AC2B-B85E1B658318}",
+    "CORECLR_PROFILER_PATH": DOTNET_AGENT_PATH,
+    "DOTNET_ADDITIONAL_DEPS": f"{DOTNET_HOME}/AdditionalDeps",
+    "DOTNET_SHARED_STORE": f"{DOTNET_HOME}/store",
+    "DOTNET_STARTUP_HOOKS": f"{DOTNET_HOME}/net/OpenTelemetry.AutoInstrumentation.StartupHook.dll",
+    "OTEL_DOTNET_AUTO_HOME": DOTNET_HOME,
+    "OTEL_DOTNET_AUTO_PLUGINS":
+        "Splunk.OpenTelemetry.AutoInstrumentation.Plugin,Splunk.OpenTelemetry.AutoInstrumentation",
+}
 
 INSTALLER_TIMEOUT = "30m"
 
@@ -322,7 +336,7 @@ def get_instrumentation_dockerfile(distro):
         return INSTR_IMAGES_DIR / "rpm" / f"Dockerfile.{distro}"
 
 
-def get_zc_method(container, distro, method):
+def get_installed_package_version(container, distro):
     package = "splunk-otel-auto-instrumentation"
 
     if distro in INSTR_DEB_DISTROS:
@@ -330,7 +344,12 @@ def get_zc_method(container, distro, method):
     else:
         _, output = run_container_cmd(container, f"rpm -q --queryformat='%{{VERSION}}' {package}")
 
-    version = output.decode("utf-8").replace("~", "-").strip()
+    return output.decode("utf-8").strip()
+
+
+def get_zc_method(method, version):
+    package = "splunk-otel-auto-instrumentation"
+    version = version.replace("~", "-")
     zc_method = rf"{package}-{version}"
     if method == "systemd":
         zc_method = f"{zc_method}-systemd"
@@ -339,11 +358,17 @@ def get_zc_method(container, distro, method):
 
 
 def node_package_installed(container):
-    cmd = f"sh -l -c 'cd {NODE_PREFIX} && npm ls --global=false @splunk/otel'"
+    cmd = f"sh -l -c 'cd {NODE_PREFIX} >/dev/null 2>&1 && npm ls --global=false @splunk/otel'"
     print(f"Running '{cmd}':")
     rc, output = container.exec_run(cmd)
     print(output.decode("utf-8"))
     return rc == 0
+
+
+def verify_dotnet_config(container, path, exists=True):
+    for key, val in DOTNET_VARS.items():
+        val = val if exists else ".*"
+        verify_config_file(container, path, key, val, exists=exists)
 
 
 @pytest.mark.installer
@@ -396,7 +421,8 @@ def test_installer_with_instrumentation_default(distro, arch, method):
         run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"}, timeout=INSTALLER_TIMEOUT)
         time.sleep(5)
 
-        zc_method = get_zc_method(container, distro, method)
+        version = get_installed_package_version(container, distro)
+        zc_method = get_zc_method(method, version)
 
         # verify env file created with configured parameters
         verify_env_file(container)
@@ -410,54 +436,52 @@ def test_installer_with_instrumentation_default(distro, arch, method):
         assert package_is_installed(container, distro, "splunk-otel-auto-instrumentation"), \
             "splunk-otel-auto-instrumentation was not installed"
 
-        # only the "new" instrumentation includes the node package
-        has_node_package = container_file_exists(container, NODE_PACKAGE_PATH)
+        assert node_package_installed(container)
 
-        if has_node_package:
-            assert node_package_installed(container)
+        rc, _ = run_container_cmd(container, "sh -l -c 'npm ls --global=true @splunk/otel'", exit_code=None)
+        assert rc != 0, "splunk-otel-js installed globally"
+
+        if arch == "amd64":
+            assert container_file_exists(container, DOTNET_AGENT_PATH)
 
         config_attributes = rf"splunk\.zc\.method={zc_method}"
 
-        if method == "preload" and has_node_package:
+        if method == "preload":
             # verify libsplunk.so was added to /etc/ld.so.preload
             verify_config_file(container, PRELOAD_PATH, LIBSPLUNK_PATH, None)
 
-            # verify default options for both java and node.js
-            verify_config_file(container, JAVA_ZEROCONFIG_PATH, "JAVA_TOOL_OPTIONS", f"-javaagent:{JAVA_AGENT_PATH}")
+            assert not container_file_exists(container, SYSTEMD_CONFIG_PATH)
+
+            # verify default options for java, node.js, and .NET
+            verify_config_file(container, JAVA_ZEROCONFIG_PATH, "JAVA_TOOL_OPTIONS", JAVA_TOOL_OPTIONS)
             verify_config_file(container, NODE_ZEROCONFIG_PATH, "NODE_OPTIONS", NODE_OPTIONS)
-            for config_path in (JAVA_ZEROCONFIG_PATH, NODE_ZEROCONFIG_PATH):
+            configs_to_verify = [JAVA_ZEROCONFIG_PATH, NODE_ZEROCONFIG_PATH]
+            if arch == "amd64":
+                verify_dotnet_config(container, DOTNET_ZEROCONFIG_PATH)
+                configs_to_verify.append(DOTNET_ZEROCONFIG_PATH)
+            else:
+                assert not container_file_exists(container, DOTNET_ZEROCONFIG_PATH)
+            for config_path in configs_to_verify:
                 verify_config_file(container, config_path, "OTEL_RESOURCE_ATTRIBUTES", config_attributes)
                 verify_config_file(container, config_path, "SPLUNK_PROFILER_ENABLED", "false")
                 verify_config_file(container, config_path, "SPLUNK_PROFILER_MEMORY_ENABLED", "false")
                 verify_config_file(container, config_path, "SPLUNK_METRICS_ENABLED", "false")
                 verify_config_file(container, config_path, "OTEL_EXPORTER_OTLP_ENDPOINT", "http://127.0.0.1:4317")
                 verify_config_file(container, config_path, "OTEL_SERVICE_NAME", ".*", exists=False)
-        elif method == "preload" and not has_node_package:
-            # verify libsplunk.so was added to /etc/ld.so.preload
-            verify_config_file(container, PRELOAD_PATH, LIBSPLUNK_PATH, None)
-
-            # verify default options
-            verify_config_file(container, INSTR_CONF_PATH, "java_agent_jar", JAVA_AGENT_PATH)
-            verify_config_file(container, INSTR_CONF_PATH, "resource_attributes", config_attributes)
-            verify_config_file(container, INSTR_CONF_PATH, "disable_telemetry", "false")
-            verify_config_file(container, INSTR_CONF_PATH, "enable_profiler", "false")
-            verify_config_file(container, INSTR_CONF_PATH, "enable_profiler_memory", "false")
-            verify_config_file(container, INSTR_CONF_PATH, "enable_metrics", "false")
-            verify_config_file(container, INSTR_CONF_PATH, "service_name", ".*", exists=False)
         else:
             # verify libsplunk.so was not added to /etc/ld.so.preload
             verify_config_file(container, PRELOAD_PATH, f".*{LIBSPLUNK_PATH}.*", None, exists=False)
 
             # verify default options
-            if has_node_package:
-                verify_config_file(container, SYSTEMD_CONFIG_PATH, "NODE_OPTIONS", NODE_OPTIONS)
-            verify_config_file(container, SYSTEMD_CONFIG_PATH, "JAVA_TOOL_OPTIONS", f"-javaagent:{JAVA_AGENT_PATH}")
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "NODE_OPTIONS", NODE_OPTIONS)
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "JAVA_TOOL_OPTIONS", JAVA_TOOL_OPTIONS)
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_RESOURCE_ATTRIBUTES", config_attributes)
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "SPLUNK_PROFILER_ENABLED", "false")
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "SPLUNK_PROFILER_MEMORY_ENABLED", "false")
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "SPLUNK_METRICS_ENABLED", "false")
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_EXPORTER_OTLP_ENDPOINT", "http://127.0.0.1:4317")
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_SERVICE_NAME", ".*", exists=False)
+            verify_dotnet_config(container, SYSTEMD_CONFIG_PATH, exists=True if arch == "amd64" else False)
 
         verify_uninstall(container, distro)
 
@@ -473,9 +497,8 @@ def test_installer_with_instrumentation_default(distro, arch, method):
     )
 @pytest.mark.parametrize("arch", ["amd64", "arm64"])
 @pytest.mark.parametrize("method", ["preload", "systemd"])
-@pytest.mark.parametrize("sdk", ["java", "node"])
+@pytest.mark.parametrize("sdk", ["java", "node", "dotnet"])
 def test_installer_with_instrumentation_custom(distro, arch, method, sdk):
-
     if distro == "opensuse-12" and arch == "arm64":
         pytest.skip("opensuse-12 arm64 no longer supported")
 
@@ -514,7 +537,6 @@ def test_installer_with_instrumentation_custom(distro, arch, method, sdk):
             f"--with-instrumentation-sdk {sdk}",
             f"--deployment-environment {environment}",
             f"--service-name {service_name}",
-            "--disable-telemetry",
             "--enable-profiler",
             "--enable-profiler-memory",
             "--enable-metrics",
@@ -524,10 +546,25 @@ def test_installer_with_instrumentation_custom(distro, arch, method, sdk):
             install_cmd = f"{install_cmd} --instrumentation-version /test/instrumentation.pkg"
 
         # run installer script
-        run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"}, timeout=INSTALLER_TIMEOUT)
+        _, output = run_container_cmd(
+            container,
+            install_cmd,
+            env={"VERIFY_ACCESS_TOKEN": "false"},
+            exit_code=1 if sdk == "dotnet" and arch != "amd64" else 0,
+            timeout=INSTALLER_TIMEOUT,
+        )
+
+        if sdk == "dotnet" and arch != "amd64":
+            verify_config_file(container, PRELOAD_PATH, f".*{LIBSPLUNK_PATH}.*", None, exists=False)
+            verify_config_file(container, PRELOAD_PATH, "# This line should be preserved", None)
+            assert not container_file_exists(container, SYSTEMD_CONFIG_PATH)
+            assert ".NET auto instrumentation is not currently supported" in output.decode("utf-8")
+            pytest.xfail("installer script successfully failed for .NET on arm64")
+
         time.sleep(5)
 
-        zc_method = get_zc_method(container, distro, method)
+        version = get_installed_package_version(container, distro)
+        zc_method = get_zc_method(method, version)
 
         # verify env file created with configured parameters
         verify_env_file(container)
@@ -541,65 +578,69 @@ def test_installer_with_instrumentation_custom(distro, arch, method, sdk):
         assert package_is_installed(container, distro, "splunk-otel-auto-instrumentation"), \
             "splunk-otel-auto-instrumentation was not installed"
 
-        # only the "new" instrumentation includes the node package
-        has_node_package = container_file_exists(container, NODE_PACKAGE_PATH)
+        if sdk == "node":
+            assert node_package_installed(container)
+        else:
+            assert not node_package_installed(container)
 
-        if has_node_package:
-            if sdk == "java":
-                assert not node_package_installed(container)
-            else:
-                assert node_package_installed(container)
+        rc, _ = run_container_cmd(container, "sh -l -c 'npm ls --global=true @splunk/otel'", exit_code=None)
+        assert rc != 0, "splunk-otel-js installed globally"
+
+        if arch == "amd64":
+            assert container_file_exists(container, DOTNET_AGENT_PATH)
 
         config_attributes = ",".join((
             rf"splunk\.zc\.method={zc_method}",
             rf"deployment\.environment={environment}",
         ))
 
-        if method == "preload" and has_node_package:
+        if method == "preload":
             # verify libsplunk.so was added to /etc/ld.so.preload
             verify_config_file(container, PRELOAD_PATH, LIBSPLUNK_PATH, None)
+
+            assert not container_file_exists(container, SYSTEMD_CONFIG_PATH)
 
             # verify configured options
             if sdk == "java":
                 config_path = JAVA_ZEROCONFIG_PATH
-                verify_config_file(container, config_path, "JAVA_TOOL_OPTIONS", f"-javaagent:{JAVA_AGENT_PATH}")
+                verify_config_file(container, config_path, "JAVA_TOOL_OPTIONS", JAVA_TOOL_OPTIONS)
                 assert not container_file_exists(container, NODE_ZEROCONFIG_PATH)
-            else:
+                assert not container_file_exists(container, DOTNET_ZEROCONFIG_PATH)
+            elif sdk == "node":
                 config_path = NODE_ZEROCONFIG_PATH
                 verify_config_file(container, config_path, "NODE_OPTIONS", NODE_OPTIONS)
                 assert not container_file_exists(container, JAVA_ZEROCONFIG_PATH)
+                assert not container_file_exists(container, DOTNET_ZEROCONFIG_PATH)
+            else:
+                config_path = DOTNET_ZEROCONFIG_PATH
+                verify_dotnet_config(container, config_path)
+                assert not container_file_exists(container, JAVA_ZEROCONFIG_PATH)
+                assert not container_file_exists(container, NODE_ZEROCONFIG_PATH)
+
             verify_config_file(container, config_path, "OTEL_RESOURCE_ATTRIBUTES", config_attributes)
             verify_config_file(container, config_path, "SPLUNK_PROFILER_ENABLED", "true")
             verify_config_file(container, config_path, "SPLUNK_PROFILER_MEMORY_ENABLED", "true")
             verify_config_file(container, config_path, "SPLUNK_METRICS_ENABLED", "true")
             verify_config_file(container, config_path, "OTEL_EXPORTER_OTLP_ENDPOINT", "http://0.0.0.0:4317")
             verify_config_file(container, config_path, "OTEL_SERVICE_NAME", service_name)
-        elif method == "preload" and not has_node_package:
-            # verify libsplunk.so was added to /etc/ld.so.preload
-            verify_config_file(container, PRELOAD_PATH, LIBSPLUNK_PATH, None)
-
-            # verify splunk-otel-js was not installed
-            assert not node_package_installed(container)
-
-            # verify configured options
-            verify_config_file(container, INSTR_CONF_PATH, "java_agent_jar", JAVA_AGENT_PATH)
-            verify_config_file(container, INSTR_CONF_PATH, "resource_attributes", config_attributes)
-            verify_config_file(container, INSTR_CONF_PATH, "disable_telemetry", "true")
-            verify_config_file(container, INSTR_CONF_PATH, "enable_profiler", "true")
-            verify_config_file(container, INSTR_CONF_PATH, "enable_profiler_memory", "true")
-            verify_config_file(container, INSTR_CONF_PATH, "enable_metrics", "true")
-            verify_config_file(container, INSTR_CONF_PATH, "service_name", service_name)
         else:
             # verify libsplunk.so was not added to /etc/ld.so.preload
             verify_config_file(container, PRELOAD_PATH, f".*{LIBSPLUNK_PATH}.*", None, exists=False)
 
             # verify configured options
             if sdk == "java":
-                verify_config_file(container, SYSTEMD_CONFIG_PATH, "JAVA_TOOL_OPTIONS", f"-javaagent:{JAVA_AGENT_PATH}")
+                verify_config_file(container, SYSTEMD_CONFIG_PATH, "JAVA_TOOL_OPTIONS", JAVA_TOOL_OPTIONS)
                 verify_config_file(container, SYSTEMD_CONFIG_PATH, "NODE_OPTIONS", ".*", exists=False)
-            elif has_node_package:
+                verify_dotnet_config(container, SYSTEMD_CONFIG_PATH, exists=False)
+            elif sdk == "node":
                 verify_config_file(container, SYSTEMD_CONFIG_PATH, "NODE_OPTIONS", NODE_OPTIONS)
                 verify_config_file(container, SYSTEMD_CONFIG_PATH, "JAVA_TOOL_OPTIONS", ".*", exists=False)
+                verify_dotnet_config(container, SYSTEMD_CONFIG_PATH, exists=False)
+            else:
+                verify_dotnet_config(container, SYSTEMD_CONFIG_PATH)
+                verify_config_file(container, SYSTEMD_CONFIG_PATH, "JAVA_TOOL_OPTIONS", ".*", exists=False)
+                verify_config_file(container, SYSTEMD_CONFIG_PATH, "NODE_OPTIONS", ".*", exists=False)
+
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_RESOURCE_ATTRIBUTES", config_attributes)
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "SPLUNK_PROFILER_ENABLED", "true")
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "SPLUNK_PROFILER_MEMORY_ENABLED", "true")

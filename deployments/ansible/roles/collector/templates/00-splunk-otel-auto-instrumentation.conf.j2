@@ -5,6 +5,16 @@ DefaultEnvironment="JAVA_TOOL_OPTIONS=-javaagent:{{ splunk_otel_auto_instrumenta
 {% if with_nodejs and npm_found %}
 DefaultEnvironment="NODE_OPTIONS=-r /usr/lib/splunk-instrumentation/splunk-otel-js/node_modules/@splunk/otel/instrument"
 {% endif %}
+{% if with_dotnet %}
+DefaultEnvironment="CORECLR_ENABLE_PROFILING=1"
+DefaultEnvironment="CORECLR_PROFILER={918728DD-259F-4A6A-AC2B-B85E1B658318}"
+DefaultEnvironment="CORECLR_PROFILER_PATH=/usr/lib/splunk-instrumentation/splunk-otel-dotnet/linux-x64/OpenTelemetry.AutoInstrumentation.Native.so"
+DefaultEnvironment="DOTNET_ADDITIONAL_DEPS=/usr/lib/splunk-instrumentation/splunk-otel-dotnet/AdditionalDeps"
+DefaultEnvironment="DOTNET_SHARED_STORE=/usr/lib/splunk-instrumentation/splunk-otel-dotnet/store"
+DefaultEnvironment="DOTNET_STARTUP_HOOKS=/usr/lib/splunk-instrumentation/splunk-otel-dotnet/net/OpenTelemetry.AutoInstrumentation.StartupHook.dll"
+DefaultEnvironment="OTEL_DOTNET_AUTO_HOME=/usr/lib/splunk-instrumentation/splunk-otel-dotnet"
+DefaultEnvironment="OTEL_DOTNET_AUTO_PLUGINS=Splunk.OpenTelemetry.AutoInstrumentation.Plugin,Splunk.OpenTelemetry.AutoInstrumentation"
+{% endif %}
 {% if splunk_otel_auto_instrumentation_resource_attributes is defined and splunk_otel_auto_instrumentation_resource_attributes %}
 DefaultEnvironment="OTEL_RESOURCE_ATTRIBUTES=splunk.zc.method=splunk-otel-auto-instrumentation-{{ auto_instrumentation_version }}-systemd,{{ splunk_otel_auto_instrumentation_resource_attributes }}"
 {% else %}

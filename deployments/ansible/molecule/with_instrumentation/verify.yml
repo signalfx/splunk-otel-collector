@@ -23,6 +23,7 @@
       loop:
         - /etc/splunk/zeroconfig/java.conf
         - /etc/splunk/zeroconfig/node.conf
+        - /etc/splunk/zeroconfig/dotnet.conf
       register: new_config_files
 
     - name: Assert the new config files do not exist

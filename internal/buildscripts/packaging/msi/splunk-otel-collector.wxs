@@ -105,7 +105,7 @@
          <RegistryKey Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\EventLog\Application\splunk-otel-collector">
             <RegistryValue Type="expandable" Name="EventMessageFile" Value="%SystemRoot%\System32\EventCreate.exe"/>
          </RegistryKey>
-         <RegistryKey Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\splunk-otel-collector" KeyPath="yes">
+         <RegistryKey Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\splunk-otel-collector">
             <RegistryValue Type="multiString" Name="Environment">
                <MultiStringValue>SPLUNK_ACCESS_TOKEN=[SPLUNK_ACCESS_TOKEN]</MultiStringValue>
                <MultiStringValue>SPLUNK_API_URL=[SPLUNK_API_URL]</MultiStringValue>

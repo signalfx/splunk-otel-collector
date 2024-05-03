@@ -49,6 +49,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/logstransformprocessor v0.99.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/metricstransformprocessor v0.99.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/probabilisticsamplerprocessor v0.99.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/processor/redactionprocessor v0.99.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor v0.99.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceprocessor v0.99.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/routingprocessor v0.99.0

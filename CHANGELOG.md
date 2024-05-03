@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 🚀 New components 🚀
+
+- (Splunk) Add Redaction processor ([#4766}(https://github.com/signalfx/splunk-otel-collector/pull/4766))
+
 ## v0.99.0
 
 ### 🛑 Breaking changes 🛑

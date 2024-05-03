@@ -104,6 +104,7 @@ func TestDefaultComponents(t *testing.T) {
 		"memory_limiter",
 		"metricstransform",
 		"probabilistic_sampler",
+		"redaction",
 		"resource",
 		"resourcedetection",
 		"routing",

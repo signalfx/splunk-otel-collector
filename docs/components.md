@@ -66,25 +66,26 @@ The distribution offers support for the following components.
 
 <div>
 
-| Processors                                                                                                                                  | Stability                   |
-|:--------------------------------------------------------------------------------------------------------------------------------------------|:----------------------------|
-| [attributes](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/attributesprocessor)                     | [alpha]                     |
-| [batch](https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/batchprocessor)                                       | [beta]                      |
-| [cumulativetodelta](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/cumulativetodeltaprocessor)       | [beta]                      |
-| [filter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/filterprocessor)                             | [alpha]                     |
-| [groupbyattrs](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/groupbyattrsprocessor)                 | [beta]                      |
-| [k8sattributes](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/k8sattributesprocessor)               | [beta]                      |
-| [logstransform](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/logstransformprocessor)               | [in development]            |
-| [memorylimiter](https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiterprocessor)                       | [beta]                      |
-| [metricstransform](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/metricstransformprocessor)         | [beta]                      |
-| [probabilisticsampler](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/probabilisticsamplerprocessor) | [beta] |
-| [resourcedetection](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/resourcedetectionprocessor)       | [beta]                      |
-| [resource](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/resourceprocessor)                         | [beta]                      |
-| [routing](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/routingprocessor)                           | [beta]                      |
-| [span](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/spanprocessor)                                 | [alpha]                     |
-| [tail_sampling](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/tailsamplingprocessor)                | [beta]                      |
-| [timestamp](../pkg/processor/timestampprocessor)                                                                                                     | [in development]            |
-| [transform](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/transformprocessor)                       | [alpha]                     |
+| Processors                                                                                                                                  | Stability        |
+|:--------------------------------------------------------------------------------------------------------------------------------------------|:-----------------|
+| [attributes](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/attributesprocessor)                     | [alpha]          |
+| [batch](https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/batchprocessor)                                       | [beta]           |
+| [cumulativetodelta](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/cumulativetodeltaprocessor)       | [beta]           |
+| [filter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/filterprocessor)                             | [alpha]          |
+| [groupbyattrs](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/groupbyattrsprocessor)                 | [beta]           |
+| [k8sattributes](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/k8sattributesprocessor)               | [beta]           |
+| [logstransform](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/logstransformprocessor)               | [in development] |
+| [memorylimiter](https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiterprocessor)                       | [beta]           |
+| [metricstransform](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/metricstransformprocessor)         | [beta]           |
+| [probabilisticsampler](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/probabilisticsamplerprocessor) | [beta]           |
+| [redaction](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/redactionprocessor)                       | [beta]           |
+| [resourcedetection](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/resourcedetectionprocessor)       | [beta]           |
+| [resource](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/resourceprocessor)                         | [beta]           |
+| [routing](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/routingprocessor)                           | [beta]           |
+| [span](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/spanprocessor)                                 | [alpha]          |
+| [tail_sampling](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/tailsamplingprocessor)                | [beta]           |
+| [timestamp](../pkg/processor/timestampprocessor)                                                                                            | [in development] |
+| [transform](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/transformprocessor)                       | [alpha]          |
 
 </div>
 

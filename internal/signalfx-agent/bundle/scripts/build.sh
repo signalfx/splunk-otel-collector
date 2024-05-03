@@ -26,7 +26,7 @@ CI="${CI:-false}"
 USE_REGISTRY_CACHE="${USE_REGISTRY_CACHE:-yes}"
 PUSH_CACHE="${PUSH_CACHE:-no}"
 
-DOCKER_OPTS="--platform linux/${ARCH} -f ${SCRIPT_DIR}/../Dockerfile --build-arg ARCH=${ARCH} --build-arg DOCKER_REPO=${DOCKER_REPO} ${SCRIPT_DIR}/.."
+DOCKER_OPTS="--platform linux/${ARCH} -f ${SCRIPT_DIR}/../Dockerfile --build-arg DOCKER_REPO=${DOCKER_REPO} ${SCRIPT_DIR}/.."
 IMAGE_NAME="agent-bundle"
 OUTPUT="${IMAGE_NAME}_linux_${ARCH}.tar.gz"
 output_tar=$(basename "$OUTPUT" .gz)
@@ -37,10 +37,31 @@ CACHE_TEMP_DIR=""
 CACHE_FROM_OPTS=""
 CACHE_TO_OPTS=""
 BUILDER=""
+BUNDLE_HAS_CHANGES="${BUNDLE_HAS_CHANGES:-true}"
 
-ALL_STAGES=$( grep '^FROM .* as .*' ${SCRIPT_DIR}/../Dockerfile | sed -e 's/.*as //' )
+create_archive() {
+    local image_name="$1"
+    local image_tag="$2"
 
-export DOCKER_BUILDKIT=1
+    cid=$(docker create --platform linux/${ARCH} ${image_name}:${image_tag} true)
+
+    tmpdir=$(mktemp -d)
+    mkdir ${tmpdir}/${IMAGE_NAME}
+
+    trap "docker rm -f $cid; rm -rf $tmpdir; rm -f $output_tar" EXIT
+
+    docker export $cid | tar -C ${tmpdir}/${IMAGE_NAME} -xf -
+    rm -rf ${tmpdir}/${IMAGE_NAME}/{proc,sys,dev,etc} ${tmpdir}/${IMAGE_NAME}/.dockerenv
+    mkdir -p "$OUTPUT_DIR"
+    (cd $tmpdir && tar -zcf ${OUTPUT_DIR}/${OUTPUT} *)
+}
+
+if [[ "$BUNDLE_HAS_CHANGES" != "true" ]] && docker pull ${CACHE_REPO}:stage-final-image-${ARCH}; then
+    # Don't build the agent-bundle at all.
+    # Just use the final-image stage cache to create the agent-bundle archive.
+    create_archive $CACHE_REPO stage-final-image-${ARCH}
+    exit 0
+fi
 
 if [[ "$CI" = "true" ]]; then
     # create and use the docker-container builder for caching when running in github or gitlab
@@ -48,6 +69,10 @@ if [[ "$CI" = "true" ]]; then
     BUILDER="--builder ${IMAGE_NAME}"
     DOCKER_OPTS="$BUILDER $DOCKER_OPTS"
 fi
+
+ALL_STAGES=$( grep '^FROM .* as .*' ${SCRIPT_DIR}/../Dockerfile | sed -e 's/.*as //' )
+
+export DOCKER_BUILDKIT=1
 
 if [[ "$PUSH_CACHE" = "yes" ]]; then
     # build and push inline cache images for each stage
@@ -89,17 +114,7 @@ docker buildx build \
     $CACHE_FROM_OPTS \
     $DOCKER_OPTS
 
-cid=$(docker create --platform linux/${ARCH} ${IMAGE_NAME}:${ARCH} true)
-
-tmpdir=$(mktemp -d)
-mkdir ${tmpdir}/${IMAGE_NAME}
-
-trap "docker rm -f $cid; rm -rf $tmpdir; rm -f $output_tar" EXIT
-
-docker export $cid | tar -C ${tmpdir}/${IMAGE_NAME} -xf -
-rm -rf ${tmpdir}/${IMAGE_NAME}/{proc,sys,dev,etc} ${tmpdir}/${IMAGE_NAME}/.dockerenv
-mkdir -p "$OUTPUT_DIR"
-(cd $tmpdir && tar -zcf ${OUTPUT_DIR}/${OUTPUT} *)
+create_archive $IMAGE_NAME $ARCH
 
 if [[ -n "$CACHE_TEMP_DIR" && -d "$CACHE_TEMP_DIR" ]]; then
     # replace cache directory with the current build to avoid snowballing

@@ -19,11 +19,23 @@ package tests
 import (
 	"testing"
 
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
+
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
 func TestKongMetrics(t *testing.T) {
-	testutils.AssertAllMetricsReceived(
-		t, "kong_metrics.yaml", "kong_metrics_config.yaml", nil, nil,
+	testutils.CheckGoldenFile(t, "kong_metrics_config.yaml", "kong_metrics_expected.yaml",
+		pmetrictest.IgnoreScopeVersion(),
+		pmetrictest.IgnoreTimestamp(),
+		pmetrictest.IgnoreStartTimestamp(),
+		pmetrictest.IgnoreMetricAttributeValue("node_id"),
+		pmetrictest.IgnoreMetricValues(),
+		pmetrictest.IgnoreResourceMetricsOrder(),
+		pmetrictest.IgnoreScopeMetricsOrder(),
+		pmetrictest.IgnoreMetricsOrder(),
+		pmetrictest.IgnoreMetricDataPointsOrder(),
+		pmetrictest.IgnoreSubsequentDataPoints(),
+		pmetrictest.IgnoreSummaryDataPointValueAtQuantileSliceOrder(),
 	)
 }

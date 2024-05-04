@@ -154,7 +154,7 @@ func (t *Testcase) Containers(builders ...Container) (containers []*Container, s
 // SplunkOtelCollector builds and starts a collector container or process using the desired config filename
 // (assuming it's in the ./testdata directory) returning it and a validating shutdown function.
 func (t *Testcase) SplunkOtelCollector(configFilename string, builders ...CollectorBuilder) (collector Collector, shutdown func()) {
-	return t.splunkOtelCollector(configFilename, builders...)
+	return t.SplunkOtelCollectorContainer(configFilename, builders...)
 }
 
 // SplunkOtelCollectorContainer is the same as SplunkOtelCollector but returns *CollectorContainer.
@@ -170,22 +170,6 @@ func (t *Testcase) SplunkOtelCollectorContainer(configFilename string, builders 
 	var c Collector
 	c, shutdown = t.newCollector(&cc, configFilename, builders...)
 	return c.(*CollectorContainer), shutdown
-}
-
-// SplunkOtelCollectorProcess is the same as SplunkOtelCollector but returns *CollectorProcess.
-func (t *Testcase) SplunkOtelCollectorProcess(configFilename string, builders ...CollectorBuilder) (collector *CollectorProcess, shutdown func()) {
-	cp := NewCollectorProcess()
-
-	var c Collector
-	c, shutdown = t.newCollector(&cp, configFilename, builders...)
-	return c.(*CollectorProcess), shutdown
-}
-
-func (t *Testcase) splunkOtelCollector(configFilename string, builders ...CollectorBuilder) (collector Collector, shutdown func()) {
-	if image := os.Getenv("SPLUNK_OTEL_COLLECTOR_IMAGE"); strings.TrimSpace(image) != "" {
-		return t.SplunkOtelCollectorContainer(configFilename, builders...)
-	}
-	return t.SplunkOtelCollectorProcess(configFilename, builders...)
 }
 
 func (t *Testcase) newCollector(initial Collector, configFilename string, builders ...CollectorBuilder) (collector Collector, shutdown func()) {

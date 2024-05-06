@@ -19,24 +19,20 @@ package tests
 import (
 	"testing"
 
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
+
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
 func TestJMXReceiverProvidesAllJVMMetrics(t *testing.T) {
-	t.Skip("Skipping it for now till we have stable integration tests.")
-	expectedMetrics := "all.yaml"
-	if testutils.CollectorImageIsForArm(t) {
-		t.Skip("apparent metric gathering issue on qemu")
-	}
-
-	testutils.AssertAllMetricsReceived(
-		t, expectedMetrics, "all_metrics_config.yaml", nil,
-		[]testutils.CollectorBuilder{
-			func(collector testutils.Collector) testutils.Collector {
-				return collector.WithEnv(map[string]string{
-					"OTEL_TRACES_EXPORTER": "none",
-					"OTEL_LOGS_EXPORTER":   "none",
-				})
-			},
-		})
+	testutils.CheckGoldenFile(t, "all_metrics_config.yaml", "jmx_expected.yaml",
+		pmetrictest.IgnoreTimestamp(),
+		pmetrictest.IgnoreStartTimestamp(),
+		pmetrictest.IgnoreScopeVersion(),
+		pmetrictest.IgnoreMetricValues(),
+		pmetrictest.IgnoreResourceMetricsOrder(),
+		pmetrictest.IgnoreScopeMetricsOrder(),
+		pmetrictest.IgnoreMetricsOrder(),
+		pmetrictest.IgnoreMetricDataPointsOrder(),
+	)
 }

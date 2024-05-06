@@ -33,7 +33,7 @@
       <CustomAction Id="Set_SPLUNK_HEC_TOKEN" Property="SPLUNK_HEC_TOKEN" Value="[SPLUNK_ACCESS_TOKEN]"/>
 
       <!-- SPLUNK_*_URL properties required to start the collector -->
-      <Property Id="SPLUNK_REALM" Value="us0" />
+      <Property Id="SPLUNK_REALM" Value="us0" Secure="yes" />
 
       <Property Id="SPLUNK_CONFIG"     Secure="yes" />
       <Property Id="SPLUNK_API_URL"    Secure="yes" />
@@ -147,7 +147,7 @@
       <CustomAction Id="DeleteProgramFilesConfig" ExeCommand="cmd /c del /q &quot;[INSTALLDIR]*config.yaml&quot;" Directory="INSTALLDIR" Impersonate="no" Execute="deferred" Return="ignore" />
       <InstallExecuteSequence>
          <Custom Action="CopyConfig" After="InstallFiles">NOT CONFIG_FILE_EXISTS AND NOT Installed</Custom>
-         <Custom Action="DeleteProgramFilesConfig" After="CopyConfig">
+         <Custom Action="DeleteProgramFilesConfig" After="CopyConfig"/>
       </InstallExecuteSequence>
 
    </Product>

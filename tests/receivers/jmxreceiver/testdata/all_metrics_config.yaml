@@ -10,6 +10,8 @@ receivers:
       # binding to 0.0.0.0 causing resolution errors
       endpoint: localhost:0
 
+processors:
+  groupbyattrs:
 exporters:
   otlp:
     endpoint: "${OTLP_ENDPOINT}"
@@ -23,4 +25,5 @@ service:
   pipelines:
     metrics:
       receivers: [jmx]
+      processors: [groupbyattrs]
       exporters: [otlp]

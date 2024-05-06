@@ -257,7 +257,7 @@ func newCollectorLogConsumer(logger *zap.Logger) collectorLogConsumer {
 }
 
 func (l collectorLogConsumer) Accept(log testcontainers.Log) {
-	msg := string(log.Content)
+	msg := strings.TrimSpace(string(log.Content))
 	if log.LogType == testcontainers.StderrLog {
 		l.logger.Info(msg)
 	} else {

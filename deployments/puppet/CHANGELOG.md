@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## puppet-v0.16.0
+
+- Initial support for [Splunk OpenTelemetry for .NET](https://github.com/signalfx/splunk-otel-dotnet) Auto
+  Instrumentation on Linux (x86_64/amd64 only):
+  - The .NET SDK is activated by default if the `with_auto_instrumentation` option is set to `true` and
+    `auto_instrumentation_version` is `latest` or >= `0.99.0`.
+  - To skip .NET auto instrumentation, configure the `with_auto_instrumentation_sdks` option without `dotnet`.
+
 ## puppet-v0.15.0
 
 - Fix installation of `splunk-otel-js` for Node.js auto instrumentation.

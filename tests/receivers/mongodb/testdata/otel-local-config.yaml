@@ -1,0 +1,36 @@
+receivers:
+   hostmetrics:
+      collection_interval: 10s
+      scrapers:
+         cpu:
+         disk:
+         filesystem:
+         memory:
+         network:
+         load:
+   otlp:
+      protocols:
+      grpc:
+         endpoint: 0.0.0.0:4317
+      http:
+         endpoint: 0.0.0.0:4318
+   signalfx:
+exporters:
+   signalfx: 
+      access_token: "ACCESS_TOKEN"
+      realm: "us0"
+   signalfx/internal:
+      access_token: "ACCESS_TOKEN"
+      realm: "us0"
+      sync_host_metadata: true
+   otlp:
+      endpoint: otelcol:4317
+service:
+   pipelines:
+      metrics:
+         receivers: [otlp, hostmetrics]
+         exporters: [signalfx]
+      metrics/internal:
+         receivers: [signalfx]
+         processors: 
+         exporters: [signalfx/internal]

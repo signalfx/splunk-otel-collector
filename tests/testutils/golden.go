@@ -76,3 +76,48 @@ func CheckGoldenFile(t *testing.T, configFile string, expectedFilePath string, o
 		assert.NoError(tt, err)
 	}, 30*time.Second, 1*time.Second)
 }
+
+func CheckGoldenFileWithCollectorOptions(t *testing.T, configFile string, expectedFilePath string, collectorOptionsFunc func(Collector) Collector, options ...pmetrictest.CompareMetricsOption) {
+	f := otlpreceiver.NewFactory()
+	port := GetAvailablePort(t)
+	c := f.CreateDefaultConfig().(*otlpreceiver.Config)
+	c.GRPC.NetAddr.Endpoint = fmt.Sprintf("localhost:%d", port)
+	sink := &consumertest.MetricsSink{}
+	receiver, err := f.CreateMetricsReceiver(context.Background(), receivertest.NewNopCreateSettings(), c, sink)
+	require.NoError(t, err)
+	require.NoError(t, receiver.Start(context.Background(), componenttest.NewNopHost()))
+	t.Cleanup(func() {
+		require.NoError(t, receiver.Shutdown(context.Background()))
+	})
+	logger, _ := zap.NewDevelopment()
+
+	dockerHost := "0.0.0.0"
+	if runtime.GOOS == "darwin" {
+		dockerHost = "host.docker.internal"
+	}
+	collectorContainer := NewCollectorContainer()
+	collectorOptionsFunc(&collectorContainer)
+	p, err := collectorContainer.
+		WithExposedPorts("55679:55679", "55554:55554"). // This is required for tests that read the zpages or the config.
+		WithConfigPath(filepath.Join("testdata", configFile)).
+		WithLogger(logger).
+		WithEnv(map[string]string{"OTLP_ENDPOINT": fmt.Sprintf("%s:%d", dockerHost, port)}).
+		Build()
+	require.NoError(t, err)
+	require.NoError(t, p.Start())
+	t.Cleanup(func() {
+		require.NoError(t, p.Shutdown())
+	})
+
+	expected, err := golden.ReadMetrics(filepath.Join("testdata", expectedFilePath))
+	require.NoError(t, err)
+
+	assert.EventuallyWithT(t, func(tt *assert.CollectT) {
+		if len(sink.AllMetrics()) == 0 {
+			assert.Fail(tt, "No metrics collected")
+			return
+		}
+		err := pmetrictest.CompareMetrics(expected, sink.AllMetrics()[len(sink.AllMetrics())-1], options...)
+		assert.NoError(tt, err)
+	}, 30*time.Second, 1*time.Second)
+}

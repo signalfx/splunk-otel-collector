@@ -57,7 +57,7 @@ require (
 	github.com/vmware/govmomi v0.37.0
 	golang.org/x/net v0.24.0 // indirect
 	golang.org/x/sync v0.7.0
-	golang.org/x/sys v0.19.0
+	golang.org/x/sys v0.20.0
 	golang.org/x/tools v0.17.0 // indirect
 	google.golang.org/grpc v1.63.2
 	gopkg.in/go-playground/validator.v9 v9.31.0

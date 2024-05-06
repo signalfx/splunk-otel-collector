@@ -3,6 +3,7 @@ resource_spans:
     deployment.environment: zc-iis-test
     host.name: <ANY>
     os.type: windows
+    process.owner: <ANY>
     process.pid: <ANY>
     process.runtime.description: <ANY>
     process.runtime.name: .NET Framework
@@ -22,11 +23,13 @@ resource_spans:
         version: <ANY>
       spans:
         - attributes:
-            http.host: localhost
-            http.method: GET
+            http.request.method: GET
+            http.response.status_code: 200
             http.route: api/{controller}/{id}
-            http.status_code: 200
-            http.target: /aspnetfxapp/api/values/4
-            http.url: http://localhost/aspnetfxapp/api/values/4
-            http.user_agent: Go-http-client/1.1
-          name: api/{controller}/{id}
+            network.protocol.version: "1.1"
+            server.address: localhost
+            server.port: 80
+            url.path: /aspnetfxapp/api/values/4
+            url.scheme: http
+            user_agent.original: Go-http-client/1.1
+          name: GET api/{controller}/{id}

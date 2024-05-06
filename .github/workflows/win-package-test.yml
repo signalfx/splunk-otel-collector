@@ -368,7 +368,7 @@ jobs:
           $msi_path = Resolve-Path .\dist\splunk-otel-collector*.msi
           Test-Path $msi_path
           Write-Host "Reinstalling $msi_path ..."
-          $process = Start-Process -Wait -PassThru msiexec "/i `"$msi_path`" /qn /l*v msi-reinstall.log SPLUNK_ACCESS_TOKEN=2ndInstall SPLUNK_REALM=2nd SPLUNK_MEMORY_TOTAL_MIB=256 REINSTALL=SplunkOTelConfiguration"
+          $process = Start-Process -Wait -PassThru msiexec "/i `"$msi_path`" /qn /l*v msi-reinstall.log SPLUNK_ACCESS_TOKEN=2ndInstall SPLUNK_REALM=2nd SPLUNK_MEMORY_TOTAL_MIB=256 REINSTALL=SplunkCollectorConfiguration"
           if ($process.ExitCode -ne 0) {
             throw "MSI installation failed with exit code $($process.ExitCode)"
           }

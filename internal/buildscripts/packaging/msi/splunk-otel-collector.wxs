@@ -122,7 +122,7 @@
 
       <Feature Id="SplunkOtelCollector" Level="1">
          <ComponentRef Id="ApplicationComponent"/>
-         <Feature Id="SplunkOTelConfiguration" Level="1">
+         <Feature Id="SplunkCollectorConfiguration" Level="1">
             <ComponentRef Id="RegistryComponent"/>
          </Feature>
          <ComponentRef Id="RegistryComponent"/>

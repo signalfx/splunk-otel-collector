@@ -20,6 +20,8 @@ package tests
 import (
 	"testing"
 
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
+
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
@@ -32,5 +34,14 @@ func TestInternalPrometheusMetrics(t *testing.T) {
 }
 
 func TestHttpdBasicAuth(t *testing.T) {
-	testutils.AssertAllMetricsReceived(t, "basic_auth_metrics.yaml", "httpd_basic_auth.yaml", nil, nil)
+	testutils.CheckGoldenFile(t, "httpd_basic_auth.yaml", "httpd_basic_auth_expected.yaml",
+		pmetrictest.IgnoreScopeVersion(),
+		pmetrictest.IgnoreTimestamp(),
+		pmetrictest.IgnoreStartTimestamp(),
+		pmetrictest.IgnoreMetricValues(),
+		pmetrictest.IgnoreResourceMetricsOrder(),
+		pmetrictest.IgnoreScopeMetricsOrder(),
+		pmetrictest.IgnoreMetricsOrder(),
+		pmetrictest.IgnoreMetricDataPointsOrder(),
+	)
 }

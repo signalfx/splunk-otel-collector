@@ -1,0 +1,120 @@
+resourceMetrics:
+  - resource:
+      attributes:
+        - key: service.instance.id
+          value:
+            stringValue: localhost:8001
+        - key: service.name
+          value:
+            stringValue: myjob
+    scopeMetrics:
+      - metrics:
+          - description: The amount of foo going well with bar
+            gauge:
+              dataPoints:
+                - asDouble: 1.79641776e+08
+                  attributes:
+                    - key: application
+                      value:
+                        stringValue: my-own-app
+                    - key: area
+                      value:
+                        stringValue: heap
+                    - key: id
+                      value:
+                        stringValue: G1 Eden Space
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+                - asDouble: 1.50331678e+08
+                  attributes:
+                    - key: application
+                      value:
+                        stringValue: my-own-app
+                    - key: area
+                      value:
+                        stringValue: heap
+                    - key: id
+                      value:
+                        stringValue: G1 Old Gen
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+                - asDouble: 1.2097152e+07
+                  attributes:
+                    - key: application
+                      value:
+                        stringValue: my-own-app
+                    - key: area
+                      value:
+                        stringValue: heap
+                    - key: id
+                      value:
+                        stringValue: G1 Survivor Space
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+                - asDouble: 1.2544904e+07
+                  attributes:
+                    - key: application
+                      value:
+                        stringValue: my-own-app
+                    - key: area
+                      value:
+                        stringValue: nonheap
+                    - key: id
+                      value:
+                        stringValue: CodeHeap 'non-nmethods'
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+                - asDouble: 1.3732552e+07
+                  attributes:
+                    - key: application
+                      value:
+                        stringValue: my-own-app
+                    - key: area
+                      value:
+                        stringValue: nonheap
+                    - key: id
+                      value:
+                        stringValue: CodeHeap 'non-profiled nmethods'
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+                - asDouble: 1.10555296e+08
+                  attributes:
+                    - key: application
+                      value:
+                        stringValue: my-own-app
+                    - key: area
+                      value:
+                        stringValue: nonheap
+                    - key: id
+                      value:
+                        stringValue: CodeHeap 'profiled nmethods'
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+                - asDouble: 1.4325676e+07
+                  attributes:
+                    - key: application
+                      value:
+                        stringValue: my-own-app
+                    - key: area
+                      value:
+                        stringValue: nonheap
+                    - key: id
+                      value:
+                        stringValue: Compressed Class Space
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+                - asDouble: 1.372735e+08
+                  attributes:
+                    - key: application
+                      value:
+                        stringValue: my-own-app
+                    - key: area
+                      value:
+                        stringValue: nonheap
+                    - key: id
+                      value:
+                        stringValue: Metaspace
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: foo_bar
+        scope: {}

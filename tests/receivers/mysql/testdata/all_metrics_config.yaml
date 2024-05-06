@@ -1,8 +1,8 @@
 receivers:
   mysql:
-    endpoint: "${MYSQLDB_ENDPOINT}"
-    username: "${MYSQLDB_USERNAME}"
-    password: "${MYSQLDB_PASSWORD}"
+    endpoint: "127.0.0.1:3306"
+    username: "root"
+    password: "testpass"
     database: testdb
     tls:
       insecure: true

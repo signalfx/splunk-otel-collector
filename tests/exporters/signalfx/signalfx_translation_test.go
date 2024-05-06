@@ -36,7 +36,12 @@ func TestSignalFxExporterTranslatesOTelCPUMetrics(t *testing.T) {
 }
 
 func TestSignalFxExporterTranslatesOTelMemoryMetrics(t *testing.T) {
-	testutils.AssertAllMetricsReceived(
-		t, "memory_translations.yaml", "memory_translations_config.yaml", nil, nil,
+	testutils.CheckGoldenFile(t, "memory_translations_config.yaml", "memory_translations_expected.yaml",
+		pmetrictest.IgnoreTimestamp(),
+		pmetrictest.IgnoreMetricAttributeValue("host.name"),
+		pmetrictest.IgnoreMetricValues(),
+		pmetrictest.IgnoreMetricsOrder(),
+		pmetrictest.IgnoreMetricDataPointsOrder(),
+		pmetrictest.IgnoreSubsequentDataPoints(),
 	)
 }

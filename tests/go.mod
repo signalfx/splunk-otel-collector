@@ -10,7 +10,7 @@ require (
 	github.com/knadh/koanf v1.5.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/golden v0.99.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.99.0
-	github.com/shirou/gopsutil/v3 v3.24.3
+	github.com/shirou/gopsutil/v3 v3.24.4
 	github.com/stretchr/testify v1.9.0
 	github.com/testcontainers/testcontainers-go v0.30.0
 	go.opentelemetry.io/collector/component v0.99.0

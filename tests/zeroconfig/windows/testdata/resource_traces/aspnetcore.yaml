@@ -3,6 +3,7 @@ resource_spans:
     deployment.environment: zc-iis-test
     host.name: <ANY>
     os.type: windows
+    process.owner: <ANY>
     process.pid: <ANY>
     process.runtime.description: <ANY>
     process.runtime.name: .NET

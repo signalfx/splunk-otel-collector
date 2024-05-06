@@ -9,7 +9,7 @@ resource_spans:
     process.runtime.version: <ANY>
     service.name: AspNetCore.WebApi.Net
     splunk.distro.version: SPLUNK_OTEL_DOTNET_VERSION
-    splunk.zc.method: splunk-otel-dotnet-vSPLUNK_OTEL_DOTNET_VERSION
+    splunk.zc.method: <ANY>
     telemetry.distro.name: splunk-otel-dotnet
     telemetry.distro.version: SPLUNK_OTEL_DOTNET_VERSION
     telemetry.sdk.language: dotnet

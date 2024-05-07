@@ -25,8 +25,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
-	"go.uber.org/zap"
 )
 
 func tmpScript(t *testing.T) {
@@ -88,10 +88,7 @@ func TestCreateConfig(t *testing.T) {
 	config.ScriptName = "aasd"
 	config.OperatorType = "test-operator"
 
-	logger, _ := zap.NewProduction()
-	sugar := logger.Sugar()
-
-	built, err := config.Build(sugar)
+	built, err := config.Build(componenttest.NewNopTelemetrySettings())
 	require.NoError(t, err)
 
 	assert.NotNil(t, config, "failed to create default config")
@@ -129,10 +126,7 @@ func TestCreateWithNonEmptyMultiline(t *testing.T) {
 		LineEndPattern:   "",
 	}
 
-	logger, _ := zap.NewProduction()
-	sugar := logger.Sugar()
-
-	built, err := config.Build(sugar)
+	built, err := config.Build(componenttest.NewNopTelemetrySettings())
 	require.NoError(t, err)
 	assert.NotNil(t, config, "failed to create default config")
 	assert.NotNil(t, built, "failed to create default config")

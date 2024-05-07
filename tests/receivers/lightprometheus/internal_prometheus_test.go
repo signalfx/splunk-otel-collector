@@ -25,14 +25,6 @@ import (
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
-func TestInternalPrometheusMetrics(t *testing.T) {
-	t.Skip("covered by normal light prometheus receiver, skip until we get the exact delta in the expected values updated")
-	testutils.SkipIfNotContainerTest(t) // TODO: enhance internal metric settings detection for process config
-	testutils.AssertAllMetricsReceived(
-		t, "internal.yaml", "internal_metrics_config.yaml", nil, nil,
-	)
-}
-
 func TestHttpdBasicAuth(t *testing.T) {
 	testutils.CheckGoldenFile(t, "httpd_basic_auth.yaml", "httpd_basic_auth_expected.yaml",
 		pmetrictest.IgnoreScopeVersion(),

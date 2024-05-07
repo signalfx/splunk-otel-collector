@@ -88,15 +88,16 @@ download_nodejs_agent() {
 download_dotnet_agent() {
     local tag="$1"
     local dest="$2"
-    local dl_url="$DOTNET_AGENT_RELEASE_URL/download/$tag/splunk-opentelemetry-dotnet-linux-glibc.zip"
+    local pkg="splunk-opentelemetry-dotnet-linux-glibc-x64.zip"
+    local dl_url="$DOTNET_AGENT_RELEASE_URL/download/$tag/$pkg"
 
     echo "Downloading $dl_url ..."
-    curl -sfL "$dl_url" -o /tmp/splunk-opentelemetry-dotnet-linux-glibc.zip
+    curl -sfL "$dl_url" -o /tmp/$pkg
 
-    echo "Extracting splunk-opentelemetry-dotnet-linux-glibc.zip to $dest ..."
+    echo "Extracting $pkg to $dest ..."
     mkdir -p "$dest"
-    unzip -d $dest /tmp/splunk-opentelemetry-dotnet-linux-glibc.zip
-    rm -f /tmp/splunk-opentelemetry-dotnet-linux-glibc.zip
+    unzip -d $dest /tmp/$pkg
+    rm -f /tmp/$pkg
 }
 
 setup_files_and_permissions() {

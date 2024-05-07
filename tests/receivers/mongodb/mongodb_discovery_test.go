@@ -18,13 +18,15 @@ package tests
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
+	"syscall"
 	"testing"
 
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/network"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
@@ -33,59 +35,58 @@ type otelContainer struct {
 	testcontainers.Container
 }
 
-// LogConsumer represents any object that can
-// handle a Log, it is up to the LogConsumer instance
-// what to do with the log
-type LogConsumer interface {
-	Accept(Log)
-}
+func mongoDBAutoDiscoveryHelper(ctx context.Context, configFile string, logMessageToAssert string) (*otelContainer, error) {
+	finfo, err := os.Stat("/var/run/docker.sock")
+	if err != nil {
+		return nil, err
+	}
+	fsys := finfo.Sys()
+	stat, ok := fsys.(*syscall.Stat_t)
+	if !ok {
+		return nil, fmt.Errorf("OS error occurred while trying to get GID ")
+	}
+	dockerGID := fmt.Sprintf("%d", stat.Gid)
+	otelConfigPath, err := filepath.Abs(filepath.Join(".", "testdata", configFile))
+	if err != nil {
+		return nil, err
+	}
+	r, err := os.Open(otelConfigPath)
+	if err != nil {
+		return nil, err
+	}
 
-// Log represents a message that was created by a process,
-// LogType is either "STDOUT" or "STDERR",
-// Content is the byte contents of the message itself
-type Log struct {
-	LogType string
-	Content []byte
-}
-
-// StdoutLogConsumer is a LogConsumer that prints the log to stdout
-type StdoutLogConsumer struct{}
-
-// Accept prints the log to stdout
-func (lc *StdoutLogConsumer) Accept(l Log) {
-	fmt.Print(string(l.Content))
-}
-
-func fullSuccessfulDiscovery(ctx context.Context) (*otelContainer, error) {
-
-	otelConfigPath, err1 := filepath.Abs(filepath.Join(".", "testdata", "otel-local-config.yaml"))
-	r, err2 := os.Open(otelConfigPath)
-
-	currPath, err3 := filepath.Abs(filepath.Join(".", "testdata"))
-
+	currPath, err := filepath.Abs(filepath.Join(".", "testdata"))
+	if err != nil {
+		return nil, err
+	}
 	req := testcontainers.ContainerRequest{
 		Image: "otelcol:latest",
-		Env: map[string]string{
-			"SPLUNK_REALM":        "us2",
-			"SPLUNK_ACCESS_TOKEN": "12345",
-			"DOCKER_HOST":         "unix:///var/run/docker.sock",
+		HostConfigModifier: func(hc *container.HostConfig) {
+			hc.Binds = []string{"/var/run/docker.sock:/var/run/docker.sock"}
+			hc.NetworkMode = network.NetworkHost
+			hc.GroupAdd = []string{dockerGID}
 		},
-		Entrypoint: []string{"/otelcol", "--discovery", "--config", "/home/mongodb/otel-local-config.yaml", "--configd", "--config-dir", "/home/mongodb/testdata/configd", "--dry-run"},
+		Env: map[string]string{
+			"SPLUNK_REALM":               "us2",
+			"SPLUNK_ACCESS_TOKEN":        "12345",
+			"SPLUNK_DISCOVERY_LOG_LEVEL": "debug",
+		},
+		Entrypoint: []string{"/otelcol", "--config", "/home/otel-local-config.yaml"},
 		Files: []testcontainers.ContainerFile{
 			{
 				Reader:            r,
 				HostFilePath:      otelConfigPath,
-				ContainerFilePath: "/home/mongodb/otel-local-config.yaml",
+				ContainerFilePath: "/home/otel-local-config.yaml",
 				FileMode:          0o777,
 			},
 			{
 				HostFilePath:      currPath,
-				ContainerFilePath: "/home/mongodb/",
+				ContainerFilePath: "/home/",
 				FileMode:          0o777,
 			},
 		},
-		WaitingFor: wait.ForLog(`Successfully discovered "mongodb" using "docker_observer".*`).AsRegexp(),
-		//WaitingFor: wait.ForLog(`Usage of otelcol:`).AsRegexp(),
+		NetworkMode: "host",
+		WaitingFor:  wait.ForLog(logMessageToAssert).AsRegexp(),
 	}
 
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
@@ -93,7 +94,6 @@ func fullSuccessfulDiscovery(ctx context.Context) (*otelContainer, error) {
 		Started:          true,
 	})
 	if err != nil {
-		err = errors.Join(err, err1, err2, err3)
 		return nil, err
 	}
 
@@ -106,17 +106,43 @@ func TestIntegrationMongoDBAutoDiscovery(t *testing.T) {
 	}
 
 	ctx := context.Background()
+	successfulDiscoveryMsg := `mongodb receiver is working!`
+	partialDiscoveryMsg := `Please ensure your user credentials are correctly specified with`
 
-	otelC, err := fullSuccessfulDiscovery(ctx)
-	if err != nil {
-		t.Fatal(err)
+	tests := map[string]struct {
+		ctx                context.Context
+		configFileName     string
+		logMessageToAssert string
+		expected           error
+	}{
+		"Fully Successful Discovery test": {
+			ctx:                ctx,
+			configFileName:     "docker_observer_without_ssl_mongodb_config.yaml",
+			logMessageToAssert: successfulDiscoveryMsg,
+			expected:           nil,
+		},
+		"Partial Discovery test": {
+			ctx:                ctx,
+			configFileName:     "docker_observer_without_ssl_with_wrong_authentication_mongodb_config.yaml",
+			logMessageToAssert: partialDiscoveryMsg,
+			expected:           nil,
+		},
 	}
 
-	// Clean up the container after the test is complete
-	t.Cleanup(func() {
-		if err := otelC.Terminate(ctx); err != nil {
-			t.Fatalf("failed to terminate container: %s", err)
-		}
-	})
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			otelC, err := mongoDBAutoDiscoveryHelper(test.ctx, test.configFileName, test.logMessageToAssert)
+
+			if err != test.expected {
+				t.Fatalf(" Expected %v, got %v", test.expected, err)
+			}
+			// Clean up the container after the test is complete
+			t.Cleanup(func() {
+				if err := otelC.Terminate(ctx); err != nil {
+					t.Fatalf("failed to terminate container: %s", err)
+				}
+			})
+		})
+	}
 
 }

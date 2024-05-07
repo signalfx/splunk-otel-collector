@@ -31,11 +31,8 @@ import (
 )
 
 var (
-	ReceiverCreatorRegexp = regexp.MustCompile(`receiver_creator/`)
-	receiverNameRegexp    = regexp.MustCompile(`^(?P<type>[^/]+)/(?P<name>.*)$`)
-	EndpointTargetRegexp  = regexp.MustCompile(`{endpoint=[^}]*}/`)
-	endpointIDRegexp      = regexp.MustCompile(`^.*{endpoint=.*}/(?P<id>.*)$`)
-	undesiredFields       = []string{"ts", "msg", "level"}
+	endpointIDRegexp = regexp.MustCompile(`^.*{endpoint=.*}/(?P<id>.*)$`)
+	undesiredFields  = []string{"ts", "msg", "level"}
 )
 
 // Statement models a zapcore.Entry but defined here for usability/maintainability
@@ -90,58 +87,36 @@ func ReceiverNameToIDs(statement *Statement) (component.ID, observer.EndpointID)
 	// The receiver creator sets dynamically created receiver names as the zap "name" field for their component logger.
 	nameField, ok := statement.Fields["name"]
 	if !ok {
-		// there is nothing we can do without a receiver name
+		// there is nothing we can do without a name field
 		return discovery.NoType, ""
 	}
-	receiverName := fmt.Sprintf("%s", nameField)
 
-	// The receiver creator will log an initial start statement not from the underlying receiver's logger.
-	// These statements have an "endpoint_id" field and the "name" field won't include the necessary "receiver_creator/"
-	// and "{endpoint=<endpoint.Target>}" separators. In this case we get the EndpointID, if any, and form a placeholder name of desired form.
-	if endpointID, hasEndpointID := statement.Fields["endpoint_id"]; hasEndpointID {
-		receiverName = fmt.Sprintf(`%s/receiver_creator/<PLACEHOLDER>/{endpoint="PLACEHOLDER"}/%s`, receiverName, endpointID)
-	}
-
-	// receiver creator generated and altered initial endpoint handler message names must contain
-	// one "receiver_creator" and one "{endpoint=<Endpoint.Target>}" separator or are unable to be decomposed
-	for _, re := range []*regexp.Regexp{ReceiverCreatorRegexp, EndpointTargetRegexp} {
-		if matches := re.FindAllStringSubmatch(receiverName, -1); len(matches) != 1 {
-			return discovery.NoType, ""
-		}
-	}
-
-	var rcIdx int
-	if rcIdx = strings.Index(receiverName, "receiver_creator/"); rcIdx == -1 {
-		// previous check enforces this to not be the case but for good measure
+	// receiver creator generated message names must contain one "/receiver_creator/"
+	nameFieldParts := strings.Split(fmt.Sprintf("%s", nameField), "/receiver_creator/")
+	if len(nameFieldParts) != 2 {
+		// invalid format of the name field
 		return discovery.NoType, ""
 	}
-	nameSection := receiverName[:rcIdx]
-	endpointSection := receiverName[rcIdx:]
+	receiverIDSection := nameFieldParts[0]
+	endpointSection := nameFieldParts[1]
 
-	var nameMatches []string
-	if nameMatches = receiverNameRegexp.FindStringSubmatch(nameSection); len(nameMatches) < 2 {
-		return discovery.NoType, ""
-	}
-	rTypeName := nameMatches[1]
-
-	var nameCandidate string
-	if len(nameMatches) > 2 {
-		nameCandidate = nameMatches[2]
-	}
-	var rName string
-	if nameCandidate != "" {
-		rName = nameCandidate
-		if nameCandidate[len(nameCandidate)-1] == '/' {
-			rName = nameCandidate[0 : len(nameCandidate)-1]
-		}
-	}
-	var eID string
-	if endpointMatches := endpointIDRegexp.FindStringSubmatch(endpointSection); len(endpointMatches) > 1 {
-		eID = endpointMatches[1]
-	}
-	rType, err := component.NewType(rTypeName)
+	receiverIDParts := strings.SplitN(receiverIDSection, "/", 2)
+	receiverType, err := component.NewType(receiverIDParts[0])
 	if err != nil {
-		rType = discovery.NoType.Type()
+		// receiver type is invalid
+		return discovery.NoType, ""
 	}
-	return component.MustNewIDWithName(rType.String(), rName), observer.EndpointID(eID)
+	var receiverName string
+	if len(receiverIDParts) > 1 {
+		receiverName = receiverIDParts[1]
+	}
+
+	endpointMatches := endpointIDRegexp.FindStringSubmatch(endpointSection)
+	if len(endpointMatches) < 1 {
+		// endpoint ID is not present
+		return discovery.NoType, ""
+	}
+	endpointID := observer.EndpointID(endpointMatches[1])
+
+	return component.MustNewIDWithName(receiverType.String(), receiverName), endpointID
 }

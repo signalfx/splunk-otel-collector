@@ -3,9 +3,16 @@ FROM opensuse/leap:15
 ENV container docker
 
 RUN sed -i 's|download.opensuse.org|provo-mirror.opensuse.org|' /etc/zypp/repos.d/*.repo
-RUN zypper -n install -l curl dbus-1 systemd-sysvinit tar wget python3-pip ca-certificates
+RUN zypper -n install -l curl dbus-1 systemd-sysvinit tar wget python3-pip ca-certificates gzip
 
 RUN zypper install -y salt salt-minion salt-master
+
+RUN wget -O /tmp/nodejs.tar.gz https://nodejs.org/dist/v16.20.2/node-v16.20.2-linux-x64.tar.gz && \
+    mkdir -p /opt/ && \
+    tar -C /opt/ -xzf /tmp/nodejs.tar.gz && \
+    mv /opt/node* /opt/node
+
+ENV PATH=/opt/node/bin:$PATH
 
 RUN (cd /usr/lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i = \
 	"systemd-tmpfiles-setup.service" ] || rm -f $i; done); \

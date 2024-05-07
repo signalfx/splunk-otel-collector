@@ -5,12 +5,19 @@ ENV container docker
 RUN rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
 RUN echo 'fastestmirror=1' >> /etc/yum.conf
 
-RUN dnf install -y systemd procps initscripts python3-pip python3-devel gcc
+RUN dnf install -y systemd procps initscripts python3-pip python3-devel gcc wget
 
 RUN rpm --import https://repo.saltproject.io/salt/py3/redhat/9/x86_64/SALT-PROJECT-GPG-PUBKEY-2023.pub
 RUN curl -fsSL https://repo.saltproject.io/salt/py3/redhat/9/x86_64/latest.repo | tee /etc/yum.repos.d/salt.repo
 
 RUN dnf install -y salt-minion
+
+RUN wget -O /tmp/nodejs.tar.gz https://nodejs.org/dist/v16.20.2/node-v16.20.2-linux-x64.tar.gz && \
+    mkdir -p /opt/ && \
+    tar -C /opt/ -xzf /tmp/nodejs.tar.gz && \
+    mv /opt/node* /opt/node
+
+ENV PATH=/opt/node/bin:$PATH
 
 RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i = \
 	"systemd-tmpfiles-setup.service" ] || rm -f $i; done); \

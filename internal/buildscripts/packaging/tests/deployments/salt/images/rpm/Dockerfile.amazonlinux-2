@@ -2,12 +2,19 @@ FROM amazonlinux:2
 
 ENV container docker
 
-RUN yum install -y systemd procps initscripts python3-pip python3-devel gcc
+RUN yum install -y systemd procps initscripts python3-pip python3-devel gcc wget tar
 
 RUN rpm --import https://repo.saltproject.io/py3/amazon/2/x86_64/latest/SALTSTACK-GPG-KEY.pub
 RUN curl -fsSL https://repo.saltproject.io/py3/amazon/2/x86_64/latest.repo | tee /etc/yum.repos.d/salt-amzn.repo
 
 RUN yum install -y salt-minion
+
+RUN wget -O /tmp/nodejs.tar.gz https://nodejs.org/dist/v16.20.2/node-v16.20.2-linux-x64.tar.gz && \
+    mkdir -p /opt/ && \
+    tar -C /opt/ -xzf /tmp/nodejs.tar.gz && \
+    mv /opt/node* /opt/node
+
+ENV PATH=/opt/node/bin:$PATH
 
 RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i = \
 	"systemd-tmpfiles-setup.service" ] || rm -f $i; done); \

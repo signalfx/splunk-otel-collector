@@ -5,6 +5,8 @@ with_new_instrumentation = node['splunk_otel_collector']['auto_instrumentation_v
 with_systemd = node['splunk_otel_collector']['auto_instrumentation_systemd'].to_s.downcase == 'true'
 with_java = node['splunk_otel_collector']['with_auto_instrumentation_sdks'].include?('java')
 with_nodejs = node['splunk_otel_collector']['with_auto_instrumentation_sdks'].include?('nodejs') && with_new_instrumentation
+dotnet_supported = %w(x86_64 amd64).include?(node['cpu']['architecture']) && (node['splunk_otel_collector']['auto_instrumentation_version'] == 'latest' || Gem::Version.new(node['splunk_otel_collector']['auto_instrumentation_version']) >= Gem::Version.new('0.99.0'))
+with_dotnet = node['splunk_otel_collector']['with_auto_instrumentation_sdks'].include?('dotnet') && dotnet_supported
 npm_path = node['splunk_otel_collector']['auto_instrumentation_npm_path']
 lib_dir = '/usr/lib/splunk-instrumentation'
 splunk_otel_js_path = "#{lib_dir}/splunk-otel-js.tgz"
@@ -13,6 +15,7 @@ npm_install = "#{npm_path} install #{splunk_otel_js_path}"
 zc_config_dir = '/etc/splunk/zeroconfig'
 java_config_file = "#{zc_config_dir}/java.conf"
 nodejs_config_file = "#{zc_config_dir}/node.conf"
+dotnet_config_file = "#{zc_config_dir}/dotnet.conf"
 old_config_file = "#{lib_dir}/instrumentation.conf"
 systemd_config_dir = '/usr/lib/systemd/system.conf.d'
 systemd_config_file = "#{systemd_config_dir}/00-splunk-otel-auto-instrumentation.conf"
@@ -66,7 +69,7 @@ package 'splunk-otel-auto-instrumentation' do
 end
 
 if with_systemd
-  [java_config_file, nodejs_config_file, old_config_file].each do |config_file|
+  [java_config_file, nodejs_config_file, dotnet_config_file, old_config_file].each do |config_file|
     file config_file do
       action :delete
     end
@@ -78,11 +81,12 @@ if with_systemd
     variables(
       installed_version: lazy { node['packages']['splunk-otel-auto-instrumentation']['version'] },
       with_java: lazy { with_java },
-      with_nodejs: lazy { node.run_state[:with_nodejs] }
+      with_nodejs: lazy { node.run_state[:with_nodejs] },
+      with_dotnet: lazy { with_dotnet }
     )
     source '00-splunk-otel-auto-instrumentation.conf.erb'
     notifies :run, 'execute[reload systemd]', :delayed
-    only_if { with_java || node.run_state[:with_nodejs] }
+    only_if { with_java || node.run_state[:with_nodejs] || with_dotnet }
   end
 elsif with_new_instrumentation
   [old_config_file, systemd_config_file].each do |config_file|
@@ -97,6 +101,10 @@ elsif with_new_instrumentation
   file nodejs_config_file do
     action :delete
     not_if { node.run_state[:with_nodejs] }
+  end
+  file dotnet_config_file do
+    action :delete
+    not_if { with_dotnet }
   end
   directory zc_config_dir do
     recursive true
@@ -115,8 +123,15 @@ elsif with_new_instrumentation
     source 'node.conf.erb'
     only_if { node.run_state[:with_nodejs] }
   end
+  template dotnet_config_file do
+    variables(
+      installed_version: lazy { node['packages']['splunk-otel-auto-instrumentation']['version'] }
+    )
+    source 'dotnet.conf.erb'
+    only_if { with_dotnet }
+  end
 else
-  [java_config_file, nodejs_config_file, systemd_config_file].each do |config_file|
+  [java_config_file, nodejs_config_file, dotnet_config_file, systemd_config_file].each do |config_file|
     file config_file do
       action :delete
     end
@@ -134,7 +149,8 @@ template '/etc/ld.so.preload' do
   variables(
     with_systemd: lazy { with_systemd },
     with_java: lazy { with_java },
-    with_nodejs: lazy { node.run_state[:with_nodejs] }
+    with_nodejs: lazy { node.run_state[:with_nodejs] },
+    with_dotnet: lazy { with_dotnet }
   )
   source 'ld.so.preload.erb'
 end

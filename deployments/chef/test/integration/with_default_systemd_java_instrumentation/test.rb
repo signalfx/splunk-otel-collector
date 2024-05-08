@@ -23,6 +23,10 @@ describe file('/etc/splunk/zeroconfig/node.conf') do
   it { should_not exist }
 end
 
+describe file('/etc/splunk/zeroconfig/dotnet.conf') do
+  it { should_not exist }
+end
+
 describe file('/usr/lib/splunk-instrumentation/instrumentation.conf') do
   it { should_not exist }
 end
@@ -30,6 +34,14 @@ end
 describe file('/usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf') do
   its('content') { should match /^DefaultEnvironment="JAVA_TOOL_OPTIONS=#{java_tool_options}"$/ }
   its('content') { should_not match /.*NODE_OPTIONS.*/ }
+  its('content') { should_not match /.*CORECLR_ENABLE_PROFILING.*/ }
+  its('content') { should_not match /.*CORECLR_PROFILER.*/ }
+  its('content') { should_not match /.*CORECLR_PROFILER_PATH.*/ }
+  its('content') { should_not match /.*DOTNET_ADDITIONAL_DEPS.*/ }
+  its('content') { should_not match /.*DOTNET_SHARED_STORE.*/ }
+  its('content') { should_not match /.*DOTNET_STARTUP_HOOKS.*/ }
+  its('content') { should_not match /.*OTEL_DOTNET_AUTO_HOME.*/ }
+  its('content') { should_not match /.*OTEL_DOTNET_AUTO_PLUGINS.*/ }
   its('content') { should match /^DefaultEnvironment="OTEL_RESOURCE_ATTRIBUTES=#{resource_attributes}"$/ }
   its('content') { should_not match /.*OTEL_SERVICE_NAME.*/ }
   its('content') { should match /^DefaultEnvironment="SPLUNK_PROFILER_ENABLED=false"$/ }

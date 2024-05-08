@@ -27,6 +27,10 @@ describe file('/etc/splunk/zeroconfig/java.conf') do
   it { should_not exist }
 end
 
+describe file('/etc/splunk/zeroconfig/dotnet.conf') do
+  it { should_not exist }
+end
+
 describe file('/etc/splunk/zeroconfig/node.conf') do
   its('content') { should match /^NODE_OPTIONS=#{node_options}$/ }
   its('content') { should match /^OTEL_RESOURCE_ATTRIBUTES=#{resource_attributes}$/ }

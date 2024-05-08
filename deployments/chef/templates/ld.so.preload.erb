@@ -1,4 +1,4 @@
-<% if !@with_systemd && (@with_java || @with_nodejs) -%>
+<% if !@with_systemd && (@with_java || @with_nodejs || @with_dotnet) -%>
 /usr/lib/splunk-instrumentation/libsplunk.so
 <% end -%>
 <% if defined?(node['splunk_otel_collector']['auto_instrumentation_ld_so_preload']) && node['splunk_otel_collector']['auto_instrumentation_ld_so_preload'] != "" -%>

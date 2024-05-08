@@ -1,0 +1,20 @@
+CORECLR_ENABLE_PROFILING=1
+CORECLR_PROFILER={918728DD-259F-4A6A-AC2B-B85E1B658318}
+CORECLR_PROFILER_PATH=/usr/lib/splunk-instrumentation/splunk-otel-dotnet/linux-x64/OpenTelemetry.AutoInstrumentation.Native.so
+DOTNET_ADDITIONAL_DEPS=/usr/lib/splunk-instrumentation/splunk-otel-dotnet/AdditionalDeps
+DOTNET_SHARED_STORE=/usr/lib/splunk-instrumentation/splunk-otel-dotnet/store
+DOTNET_STARTUP_HOOKS=/usr/lib/splunk-instrumentation/splunk-otel-dotnet/net/OpenTelemetry.AutoInstrumentation.StartupHook.dll
+OTEL_DOTNET_AUTO_HOME=/usr/lib/splunk-instrumentation/splunk-otel-dotnet
+OTEL_DOTNET_AUTO_PLUGINS=Splunk.OpenTelemetry.AutoInstrumentation.Plugin,Splunk.OpenTelemetry.AutoInstrumentation
+<% if defined?(node['splunk_otel_collector']['auto_instrumentation_resource_attributes']) && node['splunk_otel_collector']['auto_instrumentation_resource_attributes'] != "" -%>
+OTEL_RESOURCE_ATTRIBUTES=splunk.zc.method=splunk-otel-auto-instrumentation-<%= @installed_version %>,<%= node['splunk_otel_collector']['auto_instrumentation_resource_attributes'] %>
+<% else -%>
+OTEL_RESOURCE_ATTRIBUTES=splunk.zc.method=splunk-otel-auto-instrumentation-<%= @installed_version %>
+<% end -%>
+<% if defined?(node['splunk_otel_collector']['auto_instrumentation_service_name']) && node['splunk_otel_collector']['auto_instrumentation_service_name'] != "" -%>
+OTEL_SERVICE_NAME=<%= node['splunk_otel_collector']['auto_instrumentation_service_name'] %>
+<% end -%>
+SPLUNK_PROFILER_ENABLED=<%= node['splunk_otel_collector']['auto_instrumentation_enable_profiler'].to_s.downcase %>
+SPLUNK_PROFILER_MEMORY_ENABLED=<%= node['splunk_otel_collector']['auto_instrumentation_enable_profiler_memory'].to_s.downcase %>
+SPLUNK_METRICS_ENABLED=<%= node['splunk_otel_collector']['auto_instrumentation_enable_metrics'].to_s.downcase %>
+OTEL_EXPORTER_OTLP_ENDPOINT=<%= node['splunk_otel_collector']['auto_instrumentation_otlp_endpoint'] %>

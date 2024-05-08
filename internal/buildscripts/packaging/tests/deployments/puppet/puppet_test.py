@@ -56,8 +56,22 @@ INSTRUMENTATION_CONFIG_PATH = "/usr/lib/splunk-instrumentation/instrumentation.c
 SYSTEMD_CONFIG_PATH = "/usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf"
 JAVA_CONFIG_PATH = "/etc/splunk/zeroconfig/java.conf"
 NODE_CONFIG_PATH = "/etc/splunk/zeroconfig/node.conf"
+DOTNET_CONFIG_PATH = "/etc/splunk/zeroconfig/dotnet.conf"
 NODE_PREFIX = "/usr/lib/splunk-instrumentation/splunk-otel-js"
 NODE_OPTIONS = f"-r {NODE_PREFIX}/node_modules/@splunk/otel/instrument"
+DOTNET_HOME = "/usr/lib/splunk-instrumentation/splunk-otel-dotnet"
+DOTNET_AGENT_PATH = f"{DOTNET_HOME}/linux-x64/OpenTelemetry.AutoInstrumentation.Native.so"
+DOTNET_VARS = {
+    "CORECLR_ENABLE_PROFILING": "1",
+    "CORECLR_PROFILER": "{918728DD-259F-4A6A-AC2B-B85E1B658318}",
+    "CORECLR_PROFILER_PATH": DOTNET_AGENT_PATH,
+    "DOTNET_ADDITIONAL_DEPS": f"{DOTNET_HOME}/AdditionalDeps",
+    "DOTNET_SHARED_STORE": f"{DOTNET_HOME}/store",
+    "DOTNET_STARTUP_HOOKS": f"{DOTNET_HOME}/net/OpenTelemetry.AutoInstrumentation.StartupHook.dll",
+    "OTEL_DOTNET_AUTO_HOME": DOTNET_HOME,
+    "OTEL_DOTNET_AUTO_PLUGINS":
+        "Splunk.OpenTelemetry.AutoInstrumentation.Plugin,Splunk.OpenTelemetry.AutoInstrumentation",
+}
 
 
 def run_puppet_apply(container, config):
@@ -122,6 +136,12 @@ def node_package_installed(container):
     rc, output = container.exec_run(cmd, workdir=NODE_PREFIX)
     print(output.decode("utf-8"))
     return rc == 0
+
+
+def verify_dotnet_config(container, path, exists=True):
+    for key, val in DOTNET_VARS.items():
+        val = val if exists else ".*"
+        verify_config_file(container, path, key, val, exists=exists)
 
 
 DEFAULT_CONFIG = f"""
@@ -256,25 +276,37 @@ def test_puppet_with_default_instrumentation(distro, puppet_release, version, wi
         if version == "latest":
             assert node_package_installed(container)
 
-        if version == "latest" or with_systemd == "true":
-            config_path = SYSTEMD_CONFIG_PATH if with_systemd == "true" else JAVA_CONFIG_PATH
-            verify_config_file(container, config_path, "JAVA_TOOL_OPTIONS", rf"-javaagent:{JAVA_AGENT_PATH}")
-            verify_config_file(container, config_path, "OTEL_RESOURCE_ATTRIBUTES", resource_attributes)
-            verify_config_file(container, config_path, "OTEL_SERVICE_NAME", ".*", exists=False)
-            verify_config_file(container, config_path, "SPLUNK_PROFILER_ENABLED", "false")
-            verify_config_file(container, config_path, "SPLUNK_PROFILER_MEMORY_ENABLED", "false")
-            verify_config_file(container, config_path, "SPLUNK_METRICS_ENABLED", "false")
-            verify_config_file(container, config_path, "OTEL_EXPORTER_OTLP_ENDPOINT", r"http://127.0.0.1:4317")
-
-            config_path = SYSTEMD_CONFIG_PATH if with_systemd == "true" else NODE_CONFIG_PATH
-            verify_config_file(container, config_path, "NODE_OPTIONS", NODE_OPTIONS)
-            verify_config_file(container, config_path, "OTEL_RESOURCE_ATTRIBUTES", resource_attributes)
-            verify_config_file(container, config_path, "OTEL_SERVICE_NAME", ".*", exists=False)
-            verify_config_file(container, config_path, "SPLUNK_PROFILER_ENABLED", "false")
-            verify_config_file(container, config_path, "SPLUNK_PROFILER_MEMORY_ENABLED", "false")
-            verify_config_file(container, config_path, "SPLUNK_METRICS_ENABLED", "false")
-            verify_config_file(container, config_path, "OTEL_EXPORTER_OTLP_ENDPOINT", r"http://127.0.0.1:4317")
+        if with_systemd == "true":
+            for config_path in [JAVA_CONFIG_PATH, NODE_CONFIG_PATH, DOTNET_CONFIG_PATH, INSTRUMENTATION_CONFIG_PATH]:
+                assert not container_file_exists(container, config_path)
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "JAVA_TOOL_OPTIONS", rf"-javaagent:{JAVA_AGENT_PATH}")
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_RESOURCE_ATTRIBUTES", resource_attributes)
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_SERVICE_NAME", ".*", exists=False)
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "SPLUNK_PROFILER_ENABLED", "false")
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "SPLUNK_PROFILER_MEMORY_ENABLED", "false")
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "SPLUNK_METRICS_ENABLED", "false")
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_EXPORTER_OTLP_ENDPOINT", r"http://127.0.0.1:4317")
+            if version == "latest":
+                verify_config_file(container, SYSTEMD_CONFIG_PATH, "NODE_OPTIONS", NODE_OPTIONS)
+                verify_dotnet_config(container, SYSTEMD_CONFIG_PATH)
+            else:
+                verify_config_file(container, SYSTEMD_CONFIG_PATH, "NODE_OPTIONS", ".*", exists=False)
+                verify_dotnet_config(container, SYSTEMD_CONFIG_PATH, exists=False)
+        elif version == "latest":
+            assert not container_file_exists(container, SYSTEMD_CONFIG_PATH)
+            verify_config_file(container, JAVA_CONFIG_PATH, "JAVA_TOOL_OPTIONS", rf"-javaagent:{JAVA_AGENT_PATH}")
+            verify_config_file(container, NODE_CONFIG_PATH, "NODE_OPTIONS", NODE_OPTIONS)
+            verify_dotnet_config(container, DOTNET_CONFIG_PATH)
+            for config_path in [JAVA_CONFIG_PATH, NODE_CONFIG_PATH, DOTNET_CONFIG_PATH]:
+                verify_config_file(container, config_path, "OTEL_RESOURCE_ATTRIBUTES", resource_attributes)
+                verify_config_file(container, config_path, "OTEL_SERVICE_NAME", ".*", exists=False)
+                verify_config_file(container, config_path, "SPLUNK_PROFILER_ENABLED", "false")
+                verify_config_file(container, config_path, "SPLUNK_PROFILER_MEMORY_ENABLED", "false")
+                verify_config_file(container, config_path, "SPLUNK_METRICS_ENABLED", "false")
+                verify_config_file(container, config_path, "OTEL_EXPORTER_OTLP_ENDPOINT", r"http://127.0.0.1:4317")
         else:
+            for config_path in [JAVA_CONFIG_PATH, NODE_CONFIG_PATH, DOTNET_CONFIG_PATH, SYSTEMD_CONFIG_PATH]:
+                assert not container_file_exists(container, config_path)
             config_path = INSTRUMENTATION_CONFIG_PATH
             verify_package_version(container, "splunk-otel-auto-instrumentation", version)
             verify_config_file(container, config_path, "java_agent_jar", JAVA_AGENT_PATH)
@@ -346,25 +378,38 @@ def test_puppet_with_custom_instrumentation(distro, puppet_release, version, wit
             assert node_package_installed(container)
 
         resource_attributes = rf"{resource_attributes},deployment.environment=test"
-        if version == "latest" or with_systemd == "true":
-            config_path = SYSTEMD_CONFIG_PATH if with_systemd == "true" else JAVA_CONFIG_PATH
-            verify_config_file(container, config_path, "JAVA_TOOL_OPTIONS", rf"-javaagent:{JAVA_AGENT_PATH}")
-            verify_config_file(container, config_path, "OTEL_RESOURCE_ATTRIBUTES", resource_attributes)
-            verify_config_file(container, config_path, "OTEL_SERVICE_NAME", "test")
-            verify_config_file(container, config_path, "SPLUNK_PROFILER_ENABLED", "true")
-            verify_config_file(container, config_path, "SPLUNK_PROFILER_MEMORY_ENABLED", "true")
-            verify_config_file(container, config_path, "SPLUNK_METRICS_ENABLED", "true")
-            verify_config_file(container, config_path, "OTEL_EXPORTER_OTLP_ENDPOINT", r"http://0.0.0.0:4317")
-
-            config_path = SYSTEMD_CONFIG_PATH if with_systemd == "true" else NODE_CONFIG_PATH
-            verify_config_file(container, config_path, "NODE_OPTIONS", NODE_OPTIONS)
-            verify_config_file(container, config_path, "OTEL_RESOURCE_ATTRIBUTES", resource_attributes)
-            verify_config_file(container, config_path, "OTEL_SERVICE_NAME", "test")
-            verify_config_file(container, config_path, "SPLUNK_PROFILER_ENABLED", "true")
-            verify_config_file(container, config_path, "SPLUNK_PROFILER_MEMORY_ENABLED", "true")
-            verify_config_file(container, config_path, "SPLUNK_METRICS_ENABLED", "true")
-            verify_config_file(container, config_path, "OTEL_EXPORTER_OTLP_ENDPOINT", r"http://0.0.0.0:4317")
+        if with_systemd == "true":
+            for config_path in [JAVA_CONFIG_PATH, NODE_CONFIG_PATH, DOTNET_CONFIG_PATH, INSTRUMENTATION_CONFIG_PATH]:
+                assert not container_file_exists(container, config_path)
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "JAVA_TOOL_OPTIONS", rf"-javaagent:{JAVA_AGENT_PATH}")
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_RESOURCE_ATTRIBUTES", resource_attributes)
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_SERVICE_NAME", "test")
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "SPLUNK_PROFILER_ENABLED", "true")
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "SPLUNK_PROFILER_MEMORY_ENABLED", "true")
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "SPLUNK_METRICS_ENABLED", "true")
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_EXPORTER_OTLP_ENDPOINT", r"http://0.0.0.0:4317")
+            if version == "latest":
+                verify_config_file(container, SYSTEMD_CONFIG_PATH, "NODE_OPTIONS", NODE_OPTIONS)
+                verify_dotnet_config(container, SYSTEMD_CONFIG_PATH)
+            else:
+                verify_config_file(container, SYSTEMD_CONFIG_PATH, "NODE_OPTIONS", ".*", exists=False)
+                verify_dotnet_config(container, SYSTEMD_CONFIG_PATH, exists=False)
+        elif version == "latest":
+            for config_path in [SYSTEMD_CONFIG_PATH, INSTRUMENTATION_CONFIG_PATH]:
+                assert not container_file_exists(container, config_path)
+            verify_config_file(container, JAVA_CONFIG_PATH, "JAVA_TOOL_OPTIONS", rf"-javaagent:{JAVA_AGENT_PATH}")
+            verify_config_file(container, NODE_CONFIG_PATH, "NODE_OPTIONS", NODE_OPTIONS)
+            verify_dotnet_config(container, DOTNET_CONFIG_PATH)
+            for config_path in [JAVA_CONFIG_PATH, NODE_CONFIG_PATH, DOTNET_CONFIG_PATH]:
+                verify_config_file(container, config_path, "OTEL_RESOURCE_ATTRIBUTES", resource_attributes)
+                verify_config_file(container, config_path, "OTEL_SERVICE_NAME", "test")
+                verify_config_file(container, config_path, "SPLUNK_PROFILER_ENABLED", "true")
+                verify_config_file(container, config_path, "SPLUNK_PROFILER_MEMORY_ENABLED", "true")
+                verify_config_file(container, config_path, "SPLUNK_METRICS_ENABLED", "true")
+                verify_config_file(container, config_path, "OTEL_EXPORTER_OTLP_ENDPOINT", r"http://0.0.0.0:4317")
         else:
+            for config_path in [JAVA_CONFIG_PATH, NODE_CONFIG_PATH, DOTNET_CONFIG_PATH, SYSTEMD_CONFIG_PATH]:
+                assert not container_file_exists(container, config_path)
             config_path = INSTRUMENTATION_CONFIG_PATH
             verify_package_version(container, "splunk-otel-auto-instrumentation", version)
             verify_config_file(container, config_path, "java_agent_jar", JAVA_AGENT_PATH)

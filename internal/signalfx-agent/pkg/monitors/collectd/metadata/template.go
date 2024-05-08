@@ -35,7 +35,6 @@ TypesDB "{{ pythonPluginRoot }}/signalfx/types.db.plugin"
     PerCoreCPUUtil {{ .PerCoreCPUUtil }}
     Datapoints false
     PersistencePath "{{ .PersistencePath }}"
-    ProcessInfo {{if .OmitProcessInfo}}false{{else}}true{{end}}
     {{with .DogStatsDIP -}}
     IP "{{.}}"
     {{- end}}

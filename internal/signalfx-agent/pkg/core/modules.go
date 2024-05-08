@@ -56,7 +56,6 @@ import (
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/netio"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/ntp"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/postgresql"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/processlist"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/prometheus/go"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/prometheus/nginxingress"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/prometheus/nginxvts"

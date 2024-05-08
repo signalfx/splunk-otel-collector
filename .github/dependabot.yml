@@ -149,6 +149,10 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "docker"
+    directory: "/docker/mongodb"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker"
     directory: "/docker/mysql"
     schedule:
       interval: "weekly"

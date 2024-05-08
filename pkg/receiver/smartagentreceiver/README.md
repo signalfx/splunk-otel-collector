@@ -38,9 +38,9 @@ as each pipeline's exporter, respectively.
 1. To replace or modify metrics, use
 [Collector processors](https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/README.md).
 1. If you have a monitor that sends [events](https://dev.splunk.com/observability/docs/datamodel/custom_events) (e.g. `kubernetes-events`,
-`nagios`, `processlist`, and some `telegraf` monitors like `telegraf/exec`), add it to a `logs` pipeline that uses a
+`nagios`, and some `telegraf` monitors like `telegraf/exec`), add it to a `logs` pipeline that uses a
 [SignalFx exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/exporter/signalfxexporter/README.md).
-It's recommended, and in the case of the Processlist monitor required, to put into the same pipeline a
+It's recommended to put into the same pipeline a
 [Resource Detection processor](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/README.md),
 which will add host information and other useful dimensions to the events. An example is provided below.
 1. If you have a monitor that updates [dimension properties or tags](https://dev.splunk.com/observability/docs/datamodel/metrics_metadata), for example `ecs-metadata`, `heroku-metadata`, `kubernetes-cluster`, `openshift-cluster`, `postgresql`, or `sql`, put the name of
@@ -61,8 +61,6 @@ receivers:
     port: 5432
     dimensionClients:
       - signalfx  # references the SignalFx Exporter configured below
-  smartagent/processlist:
-    type: processlist
   smartagent/kafka:
     type: collectd/kafka
     host: mykafkabroker

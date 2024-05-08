@@ -47,12 +47,6 @@ type Config struct {
 	// successful host metadata syncs so that host metadata is not sent
 	// redundantly.
 	PersistencePath string `yaml:"persistencePath" default:"/var/run/signalfx-agent"`
-	// If true, process "top" information will not be sent.  This can be useful
-	// if you have an extremely high number of processes and performance of the
-	// plugin is poor.  This defaults to `false`, but should be set to `true`
-	// if using the `processlist` monitor since that duplicates this
-	// functionality.
-	OmitProcessInfo bool `yaml:"omitProcessInfo"`
 	// Set this to a non-zero value to enable the DogStatsD listener as part of
 	// this monitor.  The listener will accept metrics on the DogStatsD format,
 	// and sends them as SignalFx datapoints to our backend.  Setting to a value

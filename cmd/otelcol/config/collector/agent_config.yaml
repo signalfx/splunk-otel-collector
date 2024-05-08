@@ -86,8 +86,6 @@ receivers:
   smartagent/signalfx-forwarder:
     type: signalfx-forwarder
     listenAddress: "${SPLUNK_LISTEN_INTERFACE}:9080"
-  smartagent/processlist:
-    type: processlist
   signalfx:
     endpoint: "${SPLUNK_LISTEN_INTERFACE}:9943"
     # Whether to preserve incoming access token and use instead of exporter token
@@ -190,7 +188,7 @@ service:
       # to use signalfx exporter so host metadata gets emitted
       exporters: [signalfx]
     logs/signalfx:
-      receivers: [signalfx, smartagent/processlist]
+      receivers: [signalfx]
       processors: [memory_limiter, batch, resourcedetection]
       exporters: [signalfx]
     logs:

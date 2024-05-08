@@ -361,7 +361,6 @@ func TestDefaultAgentConfig(t *testing.T) {
 						},
 					},
 					"signalfx":               map[string]any{"endpoint": fmt.Sprintf("%s:9943", ip)},
-					"smartagent/processlist": map[string]any{"type": "processlist"},
 					"smartagent/signalfx-forwarder": map[string]any{
 						"listenAddress": fmt.Sprintf("%s:9080", ip),
 						"type":          "signalfx-forwarder",
@@ -378,7 +377,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 						"logs/signalfx": map[string]any{
 							"exporters":  []any{"signalfx"},
 							"processors": []any{"memory_limiter", "batch", "resourcedetection"},
-							"receivers":  []any{"signalfx", "smartagent/processlist"}},
+							"receivers":  []any{"signalfx"}},
 						"metrics": map[string]any{
 							"exporters":  []any{"signalfx"},
 							"processors": []any{"memory_limiter", "batch", "resourcedetection"},

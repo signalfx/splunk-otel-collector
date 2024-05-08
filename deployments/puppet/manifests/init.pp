@@ -47,7 +47,7 @@ class splunk_otel_collector (
   $auto_instrumentation_enable_profiler_memory  = false,  # linux only
   $auto_instrumentation_enable_metrics          = false,  # linux only
   $auto_instrumentation_otlp_endpoint           = 'http://127.0.0.1:4317',  # linux only
-  $with_auto_instrumentation_sdks               = ['java', 'nodejs'], # linux only
+  $with_auto_instrumentation_sdks               = ['java', 'nodejs', 'dotnet'], # linux only
   $auto_instrumentation_npm_path                = 'npm', # linux only
   $collector_additional_env_vars            = {}
 ) inherits splunk_otel_collector::params {
@@ -372,8 +372,10 @@ class splunk_otel_collector (
     $instrumentation_config_path = '/usr/lib/splunk-instrumentation/instrumentation.conf'
     $zeroconfig_java_config_path = '/etc/splunk/zeroconfig/java.conf'
     $zeroconfig_node_config_path = '/etc/splunk/zeroconfig/node.conf'
+    $zeroconfig_dotnet_config_path = '/etc/splunk/zeroconfig/dotnet.conf'
     $zeroconfig_systemd_config_path = '/usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf'
     $with_new_instrumentation = $auto_instrumentation_version == 'latest' or versioncmp($auto_instrumentation_version, '0.87.0') >= 0
+    $dotnet_supported = $facts['os']['architecture'] in ['amd64', 'x86_64'] and ($auto_instrumentation_version == 'latest' or versioncmp($auto_instrumentation_version, '0.99.0') >= 0) # lint:ignore:140chars
 
     if $::osfamily == 'debian' {
       package { $auto_instrumentation_package_name:
@@ -412,7 +414,7 @@ class splunk_otel_collector (
     }
 
     if $auto_instrumentation_systemd {
-      file { [$zeroconfig_java_config_path, $zeroconfig_node_config_path]:
+      file { [$zeroconfig_java_config_path, $zeroconfig_node_config_path, $zeroconfig_dotnet_config_path, $instrumentation_config_path]:
         ensure  => absent,
         require => Package[$auto_instrumentation_package_name],
       }
@@ -436,12 +438,31 @@ class splunk_otel_collector (
             content => template('splunk_otel_collector/java.conf.erb'),
             require => Package[$auto_instrumentation_package_name],
           }
+        } else {
+          file { $zeroconfig_java_config_path:
+            ensure => absent,
+          }
         }
         if 'nodejs' in $with_auto_instrumentation_sdks {
           file { $zeroconfig_node_config_path:
             ensure  => file,
             content => template('splunk_otel_collector/node.conf.erb'),
             require => Exec['Install splunk-otel-js'],
+          }
+        } else {
+          file { $zeroconfig_node_config_path:
+            ensure => absent,
+          }
+        }
+        if 'dotnet' in $with_auto_instrumentation_sdks and $dotnet_supported {
+          file { $zeroconfig_dotnet_config_path:
+            ensure  => file,
+            content => template('splunk_otel_collector/dotnet.conf.erb'),
+            require => Package[$auto_instrumentation_package_name],
+          }
+        } else {
+          file { $zeroconfig_dotnet_config_path:
+            ensure => absent,
           }
         }
       } else {

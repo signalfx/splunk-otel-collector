@@ -2,7 +2,6 @@ package cgroups
 
 import (
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -22,7 +21,7 @@ func withOpenFile(path string, handler func(fd *os.File)) error {
 }
 
 func parseSingleInt(fileReader io.Reader) (int64, error) {
-	bytes, err := ioutil.ReadAll(fileReader)
+	bytes, err := io.ReadAll(fileReader)
 	if err != nil {
 		return 0, err
 	}

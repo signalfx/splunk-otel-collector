@@ -40,7 +40,7 @@ how to use the role in a playbook with minimal required configuration:
 You can disable starting the collector and fluentd services by setting 
 the argument `start_service` to `false`:
 
-```
+```terminal
 $> ansible-playbook playbook.yaml -e start_service=false
 ```
 
@@ -129,8 +129,7 @@ $> ansible-playbook playbook.yaml -e start_service=false
 - `splunk_memory_total_mib`: Amount of memory in MiB allocated to the Splunk OTel 
   Collector. (**default:** `512`)
 
-- `splunk_ballast_size_mib`: Memory ballast size in MiB that will be set to the Splunk 
-  OTel Collector. (**default:** 1/3 of `splunk_memory_total_mib`)
+- `gomemlimit`: The `GOMEMLIMIT` environment variable is introduced for the Splunk Otel Collector version >=0.97.0, allowing the limitation of memory usage in the GO runtime. This feature can help enhance GC (Garbage Collection) related performance and prevent GC related Out of Memory (OOM) situations.
 
 - `splunk_listen_interface`: The network interface the collector receivers will listen on.
   (**default** `0.0.0.0`).
@@ -153,8 +152,8 @@ $> ansible-playbook playbook.yaml -e start_service=false
   ```
   On Linux, the variables/values will be added to the
   `/etc/otel/collector/splunk-otel-collector.conf` systemd environment file.
-  On Windows, the variables/values will be added to the
-  `HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment`
+  On Windows, the variables/values will be added to the `Environment` value under the
+  `HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\splunk-otel-collector`
   registry key.
 
 #### Windows Proxy
@@ -193,10 +192,11 @@ which allows setting up a proxy to download the collector binaries.
   e.g. `./custom_fluentd_config.conf`. (**default:** `""` meaning 
   that nothing will be copied and existing `splunk_fluentd_config` will be used)
 
-### Auto Instrumentation for Java on Linux
+### Auto Instrumentation on Linux
 
-**Note:** The Java application(s) on the node need to be restarted separately
-after installation/configuration in order for any change to take effect.
+**Note:** The application(s) to be instrumented on the node need to be
+restarted separately after installation/configuration in order for any change
+to take effect.
 
 - `install_splunk_otel_auto_instrumentation` (Linux only): Whether to
   install/manage [Splunk OpenTelemetry Auto Instrumentation for Java](
@@ -205,9 +205,25 @@ after installation/configuration in order for any change to take effect.
   will be downloaded and installed from the Collector repository. (**default:**
   `false`)
 
+- `splunk_otel_auto_instrumentation_sdks`: List of Splunk OpenTelemetry Auto
+  Instrumentation SDKs to install, configure, and activate. (**default:**
+  `['java', 'nodejs', 'dotnet']`)
+
+  Currently, the following values are supported:
+  - `java`: [Splunk OpenTelemetry for Java](https://github.com/signalfx/splunk-otel-java)
+  - `nodejs`: [Splunk OpenTelemetry for Node.js](https://github.com/signalfx/splunk-otel-js)
+  - `dotnet` [Splunk OpenTelemetry for .NET](https://github.com/signalfx/splunk-otel-dotnet) (x86_64/amd64 only)
+
+  **Note:** This role does not manage the installation/configuration of
+  Node.js, `npm`, or Node.js applications. If `nodejs` is included in this
+  option, Node.js and `npm` are required to be pre-installed on the node in
+  order to install and activate the Node.js SDK.
+
 - `splunk_otel_auto_instrumentation_version` (Linux only): Version of the
   `splunk-otel-auto-instrumentation` package to install, e.g. `0.50.0`.
-  The minimum supported version is `0.48.0`. (**default:** `latest`)
+  The minimum supported version is `0.48.0`. The minimum supported version for
+  Node.js auto instrumentation is `0.87.0`. The minimum supported version for
+  .NET auto instrumentation is `0.99.0` (**default:** `latest`)
 
 - `splunk_otel_auto_instrumentation_systemd` (Linux only): By default, the
   `/etc/ld.so.preload` file on the node will be configured for the
@@ -234,6 +250,15 @@ after installation/configuration in order for any change to take effect.
   by the `splunk-otel-auto-instrumentation` package. If the path is changed
   from the default value, the path should be an existing file on the node.
   (**default:** `/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar`)
+
+- `splunk_otel_auto_instrumentation_npm_path`: If the
+  `splunk_otel_auto_instrumentation_sdks` option includes `nodejs`, the Splunk
+  OpenTelemetry for Node.js SDK will be installed only if the `npm --version`
+  shell command is successful. Use this option to specify a custom path on the
+  node for `npm`, for example `/my/custom/path/to/npm`. (**default:** `npm`)
+
+  **Note:** This role does not manage the installation/configuration of
+  Node.js or `npm`.
 
 - `splunk_otel_auto_instrumentation_resource_attributes` (Linux only):
   Configure the OpenTelemetry instrumentation resource attributes,
@@ -335,9 +360,9 @@ For proxy options, see the [Windows Proxy](#windows-proxy) section.
   `signalfx_dotnet_auto_instrumentation_additional_options` option to
   enable/configure auto instrumentation for ***only*** IIS applications:
   ```yaml
-  COR_ENABLE_PROFILING: true  # Required
+  COR_ENABLE_PROFILING: "1"  # Required
   COR_PROFILER: "{B4C89B0F-9908-4F73-9F59-0D77C5A06874}"  # Required
-  CORECLR_ENABLE_PROFILING: true  # Required
+  CORECLR_ENABLE_PROFILING: "1"  # Required
   CORECLR_PROFILER: "{B4C89B0F-9908-4F73-9F59-0D77C5A06874}"  # Required
   SIGNALFX_ENV: "{{ signalfx_dotnet_auto_instrumentation_environment }}"
   SIGNALFX_GLOBAL_TAGS: "{{ signalfx_dotnet_auto_instrumentation_global_tags }}"

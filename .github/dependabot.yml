@@ -23,13 +23,6 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "gomod"
-    directory: "/examples/signalfxgatewayprometheusremotewritereceiver"
-    ignore:
-      - dependency-name: "go.opentelemetry.io/*"
-      - dependency-name: "github.com/open-telemetry/*"
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "gomod"
     directory: "/examples/splunk-hec-traces/tracing"
     ignore:
       - dependency-name: "go.opentelemetry.io/*"
@@ -120,6 +113,74 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "docker"
+    directory: "/docker/activemq"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker"
+    directory: "/docker/apache"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker"
+    directory: "/docker/cassandra"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker"
+    directory: "/docker/couchbase"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker"
+    directory: "/docker/haproxy"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker"
+    directory: "/docker/httpd"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker"
+    directory: "/docker/httpd_basicauth"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker"
+    directory: "/docker/kafka"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker"
+    directory: "/docker/kong"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker"
+    directory: "/docker/mongodb"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker"
+    directory: "/docker/mysql"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker"
+    directory: "/docker/nginx"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker"
+    directory: "/docker/oracle"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker"
+    directory: "/docker/postgres"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker"
+    directory: "/docker/redis_client"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker"
+    directory: "/docker/redis_server"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker"
+    directory: "/docker/solr"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker"
     directory: "/examples/prometheus-federation/prom-counter"
     schedule:
       interval: "weekly"
@@ -157,5 +218,25 @@ updates:
       interval: "weekly"
   - package-ecosystem: "maven"
     directory: "/internal/signalfx-agent/bundle/java/jmx"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "nuget"
+    directory: "/instrumentation/tests/dotnet"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "nuget"
+    directory: "/internal/buildscripts/packaging/msi/SplunkCustomActions/src"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "nuget"
+    directory: "/internal/buildscripts/packaging/msi/SplunkCustomActions/test"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "nuget"
+    directory: "/tests/zeroconfig/windows/testdata/apps/AspNet.WebApi.NetFramework"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "nuget"
+    directory: "/tests/zeroconfig/windows/testdata/apps/AspNetCore.WebApi.Net"
     schedule:
       interval: "weekly"

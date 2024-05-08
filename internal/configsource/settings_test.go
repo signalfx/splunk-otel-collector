@@ -31,7 +31,7 @@ func TestConfigSourceParser(t *testing.T) {
 	ctx := context.Background()
 
 	testFactories := Factories{
-		"tstcfgsrc": &MockCfgSrcFactory{},
+		component.MustNewType("tstcfgsrc"): &MockCfgSrcFactory{},
 	}
 	tests := []struct {
 		factories        Factories
@@ -48,12 +48,12 @@ func TestConfigSourceParser(t *testing.T) {
 			factories: testFactories,
 			expectedSettings: map[string]Settings{
 				"tstcfgsrc": &MockCfgSrcSettings{
-					SourceSettings: NewSourceSettings(component.NewID("tstcfgsrc")),
+					SourceSettings: NewSourceSettings(component.MustNewID("tstcfgsrc")),
 					Endpoint:       "some_endpoint",
 					Token:          "some_token",
 				},
 				"tstcfgsrc/named": &MockCfgSrcSettings{
-					SourceSettings: NewSourceSettings(component.NewIDWithName("tstcfgsrc", "named")),
+					SourceSettings: NewSourceSettings(component.MustNewIDWithName("tstcfgsrc", "named")),
 					Endpoint:       "default_endpoint",
 				},
 			},
@@ -68,7 +68,7 @@ func TestConfigSourceParser(t *testing.T) {
 			},
 			expectedSettings: map[string]Settings{
 				"tstcfgsrc": &MockCfgSrcSettings{
-					SourceSettings: NewSourceSettings(component.NewID("tstcfgsrc")),
+					SourceSettings: NewSourceSettings(component.MustNewID("tstcfgsrc")),
 					Endpoint:       "https://env_var_endpoint:8200",
 					Token:          "env_var_token",
 				},
@@ -91,7 +91,7 @@ func TestConfigSourceParser(t *testing.T) {
 			name: "missing_factory",
 			file: "basic_config",
 			factories: Factories{
-				"not_in_basic_config": &MockCfgSrcFactory{},
+				component.MustNewType("not_in_basic_config"): &MockCfgSrcFactory{},
 			},
 			wantErr: "unknown config_sources type \"tstcfgsrc\"",
 		},

@@ -35,7 +35,7 @@ func TestVaultLoadConfig(t *testing.T) {
 	require.NoError(t, err)
 
 	factories := map[component.Type]configsource.Factory{
-		typeStr: NewFactory(),
+		component.MustNewType(typeStr): NewFactory(),
 	}
 
 	actualSettings, splitConf, err := configsource.SettingsFromConf(context.Background(), v, factories, nil)
@@ -46,7 +46,7 @@ func TestVaultLoadConfig(t *testing.T) {
 	otherToken := "other_token"
 	expectedSettings := map[string]configsource.Settings{
 		"vault": &Config{
-			SourceSettings: configsource.NewSourceSettings(component.NewID(typeStr)),
+			SourceSettings: configsource.NewSourceSettings(component.MustNewID(typeStr)),
 			Endpoint:       "http://localhost:8200",
 			Path:           "secret/kv",
 			PollInterval:   1 * time.Minute,
@@ -55,7 +55,7 @@ func TestVaultLoadConfig(t *testing.T) {
 			},
 		},
 		"vault/poll_interval": &Config{
-			SourceSettings: configsource.NewSourceSettings(component.NewIDWithName(typeStr, "poll_interval")),
+			SourceSettings: configsource.NewSourceSettings(component.MustNewIDWithName(typeStr, "poll_interval")),
 			Endpoint:       "https://localhost:8200",
 			Path:           "other/path/kv",
 			PollInterval:   10 * time.Second,

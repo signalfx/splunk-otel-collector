@@ -21,7 +21,6 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/pdata/plog"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest"
@@ -45,7 +44,6 @@ func TestStatementFromZapCoreEntry(t *testing.T) {
 	require.NotNil(t, statement)
 
 	require.Equal(t, "a.message", statement.Message)
-	require.Equal(t, "debug", statement.Level)
 	require.Equal(t, now, statement.Time)
 	require.Equal(t, "logger.name", statement.LoggerName)
 	require.Equal(t, entry.Caller, statement.Caller)
@@ -67,35 +65,6 @@ func TestStatementFromZapCoreEntryUnsupportedEncoder(t *testing.T) {
 	require.Nil(t, statement)
 }
 
-func TestStatementToLogRecord(t *testing.T) {
-	logger := zaptest.NewLogger(t).Named("logger.name")
-	encoder := NewZapCoreEncoder()
-	ce := logger.Check(zap.DebugLevel, "a.message")
-	entry := ce.Entry
-
-	now := time.Now()
-	entry.Time = now
-	statement, err := StatementFromZapCoreEntry(encoder, entry, []zapcore.Field{
-		zap.String("field.one", "field.value"), zap.String("field.two", "another.field.value"),
-		zap.Int("int", 1), zap.Bool("bool", true),
-	})
-	require.NoError(t, err)
-	require.NotNil(t, statement)
-
-	t0 := time.Now()
-	lr := statement.ToLogRecord()
-
-	require.Equal(t, "a.message", lr.Body().AsString())
-	require.Equal(t, "debug", lr.SeverityText())
-	require.Equal(t, now.UTC(), lr.Timestamp().AsTime())
-	require.GreaterOrEqual(t, lr.ObservedTimestamp().AsTime(), t0)
-	require.Equal(t, map[string]any{
-		"field.one": "field.value", "field.two": "another.field.value",
-		"logger": "logger.name", "bool": true, "int": float64(1), // becomes a float in json unmarshalling
-	}, lr.Attributes().AsRaw())
-
-}
-
 func TestReceiverNameToIDs(t *testing.T) {
 	for _, test := range []struct {
 		name               string
@@ -104,50 +73,39 @@ func TestReceiverNameToIDs(t *testing.T) {
 		expectedEndpointID observer.EndpointID
 	}{
 		{name: "happy path",
-			receiverName:       `<receiver.type>/<receiver.name>/receiver_creator/<receiver-creator.name>{endpoint="<Endpoint.Target>"}/<Endpoint.ID>`,
-			expectedReceiverID: component.NewIDWithName("<receiver.type>", "<receiver.name>"),
+			receiverName:       `receiver_type/receiver.name/receiver_creator/<receiver-creator.name>{endpoint="<Endpoint.Target>"}/<Endpoint.ID>`,
+			expectedReceiverID: component.MustNewIDWithName("receiver_type", "receiver.name"),
 			expectedEndpointID: observer.EndpointID("<Endpoint.ID>"),
 		},
 		{name: "missing receiver_creator separator",
-			receiverName:       `<receiver.type>/<receiver.name>/<receiver-creator.name>{endpoint="<Endpoint.Target>"}/<Endpoint.ID>`,
-			expectedReceiverID: component.NewID(""),
-			expectedEndpointID: observer.EndpointID(""),
-		},
-		{name: "multiple receiver_creator separators",
-			receiverName:       `<receiver.type>/<receiver.name>/receiver_creator/receiver_creator/{endpoint="<Endpoint.Target>"}/<Endpoint.ID>`,
-			expectedReceiverID: component.NewID(""),
+			receiverName:       `receiver_type/receiver.name/<receiver-creator.name>{endpoint="<Endpoint.Target>"}/<Endpoint.ID>`,
+			expectedReceiverID: discovery.NoType,
 			expectedEndpointID: observer.EndpointID(""),
 		},
 		{name: "missing endpoint separator",
-			receiverName:       `<receiver.type>/<receiver.name>/receiver_creator/<receiver-creator.name>/<Endpoint.ID>`,
-			expectedReceiverID: component.NewID(""),
-			expectedEndpointID: observer.EndpointID(""),
-		},
-		{name: "multiple endpoint separators",
-			receiverName:       `<receiver.type>/<receiver.name>/receiver_creator/<receiver-creator.name>/{endpoint="<Endpoint.Target>"}/{endpoint="<Endpoint.Target>"}/<Endpoint.ID>`,
-			expectedReceiverID: component.NewID(""),
+			receiverName:       `receiver_type/receiver.name/receiver_creator/<receiver-creator.name>/<Endpoint.ID>`,
+			expectedReceiverID: discovery.NoType,
 			expectedEndpointID: observer.EndpointID(""),
 		},
 		{name: "missing name with forward slash hostport",
 			receiverName:       `debug//receiver_creator/discovery/discovery_name{endpoint="127.0.0.53:53"}/(host_observer/host)127.0.0.53-53-TCP)`,
-			expectedReceiverID: component.NewID("debug"),
+			expectedReceiverID: component.MustNewID("debug"),
 			expectedEndpointID: observer.EndpointID("(host_observer/host)127.0.0.53-53-TCP)"),
 		},
 		{name: "missing name without forward slash hostport",
 			receiverName:       `debug/receiver_creator/discovery/discovery_name{endpoint="127.0.0.53:53"}/(host_observer/host)127.0.0.53-53-TCP)`,
-			expectedReceiverID: component.NewID("debug"),
+			expectedReceiverID: component.MustNewID("debug"),
 			expectedEndpointID: observer.EndpointID("(host_observer/host)127.0.0.53-53-TCP)"),
 		},
 		{name: "docker observer",
 			receiverName:       `smartagent/redis/with/additional/slashes/receiver_creator/discovery/discovery_name{endpoint="172.17.0.2:6379"}/d2ee077a262e23bf3fccdd6422f88ce3ec6ed2403bfe67c1d25fb3e5647a0bb7:6379`,
-			expectedReceiverID: component.NewIDWithName("smartagent", "redis/with/additional/slashes"),
+			expectedReceiverID: component.MustNewIDWithName("smartagent", "redis/with/additional/slashes"),
 			expectedEndpointID: observer.EndpointID("d2ee077a262e23bf3fccdd6422f88ce3ec6ed2403bfe67c1d25fb3e5647a0bb7:6379"),
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			lr := plog.NewLogRecord()
-			lr.Attributes().PutStr("name", test.receiverName)
-			receiverID, endpointID := ReceiverNameToIDs(lr)
+			statement := &Statement{Fields: map[string]any{"name": test.receiverName}}
+			receiverID, endpointID := ReceiverNameToIDs(statement)
 			require.Equal(t, test.expectedReceiverID, receiverID)
 			require.Equal(t, test.expectedEndpointID, endpointID)
 		})
@@ -156,11 +114,11 @@ func TestReceiverNameToIDs(t *testing.T) {
 
 func FuzzReceiverNameToIDs(f *testing.F) {
 	for _, receiverName := range []string{
-		`invalid`, `<receiver.type>/<receiver.name>/<receiver-creator.name>{endpoint="<Endpoint.Target>"}/<Endpoint.ID>`,
-		`<receiver.type>/<receiver.name>/receiver_creator/<receiver-creator.name>/<Endpoint.ID>`,
-		`<receiver.type>/<receiver.name>/receiver_creator/<receiver-creator.name>/{endpoint="<Endpoint.Target>"}/{endpoint="<Endpoint.Target>"}/<Endpoint.ID>`,
-		`<receiver.type>/<receiver.name>/receiver_creator/<receiver-creator.name>/{endpoint="<Endpoint.Target>"}/<Endpoint.ID>`,
-		`<receiver.type>/<receiver.name>/receiver_creator/receiver_creator/{endpoint="<Endpoint.Target>"}/<Endpoint.ID>`,
+		`invalid`, `receiver_type/receiver.name/<receiver-creator.name>{endpoint="<Endpoint.Target>"}/<Endpoint.ID>`,
+		`receiver_type/receiver.name/receiver_creator/<receiver-creator.name>/<Endpoint.ID>`,
+		`receiver_type/receiver.name/receiver_creator/<receiver-creator.name>/{endpoint="<Endpoint.Target>"}/{endpoint="<Endpoint.Target>"}/<Endpoint.ID>`,
+		`receiver_type/receiver.name/receiver_creator/<receiver-creator.name>/{endpoint="<Endpoint.Target>"}/<Endpoint.ID>`,
+		`receiver_type/receiver.name/receiver_creator/receiver_creator/{endpoint="<Endpoint.Target>"}/<Endpoint.ID>`,
 		`debug//receiver_creator/discovery/discovery_name{endpoint="127.0.0.53:53"}/(host_observer/host)127.0.0.53-53-TCP)`,
 		`debug/receiver_creator/discovery/discovery_name{endpoint="127.0.0.53:53"}/(host_observer/host)127.0.0.53-53-TCP`,
 		`smartagent/redis/receiver_creator/discovery/discovery_name{endpoint="172.17.0.2:6379"}/d2ee077a262e23bf3fccdd6422f88ce3ec6ed2403bfe67c1d25fb3e5647a0bb7:6379`,
@@ -169,14 +127,13 @@ func FuzzReceiverNameToIDs(f *testing.F) {
 	}
 	f.Fuzz(func(t *testing.T, receiverName string) {
 		require.NotPanics(t, func() {
-			lr := plog.NewLogRecord()
-			lr.Attributes().PutStr("name", receiverName)
-			receiverID, endpointID := ReceiverNameToIDs(lr)
+			statement := &Statement{Fields: map[string]any{"name": receiverName}}
+			receiverID, endpointID := ReceiverNameToIDs(statement)
 			// if we can't find a receiver we should never return an EndpointID
 			if receiverID == discovery.NoType {
 				require.Equal(t, observer.EndpointID(""), endpointID)
-			} else if receiverID.Type() == component.Type("") {
-				// if the receiver type is empty the name should also be empty
+			} else if receiverID.Type() == discovery.NoType.Type() {
+				// if the receiver type is indeterminate, the name should be empty
 				require.Equal(t, "", receiverID.Name())
 			}
 		})

@@ -43,10 +43,6 @@ func newReceiver(
 	config *Config,
 	nextConsumer consumer.Metrics,
 ) (receiver.Metrics, error) {
-	if nextConsumer == nil {
-		return nil, component.ErrNilNextConsumer
-	}
-
 	rep, err := newOtelReporter(settings)
 	if err != nil {
 		return nil, err
@@ -65,13 +61,13 @@ func newReceiver(
 func (receiver *prometheusRemoteWriteReceiver) Start(ctx context.Context, host component.Host) error {
 	metricsChannel := make(chan pmetric.Metrics, receiver.config.BufferSize)
 	cfg := &serverConfig{
-		HTTPServerSettings: receiver.config.HTTPServerSettings,
-		Path:               receiver.config.ListenPath,
-		Mc:                 metricsChannel,
-		TelemetrySettings:  receiver.settings.TelemetrySettings,
-		Reporter:           receiver.reporter,
-		Host:               host,
-		Parser:             newPrometheusRemoteOtelParser(),
+		ServerConfig:      receiver.config.ServerConfig,
+		Path:              receiver.config.ListenPath,
+		Mc:                metricsChannel,
+		TelemetrySettings: receiver.settings.TelemetrySettings,
+		Reporter:          receiver.reporter,
+		Host:              host,
+		Parser:            newPrometheusRemoteOtelParser(),
 	}
 	if receiver.server != nil {
 		err := receiver.server.close()
@@ -83,26 +79,26 @@ func (receiver *prometheusRemoteWriteReceiver) Start(ctx context.Context, host c
 		receiver.cancel()
 	}
 	ctx, receiver.cancel = context.WithCancel(ctx)
-	server, err := newPrometheusRemoteWriteServer(cfg)
+	server, err := newPrometheusRemoteWriteServer(ctx, cfg)
 	if err != nil {
 		return err
 	}
 	receiver.server = server
 
-	go receiver.startServer(host)
+	go receiver.startServer(ctx)
 	go receiver.manageServerLifecycle(ctx, metricsChannel)
 
 	return nil
 }
 
-func (receiver *prometheusRemoteWriteReceiver) startServer(host component.Host) {
+func (receiver *prometheusRemoteWriteReceiver) startServer(ctx context.Context) {
 	prometheusRemoteWriteServer := receiver.server
 	if prometheusRemoteWriteServer == nil {
-		host.ReportFatalError(fmt.Errorf("start called on null prometheusRemoteWriteServer for receiver %s", metadata.Type))
+		receiver.settings.TelemetrySettings.ReportStatus(component.NewFatalErrorEvent(fmt.Errorf("start called on null prometheusRemoteWriteServer for receiver %s", metadata.Type)))
 	}
-	if err := prometheusRemoteWriteServer.listenAndServe(); err != nil {
+	if err := prometheusRemoteWriteServer.listenAndServe(ctx); err != nil {
 		// our receiver swallows http's ErrServeClosed, and we should only get "concerning" issues at this point in the code.
-		host.ReportFatalError(err)
+		receiver.settings.TelemetrySettings.ReportStatus(component.NewFatalErrorEvent(err))
 		receiver.reporter.OnDebugf("Error in %s/%s listening on %s/%s: %s", metadata.Type, receiver.settings.ID, prometheusRemoteWriteServer.Addr, prometheusRemoteWriteServer.Path, err)
 	}
 }

@@ -12,27 +12,37 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build integration
+//go:build smartagent_integration
 
 package tests
 
 import (
-	"path"
 	"testing"
+
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
 func TestCollectdSolrReceiverProvidesAllMetrics(t *testing.T) {
-	containers := []testutils.Container{
-		testutils.NewContainer().WithContext(
-			path.Join(".", "testdata", "server"),
-		).WithExposedPorts("8983:8983").WithName(
-			"solr",
-		).WillWaitForPorts("8983").WillWaitForLogs("Time spent:"),
-	}
-
-	testutils.AssertAllMetricsReceived(
-		t, "all.yaml", "all_metrics_config.yaml", containers, nil,
+	testutils.CheckGoldenFile(t, "all_metrics_config.yaml", "all_expected.yaml",
+		pmetrictest.IgnoreTimestamp(),
+		pmetrictest.IgnoreMetricValues(
+			"gauge.solr.core_usablespace",
+			"counter.solr.node_collections_requests",
+			"counter.solr.node_metrics_requests",
+			"counter.solr.http_2xx_responses",
+			"counter.solr.http_requests",
+			"gauge.solr.jetty_request_latency",
+			"gauge.solr.jvm_heap_usage",
+			"gauge.solr.jvm_total_memory_used",
+			"gauge.solr.jvm_memory_pools_Metaspace_usage",
+			"gauge.solr.searcher_warmup",
+			"gauge.solr.core_totalspace",
+			"gauge.solr.core_index_size",
+			"gauge.solr.search_query_response",
+			"gauge.solr.update_request_handler_response",
+		),
+		pmetrictest.IgnoreResourceAttributeValue("node"),
 	)
 }

@@ -11,6 +11,7 @@ on:
       - 'internal/buildscripts/packaging/collect-libs.sh'
       - 'internal/buildscripts/packaging/fpm/**'
       - 'internal/buildscripts/packaging/installer/install.sh'
+      - 'internal/buildscripts/packaging/jmx-metric-gatherer-release.txt'
       - 'internal/buildscripts/packaging/tests/helpers/**'
       - 'internal/buildscripts/packaging/tests/images/**'
       - 'internal/buildscripts/packaging/tests/package_test.py'
@@ -28,7 +29,7 @@ env:
   PYTHON_VERSION: '3.11'
   PIP_VERSION: '22.0.4'
   REQUIREMENTS_PATH: "internal/buildscripts/packaging/tests/requirements.txt"
-  GO_VERSION: 1.20.10
+  GO_VERSION: 1.21.10
 
 jobs:
   setup-environment:
@@ -70,7 +71,7 @@ jobs:
           make ${{ matrix.SYS_BINARIES }}
 
       - name: Uploading binaries
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.SYS_BINARIES }}
           path: |
@@ -85,7 +86,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         id: bundle-cache
         with:
           path: .cache/buildx/agent-bundle-${{ matrix.ARCH }}
@@ -103,7 +104,7 @@ jobs:
         env:
           BUNDLE_CACHE_HIT: "${{ steps.bundle-cache.outputs.cache-hit }}"
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: agent-bundle-linux-${{ matrix.ARCH }}
           path: ./dist/agent-bundle_linux_${{ matrix.ARCH }}.tar.gz
@@ -130,12 +131,12 @@ jobs:
           cache-dependency-path: '**/go.sum'
 
       - name: Downloading binaries-linux_${{ matrix.ARCH }}
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: binaries-linux_${{ matrix.ARCH }}
           path: ./bin
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: agent-bundle-linux-${{ matrix.ARCH }}
           path: ./dist
@@ -144,7 +145,7 @@ jobs:
         run: make ${{ matrix.SYS_PACKAGE }}-package SKIP_COMPILE=true SKIP_BUNDLE=true VERSION="" ARCH="${{ matrix.ARCH }}"
 
       - name: Uploading ${{ matrix.SYS_PACKAGE }} ${{ matrix.ARCH }} package artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.SYS_PACKAGE }}-${{ matrix.ARCH }}-package
           path: ./dist/splunk-otel-collector*
@@ -195,7 +196,7 @@ jobs:
           echo "Unknown distro '${{ matrix.DISTRO }}'!"
           exit 1
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: ${{ env.SYS_PACKAGE }}-${{ matrix.ARCH }}-package
           path: ./dist
@@ -207,7 +208,7 @@ jobs:
           image: tonistiigi/binfmt:qemu-v7.0.0
 
       - name: Setup python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
@@ -257,6 +258,7 @@ jobs:
     strategy:
       matrix:
         ARCH: [ "amd64", "arm64", "ppc64le" ]
+      fail-fast: false
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4
@@ -275,12 +277,12 @@ jobs:
           image: tonistiigi/binfmt:qemu-v7.0.0
 
       - name: Downloading binaries-linux_${{ matrix.ARCH }}
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: binaries-linux_${{ matrix.ARCH }}
           path: ./bin
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         if: ${{ matrix.ARCH != 'ppc64le' }}
         with:
           name: agent-bundle-linux-${{ matrix.ARCH }}
@@ -343,7 +345,7 @@ jobs:
           docker exec otelcol /usr/lib/splunk-otel-collector/agent-bundle/bin/python --version
           docker exec otelcol /usr/lib/splunk-otel-collector/agent-bundle/jre/bin/java -version
           # ensure collectd-python plugins were installed
-          docker exec otelcol bash -c 'test -d /usr/lib/splunk-otel-collector/agent-bundle/collectd-python/'
+          docker exec otelcol sh -c 'test -d /usr/lib/splunk-otel-collector/agent-bundle/collectd-python/'
           if [[ "$(docker exec otelcol ls /usr/lib/splunk-otel-collector/agent-bundle/collectd-python/ | wc -l)" -eq 0 ]]; then
             echo "/usr/lib/splunk-otel-collector/agent-bundle/collectd-python/ is empty!" >&2
             exit 1

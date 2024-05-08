@@ -9,6 +9,11 @@ receivers:
     extraMetrics: ["*"]
     intervalSeconds: 1
 
+processors:
+  batch:
+  groupbyattrs:
+    keys:
+      - node
 exporters:
   otlp:
     endpoint: "${OTLP_ENDPOINT}"
@@ -20,4 +25,5 @@ service:
     metrics:
       receivers:
         - smartagent/collectd_couchbase
+      processors: [batch, groupbyattrs]
       exporters: [otlp]

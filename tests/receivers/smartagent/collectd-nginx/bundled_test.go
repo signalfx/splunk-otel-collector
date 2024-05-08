@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build integration
+//go:build smartagent_integration
 
 package tests
 
@@ -29,6 +29,7 @@ import (
 )
 
 func TestDockerObserver(t *testing.T) {
+	t.Skip("Issues with test-containers networking, need to wait for -contrib to update the docker api version for us to update testcontainers-go locally")
 	testutils.SkipIfNotContainerTest(t)
 	if runtime.GOOS == "darwin" {
 		t.Skip("unable to share sockets between mac and d4m vm: https://github.com/docker/for-mac/issues/483#issuecomment-758836836")

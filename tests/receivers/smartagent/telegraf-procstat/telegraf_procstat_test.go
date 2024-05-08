@@ -12,18 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build integration
+//go:build smartagent_integration
 
 package tests
 
 import (
 	"testing"
 
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
+
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
 func TestTelegrafProcstatReceiverProvidesAllMetrics(t *testing.T) {
-	// collector is monitoring itself so use container for env consistency
-	testutils.SkipIfNotContainerTest(t)
-	testutils.AssertAllMetricsReceived(t, "all.yaml", "all_metrics_config.yaml", nil, nil)
+	testutils.CheckGoldenFile(t, "all_metrics_config.yaml", "expected_all.yaml",
+		pmetrictest.IgnoreMetricsOrder(),
+		pmetrictest.IgnoreTimestamp(),
+		pmetrictest.IgnoreMetricValues())
 }

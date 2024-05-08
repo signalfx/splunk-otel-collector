@@ -85,23 +85,23 @@ func TestValidProperties(t *testing.T) {
 				Input: "splunk.discovery.receivers.receivertype.config.key",
 			},
 		},
-		{key: "splunk.discovery.extensions.extension-type/extensionname.config.key", val: "val",
+		{key: "splunk.discovery.extensions.extension_type/extensionname.config.key", val: "val",
 			expected: &Property{
 				ComponentType: "extensions",
-				Component:     ComponentID{Type: "extension-type", Name: "extensionname"},
+				Component:     ComponentID{Type: "extension_type", Name: "extensionname"},
 				Type:          "config",
 				Key:           "key",
 				Val:           "val",
 				stringMap: map[string]any{
 					"extensions": map[string]any{
-						"extension-type/extensionname": map[string]any{
+						"extension_type/extensionname": map[string]any{
 							"config": map[string]any{
 								"key": "val",
 							},
 						},
 					},
 				},
-				Input: "splunk.discovery.extensions.extension-type/extensionname.config.key",
+				Input: "splunk.discovery.extensions.extension_type/extensionname.config.key",
 			},
 		},
 		{key: "splunk.discovery.receivers.receivertype/.config.key", val: "val",
@@ -142,74 +142,56 @@ func TestValidProperties(t *testing.T) {
 				Input: "splunk.discovery.receivers.receiver_type/config.config.one::two::three",
 			},
 		},
-		{key: "splunk.discovery.receivers.receiver.type////.config.one::config", val: "val",
+		{key: "splunk.discovery.receivers.receiver_type////.config.one::config", val: "val",
 			expected: &Property{
 				ComponentType: "receivers",
-				Component:     ComponentID{Type: "receiver.type", Name: "///"},
+				Component:     ComponentID{Type: "receiver_type", Name: "///"},
 				Type:          "config",
 				Key:           "one::config",
 				Val:           "val",
 				stringMap: map[string]any{
 					"receivers": map[string]any{
-						"receiver.type////": map[string]any{
+						"receiver_type////": map[string]any{
 							"config": map[string]any{
 								"one": map[string]any{"config": "val"}},
 						},
 					},
 				},
-				Input: "splunk.discovery.receivers.receiver.type////.config.one::config",
+				Input: "splunk.discovery.receivers.receiver_type////.config.one::config",
 			},
 		},
-		{key: "splunk.discovery.extensions.extension--0-1-with-config-in-type-_x64__x86_🙈🙉🙊4:000x0;;0;;0;;-___-----type/e/x/t/e%ns<i>o<=n=>nam/e-with-config.config.o::n::e.config", val: "val",
-			expected: &Property{
-				ComponentType: "extensions",
-				Component:     ComponentID{Type: "extension--0-1-with-config-in-type-_x64__x86_🙈🙉🙊4:000x0;;0;;0;;-___-----type", Name: "e/x/t/e%ns<i>o<=n=>nam/e-with-config"},
-				Type:          "config",
-				Key:           "o::n::e.config",
-				Val:           "val",
-				stringMap: map[string]any{
-					"extensions": map[string]any{
-						"extension--0-1-with-config-in-type-_x64__x86_🙈🙉🙊4:000x0;;0;;0;;-___-----type/e/x/t/e%ns<i>o<=n=>nam/e-with-config": map[string]any{
-							"config": map[string]any{
-								"o": map[string]any{"n": map[string]any{"e.config": "val"}}},
-						},
-					},
-				},
-				Input: "splunk.discovery.extensions.extension--0-1-with-config-in-type-_x64__x86_🙈🙉🙊4:000x0;;0;;0;;-___-----type/e/x/t/e%ns<i>o<=n=>nam/e-with-config.config.o::n::e.config",
-			},
-		},
-		{key: "splunk.discovery.receivers.receiver.type////.enabled", val: "false",
+		{key: "splunk.discovery.receivers.receiver_type////.enabled", val: "false",
 			expected: &Property{
 				stringMap: map[string]any{
 					"receivers": map[string]any{
-						"receiver.type////": map[string]any{
+						"receiver_type////": map[string]any{
 							"enabled": "false",
 						},
 					},
 				},
 				ComponentType: "receivers",
-				Component:     ComponentID{Type: "receiver.type", Name: "///"},
+				Component:     ComponentID{Type: "receiver_type", Name: "///"},
 				Type:          "enabled",
 				Key:           "",
 				Val:           "false",
-				Input:         "splunk.discovery.receivers.receiver.type////.enabled",
+				Input:         "splunk.discovery.receivers.receiver_type////.enabled",
 			},
 		},
-		{key: "splunk.discovery.receivers.receiver.type////.enabled", val: "T",
+		{key: "splunk.discovery.receivers.receiver_type////.enabled", val: "T",
 			expected: &Property{
 				stringMap: map[string]any{
 					"receivers": map[string]any{
-						"receiver.type////": map[string]any{
+						"receiver_type////": map[string]any{
 							"enabled": "true",
 						},
 					},
 				},
 				ComponentType: "receivers",
-				Component:     ComponentID{Type: "receiver.type", Name: "///"},
+				Component:     ComponentID{Type: "receiver_type", Name: "///"},
 				Type:          "enabled",
 				Key:           "",
 				Val:           "true",
-				Input:         "splunk.discovery.receivers.receiver.type////.enabled",
+				Input:         "splunk.discovery.receivers.receiver_type////.enabled",
 			},
 		},
 	} {
@@ -239,6 +221,7 @@ func TestInvalidProperties(t *testing.T) {
 		{property: "splunk.discovery.invalid", expectedError: "invalid property \"splunk.discovery.invalid\" (parsing error): splunk.discovery:1:18: unexpected token \"invalid\" (expected (\"receivers\" | \"extensions\") <dot> ComponentID <dot> ((\"config\" <dot>) | \"enabled\") (<string> | <dot> | <forwardslash>)*)"},
 		{property: "splunk.discovery.extensions.config.one.two", expectedError: "invalid property \"splunk.discovery.extensions.config.one.two\" (parsing error): splunk.discovery:1:43: unexpected token \"<EOF>\" (expected <dot> ((\"config\" <dot>) | \"enabled\") (<string> | <dot> | <forwardslash>)*)"},
 		{property: "splunk.discovery.receivers.type/name.config", expectedError: "invalid property \"splunk.discovery.receivers.type/name.config\" (parsing error): splunk.discovery:1:44: unexpected token \"<EOF>\" (expected <dot>)"},
+		{property: "splunk.discovery.extensions.extension--0-1-with-config-in-type-_x64__x86_🙈🙉🙊4:000x0;;0;;0;;-___-----type/e/x/t/e%ns<i>o<=n=>nam/e-with-config.config.o::n::e.config", expectedError: "invalid receiver type \"extension--0-1-with-config-in-type-_x64__x86_🙈🙉🙊4:000x0;;0;;0;;-___-----type\": invalid character(s) in type \"extension--0-1-with-config-in-type-_x64__x86_🙈🙉🙊4:000x0;;0;;0;;-___-----type\""},
 	} {
 		t.Run(tt.property, func(t *testing.T) {
 			p, err := NewProperty(tt.property, "val")

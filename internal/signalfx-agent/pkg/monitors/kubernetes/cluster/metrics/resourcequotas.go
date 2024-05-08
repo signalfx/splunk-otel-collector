@@ -12,16 +12,16 @@ func datapointsForResourceQuota(rq *v1.ResourceQuota) []*datapoint.Datapoint {
 	dps := []*datapoint.Datapoint{}
 
 	for _, t := range []struct {
-		typ string
 		rl  v1.ResourceList
+		typ string
 	}{
 		{
-			"hard",
 			rq.Status.Hard,
+			"hard",
 		},
 		{
-			"used",
 			rq.Status.Used,
+			"used",
 		},
 	} {
 		for k, v := range t.rl {

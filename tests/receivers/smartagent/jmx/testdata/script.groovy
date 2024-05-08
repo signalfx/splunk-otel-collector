@@ -51,4 +51,3 @@ output.sendDatapoint(util.makeGauge(
   "cassandra.ownership",
   ss.Ownership.get(InetAddress.getByName(localEndpoint)),
   dims))
-

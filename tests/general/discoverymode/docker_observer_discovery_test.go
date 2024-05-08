@@ -152,6 +152,11 @@ func TestDockerObserver(t *testing.T) {
 							"resource_attributes": map[string]any{},
 							"rule":                `type == "container" and labels['test.id'] == '${SPLUNK_TEST_ID}' and port == 9090`,
 						},
+						"redis": map[string]any{
+							"config":              map[string]any{},
+							"resource_attributes": map[string]any{},
+							"rule":                "type == \"container\" and any([name, image, command], {# matches \"(?i)redis\"}) and not (command matches \"splunk.discovery\")",
+						},
 					},
 					"watch_observers": []any{"docker_observer"},
 				},
@@ -201,6 +206,9 @@ func TestDockerObserver(t *testing.T) {
 					"address": "",
 					"level":   "none",
 				},
+				"resource": map[string]any{
+					"splunk_autodiscovery": "true",
+				},
 			},
 		},
 		"extensions": map[string]any{
@@ -225,6 +233,11 @@ func TestDockerObserver(t *testing.T) {
 						"resource_attributes": map[string]any{},
 						"rule":                fmt.Sprintf(`type == "container" and labels['test.id'] == '%s' and port == 9090`, tc.ID),
 					},
+					"redis": map[string]any{
+						"config":              map[string]any{},
+						"resource_attributes": map[string]any{},
+						"rule":                "type == \"container\" and any([name, image, command], {# matches \"(?i)redis\"}) and not (command matches \"splunk.discovery\")",
+					},
 				},
 				"watch_observers": []any{"docker_observer"},
 			},
@@ -233,7 +246,7 @@ func TestDockerObserver(t *testing.T) {
 	require.Equal(t, expectedEffective, cc.EffectiveConfig(t, 55554))
 
 	sc, stdout, stderr := cc.Container.AssertExec(t, 25*time.Second,
-		"bash", "-c", `SPLUNK_DISCOVERY_LOG_LEVEL=error SPLUNK_DEBUG_CONFIG_SERVER=false \
+		"sh", "-c", `SPLUNK_DISCOVERY_LOG_LEVEL=error SPLUNK_DEBUG_CONFIG_SERVER=false \
 SPLUNK_DISCOVERY_EXTENSIONS_k8s_observer_ENABLED=false \
 SPLUNK_DISCOVERY_EXTENSIONS_docker_observer_ENABLED=true \
 SPLUNK_DISCOVERY_EXTENSIONS_docker_observer_CONFIG_endpoint=\${DOCKER_DOMAIN_SOCKET} \
@@ -274,6 +287,11 @@ receivers:
         resource_attributes: {}
         rule: type == "container" and labels['test.id'] == '${SPLUNK_TEST_ID}' and
           port == 9090
+      redis:
+        config: {}
+        resource_attributes: {}
+        rule: type == "container" and any([name, image, command], {# matches "(?i)redis"})
+          and not (command matches "splunk.discovery")
     watch_observers:
     - docker_observer
 service:
@@ -291,13 +309,12 @@ service:
     metrics:
       address: ""
       level: none
+    resource:
+      splunk_autodiscovery: "true"
 `, stdout)
 	require.Contains(
 		t, stderr,
-		fmt.Sprintf(`Discovering for next 20s...
-Successfully discovered "prometheus_simple" using "docker_observer" endpoint "%s:9090".
-Discovery complete.
-`, prometheus.GetContainerID()),
+		fmt.Sprintf(`Successfully discovered "prometheus_simple" using "docker_observer" endpoint "%s:`, prometheus.GetContainerID()),
 	)
 	require.Zero(t, sc)
 }

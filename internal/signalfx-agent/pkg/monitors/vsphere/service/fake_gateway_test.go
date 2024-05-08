@@ -103,7 +103,7 @@ func (g *fakeGateway) retrieveRefProperties(mor types.ManagedObjectReference, ds
 }
 
 // noinspection GoUnusedParameter
-func (g *fakeGateway) queryAvailablePerfMetric(ref types.ManagedObjectReference) (*types.QueryAvailablePerfMetricResponse, error) {
+func (g *fakeGateway) queryAvailablePerfMetric(_ types.ManagedObjectReference) (*types.QueryAvailablePerfMetricResponse, error) {
 	counterID := g.metricIDCounter
 	g.metricIDCounter++
 	return &types.QueryAvailablePerfMetricResponse{
@@ -114,12 +114,12 @@ func (g *fakeGateway) queryAvailablePerfMetric(ref types.ManagedObjectReference)
 }
 
 // noinspection GoUnusedParameter
-func (g *fakeGateway) queryPerfProviderSummary(mor types.ManagedObjectReference) (*types.QueryPerfProviderSummaryResponse, error) {
+func (g *fakeGateway) queryPerfProviderSummary(_ types.ManagedObjectReference) (*types.QueryPerfProviderSummaryResponse, error) {
 	panic("implement me")
 }
 
 // noinspection GoUnusedParameter
-func (g *fakeGateway) queryPerf(inv []*model.InventoryObject, maxSample int32) (*types.QueryPerfResponse, error) {
+func (g *fakeGateway) queryPerf(inv []*model.InventoryObject, _ int32) (*types.QueryPerfResponse, error) {
 	var ret []types.BasePerfEntityMetricBase
 	counter := 0
 	for range inv {

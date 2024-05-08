@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"go/format"
 	"html/template"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -34,16 +33,12 @@ func buildOutputPath(pkg *selfdescribe.PackageMetadata) string {
 }
 
 func generate(templateFile string) error {
-	pkgs, err := selfdescribe.CollectMetadata("pkg/monitors")
-
-	if err != nil {
-		return err
-	}
 
 	exportVars := false
 
 	tmpl, err := template.New(generatedMetadataTemplate).Option("missingkey=error").Funcs(template.FuncMap{
 		"formatVariable": func(s string) (string, error) {
+			var formatted string
 			formatted, err := formatVariable(s)
 
 			if err != nil {
@@ -74,6 +69,12 @@ func generate(templateFile string) error {
 
 	if err != nil {
 		return fmt.Errorf("parsing template %s failed: %s", generatedMetadataTemplate, err)
+	}
+
+	pkgs, err := selfdescribe.CollectMetadata("pkg/monitors")
+
+	if err != nil {
+		return err
 	}
 
 	for i := range pkgs {
@@ -144,7 +145,7 @@ func generate(templateFile string) error {
 			return err
 		}
 
-		if err := ioutil.WriteFile(outputFile, formatted, 0644); err != nil {
+		if err := os.WriteFile(outputFile, formatted, 0600); err != nil {
 			return err
 		}
 	}

@@ -38,12 +38,12 @@ type errMissingEndpoint struct{ error }
 type zkFactory struct{}
 
 func (v *zkFactory) Type() component.Type {
-	return typeStr
+	return component.MustNewType(typeStr)
 }
 
 func (v *zkFactory) CreateDefaultConfig() configsource.Settings {
 	return &Config{
-		SourceSettings: configsource.NewSourceSettings(component.NewID(typeStr)),
+		SourceSettings: configsource.NewSourceSettings(component.MustNewID(typeStr)),
 		Endpoints:      []string{defaultEndpoint},
 		Timeout:        defaultTimeout,
 	}

@@ -39,6 +39,7 @@ type httpSinkExporter struct {
 }
 
 func newExporter(logger *zap.Logger, endpoint string) *httpSinkExporter {
+	logger.Warn("This component is deprecated and must be used for testing purposes only. It does not redact or filter any telemetry content it exposes and should not be used with production data.")
 	return &httpSinkExporter{sink: newSink(logger, endpoint)}
 }
 

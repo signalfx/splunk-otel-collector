@@ -65,7 +65,7 @@ suites:
       remote_exec: true
       command: inspec exec custom_vars/test.rb
 
-  - name: with_default_dotnet_instrumentation
+  - name: with_default_windows_dotnet_instrumentation
     run_list:
       - recipe[splunk_otel_collector]
     attributes:
@@ -76,9 +76,9 @@ suites:
     verifier:
       name: shell
       remote_exec: true
-      command: inspec exec with_default_dotnet_instrumentation/test.rb
+      command: inspec exec with_default_windows_dotnet_instrumentation/test.rb
 
-  - name: with_custom_dotnet_instrumentation
+  - name: with_custom_windows_dotnet_instrumentation
     run_list:
       - recipe[splunk_otel_collector]
     attributes:
@@ -99,4 +99,4 @@ suites:
     verifier:
       name: shell
       remote_exec: true
-      command: inspec exec with_custom_dotnet_instrumentation/test.rb
+      command: inspec exec with_custom_windows_dotnet_instrumentation/test.rb

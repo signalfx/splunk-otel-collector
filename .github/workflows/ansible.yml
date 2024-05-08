@@ -17,6 +17,8 @@ on:
       - '.github/workflows/ansible.yml'
       - 'deployments/ansible/**'
       - '!**.md'
+  schedule:
+    - cron: '0 0 * * 1,4' # Every Monday and Thrusday at midnight UTC
 
 concurrency:
   group: ansible-${{ github.event.pull_request.number || github.ref }}
@@ -40,7 +42,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Python 3.
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
@@ -59,9 +61,9 @@ jobs:
       fail-fast: false
       matrix:
         ansible:
-          - ansible~=2.10.0
-          - ansible~=6.0
-          - ansible~=7.0
+          # Testing only the versions currently supported per https://endoflife.date/ansible
+          - ansible~=9.2.0
+          - ansible~=8.7.0
         distro:
           - amazonlinux2
           - amazonlinux2023
@@ -71,6 +73,7 @@ jobs:
           - debian9
           - debian10
           - debian11
+          - debian12
           - opensuse12
           - opensuse15
           - ubuntu1604
@@ -78,27 +81,27 @@ jobs:
           - ubuntu2004
           - ubuntu2204
         exclude:
-          # ansible<6 unsupported on Amazon Linux 2023
-          - distro: amazonlinux2023
-            ansible: ansible~=2.10.0
+          # ansible-core used by ansible 9.2.0 requires a minimum of Python2 version 2.7 or Python3 version 3.6. Current version: 3.5.2
+          - distro: ubuntu1604
+            ansible: ansible~=9.2.0
 
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4
 
-      - uses: DamianReeves/write-file-action@v1.2
+      - uses: DamianReeves/write-file-action@v1.3
         with:
           path: "${{ github.workspace }}/requirements.txt"
           contents: |
             ${{ matrix.ansible }}
-            molecule==3.3.0
-            molecule-docker==0.2.4
-            docker==5.0.0
-            ansible-lint==5.4.0
+            ansible-lint==6.22.2
+            molecule==6.0.3
+            molecule-plugins[docker]==23.5.0
+            docker==7.0.0
             urllib3<2
 
       - name: Set up Python 3.
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
           cache: 'pip'
@@ -112,7 +115,7 @@ jobs:
           pip3 install --use-pep517 -r ${GITHUB_WORKSPACE}/requirements.txt
 
       - name: Run Molecule tests.
-        run: molecule --base-config ./molecule/config/docker.yml test --all
+        run: molecule --debug -v --base-config ./molecule/config/docker.yml test --all
         env:
           PY_COLORS: '1'
           ANSIBLE_FORCE_COLOR: '1'
@@ -121,20 +124,16 @@ jobs:
   windows-test:
     name: Windows Test
     needs: lint
-    # Need to run on macos-12 since it is the only image with native support for ansible, vagrant, and virtualbox.
-    # https://docs.ansible.com/ansible/latest/os_guide/windows_faq.html#windows-faq-ansible
-    # https://github.com/actions/runner-images/blob/main/images/macos/macos-12-Readme.md
-    runs-on: macos-12
-    timeout-minutes: 75
+    runs-on: ubuntu-20.04
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
         ansible:
-          - ansible~=2.10.0
-          - ansible~=6.0
-          - ansible~=7.0
+          # Testing only the versions currently supported per https://endoflife.date/ansible
+          - ansible~=9.2.0
+          - ansible~=8.7.0
         distro:
-          - "2012"
           - "2016"
           - "2019"
           - "2022"
@@ -143,22 +142,32 @@ jobs:
           - custom_vars
           - with_instrumentation
     steps:
+      - name: Free up disk space for vagrant box
+        uses: jlumbroso/free-disk-space@v1.3.1
+
       - name: Check out the codebase.
         uses: actions/checkout@v4
 
-      - uses: DamianReeves/write-file-action@v1.2
+      - name: Install vagrant and virtualbox
+        run: |
+          sudo apt update && sudo apt install -y virtualbox
+          wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+          sudo apt update && sudo apt install -y vagrant
+
+      - uses: DamianReeves/write-file-action@v1.3
         with:
           path: "${{ github.workspace }}/requirements.txt"
           contents: |
             ${{ matrix.ansible }}
-            ansible-compat==2.2.7
-            ansible-lint==5.4.0
-            molecule==4.0.4
-            molecule-vagrant==2.0.0
+            ansible-compat==4.1.11
+            ansible-lint==6.22.2
+            molecule==6.0.3
+            molecule-plugins[vagrant]==23.5.0
             pywinrm==0.4.3
 
       - name: Set up Python 3.
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
           cache: 'pip'
@@ -195,7 +204,7 @@ jobs:
         run: echo "Fail to read version from galaxy.yml" && exit 1
 
       - name: Push new release tag if it doesn't exist
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |

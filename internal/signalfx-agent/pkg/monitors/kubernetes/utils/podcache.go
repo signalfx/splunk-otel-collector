@@ -20,12 +20,12 @@ type PodCache struct {
 
 // CachedPod is used for holding only the necessary
 type CachedPod struct {
-	UID               types.UID
-	LabelSet          labels.Set
-	OwnerReferences   []metav1.OwnerReference
-	Namespace         string
-	Tolerations       []v1.Toleration
 	CreationTimestamp metav1.Time
+	LabelSet          labels.Set
+	UID               types.UID
+	Namespace         string
+	OwnerReferences   []metav1.OwnerReference
+	Tolerations       []v1.Toleration
 }
 
 func (cp *CachedPod) AsPod() *v1.Pod {

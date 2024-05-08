@@ -18,6 +18,7 @@
 $CONFDIR="${env:PROGRAMDATA}\Splunk\OpenTelemetry Collector" # Default configuration directory
 $DIRECTORY= # Either passed as CLI parameter or later set to CONFDIR
 $TMPDIR="${env:PROGRAMFILES}\Splunk\OpenTelemetry Collector\splunk-support-bundle-$([int64](New-TimeSpan -Start (Get-Date "01/01/1970") -End (Get-Date)).TotalSeconds)" # Unique temporary directory for support bundle contents
+$SVC_REGISTRY_KEY="HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" # Registry key for the collector service
 
 $ErrorActionPreference= 'stop'
 
@@ -58,6 +59,96 @@ for ( $i = 0; $i -lt $args.count; $i++ ) {
 }
 
 #######################################
+# Extracts the environment variables configured for the splunk-otel-collector service
+# and sets them in the current PowerShell session. This is useful to directly run the
+# collector from the PowerShell console. This is not required for the support bundle.
+#  - GLOBALS: $SVC_REGISTRY_KEY
+#  - ARGUMENTS: None
+#  - OUTPUTS: None
+#  - RETURN: None
+#######################################
+function setCurrentEnvironmentForManualRun() {
+    $env_array = Get-ItemPropertyValue -Path $SVC_REGISTRY_KEY -Name "Environment"
+    foreach ($entry in $env_array) {
+        $key, $value = $entry.Split("=", 2)
+        [Environment]::SetEnvironmentVariable($key, $value)
+    }
+}
+
+#######################################
+# Sets or modifies a single environment variable at the service scope level.
+# This can be used for any environment variable, not just those specific to Splunk
+# and OpenTelemtry, it can be used to setup go runtime environment variables that
+# will only affect the collector service.
+# If the passed value is $null the environment variable will be removed.
+#  - GLOBALS: $SVC_REGISTRY_KEY
+#  - ARGUMENTS: $key, $value
+#  - OUTPUTS: None
+#  - RETURN: None
+#######################################
+function setServiceEnvironmentVariable($key, $value) {
+    [string[]]$service_env_array = Get-ItemPropertyValue -Path $SVC_REGISTRY_KEY -Name "Environment"
+
+    # Put the environment variables in a dictionary for easy manipulation
+    $service_env_dict = @{}
+    foreach ($entry in $service_env_array) {
+        $k, $v = $entry.Split("=", 2)
+        $service_env_dict[$k] = $v
+    }
+
+    # Set or modify the specified environment variable
+    if ($null -eq $value) {
+        try {
+            $service_env_dict.Remove($key)
+        } catch {
+            Write-Output "Warning: Unable to remove environment variable '$key': $($Error[0])"
+        }
+    } else {
+        $service_env_dict[$key] = $value
+    }
+
+    # Whenever we write to the registry we sort it to make it deterministic
+    [string[]]$service_env_array = $service_env_dict.GetEnumerator() | ForEach-Object { "$($_.Key)=$($_.Value)" } | Sort-Object
+
+    Set-ItemProperty -Path $SVC_REGISTRY_KEY -Name "Environment" -Value $service_env_array -Type MultiString
+}
+
+#######################################
+# Gathers the service environment variables to the console. This is useful to see
+# the environment as set in the registry. Beware that this may be complemented by
+# environment variables set at the system or user scope. The user scope in this case
+# is the service account running the collector - by default LocalSystem.
+#  - GLOBALS: $SVC_REGISTRY_KEY
+#  - ARGUMENTS: None
+#  - OUTPUTS: None
+#  - RETURN: None
+#######################################
+function getServiceEnvironment($output_file = $null) {
+    Write-Output "INFO: Getting splunk-otel-collector service environment variables..."
+    $service_env = @()
+    try {
+        $service_env = Get-ItemPropertyValue -Path $SVC_REGISTRY_KEY -Name "Environment"
+    }
+    catch {
+        Write-Output "ERROR: Could not find environment variables for splunk-otel-collector service: $($Error[0])"
+        $service_env = @()
+    }
+    
+    foreach ($entry in $service_env) {
+        $key, $value = $entry.Split("=", 2)
+        if ($key.ToUpper().Contains("TOKEN") -AND $value.Length -gt 0) {
+            $entry = "$key=********"
+        }
+
+        if ($output_file) {
+            Write-Output $entry >> $output_file
+        } else {
+            Write-Output $entry
+        }
+    }
+}
+
+#######################################
 # Creates a unique temporary directory to store the contents of the support
 # bundle. Do not attempt to cleanup to prevent any accidental deletions.
 # This command can only be run once per second or will error out.
@@ -77,6 +168,7 @@ function createTempDir {
         New-Item -Path $TMPDIR/logs -ItemType Directory | Out-Null
         New-Item -Path $TMPDIR/logs/td-agent -ItemType Directory | Out-Null
         New-Item -Path $TMPDIR/metrics -ItemType Directory | Out-Null
+        New-Item -Path $TMPDIR/msi -ItemType Directory | Out-Null
         New-Item -Path $TMPDIR/zpages -ItemType Directory | Out-Null
         # We can not create directory using special characters like : , ? 
         # So we have encoded it and then created new directory.
@@ -209,6 +301,21 @@ function getMetrics {
 #  - OUTPUTS: None
 #  - RETURN: 0
 #######################################
+function getMsiInfo {
+    Write-Output "INFO: Getting MSI information..."
+    Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\*\Products\*\InstallProperties' `
+        | Where-Object { $_.DisplayName -eq "Splunk OpenTelemetry Collector" } > $TMPDIR/msi/user-installs.txt 2>&1
+    Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*' `
+        | Where-Object { $_.DisplayName -eq "Splunk OpenTelemetry Collector" } > $TMPDIR/msi/uninstall-info.txt 2>&1
+}
+
+#######################################
+# Gather zpages
+#  - GLOBALS: TMPDIR
+#  - ARGUMENTS: None
+#  - OUTPUTS: None
+#  - RETURN: 0
+#######################################
 function getZpages {
     Write-Output "INFO: Getting zpages information..."
     try {
@@ -284,6 +391,9 @@ $(getConfig) 2>&1 | Tee-Object -FilePath "$TMPDIR/stdout.log" -Append
 $(getStatus) 2>&1 | Tee-Object -FilePath "$TMPDIR/stdout.log" -Append
 $(getLogs) 2>&1 | Tee-Object -FilePath "$TMPDIR/stdout.log" -Append
 $(getMetrics) 2>&1 | Tee-Object -FilePath "$TMPDIR/stdout.log" -Append
+$(getMsiInfo) 2>&1 | Tee-Object -FilePath "$TMPDIR/stdout.log" -Append
 $(getZpages) 2>&1 | Tee-Object -FilePath "$TMPDIR/stdout.log" -Append
 $(getHostInfo) 2>&1 | Tee-Object -FilePath "$TMPDIR/stdout.log" -Append
+$(getServiceEnvironment("$TMPDIR/config/service_environment.txt")) 2>&1 `
+    | Tee-Object -FilePath "$TMPDIR/stdout.log" -Append
 $(zipResults) 2>&1 | Tee-Object -FilePath "$TMPDIR/stdout.log" -Append

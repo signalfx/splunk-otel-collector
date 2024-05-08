@@ -15,12 +15,16 @@
 package signalfxgatewayprometheusremotewritereceiver
 
 import (
+	"context"
+	"errors"
 	"io"
 	"net/http"
 	"sync"
 
+	"github.com/gogo/protobuf/proto"
+	"github.com/golang/snappy"
 	"github.com/gorilla/mux"
-	"github.com/prometheus/prometheus/storage/remote"
+	"github.com/prometheus/prometheus/prompb"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/confighttp"
 	"go.opentelemetry.io/collector/pdata/pmetric"
@@ -34,7 +38,7 @@ type prometheusRemoteWriteServer struct {
 }
 
 type serverConfig struct {
-	confighttp.HTTPServerSettings
+	confighttp.ServerConfig
 	component.TelemetrySettings
 	Reporter reporter
 	component.Host
@@ -43,17 +47,17 @@ type serverConfig struct {
 	Path   string
 }
 
-func newPrometheusRemoteWriteServer(config *serverConfig) (*prometheusRemoteWriteServer, error) {
+func newPrometheusRemoteWriteServer(ctx context.Context, config *serverConfig) (*prometheusRemoteWriteServer, error) {
 	mx := mux.NewRouter()
 	handler := newHandler(config.Parser, config, config.Mc)
 	mx.HandleFunc(config.Path, handler)
-	mx.Host(config.Endpoint)
-	server, err := config.HTTPServerSettings.ToServer(config.Host, config.TelemetrySettings, mx,
+	mx.Host(config.ServerConfig.Endpoint)
+	server, err := config.ServerConfig.ToServer(ctx, config.Host, config.TelemetrySettings, mx,
 		// ensure we support the snappy Content-Encoding, but leave it to the prometheus remotewrite lib to decompress.
 		confighttp.WithDecoder("snappy", func(body io.ReadCloser) (io.ReadCloser, error) {
 			return body, nil
 		}))
-	server.Addr = config.Endpoint
+	server.Addr = config.ServerConfig.Endpoint
 	if err != nil {
 		return nil, err
 	}
@@ -72,13 +76,9 @@ func (prw *prometheusRemoteWriteServer) close() error {
 	return prw.Server.Close()
 }
 
-func (prw *prometheusRemoteWriteServer) ready() {
-	prw.listening.Wait()
-}
-
-func (prw *prometheusRemoteWriteServer) listenAndServe() error {
+func (prw *prometheusRemoteWriteServer) listenAndServe(ctx context.Context) error {
 	prw.Reporter.OnDebugf("Starting prometheus simple write server")
-	listener, err := prw.serverConfig.ToListener()
+	listener, err := prw.serverConfig.ServerConfig.ToListener(ctx)
 	if err != nil {
 		return err
 	}
@@ -86,7 +86,7 @@ func (prw *prometheusRemoteWriteServer) listenAndServe() error {
 	prw.listening.Done()
 	err = prw.Server.Serve(listener)
 	prw.listening.Add(1)
-	if err == http.ErrServerClosed {
+	if errors.Is(err, http.ErrServerClosed) {
 		return nil
 	}
 	return err
@@ -95,7 +95,7 @@ func (prw *prometheusRemoteWriteServer) listenAndServe() error {
 func newHandler(parser *prometheusRemoteOtelParser, sc *serverConfig, mc chan<- pmetric.Metrics) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		sc.Reporter.OnDebugf("Processing write request %s", r.RequestURI)
-		req, err := remote.DecodeWriteRequest(r.Body)
+		req, err := DecodeWriteRequest(r.Body)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -113,4 +113,25 @@ func newHandler(parser *prometheusRemoteOtelParser, sc *serverConfig, mc chan<- 
 		mc <- results
 		w.WriteHeader(http.StatusAccepted)
 	}
+}
+
+// DecodeWriteRequest from an io.Reader into a prompb.WriteRequest, handling
+// snappy decompression.
+func DecodeWriteRequest(r io.Reader) (*prompb.WriteRequest, error) {
+	compressed, err := io.ReadAll(r)
+	if err != nil {
+		return nil, err
+	}
+
+	reqBuf, err := snappy.Decode(nil, compressed)
+	if err != nil {
+		return nil, err
+	}
+
+	var req prompb.WriteRequest
+	if err := proto.Unmarshal(reqBuf, &req); err != nil {
+		return nil, err
+	}
+
+	return &req, nil
 }

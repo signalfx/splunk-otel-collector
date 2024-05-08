@@ -7,10 +7,10 @@ import (
 )
 
 type ESClient struct {
+	HTTPClient *http.Client
 	Scheme     string
 	Host       string
 	Port       string
-	HTTPClient *http.Client
 }
 
 // Fetches a JSON response and puts it into an object

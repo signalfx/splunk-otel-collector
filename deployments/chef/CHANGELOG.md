@@ -1,8 +1,25 @@
 # Changelog
 
-## unreleased
+## chef-v0.14.0
 
-## chef-v0.10.0
+- Initial support for [Splunk OpenTelemetry for .NET](https://github.com/signalfx/splunk-otel-dotnet) Auto
+  Instrumentation on Linux (x86_64/amd64 only):
+  - The .NET SDK is activated by default if the `with_auto_instrumentation` option is set to `true` and
+    `auto_instrumentation_version` is `latest` or >= `0.99.0`.
+  - To skip .NET auto instrumentation, configure the `with_auto_instrumentation_sdks` option without `dotnet`.
+
+## chef-v0.13.0
+
+- Only copy the collector configuration file to `ProgramData` if the source exists.
+
+## chef-v0.12.0
+
+- `splunk_ballast_size_mib` is deprecated and removed. For Splunk Otel Collector version `0.97.0` or greater, `GOMEMLIMIT` env var is introduced. The default is set to 90% of the `SPLUNK_TOTAL_MEM_MIB`. For more information regarding the usage, please follow the instructions ([here](https://github.com/signalfx/splunk-otel-collector?tab=readme-ov-file#from-0961-to-0970)).
+
+## chef-v0.11.0
+
+- On Windows the `SPLUNK_*` environment variables were moved from the machine scope to the collector service scope.
+  It is possible that some instrumentations are relying on the machine-wide environment variables set by the installation. ([#3930](https://github.com/signalfx/splunk-otel-collector/pull/3930))
 
 - Initial support for [Splunk OpenTelemetry for Node.js](https://github.com/signalfx/splunk-otel-js) Auto
   Instrumentation on Linux:

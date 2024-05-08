@@ -54,7 +54,7 @@ func (m *Monitor) filterMeasurements(ms telegraf.Metric) error {
 	}
 
 	ms.RemoveTag("instance")
-	pluginInstance := strings.Replace(instance, " ", "_", -1)
+	pluginInstance := strings.ReplaceAll(instance, " ", "_")
 	ms.AddTag("plugin_instance", pluginInstance)
 	ms.AddTag("disk", pluginInstance)
 	return nil

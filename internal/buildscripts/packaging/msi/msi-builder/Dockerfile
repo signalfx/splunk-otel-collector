@@ -27,7 +27,7 @@ RUN wine wineboot && \
     wget https://dl.winehq.org/wine/wine-mono/6.4.0/wine-mono-6.4.0-x86.msi -nv -O mono.msi \
     && wine msiexec /i mono.msi \
     && rm -f mono.msi \
-    && wget https://github.com/wixtoolset/wix3/releases/download/wix3112rtm/wix311-binaries.zip -nv -O wix.zip \
+    && wget https://github.com/wixtoolset/wix3/releases/download/wix314rtm/wix314-binaries.zip -nv -O wix.zip \
     && mkdir wix \
     && unzip wix.zip -d wix \
     && rm -f wix.zip \
@@ -37,6 +37,8 @@ RUN wine wineboot && \
 
 
 FROM wix as msi-builder
+
+ARG JMX_METRIC_GATHERER_RELEASE
 
 USER root
 RUN apt-get update -y
@@ -52,7 +54,7 @@ RUN cp /project/internal/buildscripts/packaging/msi/msi-builder/docker-entrypoin
     chmod a+x /docker-entrypoint.sh
 
 ENV OUTPUT_DIR=/project/dist
-ENV JMX_METRIC_GATHERER_RELEASE=1.29.0
+ENV JMX_METRIC_GATHERER_RELEASE=${JMX_METRIC_GATHERER_RELEASE}
 ENV VERSION=""
 
 WORKDIR /work

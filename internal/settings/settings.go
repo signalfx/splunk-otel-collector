@@ -21,6 +21,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"runtime/debug"
 	"sort"
 	"strconv"
 	"strings"
@@ -36,13 +37,13 @@ import (
 
 const (
 	APIURLEnvVar              = "SPLUNK_API_URL"
-	BallastEnvVar             = "SPLUNK_BALLAST_SIZE_MIB"
 	ConfigEnvVar              = "SPLUNK_CONFIG"
 	ConfigDirEnvVar           = "SPLUNK_CONFIG_DIR"
 	ConfigServerEnabledEnvVar = "SPLUNK_DEBUG_CONFIG_SERVER"
 	ConfigYamlEnvVar          = "SPLUNK_CONFIG_YAML"
 	HecLogIngestURLEnvVar     = "SPLUNK_HEC_URL"
 	ListenInterfaceEnvVar     = "SPLUNK_LISTEN_INTERFACE"
+	GoMemLimitEnvVar          = "GOMEMLIMIT"
 	// nolint:gosec
 	HecTokenEnvVar    = "SPLUNK_HEC_TOKEN" // this isn't a hardcoded token
 	IngestURLEnvVar   = "SPLUNK_INGEST_URL"
@@ -53,15 +54,15 @@ const (
 	TokenEnvVar          = "SPLUNK_ACCESS_TOKEN" // this isn't a hardcoded token
 	TraceIngestURLEnvVar = "SPLUNK_TRACE_URL"
 
-	DefaultGatewayConfig           = "/etc/otel/collector/gateway_config.yaml"
-	DefaultOTLPLinuxConfig         = "/etc/otel/collector/otlp_config_linux.yaml"
-	DefaultConfigDir               = "/etc/otel/collector/config.d"
-	DefaultMemoryBallastPercentage = 33
-	DefaultMemoryLimitPercentage   = 90
-	DefaultMemoryTotalMiB          = 512
-	DefaultListenInterface         = "0.0.0.0"
-	DefaultAgentConfigLinux        = "/etc/otel/collector/agent_config.yaml"
-	featureGates                   = "feature-gates"
+	DefaultGatewayConfig   = "/etc/otel/collector/gateway_config.yaml"
+	DefaultOTLPLinuxConfig = "/etc/otel/collector/otlp_config_linux.yaml"
+	DefaultConfigDir       = "/etc/otel/collector/config.d"
+
+	DefaultMemoryLimitPercentage = 90
+	DefaultMemoryTotalMiB        = 512
+	DefaultListenInterface       = "0.0.0.0"
+	DefaultAgentConfigLinux      = "/etc/otel/collector/agent_config.yaml"
+	featureGates                 = "feature-gates"
 )
 
 var DefaultAgentConfigWindows = func() string {
@@ -75,14 +76,10 @@ var DefaultAgentConfigWindows = func() string {
 }()
 
 var (
-	envProvider  = envprovider.New()
-	fileProvider = fileprovider.New()
+	envProvider  = envprovider.NewFactory().Create(confmap.ProviderSettings{})
+	fileProvider = fileprovider.NewFactory().Create(confmap.ProviderSettings{})
 
-	defaultFeatureGates = []string{
-		// disabling until all new metrics categorized and rpc histograms are evaluated
-		// https://github.com/open-telemetry/opentelemetry-collector/issues/7454
-		"-telemetry.useOtelForInternalMetrics",
-	}
+	defaultFeatureGates = []string{}
 )
 
 type Settings struct {
@@ -217,11 +214,15 @@ func (s *Settings) ConfMapConverters() []confmap.Converter {
 		confMapConverters = append(
 			confMapConverters,
 			configconverter.RemoveBallastKey{},
+			configconverter.RemoveMemoryBallastKey{},
 			configconverter.MoveOTLPInsecureKey{},
 			configconverter.MoveHecTLS{},
 			configconverter.RenameK8sTagger{},
 			configconverter.NormalizeGcp{},
 			configconverter.LogLevelToVerbosity{},
+			configconverter.DisableKubeletUtilizationMetrics{},
+			configconverter.DisableExcessiveInternalMetrics{},
+			configconverter.AddOTLPHistogramAttr{},
 		)
 	}
 	return confMapConverters
@@ -304,7 +305,8 @@ func parseArgs(args []string) (*Settings, error) {
 	settings.setProperties, settings.discoveryProperties = parseSetOptionArguments(settings.setOptionArguments.value)
 
 	// Pass flags that are handled by the collector core service as raw command line arguments.
-	settings.colCoreArgs = flagSetToArgs(colCoreFlags, flagSet)
+	colCoreCommands := []string{"validate"}
+	settings.colCoreArgs = flagSetToArgs(colCoreFlags, colCoreCommands, flagSet)
 
 	return settings, nil
 }
@@ -320,12 +322,12 @@ func parseSetOptionArguments(arguments []string) (setProperties, discoveryProper
 	return
 }
 
-// flagSetToArgs takes a list of flag names and returns a list of corresponding command line arguments
-// using values from the provided flagSet.
+// flagSetToArgs takes slices of core service flag names and arguments and returns a slice of corresponding command line
+// arguments using values suitable for being passed to the underlying collector service.
 // The flagSet must be populated (flagSet.Parse is called), otherwise the returned list of arguments will be empty.
-func flagSetToArgs(flagNames []string, flagSet *flag.FlagSet) []string {
+func flagSetToArgs(colFlagNames, colCommands []string, flagSet *flag.FlagSet) []string {
 	var out []string
-	for _, flagName := range flagNames {
+	for _, flagName := range colFlagNames {
 		flag := flagSet.Lookup(flagName)
 		if flag.Changed {
 			switch fv := flag.Value.(type) {
@@ -336,6 +338,16 @@ func flagSetToArgs(flagNames []string, flagSet *flag.FlagSet) []string {
 			default:
 				out = append(out, "--"+flagName, flag.Value.String())
 			}
+		}
+	}
+
+	allowed := map[string]struct{}{}
+	for _, cmd := range colCommands {
+		allowed[cmd] = struct{}{}
+	}
+	for _, arg := range flagSet.Args() {
+		if _, ok := allowed[arg]; ok {
+			out = append(out, arg)
 		}
 	}
 	return out
@@ -359,15 +371,13 @@ func checkRuntimeParams(settings *Settings) error {
 		}
 	}
 
-	ballastSize := setMemoryBallast(memTotalSize)
-	memLimit, err := setMemoryLimit(memTotalSize)
+	_, err := setMemoryLimit(memTotalSize)
 	if err != nil {
 		return err
 	}
 
-	// Validate memoryLimit and memoryBallast are sane
-	if 2*ballastSize > memLimit {
-		return fmt.Errorf("memory limit (%d) is less than 2x ballast (%d). Increase memory limit or decrease ballast size", memLimit, ballastSize)
+	if _, ok := os.LookupEnv(GoMemLimitEnvVar); !ok {
+		setSoftMemoryLimit(memTotalSize)
 	}
 
 	return nil
@@ -508,20 +518,12 @@ func envVarAsInt(env string) int {
 	return val
 }
 
-// Validate and set the memory ballast
-func setMemoryBallast(memTotalSizeMiB int) int {
-	ballastSize := memTotalSizeMiB * DefaultMemoryBallastPercentage / 100
-	// Check if the memory ballast is specified via the env var, if so, validate and set properly.
-	if os.Getenv(BallastEnvVar) != "" {
-		ballastSize = envVarAsInt(BallastEnvVar)
-		if 33 > ballastSize {
-			log.Fatalf("Expected a number greater than 33 for %s env variable but got %d", BallastEnvVar, ballastSize)
-		}
-	}
-
-	_ = os.Setenv(BallastEnvVar, strconv.Itoa(ballastSize))
-	log.Printf("Set ballast to %d MiB", ballastSize)
-	return ballastSize
+// Check if the GOMEMLIMIT is specified via the env var, if not set the soft memory limit to 90% of the MemLimitMiBEnvVar
+func setSoftMemoryLimit(memTotalSizeMiB int) {
+	memLimit := int64(memTotalSizeMiB * DefaultMemoryLimitPercentage / 100)
+	// 1 MiB = 1048576 bytes
+	debug.SetMemoryLimit(memLimit * 1048576)
+	log.Printf("Set soft memory limit set to %d MiB", memLimit)
 }
 
 // Validate and set the memory limit

@@ -2,7 +2,11 @@ receivers:
   smartagent/telegraf_procstat:
     type: telegraf/procstat
     exe: "otelcol"
-
+processors:
+  batch:
+  groupbyattrs:
+    keys:
+      - exe
 exporters:
   otlp:
     endpoint: "${OTLP_ENDPOINT}"
@@ -14,4 +18,5 @@ service:
     metrics:
       receivers:
         - smartagent/telegraf_procstat
+      processors: [batch, groupbyattrs]
       exporters: [otlp]

@@ -67,7 +67,7 @@ func (ac *Accumulator) AddHistogram(measurement string, fields map[string]interf
 }
 
 // SetPrecision - SignalFx does not implement this
-func (ac *Accumulator) SetPrecision(precision, interval time.Duration) {
+func (ac *Accumulator) SetPrecision(_, _ time.Duration) {
 }
 
 // AddError - log an error returned by the plugin

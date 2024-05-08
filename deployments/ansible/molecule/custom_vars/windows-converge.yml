@@ -12,7 +12,7 @@
     splunk_otel_collector_config: '{{ansible_env.ProgramData}}\Splunk\OpenTelemetry Collector\custom_config.yml'
     splunk_otel_collector_config_source: ./custom_collector_config.yml
     splunk_memory_total_mib: 256
-    splunk_ballast_size_mib: 100
+    gomemlimit: 230
     install_fluentd: yes
     splunk_listen_interface: 1.2.3.4
     splunk_fluentd_config: '{{ansible_env.ProgramFiles}}\Splunk\OpenTelemetry Collector\fluentd\custom_config.conf'
@@ -34,4 +34,4 @@
   tasks:
     - name: "Include signalfx.splunk_otel_collector.collector role"
       include_role:
-        name: "collector"
+        name: "signalfx.splunk_otel_collector.collector"

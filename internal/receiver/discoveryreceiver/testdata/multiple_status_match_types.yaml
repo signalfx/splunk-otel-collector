@@ -3,13 +3,13 @@ discovery:
     - an_observer
   receivers:
     a_receiver:
-      rule: a rule
+      rule: type == "container"
       status:
         metrics:
-          successful:
-            - regexp: 'a regex'
-              strict: 'a strict'
+          - status: successful
+            regexp: 'a regex'
+            strict: 'a strict'
         statements:
-          failed:
-            - strict: 'another strict'
-              expr: 'an expr'
+          - status: failed
+            strict: 'another strict'
+            expr: 'an expr'

@@ -29,9 +29,7 @@ Example `redis.discovery.yaml.tmpl`:
     statements:
       partial:
         - regexp: 'ERR AUTH.*'
-          first_only: true
           log_record:
-            severity_text: info
             body: >-
               Please ensure your redis password is correctly specified with
               `--set {{ configProperty "password" "<password>" }}` or
@@ -55,9 +53,7 @@ redis:
     statements:
       partial:
         - regexp: 'ERR AUTH.*'
-          first_only: true
           log_record:
-            severity_text: info
             body: >-
               Please ensure your redis password is correctly specified with
               `--set splunk.discovery.receivers.redis.config.password="<password>"` or

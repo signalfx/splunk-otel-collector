@@ -40,11 +40,11 @@ func TestValidConfig(t *testing.T) {
 	require.NoError(t, cfg.Validate())
 
 	expectedCfg := &Config{
-		ScraperControllerSettings: scraperhelper.ScraperControllerSettings{
+		ControllerConfig: scraperhelper.ControllerConfig{
 			CollectionInterval: 10 * time.Second,
 			InitialDelay:       time.Second,
 		},
-		HTTPClientSettings: confighttp.NewDefaultHTTPClientSettings(),
+		ClientConfig: confighttp.NewDefaultClientConfig(),
 		ResourceAttributes: ResourceAttributesConfig{
 			ServiceInstanceID: ResourceAttributeConfig{Enabled: false},
 			ServiceName:       ResourceAttributeConfig{Enabled: false},
@@ -53,7 +53,7 @@ func TestValidConfig(t *testing.T) {
 			HTTPScheme:        ResourceAttributeConfig{Enabled: false},
 		},
 	}
-	expectedCfg.HTTPClientSettings.Endpoint = "http://localhost:9090/metrics"
+	expectedCfg.ClientConfig.Endpoint = "http://localhost:9090/metrics"
 	require.Equal(t, expectedCfg, cfg)
 }
 

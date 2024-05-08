@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -92,11 +92,12 @@ func (m *Monitor) Configure(conf *Config) error {
 		return fmt.Errorf("could not load excluded image filter: %w", err)
 	}
 
-	if conf.DimensionToUpdate == ctrNameDim {
+	switch conf.DimensionToUpdate {
+	case ctrNameDim:
 		m.dimensionToUpdate = func(ctr ecs.Container) (string, string) { return ctrNameDim, ctr.Name }
-	} else if conf.DimensionToUpdate == ctrIDDim {
+	case ctrIDDim:
 		m.dimensionToUpdate = func(ctr ecs.Container) (string, string) { return ctrIDDim, ctr.DockerID }
-	} else {
+	default:
 		return fmt.Errorf("unsupported `dimensionToUpdate` %q. Must be one of %q or %q", conf.DimensionToUpdate, ctrNameDim, ctrIDDim)
 	}
 
@@ -164,9 +165,9 @@ func (m *Monitor) fetchStatsForAll(enhancedMetricsConfig dmonitor.EnhancedMetric
 
 	var stats map[string]dtypes.StatsJSON
 
-	if err := json.Unmarshal(body, &stats); err != nil {
+	if err2 := json.Unmarshal(body, &stats); err2 != nil {
 		m.logger.WithFields(log.Fields{
-			"error": err,
+			"error": err2,
 		}).Error("Could not parse stats json")
 		return
 	}
@@ -272,7 +273,7 @@ func getMetadata(client *http.Client, endpoint string) ([]byte, error) {
 		return nil, fmt.Errorf("could not connect to %s : %s ", endpoint, http.StatusText(response.StatusCode))
 	}
 
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	return body, err
 }
 

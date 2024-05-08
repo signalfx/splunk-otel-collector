@@ -124,7 +124,7 @@ func (m *mapProvider) PropertiesFileProvider() confmap.Provider {
 }
 
 func (m *mapProvider) retrieve(scheme string) func(context.Context, string, confmap.WatcherFunc) (*confmap.Retrieved, error) {
-	return func(ctx context.Context, uri string, _ confmap.WatcherFunc) (*confmap.Retrieved, error) {
+	return func(_ context.Context, uri string, _ confmap.WatcherFunc) (*confmap.Retrieved, error) {
 		schemePrefix := fmt.Sprintf("%s:", scheme)
 		if !strings.HasPrefix(uri, schemePrefix) {
 			return nil, fmt.Errorf("uri %q is not supported by %s provider", uri, scheme)

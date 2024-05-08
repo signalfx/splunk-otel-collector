@@ -233,6 +233,7 @@ func shouldRedactKey(k string) bool {
 		"pwd",
 		"token",
 		"user",
+		"X-SF-Token",
 	}
 
 	for _, fragment := range fragments {

@@ -102,9 +102,6 @@ func TestDefaultGatewayConfig(t *testing.T) {
 							"endpoint": fmt.Sprintf("%s:6060", ip),
 						},
 					},
-					"memory_ballast": map[string]any{
-						"size_mib": "168",
-					},
 					"zpages": map[string]any{
 						"endpoint": fmt.Sprintf("%s:55679", ip),
 					},
@@ -142,7 +139,17 @@ func TestDefaultGatewayConfig(t *testing.T) {
 								"metric_relabel_configs": []any{
 									map[string]any{
 										"action":        "drop",
-										"regex":         ".*grpc_io.*",
+										"regex":         "otelcol_rpc_.*",
+										"source_labels": []any{"__name__"},
+									},
+									map[string]any{
+										"action":        "drop",
+										"regex":         "otelcol_http_.*",
+										"source_labels": []any{"__name__"},
+									},
+									map[string]any{
+										"action":        "drop",
+										"regex":         "otelcol_processor_batch_.*",
 										"source_labels": []any{"__name__"},
 									},
 								},
@@ -168,7 +175,7 @@ func TestDefaultGatewayConfig(t *testing.T) {
 				},
 				"service": map[string]any{
 					"telemetry":  map[string]any{"metrics": map[string]any{"address": fmt.Sprintf("%s:8888", ip)}},
-					"extensions": []any{"health_check", "http_forwarder", "zpages", "memory_ballast"},
+					"extensions": []any{"health_check", "http_forwarder", "zpages"},
 					"pipelines": map[string]any{
 						"logs": map[string]any{
 							"exporters":  []any{"splunk_hec", "splunk_hec/profiling"},
@@ -278,7 +285,6 @@ func TestDefaultAgentConfig(t *testing.T) {
 							"endpoint": fmt.Sprintf("%s:6060", ip),
 						},
 					},
-					"memory_ballast": map[string]any{"size_mib": "168"},
 					"smartagent": map[string]any{
 						"bundleDir": "/usr/lib/splunk-otel-collector/agent-bundle",
 						"collectd": map[string]any{
@@ -330,7 +336,17 @@ func TestDefaultAgentConfig(t *testing.T) {
 									"metric_relabel_configs": []any{
 										map[string]any{
 											"action":        "drop",
-											"regex":         ".*grpc_io.*",
+											"regex":         "otelcol_rpc_.*",
+											"source_labels": []any{"__name__"},
+										},
+										map[string]any{
+											"action":        "drop",
+											"regex":         "otelcol_http_.*",
+											"source_labels": []any{"__name__"},
+										},
+										map[string]any{
+											"action":        "drop",
+											"regex":         "otelcol_processor_batch_.*",
 											"source_labels": []any{"__name__"},
 										},
 									},
@@ -349,7 +365,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 					"zipkin":                 map[string]any{"endpoint": fmt.Sprintf("%s:9411", ip)}},
 				"service": map[string]any{
 					"telemetry":  map[string]any{"metrics": map[string]any{"address": fmt.Sprintf("%s:8888", ip)}},
-					"extensions": []any{"health_check", "http_forwarder", "zpages", "memory_ballast", "smartagent"},
+					"extensions": []any{"health_check", "http_forwarder", "zpages", "smartagent"},
 					"pipelines": map[string]any{
 						"logs": map[string]any{
 							"exporters":  []any{"splunk_hec", "splunk_hec/profiling"},

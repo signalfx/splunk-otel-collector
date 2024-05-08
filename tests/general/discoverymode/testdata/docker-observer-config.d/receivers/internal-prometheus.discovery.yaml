@@ -15,9 +15,7 @@ prometheus_simple:
         label_four: overwritten by env var property
   status:
     metrics:
-      successful:
-        - strict: prometheus_tsdb_time_retentions_total
-          first_only: true
-          log_record:
-            severity_text: info
-            body: prometheus detected
+      - status: successful
+        strict: prometheus_tsdb_time_retentions_total
+        log_record:
+          body: prometheus detected

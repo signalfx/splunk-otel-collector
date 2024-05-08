@@ -99,9 +99,9 @@ func (d *discoveryReceiver) Start(ctx context.Context, host component.Host) (err
 	d.endpointTracker = newEndpointTracker(d.observables, d.config, d.logger, d.pLogs, correlations)
 	d.endpointTracker.start()
 
-	d.metricEvaluator = newMetricEvaluator(d.logger, d.config, d.pLogs, correlations)
+	d.metricEvaluator = newMetricEvaluator(d.logger, d.config, correlations)
 
-	if d.statementEvaluator, err = newStatementEvaluator(d.logger, d.settings.ID, d.config, d.pLogs, correlations); err != nil {
+	if d.statementEvaluator, err = newStatementEvaluator(d.logger, d.settings.ID, d.config, correlations); err != nil {
 		return fmt.Errorf("failed creating statement evaluator: %w", err)
 	}
 
@@ -171,11 +171,11 @@ func (d *discoveryReceiver) consumerLoop(loopStarted *sync.WaitGroup) {
 }
 
 func (d *discoveryReceiver) createAndSetReceiverCreator() error {
-	receiverCreatorFactory, receiverCreatorConfig, err := d.config.receiverCreatorFactoryAndConfig(d.endpointTracker.correlations)
+	receiverCreatorFactory, receiverCreatorConfig, err := d.config.receiverCreatorFactoryAndConfig()
 	if err != nil {
 		return err
 	}
-	id := component.NewIDWithName(receiverCreatorFactory.Type(), d.settings.ID.String())
+	id := component.MustNewIDWithName(receiverCreatorFactory.Type().String(), d.settings.ID.String())
 	// receiverCreatorConfig.SetIDName(d.settings.ID.String())
 
 	receiverCreatorSettings := receiver.CreateSettings{

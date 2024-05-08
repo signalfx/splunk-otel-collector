@@ -29,14 +29,13 @@ const (
 
 func NewFactory() receiver.Factory {
 	return receiver.NewFactory(
-		typeStr,
+		component.MustNewType(typeStr),
 		createDefaultConfig,
 		receiver.WithLogs(createLogsReceiver, component.StabilityLevelDevelopment))
 }
 
 func createDefaultConfig() component.Config {
 	return &Config{
-		LogEndpoints:        false,
 		EmbedReceiverConfig: false,
 		CorrelationTTL:      10 * time.Minute,
 	}

@@ -10,9 +10,9 @@ import (
 
 func TestCommonDimensions(t *testing.T) {
 	cases := []struct {
-		hostFSPath   string
 		ps           *gopsutil.PartitionStat
 		expectedDims map[string]string
+		hostFSPath   string
 	}{
 		{
 			hostFSPath: "/hostfs",

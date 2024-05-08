@@ -11,24 +11,24 @@ import (
 )
 
 type statsDListener struct {
+	udpConn      *net.UDPConn
+	logger       *utils.ThrottledLogger
+	ipAddr       string
+	prefix       string
+	converters   []*converter
+	metricBuffer []string
 	sync.Mutex
-	ipAddr         string
+	shutdownCalled int32
 	port           uint16
 	tcp            bool
-	udpConn        *net.UDPConn
-	prefix         string
-	converters     []*converter
-	metricBuffer   []string
-	shutdownCalled int32
-	logger         *utils.ThrottledLogger
 }
 
 type statsDMetric struct {
+	dimensions    map[string]string
 	rawMetricName string
 	metricName    string
 	metricType    string
 	value         float64
-	dimensions    map[string]string
 }
 
 func (sl *statsDListener) Listen() error {
@@ -88,7 +88,7 @@ func (sl *statsDListener) Read() {
 	}
 }
 
-func (sl *statsDListener) readTCP(chData chan []byte) {
+func (sl *statsDListener) readTCP(_ chan []byte) {
 }
 
 func (sl *statsDListener) readUDP(chData chan []byte) {
@@ -128,22 +128,22 @@ func (sl *statsDListener) parseMetrics(raw []string) []*statsDMetric {
 		if m == "" {
 			continue
 		}
-		m, dims := parseDogstatsdTags(m, sl.logger)
-		colonIdx := strings.Index(m, ":")
-		pipeIdx := strings.Index(m, "|")
-		if pipeIdx >= len(m)-1 || pipeIdx < 0 || colonIdx-1 > len(m) || colonIdx < 0 {
-			sl.logger.Warnf("Invalid StatsD metric string : %s", m)
+		p, dims := parseDogstatsdTags(m, sl.logger)
+		colonIdx := strings.Index(p, ":")
+		pipeIdx := strings.Index(p, "|")
+		if pipeIdx >= len(p)-1 || pipeIdx < 0 || colonIdx-1 > len(p) || colonIdx < 0 {
+			sl.logger.Warnf("Invalid StatsD metric string : %s", p)
 			continue
 		}
-		secondPipeIdx := pipeIdx + strings.Index(m[pipeIdx+1:], "|")
+		secondPipeIdx := pipeIdx + strings.Index(p[pipeIdx+1:], "|")
 
-		rawMetricName := m[0:colonIdx]
+		rawMetricName := p[0:colonIdx]
 
 		var metricType string
 		if secondPipeIdx > pipeIdx {
-			metricType = m[pipeIdx+1 : secondPipeIdx]
+			metricType = p[pipeIdx+1 : secondPipeIdx]
 		} else {
-			metricType = m[pipeIdx+1:]
+			metricType = p[pipeIdx+1:]
 		}
 
 		var metricName string
@@ -157,7 +157,7 @@ func (sl *statsDListener) parseMetrics(raw []string) []*statsDMetric {
 			metricName, dims = convertMetric(metricName, sl.converters, dims)
 		}
 
-		strValue := m[colonIdx+1 : pipeIdx]
+		strValue := p[colonIdx+1 : pipeIdx]
 		value, err := strconv.ParseFloat(strValue, 64)
 
 		if err == nil {

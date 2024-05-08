@@ -27,9 +27,9 @@ splunk_config_override_list_merge: replace
 splunk_service_user: splunk-otel-collector
 splunk_service_group: splunk-otel-collector
 
-splunk_memory_total_mib: 512
-# 1/3 of memory_mib by default
-splunk_ballast_size_mib: ""
+splunk_memory_total_mib: "512"
+
+gomemlimit: ""
 
 splunk_listen_interface: ""
 install_fluentd: false
@@ -74,6 +74,11 @@ splunk_otel_auto_instrumentation_enable_profiler: false
 splunk_otel_auto_instrumentation_enable_profiler_memory: false
 splunk_otel_auto_instrumentation_enable_metrics: false
 splunk_otel_auto_instrumentation_otlp_endpoint: http://127.0.0.1:4317
+splunk_otel_auto_instrumentation_sdks:
+  - java
+  - nodejs
+  - dotnet
+splunk_otel_auto_instrumentation_npm_path: npm
 
 # Custom environment variables for the collector service
 splunk_otel_collector_additional_env_vars: {}

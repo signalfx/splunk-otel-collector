@@ -1,6 +1,46 @@
 # Changelog
 
-## unreleased
+## ansible-v0.28.0
+
+- Initial support for [Splunk OpenTelemetry for .NET](https://github.com/signalfx/splunk-otel-dotnet) Auto
+  Instrumentation on Linux (x86_64/amd64 only):
+  - The .NET SDK is activated by default if the `install_splunk_otel_auto_instrumentation` option is set to `true` and
+    `splunk_otel_auto_instrumentation_version` is `latest` or >= `0.99.0`.
+  - Set the `splunk_otel_auto_instrumentation_sdks` option to `java` and/or `nodejs` to skip .NET auto instrumentation.
+
+## ansible-v0.27.0
+
+- `splunk_ballast_size_mib` is deprecated and removed. For Splunk Otel Collector version `0.97.0` or greater, `GOMEMLIMIT` env var is introduced. The default is set to 90% of the `SPLUNK_TOTAL_MEM_MIB`. For more information regarding the usage, please follow the instructions ([here](https://github.com/signalfx/splunk-otel-collector?tab=readme-ov-file#from-0961-to-0970)).
+
+## ansible-v0.26.0
+
+### 💡 Enhancements 💡
+
+- Initial support for [Splunk OpenTelemetry for Node.js](https://github.com/signalfx/splunk-otel-js) Auto
+  Instrumentation on Linux:
+  - The Node.js SDK is installed and activated by default if the `install_splunk_otel_auto_instrumentation` option is set to `true`
+    and the `npm --version` shell command is successful.
+  - Set the `splunk_otel_auto_instrumentation_sdks` option to only `[java]` to skip Node.js auto instrumentation.
+  - Use the `splunk_otel_auto_instrumentation_npm_path` option to specify a custom path for `npm`.
+  - **Note:** This role does not manage the installation/configuration of Node.js, `npm`, or Node.js applications.
+
+## ansible-v0.25.0
+
+### 💡 Enhancements 💡
+
+- On Windows the `SPLUNK_*` environment variables were moved from the machine scope to the collector service scope.
+  It is possible that some instrumentations are relying on the machine-wide environment variables set by the installation. ([#3930](https://github.com/signalfx/splunk-otel-collector/pull/3930))
+
+### 🧰 Bug fixes 🧰
+
+- Use more secure assert calls ([#4024](https://github.com/signalfx/splunk-otel-collector/pull/4024))
+
+
+## ansible-v0.25.0
+
+### 💡 Enhancements 💡
+
+- Initial support for [Splunk OpenTelemetry for Node.js](https://github.com/signalfx/splunk-otel-js) Auto Instrumentation on Linux
 
 ## ansible-v0.24.0
 
@@ -195,5 +235,5 @@
 
 ## ansible-v0.1.0
 
-Initial version of `signalfx.splunk_otel_collector` Ansible Collection with 
+Initial version of `signalfx.splunk_otel_collector` Ansible Collection with
 Linux support.

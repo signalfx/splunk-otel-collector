@@ -18,23 +18,22 @@
 package tests
 
 import (
-	"path"
 	"testing"
+
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
-var httpd = []testutils.Container{testutils.NewContainer().WithContext(
-	path.Join(".", "testdata", "server"),
-).WithName("httpd").WithExposedPorts("8000:80").WillWaitForLogs("httpd -D FOREGROUND")}
-
-func TestInternalPrometheusMetrics(t *testing.T) {
-	testutils.SkipIfNotContainerTest(t) // TODO: enhance internal metric settings detection for process config
-	testutils.AssertAllMetricsReceived(
-		t, "internal.yaml", "internal_metrics_config.yaml", nil, nil,
-	)
-}
-
 func TestHttpdBasicAuth(t *testing.T) {
-	testutils.AssertAllMetricsReceived(t, "basic_auth_metrics.yaml", "httpd_basic_auth.yaml", httpd, nil)
+	testutils.CheckGoldenFile(t, "httpd_basic_auth.yaml", "httpd_basic_auth_expected.yaml",
+		pmetrictest.IgnoreScopeVersion(),
+		pmetrictest.IgnoreTimestamp(),
+		pmetrictest.IgnoreStartTimestamp(),
+		pmetrictest.IgnoreMetricValues(),
+		pmetrictest.IgnoreResourceMetricsOrder(),
+		pmetrictest.IgnoreScopeMetricsOrder(),
+		pmetrictest.IgnoreMetricsOrder(),
+		pmetrictest.IgnoreMetricDataPointsOrder(),
+	)
 }

@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build integration
+//go:build smartagent_integration
 
 package tests
 
@@ -32,6 +32,7 @@ import (
 )
 
 func TestCustomUpstatIntegration(t *testing.T) {
+	t.Skip("Issues with test-containers networking, need to wait for -contrib to update the docker api version for us to update testcontainers-go locally")
 	core, observed := observer.New(zap.DebugLevel)
 	path, err := filepath.Abs(path.Join(".", "testdata", "upstat"))
 	require.NoError(t, err)

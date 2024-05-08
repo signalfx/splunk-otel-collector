@@ -12,31 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build integration
+//go:build smartagent_integration
 
 package tests
 
 import (
-	"path"
 	"testing"
+
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
-var apache = []testutils.Container{
-	testutils.NewContainer().WithContext(
-		path.Join(".", "testdata", "server"),
-	).WithExposedPorts("8080:80").WithName("apache").WillWaitForPorts("80"),
-}
-
 func TestCollectdApacheReceiverProvidesAllMetrics(t *testing.T) {
-	testutils.AssertAllMetricsReceived(
-		t, "all.yaml", "all_metrics_config.yaml", apache, nil,
-	)
+	testutils.CheckGoldenFile(t, "all_metrics_config.yaml", "expected_all.yaml",
+		pmetrictest.IgnoreMetricAttributeValue("host"),
+		pmetrictest.IgnoreMetricsOrder(),
+		pmetrictest.IgnoreMetricValues(),
+		pmetrictest.IgnoreTimestamp())
 }
 
 func TestCollectdApacheReceiverProvidesDefaultMetrics(t *testing.T) {
-	testutils.AssertAllMetricsReceived(
-		t, "default.yaml", "default_metrics_config.yaml", apache, nil,
-	)
+	testutils.CheckGoldenFile(t, "default_metrics_config.yaml", "expected_default.yaml",
+		pmetrictest.IgnoreMetricAttributeValue("host"),
+		pmetrictest.IgnoreMetricsOrder(),
+		pmetrictest.IgnoreMetricValues(),
+		pmetrictest.IgnoreTimestamp())
 }

@@ -17,31 +17,31 @@
 package tests
 
 import (
-	"path/filepath"
 	"testing"
 
-	"github.com/stretchr/testify/require"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
 func TestSignalFxExporterTranslatesOTelCPUMetrics(t *testing.T) {
-	testutils.AssertAllMetricsReceived(
-		t, "cpu_translations.yaml", "cpu_translations_config.yaml", nil,
-		[]testutils.CollectorBuilder{
-			// Added for implicit resourcedetection processor coverage
-			// TODO: add suite
-			func(collector testutils.Collector) testutils.Collector {
-				machineId, err := filepath.Abs(filepath.Join(".", "testdata", "machine-id"))
-				require.NoError(t, err)
-				return collector.WithMount(machineId, "/etc/machine-id")
-			},
-		},
+	testutils.CheckGoldenFile(t, "cpu_translations_config.yaml", "cpu_translations_expected.yaml",
+		pmetrictest.IgnoreTimestamp(),
+		pmetrictest.IgnoreMetricAttributeValue("host.name"),
+		pmetrictest.IgnoreMetricValues(),
+		pmetrictest.IgnoreMetricsOrder(),
+		pmetrictest.IgnoreMetricDataPointsOrder(),
+		pmetrictest.IgnoreSubsequentDataPoints(),
 	)
 }
 
 func TestSignalFxExporterTranslatesOTelMemoryMetrics(t *testing.T) {
-	testutils.AssertAllMetricsReceived(
-		t, "memory_translations.yaml", "memory_translations_config.yaml", nil, nil,
+	testutils.CheckGoldenFile(t, "memory_translations_config.yaml", "memory_translations_expected.yaml",
+		pmetrictest.IgnoreTimestamp(),
+		pmetrictest.IgnoreMetricAttributeValue("host.name"),
+		pmetrictest.IgnoreMetricValues(),
+		pmetrictest.IgnoreMetricsOrder(),
+		pmetrictest.IgnoreMetricDataPointsOrder(),
+		pmetrictest.IgnoreSubsequentDataPoints(),
 	)
 }

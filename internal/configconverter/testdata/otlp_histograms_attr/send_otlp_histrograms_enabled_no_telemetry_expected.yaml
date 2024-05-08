@@ -1,0 +1,46 @@
+receivers:
+  hostmetrics:
+    scrapers:
+      cpu:
+exporters:
+  otlp:
+    endpoint: "https://ingest.signalfx.com:443"
+    headers:
+      "X-SF-Token": TOKEN
+    sending_queue:
+      num_consumers: 32
+  signalfx:
+    access_token: TOKEN
+    realm: REALM
+    sending_queue:
+      num_consumers: 32
+  signalfx/histograms:
+    access_token: TOKEN
+    realm: REALM
+    sending_queue:
+      num_consumers: 32
+    send_otlp_histograms: true
+service:
+  pipelines:
+    metrics:
+      receivers:
+        - hostmetrics
+      exporters:
+        - otlp
+        - signalfx
+    metrics/signalfx:
+      receivers:
+        - hostmetrics
+      exporters:
+        - signalfx
+    metrics/histograms:
+      receivers:
+        - hostmetrics
+      processors:
+        - batch
+      exporters:
+        - otlp
+        - signalfx/histograms
+  telemetry:
+    resource:
+      splunk_otlp_histograms: "true"

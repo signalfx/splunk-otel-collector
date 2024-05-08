@@ -25,11 +25,9 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/pdata/plog"
 	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver/statussources"
 )
 
 func TestStatementEvaluation(t *testing.T) {
@@ -53,212 +51,101 @@ func TestStatementEvaluation(t *testing.T) {
 						},
 					}
 					for _, status := range discovery.StatusTypes {
+						match.Status = status
 						t.Run(string(status), func(t *testing.T) {
-							for _, level := range []string{"debug", "info", "warn", "error", "fatal", "dpanic", "panic"} {
-								t.Run(level, func(t *testing.T) {
-									for _, firstOnly := range []bool{true, false} {
-										match.FirstOnly = firstOnly
-										t.Run(fmt.Sprintf("FirstOnly:%v", firstOnly), func(t *testing.T) {
-											observerID := component.NewIDWithName("an.observer", "observer.name")
-											cfg := &Config{
-												Receivers: map[component.ID]ReceiverEntry{
-													component.NewIDWithName("a.receiver", "receiver.name"): {
-														Rule:   "a.rule",
-														Status: &Status{Statements: map[discovery.StatusType][]Match{status: {match}}},
-													},
-												},
-												WatchObservers: []component.ID{observerID},
-											}
-											require.NoError(t, cfg.Validate())
-
-											plogs := make(chan plog.Logs)
-
-											// If debugging tests, replace the Nop Logger with a test instance to see
-											// all statements. Not in regular use to avoid spamming output.
-											// logger := zaptest.NewLogger(t)
-											logger := zap.NewNop()
-											cStore := newCorrelationStore(logger, time.Hour)
-											cStore.UpdateEndpoint(
-												observer.Endpoint{ID: "endpoint.id"},
-												addedState, observerID,
-											)
-
-											se, err := newStatementEvaluator(logger, component.NewID("some.type"), cfg, plogs, cStore)
-											require.NoError(t, err)
-
-											evaluatedLogger := se.evaluatedLogger.With(
-												zap.String("name", `a.receiver/receiver.name/receiver_creator/rc.name/{endpoint=""}/endpoint.id`),
-											)
-
-											numExpected := 1
-											if !firstOnly {
-												numExpected = 3
-											}
-
-											emitted := plog.NewLogs()
-											wg := sync.WaitGroup{}
-											wg.Add(numExpected)
-
-											go func() {
-												for i := 0; i < numExpected; i++ {
-													logs := <-plogs
-													if emitted.LogRecordCount() == 0 {
-														emitted = logs
-													} else {
-														logs.ResourceLogs().MoveAndAppendTo(emitted.ResourceLogs())
-													}
-													wg.Done()
-												}
-											}()
-
-											logMethod := map[string]func(string, ...zap.Field){
-												"debug":  evaluatedLogger.Debug,
-												"info":   evaluatedLogger.Info,
-												"warn":   evaluatedLogger.Warn,
-												"error":  evaluatedLogger.Error,
-												"fatal":  evaluatedLogger.Fatal,
-												"dpanic": evaluatedLogger.DPanic,
-												"panic":  evaluatedLogger.Panic,
-											}[level]
-
-											for _, statement := range []string{
-												"undesired.statement",
-												"another.undesired.statement",
-												"desired.statement",
-												"desired.statement",
-												"desired.statement",
-											} {
-												panicCheck := require.NotPanics
-												if level == "panic" {
-													panicCheck = require.Panics
-												}
-												panicCheck(t, func() {
-													logMethod(
-														statement,
-														zap.String("field.one", "field.one.value"),
-														zap.String("field_two", "field.two.value"),
-													)
-												})
-											}
-
-											require.Eventually(t, func() bool {
-												wg.Wait()
-												return true
-											}, 1*time.Second, time.Millisecond)
-											close(plogs)
-
-											for i := 0; i < numExpected; i++ {
-												rl := emitted.ResourceLogs().At(i)
-												rAttrs := rl.Resource().Attributes()
-												require.Equal(t, map[string]any{
-													"discovery.endpoint.id":   "endpoint.id",
-													"discovery.event.type":    "statement.match",
-													"discovery.observer.id":   "an.observer/observer.name",
-													"discovery.receiver.name": "receiver.name",
-													"discovery.receiver.rule": "a.rule",
-													"discovery.receiver.type": "a.receiver",
-												}, rAttrs.AsRaw())
-
-												sLogs := rl.ScopeLogs()
-												require.Equal(t, 1, sLogs.Len())
-												sl := sLogs.At(0)
-												lrs := sl.LogRecords()
-												require.Equal(t, 1, lrs.Len())
-												lr := sl.LogRecords().At(0)
-
-												lrAttrs := lr.Attributes().AsRaw()
-
-												require.Contains(t, lrAttrs, "caller")
-												_, expectedFile, _, _ := runtime.Caller(0)
-												// runtime doesn't use os.PathSeparator
-												splitPath := strings.Split(expectedFile, "/")
-												expectedCaller := splitPath[len(splitPath)-1]
-												require.Contains(t, lrAttrs["caller"], expectedCaller)
-												delete(lrAttrs, "caller")
-
-												// argOrder doesn't like this for some reason
-												// nolint:gocritic
-												if strings.Contains("error fatal dpanic panic", level) {
-													require.Contains(t, lrAttrs, "stacktrace")
-													delete(lrAttrs, "stacktrace")
-												}
-
-												require.Equal(t, map[string]any{
-													"discovery.status": string(status),
-													"name":             `a.receiver/receiver.name/receiver_creator/rc.name/{endpoint=""}/endpoint.id`,
-													"attr.one":         "attr.one.value",
-													"attr.two":         "attr.two.value",
-													"field.one":        "field.one.value",
-													"field_two":        "field.two.value",
-												}, lrAttrs)
-
-												expected := "desired body content"
-												if match.Record.AppendPattern {
-													if match.Strict != "" {
-														expected = fmt.Sprintf("%s (evaluated \"desired.statement\")", expected)
-													} else {
-														expected = fmt.Sprintf("%s (evaluated \"{\\\"field.one\\\":\\\"field.one.value\\\",\\\"field_two\\\":\\\"field.two.value\\\",\\\"message\\\":\\\"desired.statement\\\"}\")", expected)
-													}
-												}
-												require.Equal(t, expected, lr.Body().AsString())
-												require.Equal(t, level, lr.SeverityText())
-											}
-										})
-									}
-								})
+							observerID := component.MustNewIDWithName("an_observer", "observer.name")
+							cfg := &Config{
+								Receivers: map[component.ID]ReceiverEntry{
+									component.MustNewIDWithName("a_receiver", "receiver.name"): {
+										Rule:   mustNewRule(`type == "container"`),
+										Status: &Status{Statements: []Match{match}},
+									},
+								},
+								WatchObservers: []component.ID{observerID},
 							}
+							require.NoError(t, cfg.Validate())
+
+							// If debugging tests, replace the Nop Logger with a test instance to see
+							// all statements. Not in regular use to avoid spamming output.
+							// logger := zaptest.NewLogger(t)
+							logger := zap.NewNop()
+							cStore := newCorrelationStore(logger, time.Hour)
+
+							emitCh := cStore.EmitCh()
+							emitWG := sync.WaitGroup{}
+							emitWG.Add(1)
+							go func() {
+								<-emitCh
+								emitWG.Done()
+							}()
+
+							receiverID := component.MustNewIDWithName("a_receiver", "receiver.name")
+							endpointID := observer.EndpointID("endpoint.id")
+							cStore.UpdateEndpoint(observer.Endpoint{ID: endpointID}, receiverID, observerID)
+
+							se, err := newStatementEvaluator(logger, component.MustNewID("some_type"), cfg, cStore)
+							require.NoError(t, err)
+
+							evaluatedLogger := se.evaluatedLogger.With(
+								zap.String("name", `a_receiver/receiver.name/receiver_creator/rc.name/{endpoint=""}/endpoint.id`),
+							)
+
+							for _, statement := range []string{
+								"undesired.statement",
+								"another.undesired.statement",
+								"desired.statement",
+								"desired.statement",
+								"desired.statement",
+							} {
+								evaluatedLogger.Info(
+									statement,
+									zap.String("field.one", "field.one.value"),
+									zap.String("field_two", "field.two.value"),
+								)
+							}
+
+							// wait for the emit channel to be processed
+							emitWG.Wait()
+
+							attrs := cStore.Attrs(endpointID)
+
+							// Validate "caller" attribute
+							callerAttr, ok := attrs["caller"]
+							require.True(t, ok)
+							_, expectedFile, _, _ := runtime.Caller(0)
+							// runtime doesn't use os.PathSeparator
+							splitPath := strings.Split(expectedFile, "/")
+							expectedCaller := splitPath[len(splitPath)-1]
+							require.Contains(t, callerAttr, expectedCaller)
+							delete(attrs, "caller")
+
+							// Validate the rest of the attributes
+							expectedMsg := "desired body content"
+							if match.Record.AppendPattern {
+								if match.Strict != "" {
+									expectedMsg = fmt.Sprintf("%s (evaluated \"desired.statement\")", expectedMsg)
+								} else {
+									expectedMsg = fmt.Sprintf("%s (evaluated \"{\\\"field.one\\\":\\\"field.one.value\\\",\\\"field_two\\\":\\\"field.two.value\\\",\\\"message\\\":\\\"desired.statement\\\"}\")", expectedMsg)
+								}
+							}
+							require.Equal(t, map[string]string{
+								"discovery.event.type":    "statement.match",
+								"discovery.observer.id":   "an_observer/observer.name",
+								"discovery.receiver.name": "receiver.name",
+								"discovery.receiver.rule": `type == "container"`,
+								"discovery.receiver.type": "a_receiver",
+								"discovery.status":        string(status),
+								"discovery.message":       expectedMsg,
+								"name":                    `a_receiver/receiver.name/receiver_creator/rc.name/{endpoint=""}/endpoint.id`,
+								"attr.one":                "attr.one.value",
+								"attr.two":                "attr.two.value",
+								"field.one":               "field.one.value",
+								"field_two":               "field.two.value",
+							}, attrs)
 						})
 					}
 				})
 			}
 		})
 	}
-}
-
-func TestLogRecordDefaultAndArbitrarySeverityText(t *testing.T) {
-	observerID := component.NewIDWithName("an.observer", "observer.name")
-	cfg := &Config{
-		Receivers: map[component.ID]ReceiverEntry{
-			component.NewIDWithName("a.receiver", "receiver.name"): {
-				Rule:   "a.rule",
-				Status: &Status{Statements: map[discovery.StatusType][]Match{discovery.Successful: {Match{Strict: "match.me"}}}},
-			},
-		},
-		WatchObservers: []component.ID{observerID},
-	}
-	require.NoError(t, cfg.Validate())
-
-	plogs := make(chan plog.Logs)
-
-	logger := zap.NewNop()
-	cStore := newCorrelationStore(logger, time.Hour)
-	cStore.UpdateEndpoint(
-		observer.Endpoint{ID: "endpoint.id"},
-		addedState, observerID,
-	)
-
-	se, err := newStatementEvaluator(logger, component.NewID("some.type"), cfg, plogs, cStore)
-	require.NoError(t, err)
-	require.NotNil(t, se)
-
-	s := &statussources.Statement{
-		Message:    "match.me",
-		Level:      "",
-		Time:       time.Now(),
-		LoggerName: "logger.name",
-		Fields: map[string]any{
-			"name": `a.receiver/receiver.name/receiver_creator/rc.name/{endpoint=""}/endpoint.id`,
-		},
-	}
-
-	logs := se.evaluateStatement(s)
-	require.Equal(t, 1, logs.LogRecordCount())
-	lr := logs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
-	require.Equal(t, "INFO", lr.SeverityText())
-
-	s.Level = "arbitrary level used as severity text"
-	logs = se.evaluateStatement(s)
-	require.Equal(t, 1, logs.LogRecordCount())
-	lr = logs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
-	require.Equal(t, "arbitrary level used as severity text", lr.SeverityText())
 }

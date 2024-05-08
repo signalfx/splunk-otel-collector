@@ -59,8 +59,8 @@ const (
 )
 
 var (
-	yamlProvider = yamlprovider.New()
-	envProvider  = envprovider.New()
+	yamlProvider = yamlprovider.NewFactory().Create(confmap.ProviderSettings{})
+	envProvider  = envprovider.NewFactory().Create(confmap.ProviderSettings{})
 )
 
 // discoverer provides the mechanism for a "preflight" collector service
@@ -114,7 +114,7 @@ func newDiscoverer(logger *zap.Logger) (*discoverer, error) {
 		configs:                   map[string]*Config{},
 		duration:                  duration,
 		mu:                        sync.Mutex{},
-		expandConverter:           expandconverter.New(),
+		expandConverter:           expandconverter.NewFactory().Create(confmap.ConverterSettings{}),
 		discoveredReceivers:       map[component.ID]discovery.StatusType{},
 		unexpandedReceiverEntries: map[component.ID]map[component.ID]map[string]any{},
 		discoveredConfig:          map[component.ID]map[string]any{},
@@ -459,10 +459,10 @@ func (d *discoverer) updateReceiverForObserver(receiverID component.ID, receiver
 
 func factoryForObserverType(extType component.Type) (otelcolextension.Factory, error) {
 	factories := map[component.Type]otelcolextension.Factory{
-		"docker_observer":   dockerobserver.NewFactory(),
-		"host_observer":     hostobserver.NewFactory(),
-		"k8s_observer":      k8sobserver.NewFactory(),
-		"ecs_task_observer": ecstaskobserver.NewFactory(),
+		component.MustNewType("docker_observer"):   dockerobserver.NewFactory(),
+		component.MustNewType("host_observer"):     hostobserver.NewFactory(),
+		component.MustNewType("k8s_observer"):      k8sobserver.NewFactory(),
+		component.MustNewType("ecs_task_observer"): ecstaskobserver.NewFactory(),
 	}
 	ef, ok := factories[extType]
 	if !ok {
@@ -641,8 +641,8 @@ func (d *discoverer) Capabilities() consumer.Capabilities {
 	return consumer.Capabilities{}
 }
 
-// ConsumeLogs will walk through all discovery receiver-emitted logs and store all receiver and observer statuses,
-// including reported receiver configs from their discovery.receiver.config attribute. It is a consumer.Logs method.
+// ConsumeLogs will walk through all discovery receiver-emitted entity events and store all receiver and observer
+// statuses, including reported receiver configs from their discovery.receiver.config attribute. It is a consumer.Logs method.
 func (d *discoverer) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 	if ld.LogRecordCount() == 0 {
 		return nil
@@ -654,26 +654,46 @@ func (d *discoverer) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 	rlogs := ld.ResourceLogs()
 	for i := 0; i < rlogs.Len(); i++ {
 		var (
-			receiverType, receiverName string
-			receiverConfig, obsID      string
-			observerID                 component.ID
-			err                        error
+			receiverType          component.Type
+			receiverName          string
+			receiverConfig, obsID string
+			observerID            component.ID
+			err                   error
 		)
-		rlog := rlogs.At(i)
-		rAttrs := rlog.Resource().Attributes()
-		if rName, ok := rAttrs.Get(discovery.ReceiverNameAttr); ok {
+
+		// We assume that every resource log has a single log record as per the current implementation of the discovery receiver.
+		lr := rlogs.At(i).ScopeLogs().At(0).LogRecords().At(0)
+
+		// Only interested in entity events that are of type entity_state.
+		if entityEventType, ok := lr.Attributes().Get(discovery.OtelEntityEventTypeAttr); !ok || entityEventType.Str() != discovery.OtelEntityEventTypeState {
+			continue
+		}
+
+		oea, ok := lr.Attributes().Get(discovery.OtelEntityAttributesAttr)
+		if !ok {
+			d.logger.Debug("invalid entity event without attributes", zap.Any("log record", lr))
+			continue
+		}
+		entityAttrs := oea.Map()
+
+		if rName, hasName := entityAttrs.Get(discovery.ReceiverNameAttr); hasName {
 			receiverName = rName.Str()
 		}
-		rType, ok := rAttrs.Get(discovery.ReceiverTypeAttr)
+		rType, ok := entityAttrs.Get(discovery.ReceiverTypeAttr)
 		if !ok {
 			// nothing we can do without this one
 			continue
 		}
-		receiverType = rType.Str()
-		if rConfig, ok := rAttrs.Get(discovery.ReceiverConfigAttr); ok {
+		receiverType, err = component.NewType(rType.Str())
+		if err != nil {
+			d.logger.Debug("invalid receiver type", zap.Error(err))
+			continue
+		}
+		if rConfig, hasConfig := entityAttrs.Get(discovery.ReceiverConfigAttr); hasConfig {
 			receiverConfig = rConfig.Str()
 		}
-		if rObsID, ok := rAttrs.Get(discovery.ObserverIDAttr); ok {
+
+		if rObsID, hasObsID := entityAttrs.Get(discovery.ObserverIDAttr); hasObsID {
 			obsID = rObsID.Str()
 		}
 
@@ -689,13 +709,13 @@ func (d *discoverer) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 		}
 
 		endpointID := "unavailable"
-		if eid, k := rAttrs.Get(discovery.EndpointIDAttr); k {
+		if eid, k := entityAttrs.Get(discovery.EndpointIDAttr); k {
 			endpointID = eid.AsString()
 		}
 
 		var rule string
 		var configSection map[string]any
-		receiverID := component.NewIDWithName(component.Type(receiverType), receiverName)
+		receiverID := component.NewIDWithName(receiverType, receiverName)
 		if rCfg, hasConfig := d.getUnexpandedReceiverConfig(receiverID, observerID); hasConfig {
 			if r, hasRule := rCfg["rule"]; hasRule {
 				rule = r.(string)
@@ -728,32 +748,29 @@ func (d *discoverer) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 		currentReceiverStatus := d.discoveredReceivers[receiverID]
 		currentObserverStatus := d.discoveredObservers[observerID]
 
-		slogs := rlog.ScopeLogs()
-		for j := 0; j < slogs.Len(); j++ {
-			slog := slogs.At(0)
-			lrs := slog.LogRecords()
-			for k := 0; k < lrs.Len(); k++ {
-				lr := lrs.At(k)
-				if currentReceiverStatus != discovery.Successful || currentObserverStatus != discovery.Successful {
-					if rStatusAttr, ok := lr.Attributes().Get(discovery.StatusAttr); ok {
-						rStatus := discovery.StatusType(rStatusAttr.Str())
-						if valid, e := discovery.IsValidStatus(rStatus); !valid {
-							d.logger.Debug("invalid status from log record", zap.Error(e), zap.Any("lr", lr.Body().AsRaw()))
-							continue
-						}
-						receiverStatus := determineCurrentStatus(currentReceiverStatus, rStatus)
-						switch receiverStatus {
-						case discovery.Failed:
-							d.logger.Info(fmt.Sprintf("failed to discover %q using %q endpoint %q: %s", receiverID, observerID, endpointID, lr.Body().AsString()))
-						case discovery.Partial:
-							fmt.Fprintf(os.Stderr, "Partially discovered %q using %q endpoint %q: %s\n", receiverID, observerID, endpointID, lr.Body().AsString())
-						case discovery.Successful:
-							fmt.Fprintf(os.Stderr, "Successfully discovered %q using %q endpoint %q.\n", receiverID, observerID, endpointID)
-						}
-						d.discoveredReceivers[receiverID] = receiverStatus
-						d.discoveredObservers[observerID] = determineCurrentStatus(currentObserverStatus, rStatus)
-					}
+		if currentReceiverStatus != discovery.Successful || currentObserverStatus != discovery.Successful {
+			if rStatusAttr, ok := entityAttrs.Get(discovery.StatusAttr); ok {
+				rStatus := discovery.StatusType(rStatusAttr.Str())
+				if valid, e := discovery.IsValidStatus(rStatus); !valid {
+					d.logger.Debug("invalid status from log record", zap.Error(e), zap.Any("lr", lr))
+					continue
 				}
+				var msg string
+				msgAttr, hasMsg := entityAttrs.Get(discovery.MessageAttr)
+				if hasMsg {
+					msg = msgAttr.AsString()
+				}
+				receiverStatus := determineCurrentStatus(currentReceiverStatus, rStatus)
+				switch receiverStatus {
+				case discovery.Failed:
+					d.logger.Info(fmt.Sprintf("failed to discover %q using %q endpoint %q: %s", receiverID, observerID, endpointID, msg))
+				case discovery.Partial:
+					fmt.Fprintf(os.Stderr, "Partially discovered %q using %q endpoint %q: %s\n", receiverID, observerID, endpointID, msg)
+				case discovery.Successful:
+					fmt.Fprintf(os.Stderr, "Successfully discovered %q using %q endpoint %q.\n", receiverID, observerID, endpointID)
+				}
+				d.discoveredReceivers[receiverID] = receiverStatus
+				d.discoveredObservers[observerID] = determineCurrentStatus(currentObserverStatus, rStatus)
 			}
 		}
 	}

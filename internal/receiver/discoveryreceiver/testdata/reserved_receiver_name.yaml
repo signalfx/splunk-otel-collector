@@ -3,8 +3,8 @@ discovery:
     - an_observer
   receivers:
     a_receiver/with-receiver_creator/in-name:
-      rule: a rule
+      rule: type == "container"
       status:
         metrics:
-          successful:
-            - regexp: '.*'
+          - status: successful
+            regexp: '.*'

@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: lychee Link Checker
         id: lychee
-        uses: lycheeverse/lychee-action@v1.8.0
+        uses: lycheeverse/lychee-action@v1.10.0
         with:
           args: -v -n --config .lychee.toml './*.md' './**/*.md'
           fail: true
@@ -30,7 +30,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Create Issue From File
         if: failure() && github.event_name == 'schedule'
-        uses: peter-evans/create-issue-from-file@v4
+        uses: peter-evans/create-issue-from-file@v5
         with:
           title: Link Checker Report
           content-filepath: ./lychee/out.md

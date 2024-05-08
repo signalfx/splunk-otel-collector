@@ -1,0 +1,5 @@
+**/httpclient/test-certs/client.key
+**/httpclient/test-certs/leaf.key
+**/httpclient/test-certs/root.key
+**/jaegergrpc/testdata/key.pem
+**/splunk-otel-collector-releaser.tmp/*

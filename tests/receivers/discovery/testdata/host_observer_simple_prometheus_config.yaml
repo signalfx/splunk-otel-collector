@@ -13,35 +13,30 @@ receivers:
     embed_receiver_config: true
     receivers:
       prometheus_simple:
-        rule: type == "hostport"
+        rule: type == "hostport" and command contains "otelcol"
         resource_attributes:
           one.key: one.value
           two.key: two.value
         status:
           metrics:
-            successful:
-                - regexp: ^otelcol_receiver_accepted_metric_points$
-                  first_only: true
-                  log_record:
-                    severity_text: info
-                    body: Successfully connected to prometheus server
+            - status: successful
+              regexp: ^otelcol_process_uptime$
+              log_record:
+                body: Successfully connected to prometheus server
           statements:
-            failed:
-              - strict: Failed to scrape Prometheus endpoint
-                first_only: true
-                log_record:
-                  severity_text: debug
-                  body: (strict) Port appears to not be serving prometheus metrics
-              - regexp: '"message":"Failed to scrape Prometheus endpoint"'
-                first_only: true
-                log_record:
-                  severity_text: debug
-                  body: (regexp) Port appears to not be serving prometheus metrics
-              - expr: message == 'Failed to scrape Prometheus endpoint' && target_labels contains 'up'
-                first_only: true
-                log_record:
-                  severity_text: debug
-                  body: (expr) Port appears to not be serving prometheus metrics
+            # Only the first matching statement match will be applied
+            - status: failed
+              strict: Failed to scrape Prometheus endpoint
+              log_record:
+                body: (strict) Port appears to not be serving prometheus metrics
+            - status: failed
+              regexp: '"message":"Failed to scrape Prometheus endpoint"'
+              log_record:
+                body: (regexp) Port appears to not be serving prometheus metrics
+            - status: failed
+              expr: message == 'Failed to scrape Prometheus endpoint' && target_labels contains 'up'
+              log_record:
+                body: (expr) Port appears to not be serving prometheus metrics
 
     watch_observers:
       - host_observer
@@ -50,10 +45,12 @@ receivers:
 
 # drop scrape_timestamp attributes until we can accept arbitrary values
 processors:
-  attributes:
-    actions:
-      - action: delete
-        key: scrape_timestamp
+  transform:
+    error_mode: ignore
+    log_statements:
+      - context: log
+        statements:
+          - delete_key(attributes["otel.entity.attributes"], "scrape_timestamp")
 
 exporters:
   otlp:
@@ -75,5 +72,5 @@ service:
       exporters: [otlp]
     logs:
       receivers: [discovery]
-      processors: [attributes]
+      processors: [transform]
       exporters: [otlp]

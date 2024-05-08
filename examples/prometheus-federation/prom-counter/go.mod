@@ -1,12 +1,12 @@
 module github.com/signalfx/splunk-otel-collector/examples/prometheus-federation/prom-counter
 
-go 1.20
+go 1.21
 
 require (
 	go.opentelemetry.io/otel v0.20.0
 	go.opentelemetry.io/otel/exporters/metric/prometheus v0.20.0
 	go.opentelemetry.io/otel/metric v0.20.0
-	go.uber.org/zap v1.26.0
+	go.uber.org/zap v1.27.0
 )
 
 require (
@@ -24,15 +24,6 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v0.20.0 // indirect
 	go.opentelemetry.io/otel/trace v0.20.0 // indirect
 	go.uber.org/multierr v1.10.0 // indirect
-	golang.org/x/sys v0.15.0 // indirect
-	google.golang.org/protobuf v1.30.0 // indirect
-)
-
-replace (
-	github.com/dgrijalva/jwt-go => github.com/form3tech-oss/jwt-go v3.2.5+incompatible
-	github.com/form3tech-oss/jwt-go => github.com/golang-jwt/jwt/v4 v4.4.3
-	github.com/hashicorp/consul/sdk => github.com/hashicorp/consul/sdk v0.13.1
-	golang.org/x/crypto => golang.org/x/crypto v0.17.0
-	golang.org/x/net => golang.org/x/net v0.17.0
-	gopkg.in/yaml.v3 => gopkg.in/yaml.v3 v3.0.1
+	golang.org/x/sys v0.19.0 // indirect
+	google.golang.org/protobuf v1.33.0 // indirect
 )

@@ -13,49 +13,47 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build integration
+//go:build smartagent_integration
 
 package tests
 
 import (
-	"path"
 	"testing"
+
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
-func TestPrometheusExporterProvidesInternalMetrics(t *testing.T) {
-	testutils.SkipIfNotContainerTest(t)
-	testutils.AssertAllMetricsReceived(
-		t, "internal.yaml", "internal_metrics_config.yaml", nil, nil,
-	)
-}
-
 func TestPrometheusExporterProvidesOTelInternalMetrics(t *testing.T) {
-	testutils.SkipIfNotContainerTest(t)
-	testutils.AssertAllMetricsReceived(
-		t, "otel_internal.yaml", "internal_metrics_config.yaml", nil, []testutils.CollectorBuilder{
-			func(collector testutils.Collector) testutils.Collector {
-				return collector.WithArgs("--feature-gates", "+telemetry.useOtelForInternalMetrics")
-			},
-		},
-	)
+	testutils.CheckGoldenFile(t, "internal_metrics_config.yaml", "expected_internal.yaml",
+		pmetrictest.IgnoreMetricsOrder(),
+		pmetrictest.IgnoreMetricAttributeValue("service_instance_id"),
+		pmetrictest.IgnoreMetricAttributeValue("service_version"),
+		pmetrictest.IgnoreTimestamp(),
+		pmetrictest.IgnoreStartTimestamp(),
+		pmetrictest.IgnoreMetricValues(
+			"otelcol_exporter_sent_metric_points",
+			"otelcol_process_cpu_seconds",
+			"otelcol_process_memory_rss",
+			"otelcol_process_runtime_heap_alloc_bytes",
+			"otelcol_process_runtime_total_alloc_bytes",
+			"otelcol_process_runtime_total_sys_memory_bytes",
+			"otelcol_process_uptime",
+			"otelcol_receiver_accepted_metric_points",
+		))
 }
 
 func TestPrometheusExporterScrapesTargets(t *testing.T) {
-	httpd := []testutils.Container{testutils.NewContainer().WithContext(
-		path.Join(".", "testdata", "httpd"),
-	).WithName("httpd").WithExposedPorts("8000:80").WillWaitForPorts("80")}
-	testutils.AssertAllMetricsReceived(
-		t, "httpd.yaml", "httpd_metrics_config.yaml", httpd, nil,
-	)
+	testutils.CheckGoldenFile(t, "httpd_metrics_config.yaml", "expected_httpd.yaml",
+		pmetrictest.IgnoreMetricsOrder(),
+		pmetrictest.IgnoreTimestamp(),
+		pmetrictest.IgnoreStartTimestamp())
 }
 
 func TestPrometheusExporterScrapesTargetsWithFilter(t *testing.T) {
-	httpd := []testutils.Container{testutils.NewContainer().WithContext(
-		path.Join(".", "testdata", "httpd"),
-	).WithName("httpd").WithExposedPorts("8000:80").WillWaitForPorts("80")}
-	testutils.AssertAllMetricsReceived(
-		t, "httpd_filtered.yaml", "httpd_metrics_config_with_filter.yaml", httpd, nil,
-	)
+	testutils.CheckGoldenFile(t, "httpd_metrics_config_with_filter.yaml", "expected_httpd_filtered.yaml",
+		pmetrictest.IgnoreMetricsOrder(),
+		pmetrictest.IgnoreTimestamp(),
+		pmetrictest.IgnoreStartTimestamp())
 }

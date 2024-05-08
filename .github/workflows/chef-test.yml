@@ -14,6 +14,8 @@ on:
       - '.github/workflows/chef-test.yml'
       - 'deployments/chef/**'
       - '!**.md'
+  schedule:
+    - cron: '0 0 * * 2,5' # Every Tuesday and Friday at midnight UTC
 
 concurrency:
   group: chef-test-${{ github.event.pull_request.number || github.ref }}
@@ -85,13 +87,13 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install chef
-        uses: actionshub/chef-install@2.0.4
+        uses: actionshub/chef-install@3.0.0
         with:
           version: 21.12.720
 
       - run: kitchen test ${{ matrix.DISTRO }}
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: ${{ matrix.DISTRO }}
@@ -108,7 +110,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install chef
-        uses: actionshub/chef-install@2.0.4
+        uses: actionshub/chef-install@3.0.0
         with:
           version: 21.12.720
 
@@ -126,7 +128,7 @@ jobs:
         env:
           KITCHEN_YAML: kitchen.windows.yml
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: ${{ matrix.SUITE }}-${{ matrix.DISTRO }}

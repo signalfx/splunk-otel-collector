@@ -402,8 +402,8 @@ func TestMonitor_Configure(t *testing.T) {
 	}
 	tests := []struct {
 		name    string
-		args    args
 		want    []*trace.Span
+		args    args
 		wantErr bool
 	}{
 		{
@@ -466,9 +466,9 @@ func TestMonitor_Configure(t *testing.T) {
 					t.Errorf("credentials.NewClientTLSFromFile() error = %v, wantErr = %v", err, tt.wantErr)
 					return
 				}
-				conn, err = grpc.Dial(address, grpc.WithTransportCredentials(creds))
+				conn, err = grpc.NewClient(address, grpc.WithTransportCredentials(creds))
 			} else {
-				conn, err = grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
+				conn, err = grpc.NewClient(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
 			}
 
 			// handle to the grpc client connection error

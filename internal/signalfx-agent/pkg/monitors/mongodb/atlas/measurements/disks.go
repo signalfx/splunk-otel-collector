@@ -23,15 +23,15 @@ type DisksGetter interface {
 
 // disksGetter implements DisksGetter
 type disksGetter struct {
-	projectID         string
-	granularity       string
-	period            string
+	logger            log.FieldLogger
 	client            *mongodbatlas.Client
-	enableCache       bool
 	mutex             *sync.Mutex
 	measurementsCache *atomic.Value
 	disksCache        *atomic.Value
-	logger            log.FieldLogger
+	projectID         string
+	granularity       string
+	period            string
+	enableCache       bool
 }
 
 // NewDisksGetter returns a new DisksGetter.
@@ -70,10 +70,10 @@ func (getter *disksGetter) GetMeasurements(ctx context.Context, timeout time.Dur
 				go func(process Process, partitionName string) {
 					defer wg2.Done()
 
-					var ctx, cancel = context.WithTimeout(ctx, timeout)
+					var cctx, cancel = context.WithTimeout(ctx, timeout)
 					defer cancel()
 
-					getter.setMeasurements(ctx, measurements, process, partitionName, 1)
+					getter.setMeasurements(cctx, measurements, process, partitionName, 1)
 				}(process, partitionName)
 			}
 		}
@@ -111,10 +111,10 @@ func (getter *disksGetter) getPartitions(ctx context.Context, timeout time.Durat
 			go func(process Process) {
 				defer wg2.Done()
 
-				var ctx, cancel = context.WithTimeout(ctx, timeout)
+				cctx, cancel := context.WithTimeout(ctx, timeout)
 				defer cancel()
 
-				partitionNames := getter.getPartitionNames(ctx, process, 1)
+				partitionNames := getter.getPartitionNames(cctx, process, 1)
 
 				getter.mutex.Lock()
 				defer getter.mutex.Unlock()
@@ -141,7 +141,8 @@ func (getter *disksGetter) getPartitions(ctx context.Context, timeout time.Durat
 func (getter *disksGetter) getPartitionNames(ctx context.Context, process Process, page int) (names []string) {
 	list, resp, err := getter.client.ProcessDisks.List(ctx, getter.projectID, process.Host, process.Port, &mongodbatlas.ListOptions{PageNum: page})
 
-	if msg, err := errorMsg(err, resp); err != nil {
+	var msg string
+	if msg, err = errorMsg(err, resp); err != nil {
 		getter.logger.WithError(err).Errorf(msg, "disk partition names", getter.projectID, process.Host, process.Port)
 		return names
 	}
@@ -163,7 +164,8 @@ func (getter *disksGetter) setMeasurements(ctx context.Context, disksMeasurement
 
 	list, resp, err := getter.client.ProcessDiskMeasurements.List(ctx, getter.projectID, process.Host, process.Port, partitionName, opts)
 
-	if msg, err := errorMsg(err, resp); err != nil {
+	var msg string
+	if msg, err = errorMsg(err, resp); err != nil {
 		getter.logger.WithError(err).Errorf(msg, "disk measurements", getter.projectID, process.Host, process.Port)
 		return
 	}

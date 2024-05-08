@@ -27,7 +27,7 @@ const typeStr = "lightprometheus"
 
 func NewFactory() receiver.Factory {
 	return receiver.NewFactory(
-		typeStr,
+		component.MustNewType(typeStr),
 		createDefaultConfig,
 		receiver.WithMetrics(createMetricsReceiver, component.StabilityLevelDevelopment),
 	)
@@ -49,7 +49,7 @@ func createMetricsReceiver(
 	}
 
 	return scraperhelper.NewScraperControllerReceiver(
-		&c.ScraperControllerSettings,
+		&c.ControllerConfig,
 		params,
 		consumer,
 		scraperhelper.AddScraper(scraper),

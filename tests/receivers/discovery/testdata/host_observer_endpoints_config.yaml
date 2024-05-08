@@ -5,7 +5,13 @@ extensions:
 
 receivers:
   discovery:
-    log_endpoints: true
+    receivers:
+      hostmetrics:
+        rule: type == "hostport"
+        status:
+          metrics:
+            - status: successful
+              regexp: .*
     watch_observers:
       - host_observer
       - host_observer/with_name

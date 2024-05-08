@@ -126,8 +126,12 @@ misspell-correction:
 
 .PHONY: impi
 impi:
-	@$(IMPI) --local github.com/signalfx/splunk-otel-collector --skip internal/signalfx-agent --scheme stdThirdPartyLocal ./...
+	@$(IMPI) --local github.com/signalfx/splunk-otel-collector --skip internal/signalfx-agent --scheme stdThirdPartyLocal --ignore-generated=true ./...
 
 .PHONY: moddownload
 moddownload:
 	$(GOCMD) mod download
+
+.PHONY: govulncheck
+govulncheck: install-tools
+	govulncheck ./...

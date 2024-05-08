@@ -3,7 +3,7 @@ package expvar
 import (
 	"context"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -43,10 +43,10 @@ type Monitor struct {
 }
 
 type metricVal struct {
-	metric              string
-	keys                []string
 	value               datapoint.Value
 	arrayIndexDimension map[string]string
+	metric              string
+	keys                []string
 }
 
 // Configure monitor
@@ -141,7 +141,7 @@ func (m *Monitor) fetchObj(url url.URL) (map[string]interface{}, error) {
 	defer func() {
 		_ = resp.Body.Close()
 	}()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}

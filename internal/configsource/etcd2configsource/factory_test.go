@@ -27,7 +27,7 @@ import (
 
 func TestEtcd2Factory_CreateConfigSource(t *testing.T) {
 	factory := NewFactory()
-	assert.Equal(t, component.Type("etcd2"), factory.Type())
+	assert.Equal(t, component.MustNewType("etcd2"), factory.Type())
 	tests := []struct {
 		wantErr error
 		config  *Config

@@ -70,6 +70,10 @@ def run_distro_container(distro, arch="amd64", dockerfile=None, path=TESTS_DIR, 
 
     print(f"Building {dockerfile} ...")
 
+    if buildargs is None:
+        buildargs = {}
+    buildargs["TARGETARCH"] = arch
+
     image, _ = retry(
         lambda: client.images.build(
             path=str(path),
@@ -117,11 +121,11 @@ def run_distro_container(distro, arch="amd64", dockerfile=None, path=TESTS_DIR, 
         container.remove(force=True, v=True)
 
 
-def run_container_cmd(container, cmd, env=None, exit_code=0, timeout=None, user=''):
+def run_container_cmd(container, cmd, env=None, exit_code=0, timeout=None, user='', workdir=None):
     if timeout:
         cmd = f"timeout {timeout} {cmd}"
     print(f"Running '{cmd}' ...")
-    code, output = container.exec_run(cmd, environment=env, user=user)
+    code, output = container.exec_run(cmd, environment=env, user=user, workdir=workdir)
     print(output.decode("utf-8"))
     if exit_code is not None:
         assert code == exit_code

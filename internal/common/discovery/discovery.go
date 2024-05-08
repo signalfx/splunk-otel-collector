@@ -27,12 +27,21 @@ const (
 	ReceiverNameAttr   = "discovery.receiver.name"
 	ReceiverTypeAttr   = "discovery.receiver.type"
 	StatusAttr         = "discovery.status"
+	MessageAttr        = "discovery.message"
+
+	OtelEntityTypeAttr        = "otel.entity.type"
+	OtelEntityAttributesAttr  = "otel.entity.attributes"
+	OtelEntityIDAttr          = "otel.entity.id"
+	OtelEntityEventTypeAttr   = "otel.entity.event.type"
+	OtelEntityEventTypeState  = "entity_state"
+	OtelEntityEventTypeDelete = "entity_delete"
+	OtelEntityEventAsLogAttr  = "otel.entity.event_as_log"
 
 	DiscoExtensionsKey = "extensions/splunk.discovery"
 	DiscoReceiversKey  = "receivers/splunk.discovery"
 )
 
-var NoType = component.NewID("")
+var NoType = component.MustNewID("SENTINEL_FOR_DISCOVERY_RECEIVER___")
 
 type StatusType string
 
@@ -53,6 +62,9 @@ var allowedStatuses = func() map[StatusType]struct{} {
 }()
 
 func IsValidStatus(status StatusType) (bool, error) {
+	if status == "" {
+		return false, fmt.Errorf("status cannot be empty")
+	}
 	if _, ok := allowedStatuses[status]; !ok {
 		return false, fmt.Errorf("invalid status %q. must be one of %v", status, StatusTypes)
 	}

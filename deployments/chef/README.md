@@ -29,6 +29,10 @@ Currently, the following Windows versions are supported:
 - Windows Server 2019 64-bit
 - Windows Server 2022 64-bit
 
+On Windows, the collector is installed as a Windows service and its environment
+variables are set at the service scope, i.e.: they are only available to the
+collector service and not to the entire machine.
+
 ## Usage
 
 This cookbook can be downloaded and installed from [Chef Supermarket](https://supermarket.chef.io/cookbooks/splunk_otel_collector).
@@ -98,11 +102,7 @@ required `splunk_access_token` attribute and some optional attributes:
   Collector. The `SPLUNK_MEMORY_TOTAL_MIB` environment variable will be set
   with this value for the Collector service. (**default:** `512`)
 
-- `splunk_ballast_size_mib`: Explicitly set the ballast size for the Collector
-  instead of the value calculated from the `splunk_memory_total_mib` attribute.
-  This should be set to 1/3 to 1/2 of configured memory. The
-  `SPLUNK_BALLAST_SIZE_MIB` environment variable will be set with this value
-  for the Collector service. (**default:** `''`)
+- `gomemlimit`: The `GOMEMLIMIT` environment variable is introduced for the Splunk Otel Collector version >=0.97.0, allowing the limitation of memory usage in the GO runtime. This feature can help enhance GC (Garbage Collection) related performance and prevent GC related Out of Memory (OOM) situations.
 
 - `splunk_listen_interface`: The network interface the collector receivers
   will listen on (**default** `0.0.0.0`).
@@ -143,8 +143,8 @@ required `splunk_access_token` attribute and some optional attributes:
   ```
   On Linux, the variables/values will be added to the
   `/etc/otel/collector/splunk-otel-collector.conf` systemd environment file.
-  On Windows, the variables/values will be added to the
-  `HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment`
+  On Windows, the variables/values will be added to the `Environment` value under the
+  `HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\splunk-otel-collector`
   registry key.
 
 ### Fluentd
@@ -189,11 +189,12 @@ after installation/configuration in order for any change to take effect.
 
 - `with_auto_instrumentation_sdks`: List of Splunk OpenTelemetry Auto
   Instrumentation SDKs to install, configure, and activate. (**default:**
-  `%w(java nodejs)`)
+  `%w(java nodejs dotnet)`)
 
   Currently, the following values are supported:
   - `java`: [Splunk OpenTelemetry for Java](https://github.com/signalfx/splunk-otel-java)
   - `nodejs`: [Splunk OpenTelemetry for Node.js](https://github.com/signalfx/splunk-otel-js)
+  - `dotnet`: [Splunk OpenTelemetry for .NET](https://github.com/signalfx/splunk-otel-dotnet) (x86_64/amd64 only)
 
   **Note:** This recipe does not manage the installation/configuration of
   Node.js, `npm`, or Node.js applications. If `nodejs` is included in this
@@ -203,7 +204,8 @@ after installation/configuration in order for any change to take effect.
 - `auto_instrumentation_version`: Version of the
   `splunk-otel-auto-instrumentation` package to install, e.g. `0.50.0`. The
   minimum supported version is `0.48.0`. The minimum supported version for
-  Node.js auto instrumentation is `0.87.0`. (**default:** `latest`)
+  Node.js auto instrumentation is `0.87.0`. The minimum supported version for
+  .NET auto instrumentation is `0.99.0`. (**default:** `latest`)
 
 - `auto_instrumentation_systemd` (Linux only): By default, the
   `/etc/ld.so.preload` file on the node will be configured for the

@@ -67,7 +67,7 @@ func (prwParser *prometheusRemoteOtelParser) transformPrometheusRemoteWriteToOte
 	metric := pmetric.NewMetrics()
 	rm := metric.ResourceMetrics().AppendEmpty()
 	ilm := rm.ScopeMetrics().AppendEmpty()
-	ilm.Scope().SetName(metadata.Type)
+	ilm.Scope().SetName("otelcol/" + metadata.Type.String())
 	ilm.Scope().SetVersion("0.1")
 	for metricType, metrics := range parsedPrwMetrics {
 		prwParser.addMetrics(ilm, metricType, metrics)

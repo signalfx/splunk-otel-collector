@@ -54,23 +54,23 @@ func TestConfigSourceConfigMapProvider(t *testing.T) {
 		{
 			name: "new_manager_builder_error",
 			factories: configsource.Factories{
-				"tstcfgsrc": &MockCfgSrcFactory{
+				component.MustNewType("tstcfgsrc"): &MockCfgSrcFactory{
 					ErrOnCreateConfigSource: errors.New("new_manager_builder_error forced error"),
 				},
 			},
-			parserProvider: fileprovider.New(),
+			parserProvider: fileprovider.NewFactory().Create(confmap.ProviderSettings{}),
 			uris:           []string{"file:" + path.Join("testdata", "basic_config.yaml")},
 			wantErr:        "failed to create config source tstcfgsrc",
 		},
 		{
 			name:           "manager_resolve_error",
-			parserProvider: fileprovider.New(),
+			parserProvider: fileprovider.NewFactory().Create(confmap.ProviderSettings{}),
 			uris:           []string{"file:" + path.Join("testdata", "manager_resolve_error.yaml")},
 			wantErr:        "config source \"tstcfgsrc\" failed to retrieve value: no value for selector \"selector\"",
 		},
 		{
 			name:           "multiple_config_success",
-			parserProvider: fileprovider.New(),
+			parserProvider: fileprovider.NewFactory().Create(confmap.ProviderSettings{}),
 			uris: []string{"file:" + path.Join("testdata", "arrays_and_maps_expected.yaml"),
 				"file:" + path.Join("testdata", "yaml_injection_expected.yaml")},
 		},
@@ -80,7 +80,7 @@ func TestConfigSourceConfigMapProvider(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.factories == nil {
 				tt.factories = configsource.Factories{
-					"tstcfgsrc": &MockCfgSrcFactory{},
+					component.MustNewType("tstcfgsrc"): &MockCfgSrcFactory{},
 				}
 			}
 
@@ -212,12 +212,12 @@ var _ configsource.Settings = (*MockCfgSrcSettings)(nil)
 var _ configsource.Factory = (*MockCfgSrcFactory)(nil)
 
 func (m *MockCfgSrcFactory) Type() component.Type {
-	return "tstcfgsrc"
+	return component.MustNewType("tstcfgsrc")
 }
 
 func (m *MockCfgSrcFactory) CreateDefaultConfig() configsource.Settings {
 	return &MockCfgSrcSettings{
-		SourceSettings: configsource.NewSourceSettings(component.NewID("tstcfgsrc")),
+		SourceSettings: configsource.NewSourceSettings(component.MustNewID("tstcfgsrc")),
 		Endpoint:       "default_endpoint",
 	}
 }
@@ -272,7 +272,7 @@ func (t *TestConfigSource) Retrieve(ctx context.Context, selector string, params
 	if entry.WatchForUpdateCh != nil {
 		doneCh := make(chan struct{})
 		startWatch(entry.WatchForUpdateCh, doneCh, watcher)
-		return confmap.NewRetrieved(entry.Value, confmap.WithRetrievedClose(func(ctx context.Context) error {
+		return confmap.NewRetrieved(entry.Value, confmap.WithRetrievedClose(func(_ context.Context) error {
 			close(doneCh)
 			return nil
 		}))

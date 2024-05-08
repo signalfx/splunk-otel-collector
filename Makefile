@@ -33,7 +33,7 @@ BUILD_INFO_TESTS=-ldflags "-X $(BUILD_INFO_IMPORT_PATH_TESTS).Version=$(VERSION)
 
 JMX_METRIC_GATHERER_RELEASE=$(shell cat internal/buildscripts/packaging/jmx-metric-gatherer-release.txt)
 SKIP_COMPILE=false
-ARCH=amd64
+ARCH?=amd64
 BUNDLE_SUPPORTED_ARCHS := amd64 arm64
 SKIP_BUNDLE=false
 
@@ -69,15 +69,15 @@ for-all:
 
 .PHONY: integration-vet
 integration-vet:
-	@set -e; cd tests && go vet -tags integration,testutilsintegration,endtoend,zeroconfig,testutils ./... && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) -tags testutils,testutilsintegration -v -timeout 5m -count 1 ./...
+	@set -e; cd tests && go vet -tags integration,testutilsintegration,zeroconfig,testutils ./... && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) -tags testutils,testutilsintegration -v -timeout 5m -count 1 ./...
 
 .PHONY: integration-test
-integration-test: integration-vet
+integration-test:
 	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=integration -v -timeout 5m -count 1 ./...
 
-.PHONY: end-to-end-test
-end-to-end-test:
-	@set -e; cd tests/endtoend && $(GOTEST) -v -tags endtoend -timeout 5m -count 1 ./...
+.PHONY: smartagent-integration-test
+smartagent-integration-test:
+	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=smartagent_integration -v -timeout 5m -count 1 ./...
 
 .PHONY: test-with-cover
 test-with-cover:
@@ -102,12 +102,13 @@ install-tools:
 	cd ./internal/tools && go install github.com/golangci/golangci-lint/cmd/golangci-lint
 	cd ./internal/tools && go install github.com/google/addlicense
 	cd ./internal/tools && go install github.com/jstemmer/go-junit-report
-	cd ./internal/tools && go install github.com/open-telemetry/opentelemetry-collector-contrib/cmd/mdatagen
+	cd ./internal/tools && go install go.opentelemetry.io/collector/cmd/mdatagen
 	cd ./internal/tools && go install github.com/ory/go-acc
 	cd ./internal/tools && go install github.com/pavius/impi/cmd/impi
 	cd ./internal/tools && go install github.com/tcnksm/ghr
 	cd ./internal/tools && go install golang.org/x/tools/cmd/goimports
 	cd ./internal/tools && go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment
+	cd ./internal/tools && go install golang.org/x/vuln/cmd/govulncheck@master
 
 
 .PHONY: generate-metrics
@@ -218,6 +219,7 @@ msi:
 ifneq ($(SKIP_COMPILE), true)
 	$(MAKE) binaries-windows_amd64
 endif
+	!(find ./internal/buildscripts/packaging/msi -name "*.wxs" | xargs grep -q "RemoveFolderEx") || (echo "Custom action 'RemoveFolderEx' can't be used without corresponding WiX upgrade due to CVE-2024-29188." && exit 1)
 	test -f ./dist/agent-bundle_windows_amd64.zip || (echo "./dist/agent-bundle_windows_amd64.zip not found! Either download a pre-built bundle to ./dist/, or run './internal/signalfx-agent/bundle/scripts/windows/make.ps1 bundle' on a windows host and copy it to ./dist/." && exit 1)
 	./internal/buildscripts/packaging/msi/build.sh "$(VERSION)" "$(DOCKER_REPO)" "$(JMX_METRIC_GATHERER_RELEASE)"
 

@@ -32,6 +32,7 @@ class splunk_otel_collector (
   $fluentd_config_dest     = $splunk_otel_collector::params::fluentd_config_dest,
   $fluentd_capng_c_version = '<=0.2.2',  # linux only
   $fluentd_systemd_version = '<=1.0.2',  # linux only
+  $gomemlimit              = '',
   $manage_repo             = true,  # linux only
   $with_auto_instrumentation                = false,  # linux only
   $auto_instrumentation_version             = $splunk_otel_collector::params::auto_instrumentation_version,  # linux only
@@ -46,6 +47,8 @@ class splunk_otel_collector (
   $auto_instrumentation_enable_profiler_memory  = false,  # linux only
   $auto_instrumentation_enable_metrics          = false,  # linux only
   $auto_instrumentation_otlp_endpoint           = 'http://127.0.0.1:4317',  # linux only
+  $with_auto_instrumentation_sdks               = ['java', 'nodejs'], # linux only
+  $auto_instrumentation_npm_path                = 'npm', # linux only
   $collector_additional_env_vars            = {}
 ) inherits splunk_otel_collector::params {
 
@@ -80,7 +83,7 @@ class splunk_otel_collector (
     default   => $fluentd_service_name,
   }
 
-  if $::osfamily == 'suse' or ($facts['os']['name'] == 'Amazon' and $facts['os']['release']['full'] == '2023') {
+  if $::osfamily == 'suse' or ('amazon' in downcase($facts['os']['name']) and $facts['os']['release']['major'] == '2023') {
     $install_fluentd = false
   } else {
     $install_fluentd = $with_fluentd
@@ -368,7 +371,9 @@ class splunk_otel_collector (
     $libsplunk_path = '/usr/lib/splunk-instrumentation/libsplunk.so'
     $instrumentation_config_path = '/usr/lib/splunk-instrumentation/instrumentation.conf'
     $zeroconfig_java_config_path = '/etc/splunk/zeroconfig/java.conf'
+    $zeroconfig_node_config_path = '/etc/splunk/zeroconfig/node.conf'
     $zeroconfig_systemd_config_path = '/usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf'
+    $with_new_instrumentation = $auto_instrumentation_version == 'latest' or versioncmp($auto_instrumentation_version, '0.87.0') >= 0
 
     if $::osfamily == 'debian' {
       package { $auto_instrumentation_package_name:
@@ -384,6 +389,22 @@ class splunk_otel_collector (
       fail("Splunk OpenTelemetry Auto Instrumentation is not supported for your OS family (${::osfamily})")
     }
 
+    if 'nodejs' in $with_auto_instrumentation_sdks and $with_new_instrumentation {
+      $splunk_otel_js_path = '/usr/lib/splunk-instrumentation/splunk-otel-js.tgz'
+      $splunk_otel_js_prefix = '/usr/lib/splunk-instrumentation/splunk-otel-js'
+
+      file { [$splunk_otel_js_prefix, "${$splunk_otel_js_prefix}/node_modules"]:
+        ensure  => 'directory',
+        require => Package[$auto_instrumentation_package_name],
+      }
+      -> exec { 'Install splunk-otel-js':
+        command  => "${$auto_instrumentation_npm_path} install ${$splunk_otel_js_path}",
+        provider => shell,
+        cwd      => $splunk_otel_js_prefix,
+        require  => Package[$auto_instrumentation_package_name],
+      }
+    }
+
     file { $ld_so_preload_path:
       ensure  => file,
       content => template('splunk_otel_collector/ld.so.preload.erb'),
@@ -391,6 +412,10 @@ class splunk_otel_collector (
     }
 
     if $auto_instrumentation_systemd {
+      file { [$zeroconfig_java_config_path, $zeroconfig_node_config_path]:
+        ensure  => absent,
+        require => Package[$auto_instrumentation_package_name],
+      }
       file { ['/usr/lib/systemd', '/usr/lib/systemd/system.conf.d']:
         ensure => directory,
       }
@@ -404,11 +429,20 @@ class splunk_otel_collector (
       file { $zeroconfig_systemd_config_path:
         ensure => absent,
       }
-      if $auto_instrumentation_version == 'latest' or versioncmp($auto_instrumentation_version, '0.87.0') >= 0 {
-        file { $zeroconfig_java_config_path:
-          ensure  => file,
-          content => template('splunk_otel_collector/java.conf.erb'),
-          require => Package[$auto_instrumentation_package_name],
+      if $with_new_instrumentation {
+        if 'java' in $with_auto_instrumentation_sdks {
+          file { $zeroconfig_java_config_path:
+            ensure  => file,
+            content => template('splunk_otel_collector/java.conf.erb'),
+            require => Package[$auto_instrumentation_package_name],
+          }
+        }
+        if 'nodejs' in $with_auto_instrumentation_sdks {
+          file { $zeroconfig_node_config_path:
+            ensure  => file,
+            content => template('splunk_otel_collector/node.conf.erb'),
+            require => Exec['Install splunk-otel-js'],
+          }
         }
       } else {
         file { $instrumentation_config_path:

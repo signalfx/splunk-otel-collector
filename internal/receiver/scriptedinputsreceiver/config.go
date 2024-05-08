@@ -27,7 +27,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator/helper"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/split"
-	"go.uber.org/zap"
+	"go.opentelemetry.io/collector/component"
 )
 
 const (
@@ -96,12 +96,12 @@ func (c *Config) Validate() error {
 }
 
 // Build will build a stdoutOperator.
-func (c *Config) Build(logger *zap.SugaredLogger) (operator.Operator, error) {
+func (c *Config) Build(set component.TelemetrySettings) (operator.Operator, error) {
 	if isContainer() {
 		return nil, fmt.Errorf("scriped inputs receiver must be run directly on host and is not supported in container")
 	}
 
-	inputOperator, err := c.InputConfig.Build(logger)
+	inputOperator, err := c.InputConfig.Build(set)
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +131,7 @@ func (c *Config) Build(logger *zap.SugaredLogger) (operator.Operator, error) {
 	return &stdoutOperator{
 		cfg:           c,
 		InputOperator: inputOperator,
-		logger:        logger,
+		logger:        set.Logger.Sugar(),
 		decoder:       decode.New(enc),
 		splitFunc:     splitFunc,
 		scriptContent: scriptContent,

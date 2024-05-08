@@ -18,28 +18,23 @@
 package tests
 
 import (
-	"path"
 	"testing"
+
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
-var postgresqldb = []testutils.Container{testutils.NewContainer().WithContext(
-	path.Join(".", "testdata", "server"),
-).WithName("postgresqldb").WithExposedPorts("15432:5432").WillWaitForLogs("database system is ready to accept connections")}
-
 // This test ensures the collector can connect to a PostgreSQL DB, and properly get metrics. It's not intended to
 // test the receiver itself.
 func TestPostgresqlDBIntegration(t *testing.T) {
-	testutils.AssertAllMetricsReceived(t, "all.yaml", "all_metrics_config.yaml",
-		postgresqldb, []testutils.CollectorBuilder{
-			func(collector testutils.Collector) testutils.Collector {
-				return collector.WithEnv(map[string]string{
-					"POSTGRESQLDB_ENDPOINT": "localhost:15432",
-					"POSTGRESQLDB_USERNAME": "otelu",
-					"POSTGRESQLDB_PASSWORD": "otelp",
-				})
-			},
-		},
+	testutils.CheckGoldenFile(t, "all_metrics_config.yaml", "expected.yaml",
+		pmetrictest.IgnoreScopeVersion(),
+		pmetrictest.IgnoreTimestamp(),
+		pmetrictest.IgnoreStartTimestamp(),
+		pmetrictest.IgnoreMetricDataPointsOrder(),
+		pmetrictest.IgnoreScopeMetricsOrder(),
+		pmetrictest.IgnoreResourceMetricsOrder(),
+		pmetrictest.IgnoreMetricValues(),
 	)
 }

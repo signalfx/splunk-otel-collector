@@ -20,6 +20,8 @@ on:
       - 'internal/buildscripts/packaging/tests/helpers/**'
       - 'internal/buildscripts/packaging/tests/requirements.txt'
       - '!**.md'
+  schedule:
+    - cron: '0 0 * * 3,6' # Every Wednesday and Saturday at midnight UTC
 
 concurrency:
   group: puppet-test-${{ github.event.pull_request.number || github.ref }}
@@ -95,7 +97,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
@@ -152,7 +154,7 @@ jobs:
       - puppet-rake-spec
     strategy:
       matrix:
-        OS: [ "windows-2019", "windows-2022" ]
+        OS: [ "windows-2022" ]
         PUPPET_RELEASE: [ "6.0.2", "7.21.0" ]
         TEST_CASE: [ "default", "custom_vars" ]
       fail-fast: false
@@ -161,7 +163,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip

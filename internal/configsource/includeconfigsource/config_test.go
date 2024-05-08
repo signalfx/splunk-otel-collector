@@ -35,7 +35,7 @@ func TestIncludeConfigSourceLoadConfig(t *testing.T) {
 	require.NoError(t, err)
 
 	factories := map[component.Type]configsource.Factory{
-		typeStr: NewFactory(),
+		component.MustNewType(typeStr): NewFactory(),
 	}
 
 	actualSettings, splitConf, err := configsource.SettingsFromConf(context.Background(), v, factories, nil)
@@ -44,14 +44,14 @@ func TestIncludeConfigSourceLoadConfig(t *testing.T) {
 
 	expectedSettings := map[string]configsource.Settings{
 		"include": &Config{
-			SourceSettings: configsource.NewSourceSettings(component.NewID(typeStr)),
+			SourceSettings: configsource.NewSourceSettings(component.MustNewID(typeStr)),
 		},
 		"include/delete_files": &Config{
-			SourceSettings: configsource.NewSourceSettings(component.NewIDWithName(typeStr, "delete_files")),
+			SourceSettings: configsource.NewSourceSettings(component.MustNewIDWithName(typeStr, "delete_files")),
 			DeleteFiles:    true,
 		},
 		"include/watch_files": &Config{
-			SourceSettings: configsource.NewSourceSettings(component.NewIDWithName(typeStr, "watch_files")),
+			SourceSettings: configsource.NewSourceSettings(component.MustNewIDWithName(typeStr, "watch_files")),
 			WatchFiles:     true,
 		},
 	}

@@ -28,7 +28,7 @@ type LogProvider struct {
 	log logrus.FieldLogger
 }
 
-func (s *LogProvider) NewFile(p string) io.WriteCloser {
+func (s *LogProvider) NewFile(_ string) io.WriteCloser {
 	return NewLogWriterCloser(s.log)
 }
 

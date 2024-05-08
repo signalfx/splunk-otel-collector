@@ -13,9 +13,9 @@
 # limitations under the License.
 
 ARG ARCH=amd64
-ARG JDK_VERSION=11.0.21_9
+ARG JDK_VERSION=11.0.23_9
 ARG MAVEN_VERSION=3.6.0
-ARG PYTHON_VERSION=3.11.6
+ARG PYTHON_VERSION=3.11.9
 ARG PIP_VERSION=21.0.1
 ARG COLLECTD_VERSION=5.8.0-sfx0
 ARG COLLECTD_COMMIT=4d3327b14cf4359029613baf4f90c4952702105e
@@ -23,7 +23,7 @@ ARG DOCKER_REPO=docker.io
 
 
 ######## Base image for subsequent stages ########
-FROM ${DOCKER_REPO}/ubuntu:20.04 as base
+FROM ${DOCKER_REPO}/ubuntu:22.04 as base
 
 ARG ARCH
 ENV DEBIAN_FRONTEND noninteractive
@@ -38,7 +38,7 @@ FROM base as java
 ARG JDK_VERSION
 ARG MAVEN_VERSION
 
-RUN apt-get install -qq -y wget
+RUN apt-get update && apt-get install -qq -y wget
 
 ENV OPENJDK_BASE_URL="https://github.com/adoptium/temurin11-binaries/releases/download"
 
@@ -86,7 +86,7 @@ FROM base as python
 
 ARG PYTHON_VERSION
 
-RUN apt-get install -qq -y \
+RUN apt-get update && apt-get install -qq -y \
       curl \
       dpkg \
       net-tools \
@@ -235,6 +235,7 @@ RUN DISABLE_XENCPU=""; if [ "$ARCH" = "ppc64le" ]; then DISABLE_XENCPU="--disabl
         --disable-barometer \
         --disable-dpdkstat \
         --disable-dpdkevents \
+        --disable-gmond \
         --disable-gps \
         --disable-grpc \
         --disable-intel_pmu \
@@ -330,17 +331,14 @@ RUN find /usr/local/lib/python3.11 -wholename "*test*.key" -delete -or -wholenam
 ######## Extra packages that don't make sense to pull down in any other stage ########
 FROM base as extra-packages
 
-RUN apt-get install -qq -y \
-        curl \
+RUN apt-get update && apt-get install -qq -y \
         host \
         iproute2 \
-        netcat \
-        netcat.openbsd
+        libtirpc3
 
 COPY scripts/collect-libs /opt/collect-libs
 
 ENV useful_bins=" \
-  /bin/bash \
   /bin/cat \
   /bin/cp \
   /bin/date \
@@ -351,14 +349,11 @@ ENV useful_bins=" \
   /bin/ls \
   /bin/mkdir \
   /bin/mount \
-  /bin/nc \
   /bin/ps \
   /bin/rm \
   /bin/sh \
   /bin/ss \
-  /bin/tar \
   /bin/umount \
-  /usr/bin/curl \
   /usr/bin/dirname \
   /usr/bin/find \
   /usr/bin/host \
@@ -406,7 +401,7 @@ COPY --from=collectd /usr/local/bin/patchelf /bin/
 # Pull in the Linux dynamic link loader at a fixed path across all
 # architectures.  Binaries will later be patched to use this interpreter
 # natively.
-COPY --from=extra-packages /lib/*-linux-gnu/ld-2.31.so /bin/ld-linux.so
+COPY --from=extra-packages /lib/*-linux-gnu/ld-* /bin/ld-linux.so
 
 # Java dependencies
 COPY --from=extra-packages /opt/root/jre/ /jre

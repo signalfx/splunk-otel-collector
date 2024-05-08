@@ -71,11 +71,11 @@ type Monitor struct {
 func (m *Monitor) Configure(conf *Config) error {
 	novaListServersSearchOpts := "{}"
 	if len(conf.NovaListServersSearchOpts) > 0 {
-		marshalled, err := yaml.Marshal(conf.NovaListServersSearchOpts)
+		marshaled, err := yaml.Marshal(conf.NovaListServersSearchOpts)
 		if err != nil {
 			return fmt.Errorf("failed to parse novaListServersSearchOpts: %w", err)
 		}
-		novaListServersSearchOpts = string(marshalled)
+		novaListServersSearchOpts = string(marshaled)
 	}
 	conf.pyConf = &python.Config{
 		ModuleName:    "openstack_metrics",

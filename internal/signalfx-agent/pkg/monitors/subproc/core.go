@@ -9,7 +9,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"sync"
@@ -86,7 +85,7 @@ func (mc *MonitorCore) Logger() log.FieldLogger {
 func (mc *MonitorCore) run(runtimeConf RuntimeConfig, stdin io.Reader, stdout io.Writer) error {
 	mc.logger.Debugf("Subprocess command: %s %v (env: %v)", runtimeConf.Binary, runtimeConf.Args, runtimeConf.Env)
 
-	cmd := exec.CommandContext(mc.ctx, runtimeConf.Binary, runtimeConf.Args...)
+	cmd := exec.CommandContext(mc.ctx, runtimeConf.Binary, runtimeConf.Args...) //nolint: gosec
 	cmd.SysProcAttr = procAttrs()
 	cmd.Stdin = stdin
 	cmd.Stdout = stdout
@@ -251,7 +250,7 @@ func (mc *MonitorCore) waitForConfigure(messages MessageReceiver) (*configResult
 			return nil, err
 		}
 
-		content, err := ioutil.ReadAll(payloadReader)
+		content, err := io.ReadAll(payloadReader)
 		if err != nil {
 			mc.logger.WithError(err).Error("Could not read message from subprocess monitor")
 		}

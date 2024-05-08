@@ -10,6 +10,8 @@
 - name: etcd
   version: v2.0.0
   repo: signalfx/collectd-etcd
+  can_remove:
+    - integration-test
 
 - name: hadoop
   version: v1.1.0
@@ -26,16 +28,6 @@
 - name: kong
   version: v0.0.4
   repo: signalfx/collectd-kong
-
-- name: marathon
-  version: v1.0.3
-  repo: signalfx/collectd-marathon
-
-- name: mongodb
-  version: v1.3.7
-  repo: signalfx/collectd-mongodb
-  pip_packages:
-    - pymongo[tls]==3.13.0
 
 - name: openstack
   version: v4.2.0

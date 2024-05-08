@@ -1,8 +1,8 @@
 receivers:
   postgresql:
-    endpoint: "${POSTGRESQLDB_ENDPOINT}"
-    username: "${POSTGRESQLDB_USERNAME}"
-    password: "${POSTGRESQLDB_PASSWORD}"
+    endpoint: "localhost:15432"
+    username: "otelu"
+    password: "otelp"
     databases:
       - otel
       - otel2

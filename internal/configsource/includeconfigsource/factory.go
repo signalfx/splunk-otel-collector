@@ -32,12 +32,12 @@ const (
 type includeFactory struct{}
 
 func (f *includeFactory) Type() component.Type {
-	return typeStr
+	return component.MustNewType(typeStr)
 }
 
 func (f *includeFactory) CreateDefaultConfig() configsource.Settings {
 	return &Config{
-		SourceSettings: configsource.NewSourceSettings(component.NewID(typeStr)),
+		SourceSettings: configsource.NewSourceSettings(component.MustNewID(typeStr)),
 	}
 }
 

@@ -15,7 +15,6 @@
 package discoveryreceiver
 
 import (
-	"encoding/base64"
 	"fmt"
 	"regexp"
 	"time"
@@ -25,7 +24,6 @@ import (
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/receiver"
 	"go.uber.org/multierr"
-	"gopkg.in/yaml.v2"
 
 	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
 )
@@ -46,9 +44,6 @@ type Config struct {
 	// The configured Observer extensions from which to receive Endpoint events.
 	// Must implement the observer.Observable interface.
 	WatchObservers []component.ID `mapstructure:"watch_observers"`
-	// Whether to emit log records for all endpoint activity, consisting of Endpoint
-	// content as record attributes.
-	LogEndpoints bool `mapstructure:"log_endpoints"`
 	// Whether to include the receiver config as a base64-encoded "discovery.receiver.config"
 	// resource attribute string value. Will also contain the configured observer that
 	// produced the endpoint leading to receiver creation in `watch_observers`.
@@ -66,30 +61,30 @@ type ReceiverEntry struct {
 	Config             map[string]any    `mapstructure:"config"`
 	Status             *Status           `mapstructure:"status"`
 	ResourceAttributes map[string]string `mapstructure:"resource_attributes"`
-	Rule               string            `mapstructure:"rule"`
+	Rule               Rule              `mapstructure:"rule"`
 }
 
 // Status defines the Match rules for applicable app and telemetry sources.
+// The first matching rule determines status of the endpoint.
 // At this time only Metrics and zap logger Statements status source types are supported.
 type Status struct {
-	Metrics    map[discovery.StatusType][]Match `mapstructure:"metrics"`
-	Statements map[discovery.StatusType][]Match `mapstructure:"statements"`
+	Metrics    []Match `mapstructure:"metrics"`
+	Statements []Match `mapstructure:"statements"`
 }
 
 // Match defines the rules for the desired match type and resulting log record
 // content emitted by the Discovery receiver
 type Match struct {
-	Record    *LogRecord `mapstructure:"log_record"`
-	Strict    string     `mapstructure:"strict"`
-	Regexp    string     `mapstructure:"regexp"`
-	Expr      string     `mapstructure:"expr"`
-	FirstOnly bool       `mapstructure:"first_only"`
+	Status discovery.StatusType `mapstructure:"status"`
+	Record *LogRecord           `mapstructure:"log_record"`
+	Strict string               `mapstructure:"strict"`
+	Regexp string               `mapstructure:"regexp"`
+	Expr   string               `mapstructure:"expr"`
 }
 
 // LogRecord is a definition of the desired plog.LogRecord content to emit for a match.
 type LogRecord struct {
 	Attributes    map[string]string `mapstructure:"attributes"`
-	SeverityText  string            `mapstructure:"severity_text"`
 	Body          string            `mapstructure:"body"`
 	AppendPattern bool              `mapstructure:"append_pattern"`
 }
@@ -98,7 +93,7 @@ func (cfg *Config) Validate() error {
 	var err error
 	for rName, rEntry := range cfg.Receivers {
 		name := rName.String()
-		if rName.Type() == "receiver_creator" {
+		if rName.Type() == component.MustNewType("receiver_creator") {
 			err = multierr.Combine(err, fmt.Errorf("receiver %q validation failure: receiver cannot be a receiver_creator", name))
 			continue
 		}
@@ -132,53 +127,43 @@ func (s *Status) validate() error {
 	}
 
 	if len(s.Metrics) == 0 && len(s.Statements) == 0 {
-		return fmt.Errorf("`status` must contain at least one `metrics` or `statements` mapping with at least one of %v", discovery.StatusTypes)
+		return fmt.Errorf("`status` must contain at least one `metrics` or `statements` list")
 	}
 
 	var err error
 	statusSources := []struct {
-		matches    map[discovery.StatusType][]Match
 		sourceType string
-	}{{s.Metrics, "metrics"}, {s.Statements, "statements"}}
+		matches    []Match
+	}{{"metrics", s.Metrics}, {"statements", s.Statements}}
 	for _, statusSource := range statusSources {
-		for statusType, statements := range statusSource.matches {
-			if ok, e := discovery.IsValidStatus(statusType); !ok {
-				err = multierr.Combine(err, e)
+		for _, statement := range statusSource.matches {
+			if ok, e := discovery.IsValidStatus(statement.Status); !ok {
+				err = multierr.Combine(err, fmt.Errorf(`"%s" status match validation failed: %w`, statusSource.sourceType, e))
 				continue
 			}
-			for _, logMatch := range statements {
-				var matchTypes []string
-				if logMatch.Strict != "" {
-					matchTypes = append(matchTypes, "strict")
-				}
-				if logMatch.Regexp != "" {
-					matchTypes = append(matchTypes, "regexp")
-				}
-				if logMatch.Expr != "" {
-					matchTypes = append(matchTypes, "expr")
-				}
-				if len(matchTypes) != 1 {
-					err = multierr.Combine(err, fmt.Errorf(
-						"`%s` status source type `%s` match type validation failed. Must provide one of %v but received %v", statusSource.sourceType, statusType, allowedMatchTypes, matchTypes,
-					))
-				}
-				if e := logMatch.Record.validate(); e != nil {
-					err = multierr.Combine(err, fmt.Errorf(" %q log record validation failure: %w", statusType, e))
-				}
+			var matchTypes []string
+			if statement.Strict != "" {
+				matchTypes = append(matchTypes, "strict")
+			}
+			if statement.Regexp != "" {
+				matchTypes = append(matchTypes, "regexp")
+			}
+			if statement.Expr != "" {
+				matchTypes = append(matchTypes, "expr")
+			}
+			if len(matchTypes) != 1 {
+				err = multierr.Combine(err, fmt.Errorf(
+					`"%s" status match validation failed. Must provide one of %v but received %v`, statusSource.sourceType, allowedMatchTypes, matchTypes,
+				))
 			}
 		}
 	}
 	return err
 }
 
-func (lr *LogRecord) validate() error {
-	// TODO: supported severity text validation
-	return nil
-}
-
 // receiverCreatorFactoryAndConfig will embed the applicable receiver creator fields in a new receiver creator config
 // suitable for being used to create a receiver instance by the returned factory.
-func (cfg *Config) receiverCreatorFactoryAndConfig(correlations correlationStore) (receiver.Factory, component.Config, error) {
+func (cfg *Config) receiverCreatorFactoryAndConfig() (receiver.Factory, component.Config, error) {
 	receiverCreatorFactory := receivercreator.NewFactory()
 	receiverCreatorDefaultConfig := receiverCreatorFactory.CreateDefaultConfig()
 	receiverCreatorConfig, ok := receiverCreatorDefaultConfig.(*receivercreator.Config)
@@ -188,10 +173,7 @@ func (cfg *Config) receiverCreatorFactoryAndConfig(correlations correlationStore
 
 	receiverCreatorConfig.WatchObservers = cfg.WatchObservers
 
-	receiversConfig, err := cfg.receiverCreatorReceiversConfig(correlations)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to produce receiver creator receivers config: %w", err)
-	}
+	receiversConfig := cfg.receiverCreatorReceiversConfig()
 	receiverTemplates := confmap.NewFromStringMap(map[string]any{"receivers": receiversConfig})
 	if err := receiverCreatorConfig.Unmarshal(receiverTemplates); err != nil {
 		return nil, nil, fmt.Errorf("failed unmarshaling discoveryreceiver receiverTemplates into receiver_creator config: %w", err)
@@ -201,7 +183,7 @@ func (cfg *Config) receiverCreatorFactoryAndConfig(correlations correlationStore
 }
 
 // receiverCreatorReceiversConfig produces the actual config string map used by the receiver creator config unmarshaler.
-func (cfg *Config) receiverCreatorReceiversConfig(correlations correlationStore) (map[string]any, error) {
+func (cfg *Config) receiverCreatorReceiversConfig() map[string]any {
 	receiversConfig := map[string]any{}
 	for receiverID, rEntry := range cfg.Receivers {
 		resourceAttributes := map[string]string{}
@@ -209,39 +191,16 @@ func (cfg *Config) receiverCreatorReceiversConfig(correlations correlationStore)
 			resourceAttributes[k] = v
 		}
 		resourceAttributes[discovery.ReceiverNameAttr] = receiverID.Name()
-		resourceAttributes[discovery.ReceiverTypeAttr] = string(receiverID.Type())
-		resourceAttributes[receiverRuleAttr] = rEntry.Rule
+		resourceAttributes[discovery.ReceiverTypeAttr] = receiverID.Type().String()
+		resourceAttributes[receiverRuleAttr] = rEntry.Rule.String()
 		resourceAttributes[discovery.EndpointIDAttr] = "`id`"
 
-		if cfg.EmbedReceiverConfig {
-			embeddedConfig := map[string]any{}
-			embeddedReceiversConfig := map[string]any{}
-			receiverConfig := map[string]any{}
-			receiverConfig["rule"] = rEntry.Rule
-			receiverConfig["config"] = rEntry.Config
-			receiverConfig["resource_attributes"] = rEntry.ResourceAttributes
-			embeddedReceiversConfig[receiverID.String()] = receiverConfig
-			embeddedConfig["receivers"] = embeddedReceiversConfig
-
-			// we don't embed the `watch_observers` array here since it is added
-			// on statement or metric evaluator matches by looking up the
-			// Endpoint.ID to the originating observer ComponentID
-			var configYaml []byte
-			var err error
-			if configYaml, err = yaml.Marshal(embeddedConfig); err != nil {
-				return nil, fmt.Errorf("failed embedding %q receiver config: %w", receiverID.String(), err)
-			}
-			encoded := base64.StdEncoding.EncodeToString(configYaml)
-			resourceAttributes[discovery.ReceiverConfigAttr] = encoded
-			correlations.UpdateAttrs(receiverID, map[string]string{discovery.ReceiverConfigAttr: encoded})
-		}
-
 		rEntryMap := map[string]any{}
-		rEntryMap["rule"] = rEntry.Rule
+		rEntryMap["rule"] = rEntry.Rule.String()
 		rEntryMap["config"] = rEntry.Config
 		rEntryMap["resource_attributes"] = resourceAttributes
 		receiversConfig[receiverID.String()] = rEntryMap
 	}
 
-	return receiversConfig, nil
+	return receiversConfig
 }

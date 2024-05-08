@@ -21,6 +21,7 @@ var logger = logrus.WithField("monitorType", monitorType)
 // Configure the monitor and kick off metric syncing
 func (m *Monitor) Configure(conf *Config) error {
 	m.logger = logger.WithField("monitorID", conf.MonitorID)
+	m.logger.Warn("[NOTICE] The " + monitorType + " monitor is deprecated and will be removed in a future release. For more information visit https://docs.splunk.com/observability/en/gdi/monitors-languages/microsoft-dotnet.html")
 	perfcounterConf := &winperfcounters.Config{
 		CountersRefreshInterval: conf.CountersRefreshInterval,
 		PrintValid:              conf.PrintValid,
@@ -76,7 +77,7 @@ func (m *Monitor) Configure(conf *Config) error {
 
 	// Hard code the plugin name because the emitter will parse out the
 	// configured measurement name as plugin and that is confusing.
-	emitter.AddTag("plugin", strings.Replace(monitorType, "/", "-", -1))
+	emitter.AddTag("plugin", strings.ReplaceAll(monitorType, "/", "-"))
 
 	// omit objectname tag from dimensions
 	emitter.OmitTag("objectname")

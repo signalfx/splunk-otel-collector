@@ -18,8 +18,9 @@
 package tests
 
 import (
-	"path"
 	"testing"
+
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
@@ -29,20 +30,14 @@ import (
 // The reported telemetry may need to be updated (resource metric file changes),
 // They can detect breaking changes or bugs that may have been missed upstream.
 func TestMysqlIntegration(t *testing.T) {
-	port := "3306"
-	mysql := []testutils.Container{testutils.NewContainer().WithContext(
-		path.Join(".", "testdata", "server"),
-	).WithName("mysql").WithExposedPorts(port + ":" + port).WillWaitForPorts(port).WillWaitForLogs("X Plugin ready for connections. Bind-address:")}
-
-	testutils.AssertAllMetricsReceived(t, "all.yaml", "all_metrics_config.yaml",
-		mysql, []testutils.CollectorBuilder{
-			func(collector testutils.Collector) testutils.Collector {
-				return collector.WithEnv(map[string]string{
-					"MYSQLDB_ENDPOINT": "127.0.0.1:" + port,
-					"MYSQLDB_USERNAME": "root",
-					"MYSQLDB_PASSWORD": "testuser",
-				})
-			},
-		},
+	testutils.CheckGoldenFile(t, "all_metrics_config.yaml", "all_expected.yaml",
+		pmetrictest.IgnoreScopeVersion(),
+		pmetrictest.IgnoreMetricDataPointsOrder(),
+		pmetrictest.IgnoreResourceMetricsOrder(),
+		pmetrictest.IgnoreScopeMetricsOrder(),
+		pmetrictest.IgnoreMetricsOrder(),
+		pmetrictest.IgnoreMetricValues(),
+		pmetrictest.IgnoreTimestamp(),
+		pmetrictest.IgnoreStartTimestamp(),
 	)
 }

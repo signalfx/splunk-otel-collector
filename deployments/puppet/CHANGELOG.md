@@ -2,6 +2,27 @@
 
 ## Unreleased
 
+## puppet-v0.15.0
+
+- Fix installation of `splunk-otel-js` for Node.js auto instrumentation.
+
+## puppet-v0.14.0
+
+- For Splunk Otel Collector version `0.97.0` or greater, `GOMEMLIMIT` env var is introduced. The default is set to 90% of the `SPLUNK_TOTAL_MEM_MIB`. For more information regarding the usage, please follow the instructions ([here](https://github.com/signalfx/splunk-otel-collector?tab=readme-ov-file#from-0961-to-0970)).
+- The `splunk_ballast_size_mib` option is deprecated and no longer effective. It is only applicable for Splunk OpenTelemetry Collector version < `0.97.0`.
+
+## puppet-v0.13.0
+
+- On Windows the `SPLUNK_*` environment variables were moved from the machine scope to the collector service scope.
+  It is possible that some instrumentations are relying on the machine-wide environment variables set by the installation. ([#3930](https://github.com/signalfx/splunk-otel-collector/pull/3930))
+- Initial support for [Splunk OpenTelemetry for Node.js](https://github.com/signalfx/splunk-otel-js) Auto
+  Instrumentation on Linux:
+  - The Node.js SDK is installed and activated by default if the `with_auto_instrumentation` option is set to `true`
+    and `npm` is found on the node with the `bash -c 'command -v npm'` shell command.
+  - Set the `with_auto_instrumentation_sdks` option to only `['java']` to skip Node.js auto instrumentation.
+  - Use the `auto_instrumentation_npm_path` option to specify a custom path for `npm`.
+  - **Note:** This cookbook does not manage the installation/configuration of Node.js, `npm`, or Node.js applications.
+
 ## puppet-v0.12.0
 
 - **Deprecations**: The `auto_instrumentation_generate_service_name` and `auto_instrumentation_disable_telemetry`

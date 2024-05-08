@@ -18,9 +18,8 @@ func init() {
 
 // CHTTPConfig is the monitor-specific config for cAdvisor
 type CHTTPConfig struct {
+	CAdvisorURL          string `yaml:"cadvisorURL" default:"http://localhost:4194"`
 	config.MonitorConfig `yaml:",inline"`
-	// Where to find cAdvisor
-	CAdvisorURL string `yaml:"cadvisorURL" default:"http://localhost:4194"`
 }
 
 // Cadvisor is the monitor that goes straight to the exposed cAdvisor port to
@@ -50,7 +49,7 @@ func (cip *cadvisorInfoProvider) GetEphemeralStatsFromPods() ([]stats.PodStats, 
 	return nil, nil
 }
 
-func (cip *cadvisorInfoProvider) SubcontainersInfo(containerName string) ([]info.ContainerInfo, error) {
+func (cip *cadvisorInfoProvider) SubcontainersInfo(_ string) ([]info.ContainerInfo, error) {
 	curTime := time.Now()
 	info, err := cip.cc.AllDockerContainers(&info.ContainerInfoRequest{Start: cip.lastUpdate, End: curTime})
 	if len(info) > 0 {

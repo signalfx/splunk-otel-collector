@@ -58,7 +58,7 @@ func (s *zkConfigSource) Retrieve(ctx context.Context, selector string, _ *confm
 
 	closeCh := make(chan struct{})
 	startWatcher(watchCh, closeCh, watcher)
-	return confmap.NewRetrieved(string(value), confmap.WithRetrievedClose(func(ctx context.Context) error {
+	return confmap.NewRetrieved(string(value), confmap.WithRetrievedClose(func(_ context.Context) error {
 		close(closeCh)
 		conn.Close()
 		return nil
@@ -95,7 +95,7 @@ func startWatcher(watchCh <-chan zk.Event, closeCh <-chan struct{}, watcher conf
 // underlying connection until it is lost.
 func newConnectFunc(endpoints []string, timeout time.Duration) connectFunc {
 	var conn *zk.Conn
-	return func(ctx context.Context) (zkConnection, error) {
+	return func(_ context.Context) (zkConnection, error) {
 		if conn != nil && conn.State() != zk.StateDisconnected {
 			return conn, nil
 		}

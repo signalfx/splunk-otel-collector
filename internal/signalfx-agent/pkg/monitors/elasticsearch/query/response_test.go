@@ -2,7 +2,7 @@ package query
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"os"
 	"reflect"
 	"testing"
 
@@ -147,9 +147,9 @@ func TestAdjacencyAggregation(t *testing.T) {
 }
 
 type testContext struct {
-	rawFile  string
 	actual   HTTPResponse
 	expected HTTPResponse
+	rawFile  string
 }
 
 func getAdjacenyMatrixAggregationTestContexts() ([]*testContext, *errors.Error) {
@@ -301,7 +301,7 @@ func getSingleBucketFilterAggregationTestContexts() ([]*testContext, *errors.Err
 	expected := []HTTPResponse{
 		{
 			Aggregations: aggregationsMap{
-				"favourite_host": {
+				"favorite_host": {
 					DocCount: newInt64(9398),
 					SubAggregations: aggregationsMap{
 						"metric_agg_1": {
@@ -1084,7 +1084,7 @@ func getAggregationTestContexts(responseFilePaths []string, expected []HTTPRespo
 }
 
 func loadJSON(filePath string) ([]byte, error) {
-	return ioutil.ReadFile(filePath)
+	return os.ReadFile(filePath)
 }
 
 func newInt64(num int64) *int64 {

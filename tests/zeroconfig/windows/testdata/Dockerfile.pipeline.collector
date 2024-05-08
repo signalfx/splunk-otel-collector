@@ -18,10 +18,8 @@ ENV ACCESS_TOKEN_TMP=$access_token
 RUN `
     $token = $Env:ACCESS_TOKEN_TMP; `
     $collector_msi_path = (dir "c:\setup\splunk-otel-collector-*.msi").FullName; `
-    c:\setup\install.ps1 -access_token $token -msi_path $collector_msi_path -with_fluentd $false -ingest_url "http://192.0.2.1:12345" -trace_url "http://192.0.2.1:12345" -network_interface "0.0.0.0"
+    c:\setup\install.ps1 -access_token $token -msi_path $collector_msi_path -config_path "C:\setup\pipeline-collector.yaml" -with_fluentd $false -ingest_url "http://192.0.2.1:12345" -trace_url "http://192.0.2.1:12345" -network_interface "0.0.0.0"
 ENV ACCESS_TOKEN_TMP=
-RUN `
-    Set-ItemProperty -force -path 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment' -name 'SPLUNK_CONFIG' -value 'C:\setup\pipeline-collector.yaml'
 
 # On docker compose the entry point needs to be changed to something that keeps the container alive.
-ENTRYPOINT [ "powershell", "-Command", "Start-Sleep 1; While ($? -eq '1') { Start-Sleep 1; Invoke-WebRequest -Uri http://localhost:13133/health_check -TimeoutSec 5 -UseBasicParsing }" ]
+ENTRYPOINT [ "powershell", "-Command", "Start-Sleep 5; While ($? -eq '1') { Start-Sleep 5; Invoke-WebRequest -Uri http://localhost:13133/health_check -TimeoutSec 10 -UseBasicParsing }" ]

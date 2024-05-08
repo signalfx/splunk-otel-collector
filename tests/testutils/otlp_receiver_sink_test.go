@@ -57,16 +57,6 @@ func TestBuilderMethods(t *testing.T) {
 	withEndpoint := otlp.WithEndpoint("myendpoint")
 	require.Equal(t, "myendpoint", withEndpoint.Endpoint)
 	require.Empty(t, otlp.Endpoint)
-
-	host := componenttest.NewNopHost()
-	withHost := otlp.WithHost(host)
-	require.Same(t, host, withHost.Host)
-	require.Nil(t, otlp.Host)
-
-	logger := zap.NewNop()
-	withLogger := otlp.WithLogger(logger)
-	require.Same(t, logger, withLogger.Logger)
-	require.Nil(t, otlp.Logger)
 }
 
 func TestBuildDefaults(t *testing.T) {
@@ -125,9 +115,9 @@ func TestReceiverMethodsWithoutBuildingDisallowed(t *testing.T) {
 
 func createOTLPFactoryParameters() (otlpexporter.Config, otelcolexporter.CreateSettings) {
 	exporterCfg := otlpexporter.Config{
-		GRPCClientSettings: configgrpc.GRPCClientSettings{
+		ClientConfig: configgrpc.ClientConfig{
 			Endpoint: "localhost:4317",
-			TLSSetting: configtls.TLSClientSetting{
+			TLSSetting: configtls.ClientConfig{
 				Insecure: true,
 			},
 		},

@@ -1,85 +1,109 @@
 resource_logs:
-  - attributes:
-      discovery.event.type: endpoint.added
-      discovery.observer.type: host_observer
-      discovery.observer.name: ""
-    scope_logs:
+  - scope_logs:
       - logs:
-          - body: endpoint.added hostport endpoint (host_observer)127.0.0.1-55554-TCP-1
-            severity_text: info
-            attributes:
-              command: /otelcol --config /etc/config.yaml
-              endpoint: 127.0.0.1:55554
-              id: (host_observer)127.0.0.1-55554-TCP-1
-              is_ipv6: false
-              port: 55554
-              process_name: otelcol
-              transport: TCP
-              type: hostport
-          - body: endpoint.added hostport endpoint (host_observer)[::]-8888-TCP-1
-            severity_text: info
-            attributes:
-              command: /otelcol --config /etc/config.yaml
-              endpoint: '[::]:8888'
-              id: (host_observer)[::]-8888-TCP-1
-              is_ipv6: true
-              port: 8888
-              process_name: otelcol
-              transport: TCP
-              type: hostport
-  - attributes:
-      discovery.event.type: endpoint.added
-      discovery.observer.type: host_observer
-      discovery.observer.name: with_name
-    scope_logs:
+          - attributes:
+              otel.entity.type: service
+              otel.entity.id:
+                source.port: 55554
+              otel.entity.event.type: entity_state
+              otel.entity.attributes:
+                discovery.endpoint.id: (host_observer)127.0.0.1-55554-TCP-1
+                discovery.observer.type: host_observer
+                discovery.observer.name: ""
+                command: /otelcol --config /etc/config.yaml
+                endpoint: 127.0.0.1:55554
+                is_ipv6: false
+                process_name: otelcol
+                transport: TCP
+                type: hostport
+                service.type: unknown
+                service.name: otelcol
+          - attributes:
+              otel.entity.type: service
+              otel.entity.id:
+                source.port: 8888
+              otel.entity.event.type: entity_state
+              otel.entity.attributes:
+                discovery.endpoint.id: (host_observer)[::]-8888-TCP-1
+                discovery.observer.type: host_observer
+                discovery.observer.name: ""
+                command: /otelcol --config /etc/config.yaml
+                endpoint: '[::]:8888'
+                is_ipv6: true
+                process_name: otelcol
+                transport: TCP
+                type: hostport
+                service.type: unknown
+                service.name: otelcol
+  - scope_logs:
       - logs:
-          - body: endpoint.added hostport endpoint (host_observer/with_name)127.0.0.1-55554-TCP-1
-            severity_text: info
-            attributes:
-              command: /otelcol --config /etc/config.yaml
-              endpoint: 127.0.0.1:55554
-              id: (host_observer/with_name)127.0.0.1-55554-TCP-1
-              is_ipv6: false
-              port: 55554
-              process_name: otelcol
-              transport: TCP
-              type: hostport
-          - body: endpoint.added hostport endpoint (host_observer/with_name)[::]-8888-TCP-1
-            severity_text: info
-            attributes:
-              command: /otelcol --config /etc/config.yaml
-              endpoint: '[::]:8888'
-              id: (host_observer/with_name)[::]-8888-TCP-1
-              is_ipv6: true
-              port: 8888
-              process_name: otelcol
-              transport: TCP
-              type: hostport
-  - attributes:
-      discovery.event.type: endpoint.added
-      discovery.observer.type: host_observer
-      discovery.observer.name: with/another/name
-    scope_logs:
+          - attributes:
+              otel.entity.type: service
+              otel.entity.id:
+                source.port: 55554
+              otel.entity.event.type: entity_state
+              otel.entity.attributes:
+                discovery.endpoint.id: (host_observer/with_name)127.0.0.1-55554-TCP-1
+                discovery.observer.type: host_observer
+                discovery.observer.name: with_name
+                command: /otelcol --config /etc/config.yaml
+                endpoint: 127.0.0.1:55554
+                is_ipv6: false
+                process_name: otelcol
+                transport: TCP
+                type: hostport
+                service.type: unknown
+                service.name: otelcol
+          - attributes:
+              otel.entity.type: service
+              otel.entity.id:
+                source.port: 8888
+              otel.entity.event.type: entity_state
+              otel.entity.attributes:
+                discovery.endpoint.id: (host_observer/with_name)[::]-8888-TCP-1
+                discovery.observer.type: host_observer
+                discovery.observer.name: with_name
+                command: /otelcol --config /etc/config.yaml
+                endpoint: '[::]:8888'
+                is_ipv6: true
+                process_name: otelcol
+                transport: TCP
+                type: hostport
+                service.type: unknown
+                service.name: otelcol
+  - scope_logs:
       - logs:
-          - body: endpoint.added hostport endpoint (host_observer/with/another/name)127.0.0.1-55554-TCP-1
-            severity_text: info
-            attributes:
-              command: /otelcol --config /etc/config.yaml
-              endpoint: 127.0.0.1:55554
-              id: (host_observer/with/another/name)127.0.0.1-55554-TCP-1
-              is_ipv6: false
-              port: 55554
-              process_name: otelcol
-              transport: TCP
-              type: hostport
-          - body: endpoint.added hostport endpoint (host_observer/with/another/name)[::]-8888-TCP-1
-            severity_text: info
-            attributes:
-              command: /otelcol --config /etc/config.yaml
-              endpoint: '[::]:8888'
-              id: (host_observer/with/another/name)[::]-8888-TCP-1
-              is_ipv6: true
-              port: 8888
-              process_name: otelcol
-              transport: TCP
-              type: hostport
+          - attributes:
+              otel.entity.type: service
+              otel.entity.id:
+                source.port: 55554
+              otel.entity.event.type: entity_state
+              otel.entity.attributes:
+                discovery.endpoint.id: (host_observer/with/another/name)127.0.0.1-55554-TCP-1
+                discovery.observer.type: host_observer
+                discovery.observer.name: with/another/name
+                command: /otelcol --config /etc/config.yaml
+                endpoint: 127.0.0.1:55554
+                is_ipv6: false
+                process_name: otelcol
+                transport: TCP
+                type: hostport
+                service.type: unknown
+                service.name: otelcol
+          - attributes:
+              otel.entity.type: service
+              otel.entity.id:
+                source.port: 8888
+              otel.entity.event.type: entity_state
+              otel.entity.attributes:
+                discovery.endpoint.id: (host_observer/with/another/name)[::]-8888-TCP-1
+                discovery.observer.type: host_observer
+                discovery.observer.name: with/another/name
+                command: /otelcol --config /etc/config.yaml
+                endpoint: '[::]:8888'
+                is_ipv6: true
+                process_name: otelcol
+                transport: TCP
+                type: hostport
+                service.type: unknown
+                service.name: otelcol

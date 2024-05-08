@@ -12,25 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build integration
+//go:build smartagent_integration
 
 package tests
 
 import (
-	"path"
 	"testing"
+
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
 func TestCollectdNginxReceiverProvidesAllMetrics(t *testing.T) {
-	containers := []testutils.Container{
-		testutils.NewContainer().WithContext(
-			path.Join(".", "testdata", "server"),
-		).WithExposedPorts("8123:80").WithName("nginx").WillWaitForPorts("80"),
-	}
-
-	testutils.AssertAllMetricsReceived(
-		t, "all.yaml", "all_metrics_config.yaml", containers, nil,
+	testutils.CheckGoldenFile(t, "all_metrics_config.yaml", "all_expected.yaml",
+		pmetrictest.IgnoreTimestamp(),
+		pmetrictest.IgnoreMetricsOrder(),
+		pmetrictest.IgnoreMetricValues(),
+		pmetrictest.IgnoreMetricAttributeValue("host"),
 	)
 }

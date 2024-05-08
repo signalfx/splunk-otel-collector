@@ -2,8 +2,10 @@ receivers:
   smartagent/collectd_apache:
     type: collectd/apache
     host: localhost
-    port: 8080
+    port: 18080
     intervalSeconds: 1
+processors:
+  batch:
 
 exporters:
   otlp:
@@ -16,4 +18,5 @@ service:
     metrics:
       receivers:
         - smartagent/collectd_apache
+      processors: [batch]
       exporters: [otlp]

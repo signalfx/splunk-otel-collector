@@ -32,12 +32,12 @@ const (
 type envVarFactory struct{}
 
 func (e *envVarFactory) Type() component.Type {
-	return typeStr
+	return component.MustNewType(typeStr)
 }
 
 func (e *envVarFactory) CreateDefaultConfig() configsource.Settings {
 	return &Config{
-		SourceSettings: configsource.NewSourceSettings(component.NewID(typeStr)),
+		SourceSettings: configsource.NewSourceSettings(component.MustNewID(typeStr)),
 	}
 }
 

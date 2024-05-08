@@ -55,18 +55,6 @@ func (mf *MetricFilter) Normalize() (map[string][]string, error) {
 	return dimSet, nil
 }
 
-// MakeFilter returns an actual filter instance from the config
-func (mf *MetricFilter) MakeFilter() (dpfilters.DatapointFilter, error) {
-	dimSet, err := mf.Normalize()
-	if err != nil {
-		return nil, err
-	}
-
-	return dpfilters.New(mf.MonitorType, mf.MetricNames, dimSet, mf.Negated)
-}
-
-// This should be the preferred filter set creator from now on.  It is much
-// simpler to understand.
 func makeNewFilterSet(excludes []MetricFilter) (*dpfilters.FilterSet, error) {
 	var excludeSet []dpfilters.DatapointFilter
 	for _, f := range excludes {
@@ -88,45 +76,4 @@ func makeNewFilterSet(excludes []MetricFilter) (*dpfilters.FilterSet, error) {
 	return &dpfilters.FilterSet{
 		ExcludeFilters: excludeSet,
 	}, nil
-}
-
-// AddOrMerge MetricFilter to list or merge with existing MetricFilter
-func AddOrMerge(mtes []MetricFilter, mf2 MetricFilter) []MetricFilter {
-	for i, mf1 := range mtes {
-		if mf1.ShouldMerge(mf2) {
-			mtes[i] = mf1.MergeWith(mf2)
-			return mtes
-		}
-	}
-	return append(mtes, mf2)
-}
-
-// MergeWith merges mf2's MetricFilter.MetricNames into receiver mf MetricFilter.MetricNames
-func (mf *MetricFilter) MergeWith(mf2 MetricFilter) MetricFilter {
-	if mf2.MetricName != "" {
-		mf2.MetricNames = append(mf2.MetricNames, mf2.MetricName)
-	}
-	mf.MetricNames = append(mf.MetricNames, mf2.MetricNames...)
-	return *mf
-}
-
-// ShouldMerge checks if mf2 MetricFilter should be merged into receiver mf MetricFilter
-// Filters with same monitorType, negation, and dimensions should be merged
-func (mf *MetricFilter) ShouldMerge(mf2 MetricFilter) bool {
-	if mf.MonitorType != mf2.MonitorType {
-		return false
-	}
-	if mf.Negated != mf2.Negated {
-		return false
-	}
-	if len(mf.Dimensions) != len(mf2.Dimensions) {
-		return false
-	}
-	// Ensure no differing dimension values
-	for k, v := range mf.Dimensions {
-		if mf2.Dimensions[k] != v {
-			return false
-		}
-	}
-	return true
 }

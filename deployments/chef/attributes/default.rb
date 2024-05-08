@@ -20,7 +20,7 @@ default['splunk_otel_collector']['splunk_trace_url'] = "#{node['splunk_otel_coll
 default['splunk_otel_collector']['splunk_hec_url'] = "#{node['splunk_otel_collector']['splunk_ingest_url']}/v1/log"
 default['splunk_otel_collector']['splunk_hec_token'] = "#{node['splunk_otel_collector']['splunk_access_token']}"
 default['splunk_otel_collector']['splunk_memory_total_mib'] = '512'
-default['splunk_otel_collector']['splunk_ballast_size_mib'] = ''
+default['splunk_otel_collector']['gomemlimit'] = ''
 default['splunk_otel_collector']['splunk_listen_interface'] = ''
 
 default['splunk_otel_collector']['collector_config'] = {}
@@ -100,6 +100,6 @@ elsif platform_family?('debian', 'rhel', 'amazon', 'suse')
   default['splunk_otel_collector']['auto_instrumentation_enable_profiler_memory'] = false
   default['splunk_otel_collector']['auto_instrumentation_enable_metrics'] = false
   default['splunk_otel_collector']['auto_instrumentation_otlp_endpoint'] = 'http://127.0.0.1:4317'
-  default['splunk_otel_collector']['with_auto_instrumentation_sdks'] = %w(java nodejs)
+  default['splunk_otel_collector']['with_auto_instrumentation_sdks'] = %w(java nodejs dotnet)
   default['splunk_otel_collector']['auto_instrumentation_npm_path'] = 'npm'
 end

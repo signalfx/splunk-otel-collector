@@ -97,7 +97,7 @@ func TestHostObserver(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	sc, r, err := cc.Container.Exec(ctx, []string{
 		// no config server to prevent port collisions
-		"bash", "-c", "SPLUNK_DEBUG_CONFIG_SERVER=false /otelcol --configd --config-dir /opt/internal-prometheus-config.d &",
+		"sh", "-c", "SPLUNK_DEBUG_CONFIG_SERVER=false /otelcol --configd --config-dir /opt/internal-prometheus-config.d &",
 	})
 	cancel()
 	if r != nil {
@@ -114,7 +114,7 @@ func TestHostObserver(t *testing.T) {
 
 	// get the pid of the collector for endpoint ID verification
 	sc, stdout, stderr := cc.Container.AssertExec(
-		t, 5*time.Second, "bash", "-c", "ps -C otelcol | tail -n 1 | grep -oE '^\\s*[0-9]+'",
+		t, 5*time.Second, "sh", "-c", "ps -C otelcol | tail -n 1 | grep -oE '^\\s*[0-9]+'",
 	)
 	promPid := strings.TrimSpace(stdout)
 	require.Zero(t, sc, stderr)
@@ -235,6 +235,9 @@ func TestHostObserver(t *testing.T) {
 					"address": "",
 					"level":   "none",
 				},
+				"resource": map[string]any{
+					"splunk_autodiscovery": "true",
+				},
 			},
 		},
 		"extensions": map[string]any{
@@ -268,7 +271,7 @@ func TestHostObserver(t *testing.T) {
 	require.Equal(t, expectedEffective, cc.EffectiveConfig(t, 55554))
 
 	sc, stdout, stderr = cc.Container.AssertExec(t, 15*time.Second,
-		"bash", "-c", `SPLUNK_DISCOVERY_LOG_LEVEL=error SPLUNK_DEBUG_CONFIG_SERVER=false \
+		"sh", "-c", `SPLUNK_DISCOVERY_LOG_LEVEL=error SPLUNK_DEBUG_CONFIG_SERVER=false \
 REFRESH_INTERVAL=1s \
 SPLUNK_DISCOVERY_DURATION=9s \
 SPLUNK_DISCOVERY_RECEIVERS_prometheus_simple_CONFIG_labels_x3a__x3a_label_three=actual.label.three.value.from.env.var.property \
@@ -325,6 +328,8 @@ service:
     metrics:
       address: ""
       level: none
+    resource:
+      splunk_autodiscovery: "true"
 `, stdout, errorContent)
 
 	split := strings.Split(stderr, "\n")

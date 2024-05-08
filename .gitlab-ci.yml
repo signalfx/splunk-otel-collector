@@ -7,10 +7,11 @@ stages:
   - build
   - sign-binaries
   - package
-  - cve-scan
   - sign-packages
   - release
+  - docker-manifest-release
   - github-release
+  - sign-image
 
 include:
   - project: 'prodsec/scp-scanning/gitlab-checkmarx'
@@ -50,6 +51,22 @@ fossa:
   variables:
     jira_automation: "true"
   # allow_failure: false
+
+.docker-reader-role: &docker-reader-role |
+  creds-helper init
+  eval $(creds-helper docker --eval "artifactory:v2/cloud/role/docker-reader-role")
+
+.sign-docker:
+  extends: .trigger-filter
+  stage: sign-image
+  before_script:
+    - *docker-reader-role
+    - docker login -u $CIRCLECI_QUAY_USERNAME -p $CIRCLECI_QUAY_PASSWORD quay.io
+  script:
+    - echo "listing images to be signed"
+    - cat tags_to_sign
+    - cat tags_to_sign | xargs -L1 artifact-ci sign docker
+
 
 .get-artifactory-stage: &get-artifactory-stage
   - |
@@ -105,7 +122,7 @@ fossa:
       fi
 
 .go-cache:
-  image: '${DOCKER_HUB_REPO}/golang:1.20.10'
+  image: '${DOCKER_HUB_REPO}/golang:1.21.10'
   variables:
     GOPATH: "$CI_PROJECT_DIR/.go"
   before_script:
@@ -121,10 +138,6 @@ fossa:
       - .go/pkg/mod
       - .go/bin
 
-.docker-reader-role: &docker-reader-role |
-  creds-helper init
-  eval $(creds-helper docker --eval "artifactory:v2/cloud/role/docker-reader-role")
-
 update-otel-deps:
   only:
     - schedules
@@ -134,7 +147,18 @@ update-otel-deps:
   dependencies: []
   script:
     - .gitlab/install-gh-cli.sh
-    - .gitlab/update-otel-deps.sh
+    - .gitlab/update-otel-deps.sh latest create-pull-request/update-deps
+
+update-otel-deps-nightly:
+  only:
+    - schedules
+  extends: .go-cache
+  stage: update-deps
+  needs: []
+  dependencies: []
+  script:
+    - .gitlab/install-gh-cli.sh
+    - .gitlab/update-otel-deps.sh main create-pull-request/update-deps-nightly
 
 update-openjdk:
   only:
@@ -165,6 +189,16 @@ update-nodejs-agent:
   script:
     - .gitlab/install-gh-cli.sh
     - .gitlab/update-nodejs-agent.sh
+
+update-dotnet-agent:
+  only:
+    - schedules
+  stage: update-deps
+  needs: []
+  dependencies: []
+  script:
+    - .gitlab/install-gh-cli.sh
+    - .gitlab/update-dotnet-agent.sh
 
 tidy-dependabot-pr:
   rules:
@@ -396,6 +430,7 @@ build-msi:
   needs:
     - sign-exe
     - agent-bundle-windows
+    - msi-custom-actions-package
   before_script:
     # build the MSI with the signed exe
     - mkdir -p bin
@@ -406,6 +441,44 @@ build-msi:
   artifacts:
     paths:
       - dist/*.msi
+
+msi-custom-actions-package:
+  extends: .trigger-filter
+  stage: package
+  needs:
+    - job: msi-custom-actions-assemblies
+      artifacts: true
+  tags:
+    - windows
+  script:
+    - $WixPath = "${Env:ProgramFiles(x86)}\WiX Toolset v3.14"
+    - $sfxcaDll = "${WixPath}\SDK\x64\sfxca.dll"
+    - $Env:PATH = "${WixPath}\SDK;" + $Env:PATH
+    - $customActionDir = "${PWD}\internal\buildscripts\packaging\msi\SplunkCustomActions"
+    - $customActionBinDir = "${customActionDir}\bin\Release"
+    - MakeSfxCA.exe "${customActionBinDir}\SplunkCustomActions.CA.dll" `
+      "${sfxcaDll}" `
+      "${customActionBinDir}\SplunkCustomActions.dll" `
+      "${customActionBinDir}\Microsoft.Deployment.WindowsInstaller.dll" `
+      "${customActionDir}\src\CustomAction.config"
+  artifacts:
+    paths:
+      - internal/buildscripts/packaging/msi/SplunkCustomActions/bin/Release/SplunkCustomActions.CA.dll
+
+msi-custom-actions-assemblies:
+  extends: .trigger-filter
+  image: 'mcr.microsoft.com/dotnet/sdk:8.0'
+  stage: package
+  needs: []
+  dependencies: []
+  script:
+    - pushd ./internal/buildscripts/packaging/msi/SplunkCustomActions/
+    - dotnet publish ./src/SplunkCustomActions.csproj -c Release -o ./bin/Release
+    - popd
+  artifacts:
+    name: msi-custom-actions-assemblies
+    paths:
+      - internal/buildscripts/packaging/msi/SplunkCustomActions/bin/Release/*
 
 sign-debs:
   extends:
@@ -608,8 +681,9 @@ push-linux-image:
         echo "Tagging and pushing ${IMAGE_NAME}:${ARCH_TAG}"
         docker tag otelcol:${arch} ${IMAGE_NAME}:${ARCH_TAG}
         docker push ${IMAGE_NAME}:${ARCH_TAG}
+        echo "${IMAGE_NAME}:${ARCH_TAG}" >> tags
         if [[ "${CI_COMMIT_BRANCH:-}" = "main" ]] || [[ "${CI_COMMIT_TAG:-}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-          # only push latest tag for main and stable releases
+          # only push latest tag for main and stable releases; no need to sign them as signing is made for digest
           LATEST_TAG="latest-${arch}"
           echo "Tagging and pushing ${IMAGE_NAME}:${LATEST_TAG}"
           docker tag ${IMAGE_NAME}:${ARCH_TAG} ${IMAGE_NAME}:${LATEST_TAG}
@@ -619,6 +693,7 @@ push-linux-image:
     - |
       # Create and push image manifests
       set -e
+      echo "${IMAGE_NAME}:${MANIFEST_TAG}" >> tags
       echo "Creating and pushing ${IMAGE_NAME}:${MANIFEST_TAG} manifest"
       docker manifest create ${IMAGE_NAME}:${MANIFEST_TAG} --amend ${IMAGE_NAME}:${MANIFEST_TAG}-amd64 --amend ${IMAGE_NAME}:${MANIFEST_TAG}-arm64 --amend ${IMAGE_NAME}:${MANIFEST_TAG}-ppc64le
       docker manifest push ${IMAGE_NAME}:${MANIFEST_TAG}
@@ -633,14 +708,21 @@ push-linux-image:
     - docker inspect --format='{{.RepoDigests}}' ${IMAGE_NAME}:${MANIFEST_TAG}-arm64 | tee dist/linux_arm64_digest.txt
     - docker inspect --format='{{.RepoDigests}}' ${IMAGE_NAME}:${MANIFEST_TAG}-ppc64le | tee dist/linux_ppc64le_digest.txt
     - docker manifest inspect ${IMAGE_NAME}:${MANIFEST_TAG} | tee dist/manifest_digest.txt
+    - mv tags tags_to_sign
   artifacts:
     paths:
       - dist/linux_amd64_digest.txt
       - dist/linux_arm64_digest.txt
       - dist/linux_ppc64le_digest.txt
       - dist/manifest_digest.txt
+      - tags_to_sign
 
-build-push-windows-image:
+sign-linux-image:
+  extends: .sign-docker
+  dependencies:
+    - push-linux-image
+
+build-push-windows2019-image:
   extends: .trigger-filter
   stage: release
   dependencies:
@@ -658,28 +740,39 @@ build-push-windows-image:
       $ErrorActionPreference = 'Stop'
       if ($env:CI_COMMIT_TAG) {
         $IMAGE_NAME = "quay.io/signalfx/splunk-otel-collector-windows"
-        $IMAGE_TAG = $env:CI_COMMIT_TAG.TrimStart("v")
+        $tagNumber = $env:CI_COMMIT_TAG.TrimStart("v")
+        $IMAGE_TAG = "${tagNumber}-2019"
       } else {
         $IMAGE_NAME = "quay.io/signalfx/splunk-otel-collector-windows-dev"
-        $IMAGE_TAG = $env:CI_COMMIT_SHA
+        $IMAGE_TAG = "${env:CI_COMMIT_SHA}-2019"
       }
       $JMX_METRIC_GATHERER_RELEASE = $(Get-Content internal\buildscripts\packaging\jmx-metric-gatherer-release.txt)
       echo "Building ${IMAGE_NAME}:${IMAGE_TAG}"
       docker build -t ${IMAGE_NAME}:${IMAGE_TAG} --build-arg BASE_IMAGE=mcr.microsoft.com/windows/servercore:1809 --build-arg JMX_METRIC_GATHERER_RELEASE=${JMX_METRIC_GATHERER_RELEASE} -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
+      $os_version = (docker manifest inspect mcr.microsoft.com/windows/servercore:1809 | ConvertFrom-Json).manifests[0].platform."os.version"
+      docker manifest annotate --os "windows" --arch "amd64" --os-version ${os_version} ${IMAGE_NAME}:${IMAGE_TAG}
       echo "Pushing ${IMAGE_NAME}:${IMAGE_TAG}"
       docker push ${IMAGE_NAME}:${IMAGE_TAG}
+      echo "${IMAGE_NAME}:${IMAGE_TAG}" >> tags
       if ($env:CI_COMMIT_BRANCH -eq "main" -or $env:CI_COMMIT_TAG -match '^v\d+\.\d+\.\d+$') {
-        # only push latest tag for main and stable releases
-        echo "Tagging and pushing ${IMAGE_NAME}:latest"
-        docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
-        docker push ${IMAGE_NAME}:latest
+        # only push latest tag for main and stable releases; no need to sign them as signing is made for digest
+        echo "Tagging and pushing ${IMAGE_NAME}:latest-2019"
+        docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest-2019
+        docker push ${IMAGE_NAME}:latest-2019
       }
-    - docker inspect --format='{{.RepoDigests}}' ${IMAGE_NAME}:${IMAGE_TAG} | Tee-Object -FilePath dist/windows_digest.txt
+    - docker inspect --format='{{.RepoDigests}}' ${IMAGE_NAME}:${IMAGE_TAG} | Tee-Object -FilePath dist/windows_2019_digest.txt
+    - (Get-Content -Raw -Path tags) -replace "`r`n", "`n"| Set-Content -NoNewline tags_to_sign
   after_script:
     - docker image prune --all --force
   artifacts:
     paths:
-      - dist/windows_digest.txt
+      - dist/windows_2019_digest.txt
+      - tags_to_sign
+
+sign-windows2019-image:
+  extends: .sign-docker
+  dependencies:
+    - build-push-windows2019-image
 
 build-push-windows2022-image:
   extends: .trigger-filter
@@ -708,21 +801,77 @@ build-push-windows2022-image:
       $JMX_METRIC_GATHERER_RELEASE = $(Get-Content internal\buildscripts\packaging\jmx-metric-gatherer-release.txt)
       echo "Building ${IMAGE_NAME}:${IMAGE_TAG}"
       docker build -t ${IMAGE_NAME}:${IMAGE_TAG} --build-arg BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022 --build-arg JMX_METRIC_GATHERER_RELEASE=${JMX_METRIC_GATHERER_RELEASE} -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
+      $os_version = (docker manifest inspect mcr.microsoft.com/windows/servercore:ltsc2022 | ConvertFrom-Json).manifests[0].platform."os.version"
+      docker manifest annotate --os "windows" --arch "amd64" --os-version ${os_version} ${IMAGE_NAME}:${IMAGE_TAG}
       echo "Pushing ${IMAGE_NAME}:${IMAGE_TAG}"
       docker push ${IMAGE_NAME}:${IMAGE_TAG}
+      echo "${IMAGE_NAME}:${IMAGE_TAG}" >> tags
       if ($env:CI_COMMIT_BRANCH -eq "main" -or $env:CI_COMMIT_TAG -match '^v\d+\.\d+\.\d+$') {
-        # only push latest tag for main and stable releases
+        # only push latest tag for main and stable releases; no need to sign them as signing is made for digest
         echo "Tagging and pushing ${IMAGE_NAME}:latest-2022"
         docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest-2022
         docker push ${IMAGE_NAME}:latest-2022
       }
     - docker inspect --format='{{.RepoDigests}}' ${IMAGE_NAME}:${IMAGE_TAG} | Tee-Object -FilePath dist/windows_2022_digest.txt
+    - (Get-Content -Raw -Path tags) -replace "`r`n", "`n"| Set-Content -NoNewline tags_to_sign
   after_script:
     - docker image prune --all --force
     - C:\Users\Administrator\Desktop\ops-scripts\docker-leak-check.exe -remove
   artifacts:
     paths:
       - dist/windows_2022_digest.txt
+      - tags_to_sign
+
+sign-windows2022-image:
+  extends: .sign-docker
+  dependencies:
+    - build-push-windows2022-image
+
+build-push-windows-multiarch-image:
+  extends: .trigger-filter
+  stage: docker-manifest-release
+  tags:
+    - windows2022
+  retry: 2
+  script:
+    - docker login -u $env:CIRCLECI_QUAY_USERNAME -p $env:CIRCLECI_QUAY_PASSWORD quay.io
+    - |
+      $ErrorActionPreference = 'Stop'
+      if ($env:CI_COMMIT_TAG) {
+        $IMAGE_NAME = "quay.io/signalfx/splunk-otel-collector-windows"
+        $tagNumber = $env:CI_COMMIT_TAG.TrimStart("v")
+        $IMAGE_TAG = "${tagNumber}"
+      } else {
+        $IMAGE_NAME = "quay.io/signalfx/splunk-otel-collector-windows-dev"
+        $IMAGE_TAG = "${env:CI_COMMIT_SHA}"
+      }
+      echo "Building ${IMAGE_NAME}:${IMAGE_TAG}"
+      docker manifest create ${IMAGE_NAME}:${IMAGE_TAG} --amend ${IMAGE_NAME}:${IMAGE_TAG}-2019 --amend ${IMAGE_NAME}:${IMAGE_TAG}-2022
+      echo "Pushing ${IMAGE_NAME}:${IMAGE_TAG}"
+      docker manifest push ${IMAGE_NAME}:${IMAGE_TAG}
+      echo "${IMAGE_NAME}:${IMAGE_TAG}" >> tags
+      if ($env:CI_COMMIT_BRANCH -eq "main" -or $env:CI_COMMIT_TAG -match '^v\d+\.\d+\.\d+$') {
+        # only push latest tag for main and stable releases.
+        echo "Tagging and pushing ${IMAGE_NAME}:latest"
+        docker manifest rm ${IMAGE_NAME}:latest
+        docker manifest create ${IMAGE_NAME}:latest ${IMAGE_NAME}:latest-2019 ${IMAGE_NAME}:latest-2022
+        docker manifest push ${IMAGE_NAME}:latest --purge
+      }
+      docker pull ${IMAGE_NAME}:${IMAGE_TAG}
+      docker inspect --format='{{.RepoDigests}}' ${IMAGE_NAME}:${IMAGE_TAG} | Tee-Object -FilePath dist/windows_multiarch_digest.txt
+    - (Get-Content -Raw -Path tags) -replace "`r`n", "`n"| Set-Content -NoNewline tags_to_sign
+  after_script:
+    - docker image prune --all --force
+    - C:\Users\Administrator\Desktop\ops-scripts\docker-leak-check.exe -remove
+  artifacts:
+    paths:
+      - dist/windows_multiarch_digest.txt
+      - tags_to_sign
+
+sign-windows-multiarch-image:
+  extends: .sign-docker
+  dependencies:
+    - build-push-windows-multiarch-image
 
 release-debs:
   extends:
@@ -897,8 +1046,9 @@ github-release:
     - sign-msi
     - sign-tar
     - push-linux-image
-    - build-push-windows-image
+    - build-push-windows2019-image
     - build-push-windows2022-image
+    - build-push-windows-multiarch-image
     - choco-release
     - sign-agent-bundles
   script:
@@ -963,7 +1113,7 @@ ansible-release:
     - pip3 install ansible==3.4.0 yq==2.12.0
   script:
     - export COLLECTION_VERSION=$(cat ./deployments/ansible/galaxy.yml | yq .version -r)
-    - ansible-galaxy collection publish ./dist/signalfx-splunk_otel_collector-${COLLECTION_VERSION}.tar.gz --token=${ANSIBLE_GALAXY_TOKEN} 
+    - ansible-galaxy collection publish ./dist/signalfx-splunk_otel_collector-${COLLECTION_VERSION}.tar.gz --token=${ANSIBLE_GALAXY_TOKEN}
 
 puppet-release:
   image: '${DOCKER_HUB_REPO}/ruby:2.6-buster'
@@ -984,38 +1134,6 @@ puppet-release:
     paths:
       - deployments/puppet/pkg/*.tar.gz
 
-cve-scan:
-  extends: .go-cache
-  stage: cve-scan
-  retry: 2
-  only:
-    - main
-    - schedules
-  before_script:
-    - apt-get update
-    - apt-get install -y ca-certificates curl gnupg lsb-release
-    - curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-    - echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
-    - apt-get update
-    - apt-get install -y docker-ce-cli docker-scan-plugin
-  script:
-    - *docker-reader-role
-    - |
-      if [ -f dist/otelcol-amd64.tar ]; then
-        docker load -i dist/otelcol-amd64.tar
-        docker tag otelcol:amd64 otelcol:latest
-      else
-        make docker-otelcol DOCKER_REPO=${DOCKER_HUB_REPO}
-      fi
-    - docker scan --accept-license --login --token ${SNYK_AUTH_TOKEN}
-    - docker scan --severity high otelcol
-  after_script:
-    - |
-      if [ "$CI_JOB_STATUS" != "success" ]; then
-        curl -X POST ${SLACK_WEBHOOK_URL} -H 'Content-Type: application/json' \
-          --data "{\"blocks\": [{\"type\": \"section\",\"text\": {\"type\": \"mrkdwn\",\"text\": \"*@here Gitlab Job #${CI_JOB_ID}*\"}},{\"type\": \"section\",\"text\": {\"type\": \"mrkdwn\",\"text\": \"*:ghost: Vulnerability scan failed on splunk-otel-collector*\"},\"accessory\": {\"type\": \"button\",\"text\": {\"type\": \"plain_text\",\"text\": \"More Info\",\"emoji\": true},\"style\": \"danger\",\"url\": \"${CI_JOB_URL}\",\"action_id\": \"button-action\"}}]}"
-      fi
-
 chef-release:
   image: '${DOCKER_HUB_REPO}/ruby:2.7-buster'
   stage: release
@@ -1028,7 +1146,7 @@ chef-release:
     - mkdir -p ~/.chef
     - cat "$CHEF_PEM" > ~/.chef/signalfx.pem
     - cat "$CHEF_KNIFE_RB" > ~/.chef/knife.rb
-    - gem install knife -v 17.10.0
+    - gem install nori:2.6.0 faraday:2.8.1 knife:17.10.0
     - mkdir -p /tmp/cookbooks
     - cp -r deployments/chef /tmp/cookbooks/splunk_otel_collector
   script:

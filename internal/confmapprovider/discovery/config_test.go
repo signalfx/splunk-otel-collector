@@ -171,20 +171,20 @@ var expectedConfig = Config{
 		},
 	},
 	Exporters: map[component.ID]ExporterEntry{
-		component.NewID("signalfx"): {Entry{
+		component.MustNewID("signalfx"): {Entry{
 			"api_url":    "http://0.0.0.0/api",
 			"ingest_url": "http://0.0.0.0/ingest",
 		}},
 	},
 	Extensions: map[component.ID]ExtensionEntry{
-		component.NewID("zpages"): {
+		component.MustNewID("zpages"): {
 			Entry{
 				"endpoint": "0.0.0.0:1234",
 			},
 		},
 	},
 	DiscoveryObservers: map[component.ID]ObserverEntry{
-		component.NewID("docker_observer"): {
+		component.MustNewID("docker_observer"): {
 			Enabled: &tru,
 			Config: Entry{
 				"endpoint": "tcp://debian:54321",
@@ -193,10 +193,10 @@ var expectedConfig = Config{
 		},
 	},
 	Processors: map[component.ID]ProcessorEntry{
-		component.NewID("batch"): {},
+		component.MustNewID("batch"): {},
 	},
 	Receivers: map[component.ID]ReceiverEntry{
-		component.NewID("otlp"): {
+		component.MustNewID("otlp"): {
 			Entry{
 				"protocols": map[any]any{
 					"grpc": map[any]any{
@@ -210,11 +210,11 @@ var expectedConfig = Config{
 		},
 	},
 	ReceiversToDiscover: map[component.ID]ReceiverToDiscoverEntry{
-		component.NewIDWithName(component.Type("smartagent"), "postgresql"): {
+		component.MustNewIDWithName("smartagent", "postgresql"): {
 			Enabled: &flse,
 			Rule: map[component.ID]string{
-				component.NewID("docker_observer"): `type == "container" and port == 5432`,
-				component.NewID("host_observer"):   `type == "hostport" and command contains "pg" and port == 5432`,
+				component.MustNewID("docker_observer"): `type == "container" and port == 5432`,
+				component.MustNewID("host_observer"):   `type == "hostport" and command contains "pg" and port == 5432`,
 			},
 
 			Config: map[component.ID]map[string]any{
@@ -227,7 +227,7 @@ var expectedConfig = Config{
 					},
 					"masterDBName": "test_db",
 				},
-				component.NewID("docker_observer"): {
+				component.MustNewID("docker_observer"): {
 					"params": map[any]any{
 						"password": "`labels[\"auth\"]`",
 					},
@@ -238,11 +238,9 @@ var expectedConfig = Config{
 					"metrics": map[any]any{
 						"successful": []any{
 							map[any]any{
-								"strict":     "postgres_block_hit_ratio",
-								"first_only": true,
+								"strict": "postgres_block_hit_ratio",
 								"log_record": map[any]any{
-									"severity_text": "info",
-									"body":          "postgresql SA receiver working!",
+									"body": "postgresql SA receiver working!",
 								},
 							},
 						},
@@ -250,20 +248,16 @@ var expectedConfig = Config{
 					"statements": map[any]any{
 						"failed": []any{
 							map[any]any{
-								"regexp":     ".* connect: connection refused",
-								"first_only": true,
+								"regexp": ".* connect: connection refused",
 								"log_record": map[any]any{
-									"severity_text": "info",
-									"body":          "container appears to not be accepting postgres connections",
+									"body": "container appears to not be accepting postgres connections",
 								},
 							},
 						},
 						"partial": []any{
 							map[any]any{
-								"regexp":     ".*pq: password authentication failed for user.*",
-								"first_only": true,
+								"regexp": ".*pq: password authentication failed for user.*",
 								"log_record": map[any]any{
-									"severity_text": "info",
 									"body": "Please ensure that your password is correctly specified " +
 										"in `splunk.discovery.receivers.smartagent/postgresql.config.params.username` and " +
 										"`splunk.discovery.receivers.smartagent/postgresql.config.params.password`",
@@ -274,9 +268,9 @@ var expectedConfig = Config{
 				},
 			},
 		},
-		component.NewIDWithName(component.Type("smartagent"), "collectd/redis"): {
+		component.MustNewIDWithName("smartagent", "collectd/redis"): {
 			Rule: map[component.ID]string{
-				component.NewID("docker_observer"): `type == "container" and port == 6379`,
+				component.MustNewID("docker_observer"): `type == "container" and port == 6379`,
 			},
 
 			Config: map[component.ID]map[string]any{
@@ -284,7 +278,7 @@ var expectedConfig = Config{
 					"type": "collectd/redis",
 					"auth": "password",
 				},
-				component.NewID("docker_observer"): {
+				component.MustNewID("docker_observer"): {
 					"auth": "`labels[\"auth\"]`",
 				},
 			},
@@ -293,11 +287,9 @@ var expectedConfig = Config{
 					"metrics": map[any]any{
 						"successful": []any{
 							map[any]any{
-								"regexp":     ".*",
-								"first_only": true,
+								"regexp": ".*",
 								"log_record": map[any]any{
-									"severity_text": "info",
-									"body":          "smartagent/collectd-redis receiver successful metric status",
+									"body": "smartagent/collectd-redis receiver successful metric status",
 								},
 							},
 						},
@@ -305,28 +297,22 @@ var expectedConfig = Config{
 					"statements": map[any]any{
 						"failed": []any{
 							map[any]any{
-								"regexp":     `raise ValueError\(\"Unknown Redis response`,
-								"first_only": true,
+								"regexp": `raise ValueError\(\"Unknown Redis response`,
 								"log_record": map[any]any{
-									"severity_text": "info",
-									"body":          "container appears to not actually be redis",
+									"body": "container appears to not actually be redis",
 								},
 							},
 							map[any]any{
-								"regexp":     "^redis_info plugin: Error connecting to .* - ConnectionRefusedError.*$",
-								"first_only": true,
+								"regexp": "^redis_info plugin: Error connecting to .* - ConnectionRefusedError.*$",
 								"log_record": map[any]any{
-									"severity_text": "info",
-									"body":          "container appears to not be accepting redis connections",
+									"body": "container appears to not be accepting redis connections",
 								},
 							},
 						},
 						"partial": []any{
 							map[any]any{
-								"regexp":     "^redis_info plugin: Error .* - RedisError\\('-(WRONGPASS|NOAUTH|ERR AUTH).*$",
-								"first_only": true,
+								"regexp": "^redis_info plugin: Error .* - RedisError\\('-(WRONGPASS|NOAUTH|ERR AUTH).*$",
 								"log_record": map[any]any{
-									"severity_text": "info",
 									"body": "Please ensure that your redis password is correctly specified in " +
 										"`splunk.discovery.receivers.smartagent/collectd/redis.config.auth` or via the " +
 										"`SPLUNK_DISCOVERY_RECEIVERS_SMARTAGENT_COLLECTD_REDIS_CONFIG_AUTH` environment variable.",

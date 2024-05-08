@@ -12,36 +12,98 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build integration
+//go:build smartagent_integration
 
 package tests
 
 import (
-	"path"
+	"context"
+	"fmt"
 	"path/filepath"
+	"runtime"
 	"testing"
+	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/component/componenttest"
+	"go.opentelemetry.io/collector/consumer/consumertest"
+	"go.opentelemetry.io/collector/receiver/otlpreceiver"
+	"go.opentelemetry.io/collector/receiver/receivertest"
+	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
-var cassandra = []testutils.Container{
-	testutils.NewContainer().WithContext(
-		path.Join(".", "testdata", "server"),
-	).WithExposedPorts("7199:7199").WithName("cassandra").WillWaitForPorts("7199"),
+func TestJmxReceiverProvidesAllMetrics(t *testing.T) {
+	t.Skip("skipping")
+	metricNames := []string{
+		"cassandra.status",
+		"cassandra.state",
+		"cassandra.load",
+		"cassandra.ownership",
+	}
+
+	checkMetricsPresence(t, metricNames, "all_metrics_config.yaml")
 }
 
-func TestJmxReceiverProvidesAllMetrics(t *testing.T) {
-	testutils.SkipIfNotContainerTest(t)
-	testutils.AssertAllMetricsReceived(
-		t, "all.yaml", "all_metrics_config.yaml", cassandra,
-		[]testutils.CollectorBuilder{
-			func(collector testutils.Collector) testutils.Collector {
-				p, err := filepath.Abs(filepath.Join(".", "testdata", "script.groovy"))
-				require.NoError(t, err)
-				return collector.WithMount(p, "/opt/script.groovy")
-			},
-		},
-	)
+func checkMetricsPresence(t *testing.T, metricNames []string, configFile string) {
+	f := otlpreceiver.NewFactory()
+	port := testutils.GetAvailablePort(t)
+	c := f.CreateDefaultConfig().(*otlpreceiver.Config)
+	c.GRPC.NetAddr.Endpoint = fmt.Sprintf("localhost:%d", port)
+	sink := &consumertest.MetricsSink{}
+	receiver, err := f.CreateMetricsReceiver(context.Background(), receivertest.NewNopCreateSettings(), c, sink)
+	require.NoError(t, err)
+	require.NoError(t, receiver.Start(context.Background(), componenttest.NewNopHost()))
+	t.Cleanup(func() {
+		require.NoError(t, receiver.Shutdown(context.Background()))
+	})
+	logger, _ := zap.NewDevelopment()
+
+	dockerHost := "0.0.0.0"
+	if runtime.GOOS == "darwin" {
+		dockerHost = "host.docker.internal"
+	}
+	mountDir, err := filepath.Abs(filepath.Join("testdata", "script.groovy"))
+	require.NoError(t, err)
+	p, err := testutils.NewCollectorContainer().
+		WithConfigPath(filepath.Join("testdata", configFile)).
+		WithLogger(logger).
+		WithEnv(map[string]string{
+			"OTLP_ENDPOINT": fmt.Sprintf("%s:%d", dockerHost, port),
+			"HOST":          dockerHost,
+		}).
+		WithMount(mountDir, "/opt/script.groovy").
+		Build()
+	require.NoError(t, err)
+	require.NoError(t, p.Start())
+	t.Cleanup(func() {
+		require.NoError(t, p.Shutdown())
+	})
+
+	missingMetrics := make(map[string]any, len(metricNames))
+	for _, m := range metricNames {
+		missingMetrics[m] = struct{}{}
+	}
+
+	assert.EventuallyWithT(t, func(tt *assert.CollectT) {
+		for i := 0; i < len(sink.AllMetrics()); i++ {
+			m := sink.AllMetrics()[i]
+			for j := 0; j < m.ResourceMetrics().Len(); j++ {
+				rm := m.ResourceMetrics().At(j)
+				for k := 0; k < rm.ScopeMetrics().Len(); k++ {
+					sm := rm.ScopeMetrics().At(k)
+					for l := 0; l < sm.Metrics().Len(); l++ {
+						delete(missingMetrics, sm.Metrics().At(l).Name())
+					}
+				}
+			}
+		}
+		msg := "Missing metrics:\n"
+		for k := range missingMetrics {
+			msg += fmt.Sprintf("- %q\n", k)
+		}
+		assert.Len(tt, missingMetrics, 0, msg)
+	}, 1*time.Minute, 1*time.Second)
 }

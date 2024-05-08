@@ -109,20 +109,23 @@ fi
 preload_path="/etc/ld.so.preload"
 default_instrumentation_version="latest"
 default_deployment_environment=""
-instrumentation_config_path="/usr/lib/splunk-instrumentation/instrumentation.conf"
 instrumentation_so_path="/usr/lib/splunk-instrumentation/libsplunk.so"
 instrumentation_jar_path="/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar"
-generate_service_name="true"
 systemd_instrumentation_config_path="/usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf"
 service_name=""
-disable_telemetry="false"
 enable_profiler="false"
 enable_profiler_memory="false"
 enable_metrics="false"
 java_zeroconfig_path="/etc/splunk/zeroconfig/java.conf"
 node_zeroconfig_path="/etc/splunk/zeroconfig/node.conf"
+dotnet_zeroconfig_path="/etc/splunk/zeroconfig/dotnet.conf"
 node_package_path="/usr/lib/splunk-instrumentation/splunk-otel-js.tgz"
 node_install_prefix="/usr/lib/splunk-instrumentation/splunk-otel-js"
+dotnet_install_dir="/usr/lib/splunk-instrumentation/splunk-otel-dotnet"
+dotnet_agent_path="${dotnet_install_dir}/linux-x64/OpenTelemetry.AutoInstrumentation.Native.so"
+all_sdks="java node dotnet"
+sdks_to_enable=""
+sdks_enabled=""
 
 repo_for_stage() {
   local repo_url=$1
@@ -335,7 +338,7 @@ ensure_not_installed() {
       echo "Please uninstall auto instrumentation, or try running this script with the '--uninstall' option." >&2
       exit 1
     fi
-    if [ -n "$npm_path" ] && (cd $node_install_prefix && $npm_path ls --global=false @splunk/otel >/dev/null 2>&1); then
+    if splunk_otel_js_installed "$npm_path"; then
       echo "The @splunk/otel npm package is already installed in $node_install_prefix." >&2
       echo "Please uninstall @splunk/otel, or try running this script with the '--uninstall' option." >&2
       exit 1
@@ -492,32 +495,6 @@ disable_preload() {
   fi
 }
 
-create_instrumentation_config() {
-  local version="$( get_package_version splunk-otel-auto-instrumentation )"
-  local resource_attributes="splunk.zc.method=splunk-otel-auto-instrumentation-${version}"
-
-  if [ -n "$deployment_environment" ]; then
-    resource_attributes="${resource_attributes},deployment.environment=${deployment_environment}"
-  fi
-
-  backup_file "$instrumentation_config_path"
-
-  echo "Creating ${instrumentation_config_path}"
-  cat <<EOH > $instrumentation_config_path
-java_agent_jar=${instrumentation_jar_path}
-resource_attributes=${resource_attributes}
-generate_service_name=${generate_service_name}
-disable_telemetry=${disable_telemetry}
-enable_profiler=${enable_profiler}
-enable_profiler_memory=${enable_profiler_memory}
-enable_metrics=${enable_metrics}
-EOH
-
-  if [ -n "$service_name" ]; then
-    echo "service_name=${service_name}" >> $instrumentation_config_path
-  fi
-}
-
 create_zeroconfig_java() {
   local otlp_endpoint="$1"
   local version="$( get_package_version splunk-otel-auto-instrumentation )"
@@ -544,8 +521,18 @@ EOH
   fi
 }
 
+splunk_otel_js_installed() {
+  local npm_path="$1"
+
+  command -v "$npm_path" >/dev/null 2>&1 && [ -d "$node_install_prefix" ] && (cd "$node_install_prefix" && "$npm_path" ls --global=false @splunk/otel >/dev/null 2>&1)
+}
+
 install_node_package() {
   local npm_path="$1"
+
+  if ! command -v "$npm_path" >/dev/null 2>&1; then
+    return 1
+  fi
 
   if [ "$distro_arch" = "arm64" ] || [ "$distro_arch" = "aarch64" ]; then
     echo "Installing dependencies for the Node.js Auto Instrumentation package ..."
@@ -553,7 +540,7 @@ install_node_package() {
       ubuntu|debian)
         apt-get install -y build-essential
         ;;
-      amzn|centos|ol|rhel)
+      amzn|centos|ol|rhel|rocky)
         if command -v yum >/dev/null 2>&1; then
           yum group install -y 'Development Tools'
         else
@@ -599,10 +586,42 @@ EOH
   fi
 }
 
+create_zeroconfig_dotnet() {
+  local otlp_endpoint="$1"
+  local version="$( get_package_version splunk-otel-auto-instrumentation )"
+  local resource_attributes="splunk.zc.method=splunk-otel-auto-instrumentation-${version}"
+
+  if [ -n "$deployment_environment" ]; then
+    resource_attributes="${resource_attributes},deployment.environment=${deployment_environment}"
+  fi
+
+  backup_file "$dotnet_zeroconfig_path"
+
+  echo "Creating ${dotnet_zeroconfig_path}"
+  cat <<EOH > $dotnet_zeroconfig_path
+CORECLR_ENABLE_PROFILING=1
+CORECLR_PROFILER={918728DD-259F-4A6A-AC2B-B85E1B658318}
+CORECLR_PROFILER_PATH=${dotnet_install_dir}/linux-x64/OpenTelemetry.AutoInstrumentation.Native.so
+DOTNET_ADDITIONAL_DEPS=${dotnet_install_dir}/AdditionalDeps
+DOTNET_SHARED_STORE=${dotnet_install_dir}/store
+DOTNET_STARTUP_HOOKS=${dotnet_install_dir}/net/OpenTelemetry.AutoInstrumentation.StartupHook.dll
+OTEL_DOTNET_AUTO_HOME=${dotnet_install_dir}
+OTEL_DOTNET_AUTO_PLUGINS=Splunk.OpenTelemetry.AutoInstrumentation.Plugin,Splunk.OpenTelemetry.AutoInstrumentation
+OTEL_RESOURCE_ATTRIBUTES=${resource_attributes}
+SPLUNK_PROFILER_ENABLED=${enable_profiler}
+SPLUNK_PROFILER_MEMORY_ENABLED=${enable_profiler_memory}
+SPLUNK_METRICS_ENABLED=${enable_metrics}
+OTEL_EXPORTER_OTLP_ENDPOINT=${otlp_endpoint}
+EOH
+
+  if [ -n "$service_name" ]; then
+    echo "OTEL_SERVICE_NAME=${service_name}" >> $dotnet_zeroconfig_path
+  fi
+}
+
 create_systemd_instrumentation_config() {
   local otlp_endpoint="$1"
-  local with_java="$2"
-  local with_node="$3"
+  local sdks="$2"
   local version="$( get_package_version splunk-otel-auto-instrumentation )"
   local resource_attributes="splunk.zc.method=splunk-otel-auto-instrumentation-${version}-systemd"
 
@@ -628,12 +647,25 @@ EOH
     echo "DefaultEnvironment=\"OTEL_SERVICE_NAME=${service_name}\"" >> $systemd_instrumentation_config_path
   fi
 
-  if [ "$with_java" = "true" ]; then
+  if item_in_list "java" "$sdks"; then
     echo "DefaultEnvironment=\"JAVA_TOOL_OPTIONS=-javaagent:${instrumentation_jar_path}\"" >> $systemd_instrumentation_config_path
   fi
 
-  if [ "$with_node" = "true" ]; then
+  if item_in_list "node" "$sdks"; then
     echo "DefaultEnvironment=\"NODE_OPTIONS=-r ${node_install_prefix}/node_modules/@splunk/otel/instrument\"" >> $systemd_instrumentation_config_path
+  fi
+
+  if item_in_list "dotnet" "$sdks"; then
+      cat <<EOH >> $systemd_instrumentation_config_path
+DefaultEnvironment="CORECLR_ENABLE_PROFILING=1"
+DefaultEnvironment="CORECLR_PROFILER={918728DD-259F-4A6A-AC2B-B85E1B658318}"
+DefaultEnvironment="CORECLR_PROFILER_PATH=${dotnet_install_dir}/linux-x64/OpenTelemetry.AutoInstrumentation.Native.so"
+DefaultEnvironment="DOTNET_ADDITIONAL_DEPS=${dotnet_install_dir}/AdditionalDeps"
+DefaultEnvironment="DOTNET_SHARED_STORE=${dotnet_install_dir}/store"
+DefaultEnvironment="DOTNET_STARTUP_HOOKS=${dotnet_install_dir}/net/OpenTelemetry.AutoInstrumentation.StartupHook.dll"
+DefaultEnvironment="OTEL_DOTNET_AUTO_HOME=${dotnet_install_dir}"
+DefaultEnvironment="OTEL_DOTNET_AUTO_PLUGINS=Splunk.OpenTelemetry.AutoInstrumentation.Plugin,Splunk.OpenTelemetry.AutoInstrumentation"
+EOH
   fi
 
   systemctl daemon-reload
@@ -676,7 +708,7 @@ install() {
         install_apt_package "splunk-otel-auto-instrumentation" "$instrumentation_version"
       fi
       ;;
-    amzn|centos|ol|rhel)
+    amzn|centos|ol|rhel|rocky)
       if [ -z "$distro_version" ]; then
         echo "The distribution version could not be determined" >&2
         exit 1
@@ -725,6 +757,8 @@ install() {
 }
 
 uninstall() {
+  local npm_path="$1"
+
   for agent in otelcol td-agent $instrumentation_so_path; do
     if command -v $agent >/dev/null 2>&1; then
       pkg="$agent"
@@ -754,7 +788,7 @@ uninstall() {
             exit 1
           fi
           ;;
-        amzn|centos|ol|rhel|sles|opensuse*)
+        amzn|centos|ol|rhel|rocky|sles|opensuse*)
           if rpm -q $pkg >/dev/null 2>&1; then
             if [ "$pkg" != "splunk-otel-auto-instrumentation" ]; then
               systemctl stop $pkg || true
@@ -788,8 +822,8 @@ uninstall() {
     fi
   done
 
-  if command -v npm >/dev/null 2>&1 && (cd $node_install_prefix && npm ls --global=false @splunk/otel >/dev/null 2>&1); then
-    (cd $node_install_prefix && npm uninstall --global=false @splunk/otel)
+  if splunk_otel_js_installed "$npm_path"; then
+    (cd $node_install_prefix && "$npm_path" uninstall --global=false @splunk/otel)
     echo "Successfully uninstalled the @splunk/otel npm package from $node_install_prefix"
   fi
 }
@@ -876,11 +910,12 @@ Auto Instrumentation:
                                         (default: --without-systemd-instrumentation)
   --with[out]-instrumentation-sdk "<s>" Whether to enable Auto Instrumentation for a specific language. This option
                                         takes a comma separated set of values representing supported
-                                        auto-instrumentation SDKs. Currently supported: java,node.
+                                        auto-instrumentation SDKs. Currently supported: java,node,dotnet.
                                         Use --with-instrumentation-sdk to enable only the specified language(s),
                                         for example "--with-instrumentation-sdk java".
-                                        (default: --with-instrumentation-sdk "java,node" if --with-instrumentation or
-                                        --with-systemd-instrumentation is also specified)
+                                        *Note*: .NET (dotnet) auto instrumentation is only supported on x86_64/amd64.
+                                        (default: --with-instrumentation-sdk "$( echo $all_sdks | tr ' ' ',' )" if
+                                        --with-instrumentation or --with-systemd-instrumentation is also specified)
   --npm-path <path>                     If Auto Instrumentation for Node.js is enabled, npm is required to install the
                                         included Splunk OpenTelemetry Auto Instrumentation for Node.js package. If npm
                                         is not found via the 'command -v npm' shell command or if installation fails,
@@ -902,16 +937,6 @@ Auto Instrumentation:
                                         Only applicable if the '--with-systemd-instrumentation' option is also specified.
                                         (default: http://LISTEN_INTERFACE:4317 where LISTEN_INTERFACE is the value from
                                         the --listen-interface option if specified, or "127.0.0.1" otherwise)
-  --[no-]generate-service-name          DEPRECATED: Specify '--no-generate-service-name' to prevent the preloader from
-                                        setting the OTEL_SERVICE_NAME environment variable.
-                                        Only applicable if the '--with-instrumentation' option is also specified and the
-                                        '--instrumentation-version' value is 0.86.0 or older.
-                                        (default: --generate-service-name)
-  --[enable|disable]-telemetry          DEPRECATED: Enable or disable the instrumentation preloader from sending the
-                                        'splunk.linux-autoinstr.executions' metric to the collector.
-                                        Only applicable if the '--with-instrumentation' option is also specified and the
-                                        '--instrumentation-version' value is 0.86.0 or older.
-                                        (default: --enable-telemetry)
   --[enable|disable]-profiler           Enable or disable AlwaysOn Profiling.
                                         Only applicable if the '--with-instrumentation' or
                                         '--with-systemd-instrumentation' option is also specified.
@@ -927,6 +952,9 @@ Auto Instrumentation:
   --instrumentation-version             The splunk-otel-auto-instrumentation package version to install.
                                         Only applicable if the '--with-instrumentation' or
                                         '--with-systemd-instrumentation' option is also specified.
+                                        *Note*: The minimum supported version for Java and Node.js auto instrumentation
+                                        is 0.87.0, and the minimum supported version for .NET auto instrumentation is
+                                        0.99.0.
                                         (default: $default_instrumentation_version)
 
 Uninstall:
@@ -966,7 +994,7 @@ distro_is_supported() {
           ;;
       esac
       ;;
-    centos|ol|rhel)
+    centos|ol|rhel|rocky)
       case "$distro_version" in
         7*|8*|9*)
           return 0
@@ -1013,6 +1041,83 @@ fluentd_supported() {
   esac
 
   return 0
+}
+
+version_supported() {
+  local min="$1"
+  local desired="$2"
+  local stage="$3"
+
+  if [ "$min" = "$desired" ] || [ "$desired" = "latest" ] || [ "$stage" != "release" ] || [ -f "$desired" ]; then
+    return 0
+  fi
+
+  if ! echo "$desired" | grep -q "^[[:digit:]]\+\.[[:digit:]]\+\.[[:digit:]]\+$"; then
+    echo "[ERROR] Unsupported version: $desired" >&2
+    exit 1
+  fi
+
+  for field in 1 2 3; do
+    m=$( echo "$min" | cut -d "." -f $field )
+    d=$( echo "$desired" | cut -d "." -f $field )
+    if [ $d -lt $m ]; then
+      return 1
+    elif [ $d -gt $m ]; then
+      return 0
+    fi
+  done
+}
+
+dotnet_supported() {
+  case "$distro_arch" in
+    amd64|x86_64)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+item_in_list() {
+  local item="$1"
+  shift
+  local list="$@"
+
+  for i in $list; do
+    if [ "$i" = "$item" ]; then
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+add_item_to_list() {
+  local item="$1"
+  shift
+  local list="$@"
+
+  if item_in_list "$list" "$item"; then
+    echo $list
+  else
+    echo $list $item
+  fi
+}
+
+remove_item_from_list() {
+  local item="$1"
+  shift
+  local list="$@"
+  local new_list=""
+
+  for i in $list; do
+    if [ "$i" != "$item" ]; then
+      new_list="$new_list $i"
+    fi
+  done
+
+  echo $new_list
 }
 
 check_support() {
@@ -1084,10 +1189,10 @@ parse_args_and_install() {
   local deployment_environment="$default_deployment_environment"
   local discovery=
   local otlp_endpoint=""
-  local with_java_instrumentation="true"
-  local with_node_instrumentation="true"
-  local npm_path=""
+  local npm_path="npm"
   local node_package_installed="false"
+  local with_sdks=""
+  local without_sdks=""
 
   while [ -n "${1-}" ]; do
     case $1 in
@@ -1199,32 +1304,26 @@ parse_args_and_install() {
         with_systemd_instrumentation="false"
         ;;
       --with-instrumentation-sdk)
-        with_java_instrumentation="false"
-        with_node_instrumentation="false"
-        for lang in $(echo "$2" | tr ',' ' '); do
-            if [ "$lang" = "java" ]; then
-                with_java_instrumentation="true"
-            elif [ "$lang" = "node" ]; then
-                with_node_instrumentation="true"
-            else
-                usage
-                echo "[ERROR] Unknown instrumentation SDK: $lang" >&2
-                exit 1
-            fi
+        for sdk in $(echo "$2" | tr ',' ' '); do
+          if item_in_list "$sdk" "$all_sdks"; then
+            with_sdks=$( add_item_to_list "$sdk" "$with_sdks" )
+          else
+            usage
+            echo "[ERROR] Unknown instrumentation SDK: $sdk" >&2
+            exit 1
+          fi
         done
         shift 1
         ;;
       --without-instrumentation-sdk)
-        for lang in $(echo "$2" | tr ',' ' '); do
-            if [ "$lang" = "java" ]; then
-                with_java_instrumentation="false"
-            elif [ "$lang" = "node" ]; then
-                with_node_instrumentation="false"
-            else
-                usage
-                echo "[ERROR] Unknown instrumentation SDK: $lang" >&2
-                exit 1
-            fi
+        for sdk in $(echo "$2" | tr ',' ' '); do
+          if item_in_list "$sdk" "$all_sdks"; then
+            without_sdks=$( add_item_to_list "$sdk" "$without_sdks" )
+          else
+            usage
+            echo "[ERROR] Unknown instrumentation SDK: $sdk" >&2
+            exit 1
+          fi
         done
         shift 1
         ;;
@@ -1251,18 +1350,6 @@ parse_args_and_install() {
       --otlp-endpoint)
         otlp_endpoint="$2"
         shift 1
-        ;;
-      --generate-service-name)
-        generate_service_name="true"
-        ;;
-      --no-generate-service-name)
-        generate_service_name="false"
-        ;;
-      --enable-telemetry)
-        disable_telemetry="false"
-        ;;
-      --disable-telemetry)
-        disable_telemetry="true"
         ;;
       --enable-profiler)
         enable_profiler="true"
@@ -1309,27 +1396,8 @@ parse_args_and_install() {
 
   if [ "$uninstall" = true ]; then
       check_support
-      uninstall
+      uninstall "$npm_path"
       exit 0
-  fi
-
-  if [ "$with_instrumentation" = "true" ] && [ "$with_systemd_instrumentation" = "true" ]; then
-    echo "[ERROR] Both --with-instrumentation and --with-systemd-instrumentation options were specified. Only one option is allowed." >&2
-    exit 1
-  fi
-
-  if [ "$with_instrumentation" = "true" ]; then
-    if [ "$with_java_instrumentation" = "false" ] && [ "$with_node_instrumentation" = "false" ]; then
-      echo "[ERROR] The --with-instrumentation option was specified, but --without-instrumentation-sdk java,node was also specified." >&2
-      echo "[ERROR] At least one language must be enabled for auto instrumentation" >&2
-      exit 1
-    fi
-  elif [ "$with_systemd_instrumentation" = "true" ]; then
-    if [ "$with_java_instrumentation" = "false" ] && [ "$with_node_instrumentation" = "false" ]; then
-      echo "[ERROR] The --with-systemd-instrumentation option was specified, but --without-instrumentation-sdk java,node was also specified." >&2
-      echo "[ERROR] At least one language must be enabled for auto instrumentation" >&2
-      exit 1
-    fi
   fi
 
   if [ -z "$access_token" ]; then
@@ -1356,18 +1424,6 @@ parse_args_and_install() {
     td_agent_version=""
   fi
 
-  if [ "$with_instrumentation" = "false" ] && [ "$with_systemd_instrumentation" = "false" ]; then
-    instrumentation_version=""
-    with_java_instrumentation="false"
-    with_node_instrumentation="false"
-  fi
-
-  if [ "$with_node_instrumentation" = "true" ]; then
-    if [ -z "$npm_path" ] && command -v npm >/dev/null 2>&1; then
-      npm_path="npm"
-    fi
-  fi
-
   if [ -z "$trace_url" ]; then
     trace_url="${ingest_url}/v2/trace"
   fi
@@ -1381,6 +1437,74 @@ parse_args_and_install() {
   fi
 
   check_support
+
+  # check auto instrumentation options
+  if [ "$with_instrumentation" = "false" ] && [ "$with_systemd_instrumentation" = "false" ]; then
+    instrumentation_version=""
+    sdks_to_enable=""
+  elif [ "$with_instrumentation" = "true" ] && [ "$with_systemd_instrumentation" = "true" ]; then
+    echo "[ERROR] Both --with-instrumentation and --with-systemd-instrumentation options were specified. Only one option is allowed." >&2
+    exit 1
+  elif ! version_supported "0.87.0" "$instrumentation_version" "$stage"; then
+    echo "[ERROR] Unsupported auto instrumentation version: $instrumentation_version" >&2
+    echo "[ERROR] Java and Node.js auto instrumentation require version 0.87.0 or greater." >&2
+    echo "[ERROR] .NET auto instrumentation requires version 0.99.0 or greater." >&2
+    exit 1
+  else
+    if [ -z "$with_sdks" ] && [ -z "$without_sdks" ]; then
+      # user did not explicitly specify any sdk to enable/disable; implicitly enable all supported sdks
+      for sdk in $all_sdks; do
+        case $sdk in
+          java)
+            sdks_to_enable=$( add_item_to_list "$sdk" "$sdks_to_enable" )
+            ;;
+          node)
+            if command -v "$npm_path" >/dev/null 2>&1; then
+              sdks_to_enable=$( add_item_to_list "$sdk" "$sdks_to_enable" )
+            fi
+            ;;
+          dotnet)
+            if dotnet_supported && version_supported "0.99.0" "$instrumentation_version" "$stage"; then
+              sdks_to_enable=$( add_item_to_list "$sdk" "$sdks_to_enable" )
+            fi
+            ;;
+        esac
+      done
+    else
+      # fail immediately if any user-specified sdk is not supported
+      for sdk in $all_sdks; do
+        if item_in_list "$sdk" "$with_sdks" && ! item_in_list "$sdk" "$without_sdks"; then
+          case $sdk in
+            java)
+              sdks_to_enable=$( add_item_to_list "$sdk" "$sdks_to_enable" )
+              ;;
+            node)
+              if ! command -v "$npm_path" >/dev/null 2>&1; then
+                echo "[ERROR] npm is required for Node.js auto instrumentation, but was not found." >&2
+                echo "[ERROR] Use the '--npm-path <path>' option to specify the absolute path to npm." >&2
+                exit 1
+              fi
+              sdks_to_enable=$( add_item_to_list "$sdk" "$sdks_to_enable" )
+              ;;
+            dotnet)
+              if ! dotnet_supported; then
+                echo "[ERROR] .NET auto instrumentation is not currently supported on ${distro_arch}." >&2
+                exit 1
+              elif ! version_supported "0.99.0" "$instrumentation_version" "$stage"; then
+                echo "[ERROR] .NET auto instrumentation requires version 0.99.0 or greater." >&2
+                exit 1
+              fi
+              sdks_to_enable=$( add_item_to_list "$sdk" "$sdks_to_enable" )
+              ;;
+          esac
+        fi
+      done
+    fi
+    if [ -z "$sdks_to_enable" ]; then
+      echo "[ERROR] At least one supported SDK must be enabled for auto instrumentation." >&2
+      exit 1
+    fi
+  fi
 
   ensure_not_installed "$with_fluentd" "$with_instrumentation" "$with_systemd_instrumentation" "$npm_path"
 
@@ -1401,10 +1525,9 @@ parse_args_and_install() {
   if [ -n "$td_agent_version" ]; then
     echo "TD Agent (Fluentd) Version: $td_agent_version"
   fi
-  if [ -n "$instrumentation_version" ]; then
+  if [ -n "$sdks_to_enable" ]; then
     echo "Splunk OpenTelemetry Auto Instrumentation Version: $instrumentation_version"
-    echo "  Java Auto Instrumentation enabled: $with_java_instrumentation"
-    echo "  Node.js Auto Instrumentation enabled: $with_node_instrumentation"
+    echo "  Supported Auto Instrumentation SDK(s) to activate: $sdks_to_enable"
     if [ -n "$deployment_environment" ]; then
       echo "  Deployment environment: $deployment_environment"
     else
@@ -1428,53 +1551,55 @@ parse_args_and_install() {
 
   install "$stage" "$collector_version" "$td_agent_version" "$skip_collector_repo" "$skip_fluentd_repo" "$instrumentation_version"
 
-  if [ -n "$instrumentation_version" ] && [ ! -f "$node_package_path" ]; then
-    # the "old" instrumentation package was installed
-    # always enable java since it is the only option
-    with_java_instrumentation="true"
-    with_node_instrumentation="false"
-  fi
-
   if [ "$with_instrumentation" = "true" ]; then
-    if [ -f "$node_package_path" ]; then
-      # the "new" instrumentation package was installed (only the "new" package includes the node.js package)
-      if [ "$with_java_instrumentation" = "true" ]; then
-        create_zeroconfig_java "$otlp_endpoint"
-      elif [ "$with_java_instrumentation" = "false" ] && [ -f "$java_zeroconfig_path" ]; then
-        backup_file "$java_zeroconfig_path"
-        rm -f "$java_zeroconfig_path"
-      fi
-      if [ "$with_node_instrumentation" = "true" ]; then
-        if [ -n "$npm_path" ] && install_node_package "$npm_path"; then
-          node_package_installed="true"
-          create_zeroconfig_node "$otlp_endpoint"
-        fi
-        if [ -z "$npm_path" ] || [ "$node_package_installed" = "false" ]; then
-          backup_file "$node_zeroconfig_path"
-          rm -f "$node_zeroconfig_path"
-        fi
-      elif [ "$with_node_instrumentation" = "false" ] && [ -f "$node_zeroconfig_path" ]; then
-        backup_file "$node_zeroconfig_path"
-        rm -f "$node_zeroconfig_path"
-      fi
-    else
-      # the "old" instrumentation package was installed
-      create_instrumentation_config
+    if item_in_list "java" "$sdks_to_enable"; then
+      create_zeroconfig_java "$otlp_endpoint"
+      sdks_enabled=$( add_item_to_list "java" "$sdks_enabled" )
+    elif [ -f "$java_zeroconfig_path" ]; then
+      backup_file "$java_zeroconfig_path"
+      rm -f "$java_zeroconfig_path"
     fi
-    if [ "$with_java_instrumentation" = "true" ] || [ "$node_package_installed" = "true" ]; then
+    if item_in_list "node" "$sdks_to_enable" && install_node_package "$npm_path"; then
+      create_zeroconfig_node "$otlp_endpoint"
+      node_package_installed="true"
+      sdks_enabled=$( add_item_to_list "node" "$sdks_enabled" )
+    elif [ -f "$node_zeroconfig_path" ]; then
+      backup_file "$node_zeroconfig_path"
+      rm -f "$node_zeroconfig_path"
+    fi
+    if item_in_list "dotnet" "$sdks_to_enable" && [ -f "$dotnet_agent_path" ]; then
+      create_zeroconfig_dotnet "$otlp_endpoint"
+      sdks_enabled=$( add_item_to_list "dotnet" "$sdks_enabled" )
+    elif [ -f "$dotnet_zeroconfig_path" ]; then
+      backup_file "$dotnet_zeroconfig_path"
+      rm -f "$dotnet_zeroconfig_path"
+    fi
+    if [ -n "$sdks_enabled" ]; then
+      if [ -f "$systemd_instrumentation_config_path" ]; then
+        # backup and remove the systemd config if it exists to avoid conflicts with /etc/ld.so.preload
+        backup_file "$systemd_instrumentation_config_path"
+        rm -f "$systemd_instrumentation_config_path"
+      fi
       # add libsplunk.so to /etc/ld.so.preload if it was not added automatically by the instrumentation package
       enable_preload
     fi
   elif [ "$with_systemd_instrumentation" = "true" ]; then
     # remove libsplunk.so from /etc/ld.so.preload if it was added automatically by the instrumentation package
     disable_preload
-    if [ "$with_node_instrumentation" = "true" ] && [ -f "$node_package_path" ]; then
-      if install_node_package "$npm_path"; then
-        node_package_installed="true"
-      fi
+    sdks_enabled="$sdks_to_enable"
+    if item_in_list "node" "$sdks_to_enable" && install_node_package "$npm_path"; then
+      node_package_installed="true"
+    else
+      sdks_enabled=$( remove_item_from_list "node" "$sdks_enabled" )
     fi
-    if [ "$with_java_instrumentation" = "true" ] || [ "$node_package_installed" = "true" ]; then
-      create_systemd_instrumentation_config "$otlp_endpoint" "$with_java_instrumentation" "$node_package_installed"
+    if item_in_list "dotnet" "$sdks_to_enable" && [ ! -f "$dotnet_agent_path" ]; then
+      sdks_enabled=$( remove_item_from_list "dotnet" "$sdks_enabled" )
+    fi
+    if [ -n "$sdks_enabled" ]; then
+      create_systemd_instrumentation_config "$otlp_endpoint" "$sdks_enabled"
+    else
+      backup_file "$systemd_instrumentation_config_path"
+      rm -f "$systemd_instrumentation_config_path"
     fi
   fi
 
@@ -1625,64 +1750,19 @@ restarted to apply the changes by running the following command as root:
 EOH
   fi
 
-  if [ -n "$instrumentation_version" ]; then
-    if [ ! -f "$node_package_path" ]; then
-      # the "old instrumentation package was installed
+  if [ -n "$sdks_to_enable" ]; then
+    if [ -n "$sdks_enabled" ]; then
       if [ "$with_instrumentation" = "true" ]; then
         cat <<EOH
 The Splunk OpenTelemetry Auto Instrumentation package has been installed.
 /etc/ld.so.preload has been configured for the instrumentation library at $instrumentation_so_path.
-The configuration file is located at $instrumentation_config_path.
 
-Reboot the system or restart the Java application(s) for auto instrumentation to take effect.
+The configuration file(s) are located in /etc/splunk/zeroconfig/.
+
+Reboot the system or restart the application(s) for auto instrumentation to take effect.
 
 EOH
       elif [ "$with_systemd_instrumentation" = "true" ]; then
-        cat <<EOH
-The Splunk OpenTelemetry Auto Instrumentation package has been installed.
-Systemd has been configured for auto instrumentation within the
-$systemd_instrumentation_config_path drop-in file.
-
-Reboot the system or restart the Java service(s) for auto instrumentation to take effect.
-
-EOH
-      fi
-    elif [ "$with_instrumentation" = "true" ]; then
-      if [ "$with_java_instrumentation" = "true" ] && [ "$node_package_installed" = "true" ]; then
-        cat <<EOH
-The Splunk OpenTelemetry Auto Instrumentation package has been installed.
-/etc/ld.so.preload has been configured for the instrumentation library at $instrumentation_so_path.
-
-The Java configuration file is located at $java_zeroconfig_path.
-
-The Node.js configuration file is located at $node_zeroconfig_path.
-
-Reboot the system or restart the Java and Node.js application(s) for instrumentation to take effect.
-
-EOH
-      elif [ "$with_java_instrumentation" = "true" ]; then
-        cat <<EOH
-The Splunk OpenTelemetry Auto Instrumentation package has been installed.
-/etc/ld.so.preload has been configured for the instrumentation library at $instrumentation_so_path.
-
-The Java configuration file is located at $java_zeroconfig_path.
-
-Reboot the system or restart the Java application(s) for instrumentation to take effect.
-
-EOH
-      elif [ "$node_package_installed" = "true" ]; then
-        cat <<EOH
-The Splunk OpenTelemetry Auto Instrumentation package has been installed.
-/etc/ld.so.preload has been configured for the instrumentation library at $instrumentation_so_path.
-
-The Node.js configuration file is located at $node_zeroconfig_path.
-
-Reboot the system or restart the Node.js application(s) for instrumentation to take effect.
-
-EOH
-      fi
-    elif [ "$with_systemd_instrumentation" = "true" ]; then
-      if [ "$with_java_instrumentation" = "true" ] || [ "$node_package_installed" = "true" ]; then
         cat <<EOH
 The Splunk OpenTelemetry Auto Instrumentation package has been installed.
 Systemd has been configured for auto instrumentation within the
@@ -1693,16 +1773,25 @@ Reboot the system or restart the service(s) for auto instrumentation to take eff
 EOH
       fi
     fi
-    if [ "$with_node_instrumentation" = "true" ] && [ -f "$node_package_path" ]; then
-      if [ -z "$npm_path" ]; then
-        cat <<EOH
+    if item_in_list "node" "$sdks_to_enable" && ! item_in_list "node" "$sdks_enabled"; then
+      if ! command -v "$npm_path" >/dev/null 2>&1; then
+        cat <<EOH >&2
 [WARNING] Auto Instrumentation for Node.js was not installed since npm was not found.
-
 EOH
       elif [ "$node_package_installed" = "false" ]; then
-        cat <<EOH
-[WARNING] Auto Instrumentation for Node.js failed installation. Check the output above for details."
-
+        cat <<EOH >&2
+[WARNING] Auto Instrumentation for Node.js failed installation. Check the output above for details.
+EOH
+      fi
+    fi
+    if item_in_list "dotnet" "$sdks_to_enable" && ! item_in_list "dotnet" "$sdks_enabled"; then
+      if ! dotnet_supported; then
+        cat <<EOH >&2
+[WARNING] Auto Instrumentation for .NET was not activated since it is not supported for ${distro_arch}.
+EOH
+      elif [ ! -f "$dotnet_agent_path" ]; then
+        cat <<EOH >&2
+[WARNING] Auto Instrumentation for .NET was not activated since it is not supported with the installed instrumentation package version $( get_package_version splunk-otel-auto-instrumentation ).
 EOH
       fi
     fi
@@ -1711,7 +1800,6 @@ EOH
   if [ "$with_fluentd" = "true" ] && ! fluentd_supported; then
     cat <<EOH >&2
 [WARNING] Fluentd was not installed since it is currently not supported for ${distro}:${distro_version} ${distro_arch}
-
 EOH
   fi
 

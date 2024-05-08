@@ -17,32 +17,22 @@
 package tests
 
 import (
-	"path/filepath"
 	"testing"
+
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
 func TestJMXReceiverProvidesAllJVMMetrics(t *testing.T) {
-	expectedMetrics := "all.yaml"
-	if testutils.CollectorImageIsForArm(t) {
-		t.Skip("apparent metric gathering issue on qemu")
-	}
-
-	containers := []testutils.Container{
-		testutils.NewContainer().WithContext(
-			filepath.Join("..", "smartagent", "collectd-cassandra", "testdata", "server"),
-		).WithExposedPorts("7199:7199").WithName("jmx").WillWaitForPorts("7199"),
-	}
-
-	testutils.AssertAllMetricsReceived(
-		t, expectedMetrics, "all_metrics_config.yaml", containers,
-		[]testutils.CollectorBuilder{
-			func(collector testutils.Collector) testutils.Collector {
-				return collector.WithEnv(map[string]string{
-					"OTEL_TRACES_EXPORTER": "none",
-					"OTEL_LOGS_EXPORTER":   "none",
-				})
-			},
-		})
+	testutils.CheckGoldenFile(t, "all_metrics_config.yaml", "jmx_expected.yaml",
+		pmetrictest.IgnoreTimestamp(),
+		pmetrictest.IgnoreStartTimestamp(),
+		pmetrictest.IgnoreScopeVersion(),
+		pmetrictest.IgnoreMetricValues(),
+		pmetrictest.IgnoreResourceMetricsOrder(),
+		pmetrictest.IgnoreScopeMetricsOrder(),
+		pmetrictest.IgnoreMetricsOrder(),
+		pmetrictest.IgnoreMetricDataPointsOrder(),
+	)
 }

@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//lint:ignore SA1019
+
 package testutils
 
 import (
@@ -29,7 +31,7 @@ import (
 	"github.com/docker/go-connections/nat"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/testcontainers/testcontainers-go"
+	testcontainers "github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/exec"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
@@ -61,8 +63,6 @@ type Container struct {
 	HostConfigModifiers  []func(*dockerContainer.HostConfig)
 	Privileged           bool
 }
-
-var _ testcontainers.Container = (*Container)(nil)
 
 // To be used as a builder whose Build() method provides the actual instance capable of being started, and that
 // implements a testcontainers.Container.
@@ -484,6 +484,7 @@ func (container *Container) createNetworksIfNecessary(req testcontainers.Generic
 		return err
 	}
 	for _, networkName := range container.ContainerNetworks {
+		//nolint:staticcheck
 		query := testcontainers.NetworkRequest{
 			Name: networkName,
 		}
@@ -492,6 +493,7 @@ func (container *Container) createNetworksIfNecessary(req testcontainers.Generic
 			return err
 		}
 		if networkResource.Name != networkName {
+			//nolint:staticcheck
 			create := testcontainers.NetworkRequest{
 				Driver:     "bridge",
 				Name:       networkName,

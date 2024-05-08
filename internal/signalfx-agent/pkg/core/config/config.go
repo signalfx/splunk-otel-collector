@@ -9,8 +9,6 @@ import (
 
 	"github.com/mitchellh/hashstructure"
 	log "github.com/sirupsen/logrus"
-
-	"github.com/signalfx/signalfx-agent/pkg/core/config/validation"
 )
 
 // Config is the top level config struct for configurations that are common to all platforms
@@ -41,37 +39,8 @@ type Config struct {
 	SysPath string `yaml:"sysPath" default:"/sys"`
 }
 
-// Validate everything that we can about the main config
-func (c *Config) validate() error {
-	if err := validation.ValidateStruct(c); err != nil {
-		return err
-	}
-
-	if err := c.Collectd.Validate(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// Deprecated: this setting has no effect and will be removed.
-// LogConfig contains configuration related to logging
-type LogConfig struct {
-	// Valid levels include `debug`, `info`, `warn`, `error`.  Note that
-	// `debug` logging may leak sensitive configuration (e.g. passwords) to the
-	// agent output.
-	Level string `yaml:"level"`
-	// The log output format to use.  Valid values are: `text`, `json`.
-	Format string `yaml:"format" validate:"oneof=text json"`
-	// TODO: Support log file output and other log targets
-}
-
 // CollectdConfig high-level configurations
 type CollectdConfig struct {
-	// Deprecated: this setting has no effect and will be removed.
-	// If you won't be using any collectd monitors, this can be set to true to
-	// prevent collectd from pre-initializing
-	DisableCollectd bool `yaml:"disableCollectd" default:"false"`
 	// How many read intervals before abandoning a metric. Doesn't affect much
 	// in normal usage.
 	// See [Timeout](https://collectd.org/documentation/manpages/collectd.conf.5.shtml#timeout_iterations).

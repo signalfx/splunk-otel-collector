@@ -15,6 +15,8 @@
     splunk_otel_auto_instrumentation_enable_profiler_memory: true
     splunk_otel_auto_instrumentation_enable_metrics: true
   tasks:
+    - name: "Install nodejs for tests"
+      ansible.builtin.import_tasks: ../shared/install_nodejs.yml
     - name: "Include signalfx.splunk_otel_collector.collector role"
       include_role:
-        name: "collector"
+        name: "signalfx.splunk_otel_collector.collector"

@@ -12,13 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build integration
+//go:build smartagent_integration
 
 package tests
 
 import (
 	"fmt"
-	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -163,10 +162,7 @@ service:
 // This test also exercises collectd binary usage and managed config writing
 func TestNonDefaultGIDCanAccessJavaInAgentBundle(t *testing.T) {
 	testutils.SkipIfNotContainerTest(t)
-	testutils.AssertAllMetricsReceived(t, "activemq.yaml", "activemq_config.yaml",
-		[]testutils.Container{testutils.NewContainer().WithContext(
-			filepath.Join("..", "receivers", "smartagent", "collectd-activemq", "testdata", "server"),
-		).WithExposedPorts("1099:1099").WithName("activemq").WillWaitForPorts("1099")},
+	testutils.AssertAllMetricsReceived(t, "activemq.yaml", "activemq_config.yaml", nil,
 		[]testutils.CollectorBuilder{
 			func(collector testutils.Collector) testutils.Collector {
 				cc := collector.(*testutils.CollectorContainer)
@@ -180,13 +176,8 @@ func TestNonDefaultGIDCanAccessJavaInAgentBundle(t *testing.T) {
 func TestNonDefaultGIDCanAccessPythonInAgentBundle(t *testing.T) {
 	testutils.SkipIfNotContainerTest(t)
 	testutils.AssertAllMetricsReceived(t, "solr.yaml", "solr_config.yaml",
-		[]testutils.Container{
-			testutils.NewContainer().WithContext(
-				filepath.Join("..", "receivers", "smartagent", "collectd-solr", "testdata", "server"),
-			).WithExposedPorts("8983:8983").WithName(
-				"solr",
-			).WillWaitForPorts("8983").WillWaitForLogs("Time spent:"),
-		}, []testutils.CollectorBuilder{
+		nil,
+		[]testutils.CollectorBuilder{
 			func(collector testutils.Collector) testutils.Collector {
 				cc := collector.(*testutils.CollectorContainer)
 				cc.Container = cc.Container.WithUser("splunk-otel-collector:234567890")

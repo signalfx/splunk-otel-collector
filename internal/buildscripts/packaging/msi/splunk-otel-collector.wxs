@@ -101,7 +101,7 @@
       </Directory>
 
       <Component Id="RegistryComponent" Guid="8d6d2a92-9952-4251-8f6b-d85c5b2182e4" Directory="INSTALLDIR">
-         <Condition><![CDATA[NOT Installed]]></Condition>
+         <Condition>NOT Installed OR REINSTALL</Condition>
          <RegistryKey Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\EventLog\Application\splunk-otel-collector">
             <RegistryValue Type="expandable" Name="EventMessageFile" Value="%SystemRoot%\System32\EventCreate.exe"/>
          </RegistryKey>

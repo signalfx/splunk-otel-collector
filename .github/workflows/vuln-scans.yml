@@ -9,6 +9,7 @@ on:
       - '.github/workflows/vuln-scans.yml'
       - '.grype.yaml'
       - '.trivyignore'
+      - '.snyk'
 
 env:
   GO_VERSION: '1.21.10'
@@ -197,7 +198,7 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           command: code test
-          args: --severity-threshold=high --sarif-file-output=snyk.sarif
+          args: --severity-threshold=high --sarif-file-output=snyk.sarif --policy-path=.snyk
       - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v3
         with:
@@ -222,7 +223,7 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           image: "otelcol:latest"
-          args: --file=cmd/otelcol/Dockerfile --severity-threshold=high --sarif-file-output=snyk.sarif
+          args: --file=cmd/otelcol/Dockerfile --severity-threshold=high --sarif-file-output=snyk.sarif --policy-path=.snyk
       - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v3
         with:

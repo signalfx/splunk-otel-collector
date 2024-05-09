@@ -24,7 +24,6 @@
   - Record entity type ([#4761](https://github.com/signalfx/splunk-otel-collector/pull/4761))
   - Add service attributes ([#4760](https://github.com/signalfx/splunk-otel-collector/pull/4760))
   - Update entity events ID fields ([#4739](https://github.com/signalfx/splunk-otel-collector/pull/4739))
-- (Core) `semconv`: Add support for v1.25.0 semantic convention ([#10072](https://github.com/open-telemetry/opentelemetry-collector/issues/10072))
 - (Contrib) `exporter/kafka`: Enable setting message topics using resource attributes. ([#31178](https://github.com/open-telemetry/)opentelemetry-collector-contrib/issues/31178)
 - (Contrib) `exporter/kafka`: Add an ability to publish kafka messages with message key based on metric resource attributes - it will allow partitioning metrics in Kafka. ([#29433](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29433), [#30666](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/30666), [#31675](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/31675))
 - (Contrib) `exporter/splunkhec`: Add experimental exporter batcher config ([#32545](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/32545))

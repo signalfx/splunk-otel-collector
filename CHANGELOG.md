@@ -2,11 +2,14 @@
 
 ## Unreleased
 
+## v0.100.0
+
 ### 🛑 Breaking changes 🛑
 
 - (Splunk) Linux installer script:
   - Removed support for the deprecated `--[no-]generate-service-name` and `--[enable|disable]-telemetry` options.
   - The minimum supported version for the `--instrumentation-version` option is `0.87.0`.
+- (Contrib) `receiver/hostmetrics`: Enable feature gate `receiver.hostmetrics.normalizeProcessCPUUtilization` ([#31368](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/31368))
 
 ### 🚀 New components 🚀
 
@@ -17,6 +20,34 @@
 - (Splunk) Linux installer script: Initial support for [Splunk OpenTelemetry Auto Instrumentation for .NET](https://github.com/signalfx/splunk-otel-dotnet) (x86_64/amd64 only)
   - Activated by default when the `--with-instrumentation` or `--with-systemd-instrumentation` option is specified.
   - Use the `--without-instrumentation-sdk dotnet` option to skip activation.
+- (Splunk) `receiver/discovery`: Update emitted entity events:
+  - Record entity type ([#4761](https://github.com/signalfx/splunk-otel-collector/pull/4761))
+  - Add service attributes ([#4760](https://github.com/signalfx/splunk-otel-collector/pull/4760))
+  - Update entity events ID fields ([#4739](https://github.com/signalfx/splunk-otel-collector/pull/4739))
+- (Contrib) `exporter/kafka`: Enable setting message topics using resource attributes. ([#31178](https://github.com/open-telemetry/)opentelemetry-collector-contrib/issues/31178)
+- (Contrib) `exporter/kafka`: Add an ability to publish kafka messages with message key based on metric resource attributes - it will allow partitioning metrics in Kafka. ([#29433](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29433), [#30666](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/30666), [#31675](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/31675))
+- (Contrib) `exporter/splunkhec`: Add experimental exporter batcher config ([#32545](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/32545))
+- (Contrib) `receiver/windowsperfcounters`: Returns partial errors for failures during scraping to prevent throwing out all successfully retrieved metrics ([#16712](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16712))
+- (Contrib) `receiver/prometheus`: Prometheus receivers and exporters now preserve 'unknown', 'info', and 'stateset' types. ([#16768](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16768))
+- (Contrib) `receiver/sqlserver`: Enable direct connection to SQL Server ([#30297](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/30297))
+- (Contrib) `receiver/sshcheck`: Add support for running this receiver on Windows ([#30650](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/30650))
+
+### 🧰 Bug fixes 🧰
+
+- (Core) Fix `enabled` config option for batch sender ([#10076](https://github.com/open-telemetry/opentelemetry-collector/pull/10076))
+- (Contrib) `receiver/k8scluster`: Fix container state metadata ([#32676](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/32676))
+- (Contrib) `receiver/filelog`: When a flush timed out make sure we are at EOF (can't read more) ([#31512](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/31512), [#32170](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/32170))
+- (Contrib) `receiver/vcenter`:
+  - Adds the `vcenter.cluster.name` resource attribute to resource pool with a ClusterComputeResource parent ([#32535](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/32535))
+  - Updates `vcenter.cluster.memory.effective` (primarily that the value was reporting MiB when it should have been bytes) ([#32782](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/32782))
+  - Adds warning to vcenter.cluster.memory.used metric if configured about its future removal ([#32805](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/32805))
+  - Updates the vcenter.cluster.vm.count metric to also report suspended VM counts ([#32803](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/32803))
+  - Adds `vcenter.datacenter.name` attributes to all resource types to help with resource identification ([#32531](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/32531))
+  - Adds `vcenter.cluster.name` attributes warning log related to Datastore resource ([#32674](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/32674))
+  - Adds new `vcenter.virtual_app.name` and `vcenter.virtual_app.inventory_path` resource attributes to appropriate VM Resources ([#32557](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/32557))
+  - Adds functionality for `vcenter.vm.disk.throughput` while also changing to a gauge. ([#32772](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/32772))
+  - Adds initially disabled functionality for VM Templates ([#32821](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/32821))
+- (Contrib) `connector/count`: Fix handling of non-string attributes in the count connector ([#30314](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/30314))
 
 ## v0.99.0
 

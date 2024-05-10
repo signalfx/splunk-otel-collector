@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+### 🚩 Deprecations 🚩
+
+- (Splunk) The following docker images/manifests are deprecated and may not be published in a future release:
+  - `quay.io/signalfx/splunk-otel-collector:<version>-amd64`
+  - `quay.io/signalfx/splunk-otel-collector:<version>-arm64`
+  - `quay.io/signalfx/splunk-otel-collector:<version>-ppc64le`
+  - `quay.io/signalfx/splunk-otel-collector-windows:<version>`
+  - `quay.io/signalfx/splunk-otel-collector-windows:<version>-2019`
+  - `quay.io/signalfx/splunk-otel-collector-windows:<version>-2022`
+
+  Starting with this release, the `quay.io/signalfx/splunk-otel-collector:<version>` docker image manifest has been updated to support all of the following platforms:
+  - Linux (amd64, arm64, ppc64le)
+  - Windows (2019 amd64, 2022 amd64)
+
+  Please update any configurations to use `quay.io/signalfx/splunk-otel-collector:<version>` for this and future releases.
+
 ## v0.101.0
 
 ### 🛑 Breaking changes 🛑

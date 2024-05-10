@@ -26,21 +26,14 @@ concurrency:
 env:
   GO_VERSION: "1.21.10"
 jobs:
-  docker-otelcol:
-    name: docker-otelcol
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+  agent-bundle-linux:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        ARCH: [ "amd64", "arm64" ]
+        ARCH: ["amd64", "arm64"]
+      fail-fast: false
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
       - uses: actions/cache@v4
         id: bundle-cache
         with:
@@ -53,16 +46,80 @@ jobs:
         with:
           platforms: ${{ matrix.ARCH }}
           image: tonistiigi/binfmt:qemu-v7.0.0
-      - run: |
-          make docker-otelcol ARCH=${{ matrix.ARCH }}
+      - run: make -C internal/signalfx-agent/bundle agent-bundle-linux ARCH=${{ matrix.ARCH }}
         env:
-          DOCKER_BUILDKIT: '1'
           BUNDLE_CACHE_HIT: "${{ steps.bundle-cache.outputs.cache-hit }}"
-      - run: docker save -o ./bin/image.tar otelcol:latest
       - uses: actions/upload-artifact@v4
         with:
-          name: otelcol-${{ matrix.ARCH }}
+          name: agent-bundle-linux-${{ matrix.ARCH }}
+          path: ./dist/agent-bundle_linux_${{ matrix.ARCH }}.tar.gz
+
+  docker-otelcol:
+    name: docker-otelcol
+    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+    runs-on: ubuntu-20.04
+    needs: agent-bundle-linux
+    services:
+      # Start a local registry for pushing the multiarch manifest and images
+      registry:
+        image: registry:2
+        ports:
+          - 5000:5000
+    steps:
+      # Multiarch images require more disk space
+      - uses: jlumbroso/free-disk-space@v1.3.1
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: '**/go.sum'
+      - uses: actions/download-artifact@v4
+        with:
+          name: agent-bundle-linux-amd64
+          path: ./dist
+      - uses: actions/download-artifact@v4
+        with:
+          name: agent-bundle-linux-arm64
+          path: ./dist
+      - uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64,ppc64le
+          image: tonistiigi/binfmt:qemu-v7.0.0
+      - uses: docker/setup-buildx-action@v3
+        id: multiarch-otelcol-builder
+        with:
+          driver: docker-container   # Create a builder with the docker-container driver required for multiarch builds
+          driver-opts: network=host  # Required for the builder to push to the local registry service
+      - run: make docker-otelcol SKIP_BUNDLE=true ARCH=amd64,arm64,ppc64le IMAGE_NAME=localhost:5000/otelcol IMAGE_TAG=latest PUSH=true
+        env:
+          MULTIARCH_OTELCOL_BUILDER: ${{ steps.multiarch-otelcol-builder.outputs.name }}  # Use the builder created by the docker/setup-buildx-action step
+      - name: Save image archive for each platform to be loaded by downstream jobs
+        run: |
+          for arch in "amd64" "arm64" "ppc64le"; do
+            mkdir -p docker-otelcol/${arch}
+            docker pull --platform=linux/${arch} localhost:5000/otelcol:latest
+            docker tag localhost:5000/otelcol:latest otelcol:latest
+            docker save -o ./docker-otelcol/${arch}/image.tar otelcol:latest
+            docker rmi -f localhost:5000/otelcol:latest otelcol:latest
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: otelcol
           path: ./bin
+      - uses: actions/upload-artifact@v4
+        with:
+          name: docker-otelcol-amd64
+          path: ./docker-otelcol/amd64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: docker-otelcol-arm64
+          path: ./docker-otelcol/arm64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: docker-otelcol-ppc64le
+          path: ./docker-otelcol/ppc64le
 
   integration-vet:
     name: integration-vet
@@ -83,14 +140,19 @@ jobs:
           cache-dependency-path: '**/go.sum'
       - uses: actions/download-artifact@v4
         with:
-          name: otelcol-${{ matrix.ARCH }}
+          name: otelcol
           path: ./bin
+      - uses: actions/download-artifact@v4
+        with:
+          name: docker-otelcol-${{ matrix.ARCH }}
+          path: ./docker-otelcol/${{ matrix.ARCH }}
       - uses: docker/setup-qemu-action@v3
         if: ${{ matrix.ARCH != 'amd64' }}
         with:
           platforms: ${{ matrix.ARCH }}
           image: tonistiigi/binfmt:qemu-v7.0.0
-      - run: docker load -i ./bin/image.tar
+      - run: docker load -i ./docker-otelcol/${{ matrix.ARCH }}/image.tar
+      - run: ln -sf otelcol_linux_${{ matrix.ARCH }} ./bin/otelcol
       - run: chmod a+x ./bin/*
       - run: make integration-vet
         env:
@@ -129,14 +191,19 @@ jobs:
           cache-dependency-path: '**/go.sum'
       - uses: actions/download-artifact@v4
         with:
-          name: otelcol-${{ matrix.ARCH }}
+          name: otelcol
           path: ./bin
+      - uses: actions/download-artifact@v4
+        with:
+          name: docker-otelcol-${{ matrix.ARCH }}
+          path: ./docker-otelcol/${{ matrix.ARCH }}
       - uses: docker/setup-qemu-action@v3
         if: ${{ matrix.ARCH != 'amd64' }}
         with:
           platforms: ${{ matrix.ARCH }}
           image: tonistiigi/binfmt:qemu-v7.0.0
-      - run: docker load -i ./bin/image.tar
+      - run: docker load -i ./docker-otelcol/${{ matrix.ARCH }}/image.tar
+      - run: ln -sf otelcol_linux_${{ matrix.ARCH }} ./bin/otelcol
       - run: chmod a+x ./bin/*
       - uses: shogo82148/actions-setup-redis@v1
         if: matrix.PROFILE == 'integration'

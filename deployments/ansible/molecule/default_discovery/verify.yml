@@ -1,19 +1,15 @@
 ---
-- name: Verify scenario with the default configuration
+- name: Verify scenario with custom variables
   hosts: all
   gather_facts: true
+  become: yes
   tasks:
-
     - name: Populate service facts
       ansible.builtin.service_facts:
 
-    - name: Assert splunk-otel-collector service is stopped
+    - name: Assert splunk-otel-collector service is running
       assert:
-        that: ansible_facts.services['splunk-otel-collector.service'].state == 'stopped'
-
-    - name: Assert td-agent service is not installed
-      assert:
-        that: "'td-agent.service' not in ansible_facts.services"
+        that: ansible_facts.services['splunk-otel-collector.service'].state == 'running'
 
     - name: Assert SPLUNK_ACCESS_TOKEN env var is set
       ansible.builtin.lineinfile:
@@ -69,11 +65,20 @@
       register: config
       failed_when: config is changed
 
-    - name: Assert discovery mode is not enabled
+    - name: Assert discovery mode is enabled
       ansible.builtin.lineinfile:
-        regexp: .*OTELCOL_OPTIONS=.*--discovery.*
+        line: OTELCOL_OPTIONS=--discovery
         dest: /etc/otel/collector/splunk-otel-collector.conf
-        state: absent
+        state: present
       check_mode: yes
       register: config
       failed_when: config is changed
+
+    - name: Check collector logs
+      ansible.builtin.shell:
+        cmd: 'journalctl -u splunk-otel-collector | grep "Discovery complete"'
+      register: result
+      changed_when: false
+      until: result.stdout
+      retries: 20
+      delay: 1

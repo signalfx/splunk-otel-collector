@@ -28,7 +28,20 @@ GOMEMLIMIT={{ gomemlimit }}
 SPLUNK_BUNDLE_DIR={{ splunk_bundle_dir }}
 SPLUNK_COLLECTD_DIR={{ splunk_collectd_dir }}
 {% if splunk_otel_collector_additional_env_vars is not none %}
-{% for key,value in splunk_otel_collector_additional_env_vars.items() %}
+{% for key,value in splunk_otel_collector_additional_env_vars.items() if key != "OTELCOL_OPTIONS" %}
 {{ key }}={{ value }}
 {% endfor %}
+{% endif %}
+{% set otelcol_options = "" %}
+{% if splunk_otel_collector_additional_env_vars is not none and "OTELCOL_OPTIONS" in splunk_otel_collector_additional_env_vars.keys() %}
+{% set otelcol_options = splunk_otel_collector_additional_env_vars["OTELCOL_OPTIONS"] %}
+{% endif %}
+{% if splunk_otel_auto_discovery is defined and splunk_otel_auto_discovery %}
+{% set otelcol_options = otelcol_options + " --discovery" %}
+{% if splunk_otel_auto_discovery_properties_source or splunk_otel_auto_discovery_properties_yaml %}
+{% set otelcol_options = otelcol_options + " --discovery-properties=" + splunk_otel_auto_discovery_properties_dest %}
+{% endif %}
+{% endif %}
+{% if otelcol_options %}
+OTELCOL_OPTIONS={{ otelcol_options | trim }}
 {% endif %}

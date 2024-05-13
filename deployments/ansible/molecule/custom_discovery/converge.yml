@@ -1,0 +1,16 @@
+---
+- name: Converge scenario with custom variables
+  hosts: all
+  become: yes
+  vars:
+    splunk_access_token: fake-token
+    splunk_realm: fake-realm
+    splunk_otel_auto_discovery: yes
+    splunk_otel_auto_discovery_properties_source: ./test.discovery.yaml
+    splunk_otel_auto_discovery_properties_dest: /foo/bar/test.discovery.yaml
+    splunk_otel_collector_additional_env_vars:
+      OTELCOL_OPTIONS: "--set=processors.batch.timeout=2s"
+  tasks:
+    - name: "Include signalfx.splunk_otel_collector.collector role"
+      include_role:
+        name: "signalfx.splunk_otel_collector.collector"

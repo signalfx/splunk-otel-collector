@@ -1,0 +1,8 @@
+# my custom discovery properties file
+---
+splunk.discovery:
+  extensions:
+    k8s_observer:
+      enabled: false
+    docker_observer:
+      enabled: false

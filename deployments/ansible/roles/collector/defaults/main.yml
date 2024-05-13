@@ -68,8 +68,6 @@ splunk_otel_auto_instrumentation_ld_so_preload: ""
 splunk_otel_auto_instrumentation_java_agent_jar: /usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar
 splunk_otel_auto_instrumentation_resource_attributes: ""
 splunk_otel_auto_instrumentation_service_name: ""
-splunk_otel_auto_instrumentation_generate_service_name: true
-splunk_otel_auto_instrumentation_disable_telemetry: false
 splunk_otel_auto_instrumentation_enable_profiler: false
 splunk_otel_auto_instrumentation_enable_profiler_memory: false
 splunk_otel_auto_instrumentation_enable_metrics: false
@@ -96,3 +94,9 @@ signalfx_dotnet_auto_instrumentation_enable_profiler_memory: false
 signalfx_dotnet_auto_instrumentation_global_tags: ""
 signalfx_dotnet_auto_instrumentation_iisreset: true
 signalfx_dotnet_auto_instrumentation_additional_options: {}
+
+# Configure auto discovery
+splunk_otel_auto_discovery: false
+splunk_otel_auto_discovery_properties_yaml: ""
+splunk_otel_auto_discovery_properties_source: ""
+splunk_otel_auto_discovery_properties_dest: /etc/otel/collector/config.d/properties.discovery.yaml

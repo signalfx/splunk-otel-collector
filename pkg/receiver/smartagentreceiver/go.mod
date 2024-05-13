@@ -122,7 +122,7 @@ require (
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
 	github.com/jackc/pgtype v1.14.2 // indirect
 	github.com/jackc/pgx/v4 v4.18.3 // indirect
-	github.com/jaegertracing/jaeger v1.56.0 // indirect
+	github.com/jaegertracing/jaeger v1.57.0 // indirect
 	github.com/jcmturner/aescts/v2 v2.0.0 // indirect
 	github.com/jcmturner/dnsutils/v2 v2.0.0 // indirect
 	github.com/jcmturner/gofork v1.7.6 // indirect
@@ -195,7 +195,7 @@ require (
 	go.opentelemetry.io/collector v0.100.0 // indirect
 	go.opentelemetry.io/collector/config/configtelemetry v0.100.0 // indirect
 	go.opentelemetry.io/collector/semconv v0.100.0 // indirect
-	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.49.0 // indirect
+	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.51.0 // indirect
 	go.opentelemetry.io/otel v1.26.0 // indirect
 	go.opentelemetry.io/otel/exporters/prometheus v0.48.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.26.0 // indirect

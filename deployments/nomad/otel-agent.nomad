@@ -186,9 +186,6 @@ receivers:
           - ${HOSTNAME}:8889
   signalfx:
     endpoint: 0.0.0.0:9943
-  smartagent/signalfx-forwarder:
-    listenAddress: 0.0.0.0:9080
-    type: signalfx-forwarder
   zipkin:
     endpoint: 0.0.0.0:9411
 processors:
@@ -253,7 +250,6 @@ service:
       receivers:
       - otlp
       - jaeger
-      - smartagent/signalfx-forwarder
       - zipkin
 EOF
         destination = "local/config/otel-agent-config.yaml"

@@ -46,6 +46,7 @@ type Monitor struct {
 func (m *Monitor) Configure(conf *Config) error {
 	m.logger = utils.NewThrottledLogger(logrus.WithFields(logrus.Fields{"monitorType": monitorType, "monitorID": conf.MonitorID}), 30*time.Second)
 	m.golibLogger = &utils.LogrusGolibShim{FieldLogger: m.logger.FieldLogger}
+	m.logger.Warn("The `signalfx-forwarder` is deprecated and will be removed in a future release. Please use the signalfx receiver instead.")
 
 	var ctx context.Context
 	ctx, m.cancel = context.WithCancel(context.Background())

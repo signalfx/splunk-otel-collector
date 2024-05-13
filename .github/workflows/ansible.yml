@@ -12,6 +12,7 @@ on:
       - 'deployments/ansible/galaxy.yml'
     branches:
       - main
+      - ansible-discovery-mode
   pull_request:
     paths:
       - '.github/workflows/ansible.yml'
@@ -140,7 +141,7 @@ jobs:
         scenario:
           - default
           - custom_vars
-          - with_instrumentation
+          - with_instrumentation_default
     steps:
       - name: Free up disk space for vagrant box
         uses: jlumbroso/free-disk-space@v1.3.1

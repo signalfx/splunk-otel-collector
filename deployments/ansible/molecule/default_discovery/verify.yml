@@ -1,0 +1,84 @@
+---
+- name: Verify scenario with custom variables
+  hosts: all
+  gather_facts: true
+  become: yes
+  tasks:
+    - name: Populate service facts
+      ansible.builtin.service_facts:
+
+    - name: Assert splunk-otel-collector service is running
+      assert:
+        that: ansible_facts.services['splunk-otel-collector.service'].state == 'running'
+
+    - name: Assert SPLUNK_ACCESS_TOKEN env var is set
+      ansible.builtin.lineinfile:
+        line: SPLUNK_ACCESS_TOKEN=fake-token
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Assert SPLUNK_REALM env var is set
+      ansible.builtin.lineinfile:
+        line: SPLUNK_REALM=fake-realm
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Assert SPLUNK_INGEST_URL env var is set
+      ansible.builtin.lineinfile:
+        line: SPLUNK_INGEST_URL=https://ingest.fake-realm.signalfx.com
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Assert SPLUNK_API_URL env var is set
+      ansible.builtin.lineinfile:
+        line: SPLUNK_API_URL=https://api.fake-realm.signalfx.com
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Assert SPLUNK_TRACE_URL env var is set
+      ansible.builtin.lineinfile:
+        line: SPLUNK_TRACE_URL=https://ingest.fake-realm.signalfx.com/v2/trace
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Assert SPLUNK_HEC_URL env var is set
+      ansible.builtin.lineinfile:
+        line: SPLUNK_HEC_URL=https://ingest.fake-realm.signalfx.com/v1/log
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Assert discovery mode is enabled
+      ansible.builtin.lineinfile:
+        line: OTELCOL_OPTIONS=--discovery
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Check collector logs
+      ansible.builtin.shell:
+        cmd: 'journalctl -u splunk-otel-collector | grep "Discovery complete"'
+      register: result
+      changed_when: false
+      until: result.stdout
+      retries: 20
+      delay: 1

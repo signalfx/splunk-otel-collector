@@ -11,6 +11,12 @@
     that: ansible_os_family in ["Debian", "RedHat", "Windows", "Suse"]
     fail_msg: "{{ ansible_os_family }} OS family currently is not supported"
 
+- name: Check supported auto instrumentation version
+  ansible.builtin.assert:
+    that: splunk_otel_auto_instrumentation_version is version('0.87.0', '>=')
+    fail_msg: "Auto instrumentation version {{ splunk_otel_auto_instrumentation_version }} is not supported."
+  when: install_splunk_otel_auto_instrumentation and splunk_otel_auto_instrumentation_version != "latest"
+
 - name: Set Vars based on ansible_os_family
   ansible.builtin.import_tasks: vars.yml
 

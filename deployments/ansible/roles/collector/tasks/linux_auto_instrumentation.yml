@@ -26,11 +26,9 @@
       or yum_instrumentation_package is changed \
       or zypper_instrumentation_package is changed }}"
     npm_found: "{{ (splunk_otel_auto_instrumentation_npm_path | default('npm')) != 'npm' }}"
-    with_new_instrumentation: "{{ auto_instrumentation_version is version('0.87.0', '>=') }}"
     with_systemd: "{{ splunk_otel_auto_instrumentation_systemd | bool }}"
     with_java: "{{ 'java' in (splunk_otel_auto_instrumentation_sdks | default([])) }}"
-    with_nodejs: "{{ 'nodejs' in (splunk_otel_auto_instrumentation_sdks | default([])) \
-      and auto_instrumentation_version is version('0.87.0', '>=') }}"
+    with_nodejs: "{{ 'nodejs' in (splunk_otel_auto_instrumentation_sdks | default([])) }}"
     with_dotnet: "{{ 'dotnet' in (splunk_otel_auto_instrumentation_sdks | default([])) \
       and auto_instrumentation_version is version('0.99.0', '>=') \
       and ansible_architecture in ('x86_64', 'amd64') }}"
@@ -66,38 +64,23 @@
   when: not with_systemd
   notify: "Reload systemd daemon"
 
-- name: Delete the old Splunk OpenTelemetry Auto Instrumentation config
-  ansible.builtin.file:
-    path: /usr/lib/splunk-instrumentation/instrumentation.conf
-    state: absent
-  when: with_systemd or with_new_instrumentation
-
 - name: Delete the Splunk OpenTelemetry Auto Instrumentation for Java config file
   ansible.builtin.file:
     path: /etc/splunk/zeroconfig/java.conf
     state: absent
-  when: with_systemd or not with_new_instrumentation or not with_java
+  when: with_systemd or not with_java
 
 - name: Delete the Splunk OpenTelemetry Auto Instrumentation for Node.js config file
   ansible.builtin.file:
     path: /etc/splunk/zeroconfig/node.conf
     state: absent
-  when: with_systemd or not with_new_instrumentation or not with_nodejs or not npm_found
+  when: with_systemd or not with_nodejs or not npm_found
 
 - name: Delete the Splunk OpenTelemetry Auto Instrumentation for .NET config file
   ansible.builtin.file:
     path: /etc/splunk/zeroconfig/dotnet.conf
     state: absent
-  when: with_systemd or not with_new_instrumentation or not with_dotnet
-
-- name: Set up the Splunk OpenTelemetry Auto Instrumentation config file
-  ansible.builtin.template:
-    src: splunk-otel-auto-instrumentation.conf.j2
-    dest: /usr/lib/splunk-instrumentation/instrumentation.conf
-    owner: root
-    group: root
-    mode: '644'
-  when: with_java and not with_new_instrumentation and not with_systemd
+  when: with_systemd or not with_dotnet
 
 - name: Set up the Splunk OpenTelemetry Auto Instrumentation for Java config file
   ansible.builtin.template:
@@ -106,7 +89,7 @@
     owner: root
     group: root
     mode: '644'
-  when: with_java and with_new_instrumentation and not with_systemd
+  when: with_java and not with_systemd
 
 - name: Set up the Splunk OpenTelemetry Auto Instrumentation for Node.js config file
   ansible.builtin.template:

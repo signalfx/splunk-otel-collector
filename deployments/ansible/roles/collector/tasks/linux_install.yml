@@ -63,6 +63,32 @@
   when: splunk_otel_collector_config_source != ''
   notify: "restart splunk-otel-collector"
 
+- name: Create the parent directories for the discovery properties file
+  ansible.builtin.file:
+    path: "{{ splunk_otel_auto_discovery_properties_dest | dirname }}"
+    state: directory
+  when: splunk_otel_auto_discovery_properties_yaml != '' or splunk_otel_auto_discovery_properties_source != ''
+
+- name: Create the discovery properties file
+  ansible.builtin.copy:
+    content: "{{ splunk_otel_auto_discovery_properties_yaml }}"
+    dest: "{{ splunk_otel_auto_discovery_properties_dest }}"
+    owner: "{{ splunk_service_user }}"
+    group: "{{ splunk_service_group }}"
+    mode: 0644
+  when: splunk_otel_auto_discovery_properties_yaml != ''
+  notify: "restart splunk-otel-collector"
+
+- name: Copy the discovery properties file to the node
+  ansible.builtin.template:
+    src: "{{ splunk_otel_auto_discovery_properties_source }}"
+    dest: "{{ splunk_otel_auto_discovery_properties_dest }}"
+    owner: "{{ splunk_service_user }}"
+    group: "{{ splunk_service_group }}"
+    mode: 0644
+  when: splunk_otel_auto_discovery_properties_source != ''
+  notify: "restart splunk-otel-collector"
+
 - name: Install FluentD
   ansible.builtin.import_tasks: linux_install_fluentd.yml
   when: install_fluentd and fluentd_supported

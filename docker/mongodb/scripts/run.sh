@@ -19,4 +19,4 @@ done
 bash /home/mongodb/scripts/setup_user.sh
 
 
-gosu mongodb mongod --dbpath=/data/db --config mongod.conf --bind_ip_all --auth 
+gosu mongodb mongod --dbpath=/data/db --config mongod.conf

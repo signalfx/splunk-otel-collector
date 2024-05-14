@@ -10,7 +10,7 @@ ENV container docker
 
 RUN rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
 RUN echo 'fastestmirror=1' >> /etc/yum.conf
-RUN dnf install -y procps initscripts python3 systemd wget
+RUN dnf install -y procps initscripts python3 systemd wget libicu
 
 RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i = \
     "systemd-tmpfiles-setup.service" ] || rm -f $i; done); \
@@ -31,10 +31,7 @@ COPY instrumentation/setup-express.sh /opt
 RUN bash /opt/setup-express.sh
 
 COPY instrumentation/setup-dotnet.sh /opt
-RUN if [ "$TARGETARCH" = "amd64" ]; then \
-    dnf install -y libicu && \
-    bash /opt/setup-dotnet.sh; \
-    fi
+RUN bash /opt/setup-dotnet.sh
 
 VOLUME [ "/sys/fs/cgroup" ]
 

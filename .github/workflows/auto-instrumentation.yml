@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - dotnet-arm64-deb-rpm
   pull_request:
     paths:
       - '.github/workflows/auto-instrumentation.yml'
@@ -99,8 +100,7 @@ jobs:
           distro=$(for d in $dockerfiles; do echo -n "\"$d\","; done)
           arch="\"amd64\", \"arm64\""
           testcase="\"express\",\"tomcat\",\"dotnet\""
-          exclude='{"ARCH": "arm64", "TESTCASE": "dotnet"}'  # splunk-otel-dotnet currently not supported on arm64
-          matrix="{\"DISTRO\": [${distro%,}], \"ARCH\": [${arch}], \"TESTCASE\": [${testcase}], \"exclude\": [${exclude}]}"
+          matrix="{\"DISTRO\": [${distro%,}], \"ARCH\": [${arch}], \"TESTCASE\": [${testcase}]}"
           echo "$matrix" | jq
           echo "matrix=${matrix}" >> $GITHUB_OUTPUT
     outputs:

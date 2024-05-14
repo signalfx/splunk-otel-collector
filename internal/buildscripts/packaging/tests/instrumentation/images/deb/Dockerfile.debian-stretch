@@ -12,7 +12,7 @@ RUN sed -i 's|http://.*.debian.org|http://archive.debian.org|' /etc/apt/sources.
 RUN sed -i '/stretch-updates/d' /etc/apt/sources.list
 
 RUN apt-get update &&\
-    apt-get install -yq ca-certificates curl procps python3 systemd wget
+    apt-get install -yq ca-certificates curl procps python3 systemd wget libicu57
 
 ENV container docker
 RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i = \
@@ -33,11 +33,7 @@ COPY instrumentation/setup-express.sh /opt
 RUN bash /opt/setup-express.sh
 
 COPY instrumentation/setup-dotnet.sh /opt
-RUN if [ "$TARGETARCH" = "amd64" ]; then \
-    apt-get update && \
-    apt-get install -yq libicu57 && \
-    bash /opt/setup-dotnet.sh; \
-    fi
+RUN bash /opt/setup-dotnet.sh
 
 RUN systemctl set-default multi-user.target
 ENV init /lib/systemd/systemd

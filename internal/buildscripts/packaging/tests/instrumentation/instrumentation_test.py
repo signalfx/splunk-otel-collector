@@ -33,6 +33,7 @@ from tests.helpers.util import (
     TESTS_DIR,
 )
 
+from tests.instrumentation.util import *
 
 IMAGES_DIR = Path(__file__).parent.resolve() / "images"
 DEB_DISTROS = [df.split(".")[-1] for df in glob.glob(str(IMAGES_DIR / "deb" / "Dockerfile.*"))]
@@ -43,25 +44,13 @@ INSTALLER_PATH = REPO_DIR / "internal" / "buildscripts" / "packaging" / "install
 COLLECTOR_CONFIG_PATH = TESTS_DIR / "instrumentation" / "config.yaml"
 
 PKG_NAME = "splunk-otel-auto-instrumentation"
-LIB_DIR = "/usr/lib/splunk-instrumentation"
-LIBSPLUNK_PATH = f"{LIB_DIR}/libsplunk.so"
-PRELOAD_PATH = "/etc/ld.so.preload"
-SYSTEMD_CONF_DIR = "/usr/lib/systemd/system.conf.d"
 SAMPLE_SYSTEMD_CONF_PATH = f"{LIB_DIR}/examples/systemd/00-splunk-otel-auto-instrumentation.conf"
-
-JAVA_AGENT_PATH = f"{LIB_DIR}/splunk-otel-javaagent.jar"
-JAVA_CONFIG_PATH = "/etc/splunk/zeroconfig/java.conf"
 CUSTOM_JAVA_CONFIG_PATH = TESTS_DIR / "instrumentation" / "libsplunk-java-test.conf"
 CUSTOM_JAVA_SYSTEMD_CONF_PATH = TESTS_DIR / "instrumentation" / "systemd-java-test.conf"
-
-NODE_AGENT_PATH = f"{LIB_DIR}/splunk-otel-js.tgz"
-NODE_CONFIG_PATH = "/etc/splunk/zeroconfig/node.conf"
 CUSTOM_NODE_CONFIG_PATH = TESTS_DIR / "instrumentation" / "libsplunk-node-test.conf"
 CUSTOM_NODE_SYSTEMD_CONF_PATH = TESTS_DIR / "instrumentation" / "systemd-node-test.conf"
-
-DOTNET_AGENT_PATH = f"{LIB_DIR}/splunk-otel-dotnet/linux-x64/OpenTelemetry.AutoInstrumentation.Native.so"
-DOTNET_CONFIG_PATH = "/etc/splunk/zeroconfig/dotnet.conf"
 CUSTOM_DOTNET_CONFIG_PATH = TESTS_DIR / "instrumentation" / "libsplunk-dotnet-test.conf"
+CUSTOM_DOTNET_ARM64_CONFIG_PATH = TESTS_DIR / "instrumentation" / "libsplunk-dotnet-arm64-test.conf"
 CUSTOM_DOTNET_SYSTEMD_CONF_PATH = TESTS_DIR / "instrumentation" / "systemd-dotnet-test.conf"
 
 INSTALLED_FILES = [
@@ -114,10 +103,6 @@ def get_package(distro, name, arch):
         return None
 
 
-def container_file_exists(container, path):
-    return container.exec_run(f"test -f {path}").exit_code == 0
-
-
 def install_package(container, distro, path, arch="amd64"):
     if distro in DEB_DISTROS:
         run_container_cmd(container, f"dpkg -i {path}")
@@ -125,24 +110,8 @@ def install_package(container, distro, path, arch="amd64"):
         run_container_cmd(container, f"rpm -ivh {path}")
 
     for path in INSTALLED_FILES:
-        if arch == "arm64" and path in [DOTNET_AGENT_PATH, DOTNET_CONFIG_PATH]:
-            # the arm64 package shouldn't include splunk-otel-dotnet files
-            assert not container_file_exists(container, path), f"{path} found"
-        else:
-            assert container_file_exists(container, path), f"{path} not found"
-
-
-def verify_preload(container, line, exists=True):
-    code, output = container.exec_run(f"cat {PRELOAD_PATH}")
-    assert code == 0, f"failed to get contents from {PRELOAD_PATH}"
-    config = output.decode("utf-8")
-
-    match = re.search(f"^{line}$", config, re.MULTILINE)
-
-    if exists:
-        assert match, f"'{line}' not found in {PRELOAD_PATH}"
-    else:
-        assert not match, f"'{line}' found in {PRELOAD_PATH}"
+        path = get_dotnet_agent_path(arch) if path == DOTNET_AGENT_PATH else path
+        assert container_file_exists(container, path), f"{path} not found"
 
 
 def start_app(container, app, systemd, timeout=300):
@@ -390,8 +359,14 @@ def test_express_instrumentation(distro, arch):
     [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
     + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
     )
-@pytest.mark.parametrize("arch", ["amd64"])
+@pytest.mark.parametrize("arch", ["amd64", "arm64"])
 def test_dotnet_instrumentation(distro, arch):
+    if distro == "opensuse-12" and arch == "arm64":
+        pytest.skip("opensuse-12 arm64 no longer supported")
+
+    if distro == "centos-7" and arch == "arm64":
+        pytest.skip(".NET SDK 6+ not supported")
+
     otelcol_bin = f"otelcol_linux_{arch}"
     otelcol_bin_path = OTELCOL_BIN_DIR / otelcol_bin
     assert os.path.isfile(otelcol_bin_path), f"{otelcol_bin_path} not found!"
@@ -442,7 +417,8 @@ def test_dotnet_instrumentation(distro, arch):
                 copy_file_into_container(container, CUSTOM_DOTNET_SYSTEMD_CONF_PATH, f"{SYSTEMD_CONF_DIR}/test.conf")
             else:
                 # overwrite the default libsplunk config with the custom one for testing
-                copy_file_into_container(container, CUSTOM_DOTNET_CONFIG_PATH, DOTNET_CONFIG_PATH)
+                custom_config = CUSTOM_DOTNET_CONFIG_PATH if arch == "amd64" else CUSTOM_DOTNET_ARM64_CONFIG_PATH
+                copy_file_into_container(container, custom_config, DOTNET_CONFIG_PATH)
 
             # verify custom config
             verify_app_instrumentation(container, "dotnet", method, attributes, otelcol_path=otelcol)
@@ -491,6 +467,7 @@ def test_package_uninstall(distro, arch):
 
         # verify files were uninstalled
         for path in INSTALLED_FILES:
+            path = get_dotnet_agent_path(arch) if path == DOTNET_AGENT_PATH else path
             assert not container_file_exists(container, path)
 
         # verify libsplunk.so was removed from /etc/ld.so.preload

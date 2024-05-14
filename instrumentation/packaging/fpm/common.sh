@@ -88,7 +88,13 @@ download_nodejs_agent() {
 download_dotnet_agent() {
     local tag="$1"
     local dest="$2"
-    local pkg="splunk-opentelemetry-dotnet-linux-glibc-x64.zip"
+    local arch="$3"
+
+    if [ "$arch" = "amd64" ]; then
+        local pkg="splunk-opentelemetry-dotnet-linux-glibc-x64.zip"
+    elif [ "$arch" = "arm64" ]; then
+        local pkg="splunk-opentelemetry-dotnet-linux-glibc-arm64.zip"
+    fi
     local dl_url="$DOTNET_AGENT_RELEASE_URL/download/$tag/$pkg"
 
     echo "Downloading $dl_url ..."
@@ -118,21 +124,26 @@ setup_files_and_permissions() {
     download_nodejs_agent "$nodejs_agent_release" "${buildroot}/${NODEJS_AGENT_INSTALL_PATH}"
     sudo chmod 755 "$buildroot/$NODEJS_AGENT_INSTALL_PATH"
 
-    if [ "$arch" = "amd64" ]; then
-        download_dotnet_agent "$dotnet_agent_release" "${buildroot}/${DOTNET_AGENT_INSTALL_DIR}"
-        sudo chmod -R 755 "$buildroot/$DOTNET_AGENT_INSTALL_DIR"
-    fi
+    download_dotnet_agent "$dotnet_agent_release" "${buildroot}/${DOTNET_AGENT_INSTALL_DIR}" "$arch"
+    sudo chmod -R 755 "$buildroot/$DOTNET_AGENT_INSTALL_DIR"
 
     mkdir -p  "$buildroot/$CONFIG_DIR_INSTALL_PATH"
     cp -rf "$CONFIG_DIR_REPO_PATH"/* "$buildroot/$CONFIG_DIR_INSTALL_PATH"/
     sudo chmod -R 755 "$buildroot/$CONFIG_DIR_INSTALL_PATH"
-    if [ "$arch" != "amd64" ]; then
-        rm -f "$buildroot/$CONFIG_DIR_INSTALL_PATH/dotnet.conf"
+    if [ "$arch" = "amd64" ]; then
+        rm -f "$buildroot/$CONFIG_DIR_INSTALL_PATH/dotnet-arm64.conf"
+    elif [ "$arch" = "arm64" ]; then
+        mv -f "$buildroot/$CONFIG_DIR_INSTALL_PATH/dotnet-arm64.conf" "$buildroot/$CONFIG_DIR_INSTALL_PATH/dotnet.conf"
     fi
 
     mkdir -p "$buildroot/$INSTALL_DIR"
     cp -rf "$EXAMPLES_DIR" "$buildroot/$INSTALL_DIR/"
     sudo chmod -R 755 "$buildroot/$EXAMPLES_INSTALL_DIR"
+    if [ "$arch" = "amd64" ]; then
+        rm -f "$buildroot/$EXAMPLES_INSTALL_DIR/systemd/00-splunk-otel-auto-instrumentation-arm64.conf"
+    elif [ "$arch" = "arm64" ]; then
+        mv -f "$buildroot/$EXAMPLES_INSTALL_DIR/systemd/00-splunk-otel-auto-instrumentation-arm64.conf" "$buildroot/$EXAMPLES_INSTALL_DIR/systemd/00-splunk-otel-auto-instrumentation.conf"
+    fi
 
     sudo chown -R root:root "$buildroot"
 }

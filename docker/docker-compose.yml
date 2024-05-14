@@ -132,8 +132,8 @@ services:
     build: ./kong
     ports:
       - "18001:8001"
-  mongodb:
-    image: quay.io/splunko11ytest/mongodb:latest
+  mongodb-4.4:
+    image: quay.io/splunko11ytest/mongodb-4.4:latest
     profiles:
       - integration
     build: ./mongodb

@@ -129,7 +129,6 @@ func TestStatementEvaluation(t *testing.T) {
 								}
 							}
 							require.Equal(t, map[string]string{
-								"discovery.event.type":    "statement.match",
 								"discovery.observer.id":   "an_observer/observer.name",
 								"discovery.receiver.name": "receiver.name",
 								"discovery.receiver.rule": `type == "container"`,

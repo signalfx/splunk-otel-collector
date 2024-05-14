@@ -8,7 +8,6 @@ resource_logs:
               otel.entity.event.type: entity_state
               otel.entity.attributes:
                 discovery.endpoint.id: (host_observer)[::]-8888-TCP-1
-                discovery.event.type: metric.match
                 discovery.observer.id: host_observer
                 discovery.receiver.config: cmVjZWl2ZXJzOgogIHByb21ldGhldXNfc2ltcGxlOgogICAgY29uZmlnOiB7fQogICAgcmVzb3VyY2VfYXR0cmlidXRlczoKICAgICAgb25lLmtleTogb25lLnZhbHVlCiAgICAgIHR3by5rZXk6IHR3by52YWx1ZQogICAgcnVsZTogdHlwZSA9PSAiaG9zdHBvcnQiIGFuZCBjb21tYW5kIGNvbnRhaW5zICJvdGVsY29sIgp3YXRjaF9vYnNlcnZlcnM6Ci0gaG9zdF9vYnNlcnZlcgo=
                 discovery.receiver.rule: type == "hostport" and command contains "otelcol"
@@ -24,7 +23,6 @@ resource_logs:
                 service_version: <VERSION_FROM_BUILD>
                 discovery.status: successful
                 discovery.message: Successfully connected to prometheus server
-                metric.name: otelcol_process_uptime
                 discovery.observer.type: host_observer
                 discovery.observer.name: ""
                 command: /otelcol --config /etc/config.yaml
@@ -43,7 +41,6 @@ resource_logs:
               otel.entity.event.type: entity_state
               otel.entity.attributes:
                 discovery.endpoint.id: (host_observer)[::]-4318-TCP-1
-                discovery.event.type: statement.match
                 discovery.observer.id: host_observer
                 discovery.receiver.config: cmVjZWl2ZXJzOgogIHByb21ldGhldXNfc2ltcGxlOgogICAgY29uZmlnOiB7fQogICAgcmVzb3VyY2VfYXR0cmlidXRlczoKICAgICAgb25lLmtleTogb25lLnZhbHVlCiAgICAgIHR3by5rZXk6IHR3by52YWx1ZQogICAgcnVsZTogdHlwZSA9PSAiaG9zdHBvcnQiIGFuZCBjb21tYW5kIGNvbnRhaW5zICJvdGVsY29sIgp3YXRjaF9vYnNlcnZlcnM6Ci0gaG9zdF9vYnNlcnZlcgo=
                 discovery.receiver.name: ""

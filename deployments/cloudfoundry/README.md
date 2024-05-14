@@ -1,8 +1,6 @@
 # Splunk OpenTelemetry Collector Pivotal Cloud Foundry (PCF) Integrations
 
-Supported Tanzu Application Service (TAS) versions: v2
-
-Unsupported TAS versions: v3
+Currently supported Tanzu Application Service (TAS) versions: v2.12 - v5.0
 
 ### Cloud Foundry Buildpack
 

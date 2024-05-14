@@ -58,8 +58,8 @@ jobs:
             exit 1
           fi
           distro=$(for d in $dockerfiles; do echo -n "\"$d\","; done)
-          arch="\"amd64\", \"arm64\""
-          matrix="{\"DISTRO\": [${distro%,}]}"
+          config="\"default\", \"custom\""
+          matrix="{\"DISTRO\": [${distro%,}], \"CONFIG\": [${config}]}"
           echo "$matrix" | jq
           echo "matrix=${matrix}" >> $GITHUB_OUTPUT
     outputs:
@@ -97,7 +97,7 @@ jobs:
             # workaround for pytest substring matching
             distro="amazonlinux-2 and not amazonlinux-2023"
           fi
-          python3 -u -m pytest -s --verbose -k "$distro" \
+          python3 -u -m pytest -s --verbose -k "$distro and ${{ matrix.CONFIG }}" \
             internal/buildscripts/packaging/tests/deployments/salt/salt_test.py
 
       # qemu, networking, running systemd in containers, etc., can be flaky
@@ -109,6 +109,6 @@ jobs:
             # workaround for pytest substring matching
             distro="amazonlinux-2 and not amazonlinux-2023"
           fi
-          python3 -u -m pytest -s --verbose -k "$distro" \
+          python3 -u -m pytest -s --verbose -k "$distro and ${{ matrix.CONFIG }}" \
             --last-failed \
             internal/buildscripts/packaging/tests/deployments/salt/salt_test.py

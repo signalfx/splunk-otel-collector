@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### 💡 Enhancements 💡
+
+- (Splunk) [`splunk-otel-collector` Salt formula](https://github.com/signalfx/splunk-otel-collector/tree/main/deployments/salt): Initial support for
+  Splunk OpenTelemetry [Node.js](https://github.com/signalfx/splunk-otel-js) and [.NET](https://github.com/signalfx/splunk-otel-dotnet) Auto Instrumentation on Linux
+  - Both are activated by default if the `install_auto_instrumentation` option is set to `True`.
+  - To skip Node.js auto instrumentation, configure the `auto_instrumentation_sdks` option without `nodejs`.
+  - To skip .NET auto instrumentation, configure the `auto_instrumentation_sdks` option without `dotnet`.
+  - `npm` is required to be pre-installed on the node to install the Node.js SDK. Configure the `auto_instrumentation_npm_path` option to specify the path to `npm`.
+  - .NET auto instrumentation is currently only supported on amd64/x64_64.
+
 ## v0.100.0
 
 ### 🛑 Breaking changes 🛑

@@ -10,6 +10,13 @@ RUN echo 'deb https://repo.saltproject.io/py3/ubuntu/18.04/amd64/latest bionic m
     apt-get update && \
     apt-get install -y salt-minion
 
+RUN wget -O /tmp/nodejs.tar.gz https://nodejs.org/dist/v16.20.2/node-v16.20.2-linux-x64.tar.gz && \
+    mkdir -p /opt/ && \
+    tar -C /opt/ -xzf /tmp/nodejs.tar.gz && \
+    mv /opt/node* /opt/node
+
+ENV PATH=/opt/node/bin:$PATH
+
 ENV container docker
 
 RUN rm -f /lib/systemd/system/multi-user.target.wants/* \

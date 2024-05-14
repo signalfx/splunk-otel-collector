@@ -29,8 +29,6 @@ import (
 
 var _ zapcore.Core = (*statementEvaluator)(nil)
 
-const statementMatch = "statement.match"
-
 // statementEvaluator conforms to a zapcore.Core to intercept component log statements and
 // determine if they match any configured Status match rules. If so, they emit log records
 // for the matching statement.
@@ -190,7 +188,6 @@ func (se *statementEvaluator) evaluateStatement(statement *statussources.Stateme
 		attrs[discovery.ReceiverTypeAttr] = receiverID.Type().String()
 		attrs[discovery.ReceiverNameAttr] = receiverID.Name()
 		attrs[discovery.MessageAttr] = statement.Message
-		attrs[eventTypeAttr] = statementMatch
 		attrs[receiverRuleAttr] = rEntry.Rule.String()
 
 		var desiredRecord LogRecord

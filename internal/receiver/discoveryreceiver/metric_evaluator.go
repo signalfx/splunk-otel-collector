@@ -32,10 +32,6 @@ import (
 
 var _ consumer.Metrics = (*metricEvaluator)(nil)
 
-const (
-	metricMatch = "metric.match"
-)
-
 var (
 	jsonMarshaler = &pmetric.JSONMarshaler{}
 )
@@ -97,7 +93,7 @@ func (m *metricEvaluator) evaluateMetrics(md pmetric.Metrics) {
 	}
 
 	for _, match := range rEntry.Status.Metrics {
-		res, metric, matched := m.findMatchedMetric(md, match, receiverID, endpointID)
+		res, matched := m.findMatchedMetric(md, match, receiverID, endpointID)
 		if !matched {
 			continue
 		}
@@ -120,7 +116,6 @@ func (m *metricEvaluator) evaluateMetrics(md pmetric.Metrics) {
 		})
 		m.correlateResourceAttributes(m.config, attrs, corr)
 
-		attrs[eventTypeAttr] = metricMatch
 		attrs[receiverRuleAttr] = rEntry.Rule.String()
 
 		desiredRecord := match.Record
@@ -135,7 +130,6 @@ func (m *metricEvaluator) evaluateMetrics(md pmetric.Metrics) {
 		for k, v := range desiredRecord.Attributes {
 			attrs[k] = v
 		}
-		attrs[metricNameAttr] = metric.Name()
 		attrs[discovery.StatusAttr] = string(match.Status)
 		m.correlations.UpdateAttrs(endpointID, attrs)
 
@@ -144,8 +138,8 @@ func (m *metricEvaluator) evaluateMetrics(md pmetric.Metrics) {
 	}
 }
 
-// findMatchedMetric finds the metric that matches the provided match rule and return it along with the resource if found.
-func (m *metricEvaluator) findMatchedMetric(md pmetric.Metrics, match Match, receiverID component.ID, endpointID observer.EndpointID) (pcommon.Resource, pmetric.Metric, bool) {
+// findMatchedMetric finds the metric that matches the provided match rule and return the resource where it's found.
+func (m *metricEvaluator) findMatchedMetric(md pmetric.Metrics, match Match, receiverID component.ID, endpointID observer.EndpointID) (pcommon.Resource, bool) {
 	for i := 0; i < md.ResourceMetrics().Len(); i++ {
 		rm := md.ResourceMetrics().At(i)
 		for j := 0; j < rm.ScopeMetrics().Len(); j++ {
@@ -158,9 +152,9 @@ func (m *metricEvaluator) findMatchedMetric(md pmetric.Metrics, match Match, rec
 				} else if !shouldLog {
 					continue
 				}
-				return rm.Resource(), metric, true
+				return rm.Resource(), true
 			}
 		}
 	}
-	return pcommon.NewResource(), pmetric.NewMetric(), false
+	return pcommon.NewResource(), false
 }

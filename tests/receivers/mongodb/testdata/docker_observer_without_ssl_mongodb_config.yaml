@@ -27,17 +27,14 @@ receivers:
             - status: failed
               regexp: 'connect: network is unreachable'
               log_record:
-                append_pattern: true
                 body: The container cannot be reached by the Collector. Make sure they're in the same network.
             - status: failed
               regexp: 'connect: connection refused'
               log_record:
-                append_pattern: true
                 body: The container is refusing mongodb connections.
             - status: partial
               regexp: '.* unable to authenticate using mechanism .*'
               log_record:
-                append_pattern: true
                 body: >-
                     Please ensure your user credentials are correctly specified with
                     `--set {{ configProperty "username" "<username>" }}` and
@@ -52,9 +49,6 @@ receivers:
                   `db.grantRolesToUser('someUser', [{ role: 'clusterMonitor', db: 'admin' }])`
     watch_observers:
       - docker_observer
-
-# drop scrape_timestamp attributes until we can accept arbitrary values
-processors:
 
 exporters:
   debug:

@@ -1,0 +1,76 @@
+extensions:
+  docker_observer:
+
+receivers:
+  # set up otlp receiver to use its endpoints as assertion material
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+  discovery:
+    embed_receiver_config: true
+    receivers:
+      mongodb:
+        config:
+          password: user1
+          tls:
+            insecure: false
+            insecure_skip_verify: true
+          username: user1
+        rule: type == "container" and any([name, image, command], {# matches "(?i)mongo"}) and not (command matches "splunk.discovery")
+        status:
+          metrics:
+            - status: successful
+              strict: mongodb.index.size
+              log_record:
+                body: mongodb receiver is working!
+          statements:
+            - status: failed
+              regexp: 'connect: network is unreachable'
+              log_record:
+                append_pattern: true
+                body: The container cannot be reached by the Collector. Make sure they're in the same network.
+            - status: failed
+              regexp: 'connect: connection refused'
+              log_record:
+                append_pattern: true
+                body: The container is refusing mongodb connections.
+            - status: partial
+              regexp: '.* unable to authenticate using mechanism .*'
+              log_record:
+                append_pattern: true
+                body: >-
+                    Please ensure your user credentials are correctly specified with
+                    `--set {{ configProperty "username" "<username>" }}` and
+                    `--set {{ configProperty "password" "<password>" }}` or
+                    `{{ configPropertyEnvVar "username" "<username>" }}` and
+                    `{{ configPropertyEnvVar "password" "<password>" }}` environment variables.
+            - status: partial
+              regexp: '.*not authorized on admin to execute command.*'
+              log_record:
+                body: >-
+                  Make sure the account used to access Mongodb has been given a clusterMonitor role in order to collect metrics.
+                  `db.grantRolesToUser('someUser', [{ role: 'clusterMonitor', db: 'admin' }])`
+    watch_observers:
+      - docker_observer
+
+# drop scrape_timestamp attributes until we can accept arbitrary values
+processors:
+
+exporters:
+  debug:
+    verbosity: detailed
+
+service:
+  telemetry:
+    logs:
+      level: info
+  extensions:
+    - docker_observer
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      exporters: [debug]
+    logs:
+      receivers: [discovery]
+      exporters: [debug]

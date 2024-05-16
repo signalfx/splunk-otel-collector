@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### 🚀 New components 🚀
+
+- (Splunk) Add HTTP check receiver
+- (Splunk) Add OAuth2 Client extension
+
 ### 💡 Enhancements 💡
 
 - (Splunk) [`splunk-otel-collector` Salt formula](https://github.com/signalfx/splunk-otel-collector/tree/main/deployments/salt): Initial support for

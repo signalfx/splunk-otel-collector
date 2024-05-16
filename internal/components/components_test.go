@@ -35,6 +35,7 @@ func TestDefaultComponents(t *testing.T) {
 		"host_observer",
 		"http_forwarder",
 		"k8s_observer",
+		"oauth2client",
 		"pprof",
 		"smartagent",
 		"zpages",
@@ -53,6 +54,7 @@ func TestDefaultComponents(t *testing.T) {
 		"filelog",
 		"fluentforward",
 		"hostmetrics",
+		"httpcheck"
 		"jaeger",
 		"jmx",
 		"journald",

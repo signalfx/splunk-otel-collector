@@ -1295,8 +1295,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/internal/metadataprovi
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/metadataproviders v0.100.0/go.mod h1:HBlJKnf42Mm5p2Zjymlr5wjunPz6n+iiuHslgcGTK+I=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/sharedcomponent v0.100.0 h1:Oy80SyQ1eRTzv4rvUz7BlHW7B1jKZ6Ohipk2XxQSnhQ=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/sharedcomponent v0.100.0/go.mod h1:xkbbL88jE02df8SxIQ5rIk+Zisfpa2tagCzx/6Hz01Q=
-github.com/open-telemetry/opentelemetry-collector-contrib/internal/splunk v0.100.1-0.20240516030051-5cc9e03d0547 h1:Y0e8bA0nsZLP1PVOHve8pF1+C+kqZvCOQklEbcFFZSQ=
-github.com/open-telemetry/opentelemetry-collector-contrib/internal/splunk v0.100.1-0.20240516030051-5cc9e03d0547/go.mod h1:sQJzeLFs+iU/HETLETCtbBHh7Pz9/87HR2NfXCmE7Dg=
+github.com/open-telemetry/opentelemetry-collector-contrib/internal/splunk v0.100.1-0.20240516165419-ebee48b4f0b2 h1:uAXrHw8Si0zKImY5BAcG2haJcnRHGYZgw/lkotezHcw=
+github.com/open-telemetry/opentelemetry-collector-contrib/internal/splunk v0.100.1-0.20240516165419-ebee48b4f0b2/go.mod h1:sQJzeLFs+iU/HETLETCtbBHh7Pz9/87HR2NfXCmE7Dg=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/sqlquery v0.100.0 h1:VtMjgAQwIsoD/hg3qogqDND7fWtZHTjqpINu9ilgkh8=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/sqlquery v0.100.0/go.mod h1:YquJPYnqRKFRixKf3Yuivb40W1swmyz03uqXiP/9WbU=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchperresourceattr v0.100.0 h1:TZWhuULHW/asVaJiEG5gQdMdcKjmtrCpQwoeBE9qEMg=
@@ -1423,8 +1423,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/simpleprometh
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/simpleprometheusreceiver v0.100.0/go.mod h1:h2SNnkRJ712cdRkLhCRgWNfkfKmmoA1iIl55QGiihQc=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/solacereceiver v0.100.0 h1:eeLzkYfU56mKemoPgiSiX+k9wiNrbl4y9oXB2OOhFNg=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/solacereceiver v0.100.0/go.mod h1:s/dFRGnWlir1TZ6m00EJ/cVqKdGFy9Yup+1jDJH/n1k=
-github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver v0.100.1-0.20240516030051-5cc9e03d0547 h1:A3U74hPIFyQLCtpGggu1bqBC2xr/An1XWWZUYUo+rmw=
-github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver v0.100.1-0.20240516030051-5cc9e03d0547/go.mod h1:vwPe75PY5h6KIiQd8TxCWP9alRgC3vcXz3TL0r3BwaY=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver v0.100.1-0.20240516165419-ebee48b4f0b2 h1:Kpz3zm0jpLEl0sVtWBUPZ6tjy8+J2xK9eK2hrSxvHXw=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver v0.100.1-0.20240516165419-ebee48b4f0b2/go.mod h1:vwPe75PY5h6KIiQd8TxCWP9alRgC3vcXz3TL0r3BwaY=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sqlqueryreceiver v0.100.0 h1:ZvCufBbFaDLzojU1j96YRqfEtGXhinCdPwPnxEP1N1k=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sqlqueryreceiver v0.100.0/go.mod h1:E3fE1wpecssDVEsU6RZ3sjPC+eAQKArzKVPFpHiuQeU=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sqlserverreceiver v0.100.0 h1:v1XAE3kZNhyWd4h8g9VG0S0XG68OoCd9mPg9E0WhHcY=

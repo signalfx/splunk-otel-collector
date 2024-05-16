@@ -18,17 +18,14 @@
       - status: failed
         regexp: 'connect: network is unreachable'
         log_record:
-          append_pattern: true
           body: The container cannot be reached by the Collector. Make sure they're in the same network.
       - status: failed
         regexp: 'connect: connection refused'
         log_record:
-          append_pattern: true
           body: The container is refusing PostgreSQL connections.
       - status: partial
         regexp: 'pq: password authentication failed for user'
         log_record:
-          append_pattern: true
           body: >-
             Please ensure your user credentials are correctly specified with
             `--set {{ configProperty "username" "<username>" }}` and
@@ -38,7 +35,6 @@
       - status: partial
         regexp: 'pq: database .* does not exist'
         log_record:
-          append_pattern: true
           body: >-
             Make sure the target database is correctly specified using the
             `--set {{ configProperty "databases" "[<db>]" }}` command or the
@@ -46,7 +42,6 @@
       - status: partial
         regexp: 'pq: SSL is not enabled on the server'
         log_record:
-          append_pattern: true
           body: >-
             Make sure the target database has SSL enabled or set insecure using the
             `--set {{ configProperty "tls::insecure" "<boolean>" }}` command or the
@@ -54,7 +49,6 @@
       - status: partial
         regexp: 'pq: pg_stat_statements must be loaded via shared_preload_libraries'
         log_record:
-          append_pattern: true
           body: >-
             Make sure your PostgreSQL database has
             `shared_preload_libraries = 'pg_stat_statements'`

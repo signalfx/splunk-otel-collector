@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### 🛑 Breaking changes 🛑
+
+- (Splunk) `receiver/discovery`: Remove `append_pattern` option from log evaluation statements ([#4583](https://github.com/signalfx/splunk-otel-collector/pull/4583))
+  - The matched log message is now set as `discovery.matched_log` entity attributes instead of being appended to 
+    the `discovery.message` attribute.
+  - The matched log fields like `caller` and `stacktrace` are not sent as attributes anymore.
+
 ### 🚀 New components 🚀
 
 - (Splunk) Add HTTP check receiver

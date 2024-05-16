@@ -22,12 +22,10 @@ mysql:
       - status: failed
         regexp: "Can't connect to MySQL server on .* [(]111[)]"
         log_record:
-          append_pattern: true
           body:  The container cannot be reached by the Collector. The container is refusing MySQL connections.
       - status: partial
         regexp: 'Access denied for user'
         log_record:
-          append_pattern: true
           body: >-
             Make sure your user credentials are correctly specified using the
             `--set splunk.discovery.receivers.mysql.config.username="<username>"` and

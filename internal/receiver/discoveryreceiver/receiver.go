@@ -32,12 +32,10 @@ import (
 )
 
 const (
-	eventTypeAttr             = "discovery.event.type"
-	metricNameAttr            = "metric.name"
-	observerNameAttr          = "discovery.observer.name"
-	observerTypeAttr          = "discovery.observer.type"
-	receiverRuleAttr          = "discovery.receiver.rule"
-	receiverUpdatedConfigAttr = "discovery.receiver.updated.config"
+	observerNameAttr = "discovery.observer.name"
+	observerTypeAttr = "discovery.observer.type"
+	receiverRuleAttr = "discovery.receiver.rule"
+	matchedLogAttr   = "discovery.matched_log"
 )
 
 var (

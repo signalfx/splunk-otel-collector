@@ -127,14 +127,12 @@ func TestMetricEvaluation(t *testing.T) {
 					emitWG.Wait()
 
 					require.Equal(t, map[string]string{
-						"discovery.event.type":    "metric.match",
 						"discovery.observer.id":   "an_observer/observer.name",
 						"discovery.receiver.name": "receiver.name",
 						"discovery.receiver.rule": "a.rule",
 						"discovery.receiver.type": "a_receiver",
 						"discovery.status":        string(status),
 						"discovery.message":       "desired body content",
-						"metric.name":             "desired.name",
 						"one":                     "one.value",
 						"two":                     "two.value",
 						"extra_attr":              "target_resource",

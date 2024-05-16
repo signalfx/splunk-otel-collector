@@ -8,7 +8,6 @@ resource_logs:
               otel.entity.event.type: entity_state
               otel.entity.attributes:
                 discovery.endpoint.id: (host_observer)[::]-8888-TCP-1
-                discovery.event.type: metric.match
                 discovery.observer.id: host_observer
                 discovery.receiver.config: cmVjZWl2ZXJzOgogIHByb21ldGhldXNfc2ltcGxlOgogICAgY29uZmlnOiB7fQogICAgcmVzb3VyY2VfYXR0cmlidXRlczoKICAgICAgb25lLmtleTogb25lLnZhbHVlCiAgICAgIHR3by5rZXk6IHR3by52YWx1ZQogICAgcnVsZTogdHlwZSA9PSAiaG9zdHBvcnQiIGFuZCBjb21tYW5kIGNvbnRhaW5zICJvdGVsY29sIgp3YXRjaF9vYnNlcnZlcnM6Ci0gaG9zdF9vYnNlcnZlcgo=
                 discovery.receiver.rule: type == "hostport" and command contains "otelcol"
@@ -24,7 +23,6 @@ resource_logs:
                 service_version: <VERSION_FROM_BUILD>
                 discovery.status: successful
                 discovery.message: Successfully connected to prometheus server
-                metric.name: otelcol_process_uptime
                 discovery.observer.type: host_observer
                 discovery.observer.name: ""
                 command: /otelcol --config /etc/config.yaml
@@ -43,18 +41,14 @@ resource_logs:
               otel.entity.event.type: entity_state
               otel.entity.attributes:
                 discovery.endpoint.id: (host_observer)[::]-4318-TCP-1
-                discovery.event.type: statement.match
                 discovery.observer.id: host_observer
                 discovery.receiver.config: cmVjZWl2ZXJzOgogIHByb21ldGhldXNfc2ltcGxlOgogICAgY29uZmlnOiB7fQogICAgcmVzb3VyY2VfYXR0cmlidXRlczoKICAgICAgb25lLmtleTogb25lLnZhbHVlCiAgICAgIHR3by5rZXk6IHR3by52YWx1ZQogICAgcnVsZTogdHlwZSA9PSAiaG9zdHBvcnQiIGFuZCBjb21tYW5kIGNvbnRhaW5zICJvdGVsY29sIgp3YXRjaF9vYnNlcnZlcnM6Ci0gaG9zdF9vYnNlcnZlcgo=
                 discovery.receiver.name: ""
                 discovery.receiver.rule: type == "hostport" and command contains "otelcol"
                 discovery.receiver.type: prometheus_simple
-                caller: <ANY>
                 discovery.status: failed
                 discovery.message: (strict) Port appears to not be serving prometheus metrics
-                kind: receiver
-                name: prometheus_simple//receiver_creator/discovery{endpoint="[::]:4318"}/(host_observer)[::]-4318-TCP-1
-                target_labels: '{__name__="up", instance="[::]:4318", job="prometheus_simple/[::]:4318"}'
+                discovery.matched_log: Failed to scrape Prometheus endpoint
                 discovery.observer.name: ""
                 discovery.observer.type: host_observer
                 command: /otelcol --config /etc/config.yaml
@@ -64,4 +58,4 @@ resource_logs:
                 transport: TCP
                 type: hostport
                 service.type: prometheus_simple
-                service.name: prometheus_simple//receiver_creator/discovery{endpoint="[::]:4318"}/(host_observer)[::]-4318-TCP-1
+                service.name: otelcol

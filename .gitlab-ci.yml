@@ -219,7 +219,13 @@ compile:
   parallel:
     matrix:
       - TARGET: [binaries-darwin_amd64, binaries-darwin_arm64, binaries-linux_amd64, binaries-linux_arm64, binaries-windows_amd64, binaries-linux_ppc64le]
-  script: make $TARGET
+  script:
+    - |
+      if [[ -n "${CI_COMMIT_TAG:-}" ]]; then
+        make $TARGET VERSION=${CI_COMMIT_TAG}
+      else
+        make $TARGET
+      fi
   after_script:
     - if [ -e bin/otelcol ]; then rm -f bin/otelcol; fi  # remove the symlink
     - if [ -e bin/migratecheckpoint ]; then rm -f bin/migratecheckpoint; fi  # remove the symlink

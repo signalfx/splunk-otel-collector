@@ -20,22 +20,18 @@ redis:
       - status: failed
         regexp: "connection refused"
         log_record:
-          append_pattern: true
           body: The container is not serving http connections.
       - status: failed
         regexp: "received goaway and there are no active streams"
         log_record:
-          append_pattern: true
           body: Unable to connect and scrape metrics.
       - status: failed
         regexp: "dial tcp: lookup"
         log_record:
-          append_pattern: true
           body: Unable to resolve redis tcp endpoint
       - status: partial
         regexp: 'NOAUTH Authentication required.'
         log_record:
-          append_pattern: true
           body: >-
             Make sure your user credentials are correctly specified using the
             `--set splunk.discovery.receivers.redis.config.password="<password>"` and
@@ -45,7 +41,6 @@ redis:
       - status: partial
         regexp: 'called without any password configured for the default user'
         log_record:
-          append_pattern: true
           body: >-
             Make sure your user credentials are correctly specified using the
             `--set splunk.discovery.receivers.redis.config.password="<password>"` command or the
@@ -53,7 +48,6 @@ redis:
       - status: partial
         regexp: 'WRONGPASS invalid username-password pair or user is disabled'
         log_record:
-          append_pattern: true
           body: >-
             Make sure your user credentials are correctly specified using the
             `--set splunk.discovery.receivers.redis.config.password="<password>"` and

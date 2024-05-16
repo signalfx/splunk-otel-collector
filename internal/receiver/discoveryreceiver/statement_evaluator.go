@@ -181,9 +181,6 @@ func (se *statementEvaluator) evaluateStatement(statement *statussources.Stateme
 			return
 		}
 
-		for k, v := range statement.Fields {
-			attrs[k] = fmt.Sprintf("%v", v)
-		}
 		se.correlateResourceAttributes(se.config, attrs, corr)
 		attrs[discovery.ReceiverTypeAttr] = receiverID.Type().String()
 		attrs[discovery.ReceiverNameAttr] = receiverID.Name()
@@ -195,12 +192,15 @@ func (se *statementEvaluator) evaluateStatement(statement *statussources.Stateme
 			desiredRecord = *match.Record
 		}
 		if desiredRecord.Body != "" {
-			body := desiredRecord.Body
-			if desiredRecord.AppendPattern {
-				body = fmt.Sprintf("%s (evaluated %q)", body, p)
-			}
-			attrs[discovery.MessageAttr] = body
+			attrs[discovery.MessageAttr] = desiredRecord.Body
 		}
+
+		// set original message as "discovery.matched_log" attribute
+		attrs[matchedLogAttr] = statement.Message
+		if err, ok := statement.Fields["error"]; ok {
+			attrs[matchedLogAttr] += fmt.Sprintf(" (error: %v)", err)
+		}
+
 		if len(desiredRecord.Attributes) > 0 {
 			for k, v := range desiredRecord.Attributes {
 				attrs[k] = v

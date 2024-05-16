@@ -99,12 +99,10 @@ receivers:
              - status: failed
                regexp: "Can't connect to MySQL server on .* [(]111[)]"
                log_record:
-                 append_pattern: true
                  body:  The container cannot be reached by the Collector. The container is refusing MySQL connections.
              - status: partial
                regexp: 'Access denied for user'
                log_record:
-                 append_pattern: true
                  body: >-
                    Make sure your user credentials are correctly specified using the
                    `--set splunk.discovery.receivers.mysql.config.username="<username>"` and
@@ -266,11 +264,10 @@ expr: 'ExprEnv["some.field.with.periods"] contains "value"'
 
 ### LogRecord
 
-| Name             | Type              | Default                                                 | Docs                                                                        |
-|------------------|-------------------|---------------------------------------------------------|-----------------------------------------------------------------------------|
-| `body`           | string            | Emitted log statement message                           | The emitted log record's body                                               |
-| `attributes`     | map[string]string | Emitted log statements fields                           | The emitted log record's attributes                                         |
-| `append_pattern` | bool              | false                                                   | Whether to append the evaluated statement to the configured log record body |
+| Name             | Type              | Default                       | Docs                                |
+|------------------|-------------------|-------------------------------|-------------------------------------|
+| `body`           | string            | Emitted log statement message | The emitted log record's body       |
+| `attributes`     | map[string]string | Emitted log statements fields | The emitted log record's attributes |
 
 ## Status log record content
 

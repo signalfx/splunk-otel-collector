@@ -3,10 +3,6 @@ extensions:
 
 receivers:
   # set up otlp receiver to use its endpoints as assertion material
-  otlp:
-    protocols:
-      http:
-      grpc:
   discovery:
     embed_receiver_config: true
     receivers:
@@ -50,9 +46,16 @@ receivers:
     watch_observers:
       - docker_observer
 
+# drop scrape_timestamp attributes until we can accept arbitrary values
+processors:
+
 exporters:
   debug:
     verbosity: detailed
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
 
 service:
   telemetry:
@@ -61,9 +64,6 @@ service:
   extensions:
     - docker_observer
   pipelines:
-    metrics:
-      receivers: [otlp]
-      exporters: [debug]
     logs:
       receivers: [discovery]
-      exporters: [debug]
+      exporters: [otlp, debug]

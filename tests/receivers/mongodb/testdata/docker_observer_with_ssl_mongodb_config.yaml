@@ -2,11 +2,6 @@ extensions:
   docker_observer:
 
 receivers:
-  # set up otlp receiver to use its endpoints as assertion material
-  otlp:
-    protocols:
-      http:
-        endpoint: 0.0.0.0:4318
   discovery:
     embed_receiver_config: true
     receivers:
@@ -62,9 +57,6 @@ service:
   extensions:
     - docker_observer
   pipelines:
-    metrics:
-      receivers: [otlp]
-      exporters: [debug]
     logs:
       receivers: [discovery]
       exporters: [debug]

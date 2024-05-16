@@ -87,7 +87,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/signalfxreceiver v0.100.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/simpleprometheusreceiver v0.100.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/solacereceiver v0.100.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver v0.100.1-0.20240516030051-5cc9e03d0547
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver v0.100.1-0.20240516165419-ebee48b4f0b2
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sqlqueryreceiver v0.100.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sqlserverreceiver v0.100.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sshcheckreceiver v0.100.0
@@ -530,7 +530,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/kubelet v0.100.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/metadataproviders v0.100.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/sharedcomponent v0.100.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/internal/splunk v0.100.1-0.20240516030051-5cc9e03d0547 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/internal/splunk v0.100.1-0.20240516165419-ebee48b4f0b2 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchperresourceattr v0.100.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.100.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/signalfx v0.100.0 // indirect

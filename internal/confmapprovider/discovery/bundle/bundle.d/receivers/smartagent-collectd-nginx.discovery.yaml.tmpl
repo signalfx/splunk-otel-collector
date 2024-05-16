@@ -20,10 +20,8 @@
       - status: failed
         regexp: "nginx plugin: curl_easy_perform failed: Operation timed out after"
         log_record:
-          append_pattern: true
           body: The container is not serving http connections.
       - status: failed
         regexp: "read-function of plugin .* failed"
         log_record:
-          append_pattern: true
           body: The integration is unable to read metrics from this endpoint.

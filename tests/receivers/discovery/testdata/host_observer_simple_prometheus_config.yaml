@@ -43,15 +43,6 @@ receivers:
       - host_observer/with_name
       - host_observer/with/another/name
 
-# drop scrape_timestamp attributes until we can accept arbitrary values
-processors:
-  transform:
-    error_mode: ignore
-    log_statements:
-      - context: log
-        statements:
-          - delete_key(attributes["otel.entity.attributes"], "scrape_timestamp")
-
 exporters:
   otlp:
     endpoint: "${OTLP_ENDPOINT}"
@@ -72,5 +63,4 @@ service:
       exporters: [otlp]
     logs:
       receivers: [discovery]
-      processors: [transform]
       exporters: [otlp]

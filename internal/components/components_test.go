@@ -54,7 +54,7 @@ func TestDefaultComponents(t *testing.T) {
 		"filelog",
 		"fluentforward",
 		"hostmetrics",
-		"httpcheck"
+		"httpcheck",
 		"jaeger",
 		"jmx",
 		"journald",

@@ -11,8 +11,8 @@
 
 ### 🚀 New components 🚀
 
-- (Splunk) Add HTTP check receiver
-- (Splunk) Add OAuth2 Client extension
+- (Splunk) Add HTTP check receiver ([#4843](https://github.com/signalfx/splunk-otel-collector/pull/4843))
+- (Splunk) Add OAuth2 Client extension ([#4843](https://github.com/signalfx/splunk-otel-collector/pull/4843))
 
 ### 💡 Enhancements 💡
 

@@ -98,7 +98,7 @@ func TestScriptReceiverIostat(t *testing.T) {
 }
 
 func TestScriptReceiverLsof(t *testing.T) {
-	rg := regexp.MustCompile(`USERNAME\s+FROM\s+LATEST`)
+	rg := regexp.MustCompile(`COMMAND\s+PID\s+USER\s+FD\s+TYPE\s+DEVICE\s+SIZE\s+NODE\s+NAME`)
 	checkLog(t, "script_config_lsof.yaml", rg)
 }
 

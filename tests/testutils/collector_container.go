@@ -153,9 +153,12 @@ func (collector CollectorContainer) Build() (Collector, error) {
 	if len(collector.Args) > 0 {
 		collector.Container = collector.Container.WithCmd(collector.Args...)
 	}
-	for path, mountPoint := range collector.Mounts {
+
+	if len(collector.Mounts) > 0 {
 		collector.Container = collector.Container.WithHostConfigModifier(func(hostConfig *dockerContainer.HostConfig) {
-			hostConfig.Mounts = append(hostConfig.Mounts, dockerMount.Mount{Source: path, Target: mountPoint, Type: dockerMount.TypeBind})
+			for path, mountPoint := range collector.Mounts {
+				hostConfig.Mounts = append(hostConfig.Mounts, dockerMount.Mount{Source: path, Target: mountPoint, Type: dockerMount.TypeBind})
+			}
 			if collector.Container.ContainerNetworkMode == "" {
 				hostConfig.NetworkMode = network.NetworkHost
 			}

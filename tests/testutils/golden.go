@@ -95,13 +95,14 @@ func CheckGoldenFileWithMount(t *testing.T, configFile string, expectedFilePath 
 	if runtime.GOOS == "darwin" {
 		dockerHost = "host.docker.internal"
 	}
-	p, err := NewCollectorContainer().
+	cc := NewCollectorContainer().
 		WithExposedPorts("55679:55679", "55554:55554"). // This is required for tests that read the zpages or the config.
 		WithConfigPath(filepath.Join("testdata", configFile)).
 		WithLogger(logger).
 		WithEnv(map[string]string{"OTLP_ENDPOINT": fmt.Sprintf("%s:%d", dockerHost, port)}).
-		WithMount(hostPath, mountPoint).
-		Build()
+		WithMount(hostPath, mountPoint)
+	cc.(*CollectorContainer).Container.WithNetworkMode("host")
+	p, err := cc.Build()
 	require.NoError(t, err)
 	require.NoError(t, p.Start())
 	t.Cleanup(func() {

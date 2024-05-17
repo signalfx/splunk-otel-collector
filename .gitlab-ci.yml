@@ -180,6 +180,16 @@ update-javaagent:
     - .gitlab/install-gh-cli.sh
     - .gitlab/update-javaagent.sh
 
+update-jmx-metrics-gatherer:
+  only:
+    - schedules
+  stage: update-deps
+  needs: []
+  dependencies: []
+  script:
+    - .gitlab/install-gh-cli.sh
+    - .gitlab/update-jmx-metrics-gatherer.sh
+
 update-nodejs-agent:
   only:
     - schedules

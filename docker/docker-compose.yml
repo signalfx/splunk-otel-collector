@@ -72,7 +72,13 @@ services:
       - "7099:7099"
       - "9092:9092"
     healthcheck:
-      test: ["CMD", "bash", "-c", "exec 6<> /dev/tcp/localhost/7099"]
+      test:
+        [
+          "CMD",
+          "bash",
+          "-c",
+          "exec 6<> /dev/tcp/localhost/7099"
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -91,7 +97,13 @@ services:
     ports:
       - "9099:9099"
     healthcheck:
-      test: ["CMD", "bash", "-c", "exec 6<> /dev/tcp/localhost/9099"]
+      test:
+        [
+          "CMD",
+          "bash",
+          "-c",
+          "exec 6<> /dev/tcp/localhost/9099"
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -110,7 +122,13 @@ services:
     ports:
       - "8099:8099"
     healthcheck:
-      test: ["CMD", "bash", "-c", "exec 6<> /dev/tcp/localhost/8099"]
+      test:
+        [
+          "CMD",
+          "bash",
+          "-c",
+          "exec 6<> /dev/tcp/localhost/8099"
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -132,11 +150,25 @@ services:
     build: ./kong
     ports:
       - "18001:8001"
+  mongodb-4.0:
+    image: quay.io/splunko11ytest/mongodb-4.0:latest
+    profiles:
+      - mongo-4.0
+    build: ./mongodb-4.0
+    ports:
+      - "27017:27017"
   mongodb-4.4:
     image: quay.io/splunko11ytest/mongodb-4.4:latest
     profiles:
-      - integration
-    build: ./mongodb
+      - mongo-4.4
+    build: ./mongodb-4.4
+    ports:
+      - "27017:27017"
+  mongodb-5.0:
+    image: quay.io/splunko11ytest/mongodb-5.0:latest
+    profiles:
+      - mongo-5.0
+    build: ./mongodb-5.0
     ports:
       - "27017:27017"
   mysql:
@@ -200,7 +232,13 @@ services:
     ports:
       - "2181:2181"
     healthcheck:
-      test: ["CMD", "bash", "-c", "exec 6<> /dev/tcp/localhost/2181"]
+      test:
+        [
+          "CMD",
+          "bash",
+          "-c",
+          "exec 6<> /dev/tcp/localhost/2181"
+        ]
       interval: 10s
       timeout: 5s
       retries: 5

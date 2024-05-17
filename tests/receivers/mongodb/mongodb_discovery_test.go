@@ -33,7 +33,6 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/consumer/consumertest"
-	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"go.opentelemetry.io/collector/receiver/receivertest"
 )
@@ -48,9 +47,18 @@ const (
 	OtelEntityAttributesAttr = "otel.entity.attributes"
 )
 
-func expectedPLogs() plog.Logs {
-	plogs := plog.NewLogs()
-	return plogs
+func getDockerGID() (string, error) {
+	finfo, err := os.Stat("/var/run/docker.sock")
+	if err != nil {
+		return "", err
+	}
+	fsys := finfo.Sys()
+	stat, ok := fsys.(*syscall.Stat_t)
+	if !ok {
+		return "", fmt.Errorf("OS error occurred while trying to get GID ")
+	}
+	dockerGID := fmt.Sprintf("%d", stat.Gid)
+	return dockerGID, nil
 }
 
 func mongoDBAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFile string, logMessageToAssert string) (*otelContainer, error) {
@@ -67,16 +75,9 @@ func mongoDBAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFile st
 		require.NoError(t, receiver.Shutdown(context.Background()))
 	})
 
-	finfo, err := os.Stat("/var/run/docker.sock")
-	if err != nil {
-		return nil, err
-	}
-	fsys := finfo.Sys()
-	stat, ok := fsys.(*syscall.Stat_t)
-	if !ok {
-		return nil, fmt.Errorf("OS error occurred while trying to get GID ")
-	}
-	dockerGID := fmt.Sprintf("%d", stat.Gid)
+	dockerGID, err := getDockerGID()
+	require.NoError(t, err)
+
 	otelConfigPath, err := filepath.Abs(filepath.Join(".", "testdata", configFile))
 	if err != nil {
 		return nil, err
@@ -133,12 +134,13 @@ func mongoDBAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFile st
 			assert.Fail(tt, "No logs collected")
 			return
 		}
-		assert.NoError(tt, err)
+		countAtleastOneGoodLogAttr := 0
 		for i := 0; i < len(sink.AllLogs()); i++ {
 			plogs := sink.AllLogs()[i]
 			lr := plogs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
 			attrMap, ok := lr.Attributes().Get(OtelEntityAttributesAttr)
 			if ok {
+				countAtleastOneGoodLogAttr++
 				m := attrMap.Map()
 				discoveryMsg, ok := m.Get(MessageAttr)
 				if ok {
@@ -150,6 +152,7 @@ func mongoDBAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFile st
 				}
 			}
 		}
+		assert.True(t, countAtleastOneGoodLogAttr > 0)
 	}, 30*time.Second, 1*time.Second)
 
 	return &otelContainer{Container: container}, nil

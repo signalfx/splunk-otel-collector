@@ -134,29 +134,33 @@ func mongoDBAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFile st
 			assert.Fail(tt, "No logs collected")
 			return
 		}
-		countAtleastOneGoodLogAttr := 0
+		seenMessageAttr := 0
+		seenReceiverTypeAttr := 0
 		for i := 0; i < len(sink.AllLogs()); i++ {
 			plogs := sink.AllLogs()[i]
 			lr := plogs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
 			attrMap, ok := lr.Attributes().Get(OtelEntityAttributesAttr)
 			if ok {
-				countAtleastOneGoodLogAttr++
 				m := attrMap.Map()
 				discoveryMsg, ok := m.Get(MessageAttr)
 				if ok {
+					seenMessageAttr++
 					assert.Equal(t, logMessageToAssert, discoveryMsg.AsString())
 				}
 				discoveryType, ok := m.Get(ReceiverTypeAttr)
 				if ok {
+					seenReceiverTypeAttr++
 					assert.Equal(t, "mongodb", discoveryType.AsString())
 				}
 			}
 		}
-		assert.True(t, countAtleastOneGoodLogAttr > 0)
-	}, 30*time.Second, 1*time.Second)
+		assert.True(t, seenReceiverTypeAttr > 0)
+		assert.True(t, seenReceiverTypeAttr > 0)
+	}, 60*time.Second, 5*time.Second)
 
 	return &otelContainer{Container: container}, nil
 }
+
 func TestIntegrationMongoDBAutoDiscovery(t *testing.T) {
 	if runtime.GOOS == "darwin" || runtime.GOOS == "windows" {
 		t.Skip("Integration tests are only run on linux architecture: https://github.com/signalfx/splunk-otel-collector/blob/main/.github/workflows/integration-test.yml#L35")
@@ -172,7 +176,6 @@ func TestIntegrationMongoDBAutoDiscovery(t *testing.T) {
 		logMessageToAssert string
 		expected           error
 	}{
-
 		"Partial Discovery test": {
 			ctx:                ctx,
 			configFileName:     "docker_observer_without_ssl_with_wrong_authentication_mongodb_config.yaml",

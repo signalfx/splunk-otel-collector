@@ -1245,6 +1245,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthchecke
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension v0.100.0/go.mod h1:lTIwQdHUj47CK5aA1vFZbGcVg/DqE53UHSTFFumbHkc=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarderextension v0.100.0 h1:IbE5WcAdllr8cP7oeI5m2hBRg8NHujuxs0Z3v9QcJHc=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarderextension v0.100.0/go.mod h1:CBoBgeWqkkPoApKSPjtcSqO9i5RJwDtkyFGOQWtjfds=
+github.com/open-telemetry/opentelemetry-collector-contrib/extension/oauth2clientauthextension v0.100.0 h1:WVu12RRKhQaoJ1uKfhKL46Y+TnXkcTswwhoCpUiSxZo=
+github.com/open-telemetry/opentelemetry-collector-contrib/extension/oauth2clientauthextension v0.100.0/go.mod h1:xBURpfhDTCuzSIdn7FaCJuhgkwbRKngf+63BRYnhtTA=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer v0.100.0 h1:DFO/EsTjzyU+TafWYQ8bSvVIrwU07TopEQwygU90C9s=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer v0.100.0/go.mod h1:QQUgfXBq28KcvwxFwY4NPy4XA/theDwBqfssy/HSjLc=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/dockerobserver v0.100.0 h1:+gb1SZ+1QzgV0HDjRCdunWMFSJrNmyijjmbR5bELBBo=
@@ -1381,6 +1383,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/fluentforward
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/fluentforwardreceiver v0.100.0/go.mod h1:nBPd57zmsL5r1fih5wWdNIqOnoaQ3Wn0WJYeYhBFY8Q=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver v0.100.0 h1:IlVSe9yUWkCHH6eV36fD8ET9Z3c1smCp8xCGmESFlws=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver v0.100.0/go.mod h1:0PCWN0SSsRlWEyxdnK4I19GoyftmHfTp3hqQQp1FzLI=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/httpcheckreceiver v0.100.0 h1:XUKsKxpSuPxcnSOyO/emlc/HsRKrIKxl5X6qwZEkOLU=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/httpcheckreceiver v0.100.0/go.mod h1:LNo7KiS2kT4zLrvQUdjGZvgwRTCickeBV6j5sbv5GN8=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver v0.100.0 h1:+Lz9cVebf/n0MwBLNM7Xp/keSxEcU4pIyWwx6a046ZE=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver v0.100.0/go.mod h1:9/I5kva/fGRx9vfBja80hjxJpRrWFUBh4jtzztEbBxI=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver v0.100.0 h1:j4vy5Xu1t92Knic+6D/Q/umTYjeOPOC8OAGQLB+b/18=

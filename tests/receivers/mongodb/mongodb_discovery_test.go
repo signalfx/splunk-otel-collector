@@ -24,28 +24,60 @@ import (
 	"runtime"
 	"syscall"
 	"testing"
+	"time"
 
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/wait"
+	"go.opentelemetry.io/collector/component/componenttest"
+	"go.opentelemetry.io/collector/consumer/consumertest"
+	"go.opentelemetry.io/collector/receiver/otlpreceiver"
+	"go.opentelemetry.io/collector/receiver/receivertest"
 )
 
 type otelContainer struct {
 	testcontainers.Container
 }
 
-func mongoDBAutoDiscoveryHelper(ctx context.Context, configFile string, logMessageToAssert string) (*otelContainer, error) {
+const (
+	ReceiverTypeAttr         = "discovery.receiver.type"
+	MessageAttr              = "discovery.message"
+	OtelEntityAttributesAttr = "otel.entity.attributes"
+)
+
+func getDockerGID() (string, error) {
 	finfo, err := os.Stat("/var/run/docker.sock")
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	fsys := finfo.Sys()
 	stat, ok := fsys.(*syscall.Stat_t)
 	if !ok {
-		return nil, fmt.Errorf("OS error occurred while trying to get GID ")
+		return "", fmt.Errorf("OS error occurred while trying to get GID ")
 	}
 	dockerGID := fmt.Sprintf("%d", stat.Gid)
+	return dockerGID, nil
+}
+
+func mongoDBAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFile string, logMessageToAssert string) (*otelContainer, error) {
+	factory := otlpreceiver.NewFactory()
+	port := 16745
+	c := factory.CreateDefaultConfig().(*otlpreceiver.Config)
+	c.GRPC.NetAddr.Endpoint = fmt.Sprintf("localhost:%d", port)
+	endpoint := c.GRPC.NetAddr.Endpoint
+	sink := &consumertest.LogsSink{}
+	receiver, err := factory.CreateLogsReceiver(context.Background(), receivertest.NewNopCreateSettings(), c, sink)
+	require.NoError(t, err)
+	require.NoError(t, receiver.Start(context.Background(), componenttest.NewNopHost()))
+	t.Cleanup(func() {
+		require.NoError(t, receiver.Shutdown(context.Background()))
+	})
+
+	dockerGID, err := getDockerGID()
+	require.NoError(t, err)
+
 	otelConfigPath, err := filepath.Abs(filepath.Join(".", "testdata", configFile))
 	if err != nil {
 		return nil, err
@@ -67,9 +99,11 @@ func mongoDBAutoDiscoveryHelper(ctx context.Context, configFile string, logMessa
 			hc.GroupAdd = []string{dockerGID}
 		},
 		Env: map[string]string{
-			"SPLUNK_REALM":               "us2",
-			"SPLUNK_ACCESS_TOKEN":        "12345",
-			"SPLUNK_DISCOVERY_LOG_LEVEL": "debug",
+			"SPLUNK_REALM":                "us2",
+			"SPLUNK_ACCESS_TOKEN":         "12345",
+			"SPLUNK_DISCOVERY_LOG_LEVEL":  "info",
+			"OTLP_ENDPOINT":               endpoint,
+			"SPLUNK_OTEL_COLLECTOR_IMAGE": "otelcol:latest",
 		},
 		Entrypoint: []string{"/otelcol", "--config", "/home/otel-local-config.yaml"},
 		Files: []testcontainers.ContainerFile{
@@ -85,8 +119,6 @@ func mongoDBAutoDiscoveryHelper(ctx context.Context, configFile string, logMessa
 				FileMode:          0o777,
 			},
 		},
-		NetworkMode: "host",
-		WaitingFor:  wait.ForLog(logMessageToAssert).AsRegexp(),
 	}
 
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
@@ -97,6 +129,35 @@ func mongoDBAutoDiscoveryHelper(ctx context.Context, configFile string, logMessa
 		return nil, err
 	}
 
+	assert.EventuallyWithT(t, func(tt *assert.CollectT) {
+		if len(sink.AllLogs()) == 0 {
+			assert.Fail(tt, "No logs collected")
+			return
+		}
+		seenMessageAttr := 0
+		seenReceiverTypeAttr := 0
+		for i := 0; i < len(sink.AllLogs()); i++ {
+			plogs := sink.AllLogs()[i]
+			lr := plogs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
+			attrMap, ok := lr.Attributes().Get(OtelEntityAttributesAttr)
+			if ok {
+				m := attrMap.Map()
+				discoveryMsg, ok := m.Get(MessageAttr)
+				if ok {
+					seenMessageAttr++
+					assert.Equal(t, logMessageToAssert, discoveryMsg.AsString())
+				}
+				discoveryType, ok := m.Get(ReceiverTypeAttr)
+				if ok {
+					seenReceiverTypeAttr++
+					assert.Equal(t, "mongodb", discoveryType.AsString())
+				}
+			}
+		}
+		assert.True(t, seenReceiverTypeAttr > 0)
+		assert.True(t, seenReceiverTypeAttr > 0)
+	}, 60*time.Second, 5*time.Second)
+
 	return &otelContainer{Container: container}, nil
 }
 
@@ -105,9 +166,9 @@ func TestIntegrationMongoDBAutoDiscovery(t *testing.T) {
 		t.Skip("Integration tests are only run on linux architecture: https://github.com/signalfx/splunk-otel-collector/blob/main/.github/workflows/integration-test.yml#L35")
 	}
 
-	ctx := context.Background()
 	successfulDiscoveryMsg := `mongodb receiver is working!`
-	partialDiscoveryMsg := `Please ensure your user credentials are correctly specified with`
+	partialDiscoveryMsg := "Please ensure your user credentials are correctly specified with `--set {{ configProperty \"username\" \"<username>\" }}` and `--set {{ configProperty \"password\" \"<password>\" }}` or `{{ configPropertyEnvVar \"username\" \"<username>\" }}` and `{{ configPropertyEnvVar \"password\" \"<password>\" }}` environment variables."
+	ctx := context.Background()
 
 	tests := map[string]struct {
 		ctx                context.Context
@@ -115,34 +176,32 @@ func TestIntegrationMongoDBAutoDiscovery(t *testing.T) {
 		logMessageToAssert string
 		expected           error
 	}{
-		"Fully Successful Discovery test": {
-			ctx:                ctx,
-			configFileName:     "docker_observer_without_ssl_mongodb_config.yaml",
-			logMessageToAssert: successfulDiscoveryMsg,
-			expected:           nil,
-		},
 		"Partial Discovery test": {
 			ctx:                ctx,
 			configFileName:     "docker_observer_without_ssl_with_wrong_authentication_mongodb_config.yaml",
 			logMessageToAssert: partialDiscoveryMsg,
 			expected:           nil,
 		},
+		"Successful Discovery test": {
+			ctx:                ctx,
+			configFileName:     "docker_observer_without_ssl_mongodb_config.yaml",
+			logMessageToAssert: successfulDiscoveryMsg,
+			expected:           nil,
+		},
 	}
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			otelC, err := mongoDBAutoDiscoveryHelper(test.ctx, test.configFileName, test.logMessageToAssert)
+			container, err := mongoDBAutoDiscoveryHelper(t, test.ctx, test.configFileName, test.logMessageToAssert)
 
 			if err != test.expected {
 				t.Fatalf(" Expected %v, got %v", test.expected, err)
 			}
-			// Clean up the container after the test is complete
 			t.Cleanup(func() {
-				if err := otelC.Terminate(ctx); err != nil {
+				if err := container.Terminate(ctx); err != nil {
 					t.Fatalf("failed to terminate container: %s", err)
 				}
 			})
 		})
 	}
-
 }

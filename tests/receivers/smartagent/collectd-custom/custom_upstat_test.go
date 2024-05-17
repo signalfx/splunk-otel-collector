@@ -31,9 +31,8 @@ import (
 func TestCustomUpstatIntegration(t *testing.T) {
 	path, err := filepath.Abs(path.Join(".", "testdata", "upstat"))
 	require.NoError(t, err)
-	testutils.CheckGoldenFileWithCollectorOptions(t, "custom_upstat.yaml", "custom_upstat_expected.yaml", func(container testutils.Collector) testutils.Collector {
-		return container.WithMount(path, "/var/collectd-python/upstat")
-	},
+
+	testutils.CheckGoldenFileWithMount(t, "custom_upstat.yaml", "custom_upstat_expected.yaml", path, "/var/collectd-python/upstat",
 		pmetrictest.IgnoreMetricAttributeValue("host"),
 		pmetrictest.IgnoreTimestamp())
 }

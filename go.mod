@@ -18,6 +18,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/countconnector v0.100.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/routingconnector v0.100.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector v0.100.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/alibabacloudlogserviceexporter v0.100.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awss3exporter v0.100.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.100.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.100.0
@@ -169,6 +170,7 @@ require (
 	github.com/Microsoft/hcsshim v0.11.4 // indirect
 	github.com/ProtonMail/go-crypto v1.0.0 // indirect
 	github.com/aliyun/alibaba-cloud-sdk-go v1.62.690 // indirect
+	github.com/aliyun/aliyun-log-go-sdk v0.1.72 // indirect
 	github.com/apache/arrow/go/v15 v15.0.0 // indirect
 	github.com/apache/pulsar-client-go v0.11.0 // indirect
 	github.com/aws/aws-sdk-go-v2/config v1.27.11 // indirect
@@ -182,6 +184,7 @@ require (
 	github.com/bits-and-blooms/bitset v1.4.0 // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.6.1 // indirect
+	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/checkpoint-restore/go-criu/v5 v5.3.0 // indirect
 	github.com/cilium/ebpf v0.11.0 // indirect
 	github.com/circonus-labs/circonusllhist v0.1.5 // indirect
@@ -198,6 +201,7 @@ require (
 	github.com/duosecurity/duo_api_golang v0.0.0-20240205144049-bb361ad4ae1c // indirect
 	github.com/euank/go-kmsg-parser v2.0.0+incompatible // indirect
 	github.com/go-jose/go-jose/v4 v4.0.1 // indirect
+	github.com/go-kit/kit v0.13.0 // indirect
 	github.com/go-openapi/validate v0.23.2 // indirect
 	github.com/go-viper/mapstructure/v2 v2.0.0-alpha.1 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect

@@ -3,9 +3,9 @@ receivers:
     type: collectd/custom
     template: |
       LoadPlugin "python"
-      TypesDB "${PLUGIN_FOLDER}/upstat_types.db"
+      TypesDB "/var/collectd-python/upstat/upstat_types.db"
       <Plugin python>
-        ModulePath "${PLUGIN_FOLDER}"
+        ModulePath "/var/collectd-python/upstat"
         Import "collectd-upstat"
         <Module "collectd-upstat">
         </Module>

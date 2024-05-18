@@ -60,6 +60,7 @@ type Container struct {
 	Binds                []string
 	WaitingFor           []wait.Strategy
 	Mounts               []testcontainers.ContainerMount
+	Files                []testcontainers.ContainerFile
 	HostConfigModifiers  []func(*dockerContainer.HostConfig)
 	Privileged           bool
 }
@@ -153,6 +154,11 @@ func (container Container) WithExposedPorts(ports ...string) Container {
 
 func (container Container) WithMount(mount testcontainers.ContainerMount) Container {
 	container.Mounts = append(container.Mounts, mount)
+	return container
+}
+
+func (container Container) WithFile(file testcontainers.ContainerFile) Container {
+	container.Files = append(container.Files, file)
 	return container
 }
 
@@ -251,6 +257,7 @@ func (container Container) Build() *Container {
 		Entrypoint:         container.Entrypoint,
 		Env:                container.Env,
 		ExposedPorts:       container.ExposedPorts,
+		Files:              container.Files,
 		Name:               container.ContainerName,
 		Networks:           container.ContainerNetworks,
 		Mounts:             container.Mounts,

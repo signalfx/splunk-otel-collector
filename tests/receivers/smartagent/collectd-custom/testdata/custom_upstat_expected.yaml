@@ -1,0 +1,26 @@
+resourceMetrics:
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - gauge:
+              dataPoints:
+                - asInt: "1"
+                  attributes:
+                    - key: dsname
+                      value:
+                        stringValue: value
+                    - key: host
+                      value:
+                        stringValue: ef7bda3969ca
+                    - key: plugin
+                      value:
+                        stringValue: upstat
+                    - key: plugin_instance
+                      value:
+                        stringValue: upstat
+                    - key: system.type
+                      value:
+                        stringValue: custom
+                  timeUnixNano: "1000000"
+            name: up
+        scope: {}

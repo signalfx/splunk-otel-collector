@@ -32,7 +32,10 @@ func TestCustomUpstatIntegration(t *testing.T) {
 	path, err := filepath.Abs(path.Join(".", "testdata", "upstat"))
 	require.NoError(t, err)
 
-	testutils.CheckGoldenFileWithMount(t, "custom_upstat.yaml", "custom_upstat_expected.yaml", path, "/var/collectd-python/upstat",
+	testutils.CheckGoldenFileWithMount(t, "custom_upstat.yaml", "custom_upstat_expected.yaml", [][]string{
+		{filepath.Join(path, "collectd-upstat.py"), "/var/collectd-python/upstat/collectd-upstat.py"},
+		{filepath.Join(path, "upstat_types.db"), "/var/collectd-python/upstat/upstat_types.db"},
+	},
 		pmetrictest.IgnoreMetricAttributeValue("host"),
 		pmetrictest.IgnoreTimestamp())
 }

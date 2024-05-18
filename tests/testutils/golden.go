@@ -27,6 +27,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/testcontainers/testcontainers-go"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
@@ -77,7 +78,7 @@ func CheckGoldenFile(t *testing.T, configFile string, expectedFilePath string, o
 	}, 30*time.Second, 1*time.Second)
 }
 
-func CheckGoldenFileWithMount(t *testing.T, configFile string, expectedFilePath string, hostPath string, mountPoint string, options ...pmetrictest.CompareMetricsOption) {
+func CheckGoldenFileWithMount(t *testing.T, configFile string, expectedFilePath string, files [][]string, options ...pmetrictest.CompareMetricsOption) {
 	f := otlpreceiver.NewFactory()
 	port := GetAvailablePort(t)
 	c := f.CreateDefaultConfig().(*otlpreceiver.Config)
@@ -99,9 +100,14 @@ func CheckGoldenFileWithMount(t *testing.T, configFile string, expectedFilePath 
 		WithExposedPorts("55679:55679", "55554:55554"). // This is required for tests that read the zpages or the config.
 		WithConfigPath(filepath.Join("testdata", configFile)).
 		WithLogger(logger).
-		WithEnv(map[string]string{"OTLP_ENDPOINT": fmt.Sprintf("%s:%d", dockerHost, port)}).
-		WithMount(hostPath, mountPoint)
-	cc.(*CollectorContainer).Container.WithNetworkMode("host")
+		WithEnv(map[string]string{"OTLP_ENDPOINT": fmt.Sprintf("%s:%d", dockerHost, port)})
+	for _, kv := range files {
+		cc.(*CollectorContainer).Container = cc.(*CollectorContainer).Container.WithFile(testcontainers.ContainerFile{
+			HostFilePath:      kv[0],
+			ContainerFilePath: kv[1],
+			FileMode:          0644,
+		})
+	}
 	p, err := cc.Build()
 	require.NoError(t, err)
 	require.NoError(t, p.Start())

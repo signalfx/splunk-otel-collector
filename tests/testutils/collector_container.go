@@ -28,7 +28,6 @@ import (
 
 	dockerContainer "github.com/docker/docker/api/types/container"
 	dockerMount "github.com/docker/docker/api/types/mount"
-	"github.com/docker/docker/api/types/network"
 	docker "github.com/docker/docker/client"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
@@ -158,9 +157,6 @@ func (collector CollectorContainer) Build() (Collector, error) {
 		collector.Container = collector.Container.WithHostConfigModifier(func(hostConfig *dockerContainer.HostConfig) {
 			for path, mountPoint := range collector.Mounts {
 				hostConfig.Mounts = append(hostConfig.Mounts, dockerMount.Mount{Source: path, Target: mountPoint, Type: dockerMount.TypeBind})
-			}
-			if collector.Container.ContainerNetworkMode == "" {
-				hostConfig.NetworkMode = network.NetworkHost
 			}
 		})
 	}

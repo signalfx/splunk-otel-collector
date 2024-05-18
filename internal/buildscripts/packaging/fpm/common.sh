@@ -71,7 +71,7 @@ download_jmx_metric_gatherer() {
     local version="$1"
     local buildroot="$2"
 
-    JMX_METRIC_GATHERER_RELEASE_DL_URL="https://github.com/open-telemetry/opentelemetry-java-contrib/releases/download/v$version/opentelemetry-jmx-metrics.jar"
+    JMX_METRIC_GATHERER_RELEASE_DL_URL="https://github.com/open-telemetry/opentelemetry-java-contrib/releases/download/$version/opentelemetry-jmx-metrics.jar"
     mkdir -p "$buildroot/opt"
 
     echo "Downloading ${JMX_METRIC_GATHERER_RELEASE_DL_URL}"

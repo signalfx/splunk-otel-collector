@@ -85,7 +85,9 @@ func (collector CollectorContainer) WithArgs(args ...string) Collector {
 
 // empty by default
 func (collector CollectorContainer) WithEnv(env map[string]string) Collector {
-	collector.Container = collector.Container.WithEnv(env)
+	for k, v := range env {
+		collector.Container.Env[k] = v
+	}
 	return &collector
 }
 

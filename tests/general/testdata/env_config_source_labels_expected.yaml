@@ -1,0 +1,416 @@
+resourceMetrics:
+  - resource: {}
+    schemaUrl: https://opentelemetry.io/schemas/1.9.0
+    scopeMetrics:
+      - metrics:
+          - description: Bytes of memory in use.
+            name: system.memory.usage
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "222658560"
+                  attributes:
+                    - key: decuple-dollar
+                      value:
+                        stringValue: $$$$an-envvar-value-suffix
+                    - key: decuple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$$$$an-envvar-value
+                    - key: double-dollar
+                      value:
+                        stringValue: an-envvar-value-suffix
+                    - key: double-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-an-envvar-value
+                    - key: nonuple-dollar
+                      value:
+                        stringValue: $$$$an-envvar-value-suffix
+                    - key: nonuple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$$$$an-envvar-value
+                    - key: octuple-dollar
+                      value:
+                        stringValue: $$$an-envvar-value-suffix
+                    - key: octuple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$$$an-envvar-value
+                    - key: quadruple-dollar
+                      value:
+                        stringValue: $an-envvar-value-suffix
+                    - key: quadruple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$an-envvar-value
+                    - key: quintuple-dollar
+                      value:
+                        stringValue: $$an-envvar-value-suffix
+                    - key: quintuple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$$an-envvar-value
+                    - key: septuple-dollar
+                      value:
+                        stringValue: $$$an-envvar-value-suffix
+                    - key: septuple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$$$an-envvar-value
+                    - key: sextuple-dollar
+                      value:
+                        stringValue: $$an-envvar-value-suffix
+                    - key: sextuple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$$an-envvar-value
+                    - key: single-dollar
+                      value:
+                        stringValue: an-envvar-value-suffix
+                    - key: single-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-an-envvar-value
+                    - key: state
+                      value:
+                        stringValue: buffered
+                    - key: triple-dollar
+                      value:
+                        stringValue: $an-envvar-value-suffix
+                    - key: triple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$an-envvar-value
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+                - asInt: "4354535424"
+                  attributes:
+                    - key: decuple-dollar
+                      value:
+                        stringValue: $$$$an-envvar-value-suffix
+                    - key: decuple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$$$$an-envvar-value
+                    - key: double-dollar
+                      value:
+                        stringValue: an-envvar-value-suffix
+                    - key: double-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-an-envvar-value
+                    - key: nonuple-dollar
+                      value:
+                        stringValue: $$$$an-envvar-value-suffix
+                    - key: nonuple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$$$$an-envvar-value
+                    - key: octuple-dollar
+                      value:
+                        stringValue: $$$an-envvar-value-suffix
+                    - key: octuple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$$$an-envvar-value
+                    - key: quadruple-dollar
+                      value:
+                        stringValue: $an-envvar-value-suffix
+                    - key: quadruple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$an-envvar-value
+                    - key: quintuple-dollar
+                      value:
+                        stringValue: $$an-envvar-value-suffix
+                    - key: quintuple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$$an-envvar-value
+                    - key: septuple-dollar
+                      value:
+                        stringValue: $$$an-envvar-value-suffix
+                    - key: septuple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$$$an-envvar-value
+                    - key: sextuple-dollar
+                      value:
+                        stringValue: $$an-envvar-value-suffix
+                    - key: sextuple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$$an-envvar-value
+                    - key: single-dollar
+                      value:
+                        stringValue: an-envvar-value-suffix
+                    - key: single-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-an-envvar-value
+                    - key: state
+                      value:
+                        stringValue: cached
+                    - key: triple-dollar
+                      value:
+                        stringValue: $an-envvar-value-suffix
+                    - key: triple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$an-envvar-value
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+                - asInt: "3207143424"
+                  attributes:
+                    - key: decuple-dollar
+                      value:
+                        stringValue: $$$$an-envvar-value-suffix
+                    - key: decuple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$$$$an-envvar-value
+                    - key: double-dollar
+                      value:
+                        stringValue: an-envvar-value-suffix
+                    - key: double-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-an-envvar-value
+                    - key: nonuple-dollar
+                      value:
+                        stringValue: $$$$an-envvar-value-suffix
+                    - key: nonuple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$$$$an-envvar-value
+                    - key: octuple-dollar
+                      value:
+                        stringValue: $$$an-envvar-value-suffix
+                    - key: octuple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$$$an-envvar-value
+                    - key: quadruple-dollar
+                      value:
+                        stringValue: $an-envvar-value-suffix
+                    - key: quadruple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$an-envvar-value
+                    - key: quintuple-dollar
+                      value:
+                        stringValue: $$an-envvar-value-suffix
+                    - key: quintuple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$$an-envvar-value
+                    - key: septuple-dollar
+                      value:
+                        stringValue: $$$an-envvar-value-suffix
+                    - key: septuple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$$$an-envvar-value
+                    - key: sextuple-dollar
+                      value:
+                        stringValue: $$an-envvar-value-suffix
+                    - key: sextuple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$$an-envvar-value
+                    - key: single-dollar
+                      value:
+                        stringValue: an-envvar-value-suffix
+                    - key: single-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-an-envvar-value
+                    - key: state
+                      value:
+                        stringValue: free
+                    - key: triple-dollar
+                      value:
+                        stringValue: $an-envvar-value-suffix
+                    - key: triple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$an-envvar-value
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+                - asInt: "250486784"
+                  attributes:
+                    - key: decuple-dollar
+                      value:
+                        stringValue: $$$$an-envvar-value-suffix
+                    - key: decuple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$$$$an-envvar-value
+                    - key: double-dollar
+                      value:
+                        stringValue: an-envvar-value-suffix
+                    - key: double-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-an-envvar-value
+                    - key: nonuple-dollar
+                      value:
+                        stringValue: $$$$an-envvar-value-suffix
+                    - key: nonuple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$$$$an-envvar-value
+                    - key: octuple-dollar
+                      value:
+                        stringValue: $$$an-envvar-value-suffix
+                    - key: octuple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$$$an-envvar-value
+                    - key: quadruple-dollar
+                      value:
+                        stringValue: $an-envvar-value-suffix
+                    - key: quadruple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$an-envvar-value
+                    - key: quintuple-dollar
+                      value:
+                        stringValue: $$an-envvar-value-suffix
+                    - key: quintuple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$$an-envvar-value
+                    - key: septuple-dollar
+                      value:
+                        stringValue: $$$an-envvar-value-suffix
+                    - key: septuple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$$$an-envvar-value
+                    - key: sextuple-dollar
+                      value:
+                        stringValue: $$an-envvar-value-suffix
+                    - key: sextuple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$$an-envvar-value
+                    - key: single-dollar
+                      value:
+                        stringValue: an-envvar-value-suffix
+                    - key: single-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-an-envvar-value
+                    - key: state
+                      value:
+                        stringValue: slab_reclaimable
+                    - key: triple-dollar
+                      value:
+                        stringValue: $an-envvar-value-suffix
+                    - key: triple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$an-envvar-value
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+                - asInt: "70893568"
+                  attributes:
+                    - key: decuple-dollar
+                      value:
+                        stringValue: $$$$an-envvar-value-suffix
+                    - key: decuple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$$$$an-envvar-value
+                    - key: double-dollar
+                      value:
+                        stringValue: an-envvar-value-suffix
+                    - key: double-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-an-envvar-value
+                    - key: nonuple-dollar
+                      value:
+                        stringValue: $$$$an-envvar-value-suffix
+                    - key: nonuple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$$$$an-envvar-value
+                    - key: octuple-dollar
+                      value:
+                        stringValue: $$$an-envvar-value-suffix
+                    - key: octuple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$$$an-envvar-value
+                    - key: quadruple-dollar
+                      value:
+                        stringValue: $an-envvar-value-suffix
+                    - key: quadruple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$an-envvar-value
+                    - key: quintuple-dollar
+                      value:
+                        stringValue: $$an-envvar-value-suffix
+                    - key: quintuple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$$an-envvar-value
+                    - key: septuple-dollar
+                      value:
+                        stringValue: $$$an-envvar-value-suffix
+                    - key: septuple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$$$an-envvar-value
+                    - key: sextuple-dollar
+                      value:
+                        stringValue: $$an-envvar-value-suffix
+                    - key: sextuple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$$an-envvar-value
+                    - key: single-dollar
+                      value:
+                        stringValue: an-envvar-value-suffix
+                    - key: single-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-an-envvar-value
+                    - key: state
+                      value:
+                        stringValue: slab_unreclaimable
+                    - key: triple-dollar
+                      value:
+                        stringValue: $an-envvar-value-suffix
+                    - key: triple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$an-envvar-value
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+                - asInt: "4749119488"
+                  attributes:
+                    - key: decuple-dollar
+                      value:
+                        stringValue: $$$$an-envvar-value-suffix
+                    - key: decuple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$$$$an-envvar-value
+                    - key: double-dollar
+                      value:
+                        stringValue: an-envvar-value-suffix
+                    - key: double-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-an-envvar-value
+                    - key: nonuple-dollar
+                      value:
+                        stringValue: $$$$an-envvar-value-suffix
+                    - key: nonuple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$$$$an-envvar-value
+                    - key: octuple-dollar
+                      value:
+                        stringValue: $$$an-envvar-value-suffix
+                    - key: octuple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$$$an-envvar-value
+                    - key: quadruple-dollar
+                      value:
+                        stringValue: $an-envvar-value-suffix
+                    - key: quadruple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$an-envvar-value
+                    - key: quintuple-dollar
+                      value:
+                        stringValue: $$an-envvar-value-suffix
+                    - key: quintuple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$$an-envvar-value
+                    - key: septuple-dollar
+                      value:
+                        stringValue: $$$an-envvar-value-suffix
+                    - key: septuple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$$$an-envvar-value
+                    - key: sextuple-dollar
+                      value:
+                        stringValue: $$an-envvar-value-suffix
+                    - key: sextuple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$$an-envvar-value
+                    - key: single-dollar
+                      value:
+                        stringValue: an-envvar-value-suffix
+                    - key: single-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-an-envvar-value
+                    - key: state
+                      value:
+                        stringValue: used
+                    - key: triple-dollar
+                      value:
+                        stringValue: $an-envvar-value-suffix
+                    - key: triple-dollar-no-curly-braces
+                      value:
+                        stringValue: prefix-$an-envvar-value
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            unit: By
+        scope:
+          name: otelcol/hostmetricsreceiver/memory
+          version: v0.97.0

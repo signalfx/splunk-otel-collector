@@ -22,7 +22,6 @@ import (
 	"regexp"
 	"runtime"
 	"runtime/debug"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -91,7 +90,6 @@ type Settings struct {
 	discoveryPropertiesFile *stringPointerFlagValue
 	setProperties           []string
 	colCoreArgs             []string
-	supportedURISchemes     []string
 	discoveryProperties     []string
 	versionFlag             bool
 	noConvertConfig         bool
@@ -190,11 +188,6 @@ func loadConfMapProviders(s *Settings) error {
 		envProvider.Scheme():  envProvider,
 		fileProvider.Scheme(): fileProvider,
 	}
-
-	for p := range s.confMapProviders {
-		s.supportedURISchemes = append(s.supportedURISchemes, p)
-	}
-	sort.Strings(s.supportedURISchemes)
 
 	// though supported, these schemes shouldn't be advertised for use w/ --config
 	s.confMapProviders[s.discovery.PropertyScheme()] = s.discovery.PropertyProvider()
@@ -550,10 +543,6 @@ func checkInputConfigs(settings *Settings) error {
 	for _, filePath := range settings.configPaths.value {
 		scheme, location, isURI := parseURI(filePath)
 		if isURI {
-			if _, ok := settings.confMapProviders[scheme]; !ok {
-				log.Printf("%q is an unsupported config provider scheme for this Collector distribution (not in %v).", scheme, settings.supportedURISchemes)
-				continue
-			}
 			if scheme != fileProvider.Scheme() {
 				continue
 			}

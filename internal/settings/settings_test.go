@@ -575,27 +575,6 @@ func TestConfigArgEnvURIForm(t *testing.T) {
 
 }
 
-func TestConfigArgUnsupportedURI(t *testing.T) {
-	t.Cleanup(clearEnv(t))
-
-	oldWriter := log.Default().Writer()
-	defer func() {
-		log.Default().SetOutput(oldWriter)
-	}()
-
-	logs := new(bytes.Buffer)
-	log.Default().SetOutput(logs)
-
-	settings, err := New([]string{"--config", "invalid:invalid"})
-	// though invalid, we defer failing to collector service
-	require.NoError(t, err)
-	require.NotNil(t, settings)
-	require.Equal(t, []string{"invalid:invalid"}, settings.configPaths.value)
-	require.Equal(t, settings.configPaths.value, settings.ResolverURIs())
-
-	require.Contains(t, logs.String(), `"invalid" is an unsupported config provider scheme for this Collector distribution (not in [env file]).`)
-}
-
 func TestCheckRuntimeParams_MemTotal(t *testing.T) {
 	t.Cleanup(setRequiredEnvVars(t))
 	require.NoError(t, os.Setenv(ConfigEnvVar, localGatewayConfig))

@@ -75,7 +75,7 @@ func TestDisableExcessiveInternalMetrics(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, cfgMap)
 
-			err = DisableExcessiveInternalMetrics{}.Convert(context.Background(), cfgMap)
+			err = DisableExcessiveInternalMetrics(context.Background(), cfgMap)
 			require.NoError(t, err)
 
 			assert.Equal(t, expectedCfgMap, cfgMap)

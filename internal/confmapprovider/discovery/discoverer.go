@@ -58,19 +58,13 @@ const (
 	logLevelEnvVar = "SPLUNK_DISCOVERY_LOG_LEVEL"
 )
 
-var (
-	yamlProvider = yamlprovider.NewFactory().Create(confmap.ProviderSettings{})
-	envProvider  = envprovider.NewFactory().Create(confmap.ProviderSettings{})
-)
-
 // discoverer provides the mechanism for a "preflight" collector service
 // that will stand up the observers and discovery receivers based on the .discovery.yaml
 // contents of the config dir, acting as a log consumer to determine which
 // of the underlying receivers were successfully discovered by the
 // discovery receiver from its emitted log records.
 type discoverer struct {
-	factories       otelcol.Factories
-	expandConverter confmap.Converter
+	factories otelcol.Factories
 	// receiverID -> observerID -> config
 	unexpandedReceiverEntries map[component.ID]map[component.ID]map[string]any
 	extensions                map[component.ID]otelcolextension.Extension
@@ -114,7 +108,6 @@ func newDiscoverer(logger *zap.Logger) (*discoverer, error) {
 		configs:                   map[string]*Config{},
 		duration:                  duration,
 		mu:                        sync.Mutex{},
-		expandConverter:           expandconverter.NewFactory().Create(confmap.ConverterSettings{}),
 		discoveredReceivers:       map[component.ID]discovery.StatusType{},
 		unexpandedReceiverEntries: map[component.ID]map[component.ID]map[string]any{},
 		discoveredConfig:          map[component.ID]map[string]any{},
@@ -125,19 +118,15 @@ func newDiscoverer(logger *zap.Logger) (*discoverer, error) {
 }
 
 func (d *discoverer) resolveConfig(discoveryReceiverRaw map[string]any) (*confmap.Conf, error) {
-	providers := map[string]confmap.Provider{
-		"yaml": yamlProvider,
-		"env":  envProvider,
-	}
 	out, err := yaml.Marshal(discoveryReceiverRaw)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal discovery receiver config for uri: %w", err)
 	}
 	uris := []string{fmt.Sprintf("yaml:%s", out)}
 	resolver, err := confmap.NewResolver(confmap.ResolverSettings{
-		URIs:       uris,
-		Providers:  providers,
-		Converters: []confmap.Converter{d.expandConverter},
+		URIs:               uris,
+		ProviderFactories:  []confmap.ProviderFactory{yamlprovider.NewFactory(), envprovider.NewFactory()},
+		ConverterFactories: []confmap.ConverterFactory{expandconverter.NewFactory()},
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create a resolver from the given uris. %w", err)
@@ -407,7 +396,8 @@ func (d *discoverer) createObserver(observerID component.ID, cfg *Config) (otelc
 		return nil, nil
 	}
 
-	if err = d.expandConverter.Convert(context.Background(), observerDiscoveryConf); err != nil {
+	expandConverter := expandconverter.NewFactory().Create(confmap.ConverterSettings{})
+	if err = expandConverter.Convert(context.Background(), observerDiscoveryConf); err != nil {
 		return nil, fmt.Errorf("error converting environment variables in %q config: %w", observerID, err)
 	}
 

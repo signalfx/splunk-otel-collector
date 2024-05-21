@@ -62,6 +62,8 @@ const (
 	DefaultListenInterface       = "0.0.0.0"
 	DefaultAgentConfigLinux      = "/etc/otel/collector/agent_config.yaml"
 	featureGates                 = "feature-gates"
+
+	fileProviderScheme = "file"
 )
 
 var DefaultAgentConfigWindows = func() string {
@@ -74,28 +76,23 @@ var DefaultAgentConfigWindows = func() string {
 	return filepath.Clean(path)
 }()
 
-var (
-	envProvider  = envprovider.NewFactory().Create(confmap.ProviderSettings{})
-	fileProvider = fileprovider.NewFactory().Create(confmap.ProviderSettings{})
-
-	defaultFeatureGates = []string{}
-)
+var defaultFeatureGates = []string{}
 
 type Settings struct {
-	discovery               discovery.Provider
-	configPaths             *stringArrayFlagValue
-	setOptionArguments      *stringArrayFlagValue
-	configDir               *stringPointerFlagValue
-	confMapProviders        map[string]confmap.Provider
-	discoveryPropertiesFile *stringPointerFlagValue
-	setProperties           []string
-	colCoreArgs             []string
-	discoveryProperties     []string
-	versionFlag             bool
-	noConvertConfig         bool
-	configD                 bool
-	discoveryMode           bool
-	dryRun                  bool
+	discovery                *discovery.Provider
+	configPaths              *stringArrayFlagValue
+	setOptionArguments       *stringArrayFlagValue
+	configDir                *stringPointerFlagValue
+	confMapProviderFactories []confmap.ProviderFactory
+	discoveryPropertiesFile  *stringPointerFlagValue
+	setProperties            []string
+	colCoreArgs              []string
+	discoveryProperties      []string
+	versionFlag              bool
+	noConvertConfig          bool
+	configD                  bool
+	discoveryMode            bool
+	dryRun                   bool
 }
 
 func New(args []string) (*Settings, error) {
@@ -173,9 +170,9 @@ func getConfigDir(f *Settings) string {
 	return configDir
 }
 
-// ConfMapProviders returns the confmap.Providers by their scheme for the collector core service.
-func (s *Settings) ConfMapProviders() map[string]confmap.Provider {
-	return s.confMapProviders
+// ConfMapProviderFactories returns list of confmap.ProviderFactory for the collector core service.
+func (s *Settings) ConfMapProviderFactories() []confmap.ProviderFactory {
+	return s.confMapProviderFactories
 }
 
 func loadConfMapProviders(s *Settings) error {
@@ -184,41 +181,42 @@ func loadConfMapProviders(s *Settings) error {
 		return fmt.Errorf("failed to create discovery provider: %w", err)
 	}
 
-	s.confMapProviders = map[string]confmap.Provider{
-		envProvider.Scheme():  envProvider,
-		fileProvider.Scheme(): fileProvider,
-	}
+	s.confMapProviderFactories = []confmap.ProviderFactory{
+		// Upstream providers
+		envprovider.NewFactory(),
+		fileprovider.NewFactory(),
 
-	// though supported, these schemes shouldn't be advertised for use w/ --config
-	s.confMapProviders[s.discovery.PropertyScheme()] = s.discovery.PropertyProvider()
-	s.confMapProviders[s.discovery.ConfigDScheme()] = s.discovery.ConfigDProvider()
-	s.confMapProviders[s.discovery.DiscoveryModeScheme()] = s.discovery.DiscoveryModeProvider()
-	s.confMapProviders[s.discovery.PropertiesFileScheme()] = s.discovery.PropertiesFileProvider()
+		// Custom providers
+		s.discovery.PropertyProviderFactory(),
+		s.discovery.ConfigDProviderFactory(),
+		s.discovery.DiscoveryModeProviderFactory(),
+		s.discovery.PropertiesFileProviderFactory(),
+	}
 	return nil
 }
 
-// ConfMapConverters returns confmap.Converters for the collector core service.
-func (s *Settings) ConfMapConverters() []confmap.Converter {
-	confMapConverters := []confmap.Converter{
-		configconverter.NewOverwritePropertiesConverter(s.setProperties),
-		configconverter.Discovery{},
+// ConfMapConverterFactories returns confmap.Converters for the collector core service.
+func (s *Settings) ConfMapConverterFactories() []confmap.ConverterFactory {
+	confMapConverterFactories := []confmap.ConverterFactory{
+		configconverter.ConverterFactoryFromConverter(configconverter.NewOverwritePropertiesConverter(s.setProperties)),
+		configconverter.ConverterFactoryFromFunc(configconverter.SetupDiscovery),
 	}
 	if !s.noConvertConfig {
-		confMapConverters = append(
-			confMapConverters,
-			configconverter.RemoveBallastKey{},
-			configconverter.RemoveMemoryBallastKey{},
-			configconverter.MoveOTLPInsecureKey{},
-			configconverter.MoveHecTLS{},
-			configconverter.RenameK8sTagger{},
-			configconverter.NormalizeGcp{},
-			configconverter.LogLevelToVerbosity{},
-			configconverter.DisableKubeletUtilizationMetrics{},
-			configconverter.DisableExcessiveInternalMetrics{},
-			configconverter.AddOTLPHistogramAttr{},
+		confMapConverterFactories = append(
+			confMapConverterFactories,
+			configconverter.ConverterFactoryFromFunc(configconverter.RemoveBallastKey),
+			configconverter.ConverterFactoryFromFunc(configconverter.RemoveMemoryBallastKey),
+			configconverter.ConverterFactoryFromFunc(configconverter.MoveOTLPInsecureKey),
+			configconverter.ConverterFactoryFromFunc(configconverter.MoveHecTLS),
+			configconverter.ConverterFactoryFromFunc(configconverter.RenameK8sTagger),
+			configconverter.ConverterFactoryFromFunc(configconverter.NormalizeGcp),
+			configconverter.ConverterFactoryFromFunc(configconverter.LogLevelToVerbosity),
+			configconverter.ConverterFactoryFromFunc(configconverter.DisableKubeletUtilizationMetrics),
+			configconverter.ConverterFactoryFromFunc(configconverter.DisableExcessiveInternalMetrics),
+			configconverter.ConverterFactoryFromFunc(configconverter.AddOTLPHistogramAttr),
 		)
 	}
-	return confMapConverters
+	return confMapConverterFactories
 }
 
 // ColCoreArgs returns list of arguments to be passed to the collector core service.
@@ -543,7 +541,7 @@ func checkInputConfigs(settings *Settings) error {
 	for _, filePath := range settings.configPaths.value {
 		scheme, location, isURI := parseURI(filePath)
 		if isURI {
-			if scheme != fileProvider.Scheme() {
+			if scheme != fileProviderScheme {
 				continue
 			}
 			filePath = location

@@ -31,17 +31,17 @@ var _ configsource.Hook = (*DryRun)(nil)
 
 type DryRun struct {
 	*sync.Mutex
-	configs    []map[string]any
-	converters []confmap.Converter
-	enabled    bool
+	configs            []map[string]any
+	converterFactories []confmap.ConverterFactory
+	enabled            bool
 }
 
-func NewDryRun(enabled bool, converters []confmap.Converter) *DryRun {
+func NewDryRun(enabled bool, cf []confmap.ConverterFactory) *DryRun {
 	return &DryRun{
-		Mutex:      &sync.Mutex{},
-		enabled:    enabled,
-		configs:    []map[string]any{},
-		converters: converters,
+		Mutex:              &sync.Mutex{},
+		enabled:            enabled,
+		configs:            []map[string]any{},
+		converterFactories: cf,
 	}
 }
 
@@ -75,7 +75,8 @@ func (dr *DryRun) Convert(ctx context.Context, _ *confmap.Conf) error {
 	}
 	// need to run through other converters since their modifications
 	// are only available via reruns (we disregard confmap.Conf arg)
-	for _, c := range dr.converters {
+	for _, cf := range dr.converterFactories {
+		c := cf.Create(confmap.ConverterSettings{})
 		if err := c.Convert(ctx, cm); err != nil {
 			return fmt.Errorf("error finalizing --dry-run with converter %v: %w", c, err)
 		}

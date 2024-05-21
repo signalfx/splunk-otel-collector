@@ -37,17 +37,15 @@ const (
 	configDScheme        = "splunk.configd"
 )
 
+var _ confmap.ProviderFactory = (*providerShimFactory)(nil)
 var _ confmap.Provider = (*providerShim)(nil)
 
-type Provider interface {
-	ConfigDScheme() string
-	ConfigDProvider() confmap.Provider
-	DiscoveryModeScheme() string
-	DiscoveryModeProvider() confmap.Provider
-	PropertyScheme() string
-	PropertyProvider() confmap.Provider
-	PropertiesFileScheme() string
-	PropertiesFileProvider() confmap.Provider
+type providerShimFactory struct {
+	providerShim
+}
+
+func (f providerShimFactory) Create(confmap.ProviderSettings) confmap.Provider {
+	return f.providerShim
 }
 
 type providerShim struct {
@@ -67,15 +65,15 @@ func (p providerShim) Shutdown(context.Context) error {
 	return nil
 }
 
-type mapProvider struct {
+type Provider struct {
 	logger     *zap.Logger
 	configs    map[string]*Config
 	discoverer *discoverer
 	retrieved  *confmap.Retrieved
 }
 
-func New() (Provider, error) {
-	m := &mapProvider{configs: map[string]*Config{}}
+func New() (*Provider, error) {
+	m := &Provider{configs: map[string]*Config{}}
 	zapConfig := zap.NewProductionConfig()
 	logLevel := zap.WarnLevel
 	if ll, ok := os.LookupEnv(logLevelEnvVar); ok {
@@ -86,44 +84,44 @@ func New() (Provider, error) {
 	zapConfig.Level = zap.NewAtomicLevelAt(logLevel)
 	var err error
 	if m.logger, err = zapConfig.Build(); err != nil {
-		return (*mapProvider)(nil), err
+		return (*Provider)(nil), err
 	}
 	if m.discoverer, err = newDiscoverer(m.logger); err != nil {
-		return (*mapProvider)(nil), err
+		return (*Provider)(nil), err
 	}
 
 	return m, nil
 }
 
-func (m *mapProvider) ConfigDProvider() confmap.Provider {
-	return &providerShim{
+func (m *Provider) ConfigDProviderFactory() confmap.ProviderFactory {
+	return &providerShimFactory{providerShim{
 		scheme:   m.ConfigDScheme(),
 		retrieve: m.retrieve(m.ConfigDScheme()),
-	}
+	}}
 }
 
-func (m *mapProvider) DiscoveryModeProvider() confmap.Provider {
-	return &providerShim{
+func (m *Provider) DiscoveryModeProviderFactory() confmap.ProviderFactory {
+	return &providerShimFactory{providerShim{
 		scheme:   m.DiscoveryModeScheme(),
 		retrieve: m.retrieve(m.DiscoveryModeScheme()),
-	}
+	}}
 }
 
-func (m *mapProvider) PropertyProvider() confmap.Provider {
-	return &providerShim{
+func (m *Provider) PropertyProviderFactory() confmap.ProviderFactory {
+	return &providerShimFactory{providerShim{
 		scheme:   m.PropertyScheme(),
 		retrieve: m.retrieve(m.PropertyScheme()),
-	}
+	}}
 }
 
-func (m *mapProvider) PropertiesFileProvider() confmap.Provider {
-	return &providerShim{
+func (m *Provider) PropertiesFileProviderFactory() confmap.ProviderFactory {
+	return &providerShimFactory{providerShim{
 		scheme:   m.PropertiesFileScheme(),
 		retrieve: m.retrieve(m.PropertiesFileScheme()),
-	}
+	}}
 }
 
-func (m *mapProvider) retrieve(scheme string) func(context.Context, string, confmap.WatcherFunc) (*confmap.Retrieved, error) {
+func (m *Provider) retrieve(scheme string) func(context.Context, string, confmap.WatcherFunc) (*confmap.Retrieved, error) {
 	return func(_ context.Context, uri string, _ confmap.WatcherFunc) (*confmap.Retrieved, error) {
 		schemePrefix := fmt.Sprintf("%s:", scheme)
 		if !strings.HasPrefix(uri, schemePrefix) {
@@ -203,23 +201,23 @@ func (m *mapProvider) retrieve(scheme string) func(context.Context, string, conf
 	}
 }
 
-func (m *mapProvider) ConfigDScheme() string {
+func (m *Provider) ConfigDScheme() string {
 	return configDScheme
 }
 
-func (m *mapProvider) DiscoveryModeScheme() string {
+func (m *Provider) DiscoveryModeScheme() string {
 	return discoveryModeScheme
 }
 
-func (m *mapProvider) PropertyScheme() string {
+func (m *Provider) PropertyScheme() string {
 	return propertyScheme
 }
 
-func (m *mapProvider) PropertiesFileScheme() string {
+func (m *Provider) PropertiesFileScheme() string {
 	return propertiesFileScheme
 }
 
-func (m *mapProvider) loadPropertiesFile(path string) (*confmap.Retrieved, error) {
+func (m *Provider) loadPropertiesFile(path string) (*confmap.Retrieved, error) {
 	propertiesCfg := NewConfig(m.logger)
 	m.logger.Debug("loading discovery properties", zap.String("file", path))
 	if err := propertiesCfg.LoadProperties(path); err != nil {
@@ -233,7 +231,7 @@ func (m *mapProvider) loadPropertiesFile(path string) (*confmap.Retrieved, error
 	return confmap.NewRetrieved(nil)
 }
 
-func (m *mapProvider) parsedProperty(rawProperty string) (*confmap.Retrieved, error) {
+func (m *Provider) parsedProperty(rawProperty string) (*confmap.Retrieved, error) {
 	// split property from value
 	equalsIdx := strings.Index(rawProperty, "=")
 	if equalsIdx == -1 || len(rawProperty) <= equalsIdx+1 {

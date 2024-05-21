@@ -38,16 +38,14 @@ type signalfxExporterConfig struct {
 	IncludeMetrics []dpfilters.MetricFilter `mapstructure:"include_metrics"`
 }
 
-// DisableKubeletUtilizationMetrics is a MapConverter that disables the following deprecated metrics:
+// DisableKubeletUtilizationMetrics disables the following deprecated metrics:
 // - `k8s.node.cpu.utilization`
 // - `k8s.pod.cpu.utilization`
 // - `container.cpu.utilization`
 // The converter disables the metrics at the receiver level to avoid showing users a warning message because
 // they are excluded in signalfx exporter by default.
 // We don't disable them in case if users explicitly include them in signalfx exporter.
-type DisableKubeletUtilizationMetrics struct{}
-
-func (DisableKubeletUtilizationMetrics) Convert(_ context.Context, cfgMap *confmap.Conf) error {
+func DisableKubeletUtilizationMetrics(_ context.Context, cfgMap *confmap.Conf) error {
 	if cfgMap == nil {
 		return fmt.Errorf("cannot DisableKubeletUtilizationMetrics on nil *confmap.Conf")
 	}

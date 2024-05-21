@@ -22,6 +22,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/confmap"
 )
 
 func TestConfigDProviderHappyPath(t *testing.T) {
@@ -30,7 +31,7 @@ func TestConfigDProviderHappyPath(t *testing.T) {
 	require.NotNil(t, provider)
 
 	assert.Equal(t, "splunk.configd", provider.ConfigDScheme())
-	configD := provider.ConfigDProvider()
+	configD := provider.ConfigDProviderFactory().Create(confmap.ProviderSettings{})
 	assert.Equal(t, "splunk.configd", configD.Scheme())
 
 	configDir := filepath.Join(".", "testdata", "config.d")
@@ -50,7 +51,7 @@ func TestConfigDProviderDifferentConfigDirs(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, provider)
 
-	configD := provider.ConfigDProvider()
+	configD := provider.ConfigDProviderFactory().Create(confmap.ProviderSettings{})
 	configDir := filepath.Join(".", "testdata", "config.d")
 	retrieved, err := configD.Retrieve(context.Background(), fmt.Sprintf("%s:%s", configD.Scheme(), configDir), nil)
 	assert.NoError(t, err)
@@ -85,7 +86,7 @@ func TestConfigDProviderInvalidURIs(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, provider)
 
-	configD := provider.ConfigDProvider()
+	configD := provider.ConfigDProviderFactory().Create(confmap.ProviderSettings{})
 	require.NotNil(t, configD)
 	retrieved, err := configD.Retrieve(context.Background(), "not.a.thing:not.a.path", nil)
 	assert.EqualError(t, err, `uri "not.a.thing:not.a.path" is not supported by splunk.configd provider`)

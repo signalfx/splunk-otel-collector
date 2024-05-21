@@ -25,9 +25,7 @@ import (
 )
 
 // RenameK8sTagger will replace k8s_tagger processor items with k8sattributes ones.
-type RenameK8sTagger struct{}
-
-func (RenameK8sTagger) Convert(_ context.Context, in *confmap.Conf) error {
+func RenameK8sTagger(_ context.Context, in *confmap.Conf) error {
 	if in == nil {
 		return fmt.Errorf("cannot RenameK8sTagger on nil *confmap.Conf")
 	}

@@ -25,9 +25,7 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-type LogLevelToVerbosity struct{}
-
-func (LogLevelToVerbosity) Convert(_ context.Context, in *confmap.Conf) error {
+func LogLevelToVerbosity(_ context.Context, in *confmap.Conf) error {
 	if in == nil {
 		return fmt.Errorf("cannot LogLevelToVerbosity on nil *confmap.Conf")
 	}

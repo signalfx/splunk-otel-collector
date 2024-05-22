@@ -62,7 +62,7 @@ func TestOTLPHistogramsAttrs(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, cfgMap)
 
-			err = AddOTLPHistogramAttr{}.Convert(context.Background(), cfgMap)
+			err = AddOTLPHistogramAttr(context.Background(), cfgMap)
 			require.NoError(t, err)
 
 			assert.Equal(t, expectedCfgMap.ToStringMap(), cfgMap.ToStringMap())

@@ -55,33 +55,29 @@ func main() {
 
 	configServer := configconverter.NewConfigServer()
 
-	confMapConverters := collectorSettings.ConfMapConverters()
-	dryRun := configconverter.NewDryRun(collectorSettings.IsDryRun(), confMapConverters)
-	confMapConverters = append(confMapConverters, dryRun, configServer)
+	confMapConverterFactories := collectorSettings.ConfMapConverterFactories()
+	dryRun := configconverter.NewDryRun(collectorSettings.IsDryRun(), confMapConverterFactories)
+	confMapConverterFactories = append(confMapConverterFactories,
+		configconverter.ConverterFactoryFromConverter(dryRun),
+		configconverter.ConverterFactoryFromConverter(configServer))
 
 	configSourceProvider := configsource.New(zap.NewNop(), []configsource.Hook{configServer, dryRun})
 
-	providers := map[string]confmap.Provider{}
-	for scheme, provider := range collectorSettings.ConfMapProviders() {
-		providers[scheme] = configSourceProvider.Wrap(provider)
-	}
-
-	serviceConfigProvider, err := otelcol.NewConfigProvider(
-		otelcol.ConfigProviderSettings{
-			ResolverSettings: confmap.ResolverSettings{
-				URIs:       collectorSettings.ResolverURIs(),
-				Providers:  providers,
-				Converters: confMapConverters,
-			},
-		})
-	if err != nil {
-		log.Fatal(err)
+	var providerFactories []confmap.ProviderFactory
+	for _, pf := range collectorSettings.ConfMapProviderFactories() {
+		providerFactories = append(providerFactories, configSourceProvider.Wrap(pf))
 	}
 
 	serviceSettings := otelcol.CollectorSettings{
-		BuildInfo:      info,
-		Factories:      components.Get,
-		ConfigProvider: serviceConfigProvider,
+		BuildInfo: info,
+		Factories: components.Get,
+		ConfigProviderSettings: otelcol.ConfigProviderSettings{
+			ResolverSettings: confmap.ResolverSettings{
+				URIs:               collectorSettings.ResolverURIs(),
+				ProviderFactories:  providerFactories,
+				ConverterFactories: confMapConverterFactories,
+			},
+		},
 	}
 
 	os.Args = append(os.Args[:1], collectorSettings.ColCoreArgs()...)

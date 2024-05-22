@@ -23,12 +23,10 @@ import (
 	"go.opentelemetry.io/collector/confmap"
 )
 
-type AddOTLPHistogramAttr struct{}
-
-// Convert updates the service::telemetry::resource to add the attribute send_otlp_histograms=true.
+// AddOTLPHistogramAttr updates the service::telemetry::resource to add the attribute send_otlp_histograms=true.
 // This additional resource attr is only added if we see any signalfx exporter in use with the config
 // send_otlp_histograms set to true.
-func (AddOTLPHistogramAttr) Convert(_ context.Context, cfgMap *confmap.Conf) error {
+func AddOTLPHistogramAttr(_ context.Context, cfgMap *confmap.Conf) error {
 	if cfgMap == nil {
 		return nil
 	}

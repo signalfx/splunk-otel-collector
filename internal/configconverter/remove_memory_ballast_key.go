@@ -23,10 +23,6 @@ import (
 	"go.opentelemetry.io/collector/confmap"
 )
 
-// RemoveMemoryBallastKey is a MapConverter that removes a memory_ballast on a
-// extension config if it exists.
-type RemoveMemoryBallastKey struct{}
-
 func removeMemoryBallastStrElementFromSlice(strList []interface{}) []interface{} {
 	ret := make([]interface{}, 0)
 	for i, v := range strList {
@@ -38,7 +34,8 @@ func removeMemoryBallastStrElementFromSlice(strList []interface{}) []interface{}
 	return strList
 }
 
-func (RemoveMemoryBallastKey) Convert(_ context.Context, cfgMap *confmap.Conf) error {
+// RemoveMemoryBallastKey removes a memory_ballast on a extension config if it exists.
+func RemoveMemoryBallastKey(_ context.Context, cfgMap *confmap.Conf) error {
 	if cfgMap == nil {
 		return fmt.Errorf("cannot RemoveMemoryBallastKey on nil *confmap.Conf")
 	}

@@ -27,9 +27,8 @@ import (
 )
 
 func TestRemoveMemoryBallastConverter_Empty(t *testing.T) {
-	pmp := RemoveMemoryBallastKey{}
 	conf := confmap.NewFromStringMap(map[string]interface{}{"foo": "bar"})
-	assert.NoError(t, pmp.Convert(context.Background(), conf))
+	assert.NoError(t, RemoveMemoryBallastKey(context.Background(), conf))
 	assert.Equal(t, map[string]interface{}{"foo": "bar"}, conf.ToStringMap())
 }
 
@@ -37,8 +36,7 @@ func TestRemoveMemoryBallastConverter_With_Memory_Ballast(t *testing.T) {
 	cfgMap, err := confmaptest.LoadConf("testdata/with_memory_ballast.yaml")
 	require.NoError(t, err)
 	require.NotNil(t, cfgMap)
-	pmp := RemoveMemoryBallastKey{}
-	assert.NoError(t, pmp.Convert(context.Background(), cfgMap))
+	assert.NoError(t, RemoveMemoryBallastKey(context.Background(), cfgMap))
 	cfgMapExpected, err := confmaptest.LoadConf("testdata/with_memory_ballast_config_expected.yaml")
 	require.NoError(t, err)
 	assert.Equal(t, cfgMapExpected.ToStringMap(), cfgMap.ToStringMap())
@@ -48,8 +46,7 @@ func TestMemoryBallastConverter_Without_Memory_Ballast(t *testing.T) {
 	cfgMap, err := confmaptest.LoadConf("testdata/without_memory_ballast_config.yaml")
 	require.NoError(t, err)
 	require.NotNil(t, cfgMap)
-	pmp := RemoveMemoryBallastKey{}
-	assert.NoError(t, pmp.Convert(context.Background(), cfgMap))
+	assert.NoError(t, RemoveMemoryBallastKey(context.Background(), cfgMap))
 	assert.Equal(t, cfgMap.ToStringMap(), cfgMap.ToStringMap())
 }
 
@@ -68,8 +65,7 @@ func TestRemoveMemoryBallastConverter_With_Only_MemoryBallast_Value(t *testing.T
 	cfgMap, err := confmaptest.LoadConf("testdata/with_memory_ballast_only.yaml")
 	require.NoError(t, err)
 	require.NotNil(t, cfgMap)
-	pmp := RemoveMemoryBallastKey{}
-	assert.NoError(t, pmp.Convert(context.Background(), cfgMap))
+	assert.NoError(t, RemoveMemoryBallastKey(context.Background(), cfgMap))
 	cfgMapExpected, err := confmaptest.LoadConf("testdata/with_memory_ballast_only_expected.yaml")
 	require.NoError(t, err)
 	assert.Equal(t, cfgMapExpected.ToStringMap(), cfgMap.ToStringMap())

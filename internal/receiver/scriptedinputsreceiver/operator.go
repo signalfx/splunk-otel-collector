@@ -136,13 +136,13 @@ func (i *stdoutOperator) readOutput(ctx context.Context, r io.Reader) {
 	for scanner.Scan() {
 		decoded, err := i.decoder.Decode(scanner.Bytes())
 		if err != nil {
-			i.Errorw("Failed to decode data", zap.Error(err))
+			i.logger.Errorw("Failed to decode data", zap.Error(err))
 			continue
 		}
 
 		entry, err := i.NewEntry(string(decoded))
 		if err != nil {
-			i.Errorw("Failed to create entry", zap.Error(err))
+			i.logger.Errorw("Failed to create entry", zap.Error(err))
 			continue
 		}
 
@@ -156,7 +156,7 @@ func (i *stdoutOperator) readOutput(ctx context.Context, r io.Reader) {
 		i.Write(ctx, entry)
 	}
 	if err := scanner.Err(); err != nil {
-		i.Errorw("Scanner error", zap.Error(err))
+		i.logger.Errorw("Scanner error", zap.Error(err))
 	}
 }
 

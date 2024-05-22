@@ -23,13 +23,11 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
 )
 
-type Discovery struct{}
-
-// Convert will find `service::<extensions|receivers>/splunk.discovery` entries
+// SetupDiscovery will find `service::<extensions|receivers>/splunk.discovery` entries
 // provided by the discovery confmap.Provider and relocate them to
 // `service::extensions` and `service::pipelines::metrics::receivers`,
 // by appending them to existing sequences, if any.
-func (Discovery) Convert(_ context.Context, in *confmap.Conf) error {
+func SetupDiscovery(_ context.Context, in *confmap.Conf) error {
 	if in == nil {
 		return nil
 	}

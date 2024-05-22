@@ -22,9 +22,7 @@ import (
 	"go.opentelemetry.io/collector/confmap"
 )
 
-type NormalizeGcp struct{}
-
-func (NormalizeGcp) Convert(_ context.Context, in *confmap.Conf) error {
+func NormalizeGcp(_ context.Context, in *confmap.Conf) error {
 	if in == nil {
 		return nil
 	}

@@ -28,8 +28,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/confmap"
-
-	"github.com/signalfx/splunk-otel-collector/internal/configconverter"
 )
 
 var (
@@ -90,17 +88,17 @@ func TestNewSettingsConfMapProviders(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, settings)
 
-	confMapProviders := settings.ConfMapProviders()
+	confMapProviderFactories := settings.ConfMapProviderFactories()
+	require.Len(t, confMapProviderFactories, 6)
 
-	require.Contains(t, confMapProviders, settings.discovery.PropertyScheme())
-
-	require.Contains(t, confMapProviders, settings.discovery.ConfigDScheme())
-
-	require.Contains(t, confMapProviders, settings.discovery.DiscoveryModeScheme())
-
-	require.Contains(t, confMapProviders, settings.discovery.PropertiesFileScheme())
-
-	require.Len(t, confMapProviders, 6)
+	schemas := make([]string, 0, len(confMapProviderFactories))
+	for _, provider := range confMapProviderFactories {
+		schemas = append(schemas, provider.Create(confmap.ProviderSettings{}).Scheme())
+	}
+	require.Contains(t, schemas, settings.discovery.PropertyScheme())
+	require.Contains(t, schemas, settings.discovery.ConfigDScheme())
+	require.Contains(t, schemas, settings.discovery.DiscoveryModeScheme())
+	require.Contains(t, schemas, settings.discovery.PropertiesFileScheme())
 }
 
 func TestNewSettingsNoConvertConfig(t *testing.T) {
@@ -133,10 +131,7 @@ func TestNewSettingsNoConvertConfig(t *testing.T) {
 		"splunk.property:splunk.discovery.receiver.receiver-type/name.config.field.one=val.one",
 		"splunk.property:splunk.discovery.receiver.receiver-type/name.config.field.two=val.two",
 	}, settings.ResolverURIs())
-	require.Equal(t, []confmap.Converter{
-		configconverter.NewOverwritePropertiesConverter(settings.setProperties),
-		configconverter.Discovery{},
-	}, settings.ConfMapConverters())
+	require.Equal(t, 2, len(settings.ConfMapConverterFactories()))
 	require.Equal(t, []string{"--feature-gates", "foo", "--feature-gates", "-bar"}, settings.ColCoreArgs())
 }
 
@@ -161,20 +156,7 @@ func TestNewSettingsConvertConfig(t *testing.T) {
 	require.Equal(t, []string(nil), settings.discoveryProperties)
 
 	require.Equal(t, []string{configPath, anotherConfigPath}, settings.ResolverURIs())
-	require.Equal(t, []confmap.Converter{
-		configconverter.NewOverwritePropertiesConverter(settings.setProperties),
-		configconverter.Discovery{},
-		configconverter.RemoveBallastKey{},
-		configconverter.RemoveMemoryBallastKey{},
-		configconverter.MoveOTLPInsecureKey{},
-		configconverter.MoveHecTLS{},
-		configconverter.RenameK8sTagger{},
-		configconverter.NormalizeGcp{},
-		configconverter.LogLevelToVerbosity{},
-		configconverter.DisableKubeletUtilizationMetrics{},
-		configconverter.DisableExcessiveInternalMetrics{},
-		configconverter.AddOTLPHistogramAttr{},
-	}, settings.ConfMapConverters())
+	require.Equal(t, 12, len(settings.ConfMapConverterFactories()))
 	require.Equal(t, []string{"--feature-gates", "foo", "--feature-gates", "-bar"}, settings.ColCoreArgs())
 }
 

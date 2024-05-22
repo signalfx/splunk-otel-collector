@@ -23,13 +23,11 @@ import (
 	"go.opentelemetry.io/collector/confmap"
 )
 
-// RemoveBallastKey is a MapConverter that removes a ballast_size_mib on a
+// RemoveBallastKey removes a ballast_size_mib on a
 // memory_limiter processor config if it exists. This config key will go away at
 // some point (or already has) at which point its presence in a config will
 // prevent the Collector from starting.
-type RemoveBallastKey struct{}
-
-func (RemoveBallastKey) Convert(_ context.Context, cfgMap *confmap.Conf) error {
+func RemoveBallastKey(_ context.Context, cfgMap *confmap.Conf) error {
 	if cfgMap == nil {
 		return fmt.Errorf("cannot RemoveBallastKey on nil *confmap.Conf")
 	}

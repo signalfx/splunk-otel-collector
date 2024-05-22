@@ -63,14 +63,12 @@ var metricRelabelConfigsToSet = []any{
 	},
 }
 
-// DisableExcessiveInternalMetrics is a MapConverter that updates config of the prometheus receiver scraping internal
+// DisableExcessiveInternalMetrics updates config of the prometheus receiver scraping internal
 // collector metrics to drop excessive internal metrics matching the following patterns:
 // - "otelcol_rpc_.*"
 // - "otelcol_http_.*"
 // - "otelcol_processor_batch_.*"
-type DisableExcessiveInternalMetrics struct{}
-
-func (DisableExcessiveInternalMetrics) Convert(_ context.Context, cfgMap *confmap.Conf) error {
+func DisableExcessiveInternalMetrics(_ context.Context, cfgMap *confmap.Conf) error {
 	if cfgMap == nil {
 		return fmt.Errorf("cannot DisableExcessiveInternalMetrics on nil *confmap.Conf")
 	}

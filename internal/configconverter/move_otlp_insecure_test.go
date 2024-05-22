@@ -42,7 +42,7 @@ func TestMoveOTLPInsecureKey(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfgMap)
 
-	err = MoveOTLPInsecureKey{}.Convert(context.Background(), cfgMap)
+	err = MoveOTLPInsecureKey(context.Background(), cfgMap)
 	require.NoError(t, err)
 
 	assert.False(t, cfgMap.IsSet("exporters::otlp::insecure"))
@@ -54,7 +54,7 @@ func TestMoveOTLPInsecureKey_Custom(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfgMap)
 
-	err = MoveOTLPInsecureKey{}.Convert(context.Background(), cfgMap)
+	err = MoveOTLPInsecureKey(context.Background(), cfgMap)
 	require.NoError(t, err)
 
 	assert.False(t, cfgMap.IsSet("exporters::otlp/foo::insecure"))

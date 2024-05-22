@@ -46,7 +46,7 @@ func TestNormalizeGcp(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfgMap)
 
-	err = NormalizeGcp{}.Convert(context.Background(), cfgMap)
+	err = NormalizeGcp(context.Background(), cfgMap)
 	require.NoError(t, err)
 
 	assert.Equal(t, expectedCfgMap, cfgMap)
@@ -61,7 +61,7 @@ func TestNormalizeGcpMany(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfgMap)
 
-	err = NormalizeGcp{}.Convert(context.Background(), cfgMap)
+	err = NormalizeGcp(context.Background(), cfgMap)
 	require.NoError(t, err)
 
 	assert.Equal(t, expectedCfgMap, cfgMap)
@@ -76,7 +76,7 @@ func TestNormalizeGcpSame(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfgMap)
 
-	err = NormalizeGcp{}.Convert(context.Background(), cfgMap)
+	err = NormalizeGcp(context.Background(), cfgMap)
 	require.NoError(t, err)
 
 	assert.Equal(t, expectedCfgMap, cfgMap)
@@ -91,7 +91,7 @@ func TestNormalizeGcpNoop(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfgMap)
 
-	err = NormalizeGcp{}.Convert(context.Background(), cfgMap)
+	err = NormalizeGcp(context.Background(), cfgMap)
 	require.NoError(t, err)
 
 	assert.Equal(t, expectedCfgMap, cfgMap)
@@ -106,7 +106,7 @@ func TestNormalizeGcpSubresources(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfgMap)
 
-	err = NormalizeGcp{}.Convert(context.Background(), cfgMap)
+	err = NormalizeGcp(context.Background(), cfgMap)
 	require.NoError(t, err)
 
 	assert.Equal(t, expectedCfgMap, cfgMap)

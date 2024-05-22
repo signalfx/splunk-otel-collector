@@ -31,7 +31,7 @@ func TestLogLevelToVerbosity(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, expectedCfgMap)
 
-	err = LogLevelToVerbosity{}.Convert(context.Background(), cfgMap)
+	err = LogLevelToVerbosity(context.Background(), cfgMap)
 	require.NoError(t, err)
 
 	require.Equal(t, expectedCfgMap, cfgMap)

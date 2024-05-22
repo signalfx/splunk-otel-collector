@@ -75,7 +75,7 @@ func TestDisableKubeletUtilizationMetrics(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, cfgMap)
 
-			err = DisableKubeletUtilizationMetrics{}.Convert(context.Background(), cfgMap)
+			err = DisableKubeletUtilizationMetrics(context.Background(), cfgMap)
 			require.NoError(t, err)
 
 			assert.Equal(t, expectedCfgMap, cfgMap)

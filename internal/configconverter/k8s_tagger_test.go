@@ -44,7 +44,7 @@ func TestRenameK8sTaggerTestRenameK8sTagger(t *testing.T) {
 	expected, err := confmaptest.LoadConf("testdata/k8sattributes.yaml")
 	require.NoError(t, err)
 
-	err = RenameK8sTagger{}.Convert(context.Background(), actual)
+	err = RenameK8sTagger(context.Background(), actual)
 	require.NoError(t, err)
 
 	require.Equal(t, expected.ToStringMap(), actual.ToStringMap())

@@ -35,18 +35,18 @@ import (
 
 func TestConfigSourceConfigMapProvider(t *testing.T) {
 	tests := []struct {
-		parserProvider confmap.Provider
-		factories      configsource.Factories
-		wantErr        string
-		name           string
-		uris           []string
+		providerFactory confmap.ProviderFactory
+		factories       configsource.Factories
+		wantErr         string
+		name            string
+		uris            []string
 	}{
 		{
 			name: "success",
 		},
 		{
 			name: "wrapped_parser_provider_get_error",
-			parserProvider: &mockParserProvider{
+			providerFactory: &mockParserProviderFactory{
 				ErrOnGet: true,
 			},
 			wantErr: "mockParserProvider.Get() forced test error",
@@ -58,19 +58,19 @@ func TestConfigSourceConfigMapProvider(t *testing.T) {
 					ErrOnCreateConfigSource: errors.New("new_manager_builder_error forced error"),
 				},
 			},
-			parserProvider: fileprovider.NewFactory().Create(confmap.ProviderSettings{}),
-			uris:           []string{"file:" + path.Join("testdata", "basic_config.yaml")},
-			wantErr:        "failed to create config source tstcfgsrc",
+			providerFactory: fileprovider.NewFactory(),
+			uris:            []string{"file:" + path.Join("testdata", "basic_config.yaml")},
+			wantErr:         "failed to create config source tstcfgsrc",
 		},
 		{
-			name:           "manager_resolve_error",
-			parserProvider: fileprovider.NewFactory().Create(confmap.ProviderSettings{}),
-			uris:           []string{"file:" + path.Join("testdata", "manager_resolve_error.yaml")},
-			wantErr:        "config source \"tstcfgsrc\" failed to retrieve value: no value for selector \"selector\"",
+			name:            "manager_resolve_error",
+			providerFactory: fileprovider.NewFactory(),
+			uris:            []string{"file:" + path.Join("testdata", "manager_resolve_error.yaml")},
+			wantErr:         "config source \"tstcfgsrc\" failed to retrieve value: no value for selector \"selector\"",
 		},
 		{
-			name:           "multiple_config_success",
-			parserProvider: fileprovider.NewFactory().Create(confmap.ProviderSettings{}),
+			name:            "multiple_config_success",
+			providerFactory: fileprovider.NewFactory(),
 			uris: []string{"file:" + path.Join("testdata", "arrays_and_maps_expected.yaml"),
 				"file:" + path.Join("testdata", "yaml_injection_expected.yaml")},
 		},
@@ -93,17 +93,15 @@ func TestConfigSourceConfigMapProvider(t *testing.T) {
 				h.On("OnShutdown")
 			}
 
-			var provider confmap.Provider
-			if tt.parserProvider == nil {
-				provider = &mockParserProvider{}
-			} else {
-				provider = tt.parserProvider
+			providerFactory := tt.providerFactory
+			if providerFactory == nil {
+				providerFactory = &mockParserProviderFactory{}
 			}
 			p := New(zap.NewNop(), []Hook{hookOne, hookTwo})
 			require.NotNil(t, p)
 
-			p.(*providerWrapper).factories = tt.factories
-			pp := p.Wrap(provider)
+			p.factories = tt.factories
+			pp := p.Wrap(providerFactory).Create(confmap.ProviderSettings{})
 
 			for _, h := range hooks {
 				h.AssertCalled(t, "OnNew")
@@ -111,6 +109,7 @@ func TestConfigSourceConfigMapProvider(t *testing.T) {
 				h.AssertNotCalled(t, "OnShutdown")
 			}
 
+			provider := providerFactory.Create(confmap.ProviderSettings{})
 			expectedScheme := provider.Scheme()
 
 			i := 0
@@ -156,6 +155,14 @@ func TestConfigSourceConfigMapProvider(t *testing.T) {
 			}
 		})
 	}
+}
+
+type mockParserProviderFactory struct {
+	ErrOnGet bool
+}
+
+func (mppf *mockParserProviderFactory) Create(_ confmap.ProviderSettings) confmap.Provider {
+	return &mockParserProvider{ErrOnGet: mppf.ErrOnGet}
 }
 
 type mockParserProvider struct {

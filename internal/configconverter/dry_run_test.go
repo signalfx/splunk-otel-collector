@@ -28,7 +28,7 @@ import (
 
 func TestDryRun(t *testing.T) {
 	cfgOne := confmap.NewFromStringMap(map[string]any{"key.one": "value.one"})
-	dr := NewDryRun(false, []confmap.Converter{Discovery{}})
+	dr := NewDryRun(false, []confmap.ConverterFactory{ConverterFactoryFromFunc(SetupDiscovery)})
 	dr.OnNew()
 	defer func() { require.NotPanics(t, dr.OnShutdown) }()
 
@@ -54,7 +54,7 @@ func TestDryRun(t *testing.T) {
 		}
 	}())
 
-	dr = NewDryRun(true, []confmap.Converter{Discovery{}})
+	dr = NewDryRun(true, []confmap.ConverterFactory{ConverterFactoryFromFunc(SetupDiscovery)})
 	cfgTwo := confmap.NewFromStringMap(map[string]any{"key.two": "value.two"})
 	dr.OnRetrieve("some.scheme", cfgOne.ToStringMap())
 	dr.OnRetrieve("another.scheme", cfgTwo.ToStringMap())

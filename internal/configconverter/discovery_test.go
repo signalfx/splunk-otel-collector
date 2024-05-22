@@ -59,7 +59,7 @@ func TestDiscovery(t *testing.T) {
       splunk_autodiscovery: "true"
 `)
 
-	require.NoError(t, Discovery{}.Convert(context.Background(), in))
+	require.NoError(t, SetupDiscovery(context.Background(), in))
 	require.Equal(t, expected.ToStringMap(), in.ToStringMap())
 }
 
@@ -90,7 +90,7 @@ func TestDiscoveryNotDetected(t *testing.T) {
       exporters: [exp/six, exp/seven, exp/eight]
 `)
 
-	require.NoError(t, Discovery{}.Convert(context.Background(), in))
+	require.NoError(t, SetupDiscovery(context.Background(), in))
 	require.Equal(t, expected.ToStringMap(), in.ToStringMap())
 }
 
@@ -124,7 +124,7 @@ func TestDiscoveryExtensionsOnly(t *testing.T) {
       splunk_autodiscovery: "true"
 `)
 
-	require.NoError(t, Discovery{}.Convert(context.Background(), in))
+	require.NoError(t, SetupDiscovery(context.Background(), in))
 	require.Equal(t, expected.ToStringMap(), in.ToStringMap())
 }
 
@@ -158,7 +158,7 @@ func TestDiscoveryEmptyExtensions(t *testing.T) {
       splunk_autodiscovery: "true"
 `)
 
-	require.NoError(t, Discovery{}.Convert(context.Background(), in))
+	require.NoError(t, SetupDiscovery(context.Background(), in))
 	require.Equal(t, expected.ToStringMap(), in.ToStringMap())
 }
 
@@ -191,7 +191,7 @@ func TestDiscoveryReceiversOnly(t *testing.T) {
       splunk_autodiscovery: "true"
 `)
 
-	require.NoError(t, Discovery{}.Convert(context.Background(), in))
+	require.NoError(t, SetupDiscovery(context.Background(), in))
 	require.Equal(t, expected.ToStringMap(), in.ToStringMap())
 }
 
@@ -222,7 +222,7 @@ func TestDiscoveryEmptyReceivers(t *testing.T) {
       splunk_autodiscovery: "true"
 `)
 
-	require.NoError(t, Discovery{}.Convert(context.Background(), in))
+	require.NoError(t, SetupDiscovery(context.Background(), in))
 	require.Equal(t, expected.ToStringMap(), in.ToStringMap())
 }
 

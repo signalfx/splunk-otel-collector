@@ -2,12 +2,24 @@
 
 ## Unreleased
 
+## v0.101.0
+
 ### 🛑 Breaking changes 🛑
 
 - (Splunk) `receiver/discovery`: Remove `append_pattern` option from log evaluation statements ([#4583](https://github.com/signalfx/splunk-otel-collector/pull/4583))
   - The matched log message is now set as `discovery.matched_log` entity attributes instead of being appended to 
     the `discovery.message` attribute.
   - The matched log fields like `caller` and `stacktrace` are not sent as attributes anymore.
+- (Contrib) `vcenterreceiver`: Removes vcenter.cluster.name attribute from vcenter.datastore metrics ([#32674](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/32674))
+  If there were multiple Clusters, Datastore metrics were being repeated under Resources differentiated with a
+  vcenter.cluster.name resource attribute. In the same vein, if there were standalone Hosts, in addition to
+  clusters the metrics would be repeated under a Resource without the vcenter.cluster.name attribute. Now there
+  will only be a single set of metrics for one Datastore (as there should be, as Datastores don't belong to
+  Clusters).
+- (Contrib) `resourcedetectionprocessor`: Move `processor.resourcedetection.hostCPUModelAndFamilyAsString` feature gate to stable. ([#29025](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29025))
+- (Contrib) `filelog`, `journald`, `tcp`, `udp`, `syslog`, `windowseventlog` receivers: The internal logger has been changed from `zap.SugaredLogger` to `zap.Logger`. ([#32177](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/32177))
+  This should not have any meaningful impact on most users but the logging format for some logs may have changed.
+
 
 ### 🚀 New components 🚀
 
@@ -23,6 +35,50 @@
   - To skip .NET auto instrumentation, configure the `auto_instrumentation_sdks` option without `dotnet`.
   - `npm` is required to be pre-installed on the node to install the Node.js SDK. Configure the `auto_instrumentation_npm_path` option to specify the path to `npm`.
   - .NET auto instrumentation is currently only supported on amd64/x64_64.
+- (Core) `confmap`: Allow Converters to write logs during startup ([#10135](https://github.com/open-telemetry/opentelemetry-collector/pull/10135))
+- (Core) `otelcol`: Enable logging during configuration resolution ([#10056](https://github.com/open-telemetry/opentelemetry-collector/pull/10056))
+- (Contrib) `filelogreceiver`: Add container operator parser ([#31959](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/31959))
+- (Contrib) `deltatocumulativeprocessor`: exponential histogram accumulation ([#31340](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/31340))
+  accumulates exponential histogram datapoints by adding respective bucket counts. also handles downscaling, changing zero-counts, offset adaptions and optional fields
+- (Contrib) `extension/storage/filestorage`: New flag cleanup_on_start for the compaction section (default=false). ([#32863](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/32863))
+  It will remove all temporary files in the compaction directory (those which start with `tempdb`),
+  temp files will be left if a previous run of the process is killed while compacting.
+- (Contrib) `vcenterreceiver`: Refactors how and when client makes calls in order to provide for faster collection times. ([#31837](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/31837))
+- (Contrib) `resourcedetectionprocessor`: Support GCP Bare Metal Solution in resource detection processor. ([#32985](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/32985))
+- (Contrib) `splunkhecreceiver`: Make the channelID header check case-insensitive and allow hecreceiver endpoints able to extract channelID from query params ([#32995](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/32995))
+- (Contrib) `processor/transform`: Allow common where clause ([#27830](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27830))
+- (Contrib) `pkg/ottl`: Added support for timezone in Time converter ([#32140](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/32140))
+- (Contrib) `probabilisticsamplerprocessor`: Adds the FailClosed flag to solidify current behavior when randomness source is missing. ([#31918](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/31918))
+- (Contrib) `vcenterreceiver`: Changing various default configurations for vcenterreceiver and removing warnings about future release. ([#32803](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/32803), [#32805](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/32805), [#32821](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/32821), [#32531](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/32531), [#32557](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/32557))
+  The resource attributes that will now be enabled by default are `vcenter.datacenter.name`, `vcenter.virtual_app.name`,
+  `vcenter.virtual_app.inventory_path`, `vcenter.vm_template.name`, and `vcenter.vm_template.id`. The metric
+  `vcenter.cluster.memory.used` will be removed.  The metrics `vcenter.cluster.vm_template.count` and
+  `vcenter.vm.memory.utilization` will be enabled by default.
+
+- (Contrib) `sqlserverreceiver`: Add metrics for database status ([#29865](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29865))
+- (Contrib) `sqlserverreceiver`: Add more metrics ([#29865](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29865))
+  Added metrics are:
+  - sqlserver.resource_pool.disk.throttled.read.rate
+  - sqlserver.resource_pool.disk.throttled.write.rate
+  - sqlserver.processes.blocked
+    These metrics are only available when directly connecting to the SQL server instance
+
+### 🧰 Bug fixes 🧰
+
+- `deltatocumulativeprocessor`: Evict only stale streams ([#33014](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/33014))
+  Changes eviction behavior to only evict streams that are actually stale.
+  Currently, once the stream limit is hit, on each new stream the oldest tracked one is evicted.
+  Under heavy load this can rapidly delete all streams over and over, rendering the processor useless.
+
+- `vcenterreceiver`: Adds inititially disabled packet drop rate metric for VMs. ([#32929](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/32929))
+- `splunkhecreceiver`: Fix single metric value parsing ([#33084](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/33084))
+- `vcenterreceiver`: vcenterreceiver client no longer returns error if no Virtual Apps are found. ([#33073](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/33073))
+- `vcenterreceiver`: Adds inititially disabled new packet rate metrics to replace the existing ones for VMs & Hosts. ([#32835](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/32835))
+- `resourcedetectionprocessor`: Change type of `host.cpu.stepping` from int to string. ([#31136](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/31136))
+  - Disable the `processor.resourcedetection.hostCPUSteppingAsString` feature gate to get the old behavior.
+
+- `pkg/ottl`: Fixes a bug where function name could be used in a condition, resulting in a cryptic error message. ([#33051](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/33051))
+
 
 ## v0.100.0
 

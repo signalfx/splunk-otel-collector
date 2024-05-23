@@ -131,7 +131,7 @@ require (
 	go.opentelemetry.io/collector/extension v0.101.0
 	go.opentelemetry.io/collector/extension/ballastextension v0.101.0
 	go.opentelemetry.io/collector/extension/zpagesextension v0.101.0
-	go.opentelemetry.io/collector/otelcol v0.101.0
+	go.opentelemetry.io/collector/otelcol v0.101.1-0.20240522182134-4f365892b751
 	go.opentelemetry.io/collector/pdata v1.8.0
 	go.opentelemetry.io/collector/processor v0.101.0
 	go.opentelemetry.io/collector/processor/batchprocessor v0.101.0
@@ -311,7 +311,7 @@ require (
 	go.opentelemetry.io/collector/confmap/provider/httpsprovider v0.101.0 // indirect
 	go.opentelemetry.io/collector/extension/auth v0.101.0 // indirect
 	go.opentelemetry.io/collector/filter v0.101.0 // indirect
-	go.opentelemetry.io/collector/service v0.101.0 // indirect
+	go.opentelemetry.io/collector/service v0.101.1-0.20240522182134-4f365892b751 // indirect
 	go.opentelemetry.io/contrib/config v0.6.0 // indirect
 	go.opentelemetry.io/otel/bridge/opencensus v1.27.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.27.0 // indirect

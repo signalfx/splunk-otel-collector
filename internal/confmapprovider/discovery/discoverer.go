@@ -396,7 +396,7 @@ func (d *discoverer) createObserver(observerID component.ID, cfg *Config) (otelc
 		return nil, nil
 	}
 
-	expandConverter := expandconverter.NewFactory().Create(confmap.ConverterSettings{})
+	expandConverter := expandconverter.NewFactory().Create(confmap.ConverterSettings{Logger: d.logger})
 	if err = expandConverter.Convert(context.Background(), observerDiscoveryConf); err != nil {
 		return nil, fmt.Errorf("error converting environment variables in %q config: %w", observerID, err)
 	}

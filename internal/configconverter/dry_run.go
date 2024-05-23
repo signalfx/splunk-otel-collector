@@ -21,6 +21,7 @@ import (
 	"sync"
 
 	"go.opentelemetry.io/collector/confmap"
+	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
 
 	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/configsource"
@@ -76,7 +77,8 @@ func (dr *DryRun) Convert(ctx context.Context, _ *confmap.Conf) error {
 	// need to run through other converters since their modifications
 	// are only available via reruns (we disregard confmap.Conf arg)
 	for _, cf := range dr.converterFactories {
-		c := cf.Create(confmap.ConverterSettings{})
+		// No need to provide a logger for the dry-run.
+		c := cf.Create(confmap.ConverterSettings{Logger: zap.NewNop()})
 		if err := c.Convert(ctx, cm); err != nil {
 			return fmt.Errorf("error finalizing --dry-run with converter %v: %w", c, err)
 		}

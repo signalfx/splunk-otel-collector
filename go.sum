@@ -1880,8 +1880,8 @@ go.opentelemetry.io/collector/featuregate v1.8.0 h1:p/bAuk5LiSfdYS88yFl/Jzao9bHE
 go.opentelemetry.io/collector/featuregate v1.8.0/go.mod h1:w7nUODKxEi3FLf1HslCiE6YWtMtOOrMnSwsDam8Mg9w=
 go.opentelemetry.io/collector/filter v0.101.0 h1:tNs6+liajg4hxSmtX5tcuGBefSPB+TEyyK3KTPp+dYY=
 go.opentelemetry.io/collector/filter v0.101.0/go.mod h1:Kp9rCRB60SDm+pjrsaK95fkwfEXGh4j1yewvATTNkfI=
-go.opentelemetry.io/collector/otelcol v0.101.0 h1:6kF2dcXpu5NjxK2j0ksCRzZhqigxCGrP/u7n57FSMOg=
-go.opentelemetry.io/collector/otelcol v0.101.0/go.mod h1:qGrb+hlZXId/hJj0y28vq0YkMd6Xsoz2w7mZkXJOw68=
+go.opentelemetry.io/collector/otelcol v0.101.1-0.20240522182134-4f365892b751 h1:lW37bLhUThP+ka1DSu1OGmM76INIrAvVofcNvOXhy8w=
+go.opentelemetry.io/collector/otelcol v0.101.1-0.20240522182134-4f365892b751/go.mod h1:/gdhzzo+4ycaBX8onnmBq9wLj9KrWqENkWMNAUIvFCg=
 go.opentelemetry.io/collector/pdata v1.8.0 h1:d/QQgZxB4Y+d3mqLVh2ozvzujUhloD3P/fk7X+In764=
 go.opentelemetry.io/collector/pdata v1.8.0/go.mod h1:/W7clu0wFC4WSRp94Ucn6Vm36Wkrt+tmtlDb1aiNZCY=
 go.opentelemetry.io/collector/pdata/testdata v0.101.0 h1:JzeUtg5RN1iIFgY8DakGlqBkGxOTJlkaYlLausnEGKY=
@@ -1898,8 +1898,8 @@ go.opentelemetry.io/collector/receiver/otlpreceiver v0.101.0 h1:CEu8qgxIyy7C66f+
 go.opentelemetry.io/collector/receiver/otlpreceiver v0.101.0/go.mod h1:gektz6Q5R2ooWgQDa4ufdpJdD+M1/062hHQerea3VKQ=
 go.opentelemetry.io/collector/semconv v0.101.0 h1:tOe9iTe9dDCnvz/bqgfNRr4w80kXG8505tQJ5h5v08Q=
 go.opentelemetry.io/collector/semconv v0.101.0/go.mod h1:8ElcRZ8Cdw5JnvhTOQOdYizkJaQ10Z2fS+R6djOnj6A=
-go.opentelemetry.io/collector/service v0.101.0 h1:My2NrH25WYmJ6vMWwT3csglyiTkf0XP3nPgj0mX1yFw=
-go.opentelemetry.io/collector/service v0.101.0/go.mod h1:XowYC9FyNGmWClh0aObztKdTfQNLAr6mubpvh27ee+Q=
+go.opentelemetry.io/collector/service v0.101.1-0.20240522182134-4f365892b751 h1:6hSS2k6Pz7OIxoTo8GfCPgL0C9y5tcPJzZ3unyGluh0=
+go.opentelemetry.io/collector/service v0.101.1-0.20240522182134-4f365892b751/go.mod h1:1g0N4lE7ICzUEYGi/9B56tZa52ASVJpr3KxWP4RyYls=
 go.opentelemetry.io/contrib/config v0.6.0 h1:M1SRD1Z15XHPGk61tMLI1up77XT5FdrqQSRrlH0fYuk=
 go.opentelemetry.io/contrib/config v0.6.0/go.mod h1:t+/kzmRWLN7J+4F/dD4fFvlYCmCO63WYwy/B00IC++c=
 go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.51.0 h1:A3SayB3rNyt+1S6qpI9mHPkeHTZbD7XILEqWnYZb2l0=

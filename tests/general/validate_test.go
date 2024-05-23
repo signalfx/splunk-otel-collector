@@ -29,7 +29,6 @@ import (
 )
 
 func TestCoreValidateDefaultConfig(t *testing.T) {
-	t.Skip("Skip until https://github.com/open-telemetry/opentelemetry-collector/pull/10203 is merged")
 	tc := testutils.NewTestcase(t)
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
@@ -65,7 +64,6 @@ func TestCoreValidateDefaultConfig(t *testing.T) {
 }
 
 func TestCoreValidateYamlProvider(t *testing.T) {
-	t.Skip("Skip until https://github.com/open-telemetry/opentelemetry-collector/pull/10203 is merged")
 	tc := testutils.NewTestcase(t)
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
@@ -113,7 +111,6 @@ service:
 }
 
 func TestCoreValidateDetectsInvalidYamlProvider(t *testing.T) {
-	t.Skip("Skip until https://github.com/open-telemetry/opentelemetry-collector/pull/10203 is merged")
 	tc := testutils.NewTestcase(t)
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()

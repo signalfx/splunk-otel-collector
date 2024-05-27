@@ -11,8 +11,8 @@ require (
 	github.com/pavius/impi v0.0.3
 	github.com/tcnksm/ghr v0.16.2
 	go.opentelemetry.io/collector/cmd/mdatagen v0.101.0
-	golang.org/x/tools v0.21.0
-	golang.org/x/vuln v1.1.0
+	golang.org/x/tools v0.21.1-0.20240514024235-59d9797072e7
+	golang.org/x/vuln v1.1.1
 )
 
 require (

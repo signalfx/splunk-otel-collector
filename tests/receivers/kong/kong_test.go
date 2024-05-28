@@ -30,6 +30,7 @@ func TestKongMetrics(t *testing.T) {
 		pmetrictest.IgnoreTimestamp(),
 		pmetrictest.IgnoreStartTimestamp(),
 		pmetrictest.IgnoreMetricAttributeValue("node_id"),
+		pmetrictest.IgnoreMetricAttributeValue("pid"),
 		pmetrictest.IgnoreMetricValues(),
 		pmetrictest.IgnoreResourceMetricsOrder(),
 		pmetrictest.IgnoreScopeMetricsOrder(),

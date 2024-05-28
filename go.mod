@@ -11,7 +11,7 @@ require (
 	github.com/go-zookeeper/zk v1.0.3
 	github.com/gogo/protobuf v1.3.2
 	github.com/hashicorp/vault v1.16.2
-	github.com/hashicorp/vault-plugin-auth-gcp v0.17.0
+	github.com/hashicorp/vault-plugin-auth-gcp v0.18.0
 	github.com/hashicorp/vault/api v1.14.0
 	github.com/jaegertracing/jaeger v1.57.0
 	github.com/knadh/koanf v1.5.0
@@ -149,6 +149,8 @@ require (
 )
 
 require (
+	cloud.google.com/go/auth v0.3.0 // indirect
+	cloud.google.com/go/auth/oauth2adapt v0.2.2 // indirect
 	cloud.google.com/go/kms v1.15.7 // indirect
 	cloud.google.com/go/monitoring v1.18.0 // indirect
 	collectd.org v0.6.0 // indirect
@@ -443,7 +445,7 @@ require (
 	github.com/hashicorp/cronexpr v1.1.2 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
-	github.com/hashicorp/go-gcp-common v0.8.0 // indirect
+	github.com/hashicorp/go-gcp-common v0.9.0 // indirect
 	github.com/hashicorp/go-hclog v1.6.3 // indirect
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
 	github.com/hashicorp/go-kms-wrapping/entropy/v2 v2.0.1 // indirect
@@ -605,7 +607,7 @@ require (
 	golang.org/x/tools v0.21.0 // indirect
 	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
 	gonum.org/v1/gonum v0.15.0 // indirect
-	google.golang.org/api v0.172.0 // indirect
+	google.golang.org/api v0.177.0 // indirect
 	google.golang.org/genproto v0.0.0-20240308144416-29370a3891b7 // indirect
 	google.golang.org/grpc v1.64.0 // indirect
 	google.golang.org/protobuf v1.34.1 // indirect

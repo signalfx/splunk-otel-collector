@@ -13,7 +13,11 @@ cloud.google.com/go v0.56.0/go.mod h1:jr7tqZxxKOVYizybht9+26Z/gUq7tiRzu+ACVAMbKV
 cloud.google.com/go v0.57.0/go.mod h1:oXiQ6Rzq3RAkkY7N6t3TcE6jE+CIBBbA36lwQ1JyzZs=
 cloud.google.com/go v0.62.0/go.mod h1:jmCYTdRCQuc1PHIIJ/maLInMho30T/Y0M4hTdTShOYc=
 cloud.google.com/go v0.65.0/go.mod h1:O5N8zS7uWy9vkA9vayVHs65eM1ubvY4h553ofrNHObY=
-cloud.google.com/go v0.112.1 h1:uJSeirPke5UNZHIb4SxfZklVSiWWVqW4oXlETwZziwM=
+cloud.google.com/go v0.112.2 h1:ZaGT6LiG7dBzi6zNOvVZwacaXlmf3lRqnC4DQzqyRQw=
+cloud.google.com/go/auth v0.3.0 h1:PRyzEpGfx/Z9e8+lHsbkoUVXD0gnu4MNmm7Gp8TQNIs=
+cloud.google.com/go/auth v0.3.0/go.mod h1:lBv6NKTWp8E3LPzmO1TbiiRKc4drLOfHsgmlH9ogv5w=
+cloud.google.com/go/auth/oauth2adapt v0.2.2 h1:+TTV8aXpjeChS9M+aTtN/TjdQnzJvmzKFt//oWu7HX4=
+cloud.google.com/go/auth/oauth2adapt v0.2.2/go.mod h1:wcYjgpZI9+Yu7LyYBg4pqSiaRkfEK3GQcpb7C/uyF1Q=
 cloud.google.com/go/bigquery v1.0.1/go.mod h1:i/xbL2UlR5RvWAURpBYZTtm/cXjCha9lbfbpx4poX+o=
 cloud.google.com/go/bigquery v1.3.0/go.mod h1:PjpwJnslEMmckchkHFfq+HTD2DmtT67aNFKH1/VBDHE=
 cloud.google.com/go/bigquery v1.4.0/go.mod h1:S8dzgnTigyfTmLBfrtrhyYhwRxG72rYxvftPBK2Dvzc=
@@ -738,8 +742,8 @@ github.com/hashicorp/go-cleanhttp v0.5.2 h1:035FKYIWjmULyFRBKPs8TBQoi0x6d9G4xc9n
 github.com/hashicorp/go-cleanhttp v0.5.2/go.mod h1:kO/YDlP8L1346E6Sodw+PrpBSV4/SoxCXGY6BqNFT48=
 github.com/hashicorp/go-discover v0.0.0-20230724184603-e89ebd1b2f65 h1:+ZwaKkFuVWS7FZoiltT+7XW/MEFckY9Wxe+xIEErLcM=
 github.com/hashicorp/go-discover v0.0.0-20230724184603-e89ebd1b2f65/go.mod h1:RH2Jr1/cCsZ1nRLmAOC65hp/gRehf55SsUIYV2+NAxI=
-github.com/hashicorp/go-gcp-common v0.8.0 h1:/2vGAbCU1v+BZ3YHXTCzTvxqma9WOJHYtADTfhZixLo=
-github.com/hashicorp/go-gcp-common v0.8.0/go.mod h1:Q7zYRy9ue9SuaEN2s9YLIQs4SoKHdoRmKRcImY3SLgs=
+github.com/hashicorp/go-gcp-common v0.9.0 h1:dabqPrA+vlNWcyQV/3yOI6WCmQGFJgwyztDEsqDp+Q0=
+github.com/hashicorp/go-gcp-common v0.9.0/go.mod h1:aZnN6BVMqryPo4vIy97ZAYSoREnJWilLMmaOmi5P7vY=
 github.com/hashicorp/go-hclog v0.0.0-20180709165350-ff2cf002a8dd/go.mod h1:9bjs9uLqI8l75knNv3lV1kA55veR+WUPSiKIWcQHudI=
 github.com/hashicorp/go-hclog v0.8.0/go.mod h1:5CU+agLiy3J7N7QjHK5d05KxGsuXiQLrjA0H7acj2lQ=
 github.com/hashicorp/go-hclog v0.9.1/go.mod h1:5CU+agLiy3J7N7QjHK5d05KxGsuXiQLrjA0H7acj2lQ=
@@ -862,8 +866,8 @@ github.com/hashicorp/serf v0.10.1 h1:Z1H2J60yRKvfDYAOZLd2MU0ND4AH/WDz7xYHDWQsIPY
 github.com/hashicorp/serf v0.10.1/go.mod h1:yL2t6BqATOLGc5HF7qbFkTfXoPIY0WZdWHfEvMqbG+4=
 github.com/hashicorp/vault v1.16.2 h1:8usz1tMhWcl18PbdjQPKoL5UmenA2n4ZKB3oM04jTck=
 github.com/hashicorp/vault v1.16.2/go.mod h1:QqhZjf0dS0krRty6Wf8iSMx2EnIjAJSCpZ57jEmkQec=
-github.com/hashicorp/vault-plugin-auth-gcp v0.17.0 h1:xsoODlIYpMBr5ayT1krOKbOth9T0W+lbWXWmRVcnsLE=
-github.com/hashicorp/vault-plugin-auth-gcp v0.17.0/go.mod h1:TLVXBfEj7Zlcvmdg0nuSVUufxV4i1KyZOvzZY/x5fJI=
+github.com/hashicorp/vault-plugin-auth-gcp v0.18.0 h1:chiaa1NLN/B2fcoN/WY/YWVxB8F+hE5koudzLWQcG2c=
+github.com/hashicorp/vault-plugin-auth-gcp v0.18.0/go.mod h1:HtXlc4HKAmUe8/WE4hP0dirpkq4joxhvm8EZ/TvOZk0=
 github.com/hashicorp/vault-plugin-secrets-kv v0.17.0 h1:UNYINnuymcGRT+7UA0MciYAz06/6CB3Ll/P32nTXrNk=
 github.com/hashicorp/vault-plugin-secrets-kv v0.17.0/go.mod h1:2U8dr0BrVNIndr1lYrJ3Q92RCrJzpnDCkAmZe/JRyFo=
 github.com/hashicorp/vault/api v1.0.4/go.mod h1:gDcqh3WGcR1cpF5AJz/B1UFheUEneMoIospckxBxk6Q=
@@ -2324,8 +2328,8 @@ google.golang.org/api v0.24.0/go.mod h1:lIXQywCXRcnZPGlsd8NbLnOjtAoL6em04bJ9+z0M
 google.golang.org/api v0.28.0/go.mod h1:lIXQywCXRcnZPGlsd8NbLnOjtAoL6em04bJ9+z0MncE=
 google.golang.org/api v0.29.0/go.mod h1:Lcubydp8VUV7KeIHD9z2Bys/sm/vGKnG1UHuDBSrHWM=
 google.golang.org/api v0.30.0/go.mod h1:QGmEvQ87FHZNiUVJkT14jQNYJ4ZJjdRF23ZXz5138Fc=
-google.golang.org/api v0.172.0 h1:/1OcMZGPmW1rX2LCu2CmGUD1KXK1+pfzxotxyRUCCdk=
-google.golang.org/api v0.172.0/go.mod h1:+fJZq6QXWfa9pXhnIzsjx4yI22d4aI9ZpLb58gvXjis=
+google.golang.org/api v0.177.0 h1:8a0p/BbPa65GlqGWtUKxot4p0TV8OGOfyTjtmkXNXmk=
+google.golang.org/api v0.177.0/go.mod h1:srbhue4MLjkjbkux5p3dw/ocYOSZTaIEvf7bCOnFQDw=
 google.golang.org/appengine v1.1.0/go.mod h1:EbEs0AVv82hx2wNQdGPgUI5lhzA/G0D9YwlJXL52JkM=
 google.golang.org/appengine v1.4.0/go.mod h1:xpcJRLb0r/rnEns0DIKYYv+WjYCduHsrkT7/EB5XEv4=
 google.golang.org/appengine v1.5.0/go.mod h1:xpcJRLb0r/rnEns0DIKYYv+WjYCduHsrkT7/EB5XEv4=

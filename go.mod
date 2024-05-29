@@ -131,7 +131,7 @@ require (
 	go.opentelemetry.io/collector/extension v0.101.0
 	go.opentelemetry.io/collector/extension/ballastextension v0.101.0
 	go.opentelemetry.io/collector/extension/zpagesextension v0.101.0
-	go.opentelemetry.io/collector/otelcol v0.101.1-0.20240522182134-4f365892b751
+	go.opentelemetry.io/collector/otelcol v0.101.0
 	go.opentelemetry.io/collector/pdata v1.8.0
 	go.opentelemetry.io/collector/processor v0.101.0
 	go.opentelemetry.io/collector/processor/batchprocessor v0.101.0

@@ -34,5 +34,6 @@ func TestJMXReceiverProvidesAllJVMMetrics(t *testing.T) {
 		pmetrictest.IgnoreScopeMetricsOrder(),
 		pmetrictest.IgnoreMetricsOrder(),
 		pmetrictest.IgnoreMetricDataPointsOrder(),
+		pmetrictest.IgnoreResourceAttributeValue("telemetry.sdk.version"),
 	)
 }

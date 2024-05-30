@@ -96,8 +96,7 @@ jobs:
             ${{ matrix.ansible }}
             ansible-lint==6.22.2
             molecule==6.0.3
-            molecule-plugins[docker]==23.5.3
-            docker==7.1.0
+            requests<2.32.0
             urllib3<2
 
       - name: Set up Python 3.

@@ -75,9 +75,9 @@ integration-vet:
 integration-test:
 	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=integration -v -timeout 5m -count 1 ./...
 
-.PHONY: integration-test-discovery
-integration-test-discovery:
-	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration -v -timeout 5m -count 1 ./...
+.PHONY: integration-test-mongodb-discovery
+integration-test-mongodb-discovery:
+	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_mongodb -v -timeout 5m -count 1 ./...
 
 .PHONY: smartagent-integration-test
 smartagent-integration-test:

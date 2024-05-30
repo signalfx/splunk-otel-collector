@@ -150,25 +150,14 @@ services:
     build: ./kong
     ports:
       - "18001:8001"
-  mongodb-4.0:
-    image: quay.io/splunko11ytest/mongodb-4.0:latest
+  mongodb:
+    image: quay.io/splunko11ytest/mongodb:latest
     profiles:
-      - mongo-4.0
-    build: ./mongodb-4.0
-    ports:
-      - "27017:27017"
-  mongodb-4.4:
-    image: quay.io/splunko11ytest/mongodb-4.4:latest
-    profiles:
-      - mongo-4.4
-    build: ./mongodb-4.4
-    ports:
-      - "27017:27017"
-  mongodb-5.0:
-    image: quay.io/splunko11ytest/mongodb-5.0:latest
-    profiles:
-      - mongo-5.0
-    build: ./mongodb-5.0
+      - integration-test-mongodb-discovery
+    build:
+      context: ./mongodb
+      args:
+        MONGODB_VERSION: ${MONGODB_VERSION}
     ports:
       - "27017:27017"
   mysql:

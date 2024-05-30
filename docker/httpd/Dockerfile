@@ -1,3 +1,3 @@
-FROM dragas/thttpd
+FROM dragas/thttpd@sha256:6e37de232de78f331e013b23119f805ab138baad3ab29d0885b45bb684ae3a79
 
 COPY metrics /var/www/http/

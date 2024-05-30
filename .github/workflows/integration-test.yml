@@ -177,25 +177,14 @@ jobs:
       strategy:
         matrix:
           ARCH: [ "amd64", "arm64" ]
-          PROFILE: ["mongo-4.0", "mongo-4.4", "mongo-5.0"]
+          MONGODB_VERSION: [ "4.0", "4.4", "5.0" ]
         fail-fast: false
       steps:
         - uses: actions/checkout@v4
           with:
             fetch-depth: 0
-        - name: Build ${{ matrix.PROFILE }} service images
-          run: |
-            images=$(yq '.services[] | select(.profiles[] | contains("${{ matrix.PROFILE }}")) | .image' docker/docker-compose.yml | grep "quay.io/splunko11ytest/" | sort -u)
-            for image in $images; do
-              service=$(echo $image | sed 's|quay.io/splunko11ytest/\(.*\):latest|\1|')
-              if [[ -f docker/${service}/Dockerfile ]]; then
-                docker build --cache-from=quay.io/splunko11ytest/${service}:latest -t quay.io/splunko11ytest/${service}:latest docker/${service}
-              fi
-            done
-            docker system prune -f
-            docker builder prune -f
-            docker images
-        - run: docker compose -f docker/docker-compose.yml --profile ${{ matrix.PROFILE }} up -d --quiet-pull
+        - run: echo "MONGODB_VERSION=${{ matrix.MONGODB_VERSION }}" > docker/.env
+        - run: docker compose -f docker/docker-compose.yml --profile integration-test-discovery up -d --quiet-pull
         - uses: actions/setup-go@v5
           with:
             go-version: ${{ env.GO_VERSION }}
@@ -215,7 +204,7 @@ jobs:
           run: |
             set -o pipefail
             target="integration-test-discovery"
-            make $target 2>&1 | tee ${{ matrix.PROFILE }}-${{ github.run_id }}-${{ matrix.ARCH }}.out
+            make $target 2>&1 | tee mongodb-${{ matrix.MONGODB_VERSION }}-${{ github.run_id }}-${{ matrix.ARCH }}.out
             exit_status=${PIPESTATUS[0]}
             echo "Exit status: $exit_status"
             exit $exit_status

@@ -28,8 +28,6 @@
         log_record:
           body: >-
             Make sure your user credentials are correctly specified using the
-            `--set {{ configProperty "username" "<username>" }}` and
-            `--set {{ configProperty "password" "<password>" }}` command or the
             `{{ configPropertyEnvVar "username" "<username>" }}` and
             `{{ configPropertyEnvVar "password" "<password>" }}` environment variables.
       - status: partial
@@ -37,12 +35,10 @@
         log_record:
           body: >-
             Make sure your MySQL databases are correctly specified using the
-            `--set {{ configProperty "databases" "[{name: '<db-name-0>'}, {name: '<db-name-1>', username: '<username>', password: '<password>'}]" }}` command or the
             `{{ configPropertyEnvVar "databases" "[{name: '<db-name-0>'}, {name: '<db-name-1>', username: '<username>', password: '<password>'}]" }}` environment variable.
       - status: partial
         regexp: 'mysql plugin: Failed to connect to database .* at server .* Access denied for user .* to database'
         log_record:
           body: >-
             Make sure your MySQL databases and auth information are correctly specified using the
-            `--set {{ configProperty "databases" "[{name: '<db-name-0>'}, {name: '<db-name-1>', username: '<username>', password: '<password>'}]" }}` command or the
             `{{ configPropertyEnvVar "databases" "[{name: '<db-name-0>'}, {name: '<db-name-1>', username: '<username>', password: '<password>'}]" }}` environment variable.

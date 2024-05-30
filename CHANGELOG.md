@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 🧰 Bug fixes 🧰
+
+- (Splunk) `discovery`: Fix crashing collector if discovered mongodb isn't reachable in Kubernetes ([#4911](https://github.com/signalfx/splunk-otel-collector/pull/4911)))
+
 ## v0.101.0
 
 ### 🛑 Breaking changes 🛑

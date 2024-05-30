@@ -18,6 +18,7 @@ mongodb:
       hosts:
         - endpoint: '`endpoint`'
           transport: tcp
+      timeout: 5s
   status:
     metrics:
       - status: successful

@@ -18,6 +18,7 @@ mongodb:
       hosts:
         - endpoint: '`endpoint`'
           transport: tcp
+      timeout: 5s
   status:
     metrics:
       - status: successful
@@ -38,8 +39,6 @@ mongodb:
         log_record:
           body: >-
               Please ensure your user credentials are correctly specified with
-              `--set splunk.discovery.receivers.mongodb.config.username="<username>"` and
-              `--set splunk.discovery.receivers.mongodb.config.password="<password>"` or
               `SPLUNK_DISCOVERY_RECEIVERS_mongodb_CONFIG_username="<username>"` and
               `SPLUNK_DISCOVERY_RECEIVERS_mongodb_CONFIG_password="<password>"` environment variables.
       - status: partial

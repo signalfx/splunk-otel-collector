@@ -41,8 +41,6 @@
         log_record:
           body: >-
             Please ensure your user credentials are correctly specified with
-            `--set {{ configProperty "params" "username" "<username>" }}` and
-            `--set {{ configProperty "params" "password" "<password>" }}` or
             `{{ configPropertyEnvVar "params" "username" "<username>" }}` and
             `{{ configPropertyEnvVar "params" "password" "<password>" }}` environment variables.
       - status: partial
@@ -50,7 +48,6 @@
         log_record:
           body: >-
             Make sure the target database is correctly specified using the
-            `--set {{ configProperty "masterDBName" "<db>" }}` command or the
             `{{ configPropertyEnvVar "masterDBName" "<db>" }}` environment variable.
       - status: partial
         regexp: 'pq: pg_stat_statements must be loaded via shared_preload_libraries'

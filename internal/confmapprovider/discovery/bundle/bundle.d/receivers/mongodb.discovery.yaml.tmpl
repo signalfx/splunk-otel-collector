@@ -14,6 +14,7 @@
       hosts:
         - endpoint: '`endpoint`'
           transport: tcp
+      timeout: 5s
   status:
     metrics:
       - status: successful
@@ -34,8 +35,6 @@
         log_record:
           body: >-
               Please ensure your user credentials are correctly specified with
-              `--set {{ configProperty "username" "<username>" }}` and
-              `--set {{ configProperty "password" "<password>" }}` or
               `{{ configPropertyEnvVar "username" "<username>" }}` and
               `{{ configPropertyEnvVar "password" "<password>" }}` environment variables.
       - status: partial

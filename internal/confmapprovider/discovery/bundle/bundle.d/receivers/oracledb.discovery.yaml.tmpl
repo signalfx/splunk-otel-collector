@@ -37,14 +37,11 @@
         log_record:
           body: >-
             Make sure your oracledb service is correctly specified using the
-            `--set {{ configProperty "service" "<service>" }}` command or the
             `{{ configPropertyEnvVar "service" "<service>" }}` environment variable.
       - status: partial
         regexp: 'invalid username/password'
         log_record:
           body: >-
             Make sure your user credentials are correctly specified using the
-            `--set {{ configProperty "username" "<username>" }}` and
-            `--set {{ configProperty "password" "<password>" }}` command or the
             `{{ configPropertyEnvVar "username" "<username>" }}` and
             `{{ configPropertyEnvVar "password" "<password>" }}` environment variables.

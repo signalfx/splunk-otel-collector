@@ -45,14 +45,11 @@
 #         log_record:
 #           body: >-
 #             Make sure your oracledb service is correctly specified using the
-#             `--set splunk.discovery.receivers.oracledb.config.service="<service>"` command or the
 #             `SPLUNK_DISCOVERY_RECEIVERS_oracledb_CONFIG_service="<service>"` environment variable.
 #       - status: partial
 #         regexp: 'invalid username/password'
 #         log_record:
 #           body: >-
 #             Make sure your user credentials are correctly specified using the
-#             `--set splunk.discovery.receivers.oracledb.config.username="<username>"` and
-#             `--set splunk.discovery.receivers.oracledb.config.password="<password>"` command or the
 #             `SPLUNK_DISCOVERY_RECEIVERS_oracledb_CONFIG_username="<username>"` and
 #             `SPLUNK_DISCOVERY_RECEIVERS_oracledb_CONFIG_password="<password>"` environment variables.

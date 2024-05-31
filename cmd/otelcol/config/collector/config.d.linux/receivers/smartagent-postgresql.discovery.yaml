@@ -49,8 +49,6 @@
 #         log_record:
 #           body: >-
 #             Please ensure your user credentials are correctly specified with
-#             `--set splunk.discovery.receivers.smartagent/postgresql.config.params::username="<username>"` and
-#             `--set splunk.discovery.receivers.smartagent/postgresql.config.params::password="<password>"` or
 #             `SPLUNK_DISCOVERY_RECEIVERS_smartagent_x2f_postgresql_CONFIG_params_x3a__x3a_username="<username>"` and
 #             `SPLUNK_DISCOVERY_RECEIVERS_smartagent_x2f_postgresql_CONFIG_params_x3a__x3a_password="<password>"` environment variables.
 #       - status: partial
@@ -58,7 +56,6 @@
 #         log_record:
 #           body: >-
 #             Make sure the target database is correctly specified using the
-#             `--set splunk.discovery.receivers.smartagent/postgresql.config.masterDBName="<db>"` command or the
 #             `SPLUNK_DISCOVERY_RECEIVERS_smartagent_x2f_postgresql_CONFIG_masterDBName="<db>"` environment variable.
 #       - status: partial
 #         regexp: 'pq: pg_stat_statements must be loaded via shared_preload_libraries'

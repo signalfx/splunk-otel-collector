@@ -167,7 +167,7 @@ func TestIntegrationMongoDBAutoDiscovery(t *testing.T) {
 	}
 
 	successfulDiscoveryMsg := `mongodb receiver is working!`
-	partialDiscoveryMsg := "Please ensure your user credentials are correctly specified with `--set {{ configProperty \"username\" \"<username>\" }}` and `--set {{ configProperty \"password\" \"<password>\" }}` or `{{ configPropertyEnvVar \"username\" \"<username>\" }}` and `{{ configPropertyEnvVar \"password\" \"<password>\" }}` environment variables."
+	partialDiscoveryMsg := "Please ensure your user credentials are correctly specified with `{{ configPropertyEnvVar \"username\" \"<username>\" }}` and `{{ configPropertyEnvVar \"password\" \"<password>\" }}` environment variables."
 	ctx := context.Background()
 
 	tests := map[string]struct {

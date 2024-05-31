@@ -30,8 +30,6 @@
         log_record:
           body: >-
             Make sure your user credentials are correctly specified using the
-            `--set {{ configProperty "password" "<password>" }}` and
-            `--set {{ configProperty "username" "<username>" }}` commands or the
             `{{ configPropertyEnvVar "password" "<password>" }}` and
             `{{ configPropertyEnvVar "password" "<password>" }}` environment variables.
       - status: partial
@@ -39,14 +37,11 @@
         log_record:
           body: >-
             Make sure your user credentials are correctly specified using the
-            `--set {{ configProperty "password" "<password>" }}` command or the
             `{{ configPropertyEnvVar "password" "<password>" }}` environment variables.
       - status: partial
         regexp: 'WRONGPASS invalid username-password pair or user is disabled'
         log_record:
           body: >-
             Make sure your user credentials are correctly specified using the
-            `--set {{ configProperty "password" "<password>" }}` and
-            `--set {{ configProperty "username" "<username>" }}` commands or the
             `{{ configPropertyEnvVar "password" "<password>" }}` and
             `{{ configPropertyEnvVar "password" "<password>" }}` environment variables.

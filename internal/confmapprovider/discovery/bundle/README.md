@@ -32,7 +32,6 @@ Example `redis.discovery.yaml.tmpl`:
           log_record:
             body: >-
               Please ensure your redis password is correctly specified with
-              `--set {{ configProperty "password" "<password>" }}` or
               `{{ configPropertyEnvVar "password" "<username>" }}` environment variable.
 ```
 

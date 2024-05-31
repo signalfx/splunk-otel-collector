@@ -105,8 +105,6 @@ receivers:
                log_record:
                  body: >-
                    Make sure your user credentials are correctly specified using the
-                   `--set splunk.discovery.receivers.mysql.config.username="<username>"` and
-                   `--set splunk.discovery.receivers.mysql.config.password="<password>"` command or the
                    `SPLUNK_DISCOVERY_RECEIVERS_mysql_CONFIG_username="<username>"` and
                    `SPLUNK_DISCOVERY_RECEIVERS_mysql_CONFIG_password="<password>"` environment variables.
 exporters:

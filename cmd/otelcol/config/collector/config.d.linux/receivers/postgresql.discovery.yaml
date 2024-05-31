@@ -36,8 +36,6 @@
 #         log_record:
 #           body: >-
 #             Please ensure your user credentials are correctly specified with
-#             `--set splunk.discovery.receivers.postgresql.config.username="<username>"` and
-#             `--set splunk.discovery.receivers.postgresql.config.password="<password>"` or
 #             `SPLUNK_DISCOVERY_RECEIVERS_postgresql_CONFIG_username="<username>"` and
 #             `SPLUNK_DISCOVERY_RECEIVERS_postgresql_CONFIG_password="<password>"` environment variables.
 #       - status: partial
@@ -45,14 +43,12 @@
 #         log_record:
 #           body: >-
 #             Make sure the target database is correctly specified using the
-#             `--set splunk.discovery.receivers.postgresql.config.databases="[<db>]"` command or the
 #             `SPLUNK_DISCOVERY_RECEIVERS_postgresql_CONFIG_databases="[<db>]"` environment variable.
 #       - status: partial
 #         regexp: 'pq: SSL is not enabled on the server'
 #         log_record:
 #           body: >-
 #             Make sure the target database has SSL enabled or set insecure using the
-#             `--set splunk.discovery.receivers.postgresql.config.tls::insecure="<boolean>"` command or the
 #             `SPLUNK_DISCOVERY_RECEIVERS_postgresql_CONFIG_tls_x3a__x3a_insecure="<boolean>"` environment variable.
 #       - status: partial
 #         regexp: 'pq: pg_stat_statements must be loaded via shared_preload_libraries'

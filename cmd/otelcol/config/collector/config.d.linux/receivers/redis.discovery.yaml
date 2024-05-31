@@ -38,18 +38,16 @@
 #         log_record:
 #           body: >-
 #             Make sure your user credentials are correctly specified using the
-#             `SPLUNK_DISCOVERY_RECEIVERS_redis_CONFIG_password="<password>"` and
-#             `SPLUNK_DISCOVERY_RECEIVERS_redis_CONFIG_password="<password>"` environment variables.
+#             `SPLUNK_DISCOVERY_RECEIVERS_redis_CONFIG_password="<password>"` environment variable.
 #       - status: partial
 #         regexp: 'called without any password configured for the default user'
 #         log_record:
 #           body: >-
 #             Make sure your user credentials are correctly specified using the
-#             `SPLUNK_DISCOVERY_RECEIVERS_redis_CONFIG_password="<password>"` environment variables.
+#             `SPLUNK_DISCOVERY_RECEIVERS_redis_CONFIG_password="<password>"` environment variable.
 #       - status: partial
 #         regexp: 'WRONGPASS invalid username-password pair or user is disabled'
 #         log_record:
 #           body: >-
 #             Make sure your user credentials are correctly specified using the
-#             `SPLUNK_DISCOVERY_RECEIVERS_redis_CONFIG_password="<password>"` and
-#             `SPLUNK_DISCOVERY_RECEIVERS_redis_CONFIG_password="<password>"` environment variables.
+#             `SPLUNK_DISCOVERY_RECEIVERS_redis_CONFIG_password="<password>"` environment variable.

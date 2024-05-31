@@ -30,18 +30,16 @@
         log_record:
           body: >-
             Make sure your user credentials are correctly specified using the
-            `{{ configPropertyEnvVar "password" "<password>" }}` and
-            `{{ configPropertyEnvVar "password" "<password>" }}` environment variables.
+            `{{ configPropertyEnvVar "password" "<password>" }}` environment variable.
       - status: partial
         regexp: 'called without any password configured for the default user'
         log_record:
           body: >-
             Make sure your user credentials are correctly specified using the
-            `{{ configPropertyEnvVar "password" "<password>" }}` environment variables.
+            `{{ configPropertyEnvVar "password" "<password>" }}` environment variable.
       - status: partial
         regexp: 'WRONGPASS invalid username-password pair or user is disabled'
         log_record:
           body: >-
             Make sure your user credentials are correctly specified using the
-            `{{ configPropertyEnvVar "password" "<password>" }}` and
-            `{{ configPropertyEnvVar "password" "<password>" }}` environment variables.
+            `{{ configPropertyEnvVar "password" "<password>" }}` environment variable.

@@ -17,5 +17,4 @@ prometheus_simple:
     metrics:
       - status: successful
         strict: prometheus_tsdb_time_retentions_total
-        log_record:
-          body: prometheus detected
+        message: prometheus detected

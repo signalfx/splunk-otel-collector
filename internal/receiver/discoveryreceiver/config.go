@@ -75,17 +75,11 @@ type Status struct {
 // Match defines the rules for the desired match type and resulting log record
 // content emitted by the Discovery receiver
 type Match struct {
-	Status discovery.StatusType `mapstructure:"status"`
-	Record *LogRecord           `mapstructure:"log_record"`
-	Strict string               `mapstructure:"strict"`
-	Regexp string               `mapstructure:"regexp"`
-	Expr   string               `mapstructure:"expr"`
-}
-
-// LogRecord is a definition of the desired plog.LogRecord content to emit for a match.
-type LogRecord struct {
-	Attributes map[string]string `mapstructure:"attributes"`
-	Body       string            `mapstructure:"body"`
+	Status  discovery.StatusType `mapstructure:"status"`
+	Message string               `mapstructure:"message"`
+	Strict  string               `mapstructure:"strict"`
+	Regexp  string               `mapstructure:"regexp"`
+	Expr    string               `mapstructure:"expr"`
 }
 
 func (cfg *Config) Validate() error {

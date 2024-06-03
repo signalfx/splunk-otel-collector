@@ -18,36 +18,29 @@
 #     metrics:
 #       - status: successful
 #         strict: redis.uptime
-#         log_record:
-#           body: redis receiver is working!
+#         message: redis receiver is working!
 #     statements:
 #       - status: failed
 #         regexp: "connection refused"
-#         log_record:
-#           body: The container is not serving http connections.
+#         message: The container is not serving http connections.
 #       - status: failed
 #         regexp: "received goaway and there are no active streams"
-#         log_record:
-#           body: Unable to connect and scrape metrics.
+#         message: Unable to connect and scrape metrics.
 #       - status: failed
 #         regexp: "dial tcp: lookup"
-#         log_record:
-#           body: Unable to resolve redis tcp endpoint
+#         message: Unable to resolve redis tcp endpoint
 #       - status: partial
 #         regexp: 'NOAUTH Authentication required.'
-#         log_record:
-#           body: >-
-#             Make sure your user credentials are correctly specified using the
-#             `SPLUNK_DISCOVERY_RECEIVERS_redis_CONFIG_password="<password>"` environment variable.
+#         message: >-
+#           Make sure your user credentials are correctly specified using the
+#           `SPLUNK_DISCOVERY_RECEIVERS_redis_CONFIG_password="<password>"` environment variable.
 #       - status: partial
 #         regexp: 'called without any password configured for the default user'
-#         log_record:
-#           body: >-
-#             Make sure your user credentials are correctly specified using the
-#             `SPLUNK_DISCOVERY_RECEIVERS_redis_CONFIG_password="<password>"` environment variable.
+#         message: >-
+#           Make sure your user credentials are correctly specified using the
+#           `SPLUNK_DISCOVERY_RECEIVERS_redis_CONFIG_password="<password>"` environment variable.
 #       - status: partial
 #         regexp: 'WRONGPASS invalid username-password pair or user is disabled'
-#         log_record:
-#           body: >-
-#             Make sure your user credentials are correctly specified using the
-#             `SPLUNK_DISCOVERY_RECEIVERS_redis_CONFIG_password="<password>"` environment variable.
+#         message: >-
+#           Make sure your user credentials are correctly specified using the
+#           `SPLUNK_DISCOVERY_RECEIVERS_redis_CONFIG_password="<password>"` environment variable.

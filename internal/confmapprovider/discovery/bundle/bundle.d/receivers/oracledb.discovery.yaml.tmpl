@@ -13,35 +13,28 @@
     metrics:
       - status: successful
         strict: oracledb.cpu_time
-        log_record:
-          body: oracledb receiver is working!
+        message: oracledb receiver is working!
     statements:
       - status: failed
         regexp: "connection refused"
-        log_record:
-          body: The container is not serving http connections.
+        message: The container is not serving http connections.
       - status: failed
         regexp: "received goaway and there are no active streams"
-        log_record:
-          body: Unable to connect and scrape metrics.
+        message: Unable to connect and scrape metrics.
       - status: failed
         regexp: "dial tcp: lookup"
-        log_record:
-          body: Unable to resolve oracledb tcp endpoint
+        message: Unable to resolve oracledb tcp endpoint
       - status: failed
         regexp: 'error executing select .*: EOF'
-        log_record:
-          body: Unable to execute select from oracledb. Verify endpoint and user permissions.
+        message: Unable to execute select from oracledb. Verify endpoint and user permissions.
       - status: partial
         regexp: "listener does not currently know of service requested"
-        log_record:
-          body: >-
-            Make sure your oracledb service is correctly specified using the
-            `{{ configPropertyEnvVar "service" "<service>" }}` environment variable.
+        message: >-
+          Make sure your oracledb service is correctly specified using the
+          `{{ configPropertyEnvVar "service" "<service>" }}` environment variable.
       - status: partial
         regexp: 'invalid username/password'
-        log_record:
-          body: >-
-            Make sure your user credentials are correctly specified using the
-            `{{ configPropertyEnvVar "username" "<username>" }}` and
-            `{{ configPropertyEnvVar "password" "<password>" }}` environment variables.
+        message: >-
+          Make sure your user credentials are correctly specified using the
+          `{{ configPropertyEnvVar "username" "<username>" }}` and
+          `{{ configPropertyEnvVar "password" "<password>" }}` environment variables.

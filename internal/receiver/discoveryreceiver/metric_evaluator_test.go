@@ -58,12 +58,7 @@ func TestMetricEvaluation(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			match := tc.match
-			match.Record = &LogRecord{
-				Body: "desired body content",
-				Attributes: map[string]string{
-					"one": "one.value", "two": "two.value",
-				},
-			}
+			match.Message = "desired body content"
 			for _, status := range discovery.StatusTypes {
 				match.Status = status
 				t.Run(string(status), func(t *testing.T) {
@@ -133,8 +128,6 @@ func TestMetricEvaluation(t *testing.T) {
 						"discovery.receiver.type": "a_receiver",
 						"discovery.status":        string(status),
 						"discovery.message":       "desired body content",
-						"one":                     "one.value",
-						"two":                     "two.value",
 						"extra_attr":              "target_resource",
 					}, cStore.Attrs(endpointID))
 				})

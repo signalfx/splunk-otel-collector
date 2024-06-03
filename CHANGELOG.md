@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 🛑 Breaking changes 🛑
+
+- (Splunk) `receiver/discovery`: Replace `log_record` field with `message` in evaluation statements ([#4583](https://github.com/signalfx/splunk-otel-collector/pull/4583))
+
 ### 🚩 Deprecations 🚩
 
 - (Splunk) The following docker images/manifests are deprecated and may not be published in a future release:

@@ -186,14 +186,7 @@ func (se *statementEvaluator) evaluateStatement(statement *statussources.Stateme
 		attrs[discovery.ReceiverNameAttr] = receiverID.Name()
 		attrs[discovery.MessageAttr] = statement.Message
 		attrs[receiverRuleAttr] = rEntry.Rule.String()
-
-		var desiredRecord LogRecord
-		if match.Record != nil {
-			desiredRecord = *match.Record
-		}
-		if desiredRecord.Body != "" {
-			attrs[discovery.MessageAttr] = desiredRecord.Body
-		}
+		attrs[discovery.MessageAttr] = match.Message
 
 		// set original message as "discovery.matched_log" attribute
 		attrs[matchedLogAttr] = statement.Message
@@ -201,11 +194,6 @@ func (se *statementEvaluator) evaluateStatement(statement *statussources.Stateme
 			attrs[matchedLogAttr] += fmt.Sprintf(" (error: %v)", err)
 		}
 
-		if len(desiredRecord.Attributes) > 0 {
-			for k, v := range desiredRecord.Attributes {
-				attrs[k] = v
-			}
-		}
 		attrs[discovery.StatusAttr] = string(match.Status)
 		se.correlations.UpdateAttrs(endpointID, attrs)
 

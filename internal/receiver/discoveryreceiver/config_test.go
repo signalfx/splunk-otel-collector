@@ -55,39 +55,27 @@ func TestValidConfig(t *testing.T) {
 				Status: &Status{
 					Metrics: []Match{
 						{
-							Status: discovery.Successful,
-							Record: &LogRecord{
-								Attributes: map[string]string{
-									"attr_one": "attr_one_val",
-									"attr_two": "attr_two_val",
-								},
-								Body: "smartagent/redis receiver successful status",
-							},
-							Strict: "",
-							Regexp: ".*",
-							Expr:   "",
+							Status:  discovery.Successful,
+							Message: "smartagent/redis receiver successful status",
+							Strict:  "",
+							Regexp:  ".*",
+							Expr:    "",
 						},
 					},
 					Statements: []Match{
 						{
-							Status: discovery.Failed,
-							Strict: "",
-							Regexp: "ConnectionRefusedError",
-							Expr:   "",
-							Record: &LogRecord{
-								Attributes: map[string]string{},
-								Body:       "container appears to not be accepting redis connections",
-							},
+							Status:  discovery.Failed,
+							Strict:  "",
+							Regexp:  "ConnectionRefusedError",
+							Expr:    "",
+							Message: "container appears to not be accepting redis connections",
 						},
 						{
-							Status: discovery.Partial,
-							Strict: "",
-							Regexp: "(WRONGPASS|NOAUTH|ERR AUTH)",
-							Expr:   "",
-							Record: &LogRecord{
-								Attributes: nil,
-								Body:       "desired log invalid auth log body",
-							},
+							Status:  discovery.Partial,
+							Strict:  "",
+							Regexp:  "(WRONGPASS|NOAUTH|ERR AUTH)",
+							Expr:    "",
+							Message: "desired log invalid auth log body",
 						},
 					},
 				},

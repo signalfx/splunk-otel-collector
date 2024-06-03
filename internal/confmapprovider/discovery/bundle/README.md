@@ -29,10 +29,9 @@ Example `redis.discovery.yaml.tmpl`:
     statements:
       partial:
         - regexp: 'ERR AUTH.*'
-          log_record:
-            body: >-
-              Please ensure your redis password is correctly specified with
-              `{{ configPropertyEnvVar "password" "<username>" }}` environment variable.
+          message: >-
+            Please ensure your redis password is correctly specified with
+            `{{ configPropertyEnvVar "password" "<username>" }}` environment variable.
 ```
 
 After adding the required new component filename prefix to the `Components` instance in [`components.go`](./components.go)
@@ -52,11 +51,10 @@ redis:
     statements:
       partial:
         - regexp: 'ERR AUTH.*'
-          log_record:
-            body: >-
-              Please ensure your redis password is correctly specified with
-              `--set splunk.discovery.receivers.redis.config.password="<password>"` or
-              `SPLUNK_DISCOVERY_RECEIVERS_redis_CONFIG_password="<username>"` environment variable.
+          message: >-
+            Please ensure your redis password is correctly specified with
+            `--set splunk.discovery.receivers.redis.config.password="<password>"` or
+            `SPLUNK_DISCOVERY_RECEIVERS_redis_CONFIG_password="<username>"` environment variable.
 ```
 
 In order for this to be included in the [Windows](./bundledfs_windows.go) and [Linux](./bundledfs_others.go) `BundledFS`

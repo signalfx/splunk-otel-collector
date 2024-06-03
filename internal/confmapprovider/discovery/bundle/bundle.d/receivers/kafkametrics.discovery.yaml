@@ -19,14 +19,11 @@ kafkametrics:
     metrics:
       - status: successful
         strict: kafka.brokers
-        log_record:
-          body: kafkametrics receiver is working!
+        message: kafkametrics receiver is working!
     statements:
       - status: failed
         regexp: 'connect: network is unreachable'
-        log_record:
-          body: The container cannot be reached by the Collector. Make sure they're in the same network.
+        message: The container cannot be reached by the Collector. Make sure they're in the same network.
       - status: failed
         regexp: 'connect: connection refused'
-        log_record:
-          body: The container is refusing kafka server connections.
+        message: The container is refusing kafka server connections.

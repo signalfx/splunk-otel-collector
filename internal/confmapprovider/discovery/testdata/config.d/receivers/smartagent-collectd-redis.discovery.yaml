@@ -11,19 +11,15 @@ smartagent/collectd/redis:
     metrics:
       successful:
         - regexp: '.*'
-          log_record:
-            body: smartagent/collectd-redis receiver successful metric status
+          message: smartagent/collectd-redis receiver successful metric status
     statements:
       failed:
         - regexp: 'raise ValueError\(\"Unknown Redis response'
-          log_record:
-            body: container appears to not actually be redis
+          message: container appears to not actually be redis
         - regexp: '^redis_info plugin: Error connecting to .* - ConnectionRefusedError.*$'
-          log_record:
-            body: container appears to not be accepting redis connections
+          message: container appears to not be accepting redis connections
       partial:
         - regexp: "^redis_info plugin: Error .* - RedisError\\('-(WRONGPASS|NOAUTH|ERR AUTH).*$"
-          log_record:
-            body: >-
+          message: >-
               Please ensure that your redis password is correctly specified in `splunk.discovery.receivers.smartagent/collectd/redis.config.auth`
               or via the `SPLUNK_DISCOVERY_RECEIVERS_SMARTAGENT_COLLECTD_REDIS_CONFIG_AUTH` environment variable.

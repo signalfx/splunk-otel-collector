@@ -39,12 +39,7 @@ func TestStatementEvaluation(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			match := tc.match
-			match.Record = &LogRecord{
-				Body: "desired body content",
-				Attributes: map[string]string{
-					"attr.one": "attr.one.value", "attr.two": "attr.two.value",
-				},
-			}
+			match.Message = "desired body content"
 			for _, status := range discovery.StatusTypes {
 				match.Status = status
 				t.Run(string(status), func(t *testing.T) {
@@ -112,8 +107,6 @@ func TestStatementEvaluation(t *testing.T) {
 						"discovery.status":        string(status),
 						"discovery.message":       "desired body content",
 						"discovery.matched_log":   "desired.statement (error: some error)",
-						"attr.one":                "attr.one.value",
-						"attr.two":                "attr.two.value",
 					}, cStore.Attrs(endpointID))
 				})
 			}

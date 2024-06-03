@@ -238,30 +238,24 @@ var expectedConfig = Config{
 					"metrics": map[any]any{
 						"successful": []any{
 							map[any]any{
-								"strict": "postgres_block_hit_ratio",
-								"log_record": map[any]any{
-									"body": "postgresql SA receiver working!",
-								},
+								"strict":  "postgres_block_hit_ratio",
+								"message": "postgresql SA receiver working!",
 							},
 						},
 					},
 					"statements": map[any]any{
 						"failed": []any{
 							map[any]any{
-								"regexp": ".* connect: connection refused",
-								"log_record": map[any]any{
-									"body": "container appears to not be accepting postgres connections",
-								},
+								"regexp":  ".* connect: connection refused",
+								"message": "container appears to not be accepting postgres connections",
 							},
 						},
 						"partial": []any{
 							map[any]any{
 								"regexp": ".*pq: password authentication failed for user.*",
-								"log_record": map[any]any{
-									"body": "Please ensure that your password is correctly specified " +
-										"in `splunk.discovery.receivers.smartagent/postgresql.config.params.username` and " +
-										"`splunk.discovery.receivers.smartagent/postgresql.config.params.password`",
-								},
+								"message": "Please ensure that your password is correctly specified " +
+									"in `splunk.discovery.receivers.smartagent/postgresql.config.params.username` and " +
+									"`splunk.discovery.receivers.smartagent/postgresql.config.params.password`",
 							},
 						},
 					},
@@ -287,36 +281,28 @@ var expectedConfig = Config{
 					"metrics": map[any]any{
 						"successful": []any{
 							map[any]any{
-								"regexp": ".*",
-								"log_record": map[any]any{
-									"body": "smartagent/collectd-redis receiver successful metric status",
-								},
+								"regexp":  ".*",
+								"message": "smartagent/collectd-redis receiver successful metric status",
 							},
 						},
 					},
 					"statements": map[any]any{
 						"failed": []any{
 							map[any]any{
-								"regexp": `raise ValueError\(\"Unknown Redis response`,
-								"log_record": map[any]any{
-									"body": "container appears to not actually be redis",
-								},
+								"regexp":  `raise ValueError\(\"Unknown Redis response`,
+								"message": "container appears to not actually be redis",
 							},
 							map[any]any{
-								"regexp": "^redis_info plugin: Error connecting to .* - ConnectionRefusedError.*$",
-								"log_record": map[any]any{
-									"body": "container appears to not be accepting redis connections",
-								},
+								"regexp":  "^redis_info plugin: Error connecting to .* - ConnectionRefusedError.*$",
+								"message": "container appears to not be accepting redis connections",
 							},
 						},
 						"partial": []any{
 							map[any]any{
 								"regexp": "^redis_info plugin: Error .* - RedisError\\('-(WRONGPASS|NOAUTH|ERR AUTH).*$",
-								"log_record": map[any]any{
-									"body": "Please ensure that your redis password is correctly specified in " +
-										"`splunk.discovery.receivers.smartagent/collectd/redis.config.auth` or via the " +
-										"`SPLUNK_DISCOVERY_RECEIVERS_SMARTAGENT_COLLECTD_REDIS_CONFIG_AUTH` environment variable.",
-								},
+								"message": "Please ensure that your redis password is correctly specified in " +
+									"`splunk.discovery.receivers.smartagent/collectd/redis.config.auth` or via the " +
+									"`SPLUNK_DISCOVERY_RECEIVERS_SMARTAGENT_COLLECTD_REDIS_CONFIG_AUTH` environment variable.",
 							},
 						},
 					},

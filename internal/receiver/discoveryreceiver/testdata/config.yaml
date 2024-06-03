@@ -18,18 +18,11 @@ discovery:
         metrics:
           - status: successful
             regexp: '.*'
-            log_record:
-              body: smartagent/redis receiver successful status
-              attributes:
-                attr_one: attr_one_val
-                attr_two: attr_two_val
+            message: smartagent/redis receiver successful status
         statements:
           - status: failed
             regexp: ConnectionRefusedError
-            log_record:
-              attributes: {}
-              body: container appears to not be accepting redis connections
+            message: container appears to not be accepting redis connections
           - status: partial
             regexp: (WRONGPASS|NOAUTH|ERR AUTH)
-            log_record:
-              body: desired log invalid auth log body
+            message: desired log invalid auth log body

@@ -282,3 +282,47 @@ jobs:
             exit $exit_status
           env:
             SPLUNK_OTEL_COLLECTOR_IMAGE: 'otelcol:latest'
+  integration-test-kafkametrics-discovery:
+      name: integration-test-kafkametrics-discovery
+      # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+      runs-on: ubuntu-20.04
+      needs: [docker-otelcol]
+      strategy:
+        matrix:
+          ARCH: [ "amd64", "arm64" ]
+        fail-fast: false
+      steps:
+        - uses: actions/checkout@v4
+          with:
+            fetch-depth: 0
+        - run: docker compose -f docker/docker-compose.yml --profile integration-test-kafkametrics-discovery up -d --quiet-pull
+        - uses: actions/setup-go@v5
+          with:
+            go-version: ${{ env.GO_VERSION }}
+            cache-dependency-path: '**/go.sum'
+        - uses: actions/download-artifact@v4
+          with:
+            name: otelcol
+            path: ./bin
+        - uses: actions/download-artifact@v4
+          with:
+            name: docker-otelcol-${{ matrix.ARCH }}
+            path: ./docker-otelcol/${{ matrix.ARCH }}
+        - uses: docker/setup-qemu-action@v3
+          if: ${{ matrix.ARCH != 'amd64' }}
+          with:
+            platforms: ${{ matrix.ARCH }}
+            image: tonistiigi/binfmt:qemu-v7.0.0
+        - run: docker load -i ./docker-otelcol/${{ matrix.ARCH }}/image.tar
+        - run: ln -sf otelcol_linux_${{ matrix.ARCH }} ./bin/otelcol
+        - run: chmod a+x ./bin/*
+        - name: Run Discovery Integration Test
+          run: |
+            set -o pipefail
+            target="integration-test-kafkametrics-discovery"
+            make $target 2>&1 | tee kafkametrics-${{ github.run_id }}-${{ matrix.ARCH }}.out
+            exit_status=${PIPESTATUS[0]}
+            echo "Exit status: $exit_status"
+            exit $exit_status
+          env:
+            SPLUNK_OTEL_COLLECTOR_IMAGE: 'otelcol:latest'

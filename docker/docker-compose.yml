@@ -62,12 +62,15 @@ services:
     depends_on:
       - zookeeper
     profiles:
+      - integration-test-kafkametrics-discovery
       - smartagent
     build: ./kafka
     environment:
       START_AS: broker
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       JMX_PORT: 7099
+      USER: "kafka"
+      PASSWORD: "insecure"
     ports:
       - "7099:7099"
       - "9092:9092"
@@ -87,6 +90,7 @@ services:
     depends_on:
       - zookeeper
     profiles:
+      - integration-test-kafkametrics-discovery
       - smartagent
     build: ./kafka
     environment:
@@ -94,6 +98,8 @@ services:
       KAFKA_BROKER: kafka-broker:9092
       JMX_PORT: 9099
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      USER: "kafka"
+      PASSWORD: "insecure"
     ports:
       - "9099:9099"
     healthcheck:
@@ -112,6 +118,7 @@ services:
     depends_on:
       - zookeeper
     profiles:
+      - integration-test-kafkametrics-discovery
       - smartagent
     build: ./kafka
     environment:
@@ -119,6 +126,8 @@ services:
       KAFKA_BROKER: kafka-broker:9092
       JMX_PORT: 8099
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      USER: "kafka"
+      PASSWORD: "insecure"
     ports:
       - "8099:8099"
     healthcheck:
@@ -137,12 +146,15 @@ services:
     depends_on:
       - zookeeper
     profiles:
+      - integration-test-kafkametrics-discovery
       - smartagent
     build: ./kafka
     environment:
       START_AS: create-topic
       KAFKA_BROKER: kafka-broker:9092
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      USER: "kafka"
+      PASSWORD: "insecure"
   kong:
     image: quay.io/splunko11ytest/kong:latest
     profiles:
@@ -217,6 +229,7 @@ services:
   zookeeper:
     image: zookeeper:3.5
     profiles:
+      - integration-test-kafkametrics-discovery
       - smartagent
     ports:
       - "2181:2181"

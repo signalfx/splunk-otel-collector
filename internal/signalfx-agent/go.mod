@@ -44,7 +44,7 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_model v0.6.1
 	github.com/prometheus/common v0.53.0
-	github.com/prometheus/procfs v0.15.0
+	github.com/prometheus/procfs v0.15.1
 	github.com/shirou/gopsutil/v3 v3.24.4
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657
@@ -84,7 +84,7 @@ require (
 	github.com/go-errors/errors v1.5.1
 	github.com/hashicorp/golang-lru v1.0.2
 	github.com/influxdata/telegraf v1.30.1
-	github.com/microsoft/go-mssqldb v1.7.1
+	github.com/microsoft/go-mssqldb v1.7.2
 	github.com/smartystreets/goconvey v1.8.1
 )
 

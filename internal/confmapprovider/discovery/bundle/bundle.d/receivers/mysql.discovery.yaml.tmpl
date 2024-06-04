@@ -12,17 +12,14 @@
     metrics:
       - status: successful
         strict: mysql.locks
-        log_record:
-          body: Mysql receiver is working!
+        message: Mysql receiver is working!
     statements:
       - status: failed
         regexp: "Can't connect to MySQL server on .* [(]111[)]"
-        log_record:
-          body:  The container cannot be reached by the Collector. The container is refusing MySQL connections.
+        message:  The container cannot be reached by the Collector. The container is refusing MySQL connections.
       - status: partial
         regexp: 'Access denied for user'
-        log_record:
-          body: >-
-            Make sure your user credentials are correctly specified using the
-            `{{ configPropertyEnvVar "username" "<username>" }}` and
-            `{{ configPropertyEnvVar "password" "<password>" }}` environment variables.
+        message: >-
+          Make sure your user credentials are correctly specified using the
+          `{{ configPropertyEnvVar "username" "<username>" }}` and
+          `{{ configPropertyEnvVar "password" "<password>" }}` environment variables.

@@ -7,7 +7,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.101.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.101.0
 	github.com/openzipkin/zipkin-go v0.4.3
-	github.com/shirou/gopsutil/v3 v3.24.4
+	github.com/shirou/gopsutil/v3 v3.24.5
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657
 	github.com/signalfx/golib/v3 v3.3.53
 	github.com/signalfx/signalfx-agent v1.0.1-0.20230104182534-9eee411fe305
@@ -143,7 +143,7 @@ require (
 	github.com/lufia/plan9stats v0.0.0-20231016141302-07b5767bb0ed // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-xmlrpc v0.0.3 // indirect
-	github.com/microsoft/go-mssqldb v1.7.1 // indirect
+	github.com/microsoft/go-mssqldb v1.7.2 // indirect
 	github.com/miekg/dns v1.1.58 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/hashstructure v1.1.0 // indirect
@@ -170,7 +170,7 @@ require (
 	github.com/prometheus/client_golang v1.19.1 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.53.0 // indirect
-	github.com/prometheus/procfs v0.15.0 // indirect
+	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/shoenig/go-m1cpu v0.1.6 // indirect
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3 // indirect

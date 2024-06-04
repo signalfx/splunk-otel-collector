@@ -117,19 +117,7 @@ func (m *metricEvaluator) evaluateMetrics(md pmetric.Metrics) {
 		m.correlateResourceAttributes(m.config, attrs, corr)
 
 		attrs[receiverRuleAttr] = rEntry.Rule.String()
-
-		desiredRecord := match.Record
-		if desiredRecord == nil {
-			desiredRecord = &LogRecord{}
-		}
-		var desiredMsg string
-		if desiredRecord.Body != "" {
-			desiredMsg = desiredRecord.Body
-		}
-		attrs[discovery.MessageAttr] = desiredMsg
-		for k, v := range desiredRecord.Attributes {
-			attrs[k] = v
-		}
+		attrs[discovery.MessageAttr] = match.Message
 		attrs[discovery.StatusAttr] = string(match.Status)
 		m.correlations.UpdateAttrs(endpointID, attrs)
 

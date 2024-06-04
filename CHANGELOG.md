@@ -2,9 +2,35 @@
 
 ## Unreleased
 
+## v0.102.0
+
 ### 🛑 Breaking changes 🛑
 
 - (Splunk) `receiver/discovery`: Replace `log_record` field with `message` in evaluation statements ([#4583](https://github.com/signalfx/splunk-otel-collector/pull/4583))
+- (Core) `envprovider`: Restricts Environment Variable names.  Environment variable names must now be ASCII only and start with a letter or an underscore, and can only contain underscores, letters, or numbers. ([#9531](https://github.com/open-telemetry/opentelemetry-collector/issues/9531))
+- (Core) `confighttp`: Apply MaxRequestBodySize to the result of a decompressed body [#10289](https://github.com/open-telemetry/opentelemetry-collector/pull/10289)
+  When using compressed payloads, the Collector would verify only the size of the compressed payload. 
+  This change applies the same restriction to the decompressed content. As a security measure, a limit of 20 MiB was added, which makes this a breaking change. 
+  For most clients, this shouldn't be a problem, but if you often have payloads that decompress to more than 20 MiB, you might want to either configure your
+  client to send smaller batches (recommended), or increase the limit using the MaxRequestBodySize option.
+- (Contrib) `k8sattributesprocessor`: Move `k8sattr.rfc3339` feature gate to stable. ([#33304](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/33304))
+- (Contrib) `extension/filestorage`: Replace path-unsafe characters in component names ([#3148](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/3148))
+  The feature gate `extension.filestorage.replaceUnsafeCharacters` is now removed.
+- (Contrib) `vcenterreceiver`: vcenterreceiver replaces deprecated packet metrics by removing them and enabling by default the newer ones. (([#32929](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/32929)),([#32835](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/32835))
+  Removes the following metrics: `vcenter.host.network.packet.errors`, `vcenter.host.network.packet.count`, and
+  `vcenter.vm.network.packet.count`.
+  Also enables by default the following metrics: `vcenter.host.network.packet.error.rate`,
+  `vcenter.host.network.packet.rate`, and `vcenter.vm.network.packet.rate`.
+
+### 🧰 Bug fixes 🧰
+
+- (Splunk) `discovery`: Fix crashing collector if discovered mongodb isn't reachable in Kubernetes ([#4911](https://github.com/signalfx/splunk-otel-collector/pull/4911))
+- (Core) `batchprocessor`: ensure attributes are set on cardinality metadata metric [#9674](https://github.com/open-telemetry/opentelemetry-collector/pull/9674)
+- (Core) `batchprocessor`: Fixing processor_batch_metadata_cardinality which was broken in v0.101.0 [#10231](https://github.com/open-telemetry/opentelemetry-collector/pull/10231)
+- (Core) `batchprocessor`: respect telemetry level for all metrics [#10234](https://github.com/open-telemetry/opentelemetry-collector/pull/10234)
+- (Core) `exporterhelper`: Fix potential deadlocks in BatcherSender shutdown [#10255](https://github.com/open-telemetry/opentelemetry-collector/pull/10255)
+- (Contrib) `receiver/mysql`: Remove the order by clause for the column that does not exist ([#33271](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/33271))
+- (Contrib) `kafkareceiver`: Fix bug that was blocking shutdown ([#30789](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30789))
 
 ### 🚩 Deprecations 🚩
 
@@ -21,9 +47,20 @@
 
   Please update any configurations to use `quay.io/signalfx/splunk-otel-collector:<version>` for this and future releases.
 
-### 🧰 Bug fixes 🧰
+### 💡 Enhancements 💡
 
-- (Splunk) `discovery`: Fix crashing collector if discovered mongodb isn't reachable in Kubernetes ([#4911](https://github.com/signalfx/splunk-otel-collector/pull/4911)))
+- (Splunk) `discovery`: Update redis discovery instructions ([#4915](https://github.com/signalfx/splunk-otel-collector/pull/4915))
+- (Splunk) `discovery`: Bring Kafkamatrics receiver into the discovery mode ([#4903](https://github.com/signalfx/splunk-otel-collector/pull/4903))
+- (Contrib) `pkg/ottl`: Add the `Day` Converter to extract the int Day component from a time.Time ([#33106](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/33106))
+- (Contrib) `pkg/ottl`: Adds `Month` converter to extract the int Month component from a time.Time (#33106) ([#33106](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/33106))
+- (Contrib) `pkg/ottl`: Adds a `Year` converter for extracting the int year component from a time.Time ([#33106](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/33106))
+- (Contrib) `filelogreceiver`: Log when files are rotated/moved/truncated ([#33237](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/33237))
+- (Contrib) `stanza`: Add monitoring metrics for open and harvested files in fileconsumer ([#31256](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/31256))
+- (Contrib) `prometheusreceiver`: Allow to configure http client used by target allocator generated scrape targets ([#18054](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/18054))
+- (Contrib) `pkg/stanza`: Expose recombine max log size option in the container parser configuration ([#33186](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/33186))
+- (Contrib) `processor/resourcedetectionprocessor`: Add support for Azure tags in ResourceDetectionProcessor. ([#32953](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/32953))
+- (Contrib) `kubeletstatsreceiver`: Add k8s.container.cpu.node.utilization metric ([#27885](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/27885))
+- (Contrib) `pkg/ottl`: Adds a `Minute` converter for extracting the int minute component from a time.Time ([#33106](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/33106))
 
 ## v0.101.0
 

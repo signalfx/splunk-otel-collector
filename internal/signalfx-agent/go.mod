@@ -84,7 +84,7 @@ require (
 	github.com/go-errors/errors v1.5.1
 	github.com/hashicorp/golang-lru v1.0.2
 	github.com/influxdata/telegraf v1.30.1
-	github.com/microsoft/go-mssqldb v1.7.1
+	github.com/microsoft/go-mssqldb v1.7.2
 	github.com/smartystreets/goconvey v1.8.1
 )
 

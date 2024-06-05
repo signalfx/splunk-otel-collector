@@ -3,6 +3,8 @@ FROM quay.io/centos/centos:stream8
 ENV container docker
 
 RUN echo 'fastestmirror=1' >> /etc/yum.conf
+RUN sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
+RUN sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
 RUN yum install -y systemd procps initscripts python3-pip python3-devel gcc wget
 
 RUN rpm --import https://repo.saltproject.io/py3/redhat/8/x86_64/latest/SALTSTACK-GPG-KEY.pub

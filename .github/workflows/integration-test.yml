@@ -24,7 +24,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: "1.21.10"
+  GO_VERSION: "1.21.11"
 jobs:
   agent-bundle-linux:
     runs-on: ubuntu-20.04

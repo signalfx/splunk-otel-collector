@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 💡 Enhancements 💡
+
+- (Splunk) Upgrade golang to 1.21.11
+
 ## v0.102.0
 
 ### 🛑 Breaking changes 🛑

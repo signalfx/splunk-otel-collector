@@ -169,6 +169,8 @@ RUN wget -nv -O /tmp/Python-${PYTHON_VERSION}.tgz https://www.python.org/ftp/pyt
     make -j`nproc` && make install libinstall && \
     ldconfig
 
+RUN rm -rf /usr/local/lib/python3.11/test /usr/local/lib/python3.11/unittest
+
 RUN rm -rf /tmp/Python*
 
 

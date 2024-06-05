@@ -968,7 +968,7 @@ distro_is_supported() {
   case "$distro" in
     ubuntu)
       case "$distro_codename" in
-        bionic|focal|xenial|jammy)
+        bionic|focal|xenial|jammy|noble)
           return 0
           ;;
       esac

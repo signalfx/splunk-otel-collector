@@ -210,7 +210,8 @@ def fluentd_supported(distro, arch):
         return False
     elif distro == "debian-bookworm":
         return False
-
+    elif distro == "ubuntu-noble":
+        return False
     return True
 
 

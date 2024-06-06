@@ -1037,6 +1037,9 @@ fluentd_supported() {
       if [ "$distro_version" = "16.04" ] && [ "$distro_arch" = "aarch64" ]; then
         return 1
       fi
+      if [ "$distro_version" = "24.04" ]; then
+        return 1
+      fi
       ;;
   esac
 

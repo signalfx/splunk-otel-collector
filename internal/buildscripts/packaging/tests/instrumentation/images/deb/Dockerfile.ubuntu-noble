@@ -32,7 +32,7 @@ RUN bash /opt/setup-express.sh
 COPY instrumentation/setup-dotnet.sh /opt
 RUN if [ "$TARGETARCH" = "amd64" ]; then \
     apt-get update && \
-    apt-get install -yq libicu66 && \
+    apt-get install -yq libicu74 && \
     bash /opt/setup-dotnet.sh; \
     fi
 

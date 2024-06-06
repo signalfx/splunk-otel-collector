@@ -20,8 +20,16 @@ remote_file 'Download msi' do
   only_if { !::File.exist?(node['splunk_otel_collector']['collector_version_file']) || (::File.readlines(node['splunk_otel_collector']['collector_version_file']).first.strip != collector_version) }
 end
 
+msi_is_configurable = Gem::Version.new(collector_version) >= Gem::Version.new('0.98.0')
+node['splunk_otel_collector']['collector_msi_is_configurable'] = msi_is_configurable
+msi_install_properties = node['splunk_otel_collector']['collector_win_env_vars']
+  .reject { |k, v| v.nil? || v == '' }
+  .map { |k, v| "#{k}=\"#{v}\"" }
+  .join(' ')
+
 windows_package 'splunk-otel-collector' do
   source "#{ENV['TEMP']}/splunk-otel-collector-#{collector_version}-amd64.msi"
+  options msi_install_properties # If the MSI is not configurable, this will be ignored during installation.
   action :install
   notifies :restart, 'windows_service[splunk-otel-collector]', :delayed
   only_if { !::File.exist?(node['splunk_otel_collector']['collector_version_file']) || (::File.readlines(node['splunk_otel_collector']['collector_version_file']).first.strip != collector_version) }

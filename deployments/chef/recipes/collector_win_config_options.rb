@@ -26,4 +26,4 @@ node['splunk_otel_collector']['collector_additional_env_vars'].each do |key, val
   collector_env_vars.push({ name: key, type: :string, data: value.to_s })
 end
 
-node['splunk_otel_collector']['collector_win_env_vars'] = collector_env_vars
+node.default['splunk_otel_collector']['collector_win_env_vars'] = collector_env_vars

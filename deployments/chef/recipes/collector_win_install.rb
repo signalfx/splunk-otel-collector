@@ -21,11 +21,11 @@ remote_file 'Download msi' do
 end
 
 msi_is_configurable = Gem::Version.new(collector_version) >= Gem::Version.new('0.98.0')
-node['splunk_otel_collector']['collector_msi_is_configurable'] = msi_is_configurable
+node.default['splunk_otel_collector']['collector_msi_is_configurable'] = msi_is_configurable
 msi_install_properties = node['splunk_otel_collector']['collector_win_env_vars']
-  .reject { |k, v| v.nil? || v == '' }
-  .map { |k, v| "#{k}=\"#{v}\"" }
-  .join(' ')
+                         .reject { |_, v| v.nil? || v == '' }
+                         .map { |k, v| "#{k}=\"#{v}\"" }
+                         .join(' ')
 
 windows_package 'splunk-otel-collector' do
   source "#{ENV['TEMP']}/splunk-otel-collector-#{collector_version}-amd64.msi"

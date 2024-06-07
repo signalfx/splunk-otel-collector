@@ -27,6 +27,8 @@ msi_install_properties = node['splunk_otel_collector']['collector_win_env_vars']
                          .map { |k, v| "#{k}=\"#{v}\"" }
                          .join(' ')
 
+puts("msi_install_properties: #{msi_install_properties}")
+
 windows_package 'splunk-otel-collector' do
   source "#{ENV['TEMP']}/splunk-otel-collector-#{collector_version}-amd64.msi"
   options msi_install_properties # If the MSI is not configurable, this will be ignored during installation.

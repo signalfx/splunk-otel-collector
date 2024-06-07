@@ -23,8 +23,8 @@ end
 msi_is_configurable = Gem::Version.new(collector_version) >= Gem::Version.new('0.98.0')
 node.default['splunk_otel_collector']['collector_msi_is_configurable'] = msi_is_configurable
 msi_install_properties = node['splunk_otel_collector']['collector_win_env_vars']
-                         .reject { |_, v| v.nil? || v == '' }
-                         .map { |k, v| "#{k}=\"#{v}\"" }
+                         .reject { |item| item[:data].nil? || item[:data] == '' }
+                         .map { |item| "#{item[:name]}=\"#{item[:data]}\"" }
                          .join(' ')
 
 puts("msi_install_properties: #{msi_install_properties}")

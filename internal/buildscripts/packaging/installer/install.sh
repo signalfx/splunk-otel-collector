@@ -968,7 +968,7 @@ distro_is_supported() {
   case "$distro" in
     ubuntu)
       case "$distro_codename" in
-        bionic|focal|xenial|jammy)
+        bionic|focal|xenial|jammy|noble)
           return 0
           ;;
       esac
@@ -1035,6 +1035,9 @@ fluentd_supported() {
       ;;
     ubuntu)
       if [ "$distro_version" = "16.04" ] && [ "$distro_arch" = "aarch64" ]; then
+        return 1
+      fi
+      if [ "$distro_version" = "24.04" ]; then
         return 1
       fi
       ;;

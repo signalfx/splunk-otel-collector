@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 🚀 New components 🚀
+
+- (Splunk) Add Azure Monitor receiver ([#4971](https://github.com/signalfx/splunk-otel-collector/pull/4971))
+
 ## v0.102.1
 
 ### 🧰 Bug fixes 🧰

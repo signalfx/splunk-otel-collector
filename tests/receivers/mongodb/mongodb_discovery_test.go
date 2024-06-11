@@ -145,12 +145,12 @@ func mongoDBAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFile st
 				discoveryMsg, ok := m.Get(MessageAttr)
 				if ok {
 					seenMessageAttr++
-					assert.Equal(t, logMessageToAssert, discoveryMsg.AsString())
+					assert.Equal(tt, logMessageToAssert, discoveryMsg.AsString())
 				}
 				discoveryType, ok := m.Get(ReceiverTypeAttr)
 				if ok {
 					seenReceiverTypeAttr++
-					assert.Equal(t, "mongodb", discoveryType.AsString())
+					assert.Equal(tt, "mongodb", discoveryType.AsString())
 				}
 			}
 		}

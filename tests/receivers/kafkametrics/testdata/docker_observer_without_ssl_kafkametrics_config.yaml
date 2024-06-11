@@ -8,15 +8,10 @@ receivers:
     receivers:
       kafkametrics:
         config:
-          auth:
-            plain_text:
-              username: "kafka"
-              password: "insecure"
+          client_id: "otel-integration-test"
           protocol_version: "2.0.0"
           scrapers:
             - brokers
-            - consumers
-            - topics
         rule: type == "container" and any([name, image, command], {# matches "(?i)(.*)kafka(.*)"}) and not (command matches "splunk.discovery")
         status:
           metrics:

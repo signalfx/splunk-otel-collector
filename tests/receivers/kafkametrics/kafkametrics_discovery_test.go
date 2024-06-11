@@ -134,7 +134,6 @@ func kafkaMetricsAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFi
 	seenReceiverTypeAttr := 0
 	expectedReceiver := "kafkametrics"
 	assert.EventuallyWithT(t, func(tt *assert.CollectT) {
-		//require.Equal(t, sink.LogRecordCount(), len(sink.AllLogs()), "log record count and all logs count differ, could be race")
 		if len(sink.AllLogs()) == 0 {
 			assert.Fail(tt, "No logs collected")
 			return
@@ -150,18 +149,18 @@ func kafkaMetricsAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFi
 					discoveryMsg, ok := m.Get(MessageAttr)
 					if ok {
 						seenMessageAttr++
-						assert.Equal(t, logMessageToAssert, discoveryMsg.AsString())
+						assert.Equal(tt, logMessageToAssert, discoveryMsg.AsString())
 					}
 					discoveryType, ok := m.Get(ReceiverTypeAttr)
 					if ok {
 						seenReceiverTypeAttr++
-						assert.Equal(t, expectedReceiver, discoveryType.AsString())
+						assert.Equal(tt, expectedReceiver, discoveryType.AsString())
 					}
 				}
 			}
 		}
-		assert.Greater(t, seenMessageAttr, 0, "Did not see message '%s'", logMessageToAssert)
-		assert.Greater(t, seenReceiverTypeAttr, 0, "Did not see expected type '%s'", expectedReceiver)
+		assert.Greater(tt, seenMessageAttr, 0, "Did not see message '%s'", logMessageToAssert)
+		assert.Greater(tt, seenReceiverTypeAttr, 0, "Did not see expected type '%s'", expectedReceiver)
 	}, 60*time.Second, 1*time.Second, "Did not get '%s' discovery in time", expectedReceiver)
 
 	return &otelContainer{Container: container}, nil

@@ -2,15 +2,15 @@
 
 ## VMware Tanzu Tile Documentation
 
-[Tanzu Tile Introduction](https://docs.vmware.com/en/Tile-Developer-Guide/3.0/tile-dev-guide/tile-basics.html)
+[Tanzu Tile Introduction](https://docs.vmware.com/en/VMware-Tanzu-Operations-Manager/3.0/tile-dev-guide/tile-basics.html)
 
-[How Tiles Work](https://docs.vmware.com/en/Tile-Developer-Guide/3.0/tile-dev-guide/tile-structure.html)
+[How Tiles Work](https://docs.vmware.com/en/VMware-Tanzu-Operations-Manager/3.0/tile-dev-guide/tile-structure.html)
 
 ## Tile Software Dependencies
 
-[Tile Generator](https://docs.vmware.com/en/Tile-Developer-Guide/3.0/tile-dev-guide/tile-generator.html)
+[Tile Generator](https://docs.vmware.com/en/VMware-Tanzu-Operations-Manager/3.0/tile-dev-guide/tile-generator.html)
 
-[PCF CLI](https://docs.vmware.com/en/Tile-Developer-Guide/3.0/tile-dev-guide/pcf-command.html)
+[PCF CLI](https://docs.vmware.com/en/VMware-Tanzu-Operations-Manager/3.0/tile-dev-guide/pcf-command.html)
 
 ## Development Workflow
 

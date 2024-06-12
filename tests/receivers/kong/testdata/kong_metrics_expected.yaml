@@ -155,7 +155,7 @@ resourceMetrics:
                         stringValue: afd8ef55-d340-451e-983f-752a271ac86a
                     - key: version
                       value:
-                        stringValue: 3.6.1.3
+                        stringValue: 3.7.0.0
                   timeUnixNano: "1000000"
             name: kong_node_info
           - description: The scraping was successful

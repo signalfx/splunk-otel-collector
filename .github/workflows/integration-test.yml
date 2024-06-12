@@ -54,11 +54,31 @@ jobs:
           name: agent-bundle-linux-${{ matrix.ARCH }}
           path: ./dist/agent-bundle_linux_${{ matrix.ARCH }}.tar.gz
 
+  otelcol:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        ARCH: [ "amd64", "arm64", "ppc64le" ]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: '**/go.sum'
+      - run: make binaries-linux_${{ matrix.ARCH }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: otelcol-${{ matrix.ARCH }}
+          path: |
+            ./bin/*
+
   docker-otelcol:
     name: docker-otelcol
     # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
     runs-on: ubuntu-20.04
-    needs: agent-bundle-linux
+    needs: [ "agent-bundle-linux", "otelcol" ]
     services:
       # Start a local registry for pushing the multiarch manifest and images
       registry:
@@ -77,12 +97,14 @@ jobs:
           cache-dependency-path: '**/go.sum'
       - uses: actions/download-artifact@v4
         with:
-          name: agent-bundle-linux-amd64
+          pattern: agent-bundle-linux-*
+          merge-multiple: true
           path: ./dist
       - uses: actions/download-artifact@v4
         with:
-          name: agent-bundle-linux-arm64
-          path: ./dist
+          pattern: otelcol-*
+          merge-multiple: true
+          path: ./bin
       - uses: docker/setup-qemu-action@v3
         with:
           platforms: arm64,ppc64le
@@ -92,7 +114,7 @@ jobs:
         with:
           driver: docker-container   # Create a builder with the docker-container driver required for multiarch builds
           driver-opts: network=host  # Required for the builder to push to the local registry service
-      - run: make docker-otelcol SKIP_BUNDLE=true ARCH=amd64,arm64,ppc64le IMAGE_NAME=localhost:5000/otelcol IMAGE_TAG=latest PUSH=true
+      - run: make docker-otelcol SKIP_COMPILE=true SKIP_BUNDLE=true ARCH=amd64,arm64,ppc64le IMAGE_NAME=localhost:5000/otelcol IMAGE_TAG=latest PUSH=true
         env:
           MULTIARCH_OTELCOL_BUILDER: ${{ steps.multiarch-otelcol-builder.outputs.name }}  # Use the builder created by the docker/setup-buildx-action step
       - name: Save image archive for each platform to be loaded by downstream jobs
@@ -104,10 +126,6 @@ jobs:
             docker save -o ./docker-otelcol/${arch}/image.tar otelcol:latest
             docker rmi -f localhost:5000/otelcol:latest otelcol:latest
           done
-      - uses: actions/upload-artifact@v4
-        with:
-          name: otelcol
-          path: ./bin
       - uses: actions/upload-artifact@v4
         with:
           name: docker-otelcol-amd64
@@ -129,7 +147,7 @@ jobs:
       matrix:
         ARCH: [ "amd64", "arm64" ]
       fail-fast: false
-    needs: [docker-otelcol]
+    needs: [ "docker-otelcol", "otelcol" ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -140,7 +158,7 @@ jobs:
           cache-dependency-path: '**/go.sum'
       - uses: actions/download-artifact@v4
         with:
-          name: otelcol
+          name: otelcol-${{ matrix.ARCH }}
           path: ./bin
       - uses: actions/download-artifact@v4
         with:
@@ -158,25 +176,26 @@ jobs:
         env:
           SPLUNK_OTEL_COLLECTOR_IMAGE: 'otelcol:latest'
 
-  integration-test:
-    name: integration-test
+  integration-test-docker:
     # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
     runs-on: ubuntu-20.04
-    needs: [docker-otelcol]
+    needs: [ "docker-otelcol", "otelcol" ]
     strategy:
       matrix:
         ARCH: [ "amd64", "arm64" ]
         PROFILE: [ "integration", "smartagent" ]
       fail-fast: false
+    env:
+      TEST_OUTPUT: ${{ github.job }}-${{ matrix.PROFILE }}-${{ matrix.ARCH }}.out
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Build ${{ matrix.PROFILE }} service images
         run: |
-          images=$(yq '.services[] | select(.profiles[] | contains("${{ matrix.PROFILE }}")) | .image' docker/docker-compose.yml | grep "quay.io/splunko11ytest/" | sort -u)
+          images=$(yq '.services[] | select(.profiles[] | . == "${{ matrix.PROFILE }}") | .image' docker/docker-compose.yml | grep "quay.io/splunko11ytest/" | sort -u)
           for image in $images; do
-            service=$(echo $image | sed 's|quay.io/splunko11ytest/\(.*\):latest|\1|')
+            service=$(basename "$image" | cut -d ':' -f1)
             if [[ -f docker/${service}/Dockerfile ]]; then
               docker build --cache-from=quay.io/splunko11ytest/${service}:latest -t quay.io/splunko11ytest/${service}:latest docker/${service}
             fi
@@ -191,7 +210,7 @@ jobs:
           cache-dependency-path: '**/go.sum'
       - uses: actions/download-artifact@v4
         with:
-          name: otelcol
+          name: otelcol-${{ matrix.ARCH }}
           path: ./bin
       - uses: actions/download-artifact@v4
         with:
@@ -221,7 +240,7 @@ jobs:
           if [[ "${{ matrix.PROFILE }}" = "smartagent" ]]; then
             target="smartagent-integration-test"
           fi
-          make $target 2>&1 | tee ${{ matrix.PROFILE }}-${{ github.run_id }}-${{ matrix.ARCH }}.out
+          make $target 2>&1 | tee $TEST_OUTPUT
           exit_status=${PIPESTATUS[0]}
           echo "Exit status: $exit_status"
           exit $exit_status
@@ -232,8 +251,85 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ${{ matrix.PROFILE }}-${{ github.run_id }}-${{ matrix.ARCH }}.out
-          path: ${{ matrix.PROFILE }}-${{ github.run_id }}-${{ matrix.ARCH }}.out
+          name: ${{ env.TEST_OUTPUT }}
+          path: ${{ env.TEST_OUTPUT }}
+          retention-days: 5
+
+  integration-test-binary:
+    runs-on: ${{ matrix.RUNNER }}
+    needs: [ "agent-bundle-linux", "otelcol" ]
+    strategy:
+      matrix:
+        RUNNER: [ "ubuntu-20.04", "ubuntu-22.04", "ubuntu-24.04" ]
+        PROFILE: [ "integration", "smartagent" ]
+      fail-fast: false
+    env:
+      TEST_OUTPUT: ${{ github.job }}-${{ matrix.PROFILE }}-${{ matrix.RUNNER }}.out
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Build ${{ matrix.PROFILE }} service images
+        run: |
+          images=$(yq '.services[] | select(.profiles[] | . == "${{ matrix.PROFILE }}") | .image' docker/docker-compose.yml | grep "quay.io/splunko11ytest/" | sort -u)
+          for image in $images; do
+            service=$(basename "$image" | cut -d ':' -f1)
+            if [[ -f docker/${service}/Dockerfile ]]; then
+              docker build --cache-from=quay.io/splunko11ytest/${service}:latest -t quay.io/splunko11ytest/${service}:latest docker/${service}
+            fi
+          done
+          docker system prune -f
+          docker builder prune -f
+          docker images
+      - run: docker compose -f docker/docker-compose.yml --profile ${{ matrix.PROFILE }} up -d --quiet-pull
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: '**/go.sum'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: agent-bundle-linux-amd64
+          merge-multiple: true
+          path: ./dist
+      - run: sudo mkdir -p /usr/lib/splunk-otel-collector
+      - run: sudo tar -xzf dist/agent-bundle_linux_amd64.tar.gz -C /usr/lib/splunk-otel-collector
+      - run: sudo chown -R $USER /usr/lib/splunk-otel-collector
+      - run: /usr/lib/splunk-otel-collector/agent-bundle/bin/patch-interpreter /usr/lib/splunk-otel-collector/agent-bundle
+      - uses: actions/download-artifact@v4
+        with:
+          name: otelcol-amd64
+          path: ./bin
+      - run: ln -sf otelcol_linux_amd64 ./bin/otelcol
+      - run: chmod a+x ./bin/*
+      - uses: shogo82148/actions-setup-redis@v1
+        if: matrix.PROFILE == 'integration'
+        with:
+          auto-start: false
+          redis-port: "6379"
+      - run: redis-cli ping
+        if: matrix.PROFILE == 'integration'
+      - run: redis-cli set tempkey tempvalue
+        if: matrix.PROFILE == 'integration'
+      - name: Run Integration Test
+        run: |
+          set -o pipefail
+          target="integration-test"
+          if [[ "${{ matrix.PROFILE }}" = "smartagent" ]]; then
+            target="smartagent-integration-test"
+          fi
+          make $target 2>&1 | tee $TEST_OUTPUT
+          exit_status=${PIPESTATUS[0]}
+          echo "Exit status: $exit_status"
+          exit $exit_status
+        env:
+          SPLUNK_OTEL_COLLECTOR_IMAGE: ""
+      # The Integration Test output is extremely large so we upload it as an artifact
+      - name: Upload Integration Test Output as Artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ${{ env.TEST_OUTPUT }}
+          path: ${{ env.TEST_OUTPUT }}
           retention-days: 5
 
   integration-test-mongodb-discovery:
@@ -258,7 +354,7 @@ jobs:
             cache-dependency-path: '**/go.sum'
         - uses: actions/download-artifact@v4
           with:
-            name: otelcol
+            name: otelcol-${{ matrix.ARCH }}
             path: ./bin
         - uses: actions/download-artifact@v4
           with:
@@ -282,6 +378,7 @@ jobs:
             exit $exit_status
           env:
             SPLUNK_OTEL_COLLECTOR_IMAGE: 'otelcol:latest'
+
   integration-test-kafkametrics-discovery:
       name: integration-test-kafkametrics-discovery
       runs-on: ubuntu-22.04
@@ -301,7 +398,7 @@ jobs:
             cache-dependency-path: '**/go.sum'
         - uses: actions/download-artifact@v4
           with:
-            name: otelcol
+            name: otelcol-${{ matrix.ARCH }}
             path: ./bin
         - uses: actions/download-artifact@v4
           with:

@@ -459,14 +459,15 @@ def run_win_puppet_agent(config):
 
 @pytest.mark.windows
 @pytest.mark.skipif(sys.platform != "win32", reason="only runs on windows")
-def test_win_puppet_default():
+@pytest.mark.parametrize("version", ["0.86.0", "latest"])
+def test_win_puppet_default(version):
     run_win_puppet_setup(WIN_PUPPET_RELEASE)
 
     config = f"""
     class {{ splunk_otel_collector:
         splunk_access_token => '{SPLUNK_ACCESS_TOKEN}',
         splunk_realm => '{SPLUNK_REALM}',
-        collector_version => '0.86.0',
+        collector_version => '{version}',
     }}
     """
     run_win_puppet_agent(config)
@@ -491,12 +492,13 @@ def test_win_puppet_default():
 
 @pytest.mark.windows
 @pytest.mark.skipif(sys.platform != "win32", reason="only runs on windows")
-def test_win_puppet_custom_vars():
+@pytest.mark.parametrize("version", ["0.86.0", "latest"])
+def test_win_puppet_custom_vars(version):
     run_win_puppet_setup(WIN_PUPPET_RELEASE)
 
     api_url = "https://fake-splunk-api.com"
     ingest_url = "https://fake-splunk-ingest.com"
-    config = CUSTOM_VARS_CONFIG.substitute(api_url=api_url, ingest_url=ingest_url, version="0.48.0")
+    config = CUSTOM_VARS_CONFIG.substitute(api_url=api_url, ingest_url=ingest_url, version=version)
 
     run_win_puppet_agent(config)
 

@@ -33,6 +33,7 @@ class splunk_otel_collector::params {
     $splunk_bundle_dir = "${collector_install_dir}\\agent-bundle"
     $splunk_collectd_dir = "${splunk_bundle_dir}\\run\\collectd"
     $collector_config_source = "${collector_install_dir}\\agent_config.yaml"
+    $default_win_config_file = $collector_config_source
     $collector_config_dest = "${collector_config_dir}\\agent_config.yaml"
     $fluentd_base_url = 'https://s3.amazonaws.com/packages.treasuredata.com'
     $fluentd_version = $fluentd_version_default

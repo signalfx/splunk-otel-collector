@@ -109,6 +109,8 @@ jobs:
       - name: Test puppet deployment
         id: pytest
         continue-on-error: true
+        env:
+          PUPPET_RELEASE: "${{ matrix.PUPPET_RELEASE }}"
         run: |
           distro="${{ matrix.DISTRO }}"
           if [[ "$distro" = "amazonlinux-2" ]]; then
@@ -122,12 +124,12 @@ jobs:
           fi
           python3 -u -m pytest -s --verbose -k "$tests" \
             internal/buildscripts/packaging/tests/deployments/puppet/puppet_test.py
-        env:
-          PUPPET_RELEASE: "${{ matrix.PUPPET_RELEASE }}"
 
       # qemu, networking, running systemd in containers, etc., can be flaky
       - name: Re-run failed tests
         if: ${{ steps.pytest.outcome == 'failure' }}
+        env:
+          PUPPET_RELEASE: "${{ matrix.PUPPET_RELEASE }}"
         run: |
           distro="${{ matrix.DISTRO }}"
           if [[ "$distro" = "amazonlinux-2" ]]; then
@@ -142,8 +144,6 @@ jobs:
           python3 -u -m pytest -s --verbose -k "$tests" \
             --last-failed \
             internal/buildscripts/packaging/tests/deployments/puppet/puppet_test.py
-        env:
-          PUPPET_RELEASE: "${{ matrix.PUPPET_RELEASE }}"
 
   puppet-test-windows:
     name: puppet-test-windows
@@ -157,6 +157,7 @@ jobs:
         OS: [ "windows-2022" ]
         PUPPET_RELEASE: [ "6.0.2", "7.21.0" ]
         TEST_CASE: [ "default", "custom_vars" ]
+        WIN_COLLECTOR_VERSION: [ "0.86.0", "latest" ]
       fail-fast: false
     steps:
       - name: Check out the codebase.
@@ -175,19 +176,23 @@ jobs:
       - name: Test puppet deployment
         id: pytest
         continue-on-error: true
+        env:
+          PUPPET_RELEASE: "${{ matrix.PUPPET_RELEASE }}"
+          WIN_COLLECTOR_VERSION: "${{ matrix.WIN_COLLECTOR_VERSION }}"
         run: |
+          if ($Env:WIN_COLLECTOR_VERSION -eq 'latest') { $Env:WIN_COLLECTOR_VERSION="$(curl -sS https://dl.signalfx.com/splunk-otel-collector/msi/release/latest.txt)" }
           pytest -s --verbose -m windows `
             -k ${{ matrix.TEST_CASE }} `
             internal/buildscripts/packaging/tests/deployments/puppet/puppet_test.py
-        env:
-          PUPPET_RELEASE: "${{ matrix.PUPPET_RELEASE }}"
 
       - name: Re-run failed tests
         if: ${{ steps.pytest.outcome == 'failure' }}
+        env:
+          PUPPET_RELEASE: "${{ matrix.PUPPET_RELEASE }}"
+          WIN_COLLECTOR_VERSION: "${{ matrix.WIN_COLLECTOR_VERSION }}"
         run: |
+          if ($Env:WIN_COLLECTOR_VERSION -eq 'latest') { $Env:WIN_COLLECTOR_VERSION="$(curl -sS https://dl.signalfx.com/splunk-otel-collector/msi/release/latest.txt)" }
           pytest -s --verbose -m windows `
             --last-failed `
             -k ${{ matrix.TEST_CASE }} `
             internal/buildscripts/packaging/tests/deployments/puppet/puppet_test.py
-        env:
-          PUPPET_RELEASE: "${{ matrix.PUPPET_RELEASE }}"

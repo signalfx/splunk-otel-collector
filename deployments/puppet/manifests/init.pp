@@ -195,9 +195,16 @@ class splunk_otel_collector (
       subscribe => [File[$collector_config_dest, $env_file_path]],
     }
   } else {
-    file { $collector_config_dest:
-      source  => $collector_config_source,
-      require => Class['splunk_otel_collector::collector_win_install'],
+    if $collector_config_source != $splunk_otel_collector::params::default_win_config_file {
+      file { $collector_config_dest:
+        source  => $collector_config_source,
+        require => Class['splunk_otel_collector::collector_win_install'],
+      }
+    } else {
+      file { $collector_config_dest:
+        ensure  => file,
+        require => Class['splunk_otel_collector::collector_win_install'],
+      }
     }
 
     -> class { 'splunk_otel_collector::collector_win_registry': }

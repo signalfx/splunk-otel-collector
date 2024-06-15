@@ -74,6 +74,7 @@ func TestDefaultComponents(t *testing.T) {
 		"prometheus",
 		"prometheus_simple",
 		"receiver_creator",
+		"rabbitmqreceiver",
 		"redis",
 		"sapm",
 		"scripted_inputs",

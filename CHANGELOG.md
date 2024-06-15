@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 🚀 New components 🚀
+
+- (Splunk) Add [upstream](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/rabbitmqreceiver) Opentelemetry Collector RabbitMQ receiver ([#4980](https://github.com/signalfx/splunk-otel-collector/pull/4980))
+
 ## v0.102.1
 
 ### 🧰 Bug fixes 🧰

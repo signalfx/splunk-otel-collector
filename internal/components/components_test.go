@@ -73,6 +73,7 @@ func TestDefaultComponents(t *testing.T) {
 		"postgresql",
 		"prometheus",
 		"prometheus_simple",
+		"rabbitmq",
 		"receiver_creator",
 		"redis",
 		"sapm",

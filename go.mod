@@ -83,6 +83,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/oracledbreceiver v0.102.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/postgresqlreceiver v0.102.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.102.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/rabbitmqreceiver v0.102.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/receivercreator v0.102.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/redisreceiver v0.102.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sapmreceiver v0.102.0

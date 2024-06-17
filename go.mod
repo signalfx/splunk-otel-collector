@@ -10,7 +10,7 @@ require (
 	github.com/fsnotify/fsnotify v1.7.0
 	github.com/go-zookeeper/zk v1.0.3
 	github.com/gogo/protobuf v1.3.2
-	github.com/hashicorp/vault v1.16.3
+	github.com/hashicorp/vault v1.17.0
 	github.com/hashicorp/vault-plugin-auth-gcp v0.18.0
 	github.com/hashicorp/vault/api v1.14.0
 	github.com/jaegertracing/jaeger v1.58.0
@@ -149,10 +149,8 @@ require (
 )
 
 require (
-	cloud.google.com/go/auth v0.3.0 // indirect
+	cloud.google.com/go/auth v0.4.1 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.2 // indirect
-	cloud.google.com/go/kms v1.15.7 // indirect
-	cloud.google.com/go/monitoring v1.18.0 // indirect
 	collectd.org v0.6.0 // indirect
 	dario.cat/mergo v1.0.0 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
@@ -172,7 +170,6 @@ require (
 	github.com/JohnCGriffin/overflow v0.0.0-20211019200055-46fa312c352c // indirect
 	github.com/Microsoft/hcsshim v0.11.4 // indirect
 	github.com/ProtonMail/go-crypto v1.0.0 // indirect
-	github.com/aliyun/alibaba-cloud-sdk-go v1.62.690 // indirect
 	github.com/apache/arrow/go/v15 v15.0.0 // indirect
 	github.com/apache/pulsar-client-go v0.11.0 // indirect
 	github.com/aws/aws-sdk-go-v2/config v1.27.16 // indirect
@@ -201,7 +198,7 @@ require (
 	github.com/distribution/reference v0.6.0 // indirect
 	github.com/duosecurity/duo_api_golang v0.0.0-20240205144049-bb361ad4ae1c // indirect
 	github.com/euank/go-kmsg-parser v2.0.0+incompatible // indirect
-	github.com/go-jose/go-jose/v4 v4.0.1 // indirect
+	github.com/go-jose/go-jose/v4 v4.0.2 // indirect
 	github.com/go-openapi/validate v0.23.2 // indirect
 	github.com/go-viper/mapstructure/v2 v2.0.0-alpha.1 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
@@ -211,7 +208,6 @@ require (
 	github.com/google/gnostic-models v0.6.8 // indirect
 	github.com/google/go-metrics-stackdriver v0.6.0 // indirect
 	github.com/google/s2a-go v0.1.7 // indirect
-	github.com/hashicorp/eventlogger v0.2.9 // indirect
 	github.com/hashicorp/go-bexpr v0.1.14 // indirect
 	github.com/hashicorp/go-discover v0.0.0-20230724184603-e89ebd1b2f65 // indirect
 	github.com/hashicorp/go-kms-wrapping/v2 v2.0.16 // indirect
@@ -224,12 +220,10 @@ require (
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/hashicorp/hcp-sdk-go v0.86.0 // indirect
 	github.com/hashicorp/mdns v1.0.5 // indirect
-	github.com/hashicorp/raft v1.6.1 // indirect
 	github.com/hetznercloud/hcloud-go/v2 v2.6.0 // indirect
 	github.com/influxdata/telegraf v1.30.1 // indirect
 	github.com/influxdata/wlog v0.0.0-20160411224016-7c63b0a71ef8 // indirect
 	github.com/jcmturner/goidentity/v6 v6.0.1 // indirect
-	github.com/jefferai/jsonx v1.0.1 // indirect
 	github.com/joshlf/go-acl v0.0.0-20200411065538-eae00ae38531 // indirect
 	github.com/joyent/triton-go v1.8.5 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.7 // indirect
@@ -266,7 +260,6 @@ require (
 	github.com/ovh/go-ovh v1.4.3 // indirect
 	github.com/packethost/packngo v0.31.0 // indirect
 	github.com/petermattis/goid v0.0.0-20231207134359-e60b3f734c67 // indirect
-	github.com/pires/go-proxyproto v0.7.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pkg/sftp v1.13.6 // indirect
 	github.com/pquerna/otp v1.4.0 // indirect
@@ -400,7 +393,7 @@ require (
 	github.com/envoyproxy/go-control-plane v0.12.0 // indirect
 	github.com/envoyproxy/protoc-gen-validate v1.0.4 // indirect
 	github.com/evanphx/json-patch/v5 v5.9.0 // indirect
-	github.com/fatih/color v1.16.0 // indirect
+	github.com/fatih/color v1.17.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/go-kit/log v0.2.1 // indirect
@@ -434,7 +427,7 @@ require (
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.2 // indirect
-	github.com/googleapis/gax-go/v2 v2.12.3 // indirect
+	github.com/googleapis/gax-go/v2 v2.12.4 // indirect
 	github.com/gophercloud/gophercloud v1.11.0 // indirect
 	github.com/gorilla/mux v1.8.1
 	github.com/gorilla/websocket v1.5.1 // indirect
@@ -464,7 +457,7 @@ require (
 	github.com/hashicorp/hcl v1.0.1-vault-5 // indirect
 	github.com/hashicorp/nomad/api v0.0.0-20240308195635-9c3bbd191a76 // indirect
 	github.com/hashicorp/serf v0.10.1 // indirect
-	github.com/hashicorp/vault/sdk v0.12.0 // indirect
+	github.com/hashicorp/vault/sdk v0.13.0 // indirect
 	github.com/hashicorp/yamux v0.1.1 // indirect
 	github.com/iancoleman/strcase v0.3.0 // indirect
 	github.com/imdario/mergo v0.3.16 // indirect
@@ -607,8 +600,7 @@ require (
 	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d // indirect
 	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
 	gonum.org/v1/gonum v0.15.0 // indirect
-	google.golang.org/api v0.177.0 // indirect
-	google.golang.org/genproto v0.0.0-20240308144416-29370a3891b7 // indirect
+	google.golang.org/api v0.181.0 // indirect
 	google.golang.org/grpc v1.64.0 // indirect
 	google.golang.org/protobuf v1.34.1 // indirect
 	gopkg.in/fsnotify.v1 v1.4.7 // indirect

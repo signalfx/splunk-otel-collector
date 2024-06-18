@@ -1362,6 +1362,7 @@ github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsampling
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor v0.102.0/go.mod h1:8hPQU8tprx79lDkMq4aqxU3WEurKYGVe9fM2p1VYN9I=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor v0.102.0 h1:0TQZTCWFmOQ4OAEIvIV1Ds74X1d5kQYalYJFivsuqzo=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor v0.102.0/go.mod h1:2T6Wk8q8IoUGtbigSs1/IHCUEt7Q7t+tNRtcKlZSw5M=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/activedirectorydsreceiver v0.102.0 h1:u6GSvTRVdDVWlR8GjZQ08RWa77Et0wtMt4zaqEIgKgw=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/activedirectorydsreceiver v0.102.0/go.mod h1:+51Evw9XySUq9xEmNpCbGvezpfxreDGRDaLCPKcaiOU=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/apachereceiver v0.102.0 h1:5LREf19LeKhqNSwo3wItSy4JoSExjl6QNRB0Zj8T6DU=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/apachereceiver v0.102.0/go.mod h1:AZmeqAcOp/ewg1mNbjB5krZOAnbELKTsZCEDT8ZzlkU=

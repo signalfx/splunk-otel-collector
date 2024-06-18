@@ -25,6 +25,10 @@ defaults:
   run:
     working-directory: 'deployments/chef'
 
+env:
+  CHEF_VERSION: "22.12.1024"
+  CHEF_LICENSE: accept
+
 jobs:
   chef-lint-spec-test:
     name: chef-lint-spec-test
@@ -89,7 +93,7 @@ jobs:
       - name: Install chef
         uses: actionshub/chef-install@3.0.0
         with:
-          version: 21.12.720
+          version: ${{ env.CHEF_VERSION }}
 
       - run: kitchen test ${{ matrix.DISTRO }}
 
@@ -112,12 +116,10 @@ jobs:
       - name: Install chef
         uses: actionshub/chef-install@3.0.0
         with:
-          version: 21.12.720
+          version: ${{ env.CHEF_VERSION }}
 
       - name: Install kitchen-docker
-        run: |
-          chef env --chef-license accept
-          chef gem install kitchen-docker -v 2.12.0
+        run: chef gem install kitchen-docker -v 2.12.0
 
       - name: kitchen test ${{ matrix.SUITE }}-${{ matrix.DISTRO }}
         run: |

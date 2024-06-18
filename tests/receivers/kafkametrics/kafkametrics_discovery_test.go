@@ -12,12 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build discovery_integration_mongodb
+//go:build discovery_integration_kafkametrics
 
 package tests
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -61,7 +62,7 @@ func getDockerGID() (string, error) {
 	return dockerGID, nil
 }
 
-func mongoDBAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFile string, logMessageToAssert string) (*otelContainer, error) {
+func kafkaMetricsAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFile string, logMessageToAssert string) (*otelContainer, error) {
 	factory := otlpreceiver.NewFactory()
 	port := 16745
 	c := factory.CreateDefaultConfig().(*otlpreceiver.Config)
@@ -129,45 +130,48 @@ func mongoDBAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFile st
 		return nil, err
 	}
 
+	seenMessageAttr := 0
+	seenReceiverTypeAttr := 0
+	expectedReceiver := "kafkametrics"
 	assert.EventuallyWithT(t, func(tt *assert.CollectT) {
 		if len(sink.AllLogs()) == 0 {
 			assert.Fail(tt, "No logs collected")
 			return
 		}
-		seenMessageAttr := 0
-		seenReceiverTypeAttr := 0
 		for i := 0; i < len(sink.AllLogs()); i++ {
 			plogs := sink.AllLogs()[i]
-			lr := plogs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
-			attrMap, ok := lr.Attributes().Get(OtelEntityAttributesAttr)
-			if ok {
-				m := attrMap.Map()
-				discoveryMsg, ok := m.Get(MessageAttr)
+			lrs := plogs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords()
+			for j := 0; j < lrs.Len(); j++ {
+				lr := lrs.At(j)
+				attrMap, ok := lr.Attributes().Get(OtelEntityAttributesAttr)
 				if ok {
-					seenMessageAttr++
-					assert.Equal(tt, logMessageToAssert, discoveryMsg.AsString())
-				}
-				discoveryType, ok := m.Get(ReceiverTypeAttr)
-				if ok {
-					seenReceiverTypeAttr++
-					assert.Equal(tt, "mongodb", discoveryType.AsString())
+					m := attrMap.Map()
+					discoveryMsg, ok := m.Get(MessageAttr)
+					if ok {
+						seenMessageAttr++
+						assert.Equal(tt, logMessageToAssert, discoveryMsg.AsString())
+					}
+					discoveryType, ok := m.Get(ReceiverTypeAttr)
+					if ok {
+						seenReceiverTypeAttr++
+						assert.Equal(tt, expectedReceiver, discoveryType.AsString())
+					}
 				}
 			}
 		}
-		assert.True(t, seenMessageAttr > 0)
-		assert.True(t, seenReceiverTypeAttr > 0)
-	}, 60*time.Second, 5*time.Second)
+		assert.Greater(tt, seenMessageAttr, 0, "Did not see message '%s'", logMessageToAssert)
+		assert.Greater(tt, seenReceiverTypeAttr, 0, "Did not see expected type '%s'", expectedReceiver)
+	}, 60*time.Second, 1*time.Second, "Did not get '%s' discovery in time", expectedReceiver)
 
 	return &otelContainer{Container: container}, nil
 }
 
-func TestIntegrationMongoDBAutoDiscovery(t *testing.T) {
+func TestIntegrationKafkaMetricsAutoDiscovery(t *testing.T) {
 	if runtime.GOOS == "darwin" || runtime.GOOS == "windows" {
 		t.Skip("Integration tests are only run on linux architecture: https://github.com/signalfx/splunk-otel-collector/blob/main/.github/workflows/integration-test.yml#L35")
 	}
 
-	successfulDiscoveryMsg := `mongodb receiver is working!`
-	partialDiscoveryMsg := "Please ensure your user credentials are correctly specified with `{{ configPropertyEnvVar \"username\" \"<username>\" }}` and `{{ configPropertyEnvVar \"password\" \"<password>\" }}` environment variables."
+	successfulDiscoveryMsg := `kafkametrics receiver is working!`
 	ctx := context.Background()
 
 	tests := map[string]struct {
@@ -176,15 +180,9 @@ func TestIntegrationMongoDBAutoDiscovery(t *testing.T) {
 		logMessageToAssert string
 		expected           error
 	}{
-		"Partial Discovery test": {
-			ctx:                ctx,
-			configFileName:     "docker_observer_without_ssl_with_wrong_authentication_mongodb_config.yaml",
-			logMessageToAssert: partialDiscoveryMsg,
-			expected:           nil,
-		},
 		"Successful Discovery test": {
 			ctx:                ctx,
-			configFileName:     "docker_observer_without_ssl_mongodb_config.yaml",
+			configFileName:     "docker_observer_without_ssl_kafkametrics_config.yaml",
 			logMessageToAssert: successfulDiscoveryMsg,
 			expected:           nil,
 		},
@@ -192,9 +190,9 @@ func TestIntegrationMongoDBAutoDiscovery(t *testing.T) {
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			container, err := mongoDBAutoDiscoveryHelper(t, test.ctx, test.configFileName, test.logMessageToAssert)
+			container, err := kafkaMetricsAutoDiscoveryHelper(t, test.ctx, test.configFileName, test.logMessageToAssert)
 
-			if err != test.expected {
+			if !errors.Is(err, test.expected) {
 				t.Fatalf(" Expected %v, got %v", test.expected, err)
 			}
 			t.Cleanup(func() {

@@ -58,6 +58,11 @@ fossa:
 .sign-docker:
   extends: .trigger-filter
   retry: 2
+  id_tokens:  # http://go/gitlab-17
+    CI_JOB_JWT:
+      aud:
+        - $CICD_VAULT_ADDR
+        - $SIGNING_PRD_URL
   script:
     - docker login -u $CIRCLECI_QUAY_USERNAME -p $CIRCLECI_QUAY_PASSWORD quay.io
     - echo "listing images to be signed"

@@ -13,6 +13,7 @@ The distribution offers support for the following components.
 
 | Receivers                                                                                                                                     | Stability        |
 |:----------------------------------------------------------------------------------------------------------------------------------------------|:-----------------|
+| [active_directory_ds](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/activedirectorydsreceiver)       | [beta]           |
 | [awscontainerinsights](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/awscontainerinsightreceiver)      | [beta]           |
 | [awsecscontainermetrics](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/awsecscontainermetricsreceiver) | [beta]           |
 | [apache](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/apachereceiver)                                 | [alpha]          |

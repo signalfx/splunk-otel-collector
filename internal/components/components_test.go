@@ -43,6 +43,7 @@ func TestDefaultComponents(t *testing.T) {
 		"file_storage",
 	}
 	expectedReceivers := []string{
+		"active_directory_ds",
 		"awscontainerinsightreceiver",
 		"awsecscontainermetrics",
 		"azureeventhub",

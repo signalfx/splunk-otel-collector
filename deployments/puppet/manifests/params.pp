@@ -26,7 +26,7 @@ class splunk_otel_collector::params {
     $auto_instrumentation_version = 'latest'
     $auto_instrumentation_java_agent_jar = '/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar'
 
-  } elsif $::osfamily == 'windows' {
+  } elsif $::osfamily == 'windows' or $::family == 'windows' {
     $collector_version = ''
     $collector_install_dir = "${::win_programfiles}\\Splunk\\OpenTelemetry Collector"
     $collector_config_dir = "${::win_programdata}\\Splunk\\OpenTelemetry Collector"

@@ -2,7 +2,7 @@
 # Returns empty string if the key does not exist.
 
 Facter.add(:win_collector_version) do
-  confine :osfamily => :windows
+  confine :kernel => 'windows'
   setcode do
     begin
       value = ''

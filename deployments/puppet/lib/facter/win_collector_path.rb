@@ -2,7 +2,7 @@
 # Returns empty string if the key or the path does not exist.
 
 Facter.add(:win_collector_path) do
-  confine :osfamily => :windows
+  confine :kernel => 'windows'
   setcode do
     begin
       value = ''

@@ -22,7 +22,7 @@ class splunk_otel_collector::collector_service_owner ($service_name, $service_us
         noop => true, }
     }
     else {
-      $shell = $::osfamily ? {
+      $shell = $facts['os']['family'] ? {
         'debian' => '/usr/sbin/nologin',
         default  => '/sbin/nologin',
       }

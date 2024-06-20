@@ -60,7 +60,7 @@ class splunk_otel_collector (
     fail('The splunk_realm parameter is required')
   }
 
-  if $::osfamily == 'windows' {
+  if $facts['os']['family'] == 'windows' {
     if empty($collector_version) {
       fail('The $collector_version parameter is required for Windows')
     }
@@ -70,26 +70,26 @@ class splunk_otel_collector (
   }
 
   $collector_service_name = 'splunk-otel-collector'
-  $collector_package_name = $::osfamily ? {
+  $collector_package_name = $facts['os']['family'] ? {
     'windows' => 'Splunk OpenTelemetry Collector',
     default   => $collector_service_name,
   }
-  $fluentd_service_name = $::osfamily ? {
+  $fluentd_service_name = $facts['os']['family'] ? {
     'windows' => 'fluentdwinsvc',
     default   => 'td-agent',
   }
-  $fluentd_package_name = $::osfamily ? {
+  $fluentd_package_name = $facts['os']['family'] ? {
     'windows' => "Td-agent v${fluentd_version}",
     default   => $fluentd_service_name,
   }
 
-  if $::osfamily == 'suse' or ('amazon' in downcase($facts['os']['name']) and $facts['os']['release']['major'] == '2023') {
+  if $facts['os']['family'] == 'suse' or ('amazon' in downcase($facts['os']['name']) and $facts['os']['release']['major'] == '2023') {
     $install_fluentd = false
   } else {
     $install_fluentd = $with_fluentd
   }
 
-  case $::osfamily {
+  case $facts['os']['family'] {
     'debian': {
       if $facts['service_provider'] != 'systemd' {
         fail('Only systemd is currently supported')
@@ -156,11 +156,11 @@ class splunk_otel_collector (
       }
     }
     default: {
-      fail("Your OS (${::osfamily}) is not supported by the Splunk OpenTelemetry Collector")
+      fail("Your OS (${facts['os']['family']}) is not supported by the Splunk OpenTelemetry Collector")
     }
   }
 
-  if $::osfamily != 'windows' {
+  if $facts['os']['family'] != 'windows' {
     $collector_config_dir = $collector_config_dest.split('/')[0, - 2].join('/')
     $env_file_path = '/etc/otel/collector/splunk-otel-collector.conf'
 
@@ -217,7 +217,7 @@ class splunk_otel_collector (
   }
 
   if $install_fluentd {
-    case $::osfamily {
+    case $facts['os']['family'] {
       'debian': {
         package { ['build-essential', 'libcap-ng0', 'libcap-ng-dev', 'pkg-config']:
           ensure  => 'installed',
@@ -286,11 +286,11 @@ class splunk_otel_collector (
         }
       }
       default: {
-        fail("Your OS (${::osfamily}) is not supported by the Splunk OpenTelemetry Collector")
+        fail("Your OS (${facts['os']['family']}) is not supported by the Splunk OpenTelemetry Collector")
       }
     }
 
-    if $::osfamily != 'windows' {
+    if $facts['os']['family'] != 'windows' {
       $fluentd_config_dir = $fluentd_config_dest.split('/')[0, - 2].join('/')
       $fluentd_config_override = '/etc/systemd/system/td-agent.service.d/splunk-otel-collector.conf'
       $fluentd_config_override_dir= $fluentd_config_override.split('/')[0, - 2].join('/')
@@ -384,18 +384,18 @@ class splunk_otel_collector (
     $with_new_instrumentation = $auto_instrumentation_version == 'latest' or versioncmp($auto_instrumentation_version, '0.87.0') >= 0
     $dotnet_supported = $facts['os']['architecture'] in ['amd64', 'x86_64'] and ($auto_instrumentation_version == 'latest' or versioncmp($auto_instrumentation_version, '0.99.0') >= 0) # lint:ignore:140chars
 
-    if $::osfamily == 'debian' {
+    if $facts['os']['family'] == 'debian' {
       package { $auto_instrumentation_package_name:
         ensure  => $auto_instrumentation_version,
         require => [Class['splunk_otel_collector::collector_debian_repo'], Package[$collector_package_name]],
       }
-    } elsif $::osfamily == 'redhat' or $::osfamily == 'suse' {
+    } elsif $facts['os']['family'] == 'redhat' or $facts['os']['family'] == 'suse' {
       package { $auto_instrumentation_package_name:
         ensure  => $auto_instrumentation_version,
         require => [Class['splunk_otel_collector::collector_yum_repo'], Package[$collector_package_name]],
       }
     } else {
-      fail("Splunk OpenTelemetry Auto Instrumentation is not supported for your OS family (${::osfamily})")
+      fail("Splunk OpenTelemetry Auto Instrumentation is not supported for your OS family (${facts['os']['family']})")
     }
 
     if 'nodejs' in $with_auto_instrumentation_sdks and $with_new_instrumentation {

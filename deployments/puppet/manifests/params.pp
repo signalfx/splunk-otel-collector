@@ -4,7 +4,7 @@ class splunk_otel_collector::params {
   $fluentd_version_stretch = '3.7.1-0'
   $collector_additional_env_vars = {}
 
-  if $::osfamily == 'redhat' or $::osfamily == 'debian' or $::osfamily == 'suse' {
+  if $facts['os']['family'] == 'redhat' or $facts['os']['family'] == 'debian' or $facts['os']['family'] == 'suse' {
     $collector_version = 'latest'
     $collector_config_dir = '/etc/otel/collector'
     $fluentd_config_dir = "${collector_config_dir}/fluentd"
@@ -13,7 +13,7 @@ class splunk_otel_collector::params {
     $collector_config_source = "${collector_config_dir}/agent_config.yaml"
     $collector_config_dest = $collector_config_source
     $fluentd_base_url = 'https://packages.treasuredata.com'
-    if $::osfamily == 'debian' {
+    if $facts['os']['family'] == 'debian' {
       $fluentd_version = downcase($facts['os']['distro']['codename']) ? {
         'stretch' => $fluentd_version_stretch,
         default   => "${fluentd_version_default}-1",
@@ -26,7 +26,7 @@ class splunk_otel_collector::params {
     $auto_instrumentation_version = 'latest'
     $auto_instrumentation_java_agent_jar = '/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar'
 
-  } elsif $::osfamily == 'windows' {
+  } elsif $facts['os']['family'] == 'windows' {
     $collector_version = ''
     $collector_install_dir = "${::win_programfiles}\\Splunk\\OpenTelemetry Collector"
     $collector_config_dir = "${::win_programdata}\\Splunk\\OpenTelemetry Collector"
@@ -42,6 +42,6 @@ class splunk_otel_collector::params {
     $auto_instrumentation_version = ''
     $auto_instrumentation_java_agent_jar = ''
   } else {
-    fail("Your OS (${::osfamily}) is not supported by the Splunk OpenTelemetry Collector")
+    fail("Your OS (${facts['os']['family']}) is not supported by the Splunk OpenTelemetry Collector")
   }
 }

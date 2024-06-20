@@ -126,8 +126,8 @@ def verify_env_file(container, api_url=SPLUNK_API_URL, ingest_url=SPLUNK_INGEST_
 
 
 def skip_if_necessary(distro, puppet_release):
-    if distro == "ubuntu-focal":
-        pytest.skip("requires https://github.com/puppetlabs/puppetlabs-release/issues/271 to be resolved")
+    if distro in ("debian-stretch", "ubuntu-xenial") and int(puppet_release) >= 8:
+        pytest.skip(f"Puppet {puppet_release} not supported for {distro}")
 
 
 def node_package_installed(container):
@@ -160,6 +160,8 @@ class {{ splunk_otel_collector:
 )
 @pytest.mark.parametrize("puppet_release", PUPPET_RELEASE)
 def test_puppet_default(distro, puppet_release):
+    skip_if_necessary(distro, puppet_release)
+
     if distro in DEB_DISTROS:
         dockerfile = IMAGES_DIR / "deb" / f"Dockerfile.{distro}"
     else:
@@ -201,6 +203,8 @@ class {{ splunk_otel_collector:
 )
 @pytest.mark.parametrize("puppet_release", PUPPET_RELEASE)
 def test_puppet_with_custom_vars(distro, puppet_release):
+    skip_if_necessary(distro, puppet_release)
+
     if distro in DEB_DISTROS:
         dockerfile = IMAGES_DIR / "deb" / f"Dockerfile.{distro}"
     else:
@@ -253,6 +257,8 @@ class {{ splunk_otel_collector:
 @pytest.mark.parametrize("version", ["0.86.0", "latest"])
 @pytest.mark.parametrize("with_systemd", ["true", "false"])
 def test_puppet_with_default_instrumentation(distro, puppet_release, version, with_systemd):
+    skip_if_necessary(distro, puppet_release)
+
     if distro in DEB_DISTROS:
         dockerfile = IMAGES_DIR / "deb" / f"Dockerfile.{distro}"
     else:
@@ -352,6 +358,8 @@ class {{ splunk_otel_collector:
 @pytest.mark.parametrize("version", ["0.86.0", "latest"])
 @pytest.mark.parametrize("with_systemd", ["true", "false"])
 def test_puppet_with_custom_instrumentation(distro, puppet_release, version, with_systemd):
+    skip_if_necessary(distro, puppet_release)
+
     if distro in DEB_DISTROS:
         dockerfile = IMAGES_DIR / "deb" / f"Dockerfile.{distro}"
     else:

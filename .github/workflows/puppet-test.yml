@@ -72,9 +72,10 @@ jobs:
             exit 1
           fi
           distro=$(for d in $dockerfiles; do echo -n "\"$d\","; done)
-          puppet_release='"6","7"'
+          puppet_release='"6","7","8"'
           with_instrumentation='"true","false"'
-          matrix="{\"DISTRO\": [${distro%,}], \"PUPPET_RELEASE\": [${puppet_release}], \"WITH_INSTRUMENTATION\": [${with_instrumentation}]}"
+          exclude='{"DISTRO": "debian-stretch", "PUPPET_RELEASE": "8"}, {"DISTRO": "ubuntu-xenial", "PUPPET_RELEASE": "8"}'  # puppet 8 not supported for these distros
+          matrix="{\"DISTRO\": [${distro%,}], \"PUPPET_RELEASE\": [${puppet_release}], \"WITH_INSTRUMENTATION\": [${with_instrumentation}], \"exclude\": [${exclude}]}"
           echo "$matrix" | jq
           echo "matrix=${matrix}" >> $GITHUB_OUTPUT
     outputs:
@@ -155,7 +156,7 @@ jobs:
     strategy:
       matrix:
         OS: [ "windows-2022" ]
-        PUPPET_RELEASE: [ "6.0.2", "7.21.0" ]
+        PUPPET_RELEASE: [ "6.0.2", "7.21.0", "8.1.0" ]
         TEST_CASE: [ "default", "custom_vars" ]
         WIN_COLLECTOR_VERSION: [ "0.86.0", "latest" ]
       fail-fast: false

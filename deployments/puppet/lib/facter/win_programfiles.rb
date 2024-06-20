@@ -1,7 +1,7 @@
 # Returns the PROGRAMFILES env var on windows
 
 Facter.add(:win_programfiles) do
-  confine :osfamily => :windows
+  confine :kernel => 'windows'
   setcode do
     ENV['PROGRAMFILES']
   end

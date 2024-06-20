@@ -9,15 +9,9 @@ describe 'splunk_otel_collector' do
   end
 
   on_supported_os.each do |os, facts|
-    if os.include? "windows"
-        next
-    end
+    let(:facts) { facts }
     context "on #{os}" do
       let(:params) { { 'splunk_access_token' => "testing", 'splunk_realm' => 'test' } }
-      let(:facts) do
-        facts
-      end
-
       it { is_expected.to compile.with_all_deps }
     end
   end

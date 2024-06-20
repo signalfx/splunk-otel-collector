@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## puppet-v0.17.0
+
+- Use `$facts['os']['family']` instead of the legacy `$::osfamily` fact
+
 ## puppet-v0.16.0
 
 - Initial support for [Splunk OpenTelemetry for .NET](https://github.com/signalfx/splunk-otel-dotnet) Auto

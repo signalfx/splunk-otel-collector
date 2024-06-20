@@ -28,8 +28,13 @@ RUN rm -f /lib/systemd/system/multi-user.target.wants/* \
 RUN systemctl set-default multi-user.target
 ENV init /lib/systemd/systemd
 
-RUN puppet module install puppetlabs-stdlib --version 4.24.0
-RUN puppet module install puppetlabs-apt --version 7.0.0
+RUN if [ $PUPPET_RELEASE -lt 8 ]; then \
+      puppet module install puppetlabs-stdlib --version 4.24.0 && \
+      puppet module install puppetlabs-apt --version 7.0.0; \
+    else \
+      puppet module install puppetlabs-stdlib --version 9.0.0 && \
+      puppet module install puppetlabs-apt --version 9.1.0; \
+    fi
 
 COPY deployments/puppet /etc/puppetlabs/code/environments/production/modules/splunk_otel_collector
 

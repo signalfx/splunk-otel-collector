@@ -10,58 +10,23 @@ OTEL_VERSION="${OTEL_VERSION:-main}"
 CORE_VERSION="${CORE_VERSION:-$OTEL_VERSION}"
 CONTRIB_VERSION="${CONTRIB_VERSION:-$OTEL_VERSION}"
 
+CORE_PKGS="go.opentelemetry.io/collector"
+CONTRIB_PKGS="github.com/open-telemetry/opentelemetry-collector-contrib"
+
 trap "cd $CUR_DIR" EXIT
 
-PV_RE="v[[:digit:]]+.[[:digit:]]+.[[:digit:]]+-[[:digit:]].([[:digit:]]{14}-[[:alnum:]]{12})"
-
-# account for pseudoversions for pkg/ottl that require v0.0.0 prefix
-desired_contrib_version() {
-    CNTRB_VRSN=$CONTRIB_VERSION
-    if [[ $CONTRIB_VERSION =~ $PV_RE ]]; then
-       PV="${BASH_REMATCH[1]}"
-       if [[ $1 =~ (contrib/pkg/ottl|contrib/pkg/stanza) ]]; then
-           CNTRB_VRSN="v0.0.0-${PV}"
-       fi
-    fi
-    echo "$CNTRB_VRSN"
-}
-
 for gomod in $( find "$REPO_DIR" -name "go.mod" | grep -v "/examples/" | sort ); do
-    echo "Updating $gomod ..."
-
     pushd "$( dirname "$gomod" )" >/dev/null
 
-    OFS=$IFS
-    IFS=$'\n'
+    if grep -q "^[[:space:]]\+${CORE_PKGS}/" go.mod; then
+        echo "Updating ${CORE_PKGS}/... in $gomod to $CORE_VERSION"
+        go get ${CORE_PKGS}/...@${CORE_VERSION}
+    fi
 
-    # update the replace directives to the new version
-    lines="$( (grep 'github.com/open-telemetry/opentelemetry-collector-contrib/.* =>' "$gomod" | grep -v 'ignore-update-deps' | grep -v '^[[:space:]]*//') || true )"
-    for line in $lines; do
-        if [[ $line =~ ^replace ]]; then
-            pkg="$( echo "$line" | awk '{print $2}' )"
-        else
-            pkg="$( echo "$line" | awk '{print $1}' )"
-        fi
-        go mod edit -replace="${pkg}"="${pkg}"@$(desired_contrib_version "$line")
-        [ -f Makefile ] && make tidy
-    done
-
-    lines="$( (grep 'go.opentelemetry.io/collector' "$gomod" | grep -v 'ignore-update-deps' | grep -v '^[[:space:]]*//' | grep -v '=>' | grep -v ' // indirect' | sort -u) || true )"
-    for line in $lines; do
-        pkg="$( echo "$line" | awk '{print $1}' )"
-        # don't explicitly update pdata for now
-        if [[ ! $pkg =~ "pdata" ]]; then
-            go get "${pkg}"@${CORE_VERSION}
-        fi
-    done
-
-    lines="$( (grep 'github.com/open-telemetry/opentelemetry-collector-contrib/' "$gomod" | grep -v 'ignore-update-deps' | grep -v '^[[:space:]]*//' | grep -v '=>' | grep -v ' // indirect' | sort -u) || true )"
-    for line in $lines; do
-        pkg="$( echo "$line" | awk '{print $1}' )"
-        go get "${pkg}"@$(desired_contrib_version "$line")
-    done
-
-    IFS=$OFS
+    if grep -q "^[[:space:]]\+${CONTRIB_PKGS}/" go.mod; then
+        echo "Updating ${CONTRIB_PKGS}/... in $gomod to $CONTRIB_VERSION"
+        go get ${CONTRIB_PKGS}/...@${CONTRIB_VERSION}
+    fi
 
     [ -f Makefile ] && make tidy
 

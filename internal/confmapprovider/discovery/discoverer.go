@@ -538,8 +538,8 @@ func (d *discoverer) discoveryConfig(cfg *Config) (map[string]any, error) {
 	return sMap, nil
 }
 
-func (d *discoverer) createExtensionCreateSettings(observerID component.ID) otelcolextension.CreateSettings {
-	return otelcolextension.CreateSettings{
+func (d *discoverer) createExtensionCreateSettings(observerID component.ID) otelcolextension.Settings {
+	return otelcolextension.Settings{
 		ID: observerID,
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         zap.New(d.logger.Core()).With(zap.String("kind", observerID.String())),
@@ -551,8 +551,8 @@ func (d *discoverer) createExtensionCreateSettings(observerID component.ID) otel
 	}
 }
 
-func (d *discoverer) createReceiverCreateSettings() otelcolreceiver.CreateSettings {
-	return otelcolreceiver.CreateSettings{
+func (d *discoverer) createReceiverCreateSettings() otelcolreceiver.Settings {
+	return otelcolreceiver.Settings{
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         zap.New(d.logger.Core()).With(zap.String("kind", "receiver")),
 			TracerProvider: tnoop.NewTracerProvider(),

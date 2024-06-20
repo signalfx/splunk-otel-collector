@@ -35,7 +35,7 @@ type otelReporter struct {
 	obsrecv       *receiverhelper.ObsReport
 }
 
-func newOtelReporter(settings receiver.CreateSettings) (reporter, error) {
+func newOtelReporter(settings receiver.Settings) (reporter, error) {
 	obsrecv, err := receiverhelper.NewObsReport(receiverhelper.ObsReportSettings{
 		ReceiverID:             settings.ID,
 		Transport:              "tcp",

@@ -51,7 +51,7 @@ type receiver struct {
 	nextTracesConsumer  consumer.Traces
 	logger              *zap.Logger
 	config              *Config
-	params              otelcolreceiver.CreateSettings
+	params              otelcolreceiver.Settings
 	sync.Mutex
 }
 
@@ -66,7 +66,7 @@ var (
 	configureLogrusOnce      sync.Once
 )
 
-func newReceiver(params otelcolreceiver.CreateSettings, config Config) *receiver {
+func newReceiver(params otelcolreceiver.Settings, config Config) *receiver {
 	return &receiver{
 		logger: params.Logger,
 		params: params,

@@ -111,7 +111,7 @@ func TestSmartAgentConfigProvider(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, allSettingsConfig)
 
-	ext, err := NewFactory().CreateExtension(context.Background(), extension.CreateSettings{}, allSettingsConfig)
+	ext, err := NewFactory().CreateExtension(context.Background(), extension.Settings{}, allSettingsConfig)
 	require.NoError(t, err)
 	require.NotNil(t, ext)
 

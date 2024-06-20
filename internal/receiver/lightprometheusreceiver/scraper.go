@@ -42,7 +42,7 @@ type scraper struct {
 }
 
 func newScraper(
-	settings receiver.CreateSettings,
+	settings receiver.Settings,
 	cfg *Config,
 ) *scraper {
 	e := &scraper{

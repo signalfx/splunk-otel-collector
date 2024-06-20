@@ -62,8 +62,8 @@ func cleanUp() func() {
 	}
 }
 
-func newReceiverCreateSettings(name string, t *testing.T) otelcolreceiver.CreateSettings {
-	return otelcolreceiver.CreateSettings{
+func newReceiverCreateSettings(name string, t *testing.T) otelcolreceiver.Settings {
+	return otelcolreceiver.Settings{
 		ID: component.MustNewIDWithName("smartagent", name),
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         zap.NewNop(),
@@ -425,7 +425,7 @@ func (m *mockHost) GetExtensions() map[component.ID]otelcolextension.Extension {
 }
 
 func getExtension(f otelcolextension.Factory, cfg component.Config) otelcolextension.Extension {
-	e, err := f.CreateExtension(context.Background(), otelcolextension.CreateSettings{}, cfg)
+	e, err := f.CreateExtension(context.Background(), otelcolextension.Settings{}, cfg)
 	if err != nil {
 		panic(err)
 	}

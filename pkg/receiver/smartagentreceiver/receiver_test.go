@@ -388,14 +388,14 @@ func getSmartAgentExtensionConfig(t *testing.T) []*smartagentextension.Config {
 	cm, err := cfg.Sub(partialSettingsID.String())
 	require.NoError(t, err)
 	partialSettingsConfig := smartagentextension.NewFactory().CreateDefaultConfig().(*smartagentextension.Config)
-	err = component.UnmarshalConfig(cm, partialSettingsConfig)
+	err = cm.Unmarshal(&partialSettingsConfig)
 	require.NoError(t, err)
 	require.NotNil(t, partialSettingsConfig)
 
 	cm, err = cfg.Sub(partialSettingsID.String())
 	require.NoError(t, err)
 	extraSettingsConfig := smartagentextension.NewFactory().CreateDefaultConfig().(*smartagentextension.Config)
-	err = component.UnmarshalConfig(cm, extraSettingsConfig)
+	err = cm.Unmarshal(&extraSettingsConfig)
 	require.NoError(t, err)
 	require.NotNil(t, extraSettingsConfig)
 

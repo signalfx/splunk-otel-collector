@@ -41,7 +41,7 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 	cm, err := configs.Sub(component.MustNewIDWithName(typeStr, "apache").String())
 	require.NoError(t, err)
 	apacheCfg := CreateDefaultConfig().(*Config)
-	err = component.UnmarshalConfig(cm, apacheCfg)
+	err = cm.Unmarshal(&apacheCfg)
 	require.NoError(t, err)
 	require.Equal(t, &Config{
 		monitorConfig: &apache.Config{
@@ -61,7 +61,7 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 	cm, err = configs.Sub(component.MustNewIDWithName(typeStr, "kafka").String())
 	require.NoError(t, err)
 	kafkaCfg := CreateDefaultConfig().(*Config)
-	err = component.UnmarshalConfig(cm, kafkaCfg)
+	err = cm.Unmarshal(&kafkaCfg)
 	require.NoError(t, err)
 	require.Equal(t, &Config{
 		monitorConfig: &kafka.Config{
@@ -84,7 +84,7 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 	cm, err = configs.Sub(component.MustNewIDWithName(typeStr, "memcached").String())
 	require.NoError(t, err)
 	memcachedCfg := CreateDefaultConfig().(*Config)
-	err = component.UnmarshalConfig(cm, memcachedCfg)
+	err = cm.Unmarshal(&memcachedCfg)
 	require.NoError(t, err)
 	require.Equal(t, &Config{
 		monitorConfig: &memcached.Config{
@@ -103,7 +103,7 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 	cm, err = configs.Sub(component.MustNewIDWithName(typeStr, "php").String())
 	require.NoError(t, err)
 	phpCfg := CreateDefaultConfig().(*Config)
-	err = component.UnmarshalConfig(cm, phpCfg)
+	err = cm.Unmarshal(&phpCfg)
 	require.NoError(t, err)
 	require.Equal(t, &Config{
 		monitorConfig: &php.Config{

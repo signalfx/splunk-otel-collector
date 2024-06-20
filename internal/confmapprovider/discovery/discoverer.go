@@ -326,7 +326,7 @@ func (d *discoverer) createDiscoveryReceiversAndObservers(cfg *Config) (map[comp
 			return nil, nil, fmt.Errorf("error preparing discovery receiver config: %w", err)
 		}
 
-		if err = component.UnmarshalConfig(discoveryReceiverConfMap, discoveryReceiverConfig); err != nil {
+		if err = discoveryReceiverConfMap.Unmarshal(&discoveryReceiverConfig); err != nil {
 			return nil, nil, fmt.Errorf("failed unmarshaling discovery receiver config: %w", err)
 		}
 
@@ -401,7 +401,7 @@ func (d *discoverer) createObserver(observerID component.ID, cfg *Config) (otelc
 		return nil, fmt.Errorf("error converting environment variables in %q config: %w", observerID, err)
 	}
 
-	if err = component.UnmarshalConfig(observerDiscoveryConf, observerConfig); err != nil {
+	if err = observerDiscoveryConf.Unmarshal(&observerConfig); err != nil {
 		return nil, fmt.Errorf("failed unmarshaling %q config: %w", observerID, err)
 	}
 

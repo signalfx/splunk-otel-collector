@@ -37,7 +37,7 @@ func TestBundleDirDefault(t *testing.T) {
 	cm, err := cfg.Sub(defaultSettingsID.String())
 	require.NoError(t, err)
 	emptyConfig := createDefaultConfig().(*Config)
-	err = component.UnmarshalConfig(cm, emptyConfig)
+	err = cm.Unmarshal(&emptyConfig)
 	require.NoError(t, err)
 	require.NotNil(t, emptyConfig)
 

@@ -84,6 +84,7 @@ func TestDefaultComponents(t *testing.T) {
 		"signalfxgatewayprometheusremotewrite",
 		"smartagent",
 		"solace",
+		"splunkenterprise",
 		"splunk_hec",
 		"sqlquery",
 		"sqlserver",

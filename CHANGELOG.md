@@ -28,7 +28,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 - (Core) `confmap`: Add `confmap.unifyEnvVarExpansion` feature gate to allow enabling Collector/Configuration SIG environment variable expansion rules. ([#10259](https://github.com/open-telemetry/opentelemetry-collector/pull/10259))
   When enabled, this feature gate will:
   - Disable expansion of BASH-style env vars (`$FOO`)
-  - `${FOO}` will be expanded as if it was `${env:FOO}
+  - `${FOO}` will be expanded as if it was `${env:FOO}`
     See https://github.com/open-telemetry/opentelemetry-collector/blob/main/docs/rfcs/env-vars.md for more details.
 
 - (Core) `confighttp`: Allow the compression list to be overridden ([#10295](https://github.com/open-telemetry/opentelemetry-collector/pull/10295))

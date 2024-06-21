@@ -4,6 +4,7 @@
 
 ### 🚀 New components 🚀
 
+- (Splunk) Add Azure Monitor receiver ([#4971](https://github.com/signalfx/splunk-otel-collector/pull/4971))
 - (Splunk) Add [upstream](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/rabbitmqreceiver) Opentelemetry Collector RabbitMQ receiver ([#4980](https://github.com/signalfx/splunk-otel-collector/pull/4980))
 - (Splunk) Add Active Directory Domain Services receiver ([#4994](https://github.com/signalfx/splunk-otel-collector/pull/4994))
 

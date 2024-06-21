@@ -43,7 +43,7 @@ import (
 )
 
 func TestOutput(t *testing.T) {
-	rcs := otelcolreceiver.CreateSettings{}
+	rcs := otelcolreceiver.Settings{}
 	rcs.Logger = zap.NewNop()
 	output, err := newOutput(
 		Config{}, fakeMonitorFiltering(), consumertest.NewNop(),
@@ -369,7 +369,7 @@ func getExportersTest() map[component.DataType]map[component.ID]component.Compon
 
 	exampleExporterFactory := exportertest.NewNopFactory()
 	exampleExporter, _ := exampleExporterFactory.CreateMetricsExporter(
-		context.Background(), otelcolexporter.CreateSettings{}, nil,
+		context.Background(), otelcolexporter.Settings{}, nil,
 	)
 
 	// metricExporterMap[exampleExporterFactory.CreateDefaultConfig().ID()] = exampleExporter

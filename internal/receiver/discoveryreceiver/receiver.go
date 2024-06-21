@@ -56,11 +56,11 @@ type discoveryReceiver struct {
 	pLogs              chan plog.Logs
 	observables        map[component.ID]observer.Observable
 	loopFinished       *sync.WaitGroup
-	settings           receiver.CreateSettings
+	settings           receiver.Settings
 }
 
 func newDiscoveryReceiver(
-	settings receiver.CreateSettings,
+	settings receiver.Settings,
 	config *Config,
 	consumer consumer.Logs,
 ) (*discoveryReceiver, error) {
@@ -176,7 +176,7 @@ func (d *discoveryReceiver) createAndSetReceiverCreator() error {
 	id := component.MustNewIDWithName(receiverCreatorFactory.Type().String(), d.settings.ID.String())
 	// receiverCreatorConfig.SetIDName(d.settings.ID.String())
 
-	receiverCreatorSettings := receiver.CreateSettings{
+	receiverCreatorSettings := receiver.Settings{
 		ID: id,
 		TelemetrySettings: component.TelemetrySettings{
 			Logger: d.statementEvaluator.evaluatedLogger.With(

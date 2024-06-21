@@ -20,7 +20,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
 )
 
@@ -34,14 +33,14 @@ func TestLoadConfig(t *testing.T) {
 	e0cm, err := configs.Sub("httpsink")
 	require.NoError(t, err)
 	e0 := createDefaultConfig()
-	require.NoError(t, component.UnmarshalConfig(e0cm, e0))
+	require.NoError(t, e0cm.Unmarshal(&e0))
 
 	assert.Equal(t, NewFactory().CreateDefaultConfig(), e0)
 
 	e1cm, err := configs.Sub("httpsink/2")
 	require.NoError(t, err)
 	e1 := createDefaultConfig()
-	require.NoError(t, component.UnmarshalConfig(e1cm, e1))
+	require.NoError(t, e1cm.Unmarshal(&e1))
 
 	assert.Equal(t,
 		&Config{

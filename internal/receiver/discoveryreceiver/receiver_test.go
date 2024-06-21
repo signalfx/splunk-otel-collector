@@ -30,7 +30,7 @@ import (
 )
 
 func TestNewDiscoveryReceiver(t *testing.T) {
-	rcs := otelcolreceiver.CreateSettings{
+	rcs := otelcolreceiver.Settings{
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         zap.NewNop(),
 			MeterProvider:  mnoop.NewMeterProvider(),
@@ -100,7 +100,7 @@ func TestObservablesFromHost(t *testing.T) {
 	} {
 		test := tt
 		t.Run(test.name, func(t *testing.T) {
-			rcs := otelcolreceiver.CreateSettings{
+			rcs := otelcolreceiver.Settings{
 				TelemetrySettings: component.TelemetrySettings{
 					Logger:         zap.NewNop(),
 					TracerProvider: tnoop.NewTracerProvider(),

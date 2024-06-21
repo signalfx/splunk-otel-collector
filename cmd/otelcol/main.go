@@ -87,7 +87,7 @@ func main() {
 }
 
 func runInteractive(settings otelcol.CollectorSettings) error {
-	cmd := otelcol.NewCommand(settings)
+	cmd := otelcol.NewCommandMustSetProvider(settings)
 	if err := cmd.Execute(); err != nil {
 		return fmt.Errorf("application run finished with error: %w", err)
 	}

@@ -627,7 +627,7 @@ func TestUpdateEndpoints(t *testing.T) {
 			cm, err := config.Sub(typeStr)
 			require.NoError(t, err)
 			cfg := createDefaultConfig().(*Config)
-			require.NoError(t, component.UnmarshalConfig(cm, cfg))
+			require.NoError(t, cm.Unmarshal(&cfg))
 
 			logger := zap.NewNop()
 			et := newEndpointTracker(nil, cfg, logger, nil, newCorrelationStore(logger, cfg.CorrelationTTL))

@@ -40,7 +40,7 @@ func TestValidConfig(t *testing.T) {
 	cm, err := configs.Sub("discovery")
 	require.NoError(t, err)
 	cfg := createDefaultConfig().(*Config)
-	err = component.UnmarshalConfig(cm, cfg)
+	err = cm.Unmarshal(&cfg)
 	require.NoError(t, err)
 
 	require.Equal(t, &Config{
@@ -117,7 +117,7 @@ func TestInvalidConfigs(t *testing.T) {
 				cm, err := config.Sub(typeStr)
 				require.NoError(t, err)
 				cfg := createDefaultConfig().(*Config)
-				err = component.UnmarshalConfig(cm, cfg)
+				err = cm.Unmarshal(&cfg)
 				require.NoError(t, err)
 				err = cfg.Validate()
 				require.Error(t, err)

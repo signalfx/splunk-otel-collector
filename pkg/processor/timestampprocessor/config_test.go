@@ -22,7 +22,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 )
@@ -41,14 +40,14 @@ func TestConfig(t *testing.T) {
 	cm, err := configs.Sub(typeStr)
 	require.NoError(t, err)
 	r0 := NewFactory().CreateDefaultConfig().(*Config)
-	err = component.UnmarshalConfig(cm, r0)
+	err = cm.Unmarshal(&r0)
 	require.NoError(t, err)
 	assert.Equal(t, r0, createDefaultConfig())
 
 	cm, err = configs.Sub(fmt.Sprintf("%s/add2h", typeStr))
 	require.NoError(t, err)
 	r1 := NewFactory().CreateDefaultConfig().(*Config)
-	err = component.UnmarshalConfig(cm, r1)
+	err = cm.Unmarshal(&r1)
 	require.NoError(t, err)
 	offset, _ := time.ParseDuration(r1.Offset)
 	offset1 := offsetFn(offset)(ts)
@@ -57,7 +56,7 @@ func TestConfig(t *testing.T) {
 	cm, err = configs.Sub(fmt.Sprintf("%s/remove3h", typeStr))
 	require.NoError(t, err)
 	r2 := NewFactory().CreateDefaultConfig().(*Config)
-	err = component.UnmarshalConfig(cm, r2)
+	err = cm.Unmarshal(&r2)
 	require.NoError(t, err)
 	offset, _ = time.ParseDuration(r2.Offset)
 	offset2 := offsetFn(offset)(ts)

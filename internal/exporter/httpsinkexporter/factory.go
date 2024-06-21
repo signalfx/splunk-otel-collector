@@ -46,7 +46,7 @@ func createDefaultConfig() component.Config {
 }
 
 func createTracesExporter(ctx context.Context,
-	set exporter.CreateSettings,
+	set exporter.Settings,
 	cfg component.Config,
 ) (exporter.Traces, error) {
 	exp := newExporter(set.Logger, cfg.(*Config).Endpoint)
@@ -61,7 +61,7 @@ func createTracesExporter(ctx context.Context,
 }
 
 func createMetricsExporter(ctx context.Context,
-	set exporter.CreateSettings,
+	set exporter.Settings,
 	cfg component.Config,
 ) (exporter.Metrics, error) {
 	exp := newExporter(set.Logger, cfg.(*Config).Endpoint)

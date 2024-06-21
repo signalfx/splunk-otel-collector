@@ -27,7 +27,7 @@ import (
 
 func TestExtensionLifecycle(t *testing.T) {
 	ctx := context.Background()
-	createParams := extension.CreateSettings{}
+	createParams := extension.Settings{}
 	createParams.ReportStatus = func(event *component.StatusEvent) {
 		require.NoError(t, event.Err())
 	}

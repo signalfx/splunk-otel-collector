@@ -34,7 +34,7 @@ var (
 	receiverStore     = map[*Config]*receiver{}
 )
 
-func getOrCreateReceiver(cfg component.Config, params otelcolreceiver.CreateSettings) (*receiver, error) {
+func getOrCreateReceiver(cfg component.Config, params otelcolreceiver.Settings) (*receiver, error) {
 	receiverStoreLock.Lock()
 	defer receiverStoreLock.Unlock()
 	receiverConfig := cfg.(*Config)
@@ -69,7 +69,7 @@ func CreateDefaultConfig() component.Config {
 
 func createMetricsReceiver(
 	_ context.Context,
-	params otelcolreceiver.CreateSettings,
+	params otelcolreceiver.Settings,
 	cfg component.Config,
 	metricsConsumer consumer.Metrics,
 ) (otelcolreceiver.Metrics, error) {
@@ -84,7 +84,7 @@ func createMetricsReceiver(
 
 func createLogsReceiver(
 	_ context.Context,
-	params otelcolreceiver.CreateSettings,
+	params otelcolreceiver.Settings,
 	cfg component.Config,
 	logsConsumer consumer.Logs,
 ) (otelcolreceiver.Logs, error) {
@@ -99,7 +99,7 @@ func createLogsReceiver(
 
 func createTracesReceiver(
 	_ context.Context,
-	params otelcolreceiver.CreateSettings,
+	params otelcolreceiver.Settings,
 	cfg component.Config,
 	tracesConsumer consumer.Traces,
 ) (otelcolreceiver.Traces, error) {

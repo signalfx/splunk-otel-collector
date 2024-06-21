@@ -57,6 +57,6 @@ func TestParseConfig(t *testing.T) {
 	sub, err = sub.Sub(metadata.Type.String())
 	require.NoError(t, err)
 	require.NotEmpty(t, sub)
-	require.NoError(t, component.UnmarshalConfig(sub, config))
+	require.NoError(t, sub.Unmarshal(&config))
 
 }

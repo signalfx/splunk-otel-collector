@@ -113,7 +113,7 @@ func TestReceiverMethodsWithoutBuildingDisallowed(t *testing.T) {
 	require.EqualError(t, err, "cannot invoke AssertAllTracesReceived() on an OTLPReceiverSink that hasn't been built")
 }
 
-func createOTLPFactoryParameters() (otlpexporter.Config, otelcolexporter.CreateSettings) {
+func createOTLPFactoryParameters() (otlpexporter.Config, otelcolexporter.Settings) {
 	exporterCfg := otlpexporter.Config{
 		ClientConfig: configgrpc.ClientConfig{
 			Endpoint: "localhost:4317",
@@ -122,7 +122,7 @@ func createOTLPFactoryParameters() (otlpexporter.Config, otelcolexporter.CreateS
 			},
 		},
 	}
-	createParams := otelcolexporter.CreateSettings{
+	createParams := otelcolexporter.Settings{
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         zap.NewNop(),
 			TracerProvider: trace.NewNoopTracerProvider(),

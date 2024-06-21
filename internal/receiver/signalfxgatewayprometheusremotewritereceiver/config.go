@@ -25,9 +25,9 @@ import (
 var _ component.Config = (*Config)(nil)
 
 type Config struct {
-	confighttp.ServerConfig `mapstructure:",squash"`
 	ListenPath              string `mapstructure:"path"`
-	BufferSize              int    `mapstructure:"buffer_size"`
+	confighttp.ServerConfig `mapstructure:",squash"`
+	BufferSize              int `mapstructure:"buffer_size"`
 }
 
 func (c *Config) Validate() error {

@@ -36,7 +36,7 @@ func NewFactory() receiver.Factory {
 // createMetricsReceiver creates a metrics receiver for scraping Prometheus metrics.
 func createMetricsReceiver(
 	_ context.Context,
-	params receiver.CreateSettings,
+	params receiver.Settings,
 	rConf component.Config,
 	consumer consumer.Metrics,
 ) (receiver.Metrics, error) {

@@ -24,7 +24,6 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/split"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
 )
@@ -48,7 +47,7 @@ func TestValidConfig(t *testing.T) {
 	require.NoError(t, err)
 
 	cfg := createDefaultConfig()
-	err = component.UnmarshalConfig(cm, cfg)
+	err = cm.Unmarshal(&cfg)
 	require.NoError(t, err)
 
 	require.Equal(t, &Config{

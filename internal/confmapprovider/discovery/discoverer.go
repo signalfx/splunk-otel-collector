@@ -326,7 +326,7 @@ func (d *discoverer) createDiscoveryReceiversAndObservers(cfg *Config) (map[comp
 			return nil, nil, fmt.Errorf("error preparing discovery receiver config: %w", err)
 		}
 
-		if err = component.UnmarshalConfig(discoveryReceiverConfMap, discoveryReceiverConfig); err != nil {
+		if err = discoveryReceiverConfMap.Unmarshal(&discoveryReceiverConfig); err != nil {
 			return nil, nil, fmt.Errorf("failed unmarshaling discovery receiver config: %w", err)
 		}
 
@@ -401,7 +401,7 @@ func (d *discoverer) createObserver(observerID component.ID, cfg *Config) (otelc
 		return nil, fmt.Errorf("error converting environment variables in %q config: %w", observerID, err)
 	}
 
-	if err = component.UnmarshalConfig(observerDiscoveryConf, observerConfig); err != nil {
+	if err = observerDiscoveryConf.Unmarshal(&observerConfig); err != nil {
 		return nil, fmt.Errorf("failed unmarshaling %q config: %w", observerID, err)
 	}
 
@@ -538,8 +538,8 @@ func (d *discoverer) discoveryConfig(cfg *Config) (map[string]any, error) {
 	return sMap, nil
 }
 
-func (d *discoverer) createExtensionCreateSettings(observerID component.ID) otelcolextension.CreateSettings {
-	return otelcolextension.CreateSettings{
+func (d *discoverer) createExtensionCreateSettings(observerID component.ID) otelcolextension.Settings {
+	return otelcolextension.Settings{
 		ID: observerID,
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         zap.New(d.logger.Core()).With(zap.String("kind", observerID.String())),
@@ -551,8 +551,8 @@ func (d *discoverer) createExtensionCreateSettings(observerID component.ID) otel
 	}
 }
 
-func (d *discoverer) createReceiverCreateSettings() otelcolreceiver.CreateSettings {
-	return otelcolreceiver.CreateSettings{
+func (d *discoverer) createReceiverCreateSettings() otelcolreceiver.Settings {
+	return otelcolreceiver.Settings{
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         zap.New(d.logger.Core()).With(zap.String("kind", "receiver")),
 			TracerProvider: tnoop.NewTracerProvider(),

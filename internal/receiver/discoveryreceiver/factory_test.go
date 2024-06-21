@@ -41,7 +41,7 @@ func TestCreateLogsReceiver(t *testing.T) {
 	factory := NewFactory()
 	cfg := factory.CreateDefaultConfig()
 
-	params := otelcolreceiver.CreateSettings{}
+	params := otelcolreceiver.Settings{}
 	receiver, err := factory.CreateLogsReceiver(context.Background(), params, cfg, consumertest.NewNop())
 	assert.Error(t, err)
 	assert.EqualError(t, err, "`watch_observers` must be defined and include at least one configured observer extension")
@@ -53,7 +53,7 @@ func TestCreateMetricsReceiver(t *testing.T) {
 	cfg := &Config{}
 	require.Error(t, cfg.Validate())
 
-	params := otelcolreceiver.CreateSettings{}
+	params := otelcolreceiver.Settings{}
 	rcvr, err := factory.CreateMetricsReceiver(context.Background(), params, cfg, consumertest.NewNop())
 	require.Error(t, err)
 	assert.EqualError(t, err, "telemetry type is not supported")
@@ -65,7 +65,7 @@ func TestCreateTracesReceiver(t *testing.T) {
 	cfg := &Config{}
 	require.Error(t, cfg.Validate())
 
-	params := otelcolreceiver.CreateSettings{}
+	params := otelcolreceiver.Settings{}
 	rcvr, err := factory.CreateTracesReceiver(context.Background(), params, cfg, consumertest.NewNop())
 	require.Error(t, err)
 	assert.EqualError(t, err, "telemetry type is not supported")

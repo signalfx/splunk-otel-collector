@@ -9,6 +9,7 @@ on:
       - '.github/workflows/scripts/*.ps1'
       - '.github/workflows/win-package-test.yml'
       - 'cmd/otelcol/**'
+      - 'instrumentation/packaging/dotnet-agent-release.txt'
       - 'internal/buildscripts/packaging/choco/**'
       - 'internal/buildscripts/packaging/installer/install.ps1'
       - 'internal/buildscripts/packaging/jmx-metric-gatherer-release.txt'
@@ -196,17 +197,9 @@ jobs:
           name: msi-build
           path: ./tests/zeroconfig/windows/testdata/docker-setup/
 
-      - name: Get splunk-otel-dotnet latest release name
-        id: dotnet-instrumentation
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          $release = gh release view --repo signalfx/splunk-otel-dotnet --json name | ConvertFrom-Json | select name
-          "release=$($release.name)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-
       - name: Set SPLUNK_OTEL_DOTNET_VERSION
         run: |
-          version="${{ steps.dotnet-instrumentation.outputs.release }}"
+          version="$(cat instrumentation/packaging/dotnet-agent-release.txt)"
           sed -i "s|SPLUNK_OTEL_DOTNET_VERSION|${version#v}|" tests/zeroconfig/windows/testdata/resource_traces/aspnetcore.yaml
           sed -i "s|SPLUNK_OTEL_DOTNET_VERSION|${version#v}|" tests/zeroconfig/windows/testdata/resource_traces/aspnetfx.yaml
         shell: bash

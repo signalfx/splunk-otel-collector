@@ -60,9 +60,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 - (Contrib) `probabilisticsamplerprocessor`: Add Proportional and Equalizing sampling modes ([#31918](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/31918))
   Both the existing hash_seed mode and the two new modes use OTEP 235 semantic conventions to encode sampling probability.
 - (Contrib) `prometheusreceiver`: Resource attributes produced by the prometheus receiver now include stable semantic conventions for `server` and `url`. ([#32814](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/32814))
-  To migrate from the legacy net.host.name, net.host.port, and http.scheme resource attributes, |
-  migrate to server.address, server.port, and url.scheme, and then |
-  set the receiver.prometheus.removeLegacyResourceAttributes feature gate.
+  To migrate from the legacy net.host.name, net.host.port, and http.scheme resource attributes, migrate to server.address, server.port, and url.scheme, and then set the receiver.prometheus.removeLegacyResourceAttributes feature gate.
 
 - (Contrib) `spanmetricsconnector`: Produce delta temporality span metrics with StartTimeUnixNano and TimeUnixNano values representing an uninterrupted series ([#31671](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/31671), [#30688](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30688))
   This allows producing delta span metrics instead of the more memory-intensive cumulative metrics, specifically when a downstream component can convert the delta metrics to cumulative.

@@ -64,7 +64,7 @@ type getExporters interface {
 func newOutput(
 	config Config, filtering *monitorFiltering, nextMetricsConsumer consumer.Metrics,
 	nextLogsConsumer consumer.Logs, nextTracesConsumer consumer.Traces, host component.Host,
-	params otelcolreceiver.CreateSettings,
+	params otelcolreceiver.Settings,
 ) (*output, error) {
 	obsReceiver, err := receiverhelper.NewObsReport(receiverhelper.ObsReportSettings{
 		ReceiverID:             params.ID,

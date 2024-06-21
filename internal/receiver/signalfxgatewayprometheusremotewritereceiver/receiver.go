@@ -35,11 +35,11 @@ type prometheusRemoteWriteReceiver struct {
 	nextConsumer consumer.Metrics
 	cancel       context.CancelFunc
 	config       *Config
-	settings     receiver.CreateSettings
+	settings     receiver.Settings
 }
 
 func newReceiver(
-	settings receiver.CreateSettings,
+	settings receiver.Settings,
 	config *Config,
 	nextConsumer consumer.Metrics,
 ) (receiver.Metrics, error) {

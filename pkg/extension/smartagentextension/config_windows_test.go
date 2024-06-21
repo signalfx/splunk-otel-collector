@@ -37,10 +37,10 @@ func TestBundleDirDefault(t *testing.T) {
 	cm, err := cfg.Sub(defaultSettingsID.String())
 	require.NoError(t, err)
 	emptyConfig := NewFactory().CreateDefaultConfig().(*Config)
-	err = component.UnmarshalConfig(cm, emptyConfig)
+	err = cm.Unmarshal(&emptyConfig)
 	require.NoError(t, err)
 
-	ext, err := factory.CreateExtension(context.Background(), extension.CreateSettings{}, emptyConfig)
+	ext, err := factory.CreateExtension(context.Background(), extension.Settings{}, emptyConfig)
 	require.NoError(t, err)
 	require.NotNil(t, ext)
 

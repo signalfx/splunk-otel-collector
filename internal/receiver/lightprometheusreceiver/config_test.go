@@ -20,7 +20,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/confighttp"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
 	"go.opentelemetry.io/collector/receiver/scraperhelper"
@@ -35,7 +34,7 @@ func TestValidConfig(t *testing.T) {
 	require.NoError(t, err)
 
 	cfg := createDefaultConfig().(*Config)
-	err = component.UnmarshalConfig(cm, cfg)
+	err = cm.Unmarshal(&cfg)
 	require.NoError(t, err)
 	require.NoError(t, cfg.Validate())
 

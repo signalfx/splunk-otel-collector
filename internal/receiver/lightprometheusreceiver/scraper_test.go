@@ -87,7 +87,7 @@ func TestScraper(t *testing.T) {
 			cfg.ClientConfig.Endpoint = fmt.Sprintf("%s%s", promMock.URL, "/metrics")
 			require.NoError(t, component.ValidateConfig(cfg))
 
-			scraper := newScraper(receivertest.NewNopCreateSettings(), cfg)
+			scraper := newScraper(receivertest.NewNopSettings(), cfg)
 
 			err := scraper.start(context.Background(), componenttest.NewNopHost())
 			require.NoError(t, err)

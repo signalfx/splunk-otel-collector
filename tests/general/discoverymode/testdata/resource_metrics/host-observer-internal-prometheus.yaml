@@ -2,6 +2,7 @@ resource_metrics:
   - attributes:
       http.scheme: http
       net.host.port: <ANY>
+      server.port: <ANY>
       service.instance.id: <ANY>
       service.name: <ANY>
       label_one: actual.label.one.value.from.env.var
@@ -10,6 +11,7 @@ resource_metrics:
       service_instance_id: <ANY>
       service_name: otelcol
       service_version: <VERSION_FROM_BUILD>
+      url.scheme: http
     scope_metrics:
       - instrumentation_scope:
           name: otelcol/prometheusreceiver

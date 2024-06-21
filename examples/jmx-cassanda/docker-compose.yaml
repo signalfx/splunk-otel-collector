@@ -1,0 +1,41 @@
+version: "3.8"
+x-clustered_cassandra_env: &env_func
+  JMX_PORT: "${JMX_PORT:-7199}"
+
+x-clustered_cassandra_node: &node_func
+  build: ./
+services:
+  cassandra:
+    profiles:
+      - cassandra-test
+      - cassandra-otel-test
+    container_name: cassandra-splunk-integtest
+    hostname: cassandra-splunk-integtest
+    <<: *node_func
+    environment:
+      <<: *env_func
+    ports:
+      - "7199:7199"
+      - "9042:9042"
+      - "9160:9160"
+
+  otelcollector:
+    # if you want to run with the currently released image,
+    #image:  "quay.io/signalfx/splunk-otel-collector:latest"
+    # if you want to run with the currently released -contrib image,
+    #image: "otel/opentelemetry-collector-contrib:latest"
+    # if building locally via `make docker-otel`,
+    profiles:
+      - cassandra-otel-test
+    image: "otelcol:latest"
+    environment:
+      SPLUNK_ACCESS_TOKEN: "${SPLUNK_ACCESS_TOKEN}"
+      SPLUNK_REALM: "${SPLUNK_REALM:-us0}"
+      JMX_PORT: "${JMX_PORT:-7199}"
+    command: ["--config=/etc/otel-collector-config.yaml", "--set=service.telemetry.logs.level=debug"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+      - "./cassandra:/cassandra:rwz"
+    ports:
+      - "18088:8088"
+      - "8888:8888"

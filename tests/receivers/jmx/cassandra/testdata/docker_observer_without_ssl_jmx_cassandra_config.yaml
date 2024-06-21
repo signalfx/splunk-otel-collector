@@ -1,0 +1,58 @@
+extensions:
+  docker_observer:
+
+#receivers_this_should_fail_lets_see_the_error:
+receivers:
+  # set up otlp receiver to use its endpoints as assertion material
+  discovery:
+    #embed_receiver_config: true
+    receivers:
+      # For more information on configuring JMX receivers, see
+      # https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/jmxreceiver/README.md
+      jmx/cassandra:
+        config:
+          # Jar path must be set.  It is bundled in most of our installations (including the docker image).
+          # see https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/jmxreceiver/README.md#jar_path-default-optopentelemetry-java-contrib-jmx-metricsjar
+          # and https://github.com/open-telemetry/opentelemetry-java-contrib/blob/main/jmx-metrics/README.md#usage
+          jar_path: /opt/opentelemetry-java-contrib-jmx-metrics.jar
+          # If you need to support additional target systems,
+          # see https://docs.splunk.com/observability/en/gdi/opentelemetry/components/jmx-receiver.html
+          # and https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/jmxreceiver/README.md#target_system
+          target_system: cassandra
+          collection_interval: 10s
+          username: hello
+          password: world
+          resource_attributes:
+            stage: integ-test
+          log_level: info
+        rule: type == "container" and any([name, image, command], {# matches "(?i)cassandra.*"}) and not (command matches "splunk.discovery")
+        status:
+          metrics:
+            - status: "successful"
+              strict: "cassandra.client.request.count"
+              message: "jmx/cassandra receiver is working!"
+    watch_observers:
+      - docker_observer
+
+# drop scrape_timestamp attributes until we can accept arbitrary values
+processors:
+
+exporters:
+  debug:
+    verbosity: detailed
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+
+service:
+  telemetry:
+    logs:
+      level: debug
+  extensions:
+    - docker_observer
+  pipelines:
+    logs:
+      receivers: [discovery]
+      exporters: [otlp, debug]
+      #      exporters: [debug]

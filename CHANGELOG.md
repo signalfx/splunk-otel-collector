@@ -9,6 +9,8 @@
 
 ## v0.102.1
 
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.102.1](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.102.1) and the [opentelemetry-collector-contrib v0.102.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.102.0) releases where appropriate.
+
 ### 🧰 Bug fixes 🧰
 
 - (Core) `configrpc`: **This release addresses [GHSA-c74f-6mfw-mm4v](https://github.com/open-telemetry/opentelemetry-collector/security/advisories/GHSA-c74f-6mfw-mm4v) for `configgrpc`.** ([#10323](https://github.com/open-telemetry/opentelemetry-collector/issues/10323))
@@ -19,6 +21,8 @@ Before this change, the zstd compressor that was used didn't respect the max mes
 - (Splunk) Upgrade golang to 1.21.11
 
 ## v0.102.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.102.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.102.0) and the [opentelemetry-collector-contrib v0.102.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.102.0) releases where appropriate.
 
 ### 🛑 Breaking changes 🛑
 
@@ -79,6 +83,8 @@ Before this change, the zstd compressor that was used didn't respect the max mes
 - (Contrib) `pkg/ottl`: Adds a `Minute` converter for extracting the int minute component from a time.Time ([#33106](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/33106))
 
 ## v0.101.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.101.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.101.0) and the [opentelemetry-collector-contrib v0.101.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.101.0) releases where appropriate.
 
 ### 🛑 Breaking changes 🛑
 
@@ -155,8 +161,9 @@ Before this change, the zstd compressor that was used didn't respect the max mes
 
 - `pkg/ottl`: Fixes a bug where function name could be used in a condition, resulting in a cryptic error message. ([#33051](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/33051))
 
-
 ## v0.100.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.100.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.100.0) and the [opentelemetry-collector-contrib v0.100.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.100.0) releases where appropriate.
 
 ### 🛑 Breaking changes 🛑
 
@@ -204,6 +211,8 @@ Before this change, the zstd compressor that was used didn't respect the max mes
 - (Contrib) `connector/count`: Fix handling of non-string attributes in the count connector ([#30314](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/30314))
 
 ## v0.99.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.99.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.99.0) and the [opentelemetry-collector-contrib v0.99.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.99.0) releases where appropriate.
 
 ### 🛑 Breaking changes 🛑
 
@@ -283,6 +292,8 @@ Before this change, the zstd compressor that was used didn't respect the max mes
 
 ## v0.98.0
 
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.98.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.98.0) and the [opentelemetry-collector-contrib v0.98.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.98.0) releases where appropriate.
+
 ### 🛑 Breaking changes 🛑
 
 - (Splunk) Remove the `bash`, `curl`, `nc`, and `tar` command-line utilities from the collector packages/images and smart agent bundle ([#4646](https://github.com/signalfx/splunk-otel-collector/pull/4646))
@@ -344,6 +355,8 @@ Before this change, the zstd compressor that was used didn't respect the max mes
 - (Contrib) `syslogreceiver`: Fix issue where static resource and attributes were ignored ([#31849](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/31849))
 
 ## v0.97.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.97.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.97.0) and the [opentelemetry-collector-contrib v0.97.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.97.0) releases where appropriate.
 
 ### 🚀 New components 🚀
 

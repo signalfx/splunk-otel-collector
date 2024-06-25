@@ -28,7 +28,7 @@ require (
 	github.com/gorilla/mux v1.8.1
 	github.com/iancoleman/strcase v0.3.0
 	github.com/jackc/pgx/v4 v4.18.3
-	github.com/jaegertracing/jaeger v1.58.0
+	github.com/jaegertracing/jaeger v1.58.1
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/lib/pq v1.10.9
 	github.com/mailru/easyjson v0.7.7

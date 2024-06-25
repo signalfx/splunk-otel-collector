@@ -21,7 +21,7 @@ require (
 	github.com/go-playground/locales v0.14.1
 	github.com/go-playground/universal-translator v0.18.1
 	github.com/go-sql-driver/mysql v1.8.1
-	github.com/go-test/deep v1.1.0
+	github.com/go-test/deep v1.1.1
 	github.com/gobwas/glob v0.2.4-0.20181002190808-e7a84e9525fe
 	github.com/gogo/protobuf v1.3.2
 	github.com/google/cadvisor v0.49.1

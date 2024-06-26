@@ -143,7 +143,6 @@ else
 	$(LINK_CMD) otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/otelcol$(EXTENSION)
 endif
 
-
 .PHONY: migratecheckpoint
 migratecheckpoint:
 	go generate ./...

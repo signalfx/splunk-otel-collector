@@ -7,7 +7,7 @@ echo "Setting up users..."
 echo "************************************************************"
 
 setup_permissions() {
-  mongo <<EOF
+  $MONGO <<EOF
   use admin
   db.createUser( { user: "user1",
                  pwd: "user1",
@@ -32,18 +32,18 @@ while [ $SECONDS -lt $end ]; do
 done
 
 # create root user
-nohup gosu mongodb mongo DBNAME --eval "db.createUser({user: 'admin1', pwd: 'pass1', roles:[{ role: 'root', db: 'admin' }, { role: 'read', db: 'local' }]});"
+nohup gosu mongodb $MONGO DBNAME --eval "db.createUser({user: 'admin1', pwd: 'pass1', roles:[{ role: 'root', db: 'admin' }, { role: 'read', db: 'local' }]});"
 
 # create app user/database
-nohup gosu mongodb mongo DBNAME --eval "db.createUser({ user: 'NEWUSER', pwd: 'PASSWORD', roles: [{ role: 'readWrite', db: 'admin' }, { role: 'read', db: 'local' }]});"
+nohup gosu mongodb $MONGO DBNAME --eval "db.createUser({ user: 'NEWUSER', pwd: 'PASSWORD', roles: [{ role: 'readWrite', db: 'admin' }, { role: 'read', db: 'local' }]});"
 
 
-nohup gosu mongodb mongo DBNAME --eval "db.createUser({ user: 'testUser', pwd: 'testPass', roles: [{ role: 'clusterMonitor', db: 'admin' }, { role: 'read', db: 'local' }]});"
+nohup gosu mongodb $MONGO DBNAME --eval "db.createUser({ user: 'testUser', pwd: 'testPass', roles: [{ role: 'clusterMonitor', db: 'admin' }, { role: 'read', db: 'local' }]});"
 
 
 echo "************************************************************"
 echo "Shutting down"
 echo "************************************************************"
-nohup gosu mongodb mongo admin --eval "db.shutdownServer();"
+nohup gosu mongodb $MONGO admin --eval "db.shutdownServer();"
 
 

@@ -1439,6 +1439,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/simpleprometh
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/simpleprometheusreceiver v0.103.0/go.mod h1:ofMwxpiAs54Cuv09BD2hW1lLZeD62GRtfTqrz/+1S18=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/solacereceiver v0.103.0 h1:8NSskDiAYnj36SBkx4/v3m+Z19Pitxt9LaqBvdu/s0c=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/solacereceiver v0.103.0/go.mod h1:ylHnYxVBISeZQjOaVPzqls7RdUZun0O+Wxq+pMwbqIg=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkenterprisereceiver v0.103.0 h1:RXtOEaWvKSq/IbI5xRL42EkeZMAipPT7og57BXrfMBI=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkenterprisereceiver v0.103.0/go.mod h1:Qf2FyVol5xSyMT4rMO6NaS++jW338PKXCFgOe66IiIY=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver v0.103.0 h1:scBYx7i02BIGGrv3B5G8NY+hkBPnU4UZj4MBX/+G8II=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver v0.103.0/go.mod h1:yKcoARhrC8afaaft7trvIqbPR38VYfgSSrzdhF7rFNI=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sqlqueryreceiver v0.103.0 h1:O6KqVBEJgwPS6A+vZBRSZiztQLpX3VmYnJ4l4+xx+Ek=

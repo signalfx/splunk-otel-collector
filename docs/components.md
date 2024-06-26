@@ -12,8 +12,8 @@ The distribution offers support for the following components.
 <div>
 
 | Receivers                                                                                                                                     | Stability        |
-|:----------------------------------------------------------------------------------------------------------------------------------------------|:-----------------|
-| [active_directory_ds](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/activedirectorydsreceiver)       | [beta]           |
+| :-------------------------------------------------------------------------------------------------------------------------------------------- | :--------------- |
+| [active_directory_ds](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/activedirectorydsreceiver)         | [beta]           |
 | [awscontainerinsights](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/awscontainerinsightreceiver)      | [beta]           |
 | [awsecscontainermetrics](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/awsecscontainermetricsreceiver) | [beta]           |
 | [apache](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/apachereceiver)                                 | [alpha]          |
@@ -52,6 +52,7 @@ The distribution offers support for the following components.
 | [simpleprometheus](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/simpleprometheusreceiver)             | [beta]           |
 | [smartagent](../pkg/receiver/smartagentreceiver)                                                                                              | [beta]           |
 | [solace](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/solacereceiver)                                 | [beta]           |
+| [splunkenterprise](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/splunkenterprisereceiver)             | [beta]           |
 | [splunk_hec](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/splunkhecreceiver)                          | [beta]           |
 | [sqlquery](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/sqlqueryreceiver)                             | [alpha]          |
 | [sqlserver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/sqlserverreceiver)                           | [beta]           |
@@ -71,7 +72,7 @@ The distribution offers support for the following components.
 <div>
 
 | Processors                                                                                                                                  | Stability        |
-|:--------------------------------------------------------------------------------------------------------------------------------------------|:-----------------|
+| :------------------------------------------------------------------------------------------------------------------------------------------ | :--------------- |
 | [attributes](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/attributesprocessor)                     | [alpha]          |
 | [batch](https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/batchprocessor)                                       | [beta]           |
 | [cumulativetodelta](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/cumulativetodeltaprocessor)       | [beta]           |
@@ -96,7 +97,7 @@ The distribution offers support for the following components.
 <div>
 
 | Exporters                                                                                                                   | Stability        |
-|:----------------------------------------------------------------------------------------------------------------------------|:-----------------|
+| :-------------------------------------------------------------------------------------------------------------------------- | :--------------- |
 | [awss3](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/awss3exporter)                 | [alpha]          |
 | [debug](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/debugexporter)                         | [in development] |
 | [file](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/fileexporter)                   | [alpha]          |
@@ -116,7 +117,7 @@ The distribution offers support for the following components.
 <div>
 
 | Extensions                                                                                                                          | Stability |
-|:------------------------------------------------------------------------------------------------------------------------------------|:----------|
+| :---------------------------------------------------------------------------------------------------------------------------------- | :-------- |
 | [ack](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/ackextension)                           | [alpha]   |
 | [basicauth](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/basicauthextension)               | [beta]    |
 | [docker_observer](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/observer/dockerobserver)    | [beta]    |
@@ -138,7 +139,7 @@ The distribution offers support for the following components.
 <div>
 
 | Connectors                                                                                                                | Stability        |
-|:--------------------------------------------------------------------------------------------------------------------------|:-----------------|
+| :------------------------------------------------------------------------------------------------------------------------ | :--------------- |
 | [count](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/connector/countconnector)             | [in development] |
 | [forward](https://github.com/open-telemetry/opentelemetry-collector/tree/main/connector/forwardconnector)                 | [beta]           |
 | [routing](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/connector/routingconnector)         | [alpha]          |

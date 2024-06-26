@@ -311,6 +311,29 @@ compile:
       - bin/otelcol_*
       - bin/migratecheckpoint_*
 
+otelcol-fips:
+  only:
+    - otelcol-fips-linux
+  extends:
+    # - .trigger-filter
+    - .go-cache
+  stage: build
+  needs: []
+  parallel:
+    matrix:
+      - GOOS: [linux]
+        GOARCH: [amd64, arm64]
+  script:
+    - |
+      if [[ -n "${CI_COMMIT_TAG:-}" ]]; then
+        make otelcol-fips VERSION=${CI_COMMIT_TAG}
+      else
+        make otelcol-fips
+      fi
+  artifacts:
+    paths:
+      - bin/otelcol-fips_*
+
 libsplunk:
   extends: .trigger-filter
   stage: build
@@ -1299,6 +1322,7 @@ github-release:
   stage: github-release
   dependencies:
     - compile
+    - otelcol-fips
     - libsplunk
     - sign-exe
     - sign-osx
@@ -1312,6 +1336,7 @@ github-release:
   script:
     - mkdir -p dist/assets
     - cp bin/otelcol_linux_* dist/assets/
+    - cp bin/otelcol-fips_* dist/assets/
     - cp instrumentation/dist/libsplunk_*.so dist/assets/
     - cp dist/signed/* dist/assets/
     - |

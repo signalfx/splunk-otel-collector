@@ -30,6 +30,7 @@ BUILD_X1=-X $(BUILD_INFO_IMPORT_PATH).Version=$(VERSION)
 BUILD_X2=-X $(BUILD_INFO_IMPORT_PATH_CORE).Version=$(VERSION)
 BUILD_INFO=-ldflags "${BUILD_X1} ${BUILD_X2}"
 BUILD_INFO_TESTS=-ldflags "-X $(BUILD_INFO_IMPORT_PATH_TESTS).Version=$(VERSION)"
+CGO_ENABLED?=0
 
 JMX_METRIC_GATHERER_RELEASE=$(shell cat internal/buildscripts/packaging/jmx-metric-gatherer-release.txt)
 SKIP_COMPILE=false
@@ -135,7 +136,7 @@ generate-metrics:
 .PHONY: otelcol
 otelcol:
 	go generate ./...
-	GO111MODULE=on CGO_ENABLED=0 go build -trimpath -o ./bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/otelcol
+	GO111MODULE=on CGO_ENABLED=$(CGO_ENABLED) go build -trimpath -o ./bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/otelcol
 	ln -sf otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/otelcol
 
 .PHONY: migratecheckpoint
@@ -233,3 +234,24 @@ install-test-tools:
 integration-test-split: install-test-tools
 	@set -e; cd tests && gotesplit --total=$(GOTESPLIT_TOTAL) --index=$(GOTESPLIT_INDEX) ./... -- -p 1 $(BUILD_INFO_TESTS) --tags=integration -v -timeout 5m -count 1
 
+.PHONY: otelcol-fips
+otelcol-fips:
+ifeq ($(GOOS), linux)
+    ifeq ($(filter $(GOARCH), amd64 arm64),)
+		$(error GOOS=$(GOOS) GOARCH=$(GOARCH) not supported)
+    endif
+	$(eval BUILD_INFO = -ldflags "${BUILD_X1} ${BUILD_X2} -linkmode=external -extldflags=-static")
+else
+	$(error GOOS=$(GOOS) GOARCH=$(GOARCH) not supported)
+endif
+	@mkdir -p ./bin
+	docker buildx build --pull \
+		--tag otelcol-fips-builder-$(GOOS)-$(GOARCH) \
+		--platform linux/$(GOARCH) \
+		--build-arg DOCKER_REPO=$(DOCKER_REPO) \
+		--build-arg BUILD_INFO='$(BUILD_INFO)' \
+		--file cmd/otelcol/Dockerfile.fips-builder-$(GOOS) ./
+	@docker rm -f otelcol-fips-builder-$(GOOS)-$(GOARCH) >/dev/null 2>&1 || true
+	@docker create --platform linux/$(GOARCH) --name otelcol-fips-builder-$(GOOS)-$(GOARCH) otelcol-fips-builder-$(GOOS)-$(GOARCH) true >/dev/null
+	docker cp otelcol-fips-builder-$(GOOS)-$(GOARCH):/src/bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/otelcol-fips_$(GOOS)_$(GOARCH)$(EXTENSION)
+	@docker rm -f otelcol-fips-builder-$(GOOS)-$(GOARCH) >/dev/null

@@ -13,6 +13,12 @@ resourceMetrics:
         - key: service.name
           value:
             stringValue: kong
+        - key: server.port
+          value:
+            stringValue: "18001"
+        - key: url.scheme
+          value:
+            stringValue: http
     scopeMetrics:
       - metrics:
           - description: Datastore reachable from Kong, 0 is unreachable

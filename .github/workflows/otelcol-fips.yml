@@ -1,0 +1,55 @@
+name: "otelcol-fips"
+
+on:
+  push:
+    branches:
+      - main
+      - otelcol-fips-linux
+  pull_request:
+    paths:
+      - '.github/workflows/otelcol-fips.yml'
+      - 'cmd/**'
+      - 'internal/**'
+      - 'pkg/**'
+      - 'tests/**'
+      - 'Makefile'
+      - 'Makefile.Common'
+      - 'go.mod'
+      - 'go.sum'
+      - '!**.md'
+      - '!internal/buildscripts/**'
+
+concurrency:
+  group: otelcol-fips-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  GO_VERSION: "1.22.7"
+
+jobs:
+  otelcol-fips:
+    runs-on: ${{ fromJSON('["ubuntu-20.04", "otel-arm64"]')[matrix.GOARCH == 'arm64'] }}
+    strategy:
+      matrix:
+        include:
+          - GOOS: linux
+            GOARCH: amd64
+          - GOOS: linux
+            GOARCH: arm64
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: '**/go.sum'
+      - run: make otelcol-fips
+        env:
+          GOOS: ${{ matrix.GOOS }}
+          GOARCH: ${{ matrix.GOARCH }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: otelcol-fips-${{ matrix.GOOS }}-${{ matrix.GOARCH }}
+          path: ./bin/*

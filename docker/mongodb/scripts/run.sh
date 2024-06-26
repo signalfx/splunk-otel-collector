@@ -1,12 +1,14 @@
 #!/bin/bash
 
+export MONGO="mongo"
+major=$(echo "$MONGO_MAJOR" | cut -d '.' -f1)
+if [ $major -gt 5 ]; then
+    export MONGO="mongosh"
+fi
 
 run_mongo_commandline () {
-if (( $(echo "$MONGO_MAJOR > 5.9" | bc -l) )); then
-    nohup gosu mongodb mongosh admin --eval "help" > /dev/null 2>&1
-else
-    nohup gosu mongodb mongo admin --eval "help" > /dev/null 2>&1
-fi
+    nohup gosu mongodb $MONGO admin --eval "help" > /dev/null 2>&1
+
 }
 
 sleep 5
@@ -26,10 +28,6 @@ while [[ "$RET" -ne 0 ]]; do
   sleep 2
 done
 
-if (( $(echo "${MONGO_MAJOR} > 5.9" | bc -l) )); then
-    bash /home/mongodb/scripts/setup_user_newer_ver.sh
-else
-    bash /home/mongodb/scripts/setup_user.sh
-fi
+bash /home/mongodb/scripts/setup_user.sh
 
 gosu mongodb mongod --dbpath=/data/db --config mongod.conf

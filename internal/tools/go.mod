@@ -5,6 +5,7 @@ go 1.22.1
 toolchain go1.22.7
 
 require (
+	github.com/acardace/fips-detect v0.0.0-20230309083406-7157dae5bafd
 	github.com/client9/misspell v0.3.4
 	github.com/golangci/golangci-lint v1.61.0
 	github.com/google/addlicense v1.1.1

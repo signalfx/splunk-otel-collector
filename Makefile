@@ -30,6 +30,7 @@ BUILD_X1=-X $(BUILD_INFO_IMPORT_PATH).Version=$(VERSION)
 BUILD_X2=-X $(BUILD_INFO_IMPORT_PATH_CORE).Version=$(VERSION)
 BUILD_INFO=-ldflags "${BUILD_X1} ${BUILD_X2}"
 BUILD_INFO_TESTS=-ldflags "-X $(BUILD_INFO_IMPORT_PATH_TESTS).Version=$(VERSION)"
+CGO_ENABLED?=0
 
 JMX_METRIC_GATHERER_RELEASE=$(shell cat internal/buildscripts/packaging/jmx-metric-gatherer-release.txt)
 SKIP_COMPILE=false
@@ -135,7 +136,7 @@ generate-metrics:
 .PHONY: otelcol
 otelcol:
 	go generate ./...
-	GO111MODULE=on CGO_ENABLED=0 go build -trimpath -o ./bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/otelcol
+	GO111MODULE=on CGO_ENABLED=$(CGO_ENABLED) go build -trimpath -o ./bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/otelcol
 	ln -sf otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/otelcol
 
 .PHONY: migratecheckpoint
@@ -233,3 +234,13 @@ install-test-tools:
 integration-test-split: install-test-tools
 	@set -e; cd tests && gotesplit --total=$(GOTESPLIT_TOTAL) --index=$(GOTESPLIT_INDEX) ./... -- -p 1 $(BUILD_INFO_TESTS) --tags=integration -v -timeout 5m -count 1
 
+# Build locally if the host matches the OS and arch. Otherwise, build within a golang docker container.
+.PHONY: otelcol-fips
+otelcol-fips:
+ifeq ($(shell [ "$(GOOS)" = "linux" ] && [ "$(GOARCH)" = "$(ARCH)" ] && echo true), true)
+	GOEXPERIMENT=boringcrypto CGO_ENABLED=1 EXTENSION=_fips $(MAKE) otelcol VERSION=$(VERSION)
+	cd ./internal/tools && go install github.com/acardace/fips-detect
+	fips-detect ./bin/otelcol_linux_${ARCH}_fips
+else
+	docker run --platform linux/$(ARCH) --rm -v ./:/src -w /src $(DOCKER_REPO)/golang:$(shell go env GOVERSION | sed 's/^go//') make otelcol-fips ARCH=$(ARCH)
+endif

@@ -1,0 +1,34 @@
+name: "otelcol-fips"
+
+on:
+  push:
+    branches:
+      - otelcol-fips
+
+concurrency:
+  group: otelcol-fips-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  GO_VERSION: "1.21.11"
+
+jobs:
+  otelcol-fips:
+    runs-on: ${{ fromJSON('["ubuntu-22.04", "otel-arm64"]')[matrix.ARCH == 'arm64'] }}
+    strategy:
+      matrix:
+        ARCH: [ "amd64", "arm64" ]
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: '**/go.sum'
+      - run: make otelcol-fips ARCH=${{ matrix.ARCH }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: otelcol-fips-${{ matrix.ARCH }}
+          path: ./bin/otelcol_linux_${{ matrix.ARCH }}_fips

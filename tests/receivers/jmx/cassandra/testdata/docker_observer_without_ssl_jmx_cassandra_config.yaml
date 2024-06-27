@@ -20,8 +20,6 @@ receivers:
           # and https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/jmxreceiver/README.md#target_system
           target_system: cassandra
           collection_interval: 10s
-          username: hello
-          password: world
           resource_attributes:
             stage: integ-test
           log_level: info

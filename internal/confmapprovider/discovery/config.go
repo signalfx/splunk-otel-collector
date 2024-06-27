@@ -419,6 +419,7 @@ func loadEntry[K keyType, V entryType](componentType string, fs fs.FS, path stri
 }
 
 func unmarshalEntry[K keyType, V entryType](componentType string, fs fs.FS, path string, dst *map[K]V) (componentID K, err error) {
+	// TODO hughesjj This severly needs documentation or better naming conventions
 	if dst == nil {
 		err = fmt.Errorf("cannot load %s into nil entry", componentType)
 		return
@@ -458,6 +459,7 @@ func unmarshalEntry[K keyType, V entryType](componentType string, fs fs.FS, path
 		return shallowType.(K), nil
 	}
 
+	// TODO hughesjj JFC golang this is unreadable
 	entry := *(unmarshalDst.(*map[K]V))
 
 	if len(entry) == 0 {
@@ -587,6 +589,7 @@ func mergeConfigWithBundle(userCfg *Config, bundleCfg *Config) error {
 			enabled = userRec.Enabled
 		}
 
+		// TODO hughesjj maybe here?
 		bundledConfMap := confmap.NewFromStringMap(bundledRec.ToStringMap())
 		userConfMap := confmap.NewFromStringMap(userRec.ToStringMap())
 		if err := bundledConfMap.Merge(userConfMap); err != nil {

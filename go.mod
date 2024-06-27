@@ -633,6 +633,8 @@ replace (
 	github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor => ./pkg/processor/timestampprocessor
 	github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver => ./pkg/receiver/smartagentreceiver
 	github.com/signalfx/splunk-otel-collector/tests => ./tests
+    github.com/open-telemetry/opentelemetry-collector-contrib/receiver/receivercreator => /home/jameshughes/workspace/otel-github/opentelemetry-collector-contrib/receiver/receivercreator
+    github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver => /home/jameshughes/workspace/otel-github/opentelemetry-collector-contrib/receiver/jmxreceiver
 )
 
 // each of these is required for the smartagentreceiver

@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### 🧰 Bug fixes 🧰
+
+- (Splunk) `receiver/discovery`: Do not emit entity events for discovered endpoints that are not evaluated yet
+  to avoid showing "unknown" services on the Service Inventory page ([#5032](https://github.com/signalfx/splunk-otel-collector/pull/5032))
+
 ## v0.103.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.103.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.103.0) and the [opentelemetry-collector-contrib v0.103.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.103.0) releases where appropriate.

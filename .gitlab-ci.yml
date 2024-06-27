@@ -1,6 +1,10 @@
 default:
   image: '${DOCKER_CICD_REPO}/ci-container/debian-buster:3.1.1'
 
+variables:
+  WIN_2019_BASE_IMAGE: mcr.microsoft.com/windows/servercore:1809
+  WIN_2022_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2022
+
 stages:
   - update-deps
   - sast-oss-scan
@@ -10,6 +14,7 @@ stages:
   - sign-packages
   - release
   - docker-manifest-release
+  - xray-scan
   - github-release
 
 include:
@@ -18,7 +23,9 @@ include:
     file: '/templates/.sast_scan.yml'
   - project: 'ci-cd/templates'
     ref: master
-    file: '/prodsec/.oss-scan.yml'
+    file:
+      - '/prodsec/.oss-scan.yml'
+      - '/prodsec/.binary-scan.yml'
   - project: 'core-ee/signing/api-integration'
     ref: develop
     file: '/templates/.sign-client.yml'
@@ -54,6 +61,22 @@ fossa:
 .docker-reader-role: &docker-reader-role |
   creds-helper init
   eval $(creds-helper docker --eval "artifactory:v2/cloud/role/docker-reader-role")
+
+.docker-releaser-role: &docker-releaser-role |
+  creds-helper init
+  eval $(creds-helper docker --eval "artifactory:v2/cloud/role/docker-releaser-role")
+
+.docker-test-releaser-role: &docker-test-releaser-role |
+  creds-helper init
+  eval $(creds-helper docker --eval "artifactory:v2/cloud/role/docker-test-releaser-role")
+
+.generic-releaser-role: &generic-releaser-role |
+  creds-helper init
+  eval $(creds-helper artifactory --eval "artifactory:v2/cloud/role/generic-releaser-role")
+
+.generic-test-releaser-role: &generic-test-releaser-role |
+  creds-helper init
+  eval $(creds-helper artifactory --eval "artifactory:v2/cloud/role/generic-test-releaser-role")
 
 .sign-docker:
   extends: .trigger-filter
@@ -141,6 +164,42 @@ fossa:
     paths:
       - .go/pkg/mod
       - .go/bin
+
+# Upload deb/rpm package for the main branch to the generic-test artifactory repo for xray scanning
+.xray-publish-package: &xray-publish-package
+  - if [[ ! "${PKG_TYPE:-}" =~ ^deb|rpm$ ]]; then exit 0; fi
+  - if [ "$CI_COMMIT_BRANCH" != "main" ]; then touch xray_artifact_path; exit 0; fi
+  - *generic-test-releaser-role
+  - package=$(find ./dist -name "*.${PKG_TYPE}")
+  - if [[ -z "$package" || ! -f "$package" ]]; then echo "Failed to find $PKG_TYPE package"; exit 1; fi
+  - target="splunk-otel-collector/${CI_COMMIT_SHA}/$(basename $package)"
+  - artifact-ci publish generic -o $package generic-test/${target}
+  - |
+    # Xray needs the local repo path to the artifact.
+    # Determine the local repo after uploading to the virtual repo.
+    local_repo=""
+    for repo in "generic-test-east-local" "generic-test-west-local"; do
+      if curl -LIf -u $ARTIFACTORY_AUTHORIZATION ${ARTIFACTORY_BASE_URL}/${repo}/${target}; then
+        local_repo=$repo
+        break
+      fi
+    done
+    if [ -z "$local_repo" ]; then
+      echo "Failed to determine local repo for $target"
+      exit 1
+    fi
+  - echo "${ARTIFACTORY_BASE_URL}/${local_repo}/${target}" | tee xray_artifact_path
+
+.xray-scan-package:
+  only:
+    - main
+  extends: .binary-scan
+  stage: xray-scan
+  variables:
+    create_jira: "true"
+  before_script:
+    - export ARTIFACT_PATH=$(cat xray_artifact_path)
+    - echo $ARTIFACT_PATH
 
 update-otel-deps:
   only:
@@ -324,10 +383,14 @@ agent-bundle-windows:
   parallel:
     matrix:
       - ARCH: [amd64, arm64]
+  id_tokens:  # http://go/gitlab-17
+    CI_JOB_JWT:
+      aud: $CICD_VAULT_ADDR
   before_script:
     - ./instrumentation/packaging/fpm/install-deps.sh
   script:
     - ./instrumentation/packaging/fpm/${PKG_TYPE}/build.sh "${CI_COMMIT_TAG:-}" "$ARCH" "./dist"
+    - *xray-publish-package
 
 instrumentation-deb:
   extends: .instrumentation-deb-rpm
@@ -336,6 +399,15 @@ instrumentation-deb:
   artifacts:
     paths:
       - dist/*.deb
+      - xray_artifact_path
+
+xray-instrumentation-deb:
+  extends: .xray-scan-package
+  needs:
+    - instrumentation-deb
+  parallel:
+    matrix:
+      - ARCH: [amd64, arm64]
 
 instrumentation-rpm:
   extends: .instrumentation-deb-rpm
@@ -344,6 +416,15 @@ instrumentation-rpm:
   artifacts:
     paths:
       - dist/*.rpm
+      - xray_artifact_path
+
+xray-instrumentation-rpm:
+  extends: .xray-scan-package
+  needs:
+    - instrumentation-rpm
+  parallel:
+    matrix:
+      - ARCH: [amd64, arm64]
 
 sign-exe:
   extends:
@@ -398,10 +479,14 @@ sign-osx:
   parallel:
     matrix:
       - ARCH: [amd64, arm64]
+  id_tokens:  # http://go/gitlab-17
+    CI_JOB_JWT:
+      aud: $CICD_VAULT_ADDR
   before_script:
     - ./internal/buildscripts/packaging/fpm/install-deps.sh
   script:
     - ./internal/buildscripts/packaging/fpm/${PKG_TYPE}/build.sh "${CI_COMMIT_TAG:-}" "$ARCH" "./dist"
+    - *xray-publish-package
 
 build-deb:
   extends:
@@ -412,6 +497,15 @@ build-deb:
   artifacts:
     paths:
       - dist/*.deb
+      - xray_artifact_path
+
+xray-collector-deb:
+  extends: .xray-scan-package
+  needs:
+    - build-deb
+  parallel:
+    matrix:
+      - ARCH: [amd64, arm64]
 
 build-rpm:
   extends:
@@ -422,6 +516,15 @@ build-rpm:
   artifacts:
     paths:
       - dist/*.rpm
+      - xray_artifact_path
+
+xray-collector-rpm:
+  extends: .xray-scan-package
+  needs:
+    - build-rpm
+  parallel:
+    matrix:
+      - ARCH: [amd64, arm64]
 
 build-tar:
   extends:
@@ -729,10 +832,7 @@ build-push-windows-image:
   stage: release
   parallel:
     matrix:
-      - WIN_VERSION: "2019"
-        BASE_IMAGE: mcr.microsoft.com/windows/servercore:1809
-      - WIN_VERSION: "2022"
-        BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2022
+      - WIN_VERSION: ["2019", "2022"]
   dependencies:
     - sign-exe
     - agent-bundle-windows
@@ -744,12 +844,18 @@ build-push-windows-image:
   before_script:
     - Copy-Item .\dist\signed\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
     - Copy-Item .\dist\agent-bundle_windows_amd64.zip .\cmd\otelcol\agent-bundle_windows_amd64.zip
+    - &get-base-image |
+      if ($env:WIN_VERSION -eq "2019") {
+        $BASE_IMAGE = $env:WIN_2019_BASE_IMAGE
+      } else {
+        $BASE_IMAGE = $env:WIN_2022_BASE_IMAGE
+      }
     - |
-      docker pull $env:BASE_IMAGE
+      docker pull $BASE_IMAGE
       if ($LASTEXITCODE -ne 0) { exit 1 }
-    - |
+    - &delete-all-images-except-base |
       # Delete all images except the base image
-      $base_id = $(docker images -q $env:BASE_IMAGE)
+      $base_id = $(docker images -q $BASE_IMAGE)
       foreach ($id in $(docker images -a -q | Get-Unique)) {
         if ($id -ne $base_id) {
           docker rmi -f $id
@@ -780,7 +886,7 @@ build-push-windows-image:
     - $JMX_METRIC_GATHERER_RELEASE = $(Get-Content internal\buildscripts\packaging\jmx-metric-gatherer-release.txt)
     - |
       echo "Building ${IMAGE_NAME}:${IMAGE_TAG}"
-      docker build -t ${IMAGE_NAME}:${IMAGE_TAG} --build-arg BASE_IMAGE=${env:BASE_IMAGE} --build-arg JMX_METRIC_GATHERER_RELEASE=${JMX_METRIC_GATHERER_RELEASE} -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
+      docker build -t ${IMAGE_NAME}:${IMAGE_TAG} --build-arg BASE_IMAGE=${BASE_IMAGE} --build-arg JMX_METRIC_GATHERER_RELEASE=${JMX_METRIC_GATHERER_RELEASE} -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
       if ($LASTEXITCODE -ne 0) { exit 1 }
     - |
       echo "Pushing ${IMAGE_NAME}:${IMAGE_TAG}"
@@ -794,8 +900,8 @@ build-push-windows-image:
       docker push ${OLD_IMAGE_NAME}:${IMAGE_TAG}
       if ($LASTEXITCODE -ne 0) { exit 1 }
     - |
-      echo "Getting os.version from ${env:BASE_IMAGE}"
-      $os_version = (docker manifest inspect $env:BASE_IMAGE | ConvertFrom-Json).manifests[0].platform."os.version"
+      echo "Getting os.version from ${BASE_IMAGE}"
+      $os_version = (docker manifest inspect $BASE_IMAGE | ConvertFrom-Json).manifests[0].platform."os.version"
       if ($LASTEXITCODE -ne 0) { exit 1 }
       echo "$os_version"
     - |
@@ -854,14 +960,8 @@ build-push-windows-image:
     - echo "${OLD_IMAGE_NAME}:${IMAGE_TAG}" >> tags
     - (Get-Content -Raw -Path tags) -replace "`r`n", "`n"| Set-Content -NoNewline tags_to_sign_${env:WIN_VERSION}
   after_script:
-    - |
-      # Delete all images except the base image
-      $base_id = $(docker images -q $env:BASE_IMAGE)
-      foreach ($id in $(docker images -a -q | Get-Unique)) {
-        if ($id -ne $base_id) {
-          docker rmi -f $id
-        }
-      }
+    - *get-base-image
+    - *delete-all-images-except-base
     - docker system prune --force
     - |
       if (Test-Path -Path C:\Users\Administrator\Desktop\ops-scripts\docker-leak-check.exe) {
@@ -1050,6 +1150,9 @@ push-multiarch-manifest:
     - sign-linux-image
     - sign-windows-image
   retry: 2
+  id_tokens:  # http://go/gitlab-17
+    CI_JOB_JWT:
+      aud: $CICD_VAULT_ADDR
   script:
     - docker login -u $CIRCLECI_QUAY_USERNAME -p $CIRCLECI_QUAY_PASSWORD quay.io
     - |
@@ -1118,8 +1221,12 @@ push-multiarch-manifest:
           done
         fi
         # Check the manifest for the windows images
-        for base_image in "mcr.microsoft.com/windows/servercore:1809" "mcr.microsoft.com/windows/servercore:ltsc2022"; do
+        for base_image in "$WIN_2019_BASE_IMAGE" "$WIN_2022_BASE_IMAGE"; do
           os_version=$( docker buildx imagetools inspect --raw $base_image | jq -r '.manifests[0] | .platform."os.version"' )
+          if [[ -z "$os_version" ]]; then
+            echo "Failed to get os.version from $base_image"
+            exit 1
+          fi
           found=$( echo "$json" | jq -r ".manifests[] | select(.platform.architecture == \"amd64\" and .platform.os == \"windows\" and .platform.\"os.version\" == \"${os_version}\")" )
           if [[ -z "$found" ]]; then
             echo "windows/amd64/${os_version} not found in ${MANIFEST_NAME}:${tag}"
@@ -1138,6 +1245,14 @@ push-multiarch-manifest:
     - mkdir -p dist
     - echo "[${MANIFEST_NAME}@${digest}]" | tee dist/${MANIFEST}_digest.txt
     - echo "${MANIFEST_NAME}:${MANIFEST_TAG}" > tags_to_sign_${MANIFEST}
+    - if [[ "$CI_COMMIT_BRANCH" != "main" || "$MANIFEST" != "multiarch" ]]; then exit 0; fi
+    # Push the multiarch manifest for the main branch to the docker-test artifactory repo for xray scanning
+    # TODO: Add new job to trigger xray scanning for the manifest whenever it is supported
+    - *docker-test-releaser-role
+    - manifest="${MANIFEST_NAME}:${MANIFEST_TAG}"
+    - target="${DOCKER_TEST_XRAY_REPO}/splunk-otel-collector/$(basename $manifest)"
+    - docker buildx imagetools create --tag $target $manifest
+    - docker buildx imagetools inspect $target
   artifacts:
     paths:
       - dist/${MANIFEST}_digest.txt

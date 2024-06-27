@@ -22,17 +22,6 @@ import (
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
-func TestDiscoveryReceiverWithHostObserverProvidesEndpointLogs(t *testing.T) {
-	testutils.SkipIfNotContainerTest(t)
-	if testutils.CollectorImageIsForArm(t) {
-		t.Skip("host_observer missing process info on arm")
-	}
-	testutils.AssertAllLogsReceived(
-		t, "host_observer_endpoints.yaml",
-		"host_observer_endpoints_config.yaml", nil, nil,
-	)
-}
-
 func TestDiscoveryReceiverWithHostObserverAndSimplePrometheusReceiverProvideStatusLogs(t *testing.T) {
 	testutils.SkipIfNotContainerTest(t)
 	if testutils.CollectorImageIsForArm(t) {

@@ -233,12 +233,20 @@ func (n *notify) OnChange(changed []observer.Endpoint) {
 	n.endpointTracker.updateEndpoints(changed, n.observerID)
 }
 
+// entityStateEvents converts observer endpoints to entity state events excluding those
+// that don't have a discovery status attribute yet.
 func entityStateEvents(observerID component.ID, endpoints []observer.Endpoint, correlations correlationStore, ts time.Time) (ees experimentalmetricmetadata.EntityEventsSlice, failed int, err error) {
 	entityEvents := experimentalmetricmetadata.NewEntityEventsSlice()
 	for _, endpoint := range endpoints {
 		if endpoint.Details == nil {
 			failed++
 			err = multierr.Combine(err, fmt.Errorf("endpoint %q has no details", endpoint.ID))
+			continue
+		}
+
+		endpointAttrs := correlations.Attrs(endpoint.ID)
+		if _, ok := endpointAttrs[discovery.StatusAttr]; !ok {
+			// If the endpoint doesn't have a status attribute, it's not ready to be emitted.
 			continue
 		}
 
@@ -259,7 +267,7 @@ func entityStateEvents(observerID component.ID, endpoints []observer.Endpoint, c
 		attrs.PutStr("endpoint", endpoint.Target)
 		attrs.PutStr(observerNameAttr, observerID.Name())
 		attrs.PutStr(observerTypeAttr, observerID.Type().String())
-		for k, v := range correlations.Attrs(endpoint.ID) {
+		for k, v := range endpointAttrs {
 			attrs.PutStr(k, v)
 		}
 		attrs.PutStr(serviceTypeAttr, deduceServiceType(attrs))

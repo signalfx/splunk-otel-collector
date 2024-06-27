@@ -63,6 +63,7 @@ func TestEndpointToPLogsHappyPath(t *testing.T) {
 				attrs.PutStr("type", "pod")
 				attrs.PutStr("service.type", "unknown")
 				attrs.PutStr("service.name", "my-mysql")
+				attrs.PutStr(discovery.StatusAttr, "successful")
 				return plogs
 			}(),
 		},
@@ -92,6 +93,7 @@ func TestEndpointToPLogsHappyPath(t *testing.T) {
 				attrs.PutStr("type", "port")
 				attrs.PutStr("service.type", "unknown")
 				attrs.PutStr("service.name", "redis-cart")
+				attrs.PutStr(discovery.StatusAttr, "successful")
 				return plogs
 			}(),
 		},
@@ -114,6 +116,7 @@ func TestEndpointToPLogsHappyPath(t *testing.T) {
 				attrs.PutStr("type", "hostport")
 				attrs.PutStr("service.type", "unknown")
 				attrs.PutStr("service.name", "process.name")
+				attrs.PutStr(discovery.StatusAttr, "successful")
 				return plogs
 			}(),
 		},
@@ -143,6 +146,7 @@ func TestEndpointToPLogsHappyPath(t *testing.T) {
 				attrs.PutStr("type", "container")
 				attrs.PutStr("service.type", "unknown")
 				attrs.PutStr("service.name", "container.name")
+				attrs.PutStr(discovery.StatusAttr, "successful")
 				return plogs
 			}(),
 		},
@@ -174,15 +178,18 @@ func TestEndpointToPLogsHappyPath(t *testing.T) {
 				attrs.PutStr("type", "k8s.node")
 				attrs.PutStr("service.type", "unknown")
 				attrs.PutStr("service.name", "unknown")
+				attrs.PutStr(discovery.StatusAttr, "successful")
 				return plogs
 			}(),
 		},
 	} {
 		test := tt
 		t.Run(test.name, func(t *testing.T) {
+			corr := newCorrelationStore(zap.NewNop(), time.Hour)
+			corr.(*store).attrs.Store(test.endpoint.ID, map[string]string{discovery.StatusAttr: "successful"})
 			events, failed, err := entityStateEvents(
 				component.MustNewIDWithName("observer_type", "observer.name"),
-				[]observer.Endpoint{test.endpoint}, newCorrelationStore(zap.NewNop(), time.Hour), t0,
+				[]observer.Endpoint{test.endpoint}, corr, t0,
 			)
 			require.NoError(t, err)
 			require.Zero(t, failed)
@@ -226,6 +233,7 @@ func TestEndpointToPLogsInvalidEndpoints(t *testing.T) {
 				attrs.PutStr("type", "empty.details.env")
 				attrs.PutStr("service.type", "unknown")
 				attrs.PutStr("service.name", "unknown")
+				attrs.PutStr(discovery.StatusAttr, "successful")
 				return plogs
 			}(),
 		},
@@ -248,6 +256,7 @@ func TestEndpointToPLogsInvalidEndpoints(t *testing.T) {
 				attrs.PutStr("type", "unexpected.env")
 				attrs.PutStr("service.type", "unknown")
 				attrs.PutStr("service.name", "unknown")
+				attrs.PutStr(discovery.StatusAttr, "successful")
 				return plogs
 			}(),
 		},
@@ -290,10 +299,11 @@ func TestEndpointToPLogsInvalidEndpoints(t *testing.T) {
 	} {
 		test := tt
 		t.Run(test.name, func(t *testing.T) {
-			// Validate entity_state event
+			corr := newCorrelationStore(zap.NewNop(), time.Hour)
+			corr.(*store).attrs.Store(test.endpoint.ID, map[string]string{discovery.StatusAttr: "successful"})
 			events, failed, err := entityStateEvents(
 				component.MustNewIDWithName("observer_type", "observer.name"),
-				[]observer.Endpoint{test.endpoint}, newCorrelationStore(zap.NewNop(), time.Hour), t0,
+				[]observer.Endpoint{test.endpoint}, corr, t0,
 			)
 			if test.expectedError != "" {
 				require.Error(t, err)
@@ -337,6 +347,8 @@ func FuzzEndpointToPlogs(f *testing.F) {
 			if err != nil {
 				observerTypeSanitized = discovery.NoType.Type()
 			}
+			corr := newCorrelationStore(zap.NewNop(), time.Hour)
+			corr.(*store).attrs.Store(observer.EndpointID(endpointID), map[string]string{discovery.StatusAttr: "successful"})
 			events, failed, err := entityStateEvents(
 				component.MustNewIDWithName(observerTypeSanitized.String(), observerName), []observer.Endpoint{
 					{
@@ -361,7 +373,7 @@ func FuzzEndpointToPlogs(f *testing.F) {
 							Transport: observer.Transport(transport),
 						},
 					},
-				}, newCorrelationStore(zap.NewNop(), time.Hour), t0,
+				}, corr, t0,
 			)
 
 			expectedLogs := expectedPLogs()
@@ -372,6 +384,7 @@ func FuzzEndpointToPlogs(f *testing.F) {
 			entityIDAttr.Map().PutInt("source.port", int64(port))
 			attrs := lr.Attributes().PutEmptyMap(discovery.OtelEntityAttributesAttr)
 			attrs.PutStr(discovery.EndpointIDAttr, endpointID)
+			attrs.PutStr(discovery.StatusAttr, "successful")
 			attrs.PutStr(observerNameAttr, observerName)
 			attrs.PutStr(observerTypeAttr, observerTypeSanitized.String())
 			attrs.PutStr("endpoint", target)
@@ -655,13 +668,14 @@ func TestEntityEmittingLifecycle(t *testing.T) {
 	ch := make(chan plog.Logs, 10)
 	obsID := component.MustNewIDWithName("fake_observer", "")
 	obs := &fakeObservable{}
+	corr := newCorrelationStore(logger, cfg.CorrelationTTL)
 	et := &endpointTracker{
 		config:       cfg,
 		observables:  map[component.ID]observer.Observable{obsID: obs},
 		logger:       logger,
 		pLogs:        ch,
-		correlations: newCorrelationStore(logger, cfg.CorrelationTTL),
-		emitInterval: 50 * time.Millisecond,
+		correlations: corr,
+		emitInterval: 20 * time.Millisecond,
 		stopCh:       make(chan struct{}),
 	}
 	et.start()
@@ -676,13 +690,19 @@ func TestEntityEmittingLifecycle(t *testing.T) {
 
 	obs.onAdd([]observer.Endpoint{portEndpoint})
 
+	// Ensure that no entities are emitted without discovery.status attribute.
+	time.Sleep(30 * time.Millisecond)
+	require.Empty(t, ch)
+
+	// Once the status attribute is set, the entity should be emitted.
+	corr.(*store).attrs.Store(portEndpoint.ID, map[string]string{discovery.StatusAttr: "successful"})
+
 	// Wait for at least 2 entity events to be emitted to confirm periodic emitting is working.
-	require.Eventually(t, func() bool { return len(ch) >= 2 }, 1*time.Second, 50*time.Millisecond)
+	require.Eventually(t, func() bool { return len(ch) >= 2 }, 1*time.Second, 60*time.Millisecond)
 
 	gotLogs := <-ch
 	require.Equal(t, 1, gotLogs.LogRecordCount())
-	expectedEvents, failed, err := entityStateEvents(obsID, []observer.Endpoint{portEndpoint},
-		newCorrelationStore(logger, time.Hour), t0)
+	expectedEvents, failed, err := entityStateEvents(obsID, []observer.Endpoint{portEndpoint}, corr, t0)
 	require.NoError(t, err)
 	require.Zero(t, failed)
 	require.NoError(t, plogtest.CompareLogs(expectedEvents.ConvertAndMoveToLogs(), gotLogs, plogtest.IgnoreTimestamp()))
@@ -732,6 +752,7 @@ func TestEntityStateEvents(t *testing.T) {
 	cStore := newCorrelationStore(logger, cfg.CorrelationTTL)
 	cStore.UpdateAttrs(portEndpoint.ID, map[string]string{
 		discovery.ReceiverTypeAttr: "redis",
+		discovery.StatusAttr:       "successful",
 		"attr1":                    "val1",
 		"attr2":                    "val2",
 	})
@@ -747,10 +768,11 @@ func TestEntityStateEvents(t *testing.T) {
 	assert.Equal(t, t0, event.Timestamp().AsTime())
 	assert.Equal(t, map[string]any{"k8s.pod.uid": "uid", "source.port": int64(1)}, event.ID().AsRaw())
 	assert.Equal(t, map[string]any{
-		observerNameAttr: "observer.name",
-		observerTypeAttr: "observer_type",
-		"endpoint":       "port.target",
-		"name":           "port.name",
+		observerNameAttr:     "observer.name",
+		observerTypeAttr:     "observer_type",
+		discovery.StatusAttr: "successful",
+		"endpoint":           "port.target",
+		"name":               "port.name",
 		"annotations": map[string]any{
 			"annotation.one": "value.one",
 			"annotation.two": "value.two",

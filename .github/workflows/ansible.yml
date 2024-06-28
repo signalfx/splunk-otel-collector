@@ -177,11 +177,22 @@ jobs:
       - name: Install test dependencies.
         run: pip3 install --use-pep517 -r ${GITHUB_WORKSPACE}/requirements.txt
 
+      - name: Download vagrant box
+        run: |
+          box=$( yq ".platforms[] | select(.name == \"${{ matrix.distro }}\") | .box" ./molecule/config/windows.yml )
+          box_version=$( yq ".platforms[] | select(.name == \"${{ matrix.distro }}\") | .box_version" ./molecule/config/windows.yml )
+          eval "box_version=${box_version}"
+          json=$( wget -nv -O- https://vagrantcloud.com/api/v2/vagrant/${box} )
+          url=$( echo "$json" | jq -r ".versions[] | select(.version == \"${box_version}\") | .providers[] | select(.name == \"virtualbox\") | .url" )
+          wget -nv -O /tmp/vagrant.box $url
+
       - name: Run Molecule tests.
         run: molecule --debug -v --base-config ./molecule/config/windows.yml test -s ${{ matrix.scenario }} -p ${{ matrix.distro }}
         env:
           PY_COLORS: '1'
           ANSIBLE_FORCE_COLOR: '1'
+          MOLECULE_VAGRANT_BOX_URL: /tmp/vagrant.box
+          MOLECULE_VAGRANT_BOX_VERSION: " "  # version must not be set when using a local box
 
   push-release-tag:
     name: Push Release Tag

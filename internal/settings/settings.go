@@ -43,6 +43,7 @@ const (
 	HecLogIngestURLEnvVar     = "SPLUNK_HEC_URL"
 	ListenInterfaceEnvVar     = "SPLUNK_LISTEN_INTERFACE"
 	GoMemLimitEnvVar          = "GOMEMLIMIT"
+	GoGCEnvVar                = "GOGC"
 	// nolint:gosec
 	HecTokenEnvVar    = "SPLUNK_HEC_TOKEN" // this isn't a hardcoded token
 	IngestURLEnvVar   = "SPLUNK_INGEST_URL"
@@ -59,6 +60,7 @@ const (
 
 	DefaultMemoryLimitPercentage = 90
 	DefaultMemoryTotalMiB        = 512
+	DefaultGoGC                  = 400
 	DefaultListenInterface       = "0.0.0.0"
 	DefaultAgentConfigLinux      = "/etc/otel/collector/agent_config.yaml"
 	featureGates                 = "feature-gates"
@@ -369,6 +371,11 @@ func checkRuntimeParams(settings *Settings) error {
 
 	if _, ok := os.LookupEnv(GoMemLimitEnvVar); !ok {
 		setSoftMemoryLimit(memTotalSize)
+	}
+
+	if _, ok := os.LookupEnv(GoGCEnvVar); !ok {
+		debug.SetGCPercent(DefaultGoGC)
+		log.Printf("Set garbage collection target percentage (GOGC) to %d", DefaultGoGC)
 	}
 
 	return nil

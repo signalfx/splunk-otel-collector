@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### 💡 Enhancements 💡
+
+- (Splunk) Set Go garbage collection target percentage to 400% ([#5034](https://github.com/signalfx/splunk-otel-collector/pull/5034))
+  After removal of memory_ballast extension in v0.97.0, the Go garbage collection is running more aggressively, which 
+  increased CPU usage and leads to reduced throughput of the collector. This change reduces the frequency of garbage 
+  collection cycles to improves performance of the collector for typical workloads. As a result, the collector will
+  report higher memory usage, but it will be bound to the same configured limits. If you want to revert to the previous
+  behavior, set the `GOGC` environment variable to `100`.
+
 ### 🧰 Bug fixes 🧰
 
 - (Splunk) `receiver/discovery`: Do not emit entity events for discovered endpoints that are not evaluated yet

@@ -53,7 +53,7 @@ var k8sPodRegexp = regexp.MustCompile(`^(.+?)-(?:(?:[0-9bcdf]+-)?[bcdfghjklmnpqr
 var _ observer.Notify = (*notify)(nil)
 
 type endpointTracker struct {
-	correlations correlationStore
+	correlations *correlationStore
 	config       *Config
 	logger       *zap.Logger
 	pLogs        chan plog.Logs
@@ -74,7 +74,7 @@ type notify struct {
 
 func newEndpointTracker(
 	observables map[component.ID]observer.Observable, config *Config, logger *zap.Logger,
-	pLogs chan plog.Logs, correlations correlationStore) *endpointTracker {
+	pLogs chan plog.Logs, correlations *correlationStore) *endpointTracker {
 	return &endpointTracker{
 		config:       config,
 		observables:  observables,
@@ -111,7 +111,7 @@ func (et *endpointTracker) startEmitLoop() {
 	timer := time.NewTicker(et.emitInterval)
 	for {
 		select {
-		case corr := <-et.correlations.EmitCh():
+		case corr := <-et.correlations.emitCh:
 			et.emitEntityStateEvents(corr.observerID, []observer.Endpoint{corr.endpoint})
 		case <-timer.C:
 			for obs := range et.observables {
@@ -235,7 +235,8 @@ func (n *notify) OnChange(changed []observer.Endpoint) {
 
 // entityStateEvents converts observer endpoints to entity state events excluding those
 // that don't have a discovery status attribute yet.
-func entityStateEvents(observerID component.ID, endpoints []observer.Endpoint, correlations correlationStore, ts time.Time) (ees experimentalmetricmetadata.EntityEventsSlice, failed int, err error) {
+func entityStateEvents(observerID component.ID, endpoints []observer.Endpoint, correlations *correlationStore,
+	ts time.Time) (ees experimentalmetricmetadata.EntityEventsSlice, failed int, err error) {
 	entityEvents := experimentalmetricmetadata.NewEntityEventsSlice()
 	for _, endpoint := range endpoints {
 		if endpoint.Details == nil {

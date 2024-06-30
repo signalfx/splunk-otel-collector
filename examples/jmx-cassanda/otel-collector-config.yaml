@@ -6,7 +6,8 @@ receivers:
     # see https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/jmxreceiver/README.md#jar_path-default-optopentelemetry-java-contrib-jmx-metricsjar
     # and https://github.com/open-telemetry/opentelemetry-java-contrib/blob/main/jmx-metrics/README.md#usage
     jar_path: /opt/opentelemetry-java-contrib-jmx-metrics.jar
-    endpoint: cassandra-splunk-integtest:${JMX_PORT}
+      #endpoint: cassandra-splunk-integtest:${JMX_PORT}
+    endpoint: "service:jmx:rmi:///jndi/rmi://172.20.0.2:7199/jmxrmi"
     # If you need to support additional target systems,
     # see https://docs.splunk.com/observability/en/gdi/opentelemetry/components/jmx-receiver.html
     # and https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/jmxreceiver/README.md#target_system
@@ -15,10 +16,8 @@ receivers:
     collection_interval: 10s
     #initial_delay: 1s
     #optional: the same as specifying OTLP receiver endpoint.
-    # james TODO what is this
-    #otlp:
-    #  endpoint: mycollectorotlpreceiver:4317
-    # determined by the environment variable value
+    otlp:
+      endpoint: 0.0.0.0:0
     username: hello
     password: world
     resource_attributes:
@@ -58,4 +57,4 @@ service:
     #  exporters: [otlphttp, signalfx]
     metrics/logging:
       receivers: [jmx/cassandra]
-      exporters: [file/no_rotation]
+      exporters: [debug]

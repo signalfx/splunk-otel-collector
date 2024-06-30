@@ -27,6 +27,7 @@ services:
     # if building locally via `make docker-otel`,
     profiles:
       - cassandra-otel-test
+      - just-otel
     image: "otelcol:latest"
     environment:
       SPLUNK_ACCESS_TOKEN: "${SPLUNK_ACCESS_TOKEN}"

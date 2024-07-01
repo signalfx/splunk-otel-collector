@@ -38,14 +38,14 @@ type exprEnvFunc func(pattern string) map[string]any
 type evaluator struct {
 	logger       *zap.Logger
 	config       *Config
-	correlations correlationStore
+	correlations *correlationStore
 	// this ~sync.Map(map[string]struct{}) keeps track of
 	// whether we've already emitted a record for the statement and can skip processing.
 	alreadyLogged *sync.Map
 	exprEnv       exprEnvFunc
 }
 
-func newEvaluator(logger *zap.Logger, config *Config, correlations correlationStore, envFunc exprEnvFunc) *evaluator {
+func newEvaluator(logger *zap.Logger, config *Config, correlations *correlationStore, envFunc exprEnvFunc) *evaluator {
 	return &evaluator{
 		logger:        logger,
 		config:        config,

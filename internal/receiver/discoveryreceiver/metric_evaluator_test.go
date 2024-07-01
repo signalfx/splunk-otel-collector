@@ -77,7 +77,7 @@ func TestMetricEvaluation(t *testing.T) {
 
 					cStore := newCorrelationStore(logger, time.Hour)
 
-					emitCh := cStore.EmitCh()
+					emitCh := cStore.emitCh
 					emitWG := sync.WaitGroup{}
 					emitWG.Add(1)
 					go func() {

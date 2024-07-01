@@ -28,9 +28,7 @@ import (
 
 func TestNewCorrelationStore(t *testing.T) {
 	logger := zaptest.NewLogger(t)
-	cs := newCorrelationStore(logger, time.Hour)
-	cStore, ok := cs.(*store)
-	require.True(t, ok)
+	cStore := newCorrelationStore(logger, time.Hour)
 	require.NotNil(t, cStore)
 	require.Same(t, logger, cStore.logger)
 	require.Equal(t, time.Hour, cStore.ttl)
@@ -151,9 +149,7 @@ func TestAttrs(t *testing.T) {
 }
 
 func TestReaperLoop(t *testing.T) {
-	cs := newCorrelationStore(zaptest.NewLogger(t), time.Nanosecond)
-	cStore, ok := cs.(*store)
-	require.True(t, ok)
+	cStore := newCorrelationStore(zaptest.NewLogger(t), time.Nanosecond)
 	require.NotNil(t, cStore)
 	// update the reapInterval so as not to wait 30 seconds for test logic
 	cStore.reapInterval = time.Millisecond
@@ -165,13 +161,13 @@ func TestReaperLoop(t *testing.T) {
 	}
 	observerID := component.MustNewIDWithName("observer", "name")
 
-	cs.Start()
-	t.Cleanup(cs.Stop)
+	cStore.Start()
+	t.Cleanup(cStore.Stop)
 
 	receiverID := component.MustNewIDWithName("receiver", "name")
-	cs.UpdateEndpoint(endpoint, receiverID, observerID)
+	cStore.UpdateEndpoint(endpoint, receiverID, observerID)
 
-	corr := cs.GetOrCreate(endpointID, receiverID)
+	corr := cStore.GetOrCreate(endpointID, receiverID)
 	require.False(t, corr.stale)
 	rMap, ok := cStore.correlations.Load(endpointID)
 	require.True(t, ok)
@@ -179,7 +175,7 @@ func TestReaperLoop(t *testing.T) {
 	require.True(t, isCorr)
 	require.False(t, fetchedCorr.stale)
 
-	cs.MarkStale(endpointID)
+	cStore.MarkStale(endpointID)
 
 	// repeat check once to ensure loop-driven removal
 	_, hasEndpoint := cStore.correlations.Load(endpointID)

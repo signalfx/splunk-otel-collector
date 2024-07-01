@@ -43,7 +43,7 @@ type metricEvaluator struct {
 	*evaluator
 }
 
-func newMetricEvaluator(logger *zap.Logger, cfg *Config, correlations correlationStore) *metricEvaluator {
+func newMetricEvaluator(logger *zap.Logger, cfg *Config, correlations *correlationStore) *metricEvaluator {
 	return &metricEvaluator{
 		evaluator: newEvaluator(logger, cfg, correlations,
 			// TODO: provide more capable env w/ resource and metric attributes
@@ -121,7 +121,7 @@ func (m *metricEvaluator) evaluateMetrics(md pmetric.Metrics) {
 		attrs[discovery.StatusAttr] = string(match.Status)
 		m.correlations.UpdateAttrs(endpointID, attrs)
 
-		m.correlations.EmitCh() <- corr
+		m.correlations.emitCh <- corr
 		return
 	}
 }

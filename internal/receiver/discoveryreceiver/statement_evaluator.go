@@ -40,7 +40,8 @@ type statementEvaluator struct {
 	id              component.ID
 }
 
-func newStatementEvaluator(logger *zap.Logger, id component.ID, config *Config, correlations correlationStore) (*statementEvaluator, error) {
+func newStatementEvaluator(logger *zap.Logger, id component.ID, config *Config,
+	correlations *correlationStore) (*statementEvaluator, error) {
 	zapConfig := zap.NewProductionConfig()
 	zapConfig.Level = zap.NewAtomicLevelAt(zap.DebugLevel)
 	zapConfig.Sampling.Initial = 1
@@ -197,7 +198,7 @@ func (se *statementEvaluator) evaluateStatement(statement *statussources.Stateme
 		attrs[discovery.StatusAttr] = string(match.Status)
 		se.correlations.UpdateAttrs(endpointID, attrs)
 
-		se.correlations.EmitCh() <- corr
+		se.correlations.emitCh <- corr
 		return
 	}
 }

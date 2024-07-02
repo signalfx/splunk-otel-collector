@@ -33,6 +33,7 @@ func TestBundleDir(t *testing.T) {
 		"bundle.d/receivers/mysql.discovery.yaml",
 		"bundle.d/receivers/oracledb.discovery.yaml",
 		"bundle.d/receivers/postgresql.discovery.yaml",
+		"bundle.d/receivers/rabbitmq.discovery.yaml",
 		"bundle.d/receivers/redis.discovery.yaml",
 		"bundle.d/receivers/smartagent-postgresql.discovery.yaml",
 		"bundle.d/receivers/sqlserver.discovery.yaml",

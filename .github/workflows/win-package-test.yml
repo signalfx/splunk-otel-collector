@@ -209,6 +209,30 @@ jobs:
         run: |
           .\run-tests.ps1
 
+  msi-golang-tests:
+    runs-on: windows-2022
+    needs: [msi-build]
+    timeout-minutes: 15
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v4
+
+      - name: Downloading msi build
+        uses: actions/download-artifact@v4
+        with:
+          name: msi-build
+
+      - name: Set the MSI_COLLECTOR_PATH environment variable
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $msi_path = Resolve-Path .\dist\splunk-otel-collector*.msi
+          Test-Path $msi_path
+          "MSI_COLLECTOR_PATH=$msi_path" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Run the MSI tests
+        run: |
+          go test -timeout 5m -run ^TestMSI$ github.com/signalfx/splunk-otel-collector/tests/msi
+
   msi-without-wrappers-test:
     runs-on: ${{ matrix.OS }}
     needs: [msi-build]

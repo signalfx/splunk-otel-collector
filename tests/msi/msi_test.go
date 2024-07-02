@@ -62,7 +62,6 @@ func TestMSI(t *testing.T) {
 				if strings.Contains(value, "\"") || strings.Contains(value, " ") {
 					value = strings.ReplaceAll(value, "\"", "\"\"")
 					value = "\"" + value + "\""
-				// 	t.Logf("Escaped key: %s, value: [%s]", key, value)
 				}
 				args = append(args, key+"="+value)
 			}
@@ -72,7 +71,7 @@ func TestMSI(t *testing.T) {
 			// msiexec is one of the noticeable exceptions about how to format the parameters,
 			// see https://pkg.go.dev/os/exec#Command, so we need to join the args manually.
 			cmdLine := strings.Join(args, " ")
-			installCmd.SysProcAttr = &syscall.SysProcAttr{CmdLine: "msiexec "+cmdLine}
+			installCmd.SysProcAttr = &syscall.SysProcAttr{CmdLine: "msiexec " + cmdLine}
 			err := installCmd.Run()
 			if err != nil {
 				logText, _ := os.ReadFile(installLogFile)

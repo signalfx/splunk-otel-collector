@@ -221,6 +221,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: msi-build
+          path: ./dist
 
       - name: Set the MSI_COLLECTOR_PATH environment variable
         run: |

@@ -402,6 +402,8 @@ instrumentation-deb:
       - xray_artifact_path
 
 xray-instrumentation-deb:
+  only:
+    - main
   extends: .xray-scan-package
   needs:
     - instrumentation-deb
@@ -419,6 +421,8 @@ instrumentation-rpm:
       - xray_artifact_path
 
 xray-instrumentation-rpm:
+  only:
+    - main
   extends: .xray-scan-package
   needs:
     - instrumentation-rpm
@@ -500,6 +504,8 @@ build-deb:
       - xray_artifact_path
 
 xray-collector-deb:
+  only:
+    - main
   extends: .xray-scan-package
   needs:
     - build-deb
@@ -519,6 +525,8 @@ build-rpm:
       - xray_artifact_path
 
 xray-collector-rpm:
+  only:
+    - main
   extends: .xray-scan-package
   needs:
     - build-rpm

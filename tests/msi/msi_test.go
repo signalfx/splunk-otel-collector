@@ -44,9 +44,37 @@ func TestMSI(t *testing.T) {
 		msiProperties map[string]string
 	}{
 		{
-			name: "default-install",
+			name: "default",
 			msiProperties: map[string]string{
-				"SPLUNK_ACCESS_TOKEN": "test\"token",
+				"SPLUNK_ACCESS_TOKEN": "fakeToken",
+			},
+		},
+		{
+			name: "gateway",
+			msiProperties: map[string]string{
+				"SPLUNK_SETUP_COLLECTOR_MODE": "gateway",
+				"SPLUNK_ACCESS_TOKEN":         "testing123",
+			},
+		},
+		{
+			name: "realm",
+			msiProperties: map[string]string{
+				"SPLUNK_REALM":        "my-realm",
+				"SPLUNK_ACCESS_TOKEN": "testing",
+			},
+		},
+		{
+			name: "ingest-url",
+			msiProperties: map[string]string{
+				"SPLUNK_INGEST_URL":   "https://fake.ingest.url",
+				"SPLUNK_ACCESS_TOKEN": "testing",
+			},
+		},
+		{
+			name: "optional-params",
+			msiProperties: map[string]string{
+				"SPLUNK_MEMORY_TOTAL_MIB": "256",
+				"SPLUNK_ACCESS_TOKEN":     "fakeToken",
 			},
 		},
 	}

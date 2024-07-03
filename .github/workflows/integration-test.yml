@@ -365,6 +365,10 @@ jobs:
         - run: echo "MONGODB_VERSION=${{ matrix.MONGODB_VERSION }}" > docker/.env
           if: matrix.SERVICE == 'mongodb'
         - run: docker compose -f docker/docker-compose.yml --profile integration-test-${{ matrix.SERVICE }}-discovery up -d --build --quiet-pull
+        - run: docker ps
+          if: matrix.MONGODB_VERSION == '6.0'
+        - run: docker logs $(docker ps --format "{{.ID}}")
+          if: matrix.MONGODB_VERSION == '6.0'
         - uses: actions/setup-go@v5
           with:
             go-version: ${{ env.GO_VERSION }}

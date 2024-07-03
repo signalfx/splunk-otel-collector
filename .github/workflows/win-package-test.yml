@@ -214,6 +214,7 @@ jobs:
     needs: [msi-build]
     timeout-minutes: 20
     strategy:
+      max-parallel: 1
       matrix:
         test:
           - "default"

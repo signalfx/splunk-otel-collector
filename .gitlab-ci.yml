@@ -191,8 +191,10 @@ fossa:
   - echo "${ARTIFACTORY_BASE_URL}/${local_repo}/${target}" | tee xray_artifact_path
 
 .xray-scan-package:
-  only:
-    - main
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - if: $CI_COMMIT_BRANCH == "main"
   extends: .binary-scan
   stage: xray-scan
   variables:
@@ -402,8 +404,6 @@ instrumentation-deb:
       - xray_artifact_path
 
 xray-instrumentation-deb:
-  only:
-    - main
   extends: .xray-scan-package
   needs:
     - instrumentation-deb
@@ -421,8 +421,6 @@ instrumentation-rpm:
       - xray_artifact_path
 
 xray-instrumentation-rpm:
-  only:
-    - main
   extends: .xray-scan-package
   needs:
     - instrumentation-rpm
@@ -504,8 +502,6 @@ build-deb:
       - xray_artifact_path
 
 xray-collector-deb:
-  only:
-    - main
   extends: .xray-scan-package
   needs:
     - build-deb
@@ -525,8 +521,6 @@ build-rpm:
       - xray_artifact_path
 
 xray-collector-rpm:
-  only:
-    - main
   extends: .xray-scan-package
   needs:
     - build-rpm

@@ -241,7 +241,7 @@ jobs:
 
       - name: Run the MSI tests
         run: |
-          go test -timeout 10m -run ^TestMSI/${{ matrix.test }}$ github.com/signalfx/splunk-otel-collector/tests/msi
+          go test -timeout 10m -v -run ^TestMSI/${{ matrix.test }}$ github.com/signalfx/splunk-otel-collector/tests/msi
 
   # msi-without-wrappers-test:
   #   runs-on: ${{ matrix.OS }}

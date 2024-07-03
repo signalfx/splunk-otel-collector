@@ -212,7 +212,15 @@ jobs:
   msi-golang-tests:
     runs-on: windows-2022
     needs: [msi-build]
-    timeout-minutes: 60
+    timeout-minutes: 20
+    strategy:
+      matrix:
+        test:
+          - "default"
+          - "gateway"
+          - "realm"
+          - "ingest-url"
+          - "optional-params"
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4
@@ -232,7 +240,7 @@ jobs:
 
       - name: Run the MSI tests
         run: |
-          go test -timeout 45m -run ^TestMSI$ github.com/signalfx/splunk-otel-collector/tests/msi
+          go test -timeout 10m -run ^TestMSI/${{ matrix.test }}$ github.com/signalfx/splunk-otel-collector/tests/msi
 
   msi-without-wrappers-test:
     runs-on: ${{ matrix.OS }}

@@ -4,13 +4,11 @@ import (
 	"strconv"
 
 	dto "github.com/prometheus/client_model/go"
-	"github.com/signalfx/golib/v3/datapoint"
 	"github.com/signalfx/signalfx-agent/pkg/utils"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 )
 
 type extractor func(m *dto.Metric) float64
-type dpFactory func(string, map[string]string, float64) *datapoint.Datapoint
 
 func gaugeExtractor(m *dto.Metric) float64 {
 	return m.GetGauge().GetValue()

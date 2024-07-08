@@ -9,8 +9,7 @@ apache:
     host_observer: type == "hostport" and command matches "(?i)httpd.*" and not (command matches "splunk.discovery")
     k8s_observer: type == "port" and pod.name matches "(?i)httpd.*"
   config:
-    default:
-      endpoint: splunk.discovery.default
+    default: {}
   status:
     metrics:
       - status: successful

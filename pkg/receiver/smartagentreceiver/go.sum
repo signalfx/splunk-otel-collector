@@ -40,8 +40,8 @@ github.com/Masterminds/semver/v3 v3.2.0 h1:3MEsd0SM6jqZojhjLWWeBY+Kcjy9i6MQAeY7Y
 github.com/Masterminds/semver/v3 v3.2.0/go.mod h1:qvl/7zhW3nngYb5+80sSMF+FG2BjYrf8m9wsX0PNOMQ=
 github.com/Microsoft/go-winio v0.6.1 h1:9/kr64B9VUZrLm5YYwbGtUJnMgqWVOdUAXu6Migciow=
 github.com/Microsoft/go-winio v0.6.1/go.mod h1:LRdKpFKfdobln8UmuiYcKPot9D2v6svN5+sAH+4kjUM=
-github.com/SAP/go-hdb v1.9.8 h1:EIIHpvYN58bjqrdNfTDypF+CccaI2lzduYenUnAZvBQ=
-github.com/SAP/go-hdb v1.9.8/go.mod h1:Q1UFD20ZGIjehRHZwrcNnPGHSJSkXXKWO3c8I4zEt6A=
+github.com/SAP/go-hdb v1.9.9 h1:9xXCUiDQbDAgzA2QcnQqlTzOSIIkdR0Z7zM+0mBy7BE=
+github.com/SAP/go-hdb v1.9.9/go.mod h1:ZPNq1vLBHZBzbhs0dIlTtdSWhsYOxISf8auQEAR1dUU=
 github.com/Sectorbob/mlab-ns2 v0.0.0-20171030222938-d3aa0c295a8a h1:KFHLI4QGttB0i7M3qOkAo8Zn/GSsxwwCnInFqBaYtkM=
 github.com/Sectorbob/mlab-ns2 v0.0.0-20171030222938-d3aa0c295a8a/go.mod h1:D73UAuEPckrDorYZdtlCu2ySOLuPB5W4rhIkmmc/XbI=
 github.com/StackExchange/wmi v1.2.1 h1:VIkavFPXSjcnS+O8yTq7NI32k0R5Aj+v39y29VYDOSA=
@@ -756,8 +756,8 @@ github.com/ulule/deepcopier v0.0.0-20171107155558-ca99b135e50f h1:QatZ4lsJBY3x1+
 github.com/ulule/deepcopier v0.0.0-20171107155558-ca99b135e50f/go.mod h1:BNLmYJ8oMJPIPpNx5968jCyUhwEU1XT3YsuOqtbo5qo=
 github.com/vjeantet/grok v1.0.1 h1:2rhIR7J4gThTgcZ1m2JY4TrJZNgjn985U28kT2wQrJ4=
 github.com/vjeantet/grok v1.0.1/go.mod h1:ax1aAchzC6/QMXMcyzHQGZWaW1l195+uMYIkCWPCNIo=
-github.com/vmware/govmomi v0.37.3 h1:L2y2Ba09tYiZwdPtdF64Ox9QZeJ8vlCUGcAF9SdODn4=
-github.com/vmware/govmomi v0.37.3/go.mod h1:mtGWtM+YhTADHlCgJBiskSRPOZRsN9MSjPzaZLte/oQ=
+github.com/vmware/govmomi v0.38.0 h1:UvQpLAOjDpO0JUxoPCXnEzOlEa/9kejO6K58qOFr6cM=
+github.com/vmware/govmomi v0.38.0/go.mod h1:mtGWtM+YhTADHlCgJBiskSRPOZRsN9MSjPzaZLte/oQ=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.3.5/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=

@@ -149,7 +149,7 @@ fossa:
       fi
 
 .go-cache:
-  image: '${DOCKER_HUB_REPO}/golang:1.21.11'
+  image: '${DOCKER_HUB_REPO}/golang:1.21.12'
   variables:
     GOPATH: "$CI_PROJECT_DIR/.go"
   before_script:

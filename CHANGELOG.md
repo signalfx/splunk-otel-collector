@@ -10,6 +10,7 @@
   collection cycles to improves performance of the collector for typical workloads. As a result, the collector will
   report higher memory usage, but it will be bound to the same configured limits. If you want to revert to the previous
   behavior, set the `GOGC` environment variable to `100`.
+- (Splunk) Upgrade to golang 1.21.12
 
 ### 🧰 Bug fixes 🧰
 

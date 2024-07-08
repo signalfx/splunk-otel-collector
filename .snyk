@@ -7,4 +7,9 @@ ignore:
         reason: 'false positive: https://github.com/opencontainers/runc/issues/4263'
         expires: 2099-01-01T00:00:00.000Z
         created: 2024-05-08T15:09:58.177Z
+  SNYK-GOLANG-GITHUBCOMJACKCPGXV4-7416900:
+    - '*':
+        reason: 'false positive; only affects v5: https://pkg.go.dev/vuln/GO-2024-2567'
+        expires: 2099-01-01T00:00:00.000Z
+        created: 2024-07-08T16:27:22.186Z
 patch: {}

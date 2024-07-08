@@ -50,6 +50,24 @@ func (f *overridableDatapointFilter) Matches(dp *datapoint.Datapoint) bool {
 }
 
 func (f *overridableDatapointFilter) MatchesMetric(m pmetric.Metric) bool {
-	return (f.metricFilter == nil || f.metricFilter.Matches(m.Name())) &&
-		(f.dimFilter == nil || f.dimFilter.MatchesMap(m.Gauge().DataPoints().At(0).Attributes()))
+	if f.metricFilter != nil && !f.metricFilter.Matches(m.Name()) {
+		return false
+	}
+	if f.dimFilter != nil {
+		switch m.Type() {
+		case pmetric.MetricTypeGauge:
+			if m.Gauge().DataPoints().Len() == 0 {
+				return false
+			}
+			return f.dimFilter.MatchesMap(m.Gauge().DataPoints().At(0).Attributes())
+		case pmetric.MetricTypeSum:
+			if m.Sum().DataPoints().Len() == 0 {
+				return false
+			}
+			return f.dimFilter.MatchesMap(m.Sum().DataPoints().At(0).Attributes())
+		default:
+			panic("Unsupported type: " + m.Type().String())
+		}
+	}
+	return true
 }

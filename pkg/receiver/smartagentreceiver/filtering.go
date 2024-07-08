@@ -60,12 +60,12 @@ func (mf *monitorFiltering) EnabledMetrics() []string {
 		return nil
 	}
 
-	dp := &datapoint.Datapoint{}
+	m := pmetric.NewMetric()
 	var enabledMetrics []string
 
 	for metric := range mf.metadata.Metrics {
-		dp.Metric = metric
-		if !mf.filterSet.Matches(dp) {
+		m.SetName(metric)
+		if !mf.filterSet.MatchesMetric(m) {
 			enabledMetrics = append(enabledMetrics, metric)
 		}
 	}

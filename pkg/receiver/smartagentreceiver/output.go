@@ -228,7 +228,7 @@ func (out *output) SendMetrics(metrics ...pmetric.Metric) {
 				}
 			case pmetric.MetricTypeSum:
 				for i := 0; i < dp.Sum().DataPoints().Len(); i++ {
-					dp.Gauge().DataPoints().At(i).Attributes().PutStr(k, v)
+					dp.Sum().DataPoints().At(i).Attributes().PutStr(k, v)
 				}
 			default:
 				out.logger.Error("Unsupported metric type", zap.Any("type", dp.Type()), zap.String("name", dp.Name()))
@@ -250,7 +250,6 @@ func (out *output) SendDatapoints(datapoints ...*datapoint.Datapoint) {
 
 	ctx := out.reporter.StartMetricsOp(context.Background())
 
-	datapoints = out.filterDatapoints(datapoints)
 	for _, dp := range datapoints {
 		// out's extraDimensions take priority over datapoint's
 		dp.Dimensions = utils.MergeStringMaps(dp.Dimensions, out.extraDimensions)
@@ -318,9 +317,12 @@ func (out *output) AddExtraDimension(key, value string) {
 }
 
 func (out *output) filterMetrics(metrics []pmetric.Metric) []pmetric.Metric {
+	if out.monitorFiltering.filterSet == nil {
+		return metrics
+	}
 	filteredMetrics := make([]pmetric.Metric, 0, len(metrics))
 	for _, m := range metrics {
-		if out.monitorFiltering.filterSet == nil || !out.monitorFiltering.filterSet.MatchesMetric(m) {
+		if !out.monitorFiltering.filterSet.MatchesMetric(m) {
 			filteredMetrics = append(filteredMetrics, m)
 		}
 	}
@@ -328,9 +330,12 @@ func (out *output) filterMetrics(metrics []pmetric.Metric) []pmetric.Metric {
 }
 
 func (out *output) filterDatapoints(datapoints []*datapoint.Datapoint) []*datapoint.Datapoint {
+	if out.monitorFiltering.filterSet == nil {
+		return datapoints
+	}
 	filteredDatapoints := make([]*datapoint.Datapoint, 0, len(datapoints))
 	for _, dp := range datapoints {
-		if out.monitorFiltering.filterSet == nil || !out.monitorFiltering.filterSet.Matches(dp) {
+		if !out.monitorFiltering.filterSet.Matches(dp) {
 			filteredDatapoints = append(filteredDatapoints, dp)
 		}
 	}

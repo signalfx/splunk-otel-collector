@@ -327,7 +327,9 @@ function start_service([string]$name, [string]$config_path=$null, [int]$timeout=
     }
 
     try {
-        $svc.Start()
+        if ($svc.Status -ne "ContinuePending" -And $svc.Status -ne "StartPending") {
+            $svc.Start()
+        }
         $svc.WaitForStatus("Running", [TimeSpan]::FromSeconds($timeout))
     } catch {
         $err = $_.Exception.Message

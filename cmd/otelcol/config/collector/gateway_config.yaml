@@ -9,6 +9,8 @@ extensions:
       endpoint: "${SPLUNK_LISTEN_INTERFACE}:6060"
     egress:
       endpoint: "https://api.${SPLUNK_REALM}.signalfx.com"
+      headers:
+        "X-SF-TOKEN": "${SPLUNK_ACCESS_TOKEN}"      
   zpages:
     endpoint: "${SPLUNK_LISTEN_INTERFACE}:55679"
 

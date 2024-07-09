@@ -273,12 +273,10 @@ func TestHostObserver(t *testing.T) {
 	sc, stdout, stderr = cc.Container.AssertExec(t, 15*time.Second,
 		"sh", "-c", `SPLUNK_DISCOVERY_LOG_LEVEL=error SPLUNK_DEBUG_CONFIG_SERVER=false \
 REFRESH_INTERVAL=1s \
-IS_NOT_CONTAINER=true \
 SPLUNK_DISCOVERY_DURATION=9s \
 SPLUNK_DISCOVERY_RECEIVERS_prometheus_simple_CONFIG_labels_x3a__x3a_label_three=actual.label.three.value.from.env.var.property \
 SPLUNK_DISCOVERY_EXTENSIONS_k8s_observer_ENABLED=false \
-SPLUNK_DISCOVERY_EXTENSIONS_host_observer_ENABLED=\${env:IS_NOT_CONTAINER} \
-SPLUNK_DISCOVERY_EXTENSIONS_host_observer_CONFIG_refresh_interval=\${REFRESH_INTERVAL} \
+SPLUNK_DISCOVERY_EXTENSIONS_host_observer_CONFIG_refresh_interval=\${env:REFRESH_INTERVAL} \
 /otelcol --config-dir /opt/config.d --discovery --dry-run`)
 
 	errorContent := fmt.Sprintf("unexpected --dry-run: %s", stderr)
@@ -289,7 +287,7 @@ SPLUNK_DISCOVERY_EXTENSIONS_host_observer_CONFIG_refresh_interval=\${REFRESH_INT
       insecure: true
 extensions:
   host_observer:
-    refresh_interval: ${REFRESH_INTERVAL}
+    refresh_interval: ${env:REFRESH_INTERVAL}
   host_observer/with-name:
     refresh_interval: 1s
 processors:

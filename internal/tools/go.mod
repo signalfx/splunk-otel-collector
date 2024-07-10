@@ -2,7 +2,7 @@ module github.com/signalfx/splunk-otel-collector/internal/tools
 
 go 1.21.0
 
-toolchain go1.21.11
+toolchain go1.21.12
 
 require (
 	github.com/client9/misspell v0.3.4
@@ -12,8 +12,8 @@ require (
 	github.com/ory/go-acc v0.2.8
 	github.com/pavius/impi v0.0.3
 	github.com/tcnksm/ghr v0.16.2
-	go.opentelemetry.io/collector/cmd/mdatagen v0.103.0
-	golang.org/x/tools v0.22.0
+	go.opentelemetry.io/collector/cmd/mdatagen v0.104.0
+	golang.org/x/tools v0.23.0
 	golang.org/x/vuln v1.1.2
 )
 
@@ -200,31 +200,31 @@ require (
 	gitlab.com/bosi/decorder v0.4.2 // indirect
 	go-simpler.org/musttag v0.12.2 // indirect
 	go-simpler.org/sloglint v0.7.1 // indirect
-	go.opentelemetry.io/collector/component v0.103.0 // indirect
-	go.opentelemetry.io/collector/config/configtelemetry v0.103.0 // indirect
-	go.opentelemetry.io/collector/confmap v0.103.0 // indirect
-	go.opentelemetry.io/collector/confmap/provider/fileprovider v0.103.0 // indirect
-	go.opentelemetry.io/collector/featuregate v1.10.0 // indirect
-	go.opentelemetry.io/collector/filter v0.103.0 // indirect
-	go.opentelemetry.io/collector/pdata v1.10.0 // indirect
+	go.opentelemetry.io/collector/component v0.104.0 // indirect
+	go.opentelemetry.io/collector/config/configtelemetry v0.104.0 // indirect
+	go.opentelemetry.io/collector/confmap v0.104.0 // indirect
+	go.opentelemetry.io/collector/confmap/provider/fileprovider v0.104.0 // indirect
+	go.opentelemetry.io/collector/featuregate v1.11.0 // indirect
+	go.opentelemetry.io/collector/filter v0.104.0 // indirect
+	go.opentelemetry.io/collector/pdata v1.11.0 // indirect
 	go.opentelemetry.io/otel v1.27.0 // indirect
 	go.opentelemetry.io/otel/metric v1.27.0 // indirect
 	go.opentelemetry.io/otel/trace v1.27.0 // indirect
 	go.uber.org/automaxprocs v1.5.3 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
-	golang.org/x/crypto v0.24.0 // indirect
+	golang.org/x/crypto v0.25.0 // indirect
 	golang.org/x/exp v0.0.0-20240103183307-be819d1f06fc // indirect
 	golang.org/x/exp/typeparams v0.0.0-20240314144324-c7f7c6466f7f // indirect
-	golang.org/x/mod v0.18.0 // indirect
-	golang.org/x/net v0.26.0 // indirect
+	golang.org/x/mod v0.19.0 // indirect
+	golang.org/x/net v0.27.0 // indirect
 	golang.org/x/oauth2 v0.20.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
-	golang.org/x/sys v0.21.0 // indirect
+	golang.org/x/sys v0.22.0 // indirect
 	golang.org/x/telemetry v0.0.0-20240522233618-39ace7a40ae7 // indirect
 	golang.org/x/text v0.16.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240520151616-dc85e6b867a5 // indirect
-	google.golang.org/grpc v1.64.0 // indirect
+	google.golang.org/grpc v1.64.1 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

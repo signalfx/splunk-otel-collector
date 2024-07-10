@@ -322,12 +322,14 @@ function start_service([string]$name, [string]$config_path=$null, [int]$timeout=
         return
     }
 
-    if (!($config_path -eq $null) -And !(Test-Path -Path $config_path)) {
+    if (!([string]::IsNullOrEmpty($config_path)) -And !(Test-Path -Path $config_path)) {
         throw "$config_path does not exist and is required to start the $name service"
     }
 
     try {
-        $svc.Start()
+        if ($svc.Status -ne "ContinuePending" -And $svc.Status -ne "StartPending") {
+            $svc.Start()
+        }
         $svc.WaitForStatus("Running", [TimeSpan]::FromSeconds($timeout))
     } catch {
         $err = $_.Exception.Message

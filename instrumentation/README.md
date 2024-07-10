@@ -90,6 +90,8 @@ The following methods are supported to manually activate and configure Auto Inst
    Configuration of the respective agents is supported by the adding/updating the following environment variables in
    each of these files (***any environment variable not in this list will be ignored***):
    - `OTEL_EXPORTER_OTLP_ENDPOINT`
+   - `OTEL_EXPORTER_OTLP_PROTOCOL`
+   - `OTEL_METRICS_EXPORTER`
    - `OTEL_RESOURCE_ATTRIBUTES`
    - `OTEL_SERVICE_NAME`
    - `SPLUNK_METRICS_ENABLED`

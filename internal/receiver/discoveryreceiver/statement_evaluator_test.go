@@ -61,7 +61,7 @@ func TestStatementEvaluation(t *testing.T) {
 					logger := zap.NewNop()
 					cStore := newCorrelationStore(logger, time.Hour)
 
-					emitCh := cStore.EmitCh()
+					emitCh := cStore.emitCh
 					emitWG := sync.WaitGroup{}
 					emitWG.Add(1)
 					go func() {

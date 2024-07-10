@@ -186,7 +186,7 @@ func TestEndpointToPLogsHappyPath(t *testing.T) {
 		test := tt
 		t.Run(test.name, func(t *testing.T) {
 			corr := newCorrelationStore(zap.NewNop(), time.Hour)
-			corr.(*store).attrs.Store(test.endpoint.ID, map[string]string{discovery.StatusAttr: "successful"})
+			corr.attrs.Store(test.endpoint.ID, map[string]string{discovery.StatusAttr: "successful"})
 			events, failed, err := entityStateEvents(
 				component.MustNewIDWithName("observer_type", "observer.name"),
 				[]observer.Endpoint{test.endpoint}, corr, t0,
@@ -300,7 +300,7 @@ func TestEndpointToPLogsInvalidEndpoints(t *testing.T) {
 		test := tt
 		t.Run(test.name, func(t *testing.T) {
 			corr := newCorrelationStore(zap.NewNop(), time.Hour)
-			corr.(*store).attrs.Store(test.endpoint.ID, map[string]string{discovery.StatusAttr: "successful"})
+			corr.attrs.Store(test.endpoint.ID, map[string]string{discovery.StatusAttr: "successful"})
 			events, failed, err := entityStateEvents(
 				component.MustNewIDWithName("observer_type", "observer.name"),
 				[]observer.Endpoint{test.endpoint}, corr, t0,
@@ -348,7 +348,7 @@ func FuzzEndpointToPlogs(f *testing.F) {
 				observerTypeSanitized = discovery.NoType.Type()
 			}
 			corr := newCorrelationStore(zap.NewNop(), time.Hour)
-			corr.(*store).attrs.Store(observer.EndpointID(endpointID), map[string]string{discovery.StatusAttr: "successful"})
+			corr.attrs.Store(observer.EndpointID(endpointID), map[string]string{discovery.StatusAttr: "successful"})
 			events, failed, err := entityStateEvents(
 				component.MustNewIDWithName(observerTypeSanitized.String(), observerName), []observer.Endpoint{
 					{
@@ -647,7 +647,7 @@ func TestUpdateEndpoints(t *testing.T) {
 			et.updateEndpoints(tt.endpoints, component.MustNewIDWithName("observer_type", "observer.name"))
 
 			var correlationsCount int
-			et.correlations.(*store).correlations.Range(func(_, _ interface{}) bool {
+			et.correlations.correlations.Range(func(_, _ interface{}) bool {
 				correlationsCount++
 				return true
 			})
@@ -695,7 +695,7 @@ func TestEntityEmittingLifecycle(t *testing.T) {
 	require.Empty(t, ch)
 
 	// Once the status attribute is set, the entity should be emitted.
-	corr.(*store).attrs.Store(portEndpoint.ID, map[string]string{discovery.StatusAttr: "successful"})
+	corr.attrs.Store(portEndpoint.ID, map[string]string{discovery.StatusAttr: "successful"})
 
 	// Wait for at least 2 entity events to be emitted to confirm periodic emitting is working.
 	require.Eventually(t, func() bool { return len(ch) >= 2 }, 1*time.Second, 60*time.Millisecond)

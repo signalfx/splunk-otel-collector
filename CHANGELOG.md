@@ -10,6 +10,13 @@
   collection cycles to improves performance of the collector for typical workloads. As a result, the collector will
   report higher memory usage, but it will be bound to the same configured limits. If you want to revert to the previous
   behavior, set the `GOGC` environment variable to `100`.
+- (Splunk) Upgrade to golang 1.21.12
+- (Splunk) Auto Discovery for Linux:
+  - Update `splunk-otel-java` to v2.5.0 for the `splunk-otel-auto-instrumentation` deb/rpm packages. This is a major version bump that includes breaking changes. Check the [release notes](https://github.com/signalfx/splunk-otel-java/releases/tag/v2.5.0) for details about breaking changes.
+  - Linux installer script:
+    - The default for the `--otlp-endpoint` option is now empty, i.e. defers to the default `OTEL_EXPORTER_OTLP_ENDPOINT` value for each activated SDK
+    - Add new `--otlp-endpoint-protocol <protocol>` option to set the `OTEL_EXPORTER_OTLP_PROTOCOL` environment variable for the configured endpoint. Only applicable if the `--otlp-endpoint` option is also specified.
+    - Add new `--metrics-exporter <exporter>` option to configure the `OTEL_METRICS_EXPORTER` environment variable for instrumentation metrics. Specify `none` to disable metric collection and export.
 
 ### 🧰 Bug fixes 🧰
 

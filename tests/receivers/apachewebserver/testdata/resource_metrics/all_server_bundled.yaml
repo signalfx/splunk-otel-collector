@@ -1,0 +1,5 @@
+resource_metrics:
+  - attributes:
+      apache.version: <ANY>
+      container.image.name: <ANY>
+      container.name: httpd 

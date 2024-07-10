@@ -21,4 +21,4 @@ apache:
         message: The container cannot be reached by the Collector. Make sure they're in the same network.
       - status: failed
         regexp: 'connect: connection refused'
-        message: The container is refusing kafka server connections.
+        message: The container is refusing apache webserver connections.

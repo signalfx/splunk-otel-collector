@@ -2,26 +2,103 @@
 
 ## Unreleased
 
+## v0.104.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.104.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.104.0) and the [opentelemetry-collector-contrib v0.104.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.104.0) releases where appropriate.
+
+> :warning: In our efforts to align with the [goals](https://github.com/open-telemetry/opentelemetry-collector/blob/main/docs/rfcs/env-vars.md) defined upstream for environment variable resolution in the Collector's configuration, the Splunk OpenTelemetry Collector will be dropping support for expansion of BASH-style environment variables, such as `$FOO` in the configuration in an upcoming version. Users are advised to update their Collector's configuration to use `${env:FOO}` instead.
+
+> 🚩 When setting properties for discovery receiver as environment variables (`SPLUNK_DISCOVERY_*`), the values cannot reference other environment variables without curly-braces. For example, user is trying to set discovery property `SPLUNK_DISCOVERY_EXTENSIONS_k8s_observer_ENABLED` to the value of another env var, `K8S_ENVIRONMENT`.
+> For versions older than 0.104.0, setting it as `SPLUNK_DISCOVERY_EXTENSIONS_k8s_observer_ENABLED=\$K8S_ENVIRONMENT` (note the escaped variable name does not have curly braces) was valid. But from v0.104.0, env var names need to be passed with braces. For this example, user should modify it to `SPLUNK_DISCOVERY_EXTENSIONS_k8s_observer_ENABLED=\${K8S_ENVIRONMENT}`.
+
+### 🛑 Breaking changes 🛑
+
+- (Core) `filter`: Remove deprecated `filter.CombinedFilter` ([#10348](https://github.com/open-telemetry/opentelemetry-collector/pull/10348))
+
+- (Core) `otelcol`: By default, `otelcol.NewCommand` and `otelcol.NewCommandMustSetProvider` will set the `DefaultScheme` to `env`. ([#10435](https://github.com/open-telemetry/opentelemetry-collector/pull/10435))
+
+- (Core) `expandconverter`: By default expandconverter will now error if it is about to expand `$FOO` syntax. Update configuration to use `${env:FOO}` instead or disable the `confmap.unifyEnvVarExpansion` feature gate. ([#10435](https://github.com/open-telemetry/opentelemetry-collector/pull/10435))
+
+- (Core) `otlpreceiver`: Switch to `localhost` as the default for all endpoints. ([#8510](https://github.com/open-telemetry/opentelemetry-collector/pull/8510))
+  Disable the `component.UseLocalHostAsDefaultHost` feature gate to temporarily get the previous default.
+
+- (Splunk) `discovery`: When setting properties for discovery receiver as environment variables (`SPLUNK_DISCOVERY_*`), the values cannot reference other escaped environment variables without braces. For example, when trying to set discovery property `SPLUNK_DISCOVERY_EXTENSIONS_k8s_observer_ENABLED` to the value of another env var, `K8S_ENVIRONMENT`. For versions older than 0.104.0, setting it as `SPLUNK_DISCOVERY_EXTENSIONS_k8s_observer_ENABLED=\$K8S_ENVIRONMENT` (note the escaped variable name does not have braces) was valid. But from v0.104.0, env var names need to be passed with braces. For this example, user should modify it to `SPLUNK_DISCOVERY_EXTENSIONS_k8s_observer_ENABLED=\${K8S_ENVIRONMENT}`
+
+- (Contrib) `vcenterreceiver`: Drops support for vCenter 6.7 ([#33607](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/33607))
+
+- (Contrib) `all`: Promote `component.UseLocalHostAsDefaultHost` feature gate to beta. This changes default endpoints from 0.0.0.0 to localhost ([#30702](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30702))
+  This change affects the following components:
+    - extension/health_check
+    - receiver/jaeger
+    - receiver/sapm
+    - receiver/signalfx
+    - receiver/splunk_hec
+    - receiver/zipkin
+
+- (Contrib) `receiver/mongodb`: Graduate receiver.mongodb.removeDatabaseAttr feature gate to stable ([#24972](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/24972))
+
 ### 💡 Enhancements 💡
 
-- (Splunk) Set Go garbage collection target percentage to 400% ([#5034](https://github.com/signalfx/splunk-otel-collector/pull/5034))
-  After removal of memory_ballast extension in v0.97.0, the Go garbage collection is running more aggressively, which 
-  increased CPU usage and leads to reduced throughput of the collector. This change reduces the frequency of garbage 
-  collection cycles to improves performance of the collector for typical workloads. As a result, the collector will
-  report higher memory usage, but it will be bound to the same configured limits. If you want to revert to the previous
-  behavior, set the `GOGC` environment variable to `100`.
-- (Splunk) Upgrade to golang 1.21.12
 - (Splunk) Auto Discovery for Linux:
   - Update `splunk-otel-java` to v2.5.0 for the `splunk-otel-auto-instrumentation` deb/rpm packages. This is a major version bump that includes breaking changes. Check the [release notes](https://github.com/signalfx/splunk-otel-java/releases/tag/v2.5.0) for details about breaking changes.
   - Linux installer script:
     - The default for the `--otlp-endpoint` option is now empty, i.e. defers to the default `OTEL_EXPORTER_OTLP_ENDPOINT` value for each activated SDK
     - Add new `--otlp-endpoint-protocol <protocol>` option to set the `OTEL_EXPORTER_OTLP_PROTOCOL` environment variable for the configured endpoint. Only applicable if the `--otlp-endpoint` option is also specified.
     - Add new `--metrics-exporter <exporter>` option to configure the `OTEL_METRICS_EXPORTER` environment variable for instrumentation metrics. Specify `none` to disable metric collection and export.
+- (Splunk) Set Go garbage collection target percentage to 400% ([#5034](https://github.com/signalfx/splunk-otel-collector/pull/5034))
+  After removal of memory_ballast extension in v0.97.0, the Go garbage collection is running more aggressively, which
+  increased CPU usage and leads to reduced throughput of the collector. This change reduces the frequency of garbage
+  collection cycles to improves performance of the collector for typical workloads. As a result, the collector will
+  report higher memory usage, but it will be bound to the same configured limits. If you want to revert to the previous
+  behavior, set the `GOGC` environment variable to `100`.
+- (Splunk) Upgrade to golang 1.21.12 ([#5074](https://github.com/signalfx/splunk-otel-collector/pull/5074))
+- (Core) `confighttp`: Add support for cookies in HTTP clients with `cookies::enabled`. ([#10175](https://github.com/open-telemetry/opentelemetry-collector/pull/10175))
+  The method `confighttp.ToClient` will return a client with a `cookiejar.Jar` which will reuse cookies from server responses in subsequent requests.
+- (Core) `exporter/debug`: In `normal` verbosity, display one line of text for each telemetry record (log, data point, span) ([#7806](https://github.com/open-telemetry/opentelemetry-collector/pull/7806))
+- (Core) `exporter/debug`: Add option `use_internal_logger` ([#10226](https://github.com/open-telemetry/opentelemetry-collector/pull/10226))
+- (Core) `configretry`: Mark module as stable. ([#10279](https://github.com/open-telemetry/opentelemetry-collector/pull/10279))
+- (Core) `exporter/debug`: Print Span.TraceState() when present. ([#10421](https://github.com/open-telemetry/opentelemetry-collector/pull/10421))
+  Enables viewing sampling threshold information (as by OTEP 235 samplers).
+- (Core) `processorhelper`: Add \"inserted\" metrics for processors. ([#10353](https://github.com/open-telemetry/opentelemetry-collector/pull/10353))
+  This includes the following metrics for processors:
+  - `processor_inserted_spans`
+  - `processor_inserted_metric_points`
+  - `processor_inserted_log_records`
+- (Contrib) `k8sattributesprocessor`: Add support for exposing `k8s.pod.ip` as a resource attribute ([#32960](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/32960))
+- (Contrib) `vcenterreceiver`: Adds vCenter CPU readiness metric for VMs. ([#33607](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/33607))
+- (Contrib) `receiver/mongodb`: Ensure support of 6.0 and 7.0 MongoDB versions with integration tests ([#32716](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/32716))
+- (Contrib) `pkg/stanza`: Switch JSON parser used by json_parser to github.com/goccy/go-json ([#33784](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/33784))
+- (Contrib) `k8sobserver`: Add support for k8s.ingress endpoint. ([#32971](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/32971))
+- (Contrib) `statsdreceiver`: Optimize statsdreceiver to reduce object allocations ([#33683](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/33683))
+- (Contrib) `routingprocessor`: Use mdatagen to define the component's telemetry ([#33526](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/33526))
+- (Contrib) `receiver/mongodbreceiver`: Add `server.address` and `server.port` resource attributes to MongoDB receiver. ([#32810](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/32810),[#32350](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/32350))
+  The new resource attributes are added to the MongoDB receiver to distinguish metrics coming from different MongoDB instances.
+    - `server.address`: The address of the MongoDB host, enabled by default.
+    - `server.port`: The port of the MongoDB host, disabled by default.
+
+- (Contrib) `observerextension`: Expose host and port in endpoint's environment ([#33571](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/33571))
+- (Contrib) `pkg/ottl`: Add a `schema_url` field to access the SchemaURL in resources and scopes on all signals ([#30229](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30229))
+- (Contrib) `sqlserverreceiver`: Enable more perf counter metrics when directly connecting to SQL Server ([#33420](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/33420))
+  This enables the following metrics by default on non Windows-based systems:
+  `sqlserver.batch.request.rate`
+  `sqlserver.batch.sql_compilation.rate`
+  `sqlserver.batch.sql_recompilation.rate`
+  `sqlserver.page.buffer_cache.hit_ratio`
+  `sqlserver.user.connection.count`
+- (Contrib) `vcenterreceiver`: Adds vCenter CPU capacity and network drop rate metrics to hosts. ([#33607](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/33607))
 
 ### 🧰 Bug fixes 🧰
 
 - (Splunk) `receiver/discovery`: Do not emit entity events for discovered endpoints that are not evaluated yet
-  to avoid showing "unknown" services on the Service Inventory page ([#5032](https://github.com/signalfx/splunk-otel-collector/pull/5032))
+  to avoid showing "unknown" services on the Service Inventory page ([#5032](https://github.com/open-telemetry/opentelemetry-collector/pull/5032))
+- (Core) `otlpexporter`: Update validation to support both dns:// and dns:/// ([#10449](https://github.com/open-telemetry/opentelemetry-collector/pull/10449))
+- (Core) `service`: Fixed a bug that caused otel-collector to fail to start with ipv6 metrics endpoint service telemetry. ([#10011](https://github.com/open-telemetry/opentelemetry-collector/pull/10011))
+- (Contrib) `resourcedetectionprocessor`: Fetch CPU info only if related attributes are enabled ([#33774](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/33774))
+- (Contrib) `tailsamplingprocessor`: Fix precedence of inverted match in and policy ([#33671](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/33671))
+  Previously if the decision from a policy evaluation was `NotSampled` or `InvertNotSampled` it would return a `NotSampled` decision regardless, effectively downgrading the result.
+  This was breaking the documented behaviour that inverted decisions should take precedence over all others.
+- (Contrib) `vcenterreceiver`: Fixes errors in some of the client calls for environments containing multiple datacenters. ([#33734](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/33734))
+
 
 ## v0.103.0
 
@@ -135,8 +212,8 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 - (Splunk) `receiver/discovery`: Replace `log_record` field with `message` in evaluation statements ([#4583](https://github.com/signalfx/splunk-otel-collector/pull/4583))
 - (Core) `envprovider`: Restricts Environment Variable names.  Environment variable names must now be ASCII only and start with a letter or an underscore, and can only contain underscores, letters, or numbers. ([#9531](https://github.com/open-telemetry/opentelemetry-collector/issues/9531))
 - (Core) `confighttp`: Apply MaxRequestBodySize to the result of a decompressed body [#10289](https://github.com/open-telemetry/opentelemetry-collector/pull/10289)
-  When using compressed payloads, the Collector would verify only the size of the compressed payload. 
-  This change applies the same restriction to the decompressed content. As a security measure, a limit of 20 MiB was added, which makes this a breaking change. 
+  When using compressed payloads, the Collector would verify only the size of the compressed payload.
+  This change applies the same restriction to the decompressed content. As a security measure, a limit of 20 MiB was added, which makes this a breaking change.
   For most clients, this shouldn't be a problem, but if you often have payloads that decompress to more than 20 MiB, you might want to either configure your
   client to send smaller batches (recommended), or increase the limit using the MaxRequestBodySize option.
 - (Contrib) `k8sattributesprocessor`: Move `k8sattr.rfc3339` feature gate to stable. ([#33304](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/33304))
@@ -195,7 +272,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 ### 🛑 Breaking changes 🛑
 
 - (Splunk) `receiver/discovery`: Remove `append_pattern` option from log evaluation statements ([#4583](https://github.com/signalfx/splunk-otel-collector/pull/4583))
-  - The matched log message is now set as `discovery.matched_log` entity attributes instead of being appended to 
+  - The matched log message is now set as `discovery.matched_log` entity attributes instead of being appended to
     the `discovery.message` attribute.
   - The matched log fields like `caller` and `stacktrace` are not sent as attributes anymore.
 - (Contrib) `vcenterreceiver`: Removes vcenter.cluster.name attribute from vcenter.datastore metrics ([#32674](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/32674))
@@ -322,7 +399,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 
 ### 🛑 Breaking changes 🛑
 
-- (Splunk) `receiver/discovery`: Update the component to emit entity events 
+- (Splunk) `receiver/discovery`: Update the component to emit entity events
   - The `log_endpoints` config option has been removed. Endpoints are now only reported if they match the configured receiver rules, and are now emitted as entity events.
     ([#4692](https://github.com/signalfx/splunk-otel-collector/pull/4692), [#4684](https://github.com/signalfx/splunk-otel-collector/pull/4684),
     [#4684](https://github.com/signalfx/splunk-otel-collector/pull/4684), and [#4691](https://github.com/signalfx/splunk-otel-collector/pull/4691))
@@ -527,7 +604,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 - (Contrib) `signalfxexporter`: Fix memory leak in shutdown ([#30864](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30864), [#30438](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/30438))
 - (Contrib) `processor/k8sattributes`: Allows k8sattributes processor to work with k8s role/rolebindings when filter::namespace is set. ([#14742](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/14742))
 - (Contrib) `sqlqueryreceiver`: Fix memory leak on shutdown for log telemetry ([#31782](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/31782))
-  
+
 ## v0.96.1
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.96.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.96.0) and the [opentelemetry-collector-contrib v0.96.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.96.0) releases where appropriate.

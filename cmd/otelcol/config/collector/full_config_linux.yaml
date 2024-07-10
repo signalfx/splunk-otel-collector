@@ -37,6 +37,8 @@ receivers:
   #  - grpc (default endpoint = 0.0.0.0:4317)
   #  - http (default endpoint = 0.0.0.0:4318)
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/otlpreceiver
+  # OpenTelemetry Java Instrumentation 2.x uses http/protobuf instead of grpc as the default OTLP protocol
+  # Customers upgrading to Java Instrumentation 2.x can refer to: https://docs.splunk.com/observability/en/gdi/get-data-in/application/java/migrate-metrics.html
   otlp:
     protocols:
       grpc:

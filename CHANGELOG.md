@@ -23,6 +23,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
   Disable the `component.UseLocalHostAsDefaultHost` feature gate to temporarily get the previous default.
 
 - (Splunk) `discovery`: When setting properties for discovery receiver as environment variables (`SPLUNK_DISCOVERY_*`), the values cannot reference other escaped environment variables without braces. For example, when trying to set discovery property `SPLUNK_DISCOVERY_EXTENSIONS_k8s_observer_ENABLED` to the value of another env var, `K8S_ENVIRONMENT`. For versions older than 0.104.0, setting it as `SPLUNK_DISCOVERY_EXTENSIONS_k8s_observer_ENABLED=\$K8S_ENVIRONMENT` (note the escaped variable name does not have braces) was valid. But from v0.104.0, env var names need to be passed with braces. For this example, user should modify it to `SPLUNK_DISCOVERY_EXTENSIONS_k8s_observer_ENABLED=\${K8S_ENVIRONMENT}`
+
 - (Contrib) `vcenterreceiver`: Drops support for vCenter 6.7 ([#33607](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/33607))
 
 - (Contrib) `all`: Promote `component.UseLocalHostAsDefaultHost` feature gate to beta. This changes default endpoints from 0.0.0.0 to localhost ([#30702](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30702))

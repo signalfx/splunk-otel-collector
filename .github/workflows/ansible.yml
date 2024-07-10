@@ -67,7 +67,6 @@ jobs:
         distro:
           - amazonlinux2
           - amazonlinux2023
-          - centos7
           - centos8
           - centos9
           - debian9

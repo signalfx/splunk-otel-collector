@@ -982,7 +982,7 @@ Auto Instrumentation:
                                         (default: empty, i.e. defer to the default OTEL_EXPORTER_OTLP_PROTOCOL value for
                                         each activated SDK)
   --metrics-exporter <exporters>        Comma-separated list of exporters for collected metrics by all activated SDKs,
-                                        for example "otlp,zipkin". Set the value to "none" to disable collection and
+                                        for example "otlp,prometheus". Set the value to "none" to disable collection and
                                         export of metrics. The value will be set to the OTEL_METRICS_EXPORTER
                                         environment variable.
                                         (default: empty, i.e. defer to the default OTEL_METRICS_EXPORTER value for each

@@ -12,7 +12,7 @@
   behavior, set the `GOGC` environment variable to `100`.
 - (Splunk) Upgrade to golang 1.21.12
 - (Splunk) Auto Discovery for Linux:
-  - Update `splunk-otel-java` to v2.5.0 for the `splunk-otel-auto-instrumentation` deb/rpm packages. Check the [release notes](https://github.com/signalfx/splunk-otel-java/releases/tag/v2.5.0) for possible breaking changes.
+  - Update `splunk-otel-java` to v2.5.0 for the `splunk-otel-auto-instrumentation` deb/rpm packages. This is a major version bump that includes breaking changes. Check the [release notes](https://github.com/signalfx/splunk-otel-java/releases/tag/v2.5.0) for details about breaking changes.
   - Linux installer script:
     - The default for the `--otlp-endpoint` option is now empty, i.e. defers to the default `OTEL_EXPORTER_OTLP_ENDPOINT` value for each activated SDK
     - Add new `--otlp-endpoint-protocol <protocol>` option to set the `OTEL_EXPORTER_OTLP_PROTOCOL` environment variable for the configured endpoint. Only applicable if the `--otlp-endpoint` option is also specified.

@@ -116,6 +116,9 @@ service_name=""
 enable_profiler="false"
 enable_profiler_memory="false"
 enable_metrics="false"
+otlp_endpoint=""
+otlp_endpoint_protocol=""
+metrics_exporter=""
 java_zeroconfig_path="/etc/splunk/zeroconfig/java.conf"
 node_zeroconfig_path="/etc/splunk/zeroconfig/node.conf"
 dotnet_zeroconfig_path="/etc/splunk/zeroconfig/dotnet.conf"
@@ -496,7 +499,6 @@ disable_preload() {
 }
 
 create_zeroconfig_java() {
-  local otlp_endpoint="$1"
   local version="$( get_package_version splunk-otel-auto-instrumentation )"
   local resource_attributes="splunk.zc.method=splunk-otel-auto-instrumentation-${version}"
 
@@ -513,11 +515,21 @@ OTEL_RESOURCE_ATTRIBUTES=${resource_attributes}
 SPLUNK_PROFILER_ENABLED=${enable_profiler}
 SPLUNK_PROFILER_MEMORY_ENABLED=${enable_profiler_memory}
 SPLUNK_METRICS_ENABLED=${enable_metrics}
-OTEL_EXPORTER_OTLP_ENDPOINT=${otlp_endpoint}
 EOH
 
   if [ -n "$service_name" ]; then
     echo "OTEL_SERVICE_NAME=${service_name}" >> $java_zeroconfig_path
+  fi
+
+  if [ -n "$otlp_endpoint" ]; then
+    echo "OTEL_EXPORTER_OTLP_ENDPOINT=${otlp_endpoint}" >> $java_zeroconfig_path
+    if [ -n "$otlp_endpoint_protocol" ]; then
+      echo "OTEL_EXPORTER_OTLP_PROTOCOL=${otlp_endpoint_protocol}" >> $java_zeroconfig_path
+    fi
+  fi
+
+  if [ -n "$metrics_exporter" ]; then
+    echo "OTEL_METRICS_EXPORTER=${metrics_exporter}" >> $java_zeroconfig_path
   fi
 }
 
@@ -561,7 +573,6 @@ install_node_package() {
 }
 
 create_zeroconfig_node() {
-  local otlp_endpoint="$1"
   local version="$( get_package_version splunk-otel-auto-instrumentation )"
   local resource_attributes="splunk.zc.method=splunk-otel-auto-instrumentation-${version}"
 
@@ -578,16 +589,25 @@ OTEL_RESOURCE_ATTRIBUTES=${resource_attributes}
 SPLUNK_PROFILER_ENABLED=${enable_profiler}
 SPLUNK_PROFILER_MEMORY_ENABLED=${enable_profiler_memory}
 SPLUNK_METRICS_ENABLED=${enable_metrics}
-OTEL_EXPORTER_OTLP_ENDPOINT=${otlp_endpoint}
 EOH
 
   if [ -n "$service_name" ]; then
     echo "OTEL_SERVICE_NAME=${service_name}" >> $node_zeroconfig_path
   fi
+
+  if [ -n "$otlp_endpoint" ]; then
+    echo "OTEL_EXPORTER_OTLP_ENDPOINT=${otlp_endpoint}" >> $node_zeroconfig_path
+    if [ -n "$otlp_endpoint_protocol" ]; then
+      echo "OTEL_EXPORTER_OTLP_PROTOCOL=${otlp_endpoint_protocol}" >> $node_zeroconfig_path
+    fi
+  fi
+
+  if [ -n "$metrics_exporter" ]; then
+    echo "OTEL_METRICS_EXPORTER=${metrics_exporter}" >> $node_zeroconfig_path
+  fi
 }
 
 create_zeroconfig_dotnet() {
-  local otlp_endpoint="$1"
   local version="$( get_package_version splunk-otel-auto-instrumentation )"
   local resource_attributes="splunk.zc.method=splunk-otel-auto-instrumentation-${version}"
 
@@ -611,17 +631,26 @@ OTEL_RESOURCE_ATTRIBUTES=${resource_attributes}
 SPLUNK_PROFILER_ENABLED=${enable_profiler}
 SPLUNK_PROFILER_MEMORY_ENABLED=${enable_profiler_memory}
 SPLUNK_METRICS_ENABLED=${enable_metrics}
-OTEL_EXPORTER_OTLP_ENDPOINT=${otlp_endpoint}
 EOH
 
   if [ -n "$service_name" ]; then
     echo "OTEL_SERVICE_NAME=${service_name}" >> $dotnet_zeroconfig_path
   fi
+
+  if [ -n "$otlp_endpoint" ]; then
+    echo "OTEL_EXPORTER_OTLP_ENDPOINT=${otlp_endpoint}" >> $dotnet_zeroconfig_path
+    if [ -n "$otlp_endpoint_protocol" ]; then
+      echo "OTEL_EXPORTER_OTLP_PROTOCOL=${otlp_endpoint_protocol}" >> $dotnet_zeroconfig_path
+    fi
+  fi
+
+  if [ -n "$metrics_exporter" ]; then
+    echo "OTEL_METRICS_EXPORTER=${metrics_exporter}" >> $dotnet_zeroconfig_path
+  fi
 }
 
 create_systemd_instrumentation_config() {
-  local otlp_endpoint="$1"
-  local sdks="$2"
+  local sdks="$1"
   local version="$( get_package_version splunk-otel-auto-instrumentation )"
   local resource_attributes="splunk.zc.method=splunk-otel-auto-instrumentation-${version}-systemd"
 
@@ -640,11 +669,21 @@ DefaultEnvironment="OTEL_RESOURCE_ATTRIBUTES=${resource_attributes}"
 DefaultEnvironment="SPLUNK_PROFILER_ENABLED=${enable_profiler}"
 DefaultEnvironment="SPLUNK_PROFILER_MEMORY_ENABLED=${enable_profiler_memory}"
 DefaultEnvironment="SPLUNK_METRICS_ENABLED=${enable_metrics}"
-DefaultEnvironment="OTEL_EXPORTER_OTLP_ENDPOINT=${otlp_endpoint}"
 EOH
 
   if [ -n "$service_name" ]; then
     echo "DefaultEnvironment=\"OTEL_SERVICE_NAME=${service_name}\"" >> $systemd_instrumentation_config_path
+  fi
+
+  if [ -n "$otlp_endpoint" ]; then
+    echo "DefaultEnvironment=\"OTEL_EXPORTER_OTLP_ENDPOINT=${otlp_endpoint}\"" >> $systemd_instrumentation_config_path
+    if [ -n "$otlp_endpoint_protocol" ]; then
+      echo "DefaultEnvironment=\"OTEL_EXPORTER_OTLP_PROTOCOL=${otlp_endpoint_protocol}\"" >> $systemd_instrumentation_config_path
+    fi
+  fi
+
+  if [ -n "$metrics_exporter" ]; then
+    echo "DefaultEnvironment=\"OTEL_METRICS_EXPORTER=${metrics_exporter}\"" >> $systemd_instrumentation_config_path
   fi
 
   if item_in_list "java" "$sdks"; then
@@ -910,48 +949,54 @@ Auto Instrumentation:
                                         (default: --without-systemd-instrumentation)
   --with[out]-instrumentation-sdk "<s>" Whether to enable Auto Instrumentation for a specific language. This option
                                         takes a comma separated set of values representing supported
-                                        auto-instrumentation SDKs. Currently supported: java,node,dotnet.
+                                        auto-instrumentation SDKs.
+                                        Currently supported values: "java", "node", and "dotnet"
                                         Use --with-instrumentation-sdk to enable only the specified language(s),
                                         for example "--with-instrumentation-sdk java".
                                         *Note*: .NET (dotnet) auto instrumentation is only supported on x86_64/amd64.
-                                        (default: --with-instrumentation-sdk "$( echo $all_sdks | tr ' ' ',' )" if
-                                        --with-instrumentation or --with-systemd-instrumentation is also specified)
+                                        (default: --with-instrumentation-sdk $( echo $all_sdks | tr ' ' ',' ))
   --npm-path <path>                     If Auto Instrumentation for Node.js is enabled, npm is required to install the
                                         included Splunk OpenTelemetry Auto Instrumentation for Node.js package. If npm
-                                        is not found via the 'command -v npm' shell command or if installation fails,
+                                        is not found via the "command -v npm" shell command or if installation fails,
                                         Auto Instrumentation for Node.js will not be activated. Use this option to
                                         specify a custom path to npm, for example "/my/path/to/npm".
                                         (default: npm)
-  --deployment-environment <value>      Set the 'deployment.environment' resource attribute to the specified value.
+  --deployment-environment <value>      Set the "deployment.environment" resource attribute to the specified value.
                                         If not specified, the "Environment" in the Splunk APM UI will appear as
-                                        "unknown" for the auto instrumented application(s).
-                                        Only applicable if the '--with-instrumentation' or
-                                        '--with-systemd-instrumentation' option is also specified.
+                                        "unknown" for all instrumented applications. The resource attribute will be
+                                        appended to the OTEL_RESOURCE_ATTRIBUTES environment variable.
                                         (default: empty)
-  --service-name <name>                 Override the auto-generated service names for all instrumented Java applications
-                                        on this host with '<name>'.
-                                        Only applicable if the '--with-instrumentation' or
-                                        '--with-systemd-instrumentation' option is also specified.
+  --service-name <name>                 Override the auto-generated service names for all instrumented applications
+                                        on this host with the specified value. The value will be set to the
+                                        OTEL_SERVICE_NAME environment variable.
                                         (default: empty)
-  --otlp-endpoint <host:port>           Set the OTLP gRPC endpoint for captured traces.
-                                        Only applicable if the '--with-systemd-instrumentation' option is also specified.
-                                        (default: http://LISTEN_INTERFACE:4317 where LISTEN_INTERFACE is the value from
-                                        the --listen-interface option if specified, or "127.0.0.1" otherwise)
-  --[enable|disable]-profiler           Enable or disable AlwaysOn Profiling.
-                                        Only applicable if the '--with-instrumentation' or
-                                        '--with-systemd-instrumentation' option is also specified.
+  --otlp-endpoint <host:port>           Set the OTLP endpoint for captured traces, logs, and metrics for all activated
+                                        SDKs. The value will be set to the OTEL_EXPORTER_OTLP_ENDPOINT environment
+                                        variable.
+                                        (default: empty, i.e. defer to the default OTEL_EXPORTER_OTLP_ENDPOINT value for
+                                        each activated SDK)
+  --otlp-endpoint-protocol <protocol>   Set the protocol for the configured OTLP endpoint, for example "grpc" or
+                                        "http/protobuf". The value will be set to the OTEL_EXPORTER_OTLP_PROTOCOL
+                                        environment variable.
+                                        Only applicable if the "--otlp-endpoint <host:port>" option is also specified.
+                                        (default: empty, i.e. defer to the default OTEL_EXPORTER_OTLP_PROTOCOL value for
+                                        each activated SDK)
+  --metrics-exporter <exporters>        Comma-separated list of exporters for collected metrics by all activated SDKs,
+                                        for example "otlp,prometheus". Set the value to "none" to disable collection and
+                                        export of metrics. The value will be set to the OTEL_METRICS_EXPORTER
+                                        environment variable.
+                                        (default: empty, i.e. defer to the default OTEL_METRICS_EXPORTER value for each
+                                        activated SDK)
+  --[enable|disable]-profiler           Enable or disable AlwaysOn Profiling for all activated SDKs that support the
+                                        SPLUNK_PROFILER_ENABLED environment variable.
                                         (default: --disable-profiler)
-  --[enable|disable]-profiler-memory    Enable or disable AlwaysOn Memory Profiling.
-                                        Only applicable if the '--with-instrumentation' or
-                                        '--with-systemd-instrumentation' option is also specified.
+  --[enable|disable]-profiler-memory    Enable or disable AlwaysOn Memory Profiling for all activated SDKs that support
+                                        the SPLUNK_PROFILER_MEMORY_ENABLED environment variable.
                                         (default: --disable-profiler-memory)
-  --[enable|disable]-metrics            Enable or disable instrumentation metrics collection.
-                                        Only applicable if the '--with-instrumentation' or
-                                        '--with-systemd-instrumentation' option is also specified.
+  --[enable|disable]-metrics            Enable or disable instrumentation metrics collection for all activated SDKs that
+                                        support the SPLUNK_METRICS_ENABLED environment variable.
                                         (default: --disable-metrics)
   --instrumentation-version             The splunk-otel-auto-instrumentation package version to install.
-                                        Only applicable if the '--with-instrumentation' or
-                                        '--with-systemd-instrumentation' option is also specified.
                                         *Note*: The minimum supported version for Java and Node.js auto instrumentation
                                         is 0.87.0, and the minimum supported version for .NET auto instrumentation is
                                         0.99.0.
@@ -1191,7 +1236,6 @@ parse_args_and_install() {
   local instrumentation_version="$default_instrumentation_version"
   local deployment_environment="$default_deployment_environment"
   local discovery=
-  local otlp_endpoint=""
   local npm_path="npm"
   local node_package_installed="false"
   local with_sdks=""
@@ -1354,6 +1398,14 @@ parse_args_and_install() {
         otlp_endpoint="$2"
         shift 1
         ;;
+      --otlp-endpoint-protocol)
+        otlp_endpoint_protocol="$2"
+        shift 1
+        ;;
+      --metrics-exporter)
+        metrics_exporter="$2"
+        shift 1
+        ;;
       --enable-profiler)
         enable_profiler="true"
         ;;
@@ -1429,14 +1481,6 @@ parse_args_and_install() {
 
   if [ -z "$trace_url" ]; then
     trace_url="${ingest_url}/v2/trace"
-  fi
-
-  if [ -z "$otlp_endpoint" ]; then
-    if [ -n "$listen_interface" ]; then
-      otlp_endpoint="http://${listen_interface}:4317"
-    else
-      otlp_endpoint="http://127.0.0.1:4317"
-    fi
   fi
 
   check_support
@@ -1543,7 +1587,12 @@ parse_args_and_install() {
     fi
     echo "  AlwaysOn Profiling enabled: $enable_profiler"
     echo "  AlwaysOn Memory Profiling enabled: $enable_profiler_memory"
-    echo "  OTLP Endpoint: $otlp_endpoint"
+    if [ -n "$otlp_endpoint" ]; then
+      echo "  OTLP Endpoint: $otlp_endpoint"
+      if [ -n "$otlp_endpoint_protocol" ]; then
+        echo "  OTLP Endpoint Protocol: ${otlp_endpoint_protocol}"
+      fi
+    fi
   fi
   echo
 
@@ -1556,14 +1605,14 @@ parse_args_and_install() {
 
   if [ "$with_instrumentation" = "true" ]; then
     if item_in_list "java" "$sdks_to_enable"; then
-      create_zeroconfig_java "$otlp_endpoint"
+      create_zeroconfig_java
       sdks_enabled=$( add_item_to_list "java" "$sdks_enabled" )
     elif [ -f "$java_zeroconfig_path" ]; then
       backup_file "$java_zeroconfig_path"
       rm -f "$java_zeroconfig_path"
     fi
     if item_in_list "node" "$sdks_to_enable" && install_node_package "$npm_path"; then
-      create_zeroconfig_node "$otlp_endpoint"
+      create_zeroconfig_node
       node_package_installed="true"
       sdks_enabled=$( add_item_to_list "node" "$sdks_enabled" )
     elif [ -f "$node_zeroconfig_path" ]; then
@@ -1571,7 +1620,7 @@ parse_args_and_install() {
       rm -f "$node_zeroconfig_path"
     fi
     if item_in_list "dotnet" "$sdks_to_enable" && [ -f "$dotnet_agent_path" ]; then
-      create_zeroconfig_dotnet "$otlp_endpoint"
+      create_zeroconfig_dotnet
       sdks_enabled=$( add_item_to_list "dotnet" "$sdks_enabled" )
     elif [ -f "$dotnet_zeroconfig_path" ]; then
       backup_file "$dotnet_zeroconfig_path"
@@ -1599,7 +1648,7 @@ parse_args_and_install() {
       sdks_enabled=$( remove_item_from_list "dotnet" "$sdks_enabled" )
     fi
     if [ -n "$sdks_enabled" ]; then
-      create_systemd_instrumentation_config "$otlp_endpoint" "$sdks_enabled"
+      create_systemd_instrumentation_config "$sdks_enabled"
     else
       backup_file "$systemd_instrumentation_config_path"
       rm -f "$systemd_instrumentation_config_path"

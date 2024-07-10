@@ -467,8 +467,10 @@ def test_installer_with_instrumentation_default(distro, arch, method):
                 verify_config_file(container, config_path, "SPLUNK_PROFILER_ENABLED", "false")
                 verify_config_file(container, config_path, "SPLUNK_PROFILER_MEMORY_ENABLED", "false")
                 verify_config_file(container, config_path, "SPLUNK_METRICS_ENABLED", "false")
-                verify_config_file(container, config_path, "OTEL_EXPORTER_OTLP_ENDPOINT", "http://127.0.0.1:4317")
+                verify_config_file(container, config_path, "OTEL_EXPORTER_OTLP_ENDPOINT", ".*", exists=False)
                 verify_config_file(container, config_path, "OTEL_SERVICE_NAME", ".*", exists=False)
+                verify_config_file(container, config_path, "OTEL_METRICS_EXPORTER", ".*", exists=False)
+                verify_config_file(container, config_path, "OTEL_EXPORTER_OTLP_PROTOCOL", ".*", exists=False)
         else:
             # verify libsplunk.so was not added to /etc/ld.so.preload
             verify_config_file(container, PRELOAD_PATH, f".*{LIBSPLUNK_PATH}.*", None, exists=False)
@@ -480,8 +482,10 @@ def test_installer_with_instrumentation_default(distro, arch, method):
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "SPLUNK_PROFILER_ENABLED", "false")
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "SPLUNK_PROFILER_MEMORY_ENABLED", "false")
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "SPLUNK_METRICS_ENABLED", "false")
-            verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_EXPORTER_OTLP_ENDPOINT", "http://127.0.0.1:4317")
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_EXPORTER_OTLP_ENDPOINT", ".*", exists=False)
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_SERVICE_NAME", ".*", exists=False)
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_METRICS_EXPORTER", ".*", exists=False)
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_EXPORTER_OTLP_PROTOCOL", ".*", exists=False)
             verify_dotnet_config(container, SYSTEMD_CONFIG_PATH, exists=True if arch == "amd64" else False)
 
         verify_uninstall(container, distro)
@@ -541,7 +545,9 @@ def test_installer_with_instrumentation_custom(distro, arch, method, sdk):
             "--enable-profiler",
             "--enable-profiler-memory",
             "--enable-metrics",
-            "--listen-interface 0.0.0.0",
+            "--otlp-endpoint http://0.0.0.0:4318",
+            "--otlp-endpoint-protocol http/protobuf",
+            "--metrics-exporter none",
         ))
         if LOCAL_INSTRUMENTATION_PACKAGE:
             install_cmd = f"{install_cmd} --instrumentation-version /test/instrumentation.pkg"
@@ -622,8 +628,10 @@ def test_installer_with_instrumentation_custom(distro, arch, method, sdk):
             verify_config_file(container, config_path, "SPLUNK_PROFILER_ENABLED", "true")
             verify_config_file(container, config_path, "SPLUNK_PROFILER_MEMORY_ENABLED", "true")
             verify_config_file(container, config_path, "SPLUNK_METRICS_ENABLED", "true")
-            verify_config_file(container, config_path, "OTEL_EXPORTER_OTLP_ENDPOINT", "http://0.0.0.0:4317")
+            verify_config_file(container, config_path, "OTEL_EXPORTER_OTLP_ENDPOINT", "http://0.0.0.0:4318")
             verify_config_file(container, config_path, "OTEL_SERVICE_NAME", service_name)
+            verify_config_file(container, config_path, "OTEL_METRICS_EXPORTER", "none")
+            verify_config_file(container, config_path, "OTEL_EXPORTER_OTLP_PROTOCOL", "http/protobuf")
         else:
             # verify libsplunk.so was not added to /etc/ld.so.preload
             verify_config_file(container, PRELOAD_PATH, f".*{LIBSPLUNK_PATH}.*", None, exists=False)
@@ -646,8 +654,10 @@ def test_installer_with_instrumentation_custom(distro, arch, method, sdk):
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "SPLUNK_PROFILER_ENABLED", "true")
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "SPLUNK_PROFILER_MEMORY_ENABLED", "true")
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "SPLUNK_METRICS_ENABLED", "true")
-            verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_EXPORTER_OTLP_ENDPOINT", "http://0.0.0.0:4317")
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_EXPORTER_OTLP_ENDPOINT", "http://0.0.0.0:4318")
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_SERVICE_NAME", service_name)
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_METRICS_EXPORTER", "none")
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_EXPORTER_OTLP_PROTOCOL", "http/protobuf")
 
         verify_uninstall(container, distro)
 

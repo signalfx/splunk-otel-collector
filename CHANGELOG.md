@@ -13,6 +13,9 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 
 ### 🛑 Breaking changes 🛑
 
+- (Splunk) Auto Discovery for Linux:
+  - Update `splunk-otel-java` to v2.5.0 for the `splunk-otel-auto-instrumentation` deb/rpm packages. This is a major version bump that includes breaking changes. Check the [release notes](https://github.com/signalfx/splunk-otel-java/releases/tag/v2.5.0) for details about breaking changes.
+
 - (Core) `filter`: Remove deprecated `filter.CombinedFilter` ([#10348](https://github.com/open-telemetry/opentelemetry-collector/pull/10348))
 
 - (Core) `otelcol`: By default, `otelcol.NewCommand` and `otelcol.NewCommandMustSetProvider` will set the `DefaultScheme` to `env`. ([#10435](https://github.com/open-telemetry/opentelemetry-collector/pull/10435))
@@ -40,7 +43,6 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 ### 💡 Enhancements 💡
 
 - (Splunk) Auto Discovery for Linux:
-  - Update `splunk-otel-java` to v2.5.0 for the `splunk-otel-auto-instrumentation` deb/rpm packages. This is a major version bump that includes breaking changes. Check the [release notes](https://github.com/signalfx/splunk-otel-java/releases/tag/v2.5.0) for details about breaking changes.
   - Linux installer script:
     - The default for the `--otlp-endpoint` option is now empty, i.e. defers to the default `OTEL_EXPORTER_OTLP_ENDPOINT` value for each activated SDK
     - Add new `--otlp-endpoint-protocol <protocol>` option to set the `OTEL_EXPORTER_OTLP_PROTOCOL` environment variable for the configured endpoint. Only applicable if the `--otlp-endpoint` option is also specified.

@@ -87,7 +87,7 @@ func TestCollectorContainerBuildDefaults(t *testing.T) {
 	collector, ok := c.(*CollectorContainer)
 	require.True(t, ok)
 
-	assert.Equal(t, "quay.io/signalfx/splunk-otel-collector:latest", collector.Image)
+	assert.Equal(t, "otelcol:latest", collector.Image)
 	assert.Equal(t, "", collector.ConfigPath)
 	assert.NotNil(t, collector.Logger)
 	assert.Equal(t, "info", collector.LogLevel)
@@ -134,7 +134,7 @@ func TestCollectorContainerLogging(t *testing.T) {
 	collector, ok := c.(*CollectorContainer)
 	require.True(t, ok)
 
-	assert.Equal(t, "quay.io/signalfx/splunk-otel-collector:latest", collector.Image)
+	assert.Equal(t, "otelcol:latest", collector.Image)
 	assert.Equal(t, "", collector.ConfigPath)
 	assert.NotNil(t, collector.Logger)
 	assert.Equal(t, "info", collector.LogLevel)

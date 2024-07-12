@@ -144,7 +144,7 @@ collector, err = testutils.NewCollectorProcess().WithArgs("--tested-feature", "-
 
 The `CollectorContainer` is an equivalent helper type to the `CollectorProcess` but will run a container in host network
 mode for an arbitrary Collector image and tag using the config you provide.  If an image is not specified it will use a default
-of `"quay.io/signalfx/splunk-otel-collector-dev:latest"`.
+of `"otelcol:latest"` (the default local image tag built via `make docker-otelcol`).
 
 ```go
 import "github.com/signafx/splunk-otel-collector/tests/testutils"

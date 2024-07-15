@@ -54,6 +54,7 @@ func CheckGoldenFile(t *testing.T, configFile string, expectedFilePath string, o
 		dockerHost = "host.docker.internal"
 	}
 	p, err := NewCollectorContainer().
+		WithImage(GetCollectorImageOrSkipTest(t)).
 		WithExposedPorts("55679:55679", "55554:55554"). // This is required for tests that read the zpages or the config.
 		WithConfigPath(filepath.Join("testdata", configFile)).
 		WithLogger(logger).
@@ -97,6 +98,7 @@ func CheckGoldenFileWithMount(t *testing.T, configFile string, expectedFilePath 
 		dockerHost = "host.docker.internal"
 	}
 	cc := NewCollectorContainer().
+		WithImage(GetCollectorImageOrSkipTest(t)).
 		WithExposedPorts("55679:55679", "55554:55554"). // This is required for tests that read the zpages or the config.
 		WithConfigPath(filepath.Join("testdata", configFile)).
 		WithLogger(logger).
@@ -149,6 +151,7 @@ func CheckGoldenFileWithCollectorOptions(t *testing.T, configFile string, expect
 	collectorContainer := NewCollectorContainer()
 	collectorOptionsFunc(&collectorContainer)
 	p, err := collectorContainer.
+		WithImage(GetCollectorImageOrSkipTest(t)).
 		WithExposedPorts("55679:55679", "55554:55554"). // This is required for tests that read the zpages or the config.
 		WithConfigPath(filepath.Join("testdata", configFile)).
 		WithLogger(logger).

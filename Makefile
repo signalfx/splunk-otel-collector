@@ -42,7 +42,7 @@ SKIP_BUNDLE=false
 # for local docker build testing or
 # SPLUNK_OTEL_COLLECTOR_IMAGE='' make -e otelcol integration-test
 # for local binary testing (agent-bundle configuration required)
-export SPLUNK_OTEL_COLLECTOR_IMAGE?=quay.io/signalfx/splunk-otel-collector-dev:latest
+export SPLUNK_OTEL_COLLECTOR_IMAGE?=otelcol:latest
 
 # Docker repository used.
 DOCKER_REPO?=docker.io

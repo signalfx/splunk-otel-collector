@@ -11,6 +11,11 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 > 🚩 When setting properties for discovery receiver as environment variables (`SPLUNK_DISCOVERY_*`), the values cannot reference other environment variables without curly-braces. For example, user is trying to set discovery property `SPLUNK_DISCOVERY_EXTENSIONS_k8s_observer_ENABLED` to the value of another env var, `K8S_ENVIRONMENT`.
 > For versions older than 0.104.0, setting it as `SPLUNK_DISCOVERY_EXTENSIONS_k8s_observer_ENABLED=\$K8S_ENVIRONMENT` (note the escaped variable name does not have curly braces) was valid. But from v0.104.0, env var names need to be passed with braces. For this example, user should modify it to `SPLUNK_DISCOVERY_EXTENSIONS_k8s_observer_ENABLED=\${K8S_ENVIRONMENT}`.
 
+### ❗ Known Issues ❗
+
+- A bug was discovered (and fixed in a future version) where expansion logic in confmaps wasn't correctly handling the escaping of $$ ([#10560](https://github.com/open-telemetry/opentelemetry-collector/pull/10560))
+  - If you rely on the previous functionality, disable the `confmap.unifyEnvVarExpansion` feature gate. Note that this is a temporary workaround, and the root issue will be fixed in the next release by ([#10560](https://github.com/open-telemetry/opentelemetry-collector/pull/10560)).
+
 ### 🛑 Breaking changes 🛑
 
 - (Splunk) Auto Discovery for Linux:

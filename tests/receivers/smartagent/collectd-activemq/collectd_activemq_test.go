@@ -133,6 +133,7 @@ func checkMetricsPresence(t *testing.T, metricNames []string, configFile string)
 		dockerHost = "host.docker.internal"
 	}
 	p, err := testutils.NewCollectorContainer().
+		WithImage(testutils.GetCollectorImageOrSkipTest(t)).
 		WithConfigPath(filepath.Join("testdata", configFile)).
 		WithLogger(logger).
 		WithEnv(map[string]string{"OTLP_ENDPOINT": fmt.Sprintf("%s:%d", dockerHost, port)}).

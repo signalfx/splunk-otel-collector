@@ -12,25 +12,51 @@ CONTRIB_VERSION="${CONTRIB_VERSION:-$OTEL_VERSION}"
 
 CORE_PKGS="go.opentelemetry.io/collector"
 CONTRIB_PKGS="github.com/open-telemetry/opentelemetry-collector-contrib"
+GONOPROXY=""
+
+if [ "$CORE_VERSION" = "main" ]; then
+    CORE_VERSION=$(git ls-remote -q https://github.com/open-telemetry/opentelemetry-collector main | awk '{print $1}')
+    GONOPROXY=${GONOPROXY},${CORE_PKGS}/*
+fi
+
+if [ "$CONTRIB_VERSION" = "main" ]; then
+    CONTRIB_VERSION=$(git ls-remote -q https://github.com/open-telemetry/opentelemetry-collector-contrib main | awk '{print $1}')
+    GONOPROXY=${GONOPROXY},${CONTRIB_PKGS}/*
+fi
+
+# If updating to the most recent commit in the core/contrib main branch,
+# bypass the proxy and download directly from github to save time.
+if [ -n "$GONOPROXY" ]; then
+    export GONOPROXY=${GONOPROXY#,}
+    export GONOSUMDB=${GONOPROXY#,}
+fi
 
 trap "cd $CUR_DIR" EXIT
 
-for gomod in $( find "$REPO_DIR" -name "go.mod" | grep -v "/examples/" | sort ); do
+update_gomod() {
+    local gomod="$1"
+    local pkgs="$2"
+    local version="$3"
+
     pushd "$( dirname "$gomod" )" >/dev/null
 
-    if grep -q "^[[:space:]]\+${CORE_PKGS}/" go.mod; then
-        echo "Updating ${CORE_PKGS}/... in $gomod to $CORE_VERSION"
-        go get ${CORE_PKGS}/...@${CORE_VERSION}
+    if [ -n "$(go list -f '{{if not .Indirect}}{{.Path}}{{end}}' -m ${pkgs}/... 2>/dev/null)" ]; then
+        echo "Updating ${pkgs}/... in $gomod to $version"
+        go get ${pkgs}/...@${version}
+        if [ -f Makefile ]; then
+            make tidy
+        else
+            rm -f go.sum
+            go mod tidy
+        fi
     fi
-
-    if grep -q "^[[:space:]]\+${CONTRIB_PKGS}/" go.mod; then
-        echo "Updating ${CONTRIB_PKGS}/... in $gomod to $CONTRIB_VERSION"
-        go get ${CONTRIB_PKGS}/...@${CONTRIB_VERSION}
-    fi
-
-    [ -f Makefile ] && make tidy
 
     popd >/dev/null
+}
+
+for gomod in $( find "$REPO_DIR" -name "go.mod" | grep -v "/examples/" | sort ); do
+    update_gomod "$gomod" "$CORE_PKGS" "$CORE_VERSION"
+    update_gomod "$gomod" "$CONTRIB_PKGS" "$CONTRIB_VERSION"
 done
 
 make -C "$REPO_DIR" for-all CMD='make tidy'

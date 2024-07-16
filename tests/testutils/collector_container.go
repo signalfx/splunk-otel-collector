@@ -60,7 +60,7 @@ func NewCollectorContainer() CollectorContainer {
 	return CollectorContainer{Args: []string{}, Container: NewContainer(), Mounts: map[string]string{}}
 }
 
-// quay.io/signalfx/splunk-otel-collector:latest by default
+// otelcol:latest by default
 func (collector CollectorContainer) WithImage(image string) CollectorContainer {
 	collector.Image = image
 	return collector
@@ -114,7 +114,7 @@ func (collector CollectorContainer) WithMount(path string, mountPoint string) Co
 
 func (collector CollectorContainer) Build() (Collector, error) {
 	if collector.Image == "" && collector.Container.Dockerfile.Context == "" {
-		collector.Image = "quay.io/signalfx/splunk-otel-collector:latest"
+		collector.Image = "otelcol:latest"
 	}
 
 	if collector.Logger == nil {

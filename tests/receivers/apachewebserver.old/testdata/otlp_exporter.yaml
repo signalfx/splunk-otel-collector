@@ -8,6 +8,7 @@ service:
   telemetry:
     logs:
       level: debug
+
   pipelines:
     metrics:
       exporters: [otlp]

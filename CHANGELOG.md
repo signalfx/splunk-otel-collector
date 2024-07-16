@@ -4,7 +4,7 @@
 
 ### 💡 Enhancements 💡
 
-- (Splunk) `discovery`: Enable discovery mode for SQL Server receiver ([#](https://github.com/signalfx/splunk-otel-collector/pull/))
+- (Splunk) `discovery`: Enable discovery mode for SQL Server receiver ([#5109](https://github.com/signalfx/splunk-otel-collector/pull/5109))
 
 ## v0.104.0
 

@@ -210,7 +210,7 @@ jobs:
           .\run-tests.ps1
 
   msi-golang-tests:
-    runs-on: windows-2022
+    runs-on: otel-windows
     needs: [msi-build]
     timeout-minutes: 20
     strategy:

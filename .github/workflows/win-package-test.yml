@@ -212,16 +212,7 @@ jobs:
   msi-golang-tests:
     runs-on: otel-windows
     needs: [msi-build]
-    timeout-minutes: 20
-    strategy:
-      max-parallel: 1
-      matrix:
-        test:
-          - "default"
-          - "gateway"
-          - "realm"
-          - "ingest-url"
-          - "optional-params"
+    timeout-minutes: 40
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4
@@ -241,7 +232,7 @@ jobs:
 
       - name: Run the MSI tests
         run: |
-          go test -timeout 10m -v -run ^TestMSI/${{ matrix.test }}$ github.com/signalfx/splunk-otel-collector/tests/msi
+          go test -timeout 10m -v -run ^TestMSI$ github.com/signalfx/splunk-otel-collector/tests/msi
 
   # msi-without-wrappers-test:
   #   runs-on: ${{ matrix.OS }}

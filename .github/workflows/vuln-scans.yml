@@ -41,7 +41,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v4
-      - uses: anchore/scan-action@v3
+      - uses: anchore/scan-action@v4
         with:
           severity-cutoff: "high"
           only-fixed: true
@@ -147,7 +147,7 @@ jobs:
           name: otelcol-${{ matrix.ARCH }}
           path: ./dist
       - run: docker load -i ./dist/image.tar
-      - uses: anchore/scan-action@v3
+      - uses: anchore/scan-action@v4
         with:
           severity-cutoff: "high"
           only-fixed: true

@@ -643,3 +643,12 @@ replace (
 
 // Required for github.com/hashicorp/vault@v1.17.2
 replace github.com/pires/go-proxyproto v1.0.0 => github.com/peteski22/go-proxyproto v1.0.0
+
+// TODO: Remove with v0.105.0 release, temporary workaround to pull in fix https://github.com/open-telemetry/opentelemetry-collector/pull/10560
+replace (
+	go.opentelemetry.io/collector/confmap => go.opentelemetry.io/collector/confmap v0.104.1-0.20240710141741-637b1f42fcb7
+	go.opentelemetry.io/collector/confmap/converter/expandconverter => go.opentelemetry.io/collector/confmap/converter/expandconverter v0.104.1-0.20240710141741-637b1f42fcb7
+	go.opentelemetry.io/collector/confmap/provider/envprovider => go.opentelemetry.io/collector/confmap/provider/envprovider v0.104.1-0.20240710141741-637b1f42fcb7
+	go.opentelemetry.io/collector/confmap/provider/fileprovider => go.opentelemetry.io/collector/confmap/provider/fileprovider v0.104.1-0.20240710141741-637b1f42fcb7
+	go.opentelemetry.io/collector/confmap/provider/yamlprovider => go.opentelemetry.io/collector/confmap/provider/yamlprovider v0.104.1-0.20240710141741-637b1f42fcb7
+)

@@ -206,6 +206,7 @@ require (
 	go.opentelemetry.io/collector/confmap/provider/fileprovider v0.104.0 // indirect
 	go.opentelemetry.io/collector/featuregate v1.11.0 // indirect
 	go.opentelemetry.io/collector/filter v0.104.0 // indirect
+	go.opentelemetry.io/collector/internal/featuregates v0.0.0-20240705161705-b127da089038 // indirect
 	go.opentelemetry.io/collector/pdata v1.11.0 // indirect
 	go.opentelemetry.io/otel v1.27.0 // indirect
 	go.opentelemetry.io/otel/metric v1.27.0 // indirect
@@ -232,4 +233,10 @@ require (
 	honnef.co/go/tools v0.4.7 // indirect
 	mvdan.cc/gofumpt v0.6.0 // indirect
 	mvdan.cc/unparam v0.0.0-20240528143540-8a5130ca722f // indirect
+)
+
+// TODO: Remove with v0.105.0 release, temporary workaround to pull in fix https://github.com/open-telemetry/opentelemetry-collector/pull/10560
+replace (
+	go.opentelemetry.io/collector/confmap => go.opentelemetry.io/collector/confmap v0.104.1-0.20240710141741-637b1f42fcb7
+	go.opentelemetry.io/collector/confmap/provider/fileprovider => go.opentelemetry.io/collector/confmap/provider/fileprovider v0.104.1-0.20240710141741-637b1f42fcb7
 )

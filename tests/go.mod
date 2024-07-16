@@ -118,3 +118,6 @@ require (
 	google.golang.org/grpc v1.64.1 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 )
+
+// TODO: Remove with v0.105.0 release, temporary workaround to pull in fix https://github.com/open-telemetry/opentelemetry-collector/pull/10560
+replace go.opentelemetry.io/collector/confmap => go.opentelemetry.io/collector/confmap v0.104.1-0.20240710141741-637b1f42fcb7

@@ -41,6 +41,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	go.opentelemetry.io/collector/config/configtelemetry v0.104.0 // indirect
 	go.opentelemetry.io/collector/featuregate v1.11.0 // indirect
+	go.opentelemetry.io/collector/internal/featuregates v0.0.0-20240705161705-b127da089038 // indirect
 	go.opentelemetry.io/collector/pdata v1.11.0 // indirect
 	go.opentelemetry.io/otel v1.27.0 // indirect
 	go.opentelemetry.io/otel/exporters/prometheus v0.49.0 // indirect
@@ -64,3 +65,6 @@ replace (
 	github.com/signalfx/signalfx-agent => ../../../internal/signalfx-agent
 	github.com/signalfx/splunk-otel-collector/tests => ../../../tests
 )
+
+// TODO: Remove with v0.105.0 release, temporary workaround to pull in fix https://github.com/open-telemetry/opentelemetry-collector/pull/10560
+replace go.opentelemetry.io/collector/confmap => go.opentelemetry.io/collector/confmap v0.104.1-0.20240710141741-637b1f42fcb7

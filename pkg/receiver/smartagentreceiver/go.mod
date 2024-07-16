@@ -244,3 +244,6 @@ replace (
 	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension => ./../../extension/smartagentextension
 	github.com/signalfx/splunk-otel-collector/tests => ../../../tests
 )
+
+// TODO: Remove with v0.105.0 release, temporary workaround to pull in fix https://github.com/open-telemetry/opentelemetry-collector/pull/10560
+replace go.opentelemetry.io/collector/confmap => go.opentelemetry.io/collector/confmap v0.104.1-0.20240710141741-637b1f42fcb7

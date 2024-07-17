@@ -28,6 +28,7 @@ services:
   cassandra-jmx-noauth:
     profiles:
       - cassandra
+      - integration-test-jmx/cassandra-discovery
     build:
       dockerfile_inline: |
         FROM cassandra:5

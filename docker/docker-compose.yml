@@ -44,6 +44,16 @@ services:
       JMX_PORT: "${JMX_PORT:-7199}"
     ports:
       - "${JMX_PORT:-7199}:${JMX_PORT:-7199}"
+    healthcheck:
+      interval: 10s
+      timeout: 120s
+      retries: 5
+      test:
+        - "CMD"
+        - "grep"
+        - "-q"
+        - "Startup complete"
+        - "/var/log/cassandra/system.log"
   # Couchbase image for collectd-couchbase test:
   couchbase:
     image: quay.io/splunko11ytest/couchbase:latest

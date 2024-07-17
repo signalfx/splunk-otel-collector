@@ -648,3 +648,6 @@ replace (
 
 // Required for github.com/hashicorp/vault@v1.17.2
 replace github.com/pires/go-proxyproto v1.0.0 => github.com/peteski22/go-proxyproto v1.0.0
+
+// Required for github.com/docker/docker v26 until https://github.com/hashicorp/go-secure-stdlib/pull/126 is merged
+replace github.com/hashicorp/go-secure-stdlib/plugincontainer v0.3.0 => github.com/odvarkadaniel/go-secure-stdlib/plugincontainer v0.0.0-20240426094400-4af81bf367be

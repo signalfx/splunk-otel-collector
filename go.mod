@@ -642,6 +642,7 @@ replace (
 // each of these is required for the smartagentreceiver
 replace (
 	code.cloudfoundry.org/go-loggregator => github.com/signalfx/go-loggregator v1.0.1-0.20200205155641-5ba5ca92118d
+	github.com/google/cadvisor => github.com/google/cadvisor v0.49.1-0.20240628164550-89f779d86055
 	github.com/influxdata/telegraf => github.com/signalfx/telegraf v0.10.2-0.20240111190717-3494050f2933
 )
 

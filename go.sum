@@ -632,8 +632,8 @@ github.com/google/btree v0.0.0-20180813153112-4030bb1f1f0c/go.mod h1:lNA+9X1NB3Z
 github.com/google/btree v1.0.0/go.mod h1:lNA+9X1NB3Zf8V7Ke586lFgjr2dZNuvo3lPJSGZ5JPQ=
 github.com/google/btree v1.0.1 h1:gK4Kx5IaGY9CD5sPJ36FHiBJ6ZXl0kilRiiCj+jdYp4=
 github.com/google/btree v1.0.1/go.mod h1:xXMiIv4Fb/0kKde4SpL7qlzvu5cMJDRkFDxJfI9uaxA=
-github.com/google/cadvisor v0.49.1 h1:9M++63nWvdq6Oci6wUDuAfQNTZpuz1ZObln0Bhs9xN0=
-github.com/google/cadvisor v0.49.1/go.mod h1:s6Fqwb2KiWG6leCegVhw4KW40tf9f7m+SF1aXiE8Wsk=
+github.com/google/cadvisor v0.49.1-0.20240628164550-89f779d86055 h1:LH//TOiNPpCn3a48Flz5sNUmuMW5V/sTKheuXAPowUA=
+github.com/google/cadvisor v0.49.1-0.20240628164550-89f779d86055/go.mod h1:koGHrZgL6RdZ29g/iXWT4kUIawssUi88XCYDlyPt5RI=
 github.com/google/flatbuffers v24.3.7+incompatible h1:BxGUkIQnOciBu33bd5BdvqY8Qvo0O/GR4SPhh7x9Ed0=
 github.com/google/flatbuffers v24.3.7+incompatible/go.mod h1:1AeVuKshWv4vARoZatz6mlQ0JxURH0Kv5+zNeJKJCa8=
 github.com/google/gnostic-models v0.6.8 h1:yo/ABAfM5IMRsS1VnXjTBvUb61tFIHozhlYvRgGre9I=

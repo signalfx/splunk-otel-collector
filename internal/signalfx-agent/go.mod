@@ -9,7 +9,7 @@ replace (
 
 require (
 	code.cloudfoundry.org/go-loggregator v7.4.0+incompatible
-	github.com/Microsoft/go-winio v0.6.1 // indirect
+	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/SAP/go-hdb v1.9.10
 	github.com/Sectorbob/mlab-ns2 v0.0.0-20171030222938-d3aa0c295a8a
 	github.com/antonmedv/expr v1.15.5
@@ -24,7 +24,7 @@ require (
 	github.com/go-test/deep v1.1.1
 	github.com/gobwas/glob v0.2.4-0.20181002190808-e7a84e9525fe
 	github.com/gogo/protobuf v1.3.2
-	github.com/google/cadvisor v0.49.1
+	github.com/google/cadvisor v0.49.1-0.20240628164550-89f779d86055
 	github.com/gorilla/mux v1.8.1
 	github.com/iancoleman/strcase v0.3.0
 	github.com/jackc/pgx/v4 v4.18.3
@@ -117,9 +117,8 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.17.5 // indirect
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.53.1 // indirect
 	github.com/aws/smithy-go v1.20.2 // indirect
-	github.com/containerd/log v0.1.0 // indirect
 	github.com/danieljoos/wincred v1.2.0 // indirect
-	github.com/distribution/reference v0.5.0 // indirect
+	github.com/distribution/reference v0.6.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/dropbox/godropbox v0.0.0-20200228041828-52ad444d3502 // indirect
 	github.com/dvsekhvalnov/jose2go v1.6.0 // indirect

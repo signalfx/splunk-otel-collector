@@ -134,7 +134,7 @@ func jmxCassandraAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFi
 
 	seenMessageAttr := 0
 	seenReceiverTypeAttr := 0
-	expectedReceiver := "jmx/cassandra"
+	expectedReceiver := "jmx"
 	assert.EventuallyWithT(t, func(tt *assert.CollectT) {
 		allLogs := sink.AllLogs()
 		if len(allLogs) == 0 {
@@ -151,13 +151,13 @@ func jmxCassandraAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFi
 					m := attrMap.Map()
 					discoveryMsg, ok := m.Get(MessageAttr)
 					if ok {
-						seenMessageAttr++
 						assert.Equal(tt, logMessageToAssert, discoveryMsg.AsString())
+						seenMessageAttr++
 					}
 					discoveryType, ok := m.Get(ReceiverTypeAttr)
 					if ok {
-						seenReceiverTypeAttr++
 						assert.Equal(tt, expectedReceiver, discoveryType.AsString())
+						seenReceiverTypeAttr++
 					}
 				}
 			}

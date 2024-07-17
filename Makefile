@@ -229,16 +229,3 @@ install-test-tools:
 integration-test-split: install-test-tools
 	@set -e; cd tests && gotesplit --total=$(GOTESPLIT_TOTAL) --index=$(GOTESPLIT_INDEX) ./... -- -p 1 $(BUILD_INFO_TESTS) --tags=integration -v -timeout 5m -count 1
 
-
-.PHONY: otelcontrib-from-tree
-otelcontrib-from-tree:
-	# This command allows you to make changes to your local checkout of otel core and build
-	# contrib against those changes without having to push to github and update a bunch of
-	# references. The workflow is:
-	#
-	# 1. Hack on changes in core (assumed to be checked out in ../opentelemetry-collector from this directory)
-	# 2. Run `make otel-from-tree` (only need to run it once to remap go modules)
-	# 3. You can now build contrib and it will use your local otel core changes.
-	# 4. Before committing/pushing your contrib changes, undo by running `make otel-from-lib`.
-	$(MAKE) for-all CMD="$(GOCMD) mod edit -replace github.com/open-telemetry/opentelemetry-collector-contrib=$(SRC_PARENT_DIR)/opentelemetry-collector-contrib"
-	

@@ -1,7 +1,6 @@
 extensions:
   docker_observer:
 
-#receivers_this_should_fail_lets_see_the_error:
 receivers:
   # set up otlp receiver to use its endpoints as assertion material
   discovery:
@@ -19,6 +18,7 @@ receivers:
           # see https://docs.splunk.com/observability/en/gdi/opentelemetry/components/jmx-receiver.html
           # and https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/jmxreceiver/README.md#target_system
           target_system: cassandra
+          endpoint: "service:jmx:rmi:///jndi/rmi://`endpoint`/jmxrmi"
           collection_interval: 10s
           resource_attributes:
             stage: integ-test
@@ -32,14 +32,11 @@ receivers:
     watch_observers:
       - docker_observer
 
-# drop scrape_timestamp attributes until we can accept arbitrary values
-processors:
-
 exporters:
   debug:
     verbosity: detailed
   otlp:
-    endpoint: "${OTLP_ENDPOINT}"
+    endpoint: "${env:OTLP_ENDPOINT}"
     tls:
       insecure: true
 
@@ -53,4 +50,3 @@ service:
     logs:
       receivers: [discovery]
       exporters: [otlp, debug]
-      #      exporters: [debug]

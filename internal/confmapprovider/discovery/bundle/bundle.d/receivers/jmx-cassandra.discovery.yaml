@@ -11,9 +11,7 @@ jmx/cassandra:
   config:
     default:
       jar_path: /opt/opentelemetry-java-contrib-jmx-metrics.jar
-      endpoint: 'service:jmx:rmi:///jndi/rmi://`endpoint`/jmxrmi'
-      otlp:
-        endpoint: "0.0.0.0:0"
+      endpoint: "service:jmx:rmi:///jndi/rmi://`endpoint`/jmxrmi"
       target_system: cassandra
       collection_interval: 10s
   status:

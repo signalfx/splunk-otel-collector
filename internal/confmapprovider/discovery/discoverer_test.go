@@ -68,7 +68,6 @@ func TestDiscovererDurationFromEnv(t *testing.T) {
 }
 
 func TestDetermineCurrentStatus(t *testing.T) {
-	// Three states {partial, faiiled, successful} across two variables which need to be reduced to one outcome via determineCurrentStatus
 	for _, test := range []struct {
 		current, observed, expected discovery.StatusType
 	}{

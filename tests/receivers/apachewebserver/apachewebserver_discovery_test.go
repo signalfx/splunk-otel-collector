@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build discovery_integration_mongodb
+//go:build discovery_integration_apachewebserver
 
 package tests
 
@@ -61,7 +61,7 @@ func getDockerGID() (string, error) {
 	return dockerGID, nil
 }
 
-func ApachewebserverAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFile string, logMessageToAssert string) (*otelContainer, error) {
+func mongoDBAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFile string, logMessageToAssert string) (*otelContainer, error) {
 	factory := otlpreceiver.NewFactory()
 	port := 16745
 	c := factory.CreateDefaultConfig().(*otlpreceiver.Config)
@@ -166,8 +166,7 @@ func TestIntegrationApacheWebserverAutoDiscovery(t *testing.T) {
 		t.Skip("Integration tests are only run on linux architecture: https://github.com/signalfx/splunk-otel-collector/blob/main/.github/workflows/integration-test.yml#L35")
 	}
 
-	successfulDiscoveryMsg := `apache webserver receiver is working!`
-	partialDiscoveryMsg := "Please ensure your user credentials are correctly specified with `{{ configPropertyEnvVar \"username\" \"<username>\" }}` and `{{ configPropertyEnvVar \"password\" \"<password>\" }}` environment variables."
+	successfulDiscoveryMsg := `apachereceiver receiver is working!`
 	ctx := context.Background()
 
 	tests := map[string]struct {
@@ -186,7 +185,7 @@ func TestIntegrationApacheWebserverAutoDiscovery(t *testing.T) {
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			container, err := ApachewebserverAutoDiscoveryHelper(t, test.ctx, test.configFileName, test.logMessageToAssert)
+			container, err := mongoDBAutoDiscoveryHelper(t, test.ctx, test.configFileName, test.logMessageToAssert)
 
 			if err != test.expected {
 				t.Fatalf(" Expected %v, got %v", test.expected, err)

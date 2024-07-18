@@ -46,8 +46,8 @@ services:
       - "${JMX_PORT:-7199}:${JMX_PORT:-7199}"
     healthcheck:
       interval: 10s
-      timeout: 120s
-      retries: 5
+      timeout: 180s
+      retries: 3
       test:
         - "CMD"
         - "grep"

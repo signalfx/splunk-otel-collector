@@ -38,6 +38,7 @@ type msiTest struct {
 	collectorMSIProperties map[string]string
 	genericMSIProperties   map[string]string
 	skipUninstall          bool
+	skipSvcStart           bool
 	skipSvcStop            bool
 }
 
@@ -110,6 +111,7 @@ func TestCollectorReconfiguration(t *testing.T) {
 				"SPLUNK_REALM":                "2nd",
 				"SPLUNK_MEMORY_TOTAL_MIB":     "256",
 			},
+			skipSvcStart: true,
 			genericMSIProperties: map[string]string{
 				"REINSTALL": "SplunkCollectorConfiguration", // MSI property to reinstall the configuration
 			},
@@ -179,8 +181,10 @@ func runMsiTest(t *testing.T, test msiTest, msiInstallerPath string) {
 	require.NoError(t, err)
 	defer service.Close()
 
-	err = service.Start()
-	require.NoError(t, err)
+	if !test.skipSvcStart {
+		err = service.Start()
+		require.NoError(t, err)
+	}
 	if !test.skipSvcStop {
 		defer func() {
 			_, err = service.Control(svc.Stop)

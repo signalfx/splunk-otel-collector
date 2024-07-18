@@ -32,49 +32,49 @@ import (
 	"golang.org/x/sys/windows/svc/mgr"
 )
 
-func TestMSI(t *testing.T) {
-	msiInstallerPath := os.Getenv("MSI_COLLECTOR_PATH")
-	require.NotEmpty(t, msiInstallerPath, "MSI_COLLECTOR_PATH environment variable is not set")
-	_, err := os.Stat(msiInstallerPath)
-	require.NoError(t, err)
-	if strings.Contains(msiInstallerPath, " ") {
-		msiInstallerPath = "\"" + msiInstallerPath + "\""
-	}
+// Test structure for MSI installation tests
+type msiTest struct {
+	name                   string
+	collectorMSIProperties map[string]string
+	genericMSIProperties   map[string]string
+	skipUninstall          bool
+	skipSvcStop            bool
+}
 
-	tests := []struct {
-		name          string
-		msiProperties map[string]string
-	}{
+func TestMSI(t *testing.T) {
+	msiInstallerPath := getInstallerPath(t)
+
+	tests := []msiTest{
 		{
 			name: "default",
-			msiProperties: map[string]string{
+			collectorMSIProperties: map[string]string{
 				"SPLUNK_ACCESS_TOKEN": "fakeToken",
 			},
 		},
 		{
 			name: "gateway",
-			msiProperties: map[string]string{
+			collectorMSIProperties: map[string]string{
 				"SPLUNK_SETUP_COLLECTOR_MODE": "gateway",
 				"SPLUNK_ACCESS_TOKEN":         "testing123",
 			},
 		},
 		{
 			name: "realm",
-			msiProperties: map[string]string{
+			collectorMSIProperties: map[string]string{
 				"SPLUNK_REALM":        "my-realm",
 				"SPLUNK_ACCESS_TOKEN": "testing",
 			},
 		},
 		{
 			name: "ingest-url",
-			msiProperties: map[string]string{
+			collectorMSIProperties: map[string]string{
 				"SPLUNK_INGEST_URL":   "https://fake.ingest.url",
 				"SPLUNK_ACCESS_TOKEN": "testing",
 			},
 		},
 		{
 			name: "optional-params",
-			msiProperties: map[string]string{
+			collectorMSIProperties: map[string]string{
 				"SPLUNK_MEMORY_TOTAL_MIB": "256",
 				"SPLUNK_ACCESS_TOKEN":     "fakeToken",
 			},
@@ -83,74 +83,125 @@ func TestMSI(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			installLogFile := filepath.Join(os.TempDir(), "install.log")
-			// Build the MSI installation arguments and include the msiProperties map.
-			args := []string{"/i", msiInstallerPath, "/qn", "/l*v", installLogFile}
-			for key, value := range tt.msiProperties {
-				// Escape the key and value if they contain spaces or quotes
-				// See https://learn.microsoft.com/en-us/windows/win32/msi/command-line-options
-				if strings.Contains(value, "\"") || strings.Contains(value, " ") {
-					value = strings.ReplaceAll(value, "\"", "\"\"")
-					value = "\"" + value + "\""
-				}
-				args = append(args, key+"="+value)
-			}
+			runMsiTest(t, tt, msiInstallerPath)
+		})
+	}
+}
 
-			// Run the MSI installer
-			installCmd := exec.Command("msiexec")
-			// msiexec is one of the noticeable exceptions about how to format the parameters,
-			// see https://pkg.go.dev/os/exec#Command, so we need to join the args manually.
-			cmdLine := strings.Join(args, " ")
-			installCmd.SysProcAttr = &syscall.SysProcAttr{CmdLine: "msiexec " + cmdLine}
-			err := installCmd.Run()
-			if err != nil {
-				logText, _ := os.ReadFile(installLogFile)
-				t.Log(string(logText))
-			}
-			t.Logf("Install command: %s", installCmd.SysProcAttr.CmdLine)
-			require.NoError(t, err, "Failed to install the MSI: %v\nArgs: %v", err, args)
+// TestCollectorReconfiguration tests the MSI use to change the settings of an installation of the same version.
+func TestCollectorReconfiguration(t *testing.T) {
+	msiInstallerPath := getInstallerPath(t)
 
-			defer func() {
-				// Uninstall the MSI
-				uninstallCmd := exec.Command("msiexec")
-				uninstallCmd.SysProcAttr = &syscall.SysProcAttr{CmdLine: "msiexec /x " + msiInstallerPath + " /qn"}
-				err := uninstallCmd.Run()
-				t.Logf("Uninstall command: %s", uninstallCmd.SysProcAttr.CmdLine)
-				require.NoError(t, err, "Failed to uninstall the MSI: %v", err)
-			}()
+	tests := []msiTest{
+		{
+			name: "first-install",
+			collectorMSIProperties: map[string]string{
+				"SPLUNK_ACCESS_TOKEN": "1stInstall",
+				"SPLUNK_REALM":        "1st",
+			},
+			skipUninstall: true,
+			skipSvcStop:   true,
+		},
+		{
+			name: "second-install",
+			collectorMSIProperties: map[string]string{
+				"SPLUNK_SETUP_COLLECTOR_MODE": "gateway",
+				"SPLUNK_ACCESS_TOKEN":         "2ndInstall",
+				"SPLUNK_REALM":                "2nd",
+				"SPLUNK_MEMORY_TOTAL_MIB":     "256",
+			},
+			genericMSIProperties: map[string]string{
+				"REINSTALL": "SplunkCollectorConfiguration", // MSI property to reinstall the configuration
+			},
+		},
+	}
 
-			// Verify the service
-			scm, err := mgr.Connect()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			runMsiTest(t, tt, msiInstallerPath)
+		})
+	}
+}
+
+func runMsiTest(t *testing.T, test msiTest, msiInstallerPath string) {
+	allMSIProperties := make(map[string]string)
+	for key, value := range test.genericMSIProperties {
+		allMSIProperties[key] = value
+	}
+	for key, value := range test.collectorMSIProperties {
+		allMSIProperties[key] = value
+	}
+
+	// Build the MSI installation arguments and include the MSI properties map.
+	installLogFile := filepath.Join(os.TempDir(), "install.log")
+	args := []string{"/i", msiInstallerPath, "/qn", "/l*v", installLogFile}
+	for key, value := range allMSIProperties {
+		// Escape the key and value if they contain spaces or quotes
+		// See https://learn.microsoft.com/en-us/windows/win32/msi/command-line-options
+		if strings.Contains(value, "\"") || strings.Contains(value, " ") {
+			value = strings.ReplaceAll(value, "\"", "\"\"")
+			value = "\"" + value + "\""
+		}
+		args = append(args, key+"="+value)
+	}
+
+	// Run the MSI installer
+	installCmd := exec.Command("msiexec")
+	// msiexec is one of the noticeable exceptions about how to format the parameters,
+	// see https://pkg.go.dev/os/exec#Command, so we need to join the args manually.
+	cmdLine := strings.Join(args, " ")
+	installCmd.SysProcAttr = &syscall.SysProcAttr{CmdLine: "msiexec " + cmdLine}
+	err := installCmd.Run()
+	if err != nil {
+		logText, _ := os.ReadFile(installLogFile)
+		t.Log(string(logText))
+	}
+	t.Logf("Install command: %s", installCmd.SysProcAttr.CmdLine)
+	require.NoError(t, err, "Failed to install the MSI: %v\nArgs: %v", err, args)
+
+	if !test.skipUninstall {
+		defer func() {
+			// Uninstall the MSI
+			uninstallCmd := exec.Command("msiexec")
+			uninstallCmd.SysProcAttr = &syscall.SysProcAttr{CmdLine: "msiexec /x " + msiInstallerPath + " /qn"}
+			err := uninstallCmd.Run()
+			t.Logf("Uninstall command: %s", uninstallCmd.SysProcAttr.CmdLine)
+			require.NoError(t, err, "Failed to uninstall the MSI: %v", err)
+		}()
+	}
+
+	// Verify the service
+	scm, err := mgr.Connect()
+	require.NoError(t, err)
+	defer scm.Disconnect()
+
+	service, err := scm.OpenService("splunk-otel-collector")
+	require.NoError(t, err)
+	defer service.Close()
+
+	err = service.Start()
+	require.NoError(t, err)
+	if !test.skipSvcStop {
+		defer func() {
+			_, err = service.Control(svc.Stop)
 			require.NoError(t, err)
-			defer scm.Disconnect()
 
-			service, err := scm.OpenService("splunk-otel-collector")
-			require.NoError(t, err)
-			defer service.Close()
-
-			err = service.Start()
-			require.NoError(t, err)
-			defer func() {
-				_, err = service.Control(svc.Stop)
-				require.NoError(t, err)
-
-				require.Eventually(t, func() bool {
-					status, err := service.Query()
-					require.NoError(t, err)
-					return status.State == svc.Stopped
-				}, 10*time.Second, 500*time.Millisecond, "Failed to stop the service")
-			}()
-
-			// Wait for the service to reach the running state
 			require.Eventually(t, func() bool {
 				status, err := service.Query()
 				require.NoError(t, err)
-				return status.State == svc.Running
-			}, 10*time.Second, 500*time.Millisecond, "Failed to start the service")
-
-			assertServiceConfiguration(t, tt.msiProperties)
-		})
+				return status.State == svc.Stopped
+			}, 10*time.Second, 500*time.Millisecond, "Failed to stop the service")
+		}()
 	}
+
+	// Wait for the service to reach the running state
+	require.Eventually(t, func() bool {
+		status, err := service.Query()
+		require.NoError(t, err)
+		return status.State == svc.Running
+	}, 10*time.Second, 500*time.Millisecond, "Failed to start the service")
+
+	assertServiceConfiguration(t, test.collectorMSIProperties)
 }
 
 func assertServiceConfiguration(t *testing.T, msiProperties map[string]string) {
@@ -216,4 +267,15 @@ func getServiceEnvVars(t *testing.T, serviceName string) map[string]string {
 	}
 
 	return envVars
+}
+
+func getInstallerPath(t *testing.T) string {
+	msiInstallerPath := os.Getenv("MSI_COLLECTOR_PATH")
+	require.NotEmpty(t, msiInstallerPath, "MSI_COLLECTOR_PATH environment variable is not set")
+	_, err := os.Stat(msiInstallerPath)
+	require.NoError(t, err)
+	if strings.Contains(msiInstallerPath, " ") {
+		msiInstallerPath = "\"" + msiInstallerPath + "\""
+	}
+	return msiInstallerPath
 }

@@ -232,7 +232,7 @@ jobs:
 
       - name: Run the MSI tests
         run: |
-          go test -timeout 10m -v -run ^TestMSI$ github.com/signalfx/splunk-otel-collector/tests/msi
+          go test -timeout 15m -v github.com/signalfx/splunk-otel-collector/tests/msi
 
   msi-reinstall-test:
     runs-on: windows-2022

@@ -13,6 +13,7 @@ permissions:
 
 jobs:
   ContributorLicenseAgreement:
+    if: github.repository == 'signalfx/splunk-otel-collector'
     runs-on: ubuntu-latest
     steps:
       - name: "CLA Assistant"

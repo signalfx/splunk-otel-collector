@@ -175,7 +175,6 @@ func (d *discoveryReceiver) createAndSetReceiverCreator() error {
 	}
 	id := component.MustNewIDWithName(receiverCreatorFactory.Type().String(), d.settings.ID.String())
 	// receiverCreatorConfig.SetIDName(d.settings.ID.String())
-
 	receiverCreatorSettings := receiver.Settings{
 		ID: id,
 		TelemetrySettings: component.TelemetrySettings{
@@ -186,6 +185,7 @@ func (d *discoveryReceiver) createAndSetReceiverCreator() error {
 			TracerProvider: tnoop.NewTracerProvider(),
 			MeterProvider:  mnoop.NewMeterProvider(),
 			MetricsLevel:   configtelemetry.LevelDetailed,
+			ReportStatus:   d.settings.TelemetrySettings.ReportStatus,
 		},
 		BuildInfo: component.BuildInfo{
 			Command: "discovery",

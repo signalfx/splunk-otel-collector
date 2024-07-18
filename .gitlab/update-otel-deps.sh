@@ -18,34 +18,35 @@ create_collector_pr() {
   local repo="signalfx/splunk-otel-collector"
   local repo_url="https://srv-gh-o11y-gdi:${GITHUB_TOKEN}@github.com/${repo}.git"
   local message="Update OpenTelemetry Dependencies to $OTEL_VERSION"
+  local check_for_pr="true"
+  if [ "$OTEL_VERSION" = "main" ]; then
+    check_for_pr="false"
+  fi
 
   echo ">>> Cloning the $repo repository ..."
   git clone "$repo_url" collector-mirror
   cd collector-mirror
 
-  setup_branch "$BRANCH" "$repo_url"
+  setup_branch "$BRANCH" "$repo_url" "$check_for_pr"
 
   echo ">>> Updating otel deps to $OTEL_VERSION ..."
-  if [[ "$OTEL_VERSION" == "main" ]]; then
-    CORE_VERSION=$(git ls-remote https://github.com/open-telemetry/opentelemetry-collector main | awk '{print $1}')
-    CONTRIB_VERSION=$(git ls-remote https://github.com/open-telemetry/opentelemetry-collector-contrib main | awk '{print $1}')
-    CORE_VERSION="$CORE_VERSION" CONTRIB_VERSION="$CONTRIB_VERSION" ./internal/buildscripts/update-deps
-  else
-    OTEL_VERSION="$OTEL_VERSION" ./internal/buildscripts/update-deps
-  fi
+  OTEL_VERSION="$OTEL_VERSION" ./internal/buildscripts/update-deps
 
   # Only create the PR if there are changes
   if ! git diff --exit-code >/dev/null 2>&1; then
     git commit -S -am "$message"
     git push -f "$repo_url" "$BRANCH"
-    echo ">>> Creating the PR ..."
-    gh pr create \
-      --draft \
-      --repo "$repo" \
-      --title "$message" \
-      --body "$message" \
-      --base main \
-      --head "$BRANCH"
+    pr_count="$( get_pr_count "$BRANCH" "$repo_url" )"
+    if [ "$pr_count" = "0" ]; then
+      echo ">>> Creating the PR ..."
+      gh pr create \
+        --draft \
+        --repo "$repo" \
+        --title "$message" \
+        --body "$message" \
+        --base main \
+        --head "$BRANCH"
+    fi
   fi
 }
 

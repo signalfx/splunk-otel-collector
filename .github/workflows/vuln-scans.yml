@@ -27,7 +27,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run trivy filesystem scan
-        uses: aquasecurity/trivy-action@0.23.0
+        uses: aquasecurity/trivy-action@0.24.0
         with:
           scan-type: 'fs'
           scan-ref: '.'
@@ -117,7 +117,7 @@ jobs:
           path: ./dist
       - run: docker load -i ./dist/image.tar
       - name: Run trivy image scan
-        uses: aquasecurity/trivy-action@0.23.0
+        uses: aquasecurity/trivy-action@0.24.0
         with:
           scan-type: 'image'
           image-ref: 'otelcol:latest'
@@ -156,8 +156,12 @@ jobs:
           image: "otelcol:latest"
 
   anchore-win-image-scan:
-    runs-on: windows-2022
+    runs-on: ${{ matrix.OS }}
     needs: [ "binaries-windows_amd64" ]
+    strategy:
+      matrix:
+        OS: [ windows-2019, windows-2022 ]
+      fail-fast: false
     env:
       PIP_CACHE_DIR: ${{ github.workspace }}/.cache/pip
     steps:
@@ -178,7 +182,12 @@ jobs:
           $ErrorActionPreference = 'Stop'
           Copy-Item .\bin\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
           Copy-Item .\dist\agent-bundle_windows_amd64.zip .\cmd\otelcol\agent-bundle_windows_amd64.zip
-          docker build -t otelcol-windows --build-arg BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022 --build-arg JMX_METRIC_GATHERER_RELEASE=$(Get-Content internal\buildscripts\packaging\jmx-metric-gatherer-release.txt) -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
+          if ("${{ matrix.OS }}" -eq "windows-2019") {
+            $base_image = "mcr.microsoft.com/windows/servercore:ltsc2019"
+          } else {
+            $base_image = "mcr.microsoft.com/windows/servercore:ltsc2022"
+          }
+          docker build -t otelcol-windows --pull --build-arg BASE_IMAGE=${base_image} --build-arg JMX_METRIC_GATHERER_RELEASE=$(Get-Content internal\buildscripts\packaging\jmx-metric-gatherer-release.txt) -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
           Remove-Item .\cmd\otelcol\otelcol.exe
           Remove-Item .\cmd\otelcol\agent-bundle_windows_amd64.zip
       - run: choco install -y grype

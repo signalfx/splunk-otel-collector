@@ -47,7 +47,7 @@ services:
     healthcheck:
       interval: 10s
       timeout: 180s
-      retries: 3
+      retries: 20
       test:
         - "CMD"
         - "grep"

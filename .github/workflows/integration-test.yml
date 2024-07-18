@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - update-deps-jcheng-test
   pull_request:
     paths:
       - '.github/workflows/integration-test.yml'

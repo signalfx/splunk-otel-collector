@@ -183,7 +183,7 @@ jobs:
           Copy-Item .\bin\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
           Copy-Item .\dist\agent-bundle_windows_amd64.zip .\cmd\otelcol\agent-bundle_windows_amd64.zip
           if ("${{ matrix.OS }}" -eq "windows-2019") {
-            $base_image = "mcr.microsoft.com/windows/servercore:1809"
+            $base_image = "mcr.microsoft.com/windows/servercore:ltsc2019"
           } else {
             $base_image = "mcr.microsoft.com/windows/servercore:ltsc2022"
           }

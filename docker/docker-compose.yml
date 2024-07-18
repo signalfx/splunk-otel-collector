@@ -46,7 +46,7 @@ services:
       - "${JMX_PORT:-7199}:${JMX_PORT:-7199}"
     healthcheck:
       interval: 10s
-      timeout: 180s
+      timeout: 10s
       retries: 20
       test:
         - "CMD"

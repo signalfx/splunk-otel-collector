@@ -342,7 +342,7 @@ jobs:
                 for mongodb_version in "4.0" "4.4" "5.0" "6.0" "7.0"; do
                   includes="${includes},{\"SERVICE\": \"${service}\", \"ARCH\": \"${arch}\", \"MONGODB_VERSION\": \"${mongodb_version}\"}"
                 done
-              else
+              elif [[ "$service" != "jmx/cassandra" || "arm64" != "$arch" ]]; then
                 includes="${includes},{\"SERVICE\": \"${service}\", \"ARCH\": \"${arch}\"}"
               fi
             done

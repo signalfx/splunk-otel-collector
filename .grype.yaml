@@ -11,3 +11,9 @@ ignore:
       name: certifi
       version: 2023.7.22
       type: python
+  # false positive: https://github.com/jstedfast/MimeKit/discussions/1054
+  - vulnerability: GHSA-gmc6-fwg3-75m5
+    package:
+      name: MimeKit
+      type: dotnet
+      location: "**/MimeKitLite.dll"

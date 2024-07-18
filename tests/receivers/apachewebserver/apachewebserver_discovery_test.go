@@ -61,7 +61,7 @@ func getDockerGID() (string, error) {
 	return dockerGID, nil
 }
 
-func mongoDBAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFile string, logMessageToAssert string) (*otelContainer, error) {
+func apacheWebserverAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFile string, logMessageToAssert string) (*otelContainer, error) {
 	factory := otlpreceiver.NewFactory()
 	port := 16745
 	c := factory.CreateDefaultConfig().(*otlpreceiver.Config)
@@ -185,7 +185,7 @@ func TestIntegrationApacheWebserverAutoDiscovery(t *testing.T) {
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			container, err := mongoDBAutoDiscoveryHelper(t, test.ctx, test.configFileName, test.logMessageToAssert)
+			container, err := apacheWebserverAutoDiscoveryHelper(t, test.ctx, test.configFileName, test.logMessageToAssert)
 
 			if err != test.expected {
 				t.Fatalf(" Expected %v, got %v", test.expected, err)

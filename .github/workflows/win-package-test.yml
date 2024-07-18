@@ -209,7 +209,7 @@ jobs:
         run: |
           .\run-tests.ps1
 
-  msi-golang-tests:
+  msi-test:
     runs-on: otel-windows
     needs: [msi-build]
     timeout-minutes: 40
@@ -330,7 +330,7 @@ jobs:
             throw "MSI uninstall failed"
           }
 
-  msi-test:
+  windows-install-script-test:
     runs-on: ${{ matrix.OS }}
     needs: [msi-build]
     strategy:

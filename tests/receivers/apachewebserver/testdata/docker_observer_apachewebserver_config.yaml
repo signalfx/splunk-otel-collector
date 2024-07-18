@@ -27,6 +27,10 @@ receivers:
 exporters:
   debug:
     verbosity: detailed
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
 
 service:
   telemetry:
@@ -37,4 +41,4 @@ service:
   pipelines:
     logs:
       receivers: [discovery]
-      exporters: [debug]
+      exporters: [otlp, debug]

@@ -294,6 +294,6 @@ services:
     image: httpd:2.4
     build: ./httpd-discovery
     profiles:
-      - apache-discovery
+      - integration-test-apache-discovery 
     ports:
       - "8080:80"

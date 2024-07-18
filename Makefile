@@ -88,7 +88,7 @@ integration-test-jmx/cassandra-discovery:
 	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_jmx -v -timeout 5m -count 1 ./...
 
 .PHONY: integration-test-apachewebserver-discovery
-integration-test-apachewebserver-discovery:
+integration-test-apache-discovery:
 	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_apachewebserver -v -timeout 5m -count 1 ./...
 
 .PHONY: smartagent-integration-test

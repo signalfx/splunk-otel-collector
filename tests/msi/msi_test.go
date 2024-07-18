@@ -25,7 +25,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/sys/windows/registry"
 	"golang.org/x/sys/windows/svc"
 	"golang.org/x/sys/windows/svc/mgr"
 )
@@ -145,6 +147,73 @@ func TestMSI(t *testing.T) {
 				require.NoError(t, err)
 				return status.State == svc.Running
 			}, 10*time.Second, 500*time.Millisecond, "Failed to start the service")
+
+			assertServiceConfiguration(t, tt.msiProperties)
 		})
 	}
+}
+
+func assertServiceConfiguration(t *testing.T, msiProperties map[string]string) {
+	programDataDir := os.Getenv("PROGRAMDATA")
+	require.NotEmpty(t, programDataDir, "PROGRAMDATA environment variable is not set")
+	programFilesDir := os.Getenv("PROGRAMFILES")
+	require.NotEmpty(t, programFilesDir, "PROGRAMFILES environment variable is not set")
+
+	installRealm := optionalInstallPropertyOrDefault(msiProperties, "SPLUNK_REALM", "us0")
+	ingestURL := optionalInstallPropertyOrDefault(msiProperties, "SPLUNK_INGEST_URL", "https://ingest."+installRealm+".signalfx.com")
+	installMode, ok := msiProperties["SPLUNK_SETUP_COLLECTOR_MODE"]
+	if !ok {
+		installMode = "agent"
+	}
+
+	configFileName := installMode + "_config.yaml"
+	configFileFullName := filepath.Join(programDataDir, "Splunk", "OpenTelemetry Collector", configFileName)
+	assert.FileExists(t, configFileFullName)
+	assert.NoFileExists(t, filepath.Join(programFilesDir, "Splunk", "OpenTelemetry Collector", configFileName))
+
+	expectedEnvVars := map[string]string{
+		"SPLUNK_CONFIG":       configFileFullName,
+		"SPLUNK_ACCESS_TOKEN": msiProperties["SPLUNK_ACCESS_TOKEN"], // Required install property for a successful start of the service
+		"SPLUNK_REALM":        installRealm,
+		"SPLUNK_API_URL":      optionalInstallPropertyOrDefault(msiProperties, "SPLUNK_API_URL", "https://api."+installRealm+".signalfx.com"),
+		"SPLUNK_INGEST_URL":   ingestURL,
+		"SPLUNK_TRACE_URL":    ingestURL + "/v2/trace",
+		"SPLUNK_HEC_URL":      ingestURL + "/v1/log",
+		"SPLUNK_HEC_TOKEN":    optionalInstallPropertyOrDefault(msiProperties, "SPLUNK_HEC_TOKEN", msiProperties["SPLUNK_ACCESS_TOKEN"]),
+		"SPLUNK_BUNDLE_DIR":   filepath.Join(programFilesDir, "Splunk", "OpenTelemetry Collector", "agent-bundle"),
+	}
+	if memoryTotalMib, ok := msiProperties["SPLUNK_MEMORY_TOTAL_MIB"]; ok {
+		expectedEnvVars["SPLUNK_MEMORY_TOTAL_MIB"] = memoryTotalMib
+	}
+
+	// Verify the environment variables set for the service
+	svcConfig := getServiceEnvVars(t, "splunk-otel-collector")
+	assert.Equal(t, expectedEnvVars, svcConfig)
+}
+
+func optionalInstallPropertyOrDefault(msiProperties map[string]string, key, defaultValue string) string {
+	value, ok := msiProperties[key]
+	if !ok {
+		return defaultValue
+	}
+	return value
+}
+
+func getServiceEnvVars(t *testing.T, serviceName string) map[string]string {
+	// Read the Environment set in the registry for the service.
+	key, err := registry.OpenKey(registry.LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Services\\"+serviceName, registry.QUERY_VALUE)
+	require.NoError(t, err)
+	defer key.Close()
+
+	svcEnv, _, err := key.GetStringsValue("Environment")
+	require.NoError(t, err)
+
+	envVars := make(map[string]string)
+	for _, envVar := range svcEnv {
+		parts := strings.SplitN(envVar, "=", 2)
+		require.Len(t, parts, 2)
+		envVars[parts[0]] = parts[1]
+	}
+
+	return envVars
 }

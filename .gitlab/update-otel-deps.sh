@@ -18,12 +18,16 @@ create_collector_pr() {
   local repo="signalfx/splunk-otel-collector"
   local repo_url="https://srv-gh-o11y-gdi:${GITHUB_TOKEN}@github.com/${repo}.git"
   local message="Update OpenTelemetry Dependencies to $OTEL_VERSION"
+  local check_for_pr="true"
+  if [ "$OTEL_VERSION" = "main" ]; then
+    check_for_pr="false"
+  fi
 
   echo ">>> Cloning the $repo repository ..."
   git clone "$repo_url" collector-mirror
   cd collector-mirror
 
-  setup_branch "$BRANCH" "$repo_url"
+  setup_branch "$BRANCH" "$repo_url" "$check_for_pr"
 
   echo ">>> Updating otel deps to $OTEL_VERSION ..."
   OTEL_VERSION="$OTEL_VERSION" ./internal/buildscripts/update-deps
@@ -32,14 +36,17 @@ create_collector_pr() {
   if ! git diff --exit-code >/dev/null 2>&1; then
     git commit -S -am "$message"
     git push -f "$repo_url" "$BRANCH"
-    echo ">>> Creating the PR ..."
-    gh pr create \
-      --draft \
-      --repo "$repo" \
-      --title "$message" \
-      --body "$message" \
-      --base main \
-      --head "$BRANCH"
+    pr_count="$( get_pr_count "$BRANCH" "$repo_url" )"
+    if [ "$pr_count" = "0" ]; then
+      echo ">>> Creating the PR ..."
+      gh pr create \
+        --draft \
+        --repo "$repo" \
+        --title "$message" \
+        --body "$message" \
+        --base main \
+        --head "$BRANCH"
+    fi
   fi
 }
 

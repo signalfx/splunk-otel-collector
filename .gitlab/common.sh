@@ -72,23 +72,35 @@ validate_version() {
   fi
 }
 
-setup_branch() {
+get_pr_count() {
   local branch="$1"
   local repo_url="$2"
 
+  pr_count="$( gh pr list --repo "$repo_url" --head "$branch" --state open --json id --jq length )"
+  if [[ ! "$pr_count" =~ ^[0-9]+$ ]]; then
+    echo "ERROR: Failed to get PRs for the $branch branch!" >&2
+    echo "$pr_count" >&2
+    exit 1
+  fi
+
+  echo "$pr_count"
+}
+
+setup_branch() {
+  local branch="$1"
+  local repo_url="$2"
+  local check_for_pr="${3:-true}"
+
   # check if the branch exists
   if git ls-remote --exit-code --heads origin "$branch"; then
-    # get number of open PRs for the branch
-    pr_count="$( gh pr list --repo "$repo_url" --head "$branch" --state open --json id --jq length )"
-    if [[ ! "$pr_count" =~ ^[0-9]+$ ]]; then
-      echo "ERROR: Failed to get PRs for the $branch branch!" >&2
-      echo "$pr_count" >&2
-      exit 1
-    fi
-    if [[ "$pr_count" != "0" ]]; then
-      echo ">>> The $branch branch exists and has $pr_count open PR(s)."
-      echo ">>> Nothing to do."
-      exit 0
+    if [ "$check_for_pr" = "true" ]; then
+      # get number of open PRs for the branch
+      pr_count="$( get_pr_count "$branch" "$repo_url" )"
+      if [[ "$pr_count" != "0" ]]; then
+        echo ">>> The $branch branch exists and has $pr_count open PR(s)."
+        echo ">>> Nothing to do."
+        exit 0
+      fi
     fi
     echo ">>> Resetting the $branch branch to main ..."
     git checkout "$branch"

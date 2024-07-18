@@ -190,8 +190,13 @@ jobs:
           docker build -t otelcol-windows --pull --build-arg BASE_IMAGE=${base_image} --build-arg JMX_METRIC_GATHERER_RELEASE=$(Get-Content internal\buildscripts\packaging\jmx-metric-gatherer-release.txt) -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
           Remove-Item .\cmd\otelcol\otelcol.exe
           Remove-Item .\cmd\otelcol\agent-bundle_windows_amd64.zip
-      - run: choco install -y grype
-      - run: grype --fail-on high --only-fixed -o table otelcol-windows:latest
+      - uses: anchore/scan-action@v4
+        with:
+          severity-cutoff: "high"
+          only-fixed: true
+          add-cpes-if-none: true
+          output-format: "table"
+          image: "otelcol-windows:latest"
 
   check-snyk-token:
     runs-on: ubuntu-latest

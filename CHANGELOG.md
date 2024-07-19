@@ -5,6 +5,7 @@
 ### 💡 Enhancements 💡
 
 - (Splunk) Update bundled OpenJDK to [11.0.24_8](https://github.com/adoptium/temurin11-binaries/releases/tag/jdk-11.0.24%2B8) ([#5113](https://github.com/signalfx/splunk-otel-collector/pull/5113))
+- (Splunk) Update JMX Metric Gatherer to [v1.37.0](https://github.com/open-telemetry/opentelemetry-java-contrib/releases/tag/v1.37.0) ([#5118](https://github.com/signalfx/splunk-otel-collector/pull/5118))
 
 ## v0.104.0
 

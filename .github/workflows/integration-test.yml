@@ -17,7 +17,13 @@ on:
       - 'go.mod'
       - 'go.sum'
       - '!**.md'
-      - '!internal/buildscripts/**'
+      - '!internal/buildscripts/packaging/choco/**'
+      - '!internal/buildscripts/packaging/fpm/**'
+      - '!internal/buildscripts/packaging/installer/**'
+      - '!internal/buildscripts/packaging/msi/**'
+      - '!internal/buildscripts/packaging/release/**'
+      - '!internal/buildscripts/packaging/tests/**'
+      - '!internal/buildscripts/packaging/update-deps'
 
 concurrency:
   group: integration-test-${{ github.event.pull_request.number || github.ref }}

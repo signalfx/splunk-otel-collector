@@ -78,7 +78,10 @@ var DefaultAgentConfigWindows = func() string {
 	return filepath.Clean(path)
 }()
 
-var defaultFeatureGates = []string{}
+var defaultFeatureGates = []string{
+	"-confmap.strictlyTypedInput",
+	"-confmap.unifyEnvVarExpansion",
+}
 
 type Settings struct {
 	discovery                *discovery.Provider

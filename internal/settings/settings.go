@@ -78,7 +78,9 @@ var DefaultAgentConfigWindows = func() string {
 	return filepath.Clean(path)
 }()
 
-var defaultFeatureGates = []string{}
+var defaultFeatureGates = []string{
+	"-confmap.strictlyTypedInput", // TODO: Remove as part of OTL-2877 and after https://github.com/open-telemetry/opentelemetry-collector/issues/5228
+}
 
 type Settings struct {
 	discovery                *discovery.Provider

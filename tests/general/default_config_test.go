@@ -110,7 +110,7 @@ func TestDefaultGatewayConfig(t *testing.T) {
 					"batch": nil,
 					"memory_limiter": map[string]any{
 						"check_interval": "2s",
-						"limit_mib":      460,
+						"limit_mib":      "460",
 					},
 					"resourcedetection/internal": map[string]any{
 						"detectors": []any{"gcp", "ecs", "ec2", "azure", "system"},
@@ -297,7 +297,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 					"batch": nil,
 					"memory_limiter": map[string]any{
 						"check_interval": "2s",
-						"limit_mib":      460,
+						"limit_mib":      "460",
 					},
 					"resourcedetection": map[string]any{"detectors": []any{"gcp", "ecs", "ec2", "azure", "system"},
 						"override": true,

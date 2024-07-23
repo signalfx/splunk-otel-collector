@@ -73,7 +73,9 @@ splunk_otel_auto_instrumentation_disable_telemetry: false
 splunk_otel_auto_instrumentation_enable_profiler: false
 splunk_otel_auto_instrumentation_enable_profiler_memory: false
 splunk_otel_auto_instrumentation_enable_metrics: false
-splunk_otel_auto_instrumentation_otlp_endpoint: http://127.0.0.1:4317
+splunk_otel_auto_instrumentation_metrics_exporter: ""
+splunk_otel_auto_instrumentation_otlp_endpoint: ""
+splunk_otel_auto_instrumentation_otlp_endpoint_protocol: ""
 splunk_otel_auto_instrumentation_sdks:
   - java
   - nodejs

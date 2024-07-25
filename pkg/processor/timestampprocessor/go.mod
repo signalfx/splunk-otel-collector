@@ -7,7 +7,7 @@ toolchain go1.21.12
 require (
 	github.com/stretchr/testify v1.9.0
 	go.opentelemetry.io/collector/component v0.105.0
-	go.opentelemetry.io/collector/confmap v0.105.0
+	go.opentelemetry.io/collector/confmap v0.105.1-0.20240724211854-1c96225b6445
 	go.opentelemetry.io/collector/consumer v0.105.0
 	go.opentelemetry.io/collector/pdata v1.12.0
 	go.opentelemetry.io/collector/processor v0.105.0
@@ -16,7 +16,7 @@ require (
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/go-viper/mapstructure/v2 v2.0.0-alpha.1 // indirect
+	github.com/go-viper/mapstructure/v2 v2.0.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/hashicorp/go-version v1.7.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect

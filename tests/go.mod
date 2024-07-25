@@ -17,7 +17,7 @@ require (
 	go.opentelemetry.io/collector/config/configgrpc v0.105.0
 	go.opentelemetry.io/collector/config/confignet v0.105.0
 	go.opentelemetry.io/collector/config/configtls v1.12.0
-	go.opentelemetry.io/collector/confmap v0.105.0
+	go.opentelemetry.io/collector/confmap v0.105.1-0.20240724211854-1c96225b6445
 	go.opentelemetry.io/collector/consumer v0.105.0
 	go.opentelemetry.io/collector/exporter v0.105.0
 	go.opentelemetry.io/collector/exporter/otlpexporter v0.105.0
@@ -53,7 +53,7 @@ require (
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
-	github.com/go-viper/mapstructure/v2 v2.0.0-alpha.1 // indirect
+	github.com/go-viper/mapstructure/v2 v2.0.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/hashicorp/go-version v1.7.0 // indirect

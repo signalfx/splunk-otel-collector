@@ -120,7 +120,7 @@ require (
 	go.etcd.io/etcd/client/v2 v2.305.14
 	go.opentelemetry.io/collector/config/confighttp v0.105.0
 	go.opentelemetry.io/collector/config/configtelemetry v0.105.0
-	go.opentelemetry.io/collector/confmap v0.105.0
+	go.opentelemetry.io/collector/confmap v0.105.1-0.20240724211854-1c96225b6445
 	go.opentelemetry.io/collector/confmap/converter/expandconverter v0.105.0
 	go.opentelemetry.io/collector/confmap/provider/envprovider v0.105.0
 	go.opentelemetry.io/collector/confmap/provider/fileprovider v0.105.0
@@ -211,7 +211,7 @@ require (
 	github.com/euank/go-kmsg-parser v2.0.0+incompatible // indirect
 	github.com/go-jose/go-jose/v4 v4.0.2 // indirect
 	github.com/go-resty/resty/v2 v2.13.1 // indirect
-	github.com/go-viper/mapstructure/v2 v2.0.0-alpha.1 // indirect
+	github.com/go-viper/mapstructure/v2 v2.0.0 // indirect
 	github.com/goccy/go-json v0.10.3 // indirect
 	github.com/godbus/dbus/v5 v5.1.0 // indirect
 	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect

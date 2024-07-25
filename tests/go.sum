@@ -101,8 +101,8 @@ github.com/go-sql-driver/mysql v1.8.1 h1:LedoTUt/eveggdHS9qUFC1EFSa8bU2+1pZjSRpv
 github.com/go-sql-driver/mysql v1.8.1/go.mod h1:wEBSXgmK//2ZFJyE+qWnIsVGmvmEKlqwuVSjsCm7DZg=
 github.com/go-stack/stack v1.8.0/go.mod h1:v0f6uXyyMGvRgIKkXu+yp6POWl0qKG85gN/melR3HDY=
 github.com/go-test/deep v1.0.2-0.20181118220953-042da051cf31/go.mod h1:wGDj63lr65AM2AQyKZd/NYHGb0R+1RLqB8NKt3aSFNA=
-github.com/go-viper/mapstructure/v2 v2.0.0-alpha.1 h1:TQcrn6Wq+sKGkpyPvppOz99zsMBaUOKXq6HSv655U1c=
-github.com/go-viper/mapstructure/v2 v2.0.0-alpha.1/go.mod h1:oJDH3BJKyqBA2TXFhDsKDGDTlndYOZ6rGS0BRZIxGhM=
+github.com/go-viper/mapstructure/v2 v2.0.0 h1:dhn8MZ1gZ0mzeodTG3jt5Vj/o87xZKuNAprG2mQfMfc=
+github.com/go-viper/mapstructure/v2 v2.0.0/go.mod h1:oJDH3BJKyqBA2TXFhDsKDGDTlndYOZ6rGS0BRZIxGhM=
 github.com/godbus/dbus/v5 v5.0.4/go.mod h1:xhWf0FNVPg57R7Z0UbKHbJfkEywrmjJnf7w5xrFpKfA=
 github.com/gogo/protobuf v1.1.1/go.mod h1:r8qH/GZQm5c6nD/R0oafs1akxWv10x8SbQlK7atdtwQ=
 github.com/gogo/protobuf v1.3.2 h1:Ov1cvc58UF3b5XjBnZv7+opcTcQFZebYjWzi34vdm4Q=
@@ -386,8 +386,8 @@ go.opentelemetry.io/collector/config/configtls v1.12.0 h1:Px0+GE4LE/9sXMgkwBb5g8
 go.opentelemetry.io/collector/config/configtls v1.12.0/go.mod h1:aeCGPlvrWhc+EySpIKdelPAj4l9wXKzZPouQO3NIoTs=
 go.opentelemetry.io/collector/config/internal v0.105.0 h1:PWnbeslkIGMjZzh5IJRjO6bA02d1Xrkjw2N60ixWzqQ=
 go.opentelemetry.io/collector/config/internal v0.105.0/go.mod h1:+Y5vRJ+lio2uuYlVPfy9AZVrip9Y0B9PiUA5Vz7lzZw=
-go.opentelemetry.io/collector/confmap v0.105.0 h1:3NP2BbUju42rjeQvRbmpCJGJGvbiV3WnGyXsVmocimo=
-go.opentelemetry.io/collector/confmap v0.105.0/go.mod h1:Oj1xUBRvAuL8OWWMj9sSYf1uQpB+AErpj+FKGUQLBI0=
+go.opentelemetry.io/collector/confmap v0.105.1-0.20240724211854-1c96225b6445 h1:MFH9LUok6a4bXmzvEPSJAWDvumL2SZExujdQ7P33OIY=
+go.opentelemetry.io/collector/confmap v0.105.1-0.20240724211854-1c96225b6445/go.mod h1:L9ztkc1hOR6J0TyxsBPSY6O/HalKiFdmH00ahwxRqhU=
 go.opentelemetry.io/collector/consumer v0.105.0 h1:pO5Tspoz7yvEs81+904HfDjByP8Z7uuNk+7pOr3lRHM=
 go.opentelemetry.io/collector/consumer v0.105.0/go.mod h1:tnaPDHUfKBJ01OnsJNRecniG9iciE+xHYLqamYwFQOQ=
 go.opentelemetry.io/collector/exporter v0.105.0 h1:O2xmjfaRbkbpo3XkwEcnuBHCoXc5kS9CjYO8geu+3vo=

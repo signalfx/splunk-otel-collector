@@ -557,8 +557,8 @@ github.com/go-test/deep v1.0.2-0.20181118220953-042da051cf31/go.mod h1:wGDj63lr6
 github.com/go-test/deep v1.1.0/go.mod h1:5C2ZWiW0ErCdrYzpqxLbTX7MG14M9iiw8DgHncVwcsE=
 github.com/go-test/deep v1.1.1 h1:0r/53hagsehfO4bzD2Pgr/+RgHqhmf+k1Bpse2cTu1U=
 github.com/go-test/deep v1.1.1/go.mod h1:5C2ZWiW0ErCdrYzpqxLbTX7MG14M9iiw8DgHncVwcsE=
-github.com/go-viper/mapstructure/v2 v2.0.0-alpha.1 h1:TQcrn6Wq+sKGkpyPvppOz99zsMBaUOKXq6HSv655U1c=
-github.com/go-viper/mapstructure/v2 v2.0.0-alpha.1/go.mod h1:oJDH3BJKyqBA2TXFhDsKDGDTlndYOZ6rGS0BRZIxGhM=
+github.com/go-viper/mapstructure/v2 v2.0.0 h1:dhn8MZ1gZ0mzeodTG3jt5Vj/o87xZKuNAprG2mQfMfc=
+github.com/go-viper/mapstructure/v2 v2.0.0/go.mod h1:oJDH3BJKyqBA2TXFhDsKDGDTlndYOZ6rGS0BRZIxGhM=
 github.com/go-zookeeper/zk v1.0.3 h1:7M2kwOsc//9VeeFiPtf+uSJlVpU66x9Ba5+8XK7/TDg=
 github.com/go-zookeeper/zk v1.0.3/go.mod h1:nOB03cncLtlp4t+UAkGSV+9beXP/akpekBwL+UX1Qcw=
 github.com/gobwas/glob v0.2.4-0.20181002190808-e7a84e9525fe h1:zn8tqiUbec4wR94o7Qj3LZCAT6uGobhEgnDRg6isG5U=
@@ -1850,8 +1850,8 @@ go.opentelemetry.io/collector/config/configtls v1.12.0 h1:Px0+GE4LE/9sXMgkwBb5g8
 go.opentelemetry.io/collector/config/configtls v1.12.0/go.mod h1:aeCGPlvrWhc+EySpIKdelPAj4l9wXKzZPouQO3NIoTs=
 go.opentelemetry.io/collector/config/internal v0.105.0 h1:PWnbeslkIGMjZzh5IJRjO6bA02d1Xrkjw2N60ixWzqQ=
 go.opentelemetry.io/collector/config/internal v0.105.0/go.mod h1:+Y5vRJ+lio2uuYlVPfy9AZVrip9Y0B9PiUA5Vz7lzZw=
-go.opentelemetry.io/collector/confmap v0.105.0 h1:3NP2BbUju42rjeQvRbmpCJGJGvbiV3WnGyXsVmocimo=
-go.opentelemetry.io/collector/confmap v0.105.0/go.mod h1:Oj1xUBRvAuL8OWWMj9sSYf1uQpB+AErpj+FKGUQLBI0=
+go.opentelemetry.io/collector/confmap v0.105.1-0.20240724211854-1c96225b6445 h1:MFH9LUok6a4bXmzvEPSJAWDvumL2SZExujdQ7P33OIY=
+go.opentelemetry.io/collector/confmap v0.105.1-0.20240724211854-1c96225b6445/go.mod h1:L9ztkc1hOR6J0TyxsBPSY6O/HalKiFdmH00ahwxRqhU=
 go.opentelemetry.io/collector/confmap/converter/expandconverter v0.105.0 h1:1c81AJg+WP+dGoAEftmc0KF5RK0mh4bxIFlU902CnFI=
 go.opentelemetry.io/collector/confmap/converter/expandconverter v0.105.0/go.mod h1:ImkfsdJToeP3ZZ5ZVmQUdaKEueVHiZbwrQGyoDx/EiM=
 go.opentelemetry.io/collector/confmap/provider/envprovider v0.105.0 h1:r+5ZxhDLYqd6klLky3gtgWHgG5L2LX6o6VIvaLG39Gs=

@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### 🛑 Breaking changes 🛑
+
+- (Splunk) Don't expand environment variables starting with $$ in configuration files. This behavior was introduced
+  in v0.42.0 to support a bug causing double expansion. $$ is treated as an escape sequence representing a literal
+  $ character ([#5134](https://github.com/signalfx/splunk-otel-collector/pull/5134))
+
 ### 💡 Enhancements 💡
 
 - (Splunk) Update bundled OpenJDK to [11.0.24_8](https://github.com/adoptium/temurin11-binaries/releases/tag/jdk-11.0.24%2B8) ([#5113](https://github.com/signalfx/splunk-otel-collector/pull/5113))

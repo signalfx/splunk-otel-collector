@@ -17,10 +17,8 @@ package configsource
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/url"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/knadh/koanf/maps"
@@ -42,21 +40,12 @@ const (
 	// typeAndNameSeparator is the separator that is used between type and name in type/name
 	// composite keys.
 	typeAndNameSeparator = '/'
-	// dollarDollarCompatEnvVar is a temporary env var to disable backward compatibility (true by default)
-	dollarDollarCompatEnvVar = "SPLUNK_DOUBLE_DOLLAR_CONFIG_SOURCE_COMPATIBLE"
 )
 
 // private error types to help with testability
 type (
 	errUnknownConfigSource struct{ error }
 )
-
-var ddBackwardCompatible = func() bool {
-	if v, err := strconv.ParseBool(strings.ToLower(os.Getenv(dollarDollarCompatEnvVar))); err == nil {
-		return v
-	}
-	return true
-}()
 
 type ConfigSource interface {
 	// Retrieve goes to the configuration source and retrieves the selected data which
@@ -346,56 +335,18 @@ func resolveStringValue(ctx context.Context, configSources map[string]ConfigSour
 			w := 0 // number of bytes consumed on this pass
 
 			switch {
-			case s[j+1] == expandPrefixChar:
-				// temporary backward compatibility to support updated $${config_source:value} functionality
-				// in provided configs from 0.37.0 until 0.42.0
-				bwCompatibilityRequired := false
-
-				var expanded, sourceName string
-				var ww int
-				if ddBackwardCompatible && len(s[j+1:]) > 2 {
-					if s[j+2] == '{' {
-						if expanded, ww, sourceName = getBracketedExpandableContent(s, j+2); sourceName != "" {
-							bwCompatibilityRequired = true
-						}
-					} else {
-						if expanded, ww, sourceName = getBareExpandableContent(s, j+2); sourceName != "" {
-							if len(expanded) > (len(sourceName) + 1) {
-								if !strings.Contains(expanded[len(sourceName)+1:], "$") {
-									bwCompatibilityRequired = true
-								}
-							}
-						}
-					}
-				}
-
-				if bwCompatibilityRequired {
-					log.Printf(
-						`Deprecated config source directive %q has been replaced with %q. Please update your config as necessary as this will be removed in future release. To disable this replacement set the SPLUNK_DOUBLE_DOLLAR_CONFIG_SOURCE_COMPATIBLE environment variable to "false" before restarting the Collector.`,
-						s[j:j+2+ww], s[j+1:j+2+ww],
-					)
-					expandableContent = expanded
-					w = ww + 1
-					cfgSrcName = sourceName
-				} else {
-					// Escaping the prefix so $$ becomes a single $ without attempting
-					// to treat the string after it as a config source or env var.
-					expandableContent = string(expandPrefixChar)
-					w = 1 // consumed a single char
-				}
-
 			case s[j+1] == '{':
 				expandableContent, w, cfgSrcName = getBracketedExpandableContent(s, j+1)
-
 			default:
+				// TODO: To be deprecated removed to align with the upstream behavior
 				expandableContent, w, cfgSrcName = getBareExpandableContent(s, j+1)
-
 			}
 
 			// At this point expandableContent contains a string to be expanded, evaluate and expand it.
 			switch {
 			case cfgSrcName == "":
 				// Not a config source, expand as os.ExpandEnv
+				// TODO: Align with confmap.strictlyTypedInput feature gate
 				buf = osExpandEnv(buf, expandableContent, w)
 
 			default:

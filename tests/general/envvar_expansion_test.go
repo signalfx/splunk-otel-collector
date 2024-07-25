@@ -41,26 +41,9 @@ func TestExpandedDollarSignsViaStandardEnvVar(t *testing.T) {
 	)
 }
 
-func TestExpandedDollarSignsViaEnvConfigSource(t *testing.T) {
-	testutils.CheckGoldenFileWithCollectorOptions(t, "env_config_source_labels.yaml", "env_config_source_labels_expected.yaml", func(collector testutils.Collector) testutils.Collector {
-		return collector.WithEnv(map[string]string{"AN_ENVVAR": "an-envvar-value"})
-	},
-		pmetrictest.IgnoreScopeVersion(),
-		pmetrictest.IgnoreTimestamp(),
-		pmetrictest.IgnoreStartTimestamp(),
-		pmetrictest.IgnoreMetricDataPointsOrder(),
-		pmetrictest.IgnoreScopeMetricsOrder(),
-		pmetrictest.IgnoreResourceMetricsOrder(),
-		pmetrictest.IgnoreMetricsOrder(),
-		pmetrictest.IgnoreMetricValues(),
-	)
-}
-
 func TestIncompatibleExpandedDollarSignsViaEnvConfigSource(t *testing.T) {
 	testutils.CheckGoldenFileWithCollectorOptions(t, "env_config_source_labels.yaml", "incompat_env_config_source_labels_expected.yaml", func(collector testutils.Collector) testutils.Collector {
-		return collector.WithEnv(map[string]string{
-			"SPLUNK_DOUBLE_DOLLAR_CONFIG_SOURCE_COMPATIBLE": "false",
-			"AN_ENVVAR": "an-envvar-value"})
+		return collector.WithEnv(map[string]string{"AN_ENVVAR": "an-envvar-value"})
 	},
 		pmetrictest.IgnoreScopeVersion(),
 		pmetrictest.IgnoreTimestamp(),

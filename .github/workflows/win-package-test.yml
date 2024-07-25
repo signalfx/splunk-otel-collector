@@ -209,200 +209,32 @@ jobs:
         run: |
           .\run-tests.ps1
 
-  msi-without-wrappers-test:
-    runs-on: ${{ matrix.OS }}
-    needs: [msi-build]
-    timeout-minutes: 15
-    strategy:
-      max-parallel: 1
-      matrix:
-        OS: [ "windows-2022" ]
-        install-properties:
-
-          - test: "default"
-            install: "SPLUNK_ACCESS_TOKEN=fakeToken"
-            expected: "-mode agent -access_token fakeToken -realm us0 -memory $null -with_fluentd false"
-
-          - test: "gateway"
-            install: "SPLUNK_SETUP_COLLECTOR_MODE=gateway SPLUNK_ACCESS_TOKEN=testing123"
-            expected: "-mode gateway -access_token testing123 -realm us0 -memory $null -with_fluentd false"
-
-          - test: "realm"
-            install: "SPLUNK_REALM=myrealm SPLUNK_ACCESS_TOKEN=testing"
-            expected: "-mode agent -access_token testing -realm myrealm -memory $null -with_fluentd false"
-
-          - test: "ingest-url"
-            install: "SPLUNK_INGEST_URL=https://fake.ingest.url SPLUNK_ACCESS_TOKEN=testing"
-            expected: "-mode agent -realm us0 -access_token testing -ingest_url \"https://fake.ingest.url\" -memory $null -with_fluentd false"
-
-          - test: "optional-params"
-            install: "SPLUNK_ACCESS_TOKEN=fakeToken SPLUNK_MEMORY_TOTAL_MIB=256"
-            expected: "-mode agent -access_token fakeToken -realm us0 -memory 256 -with_fluentd false"
-
-    steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v4
-
-      - name: Downloading msi build
-        uses: actions/download-artifact@v4
-        with:
-          name: msi-build
-          path: ./dist
-
-      - name: Ensure required ports in the dynamic range are available
-        run: |
-          $ErrorActionPreference = 'Continue'
-          & ${{ github.workspace }}\.github\workflows\scripts\win-required-ports.ps1
-
-      - name: Install the collector
-        run: |
-          $ErrorActionPreference = 'Stop'
-          $msi_path = Resolve-Path .\dist\splunk-otel-collector*.msi
-          Test-Path $msi_path
-          Write-Host "Installing $msi_path ..."
-          $process = Start-Process -Wait -PassThru msiexec "/i `"$msi_path`" /qn /l*v msi-install.log ${{ matrix.install-properties.install }}"
-          if ($process.ExitCode -ne 0) {
-            throw "MSI installation failed with exit code $($process.ExitCode)"
-          }
-
-      - name: "In case of failure: display the install logs"
-        if: ${{ failure() }}
-        run: Get-Content msi-install.log
-
-      - name: Start the collector service
-        run: |
-          $sc = Start-Service splunk-otel-collector -PassThru
-          $sc.WaitForStatus('Running', '00:00:30')
-
-      - name: Check registry expectations
-        run: |
-          $ErrorActionPreference = 'Stop'
-          & ${{ github.workspace }}\.github\workflows\scripts\win-test-services.ps1 ${{ matrix.install-properties.expected }}
-
-      - name: Stop the collector service
-        run: |
-          $sc = Stop-Service splunk-otel-collector -PassThru
-          $sc.WaitForStatus('Stopped', '00:00:30')
-
-      - name: "In case of failure: collect splunk-otel-collector events"
-        if: ${{ failure() }}
-        run: Get-WinEvent -ProviderName splunk-otel-collector | Sort-Object -Property TimeCreated | Select-Object -Property Message | Format-List
-
-      - name: Uninstall the collector
-        run: |
-          $ErrorActionPreference = 'Stop'
-          $uninstall_info = Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\uninstall\* | Where { $_.DisplayName -eq "Splunk OpenTelemetry Collector" }
-          Write-Host "Uninstalling $($uninstall_info.PSChildName) ..."
-          $process = Start-Process -Wait -PassThru msiexec "/x $($uninstall_info.PSChildName) /qn /norestart"
-          if ($process.ExitCode -ne 0) {
-            throw "MSI installation failed with exit code $($process.ExitCode)"
-          }
-
-      - name: Check no leftover on the registry
-        run: |
-          $ErrorActionPreference = 'Stop'
-          $uninstall_info = Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\uninstall\* | Where { $_.DisplayName -eq "Splunk OpenTelemetry Collector" }
-          if ($uninstall_info -ne $null) {
-            throw "MSI uninstall failed"
-          }
-
-  msi-reinstall-test:
-    runs-on: windows-2022
-    needs: [msi-build]
-    timeout-minutes: 15
-
-    steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v4
-
-      - name: Downloading msi build
-        uses: actions/download-artifact@v4
-        with:
-          name: msi-build
-          path: ./dist
-
-      - name: Ensure required ports in the dynamic range are available
-        run: |
-          $ErrorActionPreference = 'Continue'
-          & ${{ github.workspace }}\.github\workflows\scripts\win-required-ports.ps1
-
-      - name: Install the collector
-        run: |
-          $ErrorActionPreference = 'Stop'
-          $msi_path = Resolve-Path .\dist\splunk-otel-collector*.msi
-          Test-Path $msi_path
-          Write-Host "Installing $msi_path ..."
-          $process = Start-Process -Wait -PassThru msiexec "/i `"$msi_path`" /qn /l*v msi-install.log SPLUNK_ACCESS_TOKEN=1stInstall SPLUNK_REALM=1st"
-          if ($process.ExitCode -ne 0) {
-            throw "MSI installation failed with exit code $($process.ExitCode)"
-          }
-
-      - name: "In case of failure: display the install logs"
-        if: ${{ failure() }}
-        run: Get-Content msi-install.log
-
-      - name: Start the collector service
-        run: |
-          $sc = Start-Service splunk-otel-collector -PassThru
-          $sc.WaitForStatus('Running', '00:00:30')
-
-      - name: "In case of failure: collect splunk-otel-collector events"
-        if: ${{ failure() }}
-        run: Get-WinEvent -ProviderName splunk-otel-collector | Sort-Object -Property TimeCreated | Select-Object -Property Message | Format-List
-  
-      - name: Check registry expectations
-        run: |
-          $ErrorActionPreference = 'Stop'
-          & ${{ github.workspace }}\.github\workflows\scripts\win-test-services.ps1 -mode agent -realm 1st -access_token 1stInstall  -memory $null -with_fluentd false
-
-      - name: Reinstall the collector
-        run: |
-          $ErrorActionPreference = 'Stop'
-          $msi_path = Resolve-Path .\dist\splunk-otel-collector*.msi
-          Test-Path $msi_path
-          Write-Host "Reinstalling $msi_path ..."
-          $process = Start-Process -Wait -PassThru msiexec "/i `"$msi_path`" /qn /l*v msi-reinstall.log SPLUNK_ACCESS_TOKEN=2ndInstall SPLUNK_REALM=2nd SPLUNK_MEMORY_TOTAL_MIB=256 REINSTALL=SplunkCollectorConfiguration"
-          if ($process.ExitCode -ne 0) {
-            throw "MSI installation failed with exit code $($process.ExitCode)"
-          }
-
-      - name: "In case of failure: display the reinstall logs"
-        if: ${{ failure() }}
-        run: Get-Content msi-reinstall.log
-
-      - name: Start the collector service after reinstall
-        run: |
-          $sc = Start-Service splunk-otel-collector -PassThru
-          $sc.WaitForStatus('Running', '00:00:30')
-
-      - name: Check registry expectations
-        run: |
-          $ErrorActionPreference = 'Stop'
-          & ${{ github.workspace }}\.github\workflows\scripts\win-test-services.ps1 -mode agent -realm 2nd -access_token 2ndInstall -memory 256 -with_fluentd false
-
-      - name: "In case of failure: collect splunk-otel-collector events"
-        if: ${{ failure() }}
-        run: Get-WinEvent -ProviderName splunk-otel-collector | Sort-Object -Property TimeCreated | Select-Object -Property Message | Format-List
-
-      - name: Uninstall the collector
-        run: |
-          $ErrorActionPreference = 'Stop'
-          $uninstall_info = Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\uninstall\* | Where { $_.DisplayName -eq "Splunk OpenTelemetry Collector" }
-          Write-Host "Uninstalling $($uninstall_info.PSChildName) ..."
-          $process = Start-Process -Wait -PassThru msiexec "/x $($uninstall_info.PSChildName) /qn /norestart"
-          if ($process.ExitCode -ne 0) {
-            throw "MSI installation failed with exit code $($process.ExitCode)"
-          }
-
-      - name: Check no leftover on the registry
-        run: |
-          $ErrorActionPreference = 'Stop'
-          $uninstall_info = Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\uninstall\* | Where { $_.DisplayName -eq "Splunk OpenTelemetry Collector" }
-          if ($uninstall_info -ne $null) {
-            throw "MSI uninstall failed"
-          }
-
   msi-test:
+    runs-on: otel-windows
+    needs: [msi-build]
+    timeout-minutes: 40
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v4
+
+      - name: Downloading msi build
+        uses: actions/download-artifact@v4
+        with:
+          name: msi-build
+          path: ./dist
+
+      - name: Set the MSI_COLLECTOR_PATH environment variable
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $msi_path = Resolve-Path .\dist\splunk-otel-collector*.msi
+          Test-Path $msi_path
+          "MSI_COLLECTOR_PATH=$msi_path" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Run the MSI tests
+        run: |
+          go test -timeout 15m -v github.com/signalfx/splunk-otel-collector/tests/msi
+
+  windows-install-script-test:
     runs-on: ${{ matrix.OS }}
     needs: [msi-build]
     strategy:

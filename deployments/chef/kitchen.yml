@@ -175,6 +175,8 @@ suites:
         auto_instrumentation_enable_profiler_memory: true
         auto_instrumentation_enable_metrics: true
         auto_instrumentation_otlp_endpoint: http://0.0.0.0:4317
+        auto_instrumentation_otlp_endpoint_protocol: grpc
+        auto_instrumentation_metrics_exporter: none
 
   - name: with_default_systemd_instrumentation
     run_list:
@@ -208,6 +210,8 @@ suites:
         auto_instrumentation_enable_profiler_memory: true
         auto_instrumentation_enable_metrics: true
         auto_instrumentation_otlp_endpoint: http://0.0.0.0:4317
+        auto_instrumentation_otlp_endpoint_protocol: grpc
+        auto_instrumentation_metrics_exporter: none
 
   - name: with_default_preload_java_instrumentation
     run_list:
@@ -237,6 +241,8 @@ suites:
         auto_instrumentation_enable_profiler_memory: true
         auto_instrumentation_enable_metrics: true
         auto_instrumentation_otlp_endpoint: http://0.0.0.0:4317
+        auto_instrumentation_otlp_endpoint_protocol: grpc
+        auto_instrumentation_metrics_exporter: none
 
   - name: with_default_systemd_java_instrumentation
     run_list:
@@ -267,6 +273,8 @@ suites:
         auto_instrumentation_enable_profiler_memory: true
         auto_instrumentation_enable_metrics: true
         auto_instrumentation_otlp_endpoint: http://0.0.0.0:4317
+        auto_instrumentation_otlp_endpoint_protocol: grpc
+        auto_instrumentation_metrics_exporter: none
 
   - name: with_default_preload_node_instrumentation
     run_list:
@@ -302,6 +310,8 @@ suites:
         auto_instrumentation_enable_profiler_memory: true
         auto_instrumentation_enable_metrics: true
         auto_instrumentation_otlp_endpoint: http://0.0.0.0:4317
+        auto_instrumentation_otlp_endpoint_protocol: grpc
+        auto_instrumentation_metrics_exporter: none
 
   - name: with_default_systemd_node_instrumentation
     run_list:
@@ -338,6 +348,8 @@ suites:
         auto_instrumentation_enable_profiler_memory: true
         auto_instrumentation_enable_metrics: true
         auto_instrumentation_otlp_endpoint: http://0.0.0.0:4317
+        auto_instrumentation_otlp_endpoint_protocol: grpc
+        auto_instrumentation_metrics_exporter: none
 
   - name: with_default_preload_dotnet_instrumentation
     run_list:
@@ -367,6 +379,8 @@ suites:
         auto_instrumentation_enable_profiler_memory: true
         auto_instrumentation_enable_metrics: true
         auto_instrumentation_otlp_endpoint: http://0.0.0.0:4317
+        auto_instrumentation_otlp_endpoint_protocol: grpc
+        auto_instrumentation_metrics_exporter: none
 
   - name: with_default_systemd_dotnet_instrumentation
     run_list:
@@ -397,6 +411,8 @@ suites:
         auto_instrumentation_enable_profiler_memory: true
         auto_instrumentation_enable_metrics: true
         auto_instrumentation_otlp_endpoint: http://0.0.0.0:4317
+        auto_instrumentation_otlp_endpoint_protocol: grpc
+        auto_instrumentation_metrics_exporter: none
 
   - name: with_default_preload_instrumentation_without_npm
     run_list:

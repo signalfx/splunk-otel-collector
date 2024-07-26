@@ -148,15 +148,13 @@ func CheckGoldenFileWithCollectorOptions(t *testing.T, configFile string, expect
 	if runtime.GOOS == "darwin" {
 		dockerHost = "host.docker.internal"
 	}
-	collectorContainer := NewCollectorContainer()
-	collectorOptionsFunc(&collectorContainer)
-	p, err := collectorContainer.
+	collectorContainer := NewCollectorContainer().
 		WithImage(GetCollectorImageOrSkipTest(t)).
 		WithExposedPorts("55679:55679", "55554:55554"). // This is required for tests that read the zpages or the config.
 		WithConfigPath(filepath.Join("testdata", configFile)).
 		WithLogger(logger).
-		WithEnv(map[string]string{"OTLP_ENDPOINT": fmt.Sprintf("%s:%d", dockerHost, port)}).
-		Build()
+		WithEnv(map[string]string{"OTLP_ENDPOINT": fmt.Sprintf("%s:%d", dockerHost, port)})
+	p, err := collectorOptionsFunc(collectorContainer).Build()
 	require.NoError(t, err)
 	require.NoError(t, p.Start())
 	t.Cleanup(func() {

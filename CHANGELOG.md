@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### 🛑 Breaking changes 🛑
+
+- (Splunk) Don't expand environment variables starting with $$ in configuration files. This behavior was introduced
+  in v0.42.0 to support a bug causing double expansion. $$ is treated as an escape sequence representing a literal
+  $ character ([#5134](https://github.com/signalfx/splunk-otel-collector/pull/5134))
+
 ### 💡 Enhancements 💡
 
 - (Splunk) `discovery`: Enable discovery mode for SQL Server receiver ([#5109](https://github.com/signalfx/splunk-otel-collector/pull/5109))

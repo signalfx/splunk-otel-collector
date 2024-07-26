@@ -56,63 +56,63 @@ type CollectorContainer struct {
 }
 
 // To be used as a builder whose Build() method provides the actual instance capable of launching the process.
-func NewCollectorContainer() CollectorContainer {
-	return CollectorContainer{Args: []string{}, Container: NewContainer(), Mounts: map[string]string{}}
+func NewCollectorContainer() *CollectorContainer {
+	return &CollectorContainer{Args: []string{}, Container: NewContainer(), Mounts: map[string]string{}}
 }
 
 // otelcol:latest by default
-func (collector CollectorContainer) WithImage(image string) CollectorContainer {
+func (collector *CollectorContainer) WithImage(image string) *CollectorContainer {
 	collector.Image = image
 	return collector
 }
 
-func (collector CollectorContainer) WithExposedPorts(ports ...string) CollectorContainer {
+func (collector *CollectorContainer) WithExposedPorts(ports ...string) *CollectorContainer {
 	collector.Ports = append(collector.Ports, ports...)
 	return collector
 }
 
 // Will use bundled config by default
-func (collector CollectorContainer) WithConfigPath(path string) Collector {
+func (collector *CollectorContainer) WithConfigPath(path string) Collector {
 	collector.ConfigPath = path
-	return &collector
+	return collector
 }
 
 // []string{} by default
-func (collector CollectorContainer) WithArgs(args ...string) Collector {
+func (collector *CollectorContainer) WithArgs(args ...string) Collector {
 	collector.Args = args
-	return &collector
+	return collector
 }
 
 // empty by default
-func (collector CollectorContainer) WithEnv(env map[string]string) Collector {
+func (collector *CollectorContainer) WithEnv(env map[string]string) Collector {
 	for k, v := range env {
 		collector.Container.Env[k] = v
 	}
-	return &collector
+	return collector
 }
 
 // Nop logger by default
-func (collector CollectorContainer) WithLogger(logger *zap.Logger) Collector {
+func (collector *CollectorContainer) WithLogger(logger *zap.Logger) Collector {
 	collector.Logger = logger
-	return &collector
+	return collector
 }
 
 // "info" by default, but currently a noop
-func (collector CollectorContainer) WithLogLevel(level string) Collector {
+func (collector *CollectorContainer) WithLogLevel(level string) Collector {
 	collector.LogLevel = level
-	return &collector
+	return collector
 }
 
-func (collector CollectorContainer) WillFail(fail bool) Collector {
+func (collector *CollectorContainer) WillFail(fail bool) Collector {
 	collector.Fail = fail
-	return &collector
+	return collector
 }
-func (collector CollectorContainer) WithMount(path string, mountPoint string) Collector {
+func (collector *CollectorContainer) WithMount(path string, mountPoint string) Collector {
 	collector.Mounts[path] = mountPoint
-	return &collector
+	return collector
 }
 
-func (collector CollectorContainer) Build() (Collector, error) {
+func (collector *CollectorContainer) Build() (Collector, error) {
 	if collector.Image == "" && collector.Container.Dockerfile.Context == "" {
 		collector.Image = "otelcol:latest"
 	}
@@ -165,7 +165,7 @@ func (collector CollectorContainer) Build() (Collector, error) {
 
 	collector.Container = *(collector.Container.Build())
 
-	return &collector, nil
+	return collector, nil
 }
 
 func (collector *CollectorContainer) Start() error {

@@ -49,60 +49,60 @@ type CollectorProcess struct {
 	Fail             bool
 }
 
-func (collector CollectorProcess) WithMount(string, string) Collector {
-	return &collector
+func (collector *CollectorProcess) WithMount(string, string) Collector {
+	return collector
 }
 
 // To be used as a builder whose Build() method provides the actual instance capable of launching the process.
-func NewCollectorProcess() CollectorProcess {
-	return CollectorProcess{Env: map[string]string{}}
+func NewCollectorProcess() *CollectorProcess {
+	return &CollectorProcess{Env: map[string]string{}}
 }
 
 // Nearest `bin/otelcol` by default
-func (collector CollectorProcess) WithPath(path string) CollectorProcess {
+func (collector *CollectorProcess) WithPath(path string) *CollectorProcess {
 	collector.Path = path
 	return collector
 }
 
 // Required
-func (collector CollectorProcess) WithConfigPath(path string) Collector {
+func (collector *CollectorProcess) WithConfigPath(path string) Collector {
 	collector.ConfigPath = path
-	return &collector
+	return collector
 }
 
 // []string{"--set=service.telemetry.logs.level={collector.LogLevel}", "--config", collector.ConfigPath, "--set=service.telemetry.metrics.level=none"} by default
-func (collector CollectorProcess) WithArgs(args ...string) Collector {
+func (collector *CollectorProcess) WithArgs(args ...string) Collector {
 	collector.Args = args
-	return &collector
+	return collector
 }
 
 // empty by default
-func (collector CollectorProcess) WithEnv(env map[string]string) Collector {
+func (collector *CollectorProcess) WithEnv(env map[string]string) Collector {
 	for k, v := range env {
 		collector.Env[k] = v
 	}
-	return &collector
+	return collector
 }
 
 // Nop logger by default
-func (collector CollectorProcess) WithLogger(logger *zap.Logger) Collector {
+func (collector *CollectorProcess) WithLogger(logger *zap.Logger) Collector {
 	collector.Logger = logger
-	return &collector
+	return collector
 }
 
 // info by default
-func (collector CollectorProcess) WithLogLevel(level string) Collector {
+func (collector *CollectorProcess) WithLogLevel(level string) Collector {
 	collector.LogLevel = level
-	return &collector
+	return collector
 }
 
 // noop at this time
-func (collector CollectorProcess) WillFail(fail bool) Collector {
+func (collector *CollectorProcess) WillFail(fail bool) Collector {
 	collector.Fail = fail
-	return &collector
+	return collector
 }
 
-func (collector CollectorProcess) Build() (Collector, error) {
+func (collector *CollectorProcess) Build() (Collector, error) {
 	if collector.Path == "" {
 		collectorPath, err := findCollectorPath()
 		if err != nil {
@@ -137,7 +137,7 @@ func (collector CollectorProcess) Build() (Collector, error) {
 		EnvironmentVariables: collector.Env,
 	}
 	collector.Process = subprocess.NewSubprocess(collector.subprocessConfig, collector.Logger)
-	return &collector, nil
+	return collector, nil
 }
 
 func (collector *CollectorProcess) Start() error {

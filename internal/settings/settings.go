@@ -79,7 +79,7 @@ var DefaultAgentConfigWindows = func() string {
 }()
 
 var defaultFeatureGates = []string{
-	// Remove the feature gates once we deprecate our env var expansion mechanism and adopt the upstream env
+	// Remove the feature gates once we deprecate our env var expansion mechanism and adopt the upstream one.
 	"-confmap.strictlyTypedInput",
 	"-confmap.unifyEnvVarExpansion",
 }

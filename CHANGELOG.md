@@ -8,6 +8,12 @@
   in v0.42.0 to support a bug causing double expansion. $$ is treated as an escape sequence representing a literal
   $ character ([#5134](https://github.com/signalfx/splunk-otel-collector/pull/5134))
 
+### 🚩Deprecations 🚩
+
+- (Splunk) Deprecate usage of bare environment variables and config sources in configuration files. 
+  - Use `${env:VAR}` or `${VAR}` instead of `$VAR`.
+  - Use `${uri:selector}` instead of `$uri:selector`, e.g. `${file:/path/to/file}` instead of `$file:/path/to/file`.
+
 ### 💡 Enhancements 💡
 
 - (Splunk) `discovery`: Enable discovery mode for SQL Server receiver ([#5109](https://github.com/signalfx/splunk-otel-collector/pull/5109))

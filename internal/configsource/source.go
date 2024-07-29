@@ -17,9 +17,11 @@ package configsource
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/url"
 	"os"
 	"strings"
+	"sync"
 
 	"github.com/knadh/koanf/maps"
 	"github.com/spf13/cast"
@@ -334,11 +336,12 @@ func resolveStringValue(ctx context.Context, configSources map[string]ConfigSour
 			var expandableContent, cfgSrcName string
 			w := 0 // number of bytes consumed on this pass
 
+			var deprecatedFormUsed bool
 			switch {
 			case s[j+1] == '{':
 				expandableContent, w, cfgSrcName = getBracketedExpandableContent(s, j+1)
 			default:
-				// TODO: To be deprecated removed to align with the upstream behavior
+				deprecatedFormUsed = true
 				expandableContent, w, cfgSrcName = getBareExpandableContent(s, j+1)
 			}
 
@@ -346,10 +349,20 @@ func resolveStringValue(ctx context.Context, configSources map[string]ConfigSour
 			switch {
 			case cfgSrcName == "":
 				// Not a config source, expand as os.ExpandEnv
-				// TODO: Align with confmap.strictlyTypedInput feature gate
+				if deprecatedFormUsed {
+					printDeprecationWarningOnce(fmt.Sprintf(
+						"[WARNING] Variable substitution using $VAR has been deprecated in favor of ${VAR} and "+
+							"${env:VAR}. Please update $%s in your configuration", expandableContent))
+				}
 				buf = osExpandEnv(buf, expandableContent, w)
 
 			default:
+				if deprecatedFormUsed {
+					printDeprecationWarningOnce(fmt.Sprintf(
+						"[WARNING] Config source expansion formatted as $uri:selector has been deprecated, "+
+							"use ${uri:selector[?params]} instead. Please replace $%s with ${%s} in your configuration",
+						expandableContent, expandableContent))
+				}
 				// A config source, retrieve and apply results.
 				retrieved, closeFunc, err := retrieveConfigSourceData(ctx, configSources, confmapProviders, cfgSrcName, expandableContent, watcher)
 				if err != nil {
@@ -703,5 +716,14 @@ func MergeCloseFuncs(closeFuncs []confmap.CloseFunc) confmap.CloseFunc {
 			}
 		}
 		return errs
+	}
+}
+
+var deprecationWarningsPrinted = &sync.Map{}
+
+func printDeprecationWarningOnce(msg string) {
+	if _, ok := deprecationWarningsPrinted.Load(msg); !ok {
+		deprecationWarningsPrinted.Store(msg, struct{}{})
+		log.Println(msg)
 	}
 }

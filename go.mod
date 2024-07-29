@@ -8,7 +8,7 @@ require (
 	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/expr-lang/expr v1.16.9
 	github.com/fsnotify/fsnotify v1.7.0
-	github.com/go-zookeeper/zk v1.0.3
+	github.com/go-zookeeper/zk v1.0.4
 	github.com/gogo/protobuf v1.3.2
 	github.com/hashicorp/vault v1.17.2
 	github.com/hashicorp/vault-plugin-auth-gcp v0.18.0

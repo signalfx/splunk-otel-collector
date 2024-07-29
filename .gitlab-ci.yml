@@ -26,6 +26,7 @@ include:
     file:
       - '/prodsec/.oss-scan.yml'
       - '/prodsec/.binary-scan.yml'
+      - '/prodsec/.container-scan.yml'
   - project: 'core-ee/signing/api-integration'
     ref: develop
     file: '/templates/.sign-client.yml'
@@ -1270,6 +1271,26 @@ sign-multiarch-manifest:
     - push-multiarch-manifest
   before_script:
     - mv tags_to_sign_${MANIFEST} tags_to_sign
+
+xray-scan-docker:
+  only:
+    - main
+  except:
+    - schedules
+  extends: .container-scan
+  stage: xray-scan
+  parallel:
+    matrix:
+      # - CHILD: ["amd64", "arm64", "ppc64le", "2019", "2022"]
+      - CHILD: ["amd64"]  # the .container-scan template currently only supports linux/amd64 images
+  needs:
+    - push-multiarch-manifest
+    - sign-multiarch-manifest
+  variables:
+    create_jira: "true"
+  before_script:
+    - export CONTAINER_IMAGE="$(cat tags_to_sign_multiarch)-${CHILD}"
+    - echo $CONTAINER_IMAGE
 
 github-release:
   extends:

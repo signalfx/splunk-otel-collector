@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### 🛑 Breaking changes 🛑
+
+- (Splunk) Don't expand environment variables starting with $$ in configuration files. This behavior was introduced
+  in v0.42.0 to support a bug causing double expansion. $$ is treated as an escape sequence representing a literal
+  $ character ([#5134](https://github.com/signalfx/splunk-otel-collector/pull/5134))
+
+### 💡 Enhancements 💡
+
+- (Splunk) `discovery`: Enable discovery mode for SQL Server receiver ([#5109](https://github.com/signalfx/splunk-otel-collector/pull/5109))
+- (Splunk) Update bundled OpenJDK to [11.0.24_8](https://github.com/adoptium/temurin11-binaries/releases/tag/jdk-11.0.24%2B8) ([#5113](https://github.com/signalfx/splunk-otel-collector/pull/5113))
+
 ## v0.104.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.104.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.104.0) and the [opentelemetry-collector-contrib v0.104.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.104.0) releases where appropriate.

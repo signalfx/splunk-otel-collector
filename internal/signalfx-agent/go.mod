@@ -9,14 +9,14 @@ replace (
 
 require (
 	code.cloudfoundry.org/go-loggregator v7.4.0+incompatible
-	github.com/Microsoft/go-winio v0.6.1 // indirect
+	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/SAP/go-hdb v1.9.10
 	github.com/Sectorbob/mlab-ns2 v0.0.0-20171030222938-d3aa0c295a8a
 	github.com/antonmedv/expr v1.15.5
 	github.com/beevik/ntp v1.4.3
 	github.com/cloudfoundry-incubator/uaago v0.0.0-20190307164349-8136b7bbe76e
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
-	github.com/docker/docker v25.0.5+incompatible
+	github.com/docker/docker v26.1.4+incompatible
 	github.com/docker/go-connections v0.5.0 // indirect
 	github.com/go-playground/locales v0.14.1
 	github.com/go-playground/universal-translator v0.18.1
@@ -24,7 +24,7 @@ require (
 	github.com/go-test/deep v1.1.1
 	github.com/gobwas/glob v0.2.4-0.20181002190808-e7a84e9525fe
 	github.com/gogo/protobuf v1.3.2
-	github.com/google/cadvisor v0.49.1
+	github.com/google/cadvisor v0.50.0
 	github.com/gorilla/mux v1.8.1
 	github.com/iancoleman/strcase v0.3.0
 	github.com/jackc/pgx/v4 v4.18.3
@@ -36,7 +36,7 @@ require (
 	github.com/mitchellh/hashstructure v1.1.0
 	github.com/mongodb/go-client-mongodb-atlas v0.2.0
 	github.com/onsi/ginkgo v1.16.5
-	github.com/onsi/gomega v1.33.1
+	github.com/onsi/gomega v1.34.0
 	github.com/openshift/api v0.0.0-20230417092139-1b2161d23365
 	github.com/openshift/client-go v0.0.0-20230419131419-497c7032c581
 	github.com/opentracing/opentracing-go v1.2.1-0.20220228012449-10b1cf09e00b
@@ -54,7 +54,7 @@ require (
 	github.com/snowflakedb/gosnowflake v1.10.1
 	github.com/stretchr/testify v1.9.0
 	github.com/ulule/deepcopier v0.0.0-20171107155558-ca99b135e50f
-	github.com/vmware/govmomi v0.38.0
+	github.com/vmware/govmomi v0.39.0
 	golang.org/x/net v0.26.0 // indirect
 	golang.org/x/sync v0.7.0
 	golang.org/x/sys v0.22.0
@@ -104,22 +104,21 @@ require (
 	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137 // indirect
 	github.com/apache/arrow/go/v15 v15.0.0 // indirect
 	github.com/apache/thrift v0.20.0 // indirect
-	github.com/aws/aws-sdk-go-v2 v1.26.1 // indirect
+	github.com/aws/aws-sdk-go-v2 v1.30.1 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.2 // indirect
-	github.com/aws/aws-sdk-go-v2/credentials v1.17.11 // indirect
+	github.com/aws/aws-sdk-go-v2/credentials v1.17.24 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.16.15 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.5 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.5 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.13 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.13 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.3.5 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.11.2 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.11.3 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.3.7 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.11.7 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.11.15 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.17.5 // indirect
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.53.1 // indirect
-	github.com/aws/smithy-go v1.20.2 // indirect
-	github.com/containerd/log v0.1.0 // indirect
+	github.com/aws/smithy-go v1.20.3 // indirect
 	github.com/danieljoos/wincred v1.2.0 // indirect
-	github.com/distribution/reference v0.5.0 // indirect
+	github.com/distribution/reference v0.6.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/dropbox/godropbox v0.0.0-20200228041828-52ad444d3502 // indirect
 	github.com/dvsekhvalnov/jose2go v1.6.0 // indirect
@@ -177,6 +176,7 @@ require (
 	github.com/klauspost/cpuid/v2 v2.2.6 // indirect
 	github.com/lufia/plan9stats v0.0.0-20231016141302-07b5767bb0ed // indirect
 	github.com/miekg/dns v1.1.58 // indirect
+	github.com/moby/docker-image-spec v1.3.1 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/mtibben/percent v0.2.1 // indirect
@@ -184,7 +184,7 @@ require (
 	github.com/mwielbut/pointy v1.1.0 // indirect
 	github.com/nxadm/tail v1.4.8 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
-	github.com/opencontainers/image-spec v1.1.0-rc5 // indirect
+	github.com/opencontainers/image-spec v1.1.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.21 // indirect
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect

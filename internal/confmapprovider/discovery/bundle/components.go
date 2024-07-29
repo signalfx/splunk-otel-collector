@@ -31,6 +31,7 @@ var (
 	// If they are desired for !windows BundledFS inclusion (and a default linux conf.d entry), ensure they are included
 	// in Components.Linux. If desired in windows BundledFS, ensure they are included in Components.Windows.
 	receivers = []string{
+		"jmx-cassandra",
 		"kafkametrics",
 		"mongodb",
 		"mysql",
@@ -40,6 +41,7 @@ var (
 		"smartagent-collectd-mysql",
 		"smartagent-collectd-nginx",
 		"smartagent-postgresql",
+		"sqlserver",
 	}
 
 	Components = DiscoComponents{
@@ -63,6 +65,7 @@ var (
 		}(),
 		Windows: func() map[string]struct{} {
 			windows := map[string]struct{}{
+				"jmx-cassandra":         {},
 				"kafkametrics":          {},
 				"mongodb":               {},
 				"mysql":                 {},
@@ -70,6 +73,7 @@ var (
 				"postgresql":            {},
 				"redis":                 {},
 				"smartagent-postgresql": {},
+				"sqlserver":             {},
 			}
 			for _, extension := range extensions {
 				windows[extension] = struct{}{}

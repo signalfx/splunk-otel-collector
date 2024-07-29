@@ -144,6 +144,7 @@ I. Receivers
 * `smartagent` with `collectd/mysql` monitor type ([Linux](./bundle/bundle.d/receivers/smartagent-collectd-mysql.discovery.yaml))
 * `smartagent` with `collectd/nginx` monitor type ([Linux](./bundle/bundle.d/receivers/smartagent-collectd-nginx.discovery.yaml))
 * `smartagent` with `postgresql` monitor type ([Linux and Windows](./bundle/bundle.d/receivers/smartagent-postgresql.discovery.yaml))
+* `sqlserver` ([Linux And Windows](./bundle/bundle.d/receivers/sqlserver.discovery.yaml))
 
 II. Extensions
 * `docker_observer` ([Linux and Windows](./bundle/bundle.d/extensions/docker-observer.discovery.yaml))

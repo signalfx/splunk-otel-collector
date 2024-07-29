@@ -154,8 +154,8 @@ func mongoDBAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFile st
 				}
 			}
 		}
-		assert.True(t, seenMessageAttr > 0)
-		assert.True(t, seenReceiverTypeAttr > 0)
+		assert.True(tt, seenMessageAttr > 0)
+		assert.True(tt, seenReceiverTypeAttr > 0)
 	}, 60*time.Second, 5*time.Second)
 
 	return &otelContainer{Container: container}, nil

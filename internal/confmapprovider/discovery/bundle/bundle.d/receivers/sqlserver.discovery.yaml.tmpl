@@ -87,8 +87,6 @@
         regexp: "Login failed for user"
         message: >-
             Make sure your user credentials are correctly specified using the
-            `--set {{ configProperty "username" "<username>" }}` and
-            `--set {{ configProperty "password" "<password>" }}` command or the
             `{{ configPropertyEnvVar "username" "<username>" }}` and
             `{{ configPropertyEnvVar "password" "<password>" }}` environment variables.
       - status: partial

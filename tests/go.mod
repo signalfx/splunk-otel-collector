@@ -3,7 +3,7 @@ module github.com/signalfx/splunk-otel-collector/tests
 go 1.21.0
 
 require (
-	github.com/docker/docker v26.1.4+incompatible
+	github.com/docker/docker v27.1.1+incompatible
 	github.com/docker/go-connections v0.5.0
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/google/uuid v1.6.0

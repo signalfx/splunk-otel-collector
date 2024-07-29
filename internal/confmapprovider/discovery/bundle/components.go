@@ -41,6 +41,7 @@ var (
 		"smartagent-collectd-mysql",
 		"smartagent-collectd-nginx",
 		"smartagent-postgresql",
+		"sqlserver",
 	}
 
 	Components = DiscoComponents{
@@ -72,6 +73,7 @@ var (
 				"postgresql":            {},
 				"redis":                 {},
 				"smartagent-postgresql": {},
+				"sqlserver":             {},
 			}
 			for _, extension := range extensions {
 				windows[extension] = struct{}{}

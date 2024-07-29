@@ -24,6 +24,36 @@ services:
     build: ./cassandra
     ports:
       - "7199:7199"
+  # Cassandra  without auth
+  cassandra-jmx-noauth:
+    profiles:
+      - cassandra
+      - integration-test-jmx/cassandra-discovery
+    build:
+      dockerfile_inline: |
+        FROM cassandra:5
+        ENV LOCAL_JMX=no
+        RUN sed -ri 's/ -Dcom\.sun\.management\.jmxremote\.authenticate=true/ -Dcom\.sun\.management\.jmxremote\.authenticate=false/' /etc/cassandra/cassandra-env.sh
+        RUN sed -ri 's/ -Dcom\.sun\.management\.jmxremote\.password\.file=\/etc\/cassandra\/jmxremote\.password//' /etc/cassandra/cassandra-env.sh
+        # Escape $JVM_OPTS by including extra $
+        # This command prepends content to /etc/cassandra/cassandra-env.sh
+        RUN echo "`echo 'JVM_OPTS="$$JVM_OPTS -Djava.rmi.server.hostname=0.0.0.0"'; echo 'export LOCAL_JMX="no"'; cat /etc/cassandra/cassandra-env.sh`" > /etc/cassandra/cassandra-env.sh
+    environment:
+      LOCAL_JMX: no
+      JVM_EXTRA_OPTS: "-Dcom.sun.management.jmxremote.authenticate=false"
+      JMX_PORT: "${JMX_PORT:-7199}"
+    ports:
+      - "${JMX_PORT:-7199}:${JMX_PORT:-7199}"
+    healthcheck:
+      interval: 10s
+      timeout: 10s
+      retries: 20
+      test:
+        - "CMD"
+        - "grep"
+        - "-q"
+        - "Startup complete"
+        - "/var/log/cassandra/system.log"
   # Couchbase image for collectd-couchbase test:
   couchbase:
     image: quay.io/splunko11ytest/couchbase:latest

@@ -43,5 +43,7 @@
 //go:generate discoverybundler -r -c -d ../../../../cmd/otelcol/config/collector/config.d.linux/receivers -t bundle.d/receivers/smartagent-collectd-nginx.discovery.yaml.tmpl
 //go:generate discoverybundler -r -t bundle.d/receivers/smartagent-postgresql.discovery.yaml.tmpl
 //go:generate discoverybundler -r -c -d ../../../../cmd/otelcol/config/collector/config.d.linux/receivers -t bundle.d/receivers/smartagent-postgresql.discovery.yaml.tmpl
+//go:generate discoverybundler -r -t bundle.d/receivers/sqlserver.discovery.yaml.tmpl
+//go:generate discoverybundler -r -c -d ../../../../cmd/otelcol/config/collector/config.d.linux/receivers -t bundle.d/receivers/sqlserver.discovery.yaml.tmpl
 
 package bundle

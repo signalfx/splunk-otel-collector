@@ -83,6 +83,10 @@ integration-test-mongodb-discovery:
 integration-test-kafkametrics-discovery:
 	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_kafkametrics -v -timeout 5m -count 1 ./...
 
+.PHONY: integration-test-jmx/cassandra-discovery
+integration-test-jmx/cassandra-discovery:
+	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_jmx -v -timeout 5m -count 1 ./...
+
 .PHONY: smartagent-integration-test
 smartagent-integration-test:
 	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=smartagent_integration -v -timeout 5m -count 1 ./...
@@ -224,3 +228,4 @@ install-test-tools:
 .PHONY: integration-test-split
 integration-test-split: install-test-tools
 	@set -e; cd tests && gotesplit --total=$(GOTESPLIT_TOTAL) --index=$(GOTESPLIT_INDEX) ./... -- -p 1 $(BUILD_INFO_TESTS) --tags=integration -v -timeout 5m -count 1
+

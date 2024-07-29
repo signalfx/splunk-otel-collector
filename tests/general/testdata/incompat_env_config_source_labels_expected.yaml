@@ -30,13 +30,13 @@ resourceMetrics:
                         stringValue: prefix-$$$$an-envvar-value
                     - key: octuple-dollar
                       value:
-                        stringValue: $$$an-envvar-value-suffix
+                        stringValue: $$$${env:AN_ENVVAR}-suffix
                     - key: octuple-dollar-no-curly-braces
                       value:
                         stringValue: prefix-$$$$env:AN_ENVVAR
                     - key: quadruple-dollar
                       value:
-                        stringValue: $an-envvar-value-suffix
+                        stringValue: $${env:AN_ENVVAR}-suffix
                     - key: quadruple-dollar-no-curly-braces
                       value:
                         stringValue: prefix-$$env:AN_ENVVAR
@@ -97,13 +97,13 @@ resourceMetrics:
                         stringValue: prefix-$$$$an-envvar-value
                     - key: octuple-dollar
                       value:
-                        stringValue: $$$an-envvar-value-suffix
+                        stringValue: $$$${env:AN_ENVVAR}-suffix
                     - key: octuple-dollar-no-curly-braces
                       value:
                         stringValue: prefix-$$$$env:AN_ENVVAR
                     - key: quadruple-dollar
                       value:
-                        stringValue: $an-envvar-value-suffix
+                        stringValue: $${env:AN_ENVVAR}-suffix
                     - key: quadruple-dollar-no-curly-braces
                       value:
                         stringValue: prefix-$$env:AN_ENVVAR
@@ -164,13 +164,13 @@ resourceMetrics:
                         stringValue: prefix-$$$$an-envvar-value
                     - key: octuple-dollar
                       value:
-                        stringValue: $$$an-envvar-value-suffix
+                        stringValue: $$$${env:AN_ENVVAR}-suffix
                     - key: octuple-dollar-no-curly-braces
                       value:
                         stringValue: prefix-$$$$env:AN_ENVVAR
                     - key: quadruple-dollar
                       value:
-                        stringValue: $an-envvar-value-suffix
+                        stringValue: $${env:AN_ENVVAR}-suffix
                     - key: quadruple-dollar-no-curly-braces
                       value:
                         stringValue: prefix-$$env:AN_ENVVAR
@@ -231,13 +231,13 @@ resourceMetrics:
                         stringValue: prefix-$$$$an-envvar-value
                     - key: octuple-dollar
                       value:
-                        stringValue: $$$an-envvar-value-suffix
+                        stringValue: $$$${env:AN_ENVVAR}-suffix
                     - key: octuple-dollar-no-curly-braces
                       value:
                         stringValue: prefix-$$$$env:AN_ENVVAR
                     - key: quadruple-dollar
                       value:
-                        stringValue: $an-envvar-value-suffix
+                        stringValue: $${env:AN_ENVVAR}-suffix
                     - key: quadruple-dollar-no-curly-braces
                       value:
                         stringValue: prefix-$$env:AN_ENVVAR
@@ -298,13 +298,13 @@ resourceMetrics:
                         stringValue: prefix-$$$$an-envvar-value
                     - key: octuple-dollar
                       value:
-                        stringValue: $$$an-envvar-value-suffix
+                        stringValue: $$$${env:AN_ENVVAR}-suffix
                     - key: octuple-dollar-no-curly-braces
                       value:
                         stringValue: prefix-$$$$env:AN_ENVVAR
                     - key: quadruple-dollar
                       value:
-                        stringValue: $an-envvar-value-suffix
+                        stringValue: $${env:AN_ENVVAR}-suffix
                     - key: quadruple-dollar-no-curly-braces
                       value:
                         stringValue: prefix-$$env:AN_ENVVAR
@@ -365,13 +365,13 @@ resourceMetrics:
                         stringValue: prefix-$$$$an-envvar-value
                     - key: octuple-dollar
                       value:
-                        stringValue: $$$an-envvar-value-suffix
+                        stringValue: $$$${env:AN_ENVVAR}-suffix
                     - key: octuple-dollar-no-curly-braces
                       value:
                         stringValue: prefix-$$$$env:AN_ENVVAR
                     - key: quadruple-dollar
                       value:
-                        stringValue: $an-envvar-value-suffix
+                        stringValue: $${env:AN_ENVVAR}-suffix
                     - key: quadruple-dollar-no-curly-braces
                       value:
                         stringValue: prefix-$$env:AN_ENVVAR

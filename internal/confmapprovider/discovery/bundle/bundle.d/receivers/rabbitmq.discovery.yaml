@@ -25,4 +25,4 @@ rabbitmq:
         message: The endpoint is refusing RabbitMQ server connections.
       - status: failed
         regexp: 'connect: connection refused'
-        message: The container is refusing RabbitMQ server connections.
+        message: The endpoint is refusing RabbitMQ server connections.

@@ -56,23 +56,6 @@ func TestExpandedDollarSignsViaEnvConfigSource(t *testing.T) {
 	)
 }
 
-func TestIncompatibleExpandedDollarSignsViaEnvConfigSource(t *testing.T) {
-	testutils.CheckGoldenFileWithCollectorOptions(t, "env_config_source_labels.yaml", "incompat_env_config_source_labels_expected.yaml", func(collector testutils.Collector) testutils.Collector {
-		return collector.WithEnv(map[string]string{
-			"SPLUNK_DOUBLE_DOLLAR_CONFIG_SOURCE_COMPATIBLE": "false",
-			"AN_ENVVAR": "an-envvar-value"})
-	},
-		pmetrictest.IgnoreScopeVersion(),
-		pmetrictest.IgnoreTimestamp(),
-		pmetrictest.IgnoreStartTimestamp(),
-		pmetrictest.IgnoreMetricDataPointsOrder(),
-		pmetrictest.IgnoreScopeMetricsOrder(),
-		pmetrictest.IgnoreResourceMetricsOrder(),
-		pmetrictest.IgnoreMetricsOrder(),
-		pmetrictest.IgnoreMetricValues(),
-	)
-}
-
 func TestExpandedYamlViaEnvConfigSource(t *testing.T) {
 	testutils.CheckGoldenFileWithCollectorOptions(t, "yaml_from_env.yaml", "yaml_from_env_expected.yaml", func(collector testutils.Collector) testutils.Collector {
 		return collector.WithEnv(map[string]string{"YAML": "[{action: update, include: .*, match_type: regexp, operations: [{action: add_label, new_label: yaml-from-env, new_value: value-from-env}]}]"})

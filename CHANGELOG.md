@@ -18,6 +18,7 @@
 
 - (Splunk) `discovery`: Enable discovery mode for SQL Server receiver ([#5109](https://github.com/signalfx/splunk-otel-collector/pull/5109))
 - (Splunk) Update bundled OpenJDK to [11.0.24_8](https://github.com/adoptium/temurin11-binaries/releases/tag/jdk-11.0.24%2B8) ([#5113](https://github.com/signalfx/splunk-otel-collector/pull/5113))
+- (Splunk) Rabbitmq receiver was added into the discovery feature([#5113](https://github.com/signalfx/splunk-otel-collector/pull/5051))
 
 ## v0.104.0
 

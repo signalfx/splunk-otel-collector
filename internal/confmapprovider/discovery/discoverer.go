@@ -19,6 +19,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"os"
+	"runtime"
 	"sort"
 	"strconv"
 	"strings"
@@ -182,6 +183,19 @@ func (d *discoverer) discover(cfg *Config) (map[string]any, error) {
 		return nil, nil
 	}
 
+	err = d.performDiscovery(discoveryReceivers, discoveryObservers)
+	if err != nil {
+		return nil, err
+	}
+
+	discoveryConfig, err := d.discoveryConfig(cfg)
+	if err != nil {
+		return nil, fmt.Errorf("failed constructing discovery config: %w", err)
+	}
+	return discoveryConfig, nil
+}
+
+func (d *discoverer) performDiscovery(discoveryReceivers map[component.ID]otelcolreceiver.Logs, discoveryObservers map[component.ID]otelcolextension.Extension) error {
 	var cancels []context.CancelFunc
 
 	defer func() {
@@ -199,19 +213,35 @@ func (d *discoverer) discover(cfg *Config) (map[string]any, error) {
 				fmt.Sprintf("%q startup failed. Won't proceed with %q-based discovery", observerID, observerID.Type()),
 				zap.Error(e),
 			)
+			return e
 		}
+		defer func(obsID component.ID, obsExt otelcolextension.Extension) {
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			cancels = append(cancels, cancel)
+			if e := obsExt.Shutdown(ctx); e != nil {
+				d.logger.Warn(fmt.Sprintf("error shutting down observer %q", obsID), zap.Error(e))
+			}
+		}(observerID, observer)
 	}
 
 	for receiverID, receiver := range discoveryReceivers {
 		d.logger.Debug(fmt.Sprintf("starting receiver %q", receiverID))
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		cancels = append(cancels, cancel)
-		if err = receiver.Start(ctx, d); err != nil {
+		if err := receiver.Start(ctx, d); err != nil {
 			d.logger.Warn(
 				fmt.Sprintf("%q startup failed.", receiverID),
 				zap.Error(err),
 			)
+			return err
 		}
+		defer func(rcvID component.ID, rcv otelcolreceiver.Logs) {
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			cancels = append(cancels, cancel)
+			if e := rcv.Shutdown(ctx); e != nil {
+				d.logger.Warn(fmt.Sprintf("error shutting down receiver %q", rcvID), zap.Error(e))
+			}
+		}(receiverID, receiver)
 	}
 
 	_, _ = fmt.Fprintf(os.Stderr, "Discovering for next %s...\n", d.duration)
@@ -221,26 +251,7 @@ func (d *discoverer) discover(cfg *Config) (map[string]any, error) {
 	}
 	_, _ = fmt.Fprintf(os.Stderr, "Discovery complete.\n")
 
-	for receiverID, receiver := range discoveryReceivers {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		cancels = append(cancels, cancel)
-		if e := receiver.Shutdown(ctx); e != nil {
-			d.logger.Warn(fmt.Sprintf("error shutting down receiver %q", receiverID), zap.Error(e))
-		}
-	}
-	for observerID, observer := range discoveryObservers {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		cancels = append(cancels, cancel)
-		if e := observer.Shutdown(ctx); e != nil {
-			d.logger.Warn(fmt.Sprintf("error shutting down observer %q", observerID), zap.Error(e))
-		}
-	}
-
-	discoveryConfig, err := d.discoveryConfig(cfg)
-	if err != nil {
-		return nil, fmt.Errorf("failed constructing discovery config: %w", err)
-	}
-	return discoveryConfig, nil
+	return nil
 }
 
 func (d *discoverer) createDiscoveryReceiversAndObservers(cfg *Config) (map[component.ID]otelcolreceiver.Logs, map[component.ID]otelcolextension.Extension, error) {
@@ -449,10 +460,14 @@ func (d *discoverer) updateReceiverForObserver(receiverID component.ID, receiver
 
 func factoryForObserverType(extType component.Type) (otelcolextension.Factory, error) {
 	factories := map[component.Type]otelcolextension.Factory{
-		component.MustNewType("docker_observer"):   dockerobserver.NewFactory(),
 		component.MustNewType("host_observer"):     hostobserver.NewFactory(),
 		component.MustNewType("k8s_observer"):      k8sobserver.NewFactory(),
 		component.MustNewType("ecs_task_observer"): ecstaskobserver.NewFactory(),
+	}
+	if runtime.GOOS != "windows" {
+		// Docker observer currently always crashes on Windows, this can be changed when
+		// XYZ is fixed.
+		factories[component.MustNewType("docker_observer")] = dockerobserver.NewFactory()
 	}
 	ef, ok := factories[extType]
 	if !ok {

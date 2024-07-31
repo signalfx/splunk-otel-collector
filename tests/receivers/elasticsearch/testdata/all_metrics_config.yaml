@@ -1,0 +1,19 @@
+receivers:
+  elasticsearch:
+
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+
+service:
+  telemetry:
+    logs:
+      level: "info"
+  pipelines:
+    metrics:
+      receivers:
+        - elasticsearch
+      exporters:
+        - otlp

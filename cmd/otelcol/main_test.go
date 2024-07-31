@@ -78,7 +78,7 @@ func TestRunFromCmdLine(t *testing.T) {
 				assert.PanicsWithValue(t, tt.panicMsg, func() { runFromCmdLine(tt.args) })
 				return
 			}
-			
+
 			runFromCmdLine(tt.args)
 		})
 	}

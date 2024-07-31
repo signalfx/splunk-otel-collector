@@ -85,7 +85,9 @@ func runFromCmdLine(args []string) {
 		},
 	}
 
-	os.Args = append(args[:1], collectorSettings.ColCoreArgs()...)
+	allArgs := args[:1]
+	allArgs = append(allArgs, collectorSettings.ColCoreArgs()...)
+	os.Args = allArgs
 	if err = run(serviceSettings); err != nil {
 		log.Fatal(err)
 	}

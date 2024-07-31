@@ -1389,6 +1389,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/cloudfoundryr
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/cloudfoundryreceiver v0.105.0/go.mod h1:rT18H1mG7ueOXmPMiiRcjmuNVUjhsL9sBO/l1rY+bu8=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdreceiver v0.105.0 h1:kwUMFSlSomCFCZneWeTOI9aanBRmhYMc7hdkUcRKwIY=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdreceiver v0.105.0/go.mod h1:MaN6K2naQtmd2pGbX3M6C5azQ3pQI9kysakdMxyFKL8=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/elasticsearchreceiver v0.105.0 h1:KH+EpF3mPUAFF3hodJ3B8Nf8HFXPUDzuGmr3SAdHl9w=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/elasticsearchreceiver v0.105.0/go.mod h1:q9aE6Wg9tLdCJR9iztKEpuuuvOOPnhwyB9a11Sagd88=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filelogreceiver v0.105.0 h1:aovChJqUsV07T41w0vnspaSdHaTo8WrgbRnkZRZpHi4=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filelogreceiver v0.105.0/go.mod h1:s2dHItpEPxPulfnQG88rjjBQBqIgyaPDPPxhL4ZioVY=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/fluentforwardreceiver v0.105.0 h1:CoSzTHUspV5R82Qjyh0t/6bgEKWfXPQeyUdnC+DSYPk=

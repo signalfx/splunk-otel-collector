@@ -23,10 +23,10 @@
 //go:generate discoverybundler -r -t bundle.d/extensions/k8s-observer.discovery.yaml.tmpl
 //go:generate discoverybundler -r -c -d ../../../../cmd/otelcol/config/collector/config.d.linux/extensions -t bundle.d/extensions/k8s-observer.discovery.yaml.tmpl
 
-//go:generate discoverybundler -r -t bundle.d/receivers/jmx-cassandra.discovery.yaml.tmpl
-//go:generate discoverybundler -r -c -d ../../../../cmd/otelcol/config/collector/config.d.linux/receivers -t bundle.d/receivers/jmx-cassandra.discovery.yaml.tmpl
 //go:generate discoverybundler -r -t bundle.d/receivers/apachewebserver.discovery.yaml.tmpl
 //go:generate discoverybundler -r -c -d ../../../../cmd/otelcol/config/collector/config.d.linux/receivers -t bundle.d/receivers/apachewebserver.discovery.yaml.tmpl
+//go:generate discoverybundler -r -t bundle.d/receivers/jmx-cassandra.discovery.yaml.tmpl
+//go:generate discoverybundler -r -c -d ../../../../cmd/otelcol/config/collector/config.d.linux/receivers -t bundle.d/receivers/jmx-cassandra.discovery.yaml.tmpl
 //go:generate discoverybundler -r -t bundle.d/receivers/kafkametrics.discovery.yaml.tmpl
 //go:generate discoverybundler -r -c -d ../../../../cmd/otelcol/config/collector/config.d.linux/receivers -t bundle.d/receivers/kafkametrics.discovery.yaml.tmpl
 //go:generate discoverybundler -r -t bundle.d/receivers/mongodb.discovery.yaml.tmpl

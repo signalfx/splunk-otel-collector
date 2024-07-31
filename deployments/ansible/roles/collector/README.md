@@ -299,11 +299,10 @@ to take effect.
   value for each activated SDK)
 
 - `splunk_otel_auto_instrumentation_otlp_endpoint_protocol` (Linux only): Set
-  the protocol for `splunk_otel_auto_instrumentation_otlp_endpoint`, for
-  example `grpc` or `http/protobuf`. The value will be set to the
-  `OTEL_EXPORTER_OTLP_PROTOCOL` environment variable. Only applicable if
-  `splunk_otel_auto_instrumentation_version` is `latest` or >= `0.104.0` and
-  `splunk_otel_auto_instrumentation_otlp_endpoint` is non-empty.
+  the protocol for the OTLP endpoint, for example `grpc` or `http/protobuf`.
+  The value will be set to the `OTEL_EXPORTER_OTLP_PROTOCOL` environment
+  variable. Only applicable if `splunk_otel_auto_instrumentation_version` is
+  `latest` or >= `0.104.0`.
   (**default:** ``, i.e. defer to the default `OTEL_EXPORTER_OTLP_PROTOCOL`
   value for each activated SDK)
 

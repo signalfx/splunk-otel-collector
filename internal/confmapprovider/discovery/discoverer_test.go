@@ -15,18 +15,151 @@
 package discovery
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/component"
+	otelcolextension "go.opentelemetry.io/collector/extension"
+	otelcolreceiver "go.opentelemetry.io/collector/receiver"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest/observer"
 
 	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
 )
+
+func TestInnerDiscoveryExecution(t *testing.T) {
+	tests := []struct {
+		name        string
+		observers   map[component.ID]otelcolextension.Extension
+		receivers   map[component.ID]otelcolreceiver.Logs
+		expectedMsg string
+	}{
+		{
+			name: "happy_path",
+			observers: map[component.ID]otelcolextension.Extension{
+				component.MustNewID("observer00"): &mockExtension{},
+				component.MustNewID("observer01"): &mockExtension{},
+				component.MustNewID("observer02"): &mockExtension{},
+			},
+			receivers: map[component.ID]otelcolreceiver.Logs{
+				component.MustNewID("receiver00"): &mockReceiverLogs{},
+				component.MustNewID("receiver01"): &mockReceiverLogs{},
+			},
+		},
+		{
+			name: "fail_start_extension",
+			observers: map[component.ID]otelcolextension.Extension{
+				component.MustNewID("observer00"): &mockExtension{},
+				component.MustNewID("observer01"): &mockExtension{ startErr: fmt.Errorf("extension_start_error") },
+				component.MustNewID("observer02"): &mockExtension{},
+			},
+			receivers: map[component.ID]otelcolreceiver.Logs{
+				component.MustNewID("receiver00"): &mockReceiverLogs{},
+			},
+			expectedMsg: "extension_start_error",
+		},
+		{
+			name: "fail_start_receiver",
+			observers: map[component.ID]otelcolextension.Extension{
+				component.MustNewID("observer00"): &mockExtension{},
+				component.MustNewID("observer01"): &mockExtension{},
+			},
+			receivers: map[component.ID]otelcolreceiver.Logs{
+				component.MustNewID("receiver00"): &mockReceiverLogs{},
+				component.MustNewID("receiver01"): &mockReceiverLogs{ mockComponent { startErr: fmt.Errorf("receiver_start_error") } },
+				component.MustNewID("receiver02"): &mockReceiverLogs{},
+			},
+			expectedMsg: "receiver_start_error",
+		},
+		{
+			name: "fail_shutdown_no_error_msg",
+			observers: map[component.ID]otelcolextension.Extension{
+				component.MustNewID("observer00"): &mockExtension{},
+				component.MustNewID("observer01"): &mockExtension{},
+			},
+			receivers: map[component.ID]otelcolreceiver.Logs{
+				component.MustNewID("receiver00"): &mockReceiverLogs{},
+				component.MustNewID("receiver01"): &mockReceiverLogs{ mockComponent { shutdownErr: fmt.Errorf("receiver_shutdown_error") } },
+				component.MustNewID("receiver02"): &mockReceiverLogs{},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			d, err := newDiscoverer(zap.NewNop())
+			require.NoError(t, err)
+			require.NotNil(t, d)
+
+			d.duration = 1*time.Second
+			err = d.performDiscovery(tt.receivers, tt.observers)
+
+			for _, observer := range tt.observers {
+				mockExtension := observer.(*mockExtension)
+				if mockExtension.started {
+					assert.True(t, mockExtension.shutdown)
+				} else {
+					assert.False(t, mockExtension.shutdown)
+				}
+			}
+
+			for _, receiver := range tt.receivers {
+				mockReceiver := receiver.(*mockReceiverLogs)
+				if mockReceiver.started {
+					assert.True(t, mockReceiver.shutdown)
+				} else {
+					assert.False(t, mockReceiver.shutdown)
+				}
+			}
+
+			if tt.expectedMsg != "" {
+				assert.ErrorContains(t, err, tt.expectedMsg)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+type mockExtension struct {
+	mockComponent
+}
+var _ otelcolextension.Extension = (*mockExtension)(nil)
+
+type mockReceiverLogs struct {
+	mockComponent
+}
+var _ otelcolreceiver.Logs = (*mockReceiverLogs)(nil)
+
+type mockComponent struct {
+	startErr    error
+	started     bool
+	shutdownErr error
+	shutdown    bool
+}
+var _ component.Component = (*mockComponent)(nil)
+
+func (m *mockComponent) Start(context.Context, component.Host) error {
+	if m.startErr != nil {
+		return m.startErr
+	}
+	m.started = true
+	return nil
+}
+
+func (m *mockComponent) Shutdown(context.Context) error {
+	m.shutdown = true
+	if m.shutdownErr != nil {
+		return m.shutdownErr
+	}
+	return nil
+}
 
 func TestDiscovererDurationFromEnv(t *testing.T) {
 	t.Cleanup(func() func() {

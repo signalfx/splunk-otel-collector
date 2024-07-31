@@ -12,7 +12,7 @@ The distribution offers support for the following components.
 <div>
 
 | Receivers                                                                                                                                     | Stability        |
-| :-------------------------------------------------------------------------------------------------------------------------------------------- | :--------------- |
+|:----------------------------------------------------------------------------------------------------------------------------------------------| :--------------- |
 | [active_directory_ds](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/activedirectorydsreceiver)         | [beta]           |
 | [awscontainerinsights](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/awscontainerinsightreceiver)      | [beta]           |
 | [awsecscontainermetrics](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/awsecscontainermetricsreceiver) | [beta]           |
@@ -23,6 +23,7 @@ The distribution offers support for the following components.
 | [cloudfoundry](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/cloudfoundryreceiver)                     | [beta]           |
 | [collectd](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/collectdreceiver)                             | [beta]           |
 | [discovery](../internal/receiver/discoveryreceiver)                                                                                           | [in development] |
+| [elasticsearch](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/elasticsearchreceiver)                   | [beta]           |
 | [filelog](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/filelogreceiver)                               | [beta]           |
 | [fluentforward](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/fluentforwardreceiver)                   | [beta]           |
 | [hostmetrics](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/hostmetricsreceiver)                       | [beta]           |

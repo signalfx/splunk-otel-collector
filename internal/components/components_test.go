@@ -53,6 +53,7 @@ func TestDefaultComponents(t *testing.T) {
 		"cloudfoundry",
 		"collectd",
 		"discovery",
+		"elasticsearch",
 		"filelog",
 		"fluentforward",
 		"hostmetrics",

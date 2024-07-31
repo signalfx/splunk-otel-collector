@@ -27,9 +27,9 @@ import (
 func TestRunFromCmdLine(t *testing.T) {
 	tests := []struct {
 		name     string
+		panicMsg string
 		args     []string
 		timeout  time.Duration
-		panicMsg string
 	}{
 		{
 			name:    "agent",

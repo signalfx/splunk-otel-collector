@@ -141,8 +141,8 @@ var _ otelcolreceiver.Logs = (*mockReceiverLogs)(nil)
 
 type mockComponent struct {
 	startErr    error
-	started     bool
 	shutdownErr error
+	started     bool
 	shutdown    bool
 }
 

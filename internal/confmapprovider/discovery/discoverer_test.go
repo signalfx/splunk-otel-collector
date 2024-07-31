@@ -56,7 +56,7 @@ func TestInnerDiscoveryExecution(t *testing.T) {
 			name: "fail_start_extension",
 			observers: map[component.ID]otelcolextension.Extension{
 				component.MustNewID("observer00"): &mockExtension{},
-				component.MustNewID("observer01"): &mockExtension{ startErr: fmt.Errorf("extension_start_error") },
+				component.MustNewID("observer01"): &mockExtension{mockComponent{startErr: fmt.Errorf("extension_start_error")}},
 				component.MustNewID("observer02"): &mockExtension{},
 			},
 			receivers: map[component.ID]otelcolreceiver.Logs{
@@ -72,7 +72,7 @@ func TestInnerDiscoveryExecution(t *testing.T) {
 			},
 			receivers: map[component.ID]otelcolreceiver.Logs{
 				component.MustNewID("receiver00"): &mockReceiverLogs{},
-				component.MustNewID("receiver01"): &mockReceiverLogs{ mockComponent { startErr: fmt.Errorf("receiver_start_error") } },
+				component.MustNewID("receiver01"): &mockReceiverLogs{mockComponent{startErr: fmt.Errorf("receiver_start_error")}},
 				component.MustNewID("receiver02"): &mockReceiverLogs{},
 			},
 			expectedMsg: "receiver_start_error",
@@ -85,7 +85,7 @@ func TestInnerDiscoveryExecution(t *testing.T) {
 			},
 			receivers: map[component.ID]otelcolreceiver.Logs{
 				component.MustNewID("receiver00"): &mockReceiverLogs{},
-				component.MustNewID("receiver01"): &mockReceiverLogs{ mockComponent { shutdownErr: fmt.Errorf("receiver_shutdown_error") } },
+				component.MustNewID("receiver01"): &mockReceiverLogs{mockComponent{shutdownErr: fmt.Errorf("receiver_shutdown_error")}},
 				component.MustNewID("receiver02"): &mockReceiverLogs{},
 			},
 		},
@@ -97,7 +97,7 @@ func TestInnerDiscoveryExecution(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, d)
 
-			d.duration = 1*time.Second
+			d.duration = 1 * time.Second
 			err = d.performDiscovery(tt.receivers, tt.observers)
 
 			for _, observer := range tt.observers {
@@ -130,11 +130,13 @@ func TestInnerDiscoveryExecution(t *testing.T) {
 type mockExtension struct {
 	mockComponent
 }
+
 var _ otelcolextension.Extension = (*mockExtension)(nil)
 
 type mockReceiverLogs struct {
 	mockComponent
 }
+
 var _ otelcolreceiver.Logs = (*mockReceiverLogs)(nil)
 
 type mockComponent struct {
@@ -143,6 +145,7 @@ type mockComponent struct {
 	shutdownErr error
 	shutdown    bool
 }
+
 var _ component.Component = (*mockComponent)(nil)
 
 func (m *mockComponent) Start(context.Context, component.Host) error {

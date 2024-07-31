@@ -73,11 +73,13 @@ func TestRunFromCmdLine(t *testing.T) {
 			defer cancel()
 
 			otelcolCmdTestCtx = testCtx
+
 			if tt.panicMsg != "" {
 				assert.PanicsWithValue(t, tt.panicMsg, func() { runFromCmdLine(tt.args) })
-			} else {
-				runFromCmdLine(tt.args)
+				return
 			}
+			
+			runFromCmdLine(tt.args)
 		})
 	}
 }

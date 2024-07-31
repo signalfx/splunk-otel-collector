@@ -4,7 +4,7 @@
 
 ### 🚀 New components 🚀
 
-- (Splunk) Add ElasticSearch receiver
+- (Splunk) Add ElasticSearch receiver ([#5165](https://github.com/signalfx/splunk-otel-collector/pull/5165/))
 
 ## v0.105.0
 

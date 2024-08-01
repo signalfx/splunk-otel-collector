@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build boringcrypto || goexperiment.cngcrypto
+//go:build ((linux && boringcrypto && cgo && (amd64 || arm64)) || (windows && goexperiment.cngcrypto && cgo && amd64))
 
 package main
 

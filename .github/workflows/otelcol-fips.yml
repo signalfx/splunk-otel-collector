@@ -14,33 +14,30 @@ env:
 
 jobs:
   otelcol-fips:
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ fromJSON('["ubuntu-20.04", "otel-arm64"]')[matrix.GOARCH == 'arm64'] }}
     strategy:
       matrix:
-        os: [ "ubuntu-22.04", "otel-arm64", "otel-windows" ]
+        include:
+          - GOOS: linux
+            GOARCH: amd64
+          - GOOS: linux
+            GOARCH: arm64
+          - GOOS: windows
+            GOARCH: amd64
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: setup google golang for boringcrypto
-        if: runner.os != 'Windows'
-        uses: actions/setup-go@v5
+      - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
-      - name: setup microsoft golang for cngcrypto
-        if: runner.os == 'Windows'
-        run: |
-          # https://github.com/microsoft/go/blob/microsoft/main/eng/doc/fips/README.md
-          $ErrorActionPreference = 'Stop'
-          Invoke-WebRequest -Uri https://aka.ms/golang/release/latest/go${{ env.GO_VERSION }}-1.windows-amd64.zip -OutFile ${{ runner.temp }}\golang.zip
-          Expand-Archive -Path ${{ runner.temp }}\golang.zip -DestinationPath ${{ runner.temp }}
-          $env:PATH = '${{ runner.temp }}\go\bin;' + $env:PATH
-          Add-Content $env:GITHUB_ENV "PATH=${env:PATH}"
       - run: make otelcol-fips
+        env:
+          GOOS: ${{ matrix.GOOS }}
+          GOARCH: ${{ matrix.GOARCH }}
       - uses: actions/upload-artifact@v4
-        if: always()
         with:
-          name: otelcol-fips-${{ runner.os }}-${{ runner.arch }}
-          path: ./bin/otelcol_*
+          name: otelcol-fips-${{ matrix.GOOS }}-${{ matrix.GOARCH }}
+          path: ./bin/otelcol-fips*

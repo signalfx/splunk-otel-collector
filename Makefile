@@ -30,7 +30,6 @@ BUILD_X1=-X $(BUILD_INFO_IMPORT_PATH).Version=$(VERSION)
 BUILD_X2=-X $(BUILD_INFO_IMPORT_PATH_CORE).Version=$(VERSION)
 BUILD_INFO=-ldflags "${BUILD_X1} ${BUILD_X2}"
 BUILD_INFO_TESTS=-ldflags "-X $(BUILD_INFO_IMPORT_PATH_TESTS).Version=$(VERSION)"
-CGO_ENABLED=0
 
 JMX_METRIC_GATHERER_RELEASE=$(shell cat internal/buildscripts/packaging/jmx-metric-gatherer-release.txt)
 SKIP_COMPILE=false
@@ -50,6 +49,11 @@ DOCKER_REPO?=docker.io
 
 GOTESPLIT_TOTAL?=1
 GOTESPLIT_INDEX?=0
+
+FIPSONLY?=no
+FIPSONLY_BIN_NAME?=otelcol-fips
+GO_VERSION?=$(shell go env GOVERSION | sed 's/^go//')
+CGO_ENABLED?=0
 
 ### TARGETS
 
@@ -182,17 +186,29 @@ binaries-darwin_arm64:
 
 .PHONY: binaries-linux_amd64
 binaries-linux_amd64:
+ifeq ($(filter $(FIPSONLY), yes true 1),)
 	GOOS=linux   GOARCH=amd64 $(MAKE) otelcol
+else
+	GOOS=linux   GOARCH=amd64 $(MAKE) otelcol-fips
+endif
 	GOOS=linux   GOARCH=amd64 $(MAKE) migratecheckpoint
 
 .PHONY: binaries-linux_arm64
 binaries-linux_arm64:
+ifeq ($(filter $(FIPSONLY), yes true 1),)
 	GOOS=linux   GOARCH=arm64 $(MAKE) otelcol
+else
+	GOOS=linux   GOARCH=arm64 $(MAKE) otelcol-fips
+endif
 	GOOS=linux   GOARCH=arm64 $(MAKE) migratecheckpoint
 
 .PHONY: binaries-windows_amd64
 binaries-windows_amd64:
+ifeq ($(filter $(FIPSONLY), yes true 1),)
 	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) otelcol
+else
+	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) otelcol-fips
+endif
 	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) migratecheckpoint
 
 .PHONY: binaries-linux_ppc64le
@@ -234,26 +250,31 @@ install-test-tools:
 integration-test-split: install-test-tools
 	@set -e; cd tests && gotesplit --total=$(GOTESPLIT_TOTAL) --index=$(GOTESPLIT_INDEX) ./... -- -p 1 $(BUILD_INFO_TESTS) --tags=integration -v -timeout 5m -count 1
 
-# set vars for the otelcol-fips target
-ifeq ($(MAKECMDGOALS), otelcol-fips)
-ifeq ($(GOOS), linux)
-GOEXPERIMENT = boringcrypto
-GOFLAGS =
-EXTENSION = _fips
-endif
-ifeq ($(GOOS), windows)
-GOEXPERIMENT = cngcrypto
-GOFLAGS = -tags=requirefips
-EXTENSION = _fips.exe
-endif
-endif
-
 .PHONY: otelcol-fips
 otelcol-fips:
-ifeq ($(filter $(GOOS), linux windows),)
-	@echo "$(GOOS) not supported for fips"
-	@exit 1
+ifeq ($(GOOS), linux)
+    ifeq ($(filter $(GOARCH), amd64 arm64),)
+		$(error GOOS=$(GOOS) GOARCH=$(GOARCH) not supported for fips)
+    endif
+	$(eval BUILD_INFO = -ldflags "${BUILD_X1} ${BUILD_X2} -linkmode=external -extldflags=-static")
+else ifeq ($(GOOS), windows)
+    ifeq ($(filter $(GOARCH), amd64),)
+		$(error GOOS=$(GOOS) GOARCH=$(GOARCH) not supported for fips)
+    endif
+	$(eval EXTENSION = .exe)
+else
+	$(error GOOS=$(GOOS) GOARCH=$(GOARCH) not supported for fips)
 endif
-	GOEXPERIMENT=$(GOEXPERIMENT) GOFLAGS=$(GOFLAGS) EXTENSION=$(EXTENSION) $(MAKE) otelcol VERSION="$(VERSION)-fips" CGO_ENABLED=1
-	go version ./bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) | grep "X:$(GOEXPERIMENT)"
-	go tool nm ./bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) | grep "crypto/tls/fipsonly"
+	@mkdir -p ./bin
+	docker buildx build --pull \
+		--tag otelcol-fips-$(GOOS)-$(GOARCH)-builder \
+		--platform linux/$(GOARCH) \
+		--build-arg DOCKER_REPO=$(DOCKER_REPO) \
+		--build-arg GO_VERSION=$(GO_VERSION) \
+		--build-arg BUILD_INFO='$(BUILD_INFO)' \
+		--file internal/buildscripts/Dockerfile.fips-$(GOOS) \
+		.
+	@docker rm -f otelcol-fips-$(GOOS)-$(GOARCH)-builder >/dev/null 2>&1 || true
+	@docker create --name otelcol-fips-$(GOOS)-$(GOARCH)-builder otelcol-fips-$(GOOS)-$(GOARCH)-builder true >/dev/null
+	docker cp otelcol-fips-$(GOOS)-$(GOARCH)-builder:/src/bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/$(FIPSONLY_BIN_NAME)_$(GOOS)_$(GOARCH)$(EXTENSION)
+	@docker rm -f otelcol-fips-$(GOOS)-$(GOARCH)-builder >/dev/null

@@ -242,8 +242,8 @@ GOFLAGS =
 EXTENSION = _fips
 endif
 ifeq ($(GOOS), windows)
-GOEXPERIMENT = cngcrypto
-GOFLAGS = -tags=requirefips
+GOEXPERIMENT = boringcrypto
+GOFLAGS =
 EXTENSION = _fips.exe
 endif
 endif

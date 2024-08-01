@@ -104,6 +104,6 @@ func (m *Monitor) Configure(conf *Config) error {
 	if conf.Name == "" {
 		conf.pyConf.PluginConfig["Instance"] = fmt.Sprintf("%s-%d", conf.Host, conf.Port)
 	}
-
+	m.Logger().Warn("[NOTICE] The collectd/health-checker plugin is deprecated and will be removed in a future release. Use the opentelemetry httpcheck receiver instead.")
 	return m.PyMonitor.Configure(conf)
 }

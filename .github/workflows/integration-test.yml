@@ -336,7 +336,7 @@ jobs:
         id: get-matrix
         run: |
           includes=""
-          for service in "mongodb" "kafkametrics" "jmx/cassandra"; do
+          for service in "apache" "mongodb" "kafkametrics" "jmx/cassandra"; do
             for arch in "amd64" "arm64"; do
               if [ "$service" = "mongodb" ]; then
                 for mongodb_version in "4.0" "4.4" "5.0" "6.0" "7.0"; do

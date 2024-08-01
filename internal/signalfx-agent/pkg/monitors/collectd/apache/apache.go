@@ -6,6 +6,7 @@ package apache
 //go:generate ../../../../scripts/collectd-template-to-go apache.tmpl
 
 import (
+	"fmt"
 	"github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd"
@@ -46,5 +47,5 @@ type Monitor struct {
 
 // Configure configures and runs the plugin in collectd
 func (am *Monitor) Configure(conf *Config) error {
-	return am.SetConfigurationAndRun(conf)
+	return am.SetConfigurationAndRun(conf, WithWarning("[NOTICE] The collectd/apache plugin is deprecated and will be removed in a future release. Please migrate to the apache receiver."))
 }

@@ -71,6 +71,12 @@ func WithDeprecationWarningLog(replacement string) ConfigurationOption {
 	}
 }
 
+func WithWarning(replacement string) ConfigurationOption {
+	return func(mc *MonitorCore) {
+		mc.logger.Warn(log)
+	}
+}
+
 // SetConfigurationAndRun sets the configuration to be used when rendering
 // templates, and writes config before queueing a collectd restart.
 func (mc *MonitorCore) SetConfigurationAndRun(conf config.MonitorCustomConfig, opts ...ConfigurationOption) error {

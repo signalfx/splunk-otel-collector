@@ -4,7 +4,7 @@
 
 ### 🚀 New components 🚀
 
-- (Splunk) Add ElasticSearch receiver ([#5165](https://github.com/signalfx/splunk-otel-collector/pull/5165/))
+- (Splunk) Add Elasticsearch receiver ([#5165](https://github.com/signalfx/splunk-otel-collector/pull/5165/))
 - (Splunk) Add HAProxy receiver [#5163](https://github.com/signalfx/splunk-otel-collector/pull/5163)
  
 ### 🚩Deprecations 🚩

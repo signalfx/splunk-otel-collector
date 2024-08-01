@@ -9,7 +9,7 @@
 
 ### 🚩Deprecations 🚩
 
-- (Splunk) Deprecate the telegraf/exec monitor ([#](https://github.com/signalfx/splunk-otel-collector/pull/))
+- (Splunk) Deprecate the telegraf/exec monitor ([#5171](https://github.com/signalfx/splunk-otel-collector/pull/5171))
 
 ## v0.105.0
 

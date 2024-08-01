@@ -18,6 +18,9 @@ monitors:
         from the primary shard only or across all shards. Valid values - primaries,
         total respectively (only on index stats)
   doc: |
+    The elasticsearch plugin is deprecated and will be removed in a future release.
+    Use the elasticsearchreceiver instead.
+    
     This monitor collects stats from Elasticsearch. It collects node, cluster
     and index level stats.
 

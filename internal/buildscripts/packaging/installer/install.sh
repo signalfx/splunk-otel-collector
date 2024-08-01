@@ -523,9 +523,10 @@ EOH
 
   if [ -n "$otlp_endpoint" ]; then
     echo "OTEL_EXPORTER_OTLP_ENDPOINT=${otlp_endpoint}" >> $java_zeroconfig_path
-    if [ -n "$otlp_endpoint_protocol" ]; then
-      echo "OTEL_EXPORTER_OTLP_PROTOCOL=${otlp_endpoint_protocol}" >> $java_zeroconfig_path
-    fi
+  fi
+
+  if [ -n "$otlp_endpoint_protocol" ]; then
+    echo "OTEL_EXPORTER_OTLP_PROTOCOL=${otlp_endpoint_protocol}" >> $java_zeroconfig_path
   fi
 
   if [ -n "$metrics_exporter" ]; then
@@ -597,9 +598,10 @@ EOH
 
   if [ -n "$otlp_endpoint" ]; then
     echo "OTEL_EXPORTER_OTLP_ENDPOINT=${otlp_endpoint}" >> $node_zeroconfig_path
-    if [ -n "$otlp_endpoint_protocol" ]; then
-      echo "OTEL_EXPORTER_OTLP_PROTOCOL=${otlp_endpoint_protocol}" >> $node_zeroconfig_path
-    fi
+  fi
+
+  if [ -n "$otlp_endpoint_protocol" ]; then
+    echo "OTEL_EXPORTER_OTLP_PROTOCOL=${otlp_endpoint_protocol}" >> $node_zeroconfig_path
   fi
 
   if [ -n "$metrics_exporter" ]; then
@@ -639,9 +641,10 @@ EOH
 
   if [ -n "$otlp_endpoint" ]; then
     echo "OTEL_EXPORTER_OTLP_ENDPOINT=${otlp_endpoint}" >> $dotnet_zeroconfig_path
-    if [ -n "$otlp_endpoint_protocol" ]; then
-      echo "OTEL_EXPORTER_OTLP_PROTOCOL=${otlp_endpoint_protocol}" >> $dotnet_zeroconfig_path
-    fi
+  fi
+
+  if [ -n "$otlp_endpoint_protocol" ]; then
+    echo "OTEL_EXPORTER_OTLP_PROTOCOL=${otlp_endpoint_protocol}" >> $dotnet_zeroconfig_path
   fi
 
   if [ -n "$metrics_exporter" ]; then
@@ -677,9 +680,10 @@ EOH
 
   if [ -n "$otlp_endpoint" ]; then
     echo "DefaultEnvironment=\"OTEL_EXPORTER_OTLP_ENDPOINT=${otlp_endpoint}\"" >> $systemd_instrumentation_config_path
-    if [ -n "$otlp_endpoint_protocol" ]; then
-      echo "DefaultEnvironment=\"OTEL_EXPORTER_OTLP_PROTOCOL=${otlp_endpoint_protocol}\"" >> $systemd_instrumentation_config_path
-    fi
+  fi
+
+  if [ -n "$otlp_endpoint_protocol" ]; then
+    echo "DefaultEnvironment=\"OTEL_EXPORTER_OTLP_PROTOCOL=${otlp_endpoint_protocol}\"" >> $systemd_instrumentation_config_path
   fi
 
   if [ -n "$metrics_exporter" ]; then
@@ -975,9 +979,8 @@ Auto Instrumentation:
                                         variable.
                                         (default: empty, i.e. defer to the default OTEL_EXPORTER_OTLP_ENDPOINT value for
                                         each activated SDK)
-  --otlp-endpoint-protocol <protocol>   Set the protocol for the configured OTLP endpoint, for example "grpc" or
-                                        "http/protobuf". The value will be set to the OTEL_EXPORTER_OTLP_PROTOCOL
-                                        environment variable.
+  --otlp-endpoint-protocol <protocol>   Set the protocol for the OTLP endpoint, for example "grpc" or "http/protobuf".
+                                        The value will be set to the OTEL_EXPORTER_OTLP_PROTOCOL environment variable.
                                         Only applicable if the "--otlp-endpoint <host:port>" option is also specified.
                                         (default: empty, i.e. defer to the default OTEL_EXPORTER_OTLP_PROTOCOL value for
                                         each activated SDK)
@@ -1589,9 +1592,9 @@ parse_args_and_install() {
     echo "  AlwaysOn Memory Profiling enabled: $enable_profiler_memory"
     if [ -n "$otlp_endpoint" ]; then
       echo "  OTLP Endpoint: $otlp_endpoint"
-      if [ -n "$otlp_endpoint_protocol" ]; then
-        echo "  OTLP Endpoint Protocol: ${otlp_endpoint_protocol}"
-      fi
+    fi
+    if [ -n "$otlp_endpoint_protocol" ]; then
+      echo "  OTLP Endpoint Protocol: ${otlp_endpoint_protocol}"
     fi
   fi
   echo

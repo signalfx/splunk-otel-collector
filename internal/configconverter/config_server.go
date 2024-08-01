@@ -168,8 +168,6 @@ func (cs *ConfigServer) start() {
 				cs.wg.Wait()
 				if cs.server != nil {
 					_ = cs.server.Close()
-					// If launched wait for Serve goroutine exit.
-					<-cs.doneCh
 				}
 
 			}()

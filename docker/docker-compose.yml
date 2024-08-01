@@ -66,6 +66,7 @@ services:
   haproxy:
     image: quay.io/splunko11ytest/haproxy:latest
     profiles:
+      - integration
       - smartagent
     build: ./haproxy
     ports:

@@ -10,6 +10,9 @@
 
 - (Splunk) Deprecate the Apache monitor ([#5166](https://github.com/signalfx/splunk-otel-collector/pull/5166))
 - (Splunk) Deprecate the Mysql monitor ([](https://github.com/signalfx/splunk-otel-collector/pull/))
+- (Splunk) Deprecate the collectd/redis monitor ()
+- (Splunk) Deprecate the mongodb-atlas monitor ()
+- (Splunk) Deprecate the postgresql monitor ()
 
 ## v0.105.0
 

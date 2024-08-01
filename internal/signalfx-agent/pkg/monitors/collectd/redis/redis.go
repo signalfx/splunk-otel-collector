@@ -145,6 +145,7 @@ func (rm *Monitor) Configure(conf *Config) error {
 			"Redis_master_link_status":             "gauge",
 		},
 	}
+	rm.Logger().Warn("[NOTICE] The collectd/redis plugin is deprecated and will be removed in a future release. Use the redisreceiver instead.")
 
 	return rm.PyMonitor.Configure(conf)
 }

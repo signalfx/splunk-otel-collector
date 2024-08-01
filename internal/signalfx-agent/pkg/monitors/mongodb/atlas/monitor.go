@@ -58,6 +58,7 @@ type Monitor struct {
 // Configure monitor
 func (m *Monitor) Configure(conf *Config) (err error) {
 	m.logger = log.WithFields(log.Fields{"monitorType": monitorType, "monitorID": conf.MonitorID})
+	m.logger.Warn("[NOTICE] The mongodb-atlas monitor is deprecated and will be removed in a future release. Please use the mongodbatlas receiver.")
 	var client *mongodbatlas.Client
 	var processMeasurements measurements.ProcessesMeasurements
 	var diskMeasurements measurements.DisksMeasurements

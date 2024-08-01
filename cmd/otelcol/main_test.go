@@ -18,6 +18,7 @@ package main
 import (
 	"context"
 	"os"
+	"runtime"
 	"testing"
 	"time"
 
@@ -69,6 +70,14 @@ func TestRunFromCmdLine(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// GH darwin runners don't have docker installed, skip discovery tests on them
+			// given that the docker_observer is enabled by default.
+			if runtime.GOOS == "darwin" && (tt.name == "default_discovery" || tt.name == "dry-run_discovery") {
+				if os.Getenv("GITHUB_ACTIONS") == "true" {
+					t.Skip("skipping discovery tests on darwin runners since they don't have docker installed")
+				}
+			}
+
 			testCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
 

@@ -1,6 +1,8 @@
 monitors:
 - dimensions:
   doc: |
+    The collectd/health-checker plugin is deprecated and will be removed in a future release. Use the httpcheckreceiver instead.
+    
     A simple Collectd Python-based monitor
     that hits an endpoint and checks if the configured JSON value is returned in
     the response body.

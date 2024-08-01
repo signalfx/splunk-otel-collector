@@ -1395,6 +1395,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filelogreceiv
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filelogreceiver v0.105.0/go.mod h1:s2dHItpEPxPulfnQG88rjjBQBqIgyaPDPPxhL4ZioVY=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/fluentforwardreceiver v0.105.0 h1:CoSzTHUspV5R82Qjyh0t/6bgEKWfXPQeyUdnC+DSYPk=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/fluentforwardreceiver v0.105.0/go.mod h1:yUh56qMgVLEU49gPdXdEuMlRGW6j+5T+CqtAn/k46UI=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/haproxyreceiver v0.105.0 h1:9kwLex6Xkf9yE6kf1q0ypr/qJ9WmnrXiWDG/7lQ81cA=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/haproxyreceiver v0.105.0/go.mod h1:S3uBmBjmUZa3X+7Kx6VeBbZqmatizHuVzlIoH8ifUZs=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver v0.105.0 h1:pxjCD/Rj5wNV7/Za3zIm00XgK2nSegBeFrcolZsiYak=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver v0.105.0/go.mod h1:2PO++66272D+rsjp6rltnitPO1/7O1mGL4Hfu5pjCsg=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/httpcheckreceiver v0.105.0 h1:4FpFD7NP44G4vo2w8DOy0wHrzdSINLsjTp59al9zyXw=

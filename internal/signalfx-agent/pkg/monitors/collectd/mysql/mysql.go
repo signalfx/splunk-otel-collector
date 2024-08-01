@@ -70,5 +70,5 @@ type Monitor struct {
 
 // Configure configures and runs the plugin in collectd
 func (am *Monitor) Configure(conf *Config) error {
-	return am.SetConfigurationAndRun(conf)
+	return am.SetConfigurationAndRun(conf, collectd.WithWarning("[NOTICE] the collectd/mysql plugin is deprecated and will be removed in a future release. Please use the mysql receiver instead"))
 }

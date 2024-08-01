@@ -9,6 +9,7 @@
 ### 🚩Deprecations 🚩
 
 - (Splunk) Deprecate the Apache monitor ([#5166](https://github.com/signalfx/splunk-otel-collector/pull/5166))
+- (Splunk) Deprecate the Mysql monitor ([](https://github.com/signalfx/splunk-otel-collector/pull/))
 
 ## v0.105.0
 

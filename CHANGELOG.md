@@ -10,6 +10,8 @@
 ### 🚩Deprecations 🚩
 
 - (Splunk) Deprecate the collectd/health-checker plugin ([#5167](https://github.com/signalfx/splunk-otel-collector/pull/5167))
+- (Splunk) Remove `smartagent/processlist` from the default configuration ([#]()).
+  You can re-enable this configuration by uncommenting the processlist monitor in the configuration.
 
 ## v0.105.0
 

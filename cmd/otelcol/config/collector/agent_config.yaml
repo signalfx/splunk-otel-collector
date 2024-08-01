@@ -83,8 +83,8 @@ receivers:
           - source_labels: [ __name__ ]
             regex: 'otelcol_processor_batch_.*'
             action: drop
-  smartagent/processlist:
-    type: processlist
+#  smartagent/processlist:
+#    type: processlist
   signalfx:
     endpoint: "${SPLUNK_LISTEN_INTERFACE}:9943"
     # Whether to preserve incoming access token and use instead of exporter token
@@ -187,7 +187,9 @@ service:
       # to use signalfx exporter so host metadata gets emitted
       exporters: [signalfx]
     logs/signalfx:
-      receivers: [signalfx, smartagent/processlist]
+      receivers:
+      - signalfx
+      # - smartagent/processlist
       processors: [memory_limiter, batch, resourcedetection]
       exporters: [signalfx]
     logs:

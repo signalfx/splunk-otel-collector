@@ -3,7 +3,7 @@ monitors:
     plugin_instance:
       description: Set to whatever you set in the `name` config option.
   doc: |
-    This monitor is deprecated and will be removed in a future release. Use the apache receiver instead.
+    This monitor is deprecated and will be removed in a future release. Use the [OpenTelemetry Apache Web Server Receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/apachereceiver) instead.
     
     Monitors Apache webservice instances using the information provided by
     `mod_status`.

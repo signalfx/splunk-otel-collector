@@ -58,6 +58,8 @@ var factory = telegrafInputs.Inputs["exec"]
 // Configure the monitor and kick off metric syncing
 func (m *Monitor) Configure(conf *Config) (err error) {
 	m.logger = logger.WithField("monitorID", conf.MonitorID)
+	m.logger.Warn("[NOTICE] The telegraf/exec monitor is deprecated and will be removed in a future release.")
+
 	m.plugin = factory().(*telegrafPlugin.Exec)
 
 	cumulativeCounterSet := utils.StringSliceToMap(conf.SignalFxCumulativeMetrics)

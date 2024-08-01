@@ -1,6 +1,9 @@
 monitors:
 - dimensions:
   doc: |
+    The collectd/mysql plugin is deprecated and will be removed in a future release.
+    Please use the mysql receiver instead.
+    
     Monitors a MySQL database server using collectd's [MySQL
     plugin](https://collectd.org/wiki/index.php/Plugin:MySQL). It supports
     MySQL versions 5.x or later.

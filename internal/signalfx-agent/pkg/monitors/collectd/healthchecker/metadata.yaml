@@ -1,7 +1,7 @@
 monitors:
 - dimensions:
   doc: |
-    The collectd/health-checker plugin is deprecated and will be removed in a future release. Use the httpcheckreceiver instead.
+    The collectd/health-checker plugin is deprecated and will be removed in a future release. Use the [OpenTelemetry HTTP Check Receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/httpcheckreceiver) instead.
     
     A simple Collectd Python-based monitor
     that hits an endpoint and checks if the configured JSON value is returned in

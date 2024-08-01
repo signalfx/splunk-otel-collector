@@ -109,6 +109,7 @@ func (m *Monitor) Configure(conf *Config) error {
 		"host":        conf.Host,
 		"port":        conf.Port,
 	})
+	m.logger.Warn("[NOTICE] The postgresql monitor is deprecated and will be removed in a future release. Please use the postgresql receiver.")
 
 	queriesGroupEnabled := m.Output.HasEnabledMetricInGroup(groupQueries)
 	replicationGroupEnabled := m.Output.HasEnabledMetricInGroup(groupReplication)

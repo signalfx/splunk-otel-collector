@@ -3,6 +3,8 @@ monitors:
     plugin_instance:
       description: Set to whatever you set in the `name` config option.
   doc: |
+    This monitor is deprecated and will be removed in a future release. Use the apache receiver instead.
+    
     Monitors Apache webservice instances using the information provided by
     `mod_status`.
 

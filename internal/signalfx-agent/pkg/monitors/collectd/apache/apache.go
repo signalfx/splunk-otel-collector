@@ -46,5 +46,5 @@ type Monitor struct {
 
 // Configure configures and runs the plugin in collectd
 func (am *Monitor) Configure(conf *Config) error {
-	return am.SetConfigurationAndRun(conf)
+	return am.SetConfigurationAndRun(conf, collectd.WithWarning("[NOTICE] The collectd/apache plugin is deprecated and will be removed in a future release. Please migrate to the apache receiver."))
 }

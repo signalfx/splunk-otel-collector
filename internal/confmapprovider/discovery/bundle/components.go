@@ -67,6 +67,7 @@ var (
 		}(),
 		Windows: func() map[string]struct{} {
 			windows := map[string]struct{}{
+				"apachewebserver":       {},
 				"jmx-cassandra":         {},
 				"kafkametrics":          {},
 				"mongodb":               {},

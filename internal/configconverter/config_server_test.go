@@ -18,10 +18,12 @@ package configconverter
 import (
 	"context"
 	"io"
+	"net"
 	"net/http"
 	"os"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -39,7 +41,9 @@ func TestConfigServer_RequireEnvVar(t *testing.T) {
 	cs := NewConfigServer()
 	require.NotNil(t, cs)
 	cs.OnNew()
-	t.Cleanup(cs.OnShutdown)
+	t.Cleanup(func() {
+		shutdownAndWaitForPort(t, cs, defaultConfigServerPort)
+	})
 	require.NoError(t, cs.Convert(context.Background(), confmap.NewFromStringMap(initial)))
 
 	client := &http.Client{}
@@ -90,18 +94,16 @@ func TestConfigServer_EnvVar(t *testing.T) {
 				}()
 			}
 
+			actualServerPort := defaultConfigServerPort
+			if tt.portEnvVar != "" {
+				actualServerPort = tt.portEnvVar
+			}
 			cs := NewConfigServer()
 			require.NotNil(t, cs)
 			cs.OnNew()
 
 			require.NoError(t, cs.Convert(context.Background(), confmap.NewFromStringMap(initial)))
-			defer func() {
-				cs.OnShutdown() // Call shutdown even if the server is not up.
-				if !tt.serverDown {
-					// Wait for the server to shutdown. Otherwise the port might be still in use.
-					<-cs.doneCh
-				}
-			}()
+			defer shutdownAndWaitForPort(t, cs, actualServerPort)
 
 			endpoint := tt.endpoint
 			if endpoint == "" {
@@ -154,7 +156,9 @@ func TestConfigServer_Serve(t *testing.T) {
 	cs := NewConfigServer()
 	require.NotNil(t, cs)
 	cs.OnNew()
-	t.Cleanup(cs.OnShutdown)
+	t.Cleanup(func() {
+		shutdownAndWaitForPort(t, cs, defaultConfigServerPort)
+	})
 
 	cs.OnRetrieve("scheme", initial)
 	require.NoError(t, cs.Convert(context.Background(), confmap.NewFromStringMap(initial)))
@@ -224,4 +228,16 @@ func TestSimpleRedact(t *testing.T) {
 		"user":       "<redacted>",
 		"X-SF-Token": "<redacted>",
 	}, result)
+}
+
+func shutdownAndWaitForPort(t *testing.T, cs *ConfigServer, port string) {
+	cs.OnShutdown()
+	require.Eventually(t, func() bool {
+		ln, err := net.Listen("tcp", "localhost:"+port)
+		if err == nil {
+			ln.Close()
+			return true
+		}
+		return false
+	}, 5*time.Second, 200*time.Millisecond)
 }

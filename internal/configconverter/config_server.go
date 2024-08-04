@@ -38,7 +38,8 @@ import (
 const (
 	configServerEnabledEnvVar   = "SPLUNK_DEBUG_CONFIG_SERVER"
 	configServerPortEnvVar      = "SPLUNK_DEBUG_CONFIG_SERVER_PORT"
-	defaultConfigServerEndpoint = "localhost:55554"
+	defaultConfigServerPort     = "55554"
+	defaultConfigServerEndpoint = "localhost:" + defaultConfigServerPort
 	effectivePath               = "/debug/configz/effective"
 	initialPath                 = "/debug/configz/initial"
 )
@@ -58,7 +59,6 @@ type ConfigServer struct {
 	initial        map[string]any
 	effective      map[string]any
 	server         *http.Server
-	doneCh         chan struct{}
 	initialMutex   sync.RWMutex
 	effectiveMutex sync.RWMutex
 	wg             sync.WaitGroup
@@ -73,7 +73,6 @@ func NewConfigServer() *ConfigServer {
 		effectiveMutex: sync.RWMutex{},
 		wg:             sync.WaitGroup{},
 		once:           sync.Once{},
-		doneCh:         make(chan struct{}),
 	}
 
 	mux := http.NewServeMux()
@@ -156,8 +155,6 @@ func (cs *ConfigServer) start() {
 			}
 
 			go func() {
-				defer close(cs.doneCh)
-
 				httpErr := cs.server.Serve(listener)
 				if httpErr != http.ErrServerClosed {
 					log.Print(fmt.Errorf("config server error: %w", httpErr).Error())
@@ -166,15 +163,17 @@ func (cs *ConfigServer) start() {
 
 			go func() {
 				cs.wg.Wait()
-				if cs.server != nil {
-					_ = cs.server.Close()
-				}
+				_ = cs.server.Close()
 
 			}()
 
 		})
 }
 
+// OnShutdown doesn't guarantee that server is down. The server is stopped when
+// the number of OnShutdown calls match the number of OnNew calls. The actual
+// shutdown time is non-deterministic since it happens in a goroutine that
+// was waiting for the last OnShutdown call.
 func (cs *ConfigServer) OnShutdown() {
 	cs.wg.Done()
 }

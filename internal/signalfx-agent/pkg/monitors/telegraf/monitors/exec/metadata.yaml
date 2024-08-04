@@ -1,6 +1,8 @@
 monitors:
 - dimensions:
   doc: |
+    The telegraf/exec monitor is deprecated and will be removed in a future release.
+    
     This is an embedded form of the [Telegraf Exec
     plugin](https://github.com/influxdata/telegraf/tree/master/plugins/inputs/exec).
     The plugin-specific config options are the same as that plugin, but parser

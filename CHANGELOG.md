@@ -4,12 +4,16 @@
 
 ### 🚀 New components 🚀
 
-- (Splunk) Add ElasticSearch receiver ([#5165](https://github.com/signalfx/splunk-otel-collector/pull/5165/))
+- (Splunk) Add Elasticsearch receiver ([#5165](https://github.com/signalfx/splunk-otel-collector/pull/5165/))
 - (Splunk) Add HAProxy receiver [#5163](https://github.com/signalfx/splunk-otel-collector/pull/5163)
  
 ### 🚩Deprecations 🚩
 
 - (Splunk) Deprecate the collectd/health-checker plugin ([#5167](https://github.com/signalfx/splunk-otel-collector/pull/5167))
+
+### 🚩Deprecations 🚩
+
+- (Splunk) Deprecate the telegraf/exec monitor ([#5171](https://github.com/signalfx/splunk-otel-collector/pull/5171))
 
 ## v0.105.0
 

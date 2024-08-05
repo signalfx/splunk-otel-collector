@@ -1,4 +1,4 @@
-FROM redis:7.2
+FROM redis:7.4
 
 COPY init.sh /usr/local/bin/init.sh
 

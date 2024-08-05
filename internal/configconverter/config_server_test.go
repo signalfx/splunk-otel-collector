@@ -34,6 +34,8 @@ import (
 )
 
 func TestConfigServer_RequireEnvVar(t *testing.T) {
+	 // Ensure that the env var is unset as required by this test.
+	os.Unsetenv(configServerEnabledEnvVar)
 	initial := map[string]any{
 		"minimal": "config",
 	}
@@ -49,7 +51,7 @@ func TestConfigServer_RequireEnvVar(t *testing.T) {
 	client := &http.Client{}
 	path := "/debug/configz/initial"
 	_, err := client.Get("http://" + defaultConfigServerEndpoint + path)
-	assert.Error(t, err)
+	assert.Error(t, err, "SPLUNK_DEBUG_CONFIG_SERVER=%s", os.Getenv(configServerEnabledEnvVar))
 }
 
 func TestConfigServer_EnvVar(t *testing.T) {

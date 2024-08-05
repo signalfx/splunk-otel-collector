@@ -36,6 +36,8 @@ import (
 func TestConfigServer_RequireEnvVar(t *testing.T) {
 	// Ensure that the env var is unset as required by this test.
 	os.Unsetenv(configServerEnabledEnvVar)
+	waitForPort(t, defaultConfigServerPort)
+
 	initial := map[string]any{
 		"minimal": "config",
 	}
@@ -234,6 +236,10 @@ func TestSimpleRedact(t *testing.T) {
 
 func shutdownAndWaitForPort(t *testing.T, cs *ConfigServer, port string) {
 	cs.OnShutdown()
+	waitForPort(t, port)
+}
+
+func waitForPort(t *testing.T, port string) {
 	require.Eventually(t, func() bool {
 		ln, err := net.Listen("tcp", "localhost:"+port)
 		if err == nil {
@@ -243,3 +249,4 @@ func shutdownAndWaitForPort(t *testing.T, cs *ConfigServer, port string) {
 		return false
 	}, 5*time.Second, 200*time.Millisecond)
 }
+

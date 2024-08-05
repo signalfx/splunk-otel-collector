@@ -34,7 +34,7 @@ import (
 )
 
 func TestConfigServer_RequireEnvVar(t *testing.T) {
-	 // Ensure that the env var is unset as required by this test.
+	// Ensure that the env var is unset as required by this test.
 	os.Unsetenv(configServerEnabledEnvVar)
 	initial := map[string]any{
 		"minimal": "config",

@@ -6,6 +6,7 @@ import (
 	"github.com/signalfx/golib/v3/datapoint"
 	"github.com/signalfx/golib/v3/event"
 	"github.com/signalfx/golib/v3/trace"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 
 	"github.com/signalfx/signalfx-agent/pkg/core/dpfilters"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/types"
@@ -14,10 +15,11 @@ import (
 // TestOutput can be used in place of the normal monitor outut to provide a
 // simpler way of testing monitor output.
 type TestOutput struct {
-	dpChan    chan []*datapoint.Datapoint
-	eventChan chan *event.Event
-	spanChan  chan []*trace.Span
-	dimChan   chan *types.Dimension
+	dpChan      chan []*datapoint.Datapoint
+	metricsChan chan []pmetric.Metric
+	eventChan   chan *event.Event
+	spanChan    chan []*trace.Span
+	dimChan     chan *types.Dimension
 }
 
 var _ types.Output = (*TestOutput)(nil)
@@ -42,6 +44,10 @@ func (to *TestOutput) Copy() types.Output {
 
 func (to *TestOutput) SendDatapoints(dps ...*datapoint.Datapoint) {
 	to.dpChan <- dps
+}
+
+func (to *TestOutput) SendMetrics(metrics ...pmetric.Metric) {
+	to.metricsChan <- metrics
 }
 
 // SendEvent accepts an event and sticks it in a buffered queue

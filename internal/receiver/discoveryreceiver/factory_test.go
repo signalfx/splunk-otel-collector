@@ -23,7 +23,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/consumer/consumertest"
-	otelcolreceiver "go.opentelemetry.io/collector/receiver"
+	"go.opentelemetry.io/collector/receiver/receivertest"
 )
 
 func TestCreateDefaultConfig(t *testing.T) {
@@ -41,11 +41,10 @@ func TestCreateLogsReceiver(t *testing.T) {
 	factory := NewFactory()
 	cfg := factory.CreateDefaultConfig()
 
-	params := otelcolreceiver.Settings{}
+	params := receivertest.NewNopSettings()
 	receiver, err := factory.CreateLogsReceiver(context.Background(), params, cfg, consumertest.NewNop())
-	assert.Error(t, err)
-	assert.EqualError(t, err, "`watch_observers` must be defined and include at least one configured observer extension")
-	assert.Nil(t, receiver)
+	assert.NoError(t, err)
+	assert.NotNil(t, receiver)
 }
 
 func TestCreateMetricsReceiver(t *testing.T) {
@@ -53,7 +52,7 @@ func TestCreateMetricsReceiver(t *testing.T) {
 	cfg := &Config{}
 	require.Error(t, cfg.Validate())
 
-	params := otelcolreceiver.Settings{}
+	params := receivertest.NewNopSettings()
 	rcvr, err := factory.CreateMetricsReceiver(context.Background(), params, cfg, consumertest.NewNop())
 	require.Error(t, err)
 	assert.EqualError(t, err, "telemetry type is not supported")
@@ -65,7 +64,7 @@ func TestCreateTracesReceiver(t *testing.T) {
 	cfg := &Config{}
 	require.Error(t, cfg.Validate())
 
-	params := otelcolreceiver.Settings{}
+	params := receivertest.NewNopSettings()
 	rcvr, err := factory.CreateTracesReceiver(context.Background(), params, cfg, consumertest.NewNop())
 	require.Error(t, err)
 	assert.EqualError(t, err, "telemetry type is not supported")

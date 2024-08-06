@@ -17,12 +17,14 @@ package main
 
 import (
 	"context"
+	"net"
 	"os"
 	"runtime"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestRunFromCmdLine(t *testing.T) {
@@ -47,12 +49,16 @@ func TestRunFromCmdLine(t *testing.T) {
 			args:    []string{"otelcol", "--discovery", "--config=config/collector/agent_config.yaml"},
 			timeout: 30 * time.Second,
 		},
-		{
-			name:     "dry-run_discovery",
-			args:     []string{"otelcol", "--discovery", "--dry-run", "--config=config/collector/agent_config.yaml"},
-			timeout:  30 * time.Second,
-			panicMsg: "unexpected call to os.Exit(0) during test", // os.Exit(0) in the normal execution is expected for '--dry-run'.
-		},
+		// Running the discovery with --dry-run in CI is not desirable because of the use of os.Exit(0) to end the execution.
+		// That prevents the test from releasing resources like ports. The test needs to catch the panic to not fail the test,
+		// however, the resources won't be properly released for the remaining tests that may use the same resources.
+		// Keeping the test here for manual runs on dev box.
+		// {
+		// 	name:     "dry-run_discovery",
+		// 	args:     []string{"otelcol", "--discovery", "--dry-run", "--config=config/collector/agent_config.yaml"},
+		// 	timeout:  30 * time.Second,
+		// 	panicMsg: "unexpected call to os.Exit(0) during test", // os.Exit(0) in the normal execution is expected for '--dry-run'.
+		// },
 	}
 
 	// Set execution environment
@@ -78,10 +84,16 @@ func TestRunFromCmdLine(t *testing.T) {
 				}
 			}
 
-			testCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			testCtx, cancel := context.WithTimeout(context.Background(), tt.timeout)
 			defer cancel()
 
 			otelcolCmdTestCtx = testCtx
+			defer func() {
+				otelcolCmdTestCtx = nil
+			}()
+
+			// Wait for the ConfigServer to be down after the test.
+			defer waitForPort(t, "55554")
 
 			if tt.panicMsg != "" {
 				assert.PanicsWithValue(t, tt.panicMsg, func() { runFromCmdLine(tt.args) })
@@ -91,4 +103,15 @@ func TestRunFromCmdLine(t *testing.T) {
 			runFromCmdLine(tt.args)
 		})
 	}
+}
+
+func waitForPort(t *testing.T, port string) {
+	require.Eventually(t, func() bool {
+		ln, err := net.Listen("tcp", "localhost:"+port)
+		if err == nil {
+			ln.Close()
+			return true
+		}
+		return false
+	}, 10*time.Second, 200*time.Millisecond)
 }

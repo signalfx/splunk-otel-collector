@@ -173,7 +173,7 @@ func (cs *ConfigServer) start() {
 }
 
 func (cs *ConfigServer) OnShutdown() {
-	if cs.serverCount.Add(-1) == 0 {	
+	if cs.serverCount.Add(-1) == 0 {
 		_ = cs.server.Close()
 		cs.serverShutdown.Wait()
 	}

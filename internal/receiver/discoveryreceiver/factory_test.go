@@ -54,9 +54,8 @@ func TestCreateMetricsReceiver(t *testing.T) {
 
 	params := receivertest.NewNopSettings()
 	rcvr, err := factory.CreateMetricsReceiver(context.Background(), params, cfg, consumertest.NewNop())
-	require.Error(t, err)
-	assert.EqualError(t, err, "telemetry type is not supported")
-	assert.Nil(t, rcvr)
+	require.NoError(t, err)
+	assert.NotNil(t, rcvr)
 }
 
 func TestCreateTracesReceiver(t *testing.T) {

@@ -31,6 +31,7 @@ func TestRunFromCmdLine(t *testing.T) {
 	tests := []struct {
 		name     string
 		panicMsg string
+		skipMsg  string
 		args     []string
 		timeout  time.Duration
 	}{
@@ -52,13 +53,14 @@ func TestRunFromCmdLine(t *testing.T) {
 		// Running the discovery with --dry-run in CI is not desirable because of the use of os.Exit(0) to end the execution.
 		// That prevents the test from releasing resources like ports. The test needs to catch the panic to not fail the test,
 		// however, the resources won't be properly released for the remaining tests that may use the same resources.
-		// Keeping the test here for manual runs on dev box.
-		// {
-		// 	name:     "dry-run_discovery",
-		// 	args:     []string{"otelcol", "--discovery", "--dry-run", "--config=config/collector/agent_config.yaml"},
-		// 	timeout:  30 * time.Second,
-		// 	panicMsg: "unexpected call to os.Exit(0) during test", // os.Exit(0) in the normal execution is expected for '--dry-run'.
-		// },
+		// Skipping the test by default but keeping it around to deliberate runs on dev box.
+		{
+			name:     "dry-run_discovery",
+			args:     []string{"otelcol", "--discovery", "--dry-run", "--config=config/collector/agent_config.yaml"},
+			timeout:  30 * time.Second,
+			panicMsg: "unexpected call to os.Exit(0) during test", // os.Exit(0) in the normal execution is expected for '--dry-run'.
+			skipMsg:  "Skipping this test in CI because --dry-run uses os.Exit(0) to end the execution",
+		},
 	}
 
 	// Set execution environment
@@ -76,6 +78,10 @@ func TestRunFromCmdLine(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			if tt.skipMsg != "" {
+				t.Skip(tt.skipMsg)
+			}
+
 			// GH darwin runners don't have docker installed, skip discovery tests on them
 			// given that the docker_observer is enabled by default.
 			if runtime.GOOS == "darwin" && (tt.name == "default_discovery" || tt.name == "dry-run_discovery") {

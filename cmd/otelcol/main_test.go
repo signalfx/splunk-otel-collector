@@ -59,7 +59,7 @@ func TestRunFromCmdLine(t *testing.T) {
 			args:     []string{"otelcol", "--discovery", "--dry-run", "--config=config/collector/agent_config.yaml"},
 			timeout:  30 * time.Second,
 			panicMsg: "unexpected call to os.Exit(0) during test", // os.Exit(0) in the normal execution is expected for '--dry-run'.
-			skipMsg:  "Skipping this test in CI because --dry-run uses os.Exit(0) to end the execution",
+			skipMsg:  "Skipping this test by default because --dry-run uses os.Exit(0) to end the execution",
 		},
 	}
 

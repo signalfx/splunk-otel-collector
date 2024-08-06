@@ -23,6 +23,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"runtime/debug"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -103,6 +104,7 @@ func (cs *ConfigServer) Convert(_ context.Context, conf *confmap.Conf) error {
 }
 
 func (cs *ConfigServer) OnNew() {
+	debug.PrintStack()
 	cs.serverCount.Add(1)
 }
 
@@ -138,6 +140,7 @@ func (cs *ConfigServer) start() {
 		return
 	}
 
+	debug.PrintStack()
 	cs.once.Do(
 		func() {
 			endpoint := defaultConfigServerEndpoint
@@ -160,6 +163,9 @@ func (cs *ConfigServer) start() {
 			}
 
 			go func() {
+				defer func() {
+					log.Print("<<<< serverShutdown: done")
+				}()
 				defer cs.serverShutdown.Done()
 
 				httpErr := cs.server.Serve(listener)
@@ -173,9 +179,13 @@ func (cs *ConfigServer) start() {
 }
 
 func (cs *ConfigServer) OnShutdown() {
-	if cs.serverCount.Add(-1) == 0 {
+	debug.PrintStack()
+	serverCount := cs.serverCount.Add(-1)
+	log.Printf("<<<< serverCount: %d", serverCount)
+	if serverCount == 0 {
 		_ = cs.server.Close()
 		cs.serverShutdown.Wait()
+		log.Print("<<<< OnShutdown 0: done")
 	}
 }
 

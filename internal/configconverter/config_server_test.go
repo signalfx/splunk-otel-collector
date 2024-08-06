@@ -57,6 +57,8 @@ func TestConfigServer_RequireEnvVar(t *testing.T) {
 }
 
 func TestConfigServer_EnvVar(t *testing.T) {
+	waitForPort(t, defaultConfigServerPort)
+
 	alternativePort := strconv.FormatUint(uint64(testutils.GetAvailablePort(t)), 10)
 	require.NoError(t, os.Setenv(configServerEnabledEnvVar, "true"))
 	t.Cleanup(func() {
@@ -131,6 +133,8 @@ func TestConfigServer_EnvVar(t *testing.T) {
 }
 
 func TestConfigServer_Serve(t *testing.T) {
+	waitForPort(t, defaultConfigServerPort)
+
 	require.NoError(t, os.Setenv(configServerEnabledEnvVar, "true"))
 	t.Cleanup(func() {
 		assert.NoError(t, os.Unsetenv(configServerEnabledEnvVar))

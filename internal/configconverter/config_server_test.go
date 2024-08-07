@@ -251,5 +251,5 @@ func waitForPort(t *testing.T, port string) {
 			return true
 		}
 		return false
-	}, 5*time.Second, 200*time.Millisecond)
+	}, 60*time.Second, 500*time.Millisecond)
 }

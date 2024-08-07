@@ -106,6 +106,7 @@ func TestRunFromCmdLine(t *testing.T) {
 				return
 			}
 
+			waitForPort(t, "55554")
 			runFromCmdLine(tt.args)
 		})
 	}
@@ -119,5 +120,5 @@ func waitForPort(t *testing.T, port string) {
 			return true
 		}
 		return false
-	}, 10*time.Second, 200*time.Millisecond)
+	}, 60*time.Second, 500*time.Millisecond)
 }

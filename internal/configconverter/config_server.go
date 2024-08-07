@@ -25,6 +25,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -59,9 +60,10 @@ type ConfigServer struct {
 	initial        map[string]any
 	effective      map[string]any
 	server         *http.Server
+	serverCount    atomic.Int64
+	serverShutdown sync.WaitGroup
 	initialMutex   sync.RWMutex
 	effectiveMutex sync.RWMutex
-	wg             sync.WaitGroup
 	once           sync.Once
 }
 
@@ -71,7 +73,8 @@ func NewConfigServer() *ConfigServer {
 		effective:      map[string]any{},
 		initialMutex:   sync.RWMutex{},
 		effectiveMutex: sync.RWMutex{},
-		wg:             sync.WaitGroup{},
+		serverCount:    atomic.Int64{},
+		serverShutdown: sync.WaitGroup{},
 		once:           sync.Once{},
 	}
 
@@ -98,7 +101,7 @@ func (cs *ConfigServer) Convert(_ context.Context, conf *confmap.Conf) error {
 }
 
 func (cs *ConfigServer) OnNew() {
-	cs.wg.Add(1)
+	cs.serverCount.Add(1)
 }
 
 func (cs *ConfigServer) OnRetrieve(scheme string, retrieved map[string]any) {
@@ -155,27 +158,23 @@ func (cs *ConfigServer) start() {
 			}
 
 			go func() {
+				defer cs.serverShutdown.Done()
+
 				httpErr := cs.server.Serve(listener)
 				if httpErr != http.ErrServerClosed {
 					log.Print(fmt.Errorf("config server error: %w", httpErr).Error())
 				}
 			}()
-
-			go func() {
-				cs.wg.Wait()
-				_ = cs.server.Close()
-
-			}()
+			cs.serverShutdown.Add(1)
 
 		})
 }
 
-// OnShutdown doesn't guarantee that server is down. The server is stopped when
-// the number of OnShutdown calls match the number of OnNew calls. The actual
-// shutdown time is non-deterministic since it happens in a goroutine that
-// was waiting for the last OnShutdown call.
 func (cs *ConfigServer) OnShutdown() {
-	cs.wg.Done()
+	if cs.serverCount.Add(-1) == 0 {
+		_ = cs.server.Close()
+		cs.serverShutdown.Wait()
+	}
 }
 
 func (cs *ConfigServer) muxHandleFunc(configType ConfigType) func(http.ResponseWriter, *http.Request) {

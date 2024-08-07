@@ -43,7 +43,10 @@ func TestConfigServer_RequireEnvVar(t *testing.T) {
 	cs := NewConfigServer()
 	require.NotNil(t, cs)
 	cs.OnNew()
-	t.Cleanup(cs.OnShutdown)
+	t.Cleanup(func() {
+		cs.OnShutdown()
+		assert.True(t, isPortAvailable(defaultConfigServerPort))
+	})
 	require.NoError(t, cs.Convert(context.Background(), confmap.NewFromStringMap(initial)))
 
 	client := &http.Client{}
@@ -105,7 +108,10 @@ func TestConfigServer_EnvVar(t *testing.T) {
 			cs.OnNew()
 
 			require.NoError(t, cs.Convert(context.Background(), confmap.NewFromStringMap(initial)))
-			defer cs.OnShutdown()
+			defer func() {
+				cs.OnShutdown()
+				assert.True(t, isPortAvailable(actualConfigServerPort))
+			}()
 
 			endpoint := tt.endpoint
 			if endpoint == "" {
@@ -160,7 +166,10 @@ func TestConfigServer_Serve(t *testing.T) {
 	cs := NewConfigServer()
 	require.NotNil(t, cs)
 	cs.OnNew()
-	t.Cleanup(cs.OnShutdown)
+	t.Cleanup(func() {
+		cs.OnShutdown()
+		assert.True(t, isPortAvailable(defaultConfigServerPort))
+	})
 
 	cs.OnRetrieve("scheme", initial)
 	require.NoError(t, cs.Convert(context.Background(), confmap.NewFromStringMap(initial)))
@@ -233,14 +242,18 @@ func TestSimpleRedact(t *testing.T) {
 }
 
 func waitForRequiredPort(t *testing.T, port string) {
-	// Wait for a relatively long time for the port to be available, given that other tests might be using it.
+	// Wait for a relatively long time for the port to be available, given that other package tests might be using it.
 	const waitTime = 60 * time.Second
 	require.Eventually(t, func() bool {
-		ln, err := net.Listen("tcp", "localhost:"+port)
-		if err == nil {
-			ln.Close()
-			return true
-		}
-		return false
+		return isPortAvailable(port)
 	}, waitTime, 500*time.Millisecond)
+}
+
+func isPortAvailable(port string) bool {
+	ln, err := net.Listen("tcp", "localhost:"+port)
+	if err == nil {
+		ln.Close()
+		return true
+	}
+	return false
 }

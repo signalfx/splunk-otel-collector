@@ -105,8 +105,7 @@ func TestInvalidConfigs(t *testing.T) {
 		{name: "invalid_status_types", expectedError: `receiver "a_receiver" validation failure: "metrics" status match validation failed: invalid status "unsupported". must be one of [successful partial failed]; "statements" status match validation failed: invalid status "another_unsupported". must be one of [successful partial failed]`},
 		{name: "multiple_status_match_types", expectedError: "receiver \"a_receiver\" validation failure: \"metrics\" status match validation failed. Must provide one of [regexp strict expr] but received [strict regexp]; \"statements\" status match validation failed. Must provide one of [regexp strict expr] but received [strict expr]"},
 		{name: "reserved_receiver_creator", expectedError: `receiver "receiver_creator/with-name" validation failure: receiver cannot be a receiver_creator`},
-		{name: "reserved_receiver_name", expectedError: `receiver "a_receiver/with-receiver_creator/in-name" validation failure: receiver name cannot contain "receiver_creator/"`},
-		{name: "reserved_receiver_name_with_endpoint", expectedError: `receiver "receiver/with{endpoint=}/" validation failure: receiver name cannot contain "{endpoint=[^}]*}/"`},
+		{name: "reserved_receiver_name", expectedError: "receiver \"a_receiver/with-receiver_creator/in-name\" validation failure: receiver name cannot contain \"receiver_creator/\""},
 	}
 
 	for _, test := range tests {

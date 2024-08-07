@@ -120,7 +120,7 @@ func checkMetricsPresence(t *testing.T, metricNames []string, configFile string)
 	c := f.CreateDefaultConfig().(*otlpreceiver.Config)
 	c.GRPC.NetAddr.Endpoint = fmt.Sprintf("localhost:%d", port)
 	sink := &consumertest.MetricsSink{}
-	receiver, err := f.CreateMetricsReceiver(context.Background(), receivertest.NewNopCreateSettings(), c, sink)
+	receiver, err := f.CreateMetricsReceiver(context.Background(), receivertest.NewNopSettings(), c, sink)
 	require.NoError(t, err)
 	require.NoError(t, receiver.Start(context.Background(), componenttest.NewNopHost()))
 	t.Cleanup(func() {

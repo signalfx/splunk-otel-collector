@@ -43,26 +43,26 @@ var (
 )
 
 type discoveryReceiver struct {
-	logsConsumer       consumer.Logs
-	receiverCreator    receiver.Metrics
-	alreadyLogged      *sync.Map
-	endpointTracker    *endpointTracker
-	sentinel           chan struct{}
-	metricEvaluator    *metricEvaluator
-	statementEvaluator *statementEvaluator
-	logger             *zap.Logger
-	config             *Config
-	obsreportReceiver  *receiverhelper.ObsReport
-	pLogs              chan plog.Logs
-	observables        map[component.ID]observer.Observable
-	loopFinished       *sync.WaitGroup
-	settings           receiver.Settings
+	nextLogsConsumer    consumer.Logs
+	nextMetricsConsumer consumer.Metrics
+	receiverCreator     receiver.Metrics
+	alreadyLogged       *sync.Map
+	endpointTracker     *endpointTracker
+	sentinel            chan struct{}
+	metricsConsumer     *metricsConsumer
+	statementEvaluator  *statementEvaluator
+	logger              *zap.Logger
+	config              *Config
+	obsreportReceiver   *receiverhelper.ObsReport
+	pLogs               chan plog.Logs
+	observables         map[component.ID]observer.Observable
+	loopFinished        *sync.WaitGroup
+	settings            receiver.Settings
 }
 
 func newDiscoveryReceiver(
 	settings receiver.Settings,
 	config *Config,
-	consumer consumer.Logs,
 ) (*discoveryReceiver, error) {
 	obsReceiver, err := receiverhelper.NewObsReport(receiverhelper.ObsReportSettings{
 		ReceiverID:             settings.ID,
@@ -78,7 +78,6 @@ func newDiscoveryReceiver(
 		obsreportReceiver: obsReceiver,
 		logger:            settings.TelemetrySettings.Logger,
 		settings:          settings,
-		logsConsumer:      consumer,
 		pLogs:             make(chan plog.Logs),
 		sentinel:          make(chan struct{}, 1),
 		loopFinished:      &sync.WaitGroup{},
@@ -97,7 +96,7 @@ func (d *discoveryReceiver) Start(ctx context.Context, host component.Host) (err
 	d.endpointTracker = newEndpointTracker(d.observables, d.config, d.logger, d.pLogs, correlations)
 	d.endpointTracker.start()
 
-	d.metricEvaluator = newMetricEvaluator(d.logger, d.config, correlations)
+	d.metricsConsumer = newMetricsConsumer(d.logger, d.config, correlations, d.nextMetricsConsumer)
 
 	if d.statementEvaluator, err = newStatementEvaluator(d.logger, d.settings.ID, d.config, correlations); err != nil {
 		return fmt.Errorf("failed creating statement evaluator: %w", err)
@@ -159,7 +158,7 @@ func (d *discoveryReceiver) consumerLoop(loopStarted *sync.WaitGroup) {
 				return
 			}
 			ctx := d.obsreportReceiver.StartLogsOp(context.Background())
-			err := d.logsConsumer.ConsumeLogs(context.Background(), pLog)
+			err := d.nextLogsConsumer.ConsumeLogs(context.Background(), pLog)
 			if err != nil {
 				d.logger.Info("logsConsumer failed consumption", zap.Error(err))
 			}
@@ -193,7 +192,7 @@ func (d *discoveryReceiver) createAndSetReceiverCreator() error {
 		},
 	}
 	if d.receiverCreator, err = receiverCreatorFactory.CreateMetricsReceiver(
-		context.Background(), receiverCreatorSettings, receiverCreatorConfig, d.metricEvaluator,
+		context.Background(), receiverCreatorSettings, receiverCreatorConfig, d.metricsConsumer,
 	); err != nil {
 		return err
 	}

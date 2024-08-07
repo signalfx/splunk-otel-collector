@@ -30,42 +30,47 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver/statussources"
 )
 
-var _ consumer.Metrics = (*metricEvaluator)(nil)
+var _ consumer.Metrics = (*metricsConsumer)(nil)
 
 var (
 	jsonMarshaler = &pmetric.JSONMarshaler{}
 )
 
-// metricEvaluator conforms to a consumer.Metrics to receive any metrics from
+// metricsConsumer conforms to a consumer.Metrics to receive any metrics from
 // receiver creator-created receivers and determine if they match any configured
 // Status match rules. If so, they emit log records for the matching metric.
-type metricEvaluator struct {
+// It also passes the metrics to the next consumer in the pipeline.
+type metricsConsumer struct {
 	*evaluator
+	nextConsumer consumer.Metrics
 }
 
-func newMetricEvaluator(logger *zap.Logger, cfg *Config, correlations *correlationStore) *metricEvaluator {
-	return &metricEvaluator{
+func newMetricsConsumer(logger *zap.Logger, cfg *Config, correlations *correlationStore, nextConsumer consumer.Metrics) *metricsConsumer {
+	return &metricsConsumer{
 		evaluator: newEvaluator(logger, cfg, correlations,
 			// TODO: provide more capable env w/ resource and metric attributes
 			func(pattern string) map[string]any {
 				return map[string]any{"name": pattern}
-			},
-		),
+			}),
+		nextConsumer: nextConsumer,
 	}
 }
 
-func (m *metricEvaluator) Capabilities() consumer.Capabilities {
+func (m *metricsConsumer) Capabilities() consumer.Capabilities {
 	return consumer.Capabilities{}
 }
 
-func (m *metricEvaluator) ConsumeMetrics(_ context.Context, md pmetric.Metrics) error {
+func (m *metricsConsumer) ConsumeMetrics(ctx context.Context, md pmetric.Metrics) error {
 	m.evaluateMetrics(md)
+	if m.nextConsumer != nil {
+		return m.nextConsumer.ConsumeMetrics(ctx, md)
+	}
 	return nil
 }
 
 // evaluateMetrics parses the provided Metrics and returns plog.Logs with a single log record if it matches
 // against the first applicable configured Status match rule.
-func (m *metricEvaluator) evaluateMetrics(md pmetric.Metrics) {
+func (m *metricsConsumer) evaluateMetrics(md pmetric.Metrics) {
 	if ce := m.logger.Check(zapcore.DebugLevel, "evaluating metrics"); ce != nil {
 		if mbytes, err := jsonMarshaler.MarshalMetrics(md); err == nil {
 			ce.Write(zap.ByteString("metrics", mbytes))
@@ -127,7 +132,7 @@ func (m *metricEvaluator) evaluateMetrics(md pmetric.Metrics) {
 }
 
 // findMatchedMetric finds the metric that matches the provided match rule and return the resource where it's found.
-func (m *metricEvaluator) findMatchedMetric(md pmetric.Metrics, match Match, receiverID component.ID, endpointID observer.EndpointID) (pcommon.Resource, bool) {
+func (m *metricsConsumer) findMatchedMetric(md pmetric.Metrics, match Match, receiverID component.ID, endpointID observer.EndpointID) (pcommon.Resource, bool) {
 	for i := 0; i < md.ResourceMetrics().Len(); i++ {
 		rm := md.ResourceMetrics().At(i)
 		for j := 0; j < rm.ScopeMetrics().Len(); j++ {

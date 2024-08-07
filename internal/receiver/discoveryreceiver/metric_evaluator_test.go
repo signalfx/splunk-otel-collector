@@ -36,7 +36,7 @@ func TestMetricEvaluatorBaseMetricConsumer(t *testing.T) {
 	cfg := &Config{}
 	cStore := newCorrelationStore(logger, time.Hour)
 
-	me := newMetricEvaluator(logger, cfg, cStore)
+	me := newMetricsConsumer(logger, cfg, cStore, nil)
 	require.Equal(t, consumer.Capabilities{}, me.Capabilities())
 
 	md := pmetric.NewMetrics()
@@ -88,7 +88,7 @@ func TestMetricEvaluation(t *testing.T) {
 					endpointID := observer.EndpointID("endpoint.id")
 					cStore.UpdateEndpoint(observer.Endpoint{ID: endpointID}, receiverID, observerID)
 
-					me := newMetricEvaluator(logger, cfg, cStore)
+					me := newMetricsConsumer(logger, cfg, cStore, nil)
 
 					expectedRes := pcommon.NewResource()
 					expectedRes.Attributes().PutStr("discovery.receiver.type", "a_receiver")

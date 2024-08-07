@@ -21,7 +21,6 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/extension"
 	otelcolreceiver "go.opentelemetry.io/collector/receiver"
 	mnoop "go.opentelemetry.io/otel/metric/noop"
@@ -38,7 +37,7 @@ func TestNewDiscoveryReceiver(t *testing.T) {
 		},
 	}
 	cfg := &Config{}
-	receiver, err := newDiscoveryReceiver(rcs, cfg, consumertest.NewNop())
+	receiver, err := newDiscoveryReceiver(rcs, cfg)
 	require.NoError(t, err)
 	require.NotNil(t, receiver)
 
@@ -109,7 +108,7 @@ func TestObservablesFromHost(t *testing.T) {
 			}
 			host := mockHost{extensions: test.extensions}
 			cfg := &Config{WatchObservers: test.watchObservers}
-			receiver, err := newDiscoveryReceiver(rcs, cfg, consumertest.NewNop())
+			receiver, err := newDiscoveryReceiver(rcs, cfg)
 			require.NoError(t, err)
 			require.NotNil(t, receiver)
 

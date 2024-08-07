@@ -21,17 +21,26 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/receiver"
+
+	"github.com/signalfx/splunk-otel-collector/internal/common/sharedcomponent"
 )
 
 const (
 	typeStr = "discovery"
 )
 
+// This is the map of already created discovery receivers for particular configurations.
+// We maintain this map because the Factory is asked log and metric receivers separately
+// when it gets CreateLogsReceiver() and CreateMetricsReceiver() but they must not
+// create separate objects, they must use one receiver object per configuration.
+var receivers = sharedcomponent.NewSharedComponents()
+
 func NewFactory() receiver.Factory {
 	return receiver.NewFactory(
 		component.MustNewType(typeStr),
 		createDefaultConfig,
-		receiver.WithLogs(createLogsReceiver, component.StabilityLevelDevelopment))
+		receiver.WithLogs(createLogsReceiver, component.StabilityLevelDevelopment),
+		receiver.WithMetrics(createMetricsReceiver, component.StabilityLevelDevelopment))
 }
 
 func createDefaultConfig() component.Config {
@@ -47,5 +56,38 @@ func createLogsReceiver(
 	cfg component.Config,
 	consumer consumer.Logs,
 ) (receiver.Logs, error) {
-	return newDiscoveryReceiver(settings, cfg.(*Config), consumer)
+	var err error
+	r := receivers.GetOrAdd(
+		cfg, func() component.Component {
+			var rcv component.Component
+			rcv, err = newDiscoveryReceiver(settings, cfg.(*Config))
+			return rcv
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	r.Unwrap().(*discoveryReceiver).nextLogsConsumer = consumer
+	return r, nil
+}
+
+func createMetricsReceiver(
+	_ context.Context,
+	settings receiver.Settings,
+	cfg component.Config,
+	consumer consumer.Metrics,
+) (receiver.Metrics, error) {
+	var err error
+	r := receivers.GetOrAdd(
+		cfg, func() component.Component {
+			var rcv component.Component
+			rcv, err = newDiscoveryReceiver(settings, cfg.(*Config))
+			return rcv
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	r.Unwrap().(*discoveryReceiver).nextMetricsConsumer = consumer
+	return r, nil
 }

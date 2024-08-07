@@ -68,7 +68,7 @@ func apacheWebserverAutoDiscoveryHelper(t *testing.T, ctx context.Context, confi
 	c.GRPC.NetAddr.Endpoint = fmt.Sprintf("localhost:%d", port)
 	endpoint := c.GRPC.NetAddr.Endpoint
 	sink := &consumertest.LogsSink{}
-	receiver, err := factory.CreateLogsReceiver(context.Background(), receivertest.NewNopCreateSettings(), c, sink)
+	receiver, err := factory.CreateLogsReceiver(context.Background(), receivertest.NewNopSettings(), c, sink)
 	require.NoError(t, err)
 	require.NoError(t, receiver.Start(context.Background(), componenttest.NewNopHost()))
 	t.Cleanup(func() {

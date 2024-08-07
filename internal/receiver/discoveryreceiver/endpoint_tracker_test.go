@@ -721,8 +721,10 @@ func TestEntityEmittingLifecycle(t *testing.T) {
 	}, 1*time.Second, 50*time.Millisecond)
 
 	// Ensure that entities are not emitted anymore
-	time.Sleep(60 * time.Millisecond)
-	assert.Empty(t, ch)
+	require.EventuallyWithT(t, func(c *assert.CollectT) {
+		assert.Empty(t, ch)
+	}, 1*time.Second, 50*time.Millisecond)
+
 }
 
 type fakeObservable struct {

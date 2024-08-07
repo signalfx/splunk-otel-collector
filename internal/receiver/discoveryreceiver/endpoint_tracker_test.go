@@ -721,7 +721,7 @@ func TestEntityEmittingLifecycle(t *testing.T) {
 	}, 1*time.Second, 50*time.Millisecond)
 
 	// Ensure that entities are not emitted anymore
-	require.EventuallyWithT(t, func(c *assert.CollectT) {
+	require.EventuallyWithT(t, func(_ *assert.CollectT) {
 		assert.Empty(t, ch)
 	}, 1*time.Second, 50*time.Millisecond)
 

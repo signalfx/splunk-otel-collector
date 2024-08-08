@@ -715,16 +715,17 @@ func TestEntityEmittingLifecycle(t *testing.T) {
 	require.NoError(t, err)
 	require.Zero(t, failed)
 	expectedLogs := expectedEvents.ConvertAndMoveToLogs()
+	waitChan := make(chan struct{})
 	require.EventuallyWithT(t, func(c *assert.CollectT) {
 		logs := <-ch
-		assert.NoError(c, plogtest.CompareLogs(expectedLogs, logs, plogtest.IgnoreTimestamp()))
+		if assert.NoError(c, plogtest.CompareLogs(expectedLogs, logs, plogtest.IgnoreTimestamp())) {
+			close(waitChan)
+		}
 	}, 1*time.Second, 50*time.Millisecond)
 
 	// Ensure that entities are not emitted anymore
-	require.EventuallyWithT(t, func(_ *assert.CollectT) {
-		assert.Empty(t, ch)
-	}, 1*time.Second, 50*time.Millisecond)
-
+	<-waitChan
+	assert.Empty(t, ch)
 }
 
 type fakeObservable struct {

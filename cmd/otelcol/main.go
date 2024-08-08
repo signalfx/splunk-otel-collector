@@ -18,6 +18,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -36,10 +37,14 @@ import (
 )
 
 func main() {
+	runFromCmdLine(os.Args)
+}
+
+func runFromCmdLine(args []string) {
 	// TODO: Use same format as the collector
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
-	collectorSettings, err := settings.New(os.Args[1:])
+	collectorSettings, err := settings.New(args[1:])
 	if err != nil {
 		// Exit if --help flag was supplied and usage help was displayed.
 		if err == flag.ErrHelp {
@@ -80,14 +85,21 @@ func main() {
 		},
 	}
 
-	os.Args = append(os.Args[:1], collectorSettings.ColCoreArgs()...)
+	allArgs := args[:1]
+	allArgs = append(allArgs, collectorSettings.ColCoreArgs()...)
+	os.Args = allArgs
 	if err = run(serviceSettings); err != nil {
 		log.Fatal(err)
 	}
 }
 
+var otelcolCmdTestCtx context.Context // Use to control termination during tests.
+
 func runInteractive(settings otelcol.CollectorSettings) error {
 	cmd := otelcol.NewCommand(settings)
+	if otelcolCmdTestCtx != nil {
+		cmd.SetContext(otelcolCmdTestCtx)
+	}
 	if err := cmd.Execute(); err != nil {
 		return fmt.Errorf("application run finished with error: %w", err)
 	}

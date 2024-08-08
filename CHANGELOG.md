@@ -4,7 +4,7 @@
 
 ### 🚩Deprecations 🚩
 
-- (Splunk) Deprecate the nagios monitor ([#](https://github.com/signalfx/splunk-otel-collector/pull/))
+- (Splunk) Deprecate the nagios monitor ([#5172](https://github.com/signalfx/splunk-otel-collector/pull/5172))
 
 ## v0.106.0
 

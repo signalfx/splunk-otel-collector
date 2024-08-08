@@ -6,6 +6,8 @@
     applications via the WinNAT service.
 #>
 
+#Requires -RunAsAdministrator
+
 netsh interface ip show excludedportrange protocol=tcp
 
 Stop-Service winnat

@@ -106,12 +106,12 @@ func TestConfigServer_EnvVar(t *testing.T) {
 			cs := NewConfigServer()
 			require.NotNil(t, cs)
 			cs.OnNew()
-
-			require.NoError(t, cs.Convert(context.Background(), confmap.NewFromStringMap(initial)))
 			defer func() {
 				cs.OnShutdown()
 				assert.True(t, isPortAvailable(actualConfigServerPort))
 			}()
+
+			require.NoError(t, cs.Convert(context.Background(), confmap.NewFromStringMap(initial)))
 
 			endpoint := tt.endpoint
 			if endpoint == "" {

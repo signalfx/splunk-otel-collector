@@ -158,9 +158,8 @@ func (cs *ConfigServer) start() {
 			}
 
 			go func() {
-				defer cs.serverShutdown.Done()
-
 				httpErr := cs.server.Serve(listener)
+				defer cs.serverShutdown.Done()
 				if httpErr != http.ErrServerClosed {
 					log.Print(fmt.Errorf("config server error: %w", httpErr).Error())
 				}

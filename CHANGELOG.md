@@ -2,14 +2,14 @@
 
 ## Unreleased
 
+### 🛑 Breaking changes 🛑
+
+- (Splunk) `confmap`: Do not expand special shell variable such as `$*` in configuration files. ([#5206](https://github.com/signalfx/splunk-otel-collector/pull/5206))
+
 ### 🚀 New components 🚀
 
 - (Splunk) Add Azure Blob receiver ([#5200](https://github.com/signalfx/splunk-otel-collector/pull/5200))
 - (Splunk) Add Google Cloud PubSub receiver ([#5200](https://github.com/signalfx/splunk-otel-collector/pull/5200))
-
-### 🛑 Breaking changes 🛑
-
-- (Splunk) `confmap`: Do not expand special shell variable such as `$*` in configuration files. ([#5206](https://github.com/signalfx/splunk-otel-collector/pull/5206))
 
 ## v0.106.1
 

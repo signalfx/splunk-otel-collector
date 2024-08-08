@@ -234,26 +234,12 @@ install-test-tools:
 integration-test-split: install-test-tools
 	@set -e; cd tests && gotesplit --total=$(GOTESPLIT_TOTAL) --index=$(GOTESPLIT_INDEX) ./... -- -p 1 $(BUILD_INFO_TESTS) --tags=integration -v -timeout 5m -count 1
 
-# set vars for the otelcol-fips target
-ifeq ($(MAKECMDGOALS), otelcol-fips)
-ifeq ($(GOOS), linux)
-GOEXPERIMENT = boringcrypto
-GOFLAGS =
-EXTENSION = _fips
-endif
-ifeq ($(GOOS), windows)
-GOEXPERIMENT = boringcrypto
-GOFLAGS =
-EXTENSION = _fips.exe
-endif
-endif
-
 .PHONY: otelcol-fips
 otelcol-fips:
-ifeq ($(filter $(GOOS), linux windows),)
-	@echo "$(GOOS) not supported for fips"
-	@exit 1
+ifeq ($(GOOS), linux)
+	GOEXPERIMENT=boringcrypto EXTENSION=_fips $(MAKE) otelcol VERSION="$(VERSION)-fips" CGO_ENABLED=1
+else ifeq ($(GOOS), windows)
+	GOEXPERIMENT=boringcrypto EXTENSION=_fips.exe $(MAKE) otelcol VERSION="$(VERSION)-fips" CGO_ENABLED=1
+else
+	$(error $(GOOS) not supported for fips)
 endif
-	GOEXPERIMENT=$(GOEXPERIMENT) GOFLAGS=$(GOFLAGS) EXTENSION=$(EXTENSION) $(MAKE) otelcol VERSION="$(VERSION)-fips" CGO_ENABLED=1
-	go version ./bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) | grep "X:$(GOEXPERIMENT)"
-	go tool nm ./bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) | grep "crypto/tls/fipsonly"

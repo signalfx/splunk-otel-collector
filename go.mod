@@ -13,7 +13,7 @@ require (
 	github.com/hashicorp/vault v1.17.2
 	github.com/hashicorp/vault-plugin-auth-gcp v0.18.0
 	github.com/hashicorp/vault/api v1.14.0
-	github.com/jaegertracing/jaeger v1.59.0
+	github.com/jaegertracing/jaeger v1.60.0
 	github.com/knadh/koanf v1.5.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/countconnector v0.106.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/routingconnector v0.106.1
@@ -128,21 +128,21 @@ require (
 	go.opentelemetry.io/collector/confmap/provider/fileprovider v0.106.1
 	go.opentelemetry.io/collector/confmap/provider/yamlprovider v0.106.1
 	go.opentelemetry.io/collector/connector v0.106.1
-	go.opentelemetry.io/collector/connector/forwardconnector v0.105.0
+	go.opentelemetry.io/collector/connector/forwardconnector v0.106.1
 	go.opentelemetry.io/collector/consumer/consumertest v0.106.1
 	go.opentelemetry.io/collector/exporter v0.106.1
-	go.opentelemetry.io/collector/exporter/debugexporter v0.105.0
+	go.opentelemetry.io/collector/exporter/debugexporter v0.106.1
 	go.opentelemetry.io/collector/exporter/loggingexporter v0.105.0
 	go.opentelemetry.io/collector/exporter/otlpexporter v0.106.1
-	go.opentelemetry.io/collector/exporter/otlphttpexporter v0.105.0
+	go.opentelemetry.io/collector/exporter/otlphttpexporter v0.106.1
 	go.opentelemetry.io/collector/extension v0.106.1
-	go.opentelemetry.io/collector/extension/ballastextension v0.105.0
+	go.opentelemetry.io/collector/extension/ballastextension v0.106.1
 	go.opentelemetry.io/collector/extension/zpagesextension v0.106.1
 	go.opentelemetry.io/collector/otelcol v0.106.1
 	go.opentelemetry.io/collector/pdata v1.12.0
 	go.opentelemetry.io/collector/processor v0.106.1
 	go.opentelemetry.io/collector/processor/batchprocessor v0.106.1
-	go.opentelemetry.io/collector/processor/memorylimiterprocessor v0.105.0
+	go.opentelemetry.io/collector/processor/memorylimiterprocessor v0.106.1
 	go.opentelemetry.io/collector/receiver v0.106.1
 	go.opentelemetry.io/collector/receiver/otlpreceiver v0.106.1
 	go.opentelemetry.io/otel/metric v1.28.0

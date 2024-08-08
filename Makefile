@@ -30,7 +30,8 @@ BUILD_X1=-X $(BUILD_INFO_IMPORT_PATH).Version=$(VERSION)
 BUILD_X2=-X $(BUILD_INFO_IMPORT_PATH_CORE).Version=$(VERSION)
 BUILD_INFO=-ldflags "${BUILD_X1} ${BUILD_X2}"
 BUILD_INFO_TESTS=-ldflags "-X $(BUILD_INFO_IMPORT_PATH_TESTS).Version=$(VERSION)"
-CGO_ENABLED=0
+GOEXPERIMENT?=boringcrypto
+CGO_ENABLED?=0
 
 JMX_METRIC_GATHERER_RELEASE=$(shell cat internal/buildscripts/packaging/jmx-metric-gatherer-release.txt)
 SKIP_COMPILE=false
@@ -182,17 +183,17 @@ binaries-darwin_arm64:
 
 .PHONY: binaries-linux_amd64
 binaries-linux_amd64:
-	GOOS=linux   GOARCH=amd64 $(MAKE) otelcol
+	GOOS=linux   GOARCH=amd64 GOEXPERIMENT=$(GOEXPERIMENT) CGO_ENABLED=1 $(MAKE) otelcol
 	GOOS=linux   GOARCH=amd64 $(MAKE) migratecheckpoint
 
 .PHONY: binaries-linux_arm64
 binaries-linux_arm64:
-	GOOS=linux   GOARCH=arm64 $(MAKE) otelcol
+	GOOS=linux   GOARCH=arm64 GOEXPERIMENT=$(GOEXPERIMENT) CGO_ENABLED=1 $(MAKE) otelcol
 	GOOS=linux   GOARCH=arm64 $(MAKE) migratecheckpoint
 
 .PHONY: binaries-windows_amd64
 binaries-windows_amd64:
-	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) otelcol
+	GOOS=windows GOARCH=amd64 GOEXPERIMENT=$(GOEXPERIMENT) CGO_ENABLED=1 EXTENSION=.exe $(MAKE) otelcol
 	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) migratecheckpoint
 
 .PHONY: binaries-linux_ppc64le
@@ -233,13 +234,3 @@ install-test-tools:
 .PHONY: integration-test-split
 integration-test-split: install-test-tools
 	@set -e; cd tests && gotesplit --total=$(GOTESPLIT_TOTAL) --index=$(GOTESPLIT_INDEX) ./... -- -p 1 $(BUILD_INFO_TESTS) --tags=integration -v -timeout 5m -count 1
-
-.PHONY: otelcol-fips
-otelcol-fips:
-ifeq ($(GOOS), linux)
-	GOEXPERIMENT=boringcrypto EXTENSION=_fips $(MAKE) otelcol VERSION="$(VERSION)-fips" CGO_ENABLED=1
-else ifeq ($(GOOS), windows)
-	GOEXPERIMENT=boringcrypto EXTENSION=_fips.exe $(MAKE) otelcol VERSION="$(VERSION)-fips" CGO_ENABLED=1
-else
-	$(error $(GOOS) not supported for fips)
-endif

@@ -34,8 +34,8 @@ import (
 )
 
 func TestConfigServer_RequireEnvVar(t *testing.T) {
-	// Ensure that the env var is unset as required by this test.
-	os.Unsetenv(configServerEnabledEnvVar)
+	waitForRequiredPort(t, defaultConfigServerPort)
+
 	initial := map[string]any{
 		"minimal": "config",
 	}
@@ -44,14 +44,15 @@ func TestConfigServer_RequireEnvVar(t *testing.T) {
 	require.NotNil(t, cs)
 	cs.OnNew()
 	t.Cleanup(func() {
-		shutdownAndWaitForPort(t, cs, defaultConfigServerPort)
+		cs.OnShutdown()
+		assert.True(t, isPortAvailable(defaultConfigServerPort))
 	})
 	require.NoError(t, cs.Convert(context.Background(), confmap.NewFromStringMap(initial)))
 
 	client := &http.Client{}
 	path := "/debug/configz/initial"
 	_, err := client.Get("http://" + defaultConfigServerEndpoint + path)
-	assert.Error(t, err, "SPLUNK_DEBUG_CONFIG_SERVER=%s", os.Getenv(configServerEnabledEnvVar))
+	assert.Error(t, err)
 }
 
 func TestConfigServer_EnvVar(t *testing.T) {
@@ -85,6 +86,12 @@ func TestConfigServer_EnvVar(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			actualConfigServerPort := defaultConfigServerPort
+			if tt.portEnvVar != "" {
+				actualConfigServerPort = tt.portEnvVar
+			}
+			waitForRequiredPort(t, actualConfigServerPort)
+
 			initial := map[string]any{
 				"key": "value",
 			}
@@ -96,16 +103,15 @@ func TestConfigServer_EnvVar(t *testing.T) {
 				}()
 			}
 
-			actualServerPort := defaultConfigServerPort
-			if tt.portEnvVar != "" {
-				actualServerPort = tt.portEnvVar
-			}
 			cs := NewConfigServer()
 			require.NotNil(t, cs)
 			cs.OnNew()
+			defer func() {
+				cs.OnShutdown()
+				assert.True(t, isPortAvailable(actualConfigServerPort))
+			}()
 
 			require.NoError(t, cs.Convert(context.Background(), confmap.NewFromStringMap(initial)))
-			defer shutdownAndWaitForPort(t, cs, actualServerPort)
 
 			endpoint := tt.endpoint
 			if endpoint == "" {
@@ -129,6 +135,8 @@ func TestConfigServer_EnvVar(t *testing.T) {
 }
 
 func TestConfigServer_Serve(t *testing.T) {
+	waitForRequiredPort(t, defaultConfigServerPort)
+
 	require.NoError(t, os.Setenv(configServerEnabledEnvVar, "true"))
 	t.Cleanup(func() {
 		assert.NoError(t, os.Unsetenv(configServerEnabledEnvVar))
@@ -159,7 +167,8 @@ func TestConfigServer_Serve(t *testing.T) {
 	require.NotNil(t, cs)
 	cs.OnNew()
 	t.Cleanup(func() {
-		shutdownAndWaitForPort(t, cs, defaultConfigServerPort)
+		cs.OnShutdown()
+		assert.True(t, isPortAvailable(defaultConfigServerPort))
 	})
 
 	cs.OnRetrieve("scheme", initial)
@@ -232,14 +241,19 @@ func TestSimpleRedact(t *testing.T) {
 	}, result)
 }
 
-func shutdownAndWaitForPort(t *testing.T, cs *ConfigServer, port string) {
-	cs.OnShutdown()
+func waitForRequiredPort(t *testing.T, port string) {
+	// Wait for a relatively long time for the port to be available, given that other package tests might be using it.
+	const waitTime = 60 * time.Second
 	require.Eventually(t, func() bool {
-		ln, err := net.Listen("tcp", "localhost:"+port)
-		if err == nil {
-			ln.Close()
-			return true
-		}
-		return false
-	}, 5*time.Second, 200*time.Millisecond)
+		return isPortAvailable(port)
+	}, waitTime, 500*time.Millisecond)
+}
+
+func isPortAvailable(port string) bool {
+	ln, err := net.Listen("tcp", "localhost:"+port)
+	if err == nil {
+		ln.Close()
+		return true
+	}
+	return false
 }

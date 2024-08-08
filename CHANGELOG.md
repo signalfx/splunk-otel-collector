@@ -4,8 +4,8 @@
 
 ### 🚀 New components 🚀
 
-- (Splunk) Add Azure Blob receiver ([#](https://github.com/signalfx/splunk-otel-collector/pull/))
-- (Splunk) Add Google Cloud PubSub receiver ([#](https://github.com/signalfx/splunk-otel-collector/pull/))
+- (Splunk) Add Azure Blob receiver ([#5200](https://github.com/signalfx/splunk-otel-collector/pull/5200))
+- (Splunk) Add Google Cloud PubSub receiver ([#5200](https://github.com/signalfx/splunk-otel-collector/pull/5200))
 
 ## v0.106.0
 

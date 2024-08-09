@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - otelcol-fips
   pull_request:
     paths:
       - '.github/workflows/auto-instrumentation.yml'
@@ -26,14 +25,11 @@ env:
 
 jobs:
   cross-compile:
-    runs-on: ${{ matrix.OS }}
+    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
-        include:
-          - SYS_BINARIES: binaries-linux_amd64
-            OS: ubuntu-20.04
-          - SYS_BINARIES: binaries-linux_arm64
-            OS: otel-arm64
+        SYS_BINARIES: [ "binaries-linux_amd64", "binaries-linux_arm64" ]
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4
@@ -47,12 +43,6 @@ jobs:
       - name: Build Collector
         run: |
           make ${{ matrix.SYS_BINARIES }}
-
-      - run: go version ./bin/otelcol_* | grep "X:boringcrypto"
-
-      - run: go tool nm ./bin/otelcol_* | grep "_Cfunc__goboringcrypto_"
-
-      - run: go tool nm ./bin/otelcol_* | grep -i "fipsonly"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

@@ -11,6 +11,7 @@ GIT_SHA=$(shell git rev-parse --short HEAD)
 GO_ACC=go-acc
 GOARCH=$(shell go env GOARCH)
 GOOS=$(shell go env GOOS)
+GOVERSION=$(shell go env GOVERSION | sed 's/^go//')
 
 FIND_MOD_ARGS=-type f -name "go.mod"
 TO_MOD_DIR=dirname {} \; | sort | egrep  '^./'
@@ -22,6 +23,11 @@ GOTEST=go test -p $(NUM_CORES)
 # Currently integration tests are flakey when run in parallel due to internal metric and config server conflicts
 GOTEST_SERIAL=go test -p 1
 
+FIPSONLY?=no
+GOEXPERIMENT?=
+CGO_ENABLED?=0
+GOFLAGS?=
+
 BUILD_INFO_IMPORT_PATH=github.com/signalfx/splunk-otel-collector/internal/version
 BUILD_INFO_IMPORT_PATH_TESTS=github.com/signalfx/splunk-otel-collector/tests/internal/version
 BUILD_INFO_IMPORT_PATH_CORE=go.opentelemetry.io/collector/internal/version
@@ -30,8 +36,6 @@ BUILD_X1=-X $(BUILD_INFO_IMPORT_PATH).Version=$(VERSION)
 BUILD_X2=-X $(BUILD_INFO_IMPORT_PATH_CORE).Version=$(VERSION)
 BUILD_INFO=-ldflags "${BUILD_X1} ${BUILD_X2}"
 BUILD_INFO_TESTS=-ldflags "-X $(BUILD_INFO_IMPORT_PATH_TESTS).Version=$(VERSION)"
-GOEXPERIMENT?=boringcrypto
-CGO_ENABLED?=0
 
 JMX_METRIC_GATHERER_RELEASE=$(shell cat internal/buildscripts/packaging/jmx-metric-gatherer-release.txt)
 SKIP_COMPILE=false
@@ -136,9 +140,50 @@ generate-metrics:
 
 .PHONY: otelcol
 otelcol:
+ifneq ($(filter $(FIPSONLY), true yes 1),)
+    ifeq ($(GOOS), linux)
+        ifneq ($(filter $(GOARCH), amd64 arm64),)
+			$(eval GOEXPERIMENT = boringcrypto)
+			$(eval CGO_ENABLED = 1)
+			$(eval BUILD_INFO = -ldflags "${BUILD_X1} ${BUILD_X2} -linkmode external -extldflags -static")
+			$(eval GOFLAGS = -tags=netgo,osusergo)
+			docker pull -q $(DOCKER_REPO)/golang:$(GOVERSION)
+			docker run --rm -v $(shell go env GOMODCACHE):/go/pkg/mod -v ./:/src -w /src \
+				--platform linux/$(GOARCH) \
+				-e GOEXPERIMENT=$(GOEXPERIMENT) \
+				-e CGO_ENABLED=$(CGO_ENABLED) \
+				-e GOFLAGS=$(GOFLAGS) \
+				$(DOCKER_REPO)/golang:$(GOVERSION) \
+				sh -ec "git config --global --add safe.directory /src && make otelcol BUILD_INFO='$(BUILD_INFO)'"
+        endif
+    else ifeq ($(GOOS), windows)
+		$(eval GOEXPERIMENT = cngcrypto)
+		$(eval GOFLAGS = -tags=requirefips)
+        ifeq ($(EXTENSION),)
+			$(eval EXTENSION = .exe)
+        endif
+		docker pull -q $(DOCKER_REPO)/mcr.microsoft.com/oss/go/microsoft/golang:$(GOVERSION)
+		docker run --rm -v $(shell go env GOMODCACHE):/go/pkg/mod -v ./:/src -w /src \
+			--platform linux/amd64 \
+			-e GOOS=windows \
+			-e GOEXPERIMENT=$(GOEXPERIMENT) \
+			-e GOFLAGS=$(GOFLAGS) \
+			-e EXTENSION=$(EXTENSION) \
+			$(DOCKER_REPO)/mcr.microsoft.com/oss/go/microsoft/golang:$(GOVERSION) \
+			sh -ec "git config --global --add safe.directory /src && make otelcol"
+    endif
+	go version ./bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) | grep "X:$(GOEXPERIMENT)"
+	go tool nm ./bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) | grep -i "fipsonly"
+    ifeq ($(GOOS), linux)
+		go tool nm ./bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) | grep "_Cfunc__goboringcrypto_" | head -n5
+    else
+		go tool nm ./bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) | grep "github.com/microsoft/go-crypto-winnative" | head -n5
+    endif
+else
 	go generate ./...
-	GO111MODULE=on CGO_ENABLED=$(CGO_ENABLED) go build -trimpath -o ./bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/otelcol
+	GO111MODULE=on GOEXPERIMENT=$(GOEXPERIMENT) CGO_ENABLED=$(CGO_ENABLED) GOFLAGS=$(GOFLAGS) go build -trimpath -o ./bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/otelcol
 	ln -sf otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/otelcol
+endif
 
 .PHONY: migratecheckpoint
 migratecheckpoint:
@@ -183,17 +228,17 @@ binaries-darwin_arm64:
 
 .PHONY: binaries-linux_amd64
 binaries-linux_amd64:
-	GOOS=linux   GOARCH=amd64 GOEXPERIMENT=$(GOEXPERIMENT) CGO_ENABLED=1 $(MAKE) otelcol
+	GOOS=linux   GOARCH=amd64 $(MAKE) otelcol
 	GOOS=linux   GOARCH=amd64 $(MAKE) migratecheckpoint
 
 .PHONY: binaries-linux_arm64
 binaries-linux_arm64:
-	GOOS=linux   GOARCH=arm64 GOEXPERIMENT=$(GOEXPERIMENT) CGO_ENABLED=1 $(MAKE) otelcol
+	GOOS=linux   GOARCH=arm64 $(MAKE) otelcol
 	GOOS=linux   GOARCH=arm64 $(MAKE) migratecheckpoint
 
 .PHONY: binaries-windows_amd64
 binaries-windows_amd64:
-	GOOS=windows GOARCH=amd64 GOEXPERIMENT=$(GOEXPERIMENT) CGO_ENABLED=1 EXTENSION=.exe $(MAKE) otelcol
+	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) otelcol
 	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) migratecheckpoint
 
 .PHONY: binaries-linux_ppc64le
@@ -234,3 +279,4 @@ install-test-tools:
 .PHONY: integration-test-split
 integration-test-split: install-test-tools
 	@set -e; cd tests && gotesplit --total=$(GOTESPLIT_TOTAL) --index=$(GOTESPLIT_INDEX) ./... -- -p 1 $(BUILD_INFO_TESTS) --tags=integration -v -timeout 5m -count 1
+

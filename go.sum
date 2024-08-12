@@ -174,8 +174,8 @@ github.com/Microsoft/hcsshim v0.11.4/go.mod h1:smjE4dvqPX9Zldna+t5FG3rnoHhaB7QYx
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
 github.com/ProtonMail/go-crypto v1.0.0 h1:LRuvITjQWX+WIfr930YHG2HNfjR1uOfyf5vE0kC2U78=
 github.com/ProtonMail/go-crypto v1.0.0/go.mod h1:EjAoLdwvbIOoOQr3ihjnSoLZRtE8azugULFRteWMNc0=
-github.com/SAP/go-hdb v1.10.3 h1:xJClEnttTDAFejjzZPrDdnf9WD2NySj0/BFD8+/7q98=
-github.com/SAP/go-hdb v1.10.3/go.mod h1:9F9KfmdfYHxrNwmTR+PJC4PqdsqgI88YHCnRnpMv52Q=
+github.com/SAP/go-hdb v1.10.4 h1:EkE8PE28YydUo93vK+JoxFleS+7SuxVRrak9bg94mPI=
+github.com/SAP/go-hdb v1.10.4/go.mod h1:9F9KfmdfYHxrNwmTR+PJC4PqdsqgI88YHCnRnpMv52Q=
 github.com/Sectorbob/mlab-ns2 v0.0.0-20171030222938-d3aa0c295a8a h1:KFHLI4QGttB0i7M3qOkAo8Zn/GSsxwwCnInFqBaYtkM=
 github.com/Sectorbob/mlab-ns2 v0.0.0-20171030222938-d3aa0c295a8a/go.mod h1:D73UAuEPckrDorYZdtlCu2ySOLuPB5W4rhIkmmc/XbI=
 github.com/Showmax/go-fqdn v1.0.0 h1:0rG5IbmVliNT5O19Mfuvna9LL7zlHyRfsSvBPZmF9tM=

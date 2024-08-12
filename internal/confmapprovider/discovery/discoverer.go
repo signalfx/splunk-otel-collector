@@ -125,9 +125,9 @@ func (d *discoverer) resolveConfig(discoveryReceiverRaw map[string]any) (*confma
 	}
 	uris := []string{fmt.Sprintf("yaml:%s", out)}
 	resolver, err := confmap.NewResolver(confmap.ResolverSettings{
-		URIs:               uris,
-		ProviderFactories:  []confmap.ProviderFactory{yamlprovider.NewFactory(), envprovider.NewFactory()},
-		ConverterFactories: []confmap.ConverterFactory{expandconverter.NewFactory()},
+		URIs:              uris,
+		ProviderFactories: []confmap.ProviderFactory{yamlprovider.NewFactory(), envprovider.NewFactory()},
+		DefaultScheme:     "env",
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create a resolver from the given uris. %w", err)

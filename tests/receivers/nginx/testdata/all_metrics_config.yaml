@@ -1,0 +1,19 @@
+receivers:
+  nginx:
+    endpoint: "http://localhost:8123/status"
+
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+service:
+  telemetry:
+    logs:
+      level: "info"
+  pipelines:
+    metrics:
+      receivers:
+        - nginx
+      exporters:
+        - otlp

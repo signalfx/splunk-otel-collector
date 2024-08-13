@@ -1182,6 +1182,8 @@ github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f h1:KUppIJq7/+
 github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f/go.mod h1:qRWi+5nqEBWmkhHvq77mSJWrCKwh8bxhgT7d/eI7P4U=
 github.com/naoina/go-stringutil v0.1.0 h1:rCUeRUHjBjGTSHl0VC00jUPLz8/F9dDzYI70Hzifhks=
 github.com/naoina/go-stringutil v0.1.0/go.mod h1:XJ2SJL9jCtBh+P9q5btrd/Ylo8XwT/h1USek5+NqSA0=
+github.com/nginxinc/nginx-prometheus-exporter v0.11.0 h1:21xjnqNgxtni2jDgAQ90bl15uDnrTreO9sIlu1YsX/U=
+github.com/nginxinc/nginx-prometheus-exporter v0.11.0/go.mod h1:GdyHnWAb8q8OW1Pssrrqbcqra0SH0Vn6UXICMmyWkw8=
 github.com/nicolai86/scaleway-sdk v1.10.2-0.20180628010248-798f60e20bb2 h1:BQ1HW7hr4IVovMwWg0E0PYcyW8CzqDcVmaew9cujU4s=
 github.com/nicolai86/scaleway-sdk v1.10.2-0.20180628010248-798f60e20bb2/go.mod h1:TLb2Sg7HQcgGdloNxkrmtgDNR9uVYF3lfdFIN4Ro6Sk=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
@@ -1429,6 +1431,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mongodbreceiv
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mongodbreceiver v0.106.1/go.mod h1:OOaMOGpPFOnfGm4T/dW/ovvcrbkNHyEsjWjS44fChH4=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mysqlreceiver v0.106.1 h1:zqkcs3ko0hqPGrLO1Qte5nSf3z9bNT4DU4ApSKK/5bU=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mysqlreceiver v0.106.1/go.mod h1:d4da2UDkkftgatdjZh8i0rfa/w8xMRsKBXdbIGxTpeU=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/nginxreceiver v0.106.1 h1:bRtaCkYR2eSzayN7bh3/yJBj9AwSCQjjpxROD7AEyh8=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/nginxreceiver v0.106.1/go.mod h1:PlvHq5BrNLcDohH8k4R1lLOqDCKyAnN2sdQzIgcUiyI=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/oracledbreceiver v0.106.1 h1:6U49QlZ5xymqFjUKEH3ouSx8pYoYkltQJor+Fu3vkHI=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/oracledbreceiver v0.106.1/go.mod h1:zsZGxv+x2pz4gvVyZCMAdvGzT7nj1OAqkFKffWFVSRk=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/postgresqlreceiver v0.106.1 h1:4W40vu8teIVPT7nGOMl39Lo/TTyb+X7Jqe+Q5Z0nfCU=

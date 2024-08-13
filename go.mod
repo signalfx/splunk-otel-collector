@@ -261,6 +261,7 @@ require (
 	github.com/moby/sys/user v0.1.0 // indirect
 	github.com/montanaflynn/stats v0.7.1 // indirect
 	github.com/mrunalp/fileutils v0.5.1 // indirect
+	github.com/nginxinc/nginx-prometheus-exporter v0.11.0 // indirect
 	github.com/okta/okta-sdk-golang/v2 v2.20.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/awsutil v0.106.1 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/containerinsight v0.106.1 // indirect
@@ -278,6 +279,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/sampling v0.106.1 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/azure v0.106.1 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus v0.106.1 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/nginxreceiver v0.106.1 // indirect
 	github.com/opencontainers/runc v1.2.0-rc.1 // indirect
 	github.com/opencontainers/runtime-spec v1.2.0 // indirect
 	github.com/opencontainers/selinux v1.11.0 // indirect

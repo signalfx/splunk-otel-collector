@@ -24,7 +24,7 @@ import (
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
-func TestElasticSearchIntegration(t *testing.T) {
+func TestElasticsearchIntegration(t *testing.T) {
 	testutils.CheckGoldenFile(t, "all_metrics_config.yaml", "all_expected_metrics.yaml",
 		pmetrictest.IgnoreScopeVersion(),
 		pmetrictest.IgnoreMetricDataPointsOrder(),

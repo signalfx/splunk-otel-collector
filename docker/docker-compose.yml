@@ -64,11 +64,14 @@ services:
       - "8091:8091"
   # Elasticsearch image for Elasticsearch test:
   elasticsearch:
-    image: elasticsearch:7.17.23
+    image: elasticsearch:8.14.3
+    ports:
+      - 9200:9200
     profiles:
       - integration
     environment:
-      ELASTIC_PASSWORD: 'testPassword'
+      - ELASTIC_PASSWORD=$ELASTIC_PASSWORD
+      - discovery.type=single-node
   # Haproxy image for haproxy test:
   haproxy:
     image: quay.io/splunko11ytest/haproxy:latest

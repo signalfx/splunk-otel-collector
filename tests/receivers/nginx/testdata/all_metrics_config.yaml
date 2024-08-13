@@ -1,6 +1,7 @@
 receivers:
   nginx:
     endpoint: "http://localhost:8123/status"
+    collection_interval: 1s
 
 exporters:
   otlp:

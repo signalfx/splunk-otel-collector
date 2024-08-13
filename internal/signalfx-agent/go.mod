@@ -10,7 +10,7 @@ replace (
 require (
 	code.cloudfoundry.org/go-loggregator v7.4.0+incompatible
 	github.com/Microsoft/go-winio v0.6.2 // indirect
-	github.com/SAP/go-hdb v1.10.3
+	github.com/SAP/go-hdb v1.10.4
 	github.com/Sectorbob/mlab-ns2 v0.0.0-20171030222938-d3aa0c295a8a
 	github.com/antonmedv/expr v1.15.5
 	github.com/beevik/ntp v1.4.3
@@ -57,7 +57,7 @@ require (
 	github.com/vmware/govmomi v0.39.0
 	golang.org/x/net v0.26.0 // indirect
 	golang.org/x/sync v0.8.0
-	golang.org/x/sys v0.23.0
+	golang.org/x/sys v0.24.0
 	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d // indirect
 	google.golang.org/grpc v1.65.0
 	gopkg.in/go-playground/validator.v9 v9.31.0

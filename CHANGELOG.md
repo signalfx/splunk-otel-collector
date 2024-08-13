@@ -4,7 +4,7 @@
 
 ### 🚀 New components 🚀
 
-- (Splunk) Add `ngnix` receiver ([TBD](https://github.com/signalfx/splunk-otel-collector/pull/TBD/))
+- (Splunk) Add `ngnix` receiver ([5229](https://github.com/signalfx/splunk-otel-collector/pull/5229))
 
 ## v0.106.1
 

@@ -221,8 +221,7 @@ jobs:
       - run: docker load -i ./docker-otelcol/${{ matrix.ARCH }}/image.tar
       - run: ln -sf otelcol_linux_${{ matrix.ARCH }} ./bin/otelcol
       - run: chmod a+x ./bin/*
-      # Pin the version until https://github.com/shogo82148/actions-setup-redis/issues/958 is resolved
-      - uses: shogo82148/actions-setup-redis@v1.34.0
+      - uses: shogo82148/actions-setup-redis@v1.35.1
         if: matrix.PROFILE == 'integration'
         with:
           auto-start: false
@@ -299,8 +298,7 @@ jobs:
           path: ./bin
       - run: ln -sf otelcol_linux_amd64 ./bin/otelcol
       - run: chmod a+x ./bin/*
-      # Pin the version until https://github.com/shogo82148/actions-setup-redis/issues/958 is resolved
-      - uses: shogo82148/actions-setup-redis@v1.34.0
+      - uses: shogo82148/actions-setup-redis@v1.35.1
         if: matrix.PROFILE == 'integration'
         with:
           auto-start: false

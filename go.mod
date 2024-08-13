@@ -84,6 +84,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mongodbatlasreceiver v0.106.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mongodbreceiver v0.106.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mysqlreceiver v0.106.1
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/nginxreceiver v0.106.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/oracledbreceiver v0.106.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/postgresqlreceiver v0.106.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.106.1
@@ -279,7 +280,6 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/sampling v0.106.1 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/azure v0.106.1 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus v0.106.1 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/nginxreceiver v0.106.1 // indirect
 	github.com/opencontainers/runc v1.2.0-rc.1 // indirect
 	github.com/opencontainers/runtime-spec v1.2.0 // indirect
 	github.com/opencontainers/selinux v1.11.0 // indirect

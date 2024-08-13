@@ -13,7 +13,7 @@ require (
 	github.com/hashicorp/vault v1.17.2
 	github.com/hashicorp/vault-plugin-auth-gcp v0.18.0
 	github.com/hashicorp/vault/api v1.14.0
-	github.com/jaegertracing/jaeger v1.59.0
+	github.com/jaegertracing/jaeger v1.60.0
 	github.com/knadh/koanf v1.5.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/countconnector v0.106.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/routingconnector v0.106.1

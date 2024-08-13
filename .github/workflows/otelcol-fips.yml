@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: "1.21.12"
+  GO_VERSION: "1.22.6"
 
 jobs:
   otelcol-fips:
@@ -33,11 +33,35 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
-      - run: make otelcol-fips
+      - run: make binaries-${{ matrix.GOOS }}_${{ matrix.GOARCH}}
         env:
-          GOOS: ${{ matrix.GOOS }}
-          GOARCH: ${{ matrix.GOARCH }}
+          FIPSONLY: yes
       - uses: actions/upload-artifact@v4
         with:
           name: otelcol-fips-${{ matrix.GOOS }}-${{ matrix.GOARCH }}
-          path: ./bin/otelcol-fips*
+          path: ./bin/*
+
+  win-binary-test:
+    runs-on: windows-2022
+    needs: [ otelcol-fips ]
+    strategy:
+      matrix:
+        FIPSMODE: [ "1", "0" ]
+      fail-fast: false
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: otelcol-fips-windows-amd64
+          path: ./bin
+      - run: Set-ItemProperty -Path HKLM:\System\CurrentControlSet\Control\Lsa\FipsAlgorithmPolicy -Name Enabled -Value ${{ matrix.FIPSMODE }}
+      - run: ./bin/otelcol-fips_windows_amd64.exe --version
+        id: run-otelcol
+        continue-on-error: true
+      - run: echo "FIPS enabled, started successfully"
+        if: matrix.FIPSMODE == '1' && steps.run-otelcol.outcome == 'success'
+      - run: throw "FIPS enabled, should not have failed"
+        if: matrix.FIPSMODE == '1' && steps.run-otelcol.outcome == 'failure'
+      - run: echo "FIPS disabled, failed successfully"
+        if: matrix.FIPSMODE == '0' && steps.run-otelcol.outcome == 'failure'
+      - run: throw "FIPS disabled, should have failed"
+        if: matrix.FIPSMODE == '0' && steps.run-otelcol.outcome == 'success'

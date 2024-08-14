@@ -1,8 +1,8 @@
 receivers:
   nginx:
     endpoint: "http://localhost:8123/status"
-    username: some_user
-    password: some_password
+    auth:
+      authenticator: basicauth
     collection_interval: 1s
 
 exporters:
@@ -10,10 +10,18 @@ exporters:
     endpoint: "${OTLP_ENDPOINT}"
     tls:
       insecure: true
+
+extensions:
+  basicauth:
+    client_auth:
+      username: some_user
+      password: some_password
+
 service:
   telemetry:
     logs:
       level: "info"
+  extensions: [ basicauth ]
   pipelines:
     metrics:
       receivers:

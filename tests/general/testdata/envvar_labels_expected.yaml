@@ -24,10 +24,10 @@ resourceMetrics:
                         stringValue: $AN_ENVVAR-$nonenvvar-$-suffix $
                     - key: nonuple-dollar-curly-braces
                       value:
-                        stringValue: $$$$an-envvar-value-$$$$-$$$$suffix $$$$$
+                        stringValue: $$$$an-envvar-value-$$$$-$$$$$-suffix $$$$$
                     - key: nonuple-dollar-no-curly-braces
                       value:
-                        stringValue: $$$$an-envvar-value-$$$$-$$$$suffix $$$$$
+                        stringValue: $$$$an-envvar-value-$$$$-$$$$$-suffix $$$$$
                     - key: octuple-dollar-curly-braces
                       value:
                         stringValue: $$$${AN_ENVVAR}-$$$$nonenvvar-$$$$-suffix $$$$
@@ -42,16 +42,16 @@ resourceMetrics:
                         stringValue: $$AN_ENVVAR-$$nonenvvar-$$-suffix $$
                     - key: quintuple-dollar-curly-braces
                       value:
-                        stringValue: $$an-envvar-value-$$-$$suffix $$$
+                        stringValue: $$an-envvar-value-$$-$$$-suffix $$$
                     - key: quintuple-dollar-no-curly-braces
                       value:
-                        stringValue: $$an-envvar-value-$$-$$suffix $$$
+                        stringValue: $$an-envvar-value-$$-$$$-suffix $$$
                     - key: septuple-dollar-curly-braces
                       value:
-                        stringValue: $$$an-envvar-value-$$$-$$$suffix $$$$
+                        stringValue: $$$an-envvar-value-$$$-$$$$-suffix $$$$
                     - key: septuple-dollar-no-curly-braces
                       value:
-                        stringValue: $$$an-envvar-value-$$$-$$$suffix $$$$
+                        stringValue: $$$an-envvar-value-$$$-$$$$-suffix $$$$
                     - key: sextuple-dollar-curly-braces
                       value:
                         stringValue: $$${AN_ENVVAR}-$$$nonenvvar-$$$-suffix $$$
@@ -60,19 +60,19 @@ resourceMetrics:
                         stringValue: $$$AN_ENVVAR-$$$nonenvvar-$$$-suffix $$$
                     - key: single-dollar-curly-braces
                       value:
-                        stringValue: an-envvar-value--suffix $
+                        stringValue: an-envvar-value--$-suffix $
                     - key: single-dollar-no-curly-braces
                       value:
-                        stringValue: an-envvar-value--suffix $
+                        stringValue: an-envvar-value--$-suffix $
                     - key: state
                       value:
                         stringValue: buffered
                     - key: triple-dollar-curly-braces
                       value:
-                        stringValue: $an-envvar-value-$-$suffix $$
+                        stringValue: $an-envvar-value-$-$$-suffix $$
                     - key: triple-dollar-no-curly-braces
                       value:
-                        stringValue: $an-envvar-value-$-$suffix $$
+                        stringValue: $an-envvar-value-$-$$-suffix $$
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
                 - asInt: "4355420160"
@@ -91,10 +91,10 @@ resourceMetrics:
                         stringValue: $AN_ENVVAR-$nonenvvar-$-suffix $
                     - key: nonuple-dollar-curly-braces
                       value:
-                        stringValue: $$$$an-envvar-value-$$$$-$$$$suffix $$$$$
+                        stringValue: $$$$an-envvar-value-$$$$-$$$$$-suffix $$$$$
                     - key: nonuple-dollar-no-curly-braces
                       value:
-                        stringValue: $$$$an-envvar-value-$$$$-$$$$suffix $$$$$
+                        stringValue: $$$$an-envvar-value-$$$$-$$$$$-suffix $$$$$
                     - key: octuple-dollar-curly-braces
                       value:
                         stringValue: $$$${AN_ENVVAR}-$$$$nonenvvar-$$$$-suffix $$$$
@@ -109,16 +109,16 @@ resourceMetrics:
                         stringValue: $$AN_ENVVAR-$$nonenvvar-$$-suffix $$
                     - key: quintuple-dollar-curly-braces
                       value:
-                        stringValue: $$an-envvar-value-$$-$$suffix $$$
+                        stringValue: $$an-envvar-value-$$-$$$-suffix $$$
                     - key: quintuple-dollar-no-curly-braces
                       value:
-                        stringValue: $$an-envvar-value-$$-$$suffix $$$
+                        stringValue: $$an-envvar-value-$$-$$$-suffix $$$
                     - key: septuple-dollar-curly-braces
                       value:
-                        stringValue: $$$an-envvar-value-$$$-$$$suffix $$$$
+                        stringValue: $$$an-envvar-value-$$$-$$$$-suffix $$$$
                     - key: septuple-dollar-no-curly-braces
                       value:
-                        stringValue: $$$an-envvar-value-$$$-$$$suffix $$$$
+                        stringValue: $$$an-envvar-value-$$$-$$$$-suffix $$$$
                     - key: sextuple-dollar-curly-braces
                       value:
                         stringValue: $$${AN_ENVVAR}-$$$nonenvvar-$$$-suffix $$$
@@ -127,19 +127,19 @@ resourceMetrics:
                         stringValue: $$$AN_ENVVAR-$$$nonenvvar-$$$-suffix $$$
                     - key: single-dollar-curly-braces
                       value:
-                        stringValue: an-envvar-value--suffix $
+                        stringValue: an-envvar-value--$-suffix $
                     - key: single-dollar-no-curly-braces
                       value:
-                        stringValue: an-envvar-value--suffix $
+                        stringValue: an-envvar-value--$-suffix $
                     - key: state
                       value:
                         stringValue: cached
                     - key: triple-dollar-curly-braces
                       value:
-                        stringValue: $an-envvar-value-$-$suffix $$
+                        stringValue: $an-envvar-value-$-$$-suffix $$
                     - key: triple-dollar-no-curly-braces
                       value:
-                        stringValue: $an-envvar-value-$-$suffix $$
+                        stringValue: $an-envvar-value-$-$$-suffix $$
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
                 - asInt: "3154911232"
@@ -158,10 +158,10 @@ resourceMetrics:
                         stringValue: $AN_ENVVAR-$nonenvvar-$-suffix $
                     - key: nonuple-dollar-curly-braces
                       value:
-                        stringValue: $$$$an-envvar-value-$$$$-$$$$suffix $$$$$
+                        stringValue: $$$$an-envvar-value-$$$$-$$$$$-suffix $$$$$
                     - key: nonuple-dollar-no-curly-braces
                       value:
-                        stringValue: $$$$an-envvar-value-$$$$-$$$$suffix $$$$$
+                        stringValue: $$$$an-envvar-value-$$$$-$$$$$-suffix $$$$$
                     - key: octuple-dollar-curly-braces
                       value:
                         stringValue: $$$${AN_ENVVAR}-$$$$nonenvvar-$$$$-suffix $$$$
@@ -176,16 +176,16 @@ resourceMetrics:
                         stringValue: $$AN_ENVVAR-$$nonenvvar-$$-suffix $$
                     - key: quintuple-dollar-curly-braces
                       value:
-                        stringValue: $$an-envvar-value-$$-$$suffix $$$
+                        stringValue: $$an-envvar-value-$$-$$$-suffix $$$
                     - key: quintuple-dollar-no-curly-braces
                       value:
-                        stringValue: $$an-envvar-value-$$-$$suffix $$$
+                        stringValue: $$an-envvar-value-$$-$$$-suffix $$$
                     - key: septuple-dollar-curly-braces
                       value:
-                        stringValue: $$$an-envvar-value-$$$-$$$suffix $$$$
+                        stringValue: $$$an-envvar-value-$$$-$$$$-suffix $$$$
                     - key: septuple-dollar-no-curly-braces
                       value:
-                        stringValue: $$$an-envvar-value-$$$-$$$suffix $$$$
+                        stringValue: $$$an-envvar-value-$$$-$$$$-suffix $$$$
                     - key: sextuple-dollar-curly-braces
                       value:
                         stringValue: $$${AN_ENVVAR}-$$$nonenvvar-$$$-suffix $$$
@@ -194,19 +194,19 @@ resourceMetrics:
                         stringValue: $$$AN_ENVVAR-$$$nonenvvar-$$$-suffix $$$
                     - key: single-dollar-curly-braces
                       value:
-                        stringValue: an-envvar-value--suffix $
+                        stringValue: an-envvar-value--$-suffix $
                     - key: single-dollar-no-curly-braces
                       value:
-                        stringValue: an-envvar-value--suffix $
+                        stringValue: an-envvar-value--$-suffix $
                     - key: state
                       value:
                         stringValue: free
                     - key: triple-dollar-curly-braces
                       value:
-                        stringValue: $an-envvar-value-$-$suffix $$
+                        stringValue: $an-envvar-value-$-$$-suffix $$
                     - key: triple-dollar-no-curly-braces
                       value:
-                        stringValue: $an-envvar-value-$-$suffix $$
+                        stringValue: $an-envvar-value-$-$$-suffix $$
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
                 - asInt: "251011072"
@@ -225,10 +225,10 @@ resourceMetrics:
                         stringValue: $AN_ENVVAR-$nonenvvar-$-suffix $
                     - key: nonuple-dollar-curly-braces
                       value:
-                        stringValue: $$$$an-envvar-value-$$$$-$$$$suffix $$$$$
+                        stringValue: $$$$an-envvar-value-$$$$-$$$$$-suffix $$$$$
                     - key: nonuple-dollar-no-curly-braces
                       value:
-                        stringValue: $$$$an-envvar-value-$$$$-$$$$suffix $$$$$
+                        stringValue: $$$$an-envvar-value-$$$$-$$$$$-suffix $$$$$
                     - key: octuple-dollar-curly-braces
                       value:
                         stringValue: $$$${AN_ENVVAR}-$$$$nonenvvar-$$$$-suffix $$$$
@@ -243,16 +243,16 @@ resourceMetrics:
                         stringValue: $$AN_ENVVAR-$$nonenvvar-$$-suffix $$
                     - key: quintuple-dollar-curly-braces
                       value:
-                        stringValue: $$an-envvar-value-$$-$$suffix $$$
+                        stringValue: $$an-envvar-value-$$-$$$-suffix $$$
                     - key: quintuple-dollar-no-curly-braces
                       value:
-                        stringValue: $$an-envvar-value-$$-$$suffix $$$
+                        stringValue: $$an-envvar-value-$$-$$$-suffix $$$
                     - key: septuple-dollar-curly-braces
                       value:
-                        stringValue: $$$an-envvar-value-$$$-$$$suffix $$$$
+                        stringValue: $$$an-envvar-value-$$$-$$$$-suffix $$$$
                     - key: septuple-dollar-no-curly-braces
                       value:
-                        stringValue: $$$an-envvar-value-$$$-$$$suffix $$$$
+                        stringValue: $$$an-envvar-value-$$$-$$$$-suffix $$$$
                     - key: sextuple-dollar-curly-braces
                       value:
                         stringValue: $$${AN_ENVVAR}-$$$nonenvvar-$$$-suffix $$$
@@ -261,19 +261,19 @@ resourceMetrics:
                         stringValue: $$$AN_ENVVAR-$$$nonenvvar-$$$-suffix $$$
                     - key: single-dollar-curly-braces
                       value:
-                        stringValue: an-envvar-value--suffix $
+                        stringValue: an-envvar-value--$-suffix $
                     - key: single-dollar-no-curly-braces
                       value:
-                        stringValue: an-envvar-value--suffix $
+                        stringValue: an-envvar-value--$-suffix $
                     - key: state
                       value:
                         stringValue: slab_reclaimable
                     - key: triple-dollar-curly-braces
                       value:
-                        stringValue: $an-envvar-value-$-$suffix $$
+                        stringValue: $an-envvar-value-$-$$-suffix $$
                     - key: triple-dollar-no-curly-braces
                       value:
-                        stringValue: $an-envvar-value-$-$suffix $$
+                        stringValue: $an-envvar-value-$-$$-suffix $$
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
                 - asInt: "73723904"
@@ -292,10 +292,10 @@ resourceMetrics:
                         stringValue: $AN_ENVVAR-$nonenvvar-$-suffix $
                     - key: nonuple-dollar-curly-braces
                       value:
-                        stringValue: $$$$an-envvar-value-$$$$-$$$$suffix $$$$$
+                        stringValue: $$$$an-envvar-value-$$$$-$$$$$-suffix $$$$$
                     - key: nonuple-dollar-no-curly-braces
                       value:
-                        stringValue: $$$$an-envvar-value-$$$$-$$$$suffix $$$$$
+                        stringValue: $$$$an-envvar-value-$$$$-$$$$$-suffix $$$$$
                     - key: octuple-dollar-curly-braces
                       value:
                         stringValue: $$$${AN_ENVVAR}-$$$$nonenvvar-$$$$-suffix $$$$
@@ -310,16 +310,16 @@ resourceMetrics:
                         stringValue: $$AN_ENVVAR-$$nonenvvar-$$-suffix $$
                     - key: quintuple-dollar-curly-braces
                       value:
-                        stringValue: $$an-envvar-value-$$-$$suffix $$$
+                        stringValue: $$an-envvar-value-$$-$$$-suffix $$$
                     - key: quintuple-dollar-no-curly-braces
                       value:
-                        stringValue: $$an-envvar-value-$$-$$suffix $$$
+                        stringValue: $$an-envvar-value-$$-$$$-suffix $$$
                     - key: septuple-dollar-curly-braces
                       value:
-                        stringValue: $$$an-envvar-value-$$$-$$$suffix $$$$
+                        stringValue: $$$an-envvar-value-$$$-$$$$-suffix $$$$
                     - key: septuple-dollar-no-curly-braces
                       value:
-                        stringValue: $$$an-envvar-value-$$$-$$$suffix $$$$
+                        stringValue: $$$an-envvar-value-$$$-$$$$-suffix $$$$
                     - key: sextuple-dollar-curly-braces
                       value:
                         stringValue: $$${AN_ENVVAR}-$$$nonenvvar-$$$-suffix $$$
@@ -328,19 +328,19 @@ resourceMetrics:
                         stringValue: $$$AN_ENVVAR-$$$nonenvvar-$$$-suffix $$$
                     - key: single-dollar-curly-braces
                       value:
-                        stringValue: an-envvar-value--suffix $
+                        stringValue: an-envvar-value--$-suffix $
                     - key: single-dollar-no-curly-braces
                       value:
-                        stringValue: an-envvar-value--suffix $
+                        stringValue: an-envvar-value--$-suffix $
                     - key: state
                       value:
                         stringValue: slab_unreclaimable
                     - key: triple-dollar-curly-braces
                       value:
-                        stringValue: $an-envvar-value-$-$suffix $$
+                        stringValue: $an-envvar-value-$-$$-suffix $$
                     - key: triple-dollar-no-curly-braces
                       value:
-                        stringValue: $an-envvar-value-$-$suffix $$
+                        stringValue: $an-envvar-value-$-$$-suffix $$
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
                 - asInt: "4796518400"
@@ -359,10 +359,10 @@ resourceMetrics:
                         stringValue: $AN_ENVVAR-$nonenvvar-$-suffix $
                     - key: nonuple-dollar-curly-braces
                       value:
-                        stringValue: $$$$an-envvar-value-$$$$-$$$$suffix $$$$$
+                        stringValue: $$$$an-envvar-value-$$$$-$$$$$-suffix $$$$$
                     - key: nonuple-dollar-no-curly-braces
                       value:
-                        stringValue: $$$$an-envvar-value-$$$$-$$$$suffix $$$$$
+                        stringValue: $$$$an-envvar-value-$$$$-$$$$$-suffix $$$$$
                     - key: octuple-dollar-curly-braces
                       value:
                         stringValue: $$$${AN_ENVVAR}-$$$$nonenvvar-$$$$-suffix $$$$
@@ -377,16 +377,16 @@ resourceMetrics:
                         stringValue: $$AN_ENVVAR-$$nonenvvar-$$-suffix $$
                     - key: quintuple-dollar-curly-braces
                       value:
-                        stringValue: $$an-envvar-value-$$-$$suffix $$$
+                        stringValue: $$an-envvar-value-$$-$$$-suffix $$$
                     - key: quintuple-dollar-no-curly-braces
                       value:
-                        stringValue: $$an-envvar-value-$$-$$suffix $$$
+                        stringValue: $$an-envvar-value-$$-$$$-suffix $$$
                     - key: septuple-dollar-curly-braces
                       value:
-                        stringValue: $$$an-envvar-value-$$$-$$$suffix $$$$
+                        stringValue: $$$an-envvar-value-$$$-$$$$-suffix $$$$
                     - key: septuple-dollar-no-curly-braces
                       value:
-                        stringValue: $$$an-envvar-value-$$$-$$$suffix $$$$
+                        stringValue: $$$an-envvar-value-$$$-$$$$-suffix $$$$
                     - key: sextuple-dollar-curly-braces
                       value:
                         stringValue: $$${AN_ENVVAR}-$$$nonenvvar-$$$-suffix $$$
@@ -395,19 +395,19 @@ resourceMetrics:
                         stringValue: $$$AN_ENVVAR-$$$nonenvvar-$$$-suffix $$$
                     - key: single-dollar-curly-braces
                       value:
-                        stringValue: an-envvar-value--suffix $
+                        stringValue: an-envvar-value--$-suffix $
                     - key: single-dollar-no-curly-braces
                       value:
-                        stringValue: an-envvar-value--suffix $
+                        stringValue: an-envvar-value--$-suffix $
                     - key: state
                       value:
                         stringValue: used
                     - key: triple-dollar-curly-braces
                       value:
-                        stringValue: $an-envvar-value-$-$suffix $$
+                        stringValue: $an-envvar-value-$-$$-suffix $$
                     - key: triple-dollar-no-curly-braces
                       value:
-                        stringValue: $an-envvar-value-$-$suffix $$
+                        stringValue: $an-envvar-value-$-$$-suffix $$
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
             unit: By

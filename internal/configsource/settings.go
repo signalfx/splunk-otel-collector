@@ -86,7 +86,7 @@ func sourceSettings(ctx context.Context, v *confmap.Conf, factories Factories, c
 			if err != nil {
 				return nil, err
 			}
-			splitMap[key] = value
+			splitMap[key] = escapeDollarSigns(value)
 		}
 	}
 	settingsMap, err := confmap.NewFromStringMap(splitMap).Sub(configSourcesKey)
@@ -95,6 +95,27 @@ func sourceSettings(ctx context.Context, v *confmap.Conf, factories Factories, c
 	}
 
 	return loadSettings(settingsMap.ToStringMap(), factories)
+}
+
+func escapeDollarSigns(val any) any {
+	switch v := val.(type) {
+	case string:
+		return strings.ReplaceAll(v, "$$", "$")
+	case []any:
+		nslice := make([]any, len(v))
+		for i, x := range v {
+			nslice[i] = escapeDollarSigns(x)
+		}
+		return nslice
+	case map[string]any:
+		nmap := make(map[string]any, len(v))
+		for k, x := range v {
+			nmap[k] = escapeDollarSigns(x)
+		}
+		return nmap
+	default:
+		return val
+	}
 }
 
 func loadSettings(settingsMap map[string]any, factories Factories) (map[string]Settings, error) {

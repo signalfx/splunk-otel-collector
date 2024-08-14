@@ -78,11 +78,7 @@ var DefaultAgentConfigWindows = func() string {
 	return filepath.Clean(path)
 }()
 
-var defaultFeatureGates = []string{
-	// Remove the feature gates once we deprecate our env var expansion mechanism and adopt the upstream one.
-	"-confmap.strictlyTypedInput",
-	"-confmap.unifyEnvVarExpansion",
-}
+var defaultFeatureGates = []string{}
 
 type Settings struct {
 	discovery                *discovery.Provider

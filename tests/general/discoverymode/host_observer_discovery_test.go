@@ -192,7 +192,6 @@ func TestHostObserver(t *testing.T) {
 				"receivers/splunk.discovery":  []any{"receiver_creator/discovery"},
 			},
 		},
-		"splunk.property": map[string]any{},
 	}
 	require.Equal(t, expectedInitial, cc.InitialConfig(t, 55554))
 

@@ -27,6 +27,7 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
+	"go.opentelemetry.io/collector/confmap/provider/envprovider"
 	"go.uber.org/zap"
 )
 
@@ -367,46 +368,6 @@ func TestConfigSourceManagerMultipleWatchForUpdate(t *testing.T) {
 	assert.NoError(t, callClose(closeFunc))
 }
 
-func TestConfigSourceManagerEnvVarHandling(t *testing.T) {
-	require.NoError(t, os.Setenv("envvar", "envvar_value"))
-	defer func() {
-		assert.NoError(t, os.Unsetenv("envvar"))
-	}()
-
-	tstCfgSrc := TestConfigSource{
-		ValueMap: map[string]valueEntry{
-			"int_key": {Value: 42},
-		},
-	}
-
-	// Intercept "params_key" and create an entry with the params themselves.
-	tstCfgSrc.OnRetrieve = func(_ context.Context, selector string, paramsConfigMap *confmap.Conf) error {
-		var val any
-		if paramsConfigMap != nil {
-			val = paramsConfigMap.ToStringMap()
-		}
-		if selector == "params_key" {
-			tstCfgSrc.ValueMap[selector] = valueEntry{Value: val}
-		}
-		return nil
-	}
-
-	file := path.Join("testdata", "envvar_cfgsrc_mix.yaml")
-	cp, err := confmaptest.LoadConf(file)
-	require.NoError(t, err)
-
-	expectedFile := path.Join("testdata", "envvar_cfgsrc_mix_expected.yaml")
-	expectedParser, err := confmaptest.LoadConf(expectedFile)
-	require.NoError(t, err)
-
-	res, closeFunc, err := ResolveWithConfigSources(context.Background(), map[string]ConfigSource{"tstcfgsrc": &tstCfgSrc}, nil, cp, func(_ *confmap.ChangeEvent) {
-		panic("must not be called")
-	})
-	require.NoError(t, err)
-	assert.Equal(t, expectedParser.ToStringMap(), res.ToStringMap())
-	assert.NoError(t, callClose(closeFunc))
-}
-
 func TestManagerExpandString(t *testing.T) {
 	ctx := context.Background()
 	cfgSources := map[string]ConfigSource{
@@ -443,11 +404,6 @@ func TestManagerExpandString(t *testing.T) {
 			name:  "literal_string",
 			input: "literal_string",
 			want:  "literal_string",
-		},
-		{
-			name:  "escaped_$",
-			input: "$$tstcfgsrc:int_key$$envvar",
-			want:  "$tstcfgsrc:int_key$envvar",
 		},
 		{
 			name:  "cfgsrc_int",
@@ -541,7 +497,10 @@ func TestManagerExpandString(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, closeFunc, err := resolveStringValue(ctx, cfgSources, nil, tt.input, func(_ *confmap.ChangeEvent) {
+			providers := map[string]confmap.Provider{
+				"env": envprovider.NewFactory().Create(confmap.ProviderSettings{}),
+			}
+			got, closeFunc, err := resolveStringValue(ctx, cfgSources, providers, tt.input, func(_ *confmap.ChangeEvent) {
 				panic("must not be called")
 			})
 			if tt.wantErr != nil {

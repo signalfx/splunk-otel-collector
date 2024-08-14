@@ -12,7 +12,7 @@ require (
 	github.com/ory/go-acc v0.2.8
 	github.com/pavius/impi v0.0.3
 	github.com/tcnksm/ghr v0.16.2
-	go.opentelemetry.io/collector/cmd/mdatagen v0.106.1
+	go.opentelemetry.io/collector/cmd/mdatagen v0.106.2-0.20240807203117-91d6525f52a4
 	golang.org/x/tools v0.24.0
 	golang.org/x/vuln v1.1.3
 )
@@ -201,13 +201,13 @@ require (
 	gitlab.com/bosi/decorder v0.4.2 // indirect
 	go-simpler.org/musttag v0.12.2 // indirect
 	go-simpler.org/sloglint v0.7.1 // indirect
-	go.opentelemetry.io/collector/component v0.106.1 // indirect
-	go.opentelemetry.io/collector/config/configtelemetry v0.106.1 // indirect
-	go.opentelemetry.io/collector/confmap v0.106.1 // indirect
-	go.opentelemetry.io/collector/confmap/provider/fileprovider v0.106.1 // indirect
+	go.opentelemetry.io/collector/component v0.106.2-0.20240807203117-91d6525f52a4 // indirect
+	go.opentelemetry.io/collector/config/configtelemetry v0.106.2-0.20240807203117-91d6525f52a4 // indirect
+	go.opentelemetry.io/collector/confmap v0.106.2-0.20240807203117-91d6525f52a4 // indirect
+	go.opentelemetry.io/collector/confmap/provider/fileprovider v0.106.2-0.20240807203117-91d6525f52a4 // indirect
 	go.opentelemetry.io/collector/featuregate v1.12.0 // indirect
-	go.opentelemetry.io/collector/filter v0.106.1 // indirect
-	go.opentelemetry.io/collector/internal/globalgates v0.106.1 // indirect
+	go.opentelemetry.io/collector/filter v0.106.2-0.20240807203117-91d6525f52a4 // indirect
+	go.opentelemetry.io/collector/internal/globalgates v0.106.2-0.20240807203117-91d6525f52a4 // indirect
 	go.opentelemetry.io/collector/pdata v1.12.0 // indirect
 	go.opentelemetry.io/otel v1.28.0 // indirect
 	go.opentelemetry.io/otel/metric v1.28.0 // indirect

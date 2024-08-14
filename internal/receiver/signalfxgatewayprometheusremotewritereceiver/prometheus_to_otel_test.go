@@ -15,6 +15,7 @@
 package signalfxgatewayprometheusremotewritereceiver
 
 import (
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/signalfxgatewayprometheusremotewritereceiver/internal/metadata"
 	"math"
 	"testing"
 
@@ -118,7 +119,7 @@ func TestAddMetrics(t *testing.T) {
 				result := pmetric.NewMetrics()
 				resourceMetrics := result.ResourceMetrics().AppendEmpty()
 				scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
-				scopeMetrics.Scope().SetName("otelcol/signalfxgatewayprometheusremotewrite")
+				scopeMetrics.Scope().SetName(metadata.ScopeName)
 				scopeMetrics.Scope().SetVersion("0.1")
 				return result
 			}(), 0, 0, 1),
@@ -142,7 +143,7 @@ func TestAddMetrics(t *testing.T) {
 				result := pmetric.NewMetrics()
 				resourceMetrics := result.ResourceMetrics().AppendEmpty()
 				scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
-				scopeMetrics.Scope().SetName("otelcol/signalfxgatewayprometheusremotewrite")
+				scopeMetrics.Scope().SetName(metadata.ScopeName)
 				scopeMetrics.Scope().SetVersion("0.1")
 				m := scopeMetrics.Metrics().AppendEmpty()
 				m.SetName("foo")
@@ -165,7 +166,7 @@ func TestAddMetrics(t *testing.T) {
 				result := pmetric.NewMetrics()
 				resourceMetrics := result.ResourceMetrics().AppendEmpty()
 				scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
-				scopeMetrics.Scope().SetName("otelcol/signalfxgatewayprometheusremotewrite")
+				scopeMetrics.Scope().SetName(metadata.ScopeName)
 				scopeMetrics.Scope().SetVersion("0.1")
 				m := scopeMetrics.Metrics().AppendEmpty()
 				m.SetName("foo")

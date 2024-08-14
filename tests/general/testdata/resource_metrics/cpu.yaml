@@ -1,7 +1,7 @@
 resource_metrics:
   - scope_metrics:
       - instrumentation_scope:
-          name: otelcol/hostmetricsreceiver/cpu
+          name: github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver/internal/scraper/cpu
           version: <VERSION_FROM_BUILD>
         metrics:
           - name: system.cpu.time

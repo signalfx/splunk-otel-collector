@@ -289,7 +289,7 @@ resource_metrics:
     scope_metrics:
       - instrumentation_scope:
           attributes: {}
-          name: otelcol/prometheusreceiver
+          name: github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver
           version: <VERSION_FROM_BUILD>
         metrics:
           - attributes:

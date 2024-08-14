@@ -66,14 +66,14 @@ The config source can be used to insert complete sections of the configuration:
 config_sources:
   include:
 
-# The 'receivers' section is filled with the contests of /etc/configs/receivers.yaml 
+# The 'receivers' section is filled with the contents of /etc/configs/receivers.yaml 
 receivers: ${include:/etc/configs/receivers.yaml}
 
-# The 'exporters' section is filled with the contests of /etc/configs/exporters.yaml 
+# The 'exporters' section is filled with the contents of /etc/configs/exporters.yaml 
 exporters: ${include:/etc/configs/exporters.yaml}
 
 service:
-  # The 'pipelines' section is filled with the contests of /etc/configs/pipelines.yaml 
+  # The 'pipelines' section is filled with the contents of /etc/configs/pipelines.yaml 
   pipelines: ${include:/etc/configs/pipelines.yaml}
 ```
 

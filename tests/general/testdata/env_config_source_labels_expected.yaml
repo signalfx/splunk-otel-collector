@@ -12,13 +12,13 @@ resourceMetrics:
                   attributes:
                     - key: decuple-dollar
                       value:
-                        stringValue: $$$$an-envvar-value-suffix
+                        stringValue: $$$$${env:AN_ENVVAR}-suffix
                     - key: decuple-dollar-no-curly-braces
                       value:
                         stringValue: prefix-$$$$$env:AN_ENVVAR
                     - key: double-dollar
                       value:
-                        stringValue: an-envvar-value-suffix
+                        stringValue: ${env:AN_ENVVAR}-suffix
                     - key: double-dollar-no-curly-braces
                       value:
                         stringValue: prefix-$env:AN_ENVVAR
@@ -54,7 +54,7 @@ resourceMetrics:
                         stringValue: prefix-$$$an-envvar-value
                     - key: sextuple-dollar
                       value:
-                        stringValue: $$an-envvar-value-suffix
+                        stringValue: $$${env:AN_ENVVAR}-suffix
                     - key: sextuple-dollar-no-curly-braces
                       value:
                         stringValue: prefix-$$$env:AN_ENVVAR
@@ -79,13 +79,13 @@ resourceMetrics:
                   attributes:
                     - key: decuple-dollar
                       value:
-                        stringValue: $$$$an-envvar-value-suffix
+                        stringValue: $$$$${env:AN_ENVVAR}-suffix
                     - key: decuple-dollar-no-curly-braces
                       value:
                         stringValue: prefix-$$$$$env:AN_ENVVAR
                     - key: double-dollar
                       value:
-                        stringValue: an-envvar-value-suffix
+                        stringValue: ${env:AN_ENVVAR}-suffix
                     - key: double-dollar-no-curly-braces
                       value:
                         stringValue: prefix-$env:AN_ENVVAR
@@ -121,7 +121,7 @@ resourceMetrics:
                         stringValue: prefix-$$$an-envvar-value
                     - key: sextuple-dollar
                       value:
-                        stringValue: $$an-envvar-value-suffix
+                        stringValue: $$${env:AN_ENVVAR}-suffix
                     - key: sextuple-dollar-no-curly-braces
                       value:
                         stringValue: prefix-$$$env:AN_ENVVAR
@@ -146,13 +146,13 @@ resourceMetrics:
                   attributes:
                     - key: decuple-dollar
                       value:
-                        stringValue: $$$$an-envvar-value-suffix
+                        stringValue: $$$$${env:AN_ENVVAR}-suffix
                     - key: decuple-dollar-no-curly-braces
                       value:
                         stringValue: prefix-$$$$$env:AN_ENVVAR
                     - key: double-dollar
                       value:
-                        stringValue: an-envvar-value-suffix
+                        stringValue: ${env:AN_ENVVAR}-suffix
                     - key: double-dollar-no-curly-braces
                       value:
                         stringValue: prefix-$env:AN_ENVVAR
@@ -188,7 +188,7 @@ resourceMetrics:
                         stringValue: prefix-$$$an-envvar-value
                     - key: sextuple-dollar
                       value:
-                        stringValue: $$an-envvar-value-suffix
+                        stringValue: $$${env:AN_ENVVAR}-suffix
                     - key: sextuple-dollar-no-curly-braces
                       value:
                         stringValue: prefix-$$$env:AN_ENVVAR
@@ -213,13 +213,13 @@ resourceMetrics:
                   attributes:
                     - key: decuple-dollar
                       value:
-                        stringValue: $$$$an-envvar-value-suffix
+                        stringValue: $$$$${env:AN_ENVVAR}-suffix
                     - key: decuple-dollar-no-curly-braces
                       value:
                         stringValue: prefix-$$$$$env:AN_ENVVAR
                     - key: double-dollar
                       value:
-                        stringValue: an-envvar-value-suffix
+                        stringValue: ${env:AN_ENVVAR}-suffix
                     - key: double-dollar-no-curly-braces
                       value:
                         stringValue: prefix-$env:AN_ENVVAR
@@ -255,7 +255,7 @@ resourceMetrics:
                         stringValue: prefix-$$$an-envvar-value
                     - key: sextuple-dollar
                       value:
-                        stringValue: $$an-envvar-value-suffix
+                        stringValue: $$${env:AN_ENVVAR}-suffix
                     - key: sextuple-dollar-no-curly-braces
                       value:
                         stringValue: prefix-$$$env:AN_ENVVAR
@@ -280,13 +280,13 @@ resourceMetrics:
                   attributes:
                     - key: decuple-dollar
                       value:
-                        stringValue: $$$$an-envvar-value-suffix
+                        stringValue: $$$$${env:AN_ENVVAR}-suffix
                     - key: decuple-dollar-no-curly-braces
                       value:
                         stringValue: prefix-$$$$$env:AN_ENVVAR
                     - key: double-dollar
                       value:
-                        stringValue: an-envvar-value-suffix
+                        stringValue: ${env:AN_ENVVAR}-suffix
                     - key: double-dollar-no-curly-braces
                       value:
                         stringValue: prefix-$env:AN_ENVVAR
@@ -322,7 +322,7 @@ resourceMetrics:
                         stringValue: prefix-$$$an-envvar-value
                     - key: sextuple-dollar
                       value:
-                        stringValue: $$an-envvar-value-suffix
+                        stringValue: $$${env:AN_ENVVAR}-suffix
                     - key: sextuple-dollar-no-curly-braces
                       value:
                         stringValue: prefix-$$$env:AN_ENVVAR
@@ -347,13 +347,13 @@ resourceMetrics:
                   attributes:
                     - key: decuple-dollar
                       value:
-                        stringValue: $$$$an-envvar-value-suffix
+                        stringValue: $$$$${env:AN_ENVVAR}-suffix
                     - key: decuple-dollar-no-curly-braces
                       value:
                         stringValue: prefix-$$$$$env:AN_ENVVAR
                     - key: double-dollar
                       value:
-                        stringValue: an-envvar-value-suffix
+                        stringValue: ${env:AN_ENVVAR}-suffix
                     - key: double-dollar-no-curly-braces
                       value:
                         stringValue: prefix-$env:AN_ENVVAR
@@ -389,7 +389,7 @@ resourceMetrics:
                         stringValue: prefix-$$$an-envvar-value
                     - key: sextuple-dollar
                       value:
-                        stringValue: $$an-envvar-value-suffix
+                        stringValue: $$${env:AN_ENVVAR}-suffix
                     - key: sextuple-dollar-no-curly-braces
                       value:
                         stringValue: prefix-$$$env:AN_ENVVAR

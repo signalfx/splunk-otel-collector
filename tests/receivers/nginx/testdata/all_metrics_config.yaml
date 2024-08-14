@@ -1,6 +1,8 @@
 receivers:
   nginx:
     endpoint: "http://localhost:8123/status"
+    username: some_user
+    password: some_password
     collection_interval: 1s
 
 exporters:

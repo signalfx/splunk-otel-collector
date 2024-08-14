@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 🛑 Breaking changes 🛑
+
+- (Splunk) `confmap`: Do not expand special shell variable such as `$*` in configuration files. ([#5206](https://github.com/signalfx/splunk-otel-collector/pull/5206))
+
 ## v0.106.1
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.106.1](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.106.1) and the [opentelemetry-collector-contrib v0.106.1](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.106.1) releases where appropriate.

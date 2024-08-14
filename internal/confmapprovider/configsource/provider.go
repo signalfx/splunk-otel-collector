@@ -139,18 +139,20 @@ func (pw *ProviderWrapper) ResolveForWrapped(ctx context.Context, uri string, on
 		return nil, fmt.Errorf("configsource provider failed retrieving: %w", err)
 	}
 
-	conf, err := retrieved.AsConf()
-	if err != nil {
-		// raw fallback attempt, or return AsConf() error
-		if raw, e := retrieved.AsRaw(); e == nil {
-			if rawRetrieved, ee := confmap.NewRetrieved(raw); ee == nil {
-				// raw confmap.Retrieved values shouldn't be further processed so return here
-				return rawRetrieved, nil
-			}
-		}
-		return nil, fmt.Errorf("failed retrieving from wrappedProvider: %w", err)
+	raw, arErr := retrieved.AsRaw()
+	if arErr != nil {
+		return nil, fmt.Errorf("configsource provider failed retrieving raw: %w", arErr)
 	}
 
+	// Scalar or array values should be returned as-is.
+	if _, ok := raw.(map[string]any); !ok {
+		return retrieved, nil
+	}
+
+	conf, acErr := retrieved.AsConf()
+	if acErr != nil {
+		return nil, fmt.Errorf("failed converting retrieved to conf: %w", acErr)
+	}
 	if conf == nil {
 		return nil, fmt.Errorf("retrieved confmap.Conf is unexpectedly nil")
 	}

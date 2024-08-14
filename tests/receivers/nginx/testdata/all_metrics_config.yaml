@@ -1,6 +1,6 @@
 receivers:
   nginx:
-    endpoint: "http://localhost:8123/status"
+    endpoint: "http://localhost:8123/nginx_status"
     auth:
       authenticator: basicauth
     collection_interval: 1s

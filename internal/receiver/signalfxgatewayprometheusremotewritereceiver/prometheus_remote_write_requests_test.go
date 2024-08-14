@@ -15,9 +15,10 @@
 package signalfxgatewayprometheusremotewritereceiver
 
 import (
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/signalfxgatewayprometheusremotewritereceiver/internal/metadata"
 	"testing"
 	"time"
+
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/signalfxgatewayprometheusremotewritereceiver/internal/metadata"
 
 	"github.com/prometheus/prometheus/prompb"
 	"github.com/stretchr/testify/assert"

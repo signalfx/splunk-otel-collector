@@ -18,15 +18,15 @@
 // In order to update run go generate -tags bundle.d ./...
 
 {{- range $ext := .Extensions }}
-//go:generate discoverybundler -r -t bundle.d/extensions/{{ $ext }}.discovery.yaml.tmpl
+//go:generate discoverybundler --render --template bundle.d/extensions/{{ $ext }}.discovery.yaml.tmpl
 {{- if index $.Linux $ext }}
-//go:generate discoverybundler -r -c -d ../../../../cmd/otelcol/config/collector/config.d.linux/extensions -t bundle.d/extensions/{{ $ext }}.discovery.yaml.tmpl
+//go:generate discoverybundler --render --commented --dir ../../../../cmd/otelcol/config/collector/config.d.linux/extensions -t bundle.d/extensions/{{ $ext }}.discovery.yaml.tmpl
 {{- end }}
 {{- end }}
 {{ range $rec := .Receivers }}
-//go:generate discoverybundler -r -t bundle.d/receivers/{{ $rec }}.discovery.yaml.tmpl
+//go:generate discoverybundler --render --template bundle.d/receivers/{{ $rec }}.discovery.yaml.tmpl
 {{- if index $.Linux $rec }}
-//go:generate discoverybundler -r -c -d ../../../../cmd/otelcol/config/collector/config.d.linux/receivers -t bundle.d/receivers/{{ $rec }}.discovery.yaml.tmpl
+//go:generate discoverybundler --render --commented --dir ../../../../cmd/otelcol/config/collector/config.d.linux/receivers -t bundle.d/receivers/{{ $rec }}.discovery.yaml.tmpl
 {{- end }}
 {{- end }}
 

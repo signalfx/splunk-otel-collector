@@ -363,7 +363,7 @@ jobs:
           $ErrorActionPreference = 'Stop'
           Set-PSDebug -Trace 1
           $choco_file_name = Resolve-Path .\dist\splunk-otel-collector*.nupkg
-          $params = "/SPLUNK_ACCESS_TOKEN=${{ env.token }} /SPLUNK_REALM=${{ env.realm }} /SPLUNK_MEMORY_TOTAL_MIB=${{ env.memory }} /MODE:${{ matrix.MODE }} /WITH_FLUENTD:${{ matrix.WITH_FLUENTD }}"
+          $params = "/SPLUNK_ACCESS_TOKEN=\"${{ env.token }}\" /SPLUNK_REALM=${{ env.realm }} /SPLUNK_MEMORY_TOTAL_MIB=${{ env.memory }} /MODE:${{ matrix.MODE }} /WITH_FLUENTD:${{ matrix.WITH_FLUENTD }}"
           if ("${{ matrix.SCENARIO }}" -eq "install") {
             write-host "Installing $choco_file_name ..."
             choco install splunk-otel-collector -s=".\dist" --params="'$params'" -y
@@ -440,7 +440,7 @@ jobs:
       - name: Run docker image
         run: |
           $ErrorActionPreference = 'Stop'
-          docker run -d -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=fake-realm --name otelcol otelcol-windows:latest
+          docker run -d -e SPLUNK_ACCESS_TOKEN=\"12345\" -e SPLUNK_REALM=fake-realm --name otelcol otelcol-windows:latest
           Start-Sleep 10
           $DockerOutput=$(docker ps --filter=status=running --filter=name=otelcol -q)
           if ( $DockerOutput -eq $null ) {

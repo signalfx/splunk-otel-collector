@@ -2,6 +2,7 @@
 SPLUNK_CONFIG=<%= node['splunk_otel_collector']['collector_config_dest'] %>
 
 # Access token to authenticate requests.
+# TODO: This opens us to a potential parsing error, maybe it needs quotes around it?
 SPLUNK_ACCESS_TOKEN=<%= node['splunk_otel_collector']['splunk_access_token'] %>
 
 # Which realm to send the data to.

@@ -32,6 +32,11 @@
 - name: openstack
   version: v4.2.0
   repo: signalfx/collectd-openstack
+  pip_packages:
+    # workaround for https://github.com/yaml/pyyaml/issues/724
+    - wheel==0.40.0
+    - Cython<3.0
+    - PyYAML~=5.0 --no-build-isolation
 
 - name: rabbitmq
   version: v1.2.1

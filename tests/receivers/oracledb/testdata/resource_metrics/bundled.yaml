@@ -6,7 +6,7 @@ resource_metrics:
     scope_metrics:
       - instrumentation_scope:
           attributes: {}
-          name: otelcol/oracledbreceiver
+          name: github.com/open-telemetry/opentelemetry-collector-contrib/receiver/oracledbreceiver
           version: <VERSION_FROM_BUILD>
         metrics:
           - name: oracledb.cpu_time

@@ -7,7 +7,8 @@ import (
 )
 
 var (
-	Type = component.MustNewType("signalfxgatewayprometheusremotewrite")
+	Type      = component.MustNewType("signalfxgatewayprometheusremotewrite")
+	ScopeName = "github.com/signalfx/splunk-otel-collector/internal/receiver/signalfxgatewayprometheusremotewritereceiver"
 )
 
 const (

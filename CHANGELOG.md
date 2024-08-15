@@ -84,7 +84,7 @@ This release fixes CVE-2024-42368 on the `bearerauthtokenextension` ([#34516](ht
 
 ### 💡 Enhancements 💡
 
-- (Core) `semconv`: Add v1.26.0 semantic conventions package ([#10249](https://github.com/open-telemetry/opentelemetry-collector/pull/), [#10829](https://github.com/open-telemetry/opentelemetry-collector/pull/10829))
+- (Core) `semconv`: Add v1.26.0 semantic conventions package ([#10249](https://github.com/open-telemetry/opentelemetry-collector/pull/10249), [#10829](https://github.com/open-telemetry/opentelemetry-collector/pull/10829))
 - (Core) `confmap`: Allow using any YAML structure as a string when loading configuration. ([#10800](https://github.com/open-telemetry/opentelemetry-collector/pull/10800))
   Previous to this change, slices could not be used as strings in configuration.
 - (Core) `semconv`: Add semantic conventions version v1.27.0 ([#10837](https://github.com/open-telemetry/opentelemetry-collector/pull/10837))

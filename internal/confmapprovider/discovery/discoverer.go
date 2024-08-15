@@ -19,7 +19,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"os"
-	"runtime"
 	"sort"
 	"strconv"
 	"strings"

@@ -11,6 +11,7 @@ This release fixes CVE-2024-42368 on the `bearerauthtokenextension` ([#34516](ht
 ### 🛑 Breaking changes 🛑
 
 - (Splunk) `confmap`: Do not expand special shell variable such as `$*` in configuration files. ([#5206](https://github.com/signalfx/splunk-otel-collector/pull/5206))
+
 - (Core) `service`: Remove OpenCensus bridge completely, mark feature gate as stable. ([#10414](https://github.com/open-telemetry/opentelemetry-collector/pull/10414))
 - (Core) `confmap`: Set the `confmap.unifyEnvVarExpansion` feature gate to Stable. Expansion of `$FOO` env vars is no longer supported.  Use `${FOO}` or `${env:FOO}` instead. ([#10508](https://github.com/open-telemetry/opentelemetry-collector/pull/10508))
 
@@ -117,6 +118,7 @@ This release fixes CVE-2024-42368 on the `bearerauthtokenextension` ([#34516](ht
 
 - (Core) `component`: Allow component names of up to 1024 characters in length. ([#10816](https://github.com/open-telemetry/opentelemetry-collector/pull/10816))
 - (Core) `confmap`: Remove original string representation if invalid. ([#10787](https://github.com/open-telemetry/opentelemetry-collector/pull/10787))
+
 - (Contrib) `configauth`: Fix unmarshaling of authentication in HTTP servers. ([#34325](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/34325))
   This brings in a bug fix from the core collector. See https://github.com/open-telemetry/opentelemetry-collector/issues/10750.
 - (Contrib) `docker_observer`: Change default endpoint for `docker_observer` on Windows to `npipe:////./pipe/docker_engine` ([#34358](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/34358))

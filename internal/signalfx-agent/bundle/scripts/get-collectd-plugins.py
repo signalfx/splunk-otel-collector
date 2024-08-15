@@ -55,7 +55,8 @@ url:     {u}""".format(
 
     # install pip deps
     for package in p.get("pip_packages", []):
-        subprocess.check_call([PYTHON_EXECUTABLE, "-m", "pip", "install", "-qq", "--no-warn-script-location", package])
+        install_cmd = [PYTHON_EXECUTABLE, "-m", "pip", "install", "-qq", "--no-warn-script-location"]
+        subprocess.check_call(install_cmd + package.split(" "))
 
     requirements_file = os.path.join(plugin_dir, "requirements.txt")
     if os.path.isfile(requirements_file):

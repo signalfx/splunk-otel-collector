@@ -9,6 +9,13 @@
 ### 💡 Enhancements 💡
 
 - (Splunk) Update JMX Metric Gatherer to [v1.37.0](https://github.com/open-telemetry/opentelemetry-java-contrib/releases/tag/v1.37.0) ([#5240](https://github.com/signalfx/splunk-otel-collector/pull/5240))
+- (Splunk) Auto Instrumentation for Linux ([#5243](https://github.com/signalfx/splunk-otel-collector/pull/5243))
+  - Add support for the `OTEL_LOGS_EXPORTER` environment variable to `libsplunk.so` for system-wide auto instrumentation.
+  - Linux installer script: Add the `--logs-exporter <value>` option:
+    - Set the exporter for collected logs by all activated SDKs, for example `otlp`.
+    - Set the value to `none` to disable collection and export of logs.
+    - The value will be set to the `OTEL_LOGS_EXPORTER` environment variable.
+    - Defaults to `''` (empty), i.e. defer to the default `OTEL_LOGS_EXPORTER` value for each activated SDK.
 
 ## v0.107.0
 

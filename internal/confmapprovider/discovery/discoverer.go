@@ -461,15 +461,12 @@ func (d *discoverer) updateReceiverForObserver(receiverID component.ID, receiver
 
 func factoryForObserverType(extType component.Type) (otelcolextension.Factory, error) {
 	factories := map[component.Type]otelcolextension.Factory{
+		component.MustNewType("docker_observer"):   dockerobserver.NewFactory(),
 		component.MustNewType("host_observer"):     hostobserver.NewFactory(),
 		component.MustNewType("k8s_observer"):      k8sobserver.NewFactory(),
 		component.MustNewType("ecs_task_observer"): ecstaskobserver.NewFactory(),
 	}
-	if runtime.GOOS != "windows" {
-		// Docker observer currently always crashes on Windows with the default configuration.
-		// The observer is being temporarily disabled until it is fixed upstream.
-		factories[component.MustNewType("docker_observer")] = dockerobserver.NewFactory()
-	}
+
 	ef, ok := factories[extType]
 	if !ok {
 		return nil, fmt.Errorf("unsupported discovery observer %q. Please remove its .discovery.yaml from your config directory", extType)

@@ -7,10 +7,9 @@ on:
   pull_request:
     paths:
       - '.github/workflows/auto-instrumentation.yml'
+      - 'cmd/otelcol/**'
       - 'instrumentation/**'
-      - 'internal/buildscripts/packaging/tests/helpers/**'
-      - 'internal/buildscripts/packaging/tests/instrumentation/**'
-      - 'internal/buildscripts/packaging/tests/requirements.txt'
+      - 'internal/**'
       - '!**.md'
 
 concurrency:

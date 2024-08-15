@@ -770,7 +770,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 - (Contrib) `k8sclusterreceiver`: add optional status_last_terminated_reason resource attribute ([#31282](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/31282))
 - (Contrib) `prometheusreceiver`: Use confighttp for target allocator client ([#31449](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/31449))
 - (Contrib) `spanmetricsconnector`: Add `metrics_expiration` option to enable expiration of metrics if spans are not received within a certain time frame. ([#30559](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/30559))
-    The feature can be configured by specifiying the desired duration in the `metrics_expiration` option. By default, the expiration is disabled (set to 0).
+    The feature can be configured by specifying the desired duration in the `metrics_expiration` option. By default, the expiration is disabled (set to 0).
 
 ### 🛑 Breaking changes 🛑
 

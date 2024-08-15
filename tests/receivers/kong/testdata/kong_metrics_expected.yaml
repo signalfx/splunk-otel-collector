@@ -849,5 +849,5 @@ resourceMetrics:
                   timeUnixNano: "1000000"
             name: scrape_samples_post_metric_relabeling
         scope:
-          name: otelcol/prometheusreceiver
+          name: github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver
           version: v0.97.0

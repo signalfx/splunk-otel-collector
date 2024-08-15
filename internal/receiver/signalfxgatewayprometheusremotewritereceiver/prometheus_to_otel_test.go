@@ -24,6 +24,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"golang.org/x/exp/maps"
+
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/signalfxgatewayprometheusremotewritereceiver/internal/metadata"
 )
 
 func TestParseAndPartitionPrometheusRemoteWriteRequest(t *testing.T) {
@@ -118,7 +120,7 @@ func TestAddMetrics(t *testing.T) {
 				result := pmetric.NewMetrics()
 				resourceMetrics := result.ResourceMetrics().AppendEmpty()
 				scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
-				scopeMetrics.Scope().SetName("otelcol/signalfxgatewayprometheusremotewrite")
+				scopeMetrics.Scope().SetName(metadata.ScopeName)
 				scopeMetrics.Scope().SetVersion("0.1")
 				return result
 			}(), 0, 0, 1),
@@ -142,7 +144,7 @@ func TestAddMetrics(t *testing.T) {
 				result := pmetric.NewMetrics()
 				resourceMetrics := result.ResourceMetrics().AppendEmpty()
 				scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
-				scopeMetrics.Scope().SetName("otelcol/signalfxgatewayprometheusremotewrite")
+				scopeMetrics.Scope().SetName(metadata.ScopeName)
 				scopeMetrics.Scope().SetVersion("0.1")
 				m := scopeMetrics.Metrics().AppendEmpty()
 				m.SetName("foo")
@@ -165,7 +167,7 @@ func TestAddMetrics(t *testing.T) {
 				result := pmetric.NewMetrics()
 				resourceMetrics := result.ResourceMetrics().AppendEmpty()
 				scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
-				scopeMetrics.Scope().SetName("otelcol/signalfxgatewayprometheusremotewrite")
+				scopeMetrics.Scope().SetName(metadata.ScopeName)
 				scopeMetrics.Scope().SetVersion("0.1")
 				m := scopeMetrics.Metrics().AppendEmpty()
 				m.SetName("foo")

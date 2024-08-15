@@ -70,5 +70,5 @@ resourceMetrics:
                   timeUnixNano: "2000000"
             unit: By
         scope:
-          name: otelcol/hostmetricsreceiver/memory
+          name: github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver/internal/scraper/memoryscraper
           version: v0.97.0

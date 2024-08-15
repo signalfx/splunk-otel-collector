@@ -23,6 +23,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
+
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/signalfxgatewayprometheusremotewritereceiver/internal/metadata"
 )
 
 var (
@@ -156,7 +158,7 @@ func expectedCounter() pmetric.Metrics {
 	result := pmetric.NewMetrics()
 	resourceMetrics := result.ResourceMetrics().AppendEmpty()
 	scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
-	scopeMetrics.Scope().SetName("otelcol/signalfxgatewayprometheusremotewrite")
+	scopeMetrics.Scope().SetName(metadata.ScopeName)
 	scopeMetrics.Scope().SetVersion("0.1")
 	metric := scopeMetrics.Metrics().AppendEmpty()
 	metric.SetName("http_requests_total")
@@ -177,7 +179,7 @@ func expectedGauge() pmetric.Metrics {
 	result := pmetric.NewMetrics()
 	resourceMetrics := result.ResourceMetrics().AppendEmpty()
 	scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
-	scopeMetrics.Scope().SetName("otelcol/signalfxgatewayprometheusremotewrite")
+	scopeMetrics.Scope().SetName(metadata.ScopeName)
 	scopeMetrics.Scope().SetVersion("0.1")
 	metric := scopeMetrics.Metrics().AppendEmpty()
 	metric.SetName("i_am_a_gauge")
@@ -194,7 +196,7 @@ func expectedSfxCompatibleHistogram() pmetric.Metrics {
 	result := pmetric.NewMetrics()
 	resourceMetrics := result.ResourceMetrics().AppendEmpty()
 	scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
-	scopeMetrics.Scope().SetName("otelcol/signalfxgatewayprometheusremotewrite")
+	scopeMetrics.Scope().SetName(metadata.ScopeName)
 	scopeMetrics.Scope().SetVersion("0.1")
 
 	// set bucket sizes
@@ -253,7 +255,7 @@ func expectedSfxCompatibleQuantile() pmetric.Metrics {
 	result := pmetric.NewMetrics()
 	resourceMetrics := result.ResourceMetrics().AppendEmpty()
 	scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
-	scopeMetrics.Scope().SetName("otelcol/signalfxgatewayprometheusremotewrite")
+	scopeMetrics.Scope().SetName(metadata.ScopeName)
 	scopeMetrics.Scope().SetVersion("0.1")
 
 	// set bucket sizes

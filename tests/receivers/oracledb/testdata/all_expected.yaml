@@ -310,5 +310,5 @@ resourceMetrics:
               isMonotonic: true
             unit: "1"
         scope:
-          name: otelcol/oracledbreceiver
+          name: github.com/open-telemetry/opentelemetry-collector-contrib/receiver/oracledbreceiver
           version: v0.99.0

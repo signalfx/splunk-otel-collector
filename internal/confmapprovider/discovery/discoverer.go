@@ -407,7 +407,8 @@ func (d *discoverer) createObserver(observerID component.ID, cfg *Config) (otelc
 		return nil, nil
 	}
 
-	expandConverter := expandconverter.NewFactory().Create(confmap.ConverterSettings{Logger: d.logger})
+	// TODO: expandconverter has been deprecated, but we will fully remove following the v0.107.0 release.
+	expandConverter := expandconverter.NewFactory().Create(confmap.ConverterSettings{Logger: d.logger}) //nolint:all
 	if err = expandConverter.Convert(context.Background(), observerDiscoveryConf); err != nil {
 		return nil, fmt.Errorf("error converting environment variables in %q config: %w", observerID, err)
 	}

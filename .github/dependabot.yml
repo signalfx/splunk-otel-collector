@@ -137,6 +137,10 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "docker"
+    directory: "/docker/httpd-discovery"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker"
     directory: "/docker/httpd_basicauth"
     schedule:
       interval: "weekly"

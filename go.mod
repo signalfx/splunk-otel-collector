@@ -124,6 +124,7 @@ require (
 	github.com/stretchr/testify v1.9.0
 	go.etcd.io/bbolt v1.3.10
 	go.etcd.io/etcd/client/v2 v2.305.15
+	go.opentelemetry.io/collector/component/componentstatus v0.107.1-0.20240816195043-8506809f1001
 	go.opentelemetry.io/collector/config/confighttp v0.107.1-0.20240816195043-8506809f1001
 	go.opentelemetry.io/collector/config/configtelemetry v0.107.1-0.20240816195043-8506809f1001
 	go.opentelemetry.io/collector/confmap v0.107.1-0.20240816195043-8506809f1001
@@ -340,7 +341,6 @@ require (
 	go.opentelemetry.io/collector v0.107.1-0.20240816195043-8506809f1001 // indirect
 	go.opentelemetry.io/collector/client v1.13.1-0.20240816195043-8506809f1001 // indirect
 	go.opentelemetry.io/collector/component/componentprofiles v0.107.1-0.20240816195043-8506809f1001 // indirect
-	go.opentelemetry.io/collector/component/componentstatus v0.107.1-0.20240816195043-8506809f1001 // indirect
 	go.opentelemetry.io/collector/config/configauth v0.107.1-0.20240816195043-8506809f1001 // indirect
 	go.opentelemetry.io/collector/config/configcompression v1.13.1-0.20240816195043-8506809f1001 // indirect
 	go.opentelemetry.io/collector/config/configgrpc v0.107.1-0.20240816195043-8506809f1001 // indirect

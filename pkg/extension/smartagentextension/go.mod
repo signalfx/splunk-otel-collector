@@ -1,14 +1,16 @@
 module github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension
 
-go 1.22
+go 1.22.0
+
+toolchain go1.22.6
 
 require (
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657
 	github.com/signalfx/signalfx-agent v1.0.1-0.20230104182534-9eee411fe305
 	github.com/stretchr/testify v1.9.0
-	go.opentelemetry.io/collector/component v0.107.0
-	go.opentelemetry.io/collector/confmap v0.107.0
-	go.opentelemetry.io/collector/extension v0.107.0
+	go.opentelemetry.io/collector/component v0.107.1-0.20240816195043-8506809f1001
+	go.opentelemetry.io/collector/confmap v0.107.1-0.20240816195043-8506809f1001
+	go.opentelemetry.io/collector/extension v0.107.1-0.20240816195043-8506809f1001
 	gopkg.in/yaml.v2 v2.4.0
 )
 
@@ -20,7 +22,7 @@ require (
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-stack/stack v1.8.1 // indirect
-	github.com/go-viper/mapstructure/v2 v2.0.0 // indirect
+	github.com/go-viper/mapstructure/v2 v2.1.0 // indirect
 	github.com/gobwas/glob v0.2.4-0.20181002190808-e7a84e9525fe // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
@@ -40,10 +42,10 @@ require (
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3 // indirect
 	github.com/signalfx/golib/v3 v3.3.53 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
-	go.opentelemetry.io/collector/config/configtelemetry v0.107.0 // indirect
-	go.opentelemetry.io/collector/featuregate v1.13.0 // indirect
-	go.opentelemetry.io/collector/internal/globalgates v0.107.0 // indirect
-	go.opentelemetry.io/collector/pdata v1.13.0 // indirect
+	go.opentelemetry.io/collector/config/configtelemetry v0.107.1-0.20240816195043-8506809f1001 // indirect
+	go.opentelemetry.io/collector/featuregate v1.13.1-0.20240816195043-8506809f1001 // indirect
+	go.opentelemetry.io/collector/internal/globalgates v0.107.1-0.20240816195043-8506809f1001 // indirect
+	go.opentelemetry.io/collector/pdata v1.13.1-0.20240816195043-8506809f1001 // indirect
 	go.opentelemetry.io/otel v1.28.0 // indirect
 	go.opentelemetry.io/otel/exporters/prometheus v0.50.0 // indirect
 	go.opentelemetry.io/otel/metric v1.28.0 // indirect

@@ -11,6 +11,10 @@
 - (Splunk) Add Azure Blob receiver ([#5200](https://github.com/signalfx/splunk-otel-collector/pull/5200))
 - (Splunk) Add Google Cloud PubSub receiver ([#5200](https://github.com/signalfx/splunk-otel-collector/pull/5200))
 
+### 🧰 Bug fixes 🧰
+
+- (Core) `otelcol`: Preserve internal representation when unmarshaling component configs ([#10897](https://github.com/open-telemetry/opentelemetry-collector/pull/10897))
+
 ## v0.106.1
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.106.1](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.106.1) and the [opentelemetry-collector-contrib v0.106.1](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.106.1) releases where appropriate.

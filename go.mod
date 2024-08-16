@@ -221,7 +221,7 @@ require (
 	github.com/euank/go-kmsg-parser v2.0.0+incompatible // indirect
 	github.com/go-jose/go-jose/v4 v4.0.2 // indirect
 	github.com/go-resty/resty/v2 v2.13.1 // indirect
-	github.com/go-viper/mapstructure/v2 v2.0.0 // indirect
+	github.com/go-viper/mapstructure/v2 v2.1.0 // indirect
 	github.com/goccy/go-json v0.10.3 // indirect
 	github.com/godbus/dbus/v5 v5.1.0 // indirect
 	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
@@ -328,9 +328,10 @@ require (
 	github.com/youmark/pkcs8 v0.0.0-20201027041543-1326539a0a0a // indirect
 	github.com/zeebo/xxh3 v1.0.2 // indirect
 	go.mongodb.org/mongo-driver v1.16.0 // indirect
-	go.opentelemetry.io/collector v0.107.0 // indirect
+	go.opentelemetry.io/collector v0.107.1-0.20240816195043-8506809f1001 // indirect
 	go.opentelemetry.io/collector/client v1.13.0 // indirect
 	go.opentelemetry.io/collector/component/componentprofiles v0.107.0 // indirect
+	go.opentelemetry.io/collector/component/componentstatus v0.107.0 // indirect
 	go.opentelemetry.io/collector/config/configauth v0.107.0 // indirect
 	go.opentelemetry.io/collector/config/configcompression v1.13.0 // indirect
 	go.opentelemetry.io/collector/config/configgrpc v0.107.0 // indirect

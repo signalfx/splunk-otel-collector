@@ -24,7 +24,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.21.12
+  GO_VERSION: 1.22.6
 
 jobs:
   setup-environment:

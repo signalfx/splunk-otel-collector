@@ -69,9 +69,6 @@ func newReceiverCreateSettings(name string, t *testing.T) otelcolreceiver.Settin
 			Logger:         zap.NewNop(),
 			TracerProvider: nooptrace.NewTracerProvider(),
 			MeterProvider:  noop.NewMeterProvider(),
-			ReportStatus: func(event *component.StatusEvent) {
-				require.NoError(t, event.Err())
-			},
 		},
 	}
 }

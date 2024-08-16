@@ -184,7 +184,6 @@ func (d *discoveryReceiver) createAndSetReceiverCreator() error {
 			TracerProvider: tnoop.NewTracerProvider(),
 			MeterProvider:  mnoop.NewMeterProvider(),
 			MetricsLevel:   configtelemetry.LevelDetailed,
-			ReportStatus:   d.settings.TelemetrySettings.ReportStatus,
 		},
 		BuildInfo: component.BuildInfo{
 			Command: "discovery",

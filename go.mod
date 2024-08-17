@@ -244,7 +244,7 @@ require (
 	github.com/hashicorp/go-msgpack v1.1.5 // indirect
 	github.com/hashicorp/go-msgpack/v2 v2.1.2 // indirect
 	github.com/hashicorp/go-raftchunking v0.7.0 // indirect
-	github.com/hashicorp/go-secure-stdlib/plugincontainer v0.3.0 // indirect
+	github.com/hashicorp/go-secure-stdlib/plugincontainer v0.3.1-0.20240801143802-fab9dfbe9dbc // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/hashicorp/mdns v1.0.5 // indirect
 	github.com/hashicorp/nomad/api v0.0.0-20240717122358-3d93bd3778f3 // indirect
@@ -675,8 +675,5 @@ replace (
 
 // Required for github.com/hashicorp/vault@v1.17.2
 replace github.com/pires/go-proxyproto v1.0.0 => github.com/peteski22/go-proxyproto v1.0.0
-
-// Required for github.com/docker/docker v26 until https://github.com/hashicorp/go-secure-stdlib/pull/126 is merged
-replace github.com/hashicorp/go-secure-stdlib/plugincontainer v0.3.0 => github.com/odvarkadaniel/go-secure-stdlib/plugincontainer v0.0.0-20240426094400-4af81bf367be
 
 replace github.com/google/cadvisor => github.com/google/cadvisor v0.49.1-0.20240628164550-89f779d86055

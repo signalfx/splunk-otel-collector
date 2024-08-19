@@ -14,7 +14,7 @@ on:
     - cron: '0 0 * * 1-5' # Every weekday at midnight UTC
 
 env:
-  GO_VERSION: '1.21.12'
+  GO_VERSION: '1.22.6'
 
 concurrency:
   group: vuln-scans-${{ github.event.pull_request.number || github.ref }}

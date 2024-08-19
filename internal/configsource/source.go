@@ -472,6 +472,10 @@ func retrieveConfigSourceData(ctx context.Context, configSources map[string]Conf
 	var provider confmap.Provider
 	var providerFound bool
 	if !ok {
+		if confmapProviders == nil {
+			// Don't need to expand. Let the upstream handle it.
+			return cfgSrcInvocation, nil, nil
+		}
 		if provider, providerFound = confmapProviders[cfgSrcName]; !providerFound {
 			return nil, nil, newErrUnknownConfigSource(cfgSrcName)
 		}

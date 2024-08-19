@@ -5,6 +5,7 @@
 ### 🛑 Breaking changes 🛑
 
 - (Splunk) `confmap`: Do not expand special shell variable such as `$*` in configuration files. ([#5206](https://github.com/signalfx/splunk-otel-collector/pull/5206))
+- (Splunk) Upgrade golang to 1.22 ([#5248](https://github.com/signalfx/splunk-otel-collector/pull/5248))
 
 ### 🚀 New components 🚀
 

@@ -677,3 +677,9 @@ replace (
 replace github.com/pires/go-proxyproto v1.0.0 => github.com/peteski22/go-proxyproto v1.0.0
 
 replace github.com/google/cadvisor => github.com/google/cadvisor v0.49.1-0.20240628164550-89f779d86055
+
+// Required for github.com/hashicorp/go-secure-stdlib/plugincontainer@v0.3.1
+replace (
+	github.com/docker/docker => github.com/docker/docker v26.1.5+incompatible
+	github.com/prometheus/prometheus => github.com/prometheus/prometheus v0.53.1
+)

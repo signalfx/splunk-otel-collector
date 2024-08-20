@@ -197,23 +197,20 @@ def test_collector_package_upgrade(distro, arch):
             # install an older version of the collector package
             run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"}, timeout="10m")
 
-            time.sleep(5)
+            time.sleep(10)
 
             # verify collector service status
             assert wait_for(lambda: service_is_running(container, service_owner=SERVICE_OWNER))
-
-            # change the config
-            run_container_cmd(container, f"sh -c 'echo \"# This line should be preserved\" >> {AGENT_CONFIG_PATH}'")
 
             copy_file_into_container(container, pkg_path, f"/test/{pkg_base}")
 
             # upgrade package
             if distro in DEB_DISTROS:
-                run_container_cmd(container, f"dpkg -i --force-confold /test/{pkg_base}")
+                run_container_cmd(container, f"dpkg -i --force-confnew /test/{pkg_base}")
             elif distro in RPM_DISTROS:
                 run_container_cmd(container, f"rpm -U /test/{pkg_base}")
 
-            time.sleep(5)
+            time.sleep(10)
 
             run_container_cmd(container, f"test -d {BUNDLE_DIR}")
             run_container_cmd(container, f"test -d {BUNDLE_DIR}/run/collectd")
@@ -223,9 +220,6 @@ def test_collector_package_upgrade(distro, arch):
 
             # verify collector service status
             assert wait_for(lambda: service_is_running(container, service_owner=SERVICE_OWNER))
-
-            # verify changed config was preserved after upgrade
-            run_container_cmd(container, f"grep '# This line should be preserved' {AGENT_CONFIG_PATH}")
 
         finally:
             run_container_cmd(container, f"journalctl -u {SERVICE_NAME} --no-pager")

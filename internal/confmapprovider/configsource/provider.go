@@ -174,7 +174,7 @@ func (pw *ProviderWrapper) ResolveForWrapped(ctx context.Context, uri string, on
 		return nil, fmt.Errorf("failed resolving latestConf: %w", err)
 	}
 
-	resolved, closeFunc, err := configsource.ResolveWithConfigSources(ctx, configSources, providers, confToResolve, onChange)
+	resolved, closeFunc, err := configsource.ResolveWithConfigSources(ctx, configSources, nil, confToResolve, onChange)
 	if err != nil {
 		return nil, fmt.Errorf("failed resolving with config sources: %w", err)
 	}

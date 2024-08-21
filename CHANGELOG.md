@@ -14,7 +14,6 @@ This release fixes CVE-2024-42368 on the `bearerauthtokenextension` ([#34516](ht
 - (Splunk) Upgrade golang to 1.22 ([#5248](https://github.com/signalfx/splunk-otel-collector/pull/5248))
 
 - (Core) `service`: Remove OpenCensus bridge completely, mark feature gate as stable. ([#10414](https://github.com/open-telemetry/opentelemetry-collector/pull/10414))
-- (Core) `confmap`: Set the `confmap.unifyEnvVarExpansion` feature gate to Stable. Expansion of `$FOO` env vars is no longer supported.  Use `${FOO}` or `${env:FOO}` instead. ([#10508](https://github.com/open-telemetry/opentelemetry-collector/pull/10508))
 
 - (Contrib) Update the scope name for telemetry produce by components. The following table summarizes the changes:
 
@@ -57,7 +56,6 @@ This release fixes CVE-2024-42368 on the `bearerauthtokenextension` ([#34516](ht
 | `statsdreceiver` | `otelcol/statsdreceiver` | `github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceiver` |  ([#34547](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/34547)) |
 | `tailsamplingprocessor` | `otelcol/tailsampling` | `github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor` |  ([#34550](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/34550)) |
 | `sqlserverreceiver` | `otelcol/sqlserverreceiver` | `github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sqlserverreceiver` |  ([#34451](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/34451)) |
-| `splunkhecexporter` | `otelcol/splunkhec` | `github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter` |  ([#34451](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/34710)) |
 
 - (Contrib) `elasticsearchreceiver`: Enable more index metrics by default ([#34396](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/34396))
   This enables the following metrics by default:
@@ -103,10 +101,8 @@ This release fixes CVE-2024-42368 on the `bearerauthtokenextension` ([#34516](ht
 
 ### 💡 Enhancements 💡
 
-- (Core) `semconv`: Add v1.26.0 semantic conventions package ([#10249](https://github.com/open-telemetry/opentelemetry-collector/pull/10249), [#10829](https://github.com/open-telemetry/opentelemetry-collector/pull/10829))
 - (Core) `confmap`: Allow using any YAML structure as a string when loading configuration. ([#10800](https://github.com/open-telemetry/opentelemetry-collector/pull/10800))
   Previous to this change, slices could not be used as strings in configuration.
-- (Core) `semconv`: Add semantic conventions version v1.27.0 ([#10837](https://github.com/open-telemetry/opentelemetry-collector/pull/10837))
 - (Core) `client`: Mark module as stable. ([#10775](https://github.com/open-telemetry/opentelemetry-collector/pull/10775))
 
 - (Contrib) `azureeventhubreceiver`: Added traces support in azureeventhubreceiver ([#33583](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/33583))

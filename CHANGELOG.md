@@ -57,6 +57,7 @@ This release fixes CVE-2024-42368 on the `bearerauthtokenextension` ([#34516](ht
 | `statsdreceiver` | `otelcol/statsdreceiver` | `github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceiver` |  ([#34547](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/34547)) |
 | `tailsamplingprocessor` | `otelcol/tailsampling` | `github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor` |  ([#34550](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/34550)) |
 | `sqlserverreceiver` | `otelcol/sqlserverreceiver` | `github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sqlserverreceiver` |  ([#34451](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/34451)) |
+| `splunkhecexporter` | `otelcol/splunkhec` | `github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter` |  ([#34451](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/34710)) |
 
 - (Contrib) `elasticsearchreceiver`: Enable more index metrics by default ([#34396](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/34396))
   This enables the following metrics by default:

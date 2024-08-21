@@ -93,6 +93,13 @@ This release fixes CVE-2024-42368 on the `bearerauthtokenextension` ([#34516](ht
   - vcenter.host.network.packet.rate
   - vcenter.host.network.throughput
   - vcenter.host.network.usage
+  
+- (Splunk) Remove converters helping with old breaking changes. If those changes were not addressed, the collector will fail to start
+  - Moving TLS config options in HEC exporter under tls group
+  - Moving TLS insecure option in OTLP exporter under tls group
+  - Renaming processor: k8s_tagger -> k8sattributes
+  - Deprecation and removal of `ballast` extension
+  - Debug exporter: `loglevel` -> `verbosity` renaming
 
 ### 🚀 New components 🚀
 

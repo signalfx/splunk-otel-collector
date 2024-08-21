@@ -157,6 +157,7 @@ This release fixes CVE-2024-42368 on the `bearerauthtokenextension` ([#34516](ht
   Under high load, the pool of buffers used to send requests is reused enough
   that the same buffer is used concurrently to process data and be sent as request body.
   The fix is to copy the payload into a new byte array before sending it.
+- (Contrib) `pkg/stanza`: fix nil value conversion ([#34672](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/34762))
 
 ## v0.106.1
 

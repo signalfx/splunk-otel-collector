@@ -73,7 +73,7 @@ if ($installed_collector) {
 $reg_path = Join-Path "HKLM:\SYSTEM\CurrentControlSet\Services" $service_name
 if (Test-Path $reg_path) {
     Write-Host "Service registry entry key found: $reg_path"
-    $previous_environment = Get-ItemProperty $reg_path -Name "Environment" -ErrorAction SilentlyContinue
+    $previous_environment = Get-ItemPropertyValue $reg_path -Name "Environment" -ErrorAction SilentlyContinue
     if ($previous_environment) {
         Write-Host "Found previous environment variables for the $service_name service."
         foreach ($entry in $previous_environment) {

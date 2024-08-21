@@ -103,7 +103,7 @@ func (cfg *Config) Validate() error {
 		}
 	}
 
-	if cfg.WatchObservers == nil {
+	if len(cfg.WatchObservers) == 0 {
 		err = multierr.Combine(err, fmt.Errorf("`watch_observers` must be defined and include at least one configured observer extension"))
 	}
 

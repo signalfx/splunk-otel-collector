@@ -19,6 +19,7 @@ import (
 	"fmt"
 
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/component/componentstatus"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/receiver"
@@ -85,20 +86,20 @@ func (receiver *prometheusRemoteWriteReceiver) Start(ctx context.Context, host c
 	}
 	receiver.server = server
 
-	go receiver.startServer(ctx)
+	go receiver.startServer(ctx, host)
 	go receiver.manageServerLifecycle(ctx, metricsChannel)
 
 	return nil
 }
 
-func (receiver *prometheusRemoteWriteReceiver) startServer(ctx context.Context) {
+func (receiver *prometheusRemoteWriteReceiver) startServer(ctx context.Context, host component.Host) {
 	prometheusRemoteWriteServer := receiver.server
 	if prometheusRemoteWriteServer == nil {
-		receiver.settings.TelemetrySettings.ReportStatus(component.NewFatalErrorEvent(fmt.Errorf("start called on null prometheusRemoteWriteServer for receiver %s", metadata.Type)))
+		componentstatus.ReportStatus(host, componentstatus.NewFatalErrorEvent(fmt.Errorf("start called on null prometheusRemoteWriteServer for receiver %s", metadata.Type)))
 	}
 	if err := prometheusRemoteWriteServer.listenAndServe(ctx); err != nil {
 		// our receiver swallows http's ErrServeClosed, and we should only get "concerning" issues at this point in the code.
-		receiver.settings.TelemetrySettings.ReportStatus(component.NewFatalErrorEvent(err))
+		componentstatus.ReportStatus(host, componentstatus.NewFatalErrorEvent(err))
 		receiver.reporter.OnDebugf("Error in %s/%s listening on %s/%s: %s", metadata.Type, receiver.settings.ID, prometheusRemoteWriteServer.Addr, prometheusRemoteWriteServer.Path, err)
 	}
 }

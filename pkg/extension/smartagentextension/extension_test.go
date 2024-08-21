@@ -20,7 +20,6 @@ import (
 
 	"github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/extension"
 )
@@ -28,9 +27,6 @@ import (
 func TestExtensionLifecycle(t *testing.T) {
 	ctx := context.Background()
 	createParams := extension.Settings{}
-	createParams.ReportStatus = func(event *component.StatusEvent) {
-		require.NoError(t, event.Err())
-	}
 	cfg := &Config{
 		Config: config.Config{
 			BundleDir: "/bundle/",

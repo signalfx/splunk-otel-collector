@@ -11,6 +11,7 @@ This release fixes CVE-2024-42368 on the `bearerauthtokenextension` ([#34516](ht
 ### 🛑 Breaking changes 🛑
 
 - (Splunk) `confmap`: Do not expand special shell variable such as `$*` in configuration files. ([#5206](https://github.com/signalfx/splunk-otel-collector/pull/5206))
+- (Splunk) Upgrade golang to 1.22 ([#5248](https://github.com/signalfx/splunk-otel-collector/pull/5248))
 
 - (Core) `service`: Remove OpenCensus bridge completely, mark feature gate as stable. ([#10414](https://github.com/open-telemetry/opentelemetry-collector/pull/10414))
 - (Core) `confmap`: Set the `confmap.unifyEnvVarExpansion` feature gate to Stable. Expansion of `$FOO` env vars is no longer supported.  Use `${FOO}` or `${env:FOO}` instead. ([#10508](https://github.com/open-telemetry/opentelemetry-collector/pull/10508))

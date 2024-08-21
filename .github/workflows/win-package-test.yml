@@ -21,7 +21,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.21.12
+  GO_VERSION: 1.22.6
 
 jobs:
   setup-environment:
@@ -377,6 +377,8 @@ jobs:
             if ($LASTEXITCODE -ne 0) {
               throw "choco install failed!"
             }
+            stop-service splunk-otel-collector
+            rm "$env:PROGRAMDATA\Splunk\OpenTelemetry Collector\*_config.yaml"
             Start-Sleep 30
             write-host "Upgrading $choco_file_name ..."
             choco upgrade splunk-otel-collector -s=".\dist" -y

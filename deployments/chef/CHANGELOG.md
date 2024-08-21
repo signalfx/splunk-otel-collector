@@ -1,5 +1,13 @@
 # Changelog
 
+## chef-v0.15.0
+
+- Breaking Change: The default for the `auto_instrumentation_otlp_endpoint` option has been changed from
+  `http://127.0.0.1:4317` to `''` (empty), i.e. defer to the default `OTEL_EXPORTER_OTLP_ENDPOINT` value for each
+  activated SDK.
+- Add support for the `auto_instrumentation_otlp_endpoint_protocol` and `auto_instrumentation_metrics_exporter` options
+  to configure the `OTEL_EXPORTER_OTLP_PROTOCOL` and `OTEL_METRICS_EXPORTER` environment variables, respectively.
+
 ## chef-v0.14.0
 
 - Initial support for [Splunk OpenTelemetry for .NET](https://github.com/signalfx/splunk-otel-dotnet) Auto

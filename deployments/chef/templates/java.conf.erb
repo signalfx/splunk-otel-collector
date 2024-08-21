@@ -10,4 +10,12 @@ OTEL_SERVICE_NAME=<%= node['splunk_otel_collector']['auto_instrumentation_servic
 SPLUNK_PROFILER_ENABLED=<%= node['splunk_otel_collector']['auto_instrumentation_enable_profiler'].to_s.downcase %>
 SPLUNK_PROFILER_MEMORY_ENABLED=<%= node['splunk_otel_collector']['auto_instrumentation_enable_profiler_memory'].to_s.downcase %>
 SPLUNK_METRICS_ENABLED=<%= node['splunk_otel_collector']['auto_instrumentation_enable_metrics'].to_s.downcase %>
+<% if defined?(node['splunk_otel_collector']['auto_instrumentation_otlp_endpoint']) && node['splunk_otel_collector']['auto_instrumentation_otlp_endpoint'] != "" -%>
 OTEL_EXPORTER_OTLP_ENDPOINT=<%= node['splunk_otel_collector']['auto_instrumentation_otlp_endpoint'] %>
+<% end -%>
+<% if defined?(node['splunk_otel_collector']['auto_instrumentation_otlp_endpoint_protocol']) && node['splunk_otel_collector']['auto_instrumentation_otlp_endpoint_protocol'] != "" -%>
+OTEL_EXPORTER_OTLP_PROTOCOL=<%= node['splunk_otel_collector']['auto_instrumentation_otlp_endpoint_protocol'] %>
+<% end -%>
+<% if defined?(node['splunk_otel_collector']['auto_instrumentation_metrics_exporter']) && node['splunk_otel_collector']['auto_instrumentation_metrics_exporter'] != "" -%>
+OTEL_METRICS_EXPORTER=<%= node['splunk_otel_collector']['auto_instrumentation_metrics_exporter'] %>
+<% end -%>

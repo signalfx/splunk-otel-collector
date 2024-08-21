@@ -119,6 +119,9 @@ This release fixes CVE-2024-42368 on the `bearerauthtokenextension` ([#34516](ht
 
 - (Core) `component`: Allow component names of up to 1024 characters in length. ([#10816](https://github.com/open-telemetry/opentelemetry-collector/pull/10816))
 - (Core) `confmap`: Remove original string representation if invalid. ([#10787](https://github.com/open-telemetry/opentelemetry-collector/pull/10787))
+- (Core) `service`: Fix memory leaks during service package shutdown ([#9241](https://github.com/open-telemetry/opentelemetry-collector/pull/9241))
+- (Core) `batchprocessor`: Update units for internal telemetry ([#10652](https://github.com/open-telemetry/opentelemetry-collector/pull/10652))
+- (Core) `otelcol`: Preserve internal representation when unmarshaling component configs ([#10552](https://github.com/open-telemetry/opentelemetry-collector/pull/10552))
 
 - (Contrib) `configauth`: Fix unmarshaling of authentication in HTTP servers. ([#34325](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/34325))
   This brings in a bug fix from the core collector. See https://github.com/open-telemetry/opentelemetry-collector/issues/10750.

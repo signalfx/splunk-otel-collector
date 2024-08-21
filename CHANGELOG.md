@@ -94,7 +94,7 @@ This release fixes CVE-2024-42368 on the `bearerauthtokenextension` ([#34516](ht
   - vcenter.host.network.throughput
   - vcenter.host.network.usage
   
-- (Splunk) Remove converters helping with old breaking changes. If those changes were not addressed, the collector will fail to start
+- (Splunk) Remove converters helping with old breaking changes. If those changes were not addressed, the collector will fail to start. ([#5267](https://github.com/signalfx/splunk-otel-collector/pull/5267))
   - Moving TLS config options in HEC exporter under tls group
   - Moving TLS insecure option in OTLP exporter under tls group
   - Renaming processor: k8s_tagger -> k8sattributes

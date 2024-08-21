@@ -79,6 +79,22 @@ This release fixes CVE-2024-42368 on the `bearerauthtokenextension` ([#34516](ht
   - vcenter.vm.vsan.throughput
   - vcenter.vm.vsan.operations
   - vcenter.vm.vsan.latency.avg
+- (Contrib) `vcenterreceiver`: Several host performance metrics now return 1 data point per time series instead of 5. ([#34708](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/34708))
+  The 5 data points previously sent represented consecutive 20s sampling periods. Depending on the collection interval 
+  these could easily overlap. Sending just the latest of these data points is more in line with other performance metrics.
+  
+  This change also fixes an issue with the googlecloud exporter seeing these datapoints as duplicates.
+  
+  Following is the list of affected metrics which will now only report a single datapoint per set of unique attribute values.
+  - vcenter.host.cpu.reserved
+  - vcenter.host.disk.latency.avg
+  - vcenter.host.disk.latency.max
+  - vcenter.host.disk.throughput
+  - vcenter.host.network.packet.drop.rate
+  - vcenter.host.network.packet.error.rate
+  - vcenter.host.network.packet.rate
+  - vcenter.host.network.throughput
+  - vcenter.host.network.usage
 
 ### 🚀 New components 🚀
 

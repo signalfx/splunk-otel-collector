@@ -271,9 +271,26 @@ after installation/configuration in order for any change to take effect.
 - `auto_instrumentation_enable_metrics` (Linux only): Enable or disable
   exporting instrumentation metrics. (**default**: `false`)
 
-- `auto_instrumentation_otlp_endpoint` (Linux only): Set the OTLP gRPC endpoint
-  for captured traces. Only applicable if `auto_instrumentation_version` is
-  `latest` or >= `0.87.0`. (**default:** `http://127.0.0.1:4317`)
+- `auto_instrumentation_otlp_endpoint` (Linux only): Set the OTLP endpoint for
+  captured traces. The value will be set to the `OTEL_EXPORTER_OTLP_ENDPOINT`
+  environment variable. Only applicable if `auto_instrumentation_version` is
+  `latest` or >= `0.87.0`. (**default:** `''`, i.e. defer to the default
+  `OTEL_EXPORTER_OTLP_ENDPOINT` value for each activated SDK)
+
+- `auto_instrumentation_otlp_endpoint_protocol` (Linux only): Set the protocol
+  for the OTLP endpoint, for example `grpc` or `http/protobuf`. The value will
+  be set to the `OTEL_EXPORTER_OTLP_PROTOCOL` environment variable. Only
+  applicable if `auto_instrumentation_version` is `latest` or >= `0.104.0`.
+  (**default:** `''`, i.e. defer to the default `OTEL_EXPORTER_OTLP_PROTOCOL`
+  value for each activated SDK)
+
+- `auto_instrumentation_metrics_exporter` (Linux only): Comma-separated list of
+  exporters for collected metrics by all activated SDKs, for example
+  `otlp,prometheus`. Set the value to `none` to disable collection and export
+  of metrics. The value will be set to the `OTEL_METRICS_EXPORTER` environment
+  variable. Only applicable if `auto_instrumentation_version` is `latest` or >=
+  `0.104.0`. (**default:** `''`, i.e. defer to the default
+  `OTEL_METRICS_EXPORTER` value for each activated SDK)
 
 ### Auto Instrumentation for .NET on Windows
 

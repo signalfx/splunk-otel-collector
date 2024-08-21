@@ -122,6 +122,8 @@ This release fixes CVE-2024-42368 on the `bearerauthtokenextension` ([#34516](ht
 - (Contrib) `receiver/splunkhec`: Add a regex to enforce metrics naming for Splunk events fields based on metrics documentation. ([#34275](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/34275))
 - (Contrib) `filelogreceiver`: Check for unsupported fractional seconds directive when converting strptime time layout to native format ([#34390](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/34390))
 - (Contrib) `windowseventlogreceiver`: Add remote collection support to Stanza operator windows pkg to support remote log collect for the Windows Event Log receiver. ([#33100](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/33100))
+- (Contrib) `solacereceiver`: Updated the format for generated metrics. Included a `receiver_name` attribute that identifies the Solace receiver that generated the metrics ([#34541](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/34541))
+- (Contrib) `metricstransformprocessor`: Add scaling exponential histogram support ([#29803](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/29803))
 
 ### 🧰 Bug fixes 🧰
 

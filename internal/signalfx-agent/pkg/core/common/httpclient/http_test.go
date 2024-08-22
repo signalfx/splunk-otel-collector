@@ -61,7 +61,7 @@ func runServer(t *testing.T, h *HTTPConfig, cb func(host string)) {
 	defer func() {
 		server.Close()
 		err = <-serveReturn
-		if err != nil && !errors.Is(http.ErrServerClosed, err) {
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			t.Fatalf("failed stopping server: %s", err)
 		}
 	}()

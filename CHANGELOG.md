@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 🚀 New components 🚀
+
+- (Splunk) Add `nginx` receiver ([5229](https://github.com/signalfx/splunk-otel-collector/pull/5229))
+
 ## v0.107.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.107.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.107.0) and the [opentelemetry-collector-contrib v0.107.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.107.0) releases where appropriate.
@@ -103,7 +107,6 @@ This release fixes CVE-2024-42368 on the `bearerauthtokenextension` ([#34516](ht
 
 ### 🚀 New components 🚀
 
-- (Splunk) Add `nginx` receiver ([5229](https://github.com/signalfx/splunk-otel-collector/pull/5229))
 - (Splunk) Add Azure Blob receiver ([#5200](https://github.com/signalfx/splunk-otel-collector/pull/5200))
 - (Splunk) Add Google Cloud PubSub receiver ([#5200](https://github.com/signalfx/splunk-otel-collector/pull/5200))
 

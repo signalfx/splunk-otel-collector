@@ -27,7 +27,6 @@ func TestSecondsOrDuration_UnmarshalYAML(t *testing.T) {
 		{name: "empty string", d: 0, args: args{"time:''"}, wantErr: true},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			var out map[string]Duration
 			if err := yaml.Unmarshal([]byte(tt.args.yml), &out); (err != nil) != tt.wantErr {
@@ -53,7 +52,6 @@ func TestSecondsOrDuration_Defaults(t *testing.T) {
 		{name: "5 seconds as integer", d: 5 * time.Second, args: args{"{}"}, wantErr: false},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			var out struct {
 				Interval Duration `yaml:"interval" default:"5s"`
@@ -88,7 +86,6 @@ func TestDuration_UnmarshalJSON(t *testing.T) {
 		{name: "empty string", d: 0, args: args{"time:''"}, wantErr: true},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			var out map[string]Duration
 			if err := json.Unmarshal([]byte(tt.args.json), &out); (err != nil) != tt.wantErr {

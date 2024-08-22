@@ -94,7 +94,7 @@ linters:
   disable:
     - errcheck
   enable:
-    - exportloopref
+    - copyloopvar
     - gocritic
     - gofmt
     - goimports

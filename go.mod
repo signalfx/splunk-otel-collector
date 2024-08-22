@@ -88,6 +88,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mongodbatlasreceiver v0.107.1-0.20240816183440-44ef4d6c5a2c
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mongodbreceiver v0.107.1-0.20240816183440-44ef4d6c5a2c
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mysqlreceiver v0.107.1-0.20240816183440-44ef4d6c5a2c
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/nginxreceiver v0.107.1-0.20240816183440-44ef4d6c5a2c
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/oracledbreceiver v0.107.1-0.20240816183440-44ef4d6c5a2c
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/postgresqlreceiver v0.107.1-0.20240816183440-44ef4d6c5a2c
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.107.1-0.20240816183440-44ef4d6c5a2c
@@ -272,6 +273,7 @@ require (
 	github.com/moby/sys/user v0.1.0 // indirect
 	github.com/montanaflynn/stats v0.7.1 // indirect
 	github.com/mrunalp/fileutils v0.5.1 // indirect
+	github.com/nginxinc/nginx-prometheus-exporter v0.11.0 // indirect
 	github.com/okta/okta-sdk-golang/v2 v2.20.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter v0.107.1-0.20240816183440-44ef4d6c5a2c // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/encoding v0.107.1-0.20240816183440-44ef4d6c5a2c // indirect

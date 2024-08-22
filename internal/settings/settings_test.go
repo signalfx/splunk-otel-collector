@@ -319,7 +319,6 @@ func TestSetDefaultEnvVarsSetsInterfaceFromConfigOption(t *testing.T) {
 		{"some-other-config.yaml", "0.0.0.0"},
 		{"file:some-other-config.yaml", "0.0.0.0"},
 	} {
-		tc := tc
 		t.Run(fmt.Sprintf("%v->%v", tc.config, tc.expectedIP), func(t *testing.T) {
 			t.Cleanup(clearEnv(t))
 			os.Setenv("SPLUNK_REALM", "noop")

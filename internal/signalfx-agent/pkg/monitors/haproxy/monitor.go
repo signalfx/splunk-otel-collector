@@ -67,7 +67,6 @@ func (m *Monitor) Configure(conf *Config) (err error) {
 		var wg sync.WaitGroup
 		chs := make([]chan []*datapoint.Datapoint, 0)
 		for _, fn := range fetchFuncs {
-			fn := fn
 			ch := make(chan []*datapoint.Datapoint, 1)
 			wg.Add(1)
 			go func() {

@@ -362,6 +362,10 @@ func resolveStringValue(ctx context.Context, configSources map[string]ConfigSour
 					}
 					cfgSrcName = "env"
 					expandableContent = fmt.Sprintf("env:%s", expandableContent)
+					if confmapProviders == nil {
+						// The expansion will be handled upstream by envprovider.
+						retrieved = fmt.Sprintf("${%s}", expandableContent)
+					}
 				default:
 					if deprecatedFormUsed {
 						printDeprecationWarningOnce(fmt.Sprintf(
@@ -370,7 +374,9 @@ func resolveStringValue(ctx context.Context, configSources map[string]ConfigSour
 							expandableContent, expandableContent))
 					}
 				}
+			}
 
+			if retrieved == nil {
 				// A config source, retrieve and apply results.
 				var closeFunc confmap.CloseFunc
 				var err error
@@ -472,6 +478,10 @@ func retrieveConfigSourceData(ctx context.Context, configSources map[string]Conf
 	var provider confmap.Provider
 	var providerFound bool
 	if !ok {
+		if confmapProviders == nil {
+			// Pass the config provider expansion to be handled upstream.
+			return fmt.Sprintf("${%s}", cfgSrcInvocation), nil, nil
+		}
 		if provider, providerFound = confmapProviders[cfgSrcName]; !providerFound {
 			return nil, nil, newErrUnknownConfigSource(cfgSrcName)
 		}

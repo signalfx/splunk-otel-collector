@@ -21,7 +21,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.21.12
+  GO_VERSION: 1.22.6
 
 jobs:
   setup-environment:
@@ -371,9 +371,9 @@ jobs:
               throw "choco install failed!"
             }
           } else {
-            write-host "Installing splunk-otel-collector 0.74.0 ..."
+            write-host "Installing splunk-otel-collector ..."
             choco feature enable -n=useRememberedArgumentsForUpgrades
-            choco install splunk-otel-collector --no-progress --version=0.74.0 --params="'$params'" -y
+            choco install splunk-otel-collector --no-progress --params="'$params'" -y
             if ($LASTEXITCODE -ne 0) {
               throw "choco install failed!"
             }

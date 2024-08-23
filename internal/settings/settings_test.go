@@ -156,7 +156,7 @@ func TestNewSettingsConvertConfig(t *testing.T) {
 	require.Equal(t, []string(nil), settings.discoveryProperties)
 
 	require.Equal(t, []string{configPath, anotherConfigPath}, settings.ResolverURIs())
-	require.Equal(t, 12, len(settings.ConfMapConverterFactories()))
+	require.Equal(t, 6, len(settings.ConfMapConverterFactories()))
 	require.Equal(t, []string{"--feature-gates", "foo", "--feature-gates", "-bar"}, settings.ColCoreArgs())
 }
 
@@ -319,7 +319,6 @@ func TestSetDefaultEnvVarsSetsInterfaceFromConfigOption(t *testing.T) {
 		{"some-other-config.yaml", "0.0.0.0"},
 		{"file:some-other-config.yaml", "0.0.0.0"},
 	} {
-		tc := tc
 		t.Run(fmt.Sprintf("%v->%v", tc.config, tc.expectedIP), func(t *testing.T) {
 			t.Cleanup(clearEnv(t))
 			os.Setenv("SPLUNK_REALM", "noop")

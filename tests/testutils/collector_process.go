@@ -16,6 +16,7 @@ package testutils
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -218,7 +219,7 @@ func findCollectorPath() (string, error) {
 	}
 
 	if collectorPath == "" {
-		err = fmt.Errorf(findExecutableErrorMsg)
+		err = errors.New(findExecutableErrorMsg)
 	}
 	return collectorPath, err
 }

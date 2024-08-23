@@ -1,6 +1,6 @@
 module github.com/signalfx/signalfx-agent
 
-go 1.21.0
+go 1.22
 
 replace (
 	code.cloudfoundry.org/go-loggregator => github.com/signalfx/go-loggregator v1.0.1-0.20200205155641-5ba5ca92118d
@@ -10,7 +10,7 @@ replace (
 require (
 	code.cloudfoundry.org/go-loggregator v7.4.0+incompatible
 	github.com/Microsoft/go-winio v0.6.2 // indirect
-	github.com/SAP/go-hdb v1.10.4
+	github.com/SAP/go-hdb v1.11.3
 	github.com/Sectorbob/mlab-ns2 v0.0.0-20171030222938-d3aa0c295a8a
 	github.com/antonmedv/expr v1.15.5
 	github.com/beevik/ntp v1.4.3

@@ -17,7 +17,6 @@ on:
       - 'go.mod'
       - 'go.sum'
       - '!**.md'
-      - '!internal/buildscripts/**'
 
 concurrency:
   group: integration-test-${{ github.event.pull_request.number || github.ref }}

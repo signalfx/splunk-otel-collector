@@ -66,7 +66,7 @@ func makeSummaryDatapoints(name string, ms []*dto.Metric) []*datapoint.Datapoint
 
 		//nolint:protogetter
 		if s.SampleCount != nil {
-			dps = append(dps, sfxclient.Cumulative(name+"_count", dims, int64(s.GetSampleCount())))
+			dps = append(dps, sfxclient.Cumulative(name+"_count", dims, int64(s.GetSampleCount()))) //nolint:gosec
 		}
 
 		//nolint:protogetter
@@ -96,7 +96,7 @@ func makeHistogramDatapoints(name string, ms []*dto.Metric) []*datapoint.Datapoi
 
 		//nolint:protogetter
 		if h.SampleCount != nil {
-			dps = append(dps, sfxclient.Cumulative(name+"_count", dims, int64(h.GetSampleCount())))
+			dps = append(dps, sfxclient.Cumulative(name+"_count", dims, int64(h.GetSampleCount()))) //nolint:gosec
 		}
 
 		//nolint:protogetter
@@ -109,7 +109,7 @@ func makeHistogramDatapoints(name string, ms []*dto.Metric) []*datapoint.Datapoi
 			bucketDims := utils.MergeStringMaps(dims, map[string]string{
 				"upper_bound": strconv.FormatFloat(buckets[i].GetUpperBound(), 'f', 6, 64),
 			})
-			dps = append(dps, sfxclient.Cumulative(name+"_bucket", bucketDims, int64(buckets[i].GetCumulativeCount())))
+			dps = append(dps, sfxclient.Cumulative(name+"_bucket", bucketDims, int64(buckets[i].GetCumulativeCount()))) //nolint:gosec
 		}
 	}
 	return dps

@@ -8,7 +8,7 @@
 
 ### 💡 Enhancements 💡
 
-- (Splunk) Update JMX Metric Gatherer to [v1.37.0](https://github.com/open-telemetry/opentelemetry-java-contrib/releases/tag/v1.37.0) ([#5118](https://github.com/signalfx/splunk-otel-collector/pull/5118))
+- (Splunk) Update JMX Metric Gatherer to [v1.37.0](https://github.com/open-telemetry/opentelemetry-java-contrib/releases/tag/v1.37.0) ([#5240](https://github.com/signalfx/splunk-otel-collector/pull/5240))
 
 ## v0.107.0
 

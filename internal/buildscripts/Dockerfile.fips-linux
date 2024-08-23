@@ -2,6 +2,10 @@ ARG DOCKER_REPO=docker.io
 ARG GO_VERSION=1.22
 FROM ${DOCKER_REPO}/golang:${GO_VERSION}
 
+# SHA for the splunk-validated boring module
+ENV SYSO_SHA="c1dd71f0ea77e385796db11102c461896ee0824825c773979751983e2bf49912"
+RUN echo "$SYSO_SHA" "$(go env GOROOT)/src/crypto/internal/boring/syso/goboringcrypto_linux_amd64.syso" | sha256sum --check || { echo "Build Failed: BoringSSL syso SHA256 doesn't match"; exit 1; }
+
 # install toolchain for cgo
 RUN apt-get update && \
     apt-get install -y --no-install-recommends musl-dev musl-tools

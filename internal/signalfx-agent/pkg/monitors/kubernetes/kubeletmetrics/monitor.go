@@ -106,10 +106,10 @@ func (m *Monitor) getSummaryMetrics(usePodsEndpoint bool) ([]*datapoint.Datapoin
 
 		if p.EphemeralStorage != nil {
 			if p.EphemeralStorage.CapacityBytes != nil {
-				dps = append(dps, sfxclient.Gauge(podEphemeralStorageCapacityBytes, dims, int64(*p.EphemeralStorage.CapacityBytes)))
+				dps = append(dps, sfxclient.Gauge(podEphemeralStorageCapacityBytes, dims, int64(*p.EphemeralStorage.CapacityBytes))) //nolint:gosec
 			}
 			if p.EphemeralStorage.UsedBytes != nil {
-				dps = append(dps, sfxclient.Gauge(podEphemeralStorageUsedBytes, dims, int64(*p.EphemeralStorage.UsedBytes)))
+				dps = append(dps, sfxclient.Gauge(podEphemeralStorageUsedBytes, dims, int64(*p.EphemeralStorage.UsedBytes))) //nolint:gosec
 			}
 		}
 
@@ -120,16 +120,16 @@ func (m *Monitor) getSummaryMetrics(usePodsEndpoint bool) ([]*datapoint.Datapoin
 				intfDims["interface"] = i.Name
 
 				if i.RxBytes != nil {
-					dps = append(dps, sfxclient.Cumulative(podNetworkReceiveBytesTotal, intfDims, int64(*i.RxBytes)))
+					dps = append(dps, sfxclient.Cumulative(podNetworkReceiveBytesTotal, intfDims, int64(*i.RxBytes))) //nolint:gosec
 				}
 				if i.TxBytes != nil {
-					dps = append(dps, sfxclient.Cumulative(podNetworkTransmitBytesTotal, intfDims, int64(*i.TxBytes)))
+					dps = append(dps, sfxclient.Cumulative(podNetworkTransmitBytesTotal, intfDims, int64(*i.TxBytes))) //nolint:gosec
 				}
 				if i.RxErrors != nil {
-					dps = append(dps, sfxclient.Cumulative(podNetworkReceiveErrorsTotal, intfDims, int64(*i.RxErrors)))
+					dps = append(dps, sfxclient.Cumulative(podNetworkReceiveErrorsTotal, intfDims, int64(*i.RxErrors))) //nolint:gosec
 				}
 				if i.TxErrors != nil {
-					dps = append(dps, sfxclient.Cumulative(podNetworkTransmitErrorsTotal, intfDims, int64(*i.TxErrors)))
+					dps = append(dps, sfxclient.Cumulative(podNetworkTransmitErrorsTotal, intfDims, int64(*i.TxErrors))) //nolint:gosec
 				}
 			}
 		}

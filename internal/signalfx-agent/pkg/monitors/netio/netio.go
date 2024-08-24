@@ -94,19 +94,19 @@ func (m *Monitor) EmitDatapoints() {
 		dimensions := map[string]string{"interface": ifaceName}
 
 		dps = append(dps,
-			datapoint.New("if_errors.rx", dimensions, datapoint.NewIntValue(int64(intf.Errin)), datapoint.Counter, time.Time{}),
-			datapoint.New("if_errors.tx", dimensions, datapoint.NewIntValue(int64(intf.Errout)), datapoint.Counter, time.Time{}),
-			datapoint.New("if_octets.rx", dimensions, datapoint.NewIntValue(int64(intf.BytesRecv)), datapoint.Counter, time.Time{}),
-			datapoint.New("if_octets.tx", dimensions, datapoint.NewIntValue(int64(intf.BytesSent)), datapoint.Counter, time.Time{}),
-			datapoint.New("if_packets.rx", dimensions, datapoint.NewIntValue(int64(intf.PacketsRecv)), datapoint.Counter, time.Time{}),
-			datapoint.New("if_packets.tx", dimensions, datapoint.NewIntValue(int64(intf.PacketsSent)), datapoint.Counter, time.Time{}),
-			datapoint.New("if_dropped.rx", dimensions, datapoint.NewIntValue(int64(intf.Dropin)), datapoint.Counter, time.Time{}),
-			datapoint.New("if_dropped.tx", dimensions, datapoint.NewIntValue(int64(intf.Dropout)), datapoint.Counter, time.Time{}),
+			datapoint.New("if_errors.rx", dimensions, datapoint.NewIntValue(int64(intf.Errin)), datapoint.Counter, time.Time{}),        //nolint:gosec
+			datapoint.New("if_errors.tx", dimensions, datapoint.NewIntValue(int64(intf.Errout)), datapoint.Counter, time.Time{}),       //nolint:gosec
+			datapoint.New("if_octets.rx", dimensions, datapoint.NewIntValue(int64(intf.BytesRecv)), datapoint.Counter, time.Time{}),    //nolint:gosec
+			datapoint.New("if_octets.tx", dimensions, datapoint.NewIntValue(int64(intf.BytesSent)), datapoint.Counter, time.Time{}),    //nolint:gosec
+			datapoint.New("if_packets.rx", dimensions, datapoint.NewIntValue(int64(intf.PacketsRecv)), datapoint.Counter, time.Time{}), //nolint:gosec
+			datapoint.New("if_packets.tx", dimensions, datapoint.NewIntValue(int64(intf.PacketsSent)), datapoint.Counter, time.Time{}), //nolint:gosec
+			datapoint.New("if_dropped.rx", dimensions, datapoint.NewIntValue(int64(intf.Dropin)), datapoint.Counter, time.Time{}),      //nolint:gosec
+			datapoint.New("if_dropped.tx", dimensions, datapoint.NewIntValue(int64(intf.Dropout)), datapoint.Counter, time.Time{}),     //nolint:gosec
 		)
 	}
 
 	// network.total
-	dps = append(dps, datapoint.New("network.total", map[string]string{}, datapoint.NewIntValue(int64(m.networkTotal)), datapoint.Counter, time.Time{}))
+	dps = append(dps, datapoint.New("network.total", map[string]string{}, datapoint.NewIntValue(int64(m.networkTotal)), datapoint.Counter, time.Time{})) //nolint:gosec
 
 	m.Output.SendDatapoints(dps...)
 }

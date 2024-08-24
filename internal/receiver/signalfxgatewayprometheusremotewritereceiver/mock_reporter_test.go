@@ -73,7 +73,7 @@ func (m *mockReporter) OnError(_ context.Context, errorLocation string, err erro
 }
 
 func (m *mockReporter) OnMetricsProcessed(_ context.Context, numReceivedMessages int, _ error) {
-	m.TotalSuccessMetrics.Add(int32(numReceivedMessages))
+	m.TotalSuccessMetrics.Add(int32(numReceivedMessages)) //nolint:gosec
 	m.OpsSuccess.Done()
 }
 

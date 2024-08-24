@@ -110,7 +110,7 @@ func getContainerMetrics() []containerMetric {
 			help:      "Cumulative user cpu time consumed in nanoseconds.",
 			valueType: datapoint.Counter,
 			getValues: func(s *info.ContainerStats) metricValues {
-				return metricValues{{value: datapoint.NewIntValue(int64(s.Cpu.Usage.User))}}
+				return metricValues{{value: datapoint.NewIntValue(int64(s.Cpu.Usage.User))}} //nolint:gosec
 			},
 		},
 		{
@@ -118,7 +118,7 @@ func getContainerMetrics() []containerMetric {
 			help:      "Cumulative system cpu time consumed in nanoseconds.",
 			valueType: datapoint.Counter,
 			getValues: func(s *info.ContainerStats) metricValues {
-				return metricValues{{value: datapoint.NewIntValue(int64(s.Cpu.Usage.System))}}
+				return metricValues{{value: datapoint.NewIntValue(int64(s.Cpu.Usage.System))}} //nolint:gosec
 			},
 		},
 		{
@@ -126,7 +126,7 @@ func getContainerMetrics() []containerMetric {
 			help:      "Cumulative cpu time consumed per cpu in nanoseconds.",
 			valueType: datapoint.Counter,
 			getValues: func(s *info.ContainerStats) metricValues {
-				return metricValues{{value: datapoint.NewIntValue(int64(s.Cpu.Usage.Total))}}
+				return metricValues{{value: datapoint.NewIntValue(int64(s.Cpu.Usage.Total))}} //nolint:gosec
 			},
 		},
 		{
@@ -134,7 +134,7 @@ func getContainerMetrics() []containerMetric {
 			help:      "Cumulative cpu utilization in percentages.",
 			valueType: datapoint.Counter,
 			getValues: func(s *info.ContainerStats) metricValues {
-				return metricValues{{value: datapoint.NewIntValue(int64(s.Cpu.Usage.Total / 10000000))}}
+				return metricValues{{value: datapoint.NewIntValue(int64(s.Cpu.Usage.Total / 10000000))}} //nolint:gosec
 			},
 		},
 		{
@@ -143,7 +143,7 @@ func getContainerMetrics() []containerMetric {
 			valueType: datapoint.Counter,
 			getValues: func(s *info.ContainerStats) metricValues {
 				cpuCount := utils.MaxInt(len(s.Cpu.Usage.PerCpu), 1)
-				return metricValues{{value: datapoint.NewIntValue(int64(int(s.Cpu.Usage.Total) / (10000000 * cpuCount)))}}
+				return metricValues{{value: datapoint.NewIntValue(int64(int(s.Cpu.Usage.Total) / (10000000 * cpuCount)))}} //nolint:gosec
 			},
 		},
 		{
@@ -155,7 +155,7 @@ func getContainerMetrics() []containerMetric {
 				mv := make(metricValues, len(s.Cpu.Usage.PerCpu))
 				for index, coreUsage := range s.Cpu.Usage.PerCpu {
 					if coreUsage > 0 {
-						mv[index] = metricValue{value: datapoint.NewIntValue(int64(coreUsage / 10000000)), labels: []string{"cpu" + strconv.Itoa(index)}}
+						mv[index] = metricValue{value: datapoint.NewIntValue(int64(coreUsage / 10000000)), labels: []string{"cpu" + strconv.Itoa(index)}} //nolint:gosec
 					} else {
 						mv[index] = metricValue{value: datapoint.NewIntValue(int64(0)), labels: []string{strconv.Itoa(index)}}
 					}
@@ -168,7 +168,7 @@ func getContainerMetrics() []containerMetric {
 			help:      "Total number of elapsed CFS enforcement intervals.",
 			valueType: datapoint.Counter,
 			getValues: func(s *info.ContainerStats) metricValues {
-				return metricValues{{value: datapoint.NewIntValue(int64(s.Cpu.CFS.Periods))}}
+				return metricValues{{value: datapoint.NewIntValue(int64(s.Cpu.CFS.Periods))}} //nolint:gosec
 			},
 		},
 		{
@@ -176,7 +176,7 @@ func getContainerMetrics() []containerMetric {
 			help:      "Total number of times tasks in the cgroup have been throttled",
 			valueType: datapoint.Counter,
 			getValues: func(s *info.ContainerStats) metricValues {
-				return metricValues{{value: datapoint.NewIntValue(int64(s.Cpu.CFS.ThrottledPeriods))}}
+				return metricValues{{value: datapoint.NewIntValue(int64(s.Cpu.CFS.ThrottledPeriods))}} //nolint:gosec
 			},
 		},
 		{
@@ -184,7 +184,7 @@ func getContainerMetrics() []containerMetric {
 			help:      "Total time duration, in nanoseconds, for which tasks in the cgroup have been throttled.",
 			valueType: datapoint.Counter,
 			getValues: func(s *info.ContainerStats) metricValues {
-				return metricValues{{value: datapoint.NewIntValue(int64(s.Cpu.CFS.ThrottledTime))}}
+				return metricValues{{value: datapoint.NewIntValue(int64(s.Cpu.CFS.ThrottledTime))}} //nolint:gosec
 			},
 		},
 		{
@@ -192,7 +192,7 @@ func getContainerMetrics() []containerMetric {
 			help:      "RSS memory used by the container",
 			valueType: datapoint.Gauge,
 			getValues: func(s *info.ContainerStats) metricValues {
-				return metricValues{{value: datapoint.NewIntValue(int64(s.Memory.RSS))}}
+				return metricValues{{value: datapoint.NewIntValue(int64(s.Memory.RSS))}} //nolint:gosec
 			},
 		},
 		{
@@ -200,7 +200,7 @@ func getContainerMetrics() []containerMetric {
 			help:      "Number of memory usage hits limits",
 			valueType: datapoint.Counter,
 			getValues: func(s *info.ContainerStats) metricValues {
-				return metricValues{{value: datapoint.NewIntValue(int64(s.Memory.Failcnt))}}
+				return metricValues{{value: datapoint.NewIntValue(int64(s.Memory.Failcnt))}} //nolint:gosec
 			},
 		},
 		{
@@ -208,7 +208,7 @@ func getContainerMetrics() []containerMetric {
 			help:      "Current memory usage in bytes.",
 			valueType: datapoint.Gauge,
 			getValues: func(s *info.ContainerStats) metricValues {
-				return metricValues{{value: datapoint.NewIntValue(int64(s.Memory.Usage))}}
+				return metricValues{{value: datapoint.NewIntValue(int64(s.Memory.Usage))}} //nolint:gosec
 			},
 		},
 		{
@@ -216,7 +216,7 @@ func getContainerMetrics() []containerMetric {
 			help:      "Current working set in bytes.",
 			valueType: datapoint.Gauge,
 			getValues: func(s *info.ContainerStats) metricValues {
-				return metricValues{{value: datapoint.NewIntValue(int64(s.Memory.WorkingSet))}}
+				return metricValues{{value: datapoint.NewIntValue(int64(s.Memory.WorkingSet))}} //nolint:gosec
 			},
 		},
 		{
@@ -227,19 +227,19 @@ func getContainerMetrics() []containerMetric {
 			getValues: func(s *info.ContainerStats) metricValues {
 				return metricValues{
 					{
-						value:  datapoint.NewIntValue(int64(s.Memory.ContainerData.Pgfault)),
+						value:  datapoint.NewIntValue(int64(s.Memory.ContainerData.Pgfault)), //nolint:gosec
 						labels: []string{"pgfault", "container"},
 					},
 					{
-						value:  datapoint.NewIntValue(int64(s.Memory.ContainerData.Pgmajfault)),
+						value:  datapoint.NewIntValue(int64(s.Memory.ContainerData.Pgmajfault)), //nolint:gosec
 						labels: []string{"pgmajfault", "container"},
 					},
 					{
-						value:  datapoint.NewIntValue(int64(s.Memory.HierarchicalData.Pgfault)),
+						value:  datapoint.NewIntValue(int64(s.Memory.HierarchicalData.Pgfault)), //nolint:gosec
 						labels: []string{"pgfault", "hierarchy"},
 					},
 					{
-						value:  datapoint.NewIntValue(int64(s.Memory.HierarchicalData.Pgmajfault)),
+						value:  datapoint.NewIntValue(int64(s.Memory.HierarchicalData.Pgmajfault)), //nolint:gosec
 						labels: []string{"pgmajfault", "hierarchy"},
 					},
 				}
@@ -252,7 +252,7 @@ func getContainerMetrics() []containerMetric {
 			extraLabels: []string{"device"},
 			getValues: func(s *info.ContainerStats) metricValues {
 				return fsValues(s.Filesystem, func(fs *info.FsStats) datapoint.Value {
-					return datapoint.NewIntValue(int64(fs.Limit))
+					return datapoint.NewIntValue(int64(fs.Limit)) //nolint:gosec
 				})
 			},
 		},
@@ -263,7 +263,7 @@ func getContainerMetrics() []containerMetric {
 			extraLabels: []string{"device"},
 			getValues: func(s *info.ContainerStats) metricValues {
 				return fsValues(s.Filesystem, func(fs *info.FsStats) datapoint.Value {
-					return datapoint.NewIntValue(int64(fs.Usage))
+					return datapoint.NewIntValue(int64(fs.Usage)) //nolint:gosec
 				})
 			},
 		},
@@ -274,7 +274,7 @@ func getContainerMetrics() []containerMetric {
 			extraLabels: []string{"device"},
 			getValues: func(s *info.ContainerStats) metricValues {
 				return fsValues(s.Filesystem, func(fs *info.FsStats) datapoint.Value {
-					return datapoint.NewIntValue(int64(fs.ReadsCompleted))
+					return datapoint.NewIntValue(int64(fs.ReadsCompleted)) //nolint:gosec
 				})
 			},
 		},
@@ -285,7 +285,7 @@ func getContainerMetrics() []containerMetric {
 			extraLabels: []string{"device"},
 			getValues: func(s *info.ContainerStats) metricValues {
 				return fsValues(s.Filesystem, func(fs *info.FsStats) datapoint.Value {
-					return datapoint.NewIntValue(int64(fs.SectorsRead))
+					return datapoint.NewIntValue(int64(fs.SectorsRead)) //nolint:gosec
 				})
 			},
 		},
@@ -296,7 +296,7 @@ func getContainerMetrics() []containerMetric {
 			extraLabels: []string{"device"},
 			getValues: func(s *info.ContainerStats) metricValues {
 				return fsValues(s.Filesystem, func(fs *info.FsStats) datapoint.Value {
-					return datapoint.NewIntValue(int64(fs.ReadsMerged))
+					return datapoint.NewIntValue(int64(fs.ReadsMerged)) //nolint:gosec
 				})
 			},
 		},
@@ -307,7 +307,7 @@ func getContainerMetrics() []containerMetric {
 			extraLabels: []string{"device"},
 			getValues: func(s *info.ContainerStats) metricValues {
 				return fsValues(s.Filesystem, func(fs *info.FsStats) datapoint.Value {
-					return datapoint.NewIntValue(int64(fs.ReadTime / uint64(time.Second)))
+					return datapoint.NewIntValue(int64(fs.ReadTime / uint64(time.Second))) //nolint:gosec
 				})
 			},
 		},
@@ -318,7 +318,7 @@ func getContainerMetrics() []containerMetric {
 			extraLabels: []string{"device"},
 			getValues: func(s *info.ContainerStats) metricValues {
 				return fsValues(s.Filesystem, func(fs *info.FsStats) datapoint.Value {
-					return datapoint.NewIntValue(int64(fs.WritesCompleted))
+					return datapoint.NewIntValue(int64(fs.WritesCompleted)) //nolint:gosec
 				})
 			},
 		},
@@ -329,7 +329,7 @@ func getContainerMetrics() []containerMetric {
 			extraLabels: []string{"device"},
 			getValues: func(s *info.ContainerStats) metricValues {
 				return fsValues(s.Filesystem, func(fs *info.FsStats) datapoint.Value {
-					return datapoint.NewIntValue(int64(fs.SectorsWritten))
+					return datapoint.NewIntValue(int64(fs.SectorsWritten)) //nolint:gosec
 				})
 			},
 		},
@@ -340,7 +340,7 @@ func getContainerMetrics() []containerMetric {
 			extraLabels: []string{"device"},
 			getValues: func(s *info.ContainerStats) metricValues {
 				return fsValues(s.Filesystem, func(fs *info.FsStats) datapoint.Value {
-					return datapoint.NewIntValue(int64(fs.WritesMerged))
+					return datapoint.NewIntValue(int64(fs.WritesMerged)) //nolint:gosec
 				})
 			},
 		},
@@ -351,7 +351,7 @@ func getContainerMetrics() []containerMetric {
 			extraLabels: []string{"device"},
 			getValues: func(s *info.ContainerStats) metricValues {
 				return fsValues(s.Filesystem, func(fs *info.FsStats) datapoint.Value {
-					return datapoint.NewIntValue(int64(fs.WriteTime / uint64(time.Second)))
+					return datapoint.NewIntValue(int64(fs.WriteTime / uint64(time.Second))) //nolint:gosec
 				})
 			},
 		},
@@ -362,7 +362,7 @@ func getContainerMetrics() []containerMetric {
 			extraLabels: []string{"device"},
 			getValues: func(s *info.ContainerStats) metricValues {
 				return fsValues(s.Filesystem, func(fs *info.FsStats) datapoint.Value {
-					return datapoint.NewIntValue(int64(fs.IoInProgress))
+					return datapoint.NewIntValue(int64(fs.IoInProgress)) //nolint:gosec
 				})
 			},
 		},
@@ -373,7 +373,7 @@ func getContainerMetrics() []containerMetric {
 			extraLabels: []string{"device"},
 			getValues: func(s *info.ContainerStats) metricValues {
 				return fsValues(s.Filesystem, func(fs *info.FsStats) datapoint.Value {
-					return datapoint.NewIntValue(int64(fs.IoTime / uint64(time.Second)))
+					return datapoint.NewIntValue(int64(fs.IoTime / uint64(time.Second))) //nolint:gosec
 				})
 			},
 		},
@@ -384,7 +384,7 @@ func getContainerMetrics() []containerMetric {
 			extraLabels: []string{"device"},
 			getValues: func(s *info.ContainerStats) metricValues {
 				return fsValues(s.Filesystem, func(fs *info.FsStats) datapoint.Value {
-					return datapoint.NewIntValue(int64(fs.WeightedIoTime / uint64(time.Second)))
+					return datapoint.NewIntValue(int64(fs.WeightedIoTime / uint64(time.Second))) //nolint:gosec
 				})
 			},
 		},
@@ -395,7 +395,7 @@ func getContainerMetrics() []containerMetric {
 			extraLabels: []string{"interface"},
 			getValues: func(s *info.ContainerStats) metricValues {
 				return networkValues(s.Network.Interfaces, func(is *info.InterfaceStats) datapoint.Value {
-					return datapoint.NewIntValue(int64(is.RxBytes))
+					return datapoint.NewIntValue(int64(is.RxBytes)) //nolint:gosec
 				})
 			},
 		},
@@ -406,7 +406,7 @@ func getContainerMetrics() []containerMetric {
 			extraLabels: []string{"interface"},
 			getValues: func(s *info.ContainerStats) metricValues {
 				return networkValues(s.Network.Interfaces, func(is *info.InterfaceStats) datapoint.Value {
-					return datapoint.NewIntValue(int64(is.RxPackets))
+					return datapoint.NewIntValue(int64(is.RxPackets)) //nolint:gosec
 				})
 			},
 		},
@@ -417,7 +417,7 @@ func getContainerMetrics() []containerMetric {
 			extraLabels: []string{"interface"},
 			getValues: func(s *info.ContainerStats) metricValues {
 				return networkValues(s.Network.Interfaces, func(is *info.InterfaceStats) datapoint.Value {
-					return datapoint.NewIntValue(int64(is.RxDropped))
+					return datapoint.NewIntValue(int64(is.RxDropped)) //nolint:gosec
 				})
 			},
 		},
@@ -428,7 +428,7 @@ func getContainerMetrics() []containerMetric {
 			extraLabels: []string{"interface"},
 			getValues: func(s *info.ContainerStats) metricValues {
 				return networkValues(s.Network.Interfaces, func(is *info.InterfaceStats) datapoint.Value {
-					return datapoint.NewIntValue(int64(is.RxErrors))
+					return datapoint.NewIntValue(int64(is.RxErrors)) //nolint:gosec
 				})
 			},
 		},
@@ -439,7 +439,7 @@ func getContainerMetrics() []containerMetric {
 			extraLabels: []string{"interface"},
 			getValues: func(s *info.ContainerStats) metricValues {
 				return networkValues(s.Network.Interfaces, func(is *info.InterfaceStats) datapoint.Value {
-					return datapoint.NewIntValue(int64(is.TxBytes))
+					return datapoint.NewIntValue(int64(is.TxBytes)) //nolint:gosec
 				})
 			},
 		},
@@ -450,7 +450,7 @@ func getContainerMetrics() []containerMetric {
 			extraLabels: []string{"interface"},
 			getValues: func(s *info.ContainerStats) metricValues {
 				return networkValues(s.Network.Interfaces, func(is *info.InterfaceStats) datapoint.Value {
-					return datapoint.NewIntValue(int64(is.TxPackets))
+					return datapoint.NewIntValue(int64(is.TxPackets)) //nolint:gosec
 				})
 			},
 		},
@@ -461,7 +461,7 @@ func getContainerMetrics() []containerMetric {
 			extraLabels: []string{"interface"},
 			getValues: func(s *info.ContainerStats) metricValues {
 				return networkValues(s.Network.Interfaces, func(is *info.InterfaceStats) datapoint.Value {
-					return datapoint.NewIntValue(int64(is.TxDropped))
+					return datapoint.NewIntValue(int64(is.TxDropped)) //nolint:gosec
 				})
 			},
 		},
@@ -472,7 +472,7 @@ func getContainerMetrics() []containerMetric {
 			extraLabels: []string{"interface"},
 			getValues: func(s *info.ContainerStats) metricValues {
 				return networkValues(s.Network.Interfaces, func(is *info.InterfaceStats) datapoint.Value {
-					return datapoint.NewIntValue(int64(is.TxErrors))
+					return datapoint.NewIntValue(int64(is.TxErrors)) //nolint:gosec
 				})
 			},
 		},
@@ -484,23 +484,23 @@ func getContainerMetrics() []containerMetric {
 			getValues: func(s *info.ContainerStats) metricValues {
 				return metricValues{
 					{
-						value:  datapoint.NewIntValue(int64(s.TaskStats.NrSleeping)),
+						value:  datapoint.NewIntValue(int64(s.TaskStats.NrSleeping)), //nolint:gosec
 						labels: []string{"sleeping"},
 					},
 					{
-						value:  datapoint.NewIntValue(int64(s.TaskStats.NrRunning)),
+						value:  datapoint.NewIntValue(int64(s.TaskStats.NrRunning)), //nolint:gosec
 						labels: []string{"running"},
 					},
 					{
-						value:  datapoint.NewIntValue(int64(s.TaskStats.NrStopped)),
+						value:  datapoint.NewIntValue(int64(s.TaskStats.NrStopped)), //nolint:gosec
 						labels: []string{"stopped"},
 					},
 					{
-						value:  datapoint.NewIntValue(int64(s.TaskStats.NrUninterruptible)),
+						value:  datapoint.NewIntValue(int64(s.TaskStats.NrUninterruptible)), //nolint:gosec
 						labels: []string{"uninterruptible"},
 					},
 					{
-						value:  datapoint.NewIntValue(int64(s.TaskStats.NrIoWait)),
+						value:  datapoint.NewIntValue(int64(s.TaskStats.NrIoWait)), //nolint:gosec
 						labels: []string{"iowaiting"},
 					},
 				}
@@ -521,7 +521,7 @@ func getContainerSpecCPUMetrics() []containerSpecMetric {
 				extraLabels: []string{},
 			},
 			getValues: func(container *info.ContainerInfo) metricValues {
-				return metricValues{{value: datapoint.NewIntValue(int64(container.Spec.Cpu.Limit))}}
+				return metricValues{{value: datapoint.NewIntValue(int64(container.Spec.Cpu.Limit))}} //nolint:gosec
 			},
 		},
 		{
@@ -532,7 +532,7 @@ func getContainerSpecCPUMetrics() []containerSpecMetric {
 				extraLabels: []string{},
 			},
 			getValues: func(container *info.ContainerInfo) metricValues {
-				return metricValues{{value: datapoint.NewIntValue(int64(container.Spec.Cpu.Quota))}}
+				return metricValues{{value: datapoint.NewIntValue(int64(container.Spec.Cpu.Quota))}} //nolint:gosec
 			},
 		},
 		{
@@ -543,7 +543,7 @@ func getContainerSpecCPUMetrics() []containerSpecMetric {
 				extraLabels: []string{},
 			},
 			getValues: func(container *info.ContainerInfo) metricValues {
-				return metricValues{{value: datapoint.NewIntValue(int64(container.Spec.Cpu.Period))}}
+				return metricValues{{value: datapoint.NewIntValue(int64(container.Spec.Cpu.Period))}} //nolint:gosec
 			},
 		},
 	}
@@ -561,7 +561,7 @@ func getContainerSpecMemMetrics() []containerSpecMetric {
 				extraLabels: []string{},
 			},
 			getValues: func(container *info.ContainerInfo) metricValues {
-				limit := int64(container.Spec.Memory.Limit)
+				limit := int64(container.Spec.Memory.Limit) //nolint:gosec
 				// Workaround a strange issue where cadvisor reports
 				// ridiculously high memory values in older k8s versions.
 				if limit >= math.MaxUint64/3 {
@@ -579,7 +579,7 @@ func getContainerSpecMemMetrics() []containerSpecMetric {
 				extraLabels: []string{},
 			},
 			getValues: func(container *info.ContainerInfo) metricValues {
-				return metricValues{{value: datapoint.NewIntValue(int64(container.Spec.Memory.SwapLimit))}}
+				return metricValues{{value: datapoint.NewIntValue(int64(container.Spec.Memory.SwapLimit))}} //nolint:gosec
 			},
 		},
 	}
@@ -597,7 +597,7 @@ func getMachineInfoMetrics() []machineInfoMetric {
 				extraLabels: []string{},
 			},
 			getValues: func(machineInfo *info.MachineInfo) metricValues {
-				return metricValues{{value: datapoint.NewIntValue(int64(machineInfo.CpuFrequency))}}
+				return metricValues{{value: datapoint.NewIntValue(int64(machineInfo.CpuFrequency))}} //nolint:gosec
 			},
 		},
 		{
@@ -619,7 +619,7 @@ func getMachineInfoMetrics() []machineInfoMetric {
 				extraLabels: []string{},
 			},
 			getValues: func(machineInfo *info.MachineInfo) metricValues {
-				return metricValues{{value: datapoint.NewIntValue(int64(machineInfo.MemoryCapacity))}}
+				return metricValues{{value: datapoint.NewIntValue(int64(machineInfo.MemoryCapacity))}} //nolint:gosec
 			},
 		},
 	}
@@ -651,7 +651,7 @@ func getPodEphemeralStorageMetrics() []podStatusMetric {
 			valueType: datapoint.Gauge,
 			getValues: func(es *stats.FsStats) metricValues {
 				if es.CapacityBytes != nil {
-					return metricValues{{value: datapoint.NewIntValue(int64(*es.CapacityBytes))}}
+					return metricValues{{value: datapoint.NewIntValue(int64(*es.CapacityBytes))}} //nolint:gosec
 				}
 				return metricValues{}
 			},
@@ -661,7 +661,7 @@ func getPodEphemeralStorageMetrics() []podStatusMetric {
 			valueType: datapoint.Counter,
 			getValues: func(es *stats.FsStats) metricValues {
 				if es.UsedBytes != nil {
-					return metricValues{{value: datapoint.NewIntValue(int64(*es.UsedBytes))}}
+					return metricValues{{value: datapoint.NewIntValue(int64(*es.UsedBytes))}} //nolint:gosec
 				}
 				return metricValues{}
 

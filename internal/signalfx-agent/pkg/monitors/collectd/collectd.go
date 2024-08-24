@@ -203,7 +203,7 @@ func (cm *Manager) RequestRestart() {
 func (cm *Manager) WriteServerURL() string {
 	// Just reuse the config struct's method for making a URL
 	conf := *cm.conf
-	conf.WriteServerPort = uint16(cm.writeServerPort)
+	conf.WriteServerPort = uint16(cm.writeServerPort) //nolint:gosec
 	return conf.WriteServerURL()
 }
 
@@ -464,7 +464,7 @@ func (cm *Manager) rerenderConf(writeHTTPPort int) error {
 	// Copy so that hash of config struct is consistent
 	conf := *cm.conf
 	conf.HasGenericJMXMonitor = len(cm.genericJMXUsers) > 0
-	conf.WriteServerPort = uint16(writeHTTPPort)
+	conf.WriteServerPort = uint16(writeHTTPPort) //nolint:gosec
 
 	if err := CollectdTemplate.Execute(&output, &conf); err != nil {
 		return fmt.Errorf("failed to render collectd template: %w", err)

@@ -77,7 +77,7 @@ func (m *messageReadWriter) SendMessage(msgType MessageType, payload []byte) err
 		return err
 	}
 
-	binary.BigEndian.PutUint32(buf[:], uint32(len(payload)))
+	binary.BigEndian.PutUint32(buf[:], uint32(len(payload))) //nolint:gosec
 	if _, err := m.Writer.Write(buf[:]); err != nil {
 		return err
 	}

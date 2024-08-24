@@ -76,7 +76,7 @@ func getProcessesWithNonWaitingThreads() (map[uint32]struct{}, error) {
 	for _, nonWaitingThread := range nonWaitingThreads {
 		val, err := strconv.ParseUint(nonWaitingThread.ProcessHandle, 10, 32)
 		if err == nil {
-			pid := uint32(val)
+			pid := uint32(val) //nolint:gosec
 			if _, ok := processWithNonWaitingThreads[pid]; !ok {
 				processWithNonWaitingThreads[pid] = struct{}{}
 			}

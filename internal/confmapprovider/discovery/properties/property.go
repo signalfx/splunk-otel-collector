@@ -222,7 +222,7 @@ func unwordify(text string) (string, error) {
 		for len(decoded) < 4 {
 			decoded = append([]byte{0}, decoded...)
 		}
-		r := int32(binary.BigEndian.Uint32(decoded))
+		r := binary.BigEndian.Uint32(decoded)
 		return fmt.Sprintf("%c", r)
 	})
 	if err != nil {

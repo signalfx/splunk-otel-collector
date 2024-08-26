@@ -111,4 +111,5 @@ issues:
     - text: "SA1019: \"github.com/signalfx/splunk-otel-collector/internal/exporter/httpsinkexporter"
       linters:
         - staticcheck
+
   exclude-dirs-use-default: false

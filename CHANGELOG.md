@@ -4,7 +4,14 @@
 
 ### 🚀 New components 🚀
 
+
 - (Splunk) Add headersetterextension ([#5276](https://github.com/signalfx/splunk-otel-collector/pull/5276))
+- (Splunk) Add `nginx` receiver ([5229](https://github.com/signalfx/splunk-otel-collector/pull/5229))
+
+### 💡 Enhancements 💡
+
+- (Splunk) Update JMX Metric Gatherer to [v1.37.0](https://github.com/open-telemetry/opentelemetry-java-contrib/releases/tag/v1.37.0) ([#5240](https://github.com/signalfx/splunk-otel-collector/pull/5240))
+
 
 ## v0.107.0
 
@@ -323,7 +330,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 - (Contrib) `statsdreceiver`: Allow configuring summary percentiles ([#33701](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/33701))
 - (Contrib) `pkg/stanza`: Switch to faster json parser lib for container operator ([#33929](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/33929))
 - (Contrib) `telemetrygen`: telemetrygen `--rate` flag changed from Int64 to Float64 ([#33984](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/33984))
-- (Contrib) `windowsperfcountersreceiver`: `windowsperfcountersreceiver` now appends an index number to additional instance names that share a name. An example of this is when scraping ` rocess(*)` counters with multiple running instances of the same executable. ([#32319](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/32319))
+- (Contrib) `windowsperfcountersreceiver`: `windowsperfcountersreceiver` now appends an index number to additional instance names that share a name. An example of this is when scraping `process(*)` counters with multiple running instances of the same executable. ([#32319](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/32319))
   **NOTES**
   - This change can expose cardinality issues where the counters were previously collapsed under the non-indexed instance name.
   - The change mimics Windows Performance Monitor behavior: The first instance name remains unchanged, additional instances are suffixed with `#<N>` where `N=1` and is increased for each duplicate.

@@ -82,7 +82,7 @@ func convertPeerIPv4(tag *model.KeyValue) string {
 		}
 	case model.ValueType_INT64:
 		localIP := make(net.IP, 4)
-		binary.BigEndian.PutUint32(localIP, uint32(tag.GetVInt64()))
+		binary.BigEndian.PutUint32(localIP, uint32(tag.GetVInt64())) //nolint:gosec
 		return localIP.String()
 	}
 	return ""
@@ -92,10 +92,10 @@ func convertPeerPort(tag *model.KeyValue) int32 {
 	switch tag.VType {
 	case model.ValueType_STRING:
 		if port, err := strconv.ParseUint(tag.GetVStr(), 10, 16); err == nil {
-			return int32(port)
+			return int32(port) //nolint:gosec
 		}
 	case model.ValueType_INT64:
-		return int32(tag.GetVInt64())
+		return int32(tag.GetVInt64()) //nolint:gosec
 	}
 	return 0
 }

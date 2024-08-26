@@ -89,6 +89,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mongodbatlasreceiver v0.107.1-0.20240816183440-44ef4d6c5a2c
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mongodbreceiver v0.107.1-0.20240816183440-44ef4d6c5a2c
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mysqlreceiver v0.107.1-0.20240816183440-44ef4d6c5a2c
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/nginxreceiver v0.107.1-0.20240816183440-44ef4d6c5a2c
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/oracledbreceiver v0.107.1-0.20240816183440-44ef4d6c5a2c
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/postgresqlreceiver v0.107.1-0.20240816183440-44ef4d6c5a2c
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.107.1-0.20240816183440-44ef4d6c5a2c
@@ -123,7 +124,7 @@ require (
 	github.com/spf13/cast v1.7.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.9.0
-	go.etcd.io/bbolt v1.3.10
+	go.etcd.io/bbolt v1.3.11
 	go.etcd.io/etcd/client/v2 v2.305.15
 	go.opentelemetry.io/collector/component/componentstatus v0.107.1-0.20240816195043-8506809f1001
 	go.opentelemetry.io/collector/config/confighttp v0.107.1-0.20240816195043-8506809f1001
@@ -273,6 +274,7 @@ require (
 	github.com/moby/sys/user v0.1.0 // indirect
 	github.com/montanaflynn/stats v0.7.1 // indirect
 	github.com/mrunalp/fileutils v0.5.1 // indirect
+	github.com/nginxinc/nginx-prometheus-exporter v0.11.0 // indirect
 	github.com/okta/okta-sdk-golang/v2 v2.20.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter v0.107.1-0.20240816183440-44ef4d6c5a2c // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/encoding v0.107.1-0.20240816183440-44ef4d6c5a2c // indirect

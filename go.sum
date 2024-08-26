@@ -1799,8 +1799,8 @@ github.com/vishvananda/netns v0.0.4 h1:Oeaw1EM2JMxD51g9uhtC0D7erkIjgmj8+JZc26m1Y
 github.com/vishvananda/netns v0.0.4/go.mod h1:SpkAiCQRtJ6TvvxPnOSyH3BMl6unz3xZlaprSwhNNJM=
 github.com/vjeantet/grok v1.0.1 h1:2rhIR7J4gThTgcZ1m2JY4TrJZNgjn985U28kT2wQrJ4=
 github.com/vjeantet/grok v1.0.1/go.mod h1:ax1aAchzC6/QMXMcyzHQGZWaW1l195+uMYIkCWPCNIo=
-github.com/vmware/govmomi v0.40.0 h1:7xzJLA7CD7teyeToYWS3tapZtZX9x0sBfjBvbnsVllI=
-github.com/vmware/govmomi v0.40.0/go.mod h1:1H5LWwsBif8HKZqbFp0FdoKTHyJE4FzL6ACequMKYQg=
+github.com/vmware/govmomi v0.42.0 h1:MbvAlVfjNBE1mHMaQ7yOSop1KLB0/93x6VAGuCtjqtI=
+github.com/vmware/govmomi v0.42.0/go.mod h1:1H5LWwsBif8HKZqbFp0FdoKTHyJE4FzL6ACequMKYQg=
 github.com/vultr/govultr/v2 v2.17.2 h1:gej/rwr91Puc/tgh+j33p/BLR16UrIPnSr+AIwYWZQs=
 github.com/vultr/govultr/v2 v2.17.2/go.mod h1:ZFOKGWmgjytfyjeyAdhQlSWwTjh2ig+X49cAp50dzXI=
 github.com/xdg-go/pbkdf2 v1.0.0 h1:Su7DPu48wXMwC3bs7MCNG+z4FhcyEuz5dlvchbq0B0c=

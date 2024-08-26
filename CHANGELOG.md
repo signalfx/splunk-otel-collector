@@ -4,7 +4,6 @@
 
 ### 🚀 New components 🚀
 
-
 - (Splunk) Add headersetterextension ([#5276](https://github.com/signalfx/splunk-otel-collector/pull/5276))
 - (Splunk) Add `nginx` receiver ([5229](https://github.com/signalfx/splunk-otel-collector/pull/5229))
 
@@ -18,7 +17,6 @@
     - Set the value to `none` to disable collection and export of logs.
     - The value will be set to the `OTEL_LOGS_EXPORTER` environment variable.
     - Defaults to `''` (empty), i.e. defer to the default `OTEL_LOGS_EXPORTER` value for each activated SDK.
-
 
 ## v0.107.0
 

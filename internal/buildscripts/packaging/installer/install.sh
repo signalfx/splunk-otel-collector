@@ -119,6 +119,7 @@ enable_metrics="false"
 otlp_endpoint=""
 otlp_endpoint_protocol=""
 metrics_exporter=""
+logs_exporter=""
 java_zeroconfig_path="/etc/splunk/zeroconfig/java.conf"
 node_zeroconfig_path="/etc/splunk/zeroconfig/node.conf"
 dotnet_zeroconfig_path="/etc/splunk/zeroconfig/dotnet.conf"
@@ -532,6 +533,10 @@ EOH
   if [ -n "$metrics_exporter" ]; then
     echo "OTEL_METRICS_EXPORTER=${metrics_exporter}" >> $java_zeroconfig_path
   fi
+
+  if [ -n "$logs_exporter" ]; then
+    echo "OTEL_LOGS_EXPORTER=${logs_exporter}" >> $java_zeroconfig_path
+  fi
 }
 
 splunk_otel_js_installed() {
@@ -607,6 +612,10 @@ EOH
   if [ -n "$metrics_exporter" ]; then
     echo "OTEL_METRICS_EXPORTER=${metrics_exporter}" >> $node_zeroconfig_path
   fi
+
+  if [ -n "$logs_exporter" ]; then
+    echo "OTEL_LOGS_EXPORTER=${logs_exporter}" >> $node_zeroconfig_path
+  fi
 }
 
 create_zeroconfig_dotnet() {
@@ -650,6 +659,10 @@ EOH
   if [ -n "$metrics_exporter" ]; then
     echo "OTEL_METRICS_EXPORTER=${metrics_exporter}" >> $dotnet_zeroconfig_path
   fi
+
+  if [ -n "$logs_exporter" ]; then
+    echo "OTEL_LOGS_EXPORTER=${logs_exporter}" >> $dotnet_zeroconfig_path
+  fi
 }
 
 create_systemd_instrumentation_config() {
@@ -688,6 +701,10 @@ EOH
 
   if [ -n "$metrics_exporter" ]; then
     echo "DefaultEnvironment=\"OTEL_METRICS_EXPORTER=${metrics_exporter}\"" >> $systemd_instrumentation_config_path
+  fi
+
+  if [ -n "$logs_exporter" ]; then
+    echo "DefaultEnvironment=\"OTEL_LOGS_EXPORTER=${logs_exporter}\"" >> $systemd_instrumentation_config_path
   fi
 
   if item_in_list "java" "$sdks"; then
@@ -989,6 +1006,11 @@ Auto Instrumentation:
                                         export of metrics. The value will be set to the OTEL_METRICS_EXPORTER
                                         environment variable.
                                         (default: empty, i.e. defer to the default OTEL_METRICS_EXPORTER value for each
+                                        activated SDK)
+  --logs-exporter <exporter>            Set the exporter for collected logs by all activated SDKs, for example "otlp".
+                                        Set the value to "none" to disable collection and export of logs. The value will
+                                        be set to the OTEL_LOGS_EXPORTER environment variable.
+                                        (default: empty, i.e. defer to the default OTEL_LOGS_EXPORTER value for each
                                         activated SDK)
   --[enable|disable]-profiler           Enable or disable AlwaysOn Profiling for all activated SDKs that support the
                                         SPLUNK_PROFILER_ENABLED environment variable.
@@ -1407,6 +1429,10 @@ parse_args_and_install() {
         ;;
       --metrics-exporter)
         metrics_exporter="$2"
+        shift 1
+        ;;
+      --logs-exporter)
+        logs_exporter="$2"
         shift 1
         ;;
       --enable-profiler)

@@ -91,6 +91,7 @@ The following methods are supported to manually activate and configure Auto Inst
    each of these files (***any environment variable not in this list will be ignored***):
    - `OTEL_EXPORTER_OTLP_ENDPOINT`
    - `OTEL_EXPORTER_OTLP_PROTOCOL`
+   - `OTEL_LOGS_EXPORTER`
    - `OTEL_METRICS_EXPORTER`
    - `OTEL_RESOURCE_ATTRIBUTES`
    - `OTEL_SERVICE_NAME`

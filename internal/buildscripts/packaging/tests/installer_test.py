@@ -470,6 +470,7 @@ def test_installer_with_instrumentation_default(distro, arch, method):
                 verify_config_file(container, config_path, "OTEL_EXPORTER_OTLP_ENDPOINT", ".*", exists=False)
                 verify_config_file(container, config_path, "OTEL_SERVICE_NAME", ".*", exists=False)
                 verify_config_file(container, config_path, "OTEL_METRICS_EXPORTER", ".*", exists=False)
+                verify_config_file(container, config_path, "OTEL_LOGS_EXPORTER", ".*", exists=False)
                 verify_config_file(container, config_path, "OTEL_EXPORTER_OTLP_PROTOCOL", ".*", exists=False)
         else:
             # verify libsplunk.so was not added to /etc/ld.so.preload
@@ -485,6 +486,7 @@ def test_installer_with_instrumentation_default(distro, arch, method):
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_EXPORTER_OTLP_ENDPOINT", ".*", exists=False)
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_SERVICE_NAME", ".*", exists=False)
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_METRICS_EXPORTER", ".*", exists=False)
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_LOGS_EXPORTER", ".*", exists=False)
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_EXPORTER_OTLP_PROTOCOL", ".*", exists=False)
             verify_dotnet_config(container, SYSTEMD_CONFIG_PATH, exists=True if arch == "amd64" else False)
 
@@ -548,6 +550,7 @@ def test_installer_with_instrumentation_custom(distro, arch, method, sdk):
             "--otlp-endpoint http://0.0.0.0:4318",
             "--otlp-endpoint-protocol http/protobuf",
             "--metrics-exporter none",
+            "--logs-exporter none",
         ))
         if LOCAL_INSTRUMENTATION_PACKAGE:
             install_cmd = f"{install_cmd} --instrumentation-version /test/instrumentation.pkg"
@@ -631,6 +634,7 @@ def test_installer_with_instrumentation_custom(distro, arch, method, sdk):
             verify_config_file(container, config_path, "OTEL_EXPORTER_OTLP_ENDPOINT", "http://0.0.0.0:4318")
             verify_config_file(container, config_path, "OTEL_SERVICE_NAME", service_name)
             verify_config_file(container, config_path, "OTEL_METRICS_EXPORTER", "none")
+            verify_config_file(container, config_path, "OTEL_LOGS_EXPORTER", "none")
             verify_config_file(container, config_path, "OTEL_EXPORTER_OTLP_PROTOCOL", "http/protobuf")
         else:
             # verify libsplunk.so was not added to /etc/ld.so.preload
@@ -657,6 +661,7 @@ def test_installer_with_instrumentation_custom(distro, arch, method, sdk):
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_EXPORTER_OTLP_ENDPOINT", "http://0.0.0.0:4318")
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_SERVICE_NAME", service_name)
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_METRICS_EXPORTER", "none")
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_LOGS_EXPORTER", "none")
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_EXPORTER_OTLP_PROTOCOL", "http/protobuf")
 
         verify_uninstall(container, distro)

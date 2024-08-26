@@ -30,6 +30,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.107.1-0.20240816183440-44ef4d6c5a2c
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/ackextension v0.107.1-0.20240816183440-44ef4d6c5a2c
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.107.1-0.20240816183440-44ef4d6c5a2c
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/headerssetterextension v0.107.1-0.20240816183440-44ef4d6c5a2c
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension v0.107.1-0.20240816183440-44ef4d6c5a2c
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarderextension v0.107.1-0.20240816183440-44ef4d6c5a2c
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/oauth2clientauthextension v0.107.1-0.20240816183440-44ef4d6c5a2c

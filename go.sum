@@ -1257,6 +1257,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/extension/encoding v0.
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/encoding v0.107.1-0.20240816183440-44ef4d6c5a2c/go.mod h1:X2bAEz6UoWiPB0DuY/14DCXhepls3zfwjnOrvApFnKA=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/encoding/otlpencodingextension v0.107.1-0.20240816183440-44ef4d6c5a2c h1:/Wzii6Xww/0K+c0ZMrnLNw990zMsscj1/9x3xiiZv8s=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/encoding/otlpencodingextension v0.107.1-0.20240816183440-44ef4d6c5a2c/go.mod h1:U4Jxpz0NC13XyODFAK3JBVNalsm+2RAJzM6A/lcf1N0=
+github.com/open-telemetry/opentelemetry-collector-contrib/extension/headerssetterextension v0.107.1-0.20240816183440-44ef4d6c5a2c h1:A5zkSwazb0Zj1zuB77VrrIpMDlLnALcAm1d7/Lmy/Ec=
+github.com/open-telemetry/opentelemetry-collector-contrib/extension/headerssetterextension v0.107.1-0.20240816183440-44ef4d6c5a2c/go.mod h1:3Ix+EiAkv2XyzuQQdG9YLF9It0jSMc9wAiSns+eymRY=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension v0.107.1-0.20240816183440-44ef4d6c5a2c h1:9UQDwSNKpK+MQ/EjkA/z9qoxqTUtG+c+y9HpKYvkQak=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension v0.107.1-0.20240816183440-44ef4d6c5a2c/go.mod h1:9K+pOKiYhPuKriIcdy7Ykl8Hy+6SUph/SpnytiNPAQI=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarderextension v0.107.1-0.20240816183440-44ef4d6c5a2c h1:YxJYqcanBJVDw9zHZSB7Ct8jORqMQS1e6t1vztTFBl4=

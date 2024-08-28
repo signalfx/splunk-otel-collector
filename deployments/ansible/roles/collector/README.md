@@ -315,6 +315,15 @@ to take effect.
   (**default:** ```, i.e. defer to the default `OTEL_METRICS_EXPORTER` value
   for each activated SDK)
 
+- `splunk_otel_auto_instrumentation_logs_exporter` (Linux only):
+  Set the exporter for collected logs by all activated SDKs, for example
+  `otlp`. Set the value to `none` to disable collection and export of logs.
+  The value will be set to the `OTEL_LOGS_EXPORTER` environment variable. Only
+  applicable if `splunk_otel_auto_instrumentation_version` is `latest` or >=
+  `0.108.0`.
+  (**default:** ```, i.e. defer to the default `OTEL_LOGS_EXPORTER` value
+  for each activated SDK)
+
 ### Auto Instrumentation for .NET on Windows
 
 ***Warning:*** The `Environment` property in the

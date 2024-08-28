@@ -16,13 +16,13 @@ require (
 	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension v0.83.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.9.0
-	go.opentelemetry.io/collector/component v0.107.1-0.20240816195043-8506809f1001
-	go.opentelemetry.io/collector/confmap v0.107.1-0.20240816195043-8506809f1001
+	go.opentelemetry.io/collector/component v0.108.1
+	go.opentelemetry.io/collector/confmap v1.14.1
 	go.opentelemetry.io/collector/consumer v0.107.0
 	go.opentelemetry.io/collector/consumer/consumertest v0.107.0
 	go.opentelemetry.io/collector/exporter v0.107.0
-	go.opentelemetry.io/collector/extension v0.107.1-0.20240816195043-8506809f1001
-	go.opentelemetry.io/collector/pdata v1.13.1-0.20240816195043-8506809f1001
+	go.opentelemetry.io/collector/extension v0.108.1
+	go.opentelemetry.io/collector/pdata v1.14.1
 	go.opentelemetry.io/collector/receiver v0.107.0
 	go.opentelemetry.io/otel/metric v1.28.0
 	go.opentelemetry.io/otel/trace v1.28.0
@@ -111,7 +111,6 @@ require (
 	github.com/gorilla/mux v1.8.1 // indirect
 	github.com/gsterjov/go-libsecret v0.0.0-20161001094733-a6f4afe4910c // indirect
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
-	github.com/hashicorp/go-version v1.7.0 // indirect
 	github.com/hashicorp/golang-lru v1.0.2 // indirect
 	github.com/iancoleman/strcase v0.3.0 // indirect
 	github.com/imdario/mergo v0.3.16 // indirect
@@ -172,7 +171,7 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/power-devops/perfstat v0.0.0-20221212215047-62379fc7944b // indirect
-	github.com/prometheus/client_golang v1.20.0 // indirect
+	github.com/prometheus/client_golang v1.20.1 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.55.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
@@ -194,15 +193,13 @@ require (
 	github.com/twmb/murmur3 v1.1.7 // indirect
 	github.com/ulule/deepcopier v0.0.0-20171107155558-ca99b135e50f // indirect
 	github.com/vjeantet/grok v1.0.1 // indirect
-	github.com/vmware/govmomi v0.39.0 // indirect
+	github.com/vmware/govmomi v0.42.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	github.com/zeebo/xxh3 v1.0.2 // indirect
 	go.opentelemetry.io/collector v0.107.0 // indirect
-	go.opentelemetry.io/collector/component/componentstatus v0.0.0-20240731165531-6d32c09daf9f // indirect
-	go.opentelemetry.io/collector/config/configtelemetry v0.107.1-0.20240816195043-8506809f1001 // indirect
+	go.opentelemetry.io/collector/component/componentstatus v0.108.1 // indirect
+	go.opentelemetry.io/collector/config/configtelemetry v0.108.1 // indirect
 	go.opentelemetry.io/collector/consumer/consumerprofiles v0.107.0 // indirect
-	go.opentelemetry.io/collector/featuregate v1.13.1-0.20240816195043-8506809f1001 // indirect
-	go.opentelemetry.io/collector/internal/globalgates v0.107.1-0.20240816195043-8506809f1001 // indirect
 	go.opentelemetry.io/collector/pdata/pprofile v0.107.0 // indirect
 	go.opentelemetry.io/collector/semconv v0.107.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.53.0 // indirect

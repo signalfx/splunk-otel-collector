@@ -6,13 +6,13 @@ toolchain go1.22.6
 
 require (
 	github.com/client9/misspell v0.3.4
-	github.com/golangci/golangci-lint v1.60.2
+	github.com/golangci/golangci-lint v1.60.3
 	github.com/google/addlicense v1.1.1
 	github.com/jstemmer/go-junit-report v1.0.0
 	github.com/ory/go-acc v0.2.8
 	github.com/pavius/impi v0.0.3
 	github.com/tcnksm/ghr v0.16.2
-	go.opentelemetry.io/collector/cmd/mdatagen v0.107.1-0.20240816195043-8506809f1001
+	go.opentelemetry.io/collector/cmd/mdatagen v0.108.1
 	golang.org/x/tools v0.24.0
 	golang.org/x/vuln v1.1.3
 )
@@ -149,7 +149,7 @@ require (
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/polyfloyd/go-errorlint v1.6.0 // indirect
-	github.com/prometheus/client_golang v1.19.1 // indirect
+	github.com/prometheus/client_golang v1.20.1 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.55.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
@@ -164,7 +164,7 @@ require (
 	github.com/santhosh-tekuri/jsonschema/v5 v5.3.1 // indirect
 	github.com/sashamelentyev/interfacebloat v1.1.0 // indirect
 	github.com/sashamelentyev/usestdlibvars v1.27.0 // indirect
-	github.com/securego/gosec/v2 v2.20.1-0.20240820084340-81cda2f91fbe // indirect
+	github.com/securego/gosec/v2 v2.20.1-0.20240822074752-ab3f6c1c83a0 // indirect
 	github.com/shazow/go-diff v0.0.0-20160112020656-b6b7b6733b8c // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/sivchari/containedctx v1.0.3 // indirect
@@ -200,14 +200,12 @@ require (
 	gitlab.com/bosi/decorder v0.4.2 // indirect
 	go-simpler.org/musttag v0.12.2 // indirect
 	go-simpler.org/sloglint v0.7.2 // indirect
-	go.opentelemetry.io/collector/component v0.107.1-0.20240816195043-8506809f1001 // indirect
-	go.opentelemetry.io/collector/config/configtelemetry v0.107.1-0.20240816195043-8506809f1001 // indirect
-	go.opentelemetry.io/collector/confmap v0.107.1-0.20240816195043-8506809f1001 // indirect
-	go.opentelemetry.io/collector/confmap/provider/fileprovider v0.107.1-0.20240816195043-8506809f1001 // indirect
-	go.opentelemetry.io/collector/featuregate v1.13.1-0.20240816195043-8506809f1001 // indirect
-	go.opentelemetry.io/collector/filter v0.107.1-0.20240816195043-8506809f1001 // indirect
-	go.opentelemetry.io/collector/internal/globalgates v0.107.1-0.20240816195043-8506809f1001 // indirect
-	go.opentelemetry.io/collector/pdata v1.13.1-0.20240816195043-8506809f1001 // indirect
+	go.opentelemetry.io/collector/component v0.108.1 // indirect
+	go.opentelemetry.io/collector/config/configtelemetry v0.108.1 // indirect
+	go.opentelemetry.io/collector/confmap v1.14.1 // indirect
+	go.opentelemetry.io/collector/confmap/provider/fileprovider v0.108.1 // indirect
+	go.opentelemetry.io/collector/filter v0.108.1 // indirect
+	go.opentelemetry.io/collector/pdata v1.14.1 // indirect
 	go.opentelemetry.io/otel v1.28.0 // indirect
 	go.opentelemetry.io/otel/metric v1.28.0 // indirect
 	go.opentelemetry.io/otel/trace v1.28.0 // indirect

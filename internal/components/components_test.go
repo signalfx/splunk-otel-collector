@@ -31,6 +31,7 @@ func TestDefaultComponents(t *testing.T) {
 		"ecs_observer",
 		"ecs_task_observer",
 		"docker_observer",
+		"headers_setter",
 		"health_check",
 		"host_observer",
 		"http_forwarder",

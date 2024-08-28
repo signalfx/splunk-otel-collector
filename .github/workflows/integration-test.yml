@@ -17,14 +17,13 @@ on:
       - 'go.mod'
       - 'go.sum'
       - '!**.md'
-      - '!internal/buildscripts/**'
 
 concurrency:
   group: integration-test-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 env:
-  GO_VERSION: "1.21.12"
+  GO_VERSION: "1.22.6"
 jobs:
   agent-bundle-linux:
     runs-on: ${{ fromJSON('["ubuntu-20.04", "otel-arm64"]')[matrix.ARCH == 'arm64'] }}

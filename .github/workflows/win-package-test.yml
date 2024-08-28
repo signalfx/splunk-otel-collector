@@ -10,11 +10,7 @@ on:
       - '.github/workflows/win-package-test.yml'
       - 'cmd/otelcol/**'
       - 'instrumentation/packaging/dotnet-agent-release.txt'
-      - 'internal/buildscripts/packaging/choco/**'
-      - 'internal/buildscripts/packaging/installer/install.ps1'
-      - 'internal/buildscripts/packaging/jmx-metric-gatherer-release.txt'
-      - 'internal/buildscripts/packaging/msi/**'
-      - 'internal/signalfx-agent/bundle/**'
+      - 'internal/**'
       - 'Makefile'
       - 'Makefile.Common'
       - 'tests/zeroconfig/windows/**'
@@ -25,7 +21,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.21.12
+  GO_VERSION: 1.22.6
 
 jobs:
   setup-environment:
@@ -375,9 +371,9 @@ jobs:
               throw "choco install failed!"
             }
           } else {
-            write-host "Installing splunk-otel-collector 0.74.0 ..."
+            write-host "Installing splunk-otel-collector ..."
             choco feature enable -n=useRememberedArgumentsForUpgrades
-            choco install splunk-otel-collector --no-progress --version=0.74.0 --params="'$params'" -y
+            choco install splunk-otel-collector --no-progress --params="'$params'" -y
             if ($LASTEXITCODE -ne 0) {
               throw "choco install failed!"
             }

@@ -241,6 +241,7 @@ services:
   nginx:
     image: quay.io/splunko11ytest/nginx:latest
     profiles:
+      - integration
       - smartagent
     build: ./nginx
     ports:

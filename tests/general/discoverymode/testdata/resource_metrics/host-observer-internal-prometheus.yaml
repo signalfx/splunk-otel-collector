@@ -14,7 +14,7 @@ resource_metrics:
       url.scheme: http
     scope_metrics:
       - instrumentation_scope:
-          name: otelcol/prometheusreceiver
+          name: github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver
           version: <VERSION_FROM_BUILD>
         metrics:
           - name: otelcol_process_uptime

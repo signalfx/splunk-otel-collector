@@ -132,8 +132,7 @@ func TestNewSettingsNoConvertConfig(t *testing.T) {
 		"splunk.property:splunk.discovery.receiver.receiver-type/name.config.field.two=val.two",
 	}, settings.ResolverURIs())
 	require.Equal(t, 2, len(settings.ConfMapConverterFactories()))
-	require.Equal(t, []string{"--feature-gates", "foo", "--feature-gates", "-bar", "--feature-gates",
-		"-confmap.strictlyTypedInput", "--feature-gates", "-confmap.unifyEnvVarExpansion"}, settings.ColCoreArgs())
+	require.Equal(t, []string{"--feature-gates", "foo", "--feature-gates", "-bar"}, settings.ColCoreArgs())
 }
 
 func TestNewSettingsConvertConfig(t *testing.T) {
@@ -157,9 +156,8 @@ func TestNewSettingsConvertConfig(t *testing.T) {
 	require.Equal(t, []string(nil), settings.discoveryProperties)
 
 	require.Equal(t, []string{configPath, anotherConfigPath}, settings.ResolverURIs())
-	require.Equal(t, 12, len(settings.ConfMapConverterFactories()))
-	require.Equal(t, []string{"--feature-gates", "foo", "--feature-gates", "-bar", "--feature-gates",
-		"-confmap.strictlyTypedInput", "--feature-gates", "-confmap.unifyEnvVarExpansion"}, settings.ColCoreArgs())
+	require.Equal(t, 6, len(settings.ConfMapConverterFactories()))
+	require.Equal(t, []string{"--feature-gates", "foo", "--feature-gates", "-bar"}, settings.ColCoreArgs())
 }
 
 func TestSplunkConfigYamlUtilizedInResolverURIs(t *testing.T) {
@@ -186,8 +184,7 @@ func TestNewSettingsWithValidate(t *testing.T) {
 	settings, err := New([]string{"validate"})
 	require.NoError(t, err)
 	require.NotNil(t, settings)
-	require.Equal(t, []string{"--feature-gates", "-confmap.strictlyTypedInput", "--feature-gates",
-		"-confmap.unifyEnvVarExpansion", "validate"}, settings.ColCoreArgs())
+	require.Equal(t, []string{"validate"}, settings.ColCoreArgs())
 }
 
 func TestCheckRuntimeParams_Default(t *testing.T) {
@@ -322,7 +319,6 @@ func TestSetDefaultEnvVarsSetsInterfaceFromConfigOption(t *testing.T) {
 		{"some-other-config.yaml", "0.0.0.0"},
 		{"file:some-other-config.yaml", "0.0.0.0"},
 	} {
-		tc := tc
 		t.Run(fmt.Sprintf("%v->%v", tc.config, tc.expectedIP), func(t *testing.T) {
 			t.Cleanup(clearEnv(t))
 			os.Setenv("SPLUNK_REALM", "noop")
@@ -342,14 +338,11 @@ func TestSetDefaultFeatureGatesRespectsOverrides(t *testing.T) {
 	t.Cleanup(setRequiredEnvVars(t))
 	for _, args := range [][]string{
 		{"--feature-gates", "some-gate", "--feature-gates", "telemetry.useOtelForInternalMetrics", "--feature-gates",
-			"another-gate", "--feature-gates", "-confmap.strictlyTypedInput", "--feature-gates",
-			"-confmap.unifyEnvVarExpansion"},
+			"another-gate"},
 		{"--feature-gates", "some-gate", "--feature-gates", "+telemetry.useOtelForInternalMetrics",
-			"--feature-gates", "another-gate", "--feature-gates", "-confmap.strictlyTypedInput", "--feature-gates",
-			"-confmap.unifyEnvVarExpansion"},
+			"--feature-gates", "another-gate"},
 		{"--feature-gates", "some-gate", "--feature-gates", "-telemetry.useOtelForInternalMetrics",
-			"--feature-gates", "another-gate", "--feature-gates", "-confmap.strictlyTypedInput", "--feature-gates",
-			"-confmap.unifyEnvVarExpansion"},
+			"--feature-gates", "another-gate"},
 	} {
 		t.Run(strings.Join(args, " "), func(t *testing.T) {
 			settings, err := New(args)

@@ -24,7 +24,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
+	"go.opentelemetry.io/collector/confmap/provider/envprovider"
 )
 
 func TestConfigSourceParser(t *testing.T) {
@@ -122,7 +124,9 @@ func TestConfigSourceParser(t *testing.T) {
 				}()
 			}
 
-			cfgSrcSettings, splitConf, err := SettingsFromConf(ctx, v, tt.factories, nil)
+			cfgSrcSettings, splitConf, err := SettingsFromConf(ctx, v, tt.factories, map[string]confmap.Provider{
+				"env": envprovider.NewFactory().Create(confmap.ProviderSettings{}),
+			})
 			if tt.wantErr != "" {
 				require.ErrorContains(t, err, tt.wantErr)
 				require.Nil(t, splitConf)

@@ -150,12 +150,12 @@ func getFsNameAndFlags(rootPath string, fsNameBuf []uint16, fsFlags *uint32) err
 	return windows.GetVolumeInformation(
 		rootPathPtr,
 		&volNameBuf[0],
-		uint32(len(volNameBuf)),
+		uint32(len(volNameBuf)), //nolint:gosec
 		&volSerialNum,
 		&maxComponentLen,
 		fsFlags,
 		&fsNameBuf[0],
-		uint32(len(fsNameBuf)))
+		uint32(len(fsNameBuf))) //nolint:gosec
 }
 
 // getPartitionStats returns partition stats for the given volume paths.

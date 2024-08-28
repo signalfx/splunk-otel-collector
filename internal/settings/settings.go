@@ -78,11 +78,7 @@ var DefaultAgentConfigWindows = func() string {
 	return filepath.Clean(path)
 }()
 
-var defaultFeatureGates = []string{
-	// Remove the feature gates once we deprecate our env var expansion mechanism and adopt the upstream one.
-	"-confmap.strictlyTypedInput",
-	"-confmap.unifyEnvVarExpansion",
-}
+var defaultFeatureGates = []string{}
 
 type Settings struct {
 	discovery                *discovery.Provider
@@ -210,13 +206,7 @@ func (s *Settings) ConfMapConverterFactories() []confmap.ConverterFactory {
 	if !s.noConvertConfig {
 		confMapConverterFactories = append(
 			confMapConverterFactories,
-			configconverter.ConverterFactoryFromFunc(configconverter.RemoveBallastKey),
-			configconverter.ConverterFactoryFromFunc(configconverter.RemoveMemoryBallastKey),
-			configconverter.ConverterFactoryFromFunc(configconverter.MoveOTLPInsecureKey),
-			configconverter.ConverterFactoryFromFunc(configconverter.MoveHecTLS),
-			configconverter.ConverterFactoryFromFunc(configconverter.RenameK8sTagger),
 			configconverter.ConverterFactoryFromFunc(configconverter.NormalizeGcp),
-			configconverter.ConverterFactoryFromFunc(configconverter.LogLevelToVerbosity),
 			configconverter.ConverterFactoryFromFunc(configconverter.DisableKubeletUtilizationMetrics),
 			configconverter.ConverterFactoryFromFunc(configconverter.DisableExcessiveInternalMetrics),
 			configconverter.ConverterFactoryFromFunc(configconverter.AddOTLPHistogramAttr),

@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"log"
 	"net/url"
-	"os"
 	"strings"
 	"sync"
 
@@ -334,37 +333,54 @@ func resolveStringValue(ctx context.Context, configSources map[string]ConfigSour
 			buf = append(buf, s[i:j]...)
 
 			var expandableContent, cfgSrcName string
+			var retrieved any
 			w := 0 // number of bytes consumed on this pass
 
 			var deprecatedFormUsed bool
 			switch {
 			case s[j+1] == '{':
 				expandableContent, w, cfgSrcName = getBracketedExpandableContent(s, j+1)
-			default:
+			case 'a' <= s[j+1] && s[j+1] <= 'z' || 'A' <= s[j+1] && s[j+1] <= 'Z':
 				deprecatedFormUsed = true
 				expandableContent, w, cfgSrcName = getBareExpandableContent(s, j+1)
+			default:
+				// The next character cannot be used to start an expandable content, ignore it.
+				// $$ escaping is being handled upstream.
+				retrieved = s[j : j+2]
+				w = 1
 			}
 
-			// At this point expandableContent contains a string to be expanded, evaluate and expand it.
-			switch {
-			case cfgSrcName == "":
-				// Not a config source, expand as os.ExpandEnv
-				if deprecatedFormUsed {
-					printDeprecationWarningOnce(fmt.Sprintf(
-						"[WARNING] Variable substitution using $VAR has been deprecated in favor of ${VAR} and "+
-							"${env:VAR}. Please update $%s in your configuration", expandableContent))
+			if retrieved == nil {
+				// At this point expandableContent contains a string to be expanded, evaluate and expand it.
+				switch {
+				case cfgSrcName == "":
+					// Not a config source, expand as os.ExpandEnv
+					if deprecatedFormUsed {
+						printDeprecationWarningOnce(fmt.Sprintf(
+							"[WARNING] Variable substitution using $VAR has been deprecated in favor of ${VAR} and "+
+								"${env:VAR}. Please update $%s in your configuration", expandableContent))
+					}
+					cfgSrcName = "env"
+					expandableContent = fmt.Sprintf("env:%s", expandableContent)
+					if confmapProviders == nil {
+						// The expansion will be handled upstream by envprovider.
+						retrieved = fmt.Sprintf("${%s}", expandableContent)
+					}
+				default:
+					if deprecatedFormUsed {
+						printDeprecationWarningOnce(fmt.Sprintf(
+							"[WARNING] Config source expansion formatted as $uri:selector has been deprecated, "+
+								"use ${uri:selector[?params]} instead. Please replace $%s with ${%s} in your configuration",
+							expandableContent, expandableContent))
+					}
 				}
-				buf = osExpandEnv(buf, expandableContent, w)
+			}
 
-			default:
-				if deprecatedFormUsed {
-					printDeprecationWarningOnce(fmt.Sprintf(
-						"[WARNING] Config source expansion formatted as $uri:selector has been deprecated, "+
-							"use ${uri:selector[?params]} instead. Please replace $%s with ${%s} in your configuration",
-						expandableContent, expandableContent))
-				}
+			if retrieved == nil {
 				// A config source, retrieve and apply results.
-				retrieved, closeFunc, err := retrieveConfigSourceData(ctx, configSources, confmapProviders, cfgSrcName, expandableContent, watcher)
+				var closeFunc confmap.CloseFunc
+				var err error
+				retrieved, closeFunc, err = retrieveConfigSourceData(ctx, configSources, confmapProviders, cfgSrcName, expandableContent, watcher)
 				if err != nil {
 					return nil, nil, err
 				}
@@ -398,16 +414,16 @@ func resolveStringValue(ctx context.Context, configSources map[string]ConfigSour
 
 					return retrieved, MergeCloseFuncs(closeFuncs), nil
 				}
-
-				// Either there was a prefix already or there are still characters to be processed.
-				if retrieved == nil {
-					// Since this is going to be concatenated to a string use "" instead of nil,
-					// otherwise the string will end up with "<nil>".
-					retrieved = ""
-				}
-
-				buf = append(buf, fmt.Sprintf("%v", retrieved)...)
 			}
+
+			// Either there was a prefix already or there are still characters to be processed.
+			if retrieved == nil {
+				// Since this is going to be concatenated to a string use "" instead of nil,
+				// otherwise the string will end up with "<nil>".
+				retrieved = ""
+			}
+
+			buf = append(buf, fmt.Sprintf("%v", retrieved)...)
 
 			j += w    // move the index of the char being checked (j) by the number of characters consumed (w) on this iteration.
 			i = j + 1 // update start index (i) of next slice of bytes to be copied.
@@ -462,6 +478,10 @@ func retrieveConfigSourceData(ctx context.Context, configSources map[string]Conf
 	var provider confmap.Provider
 	var providerFound bool
 	if !ok {
+		if confmapProviders == nil {
+			// Pass the config provider expansion to be handled upstream.
+			return fmt.Sprintf("${%s}", cfgSrcInvocation), nil, nil
+		}
 		if provider, providerFound = confmapProviders[cfgSrcName]; !providerFound {
 			return nil, nil, newErrUnknownConfigSource(cfgSrcName)
 		}
@@ -610,24 +630,6 @@ func parseParamsAsURLQuery(s string) (*confmap.Conf, error) {
 	return confmap.NewFromStringMap(params), err
 }
 
-// osExpandEnv replicate the internal behavior of os.ExpandEnv when handling env
-// vars updating the buffer accordingly.
-func osExpandEnv(buf []byte, name string, w int) []byte {
-	switch {
-	case name == "" && w > 0:
-		// Encountered invalid syntax; eat the
-		// characters.
-	case name == "" || name == "$":
-		// Valid syntax, but $ was not followed by a
-		// name. Leave the dollar character untouched.
-		buf = append(buf, expandPrefixChar)
-	default:
-		buf = append(buf, os.Getenv(name)...)
-	}
-
-	return buf
-}
-
 // scanToClosingBracket consumes everything until a closing bracket '}' following the
 // same logic of function getShellName (os package, env.go) when handling environment
 // variables with the "${<env_var>}" syntax. It returns the expression between brackets
@@ -648,11 +650,6 @@ func scanToClosingBracket(s string) (string, int) {
 // variable or config source. It returns the name of the config source or environment
 // variable and the number of characters consumed from the original string.
 func getTokenName(s string) (string, int) {
-	if len(s) > 0 && isShellSpecialVar(s[0]) {
-		// Special shell character, treat it os.Expand function.
-		return s[0:1], 1
-	}
-
 	var i int
 	firstNameSepIdx := -1
 	for i = 0; i < len(s); i++ {
@@ -682,18 +679,6 @@ func getTokenName(s string) (string, int) {
 	}
 
 	return s[:i], i
-}
-
-// Below are helper functions used by os.Expand, copied without changes from original sources (env.go).
-
-// isShellSpecialVar reports whether the character identifies a special
-// shell variable such as $*.
-func isShellSpecialVar(c uint8) bool {
-	switch c {
-	case '*', '#', '$', '@', '!', '?', '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-		return true
-	}
-	return false
 }
 
 // isAlphaNum reports whether the byte is an ASCII letter, number, or underscore

@@ -5,7 +5,7 @@ resource_metrics:
       container.name: redis-server
     scope_metrics:
       - instrumentation_scope:
-          name: otelcol/redisreceiver
+          name: github.com/open-telemetry/opentelemetry-collector-contrib/receiver/redisreceiver
           version: <ANY>
         metrics:
           - name: redis.uptime

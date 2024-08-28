@@ -57,7 +57,6 @@ func TestDimensionToUpdate(t *testing.T) {
 			expectedError: "unsupported `dimensionToUpdate` \"invalid\". Must be one of \"container_name\" or \"container_id\"",
 		},
 	} {
-		test := test
 		t.Run(test.configValue, func(t *testing.T) {
 			cfg := &Config{
 				MetadataEndpoint: "http://localhost:0/not/real",

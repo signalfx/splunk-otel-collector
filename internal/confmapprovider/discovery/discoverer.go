@@ -19,7 +19,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"os"
-	"runtime"
 	"sort"
 	"strconv"
 	"strings"
@@ -125,9 +124,9 @@ func (d *discoverer) resolveConfig(discoveryReceiverRaw map[string]any) (*confma
 	}
 	uris := []string{fmt.Sprintf("yaml:%s", out)}
 	resolver, err := confmap.NewResolver(confmap.ResolverSettings{
-		URIs:               uris,
-		ProviderFactories:  []confmap.ProviderFactory{yamlprovider.NewFactory(), envprovider.NewFactory()},
-		ConverterFactories: []confmap.ConverterFactory{expandconverter.NewFactory()},
+		URIs:              uris,
+		ProviderFactories: []confmap.ProviderFactory{yamlprovider.NewFactory(), envprovider.NewFactory()},
+		DefaultScheme:     "env",
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create a resolver from the given uris. %w", err)
@@ -135,7 +134,7 @@ func (d *discoverer) resolveConfig(discoveryReceiverRaw map[string]any) (*confma
 
 	conf, err := resolver.Resolve(context.Background())
 	if err != nil {
-		return nil, fmt.Errorf("failed to resolve configuration from the resovler %w", err)
+		return nil, fmt.Errorf("failed to resolve configuration from the resolver %w", err)
 	}
 	if err = resolver.Shutdown(context.Background()); err != nil {
 		d.logger.Warn("error shutting down resolver", zap.Error(err))
@@ -407,7 +406,8 @@ func (d *discoverer) createObserver(observerID component.ID, cfg *Config) (otelc
 		return nil, nil
 	}
 
-	expandConverter := expandconverter.NewFactory().Create(confmap.ConverterSettings{Logger: d.logger})
+	// TODO: expandconverter has been deprecated, but we will fully remove following the v0.107.0 release.
+	expandConverter := expandconverter.NewFactory().Create(confmap.ConverterSettings{Logger: d.logger}) //nolint:all
 	if err = expandConverter.Convert(context.Background(), observerDiscoveryConf); err != nil {
 		return nil, fmt.Errorf("error converting environment variables in %q config: %w", observerID, err)
 	}
@@ -460,15 +460,12 @@ func (d *discoverer) updateReceiverForObserver(receiverID component.ID, receiver
 
 func factoryForObserverType(extType component.Type) (otelcolextension.Factory, error) {
 	factories := map[component.Type]otelcolextension.Factory{
+		component.MustNewType("docker_observer"):   dockerobserver.NewFactory(),
 		component.MustNewType("host_observer"):     hostobserver.NewFactory(),
 		component.MustNewType("k8s_observer"):      k8sobserver.NewFactory(),
 		component.MustNewType("ecs_task_observer"): ecstaskobserver.NewFactory(),
 	}
-	if runtime.GOOS != "windows" {
-		// Docker observer currently always crashes on Windows with the default configuration.
-		// The observer is being temporarily disabled until it is fixed upstream.
-		factories[component.MustNewType("docker_observer")] = dockerobserver.NewFactory()
-	}
+
 	ef, ok := factories[extType]
 	if !ok {
 		return nil, fmt.Errorf("unsupported discovery observer %q. Please remove its .discovery.yaml from your config directory", extType)

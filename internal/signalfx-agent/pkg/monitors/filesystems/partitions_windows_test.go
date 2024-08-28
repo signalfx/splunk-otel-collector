@@ -192,14 +192,14 @@ func (v *volumesMock) findFirstVolumeMock(volumeNamePtr *uint16) (windows.Handle
 	start := uintptr(unsafe.Pointer(volumeNamePtr))
 	size := unsafe.Sizeof(*volumeNamePtr)
 	for i := range volumeName {
-		*(*uint16)(unsafe.Pointer(start + size*uintptr(i))) = volumeName[i]
+		*(*uint16)(unsafe.Pointer(start + size*uintptr(i))) = volumeName[i] //nolint:gosec
 	}
 
 	return windows.Handle(unsafe.Pointer(&v.handle)), nil
 }
 
 func (v *volumesMock) findNextVolumeMock(volumeIndexHandle windows.Handle, volumeNamePtr *uint16) error {
-	volumeIndex := *(*int)(unsafe.Pointer(volumeIndexHandle))
+	volumeIndex := *(*int)(unsafe.Pointer(volumeIndexHandle)) //nolint:gosec
 	if volumeIndex == uninitialized {
 		return windows.ERROR_NO_MORE_FILES
 	}
@@ -208,7 +208,7 @@ func (v *volumesMock) findNextVolumeMock(volumeIndexHandle windows.Handle, volum
 	if nextVolumeIndex >= len(v.volumes) {
 		return windows.ERROR_NO_MORE_FILES
 	}
-	*(*int)(unsafe.Pointer(volumeIndexHandle)) = nextVolumeIndex
+	*(*int)(unsafe.Pointer(volumeIndexHandle)) = nextVolumeIndex //nolint:gosec
 
 	nextVolume := v.volumes[nextVolumeIndex]
 	if nextVolume.err != nil {
@@ -223,16 +223,16 @@ func (v *volumesMock) findNextVolumeMock(volumeIndexHandle windows.Handle, volum
 	start := uintptr(unsafe.Pointer(volumeNamePtr))
 	size := unsafe.Sizeof(*volumeNamePtr)
 	for i := range volumeName {
-		*(*uint16)(unsafe.Pointer(start + size*uintptr(i))) = volumeName[i]
+		*(*uint16)(unsafe.Pointer(start + size*uintptr(i))) = volumeName[i] //nolint:gosec
 	}
 
 	return err
 }
 
 func (v *volumesMock) findVolumeCloseMock(volumeIndexHandle windows.Handle) error {
-	volumeIndex := *(*int)(unsafe.Pointer(volumeIndexHandle))
+	volumeIndex := *(*int)(unsafe.Pointer(volumeIndexHandle)) //nolint:gosec
 	if volumeIndex != uninitialized {
-		*(*int)(unsafe.Pointer(volumeIndexHandle)) = closed
+		*(*int)(unsafe.Pointer(volumeIndexHandle)) = closed //nolint:gosec
 	}
 	return nil
 }

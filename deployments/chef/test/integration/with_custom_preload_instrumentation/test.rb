@@ -68,6 +68,7 @@ describe file('/etc/splunk/zeroconfig/dotnet.conf') do
   its('content') { should match /^OTEL_EXPORTER_OTLP_ENDPOINT=#{otlp_endpoint}$/ }
   its('content') { should match /^OTEL_EXPORTER_OTLP_PROTOCOL=grpc$/ }
   its('content') { should match /^OTEL_METRICS_EXPORTER=none$/ }
+  its('content') { should match /^OTEL_LOGS_EXPORTER=none$/ }
 end
 
 describe service('splunk-otel-collector') do

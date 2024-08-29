@@ -68,6 +68,8 @@ var (
 // Configure and kick off internal metric collection
 func (m *Monitor) Configure(conf *Config) error {
 	m.logger = logrus.WithFields(logrus.Fields{"monitorType": monitorType, "monitorID": conf.MonitorID})
+	m.logger.Warn("[NOTICE] The nagios monitor is deprecated and will be removed in a future release.")
+
 	// Define global dimensions used for both datapoint and event
 	dimensions := map[string]string{
 		"plugin":  "nagios",

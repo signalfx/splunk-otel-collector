@@ -1,5 +1,7 @@
 monitors:
 - doc: |
+    The nagios monitor is deprecated and will be removed in a future release.
+    
     Wrapper to run existing nagios status check scripts through SignalFx agent which will play the 
     role of NRPE or SNMP exec.
 

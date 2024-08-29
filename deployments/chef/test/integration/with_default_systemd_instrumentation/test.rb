@@ -2,7 +2,6 @@ libsplunk_path = '/usr/lib/splunk-instrumentation/libsplunk.so'
 java_tool_options = '-javaagent:/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar'
 node_options = '-r /usr/lib/splunk-instrumentation/splunk-otel-js/node_modules/@splunk/otel/instrument'
 resource_attributes = 'splunk.zc.method=splunk-otel-auto-instrumentation-\d+\.\d+\.\d+-systemd'
-otlp_endpoint = 'http://127.0.0.1:4317'
 dotnet_home = '/usr/lib/splunk-instrumentation/splunk-otel-dotnet'
 
 describe package('splunk-otel-auto-instrumentation') do
@@ -49,7 +48,10 @@ describe file('/usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentatio
   its('content') { should match /^DefaultEnvironment="SPLUNK_PROFILER_ENABLED=false"$/ }
   its('content') { should match /^DefaultEnvironment="SPLUNK_PROFILER_MEMORY_ENABLED=false"$/ }
   its('content') { should match /^DefaultEnvironment="SPLUNK_METRICS_ENABLED=false"$/ }
-  its('content') { should match /^DefaultEnvironment="OTEL_EXPORTER_OTLP_ENDPOINT=#{otlp_endpoint}"$/ }
+  its('content') { should_not match /.*OTEL_EXPORTER_OTLP_ENDPOINT.*/ }
+  its('content') { should_not match /.*OTEL_EXPORTER_OTLP_PROTOCOL.*/ }
+  its('content') { should_not match /.*OTEL_METRICS_EXPORTER.*/ }
+  its('content') { should_not match /.*OTEL_LOGS_EXPORTER.*/ }
 end
 
 describe service('splunk-otel-collector') do

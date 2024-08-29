@@ -25,22 +25,22 @@ func convertContainerMetrics(c *v1alpha1.ContainerStats, status *v1.ContainerSta
 
 	if c.Memory != nil {
 		if c.Memory.AvailableBytes != nil {
-			dps = append(dps, sfxclient.Gauge(containerMemoryAvailableBytes, dims, int64(*c.Memory.AvailableBytes)))
+			dps = append(dps, sfxclient.Gauge(containerMemoryAvailableBytes, dims, int64(*c.Memory.AvailableBytes))) //nolint:gosec
 		}
 		if c.Memory.UsageBytes != nil {
-			dps = append(dps, sfxclient.Gauge(containerMemoryUsageBytes, dims, int64(*c.Memory.UsageBytes)))
+			dps = append(dps, sfxclient.Gauge(containerMemoryUsageBytes, dims, int64(*c.Memory.UsageBytes))) //nolint:gosec
 		}
 		if c.Memory.WorkingSetBytes != nil {
-			dps = append(dps, sfxclient.Gauge(containerMemoryWorkingSetBytes, dims, int64(*c.Memory.WorkingSetBytes)))
+			dps = append(dps, sfxclient.Gauge(containerMemoryWorkingSetBytes, dims, int64(*c.Memory.WorkingSetBytes))) //nolint:gosec
 		}
 		if c.Memory.RSSBytes != nil {
-			dps = append(dps, sfxclient.Gauge(containerMemoryRssBytes, dims, int64(*c.Memory.RSSBytes)))
+			dps = append(dps, sfxclient.Gauge(containerMemoryRssBytes, dims, int64(*c.Memory.RSSBytes))) //nolint:gosec
 		}
 		if c.Memory.PageFaults != nil {
-			dps = append(dps, sfxclient.Cumulative(containerMemoryPageFaults, dims, int64(*c.Memory.PageFaults)))
+			dps = append(dps, sfxclient.Cumulative(containerMemoryPageFaults, dims, int64(*c.Memory.PageFaults))) //nolint:gosec
 		}
 		if c.Memory.MajorPageFaults != nil {
-			dps = append(dps, sfxclient.Cumulative(containerMemoryMajorPageFaults, dims, int64(*c.Memory.MajorPageFaults)))
+			dps = append(dps, sfxclient.Cumulative(containerMemoryMajorPageFaults, dims, int64(*c.Memory.MajorPageFaults))) //nolint:gosec
 		}
 	}
 
@@ -48,13 +48,13 @@ func convertContainerMetrics(c *v1alpha1.ContainerStats, status *v1.ContainerSta
 		if c.Rootfs.AvailableBytes != nil {
 			// uint64 -> int64 conversion should be safe since disk sizes
 			// aren't going to get that big for a long time.
-			dps = append(dps, sfxclient.Gauge(containerFsAvailableBytes, dims, int64(*c.Rootfs.AvailableBytes)))
+			dps = append(dps, sfxclient.Gauge(containerFsAvailableBytes, dims, int64(*c.Rootfs.AvailableBytes))) //nolint:gosec
 		}
 		if c.Rootfs.CapacityBytes != nil {
-			dps = append(dps, sfxclient.Gauge(containerFsCapacityBytes, dims, int64(*c.Rootfs.CapacityBytes)))
+			dps = append(dps, sfxclient.Gauge(containerFsCapacityBytes, dims, int64(*c.Rootfs.CapacityBytes))) //nolint:gosec
 		}
 		if c.Rootfs.UsedBytes != nil {
-			dps = append(dps, sfxclient.Gauge(containerFsUsageBytes, dims, int64(*c.Rootfs.UsedBytes)))
+			dps = append(dps, sfxclient.Gauge(containerFsUsageBytes, dims, int64(*c.Rootfs.UsedBytes))) //nolint:gosec
 		}
 	}
 

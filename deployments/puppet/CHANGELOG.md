@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## puppet-v0.18.0
+
+- Breaking change: The default for the `auto_instrumentation_otlp_endpoint` option has been changed from
+  `http://127.0.0.1:4317` to `''` (empty), i.e. defer to the default `OTEL_EXPORTER_OTLP_ENDPOINT` value for each
+  activated SDK.
+- Add support for the `auto_instrumentation_otlp_endpoint_protocol`, `auto_instrumentation_metrics_exporter`, and
+  `auto_instrumentation_logs_exporter` options to configure the `OTEL_EXPORTER_OTLP_PROTOCOL`, `OTEL_METRICS_EXPORTER`,
+  and `OTEL_LOGS_EXPORTER` environment variables, respectively.
+
 ## puppet-v0.17.0
 
 - Use `$facts['os']['family']` instead of the legacy `$::osfamily` fact

@@ -1,5 +1,23 @@
 # Changelog
 
+## ansible-v0.30.0
+
+### 💡 Enhancements 💡
+
+- Add support for the `splunk_otel_auto_instrumentation_logs_exporter` option to configure the `OTEL_LOGS_EXPORTER` environment variable.
+
+## ansible-v0.29.0
+
+### 🛑 Breaking changes 🛑
+
+- The default for the `splunk_otel_auto_instrumentation_otlp_endpoint` option has been changed from `http://127.0.0.1:4317`
+  to `''` (empty), i.e. defer to the default `OTEL_EXPORTER_OTLP_ENDPOINT` value for each activated SDK.
+
+### 💡 Enhancements 💡
+
+- Add support for the `splunk_otel_auto_instrumentation_otlp_endpoint_protocol` and `splunk_otel_auto_instrumentation_metrics_exporter`
+  options to configure the `OTEL_EXPORTER_OTLP_PROTOCOL` and `OTEL_METRICS_EXPORTER` environment variables, respectively.
+
 ## ansible-v0.28.0
 
 - Initial support for [Splunk OpenTelemetry for .NET](https://github.com/signalfx/splunk-otel-dotnet) Auto

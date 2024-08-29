@@ -124,9 +124,9 @@ func (d *discoverer) resolveConfig(discoveryReceiverRaw map[string]any) (*confma
 	}
 	uris := []string{fmt.Sprintf("yaml:%s", out)}
 	resolver, err := confmap.NewResolver(confmap.ResolverSettings{
-		URIs:               uris,
-		ProviderFactories:  []confmap.ProviderFactory{yamlprovider.NewFactory(), envprovider.NewFactory()},
-		ConverterFactories: []confmap.ConverterFactory{expandconverter.NewFactory()},
+		URIs:              uris,
+		ProviderFactories: []confmap.ProviderFactory{yamlprovider.NewFactory(), envprovider.NewFactory()},
+		DefaultScheme:     "env",
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create a resolver from the given uris. %w", err)
@@ -134,7 +134,7 @@ func (d *discoverer) resolveConfig(discoveryReceiverRaw map[string]any) (*confma
 
 	conf, err := resolver.Resolve(context.Background())
 	if err != nil {
-		return nil, fmt.Errorf("failed to resolve configuration from the resovler %w", err)
+		return nil, fmt.Errorf("failed to resolve configuration from the resolver %w", err)
 	}
 	if err = resolver.Shutdown(context.Background()); err != nil {
 		d.logger.Warn("error shutting down resolver", zap.Error(err))
@@ -182,6 +182,19 @@ func (d *discoverer) discover(cfg *Config) (map[string]any, error) {
 		return nil, nil
 	}
 
+	err = d.performDiscovery(discoveryReceivers, discoveryObservers)
+	if err != nil {
+		return nil, err
+	}
+
+	discoveryConfig, err := d.discoveryConfig(cfg)
+	if err != nil {
+		return nil, fmt.Errorf("failed constructing discovery config: %w", err)
+	}
+	return discoveryConfig, nil
+}
+
+func (d *discoverer) performDiscovery(discoveryReceivers map[component.ID]otelcolreceiver.Logs, discoveryObservers map[component.ID]otelcolextension.Extension) error {
 	var cancels []context.CancelFunc
 
 	defer func() {
@@ -199,19 +212,35 @@ func (d *discoverer) discover(cfg *Config) (map[string]any, error) {
 				fmt.Sprintf("%q startup failed. Won't proceed with %q-based discovery", observerID, observerID.Type()),
 				zap.Error(e),
 			)
+			return e
 		}
+		defer func(obsID component.ID, obsExt otelcolextension.Extension) {
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			cancels = append(cancels, cancel)
+			if e := obsExt.Shutdown(ctx); e != nil {
+				d.logger.Warn(fmt.Sprintf("error shutting down observer %q", obsID), zap.Error(e))
+			}
+		}(observerID, observer)
 	}
 
 	for receiverID, receiver := range discoveryReceivers {
 		d.logger.Debug(fmt.Sprintf("starting receiver %q", receiverID))
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		cancels = append(cancels, cancel)
-		if err = receiver.Start(ctx, d); err != nil {
+		if err := receiver.Start(ctx, d); err != nil {
 			d.logger.Warn(
 				fmt.Sprintf("%q startup failed.", receiverID),
 				zap.Error(err),
 			)
+			return err
 		}
+		defer func(rcvID component.ID, rcv otelcolreceiver.Logs) {
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			cancels = append(cancels, cancel)
+			if e := rcv.Shutdown(ctx); e != nil {
+				d.logger.Warn(fmt.Sprintf("error shutting down receiver %q", rcvID), zap.Error(e))
+			}
+		}(receiverID, receiver)
 	}
 
 	_, _ = fmt.Fprintf(os.Stderr, "Discovering for next %s...\n", d.duration)
@@ -221,26 +250,7 @@ func (d *discoverer) discover(cfg *Config) (map[string]any, error) {
 	}
 	_, _ = fmt.Fprintf(os.Stderr, "Discovery complete.\n")
 
-	for receiverID, receiver := range discoveryReceivers {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		cancels = append(cancels, cancel)
-		if e := receiver.Shutdown(ctx); e != nil {
-			d.logger.Warn(fmt.Sprintf("error shutting down receiver %q", receiverID), zap.Error(e))
-		}
-	}
-	for observerID, observer := range discoveryObservers {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		cancels = append(cancels, cancel)
-		if e := observer.Shutdown(ctx); e != nil {
-			d.logger.Warn(fmt.Sprintf("error shutting down observer %q", observerID), zap.Error(e))
-		}
-	}
-
-	discoveryConfig, err := d.discoveryConfig(cfg)
-	if err != nil {
-		return nil, fmt.Errorf("failed constructing discovery config: %w", err)
-	}
-	return discoveryConfig, nil
+	return nil
 }
 
 func (d *discoverer) createDiscoveryReceiversAndObservers(cfg *Config) (map[component.ID]otelcolreceiver.Logs, map[component.ID]otelcolextension.Extension, error) {
@@ -396,7 +406,8 @@ func (d *discoverer) createObserver(observerID component.ID, cfg *Config) (otelc
 		return nil, nil
 	}
 
-	expandConverter := expandconverter.NewFactory().Create(confmap.ConverterSettings{Logger: d.logger})
+	// TODO: expandconverter has been deprecated, but we will fully remove following the v0.107.0 release.
+	expandConverter := expandconverter.NewFactory().Create(confmap.ConverterSettings{Logger: d.logger}) //nolint:all
 	if err = expandConverter.Convert(context.Background(), observerDiscoveryConf); err != nil {
 		return nil, fmt.Errorf("error converting environment variables in %q config: %w", observerID, err)
 	}
@@ -454,6 +465,7 @@ func factoryForObserverType(extType component.Type) (otelcolextension.Factory, e
 		component.MustNewType("k8s_observer"):      k8sobserver.NewFactory(),
 		component.MustNewType("ecs_task_observer"): ecstaskobserver.NewFactory(),
 	}
+
 	ef, ok := factories[extType]
 	if !ok {
 		return nil, fmt.Errorf("unsupported discovery observer %q. Please remove its .discovery.yaml from your config directory", extType)

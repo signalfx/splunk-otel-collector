@@ -98,8 +98,8 @@ func (m *Monitor) getCommonDimensions(partition *gopsutil.PartitionStat) map[str
 
 func (m *Monitor) makeInodeDatapoints(dimensions map[string]string, disk *gopsutil.UsageStat) []*datapoint.Datapoint {
 	return []*datapoint.Datapoint{
-		datapoint.New(dfInodesFree, dimensions, datapoint.NewIntValue(int64(disk.InodesFree)), datapoint.Gauge, time.Time{}),
-		datapoint.New(dfInodesUsed, dimensions, datapoint.NewIntValue(int64(disk.InodesUsed)), datapoint.Gauge, time.Time{}),
+		datapoint.New(dfInodesFree, dimensions, datapoint.NewIntValue(int64(disk.InodesFree)), datapoint.Gauge, time.Time{}), //nolint:gosec
+		datapoint.New(dfInodesUsed, dimensions, datapoint.NewIntValue(int64(disk.InodesUsed)), datapoint.Gauge, time.Time{}), //nolint:gosec
 		datapoint.New(percentInodesFree, dimensions, datapoint.NewIntValue(int64(100-disk.InodesUsedPercent)), datapoint.Gauge, time.Time{}),
 		datapoint.New(percentInodesUsed, dimensions, datapoint.NewIntValue(int64(disk.InodesUsedPercent)), datapoint.Gauge, time.Time{}),
 		// TODO: implement percent_inodes.reserved and df_inodes.reserved.
@@ -112,9 +112,9 @@ func (m *Monitor) makeInodeDatapoints(dimensions map[string]string, disk *gopsut
 
 func (m *Monitor) makeDFComplex(dimensions map[string]string, disk *gopsutil.UsageStat) []*datapoint.Datapoint {
 	return []*datapoint.Datapoint{
-		datapoint.New(dfComplexFree, dimensions, datapoint.NewIntValue(int64(disk.Free)), datapoint.Gauge, time.Time{}),
-		datapoint.New(dfComplexUsed, dimensions, datapoint.NewIntValue(int64(disk.Used)), datapoint.Gauge, time.Time{}),
-		datapoint.New(dfComplexReserved, dimensions, datapoint.NewIntValue(int64(disk.Total-disk.Used-disk.Free)), datapoint.Gauge, time.Time{}),
+		datapoint.New(dfComplexFree, dimensions, datapoint.NewIntValue(int64(disk.Free)), datapoint.Gauge, time.Time{}),                          //nolint:gosec
+		datapoint.New(dfComplexUsed, dimensions, datapoint.NewIntValue(int64(disk.Used)), datapoint.Gauge, time.Time{}),                          //nolint:gosec
+		datapoint.New(dfComplexReserved, dimensions, datapoint.NewIntValue(int64(disk.Total-disk.Used-disk.Free)), datapoint.Gauge, time.Time{}), //nolint:gosec
 	}
 }
 

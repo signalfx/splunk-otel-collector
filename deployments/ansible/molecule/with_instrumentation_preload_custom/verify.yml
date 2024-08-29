@@ -173,3 +173,42 @@
         - java.conf
         - node.conf
         - dotnet.conf
+
+    - name: Assert instrumentation config contains OTEL_EXPORTER_OTLP_PROTOCOL
+      ansible.builtin.lineinfile:
+        line: OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+        dest: "/etc/splunk/zeroconfig/{{ item }}"
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+      loop:
+        - java.conf
+        - node.conf
+        - dotnet.conf
+
+    - name: Assert instrumentation config contains OTEL_METRICS_EXPORTER
+      ansible.builtin.lineinfile:
+        line: OTEL_METRICS_EXPORTER=none
+        dest: "/etc/splunk/zeroconfig/{{ item }}"
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+      loop:
+        - java.conf
+        - node.conf
+        - dotnet.conf
+
+    - name: Assert instrumentation config contains OTEL_LOGS_EXPORTER
+      ansible.builtin.lineinfile:
+        line: OTEL_LOGS_EXPORTER=none
+        dest: "/etc/splunk/zeroconfig/{{ item }}"
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+      loop:
+        - java.conf
+        - node.conf
+        - dotnet.conf

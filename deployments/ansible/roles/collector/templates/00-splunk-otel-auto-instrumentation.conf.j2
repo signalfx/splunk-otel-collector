@@ -26,4 +26,15 @@ DefaultEnvironment="OTEL_SERVICE_NAME={{ splunk_otel_auto_instrumentation_servic
 DefaultEnvironment="SPLUNK_PROFILER_ENABLED={{ splunk_otel_auto_instrumentation_enable_profiler | string | lower }}"
 DefaultEnvironment="SPLUNK_PROFILER_MEMORY_ENABLED={{ splunk_otel_auto_instrumentation_enable_profiler_memory | string | lower }}"
 DefaultEnvironment="SPLUNK_METRICS_ENABLED={{ splunk_otel_auto_instrumentation_enable_metrics | string | lower }}"
+{% if splunk_otel_auto_instrumentation_otlp_endpoint is defined and splunk_otel_auto_instrumentation_otlp_endpoint %}
 DefaultEnvironment="OTEL_EXPORTER_OTLP_ENDPOINT={{ splunk_otel_auto_instrumentation_otlp_endpoint }}"
+{% endif %}
+{% if splunk_otel_auto_instrumentation_otlp_endpoint_protocol is defined and splunk_otel_auto_instrumentation_otlp_endpoint_protocol %}
+DefaultEnvironment="OTEL_EXPORTER_OTLP_PROTOCOL={{ splunk_otel_auto_instrumentation_otlp_endpoint_protocol }}"
+{% endif %}
+{% if splunk_otel_auto_instrumentation_metrics_exporter is defined and splunk_otel_auto_instrumentation_metrics_exporter %}
+DefaultEnvironment="OTEL_METRICS_EXPORTER={{ splunk_otel_auto_instrumentation_metrics_exporter }}"
+{% endif %}
+{% if splunk_otel_auto_instrumentation_logs_exporter is defined and splunk_otel_auto_instrumentation_logs_exporter %}
+DefaultEnvironment="OTEL_LOGS_EXPORTER={{ splunk_otel_auto_instrumentation_logs_exporter }}"
+{% endif %}

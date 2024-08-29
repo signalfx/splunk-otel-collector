@@ -16,6 +16,7 @@
 package testutils
 
 import (
+	"math"
 	"net"
 	"os/exec"
 	"runtime"
@@ -78,8 +79,9 @@ func GetAvailablePort(t testing.TB) uint16 {
 
 	portInt, err := strconv.Atoi(port)
 	require.NoError(t, err)
-
-	return uint16(portInt)
+	require.Greater(t, portInt, -1)
+	require.Less(t, portInt, math.MaxUint16+1)
+	return uint16(portInt) //nolint:gosec
 }
 
 // Get excluded ports on Windows from the command: netsh interface ipv4 show excludedportrange protocol=tcp

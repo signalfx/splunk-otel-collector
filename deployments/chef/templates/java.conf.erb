@@ -19,3 +19,6 @@ OTEL_EXPORTER_OTLP_PROTOCOL=<%= node['splunk_otel_collector']['auto_instrumentat
 <% if defined?(node['splunk_otel_collector']['auto_instrumentation_metrics_exporter']) && node['splunk_otel_collector']['auto_instrumentation_metrics_exporter'] != "" -%>
 OTEL_METRICS_EXPORTER=<%= node['splunk_otel_collector']['auto_instrumentation_metrics_exporter'] %>
 <% end -%>
+<% if defined?(node['splunk_otel_collector']['auto_instrumentation_logs_exporter']) && node['splunk_otel_collector']['auto_instrumentation_logs_exporter'] != "" -%>
+OTEL_LOGS_EXPORTER=<%= node['splunk_otel_collector']['auto_instrumentation_logs_exporter'] %>
+<% end -%>

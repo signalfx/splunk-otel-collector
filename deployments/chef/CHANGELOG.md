@@ -1,5 +1,9 @@
 # Changelog
 
+## chef-v0.16.0
+
+- Add support for the `auto_instrumentation_logs_exporter` option to configure the `OTEL_LOGS_EXPORTER` environment variable.
+
 ## chef-v0.15.0
 
 - Breaking Change: The default for the `auto_instrumentation_otlp_endpoint` option has been changed from

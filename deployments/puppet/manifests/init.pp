@@ -46,7 +46,10 @@ class splunk_otel_collector (
   $auto_instrumentation_enable_profiler         = false,  # linux only
   $auto_instrumentation_enable_profiler_memory  = false,  # linux only
   $auto_instrumentation_enable_metrics          = false,  # linux only
-  $auto_instrumentation_otlp_endpoint           = 'http://127.0.0.1:4317',  # linux only
+  $auto_instrumentation_otlp_endpoint           = '',  # linux only
+  $auto_instrumentation_otlp_endpoint_protocol  = '',  # linux only
+  $auto_instrumentation_metrics_exporter        = '',  # linux only
+  $auto_instrumentation_logs_exporter           = '',  # linux only
   $with_auto_instrumentation_sdks               = ['java', 'nodejs', 'dotnet'], # linux only
   $auto_instrumentation_npm_path                = 'npm', # linux only
   $collector_additional_env_vars            = {}

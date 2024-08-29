@@ -17,4 +17,15 @@ OTEL_SERVICE_NAME=<%= @auto_instrumentation_service_name %>
 SPLUNK_PROFILER_ENABLED=<%= @auto_instrumentation_enable_profiler.to_s.downcase %>
 SPLUNK_PROFILER_MEMORY_ENABLED=<%= @auto_instrumentation_enable_profiler_memory.to_s.downcase %>
 SPLUNK_METRICS_ENABLED=<%= @auto_instrumentation_enable_metrics.to_s.downcase %>
+<% if defined?(@auto_instrumentation_otlp_endpoint) && @auto_instrumentation_otlp_endpoint != "" -%>
 OTEL_EXPORTER_OTLP_ENDPOINT=<%= @auto_instrumentation_otlp_endpoint %>
+<% end -%>
+<% if defined?(@auto_instrumentation_otlp_endpoint_protocol) && @auto_instrumentation_otlp_endpoint_protocol != "" -%>
+OTEL_EXPORTER_OTLP_PROTOCOL=<%= @auto_instrumentation_otlp_endpoint_protocol %>
+<% end -%>
+<% if defined?(@auto_instrumentation_metrics_exporter) && @auto_instrumentation_metrics_exporter != "" -%>
+OTEL_METRICS_EXPORTER=<%= @auto_instrumentation_metrics_exporter %>
+<% end -%>
+<% if defined?(@auto_instrumentation_logs_exporter) && @auto_instrumentation_logs_exporter != "" -%>
+OTEL_LOGS_EXPORTER=<%= @auto_instrumentation_logs_exporter %>
+<% end -%>

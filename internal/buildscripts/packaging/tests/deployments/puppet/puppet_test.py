@@ -291,7 +291,10 @@ def test_puppet_with_default_instrumentation(distro, puppet_release, version, wi
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "SPLUNK_PROFILER_ENABLED", "false")
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "SPLUNK_PROFILER_MEMORY_ENABLED", "false")
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "SPLUNK_METRICS_ENABLED", "false")
-            verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_EXPORTER_OTLP_ENDPOINT", r"http://127.0.0.1:4317")
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_EXPORTER_OTLP_ENDPOINT", ".*", exists=False)
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_EXPORTER_OTLP_PROTOCOL", ".*", exists=False)
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_METRICS_EXPORTER", ".*", exists=False)
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_LOGS_EXPORTER", ".*", exists=False)
             if version == "latest":
                 verify_config_file(container, SYSTEMD_CONFIG_PATH, "NODE_OPTIONS", NODE_OPTIONS)
                 verify_dotnet_config(container, SYSTEMD_CONFIG_PATH)
@@ -309,7 +312,10 @@ def test_puppet_with_default_instrumentation(distro, puppet_release, version, wi
                 verify_config_file(container, config_path, "SPLUNK_PROFILER_ENABLED", "false")
                 verify_config_file(container, config_path, "SPLUNK_PROFILER_MEMORY_ENABLED", "false")
                 verify_config_file(container, config_path, "SPLUNK_METRICS_ENABLED", "false")
-                verify_config_file(container, config_path, "OTEL_EXPORTER_OTLP_ENDPOINT", r"http://127.0.0.1:4317")
+                verify_config_file(container, config_path, "OTEL_EXPORTER_OTLP_ENDPOINT", ".*", exists=False)
+                verify_config_file(container, config_path, "OTEL_EXPORTER_OTLP_PROTOCOL", ".*", exists=False)
+                verify_config_file(container, config_path, "OTEL_METRICS_EXPORTER", ".*", exists=False)
+                verify_config_file(container, config_path, "OTEL_LOGS_EXPORTER", ".*", exists=False)
         else:
             for config_path in [JAVA_CONFIG_PATH, NODE_CONFIG_PATH, DOTNET_CONFIG_PATH, SYSTEMD_CONFIG_PATH]:
                 assert not container_file_exists(container, config_path)
@@ -342,6 +348,9 @@ class {{ splunk_otel_collector:
     auto_instrumentation_enable_profiler_memory => true,
     auto_instrumentation_enable_metrics => true,
     auto_instrumentation_otlp_endpoint => 'http://0.0.0.0:4317',
+    auto_instrumentation_otlp_endpoint_protocol => 'grpc',
+    auto_instrumentation_metrics_exporter => 'none',
+    auto_instrumentation_logs_exporter => 'none',
 }}
 """
 )
@@ -396,6 +405,9 @@ def test_puppet_with_custom_instrumentation(distro, puppet_release, version, wit
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "SPLUNK_PROFILER_MEMORY_ENABLED", "true")
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "SPLUNK_METRICS_ENABLED", "true")
             verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_EXPORTER_OTLP_ENDPOINT", r"http://0.0.0.0:4317")
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_EXPORTER_OTLP_PROTOCOL", r"grpc")
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_METRICS_EXPORTER", r"none")
+            verify_config_file(container, SYSTEMD_CONFIG_PATH, "OTEL_LOGS_EXPORTER", r"none")
             if version == "latest":
                 verify_config_file(container, SYSTEMD_CONFIG_PATH, "NODE_OPTIONS", NODE_OPTIONS)
                 verify_dotnet_config(container, SYSTEMD_CONFIG_PATH)
@@ -415,6 +427,9 @@ def test_puppet_with_custom_instrumentation(distro, puppet_release, version, wit
                 verify_config_file(container, config_path, "SPLUNK_PROFILER_MEMORY_ENABLED", "true")
                 verify_config_file(container, config_path, "SPLUNK_METRICS_ENABLED", "true")
                 verify_config_file(container, config_path, "OTEL_EXPORTER_OTLP_ENDPOINT", r"http://0.0.0.0:4317")
+                verify_config_file(container, config_path, "OTEL_EXPORTER_OTLP_PROTOCOL", r"grpc")
+                verify_config_file(container, config_path, "OTEL_METRICS_EXPORTER", r"none")
+                verify_config_file(container, config_path, "OTEL_LOGS_EXPORTER", r"none")
         else:
             for config_path in [JAVA_CONFIG_PATH, NODE_CONFIG_PATH, DOTNET_CONFIG_PATH, SYSTEMD_CONFIG_PATH]:
                 assert not container_file_exists(container, config_path)

@@ -18,8 +18,8 @@ $repoDir = "$scriptDir\..\..\..\..\.."
 . $scriptDir\common.ps1
 
 $BUILD_DIR="$repoDir\build"
-$PYTHON_VERSION="3.11.9"
-$PIP_VERSION="21.0.1"
+$PYTHON_VERSION="3.12.5"
+$PIP_VERSION="24.2"
 $NUGET_URL="https://aka.ms/nugetclidl"
 $NUGET_EXE="nuget.exe"
 
@@ -38,8 +38,12 @@ function get_collectd_plugins ([string]$buildDir=$BUILD_DIR) {
     $python = Resolve-Path "$buildDir\python\python.exe"
 
     # workaround for https://github.com/yaml/pyyaml/issues/724
-    & $python -m pip install 'wheel==0.40.0'
+    & $python -m pip install 'setuptools==74.0.0'
+    if ($lastexitcode -ne 0){ throw }
+    & $python -m pip install 'wheel==0.44.0'
+    if ($lastexitcode -ne 0){ throw }
     & $python -m pip install 'Cython<3.0' 'PyYaml~=5.0' --no-build-isolation
+    if ($lastexitcode -ne 0){ throw }
 
     & $python -m pip install -qq -r $requirements
     if ($lastexitcode -ne 0){ throw }

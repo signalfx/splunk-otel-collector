@@ -1,5 +1,11 @@
 # Changelog
 
+## ansible-v0.30.0
+
+### 💡 Enhancements 💡
+
+- Add support for the `splunk_otel_auto_instrumentation_logs_exporter` option to configure the `OTEL_LOGS_EXPORTER` environment variable.
+
 ## ansible-v0.29.0
 
 ### 🛑 Breaking changes 🛑

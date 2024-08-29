@@ -199,3 +199,16 @@
         - java.conf
         - node.conf
         - dotnet.conf
+
+    - name: Assert instrumentation config contains OTEL_LOGS_EXPORTER
+      ansible.builtin.lineinfile:
+        line: OTEL_LOGS_EXPORTER=none
+        dest: "/etc/splunk/zeroconfig/{{ item }}"
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+      loop:
+        - java.conf
+        - node.conf
+        - dotnet.conf

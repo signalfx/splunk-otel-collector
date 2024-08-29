@@ -150,3 +150,12 @@
       check_mode: yes
       register: config
       failed_when: config is changed
+
+    - name: Assert instrumentation config does not contain OTEL_LOGS_EXPORTER
+      ansible.builtin.lineinfile:
+        regexp: '.*OTEL_LOGS_EXPORTER.*'
+        dest: /etc/splunk/zeroconfig/java.conf
+        state: absent
+      check_mode: yes
+      register: config
+      failed_when: config is changed

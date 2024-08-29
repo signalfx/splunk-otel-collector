@@ -11,7 +11,10 @@
 {% set auto_instrumentation_enable_profiler = salt['pillar.get']('splunk-otel-collector:auto_instrumentation_enable_profiler', False) | to_bool %}
 {% set auto_instrumentation_enable_profiler_memory = salt['pillar.get']('splunk-otel-collector:auto_instrumentation_enable_profiler_memory', False) | to_bool %}
 {% set auto_instrumentation_enable_metrics = salt['pillar.get']('splunk-otel-collector:auto_instrumentation_enable_metrics', False) | to_bool %}
-{% set auto_instrumentation_otlp_endpoint = salt['pillar.get']('splunk-otel-collector:auto_instrumentation_otlp_endpoint', 'http://127.0.0.1:4317') %}
+{% set auto_instrumentation_otlp_endpoint = salt['pillar.get']('splunk-otel-collector:auto_instrumentation_otlp_endpoint') %}
+{% set auto_instrumentation_otlp_endpoint_protocol = salt['pillar.get']('splunk-otel-collector:auto_instrumentation_otlp_endpoint_protocol') %}
+{% set auto_instrumentation_metrics_exporter = salt['pillar.get']('splunk-otel-collector:auto_instrumentation_metrics_exporter') %}
+{% set auto_instrumentation_logs_exporter = salt['pillar.get']('splunk-otel-collector:auto_instrumentation_logs_exporter') %}
 {% set with_new_instrumentation = auto_instrumentation_version == 'latest' or salt['pkg.version_cmp'](auto_instrumentation_version, '0.87.0') >= 0 %}
 {% set dotnet_supported = (auto_instrumentation_version == 'latest' or salt['pkg.version_cmp'](auto_instrumentation_version, '0.99.0') >= 0) and grains['cpuarch'] in ['amd64', 'x86_64'] %}
 {% set systemd_config_path = '/usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf' %}
@@ -89,7 +92,18 @@ Install splunk-otel-js:
         - DefaultEnvironment="SPLUNK_PROFILER_ENABLED={{ auto_instrumentation_enable_profiler | string | lower }}"
         - DefaultEnvironment="SPLUNK_PROFILER_MEMORY_ENABLED={{ auto_instrumentation_enable_profiler_memory | string | lower }}"
         - DefaultEnvironment="SPLUNK_METRICS_ENABLED={{ auto_instrumentation_enable_metrics | string | lower }}"
+        {% if auto_instrumentation_otlp_endpoint != "" %}
         - DefaultEnvironment="OTEL_EXPORTER_OTLP_ENDPOINT={{ auto_instrumentation_otlp_endpoint }}"
+        {% endif %}
+        {% if auto_instrumentation_otlp_endpoint_protocol != "" %}
+        - DefaultEnvironment="OTEL_EXPORTER_OTLP_PROTOCOL={{ auto_instrumentation_otlp_endpoint_protocol }}"
+        {% endif %}
+        {% if auto_instrumentation_metrics_exporter != "" %}
+        - DefaultEnvironment="OTEL_METRICS_EXPORTER={{ auto_instrumentation_metrics_exporter }}"
+        {% endif %}
+        {% if auto_instrumentation_logs_exporter != "" %}
+        - DefaultEnvironment="OTEL_LOGS_EXPORTER={{ auto_instrumentation_logs_exporter }}"
+        {% endif %}
     - makedirs: True
     - require:
       - pkg: splunk-otel-auto-instrumentation
@@ -123,7 +137,18 @@ Delete auto instrumentation systemd config:
         - SPLUNK_PROFILER_ENABLED={{ auto_instrumentation_enable_profiler | string | lower }}
         - SPLUNK_PROFILER_MEMORY_ENABLED={{ auto_instrumentation_enable_profiler_memory | string | lower }}
         - SPLUNK_METRICS_ENABLED={{ auto_instrumentation_enable_metrics | string | lower }}
+        {% if auto_instrumentation_otlp_endpoint != "" %}
         - OTEL_EXPORTER_OTLP_ENDPOINT={{ auto_instrumentation_otlp_endpoint }}
+        {% endif %}
+        {% if auto_instrumentation_otlp_endpoint_protocol != "" %}
+        - OTEL_EXPORTER_OTLP_PROTOCOL={{ auto_instrumentation_otlp_endpoint_protocol }}
+        {% endif %}
+        {% if auto_instrumentation_metrics_exporter != "" %}
+        - OTEL_METRICS_EXPORTER={{ auto_instrumentation_metrics_exporter }}
+        {% endif %}
+        {% if auto_instrumentation_logs_exporter != "" %}
+        - OTEL_LOGS_EXPORTER={{ auto_instrumentation_logs_exporter }}
+        {% endif %}
     - makedirs: True
     - require:
       - pkg: splunk-otel-auto-instrumentation
@@ -150,7 +175,18 @@ Delete {{ java_config_path }}:
         - SPLUNK_PROFILER_ENABLED={{ auto_instrumentation_enable_profiler | string | lower }}
         - SPLUNK_PROFILER_MEMORY_ENABLED={{ auto_instrumentation_enable_profiler_memory | string | lower }}
         - SPLUNK_METRICS_ENABLED={{ auto_instrumentation_enable_metrics | string | lower }}
+        {% if auto_instrumentation_otlp_endpoint != "" %}
         - OTEL_EXPORTER_OTLP_ENDPOINT={{ auto_instrumentation_otlp_endpoint }}
+        {% endif %}
+        {% if auto_instrumentation_otlp_endpoint_protocol != "" %}
+        - OTEL_EXPORTER_OTLP_PROTOCOL={{ auto_instrumentation_otlp_endpoint_protocol }}
+        {% endif %}
+        {% if auto_instrumentation_metrics_exporter != "" %}
+        - OTEL_METRICS_EXPORTER={{ auto_instrumentation_metrics_exporter }}
+        {% endif %}
+        {% if auto_instrumentation_logs_exporter != "" %}
+        - OTEL_LOGS_EXPORTER={{ auto_instrumentation_logs_exporter }}
+        {% endif %}
     - makedirs: True
     - require:
       - pkg: splunk-otel-auto-instrumentation
@@ -184,7 +220,18 @@ Delete {{ nodejs_config_path }}:
         - SPLUNK_PROFILER_ENABLED={{ auto_instrumentation_enable_profiler | string | lower }}
         - SPLUNK_PROFILER_MEMORY_ENABLED={{ auto_instrumentation_enable_profiler_memory | string | lower }}
         - SPLUNK_METRICS_ENABLED={{ auto_instrumentation_enable_metrics | string | lower }}
+        {% if auto_instrumentation_otlp_endpoint != "" %}
         - OTEL_EXPORTER_OTLP_ENDPOINT={{ auto_instrumentation_otlp_endpoint }}
+        {% endif %}
+        {% if auto_instrumentation_otlp_endpoint_protocol != "" %}
+        - OTEL_EXPORTER_OTLP_PROTOCOL={{ auto_instrumentation_otlp_endpoint_protocol }}
+        {% endif %}
+        {% if auto_instrumentation_metrics_exporter != "" %}
+        - OTEL_METRICS_EXPORTER={{ auto_instrumentation_metrics_exporter }}
+        {% endif %}
+        {% if auto_instrumentation_logs_exporter != "" %}
+        - OTEL_LOGS_EXPORTER={{ auto_instrumentation_logs_exporter }}
+        {% endif %}
     - makedirs: True
     - require:
       - pkg: splunk-otel-auto-instrumentation

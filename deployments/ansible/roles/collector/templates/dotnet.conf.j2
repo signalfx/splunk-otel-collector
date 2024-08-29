@@ -26,3 +26,6 @@ OTEL_EXPORTER_OTLP_PROTOCOL={{ splunk_otel_auto_instrumentation_otlp_endpoint_pr
 {% if splunk_otel_auto_instrumentation_metrics_exporter is defined and splunk_otel_auto_instrumentation_metrics_exporter %}
 OTEL_METRICS_EXPORTER={{ splunk_otel_auto_instrumentation_metrics_exporter }}
 {% endif %}
+{% if splunk_otel_auto_instrumentation_logs_exporter is defined and splunk_otel_auto_instrumentation_logs_exporter %}
+OTEL_LOGS_EXPORTER={{ splunk_otel_auto_instrumentation_logs_exporter }}
+{% endif %}

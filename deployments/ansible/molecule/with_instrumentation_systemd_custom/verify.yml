@@ -155,3 +155,12 @@
       check_mode: yes
       register: config
       failed_when: config is changed
+
+    - name: Assert instrumentation config contains OTEL_LOGS_EXPORTER
+      ansible.builtin.lineinfile:
+        line: DefaultEnvironment="OTEL_LOGS_EXPORTER=none"
+        dest: /usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed

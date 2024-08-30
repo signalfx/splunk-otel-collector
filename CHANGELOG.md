@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.108.1
+
 ### 🚩Deprecations 🚩
 
 - (Splunk) Deprecate the nagios monitor ([#5172](https://github.com/signalfx/splunk-otel-collector/pull/5172))

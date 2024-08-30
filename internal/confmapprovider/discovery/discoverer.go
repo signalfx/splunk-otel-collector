@@ -67,7 +67,7 @@ type discoverer struct {
 	factories otelcol.Factories
 	// receiverID -> observerID -> config
 	unexpandedReceiverEntries map[component.ID]map[component.ID]map[string]any
-	extensions                map[component.ID]otelcolextension.Extension
+	operationalObservers      map[component.ID]otelcolextension.Extension // Only extensions successfully started should be added to this map.
 	logger                    *zap.Logger
 	discoveredReceivers       map[component.ID]discovery.StatusType
 	configs                   map[string]*Config
@@ -104,7 +104,6 @@ func newDiscoverer(logger *zap.Logger) (*discoverer, error) {
 		logger:                    logger,
 		info:                      info,
 		factories:                 factories,
-		extensions:                map[component.ID]otelcolextension.Extension{},
 		configs:                   map[string]*Config{},
 		duration:                  duration,
 		mu:                        sync.Mutex{},
@@ -182,10 +181,7 @@ func (d *discoverer) discover(cfg *Config) (map[string]any, error) {
 		return nil, nil
 	}
 
-	err = d.performDiscovery(discoveryReceivers, discoveryObservers)
-	if err != nil {
-		return nil, err
-	}
+	d.performDiscovery(discoveryReceivers, discoveryObservers)
 
 	discoveryConfig, err := d.discoveryConfig(cfg)
 	if err != nil {
@@ -194,7 +190,7 @@ func (d *discoverer) discover(cfg *Config) (map[string]any, error) {
 	return discoveryConfig, nil
 }
 
-func (d *discoverer) performDiscovery(discoveryReceivers map[component.ID]otelcolreceiver.Logs, discoveryObservers map[component.ID]otelcolextension.Extension) error {
+func (d *discoverer) performDiscovery(discoveryReceivers map[component.ID]otelcolreceiver.Logs, discoveryObservers map[component.ID]otelcolextension.Extension) {
 	var cancels []context.CancelFunc
 
 	defer func() {
@@ -202,6 +198,8 @@ func (d *discoverer) performDiscovery(discoveryReceivers map[component.ID]otelco
 			cancel()
 		}
 	}()
+
+	d.operationalObservers = make(map[component.ID]component.Component, len(discoveryObservers))
 
 	for observerID, observer := range discoveryObservers {
 		d.logger.Debug(fmt.Sprintf("starting observer %q", observerID))
@@ -212,7 +210,7 @@ func (d *discoverer) performDiscovery(discoveryReceivers map[component.ID]otelco
 				fmt.Sprintf("%q startup failed. Won't proceed with %q-based discovery", observerID, observerID.Type()),
 				zap.Error(e),
 			)
-			return e
+			continue
 		}
 		defer func(obsID component.ID, obsExt otelcolextension.Extension) {
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -221,6 +219,7 @@ func (d *discoverer) performDiscovery(discoveryReceivers map[component.ID]otelco
 				d.logger.Warn(fmt.Sprintf("error shutting down observer %q", obsID), zap.Error(e))
 			}
 		}(observerID, observer)
+		d.operationalObservers[observerID] = observer
 	}
 
 	for receiverID, receiver := range discoveryReceivers {
@@ -232,7 +231,7 @@ func (d *discoverer) performDiscovery(discoveryReceivers map[component.ID]otelco
 				fmt.Sprintf("%q startup failed.", receiverID),
 				zap.Error(err),
 			)
-			return err
+			continue
 		}
 		defer func(rcvID component.ID, rcv otelcolreceiver.Logs) {
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -249,8 +248,6 @@ func (d *discoverer) performDiscovery(discoveryReceivers map[component.ID]otelco
 	case <-context.Background().Done():
 	}
 	_, _ = fmt.Fprintf(os.Stderr, "Discovery complete.\n")
-
-	return nil
 }
 
 func (d *discoverer) createDiscoveryReceiversAndObservers(cfg *Config) (map[component.ID]otelcolreceiver.Logs, map[component.ID]otelcolextension.Extension, error) {
@@ -268,7 +265,6 @@ func (d *discoverer) createDiscoveryReceiversAndObservers(cfg *Config) (map[comp
 			// disabled by property
 			continue
 		}
-		d.extensions[observerID] = observer
 		discoveryObservers[observerID] = observer
 
 		discoveryReceiverDefaultConfig := discoveryReceiverFactory.CreateDefaultConfig()
@@ -627,8 +623,9 @@ func (d *discoverer) GetFactory(kind component.Kind, componentType component.Typ
 }
 
 // GetExtensions is a component.Host method used to forward discovery observers.
+// This method only returns operational extensions, i.e., those that have been successfully started.
 func (d *discoverer) GetExtensions() map[component.ID]otelcolextension.Extension {
-	return d.extensions
+	return d.operationalObservers
 }
 
 // GetExporters is a component.Host method.

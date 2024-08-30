@@ -35,10 +35,9 @@ import (
 
 func TestInnerDiscoveryExecution(t *testing.T) {
 	tests := []struct {
-		name        string
-		observers   map[component.ID]otelcolextension.Extension
-		receivers   map[component.ID]otelcolreceiver.Logs
-		expectedMsg string
+		name      string
+		observers map[component.ID]otelcolextension.Extension
+		receivers map[component.ID]otelcolreceiver.Logs
 	}{
 		{
 			name: "happy_path",
@@ -62,7 +61,6 @@ func TestInnerDiscoveryExecution(t *testing.T) {
 			receivers: map[component.ID]otelcolreceiver.Logs{
 				component.MustNewID("receiver00"): &mockReceiverLogs{},
 			},
-			expectedMsg: "extension_start_error",
 		},
 		{
 			name: "fail_start_receiver",
@@ -75,10 +73,9 @@ func TestInnerDiscoveryExecution(t *testing.T) {
 				component.MustNewID("receiver01"): &mockReceiverLogs{mockComponent{startErr: fmt.Errorf("receiver_start_error")}},
 				component.MustNewID("receiver02"): &mockReceiverLogs{},
 			},
-			expectedMsg: "receiver_start_error",
 		},
 		{
-			name: "fail_shutdown_no_error_msg",
+			name: "fail_shutdown_no_crash",
 			observers: map[component.ID]otelcolextension.Extension{
 				component.MustNewID("observer00"): &mockExtension{},
 				component.MustNewID("observer01"): &mockExtension{},
@@ -98,14 +95,15 @@ func TestInnerDiscoveryExecution(t *testing.T) {
 			require.NotNil(t, d)
 
 			d.duration = 1 * time.Second
-			err = d.performDiscovery(tt.receivers, tt.observers)
+			d.performDiscovery(tt.receivers, tt.observers)
 
-			for _, observer := range tt.observers {
+			for id, observer := range tt.observers {
 				mockExtension := observer.(*mockExtension)
 				if mockExtension.started {
 					assert.True(t, mockExtension.shutdown)
 				} else {
 					assert.False(t, mockExtension.shutdown)
+					assert.NotContains(t, d.operationalObservers, id)
 				}
 			}
 
@@ -116,12 +114,6 @@ func TestInnerDiscoveryExecution(t *testing.T) {
 				} else {
 					assert.False(t, mockReceiver.shutdown)
 				}
-			}
-
-			if tt.expectedMsg != "" {
-				assert.ErrorContains(t, err, tt.expectedMsg)
-			} else {
-				assert.NoError(t, err)
 			}
 		})
 	}

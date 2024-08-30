@@ -35,9 +35,9 @@ import (
 
 func TestInnerDiscoveryExecution(t *testing.T) {
 	tests := []struct {
-		name      string
 		observers map[component.ID]otelcolextension.Extension
 		receivers map[component.ID]otelcolreceiver.Logs
+		name      string
 	}{
 		{
 			name: "happy_path",

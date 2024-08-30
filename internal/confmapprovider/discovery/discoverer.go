@@ -623,6 +623,7 @@ func (d *discoverer) GetFactory(kind component.Kind, componentType component.Typ
 }
 
 // GetExtensions is a component.Host method used to forward discovery observers.
+// This method only returns operational extensions, i.e., those that have been successfully started.
 func (d *discoverer) GetExtensions() map[component.ID]otelcolextension.Extension {
 	return d.operationalObservers
 }

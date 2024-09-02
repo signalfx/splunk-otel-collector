@@ -130,7 +130,6 @@ require (
 	go.opentelemetry.io/collector/config/confighttp v0.108.1
 	go.opentelemetry.io/collector/config/configtelemetry v0.108.1
 	go.opentelemetry.io/collector/confmap v1.14.1
-	go.opentelemetry.io/collector/confmap/converter/expandconverter v0.108.1
 	go.opentelemetry.io/collector/confmap/provider/envprovider v0.108.1
 	go.opentelemetry.io/collector/confmap/provider/fileprovider v0.108.1
 	go.opentelemetry.io/collector/confmap/provider/yamlprovider v0.108.1

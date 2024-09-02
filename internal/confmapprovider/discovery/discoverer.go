@@ -32,7 +32,6 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configtelemetry"
 	"go.opentelemetry.io/collector/confmap"
-	"go.opentelemetry.io/collector/confmap/converter/expandconverter"
 	"go.opentelemetry.io/collector/confmap/provider/envprovider"
 	"go.opentelemetry.io/collector/confmap/provider/yamlprovider"
 	"go.opentelemetry.io/collector/consumer"
@@ -116,10 +115,10 @@ func newDiscoverer(logger *zap.Logger) (*discoverer, error) {
 	return d, nil
 }
 
-func (d *discoverer) resolveConfig(discoveryReceiverRaw map[string]any) (*confmap.Conf, error) {
-	out, err := yaml.Marshal(discoveryReceiverRaw)
+func (d *discoverer) resolveConfig(cm map[string]any) (*confmap.Conf, error) {
+	out, err := yaml.Marshal(cm)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal discovery receiver config for uri: %w", err)
+		return nil, fmt.Errorf("failed to marshal discovery config for uri: %w", err)
 	}
 	uris := []string{fmt.Sprintf("yaml:%s", out)}
 	resolver, err := confmap.NewResolver(confmap.ResolverSettings{
@@ -402,13 +401,12 @@ func (d *discoverer) createObserver(observerID component.ID, cfg *Config) (otelc
 		return nil, nil
 	}
 
-	// TODO: expandconverter has been deprecated, but we will fully remove following the v0.107.0 release.
-	expandConverter := expandconverter.NewFactory().Create(confmap.ConverterSettings{Logger: d.logger}) //nolint:all
-	if err = expandConverter.Convert(context.Background(), observerDiscoveryConf); err != nil {
-		return nil, fmt.Errorf("error converting environment variables in %q config: %w", observerID, err)
+	observerDiscoveryConfResolved, resErr := d.resolveConfig(observerDiscoveryConf.ToStringMap())
+	if resErr != nil {
+		return nil, fmt.Errorf("failed resolving observer config: %w", resErr)
 	}
 
-	if err = observerDiscoveryConf.Unmarshal(&observerConfig); err != nil {
+	if err = observerDiscoveryConfResolved.Unmarshal(&observerConfig); err != nil {
 		return nil, fmt.Errorf("failed unmarshaling %q config: %w", observerID, err)
 	}
 

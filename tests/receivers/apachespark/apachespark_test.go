@@ -38,5 +38,5 @@ func TestApacheSparkIntegration(t *testing.T) {
 		pmetrictest.IgnoreMetricAttributeValue("failed", "spark.stage.status"),
 		pmetrictest.IgnoreMetricAttributeValue("pending", "spark.stage.status"),
 		pmetrictest.IgnoreMetricDataPointsOrder(),
-	).Run(t)
+	)
 }

@@ -4,7 +4,7 @@
 
 ### 🚀 New components 🚀
 
-- (Splunk) Add `apachespark` receiver ([#]())
+- (Splunk) Add `apachespark` receiver ([#5318](https://github.com/signalfx/splunk-otel-collector/pull/5318))
 
 ## v0.108.1
 

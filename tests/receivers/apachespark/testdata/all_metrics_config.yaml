@@ -1,0 +1,21 @@
+# ./bin/otelcontribcol_darwin_arm64 --config ./receiver/apachesparkreceiver/testdata/all_metrics_config.yaml
+receivers:
+  apachespark:
+    collection_interval: 15s
+
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+
+service:
+  telemetry:
+    logs:
+      level: "info"
+  pipelines:
+    metrics:
+      receivers:
+        - apachespark
+      exporters:
+        - otlp

@@ -51,6 +51,7 @@ func TestDefaultComponents(t *testing.T) {
 		"azureblob",
 		"azuremonitor",
 		"apache",
+		"apachespark",
 		"carbon",
 		"cloudfoundry",
 		"collectd",

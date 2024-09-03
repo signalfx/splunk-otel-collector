@@ -1396,6 +1396,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/activedirecto
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/activedirectorydsreceiver v0.108.0/go.mod h1:Zn5FJSJ2h6DUw84ZqwPiJFCXZWsEeBo++SV3xNeSuO4=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/apachereceiver v0.108.0 h1:RFB7p/HUt46C4HDZjwwDDYYv+ipn/SVTpbuLgXzEbZQ=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/apachereceiver v0.108.0/go.mod h1:7o6+Ojnd9enSTTVUfzORsgMT83qy0Ds0rNl6CXJb5cQ=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/apachesparkreceiver v0.108.0 h1:alseMqI1EDNxMBxfBMQde3r0g/KUauEWbm/u6vKzjnM=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/apachesparkreceiver v0.108.0/go.mod h1:GgM4G2KU5/CYVKUpnJkTsud8B6OvOlnNm6gz3KjsuwU=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/awscontainerinsightreceiver v0.108.0 h1:GQPIFe/91bnSymg3/4cfW6kbQD6+VMCX8yPzgaVGoaQ=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/awscontainerinsightreceiver v0.108.0/go.mod h1:BK/JiWZQtGM94UOwa+JWgI6ABUtJExPvM82uTQPXOns=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/awsecscontainermetricsreceiver v0.108.0 h1:4/SyCI9608uBuk0qkl7BWboXxWlArSys/qHBU/Wk4fQ=

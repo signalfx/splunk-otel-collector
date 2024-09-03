@@ -138,30 +138,24 @@ func (m *Provider) retrieve(scheme string) func(context.Context, string, confmap
 			return m.parsedProperty(uriVal)
 		}
 
-		var cfg *Config
-		var ok bool
-		if uriVal != "" {
-			if cfg, ok = m.configs[uriVal]; !ok {
-				cfg = NewConfig(m.logger)
-				cfg.propertiesAlreadyLoaded = m.discoverer.propertiesFileSpecified
-				m.logger.Debug("loading config.d", zap.String("config-dir", uriVal))
-				if err := cfg.Load(uriVal); err != nil {
-					// ignore if we're attempting to load a default that hasn't been installed to expected path
-					if uriVal == "/etc/otel/collector/config.d" && errors.Is(err, fs.ErrNotExist) {
-						m.logger.Debug("failed loading default nonexistent config.d (disregarding).", zap.String("config-dir", uriVal), zap.Error(err))
-						// restore empty base since fields are purged on error
-						cfg = NewConfig(m.logger)
-					} else {
-						m.logger.Error("failed loading config.d", zap.String("config-dir", uriVal), zap.Error(err))
-						return nil, err
-					}
-				}
-				m.logger.Debug("successfully loaded config.d", zap.String("config-dir", uriVal))
-				m.configs[uriVal] = cfg
-			}
-		} else {
-			// empty config to be noop for config.d or base for bundle.d
+		cfg, ok := m.configs[uriVal]
+		if !ok {
 			cfg = NewConfig(m.logger)
+			cfg.propertiesAlreadyLoaded = m.discoverer.propertiesFileSpecified
+			m.logger.Debug("loading config.d", zap.String("config-dir", uriVal))
+			if err := cfg.Load(uriVal); err != nil {
+				// ignore if we're attempting to load a default that hasn't been installed to expected path
+				if uriVal == "/etc/otel/collector/config.d" && errors.Is(err, fs.ErrNotExist) {
+					m.logger.Debug("failed loading default nonexistent config.d (disregarding).", zap.String("config-dir", uriVal), zap.Error(err))
+					// restore empty base since fields are purged on error
+					cfg = NewConfig(m.logger)
+				} else {
+					m.logger.Error("failed loading config.d", zap.String("config-dir", uriVal), zap.Error(err))
+					return nil, err
+				}
+			}
+			m.logger.Debug("successfully loaded config.d", zap.String("config-dir", uriVal))
+			m.configs[uriVal] = cfg
 		}
 
 		if strings.HasPrefix(uri, configDScheme) {

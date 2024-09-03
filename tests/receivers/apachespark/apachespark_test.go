@@ -31,6 +31,7 @@ func TestApacheSparkIntegration(t *testing.T) {
 		pmetrictest.IgnoreMetricValues(),
 		pmetrictest.IgnoreStartTimestamp(),
 		pmetrictest.IgnoreTimestamp(),
+		pmetrictest.IgnoreScopeVersion(),
 		pmetrictest.IgnoreResourceAttributeValue("spark.application.id"),
 		pmetrictest.IgnoreResourceAttributeValue("spark.application.name"),
 		pmetrictest.IgnoreMetricAttributeValue("active", "spark.stage.status"),

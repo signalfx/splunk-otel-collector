@@ -292,15 +292,13 @@ RUN /usr/local/bin/python3 -m pip install --upgrade pip==$PIP_VERSION
 
 # Mirror the same dir structure that exists in the original source
 COPY scripts/get-collectd-plugins.py /opt/scripts/
-COPY scripts/requirements.txt /opt/
+COPY scripts/get-collectd-plugins-requirements.txt /opt/
+COPY scripts/pyyaml-requirements.txt /opt/
 COPY collectd-plugins.yaml /opt/
 
 # workaround for https://github.com/yaml/pyyaml/issues/724
-RUN /usr/local/bin/python3 -m pip install 'setuptools==74.0.0'
-RUN /usr/local/bin/python3 -m pip install 'wheel==0.44.0'
-RUN /usr/local/bin/python3 -m pip install 'Cython<3.0' 'PyYaml~=5.0' --no-build-isolation
-
-RUN /usr/local/bin/python3 -m pip install -r /opt/requirements.txt
+RUN /usr/local/bin/python3 -m pip install -r /opt/pyyaml-requirements.txt
+RUN /usr/local/bin/python3 -m pip install -r /opt/get-collectd-plugins-requirements.txt --no-build-isolation
 
 RUN mkdir -p /opt/collectd-python &&\
     /usr/local/bin/python3 -u /opt/scripts/get-collectd-plugins.py /opt/collectd-python

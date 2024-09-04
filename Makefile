@@ -50,8 +50,6 @@ DOCKER_REPO?=docker.io
 GOTESPLIT_TOTAL?=1
 GOTESPLIT_INDEX?=0
 
-FIPSONLY?=no
-FIPSONLY_BIN_NAME?=otelcol-fips
 GO_VERSION?=$(shell go env GOVERSION | sed 's/^go//')
 CGO_ENABLED?=0
 
@@ -186,29 +184,17 @@ binaries-darwin_arm64:
 
 .PHONY: binaries-linux_amd64
 binaries-linux_amd64:
-ifeq ($(filter $(FIPSONLY), yes true 1),)
 	GOOS=linux   GOARCH=amd64 $(MAKE) otelcol
-else
-	GOOS=linux   GOARCH=amd64 $(MAKE) otelcol-fips
-endif
 	GOOS=linux   GOARCH=amd64 $(MAKE) migratecheckpoint
 
 .PHONY: binaries-linux_arm64
 binaries-linux_arm64:
-ifeq ($(filter $(FIPSONLY), yes true 1),)
 	GOOS=linux   GOARCH=arm64 $(MAKE) otelcol
-else
-	GOOS=linux   GOARCH=arm64 $(MAKE) otelcol-fips
-endif
 	GOOS=linux   GOARCH=arm64 $(MAKE) migratecheckpoint
 
 .PHONY: binaries-windows_amd64
 binaries-windows_amd64:
-ifeq ($(filter $(FIPSONLY), yes true 1),)
 	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) otelcol
-else
-	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) otelcol-fips
-endif
 	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) migratecheckpoint
 
 .PHONY: binaries-linux_ppc64le
@@ -275,6 +261,6 @@ endif
 		--file internal/buildscripts/Dockerfile.fips-$(GOOS) \
 		.
 	@docker rm -f otelcol-fips-$(GOOS)-$(GOARCH)-builder >/dev/null 2>&1 || true
-	@docker create --name otelcol-fips-$(GOOS)-$(GOARCH)-builder otelcol-fips-$(GOOS)-$(GOARCH)-builder true >/dev/null
-	docker cp otelcol-fips-$(GOOS)-$(GOARCH)-builder:/src/bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/$(FIPSONLY_BIN_NAME)_$(GOOS)_$(GOARCH)$(EXTENSION)
+	@docker create --platform linux/$(GOARCH) --name otelcol-fips-$(GOOS)-$(GOARCH)-builder otelcol-fips-$(GOOS)-$(GOARCH)-builder true >/dev/null
+	docker cp otelcol-fips-$(GOOS)-$(GOARCH)-builder:/src/bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/otelcol-fips_$(GOOS)_$(GOARCH)$(EXTENSION)
 	@docker rm -f otelcol-fips-$(GOOS)-$(GOARCH)-builder >/dev/null

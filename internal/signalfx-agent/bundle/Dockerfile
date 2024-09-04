@@ -15,15 +15,15 @@
 ARG ARCH=amd64
 ARG JDK_VERSION=11.0.24_8
 ARG MAVEN_VERSION=3.6.0
-ARG PYTHON_VERSION=3.11.9
-ARG PIP_VERSION=21.0.1
+ARG PYTHON_VERSION=3.12.5
+ARG PIP_VERSION=24.2
 ARG COLLECTD_VERSION=5.8.0-sfx0
 ARG COLLECTD_COMMIT=4d3327b14cf4359029613baf4f90c4952702105e
 ARG DOCKER_REPO=docker.io
 
 
 ######## Base image for subsequent stages ########
-FROM ${DOCKER_REPO}/ubuntu:22.04 as base
+FROM ${DOCKER_REPO}/ubuntu:22.04 AS base
 
 ARG ARCH
 ENV DEBIAN_FRONTEND noninteractive
@@ -33,7 +33,7 @@ RUN sed -i -e '/^deb-src/d' /etc/apt/sources.list && \
 
 
 ######## Java monitor dependencies and monitor jar compilation ########
-FROM base as java
+FROM base AS java
 
 ARG JDK_VERSION
 ARG MAVEN_VERSION
@@ -82,7 +82,7 @@ RUN rm -rf /tmp/apache-maven*
 
 
 ######## Python bundle builder image ########
-FROM base as python
+FROM base AS python
 
 ARG PYTHON_VERSION
 
@@ -169,13 +169,13 @@ RUN wget -nv -O /tmp/Python-${PYTHON_VERSION}.tgz https://www.python.org/ftp/pyt
     make -j`nproc` && make install libinstall && \
     ldconfig
 
-RUN rm -rf /usr/local/lib/python3.11/test /usr/local/lib/python3.11/unittest
+RUN rm -rf /usr/local/lib/python3.12/test /usr/local/lib/python3.12/unittest
 
 RUN rm -rf /tmp/Python*
 
 
 ######## Collectd builder image ########
-FROM python as collectd
+FROM python AS collectd
 
 ARG COLLECTD_VERSION
 ARG COLLECTD_COMMIT
@@ -216,7 +216,7 @@ COPY --from=java /opt/root/jdk/ /opt/root/jdk/
 WORKDIR /usr/src/collectd
 
 ARG extra_cflags="-O2"
-ENV CFLAGS "-Wno-error -fPIC $extra_cflags"
+ENV CFLAGS "-Wno-error -Wno-format-truncation -Wno-stringop-truncation -fPIC $extra_cflags"
 ENV CXXFLAGS $CFLAGS
 ENV JAVA_HOME /opt/root/jdk
 
@@ -267,9 +267,9 @@ RUN DISABLE_XENCPU=""; if [ "$ARCH" = "ppc64le" ]; then DISABLE_XENCPU="--disabl
         --disable-silent-rules \
         --disable-static \
         --with-java=${JAVA_HOME} \
-        LIBPYTHON_LDFLAGS="$(python3.11-config --ldflags) -lpython3.11" \
-        LIBPYTHON_CPPFLAGS="$(python3.11-config --includes)/cpython" \
-        LIBPYTHON_LIBS="$(python3.11-config --libs) -lpython3.11"
+        LIBPYTHON_LDFLAGS="$(python3.12-config --ldflags) -lpython3.12" \
+        LIBPYTHON_CPPFLAGS="$(python3.12-config --includes)/cpython" \
+        LIBPYTHON_LIBS="$(python3.12-config --libs) -lpython3.12"
 
 # Compile all of collectd first, including plugins
 RUN make -j`nproc` &&\
@@ -284,7 +284,7 @@ RUN patchelf --add-needed libm-2.31.so /opt/deps/libvarnishapi.so.2.0.0
 
 
 ######## Python Plugin Image ########
-FROM collectd as python-plugins
+FROM collectd AS python-plugins
 
 ARG PIP_VERSION
 
@@ -292,14 +292,13 @@ RUN /usr/local/bin/python3 -m pip install --upgrade pip==$PIP_VERSION
 
 # Mirror the same dir structure that exists in the original source
 COPY scripts/get-collectd-plugins.py /opt/scripts/
-COPY scripts/requirements.txt /opt/
+COPY scripts/get-collectd-plugins-requirements.txt /opt/scripts/
+COPY scripts/pyyaml-requirements.txt /opt/scripts/
 COPY collectd-plugins.yaml /opt/
 
 # workaround for https://github.com/yaml/pyyaml/issues/724
-RUN /usr/local/bin/python3 -m pip install 'wheel==0.40.0'
-RUN /usr/local/bin/python3 -m pip install 'Cython<3.0' 'PyYaml~=5.0' --no-build-isolation
-
-RUN /usr/local/bin/python3 -m pip install -r /opt/requirements.txt
+RUN /usr/local/bin/python3 -m pip install -r /opt/scripts/pyyaml-requirements.txt
+RUN /usr/local/bin/python3 -m pip install -r /opt/scripts/get-collectd-plugins-requirements.txt --no-build-isolation
 
 RUN mkdir -p /opt/collectd-python &&\
     /usr/local/bin/python3 -u /opt/scripts/get-collectd-plugins.py /opt/collectd-python
@@ -319,19 +318,19 @@ RUN /usr/local/bin/python3 -m pip list
 # Remove pip to avoid usage in python monitor and in exec'd container
 RUN /usr/local/bin/python3 -m pip uninstall pip -y
 # Delete all bundled wheels
-RUN find /usr/local/lib/python3.11 -name "*.whl" -delete
+RUN find /usr/local/lib/python3.12 -name "*.whl" -delete
 
 # Delete all compiled python to save space
-RUN find /usr/local/lib/python3.11 -name "*.pyc" -o -name "*.pyo" | xargs rm
+RUN find /usr/local/lib/python3.12 -name "*.pyc" -o -name "*.pyo" | xargs rm
 # We don't support compiling extension modules so don't need this directory
-RUN rm -rf /usr/local/lib/python3.11/config-*-linux-gnu
+RUN rm -rf /usr/local/lib/python3.12/config-*-linux-gnu
 
-RUN find /usr/local/lib/python3.11 -type d -name __pycache__ | xargs rm -rf {} \;
-RUN find /usr/local/lib/python3.11 -wholename "*test*.key" -delete -or -wholename "*test*.pem" -delete
+RUN find /usr/local/lib/python3.12 -type d -name __pycache__ | xargs rm -rf {} \;
+RUN find /usr/local/lib/python3.12 -wholename "*test*.key" -delete -or -wholename "*test*.pem" -delete
 
 
 ######## Extra packages that don't make sense to pull down in any other stage ########
-FROM base as extra-packages
+FROM base AS extra-packages
 
 RUN apt-get update && apt-get install -qq -y \
         host \
@@ -373,9 +372,9 @@ RUN mkdir -p /opt/root/bin &&\
 COPY --from=collectd /usr/local/bin/patchelf /usr/bin/
 
 # Gather Python dependencies
-COPY --from=python-plugins /usr/local/lib/python3.11 /opt/root/lib/python3.11
-COPY --from=python-plugins /usr/local/lib/libpython3.11.so.1.0 /opt/root/lib
-COPY --from=python-plugins /usr/local/bin/python3.11 /opt/root/bin/python
+COPY --from=python-plugins /usr/local/lib/python3.12 /opt/root/lib/python3.12
+COPY --from=python-plugins /usr/local/lib/libpython3.12.so.1.0 /opt/root/lib
+COPY --from=python-plugins /usr/local/bin/python3.12 /opt/root/bin/python
 
 # Gather compiled collectd plugin libraries
 COPY --from=collectd /usr/sbin/collectd /opt/root/bin/collectd
@@ -392,7 +391,7 @@ RUN patch-rpath /opt/root
 # This build stage is meant as the final target when running the agent in a
 # container environment (e.g. directly with Docker or on K8s).  The stages
 # below this are special-purpose.
-FROM scratch as final-image
+FROM scratch AS final-image
 
 COPY --from=collectd /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 ENV SSL_CERT_FILE /etc/ssl/certs/ca-certificates.crt

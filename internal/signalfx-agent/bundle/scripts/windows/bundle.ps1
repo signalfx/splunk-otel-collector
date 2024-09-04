@@ -18,8 +18,8 @@ $repoDir = "$scriptDir\..\..\..\..\.."
 . $scriptDir\common.ps1
 
 $BUILD_DIR="$repoDir\build"
-$PYTHON_VERSION="3.11.9"
-$PIP_VERSION="21.0.1"
+$PYTHON_VERSION="3.12.5"
+$PIP_VERSION="24.2"
 $NUGET_URL="https://aka.ms/nugetclidl"
 $NUGET_EXE="nuget.exe"
 
@@ -32,16 +32,16 @@ function download_collectd([string]$collectdCommit, [string]$outputDir="$BUILD_D
 function get_collectd_plugins ([string]$buildDir=$BUILD_DIR) {
     mkdir "$buildDir\collectd-python" -ErrorAction Ignore
     $collectdPlugins = Resolve-Path "$buildDir\collectd-python"
-    $requirements = Resolve-Path "$scriptDir\..\requirements.txt"
+    $script_requirements = Resolve-Path "$scriptDir\..\get-collectd-plugins-requirements.txt"
+    $pyyaml_requirements = Resolve-Path "$scriptDir\..\pyyaml-requirements.txt"
     $security_requirements = Resolve-Path "$scriptDir\..\security-requirements.txt"
     $script = Resolve-Path "$scriptDir\..\get-collectd-plugins.py"
     $python = Resolve-Path "$buildDir\python\python.exe"
 
     # workaround for https://github.com/yaml/pyyaml/issues/724
-    & $python -m pip install 'wheel==0.40.0'
-    & $python -m pip install 'Cython<3.0' 'PyYaml~=5.0' --no-build-isolation
-
-    & $python -m pip install -qq -r $requirements
+    & $python -m pip install -qq -r $pyyaml_requirements
+    if ($lastexitcode -ne 0){ throw }
+    & $python -m pip install -qq -r $script_requirements --no-build-isolation
     if ($lastexitcode -ne 0){ throw }
 
     & $python $script $collectdPlugins

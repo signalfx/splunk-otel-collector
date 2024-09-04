@@ -40,8 +40,8 @@ github.com/Masterminds/semver/v3 v3.2.0 h1:3MEsd0SM6jqZojhjLWWeBY+Kcjy9i6MQAeY7Y
 github.com/Masterminds/semver/v3 v3.2.0/go.mod h1:qvl/7zhW3nngYb5+80sSMF+FG2BjYrf8m9wsX0PNOMQ=
 github.com/Microsoft/go-winio v0.6.2 h1:F2VQgta7ecxGYO8k3ZZz3RS8fVIXVxONVUPlNERoyfY=
 github.com/Microsoft/go-winio v0.6.2/go.mod h1:yd8OoFMLzJbo9gZq8j5qaps8bJ9aShtEA8Ipt1oGCvU=
-github.com/SAP/go-hdb v1.11.3 h1:/e/dVYX2Np2//EyikuYIpy3aGby5qpMozXKben15lBI=
-github.com/SAP/go-hdb v1.11.3/go.mod h1:SXzibSDiPtwikekuvzVPsFA9aguuuQfv5YK0G25NVpA=
+github.com/SAP/go-hdb v1.12.0 h1:ZSjQqVfOITKMiLN7ycbfRncrNcjzRw9/p349v4oEODI=
+github.com/SAP/go-hdb v1.12.0/go.mod h1:0DG4r/GryOydt1Z+ZardSS806ADjty2bR0wCPFpOzZA=
 github.com/Sectorbob/mlab-ns2 v0.0.0-20171030222938-d3aa0c295a8a h1:KFHLI4QGttB0i7M3qOkAo8Zn/GSsxwwCnInFqBaYtkM=
 github.com/Sectorbob/mlab-ns2 v0.0.0-20171030222938-d3aa0c295a8a/go.mod h1:D73UAuEPckrDorYZdtlCu2ySOLuPB5W4rhIkmmc/XbI=
 github.com/StackExchange/wmi v1.2.1 h1:VIkavFPXSjcnS+O8yTq7NI32k0R5Aj+v39y29VYDOSA=
@@ -646,8 +646,8 @@ github.com/prometheus/client_model v0.6.1/go.mod h1:OrxVMOVHjw3lKMa8+x6HeMGkHMQy
 github.com/prometheus/common v0.4.1/go.mod h1:TNfzLD0ON7rHzMJeJkieUDPYmFC7Snx/y86RQel1bk4=
 github.com/prometheus/common v0.10.0/go.mod h1:Tlit/dnDKsSWFlCLTWaA1cyBgKHSMdTB80sz/V91rCo=
 github.com/prometheus/common v0.26.0/go.mod h1:M7rCNAaPfAosfx8veZJCuw84e35h3Cfd9VFqTh1DIvc=
-github.com/prometheus/common v0.55.0 h1:KEi6DK7lXW/m7Ig5i47x0vRzuBsHuvJdi5ee6Y3G1dc=
-github.com/prometheus/common v0.55.0/go.mod h1:2SECS4xJG1kd8XF9IcM1gMX6510RAEL65zxzNImwdc8=
+github.com/prometheus/common v0.57.0 h1:Ro/rKjwdq9mZn1K5QPctzh+MA4Lp0BuYk5ZZEVhoNcY=
+github.com/prometheus/common v0.57.0/go.mod h1:7uRPFSUTbfZWsJ7MHY56sqt7hLQu3bxXHDnNhl8E9qI=
 github.com/prometheus/procfs v0.0.0-20181005140218-185b4288413d/go.mod h1:c3At6R/oaqEKCNdg8wHV1ftS6bRYblBhIjjI8uT2IGk=
 github.com/prometheus/procfs v0.0.2/go.mod h1:TjEm7ze935MbeOT/UhFTIMYKhuLP4wbCsTZCD3I8kEA=
 github.com/prometheus/procfs v0.1.3/go.mod h1:lV6e/gmhEcM9IjHGsFOCxxuZ+z1YqCvr4OA4YeYWdaU=
@@ -709,8 +709,8 @@ github.com/smartystreets/assertions v1.13.1 h1:Ef7KhSmjZcK6AVf9YbJdvPYG9avaF0Zxu
 github.com/smartystreets/assertions v1.13.1/go.mod h1:cXr/IwVfSo/RbCSPhoAPv73p3hlSdrBH/b3SdnW/LMY=
 github.com/smartystreets/goconvey v1.8.1 h1:qGjIddxOk4grTu9JPOU31tVfq3cNdBlNa5sSznIX1xY=
 github.com/smartystreets/goconvey v1.8.1/go.mod h1:+/u4qLyY6x1jReYOp7GOM2FSt8aP9CzCZL03bI28W60=
-github.com/snowflakedb/gosnowflake v1.11.0 h1:qyqunGCVyq/Qyx40KQT+6sJ1CAGuuG2qv3WiCTLTctI=
-github.com/snowflakedb/gosnowflake v1.11.0/go.mod h1:WFe+8mpsapDaQjHX6BqJBKtfQCGlGD3lHKeDsKfpx2A=
+github.com/snowflakedb/gosnowflake v1.11.1 h1:E91s8vBOSroaSTLsyjO4QPkEuzGmZcCxEFQLg214mvk=
+github.com/snowflakedb/gosnowflake v1.11.1/go.mod h1:WFe+8mpsapDaQjHX6BqJBKtfQCGlGD3lHKeDsKfpx2A=
 github.com/soniah/gosnmp v0.0.0-20190220004421-68e8beac0db9 h1:O4jq14rgUwG9Ssn0wZiRPl8Ya6q3a1h3xJzTAsBaRgo=
 github.com/soniah/gosnmp v0.0.0-20190220004421-68e8beac0db9/go.mod h1:DuEpAS0az51+DyVBQwITDsoq4++e3LTNckp2GoasF2I=
 github.com/spf13/pflag v1.0.5 h1:iy+VFUOCP1a+8yFto/drg2CJ5u0yRoB7fZw3DKv/JXA=

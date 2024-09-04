@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 🛑 Breaking changes 🛑
+
+- (Splunk) Update Python to 3.12.5 in the Smart Agent bundle for Linux and Windows. Check [What’s New In Python 3.12](https://docs.python.org/3/whatsnew/3.12.html) for details. ([#5298](https://github.com/signalfx/splunk-otel-collector/pull/5298))
+
 ### 🚀 New components 🚀
 
 - (Splunk) Add `apachespark` receiver ([#5318](https://github.com/signalfx/splunk-otel-collector/pull/5318))

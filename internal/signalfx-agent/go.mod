@@ -10,7 +10,7 @@ replace (
 require (
 	code.cloudfoundry.org/go-loggregator v7.4.0+incompatible
 	github.com/Microsoft/go-winio v0.6.2 // indirect
-	github.com/SAP/go-hdb v1.11.3
+	github.com/SAP/go-hdb v1.12.0
 	github.com/Sectorbob/mlab-ns2 v0.0.0-20171030222938-d3aa0c295a8a
 	github.com/antonmedv/expr v1.15.5
 	github.com/beevik/ntp v1.4.3
@@ -43,7 +43,7 @@ require (
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_model v0.6.1
-	github.com/prometheus/common v0.55.0
+	github.com/prometheus/common v0.57.0
 	github.com/prometheus/procfs v0.15.1
 	github.com/shirou/gopsutil/v3 v3.24.5
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3
@@ -51,7 +51,7 @@ require (
 	github.com/signalfx/golib/v3 v3.3.53
 	github.com/signalfx/ingest-protocols v0.2.0
 	github.com/sirupsen/logrus v1.9.3
-	github.com/snowflakedb/gosnowflake v1.11.0
+	github.com/snowflakedb/gosnowflake v1.11.1
 	github.com/stretchr/testify v1.9.0
 	github.com/ulule/deepcopier v0.0.0-20171107155558-ca99b135e50f
 	github.com/vmware/govmomi v0.42.0

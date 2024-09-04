@@ -1,6 +1,6 @@
 module github.com/signalfx/splunk-otel-collector
 
-go 1.22.0
+go 1.22.5
 
 toolchain go1.22.6
 
@@ -12,7 +12,7 @@ require (
 	github.com/fsnotify/fsnotify v1.7.0
 	github.com/go-zookeeper/zk v1.0.4
 	github.com/gogo/protobuf v1.3.2
-	github.com/hashicorp/vault v1.17.2
+	github.com/hashicorp/vault v1.17.5
 	github.com/hashicorp/vault-plugin-auth-gcp v0.18.0
 	github.com/hashicorp/vault/api v1.14.0
 	github.com/jaegertracing/jaeger v1.60.0
@@ -116,7 +116,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsperfcountersreceiver v0.108.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver v0.108.0
 	github.com/prometheus/client_model v0.6.1
-	github.com/prometheus/common v0.55.0
+	github.com/prometheus/common v0.57.0
 	github.com/prometheus/prometheus v0.54.1
 	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension v0.83.0
 	github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor v0.83.0
@@ -226,7 +226,7 @@ require (
 	github.com/envoyproxy/protoc-gen-validate v1.0.4 // indirect
 	github.com/euank/go-kmsg-parser v2.0.0+incompatible // indirect
 	github.com/fxamacker/cbor/v2 v2.7.0 // indirect
-	github.com/go-jose/go-jose/v4 v4.0.2 // indirect
+	github.com/go-jose/go-jose/v4 v4.0.4 // indirect
 	github.com/go-resty/resty/v2 v2.13.1 // indirect
 	github.com/go-viper/mapstructure/v2 v2.1.0 // indirect
 	github.com/goccy/go-json v0.10.3 // indirect
@@ -236,6 +236,7 @@ require (
 	github.com/google/gnostic-models v0.6.8 // indirect
 	github.com/google/go-metrics-stackdriver v0.6.0 // indirect
 	github.com/google/s2a-go v0.1.8 // indirect
+	github.com/google/tink/go v1.7.0 // indirect
 	github.com/gorilla/websocket v1.5.1 // indirect
 	github.com/grafana/regexp v0.0.0-20240518133315-a468a5bfb3bc // indirect
 	github.com/hashicorp/cronexpr v1.1.2 // indirect
@@ -399,7 +400,7 @@ require (
 	github.com/DataDog/zstd v1.5.2 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.24.1 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
-	github.com/SAP/go-hdb v1.11.3 // indirect
+	github.com/SAP/go-hdb v1.12.0 // indirect
 	github.com/Sectorbob/mlab-ns2 v0.0.0-20171030222938-d3aa0c295a8a // indirect
 	github.com/Showmax/go-fqdn v1.0.0 // indirect
 	github.com/StackExchange/wmi v1.2.1 // indirect
@@ -595,7 +596,7 @@ require (
 	github.com/signalfx/sapm-proto v0.14.0 // indirect
 	github.com/sijms/go-ora/v2 v2.8.19 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
-	github.com/snowflakedb/gosnowflake v1.11.0 // indirect
+	github.com/snowflakedb/gosnowflake v1.11.1 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/spf13/cobra v1.8.1 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect

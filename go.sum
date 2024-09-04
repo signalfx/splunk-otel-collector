@@ -504,8 +504,8 @@ github.com/go-gl/glfw/v3.3/glfw v0.0.0-20191125211704-12ad95a8df72/go.mod h1:tQ2
 github.com/go-gl/glfw/v3.3/glfw v0.0.0-20200222043503-6f7a984d4dc4/go.mod h1:tQ2UAYgL5IevRw8kRxooKSPJfGvJ9fJQFa0TUsXzTg8=
 github.com/go-jose/go-jose/v3 v3.0.3 h1:fFKWeig/irsp7XD2zBxvnmA/XaRWp5V3CBsZXJF7G7k=
 github.com/go-jose/go-jose/v3 v3.0.3/go.mod h1:5b+7YgP7ZICgJDBdfjZaIt+H/9L9T/YQrVfLAMboGkQ=
-github.com/go-jose/go-jose/v4 v4.0.2 h1:R3l3kkBds16bO7ZFAEEcofK0MkrAJt3jlJznWZG0nvk=
-github.com/go-jose/go-jose/v4 v4.0.2/go.mod h1:WVf9LFMHh/QVrmqrOfqun0C45tMe3RoiKJMPvgWwLfY=
+github.com/go-jose/go-jose/v4 v4.0.4 h1:VsjPI33J0SB9vQM6PLmNjoHqMQNGPiZ0rHL7Ni7Q6/E=
+github.com/go-jose/go-jose/v4 v4.0.4/go.mod h1:NKb5HO1EZccyMpiZNbdUw/14tiXNyUJh188dfnMCAfc=
 github.com/go-kit/kit v0.8.0/go.mod h1:xBxKIO96dXMWWy0MnWVtmwkA9/13aqxPnvrjFYMA2as=
 github.com/go-kit/kit v0.9.0/go.mod h1:xBxKIO96dXMWWy0MnWVtmwkA9/13aqxPnvrjFYMA2as=
 github.com/go-kit/log v0.1.0/go.mod h1:zbhenjAZHb184qTLMA9ZjW7ThYL0H2mk7Q6pNt4vbaY=
@@ -747,8 +747,8 @@ github.com/hashicorp/cronexpr v1.1.2/go.mod h1:P4wA0KBl9C5q2hABiMO7cp6jcIg96CDh1
 github.com/hashicorp/errwrap v1.0.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brvKWEqk/Jc4=
 github.com/hashicorp/errwrap v1.1.0 h1:OxrOeh75EUXMY8TBjag2fzXGZ40LB6IKw45YeGUDY2I=
 github.com/hashicorp/errwrap v1.1.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brvKWEqk/Jc4=
-github.com/hashicorp/eventlogger v0.2.9 h1:QO8hPXNngadMp72FVNTwIduLAG9fcLP7t59bSFd7gDY=
-github.com/hashicorp/eventlogger v0.2.9/go.mod h1://CHt6/j+Q2lc0NlUB5af4aS2M0c0aVBg9/JfcpAyhM=
+github.com/hashicorp/eventlogger v0.2.10 h1:Dddth3KVSribGE1rInGToM30tRNblvL0G1OG6N+i2pk=
+github.com/hashicorp/eventlogger v0.2.10/go.mod h1:imHMTfJH4qfb8Knh9nZw4iLfL9J1bX6TJKEurSB4t+U=
 github.com/hashicorp/go-bexpr v0.1.14 h1:uKDeyuOhWhT1r5CiMTjdVY4Aoxdxs6EtwgTGnlosyp4=
 github.com/hashicorp/go-bexpr v0.1.14/go.mod h1:gN7hRKB3s7yT+YvTdnhZVLTENejvhlkZ8UE4YVBS+Q8=
 github.com/hashicorp/go-cleanhttp v0.5.0/go.mod h1:JpRdi6/HCYpAwUzNwuwqhbovhLtngrth3wmdIIUrZ80=
@@ -878,8 +878,8 @@ github.com/hashicorp/raft-wal v0.4.0/go.mod h1:A6vP5o8hGOs1LHfC1Okh9xPwWDcmb6Vvu
 github.com/hashicorp/serf v0.9.6/go.mod h1:TXZNMjZQijwlDvp+r0b63xZ45H7JmCmgg4gpTwn9UV4=
 github.com/hashicorp/serf v0.10.1 h1:Z1H2J60yRKvfDYAOZLd2MU0ND4AH/WDz7xYHDWQsIPY=
 github.com/hashicorp/serf v0.10.1/go.mod h1:yL2t6BqATOLGc5HF7qbFkTfXoPIY0WZdWHfEvMqbG+4=
-github.com/hashicorp/vault v1.17.2 h1:WY8qyQ87MWJ+S+Q/TEC12qjhgixOlVr6KJNg2gWzLN4=
-github.com/hashicorp/vault v1.17.2/go.mod h1:E8Rc9zXki1gfsPX7nF275hSpQQ0asWvGVzylaWUIoYQ=
+github.com/hashicorp/vault v1.17.5 h1:oA15J91tfQ+8Nqpm3oyzVkvQb1zCO9E7pTvmV85o/54=
+github.com/hashicorp/vault v1.17.5/go.mod h1:a0xQHo0YeADV79O3NtWrsDAvfz+/OBiOJwrY9Vu9274=
 github.com/hashicorp/vault-plugin-auth-gcp v0.18.0 h1:chiaa1NLN/B2fcoN/WY/YWVxB8F+hE5koudzLWQcG2c=
 github.com/hashicorp/vault-plugin-auth-gcp v0.18.0/go.mod h1:HtXlc4HKAmUe8/WE4hP0dirpkq4joxhvm8EZ/TvOZk0=
 github.com/hashicorp/vault-plugin-secrets-kv v0.19.0 h1:vF38KPiu0pDK/WZYRPE4M9hmHd4EvO5Opkuokv+lkIE=

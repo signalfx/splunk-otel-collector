@@ -1,6 +1,6 @@
 module github.com/signalfx/splunk-otel-collector
 
-go 1.22.0
+go 1.22.5
 
 toolchain go1.22.6
 
@@ -12,7 +12,7 @@ require (
 	github.com/fsnotify/fsnotify v1.7.0
 	github.com/go-zookeeper/zk v1.0.4
 	github.com/gogo/protobuf v1.3.2
-	github.com/hashicorp/vault v1.17.2
+	github.com/hashicorp/vault v1.17.5
 	github.com/hashicorp/vault-plugin-auth-gcp v0.18.0
 	github.com/hashicorp/vault/api v1.14.0
 	github.com/jaegertracing/jaeger v1.60.0
@@ -225,7 +225,7 @@ require (
 	github.com/envoyproxy/protoc-gen-validate v1.0.4 // indirect
 	github.com/euank/go-kmsg-parser v2.0.0+incompatible // indirect
 	github.com/fxamacker/cbor/v2 v2.7.0 // indirect
-	github.com/go-jose/go-jose/v4 v4.0.2 // indirect
+	github.com/go-jose/go-jose/v4 v4.0.4 // indirect
 	github.com/go-resty/resty/v2 v2.13.1 // indirect
 	github.com/go-viper/mapstructure/v2 v2.1.0 // indirect
 	github.com/goccy/go-json v0.10.3 // indirect
@@ -235,6 +235,7 @@ require (
 	github.com/google/gnostic-models v0.6.8 // indirect
 	github.com/google/go-metrics-stackdriver v0.6.0 // indirect
 	github.com/google/s2a-go v0.1.8 // indirect
+	github.com/google/tink/go v1.7.0 // indirect
 	github.com/gorilla/websocket v1.5.1 // indirect
 	github.com/grafana/regexp v0.0.0-20240518133315-a468a5bfb3bc // indirect
 	github.com/hashicorp/cronexpr v1.1.2 // indirect

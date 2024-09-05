@@ -165,7 +165,7 @@ func Get() (otelcol.Factories, error) {
 	receivers, err := receiver.MakeFactoryMap(
 		activedirectorydsreceiver.NewFactory(),
 		apachereceiver.NewFactory(),
-    apachesparkreceiver.NewFactory(),
+		apachesparkreceiver.NewFactory(),
 		awscontainerinsightreceiver.NewFactory(),
 		awsecscontainermetricsreceiver.NewFactory(),
 		azureblobreceiver.NewFactory(),

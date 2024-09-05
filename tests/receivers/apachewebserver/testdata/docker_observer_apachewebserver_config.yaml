@@ -1,6 +1,5 @@
 extensions:
   docker_observer:
-    use_host_bindings: true
 
 receivers:
   discovery:

@@ -1,5 +1,6 @@
 extensions:
   docker_observer:
+    use_host_bindings: true
 
 receivers:
   discovery:
@@ -7,7 +8,7 @@ receivers:
     receivers:
       apache:
         config:
-          endpoint: "http://localhost:8080/server-status?auto"
+          endpoint: http://`endpoint`/server-status?auto
         rule: type == "container" and any([name, image, command], {# matches "(?i)httpd"}) and not (command matches "splunk.discovery")
         status:
           metrics:

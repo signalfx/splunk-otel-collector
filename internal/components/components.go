@@ -144,9 +144,9 @@ func Get() (otelcol.Factories, error) {
 		ackextension.NewFactory(),
 		ballastextension.NewFactory(),
 		basicauthextension.NewFactory(),
+		dockerobserver.NewFactory(),
 		ecsobserver.NewFactory(),
 		ecstaskobserver.NewFactory(),
-		dockerobserver.NewFactory(),
 		filestorage.NewFactory(),
 		headerssetterextension.NewFactory(),
 		healthcheckextension.NewFactory(),
@@ -164,10 +164,10 @@ func Get() (otelcol.Factories, error) {
 
 	receivers, err := receiver.MakeFactoryMap(
 		activedirectorydsreceiver.NewFactory(),
+		apachereceiver.NewFactory(),
+    apachesparkreceiver.NewFactory(),
 		awscontainerinsightreceiver.NewFactory(),
 		awsecscontainermetricsreceiver.NewFactory(),
-		apachereceiver.NewFactory(),
-		apachesparkreceiver.NewFactory(),
 		azureblobreceiver.NewFactory(),
 		azureeventhubreceiver.NewFactory(),
 		azuremonitorreceiver.NewFactory(),
@@ -176,8 +176,8 @@ func Get() (otelcol.Factories, error) {
 		collectdreceiver.NewFactory(),
 		discoveryreceiver.NewFactory(),
 		elasticsearchreceiver.NewFactory(),
-		fluentforwardreceiver.NewFactory(),
 		filelogreceiver.NewFactory(),
+		fluentforwardreceiver.NewFactory(),
 		googlecloudpubsubreceiver.NewFactory(),
 		haproxyreceiver.NewFactory(),
 		hostmetricsreceiver.NewFactory(),
@@ -221,8 +221,8 @@ func Get() (otelcol.Factories, error) {
 		udplogreceiver.NewFactory(),
 		vcenterreceiver.NewFactory(),
 		wavefrontreceiver.NewFactory(),
-		windowsperfcountersreceiver.NewFactory(),
 		windowseventlogreceiver.NewFactory(),
+		windowsperfcountersreceiver.NewFactory(),
 		zipkinreceiver.NewFactory(),
 	)
 	if err != nil {
@@ -233,16 +233,16 @@ func Get() (otelcol.Factories, error) {
 		awss3exporter.NewFactory(),
 		debugexporter.NewFactory(),
 		fileexporter.NewFactory(),
+		httpsinkexporter.NewFactory(),
 		kafkaexporter.NewFactory(),
 		loadbalancingexporter.NewFactory(),
 		loggingexporter.NewFactory(),
 		otlpexporter.NewFactory(),
 		otlphttpexporter.NewFactory(),
+		pulsarexporter.NewFactory(),
 		sapmexporter.NewFactory(),
 		signalfxexporter.NewFactory(),
 		splunkhecexporter.NewFactory(),
-		httpsinkexporter.NewFactory(),
-		pulsarexporter.NewFactory(),
 	)
 	if err != nil {
 		errs = append(errs, err)

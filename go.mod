@@ -680,5 +680,5 @@ replace (
 	github.com/prometheus/prometheus => github.com/prometheus/prometheus v0.53.1
 )
 
-// github.com/veraison/go-cose v1.2.0 doesn't exists but requered by github.com/Microsoft/hcsshim
+// github.com/veraison/go-cose v1.2.0 doesn't exists but required by the latest github.com/Microsoft/hcsshim
 replace github.com/veraison/go-cose v1.2.0 => github.com/veraison/go-cose v1.1.1

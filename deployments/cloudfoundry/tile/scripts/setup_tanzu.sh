@@ -8,7 +8,6 @@ cf target -o system -s test-space
 git clone https://github.com/cloudfoundry-samples/test-app && cd test-app && cf push && cd .. && rm -rf test-app && cf apps
 eval "$(hammer -t $TAS_JSON om)"
 UAA_CREDS=$(om credentials -p cf -c .uaa.identity_client_credentials -t json | jq '.password' -r)
-#UAA_CREDS=$(om credentials -p cf -c .uaa.ssl_credentials -t json | jq '.password' -r)
 TAS_SYS_DOMAIN=$(jq '.sys_domain' -r $TAS_JSON)
 uaac target https://uaa.$TAS_SYS_DOMAIN --skip-ssl-validation
 uaac token client get identity -s $UAA_CREDS

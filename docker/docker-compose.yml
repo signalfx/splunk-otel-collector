@@ -15,6 +15,13 @@ services:
     build: ./apache
     ports:
       - "18080:80"
+  apachespark:
+    image: quay.io/splunko11ytest/apachespark:latest
+    profiles:
+      - integration
+    build: ./apachespark
+    ports:
+      - "4040:4040"
   # Cassandra image for collectd-cassandra test:
   cassandra:
     image: quay.io/splunko11ytest/cassandra:latest

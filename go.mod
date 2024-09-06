@@ -62,6 +62,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor v0.108.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/activedirectorydsreceiver v0.108.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/apachereceiver v0.108.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/apachesparkreceiver v0.108.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/awscontainerinsightreceiver v0.108.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/awsecscontainermetricsreceiver v0.108.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/azureblobreceiver v0.108.0

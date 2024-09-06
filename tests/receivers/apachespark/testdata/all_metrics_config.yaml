@@ -1,0 +1,20 @@
+receivers:
+  apachespark:
+    collection_interval: 15s
+
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+
+service:
+  telemetry:
+    logs:
+      level: "info"
+  pipelines:
+    metrics:
+      receivers:
+        - apachespark
+      exporters:
+        - otlp

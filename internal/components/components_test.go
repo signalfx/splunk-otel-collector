@@ -46,6 +46,7 @@ func TestDefaultComponents(t *testing.T) {
 	expectedReceivers := []string{
 		"active_directory_ds",
 		"apache",
+		"apachespark",
 		"awscontainerinsightreceiver",
 		"awsecscontainermetrics",
 		"azureblob",

@@ -15,6 +15,7 @@ The distribution offers support for the following components.
 |:-------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-----------------|
 | [active_directory_ds](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/activedirectorydsreceiver)                              | [beta]           |
 | [apache](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/apachereceiver)                                                      | [alpha]          |
+| [apachespark](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/apachesparkreceiver)                                            | [alpha]          |
 | [awscontainerinsights](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/awscontainerinsightreceiver)                           | [beta]           |
 | [awsecscontainermetrics](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/awsecscontainermetricsreceiver)                      | [beta]           |
 | [azureblob](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/azureblobreceiver)                                                | [alpha]          |

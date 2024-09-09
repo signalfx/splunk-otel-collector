@@ -23,7 +23,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: "1.22.6"
+  GO_VERSION: "1.22.7"
 jobs:
   agent-bundle-linux:
     runs-on: ${{ fromJSON('["ubuntu-20.04", "otel-arm64"]')[matrix.ARCH == 'arm64'] }}

@@ -169,17 +169,13 @@ func (m *Provider) retrieve(scheme string) func(context.Context, string, confmap
 			if m.retrieved != nil {
 				return m.retrieved, nil
 			}
-			var bundledCfg *Config
-			if bundledCfg, ok = m.configs["<bundled>"]; !ok {
-				m.logger.Debug("loading bundle.d")
-				bundledCfg = NewConfig(m.logger)
-				if err := bundledCfg.LoadFS(bundle.BundledFS); err != nil {
-					m.logger.Error("failed loading bundle.d", zap.Error(err))
-					return nil, err
-				}
-				m.logger.Debug("successfully loaded bundle.d")
-				m.configs["<bundled>"] = bundledCfg
+			m.logger.Debug("loading bundle.d")
+			bundledCfg := NewConfig(m.logger)
+			if err := bundledCfg.LoadFS(bundle.BundledFS); err != nil {
+				m.logger.Error("failed loading bundle.d", zap.Error(err))
+				return nil, err
 			}
+			m.logger.Debug("successfully loaded bundle.d")
 			if err := mergeConfigWithBundle(cfg, bundledCfg); err != nil {
 				return nil, fmt.Errorf("failed merging user and bundled discovery configs: %w", err)
 			}

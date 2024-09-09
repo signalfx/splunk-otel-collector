@@ -1,3 +1,4 @@
+import argparse
 import io
 import subprocess
 
@@ -398,14 +399,19 @@ def get_appendix_output():
 	return output
 
 def main():
-	otelcol_ver = "0.95.0"
+	parser = argparse.ArgumentParser(description='Generate open source disclosure file (OSDF) for Tanzu Tile')
+	parser.add_argument('--otelcol_version', dest="otelcol_ver", type=str,
+					help='Splunk OpenTelemetry Collector version')
+	args = parser.parse_args()
+
+
 	parse_dependencies()
-	output = HEADER.replace("COLLECTOR_VERSION", otelcol_ver)
+	output = HEADER.replace("COLLECTOR_VERSION", args.otelcol_ver)
 	output += get_primary_output()
 	output += get_appendix_output()
 	output += APPENDIX_CONTENTS
 
-	with open("./OSDF V" + otelcol_ver + ".txt", "w") as file:
+	with open("./OSDF V" + args.otelcol_ver + ".txt", "w") as file:
 		file.write(output)
 
 if __name__ == '__main__':

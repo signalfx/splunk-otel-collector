@@ -2,7 +2,7 @@ module github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocesso
 
 go 1.22.0
 
-toolchain go1.22.6
+toolchain go1.22.7
 
 require (
 	github.com/stretchr/testify v1.9.0

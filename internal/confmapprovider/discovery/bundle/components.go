@@ -32,7 +32,6 @@ var (
 	// in Components.Linux. If desired in windows BundledFS, ensure they are included in Components.Windows.
 	receivers = []string{
 		"jmx-cassandra",
-		"apachewebserver",
 		"kafkametrics",
 		"mongodb",
 		"mysql",
@@ -67,7 +66,6 @@ var (
 		}(),
 		Windows: func() map[string]struct{} {
 			windows := map[string]struct{}{
-				"apachewebserver":       {},
 				"jmx-cassandra":         {},
 				"kafkametrics":          {},
 				"mongodb":               {},

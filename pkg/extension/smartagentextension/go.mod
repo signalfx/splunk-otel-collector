@@ -2,7 +2,7 @@ module github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextensi
 
 go 1.22.0
 
-toolchain go1.22.6
+toolchain go1.22.7
 
 require (
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657

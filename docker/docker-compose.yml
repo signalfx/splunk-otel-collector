@@ -72,13 +72,13 @@ services:
   # Elasticsearch image for Elasticsearch test:
   elasticsearch:
     image: elasticsearch:8.14.3
+    build: ./elasticsearch
     ports:
       - "9200:9200"
     profiles:
       - integration
     environment:
       - ELASTIC_PASSWORD=$ELASTIC_PASSWORD
-      - discovery.type=single-node
   # Haproxy image for haproxy test:
   haproxy:
     image: quay.io/splunko11ytest/haproxy:latest

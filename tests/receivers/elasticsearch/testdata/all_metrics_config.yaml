@@ -1,6 +1,6 @@
 receivers:
   elasticsearch:
-    endpoint: https://localhost:9200
+    endpoint: http://localhost:9200
     username: elastic
     password: testPassword
     tls:

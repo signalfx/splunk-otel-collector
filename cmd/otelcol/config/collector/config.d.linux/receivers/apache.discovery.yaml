@@ -13,7 +13,8 @@
 #     host_observer: type == "hostport" and command matches "(?i)httpd.*" and not (command matches "splunk.discovery")
 #     k8s_observer: type == "port" and pod.name matches "(?i)httpd.*"
 #   config:
-#     endpoint: http://`endpoint`/server-status?auto
+#     default:
+#       endpoint: "http://`endpoint`/server-status?auto"
 #   status:
 #     metrics:
 #       - status: successful

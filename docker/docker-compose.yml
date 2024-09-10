@@ -71,7 +71,7 @@ services:
       - "8091:8091"
   # Elasticsearch image for Elasticsearch test:
   elasticsearch:
-    image: elasticsearch:8.14.3
+    image: quay.io/splunko11ytest/elasticsearch:latest
     build: ./elasticsearch
     ports:
       - "9200:9200"

@@ -1,4 +1,4 @@
-FROM cassandra:5.0
+FROM cassandra:4.1
 
 # Configures Cassandra with remote JMX with username/password of
 # cassandra/cassandra

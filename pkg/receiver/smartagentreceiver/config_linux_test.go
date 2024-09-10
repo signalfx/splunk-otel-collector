@@ -52,7 +52,7 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 			},
 			Host: "localhost",
 			Port: 6379,
-			URL:  "http://{{.Host}}:{{.Port}}/mod_status?auto",
+			URL:  "http://{{.Host}}:{{.Port}}/server-status?auto",
 		},
 		acceptsEndpoints: true,
 	}, apacheCfg)

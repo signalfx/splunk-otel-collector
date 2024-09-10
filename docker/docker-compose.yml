@@ -73,7 +73,7 @@ services:
   elasticsearch:
     image: elasticsearch:8.14.3
     ports:
-      - 9200:9200
+      - "9200:9200"
     profiles:
       - integration
     environment:

@@ -13,6 +13,7 @@
 ### 💡 Enhancements 💡
 
 - (Splunk) Apache Web Server Auto Discovery: set the default discovered endpoint to match the OpenTelemetry `apachereceiver` default: `http://`endpoint`/server-status?auto` ([#5353](https://github.com/signalfx/splunk-otel-collector/pull/5353))
+  If the collector is running as a process on the host OS and the Apache Web Server is in a Docker container add `--set=splunk.discovery.extensions.docker_observer.config.use_host_bindings=true` to the command-line arguments for the discovery to create the correct endpoint.
 
 ## v0.108.1
 

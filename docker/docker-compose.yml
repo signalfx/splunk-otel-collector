@@ -12,6 +12,7 @@ services:
     image: quay.io/splunko11ytest/apache:latest
     profiles:
       - smartagent
+      - integration-test-apache-discovery
     build: ./apache
     ports:
       - "18080:80"
@@ -308,10 +309,3 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-  httpd-apache-discovery:
-    image: httpd:2.4
-    build: ./httpd-discovery
-    profiles:
-      - integration-test-apache-discovery 
-    ports:
-      - "8080:80"

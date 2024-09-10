@@ -34,7 +34,7 @@ type Config struct {
 
 	// The URL, either a final URL or a Go template that will be populated with
 	// the host and port values.
-	URL      string `yaml:"url" default:"http://{{.Host}}:{{.Port}}/mod_status?auto"`
+	URL      string `yaml:"url" default:"http://{{.Host}}:{{.Port}}/server-status?auto"`
 	Username string `yaml:"username"`
 	Password string `yaml:"password" neverLog:"true"`
 }

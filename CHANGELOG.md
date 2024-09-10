@@ -10,6 +10,10 @@
 
 - (Splunk) Add `apachespark` receiver ([#5318](https://github.com/signalfx/splunk-otel-collector/pull/5318))
 
+### 💡 Enhancements 💡
+
+- (Splunk) Apache Web Server Auto Discovery: set the default discovered endpoint to match the OpenTelemetry `apachereceiver` default: `http://`endpoint`/server-status?auto` ([#5353](https://github.com/signalfx/splunk-otel-collector/pull/5353))
+
 ## v0.108.1
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.108.1](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.108.1) and the [opentelemetry-collector-contrib v0.108.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.108.0) releases where appropriate.
@@ -300,7 +304,7 @@ Note: Some `core` dependencies were incorrectly still set to `v0.105.0` for this
 ### 💡 Enhancements 💡
 
 - (Splunk) Auto Discovery for Linux:
-  - Bring Apache Web Server receiver into the discovery mode ([#5109](https://github.com/signalfx/splunk-otel-collector/pull/5109))
+  - Bring Apache Web Server receiver into the discovery mode ([#5116](https://github.com/signalfx/splunk-otel-collector/pull/5116))
 - (Splunk) linux installer script: decouple the endpoint and protocol options ([#5164](https://github.com/signalfx/splunk-otel-collector/pull/5164))
 - (Splunk) Bump version of com.signalfx.public:signalfx-commons-protoc-java to 1.0.44 ([#5186](https://github.com/signalfx/splunk-otel-collector/pull/5186))
 - (Splunk) Bump version of github.com/snowflakedb/gosnowflake from to 1.11.0 ([#5176](https://github.com/signalfx/splunk-otel-collector/pull/5176))

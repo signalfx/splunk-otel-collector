@@ -38,7 +38,7 @@ CACHE_FROM_OPTS=""
 CACHE_TO_OPTS=""
 BUILDER=""
 
-ALL_STAGES=$( grep '^FROM .* as .*' ${SCRIPT_DIR}/../Dockerfile | sed -e 's/.*as //' )
+ALL_STAGES=$( grep '^FROM .* AS .*' ${SCRIPT_DIR}/../Dockerfile | sed -e 's/.* AS //' )
 
 export DOCKER_BUILDKIT=1
 

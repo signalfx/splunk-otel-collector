@@ -2,9 +2,25 @@
 
 ## Unreleased
 
+### 🛑 Breaking changes 🛑
+
+- (Splunk) Update Python to 3.12.5 in the Smart Agent bundle for Linux and Windows. Check [What’s New In Python 3.12](https://docs.python.org/3/whatsnew/3.12.html) for details. ([#5298](https://github.com/signalfx/splunk-otel-collector/pull/5298))
+
+### 🚀 New components 🚀
+
+- (Splunk) Add `apachespark` receiver ([#5318](https://github.com/signalfx/splunk-otel-collector/pull/5318))
+
+## v0.108.1
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.108.1](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.108.1) and the [opentelemetry-collector-contrib v0.108.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.108.0) releases where appropriate.
+
 ### 🚩Deprecations 🚩
 
 - (Splunk) Deprecate the nagios monitor ([#5172](https://github.com/signalfx/splunk-otel-collector/pull/5172))
+
+### 🧰 Bug fixes 🧰
+
+- (Splunk) Discovery observers start failures should not stop the collector ([#5299](https://github.com/signalfx/splunk-otel-collector/pull/5299))
 
 ## v0.108.0
 

@@ -138,30 +138,24 @@ func (m *Provider) retrieve(scheme string) func(context.Context, string, confmap
 			return m.parsedProperty(uriVal)
 		}
 
-		var cfg *Config
-		var ok bool
-		if uriVal != "" {
-			if cfg, ok = m.configs[uriVal]; !ok {
-				cfg = NewConfig(m.logger)
-				cfg.propertiesAlreadyLoaded = m.discoverer.propertiesFileSpecified
-				m.logger.Debug("loading config.d", zap.String("config-dir", uriVal))
-				if err := cfg.Load(uriVal); err != nil {
-					// ignore if we're attempting to load a default that hasn't been installed to expected path
-					if uriVal == "/etc/otel/collector/config.d" && errors.Is(err, fs.ErrNotExist) {
-						m.logger.Debug("failed loading default nonexistent config.d (disregarding).", zap.String("config-dir", uriVal), zap.Error(err))
-						// restore empty base since fields are purged on error
-						cfg = NewConfig(m.logger)
-					} else {
-						m.logger.Error("failed loading config.d", zap.String("config-dir", uriVal), zap.Error(err))
-						return nil, err
-					}
-				}
-				m.logger.Debug("successfully loaded config.d", zap.String("config-dir", uriVal))
-				m.configs[uriVal] = cfg
-			}
-		} else {
-			// empty config to be noop for config.d or base for bundle.d
+		cfg, ok := m.configs[uriVal]
+		if !ok {
 			cfg = NewConfig(m.logger)
+			cfg.propertiesAlreadyLoaded = m.discoverer.propertiesFileSpecified
+			m.logger.Debug("loading config.d", zap.String("config-dir", uriVal))
+			if err := cfg.Load(uriVal); err != nil {
+				// ignore if we're attempting to load a default that hasn't been installed to expected path
+				if uriVal == "/etc/otel/collector/config.d" && errors.Is(err, fs.ErrNotExist) {
+					m.logger.Debug("failed loading default nonexistent config.d (disregarding).", zap.String("config-dir", uriVal), zap.Error(err))
+					// restore empty base since fields are purged on error
+					cfg = NewConfig(m.logger)
+				} else {
+					m.logger.Error("failed loading config.d", zap.String("config-dir", uriVal), zap.Error(err))
+					return nil, err
+				}
+			}
+			m.logger.Debug("successfully loaded config.d", zap.String("config-dir", uriVal))
+			m.configs[uriVal] = cfg
 		}
 
 		if strings.HasPrefix(uri, configDScheme) {
@@ -175,17 +169,13 @@ func (m *Provider) retrieve(scheme string) func(context.Context, string, confmap
 			if m.retrieved != nil {
 				return m.retrieved, nil
 			}
-			var bundledCfg *Config
-			if bundledCfg, ok = m.configs["<bundled>"]; !ok {
-				m.logger.Debug("loading bundle.d")
-				bundledCfg = NewConfig(m.logger)
-				if err := bundledCfg.LoadFS(bundle.BundledFS); err != nil {
-					m.logger.Error("failed loading bundle.d", zap.Error(err))
-					return nil, err
-				}
-				m.logger.Debug("successfully loaded bundle.d")
-				m.configs["<bundled>"] = bundledCfg
+			m.logger.Debug("loading bundle.d")
+			bundledCfg := NewConfig(m.logger)
+			if err := bundledCfg.LoadFS(bundle.BundledFS); err != nil {
+				m.logger.Error("failed loading bundle.d", zap.Error(err))
+				return nil, err
 			}
+			m.logger.Debug("successfully loaded bundle.d")
 			if err := mergeConfigWithBundle(cfg, bundledCfg); err != nil {
 				return nil, fmt.Errorf("failed merging user and bundled discovery configs: %w", err)
 			}

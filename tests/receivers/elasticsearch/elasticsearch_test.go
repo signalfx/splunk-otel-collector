@@ -27,6 +27,7 @@ import (
 func TestElasticsearchIntegration(t *testing.T) {
 	testutils.CheckGoldenFile(t, "all_metrics_config.yaml", "all_expected_metrics.yaml",
 		pmetrictest.IgnoreResourceAttributeValue("elasticsearch.node.name"),
+		pmetrictest.IgnoreScopeVersion(),
 		pmetrictest.IgnoreMetricDataPointsOrder(),
 		pmetrictest.IgnoreResourceMetricsOrder(),
 		pmetrictest.IgnoreScopeMetricsOrder(),

@@ -31,7 +31,7 @@ monitors:
 
        ```
         ExtendedStatus on
-        <Location /mod_status>
+        <Location /server-status>
         SetHandler server-status
         </Location>
        ```
@@ -51,7 +51,7 @@ monitors:
        port: 80
     ```
 
-    If `mod_status` is exposed on an endpoint other than `/mod_status`, you can
+    If `mod_status` is exposed on an endpoint other than `/server-status`, you can
     use the `url` config option to specify the path:
 
     ```
@@ -59,7 +59,7 @@ monitors:
      - type: collectd/apache
        host: localhost
        port: 80
-       url: "http://{{.Host}}:{{.Port}}/server-status?auto"
+       url: "http://{{.Host}}:{{.Port}}/<custom-endpoint-path-for-mod_status>?auto"
     ```
 
     For a full list of options, see [Configuration](#configuration).

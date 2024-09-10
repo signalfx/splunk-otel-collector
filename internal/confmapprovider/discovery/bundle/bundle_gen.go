@@ -23,6 +23,8 @@
 //go:generate discoverybundler --render --template bundle.d/extensions/k8s-observer.discovery.yaml.tmpl
 //go:generate discoverybundler --render --commented --dir ../../../../cmd/otelcol/config/collector/config.d.linux/extensions -t bundle.d/extensions/k8s-observer.discovery.yaml.tmpl
 
+//go:generate discoverybundler --render --template bundle.d/receivers/apache.discovery.yaml.tmpl
+//go:generate discoverybundler --render --commented --dir ../../../../cmd/otelcol/config/collector/config.d.linux/receivers -t bundle.d/receivers/apache.discovery.yaml.tmpl
 //go:generate discoverybundler --render --template bundle.d/receivers/jmx-cassandra.discovery.yaml.tmpl
 //go:generate discoverybundler --render --commented --dir ../../../../cmd/otelcol/config/collector/config.d.linux/receivers -t bundle.d/receivers/jmx-cassandra.discovery.yaml.tmpl
 //go:generate discoverybundler --render --template bundle.d/receivers/kafkametrics.discovery.yaml.tmpl

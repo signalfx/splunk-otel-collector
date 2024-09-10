@@ -177,7 +177,7 @@ func TestIntegrationApacheWebserverAutoDiscovery(t *testing.T) {
 	}{
 		"Successful Discovery test": {
 			ctx:                ctx,
-			configFileName:     "docker_observer_apachewebserver_config.yaml",
+			configFileName:     "docker_observer_apache_config.yaml",
 			logMessageToAssert: successfulDiscoveryMsg,
 			expected:           nil,
 		},

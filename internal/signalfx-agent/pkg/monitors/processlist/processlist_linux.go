@@ -94,7 +94,7 @@ func ProcessList(conf *Config, cache *osCache, logger logrus.FieldLogger) ([]*To
 			Priority:            stat.Priority,
 			Nice:                &stat.Nice,
 			VirtualMemoryBytes:  uint64(stat.VirtualMemory()),
-			WorkingSetSizeBytes: uint64(stat.RSS * cache.pageSize),
+			WorkingSetSizeBytes: uint64(stat.RSS * cache.pageSize), //nolint:gosec
 			SharedMemBytes:      status.RssShmem + status.RssFile,
 			Status:              stat.State,
 			MemPercent:          memPercent,

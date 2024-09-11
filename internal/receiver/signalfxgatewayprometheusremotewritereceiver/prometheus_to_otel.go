@@ -258,7 +258,7 @@ func (prwParser *prometheusRemoteOtelParser) setFloatOrInt(dp pmetric.NumberData
 }
 
 func prometheusToOtelTimestamp(ts int64) pcommon.Timestamp {
-	return pcommon.Timestamp(ts * int64(time.Millisecond))
+	return pcommon.Timestamp(ts * int64(time.Millisecond)) //nolint:gosec
 }
 
 func (prwParser *prometheusRemoteOtelParser) setAttributes(dp pmetric.NumberDataPoint, labels []prompb.Label) {

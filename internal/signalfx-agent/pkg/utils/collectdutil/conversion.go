@@ -25,7 +25,7 @@ func ConvertWriteFormat(f *collectd.JSONWriteFormat, dps *[]*datapoint.Datapoint
 		}
 		for i := range f.Dsnames {
 			if i < len(f.Dstypes) && i < len(f.Values) && f.Values[i] != nil {
-				dp := collectd.NewDatapoint(f, uint(i), nil)
+				dp := collectd.NewDatapoint(f, uint(i), nil) //nolint:gosec
 				dp.Meta = utils.StringInterfaceMapToAllInterfaceMap(f.Meta)
 				*dps = append(*dps, dp)
 			}

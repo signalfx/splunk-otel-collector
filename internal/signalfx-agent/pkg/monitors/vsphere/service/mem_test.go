@@ -35,8 +35,8 @@ func processPoints(numInvObjs, numPtsPerInvObj int) int {
 
 func requireMaxHeapUsage(t *testing.T, maxMBBeforeGc int, maxMBAfterGc int, f func()) {
 	var maxBeforeGc, maxAfterGc uint64
-	maxBeforeGc = uint64(maxMBBeforeGc) * 1_000_000
-	maxAfterGc = uint64(maxMBAfterGc) * 1_000_000
+	maxBeforeGc = uint64(maxMBBeforeGc) * 1_000_000 //nolint:gosec
+	maxAfterGc = uint64(maxMBAfterGc) * 1_000_000   // nolint:gosec
 	heapUsageBeforeGc, heapUsageAfterGc := heapInuseDelta(f)
 	if heapUsageBeforeGc > maxBeforeGc || heapUsageAfterGc > maxAfterGc {
 		t.Logf("heapUsageBeforeGc max: %d actual: %d", maxBeforeGc, heapUsageBeforeGc)

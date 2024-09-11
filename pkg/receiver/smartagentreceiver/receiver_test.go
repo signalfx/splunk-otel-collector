@@ -34,6 +34,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
+	"go.opentelemetry.io/collector/config/configtelemetry"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	otelcolextension "go.opentelemetry.io/collector/extension"
@@ -41,6 +42,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	otelcolreceiver "go.opentelemetry.io/collector/receiver"
+	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/metric/noop"
 	nooptrace "go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/zap"
@@ -66,9 +68,9 @@ func newReceiverCreateSettings(name string, t *testing.T) otelcolreceiver.Settin
 	return otelcolreceiver.Settings{
 		ID: component.MustNewIDWithName("smartagent", name),
 		TelemetrySettings: component.TelemetrySettings{
-			Logger:         zap.NewNop(),
-			TracerProvider: nooptrace.NewTracerProvider(),
-			MeterProvider:  noop.NewMeterProvider(),
+			Logger:               zap.NewNop(),
+			TracerProvider:       nooptrace.NewTracerProvider(),
+			LeveledMeterProvider: func(configtelemetry.Level) metric.MeterProvider { return noop.NewMeterProvider() },
 		},
 	}
 }

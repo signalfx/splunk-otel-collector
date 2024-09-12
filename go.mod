@@ -140,6 +140,7 @@ require (
 	go.opentelemetry.io/collector/exporter v0.109.0
 	go.opentelemetry.io/collector/exporter/debugexporter v0.109.0
 	go.opentelemetry.io/collector/exporter/loggingexporter v0.109.0
+	go.opentelemetry.io/collector/exporter/nopexporter v0.109.0
 	go.opentelemetry.io/collector/exporter/otlpexporter v0.109.0
 	go.opentelemetry.io/collector/exporter/otlphttpexporter v0.109.0
 	go.opentelemetry.io/collector/extension v0.109.0
@@ -151,6 +152,7 @@ require (
 	go.opentelemetry.io/collector/processor/batchprocessor v0.109.0
 	go.opentelemetry.io/collector/processor/memorylimiterprocessor v0.109.0
 	go.opentelemetry.io/collector/receiver v0.109.0
+	go.opentelemetry.io/collector/receiver/nopreceiver v0.109.0
 	go.opentelemetry.io/collector/receiver/otlpreceiver v0.109.0
 	go.opentelemetry.io/otel/metric v1.30.0
 	go.opentelemetry.io/otel/trace v1.30.0

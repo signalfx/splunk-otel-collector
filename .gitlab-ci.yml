@@ -312,11 +312,11 @@ compile:
       - bin/migratecheckpoint_*
 
 otelcol-fips:
-  image: '${DOCKER_CICD_REPO}/ci-container/golang-1.22:3.4.0'
   only:
     - otelcol-fips-linux
-  # extends:
+  extends:
   #   - .trigger-filter
+    - .go-cache
   stage: build
   needs: []
   parallel:
@@ -332,6 +332,9 @@ otelcol-fips:
   id_tokens:  # http://go/gitlab-17
     CI_JOB_JWT:
       aud: $CICD_VAULT_ADDR
+  before_script:
+    - apt-get update
+    - apt-get install -y docker.io
   script:
     - *docker-reader-role
     - |

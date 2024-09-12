@@ -1,4 +1,6 @@
 type: "signalfxgatewayprometheusremotewrite"
+github_project: signalfx/splunk-otel-collector
+
 status:
   class: "receiver"
   stability:

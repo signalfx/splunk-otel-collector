@@ -26,6 +26,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/receiverhelper"
+	"go.opentelemetry.io/otel/metric"
 	mnoop "go.opentelemetry.io/otel/metric/noop"
 	tnoop "go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/zap"
@@ -181,9 +182,9 @@ func (d *discoveryReceiver) createAndSetReceiverCreator() error {
 				zap.String("kind", "receiver"),
 				zap.String("name", id.String()),
 			),
-			TracerProvider: tnoop.NewTracerProvider(),
-			MeterProvider:  mnoop.NewMeterProvider(),
-			MetricsLevel:   configtelemetry.LevelDetailed,
+			TracerProvider:       tnoop.NewTracerProvider(),
+			LeveledMeterProvider: func(configtelemetry.Level) metric.MeterProvider { return mnoop.NewMeterProvider() },
+			MetricsLevel:         configtelemetry.LevelDetailed,
 		},
 		BuildInfo: component.BuildInfo{
 			Command: "discovery",

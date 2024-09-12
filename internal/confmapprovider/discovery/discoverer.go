@@ -39,6 +39,7 @@ import (
 	"go.opentelemetry.io/collector/otelcol"
 	"go.opentelemetry.io/collector/pdata/plog"
 	otelcolreceiver "go.opentelemetry.io/collector/receiver"
+	"go.opentelemetry.io/otel/metric"
 	mnoop "go.opentelemetry.io/otel/metric/noop"
 	tnoop "go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/zap"
@@ -548,10 +549,9 @@ func (d *discoverer) createExtensionCreateSettings(observerID component.ID) otel
 	return otelcolextension.Settings{
 		ID: observerID,
 		TelemetrySettings: component.TelemetrySettings{
-			Logger:         zap.New(d.logger.Core()).With(zap.String("kind", observerID.String())),
-			TracerProvider: tnoop.NewTracerProvider(),
-			MeterProvider:  mnoop.NewMeterProvider(),
-			MetricsLevel:   configtelemetry.LevelDetailed,
+			Logger:               zap.New(d.logger.Core()).With(zap.String("kind", observerID.String())),
+			TracerProvider:       tnoop.NewTracerProvider(),
+			LeveledMeterProvider: func(configtelemetry.Level) metric.MeterProvider { return mnoop.NewMeterProvider() },
 		},
 		BuildInfo: d.info,
 	}
@@ -560,10 +560,9 @@ func (d *discoverer) createExtensionCreateSettings(observerID component.ID) otel
 func (d *discoverer) createReceiverCreateSettings() otelcolreceiver.Settings {
 	return otelcolreceiver.Settings{
 		TelemetrySettings: component.TelemetrySettings{
-			Logger:         zap.New(d.logger.Core()).With(zap.String("kind", "receiver")),
-			TracerProvider: tnoop.NewTracerProvider(),
-			MeterProvider:  mnoop.NewMeterProvider(),
-			MetricsLevel:   configtelemetry.LevelDetailed,
+			Logger:               zap.New(d.logger.Core()).With(zap.String("kind", "receiver")),
+			TracerProvider:       tnoop.NewTracerProvider(),
+			LeveledMeterProvider: func(configtelemetry.Level) metric.MeterProvider { return mnoop.NewMeterProvider() },
 		},
 		BuildInfo: d.info,
 	}

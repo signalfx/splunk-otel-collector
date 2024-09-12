@@ -21,8 +21,10 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/config/configtelemetry"
 	"go.opentelemetry.io/collector/extension"
 	otelcolreceiver "go.opentelemetry.io/collector/receiver"
+	"go.opentelemetry.io/otel/metric"
 	mnoop "go.opentelemetry.io/otel/metric/noop"
 	tnoop "go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/zap"
@@ -31,9 +33,9 @@ import (
 func TestNewDiscoveryReceiver(t *testing.T) {
 	rcs := otelcolreceiver.Settings{
 		TelemetrySettings: component.TelemetrySettings{
-			Logger:         zap.NewNop(),
-			MeterProvider:  mnoop.NewMeterProvider(),
-			TracerProvider: tnoop.NewTracerProvider(),
+			Logger:               zap.NewNop(),
+			LeveledMeterProvider: func(configtelemetry.Level) metric.MeterProvider { return mnoop.NewMeterProvider() },
+			TracerProvider:       tnoop.NewTracerProvider(),
 		},
 	}
 	cfg := &Config{}
@@ -101,9 +103,9 @@ func TestObservablesFromHost(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			rcs := otelcolreceiver.Settings{
 				TelemetrySettings: component.TelemetrySettings{
-					Logger:         zap.NewNop(),
-					TracerProvider: tnoop.NewTracerProvider(),
-					MeterProvider:  mnoop.NewMeterProvider(),
+					Logger:               zap.NewNop(),
+					TracerProvider:       tnoop.NewTracerProvider(),
+					LeveledMeterProvider: func(configtelemetry.Level) metric.MeterProvider { return mnoop.NewMeterProvider() },
 				},
 			}
 			host := mockHost{extensions: test.extensions}

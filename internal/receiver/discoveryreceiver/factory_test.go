@@ -37,7 +37,7 @@ func TestCreateDefaultConfig(t *testing.T) {
 	}, cfg)
 }
 
-func TestCreateLogsReceiver(t *testing.T) {
+func TestLogsReceiver(t *testing.T) {
 	factory := NewFactory()
 	cfg := factory.CreateDefaultConfig()
 
@@ -45,27 +45,32 @@ func TestCreateLogsReceiver(t *testing.T) {
 	receiver, err := factory.CreateLogsReceiver(context.Background(), params, cfg, consumertest.NewNop())
 	assert.NoError(t, err)
 	assert.NotNil(t, receiver)
+	require.NoError(t, receiver.Start(context.Background(), componenttest.NewNopHost()))
+	require.NoError(t, receiver.Shutdown(context.Background()))
 }
 
-func TestCreateMetricsReceiver(t *testing.T) {
+func TestMetricsReceiver(t *testing.T) {
 	factory := NewFactory()
 	cfg := &Config{}
 	require.Error(t, cfg.Validate())
 
 	params := receivertest.NewNopSettings()
-	rcvr, err := factory.CreateMetricsReceiver(context.Background(), params, cfg, consumertest.NewNop())
+	receiver, err := factory.CreateMetricsReceiver(context.Background(), params, cfg, consumertest.NewNop())
 	require.NoError(t, err)
-	assert.NotNil(t, rcvr)
+	assert.NotNil(t, receiver)
+
+	require.NoError(t, receiver.Start(context.Background(), componenttest.NewNopHost()))
+	require.NoError(t, receiver.Shutdown(context.Background()))
 }
 
-func TestCreateTracesReceiver(t *testing.T) {
+func TestTracesReceiver(t *testing.T) {
 	factory := NewFactory()
 	cfg := &Config{}
 	require.Error(t, cfg.Validate())
 
 	params := receivertest.NewNopSettings()
-	rcvr, err := factory.CreateTracesReceiver(context.Background(), params, cfg, consumertest.NewNop())
+	receiver, err := factory.CreateTracesReceiver(context.Background(), params, cfg, consumertest.NewNop())
 	require.Error(t, err)
 	assert.EqualError(t, err, "telemetry type is not supported")
-	assert.Nil(t, rcvr)
+	assert.Nil(t, receiver)
 }

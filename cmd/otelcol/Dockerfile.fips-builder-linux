@@ -31,7 +31,8 @@ WORKDIR /src
 RUN make otelcol BUILD_INFO="${BUILD_INFO}"
 
 # check the binary
-RUN ( ldd ./bin/otelcol_${GOOS}_${GOARCH} || exit 0 ) || ( echo "the binary is not statically-linked" && exit 1 )
+RUN test -f ./bin/otelcol_${GOOS}_${GOARCH}
+RUN (ldd ./bin/otelcol_${GOOS}_${GOARCH} 2>&1 || exit 0 ) || ( echo "the binary is not statically-linked" && exit 1 )
 RUN go version ./bin/otelcol_${GOOS}_${GOARCH} | grep "X:${GOEXPERIMENT}"
 RUN go tool nm ./bin/otelcol_${GOOS}_${GOARCH} > symbols
 RUN grep -i "fipsonly" symbols

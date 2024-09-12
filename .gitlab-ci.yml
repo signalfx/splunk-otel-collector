@@ -314,15 +314,20 @@ compile:
 otelcol-fips:
   only:
     - otelcol-fips-linux
-  extends:
-    # - .trigger-filter
-    - .go-cache
+  # extends:
+  #   - .trigger-filter
   stage: build
   needs: []
   parallel:
     matrix:
-      - GOOS: [linux]
-        GOARCH: [amd64, arm64]
+      - GOOS: linux
+        GOARCH: amd64
+        TAG: main
+      - GOOS: linux
+        GOARCH: arm64
+        TAG: arm
+  tags:
+    - $TAG
   script:
     - |
       if [[ -n "${CI_COMMIT_TAG:-}" ]]; then

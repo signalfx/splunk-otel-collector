@@ -115,6 +115,7 @@ import (
 	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/exporter/debugexporter"
 	"go.opentelemetry.io/collector/exporter/loggingexporter"
+	"go.opentelemetry.io/collector/exporter/nopexporter"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
 	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
 	"go.opentelemetry.io/collector/extension"
@@ -125,6 +126,7 @@ import (
 	"go.opentelemetry.io/collector/processor/batchprocessor"
 	"go.opentelemetry.io/collector/processor/memorylimiterprocessor"
 	"go.opentelemetry.io/collector/receiver"
+	"go.opentelemetry.io/collector/receiver/nopreceiver"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"go.uber.org/multierr"
 
@@ -196,6 +198,7 @@ func Get() (otelcol.Factories, error) {
 		mongodbreceiver.NewFactory(),
 		mysqlreceiver.NewFactory(),
 		nginxreceiver.NewFactory(),
+		nopreceiver.NewFactory(),
 		oracledbreceiver.NewFactory(),
 		otlpreceiver.NewFactory(),
 		postgresqlreceiver.NewFactory(),
@@ -237,6 +240,7 @@ func Get() (otelcol.Factories, error) {
 		kafkaexporter.NewFactory(),
 		loadbalancingexporter.NewFactory(),
 		loggingexporter.NewFactory(),
+		nopexporter.NewFactory(),
 		otlpexporter.NewFactory(),
 		otlphttpexporter.NewFactory(),
 		pulsarexporter.NewFactory(),

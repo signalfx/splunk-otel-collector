@@ -9,6 +9,7 @@
 ### 🚀 New components 🚀
 
 - (Splunk) Add `apachespark` receiver ([#5318](https://github.com/signalfx/splunk-otel-collector/pull/5318))
+- (Splunk) Add `nop` receiver and exporter ([#5355](https://github.com/signalfx/splunk-otel-collector/pull/5355))
 
 ### 💡 Enhancements 💡
 

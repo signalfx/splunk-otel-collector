@@ -329,6 +329,9 @@ otelcol-fips:
         TAG: arm
   tags:
     - $TAG
+  id_tokens:  # http://go/gitlab-17
+    CI_JOB_JWT:
+      aud: $CICD_VAULT_ADDR
   script:
     - *docker-reader-role
     - |

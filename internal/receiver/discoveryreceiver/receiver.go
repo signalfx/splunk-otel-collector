@@ -107,15 +107,16 @@ func (d *discoveryReceiver) Start(ctx context.Context, host component.Host) (err
 		return fmt.Errorf("failed creating internal receiver_creator: %w", err)
 	}
 
-	loopStarted := &sync.WaitGroup{}
-	loopStarted.Add(1)
-	d.loopFinished.Add(1)
-	go d.consumerLoop(loopStarted)
-	// wait until we know consumer loop is running before starting receiver creator
-	// so as not to miss any resulting telemetry
-	d.logger.Debug("log consumer initializing")
-	loopStarted.Wait()
-	d.logger.Debug("successfully initialized")
+	if d.nextLogsConsumer != nil {
+		loopStarted := &sync.WaitGroup{}
+		loopStarted.Add(1)
+		d.loopFinished.Add(1)
+		go d.consumerLoop(loopStarted)
+		// wait until we know consumer loop is running before starting receiver creator
+		// so as not to miss any resulting telemetry
+		loopStarted.Wait()
+		d.logger.Debug("log consumer initializing initialized")
+	}
 
 	if err = d.receiverCreator.Start(ctx, host); err != nil {
 		return fmt.Errorf("failed starting internal receiver_creator: %w", err)
@@ -127,14 +128,11 @@ func (d *discoveryReceiver) Start(ctx context.Context, host component.Host) (err
 func (d *discoveryReceiver) Shutdown(ctx context.Context) error {
 	if d.endpointTracker != nil {
 		d.endpointTracker.stop()
-		defer func() {
-			d.logger.Debug("discovery receiver shutting down")
-			d.sentinel <- struct{}{}
-			d.loopFinished.Wait()
-			close(d.sentinel)
-			close(d.pLogs)
-			d.logger.Debug("finished shutdown")
-		}()
+		d.logger.Debug("discovery receiver shutting down")
+		close(d.sentinel)
+		d.loopFinished.Wait()
+		close(d.pLogs)
+		d.logger.Debug("finished shutdown")
 	}
 
 	if d.receiverCreator != nil {

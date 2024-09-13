@@ -93,15 +93,20 @@ func (d *discoveryReceiver) Start(ctx context.Context, host component.Host) (err
 		return fmt.Errorf("failed obtaining observables from host: %w", err)
 	}
 
-	correlations := newCorrelationStore(d.logger, d.config.CorrelationTTL)
-	d.endpointTracker = newEndpointTracker(d.observables, d.config, d.logger, d.pLogs, correlations)
-	d.endpointTracker.start()
+	var correlations *correlationStore
+	if d.nextLogsConsumer != nil {
+		correlations = newCorrelationStore(d.logger, d.config.CorrelationTTL)
+		if d.nextLogsConsumer != nil {
+			d.endpointTracker = newEndpointTracker(d.observables, d.config, d.logger, d.pLogs, correlations)
+			d.endpointTracker.start()
+		}
+
+		if d.statementEvaluator, err = newStatementEvaluator(d.logger, d.settings.ID, d.config, correlations); err != nil {
+			return fmt.Errorf("failed creating statement evaluator: %w", err)
+		}
+	}
 
 	d.metricsConsumer = newMetricsConsumer(d.logger, d.config, correlations, d.nextMetricsConsumer)
-
-	if d.statementEvaluator, err = newStatementEvaluator(d.logger, d.settings.ID, d.config, correlations); err != nil {
-		return fmt.Errorf("failed creating statement evaluator: %w", err)
-	}
 
 	if err = d.createAndSetReceiverCreator(); err != nil {
 		return fmt.Errorf("failed creating internal receiver_creator: %w", err)
@@ -172,18 +177,22 @@ func (d *discoveryReceiver) createAndSetReceiverCreator() error {
 		return err
 	}
 	id := component.MustNewIDWithName(receiverCreatorFactory.Type().String(), d.settings.ID.String())
-	// receiverCreatorConfig.SetIDName(d.settings.ID.String())
+	ts := component.TelemetrySettings{
+		Logger:               d.logger,
+		TracerProvider:       tnoop.NewTracerProvider(),
+		LeveledMeterProvider: func(configtelemetry.Level) metric.MeterProvider { return mnoop.NewMeterProvider() },
+	}
+	if d.statementEvaluator != nil {
+		// TODO: Introduce a wrapper logger that combines the receiver_creator logger with the statement evaluator logger
+		//   in a way that we avoid flooding the logs with errors but still provide enough information to debug issues.
+		ts.Logger = d.statementEvaluator.evaluatedLogger.With(
+			zap.String("kind", "receiver"),
+			zap.String("name", id.String()),
+		)
+	}
 	receiverCreatorSettings := receiver.Settings{
-		ID: id,
-		TelemetrySettings: component.TelemetrySettings{
-			Logger: d.statementEvaluator.evaluatedLogger.With(
-				zap.String("kind", "receiver"),
-				zap.String("name", id.String()),
-			),
-			TracerProvider:       tnoop.NewTracerProvider(),
-			LeveledMeterProvider: func(configtelemetry.Level) metric.MeterProvider { return mnoop.NewMeterProvider() },
-			MetricsLevel:         configtelemetry.LevelDetailed,
-		},
+		ID:                id,
+		TelemetrySettings: ts,
 		BuildInfo: component.BuildInfo{
 			Command: "discovery",
 			Version: "latest",

@@ -46,14 +46,15 @@ type metricsConsumer struct {
 }
 
 func newMetricsConsumer(logger *zap.Logger, cfg *Config, correlations *correlationStore, nextConsumer consumer.Metrics) *metricsConsumer {
-	return &metricsConsumer{
-		evaluator: newEvaluator(logger, cfg, correlations,
+	mc := &metricsConsumer{nextConsumer: nextConsumer}
+	if correlations != nil {
+		mc.evaluator = newEvaluator(logger, cfg, correlations,
 			// TODO: provide more capable env w/ resource and metric attributes
 			func(pattern string) map[string]any {
 				return map[string]any{"name": pattern}
-			}),
-		nextConsumer: nextConsumer,
+			})
 	}
+	return mc
 }
 
 func (m *metricsConsumer) Capabilities() consumer.Capabilities {
@@ -71,6 +72,9 @@ func (m *metricsConsumer) ConsumeMetrics(ctx context.Context, md pmetric.Metrics
 // evaluateMetrics parses the provided Metrics and returns plog.Logs with a single log record if it matches
 // against the first applicable configured Status match rule.
 func (m *metricsConsumer) evaluateMetrics(md pmetric.Metrics) {
+	if m.evaluator == nil {
+		return
+	}
 	if ce := m.logger.Check(zapcore.DebugLevel, "evaluating metrics"); ce != nil {
 		if mbytes, err := jsonMarshaler.MarshalMetrics(md); err == nil {
 			ce.Write(zap.ByteString("metrics", mbytes))

@@ -9,7 +9,7 @@ receivers:
       apache:
         config:
           endpoint: http://`endpoint`/server-status?auto
-        rule: type == "container" and any([name, image, command], {# matches "(?i)httpd"}) and not (command matches "splunk.discovery")
+        rule: type == "container" and any([name, image, command], {# matches "(?i)(httpd|apache2).*"}) and not (command matches "splunk.discovery")
         status:
           metrics:
             - status: successful

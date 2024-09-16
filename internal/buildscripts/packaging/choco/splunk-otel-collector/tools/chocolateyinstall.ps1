@@ -47,6 +47,7 @@ $env_var_names = @(
     "SPLUNK_BUNDLE_DIR",
     "SPLUNK_LISTEN_INTERFACE"
 )
+$custom_entries = @()
 $upgraded_from_version_with_machine_wide_env_vars = $false
 
 Write-Host "Checking for previous installation..."
@@ -78,7 +79,11 @@ if (Test-Path $reg_path) {
         Write-Host "Found previous environment variables for the $service_name service."
         foreach ($entry in $previous_environment) {
             $k, $v = $entry.Split("=", 2)
-            $env_vars[$k] = $v
+            if ($k -Match "^[0-9A-Za-z_]+$") {
+                $env_vars[$k] = $v
+            } else {
+                $custom_entries += $entry
+            }
         }
     }
 }
@@ -159,7 +164,16 @@ if ($MODE) {
 }
 $packageArgs["silentArgs"] += $msi_properties_args
 
-Install-ChocolateyInstallPackage @packageArgs
+try {
+    Install-ChocolateyInstallPackage @packageArgs
+} finally {
+    # Add any custom entries back to the reg key
+    if ($custom_entries) {
+        $custom_entries += (Get-ItemPropertyValue -Path $reg_path -Name "Environment")
+        $custom_entries = $custom_entries | Sort-Object -Unique
+        Set-ItemProperty -Path $reg_path -Name "Environment" -Value $custom_entries -Type MultiString
+    }
+}
 
 # Install and configure fluentd to forward log events to the collector.
 if ($WITH_FLUENTD) {

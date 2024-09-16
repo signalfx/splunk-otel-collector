@@ -377,11 +377,19 @@ jobs:
             if ($LASTEXITCODE -ne 0) {
               throw "choco install failed!"
             }
+            $env_vars = Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -Name "Environment"
+            $env_vars += "MY VAR WITH SPACES=my value"
+            Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -Name "Environment" -Value $env_vars -type MultiString
             Start-Sleep 30
             write-host "Upgrading $choco_file_name ..."
             choco upgrade splunk-otel-collector -s=".\dist" -y
             if ($LASTEXITCODE -ne 0) {
               throw "choco upgrade failed!"
+            }
+            $env_vars = Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -Name "Environment"
+            if (!($env_vars -contains "MY VAR WITH SPACES=my value")) {
+              $env_vars
+              throw "'MY VAR WITH SPACES=my value' not found!"
             }
           }
           Start-Sleep -s 30

@@ -129,6 +129,7 @@ require (
 	go.etcd.io/etcd/client/v2 v2.305.15
 	go.opentelemetry.io/collector/component/componentstatus v0.109.0
 	go.opentelemetry.io/collector/config/confighttp v0.109.0
+	go.opentelemetry.io/collector/config/configopaque v1.15.0
 	go.opentelemetry.io/collector/config/configtelemetry v0.109.0
 	go.opentelemetry.io/collector/confmap v1.15.0
 	go.opentelemetry.io/collector/confmap/provider/envprovider v1.15.0
@@ -350,7 +351,6 @@ require (
 	go.opentelemetry.io/collector/config/configcompression v1.15.0 // indirect
 	go.opentelemetry.io/collector/config/configgrpc v0.109.0 // indirect
 	go.opentelemetry.io/collector/config/confignet v0.109.0 // indirect
-	go.opentelemetry.io/collector/config/configopaque v1.15.0 // indirect
 	go.opentelemetry.io/collector/config/configretry v1.15.0 // indirect
 	go.opentelemetry.io/collector/config/configtls v1.15.0 // indirect
 	go.opentelemetry.io/collector/config/internal v0.109.0 // indirect
@@ -625,7 +625,7 @@ require (
 	go.opencensus.io v0.24.0
 	go.opentelemetry.io/collector/component v0.109.0
 	go.opentelemetry.io/collector/consumer v0.109.0
-	go.opentelemetry.io/collector/featuregate v1.15.0 // indirect
+	go.opentelemetry.io/collector/featuregate v1.15.0
 	go.opentelemetry.io/collector/semconv v0.109.0
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.55.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.55.0 // indirect

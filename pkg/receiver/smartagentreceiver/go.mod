@@ -206,7 +206,7 @@ require (
 	go.opentelemetry.io/collector/pdata/pprofile v0.109.0 // indirect
 	go.opentelemetry.io/collector/receiver/receiverprofiles v0.109.0 // indirect
 	go.opentelemetry.io/collector/semconv v0.109.0 // indirect
-	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.53.0 // indirect
+	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.54.0 // indirect
 	go.opentelemetry.io/otel v1.29.0 // indirect
 	go.opentelemetry.io/otel/exporters/prometheus v0.51.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.29.0 // indirect

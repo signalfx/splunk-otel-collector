@@ -14,7 +14,7 @@ require (
 	github.com/gogo/protobuf v1.3.2
 	github.com/hashicorp/vault v1.17.5
 	github.com/hashicorp/vault-plugin-auth-gcp v0.18.0
-	github.com/hashicorp/vault/api v1.14.0
+	github.com/hashicorp/vault/api v1.15.0
 	github.com/jaegertracing/jaeger v1.60.0
 	github.com/knadh/koanf v1.5.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/countconnector v0.109.0
@@ -436,7 +436,6 @@ require (
 	github.com/aws/smithy-go v1.20.4 // indirect
 	github.com/beevik/ntp v1.4.3 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/cenkalti/backoff/v3 v3.2.2 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cloudfoundry-incubator/uaago v0.0.0-20190307164349-8136b7bbe76e // indirect
 	github.com/containerd/containerd v1.7.18 // indirect

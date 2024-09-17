@@ -27,6 +27,7 @@ import (
 	"go.opentelemetry.io/collector/config/configopaque"
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/confmap/provider/envprovider"
+	"go.opentelemetry.io/collector/confmap/provider/fileprovider"
 	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
 	"go.opentelemetry.io/collector/featuregate"
 	"go.opentelemetry.io/collector/otelcol"
@@ -110,18 +111,20 @@ func TestConfigDProviderInvalidURIs(t *testing.T) {
 
 func TestDiscoveryProvider_ContinuousDiscoveryConfig(t *testing.T) {
 	require.NoError(t, featuregate.GlobalRegistry().Set(continuousDiscoveryFGKey, true))
-	t.Setenv("SPLUNK_REALM", "fake-realm")
+	t.Setenv("SPLUNK_INGEST_URL", "https://ingest.fake-realm.signalfx.com")
 	t.Setenv("SPLUNK_ACCESS_TOKEN", "fake-token")
 
 	confmapProvider, err := New()
 	require.NoError(t, err)
 
-	cfgDir, err := filepath.Abs(filepath.Join(".", "testdata", "config.d"))
-	require.NoError(t, err)
 	provider, err := otelcol.NewConfigProvider(otelcol.ConfigProviderSettings{
 		ResolverSettings: confmap.ResolverSettings{
-			URIs: []string{fmt.Sprintf("%s:%s", discoveryModeScheme, cfgDir)},
+			URIs: []string{
+				fmt.Sprintf("file:%s", filepath.Join("testdata", "base-config.yaml")),
+				fmt.Sprintf("%s:%s", discoveryModeScheme, filepath.Join("testdata", "config.d")),
+			},
 			ProviderFactories: []confmap.ProviderFactory{
+				fileprovider.NewFactory(),
 				confmapProvider.DiscoveryModeProviderFactory(),
 				envprovider.NewFactory(),
 			},

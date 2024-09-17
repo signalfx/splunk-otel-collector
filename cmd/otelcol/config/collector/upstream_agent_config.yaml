@@ -86,6 +86,7 @@ receivers:
     endpoint: 0.0.0.0:9943
   zipkin:
     endpoint: 0.0.0.0:9411
+  nop:
 
 processors:
   batch:
@@ -132,6 +133,11 @@ exporters:
     #ingest_url: http://${SPLUNK_GATEWAY_URL}:9943
     sync_host_metadata: true
     correlation:
+  # Entities (applicable only if discovery mode is enabled)
+  otlphttp/entities:
+    logs_endpoint: "${SPLUNK_INGEST_URL}/v3/event"
+    headers:
+      "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
   splunk_hec/profiling:
     token: "${SPLUNK_ACCESS_TOKEN}"
     endpoint: "https://ingest.${SPLUNK_REALM}.signalfx.com/v1/log"
@@ -180,6 +186,11 @@ service:
       exporters: [signalfx]
       # Use instead when sending to gateway
       #exporters: [otlp]
+    logs/entities:
+      # Receivers are dynamically added if discovery mode is enabled
+      receivers: [nop]
+      processors: [memory_limiter, batch, resourcedetection]
+      exporters: [otlphttp/entities]
     # Required for profiling
     logs:
       receivers: [otlp]

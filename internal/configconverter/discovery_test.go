@@ -226,6 +226,87 @@ func TestDiscoveryEmptyReceivers(t *testing.T) {
 	require.Equal(t, expected.ToStringMap(), in.ToStringMap())
 }
 
+func TestContinuousDiscoveryNoEntitiesPipeline(t *testing.T) {
+	in := confFromYaml(t, `service:
+  pipelines:
+    metrics:
+      processors: [proc/one, proc/two, proc/three]
+      exporters: [exp/one, exp/two, exp/three]
+    metrics/untouched:
+      receivers: [recv/six, recv/seven, recv/eight]
+      processors: [proc/six, proc/seven, proc/eight]
+      exporters: [exp/six, exp/seven, exp/eight]
+    logs/untouched:
+      receivers: [recv/six]
+      processors: [proc/six]
+      exporters: [exp/six]
+  receivers/splunk.discovery: [discovery/host_observer]
+`)
+
+	expected := confFromYaml(t, `service:
+  pipelines:
+    metrics:
+      receivers: [discovery/host_observer]
+      processors: [proc/one, proc/two, proc/three]
+      exporters: [exp/one, exp/two, exp/three]
+    metrics/untouched:
+      receivers: [recv/six, recv/seven, recv/eight]
+      processors: [proc/six, proc/seven, proc/eight]
+      exporters: [exp/six, exp/seven, exp/eight]
+    logs/untouched:
+      receivers: [recv/six]
+      processors: [proc/six]
+      exporters: [exp/six]
+  telemetry:
+    resource:
+      splunk_autodiscovery: "true"
+`)
+
+	require.NoError(t, SetupDiscovery(context.Background(), in))
+	require.Equal(t, expected.ToStringMap(), in.ToStringMap())
+}
+
+func TestContinuousDiscoveryWithEntitiesPipeline(t *testing.T) {
+	in := confFromYaml(t, `service:
+  pipelines:
+    metrics:
+      receivers: [recv/one]
+      processors: [proc/one, proc/two, proc/three]
+      exporters: [exp/one, exp/two, exp/three]
+    logs/entities:
+      receivers: [recv/one, recv/two]
+      processors: [proc/one, proc/two]
+      exporters: [exp/one, exp/two]
+    logs/untouched:
+      receivers: [recv/three]
+      processors: [proc/three]
+      exporters: [exp/three]
+  receivers/splunk.discovery: [discovery/one, discovery/two]
+`)
+
+	expected := confFromYaml(t, `service:
+  pipelines:
+    metrics:
+      receivers: [recv/one, discovery/one, discovery/two]
+      processors: [proc/one, proc/two, proc/three]
+      exporters: [exp/one, exp/two, exp/three]
+    logs/entities:
+      receivers: [recv/one, recv/two, discovery/one, discovery/two]
+      processors: [proc/one, proc/two]
+      exporters: [exp/one, exp/two]
+    logs/untouched:
+      receivers: [recv/three]
+      processors: [proc/three]
+      exporters: [exp/three]
+  telemetry:
+    resource:
+      splunk_autodiscovery: "true"
+`)
+
+	require.NoError(t, SetupDiscovery(context.Background(), in))
+	require.Equal(t, expected.ToStringMap(), in.ToStringMap())
+}
+
 func confFromYaml(t testing.TB, content string) *confmap.Conf {
 	var conf map[string]any
 	if err := yaml.Unmarshal([]byte(content), &conf); err != nil {

@@ -26,6 +26,7 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/utils"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/pipeline"
 	otelcolreceiver "go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/receiverhelper"
@@ -208,6 +209,41 @@ func (out *output) Copy() types.Output {
 	return &cp
 }
 
+func (out *output) SendMetrics(metrics ...pmetric.Metric) {
+	if out.nextMetricsConsumer == nil {
+		return
+	}
+
+	ctx := out.reporter.StartMetricsOp(context.Background())
+
+	metrics = out.filterMetrics(metrics)
+	pm := pmetric.NewMetrics()
+	rm := pm.ResourceMetrics().AppendEmpty()
+	sm := rm.ScopeMetrics().AppendEmpty()
+	for _, dp := range metrics {
+		for k, v := range out.extraDimensions {
+			switch dp.Type() {
+			case pmetric.MetricTypeGauge:
+				for i := 0; i < dp.Gauge().DataPoints().Len(); i++ {
+					dp.Gauge().DataPoints().At(i).Attributes().PutStr(k, v)
+				}
+			case pmetric.MetricTypeSum:
+				for i := 0; i < dp.Sum().DataPoints().Len(); i++ {
+					dp.Sum().DataPoints().At(i).Attributes().PutStr(k, v)
+				}
+			default:
+				out.logger.Error("Unsupported metric type", zap.Any("type", dp.Type()), zap.String("name", dp.Name()))
+			}
+
+		}
+		dp.MoveTo(sm.Metrics().AppendEmpty())
+	}
+
+	numPoints := pm.MetricCount()
+	err := out.nextMetricsConsumer.ConsumeMetrics(context.Background(), pm)
+	out.reporter.EndMetricsOp(ctx, typeStr, numPoints, err)
+}
+
 func (out *output) SendDatapoints(datapoints ...*datapoint.Datapoint) {
 	if out.nextMetricsConsumer == nil {
 		return
@@ -282,10 +318,26 @@ func (out *output) AddExtraDimension(key, value string) {
 	out.extraDimensions[key] = value
 }
 
+func (out *output) filterMetrics(metrics []pmetric.Metric) []pmetric.Metric {
+	if out.monitorFiltering.filterSet == nil {
+		return metrics
+	}
+	filteredMetrics := make([]pmetric.Metric, 0, len(metrics))
+	for _, m := range metrics {
+		if !out.monitorFiltering.filterSet.MatchesMetric(m) {
+			filteredMetrics = append(filteredMetrics, m)
+		}
+	}
+	return filteredMetrics
+}
+
 func (out *output) filterDatapoints(datapoints []*datapoint.Datapoint) []*datapoint.Datapoint {
+	if out.monitorFiltering.filterSet == nil {
+		return datapoints
+	}
 	filteredDatapoints := make([]*datapoint.Datapoint, 0, len(datapoints))
 	for _, dp := range datapoints {
-		if out.monitorFiltering.filterSet == nil || !out.monitorFiltering.filterSet.Matches(dp) {
+		if !out.monitorFiltering.filterSet.Matches(dp) {
 			filteredDatapoints = append(filteredDatapoints, dp)
 		}
 	}

@@ -3,7 +3,7 @@
 
 ruby_block 'splunk-access-token-unset' do
   block do
-    raise "Set ['splunk_access_token']['splunk_access_token'] as an attribute or on the node's run_state."
+    raise "Set ['splunk_otel_collector']['splunk_access_token'] as an attribute or on the node's run_state."
   end
   only_if { node['splunk_otel_collector']['splunk_access_token'].nil? }
 end

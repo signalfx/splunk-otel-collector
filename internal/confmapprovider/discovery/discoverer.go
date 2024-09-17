@@ -352,24 +352,9 @@ func (d *discoverer) continuousDiscoveryConfig(cfg *Config, discoveryReceiversCo
 	dCfg := map[string]any{
 		"extensions": extensions,
 		"receivers":  discoveryReceiversConfigs,
-		"exporters": map[string]any{
-			"otlphttp/entities": map[string]any{
-				"logs_endpoint": "https://ingest.${SPLUNK_REALM}.signalfx.com/v3/event",
-				"headers": map[string]any{
-					"X-SF-Token": "${SPLUNK_ACCESS_TOKEN}",
-				},
-			},
-		},
 		"service": map[string]any{
 			discovery.DiscoReceiversKey:  receiverIDs,
 			discovery.DiscoExtensionsKey: observerIDs,
-			"pipelines": map[string]any{
-				"logs/entities": map[string]any{
-					"receivers": receiverIDs,
-					// TODO: add processors dynamically in the converter: memory_limiter, resource (in k8s only).
-					"exporters": []string{"otlphttp/entities"},
-				},
-			},
 		},
 	}
 	d.logger.Debug("determined continuous discovery config", zap.Any("config", dCfg))

@@ -92,6 +92,7 @@ receivers:
     #access_token_passthrough: true
   zipkin:
     endpoint: "${SPLUNK_LISTEN_INTERFACE}:9411"
+  nop:
 
 processors:
   batch:
@@ -137,6 +138,11 @@ exporters:
     #ingest_url: http://${SPLUNK_GATEWAY_URL}:9943
     sync_host_metadata: true
     correlation:
+  # Entities (applicable only if discovery mode is enabled)
+  otlphttp/entities:
+    logs_endpoint: "${SPLUNK_INGEST_URL}/v3/event"
+    headers:
+      "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
   # Logs
   splunk_hec:
     token: "${SPLUNK_HEC_TOKEN}"
@@ -190,6 +196,11 @@ service:
       receivers: [signalfx, smartagent/processlist]
       processors: [memory_limiter, batch, resourcedetection]
       exporters: [signalfx]
+    logs/entities:
+      # Receivers are dynamically added if discovery mode is enabled
+      receivers: [nop]
+      processors: [memory_limiter, batch, resourcedetection]
+      exporters: [otlphttp/entities]
     logs:
       receivers: [fluentforward, otlp]
       processors:

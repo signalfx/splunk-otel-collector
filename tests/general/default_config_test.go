@@ -274,6 +274,12 @@ func TestDefaultAgentConfig(t *testing.T) {
 						"token":            "<redacted>",
 						"log_data_enabled": false,
 					},
+					"otlphttp/entities": map[string]any{
+						"logs_endpoint": "https://ingest.not.real.signalfx.com/v3/event",
+						"headers": map[string]any{
+							"X-SF-Token": "<redacted>",
+						},
+					},
 				},
 				"extensions": map[string]any{
 					"health_check": map[string]any{"endpoint": fmt.Sprintf("%s:13133", ip)},
@@ -362,7 +368,8 @@ func TestDefaultAgentConfig(t *testing.T) {
 					},
 					"signalfx":               map[string]any{"endpoint": fmt.Sprintf("%s:9943", ip)},
 					"smartagent/processlist": map[string]any{"type": "processlist"},
-					"zipkin":                 map[string]any{"endpoint": fmt.Sprintf("%s:9411", ip)}},
+					"zipkin":                 map[string]any{"endpoint": fmt.Sprintf("%s:9411", ip)},
+					"nop":                    nil},
 				"service": map[string]any{
 					"telemetry":  map[string]any{"metrics": map[string]any{"address": fmt.Sprintf("%s:8888", ip)}},
 					"extensions": []any{"health_check", "http_forwarder", "zpages", "smartagent"},
@@ -387,6 +394,11 @@ func TestDefaultAgentConfig(t *testing.T) {
 							"exporters":  []any{"sapm", "signalfx"},
 							"processors": []any{"memory_limiter", "batch", "resourcedetection"},
 							"receivers":  []any{"jaeger", "otlp", "zipkin"},
+						},
+						"logs/entities": map[string]any{
+							"receivers":  []any{"nop"},
+							"processors": []any{"memory_limiter", "batch", "resourcedetection"},
+							"exporters":  []any{"otlphttp/entities"},
 						},
 					},
 				},

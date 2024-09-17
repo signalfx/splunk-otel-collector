@@ -17,6 +17,7 @@ package configconverter
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"go.opentelemetry.io/collector/confmap"
 
@@ -58,7 +59,13 @@ func SetupDiscovery(_ context.Context, in *confmap.Conf) error {
 		service["extensions"] = appendUnique(serviceExtensions, discoExtensions)
 	}
 
-	metricsPipeline, metricsReceivers, err := getMetricsPipelineAndReceivers(service)
+	pipelines := map[string]any{}
+	if pl, ok := service["pipelines"]; ok && pl != nil {
+		pipelines = pl.(map[string]any)
+	}
+	service["pipelines"] = pipelines
+
+	metricsPipeline, metricsReceivers, err := getMetricsPipelineAndReceivers(pipelines)
 	if err != nil {
 		return err
 	}
@@ -66,6 +73,8 @@ func SetupDiscovery(_ context.Context, in *confmap.Conf) error {
 	if len(discoReceivers) > 0 {
 		metricsPipeline["receivers"] = appendUnique(metricsReceivers, discoReceivers)
 	}
+
+	setEntitiesPipelineReceivers(pipelines, discoReceivers)
 
 	setAutoDiscoveryResourceAttribute(service)
 
@@ -135,13 +144,7 @@ func getDiscoReceivers(service map[string]any) (bool, []any, error) {
 	return isSet, receivers, nil
 }
 
-func getMetricsPipelineAndReceivers(service map[string]any) (map[string]any, []any, error) {
-	pipelines := map[string]any{}
-	if pl, ok := service["pipelines"]; ok && pl != nil {
-		pipelines = pl.(map[string]any)
-	}
-	service["pipelines"] = pipelines
-
+func getMetricsPipelineAndReceivers(pipelines map[string]any) (map[string]any, []any, error) {
 	metricsPipeline := map[string]any{}
 	if mp, ok := pipelines["metrics"]; ok && mp != nil {
 		metricsPipeline = mp.(map[string]any)
@@ -156,6 +159,25 @@ func getMetricsPipelineAndReceivers(service map[string]any) (map[string]any, []a
 		}
 	}
 	return metricsPipeline, metricsReceivers, nil
+}
+
+func setEntitiesPipelineReceivers(pipelines map[string]any, discoReceivers []any) {
+	ep, ok := pipelines["logs/entities"].(map[string]any)
+	if !ok {
+		// Entities pipeline not set, nothing to do.
+		return
+	}
+
+	var receivers []any
+	if existing, ok := ep["receivers"]; ok && existing != nil {
+		receivers = existing.([]any)
+	}
+	for _, r := range discoReceivers {
+		if strings.HasPrefix(r.(string), "discovery") {
+			receivers = appendUnique(receivers, []any{r})
+		}
+	}
+	ep["receivers"] = receivers
 }
 
 func appendUnique(serviceComponents []any, discoComponents []any) []any {

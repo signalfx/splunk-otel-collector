@@ -5,7 +5,7 @@ package dpfilters
 
 import (
 	"github.com/signalfx/golib/v3/datapoint"
-	"go.opentelemetry.io/collector/pdata/pmetric"
+	"go.opentelemetry.io/collector/pdata/pcommon"
 )
 
 // DatapointFilter can be used to filter out datapoints
@@ -14,5 +14,5 @@ type DatapointFilter interface {
 	// filter
 	Matches(dp *datapoint.Datapoint) bool
 
-	MatchesMetric(m pmetric.Metric) bool
+	MatchesMetricDataPoint(metricName string, dimensions pcommon.Map) bool
 }

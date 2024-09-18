@@ -324,8 +324,35 @@ func (out *output) filterMetrics(metrics []pmetric.Metric) []pmetric.Metric {
 	}
 	filteredMetrics := make([]pmetric.Metric, 0, len(metrics))
 	for _, m := range metrics {
-		if !out.monitorFiltering.filterSet.MatchesMetric(m) {
-			filteredMetrics = append(filteredMetrics, m)
+		atLeastOneDataPoint := false
+		newM := pmetric.NewMetric()
+		newM.SetName(m.Name())
+		newM.SetDescription(m.Description())
+		newM.SetUnit(m.Unit())
+		switch m.Type() {
+		case pmetric.MetricTypeGauge:
+			newM.SetEmptyGauge()
+			for i := 0; i < m.Gauge().DataPoints().Len(); i++ {
+				dp := m.Gauge().DataPoints().At(i)
+				if !out.monitorFiltering.filterSet.MatchesMetricDataPoint(m.Name(), dp.Attributes()) {
+					atLeastOneDataPoint = true
+					dp.CopyTo(newM.Gauge().DataPoints().AppendEmpty())
+				}
+			}
+		case pmetric.MetricTypeSum:
+			newM.SetEmptySum()
+			for i := 0; i < m.Sum().DataPoints().Len(); i++ {
+				dp := m.Sum().DataPoints().At(i)
+				if !out.monitorFiltering.filterSet.MatchesMetricDataPoint(m.Name(), dp.Attributes()) {
+					atLeastOneDataPoint = true
+					dp.CopyTo(newM.Sum().DataPoints().AppendEmpty())
+				}
+			}
+		default:
+			panic("unsupported metric type")
+		}
+		if atLeastOneDataPoint {
+			filteredMetrics = append(filteredMetrics, newM)
 		}
 	}
 	return filteredMetrics

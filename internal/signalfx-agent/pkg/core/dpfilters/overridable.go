@@ -2,10 +2,10 @@ package dpfilters
 
 import (
 	"errors"
+	"go.opentelemetry.io/collector/pdata/pcommon"
 
 	"github.com/signalfx/golib/v3/datapoint"
 	"github.com/signalfx/signalfx-agent/pkg/utils/filter"
-	"go.opentelemetry.io/collector/pdata/pmetric"
 )
 
 type overridableDatapointFilter struct {
@@ -49,25 +49,12 @@ func (f *overridableDatapointFilter) Matches(dp *datapoint.Datapoint) bool {
 		(f.dimFilter == nil || f.dimFilter.Matches(dp.Dimensions))
 }
 
-func (f *overridableDatapointFilter) MatchesMetric(m pmetric.Metric) bool {
-	if f.metricFilter != nil && !f.metricFilter.Matches(m.Name()) {
+func (f *overridableDatapointFilter) MatchesMetricDataPoint(metricName string, dimensions pcommon.Map) bool {
+	if f.metricFilter != nil && !f.metricFilter.Matches(metricName) {
 		return false
 	}
 	if f.dimFilter != nil {
-		switch m.Type() {
-		case pmetric.MetricTypeGauge:
-			if m.Gauge().DataPoints().Len() == 0 {
-				return false
-			}
-			return f.dimFilter.MatchesMap(m.Gauge().DataPoints().At(0).Attributes())
-		case pmetric.MetricTypeSum:
-			if m.Sum().DataPoints().Len() == 0 {
-				return false
-			}
-			return f.dimFilter.MatchesMap(m.Sum().DataPoints().At(0).Attributes())
-		default:
-			panic("Unsupported type: " + m.Type().String())
-		}
+		return f.dimFilter.MatchesMap(dimensions)
 	}
 	return true
 }

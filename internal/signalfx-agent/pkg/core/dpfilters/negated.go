@@ -2,7 +2,7 @@ package dpfilters
 
 import (
 	"github.com/signalfx/golib/v3/datapoint"
-	"go.opentelemetry.io/collector/pdata/pmetric"
+	"go.opentelemetry.io/collector/pdata/pcommon"
 )
 
 // NegatedDatapointFilter is a datapoint filter whose Matches method is made
@@ -17,10 +17,10 @@ func (n *NegatedDatapointFilter) Matches(dp *datapoint.Datapoint) bool {
 	return !n.DatapointFilter.Matches(dp)
 }
 
-// MatchesMetric returns the opposite of what the original filter would have
+// MatchesMetricDataPoint returns the opposite of what the original filter would have
 // returned.
-func (n *NegatedDatapointFilter) MatchesMetric(m pmetric.Metric) bool {
-	return !n.DatapointFilter.MatchesMetric(m)
+func (n *NegatedDatapointFilter) MatchesMetricDataPoint(metricName string, dimensions pcommon.Map) bool {
+	return !n.DatapointFilter.MatchesMetricDataPoint(metricName, dimensions)
 }
 
 // Negate returns the supplied filter negated such Matches returns the

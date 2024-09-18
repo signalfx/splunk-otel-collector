@@ -26,7 +26,7 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/monitors/prometheusexporter"
 	"github.com/signalfx/signalfx-agent/pkg/utils"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/pdata/pmetric"
+	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.uber.org/zap"
 )
 
@@ -64,10 +64,7 @@ func TestDefaultMetrics(t *testing.T) {
 		for metric := range exhaustiveMetadata.DefaultMetrics {
 			localMetric := metric
 			t.Run(fmt.Sprintf("included metric %s should send", metric), func(t *testing.T) {
-				m := pmetric.NewMetric()
-				m.SetName(localMetric)
-				m.SetEmptyGauge()
-				if !filter.MatchesMetric(m) {
+				if !filter.MatchesMetricDataPoint(localMetric, pcommon.NewMap()) {
 					t.Error()
 				}
 			})
@@ -93,10 +90,7 @@ func TestExtraMetrics(t *testing.T) {
 			"mem.free":      false,
 			"mem.available": false,
 		} {
-			m := pmetric.NewMetric()
-			m.SetName(metric)
-			m.SetEmptyGauge()
-			sent := filter.MatchesMetric(m)
+			sent := filter.MatchesMetricDataPoint(metric, pcommon.NewMap())
 			if sent && !shouldSend {
 				t.Errorf("metric %s should not have sent", metric)
 			}
@@ -117,10 +111,7 @@ func TestExtraMetrics(t *testing.T) {
 			"mem.used":                        true,
 			"mem.free":                        false,
 		} {
-			m := pmetric.NewMetric()
-			m.SetName(metric)
-			m.SetEmptyGauge()
-			sent := filter.MatchesMetric(m)
+			sent := filter.MatchesMetricDataPoint(metric, pcommon.NewMap())
 			if sent && !shouldSend {
 				t.Errorf("metric %s should not have sent", metric)
 			}
@@ -142,10 +133,7 @@ func TestGlobbedMetricNames(t *testing.T) {
 		}
 
 		for _, metric := range metrics {
-			m := pmetric.NewMetric()
-			m.SetName(metric)
-			m.SetEmptyGauge()
-			if !filter.MatchesMetric(m) {
+			if !filter.MatchesMetricDataPoint(metric, pcommon.NewMap()) {
 				t.Errorf("metric %s should have been sent", metric)
 			}
 		}
@@ -157,10 +145,7 @@ func TestExtraMetricGroups(t *testing.T) {
 		t.Error(err)
 	} else {
 		for _, metric := range exhaustiveMetadata.GroupMetricsMap["mem"] {
-			m := pmetric.NewMetric()
-			m.SetName(metric)
-			m.SetEmptyGauge()
-			if !filter.MatchesMetric(m) {
+			if !filter.MatchesMetricDataPoint(metric, pcommon.NewMap()) {
 				t.Errorf("metric %s should have been sent", metric)
 			}
 		}
@@ -212,10 +197,7 @@ func TestEmptyMetadata(t *testing.T) {
 	filter, err := newMetricsFilter(&monitors.Metadata{}, nil, nil, zap.NewNop())
 	require.NoError(t, err)
 	require.NotNil(t, filter)
-	m := pmetric.NewMetric()
-	m.SetName("metric")
-	m.SetEmptyGauge()
-	require.True(t, filter.MatchesMetric(m))
+	require.True(t, filter.MatchesMetricDataPoint("metric", pcommon.NewMap()))
 }
 
 func TestNewMonitorFilteringWithExtraMetrics(t *testing.T) {

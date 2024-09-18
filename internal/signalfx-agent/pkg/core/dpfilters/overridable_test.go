@@ -26,31 +26,31 @@ func init() {
 func TestOverridableFilters(t *testing.T) {
 	t.Run("Exclude based on simple metric name", func(t *testing.T) {
 		f, _ := NewOverridable([]string{"cpu.utilization"}, nil)
-		assert.True(t, f.MatchesMetric(cpu))
-		assert.False(t, f.MatchesMetric(memory))
+		assert.True(t, f.MatchesMetricDataPoint(cpu))
+		assert.False(t, f.MatchesMetricDataPoint(memory))
 	})
 
 	t.Run("Excludes based on multiple metric names", func(t *testing.T) {
 		f, _ := NewOverridable([]string{"cpu.utilization", "memory.utilization"}, nil)
 
-		assert.True(t, f.MatchesMetric(cpu))
-		assert.True(t, f.MatchesMetric(memory))
-		assert.False(t, f.MatchesMetric(disk))
+		assert.True(t, f.MatchesMetricDataPoint(cpu))
+		assert.True(t, f.MatchesMetricDataPoint(memory))
+		assert.False(t, f.MatchesMetricDataPoint(disk))
 	})
 
 	t.Run("Excludes based on regex metric name", func(t *testing.T) {
 		f, _ := NewOverridable([]string{`/cpu\..*/`}, nil)
-		assert.True(t, f.MatchesMetric(cpu))
+		assert.True(t, f.MatchesMetricDataPoint(cpu))
 
-		assert.False(t, f.MatchesMetric(disk))
+		assert.False(t, f.MatchesMetricDataPoint(disk))
 	})
 
 	t.Run("Excludes based on glob metric name", func(t *testing.T) {
 		f, _ := NewOverridable([]string{`cpu.util*`, "memor*"}, nil)
-		assert.True(t, f.MatchesMetric(cpu))
-		assert.True(t, f.MatchesMetric(memory))
+		assert.True(t, f.MatchesMetricDataPoint(cpu))
+		assert.True(t, f.MatchesMetricDataPoint(memory))
 
-		assert.False(t, f.MatchesMetric(disk))
+		assert.False(t, f.MatchesMetricDataPoint(disk))
 	})
 
 	t.Run("Excludes based on dimension name", func(t *testing.T) {
@@ -61,11 +61,11 @@ func TestOverridableFilters(t *testing.T) {
 		m := pmetric.NewMetric()
 		m.SetName("cpu.utilization")
 		m.SetEmptyGauge().DataPoints().AppendEmpty().Attributes().PutStr("container_name", "PO")
-		assert.True(t, f.MatchesMetric(m))
+		assert.True(t, f.MatchesMetricDataPoint(m))
 		m2 := pmetric.NewMetric()
 		m2.SetName("disk.utilization")
 		m2.SetEmptyGauge().DataPoints().AppendEmpty().Attributes().PutStr("container_name", "test")
-		assert.False(t, f.MatchesMetric(m2))
+		assert.False(t, f.MatchesMetricDataPoint(m2))
 	})
 
 	t.Run("Excludes based on dimension name regex", func(t *testing.T) {
@@ -76,11 +76,11 @@ func TestOverridableFilters(t *testing.T) {
 		m := pmetric.NewMetric()
 		m.SetName("cpu.utilization")
 		m.SetEmptyGauge().DataPoints().AppendEmpty().Attributes().PutStr("container_name", "PO")
-		assert.True(t, f.MatchesMetric(m))
+		assert.True(t, f.MatchesMetricDataPoint(m))
 		m2 := pmetric.NewMetric()
 		m2.SetName("disk.utilization")
 		m2.SetEmptyGauge().DataPoints().AppendEmpty().Attributes().PutStr("container_name", "test")
-		assert.False(t, f.MatchesMetric(m2))
+		assert.False(t, f.MatchesMetricDataPoint(m2))
 	})
 
 	t.Run("Excludes based on dimension presence", func(t *testing.T) {
@@ -91,11 +91,11 @@ func TestOverridableFilters(t *testing.T) {
 		m := pmetric.NewMetric()
 		m.SetName("cpu.utilization")
 		m.SetEmptyGauge().DataPoints().AppendEmpty().Attributes().PutStr("container_name", "test")
-		assert.True(t, f.MatchesMetric(m))
+		assert.True(t, f.MatchesMetricDataPoint(m))
 		m2 := pmetric.NewMetric()
 		m2.SetName("cpu.utilization")
 		m2.SetEmptyGauge().DataPoints().AppendEmpty().Attributes().PutStr("host", "localhost")
-		assert.False(t, f.MatchesMetric(m2))
+		assert.False(t, f.MatchesMetricDataPoint(m2))
 	})
 
 	t.Run("Excludes based on dimension name glob", func(t *testing.T) {
@@ -106,18 +106,18 @@ func TestOverridableFilters(t *testing.T) {
 		m.SetName("cpu.utilization")
 		m.SetEmptyGauge().DataPoints().AppendEmpty().Attributes().PutStr("container_name", "POD")
 
-		assert.True(t, f.MatchesMetric(m))
+		assert.True(t, f.MatchesMetricDataPoint(m))
 
 		m2 := pmetric.NewMetric()
 		m2.SetName("cpu.utilization")
 		m2.SetEmptyGauge().DataPoints().AppendEmpty().Attributes().PutStr("container_name", "POD123")
-		assert.True(t, f.MatchesMetric(m2))
+		assert.True(t, f.MatchesMetricDataPoint(m2))
 
 		m3 := pmetric.NewMetric()
 		m3.SetName("disk.utilization")
 		m3.SetEmptyGauge().DataPoints().AppendEmpty().Attributes().PutStr("container_name", "test")
 
-		assert.False(t, f.MatchesMetric(m3))
+		assert.False(t, f.MatchesMetricDataPoint(m3))
 	})
 
 	t.Run("Excludes based on conjunction of both dimensions and metric name", func(t *testing.T) {
@@ -129,19 +129,19 @@ func TestOverridableFilters(t *testing.T) {
 		m.SetName("cpu.utilization")
 		m.SetEmptyGauge().DataPoints().AppendEmpty().Attributes().PutStr("container_name", "not_matching")
 
-		assert.False(t, f.MatchesMetric(m))
+		assert.False(t, f.MatchesMetricDataPoint(m))
 
 		m2 := pmetric.NewMetric()
 		m2.SetName("disk.utilization")
 		m2.SetEmptyGauge().DataPoints().AppendEmpty().Attributes().PutStr("container_name", "test")
 
-		assert.True(t, f.MatchesMetric(m2))
+		assert.True(t, f.MatchesMetricDataPoint(m2))
 
 		m3 := pmetric.NewMetric()
 		m3.SetName("disk.usage")
 		m3.SetEmptyGauge().DataPoints().AppendEmpty().Attributes().PutStr("container_name", "test")
 
-		assert.False(t, f.MatchesMetric(m3))
+		assert.False(t, f.MatchesMetricDataPoint(m3))
 	})
 
 	t.Run("Doesn't match if no dimension filter specified", func(t *testing.T) {
@@ -149,14 +149,14 @@ func TestOverridableFilters(t *testing.T) {
 		m := pmetric.NewMetric()
 		m.SetName("disk.utilization")
 		m.SetEmptyGauge().DataPoints().AppendEmpty().Attributes().PutStr("container_name", "test")
-		assert.False(t, f.MatchesMetric(m))
+		assert.False(t, f.MatchesMetricDataPoint(m))
 	})
 
 	t.Run("Doesn't match if no metric name filter specified", func(t *testing.T) {
 		f, _ := NewOverridable(nil, map[string][]string{
 			"container_name": {"mycontainer"},
 		})
-		assert.False(t, f.MatchesMetric(cpu))
+		assert.False(t, f.MatchesMetricDataPoint(cpu))
 	})
 
 	t.Run("Matches against all dimension pairs", func(t *testing.T) {
@@ -167,14 +167,14 @@ func TestOverridableFilters(t *testing.T) {
 		m := pmetric.NewMetric()
 		m.SetName("cpu.utilization")
 		m.SetEmptyGauge().DataPoints().AppendEmpty().Attributes().PutStr("host", "localhost")
-		assert.False(t, f.MatchesMetric(m))
+		assert.False(t, f.MatchesMetricDataPoint(m))
 		m2 := pmetric.NewMetric()
 		m2.SetName("cpu.utilization")
 		attrs := m2.SetEmptyGauge().DataPoints().AppendEmpty().Attributes()
 		attrs.PutStr("host", "localhost")
 		attrs.PutStr("system", "r4")
 
-		assert.True(t, f.MatchesMetric(m2))
+		assert.True(t, f.MatchesMetricDataPoint(m2))
 	})
 
 	t.Run("Negated dim values take precedent", func(t *testing.T) {
@@ -182,18 +182,18 @@ func TestOverridableFilters(t *testing.T) {
 			"container_name": {"*", "!pause", "!/.*idle/"},
 		})
 		// Shouldn't match when dimension isn't even present
-		assert.False(t, f.MatchesMetric(cpu))
+		assert.False(t, f.MatchesMetricDataPoint(cpu))
 		m := pmetric.NewMetric()
 		m.SetName("cpu.utilization")
 		m.SetEmptyGauge().DataPoints().AppendEmpty().Attributes().PutStr("container_name", "pause")
-		assert.False(t, f.MatchesMetric(m))
+		assert.False(t, f.MatchesMetricDataPoint(m))
 		m2 := pmetric.NewMetric()
 		m2.SetName("cpu.utilization")
 		m2.SetEmptyGauge().DataPoints().AppendEmpty().Attributes().PutStr("container_name", "is_idle")
-		assert.False(t, f.MatchesMetric(m2))
+		assert.False(t, f.MatchesMetricDataPoint(m2))
 		m3 := pmetric.NewMetric()
 		m3.SetName("cpu.utilization")
 		m3.SetEmptyGauge().DataPoints().AppendEmpty().Attributes().PutStr("container_name", "mycontainer")
-		assert.True(t, f.MatchesMetric(m3))
+		assert.True(t, f.MatchesMetricDataPoint(m3))
 	})
 }

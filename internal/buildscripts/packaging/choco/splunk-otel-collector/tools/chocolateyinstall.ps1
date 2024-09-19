@@ -80,7 +80,7 @@ if (Test-Path $reg_path) {
         foreach ($entry in $previous_environment) {
             $k, $v = $entry.Split("=", 2)
             if ($k -Match "^[0-9A-Za-z_]+$") {
-                $env_vars[$k] = $v
+                $env_vars[$k] = $v.Replace('"', '""') # Ensure that the MSI runs correctly by escaping double quotes.
             } else {
                 $custom_entries += $entry
             }

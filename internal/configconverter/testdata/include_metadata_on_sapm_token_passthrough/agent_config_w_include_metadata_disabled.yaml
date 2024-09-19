@@ -1,0 +1,6 @@
+receivers:
+  sapm:
+    include_metadata: false
+
+processors:
+  batch:

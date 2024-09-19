@@ -206,6 +206,7 @@ func (s *Settings) ConfMapConverterFactories() []confmap.ConverterFactory {
 	if !s.noConvertConfig {
 		confMapConverterFactories = append(
 			confMapConverterFactories,
+			configconverter.ConverterFactoryFromFunc(configconverter.UpdateBatchProcOnTokenPassthrough),
 			configconverter.ConverterFactoryFromFunc(configconverter.NormalizeGcp),
 			configconverter.ConverterFactoryFromFunc(configconverter.DisableKubeletUtilizationMetrics),
 			configconverter.ConverterFactoryFromFunc(configconverter.DisableExcessiveInternalMetrics),

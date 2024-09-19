@@ -1,0 +1,9 @@
+receivers:
+  sapm:
+    include_metadata: true
+
+processors:
+  batch:
+    metadata_keys:
+    - X-SF-Token
+  

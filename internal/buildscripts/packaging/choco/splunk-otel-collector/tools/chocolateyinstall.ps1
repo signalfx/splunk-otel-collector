@@ -47,7 +47,7 @@ $env_var_names = @(
     "SPLUNK_BUNDLE_DIR",
     "SPLUNK_LISTEN_INTERFACE"
 )
-$custom_entries = @()
+
 $upgraded_from_version_with_machine_wide_env_vars = $false
 
 Write-Host "Checking for previous installation..."
@@ -79,10 +79,10 @@ if (Test-Path $reg_path) {
         Write-Host "Found previous environment variables for the $service_name service."
         foreach ($entry in $previous_environment) {
             $k, $v = $entry.Split("=", 2)
-            if ($k -Match "^[0-9A-Za-z_]+$") {
-                $env_vars[$k] = $v
-            } else {
-                $custom_entries += $entry
+            if ($k -and $k -Match "^[0-9A-Za-z_]+$" -and $v) {
+                # If the name is like a bash variable name, it is safe to pass them to the MSI even if
+                # they are not in the list of MSI properties. They will be just ignored by the MSI.
+                $env_vars[$k] = $v.Replace('"', '""') # Escape double quotes for MSI properties.
             }
         }
     }
@@ -168,10 +168,12 @@ try {
     Install-ChocolateyInstallPackage @packageArgs
 } finally {
     # Add any custom entries back to the reg key
-    if ($custom_entries) {
-        $custom_entries += (Get-ItemPropertyValue -Path $reg_path -Name "Environment")
-        $custom_entries = $custom_entries | Sort-Object -Unique
-        Set-ItemProperty -Path $reg_path -Name "Environment" -Value $custom_entries -Type MultiString
+    if ($previous_environment) {
+        # Preserve any environment variables that were set by the MSI installer, but add any other custom entries.
+        $svc_env_after_install = Get-ItemPropertyValue -Path $reg_path -Name "Environment"
+        $merged_environment = merge_multistring_env $svc_env_after_install $previous_environment
+        $merged_environment = $merged_environment | Sort-Object -Unique
+        Set-ItemProperty -Path $reg_path -Name "Environment" -Value $merged_environment -Type MultiString
     }
 }
 

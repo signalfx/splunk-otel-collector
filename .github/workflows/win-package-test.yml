@@ -378,8 +378,12 @@ jobs:
               throw "choco install failed!"
             }
             $env_vars = Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -Name "Environment"
-            $env_vars += "MY VAR WITH SPACES=my value"
-            $env_vars += "GOOD_ENV_VAR_NAME=good value"
+            $test_env_vars = @(
+              "MY_VAR_WITH_SPACES=my value",
+              "GOOD_ENV_VAR_NAME=good value",
+              "GOOD_KEY_NEEDS_ESCAPING=`" that breaks MSI call if not escaped properly due to double-quote"
+            )
+            $env_vars += $test_env_vars
             Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -Name "Environment" -Value $env_vars -type MultiString
             Start-Sleep 30
             write-host "Upgrading $choco_file_name ..."
@@ -388,13 +392,11 @@ jobs:
               throw "choco upgrade failed!"
             }
             $env_vars = Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -Name "Environment"
-            if (!($env_vars -contains "MY VAR WITH SPACES=my value")) {
-              $env_vars
-              throw "'MY VAR WITH SPACES=my value' not found!"
-            }
-            if (!($env_vars -contains "GOOD_ENV_VAR_NAME=good value")) {
-              $env_vars
-              throw "'GOOD_ENV_VAR_NAME=good value' not found!"
+            foreach ($test_env_var in $test_env_vars) {
+              if (!($env_vars -contains $test_env_var)) {
+                $env_vars
+                throw "'$test_env_var' not found!"
+              }
             }
           }
           Start-Sleep -s 30

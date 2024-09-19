@@ -379,6 +379,7 @@ jobs:
             }
             $env_vars = Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -Name "Environment"
             $env_vars += "MY VAR WITH SPACES=my value"
+            $env_vars += "GOOD_ENV_VAR_NAME=good value"
             Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -Name "Environment" -Value $env_vars -type MultiString
             Start-Sleep 30
             write-host "Upgrading $choco_file_name ..."
@@ -390,6 +391,10 @@ jobs:
             if (!($env_vars -contains "MY VAR WITH SPACES=my value")) {
               $env_vars
               throw "'MY VAR WITH SPACES=my value' not found!"
+            }
+            if (!($env_vars -contains "GOOD_ENV_VAR_NAME=good value")) {
+              $env_vars
+              throw "'GOOD_ENV_VAR_NAME=good value' not found!"
             }
           }
           Start-Sleep -s 30

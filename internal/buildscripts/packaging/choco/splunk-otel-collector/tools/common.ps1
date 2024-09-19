@@ -105,30 +105,6 @@ function set_env_var_value_from_package_params([hashtable] $env_vars, [hashtable
     Write-Host "The $name package parameter was not set, using the default value: '$value'"
 }
 
-# merge array of strings, used as environment variables, given priority to the ones defined in the left array
-function merge_multistring_env([string[]]$l, [string[]]$r) {
-    $keys = @{}
-    [string[]]$merged = @()
-    foreach ($lentry in $l) {
-        if (-not $lentry) {
-            continue
-        }
-        $keys[$lentry.Split('=',2)[0]] = $true
-        $merged += $lentry
-    }
-    foreach ($rentry in $r) {
-        if (-not $rentry) {
-            continue
-        }
-        $key = $rentry.Split('=',2)[0]
-        if (-not $keys.ContainsKey($key)) {
-            $merged += $rentry
-        }
-    }
-
-    return $merged
-}
-
 # check that we're not running with a restricted execution policy
 function check_policy() {
     $executionPolicy  = (Get-ExecutionPolicy)

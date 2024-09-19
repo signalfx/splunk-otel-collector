@@ -379,7 +379,7 @@ jobs:
             }
             $env_vars = Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -Name "Environment"
             $test_env_vars = @(
-              "MY_VAR_WITH_SPACES=my value",
+              "MY VAR WITH SPACES=my value",
               "GOOD_ENV_VAR_NAME=good value",
               "GOOD_KEY_NEEDS_ESCAPING=`" that breaks MSI call if not escaped properly due to double-quote"
             )

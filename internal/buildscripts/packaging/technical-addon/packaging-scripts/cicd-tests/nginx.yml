@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+  annotations:
+    com.splunk.orca.customservice.hostname: nginx
+    com.splunk.orca.customservice.ssh_enabled: "true"
+    com.splunk.orca.customservice.ssh_users: "splunk,ansible,root"
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.14.2
+    ports:
+    - containerPort: 80
+

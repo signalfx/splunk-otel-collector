@@ -1,0 +1,16 @@
+- hosts: all:!orca_role_custom:!orca_role_testrunner
+  gather_facts: false
+  become: yes
+  become_method: runas
+  become_user: Administrator
+  vars:
+      splunk:
+          home: /opt/splunk
+          exec: /opt/splunk/bin/splunk
+  tasks:
+  #Issue a splunk restart
+  - name: Restart the splunkd service
+    command: "{{splunk.exec}} restart"
+    environment:
+      HOME: "{{splunk.home}}"
+    ignore_errors: true

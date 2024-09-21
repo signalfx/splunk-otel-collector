@@ -136,13 +136,21 @@ generate-metrics:
 otelcol:
 	go generate ./...
 	GO111MODULE=on CGO_ENABLED=0 go build -trimpath -o ./bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/otelcol
-	ln -sf otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/otelcol
+ifeq ($(OS), Windows_NT)
+	$(LINK_CMD) .\bin\otelcol$(EXTENSION) .\bin\otelcol_$(GOOS)_$(GOARCH)$(EXTENSION)
+else
+	$(LINK_CMD) otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/otelcol$(EXTENSION)
+endif
 
 .PHONY: migratecheckpoint
 migratecheckpoint:
 	go generate ./...
 	GO111MODULE=on CGO_ENABLED=0 go build -trimpath -o ./bin/migratecheckpoint_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/migratecheckpoint
-	ln -sf migratecheckpoint_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/migratecheckpoint
+ifeq ($(OS), Windows_NT)
+	$(LINK_CMD) .\bin\migratecheckpoint$(EXTENSION) .\bin\migratecheckpoint_$(GOOS)_$(GOARCH)$(EXTENSION)
+else
+	$(LINK_CMD) migratecheckpoint_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/migratecheckpoint$(EXTENSION)
+endif
 
 .PHONY: bundle.d
 bundle.d:

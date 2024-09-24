@@ -10,7 +10,6 @@ resource_logs:
                 discovery.endpoint.id: (host_observer)[::]-8888-TCP-1
                 discovery.observer.id: host_observer
                 discovery.receiver.config: cmVjZWl2ZXJzOgogIHByb21ldGhldXNfc2ltcGxlOgogICAgY29uZmlnOiB7fQogICAgcmVzb3VyY2VfYXR0cmlidXRlczoKICAgICAgb25lLmtleTogb25lLnZhbHVlCiAgICAgIHR3by5rZXk6IHR3by52YWx1ZQogICAgcnVsZTogdHlwZSA9PSAiaG9zdHBvcnQiIGFuZCBjb21tYW5kIGNvbnRhaW5zICJvdGVsY29sIgp3YXRjaF9vYnNlcnZlcnM6Ci0gaG9zdF9vYnNlcnZlcgo=
-                discovery.receiver.rule: type == "hostport" and command contains "otelcol"
                 discovery.receiver.type: prometheus_simple
                 http.scheme: http
                 net.host.port: "8888"
@@ -46,7 +45,6 @@ resource_logs:
                 discovery.observer.id: host_observer
                 discovery.receiver.config: cmVjZWl2ZXJzOgogIHByb21ldGhldXNfc2ltcGxlOgogICAgY29uZmlnOiB7fQogICAgcmVzb3VyY2VfYXR0cmlidXRlczoKICAgICAgb25lLmtleTogb25lLnZhbHVlCiAgICAgIHR3by5rZXk6IHR3by52YWx1ZQogICAgcnVsZTogdHlwZSA9PSAiaG9zdHBvcnQiIGFuZCBjb21tYW5kIGNvbnRhaW5zICJvdGVsY29sIgp3YXRjaF9vYnNlcnZlcnM6Ci0gaG9zdF9vYnNlcnZlcgo=
                 discovery.receiver.name: ""
-                discovery.receiver.rule: type == "hostport" and command contains "otelcol"
                 discovery.receiver.type: prometheus_simple
                 discovery.status: failed
                 discovery.message: (strict) Port appears to not be serving prometheus metrics

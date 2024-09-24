@@ -125,7 +125,6 @@ func (m *metricsConsumer) evaluateMetrics(md pmetric.Metrics) {
 		})
 		m.correlateResourceAttributes(m.config, attrs, corr)
 
-		attrs[receiverRuleAttr] = rEntry.Rule.String()
 		attrs[discovery.MessageAttr] = match.Message
 		attrs[discovery.StatusAttr] = string(match.Status)
 		m.correlations.UpdateAttrs(endpointID, attrs)

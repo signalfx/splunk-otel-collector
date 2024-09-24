@@ -185,7 +185,6 @@ func (cfg *Config) receiverCreatorReceiversConfig() map[string]any {
 		}
 		resourceAttributes[discovery.ReceiverNameAttr] = receiverID.Name()
 		resourceAttributes[discovery.ReceiverTypeAttr] = receiverID.Type().String()
-		resourceAttributes[receiverRuleAttr] = rEntry.Rule.String()
 		resourceAttributes[discovery.EndpointIDAttr] = "`id`"
 
 		rEntryMap := map[string]any{}

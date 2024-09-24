@@ -186,7 +186,6 @@ func (se *statementEvaluator) evaluateStatement(statement *statussources.Stateme
 		attrs[discovery.ReceiverTypeAttr] = receiverID.Type().String()
 		attrs[discovery.ReceiverNameAttr] = receiverID.Name()
 		attrs[discovery.MessageAttr] = statement.Message
-		attrs[receiverRuleAttr] = rEntry.Rule.String()
 		attrs[discovery.MessageAttr] = match.Message
 
 		// set original message as "discovery.matched_log" attribute

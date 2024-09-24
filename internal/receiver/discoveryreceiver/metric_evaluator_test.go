@@ -124,7 +124,6 @@ func TestMetricEvaluation(t *testing.T) {
 					require.Equal(t, map[string]string{
 						"discovery.observer.id":   "an_observer/observer.name",
 						"discovery.receiver.name": "receiver.name",
-						"discovery.receiver.rule": "a.rule",
 						"discovery.receiver.type": "a_receiver",
 						"discovery.status":        string(status),
 						"discovery.message":       "desired body content",

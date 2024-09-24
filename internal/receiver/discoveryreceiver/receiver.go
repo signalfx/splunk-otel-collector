@@ -35,7 +35,6 @@ import (
 const (
 	observerNameAttr = "discovery.observer.name"
 	observerTypeAttr = "discovery.observer.type"
-	receiverRuleAttr = "discovery.receiver.rule"
 	matchedLogAttr   = "discovery.matched_log"
 )
 

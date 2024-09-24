@@ -2,10 +2,10 @@ package dpfilters
 
 import (
 	"errors"
-	"go.opentelemetry.io/collector/pdata/pcommon"
 
 	"github.com/signalfx/golib/v3/datapoint"
 	"github.com/signalfx/signalfx-agent/pkg/utils/filter"
+	"go.opentelemetry.io/collector/pdata/pcommon"
 )
 
 type overridableDatapointFilter struct {

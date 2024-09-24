@@ -26,27 +26,30 @@ postgresql:
         message: The container is refusing PostgreSQL connections.
       - status: partial
         regexp: 'pq: password authentication failed for user'
-        message: >-
-          Please ensure your user credentials are correctly specified with
-          `SPLUNK_DISCOVERY_RECEIVERS_postgresql_CONFIG_username="<username>"` and
-          `SPLUNK_DISCOVERY_RECEIVERS_postgresql_CONFIG_password="<password>"` environment variables.
+        message: |-
+          Make sure your user credentials are correctly specified as environment variables.
+          ```
+          SPLUNK_DISCOVERY_RECEIVERS_postgresql_CONFIG_username="<username>"
+          SPLUNK_DISCOVERY_RECEIVERS_postgresql_CONFIG_password="<password>"
+          ```
       - status: partial
         regexp: 'pq: database .* does not exist'
-        message: >-
-          Make sure the target database is correctly specified using the
-          `SPLUNK_DISCOVERY_RECEIVERS_postgresql_CONFIG_databases="[<db>]"` environment variable.
+        message: |-
+          Make sure the target database is correctly specified as an environment variable.
+          ```
+          SPLUNK_DISCOVERY_RECEIVERS_postgresql_CONFIG_databases="[<db>]"
+          ```
       - status: partial
         regexp: 'pq: SSL is not enabled on the server'
-        message: >-
-          Make sure the target database has SSL enabled or set insecure using the
-          `SPLUNK_DISCOVERY_RECEIVERS_postgresql_CONFIG_tls_x3a__x3a_insecure="<boolean>"` environment variable.
+        message: |-
+          Make sure the target database has SSL enabled or set insecure as an environment variable.
+          ```
+          SPLUNK_DISCOVERY_RECEIVERS_postgresql_CONFIG_tls_x3a__x3a_insecure="<boolean>"
+          ```
       - status: partial
         regexp: 'pq: pg_stat_statements must be loaded via shared_preload_libraries'
-        message: >-
-          Make sure your PostgreSQL database has
-          `shared_preload_libraries = 'pg_stat_statements'`
-          in the postgresql.conf file and that
-          `CREATE EXTENSION IF NOT EXISTS pg_stat_statements;`
-          has been run for each database you would like to monitor.
-          For example:
-          `psql --dbname "<db-name>" -c "CREATE EXTENSION pg_stat_statements;"`
+        message: |-
+          Make sure your PostgreSQL database has `shared_preload_libraries = 'pg_stat_statements'` in the postgresql.conf file and that `CREATE EXTENSION IF NOT EXISTS pg_stat_statements;` has been run for each database you would like to monitor. For example:
+          ```
+          psql --dbname "<db-name>" -c "CREATE EXTENSION pg_stat_statements;"
+          ```

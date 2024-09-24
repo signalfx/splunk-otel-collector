@@ -93,12 +93,16 @@
 #         message: Unable to resolve sql server tcp endpoint
 #       - status: partial
 #         regexp: "Login failed for user"
-#         message: >-
-#             Make sure your user credentials are correctly specified using the
-#             `SPLUNK_DISCOVERY_RECEIVERS_sqlserver_CONFIG_username="<username>"` and
-#             `SPLUNK_DISCOVERY_RECEIVERS_sqlserver_CONFIG_password="<password>"` environment variables.
+#         message: |-
+#             Make sure your user credentials are correctly specified as environment variables.
+#             ```
+#             SPLUNK_DISCOVERY_RECEIVERS_sqlserver_CONFIG_username="<username>"
+#             SPLUNK_DISCOVERY_RECEIVERS_sqlserver_CONFIG_password="<password>"
+#             ```
 #       - status: partial
 #         regexp: "The user does not have permission"
-#         message: >-
-#             Specified user does not have proper permissions. User must have view `SERVER STATE` permissions.
-#             This can be accomplished by: `GRANT VIEW SERVER STATE TO [username]`
+#         message: |-
+#             Specified user does not have proper permissions. User must have view `SERVER STATE` permissions. This can be accomplished by:
+#             ```
+#             GRANT VIEW SERVER STATE TO [username]
+#             ```

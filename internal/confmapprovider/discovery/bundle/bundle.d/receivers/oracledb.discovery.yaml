@@ -33,12 +33,16 @@ oracledb:
         message: Unable to execute select from oracledb. Verify endpoint and user permissions.
       - status: partial
         regexp: "listener does not currently know of service requested"
-        message: >-
-          Make sure your oracledb service is correctly specified using the
-          `SPLUNK_DISCOVERY_RECEIVERS_oracledb_CONFIG_service="<service>"` environment variable.
+        message: |-
+          Make sure your oracledb service is correctly specified using an environment variable.
+          ```
+          SPLUNK_DISCOVERY_RECEIVERS_oracledb_CONFIG_service="<service>"
+          ```
       - status: partial
         regexp: 'invalid username/password'
-        message: >-
-          Make sure your user credentials are correctly specified using the
-          `SPLUNK_DISCOVERY_RECEIVERS_oracledb_CONFIG_username="<username>"` and
-          `SPLUNK_DISCOVERY_RECEIVERS_oracledb_CONFIG_password="<password>"` environment variables.
+        message: |-
+          Make sure your user credentials are correctly specified as environment variables.
+          ```
+          SPLUNK_DISCOVERY_RECEIVERS_oracledb_CONFIG_username="<username>"
+          SPLUNK_DISCOVERY_RECEIVERS_oracledb_CONFIG_password="<password>"
+          ```

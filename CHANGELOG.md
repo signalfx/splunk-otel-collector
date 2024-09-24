@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 💡 Enhancements 💡
+
+- (Splunk) Update instruction for partial discovery ([#5402](https://github.com/signalfx/splunk-otel-collector/pull/5402))
+
 ## v0.109.0
 
 ### 🛑 Breaking changes 🛑

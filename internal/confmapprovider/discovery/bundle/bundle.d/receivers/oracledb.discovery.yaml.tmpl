@@ -29,12 +29,16 @@
         message: Unable to execute select from oracledb. Verify endpoint and user permissions.
       - status: partial
         regexp: "listener does not currently know of service requested"
-        message: >-
-          Make sure your oracledb service is correctly specified using the
-          `{{ configPropertyEnvVar "service" "<service>" }}` environment variable.
+        message: |-
+          Make sure your oracledb service is correctly specified using an environment variable.
+          ```
+          {{ configPropertyEnvVar "service" "<service>" }}
+          ```
       - status: partial
         regexp: 'invalid username/password'
-        message: >-
-          Make sure your user credentials are correctly specified using the
-          `{{ configPropertyEnvVar "username" "<username>" }}` and
-          `{{ configPropertyEnvVar "password" "<password>" }}` environment variables.
+        message: |-
+          Make sure your user credentials are correctly specified as environment variables.
+          ```
+          {{ configPropertyEnvVar "username" "<username>" }}
+          {{ configPropertyEnvVar "password" "<password>" }}
+          ```

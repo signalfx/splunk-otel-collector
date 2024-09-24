@@ -19,12 +19,11 @@
         message: PostgreSQL receiver is working!
       - status: partial
         strict: postgres_rows_inserted
-        message: >-
-          Make sure that
-          `CREATE EXTENSION IF NOT EXISTS pg_stat_statements;`
-          has been run for each database you would like to monitor.
-          For example:
-          `psql --dbname "<db-name>" -c "CREATE EXTENSION IF NOT EXISTS pg_stat_statements;"`
+        message: |-
+          Make sure that `CREATE EXTENSION IF NOT EXISTS pg_stat_statements;` has been run for each database you would like to monitor. For example:
+          ```
+          psql --dbname "<db-name>" -c "CREATE EXTENSION IF NOT EXISTS pg_stat_statements;"
+          ```
     statements:
       - status: failed
         regexp: 'connect: network is unreachable'
@@ -34,22 +33,23 @@
         message: The container is refusing PostgreSQL connections.
       - status: partial
         regexp: 'pq: password authentication failed for user'
-        message: >-
-          Please ensure your user credentials are correctly specified with
-          `{{ configPropertyEnvVar "params" "username" "<username>" }}` and
-          `{{ configPropertyEnvVar "params" "password" "<password>" }}` environment variables.
+        message: |-
+          Please ensure your user credentials are correctly specified as environment variables.
+          ```
+          {{ configPropertyEnvVar "params" "username" "<username>" }}
+          {{ configPropertyEnvVar "params" "password" "<password>" }}
+          ```
       - status: partial
         regexp: 'pq: database .* does not exist'
-        message: >-
-          Make sure the target database is correctly specified using the
-          `{{ configPropertyEnvVar "masterDBName" "<db>" }}` environment variable.
+        message: |-
+          Make sure the target database is correctly specified as an environment variable.
+          ```
+          {{ configPropertyEnvVar "masterDBName" "<db>" }}
+          ```
       - status: partial
         regexp: 'pq: pg_stat_statements must be loaded via shared_preload_libraries'
-        message: >-
-          Make sure your PostgreSQL database has
-          `shared_preload_libraries = 'pg_stat_statements'`
-          in the postgresql.conf file and that
-          `CREATE EXTENSION IF NOT EXISTS pg_stat_statements;`
-          has been run for each database you would like to monitor.
-          For example:
-          `psql --dbname "<db-name>" -c "CREATE EXTENSION pg_stat_statements;"`
+        message: |-
+          Make sure your PostgreSQL database has `shared_preload_libraries = 'pg_stat_statements'` in the postgresql.conf file and that `CREATE EXTENSION IF NOT EXISTS pg_stat_statements;` has been run for each database you would like to monitor. For example:
+          ```
+          psql --dbname "<db-name>" -c "CREATE EXTENSION pg_stat_statements;"
+          ```

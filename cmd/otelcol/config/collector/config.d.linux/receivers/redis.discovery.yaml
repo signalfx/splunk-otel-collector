@@ -31,16 +31,22 @@
 #         message: Unable to resolve redis tcp endpoint
 #       - status: partial
 #         regexp: 'NOAUTH Authentication required.'
-#         message: >-
-#           Make sure your user credentials are correctly specified using the
-#           `SPLUNK_DISCOVERY_RECEIVERS_redis_CONFIG_password="<password>"` environment variable.
+#         message: |-
+#           Make sure your user credentials are correctly specified as an environment variable.
+#           ```
+#           SPLUNK_DISCOVERY_RECEIVERS_redis_CONFIG_password="<password>"
+#           ```
 #       - status: partial
 #         regexp: 'called without any password configured for the default user'
-#         message: >-
-#           Make sure your user credentials are correctly specified using the
-#           `SPLUNK_DISCOVERY_RECEIVERS_redis_CONFIG_password="<password>"` environment variable.
+#         message: |-
+#           Make sure your user credentials are correctly specified as an environment variable.
+#           ```
+#           SPLUNK_DISCOVERY_RECEIVERS_redis_CONFIG_password="<password>"
+#           ```
 #       - status: partial
 #         regexp: 'WRONGPASS invalid username-password pair or user is disabled'
-#         message: >-
-#           Make sure your user credentials are correctly specified using the
-#           `SPLUNK_DISCOVERY_RECEIVERS_redis_CONFIG_password="<password>"` environment variable.
+#         message: |-
+#           Make sure your user credentials are correctly specified as an environment variable.
+#           ```
+#           SPLUNK_DISCOVERY_RECEIVERS_redis_CONFIG_password="<password>"
+#           ```

@@ -163,7 +163,6 @@ func TestReceiverCreatorFactoryAndConfig(t *testing.T) {
 			"resource_attributes": map[string]string{
 				"discovery.endpoint.id":   "`id`",
 				"discovery.receiver.name": "redis",
-				"discovery.receiver.rule": `type == "container" && name matches "(?i)redis"`,
 				"discovery.receiver.type": "smartagent",
 				"receiver_attribute":      "receiver_attribute_value",
 			},

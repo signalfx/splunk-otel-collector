@@ -647,6 +647,8 @@ processors:
   # Enables the batch processor with default settings.
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/batchprocessor
   batch:
+    metadata_keys:
+      - X-SF-Token
 
   # Enabling the memory_limiter is strongly recommended for every pipeline.
   # Configuration is based on the amount of memory allocated to the collector.

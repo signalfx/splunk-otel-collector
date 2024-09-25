@@ -405,6 +405,8 @@ processors:
   # Enables the batch processor with default settings
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/batchprocessor
   batch:
+    metadata_keys:
+      - X-SF-Token
 
   # Enables the resouce processor with default settings
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/resourceprocessor

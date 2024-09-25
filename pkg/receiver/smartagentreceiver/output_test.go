@@ -38,6 +38,7 @@ import (
 	otelcolextension "go.opentelemetry.io/collector/extension"
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/pmetric"
+	"go.opentelemetry.io/collector/pipeline"
 	otelcolreceiver "go.opentelemetry.io/collector/receiver"
 	"go.uber.org/zap"
 )
@@ -362,10 +363,10 @@ type hostWithExporters struct {
 	exporter *mockMetadataClient
 }
 
-func getExportersTest() map[component.DataType]map[component.ID]component.Component {
-	exporters := map[component.DataType]map[component.ID]component.Component{}
+func getExportersTest() map[pipeline.Signal]map[component.ID]component.Component {
+	exporters := map[pipeline.Signal]map[component.ID]component.Component{}
 	metricExporterMap := map[component.ID]component.Component{}
-	exporters[component.DataTypeMetrics] = metricExporterMap
+	exporters[pipeline.SignalMetrics] = metricExporterMap
 
 	exampleExporterFactory := exportertest.NewNopFactory()
 	exampleExporter, _ := exampleExporterFactory.CreateMetricsExporter(
@@ -380,9 +381,9 @@ func getExportersTest() map[component.DataType]map[component.ID]component.Compon
 	return exporters
 }
 
-func (h *hostWithExporters) GetExporters() map[component.DataType]map[component.ID]component.Component {
+func (h *hostWithExporters) GetExporters() map[pipeline.Signal]map[component.ID]component.Component {
 	exporters := getExportersTest()
-	exporterMap := exporters[component.DataTypeMetrics]
+	exporterMap := exporters[pipeline.SignalMetrics]
 
 	// Add internal exporter to the list.
 	exporterMap[h.exporter.id] = otelcolexporter.Metrics(h.exporter)
@@ -394,9 +395,9 @@ type hostWithTwoSFxExporters struct {
 	sfxExporter *mockMetadataClient
 }
 
-func (h *hostWithTwoSFxExporters) GetExporters() map[component.DataType]map[component.ID]component.Component {
+func (h *hostWithTwoSFxExporters) GetExporters() map[pipeline.Signal]map[component.ID]component.Component {
 	exporters := getExportersTest()
-	exporterMap := exporters[component.DataTypeMetrics]
+	exporterMap := exporters[pipeline.SignalMetrics]
 
 	meOne := component.MustNewIDWithName("signalfx", "sfx1")
 	exporterMap[meOne] = otelcolexporter.Metrics(h.sfxExporter)

@@ -31,6 +31,7 @@ import (
 	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
 	"go.opentelemetry.io/collector/featuregate"
 	"go.opentelemetry.io/collector/otelcol"
+	"go.opentelemetry.io/collector/pipeline"
 
 	"github.com/signalfx/splunk-otel-collector/internal/components"
 	"github.com/signalfx/splunk-otel-collector/internal/configconverter"
@@ -163,12 +164,12 @@ func TestDiscoveryProvider_ContinuousDiscoveryConfig(t *testing.T) {
 	assert.Equal(t, hostobserver.NewFactory().CreateDefaultConfig(), hoc)
 
 	assert.EqualValues(t, []component.ID{component.MustNewID("host_observer")}, conf.Service.Extensions)
-	pipelines := conf.Service.Pipelines
+	pipelines := conf.Service.PipelinesWithPipelineID
 	assert.Equal(t, 2, len(pipelines))
 	assert.Equal(t, []component.ID{component.MustNewIDWithName("discovery", "host_observer")},
-		pipelines[component.MustNewID("metrics")].Receivers)
+		pipelines[pipeline.MustNewID("metrics")].Receivers)
 	assert.Equal(t, []component.ID{component.MustNewIDWithName("discovery", "host_observer")},
-		pipelines[component.MustNewIDWithName("logs", "entities")].Receivers)
+		pipelines[pipeline.MustNewIDWithName("logs", "entities")].Receivers)
 	assert.Equal(t, []component.ID{component.MustNewIDWithName("otlphttp", "entities")},
-		pipelines[component.MustNewIDWithName("logs", "entities")].Exporters)
+		pipelines[pipeline.MustNewIDWithName("logs", "entities")].Exporters)
 }

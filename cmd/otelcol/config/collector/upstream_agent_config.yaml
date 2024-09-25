@@ -90,6 +90,8 @@ receivers:
 
 processors:
   batch:
+    metadata_keys:
+      - X-SF-Token
   # Enabling the memory_limiter is strongly recommended for every pipeline.
   # Configuration is based on the amount of memory allocated to the collector.
   # In general, the limit should be 90% of the collector's memory. The simplest way to specify the

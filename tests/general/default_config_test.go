@@ -108,7 +108,7 @@ func TestDefaultGatewayConfig(t *testing.T) {
 				},
 				"processors": map[string]any{
 					"batch": map[string]any{
-						"metadata_keys": []string{"X-SF-Token"},
+						"metadata_keys": []any{"X-SF-Token"},
 					},
 					"memory_limiter": map[string]any{
 						"check_interval": "2s",
@@ -304,7 +304,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 				},
 				"processors": map[string]any{
 					"batch": map[string]any{
-						"metadata_keys": []string{"X-SF-Token"},
+						"metadata_keys": []any{"X-SF-Token"},
 					},
 					"memory_limiter": map[string]any{
 						"check_interval": "2s",

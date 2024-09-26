@@ -19,6 +19,7 @@ Additionally, updates `splunk-otel-javaagent` to [`v2.8.1`](https://github.com/s
 
 
 ### 🚩 Deprecations 🚩
+
 - (Core) `processorhelper`: deprecate accepted/refused/dropped metrics ([#11201](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/11201))
 - (Contrib) `hostmetricsreceiver`: Set the receiver.hostmetrics.normalizeProcessCPUUtilization feature gate to stable. ([#34763](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/34763))
 

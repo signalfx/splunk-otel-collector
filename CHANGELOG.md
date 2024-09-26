@@ -9,6 +9,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 Additionally, updates `splunk-otel-javaagent` to [`v2.8.1`](https://github.com/signalfx/splunk-otel-java/releases/tag/v2.8.1) and `jmx-metric-gatherer` to [`v1.39.0`](https://github.com/open-telemetry/opentelemetry-java-contrib/releases/tag/v1.39.0)
 
 ### 🛑 Breaking changes 🛑
+
 - (Core) `processorhelper`: Update incoming/outgoing metrics to a single metric with `otel.signal` attributes. ([#11144](https://github.com/open-telemetry/opentelemetry-collector/pull/11144))
 - (Core) processorhelper: Remove deprecated [Traces|Metrics|Logs]Inserted funcs ([#11151](https://github.com/open-telemetry/opentelemetry-collector/pull/11151))
 - (Core) config: Mark UseLocalHostAsDefaultHostfeatureGate as stable  ([#11235](https://github.com/open-telemetry/opentelemetry-collector/pull/11235))

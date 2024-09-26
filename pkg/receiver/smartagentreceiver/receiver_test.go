@@ -41,6 +41,7 @@ import (
 	"go.opentelemetry.io/collector/extension/extensiontest"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
+	"go.opentelemetry.io/collector/pipeline"
 	otelcolreceiver "go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/metric/noop"
@@ -431,6 +432,6 @@ func getExtension(f otelcolextension.Factory, cfg component.Config) otelcolexten
 	return e
 }
 
-func (m *mockHost) GetExporters() map[component.DataType]map[component.ID]component.Component {
+func (m *mockHost) GetExporters() map[pipeline.Signal]map[component.ID]component.Component {
 	return nil
 }

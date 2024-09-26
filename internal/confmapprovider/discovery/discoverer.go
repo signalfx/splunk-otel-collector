@@ -39,6 +39,7 @@ import (
 	"go.opentelemetry.io/collector/featuregate"
 	"go.opentelemetry.io/collector/otelcol"
 	"go.opentelemetry.io/collector/pdata/plog"
+	"go.opentelemetry.io/collector/pipeline"
 	otelcolreceiver "go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/otel/metric"
 	mnoop "go.opentelemetry.io/otel/metric/noop"
@@ -685,7 +686,7 @@ func (d *discoverer) GetExtensions() map[component.ID]otelcolextension.Extension
 }
 
 // GetExporters is a component.Host method.
-func (d *discoverer) GetExporters() map[component.DataType]map[component.ID]component.Component {
+func (d *discoverer) GetExporters() map[pipeline.Signal]map[component.ID]component.Component {
 	return nil
 }
 

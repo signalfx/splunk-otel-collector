@@ -26,6 +26,7 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/utils"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
+	"go.opentelemetry.io/collector/pipeline"
 	otelcolreceiver "go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/receiverhelper"
 	"go.uber.org/zap"
@@ -58,7 +59,7 @@ var _ types.FilteringOutput = (*output)(nil)
 // Deprecated: This is a temporary workaround for the following issue:
 // https://github.com/open-telemetry/opentelemetry-collector/issues/7370
 type getExporters interface {
-	GetExporters() map[component.DataType]map[component.ID]component.Component
+	GetExporters() map[pipeline.Signal]map[component.ID]component.Component
 }
 
 func newOutput(
@@ -98,7 +99,7 @@ func getMetadataExporters(
 	exporters, noClientsSpecified := getDimensionClientsFromMetricsExporters(cfg.DimensionClients, host, nextMetricsConsumer, logger)
 
 	if len(exporters) == 0 && noClientsSpecified {
-		sfxExporter := getLoneSFxExporter(host, component.DataTypeMetrics)
+		sfxExporter := getLoneSFxExporter(host, pipeline.SignalMetrics)
 		if sfxExporter != nil {
 			if sfx, ok := sfxExporter.(metadata.MetadataExporter); ok {
 				exporters = append(exporters, sfx)
@@ -134,7 +135,7 @@ func getDimensionClientsFromMetricsExporters(
 	}
 	exporters := ge.GetExporters()
 
-	if builtExporters, ok := exporters[component.DataTypeMetrics]; ok {
+	if builtExporters, ok := exporters[pipeline.SignalMetrics]; ok {
 		for _, client := range specifiedClients {
 			var found bool
 			for exporterConfig, exporter := range builtExporters {
@@ -156,7 +157,7 @@ func getDimensionClientsFromMetricsExporters(
 	return
 }
 
-func getLoneSFxExporter(host component.Host, exporterType component.DataType) component.Component {
+func getLoneSFxExporter(host component.Host, exporterType pipeline.Signal) component.Component {
 	var sfxExporter component.Component
 	ge, ok := host.(getExporters)
 	if !ok {

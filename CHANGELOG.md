@@ -76,7 +76,6 @@ Additionally, updates `splunk-otel-javaagent` to [`v2.8.1`](https://github.com/s
 - (Contrib) `redactionprocessor`: Fix panic when using the redaction processor in a logs pipeline ([#35331](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35331))
 - (Contrib) `exporter/splunkhec`: Fix incorrect claim that the exporter doesn't mutate data when batching is enabled. The bug lead to runtime panics when the exporter was used with the batcher enabled in a fanout scenario. ([#35306](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35306))
 
-
 ## v0.109.0
 
 ### 🛑 Breaking changes 🛑

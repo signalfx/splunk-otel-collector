@@ -2,9 +2,61 @@
 
 ## Unreleased
 
+## v0.110.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.110.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.110.0) and the [opentelemetry-collector-contrib v0.110.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.110.0) releases where appropriate.
+
+Additionally, updates `splunk-otel-javaagent` to [`v2.8.1`](https://github.com/signalfx/splunk-otel-java/releases/tag/v2.8.1) and `jmx-metric-gatherer` to [`v1.39.0`](https://github.com/open-telemetry/opentelemetry-java-contrib/releases/tag/v1.39.0)
+
+### 🛑 Breaking changes 🛑
+
+- (Core) `processorhelper`: Update incoming/outgoing metrics to a single metric with `otel.signal` attributes. ([#11144](https://github.com/open-telemetry/opentelemetry-collector/pull/11144))
+- (Core) processorhelper: Remove deprecated [Traces|Metrics|Logs]Inserted funcs ([#11151](https://github.com/open-telemetry/opentelemetry-collector/pull/11151))
+- (Core) config: Mark UseLocalHostAsDefaultHostfeatureGate as stable  ([#11235](https://github.com/open-telemetry/opentelemetry-collector/pull/11235))
+- (Contrib) `pkg/stanza`: Move filelog.container.removeOriginalTimeField feature gate to beta. Disable the filelog.container.removeOriginalTimeField feature gate to get the old behavior. ([#33389](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/33389))
+- (Contrib) `resourcedetectionprocessor`: Move processor.resourcedetection.hostCPUSteppingAsString feature gate to stable. ([#31136](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/31136))
+- (Contrib) `resourcedetectionprocessor`: Remove processor.resourcedetection.hostCPUModelAndFamilyAsString feature gate. ([#29025](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/29025))
+
+
+### 🚩 Deprecations 🚩
+
+- (Core) `processorhelper`: deprecate accepted/refused/dropped metrics ([#11201](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/11201))
+- (Contrib) `hostmetricsreceiver`: Set the receiver.hostmetrics.normalizeProcessCPUUtilization feature gate to stable. ([#34763](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/34763))
+
 ### 💡 Enhancements 💡
 
+- (Core) `confignet`: Mark module as Stable. ([#9801](https://github.com/open-telemetry/opentelemetry-collector/pull/9801))
+- (Core) `confmap/provider/envprovider`: Support default values when env var is empty ([#5228](https://github.com/open-telemetry/opentelemetry-collector/pull/5228))
+- (Core) `service/telemetry`: Mark useOtelWithSDKConfigurationForInternalTelemetry as stable ([#7532](https://github.com/open-telemetry/opentelemetry-collector/pull/7532))
+- (Contrib) `processor/transform`: Add custom function to the transform processor to convert exponential histograms to explicit histograms. ([#33827](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/33827))
+- (Contrib) `file_storage`: provide a new option to the user to create a directory on start ([#34939](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/34939))
+- (Contrib) `headersetterextension`: adding default_value config. `default_value` config item applied in case context value is empty. ([#34412](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/34412))
+- (Contrib) `kafkaexporter`: Add support for encoding extensions in the Kafka exporter. This change adds support for encoding extensions in the Kafka exporter. Loading extensions takes precedence over the internally supported encodings. ([#34384](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/34384))
+- (Contrib) `kafkareceiver`: Add support for otlp_json encoding to Kafka receiver. The payload is deserialized into OpenTelemetry traces using JSON format. This encoding allows the Kafka receiver to handle trace data in JSON format, enabling integration with systems that export traces as JSON-encoded data. ([#33627](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/33627))
+- (Contrib) `pkg/ottl`: Improved JSON unmarshaling performance by 10-20% by switching dependencies. ([#35130](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35130))
+- (Contrib) `pkg/ottl`: Added support for locale in the Time converter ([#32978](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/32978))
+- (Contrib) `remotetapprocessor`: Origin header is no longer required for websocket connections ([#34925](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/34925))
+- (Contrib) `deltatorateprocessor`: Remove unnecessary data copies. ([#35165](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35165))
+- (Contrib) `transformprocessor`: Remove unnecessary data copy when transform sum to/from gauge ([#35177](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35177))
+- (Contrib) `sapmexporter`: Prioritize token in context when accesstokenpassthrough is enabled ([#35123](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35123))
+- (Contrib) `tailsamplingprocessor`: Fix the behavior for numeric tag filters with inverse_match set to true. ([#34296](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/34296))
 - (Splunk) Update instruction for partial discovery ([#5402](https://github.com/signalfx/splunk-otel-collector/pull/5402))
+
+### 🧰 Bug fixes 🧰
+
+- (Core) `service`: Ensure process telemetry is registered when internal telemetry is configured with readers instead of an address. ([#11093](https://github.com/open-telemetry/opentelemetry-collector/pull/11093))
+- (Contrib) `splunkenterprise`: Fix a flaky search related to iops metrics. ([#35081](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35081))
+- (Contrib) `azuremonitorexporter`: fix issue for property endpoint is ignored when using instrumentation_key ([#33971](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/33971))
+- (Contrib) `groupbytraceprocessor`: Ensure processor_groupbytrace_incomplete_releases metric has a unit. ([#35221](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35221))
+- (Contrib) `deltatocumulative`: do not drop gauges and summaries. Gauges and Summaries are no longer dropped from processor output. Instead, they are passed through as-is. ([#35284](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35284))
+- (Contrib) `pkg/stanza`: Do not get formatted message for Windows events without an event provider. Attempting to get the formatted message for Windows events without an event provider can result in an error being logged. This change ensures that the formatted message is not retrieved for such events. ([#35135](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35135))
+- (Contrib) `signalfxexporter`: Ensure token is not sent through for event data ([#35154](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35154))
+- (Contrib) `prometheusreceiver`: Fix the retrieval of scrape configurations by also considering scrape config files ([#34786](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/34786))
+- (Contrib) `redactionprocessor`: Fix panic when using the redaction processor in a logs pipeline ([#35331](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35331))
+- (Contrib) `exporter/splunkhec`: Fix incorrect claim that the exporter doesn't mutate data when batching is enabled. The bug lead to runtime panics when the exporter was used with the batcher enabled in a fanout scenario. ([#35306](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35306))
+- (Splunk) Choco upgrade should preserve collector service custom env vars ([#5386](https://github.com/signalfx/splunk-otel-collector/pull/5386)) 
+- (Splunk) `discoveryreceiver` with `splunk.continuousDiscovery` feature gate enabled: Remove redundant discovery.receiver.rule attribute ([#5403](https://github.com/signalfx/splunk-otel-collector/pull/5403)) 
+- (Splunk) `discoveryreceiver` with `splunk.continuousDiscovery` feature gate enabled: Remove redundant resource attributes ([#5409](https://github.com/signalfx/splunk-otel-collector/pull/5409))
 
 ## v0.109.0
 

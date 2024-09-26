@@ -5,7 +5,7 @@ ENV container docker
 RUN sed -i 's|download.opensuse.org|provo-mirror.opensuse.org|' /etc/zypp/repos.d/*.repo
 RUN zypper -n install -l curl dbus-1 systemd-sysvinit tar wget python3-pip ca-certificates gzip
 
-RUN zypper install -y salt salt-minion salt-master
+RUN zypper install -y salt salt-minion salt-master procps
 
 RUN wget -O /tmp/nodejs.tar.gz https://nodejs.org/dist/v16.20.2/node-v16.20.2-linux-x64.tar.gz && \
     mkdir -p /opt/ && \

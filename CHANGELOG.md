@@ -2,9 +2,21 @@
 
 ## Unreleased
 
+## v0.110.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.110.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.110.0) and the [opentelemetry-collector-contrib v0.110.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.110.0) releases where appropriate.
+
+Additionally, updates `splunk-otel-javaagent` to [`v2.8.1`](https://github.com/signalfx/splunk-otel-java/releases/tag/v2.8.1) and `jmx-metric-gatherer` to [`v1.39.0`](https://github.com/open-telemetry/opentelemetry-java-contrib/releases/tag/v1.39.0)
+
 ### 💡 Enhancements 💡
 
 - (Splunk) Update instruction for partial discovery ([#5402](https://github.com/signalfx/splunk-otel-collector/pull/5402))
+
+### 🧰 Bug fixes 🧰
+
+- (Splunk) Choco upgrade should preserve collector service custom env vars ([#5386](https://github.com/signalfx/splunk-otel-collector/pull/5386)) 
+- (Splunk) Remove redundant discovery.receiver.rule attribute ([#5403](https://github.com/signalfx/splunk-otel-collector/pull/5403)) 
+- (Splunk) Remove redundant resource attributes ([#5409](https://github.com/signalfx/splunk-otel-collector/pull/5409)) 
 
 ## v0.109.0
 

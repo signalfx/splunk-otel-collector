@@ -12,7 +12,7 @@ RUN rpm --import https://yum.puppet.com/RPM-GPG-KEY-puppet-20250406
 ARG PUPPET_RELEASE="6"
 RUN rpm -Uvh https://yum.puppet.com/puppet${PUPPET_RELEASE}-release-sles-15.noarch.rpm && \
     zypper --gpg-auto-import-keys -n refresh && \
-    zypper install -y puppet-agent
+    zypper install -y puppet-agent procps
 
 RUN wget -O /tmp/nodejs.tar.gz https://nodejs.org/dist/v16.20.2/node-v16.20.2-linux-x64.tar.gz && \
     mkdir -p /opt/ && \

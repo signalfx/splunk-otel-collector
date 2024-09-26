@@ -139,7 +139,7 @@ func apacheWebserverAutoDiscoveryHelper(t *testing.T, ctx context.Context, confi
 		for i := 0; i < len(sink.AllLogs()); i++ {
 			plogs := sink.AllLogs()[i]
 			lr := plogs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
-			attrMap, ok := lr.Attributes().Get(OtelEntityAttributesAttr)
+			attrMap, ok := lr.Attributes().Get("breaking")
 			if ok {
 				m := attrMap.Map()
 				discoveryMsg, ok := m.Get(MessageAttr)

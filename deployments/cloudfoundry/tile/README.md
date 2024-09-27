@@ -10,7 +10,9 @@ The `release` script requires:
 - `jq`
 - `wget`
 - [Bosh CLI](https://bosh.io/docs/cli-v2-install/)
-- [Tile Generator](https://docs.vmware.com/en/VMware-Tanzu-Operations-Manager/3.0/tile-dev-guide/tile-generator.html)
+- [Tile Generator](https://docs.vmware.com/en/VMware-Tanzu-Operations-Manager/3.0/tile-dev-guide/tile-generator.html) -
+Note that MacOS support was dropped for this tool, so an older version must be downloaded for darwin development.
+Version `14.0.6-dev.1` has been confirmed to be work.
 
 ## Releasing
 

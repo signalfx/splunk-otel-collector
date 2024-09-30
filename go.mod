@@ -12,7 +12,7 @@ require (
 	github.com/fsnotify/fsnotify v1.7.0
 	github.com/go-zookeeper/zk v1.0.4
 	github.com/gogo/protobuf v1.3.2
-	github.com/hashicorp/vault v1.17.5
+	github.com/hashicorp/vault v1.17.6
 	github.com/hashicorp/vault-plugin-auth-gcp v0.19.0
 	github.com/hashicorp/vault/api v1.15.0
 	github.com/jaegertracing/jaeger v1.61.0
@@ -282,7 +282,6 @@ require (
 	github.com/montanaflynn/stats v0.7.1 // indirect
 	github.com/mrunalp/fileutils v0.5.1 // indirect
 	github.com/nginxinc/nginx-prometheus-exporter v0.11.0 // indirect
-	github.com/okta/okta-sdk-golang/v2 v2.20.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/awsutil v0.110.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/containerinsight v0.110.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/k8s v0.110.0 // indirect
@@ -645,7 +644,7 @@ require (
 	golang.org/x/text v0.18.0 // indirect
 	golang.org/x/time v0.6.0 // indirect
 	golang.org/x/tools v0.24.0 // indirect
-	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
+	golang.org/x/xerrors v0.0.0-20240716161551-93cc26a95ae9 // indirect
 	gonum.org/v1/gonum v0.15.1 // indirect
 	google.golang.org/api v0.197.0 // indirect
 	google.golang.org/grpc v1.67.0 // indirect

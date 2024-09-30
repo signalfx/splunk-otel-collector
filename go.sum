@@ -874,8 +874,8 @@ github.com/hashicorp/raft-wal v0.4.0/go.mod h1:A6vP5o8hGOs1LHfC1Okh9xPwWDcmb6Vvu
 github.com/hashicorp/serf v0.9.6/go.mod h1:TXZNMjZQijwlDvp+r0b63xZ45H7JmCmgg4gpTwn9UV4=
 github.com/hashicorp/serf v0.10.1 h1:Z1H2J60yRKvfDYAOZLd2MU0ND4AH/WDz7xYHDWQsIPY=
 github.com/hashicorp/serf v0.10.1/go.mod h1:yL2t6BqATOLGc5HF7qbFkTfXoPIY0WZdWHfEvMqbG+4=
-github.com/hashicorp/vault v1.17.5 h1:oA15J91tfQ+8Nqpm3oyzVkvQb1zCO9E7pTvmV85o/54=
-github.com/hashicorp/vault v1.17.5/go.mod h1:a0xQHo0YeADV79O3NtWrsDAvfz+/OBiOJwrY9Vu9274=
+github.com/hashicorp/vault v1.17.6 h1:vGJ0vi7pjimbl+G/YljuYvsGCZ5tlrOwlgwOMtU6Mio=
+github.com/hashicorp/vault v1.17.6/go.mod h1:yVBj5AoKIqY6P+gXvgEJDhlLdTWfN3ve7PXu3ThfXec=
 github.com/hashicorp/vault-plugin-auth-gcp v0.19.0 h1:mMTnAGDi6GigGmP9DlLjDzp5VRF8/sZzw8hlfOLFbbU=
 github.com/hashicorp/vault-plugin-auth-gcp v0.19.0/go.mod h1:+0+ufeudu8nKVS448iHnzKp5SgLtMcs2U9E0nOUoL/Q=
 github.com/hashicorp/vault-plugin-secrets-kv v0.19.0 h1:vF38KPiu0pDK/WZYRPE4M9hmHd4EvO5Opkuokv+lkIE=
@@ -2378,8 +2378,8 @@ golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7/go.mod h1:I/5z698sn9Ka8T
 golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
-golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 h1:+cNy6SZtPcJQH3LJVLOSmiC7MMxXNOb3PU/VUEz+EhU=
-golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028/go.mod h1:NDW/Ps6MPRej6fsCIbMTohpP40sJ/P/vI1MoTEGwX90=
+golang.org/x/xerrors v0.0.0-20240716161551-93cc26a95ae9 h1:LLhsEBxRTBLuKlQxFBYUOU8xyFgXv6cOTp2HASDlsDk=
+golang.org/x/xerrors v0.0.0-20240716161551-93cc26a95ae9/go.mod h1:NDW/Ps6MPRej6fsCIbMTohpP40sJ/P/vI1MoTEGwX90=
 gonum.org/v1/gonum v0.15.1 h1:FNy7N6OUZVUaWG9pTiD+jlhdQ3lMP+/LcTpJ6+a8sQ0=
 gonum.org/v1/gonum v0.15.1/go.mod h1:eZTZuRFrzu5pcyjN5wJhcIhnUdNijYxX1T2IcrOGY0o=
 google.golang.org/api v0.4.0/go.mod h1:8k5glujaEP+g9n7WNsDg8QP6cUVNI86fCNMcbazEtwE=

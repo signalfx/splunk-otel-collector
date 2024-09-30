@@ -1933,8 +1933,6 @@ go.opentelemetry.io/collector/extension v0.110.0 h1:AYFk57W25f7xOo3I6pV0rWNWVtOL
 go.opentelemetry.io/collector/extension v0.110.0/go.mod h1:zD/pw9o83SFyn/DCbBdBcH0eUPyGtYgpMSAOqotFYRc=
 go.opentelemetry.io/collector/extension/auth v0.110.0 h1:9SHC2sF/KR99LciHABDXRIsXLiujzIjTJpWHO0V8Bqg=
 go.opentelemetry.io/collector/extension/auth v0.110.0/go.mod h1:NjpHds6mjeT8Zn2KJVxZtV9c59AoIr6RlBha1RpmScQ=
-go.opentelemetry.io/collector/extension/ballastextension v0.108.1 h1:HmuvkGN2s5hnviVZ62CRM7XbGOWcVjlp3L6VOZEvaTc=
-go.opentelemetry.io/collector/extension/ballastextension v0.108.1/go.mod h1:Yu2jtjK7RD8Ie13N06rQMtGbLqWySmPEPEZoJdS9DT4=
 go.opentelemetry.io/collector/extension/experimental/storage v0.110.0 h1:G1xkNGiBkdSrdhhU5VLE9+y7sZ5fU1/CHps92KSYDLc=
 go.opentelemetry.io/collector/extension/experimental/storage v0.110.0/go.mod h1:0XFrIUcbqjsSycNI6Vu7ndMnjSkglMnD2YtUl2ZrzIU=
 go.opentelemetry.io/collector/extension/extensioncapabilities v0.110.0 h1:VVqGHUh1A5ljEoQVeMCMUs1i7oLMKRQRpLCAim4WwpU=

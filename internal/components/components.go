@@ -119,7 +119,6 @@ import (
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
 	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
 	"go.opentelemetry.io/collector/extension"
-	"go.opentelemetry.io/collector/extension/ballastextension"
 	"go.opentelemetry.io/collector/extension/zpagesextension"
 	"go.opentelemetry.io/collector/otelcol"
 	"go.opentelemetry.io/collector/processor"
@@ -144,7 +143,6 @@ func Get() (otelcol.Factories, error) {
 	var errs []error
 	extensions, err := extension.MakeFactoryMap(
 		ackextension.NewFactory(),
-		ballastextension.NewFactory(),
 		basicauthextension.NewFactory(),
 		dockerobserver.NewFactory(),
 		ecsobserver.NewFactory(),

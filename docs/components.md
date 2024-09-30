@@ -140,7 +140,6 @@ The distribution offers support for the following components.
 | [host_observer](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/observer/hostobserver)        | [beta]    |
 | [http_forwarder](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/httpforwarderextension)      | [beta]    |
 | [k8s_observer](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/observer/k8sobserver)          | [beta]    |
-| [memory_ballast](https://github.com/open-telemetry/opentelemetry-collector/tree/main/extension/ballastextension)                    | [beta]    |
 | [oauth2client](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/oauth2clientauthextension)     | [beta]    |
 | [pprof](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/pprofextension)                       | [beta]    |
 | [smartagent](../pkg/extension/smartagentextension)                                                                                  | [beta]    |

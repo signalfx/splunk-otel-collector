@@ -4,7 +4,7 @@
 
 ### 🛑 Breaking changes 🛑
 
-- (Splunk) Remove deprecated memory ballast extension ([#](https://github.com/open-telemetry/opentelemetry-collector/pull/))
+- (Splunk) Remove deprecated memory ballast extension ([#5429](https://github.com/open-telemetry/opentelemetry-collector/pull/5429))
 
 ## v0.110.0
 

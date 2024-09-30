@@ -2,7 +2,7 @@ monitors:
 - dimensions:
   doc: |
     The jaegergrpc monitor is deprecated and will be removed in a future release.
-    Use the jaegerreceiver instead.
+    Use the Jaeger receiver instead.
     
     Runs a GRPC server that listens for Jaeger trace batches
     and forwards them to SignalFx (or the configured ingest host in the

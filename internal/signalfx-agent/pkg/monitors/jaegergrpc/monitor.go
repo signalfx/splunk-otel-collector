@@ -144,7 +144,7 @@ func (m *Monitor) setupListener(ctx context.Context, conf *Config) (net.Listener
 // Configure the monitor and kick off volume metric syncing
 func (m *Monitor) Configure(conf *Config) error {
 	m.logger = utils.NewThrottledLogger(log.WithFields(log.Fields{"monitorType": monitorType, "monitorID": conf.MonitorID}), 30*time.Second)
-	m.logger.Warn("[NOTICE] The jaegergrpc monitor is deprecated and will be removed in a future release. Use the jaegerreceiver instead.")
+	m.logger.Warn("[NOTICE] The jaegergrpc monitor is deprecated and will be removed in a future release. Use the Jaeger receiver instead.")
 	ctx, cancel := context.WithCancel(context.Background())
 	m.cancel = cancel
 

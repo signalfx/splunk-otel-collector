@@ -4,7 +4,7 @@
 
 ### 🚩Deprecations 🚩
 
-- (Splunk) Deprecate the jaegergrpc monitor ([#](https://github.com/signalfx/splunk-otel-collector/pull/))
+- (Splunk) Deprecate the jaegergrpc monitor ([#5428](https://github.com/signalfx/splunk-otel-collector/pull/5428))
 
 ## v0.110.0
 

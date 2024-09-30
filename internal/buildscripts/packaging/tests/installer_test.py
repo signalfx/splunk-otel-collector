@@ -277,7 +277,6 @@ def test_installer_custom(distro, arch):
         "--with-fluentd",
         "--listen-interface 10.0.0.1",
         "--memory 256",
-        "--ballast 64",
         f"--service-user {service_owner} --service-group {service_owner}",
         f"--collector-config {custom_config}",
         f"--collector-version {collector_version}",

@@ -426,8 +426,8 @@ github.com/jackc/pgx/v4 v4.18.3/go.mod h1:Ey4Oru5tH5sB6tV7hDmfWFahwF15Eb7DNXlRKx
 github.com/jackc/puddle v0.0.0-20190413234325-e4ced69a3a2b/go.mod h1:m4B5Dj62Y0fbyuIc15OsIqK0+JU8nkqQjsgx7dvjSWk=
 github.com/jackc/puddle v0.0.0-20190608224051-11cab39313c9/go.mod h1:m4B5Dj62Y0fbyuIc15OsIqK0+JU8nkqQjsgx7dvjSWk=
 github.com/jackc/puddle v1.1.3/go.mod h1:m4B5Dj62Y0fbyuIc15OsIqK0+JU8nkqQjsgx7dvjSWk=
-github.com/jaegertracing/jaeger v1.60.0 h1:6fswbNydmXJNH7uz2smy2fFs9KKRpLrFXdW0u/hud4o=
-github.com/jaegertracing/jaeger v1.60.0/go.mod h1:CMrmMLIWn7xLP0IwBgpbxtgIuOT6TF/7bpTUBaOUaXo=
+github.com/jaegertracing/jaeger v1.61.0 h1:9PCP5vkilmoxmSHa9jFvtULoduFJqJ0/bHbRxUMPWTc=
+github.com/jaegertracing/jaeger v1.61.0/go.mod h1:DMy9PNQ7tOgo811jOv7UAQaM0NeSJ95lh6SW3O1s1Xk=
 github.com/jcmturner/aescts/v2 v2.0.0 h1:9YKLH6ey7H4eDBXW8khjYslgyqG2xZikXP0EQFKrle8=
 github.com/jcmturner/aescts/v2 v2.0.0/go.mod h1:AiaICIRyfYg35RUkr8yESTqvSy7csK90qZ5xfvvsoNs=
 github.com/jcmturner/dnsutils/v2 v2.0.0 h1:lltnkeZGL0wILNvrNiVCR6Ro5PGU/SeBvVO/8c/iPbo=
@@ -763,7 +763,7 @@ github.com/zenazn/goji v0.9.0/go.mod h1:7S9M489iMyHBNxwZnk9/EHS098H4/F6TATF2mIxt
 go.etcd.io/etcd/api/v3 v3.5.4/go.mod h1:5GB2vv4A4AOn3yk7MftYGHkUfGtDHnEraIjym4dYz5A=
 go.etcd.io/etcd/client/pkg/v3 v3.5.4/go.mod h1:IJHfcCEKxYu1Os13ZdwCwIUTUVGYTSAM3YSwc9/Ac1g=
 go.etcd.io/etcd/client/v3 v3.5.4/go.mod h1:ZaRkVgBZC+L+dLCjTcF1hRXpgZXQPOvnA/Ak/gq3kiY=
-go.opentelemetry.io/collector v0.106.1 h1:ZSQMpFGzFP3RILe1/+K80kCCT2ahn3MKt5e3u0Yz7Rs=
+go.opentelemetry.io/collector v0.109.0 h1:ULnMWuwcy4ix1oP5RFFRcmpEbaU5YabW6nWcLMQQRo0=
 go.opentelemetry.io/collector/component v0.110.0 h1:z7uSY/1dcK+vTY2z3v0XxeCoi2wqgHTow/ds3Gozuz4=
 go.opentelemetry.io/collector/component v0.110.0/go.mod h1:W99gZdfGtQ5Zg6Bhrwrcl/uZcCG+2qBnZ1z2JO5WCW0=
 go.opentelemetry.io/collector/component/componentprofiles v0.110.0 h1:YH43aYKPYfnC0TqgI+WlbHsJkTvQPO3ImJybK3oyxQ8=

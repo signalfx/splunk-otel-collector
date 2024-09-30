@@ -191,7 +191,6 @@ receivers:
 processors:
   batch: null
   memory_limiter:
-    ballast_size_mib: ${SPLUNK_BALLAST_SIZE_MIB}
     check_interval: 2s
     limit_mib: ${SPLUNK_MEMORY_LIMIT_MIB}
   resourcedetection:

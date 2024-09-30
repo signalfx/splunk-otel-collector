@@ -23,8 +23,6 @@ gomemlimit_name="gomemlimit"
 gomemlimit_value=""
 splunk_api_url_name="splunk_api_url"
 splunk_api_url_value=""
-splunk_ballast_size_mib_name="splunk_ballast_size_mib"
-splunk_ballast_size_mib_value=""
 splunk_bundle_dir_name="splunk_bundle_dir"
 splunk_bundle_dir_value=""
 splunk_config_name="splunk_config"
@@ -128,13 +126,6 @@ splunk_TA_otel_read_configs() {
             splunk_TA_otel_log_msg "DEBUG" "reading $splunk_api_url_name from line $has_splunk_api_url"
             splunk_api_url_value="$(echo "$has_splunk_api_url" | grep -Eo ">(.*?)<" | sed 's/^>\(.*\)<$/\1/')"
             splunk_TA_otel_log_msg "INFO" "Set $splunk_api_url_name to $splunk_api_url_value"
-        fi
-
-        has_splunk_ballast_size_mib="$(echo "$line" | grep "$splunk_ballast_size_mib_name")"
-        if [ "$has_splunk_ballast_size_mib" ] ; then
-            splunk_TA_otel_log_msg "DEBUG" "reading $splunk_ballast_size_mib_name from line $has_splunk_ballast_size_mib"
-            splunk_ballast_size_mib_value="$(echo "$has_splunk_ballast_size_mib" | grep -Eo ">(.*?)<" | sed 's/^>\(.*\)<$/\1/')"
-            splunk_TA_otel_log_msg "INFO" "Set $splunk_ballast_size_mib_name to $splunk_ballast_size_mib_value"
         fi
 
         has_splunk_bundle_dir="$(echo "$line" | grep "$splunk_bundle_dir_name")"
@@ -317,11 +308,6 @@ splunk_TA_otel_run_agent() {
       export SPLUNK_API_URL="$splunk_api_url_value"
     else
       splunk_TA_otel_log_msg "INFO" "NOT SET: $splunk_api_url_name"
-    fi
-    if [ "$splunk_ballast_size_mib_value" ] ; then
-      export SPLUNK_BALLAST_SIZE_MIB="$splunk_ballast_size_mib_value"
-    else
-      splunk_TA_otel_log_msg "INFO" "NOT SET: $splunk_ballast_size_mib_name"
     fi
     if [ "$splunk_bundle_dir_value" ] ; then
       export SPLUNK_BUNDLE_DIR="$splunk_bundle_dir_value"

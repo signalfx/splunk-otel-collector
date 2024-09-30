@@ -133,7 +133,7 @@ def verify_config_file(container, path, key, value, exists=True):
         assert not match, f"'{line}' found in {path}:\n{config}"
 
 
-def verify_env_file(container, mode="agent", config_path=None, memory=TOTAL_MEMORY, listen_addr="", ballast=None):
+def verify_env_file(container, mode="agent", config_path=None, memory=TOTAL_MEMORY, listen_addr=""):
     env_path = SPLUNK_ENV_PATH
     if container_file_exists(container, OLD_SPLUNK_ENV_PATH):
         env_path = OLD_SPLUNK_ENV_PATH
@@ -161,9 +161,6 @@ def verify_env_file(container, mode="agent", config_path=None, memory=TOTAL_MEMO
         verify_config_file(container, env_path, "SPLUNK_LISTEN_INTERFACE", listen_addr)
     else:
         verify_config_file(container, env_path, "SPLUNK_LISTEN_INTERFACE", False, False)
-
-    if ballast:
-        verify_config_file(container, env_path, "SPLUNK_BALLAST_SIZE_MIB", ballast)
 
 
 def verify_support_bundle(container):
@@ -301,7 +298,7 @@ def test_installer_custom(distro, arch):
             assert output.decode("utf-8").strip() == f"otelcol version v{collector_version}"
 
             # verify env file created with configured parameters
-            verify_env_file(container, config_path=custom_config, memory="256", listen_addr="10.0.0.1", ballast="64")
+            verify_env_file(container, config_path=custom_config, memory="256", listen_addr="10.0.0.1")
 
             # verify collector service status
             assert wait_for(lambda: service_is_running(container, service_owner=service_owner))

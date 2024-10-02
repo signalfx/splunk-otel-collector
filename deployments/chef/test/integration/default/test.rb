@@ -6,6 +6,7 @@ splunk_trace_url = "#{splunk_ingest_url}/v2/trace"
 splunk_hec_url = "#{splunk_ingest_url}/v1/log"
 splunk_hec_token = splunk_access_token
 splunk_memory_total = '512'
+splunk_listen_interface = '0.0.0.0'
 
 describe service('splunk-otel-collector') do
   it { should be_enabled }

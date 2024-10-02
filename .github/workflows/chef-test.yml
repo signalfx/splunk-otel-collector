@@ -124,6 +124,9 @@ jobs:
       - name: kitchen test ${{ matrix.SUITE }}-${{ matrix.DISTRO }}
         run: |
           kitchen test ${{ matrix.SUITE }}-${{ matrix.DISTRO }}
+          # For some reason, kitchen returns 0 here even if there are test failures, so check the log instead.
+          grep -q "No tests executed." ./kitchen.log && exit 1
+          grep -q "0 failures" ./kitchen.log || exit 1
         shell: bash
         env:
           KITCHEN_YAML: kitchen.windows.yml

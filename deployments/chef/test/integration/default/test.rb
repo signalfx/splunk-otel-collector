@@ -5,8 +5,6 @@ splunk_ingest_url = "https://ingest.#{splunk_realm}.signalfx.com"
 splunk_trace_url = "#{splunk_ingest_url}/v2/trace"
 splunk_hec_url = "#{splunk_ingest_url}/v1/log"
 splunk_hec_token = splunk_access_token
-splunk_memory_total = '512'
-splunk_listen_interface = '0.0.0.0'
 
 describe service('splunk-otel-collector') do
   it { should be_enabled }
@@ -21,19 +19,13 @@ if os[:family] == 'windows'
     { name: 'SPLUNK_ACCESS_TOKEN', type: :string, data: splunk_access_token },
     { name: 'SPLUNK_API_URL', type: :string, data: splunk_api_url },
     { name: 'SPLUNK_BUNDLE_DIR', type: :string, data: bundle_dir },
-    { name: 'SPLUNK_COLLECTD_DIR', type: :string, data: collectd_dir },
     { name: 'SPLUNK_CONFIG', type: :string, data: config_path },
     { name: 'SPLUNK_HEC_TOKEN', type: :string, data: splunk_hec_token },
     { name: 'SPLUNK_HEC_URL', type: :string, data: splunk_hec_url },
     { name: 'SPLUNK_INGEST_URL', type: :string, data: splunk_ingest_url },
-    { name: 'SPLUNK_LISTEN_INTERFACE', type: :string, data: splunk_listen_interface },
-    { name: 'SPLUNK_MEMORY_TOTAL_MIB', type: :string, data: splunk_memory_total },
     { name: 'SPLUNK_REALM', type: :string, data: splunk_realm },
     { name: 'SPLUNK_TRACE_URL', type: :string, data: splunk_trace_url },
   ]
-  unless splunk_listen_interface.to_s.strip.empty?
-    collector_env_vars.push({ name: 'SPLUNK_LISTEN_INTERFACE', type: :string, data: splunk_listen_interface })
-  end
   collector_env_vars_strings = []
   collector_env_vars.each do |item|
     collector_env_vars_strings |= [ "#{item[:name]}=#{item[:data]}" ]

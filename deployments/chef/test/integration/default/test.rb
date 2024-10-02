@@ -31,9 +31,6 @@ if os[:family] == 'windows'
     { name: 'SPLUNK_REALM', type: :string, data: splunk_realm },
     { name: 'SPLUNK_TRACE_URL', type: :string, data: splunk_trace_url },
   ]
-  unless splunk_ballast_size_mib.to_s.strip.empty?
-    collector_env_vars.push({ name: 'SPLUNK_BALLAST_SIZE_MIB', type: :string, data: splunk_ballast_size_mib })
-  end
   unless splunk_listen_interface.to_s.strip.empty?
     collector_env_vars.push({ name: 'SPLUNK_LISTEN_INTERFACE', type: :string, data: splunk_listen_interface })
   end

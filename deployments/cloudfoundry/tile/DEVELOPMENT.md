@@ -18,7 +18,7 @@ Version `14.0.6-dev.1` has been confirmed to be work.
 
 ### Install Required CLI tools
 
-Refer to the [install_cli_dependencies script](https://github.com/signalfx/splunk-otel-collector/tree/main/deployments/cloudfoundry/tile/scripts#install_cli_depenciessh)
+Refer to the [install_cli_dependencies script](https://github.com/signalfx/splunk-otel-collector/tree/main/deployments/cloudfoundry/tile/scripts#install_cli_dependenciessh)
 for information on how to install all required CLI tools locally.
 
 ### Tanzu Environment setup

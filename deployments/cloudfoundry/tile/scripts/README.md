@@ -19,9 +19,13 @@ This script is used to generate the open source disclosure file (OSDF). This is 
 Tile's dependencies. The Tanzu team used to provide a website interface that would generate this file in a specific
 format but dropped support for it. This script generates the file in the same format as their website did.
 
+**Note:** This script must be run from the top-level directory of this repository to properly account for the
+`license_finder` tool's contents.
+
 **Sample usage:**
 ```shell
-$ python3 generate_osdf.py --otelcol_version 0.X.0
+# When creating the tile locally the version can be found in deployments/cloudfoundry/tile/tile-history.yml
+$ python3 deployments/cloudfoundry/tile/scripts/generate_osdf.py --otelcol_version 0.X.0
 ```
 
 ## install_cli_dependencies.sh

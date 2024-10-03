@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### 🚩Deprecations 🚩
+
+- (Splunk) Deprecate the jaegergrpc monitor ([#5428](https://github.com/signalfx/splunk-otel-collector/pull/5428))
+
+### 💡 Enhancements 💡
+
+- (Splunk) Initial release of standalone collector binaries for Linux (amd64/arm64) and Windows (amd64) with FIPS 140-2 support. These are experimental (alpha) binaries, and it is not suitable to use them in production environments. ([#5378](https://github.com/signalfx/splunk-otel-collector/pull/5378)):
+  - `otelcol-fips_linux_<amd64|arm64>`: Built with [`GOEXPERIMENT=boringcrypto`](https://go.dev/src/crypto/internal/boring/README) and [`crypto/tls/fipsonly`](https://go.dev/src/crypto/tls/fipsonly/fipsonly.go).
+  - `otelcol-fips_windows_amd64.exe`: Built with [`GOEXPERIMENT=cngcrypto`](https://github.com/microsoft/go/blob/microsoft/main/eng/doc/fips/README.md) and [`requirefips`](https://github.com/microsoft/go/blob/microsoft/main/eng/doc/fips/README.md#build-option-to-require-fips-mode) (the collector will panic if FIPS is not enabled on the Windows host).
+  - Smart Agent components are not currently supported.
+  - Download the binaries from the list of assets below.
+
 ## v0.110.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.110.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.110.0) and the [opentelemetry-collector-contrib v0.110.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.110.0) releases where appropriate.

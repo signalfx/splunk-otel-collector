@@ -22,4 +22,4 @@ if [ -z "$SPLUNK_OTEL_VERSION" ]; then
     SPLUNK_OTEL_VERSION="$(curl "https://api.github.com/repos/signalfx/splunk-otel-collector/tags" | jq -r '.[0].name')"
 fi
 echo "updating otel to version $SPLUNK_OTEL_VERSION"
-sed -i'.old' "s/^OTEL_COLLECTOR_VERSION?=.*$/OTEL_COLLECTOR_VERSION?=${SPLUNK_OTEL_VERSION#v}/g" "$SOURCE_DIR/Makefile" && rm Makefile.old
+sed -i'.old' "s/^OTEL_COLLECTOR_VERSION?=.*$/OTEL_COLLECTOR_VERSION?=${SPLUNK_OTEL_VERSION#v}/g" "$SOURCE_DIR/Makefile" && rm "$SOURCE_DIR/Makefile.old"

@@ -24,7 +24,8 @@ if os[:family] == 'windows'
     { name: 'SPLUNK_HEC_TOKEN', type: :string, data: splunk_hec_token },
     { name: 'SPLUNK_HEC_URL', type: :string, data: splunk_hec_url },
     { name: 'SPLUNK_INGEST_URL', type: :string, data: splunk_ingest_url },
-    { name: 'SPLUNK_MEMORY_TOTAL_MIB', type: :string, data: splunk_memory_total },    { name: 'SPLUNK_REALM', type: :string, data: splunk_realm },
+    { name: 'SPLUNK_MEMORY_TOTAL_MIB', type: :string, data: splunk_memory_total },
+    { name: 'SPLUNK_REALM', type: :string, data: splunk_realm },
     { name: 'SPLUNK_TRACE_URL', type: :string, data: splunk_trace_url },
   ]
   collector_env_vars_strings = []

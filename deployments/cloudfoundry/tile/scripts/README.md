@@ -33,3 +33,6 @@ $ python3 deployments/cloudfoundry/tile/scripts/generate_osdf.py --otelcol_versi
 This is a shell script used to install all of the CLI tools that are arequired for development
 working on the Tanzu Tile. This script was made for MacOS, and has not been
 tested on any other OS at this time.
+
+**Note:** There is a manual step required in this script to download a dependency. The script will fail if being run directly
+without completing the manual step.

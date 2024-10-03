@@ -1,4 +1,5 @@
 include ./Makefile.Common
+include ./internal/buildscripts/packaging/technical-addon/Makefile
 
 ### VARIABLES
 

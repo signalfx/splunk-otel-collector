@@ -83,7 +83,9 @@ verify: env-guard-verify
 update-deps:
 	SOURCE_DIR="$(SOURCE_DIR)" \
 	SPLUNK_OTEL_VERSION="$(SPLUNK_OTEL_VERSION)" \
-	./packaging-scripts/update-otel-version.sh
+	$(SOURCE_DIR)/packaging-scripts/update-otel-version.sh
+	
+	SOURCE_DIR="$(SOURCE_DIR)" \
 	TA_VERSION="$(TA_VERSION)" \
 	$(SOURCE_DIR)/packaging-scripts/update-ta-version.sh
 

@@ -12,6 +12,7 @@ TA_VERSION="$(sed -n 's/^version = \(.*$\)/\1/p' "$APP_CONFIG" | head -n 1)"
 [[ -z "$TA_VERSION" ]] && exit 1
 
 echo "DELETING TAG+BRANCH (release/)v$TA_VERSION FROM LOCAL AND ORIGIN (if exists)"
-git tag --delete "v$TA_VERSION" || true
-git push --delete origin "v$TA_VERSION" || true
-git push --delete origin "release/v$TA_VERSION" || true
+git tag --delete "Splunk_TA_otel/v$TA_VERSION" || true
+git push --delete origin "Splunk_TA_otel/v$TA_VERSION" || true
+git push --delete origin "release/technical-addon/v$TA_VERSION" || true
+git branch --delete "release/technical-addon/v$TA_VERSION" || true

@@ -20,6 +20,7 @@ if os[:family] == 'windows'
     { name: 'SPLUNK_ACCESS_TOKEN', type: :string, data: splunk_access_token },
     { name: 'SPLUNK_API_URL', type: :string, data: splunk_api_url },
     { name: 'SPLUNK_BUNDLE_DIR', type: :string, data: bundle_dir },
+    { name: 'SPLUNK_COLLECTD_DIR', type: :string, data: collectd_dir },
     { name: 'SPLUNK_CONFIG', type: :string, data: config_path },
     { name: 'SPLUNK_HEC_TOKEN', type: :string, data: splunk_hec_token },
     { name: 'SPLUNK_HEC_URL', type: :string, data: splunk_hec_url },

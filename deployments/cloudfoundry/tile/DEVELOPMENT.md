@@ -20,7 +20,7 @@ Version `14.0.6-dev.1` has been confirmed to be work.
 
 - Refer to [this guide](https://github.com/signalfx/signalfx-agent/tree/main/pkg/monitors/cloudfoundry)
 on how to setup the Tanzu environment and local authentication information. The guide has also been copied to a
-[script](./scripts/setup_tanzu.sh) that can be used to prepare the Tanzu environment for deploying the tile.
+[script](https://github.com/signalfx/splunk-otel-collector/tree/main/deployments/cloudfoundry/tile/scripts#setup_tanzush) that can be used to prepare the Tanzu environment for deploying the tile.
 
 - Create a Tanzu Tile with the latest Splunk OpenTelemetry Collector
 ```shell

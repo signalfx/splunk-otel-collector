@@ -141,7 +141,8 @@ job "otel-gateway" {
       template {
         data        = <<EOF
 extensions:
-  health_check: null
+  health_check:
+    endpoint: 0.0.0.0:13133
   http_forwarder:
     egress:
       endpoint: https://api.${SPLUNK_REALM}.signalfx.com

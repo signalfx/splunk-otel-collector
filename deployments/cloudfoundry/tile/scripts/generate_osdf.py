@@ -359,7 +359,7 @@ def parse_dependencies():
 		if len(version) > 0:
 			dep_name_ver += "-" + version
 		else:
-			print("Note: Found empty ver for " + sections[DEP_INDEX.NAME] + ", proceeding without version.")
+			print("Found invalid ver for " + sections[DEP_INDEX.NAME])
 
 		dep_license = license_parser(sections[DEP_INDEX.LICENSE])
 

@@ -7,6 +7,8 @@ this script will allow you to install the Tanzu Tile in your Tanzu environment.
 
 **Sample usage:**
 ```shell
+# The hammer file is available in the Self Service center for your specific
+# Tanzu environment.
 $ export TAS_JSON=/path/to/hammer/file
 $ ./setup_tanzu.sh
 ```
@@ -21,3 +23,9 @@ format but dropped support for it. This script generates the file in the same fo
 ```shell
 $ python3 generate_osdf.py --otelcol_version 0.X.0
 ```
+
+## install_cli_dependencies.sh
+
+This is a shell script used to install all of the CLI tools that are arequired for development
+working on the Tanzu Tile. This script was made for MacOS, and has not been
+tested on any other OS at this time.

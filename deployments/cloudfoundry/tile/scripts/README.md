@@ -30,7 +30,7 @@ $ python3 deployments/cloudfoundry/tile/scripts/generate_osdf.py --otelcol_versi
 
 ## install_cli_dependencies.sh
 
-This is a shell script used to install all of the CLI tools that are are required for development
+This is a shell script used to install all of the CLI tools that are required for development
 working on the Tanzu Tile. This script was made for MacOS, and has not been
 tested on any other OS at this time.
 

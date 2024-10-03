@@ -25,7 +25,7 @@ for information on how to install all required CLI tools locally.
 
 Refer to [this guide](https://github.com/signalfx/signalfx-agent/tree/main/pkg/monitors/cloudfoundry)
 on how to setup the Tanzu environment and local authentication information. The guide has also been copied to a
-[script](./scripts/setup_tanzu.sh) that can be used to prepare the Tanzu environment for deploying the tile.
+[script](https://github.com/signalfx/splunk-otel-collector/tree/main/deployments/cloudfoundry/tile/scripts#setup_tanzush) that can be used to prepare the Tanzu environment for deploying the tile.
 
 
 ### Create a Tanzu Tile
@@ -96,7 +96,7 @@ Check box for staged changes on your tile -> `APPLY CHANGES`
   - The Tile will be shown on the Installation Dashboard as not being configured properly.
 - Configure Tanzu Tile
   - Assign AZs and Networks - Fill in required values, these do not have an impact on the Collector's deployment.
-  - Nozzle Config - The two UAA arguments are required, use the values supplied by the [setup script](./scripts/setup_tanzu.sh). The default username is `my-v2-nozzle` and password is `password`.
+  - Nozzle Config - The two UAA arguments are required, use the values supplied by the [setup script]([./scripts/setup_tanzu.sh](https://github.com/signalfx/splunk-otel-collector/tree/main/deployments/cloudfoundry/tile/scripts#setup_tanzush)). The default username is `my-v2-nozzle` and password is `password`.
   - Splunk Observability Cloud - These config options are directly mapped to the SignalFx's exporter options, so fill in values you use there.
   - Resource Config - No changes necessary.
   - Click Save after every page's changes.

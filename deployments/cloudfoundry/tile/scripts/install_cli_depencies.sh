@@ -20,7 +20,7 @@ mv ~/Downloads/tile_darwin-64bit /usr/local/bin/tile
 brew tap pivotal/hammer https://github.com/pivotal/hammer
 brew install hammer
 
-https://github.com/cloudfoundry/homebrew-tap
+# https://github.com/cloudfoundry/homebrew-tap
 brew install cloudfoundry/tap/cf-cli@8
 
 brew tap pivotal-cf/om https://github.com/pivotal-cf/om

@@ -1,7 +1,7 @@
 # Used for building
 SOURCE_DIR?=$(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 BUILD_DIR?=./build
-OTEL_COLLECTOR_VERSION?=0.104.0
+OTEL_COLLECTOR_VERSION?=0.110.0
 SPLUNK_OTELCOL_DOWNLOAD_BASE?=https://github.com/signalfx/splunk-otel-collector/releases/download
 PLATFORM?=linux
 ARCH?=amd64

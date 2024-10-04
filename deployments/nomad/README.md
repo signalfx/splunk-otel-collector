@@ -43,7 +43,8 @@ template {
     data        = <<EOF
 // Find the below config example for setting up your own Splunk OpenTelemetry Collector configuration file.
 extensions:
-  health_check: null
+  health_check:
+    endpoint: 0.0.0.0:13133
   zpages: null
 receivers:
   hostmetrics:

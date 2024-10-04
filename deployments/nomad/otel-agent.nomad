@@ -150,7 +150,8 @@ job "otel-agent" {
       template {
         data        = <<EOF
 extensions:
-  health_check: null
+  health_check:
+    endpoint: 0.0.0.0:13133
   zpages: null
 receivers:
   hostmetrics:

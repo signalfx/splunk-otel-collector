@@ -67,5 +67,5 @@ func TestFactoryOtelIntegration(t *testing.T) {
 	parsedFactory := factories.Receivers[metadata.Type]
 	require.NotEmpty(t, parsedFactory)
 	assert.EqualValues(t, parsedFactory.Type(), metadata.Type)
-	assert.EqualValues(t, 3, parsedFactory.MetricsReceiverStability())
+	assert.EqualValues(t, 3, parsedFactory.MetricsStability())
 }

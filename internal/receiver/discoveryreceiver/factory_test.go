@@ -42,7 +42,7 @@ func TestLogsReceiver(t *testing.T) {
 	cfg := factory.CreateDefaultConfig()
 
 	params := receivertest.NewNopSettings()
-	receiver, err := factory.CreateLogsReceiver(context.Background(), params, cfg, consumertest.NewNop())
+	receiver, err := factory.CreateLogs(context.Background(), params, cfg, consumertest.NewNop())
 	assert.NoError(t, err)
 	assert.NotNil(t, receiver)
 	require.NoError(t, receiver.Start(context.Background(), componenttest.NewNopHost()))
@@ -55,7 +55,7 @@ func TestMetricsReceiver(t *testing.T) {
 	require.Error(t, cfg.Validate())
 
 	params := receivertest.NewNopSettings()
-	receiver, err := factory.CreateMetricsReceiver(context.Background(), params, cfg, consumertest.NewNop())
+	receiver, err := factory.CreateMetrics(context.Background(), params, cfg, consumertest.NewNop())
 	require.NoError(t, err)
 	assert.NotNil(t, receiver)
 
@@ -69,7 +69,7 @@ func TestTracesReceiver(t *testing.T) {
 	require.Error(t, cfg.Validate())
 
 	params := receivertest.NewNopSettings()
-	receiver, err := factory.CreateTracesReceiver(context.Background(), params, cfg, consumertest.NewNop())
+	receiver, err := factory.CreateTraces(context.Background(), params, cfg, consumertest.NewNop())
 	require.Error(t, err)
 	assert.EqualError(t, err, "telemetry type is not supported")
 	assert.Nil(t, receiver)

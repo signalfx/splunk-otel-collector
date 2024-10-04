@@ -1,7 +1,7 @@
 # Used for building
 SOURCE_DIR?=$(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 BUILD_DIR?=./build
-OTEL_COLLECTOR_VERSION?=0.104.0
+OTEL_COLLECTOR_VERSION?=0.110.0
 SPLUNK_OTELCOL_DOWNLOAD_BASE?=https://github.com/signalfx/splunk-otel-collector/releases/download
 PLATFORM?=linux
 ARCH?=amd64
@@ -83,7 +83,9 @@ verify: env-guard-verify
 update-deps:
 	SOURCE_DIR="$(SOURCE_DIR)" \
 	SPLUNK_OTEL_VERSION="$(SPLUNK_OTEL_VERSION)" \
-	./packaging-scripts/update-otel-version.sh
+	$(SOURCE_DIR)/packaging-scripts/update-otel-version.sh
+	
+	SOURCE_DIR="$(SOURCE_DIR)" \
 	TA_VERSION="$(TA_VERSION)" \
 	$(SOURCE_DIR)/packaging-scripts/update-ta-version.sh
 

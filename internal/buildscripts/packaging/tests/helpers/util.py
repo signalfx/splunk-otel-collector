@@ -19,6 +19,7 @@ import time
 from contextlib import contextmanager
 from io import BytesIO
 from pathlib import Path
+from typing import Optional, Tuple
 
 import docker
 
@@ -121,7 +122,7 @@ def run_distro_container(distro, arch="amd64", dockerfile=None, path=TESTS_DIR, 
         container.remove(force=True, v=True)
 
 
-def run_container_cmd(container, cmd, env=None, exit_code=0, timeout=None, user='', workdir=None):
+def run_container_cmd(container, cmd, env=None, exit_code:Optional[int]=0, timeout=None, user='', workdir=None) -> Tuple[int, bytes]:
     if timeout:
         cmd = f"timeout {timeout} {cmd}"
     print(f"Running '{cmd}' ...")
@@ -181,9 +182,11 @@ def ensure_always(test, timeout=DEFAULT_TIMEOUT, interval=1):
 
 
 def service_is_running(container, service_name=SERVICE_NAME, service_owner=SERVICE_OWNER, process=OTELCOL_BIN):
-    cmd = f"sh -ec 'systemctl status {service_name} && pgrep -a -u {service_owner} -f {process}'"
-    code, _ = run_container_cmd(container, cmd, exit_code=None)
-    return code == 0
+    cmd = f"""sh -ec 'systemctl status {service_name}'"""
+    sysctl_code, _ = run_container_cmd(container, cmd, exit_code=None)
+    cmd = f"""sh -ec 'pgrep -a -u {service_owner} -f {process}'"""
+    pgrep_code, _ = run_container_cmd(container, cmd, exit_code=None)
+    return (sysctl_code | pgrep_code) == 0
 
 
 def verify_package_version(container, package, version, old_version=None):

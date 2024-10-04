@@ -107,7 +107,9 @@ func TestDefaultGatewayConfig(t *testing.T) {
 					},
 				},
 				"processors": map[string]any{
-					"batch": nil,
+					"batch": map[string]any{
+						"metadata_keys": []any{"X-SF-Token"},
+					},
 					"memory_limiter": map[string]any{
 						"check_interval": "2s",
 						"limit_mib":      460,
@@ -134,32 +136,33 @@ func TestDefaultGatewayConfig(t *testing.T) {
 					},
 					"prometheus/internal": map[string]any{
 						"config": map[string]any{
-							"scrape_configs": []any{map[string]any{
-								"job_name": "otel-collector",
-								"metric_relabel_configs": []any{
-									map[string]any{
-										"action":        "drop",
-										"regex":         "otelcol_rpc_.*",
-										"source_labels": []any{"__name__"},
+							"scrape_configs": []any{
+								map[string]any{
+									"job_name": "otel-collector",
+									"metric_relabel_configs": []any{
+										map[string]any{
+											"action":        "drop",
+											"regex":         "otelcol_rpc_.*",
+											"source_labels": []any{"__name__"},
+										},
+										map[string]any{
+											"action":        "drop",
+											"regex":         "otelcol_http_.*",
+											"source_labels": []any{"__name__"},
+										},
+										map[string]any{
+											"action":        "drop",
+											"regex":         "otelcol_processor_batch_.*",
+											"source_labels": []any{"__name__"},
+										},
 									},
-									map[string]any{
-										"action":        "drop",
-										"regex":         "otelcol_http_.*",
-										"source_labels": []any{"__name__"},
-									},
-									map[string]any{
-										"action":        "drop",
-										"regex":         "otelcol_processor_batch_.*",
-										"source_labels": []any{"__name__"},
+									"scrape_interval": "10s",
+									"static_configs": []any{
+										map[string]any{
+											"targets": []any{fmt.Sprintf("%s:8888", ip)},
+										},
 									},
 								},
-								"scrape_interval": "10s",
-								"static_configs": []any{
-									map[string]any{
-										"targets": []any{fmt.Sprintf("%s:8888", ip)},
-									},
-								},
-							},
 							},
 						},
 					},
@@ -300,15 +303,20 @@ func TestDefaultAgentConfig(t *testing.T) {
 					"zpages": nil,
 				},
 				"processors": map[string]any{
-					"batch": nil,
+					"batch": map[string]any{
+						"metadata_keys": []any{"X-SF-Token"},
+					},
 					"memory_limiter": map[string]any{
 						"check_interval": "2s",
 						"limit_mib":      460,
 					},
-					"resourcedetection": map[string]any{"detectors": []any{"gcp", "ecs", "ec2", "azure", "system"},
-						"override": true,
-					}},
-				"receivers": map[string]any{"fluentforward": map[string]any{"endpoint": fmt.Sprintf("%s:8006", ip)},
+					"resourcedetection": map[string]any{
+						"detectors": []any{"gcp", "ecs", "ec2", "azure", "system"},
+						"override":  true,
+					},
+				},
+				"receivers": map[string]any{
+					"fluentforward": map[string]any{"endpoint": fmt.Sprintf("%s:8006", ip)},
 					"hostmetrics": map[string]any{
 						"collection_interval": "10s",
 						"scrapers": map[string]any{
@@ -327,7 +335,9 @@ func TestDefaultAgentConfig(t *testing.T) {
 							"grpc":           map[string]any{"endpoint": fmt.Sprintf("%s:14250", ip)},
 							"thrift_binary":  map[string]any{"endpoint": fmt.Sprintf("%s:6832", ip)},
 							"thrift_compact": map[string]any{"endpoint": fmt.Sprintf("%s:6831", ip)},
-							"thrift_http":    map[string]any{"endpoint": fmt.Sprintf("%s:14268", ip)}}},
+							"thrift_http":    map[string]any{"endpoint": fmt.Sprintf("%s:14268", ip)},
+						},
+					},
 					"otlp": map[string]any{
 						"protocols": map[string]any{
 							"grpc": map[string]any{"endpoint": fmt.Sprintf("%s:4317", ip)},
@@ -369,7 +379,8 @@ func TestDefaultAgentConfig(t *testing.T) {
 					"signalfx":               map[string]any{"endpoint": fmt.Sprintf("%s:9943", ip)},
 					"smartagent/processlist": map[string]any{"type": "processlist"},
 					"zipkin":                 map[string]any{"endpoint": fmt.Sprintf("%s:9411", ip)},
-					"nop":                    nil},
+					"nop":                    nil,
+				},
 				"service": map[string]any{
 					"telemetry":  map[string]any{"metrics": map[string]any{"address": fmt.Sprintf("%s:8888", ip)}},
 					"extensions": []any{"health_check", "http_forwarder", "zpages", "smartagent"},
@@ -377,19 +388,23 @@ func TestDefaultAgentConfig(t *testing.T) {
 						"logs": map[string]any{
 							"exporters":  []any{"splunk_hec", "splunk_hec/profiling"},
 							"processors": []any{"memory_limiter", "batch", "resourcedetection"},
-							"receivers":  []any{"fluentforward", "otlp"}},
+							"receivers":  []any{"fluentforward", "otlp"},
+						},
 						"logs/signalfx": map[string]any{
 							"exporters":  []any{"signalfx"},
 							"processors": []any{"memory_limiter", "batch", "resourcedetection"},
-							"receivers":  []any{"signalfx", "smartagent/processlist"}},
+							"receivers":  []any{"signalfx", "smartagent/processlist"},
+						},
 						"metrics": map[string]any{
 							"exporters":  []any{"signalfx"},
 							"processors": []any{"memory_limiter", "batch", "resourcedetection"},
-							"receivers":  []any{"hostmetrics", "otlp", "signalfx"}},
+							"receivers":  []any{"hostmetrics", "otlp", "signalfx"},
+						},
 						"metrics/internal": map[string]any{
 							"exporters":  []any{"signalfx"},
 							"processors": []any{"memory_limiter", "batch", "resourcedetection"},
-							"receivers":  []any{"prometheus/internal"}},
+							"receivers":  []any{"prometheus/internal"},
+						},
 						"traces": map[string]any{
 							"exporters":  []any{"sapm", "signalfx"},
 							"processors": []any{"memory_limiter", "batch", "resourcedetection"},

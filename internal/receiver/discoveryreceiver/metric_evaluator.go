@@ -64,7 +64,7 @@ func (m *metricsConsumer) Capabilities() consumer.Capabilities {
 func (m *metricsConsumer) ConsumeMetrics(ctx context.Context, md pmetric.Metrics) error {
 	m.evaluateMetrics(md)
 	if m.nextConsumer != nil {
-		return m.nextConsumer.ConsumeMetrics(ctx, md)
+		return m.nextConsumer.ConsumeMetrics(ctx, cleanupMetrics(md))
 	}
 	return nil
 }
@@ -153,4 +153,14 @@ func (m *metricsConsumer) findMatchedMetric(md pmetric.Metrics, match Match, rec
 		}
 	}
 	return pcommon.NewResource(), false
+}
+
+// cleanupMetrics removes resource attributes used for status correlation.
+func cleanupMetrics(md pmetric.Metrics) pmetric.Metrics {
+	for i := 0; i < md.ResourceMetrics().Len(); i++ {
+		attrs := md.ResourceMetrics().At(i).Resource().Attributes()
+		attrs.Remove(discovery.ReceiverTypeAttr)
+		attrs.Remove(discovery.ReceiverNameAttr)
+	}
+	return md
 }

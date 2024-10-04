@@ -8,19 +8,30 @@
 
 ## Tile Software Dependencies
 
-[Tile Generator](https://docs.vmware.com/en/VMware-Tanzu-Operations-Manager/3.0/tile-dev-guide/tile-generator.html)
+[Tile Generator](https://docs.vmware.com/en/VMware-Tanzu-Operations-Manager/3.0/tile-dev-guide/tile-generator.html) -
+Note that MacOS support was dropped for this tool, so an older version must be downloaded for darwin development.
+Version `14.0.6-dev.1` has been confirmed to be work.
 
 [PCF CLI](https://docs.vmware.com/en/VMware-Tanzu-Operations-Manager/3.0/tile-dev-guide/pcf-command.html)
 
 ## Development Workflow
 
-### Environment setup
+### Install Required CLI tools
 
-- Refer to [this guide](https://github.com/signalfx/signalfx-agent/tree/main/pkg/monitors/cloudfoundry)
+Refer to the [install_cli_dependencies script](https://github.com/signalfx/splunk-otel-collector/tree/main/deployments/cloudfoundry/tile/scripts#install_cli_dependenciessh)
+for information on how to install all required CLI tools locally.
+
+### Tanzu Environment setup
+
+Refer to [this guide](https://github.com/signalfx/signalfx-agent/tree/main/pkg/monitors/cloudfoundry)
 on how to setup the Tanzu environment and local authentication information. The guide has also been copied to a
-[script](./scripts/setup_tanzu.sh) that can be used to prepare the Tanzu environment for deploying the tile.
+[script](https://github.com/signalfx/splunk-otel-collector/tree/main/deployments/cloudfoundry/tile/scripts#setup_tanzush) that can be used to prepare the Tanzu environment for deploying the tile.
 
-- Create a Tanzu Tile with the latest Splunk OpenTelemetry Collector
+
+### Create a Tanzu Tile
+
+Create a Tanzu Tile with the latest Splunk OpenTelemetry Collector
+
 ```shell
 $ ./make-latest-tile
 # Alternatively, if just making changes to the tile config without touching the BOSH release, you can just run "tile build"
@@ -75,7 +86,6 @@ Once tile is installed and configured you can go to the Ops Manager in your brow
 `Splunk Opentelemetry Collector` tile is there, green, and the correct version. Select `Review Pending Changes` ->
 Check box for staged changes on your tile -> `APPLY CHANGES`
 
-
 #### Ops Manager Configuration
 
 - Browse to the Tanzu Ops Manager that you've created in the self service environment.
@@ -86,7 +96,7 @@ Check box for staged changes on your tile -> `APPLY CHANGES`
   - The Tile will be shown on the Installation Dashboard as not being configured properly.
 - Configure Tanzu Tile
   - Assign AZs and Networks - Fill in required values, these do not have an impact on the Collector's deployment.
-  - Nozzle Config - The two UAA arguments are required, use the values supplied by the [setup script](./scripts/setup_tanzu.sh). The default username is `my-v2-nozzle` and password is `password`.
+  - Nozzle Config - The two UAA arguments are required, use the values supplied by the [setup script]([./scripts/setup_tanzu.sh](https://github.com/signalfx/splunk-otel-collector/tree/main/deployments/cloudfoundry/tile/scripts#setup_tanzush)). The default username is `my-v2-nozzle` and password is `password`.
   - Splunk Observability Cloud - These config options are directly mapped to the SignalFx's exporter options, so fill in values you use there.
   - Resource Config - No changes necessary.
   - Click Save after every page's changes.

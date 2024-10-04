@@ -33,9 +33,6 @@ if os[:family] == 'windows'
     { name: 'MY_CUSTOM_VAR1', type: :string, data: 'value1' },
     { name: 'MY_CUSTOM_VAR2', type: :string, data: 'value2' },
   ]
-  unless splunk_ballast_size_mib.to_s.strip.empty?
-    collector_env_vars.push({ name: 'SPLUNK_BALLAST_SIZE_MIB', type: :string, data: splunk_ballast_size_mib })
-  end
   unless splunk_listen_interface.to_s.strip.empty?
     collector_env_vars.push({ name: 'SPLUNK_LISTEN_INTERFACE', type: :string, data: splunk_listen_interface })
   end
@@ -44,9 +41,6 @@ if os[:family] == 'windows'
     collector_env_vars_strings |= [ "#{item[:name]}=#{item[:data]}" ]
   end
   collector_env_vars_strings.sort!
-  describe registry_key('HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\splunk-otel-collector') do
-    it { should exist('Environment', :multi_string) }
-  end
   describe registry_key('HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\splunk-otel-collector') do
     it { should have_property_value('Environment', :multi_string, collector_env_vars_strings) }
   end

@@ -28,6 +28,7 @@ Before building and testing a tile, make sure you've updated your repo. Also not
 ## Build the Tanzu Tile 
 
 - Go to the tile directory
+
 ```
 cd splunk-otel-collector/edit/main/deployments/cloudfoundry/tile
 ```
@@ -73,3 +74,4 @@ Dependencies that need approval:
   - For Tanzu Tile software dependencies:
     - Stemcell: Go to Tanzu Ops Manager, the environment spun up by the self service center. Browse to STEMCELL LIBRARY. If you’ve uploaded your Tanzu Tile you should see which stemcell your Tanzu Tile is dependent upon, and you can use this information to specify to users which stemcell is required.
     - Ops manager: Go to the self service center. Search in the Credentials: section for ops_manager_version. This can be used to specify which Ops manager version our tile is compatible with.
+

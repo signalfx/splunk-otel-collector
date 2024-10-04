@@ -29,6 +29,7 @@ if os[:family] == 'windows'
     { name: 'SPLUNK_REALM', type: :string, data: splunk_realm },
     { name: 'SPLUNK_TRACE_URL', type: :string, data: splunk_trace_url },
   ]
+
   collector_env_vars_strings = []
   collector_env_vars.each do |item|
     collector_env_vars_strings |= [ "#{item[:name]}=#{item[:data]}" ]

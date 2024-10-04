@@ -7,7 +7,7 @@ brew install jq
 # https://www.gnu.org/software/wget/
 brew install wget
 
-https://cloud-foundry-installation.readthedocs.io/en/latest/BOSH.html
+# https://cloud-foundry-installation.readthedocs.io/en/latest/BOSH.html
 brew install cloudfoundry/tap/bosh-cli
 
 # Pre-req: Navigate to https://github.com/cf-platform-eng/tile-generator

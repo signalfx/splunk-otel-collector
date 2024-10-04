@@ -902,8 +902,6 @@ Collector:
   --api-url <url>                       Set the api endpoint URL explicitly instead of the endpoint inferred from the
                                         specified realm.
                                         (default: https://api.REALM.signalfx.com)
-  --ballast <ballast size>              Set the ballast size explicitly instead of the value calculated from the
-                                        '--memory' option. This should be set to 1/3 to 1/2 of configured memory.
   --beta                                Use the beta package repo instead of the primary.
   --collector-config <path>             Set the path to an existing custom config file for the collector service instead
                                         of the default config file provided by the collector package based on the
@@ -923,8 +921,7 @@ Collector:
   --ingest-url <url>                    Set the ingest endpoint URL explicitly instead of the endpoint inferred from the
                                         specified realm.
                                         (default: https://ingest.REALM.signalfx.com)
-  --memory <memory size>                Total memory in MIB to allocate to the collector; automatically calculates the
-                                        ballast size.
+  --memory <memory size>                Total memory in MIB to allocate to the collector
                                         (default: "$default_memory_size")
   --mode <agent|gateway>                Configure the collector service to run in agent or gateway mode.
                                         (default: "agent")
@@ -1236,7 +1233,6 @@ check_support() {
 parse_args_and_install() {
   local access_token=
   local api_url=
-  local ballast=
   local collector_version="$default_collector_version"
   local hec_token=
   local hec_url=
@@ -1270,10 +1266,6 @@ parse_args_and_install() {
     case $1 in
       --api-url)
         api_url="$2"
-        shift 1
-        ;;
-      --ballast)
-        ballast="$2"
         shift 1
         ;;
       --beta)
@@ -1585,9 +1577,6 @@ parse_args_and_install() {
   ensure_not_installed "$with_fluentd" "$with_instrumentation" "$with_systemd_instrumentation" "$npm_path"
 
   echo "Splunk OpenTelemetry Collector Version: ${collector_version}"
-  if [ -n "$ballast" ]; then
-    echo "Ballast Size in MIB: $ballast"
-  fi
   echo "Memory Size in MIB: $memory"
 
   if [ -n "$listen_interface" ]; then
@@ -1742,9 +1731,6 @@ parse_args_and_install() {
   configure_env_file "SPLUNK_HEC_URL" "$hec_url" "$collector_env_path"
   configure_env_file "SPLUNK_HEC_TOKEN" "$hec_token" "$collector_env_path"
   configure_env_file "SPLUNK_MEMORY_TOTAL_MIB" "$memory" "$collector_env_path"
-  if [ -n "$ballast" ]; then
-    configure_env_file "SPLUNK_BALLAST_SIZE_MIB" "$ballast" "$collector_env_path"
-  fi
   if [ -d "$collector_bundle_dir" ]; then
     configure_env_file "SPLUNK_BUNDLE_DIR" "$collector_bundle_dir" "$collector_env_path"
     # ensure the collector service owner has access to the bundle dir

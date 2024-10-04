@@ -13,8 +13,6 @@ set "gomemlimit_name=gomemlimit"
 set "gomemlimit_value="
 set "splunk_api_url_name=splunk_api_url"
 set "splunk_api_url_value="
-set "splunk_ballast_size_mib_name=splunk_ballast_size_mib"
-set "splunk_ballast_size_mib_value="
 set "splunk_bundle_dir_name=splunk_bundle_dir"
 set "splunk_bundle_dir_value="
 set "splunk_config_name=splunk_config"
@@ -104,11 +102,6 @@ if "%splunk_api_url_value%" == "" (
     call :splunk_TA_otel_log_msg "DEBUG" "Param %splunk_api_url_name% not set"
 ) else (
     set "SPLUNK_API_URL=%splunk_api_url_value%"
-)
-if "%splunk_ballast_size_mib_value%" == "" (
-    call :splunk_TA_otel_log_msg "DEBUG" "Param %splunk_ballast_size_mib_name% not set"
-) else (
-    set "SPLUNK_BALLAST_SIZE_MIB=%splunk_ballast_size_mib_value%"
 )
 if "%splunk_bundle_dir_value%" == "" (
     call :splunk_TA_otel_log_msg "DEBUG" "Param %splunk_bundle_dir_name% not set"
@@ -226,10 +219,9 @@ exit /B 0
 :splunk_TA_otel_read_configs
 echo "INFO grabbing config from stdin..."
 
-for /F "tokens=1,2 delims==" %%I in ('powershell -noninteractive -noprofile -command "$input | Select-String -Pattern '.*?(%gomemlimit_name%|%splunk_api_url_name%|%splunk_ballast_size_mib_name%|%splunk_bundle_dir_name%|%splunk_config_name%|%splunk_config_dir_name%|%splunk_collectd_dir_name%|%splunk_debug_config_server_name%|%splunk_config_yaml_name%|%splunk_gateway_url_name%|%splunk_hec_url_name%|%splunk_listen_interface_name%|%splunk_memory_limit_mib_name%|%splunk_memory_total_mib_name%|%splunk_trace_url_name%|%splunk_otel_log_file_name%|%splunk_ingest_url_name%|%splunk_realm_name%|%splunk_access_token_file_name%|session_key).*?>(.*?)<' | ForEach-Object { $_.Matches.Groups[1].Value + '=' + $_.Matches.Groups[2].Value }"') do (
+for /F "tokens=1,2 delims==" %%I in ('powershell -noninteractive -noprofile -command "$input | Select-String -Pattern '.*?(%gomemlimit_name%|%splunk_api_url_name%|%splunk_bundle_dir_name%|%splunk_config_name%|%splunk_config_dir_name%|%splunk_collectd_dir_name%|%splunk_debug_config_server_name%|%splunk_config_yaml_name%|%splunk_gateway_url_name%|%splunk_hec_url_name%|%splunk_listen_interface_name%|%splunk_memory_limit_mib_name%|%splunk_memory_total_mib_name%|%splunk_trace_url_name%|%splunk_otel_log_file_name%|%splunk_ingest_url_name%|%splunk_realm_name%|%splunk_access_token_file_name%|session_key).*?>(.*?)<' | ForEach-Object { $_.Matches.Groups[1].Value + '=' + $_.Matches.Groups[2].Value }"') do (
     if "%%I"=="%gomemlimit_name%" set "gomemlimit_value=%%J"
     if "%%I"=="%splunk_api_url_name%" set "splunk_api_url_value=%%J"
-    if "%%I"=="%splunk_ballast_size_mib_name%" set "splunk_ballast_size_mib_value=%%J"
     if "%%I"=="%splunk_bundle_dir_name%" set "splunk_bundle_dir_value=%%J"
     if "%%I"=="%splunk_config_name%" set "splunk_config_value=%%J"
     if "%%I"=="%splunk_config_dir_name%" set "splunk_config_dir_value=%%J"

@@ -23,9 +23,7 @@ SPLUNK_HEC_URL=<%= node['splunk_otel_collector']['splunk_hec_url'] %>
 SPLUNK_HEC_TOKEN=<%= node['splunk_otel_collector']['splunk_hec_token'] %>
 
 # Total memory in MIB to allocate to the collector.
-# Automatically configures the ballast and memory limit.
-# If `SPLUNK_BALLAST_SIZE_MIB` is also defined, it will override
-# the value calculated by `SPLUNK_MEMORY_TOTAL_MIB`.
+# Automatically configures the memory limit.
 SPLUNK_MEMORY_TOTAL_MIB=<%= node['splunk_otel_collector']['splunk_memory_total_mib'] %>
 
 <% unless node['splunk_otel_collector']['splunk_listen_interface'].to_s.strip.empty? -%>

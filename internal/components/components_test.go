@@ -37,7 +37,6 @@ func TestDefaultComponents(t *testing.T) {
 		"host_observer",
 		"http_forwarder",
 		"k8s_observer",
-		"memory_ballast",
 		"oauth2client",
 		"pprof",
 		"smartagent",

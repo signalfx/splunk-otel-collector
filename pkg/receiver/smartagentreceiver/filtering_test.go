@@ -26,6 +26,7 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/monitors/prometheusexporter"
 	"github.com/signalfx/signalfx-agent/pkg/utils"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.uber.org/zap"
 )
 
@@ -63,11 +64,7 @@ func TestDefaultMetrics(t *testing.T) {
 		for metric := range exhaustiveMetadata.DefaultMetrics {
 			localMetric := metric
 			t.Run(fmt.Sprintf("included metric %s should send", metric), func(t *testing.T) {
-				dp := &datapoint.Datapoint{
-					Metric:     localMetric,
-					MetricType: datapoint.Counter,
-				}
-				if !filter.Matches(dp) {
+				if !filter.MatchesMetricDataPoint(localMetric, pcommon.NewMap()) {
 					t.Error()
 				}
 			})
@@ -93,8 +90,7 @@ func TestExtraMetrics(t *testing.T) {
 			"mem.free":      false,
 			"mem.available": false,
 		} {
-			dp := &datapoint.Datapoint{Metric: metric, MetricType: datapoint.Counter}
-			sent := filter.Matches(dp)
+			sent := filter.MatchesMetricDataPoint(metric, pcommon.NewMap())
 			if sent && !shouldSend {
 				t.Errorf("metric %s should not have sent", metric)
 			}
@@ -115,8 +111,7 @@ func TestExtraMetrics(t *testing.T) {
 			"mem.used":                        true,
 			"mem.free":                        false,
 		} {
-			dp := &datapoint.Datapoint{Metric: metric, MetricType: datapoint.Counter}
-			sent := filter.Matches(dp)
+			sent := filter.MatchesMetricDataPoint(metric, pcommon.NewMap())
 			if sent && !shouldSend {
 				t.Errorf("metric %s should not have sent", metric)
 			}
@@ -138,11 +133,7 @@ func TestGlobbedMetricNames(t *testing.T) {
 		}
 
 		for _, metric := range metrics {
-			dp := &datapoint.Datapoint{
-				Metric:     metric,
-				MetricType: datapoint.Counter,
-			}
-			if !filter.Matches(dp) {
+			if !filter.MatchesMetricDataPoint(metric, pcommon.NewMap()) {
 				t.Errorf("metric %s should have been sent", metric)
 			}
 		}
@@ -154,9 +145,7 @@ func TestExtraMetricGroups(t *testing.T) {
 		t.Error(err)
 	} else {
 		for _, metric := range exhaustiveMetadata.GroupMetricsMap["mem"] {
-			dp := &datapoint.Datapoint{Metric: metric, MetricType: datapoint.Counter}
-
-			if !filter.Matches(dp) {
+			if !filter.MatchesMetricDataPoint(metric, pcommon.NewMap()) {
 				t.Errorf("metric %s should have been sent", metric)
 			}
 		}
@@ -208,8 +197,7 @@ func TestEmptyMetadata(t *testing.T) {
 	filter, err := newMetricsFilter(&monitors.Metadata{}, nil, nil, zap.NewNop())
 	require.NoError(t, err)
 	require.NotNil(t, filter)
-	dp := &datapoint.Datapoint{Metric: "metric", MetricType: datapoint.Counter}
-	require.True(t, filter.Matches(dp))
+	require.True(t, filter.MatchesMetricDataPoint("metric", pcommon.NewMap()))
 }
 
 func TestNewMonitorFilteringWithExtraMetrics(t *testing.T) {

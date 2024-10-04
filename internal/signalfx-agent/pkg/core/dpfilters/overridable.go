@@ -5,6 +5,7 @@ import (
 
 	"github.com/signalfx/golib/v3/datapoint"
 	"github.com/signalfx/signalfx-agent/pkg/utils/filter"
+	"go.opentelemetry.io/collector/pdata/pcommon"
 )
 
 type overridableDatapointFilter struct {
@@ -46,4 +47,14 @@ func NewOverridable(metricNames []string, dimensions map[string][]string) (Datap
 func (f *overridableDatapointFilter) Matches(dp *datapoint.Datapoint) bool {
 	return (f.metricFilter == nil || f.metricFilter.Matches(dp.Metric)) &&
 		(f.dimFilter == nil || f.dimFilter.Matches(dp.Dimensions))
+}
+
+func (f *overridableDatapointFilter) MatchesMetricDataPoint(metricName string, dimensions pcommon.Map) bool {
+	if f.metricFilter != nil && !f.metricFilter.Matches(metricName) {
+		return false
+	}
+	if f.dimFilter != nil {
+		return f.dimFilter.MatchesMap(dimensions)
+	}
+	return true
 }

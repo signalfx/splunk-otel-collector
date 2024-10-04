@@ -26,6 +26,8 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/core/dpfilters"
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
 	"github.com/signalfx/signalfx-agent/pkg/utils/filter"
+	"go.opentelemetry.io/collector/pdata/pcommon"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.uber.org/zap"
 )
 
@@ -59,12 +61,13 @@ func (mf *monitorFiltering) EnabledMetrics() []string {
 		return nil
 	}
 
-	dp := &datapoint.Datapoint{}
+	m := pmetric.NewMetric()
 	var enabledMetrics []string
 
+	emptyDims := pcommon.NewMap()
 	for metric := range mf.metadata.Metrics {
-		dp.Metric = metric
-		if !mf.filterSet.Matches(dp) {
+		m.SetName(metric)
+		if !mf.filterSet.MatchesMetricDataPoint(metric, emptyDims) {
 			enabledMetrics = append(enabledMetrics, metric)
 		}
 	}
@@ -252,4 +255,31 @@ func (mf *extraMetricsFilter) Matches(dp *datapoint.Datapoint) bool {
 	// Lastly check if it matches filter. If it's a known metric from metadata will get matched
 	// above so this is a last check for unknown metrics.
 	return mf.stringFilter.Matches(dp.Metric)
+}
+
+func (mf *extraMetricsFilter) MatchesMetricDataPoint(metricName string, _ pcommon.Map) bool {
+	if len(mf.metadata.Metrics) == 0 {
+		// This monitor has no defined metrics so send everything by default.
+		return true
+	}
+
+	if !mf.metadata.HasMetric(metricName) && mf.metadata.SendUnknown {
+		// This metric is unknown to the metadata and the monitor has requested
+		// to send all unknown metrics.
+		return true
+	}
+
+	if mf.metadata.HasDefaultMetric(metricName) {
+		// It's an included metric so send by default.
+		return true
+	}
+
+	if mf.extraMetrics[metricName] {
+		// User has explicitly chosen to send this metric (or a group that this metric belongs to).
+		return true
+	}
+
+	// Lastly check if it matches filter. If it's a known metric from metadata will get matched
+	// above so this is a last check for unknown metrics.
+	return mf.stringFilter.Matches(metricName)
 }

@@ -60,7 +60,7 @@ func createTracesProcessor(
 	oCfg := cfg.(*Config)
 	offset, _ := time.ParseDuration(oCfg.Offset)
 
-	return processorhelper.NewTracesProcessor(
+	return processorhelper.NewTraces(
 		ctx,
 		set,
 		cfg,

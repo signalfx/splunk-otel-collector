@@ -78,7 +78,7 @@ func createLogsProcessor(
 	oCfg := cfg.(*Config)
 	offset, _ := time.ParseDuration(oCfg.Offset)
 
-	return processorhelper.NewLogsProcessor(
+	return processorhelper.NewLogs(
 		ctx,
 		set,
 		cfg,
@@ -96,7 +96,7 @@ func createMetricsProcessor(
 	oCfg := cfg.(*Config)
 	offset, _ := time.ParseDuration(oCfg.Offset)
 
-	return processorhelper.NewMetricsProcessor(
+	return processorhelper.NewMetrics(
 		ctx,
 		set,
 		cfg,

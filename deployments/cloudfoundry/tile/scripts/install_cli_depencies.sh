@@ -36,5 +36,5 @@ ruby -v
 # https://github.com/cloudfoundry/cf-uaac
 gem install cf-uaac
 
-https://github.com/pivotal/LicenseFinder
+# https://github.com/pivotal/LicenseFinder
 gem install license_finder

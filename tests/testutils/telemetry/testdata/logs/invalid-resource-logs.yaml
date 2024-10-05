@@ -1,3 +1,0 @@
-resource_logs:
-  - notAttributesOrScopeLogs:
-      - thing: value

@@ -264,7 +264,7 @@ func AssertAllLogsReceived(
 	_, shutdown := tc.SplunkOtelCollector(collectorConfigFilename, builders...)
 	defer shutdown()
 
-	require.NoError(t, tc.OTLPReceiverSink.AssertAllLogsReceived(t, *expectedResourceLogs, 30*time.Second))
+	require.NoError(t, tc.OTLPReceiverSink.AssertAllLogsReceived(t, *expectedResourceLogs, 30*time.Second, ""))
 }
 
 // AssertAllMetricsReceived is a central helper, designed to avoid most boilerplate. Using the desired

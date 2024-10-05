@@ -193,13 +193,6 @@ jobs:
           name: msi-build
           path: ./tests/zeroconfig/windows/testdata/docker-setup/
 
-      - name: Set SPLUNK_OTEL_DOTNET_VERSION
-        run: |
-          version="$(cat instrumentation/packaging/dotnet-agent-release.txt)"
-          sed -i "s|SPLUNK_OTEL_DOTNET_VERSION|${version#v}|" tests/zeroconfig/windows/testdata/resource_traces/aspnetcore.yaml
-          sed -i "s|SPLUNK_OTEL_DOTNET_VERSION|${version#v}|" tests/zeroconfig/windows/testdata/resource_traces/aspnetfx.yaml
-        shell: bash
-
       - name: Run the test script
         working-directory: tests/zeroconfig/windows/
         run: |

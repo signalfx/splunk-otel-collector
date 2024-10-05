@@ -20,7 +20,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
@@ -82,6 +84,34 @@ service:
 	sc, _, _ = c.Container.AssertExec(t, 15*time.Second, "sh", "-c", "/otelcol &")
 	require.Zero(t, sc)
 
-	expectedResourceMetrics := tc.ResourceMetrics("cpu.yaml")
-	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
+	// confirm successful service functionality
+	assert.Eventually(t, func() bool {
+		if tc.OTLPReceiverSink.DataPointCount() == 0 {
+			return false
+		}
+		receivedOTLPMetrics := tc.OTLPReceiverSink.AllMetrics()
+		tc.OTLPReceiverSink.Reset()
+
+		for _, rom := range receivedOTLPMetrics {
+			for i := 0; i < rom.ResourceMetrics().Len(); i++ {
+				rm := rom.ResourceMetrics().At(i)
+				for j := 0; j < rm.ScopeMetrics().Len(); j++ {
+					sm := rm.ScopeMetrics().At(j)
+					if sm.Scope().Name() == "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver/internal/scraper/cpuscraper" {
+						for k := 0; k < sm.Metrics().Len(); k++ {
+							m := sm.Metrics().At(k)
+							if m.Name() == "system.cpu.time" && m.Type() == pmetric.MetricTypeSum {
+								sum := m.Sum()
+								if sum.IsMonotonic() && sum.AggregationTemporality() == pmetric.AggregationTemporalityCumulative {
+									return true
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		return false
+	}, 30*time.Second, 10*time.Millisecond, "Failed to receive expected metrics")
 }

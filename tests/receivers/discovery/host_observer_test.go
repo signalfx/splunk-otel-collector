@@ -17,7 +17,6 @@
 package tests
 
 import (
-	"fmt"
 	"path/filepath"
 	"testing"
 	"time"
@@ -49,9 +48,6 @@ func TestDiscoveryReceiverWithHostObserverAndSimplePrometheusReceiverProvideStat
 
 	assert.Eventually(t, func() bool {
 		if tc.OTLPReceiverSink.LogRecordCount() == 0 {
-			if err == nil {
-				err = fmt.Errorf("no logs received")
-			}
 			return false
 		}
 		receivedOTLPLogs := tc.OTLPReceiverSink.AllLogs()

@@ -106,6 +106,16 @@ Once changes are successfully applied, you should see data populating the charts
 
 ### Debugging Common Issues
 
+#### Run the collector locally
+
+It may be helpful to test the collector in a local environment, outside of the Tanzu tile deployment.
+Once your self service environment is up and running, and you've run the [setup script](./scripts/setup_tanzu.sh),
+the collector can be configured with the
+[Cloud Foundry receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/cloudfoundryreceiver)
+pointed at your self service center environment.
+
+#### Common issues
+
 1. Tile fails to start. The most common issue is UAA authentication errors or an incorrect Splunk access token.
    - Check logs found under the `CHANGE LOGS` header within the Tanzu Ops Manager.
    - Check logs for the tile itself

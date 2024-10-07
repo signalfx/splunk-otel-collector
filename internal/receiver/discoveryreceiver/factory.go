@@ -31,7 +31,7 @@ const (
 
 // This is the map of already created discovery receivers for particular configurations.
 // We maintain this map because the Factory is asked log and metric receivers separately
-// when it gets CreateLogsReceiver() and CreateMetricsReceiver() but they must not
+// when it gets CreateLogs() and CreateMetrics() but they must not
 // create separate objects, they must use one receiver object per configuration.
 var receivers = sharedcomponent.NewSharedComponents()
 

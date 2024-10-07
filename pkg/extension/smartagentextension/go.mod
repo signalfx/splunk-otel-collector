@@ -8,9 +8,9 @@ require (
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657
 	github.com/signalfx/signalfx-agent v1.0.1-0.20230104182534-9eee411fe305
 	github.com/stretchr/testify v1.9.0
-	go.opentelemetry.io/collector/component v0.110.0
+	go.opentelemetry.io/collector/component v0.111.0
 	go.opentelemetry.io/collector/confmap v1.16.0
-	go.opentelemetry.io/collector/extension v0.110.0
+	go.opentelemetry.io/collector/extension v0.111.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
@@ -38,10 +38,8 @@ require (
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3 // indirect
 	github.com/signalfx/golib/v3 v3.3.54 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
-	go.opentelemetry.io/collector/config/configtelemetry v0.110.0 // indirect
-	go.opentelemetry.io/collector/internal/globalsignal v0.110.0 // indirect
+	go.opentelemetry.io/collector/config/configtelemetry v0.111.0 // indirect
 	go.opentelemetry.io/collector/pdata v1.17.0 // indirect
-	go.opentelemetry.io/collector/pipeline v0.110.0 // indirect
 	go.opentelemetry.io/otel v1.30.0 // indirect
 	go.opentelemetry.io/otel/metric v1.30.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.30.0 // indirect

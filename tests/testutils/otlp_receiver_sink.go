@@ -89,19 +89,19 @@ func (otlp OTLPReceiverSink) Build() (*OTLPReceiverSink, error) {
 		},
 	}
 
-	logsReceiver, err := otlpFactory.CreateLogsReceiver(context.Background(), params, otlpConfig, otlp.logsSink)
+	logsReceiver, err := otlpFactory.CreateLogs(context.Background(), params, otlpConfig, otlp.logsSink)
 	if err != nil {
 		return nil, err
 	}
 	otlp.logsReceiver = &logsReceiver
 
-	metricsReceiver, err := otlpFactory.CreateMetricsReceiver(context.Background(), params, otlpConfig, otlp.metricsSink)
+	metricsReceiver, err := otlpFactory.CreateMetrics(context.Background(), params, otlpConfig, otlp.metricsSink)
 	if err != nil {
 		return nil, err
 	}
 	otlp.metricsReceiver = &metricsReceiver
 
-	tracesReceiver, err := otlpFactory.CreateTracesReceiver(context.Background(), params, otlpConfig, otlp.tracesSink)
+	tracesReceiver, err := otlpFactory.CreateTraces(context.Background(), params, otlpConfig, otlp.tracesSink)
 	if err != nil {
 		return nil, err
 	}

@@ -46,7 +46,7 @@ func Run(t *testing.T, receiverName string, configFilePath string, logMessageToA
 	cfg.GRPC.NetAddr.Endpoint = fmt.Sprintf("localhost:%d", port)
 	endpoint := cfg.GRPC.NetAddr.Endpoint
 	sink := &consumertest.LogsSink{}
-	receiver, err := factory.CreateLogsReceiver(context.Background(), receivertest.NewNopSettings(), cfg, sink)
+	receiver, err := factory.CreateLogs(context.Background(), receivertest.NewNopSettings(), cfg, sink)
 	require.NoError(t, err)
 	require.NoError(t, receiver.Start(context.Background(), componenttest.NewNopHost()))
 	t.Cleanup(func() {

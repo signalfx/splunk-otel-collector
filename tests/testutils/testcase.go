@@ -111,16 +111,6 @@ func (t *Testcase) setOTLPEndpoint(opts []TestOption) {
 	t.OTLPEndpointForCollector = t.OTLPEndpoint
 }
 
-// Loads and validates a ResourceLogs instance, assuming it's located in ./testdata/resource_metrics
-func (t *Testcase) ResourceLogs(filename string) *telemetry.ResourceLogs {
-	expectedResourceLogs, err := telemetry.LoadResourceLogs(
-		path.Join(".", "testdata", "resource_logs", filename),
-	)
-	require.NoError(t, err)
-	require.NotNil(t, expectedResourceLogs)
-	return expectedResourceLogs
-}
-
 // Loads and validates a ResourceMetrics instance, assuming it's located in ./testdata/resource_metrics
 func (t *Testcase) ResourceMetrics(filename string) *telemetry.ResourceMetrics {
 	expectedResourceMetrics, err := telemetry.LoadResourceMetrics(
@@ -242,29 +232,6 @@ func (t *Testcase) PrintLogsOnFailure() {
 // Validating shutdown helper for the Testcase's OTLPReceiverSink
 func (t *Testcase) ShutdownOTLPReceiverSink() {
 	require.NoError(t, t.OTLPReceiverSink.Shutdown())
-}
-
-// AssertAllLogsReceived is a central helper, designed to avoid most boilerplate. Using the desired
-// ResourceLogs and Collector Config filenames, a slice of Container builders, and a slice of CollectorBuilder
-// AssertAllLogsReceived creates a Testcase, builds and starts all Container and CollectorBuilder-determined Collector
-// instances, and asserts that all expected ResourceLogs are received before running validated cleanup functionality.
-func AssertAllLogsReceived(
-	t testing.TB, resourceLogsFilename, collectorConfigFilename string,
-	containers []Container, builders []CollectorBuilder,
-) {
-	tc := NewTestcase(t)
-	defer tc.PrintLogsOnFailure()
-	defer tc.ShutdownOTLPReceiverSink()
-
-	expectedResourceLogs := tc.ResourceLogs(resourceLogsFilename)
-
-	_, stop := tc.Containers(containers...)
-	defer stop()
-
-	_, shutdown := tc.SplunkOtelCollector(collectorConfigFilename, builders...)
-	defer shutdown()
-
-	require.NoError(t, tc.OTLPReceiverSink.AssertAllLogsReceived(t, *expectedResourceLogs, 30*time.Second, ""))
 }
 
 // AssertAllMetricsReceived is a central helper, designed to avoid most boilerplate. Using the desired

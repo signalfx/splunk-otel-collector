@@ -7,7 +7,6 @@
 # - SPLUNK_HEC_URL: The Splunk HEC endpoint URL, e.g. https://ingest.us0.signalfx.com/v1/log
 # - SPLUNK_INGEST_URL: The Splunk ingest URL, e.g. https://ingest.us0.signalfx.com
 # - SPLUNK_LISTEN_INTERFACE: The network interface the agent receivers listen on.
-# - SPLUNK_BALLAST_SIZE_MIB: This size of the ballast which should be 1/3 to 1/2 of memory allocated
 # - SPLUNK_MEMORY_LIMIT_MIB: 90% of memory allocated
 
 receivers:

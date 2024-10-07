@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/gobwas/glob"
+	"go.opentelemetry.io/collector/pdata/pcommon"
 )
 
 // StringFilter matches against simple strings
@@ -21,6 +22,8 @@ type StringFilter interface {
 // StringMapFilter matches against the values of a map[string]string.
 type StringMapFilter interface {
 	Matches(str map[string]string) bool
+
+	MatchesMap(m pcommon.Map) bool
 }
 
 // BasicStringFilter will match if any one of the given strings is a match.
@@ -138,6 +141,24 @@ func NewStringMapFilter(m map[string][]string) (StringMapFilter, error) {
 type fullStringMapFilter struct {
 	filterMap map[string]*OverridableStringFilter
 	okMissing map[string]bool
+}
+
+func (f *fullStringMapFilter) MatchesMap(m pcommon.Map) bool {
+	// Empty map input never matches
+	if m.Len() == 0 && len(f.okMissing) == 0 {
+		return false
+	}
+
+	for k, filter := range f.filterMap {
+		if v, ok := m.Get(k); ok {
+			if !filter.Matches(v.AsString()) {
+				return false
+			}
+		} else {
+			return f.okMissing[k]
+		}
+	}
+	return true
 }
 
 func (f *fullStringMapFilter) Matches(m map[string]string) bool {

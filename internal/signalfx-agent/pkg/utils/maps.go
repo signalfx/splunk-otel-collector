@@ -18,6 +18,19 @@ func MergeStringMaps(maps ...map[string]string) map[string]string {
 	return ret
 }
 
+// MergeMaps merges n maps with a later map's keys overriding earlier maps
+func MergeMaps(maps ...map[string]any) map[string]any {
+	ret := map[string]any{}
+
+	for _, m := range maps {
+		for k, v := range m {
+			ret[k] = v
+		}
+	}
+
+	return ret
+}
+
 // RemoveEmptyMapValues will strip a map of any key/value pairs for which the
 // value is the empty string.
 func RemoveEmptyMapValues(m map[string]string) map[string]string {

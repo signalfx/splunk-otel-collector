@@ -182,7 +182,7 @@ require (
 	github.com/shoenig/test v1.7.1 // indirect
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3 // indirect
 	github.com/signalfx/gohistogram v0.0.0-20160107210732-1ccfd2ff5083 // indirect
-	github.com/signalfx/ingest-protocols v0.2.0 // indirect
+	github.com/signalfx/ingest-protocols v0.2.1 // indirect
 	github.com/signalfx/sapm-proto v0.12.0 // indirect
 	github.com/snowflakedb/gosnowflake v1.11.1 // indirect
 	github.com/soniah/gosnmp v0.0.0-20190220004421-68e8beac0db9 // indirect

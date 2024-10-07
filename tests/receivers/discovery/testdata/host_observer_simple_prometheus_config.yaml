@@ -31,7 +31,7 @@ receivers:
               regexp: '"message":"Failed to scrape Prometheus endpoint"'
               message: (regexp) Port appears to not be serving prometheus metrics
             - status: failed
-              expr: message == 'Failed to scrape Prometheus endpoint' && target_labels contains 'up'
+              expr: message == 'Failed to scrape Prometheus endpoint' && attributes["target_labels"] contains 'up'
               message: (expr) Port appears to not be serving prometheus metrics
 
     watch_observers:

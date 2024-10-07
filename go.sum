@@ -178,8 +178,8 @@ github.com/Microsoft/hcsshim v0.12.5/go.mod h1:tIUGego4G1EN5Hb6KC90aDYiUI2dqLSTT
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
 github.com/ProtonMail/go-crypto v1.0.0 h1:LRuvITjQWX+WIfr930YHG2HNfjR1uOfyf5vE0kC2U78=
 github.com/ProtonMail/go-crypto v1.0.0/go.mod h1:EjAoLdwvbIOoOQr3ihjnSoLZRtE8azugULFRteWMNc0=
-github.com/SAP/go-hdb v1.12.2 h1:pWf+rL7c5t8HDN9M6ETkBaVQAGVwH8+REdbZiZh0KAc=
-github.com/SAP/go-hdb v1.12.2/go.mod h1:rnW0pSZJPPFbyDQ4NPJaNBNk84KcWaTYkcpNUJGGNFk=
+github.com/SAP/go-hdb v1.12.3 h1:NW9QonvYjWFomLQmQYKp1Hg2sW33YpEiwBTQgDzFgKE=
+github.com/SAP/go-hdb v1.12.3/go.mod h1:1z9dmCSJciNRPVJw91n2ic5bpXyk/sj3fmPqfxfjLxI=
 github.com/Sectorbob/mlab-ns2 v0.0.0-20171030222938-d3aa0c295a8a h1:KFHLI4QGttB0i7M3qOkAo8Zn/GSsxwwCnInFqBaYtkM=
 github.com/Sectorbob/mlab-ns2 v0.0.0-20171030222938-d3aa0c295a8a/go.mod h1:D73UAuEPckrDorYZdtlCu2ySOLuPB5W4rhIkmmc/XbI=
 github.com/Showmax/go-fqdn v1.0.0 h1:0rG5IbmVliNT5O19Mfuvna9LL7zlHyRfsSvBPZmF9tM=
@@ -1593,8 +1593,8 @@ github.com/prometheus/common v0.9.1/go.mod h1:yhUN8i9wzaXS3w1O07YhxHEBxD+W35wd8b
 github.com/prometheus/common v0.10.0/go.mod h1:Tlit/dnDKsSWFlCLTWaA1cyBgKHSMdTB80sz/V91rCo=
 github.com/prometheus/common v0.26.0/go.mod h1:M7rCNAaPfAosfx8veZJCuw84e35h3Cfd9VFqTh1DIvc=
 github.com/prometheus/common v0.29.0/go.mod h1:vu+V0TpY+O6vW9J44gczi3Ap/oXXR10b+M/gUGO4Hls=
-github.com/prometheus/common v0.59.1 h1:LXb1quJHWm1P6wq/U824uxYi4Sg0oGvNeUm1z5dJoX0=
-github.com/prometheus/common v0.59.1/go.mod h1:GpWM7dewqmVYcd7SmRaiWVe9SSqjf0UrwnYnpEZNuT0=
+github.com/prometheus/common v0.60.0 h1:+V9PAREWNvJMAuJ1x1BaWl9dewMW4YrHZQbx0sJNllA=
+github.com/prometheus/common v0.60.0/go.mod h1:h0LYf1R1deLSKtD4Vdg8gy4RuOvENW2J/h19V5NADQw=
 github.com/prometheus/common/sigv4 v0.1.0 h1:qoVebwtwwEhS85Czm2dSROY5fTo2PAPEVdDeppTwGX4=
 github.com/prometheus/common/sigv4 v0.1.0/go.mod h1:2Jkxxk9yYvCkE5G1sQT7GuEXm57JrvHu9k5YwTjsNtI=
 github.com/prometheus/procfs v0.0.0-20181005140218-185b4288413d/go.mod h1:c3At6R/oaqEKCNdg8wHV1ftS6bRYblBhIjjI8uT2IGk=
@@ -1682,8 +1682,8 @@ github.com/signalfx/gohistogram v0.0.0-20160107210732-1ccfd2ff5083 h1:WsShHmu12Z
 github.com/signalfx/gohistogram v0.0.0-20160107210732-1ccfd2ff5083/go.mod h1:adPDS6s7WaajdFBV9mQ7i0dKfQ8xiDnF9ZNETVPpp7c=
 github.com/signalfx/golib/v3 v3.3.54 h1:jUwTnaIXLHT0I1+hXoX0cPLdICIwBjB3e5/NGnnjgJY=
 github.com/signalfx/golib/v3 v3.3.54/go.mod h1:KDQZIYpJ3yXPz/KysPQQEYooWdpq4eQZPsjwKR5secc=
-github.com/signalfx/ingest-protocols v0.2.0 h1:axbmVg8eLoBh3wNmwBG9O/2jMjfzCVP7MlMgPfBihEE=
-github.com/signalfx/ingest-protocols v0.2.0/go.mod h1:CYKWPtxFWF9RCUGfN0Hh6javdTTqediTCbXFbW0BF60=
+github.com/signalfx/ingest-protocols v0.2.1 h1:26B4uemeYrLxWzuYQTbcgbCcaCtIAq2VMe+IWVLfNtY=
+github.com/signalfx/ingest-protocols v0.2.1/go.mod h1:CYKWPtxFWF9RCUGfN0Hh6javdTTqediTCbXFbW0BF60=
 github.com/signalfx/sapm-proto v0.14.0 h1:KWh3I5E4EkelB19aP1/54Ik8khSioC/RVRW/riOfRGg=
 github.com/signalfx/sapm-proto v0.14.0/go.mod h1:Km6PskZh966cqNoUn3AmRyGRix5VfwnxVBvn2vjRC9U=
 github.com/signalfx/telegraf v0.10.2-0.20240111190717-3494050f2933 h1:jNMKfAVAQkkeQfSLqLhc0MZ80IR0Lp3YI2MnBiu76IY=
@@ -1702,8 +1702,8 @@ github.com/smartystreets/assertions v1.13.1 h1:Ef7KhSmjZcK6AVf9YbJdvPYG9avaF0Zxu
 github.com/smartystreets/assertions v1.13.1/go.mod h1:cXr/IwVfSo/RbCSPhoAPv73p3hlSdrBH/b3SdnW/LMY=
 github.com/smartystreets/goconvey v1.8.1 h1:qGjIddxOk4grTu9JPOU31tVfq3cNdBlNa5sSznIX1xY=
 github.com/smartystreets/goconvey v1.8.1/go.mod h1:+/u4qLyY6x1jReYOp7GOM2FSt8aP9CzCZL03bI28W60=
-github.com/snowflakedb/gosnowflake v1.11.1 h1:E91s8vBOSroaSTLsyjO4QPkEuzGmZcCxEFQLg214mvk=
-github.com/snowflakedb/gosnowflake v1.11.1/go.mod h1:WFe+8mpsapDaQjHX6BqJBKtfQCGlGD3lHKeDsKfpx2A=
+github.com/snowflakedb/gosnowflake v1.11.2 h1:eAMsxrCiC6ij5wX3dHx1TQCBOdDmCK062Ir8rndUkRg=
+github.com/snowflakedb/gosnowflake v1.11.2/go.mod h1:WFe+8mpsapDaQjHX6BqJBKtfQCGlGD3lHKeDsKfpx2A=
 github.com/softlayer/softlayer-go v1.1.3 h1:dfFzt5eOKIAyB/b78fHMyDu5ICx0ZtxL9NRhBlf831A=
 github.com/softlayer/softlayer-go v1.1.3/go.mod h1:Pc7F57OgUKaAam7TtpqkUeqL7QyKknfiUI4R49h41/U=
 github.com/softlayer/xmlrpc v0.0.0-20200409220501-5f089df7cb7e h1:3OgWYFw7jxCZPcvAg+4R8A50GZ+CCkARF10lxu2qDsQ=

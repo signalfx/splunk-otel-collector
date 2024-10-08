@@ -910,7 +910,7 @@ sign-linux-image-fips:
     matrix:
       - ARCH: [amd64, arm64]
   needs:
-    - build-push-linux-image-fips
+    - build-push-linux-fips-image
   before_script:
     - mv tags_to_sign_${ARCH} tags_to_sign
 

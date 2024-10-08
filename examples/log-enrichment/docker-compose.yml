@@ -29,7 +29,7 @@ services:
       - /opt/splunk/etc
   # OpenTelemetry Collector
   otelcollector:
-    image:  quay.io/signalfx/splunk-otel-collector:0.59.1
+    image:  quay.io/signalfx/splunk-otel-collector:latest
     container_name: otelcollector
     command: ["--config=/etc/otel-collector-config.yml"]
     volumes:

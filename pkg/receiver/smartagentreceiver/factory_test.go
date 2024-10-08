@@ -33,26 +33,26 @@ func TestCreateDefaultConfig(t *testing.T) {
 	assert.NoError(t, componenttest.CheckConfigStruct(cfg))
 }
 
-func TestCreateMetricsReceiver(t *testing.T) {
+func TestCreateMetrics(t *testing.T) {
 	factory := NewFactory()
 	cfg := factory.CreateDefaultConfig()
 	cfg.(*Config).monitorConfig = &haproxy.Config{}
 
 	params := otelcolreceiver.Settings{}
-	receiver, err := factory.CreateMetricsReceiver(context.Background(), params, cfg, consumertest.NewNop())
+	receiver, err := factory.CreateMetrics(context.Background(), params, cfg, consumertest.NewNop())
 	assert.NoError(t, err)
 	assert.NotNil(t, receiver)
 
 	assert.Same(t, receiver, receiverStore[cfg.(*Config)])
 }
 
-func TestCreateMetricsReceiverWithInvalidConfig(t *testing.T) {
+func TestCreateMetricsWithInvalidConfig(t *testing.T) {
 	factory := NewFactory()
 	cfg := &Config{}
 	require.Error(t, cfg.validate())
 
 	params := otelcolreceiver.Settings{}
-	receiver, err := factory.CreateMetricsReceiver(context.Background(), params, cfg, consumertest.NewNop())
+	receiver, err := factory.CreateMetrics(context.Background(), params, cfg, consumertest.NewNop())
 	require.Error(t, err)
 	assert.EqualError(t, err, "you must supply a valid Smart Agent Monitor config")
 	assert.Nil(t, receiver)
@@ -60,26 +60,26 @@ func TestCreateMetricsReceiverWithInvalidConfig(t *testing.T) {
 	assert.NotContains(t, receiverStore, cfg)
 }
 
-func TestCreateLogsReceiver(t *testing.T) {
+func TestCreateLogs(t *testing.T) {
 	factory := NewFactory()
 	cfg := factory.CreateDefaultConfig()
 	cfg.(*Config).monitorConfig = &haproxy.Config{}
 
 	params := otelcolreceiver.Settings{}
-	receiver, err := factory.CreateLogsReceiver(context.Background(), params, cfg, consumertest.NewNop())
+	receiver, err := factory.CreateLogs(context.Background(), params, cfg, consumertest.NewNop())
 	assert.NoError(t, err)
 	assert.NotNil(t, receiver)
 
 	assert.Same(t, receiver, receiverStore[cfg.(*Config)])
 }
 
-func TestCreateLogsReceiverWithInvalidConfig(t *testing.T) {
+func TestCreateLogsWithInvalidConfig(t *testing.T) {
 	factory := NewFactory()
 	cfg := &Config{}
 	require.Error(t, cfg.validate())
 
 	params := otelcolreceiver.Settings{}
-	receiver, err := factory.CreateLogsReceiver(context.Background(), params, cfg, consumertest.NewNop())
+	receiver, err := factory.CreateLogs(context.Background(), params, cfg, consumertest.NewNop())
 	require.Error(t, err)
 	assert.EqualError(t, err, "you must supply a valid Smart Agent Monitor config")
 	assert.Nil(t, receiver)
@@ -87,26 +87,26 @@ func TestCreateLogsReceiverWithInvalidConfig(t *testing.T) {
 	assert.NotContains(t, receiverStore, cfg)
 }
 
-func TestCreateTracesReceiver(t *testing.T) {
+func TestCreateTraces(t *testing.T) {
 	factory := NewFactory()
 	cfg := factory.CreateDefaultConfig()
 	cfg.(*Config).monitorConfig = &haproxy.Config{}
 
 	params := otelcolreceiver.Settings{}
-	receiver, err := factory.CreateTracesReceiver(context.Background(), params, cfg, consumertest.NewNop())
+	receiver, err := factory.CreateTraces(context.Background(), params, cfg, consumertest.NewNop())
 	assert.NoError(t, err)
 	assert.NotNil(t, receiver)
 
 	assert.Same(t, receiver, receiverStore[cfg.(*Config)])
 }
 
-func TestCreateTracesReceiverWithInvalidConfig(t *testing.T) {
+func TestCreateTracesWithInvalidConfig(t *testing.T) {
 	factory := NewFactory()
 	cfg := &Config{}
 	require.Error(t, cfg.validate())
 
 	params := otelcolreceiver.Settings{}
-	receiver, err := factory.CreateTracesReceiver(context.Background(), params, cfg, consumertest.NewNop())
+	receiver, err := factory.CreateTraces(context.Background(), params, cfg, consumertest.NewNop())
 	require.Error(t, err)
 	assert.EqualError(t, err, "you must supply a valid Smart Agent Monitor config")
 	assert.Nil(t, receiver)
@@ -121,17 +121,17 @@ func TestCreateMetricsThenLogsAndThenTracesReceiver(t *testing.T) {
 
 	params := otelcolreceiver.Settings{}
 	nextMetricsConsumer := consumertest.NewNop()
-	metricsReceiver, err := factory.CreateMetricsReceiver(context.Background(), params, cfg, nextMetricsConsumer)
+	metricsReceiver, err := factory.CreateMetrics(context.Background(), params, cfg, nextMetricsConsumer)
 	assert.NoError(t, err)
 	assert.NotNil(t, metricsReceiver)
 
 	nextLogsConsumer := consumertest.NewNop()
-	logsReceiver, err := factory.CreateLogsReceiver(context.Background(), params, cfg, nextLogsConsumer)
+	logsReceiver, err := factory.CreateLogs(context.Background(), params, cfg, nextLogsConsumer)
 	assert.NoError(t, err)
 	assert.NotNil(t, logsReceiver)
 
 	nextTracesConsumer := consumertest.NewNop()
-	tracesReceiver, err := factory.CreateTracesReceiver(context.Background(), params, cfg, nextTracesConsumer)
+	tracesReceiver, err := factory.CreateTraces(context.Background(), params, cfg, nextTracesConsumer)
 	assert.NoError(t, err)
 	assert.NotNil(t, tracesReceiver)
 
@@ -151,17 +151,17 @@ func TestCreateTracesThenLogsAndThenMetricsReceiver(t *testing.T) {
 
 	params := otelcolreceiver.Settings{}
 	nextTracesConsumer := consumertest.NewNop()
-	tracesReceiver, err := factory.CreateTracesReceiver(context.Background(), params, cfg, nextTracesConsumer)
+	tracesReceiver, err := factory.CreateTraces(context.Background(), params, cfg, nextTracesConsumer)
 	assert.NoError(t, err)
 	assert.NotNil(t, tracesReceiver)
 
 	nextLogsConsumer := consumertest.NewNop()
-	logsReceiver, err := factory.CreateLogsReceiver(context.Background(), params, cfg, nextLogsConsumer)
+	logsReceiver, err := factory.CreateLogs(context.Background(), params, cfg, nextLogsConsumer)
 	assert.NoError(t, err)
 	assert.NotNil(t, logsReceiver)
 
 	nextMetricsConsumer := consumertest.NewNop()
-	metricsReceiver, err := factory.CreateMetricsReceiver(context.Background(), params, cfg, nextMetricsConsumer)
+	metricsReceiver, err := factory.CreateMetrics(context.Background(), params, cfg, nextMetricsConsumer)
 	assert.NoError(t, err)
 	assert.NotNil(t, metricsReceiver)
 

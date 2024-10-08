@@ -17,7 +17,6 @@
 package tests
 
 import (
-	"fmt"
 	"path/filepath"
 	"testing"
 	"time"

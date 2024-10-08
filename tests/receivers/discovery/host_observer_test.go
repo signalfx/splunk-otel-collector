@@ -84,6 +84,13 @@ func TestDiscoveryReceiverWithHostObserverAndSimplePrometheusReceiverProvideStat
 				if v, ok := entityAttributes.Map().Get("discovery.status"); ok && v.Str() == "successful" {
 					entityAttributes.Map().PutStr("service_instance_id", "")
 					entityAttributes.Map().PutStr("service_version", "")
+					entityAttributes.Map().PutStr("service.instance.id", "")
+					entityAttributes.Map().PutStr("endpoint", "")
+					entityAttributes.Map().PutBool("is_ipv6", false)
+					entityAttributes.Map().PutStr("discovery.endpoint.id", "")
+					entityAttributes.Map().PutStr("discovery.receiver.config", "")
+					entityAttributes.Map().PutStr("service.name", "")
+
 					err := plogtest.CompareLogs(success, received,
 						plogtest.IgnoreResourceAttributeValue("service_instance_id"),
 						plogtest.IgnoreResourceAttributeValue("service_version"),

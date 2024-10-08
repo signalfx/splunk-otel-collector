@@ -41,7 +41,7 @@ func CheckGoldenFile(t *testing.T, configFile string, expectedFilePath string, o
 	c := f.CreateDefaultConfig().(*otlpreceiver.Config)
 	c.GRPC.NetAddr.Endpoint = fmt.Sprintf("localhost:%d", port)
 	sink := &consumertest.MetricsSink{}
-	receiver, err := f.CreateMetricsReceiver(context.Background(), receivertest.NewNopSettings(), c, sink)
+	receiver, err := f.CreateMetrics(context.Background(), receivertest.NewNopSettings(), c, sink)
 	require.NoError(t, err)
 	require.NoError(t, receiver.Start(context.Background(), componenttest.NewNopHost()))
 	t.Cleanup(func() {
@@ -85,7 +85,7 @@ func CheckGoldenFileWithMount(t *testing.T, configFile string, expectedFilePath 
 	c := f.CreateDefaultConfig().(*otlpreceiver.Config)
 	c.GRPC.NetAddr.Endpoint = fmt.Sprintf("localhost:%d", port)
 	sink := &consumertest.MetricsSink{}
-	receiver, err := f.CreateMetricsReceiver(context.Background(), receivertest.NewNopSettings(), c, sink)
+	receiver, err := f.CreateMetrics(context.Background(), receivertest.NewNopSettings(), c, sink)
 	require.NoError(t, err)
 	require.NoError(t, receiver.Start(context.Background(), componenttest.NewNopHost()))
 	t.Cleanup(func() {
@@ -136,7 +136,7 @@ func CheckGoldenFileWithCollectorOptions(t *testing.T, configFile string, expect
 	c := f.CreateDefaultConfig().(*otlpreceiver.Config)
 	c.GRPC.NetAddr.Endpoint = fmt.Sprintf("localhost:%d", port)
 	sink := &consumertest.MetricsSink{}
-	receiver, err := f.CreateMetricsReceiver(context.Background(), receivertest.NewNopSettings(), c, sink)
+	receiver, err := f.CreateMetrics(context.Background(), receivertest.NewNopSettings(), c, sink)
 	require.NoError(t, err)
 	require.NoError(t, receiver.Start(context.Background(), componenttest.NewNopHost()))
 	t.Cleanup(func() {

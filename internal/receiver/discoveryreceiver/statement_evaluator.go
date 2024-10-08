@@ -185,7 +185,6 @@ func (se *statementEvaluator) evaluateStatement(statement *statussources.Stateme
 		se.correlateResourceAttributes(se.config, attrs, corr)
 		attrs[discovery.ReceiverTypeAttr] = receiverID.Type().String()
 		attrs[discovery.ReceiverNameAttr] = receiverID.Name()
-		attrs[discovery.MessageAttr] = statement.Message
 		attrs[discovery.MessageAttr] = match.Message
 
 		// set original message as "discovery.matched_log" attribute

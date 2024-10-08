@@ -15,7 +15,7 @@ resourceLogs:
                     values:
                       - key: is_ipv6
                         value:
-                          boolValue: true
+                          boolValue: false
                       - key: service.type
                         value:
                           stringValue: prometheus_simple
@@ -33,10 +33,10 @@ resourceLogs:
                           stringValue: hostport
                       - key: discovery.endpoint.id
                         value:
-                          stringValue: (host_observer/with/another/name)[::]-8888-TCP-1
+                          stringValue:
                       - key: endpoint
                         value:
-                          stringValue: '[::]:8888'
+                          stringValue: ''
                       - key: discovery.observer.name
                         value:
                           stringValue: with/another/name
@@ -57,7 +57,7 @@ resourceLogs:
                           stringValue: ""
                       - key: service.instance.id
                         value:
-                          stringValue: '[::]:8888'
+                          stringValue: ''
                       - key: two.key
                         value:
                           stringValue: two.value
@@ -72,7 +72,7 @@ resourceLogs:
                           stringValue: http
                       - key: discovery.receiver.config
                         value:
-                          stringValue: cmVjZWl2ZXJzOgogIHByb21ldGhldXNfc2ltcGxlOgogICAgY29uZmlnOiB7fQogICAgcmVzb3VyY2VfYXR0cmlidXRlczoKICAgICAgb25lLmtleTogb25lLnZhbHVlCiAgICAgIHR3by5rZXk6IHR3by52YWx1ZQogICAgcnVsZTogdHlwZSA9PSAiaG9zdHBvcnQiIGFuZCBjb21tYW5kIGNvbnRhaW5zICJvdGVsY29sIgp3YXRjaF9vYnNlcnZlcnM6Ci0gaG9zdF9vYnNlcnZlci93aXRoL2Fub3RoZXIvbmFtZQo=
+                          stringValue: ""
                       - key: url.scheme
                         value:
                           stringValue: http
@@ -90,7 +90,7 @@ resourceLogs:
                           stringValue: Successfully connected to prometheus server
                       - key: service.name
                         value:
-                          stringValue: prometheus_simple/[::]:8888
+                          stringValue:
               - key: otel.entity.id
                 value:
                   kvlistValue:

@@ -242,7 +242,7 @@ func (d *discoverer) performDiscovery(discoveryReceiversConfigs map[string]any) 
 		}
 		discoveryReceiverSettings.ID = componentID
 
-		lr, err := discoveryReceiverFactory.CreateLogsReceiver(context.Background(), discoveryReceiverSettings, discoveryReceiverConfig, d)
+		lr, err := discoveryReceiverFactory.CreateLogs(context.Background(), discoveryReceiverSettings, discoveryReceiverConfig, d)
 		if err != nil {
 			d.logger.Warn(fmt.Sprintf("failed creating discovery receiver %q", receiverID), zap.Error(err))
 			continue

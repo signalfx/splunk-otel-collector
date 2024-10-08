@@ -197,7 +197,7 @@ func (d *discoveryReceiver) createAndSetReceiverCreator() error {
 			Version: "latest",
 		},
 	}
-	if d.receiverCreator, err = receiverCreatorFactory.CreateMetricsReceiver(
+	if d.receiverCreator, err = receiverCreatorFactory.CreateMetrics(
 		context.Background(), receiverCreatorSettings, receiverCreatorConfig, d.metricsConsumer,
 	); err != nil {
 		return err

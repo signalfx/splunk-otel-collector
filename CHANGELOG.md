@@ -21,6 +21,11 @@ This Splunk OpenTelemetry Collector release includes changes from the openteleme
 
 ### 💡 Enhancements 💡
 
+- (Splunk) Initial release of standalone collector binaries for Linux (amd64/arm64) and Windows (amd64) with FIPS 140-2 support. These are experimental (alpha) binaries, and it is not suitable to use them in production environments. ([#5378](https://github.com/signalfx/splunk-otel-collector/pull/5378)):
+  - `otelcol-fips_linux_<amd64|arm64>`: Built with [`GOEXPERIMENT=boringcrypto`](https://go.dev/src/crypto/internal/boring/README) and [`crypto/tls/fipsonly`](https://go.dev/src/crypto/tls/fipsonly/fipsonly.go).
+  - `otelcol-fips_windows_amd64.exe`: Built with [`GOEXPERIMENT=cngcrypto`](https://github.com/microsoft/go/blob/microsoft/main/eng/doc/fips/README.md) and [`requirefips`](https://github.com/microsoft/go/blob/microsoft/main/eng/doc/fips/README.md#build-option-to-require-fips-mode) (the collector will panic if FIPS is not enabled on the Windows host).
+  - Smart Agent components are not currently supported.
+  - Download the binaries from the list of assets below.
 - (Core) `confignet:` Add Profiles Marshaler to otlptext. ([#11161](https://github.com/open-telemetry/opentelemetry-collector/pull/11161))
 - (Contrib) `receivercreator:` Validate endpoint's configuration before starting receivers ([#33145](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/33145))
 - (Contrib) `receiver/statsd:` Add support for aggregating on Host/IP ([#23809](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/23809))

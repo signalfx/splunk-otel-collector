@@ -2,7 +2,7 @@
 # Recipe:: collector_win_config_options
 
 collector_env_vars = [
-  { name: 'SPLUNK_ACCESS_TOKEN', type: :string, data: node['splunk_otel_collector']['splunk_access_token'].to_s },
+  { name: 'SPLUNK_ACCESS_TOKEN', type: :string, data: (node['splunk_otel_collector']['splunk_access_token'] || node.run_state['splunk_otel_collector']['splunk_access_token']).to_s },
   { name: 'SPLUNK_API_URL', type: :string, data: node['splunk_otel_collector']['splunk_api_url'].to_s },
   { name: 'SPLUNK_BUNDLE_DIR', type: :string, data: node['splunk_otel_collector']['splunk_bundle_dir'].to_s },
   { name: 'SPLUNK_COLLECTD_DIR', type: :string, data: node['splunk_otel_collector']['splunk_collectd_dir'].to_s },

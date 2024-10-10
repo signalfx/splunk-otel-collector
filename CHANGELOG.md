@@ -1,13 +1,23 @@
 # Changelog
-
 ## Unreleased
+
+## v0.111.0
+
+
+This Splunk OpenTelemetry Collector release includes changes from the opentelemetry-collector v0.111.0 and the opentelemetry-collector-contrib v0.111.0 releases where appropriate.
 
 ### 🛑 Breaking changes 🛑
 
+- (Contrib) signalfxexporter: Do not exclude the metric container.memory.working_set ([#35475](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35475))
+- (Contrib) sqlqueryreceiver: Fail if value for log column in result set is missing, collect errors ([#35068](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/35068))
+- (Contrib) windowseventlogreceiver: The 'raw' flag no longer suppresses rendering info. ([#34720](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/34720))
 - (Splunk) Remove deprecated memory ballast extension ([#5429](https://github.com/open-telemetry/opentelemetry-collector/pull/5429))
 
 ### 🚩Deprecations 🚩
 
+- (Contrib) sapmreceiver: access_token_passthrough is deprecated ([#35330](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35330))
+- (Splunk) Remove ballast extension entirely from components  ([#5429](https://github.com/signalfx/splunk-otel-collector/pull/5429))
+- (Splunk) Deprecate jaegergrpc monitor ([#5428](https://github.com/signalfx/splunk-otel-collector/pull/5428))
 - (Splunk) Deprecate the jaegergrpc monitor ([#5428](https://github.com/signalfx/splunk-otel-collector/pull/5428))
 
 ### 💡 Enhancements 💡
@@ -17,6 +27,28 @@
   - `otelcol-fips_windows_amd64.exe`: Built with [`GOEXPERIMENT=cngcrypto`](https://github.com/microsoft/go/blob/microsoft/main/eng/doc/fips/README.md) and [`requirefips`](https://github.com/microsoft/go/blob/microsoft/main/eng/doc/fips/README.md#build-option-to-require-fips-mode) (the collector will panic if FIPS is not enabled on the Windows host).
   - Smart Agent components are not currently supported.
   - Download the binaries from the list of assets below.
+- (Core) `confignet:` Add Profiles Marshaler to otlptext. ([#11161](https://github.com/open-telemetry/opentelemetry-collector/pull/11161))
+- (Contrib) `receivercreator:` Validate endpoint's configuration before starting receivers ([#33145](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/33145))
+- (Contrib) `receiver/statsd:` Add support for aggregating on Host/IP ([#23809](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/23809))
+- (Contrib) `hostmetricsreceiver:` Add ability to mute all errors (mainly due to access rights) coming from process scraper of the hostmetricsreceiver ([#20435](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/20435))
+- (Contrib) `kubeletstats:` Introduce feature gate for deprecation of container.cpu.utilization, k8s.pod.cpu.utilization and k8s.node.cpu.utilization metrics ([#35139](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35139))
+- (Contrib) `pkg/ottl:` Add InsertXML Converter ([#35436](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35436))
+- (Contrib) `pkg/ottl`: Add GetXML Converter ([#35462](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35462))
+- (Contrib) `pkg/ottl`: Add ToKeyValueString Converter ([#35334](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/35334))
+- (Contrib) `pkg/ottl`: Add RemoveXML Converter ([#35301](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35301))
+- (Contrib) `sqlserverreceiver:` Add computer name resource attribute to relevant metrics ([#35040](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35040))
+- (Contrib) `windowseventlogreceiver:` Add 'suppress_rendering_info' option. ([#34720](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/34720))
+- (Contrib) `receiver/awss3receiver:` Add ingest progress notifications via OpAMP ([#33980](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/33980))
+- (Contrib) `receiver/azureblobreceiver:` support for default auth ([#35636](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35636))
+- (Contrib) update sapm-proto to 0.16.0 ([#35630](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35630))
+
+
+### 🧰 Bug fixes 🧰
+
+- (Contrib) `windowseventlogreceiver:` While collecting from a remote windows host, the stanza operator will no longer log "subscription handle is already open" constantly during successful collection. ([#35520](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35520))
+- (Contrib) `windowseventlogreceiver:` If collecting from a remote host, the receiver will stop collecting if the host restarts. This change resubscribes when the host restarts. ([#35175](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35175))
+- (Contrib) `sqlqueryreceiver:` Fix reprocessing of logs when tracking_column type is timestamp ([#35194](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/35194))
+- (Core) `processorhelper`: Fix bug where record in/out metrics were skipped ([#11360](https://github.com/open-telemetry/opentelemetry-collector/pull/11360))
 
 ## v0.110.0
 

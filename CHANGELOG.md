@@ -1,8 +1,8 @@
 # Changelog
+## Unreleased
 
 ## v0.111.0
 
-## Unreleased
 
 This Splunk OpenTelemetry Collector release includes changes from the opentelemetry-collector v0.111.0 and the opentelemetry-collector-contrib v0.111.0 releases where appropriate.
 

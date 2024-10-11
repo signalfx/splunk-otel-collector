@@ -1,6 +1,8 @@
 # Changelog
 ## Unreleased
 
+- (Splunk) Deprecate the heroku observer. Use the [resource detection observer with heroku detector](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/resourcedetectionprocessor#heroku) instead. ([#5496](https://github.com/signalfx/splunk-otel-collector/pull/5496))
+
 ## v0.111.0
 
 

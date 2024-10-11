@@ -4,7 +4,7 @@
 ### 🚩Deprecations 🚩
 
 
-- (Splunk) Deprecate cloudfoundry monitor ([#](https://github.com/signalfx/splunk-otel-collector/pull/))
+- (Splunk) Deprecate cloudfoundry monitor ([#5495](https://github.com/signalfx/splunk-otel-collector/pull/5495))
 
 ## v0.111.0
 

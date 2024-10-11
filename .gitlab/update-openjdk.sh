@@ -34,7 +34,7 @@ create_collector_pr() {
       local any_updates=no
       if [[ $assets == *"linux"* ]]; then
         echo ">>> Updating openjdk version to $version for linux..."
-        sed -i "s|^ARG JDK_VERSION=.*|ARG JDK_VERSION=${version}|" internal/signalfx-agent/bundle/Dockerfile
+        sed -i "s|^ARG JDK_VERSION=.*|ARG JDK_VERSION=${version}|" packaging/bundle/Dockerfile
         any_updates=yes
       fi
       if [[ $assets == *"windows"* ]]; then

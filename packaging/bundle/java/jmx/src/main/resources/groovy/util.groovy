@@ -1,3 +1,5 @@
+package groovy
+
 import com.signalfx.agent.MonitorUtil
 import com.signalfx.agent.jmx.Client
 import com.signalfx.metrics.protobuf.SignalFxProtocolBuffers

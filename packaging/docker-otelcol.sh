@@ -85,7 +85,7 @@ for arch in $archs; do
     if [ "$FIPS" != "true" ]; then
         if [[ "$arch" =~ ^amd64|arm64$ ]]; then
             if [ "$SKIP_BUNDLE" != "true" ]; then
-                make -C "${REPO_DIR}/internal/signalfx-agent/bundle" agent-bundle-linux ARCH=${arch} DOCKER_REPO=${DOCKER_REPO}
+                make -C "${REPO_DIR}/packaging/bundle" agent-bundle-linux ARCH=${arch} DOCKER_REPO=${DOCKER_REPO}
             fi
         else
             # create a dummy file to copy for the docker build

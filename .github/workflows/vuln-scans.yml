@@ -66,7 +66,7 @@ jobs:
         id: bundle-cache
         with:
           path: .cache/buildx/agent-bundle-${{ matrix.ARCH }}${{ matrix.FIPS == true && '-fips' || '' }}
-          key: agent-bundle-buildx-${{ matrix.ARCH }}${{ matrix.FIPS == true && '-fips' || '' }}-${{ hashFiles('internal/signalfx-agent/bundle/**') }}
+          key: agent-bundle-buildx-${{ matrix.ARCH }}${{ matrix.FIPS == true && '-fips' || '' }}-${{ hashFiles('packaging/bundle/**') }}
           restore-keys: |
             agent-bundle-buildx-${{ matrix.ARCH }}-${{ matrix.FIPS == true && '-fips' || '' }}
       - run: |
@@ -178,8 +178,8 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: ${{ env.PIP_CACHE_DIR }}
-          key: agent-bundle-windows-pip-${{ hashFiles('internal/signalfx-agent/bundle/collectd-plugins.yaml', 'internal/signalfx-agent/bundle/scripts/requirements.txt') }}
-      - run: ./internal/signalfx-agent/bundle/scripts/windows/make.ps1 bundle
+          key: agent-bundle-windows-pip-${{ hashFiles('packaging/bundle/collectd-plugins.yaml', 'packaging/bundle/scripts/requirements.txt') }}
+      - run: ./packaging/bundle/scripts/windows/make.ps1 bundle
       - name: Build docker image
         run: |
           $ErrorActionPreference = 'Stop'

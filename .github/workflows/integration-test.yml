@@ -37,10 +37,10 @@ jobs:
         id: bundle-cache
         with:
           path: .cache/buildx/agent-bundle-${{ matrix.ARCH }}
-          key: agent-bundle-buildx-${{ matrix.ARCH }}-${{ hashFiles('internal/signalfx-agent/bundle/**') }}
+          key: agent-bundle-buildx-${{ matrix.ARCH }}-${{ hashFiles('packaging/bundle/**') }}
           restore-keys: |
             agent-bundle-buildx-${{ matrix.ARCH }}-
-      - run: make -C internal/signalfx-agent/bundle agent-bundle-linux ARCH=${{ matrix.ARCH }}
+      - run: make -C packaging/bundle agent-bundle-linux ARCH=${{ matrix.ARCH }}
         env:
           BUNDLE_CACHE_HIT: "${{ steps.bundle-cache.outputs.cache-hit }}"
       - uses: actions/upload-artifact@v4

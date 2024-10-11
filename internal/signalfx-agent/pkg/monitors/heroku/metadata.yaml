@@ -1,6 +1,9 @@
 monitors:
   - dimensions:
     doc: |
+      This monitor is deprecated and will be removed soon.
+      Please use https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/resourcedetectionprocessor#heroku instead.
+      
       This monitor collects metadata from a Heroku dyno and syncs them as properties
       to `dyno_id` dimension, which is synced by datapoints emitted by the
       [Heroku SignalFx Collector (https://github.com/signalfx/heroku-signalfx-collector).

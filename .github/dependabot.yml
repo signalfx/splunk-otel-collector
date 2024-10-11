@@ -90,7 +90,7 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "pip"
-    directory: "/internal/signalfx-agent/bundle/python"
+    directory: "/packaging/bundle/python"
     schedule:
       interval: "weekly"
   - package-ecosystem: "pip"
@@ -210,7 +210,7 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "docker"
-    directory: "/internal/signalfx-agent/bundle"
+    directory: "/packaging/bundle"
     schedule:
       interval: "weekly"
   - package-ecosystem: "docker"
@@ -222,7 +222,7 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "maven"
-    directory: "/internal/signalfx-agent/bundle/java/jmx"
+    directory: "/packaging/bundle/java/jmx"
     schedule:
       interval: "weekly"
   - package-ecosystem: "nuget"

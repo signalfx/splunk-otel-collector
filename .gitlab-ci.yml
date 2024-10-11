@@ -386,7 +386,7 @@ agent-bundle-linux:
   script:
     - *docker-reader-role
     - docker login -u $CIRCLECI_QUAY_USERNAME -p $CIRCLECI_QUAY_PASSWORD quay.io
-    - PUSH_CACHE=yes make -C internal/signalfx-agent/bundle agent-bundle-linux ARCH=${ARCH} DOCKER_REPO=${DOCKER_HUB_REPO}
+    - PUSH_CACHE=yes make -C packaging/bundle agent-bundle-linux ARCH=${ARCH} DOCKER_REPO=${DOCKER_HUB_REPO}
   artifacts:
     paths:
       - dist/agent-bundle_linux_${ARCH}.tar.gz
@@ -402,12 +402,12 @@ agent-bundle-windows:
   cache:
     key:
       files:
-        - internal/signalfx-agent/bundle/collectd-plugins.yaml
-        - internal/signalfx-agent/bundle/scripts/requirements.txt
+        - packaging/bundle/collectd-plugins.yaml
+        - packaging/bundle/scripts/requirements.txt
     paths:
       - .cache/pip
   script:
-    - ./internal/signalfx-agent/bundle/scripts/windows/make.ps1 bundle
+    - ./packaging/bundle/scripts/windows/make.ps1 bundle
   artifacts:
     paths:
       - dist/agent-bundle_windows_amd64.zip

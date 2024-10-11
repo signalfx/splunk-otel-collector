@@ -8,17 +8,17 @@ on:
     paths:
       - '.github/workflows/salt-test.yml'
       - 'deployments/salt/**'
-      - 'internal/buildscripts/packaging/tests/deployments/salt/**'
-      - 'internal/buildscripts/packaging/tests/helpers/**'
-      - 'internal/buildscripts/packaging/tests/requirements.txt'
+      - 'packaging/tests/deployments/salt/**'
+      - 'packaging/tests/helpers/**'
+      - 'packaging/tests/requirements.txt'
       - '!**.md'
   pull_request:
     paths:
       - '.github/workflows/salt-test.yml'
       - 'deployments/salt/**'
-      - 'internal/buildscripts/packaging/tests/deployments/salt/**'
-      - 'internal/buildscripts/packaging/tests/helpers/**'
-      - 'internal/buildscripts/packaging/tests/requirements.txt'
+      - 'packaging/tests/deployments/salt/**'
+      - 'packaging/tests/helpers/**'
+      - 'packaging/tests/requirements.txt'
       - '!**.md'
 
 concurrency:
@@ -27,7 +27,7 @@ concurrency:
 
 env:
   PYTHON_VERSION: '3.11'
-  REQUIREMENTS_PATH: "internal/buildscripts/packaging/tests/requirements.txt"
+  REQUIREMENTS_PATH: "packaging/tests/requirements.txt"
 
 jobs:
   salt-lint-test:
@@ -52,9 +52,9 @@ jobs:
         id: get-matrix
         run: |
           # create test matrix for distro
-          dockerfiles=$(find internal/buildscripts/packaging/tests/deployments/salt/images/ -name "Dockerfile.*" | cut -d '.' -f2- | sort -u)
+          dockerfiles=$(find packaging/tests/deployments/salt/images/ -name "Dockerfile.*" | cut -d '.' -f2- | sort -u)
           if [ -z "$dockerfiles" ]; then
-            echo "Failed to get dockerfiles from internal/buildscripts/packaging/tests/deployments/salt/images!" >&2
+            echo "Failed to get dockerfiles from packaging/tests/deployments/salt/images!" >&2
             exit 1
           fi
           distro=$(for d in $dockerfiles; do echo -n "\"$d\","; done)
@@ -98,7 +98,7 @@ jobs:
             distro="amazonlinux-2 and not amazonlinux-2023"
           fi
           python3 -u -m pytest -s --verbose -k "$distro and ${{ matrix.CONFIG }}" \
-            internal/buildscripts/packaging/tests/deployments/salt/salt_test.py
+            packaging/tests/deployments/salt/salt_test.py
 
       # qemu, networking, running systemd in containers, etc., can be flaky
       - name: Re-run failed tests
@@ -111,4 +111,4 @@ jobs:
           fi
           python3 -u -m pytest -s --verbose -k "$distro and ${{ matrix.CONFIG }}" \
             --last-failed \
-            internal/buildscripts/packaging/tests/deployments/salt/salt_test.py
+            packaging/tests/deployments/salt/salt_test.py

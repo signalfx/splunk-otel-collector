@@ -90,19 +90,23 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "pip"
-    directory: "/internal/buildscripts/packaging/release"
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "pip"
-    directory: "/internal/buildscripts/packaging/tests"
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "pip"
     directory: "/internal/signalfx-agent/bundle/python"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "pip"
+    directory: "/packaging/release"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "pip"
+    directory: "/packaging/tests"
     schedule:
       interval: "weekly"
   - package-ecosystem: "docker"
     directory: "/cmd/otelcol"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker"
+    directory: "/cmd/otelcol/fips"
     schedule:
       interval: "weekly"
   - package-ecosystem: "docker"
@@ -126,15 +130,15 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "docker"
+    directory: "/docker/elasticsearch"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker"
     directory: "/docker/haproxy"
     schedule:
       interval: "weekly"
   - package-ecosystem: "docker"
     directory: "/docker/httpd"
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "docker"
-    directory: "/docker/httpd-discovery"
     schedule:
       interval: "weekly"
   - package-ecosystem: "docker"
@@ -206,15 +210,15 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "docker"
-    directory: "/internal/buildscripts/packaging/fpm"
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "docker"
-    directory: "/internal/buildscripts/packaging/msi/msi-builder"
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "docker"
     directory: "/internal/signalfx-agent/bundle"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker"
+    directory: "/packaging/fpm"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker"
+    directory: "/packaging/msi/msi-builder"
     schedule:
       interval: "weekly"
   - package-ecosystem: "maven"
@@ -226,11 +230,11 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "nuget"
-    directory: "/internal/buildscripts/packaging/msi/SplunkCustomActions/src"
+    directory: "/packaging/msi/SplunkCustomActions/src"
     schedule:
       interval: "weekly"
   - package-ecosystem: "nuget"
-    directory: "/internal/buildscripts/packaging/msi/SplunkCustomActions/test"
+    directory: "/packaging/msi/SplunkCustomActions/test"
     schedule:
       interval: "weekly"
   - package-ecosystem: "nuget"

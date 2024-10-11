@@ -1,5 +1,5 @@
 include ./Makefile.Common
-include ./internal/buildscripts/packaging/technical-addon/Makefile
+include ./packaging/technical-addon/Makefile
 
 ### VARIABLES
 
@@ -33,7 +33,7 @@ BUILD_INFO=-ldflags "${BUILD_X1} ${BUILD_X2}"
 BUILD_INFO_TESTS=-ldflags "-X $(BUILD_INFO_IMPORT_PATH_TESTS).Version=$(VERSION)"
 CGO_ENABLED?=0
 
-JMX_METRIC_GATHERER_RELEASE=$(shell cat internal/buildscripts/packaging/jmx-metric-gatherer-release.txt)
+JMX_METRIC_GATHERER_RELEASE=$(shell cat packaging/jmx-metric-gatherer-release.txt)
 SKIP_COMPILE=false
 ARCH?=amd64
 BUNDLE_SUPPORTED_ARCHS := amd64 arm64
@@ -175,7 +175,7 @@ delete-tag:
 
 .PHONY: docker-otelcol
 docker-otelcol:
-	ARCH=$(ARCH) FIPS=$(FIPS) SKIP_COMPILE=$(SKIP_COMPILE) SKIP_BUNDLE=$(SKIP_BUNDLE) DOCKER_REPO=$(DOCKER_REPO) JMX_METRIC_GATHERER_RELEASE=$(JMX_METRIC_GATHERER_RELEASE) ./internal/buildscripts/packaging/docker-otelcol.sh
+	ARCH=$(ARCH) FIPS=$(FIPS) SKIP_COMPILE=$(SKIP_COMPILE) SKIP_BUNDLE=$(SKIP_BUNDLE) DOCKER_REPO=$(DOCKER_REPO) JMX_METRIC_GATHERER_RELEASE=$(JMX_METRIC_GATHERER_RELEASE) ./packaging/docker-otelcol.sh
 
 .PHONY: binaries-all-sys
 binaries-all-sys: binaries-darwin_amd64 binaries-darwin_arm64 binaries-linux_amd64 binaries-linux_arm64 binaries-windows_amd64 binaries-linux_ppc64le
@@ -220,7 +220,7 @@ ifneq ($(SKIP_BUNDLE), true)
 	$(MAKE) -C internal/signalfx-agent/bundle agent-bundle-linux ARCH=$(ARCH) DOCKER_REPO=$(DOCKER_REPO)
 endif
 endif
-	docker build -t otelcol-fpm internal/buildscripts/packaging/fpm
+	docker build -t otelcol-fpm packaging/fpm
 	docker run --rm -v $(CURDIR):/repo -e PACKAGE=$* -e VERSION=$(VERSION) -e ARCH=$(ARCH) -e JMX_METRIC_GATHERER_RELEASE=$(JMX_METRIC_GATHERER_RELEASE) otelcol-fpm
 
 .PHONY: msi
@@ -228,9 +228,9 @@ msi:
 ifneq ($(SKIP_COMPILE), true)
 	$(MAKE) binaries-windows_amd64
 endif
-	!(find ./internal/buildscripts/packaging/msi -name "*.wxs" | xargs grep -q "RemoveFolderEx") || (echo "Custom action 'RemoveFolderEx' can't be used without corresponding WiX upgrade due to CVE-2024-29188." && exit 1)
+	!(find ./packaging/msi -name "*.wxs" | xargs grep -q "RemoveFolderEx") || (echo "Custom action 'RemoveFolderEx' can't be used without corresponding WiX upgrade due to CVE-2024-29188." && exit 1)
 	test -f ./dist/agent-bundle_windows_amd64.zip || (echo "./dist/agent-bundle_windows_amd64.zip not found! Either download a pre-built bundle to ./dist/, or run './internal/signalfx-agent/bundle/scripts/windows/make.ps1 bundle' on a windows host and copy it to ./dist/." && exit 1)
-	./internal/buildscripts/packaging/msi/build.sh "$(VERSION)" "$(DOCKER_REPO)" "$(JMX_METRIC_GATHERER_RELEASE)"
+	./packaging/msi/build.sh "$(VERSION)" "$(DOCKER_REPO)" "$(JMX_METRIC_GATHERER_RELEASE)"
 
 .PHONY: update-examples
 update-examples:

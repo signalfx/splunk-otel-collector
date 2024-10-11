@@ -16,7 +16,7 @@ on:
       - 'go.mod'
       - 'go.sum'
       - '!**.md'
-      - '!internal/buildscripts/**'
+      - '!packaging/**'
 
 concurrency:
   group: otelcol-fips-${{ github.event.pull_request.number || github.ref }}

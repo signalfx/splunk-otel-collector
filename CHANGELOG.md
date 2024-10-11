@@ -1,6 +1,11 @@
 # Changelog
 ## Unreleased
 
+### 🚩Deprecations 🚩
+
+
+- (Splunk) Deprecate cloudfoundry monitor ([#](https://github.com/signalfx/splunk-otel-collector/pull/))
+
 ## v0.111.0
 
 

@@ -9,6 +9,7 @@ RUN apt-get update && \
 
 COPY cmd /src/cmd
 COPY internal /src/internal
+COPY packaging /src/packaging
 COPY pkg /src/pkg
 COPY Makefile /src/
 COPY Makefile.Common /src/

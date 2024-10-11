@@ -37,7 +37,7 @@ semgrep:
   retry: 2
   variables:
     SAST_SCANNER: "Semgrep"
-    SEMGREP_EXCLUDE: "examples,internal/buildscripts,tests,*_test.go,cmd/otelcol/Dockerfile.windows,deployments/ansible/molecule"
+    SEMGREP_EXCLUDE: "examples,tests,*_test.go,cmd/otelcol/Dockerfile.windows,deployments/ansible/molecule"
     alert_mode: "policy"
   after_script:
     - echo "Check results at $CI_PIPELINE_URL/security"
@@ -122,7 +122,7 @@ fossa:
   cache:
     key:
       files:
-        - internal/buildscripts/packaging/release/requirements.txt
+        - packaging/release/requirements.txt
     paths:
       - .cache/pip
   retry: 2
@@ -132,7 +132,7 @@ fossa:
   script:
     - *get-artifactory-stage
     - *aws-releaser-role
-    - pip3 install -r internal/buildscripts/packaging/release/requirements.txt
+    - pip3 install -r packaging/release/requirements.txt
     - |
       if [ -n "${PATHS:-}" ]; then
         for path in $PATHS; do
@@ -140,10 +140,10 @@ fossa:
             echo "$path not found!"
             exit 1
           fi
-          python3 internal/buildscripts/packaging/release/release.py --force --stage=${STAGE} --path=$path ${OPTIONS:-}
+          python3 packaging/release/release.py --force --stage=${STAGE} --path=$path ${OPTIONS:-}
         done
       elif [ -n "${INSTALLERS:-}" ]; then
-        python3 internal/buildscripts/packaging/release/release.py --force --installers ${OPTIONS:-}
+        python3 packaging/release/release.py --force --installers ${OPTIONS:-}
       else
         echo "Either the PATHS or INSTALLERS env var must be defined!" >&2
         exit 1
@@ -521,9 +521,9 @@ sign-osx:
     CI_JOB_JWT:
       aud: $CICD_VAULT_ADDR
   before_script:
-    - ./internal/buildscripts/packaging/fpm/install-deps.sh
+    - ./packaging/fpm/install-deps.sh
   script:
-    - ./internal/buildscripts/packaging/fpm/${PKG_TYPE}/build.sh "${CI_COMMIT_TAG:-}" "$ARCH" "./dist"
+    - ./packaging/fpm/${PKG_TYPE}/build.sh "${CI_COMMIT_TAG:-}" "$ARCH" "./dist"
     - *xray-publish-package
 
 build-deb:
@@ -607,7 +607,7 @@ msi-custom-actions-package:
     - $WixPath = "${Env:ProgramFiles(x86)}\WiX Toolset v3.14"
     - $sfxcaDll = "${WixPath}\SDK\x64\sfxca.dll"
     - $Env:PATH = "${WixPath}\SDK;" + $Env:PATH
-    - $customActionDir = "${PWD}\internal\buildscripts\packaging\msi\SplunkCustomActions"
+    - $customActionDir = "${PWD}\packaging\msi\SplunkCustomActions"
     - $customActionBinDir = "${customActionDir}\bin\Release"
     - MakeSfxCA.exe "${customActionBinDir}\SplunkCustomActions.CA.dll" `
       "${sfxcaDll}" `
@@ -616,7 +616,7 @@ msi-custom-actions-package:
       "${customActionDir}\src\CustomAction.config"
   artifacts:
     paths:
-      - internal/buildscripts/packaging/msi/SplunkCustomActions/bin/Release/SplunkCustomActions.CA.dll
+      - packaging/msi/SplunkCustomActions/bin/Release/SplunkCustomActions.CA.dll
 
 msi-custom-actions-assemblies:
   extends: .trigger-filter
@@ -625,13 +625,13 @@ msi-custom-actions-assemblies:
   needs: []
   dependencies: []
   script:
-    - pushd ./internal/buildscripts/packaging/msi/SplunkCustomActions/
+    - pushd ./packaging/msi/SplunkCustomActions/
     - dotnet publish ./src/SplunkCustomActions.csproj -c Release -o ./bin/Release
     - popd
   artifacts:
     name: msi-custom-actions-assemblies
     paths:
-      - internal/buildscripts/packaging/msi/SplunkCustomActions/bin/Release/*
+      - packaging/msi/SplunkCustomActions/bin/Release/*
 
 sign-debs:
   extends:
@@ -766,7 +766,7 @@ sign-ps-installer:
     DOWNLOAD_DIR: dist/signed
   before_script:
     - mkdir -p dist
-    - cp internal/buildscripts/packaging/installer/install.ps1 dist/install.ps1
+    - cp packaging/installer/install.ps1 dist/install.ps1
   artifacts:
     paths:
       - dist/install.ps1
@@ -981,7 +981,7 @@ build-push-windows-image:
         # Only push latest tag for main and stable releases
         $LATEST_TAG = "latest-${env:WIN_VERSION}"
       }
-    - $JMX_METRIC_GATHERER_RELEASE = $(Get-Content internal\buildscripts\packaging\jmx-metric-gatherer-release.txt)
+    - $JMX_METRIC_GATHERER_RELEASE = $(Get-Content packaging\jmx-metric-gatherer-release.txt)
     - |
       echo "Building ${IMAGE_NAME}:${IMAGE_TAG}"
       docker build -t ${IMAGE_NAME}:${IMAGE_TAG} --build-arg BASE_IMAGE=${BASE_IMAGE} --build-arg JMX_METRIC_GATHERER_RELEASE=${JMX_METRIC_GATHERER_RELEASE} -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
@@ -1091,7 +1091,7 @@ release-debs:
   retry: 2
   before_script:
     - *get-artifactory-stage
-    - pip3 install -r internal/buildscripts/packaging/release/requirements.txt
+    - pip3 install -r packaging/release/requirements.txt
     - apt update && apt install -y curl
     - |
       set -ex
@@ -1100,7 +1100,7 @@ release-debs:
           echo "$path not found!"
           exit 1
         fi
-        python3 internal/buildscripts/packaging/release/release.py --force --stage=${STAGE} --path=$path
+        python3 packaging/release/release.py --force --stage=${STAGE} --path=$path
       done
     - test -f Release
   variables:
@@ -1132,7 +1132,7 @@ release-rpms:
   retry: 2
   before_script:
     - *get-artifactory-stage
-    - pip3 install -r internal/buildscripts/packaging/release/requirements.txt
+    - pip3 install -r packaging/release/requirements.txt
     - apt update && apt install -y curl
     - |
       set -ex
@@ -1141,7 +1141,7 @@ release-rpms:
           echo "$path not found!"
           exit 1
         fi
-        python3 internal/buildscripts/packaging/release/release.py --force --stage=${STAGE} --path=$path
+        python3 packaging/release/release.py --force --stage=${STAGE} --path=$path
       done
     - test -f repomd.xml
   variables:
@@ -1208,7 +1208,7 @@ release-installers:
   variables:
     INSTALLERS: "true"
   before_script:
-    - cp -f dist/signed/install.ps1 internal/buildscripts/packaging/installer/install.ps1
+    - cp -f dist/signed/install.ps1 packaging/installer/install.ps1
 
 choco-release:
   extends: .trigger-filter
@@ -1227,7 +1227,7 @@ choco-release:
       } else {
         throw "Failed to get version from $msi_file_name"
       }
-      .\internal\buildscripts\packaging\choco\make.ps1 build_choco -Version $version -BuildDir .\dist\signed
+      .\packaging\choco\make.ps1 build_choco -Version $version -BuildDir .\dist\signed
     - Test-Path .\dist\signed\splunk-otel-collector.${version}.nupkg
     - |
       # Only push the choco package for stable release tags
@@ -1428,7 +1428,7 @@ github-release:
       # only create github release for stable release tags
       set -e
       if [[ "${CI_COMMIT_TAG:-}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        release_notes="$( ./internal/buildscripts/packaging/release/gh-release-notes.sh "$CI_COMMIT_TAG" )"
+        release_notes="$( ./packaging/release/gh-release-notes.sh "$CI_COMMIT_TAG" )"
         ghr -t "$GITHUB_TOKEN" -u signalfx -r splunk-otel-collector -n "$CI_COMMIT_TAG" -b "$release_notes" --replace "$CI_COMMIT_TAG" dist/assets/
       fi
   artifacts:

@@ -17,7 +17,7 @@ if (!(Test-Path $docker_setup_path)) {
 #
 # 1. Splunk OTel Collector files:
 if (!(Test-Path (Join-Path $docker_setup_path install.ps1) -PathType Leaf)) {
-    Copy-Item $repo_root/internal/buildscripts/packaging/installer/install.ps1 $docker_setup_path
+    Copy-Item $repo_root/packaging/installer/install.ps1 $docker_setup_path
 }
 if (!(Test-Path (Join-Path $docker_setup_path splunk-otel-collector-*.msi) -PathType Leaf)) {
     $version = (git describe --tags --abbrev=0).SubString(1)

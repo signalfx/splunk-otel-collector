@@ -31,7 +31,7 @@ jobs:
         with:
           scan-type: 'fs'
           scan-ref: '.'
-          skip-dirs: 'deployments,examples,instrumentation/packaging,internal/buildscripts/packaging,tests'
+          skip-dirs: 'deployments,examples,instrumentation/packaging,packaging,tests'
           format: 'table'
           exit-code: '1'
           severity: 'CRITICAL,HIGH'
@@ -190,7 +190,7 @@ jobs:
           } else {
             $base_image = "mcr.microsoft.com/windows/servercore:ltsc2022"
           }
-          docker build -t otelcol-windows --pull --build-arg BASE_IMAGE=${base_image} --build-arg JMX_METRIC_GATHERER_RELEASE=$(Get-Content internal\buildscripts\packaging\jmx-metric-gatherer-release.txt) -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
+          docker build -t otelcol-windows --pull --build-arg BASE_IMAGE=${base_image} --build-arg JMX_METRIC_GATHERER_RELEASE=$(Get-Content packaging\jmx-metric-gatherer-release.txt) -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
           Remove-Item .\cmd\otelcol\otelcol.exe
           Remove-Item .\cmd\otelcol\agent-bundle_windows_amd64.zip
       - uses: anchore/scan-action@v4

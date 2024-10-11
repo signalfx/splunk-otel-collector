@@ -28,7 +28,7 @@ create_collector_pr() {
   tag="$( gh release view --repo "https://github.com/open-telemetry/opentelemetry-java-contrib" --json tagName --jq 'select(.isDraft|not and .isPrelease|not) | .tagName' )"
   if [[ -n "$tag" ]]; then
     echo ">>> Updating jmx-metric-gatherer version to $tag ..."
-    echo "$tag" > internal/buildscripts/packaging/jmx-metric-gatherer-release.txt
+    echo "$tag" > packaging/jmx-metric-gatherer-release.txt
   else
     echo "ERROR: Failed to get latest release tag from https://github.com/open-telemetry/opentelemetry-java-contrib !" >&2
     exit 1

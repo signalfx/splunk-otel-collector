@@ -11,7 +11,7 @@ has the actual requirements to run the tests locally, overall one needs:
 
 - Set up the [`./testdata/docker-setup`](./testdata/docker-setup) folder by adding:
   - The Splunk OpenTelemetry Collector MSI.
-  - The [PowerShell install script](../../../internal/buildscripts/packaging/installer/install.ps1).
+  - The [PowerShell install script](../../../packaging/installer/install.ps1).
 - Windows OS:
   - .NET Framework
   - .NET SDK

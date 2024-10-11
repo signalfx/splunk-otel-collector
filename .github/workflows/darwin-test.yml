@@ -16,7 +16,7 @@ on:
       - 'go.mod'
       - 'go.sum'
       - '!**.md'
-      - '!internal/buildscripts/**'
+      - '!packaging/**'
 
 env:
   GO_VERSION: '1.22.7'

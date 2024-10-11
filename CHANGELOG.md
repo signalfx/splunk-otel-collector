@@ -3145,7 +3145,7 @@ This Splunk OpenTelemetry Connector release includes changes from the [opentelem
 
 - Add [Amazon ECS EC2](https://github.com/signalfx/splunk-otel-collector/tree/main/deployments/ecs/ec2) deployment support (#642)
 - Enable `memory_ballast` extension in Fargate config (#675)
-- Initial [support bundle PowerShell script](https://github.com/signalfx/splunk-otel-collector/blob/main/internal/buildscripts/packaging/msi/splunk-support-bundle.ps1); included in the Windows MSI (#654)
+- Initial [support bundle PowerShell script](https://github.com/signalfx/splunk-otel-collector/blob/main/packaging/msi/splunk-support-bundle.ps1); included in the Windows MSI (#654)
 - Remove strict `libcap` dependency from the collector RPM (#676)
   - Allows installation on Linux distros without the `libcap` package.
   - If installing the collector RPM manually, `libcap` will now need to be installed separately as a prerequisite.  See [linux-manual.md](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/getting-started/linux-manual.md#deb-and-rpm-packages) for details.

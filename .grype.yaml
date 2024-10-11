@@ -2,7 +2,7 @@ exclude:
   - './deployments/**'
   - './examples/**'
   - './instrumentation/packaging/**'
-  - './internal/buildscripts/packaging/**'
+  - './packaging/**'
   - './tests/**'
 ignore:
   # false positive since the detected version is 2023.7.22 but expects 2023.07.22

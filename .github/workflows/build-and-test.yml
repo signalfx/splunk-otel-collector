@@ -17,7 +17,7 @@ on:
       - 'go.mod'
       - 'go.sum'
       - '!**.md'
-      - '!internal/buildscripts/packaging/**'
+      - '!packaging/**'
 
 concurrency:
   group: build-and-test-${{ github.event.pull_request.number || github.ref }}

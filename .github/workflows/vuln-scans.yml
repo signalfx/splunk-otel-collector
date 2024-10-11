@@ -74,7 +74,7 @@ jobs:
         env:
           DOCKER_BUILDKIT: '1'
           BUNDLE_CACHE_HIT: "${{ steps.bundle-cache.outputs.cache-hit }}"
-      - run: mkdir -p dist && docker save -o dist/image.tar otelcol:latest
+      - run: mkdir -p dist && docker save -o dist/image.tar otelcol${{ matrix.FIPS == true && '-fips' || '' }}:latest
       - uses: actions/upload-artifact@v4
         with:
           name: otelcol-${{ matrix.ARCH }}${{ matrix.FIPS == true && '-fips' || '' }}
@@ -122,7 +122,7 @@ jobs:
         uses: aquasecurity/trivy-action@0.24.0
         with:
           scan-type: 'image'
-          image-ref: 'otelcol:latest'
+          image-ref: "otelcol${{ matrix.FIPS == true && '-fips' || '' }}:latest"
           format: 'table'
           exit-code: '1'
           severity: 'CRITICAL,HIGH'
@@ -156,7 +156,7 @@ jobs:
           only-fixed: true
           add-cpes-if-none: true
           output-format: "table"
-          image: "otelcol:latest"
+          image: "otelcol${{ matrix.FIPS == true && '-fips' || '' }}:latest"
 
   anchore-win-image-scan:
     runs-on: ${{ matrix.OS }}
@@ -260,7 +260,7 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          image: "otelcol:latest"
+          image: "otelcol${{ matrix.FIPS == true && '-fips' || '' }}:latest"
           args: --file=cmd/otelcol/Dockerfile --severity-threshold=high --sarif-file-output=snyk.sarif --policy-path=.snyk --platform=linux/${{ matrix.ARCH }}
       - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v3

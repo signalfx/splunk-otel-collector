@@ -33,6 +33,7 @@ func init() {
 // Configure monitor
 func (m *Monitor) Configure(c *Config) error {
 	m.logger = utils.NewThrottledLogger(log.WithFields(log.Fields{"monitorType": "heroku-metadata", "monitorID": c.MonitorID}), 20*time.Second)
+	m.logger.Warn("The heroku monitor is deprecated. Use the resourcedetectionprocessor with the heroku source instead.")
 	m.ctx, m.cancel = context.WithCancel(context.Background())
 
 	go func() {

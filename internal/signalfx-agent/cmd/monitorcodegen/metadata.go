@@ -1,4 +1,4 @@
-package selfdescribe
+package main
 
 import (
 	"fmt"
@@ -10,8 +10,8 @@ import (
 
 const monitorMetadataFile = "metadata.yaml"
 
-// MetricMetadata contains a metric's metadata.
-type MetricMetadata struct {
+// metricMetadata contains a metric's metadata.
+type metricMetadata struct {
 	Alias       string  `json:"alias,omitempty"`
 	Type        string  `json:"type"`
 	Description string  `json:"description"`
@@ -19,38 +19,38 @@ type MetricMetadata struct {
 	Default     bool    `json:"default" default:"false"`
 }
 
-// PropMetadata contains a property's metadata.
-type PropMetadata struct {
+// propMetadata contains a property's metadata.
+type propMetadata struct {
 	Dimension   string `json:"dimension"`
 	Description string `json:"description"`
 }
 
-// GroupMetadata contains a group's metadata.
-type GroupMetadata struct {
+// groupMetadata contains a group's metadata.
+type groupMetadata struct {
 	Description string   `json:"description"`
 	Metrics     []string `json:"metrics"`
 }
 
-// MonitorMetadata contains a monitor's metadata.
-type MonitorMetadata struct {
+// monitorMetadata contains a monitor's metadata.
+type monitorMetadata struct {
 	MonitorType  string                    `json:"monitorType" yaml:"monitorType"`
 	SendAll      bool                      `json:"sendAll" yaml:"sendAll"`
 	SendUnknown  bool                      `json:"sendUnknown" yaml:"sendUnknown"`
 	NoneIncluded bool                      `json:"noneIncluded" yaml:"noneIncluded"`
-	Dimensions   map[string]DimMetadata    `json:"dimensions"`
+	Dimensions   map[string]dimMetadata    `json:"dimensions"`
 	Doc          string                    `json:"doc"`
-	Groups       map[string]*GroupMetadata `json:"groups"`
-	Metrics      map[string]MetricMetadata `json:"metrics"`
-	Properties   map[string]PropMetadata   `json:"properties"`
+	Groups       map[string]*groupMetadata `json:"groups"`
+	Metrics      map[string]metricMetadata `json:"metrics"`
+	Properties   map[string]propMetadata   `json:"properties"`
 }
 
-// PackageMetadata describes a package directory that may have one or more monitors.
-type PackageMetadata struct {
+// packageMetadata describes a package directory that may have one or more monitors.
+type packageMetadata struct {
 	// Common is a section to allow multiple monitors to place shared data.
 	Common map[string]interface{}
 	// PackageDir is the directory to output the generated code if not the same directory as the metadata.yaml.
 	PackageDir string `json:"packageDir" yaml:"packageDir"`
-	Monitors   []MonitorMetadata
+	Monitors   []monitorMetadata
 	// Name of the package in go. If not set defaults to the directory name.
 	GoPackage *string `json:"goPackage" yaml:"goPackage"`
 	// Filesystem path to the package directory.
@@ -58,14 +58,14 @@ type PackageMetadata struct {
 	Path        string `json:"-" yaml:"-"`
 }
 
-// DimMetadata contains a dimension's metadata.
-type DimMetadata struct {
+// dimMetadata contains a dimension's metadata.
+type dimMetadata struct {
 	Description string `json:"description"`
 }
 
-// CollectMetadata loads metadata for all monitors located in root as well as any subdirectories.
-func CollectMetadata(root string) ([]PackageMetadata, error) {
-	var packages []PackageMetadata
+// collectMetadata loads metadata for all monitors located in root as well as any subdirectories.
+func collectMetadata(root string) ([]packageMetadata, error) {
+	var packages []packageMetadata
 
 	if err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -76,7 +76,7 @@ func CollectMetadata(root string) ([]PackageMetadata, error) {
 			return nil
 		}
 
-		var pkg PackageMetadata
+		var pkg packageMetadata
 
 		if bytes, err := os.ReadFile(path); err != nil {
 			return fmt.Errorf("unable to read metadata file %s: %w", path, err)

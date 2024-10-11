@@ -14,8 +14,6 @@ import (
 	"unicode"
 
 	log "github.com/sirupsen/logrus"
-
-	"github.com/signalfx/signalfx-agent/pkg/selfdescribe"
 )
 
 const (
@@ -23,7 +21,7 @@ const (
 	generatedMetadataTemplate = "genmetadata.tmpl"
 )
 
-func buildOutputPath(pkg *selfdescribe.PackageMetadata) string {
+func buildOutputPath(pkg *packageMetadata) string {
 	outputDir := pkg.PackagePath
 	outputPackage := strings.TrimSpace(pkg.PackageDir)
 	if outputPackage != "" {
@@ -71,7 +69,7 @@ func generate(templateFile string) error {
 		return fmt.Errorf("parsing template %s failed: %s", generatedMetadataTemplate, err)
 	}
 
-	pkgs, err := selfdescribe.CollectMetadata("pkg/monitors")
+	pkgs, err := collectMetadata("pkg/monitors")
 
 	if err != nil {
 		return err
@@ -81,7 +79,7 @@ func generate(templateFile string) error {
 		pkg := &pkgs[i]
 		writer := &bytes.Buffer{}
 		groupMetricsMap := map[string][]string{}
-		metrics := map[string]selfdescribe.MetricMetadata{}
+		metrics := map[string]metricMetadata{}
 
 		for _, mon := range pkg.Monitors {
 			for metric, metricInfo := range mon.Metrics {

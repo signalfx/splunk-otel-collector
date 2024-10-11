@@ -65,10 +65,10 @@ jobs:
       - uses: actions/cache@v4
         id: bundle-cache
         with:
-          path: .cache/buildx/agent-bundle-${{ matrix.ARCH }}${{ matrix.FIPS == true && '' || '-fips' }}
-          key: agent-bundle-buildx-${{ matrix.ARCH }}${{ matrix.FIPS == true && '' || '-fips' }}-${{ hashFiles('internal/signalfx-agent/bundle/**') }}
+          path: .cache/buildx/agent-bundle-${{ matrix.ARCH }}${{ matrix.FIPS == true && '-fips' || '' }}
+          key: agent-bundle-buildx-${{ matrix.ARCH }}${{ matrix.FIPS == true && '-fips' || '' }}-${{ hashFiles('internal/signalfx-agent/bundle/**') }}
           restore-keys: |
-            agent-bundle-buildx-${{ matrix.ARCH }}-${{ matrix.FIPS == true && '' || '-fips' }}
+            agent-bundle-buildx-${{ matrix.ARCH }}-${{ matrix.FIPS == true && '-fips' || '' }}
       - run: |
           make docker-otelcol ARCH=${{ matrix.ARCH }} FIPS="${{ matrix.FIPS }}"
         env:
@@ -77,7 +77,7 @@ jobs:
       - run: mkdir -p dist && docker save -o dist/image.tar otelcol:latest
       - uses: actions/upload-artifact@v4
         with:
-          name: otelcol-${{ matrix.ARCH }}${{ matrix.FIPS == true && '' || '-fips' }}
+          name: otelcol-${{ matrix.ARCH }}${{ matrix.FIPS == true && '-fips' || '' }}
           path: ./dist
 
   binaries-windows_amd64:
@@ -115,7 +115,7 @@ jobs:
           image: tonistiigi/binfmt:qemu-v7.0.0
       - uses: actions/download-artifact@v4
         with:
-          name: otelcol-${{ matrix.ARCH }}${{ matrix.FIPS == true && '' || '-fips' }}
+          name: otelcol-${{ matrix.ARCH }}${{ matrix.FIPS == true && '-fips' || '' }}
           path: ./dist
       - run: docker load -i ./dist/image.tar
       - name: Run trivy image scan
@@ -147,7 +147,7 @@ jobs:
           image: tonistiigi/binfmt:qemu-v7.0.0
       - uses: actions/download-artifact@v4
         with:
-          name: otelcol-${{ matrix.ARCH }}${{ matrix.FIPS == true && '' || '-fips' }}
+          name: otelcol-${{ matrix.ARCH }}${{ matrix.FIPS == true && '-fips' || '' }}
           path: ./dist
       - run: docker load -i ./dist/image.tar
       - uses: anchore/scan-action@v4
@@ -252,7 +252,7 @@ jobs:
           image: tonistiigi/binfmt:qemu-v7.0.0
       - uses: actions/download-artifact@v4
         with:
-          name: otelcol-${{ matrix.ARCH }}${{ matrix.FIPS == true && '' || '-fips' }}
+          name: otelcol-${{ matrix.ARCH }}${{ matrix.FIPS == true && '-fips' || '' }}
           path: ./dist
       - run: docker load -i ./dist/image.tar
       - uses: snyk/actions/docker@master

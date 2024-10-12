@@ -1,6 +1,7 @@
 monitors:
 - monitorType: python-monitor
   doc: |
+    **This monitor is deprecated and will be removed soon.**
     This monitor allows you to generate metrics from a Python script.
 
     Your Python code should be Python 2.7+ *AND* 3.0+ compatible.  The Python

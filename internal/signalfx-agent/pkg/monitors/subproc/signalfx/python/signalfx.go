@@ -7,12 +7,16 @@ import (
 	"encoding/json"
 	"os"
 	"strings"
+	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/subproc"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/subproc/signalfx"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/types"
+	"github.com/signalfx/signalfx-agent/pkg/utils"
 )
 
 func init() {
@@ -88,6 +92,8 @@ type PyMonitor struct {
 // Configure starts the subprocess and configures the plugin
 func (m *PyMonitor) Configure(conf *Config) error {
 	runtimeConf := subproc.DefaultPythonRuntimeConfig(conf.BundleDir, "sfxmonitor")
+	logger := utils.NewThrottledLogger(log.WithFields(log.Fields{"monitorType": monitorType, "monitorID": conf.MonitorID}), 30*time.Second)
+	logger.Warn("python-monitor is deprecated and will be removed soon.")
 	if conf.PythonBinary != "" {
 		runtimeConf.Binary = conf.PythonBinary
 		runtimeConf.Env = os.Environ()

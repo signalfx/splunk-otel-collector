@@ -1,6 +1,7 @@
 monitors:
 - dimensions:
   doc: |
+    **This monitor is deprecated. Please use the mongodbatlasreceiver instead. See https://docs.splunk.com/observability/en/gdi/opentelemetry/components/mongodb-atlas-receiver.html **
     MongoDB Atlas is a provider of MongoDB as an on-demand fully managed service. Atlas exposes MongoDB cluster
     monitoring and logging data through its [monitoring and logs](https://docs.atlas.mongodb.com/reference/api/monitoring-and-logs/)
     REST API endpoints. These Atlas monitoring API resources are grouped into measurements for MongoDB processes,

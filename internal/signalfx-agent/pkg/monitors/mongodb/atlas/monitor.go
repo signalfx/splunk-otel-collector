@@ -58,6 +58,7 @@ type Monitor struct {
 // Configure monitor
 func (m *Monitor) Configure(conf *Config) (err error) {
 	m.logger = log.WithFields(log.Fields{"monitorType": monitorType, "monitorID": conf.MonitorID})
+	m.logger.Warn("The mongodb-atlas monitor is deprecated. Please use the mongodbatlasreceiver instead. See https://docs.splunk.com/observability/en/gdi/opentelemetry/components/mongodb-atlas-receiver.html ")
 	var client *mongodbatlas.Client
 	var processMeasurements measurements.ProcessesMeasurements
 	var diskMeasurements measurements.DisksMeasurements

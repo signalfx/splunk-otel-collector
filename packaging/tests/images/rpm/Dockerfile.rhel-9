@@ -1,6 +1,6 @@
 # A centos9 image with systemd enabled.  Must be run with:
 # `-d --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro` flags
-FROM quay.io/centos/centos:stream9-development
+FROM registry.access.redhat.com/ubi9/ubi:9.4-1214.1726694543
 
 ENV container docker
 

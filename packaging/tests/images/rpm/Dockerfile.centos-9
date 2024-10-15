@@ -6,7 +6,7 @@ ENV container docker
 
 RUN rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
 RUN echo 'fastestmirror=1' >> /etc/yum.conf
-RUN dnf install -y procps initscripts systemd wget
+RUN dnf --disablerepo=appstream install -y procps initscripts systemd
 
 RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i = \
     "systemd-tmpfiles-setup.service" ] || rm -f $i; done); \

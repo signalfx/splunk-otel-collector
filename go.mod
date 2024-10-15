@@ -15,7 +15,6 @@ require (
 	github.com/hashicorp/vault v1.18.0
 	github.com/hashicorp/vault-plugin-auth-gcp v0.19.0
 	github.com/hashicorp/vault/api v1.15.0
-	github.com/jaegertracing/jaeger v1.62.0
 	github.com/knadh/koanf v1.5.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/countconnector v0.111.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/routingconnector v0.111.0
@@ -44,7 +43,6 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/storage/filestorage v0.111.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.111.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza v0.111.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.111.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor v0.111.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/cumulativetodeltaprocessor v0.111.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/filterprocessor v0.111.0
@@ -263,6 +261,7 @@ require (
 	github.com/influxdata/telegraf v1.30.1 // indirect
 	github.com/influxdata/wlog v0.0.0-20160411224016-7c63b0a71ef8 // indirect
 	github.com/ionos-cloud/sdk-go/v6 v6.1.11 // indirect
+	github.com/jaegertracing/jaeger v1.62.0 // indirect
 	github.com/jcmturner/goidentity/v6 v6.0.1 // indirect
 	github.com/jonboulle/clockwork v0.4.0 // indirect
 	github.com/joshlf/go-acl v0.0.0-20200411065538-eae00ae38531 // indirect
@@ -301,6 +300,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatautil v0.111.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/sampling v0.111.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/azure v0.111.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.111.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus v0.111.0 // indirect
 	github.com/opencontainers/runc v1.2.0-rc.3 // indirect
 	github.com/opencontainers/runtime-spec v1.2.0 // indirect

@@ -111,7 +111,6 @@ The distribution offers support for the following components.
 | [awss3](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/awss3exporter)                 | [alpha]          |
 | [debug](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/debugexporter)                         | [in development] |
 | [file](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/fileexporter)                   | [alpha]          |
-| [httpsink](../internal/exporter/httpsinkexporter)                                                                           | [in development] |
 | [kafka](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/kafkaexporter)                 | [beta]           |
 | [loadbalancing](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/loadbalancingexporter) | [beta]           |
 | [logging](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/loggingexporter)                     | [deprecated]     |

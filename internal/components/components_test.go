@@ -130,7 +130,6 @@ func TestDefaultComponents(t *testing.T) {
 		"awss3",
 		"debug",
 		"file",
-		"httpsink",
 		"kafka",
 		"loadbalancing",
 		"logging",

@@ -1,6 +1,10 @@
 # Changelog
 ## Unreleased
 
+### 🛑 Breaking changes 🛑
+
+- (Splunk) Remove httpsink exporter ([#](https://github.com/signalfx/splunk-otel-collector/pull/))
+
 ### 🚩Deprecations 🚩
 
 - (Splunk) Deprecate cloudfoundry monitor ([#5495](https://github.com/signalfx/splunk-otel-collector/pull/5495))

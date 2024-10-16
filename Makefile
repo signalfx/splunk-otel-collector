@@ -274,4 +274,4 @@ endif
 
 
 .PHONY: package-technical-addon
-package-technical-addon: bundle.d otelcol generate-technical-addon package-ta smoketest-ta
+package-technical-addon: bundle.d otelcol generate-technical-addon copy-local-build-to-ta package-ta smoketest-ta

@@ -24,8 +24,7 @@ env:
 jobs:
   setup-environment:
     name: setup-environment
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4
@@ -43,8 +42,7 @@ jobs:
 
   test:
     name: test
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     needs: [setup-environment]
     steps:
       - name: Check out the codebase.
@@ -60,17 +58,46 @@ jobs:
         run: |
           set -o pipefail
           make -e package-technical-addon
+
+
+
+  check_changes:
+    runs-on: ubuntu-latest
+    outputs:
+      ta_packaging_change: ${{ steps.filter.outputs.ta_packaging_change }}
+      ta_workflow_change: ${{ steps.filter.outputs.ta_workflow_change }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Fetch all history for all branches and tags
+      - name: Get changed files
+        id: changed-files
+        run: |
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "files=$(git diff --name-only origin/${{ github.base_ref }} ${{ github.sha }} | tr '\n' ' ')" >> $GITHUB_OUTPUT
+          else
+            echo "files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | tr '\n' ' ')" >> $GITHUB_OUTPUT
+          fi
+      - name: Filter paths
+        id: filter
+        run: |
+          files="${{ steps.changed-files.outputs.files }}"
+          if echo "$files" | grep -qE "packaging/technical-addon"; then
+            echo "ta_packaging_change=true" >> $GITHUB_OUTPUT
+          else
+            echo "ta_packaging_change=false" >> $GITHUB_OUTPUT
+          fi
+          if echo "$files" | grep -qE ".github/workflows/splunk-ta-otel.yml"; then
+            echo "ta_workflow_change=true" >> $GITHUB_OUTPUT
+          else
+            echo "ta_workflow_change=false" >> $GITHUB_OUTPUT
+          fi
+
   distribute-ta:
     name: "distribute-ta" # what gets run to package in gitlab
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
-    needs: [setup-environment]
-    if: |
-      (github.event_name == 'push' ||
-      github.event_name == 'pull_request') && (
-       contains(github.event.pull_request.files.*.filename, 'packaging/technical-addon/') ||
-       contains(github.event.pull_request.files.*.filename, '.github/workflows/splunk-ta-otel.yml')
-       )
+    runs-on: ubuntu-latest
+    needs: [setup-environment, check_changes]
+    if: needs.check_changes.outputs.ta_packaging_change == 'true' || needs.check_changes.outputs.ta_workflow_change == 'true'
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4

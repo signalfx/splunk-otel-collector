@@ -22,12 +22,19 @@ generate-technical-addon: env-guard-all
 	BUILD_DIR="$(BUILD_DIR)" \
 	SOURCE_DIR="$(SOURCE_DIR)" \
 	$(SOURCE_DIR)/packaging-scripts/make-buildspace.sh
+
+.PHONY: copy-local-build-to-ta
+copy-local-build-to-ta: env-guard-ta
 	# Should only have affect if otelcol or download make targets were run first
 	# Running make download-otelcol will overwrite anything locally created
 	mkdir -p $(BUILD_DIR)/out/bin/
 	cp -Rv bin/* $(BUILD_DIR)/out/bin/
-	mkdir -p $(BUILD_DIR)/out/smart-agent
-	cp ./dist/agent-bundle_linux_amd64.tar.gz $(BUILD_DIR)/out/smart-agent
+	BUILD_DIR="$(BUILD_DIR)" \
+	PLATFORM="$(PLATFORM)" \
+	ARCH="$(ARCH)" \
+	SPLUNK_OTELCOL_DOWNLOAD_BASE="$(SPLUNK_OTELCOL_DOWNLOAD_BASE)" \
+	OTEL_COLLECTOR_VERSION="$(OTEL_COLLECTOR_VERSION)" \
+	$(SOURCE_DIR)/packaging-scripts/download-agent-bundle.sh
 
 .PHONY: env-guard-all
 env-guard-all:
@@ -49,15 +56,23 @@ env-guard-verify: env-guard-ta
 	UF_VERSION="$(UF_VERSION)" \
 	$(SOURCE_DIR)/packaging-scripts/env/verify.sh
 
-.PHONY: download-otelcol
-download-otelcol: env-guard-ta
+.PHONY: download-release
+download-release: env-guard-ta
 	BUILD_DIR="$(BUILD_DIR)" \
 	SOURCE_DIR="$(SOURCE_DIR)" \
 	OTEL_COLLECTOR_VERSION="$(OTEL_COLLECTOR_VERSION)" \
 	SPLUNK_OTELCOL_DOWNLOAD_BASE="$(SPLUNK_OTELCOL_DOWNLOAD_BASE)" \
 	PLATFORM="$(PLATFORM)" \
 	ARCH="$(ARCH)" \
-	$(SOURCE_DIR)/packaging-scripts/download-release.sh
+	$(SOURCE_DIR)/packaging-scripts/download-otelcol.sh
+	
+	BUILD_DIR="$(BUILD_DIR)" \
+	SOURCE_DIR="$(SOURCE_DIR)" \
+	OTEL_COLLECTOR_VERSION="$(OTEL_COLLECTOR_VERSION)" \
+	SPLUNK_OTELCOL_DOWNLOAD_BASE="$(SPLUNK_OTELCOL_DOWNLOAD_BASE)" \
+	PLATFORM="$(PLATFORM)" \
+	ARCH="$(ARCH)" \
+	$(SOURCE_DIR)/packaging-scripts/download-agent-bundle.sh
 
 
 .PHONY: package-ta
@@ -70,7 +85,7 @@ package-ta: env-guard-ta
 	$(SOURCE_DIR)/packaging-scripts/package-ta.sh
 
 .PHONY: distribute-ta
-distribute-ta: generate-technical-addon download-otelcol package-ta
+distribute-ta: generate-technical-addon download-release package-ta
 
 .PHONY: verify-ta
 verify-ta: env-guard-verify

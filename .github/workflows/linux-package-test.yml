@@ -12,6 +12,7 @@ on:
       - 'Makefile'
       - 'Makefile.Common'
       - '!**.md'
+      - '!packaging/technical-addon/**'
 
 concurrency:
   group: linux-package-test-${{ github.event.pull_request.number || github.ref }}

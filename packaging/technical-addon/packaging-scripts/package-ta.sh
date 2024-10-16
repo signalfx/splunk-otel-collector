@@ -1,4 +1,4 @@
-#!/bin/bash -eux
+#!/bin/bash -eu
 set -o pipefail
 
 TA_NAME="Splunk_TA_otel"
@@ -37,13 +37,15 @@ if [ "$PLATFORM" == "darwin" ] ; then  # NOTE Darwin not used yet
 fi
 
 # Copy smart agent bundle into addon package directory
+version=""
+if [ "$OTEL_COLLECTOR_VERSION" == "" ]; then 
+    version="${OTEL_COLLECTOR_VERSION}_"
+fi
 if [ "$PLATFORM" == "windows" ] || [ "$PLATFORM" == "all" ] ; then
-    SMART_AGENT_BUNDLE="agent-bundle_${OTEL_COLLECTOR_VERSION}_windows_${ARCH}.zip"
-    cp "$BUILD_DIR/out/smart-agent/$SMART_AGENT_BUNDLE" "$TA_PACKAGING_DIR/$TA_NAME/windows_$SPLUNK_ARCH/bin/agent-bundle_windows_${ARCH}.zip"
+    cp "$BUILD_DIR/out/smart-agent/agent-bundle_${version}windows_${ARCH}.zip" "$TA_PACKAGING_DIR/$TA_NAME/windows_$SPLUNK_ARCH/bin/agent-bundle_windows_${ARCH}.zip"
 fi
 if [ "$PLATFORM" == "linux" ] || [ "$PLATFORM" == "all" ] ; then
-    SMART_AGENT_BUNDLE="agent-bundle_${OTEL_COLLECTOR_VERSION}_linux_${ARCH}.tar.gz"
-    cp "$BUILD_DIR/out/smart-agent/$SMART_AGENT_BUNDLE" "$TA_PACKAGING_DIR/$TA_NAME/linux_$SPLUNK_ARCH/bin/agent-bundle_linux_${ARCH}.tar.gz"
+    cp "$BUILD_DIR/out/smart-agent/agent-bundle_${version}linux_${ARCH}.tar.gz" "$TA_PACKAGING_DIR/$TA_NAME/linux_$SPLUNK_ARCH/bin/agent-bundle_linux_${ARCH}.tar.gz"
 fi
 
 # Prepare artifact directory structure

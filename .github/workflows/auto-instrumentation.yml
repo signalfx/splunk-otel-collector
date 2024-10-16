@@ -11,6 +11,7 @@ on:
       - 'instrumentation/**'
       - 'internal/**'
       - '!**.md'
+      - '!packaging/technical-addon/**'
 
 concurrency:
   group: auto-instrumentation-${{ github.event.pull_request.number || github.ref }}

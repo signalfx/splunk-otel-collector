@@ -22,6 +22,12 @@ generate-technical-addon: env-guard-all
 	BUILD_DIR="$(BUILD_DIR)" \
 	SOURCE_DIR="$(SOURCE_DIR)" \
 	$(SOURCE_DIR)/packaging-scripts/make-buildspace.sh
+	# Should only have affect if otelcol or download make targets were run first
+	# Running make download-otelcol will overwrite anything locally created
+	mkdir -p $(BUILD_DIR)/out/bin/
+	cp -Rv bin/* $(BUILD_DIR)/out/bin/
+	mkdir -p $(BUILD_DIR)/out/smart-agent
+	cp ./dist/agent-bundle_linux_amd64.tar.gz $(BUILD_DIR)/out/smart-agent
 
 .PHONY: env-guard-all
 env-guard-all:
@@ -43,8 +49,8 @@ env-guard-verify: env-guard-ta
 	UF_VERSION="$(UF_VERSION)" \
 	$(SOURCE_DIR)/packaging-scripts/env/verify.sh
 
-.PHONY: download
-download: env-guard-ta
+.PHONY: download-otelcol
+download-otelcol: env-guard-ta
 	BUILD_DIR="$(BUILD_DIR)" \
 	SOURCE_DIR="$(SOURCE_DIR)" \
 	OTEL_COLLECTOR_VERSION="$(OTEL_COLLECTOR_VERSION)" \
@@ -54,8 +60,8 @@ download: env-guard-ta
 	$(SOURCE_DIR)/packaging-scripts/download-release.sh
 
 
-.PHONY: package
-package: env-guard-ta
+.PHONY: package-ta
+package-ta: env-guard-ta
 	BUILD_DIR="$(BUILD_DIR)" \
 	SOURCE_DIR="$(SOURCE_DIR)" \
 	ARCH="$(ARCH)" \
@@ -64,10 +70,10 @@ package: env-guard-ta
 	$(SOURCE_DIR)/packaging-scripts/package-ta.sh
 
 .PHONY: distribute-ta
-distribute-ta: generate-technical-addon download package
+distribute-ta: generate-technical-addon download-otelcol package-ta
 
-.PHONY: verify
-verify: env-guard-verify
+.PHONY: verify-ta
+verify-ta: env-guard-verify
 	SOURCE_DIR="$(SOURCE_DIR)" \
 	BUILD_DIR="$(BUILD_DIR)" \
 	ARCH="$(ARCH)" \
@@ -79,8 +85,16 @@ verify: env-guard-verify
 	OLLY_ACCESS_TOKEN="$(OLLY_ACCESS_TOKEN)" \
 	$(SOURCE_DIR)/packaging-scripts/deploy-and-verify.sh
 
-.PHONY: update-deps
-update-deps:
+.PHONY: smoketest-ta
+smoketest-ta:
+	SOURCE_DIR="$(SOURCE_DIR)" \
+	BUILD_DIR="$(BUILD_DIR)" \
+	ARCH="$(ARCH)" \
+	PLATFORM="$(PLATFORM)" \
+	$(SOURCE_DIR)/packaging-scripts/cicd-tests/smoketests/smoketest.sh
+
+.PHONY: update-ta-deps
+update-ta-deps:
 	SOURCE_DIR="$(SOURCE_DIR)" \
 	SPLUNK_OTEL_VERSION="$(SPLUNK_OTEL_VERSION)" \
 	$(SOURCE_DIR)/packaging-scripts/update-otel-version.sh
@@ -89,14 +103,14 @@ update-deps:
 	TA_VERSION="$(TA_VERSION)" \
 	$(SOURCE_DIR)/packaging-scripts/update-ta-version.sh
 
-.PHONY: release
-release:
+.PHONY: release-ta
+release-ta:
 	SOURCE_DIR="$(SOURCE_DIR)" \
 	$(SOURCE_DIR)/packaging-scripts/release-ta-version.sh
 
-.PHONY: update-and-release
-update-and-release: update-deps release
+.PHONY: update-and-release-ta
+update-and-release: update-ta-deps release-ta
 
-.PHONY: clean
-clean:
+.PHONY: clean-ta
+clean-ta:
 	rm -rf build

@@ -38,7 +38,7 @@ fi
 
 # Copy smart agent bundle into addon package directory
 version=""
-if [ "$OTEL_COLLECTOR_VERSION" == "" ]; then 
+if [ "$OTEL_COLLECTOR_VERSION" != "" ]; then 
     version="${OTEL_COLLECTOR_VERSION}_"
 fi
 if [ "$PLATFORM" == "windows" ] || [ "$PLATFORM" == "all" ] ; then

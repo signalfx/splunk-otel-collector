@@ -137,7 +137,7 @@ func (r *receiver) Start(_ context.Context, host component.Host) error {
 
 func (r *receiver) Shutdown(context.Context) error {
 	if r.monitor == nil {
-		return fmt.Errorf("smartagentreceiver's Shutdown() called before Start() or with invalid monitor state")
+		return nil
 	}
 
 	shutdownable, ok := (r.monitor).(monitors.Shutdownable)
@@ -146,6 +146,7 @@ func (r *receiver) Shutdown(context.Context) error {
 	}
 
 	shutdownable.Shutdown()
+	r.monitor = nil
 	return nil
 }
 

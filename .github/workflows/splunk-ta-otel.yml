@@ -67,8 +67,10 @@ jobs:
     needs: [setup-environment]
     if: |
       (github.event_name == 'push' ||
-      github.event_name == 'pull_request') &&
-       contains(github.event.pull_request.files.*.filename, 'packaging/technical-addon/')
+      github.event_name == 'pull_request') && (
+       contains(github.event.pull_request.files.*.filename, 'packaging/technical-addon/') ||
+       contains(github.event.pull_request.files.*.filename, '.github/workflows/splunk-ta-otel.yml')
+       )
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4

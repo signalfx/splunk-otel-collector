@@ -11,7 +11,7 @@
 - (Splunk) Deprecate the heroku observer. Use the [resource detection observer with heroku detector](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/resourcedetectionprocessor#heroku) instead. ([#5496](https://github.com/signalfx/splunk-otel-collector/pull/5496))
 - (Splunk) Deprecate mongodb atlas monitor. [Please use the mongodbatlasreceiver instead](https://docs.splunk.com/observability/en/gdi/opentelemetry/components/mongodb-atlas-receiver.html) ([#](https://github.com/signalfx/splunk-otel-collector/pull/))
 - (Splunk) Deprecate python-monitor monitor ([#5501](https://github.com/signalfx/splunk-otel-collector/pull/5501))
-- (Splunk) Deprecate windowslegacy monitor ([#](https://github.com/signalfx/splunk-otel-collector/pull/))
+- (Splunk) Deprecate windowslegacy monitor ([#5518](https://github.com/signalfx/splunk-otel-collector/pull/5518))
 
 ## v0.111.0
 

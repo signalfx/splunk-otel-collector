@@ -1,6 +1,9 @@
 monitors:
 - dimensions:
   doc: |2
+    The statsd monitor is deprecated and will be removed in a future release.
+    Use the statsd receiver instead.
+    
     This monitor will receive and aggergate Statsd metrics and convert them to
     data points.  It listens on a configured address and port in order to
     receive the statsd metrics.  Note that this monitor does not support statsd

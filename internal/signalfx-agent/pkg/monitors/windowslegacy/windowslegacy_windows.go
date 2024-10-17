@@ -20,6 +20,7 @@ var logger = logrus.WithField("monitorType", monitorType)
 // Configure the monitor and kick off metric syncing
 func (m *Monitor) Configure(conf *Config) error {
 	m.logger = logger.WithField("monitorID", conf.MonitorID)
+	m.logger.Warn("[NOTICE] The windowslegacy monitor is deprecated and will be removed in a future release. Use the windowsperfcounters receiver instead.")
 	perfcounterConf := &winperfcounters.Config{
 		CountersRefreshInterval: conf.CountersRefreshInterval,
 		PrintValid:              conf.PrintValid,

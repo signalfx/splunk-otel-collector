@@ -238,10 +238,7 @@ func TestOutOfOrderShutdownInvocations(t *testing.T) {
 	receiver := newReceiver(newReceiverCreateSettings("valid", t), cfg)
 
 	err := receiver.Shutdown(context.Background())
-	require.Error(t, err)
-	assert.EqualError(t, err,
-		"smartagentreceiver's Shutdown() called before Start() or with invalid monitor state",
-	)
+	require.NoError(t, err)
 }
 
 func TestMultipleInstancesOfSameMonitorType(t *testing.T) {

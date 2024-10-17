@@ -39,14 +39,6 @@
   version: v1.2.2
   repo: signalfx/redis-collectd-plugin
 
-- name: signalfx
-  # Hardcode the metadata plugin commit until we can get it merged into master
-  # and tagged properly
-  version: 4d0e13f103b2e1b75ed4c7085784ef0279d6ab62
-  repo: signalfx/signalfx-collectd-plugin
-  pip_packages:
-    - protobuf>=3.0.0,<4.21.0
-
 - name: solr
   version: v1.2.1
   repo: signalfx/collectd-solr

@@ -88,7 +88,7 @@ jq '[.results[].created, .results[].lastUpdated] | max as $max | $max >= ($ENV.C
 # Ensure version is as expected
 actual_version="$(grep "Version" "$BUILD_DIR/splunklog/splunk/otel.log" | head -1 | awk -F 'Version": "' '{print $2}' | awk -F '", "' '{print $1}')"
 echo "actual version: $actual_version"
-[[ "$actual_version" != "v0.104.0" ]] && echo "Test failed -- invalid version" && exit 1
+[[ "$actual_version" != "v0.111.0" ]] && echo "Test failed -- invalid version" && exit 1
 
 # Ensure gateway mode (and any other tests we wish to run) works
 "$SOURCE_DIR/packaging-scripts/cicd-tests/gateway.sh" || (echo "failed to verify gateway" && exit 1)

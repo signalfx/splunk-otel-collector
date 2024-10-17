@@ -1,6 +1,7 @@
 monitors:
 - dimensions:
   doc: |
+    **This monitor is deprecated and will be removed in a future release. Use the windowsperfcounters receiver instead.**
     (Windows Only) This monitor reports metrics for Windows system Performance Counters.
     The metric names are intended to match what was originally reported by
     the SignalFx [PerfCounterReporter](https://github.com/signalfx/PerfCounterReporter)

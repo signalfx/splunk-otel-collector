@@ -7,6 +7,7 @@ monitors:
     datacenter:
       description: The name of the consul datacenter
   doc: |
+    **This plugin is deprecated and will be removed in a future release. Please follow the documentation at https://developer.hashicorp.com/consul/docs/agent/monitor/telemetry to set up with statsd or prometheus receivers.**
     Monitors the Consul data store by using the
     [Consul collectd Python
     plugin](https://github.com/signalfx/collectd-consul), which collects metrics

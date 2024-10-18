@@ -69,6 +69,7 @@ type Monitor struct {
 
 // Configure configures and runs the plugin in collectd
 func (m *Monitor) Configure(conf *Config) error {
+	m.Logger().Warn("[NOTICE] The collectd/consul plugin is deprecated. Please use the statsd or prometheus receiver instead. See https://developer.hashicorp.com/consul/docs/agent/monitor/telemetry for more information. This plugin will be removed in a future release.")
 	conf.pyConf = &python.Config{
 		MonitorConfig: conf.MonitorConfig,
 		Host:          conf.Host,

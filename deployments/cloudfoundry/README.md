@@ -47,7 +47,10 @@ This creates a file with a `.pivotal` extension in the product directory, which 
 
 ## Configuring the Tile in the Tanzu Environment
 
-The Tanzu Tile created must be imported, configured, and deployed in your Tanzu environment for testing. The import and configuration process can be done either via the Tanzu Ops Manager UI, as described below. 
+The Tanzu Tile created must be imported, configured, and deployed in your Tanzu environment for testing. The import and configuration process can be done via the Tanzu Ops Manager UI, as described below. 
+
+The UI looks like [this](https://github.com/signalfx/splunk-otel-collector/blob/e88b6adb3eafa6076dc0ba94ca1fa742b5830bf5/deployments/cloudfoundry/tile/resources/tanzu_tile_in_ops_mgr.png) 
+The Configuration Page looks like [this](https://github.com/signalfx/splunk-otel-collector/blob/e88b6adb3eafa6076dc0ba94ca1fa742b5830bf5/deployments/cloudfoundry/tile/resources/tanzu_tile_config_options.png)
 
 ### Ops Manager Configuration
 

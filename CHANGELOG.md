@@ -7,6 +7,7 @@
 - (Splunk) Remove signalfx-metadata and collectd/metadata monitors ([#](https://github.com/signalfx/splunk-otel-collector/pull/))
   Both monitors are deprecated and replaced by the hostmetricsreceiver and processlist monitor.
 - (Splunk) Remove deprecated collectd/etcd monitor. [Please use the etcd prometheus endpoint to scrape metrics.](https://etcd.io/docs/v3.5/metrics/) ([#](https://github.com/signalfx/splunk-otel-collector/pull/))
+- (Splunk) Remove deprecated collectd/health-checker monitor. ([#5522](https://github.com/signalfx/splunk-otel-collector/pull/5522))
 
 ### 🚩Deprecations 🚩
 

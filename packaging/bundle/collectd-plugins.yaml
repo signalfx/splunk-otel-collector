@@ -11,10 +11,6 @@
   version: v1.1.0
   repo: signalfx/collectd-hadoop
 
-- name: health_checker
-  version: v0.1.0
-  repo: signalfx/collectd-health_checker
-
 - name: jenkins
   version: v2.7.0
   repo: signalfx/collectd-jenkins

@@ -28,11 +28,11 @@
     &nbsp;&nbsp;&bull;&nbsp;&nbsp;
     <a href="docs/components.md">Components</a>
     &nbsp;&nbsp;&bull;&nbsp;&nbsp;
-    <a href="docs/monitoring.md">Monitoring</a>
+    <a href="https://docs.splunk.com/observability/en/gdi/opentelemetry/opentelemetry.html#otel-monitoring">Monitoring</a>
     &nbsp;&nbsp;&bull;&nbsp;&nbsp;
-    <a href="docs/security.md">Security</a>
+    <a href="https://docs.splunk.com/Observability/gdi/opentelemetry/security.html">Security</a>
     &nbsp;&nbsp;&bull;&nbsp;&nbsp;
-    <a href="docs/sizing.md">Sizing</a>
+    <a href="https://docs.splunk.com/Observability/gdi/opentelemetry/sizing.html">Sizing</a>
     &nbsp;&nbsp;&bull;&nbsp;&nbsp;
     <a href="docs/troubleshooting.md">Troubleshooting</a>
   </strong>
@@ -85,18 +85,18 @@ The following resources are available:
 
 - [Architecture](docs/architecture.md): How the Collector can be deployed
 - [Components](docs/components.md): What the Collector supports with links to documentation
-- [Monitoring](docs/monitoring.md): How to ensure the Collector is healthy
-- [Security](docs/security.md): How to ensure the Collector is secure
-- [Sizing](docs/sizing.md): How to ensure the Collector is properly sized
+- [Monitoring](https://docs.splunk.com/observability/en/gdi/opentelemetry/opentelemetry.html#otel-monitoring): How to ensure the Collector is healthy
+- [Security](https://docs.splunk.com/Observability/gdi/opentelemetry/security.html): How to ensure the Collector is secure
+- [Sizing](https://docs.splunk.com/Observability/gdi/opentelemetry/sizing.html): How to ensure the Collector is properly sized
 - [Troubleshooting](docs/troubleshooting.md): How to resolve common issues
 
 All you need to get started is:
 
 - [Splunk Access Token](https://docs.splunk.com/observability/admin/authentication/authentication-tokens/org-tokens.html)
 - [Splunk Realm](https://dev.splunk.com/observability/docs/realms_in_endpoints/)
-- [Agent or Gateway mode](docs/agent-vs-gateway.md)
+- [Agent or Gateway mode](https://docs.splunk.com/Observability/gdi/opentelemetry/deployment-modes.html)
 - [Confirm exposed
-  ports](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/security.md#exposed-endpoints)
+  ports](https://docs.splunk.com/Observability/gdi/opentelemetry/exposed-endpoints.html)
   to make sure your environment doesn't have conflicts and that firewalls are
   configured properly. Ports can be changed in the collector's configuration.
 
@@ -255,7 +255,7 @@ In order to use the upstream OpenTelemetry Collector:
 - Properly configure the Collector for your particular metrics, traces, and logs use cases, as only a minimal default configuration is provided by the contrib release.
 
 An example configuration for upstream, that ensures [infrastructure
-correlation](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/apm-infra-correlation.md)
+correlation](https://docs.splunk.com/observability/en/metrics-and-metadata/relatedcontent-collector-apm.html)
 is properly configured, is available
 [here](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/otelcol/config/collector/upstream_agent_config.yaml).
 <!--PRODUCT_DOCS-->

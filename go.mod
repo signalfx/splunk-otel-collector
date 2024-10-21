@@ -326,7 +326,7 @@ require (
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/shirou/gopsutil/v4 v4.24.9 // indirect
 	github.com/shoenig/go-m1cpu v0.1.6 // indirect
-	github.com/signalfx/golib/v3 v3.3.54 // indirect
+	github.com/signalfx/golib/v3 v3.3.55 // indirect
 	github.com/signalfx/signalfx-agent v1.0.1-0.20230222185249-54e5d1064c5b // indirect
 	github.com/softlayer/softlayer-go v1.1.3 // indirect
 	github.com/soniah/gosnmp v0.0.0-20190220004421-68e8beac0db9 // indirect

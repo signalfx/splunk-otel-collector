@@ -264,8 +264,8 @@ github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3 h1:32k2QLgsKhcEs55q4REP
 github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3/go.mod h1:gJrXWi7wSGXfiC7+VheQaz+ypdCt5SmZNL+BRxUe7y4=
 github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657 h1:2B5haF9erda6sSaeHpGKqmgM3irTkjB0bkdjWoV5Qbo=
 github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657/go.mod h1:mUgf0Go14xjLxNZFSGSK9m+GT7jCHyECuCjPh1zadUc=
-github.com/signalfx/golib/v3 v3.3.54 h1:jUwTnaIXLHT0I1+hXoX0cPLdICIwBjB3e5/NGnnjgJY=
-github.com/signalfx/golib/v3 v3.3.54/go.mod h1:KDQZIYpJ3yXPz/KysPQQEYooWdpq4eQZPsjwKR5secc=
+github.com/signalfx/golib/v3 v3.3.55 h1:3Lp4s2gbcmrSgW65qh4fZYHIAti+KJjQJb9PnnV6ZBA=
+github.com/signalfx/golib/v3 v3.3.55/go.mod h1:KDQZIYpJ3yXPz/KysPQQEYooWdpq4eQZPsjwKR5secc=
 github.com/sirupsen/logrus v1.2.0/go.mod h1:LxeOpSwHxABJmUn/MG1IvRgCAasNZTLOkJPxbbu5VWo=
 github.com/sirupsen/logrus v1.4.2/go.mod h1:tLMulIdttU9McNUspp0xgXVQah82FyeX6MwdIuYE2rE=
 github.com/sirupsen/logrus v1.6.0/go.mod h1:7uNnSEd1DgxDLC74fIahvMZmmYsHGZGEOFrfsX/uA88=

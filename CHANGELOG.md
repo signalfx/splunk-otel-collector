@@ -22,6 +22,7 @@
 ### 🚀 New components 🚀
 
 - (Splunk) Add [chrony receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/chronyreceiver) ([#5535](https://github.com/signalfx/splunk-otel-collector/pull/5535))
+
 ## v0.111.0
 
 

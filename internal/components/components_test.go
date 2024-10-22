@@ -52,6 +52,7 @@ func TestDefaultComponents(t *testing.T) {
 		"azureeventhub",
 		"azuremonitor",
 		"carbon",
+		"chrony",
 		"cloudfoundry",
 		"collectd",
 		"discovery",

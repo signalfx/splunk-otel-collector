@@ -475,6 +475,8 @@ github.com/evanphx/json-patch/v5 v5.9.0 h1:kcBlZQbplgElYIlo/n1hJbls2z/1awpXxpRi0
 github.com/evanphx/json-patch/v5 v5.9.0/go.mod h1:VNkHZ/282BpEyt/tObQO8s5CMPmYYq14uClGH4abBuQ=
 github.com/expr-lang/expr v1.16.9 h1:WUAzmR0JNI9JCiF0/ewwHB1gmcGw5wW7nWt8gc6PpCI=
 github.com/expr-lang/expr v1.16.9/go.mod h1:8/vRC7+7HBzESEqt5kKpYXxrxkr31SaO8r40VO/1IT4=
+github.com/facebook/time v0.0.0-20240510113249-fa89cc575891 h1:x6T9k2Jw0IPzSdM2i4tVWmnJ3KJ1fEKwWJ++IzDvPDU=
+github.com/facebook/time v0.0.0-20240510113249-fa89cc575891/go.mod h1:2UFAomOuD2vAK1x68czUtCVjAqmyWCEnAXOlmGqf+G0=
 github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 h1:JWuenKqqX8nojtoVVWjGfOF9635RETekkoH6Cc9SX0A=
 github.com/facebookgo/stack v0.0.0-20160209184415-751773369052/go.mod h1:UbMTZqLaRiH3MsBH8va0n7s1pQYcu3uTb8G4tygF4Zg=
 github.com/facebookgo/stackerr v0.0.0-20150612192056-c2fcf88613f4 h1:fP04zlkPjAGpsduG7xN3rRkxjAqkJaIQnnkNYYw/pAk=
@@ -1416,6 +1418,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/azuremonitorr
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/azuremonitorreceiver v0.111.0/go.mod h1:KWyCZTBTbgwRbqS1bPyClYvEi1eBZ35qjN9MLymGgIQ=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/carbonreceiver v0.111.0 h1:oEj98u1JVEcrzNxBR6G+hNGRO7GIVRdIMFz22UN49n4=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/carbonreceiver v0.111.0/go.mod h1:HGvlEjJCzCtpSvZ3ftPa/PSNxO1VzK+WFXrRnQwCw04=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/chronyreceiver v0.111.0 h1:oe4sRhoxBn7WE8L+KBaZp3+ti1Erl0+rkR+/+5UR+TA=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/chronyreceiver v0.111.0/go.mod h1:cummsjZaobQ7sMzIVY9nYU0QDmqJwMMzL/KzTQhvpQY=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/cloudfoundryreceiver v0.111.0 h1:tn5NMoRyVMU1HNRhScgMKdEiOqxmJ6MgRY1YbHFUluA=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/cloudfoundryreceiver v0.111.0/go.mod h1:riUWcSErtrVdWuN7f5SZZRIwJo7Ldcp9fa46TSp3R9U=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdreceiver v0.111.0 h1:omclLJbVMB2KdqsGpPJp2HjZ2qWgX8iGhvzDDoNHIMg=

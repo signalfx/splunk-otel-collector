@@ -21,6 +21,7 @@
 - (Splunk) Deprecate collectd/mysql monitor. Use the [mysql receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/mysqlreceiver) instead. ([#5538](https://github.com/signalfx/splunk-otel-collector/pull/5538))
 - (Splunk) Deprecate the collectd/nginx monitor. Please use the [nginx receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/nginxreceiver/) instead. ([#5537](https://github.com/signalfx/splunk-otel-collector/pull/5537))
 - (Splunk) Deprecate the collectd/chrony monitor. Please use the [chronyreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/chronyreceiver) instead. ([#5536](https://github.com/signalfx/splunk-otel-collector/pull/5536))
+- (Splunk) Deprecate the ecs-metadata monitor ([#_TBD_PR_NUM_](https://github.com/signalfx/splunk-otel-collector/pull/_TBD_PR_NUM_))()
 
 ### 🚀 New components 🚀
 

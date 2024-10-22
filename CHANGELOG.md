@@ -19,6 +19,10 @@
 - (Splunk) Deprecate statsd monitor. Use the [statsd receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/statsdreceiver) instead. ([#5513](https://github.com/signalfx/splunk-otel-collector/pull/5513))
 - (Splunk) Deprecate the collectd/consul monitor. Please use the statsd or prometheus receiver instead. See https://developer.hashicorp.com/consul/docs/agent/monitor/telemetry for more information. ([#5521](https://github.com/signalfx/splunk-otel-collector/pull/5521))
 
+### 🚀 New components 🚀
+
+- (Splunk) Add [chrony receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/chronyreceiver) ([#5535](https://github.com/signalfx/splunk-otel-collector/pull/5535))
+
 ## v0.111.0
 
 

@@ -67,6 +67,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/azureeventhubreceiver v0.111.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/azuremonitorreceiver v0.111.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/carbonreceiver v0.111.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/chronyreceiver v0.111.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/cloudfoundryreceiver v0.111.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdreceiver v0.111.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/elasticsearchreceiver v0.111.0
@@ -231,6 +232,7 @@ require (
 	github.com/envoyproxy/go-control-plane v0.13.0 // indirect
 	github.com/envoyproxy/protoc-gen-validate v1.1.0 // indirect
 	github.com/euank/go-kmsg-parser v2.0.0+incompatible // indirect
+	github.com/facebook/time v0.0.0-20240510113249-fa89cc575891 // indirect
 	github.com/fxamacker/cbor/v2 v2.7.0 // indirect
 	github.com/go-jose/go-jose/v4 v4.0.4 // indirect
 	github.com/go-resty/resty/v2 v2.13.1 // indirect

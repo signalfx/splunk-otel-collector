@@ -93,11 +93,6 @@ processors:
   resourcedetection/internal:
     detectors: [ecs]
     override: true
-  resource:
-    attributes:
-      # Can be removed once https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/35861 is resolved.
-      - key: Timestamp
-        action: delete
   filter:
     metrics:
       exclude:
@@ -148,11 +143,11 @@ service:
       exporters: [sapm, signalfx]
     metrics:
       receivers: [hostmetrics, otlp, signalfx, awsecscontainermetrics]
-      processors: [memory_limiter, batch, filter, resourcedetection, resource]
+      processors: [memory_limiter, batch, filter, resourcedetection]
       exporters: [signalfx]
     metrics/internal:
       receivers: [prometheus/internal]
-      processors: [memory_limiter, batch, filter, resourcedetection/internal, resource]
+      processors: [memory_limiter, batch, filter, resourcedetection/internal]
       exporters: [signalfx]
     logs:
       receivers: [otlp, fluentforward]

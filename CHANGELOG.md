@@ -3,17 +3,17 @@
 
 ### 🛑 Breaking changes 🛑
 
-- (Splunk) Remove httpsink exporter ([#](https://github.com/signalfx/splunk-otel-collector/pull/))
-- (Splunk) Remove signalfx-metadata and collectd/metadata monitors ([#](https://github.com/signalfx/splunk-otel-collector/pull/))
+- (Splunk) Remove httpsink exporter ([#5503](https://github.com/signalfx/splunk-otel-collector/pull/5503))
+- (Splunk) Remove signalfx-metadata and collectd/metadata monitors ([#5508](https://github.com/signalfx/splunk-otel-collector/pull/5508))
   Both monitors are deprecated and replaced by the hostmetricsreceiver and processlist monitor.
-- (Splunk) Remove deprecated collectd/etcd monitor. [Please use the etcd prometheus endpoint to scrape metrics.](https://etcd.io/docs/v3.5/metrics/) ([#](https://github.com/signalfx/splunk-otel-collector/pull/))
+- (Splunk) Remove deprecated collectd/etcd monitor. [Please use the etcd prometheus endpoint to scrape metrics.](https://etcd.io/docs/v3.5/metrics/) ([#5520](https://github.com/signalfx/splunk-otel-collector/pull/5520))
 - (Splunk) Remove deprecated collectd/health-checker monitor. ([#5522](https://github.com/signalfx/splunk-otel-collector/pull/5522))
 
 ### 🚩Deprecations 🚩
 
 - (Splunk) Deprecate cloudfoundry monitor ([#5495](https://github.com/signalfx/splunk-otel-collector/pull/5495))
 - (Splunk) Deprecate the heroku observer. Use the [resource detection observer with heroku detector](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/resourcedetectionprocessor#heroku) instead. ([#5496](https://github.com/signalfx/splunk-otel-collector/pull/5496))
-- (Splunk) Deprecate mongodb atlas monitor. [Please use the mongodbatlasreceiver instead](https://docs.splunk.com/observability/en/gdi/opentelemetry/components/mongodb-atlas-receiver.html) ([#](https://github.com/signalfx/splunk-otel-collector/pull/))
+- (Splunk) Deprecate mongodb atlas monitor. [Please use the mongodbatlasreceiver instead](https://docs.splunk.com/observability/en/gdi/opentelemetry/components/mongodb-atlas-receiver.html) ([#5500](https://github.com/signalfx/splunk-otel-collector/pull/5500))
 - (Splunk) Deprecate python-monitor monitor ([#5501](https://github.com/signalfx/splunk-otel-collector/pull/5501))
 - (Splunk) Deprecate windowslegacy monitor ([#5518](https://github.com/signalfx/splunk-otel-collector/pull/5518))
 - (Splunk) Deprecate statsd monitor. Use the [statsd receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/statsdreceiver) instead. ([#5513](https://github.com/signalfx/splunk-otel-collector/pull/5513))
@@ -23,6 +23,7 @@
 - (Splunk) Deprecate the collectd/chrony monitor. Please use the [chronyreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/chronyreceiver) instead. ([#5536](https://github.com/signalfx/splunk-otel-collector/pull/5536))
 - (Splunk) Deprecate the ecs-metadata monitor ([#5541](https://github.com/signalfx/splunk-otel-collector/pull/5541))
 - (Splunk) Deprecate the collectd/statsd monitor. Please use the [statsdreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/statsdreceiver) instead. ([#](https://github.com/signalfx/splunk-otel-collector/pull/))
+- (Splunk) Deprecate the haproxy monitor. Please use the [haproxyreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/haproxyreceiver) instead. ([#5543](https://github.com/signalfx/splunk-otel-collector/pull/5543))
 
 ### 🚀 New components 🚀
 

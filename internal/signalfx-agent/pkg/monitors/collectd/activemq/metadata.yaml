@@ -1,6 +1,8 @@
 monitors:
 - dimensions:
   doc: |
+    **The collectd/activemq monitor is deprecated. Use the jmxreceiver with the activemq target system instead.**
+
     SignalFx's integration with ActiveMQ wraps the [Collectd GenericJMX
     monitor](https://docs.splunk.com/observability/gdi/genericjmx/genericjmx.html)
     to monitor ActiveMQ.

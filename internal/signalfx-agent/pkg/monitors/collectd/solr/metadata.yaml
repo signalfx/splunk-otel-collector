@@ -1,6 +1,8 @@
 monitors:
 - dimensions:
   doc: |
+    **The collectd/solr monitor is deprecated. Use the jmxreceiver with the solr target system instead.**
+
     Monitors Solr instances by using the [collectd Solr
     plugin](https://github.com/signalfx/collectd-solr).  Supports Solr 6.6 and
     later.

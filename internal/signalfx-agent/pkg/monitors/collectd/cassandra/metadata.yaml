@@ -1,6 +1,8 @@
 monitors:
 - dimensions:
   doc: |
+    **The collectd/cassandra monitor is deprecated. Use the jmxreceiver with the cassandra target system instead.**
+    
     Monitors Cassandra using the Collectd GenericJMX plugin.  This is
     essentially a wrapper around the
     [collectd-genericjmx](./collectd-genericjmx.md)[](sfx_link:java) monitor that comes with a

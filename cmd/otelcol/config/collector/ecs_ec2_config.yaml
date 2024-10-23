@@ -4,9 +4,6 @@ config_sources:
   env:
     defaults:
       METRICS_TO_EXCLUDE: []
-      ECS_METADATA_EXCLUDED_IMAGES: []
-      ECS_TASK_METADATA_ENDPOINT: "${ECS_CONTAINER_METADATA_URI_V4}/task"
-      ECS_TASK_STATS_ENDPOINT: "${ECS_CONTAINER_METADATA_URI_V4}/task/stats"
 
 extensions:
   health_check:
@@ -28,7 +25,8 @@ receivers:
     scrapers:
       cpu:
       disk:
-      filesystem:
+      # Filesystem metrics are not working OOTB, see https://splunk.atlassian.net/browse/OTL-3075.
+      # filesystem:
       memory:
       network:
       # System load average metrics https://en.wikipedia.org/wiki/Load_(computing)
@@ -77,12 +75,7 @@ receivers:
     #access_token_passthrough: true
   zipkin:
     endpoint: 0.0.0.0:9411
-  smartagent/ecs-metadata:
-    type: ecs-metadata
-    metadataEndpoint: "${env:ECS_TASK_METADATA_ENDPOINT}"
-    statsEndpoint: "${env:ECS_TASK_STATS_ENDPOINT}"
-    excludedImages: ${env:ECS_METADATA_EXCLUDED_IMAGES}
-
+  awsecscontainermetrics:
 processors:
   batch:
     metadata_keys:
@@ -94,17 +87,12 @@ processors:
   memory_limiter:
     check_interval: 2s
     limit_mib: ${SPLUNK_MEMORY_LIMIT_MIB}
-  # detect if the collector is running on a cloud system
-  # important for creating unique cloud provider dimensions
   resourcedetection:
     detectors: [ecs]
     override: false
-  # Same as above but overrides resource attributes set by receivers
   resourcedetection/internal:
     detectors: [ecs]
     override: true
-  # Defines the filter processor with example settings
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/filterprocessor
   filter:
     metrics:
       exclude:
@@ -154,7 +142,7 @@ service:
         #- resource/add_environment
       exporters: [sapm, signalfx]
     metrics:
-      receivers: [hostmetrics, otlp, signalfx, smartagent/ecs-metadata]
+      receivers: [hostmetrics, otlp, signalfx, awsecscontainermetrics]
       processors: [memory_limiter, batch, filter, resourcedetection]
       exporters: [signalfx]
     metrics/internal:

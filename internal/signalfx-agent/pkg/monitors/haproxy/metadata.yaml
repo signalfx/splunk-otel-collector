@@ -1,6 +1,7 @@
 monitors:
   - monitorType: haproxy
     doc: |
+      **This monitor is deprecated and will be removed in a future release. Please use the haproxyreceiver instead.**
       This monitor scrapes [HAProxy](http://www.haproxy.org/) statistics (i.e. metrics) from a configured
       HTTP endpoint or UNIX socket. It requires HAProxy 1.8+ and supports scraping metrics for HAProxy running in
       multi-process mode. In multi-process mode, HAProxy must be configured to enable stats on different URLs/socket

@@ -1,6 +1,8 @@
 monitors:
 - dimensions:
   doc: |
+    **The collectd/genericjmx monitor is deprecated. Use the jmxreceiver instead.**
+
     Monitors Java services that expose metrics on JMX using collectd's
     GenericJMX plugin. The GenericJMX plugin reads Managed Beans (MBeans) from
     an MBeanServer using JMX. The monitor uses an embedded Java runtime in

@@ -102,5 +102,5 @@ func (m *JMXMonitorCore) Configure(conf *Config) error {
 		conf.ServiceName = m.defaultServiceName
 	}
 
-	return m.SetConfigurationAndRun(conf)
+	return m.SetConfigurationAndRun(conf, collectd.WithDeprecationWarningLog("jmxreceiver"))
 }

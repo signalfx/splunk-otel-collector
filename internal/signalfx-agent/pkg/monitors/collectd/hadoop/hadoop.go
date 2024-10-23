@@ -62,6 +62,7 @@ func (m *Monitor) Configure(conf *Config) error {
 			"Verbose":             conf.Verbose,
 		},
 	}
+	m.Logger().Warn("[NOTICE] the collectd/hadoop monitor is deprecated. Use the jmxreceiver instead")
 
 	return m.PyMonitor.Configure(conf)
 }

@@ -1,6 +1,8 @@
 monitors:
 - dimensions:
   doc: |
+    The ecs-metadata monitor is deprecated and will be removed in a future release. Use the awsecscontainermetrics receiver instead.
+
     This monitor reads container stats from a
     [ECS Task Metadata Endpoint version 2](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-metadata-endpoint-v2.html).
 

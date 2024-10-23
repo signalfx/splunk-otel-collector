@@ -1,16 +1,20 @@
 # Amazon ECS EC2 Deployment
-Familiarity with Amazon ECS using launch type EC2 is assumed. Consult the 
+
+Familiarity with Amazon ECS using launch type EC2 is assumed. Consult the
 [Getting started with the Amazon ECS console using Amazon EC2](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/getting-started-ecs-ec2.html)
 for further reading.
 
 The [Splunk OpenTelemetry Collector](https://github.com/signalfx/splunk-otel-collector)
-(Collector) can be run as a Daemon service in an ECS cluster with EC2 launch type.
+(Collector) can be run as a Daemon service, if using the `ecs_observer`,
+or as a Sidecar.
 
 Requires Collector release v0.34.1 or newer which corresponds to image tag 0.34.1 and newer.
 See image repository [here](https://quay.io/repository/signalfx/splunk-otel-collector?tab=tags).
 
 ## Getting Started
+
 ### Create Task Definition
+
 Take the task definition JSON for the Collector [here](./splunk-otel-collector.json), replace
 `MY_SPLUNK_ACCESS_TOKEN` and `MY_SPLUNK_REALM` with valid values.
 We recommend pinning the [image version](https://github.com/signalfx/splunk-otel-collector/blob/main/deployments/ecs/ec2/splunk-otel-collector.json#L56) to a specific version instead of latest to avoid upgrade issues. Use the JSON to create a task definition of **EC2 launch type** following
@@ -22,31 +26,13 @@ The Collector is configured to use the default configuration file `/etc/otel/col
 The Collector image Dockerfile is available [here](../../../cmd/otelcol/Dockerfile) and the contents of the default
 configuration file can be seen [here](../../../cmd/otelcol/config/collector/ecs_ec2_config.yaml).
 
-The suggested configured network mode for the task is **host**. This means that **task metadata
-endpoint version 2** used by receiver `smartagent/ecs-metadata` is not enabled by default. See
+See
 [here](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-metadata-endpoint.html)
 to determine if **task metadata endpoint version 4** is enabled by default for your task. If so
 the default configuration for ECS with EC2 launch type already uses it to form the metadata and stats endpoints
-for the receiver to query to generate metrics and no task definition change is required. If you're using an alternate
-task stats or metadata endpoint, configure them via the `ECS_TASK_METADATA_ENDPOINT` and `ECS_TASK_STATS_ENDPOINT`
-environment variables list in your container definition as necessary:
+for the receiver to query to generate metrics and no task definition change is required.
 
-```json
-"environment": [
-...
-  {
-    "name": "ECS_TASK_METADATA_ENDPOINT",
-    "value": "<MY_TASK_METADATA_ENDPOINT>/task"
-  },
-  {
-    "name": "ECS_TASK_STATS_ENDPOINT",
-    "value": "<MY_TASK_METADATA_ENDPOINT>/task/stats"
-  },
-...
-]
-```
-
-**Note**: You do not need the `smartagent/ecs-metadata` metrics receiver in the default
+**Note**: You do not need the `awsecscontainermetrics` metrics receiver in the default
 configuration file if all you want is tracing or logs. You can take the default configuration,
 remove the receiver, then use the configuration in a custom configuration following the direction
 in the [custom configuration](#custom-configuration) section.
@@ -68,26 +54,8 @@ The default configuration includes a filter processor that allows you to specify
 You can set the memory limit for the memory limiter processor using environment variable `SPLUNK_MEMORY_LIMIT_MIB`.
 For more information about the memory limiter processor, see [its documentation](https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiterprocessor/README.md).
 
-### Launch the Collector
-The Collector is designed to be run as a Daemon service in an EC2 ECS cluster.
-
-To create a Collector service from the Amazon ECS console:
-
-Go to your cluster in the console
-1. Click on the "Services" tab.
-2. Click "Create" at the top of the tab.
-3. Select:
-   - Launch Type -> EC2
-   - Task Definition (Family) -> splunk-otel-collector
-   - Task Definition (Revision) -> 1 (or whatever the latest is in your case)
-   - Service Name -> splunk-otel-collector
-   - Service type -> DAEMON
-4. Leave everything else at default and click "Next step"
-5. Leave everything on this next page at their defaults and click "Next step". 
-6. Leave everything on this next page at their defaults and click "Next step". 
-7. Click "Create Service" and the collector should be deployed onto each node in the ECS cluster. You should see infrastructure and docker metrics flowing soon.
-
 ## Custom Configuration
+
 To use a custom configuration file, replace the value of environment variable
 `SPLUNK_CONFIG` with the file path of the custom configuration file in Collector
 task definition.
@@ -95,14 +63,16 @@ task definition.
 Alternatively, you can specify the custom configuration YAML directly using environment
 variable `SPLUNK_CONFIG_YAML` as describe [below](#direct-configuration).
 
-### ecs_observer
+### Using the ecs_observer
+
 Use extension
 [Amazon Elastic Container Service Observer](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/observer/ecsobserver#amazon-elastic-container-service-observer)
 (`ecs_observer`) in your custom configuration to discover metrics targets
 in running tasks, filtered by service names, task definitions and container labels.
 `ecs_observer` is currently limited to Prometheus targets and requires the read-only
-permissions below. You can add the permissions to the task role by adding them to a 
+permissions below. You can add the permissions to the task role by adding them to a
 customer-managed policy that is attached to the task role.
+
 ```text
 ecs:List*
 ecs:Describe*
@@ -154,7 +124,29 @@ service:
       exporters: [signalfx]
 ```
 
+### Launch the Collector as a Daemon service
+
+When running the `ecs_observer` the Collector needs to run as a Daemon service in an EC2 ECS cluster.
+
+To create a Daemon service from the Amazon ECS console:
+
+Go to your cluster in the console
+
+1. Click on the "Services" tab.
+2. Click "Create" at the top of the tab.
+3. Select:
+   - Launch Type -> EC2
+   - Task Definition (Family) -> splunk-otel-collector
+   - Task Definition (Revision) -> 1 (or whatever the latest is in your case)
+   - Service Name -> splunk-otel-collector
+   - Service type -> DAEMON
+4. Leave everything else at default and click "Next step"
+5. Leave everything on this next page at their defaults and click "Next step". 
+6. Leave everything on this next page at their defaults and click "Next step". 
+7. Click "Create Service" and the collector should be deployed onto each node in the ECS cluster. You should see infrastructure and docker metrics flowing soon.
+
 ### Direct Configuration
+
 The Collector provides environment variable `SPLUNK_CONFIG_YAML` for specifying the
 configuration YAML directly which can be used instead of `SPLUNK_CONFIG`.
 

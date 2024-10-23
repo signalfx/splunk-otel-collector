@@ -16,10 +16,6 @@
           "value": "/etc/otel/collector/ecs_ec2_config.yaml"
         },
         {
-          "name": "ECS_METADATA_EXCLUDED_IMAGES",
-          "value": "[\"quay.io/signalfx/splunk-otel-collector\"]"
-        },
-        {
           "name": "HOST_PROC",
           "value": "/hostfs/proc"
         },
@@ -48,6 +44,11 @@
         {
           "readOnly": true,
           "containerPath": "/hostfs",
+          "sourceVolume": "hostfs"
+        },
+        {
+          "readOnly": true,
+          "containerPath": "/rootfs",
           "sourceVolume": "hostfs"
         }
       ],

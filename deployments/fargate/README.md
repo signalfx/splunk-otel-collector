@@ -1,4 +1,5 @@
 # AWS Fargate Deployment
+
 Familiarity with AWS Fargate (Fargate) is assumed. Consult the
 [User Guide for AWS Fargate](https://docs.aws.amazon.com/AmazonECS/latest/userguide/what-is-fargate.html)
 for further reading.
@@ -11,10 +12,12 @@ Requires Collector release v0.33.0 or newer which corresponds to image tag 0.33.
 See image repository [here](https://quay.io/repository/signalfx/splunk-otel-collector?tab=tags).
 
 ## Getting Started
+
 Copy the default Collector container definition JSON below. Replace `MY_SPLUNK_ACCESS_TOKEN`
 and `MY_SPLUNK_REALM` with valid values. Update the image tag to the newest
 version then add the JSON to the `containerDefinitions` section of your task definition
 JSON.
+
 ```json
 {
   "environment": [
@@ -29,10 +32,6 @@ JSON.
     {
       "name": "SPLUNK_CONFIG",
       "value": "/etc/otel/collector/fargate_config.yaml"
-    },
-    {
-      "name": "ECS_METADATA_EXCLUDED_IMAGES",
-      "value": "[\"quay.io/signalfx/splunk-otel-collector:*\"]"
     }
   ],
   "image": "quay.io/signalfx/splunk-otel-collector:0.33.0",
@@ -40,18 +39,19 @@ JSON.
   "name": "splunk_otel_collector"
 }
 ```
+
 In the above container definition the Collector is configured to use the default
 configuration file `/etc/otel/collector/fargate_config.yaml`. The Collector image Dockerfile
 is available [here](../../cmd/otelcol/Dockerfile) and the contents of the default
 configuration file can be seen [here](../../cmd/otelcol/config/collector/fargate_config.yaml).
-Note that the receiver `smartagent/ecs-metadata` is enabled by default.
+Note that the receiver `awsecscontainermetrics` is enabled by default.
 
 In summary, the default Collector container definition does the following:
+
 - Specifies the Collector image.
 - Sets the access token using environment variable `SPLUNK_ACCESS_TOKEN`.
 - Sets the realm using environment variable `SPLUNK_REALM`.
 - Sets the default configuration file path using environment variable `SPLUNK_CONFIG`.
-- Excludes `ecs-metadata` metrics from the Collector image using environment variable `ECS_METADATA_EXCLUDED_IMAGES`.
 
 Assign a stringified array of metrics you want excluded to environment variable
 `METRICS_TO_EXCLUDE`. You can set the memory limit for the memory limiter processor using
@@ -60,11 +60,13 @@ more information about the memory limiter processor, see
 [here](https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiterprocessor/README.md)
 
 ## Custom Configuration
+
 The example below shows an excerpt of the container definition JSON for the Collector
 configured to use custom configuration file `/path/to/custom/config/file`.
 `/path/to/custom/config/file` is a placeholder value for the actual custom configuration
 file path and `0.33.0` is the latest image tag at present. The custom configuration file
 should be present in a volume attached to the task.
+
 ```json
 {
   "environment": [
@@ -78,7 +80,9 @@ should be present in a volume attached to the task.
   "name": "splunk_otel_collector"
 }
 ```
+
 The custom Collector container definition essentially:
+
 - Specifies the Collector image.
 - Sets environment variable `SPLUNK_CONFIG` with the custom configuration file path.
 
@@ -86,6 +90,7 @@ Alternatively, you can specify the custom configuration YAML directly using envi
 variable `SPLUNK_CONFIG_YAML` as describe [below](#direct-configuration).
 
 ### ecs_observer
+
 Use extension
 [Amazon Elastic Container Service Observer](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/observer/ecsobserver#amazon-elastic-container-service-observer)
 (`ecs_observer`) in your custom configuration to discover metrics targets
@@ -93,6 +98,7 @@ in running tasks, filtered by service names, task definitions and container labe
 `ecs_observer` is currently limited to Prometheus targets and requires the read-only
 permissions below. You can add the permissions to the task role by adding them to a
 customer-managed policy that is attached to the task role.
+
 ```text
 ecs:List*
 ecs:Describe*
@@ -144,6 +150,7 @@ service:
       processors: [batch, resourcedetection]
       exporters: [signalfx]
 ```
+
 **Note:** The task ARN pattern in the configuration example above will cause `ecs_observer`
 to discover targets in running revisions of task `lorem-ipsum-task`. This
 means that when multiple revisions of task `lorem-ipsum-task` are running, the
@@ -160,6 +167,7 @@ task ARN pattern must be updated to keep pace with task revisions.
 ```
 
 ### Direct Configuration
+
 In Fargate the filesystem is not readily available. This makes specifying the configuration
 YAML directly instead of using a file more convenient. The Collector provides environment
 variable `SPLUNK_CONFIG_YAML` for specifying the configuration YAML directly which can be
@@ -200,6 +208,7 @@ placeholder values and image tag `0.33.0` is the latest at present.
 the task to have read access to the Parameter Store.
 
 ### Standalone Task
+
 Extension `ecs_observer` is capable of scanning for targets in the entire cluster. This
 allows you to collect telemetry data by deploying the Collector in a task that is separate
 from tasks containing monitored applications. This is in contrast to the sidecar deployment
@@ -210,4 +219,5 @@ processor for the standalone task since it would detect resources in the standal
 task itself as opposed to resources in the tasks containing the monitored applications.
 
 ### AWS Graviton2
+
 We support [AWS Graviton2](https://aws.amazon.com/ec2/graviton/) with the default Fargate configuration. Splunk OpenTelemetry Collector docker image can run on both amd64 and arm64 architectures.

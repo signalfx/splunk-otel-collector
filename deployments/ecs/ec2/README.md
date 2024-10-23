@@ -6,7 +6,7 @@ for further reading.
 
 The [Splunk OpenTelemetry Collector](https://github.com/signalfx/splunk-otel-collector)
 (Collector) can be run as a Daemon service, if using the `ecs_observer`,
-or as a Sidecar in an ECS cluster with EC2 launch type.
+or as a Sidecar.
 
 Requires Collector release v0.34.1 or newer which corresponds to image tag 0.34.1 and newer.
 See image repository [here](https://quay.io/repository/signalfx/splunk-otel-collector?tab=tags).

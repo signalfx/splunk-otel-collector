@@ -1,6 +1,9 @@
 monitors:
 - dimensions:
   doc: |
+    The statsd monitor is deprecated and will be removed in a future release.
+    Use the statsd receiver instead.
+    
     The StatsD plugin for collectd listens for StatsD
     events, aggregates them and transmits them according to collectd's
     configuration. Use this plugin to send data from StatsD to SignalFx [statsd

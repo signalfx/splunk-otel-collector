@@ -4,7 +4,6 @@ config_sources:
   env:
     defaults:
       METRICS_TO_EXCLUDE: []
-      ECS_METADATA_EXCLUDED_IMAGES: []
       ECS_TASK_METADATA_ENDPOINT: "${ECS_CONTAINER_METADATA_URI_V4}/task"
       ECS_TASK_STATS_ENDPOINT: "${ECS_CONTAINER_METADATA_URI_V4}/task/stats"
 

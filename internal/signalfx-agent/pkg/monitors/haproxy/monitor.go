@@ -34,6 +34,7 @@ type proxies map[string]bool
 // Config for this monitor
 func (m *Monitor) Configure(conf *Config) (err error) {
 	m.logger = log.WithFields(log.Fields{"monitorType": monitorType, "monitorID": conf.MonitorID})
+	m.logger.Warn("[NOTICE] The haproxy monitor is deprecated and will be removed in a future release. Please use the haproxyreceiver instead.")
 	m.ctx, m.cancel = context.WithCancel(context.Background())
 	url, err := url.Parse(conf.ScrapeURL())
 	if err != nil {

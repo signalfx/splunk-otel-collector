@@ -1,11 +1,11 @@
 # Amazon ECS EC2 Deployment
 
-Familiarity with Amazon ECS using launch type EC2 is assumed. Consult the 
+Familiarity with Amazon ECS using launch type EC2 is assumed. Consult the
 [Getting started with the Amazon ECS console using Amazon EC2](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/getting-started-ecs-ec2.html)
 for further reading.
 
 The [Splunk OpenTelemetry Collector](https://github.com/signalfx/splunk-otel-collector)
-(Collector) can be run as a Daemon service, if using the `ecs_observer` (see []),
+(Collector) can be run as a Daemon service, if using the `ecs_observer`,
 or as a Sidecar in an ECS cluster with EC2 launch type.
 
 Requires Collector release v0.34.1 or newer which corresponds to image tag 0.34.1 and newer.
@@ -55,6 +55,7 @@ You can set the memory limit for the memory limiter processor using environment 
 For more information about the memory limiter processor, see [its documentation](https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiterprocessor/README.md).
 
 ## Custom Configuration
+
 To use a custom configuration file, replace the value of environment variable
 `SPLUNK_CONFIG` with the file path of the custom configuration file in Collector
 task definition.
@@ -63,6 +64,7 @@ Alternatively, you can specify the custom configuration YAML directly using envi
 variable `SPLUNK_CONFIG_YAML` as describe [below](#direct-configuration).
 
 ### Using the ecs_observer
+
 Use extension
 [Amazon Elastic Container Service Observer](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/observer/ecsobserver#amazon-elastic-container-service-observer)
 (`ecs_observer`) in your custom configuration to discover metrics targets
@@ -70,6 +72,7 @@ in running tasks, filtered by service names, task definitions and container labe
 `ecs_observer` is currently limited to Prometheus targets and requires the read-only
 permissions below. You can add the permissions to the task role by adding them to a
 customer-managed policy that is attached to the task role.
+
 ```text
 ecs:List*
 ecs:Describe*

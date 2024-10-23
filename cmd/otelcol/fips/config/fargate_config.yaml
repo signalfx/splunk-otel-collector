@@ -4,7 +4,6 @@ config_sources:
   env:
     defaults:
       METRICS_TO_EXCLUDE: []
-      ECS_METADATA_EXCLUDED_IMAGES: []
 
 extensions:
   health_check:

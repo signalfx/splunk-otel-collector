@@ -30,24 +30,7 @@ See
 [here](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-metadata-endpoint.html)
 to determine if **task metadata endpoint version 4** is enabled by default for your task. If so
 the default configuration for ECS with EC2 launch type already uses it to form the metadata and stats endpoints
-for the receiver to query to generate metrics and no task definition change is required. If you're using an alternate
-task stats or metadata endpoint, configure them via the `ECS_TASK_METADATA_ENDPOINT` and `ECS_TASK_STATS_ENDPOINT`
-environment variables list in your container definition as necessary:
-
-```json
-"environment": [
-...
-  {
-    "name": "ECS_TASK_METADATA_ENDPOINT",
-    "value": "<MY_TASK_METADATA_ENDPOINT>/task"
-  },
-  {
-    "name": "ECS_TASK_STATS_ENDPOINT",
-    "value": "<MY_TASK_METADATA_ENDPOINT>/task/stats"
-  },
-...
-]
-```
+for the receiver to query to generate metrics and no task definition change is required.
 
 **Note**: You do not need the `awsecscontainermetrics` metrics receiver in the default
 configuration file if all you want is tracing or logs. You can take the default configuration,

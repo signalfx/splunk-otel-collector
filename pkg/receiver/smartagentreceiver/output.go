@@ -325,34 +325,22 @@ func (out *output) filterMetrics(metrics []pmetric.Metric) []pmetric.Metric {
 	filteredMetrics := make([]pmetric.Metric, 0, len(metrics))
 	for _, m := range metrics {
 		atLeastOneDataPoint := false
-		newM := pmetric.NewMetric()
-		newM.SetName(m.Name())
-		newM.SetDescription(m.Description())
-		newM.SetUnit(m.Unit())
 		switch m.Type() {
 		case pmetric.MetricTypeGauge:
-			newM.SetEmptyGauge()
-			for i := 0; i < m.Gauge().DataPoints().Len(); i++ {
-				dp := m.Gauge().DataPoints().At(i)
-				if !out.monitorFiltering.filterSet.MatchesMetricDataPoint(m.Name(), dp.Attributes()) {
-					atLeastOneDataPoint = true
-					dp.CopyTo(newM.Gauge().DataPoints().AppendEmpty())
-				}
-			}
+			m.Gauge().DataPoints().RemoveIf(func(point pmetric.NumberDataPoint) bool {
+				return out.monitorFiltering.filterSet.MatchesMetricDataPoint(m.Name(), point.Attributes())
+			})
+			atLeastOneDataPoint = m.Gauge().DataPoints().Len() > 0
 		case pmetric.MetricTypeSum:
-			newM.SetEmptySum()
-			for i := 0; i < m.Sum().DataPoints().Len(); i++ {
-				dp := m.Sum().DataPoints().At(i)
-				if !out.monitorFiltering.filterSet.MatchesMetricDataPoint(m.Name(), dp.Attributes()) {
-					atLeastOneDataPoint = true
-					dp.CopyTo(newM.Sum().DataPoints().AppendEmpty())
-				}
-			}
+			m.Sum().DataPoints().RemoveIf(func(point pmetric.NumberDataPoint) bool {
+				return out.monitorFiltering.filterSet.MatchesMetricDataPoint(m.Name(), point.Attributes())
+			})
+			atLeastOneDataPoint = m.Sum().DataPoints().Len() > 0
 		default:
 			panic("unsupported metric type")
 		}
 		if atLeastOneDataPoint {
-			filteredMetrics = append(filteredMetrics, newM)
+			filteredMetrics = append(filteredMetrics, m)
 		}
 	}
 	return filteredMetrics

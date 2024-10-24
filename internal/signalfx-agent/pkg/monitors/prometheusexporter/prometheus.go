@@ -11,8 +11,8 @@ import (
 
 	dto "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
-	"github.com/signalfx/golib/v3/datapoint"
 	"github.com/sirupsen/logrus"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 	"k8s.io/client-go/rest"
 
 	"github.com/signalfx/signalfx-agent/pkg/core/common/auth"
@@ -155,19 +155,19 @@ func (m *Monitor) Configure(conf *Config) error {
 			return
 		}
 
-		m.Output.SendDatapoints(dps...)
+		m.Output.SendMetrics(dps...)
 	}, time.Duration(conf.IntervalSeconds)*time.Second)
 
 	return nil
 }
 
-func fetchPrometheusMetrics(fetch fetcher) ([]*datapoint.Datapoint, error) {
+func fetchPrometheusMetrics(fetch fetcher) ([]pmetric.Metric, error) {
 	metricFamilies, err := doFetch(fetch)
 	if err != nil {
 		return nil, err
 	}
 
-	var dps []*datapoint.Datapoint
+	var dps []pmetric.Metric
 	for i := range metricFamilies {
 		dps = append(dps, convertMetricFamily(metricFamilies[i])...)
 	}

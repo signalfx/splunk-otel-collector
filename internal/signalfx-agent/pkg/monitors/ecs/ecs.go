@@ -164,7 +164,7 @@ func (m *Monitor) fetchStatsForAll(enhancedMetricsConfig dmonitor.EnhancedMetric
 		return
 	}
 
-	var stats map[string]dtypes.StatsJSON
+	var stats map[string]dcontainer.StatsResponse
 
 	if err2 := json.Unmarshal(body, &stats); err2 != nil {
 		m.logger.WithFields(log.Fields{

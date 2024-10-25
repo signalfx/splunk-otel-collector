@@ -112,7 +112,7 @@ func TestCollectorContainerWithInvalidImage(t *testing.T) {
 	require.NoError(t, err)
 
 	err = collector.Start()
-	require.Contains(t, strings.ToLower(err.Error()), "error response from daemon: no such image")
+	require.Equal(t, strings.ToLower(err.Error()), "create container: build image: invalid reference format")
 
 	err = collector.Shutdown()
 	require.EqualError(t, err, "cannot invoke Stop() on unstarted container")

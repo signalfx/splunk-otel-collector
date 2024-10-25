@@ -6,6 +6,7 @@ import (
 	"time"
 
 	dtypes "github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/signalfx/golib/v3/datapoint"
 	"github.com/signalfx/golib/v3/sfxclient"
 )
@@ -27,7 +28,7 @@ var basicBlockIOMetrics = map[string]bool{
 }
 
 // ConvertStatsToMetrics converts a docker container stats object into an array of datapoints
-func ConvertStatsToMetrics(container *dtypes.ContainerJSON, parsed *dtypes.StatsJSON, enhancedMetricsConfig EnhancedMetricsConfig) ([]*datapoint.Datapoint, error) {
+func ConvertStatsToMetrics(container *dtypes.ContainerJSON, parsed *container.StatsResponse, enhancedMetricsConfig EnhancedMetricsConfig) ([]*datapoint.Datapoint, error) {
 	var dps []*datapoint.Datapoint
 	dps = append(dps, convertBlkioStats(&parsed.BlkioStats, enhancedMetricsConfig.EnableExtraBlockIOMetrics)...)
 	dps = append(dps, convertCPUStats(&parsed.CPUStats, &parsed.PreCPUStats, enhancedMetricsConfig.EnableExtraCPUMetrics)...)
@@ -56,10 +57,10 @@ func ConvertStatsToMetrics(container *dtypes.ContainerJSON, parsed *dtypes.Stats
 	return dps, nil
 }
 
-func convertBlkioStats(stats *dtypes.BlkioStats, enhancedMetrics bool) []*datapoint.Datapoint {
+func convertBlkioStats(stats *container.BlkioStats, enhancedMetrics bool) []*datapoint.Datapoint {
 	var out []*datapoint.Datapoint
 
-	for k, v := range map[string][]dtypes.BlkioStatEntry{
+	for k, v := range map[string][]container.BlkioStatEntry{
 		"io_service_bytes_recursive": stats.IoServiceBytesRecursive,
 		"io_serviced_recursive":      stats.IoServicedRecursive,
 		"io_queue_recursive":         stats.IoQueuedRecursive,
@@ -88,7 +89,7 @@ func convertBlkioStats(stats *dtypes.BlkioStats, enhancedMetrics bool) []*datapo
 	return out
 }
 
-func convertCPUStats(stats *dtypes.CPUStats, prior *dtypes.CPUStats, enhancedMetrics bool) []*datapoint.Datapoint {
+func convertCPUStats(stats *container.CPUStats, prior *container.CPUStats, enhancedMetrics bool) []*datapoint.Datapoint {
 	var out []*datapoint.Datapoint
 
 	out = append(out, []*datapoint.Datapoint{
@@ -124,7 +125,7 @@ func convertCPUStats(stats *dtypes.CPUStats, prior *dtypes.CPUStats, enhancedMet
 
 // Copied from
 // https://github.com/docker/cli/blob/dbd96badb6959c2b7070664aecbcf0f7c299c538/cli/command/container/stats_helpers.go
-func calculateCPUPercent(previous *dtypes.CPUStats, v *dtypes.CPUStats) float64 {
+func calculateCPUPercent(previous *container.CPUStats, v *container.CPUStats) float64 {
 	var (
 		cpuPercent = 0.0
 		// calculate the change for the cpu usage of the container in between readings
@@ -143,7 +144,7 @@ func calculateCPUPercent(previous *dtypes.CPUStats, v *dtypes.CPUStats) float64 
 	return cpuPercent
 }
 
-func convertMemoryStats(stats *dtypes.MemoryStats, enhancedMetrics bool) []*datapoint.Datapoint {
+func convertMemoryStats(stats *container.MemoryStats, enhancedMetrics bool) []*datapoint.Datapoint {
 	var out []*datapoint.Datapoint
 
 	// If not present, default value will be 0.
@@ -179,7 +180,7 @@ func convertMemoryStats(stats *dtypes.MemoryStats, enhancedMetrics bool) []*data
 	return out
 }
 
-func convertNetworkStats(stats *map[string]dtypes.NetworkStats, enhancedMetrics bool) []*datapoint.Datapoint {
+func convertNetworkStats(stats *map[string]container.NetworkStats, enhancedMetrics bool) []*datapoint.Datapoint {
 	if stats == nil {
 		return nil
 	}

@@ -42,7 +42,7 @@ var _ Collector = (*CollectorContainer)(nil)
 var _ testcontainers.LogConsumer = (*collectorLogConsumer)(nil)
 
 type CollectorContainer struct {
-	contextArchive io.Reader
+	contextArchive io.ReadSeeker
 	Logger         *zap.Logger
 	logConsumer    collectorLogConsumer
 	Mounts         map[string]string
@@ -192,7 +192,7 @@ func (collector *CollectorContainer) Shutdown() error {
 	return collector.Container.StopLogProducer()
 }
 
-func (collector *CollectorContainer) buildContextArchive() (io.Reader, error) {
+func (collector *CollectorContainer) buildContextArchive() (io.ReadSeeker, error) {
 	var buf bytes.Buffer
 	tarWriter := tar.NewWriter(&buf)
 

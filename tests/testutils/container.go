@@ -31,7 +31,7 @@ import (
 	"github.com/docker/go-connections/nat"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	testcontainers "github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/exec"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
@@ -94,7 +94,7 @@ func (container Container) WithBuildArgs(args map[string]*string) Container {
 	return container
 }
 
-func (container Container) WithContextArchive(contextArchive io.Reader) Container {
+func (container Container) WithContextArchive(contextArchive io.ReadSeeker) Container {
 	container.Dockerfile.ContextArchive = contextArchive
 	return container
 }
@@ -232,6 +232,11 @@ func (container Container) Build() *Container {
 	if container.ContainerNetworkMode != "" {
 		networkMode = dockerContainer.NetworkMode(container.ContainerNetworkMode)
 	}
+	container.HostConfigModifiers = append(container.HostConfigModifiers, func(hc *dockerContainer.HostConfig) {
+		hc.Binds = container.Binds
+		hc.NetworkMode = networkMode
+	})
+
 	var startupTimeout time.Duration
 	if container.startupTimeout == nil {
 		startupTimeout = defaultContainerTimeout
@@ -249,7 +254,6 @@ func (container Container) Build() *Container {
 	}
 
 	container.req = &testcontainers.ContainerRequest{
-		Binds:              container.Binds,
 		User:               container.User,
 		Image:              container.Image,
 		FromDockerfile:     container.Dockerfile,
@@ -261,7 +265,6 @@ func (container Container) Build() *Container {
 		Name:               container.ContainerName,
 		Networks:           container.ContainerNetworks,
 		Mounts:             container.Mounts,
-		NetworkMode:        networkMode,
 		Labels:             container.Labels,
 		Privileged:         container.Privileged,
 		HostConfigModifier: hostConfigModifier,

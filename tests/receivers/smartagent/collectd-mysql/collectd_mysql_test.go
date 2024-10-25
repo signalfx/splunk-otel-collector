@@ -73,16 +73,18 @@ func TestCollectdMySQLProvidesAllMetrics(t *testing.T) {
 	_, err = db.Exec("DELETE FROM a_table WHERE name = 'another.name'")
 	require.NoError(t, err)
 
-	testutils.CheckGoldenFile(t, "isolated_config.yaml", "isolated_expected.yaml",
-		pmetrictest.IgnoreTimestamp(),
-		pmetrictest.IgnoreMetricValues(
-			"operations.os_log_bytes_written",
-			"gauge.trx_rseg_history_len",
+	testutils.RunMetricsCollectionTest(t, "isolated_config.yaml", "isolated_expected.yaml",
+		testutils.WithCompareMetricsOptions(
+			pmetrictest.IgnoreTimestamp(),
+			pmetrictest.IgnoreMetricValues(
+				"operations.os_log_bytes_written",
+				"gauge.trx_rseg_history_len",
+			),
+			pmetrictest.IgnoreMetricsOrder(),
+			pmetrictest.IgnoreResourceAttributeValue("host"),
+			pmetrictest.IgnoreMetricValues(),
+			pmetrictest.IgnoreSubsequentDataPoints(),
 		),
-		pmetrictest.IgnoreMetricsOrder(),
-		pmetrictest.IgnoreResourceAttributeValue("host"),
-		pmetrictest.IgnoreMetricValues(),
-		pmetrictest.IgnoreSubsequentDataPoints(),
 	)
 }
 

@@ -26,14 +26,16 @@ import (
 )
 
 func TestHttpdBasicAuth(t *testing.T) {
-	testutils.CheckGoldenFile(t, "httpd_basic_auth.yaml", "httpd_basic_auth_expected.yaml",
-		pmetrictest.IgnoreScopeVersion(),
-		pmetrictest.IgnoreTimestamp(),
-		pmetrictest.IgnoreStartTimestamp(),
-		pmetrictest.IgnoreMetricValues(),
-		pmetrictest.IgnoreResourceMetricsOrder(),
-		pmetrictest.IgnoreScopeMetricsOrder(),
-		pmetrictest.IgnoreMetricsOrder(),
-		pmetrictest.IgnoreMetricDataPointsOrder(),
+	testutils.RunMetricsCollectionTest(t, "httpd_basic_auth.yaml", "httpd_basic_auth_expected.yaml",
+		testutils.WithCompareMetricsOptions(
+			pmetrictest.IgnoreScopeVersion(),
+			pmetrictest.IgnoreTimestamp(),
+			pmetrictest.IgnoreStartTimestamp(),
+			pmetrictest.IgnoreMetricValues(),
+			pmetrictest.IgnoreResourceMetricsOrder(),
+			pmetrictest.IgnoreScopeMetricsOrder(),
+			pmetrictest.IgnoreMetricsOrder(),
+			pmetrictest.IgnoreMetricDataPointsOrder(),
+		),
 	)
 }

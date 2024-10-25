@@ -30,14 +30,16 @@ import (
 // The reported telemetry may need to be updated (resource metric file changes),
 // They can detect breaking changes or bugs that may have been missed upstream.
 func TestMysqlIntegration(t *testing.T) {
-	testutils.CheckGoldenFile(t, "all_metrics_config.yaml", "all_expected.yaml",
-		pmetrictest.IgnoreScopeVersion(),
-		pmetrictest.IgnoreMetricDataPointsOrder(),
-		pmetrictest.IgnoreResourceMetricsOrder(),
-		pmetrictest.IgnoreScopeMetricsOrder(),
-		pmetrictest.IgnoreMetricsOrder(),
-		pmetrictest.IgnoreMetricValues(),
-		pmetrictest.IgnoreTimestamp(),
-		pmetrictest.IgnoreStartTimestamp(),
+	testutils.RunMetricsCollectionTest(t, "all_metrics_config.yaml", "all_expected.yaml",
+		testutils.WithCompareMetricsOptions(
+			pmetrictest.IgnoreScopeVersion(),
+			pmetrictest.IgnoreMetricDataPointsOrder(),
+			pmetrictest.IgnoreResourceMetricsOrder(),
+			pmetrictest.IgnoreScopeMetricsOrder(),
+			pmetrictest.IgnoreMetricsOrder(),
+			pmetrictest.IgnoreMetricValues(),
+			pmetrictest.IgnoreTimestamp(),
+			pmetrictest.IgnoreStartTimestamp(),
+		),
 	)
 }

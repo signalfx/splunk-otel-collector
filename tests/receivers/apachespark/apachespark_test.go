@@ -27,17 +27,19 @@ import (
 const sparkPort = "4040"
 
 func TestApacheSparkIntegration(t *testing.T) {
-	testutils.CheckGoldenFile(t, "all_metrics_config.yaml", "all_expected_metrics.yaml",
-		pmetrictest.IgnoreMetricValues(),
-		pmetrictest.IgnoreStartTimestamp(),
-		pmetrictest.IgnoreTimestamp(),
-		pmetrictest.IgnoreScopeVersion(),
-		pmetrictest.IgnoreResourceAttributeValue("spark.application.id"),
-		pmetrictest.IgnoreResourceAttributeValue("spark.application.name"),
-		pmetrictest.IgnoreMetricAttributeValue("active", "spark.stage.status"),
-		pmetrictest.IgnoreMetricAttributeValue("complete", "spark.stage.status"),
-		pmetrictest.IgnoreMetricAttributeValue("failed", "spark.stage.status"),
-		pmetrictest.IgnoreMetricAttributeValue("pending", "spark.stage.status"),
-		pmetrictest.IgnoreMetricDataPointsOrder(),
+	testutils.RunMetricsCollectionTest(t, "all_metrics_config.yaml", "all_expected_metrics.yaml",
+		testutils.WithCompareMetricsOptions(
+			pmetrictest.IgnoreMetricValues(),
+			pmetrictest.IgnoreStartTimestamp(),
+			pmetrictest.IgnoreTimestamp(),
+			pmetrictest.IgnoreScopeVersion(),
+			pmetrictest.IgnoreResourceAttributeValue("spark.application.id"),
+			pmetrictest.IgnoreResourceAttributeValue("spark.application.name"),
+			pmetrictest.IgnoreMetricAttributeValue("active", "spark.stage.status"),
+			pmetrictest.IgnoreMetricAttributeValue("complete", "spark.stage.status"),
+			pmetrictest.IgnoreMetricAttributeValue("failed", "spark.stage.status"),
+			pmetrictest.IgnoreMetricAttributeValue("pending", "spark.stage.status"),
+			pmetrictest.IgnoreMetricDataPointsOrder(),
+		),
 	)
 }

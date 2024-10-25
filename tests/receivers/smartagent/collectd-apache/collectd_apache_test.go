@@ -25,17 +25,23 @@ import (
 )
 
 func TestCollectdApacheReceiverProvidesAllMetrics(t *testing.T) {
-	testutils.CheckGoldenFile(t, "all_metrics_config.yaml", "expected_all.yaml",
-		pmetrictest.IgnoreMetricAttributeValue("host"),
-		pmetrictest.IgnoreMetricsOrder(),
-		pmetrictest.IgnoreMetricValues(),
-		pmetrictest.IgnoreTimestamp())
+	testutils.RunMetricsCollectionTest(t, "all_metrics_config.yaml", "expected_all.yaml",
+		testutils.WithCompareMetricsOptions(
+			pmetrictest.IgnoreMetricAttributeValue("host"),
+			pmetrictest.IgnoreMetricsOrder(),
+			pmetrictest.IgnoreMetricValues(),
+			pmetrictest.IgnoreTimestamp(),
+		),
+	)
 }
 
 func TestCollectdApacheReceiverProvidesDefaultMetrics(t *testing.T) {
-	testutils.CheckGoldenFile(t, "default_metrics_config.yaml", "expected_default.yaml",
-		pmetrictest.IgnoreMetricAttributeValue("host"),
-		pmetrictest.IgnoreMetricsOrder(),
-		pmetrictest.IgnoreMetricValues(),
-		pmetrictest.IgnoreTimestamp())
+	testutils.RunMetricsCollectionTest(t, "default_metrics_config.yaml", "expected_default.yaml",
+		testutils.WithCompareMetricsOptions(
+			pmetrictest.IgnoreMetricAttributeValue("host"),
+			pmetrictest.IgnoreMetricsOrder(),
+			pmetrictest.IgnoreMetricValues(),
+			pmetrictest.IgnoreTimestamp(),
+		),
+	)
 }

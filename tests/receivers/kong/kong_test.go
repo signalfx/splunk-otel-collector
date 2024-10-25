@@ -25,18 +25,20 @@ import (
 )
 
 func TestKongMetrics(t *testing.T) {
-	testutils.CheckGoldenFile(t, "kong_metrics_config.yaml", "kong_metrics_expected.yaml",
-		pmetrictest.IgnoreScopeVersion(),
-		pmetrictest.IgnoreTimestamp(),
-		pmetrictest.IgnoreStartTimestamp(),
-		pmetrictest.IgnoreMetricAttributeValue("node_id"),
-		pmetrictest.IgnoreMetricAttributeValue("pid"),
-		pmetrictest.IgnoreMetricValues(),
-		pmetrictest.IgnoreResourceMetricsOrder(),
-		pmetrictest.IgnoreScopeMetricsOrder(),
-		pmetrictest.IgnoreMetricsOrder(),
-		pmetrictest.IgnoreMetricDataPointsOrder(),
-		pmetrictest.IgnoreSubsequentDataPoints(),
-		pmetrictest.IgnoreSummaryDataPointValueAtQuantileSliceOrder(),
+	testutils.RunMetricsCollectionTest(t, "kong_metrics_config.yaml", "kong_metrics_expected.yaml",
+		testutils.WithCompareMetricsOptions(
+			pmetrictest.IgnoreScopeVersion(),
+			pmetrictest.IgnoreTimestamp(),
+			pmetrictest.IgnoreStartTimestamp(),
+			pmetrictest.IgnoreMetricAttributeValue("node_id"),
+			pmetrictest.IgnoreMetricAttributeValue("pid"),
+			pmetrictest.IgnoreMetricValues(),
+			pmetrictest.IgnoreResourceMetricsOrder(),
+			pmetrictest.IgnoreScopeMetricsOrder(),
+			pmetrictest.IgnoreMetricsOrder(),
+			pmetrictest.IgnoreMetricDataPointsOrder(),
+			pmetrictest.IgnoreSubsequentDataPoints(),
+			pmetrictest.IgnoreSummaryDataPointValueAtQuantileSliceOrder(),
+		),
 	)
 }

@@ -25,10 +25,12 @@ import (
 )
 
 func TestCollectdNginxReceiverProvidesAllMetrics(t *testing.T) {
-	testutils.CheckGoldenFile(t, "all_metrics_config.yaml", "all_expected.yaml",
-		pmetrictest.IgnoreTimestamp(),
-		pmetrictest.IgnoreMetricsOrder(),
-		pmetrictest.IgnoreMetricValues(),
-		pmetrictest.IgnoreMetricAttributeValue("host"),
+	testutils.RunMetricsCollectionTest(t, "all_metrics_config.yaml", "all_expected.yaml",
+		testutils.WithCompareMetricsOptions(
+			pmetrictest.IgnoreTimestamp(),
+			pmetrictest.IgnoreMetricsOrder(),
+			pmetrictest.IgnoreMetricValues(),
+			pmetrictest.IgnoreMetricAttributeValue("host"),
+		),
 	)
 }

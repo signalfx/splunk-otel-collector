@@ -38,14 +38,14 @@ func TestExtensionLifecycle(t *testing.T) {
 	}
 
 	f := NewFactory()
-	fstExt, err := f.CreateExtension(ctx, createParams, cfg)
+	fstExt, err := f.Create(ctx, createParams, cfg)
 	require.NoError(t, err)
 	require.NotNil(t, fstExt)
 
 	require.NoError(t, fstExt.Start(ctx, componenttest.NewNopHost()))
 	require.NoError(t, fstExt.Shutdown(ctx))
 
-	sndExt, err := f.CreateExtension(ctx, createParams, cfg)
+	sndExt, err := f.Create(ctx, createParams, cfg)
 	require.NoError(t, err)
 	require.NotNil(t, sndExt)
 	require.NoError(t, sndExt.Start(ctx, componenttest.NewNopHost()))

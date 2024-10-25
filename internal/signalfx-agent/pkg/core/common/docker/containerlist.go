@@ -7,6 +7,7 @@ import (
 
 	dtypes "github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/events"
 	"github.com/docker/docker/api/types/filters"
 	docker "github.com/docker/docker/client"
 	log "github.com/sirupsen/logrus"
@@ -104,7 +105,7 @@ func ListAndWatchContainers(ctx context.Context, client *docker.Client, changeHa
 	START_STREAM:
 		for {
 			since := lastTime.Format(time.RFC3339Nano)
-			options := dtypes.EventsOptions{
+			options := events.ListOptions{
 				Filters: f,
 				Since:   since,
 			}

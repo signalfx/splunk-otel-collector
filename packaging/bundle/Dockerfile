@@ -15,7 +15,7 @@
 ARG ARCH=amd64
 ARG JDK_VERSION=11.0.25_9
 ARG MAVEN_VERSION=3.6.0
-ARG PYTHON_VERSION=3.12.7
+ARG PYTHON_VERSION=3.13.0
 ARG PIP_VERSION=24.2
 ARG COLLECTD_VERSION=5.8.0-sfx0
 ARG COLLECTD_COMMIT=4d3327b14cf4359029613baf4f90c4952702105e
@@ -169,7 +169,7 @@ RUN wget -nv -O /tmp/Python-${PYTHON_VERSION}.tgz https://www.python.org/ftp/pyt
     make -j`nproc` && make install libinstall && \
     ldconfig
 
-RUN rm -rf /usr/local/lib/python3.12/test /usr/local/lib/python3.12/unittest
+RUN rm -rf /usr/local/lib/python3.13/test /usr/local/lib/python3.13/unittest
 
 RUN rm -rf /tmp/Python*
 
@@ -267,9 +267,9 @@ RUN DISABLE_XENCPU=""; if [ "$ARCH" = "ppc64le" ]; then DISABLE_XENCPU="--disabl
         --disable-silent-rules \
         --disable-static \
         --with-java=${JAVA_HOME} \
-        LIBPYTHON_LDFLAGS="$(python3.12-config --ldflags) -lpython3.12" \
-        LIBPYTHON_CPPFLAGS="$(python3.12-config --includes)/cpython" \
-        LIBPYTHON_LIBS="$(python3.12-config --libs) -lpython3.12"
+        LIBPYTHON_LDFLAGS="$(python3.13-config --ldflags) -lpython3.13" \
+        LIBPYTHON_CPPFLAGS="$(python3.13-config --includes)/cpython" \
+        LIBPYTHON_LIBS="$(python3.13-config --libs) -lpython3.13"
 
 # Compile all of collectd first, including plugins
 RUN make -j`nproc` &&\
@@ -318,15 +318,15 @@ RUN /usr/local/bin/python3 -m pip list
 # Remove pip to avoid usage in python monitor and in exec'd container
 RUN /usr/local/bin/python3 -m pip uninstall pip -y
 # Delete all bundled wheels
-RUN find /usr/local/lib/python3.12 -name "*.whl" -delete
+RUN find /usr/local/lib/python3.13 -name "*.whl" -delete
 
 # Delete all compiled python to save space
-RUN find /usr/local/lib/python3.12 -name "*.pyc" -o -name "*.pyo" | xargs rm
+RUN find /usr/local/lib/python3.13 -name "*.pyc" -o -name "*.pyo" | xargs rm
 # We don't support compiling extension modules so don't need this directory
-RUN rm -rf /usr/local/lib/python3.12/config-*-linux-gnu
+RUN rm -rf /usr/local/lib/python3.13/config-*-linux-gnu
 
-RUN find /usr/local/lib/python3.12 -type d -name __pycache__ | xargs rm -rf {} \;
-RUN find /usr/local/lib/python3.12 -wholename "*test*.key" -delete -or -wholename "*test*.pem" -delete
+RUN find /usr/local/lib/python3.13 -type d -name __pycache__ | xargs rm -rf {} \;
+RUN find /usr/local/lib/python3.13 -wholename "*test*.key" -delete -or -wholename "*test*.pem" -delete
 
 
 ######## Extra packages that don't make sense to pull down in any other stage ########
@@ -372,9 +372,9 @@ RUN mkdir -p /opt/root/bin &&\
 COPY --from=collectd /usr/local/bin/patchelf /usr/bin/
 
 # Gather Python dependencies
-COPY --from=python-plugins /usr/local/lib/python3.12 /opt/root/lib/python3.12
-COPY --from=python-plugins /usr/local/lib/libpython3.12.so.1.0 /opt/root/lib
-COPY --from=python-plugins /usr/local/bin/python3.12 /opt/root/bin/python
+COPY --from=python-plugins /usr/local/lib/python3.13 /opt/root/lib/python3.13
+COPY --from=python-plugins /usr/local/lib/libpython3.13.so.1.0 /opt/root/lib
+COPY --from=python-plugins /usr/local/bin/python3.13 /opt/root/bin/python
 
 # Gather compiled collectd plugin libraries
 COPY --from=collectd /usr/sbin/collectd /opt/root/bin/collectd

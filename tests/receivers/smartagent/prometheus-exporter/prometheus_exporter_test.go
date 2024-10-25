@@ -26,34 +26,43 @@ import (
 )
 
 func TestPrometheusExporterProvidesOTelInternalMetrics(t *testing.T) {
-	testutils.CheckGoldenFile(t, "internal_metrics_config.yaml", "expected_internal.yaml",
-		pmetrictest.IgnoreMetricsOrder(),
-		pmetrictest.IgnoreMetricAttributeValue("service_instance_id"),
-		pmetrictest.IgnoreMetricAttributeValue("service_version"),
-		pmetrictest.IgnoreTimestamp(),
-		pmetrictest.IgnoreStartTimestamp(),
-		pmetrictest.IgnoreMetricValues(
-			"otelcol_exporter_sent_metric_points",
-			"otelcol_process_cpu_seconds",
-			"otelcol_process_memory_rss",
-			"otelcol_process_runtime_heap_alloc_bytes",
-			"otelcol_process_runtime_total_alloc_bytes",
-			"otelcol_process_runtime_total_sys_memory_bytes",
-			"otelcol_process_uptime",
-			"otelcol_receiver_accepted_metric_points",
-		))
+	testutils.RunMetricsCollectionTest(t, "internal_metrics_config.yaml", "expected_internal.yaml",
+		testutils.WithCompareMetricsOptions(
+			pmetrictest.IgnoreMetricsOrder(),
+			pmetrictest.IgnoreMetricAttributeValue("service_instance_id"),
+			pmetrictest.IgnoreMetricAttributeValue("service_version"),
+			pmetrictest.IgnoreTimestamp(),
+			pmetrictest.IgnoreStartTimestamp(),
+			pmetrictest.IgnoreMetricValues(
+				"otelcol_exporter_sent_metric_points",
+				"otelcol_process_cpu_seconds",
+				"otelcol_process_memory_rss",
+				"otelcol_process_runtime_heap_alloc_bytes",
+				"otelcol_process_runtime_total_alloc_bytes",
+				"otelcol_process_runtime_total_sys_memory_bytes",
+				"otelcol_process_uptime",
+				"otelcol_receiver_accepted_metric_points",
+			),
+		),
+	)
 }
 
 func TestPrometheusExporterScrapesTargets(t *testing.T) {
-	testutils.CheckGoldenFile(t, "httpd_metrics_config.yaml", "expected_httpd.yaml",
-		pmetrictest.IgnoreMetricsOrder(),
-		pmetrictest.IgnoreTimestamp(),
-		pmetrictest.IgnoreStartTimestamp())
+	testutils.RunMetricsCollectionTest(t, "httpd_metrics_config.yaml", "expected_httpd.yaml",
+		testutils.WithCompareMetricsOptions(
+			pmetrictest.IgnoreMetricsOrder(),
+			pmetrictest.IgnoreTimestamp(),
+			pmetrictest.IgnoreStartTimestamp(),
+		),
+	)
 }
 
 func TestPrometheusExporterScrapesTargetsWithFilter(t *testing.T) {
-	testutils.CheckGoldenFile(t, "httpd_metrics_config_with_filter.yaml", "expected_httpd_filtered.yaml",
-		pmetrictest.IgnoreMetricsOrder(),
-		pmetrictest.IgnoreTimestamp(),
-		pmetrictest.IgnoreStartTimestamp())
+	testutils.RunMetricsCollectionTest(t, "httpd_metrics_config_with_filter.yaml", "expected_httpd_filtered.yaml",
+		testutils.WithCompareMetricsOptions(
+			pmetrictest.IgnoreMetricsOrder(),
+			pmetrictest.IgnoreTimestamp(),
+			pmetrictest.IgnoreStartTimestamp(),
+		),
+	)
 }

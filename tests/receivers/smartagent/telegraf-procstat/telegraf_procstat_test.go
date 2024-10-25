@@ -25,8 +25,11 @@ import (
 )
 
 func TestTelegrafProcstatReceiverProvidesAllMetrics(t *testing.T) {
-	testutils.CheckGoldenFile(t, "all_metrics_config.yaml", "expected_all.yaml",
-		pmetrictest.IgnoreMetricsOrder(),
-		pmetrictest.IgnoreTimestamp(),
-		pmetrictest.IgnoreMetricValues())
+	testutils.RunMetricsCollectionTest(t, "all_metrics_config.yaml", "expected_all.yaml",
+		testutils.WithCompareMetricsOptions(
+			pmetrictest.IgnoreMetricsOrder(),
+			pmetrictest.IgnoreTimestamp(),
+			pmetrictest.IgnoreMetricValues(),
+		),
+	)
 }

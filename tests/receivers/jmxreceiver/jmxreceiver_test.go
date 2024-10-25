@@ -25,15 +25,17 @@ import (
 )
 
 func TestJMXReceiverProvidesAllJVMMetrics(t *testing.T) {
-	testutils.CheckGoldenFile(t, "all_metrics_config.yaml", "jmx_expected.yaml",
-		pmetrictest.IgnoreTimestamp(),
-		pmetrictest.IgnoreStartTimestamp(),
-		pmetrictest.IgnoreScopeVersion(),
-		pmetrictest.IgnoreMetricValues(),
-		pmetrictest.IgnoreResourceMetricsOrder(),
-		pmetrictest.IgnoreScopeMetricsOrder(),
-		pmetrictest.IgnoreMetricsOrder(),
-		pmetrictest.IgnoreMetricDataPointsOrder(),
-		pmetrictest.IgnoreResourceAttributeValue("telemetry.sdk.version"),
+	testutils.RunMetricsCollectionTest(t, "all_metrics_config.yaml", "jmx_expected.yaml",
+		testutils.WithCompareMetricsOptions(
+			pmetrictest.IgnoreTimestamp(),
+			pmetrictest.IgnoreStartTimestamp(),
+			pmetrictest.IgnoreScopeVersion(),
+			pmetrictest.IgnoreMetricValues(),
+			pmetrictest.IgnoreResourceMetricsOrder(),
+			pmetrictest.IgnoreScopeMetricsOrder(),
+			pmetrictest.IgnoreMetricsOrder(),
+			pmetrictest.IgnoreMetricDataPointsOrder(),
+			pmetrictest.IgnoreResourceAttributeValue("telemetry.sdk.version"),
+		),
 	)
 }

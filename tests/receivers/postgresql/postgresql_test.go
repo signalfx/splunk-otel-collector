@@ -28,13 +28,15 @@ import (
 // This test ensures the collector can connect to a PostgreSQL DB, and properly get metrics. It's not intended to
 // test the receiver itself.
 func TestPostgresqlDBIntegration(t *testing.T) {
-	testutils.CheckGoldenFile(t, "all_metrics_config.yaml", "expected.yaml",
-		pmetrictest.IgnoreScopeVersion(),
-		pmetrictest.IgnoreTimestamp(),
-		pmetrictest.IgnoreStartTimestamp(),
-		pmetrictest.IgnoreMetricDataPointsOrder(),
-		pmetrictest.IgnoreScopeMetricsOrder(),
-		pmetrictest.IgnoreResourceMetricsOrder(),
-		pmetrictest.IgnoreMetricValues(),
+	testutils.RunMetricsCollectionTest(t, "all_metrics_config.yaml", "expected.yaml",
+		testutils.WithCompareMetricsOptions(
+			pmetrictest.IgnoreScopeVersion(),
+			pmetrictest.IgnoreTimestamp(),
+			pmetrictest.IgnoreStartTimestamp(),
+			pmetrictest.IgnoreMetricDataPointsOrder(),
+			pmetrictest.IgnoreScopeMetricsOrder(),
+			pmetrictest.IgnoreResourceMetricsOrder(),
+			pmetrictest.IgnoreMetricValues(),
+		),
 	)
 }

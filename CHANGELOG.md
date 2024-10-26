@@ -8,6 +8,7 @@
   Both monitors are deprecated and replaced by the hostmetricsreceiver and processlist monitor.
 - (Splunk) Remove deprecated collectd/etcd monitor. [Please use the etcd prometheus endpoint to scrape metrics.](https://etcd.io/docs/v3.5/metrics/) ([#5520](https://github.com/signalfx/splunk-otel-collector/pull/5520))
 - (Splunk) Remove deprecated collectd/health-checker monitor. ([#5522](https://github.com/signalfx/splunk-otel-collector/pull/5522))
+- (Splunk) Remove deprecated loggingexporter from the distribution ([#5551](https://github.com/signalfx/splunk-otel-collector/pull/5551))
 
 ### 🚩Deprecations 🚩
 
@@ -28,6 +29,9 @@
 
 - (Splunk) Add [chrony receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/chronyreceiver) ([#5535](https://github.com/signalfx/splunk-otel-collector/pull/5535))
 
+### 💡 Enhancements 💡
+
+- (Splunk) Update Python to 3.13.0 ([#](https://github.com/signalfx/splunk-otel-collector/pull/))
 ## v0.111.0
 
 

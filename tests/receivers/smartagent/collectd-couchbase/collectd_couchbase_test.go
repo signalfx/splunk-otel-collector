@@ -25,11 +25,13 @@ import (
 )
 
 func TestCollectdCouchbaseReceiverProvidesAllMetrics(t *testing.T) {
-	testutils.CheckGoldenFile(t, "all_metrics_config.yaml", "all_expected.yaml",
-		pmetrictest.IgnoreMetricsOrder(),
-		pmetrictest.IgnoreResourceMetricsOrder(),
-		pmetrictest.IgnoreTimestamp(),
-		pmetrictest.IgnoreResourceAttributeValue("node"),
-		pmetrictest.IgnoreMetricValues(),
+	testutils.RunMetricsCollectionTest(t, "all_metrics_config.yaml", "all_expected.yaml",
+		testutils.WithCompareMetricsOptions(
+			pmetrictest.IgnoreMetricsOrder(),
+			pmetrictest.IgnoreResourceMetricsOrder(),
+			pmetrictest.IgnoreTimestamp(),
+			pmetrictest.IgnoreResourceAttributeValue("node"),
+			pmetrictest.IgnoreMetricValues(),
+		),
 	)
 }

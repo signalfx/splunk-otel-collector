@@ -25,24 +25,26 @@ import (
 )
 
 func TestCollectdSolrReceiverProvidesAllMetrics(t *testing.T) {
-	testutils.CheckGoldenFile(t, "all_metrics_config.yaml", "all_expected.yaml",
-		pmetrictest.IgnoreTimestamp(),
-		pmetrictest.IgnoreMetricValues(
-			"gauge.solr.core_usablespace",
-			"counter.solr.node_collections_requests",
-			"counter.solr.node_metrics_requests",
-			"counter.solr.http_2xx_responses",
-			"counter.solr.http_requests",
-			"gauge.solr.jetty_request_latency",
-			"gauge.solr.jvm_heap_usage",
-			"gauge.solr.jvm_total_memory_used",
-			"gauge.solr.jvm_memory_pools_Metaspace_usage",
-			"gauge.solr.searcher_warmup",
-			"gauge.solr.core_totalspace",
-			"gauge.solr.core_index_size",
-			"gauge.solr.search_query_response",
-			"gauge.solr.update_request_handler_response",
+	testutils.RunMetricsCollectionTest(t, "all_metrics_config.yaml", "all_expected.yaml",
+		testutils.WithCompareMetricsOptions(
+			pmetrictest.IgnoreTimestamp(),
+			pmetrictest.IgnoreMetricValues(
+				"gauge.solr.core_usablespace",
+				"counter.solr.node_collections_requests",
+				"counter.solr.node_metrics_requests",
+				"counter.solr.http_2xx_responses",
+				"counter.solr.http_requests",
+				"gauge.solr.jetty_request_latency",
+				"gauge.solr.jvm_heap_usage",
+				"gauge.solr.jvm_total_memory_used",
+				"gauge.solr.jvm_memory_pools_Metaspace_usage",
+				"gauge.solr.searcher_warmup",
+				"gauge.solr.core_totalspace",
+				"gauge.solr.core_index_size",
+				"gauge.solr.search_query_response",
+				"gauge.solr.update_request_handler_response",
+			),
+			pmetrictest.IgnoreResourceAttributeValue("node"),
 		),
-		pmetrictest.IgnoreResourceAttributeValue("node"),
 	)
 }

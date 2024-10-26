@@ -38,7 +38,11 @@ func (nr noopReader) Read(b []byte) (int, error) {
 	return 0, nil
 }
 
-var _ io.Reader = noopReader{}
+func (nr noopReader) Seek(int64, int) (int64, error) {
+	return 0, nil
+}
+
+var _ io.ReadSeeker = noopReader{}
 
 func TestDockerBuilderMethods(t *testing.T) {
 	builder := NewContainer()

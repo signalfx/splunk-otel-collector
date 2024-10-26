@@ -40,7 +40,7 @@ func TestBundleDirDefault(t *testing.T) {
 	err = cm.Unmarshal(&emptyConfig)
 	require.NoError(t, err)
 
-	ext, err := factory.CreateExtension(context.Background(), extension.Settings{}, emptyConfig)
+	ext, err := factory.Create(context.Background(), extension.Settings{}, emptyConfig)
 	require.NoError(t, err)
 	require.NotNil(t, ext)
 

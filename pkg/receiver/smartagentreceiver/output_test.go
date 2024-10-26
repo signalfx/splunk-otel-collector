@@ -369,7 +369,7 @@ func getExportersTest() map[pipeline.Signal]map[component.ID]component.Component
 	exporters[pipeline.SignalMetrics] = metricExporterMap
 
 	exampleExporterFactory := exportertest.NewNopFactory()
-	exampleExporter, _ := exampleExporterFactory.CreateMetricsExporter(
+	exampleExporter, _ := exampleExporterFactory.CreateMetrics(
 		context.Background(), otelcolexporter.Settings{}, nil,
 	)
 

@@ -133,7 +133,6 @@ func TestDefaultComponents(t *testing.T) {
 		"file",
 		"kafka",
 		"loadbalancing",
-		"logging",
 		"nop",
 		"otlp",
 		"otlphttp",

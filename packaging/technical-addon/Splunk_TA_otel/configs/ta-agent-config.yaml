@@ -133,7 +133,7 @@ exporters:
     sync_host_metadata: true
     correlation:
   # Debug
-  logging:
+  debug:
     verbosity: detailed
 
 service:

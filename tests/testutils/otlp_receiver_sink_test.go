@@ -130,7 +130,7 @@ func otlpMetricsExporter(t *testing.T) otelcolexporter.Metrics {
 	otlpExporterFactory := otlpexporter.NewFactory()
 	ctx := context.Background()
 
-	exporter, err := otlpExporterFactory.CreateMetricsExporter(ctx, createParams, &exporterCfg)
+	exporter, err := otlpExporterFactory.CreateMetrics(ctx, createParams, &exporterCfg)
 
 	require.NoError(t, err)
 	require.NotNil(t, exporter)

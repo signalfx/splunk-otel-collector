@@ -59,7 +59,7 @@ func getPackagePath(t testing.TB, suffix string) string {
 }
 
 func TestDefaultConfigDDiscoversPostgres(t *testing.T) {
-	tc := testutils.NewTestcase(t, testutils.OTLPReceiverSinkBindToBridgeGateway)
+	tc := testutils.NewTestcase(t)
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
 

@@ -28,6 +28,9 @@
 
 - (Splunk) Add [chrony receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/chronyreceiver) ([#5535](https://github.com/signalfx/splunk-otel-collector/pull/5535))
 
+### 💡 Enhancements 💡
+
+- (Splunk) Update Python to 3.13.0 ([#](https://github.com/signalfx/splunk-otel-collector/pull/))
 ## v0.111.0
 
 

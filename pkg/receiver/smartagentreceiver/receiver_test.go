@@ -422,7 +422,7 @@ func (m *mockHost) GetExtensions() map[component.ID]otelcolextension.Extension {
 }
 
 func getExtension(f otelcolextension.Factory, cfg component.Config) otelcolextension.Extension {
-	e, err := f.CreateExtension(context.Background(), otelcolextension.Settings{}, cfg)
+	e, err := f.Create(context.Background(), otelcolextension.Settings{}, cfg)
 	if err != nil {
 		panic(err)
 	}

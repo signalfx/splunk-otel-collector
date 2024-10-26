@@ -25,14 +25,16 @@ import (
 )
 
 func TestNginxIntegration(t *testing.T) {
-	testutils.CheckGoldenFile(t, "all_metrics_config.yaml", "all_expected_metrics.yaml",
-		pmetrictest.IgnoreScopeVersion(),
-		pmetrictest.IgnoreMetricDataPointsOrder(),
-		pmetrictest.IgnoreResourceMetricsOrder(),
-		pmetrictest.IgnoreScopeMetricsOrder(),
-		pmetrictest.IgnoreMetricsOrder(),
-		pmetrictest.IgnoreMetricValues(),
-		pmetrictest.IgnoreTimestamp(),
-		pmetrictest.IgnoreStartTimestamp(),
+	testutils.RunMetricsCollectionTest(t, "all_metrics_config.yaml", "all_expected_metrics.yaml",
+		testutils.WithCompareMetricsOptions(
+			pmetrictest.IgnoreScopeVersion(),
+			pmetrictest.IgnoreMetricDataPointsOrder(),
+			pmetrictest.IgnoreResourceMetricsOrder(),
+			pmetrictest.IgnoreScopeMetricsOrder(),
+			pmetrictest.IgnoreMetricsOrder(),
+			pmetrictest.IgnoreMetricValues(),
+			pmetrictest.IgnoreTimestamp(),
+			pmetrictest.IgnoreStartTimestamp(),
+		),
 	)
 }

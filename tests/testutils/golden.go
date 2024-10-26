@@ -35,51 +35,53 @@ import (
 	"go.uber.org/zap"
 )
 
-func CheckGoldenFile(t *testing.T, configFile string, expectedFilePath string, options ...pmetrictest.CompareMetricsOption) {
-	f := otlpreceiver.NewFactory()
-	port := GetAvailablePort(t)
-	c := f.CreateDefaultConfig().(*otlpreceiver.Config)
-	c.GRPC.NetAddr.Endpoint = fmt.Sprintf("localhost:%d", port)
-	sink := &consumertest.MetricsSink{}
-	receiver, err := f.CreateMetrics(context.Background(), receivertest.NewNopSettings(), c, sink)
-	require.NoError(t, err)
-	require.NoError(t, receiver.Start(context.Background(), componenttest.NewNopHost()))
-	t.Cleanup(func() {
-		require.NoError(t, receiver.Shutdown(context.Background()))
-	})
-	logger, _ := zap.NewDevelopment()
-
-	dockerHost := "0.0.0.0"
-	if runtime.GOOS == "darwin" {
-		dockerHost = "host.docker.internal"
-	}
-	p, err := NewCollectorContainer().
-		WithImage(GetCollectorImageOrSkipTest(t)).
-		WithExposedPorts("55679:55679", "55554:55554"). // This is required for tests that read the zpages or the config.
-		WithConfigPath(filepath.Join("testdata", configFile)).
-		WithLogger(logger).
-		WithEnv(map[string]string{"OTLP_ENDPOINT": fmt.Sprintf("%s:%d", dockerHost, port)}).
-		Build()
-	require.NoError(t, err)
-	require.NoError(t, p.Start())
-	t.Cleanup(func() {
-		require.NoError(t, p.Shutdown())
-	})
-
-	expected, err := golden.ReadMetrics(filepath.Join("testdata", expectedFilePath))
-	require.NoError(t, err)
-
-	assert.EventuallyWithT(t, func(tt *assert.CollectT) {
-		if len(sink.AllMetrics()) == 0 {
-			assert.Fail(tt, "No metrics collected")
-			return
-		}
-		err := pmetrictest.CompareMetrics(expected, sink.AllMetrics()[len(sink.AllMetrics())-1], options...)
-		assert.NoError(tt, err)
-	}, 30*time.Second, 1*time.Second)
+type metricCollectionTestOpts struct {
+	compareMetricsOptions []pmetrictest.CompareMetricsOption
+	collectorEnvVars      map[string]string
+	fileMounts            map[string]string
 }
 
-func CheckGoldenFileWithMount(t *testing.T, configFile string, expectedFilePath string, files [][]string, options ...pmetrictest.CompareMetricsOption) {
+type MetricsCollectionTestOption func(*metricCollectionTestOpts)
+
+func WithCompareMetricsOptions(options ...pmetrictest.CompareMetricsOption) MetricsCollectionTestOption {
+	return func(opts *metricCollectionTestOpts) {
+		opts.compareMetricsOptions = append(opts.compareMetricsOptions, options...)
+	}
+}
+
+func WithCollectorEnvVars(envVars map[string]string) MetricsCollectionTestOption {
+	return func(opts *metricCollectionTestOpts) {
+		if opts.collectorEnvVars == nil {
+			opts.collectorEnvVars = envVars
+			return
+		}
+		for k, v := range envVars {
+			opts.collectorEnvVars[k] = v
+		}
+	}
+}
+
+func WithFileMounts(mounts map[string]string) MetricsCollectionTestOption {
+	return func(opts *metricCollectionTestOpts) {
+		if opts.fileMounts == nil {
+			opts.fileMounts = mounts
+			return
+		}
+		for k, v := range mounts {
+			opts.fileMounts[k] = v
+		}
+	}
+}
+
+// RunMetricsCollectionTest runs a test that collects metrics using a collector container with provided configFile and
+// compares the result with the expected metrics defined in the file expectedFilePath.
+func RunMetricsCollectionTest(t *testing.T, configFile string, expectedFilePath string,
+	options ...MetricsCollectionTestOption) {
+	opts := &metricCollectionTestOpts{}
+	for _, opt := range options {
+		opt(opts)
+	}
+
 	f := otlpreceiver.NewFactory()
 	port := GetAvailablePort(t)
 	c := f.CreateDefaultConfig().(*otlpreceiver.Config)
@@ -99,14 +101,14 @@ func CheckGoldenFileWithMount(t *testing.T, configFile string, expectedFilePath 
 	}
 	cc := NewCollectorContainer().
 		WithImage(GetCollectorImageOrSkipTest(t)).
-		WithExposedPorts("55679:55679", "55554:55554"). // This is required for tests that read the zpages or the config.
 		WithConfigPath(filepath.Join("testdata", configFile)).
 		WithLogger(logger).
-		WithEnv(map[string]string{"OTLP_ENDPOINT": fmt.Sprintf("%s:%d", dockerHost, port)})
-	for _, kv := range files {
+		WithEnv(map[string]string{"OTLP_ENDPOINT": fmt.Sprintf("%s:%d", dockerHost, port)}).
+		WithEnv(opts.collectorEnvVars)
+	for k, v := range opts.fileMounts {
 		cc.(*CollectorContainer).Container = cc.(*CollectorContainer).Container.WithFile(testcontainers.ContainerFile{
-			HostFilePath:      kv[0],
-			ContainerFilePath: kv[1],
+			HostFilePath:      k,
+			ContainerFilePath: v,
 			FileMode:          0644,
 		})
 	}
@@ -125,51 +127,8 @@ func CheckGoldenFileWithMount(t *testing.T, configFile string, expectedFilePath 
 			assert.Fail(tt, "No metrics collected")
 			return
 		}
-		err := pmetrictest.CompareMetrics(expected, sink.AllMetrics()[len(sink.AllMetrics())-1], options...)
-		assert.NoError(tt, err)
-	}, 30*time.Second, 1*time.Second)
-}
-
-func CheckGoldenFileWithCollectorOptions(t *testing.T, configFile string, expectedFilePath string, collectorOptionsFunc func(Collector) Collector, options ...pmetrictest.CompareMetricsOption) {
-	f := otlpreceiver.NewFactory()
-	port := GetAvailablePort(t)
-	c := f.CreateDefaultConfig().(*otlpreceiver.Config)
-	c.GRPC.NetAddr.Endpoint = fmt.Sprintf("localhost:%d", port)
-	sink := &consumertest.MetricsSink{}
-	receiver, err := f.CreateMetrics(context.Background(), receivertest.NewNopSettings(), c, sink)
-	require.NoError(t, err)
-	require.NoError(t, receiver.Start(context.Background(), componenttest.NewNopHost()))
-	t.Cleanup(func() {
-		require.NoError(t, receiver.Shutdown(context.Background()))
-	})
-	logger, _ := zap.NewDevelopment()
-
-	dockerHost := "0.0.0.0"
-	if runtime.GOOS == "darwin" {
-		dockerHost = "host.docker.internal"
-	}
-	collectorContainer := NewCollectorContainer().
-		WithImage(GetCollectorImageOrSkipTest(t)).
-		WithExposedPorts("55679:55679", "55554:55554"). // This is required for tests that read the zpages or the config.
-		WithConfigPath(filepath.Join("testdata", configFile)).
-		WithLogger(logger).
-		WithEnv(map[string]string{"OTLP_ENDPOINT": fmt.Sprintf("%s:%d", dockerHost, port)})
-	p, err := collectorOptionsFunc(collectorContainer).Build()
-	require.NoError(t, err)
-	require.NoError(t, p.Start())
-	t.Cleanup(func() {
-		require.NoError(t, p.Shutdown())
-	})
-
-	expected, err := golden.ReadMetrics(filepath.Join("testdata", expectedFilePath))
-	require.NoError(t, err)
-
-	assert.EventuallyWithT(t, func(tt *assert.CollectT) {
-		if len(sink.AllMetrics()) == 0 {
-			assert.Fail(tt, "No metrics collected")
-			return
-		}
-		err := pmetrictest.CompareMetrics(expected, sink.AllMetrics()[len(sink.AllMetrics())-1], options...)
+		err := pmetrictest.CompareMetrics(expected, sink.AllMetrics()[len(sink.AllMetrics())-1],
+			opts.compareMetricsOptions...)
 		assert.NoError(tt, err)
 	}, 30*time.Second, 1*time.Second)
 }

@@ -304,7 +304,7 @@ func (d *discoverer) startObservers(cfg *Config) []context.CancelFunc {
 		}
 
 		observerSettings := d.createExtensionCreateSettings(observerID)
-		observer, err := observerFactory.CreateExtension(context.Background(), observerSettings, observerConfig)
+		observer, err := observerFactory.Create(context.Background(), observerSettings, observerConfig)
 		if err != nil {
 			d.logger.Warn(fmt.Sprintf("failed creating %q extension", observerID), zap.Error(err))
 			continue

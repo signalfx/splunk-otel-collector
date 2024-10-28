@@ -65,6 +65,7 @@ type Monitor struct {
 // on a varied interval
 func (m *Monitor) Configure(conf *Config) error {
 	m.logger = logrus.WithFields(logrus.Fields{"monitorType": monitorType, "monitorID": conf.MonitorID})
+	m.logger.Warn("The cloudfoundry monitor is deprecated and will be removed in a future release. Please use https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/cloudfoundryreceiver")
 
 	// create contexts for managing the plugin loop
 	var ctx context.Context

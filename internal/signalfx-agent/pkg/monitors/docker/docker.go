@@ -12,6 +12,7 @@ import (
 	"time"
 
 	dtypes "github.com/docker/docker/api/types"
+	dcontainer "github.com/docker/docker/api/types/container"
 	docker "github.com/docker/docker/client"
 	"github.com/sirupsen/logrus"
 
@@ -179,7 +180,7 @@ func (m *Monitor) fetchStats(container dockerContainer, labelMap map[string]stri
 		return
 	}
 
-	var parsed dtypes.StatsJSON
+	var parsed dcontainer.StatsResponse
 	err = json.NewDecoder(stats.Body).Decode(&parsed)
 	stats.Body.Close()
 	if err != nil {

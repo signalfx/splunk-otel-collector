@@ -32,14 +32,16 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configtelemetry"
 	"go.opentelemetry.io/collector/confmap"
-	"go.opentelemetry.io/collector/confmap/converter/expandconverter"
 	"go.opentelemetry.io/collector/confmap/provider/envprovider"
 	"go.opentelemetry.io/collector/confmap/provider/yamlprovider"
 	"go.opentelemetry.io/collector/consumer"
 	otelcolextension "go.opentelemetry.io/collector/extension"
+	"go.opentelemetry.io/collector/featuregate"
 	"go.opentelemetry.io/collector/otelcol"
 	"go.opentelemetry.io/collector/pdata/plog"
+	"go.opentelemetry.io/collector/pipeline"
 	otelcolreceiver "go.opentelemetry.io/collector/receiver"
+	"go.opentelemetry.io/otel/metric"
 	mnoop "go.opentelemetry.io/otel/metric/noop"
 	tnoop "go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/zap"
@@ -58,6 +60,15 @@ const (
 	logLevelEnvVar = "SPLUNK_DISCOVERY_LOG_LEVEL"
 )
 
+const continuousDiscoveryFGKey = "splunk.continuousDiscovery"
+
+var continuousDiscoveryFG = featuregate.GlobalRegistry().MustRegister(
+	continuousDiscoveryFGKey,
+	featuregate.StageAlpha,
+	featuregate.WithRegisterDescription("When enabled, service discovery will continuously run and collect metrics from discovered services."),
+	featuregate.WithRegisterFromVersion("v0.109.0"),
+)
+
 // discoverer provides the mechanism for a "preflight" collector service
 // that will stand up the observers and discovery receivers based on the .discovery.yaml
 // contents of the config dir, acting as a log consumer to determine which
@@ -67,7 +78,7 @@ type discoverer struct {
 	factories otelcol.Factories
 	// receiverID -> observerID -> config
 	unexpandedReceiverEntries map[component.ID]map[component.ID]map[string]any
-	extensions                map[component.ID]otelcolextension.Extension
+	operationalObservers      map[component.ID]otelcolextension.Extension // Only extensions successfully started should be added to this map.
 	logger                    *zap.Logger
 	discoveredReceivers       map[component.ID]discovery.StatusType
 	configs                   map[string]*Config
@@ -104,7 +115,6 @@ func newDiscoverer(logger *zap.Logger) (*discoverer, error) {
 		logger:                    logger,
 		info:                      info,
 		factories:                 factories,
-		extensions:                map[component.ID]otelcolextension.Extension{},
 		configs:                   map[string]*Config{},
 		duration:                  duration,
 		mu:                        sync.Mutex{},
@@ -117,16 +127,16 @@ func newDiscoverer(logger *zap.Logger) (*discoverer, error) {
 	return d, nil
 }
 
-func (d *discoverer) resolveConfig(discoveryReceiverRaw map[string]any) (*confmap.Conf, error) {
-	out, err := yaml.Marshal(discoveryReceiverRaw)
+func (d *discoverer) resolveConfig(cm map[string]any) (*confmap.Conf, error) {
+	out, err := yaml.Marshal(cm)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal discovery receiver config for uri: %w", err)
+		return nil, fmt.Errorf("failed to marshal discovery config for uri: %w", err)
 	}
 	uris := []string{fmt.Sprintf("yaml:%s", out)}
 	resolver, err := confmap.NewResolver(confmap.ResolverSettings{
-		URIs:               uris,
-		ProviderFactories:  []confmap.ProviderFactory{yamlprovider.NewFactory(), envprovider.NewFactory()},
-		ConverterFactories: []confmap.ConverterFactory{expandconverter.NewFactory()},
+		URIs:              uris,
+		ProviderFactories: []confmap.ProviderFactory{yamlprovider.NewFactory(), envprovider.NewFactory()},
+		DefaultScheme:     "env",
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create a resolver from the given uris. %w", err)
@@ -134,7 +144,7 @@ func (d *discoverer) resolveConfig(discoveryReceiverRaw map[string]any) (*confma
 
 	conf, err := resolver.Resolve(context.Background())
 	if err != nil {
-		return nil, fmt.Errorf("failed to resolve configuration from the resovler %w", err)
+		return nil, fmt.Errorf("failed to resolve configuration from the resolver %w", err)
 	}
 	if err = resolver.Shutdown(context.Background()); err != nil {
 		d.logger.Warn("error shutting down resolver", zap.Error(err))
@@ -171,48 +181,90 @@ func (d *discoverer) discover(cfg *Config) (map[string]any, error) {
 			return nil, fmt.Errorf("failed reconciling properties.discovery: %w", err)
 		}
 	}
-	discoveryReceivers, discoveryObservers, err := d.createDiscoveryReceiversAndObservers(cfg)
-	if err != nil {
-		d.logger.Error("failed preparing discovery components", zap.Error(err))
-		return nil, err
-	}
+	d.prepareObserverConfigs(cfg)
 
-	if len(discoveryObservers) == 0 {
+	if len(cfg.DiscoveryObservers) == 0 {
 		fmt.Fprintf(os.Stderr, "No discovery observers have been configured.\n")
 		return nil, nil
 	}
 
-	var cancels []context.CancelFunc
+	cancels := d.startObservers(cfg)
+	defer combineCancelFuncs(cancels)()
+	defer d.stopObservers()
 
-	defer func() {
+	discoveryReceiversConfigs, err := d.discoveryReceiversConfigs(cfg)
+	if err != nil {
+		d.logger.Error("failed preparing discovery receivers", zap.Error(err))
+		return nil, err
+	}
+
+	if continuousDiscoveryFG.IsEnabled() {
+		return d.continuousDiscoveryConfig(cfg, discoveryReceiversConfigs), nil
+	}
+
+	if err = d.performDiscovery(discoveryReceiversConfigs); err != nil {
+		return nil, err
+	}
+	return d.staticDiscoveryConfig(cfg)
+}
+
+func combineCancelFuncs(cancels []context.CancelFunc) context.CancelFunc {
+	return func() {
 		for _, cancel := range cancels {
 			cancel()
 		}
-	}()
-
-	for observerID, observer := range discoveryObservers {
-		d.logger.Debug(fmt.Sprintf("starting observer %q", observerID))
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		cancels = append(cancels, cancel)
-		if e := observer.Start(ctx, d); e != nil {
-			d.logger.Warn(
-				fmt.Sprintf("%q startup failed. Won't proceed with %q-based discovery", observerID, observerID.Type()),
-				zap.Error(e),
-			)
-		}
 	}
+}
 
-	for receiverID, receiver := range discoveryReceivers {
+func (d *discoverer) performDiscovery(discoveryReceiversConfigs map[string]any) error {
+	var cancels []context.CancelFunc
+	discoveryReceiverFactory := discoveryreceiver.NewFactory()
+	for receiverID, receiverConfigRaw := range discoveryReceiversConfigs {
+		discoveryReceiverDefaultConfig := discoveryReceiverFactory.CreateDefaultConfig()
+		discoveryReceiverConfig, _ := discoveryReceiverDefaultConfig.(*discoveryreceiver.Config)
+		rcr, ok := receiverConfigRaw.(map[string]any)
+		if !ok {
+			return fmt.Errorf("invalid type of discoveryreceiver.Config %T", receiverConfigRaw)
+		}
+		discoveryReceiverConfMap, err := d.resolveConfig(rcr)
+		if err != nil {
+			return fmt.Errorf("error preparing discovery receiver config: %w", err)
+		}
+		if err = discoveryReceiverConfMap.Unmarshal(&discoveryReceiverConfig); err != nil {
+			return fmt.Errorf("failed unmarshaling discovery receiver config: %w", err)
+		}
+
+		discoveryReceiverSettings := d.createReceiverCreateSettings()
+
+		var componentID component.ID
+		if err = componentID.UnmarshalText([]byte(receiverID)); err != nil {
+			return fmt.Errorf("invalid %s type: %w", receiverID, err)
+		}
+		discoveryReceiverSettings.ID = componentID
+
+		lr, err := discoveryReceiverFactory.CreateLogs(context.Background(), discoveryReceiverSettings, discoveryReceiverConfig, d)
+		if err != nil {
+			d.logger.Warn(fmt.Sprintf("failed creating discovery receiver %q", receiverID), zap.Error(err))
+			continue
+		}
+
 		d.logger.Debug(fmt.Sprintf("starting receiver %q", receiverID))
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		cancels = append(cancels, cancel)
-		if err = receiver.Start(ctx, d); err != nil {
+		if err := lr.Start(ctx, d); err != nil {
 			d.logger.Warn(
 				fmt.Sprintf("%q startup failed.", receiverID),
 				zap.Error(err),
 			)
+			continue
 		}
+		defer func(rcvID string, rcv otelcolreceiver.Logs) {
+			if e := rcv.Shutdown(context.Background()); e != nil {
+				d.logger.Warn(fmt.Sprintf("error shutting down receiver %q", rcvID), zap.Error(e))
+			}
+		}(receiverID, lr)
 	}
+	defer combineCancelFuncs(cancels)()
 
 	_, _ = fmt.Fprintf(os.Stderr, "Discovering for next %s...\n", d.duration)
 	select {
@@ -221,65 +273,117 @@ func (d *discoverer) discover(cfg *Config) (map[string]any, error) {
 	}
 	_, _ = fmt.Fprintf(os.Stderr, "Discovery complete.\n")
 
-	for receiverID, receiver := range discoveryReceivers {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		cancels = append(cancels, cancel)
-		if e := receiver.Shutdown(ctx); e != nil {
-			d.logger.Warn(fmt.Sprintf("error shutting down receiver %q", receiverID), zap.Error(e))
+	return nil
+}
+
+func (d *discoverer) startObservers(cfg *Config) []context.CancelFunc {
+	var cancels []context.CancelFunc
+	d.operationalObservers = make(map[component.ID]component.Component, len(cfg.DiscoveryObservers))
+	for observerID, observerEntry := range cfg.DiscoveryObservers {
+		d.logger.Debug(fmt.Sprintf("creating observer %q", observerID))
+		observerFactory, err := factoryForObserverType(observerID.Type())
+		if err != nil {
+			d.logger.Warn(err.Error())
+			continue
 		}
-	}
-	for observerID, observer := range discoveryObservers {
+
+		obsCfg, err := d.resolveConfig(observerEntry.Config)
+		if err != nil {
+			d.logger.Warn("error resolving observer config", zap.Error(err))
+			continue
+		}
+
+		observerConfig := observerFactory.CreateDefaultConfig()
+		if err = obsCfg.Unmarshal(&observerConfig); err != nil {
+			d.logger.Warn(fmt.Sprintf("failed unmarshaling %q config", observerID), zap.Error(err))
+			continue
+		}
+
+		if ce := d.logger.Check(zap.DebugLevel, "unmarshalled observer config"); ce != nil {
+			ce.Write(zap.String("config", fmt.Sprintf("%#v\n", observerConfig)))
+		}
+
+		observerSettings := d.createExtensionCreateSettings(observerID)
+		observer, err := observerFactory.Create(context.Background(), observerSettings, observerConfig)
+		if err != nil {
+			d.logger.Warn(fmt.Sprintf("failed creating %q extension", observerID), zap.Error(err))
+			continue
+		}
+
+		d.logger.Debug(fmt.Sprintf("starting observer %q", observerID))
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		cancels = append(cancels, cancel)
-		if e := observer.Shutdown(ctx); e != nil {
+		if e := observer.Start(ctx, d); e != nil {
+			d.logger.Warn(
+				fmt.Sprintf("%q startup failed. Won't proceed with %q-based discovery", observerID, observerID.Type()),
+				zap.Error(e),
+			)
+			continue
+		}
+		d.operationalObservers[observerID] = observer
+	}
+	return cancels
+}
+
+func (d *discoverer) stopObservers() {
+	for observerID, observer := range d.operationalObservers {
+		if e := observer.Shutdown(context.Background()); e != nil {
 			d.logger.Warn(fmt.Sprintf("error shutting down observer %q", observerID), zap.Error(e))
 		}
 	}
-
-	discoveryConfig, err := d.discoveryConfig(cfg)
-	if err != nil {
-		return nil, fmt.Errorf("failed constructing discovery config: %w", err)
-	}
-	return discoveryConfig, nil
 }
 
-func (d *discoverer) createDiscoveryReceiversAndObservers(cfg *Config) (map[component.ID]otelcolreceiver.Logs, map[component.ID]otelcolextension.Extension, error) {
-	discoveryObservers := map[component.ID]otelcolextension.Extension{}
-	discoveryReceivers := map[component.ID]otelcolreceiver.Logs{}
-
-	discoveryReceiverFactory := discoveryreceiver.NewFactory()
-	for _, observerID := range cfg.observersForDiscoveryMode() {
-		observer, err := d.createObserver(observerID, cfg)
-		if err != nil {
-			d.logger.Info(fmt.Sprintf("failed creating %q extension. no service discovery possible on this platform", observerID), zap.Error(err))
-			continue
-		}
-		if observer == nil {
-			// disabled by property
-			continue
-		}
-		d.extensions[observerID] = observer
-		discoveryObservers[observerID] = observer
-
-		discoveryReceiverDefaultConfig := discoveryReceiverFactory.CreateDefaultConfig()
-		discoveryReceiverConfig, ok := discoveryReceiverDefaultConfig.(*discoveryreceiver.Config)
+func (d *discoverer) continuousDiscoveryConfig(cfg *Config, discoveryReceiversConfigs map[string]any) map[string]any {
+	extensions := map[string]any{}
+	var observerIDs []string
+	for observerID, observerEntry := range cfg.DiscoveryObservers {
+		_, ok := d.operationalObservers[observerID]
 		if !ok {
-			return nil, nil, fmt.Errorf("failed to coerce to discoveryreceiver.Config")
+			continue
 		}
+		extensions[observerID.String()] = observerEntry.Config.ToStringMap()
+		observerIDs = append(observerIDs, observerID.String())
+	}
 
+	receiverIDs := make([]string, 0, len(discoveryReceiversConfigs))
+	for receiverID := range discoveryReceiversConfigs {
+		receiverIDs = append(receiverIDs, receiverID)
+	}
+
+	dCfg := map[string]any{
+		"extensions": extensions,
+		"receivers":  discoveryReceiversConfigs,
+		"service": map[string]any{
+			discovery.DiscoReceiversKey:  receiverIDs,
+			discovery.DiscoExtensionsKey: observerIDs,
+		},
+	}
+	d.logger.Debug("determined continuous discovery config", zap.Any("config", dCfg))
+	return dCfg
+}
+
+// discoveryReceiversConfigs merges properties into the discovery receiver configs and returns a map of all discovery receiver configs
+// that can be created for the enabled observers.
+func (d *discoverer) discoveryReceiversConfigs(cfg *Config) (map[string]any, error) {
+	discoveryReceiversConfigs := map[string]any{}
+	for observerID := range d.operationalObservers {
 		discoveryReceiverRaw := map[string]any{}
-		receivers := map[string]any{}
+		discoveryReceiverRaw["watch_observers"] = []string{observerID.String()}
+		discoveryReceiverRaw["embed_receiver_config"] = true
+		receiversSection := map[string]any{}
+		discoveryReceiverRaw["receivers"] = receiversSection
 
 		receiversPropertiesConf := confmap.New()
 		if d.propertiesConf.IsSet("receivers") {
+			var err error
 			receiversPropertiesConf, err = d.propertiesConf.Sub("receivers")
 			if err != nil {
-				return nil, nil, fmt.Errorf("failed obtaining receivers properties config: %w", err)
+				return nil, fmt.Errorf("failed obtaining receivers properties config: %w", err)
 			}
 		}
 		for receiverID, receiver := range cfg.ReceiversToDiscover {
-			if ok, err = d.updateReceiverForObserver(receiverID, receiver, observerID); err != nil {
-				return nil, nil, err
+			if ok, updErr := d.updateReceiverForObserver(receiverID, receiver, observerID); updErr != nil {
+				return nil, updErr
 			} else if !ok {
 				continue
 			}
@@ -291,7 +395,7 @@ func (d *discoverer) createDiscoveryReceiversAndObservers(cfg *Config) (map[comp
 			if receiversPropertiesConf.IsSet(receiverID.String()) {
 				receiverPropertiesConf, e := receiversPropertiesConf.Sub(receiverID.String())
 				if e != nil {
-					return nil, nil, fmt.Errorf("failed obtaining receiver properties config: %w", e)
+					return nil, fmt.Errorf("failed obtaining receiver properties config: %w", e)
 				}
 				entryConf := confmap.NewFromStringMap(receiverEntry)
 
@@ -305,8 +409,8 @@ func (d *discoverer) createDiscoveryReceiversAndObservers(cfg *Config) (map[comp
 					receiverPropertiesConf = confmap.NewFromStringMap(pc)
 				}
 
-				if err = entryConf.Merge(receiverPropertiesConf); err != nil {
-					return nil, nil, fmt.Errorf("failed merging receiver %q properties config: %w", receiverID, err)
+				if err := entryConf.Merge(receiverPropertiesConf); err != nil {
+					return nil, fmt.Errorf("failed merging receiver %q properties config: %w", receiverID, err)
 				}
 				receiverEntry = entryConf.ToStringMap()
 			}
@@ -316,42 +420,27 @@ func (d *discoverer) createDiscoveryReceiversAndObservers(cfg *Config) (map[comp
 			}
 
 			d.addUnexpandedReceiverConfig(receiverID, observerID, receiverEntry)
-			receivers[receiverID.String()] = receiverEntry
+			receiversSection[receiverID.String()] = receiverEntry
 		}
 
-		discoveryReceiverRaw["receivers"] = receivers
-		discoveryReceiverConfMap, err := d.resolveConfig(discoveryReceiverRaw)
-
-		if err != nil {
-			return nil, nil, fmt.Errorf("error preparing discovery receiver config: %w", err)
-		}
-
-		if err = discoveryReceiverConfMap.Unmarshal(&discoveryReceiverConfig); err != nil {
-			return nil, nil, fmt.Errorf("failed unmarshaling discovery receiver config: %w", err)
-		}
-
-		discoveryReceiverConfig.WatchObservers = append(discoveryReceiverConfig.WatchObservers, observerID)
-		discoveryReceiverConfig.EmbedReceiverConfig = true
-
-		discoveryReceiverSettings := d.createReceiverCreateSettings()
-		discoveryReceiverSettings.ID = observerID
-		var lr otelcolreceiver.Logs
-		if lr, err = discoveryReceiverFactory.CreateLogsReceiver(context.Background(), discoveryReceiverSettings, discoveryReceiverDefaultConfig, d); err != nil {
-			return nil, nil, fmt.Errorf("failed creating discovery receiver: %w", err)
-		}
-		discoveryReceivers[component.NewIDWithName(discoveryReceiverFactory.Type(), observerID.String())] = lr
+		receiverName := component.MustNewIDWithName(discoveryreceiver.NewFactory().Type().String(), observerID.String()).String()
+		discoveryReceiversConfigs[receiverName] = discoveryReceiverRaw
 	}
 
-	return discoveryReceivers, discoveryObservers, nil
+	return discoveryReceiversConfigs, nil
 }
 
-func (d *discoverer) createObserver(observerID component.ID, cfg *Config) (otelcolextension.Extension, error) {
-	observerFactory, err := factoryForObserverType(observerID.Type())
-	if err != nil {
-		return nil, err
+func (d *discoverer) prepareObserverConfigs(cfg *Config) {
+	for _, observerID := range cfg.observersForDiscoveryMode() {
+		if err := d.prepareObserverConfig(observerID, cfg); err != nil {
+			d.logger.Info(fmt.Sprintf("failed configuring %q extension. "+
+				"no service discovery possible on this platform", observerID), zap.Error(err))
+		}
 	}
+}
 
-	observerConfig := observerFactory.CreateDefaultConfig()
+// prepareObserverConfigs merges properties into the observer configs.
+func (d *discoverer) prepareObserverConfig(observerID component.ID, cfg *Config) error {
 	enabled := true
 	if e := cfg.DiscoveryObservers[observerID].Enabled; e != nil {
 		enabled = *e
@@ -364,15 +453,15 @@ func (d *discoverer) createObserver(observerID component.ID, cfg *Config) (otelc
 	if d.propertiesConf.IsSet("extensions") {
 		propertiesConf, e := d.propertiesConf.Sub("extensions")
 		if e != nil {
-			return nil, fmt.Errorf("failed obtaining extensions properties config: %w", e)
+			return fmt.Errorf("failed obtaining extensions properties config: %w", e)
 		}
 		if propertiesConf.IsSet(observerID.String()) {
 			var observerProperties *confmap.Conf
 			if observerProperties, e = propertiesConf.Sub(observerID.String()); e != nil {
-				return nil, fmt.Errorf("failed obtaining observer properties: %w", e)
+				return fmt.Errorf("failed obtaining observer properties: %w", e)
 			}
 			if propertiesConf, e = observerProperties.Sub("config"); e != nil {
-				return nil, fmt.Errorf("failed obtaining observer properties config: %w", e)
+				return fmt.Errorf("failed obtaining observer properties config: %w", e)
 			}
 			if observerProperties.IsSet("enabled") {
 				if b, convErr := strconv.ParseBool(strings.ToLower(fmt.Sprintf("%v", observerProperties.Get("enabled")))); convErr == nil {
@@ -380,8 +469,8 @@ func (d *discoverer) createObserver(observerID component.ID, cfg *Config) (otelc
 					enabled = b
 				}
 			}
-			if err = observerDiscoveryConf.Merge(propertiesConf); err != nil {
-				return nil, fmt.Errorf("failed merging observer properties config: %w", err)
+			if err := observerDiscoveryConf.Merge(propertiesConf); err != nil {
+				return fmt.Errorf("failed merging observer properties config: %w", err)
 			}
 
 			// update the discovery config item for later retrieval in unexpanded form
@@ -391,30 +480,7 @@ func (d *discoverer) createObserver(observerID component.ID, cfg *Config) (otelc
 			}
 		}
 	}
-
-	if e := cfg.DiscoveryObservers[observerID].Enabled; e != nil && !*e {
-		return nil, nil
-	}
-
-	expandConverter := expandconverter.NewFactory().Create(confmap.ConverterSettings{Logger: d.logger})
-	if err = expandConverter.Convert(context.Background(), observerDiscoveryConf); err != nil {
-		return nil, fmt.Errorf("error converting environment variables in %q config: %w", observerID, err)
-	}
-
-	if err = observerDiscoveryConf.Unmarshal(&observerConfig); err != nil {
-		return nil, fmt.Errorf("failed unmarshaling %q config: %w", observerID, err)
-	}
-
-	if ce := d.logger.Check(zap.DebugLevel, "unmarshalled observer config"); ce != nil {
-		ce.Write(zap.String("config", fmt.Sprintf("%#v\n", observerConfig)))
-	}
-
-	observerSettings := d.createExtensionCreateSettings(observerID)
-	observer, err := observerFactory.CreateExtension(context.Background(), observerSettings, observerConfig)
-	if err != nil {
-		return nil, fmt.Errorf("failed creating %q extension: %w", observerID, err)
-	}
-	return observer, nil
+	return nil
 }
 
 func (d *discoverer) updateReceiverForObserver(receiverID component.ID, receiver ReceiverToDiscoverEntry, observerID component.ID) (bool, error) {
@@ -454,6 +520,7 @@ func factoryForObserverType(extType component.Type) (otelcolextension.Factory, e
 		component.MustNewType("k8s_observer"):      k8sobserver.NewFactory(),
 		component.MustNewType("ecs_task_observer"): ecstaskobserver.NewFactory(),
 	}
+
 	ef, ok := factories[extType]
 	if !ok {
 		return nil, fmt.Errorf("unsupported discovery observer %q. Please remove its .discovery.yaml from your config directory", extType)
@@ -461,7 +528,7 @@ func factoryForObserverType(extType component.Type) (otelcolextension.Factory, e
 	return ef, nil
 }
 
-func (d *discoverer) discoveryConfig(cfg *Config) (map[string]any, error) {
+func (d *discoverer) staticDiscoveryConfig(cfg *Config) (map[string]any, error) {
 	dCfg := confmap.New()
 	receiverAdded := false
 	for receiverID, receiverStatus := range d.discoveredReceivers {
@@ -542,10 +609,9 @@ func (d *discoverer) createExtensionCreateSettings(observerID component.ID) otel
 	return otelcolextension.Settings{
 		ID: observerID,
 		TelemetrySettings: component.TelemetrySettings{
-			Logger:         zap.New(d.logger.Core()).With(zap.String("kind", observerID.String())),
-			TracerProvider: tnoop.NewTracerProvider(),
-			MeterProvider:  mnoop.NewMeterProvider(),
-			MetricsLevel:   configtelemetry.LevelDetailed,
+			Logger:               zap.New(d.logger.Core()).With(zap.String("kind", observerID.String())),
+			TracerProvider:       tnoop.NewTracerProvider(),
+			LeveledMeterProvider: func(configtelemetry.Level) metric.MeterProvider { return mnoop.NewMeterProvider() },
 		},
 		BuildInfo: d.info,
 	}
@@ -554,10 +620,9 @@ func (d *discoverer) createExtensionCreateSettings(observerID component.ID) otel
 func (d *discoverer) createReceiverCreateSettings() otelcolreceiver.Settings {
 	return otelcolreceiver.Settings{
 		TelemetrySettings: component.TelemetrySettings{
-			Logger:         zap.New(d.logger.Core()).With(zap.String("kind", "receiver")),
-			TracerProvider: tnoop.NewTracerProvider(),
-			MeterProvider:  mnoop.NewMeterProvider(),
-			MetricsLevel:   configtelemetry.LevelDetailed,
+			Logger:               zap.New(d.logger.Core()).With(zap.String("kind", "receiver")),
+			TracerProvider:       tnoop.NewTracerProvider(),
+			LeveledMeterProvider: func(configtelemetry.Level) metric.MeterProvider { return mnoop.NewMeterProvider() },
 		},
 		BuildInfo: d.info,
 	}
@@ -615,12 +680,13 @@ func (d *discoverer) GetFactory(kind component.Kind, componentType component.Typ
 }
 
 // GetExtensions is a component.Host method used to forward discovery observers.
+// This method only returns operational extensions, i.e., those that have been successfully started.
 func (d *discoverer) GetExtensions() map[component.ID]otelcolextension.Extension {
-	return d.extensions
+	return d.operationalObservers
 }
 
 // GetExporters is a component.Host method.
-func (d *discoverer) GetExporters() map[component.DataType]map[component.ID]component.Component {
+func (d *discoverer) GetExporters() map[pipeline.Signal]map[component.ID]component.Component {
 	return nil
 }
 

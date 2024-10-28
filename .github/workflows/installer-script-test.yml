@@ -8,11 +8,11 @@ on:
   pull_request:
     paths:
       - '.github/workflows/installer-script-test.yml'
-      - 'internal/buildscripts/packaging/installer/install.sh'
-      - 'internal/buildscripts/packaging/tests/helpers/**'
-      - 'internal/buildscripts/packaging/tests/images/**'
-      - 'internal/buildscripts/packaging/tests/installer_test.py'
-      - 'internal/buildscripts/packaging/tests/requirements.txt'
+      - 'packaging/installer/install.sh'
+      - 'packaging/tests/helpers/**'
+      - 'packaging/tests/images/**'
+      - 'packaging/tests/installer_test.py'
+      - 'packaging/tests/requirements.txt'
 
 concurrency:
   group: installer-script-test-${{ github.event.pull_request.number || github.ref }}
@@ -29,9 +29,9 @@ jobs:
         id: get-matrix
         run: |
           # create test matrix for distro images and archs
-          dockerfiles=$(ls internal/buildscripts/packaging/tests/images/deb/Dockerfile.* internal/buildscripts/packaging/tests/images/rpm/Dockerfile.* | cut -d '.' -f2- | sort -u)
+          dockerfiles=$(ls packaging/tests/images/deb/Dockerfile.* packaging/tests/images/rpm/Dockerfile.* | cut -d '.' -f2- | sort -u)
           if [ -z "$dockerfiles" ]; then
-            echo "Failed to get dockerfiles from internal/buildscripts/packaging/tests/images!" >&2
+            echo "Failed to get dockerfiles from packaging/tests/images!" >&2
             exit 1
           fi
           distro=$(for d in $dockerfiles; do echo -n "\"$d\","; done)
@@ -53,9 +53,9 @@ jobs:
       matrix: ${{ fromJSON(needs.installer-test-matrix.outputs.matrix) }}
       fail-fast: false
     env:
-      PYTHON_VERSION: '3.11'
-      PIP_VERSION: '22.0.4'
-      REQUIREMENTS_PATH: "internal/buildscripts/packaging/tests/requirements.txt"
+      PYTHON_VERSION: '3.13'
+      PIP_VERSION: '24.2'
+      REQUIREMENTS_PATH: "packaging/tests/requirements.txt"
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4
@@ -98,7 +98,7 @@ jobs:
             tests="$distro and ${{ matrix.ARCH }} and ${{ matrix.INSTRUMENTATION }}"
           fi
           python3 -u -m pytest -s --verbose -k "$tests" \
-            internal/buildscripts/packaging/tests/installer_test.py
+            packaging/tests/installer_test.py
 
       # qemu, networking, running systemd in containers, etc., can be flaky
       - name: Re-run failed tests
@@ -116,4 +116,4 @@ jobs:
           fi
           python3 -u -m pytest -s --verbose -k "$tests" \
             --last-failed \
-            internal/buildscripts/packaging/tests/installer_test.py
+            packaging/tests/installer_test.py

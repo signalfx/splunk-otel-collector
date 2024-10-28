@@ -20,7 +20,6 @@ import (
 
 	"github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/extension"
 )
@@ -28,9 +27,6 @@ import (
 func TestExtensionLifecycle(t *testing.T) {
 	ctx := context.Background()
 	createParams := extension.Settings{}
-	createParams.ReportStatus = func(event *component.StatusEvent) {
-		require.NoError(t, event.Err())
-	}
 	cfg := &Config{
 		Config: config.Config{
 			BundleDir: "/bundle/",
@@ -42,14 +38,14 @@ func TestExtensionLifecycle(t *testing.T) {
 	}
 
 	f := NewFactory()
-	fstExt, err := f.CreateExtension(ctx, createParams, cfg)
+	fstExt, err := f.Create(ctx, createParams, cfg)
 	require.NoError(t, err)
 	require.NotNil(t, fstExt)
 
 	require.NoError(t, fstExt.Start(ctx, componenttest.NewNopHost()))
 	require.NoError(t, fstExt.Shutdown(ctx))
 
-	sndExt, err := f.CreateExtension(ctx, createParams, cfg)
+	sndExt, err := f.Create(ctx, createParams, cfg)
 	require.NoError(t, err)
 	require.NotNil(t, sndExt)
 	require.NoError(t, sndExt.Start(ctx, componenttest.NewNopHost()))

@@ -26,6 +26,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/receiverhelper"
+	"go.opentelemetry.io/otel/metric"
 	mnoop "go.opentelemetry.io/otel/metric/noop"
 	tnoop "go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/zap"
@@ -34,7 +35,6 @@ import (
 const (
 	observerNameAttr = "discovery.observer.name"
 	observerTypeAttr = "discovery.observer.type"
-	receiverRuleAttr = "discovery.receiver.rule"
 	matchedLogAttr   = "discovery.matched_log"
 )
 
@@ -43,26 +43,26 @@ var (
 )
 
 type discoveryReceiver struct {
-	logsConsumer       consumer.Logs
-	receiverCreator    receiver.Metrics
-	alreadyLogged      *sync.Map
-	endpointTracker    *endpointTracker
-	sentinel           chan struct{}
-	metricEvaluator    *metricEvaluator
-	statementEvaluator *statementEvaluator
-	logger             *zap.Logger
-	config             *Config
-	obsreportReceiver  *receiverhelper.ObsReport
-	pLogs              chan plog.Logs
-	observables        map[component.ID]observer.Observable
-	loopFinished       *sync.WaitGroup
-	settings           receiver.Settings
+	nextLogsConsumer    consumer.Logs
+	nextMetricsConsumer consumer.Metrics
+	receiverCreator     receiver.Metrics
+	alreadyLogged       *sync.Map
+	endpointTracker     *endpointTracker
+	sentinel            chan struct{}
+	metricsConsumer     *metricsConsumer
+	statementEvaluator  *statementEvaluator
+	logger              *zap.Logger
+	config              *Config
+	obsreportReceiver   *receiverhelper.ObsReport
+	pLogs               chan plog.Logs
+	observables         map[component.ID]observer.Observable
+	loopFinished        *sync.WaitGroup
+	settings            receiver.Settings
 }
 
 func newDiscoveryReceiver(
 	settings receiver.Settings,
 	config *Config,
-	consumer consumer.Logs,
 ) (*discoveryReceiver, error) {
 	obsReceiver, err := receiverhelper.NewObsReport(receiverhelper.ObsReportSettings{
 		ReceiverID:             settings.ID,
@@ -78,7 +78,6 @@ func newDiscoveryReceiver(
 		obsreportReceiver: obsReceiver,
 		logger:            settings.TelemetrySettings.Logger,
 		settings:          settings,
-		logsConsumer:      consumer,
 		pLogs:             make(chan plog.Logs),
 		sentinel:          make(chan struct{}, 1),
 		loopFinished:      &sync.WaitGroup{},
@@ -93,29 +92,35 @@ func (d *discoveryReceiver) Start(ctx context.Context, host component.Host) (err
 		return fmt.Errorf("failed obtaining observables from host: %w", err)
 	}
 
-	correlations := newCorrelationStore(d.logger, d.config.CorrelationTTL)
-	d.endpointTracker = newEndpointTracker(d.observables, d.config, d.logger, d.pLogs, correlations)
-	d.endpointTracker.start()
+	var correlations *correlationStore
+	if d.nextLogsConsumer != nil {
+		correlations = newCorrelationStore(d.logger, d.config.CorrelationTTL)
+		if d.nextLogsConsumer != nil {
+			d.endpointTracker = newEndpointTracker(d.observables, d.config, d.logger, d.pLogs, correlations)
+			d.endpointTracker.start()
+		}
 
-	d.metricEvaluator = newMetricEvaluator(d.logger, d.config, correlations)
-
-	if d.statementEvaluator, err = newStatementEvaluator(d.logger, d.settings.ID, d.config, correlations); err != nil {
-		return fmt.Errorf("failed creating statement evaluator: %w", err)
+		if d.statementEvaluator, err = newStatementEvaluator(d.logger, d.settings.ID, d.config, correlations); err != nil {
+			return fmt.Errorf("failed creating statement evaluator: %w", err)
+		}
 	}
+
+	d.metricsConsumer = newMetricsConsumer(d.logger, d.config, correlations, d.nextMetricsConsumer)
 
 	if err = d.createAndSetReceiverCreator(); err != nil {
 		return fmt.Errorf("failed creating internal receiver_creator: %w", err)
 	}
 
-	loopStarted := &sync.WaitGroup{}
-	loopStarted.Add(1)
-	d.loopFinished.Add(1)
-	go d.consumerLoop(loopStarted)
-	// wait until we know consumer loop is running before starting receiver creator
-	// so as not to miss any resulting telemetry
-	d.logger.Debug("log consumer initializing")
-	loopStarted.Wait()
-	d.logger.Debug("successfully initialized")
+	if d.nextLogsConsumer != nil {
+		loopStarted := &sync.WaitGroup{}
+		loopStarted.Add(1)
+		d.loopFinished.Add(1)
+		go d.consumerLoop(loopStarted)
+		// wait until we know consumer loop is running before starting receiver creator
+		// so as not to miss any resulting telemetry
+		loopStarted.Wait()
+		d.logger.Debug("log consumer initializing initialized")
+	}
 
 	if err = d.receiverCreator.Start(ctx, host); err != nil {
 		return fmt.Errorf("failed starting internal receiver_creator: %w", err)
@@ -127,14 +132,11 @@ func (d *discoveryReceiver) Start(ctx context.Context, host component.Host) (err
 func (d *discoveryReceiver) Shutdown(ctx context.Context) error {
 	if d.endpointTracker != nil {
 		d.endpointTracker.stop()
-		defer func() {
-			d.logger.Debug("discovery receiver shutting down")
-			d.sentinel <- struct{}{}
-			d.loopFinished.Wait()
-			close(d.sentinel)
-			close(d.pLogs)
-			d.logger.Debug("finished shutdown")
-		}()
+		d.logger.Debug("discovery receiver shutting down")
+		close(d.sentinel)
+		d.loopFinished.Wait()
+		close(d.pLogs)
+		d.logger.Debug("finished shutdown")
 	}
 
 	if d.receiverCreator != nil {
@@ -159,7 +161,7 @@ func (d *discoveryReceiver) consumerLoop(loopStarted *sync.WaitGroup) {
 				return
 			}
 			ctx := d.obsreportReceiver.StartLogsOp(context.Background())
-			err := d.logsConsumer.ConsumeLogs(context.Background(), pLog)
+			err := d.nextLogsConsumer.ConsumeLogs(context.Background(), pLog)
 			if err != nil {
 				d.logger.Info("logsConsumer failed consumption", zap.Error(err))
 			}
@@ -174,26 +176,29 @@ func (d *discoveryReceiver) createAndSetReceiverCreator() error {
 		return err
 	}
 	id := component.MustNewIDWithName(receiverCreatorFactory.Type().String(), d.settings.ID.String())
-	// receiverCreatorConfig.SetIDName(d.settings.ID.String())
+	ts := component.TelemetrySettings{
+		Logger:               d.logger,
+		TracerProvider:       tnoop.NewTracerProvider(),
+		LeveledMeterProvider: func(configtelemetry.Level) metric.MeterProvider { return mnoop.NewMeterProvider() },
+	}
+	if d.statementEvaluator != nil {
+		// TODO: Introduce a wrapper logger that combines the receiver_creator logger with the statement evaluator logger
+		//   in a way that we avoid flooding the logs with errors but still provide enough information to debug issues.
+		ts.Logger = d.statementEvaluator.evaluatedLogger.With(
+			zap.String("kind", "receiver"),
+			zap.String("name", id.String()),
+		)
+	}
 	receiverCreatorSettings := receiver.Settings{
-		ID: id,
-		TelemetrySettings: component.TelemetrySettings{
-			Logger: d.statementEvaluator.evaluatedLogger.With(
-				zap.String("kind", "receiver"),
-				zap.String("name", id.String()),
-			),
-			TracerProvider: tnoop.NewTracerProvider(),
-			MeterProvider:  mnoop.NewMeterProvider(),
-			MetricsLevel:   configtelemetry.LevelDetailed,
-			ReportStatus:   d.settings.TelemetrySettings.ReportStatus,
-		},
+		ID:                id,
+		TelemetrySettings: ts,
 		BuildInfo: component.BuildInfo{
 			Command: "discovery",
 			Version: "latest",
 		},
 	}
-	if d.receiverCreator, err = receiverCreatorFactory.CreateMetricsReceiver(
-		context.Background(), receiverCreatorSettings, receiverCreatorConfig, d.metricEvaluator,
+	if d.receiverCreator, err = receiverCreatorFactory.CreateMetrics(
+		context.Background(), receiverCreatorSettings, receiverCreatorConfig, d.metricsConsumer,
 	); err != nil {
 		return err
 	}

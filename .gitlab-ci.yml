@@ -1,5 +1,5 @@
 default:
-  image: '${DOCKER_CICD_REPO}/ci-container/debian-buster:3.1.1'
+  image: '${DOCKER_CICD_REPO}/ci-container/debian-bookworm:3.5.0'
 
 variables:
   WIN_2019_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2019
@@ -37,7 +37,7 @@ semgrep:
   retry: 2
   variables:
     SAST_SCANNER: "Semgrep"
-    SEMGREP_EXCLUDE: "examples,internal/buildscripts,tests,*_test.go,cmd/otelcol/Dockerfile.windows,deployments/ansible/molecule"
+    SEMGREP_EXCLUDE: "examples,tests,*_test.go,cmd/otelcol/Dockerfile.windows,deployments/ansible/molecule"
     alert_mode: "policy"
   after_script:
     - echo "Check results at $CI_PIPELINE_URL/security"
@@ -116,13 +116,13 @@ fossa:
     - schedules
 
 .deploy-release:
-  image: '${DOCKER_CICD_REPO}/ci-container/python-3.9:1.8.0'
+  image: '${DOCKER_CICD_REPO}/ci-container/python-3.12-bookworm:3.5.0'
   variables:
     PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
   cache:
     key:
       files:
-        - internal/buildscripts/packaging/release/requirements.txt
+        - packaging/release/requirements.txt
     paths:
       - .cache/pip
   retry: 2
@@ -132,7 +132,7 @@ fossa:
   script:
     - *get-artifactory-stage
     - *aws-releaser-role
-    - pip3 install -r internal/buildscripts/packaging/release/requirements.txt
+    - pip3 install -r packaging/release/requirements.txt
     - |
       if [ -n "${PATHS:-}" ]; then
         for path in $PATHS; do
@@ -140,17 +140,17 @@ fossa:
             echo "$path not found!"
             exit 1
           fi
-          python3 internal/buildscripts/packaging/release/release.py --force --stage=${STAGE} --path=$path ${OPTIONS:-}
+          python3 packaging/release/release.py --force --stage=${STAGE} --path=$path ${OPTIONS:-}
         done
       elif [ -n "${INSTALLERS:-}" ]; then
-        python3 internal/buildscripts/packaging/release/release.py --force --installers ${OPTIONS:-}
+        python3 packaging/release/release.py --force --installers ${OPTIONS:-}
       else
         echo "Either the PATHS or INSTALLERS env var must be defined!" >&2
         exit 1
       fi
 
 .go-cache:
-  image: '${DOCKER_HUB_REPO}/golang:1.21.12'
+  image: '${DOCKER_HUB_REPO}/golang:1.22.7'
   variables:
     GOPATH: "$CI_PROJECT_DIR/.go"
   before_script:
@@ -311,6 +311,40 @@ compile:
       - bin/otelcol_*
       - bin/migratecheckpoint_*
 
+otelcol-fips:
+  image: '${DOCKER_CICD_REPO}/ci-container/golang-1.22:3.5.0'
+  extends:
+    - .trigger-filter
+  stage: build
+  needs: []
+  parallel:
+    matrix:
+      - GOOS: linux
+        GOARCH: amd64
+        TAG: main
+      - GOOS: linux
+        GOARCH: arm64
+        TAG: arm
+      - GOOS: windows
+        GOARCH: amd64
+        TAG: main
+  tags:
+    - $TAG
+  id_tokens:  # http://go/gitlab-17
+    CI_JOB_JWT:
+      aud: $CICD_VAULT_ADDR
+  script:
+    - *docker-reader-role
+    - |
+      if [[ -n "${CI_COMMIT_TAG:-}" ]]; then
+        make otelcol-fips VERSION=${CI_COMMIT_TAG} DOCKER_REPO=${DOCKER_HUB_REPO}
+      else
+        make otelcol-fips DOCKER_REPO=${DOCKER_HUB_REPO}
+      fi
+  artifacts:
+    paths:
+      - bin/otelcol-fips_*
+
 libsplunk:
   extends: .trigger-filter
   stage: build
@@ -352,7 +386,7 @@ agent-bundle-linux:
   script:
     - *docker-reader-role
     - docker login -u $CIRCLECI_QUAY_USERNAME -p $CIRCLECI_QUAY_PASSWORD quay.io
-    - PUSH_CACHE=yes make -C internal/signalfx-agent/bundle agent-bundle-linux ARCH=${ARCH} DOCKER_REPO=${DOCKER_HUB_REPO}
+    - PUSH_CACHE=yes make -C packaging/bundle agent-bundle-linux ARCH=${ARCH} DOCKER_REPO=${DOCKER_HUB_REPO}
   artifacts:
     paths:
       - dist/agent-bundle_linux_${ARCH}.tar.gz
@@ -368,12 +402,12 @@ agent-bundle-windows:
   cache:
     key:
       files:
-        - internal/signalfx-agent/bundle/collectd-plugins.yaml
-        - internal/signalfx-agent/bundle/scripts/requirements.txt
+        - packaging/bundle/collectd-plugins.yaml
+        - packaging/bundle/scripts/requirements.txt
     paths:
       - .cache/pip
   script:
-    - ./internal/signalfx-agent/bundle/scripts/windows/make.ps1 bundle
+    - ./packaging/bundle/scripts/windows/make.ps1 bundle
   artifacts:
     paths:
       - dist/agent-bundle_windows_amd64.zip
@@ -437,9 +471,10 @@ sign-exe:
   retry: 2
   needs:
     - compile
+    - otelcol-fips
   parallel:
     matrix:
-      - TARGET: [otelcol]
+      - TARGET: [otelcol, otelcol-fips]
   variables:
     ARTIFACT: bin/${TARGET}_windows_amd64.exe
     SIGN_TYPE: WIN
@@ -486,9 +521,9 @@ sign-osx:
     CI_JOB_JWT:
       aud: $CICD_VAULT_ADDR
   before_script:
-    - ./internal/buildscripts/packaging/fpm/install-deps.sh
+    - ./packaging/fpm/install-deps.sh
   script:
-    - ./internal/buildscripts/packaging/fpm/${PKG_TYPE}/build.sh "${CI_COMMIT_TAG:-}" "$ARCH" "./dist"
+    - ./packaging/fpm/${PKG_TYPE}/build.sh "${CI_COMMIT_TAG:-}" "$ARCH" "./dist"
     - *xray-publish-package
 
 build-deb:
@@ -572,7 +607,7 @@ msi-custom-actions-package:
     - $WixPath = "${Env:ProgramFiles(x86)}\WiX Toolset v3.14"
     - $sfxcaDll = "${WixPath}\SDK\x64\sfxca.dll"
     - $Env:PATH = "${WixPath}\SDK;" + $Env:PATH
-    - $customActionDir = "${PWD}\internal\buildscripts\packaging\msi\SplunkCustomActions"
+    - $customActionDir = "${PWD}\packaging\msi\SplunkCustomActions"
     - $customActionBinDir = "${customActionDir}\bin\Release"
     - MakeSfxCA.exe "${customActionBinDir}\SplunkCustomActions.CA.dll" `
       "${sfxcaDll}" `
@@ -581,7 +616,7 @@ msi-custom-actions-package:
       "${customActionDir}\src\CustomAction.config"
   artifacts:
     paths:
-      - internal/buildscripts/packaging/msi/SplunkCustomActions/bin/Release/SplunkCustomActions.CA.dll
+      - packaging/msi/SplunkCustomActions/bin/Release/SplunkCustomActions.CA.dll
 
 msi-custom-actions-assemblies:
   extends: .trigger-filter
@@ -590,13 +625,13 @@ msi-custom-actions-assemblies:
   needs: []
   dependencies: []
   script:
-    - pushd ./internal/buildscripts/packaging/msi/SplunkCustomActions/
+    - pushd ./packaging/msi/SplunkCustomActions/
     - dotnet publish ./src/SplunkCustomActions.csproj -c Release -o ./bin/Release
     - popd
   artifacts:
     name: msi-custom-actions-assemblies
     paths:
-      - internal/buildscripts/packaging/msi/SplunkCustomActions/bin/Release/*
+      - packaging/msi/SplunkCustomActions/bin/Release/*
 
 sign-debs:
   extends:
@@ -731,7 +766,7 @@ sign-ps-installer:
     DOWNLOAD_DIR: dist/signed
   before_script:
     - mkdir -p dist
-    - cp internal/buildscripts/packaging/installer/install.ps1 dist/install.ps1
+    - cp packaging/installer/install.ps1 dist/install.ps1
   artifacts:
     paths:
       - dist/install.ps1
@@ -819,6 +854,66 @@ build-push-linux-image:
     paths:
       - tags_to_sign_*
 
+build-push-linux-fips-image:
+  extends: .trigger-filter
+  stage: release
+  dependencies:
+    - otelcol-fips
+  retry: 2
+  id_tokens:  # http://go/gitlab-17
+    CI_JOB_JWT:
+      aud: $CICD_VAULT_ADDR
+  script:
+    - *docker-reader-role
+    - docker login -u $CIRCLECI_QUAY_USERNAME -p $CIRCLECI_QUAY_PASSWORD quay.io
+    - |
+      # Set env vars
+      set -e
+      if [[ -n "${CI_COMMIT_TAG:-}" ]]; then
+        IMAGE_NAME="quay.io/signalfx/splunk-otel-collector-fips"
+        IMAGE_TAG=${CI_COMMIT_TAG#v}
+      else
+        IMAGE_NAME="quay.io/signalfx/splunk-otel-collector-fips-dev"
+        IMAGE_TAG=${CI_COMMIT_SHA}
+      fi
+      LATEST_TAG=""
+      if [[ "${CI_COMMIT_BRANCH:-}" = "main" ]] || [[ "${CI_COMMIT_TAG:-}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        # Only push latest tag for main and stable releases
+        LATEST_TAG="latest"
+      fi
+    - echo "Building and pushing ${IMAGE_NAME}:${IMAGE_TAG}"
+    - make docker-otelcol FIPS=true ARCH=amd64,arm64 DOCKER_REPO=${DOCKER_HUB_REPO} IMAGE_NAME=${IMAGE_NAME} IMAGE_TAG=${IMAGE_TAG} SKIP_COMPILE=true SKIP_BUNDLE=true PUSH=true
+    - |
+      # DEPRECATED: Push manifests for each arch
+      set -eo pipefail
+      json=$( docker buildx imagetools inspect --raw ${IMAGE_NAME}:${IMAGE_TAG} )
+      for arch in "amd64" "arm64"; do
+        arch_tag="${IMAGE_TAG}-${arch}"
+        echo "Creating and pushing ${IMAGE_NAME}:${arch_tag} manifest"
+        echo "$json" | jq -r ".manifests[] | select(.platform.architecture == \"${arch}\" and .platform.os == \"linux\")" | tee ${arch}.json
+        docker buildx imagetools create --tag ${IMAGE_NAME}:${arch_tag} --file ${arch}.json
+        if [[ -n "$LATEST_TAG" ]]; then
+          latest_tag="${LATEST_TAG}-${arch}"
+          echo "Creating and pushing ${IMAGE_NAME}:${latest_tag} manifest"
+          docker buildx imagetools create --tag ${IMAGE_NAME}:${latest_tag} ${IMAGE_NAME}:${arch_tag}
+        fi
+        echo "${IMAGE_NAME}:${arch_tag}" > tags_to_sign_${arch}
+      done
+  artifacts:
+    paths:
+      - tags_to_sign_*
+
+sign-linux-image-fips:
+  extends: .sign-docker
+  stage: release
+  parallel:
+    matrix:
+      - ARCH: [amd64, arm64]
+  needs:
+    - build-push-linux-fips-image
+  before_script:
+    - mv tags_to_sign_${ARCH} tags_to_sign
+
 sign-linux-image:
   extends: .sign-docker
   stage: release
@@ -886,7 +981,7 @@ build-push-windows-image:
         # Only push latest tag for main and stable releases
         $LATEST_TAG = "latest-${env:WIN_VERSION}"
       }
-    - $JMX_METRIC_GATHERER_RELEASE = $(Get-Content internal\buildscripts\packaging\jmx-metric-gatherer-release.txt)
+    - $JMX_METRIC_GATHERER_RELEASE = $(Get-Content packaging\jmx-metric-gatherer-release.txt)
     - |
       echo "Building ${IMAGE_NAME}:${IMAGE_TAG}"
       docker build -t ${IMAGE_NAME}:${IMAGE_TAG} --build-arg BASE_IMAGE=${BASE_IMAGE} --build-arg JMX_METRIC_GATHERER_RELEASE=${JMX_METRIC_GATHERER_RELEASE} -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
@@ -996,7 +1091,7 @@ release-debs:
   retry: 2
   before_script:
     - *get-artifactory-stage
-    - pip3 install -r internal/buildscripts/packaging/release/requirements.txt
+    - pip3 install -r packaging/release/requirements.txt
     - apt update && apt install -y curl
     - |
       set -ex
@@ -1005,7 +1100,7 @@ release-debs:
           echo "$path not found!"
           exit 1
         fi
-        python3 internal/buildscripts/packaging/release/release.py --force --stage=${STAGE} --path=$path
+        python3 packaging/release/release.py --force --stage=${STAGE} --path=$path
       done
     - test -f Release
   variables:
@@ -1037,7 +1132,7 @@ release-rpms:
   retry: 2
   before_script:
     - *get-artifactory-stage
-    - pip3 install -r internal/buildscripts/packaging/release/requirements.txt
+    - pip3 install -r packaging/release/requirements.txt
     - apt update && apt install -y curl
     - |
       set -ex
@@ -1046,7 +1141,7 @@ release-rpms:
           echo "$path not found!"
           exit 1
         fi
-        python3 internal/buildscripts/packaging/release/release.py --force --stage=${STAGE} --path=$path
+        python3 packaging/release/release.py --force --stage=${STAGE} --path=$path
       done
     - test -f repomd.xml
   variables:
@@ -1113,7 +1208,7 @@ release-installers:
   variables:
     INSTALLERS: "true"
   before_script:
-    - cp -f dist/signed/install.ps1 internal/buildscripts/packaging/installer/install.ps1
+    - cp -f dist/signed/install.ps1 packaging/installer/install.ps1
 
 choco-release:
   extends: .trigger-filter
@@ -1132,7 +1227,7 @@ choco-release:
       } else {
         throw "Failed to get version from $msi_file_name"
       }
-      .\internal\buildscripts\packaging\choco\make.ps1 build_choco -Version $version -BuildDir .\dist\signed
+      .\packaging\choco\make.ps1 build_choco -Version $version -BuildDir .\dist\signed
     - Test-Path .\dist\signed\splunk-otel-collector.${version}.nupkg
     - |
       # Only push the choco package for stable release tags
@@ -1299,6 +1394,7 @@ github-release:
   stage: github-release
   dependencies:
     - compile
+    - otelcol-fips
     - libsplunk
     - sign-exe
     - sign-osx
@@ -1312,6 +1408,7 @@ github-release:
   script:
     - mkdir -p dist/assets
     - cp bin/otelcol_linux_* dist/assets/
+    - cp bin/otelcol-fips_linux_* dist/assets/
     - cp instrumentation/dist/libsplunk_*.so dist/assets/
     - cp dist/signed/* dist/assets/
     - |
@@ -1331,7 +1428,7 @@ github-release:
       # only create github release for stable release tags
       set -e
       if [[ "${CI_COMMIT_TAG:-}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        release_notes="$( ./internal/buildscripts/packaging/release/gh-release-notes.sh "$CI_COMMIT_TAG" )"
+        release_notes="$( ./packaging/release/gh-release-notes.sh "$CI_COMMIT_TAG" )"
         ghr -t "$GITHUB_TOKEN" -u signalfx -r splunk-otel-collector -n "$CI_COMMIT_TAG" -b "$release_notes" --replace "$CI_COMMIT_TAG" dist/assets/
       fi
   artifacts:
@@ -1393,7 +1490,7 @@ puppet-release:
       - deployments/puppet/pkg/*.tar.gz
 
 chef-release:
-  image: '${DOCKER_HUB_REPO}/ruby:2.7-buster'
+  image: 'chef/chefworkstation:stable'
   stage: release
   only:
     variables:
@@ -1404,7 +1501,6 @@ chef-release:
     - mkdir -p ~/.chef
     - cat "$CHEF_PEM" > ~/.chef/signalfx.pem
     - cat "$CHEF_KNIFE_RB" > ~/.chef/knife.rb
-    - gem install nori:2.6.0 faraday:2.8.1 knife:17.10.0
     - mkdir -p /tmp/cookbooks
     - cp -r deployments/chef /tmp/cookbooks/splunk_otel_collector
   script:

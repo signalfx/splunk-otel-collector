@@ -86,6 +86,7 @@ type Monitor struct {
 // Configure the monitor and kick off volume metric syncing
 func (m *Monitor) Configure(conf *Config) error {
 	m.logger = logger.WithField("monitorID", conf.MonitorID)
+	m.logger.Warn("[NOTICE] The ecs-metadata monitor is deprecated and will be removed in a future release. Use the awsecscontainermetrics receiver instead.")
 	var err error
 	m.imageFilter, err = filter.NewOverridableStringFilter(conf.ExcludedImages)
 	if err != nil {
@@ -163,7 +164,7 @@ func (m *Monitor) fetchStatsForAll(enhancedMetricsConfig dmonitor.EnhancedMetric
 		return
 	}
 
-	var stats map[string]dtypes.StatsJSON
+	var stats map[string]dcontainer.StatsResponse
 
 	if err2 := json.Unmarshal(body, &stats); err2 != nil {
 		m.logger.WithFields(log.Fields{

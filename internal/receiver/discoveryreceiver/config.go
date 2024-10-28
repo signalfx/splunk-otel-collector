@@ -103,7 +103,7 @@ func (cfg *Config) Validate() error {
 		}
 	}
 
-	if cfg.WatchObservers == nil || len(cfg.WatchObservers) == 0 {
+	if len(cfg.WatchObservers) == 0 {
 		err = multierr.Combine(err, fmt.Errorf("`watch_observers` must be defined and include at least one configured observer extension"))
 	}
 
@@ -185,7 +185,6 @@ func (cfg *Config) receiverCreatorReceiversConfig() map[string]any {
 		}
 		resourceAttributes[discovery.ReceiverNameAttr] = receiverID.Name()
 		resourceAttributes[discovery.ReceiverTypeAttr] = receiverID.Type().String()
-		resourceAttributes[receiverRuleAttr] = rEntry.Rule.String()
 		resourceAttributes[discovery.EndpointIDAttr] = "`id`"
 
 		rEntryMap := map[string]any{}

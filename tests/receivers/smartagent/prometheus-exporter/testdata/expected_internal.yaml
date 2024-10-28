@@ -173,6 +173,9 @@ resourceMetrics:
               dataPoints:
                 - asDouble: 0
                   attributes:
+                    - key: data_type
+                      value:
+                        stringValue: metrics
                     - key: exporter
                       value:
                         stringValue: otlp

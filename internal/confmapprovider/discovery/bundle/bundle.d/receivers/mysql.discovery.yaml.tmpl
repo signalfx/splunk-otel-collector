@@ -19,7 +19,9 @@
         message:  The container cannot be reached by the Collector. The container is refusing MySQL connections.
       - status: partial
         regexp: 'Access denied for user'
-        message: >-
-          Make sure your user credentials are correctly specified using the
-          `{{ configPropertyEnvVar "username" "<username>" }}` and
-          `{{ configPropertyEnvVar "password" "<password>" }}` environment variables.
+        message: |-
+          Make sure your user credentials are correctly specified as environment variables.
+          ```
+          {{ configPropertyEnvVar "username" "<username>" }}
+          {{ configPropertyEnvVar "password" "<password>" }}
+          ```

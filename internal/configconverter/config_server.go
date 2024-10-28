@@ -25,6 +25,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -38,7 +39,8 @@ import (
 const (
 	configServerEnabledEnvVar   = "SPLUNK_DEBUG_CONFIG_SERVER"
 	configServerPortEnvVar      = "SPLUNK_DEBUG_CONFIG_SERVER_PORT"
-	defaultConfigServerEndpoint = "localhost:55554"
+	defaultConfigServerPort     = "55554"
+	defaultConfigServerEndpoint = "localhost:" + defaultConfigServerPort
 	effectivePath               = "/debug/configz/effective"
 	initialPath                 = "/debug/configz/initial"
 )
@@ -58,10 +60,10 @@ type ConfigServer struct {
 	initial        map[string]any
 	effective      map[string]any
 	server         *http.Server
-	doneCh         chan struct{}
+	serverCount    atomic.Int64
+	serverShutdown sync.WaitGroup
 	initialMutex   sync.RWMutex
 	effectiveMutex sync.RWMutex
-	wg             sync.WaitGroup
 	once           sync.Once
 }
 
@@ -71,9 +73,9 @@ func NewConfigServer() *ConfigServer {
 		effective:      map[string]any{},
 		initialMutex:   sync.RWMutex{},
 		effectiveMutex: sync.RWMutex{},
-		wg:             sync.WaitGroup{},
+		serverCount:    atomic.Int64{},
+		serverShutdown: sync.WaitGroup{},
 		once:           sync.Once{},
-		doneCh:         make(chan struct{}),
 	}
 
 	mux := http.NewServeMux()
@@ -99,7 +101,7 @@ func (cs *ConfigServer) Convert(_ context.Context, conf *confmap.Conf) error {
 }
 
 func (cs *ConfigServer) OnNew() {
-	cs.wg.Add(1)
+	cs.serverCount.Add(1)
 }
 
 func (cs *ConfigServer) OnRetrieve(scheme string, retrieved map[string]any) {
@@ -156,29 +158,22 @@ func (cs *ConfigServer) start() {
 			}
 
 			go func() {
-				defer close(cs.doneCh)
-
 				httpErr := cs.server.Serve(listener)
+				defer cs.serverShutdown.Done()
 				if httpErr != http.ErrServerClosed {
 					log.Print(fmt.Errorf("config server error: %w", httpErr).Error())
 				}
 			}()
-
-			go func() {
-				cs.wg.Wait()
-				if cs.server != nil {
-					_ = cs.server.Close()
-					// If launched wait for Serve goroutine exit.
-					<-cs.doneCh
-				}
-
-			}()
+			cs.serverShutdown.Add(1)
 
 		})
 }
 
 func (cs *ConfigServer) OnShutdown() {
-	cs.wg.Done()
+	if cs.serverCount.Add(-1) == 0 {
+		_ = cs.server.Close()
+		cs.serverShutdown.Wait()
+	}
 }
 
 func (cs *ConfigServer) muxHandleFunc(configType ConfigType) func(http.ResponseWriter, *http.Request) {

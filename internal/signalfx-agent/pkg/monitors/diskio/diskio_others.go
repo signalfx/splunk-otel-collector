@@ -33,15 +33,15 @@ type Monitor struct {
 
 func (m *Monitor) makeLinuxDatapoints(disk disk.IOCountersStat, dimensions map[string]string) []*datapoint.Datapoint {
 	return []*datapoint.Datapoint{
-		datapoint.New("disk_ops.read", dimensions, datapoint.NewIntValue(int64(disk.ReadCount)), datapoint.Counter, time.Time{}),
-		datapoint.New("disk_ops.write", dimensions, datapoint.NewIntValue(int64(disk.WriteCount)), datapoint.Counter, time.Time{}),
-		datapoint.New("disk_octets.read", dimensions, datapoint.NewIntValue(int64(disk.ReadBytes)), datapoint.Counter, time.Time{}),
-		datapoint.New("disk_octets.write", dimensions, datapoint.NewIntValue(int64(disk.WriteBytes)), datapoint.Counter, time.Time{}),
-		datapoint.New("disk_merged.read", dimensions, datapoint.NewIntValue(int64(disk.MergedReadCount)), datapoint.Counter, time.Time{}),
-		datapoint.New("disk_merged.write", dimensions, datapoint.NewIntValue(int64(disk.MergedWriteCount)), datapoint.Counter, time.Time{}),
-		datapoint.New("disk_time.read", dimensions, datapoint.NewIntValue(int64(disk.ReadTime)), datapoint.Counter, time.Time{}),
-		datapoint.New("disk_time.write", dimensions, datapoint.NewIntValue(int64(disk.WriteTime)), datapoint.Counter, time.Time{}),
-		datapoint.New(diskOpsPending, dimensions, datapoint.NewIntValue(int64(disk.IopsInProgress)), datapoint.Gauge, time.Time{}),
+		datapoint.New("disk_ops.read", dimensions, datapoint.NewIntValue(int64(disk.ReadCount)), datapoint.Counter, time.Time{}),            //nolint:gosec
+		datapoint.New("disk_ops.write", dimensions, datapoint.NewIntValue(int64(disk.WriteCount)), datapoint.Counter, time.Time{}),          //nolint:gosec
+		datapoint.New("disk_octets.read", dimensions, datapoint.NewIntValue(int64(disk.ReadBytes)), datapoint.Counter, time.Time{}),         //nolint:gosec
+		datapoint.New("disk_octets.write", dimensions, datapoint.NewIntValue(int64(disk.WriteBytes)), datapoint.Counter, time.Time{}),       //nolint:gosec
+		datapoint.New("disk_merged.read", dimensions, datapoint.NewIntValue(int64(disk.MergedReadCount)), datapoint.Counter, time.Time{}),   //nolint:gosec
+		datapoint.New("disk_merged.write", dimensions, datapoint.NewIntValue(int64(disk.MergedWriteCount)), datapoint.Counter, time.Time{}), //nolint:gosec
+		datapoint.New("disk_time.read", dimensions, datapoint.NewIntValue(int64(disk.ReadTime)), datapoint.Counter, time.Time{}),            //nolint:gosec
+		datapoint.New("disk_time.write", dimensions, datapoint.NewIntValue(int64(disk.WriteTime)), datapoint.Counter, time.Time{}),          //nolint:gosec
+		datapoint.New(diskOpsPending, dimensions, datapoint.NewIntValue(int64(disk.IopsInProgress)), datapoint.Gauge, time.Time{}),          //nolint:gosec
 	}
 }
 
@@ -67,7 +67,7 @@ func (m *Monitor) emitDatapoints() {
 
 		dps = append(dps, m.makeLinuxDatapoints(disk, map[string]string{"disk": diskName})...)
 
-		opCount += int64(disk.ReadCount) + int64(disk.WriteCount)
+		opCount += int64(disk.ReadCount) + int64(disk.WriteCount) //nolint:gosec
 	}
 
 	dps = append(dps, sfxclient.Gauge("disk_ops.total", nil, opCount-m.lastOpCount))

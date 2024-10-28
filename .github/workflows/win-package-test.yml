@@ -10,11 +10,7 @@ on:
       - '.github/workflows/win-package-test.yml'
       - 'cmd/otelcol/**'
       - 'instrumentation/packaging/dotnet-agent-release.txt'
-      - 'internal/buildscripts/packaging/choco/**'
-      - 'internal/buildscripts/packaging/installer/install.ps1'
-      - 'internal/buildscripts/packaging/jmx-metric-gatherer-release.txt'
-      - 'internal/buildscripts/packaging/msi/**'
-      - 'internal/signalfx-agent/bundle/**'
+      - 'internal/**'
       - 'Makefile'
       - 'Makefile.Common'
       - 'tests/zeroconfig/windows/**'
@@ -25,7 +21,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.21.12
+  GO_VERSION: 1.22.7
 
 jobs:
   setup-environment:
@@ -83,9 +79,9 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: ${{ env.PIP_CACHE_DIR }}
-          key: agent-bundle-windows-pip-${{ hashFiles('internal/signalfx-agent/bundle/collectd-plugins.yaml', 'internal/signalfx-agent/bundle/scripts/requirements.txt') }}
+          key: agent-bundle-windows-pip-${{ hashFiles('packaging/bundle/collectd-plugins.yaml', 'packaging/bundle/scripts/requirements.txt') }}
 
-      - run: ./internal/signalfx-agent/bundle/scripts/windows/make.ps1 bundle
+      - run: ./packaging/bundle/scripts/windows/make.ps1 bundle
 
       - uses: actions/upload-artifact@v4
         with:
@@ -105,7 +101,7 @@ jobs:
         run: choco install wixtoolset --version 3.14.0 --allow-downgrade --force
 
       - name: Build Custom Actions
-        working-directory: internal/buildscripts/packaging/msi/SplunkCustomActions
+        working-directory: packaging/msi/SplunkCustomActions
         run: |
           dotnet test ./test/SplunkCustomActionsTests.csproj -c Release
           dotnet publish ./src/SplunkCustomActions.csproj -c Release -o ./bin/Release
@@ -115,7 +111,7 @@ jobs:
           $WixPath = "${Env:ProgramFiles(x86)}\WiX Toolset v3.14"
           $sfxcaDll = "${WixPath}\SDK\x64\sfxca.dll"
           $Env:PATH = "${WixPath}\SDK;" + $Env:PATH
-          $customActionDir = "${PWD}\internal\buildscripts\packaging\msi\SplunkCustomActions"
+          $customActionDir = "${PWD}\packaging\msi\SplunkCustomActions"
           $customActionBinDir = "${customActionDir}\bin\Release"
           MakeSfxCA.exe "${PWD}\dist\SplunkCustomActions.CA.dll" `
             "${sfxcaDll}" `
@@ -160,7 +156,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: msi-custom-actions
-          path: ./internal/buildscripts/packaging/msi/SplunkCustomActions/bin/Release
+          path: ./packaging/msi/SplunkCustomActions/bin/Release
 
       - name: Build MSI
         run: |
@@ -186,7 +182,7 @@ jobs:
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v2
 
-      - uses: actions/setup-dotnet@v4.0.1
+      - uses: actions/setup-dotnet@v4.1.0
         with:
           dotnet-version: |
             6.0.407
@@ -196,13 +192,6 @@ jobs:
         with:
           name: msi-build
           path: ./tests/zeroconfig/windows/testdata/docker-setup/
-
-      - name: Set SPLUNK_OTEL_DOTNET_VERSION
-        run: |
-          version="$(cat instrumentation/packaging/dotnet-agent-release.txt)"
-          sed -i "s|SPLUNK_OTEL_DOTNET_VERSION|${version#v}|" tests/zeroconfig/windows/testdata/resource_traces/aspnetcore.yaml
-          sed -i "s|SPLUNK_OTEL_DOTNET_VERSION|${version#v}|" tests/zeroconfig/windows/testdata/resource_traces/aspnetfx.yaml
-        shell: bash
 
       - name: Run the test script
         working-directory: tests/zeroconfig/windows/
@@ -268,7 +257,7 @@ jobs:
           Set-PSDebug -Trace 1
           $msi_path = Resolve-Path .\dist\splunk-otel-collector*.msi
           $env:VERIFY_ACCESS_TOKEN = "false"
-          .\internal\buildscripts\packaging\installer\install.ps1 -access_token "${{ env.token }}" -realm "${{ env.realm }}" -msi_path "$msi_path" -mode "${{ matrix.MODE }}" -memory "${{ env.memory }}" -with_fluentd $${{ matrix.WITH_FLUENTD }}
+          .\packaging\installer\install.ps1 -access_token "${{ env.token }}" -realm "${{ env.realm }}" -msi_path "$msi_path" -mode "${{ matrix.MODE }}" -memory "${{ env.memory }}" -with_fluentd $${{ matrix.WITH_FLUENTD }}
           Start-Sleep -s 30
           & ${{ github.workspace }}\.github\workflows\scripts\win-test-services.ps1 -mode "${{ matrix.MODE }}" -access_token "${{ env.token }}" -realm "${{ env.realm }}" -memory "${{ env.memory }}" -with_fluentd "${{ matrix.WITH_FLUENTD }}"
           & ${{ github.workspace }}\.github\workflows\scripts\win-test-support-bundle.ps1 -mode "${{ matrix.MODE }}" -with_fluentd "${{ matrix.WITH_FLUENTD }}"
@@ -310,7 +299,7 @@ jobs:
           $msi_file_name -match '(\d+\.)(\d+\.)+(\d*)'
           $version = $matches[0]
           write-host "Building choco package..."
-          .\internal\buildscripts\packaging\choco\make.ps1 build_choco -MSIFile $msi_file_path -Version $version | Tee-Object -file .\dist\build_logs.log
+          .\packaging\choco\make.ps1 build_choco -MSIFile $msi_file_path -Version $version | Tee-Object -file .\dist\build_logs.log
           Test-Path -Path ".\dist\splunk-otel-collector.$version.nupkg"
 
       - name: Test install without parameters
@@ -375,17 +364,32 @@ jobs:
               throw "choco install failed!"
             }
           } else {
-            write-host "Installing splunk-otel-collector 0.74.0 ..."
+            write-host "Installing splunk-otel-collector ..."
             choco feature enable -n=useRememberedArgumentsForUpgrades
-            choco install splunk-otel-collector --no-progress --version=0.74.0 --params="'$params'" -y
+            choco install splunk-otel-collector --no-progress --params="'$params'" -y
             if ($LASTEXITCODE -ne 0) {
               throw "choco install failed!"
             }
+            $env_vars = Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -Name "Environment"
+            $test_env_vars = @(
+              "MY VAR WITH SPACES=my value",
+              "GOOD_ENV_VAR_NAME=good value",
+              "GOOD_KEY_NEEDS_ESCAPING=`" that breaks MSI call if not escaped properly due to double-quote"
+            )
+            $env_vars += $test_env_vars
+            Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -Name "Environment" -Value $env_vars -type MultiString
             Start-Sleep 30
             write-host "Upgrading $choco_file_name ..."
             choco upgrade splunk-otel-collector -s=".\dist" -y
             if ($LASTEXITCODE -ne 0) {
               throw "choco upgrade failed!"
+            }
+            $env_vars = Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -Name "Environment"
+            foreach ($test_env_var in $test_env_vars) {
+              if (!($env_vars -contains $test_env_var)) {
+                $env_vars
+                throw "'$test_env_var' not found!"
+              }
             }
           }
           Start-Sleep -s 30
@@ -437,7 +441,7 @@ jobs:
           $ErrorActionPreference = 'Stop'
           Copy-Item .\bin\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
           Copy-Item .\dist\agent-bundle_windows_amd64.zip .\cmd\otelcol\agent-bundle_windows_amd64.zip
-          docker build -t otelcol-windows --build-arg BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022 --build-arg JMX_METRIC_GATHERER_RELEASE=$(Get-Content internal\buildscripts\packaging\jmx-metric-gatherer-release.txt) -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
+          docker build -t otelcol-windows --build-arg BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022 --build-arg JMX_METRIC_GATHERER_RELEASE=$(Get-Content packaging\jmx-metric-gatherer-release.txt) -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
           Remove-Item .\cmd\otelcol\otelcol.exe
           Remove-Item .\cmd\otelcol\agent-bundle_windows_amd64.zip
 

@@ -50,6 +50,9 @@ describe file('/usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentatio
   its('content') { should match /^DefaultEnvironment="SPLUNK_PROFILER_MEMORY_ENABLED=true"$/ }
   its('content') { should match /^DefaultEnvironment="SPLUNK_METRICS_ENABLED=true"$/ }
   its('content') { should match /^DefaultEnvironment="OTEL_EXPORTER_OTLP_ENDPOINT=#{otlp_endpoint}"$/ }
+  its('content') { should match /^DefaultEnvironment="OTEL_EXPORTER_OTLP_PROTOCOL=grpc"$/ }
+  its('content') { should match /^DefaultEnvironment="OTEL_METRICS_EXPORTER=none"$/ }
+  its('content') { should match /^DefaultEnvironment="OTEL_LOGS_EXPORTER=none"$/ }
 end
 
 describe service('splunk-otel-collector') do

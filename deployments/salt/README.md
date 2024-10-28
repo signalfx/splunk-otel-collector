@@ -17,7 +17,7 @@ Currently, the following Linux distributions and versions are supported:
 
 - [Splunk Access Token](https://docs.splunk.com/observability/admin/authentication/authentication-tokens/org-tokens.html)
 - [Splunk Realm](https://dev.splunk.com/observability/docs/realms_in_endpoints/)
-- [Double-check exposed ports](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/security.md#exposed-endpoints) 
+- [Double-check exposed ports](https://docs.splunk.com/observability/en/gdi/opentelemetry/exposed-endpoints.html) 
   to make sure your environment doesn't have conflicts. Ports can be changed in the collector's configuration.
 
 ## Usage
@@ -232,6 +232,32 @@ after installation/configuration in order for any changes to take effect.
 - `auto_instrumentation_enable_metrics`: Enable or disable exporting
   instrumentation metrics. (**default**: `False`)
 
-- `auto_instrumentation_otlp_endpoint`: Set the OTLP gRPC endpoint for captured
-  traces. Only applicable if `auto_instrumentation_version` is `latest` or >=
-  `0.87.0`. (**default:** `http://127.0.0.1:4317`)
+- `auto_instrumentation_otlp_endpoint`: Set the OTLP endpoint for captured
+  traces, metrics, and logs. The value will be set to the
+  `OTEL_EXPORTER_OTLP_ENDPOINT` environment variable. Only applicable if
+  `auto_instrumentation_version` is `latest` or >= `0.87.0`. (**default:**
+  `""`, i.e. defer to the default `OTEL_EXPORTER_OTLP_ENDPOINT` value for
+  each activated SDK)
+
+- `auto_instrumentation_otlp_endpoint_protocol`: Set the protocol for the OTLP
+  endpoint, for example `grpc` or `http/protobuf`. The value will be set to the
+  `OTEL_EXPORTER_OTLP_PROTOCOL` environment variable. Only applicable if
+  `auto_instrumentation_version` is `latest` or >= `0.104.0`. (**default:**
+  `""`, i.e. defer to the default `OTEL_EXPORTER_OTLP_PROTOCOL` value for
+  each activated SDK)
+
+- `auto_instrumentation_metrics_exporter`: Comma-separated list of exporters
+  for collected metrics by all activated SDKs, for example `otlp,prometheus`.
+  Set the value to `none` to disable collection and export of metrics. The
+  value will be set to the `OTEL_METRICS_EXPORTER` environment variable. Only
+  applicable if `auto_instrumentation_version` is `latest` or >= `0.104.0`.
+  (**default:** `""`, i.e. defer to the default `OTEL_METRICS_EXPORTER`
+  value for each activated SDK)
+
+- `auto_instrumentation_logs_exporter`: Set the exporter for collected logs by
+  all activated SDKs, for example `otlp`. Set the value to `none` to disable
+  collection and export of logs. The value will be set to the
+  `OTEL_LOGS_EXPORTER` environment variable. Only applicable if
+  `auto_instrumentation_version` is `latest` or >= `0.108.0`. (**default:**
+  `""`, i.e. defer to the default `OTEL_LOGS_EXPORTER` value for each
+  activated SDK)

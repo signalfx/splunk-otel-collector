@@ -21,9 +21,11 @@ import (
 	"time"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
+	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.uber.org/zap"
@@ -36,14 +38,14 @@ func TestMetricEvaluatorBaseMetricConsumer(t *testing.T) {
 	cfg := &Config{}
 	cStore := newCorrelationStore(logger, time.Hour)
 
-	me := newMetricEvaluator(logger, cfg, cStore)
+	me := newMetricsConsumer(logger, cfg, cStore, nil)
 	require.Equal(t, consumer.Capabilities{}, me.Capabilities())
 
 	md := pmetric.NewMetrics()
 	require.NoError(t, me.ConsumeMetrics(context.Background(), md))
 }
 
-func TestMetricEvaluation(t *testing.T) {
+func TestConsumeMetrics(t *testing.T) {
 	// If debugging tests, replace the Nop Logger with a test instance to see
 	// all statements. Not in regular use to avoid spamming output.
 	// logger := zaptest.NewLogger(t)
@@ -88,7 +90,8 @@ func TestMetricEvaluation(t *testing.T) {
 					endpointID := observer.EndpointID("endpoint.id")
 					cStore.UpdateEndpoint(observer.Endpoint{ID: endpointID}, receiverID, observerID)
 
-					me := newMetricEvaluator(logger, cfg, cStore)
+					ms := &consumertest.MetricsSink{}
+					me := newMetricsConsumer(logger, cfg, cStore, ms)
 
 					expectedRes := pcommon.NewResource()
 					expectedRes.Attributes().PutStr("discovery.receiver.type", "a_receiver")
@@ -116,7 +119,7 @@ func TestMetricEvaluation(t *testing.T) {
 					sms.AppendEmpty().SetName("desired.name")
 					sms.AppendEmpty().SetName("desired.name")
 
-					me.evaluateMetrics(md)
+					require.NoError(t, me.ConsumeMetrics(context.Background(), md))
 
 					// wait for the emit channel to be processed
 					emitWG.Wait()
@@ -124,12 +127,22 @@ func TestMetricEvaluation(t *testing.T) {
 					require.Equal(t, map[string]string{
 						"discovery.observer.id":   "an_observer/observer.name",
 						"discovery.receiver.name": "receiver.name",
-						"discovery.receiver.rule": "a.rule",
 						"discovery.receiver.type": "a_receiver",
 						"discovery.status":        string(status),
 						"discovery.message":       "desired body content",
 						"extra_attr":              "target_resource",
 					}, cStore.Attrs(endpointID))
+
+					assert.Equal(t, 1, len(ms.AllMetrics()))
+					assert.Equal(t, 2, ms.AllMetrics()[0].ResourceMetrics().Len())
+					// Ensure redundant attributes are not added
+					for i := 0; i < ms.AllMetrics()[0].ResourceMetrics().Len(); i++ {
+						attrs := ms.AllMetrics()[0].ResourceMetrics().At(i).Resource().Attributes()
+						_, ok := attrs.Get(discovery.ReceiverTypeAttr)
+						assert.False(t, ok)
+						_, ok = attrs.Get(discovery.ReceiverNameAttr)
+						assert.False(t, ok)
+					}
 				})
 			}
 		})

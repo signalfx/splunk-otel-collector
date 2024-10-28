@@ -25,12 +25,14 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config/confignet"
+	"go.opentelemetry.io/collector/config/configtelemetry"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
+	"go.opentelemetry.io/otel/metric"
 	mnoop "go.opentelemetry.io/otel/metric/noop"
 	tnoop "go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/zap"
@@ -81,26 +83,25 @@ func (otlp OTLPReceiverSink) Build() (*OTLPReceiverSink, error) {
 
 	params := receiver.Settings{
 		TelemetrySettings: component.TelemetrySettings{
-			Logger:         otlp.Logger,
-			MeterProvider:  mnoop.NewMeterProvider(),
-			TracerProvider: tnoop.NewTracerProvider(),
-			ReportStatus:   func(*component.StatusEvent) {},
+			Logger:               otlp.Logger,
+			TracerProvider:       tnoop.NewTracerProvider(),
+			LeveledMeterProvider: func(configtelemetry.Level) metric.MeterProvider { return mnoop.NewMeterProvider() },
 		},
 	}
 
-	logsReceiver, err := otlpFactory.CreateLogsReceiver(context.Background(), params, otlpConfig, otlp.logsSink)
+	logsReceiver, err := otlpFactory.CreateLogs(context.Background(), params, otlpConfig, otlp.logsSink)
 	if err != nil {
 		return nil, err
 	}
 	otlp.logsReceiver = &logsReceiver
 
-	metricsReceiver, err := otlpFactory.CreateMetricsReceiver(context.Background(), params, otlpConfig, otlp.metricsSink)
+	metricsReceiver, err := otlpFactory.CreateMetrics(context.Background(), params, otlpConfig, otlp.metricsSink)
 	if err != nil {
 		return nil, err
 	}
 	otlp.metricsReceiver = &metricsReceiver
 
-	tracesReceiver, err := otlpFactory.CreateTracesReceiver(context.Background(), params, otlpConfig, otlp.tracesSink)
+	tracesReceiver, err := otlpFactory.CreateTraces(context.Background(), params, otlpConfig, otlp.tracesSink)
 	if err != nil {
 		return nil, err
 	}
@@ -184,46 +185,6 @@ func (otlp *OTLPReceiverSink) Reset() {
 	}
 }
 
-func (otlp *OTLPReceiverSink) AssertAllLogsReceived(t testing.TB, expectedResourceLogs telemetry.ResourceLogs, waitTime time.Duration) error {
-	if err := otlp.assertBuilt("AssertAllLogsReceived"); err != nil {
-		return err
-	}
-
-	if len(expectedResourceLogs.ResourceLogs) == 0 {
-		return fmt.Errorf("empty ResourceLogs provided")
-	}
-
-	receivedLogs := telemetry.ResourceLogs{}
-
-	var err error
-	assert.Eventually(t, func() bool {
-		if otlp.LogRecordCount() == 0 {
-			if err == nil {
-				err = fmt.Errorf("no logs received")
-			}
-			return false
-		}
-		receivedOTLPLogs := otlp.AllLogs()
-		otlp.Reset()
-
-		receivedResourceLogs, e := telemetry.PDataToResourceLogs(receivedOTLPLogs...)
-		require.NoError(t, e)
-		require.NotNil(t, receivedResourceLogs)
-		receivedLogs = telemetry.FlattenResourceLogs(receivedLogs, receivedResourceLogs)
-
-		var containsAll bool
-		containsAll, err = receivedLogs.ContainsAll(expectedResourceLogs)
-		return containsAll
-	}, waitTime, 10*time.Millisecond, "Failed to receive expected logs")
-
-	// testify won't render exceptionally long errors, so leaving this here for easy debugging
-	if err != nil {
-		fmt.Printf("err: %v\n", err)
-	}
-
-	return err
-}
-
 func (otlp *OTLPReceiverSink) AssertAllMetricsReceived(t testing.TB, expectedResourceMetrics telemetry.ResourceMetrics, waitTime time.Duration) error {
 	if err := otlp.assertBuilt("AssertAllMetricsReceived"); err != nil {
 		return err
@@ -255,46 +216,6 @@ func (otlp *OTLPReceiverSink) AssertAllMetricsReceived(t testing.TB, expectedRes
 		containsOnly, err = receivedMetrics.ContainsOnly(expectedResourceMetrics)
 		return containsOnly
 	}, waitTime, 10*time.Millisecond, "Failed to receive expected metrics")
-
-	// testify won't render exceptionally long errors, so leaving this here for easy debugging
-	if err != nil {
-		fmt.Printf("err: %v\n", err)
-	}
-
-	return err
-}
-
-func (otlp *OTLPReceiverSink) AssertAllTracesReceived(t testing.TB, expectedResourceTraces telemetry.ResourceTraces, waitTime time.Duration) error {
-	if err := otlp.assertBuilt("AssertAllTracesReceived"); err != nil {
-		return err
-	}
-
-	if len(expectedResourceTraces.ResourceSpans) == 0 {
-		return fmt.Errorf("empty ResourceTraces provided")
-	}
-
-	receivedTraces := telemetry.ResourceTraces{}
-
-	var err error
-	assert.Eventually(t, func() bool {
-		if otlp.SpanCount() == 0 {
-			if err == nil {
-				err = fmt.Errorf("no traces received")
-			}
-			return false
-		}
-		receivedOTLPTraces := otlp.AllTraces()
-		otlp.Reset()
-
-		receivedResourceTraces, e := telemetry.PDataToResourceTraces(receivedOTLPTraces...)
-		require.NoError(t, e)
-		require.NotNil(t, receivedResourceTraces)
-		receivedTraces = telemetry.FlattenResourceTraces(receivedResourceTraces)
-
-		var containsAll bool
-		containsAll, err = receivedTraces.ContainsAll(expectedResourceTraces)
-		return containsAll
-	}, waitTime, 10*time.Millisecond, "Failed to receive expected traces")
 
 	// testify won't render exceptionally long errors, so leaving this here for easy debugging
 	if err != nil {

@@ -17,14 +17,14 @@ on:
       - 'go.mod'
       - 'go.sum'
       - '!**.md'
-      - '!internal/buildscripts/packaging/**'
+      - '!packaging/**'
 
 concurrency:
   group: build-and-test-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.21.12
+  GO_VERSION: 1.22.7
 
 jobs:
   setup-environment:
@@ -65,7 +65,7 @@ jobs:
           make install-tools
           make for-all CMD="make tidy"
           if ! git diff --exit-code; then
-            echo "One or more Go files are not tidied. Run 'make for-all CMD="make tidy"' and push the changes."
+            echo "One or more Go files are not tidied. Run 'make for-all CMD=\"make tidy\"' and push the changes."
             exit 1
           fi
 

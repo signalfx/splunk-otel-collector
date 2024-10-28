@@ -1,5 +1,7 @@
 # cloudfoundry-firehose-nozzle
 
+**The cloudfoundry monitor is deprecated and will be removed in a future release. Please use https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/cloudfoundryreceiver**
+
 ## Developer Resources
 
 - <https://github.com/cf-platform-eng/firehose-nozzle-v2/tree/master/gateway>

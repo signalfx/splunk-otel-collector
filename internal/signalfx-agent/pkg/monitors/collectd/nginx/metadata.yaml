@@ -1,6 +1,7 @@
 monitors:
 - dimensions:
   doc: |
+    **The collectd/nginx monitor is deprecated. Please use nginx receiver instead.**
     Monitors an NGINX instance using our fork of the
     collectd nginx plugin based on the [collectd nginx
     plugin](https://collectd.org/wiki/index.php/Plugin:nginx).

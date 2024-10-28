@@ -8,17 +8,17 @@ on:
     paths:
       - '.github/workflows/puppet-test.yml'
       - 'deployments/puppet/**'
-      - 'internal/buildscripts/packaging/tests/deployments/puppet/**'
-      - 'internal/buildscripts/packaging/tests/helpers/**'
-      - 'internal/buildscripts/packaging/tests/requirements.txt'
+      - 'packaging/tests/deployments/puppet/**'
+      - 'packaging/tests/helpers/**'
+      - 'packaging/tests/requirements.txt'
       - '!**.md'
   pull_request:
     paths:
       - '.github/workflows/puppet-test.yml'
       - 'deployments/puppet/**'
-      - 'internal/buildscripts/packaging/tests/deployments/puppet/**'
-      - 'internal/buildscripts/packaging/tests/helpers/**'
-      - 'internal/buildscripts/packaging/tests/requirements.txt'
+      - 'packaging/tests/deployments/puppet/**'
+      - 'packaging/tests/helpers/**'
+      - 'packaging/tests/requirements.txt'
       - '!**.md'
   schedule:
     - cron: '0 0 * * 3,6' # Every Wednesday and Saturday at midnight UTC
@@ -28,8 +28,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  PYTHON_VERSION: "3.11"
-  REQUIREMENTS_PATH: "internal/buildscripts/packaging/tests/requirements.txt"
+  PYTHON_VERSION: "3.13"
+  REQUIREMENTS_PATH: "packaging/tests/requirements.txt"
 
 jobs:
   puppet-lint:
@@ -66,9 +66,9 @@ jobs:
         id: get-matrix
         run: |
           # create test matrix for distro and arch
-          dockerfiles=$(find internal/buildscripts/packaging/tests/deployments/puppet/images/ -name "Dockerfile.*" | cut -d '.' -f2- | sort -u)
+          dockerfiles=$(find packaging/tests/deployments/puppet/images/ -name "Dockerfile.*" | cut -d '.' -f2- | sort -u)
           if [ -z "$dockerfiles" ]; then
-            echo "Failed to get dockerfiles from internal/buildscripts/packaging/tests/deployments/puppet/images/!" >&2
+            echo "Failed to get dockerfiles from packaging/tests/deployments/puppet/images/!" >&2
             exit 1
           fi
           distro=$(for d in $dockerfiles; do echo -n "\"$d\","; done)
@@ -124,7 +124,7 @@ jobs:
             tests="$distro and not instrumentation"
           fi
           python3 -u -m pytest -s --verbose -k "$tests" \
-            internal/buildscripts/packaging/tests/deployments/puppet/puppet_test.py
+            packaging/tests/deployments/puppet/puppet_test.py
 
       # qemu, networking, running systemd in containers, etc., can be flaky
       - name: Re-run failed tests
@@ -144,7 +144,7 @@ jobs:
           fi
           python3 -u -m pytest -s --verbose -k "$tests" \
             --last-failed \
-            internal/buildscripts/packaging/tests/deployments/puppet/puppet_test.py
+            packaging/tests/deployments/puppet/puppet_test.py
 
   puppet-test-windows:
     name: puppet-test-windows
@@ -184,7 +184,7 @@ jobs:
           if ($Env:WIN_COLLECTOR_VERSION -eq 'latest') { $Env:WIN_COLLECTOR_VERSION="$(curl -sS https://dl.signalfx.com/splunk-otel-collector/msi/release/latest.txt)" }
           pytest -s --verbose -m windows `
             -k ${{ matrix.TEST_CASE }} `
-            internal/buildscripts/packaging/tests/deployments/puppet/puppet_test.py
+            packaging/tests/deployments/puppet/puppet_test.py
 
       - name: Re-run failed tests
         if: ${{ steps.pytest.outcome == 'failure' }}
@@ -196,4 +196,4 @@ jobs:
           pytest -s --verbose -m windows `
             --last-failed `
             -k ${{ matrix.TEST_CASE }} `
-            internal/buildscripts/packaging/tests/deployments/puppet/puppet_test.py
+            packaging/tests/deployments/puppet/puppet_test.py

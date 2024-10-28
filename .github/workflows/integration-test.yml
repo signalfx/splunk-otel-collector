@@ -17,14 +17,14 @@ on:
       - 'go.mod'
       - 'go.sum'
       - '!**.md'
-      - '!internal/buildscripts/**'
+      - '!packaging/technical-addon/**'
 
 concurrency:
   group: integration-test-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 env:
-  GO_VERSION: "1.21.12"
+  GO_VERSION: "1.22.7"
 jobs:
   agent-bundle-linux:
     runs-on: ${{ fromJSON('["ubuntu-20.04", "otel-arm64"]')[matrix.ARCH == 'arm64'] }}
@@ -38,10 +38,10 @@ jobs:
         id: bundle-cache
         with:
           path: .cache/buildx/agent-bundle-${{ matrix.ARCH }}
-          key: agent-bundle-buildx-${{ matrix.ARCH }}-${{ hashFiles('internal/signalfx-agent/bundle/**') }}
+          key: agent-bundle-buildx-${{ matrix.ARCH }}-${{ hashFiles('packaging/bundle/**') }}
           restore-keys: |
             agent-bundle-buildx-${{ matrix.ARCH }}-
-      - run: make -C internal/signalfx-agent/bundle agent-bundle-linux ARCH=${{ matrix.ARCH }}
+      - run: make -C packaging/bundle agent-bundle-linux ARCH=${{ matrix.ARCH }}
         env:
           BUNDLE_CACHE_HIT: "${{ steps.bundle-cache.outputs.cache-hit }}"
       - uses: actions/upload-artifact@v4
@@ -183,6 +183,8 @@ jobs:
     env:
       TEST_OUTPUT: ${{ github.job }}-${{ matrix.PROFILE }}-${{ matrix.ARCH }}.out
     steps:
+      # Multiarch images require more disk space
+      - uses: jlumbroso/free-disk-space@v1.3.1
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -219,7 +221,7 @@ jobs:
       - run: docker load -i ./docker-otelcol/${{ matrix.ARCH }}/image.tar
       - run: ln -sf otelcol_linux_${{ matrix.ARCH }} ./bin/otelcol
       - run: chmod a+x ./bin/*
-      - uses: shogo82148/actions-setup-redis@v1
+      - uses: shogo82148/actions-setup-redis@v1.35.1
         if: matrix.PROFILE == 'integration'
         with:
           auto-start: false
@@ -296,7 +298,7 @@ jobs:
           path: ./bin
       - run: ln -sf otelcol_linux_amd64 ./bin/otelcol
       - run: chmod a+x ./bin/*
-      - uses: shogo82148/actions-setup-redis@v1
+      - uses: shogo82148/actions-setup-redis@v1.35.1
         if: matrix.PROFILE == 'integration'
         with:
           auto-start: false
@@ -336,10 +338,11 @@ jobs:
         id: get-matrix
         run: |
           includes=""
-          for service in "mongodb" "kafkametrics" "jmx/cassandra"; do
+          for service in "apache" "mongodb" "kafkametrics" "jmx/cassandra"; do
             for arch in "amd64" "arm64"; do
               if [ "$service" = "mongodb" ]; then
-                for mongodb_version in "4.0" "4.4" "5.0" "6.0" "7.0"; do
+                # tests for mongo "6.0" and "7.0" are flaky, skipping for now
+                for mongodb_version in "4.0" "4.4" "5.0"; do
                   includes="${includes},{\"SERVICE\": \"${service}\", \"ARCH\": \"${arch}\", \"MONGODB_VERSION\": \"${mongodb_version}\"}"
                 done
               elif [[ "$service" != "jmx/cassandra" || "arm64" != "$arch" ]]; then

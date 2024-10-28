@@ -18,10 +18,12 @@ package configconverter
 import (
 	"context"
 	"io"
+	"net"
 	"net/http"
 	"os"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -32,6 +34,8 @@ import (
 )
 
 func TestConfigServer_RequireEnvVar(t *testing.T) {
+	waitForRequiredPort(t, defaultConfigServerPort)
+
 	initial := map[string]any{
 		"minimal": "config",
 	}
@@ -39,7 +43,10 @@ func TestConfigServer_RequireEnvVar(t *testing.T) {
 	cs := NewConfigServer()
 	require.NotNil(t, cs)
 	cs.OnNew()
-	t.Cleanup(cs.OnShutdown)
+	t.Cleanup(func() {
+		cs.OnShutdown()
+		assert.True(t, isPortAvailable(defaultConfigServerPort))
+	})
 	require.NoError(t, cs.Convert(context.Background(), confmap.NewFromStringMap(initial)))
 
 	client := &http.Client{}
@@ -79,6 +86,12 @@ func TestConfigServer_EnvVar(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			actualConfigServerPort := defaultConfigServerPort
+			if tt.portEnvVar != "" {
+				actualConfigServerPort = tt.portEnvVar
+			}
+			waitForRequiredPort(t, actualConfigServerPort)
+
 			initial := map[string]any{
 				"key": "value",
 			}
@@ -93,9 +106,12 @@ func TestConfigServer_EnvVar(t *testing.T) {
 			cs := NewConfigServer()
 			require.NotNil(t, cs)
 			cs.OnNew()
+			defer func() {
+				cs.OnShutdown()
+				assert.True(t, isPortAvailable(actualConfigServerPort))
+			}()
 
 			require.NoError(t, cs.Convert(context.Background(), confmap.NewFromStringMap(initial)))
-			defer cs.OnShutdown()
 
 			endpoint := tt.endpoint
 			if endpoint == "" {
@@ -119,6 +135,8 @@ func TestConfigServer_EnvVar(t *testing.T) {
 }
 
 func TestConfigServer_Serve(t *testing.T) {
+	waitForRequiredPort(t, defaultConfigServerPort)
+
 	require.NoError(t, os.Setenv(configServerEnabledEnvVar, "true"))
 	t.Cleanup(func() {
 		assert.NoError(t, os.Unsetenv(configServerEnabledEnvVar))
@@ -148,7 +166,10 @@ func TestConfigServer_Serve(t *testing.T) {
 	cs := NewConfigServer()
 	require.NotNil(t, cs)
 	cs.OnNew()
-	t.Cleanup(cs.OnShutdown)
+	t.Cleanup(func() {
+		cs.OnShutdown()
+		assert.True(t, isPortAvailable(defaultConfigServerPort))
+	})
 
 	cs.OnRetrieve("scheme", initial)
 	require.NoError(t, cs.Convert(context.Background(), confmap.NewFromStringMap(initial)))
@@ -218,4 +239,21 @@ func TestSimpleRedact(t *testing.T) {
 		"user":       "<redacted>",
 		"X-SF-Token": "<redacted>",
 	}, result)
+}
+
+func waitForRequiredPort(t *testing.T, port string) {
+	// Wait for a relatively long time for the port to be available, given that other package tests might be using it.
+	const waitTime = 60 * time.Second
+	require.Eventually(t, func() bool {
+		return isPortAvailable(port)
+	}, waitTime, 500*time.Millisecond)
+}
+
+func isPortAvailable(port string) bool {
+	ln, err := net.Listen("tcp", "localhost:"+port)
+	if err == nil {
+		ln.Close()
+		return true
+	}
+	return false
 }

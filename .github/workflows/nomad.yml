@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        nomad: [ "1.6.2-1", "1.7.5-1" ]
+        nomad: [ "1.6.10-1", "1.7.7-1" ]
       fail-fast: false
     steps:
       - name: Check out the codebase.

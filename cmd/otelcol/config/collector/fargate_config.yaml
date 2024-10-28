@@ -4,7 +4,6 @@ config_sources:
   env:
     defaults:
       METRICS_TO_EXCLUDE: []
-      ECS_METADATA_EXCLUDED_IMAGES: []
 
 extensions:
   health_check:
@@ -56,12 +55,12 @@ receivers:
     #access_token_passthrough: true
   zipkin:
     endpoint: 0.0.0.0:9411
-  smartagent/ecs-metadata:
-    type: ecs-metadata
-    excludedImages: ${env:ECS_METADATA_EXCLUDED_IMAGES}
+  awsecscontainermetrics:
 
 processors:
   batch:
+    metadata_keys:
+      - X-SF-Token
   # Enabling the memory_limiter is strongly recommended for every pipeline.
   # Configuration is based on the amount of memory allocated to the collector.
   # For more information about memory limiter, see
@@ -126,7 +125,7 @@ service:
         #- resource/add_environment
       exporters: [sapm, signalfx]
     metrics:
-      receivers: [otlp, signalfx, smartagent/ecs-metadata, prometheus/internal]
+      receivers: [otlp, signalfx, awsecscontainermetrics, prometheus/internal]
       processors: [memory_limiter, batch, resourcedetection]
       exporters: [signalfx]
     logs:

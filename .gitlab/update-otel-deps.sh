@@ -30,7 +30,7 @@ create_collector_pr() {
   setup_branch "$BRANCH" "$repo_url" "$check_for_pr"
 
   echo ">>> Updating otel deps to $OTEL_VERSION ..."
-  OTEL_VERSION="$OTEL_VERSION" ./internal/buildscripts/update-deps
+  OTEL_VERSION="$OTEL_VERSION" ./update-deps
 
   # Only create the PR if there are changes
   if ! git diff --exit-code >/dev/null 2>&1; then

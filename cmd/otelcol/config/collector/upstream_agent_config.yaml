@@ -8,7 +8,6 @@
 # configured below:
 # - SPLUNK_ACCESS_TOKEN: The Splunk access token to authenticate requests
 # - SPLUNK_API_URL: The Splunk API URL, e.g. https://api.us0.signalfx.com
-# - SPLUNK_BALLAST_SIZE_MIB: This size of the ballast which should be 1/3 to 1/2 of memory allocated
 # - SPLUNK_MEMORY_LIMIT_MIB: 90% of memory allocated
 # - SPLUNK_HEC_TOKEN: The Splunk HEC authentication token
 # - SPLUNK_HEC_URL: The Splunk HEC endpoint URL, e.g. https://ingest.us0.signalfx.com/v1/log
@@ -86,13 +85,16 @@ receivers:
     endpoint: 0.0.0.0:9943
   zipkin:
     endpoint: 0.0.0.0:9411
+  nop:
 
 processors:
   batch:
+    metadata_keys:
+      - X-SF-Token
   # Enabling the memory_limiter is strongly recommended for every pipeline.
   # Configuration is based on the amount of memory allocated to the collector.
   # In general, the limit should be 90% of the collector's memory. The simplest way to specify the
-  # ballast size is set the value of SPLUNK_BALLAST_SIZE_MIB env variable.
+  # memory allocation is set the value of GOMEMLIMIT env variable.
   # For more information about memory limiter, see
   # https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiter/README.md
   memory_limiter:
@@ -132,6 +134,11 @@ exporters:
     #ingest_url: http://${SPLUNK_GATEWAY_URL}:9943
     sync_host_metadata: true
     correlation:
+  # Entities (applicable only if discovery mode is enabled)
+  otlphttp/entities:
+    logs_endpoint: "${SPLUNK_INGEST_URL}/v3/event"
+    headers:
+      "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
   splunk_hec/profiling:
     token: "${SPLUNK_ACCESS_TOKEN}"
     endpoint: "https://ingest.${SPLUNK_REALM}.signalfx.com/v1/log"
@@ -180,6 +187,11 @@ service:
       exporters: [signalfx]
       # Use instead when sending to gateway
       #exporters: [otlp]
+    logs/entities:
+      # Receivers are dynamically added if discovery mode is enabled
+      receivers: [nop]
+      processors: [memory_limiter, batch, resourcedetection]
+      exporters: [otlphttp/entities]
     # Required for profiling
     logs:
       receivers: [otlp]

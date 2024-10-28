@@ -1,0 +1,109 @@
+resourceLogs:
+  - resource: {}
+    scopeLogs:
+      - logRecords:
+          - attributes:
+              - key: otel.entity.event.type
+                value:
+                  stringValue: entity_state
+              - key: otel.entity.type
+                value:
+                  stringValue: service
+              - key: otel.entity.attributes
+                value:
+                  kvlistValue:
+                    values:
+                      - key: is_ipv6
+                        value:
+                          boolValue: false
+                      - key: service.type
+                        value:
+                          stringValue: prometheus_simple
+                      - key: transport
+                        value:
+                          stringValue: TCP
+                      - key: process_name
+                        value:
+                          stringValue: otelcol
+                      - key: command
+                        value:
+                          stringValue: /otelcol --config /etc/config.yaml
+                      - key: type
+                        value:
+                          stringValue: hostport
+                      - key: discovery.endpoint.id
+                        value:
+                          stringValue:
+                      - key: endpoint
+                        value:
+                          stringValue: ''
+                      - key: discovery.observer.name
+                        value:
+                          stringValue: with/another/name
+                      - key: discovery.observer.type
+                        value:
+                          stringValue: host_observer
+                      - key: one.key
+                        value:
+                          stringValue: one.value
+                      - key: discovery.receiver.type
+                        value:
+                          stringValue: prometheus_simple
+                      - key: discovery.observer.id
+                        value:
+                          stringValue: host_observer/with/another/name
+                      - key: service_instance_id
+                        value:
+                          stringValue: ""
+                      - key: service.instance.id
+                        value:
+                          stringValue: ''
+                      - key: two.key
+                        value:
+                          stringValue: two.value
+                      - key: service_name
+                        value:
+                          stringValue: otelcol
+                      - key: service_version
+                        value:
+                          stringValue: ""
+                      - key: http.scheme
+                        value:
+                          stringValue: http
+                      - key: discovery.receiver.config
+                        value:
+                          stringValue: ""
+                      - key: url.scheme
+                        value:
+                          stringValue: http
+                      - key: net.host.port
+                        value:
+                          stringValue: "8888"
+                      - key: discovery.status
+                        value:
+                          stringValue: successful
+                      - key: server.port
+                        value:
+                          stringValue: "8888"
+                      - key: discovery.message
+                        value:
+                          stringValue: Successfully connected to prometheus server
+                      - key: service.name
+                        value:
+                          stringValue:
+              - key: otel.entity.id
+                value:
+                  kvlistValue:
+                    values:
+                      - key: source.port
+                        value:
+                          intValue: "8888"
+            body: {}
+            spanId: ""
+            timeUnixNano: "1728086127182669674"
+            traceId: ""
+        scope:
+          attributes:
+            - key: otel.entity.event_as_log
+              value:
+                boolValue: true

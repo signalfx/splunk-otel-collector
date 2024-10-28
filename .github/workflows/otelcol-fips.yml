@@ -1,0 +1,171 @@
+name: "otelcol-fips"
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    paths:
+      - '.github/workflows/otelcol-fips.yml'
+      - 'cmd/otelcol/**'
+      - 'internal/**'
+      - 'pkg/**'
+      - 'tests/**'
+      - 'Makefile'
+      - 'Makefile.Common'
+      - 'go.mod'
+      - 'go.sum'
+      - '!**.md'
+      - '!packaging/**'
+
+concurrency:
+  group: otelcol-fips-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  GO_VERSION: "1.22.7"
+
+jobs:
+  otelcol-fips:
+    runs-on: ${{ fromJSON('["ubuntu-20.04", "otel-arm64"]')[matrix.GOARCH == 'arm64'] }}
+    strategy:
+      matrix:
+        include:
+          - GOOS: linux
+            GOARCH: amd64
+          - GOOS: linux
+            GOARCH: arm64
+          - GOOS: windows
+            GOARCH: amd64
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: '**/go.sum'
+      - run: make otelcol-fips
+        env:
+          GOOS: ${{ matrix.GOOS }}
+          GOARCH: ${{ matrix.GOARCH }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: otelcol-fips-${{ matrix.GOOS }}-${{ matrix.GOARCH }}
+          path: ./bin/*
+
+  win-binary-test:
+    runs-on: windows-2022
+    needs: [ otelcol-fips ]
+    strategy:
+      matrix:
+        FIPSMODE: [ "1", "0" ]
+      fail-fast: false
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: otelcol-fips-windows-amd64
+          path: ./bin
+      - run: Set-ItemProperty -Path HKLM:\System\CurrentControlSet\Control\Lsa\FipsAlgorithmPolicy -Name Enabled -Value ${{ matrix.FIPSMODE }}
+      - run: ./bin/otelcol-fips_windows_amd64.exe --version
+        id: run-otelcol
+        continue-on-error: true
+      - run: echo "FIPS enabled, started successfully"
+        if: matrix.FIPSMODE == '1' && steps.run-otelcol.outcome == 'success'
+      - run: throw "FIPS enabled, should not have failed"
+        if: matrix.FIPSMODE == '1' && steps.run-otelcol.outcome == 'failure'
+      - run: echo "FIPS disabled, failed successfully"
+        if: matrix.FIPSMODE == '0' && steps.run-otelcol.outcome == 'failure'
+      - run: throw "FIPS disabled, should have failed"
+        if: matrix.FIPSMODE == '0' && steps.run-otelcol.outcome == 'success'
+
+  docker-otelcol-fips:
+    runs-on: ${{ fromJSON('["ubuntu-20.04", "otel-arm64"]')[matrix.ARCH == 'arm64'] }}
+    needs: [ otelcol-fips ]
+    strategy:
+      matrix:
+        ARCH: [ amd64, arm64 ]
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: '**/go.sum'
+      - uses: actions/download-artifact@v4
+        with:
+          name: otelcol-fips-linux-${{ matrix.ARCH }}
+          path: ./bin
+      - run: make docker-otelcol SKIP_COMPILE=true
+        env:
+          FIPS: true
+          ARCH: ${{ matrix.ARCH }}
+      - name: Ensure the collector container can run with the default config
+        run: |
+          docker run -d --name otelcol-fips -e SPLUNK_ACCESS_TOKEN=fake-token -e SPLUNK_REALM=fake-realm otelcol-fips:${{ matrix.ARCH }}
+          sleep 30
+          docker logs otelcol-fips
+          if [ -z "$( docker ps --filter=status=running --filter=name=otelcol-fips -q )" ]; then
+            exit 1
+          fi
+          docker rm -f otelcol-fips
+      - name: Ensure the collector container can run with all included configs
+        run: |
+          for config in cmd/otelcol/fips/config/*.yaml; do
+            docker run -d --name otelcol-fips -e SPLUNK_ACCESS_TOKEN=fake-token -e SPLUNK_REALM=fake-realm -e SPLUNK_CONFIG=/etc/otel/collector/$(basename $config) otelcol-fips:${{ matrix.ARCH }}
+            sleep 30
+            docker logs otelcol-fips
+            if [ -z "$( docker ps --filter=status=running --filter=name=otelcol-fips -q )" ]; then
+              exit 1
+            fi
+            docker rm -f otelcol-fips
+          done
+      - run: docker save -o image.tar otelcol-fips:${{ matrix.ARCH }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: docker-otelcol-fips-${{ matrix.ARCH }}
+          path: ./image.tar
+
+  win-docker-otelcol-fips:
+    runs-on: windows-${{ matrix.WIN_VERSION }}
+    needs: [ otelcol-fips ]
+    strategy:
+      matrix:
+        WIN_VERSION: [ 2019, 2022 ]
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v4
+        with:
+          name: otelcol-fips-windows-amd64
+          path: ./cmd/otelcol/fips/dist
+      - run: docker build --pull -t otelcol-fips:${{ matrix.WIN_VERSION }} --build-arg BASE_IMAGE=${env:BASE_IMAGE} -f .\cmd\otelcol\fips\Dockerfile.windows .\cmd\otelcol\fips
+        env:
+          BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc${{ matrix.WIN_VERSION }}
+      - name: Ensure the collector container can run with the default config
+        shell: bash
+        run: |
+          docker run -d --name otelcol-fips -e SPLUNK_ACCESS_TOKEN=fake-token -e SPLUNK_REALM=fake-realm otelcol-fips:${{ matrix.WIN_VERSION }}
+          sleep 30
+          docker logs otelcol-fips
+          if [ -z "$( docker ps --filter=status=running --filter=name=otelcol-fips -q )" ]; then
+            exit 1
+          fi
+          docker rm -f otelcol-fips
+      - name: Ensure the collector container can run with all included configs
+        shell: bash
+        run: |
+          for config in cmd/otelcol/fips/config/*.yaml; do
+            docker run -d --name otelcol-fips -e SPLUNK_ACCESS_TOKEN=fake-token -e SPLUNK_REALM=fake-realm -e SPLUNK_CONFIG="C:\\ProgramData\\Splunk\\OpenTelemetry Collector\\$(basename $config)" otelcol-fips:${{ matrix.WIN_VERSION }}
+            sleep 30
+            docker logs otelcol-fips
+            if [ -z "$( docker ps --filter=status=running --filter=name=otelcol-fips -q )" ]; then
+              exit 1
+            fi
+            docker rm -f otelcol-fips
+          done

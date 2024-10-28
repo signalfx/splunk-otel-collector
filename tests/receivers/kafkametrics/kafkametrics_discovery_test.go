@@ -17,189 +17,30 @@
 package tests
 
 import (
-	"context"
-	"errors"
-	"fmt"
-	"os"
 	"path/filepath"
-	"runtime"
-	"syscall"
 	"testing"
-	"time"
 
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/network"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/testcontainers/testcontainers-go"
-	"go.opentelemetry.io/collector/component/componenttest"
-	"go.opentelemetry.io/collector/consumer/consumertest"
-	"go.opentelemetry.io/collector/receiver/otlpreceiver"
-	"go.opentelemetry.io/collector/receiver/receivertest"
+
+	"github.com/signalfx/splunk-otel-collector/tests/internal/discoverytest"
 )
-
-type otelContainer struct {
-	testcontainers.Container
-}
-
-const (
-	ReceiverTypeAttr         = "discovery.receiver.type"
-	MessageAttr              = "discovery.message"
-	OtelEntityAttributesAttr = "otel.entity.attributes"
-)
-
-func getDockerGID() (string, error) {
-	finfo, err := os.Stat("/var/run/docker.sock")
-	if err != nil {
-		return "", err
-	}
-	fsys := finfo.Sys()
-	stat, ok := fsys.(*syscall.Stat_t)
-	if !ok {
-		return "", fmt.Errorf("OS error occurred while trying to get GID ")
-	}
-	dockerGID := fmt.Sprintf("%d", stat.Gid)
-	return dockerGID, nil
-}
-
-func kafkaMetricsAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFile string, logMessageToAssert string) (*otelContainer, error) {
-	factory := otlpreceiver.NewFactory()
-	port := 16745
-	c := factory.CreateDefaultConfig().(*otlpreceiver.Config)
-	c.GRPC.NetAddr.Endpoint = fmt.Sprintf("localhost:%d", port)
-	endpoint := c.GRPC.NetAddr.Endpoint
-	sink := &consumertest.LogsSink{}
-	receiver, err := factory.CreateLogsReceiver(context.Background(), receivertest.NewNopCreateSettings(), c, sink)
-	require.NoError(t, err)
-	require.NoError(t, receiver.Start(context.Background(), componenttest.NewNopHost()))
-	t.Cleanup(func() {
-		require.NoError(t, receiver.Shutdown(context.Background()))
-	})
-
-	dockerGID, err := getDockerGID()
-	require.NoError(t, err)
-
-	otelConfigPath, err := filepath.Abs(filepath.Join(".", "testdata", configFile))
-	if err != nil {
-		return nil, err
-	}
-	r, err := os.Open(otelConfigPath)
-	if err != nil {
-		return nil, err
-	}
-
-	currPath, err := filepath.Abs(filepath.Join(".", "testdata"))
-	if err != nil {
-		return nil, err
-	}
-	req := testcontainers.ContainerRequest{
-		Image: "otelcol:latest",
-		HostConfigModifier: func(hc *container.HostConfig) {
-			hc.Binds = []string{"/var/run/docker.sock:/var/run/docker.sock"}
-			hc.NetworkMode = network.NetworkHost
-			hc.GroupAdd = []string{dockerGID}
-		},
-		Env: map[string]string{
-			"SPLUNK_REALM":                "us2",
-			"SPLUNK_ACCESS_TOKEN":         "12345",
-			"SPLUNK_DISCOVERY_LOG_LEVEL":  "info",
-			"OTLP_ENDPOINT":               endpoint,
-			"SPLUNK_OTEL_COLLECTOR_IMAGE": "otelcol:latest",
-		},
-		Entrypoint: []string{"/otelcol", "--config", "/home/otel-local-config.yaml"},
-		Files: []testcontainers.ContainerFile{
-			{
-				Reader:            r,
-				HostFilePath:      otelConfigPath,
-				ContainerFilePath: "/home/otel-local-config.yaml",
-				FileMode:          0o777,
-			},
-			{
-				HostFilePath:      currPath,
-				ContainerFilePath: "/home/",
-				FileMode:          0o777,
-			},
-		},
-	}
-
-	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
-		ContainerRequest: req,
-		Started:          true,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	seenMessageAttr := 0
-	seenReceiverTypeAttr := 0
-	expectedReceiver := "kafkametrics"
-	assert.EventuallyWithT(t, func(tt *assert.CollectT) {
-		if len(sink.AllLogs()) == 0 {
-			assert.Fail(tt, "No logs collected")
-			return
-		}
-		for i := 0; i < len(sink.AllLogs()); i++ {
-			plogs := sink.AllLogs()[i]
-			lrs := plogs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords()
-			for j := 0; j < lrs.Len(); j++ {
-				lr := lrs.At(j)
-				attrMap, ok := lr.Attributes().Get(OtelEntityAttributesAttr)
-				if ok {
-					m := attrMap.Map()
-					discoveryMsg, ok := m.Get(MessageAttr)
-					if ok {
-						seenMessageAttr++
-						assert.Equal(tt, logMessageToAssert, discoveryMsg.AsString())
-					}
-					discoveryType, ok := m.Get(ReceiverTypeAttr)
-					if ok {
-						seenReceiverTypeAttr++
-						assert.Equal(tt, expectedReceiver, discoveryType.AsString())
-					}
-				}
-			}
-		}
-		assert.Greater(tt, seenMessageAttr, 0, "Did not see message '%s'", logMessageToAssert)
-		assert.Greater(tt, seenReceiverTypeAttr, 0, "Did not see expected type '%s'", expectedReceiver)
-	}, 60*time.Second, 1*time.Second, "Did not get '%s' discovery in time", expectedReceiver)
-
-	return &otelContainer{Container: container}, nil
-}
 
 func TestIntegrationKafkaMetricsAutoDiscovery(t *testing.T) {
-	if runtime.GOOS == "darwin" || runtime.GOOS == "windows" {
-		t.Skip("Integration tests are only run on linux architecture: https://github.com/signalfx/splunk-otel-collector/blob/main/.github/workflows/integration-test.yml#L35")
-	}
-
-	successfulDiscoveryMsg := `kafkametrics receiver is working!`
-	ctx := context.Background()
-
 	tests := map[string]struct {
-		ctx                context.Context
 		configFileName     string
 		logMessageToAssert string
-		expected           error
 	}{
 		"Successful Discovery test": {
-			ctx:                ctx,
 			configFileName:     "docker_observer_without_ssl_kafkametrics_config.yaml",
-			logMessageToAssert: successfulDiscoveryMsg,
-			expected:           nil,
+			logMessageToAssert: `kafkametrics receiver is working!`,
 		},
 	}
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			container, err := kafkaMetricsAutoDiscoveryHelper(t, test.ctx, test.configFileName, test.logMessageToAssert)
-
-			if !errors.Is(err, test.expected) {
-				t.Fatalf(" Expected %v, got %v", test.expected, err)
-			}
-			t.Cleanup(func() {
-				if err := container.Terminate(ctx); err != nil {
-					t.Fatalf("failed to terminate container: %s", err)
-				}
-			})
+			otelConfigPath, err := filepath.Abs(filepath.Join(".", "testdata", test.configFileName))
+			require.NoError(t, err)
+			discoverytest.Run(t, "kafkametrics", otelConfigPath, test.logMessageToAssert)
 		})
 	}
 }

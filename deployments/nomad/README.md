@@ -43,7 +43,8 @@ template {
     data        = <<EOF
 // Find the below config example for setting up your own Splunk OpenTelemetry Collector configuration file.
 extensions:
-  health_check: null
+  health_check:
+    endpoint: 0.0.0.0:13133
   zpages: null
 receivers:
   hostmetrics:
@@ -60,7 +61,6 @@ receivers:
 processors:
   batch: null
   memory_limiter:
-    ballast_size_mib: ${SPLUNK_BALLAST_SIZE_MIB}
     check_interval: 2s
     limit_mib: ${SPLUNK_MEMORY_LIMIT_MIB}
 exporters:

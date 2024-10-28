@@ -14,7 +14,7 @@ on:
     - cron: '0 0 * * 1-5' # Every weekday at midnight UTC
 
 env:
-  GO_VERSION: '1.21.12'
+  GO_VERSION: '1.22.7'
 
 concurrency:
   group: vuln-scans-${{ github.event.pull_request.number || github.ref }}
@@ -27,11 +27,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run trivy filesystem scan
-        uses: aquasecurity/trivy-action@0.24.0
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           scan-type: 'fs'
           scan-ref: '.'
-          skip-dirs: 'deployments,examples,instrumentation/packaging,internal/buildscripts/packaging,tests'
+          skip-dirs: 'deployments,examples,instrumentation/packaging,packaging,tests'
           format: 'table'
           exit-code: '1'
           severity: 'CRITICAL,HIGH'
@@ -41,7 +41,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v4
-      - uses: anchore/scan-action@v4
+      - uses: anchore/scan-action@v5
         with:
           severity-cutoff: "high"
           only-fixed: true
@@ -54,6 +54,7 @@ jobs:
     strategy:
       matrix:
         ARCH: [ "amd64", "arm64" ]
+        FIPS: [ true, false ]
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
@@ -64,19 +65,19 @@ jobs:
       - uses: actions/cache@v4
         id: bundle-cache
         with:
-          path: .cache/buildx/agent-bundle-${{ matrix.ARCH }}
-          key: agent-bundle-buildx-${{ matrix.ARCH }}-${{ hashFiles('internal/signalfx-agent/bundle/**') }}
+          path: .cache/buildx/agent-bundle-${{ matrix.ARCH }}${{ matrix.FIPS == true && '-fips' || '' }}
+          key: agent-bundle-buildx-${{ matrix.ARCH }}${{ matrix.FIPS == true && '-fips' || '' }}-${{ hashFiles('packaging/bundle/**') }}
           restore-keys: |
-            agent-bundle-buildx-${{ matrix.ARCH }}-
+            agent-bundle-buildx-${{ matrix.ARCH }}-${{ matrix.FIPS == true && '-fips' || '' }}
       - run: |
-          make docker-otelcol ARCH=${{ matrix.ARCH }}
+          make docker-otelcol ARCH=${{ matrix.ARCH }} FIPS="${{ matrix.FIPS }}"
         env:
           DOCKER_BUILDKIT: '1'
           BUNDLE_CACHE_HIT: "${{ steps.bundle-cache.outputs.cache-hit }}"
-      - run: mkdir -p dist && docker save -o dist/image.tar otelcol:latest
+      - run: mkdir -p dist && docker save -o dist/image.tar otelcol${{ matrix.FIPS == true && '-fips' || '' }}:latest
       - uses: actions/upload-artifact@v4
         with:
-          name: otelcol-${{ matrix.ARCH }}
+          name: otelcol-${{ matrix.ARCH }}${{ matrix.FIPS == true && '-fips' || '' }}
           path: ./dist
 
   binaries-windows_amd64:
@@ -103,6 +104,7 @@ jobs:
     strategy:
       matrix:
         ARCH: [ "amd64", "arm64" ]
+        FIPS: [ true, false ]
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
@@ -113,14 +115,14 @@ jobs:
           image: tonistiigi/binfmt:qemu-v7.0.0
       - uses: actions/download-artifact@v4
         with:
-          name: otelcol-${{ matrix.ARCH }}
+          name: otelcol-${{ matrix.ARCH }}${{ matrix.FIPS == true && '-fips' || '' }}
           path: ./dist
       - run: docker load -i ./dist/image.tar
       - name: Run trivy image scan
-        uses: aquasecurity/trivy-action@0.24.0
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           scan-type: 'image'
-          image-ref: 'otelcol:latest'
+          image-ref: "otelcol${{ matrix.FIPS == true && '-fips' || '' }}:latest"
           format: 'table'
           exit-code: '1'
           severity: 'CRITICAL,HIGH'
@@ -132,6 +134,7 @@ jobs:
     strategy:
       matrix:
         ARCH: [ "amd64", "arm64" ]
+        FIPS: [ true, false ]
       fail-fast: false
     env:
       GRYPE_PLATFORM: ${{ matrix.ARCH }}
@@ -144,16 +147,16 @@ jobs:
           image: tonistiigi/binfmt:qemu-v7.0.0
       - uses: actions/download-artifact@v4
         with:
-          name: otelcol-${{ matrix.ARCH }}
+          name: otelcol-${{ matrix.ARCH }}${{ matrix.FIPS == true && '-fips' || '' }}
           path: ./dist
       - run: docker load -i ./dist/image.tar
-      - uses: anchore/scan-action@v4
+      - uses: anchore/scan-action@v5
         with:
           severity-cutoff: "high"
           only-fixed: true
           add-cpes-if-none: true
           output-format: "table"
-          image: "otelcol:latest"
+          image: "otelcol${{ matrix.FIPS == true && '-fips' || '' }}:latest"
 
   anchore-win-image-scan:
     runs-on: ${{ matrix.OS }}
@@ -175,8 +178,8 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: ${{ env.PIP_CACHE_DIR }}
-          key: agent-bundle-windows-pip-${{ hashFiles('internal/signalfx-agent/bundle/collectd-plugins.yaml', 'internal/signalfx-agent/bundle/scripts/requirements.txt') }}
-      - run: ./internal/signalfx-agent/bundle/scripts/windows/make.ps1 bundle
+          key: agent-bundle-windows-pip-${{ hashFiles('packaging/bundle/collectd-plugins.yaml', 'packaging/bundle/scripts/requirements.txt') }}
+      - run: ./packaging/bundle/scripts/windows/make.ps1 bundle
       - name: Build docker image
         run: |
           $ErrorActionPreference = 'Stop'
@@ -187,10 +190,10 @@ jobs:
           } else {
             $base_image = "mcr.microsoft.com/windows/servercore:ltsc2022"
           }
-          docker build -t otelcol-windows --pull --build-arg BASE_IMAGE=${base_image} --build-arg JMX_METRIC_GATHERER_RELEASE=$(Get-Content internal\buildscripts\packaging\jmx-metric-gatherer-release.txt) -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
+          docker build -t otelcol-windows --pull --build-arg BASE_IMAGE=${base_image} --build-arg JMX_METRIC_GATHERER_RELEASE=$(Get-Content packaging\jmx-metric-gatherer-release.txt) -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
           Remove-Item .\cmd\otelcol\otelcol.exe
           Remove-Item .\cmd\otelcol\agent-bundle_windows_amd64.zip
-      - uses: anchore/scan-action@v4
+      - uses: anchore/scan-action@v5
         with:
           severity-cutoff: "high"
           only-fixed: true
@@ -238,6 +241,7 @@ jobs:
     strategy:
       matrix:
         ARCH: [ "amd64", "arm64" ]
+        FIPS: [ true, false ]
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
@@ -248,7 +252,7 @@ jobs:
           image: tonistiigi/binfmt:qemu-v7.0.0
       - uses: actions/download-artifact@v4
         with:
-          name: otelcol-${{ matrix.ARCH }}
+          name: otelcol-${{ matrix.ARCH }}${{ matrix.FIPS == true && '-fips' || '' }}
           path: ./dist
       - run: docker load -i ./dist/image.tar
       - uses: snyk/actions/docker@master
@@ -256,7 +260,7 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          image: "otelcol:latest"
+          image: "otelcol${{ matrix.FIPS == true && '-fips' || '' }}:latest"
           args: --file=cmd/otelcol/Dockerfile --severity-threshold=high --sarif-file-output=snyk.sarif --policy-path=.snyk --platform=linux/${{ matrix.ARCH }}
       - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v3
@@ -268,22 +272,17 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@v4
       - name: Setup Go
-        uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
+        uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
-          cache: false
-      - name: Cache Go
-        id: go-cache
-        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
-        with:
-          path: |
-            ~/go/bin
-            ~/go/pkg/mod
-          key: go-cache-${{ runner.os }}-${{ hashFiles('**/go.sum') }}
+          cache-dependency-path: '**/go.sum'
       - name: Install Tools
-        if: steps.go-cache.outputs.cache-hit != 'true'
         run: make install-tools
       - name: Run `govulncheck`
-        run: make govulncheck
+        run: govulncheck -format sarif ./... > govulncheck.sarif
+      - name: Upload result to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: govulncheck.sarif

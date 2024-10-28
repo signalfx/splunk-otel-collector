@@ -8,29 +8,21 @@ on:
     paths:
       - '.github/workflows/linux-package-test.yml'
       - 'cmd/otelcol/**'
-      - 'internal/buildscripts/packaging/collect-libs.sh'
-      - 'internal/buildscripts/packaging/docker-otelcol.sh'
-      - 'internal/buildscripts/packaging/fpm/**'
-      - 'internal/buildscripts/packaging/installer/install.sh'
-      - 'internal/buildscripts/packaging/jmx-metric-gatherer-release.txt'
-      - 'internal/buildscripts/packaging/tests/helpers/**'
-      - 'internal/buildscripts/packaging/tests/images/**'
-      - 'internal/buildscripts/packaging/tests/package_test.py'
-      - 'internal/buildscripts/packaging/tests/requirements.txt'
-      - 'internal/signalfx-agent/bundle/**'
+      - 'internal/**'
       - 'Makefile'
       - 'Makefile.Common'
       - '!**.md'
+      - '!packaging/technical-addon/**'
 
 concurrency:
   group: linux-package-test-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 env:
-  PYTHON_VERSION: '3.11'
-  PIP_VERSION: '22.0.4'
-  REQUIREMENTS_PATH: "internal/buildscripts/packaging/tests/requirements.txt"
-  GO_VERSION: 1.21.12
+  PYTHON_VERSION: '3.13'
+  PIP_VERSION: '24.2'
+  REQUIREMENTS_PATH: "packaging/tests/requirements.txt"
+  GO_VERSION: 1.22.7
 
 jobs:
   setup-environment:
@@ -91,11 +83,11 @@ jobs:
         id: bundle-cache
         with:
           path: .cache/buildx/agent-bundle-${{ matrix.ARCH }}
-          key: agent-bundle-buildx-${{ matrix.ARCH }}-${{ hashFiles('internal/signalfx-agent/bundle/**') }}
+          key: agent-bundle-buildx-${{ matrix.ARCH }}-${{ hashFiles('packaging/bundle/**') }}
           restore-keys: |
             agent-bundle-buildx-${{ matrix.ARCH }}-
 
-      - run: make -C internal/signalfx-agent/bundle agent-bundle-linux ARCH=${{ matrix.ARCH }}
+      - run: make -C packaging/bundle agent-bundle-linux ARCH=${{ matrix.ARCH }}
         env:
           BUNDLE_CACHE_HIT: "${{ steps.bundle-cache.outputs.cache-hit }}"
 
@@ -155,9 +147,9 @@ jobs:
         id: get-matrix
         run: |
           # create test matrix for distro and arch
-          dockerfiles=$(find internal/buildscripts/packaging/tests/images/ -name "Dockerfile.*" | cut -d '.' -f2- | sort -u)
+          dockerfiles=$(find packaging/tests/images/ -name "Dockerfile.*" | cut -d '.' -f2- | sort -u)
           if [ -z "$dockerfiles" ]; then
-            echo "Failed to get dockerfiles from internal/buildscripts/packaging/tests/images!" >&2
+            echo "Failed to get dockerfiles from packaging/tests/images!" >&2
             exit 1
           fi
           distro=$(for d in $dockerfiles; do echo -n "\"$d\","; done)
@@ -183,7 +175,7 @@ jobs:
       - name: Get package type for ${{ matrix.DISTRO }}
         run: |
           for pkg in "deb" "rpm" "tar"; do
-            if [[ -f "internal/buildscripts/packaging/tests/images/${pkg}/Dockerfile.${{ matrix.DISTRO }}" ]]; then
+            if [[ -f "packaging/tests/images/${pkg}/Dockerfile.${{ matrix.DISTRO }}" ]]; then
               echo "SYS_PACKAGE=${pkg}" >> $GITHUB_ENV
               exit 0
             fi
@@ -230,7 +222,7 @@ jobs:
           fi
           python3 -u -m pytest -s --verbose -m "${{ env.SYS_PACKAGE }}" \
             -k "$distro and ${{ matrix.ARCH }}" \
-            internal/buildscripts/packaging/tests/package_test.py
+            packaging/tests/package_test.py
 
       # qemu, networking, running systemd in containers, etc., can be flaky
       - name: Re-run failed tests
@@ -244,7 +236,7 @@ jobs:
           python3 -u -m pytest -s --verbose -m "${{ env.SYS_PACKAGE }}" \
             -k "$distro and ${{ matrix.ARCH }}" \
             --last-failed \
-            internal/buildscripts/packaging/tests/package_test.py
+            packaging/tests/package_test.py
 
   docker-otelcol:
     # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
@@ -380,7 +372,8 @@ jobs:
             exit 1
           fi
           for config in $configs; do
-            docker run --platform linux/${{ matrix.ARCH }} -d -e SPLUNK_CONFIG=/etc/otel/collector/${config} -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=fake-realm --name otelcol otelcol:latest
+            # TODO: set fake-token back to 12345 once https://github.com/open-telemetry/opentelemetry-collector/issues/10937 is resolved
+            docker run --platform linux/${{ matrix.ARCH }} -d -e SPLUNK_CONFIG=/etc/otel/collector/${config} -e SPLUNK_ACCESS_TOKEN=fake-token -e SPLUNK_REALM=fake-realm -e ECS_CONTAINER_METADATA_URI_V4=http://localhost --name otelcol otelcol:latest
             sleep 10
             if [ -z "$( docker ps --filter=status=running --filter=name=otelcol -q )" ]; then
               docker logs otelcol

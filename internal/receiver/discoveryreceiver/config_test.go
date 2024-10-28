@@ -105,8 +105,7 @@ func TestInvalidConfigs(t *testing.T) {
 		{name: "invalid_status_types", expectedError: `receiver "a_receiver" validation failure: "metrics" status match validation failed: invalid status "unsupported". must be one of [successful partial failed]; "statements" status match validation failed: invalid status "another_unsupported". must be one of [successful partial failed]`},
 		{name: "multiple_status_match_types", expectedError: "receiver \"a_receiver\" validation failure: \"metrics\" status match validation failed. Must provide one of [regexp strict expr] but received [strict regexp]; \"statements\" status match validation failed. Must provide one of [regexp strict expr] but received [strict expr]"},
 		{name: "reserved_receiver_creator", expectedError: `receiver "receiver_creator/with-name" validation failure: receiver cannot be a receiver_creator`},
-		{name: "reserved_receiver_name", expectedError: `receiver "a_receiver/with-receiver_creator/in-name" validation failure: receiver name cannot contain "receiver_creator/"`},
-		{name: "reserved_receiver_name_with_endpoint", expectedError: `receiver "receiver/with{endpoint=}/" validation failure: receiver name cannot contain "{endpoint=[^}]*}/"`},
+		{name: "reserved_receiver_name", expectedError: "receiver \"a_receiver/with-receiver_creator/in-name\" validation failure: receiver name cannot contain \"receiver_creator/\""},
 	}
 
 	for _, test := range tests {
@@ -164,7 +163,6 @@ func TestReceiverCreatorFactoryAndConfig(t *testing.T) {
 			"resource_attributes": map[string]string{
 				"discovery.endpoint.id":   "`id`",
 				"discovery.receiver.name": "redis",
-				"discovery.receiver.rule": `type == "container" && name matches "(?i)redis"`,
 				"discovery.receiver.type": "smartagent",
 				"receiver_attribute":      "receiver_attribute_value",
 			},

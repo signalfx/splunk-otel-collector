@@ -122,11 +122,38 @@
       register: config
       failed_when: config is changed
 
-    - name: Assert instrumentation config contains OTEL_EXPORTER_OTLP_ENDPOINT
+    - name: Assert instrumentation config does not contain OTEL_EXPORTER_OTLP_ENDPOINT
       ansible.builtin.lineinfile:
-        line: OTEL_EXPORTER_OTLP_ENDPOINT=http://127.0.0.1:4317
+        regexp: '.*OTEL_EXPORTER_OTLP_ENDPOINT.*'
         dest: /etc/splunk/zeroconfig/node.conf
-        state: present
+        state: absent
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Assert instrumentation config does not contain OTEL_EXPORTER_OTLP_PROTOCOL
+      ansible.builtin.lineinfile:
+        regexp: '.*OTEL_EXPORTER_OTLP_PROTOCOL.*'
+        dest: /etc/splunk/zeroconfig/node.conf
+        state: absent
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Assert instrumentation config does not contain OTEL_METRICS_EXPORTER
+      ansible.builtin.lineinfile:
+        regexp: '.*OTEL_METRICS_EXPORTER.*'
+        dest: /etc/splunk/zeroconfig/node.conf
+        state: absent
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Assert instrumentation config does not contain OTEL_LOGS_EXPORTER
+      ansible.builtin.lineinfile:
+        regexp: '.*OTEL_LOGS_EXPORTER.*'
+        dest: /etc/splunk/zeroconfig/node.conf
+        state: absent
       check_mode: yes
       register: config
       failed_when: config is changed

@@ -4,14 +4,13 @@ targets:
   only:
     - type: gomod
     - type: maven
-      path: internal/signalfx-agent/bundle/java/jmx
+      path: packaging/bundle/java/jmx
     - type: setuptools
-      path: internal/signalfx-agent/bundle/python
+      path: packaging/bundle/python
     - type: setuptools
-      path: internal/signalfx-agent/bundle/scripts
+      path: packaging/bundle/scripts
 
 paths:
   exclude:
     - examples
-    - internal/buildscripts
     - tests

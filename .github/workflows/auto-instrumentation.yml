@@ -7,21 +7,21 @@ on:
   pull_request:
     paths:
       - '.github/workflows/auto-instrumentation.yml'
+      - 'cmd/otelcol/**'
       - 'instrumentation/**'
-      - 'internal/buildscripts/packaging/tests/helpers/**'
-      - 'internal/buildscripts/packaging/tests/instrumentation/**'
-      - 'internal/buildscripts/packaging/tests/requirements.txt'
+      - 'internal/**'
       - '!**.md'
+      - '!packaging/technical-addon/**'
 
 concurrency:
   group: auto-instrumentation-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 env:
-  PYTHON_VERSION: '3.11'
-  PIP_VERSION: '22.0.4'
-  REQUIREMENTS_PATH: "internal/buildscripts/packaging/tests/requirements.txt"
-  GO_VERSION: 1.21.12
+  PYTHON_VERSION: '3.13'
+  PIP_VERSION: '24.2'
+  REQUIREMENTS_PATH: "packaging/tests/requirements.txt"
+  GO_VERSION: 1.22.7
 
 jobs:
   cross-compile:
@@ -91,9 +91,9 @@ jobs:
         id: get-matrix
         run: |
           # create test matrix for distro and arch
-          dockerfiles=$(find internal/buildscripts/packaging/tests/instrumentation/images/ -name "Dockerfile.*" | cut -d '.' -f2- | sort -u)
+          dockerfiles=$(find packaging/tests/instrumentation/images/ -name "Dockerfile.*" | cut -d '.' -f2- | sort -u)
           if [ -z "$dockerfiles" ]; then
-            echo "Failed to get dockerfiles from internal/buildscripts/packaging/tests/instrumentation/images!" >&2
+            echo "Failed to get dockerfiles from packaging/tests/instrumentation/images!" >&2
             exit 1
           fi
           distro=$(for d in $dockerfiles; do echo -n "\"$d\","; done)
@@ -121,7 +121,7 @@ jobs:
       - name: Get package type for ${{ matrix.DISTRO }}
         run: |
           for pkg in "deb" "rpm"; do
-            if [[ -f "internal/buildscripts/packaging/tests/instrumentation/images/${pkg}/Dockerfile.${{ matrix.DISTRO }}" ]]; then
+            if [[ -f "packaging/tests/instrumentation/images/${pkg}/Dockerfile.${{ matrix.DISTRO }}" ]]; then
               echo "SYS_PACKAGE=${pkg}" >> $GITHUB_ENV
               exit 0
             fi
@@ -173,7 +173,7 @@ jobs:
           fi
           testcase="${{ matrix.TESTCASE }} or uninstall"
           python3 -u -m pytest -s --verbose -k "$distro and ${{ matrix.ARCH }} and ($testcase)" \
-            internal/buildscripts/packaging/tests/instrumentation/instrumentation_test.py
+            packaging/tests/instrumentation/instrumentation_test.py
 
       # qemu, networking, running systemd in containers, etc., can be flaky
       - name: Re-run failed tests
@@ -187,4 +187,4 @@ jobs:
           testcase="${{ matrix.TESTCASE }} or uninstall"
           python3 -u -m pytest -s --verbose -k "$distro and ${{ matrix.ARCH }} and ($testcase)" \
             --last-failed \
-            internal/buildscripts/packaging/tests/instrumentation/instrumentation_test.py
+            packaging/tests/instrumentation/instrumentation_test.py

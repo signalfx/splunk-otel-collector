@@ -108,19 +108,19 @@ func (m *Monitor) getVolumeMetrics() ([]*datapoint.Datapoint, error) {
 			if v.AvailableBytes != nil {
 				// uint64 -> int64 conversion should be safe since disk sizes
 				// aren't going to get that big for a long time.
-				dps = append(dps, sfxclient.Gauge(kubernetesVolumeAvailableBytes, dims, int64(*v.AvailableBytes)))
+				dps = append(dps, sfxclient.Gauge(kubernetesVolumeAvailableBytes, dims, int64(*v.AvailableBytes))) //nolint:gosec
 			}
 			if v.CapacityBytes != nil {
-				dps = append(dps, sfxclient.Gauge(kubernetesVolumeCapacityBytes, dims, int64(*v.CapacityBytes)))
+				dps = append(dps, sfxclient.Gauge(kubernetesVolumeCapacityBytes, dims, int64(*v.CapacityBytes))) //nolint:gosec
 			}
 			if v.Inodes != nil {
-				dps = append(dps, sfxclient.Gauge(kubernetesVolumeInodes, dims, int64(*v.Inodes)))
+				dps = append(dps, sfxclient.Gauge(kubernetesVolumeInodes, dims, int64(*v.Inodes))) //nolint:gosec
 			}
 			if v.InodesFree != nil {
-				dps = append(dps, sfxclient.Gauge(kubernetesVolumeInodesFree, dims, int64(*v.InodesFree)))
+				dps = append(dps, sfxclient.Gauge(kubernetesVolumeInodesFree, dims, int64(*v.InodesFree))) //nolint:gosec
 			}
 			if v.InodesUsed != nil {
-				dps = append(dps, sfxclient.Gauge(kubernetesVolumeInodesUsed, dims, int64(*v.InodesUsed)))
+				dps = append(dps, sfxclient.Gauge(kubernetesVolumeInodesUsed, dims, int64(*v.InodesUsed))) //nolint:gosec
 			}
 		}
 	}

@@ -25,23 +25,27 @@ import (
 )
 
 func TestSignalFxExporterTranslatesOTelCPUMetrics(t *testing.T) {
-	testutils.CheckGoldenFile(t, "cpu_translations_config.yaml", "cpu_translations_expected.yaml",
-		pmetrictest.IgnoreTimestamp(),
-		pmetrictest.IgnoreMetricAttributeValue("host.name"),
-		pmetrictest.IgnoreMetricValues(),
-		pmetrictest.IgnoreMetricsOrder(),
-		pmetrictest.IgnoreMetricDataPointsOrder(),
-		pmetrictest.IgnoreSubsequentDataPoints(),
+	testutils.RunMetricsCollectionTest(t, "cpu_translations_config.yaml", "cpu_translations_expected.yaml",
+		testutils.WithCompareMetricsOptions(
+			pmetrictest.IgnoreTimestamp(),
+			pmetrictest.IgnoreMetricAttributeValue("host.name"),
+			pmetrictest.IgnoreMetricValues(),
+			pmetrictest.IgnoreMetricsOrder(),
+			pmetrictest.IgnoreMetricDataPointsOrder(),
+			pmetrictest.IgnoreSubsequentDataPoints(),
+		),
 	)
 }
 
 func TestSignalFxExporterTranslatesOTelMemoryMetrics(t *testing.T) {
-	testutils.CheckGoldenFile(t, "memory_translations_config.yaml", "memory_translations_expected.yaml",
-		pmetrictest.IgnoreTimestamp(),
-		pmetrictest.IgnoreMetricAttributeValue("host.name"),
-		pmetrictest.IgnoreMetricValues(),
-		pmetrictest.IgnoreMetricsOrder(),
-		pmetrictest.IgnoreMetricDataPointsOrder(),
-		pmetrictest.IgnoreSubsequentDataPoints(),
+	testutils.RunMetricsCollectionTest(t, "memory_translations_config.yaml", "memory_translations_expected.yaml",
+		testutils.WithCompareMetricsOptions(
+			pmetrictest.IgnoreTimestamp(),
+			pmetrictest.IgnoreMetricAttributeValue("host.name"),
+			pmetrictest.IgnoreMetricValues(),
+			pmetrictest.IgnoreMetricsOrder(),
+			pmetrictest.IgnoreMetricDataPointsOrder(),
+			pmetrictest.IgnoreSubsequentDataPoints(),
+		),
 	)
 }

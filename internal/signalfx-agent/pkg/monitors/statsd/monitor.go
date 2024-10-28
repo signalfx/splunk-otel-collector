@@ -74,7 +74,7 @@ type Monitor struct {
 // Configure the monitor and kick off volume metric syncing
 func (m *Monitor) Configure(conf *Config) error {
 	m.logger = utils.NewThrottledLogger(log.WithFields(log.Fields{"monitorType": monitorMetadata.MonitorType, "monitorID": conf.MonitorID}), 30*time.Second)
-
+	m.logger.Warn("[NOTICE] The statsd monitor is deprecated and will be removed in a future release. Use the statsd receiver instead.")
 	var ctx context.Context
 	ctx, m.cancel = context.WithCancel(context.Background())
 

@@ -23,7 +23,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/consumer/consumertest"
-	otelcolreceiver "go.opentelemetry.io/collector/receiver"
+	"go.opentelemetry.io/collector/receiver/receivertest"
 )
 
 func TestCreateDefaultConfig(t *testing.T) {
@@ -37,37 +37,40 @@ func TestCreateDefaultConfig(t *testing.T) {
 	}, cfg)
 }
 
-func TestCreateLogsReceiver(t *testing.T) {
+func TestLogsReceiver(t *testing.T) {
 	factory := NewFactory()
 	cfg := factory.CreateDefaultConfig()
 
-	params := otelcolreceiver.Settings{}
-	receiver, err := factory.CreateLogsReceiver(context.Background(), params, cfg, consumertest.NewNop())
-	assert.Error(t, err)
-	assert.EqualError(t, err, "`watch_observers` must be defined and include at least one configured observer extension")
+	params := receivertest.NewNopSettings()
+	receiver, err := factory.CreateLogs(context.Background(), params, cfg, consumertest.NewNop())
+	assert.NoError(t, err)
+	assert.NotNil(t, receiver)
+	require.NoError(t, receiver.Start(context.Background(), componenttest.NewNopHost()))
+	require.NoError(t, receiver.Shutdown(context.Background()))
+}
+
+func TestMetricsReceiver(t *testing.T) {
+	factory := NewFactory()
+	cfg := &Config{}
+	require.Error(t, cfg.Validate())
+
+	params := receivertest.NewNopSettings()
+	receiver, err := factory.CreateMetrics(context.Background(), params, cfg, consumertest.NewNop())
+	require.NoError(t, err)
+	assert.NotNil(t, receiver)
+
+	require.NoError(t, receiver.Start(context.Background(), componenttest.NewNopHost()))
+	require.NoError(t, receiver.Shutdown(context.Background()))
+}
+
+func TestTracesReceiver(t *testing.T) {
+	factory := NewFactory()
+	cfg := &Config{}
+	require.Error(t, cfg.Validate())
+
+	params := receivertest.NewNopSettings()
+	receiver, err := factory.CreateTraces(context.Background(), params, cfg, consumertest.NewNop())
+	require.Error(t, err)
+	assert.EqualError(t, err, "telemetry type is not supported")
 	assert.Nil(t, receiver)
-}
-
-func TestCreateMetricsReceiver(t *testing.T) {
-	factory := NewFactory()
-	cfg := &Config{}
-	require.Error(t, cfg.Validate())
-
-	params := otelcolreceiver.Settings{}
-	rcvr, err := factory.CreateMetricsReceiver(context.Background(), params, cfg, consumertest.NewNop())
-	require.Error(t, err)
-	assert.EqualError(t, err, "telemetry type is not supported")
-	assert.Nil(t, rcvr)
-}
-
-func TestCreateTracesReceiver(t *testing.T) {
-	factory := NewFactory()
-	cfg := &Config{}
-	require.Error(t, cfg.Validate())
-
-	params := otelcolreceiver.Settings{}
-	rcvr, err := factory.CreateTracesReceiver(context.Background(), params, cfg, consumertest.NewNop())
-	require.Error(t, err)
-	assert.EqualError(t, err, "telemetry type is not supported")
-	assert.Nil(t, rcvr)
 }

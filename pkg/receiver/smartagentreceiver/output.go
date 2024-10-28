@@ -26,6 +26,8 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/utils"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
+	"go.opentelemetry.io/collector/pdata/pmetric"
+	"go.opentelemetry.io/collector/pipeline"
 	otelcolreceiver "go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/receiverhelper"
 	"go.uber.org/zap"
@@ -58,7 +60,7 @@ var _ types.FilteringOutput = (*output)(nil)
 // Deprecated: This is a temporary workaround for the following issue:
 // https://github.com/open-telemetry/opentelemetry-collector/issues/7370
 type getExporters interface {
-	GetExporters() map[component.DataType]map[component.ID]component.Component
+	GetExporters() map[pipeline.Signal]map[component.ID]component.Component
 }
 
 func newOutput(
@@ -98,7 +100,7 @@ func getMetadataExporters(
 	exporters, noClientsSpecified := getDimensionClientsFromMetricsExporters(cfg.DimensionClients, host, nextMetricsConsumer, logger)
 
 	if len(exporters) == 0 && noClientsSpecified {
-		sfxExporter := getLoneSFxExporter(host, component.DataTypeMetrics)
+		sfxExporter := getLoneSFxExporter(host, pipeline.SignalMetrics)
 		if sfxExporter != nil {
 			if sfx, ok := sfxExporter.(metadata.MetadataExporter); ok {
 				exporters = append(exporters, sfx)
@@ -134,7 +136,7 @@ func getDimensionClientsFromMetricsExporters(
 	}
 	exporters := ge.GetExporters()
 
-	if builtExporters, ok := exporters[component.DataTypeMetrics]; ok {
+	if builtExporters, ok := exporters[pipeline.SignalMetrics]; ok {
 		for _, client := range specifiedClients {
 			var found bool
 			for exporterConfig, exporter := range builtExporters {
@@ -156,7 +158,7 @@ func getDimensionClientsFromMetricsExporters(
 	return
 }
 
-func getLoneSFxExporter(host component.Host, exporterType component.DataType) component.Component {
+func getLoneSFxExporter(host component.Host, exporterType pipeline.Signal) component.Component {
 	var sfxExporter component.Component
 	ge, ok := host.(getExporters)
 	if !ok {
@@ -205,6 +207,41 @@ func (out *output) Copy() types.Output {
 	cp := *out
 	cp.extraDimensions = utils.CloneStringMap(out.extraDimensions)
 	return &cp
+}
+
+func (out *output) SendMetrics(metrics ...pmetric.Metric) {
+	if out.nextMetricsConsumer == nil {
+		return
+	}
+
+	ctx := out.reporter.StartMetricsOp(context.Background())
+
+	metrics = out.filterMetrics(metrics)
+	pm := pmetric.NewMetrics()
+	rm := pm.ResourceMetrics().AppendEmpty()
+	sm := rm.ScopeMetrics().AppendEmpty()
+	for _, dp := range metrics {
+		for k, v := range out.extraDimensions {
+			switch dp.Type() {
+			case pmetric.MetricTypeGauge:
+				for i := 0; i < dp.Gauge().DataPoints().Len(); i++ {
+					dp.Gauge().DataPoints().At(i).Attributes().PutStr(k, v)
+				}
+			case pmetric.MetricTypeSum:
+				for i := 0; i < dp.Sum().DataPoints().Len(); i++ {
+					dp.Sum().DataPoints().At(i).Attributes().PutStr(k, v)
+				}
+			default:
+				out.logger.Error("Unsupported metric type", zap.Any("type", dp.Type()), zap.String("name", dp.Name()))
+			}
+
+		}
+		dp.MoveTo(sm.Metrics().AppendEmpty())
+	}
+
+	numPoints := pm.MetricCount()
+	err := out.nextMetricsConsumer.ConsumeMetrics(context.Background(), pm)
+	out.reporter.EndMetricsOp(ctx, typeStr, numPoints, err)
 }
 
 func (out *output) SendDatapoints(datapoints ...*datapoint.Datapoint) {
@@ -281,10 +318,41 @@ func (out *output) AddExtraDimension(key, value string) {
 	out.extraDimensions[key] = value
 }
 
+func (out *output) filterMetrics(metrics []pmetric.Metric) []pmetric.Metric {
+	if out.monitorFiltering.filterSet == nil {
+		return metrics
+	}
+	filteredMetrics := make([]pmetric.Metric, 0, len(metrics))
+	for _, m := range metrics {
+		atLeastOneDataPoint := false
+		switch m.Type() {
+		case pmetric.MetricTypeGauge:
+			m.Gauge().DataPoints().RemoveIf(func(point pmetric.NumberDataPoint) bool {
+				return out.monitorFiltering.filterSet.MatchesMetricDataPoint(m.Name(), point.Attributes())
+			})
+			atLeastOneDataPoint = m.Gauge().DataPoints().Len() > 0
+		case pmetric.MetricTypeSum:
+			m.Sum().DataPoints().RemoveIf(func(point pmetric.NumberDataPoint) bool {
+				return out.monitorFiltering.filterSet.MatchesMetricDataPoint(m.Name(), point.Attributes())
+			})
+			atLeastOneDataPoint = m.Sum().DataPoints().Len() > 0
+		default:
+			panic("unsupported metric type")
+		}
+		if atLeastOneDataPoint {
+			filteredMetrics = append(filteredMetrics, m)
+		}
+	}
+	return filteredMetrics
+}
+
 func (out *output) filterDatapoints(datapoints []*datapoint.Datapoint) []*datapoint.Datapoint {
+	if out.monitorFiltering.filterSet == nil {
+		return datapoints
+	}
 	filteredDatapoints := make([]*datapoint.Datapoint, 0, len(datapoints))
 	for _, dp := range datapoints {
-		if out.monitorFiltering.filterSet == nil || !out.monitorFiltering.filterSet.Matches(dp) {
+		if !out.monitorFiltering.filterSet.Matches(dp) {
 			filteredDatapoints = append(filteredDatapoints, dp)
 		}
 	}

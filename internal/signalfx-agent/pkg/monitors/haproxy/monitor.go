@@ -34,6 +34,7 @@ type proxies map[string]bool
 // Config for this monitor
 func (m *Monitor) Configure(conf *Config) (err error) {
 	m.logger = log.WithFields(log.Fields{"monitorType": monitorType, "monitorID": conf.MonitorID})
+	m.logger.Warn("[NOTICE] The haproxy monitor is deprecated and will be removed in a future release. Please use the haproxyreceiver instead.")
 	m.ctx, m.cancel = context.WithCancel(context.Background())
 	url, err := url.Parse(conf.ScrapeURL())
 	if err != nil {
@@ -67,7 +68,6 @@ func (m *Monitor) Configure(conf *Config) (err error) {
 		var wg sync.WaitGroup
 		chs := make([]chan []*datapoint.Datapoint, 0)
 		for _, fn := range fetchFuncs {
-			fn := fn
 			ch := make(chan []*datapoint.Datapoint, 1)
 			wg.Add(1)
 			go func() {

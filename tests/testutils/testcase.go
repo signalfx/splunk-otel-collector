@@ -24,8 +24,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/docker/docker/api/types"
-	docker "github.com/docker/docker/client"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -36,23 +34,7 @@ import (
 	"github.com/signalfx/splunk-otel-collector/tests/testutils/telemetry"
 )
 
-type TestOption int
-
-const (
-	OTLPReceiverSinkAllInterfaces TestOption = iota
-	OTLPReceiverSinkBindToBridgeGateway
-)
-
 type CollectorBuilder func(Collector) Collector
-
-func HasTestOption(opt TestOption, opts []TestOption) bool {
-	for _, o := range opts {
-		if o == opt {
-			return true
-		}
-	}
-	return false
-}
 
 // A Testcase is a central helper utility to provide Container, OTLPReceiverSink, ResourceMetrics,
 // SplunkOtelCollector, and ObservedLogs to integration tests with minimal boilerplate.  It also embeds testing.TB
@@ -70,13 +52,13 @@ type Testcase struct {
 
 // NewTestcase is the recommended constructor that will automatically configure an OTLPReceiverSink
 // with available endpoint and ObservedLogs.
-func NewTestcase(t testing.TB, opts ...TestOption) *Testcase {
+func NewTestcase(t testing.TB) *Testcase {
 	tc := Testcase{TB: t}
 	var logCore zapcore.Core
 	logCore, tc.ObservedLogs = observer.New(zap.DebugLevel)
 	tc.Logger = zap.New(logCore)
 
-	tc.setOTLPEndpoint(opts)
+	tc.setOTLPEndpoint()
 	var err error
 	tc.OTLPReceiverSink, err = NewOTLPReceiverSink().WithEndpoint(tc.OTLPEndpoint).Build()
 	require.NoError(tc, err)
@@ -88,37 +70,11 @@ func NewTestcase(t testing.TB, opts ...TestOption) *Testcase {
 	return &tc
 }
 
-func (t *Testcase) setOTLPEndpoint(opts []TestOption) {
+func (t *Testcase) setOTLPEndpoint() {
 	otlpPort := GetAvailablePort(t)
 	otlpHost := "localhost"
-	switch {
-	case HasTestOption(OTLPReceiverSinkAllInterfaces, opts):
-		otlpHost = "0.0.0.0"
-	case HasTestOption(OTLPReceiverSinkBindToBridgeGateway, opts):
-		client, err := docker.NewClientWithOpts(docker.FromEnv)
-		require.NoError(t, err)
-		client.NegotiateAPIVersion(context.Background())
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		network, err := client.NetworkInspect(ctx, "bridge", types.NetworkInspectOptions{})
-		require.NoError(t, err)
-		for _, ipam := range network.IPAM.Config {
-			otlpHost = ipam.Gateway
-		}
-		require.NotEmpty(t, otlpHost, "no bridge network gateway detected. Host IP is inaccessible.")
-	}
 	t.OTLPEndpoint = fmt.Sprintf("%s:%d", otlpHost, otlpPort)
 	t.OTLPEndpointForCollector = t.OTLPEndpoint
-}
-
-// Loads and validates a ResourceLogs instance, assuming it's located in ./testdata/resource_metrics
-func (t *Testcase) ResourceLogs(filename string) *telemetry.ResourceLogs {
-	expectedResourceLogs, err := telemetry.LoadResourceLogs(
-		path.Join(".", "testdata", "resource_logs", filename),
-	)
-	require.NoError(t, err)
-	require.NotNil(t, expectedResourceLogs)
-	return expectedResourceLogs
 }
 
 // Loads and validates a ResourceMetrics instance, assuming it's located in ./testdata/resource_metrics
@@ -242,29 +198,6 @@ func (t *Testcase) PrintLogsOnFailure() {
 // Validating shutdown helper for the Testcase's OTLPReceiverSink
 func (t *Testcase) ShutdownOTLPReceiverSink() {
 	require.NoError(t, t.OTLPReceiverSink.Shutdown())
-}
-
-// AssertAllLogsReceived is a central helper, designed to avoid most boilerplate. Using the desired
-// ResourceLogs and Collector Config filenames, a slice of Container builders, and a slice of CollectorBuilder
-// AssertAllLogsReceived creates a Testcase, builds and starts all Container and CollectorBuilder-determined Collector
-// instances, and asserts that all expected ResourceLogs are received before running validated cleanup functionality.
-func AssertAllLogsReceived(
-	t testing.TB, resourceLogsFilename, collectorConfigFilename string,
-	containers []Container, builders []CollectorBuilder,
-) {
-	tc := NewTestcase(t)
-	defer tc.PrintLogsOnFailure()
-	defer tc.ShutdownOTLPReceiverSink()
-
-	expectedResourceLogs := tc.ResourceLogs(resourceLogsFilename)
-
-	_, stop := tc.Containers(containers...)
-	defer stop()
-
-	_, shutdown := tc.SplunkOtelCollector(collectorConfigFilename, builders...)
-	defer shutdown()
-
-	require.NoError(t, tc.OTLPReceiverSink.AssertAllLogsReceived(t, *expectedResourceLogs, 30*time.Second))
 }
 
 // AssertAllMetricsReceived is a central helper, designed to avoid most boilerplate. Using the desired

@@ -67,7 +67,7 @@ func (prwParser *prometheusRemoteOtelParser) transformPrometheusRemoteWriteToOte
 	metric := pmetric.NewMetrics()
 	rm := metric.ResourceMetrics().AppendEmpty()
 	ilm := rm.ScopeMetrics().AppendEmpty()
-	ilm.Scope().SetName("otelcol/" + metadata.Type.String())
+	ilm.Scope().SetName(metadata.ScopeName)
 	ilm.Scope().SetVersion("0.1")
 	for metricType, metrics := range parsedPrwMetrics {
 		prwParser.addMetrics(ilm, metricType, metrics)
@@ -258,7 +258,7 @@ func (prwParser *prometheusRemoteOtelParser) setFloatOrInt(dp pmetric.NumberData
 }
 
 func prometheusToOtelTimestamp(ts int64) pcommon.Timestamp {
-	return pcommon.Timestamp(ts * int64(time.Millisecond))
+	return pcommon.Timestamp(ts * int64(time.Millisecond)) //nolint:gosec
 }
 
 func (prwParser *prometheusRemoteOtelParser) setAttributes(dp pmetric.NumberDataPoint, labels []prompb.Label) {

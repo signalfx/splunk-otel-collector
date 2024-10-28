@@ -34,13 +34,16 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
+	"go.opentelemetry.io/collector/config/configtelemetry"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	otelcolextension "go.opentelemetry.io/collector/extension"
 	"go.opentelemetry.io/collector/extension/extensiontest"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
+	"go.opentelemetry.io/collector/pipeline"
 	otelcolreceiver "go.opentelemetry.io/collector/receiver"
+	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/metric/noop"
 	nooptrace "go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/zap"
@@ -66,12 +69,9 @@ func newReceiverCreateSettings(name string, t *testing.T) otelcolreceiver.Settin
 	return otelcolreceiver.Settings{
 		ID: component.MustNewIDWithName("smartagent", name),
 		TelemetrySettings: component.TelemetrySettings{
-			Logger:         zap.NewNop(),
-			TracerProvider: nooptrace.NewTracerProvider(),
-			MeterProvider:  noop.NewMeterProvider(),
-			ReportStatus: func(event *component.StatusEvent) {
-				require.NoError(t, event.Err())
-			},
+			Logger:               zap.NewNop(),
+			TracerProvider:       nooptrace.NewTracerProvider(),
+			LeveledMeterProvider: func(configtelemetry.Level) metric.MeterProvider { return noop.NewMeterProvider() },
 		},
 	}
 }
@@ -238,10 +238,7 @@ func TestOutOfOrderShutdownInvocations(t *testing.T) {
 	receiver := newReceiver(newReceiverCreateSettings("valid", t), cfg)
 
 	err := receiver.Shutdown(context.Background())
-	require.Error(t, err)
-	assert.EqualError(t, err,
-		"smartagentreceiver's Shutdown() called before Start() or with invalid monitor state",
-	)
+	require.NoError(t, err)
 }
 
 func TestMultipleInstancesOfSameMonitorType(t *testing.T) {
@@ -425,13 +422,13 @@ func (m *mockHost) GetExtensions() map[component.ID]otelcolextension.Extension {
 }
 
 func getExtension(f otelcolextension.Factory, cfg component.Config) otelcolextension.Extension {
-	e, err := f.CreateExtension(context.Background(), otelcolextension.Settings{}, cfg)
+	e, err := f.Create(context.Background(), otelcolextension.Settings{}, cfg)
 	if err != nil {
 		panic(err)
 	}
 	return e
 }
 
-func (m *mockHost) GetExporters() map[component.DataType]map[component.ID]component.Component {
+func (m *mockHost) GetExporters() map[pipeline.Signal]map[component.ID]component.Component {
 	return nil
 }

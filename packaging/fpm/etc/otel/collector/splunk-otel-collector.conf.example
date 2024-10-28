@@ -1,0 +1,61 @@
+# Sample systemd environment file for passing environment variables to the splunk-otel-collector service and the
+# collector configuration file.
+
+# See https://www.freedesktop.org/software/systemd/man/systemd.exec.html#EnvironmentFile= for general information about
+# systemd environment files, supported syntax, and limitations.
+
+# To use this file:
+# 1. Add/Update the environment variables below.
+# 2. Save/Rename this file as "/etc/otel/collector/splunk-otel-collector.conf".
+# 3. Run the following command to restart the service and apply the changes:
+#      sudo systemctl restart splunk-otel-collector.service
+
+
+# Command-line options for the splunk-otel-collector service.
+# Run `/usr/bin/otelcol --help` to see all available options.
+OTELCOL_OPTIONS=""
+
+
+# Path to the config file for the collector.
+# Required, unless the OTELCOL_OPTIONS environment variable above includes the '--config <path to config file>' option.
+SPLUNK_CONFIG=/etc/otel/collector/agent_config.yaml
+
+
+# The following environment variables are referenced in the default /etc/otel/collector/agent_config.yaml config file.
+
+# Access token to authenticate requests.
+SPLUNK_ACCESS_TOKEN=12345
+
+# Which realm to send the data to.
+SPLUNK_REALM=us0
+
+# Splunk api endpoint URL.
+SPLUNK_API_URL=https://api.us0.signalfx.com
+
+# Splunk ingest endpoint URL.
+SPLUNK_INGEST_URL=https://ingest.us0.signalfx.com
+
+# Splunk trace endpoint URL.
+SPLUNK_TRACE_URL=https://ingest.us0.signalfx.com/v2/trace
+
+# Splunk HEC endpoint URL, if forwarding to Splunk Observability Cloud
+SPLUNK_HEC_URL=https://ingest.us0.signalfx.com/v1/log
+# If you're forwarding to a Splunk Enterprise instance running on example.com, with HEC at port 8088:
+# SPLUNK_HEC_URL=https://example.com:8088/services/collector
+
+# Splunk HEC token.
+SPLUNK_HEC_TOKEN=12345
+
+# Total memory in MIB to allocate to the collector.
+# Automatically configures the memory limit.
+SPLUNK_MEMORY_TOTAL_MIB=1024
+
+# The path to the Smart Agent bundle.
+SPLUNK_BUNDLE_DIR=/usr/lib/splunk-otel-collector/agent-bundle
+
+# The path to the collectd config directory for the Smart Agent.
+# This directory must be read/writable by the collector process.
+SPLUNK_COLLECTD_DIR=/usr/lib/splunk-otel-collector/agent-bundle/run/collectd
+
+# Network interface the collector receivers listen on.
+SPLUNK_LISTEN_INTERFACE=127.0.0.1

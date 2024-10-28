@@ -12,9 +12,12 @@ ifeq ($(UNIX_SHELL_ON_WINDOWS),true)
 	# The backslash needs to be doubled so its passed correctly to the shell. 
 	NORMALIZE_DIRS = sed -e 's/^/\\//' -e 's/://' -e 's/\\\\/\\//g' | sort
 	NUM_CORES := ${NUMBER_OF_PROCESSORS}
+	EXTENSION ?=.exe
+	LINK_CMD = cmd /c mklink /H
 else
 	NORMALIZE_DIRS = sort
 	NUM_CORES := $(shell getconf _NPROCESSORS_ONLN)
+	LINK_CMD = ln -sf
 endif
 
 # SRC_ROOT is the top of the source tree.

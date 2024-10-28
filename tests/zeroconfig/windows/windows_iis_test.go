@@ -20,6 +20,7 @@ import (
 	"net/http"
 	"os/exec"
 	"path"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -27,8 +28,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/golden"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/ptracetest"
+
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
-	"github.com/signalfx/splunk-otel-collector/tests/testutils/telemetry"
 )
 
 func TestWindowsIISInstrumentation(t *testing.T) {
@@ -82,9 +85,9 @@ func TestWindowsIISInstrumentation(t *testing.T) {
 		return resp.StatusCode == http.StatusOK
 	}, 30*time.Second, 100*time.Millisecond)
 
-	testExpectedTracesForHTTPGetRequest(t, otlp, "http://localhost:8000/aspnetfxapp/api/values/4", "aspnetfx.yaml")
+	testExpectedTracesForHTTPGetRequest(t, otlp, "http://localhost:8000/aspnetfxapp/api/values/4", filepath.Join("testdata", "expected", "aspnetfx.yaml"))
 
-	testExpectedTracesForHTTPGetRequest(t, otlp, "http://localhost:8000/aspnetcoreapp/api/values/6", "aspnetcore.yaml")
+	testExpectedTracesForHTTPGetRequest(t, otlp, "http://localhost:8000/aspnetcoreapp/api/values/6", filepath.Join("testdata", "expected", "aspnetcore.yaml"))
 }
 
 func requireNoErrorExecCommand(t *testing.T, name string, arg ...string) {
@@ -108,9 +111,39 @@ func requireHTTPGetRequestSuccess(t *testing.T, url string) {
 
 func testExpectedTracesForHTTPGetRequest(t *testing.T, otlp *testutils.OTLPReceiverSink, url string, expectedTracesFileName string) {
 	requireHTTPGetRequestSuccess(t, url)
-	expectedResourceTraces, err := telemetry.LoadResourceTraces(
-		path.Join(".", "testdata", "resource_traces", expectedTracesFileName),
-	)
+
+	expected, err := golden.ReadTraces(expectedTracesFileName)
 	require.NoError(t, err)
-	require.NoError(t, otlp.AssertAllTracesReceived(t, *expectedResourceTraces, 30*time.Second))
+
+	assert.Eventually(t, func() bool {
+		if otlp.SpanCount() == 0 {
+			return false
+		}
+		receivedOTLPTraces := otlp.AllTraces()
+		otlp.Reset()
+		for _, trace := range receivedOTLPTraces {
+			err := ptracetest.CompareTraces(expected, trace,
+				ptracetest.IgnoreResourceAttributeValue("host.id"),
+				ptracetest.IgnoreResourceAttributeValue("host.name"),
+				ptracetest.IgnoreResourceAttributeValue("process.owner"),
+				ptracetest.IgnoreResourceAttributeValue("process.pid"),
+				ptracetest.IgnoreResourceAttributeValue("process.runtime.description"),
+				ptracetest.IgnoreResourceAttributeValue("process.runtime.version"),
+				ptracetest.IgnoreResourceAttributeValue("splunk.zc.method"),
+				ptracetest.IgnoreResourceAttributeValue("telemetry.sdk.version"),
+				ptracetest.IgnoreResourceAttributeValue("splunk.distro.version"),
+				ptracetest.IgnoreResourceAttributeValue("telemetry.distro.version"),
+				ptracetest.IgnoreScopeSpanInstrumentationScopeVersion(),
+				ptracetest.IgnoreStartTimestamp(),
+				ptracetest.IgnoreEndTimestamp(),
+				ptracetest.IgnoreTraceID(),
+				ptracetest.IgnoreSpanID(),
+			)
+			if err == nil {
+				return true
+			}
+			t.Log(err)
+		}
+		return false
+	}, 1*time.Minute, 10*time.Millisecond, "Failed to receive expected traces")
 }

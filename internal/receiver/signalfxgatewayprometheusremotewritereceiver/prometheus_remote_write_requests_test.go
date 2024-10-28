@@ -23,6 +23,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
+
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/signalfxgatewayprometheusremotewritereceiver/internal/metadata"
 )
 
 var (
@@ -156,7 +158,7 @@ func expectedCounter() pmetric.Metrics {
 	result := pmetric.NewMetrics()
 	resourceMetrics := result.ResourceMetrics().AppendEmpty()
 	scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
-	scopeMetrics.Scope().SetName("otelcol/signalfxgatewayprometheusremotewrite")
+	scopeMetrics.Scope().SetName(metadata.ScopeName)
 	scopeMetrics.Scope().SetVersion("0.1")
 	metric := scopeMetrics.Metrics().AppendEmpty()
 	metric.SetName("http_requests_total")
@@ -177,7 +179,7 @@ func expectedGauge() pmetric.Metrics {
 	result := pmetric.NewMetrics()
 	resourceMetrics := result.ResourceMetrics().AppendEmpty()
 	scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
-	scopeMetrics.Scope().SetName("otelcol/signalfxgatewayprometheusremotewrite")
+	scopeMetrics.Scope().SetName(metadata.ScopeName)
 	scopeMetrics.Scope().SetVersion("0.1")
 	metric := scopeMetrics.Metrics().AppendEmpty()
 	metric.SetName("i_am_a_gauge")
@@ -194,7 +196,7 @@ func expectedSfxCompatibleHistogram() pmetric.Metrics {
 	result := pmetric.NewMetrics()
 	resourceMetrics := result.ResourceMetrics().AppendEmpty()
 	scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
-	scopeMetrics.Scope().SetName("otelcol/signalfxgatewayprometheusremotewrite")
+	scopeMetrics.Scope().SetName(metadata.ScopeName)
 	scopeMetrics.Scope().SetVersion("0.1")
 
 	// set bucket sizes
@@ -222,8 +224,8 @@ func expectedSfxCompatibleHistogram() pmetric.Metrics {
 		counter.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
 		dp := counter.DataPoints().AppendEmpty()
 		dp.Attributes().PutStr("le", values.bucket)
-		dp.SetTimestamp(pcommon.Timestamp(values.timestamp))
-		dp.SetStartTimestamp(pcommon.Timestamp(values.timestamp))
+		dp.SetTimestamp(pcommon.Timestamp(values.timestamp))      //nolint:gosec
+		dp.SetStartTimestamp(pcommon.Timestamp(values.timestamp)) //nolint:gosec
 		dp.SetIntValue(values.value)
 	}
 
@@ -233,8 +235,8 @@ func expectedSfxCompatibleHistogram() pmetric.Metrics {
 	counter.SetIsMonotonic(true)
 	counter.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
 	dp := counter.DataPoints().AppendEmpty()
-	dp.SetTimestamp(pcommon.Timestamp(jan20.UnixNano()))
-	dp.SetStartTimestamp(pcommon.Timestamp(jan20.UnixNano()))
+	dp.SetTimestamp(pcommon.Timestamp(jan20.UnixNano()))      //nolint:gosec
+	dp.SetStartTimestamp(pcommon.Timestamp(jan20.UnixNano())) //nolint:gosec
 	dp.SetIntValue(2500)
 
 	metric = scopeMetrics.Metrics().AppendEmpty()
@@ -242,8 +244,8 @@ func expectedSfxCompatibleHistogram() pmetric.Metrics {
 	gauge := metric.SetEmptyGauge()
 	dp = gauge.DataPoints().AppendEmpty()
 
-	dp.SetTimestamp(pcommon.Timestamp(jan20.UnixNano()))
-	dp.SetStartTimestamp(pcommon.Timestamp(jan20.UnixNano()))
+	dp.SetTimestamp(pcommon.Timestamp(jan20.UnixNano()))      //nolint:gosec
+	dp.SetStartTimestamp(pcommon.Timestamp(jan20.UnixNano())) //nolint:gosec
 	dp.SetIntValue(350)
 
 	return result
@@ -253,7 +255,7 @@ func expectedSfxCompatibleQuantile() pmetric.Metrics {
 	result := pmetric.NewMetrics()
 	resourceMetrics := result.ResourceMetrics().AppendEmpty()
 	scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
-	scopeMetrics.Scope().SetName("otelcol/signalfxgatewayprometheusremotewrite")
+	scopeMetrics.Scope().SetName(metadata.ScopeName)
 	scopeMetrics.Scope().SetVersion("0.1")
 
 	// set bucket sizes
@@ -279,8 +281,8 @@ func expectedSfxCompatibleQuantile() pmetric.Metrics {
 		gauge := metric.SetEmptyGauge()
 		dp := gauge.DataPoints().AppendEmpty()
 		dp.Attributes().PutStr("quantile", values.bucket)
-		dp.SetTimestamp(pcommon.Timestamp(values.timestamp))
-		dp.SetStartTimestamp(pcommon.Timestamp(values.timestamp))
+		dp.SetTimestamp(pcommon.Timestamp(values.timestamp))      //nolint:gosec
+		dp.SetStartTimestamp(pcommon.Timestamp(values.timestamp)) //nolint:gosec
 		dp.SetDoubleValue(values.value)
 	}
 
@@ -290,8 +292,8 @@ func expectedSfxCompatibleQuantile() pmetric.Metrics {
 	sum.SetIsMonotonic(true)
 	sum.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
 	dp := sum.DataPoints().AppendEmpty()
-	dp.SetTimestamp(pcommon.Timestamp(jan20.UnixNano()))
-	dp.SetStartTimestamp(pcommon.Timestamp(jan20.UnixNano()))
+	dp.SetTimestamp(pcommon.Timestamp(jan20.UnixNano()))      //nolint:gosec
+	dp.SetStartTimestamp(pcommon.Timestamp(jan20.UnixNano())) //nolint:gosec
 	dp.SetIntValue(1500)
 
 	metric = scopeMetrics.Metrics().AppendEmpty()
@@ -299,8 +301,8 @@ func expectedSfxCompatibleQuantile() pmetric.Metrics {
 	gauge := metric.SetEmptyGauge()
 	dp = gauge.DataPoints().AppendEmpty()
 
-	dp.SetTimestamp(pcommon.Timestamp(jan20.UnixNano()))
-	dp.SetStartTimestamp(pcommon.Timestamp(jan20.UnixNano()))
+	dp.SetTimestamp(pcommon.Timestamp(jan20.UnixNano()))      //nolint:gosec
+	dp.SetStartTimestamp(pcommon.Timestamp(jan20.UnixNano())) //nolint:gosec
 	dp.SetDoubleValue(123.5)
 
 	return result

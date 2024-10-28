@@ -20,9 +20,22 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/hostobserver"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/config/configopaque"
 	"go.opentelemetry.io/collector/confmap"
+	"go.opentelemetry.io/collector/confmap/provider/envprovider"
+	"go.opentelemetry.io/collector/confmap/provider/fileprovider"
+	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
+	"go.opentelemetry.io/collector/featuregate"
+	"go.opentelemetry.io/collector/otelcol"
+	"go.opentelemetry.io/collector/pipeline"
+
+	"github.com/signalfx/splunk-otel-collector/internal/components"
+	"github.com/signalfx/splunk-otel-collector/internal/configconverter"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver"
 )
 
 func TestConfigDProviderHappyPath(t *testing.T) {
@@ -95,4 +108,68 @@ func TestConfigDProviderInvalidURIs(t *testing.T) {
 	retrieved, err = configD.Retrieve(context.Background(), fmt.Sprintf("%s:not.a.path", discoveryModeScheme), nil)
 	assert.EqualError(t, err, `uri "splunk.discovery:not.a.path" is not supported by splunk.configd provider`)
 	assert.Nil(t, retrieved)
+}
+
+func TestDiscoveryProvider_ContinuousDiscoveryConfig(t *testing.T) {
+	require.NoError(t, featuregate.GlobalRegistry().Set(continuousDiscoveryFGKey, true))
+	t.Setenv("SPLUNK_INGEST_URL", "https://ingest.fake-realm.signalfx.com")
+	t.Setenv("SPLUNK_ACCESS_TOKEN", "fake-token")
+
+	confmapProvider, err := New()
+	require.NoError(t, err)
+
+	provider, err := otelcol.NewConfigProvider(otelcol.ConfigProviderSettings{
+		ResolverSettings: confmap.ResolverSettings{
+			URIs: []string{
+				fmt.Sprintf("file:%s", filepath.Join("testdata", "base-config.yaml")),
+				fmt.Sprintf("%s:%s", discoveryModeScheme, filepath.Join("testdata", "config.d")),
+			},
+			ProviderFactories: []confmap.ProviderFactory{
+				fileprovider.NewFactory(),
+				confmapProvider.DiscoveryModeProviderFactory(),
+				envprovider.NewFactory(),
+			},
+			ConverterFactories: []confmap.ConverterFactory{configconverter.ConverterFactoryFromFunc(configconverter.SetupDiscovery)},
+			DefaultScheme:      "env",
+		},
+	})
+	require.NoError(t, err)
+	require.NotNil(t, provider)
+
+	factories, err := components.Get()
+	require.NoError(t, err)
+
+	conf, err := provider.Get(context.Background(), factories)
+	require.NoError(t, err)
+	assert.NotNil(t, conf)
+
+	assert.Equal(t, 1, len(conf.Receivers))
+	drc, ok := conf.Receivers[component.MustNewIDWithName("discovery", "host_observer")].(*discoveryreceiver.Config)
+	require.True(t, ok)
+	assert.NotNil(t, drc)
+
+	assert.Equal(t, 1, len(conf.Exporters))
+	oec, ok := conf.Exporters[component.MustNewIDWithName("otlphttp", "entities")].(*otlphttpexporter.Config)
+	require.True(t, ok)
+	expectedOtlpExporterConfig := otlphttpexporter.NewFactory().CreateDefaultConfig().(*otlphttpexporter.Config)
+	expectedOtlpExporterConfig.LogsEndpoint = "https://ingest.fake-realm.signalfx.com/v3/event"
+	expectedOtlpExporterConfig.ClientConfig.Headers = map[string]configopaque.String{
+		"X-SF-Token": "fake-token",
+	}
+	assert.Equal(t, expectedOtlpExporterConfig, oec)
+
+	assert.Equal(t, 1, len(conf.Extensions))
+	hoc, ok := conf.Extensions[component.MustNewID("host_observer")].(*hostobserver.Config)
+	require.True(t, ok)
+	assert.Equal(t, hostobserver.NewFactory().CreateDefaultConfig(), hoc)
+
+	assert.EqualValues(t, []component.ID{component.MustNewID("host_observer")}, conf.Service.Extensions)
+	pipelines := conf.Service.Pipelines
+	assert.Equal(t, 2, len(pipelines))
+	assert.Equal(t, []component.ID{component.MustNewIDWithName("discovery", "host_observer")},
+		pipelines[pipeline.MustNewID("metrics")].Receivers)
+	assert.Equal(t, []component.ID{component.MustNewIDWithName("discovery", "host_observer")},
+		pipelines[pipeline.MustNewIDWithName("logs", "entities")].Receivers)
+	assert.Equal(t, []component.ID{component.MustNewIDWithName("otlphttp", "entities")},
+		pipelines[pipeline.MustNewIDWithName("logs", "entities")].Exporters)
 }

@@ -99,7 +99,10 @@ elsif platform_family?('debian', 'rhel', 'amazon', 'suse')
   default['splunk_otel_collector']['auto_instrumentation_enable_profiler'] = false
   default['splunk_otel_collector']['auto_instrumentation_enable_profiler_memory'] = false
   default['splunk_otel_collector']['auto_instrumentation_enable_metrics'] = false
-  default['splunk_otel_collector']['auto_instrumentation_otlp_endpoint'] = 'http://127.0.0.1:4317'
+  default['splunk_otel_collector']['auto_instrumentation_metrics_exporter'] = ''
+  default['splunk_otel_collector']['auto_instrumentation_logs_exporter'] = ''
+  default['splunk_otel_collector']['auto_instrumentation_otlp_endpoint'] = ''
+  default['splunk_otel_collector']['auto_instrumentation_otlp_endpoint_protocol'] = ''
   default['splunk_otel_collector']['with_auto_instrumentation_sdks'] = %w(java nodejs dotnet)
   default['splunk_otel_collector']['auto_instrumentation_npm_path'] = 'npm'
 end

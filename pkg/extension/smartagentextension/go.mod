@@ -9,7 +9,7 @@ require (
 	github.com/signalfx/signalfx-agent v1.0.1-0.20230104182534-9eee411fe305
 	github.com/stretchr/testify v1.9.0
 	go.opentelemetry.io/collector/component v0.112.0
-	go.opentelemetry.io/collector/confmap v1.17.0
+	go.opentelemetry.io/collector/confmap v1.18.0
 	go.opentelemetry.io/collector/extension v0.112.0
 	gopkg.in/yaml.v2 v2.4.0
 )
@@ -21,7 +21,7 @@ require (
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-stack/stack v1.8.1 // indirect
-	github.com/go-viper/mapstructure/v2 v2.1.0 // indirect
+	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
 	github.com/gobwas/glob v0.2.4-0.20181002190808-e7a84e9525fe // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect

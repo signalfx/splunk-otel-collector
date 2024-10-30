@@ -1,6 +1,8 @@
 monitors:
 - dimensions:
   doc: |
+    **The collectd/kafka monitor is deprecated. Use the jmxreceiver with the kafka target system instead.**
+
     Monitors a Kafka instance using collectd's
     GenericJMX plugin. See the [collectd/genericjmx
     monitor](./collectd-genericjmx.md)[](sfx_link:java) for more information on

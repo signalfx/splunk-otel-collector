@@ -1,6 +1,8 @@
 monitors:
 - dimensions:
   doc: |
+    **The collectd/kafkaconsumer monitor is deprecated. Use the jmxreceiver with the kafka-consumer target system instead.**
+
     Monitors a Java based Kafka consumer using [collectd's GenericJMX plugin](./collectd-genericjmx.md)[](sfx_link:java).
 
     This monitor has a set of [built in MBeans

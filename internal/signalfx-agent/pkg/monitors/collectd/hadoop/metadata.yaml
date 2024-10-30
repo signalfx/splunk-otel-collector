@@ -1,6 +1,8 @@
 monitors:
 - dimensions:
   doc: |
+    **The collectd/hadoop monitor is deprecated. Use the jmxreceiver with the hadoop target system instead.**
+
     Collects metrics about a Hadoop 2.0+ cluster using the [collectd Hadoop Python
     plugin](https://github.com/signalfx/collectd-hadoop). If a remote JMX port
     is exposed in the hadoop cluster, then you may also configure the

@@ -23,7 +23,7 @@ ARG DOCKER_REPO=docker.io
 
 
 ######## Base image for subsequent stages ########
-FROM ${DOCKER_REPO}/ubuntu:22.04 AS base
+FROM ${DOCKER_REPO}/ubuntu:24.04 AS base
 
 ARG ARCH
 ENV DEBIAN_FRONTEND noninteractive
@@ -102,7 +102,6 @@ RUN apt-get update && apt-get install -qq -y \
       debootstrap \
       devscripts \
       dh-make \
-      dpatch \
       fakeroot \
       flex \
       gcc \
@@ -225,13 +224,13 @@ ENV JAVA_HOME /opt/root/jdk
 ENV JAVA_LDFLAGS "-Wl,-rpath -Wl,\$\$\ORIGIN/../../jre/lib/server"
 
 # xencpu plugin is not supported on ppc64le
-RUN DISABLE_XENCPU=""; if [ "$ARCH" = "ppc64le" ]; then DISABLE_XENCPU="--disable-xencpu"; fi; \
-    autoreconf -vif &&\
-    ./configure $DISABLE_XENCPU \
+RUN autoreconf -vif &&\
+    ./configure \
         --prefix="/usr" \
         --localstatedir="/var" \
         --sysconfdir="/etc/collectd" \
         --enable-all-plugins \
+        --disable-xencpu \
         --disable-apple_sensors \
         --disable-aquaero \
         --disable-barometer \
@@ -280,7 +279,7 @@ RUN /opt/collect-libs /opt/deps /usr/sbin/collectd /usr/lib/collectd/
 
 # For some reason libvarnishapi doesn't properly depend on libm, so make it
 # right.
-RUN patchelf --add-needed libm-2.31.so /opt/deps/libvarnishapi.so.2.0.0
+RUN patchelf --add-needed libm-2.31.so /opt/deps/libvarnishapi.so.3.0.0
 
 
 ######## Python Plugin Image ########

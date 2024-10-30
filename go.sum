@@ -764,8 +764,8 @@ github.com/hashicorp/go-cleanhttp v0.5.2 h1:035FKYIWjmULyFRBKPs8TBQoi0x6d9G4xc9n
 github.com/hashicorp/go-cleanhttp v0.5.2/go.mod h1:kO/YDlP8L1346E6Sodw+PrpBSV4/SoxCXGY6BqNFT48=
 github.com/hashicorp/go-discover v0.0.0-20230724184603-e89ebd1b2f65 h1:+ZwaKkFuVWS7FZoiltT+7XW/MEFckY9Wxe+xIEErLcM=
 github.com/hashicorp/go-discover v0.0.0-20230724184603-e89ebd1b2f65/go.mod h1:RH2Jr1/cCsZ1nRLmAOC65hp/gRehf55SsUIYV2+NAxI=
-github.com/hashicorp/go-gcp-common v0.9.0 h1:dabqPrA+vlNWcyQV/3yOI6WCmQGFJgwyztDEsqDp+Q0=
-github.com/hashicorp/go-gcp-common v0.9.0/go.mod h1:aZnN6BVMqryPo4vIy97ZAYSoREnJWilLMmaOmi5P7vY=
+github.com/hashicorp/go-gcp-common v0.9.1 h1:ZzAJNAz6OwpNUutnnUVnFERtR2fI1oZT5Z2i1vOly/s=
+github.com/hashicorp/go-gcp-common v0.9.1/go.mod h1:JJ5Zvnsmrn1GkBg64+oDfSK/gJtnGyX5x2nFuSdulLw=
 github.com/hashicorp/go-hclog v0.0.0-20180709165350-ff2cf002a8dd/go.mod h1:9bjs9uLqI8l75knNv3lV1kA55veR+WUPSiKIWcQHudI=
 github.com/hashicorp/go-hclog v0.8.0/go.mod h1:5CU+agLiy3J7N7QjHK5d05KxGsuXiQLrjA0H7acj2lQ=
 github.com/hashicorp/go-hclog v0.9.1/go.mod h1:5CU+agLiy3J7N7QjHK5d05KxGsuXiQLrjA0H7acj2lQ=
@@ -887,8 +887,8 @@ github.com/hashicorp/serf v0.10.1 h1:Z1H2J60yRKvfDYAOZLd2MU0ND4AH/WDz7xYHDWQsIPY
 github.com/hashicorp/serf v0.10.1/go.mod h1:yL2t6BqATOLGc5HF7qbFkTfXoPIY0WZdWHfEvMqbG+4=
 github.com/hashicorp/vault v1.18.0 h1:ubEzIQgep/sa2Cm3kjfErWFjoDi8gidVLbDSt6zj1K0=
 github.com/hashicorp/vault v1.18.0/go.mod h1:BKIhc+lvFliPSrMYyv3plB0J6WRrdLhXx4j1MHSO9fI=
-github.com/hashicorp/vault-plugin-auth-gcp v0.19.0 h1:mMTnAGDi6GigGmP9DlLjDzp5VRF8/sZzw8hlfOLFbbU=
-github.com/hashicorp/vault-plugin-auth-gcp v0.19.0/go.mod h1:+0+ufeudu8nKVS448iHnzKp5SgLtMcs2U9E0nOUoL/Q=
+github.com/hashicorp/vault-plugin-auth-gcp v0.19.1 h1:ALSm4IUBRien3uKrdtvihxSwmOaKJxzKqDmTR2WpMG8=
+github.com/hashicorp/vault-plugin-auth-gcp v0.19.1/go.mod h1:NwWKw3t/ZjqDd4PdYe2LVTvX0EAMmwFaexIQQWb+U0U=
 github.com/hashicorp/vault-plugin-secrets-kv v0.20.0 h1:p1RVmd4x1rgGK0tN8DDu21J21bR3O93qBFXLGEdJSEo=
 github.com/hashicorp/vault-plugin-secrets-kv v0.20.0/go.mod h1:bCpMggD3Z0+H+3dOmTCoQjBHC53jA08lPqOLmFrHBi8=
 github.com/hashicorp/vault/api v1.0.4/go.mod h1:gDcqh3WGcR1cpF5AJz/B1UFheUEneMoIospckxBxk6Q=
@@ -1828,8 +1828,8 @@ github.com/vishvananda/netns v0.0.4 h1:Oeaw1EM2JMxD51g9uhtC0D7erkIjgmj8+JZc26m1Y
 github.com/vishvananda/netns v0.0.4/go.mod h1:SpkAiCQRtJ6TvvxPnOSyH3BMl6unz3xZlaprSwhNNJM=
 github.com/vjeantet/grok v1.0.1 h1:2rhIR7J4gThTgcZ1m2JY4TrJZNgjn985U28kT2wQrJ4=
 github.com/vjeantet/grok v1.0.1/go.mod h1:ax1aAchzC6/QMXMcyzHQGZWaW1l195+uMYIkCWPCNIo=
-github.com/vmware/govmomi v0.44.1 h1:Hbt0nvVY8fnp3DGRJHngLflTos/uRrW54lhmJ/zKZFc=
-github.com/vmware/govmomi v0.44.1/go.mod h1:uoLVU9zlXC4p4GmLVG+ZJmBC0Gn3Q7mytOJvi39OhxA=
+github.com/vmware/govmomi v0.45.1 h1:pmMmSUNIw/kePaCRFaUOpDh7IxDfhDi9M4Qh+DRlBV4=
+github.com/vmware/govmomi v0.45.1/go.mod h1:uoLVU9zlXC4p4GmLVG+ZJmBC0Gn3Q7mytOJvi39OhxA=
 github.com/vultr/govultr/v2 v2.17.2 h1:gej/rwr91Puc/tgh+j33p/BLR16UrIPnSr+AIwYWZQs=
 github.com/vultr/govultr/v2 v2.17.2/go.mod h1:ZFOKGWmgjytfyjeyAdhQlSWwTjh2ig+X49cAp50dzXI=
 github.com/x448/float16 v0.8.4 h1:qLwI1I70+NjRFUR3zs1JPUCgaCXSh3SW62uAKT1mSBM=

@@ -5,7 +5,7 @@ go 1.22.0
 toolchain go1.22.7
 
 require (
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.111.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.112.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.112.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.112.0
 	github.com/openzipkin/zipkin-go v0.4.3
@@ -197,7 +197,7 @@ require (
 	github.com/twmb/murmur3 v1.1.7 // indirect
 	github.com/ulule/deepcopier v0.0.0-20171107155558-ca99b135e50f // indirect
 	github.com/vjeantet/grok v1.0.1 // indirect
-	github.com/vmware/govmomi v0.44.1 // indirect
+	github.com/vmware/govmomi v0.45.1 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	github.com/zeebo/xxh3 v1.0.2 // indirect
 	go.opentelemetry.io/collector/consumer/consumererror v0.112.0 // indirect

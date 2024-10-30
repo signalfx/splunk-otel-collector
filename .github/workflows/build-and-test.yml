@@ -10,6 +10,7 @@ on:
       - '.golangci.yml'
       - 'cmd/**'
       - 'internal/**'
+      - 'packaging/bundle/**'
       - 'pkg/**'
       - 'tests/**'
       - 'Makefile'

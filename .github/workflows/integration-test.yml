@@ -10,6 +10,8 @@ on:
       - 'cmd/**'
       - 'docker/**'
       - 'internal/**'
+      - 'packaging/bundle/**'
+      - 'instrumentation/packaging/**'
       - 'pkg/**'
       - 'tests/**'
       - 'Makefile'

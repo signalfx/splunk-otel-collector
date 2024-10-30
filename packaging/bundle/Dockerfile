@@ -102,7 +102,6 @@ RUN apt-get update && apt-get install -qq -y \
       debootstrap \
       devscripts \
       dh-make \
-      dpatch \
       fakeroot \
       flex \
       gcc \

@@ -9,6 +9,7 @@ on:
     paths:
       - '.github/workflows/installer-script-test.yml'
       - 'packaging/installer/install.sh'
+      - 'packaging/tests/instrumentation/**'
       - 'packaging/tests/helpers/**'
       - 'packaging/tests/images/**'
       - 'packaging/tests/installer_test.py'

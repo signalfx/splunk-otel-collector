@@ -3,7 +3,7 @@
 The `smartagent` extension provides a mechanism to specify config options that are not
 just specific to a single instance of the [Smart Agent Receiver](../../receiver/smartagentreceiver/README.md) but are applicable to
 all instances.  This component provides a means of migrating your existing
-[Smart Agent configuration](https://docs.splunk.com/observability/en/gdi/smart-agent/smart-agent-resources.html#configure-the-smart-agent)
+[Smart Agent configuration](https://docs.splunk.com/observability/en/gdi/opentelemetry/smart-agent/smart-agent-migration-process.html#locate-your-existing-smart-agent-configuration-file)
 to the Splunk Distribution of OpenTelemetry Collector.
 
 As the Smart Agent Receiver doesn't provide 1:1 functional parity with the SignalFx Smart Agent in itself,

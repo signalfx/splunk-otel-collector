@@ -39,7 +39,7 @@ This Splunk OpenTelemetry Collector release includes changes from the openteleme
 
 ### 💡 Enhancements 💡
 
-- (Splunk) Update Python to 3.13.0 ([#](https://github.com/signalfx/splunk-otel-collector/pull/))
+- (Splunk) Update Python to 3.13.0 ([5552](https://github.com/signalfx/splunk-otel-collector/pull/5552))
 - (Core) `confighttp`: Adding support for lz4 compression into the project ([#9128](https://github.com/open-telemetry/opentelemetry-collector/pull/9128))
 - (Core) `service`: Hide profiles support behind a feature gate while it remains alpha. ([#11477](https://github.com/open-telemetry/opentelemetry-collector/pull/11477))
 - (Core) `exporterhelper`: Retry sender will fail fast when the context timeout is shorter than the next retry interval. ([#11183](https://github.com/open-telemetry/opentelemetry-collector/pull/11183))

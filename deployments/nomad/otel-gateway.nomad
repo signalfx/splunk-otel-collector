@@ -194,6 +194,11 @@ exporters:
     ingest_url: https://ingest.${SPLUNK_REALM}.signalfx.com
   debug:
     verbosity: detailed
+  otlphttp:
+    metrics_endpoint: "https://ingest.${SPLUNK_REALM}.signalfx.com/v2/datapoint/otlp"
+    traces_endpoint: "https://ingest.${SPLUNK_REALM}.signalfx.com/v2/trace/otlp"
+    headers:
+      "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
 service:
   extensions:
   - health_check

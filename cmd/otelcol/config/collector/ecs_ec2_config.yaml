@@ -129,6 +129,11 @@ exporters:
     token: "${SPLUNK_ACCESS_TOKEN}"
     endpoint: "${SPLUNK_INGEST_URL}/v1/log"
     log_data_enabled: false
+  otlphttp:
+    metrics_endpoint: "${SPLUNK_INGEST_URL}/v2/datapoint/otlp"
+    traces_endpoint: "${SPLUNK_INGEST_URL}/v2/trace/otlp"
+    headers:
+      "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
 
 service:
   extensions: [health_check, http_forwarder, zpages]
@@ -140,7 +145,7 @@ service:
         - batch
         - resourcedetection
         #- resource/add_environment
-      exporters: [sapm, signalfx]
+      exporters: [otlphttp, signalfx]
     metrics:
       receivers: [hostmetrics, otlp, signalfx, awsecscontainermetrics]
       processors: [memory_limiter, batch, filter, resourcedetection]

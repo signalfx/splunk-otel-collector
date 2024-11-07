@@ -12,7 +12,7 @@
 # - SPLUNK_HEC_TOKEN: The Splunk HEC authentication token
 # - SPLUNK_HEC_URL: The Splunk HEC endpoint URL, e.g. https://ingest.us0.signalfx.com/v1/log
 # - SPLUNK_INGEST_URL: The Splunk ingest URL, e.g. https://ingest.us0.signalfx.com
-# - SPLUNK_TRACE_URL: The Splunk trace endpoint URL, e.g. https://ingest.us0.signalfx.com/v2/trace
+# - SPLUNK_TRACE_URL: The Splunk trace endpoint URL, e.g. https://ingest.us0.signalfx.com/v2/trace/otlp
 
 extensions:
   health_check:
@@ -143,8 +143,13 @@ exporters:
     token: "${SPLUNK_ACCESS_TOKEN}"
     endpoint: "https://ingest.${SPLUNK_REALM}.signalfx.com/v1/log"
     log_data_enabled: false
+  otlphttp:
+    metrics_endpoint: "${SPLUNK_INGEST_URL}/v2/datapoint/otlp"
+    traces_endpoint: "${SPLUNK_INGEST_URL}/v2/trace/otlp"
+    headers:
+      "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
   # Send to gateway
-  otlp:
+  otlp/gateway:
     endpoint: "${SPLUNK_GATEWAY_URL}:4317"
     tls:
       insecure: true
@@ -163,30 +168,30 @@ service:
       - batch
       - resourcedetection
       #- resource/add_environment
-      exporters: [sapm, signalfx]
+      exporters: [otlphttp, signalfx]
       # Use instead when sending to gateway
-      #exporters: [otlp, signalfx]
+      #exporters: [otlp/gateway, signalfx]
     # Required for Splunk Infrastructure Monitoring
     metrics:
       receivers: [hostmetrics, otlp, signalfx]
       processors: [memory_limiter, batch, resourcedetection]
       exporters: [signalfx]
       # Use instead when sending to gateway
-      #exporters: [otlp]
+      #exporters: [otlp/gateway]
     # Required for Splunk APM and/or Infrastructure Monitoring
     metrics/internal:
       receivers: [prometheus/internal]
       processors: [memory_limiter, batch, resourcedetection]
       exporters: [signalfx]
       # Use instead when sending to gateway
-      #exporters: [otlp]
+      #exporters: [otlp/gateway]
     # Required for Splunk Infrastructure Monitoring
     logs/signalfx:
       receivers: [signalfx]
       processors: [memory_limiter, batch]
       exporters: [signalfx]
       # Use instead when sending to gateway
-      #exporters: [otlp]
+      #exporters: [otlp/gateway]
     logs/entities:
       # Receivers are dynamically added if discovery mode is enabled
       receivers: [nop]
@@ -202,4 +207,4 @@ service:
       #- resource/add_environment
       exporters: [splunk_hec/profiling]
       # Use instead when sending to gateway
-      #exporters: [otlp]
+      #exporters: [otlp/gateway]

@@ -10,7 +10,7 @@
 # - SPLUNK_HEC_URL: The Splunk HEC endpoint URL, e.g. https://ingest.us0.signalfx.com/v1/log
 # - SPLUNK_INGEST_URL: The Splunk ingest URL, e.g. https://ingest.us0.signalfx.com
 # - SPLUNK_LISTEN_INTERFACE: The network interface the agent receivers listen on.
-# - SPLUNK_TRACE_URL: The Splunk trace endpoint URL, e.g. https://ingest.us0.signalfx.com/v2/trace
+# - SPLUNK_TRACE_URL: The Splunk trace endpoint URL, e.g. https://ingest.us0.signalfx.com/v2/trace/otlp
 
 extensions:
   health_check:
@@ -157,8 +157,13 @@ exporters:
     token: "${SPLUNK_ACCESS_TOKEN}"
     endpoint: "${SPLUNK_INGEST_URL}/v1/log"
     log_data_enabled: false
+  otlphttp:
+    metrics_endpoint: "${SPLUNK_INGEST_URL}/v2/datapoint/otlp"
+    traces_endpoint: "${SPLUNK_INGEST_URL}/v2/trace/otlp"
+    headers:
+      "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
   # Send to gateway
-  otlp:
+  otlp/gateway:
     endpoint: "${SPLUNK_GATEWAY_URL}:4317"
     tls:
       insecure: true
@@ -179,15 +184,15 @@ service:
       - batch
       - resourcedetection
       #- resource/add_environment
-      exporters: [sapm, signalfx]
+      exporters: [otlphttp, signalfx]
       # Use instead when sending to gateway
-      #exporters: [otlp, signalfx]
+      #exporters: [otlp/gateway, signalfx]
     metrics:
       receivers: [hostmetrics, otlp, signalfx]
       processors: [memory_limiter, batch, resourcedetection]
       exporters: [signalfx]
       # Use instead when sending to gateway
-      #exporters: [otlp]
+      #exporters: [otlp/gateway]
     metrics/internal:
       receivers: [prometheus/internal]
       processors: [memory_limiter, batch, resourcedetection]
@@ -212,4 +217,4 @@ service:
       #- resource/add_environment
       exporters: [splunk_hec, splunk_hec/profiling]
       # Use instead when sending to gateway
-      #exporters: [otlp]
+      #exporters: [otlp/gateway]

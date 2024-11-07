@@ -53,9 +53,9 @@
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -api_url "https://api.us1.signalfx.com"
 .PARAMETER trace_url
-    (OPTIONAL) Set the trace endpoint URL explicitly instead of the endpoint inferred from the specified realm (default: https://ingest.REALM.signalfx.com/v2/trace).
+    (OPTIONAL) Set the trace endpoint URL explicitly instead of the endpoint inferred from the specified realm (default: https://ingest.REALM.signalfx.com/v2/trace/otlp).
     .EXAMPLE
-    .\install.ps1 -access_token "ACCESSTOKEN" -trace_url "https://ingest.us1.signalfx.com/v2/trace"
+    .\install.ps1 -access_token "ACCESSTOKEN" -trace_url "https://ingest.us1.signalfx.com/v2/trace/otlp"
 .PARAMETER hec_url
     (OPTIONAL) Set the HEC endpoint URL explicitly instead of the endpoint inferred from the specified realm (default: https://ingest.REALM.signalfx.com/v1/log).
     .EXAMPLE
@@ -480,7 +480,7 @@ if ($api_url -eq "") {
 }
 
 if ($trace_url -eq "") {
-    $trace_url = "$ingest_url/v2/trace"
+    $trace_url = "$ingest_url/v2/trace/otlp"
 }
 
 if ($hec_url -eq "") {

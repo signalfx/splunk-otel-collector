@@ -6,7 +6,7 @@ SPLUNK_INGEST_URL={{ splunk_ingest_url | default("https://ingest." + splunk_real
 {% if splunk_trace_url is defined and splunk_trace_url %}
 SPLUNK_TRACE_URL={{ splunk_trace_url }}
 {% elif splunk_ingest_url is defined and splunk_ingest_url %}
-SPLUNK_TRACE_URL={{ splunk_ingest_url + "/v2/trace" }}
+SPLUNK_TRACE_URL={{ splunk_ingest_url + "/v2/trace/otlp" }}
 {% else %}
 SPLUNK_TRACE_URL={{ "https://ingest." + splunk_realm + ".signalfx.com/v2/trace" }}
 {% endif %}

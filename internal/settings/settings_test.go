@@ -266,7 +266,7 @@ func TestSetDefaultEnvVarsSetsURLsFromRealm(t *testing.T) {
 	expectedEnvVars := [][]string{
 		{"SPLUNK_API_URL", fmt.Sprintf("https://api.%s.signalfx.com", realm)},
 		{"SPLUNK_INGEST_URL", fmt.Sprintf("https://ingest.%s.signalfx.com", realm)},
-		{"SPLUNK_TRACE_URL", fmt.Sprintf("https://ingest.%s.signalfx.com/v2/trace", realm)},
+		{"SPLUNK_TRACE_URL", fmt.Sprintf("https://ingest.%s.signalfx.com/v2/trace/otlp", realm)},
 		{"SPLUNK_HEC_URL", fmt.Sprintf("https://ingest.%s.signalfx.com/v1/log", realm)},
 	}
 	for _, v := range expectedEnvVars {
@@ -337,12 +337,18 @@ func TestSetDefaultEnvVarsSetsInterfaceFromConfigOption(t *testing.T) {
 func TestSetDefaultFeatureGatesRespectsOverrides(t *testing.T) {
 	t.Cleanup(setRequiredEnvVars(t))
 	for _, args := range [][]string{
-		{"--feature-gates", "some-gate", "--feature-gates", "telemetry.useOtelForInternalMetrics", "--feature-gates",
-			"another-gate"},
-		{"--feature-gates", "some-gate", "--feature-gates", "+telemetry.useOtelForInternalMetrics",
-			"--feature-gates", "another-gate"},
-		{"--feature-gates", "some-gate", "--feature-gates", "-telemetry.useOtelForInternalMetrics",
-			"--feature-gates", "another-gate"},
+		{
+			"--feature-gates", "some-gate", "--feature-gates", "telemetry.useOtelForInternalMetrics", "--feature-gates",
+			"another-gate",
+		},
+		{
+			"--feature-gates", "some-gate", "--feature-gates", "+telemetry.useOtelForInternalMetrics",
+			"--feature-gates", "another-gate",
+		},
+		{
+			"--feature-gates", "some-gate", "--feature-gates", "-telemetry.useOtelForInternalMetrics",
+			"--feature-gates", "another-gate",
+		},
 	} {
 		t.Run(strings.Join(args, " "), func(t *testing.T) {
 			settings, err := New(args)
@@ -353,7 +359,6 @@ func TestSetDefaultFeatureGatesRespectsOverrides(t *testing.T) {
 }
 
 func TestSetSoftMemLimitWithoutGoMemLimitEnvVar(t *testing.T) {
-
 	// if GOLIMIT is not set, we expect soft limit to be 90% of the total memory env var or 90% of default total memory  512 Mib.
 	t.Cleanup(setRequiredEnvVars(t))
 	require.NoError(t, os.Setenv(MemTotalEnvVar, "200"))
@@ -367,7 +372,6 @@ func TestSetSoftMemLimitWithoutGoMemLimitEnvVar(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, settings)
 	require.Equal(t, int64(482344960), debug.SetMemoryLimit(-1))
-
 }
 
 func TestUseConfigPathsFromEnvVar(t *testing.T) {
@@ -556,7 +560,6 @@ func TestConfigArgEnvURIForm(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, []string{"env:SOME_ENV_VAR"}, settings.configPaths.value)
 	require.Equal(t, settings.configPaths.value, settings.ResolverURIs())
-
 }
 
 func TestCheckRuntimeParams_MemTotal(t *testing.T) {

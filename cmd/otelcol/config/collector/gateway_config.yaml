@@ -1,4 +1,4 @@
-# Configuration file that uses the Splunk exporters (SAPM, SignalFx) to push
+# Configuration file that uses the Splunk exporters (OTLPHTTP, SignalFx) to push
 # data to Splunk products.
 
 extensions:
@@ -125,6 +125,11 @@ exporters:
     token: "${SPLUNK_ACCESS_TOKEN}"
     endpoint: "${SPLUNK_INGEST_URL}/v1/log"
     log_data_enabled: false
+  otlphttp:
+    metrics_endpoint: "${SPLUNK_INGEST_URL}/v2/datapoint/otlp"
+    traces_endpoint: "${SPLUNK_INGEST_URL}/v2/trace/otlp"
+    headers:
+      "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
 
 service:
   telemetry:
@@ -138,7 +143,7 @@ service:
       - memory_limiter
       - batch
       #- resource/add_environment
-      exporters: [sapm]
+      exporters: [otlphttp]
     metrics:
       receivers: [otlp, signalfx]
       processors: [memory_limiter, batch]

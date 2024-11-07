@@ -65,6 +65,16 @@ func TestDefaultGatewayConfig(t *testing.T) {
 							"num_consumers": 32,
 						},
 					},
+					"otlp": map[string]any{
+						"headers": map[string]any{
+							"X-SF-Token": "<redacted>",
+						},
+						"metrics_endpoint": "https://ingest.not.real.signalfx.com/v2/datapoint/otlp",
+						"traces_endpoint":  "https://ingest.not.real.signalfx.com/v2/trace/otlp",
+						"sending_queue": map[string]any{
+							"num_consumers": 32,
+						},
+					},
 					"signalfx": map[string]any{
 						"access_token": "<redacted>",
 						"realm":        "not.real",
@@ -201,7 +211,7 @@ func TestDefaultGatewayConfig(t *testing.T) {
 							"receivers":  []any{"prometheus/internal"},
 						},
 						"traces": map[string]any{
-							"exporters":  []any{"sapm"},
+							"exporters":  []any{"otlphttp"},
 							"processors": []any{"memory_limiter", "batch"},
 							"receivers":  []any{"jaeger", "otlp", "sapm", "zipkin"},
 						},
@@ -248,11 +258,18 @@ func TestDefaultAgentConfig(t *testing.T) {
 					"debug": map[string]any{
 						"verbosity": "detailed",
 					},
-					"otlp": map[string]any{
+					"otlp/gateway": map[string]any{
 						"endpoint": ":4317",
 						"tls": map[string]any{
 							"insecure": true,
 						},
+					},
+					"otlphttp": map[string]any{
+						"headers": map[string]any{
+							"X-SF-Token": "<redacted>",
+						},
+						"metrics_endpoint": "https://ingest.not.real.signalfx.com/v2/datapoint/otlp",
+						"traces_endpoint":  "https://ingest.not.real.signalfx.com/v2/trace/otlp",
 					},
 					"sapm": map[string]any{
 						"access_token": "<redacted>",
@@ -406,7 +423,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 							"receivers":  []any{"prometheus/internal"},
 						},
 						"traces": map[string]any{
-							"exporters":  []any{"sapm", "signalfx"},
+							"exporters":  []any{"otlphttp", "signalfx"},
 							"processors": []any{"memory_limiter", "batch", "resourcedetection"},
 							"receivers":  []any{"jaeger", "otlp", "zipkin"},
 						},

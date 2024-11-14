@@ -17,6 +17,7 @@
 package scriptedinputs
 
 import (
+	"fmt"
 	"regexp"
 	"testing"
 	"time"
@@ -64,6 +65,7 @@ func TestScriptReceiverDf(t *testing.T) {
 		tc.OTLPReceiverSink.Reset()
 
 		lr := receivedOTLPLogs[0].ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
+		fmt.Printf("Received log entry - \n%s", lr.Body().Str())
 		assert.Regexp(tt, regexp.MustCompile("Filesystem\\s+Type\\s+Size\\s+Used\\s+Avail\\s+Use%\\s+Inodes\\s+IUsed\\s+IFree\\s+IUse%\\s+MountedOn"), lr.Body().Str())
 	}, 10*time.Second, 10*time.Millisecond, "Failed to receive expected logs")
 }

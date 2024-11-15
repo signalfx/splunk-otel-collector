@@ -6,11 +6,11 @@ toolchain go1.22.7
 
 require (
 	github.com/stretchr/testify v1.9.0
-	go.opentelemetry.io/collector/component v0.112.0
-	go.opentelemetry.io/collector/confmap v1.18.0
-	go.opentelemetry.io/collector/consumer v0.112.0
-	go.opentelemetry.io/collector/pdata v1.18.0
-	go.opentelemetry.io/collector/processor v0.112.0
+	go.opentelemetry.io/collector/component v0.113.0
+	go.opentelemetry.io/collector/confmap v1.19.0
+	go.opentelemetry.io/collector/consumer v0.113.0
+	go.opentelemetry.io/collector/pdata v1.19.0
+	go.opentelemetry.io/collector/processor v0.113.0
 	go.uber.org/zap v1.27.0
 )
 
@@ -27,8 +27,8 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
-	go.opentelemetry.io/collector/config/configtelemetry v0.112.0 // indirect
-	go.opentelemetry.io/collector/pipeline v0.112.0 // indirect
+	go.opentelemetry.io/collector/config/configtelemetry v0.113.0 // indirect
+	go.opentelemetry.io/collector/pipeline v0.113.0 // indirect
 	go.opentelemetry.io/otel v1.31.0 // indirect
 	go.opentelemetry.io/otel/metric v1.31.0 // indirect
 	go.opentelemetry.io/otel/trace v1.31.0 // indirect

@@ -1,27 +1,31 @@
 
 ARG DISTRO_IMAGE=amazonlinux:2023
-ARG PKG_MGR=dnf
 FROM ${DISTRO_IMAGE}
 
+# args before FROM are not available
+ARG DISTRO_IMAGE
+ARG PKG_MGR=dnf
 ENV DEBIAN_FRONTEND=noninteractive
 ENV SALT_VERSION=latest
 ENV NODE_VERSION=16.20.2
 ENV container=docker
 
-RUN if [ ${DISTRO_IMAGE} ~= "centos"] ; then \
+# config for centos
+RUN if [[ ${DISTRO_IMAGE} =~ "centos" ]] ; then \
     rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial && \
     echo 'fastestmirror=1' >> /etc/yum.conf; \
     fi
 
-RUN if [ ${DISTRO_IMAGE} ~= "centos:stream8"] ; then \
+# config for centos8
+RUN if [[ ${DISTRO_IMAGE} =~ "centos:stream8" ]] ; then \
 	sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-* && \
 	sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*; \
 	fi
 
-RUN curl -fsSL https://github.com/saltstack/salt-install-guide/releases/${SALT_VERSION}/download/salt.repo | tee /etc/yum.repos.d/salt.repo
-
-RUN ${PKG_MGR} install -y systemd procps initscripts python3-pip python3-devel gcc wget tar
-RUN if [ ${PKG_MGR} == "dnf" ]; then dnf clean expire-cache; else yum makecache; fi
+RUN ${PKG_MGR} install -y systemd procps python3-pip python3-devel gcc wget tar
+RUN if [ ${PKG_MGR} != "zypper" ]; then \
+wget -O /etc/yum.repos.d/salt.repo -q https://github.com/saltstack/salt-install-guide/releases/${SALT_VERSION}/download/salt.repo; fi
+RUN if [ ${PKG_MGR} == "dnf" ]; then dnf clean expire-cache; fi
 RUN if [ ${PKG_MGR} == "yum" ]; then yum makecache; fi
 RUN ${PKG_MGR} install -y salt-minion
 

@@ -1,0 +1,17 @@
+deb:
+  debian-bullseye: ["DISTRO_IMAGE=debian:bullseye"]
+  debian-buster: ["DISTRO_IMAGE=debian:buster"]
+  debian-stretch: ["DISTRO_IMAGE=debian:stretch"]
+  ubunu-bionic: ["DISTRO_IMAGE=ubuntu:18.04"]
+  ubuntu-focal: ["DISTRO_IMAGE=ubuntu:20.04"]
+  ubuntu-jammy: ["DISTRO_IMAGE=ubuntu:22.04"]
+
+rpm:
+  amazonlinux-2: ["DISTRO_IMAGE=amazonlinux:2", "PKG_MGR=yum"]
+  amazonlinux-2023: ["DISTRO_IMAGE=amazonlinux:2023"]
+  centos-8: ["DISTRO_IMAGE=quay.io/centos/centos:stream8"]
+  centos-9: ["DISTRO_IMAGE=quay.io/centos/centos:stream9"]
+  opensuse-12: ["DISTRO_IMAGE=opensuse/leap:42", "PKG_MGR=zypper"]
+  opensuse-15: ["DISTRO_IMAGE=opensuse/leap:15", "PKG_MGR=zypper"]
+  oraclelinux-7: ["DISTRO_IMAGE=oraclelinux:7", "PKG_MGR=yum"]
+  oraclelinux-8: ["DISTRO_IMAGE=oraclelinux:8"]

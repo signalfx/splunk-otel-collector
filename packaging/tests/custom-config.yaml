@@ -9,17 +9,17 @@ receivers:
         endpoint: 0.0.0.0:4318
 
 exporters:
-  debug:
-    verbosity: detailed
+  file:
+    path: /tmp/out
 
 service:
   pipelines:
     metrics:
       receivers: [signalfx, otlp]
-      exporters: [debug]
+      exporters: [file]
     logs:
       receivers: [otlp]
-      exporters: [debug]
+      exporters: [file]
     traces:
       receivers: [otlp]
-      exporters: [debug]
+      exporters: [file]

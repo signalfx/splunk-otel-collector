@@ -1,0 +1,52 @@
+
+ARG DISTRO_IMAGE=amazonlinux:2
+FROM ${DISTRO_IMAGE}
+
+ENV PKG_MGR=dnf
+ENV DEBIAN_FRONTEND=noninteractive
+ENV SALT_VERSION=latest
+ENV NODE_VERSION=16.20.2
+ENV container=docker
+
+RUN if [ ${DISTRO_IMAGE} ~= "centos"] ; then \
+    rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial && \
+    echo 'fastestmirror=1' >> /etc/yum.conf; \
+    fi
+
+RUN if [ ${DISTRO_IMAGE} ~= "centos:stream8"] ; then \
+	sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-* && \
+	sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*; \
+	fi
+
+RUN curl -fsSL https://github.com/saltstack/salt-install-guide/releases/${SALT_VERSION}/download/salt.repo | tee /etc/yum.repos.d/salt.repo
+
+RUN ${PKG_MGR} install -y systemd procps initscripts python3-pip python3-devel gcc wget tar
+RUN if [ ${PKG_MGR} == "dnf" ]; then dnf clean expire-cache; else yum makecache; fi
+RUN if [ ${PKG_MGR} == "yum" ]; then yum makecache; fi
+RUN ${PKG_MGR} install -y salt-minion
+
+RUN wget -O /tmp/nodejs.tar.gz https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.gz && \
+    mkdir -p /opt/ && \
+    tar -C /opt/ -xzf /tmp/nodejs.tar.gz && \
+    mv /opt/node* /opt/node
+
+ENV PATH=/opt/node/bin:$PATH
+
+RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i = \
+	"systemd-tmpfiles-setup.service" ] || rm -f $i; done); \
+	rm -f /lib/systemd/system/multi-user.target.wants/*;\
+	rm -f /lib/systemd/system/local-fs.target.wants/*; \
+	rm -f /lib/systemd/system/sockets.target.wants/*udev*; \
+	rm -f /lib/systemd/system/sockets.target.wants/*initctl*; \
+	rm -f /lib/systemd/system/basic.target.wants/*;\
+	rm -f /lib/systemd/system/anaconda.target.wants/*;
+
+COPY packaging/tests/deployments/salt/minion /etc/salt/minion
+COPY deployments/salt/splunk-otel-collector /srv/salt/splunk-otel-collector
+COPY deployments/salt/templates /srv/salt/templates
+COPY packaging/tests/deployments/salt/top.sls /srv/pillar/top.sls
+COPY packaging/tests/deployments/salt/top.sls /srv/salt/top.sls
+
+VOLUME [ "/sys/fs/cgroup" ]
+
+CMD ["/usr/sbin/init"]

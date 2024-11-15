@@ -11,7 +11,6 @@ rpm:
   amazonlinux-2023: ["DISTRO_IMAGE=amazonlinux:2023"]
   centos-8: ["DISTRO_IMAGE=quay.io/centos/centos:stream8"]
   centos-9: ["DISTRO_IMAGE=quay.io/centos/centos:stream9"]
-  opensuse-12: ["DISTRO_IMAGE=opensuse/leap:42", "PKG_MGR=zypper"]
   opensuse-15: ["DISTRO_IMAGE=opensuse/leap:15", "PKG_MGR=zypper"]
   oraclelinux-7: ["DISTRO_IMAGE=oraclelinux:7", "PKG_MGR=yum"]
   oraclelinux-8: ["DISTRO_IMAGE=oraclelinux:8"]

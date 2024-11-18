@@ -1,22 +1,33 @@
-FROM debian:bullseye
+ARG DISTRO_IMAGE=debian:bullseye
+FROM ${DISTRO_IMAGE}
 
+ARG DISTRO_IMAGE
 ENV DEBIAN_FRONTEND=noninteractive
+ENV SALT_VERSION=latest
+ENV NODE_VERSION=16.20.2
+
+# repo update for debian:stretch
+RUN if [ ${DISTRO_IMAGE} = "debian:stretch" ]; then \
+    sed -i 's|http://.*.debian.org|http://archive.debian.org|' /etc/apt/sources.list && \
+    sed -i '/stretch-updates/d' /etc/apt/sources.list; fi
 
 RUN apt-get update && apt-get upgrade -y -o DPkg::Options::=--force-confold
 RUN apt-get install -y software-properties-common ca-certificates wget curl apt-transport-https python3-pip vim systemd procps
 
-RUN curl -L https://repo.saltproject.io/py3/debian/11/amd64/latest/SALTSTACK-GPG-KEY.pub | apt-key add -
-RUN echo 'deb https://repo.saltproject.io/py3/debian/11/amd64/latest/ bullseye main' > /etc/apt/sources.list.d/saltstack.list && \
-    apt-get update && \
-    apt-get install -y salt-minion
+RUN mkdir -p /etc/apt/keyrings
+RUN curl -fsSL https://packages.broadcom.com/artifactory/api/security/keypair/SaltProjectKey/public | tee /etc/apt/keyrings/salt-archive-keyring.pgp
+RUN curl -fsSL https://github.com/saltstack/salt-install-guide/releases/${SALT_VERSION}/download/salt.sources | tee /etc/apt/sources.list.d/salt.sources
+RUN apt-get update
+RUN apt-get install -y salt-minion
 
-RUN wget -O /tmp/nodejs.tar.gz https://nodejs.org/dist/v16.20.2/node-v16.20.2-linux-x64.tar.gz && \
+RUN wget -O /tmp/nodejs.tar.gz https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.gz && \
     mkdir -p /opt/ && \
     tar -C /opt/ -xzf /tmp/nodejs.tar.gz && \
     mv /opt/node* /opt/node
 
 ENV PATH=/opt/node/bin:$PATH
-ENV container docker
+
+ENV container=docker
 
 RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i = \
     "systemd-tmpfiles-setup.service" ] || rm -f $i; done); \
@@ -27,7 +38,7 @@ RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i = \
     rm -f /lib/systemd/system/anaconda.target.wants/*;
 
 RUN systemctl set-default multi-user.target
-ENV init /lib/systemd/systemd
+ENV init=/lib/systemd/systemd
 
 COPY packaging/tests/deployments/salt/minion /etc/salt/minion
 COPY deployments/salt/splunk-otel-collector /srv/salt/splunk-otel-collector

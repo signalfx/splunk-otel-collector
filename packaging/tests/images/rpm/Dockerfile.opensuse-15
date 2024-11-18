@@ -4,7 +4,7 @@ FROM opensuse/leap:15
 
 ENV container docker
 
-RUN sed -i 's|download.opensuse.org|provo-mirror.opensuse.org|' /etc/zypp/repos.d/*.repo
+# RUN sed -i 's|download.opensuse.org|provo-mirror.opensuse.org|' /etc/zypp/repos.d/*.repo
 RUN zypper -n install -l curl dbus-1 systemd-sysvinit tar wget
 RUN zypper -n install -y procps
 

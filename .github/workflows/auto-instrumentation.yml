@@ -11,6 +11,7 @@ on:
       - 'instrumentation/**'
       - 'internal/**'
       - '!**.md'
+      - 'packaging/**'
       - '!packaging/technical-addon/**'
 
 concurrency:

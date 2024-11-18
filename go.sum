@@ -1237,8 +1237,8 @@ github.com/onsi/gomega v1.5.0/go.mod h1:ex+gbHU/CVuBBDIJjb2X0qEXbFg53c61hWP/1Cpa
 github.com/onsi/gomega v1.7.1/go.mod h1:XdKZgCCFLUoM/7CFJVPcG8C1xQ1AJ0vpAezJrB7JYyY=
 github.com/onsi/gomega v1.10.1/go.mod h1:iN09h71vgCQne3DLsj+A5owkum+a2tYe+TOCB1ybHNo=
 github.com/onsi/gomega v1.13.0/go.mod h1:lRk9szgn8TxENtWd0Tp4c3wjlRfMTMH27I+3Je41yGY=
-github.com/onsi/gomega v1.34.2 h1:pNCwDkzrsv7MS9kpaQvVb1aVLahQXyJ/Tv5oAZMI3i8=
-github.com/onsi/gomega v1.34.2/go.mod h1:v1xfxRgk0KIsG+QOdm7p8UosrOzPYRo60fd3B/1Dukc=
+github.com/onsi/gomega v1.35.1 h1:Cwbd75ZBPxFSuZ6T+rN/WCb/gOc6YgFBXLlZLhC7Ds4=
+github.com/onsi/gomega v1.35.1/go.mod h1:PvZbdDc8J6XJEpDK4HCuRBm8a6Fzp9/DmhC9C7yFlog=
 github.com/open-telemetry/opentelemetry-collector-contrib/connector/countconnector v0.112.0 h1:3fvAdl8F68b+iFt3+LNpXcm5pAxABHlipktdcuPLHaw=
 github.com/open-telemetry/opentelemetry-collector-contrib/connector/countconnector v0.112.0/go.mod h1:kloRaEl5xacIGNov0vf+rUdxt9GYW2sQSpN4KqIyarI=
 github.com/open-telemetry/opentelemetry-collector-contrib/connector/routingconnector v0.112.0 h1:5UMaVrnMZdcjJrP1+pMTObiknBYomRF+eys6B85SAdg=

@@ -65,15 +65,12 @@ func TestDefaultGatewayConfig(t *testing.T) {
 							"num_consumers": 32,
 						},
 					},
-					"otlp": map[string]any{
+					"otlphttp": map[string]any{
 						"headers": map[string]any{
 							"X-SF-Token": "<redacted>",
 						},
 						"metrics_endpoint": "https://ingest.not.real.signalfx.com/v2/datapoint/otlp",
 						"traces_endpoint":  "https://ingest.not.real.signalfx.com/v2/trace/otlp",
-						"sending_queue": map[string]any{
-							"num_consumers": 32,
-						},
 					},
 					"signalfx": map[string]any{
 						"access_token": "<redacted>",

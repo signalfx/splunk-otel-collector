@@ -52,9 +52,11 @@ jobs:
         id: get-matrix
         run: |
           # create test matrix for distro
-          dockerfiles=$(find packaging/tests/deployments/salt/images/ -name "Dockerfile.*" | cut -d '.' -f2- | sort -u)
+          deb_distro=$(yq e -r '.deb | keys | .[]' packaging/tests/deployments/salt/images/distro_docker_opts.yaml)
+          rpm_distro=$(yq e -r '.rpm | keys | .[]' packaging/tests/deployments/salt/images/distro_docker_opts.yaml)
+          dockerfiles=$(echo -e "$deb_distro\n$rpm_distro" | sort -u)
           if [ -z "$dockerfiles" ]; then
-            echo "Failed to get dockerfiles from packaging/tests/deployments/salt/images!" >&2
+            echo "Failed to get distros from packaging/tests/deployments/salt/images!" >&2
             exit 1
           fi
           distro=$(for d in $dockerfiles; do echo -n "\"$d\","; done)

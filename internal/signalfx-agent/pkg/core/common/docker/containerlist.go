@@ -16,10 +16,10 @@ import (
 )
 
 // ContainerChangeHandler is what gets called when a Docker container is
-// initially recognized or changed in some way.  old will be the previous state,
-// or nil if no previous state is known.  new is the new state, or nil if the
+// initially recognized or changed in some way.  oldState will be the previous state,
+// or nil if no previous state is known.  newState is the new state, or nil if the
 // container is being destroyed.
-type ContainerChangeHandler func(old *dtypes.ContainerJSON, new *dtypes.ContainerJSON)
+type ContainerChangeHandler func(oldState *dtypes.ContainerJSON, newState *dtypes.ContainerJSON)
 
 // ListAndWatchContainers accepts a changeHandler that gets called as containers come and go.
 func ListAndWatchContainers(ctx context.Context, client *docker.Client, changeHandler ContainerChangeHandler, imageFilter filter.StringFilter, logger log.FieldLogger, syncTime time.Duration) {

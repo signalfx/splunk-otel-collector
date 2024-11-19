@@ -90,10 +90,10 @@ func (ac *Accumulator) AddMetrics(ms []telegraf.Metric) {
 }
 
 // WithTracking - returns an accumulator that supports tracking metrics
-func (ac *Accumulator) WithTracking(max int) telegraf.TrackingAccumulator {
+func (ac *Accumulator) WithTracking(maxSize int) telegraf.TrackingAccumulator {
 	return &TrackingAccumulator{
 		Accumulator: ac,
-		done:        make(chan telegraf.DeliveryInfo, max),
+		done:        make(chan telegraf.DeliveryInfo, maxSize),
 	}
 }
 

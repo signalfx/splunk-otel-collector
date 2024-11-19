@@ -32,6 +32,15 @@ EOH
       - dependency-name: "github.com/openshift/*"
         versions: ["v3.9.0+incompatible"]
 EOH
+        if [ ${dir} == / ]; then
+            cat <<EOH >&1
+      - dependency-name: "github.com/prometheus/prometheus"
+        versions:
+          - ">=0.300.0"
+EOH
+        fi
+        ;;
+
     esac
 }
 

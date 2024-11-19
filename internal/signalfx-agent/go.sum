@@ -227,8 +227,8 @@ github.com/golang/protobuf v1.4.2/go.mod h1:oDoupMAO8OvCJWAcko0GGGIgR6R6ocIYbsSw
 github.com/golang/protobuf v1.4.3/go.mod h1:oDoupMAO8OvCJWAcko0GGGIgR6R6ocIYbsSw735rRwI=
 github.com/golang/protobuf v1.5.4 h1:i7eJL8qZTpSEXOPTxNKhASYpMn+8e5Q6AdndVa1dWek=
 github.com/golang/protobuf v1.5.4/go.mod h1:lnTiLA8Wa4RWRcIUkrtSVa5nRhsEGBg48fD6rSs7xps=
-github.com/google/cadvisor v0.50.0 h1:7w/hKIbJKBWqQsRTy+Hpj2vj+fnxrLXcEXFy+LW0Bsg=
-github.com/google/cadvisor v0.50.0/go.mod h1:VxCDwZalpFyENvmfabFqaIGsqNKLtDzE62a19rfVTB8=
+github.com/google/cadvisor v0.51.0 h1:BspqSPdZoLKrnvuZNOvM/KiJ/A+RdixwagN20n+2H8k=
+github.com/google/cadvisor v0.51.0/go.mod h1:czGE/c/P/i0QFpVNKTFrIEzord9Y10YfpwuaSWXELc0=
 github.com/google/flatbuffers v24.3.25+incompatible h1:CX395cjN9Kke9mmalRoL3d81AtFUxJM+yDthflgJGkI=
 github.com/google/flatbuffers v24.3.25+incompatible/go.mod h1:1AeVuKshWv4vARoZatz6mlQ0JxURH0Kv5+zNeJKJCa8=
 github.com/google/gnostic-models v0.6.8 h1:yo/ABAfM5IMRsS1VnXjTBvUb61tFIHozhlYvRgGre9I=

@@ -1,6 +1,7 @@
 module github.com/signalfx/signalfx-agent
 
-go 1.22.0
+go 1.22.7
+
 replace (
 	code.cloudfoundry.org/go-loggregator => github.com/signalfx/go-loggregator v1.0.1-0.20200205155641-5ba5ca92118d
 	github.com/influxdata/telegraf => github.com/signalfx/telegraf v0.10.2-0.20240111190717-3494050f2933

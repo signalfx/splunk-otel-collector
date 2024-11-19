@@ -1,0 +1,25 @@
+receivers:
+  signalfx:
+    endpoint: 0.0.0.0:9943
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+exporters:
+  file:
+    path: /tmp/out
+
+service:
+  pipelines:
+    metrics:
+      receivers: [signalfx, otlp]
+      exporters: [file]
+    logs:
+      receivers: [otlp]
+      exporters: [file]
+    traces:
+      receivers: [otlp]
+      exporters: [file]

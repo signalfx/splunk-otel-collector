@@ -12,7 +12,7 @@ require (
 	github.com/fsnotify/fsnotify v1.7.0
 	github.com/go-zookeeper/zk v1.0.4
 	github.com/gogo/protobuf v1.3.2
-	github.com/hashicorp/vault v1.18.0
+	github.com/hashicorp/vault v1.18.1
 	github.com/hashicorp/vault-plugin-auth-gcp v0.19.1
 	github.com/hashicorp/vault/api v1.15.0
 	github.com/knadh/koanf v1.5.0
@@ -125,7 +125,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.9.0
 	go.etcd.io/bbolt v1.3.11
-	go.etcd.io/etcd/client/v2 v2.305.16
+	go.etcd.io/etcd/client/v2 v2.305.17
 	go.opentelemetry.io/collector/component/componentstatus v0.112.0
 	go.opentelemetry.io/collector/config/confighttp v0.112.0
 	go.opentelemetry.io/collector/config/configopaque v1.18.0
@@ -159,7 +159,7 @@ require (
 	go.uber.org/goleak v1.3.0
 	go.uber.org/multierr v1.11.0
 	go.uber.org/zap v1.27.0
-	golang.org/x/sys v0.26.0
+	golang.org/x/sys v0.27.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
@@ -207,7 +207,7 @@ require (
 	github.com/bmatcuk/doublestar/v4 v4.7.1 // indirect
 	github.com/checkpoint-restore/go-criu/v6 v6.3.0 // indirect
 	github.com/circonus-labs/circonusllhist v0.1.5 // indirect
-	github.com/cncf/xds/go v0.0.0-20240723142845-024c85f92f20 // indirect
+	github.com/cncf/xds/go v0.0.0-20240822171458-6449f94b4d59 // indirect
 	github.com/containerd/console v1.0.4 // indirect
 	github.com/containerd/containerd/api v1.7.19 // indirect
 	github.com/containerd/errdefs v0.1.0 // indirect
@@ -628,8 +628,8 @@ require (
 	github.com/xdg-go/scram v1.1.2 // indirect
 	github.com/xdg-go/stringprep v1.0.4 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
-	go.etcd.io/etcd/api/v3 v3.5.16 // indirect
-	go.etcd.io/etcd/client/pkg/v3 v3.5.16 // indirect
+	go.etcd.io/etcd/api/v3 v3.5.17 // indirect
+	go.etcd.io/etcd/client/pkg/v3 v3.5.17 // indirect
 	go.mongodb.org/atlas v0.37.0 // indirect
 	go.opencensus.io v0.24.0
 	go.opentelemetry.io/collector/component v0.112.0

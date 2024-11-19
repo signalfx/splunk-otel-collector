@@ -33,13 +33,13 @@ from tests.helpers.util import (
 )
 
 from tests.instrumentation.instrumentation_test import (
-    COLLECTOR_CONFIG_PATH as CUSTOM_COLLECTOR_CONFIG,
     IMAGES_DIR as INSTR_IMAGES_DIR,
     DEB_DISTROS as INSTR_DEB_DISTROS,
     RPM_DISTROS as INSTR_RPM_DISTROS,
-    verify_app_instrumentation,
 )
 
+
+CUSTOM_COLLECTOR_CONFIG = TESTS_DIR / "custom-config.yaml"
 INSTALLER_PATH = REPO_DIR / "packaging" / "installer" / "install.sh"
 
 # Override default test parameters with the following env vars

@@ -124,7 +124,7 @@ func (m *Monitor) Configure(conf *Config) error {
 		if newState != nil {
 			id = newState.ID
 		} else {
-			id = newState.ID
+			id = oldState.ID
 		}
 
 		lock.Lock()

@@ -58,7 +58,7 @@ require (
 	github.com/ulule/deepcopier v0.0.0-20171107155558-ca99b135e50f
 	github.com/vmware/govmomi v0.46.1
 	golang.org/x/net v0.30.0 // indirect
-	golang.org/x/sync v0.8.0
+	golang.org/x/sync v0.9.0
 	golang.org/x/sys v0.27.0
 	golang.org/x/tools v0.24.0 // indirect
 	google.golang.org/grpc v1.67.1

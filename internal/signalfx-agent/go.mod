@@ -1,9 +1,6 @@
 module github.com/signalfx/signalfx-agent
 
 go 1.22.0
-
-toolchain go1.22.7
-
 replace (
 	code.cloudfoundry.org/go-loggregator => github.com/signalfx/go-loggregator v1.0.1-0.20200205155641-5ba5ca92118d
 	github.com/influxdata/telegraf => github.com/signalfx/telegraf v0.10.2-0.20240111190717-3494050f2933
@@ -61,7 +58,7 @@ require (
 	golang.org/x/sync v0.8.0
 	golang.org/x/sys v0.27.0
 	golang.org/x/tools v0.24.0 // indirect
-	google.golang.org/grpc v1.67.1
+	google.golang.org/grpc v1.68.0
 	gopkg.in/go-playground/validator.v9 v9.31.0
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/api v0.29.3

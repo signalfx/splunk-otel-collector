@@ -18,6 +18,7 @@ on:
       - 'Makefile.Common'
       - 'go.mod'
       - 'go.sum'
+      - 'packaging/jmx-metric-gatherer-release.txt'
       - '!**.md'
       - '!packaging/technical-addon/**'
 

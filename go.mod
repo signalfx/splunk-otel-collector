@@ -1,8 +1,6 @@
 module github.com/signalfx/splunk-otel-collector
 
-go 1.22.5
-
-toolchain go1.22.7
+go 1.22.7
 
 require (
 	github.com/alecthomas/participle/v2 v2.1.1
@@ -207,7 +205,7 @@ require (
 	github.com/blang/semver/v4 v4.0.0 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.7.1 // indirect
 	github.com/circonus-labs/circonusllhist v0.1.5 // indirect
-	github.com/cncf/xds/go v0.0.0-20240822171458-6449f94b4d59 // indirect
+	github.com/cncf/xds/go v0.0.0-20240905190251-b4127c9b8d78 // indirect
 	github.com/containerd/containerd/api v1.7.19 // indirect
 	github.com/containerd/errdefs v0.1.0 // indirect
 	github.com/containerd/log v0.1.0 // indirect
@@ -649,7 +647,7 @@ require (
 	golang.org/x/xerrors v0.0.0-20240716161551-93cc26a95ae9 // indirect
 	gonum.org/v1/gonum v0.15.1 // indirect
 	google.golang.org/api v0.201.0 // indirect
-	google.golang.org/grpc v1.67.1 // indirect
+	google.golang.org/grpc v1.68.0 // indirect
 	google.golang.org/protobuf v1.35.1 // indirect
 	gopkg.in/fsnotify.v1 v1.4.7 // indirect
 	gopkg.in/go-playground/validator.v9 v9.31.0 // indirect

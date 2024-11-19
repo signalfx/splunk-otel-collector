@@ -13,6 +13,10 @@ updates:
       - dependency-name: "github.com/open-telemetry/*"
       - dependency-name: "github.com/openshift/*"
         versions: ["v3.9.0+incompatible"]
+      # Ignore v3 of prometheus until upstream is ready
+      - dependency-name: "github.com/prometheus/prometheus"
+        versions:
+          - ">=0.300.0"
     schedule:
       interval: "weekly"
   - package-ecosystem: "gomod"

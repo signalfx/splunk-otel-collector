@@ -25,9 +25,7 @@ This Splunk OpenTelemetry Collector release includes changes from the openteleme
   This metric is provided by the new `system` scraper.
 
 - (Contrib) `hostmetrics`: Adjust scraper creation to make it so the scraper name is reported with hostmetrics scraper errors. ([#35814](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35814))
-- (Contrib) `pkg/translator/prometheusremotewrite`: `FromMetricsV2` now transforms attributes into labels. ([#33661](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/33661))
 - (Contrib) `pkg/ottl`: Add SliceToMap function ([#35256](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35256))
-- (Contrib) `otlpjsonfilereceiver`: Add support for profiles signal ([#35977](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35977))
 - (Contrib) `journaldreceiver`: Restart journalctl if it exits unexpectedly ([#35635](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35635))
 - (Contrib) `routingconnector`: Add ability to route by request metadata. ([#19738](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/19738))
 - (Contrib) `exporter/signalfx`: Enabling retrying for dimension properties update without tags in case of 400 response error. ([#36044](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/36044))

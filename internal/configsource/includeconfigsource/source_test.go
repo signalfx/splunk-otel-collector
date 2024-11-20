@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 	"runtime"
 	"testing"
 
@@ -124,7 +125,7 @@ func TestIncludeConfigSource_WatchFileUpdate(t *testing.T) {
 	// Write out an initial test file
 	tmpDir := t.TempDir()
 	fmt.Println("Temp dir: ", tmpDir)
-	dst := path.Join(tmpDir, "watch_file_test")
+	dst := filepath.Join(tmpDir, "watch_file_test")
 	require.NoError(t, os.WriteFile(dst, []byte("val1"), 0600))
 
 	// Perform initial retrieve
@@ -145,7 +146,7 @@ func TestIncludeConfigSource_WatchFileUpdate(t *testing.T) {
 	require.NoError(t, os.WriteFile(dst, []byte("val2"), 0600))
 	fmt.Println("File updated, waiting for event")
 	ce := <-watchChannel
-	fmt.Println("Event received: ", ce)
+	fmt.Println("Event received")
 	assert.NoError(t, ce.Error)
 	require.NoError(t, r.Close(context.Background()), "Failed to close")
 

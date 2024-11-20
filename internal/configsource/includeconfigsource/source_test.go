@@ -17,6 +17,7 @@ package includeconfigsource
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path"
 	"runtime"
@@ -121,7 +122,9 @@ func TestIncludeConfigSource_WatchFileUpdate(t *testing.T) {
 	require.NotNil(t, s)
 
 	// Write out an initial test file
-	dst := path.Join(t.TempDir(), "watch_file_test")
+	tmpDir := t.TempDir()
+	fmt.Println("Temp dir: ", tmpDir)
+	dst := path.Join(tmpDir, "watch_file_test")
 	require.NoError(t, os.WriteFile(dst, []byte("val1"), 0600))
 
 	// Perform initial retrieve
@@ -130,6 +133,7 @@ func TestIncludeConfigSource_WatchFileUpdate(t *testing.T) {
 	r, err := s.Retrieve(ctx, dst, nil, func(event *confmap.ChangeEvent) {
 		watchChannel <- event
 	})
+	fmt.Println("Initial retrieve done")
 	require.NoError(t, err)
 	require.NotNil(t, r)
 
@@ -139,13 +143,15 @@ func TestIncludeConfigSource_WatchFileUpdate(t *testing.T) {
 
 	// Write update to file
 	require.NoError(t, os.WriteFile(dst, []byte("val2"), 0600))
-
+	fmt.Println("File updated, waiting for event")
 	ce := <-watchChannel
+	fmt.Println("Event received")
 	assert.NoError(t, ce.Error)
 	require.NoError(t, r.Close(context.Background()))
 
 	// Check updated file after waiting for update
 	r, err = s.Retrieve(ctx, dst, nil, nil)
+	fmt.Println("2nd retrieve done")
 	require.NoError(t, err)
 	require.NotNil(t, r)
 

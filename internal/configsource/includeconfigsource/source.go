@@ -53,6 +53,8 @@ func newConfigSource(config *Config) (configsource.ConfigSource, error) {
 }
 
 func (is *includeConfigSource) Retrieve(_ context.Context, selector string, paramsConfigMap *confmap.Conf, watcher confmap.WatcherFunc) (*confmap.Retrieved, error) {
+	fmt.Println("Selector: ", selector)
+
 	tmpl, err := template.ParseFiles(selector)
 	if err != nil {
 		return nil, err
@@ -79,6 +81,7 @@ func (is *includeConfigSource) Retrieve(_ context.Context, selector string, para
 		return confmap.NewRetrieved(buf.String())
 	}
 
+	fmt.Println("Creating watch for file: ", selector)
 	closeFunc, err := is.watchFile(selector, watcher)
 	if err != nil {
 		return nil, err
@@ -108,6 +111,7 @@ func (is *includeConfigSource) watchFile(file string, watcherFunc confmap.Watche
 						return
 					}
 					if event.Op&fsnotify.Write == fsnotify.Write {
+						fmt.Println("File modified: ", event.Name)
 						watcherFunc(&confmap.ChangeEvent{Error: nil})
 						return
 					}
@@ -127,6 +131,8 @@ func (is *includeConfigSource) watchFile(file string, watcherFunc confmap.Watche
 		return nil, err
 	}
 
+	fmt.Println("watcher added entries:", is.watcher.WatchList())
+
 	is.watchedFiles[file] = struct{}{}
 
 	return func(_ context.Context) error {
@@ -135,6 +141,7 @@ func (is *includeConfigSource) watchFile(file string, watcherFunc confmap.Watche
 			return err
 		}
 		if len(is.watcher.WatchList()) == 0 {
+			fmt.Println("watch closed")
 			return is.watcher.Close()
 		}
 		return nil

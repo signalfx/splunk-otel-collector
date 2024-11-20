@@ -118,7 +118,7 @@ func TestIncludeConfigSourceWatchFileClose(t *testing.T) {
 }
 
 func TestIncludeConfigSource_WatchFileUpdate(t *testing.T) {
-	t.Skip("Skipping test temporarily")
+	// t.Skip("Skipping test temporarily")
 	s, err := newConfigSource(&Config{WatchFiles: true})
 	require.NoError(t, err)
 	require.NotNil(t, s)

@@ -145,9 +145,9 @@ func TestIncludeConfigSource_WatchFileUpdate(t *testing.T) {
 	require.NoError(t, os.WriteFile(dst, []byte("val2"), 0600))
 	fmt.Println("File updated, waiting for event")
 	ce := <-watchChannel
-	fmt.Println("Event received")
+	fmt.Println("Event received: ", ce)
 	assert.NoError(t, ce.Error)
-	require.NoError(t, r.Close(context.Background()))
+	require.NoError(t, r.Close(context.Background()), "Failed to close")
 
 	// Check updated file after waiting for update
 	r, err = s.Retrieve(ctx, dst, nil, nil)

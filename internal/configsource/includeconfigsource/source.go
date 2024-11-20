@@ -136,12 +136,14 @@ func (is *includeConfigSource) watchFile(file string, watcherFunc confmap.Watche
 	is.watchedFiles[file] = struct{}{}
 
 	return func(_ context.Context) error {
+		fmt.Println("Remove watch for file: ", file)
 		err := is.watcher.Remove(file)
+		fmt.Println("Removed watch for file: ", file)
 		if err != nil {
 			return err
 		}
 		if len(is.watcher.WatchList()) == 0 {
-			fmt.Println("watch closed")
+			fmt.Println("No watches left, closing watcher")
 			return is.watcher.Close()
 		}
 		return nil

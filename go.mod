@@ -692,3 +692,5 @@ replace github.com/pires/go-proxyproto v1.0.0 => github.com/peteski22/go-proxypr
 
 // github.com/veraison/go-cose v1.2.0 doesn't exists but required by the latest github.com/Microsoft/hcsshim
 replace github.com/veraison/go-cose v1.2.0 => github.com/veraison/go-cose v1.1.1
+
+replace github.com/fsnotify/fsnotify v1.8.0 => github.com/fsnotify/fsnotify v1.7.0

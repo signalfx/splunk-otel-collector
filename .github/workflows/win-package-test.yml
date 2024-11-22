@@ -193,6 +193,20 @@ jobs:
           name: msi-build
           path: ./tests/zeroconfig/windows/testdata/docker-setup/
 
+      - name: Build the docker compose
+        working-directory: tests/zeroconfig/windows/testdata/
+        run: docker compose build
+
+      - name: Launch the docker compose
+        working-directory: tests/zeroconfig/windows/
+        run: docker compose up -f .\testdata\docker-compose.yaml --detach
+
+      - name: Wait and shutdown the docker compose
+        working-directory: tests/zeroconfig/windows/
+        run: |
+          Start-Sleep -s 30
+          docker compose down -f .\testdata\docker-compose.yaml
+
       - name: Run the test script
         working-directory: tests/zeroconfig/windows/
         run: |

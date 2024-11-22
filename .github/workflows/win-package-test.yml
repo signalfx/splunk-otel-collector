@@ -193,6 +193,11 @@ jobs:
           name: msi-build
           path: ./tests/zeroconfig/windows/testdata/docker-setup/
 
+      - name: Copy the files needed for docker build
+        run: |
+          Copy-Item .\packaging\installer\install.ps1 .\tests\zeroconfig\windows\testdata\docker-setup\
+          Invoke-WebRequest -Uri https://aka.ms/dotnet/6.0/dotnet-hosting-win.exe -OutFile .\tests\zeroconfig\windows\testdata\docker-setup\dotnet-hosting-win.exe -UseBasicParsing
+
       - name: Build the docker compose
         working-directory: tests/zeroconfig/windows/testdata/
         run: docker compose build

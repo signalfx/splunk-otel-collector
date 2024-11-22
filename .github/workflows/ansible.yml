@@ -75,7 +75,6 @@ jobs:
           - debian11
           - debian12
           - opensuse12
-          - opensuse15
           - ubuntu1604
           - ubuntu1804
           - ubuntu2004

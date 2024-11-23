@@ -211,13 +211,13 @@ jobs:
 
       - name: Launch the docker compose
         working-directory: tests/zeroconfig/windows/
-        run: docker compose up -f .\testdata\docker-compose.yaml --detach
+        run: docker compose -f .\testdata\docker-compose.yaml up --detach
 
       - name: Wait and shutdown the docker compose
         working-directory: tests/zeroconfig/windows/
         run: |
           Start-Sleep -s 30
-          docker compose down -f .\testdata\docker-compose.yaml
+          docker compose -f .\testdata\docker-compose.yaml down
 
       - name: Run the test script
         working-directory: tests/zeroconfig/windows/

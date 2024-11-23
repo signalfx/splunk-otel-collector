@@ -213,10 +213,6 @@ jobs:
         working-directory: tests/zeroconfig/windows/testdata/
         run: docker compose build
 
-      - name: Create the network
-        run: |
-          New-NetFirewallRule -DisplayName 'zc-iis-test' -Direction Inbound -LocalAddress 10.1.1.1 -LocalPort 4318 -Protocol TCP -Action Allow -Profile Any
-
       - name: Launch the docker compose
         working-directory: tests/zeroconfig/windows/
         run: docker compose -f .\testdata\docker-compose.yaml up --detach

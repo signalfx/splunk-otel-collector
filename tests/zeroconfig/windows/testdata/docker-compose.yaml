@@ -1,7 +1,8 @@
+version: "3.8"
+
 networks:
   default:
     name: zc-iis-test
-    external: true
     ipam:
       driver: windows
       config:

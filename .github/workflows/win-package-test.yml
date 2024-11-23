@@ -198,6 +198,13 @@ jobs:
           Copy-Item .\packaging\installer\install.ps1 .\tests\zeroconfig\windows\testdata\docker-setup\
           Invoke-WebRequest -Uri https://aka.ms/dotnet/6.0/dotnet-hosting-win.exe -OutFile .\tests\zeroconfig\windows\testdata\docker-setup\dotnet-hosting-win.exe -UseBasicParsing
 
+      - name: Build the .NET Framework App
+        working-directory: .\tests\zeroconfig\windows\testdata\apps\
+        run: |
+          nuget restore
+          msbuild .\AspNet.WebApi.NetFramework\AspNet.WebApi.NetFramework.csproj /p:Configuration=Release /p:Platform=AnyCPU /p:OutputPath=..\bin\aspnetfxapp
+          dotnet publish .\AspNetCore.WebApi.Net\AspNetCore.WebApi.Net.csproj --configuration Release --runtime win-x64 --self-contained false -p:OutputPath=..\bin\aspnetcoreapp
+
       - name: Build the docker compose
         working-directory: tests/zeroconfig/windows/testdata/
         run: docker compose build

@@ -58,19 +58,11 @@ func TestDefaultGatewayConfig(t *testing.T) {
 			config := collector.EffectiveConfig(t, 55554)
 			require.Equal(t, map[string]any{
 				"exporters": map[string]any{
-					"sapm": map[string]any{
-						"access_token": "<redacted>",
-						"endpoint":     "https://ingest.not.real.signalfx.com/v2/trace",
-						"sending_queue": map[string]any{
-							"num_consumers": 32,
-						},
-					},
 					"otlphttp": map[string]any{
 						"headers": map[string]any{
 							"X-SF-Token": "<redacted>",
 						},
-						"metrics_endpoint": "https://ingest.not.real.signalfx.com/v2/datapoint/otlp",
-						"traces_endpoint":  "https://ingest.not.real.signalfx.com/v2/trace/otlp",
+						"traces_endpoint": "https://ingest.not.real.signalfx.com/v2/trace/otlp",
 					},
 					"signalfx": map[string]any{
 						"access_token": "<redacted>",
@@ -265,12 +257,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 						"headers": map[string]any{
 							"X-SF-Token": "<redacted>",
 						},
-						"metrics_endpoint": "https://ingest.not.real.signalfx.com/v2/datapoint/otlp",
-						"traces_endpoint":  "https://ingest.not.real.signalfx.com/v2/trace/otlp",
-					},
-					"sapm": map[string]any{
-						"access_token": "<redacted>",
-						"endpoint":     "https://ingest.not.real.signalfx.com/v2/trace",
+						"traces_endpoint": "https://ingest.not.real.signalfx.com/v2/trace/otlp",
 					},
 					"signalfx": map[string]any{
 						"access_token":       "<redacted>",

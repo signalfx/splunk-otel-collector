@@ -1,5 +1,11 @@
 # Changelog
+
 ## Unreleased
+
+### 🧰 Bug fixes 🧰
+
+- (Splunk) `receiver/journald`: Upgrade journald client libraries in the Collector docker image by taking them from latest Debian image. 
+  This fixes journald receiver on kubernetes nodes with recent versions of systemd ([#5664](https://github.com/signalfx/splunk-otel-collector/pull/5664)).
 
 ## v0.113.0
 

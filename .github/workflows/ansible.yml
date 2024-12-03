@@ -65,6 +65,7 @@ jobs:
           # Testing only the versions currently supported per https://endoflife.date/ansible
           - ansible~=9.2.0
           - ansible~=8.7.0
+
         distro:
           - amazonlinux2
           - amazonlinux2023

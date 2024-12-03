@@ -30,8 +30,7 @@ env:
 jobs:
   setup-environment:
     name: setup-environment
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4
@@ -48,8 +47,7 @@ jobs:
 
   tidy:
     name: tidy
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: [setup-environment]
     steps:
       - name: Check out the codebase.
@@ -72,8 +70,7 @@ jobs:
 
   gofmt:
     name: gofmt
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: [setup-environment]
     steps:
       - name: Check out the codebase.
@@ -96,8 +93,7 @@ jobs:
 
   generate-metrics:
     name: generate-metrics
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: [setup-environment]
     steps:
       - name: Check out the codebase.
@@ -122,8 +118,7 @@ jobs:
 
   lint:
     name: lint
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: [setup-environment]
     steps:
       - name: Check out the codebase.
@@ -149,8 +144,7 @@ jobs:
 
   test:
     name: test
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: [setup-environment]
     steps:
       - name: Check out the codebase.
@@ -186,8 +180,7 @@ jobs:
 
   coverage:
     name: coverage
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: [setup-environment]
     steps:
       - name: Check out the codebase.
@@ -212,8 +205,7 @@ jobs:
 
   cross-compile:
     name: cross-compile
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: [setup-environment]
     strategy:
       matrix:

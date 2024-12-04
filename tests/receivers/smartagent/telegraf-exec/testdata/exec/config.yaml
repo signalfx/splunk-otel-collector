@@ -1,7 +1,7 @@
 receivers:
   smartagent/exec:
     type: telegraf/exec
-    command: 'go run /opt/telegraf-exec.go'
+    command: /opt/telegraf-exec
     intervalSeconds: 1
     telegrafParser:
       metricName: some.metric

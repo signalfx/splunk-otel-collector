@@ -232,7 +232,7 @@ func assertServiceConfiguration(t *testing.T, msiProperties map[string]string) {
 		"SPLUNK_REALM":        installRealm,
 		"SPLUNK_API_URL":      optionalInstallPropertyOrDefault(msiProperties, "SPLUNK_API_URL", "https://api."+installRealm+".signalfx.com"),
 		"SPLUNK_INGEST_URL":   ingestURL,
-		"SPLUNK_TRACE_URL":    ingestURL + "/v2/trace",
+		"SPLUNK_TRACE_URL":    ingestURL + "/v2/trace/otlp",
 		"SPLUNK_HEC_URL":      ingestURL + "/v1/log",
 		"SPLUNK_HEC_TOKEN":    optionalInstallPropertyOrDefault(msiProperties, "SPLUNK_HEC_TOKEN", msiProperties["SPLUNK_ACCESS_TOKEN"]),
 		"SPLUNK_BUNDLE_DIR":   filepath.Join(programFilesDir, "Splunk", "OpenTelemetry Collector", "agent-bundle"),

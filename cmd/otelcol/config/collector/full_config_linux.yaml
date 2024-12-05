@@ -774,7 +774,7 @@ service:
       - memory_limiter
       - batch
       #- resource/add_environment
-      exporters: [sapm, signalfx]
+      exporters: [otlphttp, signalfx]
     metrics:
       receivers: [otlp, signalfx]
       processors: [memory_limiter, batch]

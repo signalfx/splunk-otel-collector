@@ -22,11 +22,3 @@ services:
       - "8888:8888" # Collector metrics
       - "13133:13133" # health_check extension
 
-  splunk-otel-collector:
-    build:
-      context: ./
-      dockerfile: ./Dockerfile.pipeline.collector
-    ports:
-      - "8889:8888" # Collector metrics
-      - "13134:13133" # health_check extension
-      - "55679:55679" # ZPages extension

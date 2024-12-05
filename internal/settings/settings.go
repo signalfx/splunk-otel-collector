@@ -376,36 +376,34 @@ func checkRuntimeParams(settings *Settings) error {
 }
 
 func setDefaultEnvVars(s *Settings) error {
-	type ev struct {
-		e, v string
-		log  bool
-	}
-
-	envVars := []ev{
-		{e: ListenInterfaceEnvVar, v: defaultListenAddr(s), log: true},
-		{e: ConfigServerEnabledEnvVar, v: "true"},
+	defaultEnvVars := map[string]string{
+		ListenInterfaceEnvVar:     defaultListenAddr(s),
+		ConfigServerEnabledEnvVar: "true",
 	}
 
 	if realm, ok := os.LookupEnv(RealmEnvVar); ok {
-		envVars = append(envVars,
-			ev{e: APIURLEnvVar, v: fmt.Sprintf("https://api.%s.signalfx.com", realm)},
-			ev{e: IngestURLEnvVar, v: fmt.Sprintf("https://ingest.%s.signalfx.com", realm)},
-			ev{e: TraceIngestURLEnvVar, v: fmt.Sprintf("https://ingest.%s.signalfx.com/v2/trace", realm)},
-			ev{e: HecLogIngestURLEnvVar, v: fmt.Sprintf("https://ingest.%s.signalfx.com/v1/log", realm)},
-		)
+		defaultEnvVars[APIURLEnvVar] = fmt.Sprintf("https://api.%s.signalfx.com", realm)
+		defaultEnvVars[IngestURLEnvVar] = fmt.Sprintf("https://ingest.%s.signalfx.com", realm)
+		defaultEnvVars[TraceIngestURLEnvVar] = fmt.Sprintf("https://ingest.%s.signalfx.com/v2/trace", realm)
+		defaultEnvVars[HecLogIngestURLEnvVar] = fmt.Sprintf("https://ingest.%s.signalfx.com/v1/log", realm)
+	}
+
+	if ingestURL, ok := os.LookupEnv(IngestURLEnvVar); ok {
+		ingestURL = strings.TrimSuffix(ingestURL, "/")
+		defaultEnvVars[TraceIngestURLEnvVar] = fmt.Sprintf("%s/v2/trace", ingestURL)
 	}
 
 	if token, ok := os.LookupEnv(TokenEnvVar); ok {
-		envVars = append(envVars, ev{e: HecTokenEnvVar, v: token})
+		defaultEnvVars[HecTokenEnvVar] = token
 	}
 
-	for _, envVar := range envVars {
-		if _, ok := os.LookupEnv(envVar.e); !ok {
-			if err := os.Setenv(envVar.e, envVar.v); err != nil {
+	for e, v := range defaultEnvVars {
+		if _, ok := os.LookupEnv(e); !ok {
+			if err := os.Setenv(e, v); err != nil {
 				return err
 			}
-			if envVar.log {
-				log.Printf("set %q to %q", envVar.e, envVar.v)
+			if e == ListenInterfaceEnvVar {
+				log.Printf("set %q to %q", e, v)
 			}
 		}
 	}

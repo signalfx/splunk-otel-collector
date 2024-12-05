@@ -288,6 +288,17 @@ func TestSetDefaultEnvVarsSetsHECTokenFromAccessTokenEnvVar(t *testing.T) {
 	assert.Equal(t, token, val)
 }
 
+func TestSetDefaultEnvVarsSetsTraceURLFromIngestURL(t *testing.T) {
+	t.Cleanup(clearEnv(t))
+
+	os.Setenv("SPLUNK_INGEST_URL", "https://ingest.fake-realm.signalfx.com/")
+	require.NoError(t, setDefaultEnvVars(nil))
+
+	val, ok := os.LookupEnv("SPLUNK_TRACE_URL")
+	assert.True(t, ok)
+	assert.Equal(t, "https://ingest.fake-realm.signalfx.com/v2/trace", val)
+}
+
 func TestSetDefaultEnvVarsRespectsSetEnvVars(t *testing.T) {
 	t.Cleanup(clearEnv(t))
 	envVars := []string{"SPLUNK_API_URL", "SPLUNK_INGEST_URL", "SPLUNK_TRACE_URL", "SPLUNK_HEC_URL", "SPLUNK_HEC_TOKEN", "SPLUNK_LISTEN_INTERFACE"}

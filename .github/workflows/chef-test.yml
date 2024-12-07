@@ -1,6 +1,7 @@
 name: chef-test
 
 # Only run tests if there are relevant changes
+
 on:
   push:
     branches:

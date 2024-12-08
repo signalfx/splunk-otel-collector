@@ -45,8 +45,6 @@ splunk_memory_limit_mib_name="splunk_memory_limit_mib"
 splunk_memory_limit_mib_value=""
 splunk_memory_total_mib_name="splunk_memory_total_mib"
 splunk_memory_total_mib_value=""
-splunk_trace_url_name="splunk_trace_url"
-splunk_trace_url_value=""
 splunk_otel_log_file_name="splunk_otel_log_file"
 splunk_otel_log_file_value=""
 splunk_ingest_url_name="splunk_ingest_url"
@@ -205,13 +203,6 @@ splunk_TA_otel_read_configs() {
             splunk_TA_otel_log_msg "DEBUG" "Set $splunk_memory_total_mib_name to $splunk_memory_total_mib_value"
         fi
 
-        has_splunk_trace_url="$(echo "$line" | grep "$splunk_trace_url_name")"
-        if [ "$has_splunk_trace_url" ] ; then
-            splunk_TA_otel_log_msg "DEBUG" "reading $splunk_trace_url_name from line $has_splunk_trace_url"
-            splunk_trace_url_value="$(echo "$has_splunk_trace_url" | grep -Eo ">(.*?)<" | sed 's/^>\(.*\)<$/\1/')"
-            splunk_TA_otel_log_msg "INFO" "Set $splunk_trace_url_name to $splunk_trace_url_value"
-        fi
-
         has_splunk_otel_log_file_name="$(echo "$line" | grep "$splunk_otel_log_file_name")"
         if [ "$has_splunk_otel_log_file_name" ] ; then
             splunk_TA_otel_log_msg "DEBUG" "reading $splunk_otel_log_file_name from line $has_splunk_otel_log_file_name"
@@ -363,11 +354,6 @@ splunk_TA_otel_run_agent() {
       export SPLUNK_MEMORY_TOTAL_MIB="$splunk_memory_total_mib_value"
     else
       splunk_TA_otel_log_msg "DEBUG" "NOT SET: $splunk_memory_total_mib_name"
-    fi
-    if [ "$splunk_trace_url_value" ] ; then
-      export SPLUNK_TRACE_URL="$splunk_trace_url_value"
-    else
-      splunk_TA_otel_log_msg "INFO" "NOT SET: $splunk_trace_url_name"
     fi
     if [ "$splunk_otel_log_file_value" ] ; then
       export SPLUNK_OTEL_LOG_FILE_NAME="$splunk_otel_log_file_value"

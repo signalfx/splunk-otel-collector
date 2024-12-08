@@ -55,7 +55,6 @@
       - "{{ 'SPLUNK_MEMORY_TOTAL_MIB=' + (splunk_memory_total_mib | string)
                if (splunk_memory_total_mib | string) != '' else '' }}"
       - "{{ 'SPLUNK_REALM=' + splunk_realm if splunk_realm != '' else '' }}"
-      - "{{ 'SPLUNK_TRACE_URL=' + splunk_trace_url if splunk_trace_url != '' else '' }}"
 
 - name: Filter out undefined arguments
   when: splunk_collector_msi_is_configurable is defined

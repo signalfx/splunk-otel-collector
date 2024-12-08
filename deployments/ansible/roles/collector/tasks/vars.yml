@@ -87,6 +87,5 @@
       SPLUNK_LISTEN_INTERFACE: "{{ splunk_listen_interface if splunk_listen_interface != '' else omit }}"
       SPLUNK_MEMORY_TOTAL_MIB: "{{ splunk_memory_total_mib }}"
       SPLUNK_REALM: "{{ splunk_realm }}"
-      SPLUNK_TRACE_URL: "{{ splunk_trace_url }}"
     splunk_otel_collector_service_registry_key: HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector
   when: ansible_os_family == "Windows"

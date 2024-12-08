@@ -941,9 +941,6 @@ Collector:
                                         Specify this option to skip this step and use a pre-configured repo on the
                                         target system that provides the 'splunk-otel-collector' deb/rpm package.
   --test                                Use the test package repo instead of the primary.
-  --trace-url <url>                     Set the trace endpoint URL explicitly instead of the endpoint inferred from the
-                                        specified realm.
-                                        (default: https://ingest.REALM.signalfx.com/v2/trace)
 
 Fluentd:
   --with[out]-fluentd                   Whether to install and configure fluentd to forward log events to the collector.
@@ -1245,7 +1242,6 @@ parse_args_and_install() {
   local stage="$default_stage"
   local service_user="$default_service_user"
   local td_agent_version="$default_td_agent_version"
-  local trace_url=
   local uninstall="false"
   local mode="agent"
   local with_fluentd="false"
@@ -1338,10 +1334,6 @@ parse_args_and_install() {
         ;;
       --test)
         stage="test"
-        ;;
-      --trace-url)
-        trace_url="$2"
-        shift 1
         ;;
       --uninstall)
         uninstall="true"
@@ -1500,10 +1492,6 @@ parse_args_and_install() {
     td_agent_version=""
   fi
 
-  if [ -z "$trace_url" ]; then
-    trace_url="${ingest_url}/v2/trace"
-  fi
-
   check_support
 
   # check auto instrumentation options
@@ -1585,7 +1573,6 @@ parse_args_and_install() {
   echo "Realm: $realm"
   echo "Ingest Endpoint: $ingest_url"
   echo "API Endpoint: $api_url"
-  echo "Trace Endpoint: $trace_url"
   echo "HEC Endpoint: $hec_url"
   if [ -n "$td_agent_version" ]; then
     echo "TD Agent (Fluentd) Version: $td_agent_version"
@@ -1727,7 +1714,6 @@ parse_args_and_install() {
   configure_env_file "SPLUNK_REALM" "$realm" "$collector_env_path"
   configure_env_file "SPLUNK_API_URL" "$api_url" "$collector_env_path"
   configure_env_file "SPLUNK_INGEST_URL" "$ingest_url" "$collector_env_path"
-  configure_env_file "SPLUNK_TRACE_URL" "$trace_url" "$collector_env_path"
   configure_env_file "SPLUNK_HEC_URL" "$hec_url" "$collector_env_path"
   configure_env_file "SPLUNK_HEC_TOKEN" "$hec_token" "$collector_env_path"
   configure_env_file "SPLUNK_MEMORY_TOTAL_MIB" "$memory" "$collector_env_path"

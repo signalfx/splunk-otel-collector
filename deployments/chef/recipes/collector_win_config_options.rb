@@ -12,7 +12,6 @@ collector_env_vars = [
   { name: 'SPLUNK_INGEST_URL', type: :string, data: node['splunk_otel_collector']['splunk_ingest_url'].to_s },
   { name: 'SPLUNK_REALM', type: :string, data: node['splunk_otel_collector']['splunk_realm'].to_s },
   { name: 'SPLUNK_MEMORY_TOTAL_MIB', type: :string, data: node['splunk_otel_collector']['splunk_memory_total_mib'].to_s },
-  { name: 'SPLUNK_TRACE_URL', type: :string, data: node['splunk_otel_collector']['splunk_trace_url'].to_s },
 ]
 
 unless node['splunk_otel_collector']['gomemlimit'].to_s.strip.empty?

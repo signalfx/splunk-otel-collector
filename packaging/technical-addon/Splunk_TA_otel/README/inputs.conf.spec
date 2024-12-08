@@ -45,9 +45,6 @@ splunk_memory_limit_mib = <value>
 splunk_memory_total_mib = <value>
 * Value to use for the `SPLUNK_MEMORY_TOTAL_MIB` environment variable
 
-splunk_trace_url = <value>
-* Endpoint for `SPLUNK_TRACE_URL`
-
 splunk_ingest_url = <value>
 * Endpoint for `SPLUNK_API_URL`
 

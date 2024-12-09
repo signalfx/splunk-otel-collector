@@ -54,7 +54,7 @@ func TestGetOrCreateUndiscoveredReceiver(t *testing.T) {
 	gotCorr := cs.GetOrCreate(endpointID, discovery.NoType)
 	require.NotNil(t, gotCorr)
 	// all returned correlations are copies whose mutations don't persist in storage
-	require.NotSame(t, createdCorr, gotCorr)
+	require.NotEqual(t, createdCorr, gotCorr)
 	require.Equal(t, discovery.NoType, gotCorr.observerID)
 }
 

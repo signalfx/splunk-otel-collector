@@ -247,7 +247,7 @@ jobs:
 
       # Required to export a multiarch manifest and images to the local image store
       - name: Set up containerd image store
-        uses: crazy-max/ghaction-setup-docker@v3
+        uses: crazy-max/ghaction-setup-docker@v4
         with:
           daemon-config: |
             {
@@ -320,7 +320,7 @@ jobs:
 
       # Required to load a multiarch archive to the local image store
       - name: Set up containerd image store
-        uses: crazy-max/ghaction-setup-docker@v3
+        uses: crazy-max/ghaction-setup-docker@v4
         with:
           daemon-config: |
             {

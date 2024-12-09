@@ -35,9 +35,6 @@ SPLUNK_API_URL=https://api.us0.signalfx.com
 # Splunk ingest endpoint URL.
 SPLUNK_INGEST_URL=https://ingest.us0.signalfx.com
 
-# Splunk trace endpoint URL.
-SPLUNK_TRACE_URL=https://ingest.us0.signalfx.com/v2/trace
-
 # Splunk HEC endpoint URL, if forwarding to Splunk Observability Cloud
 SPLUNK_HEC_URL=https://ingest.us0.signalfx.com/v1/log
 # If you're forwarding to a Splunk Enterprise instance running on example.com, with HEC at port 8088:

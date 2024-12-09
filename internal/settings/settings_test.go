@@ -261,7 +261,10 @@ func TestSetDefaultEnvVarsSetsURLsFromRealm(t *testing.T) {
 
 	realm := "us1"
 	os.Setenv("SPLUNK_REALM", realm)
-	require.NoError(t, setDefaultEnvVars(nil))
+	set := newSettings()
+	require.NoError(t, setDefaultEnvVars(set))
+	assert.Equal(t, 1, len(set.envVarWarnings))
+	assert.Contains(t, set.envVarWarnings["SPLUNK_TRACE_URL"], `"SPLUNK_TRACE_URL" environment variable is deprecated`)
 
 	expectedEnvVars := [][]string{
 		{"SPLUNK_API_URL", fmt.Sprintf("https://api.%s.signalfx.com", realm)},
@@ -276,6 +279,24 @@ func TestSetDefaultEnvVarsSetsURLsFromRealm(t *testing.T) {
 	}
 }
 
+func TestNoWarningsIfTraceURLSetExplicitly(t *testing.T) {
+	t.Cleanup(clearEnv(t))
+
+	os.Setenv("SPLUNK_REALM", "us1")
+	os.Setenv("SPLUNK_TRACE_URL", "https://ingest.trace-realm.signalfx.com/v2/trace")
+	set := newSettings()
+	require.NoError(t, setDefaultEnvVars(set))
+	assert.Equal(t, 0, len(set.envVarWarnings))
+
+	val, ok := os.LookupEnv("SPLUNK_INGEST_URL")
+	assert.True(t, ok)
+	assert.Equal(t, "https://ingest.us1.signalfx.com", val)
+
+	val, ok = os.LookupEnv("SPLUNK_TRACE_URL")
+	assert.True(t, ok)
+	assert.Equal(t, "https://ingest.trace-realm.signalfx.com/v2/trace", val)
+}
+
 func TestSetDefaultEnvVarsSetsHECTokenFromAccessTokenEnvVar(t *testing.T) {
 	t.Cleanup(clearEnv(t))
 
@@ -288,6 +309,20 @@ func TestSetDefaultEnvVarsSetsHECTokenFromAccessTokenEnvVar(t *testing.T) {
 	assert.Equal(t, token, val)
 }
 
+func TestSetDefaultEnvVarsSetsTraceURLFromIngestURL(t *testing.T) {
+	t.Cleanup(clearEnv(t))
+
+	os.Setenv("SPLUNK_INGEST_URL", "https://ingest.fake-realm.signalfx.com/")
+	set := newSettings()
+	require.NoError(t, setDefaultEnvVars(set))
+	assert.Equal(t, 1, len(set.envVarWarnings))
+	assert.Contains(t, set.envVarWarnings["SPLUNK_TRACE_URL"], `"SPLUNK_TRACE_URL" environment variable is deprecated`)
+
+	val, ok := os.LookupEnv("SPLUNK_TRACE_URL")
+	assert.True(t, ok)
+	assert.Equal(t, "https://ingest.fake-realm.signalfx.com/v2/trace", val)
+}
+
 func TestSetDefaultEnvVarsRespectsSetEnvVars(t *testing.T) {
 	t.Cleanup(clearEnv(t))
 	envVars := []string{"SPLUNK_API_URL", "SPLUNK_INGEST_URL", "SPLUNK_TRACE_URL", "SPLUNK_HEC_URL", "SPLUNK_HEC_TOKEN", "SPLUNK_LISTEN_INTERFACE"}
@@ -295,7 +330,7 @@ func TestSetDefaultEnvVarsRespectsSetEnvVars(t *testing.T) {
 	someValue := "some.value"
 	for _, v := range envVars {
 		os.Setenv(v, someValue)
-		require.NoError(t, setDefaultEnvVars(nil))
+		require.NoError(t, setDefaultEnvVars(newSettings()))
 		val, ok := os.LookupEnv(v)
 		assert.True(t, ok, v[0])
 		assert.Equal(t, someValue, val)
@@ -303,7 +338,7 @@ func TestSetDefaultEnvVarsRespectsSetEnvVars(t *testing.T) {
 
 	for _, v := range envVars {
 		os.Setenv(v, "")
-		require.NoError(t, setDefaultEnvVars(nil))
+		require.NoError(t, setDefaultEnvVars(newSettings()))
 		val, ok := os.LookupEnv(v)
 		assert.True(t, ok, v[0])
 		assert.Empty(t, val)

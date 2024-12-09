@@ -26,13 +26,11 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config/configgrpc"
-	"go.opentelemetry.io/collector/config/configtelemetry"
 	"go.opentelemetry.io/collector/config/configtls"
 	otelcolexporter "go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
-	"go.opentelemetry.io/otel/metric"
-	mnoop "go.opentelemetry.io/otel/metric/noop"
-	"go.opentelemetry.io/otel/trace"
+	noopmetric "go.opentelemetry.io/otel/metric/noop"
+	nooptrace "go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils/telemetry"
@@ -116,9 +114,9 @@ func createOTLPFactoryParameters() (otlpexporter.Config, otelcolexporter.Setting
 	}
 	createParams := otelcolexporter.Settings{
 		TelemetrySettings: component.TelemetrySettings{
-			Logger:               zap.NewNop(),
-			TracerProvider:       trace.NewNoopTracerProvider(),
-			LeveledMeterProvider: func(configtelemetry.Level) metric.MeterProvider { return mnoop.NewMeterProvider() },
+			Logger:         zap.NewNop(),
+			TracerProvider: nooptrace.NewTracerProvider(),
+			MeterProvider:  noopmetric.NewMeterProvider(),
 		},
 	}
 

@@ -21,12 +21,10 @@ import (
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config/configtelemetry"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/receiverhelper"
-	"go.opentelemetry.io/otel/metric"
 	mnoop "go.opentelemetry.io/otel/metric/noop"
 	tnoop "go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/zap"
@@ -177,9 +175,9 @@ func (d *discoveryReceiver) createAndSetReceiverCreator() error {
 	}
 	id := component.MustNewIDWithName(receiverCreatorFactory.Type().String(), d.settings.ID.String())
 	ts := component.TelemetrySettings{
-		Logger:               d.logger,
-		TracerProvider:       tnoop.NewTracerProvider(),
-		LeveledMeterProvider: func(configtelemetry.Level) metric.MeterProvider { return mnoop.NewMeterProvider() },
+		Logger:         d.logger,
+		TracerProvider: tnoop.NewTracerProvider(),
+		MeterProvider:  mnoop.NewMeterProvider(),
 	}
 	if d.statementEvaluator != nil {
 		// TODO: Introduce a wrapper logger that combines the receiver_creator logger with the statement evaluator logger

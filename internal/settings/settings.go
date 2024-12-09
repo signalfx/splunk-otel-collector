@@ -385,13 +385,7 @@ func setDefaultEnvVars(s *Settings) error {
 	if realm, ok := os.LookupEnv(RealmEnvVar); ok {
 		defaultEnvVars[APIURLEnvVar] = fmt.Sprintf("https://api.%s.signalfx.com", realm)
 		defaultEnvVars[IngestURLEnvVar] = fmt.Sprintf("https://ingest.%s.signalfx.com", realm)
-		defaultEnvVars[TraceIngestURLEnvVar] = fmt.Sprintf("https://ingest.%s.signalfx.com/v2/trace", realm)
 		defaultEnvVars[HecLogIngestURLEnvVar] = fmt.Sprintf("https://ingest.%s.signalfx.com/v1/log", realm)
-	}
-
-	if ingestURL, ok := os.LookupEnv(IngestURLEnvVar); ok {
-		ingestURL = strings.TrimSuffix(ingestURL, "/")
-		defaultEnvVars[TraceIngestURLEnvVar] = fmt.Sprintf("%s/v2/trace", ingestURL)
 	}
 
 	if token, ok := os.LookupEnv(TokenEnvVar); ok {

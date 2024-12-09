@@ -30,7 +30,6 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/hostobserver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/k8sobserver"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config/configtelemetry"
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/confmap/provider/envprovider"
 	"go.opentelemetry.io/collector/confmap/provider/yamlprovider"
@@ -41,7 +40,6 @@ import (
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pipeline"
 	otelcolreceiver "go.opentelemetry.io/collector/receiver"
-	"go.opentelemetry.io/otel/metric"
 	mnoop "go.opentelemetry.io/otel/metric/noop"
 	tnoop "go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/zap"
@@ -609,9 +607,9 @@ func (d *discoverer) createExtensionCreateSettings(observerID component.ID) otel
 	return otelcolextension.Settings{
 		ID: observerID,
 		TelemetrySettings: component.TelemetrySettings{
-			Logger:               zap.New(d.logger.Core()).With(zap.String("kind", observerID.String())),
-			TracerProvider:       tnoop.NewTracerProvider(),
-			LeveledMeterProvider: func(configtelemetry.Level) metric.MeterProvider { return mnoop.NewMeterProvider() },
+			Logger:         zap.New(d.logger.Core()).With(zap.String("kind", observerID.String())),
+			TracerProvider: tnoop.NewTracerProvider(),
+			MeterProvider:  mnoop.NewMeterProvider(),
 		},
 		BuildInfo: d.info,
 	}
@@ -620,9 +618,9 @@ func (d *discoverer) createExtensionCreateSettings(observerID component.ID) otel
 func (d *discoverer) createReceiverCreateSettings() otelcolreceiver.Settings {
 	return otelcolreceiver.Settings{
 		TelemetrySettings: component.TelemetrySettings{
-			Logger:               zap.New(d.logger.Core()).With(zap.String("kind", "receiver")),
-			TracerProvider:       tnoop.NewTracerProvider(),
-			LeveledMeterProvider: func(configtelemetry.Level) metric.MeterProvider { return mnoop.NewMeterProvider() },
+			Logger:         zap.New(d.logger.Core()).With(zap.String("kind", "receiver")),
+			TracerProvider: tnoop.NewTracerProvider(),
+			MeterProvider:  mnoop.NewMeterProvider(),
 		},
 		BuildInfo: d.info,
 	}

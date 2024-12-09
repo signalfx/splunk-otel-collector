@@ -3,7 +3,6 @@ include ./packaging/technical-addon/Makefile
 
 ### VARIABLES
 
-
 # BUILD_TYPE should be one of (dev, release).
 BUILD_TYPE?=release
 VERSION?=latest
@@ -15,8 +14,8 @@ GOOS=$(shell go env GOOS)
 
 FIND_MOD_ARGS=-type f -name "go.mod"
 TO_MOD_DIR=dirname {} \; | sort | egrep  '^./'
-# NONROOT_MODS includes ./* dirs (excludes . dir)
-NONROOT_MODS := $(shell find . $(FIND_MOD_ARGS) -exec $(TO_MOD_DIR) )
+
+ALL_MODS := $(shell find . $(FIND_MOD_ARGS) -exec $(TO_MOD_DIR)) $(PWD)
 
 GOTEST=go test -p $(NUM_CORES)
 
@@ -56,18 +55,29 @@ GOTESPLIT_INDEX?=0
 
 .DEFAULT_GOAL := all
 
+all-modules:
+	@echo $(ALL_MODS) | tr ' ' '\n' | sort
+
 .PHONY: all
 all: checklicense impi lint misspell test otelcol
 
 .PHONY: for-all
 for-all:
-	@echo "running $${CMD} in root"
-	@$${CMD}
-	@set -e; for dir in $(NONROOT_MODS); do \
+	@set -e; for dir in $(ALL_MODS); do \
 	  (cd "$${dir}" && \
 	  	echo "running $${CMD} in $${dir}" && \
 	 	$${CMD} ); \
 	done
+
+# Define a delegation target for each module
+.PHONY: $(ALL_MODS)
+$(ALL_MODS):
+	@echo "Running target '$(TARGET)' in module '$@'"
+	$(MAKE) --no-print-directory -C $@ $(TARGET)
+
+# Triggers each module's delegation target
+.PHONY: for-all-target
+for-all-target: $(ALL_MODS)
 
 .PHONY: integration-vet
 integration-vet:
@@ -111,7 +121,7 @@ gendependabot:
 
 .PHONY: tidy-all
 tidy-all:
-	$(MAKE) $(FOR_GROUP_TARGET) TARGET="tidy"
+	$(MAKE) for-all-target TARGET="tidy"
 	$(MAKE) tidy
 
 .PHONY: install-tools

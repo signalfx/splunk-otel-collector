@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+### 🚩Deprecations 🚩
+
+- (Splunk) `SPLUNK_TRACE_URL` environment variable is deprecated. It's replaced with `${SPLUNK_INGEST_URL}/v2/trace`
+  in the default configs. Default value for `SPLUNK_TRACE_URL` is still set in the binary from `SPLUNK_REALM` or
+  `SPLUNK_INGEST_URL` environment variables to not break existing configurations. However, it is recommended to
+  update the configurations to use `${SPLUNK_INGEST_URL}/v2/trace` instead. ([#5672](https://github.com/signalfx/splunk-otel-collector/pull/5672)).
+
+### 🛑 Breaking changes 🛑
+
+- (Splunk) Given that `SPLUNK_TRACE_URL` environment variable is deprecated and replaced with
+  `${SPLUNK_INGEST_URL}/v2/trace` in the default configurations, the option to set the Trace URL has been removed from 
+  all packaging and mass deployment solutions to an avoid confusion. ([#5672](https://github.com/signalfx/splunk-otel-collector/pull/5672)).
+
 ### 🧰 Bug fixes 🧰
 
 - (Splunk) `receiver/journald`: Upgrade journald client libraries in the Collector docker image by taking them from latest Debian image. 

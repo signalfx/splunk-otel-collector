@@ -11,7 +11,6 @@ class splunk_otel_collector::collector_win_config_options {
         'SPLUNK_INGEST_URL' => $splunk_otel_collector::splunk_ingest_url,
         'SPLUNK_MEMORY_TOTAL_MIB' => $splunk_otel_collector::splunk_memory_total_mib,
         'SPLUNK_REALM' => $splunk_otel_collector::splunk_realm,
-        'SPLUNK_TRACE_URL' => $splunk_otel_collector::splunk_trace_url,
     }
 
     $gomemlimit = if ($splunk_otel_collector::collector_version == 'latest' or

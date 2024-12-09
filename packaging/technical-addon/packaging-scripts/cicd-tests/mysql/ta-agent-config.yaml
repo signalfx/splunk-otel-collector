@@ -8,7 +8,6 @@
 # - SPLUNK_COLLECTD_DIR: The path to the collectd config directory for the Smart Agent, e.g. /usr/lib/splunk-otel-collector/agent-bundle/run/collectd
 # - SPLUNK_INGEST_URL: The Splunk ingest URL, e.g. https://ingest.us0.signalfx.com
 # - SPLUNK_LISTEN_INTERFACE: The network interface the agent receivers listen on.
-# - SPLUNK_TRACE_URL: The Splunk trace endpoint URL, e.g. https://ingest.us0.signalfx.com/v2/trace
 
 extensions:
   health_check:
@@ -135,7 +134,7 @@ exporters:
   # Traces
   sapm:
     access_token: "${env:SPLUNK_ACCESS_TOKEN}"
-    endpoint: "${env:SPLUNK_TRACE_URL}"
+    endpoint: "${env:SPLUNK_INGEST_URL}/v2/trace"
   # Metrics + Events
   signalfx:
     access_token: "${env:SPLUNK_ACCESS_TOKEN}"

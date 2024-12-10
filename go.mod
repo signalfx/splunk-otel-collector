@@ -256,7 +256,7 @@ require (
 	github.com/hashicorp/go-secure-stdlib/plugincontainer v0.4.1 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/hashicorp/mdns v1.0.5 // indirect
-	github.com/hashicorp/nomad/api v0.0.0-20240717122358-3d93bd3778f3 // indirect
+	github.com/hashicorp/nomad/api v0.0.0-20241209202624-6a41dc7b2f1f // indirect
 	github.com/hetznercloud/hcloud-go/v2 v2.10.2 // indirect
 	github.com/influxdata/telegraf v1.30.1 // indirect
 	github.com/influxdata/wlog v0.0.0-20160411224016-7c63b0a71ef8 // indirect

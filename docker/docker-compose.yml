@@ -245,7 +245,6 @@ services:
     build: ./mysql
     ports:
       - "3306:3306"
-  # Nginx image for collectd-nginx test:
   nginx:
     image: quay.io/splunko11ytest/nginx:latest
     profiles:

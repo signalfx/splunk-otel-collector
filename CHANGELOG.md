@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+## v0.114.0
+
+### 💡 Enhancements 💡
+
+- (Contrib) `processor/k8sattributes`: Add support for profiles signal ([#35983](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35983))
+- (Contrib) `receiver/k8scluster`: Add support for limiting observed resources to a specific namespace. ([#9401](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/9401))
+  This change allows to make use of this receiver with `Roles`/`RoleBindings`, as opposed to giving the collector cluster-wide read access.
+- (Contrib) `processor/resourcedetection`: Introduce support for Profiles signal type. ([#35980](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35980))
+- (Contrib) `connector/routing`: Add ability to route by metric context ([#36236](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/36236))
+- (Contrib) `connector/routing`: Add ability to route by span context ([#36276](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/36276))
+- (Contrib) `processor/spanprocessor`: Add a new configuration option to keep the original span name when extracting attributes from the span name. ([#36120](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/36120))
+- (Contrib) `receiver/splunkenterprise`: Add new metrics for Splunk Enterprise dispatch artifacts caches ([#36181](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/36181))
+
 ### 🚩Deprecations 🚩
 
 - (Splunk) `SPLUNK_TRACE_URL` environment variable is deprecated. It's replaced with `${SPLUNK_INGEST_URL}/v2/trace`
@@ -18,7 +31,16 @@
 ### 🧰 Bug fixes 🧰
 
 - (Splunk) `receiver/journald`: Upgrade journald client libraries in the Collector docker image by taking them from latest Debian image. 
-  This fixes journald receiver on kubernetes nodes with recent versions of systemd ([#5664](https://github.com/signalfx/splunk-otel-collector/pull/5664)).
+  This fixes journald receiver on kubernetes nodes with recent versions of systemd ([#5664](https://github.com/signalfx/splunk-otel-collector/pull/5664)). 
+- (Core) scraperhelper: If the scraper shuts down, do not scrape first. ([#11632](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/11632)) 
+  When the scraper is shutting down, it currently will scrape at least once. With this change, upon receiving a shutdown order, the receiver's scraperhelper will exit immediately.
+- (Contrib) `pkg/stanza`: Ensure that time parsing happens before entry is sent to downstream operators ([#36213](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/36213))
+- (Contrib) `processor/k8sattributes`: Block when starting until the metadata have been synced, to fix that some data couldn't be associated with metadata when the agent was just started. ([#32556](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/32556))
+- (Contrib) `exporter/loadbalancing`: Shutdown exporters during collector shutdown. This fixes a memory leak. ([#36024](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/36024))
+- (Contrib) `pkg/ottl`: Respect the `depth` option when flattening slices using `flatten` ([#36161](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/36161))
+  The `depth` option is also now required to be at least `1`.
+- (Contrib) `pkg/stanza`: Synchronous handling of entries passed from the log emitter to the receiver adapter ([#35453](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35453))
+- (Contrib) `receiver/prometheus`: Fix prometheus receiver to support static scrape config with Target Allocator ([#36062](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/36062))
 
 ## v0.113.0
 

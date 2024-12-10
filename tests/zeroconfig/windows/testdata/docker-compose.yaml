@@ -21,4 +21,3 @@ services:
       - "8000:80"   # ASP.NET App port
       - "8888:8888" # Collector metrics
       - "13133:13133" # health_check extension
-

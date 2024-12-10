@@ -29,7 +29,7 @@
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN"
 .PARAMETER realm
-    (OPTIONAL) The Splunk realm to use (default: "us0"). The ingest, API, trace, and HEC endpoint URLs will automatically be inferred by this value.
+    (OPTIONAL) The Splunk realm to use (default: "us0"). The ingest, API, and HEC endpoint URLs will automatically be inferred by this value.
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -realm "us1"
 .PARAMETER memory
@@ -52,10 +52,6 @@
     (OPTIONAL) Set the base API URL explicitly instead of the URL inferred from the specified realm (default: https://api.REALM.signalfx.com).
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -api_url "https://api.us1.signalfx.com"
-.PARAMETER trace_url
-    (OPTIONAL) Set the trace endpoint URL explicitly instead of the endpoint inferred from the specified realm (default: https://ingest.REALM.signalfx.com/v2/trace/otlp).
-    .EXAMPLE
-    .\install.ps1 -access_token "ACCESSTOKEN" -trace_url "https://ingest.us1.signalfx.com/v2/trace/otlp"
 .PARAMETER hec_url
     (OPTIONAL) Set the HEC endpoint URL explicitly instead of the endpoint inferred from the specified realm (default: https://ingest.REALM.signalfx.com/v1/log).
     .EXAMPLE
@@ -138,7 +134,6 @@ param (
     [string]$network_interface = "",
     [string]$ingest_url = "",
     [string]$api_url = "",
-    [string]$trace_url = "",
     [string]$hec_url = "",
     [string]$hec_token = "",
     [bool]$insecure = $false,
@@ -479,10 +474,6 @@ if ($api_url -eq "") {
     $api_url = "https://api.$realm.signalfx.com"
 }
 
-if ($trace_url -eq "") {
-    $trace_url = "$ingest_url/v2/trace/otlp"
-}
-
 if ($hec_url -eq "") {
     $hec_url = "$ingest_url/v1/log"
 }
@@ -579,7 +570,6 @@ $collector_env_vars = @{
     "SPLUNK_INGEST_URL"       = "$ingest_url";
     "SPLUNK_MEMORY_TOTAL_MIB" = "$memory";
     "SPLUNK_REALM"            = "$realm";
-    "SPLUNK_TRACE_URL"        = "$trace_url";
 }
 
 if ($network_interface -Ne "") {

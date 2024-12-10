@@ -12,7 +12,6 @@
       SPLUNK_HEC_TOKEN: fake-token
       SPLUNK_HEC_URL: https://ingest.fake-realm.signalfx.com/v1/log
       SPLUNK_INGEST_URL: https://ingest.fake-realm.signalfx.com
-      SPLUNK_TRACE_URL: https://ingest.fake-realm.signalfx.com/v2/trace/otlp
   tasks:
     - name: Check splunk-otel-collector service
       ansible.windows.win_service:

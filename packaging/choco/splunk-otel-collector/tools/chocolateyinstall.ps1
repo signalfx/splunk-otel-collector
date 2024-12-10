@@ -42,7 +42,6 @@ $env_var_names = @(
     "SPLUNK_API_URL",
     "SPLUNK_HEC_TOKEN",
     "SPLUNK_HEC_URL",
-    "SPLUNK_TRACE_URL",
     "SPLUNK_MEMORY_TOTAL_MIB",
     "SPLUNK_BUNDLE_DIR",
     "SPLUNK_LISTEN_INTERFACE"
@@ -104,7 +103,6 @@ set_env_var_value_from_package_params $env_vars $pp "SPLUNK_INGEST_URL"         
 set_env_var_value_from_package_params $env_vars $pp "SPLUNK_API_URL"            "https://api.$realm.signalfx.com"
 set_env_var_value_from_package_params $env_vars $pp "SPLUNK_HEC_TOKEN"          $env_vars["SPLUNK_ACCESS_TOKEN"]
 set_env_var_value_from_package_params $env_vars $pp "SPLUNK_HEC_URL"            "https://ingest.$realm.signalfx.com/v1/log"
-set_env_var_value_from_package_params $env_vars $pp "SPLUNK_TRACE_URL"          "https://ingest.$realm.signalfx.com/v2/trace/otlp"
 set_env_var_value_from_package_params $env_vars $pp "SPLUNK_MEMORY_TOTAL_MIB"   "512"
 set_env_var_value_from_package_params $env_vars $pp "SPLUNK_BUNDLE_DIR"         "$installation_path\agent-bundle"
 

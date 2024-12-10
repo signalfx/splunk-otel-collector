@@ -10,8 +10,6 @@
 
 {% set splunk_ingest_url = salt['pillar.get']('splunk-otel-collector:splunk_ingest_url', 'https://ingest.' + splunk_realm + '.signalfx.com') %}
 
-{% set splunk_trace_url = salt['pillar.get']('splunk-otel-collector:splunk_trace_url', splunk_ingest_url + '/v2/trace/otlp') %}
-
 {% set splunk_hec_url = salt['pillar.get']('splunk-otel-collector:splunk_hec_url', splunk_ingest_url + '/v1/log') %}
 
 {% set splunk_hec_token = salt['pillar.get']('splunk-otel-collector:splunk_hec_token', splunk_access_token) %}
@@ -38,7 +36,6 @@
         SPLUNK_REALM={{ splunk_realm }}
         SPLUNK_API_URL={{ splunk_api_url }}
         SPLUNK_INGEST_URL={{ splunk_ingest_url }}
-        SPLUNK_TRACE_URL={{ splunk_trace_url }}
         SPLUNK_HEC_URL={{ splunk_hec_url }}
         SPLUNK_HEC_TOKEN={{ splunk_hec_token }}
         SPLUNK_MEMORY_TOTAL_MIB={{ splunk_memory_total_mib }}

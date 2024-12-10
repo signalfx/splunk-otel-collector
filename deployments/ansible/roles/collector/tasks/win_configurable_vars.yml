@@ -9,11 +9,6 @@
     splunk_api_url: https://api.{{splunk_realm}}.signalfx.com
   when: splunk_api_url is not defined or (splunk_api_url | trim) == ""
 
-- name: Set default trace url
-  set_fact:
-    splunk_trace_url: "{{splunk_ingest_url}}/v2/trace/otlp"
-  when: splunk_trace_url is not defined or (splunk_trace_url | trim) == ""
-
 - name: Set default hec url
   set_fact:
     splunk_hec_url: "{{splunk_ingest_url}}/v1/log"

@@ -4,7 +4,6 @@ class splunk_otel_collector (
   $splunk_realm            = '',  # required
   $splunk_ingest_url       = "https://ingest.${splunk_realm}.signalfx.com",
   $splunk_api_url          = "https://api.${splunk_realm}.signalfx.com",
-  $splunk_trace_url        = "${splunk_ingest_url}/v2/trace/otlp",
   $splunk_hec_url          = "${splunk_ingest_url}/v1/log",
   $splunk_hec_token        = $splunk_access_token,
   $splunk_bundle_dir       = $splunk_otel_collector::params::splunk_bundle_dir,

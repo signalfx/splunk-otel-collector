@@ -2,7 +2,6 @@ splunk_access_token = 'testing123'
 splunk_realm = 'test'
 splunk_api_url = 'https://fake-splunk-api.com'
 splunk_ingest_url = 'https://fake-splunk-ingest.com'
-splunk_trace_url = "#{splunk_ingest_url}/v2/trace/otlp"
 splunk_hec_url = "#{splunk_ingest_url}/v1/log"
 splunk_hec_token = 'fake-hec-token'
 splunk_memory_total = '256'
@@ -29,7 +28,6 @@ if os[:family] == 'windows'
     { name: 'SPLUNK_LISTEN_INTERFACE', type: :string, data: splunk_listen_interface },
     { name: 'SPLUNK_MEMORY_TOTAL_MIB', type: :string, data: splunk_memory_total },
     { name: 'SPLUNK_REALM', type: :string, data: splunk_realm },
-    { name: 'SPLUNK_TRACE_URL', type: :string, data: splunk_trace_url },
     { name: 'MY_CUSTOM_VAR1', type: :string, data: 'value1' },
     { name: 'MY_CUSTOM_VAR2', type: :string, data: 'value2' },
   ]
@@ -64,7 +62,6 @@ else
     its('content') { should match /^SPLUNK_LISTEN_INTERFACE=#{splunk_listen_interface}$/ }
     its('content') { should match /^SPLUNK_MEMORY_TOTAL_MIB=#{splunk_memory_total}$/ }
     its('content') { should match /^SPLUNK_REALM=test$/ }
-    its('content') { should match /^SPLUNK_TRACE_URL=#{splunk_trace_url}$/ }
     its('content') { should match /^MY_CUSTOM_VAR1=value1$/ }
     its('content') { should match /^MY_CUSTOM_VAR2=value2$/ }
   end

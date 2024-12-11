@@ -127,7 +127,7 @@ processors:
     attributes:
       - action: insert
         value: "agent"
-        key: service_mode
+        key: otelcol.service.mode
 exporters:
   # Traces
   sapm:

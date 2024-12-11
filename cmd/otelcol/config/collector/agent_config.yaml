@@ -123,7 +123,11 @@ processors:
       #- action: insert
         #value: staging/production/...
         #key: deployment.environment
-
+  resource/add_mode:
+    attributes:
+      - action: insert
+        value: "agent"
+        key: service_mode
 exporters:
   # Traces
   sapm:
@@ -189,7 +193,7 @@ service:
       #exporters: [otlp]
     metrics/internal:
       receivers: [prometheus/internal]
-      processors: [memory_limiter, batch, resourcedetection]
+      processors: [memory_limiter, batch, resourcedetection, resource/add_mode]
       # When sending to gateway, at least one metrics pipeline needs
       # to use signalfx exporter so host metadata gets emitted
       exporters: [signalfx]

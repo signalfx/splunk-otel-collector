@@ -1,0 +1,49 @@
+extensions:
+  docker_observer:
+  basicauth:
+    client_auth:
+      username: some_user
+      password: some_password
+
+receivers:
+  discovery:
+    embed_receiver_config: true
+    receivers:
+      nginx:
+        config:
+          endpoint: '`(port in [443, 8123] ? "https" : "http") + "://{{.Host}}:{{.Port}}/nginx_status"`'
+          auth:
+            authenticator: basicauth
+          collection_interval: 1s
+        rule: type == "container" and any([name, image, command], {# matches "(?i)nginx"}) and not (command matches "splunk.discovery")
+        status:
+          metrics:
+            - status: successful
+              strict: nginx.connections_accepted
+              message: nginx receiver is working!
+          statements:
+            - status: failed
+              regexp: "Failed to fetch nginx stats"
+              message: Failed to retrieve metrics from NGINX stub_status endpoint.
+    watch_observers:
+      - docker_observer
+
+exporters:
+  debug:
+    verbosity: detailed
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+
+service:
+  telemetry:
+    logs:
+      level: info
+  extensions:
+    - docker_observer
+    - basicauth
+  pipelines:
+    logs:
+      receivers: [discovery]
+      exporters: [otlp, debug]

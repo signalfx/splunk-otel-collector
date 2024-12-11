@@ -6,6 +6,6 @@ pytest-html==4.1.1
 pytest-xdist==3.6.1
 py>=1.8.2
 requests<2.33.0
-six==1.16.0
+six==1.17.0
 urllib3<3
 pyyaml==6.0.2

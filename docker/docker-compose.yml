@@ -249,7 +249,7 @@ services:
     image: quay.io/splunko11ytest/nginx:latest
     profiles:
       - integration
-      - discovery_integration_nginx
+      - integration-test-nginx-discovery
       - smartagent
     build: ./nginx
     ports:

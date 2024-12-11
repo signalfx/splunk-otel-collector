@@ -93,7 +93,7 @@ processors:
 exporters:
   # Traces
   otlphttp:
-    traces_endpoint: "${SPLUNK_TRACE_URL}"
+    traces_endpoint: "${SPLUNK_INGEST_URL}/v2/trace/otlp"
     headers:
       "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
   # Metrics + Events

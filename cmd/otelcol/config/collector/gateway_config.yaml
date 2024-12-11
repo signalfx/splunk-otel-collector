@@ -1,4 +1,4 @@
-# Configuration file that uses the Splunk exporters (OTLPHTTP, SignalFx) to push
+# Configuration file that uses the Splunk exporters (OTLP HTTP, SignalFx) to push
 # data to Splunk products.
 
 extensions:
@@ -92,7 +92,7 @@ processors:
 exporters:
   # Traces
   otlphttp:
-    traces_endpoint: "${SPLUNK_TRACE_URL}"
+    traces_endpoint: "${SPLUNK_INGEST_URL}/v2/trace/otlp"
     headers:
       "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
   # Metrics + Events

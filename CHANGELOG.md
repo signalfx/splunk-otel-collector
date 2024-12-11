@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 🛑 Breaking changes 🛑
+
+- (Splunk) Change default traces exporter to otlphttp exporter. ([#5588](https://github.com/signalfx/splunk-otel-collector/pull/5588)).
+
 ## v0.114.0
 
 ### 💡 Enhancements 💡

@@ -7,6 +7,18 @@
 - (Splunk) Automatic Discovery:
   - Switch bundled NGINX discovery to create [OpenTelemetry NGINX receiver](https://docs.splunk.com/observability/en/gdi/opentelemetry/components/nginx-receiver.html#nginx-receiver) instead of the Smart Agent NGINX monitor ([#5689](https://github.com/signalfx/splunk-otel-collector/pull/5689))
 
+### 🚩Deprecations 🚩
+
+- (Splunk) Deprecate the collectd/genericjmx monitor. Please use the [jmxreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jmxreceiver) instead. ([#5539](https://github.com/signalfx/splunk-otel-collector/pull/5539))
+- (Splunk) Deprecate the collectd/activemq monitor. Please use the [jmxreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jmxreceiver) with the activemq target system instead. ([#5539](https://github.com/signalfx/splunk-otel-collector/pull/5539))
+- (Splunk) Deprecate the collectd/cassandra monitor. Please use the [jmxreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jmxreceiver) with the cassandra target system instead. ([#5539](https://github.com/signalfx/splunk-otel-collector/pull/5539))
+- (Splunk) Deprecate the collectd/hadoop monitor. Please use the [jmxreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jmxreceiver) with the hadoop target system instead. ([#5539](https://github.com/signalfx/splunk-otel-collector/pull/5539))
+- (Splunk) Deprecate the collectd/kafka monitor. Please use the [jmxreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jmxreceiver) with the kafka target system instead. ([#5539](https://github.com/signalfx/splunk-otel-collector/pull/5539))
+- (Splunk) Deprecate the collectd/kafka-consumer monitor. Please use the [jmxreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jmxreceiver) with the kafka-consumer target system instead. ([#5539](https://github.com/signalfx/splunk-otel-collector/pull/5539))
+- (Splunk) Deprecate the collectd/kafka-producer monitor. Please use the [jmxreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jmxreceiver) with the kafka-producer target system instead. ([#5539](https://github.com/signalfx/splunk-otel-collector/pull/5539))
+- (Splunk) Deprecate the collectd/solr monitor. Please use the [jmxreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jmxreceiver) with the solr target system instead. ([#5539](https://github.com/signalfx/splunk-otel-collector/pull/5539))
+- (Splunk) Deprecate the collectd/tomcat monitor. Please use the [jmxreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jmxreceiver) with the tomcat target system instead. ([#5539](https://github.com/signalfx/splunk-otel-collector/pull/5539))
+
 ## v0.114.0
 
 ### 💡 Enhancements 💡

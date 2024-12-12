@@ -1,6 +1,8 @@
 monitors:
 - dimensions:
   doc: |
+    **The collectd/tomcat monitor is deprecated. Use the jmxreceiver with the tomcat target system instead.**
+
     Monitors Tomcat using the Collectd GenericJMX plugin. This is essentially a wrapper around 
     the [collectd-genericjmx](./collectd-genericjmx.md)[](sfx_link:java) monitor that comes with 
     a set of predefined MBean definitions that a standard Tomcat deployment will expose.

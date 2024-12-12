@@ -141,6 +141,7 @@ services:
       KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
     profiles:
       - integration-test-kafkametrics-discovery
+      - integration-test-ta-discovery
   kafka-broker:
     image: quay.io/splunko11ytest/kafka:latest
     depends_on:

@@ -50,3 +50,15 @@ splunk_ingest_url = <value>
 
 splunk_realm = <value>
 * Splunk Observability realm to use for the `SPLUNK_REALM` environment variable (ex us0)
+
+discovery = <value>
+* Boolean, if `true` will enable `--discovery`
+
+discovery_properties = <value>
+* String, same as `--discovery-properties` parameter.  See [properties reference](https://github.com/signalfx/splunk-otel-collector/blob/v0.114.0/internal/confmapprovider/discovery/README.md?plain=1#L175)
+
+configd = <value>
+* Boolean, if `true` will enable `--configd`
+
+config_dir = <value>
+* String, same as `--configd` parameter as defined in https://github.com/signalfx/splunk-otel-collector/blob/v0.114.0/internal/confmapprovider/discovery/README.md?plain=1#L47

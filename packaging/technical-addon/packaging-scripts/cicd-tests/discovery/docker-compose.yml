@@ -1,0 +1,25 @@
+version: "3.6"
+# See https://splunk.github.io/docker-splunk/advanced/APP_INSTALL.html#apps-on-filesystem
+services:
+  ta-test-discovery:
+    network_mode: bridge
+    image: ${SPLUNK_IMAGE:-splunk/splunk:9.2.1}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/en-US/account/login"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    hostname: ta-test-discovery
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_APPS_URL=/addon-dir/$REPACKED_TA_NAME
+      - SPLUNK_PASSWORD=Chang3d!
+    ports:
+      - 8000
+    volumes:
+      #- $ADDON_DIR:/opt/splunk/etc/apps:rw
+      - $ADDON_DIR:/addon-dir
+      - $BUILD_DIR/tests/discovery/discovery-logs/:/discovery-logs:rw
+        #- $BUILD_DIR/tests/discovery/splunklogs/:/opt/splunk/var/log/:rw
+        #- $BUILD_DIR/tests/discovery/splunk-addon-apps/:/opt/splunk/etc/apps/:rw

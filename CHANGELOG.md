@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### 💡 Enhancements 💡
+
+- (Splunk) Automatic Discovery:
+  - Switch bundled NGINX discovery to create [OpenTelemetry NGINX receiver](https://docs.splunk.com/observability/en/gdi/opentelemetry/components/nginx-receiver.html#nginx-receiver) instead of the Smart Agent NGINX monitor ([#5689](https://github.com/signalfx/splunk-otel-collector/pull/5689))
+
 ### 🚩Deprecations 🚩
 
 - (Splunk) Deprecate the collectd/genericjmx monitor. Please use the [jmxreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jmxreceiver) instead. ([#5539](https://github.com/signalfx/splunk-otel-collector/pull/5539))

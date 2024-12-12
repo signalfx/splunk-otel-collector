@@ -2,7 +2,7 @@
 #                               Do not edit manually!                               #
 # All changes must be made to associated .tmpl file before running 'make bundle.d'. #
 #####################################################################################
-smartagent/collectd/nginx:
+nginx:
   enabled: true
   rule:
     docker_observer: type == "container" and any([name, image, command], {# matches "(?i)nginx"}) and not (command matches "splunk.discovery")
@@ -10,19 +10,13 @@ smartagent/collectd/nginx:
     k8s_observer: type == "port" and pod.name matches "(?i)nginx"
   config:
     default:
-      type: collectd/nginx
-      url: '`(port in [443, 8443] ? "https" : "http") + "://{{.Host}}:{{.Port}}/nginx_status"`'
-      timeout: 5000
-      isolatedCollectd: true
+      endpoint: '`(port in [443] ? "https://" : "http://")``endpoint`/nginx_status}}'
   status:
     metrics:
       - status: successful
-        strict: connections.accepted
-        message: smartagent/collectd/nginx receiver is working!
+        strict: nginx.connections_accepted
+        message: nginx receiver is working!
     statements:
       - status: failed
-        regexp: "nginx plugin: curl_easy_perform failed: Operation timed out after"
-        message: The container is not serving http connections.
-      - status: failed
-        regexp: "read-function of plugin .* failed"
-        message: The integration is unable to read metrics from this endpoint.
+        regexp: "Failed to fetch nginx stats"
+        message: Failed to retrieve metrics from NGINX stub_status endpoint.

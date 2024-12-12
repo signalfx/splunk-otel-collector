@@ -13,11 +13,11 @@ splunk.discovery:
   receivers:
     mysql:
       enabled: true
+    nginx:
+      enabled: true
     postgresql:
       enabled: true
     smartagent/collectd/mysql:
       enabled: false
-    smartagent/collectd/nginx:
-      enabled: true
     smartagent/postgresql:
       enabled: false

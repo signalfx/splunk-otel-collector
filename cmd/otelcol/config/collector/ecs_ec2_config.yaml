@@ -130,7 +130,6 @@ exporters:
     token: "${SPLUNK_ACCESS_TOKEN}"
     endpoint: "${SPLUNK_INGEST_URL}/v1/log"
     log_data_enabled: false
-    
 service:
   extensions: [health_check, http_forwarder, zpages]
   pipelines:

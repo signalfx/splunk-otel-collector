@@ -521,7 +521,7 @@ extract_bundle() {
     BUNDLE_PARENT="$(realpath --canonicalize-missing "$SPLUNK_BUNDLE_DIR/../")"
     splunk_TA_otel_log_msg "DEBUG" "will cd to $BUNDLE_PARENT"
     tar -C "$BUNDLE_PARENT" -xzf "$splunk_TA_otel_script_directory/$SMART_AGENT_BUNDLE" || splunk_TA_otel_log_error "failed to extract $splunk_TA_otel_script_directory/$SMART_AGENT_BUNDLE to $SPLUNK_BUNDLE_DIR"
-    splunk_TA_otel_log_msg "INFO" "agent bundle extracted to $SPLUNK_BUNDLE_DIR"
+    splunk_TA_otel_log_msg "INFO" "Done extracting agent bundle to $SPLUNK_BUNDLE_DIR"
 
     # Patch everything in agent-bundle/bin to use our provided .so
     root_path="$(readlink -f "$splunk_bundle_dir_value")"

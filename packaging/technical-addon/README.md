@@ -36,6 +36,8 @@ operating system (ex windows, linux).
 This can be accomplished by removing either `Splunk_TA_Otel/linux_x86_64` or
 `Splunk_TA_Otel/windows_x86_64`, respectively.
 
+Further, they may remove the agent bundle downloaded to the `bin/` folder in these platform specific directories if they don't need smart agent support.
+
 ## Maintaining configuration between upgrades
 As with all TAs, any changes made to `configs` will be overwritten.
 Customers should copy any relevant custom configuration from `configs/` or `defaults/`

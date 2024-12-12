@@ -123,11 +123,13 @@ processors:
       #- action: insert
         #value: staging/production/...
         #key: deployment.environment
+
   resource/add_mode:
     attributes:
       - action: insert
         value: "agent"
         key: otelcol.service.mode
+
 exporters:
   # Traces
   sapm:

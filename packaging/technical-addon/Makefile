@@ -100,6 +100,16 @@ orca-test-ta: env-guard-verify
 	OLLY_ACCESS_TOKEN="$(OLLY_ACCESS_TOKEN)" \
 	$(SOURCE_DIR)/packaging-scripts/cicd-tests/happypath-test.sh
 
+.PHONY: orca-gateway-test-ta
+orca-gateway-test-ta:
+	SOURCE_DIR="$(SOURCE_DIR)" \
+	BUILD_DIR="$(BUILD_DIR)" \
+	ARCH="$(ARCH)" \
+	SPLUNK_PLATFORM="$(SPLUNK_PLATFORM)" \
+	PLATFORM="$(PLATFORM)" \
+	ORCA_CLOUD="$(ORCA_CLOUD)" \
+	$(SOURCE_DIR)/packaging-scripts/cicd-tests/gateway/gateway.sh
+
 .PHONY: smoketest-ta
 smoketest-ta:
 	SOURCE_DIR="$(SOURCE_DIR)" \

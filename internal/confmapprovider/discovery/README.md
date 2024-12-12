@@ -137,6 +137,8 @@ The following components have bundled discovery configurations in the last Splun
 
 I. Receivers
 
+* `jmx/cassandra` ([Linux and Windows](./bundle/bundle.d/receivers/jmx-cassandra.discovery.yaml))
+* `kafka` ([Linux and Windows](./bundle/bundle.d/receivers/kafkametrics.discovery.yaml))
 * `mongodb` ([Linux and Windows](./bundle/bundle.d/receivers/mongodb.discovery.yaml))
 * `mysql` ([Linux and Windows](./bundle/bundle.d/receivers/mysql.discovery.yaml))
 * `nginx` ([Linux and Windows](./bundle/bundle.d/receivers/nginx.discovery.yaml))

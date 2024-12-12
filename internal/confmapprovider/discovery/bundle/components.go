@@ -36,12 +36,12 @@ var (
 		"kafkametrics",
 		"mongodb",
 		"mysql",
+		"nginx",
 		"oracledb",
 		"postgresql",
 		"rabbitmq",
 		"redis",
 		"smartagent-collectd-mysql",
-		"smartagent-collectd-nginx",
 		"smartagent-postgresql",
 		"sqlserver",
 	}

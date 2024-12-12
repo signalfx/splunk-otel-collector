@@ -1,6 +1,8 @@
 monitors:
 - dimensions:
   doc: |
+    **The collectd/hadoopjmx monitor is deprecated. Use the jmxreceiver with the hadoop target system instead.**
+
     Collects metrics about a Hadoop 2.0+ cluster using using collectd's GenericJMX
     plugin. You may also configure the
     [collectd/hadoop](https://github.com/signalfx/signalfx-agent/tree/main/docs/monitors/collectd-hadoop.md)

@@ -2,7 +2,6 @@ splunk_access_token = 'testing123'
 splunk_realm = 'test'
 splunk_api_url = "https://api.#{splunk_realm}.signalfx.com"
 splunk_ingest_url = "https://ingest.#{splunk_realm}.signalfx.com"
-splunk_trace_url = "#{splunk_ingest_url}/v2/trace"
 splunk_hec_url = "#{splunk_ingest_url}/v1/log"
 splunk_hec_token = splunk_access_token
 splunk_memory_total = '512'
@@ -27,7 +26,6 @@ if os[:family] == 'windows'
     { name: 'SPLUNK_INGEST_URL', type: :string, data: splunk_ingest_url },
     { name: 'SPLUNK_MEMORY_TOTAL_MIB', type: :string, data: splunk_memory_total },
     { name: 'SPLUNK_REALM', type: :string, data: splunk_realm },
-    { name: 'SPLUNK_TRACE_URL', type: :string, data: splunk_trace_url },
   ]
 
   collector_env_vars_strings = []
@@ -57,7 +55,6 @@ else
     its('content') { should match /^SPLUNK_INGEST_URL=#{splunk_ingest_url}$/ }
     its('content') { should match /^SPLUNK_MEMORY_TOTAL_MIB=#{splunk_memory_total}$/ }
     its('content') { should match /^SPLUNK_REALM=test$/ }
-    its('content') { should match /^SPLUNK_TRACE_URL=#{splunk_trace_url}$/ }
     its('content') { should_not match /^SPLUNK_LISTEN_INTERFACE=.*$/ }
   end
   describe file('/etc/systemd/system/splunk-otel-collector.service.d/service-owner.conf') do

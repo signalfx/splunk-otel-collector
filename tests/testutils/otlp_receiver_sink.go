@@ -25,14 +25,12 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config/confignet"
-	"go.opentelemetry.io/collector/config/configtelemetry"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
-	"go.opentelemetry.io/otel/metric"
 	mnoop "go.opentelemetry.io/otel/metric/noop"
 	tnoop "go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/zap"
@@ -83,9 +81,9 @@ func (otlp OTLPReceiverSink) Build() (*OTLPReceiverSink, error) {
 
 	params := receiver.Settings{
 		TelemetrySettings: component.TelemetrySettings{
-			Logger:               otlp.Logger,
-			TracerProvider:       tnoop.NewTracerProvider(),
-			LeveledMeterProvider: func(configtelemetry.Level) metric.MeterProvider { return mnoop.NewMeterProvider() },
+			Logger:         otlp.Logger,
+			TracerProvider: tnoop.NewTracerProvider(),
+			MeterProvider:  mnoop.NewMeterProvider(),
 		},
 	}
 

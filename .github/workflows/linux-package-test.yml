@@ -26,8 +26,7 @@ env:
 
 jobs:
   setup-environment:
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4
@@ -43,8 +42,7 @@ jobs:
           make install-tools
 
   cross-compile:
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: [setup-environment]
     strategy:
       matrix:
@@ -97,8 +95,7 @@ jobs:
           path: ./dist/agent-bundle_linux_${{ matrix.ARCH }}.tar.gz
 
   build-package:
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: [cross-compile, agent-bundle-linux]
     strategy:
       matrix:
@@ -138,7 +135,7 @@ jobs:
           path: ./dist/splunk-otel-collector*
 
   test-package-matrix:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Check out code
         uses: actions/checkout@v4
@@ -239,8 +236,7 @@ jobs:
             packaging/tests/package_test.py
 
   docker-otelcol:
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: [cross-compile, agent-bundle-linux]
     steps:
       # Multiarch images require more disk space
@@ -251,7 +247,7 @@ jobs:
 
       # Required to export a multiarch manifest and images to the local image store
       - name: Set up containerd image store
-        uses: crazy-max/ghaction-setup-docker@v3
+        uses: docker/setup-docker-action@v4
         with:
           daemon-config: |
             {
@@ -312,8 +308,7 @@ jobs:
           path: ./docker-otelcol
 
   docker-otelcol-verify:
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: [docker-otelcol]
     strategy:
       matrix:
@@ -325,7 +320,7 @@ jobs:
 
       # Required to load a multiarch archive to the local image store
       - name: Set up containerd image store
-        uses: crazy-max/ghaction-setup-docker@v3
+        uses: docker/setup-docker-action@v4
         with:
           daemon-config: |
             {

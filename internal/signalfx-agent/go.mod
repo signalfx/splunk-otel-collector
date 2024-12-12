@@ -54,14 +54,14 @@ require (
 	github.com/signalfx/ingest-protocols v0.2.1
 	github.com/sirupsen/logrus v1.9.3
 	github.com/snowflakedb/gosnowflake v1.12.0
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 	github.com/ulule/deepcopier v0.0.0-20171107155558-ca99b135e50f
-	github.com/vmware/govmomi v0.45.1
+	github.com/vmware/govmomi v0.46.2
 	golang.org/x/net v0.30.0 // indirect
 	golang.org/x/sync v0.9.0
 	golang.org/x/sys v0.27.0
 	golang.org/x/tools v0.24.0 // indirect
-	google.golang.org/grpc v1.67.1
+	google.golang.org/grpc v1.68.1
 	gopkg.in/go-playground/validator.v9 v9.31.0
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/api v0.29.3
@@ -88,7 +88,7 @@ require (
 	github.com/influxdata/telegraf v1.30.1
 	github.com/microsoft/go-mssqldb v1.7.2
 	github.com/smartystreets/goconvey v1.8.1
-	go.opentelemetry.io/collector/pdata v1.19.0
+	go.opentelemetry.io/collector/pdata v1.20.0
 )
 
 require (

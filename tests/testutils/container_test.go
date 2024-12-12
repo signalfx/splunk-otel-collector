@@ -38,70 +38,74 @@ func (nr noopReader) Read(b []byte) (int, error) {
 	return 0, nil
 }
 
-var _ io.Reader = noopReader{}
+func (nr noopReader) Seek(int64, int) (int64, error) {
+	return 0, nil
+}
+
+var _ io.ReadSeeker = noopReader{}
 
 func TestDockerBuilderMethods(t *testing.T) {
 	builder := NewContainer()
 	withImage := builder.WithImage("some-image")
 	assert.Equal(t, "some-image", withImage.Image)
-	assert.NotSame(t, builder, withImage)
+	assert.NotEqual(t, builder, withImage)
 	assert.Empty(t, builder.Image)
 
 	withDockerfile := builder.WithDockerfile("some-dockerfile")
 	assert.Equal(t, "some-dockerfile", withDockerfile.Dockerfile.Dockerfile)
-	assert.NotSame(t, builder, withDockerfile)
+	assert.NotEqual(t, builder, withDockerfile)
 	assert.Empty(t, builder.Dockerfile.Dockerfile)
 
 	withContext := builder.WithContext("some-context")
 	assert.Equal(t, "some-context", withContext.Dockerfile.Context)
-	assert.NotSame(t, builder, withContext)
+	assert.NotEqual(t, builder, withContext)
 	assert.Empty(t, builder.Dockerfile.Context)
 
 	val := "value"
 	withBuildArgs := builder.WithBuildArgs(map[string]*string{"BUILD_ARG": &val})
 	assert.Equal(t, &val, withBuildArgs.Dockerfile.BuildArgs["BUILD_ARG"])
-	assert.NotSame(t, builder, withBuildArgs)
+	assert.NotEqual(t, builder, withBuildArgs)
 	assert.Empty(t, builder.Dockerfile.BuildArgs)
 
 	contextArchive := noopReader{}
 	withContextArchive := builder.WithContextArchive(contextArchive)
 	assert.Equal(t, contextArchive, withContextArchive.Dockerfile.ContextArchive)
-	assert.NotSame(t, builder, withContextArchive)
+	assert.NotEqual(t, builder, withContextArchive)
 	assert.Nil(t, builder.Dockerfile.ContextArchive)
 
 	withEntrypoint := builder.WithEntrypoint("bin", "arg")
 	assert.Equal(t, []string{"bin", "arg"}, withEntrypoint.Entrypoint)
-	assert.NotSame(t, builder, withEntrypoint)
+	assert.NotEqual(t, builder, withEntrypoint)
 	assert.Empty(t, builder.Entrypoint)
 
 	withCmd := builder.WithCmd("sh", "-c", "'sleep inf'")
 	assert.Equal(t, []string{"sh", "-c", "'sleep inf'"}, withCmd.Cmd)
-	assert.NotSame(t, builder, withCmd)
+	assert.NotEqual(t, builder, withCmd)
 	assert.Empty(t, builder.Cmd)
 
 	withName := builder.WithName("some-name")
 	assert.Equal(t, "some-name", withName.ContainerName)
-	assert.NotSame(t, builder, withName)
+	assert.NotEqual(t, builder, withName)
 	assert.Empty(t, builder.ContainerName)
 
 	withNetworks := builder.WithNetworks("network_one", "network_two")
 	assert.Equal(t, []string{"network_one", "network_two"}, withNetworks.ContainerNetworks)
-	assert.NotSame(t, builder, withNetworks)
+	assert.NotEqual(t, builder, withNetworks)
 	assert.Nil(t, builder.ContainerNetworks)
 
 	withUser := builder.WithUser("some.user")
 	assert.Equal(t, "some.user", withUser.User)
-	assert.NotSame(t, builder, withUser)
+	assert.NotEqual(t, builder, withUser)
 	assert.Empty(t, builder.User)
 
 	withPrivileged := builder.WithPriviledged(true)
 	assert.True(t, withPrivileged.Privileged)
-	assert.NotSame(t, builder, withPrivileged)
+	assert.NotEqual(t, builder, withPrivileged)
 	assert.False(t, builder.Privileged)
 
 	withBinds := builder.WithBinds("one", "two")
 	assert.Equal(t, []string{"one", "two"}, withBinds.Binds)
-	assert.NotSame(t, builder, withBinds)
+	assert.NotEqual(t, builder, withBinds)
 	assert.Empty(t, builder.Binds)
 }
 
@@ -110,30 +114,30 @@ func TestEnvironmentBuilderMethods(t *testing.T) {
 	env := map[string]string{"one": "1", "two": "2"}
 	withEnv := builder.WithEnv(env)
 	assert.Equal(t, env, withEnv.Env)
-	assert.NotSame(t, builder, withEnv)
+	assert.NotEqual(t, builder, withEnv)
 	assert.Empty(t, builder.Env)
 
 	envTwo := map[string]string{"three": "3", "four": "4"}
 	additionalWithEnv := withEnv.WithEnv(envTwo)
 	expectedEnv := map[string]string{"one": "1", "two": "2", "three": "3", "four": "4"}
 	assert.Equal(t, expectedEnv, additionalWithEnv.Env)
-	assert.NotSame(t, withEnv, additionalWithEnv)
+	assert.NotEqual(t, withEnv, additionalWithEnv)
 	assert.Equal(t, env, withEnv.Env)
-	assert.NotSame(t, builder, additionalWithEnv)
+	assert.NotEqual(t, builder, additionalWithEnv)
 	assert.Empty(t, builder.Env)
 
 	env = map[string]string{"some": "envvar"}
 	withEnvVar := builder.WithEnvVar("some", "envvar")
 	assert.Equal(t, env, withEnvVar.Env)
-	assert.NotSame(t, builder, withEnvVar)
+	assert.NotEqual(t, builder, withEnvVar)
 	assert.Empty(t, builder.Env)
 
 	additionalWithEnvVar := withEnvVar.WithEnvVar("another", "envvar")
 	expectedEnv = map[string]string{"some": "envvar", "another": "envvar"}
 	assert.Equal(t, expectedEnv, additionalWithEnvVar.Env)
-	assert.NotSame(t, withEnvVar, additionalWithEnvVar)
+	assert.NotEqual(t, withEnvVar, additionalWithEnvVar)
 	assert.Equal(t, env, withEnvVar.Env)
-	assert.NotSame(t, builder, additionalWithEnvVar)
+	assert.NotEqual(t, builder, additionalWithEnvVar)
 	assert.Empty(t, builder.Env)
 }
 
@@ -142,30 +146,30 @@ func TestLabelsBuilderMethods(t *testing.T) {
 	env := map[string]string{"one": "1", "two": "2"}
 	withLabels := builder.WithLabels(env)
 	assert.Equal(t, env, withLabels.Labels)
-	assert.NotSame(t, builder, withLabels)
+	assert.NotEqual(t, builder, withLabels)
 	assert.Empty(t, builder.Labels)
 
 	envTwo := map[string]string{"three": "3", "four": "4"}
 	additionalWithLabels := withLabels.WithLabels(envTwo)
 	expectedLabels := map[string]string{"one": "1", "two": "2", "three": "3", "four": "4"}
 	assert.Equal(t, expectedLabels, additionalWithLabels.Labels)
-	assert.NotSame(t, withLabels, additionalWithLabels)
+	assert.NotEqual(t, withLabels, additionalWithLabels)
 	assert.Equal(t, env, withLabels.Labels)
-	assert.NotSame(t, builder, additionalWithLabels)
+	assert.NotEqual(t, builder, additionalWithLabels)
 	assert.Empty(t, builder.Labels)
 
 	env = map[string]string{"some": "label"}
 	withLabelsVar := builder.WithLabel("some", "label")
 	assert.Equal(t, env, withLabelsVar.Labels)
-	assert.NotSame(t, builder, withLabelsVar)
+	assert.NotEqual(t, builder, withLabelsVar)
 	assert.Empty(t, builder.Labels)
 
 	additionalWithLabelsVar := withLabelsVar.WithLabel("another", "label")
 	expectedLabels = map[string]string{"some": "label", "another": "label"}
 	assert.Equal(t, expectedLabels, additionalWithLabelsVar.Labels)
-	assert.NotSame(t, withLabelsVar, additionalWithLabelsVar)
+	assert.NotEqual(t, withLabelsVar, additionalWithLabelsVar)
 	assert.Equal(t, env, withLabelsVar.Labels)
-	assert.NotSame(t, builder, additionalWithLabelsVar)
+	assert.NotEqual(t, builder, additionalWithLabelsVar)
 	assert.Empty(t, builder.Labels)
 }
 
@@ -173,14 +177,14 @@ func TestExposedPortsBuilderMethod(t *testing.T) {
 	builder := NewContainer()
 	withExposedPorts := builder.WithExposedPorts("123", "234", "345")
 	assert.Equal(t, []string{"123", "234", "345"}, withExposedPorts.ExposedPorts)
-	assert.NotSame(t, builder, withExposedPorts)
+	assert.NotEqual(t, builder, withExposedPorts)
 	assert.Empty(t, builder.ExposedPorts)
 
 	additionalWithExposedPorts := withExposedPorts.WithExposedPorts("456", "567")
 	assert.Equal(t, []string{"123", "234", "345", "456", "567"}, additionalWithExposedPorts.ExposedPorts)
-	assert.NotSame(t, withExposedPorts, additionalWithExposedPorts)
+	assert.NotEqual(t, withExposedPorts, additionalWithExposedPorts)
 	assert.Equal(t, []string{"123", "234", "345"}, withExposedPorts.ExposedPorts)
-	assert.NotSame(t, builder, withExposedPorts)
+	assert.NotEqual(t, builder, withExposedPorts)
 	assert.Empty(t, builder.ExposedPorts)
 }
 
@@ -211,9 +215,9 @@ func TestWaitingForPortsBuilderMethod(t *testing.T) {
 	require.True(t, ok)
 	assert.EqualValues(t, "456", strategy.Port)
 
-	assert.NotSame(t, waitForPorts, additionalWaitForPorts)
+	assert.NotEqual(t, waitForPorts, additionalWaitForPorts)
 	assert.Len(t, waitForPorts.WaitingFor, 2)
-	assert.NotSame(t, builder, additionalWaitForPorts)
+	assert.NotEqual(t, builder, additionalWaitForPorts)
 	assert.Len(t, builder.WaitingFor, 0)
 }
 
@@ -244,16 +248,16 @@ func TestWaitingForLogsBuilderMethod(t *testing.T) {
 	require.True(t, ok)
 	assert.Equal(t, "statement 4", strategy.Log)
 
-	assert.NotSame(t, waitForLogs, additionalWaitForLogs)
+	assert.NotEqual(t, waitForLogs, additionalWaitForLogs)
 	assert.Len(t, waitForLogs.WaitingFor, 2)
-	assert.NotSame(t, builder, additionalWaitForLogs)
+	assert.NotEqual(t, builder, additionalWaitForLogs)
 	assert.Len(t, builder.WaitingFor, 0)
 }
 
 func TestBuildMethod(t *testing.T) {
 	builder := NewContainer().WithImage("some-image")
 	container := builder.Build()
-	assert.NotSame(t, *container, builder)
+	assert.NotEqual(t, *container, builder)
 	assert.NotNil(t, container.req)
 	assert.Equal(t, "some-image", container.req.Image)
 	assert.Nil(t, builder.req)
@@ -262,7 +266,7 @@ func TestBuildMethod(t *testing.T) {
 func TestStartupTimeout(t *testing.T) {
 	builder := NewContainer().WithStartupTimeout(10 * time.Minute)
 	container := builder.Build()
-	assert.NotSame(t, *container, builder)
+	assert.NotEqual(t, *container, builder)
 	assert.NotNil(t, container.req)
 	rs := reflect.ValueOf(container.req.WaitingFor).Elem()
 	rf := rs.FieldByName("deadline")
@@ -274,7 +278,7 @@ func TestStartupTimeout(t *testing.T) {
 func TestStartupTimeoutDefault(t *testing.T) {
 	builder := NewContainer()
 	container := builder.Build()
-	assert.NotSame(t, *container, builder)
+	assert.NotEqual(t, *container, builder)
 	assert.NotNil(t, container.req)
 	rs := reflect.ValueOf(container.req.WaitingFor).Elem()
 	rf := rs.FieldByName("deadline")

@@ -26,14 +26,13 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  PYTHON_VERSION: '3.11'
+  PYTHON_VERSION: '3.13'
   REQUIREMENTS_PATH: "packaging/tests/requirements.txt"
 
 jobs:
   salt-lint-test:
     name: salt-lint-test
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4
@@ -43,7 +42,7 @@ jobs:
           make -C deployments/salt lint
 
   salt-test-matrix:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Check out code
         uses: actions/checkout@v4
@@ -52,9 +51,11 @@ jobs:
         id: get-matrix
         run: |
           # create test matrix for distro
-          dockerfiles=$(find packaging/tests/deployments/salt/images/ -name "Dockerfile.*" | cut -d '.' -f2- | sort -u)
+          deb_distro=$(yq e -r '.deb | keys | .[]' packaging/tests/deployments/salt/images/distro_docker_opts.yaml)
+          rpm_distro=$(yq e -r '.rpm | keys | .[]' packaging/tests/deployments/salt/images/distro_docker_opts.yaml)
+          dockerfiles=$(echo -e "$deb_distro\n$rpm_distro" | sort -u)
           if [ -z "$dockerfiles" ]; then
-            echo "Failed to get dockerfiles from packaging/tests/deployments/salt/images!" >&2
+            echo "Failed to get distros from packaging/tests/deployments/salt/images!" >&2
             exit 1
           fi
           distro=$(for d in $dockerfiles; do echo -n "\"$d\","; done)

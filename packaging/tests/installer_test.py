@@ -33,13 +33,13 @@ from tests.helpers.util import (
 )
 
 from tests.instrumentation.instrumentation_test import (
-    COLLECTOR_CONFIG_PATH as CUSTOM_COLLECTOR_CONFIG,
     IMAGES_DIR as INSTR_IMAGES_DIR,
     DEB_DISTROS as INSTR_DEB_DISTROS,
     RPM_DISTROS as INSTR_RPM_DISTROS,
-    verify_app_instrumentation,
 )
 
+
+CUSTOM_COLLECTOR_CONFIG = TESTS_DIR / "custom-config.yaml"
 INSTALLER_PATH = REPO_DIR / "packaging" / "installer" / "install.sh"
 
 # Override default test parameters with the following env vars
@@ -153,7 +153,6 @@ def verify_env_file(container, mode="agent", config_path=None, memory=TOTAL_MEMO
     verify_config_file(container, env_path, "SPLUNK_REALM", SPLUNK_REALM)
     verify_config_file(container, env_path, "SPLUNK_API_URL", api_url)
     verify_config_file(container, env_path, "SPLUNK_INGEST_URL", ingest_url)
-    verify_config_file(container, env_path, "SPLUNK_TRACE_URL", f"{ingest_url}/v2/trace")
     verify_config_file(container, env_path, "SPLUNK_HEC_URL", f"{ingest_url}/v1/log")
     verify_config_file(container, env_path, "SPLUNK_HEC_TOKEN", SPLUNK_ACCESS_TOKEN)
     verify_config_file(container, env_path, "SPLUNK_MEMORY_TOTAL_MIB", memory)

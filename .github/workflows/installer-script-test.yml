@@ -9,6 +9,7 @@ on:
     paths:
       - '.github/workflows/installer-script-test.yml'
       - 'packaging/installer/install.sh'
+      - 'packaging/tests/instrumentation/**'
       - 'packaging/tests/helpers/**'
       - 'packaging/tests/images/**'
       - 'packaging/tests/installer_test.py'
@@ -20,7 +21,7 @@ concurrency:
 
 jobs:
   installer-test-matrix:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Check out code
         uses: actions/checkout@v4
@@ -53,8 +54,8 @@ jobs:
       matrix: ${{ fromJSON(needs.installer-test-matrix.outputs.matrix) }}
       fail-fast: false
     env:
-      PYTHON_VERSION: '3.11'
-      PIP_VERSION: '22.0.4'
+      PYTHON_VERSION: '3.13'
+      PIP_VERSION: '24.2'
       REQUIREMENTS_PATH: "packaging/tests/requirements.txt"
     steps:
       - name: Check out the codebase.

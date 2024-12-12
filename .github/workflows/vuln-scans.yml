@@ -22,13 +22,13 @@ concurrency:
 
 jobs:
   trivy-fs-scan:
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - name: Run trivy filesystem scan
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@0.29.0
         with:
+          version: v0.57.1
           scan-type: 'fs'
           scan-ref: '.'
           skip-dirs: 'deployments,examples,instrumentation/packaging,packaging,tests'
@@ -38,7 +38,7 @@ jobs:
           ignore-unfixed: true
 
   anchore-fs-scan:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: anchore/scan-action@v5
@@ -81,7 +81,7 @@ jobs:
           path: ./dist
 
   binaries-windows_amd64:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4
@@ -98,8 +98,7 @@ jobs:
             ./bin/*
 
   trivy-image-scan:
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: docker-otelcol
     strategy:
       matrix:
@@ -119,8 +118,9 @@ jobs:
           path: ./dist
       - run: docker load -i ./dist/image.tar
       - name: Run trivy image scan
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@0.29.0
         with:
+          version: v0.57.1
           scan-type: 'image'
           image-ref: "otelcol${{ matrix.FIPS == true && '-fips' || '' }}:latest"
           format: 'table'
@@ -129,7 +129,7 @@ jobs:
           ignore-unfixed: true
 
   anchore-image-scan:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: docker-otelcol
     strategy:
       matrix:

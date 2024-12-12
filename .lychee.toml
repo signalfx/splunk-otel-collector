@@ -1,9 +1,7 @@
-max-concurrency = 20
-accept = [
-    200,
-    429,
-]
+max_concurrency = 20
 timeout = 30
+max_retires = 5
+retry_wait_time = 30
 exclude = [
     "my.host",
     "file://*",
@@ -22,4 +20,7 @@ exclude = [
     "https://superuser.com/a/980821", # failing with 403 Forbidden
     "https://github.com/signalfx/splunk-otel-collector/tree/main/internal/receiver/databricksreceiver", # databricsreceiver was deleted
     "https://self-service.isv.ci", # Failing with timeouts, not stable and still current according to https://github.com/cf-platform-eng/selfservice/blame/main/README.md#L3
+    "https://github.com/signalfx/splunk-otel-collector/tree/main/internal/exporter/httpsinkexporter", # exporter was deleted
+    "https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/loggingexporter", # exporter was deleted
+    "https://github.com/.*/(pull|issues)/[0-9]+", # We have too many PR and issues links in CHANGELOG.md that we allways run out of the rate limit
 ]

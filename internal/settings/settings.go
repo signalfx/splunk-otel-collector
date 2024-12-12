@@ -34,6 +34,9 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/discovery"
 )
 
+// envVarWarnings is a map of warnings to be logged when a specific environment variable is used in a user config.
+type envVarWarnings map[string]string
+
 const (
 	APIURLEnvVar              = "SPLUNK_API_URL"
 	ConfigEnvVar              = "SPLUNK_CONFIG"
@@ -51,7 +54,9 @@ const (
 	MemTotalEnvVar    = "SPLUNK_MEMORY_TOTAL_MIB"
 	RealmEnvVar       = "SPLUNK_REALM"
 	// nolint:gosec
-	TokenEnvVar          = "SPLUNK_ACCESS_TOKEN" // this isn't a hardcoded token
+	TokenEnvVar = "SPLUNK_ACCESS_TOKEN" // this isn't a hardcoded token
+
+	// Deprecated: SPLUNK_TRACE_URL env var is deprecated, SPLUNK_REALM or SPLUNK_INGEST_URL should be used instead.
 	TraceIngestURLEnvVar = "SPLUNK_TRACE_URL"
 
 	DefaultGatewayConfig   = "/etc/otel/collector/gateway_config.yaml"
@@ -81,20 +86,30 @@ var DefaultAgentConfigWindows = func() string {
 var defaultFeatureGates = []string{}
 
 type Settings struct {
-	discovery                *discovery.Provider
-	configPaths              *stringArrayFlagValue
-	setOptionArguments       *stringArrayFlagValue
-	configDir                *stringPointerFlagValue
-	confMapProviderFactories []confmap.ProviderFactory
-	discoveryPropertiesFile  *stringPointerFlagValue
-	setProperties            []string
-	colCoreArgs              []string
-	discoveryProperties      []string
-	versionFlag              bool
-	noConvertConfig          bool
-	configD                  bool
-	discoveryMode            bool
-	dryRun                   bool
+	discovery               *discovery.Provider
+	envVarWarnings          envVarWarnings
+	configPaths             *stringArrayFlagValue
+	setOptionArguments      *stringArrayFlagValue
+	configDir               *stringPointerFlagValue
+	discoveryPropertiesFile *stringPointerFlagValue
+	setProperties           []string
+	colCoreArgs             []string
+	discoveryProperties     []string
+	versionFlag             bool
+	noConvertConfig         bool
+	configD                 bool
+	discoveryMode           bool
+	dryRun                  bool
+}
+
+func newSettings() *Settings {
+	return &Settings{
+		configPaths:             new(stringArrayFlagValue),
+		setOptionArguments:      new(stringArrayFlagValue),
+		configDir:               new(stringPointerFlagValue),
+		discoveryPropertiesFile: new(stringPointerFlagValue),
+		envVarWarnings:          make(envVarWarnings),
+	}
 }
 
 func New(args []string) (*Settings, error) {
@@ -174,18 +189,9 @@ func getConfigDir(f *Settings) string {
 
 // ConfMapProviderFactories returns list of confmap.ProviderFactory for the collector core service.
 func (s *Settings) ConfMapProviderFactories() []confmap.ProviderFactory {
-	return s.confMapProviderFactories
-}
-
-func loadConfMapProviders(s *Settings) error {
-	var err error
-	if s.discovery, err = discovery.New(); err != nil {
-		return fmt.Errorf("failed to create discovery provider: %w", err)
-	}
-
-	s.confMapProviderFactories = []confmap.ProviderFactory{
+	return []confmap.ProviderFactory{
 		// Upstream providers
-		envprovider.NewFactory(),
+		&warningProviderFactory{ProviderFactory: envprovider.NewFactory(), warnings: s.envVarWarnings},
 		fileprovider.NewFactory(),
 
 		// Custom providers
@@ -194,7 +200,6 @@ func loadConfMapProviders(s *Settings) error {
 		s.discovery.DiscoveryModeProviderFactory(),
 		s.discovery.PropertiesFileProviderFactory(),
 	}
-	return nil
 }
 
 // ConfMapConverterFactories returns confmap.Converters for the collector core service.
@@ -229,15 +234,11 @@ func (s *Settings) IsDryRun() bool {
 func parseArgs(args []string) (*Settings, error) {
 	flagSet := flag.NewFlagSet("otelcol", flag.ContinueOnError)
 
-	settings := &Settings{
-		configPaths:             new(stringArrayFlagValue),
-		setOptionArguments:      new(stringArrayFlagValue),
-		configDir:               new(stringPointerFlagValue),
-		discoveryPropertiesFile: new(stringPointerFlagValue),
-	}
+	settings := newSettings()
 
-	if err := loadConfMapProviders(settings); err != nil {
-		return nil, fmt.Errorf("failed loading confmap.Providers: %w", err)
+	var err error
+	if settings.discovery, err = discovery.New(); err != nil {
+		return nil, fmt.Errorf("failed to create discovery provider: %w", err)
 	}
 
 	flagSet.Var(settings.configPaths, "config", "Locations to the config file(s), "+
@@ -376,36 +377,41 @@ func checkRuntimeParams(settings *Settings) error {
 }
 
 func setDefaultEnvVars(s *Settings) error {
-	type ev struct {
-		e, v string
-		log  bool
-	}
-
-	envVars := []ev{
-		{e: ListenInterfaceEnvVar, v: defaultListenAddr(s), log: true},
-		{e: ConfigServerEnabledEnvVar, v: "true"},
+	defaultEnvVars := map[string]string{
+		ListenInterfaceEnvVar:     defaultListenAddr(s),
+		ConfigServerEnabledEnvVar: "true",
 	}
 
 	if realm, ok := os.LookupEnv(RealmEnvVar); ok {
-		envVars = append(envVars,
-			ev{e: APIURLEnvVar, v: fmt.Sprintf("https://api.%s.signalfx.com", realm)},
-			ev{e: IngestURLEnvVar, v: fmt.Sprintf("https://ingest.%s.signalfx.com", realm)},
-			ev{e: TraceIngestURLEnvVar, v: fmt.Sprintf("https://ingest.%s.signalfx.com/v2/trace", realm)},
-			ev{e: HecLogIngestURLEnvVar, v: fmt.Sprintf("https://ingest.%s.signalfx.com/v1/log", realm)},
-		)
+		defaultEnvVars[APIURLEnvVar] = fmt.Sprintf("https://api.%s.signalfx.com", realm)
+		defaultEnvVars[IngestURLEnvVar] = fmt.Sprintf("https://ingest.%s.signalfx.com", realm)
+		defaultEnvVars[TraceIngestURLEnvVar] = fmt.Sprintf("https://ingest.%s.signalfx.com/v2/trace", realm)
+		defaultEnvVars[HecLogIngestURLEnvVar] = fmt.Sprintf("https://ingest.%s.signalfx.com/v1/log", realm)
+	}
+
+	if ingestURL, ok := os.LookupEnv(IngestURLEnvVar); ok {
+		ingestURL = strings.TrimSuffix(ingestURL, "/")
+		defaultEnvVars[TraceIngestURLEnvVar] = fmt.Sprintf("%s/v2/trace", ingestURL)
 	}
 
 	if token, ok := os.LookupEnv(TokenEnvVar); ok {
-		envVars = append(envVars, ev{e: HecTokenEnvVar, v: token})
+		defaultEnvVars[HecTokenEnvVar] = token
 	}
 
-	for _, envVar := range envVars {
-		if _, ok := os.LookupEnv(envVar.e); !ok {
-			if err := os.Setenv(envVar.e, envVar.v); err != nil {
+	for e, v := range defaultEnvVars {
+		if _, ok := os.LookupEnv(e); !ok {
+			if err := os.Setenv(e, v); err != nil {
 				return err
 			}
-			if envVar.log {
-				log.Printf("set %q to %q", envVar.e, envVar.v)
+			// Add a deprecation warning if SPLUNK_TRACE_URL is being used in user config.
+			if e == TraceIngestURLEnvVar {
+				s.envVarWarnings[TraceIngestURLEnvVar] = fmt.Sprintf(
+					"%q environment variable is deprecated and will not be set automatically in future"+
+						" releases. Please update your config to use %q or %q instead. ", TraceIngestURLEnvVar,
+					RealmEnvVar, IngestURLEnvVar)
+			}
+			if e == ListenInterfaceEnvVar {
+				log.Printf("set %q to %q", e, v)
 			}
 		}
 	}

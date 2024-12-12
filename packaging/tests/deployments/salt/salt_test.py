@@ -16,6 +16,7 @@ import glob
 import re
 import string
 import tempfile
+import yaml
 
 from pathlib import Path
 
@@ -35,8 +36,9 @@ from tests.helpers.util import (
 
 
 IMAGES_DIR = Path(__file__).parent.resolve() / "images"
-DEB_DISTROS = [df.split(".")[-1] for df in glob.glob(str(IMAGES_DIR / "deb" / "Dockerfile.*"))]
-RPM_DISTROS = [df.split(".")[-1] for df in glob.glob(str(IMAGES_DIR / "rpm" / "Dockerfile.*"))]
+DEB_DOCKERFILE = IMAGES_DIR / "Dockerfile.deb"
+RPM_DOCKERFILE = IMAGES_DIR / "Dockerfile.rpm"
+DISTRO_YAML = IMAGES_DIR / "distro_docker_opts.yaml"
 CONFIG_DIR = "/etc/otel/collector"
 SPLUNK_CONFIG = f"{CONFIG_DIR}/agent_config.yaml"
 SPLUNK_ENV_PATH = f"{CONFIG_DIR}/splunk-otel-collector.conf"
@@ -74,6 +76,18 @@ DOTNET_VARS = {
 
 PILLAR_PATH = "/srv/pillar/splunk-otel-collector.sls"
 SALT_CMD = "salt-call --local state.apply"
+
+
+def load_distro_opts(yaml_file):
+    with open(yaml_file, 'r') as file:
+        return yaml.safe_load(file)
+
+# Load distro options from YAML file
+DISTRO_OPTS = load_distro_opts(DISTRO_YAML)
+
+# Extract DEB and RPM distributions
+DEB_DISTROS = [distro for distro in DISTRO_OPTS.get('deb', {})]
+RPM_DISTROS = [distro for distro in DISTRO_OPTS.get('rpm', {})]
 
 
 def run_salt_apply(container, config):
@@ -118,7 +132,6 @@ def verify_env_file(container, api_url=SPLUNK_API_URL, ingest_url=SPLUNK_INGEST_
     verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_REALM", SPLUNK_REALM)
     verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_API_URL", api_url)
     verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_INGEST_URL", ingest_url)
-    verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_TRACE_URL", f"{ingest_url}/v2/trace")
     verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_HEC_URL", f"{ingest_url}/v1/log")
     verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_HEC_TOKEN", hec_token)
     verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_MEMORY_TOTAL_MIB", SPLUNK_MEMORY_TOTAL_MIB)
@@ -143,6 +156,12 @@ def node_package_installed(container):
     print(output.decode("utf-8"))
     return rc == 0
 
+def get_build_args(distro):
+    if distro in DEB_DISTROS:
+        build_args = DISTRO_OPTS.get('deb', {}).get(distro, [])
+    else:
+        build_args = DISTRO_OPTS.get('rpm', {}).get(distro, [])
+    return {arg.split('=')[0]: arg.split('=')[1] for arg in build_args}
 
 DEFAULT_CONFIG = f"""
 splunk-otel-collector:
@@ -159,11 +178,12 @@ splunk-otel-collector:
 )
 def test_salt_default(distro):
     if distro in DEB_DISTROS:
-        dockerfile = IMAGES_DIR / "deb" / f"Dockerfile.{distro}"
+        dockerfile = DEB_DOCKERFILE
+        build_args = get_build_args(distro)
     else:
-        dockerfile = IMAGES_DIR / "rpm" / f"Dockerfile.{distro}"
-
-    with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR) as container:
+        dockerfile = RPM_DOCKERFILE
+        build_args = get_build_args(distro)
+    with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR, buildargs=build_args) as container:
         try:
             run_salt_apply(container, DEFAULT_CONFIG)
             verify_env_file(container)
@@ -203,11 +223,13 @@ splunk-otel-collector:
 )
 def test_salt_custom(distro):
     if distro in DEB_DISTROS:
-        dockerfile = IMAGES_DIR / "deb" / f"Dockerfile.{distro}"
+        dockerfile = DEB_DOCKERFILE
+        build_args = get_build_args(distro)
     else:
-        dockerfile = IMAGES_DIR / "rpm" / f"Dockerfile.{distro}"
+        dockerfile = RPM_DOCKERFILE
+        build_args = get_build_args(distro)
 
-    with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR) as container:
+    with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR, buildargs=build_args) as container:
         try:
             run_salt_apply(container, CUSTOM_CONFIG)
             verify_env_file(
@@ -256,11 +278,13 @@ splunk-otel-collector:
 @pytest.mark.parametrize("with_systemd", [True, False])
 def test_salt_default_instrumentation(distro, version, with_systemd):
     if distro in DEB_DISTROS:
-        dockerfile = IMAGES_DIR / "deb" / f"Dockerfile.{distro}"
+        dockerfile = DEB_DOCKERFILE
+        build_args = get_build_args(distro)
     else:
-        dockerfile = IMAGES_DIR / "rpm" / f"Dockerfile.{distro}"
+        dockerfile = RPM_DOCKERFILE
+        build_args = get_build_args(distro)
 
-    with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR) as container:
+    with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR, buildargs=build_args) as container:
         config = DEFAULT_INSTRUMENTATION_CONFIG.substitute(version=version, systemd=str(with_systemd))
         run_salt_apply(container, config)
         verify_env_file(container)
@@ -359,11 +383,13 @@ splunk-otel-collector:
 @pytest.mark.parametrize("with_systemd", [True, False])
 def test_salt_custom_instrumentation(distro, version, with_systemd):
     if distro in DEB_DISTROS:
-        dockerfile = IMAGES_DIR / "deb" / f"Dockerfile.{distro}"
+        dockerfile = DEB_DOCKERFILE
+        build_args = get_build_args(distro)
     else:
-        dockerfile = IMAGES_DIR / "rpm" / f"Dockerfile.{distro}"
+        dockerfile = RPM_DOCKERFILE
+        build_args = get_build_args(distro)
 
-    with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR) as container:
+    with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR, buildargs=build_args) as container:
         config = CUSTOM_INSTRUMENTATION_CONFIG.substitute(version=version, systemd=str(with_systemd))
         run_salt_apply(container, config)
         verify_env_file(container)

@@ -12,6 +12,7 @@ import (
 	"time"
 
 	dtypes "github.com/docker/docker/api/types"
+	dcontainer "github.com/docker/docker/api/types/container"
 	docker "github.com/docker/docker/client"
 	"github.com/sirupsen/logrus"
 
@@ -114,30 +115,30 @@ func (m *Monitor) Configure(conf *Config) error {
 	containers := map[string]dockerContainer{}
 	isRegistered := false
 
-	changeHandler := func(old *dtypes.ContainerJSON, new *dtypes.ContainerJSON) {
-		if old == nil && new == nil {
+	changeHandler := func(oldState *dtypes.ContainerJSON, newState *dtypes.ContainerJSON) {
+		if oldState == nil && newState == nil {
 			return
 		}
 
 		var id string
-		if new != nil {
-			id = new.ID
+		if newState != nil {
+			id = newState.ID
 		} else {
-			id = old.ID
+			id = oldState.ID
 		}
 
 		lock.Lock()
 		defer lock.Unlock()
 
-		if new == nil || (!new.State.Running || new.State.Paused) {
+		if newState == nil || (!newState.State.Running || newState.State.Paused) {
 			m.logger.Debugf("Container %s is no longer running", id)
 			delete(containers, id)
 			return
 		}
 		m.logger.Infof("Monitoring docker container %s", id)
 		containers[id] = dockerContainer{
-			ContainerJSON: new,
-			EnvMap:        parseContainerEnvSlice(new.Config.Env),
+			ContainerJSON: newState,
+			EnvMap:        parseContainerEnvSlice(newState.Config.Env),
 		}
 	}
 
@@ -179,7 +180,7 @@ func (m *Monitor) fetchStats(container dockerContainer, labelMap map[string]stri
 		return
 	}
 
-	var parsed dtypes.StatsJSON
+	var parsed dcontainer.StatsResponse
 	err = json.NewDecoder(stats.Body).Decode(&parsed)
 	stats.Body.Close()
 	if err != nil {

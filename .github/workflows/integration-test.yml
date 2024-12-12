@@ -10,12 +10,15 @@ on:
       - 'cmd/**'
       - 'docker/**'
       - 'internal/**'
+      - 'packaging/bundle/**'
+      - 'instrumentation/packaging/**'
       - 'pkg/**'
       - 'tests/**'
       - 'Makefile'
       - 'Makefile.Common'
       - 'go.mod'
       - 'go.sum'
+      - 'packaging/jmx-metric-gatherer-release.txt'
       - '!**.md'
       - '!packaging/technical-addon/**'
 
@@ -27,7 +30,7 @@ env:
   GO_VERSION: "1.22.7"
 jobs:
   agent-bundle-linux:
-    runs-on: ${{ fromJSON('["ubuntu-20.04", "otel-arm64"]')[matrix.ARCH == 'arm64'] }}
+    runs-on: ${{ fromJSON('["ubuntu-24.04", "otel-arm64"]')[matrix.ARCH == 'arm64'] }}
     strategy:
       matrix:
         ARCH: [ "amd64", "arm64" ]
@@ -50,7 +53,7 @@ jobs:
           path: ./dist/agent-bundle_linux_${{ matrix.ARCH }}.tar.gz
 
   otelcol:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         ARCH: [ "amd64", "arm64", "ppc64le" ]
@@ -71,8 +74,7 @@ jobs:
 
   docker-otelcol:
     name: docker-otelcol
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: [ "agent-bundle-linux", "otelcol" ]
     services:
       # Start a local registry for pushing the multiarch manifest and images
@@ -136,8 +138,7 @@ jobs:
 
   integration-vet:
     name: integration-vet
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         ARCH: [ "amd64", "arm64" ]
@@ -172,8 +173,7 @@ jobs:
           SPLUNK_OTEL_COLLECTOR_IMAGE: 'otelcol:latest'
 
   integration-test-docker:
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: [ "docker-otelcol", "otelcol" ]
     strategy:
       matrix:
@@ -330,7 +330,7 @@ jobs:
           retention-days: 5
 
   integration-test-discovery-matrix:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     outputs:
       matrix: ${{ steps.get-matrix.outputs.matrix }}
     steps:
@@ -356,7 +356,7 @@ jobs:
 
   integration-test-discovery:
       name: integration-test-discovery
-      runs-on: ubuntu-22.04
+      runs-on: ubuntu-24.04
       needs: [ "docker-otelcol", "otelcol", "integration-test-discovery-matrix" ]
       strategy:
         matrix: ${{ fromJSON(needs.integration-test-discovery-matrix.outputs.matrix) }}

@@ -35,13 +35,13 @@ var gauges = map[string]string{
 
 func (m *Monitor) parseFileForDatapoints(contents []byte) []*datapoint.Datapoint {
 	data := bytes.Fields(contents)
-	max := len(data)
-	dps := make([]*datapoint.Datapoint, 0, max)
+	capacity := len(data)
+	dps := make([]*datapoint.Datapoint, 0, capacity)
 
 	for i, key := range data {
 		// vmstat file structure is (key, value)
 		// so every even index is a key and every odd index is the value
-		if i%2 == 0 && i+1 < max {
+		if i%2 == 0 && i+1 < capacity {
 			metricType := datapoint.Gauge
 			metricName, ok := gauges[string(key)]
 			if !ok {

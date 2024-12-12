@@ -9,5 +9,5 @@
     }
   ],
   "dictionaries": ["project-words"],
-  "ignorePaths": ["node_modules", "./project-words.txt"]
+  "files": ["packaging/technical-addon/Splunk_TA_otel/**"]
 }

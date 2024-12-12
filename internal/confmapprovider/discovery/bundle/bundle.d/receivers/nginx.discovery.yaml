@@ -10,7 +10,7 @@ nginx:
     k8s_observer: type == "port" and pod.name matches "(?i)nginx"
   config:
     default:
-      endpoint: '`(port in [443, 80] ? "https" : "http") + "://{{.Host}}:{{.Port}}/nginx_status"`'
+      endpoint: '`(port in [443] ? "https://" : "http://")``endpoint`/nginx_status}}'
   status:
     metrics:
       - status: successful

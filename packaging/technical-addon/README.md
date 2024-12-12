@@ -1,9 +1,3 @@
-# Need Help?
-See `#otel-ta-community` for help.
-
-# Developing this TA
-See [`CONTRIBUTING.md`](./CONTRIBUTING.md)
-
 # Configuration
 ## environment variables
 In addition to the typical collector environment variables, we additionally provide
@@ -35,6 +29,8 @@ operating system (ex windows, linux).
 
 This can be accomplished by removing either `Splunk_TA_Otel/linux_x86_64` or
 `Splunk_TA_Otel/windows_x86_64`, respectively.
+
+Further, they may remove the agent bundle downloaded to the `bin/` folder in these platform specific directories if they don't need smart agent support.
 
 ## Maintaining configuration between upgrades
 As with all TAs, any changes made to `configs` will be overwritten.

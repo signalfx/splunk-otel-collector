@@ -41,8 +41,6 @@ var (
 		"postgresql",
 		"rabbitmq",
 		"redis",
-		"smartagent-collectd-mysql",
-		"smartagent-postgresql",
 		"sqlserver",
 	}
 
@@ -76,7 +74,6 @@ var (
 				"postgresql":            {},
 				"rabbitmq":              {},
 				"redis":                 {},
-				"smartagent-postgresql": {},
 				"sqlserver":             {},
 			}
 			for _, extension := range extensions {

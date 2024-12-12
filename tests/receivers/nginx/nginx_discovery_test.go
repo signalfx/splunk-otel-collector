@@ -37,7 +37,7 @@ func TestIntegrationNGINXAutoDiscovery(t *testing.T) {
 	}{
 		"Successful Discovery test": {
 			configFileName:     "docker_observer_nginx_config.yaml",
-			logMessageToAssert: `nginxreceiver receiver is working!`,
+			logMessageToAssert: `nginx receiver is working!`,
 		},
 	}
 

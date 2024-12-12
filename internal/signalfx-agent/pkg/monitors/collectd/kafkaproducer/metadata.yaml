@@ -1,6 +1,8 @@
 monitors:
 - dimensions:
   doc: |
+    **The collectd/kafkaproducer monitor is deprecated. Use the jmxreceiver with the kafka-producer target system instead.**
+
     Monitors a Java based Kafka producer using GenericJMX.
 
     This monitor has a set of [built in MBeans

@@ -204,7 +204,7 @@ func TestDefaultGatewayConfig(t *testing.T) {
 						},
 						"metrics/internal": map[string]any{
 							"exporters":  []any{"signalfx/internal"},
-							"processors": []any{"memory_limiter", "batch", "resourcedetection/internal"},
+							"processors": []any{"memory_limiter", "batch", "resourcedetection/internal", "resource/add_mode"},
 							"receivers":  []any{"prometheus/internal"},
 						},
 						"traces": map[string]any{
@@ -416,7 +416,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 						},
 						"metrics/internal": map[string]any{
 							"exporters":  []any{"signalfx"},
-							"processors": []any{"memory_limiter", "batch", "resourcedetection"},
+							"processors": []any{"memory_limiter", "batch", "resourcedetection", "resource/add_mode"},
 							"receivers":  []any{"prometheus/internal"},
 						},
 						"traces": map[string]any{

@@ -225,7 +225,7 @@ service:
       - signalfx
     traces:
       exporters:
-      - sapm
+      - otlphttp
       - debug
       processors:
       - memory_limiter

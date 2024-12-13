@@ -89,13 +89,10 @@ processors:
 
 exporters:
   # Traces
-  sapm:
-    access_token: "${SPLUNK_ACCESS_TOKEN}"
-    endpoint: "https://ingest.${SPLUNK_REALM}.signalfx.com/v2/trace"
-    sending_queue:
-      num_consumers: 32
   otlphttp:
     traces_endpoint: "${SPLUNK_INGEST_URL}/v2/trace/otlp"
+    sending_queue:
+      num_consumers: 32
     headers:
       "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
   # Metrics + Events

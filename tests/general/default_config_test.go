@@ -59,10 +59,13 @@ func TestDefaultGatewayConfig(t *testing.T) {
 			require.Equal(t, map[string]any{
 				"exporters": map[string]any{
 					"otlphttp": map[string]any{
+						"traces_endpoint": "https://ingest.not.real.signalfx.com/v2/trace/otlp",
+						"sending_queue": map[string]any{
+							"num_consumers": 32,
+						},
 						"headers": map[string]any{
 							"X-SF-Token": "<redacted>",
 						},
-						"traces_endpoint": "https://ingest.not.real.signalfx.com/v2/trace/otlp",
 					},
 					"signalfx": map[string]any{
 						"access_token": "<redacted>",

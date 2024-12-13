@@ -118,6 +118,15 @@ func TestDefaultGatewayConfig(t *testing.T) {
 						"detectors": []any{"gcp", "ecs", "ec2", "azure", "system"},
 						"override":  true,
 					},
+					"resource/add_mode": map[string]any{
+						"attributes": []any{
+							map[string]any{
+								"action": "insert",
+								"value":  "gateway",
+								"key":    "otelcol.service.mode",
+							},
+						},
+					},
 				},
 				"receivers": map[string]any{
 					"jaeger": map[string]any{
@@ -159,7 +168,7 @@ func TestDefaultGatewayConfig(t *testing.T) {
 									"scrape_interval": "10s",
 									"static_configs": []any{
 										map[string]any{
-											"targets": []any{fmt.Sprintf("%s:8888", ip)},
+											"targets": []any{"0.0.0.0:8888"},
 										},
 									},
 								},
@@ -177,7 +186,6 @@ func TestDefaultGatewayConfig(t *testing.T) {
 					},
 				},
 				"service": map[string]any{
-					"telemetry":  map[string]any{"metrics": map[string]any{"address": fmt.Sprintf("%s:8888", ip)}},
 					"extensions": []any{"health_check", "http_forwarder", "zpages"},
 					"pipelines": map[string]any{
 						"logs": map[string]any{
@@ -197,7 +205,7 @@ func TestDefaultGatewayConfig(t *testing.T) {
 						},
 						"metrics/internal": map[string]any{
 							"exporters":  []any{"signalfx/internal"},
-							"processors": []any{"memory_limiter", "batch", "resourcedetection/internal"},
+							"processors": []any{"memory_limiter", "batch", "resourcedetection/internal", "resource/add_mode"},
 							"receivers":  []any{"prometheus/internal"},
 						},
 						"traces": map[string]any{
@@ -314,6 +322,15 @@ func TestDefaultAgentConfig(t *testing.T) {
 						"detectors": []any{"gcp", "ecs", "ec2", "azure", "system"},
 						"override":  true,
 					},
+					"resource/add_mode": map[string]any{
+						"attributes": []any{
+							map[string]any{
+								"action": "insert",
+								"value":  "agent",
+								"key":    "otelcol.service.mode",
+							},
+						},
+					},
 				},
 				"receivers": map[string]any{
 					"fluentforward": map[string]any{"endpoint": fmt.Sprintf("%s:8006", ip)},
@@ -369,7 +386,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 									"scrape_interval": "10s",
 									"static_configs": []any{
 										map[string]any{
-											"targets": []any{fmt.Sprintf("%s:8888", ip)},
+											"targets": []any{"0.0.0.0:8888"},
 										},
 									},
 								},
@@ -382,7 +399,6 @@ func TestDefaultAgentConfig(t *testing.T) {
 					"nop":                    nil,
 				},
 				"service": map[string]any{
-					"telemetry":  map[string]any{"metrics": map[string]any{"address": fmt.Sprintf("%s:8888", ip)}},
 					"extensions": []any{"health_check", "http_forwarder", "zpages", "smartagent"},
 					"pipelines": map[string]any{
 						"logs": map[string]any{
@@ -402,7 +418,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 						},
 						"metrics/internal": map[string]any{
 							"exporters":  []any{"signalfx"},
-							"processors": []any{"memory_limiter", "batch", "resourcedetection"},
+							"processors": []any{"memory_limiter", "batch", "resourcedetection", "resource/add_mode"},
 							"receivers":  []any{"prometheus/internal"},
 						},
 						"traces": map[string]any{

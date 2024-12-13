@@ -41,8 +41,6 @@ var (
 		"postgresql",
 		"rabbitmq",
 		"redis",
-		"smartagent-collectd-mysql",
-		"smartagent-postgresql",
 		"sqlserver",
 	}
 
@@ -67,17 +65,16 @@ var (
 		}(),
 		Windows: func() map[string]struct{} {
 			windows := map[string]struct{}{
-				"apache":                {},
-				"jmx-cassandra":         {},
-				"kafkametrics":          {},
-				"mongodb":               {},
-				"mysql":                 {},
-				"oracledb":              {},
-				"postgresql":            {},
-				"rabbitmq":              {},
-				"redis":                 {},
-				"smartagent-postgresql": {},
-				"sqlserver":             {},
+				"apache":        {},
+				"jmx-cassandra": {},
+				"kafkametrics":  {},
+				"mongodb":       {},
+				"mysql":         {},
+				"oracledb":      {},
+				"postgresql":    {},
+				"rabbitmq":      {},
+				"redis":         {},
+				"sqlserver":     {},
 			}
 			for _, extension := range extensions {
 				windows[extension] = struct{}{}

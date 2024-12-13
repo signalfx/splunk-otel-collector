@@ -37,7 +37,7 @@ receivers:
       - job_name: 'otel-collector'
         scrape_interval: 10s
         static_configs:
-        - targets: ['${SPLUNK_LISTEN_INTERFACE}:8888']
+        - targets: ['0.0.0.0:8888']
         metric_relabel_configs:
           - source_labels: [ __name__ ]
             regex: 'otelcol_rpc_.*'
@@ -81,6 +81,13 @@ processors:
       #- action: insert
         #value: staging/production/...
         #key: deployment.environment
+
+  # The following processor is used to add "otelcol.service.mode" attribute to the internal metrics
+  resource/add_mode:
+    attributes:
+      - action: insert
+        value: "gateway"
+        key: otelcol.service.mode
 
   # Detect if the collector is running on a cloud system. Overrides resource attributes set by receivers.
   # Detector order is important: the `system` detector goes last so it can't preclude cloud detectors from setting host/os info.
@@ -127,9 +134,6 @@ exporters:
     log_data_enabled: false
 
 service:
-  telemetry:
-    metrics:
-      address: "${SPLUNK_LISTEN_INTERFACE}:8888"
   extensions: [health_check, http_forwarder, zpages]
   pipelines:
     traces:
@@ -145,7 +149,7 @@ service:
       exporters: [signalfx]
     metrics/internal:
       receivers: [prometheus/internal]
-      processors: [memory_limiter, batch, resourcedetection/internal]
+      processors: [memory_limiter, batch, resourcedetection/internal, resource/add_mode]
       exporters: [signalfx/internal]
     logs/signalfx:
       receivers: [signalfx]

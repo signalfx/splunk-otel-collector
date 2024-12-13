@@ -71,7 +71,7 @@ receivers:
       - job_name: 'otel-collector'
         scrape_interval: 10s
         static_configs:
-        - targets: ["${SPLUNK_LISTEN_INTERFACE}:8888"]
+        - targets: ["0.0.0.0:8888"]
         metric_relabel_configs:
           - source_labels: [ __name__ ]
             regex: 'otelcol_rpc_.*'
@@ -124,6 +124,13 @@ processors:
         #value: staging/production/...
         #key: deployment.environment
 
+  # The following processor is used to add "otelcol.service.mode" attribute to the internal metrics
+  resource/add_mode:
+    attributes:
+      - action: insert
+        value: "agent"
+        key: otelcol.service.mode
+
 exporters:
   # Traces
   sapm:
@@ -166,9 +173,6 @@ exporters:
     verbosity: detailed
 
 service:
-  telemetry:
-    metrics:
-      address: "${SPLUNK_LISTEN_INTERFACE}:8888"
   extensions: [health_check, http_forwarder, zpages, smartagent]
   pipelines:
     traces:
@@ -189,7 +193,7 @@ service:
       #exporters: [otlp]
     metrics/internal:
       receivers: [prometheus/internal]
-      processors: [memory_limiter, batch, resourcedetection]
+      processors: [memory_limiter, batch, resourcedetection, resource/add_mode]
       # When sending to gateway, at least one metrics pipeline needs
       # to use signalfx exporter so host metadata gets emitted
       exporters: [signalfx]

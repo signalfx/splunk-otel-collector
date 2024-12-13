@@ -122,7 +122,7 @@ func TestDefaultGatewayConfig(t *testing.T) {
 						"attributes": map[string]any{
 							"action": "insert",
 							"value":  "gateway",
-							"key":    "otelcol.service.node",
+							"key":    "otelcol.service.mode",
 						},
 					},
 				},

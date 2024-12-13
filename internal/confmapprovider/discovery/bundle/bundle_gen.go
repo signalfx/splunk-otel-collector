@@ -43,10 +43,6 @@
 //go:generate discoverybundler --render --commented --dir ../../../../cmd/otelcol/config/collector/config.d.linux/receivers -t bundle.d/receivers/rabbitmq.discovery.yaml.tmpl
 //go:generate discoverybundler --render --template bundle.d/receivers/redis.discovery.yaml.tmpl
 //go:generate discoverybundler --render --commented --dir ../../../../cmd/otelcol/config/collector/config.d.linux/receivers -t bundle.d/receivers/redis.discovery.yaml.tmpl
-//go:generate discoverybundler --render --template bundle.d/receivers/smartagent-collectd-mysql.discovery.yaml.tmpl
-//go:generate discoverybundler --render --commented --dir ../../../../cmd/otelcol/config/collector/config.d.linux/receivers -t bundle.d/receivers/smartagent-collectd-mysql.discovery.yaml.tmpl
-//go:generate discoverybundler --render --template bundle.d/receivers/smartagent-postgresql.discovery.yaml.tmpl
-//go:generate discoverybundler --render --commented --dir ../../../../cmd/otelcol/config/collector/config.d.linux/receivers -t bundle.d/receivers/smartagent-postgresql.discovery.yaml.tmpl
 //go:generate discoverybundler --render --template bundle.d/receivers/sqlserver.discovery.yaml.tmpl
 //go:generate discoverybundler --render --commented --dir ../../../../cmd/otelcol/config/collector/config.d.linux/receivers -t bundle.d/receivers/sqlserver.discovery.yaml.tmpl
 

@@ -123,7 +123,7 @@ func TestDefaultGatewayConfig(t *testing.T) {
 							"action" : "insert",
 							"value" : "gateway",
 							"key" : "otelcol.service.node",
-						}
+						},
 					},
 				},
 				"receivers": map[string]any{
@@ -326,7 +326,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 							"action" : "insert",
 							"value" : "agent",
 							"key" : "otelcol.service.node",
-						}
+						},
 					},
 				},
 				"receivers": map[string]any{

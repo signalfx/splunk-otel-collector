@@ -1,0 +1,21 @@
+receivers:
+  filestats:
+    include: "./*"
+    collection_interval: 2s
+
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+
+service:
+  telemetry:
+    logs:
+      level: "info"
+  pipelines:
+    metrics:
+      receivers:
+        - filestats
+      exporters:
+        - otlp

@@ -119,10 +119,12 @@ func TestDefaultGatewayConfig(t *testing.T) {
 						"override":  true,
 					},
 					"resource/add_mode": map[string]any{
-						"attributes": map[string]any{
-							"action": "insert",
-							"value":  "gateway",
-							"key":    "otelcol.service.mode",
+						"attributes": []any{
+							map[string]any{
+								"action": "insert",
+								"value":  "gateway",
+								"key":    "otelcol.service.mode",
+							},
 						},
 					},
 				},

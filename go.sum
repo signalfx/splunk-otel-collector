@@ -1425,6 +1425,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/elasticsearch
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/elasticsearchreceiver v0.114.0/go.mod h1:Z/bI5LI+rHrB83nF95ob6coRNLeE3KJGvqZS9dbEiAA=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filelogreceiver v0.114.0 h1:Ivu3DRhbERboPxMJeyJpmretbKDJ3hsOAGBQXt2yY3U=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filelogreceiver v0.114.0/go.mod h1:UrMGrA8bA1VeYhdiam7/Xu/U4joG6JftMULEVWLDbe0=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filestatsreceiver v0.114.0 h1:hnQdqS5q5ERor3bhJDcWvXLhln7RZ+iFTbPVBiDDfYo=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filestatsreceiver v0.114.0/go.mod h1:G1J0WELUlVxmyRvwfvkLcVBXoiXx0442FP0V1T2mTiU=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/fluentforwardreceiver v0.114.0 h1:Yx0RUwviLdYyozkuqbfpEhSH+ehXlKsW5TtlZbiKm4Q=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/fluentforwardreceiver v0.114.0/go.mod h1:Bh9h5hYTgr/zQgXUnvihkLvN1IMmVY/OFa8aHc3gMJU=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/googlecloudpubsubreceiver v0.114.0 h1:J+zseMbZpKcz5MuHGXR91QbmBV+pO4GCy7OwXvarQT4=

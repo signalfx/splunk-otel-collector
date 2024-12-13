@@ -120,9 +120,9 @@ func TestDefaultGatewayConfig(t *testing.T) {
 					},
 					"resource/add_mode": map[string]any{
 						"attributes": map[string]any{
-							"action" : "insert",
-							"value" : "gateway",
-							"key" : "otelcol.service.node",
+							"action": "insert",
+							"value":  "gateway",
+							"key":    "otelcol.service.node",
 						},
 					},
 				},
@@ -323,9 +323,9 @@ func TestDefaultAgentConfig(t *testing.T) {
 					},
 					"resource/add_mode": map[string]any{
 						"attributes": map[string]any{
-							"action" : "insert",
-							"value" : "agent",
-							"key" : "otelcol.service.node",
+							"action": "insert",
+							"value":  "agent",
+							"key":    "otelcol.service.node",
 						},
 					},
 				},

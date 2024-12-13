@@ -1,9 +1,11 @@
 receivers:
   filestats:
     include: "./*"
-    collection_interval: 2s
+    collection_interval: 10s
 
 exporters:
+  debug:
+    verbosity: detailed
   otlp:
     endpoint: "${OTLP_ENDPOINT}"
     tls:
@@ -18,4 +20,5 @@ service:
       receivers:
         - filestats
       exporters:
+        - debug
         - otlp

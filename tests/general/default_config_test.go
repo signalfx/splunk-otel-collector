@@ -118,6 +118,13 @@ func TestDefaultGatewayConfig(t *testing.T) {
 						"detectors": []any{"gcp", "ecs", "ec2", "azure", "system"},
 						"override":  true,
 					},
+					"resource/add_mode": map[string]any{
+						"attributes": map[string]any{
+							"action" : "insert",
+							"value" : "gateway",
+							"key" : "otelcol.service.node"
+						}
+					},
 				},
 				"receivers": map[string]any{
 					"jaeger": map[string]any{
@@ -313,6 +320,13 @@ func TestDefaultAgentConfig(t *testing.T) {
 					"resourcedetection": map[string]any{
 						"detectors": []any{"gcp", "ecs", "ec2", "azure", "system"},
 						"override":  true,
+					},
+					"resource/add_mode": map[string]any{
+						"attributes": map[string]any{
+							"action" : "insert",
+							"value" : "agent",
+							"key" : "otelcol.service.node"
+						}
 					},
 				},
 				"receivers": map[string]any{

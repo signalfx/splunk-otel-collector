@@ -82,6 +82,7 @@ processors:
         #value: staging/production/...
         #key: deployment.environment
 
+  # The following processor is used to add "otelcol.service.mode" attribute to the internal metrics
   resource/add_mode:
     attributes:
       - action: insert

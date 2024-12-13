@@ -58,6 +58,7 @@ func TestDefaultComponents(t *testing.T) {
 		"discovery",
 		"elasticsearch",
 		"filelog",
+		"filestats",
 		"fluentforward",
 		"googlecloudpubsub",
 		"haproxy",

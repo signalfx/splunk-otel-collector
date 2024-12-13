@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 🚀 New components 🚀
+
+- (Splunk) Add `filestats` receiver ([](https://github.com/signalfx/splunk-otel-collector/pull/5229))
+
 ### 💡 Enhancements 💡
 
 - (Splunk) Automatic Discovery:

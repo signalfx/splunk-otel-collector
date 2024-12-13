@@ -136,17 +136,19 @@ By default, the discovery mode is provided with pre-made discovery config compon
 The following components have bundled discovery configurations in the last Splunk OpenTelemetry Collector release:
 
 I. Receivers
+
+* `jmx/cassandra` ([Linux and Windows](./bundle/bundle.d/receivers/jmx-cassandra.discovery.yaml))
+* `kafkametrics` ([Linux and Windows](./bundle/bundle.d/receivers/kafkametrics.discovery.yaml))
 * `mongodb` ([Linux and Windows](./bundle/bundle.d/receivers/mongodb.discovery.yaml))
 * `mysql` ([Linux and Windows](./bundle/bundle.d/receivers/mysql.discovery.yaml))
+* `nginx` ([Linux and Windows](./bundle/bundle.d/receivers/nginx.discovery.yaml))
 * `oracledb` ([Linux and Windows](./bundle/bundle.d/receivers/oracledb.discovery.yaml))
 * `postgresql` ([Linux and Windows](./bundle/bundle.d/receivers/postgresql.discovery.yaml))
 * `redis` ([Linux and Windows](./bundle/bundle.d/receivers/redis.discovery.yaml))
-* `smartagent` with `collectd/mysql` monitor type ([Linux](./bundle/bundle.d/receivers/smartagent-collectd-mysql.discovery.yaml))
-* `smartagent` with `collectd/nginx` monitor type ([Linux](./bundle/bundle.d/receivers/smartagent-collectd-nginx.discovery.yaml))
-* `smartagent` with `postgresql` monitor type ([Linux and Windows](./bundle/bundle.d/receivers/smartagent-postgresql.discovery.yaml))
 * `sqlserver` ([Linux And Windows](./bundle/bundle.d/receivers/sqlserver.discovery.yaml))
 
 II. Extensions
+
 * `docker_observer` ([Linux and Windows](./bundle/bundle.d/extensions/docker-observer.discovery.yaml))
 * `host_observer` ([Linux and Windows](./bundle/bundle.d/extensions/host-observer.discovery.yaml))
 * `k8s_observer` ([Linux and Windows](./bundle/bundle.d/extensions/k8s-observer.discovery.yaml))

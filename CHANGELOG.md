@@ -6,6 +6,20 @@
 
 - (Splunk) Automatic Discovery:
   - Switch bundled NGINX discovery to create [OpenTelemetry NGINX receiver](https://docs.splunk.com/observability/en/gdi/opentelemetry/components/nginx-receiver.html#nginx-receiver) instead of the Smart Agent NGINX monitor ([#5689](https://github.com/signalfx/splunk-otel-collector/pull/5689))
+- (Splunk) Expose internal metrics at default `localhost:8888` address instead of `${SPLUNK_LISTEN_INTERFACE}:8888` ([#5706](https://github.com/signalfx/splunk-otel-collector/pull/5706))
+  This can be changed in `service::telemetry::metrics` section:  
+  ```yaml
+  service:
+    telemetry:
+      metrics:
+        readers:
+          - pull:
+              exporter:
+                prometheus:
+                  host: localhost
+                  port: 8888
+  ```
+  This also removes a warning about deprecated `service::telemetry::metrics::address`.
 
 ### 🚩Deprecations 🚩
 

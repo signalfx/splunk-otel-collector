@@ -168,7 +168,7 @@ func TestDefaultGatewayConfig(t *testing.T) {
 									"scrape_interval": "10s",
 									"static_configs": []any{
 										map[string]any{
-											"targets": []any{fmt.Sprintf("%s:8888", ip)},
+											"targets": []any{"0.0.0.0:8888"},
 										},
 									},
 								},
@@ -186,7 +186,6 @@ func TestDefaultGatewayConfig(t *testing.T) {
 					},
 				},
 				"service": map[string]any{
-					"telemetry":  map[string]any{"metrics": map[string]any{"address": fmt.Sprintf("%s:8888", ip)}},
 					"extensions": []any{"health_check", "http_forwarder", "zpages"},
 					"pipelines": map[string]any{
 						"logs": map[string]any{
@@ -387,7 +386,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 									"scrape_interval": "10s",
 									"static_configs": []any{
 										map[string]any{
-											"targets": []any{fmt.Sprintf("%s:8888", ip)},
+											"targets": []any{"0.0.0.0:8888"},
 										},
 									},
 								},
@@ -400,7 +399,6 @@ func TestDefaultAgentConfig(t *testing.T) {
 					"nop":                    nil,
 				},
 				"service": map[string]any{
-					"telemetry":  map[string]any{"metrics": map[string]any{"address": fmt.Sprintf("%s:8888", ip)}},
 					"extensions": []any{"health_check", "http_forwarder", "zpages", "smartagent"},
 					"pipelines": map[string]any{
 						"logs": map[string]any{

@@ -71,7 +71,7 @@ receivers:
       - job_name: 'otel-collector'
         scrape_interval: 10s
         static_configs:
-        - targets: ["${SPLUNK_LISTEN_INTERFACE}:8888"]
+        - targets: ["0.0.0.0:8888"]
         metric_relabel_configs:
           - source_labels: [ __name__ ]
             regex: 'otelcol_rpc_.*'
@@ -172,9 +172,6 @@ exporters:
     verbosity: detailed
 
 service:
-  telemetry:
-    metrics:
-      address: "${SPLUNK_LISTEN_INTERFACE}:8888"
   extensions: [health_check, http_forwarder, zpages, smartagent]
   pipelines:
     traces:

@@ -325,7 +325,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 						"attributes": map[string]any{
 							"action": "insert",
 							"value":  "agent",
-							"key":    "otelcol.service.node",
+							"key":    "otelcol.service.mode",
 						},
 					},
 				},

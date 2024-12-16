@@ -4,7 +4,8 @@
 
 ### 🚀 New components 🚀
 
-- (Splunk) Add `filestats` receiver ([](https://github.com/signalfx/splunk-otel-collector/pull/5229))
+- (Splunk) Add `filestats` receiver ([#5229](https://github.com/signalfx/splunk-otel-collector/pull/5229))
+- (Splunk) Add `iis` receiver ([#TODO](https://github.com/signalfx/splunk-otel-collector/pull/TODO))
 
 ### 💡 Enhancements 💡
 

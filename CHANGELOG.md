@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 🛑 Breaking changes 🛑
+
+- (Splunk) Change default traces exporter to otlphttp exporter. ([#5588](https://github.com/signalfx/splunk-otel-collector/pull/5588)).
+
 ### 🚀 New components 🚀
 
 - (Splunk) Add `filestats` receiver ([#5229](https://github.com/signalfx/splunk-otel-collector/pull/5229))
@@ -37,6 +41,7 @@
 - (Splunk) Deprecate the collectd/kafka-producer monitor. Please use the [jmxreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jmxreceiver) with the kafka-producer target system instead. ([#5539](https://github.com/signalfx/splunk-otel-collector/pull/5539))
 - (Splunk) Deprecate the collectd/solr monitor. Please use the [jmxreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jmxreceiver) with the solr target system instead. ([#5539](https://github.com/signalfx/splunk-otel-collector/pull/5539))
 - (Splunk) Deprecate the collectd/tomcat monitor. Please use the [jmxreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jmxreceiver) with the tomcat target system instead. ([#5539](https://github.com/signalfx/splunk-otel-collector/pull/5539))
+
 
 ## v0.114.0
 

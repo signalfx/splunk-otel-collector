@@ -176,6 +176,26 @@ manually before the backward compatibility is dropped. For every configuration u
 [the default agent config](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/otelcol/config/collector/agent_config.yaml)
 as a reference.
 
+### From 0.114.0 to 0.115.0
+
+-  The sapm exporter still works as before but has been deprecated. Use the otlphttp exporter instead
+
+1. Replace the `sapm` exporter with `otlphttp` exporter using the following configuration
+    ```yaml
+    otlphttp:
+      traces_endpoint: "${SPLUNK_INGEST_URL}/v2/trace/otlp"
+      headers:
+        "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
+    ```
+2. Update traces pipeline to use otlphttp exporter instead of sapm:
+    ```
+    service:
+      pipelines:
+        traces:
+          exporters: [otlphttp, signalfx]
+    ```
+
+
 ### From 0.96.1 to 0.97.0
 
 - `memory_ballast` is no longer effective. The garbage collection is now controlled by the soft memory limit set to 90%

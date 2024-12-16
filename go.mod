@@ -78,6 +78,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/haproxyreceiver v0.114.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver v0.114.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/httpcheckreceiver v0.114.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/iisreceiver v0.114.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver v0.114.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver v0.114.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/journaldreceiver v0.114.0

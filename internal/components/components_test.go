@@ -64,6 +64,7 @@ func TestDefaultComponents(t *testing.T) {
 		"haproxy",
 		"hostmetrics",
 		"httpcheck",
+		"iis",
 		"jaeger",
 		"jmx",
 		"journald",

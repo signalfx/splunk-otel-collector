@@ -124,6 +124,13 @@ processors:
         #value: staging/production/...
         #key: deployment.environment
 
+  # The following processor is used to add "otelcol.service.mode" attribute to the internal metrics
+  resource/add_mode:
+    attributes:
+      - action: insert
+        value: "agent"
+        key: otelcol.service.mode
+
 exporters:
   # Traces
   otlphttp:
@@ -187,7 +194,7 @@ service:
       #exporters: [otlp/gateway]
     metrics/internal:
       receivers: [prometheus/internal]
-      processors: [memory_limiter, batch, resourcedetection]
+      processors: [memory_limiter, batch, resourcedetection, resource/add_mode]
       # When sending to gateway, at least one metrics pipeline needs
       # to use signalfx exporter so host metadata gets emitted
       exporters: [signalfx]

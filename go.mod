@@ -72,11 +72,13 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdreceiver v0.114.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/elasticsearchreceiver v0.114.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filelogreceiver v0.114.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filestatsreceiver v0.114.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/fluentforwardreceiver v0.114.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/googlecloudpubsubreceiver v0.114.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/haproxyreceiver v0.114.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver v0.114.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/httpcheckreceiver v0.114.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/iisreceiver v0.114.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver v0.114.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver v0.114.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/journaldreceiver v0.114.0
@@ -453,7 +455,7 @@ require (
 	github.com/danieljoos/wincred v1.2.1 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/devigned/tab v0.1.1 // indirect
-	github.com/docker/docker v27.3.1+incompatible // indirect
+	github.com/docker/docker v27.4.0+incompatible // indirect
 	github.com/docker/go-connections v0.5.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/dvsekhvalnov/jose2go v1.6.0 // indirect
@@ -552,7 +554,7 @@ require (
 	github.com/lightstep/go-expohisto v1.0.0 // indirect
 	github.com/lufia/plan9stats v0.0.0-20240226150601-1dcf7310316a // indirect
 	github.com/magiconair/properties v1.8.9
-	github.com/mailru/easyjson v0.7.7 // indirect
+	github.com/mailru/easyjson v0.9.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-xmlrpc v0.0.3 // indirect

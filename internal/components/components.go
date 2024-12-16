@@ -69,11 +69,13 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/elasticsearchreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filelogreceiver"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filestatsreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/fluentforwardreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/googlecloudpubsubreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/haproxyreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/httpcheckreceiver"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/iisreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/journaldreceiver"
@@ -177,11 +179,13 @@ func Get() (otelcol.Factories, error) {
 		discoveryreceiver.NewFactory(),
 		elasticsearchreceiver.NewFactory(),
 		filelogreceiver.NewFactory(),
+		filestatsreceiver.NewFactory(),
 		fluentforwardreceiver.NewFactory(),
 		googlecloudpubsubreceiver.NewFactory(),
 		haproxyreceiver.NewFactory(),
 		hostmetricsreceiver.NewFactory(),
 		httpcheckreceiver.NewFactory(),
+		iisreceiver.NewFactory(),
 		jaegerreceiver.NewFactory(),
 		jmxreceiver.NewFactory(),
 		journaldreceiver.NewFactory(),

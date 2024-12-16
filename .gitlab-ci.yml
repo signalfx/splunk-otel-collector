@@ -933,12 +933,12 @@ build-push-windows-image:
   parallel:
     matrix:
       - WIN_VERSION: ["2019", "2022"]
-      - FIPS: ["-fips", ""]
+        FIPS: ["-fips", ""]
   dependencies:
     - sign-exe
     - agent-bundle-windows
   tags:
-    - splunk-otel-collector-windows${WIN_VERSION}${FIPS}
+    - splunk-otel-collector-windows${WIN_VERSION}
   retry: 2
   variables:
     ErrorActionPreference: stop

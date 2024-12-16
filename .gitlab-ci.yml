@@ -110,7 +110,8 @@ fossa:
 .trigger-filter:
   only:
     variables:
-      - $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "fips_windows_image"
+      - $CI_COMMIT_BRANCH == "main"
+      - $CI_COMMIT_BRANCH == "fips_windows_image"
       - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
   except:
     - schedules

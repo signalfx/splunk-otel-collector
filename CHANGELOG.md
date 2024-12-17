@@ -10,7 +10,7 @@
 
 - (Splunk) Add `filestats` receiver ([#5229](https://github.com/signalfx/splunk-otel-collector/pull/5229))
 - (Splunk) Add `iis` receiver ([#5717](https://github.com/signalfx/splunk-otel-collector/pull/5717))
-- (Splunk) Add `bearertokenauth` extention ([#](https://github.com/signalfx/splunk-otel-collector/pull/))
+- (Splunk) Add `bearertokenauth` extention ([#5721](https://github.com/signalfx/splunk-otel-collector/pull/5721))
 
 ### 💡 Enhancements 💡
 

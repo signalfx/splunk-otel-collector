@@ -1078,7 +1078,7 @@ sign-windows-image:
   parallel:
     matrix:
       - WIN_VERSION: ["2019", "2022"]
-      - FIPS: ["-fips", ""]
+        FIPS: ["-fips", ""]
   needs:
     - build-push-windows-image
   before_script:

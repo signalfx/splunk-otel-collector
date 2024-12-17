@@ -1451,7 +1451,9 @@ push-multiarch-manifest:
         echo "$json"
         # Check number of images in the manifest
         count=$( echo "$json" | jq -r ".manifests | length" )
-        if [[ "$MANIFEST" = "multiarch" && $count -ne 5 ]]; then
+        if [[ "$MANIFEST" = "multiarch" && "$FIPS" == "" && $count -ne 5 ]]; then
+          exit 1
+        elif [[ "$MANIFEST" = "multiarch" && "$FIPS" == "-fips" && $count -ne 4 ]]; then
           exit 1
         elif [[ "$MANIFEST" = "windows_multiarch" && $count -ne 2 ]]; then
           exit 1
@@ -1459,6 +1461,9 @@ push-multiarch-manifest:
         # Check the manifest for the linux images
         if [[ "$MANIFEST" != "windows_multiarch" ]]; then
           for arch in "amd64" "arm64" "ppc64le"; do
+            if [[ "$FIPS" != "" && "$arch" == "ppc64le" ]]; then
+              continue
+            fi
             found=$( echo "$json" | jq -r ".manifests[] | select(.platform.architecture == \"${arch}\" and .platform.os == \"linux\")" )
             if [[ -z "$found" ]]; then
               echo "linux/${arch} not found in ${MANIFEST_NAME}:${tag}"
@@ -1490,7 +1495,7 @@ push-multiarch-manifest:
       fi
     - mkdir -p dist
     - echo "[${MANIFEST_NAME}@${digest}]" | tee dist/${MANIFEST}_digest.txt
-    - echo "${MANIFEST_NAME}:${MANIFEST_TAG}" > tags_to_sign_${MANIFEST}
+    - echo "${MANIFEST_NAME}:${MANIFEST_TAG}" > tags_to_sign_${MANIFEST}${FIPS}
     - if [[ "$CI_COMMIT_BRANCH" != "main" || "$MANIFEST" != "multiarch" ]]; then exit 0; fi
     # Push the multiarch manifest for the main branch to the docker-test artifactory repo for xray scanning
     # TODO: Add new job to trigger xray scanning for the manifest whenever it is supported
@@ -1502,7 +1507,7 @@ push-multiarch-manifest:
   artifacts:
     paths:
       - dist/${MANIFEST}_digest.txt
-      - tags_to_sign_${MANIFEST}
+      - tags_to_sign_${MANIFEST}${FIPS}
 
 sign-multiarch-manifest:
   extends: .sign-docker
@@ -1510,10 +1515,11 @@ sign-multiarch-manifest:
   parallel:
     matrix:
       - MANIFEST: [multiarch, windows_multiarch]
+        FIPS: ["-fips",""]
   needs:
     - push-multiarch-manifest
   before_script:
-    - mv tags_to_sign_${MANIFEST} tags_to_sign
+    - mv tags_to_sign_${MANIFEST}${FIPS} tags_to_sign
 
 xray-scan-docker:
   only:

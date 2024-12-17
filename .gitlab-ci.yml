@@ -1085,6 +1085,7 @@ build-push-windows-fips-image:
   variables:
     ErrorActionPreference: stop
   before_script:
+    - New-Item -Type dir .\cmd\otelcol\fips\dist
     - Copy-Item .\dist\signed\otelcol-fips_windows_amd64.exe .\cmd\otelcol\fips\dist\otelcol-fips_windows_amd64.exe
     - &get-base-image |
       if ($env:WIN_VERSION -eq "2019") {

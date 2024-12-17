@@ -2,9 +2,17 @@
 
 ## Unreleased
 
+## v0.115.0
+
 ### 🛑 Breaking changes 🛑
 
 - (Splunk) Change default traces exporter to otlphttp exporter. ([#5588](https://github.com/signalfx/splunk-otel-collector/pull/5588)).
+- (Core) Change all logged timestamps to ISO8601 ([#10543](https://github.com/open-telemetry/opentelemetry-collector/pull/10543)).
+  This makes log timestamps human-readable (as opposed to epoch seconds in
+  scientific notation), but may break users trying to parse logged lines in the
+  old format.
+- (Contrib) `k8sattributesprocessor`: Move k8sattr.fieldExtractConfigRegex.disallow feature gate to Beta. ([#25128](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/25128))
+  Disable the `k8sattr.fieldExtractConfigRegex.disallow` feature gate to get the old behavior.
 
 ### 🚀 New components 🚀
 
@@ -29,6 +37,28 @@
                   port: 8888
   ```
   This also removes a warning about deprecated `service::telemetry::metrics::address`.
+- (Core) `exporterqueue`: Introduce a feature gate exporter.UsePullingBasedExporterQueueBatcher to use the new pulling model in exporter queue batching. ([#8122](https://github.com/open-telemetry/opentelemetry-collector/pull/8122), [#10368](https://github.com/open-telemetry/opentelemetry-collector/pull/10368))
+  If both queuing and batching is enabled for exporter, we now use a pulling model instead of a
+  pushing model. num_consumer in queue configuration is now used to specify the maximum number of
+  concurrent workers that are sending out the request.
+- (Core) `service`: Add support for ca certificates in telemetry metrics otlp grpc exporter ([#11633](https://github.com/open-telemetry/opentelemetry-collector/pull/11633))
+  Before this change the Certificate value in config was silently ignored.
+- (Contrib) `postgresqlreceiver`: Added new postgresql metrics to achieve parity with Telegraf ([#36528](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/36528))
+- (Contrib) `loadbalancingexporter`: Adding sending_queue, retry_on_failure and timeout settings to loadbalancing exporter configuration ([#35378](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35378))
+  When switching to top-level sending_queue configuration - users should carefully review queue size
+  In some rare cases setting top-level queue size to n*queueSize might be not enough to prevent data loss
+- (Contrib) `routingconnector`: Add abiilty to route by 'datapoint' context ([#36523](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/36523))
+- (Contrib) `signalfxreceiver`: Follow receiver contract based on type of error ([#5909](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/5909))
+  Use 503 error code for retryable and 400 error code for not-retryable errors instead of responding with a 500 unconditionally.
+
+### 🧰 Bug fixes 🧰
+
+- (Core) `service`: ensure OTLP emitted logs respect severity ([#11718](https://github.com/open-telemetry/opentelemetry-collector/pull/11718))
+- (Core) `featuregate`: Fix an unfriendly display message `runtime error` when feature gate is used to display command line usage. ([#11651](https://github.com/open-telemetry/opentelemetry-collector/pull/11651))
+- (Contrib) `exporter/pulsarexporter`: Change configuration option `map_connections_per_broker`, rename to `max_connections_per_broker`. ([#36579](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/36579))
+- (Contrib) `processor/k8sattribute`: fixes parsing of k8s image names to support images with tags and digests. ([#36131](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/36131))
+- (Contrib) `loadbalancingexporter`: The k8sresolver in loadbalancingexporter was triggering exporter churn in the way the change event was handled. ([#35658](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35658))
+- (Contrib) `vcenterreceiver`: The existing code did not honor TLS settings beyond 'insecure'. All TLS client config should now be honored. ([#36482](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/36482))
 
 ### 🚩Deprecations 🚩
 
@@ -41,7 +71,6 @@
 - (Splunk) Deprecate the collectd/kafka-producer monitor. Please use the [jmxreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jmxreceiver) with the kafka-producer target system instead. ([#5539](https://github.com/signalfx/splunk-otel-collector/pull/5539))
 - (Splunk) Deprecate the collectd/solr monitor. Please use the [jmxreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jmxreceiver) with the solr target system instead. ([#5539](https://github.com/signalfx/splunk-otel-collector/pull/5539))
 - (Splunk) Deprecate the collectd/tomcat monitor. Please use the [jmxreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jmxreceiver) with the tomcat target system instead. ([#5539](https://github.com/signalfx/splunk-otel-collector/pull/5539))
-
 
 ## v0.114.0
 

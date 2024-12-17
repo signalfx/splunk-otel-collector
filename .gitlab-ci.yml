@@ -1129,7 +1129,7 @@ build-push-windows-fips-image:
     - $JMX_METRIC_GATHERER_RELEASE = $(Get-Content packaging\jmx-metric-gatherer-release.txt)
     - |
       echo "Building ${IMAGE_NAME}:${IMAGE_TAG}"
-      docker build -t ${IMAGE_NAME}:${IMAGE_TAG} --build-arg BASE_IMAGE=${BASE_IMAGE} --build-arg JMX_METRIC_GATHERER_RELEASE=${JMX_METRIC_GATHERER_RELEASE} -f .\cmd\otelcol\fips\Dockerfile.windows .\cmd\otelcol\
+      docker build -t ${IMAGE_NAME}:${IMAGE_TAG} --build-arg BASE_IMAGE=${BASE_IMAGE} --build-arg JMX_METRIC_GATHERER_RELEASE=${JMX_METRIC_GATHERER_RELEASE} -f .\cmd\otelcol\fips\Dockerfile.windows .\cmd\otelcol\fips
       if ($LASTEXITCODE -ne 0) { exit 1 }
     - |
       echo "Pushing ${IMAGE_NAME}:${IMAGE_TAG}"

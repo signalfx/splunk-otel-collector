@@ -21,6 +21,7 @@ import (
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/scraperhelper"
+	scraperpkg "go.opentelemetry.io/collector/scraper"
 )
 
 const typeStr = "lightprometheus"
@@ -43,7 +44,7 @@ func createMetricsReceiver(
 	c, _ := rConf.(*Config)
 	s := newScraper(params, c)
 
-	scraper, err := scraperhelper.NewScraperWithoutType(s.scrape, scraperhelper.WithStart(s.start))
+	scraper, err := scraperpkg.NewMetrics(s.scrape, scraperpkg.WithStart(s.start))
 	if err != nil {
 		return nil, err
 	}
@@ -52,6 +53,6 @@ func createMetricsReceiver(
 		&c.ControllerConfig,
 		params,
 		consumer,
-		scraperhelper.AddScraperWithType(component.MustNewType(typeStr), scraper),
+		scraperhelper.AddScraper(component.MustNewType(typeStr), scraper),
 	)
 }

@@ -1223,6 +1223,7 @@ sign-windows-image:
         FIPS: ["-fips", ""]
   needs:
     - build-push-windows-image
+    - build-push-windows-fips-image
   before_script:
     - mv tags_to_sign_${WIN_VERSION}${FIPS} tags_to_sign
 

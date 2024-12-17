@@ -156,6 +156,7 @@ require (
 	go.opentelemetry.io/collector/receiver/nopreceiver v0.115.0
 	go.opentelemetry.io/collector/receiver/otlpreceiver v0.115.0
 	go.opentelemetry.io/collector/receiver/receivertest v0.115.0
+	go.opentelemetry.io/collector/scraper v0.115.0
 	go.opentelemetry.io/otel/metric v1.32.0
 	go.opentelemetry.io/otel/trace v1.32.0
 	go.uber.org/atomic v1.11.0
@@ -378,7 +379,6 @@ require (
 	go.opentelemetry.io/collector/processor/processorprofiles v0.115.0 // indirect
 	go.opentelemetry.io/collector/processor/processortest v0.115.0 // indirect
 	go.opentelemetry.io/collector/receiver/receiverprofiles v0.115.0 // indirect
-	go.opentelemetry.io/collector/scraper v0.115.0 // indirect
 	go.opentelemetry.io/collector/service v0.115.0 // indirect
 	go.opentelemetry.io/contrib/bridges/otelzap v0.6.0 // indirect
 	go.opentelemetry.io/contrib/config v0.10.0 // indirect

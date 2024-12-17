@@ -49,12 +49,8 @@ provides a unified way to receive, process, and export metric, trace, and log
 data for [Splunk Observability Cloud](https://www.splunk.com/en_us/observability.html):
 
 - [Splunk APM](https://docs.splunk.com/Observability/apm/intro-to-apm.html#nav-Introduction-to-Splunk-APM) via the
-  [`sapm`
-  exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/sapmexporter).
-  The [`otlphttp`
-  exporter](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlphttpexporter)
-  can be used with a [custom
-  configuration](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/otelcol/config/collector/otlp_config_linux.yaml).
+  [`otlphttp`
+  exporter](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlphttpexporter).
   More information available
   [here](https://docs.splunk.com/Observability/gdi/opentelemetry/opentelemetry.html#nav-Install-and-configure-Splunk-Distribution-of-OpenTelemetry-Collector).
 - [Splunk Infrastructure
@@ -175,6 +171,26 @@ compatibility on the fly, but configuration files will not be overridden, so you
 manually before the backward compatibility is dropped. For every configuration update use
 [the default agent config](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/otelcol/config/collector/agent_config.yaml)
 as a reference.
+
+### From 0.114.0 to 0.115.0
+
+-  The sapm exporter still works as before but has been deprecated. Use the otlphttp exporter instead
+
+1. Replace the `sapm` exporter with `otlphttp` exporter using the following configuration
+    ```yaml
+    otlphttp:
+      traces_endpoint: "${SPLUNK_INGEST_URL}/v2/trace/otlp"
+      headers:
+        "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
+    ```
+2. Update traces pipeline to use otlphttp exporter instead of sapm:
+    ```
+    service:
+      pipelines:
+        traces:
+          exporters: [otlphttp, signalfx]
+    ```
+
 
 ### From 0.96.1 to 0.97.0
 

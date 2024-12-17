@@ -1391,6 +1391,7 @@ push-multiarch-manifest:
   parallel:
     matrix:
       - MANIFEST: [multiarch, windows_multiarch]
+        FIPS: ["-fips",""]
   needs:
     - sign-linux-image
     - sign-windows-image
@@ -1403,12 +1404,12 @@ push-multiarch-manifest:
     - |
       # Set env vars
       if [[ -n "${CI_COMMIT_TAG:-}" ]]; then
-        MANIFEST_NAME="quay.io/signalfx/splunk-otel-collector"
-        WIN_MANIFEST_NAME="quay.io/signalfx/splunk-otel-collector-windows"
+        MANIFEST_NAME="quay.io/signalfx/splunk-otel-collector${FIPS}"
+        WIN_MANIFEST_NAME="quay.io/signalfx/splunk-otel-collector${FIPS}-windows"
         MANIFEST_TAG=${CI_COMMIT_TAG#v}
       else
-        MANIFEST_NAME="quay.io/signalfx/splunk-otel-collector-dev"
-        WIN_MANIFEST_NAME="quay.io/signalfx/splunk-otel-collector-windows-dev"
+        MANIFEST_NAME="quay.io/signalfx/splunk-otel-collector${FIPS}-dev"
+        WIN_MANIFEST_NAME="quay.io/signalfx/splunk-otel-collector${FIPS}-windows-dev"
         MANIFEST_TAG=${CI_COMMIT_SHA}
       fi
       LATEST_TAG=""

@@ -1259,6 +1259,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/extension/ackextension
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/ackextension v0.114.0/go.mod h1:7RH6FdyGCuRf1q2HGH/EHbZ31LPMy8T/jNbOIWhbQ5k=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.114.0 h1:AQE+dCaE9sp9jjBebWSAJ+YPkR29Jcd9bjDfXalANMA=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.114.0/go.mod h1:7YGzhQhYffr2y0E1nrVhJ0SXO0QYPk2bADYSwgcEDEI=
+github.com/open-telemetry/opentelemetry-collector-contrib/extension/bearertokenauthextension v0.114.0 h1:cgA0HUqgVJXHf1/2nq2CXp8N5bOjgwGHaHPmnRkkJXI=
+github.com/open-telemetry/opentelemetry-collector-contrib/extension/bearertokenauthextension v0.114.0/go.mod h1:NGbr4blK1H54H5GfhKAZ5/nmhVRbn3scZ+ZNzYMlRm8=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/encoding v0.114.0 h1:I6jpBR2wbwYskCumSef5CGHG5JXIyVzkKZi07ipkHlY=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/encoding v0.114.0/go.mod h1:tY9HNnVFA9+vvEZzKlpji60IffBbVtZKktsMDcWOguc=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/encoding/otlpencodingextension v0.114.0 h1:MlUqTEoLJLKITtHcdGwAGFjo6qDn28wFx5hvBpi4VVI=

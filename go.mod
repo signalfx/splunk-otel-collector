@@ -138,7 +138,7 @@ require (
 	go.opentelemetry.io/collector/confmap/provider/yamlprovider v1.20.0
 	go.opentelemetry.io/collector/connector v0.114.0
 	go.opentelemetry.io/collector/connector/forwardconnector v0.114.0
-	go.opentelemetry.io/collector/consumer/consumertest v0.114.0
+	go.opentelemetry.io/collector/consumer/consumertest v0.115.0
 	go.opentelemetry.io/collector/exporter v0.114.0
 	go.opentelemetry.io/collector/exporter/debugexporter v0.114.0
 	go.opentelemetry.io/collector/exporter/nopexporter v0.114.0
@@ -147,7 +147,7 @@ require (
 	go.opentelemetry.io/collector/extension v0.114.0
 	go.opentelemetry.io/collector/extension/zpagesextension v0.114.0
 	go.opentelemetry.io/collector/otelcol v0.114.0
-	go.opentelemetry.io/collector/pdata v1.20.0
+	go.opentelemetry.io/collector/pdata v1.21.0
 	go.opentelemetry.io/collector/pipeline v0.114.0
 	go.opentelemetry.io/collector/processor v0.114.0
 	go.opentelemetry.io/collector/processor/batchprocessor v0.114.0
@@ -359,7 +359,7 @@ require (
 	go.opentelemetry.io/collector/connector/connectortest v0.114.0 // indirect
 	go.opentelemetry.io/collector/consumer/consumererror v0.114.0 // indirect
 	go.opentelemetry.io/collector/consumer/consumererror/consumererrorprofiles v0.114.0 // indirect
-	go.opentelemetry.io/collector/consumer/consumerprofiles v0.114.0 // indirect
+	go.opentelemetry.io/collector/consumer/consumerprofiles v0.115.0 // indirect
 	go.opentelemetry.io/collector/exporter/exporterhelper/exporterhelperprofiles v0.114.0 // indirect
 	go.opentelemetry.io/collector/exporter/exporterprofiles v0.114.0 // indirect
 	go.opentelemetry.io/collector/exporter/exportertest v0.114.0 // indirect
@@ -371,8 +371,8 @@ require (
 	go.opentelemetry.io/collector/internal/fanoutconsumer v0.114.0 // indirect
 	go.opentelemetry.io/collector/internal/memorylimiter v0.114.0 // indirect
 	go.opentelemetry.io/collector/internal/sharedcomponent v0.114.0 // indirect
-	go.opentelemetry.io/collector/pdata/pprofile v0.114.0 // indirect
-	go.opentelemetry.io/collector/pdata/testdata v0.114.0 // indirect
+	go.opentelemetry.io/collector/pdata/pprofile v0.115.0 // indirect
+	go.opentelemetry.io/collector/pdata/testdata v0.115.0 // indirect
 	go.opentelemetry.io/collector/pipeline/pipelineprofiles v0.114.0 // indirect
 	go.opentelemetry.io/collector/processor/processorhelper/processorhelperprofiles v0.114.0 // indirect
 	go.opentelemetry.io/collector/processor/processorprofiles v0.114.0 // indirect
@@ -635,7 +635,7 @@ require (
 	go.mongodb.org/atlas v0.37.0 // indirect
 	go.opencensus.io v0.24.0
 	go.opentelemetry.io/collector/component v0.114.0
-	go.opentelemetry.io/collector/consumer v0.114.0
+	go.opentelemetry.io/collector/consumer v1.21.0
 	go.opentelemetry.io/collector/featuregate v1.20.0
 	go.opentelemetry.io/collector/semconv v0.114.0
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.56.0 // indirect

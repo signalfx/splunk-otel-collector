@@ -55,6 +55,7 @@ The distribution offers support for the following components.
 | [postgresql](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/postgresqlreceiver)                                              | [beta]           |
 | [prometheus](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/prometheusreceiver)                                              | [beta]           |
 | [prometheus_simple](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/simpleprometheusreceiver)                                 | [beta]           |
+| [purefa](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/purefareceiver)                                                      | [alpha]           |
 | [rabbitmq](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/rabbitmqreceiver)                                                  | [beta]           |
 | [receiver_creator](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/receivercreator)                                           | [beta]           |
 | [redis](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/redisreceiver)                                                        | [beta]           |

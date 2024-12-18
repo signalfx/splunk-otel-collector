@@ -5,7 +5,7 @@
 ### 🚀 New components 🚀
 
 - (Splunk) Add `snowflake` receiver ([#5724](https://github.com/signalfx/splunk-otel-collector/pull/5724))
-- (Splunk) Add `sum` connector ([# ](https://github.com/signalfx/splunk-otel-collector/pull/))
+- (Splunk) Add `sum` connector ([#5730 ](https://github.com/signalfx/splunk-otel-collector/pull/5730))
 
 ## v0.115.0
 

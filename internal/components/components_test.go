@@ -150,6 +150,7 @@ func TestDefaultComponents(t *testing.T) {
 		"forward",
 		"routing",
 		"spanmetrics",
+		"sum",
 	}
 
 	factories, err := Get()

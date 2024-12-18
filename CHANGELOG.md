@@ -7,6 +7,7 @@
 ### 🛑 Breaking changes 🛑
 
 - (Splunk) Change default traces exporter to otlphttp exporter. ([#5588](https://github.com/signalfx/splunk-otel-collector/pull/5588)).
+  See [the upgrade guidelines](https://github.com/signalfx/splunk-otel-collector?tab=readme-ov-file#from-01140-to-01150) on how to change existing configs to replace SAPM exporter.
 - (Core) Change all logged timestamps to ISO8601 ([#10543](https://github.com/open-telemetry/opentelemetry-collector/pull/10543)).
   This makes log timestamps human-readable (as opposed to epoch seconds in
   scientific notation), but may break users trying to parse logged lines in the

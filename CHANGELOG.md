@@ -5,6 +5,7 @@
 ### 🚀 New components 🚀
 
 - (Splunk) Add `snowflake` receiver ([#5724](https://github.com/signalfx/splunk-otel-collector/pull/5724))
+- (Splunk) Add `purefa` receiver ([#5731](https://github.com/signalfx/splunk-otel-collector/pull/5731))
 
 ## v0.115.0
 

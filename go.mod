@@ -29,6 +29,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.115.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/ackextension v0.115.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.115.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/bearertokenauthextension v0.115.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/headerssetterextension v0.115.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension v0.115.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarderextension v0.115.0

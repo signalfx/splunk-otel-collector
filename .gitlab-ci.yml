@@ -1525,6 +1525,7 @@ sign-multiarch-manifest:
 xray-scan-docker:
   only:
     - main
+    - update_ci_windows_scan
   except:
     - schedules
   extends: .container-scan

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 🚀 New components 🚀
+
+- (Splunk) Add `snowflake` receiver ([#5724](https://github.com/signalfx/splunk-otel-collector/pull/5724))
+
 ## v0.115.0
 
 ### 🛑 Breaking changes 🛑
@@ -19,6 +23,7 @@
 
 - (Splunk) Add `filestats` receiver ([#5229](https://github.com/signalfx/splunk-otel-collector/pull/5229))
 - (Splunk) Add `iis` receiver ([#5717](https://github.com/signalfx/splunk-otel-collector/pull/5717))
+- (Splunk) Add `bearertokenauth` extension ([#5727](https://github.com/signalfx/splunk-otel-collector/pull/5727))
 
 ### 💡 Enhancements 💡
 

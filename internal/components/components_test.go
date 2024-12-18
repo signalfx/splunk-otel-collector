@@ -28,6 +28,7 @@ func TestDefaultComponents(t *testing.T) {
 	expectedExtensions := []string{
 		"ack",
 		"basicauth",
+		"bearertokenauth",
 		"docker_observer",
 		"ecs_observer",
 		"ecs_task_observer",
@@ -93,6 +94,7 @@ func TestDefaultComponents(t *testing.T) {
 		"signalfx",
 		"signalfxgatewayprometheusremotewrite",
 		"smartagent",
+		"snowflake",
 		"solace",
 		"splunkenterprise",
 		"splunk_hec",

@@ -29,6 +29,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.115.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/ackextension v0.115.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.115.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/bearertokenauthextension v0.115.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/headerssetterextension v0.115.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension v0.115.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarderextension v0.115.0
@@ -101,6 +102,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sapmreceiver v0.115.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/signalfxreceiver v0.115.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/simpleprometheusreceiver v0.115.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/snowflakereceiver v0.115.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/solacereceiver v0.115.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkenterprisereceiver v0.115.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver v0.115.0
@@ -646,7 +648,7 @@ require (
 	go.opentelemetry.io/otel v1.32.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.32.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.32.0 // indirect
-	golang.org/x/crypto v0.30.0 // indirect
+	golang.org/x/crypto v0.31.0 // indirect
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
 	golang.org/x/mod v0.21.0 // indirect
 	golang.org/x/net v0.32.0 // indirect

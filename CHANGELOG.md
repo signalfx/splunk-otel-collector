@@ -38,6 +38,7 @@
                   port: 8888
   ```
   This also removes a warning about deprecated `service::telemetry::metrics::address`.
+- (Splunk) Publish a FIPS-140 compliant Docker [images](https://quay.io/repository/signalfx/splunk-otel-collector-fips?tab=tags) and binaries for Linux and Windows. ([#5725](https://github.com/signalfx/splunk-otel-collector/pull/5725))
 - (Core) `exporterqueue`: Introduce a feature gate exporter.UsePullingBasedExporterQueueBatcher to use the new pulling model in exporter queue batching. ([#8122](https://github.com/open-telemetry/opentelemetry-collector/pull/8122), [#10368](https://github.com/open-telemetry/opentelemetry-collector/pull/10368))
   If both queuing and batching is enabled for exporter, we now use a pulling model instead of a
   pushing model. num_consumer in queue configuration is now used to specify the maximum number of

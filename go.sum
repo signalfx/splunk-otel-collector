@@ -149,6 +149,8 @@ github.com/BurntSushi/toml v1.4.0/go.mod h1:ukJfTF/6rtPPRCnwkur4qwRxa8vTRFBF0uk2
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
 github.com/Code-Hex/go-generics-cache v1.5.1 h1:6vhZGc5M7Y/YD8cIUcY8kcuQLB4cHR7U+0KMqAA0KcU=
 github.com/Code-Hex/go-generics-cache v1.5.1/go.mod h1:qxcC9kRVrct9rHeiYpFWSoW1vxyillCVzX13KZG8dl4=
+github.com/DATA-DOG/go-sqlmock v1.5.2 h1:OcvFkGmslmlZibjAjaHm3L//6LiuBgolP7OputlJIzU=
+github.com/DATA-DOG/go-sqlmock v1.5.2/go.mod h1:88MAG/4G7SMwSE3CeA0ZKzrT5CiOU3OJ+JlNzwDqpNU=
 github.com/DataDog/datadog-go v2.2.0+incompatible/go.mod h1:LButxg5PwREeZtORoXG3tL4fMGNddJ+vMq1mwgfaqoQ=
 github.com/DataDog/datadog-go v3.2.0+incompatible/go.mod h1:LButxg5PwREeZtORoXG3tL4fMGNddJ+vMq1mwgfaqoQ=
 github.com/DataDog/datadog-go v4.8.3+incompatible h1:fNGaYSuObuQb5nzeTQqowRAd9bpDIRRV4/gUtIBjh8Q=
@@ -1485,6 +1487,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/signalfxrecei
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/signalfxreceiver v0.115.0/go.mod h1:FDCqM9AnvMJX2Gu0O9ARrg+nhqHIVgJZzQhWTF0xASw=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/simpleprometheusreceiver v0.115.0 h1:vBAqbeEonMXSjSkZcEUo8VdW8SG7QPfImFo6hggWKps=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/simpleprometheusreceiver v0.115.0/go.mod h1:X3BIyzdO5xPZiSFs5rBFBIjbmqDeXZdZkYe0VLy5LSs=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/snowflakereceiver v0.115.0 h1:XgH1urHWmvnYt6sYnqol9pOJmU4yMWX9Q77HQ/UML+o=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/snowflakereceiver v0.115.0/go.mod h1:a/mkfVlwgIeHq2siwsALculluUHjKyyU23oK6RbUlPA=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/solacereceiver v0.115.0 h1:066RAfXOLBaQx58zG2Upy4Rn47urPqaimfACcuHPdoU=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/solacereceiver v0.115.0/go.mod h1:Aokg71ykNZsCuWPyqQDKWBCPG6c5OUVKL9/Cmru0BP0=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkenterprisereceiver v0.115.0 h1:61Fxh9endPNLyDUe1yKQskENwxFBgXq00pEnSsF/dYw=

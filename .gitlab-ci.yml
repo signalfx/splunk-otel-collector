@@ -111,6 +111,7 @@ fossa:
   only:
     variables:
       - $CI_COMMIT_BRANCH == "main"
+      - $CI_COMMIT_BRANCH == "update_ci_windows_scan"
       - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
   except:
     - schedules
@@ -196,6 +197,7 @@ fossa:
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
     - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH == "update_ci_windows_scan"
   extends: .binary-scan
   stage: xray-scan
   variables:
@@ -368,6 +370,7 @@ agent-bundle-linux:
     - if: $CI_COMMIT_BRANCH == "main"
     - if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
     - if: $CI_PIPELINE_SOURCE == "schedule"
+    - if: $CI_COMMIT_BRANCH == "update_ci_windows_scan"
   stage: build
   needs: []
   retry: 2
@@ -1529,7 +1532,7 @@ xray-scan-docker:
   parallel:
     matrix:
       # - CHILD: ["amd64", "arm64", "ppc64le", "2019", "2022"]
-      - CHILD: ["amd64"]  # the .container-scan template currently only supports linux/amd64 images
+      - CHILD: ["amd64", "2019"]  # the .container-scan template currently only supports linux/amd64 images
   needs:
     - push-multiarch-manifest
     - sign-multiarch-manifest

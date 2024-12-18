@@ -99,6 +99,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sapmreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/signalfxreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/simpleprometheusreceiver"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/snowflakereceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/solacereceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkenterprisereceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver"
@@ -216,6 +217,7 @@ func Get() (otelcol.Factories, error) {
 		signalfxgatewayprometheusremotewritereceiver.NewFactory(),
 		simpleprometheusreceiver.NewFactory(),
 		smartagentreceiver.NewFactory(),
+		snowflakereceiver.NewFactory(),
 		solacereceiver.NewFactory(),
 		splunkenterprisereceiver.NewFactory(),
 		splunkhecreceiver.NewFactory(),

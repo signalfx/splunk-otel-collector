@@ -19,6 +19,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/countconnector v0.115.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/routingconnector v0.115.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector v0.115.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/connector/sumconnector v0.115.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awss3exporter v0.115.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.115.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.115.0

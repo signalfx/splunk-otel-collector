@@ -22,7 +22,7 @@ jobs:
   test:
     timeout-minutes: 30
     name: Test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         nomad: [ "1.6.10-1", "1.7.7-1" ]

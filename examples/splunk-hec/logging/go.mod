@@ -1,6 +1,8 @@
 module github.com/signalfx/splunk-otel-collector/examples/splunk-hec/logging
 
-go 1.22
+go 1.22.0
+
+toolchain go1.23.4
 
 require go.uber.org/zap v1.27.0
 

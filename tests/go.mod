@@ -10,8 +10,8 @@ require (
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/google/uuid v1.6.0
 	github.com/knadh/koanf v1.5.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/golden v0.115.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.115.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/golden v0.116.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.116.0
 	github.com/shirou/gopsutil/v3 v3.24.5
 	github.com/stretchr/testify v1.10.0
 	github.com/testcontainers/testcontainers-go v0.34.0
@@ -24,7 +24,7 @@ require (
 	go.opentelemetry.io/collector/consumer/consumertest v0.115.0
 	go.opentelemetry.io/collector/exporter v0.115.0
 	go.opentelemetry.io/collector/exporter/otlpexporter v0.115.0
-	go.opentelemetry.io/collector/pdata v1.21.0
+	go.opentelemetry.io/collector/pdata v1.22.0
 	go.opentelemetry.io/collector/receiver v0.115.0
 	go.opentelemetry.io/collector/receiver/otlpreceiver v0.115.0
 	go.opentelemetry.io/collector/receiver/receivertest v0.115.0
@@ -78,7 +78,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/mostynb/go-grpc-compression v1.2.3 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatautil v0.115.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatautil v0.116.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.21 // indirect
@@ -112,7 +112,7 @@ require (
 	go.opentelemetry.io/collector/extension/experimental/storage v0.115.0 // indirect
 	go.opentelemetry.io/collector/featuregate v1.21.0 // indirect
 	go.opentelemetry.io/collector/internal/sharedcomponent v0.115.0 // indirect
-	go.opentelemetry.io/collector/pdata/pprofile v0.115.0 // indirect
+	go.opentelemetry.io/collector/pdata/pprofile v0.116.0 // indirect
 	go.opentelemetry.io/collector/pipeline v0.115.0 // indirect
 	go.opentelemetry.io/collector/pipeline/pipelineprofiles v0.115.0 // indirect
 	go.opentelemetry.io/collector/receiver/receiverprofiles v0.115.0 // indirect
@@ -127,8 +127,8 @@ require (
 	golang.org/x/net v0.33.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
 	golang.org/x/time v0.0.0-20220210224613-90d013bbcef8 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20240814211410-ddb44dafa142 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20240903143218-8af14fe29dc1 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20241007155032-5fefd90f89a9 // indirect
-	google.golang.org/grpc v1.67.1 // indirect
+	google.golang.org/grpc v1.68.1 // indirect
 	google.golang.org/protobuf v1.35.2 // indirect
 )

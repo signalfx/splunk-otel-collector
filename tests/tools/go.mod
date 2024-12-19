@@ -2,7 +2,7 @@ module github.com/signalfx/splunk-otel-collector/tests/tools
 
 go 1.22.0
 
-toolchain go1.23.4
+toolchain go1.22.7
 
 require github.com/Songmu/gotesplit v0.3.1
 

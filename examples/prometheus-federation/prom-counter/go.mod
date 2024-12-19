@@ -2,7 +2,7 @@ module github.com/signalfx/splunk-otel-collector/examples/prometheus-federation/
 
 go 1.22.0
 
-toolchain go1.23.4
+toolchain go1.22.7
 
 require (
 	go.opentelemetry.io/otel v0.20.0

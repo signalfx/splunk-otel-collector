@@ -166,9 +166,9 @@ func runMsiTest(t *testing.T, test msiTest, msiInstallerPath string) {
 			// Uninstall the MSI
 			uninstallCmd := exec.Command("msiexec")
 			uninstallCmd.SysProcAttr = &syscall.SysProcAttr{CmdLine: "msiexec /x " + msiInstallerPath + " /qn"}
-			err := uninstallCmd.Run()
+			errUninstallCmd := uninstallCmd.Run()
 			t.Logf("Uninstall command: %s", uninstallCmd.SysProcAttr.CmdLine)
-			require.NoError(t, err, "Failed to uninstall the MSI: %v", err)
+			require.NoError(t, errUninstallCmd, "Failed to uninstall the MSI: %v", errUninstallCmd)
 		}()
 	}
 

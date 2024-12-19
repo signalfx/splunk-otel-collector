@@ -51,5 +51,6 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $env:GOPATH = "${env:USERPROFILE}\go"
           $env:PATH = "$env:PATH;${env:GOPATH}\bin"
+          $env:FSNOTIFY_DEBUG = "1"
           go env -w CGO_ENABLED=0
           go test -v -cover ./...

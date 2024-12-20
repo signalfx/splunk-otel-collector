@@ -1,0 +1,13 @@
+receivers:
+    collectd:
+      endpoint: "0.0.0.0:8081"
+
+exporters:
+    debug:
+      verbosity: detailed
+
+service:
+    pipelines:
+      metrics:
+        receivers: [collectd]
+        exporters: [debug]

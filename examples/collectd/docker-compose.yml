@@ -1,0 +1,17 @@
+version: "3"
+services:
+  collectd:
+    build: collectd
+    container_name: collectd
+    depends_on:
+      - otelcollector
+    volumes:
+      - ./collectd/http.conf:/etc/collectd/collectd.conf.d/http.conf
+      - ./collectd/metrics.conf:/etc/collectd/collectd.conf.d/metrics.conf
+  # OpenTelemetry Collector
+  otelcollector:
+    image:  quay.io/signalfx/splunk-otel-collector:latest
+    container_name: otelcollector
+    command: ["--config=/etc/otel-collector-config.yml", "--set=service.telemetry.logs.level=debug"]
+    volumes:
+      - ./otel-collector-config.yml:/etc/otel-collector-config.yml

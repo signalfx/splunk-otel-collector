@@ -202,7 +202,7 @@ jobs:
           image: "otelcol-windows:latest"
 
   check-snyk-token:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       has-snyk-token: ${{ steps.snyk-token-check.outputs.defined }}
     steps:
@@ -216,7 +216,7 @@ jobs:
           fi
 
   snyk-fs-scan:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: check-snyk-token
     if: ${{ needs.check-snyk-token.outputs.has-snyk-token == 'true' }}
     steps:
@@ -235,7 +235,7 @@ jobs:
           sarif_file: snyk.sarif
 
   snyk-docker-scan:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [docker-otelcol, check-snyk-token]
     if: ${{ needs.check-snyk-token.outputs.has-snyk-token == 'true' }}
     strategy:
@@ -268,7 +268,7 @@ jobs:
           sarif_file: snyk.sarif
 
   govulncheck:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - name: Checkout Repo

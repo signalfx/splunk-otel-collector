@@ -1,4 +1,4 @@
-FROM apache/spark:3.4.0-python3
+FROM apache/spark:3.5.4-python3
 
 COPY ./long_running.py /opt/spark/examples/src/main/python/long_running.py
 RUN chmod +x /opt/spark/examples/src/main/python/long_running.py

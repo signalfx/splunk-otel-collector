@@ -120,6 +120,17 @@ services:
     # kafka examples in the upstream apache (licensed + hosted) repo
     # Thanks all from the Kafka team!
     # https://github.com/apache/kafka/blob/3.7.0/docker/examples/jvm/single-node/plaintext/docker-compose.yml
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "bash",
+          "-c",
+          "exec 6<> /dev/tcp/localhost/8099"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     hostname: broker
     container_name: broker
     ports:

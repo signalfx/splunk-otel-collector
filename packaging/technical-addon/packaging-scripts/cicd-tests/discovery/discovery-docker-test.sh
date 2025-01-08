@@ -32,18 +32,20 @@ chmod 777 "$ADDON_DIR/$REPACKED_TA_NAME"
 DOCKER_COMPOSE_CONFIG="$SOURCE_DIR/packaging-scripts/cicd-tests/discovery/docker-compose.yml"
 KAFKA_DOCKER_COMPOSE_PATH="$SOURCE_DIR/../../docker/docker-compose.yml"
 export DISCOVERY_LOGS_DIR="$BUILD_DIR/tests/discovery/discovery-logs"
+export KAFKA_LOGS_DIR="$BUILD_DIR/tests/discovery/discovery-logs"
 export SPLUNK_LOGS_DIR="$BUILD_DIR/tests/discovery/splunklogs"
 export SPLUNK_APPS_DIR="$BUILD_DIR/tests/discovery/splunkapps"
 mkdir -p --mode 777 "$DISCOVERY_LOGS_DIR"
 mkdir -p --mode 777 "$SPLUNK_LOGS_DIR"
 mkdir -p --mode 777 "$SPLUNK_APPS_DIR"
+mkdir -p --mode 777 "$KAFKA_LOGS_DIR"
 echo "Will write discovery test logs to $DISCOVERY_LOGS_DIR"
 
-REPACKED_TA_NAME=$REPACKED_TA_NAME BUILD_DIR=$BUILD_DIR ADDON_DIR=$ADDON_DIR DISCOVERY_LOGS_DIR="$DISCOVERY_LOGS_DIR" docker compose  --file "$DOCKER_COMPOSE_CONFIG" config
-REPACKED_TA_NAME=$REPACKED_TA_NAME BUILD_DIR=$BUILD_DIR ADDON_DIR=$ADDON_DIR DISCOVERY_LOGS_DIR="$DISCOVERY_LOGS_DIR" docker compose --file "$DOCKER_COMPOSE_CONFIG" up --build --wait
+#REPACKED_TA_NAME=$REPACKED_TA_NAME BUILD_DIR=$BUILD_DIR ADDON_DIR=$ADDON_DIR DISCOVERY_LOGS_DIR="$DISCOVERY_LOGS_DIR" docker compose  --file "$DOCKER_COMPOSE_CONFIG" config
+REPACKED_TA_NAME=$REPACKED_TA_NAME BUILD_DIR=$BUILD_DIR ADDON_DIR=$ADDON_DIR DISCOVERY_LOGS_DIR="$DISCOVERY_LOGS_DIR" docker compose --file "$DOCKER_COMPOSE_CONFIG" up --build --wait --detach
 #REPACKED_TA_NAME=$REPACKED_TA_NAME BUILD_DIR=$BUILD_DIR ADDON_DIR=$ADDON_DIR DISCOVERY_LOGS_DIR="$DISCOVERY_LOGS_DIR" docker compose  --file "$DOCKER_COMPOSE_CONFIG" up --build
 #docker exec -u splunk discovery-ta-test-discovery-1 /opt/splunk/bin/splunk install app "/addon-dir/$REPACKED_TA_NAME" -auth 'admin:Chang3d!'
-# I can't seem to find a way to directly install it to the apps folder after a bunch of trying, possibly due to bug in config
+# I can't seem to find a way to directly install it to the apps folder after a bunch of trying, possibly due to bug in config.  So, copy it and restart.
 docker exec -u splunk discovery-ta-test-discovery-1 cp -r "/addon-dir/Splunk_TA_otel" "/opt/splunk/etc/apps"
 
 
@@ -51,20 +53,21 @@ docker exec -u splunk discovery-ta-test-discovery-1 cp -r "/addon-dir/Splunk_TA_
 # However, here our binary via the TA is running in a splunk docker instance
 # The splunk image does not have docker installed by default
 # Thus, either need to install and enable docker, 
-# Or need to bridge networks for discovery
+# Or need to bridge networks for discovery.
+# Given lack of a package manager in splunk docker images, it's likely best to just use host networking.
 
 #docker exec -u root discovery-ta-test-discovery-1 yum install -y docker
 #docker exec -u root discovery-ta-test-discovery-1 systemctl restart docker
 docker exec -u splunk discovery-ta-test-discovery-1 /opt/splunk/bin/splunk restart
-# TODO move this before the discovery startup
-JVM_OPTS="" docker compose --file "$KAFKA_DOCKER_COMPOSE_PATH" --profile integration-test-ta-discovery up -d --wait --build --quiet-pull
 # TODO delete this, used for testing/inspection
 #docker exec -u root -it discovery-ta-test-discovery-1 cat /opt/splunk/var/log/splunk/otel.log
 docker exec -u root -it discovery-ta-test-discovery-1 bash
+# Wait for this to come online, *then* check splunk docker logs
+#JVM_OPTS="" docker compose --file "$KAFKA_DOCKER_COMPOSE_PATH" --profile integration-test-ta-discovery up -d --wait --build --quiet-pull
 
 # Check logs on host
 #docker exec 
 
 # Should trap these
 REPACKED_TA_NAME=$REPACKED_TA_NAME BUILD_DIR=$BUILD_DIR ADDON_DIR=$ADDON_DIR DISCOVERY_LOGS_DIR="$DISCOVERY_LOGS_DIR" docker compose --file "$DOCKER_COMPOSE_CONFIG" down
-docker compose --file "$KAFKA_DOCKER_COMPOSE_PATH" --profile integration-test-ta-discovery down
+#JVM_OPTS="" docker compose --file "$KAFKA_DOCKER_COMPOSE_PATH" --profile integration-test-ta-discovery down

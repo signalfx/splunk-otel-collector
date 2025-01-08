@@ -1,5 +1,5 @@
 extensions:
-  docker_observer:
+  #docker_observer:
   host_observer:
 
 receivers:
@@ -30,7 +30,7 @@ receivers:
               message: The container is refusing kafka connections.
 
     watch_observers:
-      - docker_observer
+      #- docker_observer
       - host_observer
 
 # drop scrape_timestamp attributes until we can accept arbitrary values
@@ -47,7 +47,7 @@ service:
     logs:
       level: debug
   extensions:
-    - docker_observer
+    #- docker_observer
     - host_observer
   pipelines:
     logs:

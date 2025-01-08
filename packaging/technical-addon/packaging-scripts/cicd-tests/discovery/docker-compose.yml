@@ -2,24 +2,65 @@ version: "3.6"
 # See https://splunk.github.io/docker-splunk/advanced/APP_INSTALL.html#apps-on-filesystem
 services:
   ta-test-discovery:
-    network_mode: bridge
     image: ${SPLUNK_IMAGE:-splunk/splunk:9.2.1}
+    network_mode: "host"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/en-US/account/login"]
       interval: 30s
       timeout: 10s
       retries: 5
       start_period: 60s
-    hostname: ta-test-discovery
+    #hostname: ta-test-discovery
     environment:
       - SPLUNK_START_ARGS=--accept-license
       - SPLUNK_APPS_URL=/addon-dir/$REPACKED_TA_NAME
       - SPLUNK_PASSWORD=Chang3d!
-    ports:
-      - 8000
     volumes:
       #- $ADDON_DIR:/opt/splunk/etc/apps:rw
       - $ADDON_DIR:/addon-dir
-      - $BUILD_DIR/tests/discovery/discovery-logs/:/discovery-logs:rw
+      - $BUILD_DIR/tests/discovery/discovery-logs/:/discovery-logs:rwz
         #- $BUILD_DIR/tests/discovery/splunklogs/:/opt/splunk/var/log/:rw
         #- $BUILD_DIR/tests/discovery/splunk-addon-apps/:/opt/splunk/etc/apps/:rw
+        #  # new-style kafka
+    depends_on:
+      kafka-kraft-single:
+         #condition: service_healthy
+         condition: service_started
+  kafka-kraft-single:
+    image: apache/kafka:3.7.0
+    # following configuration is taken DIRECTLY from
+    # kafka examples in the upstream apache (licensed + hosted) repo
+    # Thanks all from the Kafka team!
+    # https://github.com/apache/kafka/blob/3.7.0/docker/examples/jvm/single-node/plaintext/docker-compose.yml
+    network_mode: "host"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT_HOST://localhost:9092,PLAINTEXT://localhost:19092'
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@localhost:29093'
+      KAFKA_LISTENERS: 'CONTROLLER://:29093,PLAINTEXT_HOST://:9092,PLAINTEXT://:19092'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      CLUSTER_ID: '4L6g3nShT-eMCtK--X86sx'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
+    #volumes:
+    #  - "$BUILD_DIR/tests/discovery/kafka-logs/:/tmp/kraft-combined-logs"
+    #healthcheck:
+    #  test:
+    #    [
+    #      "CMD",
+    #      "grep",
+    #      "-R",
+    #      "-q",
+    #      "-i",
+    #      "Kafka Server started",
+    #      "/tmp/kraft-combined-logs"
+    #    ]
+    #  interval: 10s
+    #  timeout: 5s
+    #  retries: 10

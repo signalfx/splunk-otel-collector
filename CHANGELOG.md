@@ -44,7 +44,6 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 - (Core) `exporterhelper`: Fix memory leak at exporter shutdown ([#11401](https://github.com/open-telemetry/opentelemetry-collector/issues/11401))
 - (Core) `sharedcomponent`: Remove race-condition and cleanup locking ([#11819](https://github.com/open-telemetry/opentelemetry-collector/issues/11819))
 - (Contrib) `receiver/prometheusreceiver`: Metric adjuster no longer assumes that all metrics from a scrape come from the same resource ([#36477](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/36477))
-- (Contrib) `googlecloudmonitoringreceiver`: Fix "no validation found" error if workload is running on Google Cloud Platform ([#36607](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/36607))
 - (Contrib) `k8sattributesprocessor`: Override extracted k8s attributes if original value has been empty ([#36373](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/36373))
 - (Contrib) `k8sattributesprocessor`: Log any errors encountered during kube client initialisation ([#35879](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/35879))
   This addresses an issue where the collector, due to an error encountered during the kubernetes client initialisation,

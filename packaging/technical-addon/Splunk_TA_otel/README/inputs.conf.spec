@@ -60,5 +60,5 @@ discovery_properties = <value>
 configd = <value>
 * Boolean, if `true` will enable `--configd`
 
-config_dir = <value>
+configd_dir = <value>
 * String, same as `--configd` parameter as defined in https://github.com/signalfx/splunk-otel-collector/blob/v0.114.0/internal/confmapprovider/discovery/README.md?plain=1#L47

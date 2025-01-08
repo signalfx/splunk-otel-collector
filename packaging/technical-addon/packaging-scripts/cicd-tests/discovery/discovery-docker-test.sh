@@ -54,8 +54,12 @@ docker exec -u splunk discovery-ta-test-discovery-1 cp -r "/addon-dir/Splunk_TA_
 docker exec -u splunk discovery-ta-test-discovery-1 /opt/splunk/bin/splunk restart
 # TODO delete this, used for testing/inspection
 #docker exec -u root -it discovery-ta-test-discovery-1 cat /opt/splunk/var/log/splunk/otel.log
-docker exec -u root -it discovery-ta-test-discovery-1 /opt/splunk/bin/splunk btool check --debug | grep -qi "Invalid key in stanza" && exit 1
-docker exec -u root -it discovery-ta-test-discovery-1 bash
+#docker exec -u root -it discovery-ta-test-discovery-1 /opt/splunk/bin/splunk btool check --debug | grep -qi "Invalid key in stanza" && exit 1
+docker exec -u root -it discovery-ta-test-discovery-1 /opt/splunk/bin/splunk btool check --debug | grep -i "Invalid key in stanza" && exit 1
+sleep 1m
+docker exec -u root -it discovery-ta-test-discovery-1 grep -qi "9092" /opt/splunk/var/log/splunk/otel.log
+docker exec -u root -it discovery-ta-test-discovery-1 grep -i "9092" /opt/splunk/var/log/splunk/otel.log
+docker exec -u root -it discovery-ta-test-discovery-1 grep -qi "kafkametrics receiver is working" /opt/splunk/var/log/splunk/otel.log
 # Wait for this to come online, *then* check splunk docker logs
 #JVM_OPTS="" docker compose --file "$KAFKA_DOCKER_COMPOSE_PATH" --profile integration-test-ta-discovery up -d --wait --build --quiet-pull
 

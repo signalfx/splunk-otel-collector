@@ -1,13 +1,13 @@
 module github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver
 
-go 1.22.5
+go 1.22.7
 
-toolchain go1.22.7
+toolchain go1.22.10
 
 require (
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.116.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.116.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.116.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.117.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.117.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.117.0
 	github.com/openzipkin/zipkin-go v0.4.3
 	github.com/shirou/gopsutil/v3 v3.24.5
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657
@@ -16,18 +16,18 @@ require (
 	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension v0.83.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.10.0
-	go.opentelemetry.io/collector/component v0.116.0
-	go.opentelemetry.io/collector/component/componenttest v0.116.0
-	go.opentelemetry.io/collector/confmap v1.22.0
-	go.opentelemetry.io/collector/consumer v1.22.0
-	go.opentelemetry.io/collector/consumer/consumertest v0.116.0
-	go.opentelemetry.io/collector/exporter v0.116.0
-	go.opentelemetry.io/collector/exporter/exportertest v0.116.0
-	go.opentelemetry.io/collector/extension v0.116.0
-	go.opentelemetry.io/collector/extension/extensiontest v0.116.0
+	go.opentelemetry.io/collector/component v0.117.0
+	go.opentelemetry.io/collector/component/componenttest v0.117.0
+	go.opentelemetry.io/collector/confmap v1.23.0
+	go.opentelemetry.io/collector/consumer v1.23.0
+	go.opentelemetry.io/collector/consumer/consumertest v0.117.0
+	go.opentelemetry.io/collector/exporter v0.117.0
+	go.opentelemetry.io/collector/exporter/exportertest v0.117.0
+	go.opentelemetry.io/collector/extension v0.117.0
+	go.opentelemetry.io/collector/extension/extensiontest v0.117.0
 	go.opentelemetry.io/collector/pdata v1.23.0
-	go.opentelemetry.io/collector/pipeline v0.116.0
-	go.opentelemetry.io/collector/receiver v0.116.0
+	go.opentelemetry.io/collector/pipeline v0.117.0
+	go.opentelemetry.io/collector/receiver v0.117.0
 	go.opentelemetry.io/otel/metric v1.32.0
 	go.opentelemetry.io/otel/trace v1.32.0
 	go.uber.org/zap v1.27.0
@@ -130,7 +130,7 @@ require (
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
 	github.com/jackc/pgtype v1.14.2 // indirect
 	github.com/jackc/pgx/v4 v4.18.3 // indirect
-	github.com/jaegertracing/jaeger v1.62.1-0.20241025024524-9f4e8f79ab18 // indirect
+	github.com/jaegertracing/jaeger v1.64.0 // indirect
 	github.com/jcmturner/aescts/v2 v2.0.0 // indirect
 	github.com/jcmturner/dnsutils/v2 v2.0.0 // indirect
 	github.com/jcmturner/gofork v1.7.6 // indirect
@@ -163,8 +163,8 @@ require (
 	github.com/mtibben/percent v0.2.1 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/mwielbut/pointy v1.1.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.116.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatautil v0.116.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.117.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatautil v0.117.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0 // indirect
 	github.com/openshift/api v0.0.0-20230417092139-1b2161d23365 // indirect
@@ -200,15 +200,15 @@ require (
 	github.com/vmware/govmomi v0.46.2 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	github.com/zeebo/xxh3 v1.0.2 // indirect
-	go.opentelemetry.io/collector/config/configtelemetry v0.116.0 // indirect
-	go.opentelemetry.io/collector/consumer/consumererror v0.116.0 // indirect
-	go.opentelemetry.io/collector/consumer/xconsumer v0.116.0 // indirect
-	go.opentelemetry.io/collector/exporter/xexporter v0.116.0 // indirect
-	go.opentelemetry.io/collector/pdata/pprofile v0.116.0 // indirect
-	go.opentelemetry.io/collector/receiver/receivertest v0.116.0 // indirect
-	go.opentelemetry.io/collector/receiver/xreceiver v0.116.0 // indirect
-	go.opentelemetry.io/collector/semconv v0.116.0 // indirect
-	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.56.0 // indirect
+	go.opentelemetry.io/collector/config/configtelemetry v0.117.0 // indirect
+	go.opentelemetry.io/collector/consumer/consumererror v0.117.0 // indirect
+	go.opentelemetry.io/collector/consumer/xconsumer v0.117.0 // indirect
+	go.opentelemetry.io/collector/exporter/xexporter v0.117.0 // indirect
+	go.opentelemetry.io/collector/pdata/pprofile v0.117.0 // indirect
+	go.opentelemetry.io/collector/receiver/receivertest v0.117.0 // indirect
+	go.opentelemetry.io/collector/receiver/xreceiver v0.117.0 // indirect
+	go.opentelemetry.io/collector/semconv v0.117.0 // indirect
+	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.57.0 // indirect
 	go.opentelemetry.io/otel v1.32.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.32.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.32.0 // indirect

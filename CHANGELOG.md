@@ -4,7 +4,7 @@
 
 ### 🚀 New components 🚀
 
-- (Splunk) Add `metricsgeneration` processor ([#](https://github.com/signalfx/splunk-otel-collector/pull/))
+- (Splunk) Add `metricsgeneration` processor ([#5769](https://github.com/signalfx/splunk-otel-collector/pull/5769))
 
 ## v0.116.0
 

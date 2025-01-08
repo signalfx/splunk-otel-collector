@@ -28,7 +28,6 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 
 - (Contrib) `purefareceiver`: Implements support for scraping Pure Storage FlashArray with Purity version 6.6.11+ ([#36251](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/36251))
 - (Contrib) `azureeventhubreceiver`: support providing one or more time formats for timestamp parsing ([#36650](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/36650))
-- (Contrib) `awss3receiver`: Add support RFC3339 format for starttime and endtime ([#36787](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/36787))
 - (Contrib) `fileexporter`: Add support for profiles signal. ([#35978](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/35978))
 - (Contrib) `pkg/ottl`: GetXML Converter now supports selecting text, CDATA, and attribute (value) content. ([#36821](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/36821))
 - (Contrib) `kafkaexporter, kafkareceiver`: Add a new mechanism "AWS_MSK_IAM_OAUTHBEARER" for kafka exporter and kafka receiver. This mechanism use the AWS MSK IAM SASL Signer for Go https://github.com/aws/aws-msk-iam-sasl-signer-go. ([#19747](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/19747))

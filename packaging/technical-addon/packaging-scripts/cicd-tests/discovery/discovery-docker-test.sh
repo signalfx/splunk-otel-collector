@@ -30,16 +30,9 @@ chmod 777 "$ADDON_DIR/$REPACKED_TA_NAME"
 
 # Set env vars to be passed into docker compose
 DOCKER_COMPOSE_CONFIG="$SOURCE_DIR/packaging-scripts/cicd-tests/discovery/docker-compose.yml"
-KAFKA_DOCKER_COMPOSE_PATH="$SOURCE_DIR/../../docker/docker-compose.yml"
-export DISCOVERY_LOGS_DIR="$BUILD_DIR/tests/discovery/discovery-logs"
-export KAFKA_LOGS_DIR="$BUILD_DIR/tests/discovery/discovery-logs"
-export SPLUNK_LOGS_DIR="$BUILD_DIR/tests/discovery/splunklogs"
-export SPLUNK_APPS_DIR="$BUILD_DIR/tests/discovery/splunkapps"
-mkdir -p --mode 777 "$DISCOVERY_LOGS_DIR"
-mkdir -p --mode 777 "$SPLUNK_LOGS_DIR"
-mkdir -p --mode 777 "$SPLUNK_APPS_DIR"
-mkdir -p --mode 777 "$KAFKA_LOGS_DIR"
-echo "Will write discovery test logs to $DISCOVERY_LOGS_DIR"
+DISCOVERY_LOGS_DIR="$BUILD_DIR/tests/discovery/discovery-logs"
+mkdir -p --mode a+rwx "$DISCOVERY_LOGS_DIR"
+echo "Will write discovery test receiver logs to $DISCOVERY_LOGS_DIR"
 
 #REPACKED_TA_NAME=$REPACKED_TA_NAME BUILD_DIR=$BUILD_DIR ADDON_DIR=$ADDON_DIR DISCOVERY_LOGS_DIR="$DISCOVERY_LOGS_DIR" docker compose  --file "$DOCKER_COMPOSE_CONFIG" config
 REPACKED_TA_NAME=$REPACKED_TA_NAME BUILD_DIR=$BUILD_DIR ADDON_DIR=$ADDON_DIR DISCOVERY_LOGS_DIR="$DISCOVERY_LOGS_DIR" docker compose --file "$DOCKER_COMPOSE_CONFIG" up --build --wait --detach
@@ -61,12 +54,16 @@ docker exec -u splunk discovery-ta-test-discovery-1 cp -r "/addon-dir/Splunk_TA_
 docker exec -u splunk discovery-ta-test-discovery-1 /opt/splunk/bin/splunk restart
 # TODO delete this, used for testing/inspection
 #docker exec -u root -it discovery-ta-test-discovery-1 cat /opt/splunk/var/log/splunk/otel.log
+docker exec -u root -it discovery-ta-test-discovery-1 /opt/splunk/bin/splunk btool check --debug | grep -qi "Invalid key in stanza" && exit 1
 docker exec -u root -it discovery-ta-test-discovery-1 bash
 # Wait for this to come online, *then* check splunk docker logs
 #JVM_OPTS="" docker compose --file "$KAFKA_DOCKER_COMPOSE_PATH" --profile integration-test-ta-discovery up -d --wait --build --quiet-pull
 
 # Check logs on host
 #docker exec 
+
+# Finally, need to grep for 
+# "kafkametrics receiver is working!"
 
 # Should trap these
 REPACKED_TA_NAME=$REPACKED_TA_NAME BUILD_DIR=$BUILD_DIR ADDON_DIR=$ADDON_DIR DISCOVERY_LOGS_DIR="$DISCOVERY_LOGS_DIR" docker compose --file "$DOCKER_COMPOSE_CONFIG" down

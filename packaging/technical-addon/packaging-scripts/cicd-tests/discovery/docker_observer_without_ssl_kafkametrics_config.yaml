@@ -1,5 +1,5 @@
 extensions:
-  #docker_observer:
+  #docker_observer: # could try just mounting the socket too
   host_observer:
 
 receivers:
@@ -40,7 +40,7 @@ exporters:
   debug:
     verbosity: detailed
   file/no_rotation:
-    path: /discovery-logs/discovery.log
+    path: /discovery-logs/
 
 service:
   telemetry:

@@ -46,7 +46,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 - (Contrib) `receiver/prometheusreceiver`: Metric adjuster no longer assumes that all metrics from a scrape come from the same resource ([#36477](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/36477))
 - (Contrib) `googlecloudmonitoringreceiver`: Fix "no validation found" error if workload is running on Google Cloud Platform ([#36607](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/36607))
 - (Contrib) `k8sattributesprocessor`: Override extracted k8s attributes if original value has been empty ([#36373](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/36373))
-- (Contrib) `k8sattributesreceiver`: Log any errors encountered during kube client initialisation ([#35879](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/35879))
+- (Contrib) `k8sattributesprocessor`: Log any errors encountered during kube client initialisation ([#35879](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/35879))
   This addresses an issue where the collector, due to an error encountered during the kubernetes client initialisation,
   was reporting an 'unavailable' status via the health check extension without any further information to be found in the logs.
 - (Contrib) `postgresqlreceiver`: Update the postgresqlreceiver to handle new table schema for the bgwriter metrics in pg17+ ([#36784](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/36784))

@@ -269,7 +269,6 @@ func (container Container) Build() *Container {
 		Privileged:         container.Privileged,
 		HostConfigModifier: hostConfigModifier,
 		WaitingFor:         wait.ForAll(container.WaitingFor...).WithDeadline(startupTimeout),
-		ImagePlatform:      "linux/amd64",
 	}
 	return &container
 }

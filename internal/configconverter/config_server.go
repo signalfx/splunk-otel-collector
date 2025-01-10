@@ -37,12 +37,13 @@ import (
 )
 
 const (
-	configServerEnabledEnvVar   = "SPLUNK_DEBUG_CONFIG_SERVER"
-	configServerPortEnvVar      = "SPLUNK_DEBUG_CONFIG_SERVER_PORT"
-	defaultConfigServerPort     = "55554"
-	defaultConfigServerEndpoint = "localhost:" + defaultConfigServerPort
-	effectivePath               = "/debug/configz/effective"
-	initialPath                 = "/debug/configz/initial"
+	configServerEnabledEnvVar           = "SPLUNK_DEBUG_CONFIG_SERVER"
+	configServerPortEnvVar              = "SPLUNK_DEBUG_CONFIG_SERVER_PORT"
+	configServerNetworkInterfaceEnvVar  = "SPLUNK_DEBUG_CONFIG_SERVER_NETWORK_INTERFACE"
+	defaultConfigServerPort             = "55554"
+	defaultConfigServerNetworkInterface = "localhost"
+	effectivePath                       = "/debug/configz/effective"
+	initialPath                         = "/debug/configz/initial"
 )
 
 type ConfigType int
@@ -138,15 +139,25 @@ func (cs *ConfigServer) start() {
 
 	cs.once.Do(
 		func() {
-			endpoint := defaultConfigServerEndpoint
+			port := defaultConfigServerPort
 			if portOverride, ok := os.LookupEnv(configServerPortEnvVar); ok {
 				if portOverride == "" {
 					// If explicitly set to empty do not start the server.
 					return
 				}
 
-				endpoint = "localhost:" + portOverride
+				port = portOverride
 			}
+
+			networkInterface := defaultConfigServerNetworkInterface
+			if networkInterfaceOverride, ok := os.LookupEnv(configServerNetworkInterfaceEnvVar); ok {
+				if networkInterfaceOverride != "" {
+					networkInterface = networkInterfaceOverride
+				}
+			}
+
+			endpoint := net.JoinHostPort(networkInterface, port)
+			log.Printf("Starting config server at %q\n", endpoint)
 
 			listener, err := net.Listen("tcp", endpoint)
 			if err != nil {

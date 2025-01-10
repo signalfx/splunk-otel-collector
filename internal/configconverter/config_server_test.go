@@ -51,23 +51,22 @@ func TestConfigServer_RequireEnvVar(t *testing.T) {
 
 	client := &http.Client{}
 	path := "/debug/configz/initial"
-	_, err := client.Get("http://" + defaultConfigServerEndpoint + path)
+	_, err := client.Get("http://localhost:55554" + path)
 	assert.Error(t, err)
 }
 
 func TestConfigServer_EnvVar(t *testing.T) {
 	alternativePort := strconv.FormatUint(uint64(testutils.GetAvailablePort(t)), 10)
-	require.NoError(t, os.Setenv(configServerEnabledEnvVar, "true"))
-	t.Cleanup(func() {
-		assert.NoError(t, os.Unsetenv(configServerEnabledEnvVar))
-	})
+	alternativeNetworkInterface := "0.0.0.0"
+	t.Setenv(configServerEnabledEnvVar, "true")
 
 	tests := []struct {
-		name          string
-		portEnvVar    string
-		endpoint      string
-		setPortEnvVar bool
-		serverDown    bool
+		name                   string
+		portEnvVar             string
+		networkInterfaceEnvVar string
+		endpoint               string
+		setPortEnvVar          bool
+		serverDown             bool
 	}{
 		{
 			name: "default",
@@ -81,6 +80,11 @@ func TestConfigServer_EnvVar(t *testing.T) {
 			name:       "change_port",
 			portEnvVar: alternativePort,
 			endpoint:   "http://localhost:" + alternativePort,
+		},
+		{
+			name:                   "change_networkInterface",
+			networkInterfaceEnvVar: alternativeNetworkInterface,
+			endpoint:               "http://0.0.0.0:55554",
 		},
 	}
 
@@ -97,10 +101,10 @@ func TestConfigServer_EnvVar(t *testing.T) {
 			}
 
 			if tt.portEnvVar != "" || tt.setPortEnvVar {
-				require.NoError(t, os.Setenv(configServerPortEnvVar, tt.portEnvVar))
-				defer func() {
-					assert.NoError(t, os.Unsetenv(configServerPortEnvVar))
-				}()
+				t.Setenv(configServerPortEnvVar, tt.portEnvVar)
+			}
+			if tt.portEnvVar != "" || tt.setPortEnvVar {
+				t.Setenv(configServerNetworkInterfaceEnvVar, tt.networkInterfaceEnvVar)
 			}
 
 			cs := NewConfigServer()
@@ -115,7 +119,7 @@ func TestConfigServer_EnvVar(t *testing.T) {
 
 			endpoint := tt.endpoint
 			if endpoint == "" {
-				endpoint = "http://" + defaultConfigServerEndpoint
+				endpoint = "http://localhost:55554"
 			}
 
 			path := "/debug/configz/initial"
@@ -180,7 +184,7 @@ func TestConfigServer_Serve(t *testing.T) {
 }
 
 func assertValidYAMLPages(t *testing.T, expected map[string]any, path string) {
-	url := "http://" + defaultConfigServerEndpoint + path
+	url := "http://localhost:55554" + path
 
 	client := &http.Client{}
 

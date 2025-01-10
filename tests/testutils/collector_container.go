@@ -29,6 +29,7 @@ import (
 	dockerContainer "github.com/docker/docker/api/types/container"
 	dockerMount "github.com/docker/docker/api/types/mount"
 	docker "github.com/docker/docker/client"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	"go.opentelemetry.io/collector/confmap"
@@ -282,24 +283,20 @@ func (collector *CollectorContainer) execConfigRequest(t testing.TB, uri string)
 	// Wait until the splunk-otel-collector is up: relying on the entrypoint of the image
 	// can have the request happening before the collector is ready.
 	var initial string
-	require.Eventually(t, func() bool {
+	require.EventuallyWithT(t, func(tt *assert.CollectT) {
 		httpClient := &http.Client{}
 		req, err := http.NewRequest("GET", uri, nil)
 		require.NoError(t, err)
 		resp, err := httpClient.Do(req)
-		if err != nil {
-			return false
-		}
+		require.NoError(tt, err)
 
 		defer resp.Body.Close()
 		arr, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return false
-		}
+		require.NoError(tt, err)
 
 		initial = string(arr)
 
-		return resp.StatusCode == http.StatusOK
+		require.Equal(t, http.StatusOK, resp.StatusCode)
 	}, 30*time.Second, 100*time.Millisecond)
 
 	actual := map[string]any{}

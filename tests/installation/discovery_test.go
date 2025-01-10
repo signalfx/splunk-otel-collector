@@ -23,7 +23,6 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
-	"syscall"
 	"testing"
 	"time"
 
@@ -63,12 +62,11 @@ func TestDefaultConfigDDiscoversPostgres(t *testing.T) {
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
 
-	finfo, err := os.Stat("/var/run/docker.sock")
-	require.NoError(t, err)
-	fsys := finfo.Sys()
-	stat, ok := fsys.(*syscall.Stat_t)
-	require.True(t, ok)
-	dockerGID := fmt.Sprintf("%d", stat.Gid)
+	dockerSocket := testutils.CreateDockerSocketProxy(t)
+	require.NoError(t, dockerSocket.Start())
+	t.Cleanup(func() {
+		dockerSocket.Stop()
+	})
 
 	treeBytes, err := os.ReadFile(filepath.Join(".", "testdata", "tree"))
 	require.NoError(t, err)
@@ -99,6 +97,10 @@ func TestDefaultConfigDDiscoversPostgres(t *testing.T) {
 	for _, packageType := range []string{"deb", "rpm"} {
 		t.Run(packageType, func(t *testing.T) {
 			defer tc.OTLPReceiverSink.Reset()
+			tmpl, err := os.ReadFile(filepath.Join(".", "testdata", "systemd", "splunk-otel-collector.conf.tmpl"))
+			require.NoError(t, err)
+			newTmpl := strings.Replace(string(tmpl), "<DOCKER_SOCKET>", fmt.Sprintf("tcp://%s", dockerSocket.ContainerEndpoint), 1)
+			require.NoError(t, os.WriteFile(filepath.Join(".", "testdata", "systemd", "splunk-otel-collector.conf"), []byte(newTmpl), 0644))
 			packagePath := getPackagePath(t, packageType)
 			cc, shutdown := tc.SplunkOtelCollectorContainer(
 				"", func(c testutils.Collector) testutils.Collector {
@@ -110,14 +112,12 @@ func TestDefaultConfigDDiscoversPostgres(t *testing.T) {
 						fmt.Sprintf("Dockerfile.%s", packageType),
 					).WithHostConfigModifier(func(config *dockerContainer.HostConfig) {
 						config.CgroupnsMode = dockerContainer.CgroupnsModeHost
-						config.CapAdd = append(config.CapAdd, "NET_RAW")
-						config.GroupAdd = []string{dockerGID}
 						config.Mounts = []dockerMount.Mount{
 							{Source: "/sys/fs/cgroup", Target: "/sys/fs/cgroup", Type: dockerMount.TypeBind},
 							{Source: packagePath, Target: fmt.Sprintf("/opt/otel/splunk-otel-collector.%s", packageType), Type: dockerMount.TypeBind},
-							{Source: "/var/run/docker.sock", Target: "/opt/docker/docker.sock", ReadOnly: true, Type: dockerMount.TypeBind},
 						}
-					}).WithBuildArgs(map[string]*string{"DOCKER_GID": &dockerGID}).WithNetworks("postgres")
+
+					}).WithNetworks("postgres").WithNetworkMode("bridge")
 					cc.Container.WillWaitForLogs()
 					cc.Container.WaitingFor = append(cc.Container.WaitingFor, waitForSystemd)
 					return cc.WithArgs("")
@@ -213,7 +213,7 @@ func TestDefaultConfigDDiscoversPostgres(t *testing.T) {
 				"splunk.discovery": map[string]any{
 					"extensions": map[string]any{
 						"docker_observer": map[string]any{
-							"endpoint": "unix:///opt/docker/docker.sock",
+							"endpoint": fmt.Sprintf("tcp://%s", dockerSocket.ContainerEndpoint),
 						},
 					},
 					"receivers": map[string]any{
@@ -253,7 +253,7 @@ func TestDefaultConfigDDiscoversPostgres(t *testing.T) {
 				},
 				"extensions": map[string]any{
 					"docker_observer": map[string]any{
-						"endpoint": "unix:///opt/docker/docker.sock",
+						"endpoint": fmt.Sprintf("tcp://%s", dockerSocket.ContainerEndpoint),
 					},
 				},
 				"processors": map[string]any{},

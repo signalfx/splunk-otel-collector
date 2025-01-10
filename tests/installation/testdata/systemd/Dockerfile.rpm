@@ -1,11 +1,8 @@
 # A centos9 image with systemd enabled.  Must be run with:
 # `-d --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro` flags
 FROM quay.io/centos/centos:stream9
-ARG DOCKER_GID=998
 
 ENV container docker
-
-RUN groupadd -g ${DOCKER_GID} docker
 
 RUN rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
 RUN echo 'fastestmirror=1' >> /etc/yum.conf

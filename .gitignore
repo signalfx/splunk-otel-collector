@@ -52,3 +52,6 @@ deployments/heroku/test/node_modules
 /instrumentation/tests/dotnet/libsplunk.so
 /instrumentation/tests/java/libsplunk.so
 /instrumentation/tests/nodejs/libsplunk.so
+
+# temp file created during testing
+tests/installation/testdata/systemd/splunk-otel-collector.conf

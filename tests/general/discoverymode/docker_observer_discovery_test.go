@@ -20,10 +20,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"testing"
 	"time"
 
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/golden"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 
@@ -34,14 +36,16 @@ import (
 // starting a collector with the daemon domain socket mounted and the container running with its group id
 // to detect a prometheus container with a test.id label the receiver creator rule matches against.
 func TestDockerObserver(t *testing.T) {
-	t.Skip("discovery receivers host_observer and docker observer is already being tested elsewhere implicitly")
 	testutils.SkipIfNotContainerTest(t)
-	if runtime.GOOS == "darwin" {
-		t.Skip("unable to share sockets between mac and d4m vm: https://github.com/docker/for-mac/issues/483#issuecomment-758836836")
-	}
 	tc := testutils.NewTestcase(t)
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
+
+	dockerSocketProxy := testutils.CreateDockerSocketProxy(t)
+	require.NoError(t, dockerSocketProxy.Start())
+	t.Cleanup(func() {
+		dockerSocketProxy.Stop()
+	})
 
 	cntrs, shutdownPrometheus := tc.Containers(
 		testutils.NewContainer().WithImage("bitnami/prometheus").WithLabel("test.id", tc.ID).WillWaitForLogs("Server is ready to receive web requests."),
@@ -59,7 +63,6 @@ func TestDockerObserver(t *testing.T) {
 			properties, err := filepath.Abs(filepath.Join(".", "testdata", "docker-observer-properties.yaml"))
 			require.NoError(t, err)
 			cc.Container = cc.Container.WithMount(testcontainers.BindMount(properties, "/opt/properties.yaml"))
-			cc.Container = cc.Container.WithBinds("/var/run/docker.sock:/var/run/dock.e.r.sock:ro")
 			cc.Container = cc.Container.WillWaitForLogs("Discovering for next")
 			// uid check is for basic collector functionality not using the splunk-otel-collector user
 			// but the docker gid is required to reach the daemon
@@ -72,7 +75,7 @@ func TestDockerObserver(t *testing.T) {
 				"SPLUNK_DISCOVERY_DURATION": "20s",
 				// confirm that debug logging doesn't affect runtime
 				"SPLUNK_DISCOVERY_LOG_LEVEL": "debug",
-				"DOCKER_DOMAIN_SOCKET":       "unix:///var/run/dock.e.r.sock",
+				"DOCKER_DOMAIN_SOCKET":       fmt.Sprintf("tcp://%s", dockerSocketProxy.ContainerEndpoint),
 				"LABEL_ONE_VALUE":            "actual.label.one.value",
 				"LABEL_TWO_VALUE":            "actual.label.two.value",
 				"SPLUNK_DISCOVERY_RECEIVERS_prometheus_x5f_simple_CONFIG_labels_x3a__x3a_label_x5f_three": "overwritten by --set property",
@@ -90,8 +93,35 @@ func TestDockerObserver(t *testing.T) {
 	)
 	defer shutdown()
 
-	expectedResourceMetrics := tc.ResourceMetrics("docker-observer-internal-prometheus.yaml")
-	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
+	expected, err := golden.ReadMetrics(filepath.Join("testdata", "expected", "docker-observer-internal-prometheus-expected.yaml"))
+	require.NoError(t, err)
+	require.EventuallyWithT(t, func(tt *assert.CollectT) {
+		if len(tc.OTLPReceiverSink.AllMetrics()) == 0 {
+			assert.Fail(tt, "No metrics collected")
+			return
+		}
+		err := pmetrictest.CompareMetrics(expected, tc.OTLPReceiverSink.AllMetrics()[len(tc.OTLPReceiverSink.AllMetrics())-1],
+			pmetrictest.IgnoreResourceAttributeValue("service.instance.id"),
+			pmetrictest.IgnoreResourceAttributeValue("net.host.port"),
+			pmetrictest.IgnoreResourceAttributeValue("net.host.name"),
+			pmetrictest.IgnoreResourceAttributeValue("server.address"),
+			pmetrictest.IgnoreResourceAttributeValue("container.name"),
+			pmetrictest.IgnoreResourceAttributeValue("server.port"),
+			pmetrictest.IgnoreResourceAttributeValue("service.name"),
+			pmetrictest.IgnoreResourceAttributeValue("service_instance_id"),
+			pmetrictest.IgnoreResourceAttributeValue("service_version"),
+			pmetrictest.IgnoreMetricAttributeValue("service_version"),
+			pmetrictest.IgnoreMetricAttributeValue("service_instance_id"),
+			pmetrictest.IgnoreTimestamp(),
+			pmetrictest.IgnoreStartTimestamp(),
+			pmetrictest.IgnoreMetricDataPointsOrder(),
+			pmetrictest.IgnoreScopeMetricsOrder(),
+			pmetrictest.IgnoreScopeVersion(),
+			pmetrictest.IgnoreResourceMetricsOrder(),
+			pmetrictest.IgnoreMetricValues(),
+		)
+		assert.NoError(tt, err)
+	}, 30*time.Second, 1*time.Second)
 
 	expectedInitial := map[string]any{
 		"file": map[string]any{
@@ -167,8 +197,6 @@ func TestDockerObserver(t *testing.T) {
 				"receivers/splunk.discovery":  []any{"receiver_creator/discovery"},
 			},
 		},
-		"splunk.properties": map[string]any{},
-		"splunk.property":   map[string]any{},
 	}
 	require.Equal(t, expectedInitial, cc.InitialConfig(t, 55554))
 
@@ -214,7 +242,7 @@ func TestDockerObserver(t *testing.T) {
 		},
 		"extensions": map[string]any{
 			"docker_observer": map[string]any{
-				"endpoint": "unix:///var/run/dock.e.r.sock",
+				"endpoint": fmt.Sprintf("tcp://%s", dockerSocketProxy.ContainerEndpoint),
 			},
 		},
 		"receivers": map[string]any{

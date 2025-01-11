@@ -29,11 +29,16 @@ chmod 777 "$ADDON_DIR/$REPACKED_TA_NAME"
 DOCKER_COMPOSE_CONFIG="$SOURCE_DIR/packaging-scripts/cicd-tests/discovery/docker-compose.yml"
 REPACKED_TA_NAME=$REPACKED_TA_NAME BUILD_DIR=$BUILD_DIR ADDON_DIR=$ADDON_DIR docker compose --file "$DOCKER_COMPOSE_CONFIG" up --build --force-recreate --wait --detach
 
+# These seem required for some reason... never seems to work when directly starting it up via command line args or install command
+#docker exec -u root discovery-ta-test-discovery-1 /opt/splunk/bin/splunk install app "/addon-dir/$REPACKED_TA_NAME" -auth 'admin:Chang3d!'
 docker exec -u splunk discovery-ta-test-discovery-1 cp -r "/addon-dir/Splunk_TA_otel" "/opt/splunk/etc/apps"
 docker exec -u splunk discovery-ta-test-discovery-1 /opt/splunk/bin/splunk restart
-
+# If there's an error in the app, you can try manually installing it or modifying files
+# Lines are for debugging only, until we get better testing documentation
 #docker exec -u root -it discovery-ta-test-discovery-1 bash
+
 docker exec -u root -it discovery-ta-test-discovery-1 /opt/splunk/bin/splunk btool check --debug | grep -qi "Invalid key in stanza" && exit 1
+sleep 1m # need to figure out better way to do wait
 docker exec -u root -it discovery-ta-test-discovery-1 grep -qi "9092" /opt/splunk/var/log/splunk/otel.log
 docker exec -u root -it discovery-ta-test-discovery-1 pgrep -f 'discovery'
 docker exec -u root -it discovery-ta-test-discovery-1 pgrep -f 'discovery-properties'

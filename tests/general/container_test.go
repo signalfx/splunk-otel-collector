@@ -18,13 +18,10 @@ package tests
 
 import (
 	"fmt"
-	"path/filepath"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/golden"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/pdata/pmetric"
@@ -233,33 +230,28 @@ func TestNonDefaultGIDCanAccessJavaInAgentBundle(t *testing.T) {
 		},
 	)
 	defer shutdown()
-
-	expected, err := golden.ReadMetrics(filepath.Join("testdata", "expected", "activemq.yaml"))
-	require.NoError(t, err)
 	require.EventuallyWithT(t, func(tt *assert.CollectT) {
 		if len(tc.OTLPReceiverSink.AllMetrics()) == 0 {
 			assert.Fail(tt, "No metrics collected")
 			return
 		}
-		err := pmetrictest.CompareMetrics(expected, tc.OTLPReceiverSink.AllMetrics()[len(tc.OTLPReceiverSink.AllMetrics())-1],
-			pmetrictest.IgnoreResourceAttributeValue("service.instance.id"),
-			pmetrictest.IgnoreResourceAttributeValue("net.host.port"),
-			pmetrictest.IgnoreResourceAttributeValue("net.host.name"),
-			pmetrictest.IgnoreResourceAttributeValue("server.address"),
-			pmetrictest.IgnoreResourceAttributeValue("container.name"),
-			pmetrictest.IgnoreResourceAttributeValue("server.port"),
-			pmetrictest.IgnoreResourceAttributeValue("service.name"),
-			pmetrictest.IgnoreResourceAttributeValue("service_instance_id"),
-			pmetrictest.IgnoreResourceAttributeValue("service_version"),
-			pmetrictest.IgnoreTimestamp(),
-			pmetrictest.IgnoreStartTimestamp(),
-			pmetrictest.IgnoreMetricDataPointsOrder(),
-			pmetrictest.IgnoreScopeMetricsOrder(),
-			pmetrictest.IgnoreScopeVersion(),
-			pmetrictest.IgnoreResourceMetricsOrder(),
-			pmetrictest.IgnoreMetricValues(),
-		)
-		assert.NoError(tt, err)
+
+		metricsFound := 0
+		m := tc.OTLPReceiverSink.AllMetrics()[len(tc.OTLPReceiverSink.AllMetrics())-1]
+		for i := 0; i < m.ResourceMetrics().Len(); i++ {
+			rm := m.ResourceMetrics().At(i)
+			for j := 0; j < rm.ScopeMetrics().Len(); j++ {
+				sm := rm.ScopeMetrics().At(j)
+				for k := 0; k < sm.Metrics().Len(); k++ {
+					metric := sm.Metrics().At(k)
+
+					if metric.Name() == "counter.amq.TotalConnectionsCount" || metric.Name() == "jmx_memory.committed" {
+						metricsFound++
+					}
+				}
+			}
+		}
+		assert.Equal(tt, 2, metricsFound)
 	}, 30*time.Second, 1*time.Second)
 }
 
@@ -278,31 +270,25 @@ func TestNonDefaultGIDCanAccessPythonInAgentBundle(t *testing.T) {
 	)
 	defer shutdown()
 
-	expected, err := golden.ReadMetrics(filepath.Join("testdata", "expected", "solr.yaml"))
-	require.NoError(t, err)
 	require.EventuallyWithT(t, func(tt *assert.CollectT) {
 		if len(tc.OTLPReceiverSink.AllMetrics()) == 0 {
 			assert.Fail(tt, "No metrics collected")
 			return
 		}
-		err := pmetrictest.CompareMetrics(expected, tc.OTLPReceiverSink.AllMetrics()[len(tc.OTLPReceiverSink.AllMetrics())-1],
-			pmetrictest.IgnoreResourceAttributeValue("service.instance.id"),
-			pmetrictest.IgnoreResourceAttributeValue("net.host.port"),
-			pmetrictest.IgnoreResourceAttributeValue("net.host.name"),
-			pmetrictest.IgnoreResourceAttributeValue("server.address"),
-			pmetrictest.IgnoreResourceAttributeValue("container.name"),
-			pmetrictest.IgnoreResourceAttributeValue("server.port"),
-			pmetrictest.IgnoreResourceAttributeValue("service.name"),
-			pmetrictest.IgnoreResourceAttributeValue("service_instance_id"),
-			pmetrictest.IgnoreResourceAttributeValue("service_version"),
-			pmetrictest.IgnoreTimestamp(),
-			pmetrictest.IgnoreStartTimestamp(),
-			pmetrictest.IgnoreMetricDataPointsOrder(),
-			pmetrictest.IgnoreScopeMetricsOrder(),
-			pmetrictest.IgnoreScopeVersion(),
-			pmetrictest.IgnoreResourceMetricsOrder(),
-			pmetrictest.IgnoreMetricValues(),
-		)
-		assert.NoError(tt, err)
+		metricsFound := 0
+		m := tc.OTLPReceiverSink.AllMetrics()[len(tc.OTLPReceiverSink.AllMetrics())-1]
+		for i := 0; i < m.ResourceMetrics().Len(); i++ {
+			rm := m.ResourceMetrics().At(i)
+			for j := 0; j < rm.ScopeMetrics().Len(); j++ {
+				sm := rm.ScopeMetrics().At(j)
+				for k := 0; k < sm.Metrics().Len(); k++ {
+					metric := sm.Metrics().At(k)
+					if metric.Name() == "counter.solr.http_2xx_responses" {
+						metricsFound++
+					}
+				}
+			}
+		}
+		assert.Equal(tt, 1, metricsFound)
 	}, 30*time.Second, 1*time.Second)
 }

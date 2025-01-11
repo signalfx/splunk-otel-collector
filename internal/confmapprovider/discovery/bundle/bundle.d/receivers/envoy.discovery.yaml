@@ -16,7 +16,7 @@ prometheus:
             metrics_path: /stats/prometheus
             scrape_interval: 10s
             static_configs:
-              - targets: ['`host`:9901']
+              - targets: ['`endpoint`']
             metric_relabel_configs:
               - source_labels: [__name__]
                 action: keep

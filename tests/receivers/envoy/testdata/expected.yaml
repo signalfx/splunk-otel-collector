@@ -3,7 +3,7 @@ resourceMetrics:
       attributes:
         - key: container.image.name
           value:
-            stringValue: envoyproxy/envoy
+            stringValue: quay.io/splunko11ytest/envoy
         - key: http.scheme
           value:
             stringValue: http

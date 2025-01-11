@@ -357,6 +357,24 @@ processors:
 receivers:
   receiver_creator/discovery:
     receivers:
+      prometheus:
+        config:
+          config:
+            scrape_configs:
+            - job_name: envoy
+              metric_relabel_configs:
+              - action: keep
+                regex: (envoy_cluster_upstream_cx_active|envoy_cluster_upstream_cx_total|envoy_cluster_upstream_cx_connect_fail|envoy_cluster_upstream_cx_connect_ms|envoy_cluster_upstream_rq_active|envoy_cluster_upstream_rq_total|envoy_cluster_upstream_rq_timeout|envoy_cluster_upstream_rq_pending_active|envoy_cluster_upstream_rq_pending_overflow|envoy_cluster_upstream_rq_time|envoy_cluster_membership_total|envoy_cluster_membership_degraded|envoy_cluster_membership_excluded|envoy_listener_downstream_cx_active|envoy_listener_downstream_cx_total|envoy_listener_downstream_cx_transport_socket_connect_timeout|envoy_listener_downstream_cx_overflow|envoy_listener_downstream_cx_overload_reject|envoy_listener_downstream_global_cx_overflow)
+                source_labels:
+                - __name__
+              metrics_path: /stats/prometheus
+              scrape_interval: 10s
+              static_configs:
+              - targets:
+                - '`+"`endpoint`"+`'
+        resource_attributes: {}
+        rule: type == "container" and any([name, image, command], {# matches "(?i)envoy"})
+          and not (command matches "splunk.discovery")
       prometheus_simple:
         config:
           collection_interval: 1s

@@ -54,6 +54,7 @@ func TestRedisDockerObserver(t *testing.T) {
 				"REDIS_USERNAME": "otel",
 				// confirm that debug logging doesn't affect runtime
 				"SPLUNK_DISCOVERY_LOG_LEVEL": "debug",
+				"SPLUNK_DISCOVERY_DURATION":  "20s",
 			}).WithArgs(
 				"--discovery",
 				"--set", "splunk.discovery.receivers.redis.config.password=${REDIS_PASSWORD}",
@@ -92,5 +93,5 @@ func TestRedisDockerObserver(t *testing.T) {
 			pmetrictest.IgnoreMetricValues(),
 		)
 		assert.NoError(tt, err)
-	}, 30*time.Second, 1*time.Second)
+	}, 60*time.Second, 1*time.Second)
 }

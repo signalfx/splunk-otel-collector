@@ -31,7 +31,6 @@ import (
 )
 
 func TestEnvoyDockerObserver(t *testing.T) {
-	t.Skip("Redis data points are also discovered since Redis runs, making this test fail.")
 	testutils.SkipIfNotContainerTest(t)
 	dockerSocket := testutils.CreateDockerSocketProxy(t)
 	require.NoError(t, dockerSocket.Start())
@@ -43,7 +42,9 @@ func TestEnvoyDockerObserver(t *testing.T) {
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
 	_, shutdown := tc.SplunkOtelCollectorContainer("otlp_exporter.yaml", func(collector testutils.Collector) testutils.Collector {
-		return collector.WithEnv(map[string]string{
+		cc := collector.(*testutils.CollectorContainer)
+		cc.Container = cc.Container.WithNetworks("envoy").WithNetworkMode("bridge")
+		return cc.WithEnv(map[string]string{
 			"SPLUNK_DISCOVERY_DURATION":  "20s",
 			"SPLUNK_DISCOVERY_LOG_LEVEL": "debug",
 		}).WithArgs(

@@ -282,6 +282,8 @@ services:
     build: ./redis_server
     ports:
       - "6379:6379"
+    networks:
+      - redis
   solr:
     image: quay.io/splunko11ytest/solr:latest
     profiles:
@@ -316,3 +318,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+networks:
+  redis:
+    name: redis
+    driver: bridge

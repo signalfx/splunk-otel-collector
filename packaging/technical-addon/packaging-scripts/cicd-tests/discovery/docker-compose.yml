@@ -11,10 +11,13 @@ services:
       retries: 5
       start_period: 60s
     environment:
+      # If there's a bug in the TA, you may comment out this line and use docker exec via cp and splunk restart
+      # in the test script to manually debug the TA
+      - SPLUNK_APPS_URL=/tmp/local-tas/$REPACKED_TA_NAME
       - SPLUNK_START_ARGS=--accept-license
       - SPLUNK_PASSWORD=Chang3d!
     volumes:
-      - $ADDON_DIR:/addon-dir
+      - $ADDON_DIR:/tmp/local-tas:rwz
     depends_on:
       kafka-kraft-single:
          condition: service_started

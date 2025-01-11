@@ -108,7 +108,7 @@ smoketest-ta:
 	PLATFORM="$(PLATFORM)" \
 	$(SOURCE_DIR)/packaging-scripts/cicd-tests/smoketests/smoketest.sh
 
-.PHONY: smoketest-ta
+.PHONY: discovery-test-ta
 discovery-test-ta:
 	SOURCE_DIR="$(SOURCE_DIR)" \
 	BUILD_DIR="$(BUILD_DIR)" \

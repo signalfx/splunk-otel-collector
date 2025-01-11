@@ -1,4 +1,4 @@
-#!/bin/bash -eu
+#!/bin/bash -eux
 set -o pipefail
 
 [[ -z "$BUILD_DIR" ]] && echo "BUILD_DIR not set" && exit 1

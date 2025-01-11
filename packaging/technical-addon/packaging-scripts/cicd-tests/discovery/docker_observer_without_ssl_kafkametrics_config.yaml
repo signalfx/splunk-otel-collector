@@ -1,7 +1,12 @@
 extensions:
-  #docker_observer: # could try just mounting the socket too
   host_observer:
 
+# Normally, we test discovery mode by running the "raw" binary in our tests
+# However, here our binary via the TA is running in a splunk docker instance
+# The splunk image does not have docker installed by default
+# Thus, either need to install and enable docker,
+# Or need to bridge networks for discovery.
+# Given lack of a package manager in splunk docker images, it's likely best to just use host networking.
 receivers:
   # set up otlp receiver to use its endpoints as assertion material
   discovery:
@@ -15,7 +20,8 @@ receivers:
           protocol_version: "2.0.0"
           scrapers:
             - brokers
-        rule: type == "container" and any([name, image, command], {# matches "(?i)(.*)kafka(.*)"}) and not (command matches "splunk.discovery")
+        #rule: type == "hostport"
+        rule: type == "hostport" and any([name, image, command], {# matches "(?i)(.*)kafka(.*)"}) and not (command matches "splunk.discovery")
         status:
           metrics:
             - status: successful
@@ -30,7 +36,6 @@ receivers:
               message: The container is refusing kafka connections.
 
     watch_observers:
-      #- docker_observer
       - host_observer
 
 # drop scrape_timestamp attributes until we can accept arbitrary values
@@ -39,17 +44,14 @@ processors:
 exporters:
   debug:
     verbosity: detailed
-  file/no_rotation:
-    path: /discovery-logs/
 
 service:
   telemetry:
     logs:
       level: debug
   extensions:
-    #- docker_observer
     - host_observer
   pipelines:
     logs:
       receivers: ["discovery"]
-      exporters: ["file/no_rotation", "debug"]
+      exporters: ["debug"]

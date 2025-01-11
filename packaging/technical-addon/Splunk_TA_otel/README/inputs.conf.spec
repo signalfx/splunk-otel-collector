@@ -54,7 +54,7 @@ splunk_realm = <value>
 discovery = <value>
 * Boolean, if `true` will enable `--discovery`
 
-discovery_properties = <value>
+splunk_discovery_properties = <value>
 * String, same as `--discovery-properties` parameter.  See [properties reference](https://github.com/signalfx/splunk-otel-collector/blob/v0.114.0/internal/confmapprovider/discovery/README.md?plain=1#L175)
 
 configd = <value>

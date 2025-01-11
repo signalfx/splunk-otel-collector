@@ -17,8 +17,15 @@
 package tests
 
 import (
-	"github.com/stretchr/testify/require"
+	"fmt"
+	"path/filepath"
 	"testing"
+	"time"
+
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/golden"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
@@ -31,25 +38,57 @@ func TestMysqlDockerObserver(t *testing.T) {
 		dockerSocket.Stop()
 	})
 
-	testutils.AssertAllMetricsReceived(t, "bundled.yaml", "otlp_exporter.yaml",
-		nil, []testutils.CollectorBuilder{
-			func(c testutils.Collector) testutils.Collector {
-				cc := c.(*testutils.CollectorContainer)
-				cc.Container = cc.Container.WillWaitForLogs("Discovering for next")
-				return cc
-			},
-			func(collector testutils.Collector) testutils.Collector {
-				return collector.WithEnv(map[string]string{
-					"SPLUNK_DISCOVERY_DURATION":  "10s",
-					"SPLUNK_DISCOVERY_LOG_LEVEL": "debug",
-				}).WithArgs(
-					"--discovery",
-					"--set", `splunk.discovery.extensions.k8s_observer.enabled=false`,
-					"--set", `splunk.discovery.extensions.host_observer.enabled=false`,
-					"--set", `splunk.discovery.receivers.mysql.config.username=root`,
-					"--set", `splunk.discovery.receivers.mysql.config.password=testpass`,
-				)
-			},
-		},
-	)
+	tc := testutils.NewTestcase(t)
+	defer tc.PrintLogsOnFailure()
+	defer tc.ShutdownOTLPReceiverSink()
+
+	_, shutdown := tc.SplunkOtelCollectorContainer("otlp_exporter.yaml", func(c testutils.Collector) testutils.Collector {
+		cc := c.(*testutils.CollectorContainer)
+		cc.Container = cc.Container.WillWaitForLogs("Discovering for next").WithNetworkMode("bridge").WithNetworks("mysql")
+		return cc
+	},
+		func(collector testutils.Collector) testutils.Collector {
+			return collector.WithEnv(map[string]string{
+				"SPLUNK_DISCOVERY_DURATION":  "20s",
+				"SPLUNK_DISCOVERY_LOG_LEVEL": "debug",
+			}).WithArgs(
+				"--discovery",
+				"--set", `splunk.discovery.extensions.k8s_observer.enabled=false`,
+				"--set", `splunk.discovery.extensions.host_observer.enabled=false`,
+				"--set", `splunk.discovery.receivers.mysql.config.username=root`,
+				"--set", `splunk.discovery.receivers.mysql.config.password=testpass`,
+				"--set", fmt.Sprintf("splunk.discovery.extensions.docker_observer.config.endpoint=tcp://%s", dockerSocket.ContainerEndpoint),
+			)
+		})
+	defer shutdown()
+
+	expected, err := golden.ReadMetrics(filepath.Join("testdata", "expected.yaml"))
+	require.NoError(t, err)
+	require.EventuallyWithT(t, func(tt *assert.CollectT) {
+		if len(tc.OTLPReceiverSink.AllMetrics()) == 0 {
+			assert.Fail(tt, "No metrics collected")
+			return
+		}
+		err := pmetrictest.CompareMetrics(expected, tc.OTLPReceiverSink.AllMetrics()[len(tc.OTLPReceiverSink.AllMetrics())-1],
+			pmetrictest.IgnoreResourceAttributeValue("service.instance.id"),
+			pmetrictest.IgnoreResourceAttributeValue("net.host.port"),
+			pmetrictest.IgnoreResourceAttributeValue("net.host.name"),
+			pmetrictest.IgnoreResourceAttributeValue("server.address"),
+			pmetrictest.IgnoreResourceAttributeValue("container.name"),
+			pmetrictest.IgnoreResourceAttributeValue("server.port"),
+			pmetrictest.IgnoreResourceAttributeValue("service.name"),
+			pmetrictest.IgnoreResourceAttributeValue("service_instance_id"),
+			pmetrictest.IgnoreResourceAttributeValue("service_version"),
+			pmetrictest.IgnoreMetricAttributeValue("service_version"),
+			pmetrictest.IgnoreMetricAttributeValue("service_instance_id"),
+			pmetrictest.IgnoreTimestamp(),
+			pmetrictest.IgnoreStartTimestamp(),
+			pmetrictest.IgnoreMetricDataPointsOrder(),
+			pmetrictest.IgnoreScopeMetricsOrder(),
+			pmetrictest.IgnoreScopeVersion(),
+			pmetrictest.IgnoreResourceMetricsOrder(),
+			pmetrictest.IgnoreMetricValues(),
+		)
+		assert.NoError(tt, err)
+	}, 30*time.Second, 1*time.Second)
 }

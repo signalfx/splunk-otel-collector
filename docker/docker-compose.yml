@@ -242,6 +242,8 @@ services:
     profiles:
       - integration
       - smartagent
+    networks:
+      - mysql
     build: ./mysql
     ports:
       - "3306:3306"
@@ -309,3 +311,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+networks:
+  mysql:
+    name: mysql
+    driver: bridge

@@ -17,27 +17,25 @@
 package tests
 
 import (
-	"fmt"
-	"runtime"
+	"github.com/stretchr/testify/require"
 	"testing"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
 func TestMysqlDockerObserver(t *testing.T) {
-	t.Skip("Redis data points are also discovered since Redis runs, making this test fail.")
-	if runtime.GOOS == "darwin" {
-		t.Skip("unable to share sockets between mac and d4m vm: https://github.com/docker/for-mac/issues/483#issuecomment-758836836")
-	}
 	testutils.SkipIfNotContainerTest(t)
+	dockerSocket := testutils.CreateDockerSocketProxy(t)
+	require.NoError(t, dockerSocket.Start())
+	t.Cleanup(func() {
+		dockerSocket.Stop()
+	})
 
 	testutils.AssertAllMetricsReceived(t, "bundled.yaml", "otlp_exporter.yaml",
 		nil, []testutils.CollectorBuilder{
 			func(c testutils.Collector) testutils.Collector {
 				cc := c.(*testutils.CollectorContainer)
-				cc.Container = cc.Container.WithBinds("/var/run/docker.sock:/var/run/docker.sock:ro")
 				cc.Container = cc.Container.WillWaitForLogs("Discovering for next")
-				cc.Container = cc.Container.WithUser(fmt.Sprintf("999:%d", testutils.GetDockerGID(t)))
 				return cc
 			},
 			func(collector testutils.Collector) testutils.Collector {

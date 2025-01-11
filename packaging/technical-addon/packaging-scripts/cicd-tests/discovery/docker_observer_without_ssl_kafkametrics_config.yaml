@@ -20,7 +20,6 @@ receivers:
           protocol_version: "2.0.0"
           scrapers:
             - brokers
-        #rule: type == "hostport"
         rule: type == "hostport" and any([name, image, command], {# matches "(?i)(.*)kafka(.*)"}) and not (command matches "splunk.discovery")
         status:
           metrics:

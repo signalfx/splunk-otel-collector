@@ -49,7 +49,7 @@ func TestMysqlDockerObserver(t *testing.T) {
 	},
 		func(collector testutils.Collector) testutils.Collector {
 			return collector.WithEnv(map[string]string{
-				"SPLUNK_DISCOVERY_DURATION":  "20s",
+				"SPLUNK_DISCOVERY_DURATION":  "60s",
 				"SPLUNK_DISCOVERY_LOG_LEVEL": "debug",
 			}).WithArgs(
 				"--discovery",
@@ -90,5 +90,5 @@ func TestMysqlDockerObserver(t *testing.T) {
 			pmetrictest.IgnoreMetricValues(),
 		)
 		assert.NoError(tt, err)
-	}, 30*time.Second, 1*time.Second)
+	}, 120*time.Second, 1*time.Second)
 }

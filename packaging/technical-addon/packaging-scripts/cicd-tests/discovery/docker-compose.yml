@@ -12,13 +12,11 @@ services:
       start_period: 60s
     environment:
       - SPLUNK_START_ARGS=--accept-license
-        #- SPLUNK_APPS_URL=/addon-dir/$REPACKED_TA_NAME
       - SPLUNK_PASSWORD=Chang3d!
     volumes:
       - $ADDON_DIR:/addon-dir
     depends_on:
       kafka-kraft-single:
-         #condition: service_healthy
          condition: service_started
   kafka-kraft-single:
     image: apache/kafka:3.7.0
@@ -42,17 +40,3 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
-    #healthcheck:
-    #  test:
-    #    [
-    #      "CMD",
-    #      "grep",
-    #      "-R",
-    #      "-q",
-    #      "-i",
-    #      "Kafka Server started",
-    #      "/tmp/kraft-combined-logs"
-    #    ]
-    #  interval: 10s
-    #  timeout: 5s
-    #  retries: 10

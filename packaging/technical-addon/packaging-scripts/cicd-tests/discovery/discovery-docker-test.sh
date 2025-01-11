@@ -30,7 +30,6 @@ DOCKER_COMPOSE_CONFIG="$SOURCE_DIR/packaging-scripts/cicd-tests/discovery/docker
 REPACKED_TA_NAME=$REPACKED_TA_NAME BUILD_DIR=$BUILD_DIR ADDON_DIR=$ADDON_DIR docker compose --file "$DOCKER_COMPOSE_CONFIG" up --build --force-recreate --wait --detach
 
 # These seem required for some reason... never seems to work when directly starting it up via command line args or install command
-#docker exec -u root discovery-ta-test-discovery-1 /opt/splunk/bin/splunk install app "/addon-dir/$REPACKED_TA_NAME" -auth 'admin:Chang3d!'
 docker exec -u splunk discovery-ta-test-discovery-1 cp -r "/addon-dir/Splunk_TA_otel" "/opt/splunk/etc/apps"
 docker exec -u splunk discovery-ta-test-discovery-1 /opt/splunk/bin/splunk restart
 # If there's an error in the app, you can try manually installing it or modifying files
@@ -44,7 +43,6 @@ docker exec -u root -it discovery-ta-test-discovery-1 pgrep -f 'discovery'
 docker exec -u root -it discovery-ta-test-discovery-1 pgrep -f 'discovery-properties'
 docker exec -u root -it discovery-ta-test-discovery-1 pgrep -f 'kafkametrics.discovery.properties.yaml'
 docker exec -u root -it discovery-ta-test-discovery-1 grep -i "kafkametrics receiver is working" /opt/splunk/var/log/splunk/otel.log
-# TODO delete this, used for testing/inspection
 
 # Should trap this
 REPACKED_TA_NAME=$REPACKED_TA_NAME BUILD_DIR=$BUILD_DIR ADDON_DIR=$ADDON_DIR docker compose --file "$DOCKER_COMPOSE_CONFIG" down

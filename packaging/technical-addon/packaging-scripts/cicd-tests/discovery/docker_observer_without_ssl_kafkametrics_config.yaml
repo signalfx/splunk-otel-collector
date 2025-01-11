@@ -14,8 +14,6 @@ receivers:
     receivers:
       kafkametrics:
         config:
-          #resource_attributes:
-          #  testdiscoveryparam: {{ .testdiscoveryparam }}
           client_id: "otel-integration-test"
           protocol_version: "2.0.0"
           scrapers:

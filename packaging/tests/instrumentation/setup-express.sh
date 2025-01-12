@@ -11,7 +11,7 @@ HOME=$NVM_HOME bash -c 'curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0
 NVM_DIR="$NVM_HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
-nvm install --default ${NODE_VERSION:-v16}
+nvm install --default ${NODE_VERSION:-v18}
 
 npm config --global set user root
 

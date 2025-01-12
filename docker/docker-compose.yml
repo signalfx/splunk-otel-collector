@@ -241,6 +241,7 @@ services:
     image: quay.io/splunko11ytest/mysql:latest
     profiles:
       - integration
+      - mysql_discovery
       - smartagent
     networks:
       - mysql

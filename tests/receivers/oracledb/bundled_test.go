@@ -42,7 +42,7 @@ func TestOracledbDockerObserver(t *testing.T) {
 			},
 			func(collector testutils.Collector) testutils.Collector {
 				return collector.WithEnv(map[string]string{
-					"SPLUNK_DISCOVERY_DURATION": "10s",
+					"SPLUNK_DISCOVERY_DURATION": "20s",
 					// confirm that debug logging doesn't affect runtime
 					"SPLUNK_DISCOVERY_LOG_LEVEL": "debug",
 					"ORACLE_PASSWORD":            "password",

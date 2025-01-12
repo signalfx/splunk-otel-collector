@@ -237,16 +237,17 @@ func TestNonDefaultGIDCanAccessJavaInAgentBundle(t *testing.T) {
 		}
 
 		metricsFound := map[string]struct{}{}
-		m := tc.OTLPReceiverSink.AllMetrics()[len(tc.OTLPReceiverSink.AllMetrics())-1]
-		for i := 0; i < m.ResourceMetrics().Len(); i++ {
-			rm := m.ResourceMetrics().At(i)
-			for j := 0; j < rm.ScopeMetrics().Len(); j++ {
-				sm := rm.ScopeMetrics().At(j)
-				for k := 0; k < sm.Metrics().Len(); k++ {
-					metric := sm.Metrics().At(k)
+		for _, m := range tc.OTLPReceiverSink.AllMetrics() {
+			for i := 0; i < m.ResourceMetrics().Len(); i++ {
+				rm := m.ResourceMetrics().At(i)
+				for j := 0; j < rm.ScopeMetrics().Len(); j++ {
+					sm := rm.ScopeMetrics().At(j)
+					for k := 0; k < sm.Metrics().Len(); k++ {
+						metric := sm.Metrics().At(k)
 
-					if metric.Name() == "counter.amq.TotalConnectionsCount" || metric.Name() == "jmx_memory.committed" {
-						metricsFound[metric.Name()] = struct{}{}
+						if metric.Name() == "counter.amq.TotalConnectionsCount" || metric.Name() == "jmx_memory.committed" {
+							metricsFound[metric.Name()] = struct{}{}
+						}
 					}
 				}
 			}

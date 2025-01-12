@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build envoy_discovery
+//go:build discovery_integration_envoy
 
 package tests
 
@@ -43,7 +43,6 @@ func TestEnvoyDockerObserver(t *testing.T) {
 	defer tc.ShutdownOTLPReceiverSink()
 	_, shutdown := tc.SplunkOtelCollectorContainer("otlp_exporter.yaml", func(collector testutils.Collector) testutils.Collector {
 		cc := collector.(*testutils.CollectorContainer)
-		cc.Container = cc.Container.WithNetworks("envoy").WithNetworkMode("bridge")
 		return cc.WithEnv(map[string]string{
 			"SPLUNK_DISCOVERY_DURATION":  "20s",
 			"SPLUNK_DISCOVERY_LOG_LEVEL": "debug",

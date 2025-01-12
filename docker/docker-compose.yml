@@ -83,12 +83,10 @@ services:
   envoy:
     image: quay.io/splunko11ytest/envoy:latest
     profiles:
-      - envoy_discovery
+      - integration-test-envoy-discovery
     build: ./envoy
     ports:
       - "9901:9901"
-    networks:
-      - envoy
   # Haproxy image for haproxy test:
   haproxy:
     image: quay.io/splunko11ytest/haproxy:latest
@@ -318,7 +316,3 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-networks:
-  envoy:
-    driver: bridge
-    name: envoy

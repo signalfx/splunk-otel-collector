@@ -74,10 +74,10 @@ func TestDockerObserver(t *testing.T) {
 				// runner seems to be slow
 				"SPLUNK_DISCOVERY_DURATION": "20s",
 				// confirm that debug logging doesn't affect runtime
-				//"SPLUNK_DISCOVERY_LOG_LEVEL": "debug",
-				"DOCKER_DOMAIN_SOCKET": fmt.Sprintf("tcp://%s", dockerSocketProxy.ContainerEndpoint),
-				"LABEL_ONE_VALUE":      "actual.label.one.value",
-				"LABEL_TWO_VALUE":      "actual.label.two.value",
+				"SPLUNK_DISCOVERY_LOG_LEVEL": "debug",
+				"DOCKER_DOMAIN_SOCKET":       fmt.Sprintf("tcp://%s", dockerSocketProxy.ContainerEndpoint),
+				"LABEL_ONE_VALUE":            "actual.label.one.value",
+				"LABEL_TWO_VALUE":            "actual.label.two.value",
 				"SPLUNK_DISCOVERY_RECEIVERS_prometheus_x5f_simple_CONFIG_labels_x3a__x3a_label_x5f_three": "overwritten by --set property",
 				"SPLUNK_DISCOVERY_RECEIVERS_prometheus_x5f_simple_CONFIG_labels_x3a__x3a_label_x5f_four":  "actual.label.four.value",
 			}).WithArgs(

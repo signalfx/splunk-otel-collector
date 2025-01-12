@@ -236,7 +236,7 @@ func TestNonDefaultGIDCanAccessJavaInAgentBundle(t *testing.T) {
 			return
 		}
 
-		var metricsFound map[string]struct{}
+		metricsFound := map[string]struct{}{}
 		m := tc.OTLPReceiverSink.AllMetrics()[len(tc.OTLPReceiverSink.AllMetrics())-1]
 		for i := 0; i < m.ResourceMetrics().Len(); i++ {
 			rm := m.ResourceMetrics().At(i)
@@ -275,7 +275,7 @@ func TestNonDefaultGIDCanAccessPythonInAgentBundle(t *testing.T) {
 			assert.Fail(tt, "No metrics collected")
 			return
 		}
-		var metricsFound map[string]struct{}
+		metricsFound := map[string]struct{}{}
 		m := tc.OTLPReceiverSink.AllMetrics()[len(tc.OTLPReceiverSink.AllMetrics())-1]
 		for i := 0; i < m.ResourceMetrics().Len(); i++ {
 			rm := m.ResourceMetrics().At(i)

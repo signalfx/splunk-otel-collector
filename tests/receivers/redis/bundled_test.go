@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build redis_discovery
+//go:build discovery_integration_redis
 
 package tests
 
@@ -45,7 +45,6 @@ func TestRedisDockerObserver(t *testing.T) {
 	_, shutdown := tc.SplunkOtelCollectorContainer("otlp_exporter.yaml", func(c testutils.Collector) testutils.Collector {
 		cc := c.(*testutils.CollectorContainer)
 		cc.Container = cc.Container.WillWaitForLogs("Discovering for next")
-		cc.Container = cc.Container.WithNetworkMode("bridge").WithNetworks("redis")
 		return cc
 	},
 		func(collector testutils.Collector) testutils.Collector {

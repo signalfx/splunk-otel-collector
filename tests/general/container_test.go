@@ -236,7 +236,7 @@ func TestNonDefaultGIDCanAccessJavaInAgentBundle(t *testing.T) {
 			return
 		}
 
-		metricsFound := 0
+		var metricsFound map[string]struct{}
 		m := tc.OTLPReceiverSink.AllMetrics()[len(tc.OTLPReceiverSink.AllMetrics())-1]
 		for i := 0; i < m.ResourceMetrics().Len(); i++ {
 			rm := m.ResourceMetrics().At(i)
@@ -246,12 +246,12 @@ func TestNonDefaultGIDCanAccessJavaInAgentBundle(t *testing.T) {
 					metric := sm.Metrics().At(k)
 
 					if metric.Name() == "counter.amq.TotalConnectionsCount" || metric.Name() == "jmx_memory.committed" {
-						metricsFound++
+						metricsFound[metric.Name()] = struct{}{}
 					}
 				}
 			}
 		}
-		assert.Equal(tt, 2, metricsFound)
+		assert.Equal(tt, 2, len(metricsFound))
 	}, 30*time.Second, 1*time.Second)
 }
 
@@ -275,7 +275,7 @@ func TestNonDefaultGIDCanAccessPythonInAgentBundle(t *testing.T) {
 			assert.Fail(tt, "No metrics collected")
 			return
 		}
-		metricsFound := 0
+		var metricsFound map[string]struct{}
 		m := tc.OTLPReceiverSink.AllMetrics()[len(tc.OTLPReceiverSink.AllMetrics())-1]
 		for i := 0; i < m.ResourceMetrics().Len(); i++ {
 			rm := m.ResourceMetrics().At(i)
@@ -284,11 +284,11 @@ func TestNonDefaultGIDCanAccessPythonInAgentBundle(t *testing.T) {
 				for k := 0; k < sm.Metrics().Len(); k++ {
 					metric := sm.Metrics().At(k)
 					if metric.Name() == "counter.solr.http_2xx_responses" {
-						metricsFound++
+						metricsFound[metric.Name()] = struct{}{}
 					}
 				}
 			}
 		}
-		assert.Equal(tt, 1, metricsFound)
+		assert.Equal(tt, 1, len(metricsFound))
 	}, 30*time.Second, 1*time.Second)
 }

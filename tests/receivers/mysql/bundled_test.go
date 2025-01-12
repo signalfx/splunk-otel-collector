@@ -81,6 +81,7 @@ func TestMysqlDockerObserver(t *testing.T) {
 			pmetrictest.IgnoreResourceAttributeValue("service_version"),
 			pmetrictest.IgnoreMetricAttributeValue("service_version"),
 			pmetrictest.IgnoreMetricAttributeValue("service_instance_id"),
+			pmetrictest.IgnoreResourceAttributeValue("mysql.instance.endpoint"),
 			pmetrictest.IgnoreTimestamp(),
 			pmetrictest.IgnoreStartTimestamp(),
 			pmetrictest.IgnoreMetricDataPointsOrder(),

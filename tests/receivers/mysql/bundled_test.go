@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build mysql_discovery
+//go:build discovery_integration_mysql
 
 package tests
 
@@ -44,7 +44,7 @@ func TestMysqlDockerObserver(t *testing.T) {
 
 	_, shutdown := tc.SplunkOtelCollectorContainer("otlp_exporter.yaml", func(c testutils.Collector) testutils.Collector {
 		cc := c.(*testutils.CollectorContainer)
-		cc.Container = cc.Container.WillWaitForLogs("Discovering for next").WithNetworkMode("bridge").WithNetworks("mysql")
+		cc.Container = cc.Container.WillWaitForLogs("Discovering for next")
 		return cc
 	},
 		func(collector testutils.Collector) testutils.Collector {

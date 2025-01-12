@@ -258,7 +258,7 @@ jobs:
     strategy:
       matrix:
         RUNNER: [ "ubuntu-20.04", "ubuntu-22.04", "ubuntu-24.04" ]
-        PROFILE: [ "integration", "smartagent", "mysql_discovery" ]
+        PROFILE: [ "integration", "smartagent" ]
       fail-fast: false
     env:
       TEST_OUTPUT: ${{ github.job }}-${{ matrix.PROFILE }}-${{ matrix.RUNNER }}.out
@@ -338,7 +338,7 @@ jobs:
         id: get-matrix
         run: |
           includes=""
-          for service in "apache" "jmx/cassandra" "kafkametrics" "mongodb" "nginx"; do
+          for service in "apache" "jmx/cassandra" "kafkametrics" "mongodb" "nginx" "mysql"; do
             for arch in "amd64" "arm64"; do
               if [ "$service" = "mongodb" ]; then
                 # tests for mongo "6.0" and "7.0" are flaky, skipping for now

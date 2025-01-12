@@ -241,10 +241,8 @@ services:
     image: quay.io/splunko11ytest/mysql:latest
     profiles:
       - integration
-      - mysql_discovery
       - smartagent
-    networks:
-      - mysql
+      - integration-test-mysql-discovery
     build: ./mysql
     ports:
       - "3306:3306"
@@ -312,7 +310,3 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-networks:
-  mysql:
-    name: mysql
-    driver: bridge

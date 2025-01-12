@@ -83,7 +83,7 @@ services:
   envoy:
     image: quay.io/splunko11ytest/envoy:latest
     profiles:
-      - integration
+      - envoy_discovery
     build: ./envoy
     ports:
       - "9901:9901"

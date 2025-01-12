@@ -258,7 +258,7 @@ jobs:
     strategy:
       matrix:
         RUNNER: [ "ubuntu-20.04", "ubuntu-22.04", "ubuntu-24.04" ]
-        PROFILE: [ "integration", "smartagent" ]
+        PROFILE: [ "integration", "smartagent", "envoy_discovery" ]
       fail-fast: false
     env:
       TEST_OUTPUT: ${{ github.job }}-${{ matrix.PROFILE }}-${{ matrix.RUNNER }}.out

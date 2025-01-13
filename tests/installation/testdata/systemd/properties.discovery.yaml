@@ -1,8 +1,0 @@
-splunk.discovery:
-  receivers:
-    smartagent/postgresql:
-      config:
-        masterDBName: test_db
-        params:
-          username: test_user
-          password: test_password

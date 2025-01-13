@@ -281,6 +281,7 @@ services:
     image: quay.io/splunko11ytest/redis_server:latest
     profiles:
       - integration
+      - integration-test-redis-discovery
     build: ./redis_server
     ports:
       - "6379:6379"

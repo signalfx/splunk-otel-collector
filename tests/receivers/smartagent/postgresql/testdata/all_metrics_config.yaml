@@ -17,9 +17,20 @@ exporters:
     tls:
       insecure: true
 
+processors:
+  batch:
+  batch/2:
+  groupbyattrs:
+    keys:
+      - system.type
+  groupbyattrs/2:
+    keys:
+      - system.type
+
 service:
   pipelines:
     metrics:
       receivers:
         - smartagent/postgresql
+      processors: [groupbyattrs, batch, groupbyattrs/2, batch/2]
       exporters: [otlp]

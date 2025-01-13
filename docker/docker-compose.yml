@@ -265,6 +265,7 @@ services:
     image: quay.io/splunko11ytest/oracle:latest
     profiles:
       - integration
+      - integration-test-oracledb-discovery
     build: ./oracle
     ports:
       - "1521:1521"

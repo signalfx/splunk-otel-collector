@@ -28,6 +28,7 @@ import (
 
 	dockerContainer "github.com/docker/docker/api/types/container"
 	dockerMount "github.com/docker/docker/api/types/mount"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go/wait"
 
@@ -58,6 +59,7 @@ func getPackagePath(t testing.TB, suffix string) string {
 }
 
 func TestDefaultConfigDDiscoversPostgres(t *testing.T) {
+	assert.Fail(t, "is this even running")
 	tc := testutils.NewTestcase(t)
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()

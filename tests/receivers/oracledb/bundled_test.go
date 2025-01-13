@@ -12,37 +12,37 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build integration
+//go:build discovery_integration_oracledb
 
 package tests
 
 import (
 	"fmt"
-	"runtime"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
 func TestOracledbDockerObserver(t *testing.T) {
-	t.Skip("Redis data points are also discovered since Redis runs, making this test fail.")
 	testutils.SkipIfNotContainerTest(t)
-	if runtime.GOOS == "darwin" {
-		t.Skip("unable to share sockets between mac and d4m vm: https://github.com/docker/for-mac/issues/483#issuecomment-758836836")
-	}
+	dockerSocket := testutils.CreateDockerSocketProxy(t)
+	require.NoError(t, dockerSocket.Start())
+	t.Cleanup(func() {
+		dockerSocket.Stop()
+	})
 
 	testutils.AssertAllMetricsReceived(t, "bundled.yaml", "otlp_exporter.yaml",
 		nil, []testutils.CollectorBuilder{
 			func(c testutils.Collector) testutils.Collector {
 				cc := c.(*testutils.CollectorContainer)
-				cc.Container = cc.Container.WithBinds("/var/run/docker.sock:/var/run/docker.sock:ro")
 				cc.Container = cc.Container.WillWaitForLogs("Discovering for next")
-				cc.Container = cc.Container.WithUser(fmt.Sprintf("999:%d", testutils.GetDockerGID(t)))
 				return cc
 			},
 			func(collector testutils.Collector) testutils.Collector {
 				return collector.WithEnv(map[string]string{
-					"SPLUNK_DISCOVERY_DURATION": "10s",
+					"SPLUNK_DISCOVERY_DURATION": "20s",
 					// confirm that debug logging doesn't affect runtime
 					"SPLUNK_DISCOVERY_LOG_LEVEL": "debug",
 					"ORACLE_PASSWORD":            "password",
@@ -53,6 +53,7 @@ func TestOracledbDockerObserver(t *testing.T) {
 					"--set", "splunk.discovery.receivers.oracledb.config.service=XE",
 					"--set", `splunk.discovery.extensions.k8s_observer.enabled=false`,
 					"--set", `splunk.discovery.extensions.host_observer.enabled=false`,
+					"--set", fmt.Sprintf("splunk.discovery.extensions.docker_observer.config.endpoint=tcp://%s", dockerSocket.ContainerEndpoint),
 				)
 			},
 		},

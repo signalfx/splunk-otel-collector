@@ -12,7 +12,7 @@ replace (
 require (
 	code.cloudfoundry.org/go-loggregator v7.4.0+incompatible
 	github.com/Microsoft/go-winio v0.6.2 // indirect
-	github.com/SAP/go-hdb v1.12.7
+	github.com/SAP/go-hdb v1.12.9
 	github.com/Sectorbob/mlab-ns2 v0.0.0-20171030222938-d3aa0c295a8a
 	github.com/antonmedv/expr v1.15.5
 	github.com/beevik/ntp v1.4.3
@@ -86,7 +86,7 @@ require (
 	github.com/go-errors/errors v1.5.1
 	github.com/hashicorp/golang-lru v1.0.2
 	github.com/influxdata/telegraf v1.30.1
-	github.com/microsoft/go-mssqldb v1.7.2
+	github.com/microsoft/go-mssqldb v1.8.0
 	github.com/smartystreets/goconvey v1.8.1
 	go.opentelemetry.io/collector/pdata v1.23.0
 )

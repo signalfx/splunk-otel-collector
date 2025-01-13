@@ -249,6 +249,7 @@ services:
     profiles:
       - integration
       - smartagent
+      - integration-test-mysql-discovery
     build: ./mysql
     ports:
       - "3306:3306"
@@ -265,6 +266,7 @@ services:
     image: quay.io/splunko11ytest/oracle:latest
     profiles:
       - integration
+      - integration-test-oracledb-discovery
     build: ./oracle
     ports:
       - "1521:1521"

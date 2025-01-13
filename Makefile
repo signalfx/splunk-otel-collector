@@ -91,6 +91,10 @@ integration-test:
 integration-test-mongodb-discovery:
 	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_mongodb -v -timeout 5m -count 1 ./...
 
+.PHONY: integration-test-mysql-discovery
+integration-test-mysql-discovery:
+	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_mysql -v -timeout 5m -count 1 ./...
+
 .PHONY: integration-test-kafkametrics-discovery
 integration-test-kafkametrics-discovery:
 	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_kafkametrics -v -timeout 5m -count 1 ./...
@@ -114,6 +118,10 @@ integration-test-nginx-discovery:
 .PHONY: integration-test-redis-discovery
 integration-test-redis-discovery:
 	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_redis -v -timeout 5m -count 1 ./...
+
+.PHONY: integration-test-oracledb-discovery
+integration-test-oracledb-discovery:
+	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_oracledb -v -timeout 5m -count 1 ./...
 
 .PHONY: smartagent-integration-test
 smartagent-integration-test:

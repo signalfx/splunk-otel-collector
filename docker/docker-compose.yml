@@ -80,6 +80,13 @@ services:
       - integration
     environment:
       - ELASTIC_PASSWORD=$ELASTIC_PASSWORD
+  envoy:
+    image: quay.io/splunko11ytest/envoy:latest
+    profiles:
+      - integration-test-envoy-discovery
+    build: ./envoy
+    ports:
+      - "9901:9901"
   # Haproxy image for haproxy test:
   haproxy:
     image: quay.io/splunko11ytest/haproxy:latest
@@ -259,6 +266,7 @@ services:
     image: quay.io/splunko11ytest/oracle:latest
     profiles:
       - integration
+      - integration-test-oracledb-discovery
     build: ./oracle
     ports:
       - "1521:1521"

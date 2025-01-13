@@ -249,6 +249,7 @@ services:
     profiles:
       - integration
       - smartagent
+      - integration-test-mysql-discovery
     build: ./mysql
     ports:
       - "3306:3306"

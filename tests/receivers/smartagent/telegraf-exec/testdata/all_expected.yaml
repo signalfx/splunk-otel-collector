@@ -1,0 +1,20 @@
+resourceMetrics:
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - gauge:
+              dataPoints:
+                - asInt: "4284667555770276808"
+                  attributes:
+                    - key: system.type
+                      value:
+                        stringValue: exec
+                    - key: tag.one
+                      value:
+                        stringValue: one
+                    - key: tag.two
+                      value:
+                        stringValue: two
+                  timeUnixNano: "1000000"
+            name: some.metric
+        scope: {}

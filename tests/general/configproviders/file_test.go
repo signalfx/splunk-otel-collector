@@ -17,28 +17,46 @@
 package tests
 
 import (
-	"path"
-	"path/filepath"
+	"fmt"
 	"testing"
+	"time"
 
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
 func TestFileProvider(t *testing.T) {
-	t.Skip("Issues with test-containers networking, need to wait for -contrib to update the docker api version for us to update testcontainers-go locally")
-	testdataPath, err := filepath.Abs(path.Join(".", "testdata"))
-	require.NoError(t, err)
-	testutils.AssertAllMetricsReceived(
-		t, "memory.yaml", "", nil,
-		[]testutils.CollectorBuilder{
-			func(collector testutils.Collector) testutils.Collector {
-				if cc, ok := collector.(*testutils.CollectorContainer); ok {
-					collector = cc.WithMount(testdataPath, "/testdata")
+	tc := testutils.NewTestcase(t)
+	defer tc.PrintLogsOnFailure()
+	defer tc.ShutdownOTLPReceiverSink()
+
+	_, shutdown := tc.SplunkOtelCollectorProcess("", func(collector testutils.Collector) testutils.Collector {
+		return collector.WithArgs("--config", "file:./testdata/file_config.yaml")
+	})
+	defer shutdown()
+
+	missingMetrics := map[string]struct{}{
+		"system.memory.usage": {},
+	}
+
+	assert.EventuallyWithT(t, func(tt *assert.CollectT) {
+		for i := 0; i < len(tc.OTLPReceiverSink.AllMetrics()); i++ {
+			m := tc.OTLPReceiverSink.AllMetrics()[i]
+			for j := 0; j < m.ResourceMetrics().Len(); j++ {
+				rm := m.ResourceMetrics().At(j)
+				for k := 0; k < rm.ScopeMetrics().Len(); k++ {
+					sm := rm.ScopeMetrics().At(k)
+					for l := 0; l < sm.Metrics().Len(); l++ {
+						delete(missingMetrics, sm.Metrics().At(l).Name())
+					}
 				}
-				return collector.WithArgs("--config", "file:./testdata/file_config.yaml")
-			},
-		},
-	)
+			}
+		}
+		msg := "Missing metrics:\n"
+		for k := range missingMetrics {
+			msg += fmt.Sprintf("- %q\n", k)
+		}
+		assert.Len(tt, missingMetrics, 0, msg)
+	}, 30*time.Second, 1*time.Second)
 }

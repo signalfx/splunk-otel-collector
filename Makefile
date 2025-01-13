@@ -115,10 +115,13 @@ integration-test-envoy-discovery:
 integration-test-nginx-discovery:
 	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_nginx -v -timeout 5m -count 1 ./...
 
+.PHONY: integration-test-redis-discovery
+integration-test-redis-discovery:
+	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_redis -v -timeout 5m -count 1 ./...
+
 .PHONY: integration-test-oracledb-discovery
 integration-test-oracledb-discovery:
 	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_oracledb -v -timeout 5m -count 1 ./...
-
 
 .PHONY: smartagent-integration-test
 smartagent-integration-test:

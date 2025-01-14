@@ -1,4 +1,4 @@
-#!/bin/bash -eux
+#!/bin/bash -eu
 set -o pipefail
 
 [[ -z "$BUILD_DIR" ]] && echo "BUILD_DIR not set" && exit 1
@@ -12,9 +12,9 @@ rm -rf "$ADDON_DIR/$REPACKED_TA_NAME"
 
 # Set discovery specific config & repackage TA
 echo 'discovery=true' >> "$ADDON_DIR/Splunk_TA_otel/local/inputs.conf"
-echo 'splunk_discovery_properties=$SPLUNK_OTEL_TA_HOME/configs/kafkametrics.discovery.properties.yaml' >> "$ADDON_DIR/Splunk_TA_otel/local/inputs.conf"
+echo 'discovery_properties=$SPLUNK_OTEL_TA_HOME/configs/kafkametrics.discovery.properties.yaml' >> "$ADDON_DIR/Splunk_TA_otel/local/inputs.conf"
 echo 'configd=true' >> "$ADDON_DIR/Splunk_TA_otel/local/inputs.conf"
-echo 'configd_dir=$SPLUNK_OTEL_TA_HOME/configs/discovery/config.d.linux' >> "$ADDON_DIR/Splunk_TA_otel/local/inputs.conf"
+echo 'splunk_config_dir=$SPLUNK_OTEL_TA_HOME/configs/discovery/config.d.linux' >> "$ADDON_DIR/Splunk_TA_otel/local/inputs.conf"
 echo 'splunk_config=$SPLUNK_OTEL_TA_HOME/configs/docker_observer_without_ssl_kafkametrics_config.yaml' >> "$ADDON_DIR/Splunk_TA_otel/local/inputs.conf"
 DISCOVERY_SOURCE_DIR="${SOURCE_DIR}/packaging-scripts/cicd-tests/discovery"
 cp "$DISCOVERY_SOURCE_DIR/docker_observer_without_ssl_kafkametrics_config.yaml" "$ADDON_DIR/Splunk_TA_otel/configs/"

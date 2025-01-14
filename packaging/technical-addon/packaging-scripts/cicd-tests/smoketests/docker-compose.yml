@@ -1,4 +1,3 @@
-version: "3.6"
 # See https://splunk.github.io/docker-splunk/advanced/APP_INSTALL.html#apps-on-filesystem
 services:
   so1:
@@ -9,12 +8,13 @@ services:
       timeout: 10s
       retries: 5
       start_period: 60s
-    hostname: so1
     environment:
+      # If there's a bug in the TA, you may comment out this line and use docker exec via cp and splunk restart
+      # in the test script to manually debug the TA
+      - SPLUNK_APPS_URL=/tmp/local-tas/$REPACKED_TA_NAME
       - SPLUNK_START_ARGS=--accept-license
-      - SPLUNK_APPS_URL=/addon-dir/$REPACKED_TA_NAME
       - SPLUNK_PASSWORD=Chang3d!
     ports:
       - 8000
     volumes:
-      - $ADDON_DIR:/addon-dir
+      - $ADDON_DIR:/tmp/local-tas:rwz

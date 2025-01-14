@@ -21,10 +21,6 @@ tar -C "$ADDON_DIR" -hcz --file "$TA_FULLPATH" "Splunk_TA_otel"
 
 echo "Testing with hot TA $TA_FULLPATH ($ADDON_DIR and $REPACKED_TA_NAME)"
 
-# Set perms on addon dir
-#chmod a+rwx "$ADDON_DIR"
-#chmod a+rwx "$ADDON_DIR/$REPACKED_TA_NAME"
-
 DOCKER_COMPOSE_CONFIG="$SOURCE_DIR/packaging-scripts/cicd-tests/discovery/docker-compose.yml"
 REPACKED_TA_NAME=$REPACKED_TA_NAME ADDON_DIR=$ADDON_DIR docker compose --file "$DOCKER_COMPOSE_CONFIG" up --build --force-recreate --wait --detach --timestamps
 

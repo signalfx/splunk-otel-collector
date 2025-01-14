@@ -115,6 +115,7 @@ if "%splunk_bundle_dir_value%" == "" (
 if "%splunk_config_value%" == "" (
     call :splunk_TA_otel_log_msg "DEBUG" "Param %splunk_config_name% not set"
 ) else (
+    set "SPLUNK_OTEL_FLAGS=%SPLUNK_OTEL_FLAGS% --config=%splunk_config_value%"
     set "SPLUNK_CONFIG=%splunk_config_value%"
 )
 if "%splunk_config_dir_value%" == "" (
@@ -194,7 +195,7 @@ if "%discovery_value%" == "true" (
     call :splunk_TA_otel_log_msg "DEBUG" "Optional flag %discovery_name% not set"
 )
 if "%discovery_properties_value%" != "" (
-    set "SPLUNK_OTEL_FLAGS=%SPLUNK_OTEL_FLAGS% --discovery-properties-file=%discovery_properties_value%"
+    set "SPLUNK_OTEL_FLAGS=%SPLUNK_OTEL_FLAGS% --discovery-properties=%discovery_properties_value%"
 ) else (
     call :splunk_TA_otel_log_msg "DEBUG" "Optional flag %discovery_properties_name% not set"
 )

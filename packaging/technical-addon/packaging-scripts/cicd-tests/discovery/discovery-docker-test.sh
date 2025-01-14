@@ -13,8 +13,6 @@ rm -rf "$ADDON_DIR/$REPACKED_TA_NAME"
 # Set discovery specific config & repackage TA
 echo 'discovery=true' >> "$ADDON_DIR/Splunk_TA_otel/local/inputs.conf"
 echo 'discovery_properties=$SPLUNK_OTEL_TA_HOME/configs/kafkametrics.discovery.properties.yaml' >> "$ADDON_DIR/Splunk_TA_otel/local/inputs.conf"
-echo 'configd=true' >> "$ADDON_DIR/Splunk_TA_otel/local/inputs.conf"
-echo 'splunk_config_dir=$SPLUNK_OTEL_TA_HOME/configs/discovery/config.d.linux' >> "$ADDON_DIR/Splunk_TA_otel/local/inputs.conf"
 echo 'splunk_config=$SPLUNK_OTEL_TA_HOME/configs/docker_observer_without_ssl_kafkametrics_config.yaml' >> "$ADDON_DIR/Splunk_TA_otel/local/inputs.conf"
 DISCOVERY_SOURCE_DIR="${SOURCE_DIR}/packaging-scripts/cicd-tests/discovery"
 cp "$DISCOVERY_SOURCE_DIR/docker_observer_without_ssl_kafkametrics_config.yaml" "$ADDON_DIR/Splunk_TA_otel/configs/"
@@ -32,10 +30,10 @@ REPACKED_TA_NAME=$REPACKED_TA_NAME ADDON_DIR=$ADDON_DIR docker compose --file "$
 
 # If there's an error in the app, you can try manually installing it or modifying files
 # Lines are for debugging only, until we get better testing documentation
-docker exec -u splunk discovery-ta-test-discovery-1 cp -r "/tmp/local-tas/Splunk_TA_otel" "/opt/splunk/etc/apps"
-docker exec -u splunk discovery-ta-test-discovery-1 /opt/splunk/bin/splunk restart
-sleep 1m # If restarting splunk for debugging, wait a bit
-docker exec -u root -it discovery-ta-test-discovery-1 bash
+#docker exec -u splunk discovery-ta-test-discovery-1 cp -r "/tmp/local-tas/Splunk_TA_otel" "/opt/splunk/etc/apps"
+#docker exec -u splunk discovery-ta-test-discovery-1 /opt/splunk/bin/splunk restart
+#sleep 1m # If restarting splunk for debugging, wait a bit
+#docker exec -u root -it discovery-ta-test-discovery-1 bash
 
 docker exec -u root discovery-ta-test-discovery-1 /opt/splunk/bin/splunk btool check --debug | grep -qi "Invalid key in stanza" && exit 1
 

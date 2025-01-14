@@ -337,6 +337,7 @@ splunk_TA_otel_run_agent() {
     fi
     if [ "$splunk_config_value" ] ; then
       export SPLUNK_CONFIG="$splunk_config_value"
+      SPLUNK_OTEL_FLAGS="$SPLUNK_OTEL_FLAGS --config=$splunk_config_value"
     else
       splunk_TA_otel_log_msg "DEBUG" "NOT SET: $splunk_config_name"
     fi

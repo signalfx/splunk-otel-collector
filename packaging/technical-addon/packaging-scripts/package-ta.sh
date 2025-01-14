@@ -49,9 +49,9 @@ if [ "$PLATFORM" == "linux" ] || [ "$PLATFORM" == "all" ] ; then
 fi
 
 # Copy some default discovery configuration examples
-cp -R "$BUILD_DIR/configs/discovery" "$BUILD_DIR/$TA_NAME/configs"
+cp -R "$BUILD_DIR/configs/discovery" "$TA_PACKAGING_DIR/$TA_NAME/configs"
 if [ "$PLATFORM" != "linux" ] && [ "$PLATFORM" != "all" ] ; then
-  rm -rf "$BUILD_DIR/$TA_NAME/configs/discovery/config.d.linux"
+  rm -rf "$TA_PACKAGING_DIR/$TA_NAME/configs/discovery/config.d.linux"
 fi
 
 # Prepare artifact directory structure

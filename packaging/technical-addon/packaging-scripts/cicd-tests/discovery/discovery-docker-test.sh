@@ -32,10 +32,10 @@ REPACKED_TA_NAME=$REPACKED_TA_NAME ADDON_DIR=$ADDON_DIR docker compose --file "$
 
 # If there's an error in the app, you can try manually installing it or modifying files
 # Lines are for debugging only, until we get better testing documentation
-#docker exec -u splunk discovery-ta-test-discovery-1 cp -r "/tmp/local-tas/Splunk_TA_otel" "/opt/splunk/etc/apps"
-#docker exec -u splunk discovery-ta-test-discovery-1 /opt/splunk/bin/splunk restart
-#sleep 1m # If restarting splunk for debugging, wait a bit
-#docker exec -u root -it discovery-ta-test-discovery-1 bash
+docker exec -u splunk discovery-ta-test-discovery-1 cp -r "/tmp/local-tas/Splunk_TA_otel" "/opt/splunk/etc/apps"
+docker exec -u splunk discovery-ta-test-discovery-1 /opt/splunk/bin/splunk restart
+sleep 1m # If restarting splunk for debugging, wait a bit
+docker exec -u root -it discovery-ta-test-discovery-1 bash
 
 docker exec -u root discovery-ta-test-discovery-1 /opt/splunk/bin/splunk btool check --debug | grep -qi "Invalid key in stanza" && exit 1
 
@@ -48,6 +48,7 @@ while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
     else
         if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
             echo "Failed to see success message in otel.log after $MAX_ATTEMPTS attempts."
+            cat /opt/splunk/var/log/splunk/otel.log
             exit 1
         fi
         echo "sucess message not found in otel.log Retrying in $DELAY seconds"
@@ -60,6 +61,7 @@ done
 docker exec -u root discovery-ta-test-discovery-1 pgrep -f 'discovery'
 docker exec -u root discovery-ta-test-discovery-1 pgrep -f 'discovery-properties'
 docker exec -u root discovery-ta-test-discovery-1 pgrep -f 'kafkametrics.discovery.properties.yaml'
+docker exec -u root discovery-ta-test-discovery-1 test -d /opt/splunk/etc/apps/Splunk_TA_otel/configs/discovery/config.d.linux
 
 sleep 15s # Give discovery receiver some time to discover things after the collector is up
 docker exec -u root discovery-ta-test-discovery-1 grep -qi "9092" /opt/splunk/var/log/splunk/otel.log

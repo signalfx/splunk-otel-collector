@@ -302,7 +302,7 @@ splunk_TA_otel_run_agent() {
     splunk_collectd_dir_value="$(Splunk_TA_otel_expand_config_param "$splunk_collectd_dir_value")"
     splunk_otel_log_file_value="$(Splunk_TA_otel_expand_config_param "$splunk_otel_log_file_value")"
     splunk_access_token_file_value="$(Splunk_TA_otel_expand_config_param "$splunk_access_token_file_value")"
-    discovery_file_path_value="$(Splunk_TA_otel_expand_config_param "$discovery_file_path_value")"
+    discovery_properties_value="$(Splunk_TA_otel_expand_config_param "$discovery_properties_value")"
     splunk_config_dir_value="$(Splunk_TA_otel_expand_config_param "$splunk_config_dir_value")"
 
     get_access_token

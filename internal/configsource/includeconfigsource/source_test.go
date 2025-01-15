@@ -126,9 +126,14 @@ func TestIncludeConfigSource_WatchFileUpdate(t *testing.T) {
 
 	// Perform initial retrieve
 	watchChannel := make(chan *confmap.ChangeEvent, 1)
+	watchDone := make(chan struct{}, 1)
 	ctx := context.Background()
 	r, err := s.Retrieve(ctx, dst, nil, func(event *confmap.ChangeEvent) {
-		watchChannel <- event
+		t.Log(event)
+		select {
+		case watchChannel <- event:
+		case <-watchDone:
+		}
 	})
 	require.NoError(t, err)
 	require.NotNil(t, r)
@@ -141,6 +146,7 @@ func TestIncludeConfigSource_WatchFileUpdate(t *testing.T) {
 	require.NoError(t, os.WriteFile(dst, []byte("val2"), 0600))
 
 	ce := <-watchChannel
+	watchDone <- struct{}{}
 	assert.NoError(t, ce.Error)
 	require.NoError(t, r.Close(context.Background()))
 

@@ -53,8 +53,7 @@ In summary, the default Collector container definition does the following:
 - Sets the realm using environment variable `SPLUNK_REALM`.
 - Sets the default configuration file path using environment variable `SPLUNK_CONFIG`.
 
-Assign a stringified array of metrics you want excluded to environment variable
-`METRICS_TO_EXCLUDE`. You can set the memory limit for the memory limiter processor using
+You can set the memory limit for the memory limiter processor using
 environment variable `SPLUNK_MEMORY_LIMIT_MIB`. The default memory limit is 512 MiB. For
 more information about the memory limiter processor, see
 [here](https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiterprocessor/README.md)

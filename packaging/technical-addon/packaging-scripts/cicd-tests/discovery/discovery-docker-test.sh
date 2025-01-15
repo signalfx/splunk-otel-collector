@@ -51,7 +51,7 @@ while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
     fi
 done
 
-# Ensure command line flas were passed properly
+# Ensure command line flags were passed properly
 docker exec -u root discovery-ta-test-discovery-1 pgrep -f 'discovery'
 docker exec -u root discovery-ta-test-discovery-1 pgrep -f 'discovery-properties'
 docker exec -u root discovery-ta-test-discovery-1 pgrep -f 'kafkametrics.discovery.properties.yaml'

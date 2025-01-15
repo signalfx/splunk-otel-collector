@@ -17,19 +17,18 @@ package testutils
 import (
 	"context"
 	"fmt"
-	"github.com/google/uuid"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
-	"go.uber.org/zap/zaptest/observer"
 	"os"
 	"path"
 	"runtime"
 	"strings"
 	"testing"
 
-	"github.com/signalfx/splunk-otel-collector/tests/testutils/telemetry"
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"go.uber.org/zap/zaptest/observer"
 )
 
 type CollectorBuilder func(Collector) Collector
@@ -73,16 +72,6 @@ func (t *Testcase) setOTLPEndpoint() {
 	otlpHost := "localhost"
 	t.OTLPEndpoint = fmt.Sprintf("%s:%d", otlpHost, otlpPort)
 	t.OTLPEndpointForCollector = t.OTLPEndpoint
-}
-
-// Loads and validates a ResourceMetrics instance, assuming it's located in ./testdata/resource_metrics
-func (t *Testcase) ResourceMetrics(filename string) *telemetry.ResourceMetrics {
-	expectedResourceMetrics, err := telemetry.LoadResourceMetrics(
-		path.Join(".", "testdata", "resource_metrics", filename),
-	)
-	require.NoError(t, err)
-	require.NotNil(t, expectedResourceMetrics)
-	return expectedResourceMetrics
 }
 
 // Builds and starts all provided Container builder instances, returning them and a validating stop function.

@@ -1,9 +1,5 @@
 {% if item.image not in ["opensuse12", "opensuse15", "centos9"] %}
 FROM geerlingguy/docker-{{ item.image }}-ansible:latest
-{% if item.image == "debian9" %}
-RUN sed -i 's|http://.*.debian.org|http://archive.debian.org|' /etc/apt/sources.list
-RUN sed -i '/stretch-updates/d' /etc/apt/sources.list
-{% endif %}
 {% elif item.image == "centos9" %}
 FROM quay.io/centos/centos:stream9
 ENV container docker

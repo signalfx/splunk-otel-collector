@@ -160,8 +160,7 @@ required `splunk_access_token` attribute and some optional attributes:
 
 - `fluentd_version`: Version of the [td-agent](
   https://www.fluentd.org/download) (Fluentd) package to install (**default:**
-  `3.7.1` for Debian stretch, and `4.3.1` for all other Linux distros and
-  Windows)
+  `4.3.1` for all Linux distros and Windows)
 
 - `fluentd_config_source`: Source path to the Fluentd config file. This file
   will be copied to the `fluentd_config_dest` path on the node. See the

@@ -86,6 +86,7 @@ func RunMetricsCollectionTest(t *testing.T, configFile string, expectedFilePath 
 	port := GetAvailablePort(t)
 	c := f.CreateDefaultConfig().(*otlpreceiver.Config)
 	c.GRPC.NetAddr.Endpoint = fmt.Sprintf("localhost:%d", port)
+	c.HTTP = nil
 	sink := &consumertest.MetricsSink{}
 	receiver, err := f.CreateMetrics(context.Background(), receivertest.NewNopSettings(), c, sink)
 	require.NoError(t, err)

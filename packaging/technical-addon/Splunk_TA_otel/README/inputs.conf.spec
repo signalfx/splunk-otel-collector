@@ -25,7 +25,7 @@ splunk_config = <value>
 * Value to use for the `SPLUNK_CONFIG` environment variable (default `$SPLUNK_OTEL_TA_HOME/config/ta_agent_config.yaml`)
 
 splunk_config_dir = <value>
-* Value to use for the `SPLUNK_CONFIG_DIR` environment variable (default `$SPLUNK_OTEL_TA_HOME/config/`)
+* Value to use for the `SPLUNK_CONFIG_DIR` environment variable (default `$SPLUNK_OTEL_TA_HOME/config/`).  Same as `--configd` parameter as defined in https://github.com/signalfx/splunk-otel-collector/blob/v0.114.0/internal/confmapprovider/discovery/README.md?plain=1#L47
 
 splunk_debug_config_server = <value>
 * Value to use for the `SPLUNK_DEBUG_CONFIG_SERVER` environment variable
@@ -50,3 +50,12 @@ splunk_ingest_url = <value>
 
 splunk_realm = <value>
 * Splunk Observability realm to use for the `SPLUNK_REALM` environment variable (ex us0)
+
+discovery = <value>
+* Boolean, if `true` will enable `--discovery`
+
+discovery_properties = <value>
+* String, same as `--discovery-properties` parameter.  See [properties reference](https://github.com/signalfx/splunk-otel-collector/blob/v0.114.0/internal/confmapprovider/discovery/README.md?plain=1#L175)
+
+configd = <value>
+* Boolean, if `true` will enable `--configd`

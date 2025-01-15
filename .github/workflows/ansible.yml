@@ -75,14 +75,8 @@ jobs:
           - debian11
           - debian12
           - opensuse12
-          - ubuntu1604
-          - ubuntu1804
           - ubuntu2004
           - ubuntu2204
-        exclude:
-          # ansible-core used by ansible 9.2.0 requires a minimum of Python2 version 2.7 or Python3 version 3.6. Current version: 3.5.2
-          - distro: ubuntu1604
-            ansible: ansible~=9.2.0
 
     steps:
       - name: Check out the codebase.

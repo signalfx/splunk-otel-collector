@@ -98,11 +98,6 @@ platforms:
       image: dokken/oraclelinux-8
       pid_one_command: /usr/lib/systemd/systemd
 
-  - name: ubuntu-18.04
-    driver:
-      image: dokken/ubuntu-18.04
-      pid_one_command: /bin/systemd
-
   - name: ubuntu-20.04
     driver:
       image: dokken/ubuntu-20.04

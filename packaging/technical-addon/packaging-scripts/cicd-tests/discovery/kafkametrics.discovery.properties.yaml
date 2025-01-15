@@ -1,0 +1,7 @@
+splunk.discovery:
+  receivers:
+    kafkametrics:
+      enabled: true
+      config:
+        resource_attributes:
+          testdiscoveryparam: testdiscoveryparamvaluefromproperties

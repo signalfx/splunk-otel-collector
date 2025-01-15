@@ -9,7 +9,15 @@ receivers:
     enhancedMetrics: true
     extraMetrics: ["*"]
     intervalSeconds: 1
-
+processors:
+  batch:
+  batch/2:
+  groupbyattrs:
+    keys:
+      - system.type
+  groupbyattrs/2:
+    keys:
+      - system.type
 exporters:
   otlp:
     endpoint: "${OTLP_ENDPOINT}"
@@ -21,4 +29,5 @@ service:
     metrics:
       receivers:
         - smartagent/collectd_spark_master
+      processors: [ groupbyattrs, batch, groupbyattrs/2, batch/2 ]
       exporters: [otlp]

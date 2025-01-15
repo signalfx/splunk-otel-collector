@@ -1,7 +1,5 @@
 deb:
   debian-bullseye: ["DISTRO_IMAGE=debian:bullseye"]
-  debian-buster: ["DISTRO_IMAGE=debian:buster"]
-  debian-stretch: ["DISTRO_IMAGE=debian:stretch"]
   ubuntu-focal: ["DISTRO_IMAGE=ubuntu:20.04"]
   ubuntu-jammy: ["DISTRO_IMAGE=ubuntu:22.04"]
 

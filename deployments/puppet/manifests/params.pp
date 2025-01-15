@@ -1,7 +1,6 @@
 # Class for default param values based on OS
 class splunk_otel_collector::params {
   $fluentd_version_default = '4.3.2'
-  $fluentd_version_stretch = '3.7.1-0'
   $collector_additional_env_vars = {}
 
   if $facts['os']['family'] == 'redhat' or $facts['os']['family'] == 'debian' or $facts['os']['family'] == 'suse' {
@@ -14,10 +13,7 @@ class splunk_otel_collector::params {
     $collector_config_dest = $collector_config_source
     $fluentd_base_url = 'https://packages.treasuredata.com'
     if $facts['os']['family'] == 'debian' {
-      $fluentd_version = downcase($facts['os']['distro']['codename']) ? {
-        'stretch' => $fluentd_version_stretch,
-        default   => "${fluentd_version_default}-1",
-      }
+      $fluentd_version = "${fluentd_version_default}-1"
     } else {
       $fluentd_version = $fluentd_version_default
     }

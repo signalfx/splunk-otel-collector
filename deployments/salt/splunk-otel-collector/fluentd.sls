@@ -6,8 +6,6 @@
 
 {% if td_agent_version  %}
 {{ td_agent_version }}
-{%- elif grains['oscodename'] == 'stretch' %}
-{% set td_agent_version = '3.7.1-0' %}
 {%- elif grains['os_family'] == 'Debian' %}
 {% set td_agent_version = '4.3.2-1' %}
 {%- else %}

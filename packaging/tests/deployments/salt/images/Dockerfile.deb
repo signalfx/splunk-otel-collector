@@ -6,11 +6,6 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV SALT_VERSION=latest
 ENV NODE_VERSION=16.20.2
 
-# repo update for debian:stretch
-RUN if [ ${DISTRO_IMAGE} = "debian:stretch" ]; then \
-    sed -i 's|http://.*.debian.org|http://archive.debian.org|' /etc/apt/sources.list && \
-    sed -i '/stretch-updates/d' /etc/apt/sources.list; fi
-
 RUN apt-get update && apt-get upgrade -y -o DPkg::Options::=--force-confold
 RUN apt-get install -y software-properties-common ca-certificates wget curl apt-transport-https python3-pip vim systemd procps
 

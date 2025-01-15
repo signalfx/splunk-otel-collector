@@ -174,8 +174,7 @@ which allows setting up a proxy to download the collector binaries.
   (**default:** `false`)
 
 - `td_agent_version`: Version of td-agent (fluentd package) that will be 
-  installed (**default:** `3.7.1` for Debian stretch and `4.3.2` for other
-  distros)
+  installed (**default:** `4.3.2`)
 
 - `splunk_fluentd_config`: Path to the fluentd config file on the remote host.
   (**default:** `/etc/otel/collector/fluentd/fluent.conf` on Linux, 

@@ -40,7 +40,7 @@ start_service: true
 splunk_skip_repo: false
 
 # Explicitly set version of td-agent,
-# By default: 3.7.1 for Debian stretch and 4.3.2 for other distros.
+# By default: 4.3.2
 td_agent_version: ""
 
 # Default path on Linux: "/etc/otel/collector/fluentd/fluent.conf".

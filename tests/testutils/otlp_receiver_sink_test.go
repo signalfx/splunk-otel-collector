@@ -78,31 +78,6 @@ func TestBuildDefaults(t *testing.T) {
 	assert.NotNil(t, otlp.tracesSink)
 }
 
-func TestReceiverMethodsWithoutBuildingDisallowed(t *testing.T) {
-	otlp := NewOTLPReceiverSink()
-
-	err := otlp.Start()
-	require.Error(t, err)
-	require.EqualError(t, err, "cannot invoke Start() on an OTLPReceiverSink that hasn't been built")
-
-	err = otlp.Shutdown()
-	require.Error(t, err)
-	require.EqualError(t, err, "cannot invoke Shutdown() on an OTLPReceiverSink that hasn't been built")
-
-	metrics := otlp.AllMetrics()
-	require.Nil(t, metrics)
-
-	dataPointCount := otlp.DataPointCount()
-	require.Zero(t, dataPointCount)
-
-	// doesn't panic
-	otlp.Reset()
-
-	err = otlp.AssertAllMetricsReceived(t, telemetry.ResourceMetrics{}, 0)
-	require.Error(t, err)
-	require.EqualError(t, err, "cannot invoke AssertAllMetricsReceived() on an OTLPReceiverSink that hasn't been built")
-}
-
 func createOTLPFactoryParameters() (otlpexporter.Config, otelcolexporter.Settings) {
 	exporterCfg := otlpexporter.Config{
 		ClientConfig: configgrpc.ClientConfig{
@@ -158,27 +133,4 @@ func TestOTLPReceiverMetricsAvailableToSink(t *testing.T) {
 	assert.Eventually(t, func() bool {
 		return otlp.DataPointCount() == expectedCount
 	}, 5*time.Second, 1*time.Millisecond)
-}
-
-func TestAssertAllMetricsReceivedHappyPath(t *testing.T) {
-	otlp, err := NewOTLPReceiverSink().WithEndpoint("localhost:4317").Build()
-	require.NoError(t, err)
-
-	err = otlp.Start()
-	defer func() {
-		require.NoError(t, otlp.Shutdown())
-	}()
-	require.NoError(t, err)
-
-	exporter := otlpMetricsExporter(t)
-	defer func() { require.NoError(t, exporter.Shutdown(context.Background())) }()
-
-	metrics := telemetry.PDataMetrics()
-	err = exporter.ConsumeMetrics(context.Background(), metrics)
-	require.NoError(t, err)
-
-	resourceMetrics, err := telemetry.PDataToResourceMetrics(metrics)
-	resourceMetrics = telemetry.FlattenResourceMetrics(resourceMetrics)
-	require.NoError(t, err)
-	require.NoError(t, otlp.AssertAllMetricsReceived(t, resourceMetrics, 100*time.Millisecond))
 }

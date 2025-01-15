@@ -17,19 +17,17 @@ package testutils
 import (
 	"context"
 	"fmt"
-	"os"
-	"path"
-	"runtime"
-	"strings"
-	"testing"
-	"time"
-
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
+	"os"
+	"path"
+	"runtime"
+	"strings"
+	"testing"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils/telemetry"
 )
@@ -198,27 +196,4 @@ func (t *Testcase) PrintLogsOnFailure() {
 // Validating shutdown helper for the Testcase's OTLPReceiverSink
 func (t *Testcase) ShutdownOTLPReceiverSink() {
 	require.NoError(t, t.OTLPReceiverSink.Shutdown())
-}
-
-// AssertAllMetricsReceived is a central helper, designed to avoid most boilerplate. Using the desired
-// ResourceMetrics and Collector Config filenames, a slice of Container builders, and a slice of CollectorBuilder
-// AssertAllMetricsReceived creates a Testcase, builds and starts all Container and CollectorBuilder-determined Collector
-// instances, and asserts that all expected ResourceMetrics are received before running validated cleanup functionality.
-func AssertAllMetricsReceived(
-	t testing.TB, resourceMetricsFilename, collectorConfigFilename string,
-	containers []Container, builders []CollectorBuilder,
-) {
-	tc := NewTestcase(t)
-	defer tc.PrintLogsOnFailure()
-	defer tc.ShutdownOTLPReceiverSink()
-
-	expectedResourceMetrics := tc.ResourceMetrics(resourceMetricsFilename)
-
-	_, stop := tc.Containers(containers...)
-	defer stop()
-
-	_, shutdown := tc.SplunkOtelCollector(collectorConfigFilename, builders...)
-	defer shutdown()
-
-	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
 }

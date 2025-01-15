@@ -17,11 +17,6 @@ package testutils
 import (
 	"context"
 	"fmt"
-	"testing"
-	"time"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config/confignet"
@@ -34,8 +29,6 @@ import (
 	mnoop "go.opentelemetry.io/otel/metric/noop"
 	tnoop "go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/zap"
-
-	"github.com/signalfx/splunk-otel-collector/tests/testutils/telemetry"
 )
 
 // To be used as a builder whose Build() method provides the actual instance capable of starting the OTLP receiver
@@ -173,52 +166,4 @@ func (otlp *OTLPReceiverSink) SpanCount() int {
 		return 0
 	}
 	return otlp.tracesSink.SpanCount()
-}
-
-func (otlp *OTLPReceiverSink) Reset() {
-	if err := otlp.assertBuilt("Reset"); err == nil {
-		otlp.metricsSink.Reset()
-		otlp.logsSink.Reset()
-		otlp.tracesSink.Reset()
-	}
-}
-
-func (otlp *OTLPReceiverSink) AssertAllMetricsReceived(t testing.TB, expectedResourceMetrics telemetry.ResourceMetrics, waitTime time.Duration) error {
-	if err := otlp.assertBuilt("AssertAllMetricsReceived"); err != nil {
-		return err
-	}
-
-	if len(expectedResourceMetrics.ResourceMetrics) == 0 {
-		return fmt.Errorf("empty ResourceMetrics provided")
-	}
-
-	receivedMetrics := telemetry.ResourceMetrics{}
-
-	var err error
-	assert.Eventually(t, func() bool {
-		if otlp.DataPointCount() == 0 {
-			if err == nil {
-				err = fmt.Errorf("no metrics received")
-			}
-			return false
-		}
-		receivedOTLPMetrics := otlp.AllMetrics()
-		otlp.Reset()
-
-		receivedResourceMetrics, e := telemetry.PDataToResourceMetrics(receivedOTLPMetrics...)
-		require.NoError(t, e)
-		require.NotNil(t, receivedResourceMetrics)
-		receivedMetrics = telemetry.FlattenResourceMetrics(receivedMetrics, receivedResourceMetrics)
-
-		var containsOnly bool
-		containsOnly, err = receivedMetrics.ContainsOnly(expectedResourceMetrics)
-		return containsOnly
-	}, waitTime, 10*time.Millisecond, "Failed to receive expected metrics")
-
-	// testify won't render exceptionally long errors, so leaving this here for easy debugging
-	if err != nil {
-		fmt.Printf("err: %v\n", err)
-	}
-
-	return err
 }

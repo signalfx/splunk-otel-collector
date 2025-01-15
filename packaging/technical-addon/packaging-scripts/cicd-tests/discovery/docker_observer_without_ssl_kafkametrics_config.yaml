@@ -1,14 +1,7 @@
 extensions:
   host_observer:
 
-# Normally, we test discovery mode by running the "raw" binary in our tests
-# However, here our binary via the TA is running in a splunk docker instance
-# The splunk image does not have docker installed by default
-# Thus, either need to install and enable docker,
-# Or need to bridge networks for discovery.
-# Given lack of a package manager in splunk docker images, it's likely best to just use host networking.
 receivers:
-  # set up otlp receiver to use its endpoints as assertion material
   discovery:
     embed_receiver_config: true
     receivers:
@@ -35,7 +28,6 @@ receivers:
     watch_observers:
       - host_observer
 
-# drop scrape_timestamp attributes until we can accept arbitrary values
 processors:
 
 exporters:

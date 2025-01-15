@@ -108,6 +108,15 @@ smoketest-ta:
 	PLATFORM="$(PLATFORM)" \
 	$(SOURCE_DIR)/packaging-scripts/cicd-tests/smoketests/smoketest.sh
 
+.PHONY: discovery-test-ta
+discovery-test-ta:
+	SOURCE_DIR="$(SOURCE_DIR)" \
+	BUILD_DIR="$(BUILD_DIR)" \
+	ARCH="$(ARCH)" \
+	PLATFORM="$(PLATFORM)" \
+	$(SOURCE_DIR)/packaging-scripts/cicd-tests/discovery/discovery-docker-test.sh
+
+
 .PHONY: update-ta-deps
 update-ta-deps:
 	SOURCE_DIR="$(SOURCE_DIR)" \

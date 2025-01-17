@@ -23,8 +23,11 @@ receivers:
         <% end %>
 
 processors:
-  resourcedetection:
-    detectors: [system]
+  resource:
+    attributes:
+    - key: host.name
+      value: <%= p('cloudfoundry.director.hostname') %>
+      action: upsert
 
 exporters:
   signalfx:
@@ -43,6 +46,6 @@ service:
   pipelines:
     metrics:
       receivers: [cloudfoundry]
-      processors: [resourcedetection]
+      processors: [resource]
       exporters: [signalfx]
 <% end %>

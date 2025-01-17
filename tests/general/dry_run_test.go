@@ -90,7 +90,6 @@ service:
 			return false
 		}
 		receivedOTLPMetrics := tc.OTLPReceiverSink.AllMetrics()
-		tc.OTLPReceiverSink.Reset()
 
 		for _, rom := range receivedOTLPMetrics {
 			for i := 0; i < rom.ResourceMetrics().Len(); i++ {

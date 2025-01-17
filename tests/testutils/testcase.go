@@ -22,7 +22,6 @@ import (
 	"runtime"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -30,8 +29,6 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
-
-	"github.com/signalfx/splunk-otel-collector/tests/testutils/telemetry"
 )
 
 type CollectorBuilder func(Collector) Collector
@@ -75,16 +72,6 @@ func (t *Testcase) setOTLPEndpoint() {
 	otlpHost := "localhost"
 	t.OTLPEndpoint = fmt.Sprintf("%s:%d", otlpHost, otlpPort)
 	t.OTLPEndpointForCollector = t.OTLPEndpoint
-}
-
-// Loads and validates a ResourceMetrics instance, assuming it's located in ./testdata/resource_metrics
-func (t *Testcase) ResourceMetrics(filename string) *telemetry.ResourceMetrics {
-	expectedResourceMetrics, err := telemetry.LoadResourceMetrics(
-		path.Join(".", "testdata", "resource_metrics", filename),
-	)
-	require.NoError(t, err)
-	require.NotNil(t, expectedResourceMetrics)
-	return expectedResourceMetrics
 }
 
 // Builds and starts all provided Container builder instances, returning them and a validating stop function.
@@ -198,27 +185,4 @@ func (t *Testcase) PrintLogsOnFailure() {
 // Validating shutdown helper for the Testcase's OTLPReceiverSink
 func (t *Testcase) ShutdownOTLPReceiverSink() {
 	require.NoError(t, t.OTLPReceiverSink.Shutdown())
-}
-
-// AssertAllMetricsReceived is a central helper, designed to avoid most boilerplate. Using the desired
-// ResourceMetrics and Collector Config filenames, a slice of Container builders, and a slice of CollectorBuilder
-// AssertAllMetricsReceived creates a Testcase, builds and starts all Container and CollectorBuilder-determined Collector
-// instances, and asserts that all expected ResourceMetrics are received before running validated cleanup functionality.
-func AssertAllMetricsReceived(
-	t testing.TB, resourceMetricsFilename, collectorConfigFilename string,
-	containers []Container, builders []CollectorBuilder,
-) {
-	tc := NewTestcase(t)
-	defer tc.PrintLogsOnFailure()
-	defer tc.ShutdownOTLPReceiverSink()
-
-	expectedResourceMetrics := tc.ResourceMetrics(resourceMetricsFilename)
-
-	_, stop := tc.Containers(containers...)
-	defer stop()
-
-	_, shutdown := tc.SplunkOtelCollector(collectorConfigFilename, builders...)
-	defer shutdown()
-
-	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
 }

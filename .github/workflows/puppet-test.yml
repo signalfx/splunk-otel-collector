@@ -72,7 +72,7 @@ jobs:
           distro=$(for d in $dockerfiles; do echo -n "\"$d\","; done)
           puppet_release='"6","7","8"'
           with_instrumentation='"true","false"'
-          exclude='{"DISTRO": "debian-stretch", "PUPPET_RELEASE": "8"}, {"DISTRO": "ubuntu-xenial", "PUPPET_RELEASE": "8"}'  # puppet 8 not supported for these distros
+          exclude='{"DISTRO": "ubuntu-xenial", "PUPPET_RELEASE": "8"}'  # puppet 8 not supported for this distro
           matrix="{\"DISTRO\": [${distro%,}], \"PUPPET_RELEASE\": [${puppet_release}], \"WITH_INSTRUMENTATION\": [${with_instrumentation}], \"exclude\": [${exclude}]}"
           echo "$matrix" | jq
           echo "matrix=${matrix}" >> $GITHUB_OUTPUT

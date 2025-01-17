@@ -1,4 +1,0 @@
-otlp:
-  endpoint: "${env:OTLP_ENDPOINT}"
-  tls:
-    insecure: true

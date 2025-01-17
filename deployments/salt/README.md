@@ -126,8 +126,7 @@ splunk-otel-collector:
 
 - `td_agent_version`: Version of [td-agent](
   https://td-agent-package-browser.herokuapp.com/) (fluentd package) that will
-  be installed (**default:** `3.7.1-0` for Debian 9, and `4.3.0` for other
-  distros)
+  be installed (**default:** `4.3.0`)
 
 - `splunk_fluentd_config`: Path to the fluentd config file on the remote host.
   (**default:** `/etc/otel/collector/fluentd/fluent.conf`)

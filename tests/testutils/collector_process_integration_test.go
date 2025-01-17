@@ -16,15 +16,11 @@
 package testutils
 
 import (
-	"path/filepath"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/signalfx/splunk-otel-collector/tests/testutils/telemetry"
 )
 
 func TestCollectorPath(t *testing.T) {
@@ -40,17 +36,4 @@ func TestConfigPathNotRequiredUponBuildWithArgs(t *testing.T) {
 	collector, err := withArgs.Build()
 	require.NoError(t, err)
 	require.NotNil(t, collector)
-}
-
-func TestCollectorProcessConfigSourced(t *testing.T) {
-	tc := NewTestcase(t)
-	defer tc.PrintLogsOnFailure()
-	defer tc.ShutdownOTLPReceiverSink()
-
-	_, shutdown := tc.SplunkOtelCollectorProcess("collector_process_config.yaml")
-	defer shutdown()
-
-	expectedMetrics, err := telemetry.LoadResourceMetrics(filepath.Join(".", "testdata", "expected_host_metrics.yaml"))
-	require.NoError(t, err)
-	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedMetrics, 10*time.Second))
 }

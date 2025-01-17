@@ -68,7 +68,10 @@ jobs:
             ./bin/*
 
   agent-bundle-windows:
-    runs-on: windows-2022
+    runs-on: ${{ matrix.OS }}
+    strategy:
+      matrix:
+        OS: [ "windows-2022", "windows-2025" ]
     env:
       PIP_CACHE_DIR: ${{ github.workspace }}/.cache/pip
     steps:
@@ -83,7 +86,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: agent-bundle-windows
+          name: agent-bundle-windows-${{ matrix.OS }}
           path: ./dist/agent-bundle_windows_amd64.zip
 
   msi-custom-actions:
@@ -124,6 +127,9 @@ jobs:
 
   msi-build:
     runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        OS: [ "windows-2022", "windows-2025" ]
     needs: [cross-compile, agent-bundle-windows, msi-custom-actions]
     steps:
       - name: Check out the codebase.
@@ -146,7 +152,7 @@ jobs:
       - name: Downloading agent-bundle-windows
         uses: actions/download-artifact@v4
         with:
-          name: agent-bundle-windows
+          name: agent-bundle-windows-${{ matrix.OS }}
           path: ./dist
 
       - name: Downloading msi-custom-actions
@@ -163,11 +169,14 @@ jobs:
       - name: Uploading msi build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: msi-build
+          name: msi-build-${{ matrix.OS }}
           path: ./dist/*.msi
 
   dotnet-zeroconfig-e2e-test:
-    runs-on: windows-2022
+    runs-on: ${{ matrix.OS }}
+    strategy:
+      matrix:
+        OS: [ "windows-2022", "windows-2025" ]
     needs: [msi-build]
     steps:
       - name: Check out the codebase.
@@ -187,7 +196,7 @@ jobs:
       - name: Download Splunk OTel Collector msi
         uses: actions/download-artifact@v4
         with:
-          name: msi-build
+          name: msi-build-${{ matrix.OS }}
           path: ./tests/zeroconfig/windows/testdata/docker-setup/
 
       - name: Run the test script
@@ -196,6 +205,9 @@ jobs:
           .\run-tests.ps1
 
   msi-test:
+    strategy:
+      matrix:
+        OS: [ "windows-2022" ]
     runs-on: otel-windows
     needs: [msi-build]
     timeout-minutes: 40
@@ -206,7 +218,7 @@ jobs:
       - name: Downloading msi build
         uses: actions/download-artifact@v4
         with:
-          name: msi-build
+          name: msi-build-${{ matrix.OS }}
           path: ./dist
 
       - name: Set the MSI_COLLECTOR_PATH environment variable
@@ -226,7 +238,7 @@ jobs:
     strategy:
       max-parallel: 2
       matrix:
-        OS: [ "windows-2022" ]
+        OS: [ "windows-2022", "windows-2025" ]
         MODE: [ "agent", "gateway" ]
         WITH_FLUENTD: [ "true", "false" ]
     steps:
@@ -236,7 +248,7 @@ jobs:
       - name: Downloading msi build
         uses: actions/download-artifact@v4
         with:
-          name: msi-build
+          name: msi-build-${{ matrix.OS }}
           path: ./dist
 
       - name: Ensure required ports in the dynamic range are available
@@ -275,7 +287,10 @@ jobs:
         run: Get-Content -Path "${env:SYSTEMDRIVE}\opt\td-agent\td-agent.log"
 
   choco-build:
-    runs-on: windows-2022
+    runs-on: ${{ matrix.OS }}
+    strategy:
+      matrix:
+        OS: [ "windows-2022", "windows-2025" ]
     needs: [msi-build]
     steps:
       - name: Check out the codebase.
@@ -284,7 +299,7 @@ jobs:
       - name: Downloading msi build
         uses: actions/download-artifact@v4
         with:
-          name: msi-build
+          name: msi-build-${{ matrix.OS }}
           path: ./dist
 
       - name: Build Chocolatey
@@ -315,7 +330,7 @@ jobs:
       - name: Uploading choco build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: choco-build
+          name: choco-build-${{ matrix.OS }}
           path: ./dist/*.nupkg
 
   choco-test:
@@ -324,7 +339,7 @@ jobs:
     strategy:
       max-parallel: 4
       matrix:
-        OS: [ "windows-2022" ]
+        OS: [ "windows-2022", "windows-2025" ]
         MODE: [ "agent", "gateway" ]
         WITH_FLUENTD: [ "true", "false" ]
         SCENARIO: [ "install", "upgrade" ]
@@ -336,7 +351,7 @@ jobs:
       - name: Downloading choco build
         uses: actions/download-artifact@v4
         with:
-          name: choco-build
+          name: choco-build-${{ matrix.OS }}
           path: ./dist
 
       - name: Ensure required ports in the dynamic range are available
@@ -417,7 +432,7 @@ jobs:
     needs: [cross-compile, agent-bundle-windows]
     strategy:
       matrix:
-        OS: [ "windows-2022" ]
+        OS: [ "windows-2022", "windows-2025" ]
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4
@@ -430,7 +445,7 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: agent-bundle-windows
+          name: agent-bundle-windows-${{ matrix.OS }}
           path: ./dist
 
       - name: Build docker image

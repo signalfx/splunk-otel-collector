@@ -21,6 +21,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/golden"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 
@@ -237,18 +240,48 @@ service:
 }
 
 func TestStandaloneConfigD(t *testing.T) {
-	testutils.AssertAllMetricsReceived(
-		t, "memory.yaml", "empty-config.yaml",
-		nil, []testutils.CollectorBuilder{
-			func(c testutils.Collector) testutils.Collector {
-				configd, err := filepath.Abs(filepath.Join(".", "testdata", "standalone-config.d"))
-				require.NoError(t, err)
-				if cc, ok := c.(*testutils.CollectorContainer); ok {
-					cc.Container = cc.Container.WithMount(testcontainers.BindMount(configd, "/opt/config.d"))
-					configd = "/opt/config.d"
-				}
-				return c.WithEnv(map[string]string{"SPLUNK_CONFIG_DIR": configd}).WithArgs("--configd")
-			},
+	tc := testutils.NewTestcase(t)
+	defer tc.PrintLogsOnFailure()
+	defer tc.ShutdownOTLPReceiverSink()
+
+	_, shutdown := tc.SplunkOtelCollectorContainer("empty-config.yaml",
+		func(c testutils.Collector) testutils.Collector {
+			configd, err := filepath.Abs(filepath.Join(".", "testdata", "standalone-config.d"))
+			require.NoError(t, err)
+			if cc, ok := c.(*testutils.CollectorContainer); ok {
+				cc.Container = cc.Container.WithMount(testcontainers.BindMount(configd, "/opt/config.d"))
+				configd = "/opt/config.d"
+			}
+			return c.WithEnv(map[string]string{"SPLUNK_CONFIG_DIR": configd}).WithArgs("--configd")
 		},
 	)
+	defer shutdown()
+
+	expected, err := golden.ReadMetrics(filepath.Join("testdata", "memory-expected.yaml"))
+	require.NoError(t, err)
+	require.EventuallyWithT(t, func(tt *assert.CollectT) {
+		if len(tc.OTLPReceiverSink.AllMetrics()) == 0 {
+			assert.Fail(tt, "No metrics collected")
+			return
+		}
+		err := pmetrictest.CompareMetrics(expected, tc.OTLPReceiverSink.AllMetrics()[len(tc.OTLPReceiverSink.AllMetrics())-1],
+			pmetrictest.IgnoreResourceAttributeValue("service.instance.id"),
+			pmetrictest.IgnoreResourceAttributeValue("net.host.port"),
+			pmetrictest.IgnoreResourceAttributeValue("net.host.name"),
+			pmetrictest.IgnoreResourceAttributeValue("server.address"),
+			pmetrictest.IgnoreResourceAttributeValue("container.name"),
+			pmetrictest.IgnoreResourceAttributeValue("server.port"),
+			pmetrictest.IgnoreResourceAttributeValue("service.name"),
+			pmetrictest.IgnoreResourceAttributeValue("service_instance_id"),
+			pmetrictest.IgnoreResourceAttributeValue("service_version"),
+			pmetrictest.IgnoreTimestamp(),
+			pmetrictest.IgnoreStartTimestamp(),
+			pmetrictest.IgnoreMetricDataPointsOrder(),
+			pmetrictest.IgnoreScopeMetricsOrder(),
+			pmetrictest.IgnoreScopeVersion(),
+			pmetrictest.IgnoreResourceMetricsOrder(),
+			pmetrictest.IgnoreMetricValues(),
+		)
+		assert.NoError(tt, err)
+	}, 30*time.Second, 1*time.Second)
 }

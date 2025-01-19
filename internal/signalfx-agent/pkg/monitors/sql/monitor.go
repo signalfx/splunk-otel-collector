@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 	"strings"
 	"time"
 
@@ -73,6 +74,17 @@ func (m *Metric) NewDatapoint() *datapoint.Datapoint {
 		typ = datapoint.Counter
 	}
 	return datapoint.New(m.MetricName, map[string]string{}, nil, typ, time.Time{})
+}
+
+func (m *Metric) NewMetric() pmetric.Metric {
+	met := pmetric.NewMetric()
+	if m.IsCumulative {
+		met.SetEmptySum()
+	} else {
+		met.SetEmptyGauge()
+	}
+	met.SetName(m.MetricName)
+	return met
 }
 
 // Config for this monitor

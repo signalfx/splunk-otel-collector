@@ -188,7 +188,7 @@ jobs:
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v2
 
-      - uses: actions/setup-dotnet@v4.1.0
+      - uses: actions/setup-dotnet@v4.2.0
         with:
           dotnet-version: |
             6.0.407

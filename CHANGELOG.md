@@ -49,7 +49,6 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 - (Contrib) `sqlqueryreceiver`: Add instrumentation scope to SQL query receiver metrics and logs ([#31028](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/31028))
 - (Contrib) `statsdreceiver`: Add UDS support to statsdreceiver ([#21385](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/21385))
 - (Contrib) `tailsamplingprocessor`: Support hot sampling policy loading ([#37014](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/37014))
-- (Contrib) `cmd/telemetrygen`: Introduce support for generating histograms in telemetrygen ([#36322](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/36322))
 
 
 ### 🧰 Bug fixes 🧰

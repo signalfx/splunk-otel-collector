@@ -386,11 +386,10 @@ For proxy options, see the [Windows Proxy](#windows-proxy) section.
   COR_PROFILER: "{B4C89B0F-9908-4F73-9F59-0D77C5A06874}"  # Required
   CORECLR_ENABLE_PROFILING: "1"  # Required
   CORECLR_PROFILER: "{B4C89B0F-9908-4F73-9F59-0D77C5A06874}"  # Required
-  SIGNALFX_ENV: "{{ splunk_dotnet_auto_instrumentation_environment }}"
-  SIGNALFX_GLOBAL_TAGS: "{{ splunk_dotnet_auto_instrumentation_global_tags }}"
-  SIGNALFX_PROFILER_ENABLED: "{{ splunk_dotnet_auto_instrumentation_enable_profiler }}"
-  SIGNALFX_PROFILER_MEMORY_ENABLED: "{{ splunk_dotnet_auto_instrumentation_enable_profiler_memory }}"
-  SIGNALFX_SERVICE_NAME: "{{ splunk_dotnet_auto_instrumentation_service_name }}"
+  OTEL_RESOURCE_ATTRIBUTES: "deployment.environment={{ splunk_dotnet_auto_instrumentation_environment }},{{ splunk_dotnet_auto_instrumentation_global_tags }},splunk.zc.method=splunk-dotnet-tracing-1.0.0"
+  OTEL_SERVICE_NAME: "{{ splunk_dotnet_auto_instrumentation_service_name }}"
+  SPLUNK_PROFILER_ENABLED: "{{ splunk_dotnet_auto_instrumentation_enable_profiler }}"
+  SPLUNK_PROFILER_MEMORY_ENABLED: "{{ splunk_dotnet_auto_instrumentation_enable_profiler_memory }}"
   ```
   Set this option to `true` to also add these environment variables and any
   from the `splunk_dotnet_auto_instrumentation_additional_options` option to
@@ -401,32 +400,32 @@ For proxy options, see the [Windows Proxy](#windows-proxy) section.
 
 - `splunk_dotnet_auto_instrumentation_environment` (Windows only): Configure
   this option to set the "Environment" value to be reported to Splunk APM, for
-  example `production`. The value is assigned to the `SIGNALFX_ENV` environment
+  example `production`. The value is assigned to the `OTEL_RESOURCE_ATTRIBUTES` environment
   variable in the Windows registry (**default:** ``, i.e. the "Environment"
   will appear as `unknown` in Splunk APM for the instrumented
-  service/application)
+  service/application) using the `deployment.environment` attribute key.
 
 - `splunk_dotnet_auto_instrumentation_service_name` (Windows only): Configure
   this variable to override the [auto-generated service name](
   https://docs.splunk.com/Observability/gdi/get-data-in/application/dotnet/configuration/advanced-dotnet-configuration.html#changing-the-default-service-name)
   for the instrumented service/application, for example `my-service-name`. The
-  value is assigned to the `SIGNALFX_SERVICE_NAME` environment variable in the
+  value is assigned to the `OTEL_SERVICE_NAME` environment variable in the
   Windows registry. (**default:** ``)
 
 - `splunk_dotnet_auto_instrumentation_enable_profiler` (Windows only): Set
   this option to `true` to enable AlwaysOn Profiling. The value will be
-  assigned to the `SIGNALFX_PROFILER_ENABLED` environment variable in the
+  assigned to the `SPLUNK_PROFILER_ENABLED` environment variable in the
   Windows registry. (**default:** `false`)
 
 - `splunk_dotnet_auto_instrumentation_enable_profiler_memory` (Windows only):
   Set this option to `true` to enable AlwaysOn Memory Profiling. The value will
-  be assigned to the `SIGNALFX_PROFILER_MEMORY_ENABLED` environment variable in
+  be assigned to the `SPLUNK_PROFILER_MEMORY_ENABLED` environment variable in
   the Windows registry. (**default:** `false`)
 
 - `splunk_dotnet_auto_instrumentation_global_tags` (Windows only):
-  Comma-separated list of `key:value` pairs that specify global tags added to
-  all telemetry signals, for example `key1:val1,key2:val2`. The value will be
-  assigned to the `SIGNALFX_GLOBAL_TAGS` environment variable in the Windows
+  Comma-separated list of `key=value` pairs that specify global tags added to
+  all telemetry signals, for example `key1=val1,key2=val2`. The value will be
+  added to the `OTEL_RESOURCE_ATTRIBUTES` environment variable in the Windows
   registry. (**default**: ``)
 
 - `splunk_dotnet_auto_instrumentation_additional_options` (Windows only):
@@ -436,14 +435,8 @@ For proxy options, see the [Windows Proxy](#windows-proxy) section.
   For example:
   ```yaml
   splunk_dotnet_auto_instrumentation_additional_options:
-    SIGNALFX_VERSION: "1.2.3"
-    SIGNALFX_FILE_LOG_ENABLED: false
-    # Hint: If the splunk_dotnet_auto_instrumentation_system_wide option is
-    # set to true, all .NET applications on the node will be instrumented. Use
-    # the following options to include/exclude processes from auto
-    # instrumentation.
-    SIGNALFX_PROFILER_PROCESSES: MyApp.exe;dotnet.exe
-    SIGNALFX_PROFILER_EXCLUDE_PROCESSES: ReservedProcess.exe;powershell.exe
+    SOME_ENV_VAR_00: "1.2.3"
+    SOME_ENV_VAR_01: "false"
   ```
   Check the [Advanced Configuration Guide](
   https://docs.splunk.com/Observability/gdi/get-data-in/application/dotnet/configuration/advanced-dotnet-configuration.html)

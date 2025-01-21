@@ -1,5 +1,7 @@
 # Changelog
 
+## Unreleased
+
 ## v0.117.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.117.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.117.0) and the [opentelemetry-collector-contrib v0.117.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.117.0) releases where appropriate.
@@ -29,11 +31,9 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
                 "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
     ```
 
-
 ### 🚀 New components 🚀
 
 - (Splunk) Add `metricsgeneration` processor ([#5769](https://github.com/signalfx/splunk-otel-collector/pull/5769))
-
 
 ### 💡 Enhancements 💡
 
@@ -49,7 +49,6 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 - (Contrib) `sqlqueryreceiver`: Add instrumentation scope to SQL query receiver metrics and logs ([#31028](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/31028))
 - (Contrib) `statsdreceiver`: Add UDS support to statsdreceiver ([#21385](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/21385))
 - (Contrib) `tailsamplingprocessor`: Support hot sampling policy loading ([#37014](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/37014))
-
 
 ### 🧰 Bug fixes 🧰
 

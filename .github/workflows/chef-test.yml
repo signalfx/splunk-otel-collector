@@ -32,8 +32,7 @@ env:
 jobs:
   chef-lint-spec-test:
     name: chef-lint-spec-test
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4
@@ -46,7 +45,7 @@ jobs:
           make rake-spec
 
   chef-kitchen-matrix:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Check out code
         uses: actions/checkout@v4
@@ -80,8 +79,7 @@ jobs:
       win-matrix: ${{ steps.get-win-matrix.outputs.matrix }}
 
   chef-kitchen-linux:
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: [chef-lint-spec-test, chef-kitchen-matrix]
     strategy:
       matrix: ${{ fromJSON(needs.chef-kitchen-matrix.outputs.linux-matrix) }}

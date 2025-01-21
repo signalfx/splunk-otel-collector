@@ -17,8 +17,7 @@ permissions:
 jobs:
   push-release-tag:
     name: Push Release Tag
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout

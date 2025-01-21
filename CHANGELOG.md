@@ -10,6 +10,10 @@
 
 - (Splunk) Add a new discovery bundle for Envoy proxy metrics ([#5780](https://github.com/signalfx/splunk-otel-collector/pull/5780))
 
+### 🧰 Bug fixes 🧰
+
+- (Splunk) Fix deprecation warning for multiline config source calls ([#5829](https://github.com/signalfx/splunk-otel-collector/pull/5829))
+
 ## v0.116.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.116.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.116.0) and the [opentelemetry-collector-contrib v0.116.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.116.0) releases where appropriate.

@@ -335,11 +335,8 @@ effect.
 For proxy options, see the [Windows Proxy](#windows-proxy) section.
 
 - `install_splunk_dotnet_auto_instrumentation` (Windows only): Whether to
-  install/manage [SignalFx Auto Instrumentation for .NET](
-  https://docs.splunk.com/Observability/gdi/get-data-in/application/dotnet/get-started.html).
-  When set to `true`, the `signalfx-dotnet-tracing` MSI package will be
-  downloaded and installed, and the Windows registry will be updated based on
-  the options below. (**default:** `false`)
+  install/manage [Splunk Distribution of OpenTelemetry .NET](
+  https://docs.splunk.com/observability/en/gdi/get-data-in/application/otel-dotnet/get-started.html). (**default:** `false`)
 
 - `splunk_dotnet_auto_instrumentation_version` (Windows only): Version of the
   `signalfx-dotnet-tracing` MSI package to download and install from
@@ -407,7 +404,7 @@ For proxy options, see the [Windows Proxy](#windows-proxy) section.
 
 - `splunk_dotnet_auto_instrumentation_service_name` (Windows only): Configure
   this variable to override the [auto-generated service name](
-  https://docs.splunk.com/Observability/gdi/get-data-in/application/dotnet/configuration/advanced-dotnet-configuration.html#changing-the-default-service-name)
+  https://docs.splunk.com/observability/en/gdi/get-data-in/application/otel-dotnet/configuration/advanced-dotnet-configuration.html#changing-the-default-service-name)
   for the instrumented service/application, for example `my-service-name`. The
   value is assigned to the `OTEL_SERVICE_NAME` environment variable in the
   Windows registry. (**default:** ``)
@@ -438,6 +435,6 @@ For proxy options, see the [Windows Proxy](#windows-proxy) section.
     SOME_ENV_VAR_00: "1.2.3"
     SOME_ENV_VAR_01: "false"
   ```
-  Check the [Advanced Configuration Guide](
-  https://docs.splunk.com/Observability/gdi/get-data-in/application/dotnet/configuration/advanced-dotnet-configuration.html)
+  Check the [configuration options](
+  https://docs.splunk.com/observability/en/gdi/get-data-in/application/otel-dotnet/configuration/advanced-dotnet-configuration.html#configure-the-splunk-distribution-of-opentelemetry-net)
   for more details about the options above and other supported options.

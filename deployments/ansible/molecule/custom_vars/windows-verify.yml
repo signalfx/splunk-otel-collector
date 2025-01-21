@@ -19,15 +19,12 @@
       COR_PROFILER: "{B4C89B0F-9908-4F73-9F59-0D77C5A06874}"
       CORECLR_ENABLE_PROFILING: "1"
       CORECLR_PROFILER: "{B4C89B0F-9908-4F73-9F59-0D77C5A06874}"
-      SIGNALFX_ENV: test-environment
-      SIGNALFX_SERVICE_NAME: test-service-name
-      SIGNALFX_PROFILER_ENABLED: "true"
-      SIGNALFX_PROFILER_MEMORY_ENABLED: "true"
-      SIGNALFX_GLOBAL_TAGS: splunk.zc.method:signalfx-dotnet-tracing-1.0.0,dotnet-tag:dotnet-tag-value
-      SIGNALFX_DOTNET_VAR1: dotnet-value1
-      SIGNALFX_DOTNET_VAR2: dotnet-value2
-    machine_reg_values:
-      SIGNALFX_DOTNET_TRACER_HOME: '{{ ansible_env.ProgramFiles }}\SignalFx\.NET Tracing\'
+      OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=test-environment,splunk.zc.method:splunk-dotnet-tracing-1.0.0"
+      OTEL_SERVICE_NAME: "test-service-name"
+      SPLUNK_PROFILER_ENABLED: "true"
+      SPLUNK_PROFILER_MEMORY_ENABLED: "true"
+      SPLUNK_DOTNET_VAR1: dotnet-value1
+      SPLUNK_DOTNET_VAR2: dotnet-value2
   tasks:
     - name: Check splunk-otel-collector service
       ansible.windows.win_service:
@@ -132,11 +129,3 @@
       assert:
         that: (item.key + '=' + (item.value | string)) in collector_env.value
       loop: "{{ collector_reg_values | dict2items }}"
-
-    - name: Verify env vars
-      include_tasks: ../shared/verify_registry_key.yml
-      vars:
-        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
-        name: "{{ item.key }}"
-        value: "{{ item.value }}"
-      loop: "{{ machine_reg_values | dict2items }}"

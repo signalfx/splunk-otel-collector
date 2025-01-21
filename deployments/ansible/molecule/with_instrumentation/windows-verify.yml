@@ -21,8 +21,6 @@
       SIGNALFX_SERVICE_NAME: ""
       SIGNALFX_PROFILER_ENABLED: "false"
       SIGNALFX_PROFILER_MEMORY_ENABLED: "false"
-    machine_reg_values:
-      SIGNALFX_DOTNET_TRACER_HOME: '{{ ansible_env.ProgramFiles }}\SignalFx\.NET Tracing\'
   tasks:
     - name: Check splunk-otel-collector service
       ansible.windows.win_service:
@@ -75,11 +73,3 @@
         name: "{{ item.key }}"
         exists: false
       loop: "{{ iis_reg_values | dict2items }}"
-
-    - name: Verify .NET tracing MSI env vars were added to the system
-      include_tasks: ../shared/verify_registry_key.yml
-      vars:
-        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
-        name: "{{ item.key }}"
-        value: "{{ item.value }}"
-      loop: "{{ machine_reg_values | dict2items }}"

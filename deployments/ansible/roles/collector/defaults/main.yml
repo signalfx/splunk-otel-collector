@@ -87,15 +87,15 @@ splunk_otel_auto_instrumentation_npm_path: npm
 splunk_otel_collector_additional_env_vars: {}
 
 # Configure Auto Instrumentation for .NET
-install_signalfx_dotnet_auto_instrumentation: false
-signalfx_dotnet_auto_instrumentation_version: latest
-signalfx_dotnet_auto_instrumentation_msi_url: ""
-signalfx_dotnet_auto_instrumentation_github_token: ""
-signalfx_dotnet_auto_instrumentation_system_wide: false
-signalfx_dotnet_auto_instrumentation_environment: ""
-signalfx_dotnet_auto_instrumentation_service_name: ""
-signalfx_dotnet_auto_instrumentation_enable_profiler: false
-signalfx_dotnet_auto_instrumentation_enable_profiler_memory: false
-signalfx_dotnet_auto_instrumentation_global_tags: ""
-signalfx_dotnet_auto_instrumentation_iisreset: true
-signalfx_dotnet_auto_instrumentation_additional_options: {}
+install_splunk_dotnet_auto_instrumentation: false
+splunk_dotnet_auto_instrumentation_version: latest
+splunk_dotnet_auto_instrumentation_msi_url: ""
+splunk_dotnet_auto_instrumentation_github_token: ""
+splunk_dotnet_auto_instrumentation_system_wide: false
+splunk_dotnet_auto_instrumentation_environment: ""
+splunk_dotnet_auto_instrumentation_service_name: ""
+splunk_dotnet_auto_instrumentation_enable_profiler: false
+splunk_dotnet_auto_instrumentation_enable_profiler_memory: false
+splunk_dotnet_auto_instrumentation_global_tags: ""
+splunk_dotnet_auto_instrumentation_iisreset: true
+splunk_dotnet_auto_instrumentation_additional_options: {}

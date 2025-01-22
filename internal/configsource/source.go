@@ -17,10 +17,8 @@ package configsource
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/url"
 	"strings"
-	"sync"
 
 	"github.com/knadh/koanf/maps"
 	"github.com/spf13/cast"
@@ -128,20 +126,9 @@ func BuildConfigSources(ctx context.Context, configSourcesSettings map[string]Se
 // 2. Wait for an update on "watcher" func.
 // 3. Close the confmap.Retrieved instance;
 //
-// The current syntax to reference a config source in a YAML is provisional. Currently
-// single-line:
-//
-//	param_to_be_retrieved: $<cfgSrcName>:<selector>[?<params_url_query_format>]
-//
-// bracketed single-line:
+// The current syntax to reference a config source:
 //
 //	param_to_be_retrieved: ${<cfgSrcName>:<selector>[?<params_url_query_format>]}
-//
-// and multi-line are supported:
-//
-//	param_to_be_retrieved: |
-//	  $<cfgSrcName>: <selector>
-//	  [<params_multi_line_YAML>]
 //
 // The <cfgSrcName> is a name string used to identify the config source instance to be used
 // to retrieve the value.
@@ -151,22 +138,11 @@ func BuildConfigSources(ctx context.Context, configSourcesSettings map[string]Se
 // Not all config sources need the optional parameters, they are used to provide extra control when
 // retrieving and preparing the data to be injected into the configuration.
 //
-// For single-line format <params_url_query_format> uses the same syntax as URL query parameters.
-// Hypothetical example in a YAML file:
+// <params_url_query_format> uses the same syntax as URL query parameters. Hypothetical example in a YAML file:
 //
 // component:
 //
-//	config_field: $file:/etc/secret.bin?binary=true
-//
-// For multi-line format <params_multi_line_YAML> uses syntax as a YAML inside YAML. Possible usage
-// example in a YAML file:
-//
-// component:
-//
-//	config_field: |
-//	  $yamltemplate: /etc/log_template.yaml
-//	  logs_path: /var/logs/
-//	  timeout: 10s
+//	config_field: ${file:/etc/secret.bin?binary=true}
 //
 // Not all config sources need these optional parameters, they are used to provide extra control when
 // retrieving and data to be injected into the configuration.
@@ -176,15 +152,15 @@ func BuildConfigSources(ctx context.Context, configSourcesSettings map[string]Se
 //
 //	component:
 //	  # Retrieves the value of the environment variable LOGS_DIR.
-//	  logs_dir: $env:LOGS_DIR
+//	  logs_dir: ${env:LOGS_DIR}
 //
 //	  # Retrieves the value from the file /etc/secret.bin and injects its contents as a []byte.
-//	  bytes_from_file: $file:/etc/secret.bin?binary=true
+//	  bytes_from_file: ${file:/etc/secret.bin?binary=true}
 //
 //	  # Retrieves the value from the file /etc/text.txt and injects its contents as a string.
 //	  # Hypothetically the "file" config source by default tries to inject the file contents
 //	  # as a string if params doesn't specify that "binary" is true.
-//	  text_from_file: $file:/etc/text.txt
+//	  text_from_file: ${file:/etc/text.txt}
 //
 // Bracketed single-line should be used when concatenating a suffix to the value retrieved by
 // the config source. Example:
@@ -198,36 +174,23 @@ func BuildConfigSources(ctx context.Context, configSourcesSettings map[string]Se
 //
 //	component:
 //	  # Retrieves the value from the file text.txt located on the path specified by the environment
-//	  # variable DATA_PATH. The name of the environment variable is the string after the delimiter
-//	  # until the first character different than '_' and non-alpha-numeric.
-//	  text_from_file: $file:$DATA_PATH/text.txt
-//
-// Since environment variables and config sources both use the '$', with or without brackets, as a prefix
-// for their expansion it is necessary to have a way to distinguish between them. For the non-bracketed
-// syntax the code will peek at the first character other than alpha-numeric and '_' after the '$'. If
-// that character is a ':' it will treat it as a config source and as environment variable otherwise.
-// For example:
-//
-//	component:
-//	  field_0: $PATH:/etc/logs # Injects the data from a config sourced named "PATH" using the selector "/etc/logs".
-//	  field_1: $PATH/etc/logs  # Expands the environment variable "PATH" and adds the suffix "/etc/logs" to it.
+//	  # variable DATA_PATH.
+//	  text_from_file: ${file:${env:DATA_PATH}/text.txt}
 //
 // So if you need to include an environment followed by ':' the bracketed syntax must be used instead:
 //
 //	component:
-//	  field_0: ${PATH}:/etc/logs # Expands the environment variable "PATH" and adds the suffix ":/etc/logs" to it.
+//	  field_0: ${env:PATH}:/etc/logs # Expands the environment variable "PATH" and adds the suffix ":/etc/logs" to it.
 //
-// For the bracketed syntax the presence of ':' inside the brackets indicates that code will treat the bracketed
-// contents as a config source. For example:
+// The presence of ':' inside the brackets indicates that code will treat the bracketed contents as a config source.
+// For example:
 //
 //	component:
 //	  field_0: ${file:/var/secret.txt} # Injects the data from a config sourced named "file" using the selector "/var/secret.txt".
 //	  field_1: ${file}:/var/secret.txt # Expands the environment variable "file" and adds the suffix ":/var/secret.txt" to it.
 //
-// If the character following the '$' is in the set {'*', '#', '$', '@', '!', '?', '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'}
-// the code will consider it to be the name of an environment variable to expand, or config source if followed by ':'. Do not use any of these
-// characters as the first char on the name of a config source or an environment variable (even if allowed by the system) to avoid unexpected
-// results.
+// Any character other than '{' following the '$' is in the set is invalid and will cause an error.
+// Exception is '$$' which is used to escape the '$' character.
 //
 // For an overview about the internals of the Manager refer to the package README.md.
 func ResolveWithConfigSources(ctx context.Context, configSources map[string]ConfigSource, confmapProviders map[string]confmap.Provider, conf *confmap.Conf, watcher confmap.WatcherFunc) (*confmap.Conf, confmap.CloseFunc, error) {
@@ -268,7 +231,7 @@ func resolveConfigValue(ctx context.Context, configSources map[string]ConfigSour
 		//    - entry:
 		//        str: elem0
 		//	  - entry:
-		//        str: $tstcfgsrc:elem1
+		//        str: ${tstcfgsrc:elem1}
 		//
 		// Both "array0" and "array1" are going to be leaf config nodes hitting this case.
 		nslice := make([]any, 0, len(v))
@@ -336,52 +299,42 @@ func resolveStringValue(ctx context.Context, configSources map[string]ConfigSour
 			var retrieved any
 			w := 0 // number of bytes consumed on this pass
 
-			var deprecatedFormUsed bool
 			switch {
 			case s[j+1] == '{':
 				expandableContent, w, cfgSrcName = getBracketedExpandableContent(s, j+1)
-			case 'a' <= s[j+1] && s[j+1] <= 'z' || 'A' <= s[j+1] && s[j+1] <= 'Z':
-				deprecatedFormUsed = true
-				expandableContent, w, cfgSrcName = getBareExpandableContent(s, j+1)
-			default:
-				// The next character cannot be used to start an expandable content, ignore it.
-				// $$ escaping is being handled upstream.
-				retrieved = s[j : j+2]
-				w = 1
-			}
-
-			if retrieved == nil {
-				// At this point expandableContent contains a string to be expanded, evaluate and expand it.
-				switch {
-				case cfgSrcName == "":
+				if cfgSrcName == "" {
 					// Not a config source, expand as os.ExpandEnv
-					if deprecatedFormUsed {
-						printDeprecationWarningOnce(fmt.Sprintf(
-							"[WARNING] Variable substitution using $VAR has been deprecated in favor of ${VAR} and "+
-								"${env:VAR}. Please update $%s in your configuration", expandableContent))
-					}
 					cfgSrcName = "env"
 					expandableContent = fmt.Sprintf("env:%s", expandableContent)
 					if confmapProviders == nil {
 						// The expansion will be handled upstream by envprovider.
 						retrieved = fmt.Sprintf("${%s}", expandableContent)
 					}
-				default:
-					if deprecatedFormUsed {
-						if strings.Contains(expandableContent, "\n") {
-							printDeprecationWarningOnce(fmt.Sprintf(
-								"[WARNING] Calling config sources in multiline format is deprecated. "+
-									"Please convert the following call to the one-line format ${uri:selector?param1"+
-									"=value1,param2=value2}:\n %s",
-								expandableContent))
-						} else {
-							printDeprecationWarningOnce(fmt.Sprintf(
-								"[WARNING] Config source expansion formatted as $uri:selector has been deprecated, "+
-									"use ${uri:selector[?params]} instead. Please replace $%s with ${%s} in your configuration",
-								expandableContent, expandableContent))
-						}
-					}
 				}
+			case 'a' <= s[j+1] && s[j+1] <= 'z' || 'A' <= s[j+1] && s[j+1] <= 'Z':
+				// TODO: Remove all the logic for bare expandable content along with the error messages
+				//       in a future release. This is kept to facilitate the transition from the old format.
+				expandableContent, cfgSrcName = getBareExpandableContent(s, j+1)
+				switch {
+				case cfgSrcName == "":
+					fmt.Printf("[ERROR] Support for variable substitution using the $VAR format has been removed"+
+						" in favor of the ${env:VAR} format. Please update $%s in your configuration\n",
+						expandableContent)
+				case strings.Contains(expandableContent, "\n"):
+					fmt.Printf("[ERROR] Calling config sources in multiline format is not supported anymore. "+
+						"Please convert the following call to the one-line format ${uri:selector?param1"+
+						"=value1,param2=value2}:\n %s\n", expandableContent)
+				default:
+					fmt.Printf("[ERROR] Config source expansion formatted as $uri:selector is not supported anymore, "+
+						"use ${uri:selector[?params]} instead. Please replace $%s with ${%s} in your configuration\n",
+						expandableContent, expandableContent)
+				}
+				return nil, nil, fmt.Errorf("invalid config source invocation $%s", expandableContent)
+			default:
+				// The next character cannot be used to start an expandable content, ignore it.
+				// $$ escaping is being handled upstream.
+				retrieved = s[j : j+2]
+				w = 1
 			}
 
 			if retrieved == nil {
@@ -459,11 +412,10 @@ func getBracketedExpandableContent(s string, i int) (expandableContent string, c
 	return
 }
 
-func getBareExpandableContent(s string, i int) (expandableContent string, consumed int, cfgSrcName string) {
+func getBareExpandableContent(s string, i int) (expandableContent string, cfgSrcName string) {
 	// Non-bracketed usage, ie.: found the prefix char, it can be either a config
 	// source or an environment variable.
-	var name string
-	name, consumed = getTokenName(s[i:])
+	name, consumed := getTokenName(s[i:])
 	expandableContent = name // Assume for now that it is an env var.
 
 	// Peek next char after name, if it is a config source name delimiter treat the remaining of the
@@ -473,7 +425,6 @@ func getBareExpandableContent(s string, i int) (expandableContent string, consum
 		// This is a config source, since it is not delimited it will consume until end of the string.
 		cfgSrcName = name
 		expandableContent = s[i:]
-		consumed = len(expandableContent) // Set consumed bytes to the length of expandableContent
 	}
 	return
 }
@@ -709,14 +660,5 @@ func MergeCloseFuncs(closeFuncs []confmap.CloseFunc) confmap.CloseFunc {
 			}
 		}
 		return errs
-	}
-}
-
-var deprecationWarningsPrinted = &sync.Map{}
-
-func printDeprecationWarningOnce(msg string) {
-	if _, ok := deprecationWarningsPrinted.Load(msg); !ok {
-		deprecationWarningsPrinted.Store(msg, struct{}{})
-		log.Println(msg)
 	}
 }

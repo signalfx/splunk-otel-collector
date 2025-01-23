@@ -55,15 +55,15 @@
     use_proxy: "{{ win_use_proxy }}"
   register: splunk_dotnet_zip
 
-
 - name: Install splunk-otel-dotnet
-  ansible.windows.win_shell: |
-    $ErrorActionPreference = "Stop"
-    Import-Module "${Env:TEMP}\Splunk.OTel.DotNet.psm1"
-    Install-OpenTelemetryCore -LocalPath "${Env:TEMP}\splunk-opentelemetry-dotnet-windows.zip"
-    $w3svc = Get-Service -name "W3SVC" -ErrorAction SilentlyContinue
-    $was = Get-Service -name "WAS" -ErrorAction SilentlyContinue
-    if ($w3svc -And $was) { Register-OpenTelemetryForIIS }
+  ansible.windows.win_powershell:
+    error_action: stop
+    script: |
+      Import-Module "${Env:TEMP}\Splunk.OTel.DotNet.psm1"
+      Install-OpenTelemetryCore -LocalPath "${Env:TEMP}\splunk-opentelemetry-dotnet-windows.zip"
+      $w3svc = Get-Service -name "W3SVC" -ErrorAction SilentlyContinue
+      $was = Get-Service -name "WAS" -ErrorAction SilentlyContinue
+      if ($w3svc -And $was) { Register-OpenTelemetryForIIS }
   notify: "reset iis"
 
 - name: Create registry path

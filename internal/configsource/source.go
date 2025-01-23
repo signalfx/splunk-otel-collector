@@ -368,10 +368,18 @@ func resolveStringValue(ctx context.Context, configSources map[string]ConfigSour
 					}
 				default:
 					if deprecatedFormUsed {
-						printDeprecationWarningOnce(fmt.Sprintf(
-							"[WARNING] Config source expansion formatted as $uri:selector has been deprecated, "+
-								"use ${uri:selector[?params]} instead. Please replace $%s with ${%s} in your configuration",
-							expandableContent, expandableContent))
+						if strings.Contains(expandableContent, "\n") {
+							printDeprecationWarningOnce(fmt.Sprintf(
+								"[WARNING] Calling config sources in multiline format is deprecated. "+
+									"Please convert the following call to the one-line format ${uri:selector?param1"+
+									"=value1,param2=value2}:\n %s",
+								expandableContent))
+						} else {
+							printDeprecationWarningOnce(fmt.Sprintf(
+								"[WARNING] Config source expansion formatted as $uri:selector has been deprecated, "+
+									"use ${uri:selector[?params]} instead. Please replace $%s with ${%s} in your configuration",
+								expandableContent, expandableContent))
+						}
 					}
 				}
 			}

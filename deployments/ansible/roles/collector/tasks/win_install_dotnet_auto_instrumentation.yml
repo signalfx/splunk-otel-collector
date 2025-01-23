@@ -1,7 +1,7 @@
 ---
-- name: Get latest signalfx-dotnet-tracing release json
+- name: Get latest splunk-otel-dotnet release json
   ansible.windows.win_uri:
-    url: "https://api.github.com/repos/signalfx/signalfx-dotnet-tracing/releases/latest"
+    url: "https://api.github.com/repos/signalfx/splunk-otel-dotnet/releases/latest"
     return_content: yes
     content_type: "application/json"
     headers:
@@ -11,54 +11,59 @@
     proxy_username: "{{ win_proxy_username | default(omit) }}"
     use_proxy: "{{ win_use_proxy }}"
   register: latest_dotnet_release
-  when: splunk_dotnet_auto_instrumentation_version == "latest" and not splunk_dotnet_auto_instrumentation_msi_url
+  when: splunk_dotnet_auto_instrumentation_version == "latest" and not splunk_dotnet_auto_instrumentation_url
+
+- name: Set splunk-otel-dotnet version
+  set_fact:
+    splunk_dotnet_version: "{{ latest_dotnet_release.json.tag_name }}"
+  when: splunk_dotnet_auto_instrumentation_version == "latest" and not splunk_dotnet_auto_instrumentation_url
 
 - name: Set dotnet_download_url fact
   set_fact:
     dotnet_download_url: |-
-      {%- if splunk_dotnet_auto_instrumentation_msi_url -%}
-        {{ splunk_dotnet_auto_instrumentation_msi_url }}
+      {%- if splunk_dotnet_auto_instrumentation_url -%}
+        {{ splunk_dotnet_auto_instrumentation_url }}
       {%- else -%}
         {%- if splunk_dotnet_auto_instrumentation_version != "latest" -%}
           {%- set version = splunk_dotnet_auto_instrumentation_version.lstrip("v") -%}
-          {{ base_url }}/v{{ version }}/signalfx-dotnet-tracing-{{ version }}-x64.msi
+          {{ base_url }}/v{{ version }}
         {%- elif splunk_dotnet_auto_instrumentation_version == "latest" and latest_dotnet_release is defined -%}
           {%- set version = latest_dotnet_release.json.tag_name.lstrip("v") -%}
-          {{ base_url }}/v{{ version }}/signalfx-dotnet-tracing-{{ version }}-x64.msi
+          {{ base_url }}/v{{ version }}
         {%- endif -%}
       {%- endif -%}
   vars:
-    base_url: https://github.com/signalfx/signalfx-dotnet-tracing/releases/download
+    base_url: https://github.com/signalfx/splunk-otel-dotnet/releases/download
 
-- name: Download signalfx-dotnet-tracing MSI
+- name: Download splunk-otel-dotnet install script
   ansible.windows.win_get_url:
-    url: "{{ dotnet_download_url }}"
+    url: "{{ dotnet_download_url }}/Splunk.OTel.DotNet.psm1"
     dest: "%TEMP%"
     proxy_password: "{{ win_proxy_password | default(omit) }}"
     proxy_url: "{{ win_proxy_url | default(omit) }}"
     proxy_username: "{{ win_proxy_username | default(omit) }}"
     use_proxy: "{{ win_use_proxy }}"
-  register: dotnet_msi
+  register: splunk_dotnet_psm1
 
-- name: Install signalfx-dotnet-tracing MSI
-  ansible.windows.win_package:
-    path: "{{ dotnet_msi.dest }}"
-    state: present
-  notify: "reset iis"
+- name: Download splunk-otel-dotnet bundle
+  ansible.windows.win_get_url:
+    url: "{{ dotnet_download_url }}/splunk-opentelemetry-dotnet-windows.zip"
+    dest: "%TEMP%"
+    proxy_password: "{{ win_proxy_password | default(omit) }}"
+    proxy_url: "{{ win_proxy_url | default(omit) }}"
+    proxy_username: "{{ win_proxy_username | default(omit) }}"
+    use_proxy: "{{ win_use_proxy }}"
+  register: splunk_dotnet_zip
 
-- name: Get installed signalfx-dotnet-tracing MSI version
+
+- name: Install splunk-otel-dotnet
   ansible.windows.win_shell: |
-    $msi_version = ""
-    $msi_name = "SignalFx .NET Tracing 64-bit"
-    $regkey = "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall"
-    try {
-      $msi_version = (Get-ItemProperty ${regkey}\* |  Where { $_.DisplayName -eq "$msi_name" }).DisplayVersion
-    } catch {
-      continue
-    }
-    echo $msi_version
-  changed_when: dotnet_msi.changed
-  register: msi_version
+    $ErrorActionPreference = "Stop"
+    Import-Module "${Env:TEMP}\Splunk.OTel.DotNet.psm1"
+    Install-OpenTelemetryCore -LocalPath "${Env:TEMP}\splunk-opentelemetry-dotnet-windows.zip"
+    if ((Get-Service -name "W3SVC" -ErrorAction SilentlyContinue) -And (Get-Service -name "WAS" -ErrorAction SilentlyContinue)) { Register-OpenTelemetryForIIS }
+
+  notify: "reset iis"
 
 - name: Create registry path
   ansible.windows.win_regedit:
@@ -74,8 +79,8 @@
       {%- endif -%}
       {%- if item.key == "SIGNALFX_GLOBAL_TAGS" -%}
         {%- set method = "" -%}
-        {%- if msi_version.stdout != "" -%}
-          {%- set method = "splunk.zc.method:signalfx-dotnet-tracing-" + (msi_version.stdout | trim) -%}
+        {%- if splunk_dotnet_version.stdout != "" -%}
+          {%- set method = "splunk.zc.method:splunk-otel-dotnet-" + (splunk_dotnet_version.stdout | trim) -%}
         {%- endif -%}
         {%- set value = (method + "," + splunk_dotnet_auto_instrumentation_global_tags) | trim(",") -%}
       {%- endif -%}
@@ -110,8 +115,8 @@
       {%- endif -%}
       {%- if item.key == "SIGNALFX_GLOBAL_TAGS" -%}
         {%- set method = "" -%}
-        {%- if msi_version.stdout != "" -%}
-          {%- set method = "splunk.zc.method:signalfx-dotnet-tracing-" + (msi_version.stdout | trim) -%}
+        {%- if splunk_dotnet_version.stdout != "" -%}
+          {%- set method = "splunk.zc.method:splunk-otel-dotnet-" + (splunk_dotnet_version.stdout | trim) -%}
         {%- endif -%}
         {%- set value = (method + "," + splunk_dotnet_auto_instrumentation_global_tags) | trim(",") -%}
       {%- endif -%}

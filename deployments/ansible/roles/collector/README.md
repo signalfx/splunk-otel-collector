@@ -339,22 +339,22 @@ For proxy options, see the [Windows Proxy](#windows-proxy) section.
   https://docs.splunk.com/observability/en/gdi/get-data-in/application/otel-dotnet/get-started.html). (**default:** `false`)
 
 - `splunk_dotnet_auto_instrumentation_version` (Windows only): Version of the
-  `signalfx-dotnet-tracing` MSI package to download and install from
-  [GitHub Releases](https://github.com/signalfx/signalfx-dotnet-tracing/releases).
+  `splunk-otel-dotnet` project to download and install from
+  [GitHub Releases](https://github.com/signalfx/splunk-otel-dotnet/releases).
   By default, a request will be made to
-  `https://api.github.com/repos/signalfx/signalfx-dotnet-tracing/releases/latest`
+  `https://api.github.com/repos/signalfx/splunk-otel-dotnet/releases/latest`
   to determine the latest release. If a version is specified, for example
-  `1.0.0`, the API request will be skipped and the MSI package will be
+  `1.0.0`, the API request will be skipped and files will be
   downloaded from
-  `https://github.com/signalfx/signalfx-dotnet-tracing/releases/download/v{{ splunk_dotnet_auto_instrumentation_version }}/signalfx-dotnet-tracing-{{ splunk_dotnet_auto_instrumentation_version }}-x64.msi`.
+  `https://github.com/signalfx/splunk-otel-dotnet/releases/download/v{{ splunk_dotnet_auto_instrumentation_version }}`.
   (**default:** `latest`)
 
-- `splunk_dotnet_auto_instrumentation_msi_url` (Windows only): Specify the
-  URL to download the `signalfx-dotnet-tracing` MSI to skip the GitHub API
+- `splunk_dotnet_auto_instrumentation_url` (Windows only): Specify the
+  URL to download the `splunk-otel-dotnet` files to skip the GitHub API
   request, for example
-  `https://github.com/signalfx/signalfx-dotnet-tracing/releases/download/v1.0.0/signalfx-dotnet-tracing-1.0.0-x64.msi`,
-  or to download the MSI from a custom host, for example
-  `https://my.host/signalfx-dotnet-tracing-1.0.0-x64.msi`. If specified, the
+  `https://github.com/signalfx/splunk-otel-dotnet/releases/download/v1.8.0`,
+  or to download the files from a custom host, for example
+  `https://my.host/`. If specified, the
   `splunk_dotnet_auto_instrumentation_version` option is ignored.
   (**default:** ``)
 
@@ -362,7 +362,7 @@ For proxy options, see the [Windows Proxy](#windows-proxy) section.
   a token to authenticate with the GitHub API when making requests to get the
   latest `signalfx-dotnet-tracing` release. A token is recommended when
   `splunk_dotnet_auto_instrumentation_version` is `latest` or when not using
-  `splunk_dotnet_auto_instrumentation_msi_url` since unauthenticated requests
+  `splunk_dotnet_auto_instrumentation_url` since unauthenticated requests
   are [rate-limited](https://docs.github.com/en/rest/rate-limit) by GitHub.
   (**default:** ``)
 

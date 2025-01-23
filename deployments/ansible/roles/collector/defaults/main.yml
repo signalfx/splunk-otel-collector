@@ -89,7 +89,7 @@ splunk_otel_collector_additional_env_vars: {}
 # Configure Auto Instrumentation for .NET
 install_splunk_dotnet_auto_instrumentation: false
 splunk_dotnet_auto_instrumentation_version: latest
-splunk_dotnet_auto_instrumentation_msi_url: ""
+splunk_dotnet_auto_instrumentation_url: ""
 splunk_dotnet_auto_instrumentation_github_token: ""
 splunk_dotnet_auto_instrumentation_system_wide: false
 splunk_dotnet_auto_instrumentation_environment: ""

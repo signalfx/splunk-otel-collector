@@ -13,11 +13,6 @@
   register: latest_dotnet_release
   when: splunk_dotnet_auto_instrumentation_version == "latest" and not splunk_dotnet_auto_instrumentation_url
 
-- name: Set splunk-otel-dotnet version
-  set_fact:
-    splunk_dotnet_version: "{{ latest_dotnet_release.json.tag_name }}"
-  when: splunk_dotnet_auto_instrumentation_version == "latest" and not splunk_dotnet_auto_instrumentation_url
-
 - name: Set dotnet_download_url fact
   set_fact:
     dotnet_download_url: |-
@@ -78,10 +73,7 @@
         {%- set value = item.value | string | lower -%}
       {%- endif -%}
       {%- if item.key == "OTEL_RESOURCE_ATTRIBUTES" -%}
-        {%- set method = "" -%}
-        {%- if splunk_dotnet_version.stdout != "" -%}
-          {%- set method = "splunk.zc.method=splunk-otel-dotnet-" + (splunk_dotnet_version.stdout | trim) -%}
-        {%- endif -%}
+        {%- set method = "splunk.zc.method=splunk-ansible" -%}
         {%- set value = (method + "," + splunk_dotnet_auto_instrumentation_global_tags) | trim(",") -%}
       {%- endif -%}
       {{ (options_list | default([])) + [item.key + '=' + (value | string)] }}
@@ -114,10 +106,7 @@
         {%- set value = item.value | string | lower -%}
       {%- endif -%}
       {%- if item.key == "OTEL_RESOURCE_ATTRIBUTES" -%}
-        {%- set method = "" -%}
-        {%- if splunk_dotnet_version.stdout != "" -%}
-          {%- set method = "splunk.zc.method=splunk-otel-dotnet-" + (splunk_dotnet_version.stdout | trim) -%}
-        {%- endif -%}
+        {%- set method = "splunk.zc.method=splunk-ansible" -%}
         {%- set value = (method + "," + splunk_dotnet_auto_instrumentation_global_tags) | trim(",") -%}
       {%- endif -%}
       {{ value | string }}

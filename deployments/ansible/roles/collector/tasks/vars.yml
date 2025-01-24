@@ -67,7 +67,7 @@
       OTEL_RESOURCE_ATTRIBUTES: >-
         deployment.environment={{ splunk_dotnet_auto_instrumentation_environment }},
         {{ splunk_dotnet_auto_instrumentation_global_tags }},
-        splunk.zc.method=splunk-dotnet-tracing-1.0.0
+        splunk.zc.method=splunk-dotnet-tracing-{{ splunk_dotnet_auto_instrumentation_version }}
       OTEL_SERVICE_NAME: "{{ splunk_dotnet_auto_instrumentation_service_name }}"
       SPLUNK_PROFILER_ENABLED: "{{ splunk_dotnet_auto_instrumentation_enable_profiler }}"
       SPLUNK_PROFILER_MEMORY_ENABLED: "{{ splunk_dotnet_auto_instrumentation_enable_profiler_memory }}"

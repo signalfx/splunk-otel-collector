@@ -66,8 +66,7 @@
       CORECLR_PROFILER: "{918728DD-259F-4A6A-AC2B-B85E1B658318}"
       OTEL_RESOURCE_ATTRIBUTES: >-
         deployment.environment={{ splunk_dotnet_auto_instrumentation_environment }},
-        {{ splunk_dotnet_auto_instrumentation_global_tags }},
-        splunk.zc.method=splunk-otel-dotnet-{{ splunk_dotnet_version }}
+        {{ splunk_dotnet_auto_instrumentation_global_tags }}
       OTEL_SERVICE_NAME: "{{ splunk_dotnet_auto_instrumentation_service_name }}"
       SPLUNK_PROFILER_ENABLED: "{{ splunk_dotnet_auto_instrumentation_enable_profiler }}"
       SPLUNK_PROFILER_MEMORY_ENABLED: "{{ splunk_dotnet_auto_instrumentation_enable_profiler_memory }}"

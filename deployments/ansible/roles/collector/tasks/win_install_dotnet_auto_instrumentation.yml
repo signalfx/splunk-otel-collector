@@ -77,7 +77,7 @@
       {%- if (item.value | type_debug) == "bool" -%}
         {%- set value = item.value | string | lower -%}
       {%- endif -%}
-      {%- if item.key == "SIGNALFX_GLOBAL_TAGS" -%}
+      {%- if item.key == "OTEL_RESOURCE_ATTRIBUTES" -%}
         {%- set method = "" -%}
         {%- if splunk_dotnet_version.stdout != "" -%}
           {%- set method = "splunk.zc.method=splunk-otel-dotnet-" + (splunk_dotnet_version.stdout | trim) -%}
@@ -113,7 +113,7 @@
       {%- if (item.value | type_debug) == "bool" -%}
         {%- set value = item.value | string | lower -%}
       {%- endif -%}
-      {%- if item.key == "SIGNALFX_GLOBAL_TAGS" -%}
+      {%- if item.key == "OTEL_RESOURCE_ATTRIBUTES" -%}
         {%- set method = "" -%}
         {%- if splunk_dotnet_version.stdout != "" -%}
           {%- set method = "splunk.zc.method=splunk-otel-dotnet-" + (splunk_dotnet_version.stdout | trim) -%}

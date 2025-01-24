@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: envoy-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: envoy-test
+  template:
+    metadata:
+      name: envoy-test
+      labels:
+        app: envoy-test
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - image: quay.io/splunko11ytest/envoy:latest
+          name: envoy-test
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 10000
+              name: envoy
+            - containerPort: 9901
+              name: admin
+

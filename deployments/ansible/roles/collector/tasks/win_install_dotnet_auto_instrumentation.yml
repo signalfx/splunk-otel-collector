@@ -64,7 +64,6 @@
       $w3svc = Get-Service -name "W3SVC" -ErrorAction SilentlyContinue
       $was = Get-Service -name "WAS" -ErrorAction SilentlyContinue
       if ($w3svc -And $was) { Register-OpenTelemetryForIIS }
-  notify: "reset iis"
 
 - name: Create registry path
   ansible.windows.win_regedit:
@@ -81,7 +80,7 @@
       {%- if item.key == "SIGNALFX_GLOBAL_TAGS" -%}
         {%- set method = "" -%}
         {%- if splunk_dotnet_version.stdout != "" -%}
-          {%- set method = "splunk.zc.method:splunk-otel-dotnet-" + (splunk_dotnet_version.stdout | trim) -%}
+          {%- set method = "splunk.zc.method=splunk-otel-dotnet-" + (splunk_dotnet_version.stdout | trim) -%}
         {%- endif -%}
         {%- set value = (method + "," + splunk_dotnet_auto_instrumentation_global_tags) | trim(",") -%}
       {%- endif -%}
@@ -117,7 +116,7 @@
       {%- if item.key == "SIGNALFX_GLOBAL_TAGS" -%}
         {%- set method = "" -%}
         {%- if splunk_dotnet_version.stdout != "" -%}
-          {%- set method = "splunk.zc.method:splunk-otel-dotnet-" + (splunk_dotnet_version.stdout | trim) -%}
+          {%- set method = "splunk.zc.method=splunk-otel-dotnet-" + (splunk_dotnet_version.stdout | trim) -%}
         {%- endif -%}
         {%- set value = (method + "," + splunk_dotnet_auto_instrumentation_global_tags) | trim(",") -%}
       {%- endif -%}

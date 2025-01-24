@@ -360,7 +360,7 @@ For proxy options, see the [Windows Proxy](#windows-proxy) section.
 
 - `splunk_dotnet_auto_instrumentation_github_token` (Windows only): Specify
   a token to authenticate with the GitHub API when making requests to get the
-  latest `signalfx-dotnet-tracing` release. A token is recommended when
+  latest `splunk-otel-dotnet` release. A token is recommended when
   `splunk_dotnet_auto_instrumentation_version` is `latest` or when not using
   `splunk_dotnet_auto_instrumentation_url` since unauthenticated requests
   are [rate-limited](https://docs.github.com/en/rest/rate-limit) by GitHub.
@@ -383,7 +383,7 @@ For proxy options, see the [Windows Proxy](#windows-proxy) section.
   COR_PROFILER: "{918728DD-259F-4A6A-AC2B-B85E1B658318}"  # Required
   CORECLR_ENABLE_PROFILING: "1"  # Required
   CORECLR_PROFILER: "{918728DD-259F-4A6A-AC2B-B85E1B658318}"  # Required
-  OTEL_RESOURCE_ATTRIBUTES: "deployment.environment={{ splunk_dotnet_auto_instrumentation_environment }},{{ splunk_dotnet_auto_instrumentation_global_tags }},splunk.zc.method=splunk-dotnet-tracing-1.0.0"
+  OTEL_RESOURCE_ATTRIBUTES: "deployment.environment={{ splunk_dotnet_auto_instrumentation_environment }},{{ splunk_dotnet_auto_instrumentation_global_tags }},splunk.zc.method=splunk-otel-dotnet-1.8.0"
   OTEL_SERVICE_NAME: "{{ splunk_dotnet_auto_instrumentation_service_name }}"
   SPLUNK_PROFILER_ENABLED: "{{ splunk_dotnet_auto_instrumentation_enable_profiler }}"
   SPLUNK_PROFILER_MEMORY_ENABLED: "{{ splunk_dotnet_auto_instrumentation_enable_profiler_memory }}"

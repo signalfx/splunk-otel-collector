@@ -74,7 +74,7 @@
         {%- set value = item.value | string | lower -%}
       {%- endif -%}
       {%- if item.key == "OTEL_RESOURCE_ATTRIBUTES" -%}
-        {%- set method = "splunk.zc.method=splunk-ansible" -%}
+        {%- set method = "splunk.zc.method=splunk-otel-dotnet-1.0.0" -%}
         {%- set value = (method + "," + splunk_dotnet_auto_instrumentation_global_tags) | trim(",") -%}
       {%- endif -%}
       {{ (options_list | default([])) + [item.key + '=' + (value | string)] }}
@@ -107,7 +107,7 @@
         {%- set value = item.value | string | lower -%}
       {%- endif -%}
       {%- if item.key == "OTEL_RESOURCE_ATTRIBUTES" -%}
-        {%- set method = "splunk.zc.method=splunk-ansible" -%}
+        {%- set method = "splunk.zc.method=splunk-otel-dotnet-1.0.0" -%}
         {%- set value = (method + "," + splunk_dotnet_auto_instrumentation_global_tags) | trim(",") -%}
       {%- endif -%}
       {{ value | string }}

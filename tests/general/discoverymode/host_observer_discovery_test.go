@@ -41,10 +41,10 @@ import (
 // launching two collector processes:
 // The first is the main collector process without internal prometheus metrics and `--discovery`
 // w/ a config dir containing a host discovery observer and simple prometheus discovery config whose
-// rule is for an "otelcol" process using a port of $INTERNAL_PROMETHEUS_PORT.
+// rule is for an "otelcol" process using a port of ${INTERNAL_PROMETHEUS_PORT}.
 // The second process is exec'ed after the first successfully starts and is a collector process using
 // a noop otlp receiver and logging exporter from another config.d with an internal prometheus server
-// bound to $INTERNAL_PROMETHEUS_PORT.
+// bound to ${INTERNAL_PROMETHEUS_PORT}.
 // The test verifies that the second collector process's internal metrics contain a logging exporter
 // one and that the first collector process's initial and effective configs from the config server
 // are as expected.

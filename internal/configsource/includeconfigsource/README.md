@@ -99,10 +99,7 @@ components:
   # component_0 is built from the ./templates/component_template file
   # according to the template parameters and commands. The example below
   # defines a few parameters to be used by the template.
-  component_0: |
-    $include: ./templates/component_template
-    my_glob_pattern: /var/**/*.log
-    my_format: json
+  component_0: ${include:./templates/component_template?my_glob_pattern=/var/**/*.log&my_format=json}
 ```
 
 The effective configuration will be:

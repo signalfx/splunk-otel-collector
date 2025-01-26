@@ -102,7 +102,7 @@ func TestConfigSourceResolved(t *testing.T) {
 	originalCfg := map[string]any{
 		"top0": map[string]any{
 			"int":    1,
-			"cfgsrc": "$tstcfgsrc:test_selector",
+			"cfgsrc": "${tstcfgsrc:test_selector}",
 		},
 	}
 	expectedCfg := map[string]any{
@@ -155,7 +155,7 @@ func TestConfigSourceManagerResolveErrors(t *testing.T) {
 		{
 			name: "incorrect_cfgsrc_ref",
 			config: map[string]any{
-				"cfgsrc": "$tstcfgsrc:selector?{invalid}",
+				"cfgsrc": "${tstcfgsrc:selector?{invalid}}",
 			},
 			configSourceMap: map[string]ConfigSource{
 				"tstcfgsrc": &TestConfigSource{},
@@ -164,7 +164,7 @@ func TestConfigSourceManagerResolveErrors(t *testing.T) {
 		{
 			name: "error_on_retrieve",
 			config: map[string]any{
-				"cfgsrc": "$tstcfgsrc:selector",
+				"cfgsrc": "${tstcfgsrc:selector}",
 			},
 			configSourceMap: map[string]ConfigSource{
 				"tstcfgsrc": &TestConfigSource{ErrOnRetrieve: testErr},
@@ -312,7 +312,7 @@ func TestConfigSourceManagerWatchForUpdate(t *testing.T) {
 
 	originalCfg := map[string]any{
 		"top0": map[string]any{
-			"var0": "$tstcfgsrc:test_selector",
+			"var0": "${tstcfgsrc:test_selector}",
 		},
 	}
 
@@ -345,10 +345,10 @@ func TestConfigSourceManagerMultipleWatchForUpdate(t *testing.T) {
 
 	originalCfg := map[string]any{
 		"top0": map[string]any{
-			"var0": "$tstcfgsrc:test_selector",
-			"var1": "$tstcfgsrc:test_selector",
-			"var2": "$tstcfgsrc:test_selector",
-			"var3": "$tstcfgsrc:test_selector",
+			"var0": "${tstcfgsrc:test_selector}",
+			"var1": "${tstcfgsrc:test_selector}",
+			"var2": "${tstcfgsrc:test_selector}",
+			"var3": "${tstcfgsrc:test_selector}",
 		},
 	}
 
@@ -406,44 +406,44 @@ func TestManagerExpandString(t *testing.T) {
 			want:  "literal_string",
 		},
 		{
-			name:  "cfgsrc_int",
-			input: "$tstcfgsrc:int_key",
-			want:  1,
+			name:    "cfgsrc_int",
+			input:   "$tstcfgsrc:int_key",
+			wantErr: errors.New("invalid config source invocation $tstcfgsrc:int_key"),
 		},
 		{
 			name:  "concatenate_cfgsrc_string",
-			input: "prefix-$tstcfgsrc:str_key",
+			input: "prefix-${tstcfgsrc:str_key}",
 			want:  "prefix-test_value",
 		},
 		{
 			name:  "concatenate_cfgsrc_non_string",
-			input: "prefix-$tstcfgsrc:int_key",
+			input: "prefix-${tstcfgsrc:int_key}",
 			want:  "prefix-1",
 		},
 		{
 			name:  "envvar",
-			input: "$envvar",
+			input: "${envvar}",
 			want:  "envvar_value",
 		},
 		{
 			name:  "prefixed_envvar",
-			input: "prefix-$envvar",
+			input: "prefix-${envvar}",
 			want:  "prefix-envvar_value",
 		},
 		{
 			name:    "envvar_treated_as_cfgsrc",
-			input:   "$envvar:suffix",
+			input:   "${envvar:suffix}",
 			wantErr: &errUnknownConfigSource{},
 		},
 		{
-			name:  "cfgsrc_using_envvar",
-			input: "$tstcfgsrc:$envvar_str_key",
-			want:  "test_value",
+			name:    "cfgsrc_using_envvar",
+			input:   "$tstcfgsrc:$envvar_str_key",
+			wantErr: errors.New("invalid config source invocation $tstcfgsrc:$envvar_str_key"),
 		},
 		{
-			name:  "envvar_cfgsrc_using_envvar",
-			input: "$envvar/$tstcfgsrc:$envvar_str_key",
-			want:  "envvar_value/test_value",
+			name:    "envvar_cfgsrc_using_envvar",
+			input:   "$envvar/$tstcfgsrc:$envvar_str_key",
+			wantErr: errors.New("invalid config source invocation $envvar"),
 		},
 		{
 			name:  "delimited_cfgsrc",
@@ -463,12 +463,13 @@ func TestManagerExpandString(t *testing.T) {
 		{
 			name:  "interpolated_and_delimited_cfgsrc",
 			input: "0/${ tstcfgsrc: $envvar_str_key }/2/${tstcfgsrc:int_key}",
-			want:  "0/test_value/2/1",
+			wantErr: fmt.Errorf(`failed to process selector for config source "tstcfgsrc" selector "$envvar_str_key: %w`,
+				errors.New("invalid config source invocation $envvar_str_key")),
 		},
 		{
-			name:  "named_config_src",
-			input: "$tstcfgsrc/named:int_key",
-			want:  42,
+			name:    "named_config_src",
+			input:   "$tstcfgsrc/named:int_key",
+			wantErr: errors.New("invalid config source invocation $tstcfgsrc/named:int_key"),
 		},
 		{
 			name:  "named_config_src_bracketed",
@@ -477,12 +478,12 @@ func TestManagerExpandString(t *testing.T) {
 		},
 		{
 			name:  "envvar_name_separator",
-			input: "$envvar/test/test",
+			input: "${envvar}/test/test",
 			want:  "envvar_value/test/test",
 		},
 		{
 			name:    "envvar_treated_as_cfgsrc",
-			input:   "$envvar/test:test",
+			input:   "${envvar/test:test}",
 			wantErr: &errUnknownConfigSource{},
 		},
 		{
@@ -583,6 +584,19 @@ func Test_parseCfgSrc(t *testing.T) {
 			selector:   "selector",
 			params: map[string]any{
 				"p0": "contains = and & too",
+			},
+		},
+		{
+			name:       "parse_complex_values",
+			str:        "cfgsrc:selector?p0=[1,2]&p1={\"k0\":\"v0\",\"k1\":\"v1\"}",
+			cfgSrcName: "cfgsrc",
+			selector:   "selector",
+			params: map[string]any{
+				"p0": []any{1, 2},
+				"p1": map[string]any{
+					"k0": "v0",
+					"k1": "v1",
+				},
 			},
 		},
 	}

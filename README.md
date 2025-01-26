@@ -172,6 +172,16 @@ manually before the backward compatibility is dropped. For every configuration u
 [the default agent config](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/otelcol/config/collector/agent_config.yaml)
 as a reference.
 
+### From 0.117.0 to 0.118.0
+
+- The deprecated syntax for config source expansion is no longer supported. 
+
+  Strings like `$ENV` or `$include:/path/to/file.yaml` will no longer be expanded. Instead, use the
+  `${env:ENV}` or `${include:/path/to/file.yaml}` syntax. There are only two symbols allowed after `$`: `{` and `$`.
+  The collector will log an error and fail to start if it encounters a bare config source.
+
+  Please update your configuration files to use the correct syntax.
+
 ### From 0.114.0 to 0.115.0
 
 -  The sapm exporter still works as before but has been deprecated. Use the otlphttp exporter instead

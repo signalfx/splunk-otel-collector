@@ -1,4 +1,4 @@
 config_sources:
   tstcfgsrc:
 
-cfgsrc: $tstcfgsrc:selector?{invalid}
+cfgsrc: ${tstcfgsrc:selector?{invalid}}

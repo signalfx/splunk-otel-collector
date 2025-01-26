@@ -1,5 +1,4 @@
 name: auto-instrumentation
-
 on:
   push:
     branches:

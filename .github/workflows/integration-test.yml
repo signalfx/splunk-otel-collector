@@ -444,4 +444,8 @@ jobs:
         run: |
           kind load docker-image otelcol:latest --name kind
       - name: Run ${{ matrix.SERVICE }} Discovery Kubernetes Integration Test
-        run: KUBECONFIG=$HOME/.kube/config make integration-test-${{ matrix.SERVICE }}-discovery-k8s
+        run: KUBECONFIG=$HOME/.kube/config SKIP_TEARDOWN=true make integration-test-${{ matrix.SERVICE }}-discovery-k8s
+      - name: Print logs
+        if: failure()
+        run: |
+          kubectl logs $(kubectl get pod -l app=otelcol -o jsonpath="{.items[0].metadata.name}")

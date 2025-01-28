@@ -99,6 +99,9 @@ func TestEnvoyK8sObserver(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
+		if os.Getenv("SKIP_TEARDOWN") == "true" {
+			return
+		}
 		require.NoError(t, client.CoreV1().ConfigMaps("default").Delete(context.Background(), c.Name, metav1.DeleteOptions{}))
 		require.NoError(t, client.AppsV1().Deployments("default").Delete(context.Background(), d.Name, metav1.DeleteOptions{}))
 

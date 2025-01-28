@@ -115,7 +115,7 @@
         {%- set value = item.value | string | lower -%}
       {%- endif -%}
       {%- if item.key == "OTEL_RESOURCE_ATTRIBUTES" -%}
-        {%- set method = "splunk.zc.method=splunk-otel-dotnet-" + splunk_otel_dotnet_version.lstrip("v") -%}
+        {%- set method = "splunk.zc.method=splunk-otel-dotnet-" + splunk_otel_dotnet_version.output[0].lstrip("v") -%}
         {%- set value = (item.value + "," + method) | trim(",") -%}
       {%- endif -%}
       {{ value | string }}

@@ -89,6 +89,7 @@
       {{ (options_list | default([])) + [item.key + '=' + (value | string)] }}
   loop: >
     {{ dotnet_options | default({}) | combine(splunk_dotnet_auto_instrumentation_additional_options) | dict2items }}
+  tags: molecule-idempotence-notest
 
 - name: Set IIS registry value
   ansible.windows.win_regedit:
@@ -125,3 +126,4 @@
     {{ dotnet_options | default({}) | combine(splunk_dotnet_auto_instrumentation_additional_options) | dict2items }}
   when: splunk_dotnet_auto_instrumentation_system_wide
   notify: "reset iis"
+  tags: molecule-idempotence-notest

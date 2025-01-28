@@ -64,9 +64,10 @@
       COR_PROFILER: "{918728DD-259F-4A6A-AC2B-B85E1B658318}"
       CORECLR_ENABLE_PROFILING: "1"
       CORECLR_PROFILER: "{918728DD-259F-4A6A-AC2B-B85E1B658318}"
-      OTEL_RESOURCE_ATTRIBUTES: >-
-        deployment.environment={{ splunk_dotnet_auto_instrumentation_environment }},
-        {{ splunk_otel_auto_instrumentation_resource_attributes }}
+      OTEL_RESOURCE_ATTRIBUTES:
+        "deployment.environment={{ splunk_dotnet_auto_instrumentation_environment }}\
+        {{ ',' if splunk_otel_auto_instrumentation_resource_attributes else '' }}\
+        {{ splunk_otel_auto_instrumentation_resource_attributes }}"
       OTEL_SERVICE_NAME: "{{ splunk_dotnet_auto_instrumentation_service_name }}"
       SPLUNK_PROFILER_ENABLED: "{{ splunk_dotnet_auto_instrumentation_enable_profiler }}"
       SPLUNK_PROFILER_MEMORY_ENABLED: "{{ splunk_dotnet_auto_instrumentation_enable_profiler_memory }}"

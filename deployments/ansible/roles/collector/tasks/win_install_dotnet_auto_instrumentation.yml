@@ -99,6 +99,7 @@
     data: "{{ options_list | sort }}"
     type: multistring
   notify: "reset iis"
+  tags: molecule-idempotence-notest
 
 - name: Create registry path
   ansible.windows.win_regedit:

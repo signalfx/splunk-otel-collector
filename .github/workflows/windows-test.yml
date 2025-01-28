@@ -18,7 +18,7 @@ on:
       - '!packaging/**'
 
 env:
-  GO_VERSION: '1.22.7'
+  GO_VERSION: '1.22.10'
 
 concurrency:
   group: windows-test-${{ github.event.pull_request.number || github.ref }}
@@ -30,7 +30,7 @@ jobs:
     runs-on: ${{ matrix.OS }}
     strategy:
       matrix:
-        OS: [ "windows-2022" ]
+        OS: [ "windows-2022", "windows-2025" ]
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4

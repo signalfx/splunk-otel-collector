@@ -48,6 +48,12 @@ if [ "$PLATFORM" == "linux" ] || [ "$PLATFORM" == "all" ] ; then
     cp "$BUILD_DIR/out/smart-agent/agent-bundle_${version}linux_${ARCH}.tar.gz" "$TA_PACKAGING_DIR/$TA_NAME/linux_$SPLUNK_ARCH/bin/agent-bundle_linux_${ARCH}.tar.gz"
 fi
 
+# Copy some default discovery configuration examples
+cp -R "$BUILD_DIR/configs/discovery" "$TA_PACKAGING_DIR/$TA_NAME/configs"
+if [ "$PLATFORM" != "linux" ] && [ "$PLATFORM" != "all" ] ; then
+  rm -rf "$TA_PACKAGING_DIR/$TA_NAME/configs/discovery/config.d.linux"
+fi
+
 # Prepare artifact directory structure
 DEST_DIR="$BUILD_DIR/out/distribution/"
 mkdir -p "$DEST_DIR"

@@ -82,6 +82,9 @@ properties:
         description: "The Splunk realm in which your organization resides -- used to derive splunk.ingest_url and splunk.api_url if those are not provided"
         required: false
 
+    cloudfoundry.director.hostname:
+        description: "The hostname of the Cloud Foundry BOSH director"
+
     cloudfoundry.rlp_gateway.endpoint:
         description: "The URL of the RLP Gateway that acts as a proxy for the firehose"
 

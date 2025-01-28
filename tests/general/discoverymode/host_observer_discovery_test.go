@@ -27,6 +27,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/golden"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
@@ -39,10 +41,10 @@ import (
 // launching two collector processes:
 // The first is the main collector process without internal prometheus metrics and `--discovery`
 // w/ a config dir containing a host discovery observer and simple prometheus discovery config whose
-// rule is for an "otelcol" process using a port of $INTERNAL_PROMETHEUS_PORT.
+// rule is for an "otelcol" process using a port of ${INTERNAL_PROMETHEUS_PORT}.
 // The second process is exec'ed after the first successfully starts and is a collector process using
 // a noop otlp receiver and logging exporter from another config.d with an internal prometheus server
-// bound to $INTERNAL_PROMETHEUS_PORT.
+// bound to ${INTERNAL_PROMETHEUS_PORT}.
 // The test verifies that the second collector process's internal metrics contain a logging exporter
 // one and that the first collector process's initial and effective configs from the config server
 // are as expected.
@@ -119,8 +121,32 @@ func TestHostObserver(t *testing.T) {
 	promPid := strings.TrimSpace(stdout)
 	require.Zero(t, sc, stderr)
 
-	expectedResourceMetrics := tc.ResourceMetrics("host-observer-internal-prometheus.yaml")
-	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
+	expected, err := golden.ReadMetrics(filepath.Join("testdata", "expected", "host-observer-internal-prometheus-expected.yaml"))
+	require.NoError(t, err)
+	assert.EventuallyWithT(t, func(tt *assert.CollectT) {
+		if len(tc.OTLPReceiverSink.AllMetrics()) == 0 {
+			assert.Fail(tt, "No metrics collected")
+			return
+		}
+		err := pmetrictest.CompareMetrics(expected, tc.OTLPReceiverSink.AllMetrics()[len(tc.OTLPReceiverSink.AllMetrics())-1],
+			pmetrictest.IgnoreResourceAttributeValue("service.instance.id"),
+			pmetrictest.IgnoreResourceAttributeValue("net.host.port"),
+			pmetrictest.IgnoreResourceAttributeValue("server.port"),
+			pmetrictest.IgnoreResourceAttributeValue("service.name"),
+			pmetrictest.IgnoreResourceAttributeValue("service_instance_id"),
+			pmetrictest.IgnoreResourceAttributeValue("service_version"),
+			pmetrictest.IgnoreMetricAttributeValue("service_version"),
+			pmetrictest.IgnoreMetricAttributeValue("service_instance_id"),
+			pmetrictest.IgnoreTimestamp(),
+			pmetrictest.IgnoreStartTimestamp(),
+			pmetrictest.IgnoreMetricDataPointsOrder(),
+			pmetrictest.IgnoreScopeMetricsOrder(),
+			pmetrictest.IgnoreScopeVersion(),
+			pmetrictest.IgnoreResourceMetricsOrder(),
+			pmetrictest.IgnoreMetricValues(),
+		)
+		assert.NoError(tt, err)
+	}, 30*time.Second, 1*time.Second)
 
 	expectedInitial := map[string]any{
 		"file": map[string]any{

@@ -1,4 +1,0 @@
-pipelines:
-  metrics:
-    receivers: [prometheus/internal]
-    exporters: [otlp]

@@ -26,12 +26,12 @@
 #
 
 import time
+import signal
 import threading
 import queue as Queue
 from typing import Any, Callable, List, Tuple
 
 from pyspark import SparkConf, SparkContext
-
 
 def delayed(seconds: int) -> Callable[[Any], Any]:
     def f(x: int) -> int:
@@ -76,7 +76,15 @@ def main() -> None:
     print("Job results are:", result.get())
     sc.stop()
 
+def signal_handler(signal, frame):
+    global interrupted
+    interrupted = True
 
 if __name__ == "__main__":
-    for i in range(100):
+    signal.signal(signal.SIGINT, signal_handler)
+    global interrupted
+    interrupted = False
+    while True:
         main()
+        if interrupted:
+            break

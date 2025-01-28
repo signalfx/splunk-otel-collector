@@ -1,0 +1,56 @@
+resourceMetrics:
+  - resource: {}
+    schemaUrl: https://opentelemetry.io/schemas/1.9.0
+    scopeMetrics:
+      - metrics:
+          - description: Bytes of memory in use.
+            name: system.memory.usage
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "84504576"
+                  attributes:
+                    - key: state
+                      value:
+                        stringValue: buffered
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+                - asInt: "486821888"
+                  attributes:
+                    - key: state
+                      value:
+                        stringValue: cached
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+                - asInt: "11449737216"
+                  attributes:
+                    - key: state
+                      value:
+                        stringValue: free
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+                - asInt: "115769344"
+                  attributes:
+                    - key: state
+                      value:
+                        stringValue: slab_reclaimable
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+                - asInt: "43827200"
+                  attributes:
+                    - key: state
+                      value:
+                        stringValue: slab_unreclaimable
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+                - asInt: "508424192"
+                  attributes:
+                    - key: state
+                      value:
+                        stringValue: used
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            unit: By
+        scope:
+          name: github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver/internal/scraper/memoryscraper
+          version: v0.116.0-1-g0f3e01e7

@@ -121,6 +121,7 @@ func TestDefaultComponents(t *testing.T) {
 		"k8sattributes",
 		"logstransform",
 		"memory_limiter",
+		"metricsgeneration",
 		"metricstransform",
 		"probabilistic_sampler",
 		"redaction",

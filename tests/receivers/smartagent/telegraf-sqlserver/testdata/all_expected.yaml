@@ -1,0 +1,4635 @@
+resourceMetrics:
+  - resource:
+      attributes:
+        - key: system.type
+          value:
+            stringValue: sqlserver
+    scopeMetrics:
+      - metrics:
+          - gauge:
+              dataPoints:
+                - asInt: "9789440"
+                  attributes:
+                    - key: hardware_type
+                      value:
+                        stringValue: PHYSICAL Machine
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sku
+                      value:
+                        stringValue: Developer Edition (64-bit)
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: sql_version
+                      value:
+                        stringValue: 15.0.4415.2
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_server_properties.server_memory
+          - gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: hardware_type
+                      value:
+                        stringValue: PHYSICAL Machine
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sku
+                      value:
+                        stringValue: Developer Edition (64-bit)
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: sql_version
+                      value:
+                        stringValue: 15.0.4415.2
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_server_properties.db_suspect
+          - gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: hardware_type
+                      value:
+                        stringValue: PHYSICAL Machine
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sku
+                      value:
+                        stringValue: Developer Edition (64-bit)
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: sql_version
+                      value:
+                        stringValue: 15.0.4415.2
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_server_properties.uptime
+          - gauge:
+              dataPoints:
+                - asInt: "4"
+                  attributes:
+                    - key: hardware_type
+                      value:
+                        stringValue: PHYSICAL Machine
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sku
+                      value:
+                        stringValue: Developer Edition (64-bit)
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: sql_version
+                      value:
+                        stringValue: 15.0.4415.2
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_server_properties.db_online
+          - gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: hardware_type
+                      value:
+                        stringValue: PHYSICAL Machine
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sku
+                      value:
+                        stringValue: Developer Edition (64-bit)
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: sql_version
+                      value:
+                        stringValue: 15.0.4415.2
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_server_properties.db_offline
+          - gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: hardware_type
+                      value:
+                        stringValue: PHYSICAL Machine
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sku
+                      value:
+                        stringValue: Developer Edition (64-bit)
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: sql_version
+                      value:
+                        stringValue: 15.0.4415.2
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_server_properties.db_restoring
+          - gauge:
+              dataPoints:
+                - asInt: "10"
+                  attributes:
+                    - key: hardware_type
+                      value:
+                        stringValue: PHYSICAL Machine
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sku
+                      value:
+                        stringValue: Developer Edition (64-bit)
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: sql_version
+                      value:
+                        stringValue: 15.0.4415.2
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_server_properties.cpu_count
+          - gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: hardware_type
+                      value:
+                        stringValue: PHYSICAL Machine
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sku
+                      value:
+                        stringValue: Developer Edition (64-bit)
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: sql_version
+                      value:
+                        stringValue: 15.0.4415.2
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_server_properties.db_recoverypending
+          - gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: hardware_type
+                      value:
+                        stringValue: PHYSICAL Machine
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sku
+                      value:
+                        stringValue: Developer Edition (64-bit)
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: sql_version
+                      value:
+                        stringValue: 15.0.4415.2
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_server_properties.db_recovering
+          - gauge:
+              dataPoints:
+                - asInt: "3"
+                  attributes:
+                    - key: hardware_type
+                      value:
+                        stringValue: PHYSICAL Machine
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sku
+                      value:
+                        stringValue: Developer Edition (64-bit)
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: sql_version
+                      value:
+                        stringValue: 15.0.4415.2
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_server_properties.engine_edition
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: ""
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Access Methods
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.forwarded_records_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 345
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: ""
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Access Methods
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.full_scans_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 26183
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: ""
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Access Methods
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.index_searches_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 189
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: ""
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Access Methods
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.page_splits_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: Total
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Availability Replica
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.bytes_received_from_replica_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: Total
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Availability Replica
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.bytes_sent_to_replica_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: Total
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Availability Replica
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.bytes_sent_to_transport_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: Total
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Availability Replica
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.flow_control_time_ms_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: Total
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Availability Replica
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.flow_control_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: Total
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Availability Replica
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.receives_from_replica_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: Total
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Availability Replica
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.resent_messages_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: Total
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Availability Replica
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.sends_to_replica_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: Total
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Availability Replica
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.sends_to_transport_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 29
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: ""
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Buffer Manager
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.background_writer_pages_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 100
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: ""
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Buffer Manager
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.buffer_cache_hit_ratio
+          - gauge:
+              dataPoints:
+                - asDouble: 70
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: ""
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Buffer Manager
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.checkpoint_pages_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: ""
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Buffer Manager
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.free_list_stalls_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: ""
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Buffer Manager
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.lazy_writes_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 44
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: ""
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Buffer Manager
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 44
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: "000"
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Buffer Node
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.page_life_expectancy
+          - gauge:
+              dataPoints:
+                - asDouble: 60841
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: ""
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Buffer Manager
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.page_lookups_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 2442
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: ""
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Buffer Manager
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.page_reads_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 160
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: ""
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Buffer Manager
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.page_writes_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 286
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: ""
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Buffer Manager
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.readahead_pages_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: Total
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Database Replica
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.log_apply_pending_queue
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: Total
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Database Replica
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.log_apply_ready_queue
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: Total
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Database Replica
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.log_bytes_received_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: Total
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Database Replica
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.log_send_queue
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: Total
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Database Replica
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.recovery_queue
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: Total
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Database Replica
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.redone_bytes_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: Total
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Database Replica
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.transaction_delay
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: Total
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: master
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: model
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: msdb
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: mssqlsystemresource
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: tempdb
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.backup_restore_throughput_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 133056
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: Total
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 4608
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: master
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 8192
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: model
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 13760
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: msdb
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 40960
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: mssqlsystemresource
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 65536
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: tempdb
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.data_file_size_kb
+          - gauge:
+              dataPoints:
+                - asDouble: 2.527232e+06
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: Total
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 573440
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: master
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 159744
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: model
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 147456
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: msdb
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: mssqlsystemresource
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 1.646592e+06
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: tempdb
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.log_bytes_flushed_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 20440
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: Total
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 2040
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: master
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 8184
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: model
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 760
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: msdb
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 1272
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: mssqlsystemresource
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 8184
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: tempdb
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.log_file_size_kb
+          - gauge:
+              dataPoints:
+                - asDouble: 4740
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: Total
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 1024
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: master
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 561
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: model
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 609
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: msdb
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 476
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: mssqlsystemresource
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 2070
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: tempdb
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.log_file_used_size_kb
+          - gauge:
+              dataPoints:
+                - asDouble: 192
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: Total
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 105
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: master
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 39
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: model
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 33
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: msdb
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: mssqlsystemresource
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 15
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: tempdb
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.log_flush_wait_time
+          - gauge:
+              dataPoints:
+                - asDouble: 152
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: Total
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 65
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: master
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 25
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: model
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 23
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: msdb
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: mssqlsystemresource
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 39
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: tempdb
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.log_flushes_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 23
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: Total
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 50
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: master
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 6
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: model
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 80
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: msdb
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 37
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: mssqlsystemresource
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 25
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: tempdb
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.pct_log_used
+          - gauge:
+              dataPoints:
+                - asDouble: 1070
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: Total
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 416
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: master
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 17
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: model
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 35
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: msdb
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 36
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: mssqlsystemresource
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 565
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: tempdb
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.transactions_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: Total
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: master
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: model
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: msdb
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: mssqlsystemresource
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: tempdb
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.xtp_memory_used_kb
+          - gauge:
+              dataPoints:
+                - asDouble: 357
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: Total
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 45
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: master
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 9
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: model
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 11
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: msdb
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: mssqlsystemresource
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 292
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: tempdb
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Databases
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.write_transactions_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 2
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: ""
+                    - key: object
+                      value:
+                        stringValue: SQLServer:General Statistics
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.active_temp_tables
+          - gauge:
+              dataPoints:
+                - asDouble: 150
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: ""
+                    - key: object
+                      value:
+                        stringValue: SQLServer:General Statistics
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.logins_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 146
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: ""
+                    - key: object
+                      value:
+                        stringValue: SQLServer:General Statistics
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.logouts_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: ""
+                    - key: object
+                      value:
+                        stringValue: SQLServer:General Statistics
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.processes_blocked
+          - gauge:
+              dataPoints:
+                - asDouble: 62
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: ""
+                    - key: object
+                      value:
+                        stringValue: SQLServer:General Statistics
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.temp_tables_creation_rate
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: ""
+                    - key: object
+                      value:
+                        stringValue: SQLServer:General Statistics
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.temp_tables_for_destruction
+          - gauge:
+              dataPoints:
+                - asDouble: 4
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: ""
+                    - key: object
+                      value:
+                        stringValue: SQLServer:General Statistics
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.user_connections
+          - gauge:
+              dataPoints:
+                - asDouble: 486
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: ""
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Latches
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.latch_waits_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: Total
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Locks
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.lock_timeouts_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 4
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: Total
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Locks
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.lock_waits_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: Total
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Locks
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.number_of_deadlocks_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 2615
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: Buffer Pool
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Memory Broker Clerks
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 10
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: Column store object pool
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Memory Broker Clerks
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.memory_broker_clerk_size
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: ""
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Memory Manager
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.memory_grants_outstanding
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: ""
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Memory Manager
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.memory_grants_pending
+          - gauge:
+              dataPoints:
+                - asDouble: 8.589232e+06
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: ""
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Memory Manager
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.target_server_memory_kb
+          - gauge:
+              dataPoints:
+                - asDouble: 312384
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: ""
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Memory Manager
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.total_server_memory_kb
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: default
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Resource Pool Stats
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: internal
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Resource Pool Stats
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.active_memory_grant_amount_kb
+          - gauge:
+              dataPoints:
+                - asDouble: 1.1940298080444336
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: default
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Resource Pool Stats
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 1.1940298080444336
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: default
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Workload Group Stats
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 0.06965173780918121
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: internal
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Resource Pool Stats
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 0.06965173780918121
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: internal
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Workload Group Stats
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.cpu_usage_pct
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: default
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Resource Pool Stats
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: internal
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Resource Pool Stats
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.disk_read_bytes_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: default
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Resource Pool Stats
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: internal
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Resource Pool Stats
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.disk_read_io_throttled_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: default
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Resource Pool Stats
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: internal
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Resource Pool Stats
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.disk_read_io_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: default
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Resource Pool Stats
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: internal
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Resource Pool Stats
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.disk_write_bytes_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: default
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Resource Pool Stats
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: internal
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Resource Pool Stats
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.disk_write_io_throttled_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 9376
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: default
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Resource Pool Stats
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 257648
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: internal
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Resource Pool Stats
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.used_memory_kb
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: default
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Resource Pool Stats
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: internal
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Resource Pool Stats
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.disk_write_io_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: DB Offline Errors
+                    - key: object
+                      value:
+                        stringValue: SQLServer:SQL Errors
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 333
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: Info Errors
+                    - key: object
+                      value:
+                        stringValue: SQLServer:SQL Errors
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: Kill Connection Errors
+                    - key: object
+                      value:
+                        stringValue: SQLServer:SQL Errors
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 367
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: Total
+                    - key: object
+                      value:
+                        stringValue: SQLServer:SQL Errors
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 34
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: User Errors
+                    - key: object
+                      value:
+                        stringValue: SQLServer:SQL Errors
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.errors_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 157
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: ""
+                    - key: object
+                      value:
+                        stringValue: SQLServer:SQL Statistics
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.batch_requests_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 217
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: ""
+                    - key: object
+                      value:
+                        stringValue: SQLServer:SQL Statistics
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.sql_compilations_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 121
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: ""
+                    - key: object
+                      value:
+                        stringValue: SQLServer:SQL Statistics
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.sql_re-compilations_sec
+          - gauge:
+              dataPoints:
+                - asDouble: 62336
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: ""
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Transactions
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.free_space_in_tempdb_kb
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: ""
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Transactions
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.version_store_size_kb
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: User counter 1
+                    - key: object
+                      value:
+                        stringValue: SQLServer:User Settable
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: User counter 10
+                    - key: object
+                      value:
+                        stringValue: SQLServer:User Settable
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: User counter 2
+                    - key: object
+                      value:
+                        stringValue: SQLServer:User Settable
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: User counter 3
+                    - key: object
+                      value:
+                        stringValue: SQLServer:User Settable
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: User counter 4
+                    - key: object
+                      value:
+                        stringValue: SQLServer:User Settable
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: User counter 5
+                    - key: object
+                      value:
+                        stringValue: SQLServer:User Settable
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: User counter 6
+                    - key: object
+                      value:
+                        stringValue: SQLServer:User Settable
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: User counter 7
+                    - key: object
+                      value:
+                        stringValue: SQLServer:User Settable
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: User counter 8
+                    - key: object
+                      value:
+                        stringValue: SQLServer:User Settable
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: User counter 9
+                    - key: object
+                      value:
+                        stringValue: SQLServer:User Settable
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.query
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: default
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Workload Group Stats
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: internal
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Workload Group Stats
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.blocked_tasks
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: default
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Workload Group Stats
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: internal
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Workload Group Stats
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.cpu_limit_violation_count
+          - gauge:
+              dataPoints:
+                - asDouble: 5197
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: default
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Workload Group Stats
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 2245
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: internal
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Workload Group Stats
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.cpu_usage_time
+          - gauge:
+              dataPoints:
+                - asDouble: 1
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: default
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Workload Group Stats
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 17
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: internal
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Workload Group Stats
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.lock_wait_count
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: default
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Workload Group Stats
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 816
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: internal
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Workload Group Stats
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.lock_wait_time
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: default
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Workload Group Stats
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: internal
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Workload Group Stats
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.queued_request_count
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: default
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Workload Group Stats
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: internal
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Workload Group Stats
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.queued_requests
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: default
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Workload Group Stats
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: internal
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Workload Group Stats
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.reduced_memory_grant_count
+          - gauge:
+              dataPoints:
+                - asDouble: 155
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: default
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Workload Group Stats
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: internal
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Workload Group Stats
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.request_count
+          - gauge:
+              dataPoints:
+                - asDouble: 5
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: default
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Workload Group Stats
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: instance
+                      value:
+                        stringValue: internal
+                    - key: object
+                      value:
+                        stringValue: SQLServer:Workload Group Stats
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                  timeUnixNano: "1000000"
+            name: sqlserver_performance.requests_completed_sec
+          - gauge:
+              dataPoints:
+                - asInt: "182"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Buffer IO
+                    - key: wait_type
+                      value:
+                        stringValue: PAGEIOLATCH_SH
+                  timeUnixNano: "1000000"
+                - asInt: "2"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Lock
+                    - key: wait_type
+                      value:
+                        stringValue: LCK_M_S
+                  timeUnixNano: "1000000"
+                - asInt: "45"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: OTHER
+                    - key: wait_type
+                      value:
+                        stringValue: STARTUP_DEPENDENCY_MANAGER
+                  timeUnixNano: "1000000"
+                - asInt: "1"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: OTHER
+                    - key: wait_type
+                      value:
+                        stringValue: WAIT_ON_SYNC_STATISTICS_REFRESH
+                  timeUnixNano: "1000000"
+                - asInt: "8"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Other Disk IO
+                    - key: wait_type
+                      value:
+                        stringValue: ASYNC_IO_COMPLETION
+                  timeUnixNano: "1000000"
+                - asInt: "197"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Other Disk IO
+                    - key: wait_type
+                      value:
+                        stringValue: WRITE_COMPLETION
+                  timeUnixNano: "1000000"
+                - asInt: "303"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Preemptive
+                    - key: wait_type
+                      value:
+                        stringValue: PREEMPTIVE_OS_AUTHENTICATIONOPS
+                  timeUnixNano: "1000000"
+                - asInt: "260"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Preemptive
+                    - key: wait_type
+                      value:
+                        stringValue: PREEMPTIVE_OS_FILEOPS
+                  timeUnixNano: "1000000"
+                - asInt: "196"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Preemptive
+                    - key: wait_type
+                      value:
+                        stringValue: PREEMPTIVE_OS_FLUSHFILEBUFFERS
+                  timeUnixNano: "1000000"
+                - asInt: "153"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Preemptive
+                    - key: wait_type
+                      value:
+                        stringValue: PREEMPTIVE_OS_NETVALIDATEPASSWORDPOLICY
+                  timeUnixNano: "1000000"
+                - asInt: "122"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Tran Log IO
+                    - key: wait_type
+                      value:
+                        stringValue: WRITELOG
+                  timeUnixNano: "1000000"
+            name: sqlserver_waitstats.waiting_tasks_count
+          - gauge:
+              dataPoints:
+                - asInt: "253"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Buffer IO
+                    - key: wait_type
+                      value:
+                        stringValue: PAGEIOLATCH_SH
+                  timeUnixNano: "1000000"
+                - asInt: "694"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Lock
+                    - key: wait_type
+                      value:
+                        stringValue: LCK_M_S
+                  timeUnixNano: "1000000"
+                - asInt: "4226"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: OTHER
+                    - key: wait_type
+                      value:
+                        stringValue: STARTUP_DEPENDENCY_MANAGER
+                  timeUnixNano: "1000000"
+                - asInt: "142"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: OTHER
+                    - key: wait_type
+                      value:
+                        stringValue: WAIT_ON_SYNC_STATISTICS_REFRESH
+                  timeUnixNano: "1000000"
+                - asInt: "282"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Other Disk IO
+                    - key: wait_type
+                      value:
+                        stringValue: ASYNC_IO_COMPLETION
+                  timeUnixNano: "1000000"
+                - asInt: "154"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Other Disk IO
+                    - key: wait_type
+                      value:
+                        stringValue: WRITE_COMPLETION
+                  timeUnixNano: "1000000"
+                - asInt: "427"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Preemptive
+                    - key: wait_type
+                      value:
+                        stringValue: PREEMPTIVE_OS_AUTHENTICATIONOPS
+                  timeUnixNano: "1000000"
+                - asInt: "350"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Preemptive
+                    - key: wait_type
+                      value:
+                        stringValue: PREEMPTIVE_OS_FILEOPS
+                  timeUnixNano: "1000000"
+                - asInt: "448"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Preemptive
+                    - key: wait_type
+                      value:
+                        stringValue: PREEMPTIVE_OS_FLUSHFILEBUFFERS
+                  timeUnixNano: "1000000"
+                - asInt: "120"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Preemptive
+                    - key: wait_type
+                      value:
+                        stringValue: PREEMPTIVE_OS_NETVALIDATEPASSWORDPOLICY
+                  timeUnixNano: "1000000"
+                - asInt: "74"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Tran Log IO
+                    - key: wait_type
+                      value:
+                        stringValue: WRITELOG
+                  timeUnixNano: "1000000"
+            name: sqlserver_waitstats.resource_wait_ms
+          - gauge:
+              dataPoints:
+                - asInt: "167"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Buffer IO
+                    - key: wait_type
+                      value:
+                        stringValue: PAGEIOLATCH_SH
+                  timeUnixNano: "1000000"
+                - asInt: "600"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Lock
+                    - key: wait_type
+                      value:
+                        stringValue: LCK_M_S
+                  timeUnixNano: "1000000"
+                - asInt: "104"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: OTHER
+                    - key: wait_type
+                      value:
+                        stringValue: STARTUP_DEPENDENCY_MANAGER
+                  timeUnixNano: "1000000"
+                - asInt: "142"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: OTHER
+                    - key: wait_type
+                      value:
+                        stringValue: WAIT_ON_SYNC_STATISTICS_REFRESH
+                  timeUnixNano: "1000000"
+                - asInt: "52"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Other Disk IO
+                    - key: wait_type
+                      value:
+                        stringValue: ASYNC_IO_COMPLETION
+                  timeUnixNano: "1000000"
+                - asInt: "13"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Other Disk IO
+                    - key: wait_type
+                      value:
+                        stringValue: WRITE_COMPLETION
+                  timeUnixNano: "1000000"
+                - asInt: "19"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Preemptive
+                    - key: wait_type
+                      value:
+                        stringValue: PREEMPTIVE_OS_AUTHENTICATIONOPS
+                  timeUnixNano: "1000000"
+                - asInt: "27"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Preemptive
+                    - key: wait_type
+                      value:
+                        stringValue: PREEMPTIVE_OS_FILEOPS
+                  timeUnixNano: "1000000"
+                - asInt: "174"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Preemptive
+                    - key: wait_type
+                      value:
+                        stringValue: PREEMPTIVE_OS_FLUSHFILEBUFFERS
+                  timeUnixNano: "1000000"
+                - asInt: "14"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Preemptive
+                    - key: wait_type
+                      value:
+                        stringValue: PREEMPTIVE_OS_NETVALIDATEPASSWORDPOLICY
+                  timeUnixNano: "1000000"
+                - asInt: "9"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Tran Log IO
+                    - key: wait_type
+                      value:
+                        stringValue: WRITELOG
+                  timeUnixNano: "1000000"
+            name: sqlserver_waitstats.max_wait_time_ms
+          - gauge:
+              dataPoints:
+                - asInt: "260"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Buffer IO
+                    - key: wait_type
+                      value:
+                        stringValue: PAGEIOLATCH_SH
+                  timeUnixNano: "1000000"
+                - asInt: "695"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Lock
+                    - key: wait_type
+                      value:
+                        stringValue: LCK_M_S
+                  timeUnixNano: "1000000"
+                - asInt: "4259"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: OTHER
+                    - key: wait_type
+                      value:
+                        stringValue: STARTUP_DEPENDENCY_MANAGER
+                  timeUnixNano: "1000000"
+                - asInt: "142"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: OTHER
+                    - key: wait_type
+                      value:
+                        stringValue: WAIT_ON_SYNC_STATISTICS_REFRESH
+                  timeUnixNano: "1000000"
+                - asInt: "284"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Other Disk IO
+                    - key: wait_type
+                      value:
+                        stringValue: ASYNC_IO_COMPLETION
+                  timeUnixNano: "1000000"
+                - asInt: "190"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Other Disk IO
+                    - key: wait_type
+                      value:
+                        stringValue: WRITE_COMPLETION
+                  timeUnixNano: "1000000"
+                - asInt: "427"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Preemptive
+                    - key: wait_type
+                      value:
+                        stringValue: PREEMPTIVE_OS_AUTHENTICATIONOPS
+                  timeUnixNano: "1000000"
+                - asInt: "350"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Preemptive
+                    - key: wait_type
+                      value:
+                        stringValue: PREEMPTIVE_OS_FILEOPS
+                  timeUnixNano: "1000000"
+                - asInt: "448"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Preemptive
+                    - key: wait_type
+                      value:
+                        stringValue: PREEMPTIVE_OS_FLUSHFILEBUFFERS
+                  timeUnixNano: "1000000"
+                - asInt: "120"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Preemptive
+                    - key: wait_type
+                      value:
+                        stringValue: PREEMPTIVE_OS_NETVALIDATEPASSWORDPOLICY
+                  timeUnixNano: "1000000"
+                - asInt: "105"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Tran Log IO
+                    - key: wait_type
+                      value:
+                        stringValue: WRITELOG
+                  timeUnixNano: "1000000"
+            name: sqlserver_waitstats.wait_time_ms
+          - gauge:
+              dataPoints:
+                - asInt: "7"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Buffer IO
+                    - key: wait_type
+                      value:
+                        stringValue: PAGEIOLATCH_SH
+                  timeUnixNano: "1000000"
+                - asInt: "1"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Lock
+                    - key: wait_type
+                      value:
+                        stringValue: LCK_M_S
+                  timeUnixNano: "1000000"
+                - asInt: "33"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: OTHER
+                    - key: wait_type
+                      value:
+                        stringValue: STARTUP_DEPENDENCY_MANAGER
+                  timeUnixNano: "1000000"
+                - asInt: "0"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: OTHER
+                    - key: wait_type
+                      value:
+                        stringValue: WAIT_ON_SYNC_STATISTICS_REFRESH
+                  timeUnixNano: "1000000"
+                - asInt: "2"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Other Disk IO
+                    - key: wait_type
+                      value:
+                        stringValue: ASYNC_IO_COMPLETION
+                  timeUnixNano: "1000000"
+                - asInt: "36"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Other Disk IO
+                    - key: wait_type
+                      value:
+                        stringValue: WRITE_COMPLETION
+                  timeUnixNano: "1000000"
+                - asInt: "0"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Preemptive
+                    - key: wait_type
+                      value:
+                        stringValue: PREEMPTIVE_OS_AUTHENTICATIONOPS
+                  timeUnixNano: "1000000"
+                - asInt: "0"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Preemptive
+                    - key: wait_type
+                      value:
+                        stringValue: PREEMPTIVE_OS_FILEOPS
+                  timeUnixNano: "1000000"
+                - asInt: "0"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Preemptive
+                    - key: wait_type
+                      value:
+                        stringValue: PREEMPTIVE_OS_FLUSHFILEBUFFERS
+                  timeUnixNano: "1000000"
+                - asInt: "0"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Preemptive
+                    - key: wait_type
+                      value:
+                        stringValue: PREEMPTIVE_OS_NETVALIDATEPASSWORDPOLICY
+                  timeUnixNano: "1000000"
+                - asInt: "31"
+                  attributes:
+                    - key: plugin
+                      value:
+                        stringValue: telegraf-sqlserver
+                    - key: sql_instance
+                      value:
+                        stringValue: 2297a902f7ca
+                    - key: telegraf_type
+                      value:
+                        stringValue: untyped
+                    - key: wait_category
+                      value:
+                        stringValue: Tran Log IO
+                    - key: wait_type
+                      value:
+                        stringValue: WRITELOG
+                  timeUnixNano: "1000000"
+            name: sqlserver_waitstats.signal_wait_time_ms
+        scope: {}

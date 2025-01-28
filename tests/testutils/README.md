@@ -3,62 +3,6 @@
 The `testutils` package provides an internal test format for Collector data, and helpers to help assert its integrity
 from arbitrary components.
 
-### Resource Metrics
-
-`ResourceMetrics` are at the core of the internal metric data format for these tests and are intended to be defined
-in yaml files or by converting from obtained `pdata.Metrics` items.  They provide a strict `Equals()` helper method as
-well as `RelaxedEquals()` to help in verifying desired field and values, ignoring those not specified.
-
-```yaml
-resource_metrics:
-  - attributes:
-      a_resource_attribute: a_value
-      another_resource_attribute: another_value
-    scope_metrics:
-      - instrumentation_scope:
-          name: a library
-          version: some version
-      - metrics:
-          - name: my.int.gauge
-            type: IntGauge
-            description: my.int.gauge description
-            unit: ms
-            attributes:
-              my_attribute: my_attribute_value
-              my_other_attribute: my_other_attribute_value
-            value: 123
-          - name: my.double.sum
-            type: DoubleNonmonotonicDeltaSum
-            attributes: {} # enforced empty attribute map in RelaxedEquals() (only point with no attributes matches)
-            value: -123.456
-  - scope_metrics:
-      - instrumentation_scope:
-          name: an instrumentation library from a different resource without attributes
-        metrics:
-          - name: my.double.gauge
-            type: DoubleGauge
-            # missing attributes field, so values are not compared in RelaxedEquals() (any attribute values are accepted)
-            value: 456.789
-          - name: my.double.gauge
-            type: DoubleGauge
-            attributes:
-              another: attribute
-            value: 567.890
-      - instrumentation_scope:
-          name: another instrumentation library
-          version: this_library_version
-        metrics:
-          - name: another_int_gauge
-            type: IntGauge
-            value: 456
-```
-
-Using `telemetry.LoadResourceMetrics("my_yaml.path")` you can create an equivalent `ResourceMetrics` instance to what your yaml file specifies.
-Using `telemetry.PDataToResourceMetrics(myReceivedPDataMetrics)` you can use the assertion helpers to determine if your expected
-`ResourceMetrics` are the same as those received in your test case. `telemetry.FlattenResourceMetrics()` is a good way to "normalize"
-metrics received over time to ensure that only unique datapoints are represented, and that all unique Resources and
-Instrumentation Libraries have a single item.
-
 ### Test Containers
 
 The Testcontainers project is a popular testing resource for easy container creation and usage for a number of languages
@@ -178,9 +122,19 @@ func MyTest(t *testing.T) {
     }
 
     // will implicitly create a Testcase with OTLPReceiverSink listening at $OTLP_ENDPOINT,
-    // ./testdata/resource_metrics/my_resource_metrics.yaml ResourceMetrics instance, CollectorProcess with
+    // ./testdata/expected.yaml golden file, CollectorProcess with
     // ./testdata/my_collector_config.yaml config, and build and start all specified containers before calling
-    // OTLPReceiverSink.AssertAllMetricsReceived() with a 30s wait duration.
-    testutils.AssertAllMetricsReceived(t, "my_resource_metrics.yaml", "my_collector_config.yaml", containers, nil)
+	testutils.RunMetricsCollectionTest(t, "my_collector_config.yaml", "expected.yaml",
+		testutils.WithCompareMetricsOptions(
+			pmetrictest.IgnoreScopeVersion(),
+			pmetrictest.IgnoreMetricDataPointsOrder(),
+			pmetrictest.IgnoreResourceMetricsOrder(),
+			pmetrictest.IgnoreScopeMetricsOrder(),
+			pmetrictest.IgnoreMetricsOrder(),
+			pmetrictest.IgnoreMetricValues(),
+			pmetrictest.IgnoreTimestamp(),
+			pmetrictest.IgnoreStartTimestamp(),
+		),
+	)
 }
 ```

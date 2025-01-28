@@ -17,7 +17,11 @@
 package tests
 
 import (
+	"fmt"
 	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
@@ -41,14 +45,38 @@ service:
       receivers: [hostmetrics]
       exporters: [otlp]
 `
-	testutils.AssertAllMetricsReceived(
-		t, "memory.yaml", "", nil,
-		[]testutils.CollectorBuilder{
-			func(collector testutils.Collector) testutils.Collector {
-				return collector.WithEnv(
-					map[string]string{"SOME_ENV_VAR": config},
-				).WithArgs("--config", "env:SOME_ENV_VAR")
-			},
-		},
-	)
+	tc := testutils.NewTestcase(t)
+	defer tc.PrintLogsOnFailure()
+	defer tc.ShutdownOTLPReceiverSink()
+
+	_, shutdown := tc.SplunkOtelCollector("", func(collector testutils.Collector) testutils.Collector {
+		return collector.WithEnv(
+			map[string]string{"SOME_ENV_VAR": config},
+		).WithArgs("--config", "env:SOME_ENV_VAR")
+	})
+	defer shutdown()
+
+	missingMetrics := map[string]struct{}{
+		"system.memory.usage": {},
+	}
+
+	assert.EventuallyWithT(t, func(tt *assert.CollectT) {
+		for i := 0; i < len(tc.OTLPReceiverSink.AllMetrics()); i++ {
+			m := tc.OTLPReceiverSink.AllMetrics()[i]
+			for j := 0; j < m.ResourceMetrics().Len(); j++ {
+				rm := m.ResourceMetrics().At(j)
+				for k := 0; k < rm.ScopeMetrics().Len(); k++ {
+					sm := rm.ScopeMetrics().At(k)
+					for l := 0; l < sm.Metrics().Len(); l++ {
+						delete(missingMetrics, sm.Metrics().At(l).Name())
+					}
+				}
+			}
+		}
+		msg := "Missing metrics:\n"
+		for k := range missingMetrics {
+			msg += fmt.Sprintf("- %q\n", k)
+		}
+		assert.Len(tt, missingMetrics, 0, msg)
+	}, 30*time.Second, 1*time.Second)
 }

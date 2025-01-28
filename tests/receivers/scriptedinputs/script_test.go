@@ -41,7 +41,6 @@ func TestScriptReceiverCpu(t *testing.T) {
 			return
 		}
 		receivedOTLPLogs := tc.OTLPReceiverSink.AllLogs()
-		tc.OTLPReceiverSink.Reset()
 
 		lr := receivedOTLPLogs[0].ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
 		assert.Regexp(tt, regexp.MustCompile("CPU\\s+pctUser\\s+pctNice\\s+pctSystem\\s+pctIowait\\s+pctIdle\\nall(\\s*\\d{1,3}.\\d{1,3}){5}\\n0(\\s*\\d{1,3}.\\d{1,3}){5}"), lr.Body().Str())
@@ -62,7 +61,6 @@ func TestScriptReceiverDf(t *testing.T) {
 			return
 		}
 		receivedOTLPLogs := tc.OTLPReceiverSink.AllLogs()
-		tc.OTLPReceiverSink.Reset()
 
 		lr := receivedOTLPLogs[0].ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
 		fmt.Printf("Received log entry - \n%s", lr.Body().Str())
@@ -84,7 +82,6 @@ func TestScriptReceiverHardware(t *testing.T) {
 			return
 		}
 		receivedOTLPLogs := tc.OTLPReceiverSink.AllLogs()
-		tc.OTLPReceiverSink.Reset()
 
 		lr := receivedOTLPLogs[0].ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
 		assert.Regexp(tt, regexp.MustCompile("KEY\\s+VALUE"), lr.Body().Str())
@@ -105,7 +102,6 @@ func TestScriptReceiverInterfaces(t *testing.T) {
 			return
 		}
 		receivedOTLPLogs := tc.OTLPReceiverSink.AllLogs()
-		tc.OTLPReceiverSink.Reset()
 
 		lr := receivedOTLPLogs[0].ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
 		assert.Regexp(tt, regexp.MustCompile("Name\\s+MAC\\s+inetAddr\\s+inet6Addr\\s+Collisions\\s+RXbytes\\s+RXerrors\\s+RXdropped\\s+TXbytes\\s+TXerrors\\s+TXdropped\\s+Speed\\s+Duplex"), lr.Body().Str())
@@ -126,7 +122,6 @@ func TestScriptReceiverIostat(t *testing.T) {
 			return
 		}
 		receivedOTLPLogs := tc.OTLPReceiverSink.AllLogs()
-		tc.OTLPReceiverSink.Reset()
 
 		lr := receivedOTLPLogs[0].ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
 		assert.Regexp(tt, regexp.MustCompile("Device\\s+r/s\\s+rkB/s\\s+rrqm/s\\s+%rrqm\\s+r_await\\s+rareq-sz\\s+w/s\\s+wkB/s\\s+wrqm/s\\s+%wrqm\\s+w_await\\s+wareq-sz\\s+d/s\\s+dkB/s\\s+drqm/s\\s+%drqm\\s+d_await\\s+dareq-sz\\s+(f/s\\s+)?(f_await\\s+)?aqu-sz\\s+%util"), lr.Body().Str())
@@ -147,7 +142,6 @@ func TestScriptReceiverLsof(t *testing.T) {
 			return
 		}
 		receivedOTLPLogs := tc.OTLPReceiverSink.AllLogs()
-		tc.OTLPReceiverSink.Reset()
 
 		lr := receivedOTLPLogs[0].ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
 		assert.Regexp(tt, regexp.MustCompile("COMMAND\\s+PID\\s+USER\\s+FD\\s+TYPE\\s+DEVICE\\s+SIZE\\s+NODE\\s+NAME"), lr.Body().Str())
@@ -168,7 +162,6 @@ func TestScriptReceiverNetstat(t *testing.T) {
 			return
 		}
 		receivedOTLPLogs := tc.OTLPReceiverSink.AllLogs()
-		tc.OTLPReceiverSink.Reset()
 
 		lr := receivedOTLPLogs[0].ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
 		assert.Regexp(tt, regexp.MustCompile("Proto\\s+Recv-Q\\s+Send-Q\\s+LocalAddress\\s+ForeignAddress\\s+State"), lr.Body().Str())
@@ -189,7 +182,6 @@ func TestScriptReceiverOpenPorts(t *testing.T) {
 			return
 		}
 		receivedOTLPLogs := tc.OTLPReceiverSink.AllLogs()
-		tc.OTLPReceiverSink.Reset()
 
 		lr := receivedOTLPLogs[0].ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
 		assert.Regexp(tt, regexp.MustCompile("Proto\\s+Port"), lr.Body().Str())
@@ -210,7 +202,6 @@ func TestScriptReceiverPackage(t *testing.T) {
 			return
 		}
 		receivedOTLPLogs := tc.OTLPReceiverSink.AllLogs()
-		tc.OTLPReceiverSink.Reset()
 
 		lr := receivedOTLPLogs[0].ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
 		assert.Regexp(tt, regexp.MustCompile("NAME\\s+VERSION\\s+RELEASE\\s+ARCH\\s+VENDOR\\s+GROUP"), lr.Body().Str())
@@ -231,7 +222,6 @@ func TestScriptReceiverProtocol(t *testing.T) {
 			return
 		}
 		receivedOTLPLogs := tc.OTLPReceiverSink.AllLogs()
-		tc.OTLPReceiverSink.Reset()
 
 		lr := receivedOTLPLogs[0].ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
 		assert.Regexp(tt, regexp.MustCompile("IPdropped\\s+TCPrexmits\\s+TCPreorder\\s+TCPpktRecv\\s+TCPpktSent\\s+UDPpktLost\\s+UDPunkPort\\s+UDPpktRecv\\s+UDPpktSent"), lr.Body().Str())
@@ -252,7 +242,6 @@ func TestScriptReceiverPs(t *testing.T) {
 			return
 		}
 		receivedOTLPLogs := tc.OTLPReceiverSink.AllLogs()
-		tc.OTLPReceiverSink.Reset()
 
 		lr := receivedOTLPLogs[0].ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
 		assert.Regexp(tt, regexp.MustCompile("USER\\s+PID\\s+%CPU\\s+%MEM\\s+VSZ\\s+RSS\\s+TTY\\s+STAT\\s+START\\s+TIME\\s+COMMAND\\s+ARGS"), lr.Body().Str())
@@ -273,7 +262,6 @@ func TestScriptReceiverTop(t *testing.T) {
 			return
 		}
 		receivedOTLPLogs := tc.OTLPReceiverSink.AllLogs()
-		tc.OTLPReceiverSink.Reset()
 
 		lr := receivedOTLPLogs[0].ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
 		assert.Regexp(tt, regexp.MustCompile("PID\\s+USER\\s+PR\\s+NI\\s+VIRT\\s+RES\\s+SHR\\s+S\\s+pctCPU\\s+pctMEM\\s+cpuTIME\\s+COMMAND"), lr.Body().Str())

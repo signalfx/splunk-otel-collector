@@ -10,7 +10,7 @@ describe 'splunk_otel_collector::default' do
   context 'on the Linux platform family' do
     context 'on debian-family distro' do
       cached(:chef_run) do
-        ChefSpec::SoloRunner.new(platform: 'ubuntu', version: '16.04') do |node|
+        ChefSpec::SoloRunner.new(platform: 'ubuntu', version: '22.04') do |node|
           node.normal['splunk_otel_collector'] = {
             'splunk_access_token' => 'test123',
             'splunk_realm' => 'test',

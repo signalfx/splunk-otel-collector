@@ -21,12 +21,14 @@ import (
 	"path"
 	"testing"
 
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
 	"github.com/stretchr/testify/require"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
 func TestCollectdSparkReceiverProvidesAllMetrics(t *testing.T) {
+	testutils.SkipIfNotContainerTest(t)
 	tc := testutils.NewTestcase(t)
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
@@ -72,7 +74,16 @@ func TestCollectdSparkReceiverProvidesAllMetrics(t *testing.T) {
 		{"worker metrics", "all_worker.yaml", "all_worker_metrics_config.yaml"},
 	} {
 		t.Run(args.name, func(tt *testing.T) {
-			testutils.AssertAllMetricsReceived(tt, args.resourceMetricsFilename, args.collectorConfigFilename, nil, nil)
+			testutils.RunMetricsCollectionTest(t, args.collectorConfigFilename, args.resourceMetricsFilename,
+				testutils.WithCompareMetricsOptions(
+					pmetrictest.IgnoreTimestamp(),
+					pmetrictest.IgnoreStartTimestamp(),
+					pmetrictest.IgnoreResourceMetricsOrder(),
+					pmetrictest.IgnoreScopeMetricsOrder(),
+					pmetrictest.IgnoreMetricsOrder(),
+					pmetrictest.IgnoreMetricValues(),
+				),
+			)
 		})
 	}
 }

@@ -63,7 +63,6 @@ The distribution offers support for the following components.
 | [scripted_inputs](../internal/receiver//scriptedinputsreceiver)                                                                                                    | [in development] |
 | [signalfx](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/signalfxreceiver)                                                  | [stable]         |
 | [signalfxgatewayprometheusremotewrite](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/receiver/signalfxgatewayprometheusremotewritereceiver) | [in development] |
-| [simpleprometheus](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/simpleprometheusreceiver)                                  | [beta]           |
 | [smartagent](../pkg/receiver/smartagentreceiver)                                                                                                                   | [beta]           |
 | [snowflake](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/snowflakereceiver)                                                | [beta]           |
 | [solace](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/solacereceiver)                                                      | [beta]           |
@@ -87,7 +86,7 @@ The distribution offers support for the following components.
 <div>
 
 | Processors                                                                                                                                   | Stability        |
-|:---------------------------------------------------------------------------------------------------------------------------------------------| :--------------- |
+|:---------------------------------------------------------------------------------------------------------------------------------------------|:-----------------|
 | [attributes](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/attributesprocessor)                      | [alpha]          |
 | [batch](https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/batchprocessor)                                        | [beta]           |
 | [cumulativetodelta](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/cumulativetodeltaprocessor)        | [beta]           |
@@ -96,6 +95,7 @@ The distribution offers support for the following components.
 | [k8sattributes](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/k8sattributesprocessor)                | [beta]           |
 | [logstransform](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/logstransformprocessor)                | [in development] |
 | [memory_limiter](https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiterprocessor)                       | [beta]           |
+| [metricsgeneration](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/metricsgenerationprocessor)        | [alpha]          |
 | [metricstransform](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/metricstransformprocessor)          | [beta]           |
 | [probabilistic_sampler](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/probabilisticsamplerprocessor) | [beta]           |
 | [redaction](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/redactionprocessor)                        | [beta]           |

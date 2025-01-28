@@ -109,7 +109,6 @@ func (is *includeConfigSource) watchFile(file string, watcherFunc confmap.Watche
 					}
 					if event.Op&fsnotify.Write == fsnotify.Write {
 						watcherFunc(&confmap.ChangeEvent{Error: nil})
-						return
 					}
 				case watcherErr, ok := <-is.watcher.Errors:
 					if !ok {

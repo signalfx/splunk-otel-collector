@@ -33,6 +33,8 @@ packages:
             release: splunk-otel-collector
         properties:
           cloudfoundry:
+            director:
+              hostname: (( $director.hostname ))
             rlp_gateway:
               endpoint: https://log-stream.(( ..cf.cloud_controller.system_domain.value ))
               shard_id: (( .properties.cloudfoundry_rlp_gateway_shard_id.value ))

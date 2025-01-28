@@ -189,6 +189,10 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "docker"
+    directory: "/examples/collectd/collectd"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker"
     directory: "/examples/prometheus-federation/prom-counter"
     schedule:
       interval: "weekly"

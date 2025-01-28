@@ -1,0 +1,1588 @@
+resourceMetrics:
+  - resource:
+      attributes:
+        - key: system.type
+          value:
+            stringValue: postgresql
+    scopeMetrics:
+      - metrics:
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                  timeUnixNano: "1000000"
+            name: postgres_locks
+          - gauge:
+              dataPoints:
+                - asDouble: 0.16
+                  attributes:
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                  timeUnixNano: "1000000"
+            name: postgres_pct_connections
+          - name: postgres_queries_total_time
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 2.637625
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: postgres
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "-1835336386255491388"
+                    - key: user
+                      value:
+                        stringValue: test_user
+                  timeUnixNano: "1000000"
+                - asDouble: 45.227791
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: postgres
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "-4873033068685434152"
+                    - key: user
+                      value:
+                        stringValue: postgres
+                  timeUnixNano: "1000000"
+                - asDouble: 3.8128750000000005
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: postgres
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "2280167568486286490"
+                    - key: user
+                      value:
+                        stringValue: test_user
+                  timeUnixNano: "1000000"
+                - asDouble: 0.010834
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: postgres
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "3112524757682871277"
+                    - key: user
+                      value:
+                        stringValue: postgres
+                  timeUnixNano: "1000000"
+                - asDouble: 10.671337000000001
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: postgres
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "5125225121297442602"
+                    - key: user
+                      value:
+                        stringValue: test_user
+                  timeUnixNano: "1000000"
+                - asDouble: 2.5523819999999997
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: postgres
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "5786644919209241149"
+                    - key: user
+                      value:
+                        stringValue: test_user
+                  timeUnixNano: "1000000"
+                - asDouble: 7.523580999999999
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "-1835336386255491388"
+                    - key: user
+                      value:
+                        stringValue: test_user
+                  timeUnixNano: "1000000"
+                - asDouble: 19.435742000000015
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "-2173320115070859064"
+                    - key: user
+                      value:
+                        stringValue: test_user
+                  timeUnixNano: "1000000"
+                - asDouble: 238.39874599999996
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "-8481679481755520965"
+                    - key: user
+                      value:
+                        stringValue: test_user
+                  timeUnixNano: "1000000"
+                - asDouble: 16.612499999999997
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "148364365147898495"
+                    - key: user
+                      value:
+                        stringValue: test_user
+                  timeUnixNano: "1000000"
+                - asDouble: 6.956744000000003
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "29524803581287079"
+                    - key: user
+                      value:
+                        stringValue: test_user
+                  timeUnixNano: "1000000"
+                - asDouble: 86.901872
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "3156542953170012973"
+                    - key: user
+                      value:
+                        stringValue: test_user
+                  timeUnixNano: "1000000"
+                - asDouble: 16.746295
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "3420625230997753783"
+                    - key: user
+                      value:
+                        stringValue: test_user
+                  timeUnixNano: "1000000"
+                - asDouble: 11.221622
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "5125225121297442602"
+                    - key: user
+                      value:
+                        stringValue: test_user
+                  timeUnixNano: "1000000"
+                - asDouble: 6.904042000000001
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "5786644919209241149"
+                    - key: user
+                      value:
+                        stringValue: test_user
+                  timeUnixNano: "1000000"
+                - asDouble: 29.776664999999987
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "8845914956666099107"
+                    - key: user
+                      value:
+                        stringValue: test_user
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - name: postgres_queries_average_time
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 0.09095258620689654
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: postgres
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "-1835336386255491388"
+                    - key: user
+                      value:
+                        stringValue: test_user
+                  timeUnixNano: "1000000"
+                - asDouble: 45.227791
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: postgres
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "-4873033068685434152"
+                    - key: user
+                      value:
+                        stringValue: postgres
+                  timeUnixNano: "1000000"
+                - asDouble: 0.13147844827586208
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: postgres
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "2280167568486286490"
+                    - key: user
+                      value:
+                        stringValue: test_user
+                  timeUnixNano: "1000000"
+                - asDouble: 0.010834
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: postgres
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "3112524757682871277"
+                    - key: user
+                      value:
+                        stringValue: postgres
+                  timeUnixNano: "1000000"
+                - asDouble: 0.36797713793103454
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: postgres
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "5125225121297442602"
+                    - key: user
+                      value:
+                        stringValue: test_user
+                  timeUnixNano: "1000000"
+                - asDouble: 0.0880131724137931
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: postgres
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "5786644919209241149"
+                    - key: user
+                      value:
+                        stringValue: test_user
+                  timeUnixNano: "1000000"
+                - asDouble: 0.25943382758620687
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "-1835336386255491388"
+                    - key: user
+                      value:
+                        stringValue: test_user
+                  timeUnixNano: "1000000"
+                - asDouble: 2.321375
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "-2904232255919550590"
+                    - key: user
+                      value:
+                        stringValue: postgres
+                  timeUnixNano: "1000000"
+                - asDouble: 5.153541
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "-8063160503150200351"
+                    - key: user
+                      value:
+                        stringValue: postgres
+                  timeUnixNano: "1000000"
+                - asDouble: 8.220646413793101
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "-8481679481755520965"
+                    - key: user
+                      value:
+                        stringValue: test_user
+                  timeUnixNano: "1000000"
+                - asDouble: 5.254083
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "131593192185426039"
+                    - key: user
+                      value:
+                        stringValue: test_user
+                  timeUnixNano: "1000000"
+                - asDouble: 16.612499999999997
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "148364365147898495"
+                    - key: user
+                      value:
+                        stringValue: test_user
+                  timeUnixNano: "1000000"
+                - asDouble: 2.9966162758620687
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "3156542953170012973"
+                    - key: user
+                      value:
+                        stringValue: test_user
+                  timeUnixNano: "1000000"
+                - asDouble: 0.577458448275862
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "3420625230997753783"
+                    - key: user
+                      value:
+                        stringValue: test_user
+                  timeUnixNano: "1000000"
+                - asDouble: 0.3869524827586207
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "5125225121297442602"
+                    - key: user
+                      value:
+                        stringValue: test_user
+                  timeUnixNano: "1000000"
+                - asDouble: 1.3005
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "6746391706688578149"
+                    - key: user
+                      value:
+                        stringValue: postgres
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: replication_role
+                      value:
+                        stringValue: master
+                  timeUnixNano: "1000000"
+            name: postgres_replication_lag
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: ""
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: slot_name
+                      value:
+                        stringValue: some_physical_replication_slot
+                    - key: slot_type
+                      value:
+                        stringValue: physical
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: slot_name
+                      value:
+                        stringValue: some_logical_replication_slot
+                    - key: slot_type
+                      value:
+                        stringValue: logical
+                  timeUnixNano: "1000000"
+            name: postgres_replication_state
+          - gauge:
+              dataPoints:
+                - asDouble: 2
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: postgres
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: state
+                      value:
+                        stringValue: idle
+                  timeUnixNano: "1000000"
+                - asDouble: 5
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: state
+                      value:
+                        stringValue: active
+                  timeUnixNano: "1000000"
+                - asDouble: 9
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: state
+                      value:
+                        stringValue: idle
+                  timeUnixNano: "1000000"
+            name: postgres_sessions
+          - name: postgres_query_count
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 2
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: postgres
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: user
+                      value:
+                        stringValue: postgres
+                  timeUnixNano: "1000000"
+                - asDouble: 116
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: postgres
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: user
+                      value:
+                        stringValue: test_user
+                  timeUnixNano: "1000000"
+                - asDouble: 12
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: user
+                      value:
+                        stringValue: postgres
+                  timeUnixNano: "1000000"
+                - asDouble: 2631
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: user
+                      value:
+                        stringValue: test_user
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - name: postgres_query_time
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 45.238625000000006
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: postgres
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: user
+                      value:
+                        stringValue: postgres
+                  timeUnixNano: "1000000"
+                - asDouble: 19.674219
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: postgres
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: user
+                      value:
+                        stringValue: test_user
+                  timeUnixNano: "1000000"
+                - asDouble: 9.453457
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: user
+                      value:
+                        stringValue: postgres
+                  timeUnixNano: "1000000"
+                - asDouble: 512.1903609999999
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: user
+                      value:
+                        stringValue: test_user
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - gauge:
+              dataPoints:
+                - asDouble: 0.9992185132613515
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: ""
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                  timeUnixNano: "1000000"
+                - asDouble: 0.9940937995184491
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: postgres
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                  timeUnixNano: "1000000"
+                - asDouble: 0.9988936222614746
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                  timeUnixNano: "1000000"
+                - asDouble: 0.9960278053624627
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: schemaname
+                      value:
+                        stringValue: test_schema
+                    - key: table
+                      value:
+                        stringValue: table_one
+                    - key: type
+                      value:
+                        stringValue: user
+                  timeUnixNano: "1000000"
+                - asDouble: 0.9962606837606838
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: schemaname
+                      value:
+                        stringValue: test_schema
+                    - key: table
+                      value:
+                        stringValue: table_two
+                    - key: type
+                      value:
+                        stringValue: user
+                  timeUnixNano: "1000000"
+                - asDouble: 0.9975256274301874
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: index
+                      value:
+                        stringValue: table_one_pkey
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: schemaname
+                      value:
+                        stringValue: test_schema
+                    - key: table
+                      value:
+                        stringValue: table_one
+                    - key: type
+                      value:
+                        stringValue: user
+                  timeUnixNano: "1000000"
+                - asDouble: 0.9980023971234518
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: index
+                      value:
+                        stringValue: table_two_pkey
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: schemaname
+                      value:
+                        stringValue: test_schema
+                    - key: table
+                      value:
+                        stringValue: table_two
+                    - key: type
+                      value:
+                        stringValue: user
+                  timeUnixNano: "1000000"
+            name: postgres_block_hit_ratio
+          - name: postgres_deadlocks
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: ""
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: postgres
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - name: postgres_queries_calls
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 29
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: postgres
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "-1835336386255491388"
+                    - key: user
+                      value:
+                        stringValue: test_user
+                  timeUnixNano: "1000000"
+                - asDouble: 1
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: postgres
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "-4873033068685434152"
+                    - key: user
+                      value:
+                        stringValue: postgres
+                  timeUnixNano: "1000000"
+                - asDouble: 29
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: postgres
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "2280167568486286490"
+                    - key: user
+                      value:
+                        stringValue: test_user
+                  timeUnixNano: "1000000"
+                - asDouble: 1
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: postgres
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "3112524757682871277"
+                    - key: user
+                      value:
+                        stringValue: postgres
+                  timeUnixNano: "1000000"
+                - asDouble: 29
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: postgres
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "5125225121297442602"
+                    - key: user
+                      value:
+                        stringValue: test_user
+                  timeUnixNano: "1000000"
+                - asDouble: 29
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: postgres
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "5786644919209241149"
+                    - key: user
+                      value:
+                        stringValue: test_user
+                  timeUnixNano: "1000000"
+                - asDouble: 462
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "-2173320115070859064"
+                    - key: user
+                      value:
+                        stringValue: test_user
+                  timeUnixNano: "1000000"
+                - asDouble: 154
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "-6500927084116897445"
+                    - key: user
+                      value:
+                        stringValue: test_user
+                  timeUnixNano: "1000000"
+                - asDouble: 154
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "-9093055349044404687"
+                    - key: user
+                      value:
+                        stringValue: test_user
+                  timeUnixNano: "1000000"
+                - asDouble: 154
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "1997843168253226603"
+                    - key: user
+                      value:
+                        stringValue: test_user
+                  timeUnixNano: "1000000"
+                - asDouble: 154
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "29524803581287079"
+                    - key: user
+                      value:
+                        stringValue: test_user
+                  timeUnixNano: "1000000"
+                - asDouble: 154
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "3405893651097417556"
+                    - key: user
+                      value:
+                        stringValue: test_user
+                  timeUnixNano: "1000000"
+                - asDouble: 154
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "4720356266164042331"
+                    - key: user
+                      value:
+                        stringValue: test_user
+                  timeUnixNano: "1000000"
+                - asDouble: 154
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "5107048758123715841"
+                    - key: user
+                      value:
+                        stringValue: test_user
+                  timeUnixNano: "1000000"
+                - asDouble: 154
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "7639686465644938808"
+                    - key: user
+                      value:
+                        stringValue: test_user
+                  timeUnixNano: "1000000"
+                - asDouble: 462
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: queryid
+                      value:
+                        stringValue: "8845914956666099107"
+                    - key: user
+                      value:
+                        stringValue: test_user
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - gauge:
+              dataPoints:
+                - asDouble: 8.122927e+06
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: postgres
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                  timeUnixNano: "1000000"
+                - asDouble: 8.409647e+06
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                  timeUnixNano: "1000000"
+            name: postgres_database_size
+          - name: postgres_conflicts
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: ""
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: postgres
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: template0
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: template1
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - name: postgres_xact_commits
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: ""
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                  timeUnixNano: "1000000"
+                - asDouble: 208
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: postgres
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: template0
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: template1
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                  timeUnixNano: "1000000"
+                - asDouble: 5141
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - name: postgres_xact_rollbacks
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: ""
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: postgres
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: template0
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                  timeUnixNano: "1000000"
+                - asDouble: 0
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: template1
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                  timeUnixNano: "1000000"
+                - asDouble: 1
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - name: postgres_rows_inserted
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 462
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: schemaname
+                      value:
+                        stringValue: test_schema
+                    - key: table
+                      value:
+                        stringValue: table_one
+                    - key: tablespace
+                      value:
+                        stringValue: ""
+                    - key: type
+                      value:
+                        stringValue: user
+                  timeUnixNano: "1000000"
+                - asDouble: 462
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: schemaname
+                      value:
+                        stringValue: test_schema
+                    - key: table
+                      value:
+                        stringValue: table_two
+                    - key: tablespace
+                      value:
+                        stringValue: ""
+                    - key: type
+                      value:
+                        stringValue: user
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - name: postgres_rows_updated
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 154
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: schemaname
+                      value:
+                        stringValue: test_schema
+                    - key: table
+                      value:
+                        stringValue: table_one
+                    - key: tablespace
+                      value:
+                        stringValue: ""
+                    - key: type
+                      value:
+                        stringValue: user
+                  timeUnixNano: "1000000"
+                - asDouble: 154
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: schemaname
+                      value:
+                        stringValue: test_schema
+                    - key: table
+                      value:
+                        stringValue: table_two
+                    - key: tablespace
+                      value:
+                        stringValue: ""
+                    - key: type
+                      value:
+                        stringValue: user
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - name: postgres_rows_deleted
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 154
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: schemaname
+                      value:
+                        stringValue: test_schema
+                    - key: table
+                      value:
+                        stringValue: table_one
+                    - key: tablespace
+                      value:
+                        stringValue: ""
+                    - key: type
+                      value:
+                        stringValue: user
+                  timeUnixNano: "1000000"
+                - asDouble: 154
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: schemaname
+                      value:
+                        stringValue: test_schema
+                    - key: table
+                      value:
+                        stringValue: table_two
+                    - key: tablespace
+                      value:
+                        stringValue: ""
+                    - key: type
+                      value:
+                        stringValue: user
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - name: postgres_sequential_scans
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 170
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: schemaname
+                      value:
+                        stringValue: test_schema
+                    - key: table
+                      value:
+                        stringValue: table_one
+                    - key: tablespace
+                      value:
+                        stringValue: ""
+                    - key: type
+                      value:
+                        stringValue: user
+                  timeUnixNano: "1000000"
+                - asDouble: 170
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: schemaname
+                      value:
+                        stringValue: test_schema
+                    - key: table
+                      value:
+                        stringValue: table_two
+                    - key: tablespace
+                      value:
+                        stringValue: ""
+                    - key: type
+                      value:
+                        stringValue: user
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - name: postgres_index_scans
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 447
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: schemaname
+                      value:
+                        stringValue: test_schema
+                    - key: table
+                      value:
+                        stringValue: table_one
+                    - key: tablespace
+                      value:
+                        stringValue: ""
+                    - key: type
+                      value:
+                        stringValue: user
+                  timeUnixNano: "1000000"
+                - asDouble: 447
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: schemaname
+                      value:
+                        stringValue: test_schema
+                    - key: table
+                      value:
+                        stringValue: table_two
+                    - key: tablespace
+                      value:
+                        stringValue: ""
+                    - key: type
+                      value:
+                        stringValue: user
+                  timeUnixNano: "1000000"
+              isMonotonic: true
+          - gauge:
+              dataPoints:
+                - asDouble: 32768
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: schemaname
+                      value:
+                        stringValue: test_schema
+                    - key: table
+                      value:
+                        stringValue: table_one
+                    - key: tablespace
+                      value:
+                        stringValue: ""
+                    - key: type
+                      value:
+                        stringValue: user
+                  timeUnixNano: "1000000"
+                - asDouble: 24576
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: schemaname
+                      value:
+                        stringValue: test_schema
+                    - key: table
+                      value:
+                        stringValue: table_two
+                    - key: tablespace
+                      value:
+                        stringValue: ""
+                    - key: type
+                      value:
+                        stringValue: user
+                  timeUnixNano: "1000000"
+            name: postgres_table_size
+          - gauge:
+              dataPoints:
+                - asDouble: 308
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: schemaname
+                      value:
+                        stringValue: test_schema
+                    - key: table
+                      value:
+                        stringValue: table_one
+                    - key: tablespace
+                      value:
+                        stringValue: ""
+                    - key: type
+                      value:
+                        stringValue: user
+                  timeUnixNano: "1000000"
+                - asDouble: 308
+                  attributes:
+                    - key: database
+                      value:
+                        stringValue: test_db
+                    - key: postgres_port
+                      value:
+                        stringValue: "5432"
+                    - key: schemaname
+                      value:
+                        stringValue: test_schema
+                    - key: table
+                      value:
+                        stringValue: table_two
+                    - key: tablespace
+                      value:
+                        stringValue: ""
+                    - key: type
+                      value:
+                        stringValue: user
+                  timeUnixNano: "1000000"
+            name: postgres_live_rows
+        scope: {}

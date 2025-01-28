@@ -1,5 +1,0 @@
-resource_metrics:
-  - scope_metrics:
-      - metrics:
-          - name: of_an_unsupported_type
-            type: NotASupportedType

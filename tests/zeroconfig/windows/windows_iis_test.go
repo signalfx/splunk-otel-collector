@@ -120,7 +120,6 @@ func testExpectedTracesForHTTPGetRequest(t *testing.T, otlp *testutils.OTLPRecei
 			return false
 		}
 		receivedOTLPTraces := otlp.AllTraces()
-		otlp.Reset()
 		for _, trace := range receivedOTLPTraces {
 			err := ptracetest.CompareTraces(expected, trace,
 				ptracetest.IgnoreResourceAttributeValue("host.id"),
@@ -133,6 +132,7 @@ func testExpectedTracesForHTTPGetRequest(t *testing.T, otlp *testutils.OTLPRecei
 				ptracetest.IgnoreResourceAttributeValue("telemetry.sdk.version"),
 				ptracetest.IgnoreResourceAttributeValue("splunk.distro.version"),
 				ptracetest.IgnoreResourceAttributeValue("telemetry.distro.version"),
+				ptracetest.IgnoreResourceAttributeValue("os.description"),
 				ptracetest.IgnoreScopeSpanInstrumentationScopeVersion(),
 				ptracetest.IgnoreStartTimestamp(),
 				ptracetest.IgnoreEndTimestamp(),

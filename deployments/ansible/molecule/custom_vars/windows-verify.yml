@@ -19,7 +19,7 @@
       COR_PROFILER: "{918728DD-259F-4A6A-AC2B-B85E1B658318}"
       CORECLR_ENABLE_PROFILING: "1"
       CORECLR_PROFILER: "{918728DD-259F-4A6A-AC2B-B85E1B658318}"
-      OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=test-environment,splunk.zc.method=splunk-otel-dotnet-1.0.0"
+      OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=test-environment,dotnet-tag=dotnet-tag-value,splunk.zc.method=splunk-otel-dotnet-1.8.0"
       OTEL_SERVICE_NAME: "test-service-name"
       SPLUNK_PROFILER_ENABLED: "true"
       SPLUNK_PROFILER_MEMORY_ENABLED: "true"

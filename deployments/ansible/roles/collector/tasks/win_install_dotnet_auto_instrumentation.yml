@@ -65,9 +65,8 @@
   ansible.windows.win_powershell:
     error_action: stop
     script: |
-      Import-Module "${Env:TEMP}\Splunk.OTel.DotNet.psm1"
-      $splunk_otel_dotnet_installed_version = Get-OpenTelemetryInstallVersion
-      echo $splunk_otel_dotnet_installed_version
+      Import-Module "${Env:TEMP}\Splunk.OTel.DotNet.psm1" | Out-Null
+      Get-OpenTelemetryInstallVersion
   register: splunk_otel_dotnet_installed_version
 
 - name: Create registry path

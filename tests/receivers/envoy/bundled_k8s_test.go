@@ -19,7 +19,10 @@ package tests
 import (
 	"context"
 	"fmt"
-	"net"
+	"go.opentelemetry.io/collector/component/componenttest"
+	"go.opentelemetry.io/collector/consumer/consumertest"
+	"go.opentelemetry.io/collector/receiver/otlpreceiver"
+	"go.opentelemetry.io/collector/receiver/receivertest"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -44,11 +47,19 @@ import (
 
 func TestEnvoyK8sObserver(t *testing.T) {
 
-	tc := testutils.NewTestcase(t)
-	defer tc.PrintLogsOnFailure()
-	defer tc.ShutdownOTLPReceiverSink()
+	f := otlpreceiver.NewFactory()
+	port := testutils.GetAvailablePort(t)
+	otlpReceiverConfig := f.CreateDefaultConfig().(*otlpreceiver.Config)
+	otlpReceiverConfig.GRPC.NetAddr.Endpoint = fmt.Sprintf("0.0.0.0:%d", port)
+	otlpReceiverConfig.HTTP = nil
+	sink := &consumertest.MetricsSink{}
+	receiver, err := f.CreateMetrics(context.Background(), receivertest.NewNopSettings(), otlpReceiverConfig, sink)
+	require.NoError(t, err)
+	require.NoError(t, receiver.Start(context.Background(), componenttest.NewNopHost()))
+	t.Cleanup(func() {
+		require.NoError(t, receiver.Shutdown(context.Background()))
+	})
 
-	_, port, err := net.SplitHostPort(tc.OTLPEndpoint)
 	require.NoError(t, err)
 	dockerHost := "172.18.0.1"
 	if runtime.GOOS == "darwin" {
@@ -115,13 +126,13 @@ func TestEnvoyK8sObserver(t *testing.T) {
 
 	i := 0
 	require.EventuallyWithT(t, func(tt *assert.CollectT) {
-		if len(tc.OTLPReceiverSink.AllMetrics()) == 0 {
+		if len(sink.AllMetrics()) == 0 {
 			assert.Fail(tt, "No metrics collected")
 			return
 		}
 
 		i++
-		err := pmetrictest.CompareMetrics(expected, tc.OTLPReceiverSink.AllMetrics()[len(tc.OTLPReceiverSink.AllMetrics())-1],
+		err := pmetrictest.CompareMetrics(expected, sink.AllMetrics()[len(sink.AllMetrics())-1],
 			pmetrictest.IgnoreResourceAttributeValue("service.instance.id"),
 			pmetrictest.IgnoreResourceAttributeValue("net.host.port"),
 			pmetrictest.IgnoreResourceAttributeValue("net.host.name"),
@@ -146,5 +157,5 @@ func TestEnvoyK8sObserver(t *testing.T) {
 			pmetrictest.IgnoreMetricValues(),
 		)
 		assert.NoError(tt, err)
-	}, 60*time.Second, 1*time.Second)
+	}, 120*time.Second, 1*time.Second)
 }

@@ -50,7 +50,7 @@ func TestEnvoyK8sObserver(t *testing.T) {
 
 	_, port, err := net.SplitHostPort(tc.OTLPEndpoint)
 	require.NoError(t, err)
-	dockerHost := "172.17.0.1"
+	dockerHost := "0.0.0.0"
 	if runtime.GOOS == "darwin" {
 		dockerHost = "host.docker.internal"
 	}

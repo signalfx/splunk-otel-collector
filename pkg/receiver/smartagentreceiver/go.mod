@@ -25,7 +25,7 @@ require (
 	go.opentelemetry.io/collector/exporter/exportertest v0.117.0
 	go.opentelemetry.io/collector/extension v0.117.0
 	go.opentelemetry.io/collector/extension/extensiontest v0.117.0
-	go.opentelemetry.io/collector/pdata v1.23.0
+	go.opentelemetry.io/collector/pdata v1.24.0
 	go.opentelemetry.io/collector/pipeline v0.117.0
 	go.opentelemetry.io/collector/receiver v0.117.0
 	go.opentelemetry.io/otel/metric v1.32.0
@@ -227,7 +227,7 @@ require (
 	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20241216192217-9240e9c98484 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20241209162323-e6fa225c2576 // indirect
-	google.golang.org/grpc v1.69.2 // indirect
+	google.golang.org/grpc v1.69.4 // indirect
 	google.golang.org/protobuf v1.36.2 // indirect
 	gopkg.in/fsnotify.v1 v1.4.7 // indirect
 	gopkg.in/go-playground/validator.v9 v9.31.0 // indirect

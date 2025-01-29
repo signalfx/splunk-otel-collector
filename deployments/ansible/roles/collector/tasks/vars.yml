@@ -61,14 +61,16 @@
     win_use_proxy: "no"
     dotnet_options:
       COR_ENABLE_PROFILING: "1"
-      COR_PROFILER: "{B4C89B0F-9908-4F73-9F59-0D77C5A06874}"
+      COR_PROFILER: "{918728DD-259F-4A6A-AC2B-B85E1B658318}"
       CORECLR_ENABLE_PROFILING: "1"
-      CORECLR_PROFILER: "{B4C89B0F-9908-4F73-9F59-0D77C5A06874}"
-      SIGNALFX_ENV: "{{ signalfx_dotnet_auto_instrumentation_environment }}"
-      SIGNALFX_SERVICE_NAME: "{{ signalfx_dotnet_auto_instrumentation_service_name }}"
-      SIGNALFX_GLOBAL_TAGS: "{{ signalfx_dotnet_auto_instrumentation_global_tags }}"
-      SIGNALFX_PROFILER_ENABLED: "{{ signalfx_dotnet_auto_instrumentation_enable_profiler }}"
-      SIGNALFX_PROFILER_MEMORY_ENABLED: "{{ signalfx_dotnet_auto_instrumentation_enable_profiler_memory }}"
+      CORECLR_PROFILER: "{918728DD-259F-4A6A-AC2B-B85E1B658318}"
+      OTEL_RESOURCE_ATTRIBUTES:
+        "deployment.environment={{ splunk_dotnet_auto_instrumentation_environment }}\
+        {{ ',' if splunk_otel_auto_instrumentation_resource_attributes else '' }}\
+        {{ splunk_otel_auto_instrumentation_resource_attributes }}"
+      OTEL_SERVICE_NAME: "{{ splunk_dotnet_auto_instrumentation_service_name }}"
+      SPLUNK_PROFILER_ENABLED: "{{ splunk_dotnet_auto_instrumentation_enable_profiler }}"
+      SPLUNK_PROFILER_MEMORY_ENABLED: "{{ splunk_dotnet_auto_instrumentation_enable_profiler_memory }}"
     iis_registry_key: HKLM:\SYSTEM\CurrentControlSet\Services\W3SVC
     splunk_otel_collector_options:
       SPLUNK_ACCESS_TOKEN: "{{ splunk_access_token }}"

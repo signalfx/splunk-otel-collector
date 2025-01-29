@@ -61,7 +61,7 @@ require (
 	golang.org/x/sync v0.10.0
 	golang.org/x/sys v0.29.0
 	golang.org/x/tools v0.24.0 // indirect
-	google.golang.org/grpc v1.69.2
+	google.golang.org/grpc v1.69.4
 	gopkg.in/go-playground/validator.v9 v9.31.0
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/api v0.29.3
@@ -88,7 +88,7 @@ require (
 	github.com/influxdata/telegraf v1.30.1
 	github.com/microsoft/go-mssqldb v1.8.0
 	github.com/smartystreets/goconvey v1.8.1
-	go.opentelemetry.io/collector/pdata v1.23.0
+	go.opentelemetry.io/collector/pdata v1.24.0
 )
 
 require (

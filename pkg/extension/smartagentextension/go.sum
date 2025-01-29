@@ -301,8 +301,8 @@ go.opentelemetry.io/collector/confmap v1.23.0 h1:EY+auc0kbyZ4HIfkLYeJyLDCZIFzMA1
 go.opentelemetry.io/collector/confmap v1.23.0/go.mod h1:Rrhs+MWoaP6AswZp+ReQ2VO9dfOfcUjdjiSHBsG+nec=
 go.opentelemetry.io/collector/extension v0.117.0 h1:B3cG7g+wbhmpMFugaDxOcyiPKeulaW8+EQdJbZxDfho=
 go.opentelemetry.io/collector/extension v0.117.0/go.mod h1:WjyD5h9N5Y0SF8azB2rulvHJieJoWqroGO5hi3ax5+8=
-go.opentelemetry.io/collector/pdata v1.23.0 h1:tEk0dkfB8RdSukoOMfEa8duB938gfZowdfRkrJxGDrw=
-go.opentelemetry.io/collector/pdata v1.23.0/go.mod h1:I2jggpBMiO8A+7TXhzNpcJZkJtvi1cU0iVNIi+6bc+o=
+go.opentelemetry.io/collector/pdata v1.24.0 h1:D6j92eAzmAbQgivNBUnt8r9juOl8ugb+ihYynoFZIEg=
+go.opentelemetry.io/collector/pdata v1.24.0/go.mod h1:cf3/W9E/uIvPS4MR26SnMFJhraUCattzzM6qusuONuc=
 go.opentelemetry.io/otel v1.32.0 h1:WnBN+Xjcteh0zdk01SVqV55d/m62NJLJdIyb4y/WO5U=
 go.opentelemetry.io/otel v1.32.0/go.mod h1:00DCVSB0RQcnzlwyTfqtxSm+DRr9hpYrHjNGiBHVQIg=
 go.opentelemetry.io/otel/metric v1.32.0 h1:xV2umtmNcThh2/a/aCP+h64Xx5wsj8qqnkYZktzNa0M=
@@ -443,8 +443,8 @@ google.golang.org/grpc v1.25.1/go.mod h1:c3i+UQWmh7LiEpx4sFZnkU36qjEYZ0imhYfXVyQ
 google.golang.org/grpc v1.27.0/go.mod h1:qbnxyOmOxrQa7FizSgH+ReBfzJrCY1pSN7KXBS8abTk=
 google.golang.org/grpc v1.33.1/go.mod h1:fr5YgcSWrqhRRxogOsw7RzIpsmvOZ6IcH4kBYTpR3n0=
 google.golang.org/grpc v1.38.0/go.mod h1:NREThFqKR1f3iQ6oBuvc5LadQuXVGo9rkm5ZGrQdJfM=
-google.golang.org/grpc v1.69.2 h1:U3S9QEtbXC0bYNvRtcoklF3xGtLViumSYxWykJS+7AU=
-google.golang.org/grpc v1.69.2/go.mod h1:vyjdE6jLBI76dgpDojsFGNaHlxdjXN9ghpnd2o7JGZ4=
+google.golang.org/grpc v1.69.4 h1:MF5TftSMkd8GLw/m0KM6V8CMOCY6NZ1NQDPGFgbTt4A=
+google.golang.org/grpc v1.69.4/go.mod h1:vyjdE6jLBI76dgpDojsFGNaHlxdjXN9ghpnd2o7JGZ4=
 google.golang.org/protobuf v0.0.0-20200109180630-ec00e32a8dfd/go.mod h1:DFci5gLYBciE7Vtevhsrf46CRTquxDuWsQurQQe4oz8=
 google.golang.org/protobuf v0.0.0-20200221191635-4d8936d0db64/go.mod h1:kwYJMbMJ01Woi6D6+Kah6886xMZcty6N08ah7+eCXa0=
 google.golang.org/protobuf v0.0.0-20200228230310-ab0ca4ff8a60/go.mod h1:cfTl7dwQJ+fmap5saPgwCLgHXTUD7jkjRqWcaiX5VyM=

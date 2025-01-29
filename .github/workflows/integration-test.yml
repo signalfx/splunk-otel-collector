@@ -448,4 +448,5 @@ jobs:
       - name: Print logs
         if: failure()
         run: |
+          kubectl get pods
           kubectl logs $(kubectl get pod -l app=otelcol -o jsonpath="{.items[0].metadata.name}")

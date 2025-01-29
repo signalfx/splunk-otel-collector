@@ -15,7 +15,7 @@ spec:
     spec:
       automountServiceAccountToken: false
       containers:
-        - image: quay.io/splunko11ytest/envoy:latest
+        - image: envoyproxy/envoy:v1.32-latest
           name: envoy-test
           imagePullPolicy: IfNotPresent
           ports:

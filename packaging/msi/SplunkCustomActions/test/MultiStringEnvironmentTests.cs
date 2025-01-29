@@ -35,7 +35,7 @@ public class MultiStringEnvironmentTests
             using (var multiStringEnvironment = new MultiStringEnvironment(RegistryHive.CurrentUser, TestSubKey, TestValueName))
             {
                 var actualEnvironment = multiStringEnvironment.GetEnvironmentValue();
-                actualEnvironment.Should().BeEquivalentTo(initialEnvironment);
+                Assert.Equal(initialEnvironment, actualEnvironment);
             }
         }
         finally
@@ -73,7 +73,8 @@ public class MultiStringEnvironmentTests
                 "key3=value3"
             };
 
-            Registry.GetValue(TestKey, TestValueName, Array.Empty<string>()).Should().BeEquivalentTo(expectedEnvironment);
+            var actualEnvironment = Registry.GetValue(TestKey, TestValueName, Array.Empty<string>());
+            Assert.Equal(expectedEnvironment, actualEnvironment);
         }
         finally
         {
@@ -84,11 +85,10 @@ public class MultiStringEnvironmentTests
     [Fact]
     public void DefaultConstructorShouldFail()
     {
-        Action action = () => new MultiStringEnvironment();
-        action
-            .Should()
-            .Throw<InvalidOperationException>()
-            .WithMessage("Failed to open the registry sub key: SYSTEM\\CurrentControlSet\\Services\\splunk-otel-collector");
+        var invalidOperationException = Assert.Throws<InvalidOperationException>(() => new MultiStringEnvironment());
+        Assert.Equal(
+            @"Failed to open the registry sub key: SYSTEM\CurrentControlSet\Services\splunk-otel-collector",
+            invalidOperationException.Message);
     }
 
     private void DeleteTestSubKey()

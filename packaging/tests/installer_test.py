@@ -202,8 +202,6 @@ def fluentd_supported(distro, arch):
         return False
     elif distro == "amazonlinux-2023":
         return False
-    elif distro == "ubuntu-xenial" and arch == "arm64":
-        return False
     elif distro == "debian-bookworm":
         return False
     elif distro == "ubuntu-noble":
@@ -398,11 +396,6 @@ def test_installer_with_instrumentation_default(distro, arch, method):
         if LOCAL_INSTRUMENTATION_PACKAGE:
             copy_file_into_container(container, LOCAL_INSTRUMENTATION_PACKAGE, f"/test/instrumentation.pkg")
 
-        if arch == "arm64" and distro == "ubuntu-xenial":
-            # npm installed with node v16 only supports python 3.6+, but these distros only provide python 3.5
-            # downgrade npm to support python 3.5 in order to build/compile splunk-otel-js
-            run_container_cmd(container, "bash -l -c 'npm install --global npm@^6'")
-
         # set global=true for npm to test that splunk-otel-js is still installed locally
         run_container_cmd(container, "sh -l -c 'npm config set global true'")
 
@@ -521,11 +514,6 @@ def test_installer_with_instrumentation_custom(distro, arch, method, sdk):
         run_container_cmd(container, f"sh -c 'echo \"# This line should be preserved\" >> {PRELOAD_PATH}'")
         if LOCAL_INSTRUMENTATION_PACKAGE:
             copy_file_into_container(container, LOCAL_INSTRUMENTATION_PACKAGE, f"/test/instrumentation.pkg")
-
-        if arch == "arm64" and distro == "ubuntu-xenial":
-            # npm installed with node v16 only supports python 3.6+, but these distros only provide python 3.5
-            # downgrade npm to support python 3.5 in order to build/compile splunk-otel-js
-            run_container_cmd(container, "bash -l -c 'npm install --global npm@^6'")
 
         # set global=true for npm to test that splunk-otel-js is still installed locally
         run_container_cmd(container, "sh -l -c 'npm config set global true'")

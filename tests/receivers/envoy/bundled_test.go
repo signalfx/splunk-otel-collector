@@ -44,7 +44,6 @@ func TestEnvoyDockerObserver(t *testing.T) {
 	_, shutdown := tc.SplunkOtelCollectorContainer("otlp_exporter.yaml", func(collector testutils.Collector) testutils.Collector {
 		cc := collector.(*testutils.CollectorContainer)
 		return cc.WithEnv(map[string]string{
-			"SPLUNK_DISCOVERY_DURATION":  "20s",
 			"SPLUNK_DISCOVERY_LOG_LEVEL": "debug",
 		}).WithArgs(
 			"--discovery",
@@ -72,6 +71,7 @@ func TestEnvoyDockerObserver(t *testing.T) {
 			pmetrictest.IgnoreResourceAttributeValue("service.name"),
 			pmetrictest.IgnoreResourceAttributeValue("service_instance_id"),
 			pmetrictest.IgnoreResourceAttributeValue("service_version"),
+			pmetrictest.IgnoreResourceAttributeValue("discovery.endpoint.id"),
 			pmetrictest.IgnoreMetricAttributeValue("service_version"),
 			pmetrictest.IgnoreMetricAttributeValue("service_instance_id"),
 			pmetrictest.IgnoreResourceAttributeValue("server.address"),

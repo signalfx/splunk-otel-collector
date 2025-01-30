@@ -44,12 +44,11 @@ func TestMysqlDockerObserver(t *testing.T) {
 
 	_, shutdown := tc.SplunkOtelCollectorContainer("otlp_exporter.yaml", func(c testutils.Collector) testutils.Collector {
 		cc := c.(*testutils.CollectorContainer)
-		cc.Container = cc.Container.WillWaitForLogs("Discovering for next")
+		cc.Container = cc.Container.WillWaitForLogs("Everything is ready")
 		return cc
 	},
 		func(collector testutils.Collector) testutils.Collector {
 			return collector.WithEnv(map[string]string{
-				"SPLUNK_DISCOVERY_DURATION":  "60s",
 				"SPLUNK_DISCOVERY_LOG_LEVEL": "debug",
 			}).WithArgs(
 				"--discovery",
@@ -79,6 +78,7 @@ func TestMysqlDockerObserver(t *testing.T) {
 			pmetrictest.IgnoreResourceAttributeValue("service.name"),
 			pmetrictest.IgnoreResourceAttributeValue("service_instance_id"),
 			pmetrictest.IgnoreResourceAttributeValue("service_version"),
+			pmetrictest.IgnoreResourceAttributeValue("discovery.endpoint.id"),
 			pmetrictest.IgnoreMetricAttributeValue("service_version"),
 			pmetrictest.IgnoreMetricAttributeValue("service_instance_id"),
 			pmetrictest.IgnoreResourceAttributeValue("mysql.instance.endpoint"),

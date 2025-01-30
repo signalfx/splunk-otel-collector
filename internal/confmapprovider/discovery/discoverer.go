@@ -62,7 +62,7 @@ const continuousDiscoveryFGKey = "splunk.continuousDiscovery"
 
 var continuousDiscoveryFG = featuregate.GlobalRegistry().MustRegister(
 	continuousDiscoveryFGKey,
-	featuregate.StageAlpha,
+	featuregate.StageBeta,
 	featuregate.WithRegisterDescription("When enabled, service discovery will continuously run and collect metrics from discovered services."),
 	featuregate.WithRegisterFromVersion("v0.109.0"),
 )

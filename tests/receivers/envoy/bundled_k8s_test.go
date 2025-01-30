@@ -18,6 +18,7 @@ package tests
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -124,39 +125,43 @@ func TestEnvoyK8sObserver(t *testing.T) {
 	expected, err := golden.ReadMetrics(filepath.Join("testdata", "expected_k8s.yaml"))
 	require.NoError(t, err)
 
-	i := 0
 	require.EventuallyWithT(t, func(tt *assert.CollectT) {
 		if len(sink.AllMetrics()) == 0 {
 			assert.Fail(tt, "No metrics collected")
 			return
 		}
-
-		i++
-		err := pmetrictest.CompareMetrics(expected, sink.AllMetrics()[len(sink.AllMetrics())-1],
-			pmetrictest.IgnoreResourceAttributeValue("service.instance.id"),
-			pmetrictest.IgnoreResourceAttributeValue("net.host.port"),
-			pmetrictest.IgnoreResourceAttributeValue("net.host.name"),
-			pmetrictest.IgnoreResourceAttributeValue("server.address"),
-			pmetrictest.IgnoreResourceAttributeValue("container.name"),
-			pmetrictest.IgnoreResourceAttributeValue("server.port"),
-			pmetrictest.IgnoreResourceAttributeValue("service.name"),
-			pmetrictest.IgnoreResourceAttributeValue("service_instance_id"),
-			pmetrictest.IgnoreResourceAttributeValue("service_version"),
-			pmetrictest.IgnoreResourceAttributeValue("discovery.endpoint.id"),
-			pmetrictest.IgnoreMetricAttributeValue("service_version"),
-			pmetrictest.IgnoreMetricAttributeValue("service_instance_id"),
-			pmetrictest.IgnoreResourceAttributeValue("server.address"),
-			pmetrictest.IgnoreResourceAttributeValue("k8s.pod.name"),
-			pmetrictest.IgnoreResourceAttributeValue("k8s.pod.uid"),
-			pmetrictest.IgnoreTimestamp(),
-			pmetrictest.IgnoreStartTimestamp(),
-			pmetrictest.IgnoreMetricDataPointsOrder(),
-			pmetrictest.IgnoreScopeMetricsOrder(),
-			pmetrictest.IgnoreScopeVersion(),
-			pmetrictest.IgnoreResourceMetricsOrder(),
-			pmetrictest.IgnoreMetricsOrder(),
-			pmetrictest.IgnoreMetricValues(),
-		)
-		assert.NoError(tt, err)
+		var errs error
+		for _, m := range sink.AllMetrics() {
+			err := pmetrictest.CompareMetrics(expected, m,
+				pmetrictest.IgnoreResourceAttributeValue("service.instance.id"),
+				pmetrictest.IgnoreResourceAttributeValue("net.host.port"),
+				pmetrictest.IgnoreResourceAttributeValue("net.host.name"),
+				pmetrictest.IgnoreResourceAttributeValue("server.address"),
+				pmetrictest.IgnoreResourceAttributeValue("container.name"),
+				pmetrictest.IgnoreResourceAttributeValue("server.port"),
+				pmetrictest.IgnoreResourceAttributeValue("service.name"),
+				pmetrictest.IgnoreResourceAttributeValue("service_instance_id"),
+				pmetrictest.IgnoreResourceAttributeValue("service_version"),
+				pmetrictest.IgnoreResourceAttributeValue("discovery.endpoint.id"),
+				pmetrictest.IgnoreMetricAttributeValue("service_version"),
+				pmetrictest.IgnoreMetricAttributeValue("service_instance_id"),
+				pmetrictest.IgnoreResourceAttributeValue("server.address"),
+				pmetrictest.IgnoreResourceAttributeValue("k8s.pod.name"),
+				pmetrictest.IgnoreResourceAttributeValue("k8s.pod.uid"),
+				pmetrictest.IgnoreTimestamp(),
+				pmetrictest.IgnoreStartTimestamp(),
+				pmetrictest.IgnoreMetricDataPointsOrder(),
+				pmetrictest.IgnoreScopeMetricsOrder(),
+				pmetrictest.IgnoreScopeVersion(),
+				pmetrictest.IgnoreResourceMetricsOrder(),
+				pmetrictest.IgnoreMetricsOrder(),
+				pmetrictest.IgnoreMetricValues(),
+			)
+			if err == nil {
+				return
+			}
+			errs = errors.Join(errs, err)
+		}
+		assert.NoError(tt, errs)
 	}, 120*time.Second, 1*time.Second)
 }

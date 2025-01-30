@@ -17,6 +17,7 @@
 package tests
 
 import (
+	"errors"
 	"path"
 	"path/filepath"
 	"testing"
@@ -26,7 +27,6 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/pdata/pmetric"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
@@ -60,38 +60,37 @@ func TestPostgresReceiverProvidesAllMetrics(t *testing.T) {
 			assert.Fail(tt, "No metrics collected")
 			return
 		}
-		var selected *pmetric.Metrics
+		var errs error
 		for i := len(tc.OTLPReceiverSink.AllMetrics()) - 1; i >= 0; i-- {
 			m := tc.OTLPReceiverSink.AllMetrics()[i]
 			if m.MetricCount() == expected.MetricCount() {
-				selected = &m
-				break
+				err := pmetrictest.CompareMetrics(expected, m,
+					pmetrictest.IgnoreResourceAttributeValue("service.instance.id"),
+					pmetrictest.IgnoreResourceAttributeValue("net.host.port"),
+					pmetrictest.IgnoreResourceAttributeValue("server.port"),
+					pmetrictest.IgnoreResourceAttributeValue("service.name"),
+					pmetrictest.IgnoreResourceAttributeValue("service_instance_id"),
+					pmetrictest.IgnoreResourceAttributeValue("service_version"),
+					pmetrictest.IgnoreMetricAttributeValue("service_version"),
+					pmetrictest.IgnoreMetricAttributeValue("service_instance_id"),
+					pmetrictest.IgnoreMetricAttributeValue("queryid"),
+					pmetrictest.IgnoreMetricAttributeValue("table"),
+					pmetrictest.IgnoreSubsequentDataPoints(),
+					pmetrictest.IgnoreTimestamp(),
+					pmetrictest.IgnoreStartTimestamp(),
+					pmetrictest.IgnoreMetricDataPointsOrder(),
+					pmetrictest.IgnoreScopeMetricsOrder(),
+					pmetrictest.IgnoreMetricsOrder(),
+					pmetrictest.IgnoreScopeVersion(),
+					pmetrictest.IgnoreResourceMetricsOrder(),
+					pmetrictest.IgnoreMetricValues(),
+				)
+				if err == nil {
+					return
+				}
+				errs = errors.Join(errs, err)
 			}
 		}
-
-		require.NotNil(tt, selected)
-
-		err := pmetrictest.CompareMetrics(expected, *selected,
-			pmetrictest.IgnoreResourceAttributeValue("service.instance.id"),
-			pmetrictest.IgnoreResourceAttributeValue("net.host.port"),
-			pmetrictest.IgnoreResourceAttributeValue("server.port"),
-			pmetrictest.IgnoreResourceAttributeValue("service.name"),
-			pmetrictest.IgnoreResourceAttributeValue("service_instance_id"),
-			pmetrictest.IgnoreResourceAttributeValue("service_version"),
-			pmetrictest.IgnoreMetricAttributeValue("service_version"),
-			pmetrictest.IgnoreMetricAttributeValue("service_instance_id"),
-			pmetrictest.IgnoreMetricAttributeValue("queryid"),
-			pmetrictest.IgnoreMetricAttributeValue("table"),
-			pmetrictest.IgnoreSubsequentDataPoints(),
-			pmetrictest.IgnoreTimestamp(),
-			pmetrictest.IgnoreStartTimestamp(),
-			pmetrictest.IgnoreMetricDataPointsOrder(),
-			pmetrictest.IgnoreScopeMetricsOrder(),
-			pmetrictest.IgnoreMetricsOrder(),
-			pmetrictest.IgnoreScopeVersion(),
-			pmetrictest.IgnoreResourceMetricsOrder(),
-			pmetrictest.IgnoreMetricValues(),
-		)
-		assert.NoError(tt, err)
+		assert.NoError(tt, errs)
 	}, 30*time.Second, 1*time.Second)
 }

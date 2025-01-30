@@ -10,6 +10,14 @@
   - `$include:file_path` must be replaced with `${include:file_path}`. The same applied for any other config source.
     More information can be found in ([the upgrade guidelines](https://github.com/signalfx/splunk-otel-collector?tab=readme-ov-file#from-01170-to-01180)).
 
+### 💡 Enhancements 💡
+
+- (Splunk) Turn on `splunk.continuousDiscovery` feature gate by default ([#5833](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/5832))
+  This enables new way to discover third-party components and collect metrics from them:
+  - It allows discovering services that were not available at the time of the collector startup but were started later.
+  - Information about discovered services will be sent to Splunk Observability Cloud that can be found in "Discovered services" page.
+  If you want to disable this feature and bring back the old behavior, add `--feature-gates=-splunk.continuousDiscovery` command line flag.
+
 ## v0.117.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.117.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.117.0) and the [opentelemetry-collector-contrib v0.117.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.117.0) releases where appropriate.

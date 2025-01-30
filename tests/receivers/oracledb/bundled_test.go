@@ -41,12 +41,11 @@ func TestOracledbDockerObserver(t *testing.T) {
 
 	_, shutdown := tc.SplunkOtelCollectorContainer("otlp_exporter.yaml", func(c testutils.Collector) testutils.Collector {
 		cc := c.(*testutils.CollectorContainer)
-		cc.Container = cc.Container.WillWaitForLogs("Discovering for next")
+		cc.Container = cc.Container.WillWaitForLogs("Everything is ready")
 		return cc
 	},
 		func(collector testutils.Collector) testutils.Collector {
 			return collector.WithEnv(map[string]string{
-				"SPLUNK_DISCOVERY_DURATION": "20s",
 				// confirm that debug logging doesn't affect runtime
 				"SPLUNK_DISCOVERY_LOG_LEVEL": "debug",
 				"ORACLE_PASSWORD":            "password",

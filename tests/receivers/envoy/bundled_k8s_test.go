@@ -142,6 +142,7 @@ func TestEnvoyK8sObserver(t *testing.T) {
 			pmetrictest.IgnoreResourceAttributeValue("service.name"),
 			pmetrictest.IgnoreResourceAttributeValue("service_instance_id"),
 			pmetrictest.IgnoreResourceAttributeValue("service_version"),
+			pmetrictest.IgnoreResourceAttributeValue("discovery.endpoint.id"),
 			pmetrictest.IgnoreMetricAttributeValue("service_version"),
 			pmetrictest.IgnoreMetricAttributeValue("service_instance_id"),
 			pmetrictest.IgnoreResourceAttributeValue("server.address"),

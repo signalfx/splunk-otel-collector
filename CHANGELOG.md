@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v0.118.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.118.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.118.0) and the [opentelemetry-collector-contrib v0.118.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.118.0) releases where appropriate.
+
 ### 🛑 Breaking changes 🛑
 
 - (Splunk) Stop supporting deprecated syntax for config source expansion ([#5832](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/5832))
@@ -9,6 +13,10 @@
   - `$ENV` must be replaced with `${env:ENV}`
   - `$include:file_path` must be replaced with `${include:file_path}`. The same applied for any other config source.
     More information can be found in ([the upgrade guidelines](https://github.com/signalfx/splunk-otel-collector?tab=readme-ov-file#from-01170-to-01180)).
+- (Contrib) `pkg/stanza`: Move `filelog.container.removeOriginalTimeField` feature gate to stable ([#33389](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/33389))
+- (Contrib) `pkg/ottl`: Support dynamic indexing of maps and slices. ([#36644](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/36644))
+- (Contrib) `routingconnector`: Disconnect `match_once` parameter from functionality. ([#29882](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29882))
+  The parameter will be ignored, except to trigger a warning log about its upcoming removal in v0.120.0.
 
 ### 💡 Enhancements 💡
 
@@ -17,6 +25,35 @@
   - It allows discovering services that were not available at the time of the collector startup but were started later.
   - Information about discovered services will be sent to Splunk Observability Cloud that can be found in "Discovered services" page.
   If you want to disable this feature and bring back the old behavior, add `--feature-gates=-splunk.continuousDiscovery` command line flag.
+- (Contrib) `mysqlreceiver`: Add delete_multi, update_multi metrics to mysql.commands for mysqlreceiver ([#37301](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/37301))
+- (Contrib) `pkg/ottl`: Add the `Nanosecond` converter to return the nanosecond component from the specified time.Time ([#37042](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/37042))
+- (Contrib) `pkg/ottl`: Add the `Second` converter to return the second component from the specified time.Time ([#37042](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/37042))
+- (Contrib) `vcenterreceiver`: Adds vCenter memory capacity for hosts and memory granted metric for VMs. ([#37257](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/37257))
+- (Contrib) `awss3exporter`: Implement sending queue for S3 exporter ([#37274](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/37274), [#36264](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/36264))
+- (Contrib) `resourcedetectionprocessor`: This enhancement detects AWS EKS cloud account ID ([#37179](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/37179))
+- (Contrib) `k8sattributesprocessor`: For pods with only one container, the `container.id` and `k8s.container.name` are not longer required in the resource attributes to add the container attributes ([#34189](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/34189))
+- (Contrib) `pkg/ottl`: Enhanced error messages for invalid cache access and introduced options to configure their values within the OTTL contexts. ([#29017](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29017))
+- (Contrib) `pkg/ottl`: Add the `FormatTime` function to convert `time.Time` values to human-readable strings ([#36870](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/36870))
+- (Contrib) `resourcedetectionprocessor`: Introduce kubeadm detector to retrieve local cluster name. ([#35116](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/35116))
+- (Contrib) `signalfxexporter`: Prioritize retrieving token from context when accesstokenpassthrough is enabled ([#37102](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/37102))
+- (Core) `exporterhelper`: Add blocking option to control queue behavior when full ([#12090](https://github.com/open-telemetry/opentelemetry-collector/issues/12090))
+- (Core) `debugexporter`: Add EventName to debug exporter for Logs. EventName was added as top-level field in the LogRecord from 1.5.0 of proto definition. ([#11966](https://github.com/open-telemetry/opentelemetry-collector/issues/11966))
+- (Core) `confighttp`: Added support for configuring compression levels. ([#10467](https://github.com/open-telemetry/opentelemetry-collector/issues/10467))
+  A new configuration option called CompressionParams has been added to confighttp. | This allows users to configure the compression levels for the confighttp client.
+- (Core) `exporterhelper`: Change the memory queue implementation to not pre-allocate capacity objects. ([#12070](https://github.com/open-telemetry/opentelemetry-collector/issues/12070))
+  This change improves memory usage of the collector under low utilization and is a prerequisite for supporting different other size limitations (number of items, bytes).
+
+### 🧰 Bug fixes 🧰
+
+- (Contrib) `googlecloudpubsubreceiver`: Fix a goroutine leak during shutdown. ([#30438](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/30438))
+  A goroutine leak was found in the googlecloudpubsubreceiver.
+  The goroutine leak was caused by the receiver not closing the underlying created gRPC client when using an insecure custom endpoint.
+
+- (Contrib) `signalfxexporter`: Honor access_token_passthrough config option for sending events ([#37102](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/37102))
+- (Contrib) `k8sattributesprocessor`: Ensure the pods gathered by the processor contain the information about their related replica sets and deployments after the initial sync ([#37056](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/37056))
+- (Contrib) `pkg/ottl`: Fix bug with `replace_all_matches` and `replace_all_patterns` that caused non-string values to be changed to empty string when matching against empty string. ([#37071](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/37071))
+- (Contrib) `tailsamplingprocessor`: Fixed sampling policy evaluation debug logging batch metrics (e.g. sampled). ([#37040](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/37040))
+- (Contrib) `tailsamplingprocessor`: Late span age histogram should include sampled traces. ([#37180](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/37180))
 
 ## v0.117.0
 

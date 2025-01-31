@@ -125,13 +125,15 @@ func TestEnvoyK8sObserver(t *testing.T) {
 	expected, err := golden.ReadMetrics(filepath.Join("testdata", "expected_k8s.yaml"))
 	require.NoError(t, err)
 
+	index := 0
 	require.EventuallyWithT(t, func(tt *assert.CollectT) {
 		if len(sink.AllMetrics()) == 0 {
 			assert.Fail(tt, "No metrics collected")
 			return
 		}
 		var errs error
-		for _, m := range sink.AllMetrics() {
+		newIndex := len(sink.AllMetrics())
+		for i := index; i < newIndex; i++ {
 			err := pmetrictest.CompareMetrics(expected, m,
 				pmetrictest.IgnoreResourceAttributeValue("service.instance.id"),
 				pmetrictest.IgnoreResourceAttributeValue("net.host.port"),
@@ -162,6 +164,7 @@ func TestEnvoyK8sObserver(t *testing.T) {
 			}
 			errs = errors.Join(errs, err)
 		}
+		index = newIndex
 		assert.NoError(tt, errs)
 	}, 120*time.Second, 1*time.Second)
 }

@@ -55,13 +55,15 @@ func TestPostgresReceiverProvidesAllMetrics(t *testing.T) {
 
 	expected, err := golden.ReadMetrics(filepath.Join("testdata", "expected", "all.yaml"))
 	require.NoError(t, err)
+	lastIndex := 0
 	assert.EventuallyWithT(t, func(tt *assert.CollectT) {
 		if len(tc.OTLPReceiverSink.AllMetrics()) == 0 {
 			assert.Fail(tt, "No metrics collected")
 			return
 		}
 		var errs error
-		for i := len(tc.OTLPReceiverSink.AllMetrics()) - 1; i >= 0; i-- {
+		newIndex := len(tc.OTLPReceiverSink.AllMetrics()) - 1
+		for i := newIndex; i >= lastIndex; i-- {
 			m := tc.OTLPReceiverSink.AllMetrics()[i]
 			if m.MetricCount() == expected.MetricCount() {
 				err := pmetrictest.CompareMetrics(expected, m,
@@ -91,6 +93,7 @@ func TestPostgresReceiverProvidesAllMetrics(t *testing.T) {
 				errs = errors.Join(errs, err)
 			}
 		}
+		lastIndex = newIndex
 		assert.NoError(tt, errs)
 	}, 30*time.Second, 1*time.Second)
 }

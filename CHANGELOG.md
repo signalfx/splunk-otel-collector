@@ -55,7 +55,6 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 - (Contrib) `tailsamplingprocessor`: Fixed sampling policy evaluation debug logging batch metrics (e.g. sampled). ([#37040](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/37040))
 - (Contrib) `tailsamplingprocessor`: Late span age histogram should include sampled traces. ([#37180](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/37180))
 
-
 ## v0.117.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.117.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.117.0) and the [opentelemetry-collector-contrib v0.117.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.117.0) releases where appropriate.

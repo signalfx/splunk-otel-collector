@@ -17,7 +17,6 @@ package testutils
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"path/filepath"
 	"runtime"
@@ -130,18 +129,17 @@ func RunMetricsCollectionTest(t *testing.T, configFile string, expectedFilePath 
 			assert.Fail(tt, "No metrics collected")
 			return
 		}
-		var errs error
+		var err error
 		newIndex := len(sink.AllMetrics())
 		for i := index; i < newIndex; i++ {
 			m := sink.AllMetrics()[i]
-			err := pmetrictest.CompareMetrics(expected, m,
+			err = pmetrictest.CompareMetrics(expected, m,
 				opts.compareMetricsOptions...)
 			if err == nil {
 				return
 			}
-			errs = errors.Join(errs, err)
 		}
 		index = newIndex
-		assert.NoError(tt, errs)
+		assert.NoError(tt, err)
 	}, 30*time.Second, 1*time.Second)
 }

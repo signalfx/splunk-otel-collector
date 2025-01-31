@@ -17,7 +17,6 @@
 package tests
 
 import (
-	"errors"
 	"path"
 	"path/filepath"
 	"testing"
@@ -61,12 +60,12 @@ func TestPostgresReceiverProvidesAllMetrics(t *testing.T) {
 			assert.Fail(tt, "No metrics collected")
 			return
 		}
-		var errs error
+		var err error
 		newIndex := len(tc.OTLPReceiverSink.AllMetrics()) - 1
 		for i := newIndex; i >= lastIndex; i-- {
 			m := tc.OTLPReceiverSink.AllMetrics()[i]
 			if m.MetricCount() == expected.MetricCount() {
-				err := pmetrictest.CompareMetrics(expected, m,
+				err = pmetrictest.CompareMetrics(expected, m,
 					pmetrictest.IgnoreResourceAttributeValue("service.instance.id"),
 					pmetrictest.IgnoreResourceAttributeValue("net.host.port"),
 					pmetrictest.IgnoreResourceAttributeValue("server.port"),
@@ -90,10 +89,9 @@ func TestPostgresReceiverProvidesAllMetrics(t *testing.T) {
 				if err == nil {
 					return
 				}
-				errs = errors.Join(errs, err)
 			}
 		}
 		lastIndex = newIndex
-		assert.NoError(tt, errs)
+		assert.NoError(tt, err)
 	}, 30*time.Second, 1*time.Second)
 }

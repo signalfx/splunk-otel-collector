@@ -18,7 +18,6 @@ package tests
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -131,10 +130,10 @@ func TestEnvoyK8sObserver(t *testing.T) {
 			assert.Fail(tt, "No metrics collected")
 			return
 		}
-		var errs error
+		var err error
 		newIndex := len(sink.AllMetrics())
 		for i := index; i < newIndex; i++ {
-			err := pmetrictest.CompareMetrics(expected, m,
+			err = pmetrictest.CompareMetrics(expected, sink.AllMetrics()[i],
 				pmetrictest.IgnoreResourceAttributeValue("service.instance.id"),
 				pmetrictest.IgnoreResourceAttributeValue("net.host.port"),
 				pmetrictest.IgnoreResourceAttributeValue("net.host.name"),
@@ -162,9 +161,8 @@ func TestEnvoyK8sObserver(t *testing.T) {
 			if err == nil {
 				return
 			}
-			errs = errors.Join(errs, err)
 		}
 		index = newIndex
-		assert.NoError(tt, errs)
+		assert.NoError(tt, err)
 	}, 120*time.Second, 1*time.Second)
 }

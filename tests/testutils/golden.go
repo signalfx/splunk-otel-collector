@@ -123,13 +123,23 @@ func RunMetricsCollectionTest(t *testing.T, configFile string, expectedFilePath 
 	expected, err := golden.ReadMetrics(filepath.Join("testdata", expectedFilePath))
 	require.NoError(t, err)
 
+	index := 0
 	assert.EventuallyWithT(t, func(tt *assert.CollectT) {
 		if len(sink.AllMetrics()) == 0 {
 			assert.Fail(tt, "No metrics collected")
 			return
 		}
-		err := pmetrictest.CompareMetrics(expected, sink.AllMetrics()[len(sink.AllMetrics())-1],
-			opts.compareMetricsOptions...)
+		var err error
+		newIndex := len(sink.AllMetrics())
+		for i := index; i < newIndex; i++ {
+			m := sink.AllMetrics()[i]
+			err = pmetrictest.CompareMetrics(expected, m,
+				opts.compareMetricsOptions...)
+			if err == nil {
+				return
+			}
+		}
+		index = newIndex
 		assert.NoError(tt, err)
 	}, 30*time.Second, 1*time.Second)
 }

@@ -26,7 +26,6 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/pdata/pmetric"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
@@ -55,43 +54,44 @@ func TestPostgresReceiverProvidesAllMetrics(t *testing.T) {
 
 	expected, err := golden.ReadMetrics(filepath.Join("testdata", "expected", "all.yaml"))
 	require.NoError(t, err)
+	lastIndex := 0
 	assert.EventuallyWithT(t, func(tt *assert.CollectT) {
 		if len(tc.OTLPReceiverSink.AllMetrics()) == 0 {
 			assert.Fail(tt, "No metrics collected")
 			return
 		}
-		var selected *pmetric.Metrics
-		for i := len(tc.OTLPReceiverSink.AllMetrics()) - 1; i >= 0; i-- {
+		var err error
+		newIndex := len(tc.OTLPReceiverSink.AllMetrics()) - 1
+		for i := newIndex; i >= lastIndex; i-- {
 			m := tc.OTLPReceiverSink.AllMetrics()[i]
 			if m.MetricCount() == expected.MetricCount() {
-				selected = &m
-				break
+				err = pmetrictest.CompareMetrics(expected, m,
+					pmetrictest.IgnoreResourceAttributeValue("service.instance.id"),
+					pmetrictest.IgnoreResourceAttributeValue("net.host.port"),
+					pmetrictest.IgnoreResourceAttributeValue("server.port"),
+					pmetrictest.IgnoreResourceAttributeValue("service.name"),
+					pmetrictest.IgnoreResourceAttributeValue("service_instance_id"),
+					pmetrictest.IgnoreResourceAttributeValue("service_version"),
+					pmetrictest.IgnoreMetricAttributeValue("service_version"),
+					pmetrictest.IgnoreMetricAttributeValue("service_instance_id"),
+					pmetrictest.IgnoreMetricAttributeValue("queryid"),
+					pmetrictest.IgnoreMetricAttributeValue("table"),
+					pmetrictest.IgnoreSubsequentDataPoints(),
+					pmetrictest.IgnoreTimestamp(),
+					pmetrictest.IgnoreStartTimestamp(),
+					pmetrictest.IgnoreMetricDataPointsOrder(),
+					pmetrictest.IgnoreScopeMetricsOrder(),
+					pmetrictest.IgnoreMetricsOrder(),
+					pmetrictest.IgnoreScopeVersion(),
+					pmetrictest.IgnoreResourceMetricsOrder(),
+					pmetrictest.IgnoreMetricValues(),
+				)
+				if err == nil {
+					return
+				}
 			}
 		}
-
-		require.NotNil(tt, selected)
-
-		err := pmetrictest.CompareMetrics(expected, *selected,
-			pmetrictest.IgnoreResourceAttributeValue("service.instance.id"),
-			pmetrictest.IgnoreResourceAttributeValue("net.host.port"),
-			pmetrictest.IgnoreResourceAttributeValue("server.port"),
-			pmetrictest.IgnoreResourceAttributeValue("service.name"),
-			pmetrictest.IgnoreResourceAttributeValue("service_instance_id"),
-			pmetrictest.IgnoreResourceAttributeValue("service_version"),
-			pmetrictest.IgnoreMetricAttributeValue("service_version"),
-			pmetrictest.IgnoreMetricAttributeValue("service_instance_id"),
-			pmetrictest.IgnoreMetricAttributeValue("queryid"),
-			pmetrictest.IgnoreMetricAttributeValue("table"),
-			pmetrictest.IgnoreSubsequentDataPoints(),
-			pmetrictest.IgnoreTimestamp(),
-			pmetrictest.IgnoreStartTimestamp(),
-			pmetrictest.IgnoreMetricDataPointsOrder(),
-			pmetrictest.IgnoreScopeMetricsOrder(),
-			pmetrictest.IgnoreMetricsOrder(),
-			pmetrictest.IgnoreScopeVersion(),
-			pmetrictest.IgnoreResourceMetricsOrder(),
-			pmetrictest.IgnoreMetricValues(),
-		)
+		lastIndex = newIndex
 		assert.NoError(tt, err)
 	}, 30*time.Second, 1*time.Second)
 }

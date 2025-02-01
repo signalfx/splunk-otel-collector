@@ -74,6 +74,12 @@ func TestRuleEval(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name:    "basic pod.container",
+			args:    args{podContainerEndpoint, `type == "pod.container" && container_image matches "redis"`},
+			want:    true,
+			wantErr: false,
+		},
+		{
 			name:    "relocated type builtin",
 			args:    args{k8sNodeEndpoint, `type == "k8s.node" && typeOf("some string") == "string"`},
 			want:    true,

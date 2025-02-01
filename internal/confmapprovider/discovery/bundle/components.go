@@ -33,6 +33,7 @@ var (
 	receivers = []string{
 		"apache",
 		"envoy",
+		"istio",
 		"jmx-cassandra",
 		"kafkametrics",
 		"mongodb",
@@ -68,6 +69,7 @@ var (
 			windows := map[string]struct{}{
 				"apache":        {},
 				"envoy":         {},
+				"istio":         {},
 				"jmx-cassandra": {},
 				"kafkametrics":  {},
 				"mongodb":       {},

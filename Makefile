@@ -131,6 +131,10 @@ smartagent-integration-test:
 integration-test-envoy-discovery-k8s:
 	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_envoy_k8s -v -timeout 5m -count 1 ./...
 
+.PHONY: integration-test-istio-discovery-k8s
+integration-test-istio-discovery-k8s:
+	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_istio_k8s -v -timeout 5m -count 1 ./...
+
 .PHONY: test-with-cover
 test-with-cover:
 	@echo Verifying that all packages have test files to count in coverage

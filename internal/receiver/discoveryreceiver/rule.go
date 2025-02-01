@@ -52,7 +52,7 @@ func (r Rule) MarshalText() (text []byte, err error) {
 
 // ruleRe is used to verify the rule starts type check.
 var ruleRe = regexp.MustCompile(
-	fmt.Sprintf(`^type\s*==\s*(%q|%q|%q|%q|%q|%q)`, observer.PodType, observer.K8sServiceType, observer.PortType, observer.HostPortType, observer.ContainerType, observer.K8sNodeType),
+	fmt.Sprintf(`^type\s*==\s*(%q|%q|%q|%q|%q|%q|%q)`, observer.PodType, observer.K8sServiceType, observer.PortType, observer.HostPortType, observer.ContainerType, observer.K8sNodeType, observer.PodContainerType),
 )
 
 // newRule creates a new rule instance.

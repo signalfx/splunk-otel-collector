@@ -136,7 +136,7 @@ jobs:
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4
-        sparse_checkout: packaging/technical-addon/packaging-scripts
+        sparse-checkout: packaging/technical-addon/packaging-scripts
       - name: Build & Package TA
         run: |
           set -o pipefail

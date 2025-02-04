@@ -10,7 +10,7 @@ variables:
   WIN_2019_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2019
   WIN_2022_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2022
   SPLUNK_OTELCOL_DOWNLOAD_BASE:
-    value: 'https://github.com/signalfx/splunk-otel-collector/releases/download'
+    value: "https://github.com/signalfx/splunk-otel-collector/releases/download"
     description: 'URL to download artifacts from'
   BUILD_DIR:
     value: '${CI_PROJECT_DIR}/build'
@@ -20,15 +20,15 @@ stages:
   - update-deps
   - sast-oss-scan
   - build
-  - code_analysis
   - sign-binaries
   - package
+  - code-analysis
+  - orca-tests
   - sign-packages
   - release
   - docker-manifest-release
   - xray-scan
   - github-release
-  - Deploy and Verify
 
 include:
   - project: 'prodsec/scp-scanning/gitlab-checkmarx'
@@ -435,15 +435,15 @@ agent-bundle-windows:
       pip install --upgrade pip
       pip install --upgrade splunk-orca
       splunk_orca --help
-      cd ~
+      pushd ~
       echo ${ORCA_TAR_GZ} | base64 -d > orca_cred.tar.gz
       tar -xzvf ~/orca_cred.tar.gz
       echo "area = otel-collector" >> ~/.orca/orca.conf
-      cd -
+      popd
 
-build-all-platforms:
+package-techical-addon:
   image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
-  stage: "build"
+  stage: "package"
   script: |
     make distribute-ta -e
   artifacts:
@@ -454,14 +454,13 @@ build-all-platforms:
   parallel:
     matrix:
       - PLATFORM: ["all"]
-        ARCH: ["amd64"]
 
 test-happypath-ta:
   image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
   extends: .auth-setup
-  stage: Deploy and Verify
+  stage: orca-tests
   dependencies:
-    - "build-all-platforms"
+    - "package-technical-addon"
   parallel:
     matrix:
       - UF_VERSION: ["9.0.2", "8.2.7"]
@@ -469,13 +468,11 @@ test-happypath-ta:
         ORCA_CLOUD: ["aws"]
         ORCA_OPTION: [""]
         PLATFORM: ["linux"]
-        ARCH: ["amd64"]
       - UF_VERSION: ["9.0.2", "8.2.7"]
-        SPLUNK_PLATFORM: ["x64_windows_2019"]
+        SPLUNK_PLATFORM: ["x64_windows_2019","x64_windows_2022" ]
         ORCA_CLOUD: ["aws"]
         ORCA_OPTION: [""]
         PLATFORM: ["windows"]
-        ARCH: ["amd64"]
   script: |
     make orca-test-ta -e
   after_script:
@@ -499,9 +496,8 @@ test-happypath-ta:
 AppInspect_local:
   image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
   dependencies:
-    - "build-all-platforms"
-  stage: code_analysis
-  # From https://cd.splunkdev.com/splcore/dynamic-data-self-storage-app/-/blob/develop/.gitlab-ci.yml#L193
+    - "package-technical-addon"
+  stage: code-analysis
   # AppInspect regex bugs out on python 3.11
   image: docker.repo.splunkdev.net/ci-cd/ci-container/python-3.9:1.26.0
   before_script:
@@ -521,7 +517,7 @@ AppInspect_local:
 
 spell check:
   image: "${DOCKER_CICD_REPO}/ci-container/node-18-alpine:1.9.0"
-  stage: code_analysis
+  stage: code-analysis
   script: |
     npm install -g cspell@latest
     cd $CI_PROJECT_DIR/packaging/technical-addon/Splunk_TA_otel

@@ -48,10 +48,9 @@ while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
 
     if [[ "$count" -gt "0" ]] && jq '[.results[].created, .results[].lastUpdated] | max as $max | $max >= ($ENV.CUTOFF | tonumber)' "$TEST_FOLDER/uptime.json" ; then
         break
-    else
-        ATTEMPT=$((ATTEMPT + 1))
-        sleep $DELAY
     fi
+    ATTEMPT=$((ATTEMPT + 1))
+    sleep $DELAY
 done
 if [ $ATTEMPT -gt $MAX_ATTEMPTS ]; then
     echo "Failed find metrics in last 5m after $MAX_ATTEMPTS attempts."

@@ -137,7 +137,7 @@ jobs:
       - name: Check out the codebase.
         uses: actions/checkout@v4
         with:
-          sparse-checkout: packaging/technical-addon/packaging-scripts
+          sparse-checkout: packaging/technical-addon/
       - uses: streetsidesoftware/cspell-action@v6
         with:
           config: packaging/technical-addon/packaging-scripts/cspell/cspell.json

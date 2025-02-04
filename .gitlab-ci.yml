@@ -441,7 +441,7 @@ agent-bundle-windows:
       echo "area = otel-collector" >> ~/.orca/orca.conf
       popd
 
-package-techical-addon:
+package-technical-addon:
   image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
   stage: "package"
   script: |

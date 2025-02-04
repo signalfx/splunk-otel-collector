@@ -40,8 +40,7 @@ grep -q "Everything is ready" "$TEST_FOLDER/splunk/otel.log"
 MAX_ATTEMPTS=6
 DELAY=10
 ATTEMPT=1
-CUTOFF="$(date '+%s%3N' -d '5 min ago')"
-export CUTOFF
+export CUTOFF="$(date '+%s%3N' -d '5 min ago')"
 otel_hostname="$(grep "host.name" "$TEST_FOLDER/splunk/otel.log" | head -1 | awk -F 'host.name":"' '{print $2}' | awk -F '","' '{print $1}')"
 while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
     curl --header "Content-Type:application/json" --header "X-SF-TOKEN:${OLLY_ACCESS_TOKEN}" "https://api.us0.signalfx.com/v2/metrictimeseries?query=host.name:${otel_hostname}%20AND%20sf_metric:otelcol_process_uptime%20AND%20splunk.distribution:otel-ta" > "$TEST_FOLDER/uptime.json"

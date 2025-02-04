@@ -1,9 +1,3 @@
-# Need Help?
-See `#otel-ta-community` for help.
-
-# Developing this TA
-See [`CONTRIBUTING.md`](./CONTRIBUTING.md)
-
 # Configuration
 ## environment variables
 In addition to the typical collector environment variables, we additionally provide

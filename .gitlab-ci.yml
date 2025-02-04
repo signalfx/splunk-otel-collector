@@ -487,12 +487,6 @@ test-happypath-ta:
     paths:
       - "$BUILD_DIR/out/**/*"
       - "$BUILD_DIR/$CI_JOB_ID/**/*"
-      - "$BUILD_DIR/container_details.txt"
-      - "$BUILD_DIR/orca_deployment.json"
-      - "$BUILD_DIR/ansible*.log"
-      - "$BUILD_DIR/cpu_util.json"
-      - "$BUILD_DIR/orca-stderr.log"
-      - "$BUILD_DIR/orca-stdout.log"
 AppInspect_local:
   image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
   dependencies:

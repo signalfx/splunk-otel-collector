@@ -138,9 +138,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           sparse-checkout: packaging/technical-addon/packaging-scripts
-      - name: Build & Package TA
-        run: |
-          set -o pipefail
-          npm install -g git+https://github.com/streetsidesoftware/cspell-cli
-          cspell --config $CI_PROJECT_DIR/packaging/technical-addon/packaging-scripts/cspell/cspell.json --color "**/*.md" --exclude "**/agent-bundle/**"
-
+      - uses: streetsidesoftware/cspell-action@v6
+        with:
+          config: packaging/technical-addon/packaging-scripts/cspell/cspell.json
+          root: packaging/technical-addon/Splunk_TA_otel
+          files:
+            - "!**/agent-bundle/**"

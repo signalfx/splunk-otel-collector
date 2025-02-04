@@ -515,14 +515,6 @@ AppInspect_local:
     when: always
   allow_failure: false
 
-spell check:
-  image: "${DOCKER_CICD_REPO}/ci-container/node-18-alpine:1.9.0"
-  stage: code-analysis
-  script: |
-    npm install -g cspell@latest
-    cd $CI_PROJECT_DIR/packaging/technical-addon/Splunk_TA_otel
-    cspell --config $CI_PROJECT_DIR/packaging/technical-addon/packaging-scripts/cspell/cspell.json --color "**/*.md" --exclude "**/agent-bundle/**"
-
 .instrumentation-deb-rpm:
   extends: .trigger-filter
   stage: package

@@ -130,3 +130,17 @@ jobs:
           make -e bundle.d otelcol generate-technical-addon copy-local-build-to-ta package-ta
           make -e discovery-test-ta
 
+  test-discovery:
+    name: test-discovery
+    runs-on: ubuntu-latest
+    needs: [setup-environment]
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v4
+        sparse_checkout: packaging/technical-addon/packaging-scripts
+      - name: Build & Package TA
+        run: |
+          set -o pipefail
+          npm install -g git+https://github.com/streetsidesoftware/cspell-cli
+          cspell --config $CI_PROJECT_DIR/packaging/technical-addon/packaging-scripts/cspell/cspell.json --color "**/*.md" --exclude "**/agent-bundle/**"
+

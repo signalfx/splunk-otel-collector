@@ -27,25 +27,24 @@ while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
     # Copy logs from container
     scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r -i ~/.orca/id_rsa "splunk@$ip_addr:/opt/splunk/var/log/splunk/otel.log" "$TEST_FOLDER/otel.log"
     scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r -i ~/.orca/id_rsa "splunk@$ip_addr:/opt/splunk/var/log/splunk/Splunk_TA_otel.log" "$TEST_FOLDER/Splunk_TA_otel.log"
-    if grep -q "Starting otel agent" "$TEST_FOLDER/splunk/Splunk_TA_otel.log" &&
-       grep -q "Everything is ready" "$TEST_FOLDER/splunk/otel.log"; then
+    if grep -q "Starting otel agent" "$TEST_FOLDER/Splunk_TA_otel.log" &&
+       grep -q "Everything is ready" "$TEST_FOLDER/otel.log"; then
         break
     fi
     ATTEMPT=$((ATTEMPT + 1))
     sleep "$DELAY"
 done
 if [ $ATTEMPT -gt $MAX_ATTEMPTS ]; then
-    echo "Failed to find metrics within $CUTOFF_DELTA after $MAX_ATTEMPTS attempts."
+    echo "Failed to find successful startup message(s) after $MAX_ATTEMPTS attempts."
     scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r -i ~/.orca/id_rsa "splunk@$ip_addr:/opt/splunk/var/log/splunk/" "$TEST_FOLDER"
-    tail -n 200 "$TEST_FOLDER/splunkd.log"
     cat "$TEST_FOLDER/Splunk_TA_otel.log"
     cat "$TEST_FOLDER/otel.log"
     exit 1
 fi
 
 # Verify Otel agent is running without any error
-(grep -qi "ERROR" "$TEST_FOLDER/splunk/Splunk_TA_otel.log" && exit 1 ) || true
-(grep -qi "ERROR" "$TEST_FOLDER/splunk/otel.log" && exit 1 ) || true
+(grep -qi "ERROR" "$TEST_FOLDER/Splunk_TA_otel.log" && exit 1 ) || true
+(grep -qi "ERROR" "$TEST_FOLDER/otel.log" && exit 1 ) || true
 
 # Verify O11y has received metrics data from this host
 MAX_ATTEMPTS=6
@@ -53,7 +52,7 @@ DELAY=10
 ATTEMPT=1
 CUTOFF_DELTA='5 min'
 export CUTOFF="$(date '+%s%3N' -d "$CUTOFF_DELTA ago")"
-otel_hostname="$(grep "host.name" "$TEST_FOLDER/splunk/otel.log" | head -1 | awk -F 'host.name":"' '{print $2}' | awk -F '","' '{print $1}')"
+otel_hostname="$(grep "host.name" "$TEST_FOLDER/otel.log" | head -1 | awk -F 'host.name":"' '{print $2}' | awk -F '","' '{print $1}')"
 while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
     curl --header "Content-Type:application/json" --header "X-SF-TOKEN:${OLLY_ACCESS_TOKEN}" "https://api.us0.signalfx.com/v2/metrictimeseries?query=host.name:${otel_hostname}%20AND%20sf_metric:otelcol_process_uptime%20AND%20splunk.distribution:otel-ta" > "$TEST_FOLDER/uptime.json"
     count="$(jq -r '.count' < "$TEST_FOLDER/uptime.json")"
@@ -77,9 +76,9 @@ MAX_ATTEMPTS=30
 DELAY=10
 ATTEMPT=1
 while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
-    scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r -i ~/.orca/id_rsa "splunk@$ip_addr:/opt/splunk/var/log/splunk/Splunk_TA_otel.log" "$TEST_FOLDER/"
+    scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r -i ~/.orca/id_rsa "splunk@$ip_addr:/opt/splunk/var/log/splunk/Splunk_TA_otel.log" "$TEST_FOLDER/Splunk_TA_otel.log"
     if [ "$PLATFORM"  == "windows" ]; then
-        scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r -i ~/.orca/id_rsa "splunk@$ip_addr:/opt/splunk/var/log/splunk/Splunk_TA_otelutils.log" "$TEST_FOLDER/"
+        scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r -i ~/.orca/id_rsa "splunk@$ip_addr:/opt/splunk/var/log/splunk/Splunk_TA_otelutils.log" "$TEST_FOLDER/Splunk_TA_otelutils.log"
         grep -q "INFO Otel agent stop" "$TEST_FOLDER/Splunk_TA_otelutils.log" && break
     else
         grep -q "INFO Otel agent stop" "$TEST_FOLDER/Splunk_TA_otel.log" && break
@@ -104,9 +103,9 @@ DELAY=10
 ATTEMPT=1
 MAX_ATTEMPTS=6
 while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
-    scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r -i ~/.orca/id_rsa "splunk@$ip_addr:/opt/splunk/var/log/splunk/otel.log" "$TEST_FOLDER/"
-    scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r -i ~/.orca/id_rsa "splunk@$ip_addr:/opt/splunk/var/log/splunk/Splunk_TA_otelutils.log" "$TEST_FOLDER/"
-    if grep -q "Starting otel agent" "$TEST_FOLDER/splunk/Splunk_TA_otel.log" && grep -q "Everything is ready" "$TEST_FOLDER/splunk/otel.log"; then
+    scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r -i ~/.orca/id_rsa "splunk@$ip_addr:/opt/splunk/var/log/splunk/otel.log" "$TEST_FOLDER/otel.log"
+    scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r -i ~/.orca/id_rsa "splunk@$ip_addr:/opt/splunk/var/log/splunk/Splunk_TA_otel.log" "$TEST_FOLDER/Splunk_TA_otel.log"
+    if grep -q "Starting otel agent" "$TEST_FOLDER/Splunk_TA_otel.log" && grep -q "Everything is ready" "$TEST_FOLDER/otel.log"; then
         break
     fi
     ATTEMPT=$((ATTEMPT + 1))
@@ -123,11 +122,11 @@ if [ $ATTEMPT -gt $MAX_ATTEMPTS ]; then
 fi
 
 # Ensure no errors after restart
-(grep -qi "ERROR" "$TEST_FOLDER/splunk/Splunk_TA_otel.log" && exit 1 ) || true
-(grep -qi "ERROR" "$TEST_FOLDER/splunk/otel.log" && exit 1 ) || true
+(grep -qi "ERROR" "$TEST_FOLDER/Splunk_TA_otel.log" && exit 1 ) || true
+(grep -qi "ERROR" "$TEST_FOLDER/otel.log" && exit 1 ) || true
 
 # For release, ensure version is as expected.  TODO move this to another test and compare against tag
-actual_version="$(grep "Version" "$TEST_FOLDER/splunk/otel.log" | head -1 | awk -F 'Version": "' '{print $2}' | awk -F '", "' '{print $1}')"
+actual_version="$(grep "Version" "$TEST_FOLDER/otel.log" | head -1 | awk -F 'Version": "' '{print $2}' | awk -F '", "' '{print $1}')"
 echo "actual version: $actual_version"
 [[ "$actual_version" != "v0.111.0" ]] && echo "Test failed -- invalid version" && exit 1
 

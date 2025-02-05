@@ -21,7 +21,6 @@ echo "Creating splunk cluster with TA $GATEWAY_TA_FULLPATH"
 
 ORCA_SSH_USER="splunk"
 
-# There is an internal slack thread in #orca on opening up port 4318, but suffice to say we're only doing on windows for now.  Can use docker for linux if needed.
 gateway_container_info="$(splunk_orca -v --printer json --cloud "$ORCA_CLOUD" --ansible-log "$TEST_FOLDER/ansible-local-gateway.log" create --env SPLUNK_CONNECTION_TIMEOUT=600 --platform "$SPLUNK_PLATFORM" --local-apps "$GATEWAY_TA_FULLPATH" --playbook "$SOURCE_DIR/packaging-scripts/orca-playbook-windows.yml,site.yml")"
 echo "$gateway_container_info" > "$TEST_FOLDER/orca-gateway-deployment.json"
 

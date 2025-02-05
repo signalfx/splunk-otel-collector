@@ -1,6 +1,6 @@
 # Used for building
 SOURCE_DIR?=$(dir $(abspath $(lastword $(MAKEFILE_LIST))))
-BUILD_DIR?=./build
+BUILD_DIR?=$(realpath .)/build
 OTEL_COLLECTOR_VERSION?=0.111.0
 SPLUNK_OTELCOL_DOWNLOAD_BASE?=https://github.com/signalfx/splunk-otel-collector/releases/download
 PLATFORM?=linux
@@ -87,8 +87,8 @@ package-ta: env-guard-ta
 .PHONY: distribute-ta
 distribute-ta: generate-technical-addon download-release package-ta
 
-.PHONY: verify-ta
-verify-ta: env-guard-verify
+.PHONY: orca-test-ta
+orca-test-ta: env-guard-verify
 	SOURCE_DIR="$(SOURCE_DIR)" \
 	BUILD_DIR="$(BUILD_DIR)" \
 	ARCH="$(ARCH)" \
@@ -98,7 +98,7 @@ verify-ta: env-guard-verify
 	UF_VERSION="$(UF_VERSION)" \
 	SPLUNK_PLATFORM="$(SPLUNK_PLATFORM)" \
 	OLLY_ACCESS_TOKEN="$(OLLY_ACCESS_TOKEN)" \
-	$(SOURCE_DIR)/packaging-scripts/deploy-and-verify.sh
+	$(SOURCE_DIR)/packaging-scripts/cicd-tests/happypath-test.sh
 
 .PHONY: smoketest-ta
 smoketest-ta:
@@ -115,7 +115,6 @@ discovery-test-ta:
 	ARCH="$(ARCH)" \
 	PLATFORM="$(PLATFORM)" \
 	$(SOURCE_DIR)/packaging-scripts/cicd-tests/discovery/discovery-docker-test.sh
-
 
 .PHONY: update-ta-deps
 update-ta-deps:

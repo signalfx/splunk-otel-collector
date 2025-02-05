@@ -476,11 +476,9 @@ test-happypath-ta:
   script: |
     make orca-test-ta -e
   after_script:
-    # remove orca
+    # spin down orca deployments
     - "cd ${CI_PROJECT_DIR}"
     - deployment_id=$(grep "orca_deployment_id" $TEST_FOLDER/orca_deployment.json | awk -F ':' '{print $2}' | awk -F '"' '{print $2}')
-    - orca_container=$(splunk_orca --cloud ${ORCA_CLOUD} show containers --deployment-id "${deployment_id}" | grep "Container Name" | awk -F " " '{print $8}')
-    - splunk_orca --cloud "${ORCA_CLOUD}" copy from "${orca_container}" ${ORCA_OPTION} --source /opt/container_artifact/ansible.log --destination "$BUILD_DIR/"
     - splunk_orca --cloud ${ORCA_CLOUD} destroy "${deployment_id}"
   artifacts:
     when: always

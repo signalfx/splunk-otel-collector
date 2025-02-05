@@ -6,7 +6,6 @@ package core
 import (
 	// Import everything that isn't referenced anywhere else
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/appmesh"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/aspdotnet"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/cadvisor"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/cloudfoundry"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/consul"
@@ -27,7 +26,6 @@ import (
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/cpu"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/diskio"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/docker"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/dotnet"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/ecs"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/elasticsearch/query"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/elasticsearch/stats"

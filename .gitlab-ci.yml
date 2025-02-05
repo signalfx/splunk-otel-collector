@@ -1,9 +1,20 @@
 default:
-  image: '${DOCKER_CICD_REPO}/ci-container/debian-bookworm:3.5.0'
+  image: "${DOCKER_CICD_REPO}/ci-container/debian-bookworm:3.5.0"
+  id_tokens:
+    CI_JOB_JWT:
+      aud:
+        - "$CICD_VAULT_ADDR"
+        - "$SECRETS_URL"
 
 variables:
   WIN_2019_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2019
   WIN_2022_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2022
+  SPLUNK_OTELCOL_DOWNLOAD_BASE:
+    value: "https://github.com/signalfx/splunk-otel-collector/releases/download"
+    description: 'URL to download artifacts from'
+  BUILD_DIR:
+    value: '${CI_PROJECT_DIR}/build'
+    description: 'in this CI, where builds are stored'
 
 stages:
   - update-deps
@@ -11,6 +22,8 @@ stages:
   - build
   - sign-binaries
   - package
+  - code-analysis
+  - orca-tests
   - sign-packages
   - release
   - docker-manifest-release
@@ -411,6 +424,88 @@ agent-bundle-windows:
   artifacts:
     paths:
       - dist/agent-bundle_windows_amd64.zip
+
+.auth-setup:
+  variables:
+    TEST_FOLDER: $BUILD_DIR/$CI_JOB_ID
+  before_script: |
+      creds-helper init
+      creds-helper pypi "$PYPI_READER_ROLE"
+      eval "$(creds-helper artifactory --eval "$PYPI_READER_ROLE" )"
+      pip install --upgrade pip
+      pip install --upgrade splunk-orca
+      splunk_orca --help
+      pushd ~
+      echo ${ORCA_TAR_GZ} | base64 -d > orca_cred.tar.gz
+      tar -xzvf ~/orca_cred.tar.gz
+      echo "area = otel-collector" >> ~/.orca/orca.conf
+      popd
+
+package-technical-addon:
+  image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
+  stage: "package"
+  script: |
+    make distribute-ta -e
+  artifacts:
+    paths:
+      - "$BUILD_DIR/out/distribution/Splunk_TA_otel*.tgz"
+      - "$BUILD_DIR/packaging-scripts"
+      - "$BUILD_DIR/Makefile"
+  parallel:
+    matrix:
+      - PLATFORM: ["all"]
+
+test-happypath-ta:
+  image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
+  extends: .auth-setup
+  stage: orca-tests
+  dependencies:
+    - "package-technical-addon"
+  parallel:
+    matrix:
+      - UF_VERSION: ["9.0.2", "8.2.7"]
+        SPLUNK_PLATFORM: ["x64_centos_7"]
+        ORCA_CLOUD: ["aws"]
+        ORCA_OPTION: [""]
+        PLATFORM: ["linux"]
+      - UF_VERSION: ["9.0.2", "8.2.7"]
+        SPLUNK_PLATFORM: ["x64_windows_2019","x64_windows_2022" ]
+        ORCA_CLOUD: ["aws"]
+        ORCA_OPTION: [""]
+        PLATFORM: ["windows"]
+  script: |
+    make orca-test-ta -e
+  after_script:
+    # spin down orca deployments
+    - "cd ${CI_PROJECT_DIR}"
+    - deployment_id=$(grep "orca_deployment_id" $TEST_FOLDER/orca_deployment.json | awk -F ':' '{print $2}' | awk -F '"' '{print $2}')
+    - splunk_orca --cloud ${ORCA_CLOUD} destroy "${deployment_id}"
+  artifacts:
+    when: always
+    paths:
+      - "$BUILD_DIR/out/**/*"
+      - "$BUILD_DIR/$CI_JOB_ID/**/*"
+AppInspect_local:
+  image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
+  dependencies:
+    - "package-technical-addon"
+  stage: code-analysis
+  # AppInspect regex bugs out on python 3.11
+  image: docker.repo.splunkdev.net/ci-cd/ci-container/python-3.9:1.26.0
+  before_script:
+    - pip install splunk-add-on-ucc-framework
+    - pip install splunk-packaging-toolkit
+    - pip install splunk-appinspect
+  script:
+    - 'which "$BUILD_DIR/out/distribution/Splunk_TA_otel.tgz" && exit 1'
+    - splunk-appinspect inspect --mode precert --included-tags cloud --output-file "$BUILD_DIR/out/appinspect_report_local.json" "$BUILD_DIR/out/distribution/Splunk_TA_otel.tgz"
+  artifacts:
+    paths:
+      - "$BUILD_DIR/out/appinspect_report_local.json"
+      - "$BUILD_DIR/out/distribution/**/*"
+    expire_in: 21 day
+    when: always
+  allow_failure: false
 
 .instrumentation-deb-rpm:
   extends: .trigger-filter

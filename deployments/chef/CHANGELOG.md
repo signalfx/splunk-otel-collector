@@ -1,5 +1,13 @@
 # Changelog
 
+## chef-v0.17.0
+
+- Remove the option `with_signalfx_dotnet_auto_instrumentation` used to
+install the deprecated
+[SignalFx Auto Instrumentation for .NET](
+https://docs.splunk.com/Observability/gdi/get-data-in/application/dotnet/get-started.html)
+on Windows.
+
 ## chef-v0.16.0
 
 - Add support for the `auto_instrumentation_logs_exporter` option to configure the `OTEL_LOGS_EXPORTER` environment variable.

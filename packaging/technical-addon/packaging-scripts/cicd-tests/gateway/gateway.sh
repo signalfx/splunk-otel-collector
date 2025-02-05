@@ -28,7 +28,6 @@ echo "$gateway_container_info" > "$TEST_FOLDER/orca-gateway-deployment.json"
 # Structure is (currently) {"creator":{"deployment":{"containers":{"container_id":{}}}}}
 GATEWAY_IPV4_ADDR="$(echo "$gateway_container_info" | jq -r '.[keys[0]] | .[keys[0]] | .containers | .[keys[0]] | .private_address')"
 
-
 # Customize TA to act as agent which forwards to gateway
 GATEWAY_AGENT_TA_FULLPATH="$(repack_with_access_token "$OLLY_ACCESS_TOKEN" "$BUILD_DIR/out/distribution/Splunk_TA_otel.tgz" | tail -n 1)"
 GATEWAY_AGENT_REPACKED_TA_NAME="$(basename "$GATEWAY_AGENT_TA_FULLPATH")"
@@ -56,17 +55,16 @@ while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
     scp -i ~/.orca/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r "$ORCA_SSH_USER@$GATEWAY_IPV4_ADDR":/opt/splunk/var/log/splunk/Splunk_TA_otel.log "$GATEWAY_LOGS_DIR"
     if grep -qi "Done extracting agent bundle" "$GATEWAY_LOGS_DIR/Splunk_TA_otel.log"; then
         break
-    else
-        if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
-            echo "Failed to extract agent bundle after $MAX_ATTEMPTS attempts."
-            cat "$GATEWAY_LOGS_DIR/Splunk_TA_otel.log"
-            exit 1
-        fi
-        echo "Extraction not complete according to Splunk_TA_otel.log... Retrying in $DELAY seconds"
-        ATTEMPT=$((ATTEMPT + 1))
-        sleep $DELAY
     fi
+    echo "Extraction not complete according to Splunk_TA_otel.log... Retrying in $DELAY seconds"
+    ATTEMPT=$((ATTEMPT + 1))
+    sleep $DELAY
 done
+if [ $ATTEMPT -gt $MAX_ATTEMPTS ]; then
+    echo "Failed to extract agent bundle after $MAX_ATTEMPTS attempts."
+    cat "$GATEWAY_LOGS_DIR/Splunk_TA_otel.log"
+    exit 1
+fi
 
 MAX_ATTEMPTS=6
 DELAY=10
@@ -76,15 +74,15 @@ while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
     if grep -qi "Everything is ready" "$GATEWAY_LOGS_DIR/otel.log"; then
         break
     fi
-    if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
-        echo "Failed to see startup message in otel.log after $MAX_ATTEMPTS attempts."
-        cat "$GATEWAY_LOGS_DIR/otel.log"
-        exit 1
-    fi
     echo "Did not see startup message according to otel.log... Retrying in $DELAY seconds"
     ATTEMPT=$((ATTEMPT + 1))
     sleep $DELAY
 done
+if [ $ATTEMPT -gt $MAX_ATTEMPTS ]; then
+    echo "Failed to see startup message in otel.log after $MAX_ATTEMPTS attempts."
+    cat "$GATEWAY_LOGS_DIR/otel.log"
+    exit 1
+fi
 
 # It can take quite some time to extract the agent bundle (+7 minutes between start and end log message).  Await for it before trying to pull otel.log.
 MAX_ATTEMPTS=12

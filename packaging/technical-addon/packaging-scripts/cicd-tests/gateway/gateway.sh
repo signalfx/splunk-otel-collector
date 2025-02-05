@@ -19,10 +19,6 @@ echo 'splunk_config=$SPLUNK_OTEL_TA_HOME/configs/ta-gateway-config.yaml' >> "$GA
 tar -C "$GATEWAY_ADDON_DIR" -hcz --file "$GATEWAY_TA_FULLPATH" "Splunk_TA_otel"
 echo "Creating splunk cluster with TA $GATEWAY_TA_FULLPATH"
 
-#if [ "$PLATFORM" == "linux" ]; then
-#else
-#    ORCA_SSH_USER="ansible"
-#fi
 ORCA_SSH_USER="splunk"
 
 # There is an internal slack thread in #orca on opening up port 4318, but suffice to say we're only doing on windows for now.  Can use docker for linux if needed.

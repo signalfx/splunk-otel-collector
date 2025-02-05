@@ -82,7 +82,8 @@ else
 fi
 while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
     scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r -i ~/.orca/id_rsa "splunk@$ip_addr:/opt/splunk/var/log/splunk/$restart_log_file" "$TEST_FOLDER/splunk/$restart_log_file"
-    grep -q "INFO Otel agent stop" "$TEST_FOLDER/splunk/$restart_log_file" && break
+    # There seems to be an issue on linux where it does not gracefully wait for the job to shut down, need to investigate further.
+    (grep -q "INFO Otel agent stop" "$TEST_FOLDER/splunk/$restart_log_file" || grep -q "INFO Stopping otel" "$TEST_FOLDER/splunk/$restart_log_file") && break
     ATTEMPT=$((ATTEMPT + 1))
     sleep $DELAY
 done

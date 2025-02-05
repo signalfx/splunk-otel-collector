@@ -25,8 +25,7 @@ else
 fi
 while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
     # Copy logs from container
-    scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r -i ~/.orca/id_rsa "splunk@$ip_addr:/opt/splunk/var/log/splunk/otel.log" "$TEST_FOLDER/otel.log"
-    scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r -i ~/.orca/id_rsa "splunk@$ip_addr:/opt/splunk/var/log/splunk/Splunk_TA_otel.log" "$TEST_FOLDER/Splunk_TA_otel.log"
+    scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r -i ~/.orca/id_rsa "splunk@$ip_addr:/opt/splunk/var/log/splunk/" "$TEST_FOLDER"
     if grep -q "Starting otel agent" "$TEST_FOLDER/Splunk_TA_otel.log" &&
        grep -q "Everything is ready" "$TEST_FOLDER/otel.log"; then
         break

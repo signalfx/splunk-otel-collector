@@ -119,7 +119,6 @@ discovery-test-ta:
 .PHONY: update-ta-deps
 update-ta-deps:
 	SOURCE_DIR="$(SOURCE_DIR)" \
-	SPLUNK_OTEL_VERSION="$(SPLUNK_OTEL_VERSION)" \
 	$(SOURCE_DIR)/packaging-scripts/update-otel-version.sh
 	
 	SOURCE_DIR="$(SOURCE_DIR)" \

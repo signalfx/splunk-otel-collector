@@ -485,6 +485,38 @@ test-happypath-ta:
     paths:
       - "$BUILD_DIR/out/**/*"
       - "$BUILD_DIR/$CI_JOB_ID/**/*"
+test-gateway-ta:
+  image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
+  extends: .auth-setup
+  stage: orca-tests
+  dependencies:
+    - "package-technical-addon"
+  parallel:
+    matrix:
+      - UF_VERSION: ["9.0.2", "8.2.7"]
+        SPLUNK_PLATFORM: ["x64_centos_7"]
+        ORCA_CLOUD: ["aws"]
+        ORCA_OPTION: [""]
+        PLATFORM: ["linux"]
+      - UF_VERSION: ["9.0.2", "8.2.7"]
+        SPLUNK_PLATFORM: ["x64_windows_2019", "x64_windows_2022"]
+        ORCA_CLOUD: ["aws"]
+        ORCA_OPTION: [""]
+        PLATFORM: ["windows"]
+  script: |
+    make orca-gateway-test-ta -e
+  after_script:
+    # spin down orca deployments
+    - "cd ${CI_PROJECT_DIR}"
+    - gateway_deployment_id=$(grep "orca_deployment_id" $TEST_FOLDER/orca-gateway-deployment.json | awk -F ':' '{print $2}' | awk -F '"' '{print $2}')
+    - splunk_orca --cloud ${ORCA_CLOUD} destroy "${gateway_deployment_id}"
+    - gateway_agent_deployment_id=$(grep "orca_deployment_id" $TEST_FOLDER/orca-gateway-agent-deployment.json | awk -F ':' '{print $2}' | awk -F '"' '{print $2}')
+    - splunk_orca --cloud ${ORCA_CLOUD} destroy "${gateway_agent_deployment_id}"
+  artifacts:
+    when: always
+    paths:
+      - "$BUILD_DIR/out/**/*"
+      - "$BUILD_DIR/$CI_JOB_ID/**/*"
 AppInspect_local:
   image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
   dependencies:

@@ -25,7 +25,9 @@ repack_with_access_token() {
 
 safe_tail() {
     filename="$1"
+    set +u
     taillines="$2"
+    set -u
 
     if [ "$taillines" ]; then
         ([ -f "$filename" ] && tail -n "$taillines" "$filename") || echo "File $filename not found"

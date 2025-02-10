@@ -1,8 +1,7 @@
 module github.com/signalfx/splunk-otel-collector
 
 go 1.22.7
-
-toolchain go1.22.10
+toolchain go1.23.6
 
 require (
 	github.com/alecthomas/participle/v2 v2.1.1
@@ -131,7 +130,7 @@ require (
 	github.com/spf13/cast v1.7.1
 	github.com/spf13/pflag v1.0.6
 	github.com/stretchr/testify v1.10.0
-	go.etcd.io/bbolt v1.3.11
+	go.etcd.io/bbolt v1.4.0
 	go.etcd.io/etcd/client/v2 v2.305.18
 	go.opentelemetry.io/collector/component/componentstatus v0.118.0
 	go.opentelemetry.io/collector/component/componenttest v0.118.0

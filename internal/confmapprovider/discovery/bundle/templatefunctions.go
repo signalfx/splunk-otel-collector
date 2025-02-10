@@ -122,7 +122,7 @@ func (dc *discoveryConfig) configPropertyPrefix(methodName string, args []string
 	case component.KindExtension:
 		prefix = fmt.Sprintf("splunk.discovery.extensions.%s.config", dc.componentID)
 	default:
-		return "", fmt.Errorf("invalid discovery config component type %d", dc.componentKind)
+		return "", fmt.Errorf("invalid discovery config component type %s", dc.componentKind)
 	}
 	return prefix, nil
 }

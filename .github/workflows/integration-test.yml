@@ -257,7 +257,7 @@ jobs:
     needs: [ "agent-bundle-linux", "otelcol" ]
     strategy:
       matrix:
-        RUNNER: [ "ubuntu-20.04", "ubuntu-22.04", "ubuntu-24.04" ]
+        RUNNER: [ "ubuntu-22.04", "ubuntu-24.04" ]
         PROFILE: [ "integration", "smartagent" ]
       fail-fast: false
     env:

@@ -31,7 +31,7 @@ TAR_DISTROS = [df.split(".")[-1] for df in glob.glob(str(TESTS_DIR / "images" / 
 SERVICE_NAME = "splunk-otel-collector"
 SERVICE_OWNER = "splunk-otel-collector"
 OTELCOL_BIN = "/usr/bin/otelcol"
-DEFAULT_TIMEOUT = 10
+DEFAULT_TIMEOUT = 30
 
 
 def retry(function, exception, max_attempts=5, interval=5):

@@ -34,7 +34,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
-	otelcolextension "go.opentelemetry.io/collector/extension"
 	otelcolreceiver "go.opentelemetry.io/collector/receiver"
 	"go.uber.org/zap"
 
@@ -221,7 +220,7 @@ func stripMonitorTypePrefix(s string) string {
 	return s[idx+1:]
 }
 
-func (r *receiver) setUpSmartAgentConfigProvider(extensions map[component.ID]otelcolextension.Extension) {
+func (r *receiver) setUpSmartAgentConfigProvider(extensions map[component.ID]component.Component) {
 	// If smartagent extension is not configured, use the default config.
 	f := smartagentextension.NewFactory()
 	saConfig = &f.CreateDefaultConfig().(*smartagentextension.Config).Config

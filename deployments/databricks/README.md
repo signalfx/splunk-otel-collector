@@ -4,7 +4,7 @@
 
 [Databricks](https://www.databricks.com/) is a data intelligence platform that can be used for
 [data sharing](https://www.databricks.com/product/data-sharing),
-[data engineering](https://www.databricks.com/product/data-engineering),
+[data engineering](https://www.databricks.com/solutions/data-engineering),
 [artificial intelligence](https://www.databricks.com/product/artificial-intelligence),
 [real-time streaming](https://www.databricks.com/product/data-streaming), and more.
 

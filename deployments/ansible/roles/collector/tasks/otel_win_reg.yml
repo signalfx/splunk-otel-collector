@@ -6,6 +6,8 @@
       {{ (splunk_otel_collector_options_list | default([])) + [item.key + '=' + (value | string)] }}
   loop: >
     {{ splunk_otel_collector_options | default({}) | combine(splunk_otel_collector_additional_env_vars) | dict2items }}
+  loop_control:
+    label: "{{ item.key }}"
 
 - name: Set Splunk OpenTelemetry Collector registry value
   ansible.windows.win_regedit:

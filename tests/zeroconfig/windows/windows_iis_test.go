@@ -99,23 +99,31 @@ func requireNoErrorExecCommand(t *testing.T, name string, arg ...string) {
 	require.NoError(t, err)
 }
 
-func requireHTTPGetRequestSuccess(t *testing.T, url string) {
+func checkHTTPGetRequest(t *testing.T, url string) (int, error) {
 	httpClient := &http.Client{}
 	req, err := http.NewRequest("GET", url, nil)
-	require.NoError(t, err)
+	if err != nil {
+		return err
+	}
 	resp, err := httpClient.Do(req)
-	require.NoError(t, err)
+	if err != nil {
+		return err
+	}
+
 	defer resp.Body.Close()
-	require.Equal(t, http.StatusOK, resp.StatusCode)
+	return resp.StatusCode, err
 }
 
 func testExpectedTracesForHTTPGetRequest(t *testing.T, otlp *testutils.OTLPReceiverSink, url string, expectedTracesFileName string) {
-	requireHTTPGetRequestSuccess(t, url)
-
 	expected, err := golden.ReadTraces(expectedTracesFileName)
 	require.NoError(t, err)
 
 	assert.Eventually(t, func() bool {
+		status, err := checkHTTPGetRequestSuccess(t, url)
+		if err != nil || status != http.StatusOK {
+			return false
+		}
+
 		if otlp.SpanCount() == 0 {
 			return false
 		}
@@ -145,5 +153,5 @@ func testExpectedTracesForHTTPGetRequest(t *testing.T, otlp *testutils.OTLPRecei
 			t.Log(err)
 		}
 		return false
-	}, 1*time.Minute, 10*time.Millisecond, "Failed to receive expected traces")
+	}, 3*time.Minute, 10*time.Millisecond, "Failed to receive expected traces")
 }

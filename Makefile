@@ -160,7 +160,7 @@ install-tools:
 	cd ./internal/tools && go install github.com/tcnksm/ghr
 	cd ./internal/tools && go install golang.org/x/tools/cmd/goimports
 	cd ./internal/tools && go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment
-	cd ./internal/tools && go install golang.org/x/vuln/cmd/govulncheck@master
+	cd ./internal/tools && go install golang.org/x/vuln/cmd/govulncheck@latest
 
 
 .PHONY: generate-metrics

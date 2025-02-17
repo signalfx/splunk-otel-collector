@@ -1,0 +1,374 @@
+resourceMetrics:
+  - resource:
+      attributes:
+        - key: http.scheme
+          value:
+            stringValue: http
+        - key: net.host.port
+          value:
+            stringValue: "8888"
+        - key: server.port
+          value:
+            stringValue: "8888"
+        - key: service.instance.id
+          value:
+            stringValue: localhost:8888
+        - key: service.name
+          value:
+            stringValue: test
+        - key: service_instance_id
+          value:
+            stringValue: 4109d2cd-6907-4e60-862b-b3ef85d76574
+        - key: service_name
+          value:
+            stringValue: otelcol
+        - key: service_version
+          value:
+            stringValue: v0.118.0-9-g261873a8c
+        - key: url.scheme
+          value:
+            stringValue: http
+    scopeMetrics:
+      - metrics:
+          - description: Fixed capacity of the retry queue (in batches)
+            gauge:
+              dataPoints:
+                - asDouble: 1000
+                  attributes:
+                    - key: exporter
+                      value:
+                        stringValue: otlp
+                    - key: service_instance_id
+                      value:
+                        stringValue: 4109d2cd-6907-4e60-862b-b3ef85d76574
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.118.0-9-g261873a8c
+                  timeUnixNano: "1000000"
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: gauge
+            name: otelcol_exporter_queue_capacity
+          - description: Total physical memory (resident set size) [alpha]
+            gauge:
+              dataPoints:
+                - asDouble: 1.82636544e+08
+                  attributes:
+                    - key: service_instance_id
+                      value:
+                        stringValue: 4109d2cd-6907-4e60-862b-b3ef85d76574
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.118.0-9-g261873a8c
+                  timeUnixNano: "1000000"
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: gauge
+            name: otelcol_process_memory_rss
+          - description: Bytes of allocated heap objects (see 'go doc runtime.MemStats.HeapAlloc') [alpha]
+            gauge:
+              dataPoints:
+                - asDouble: 2.5950552e+07
+                  attributes:
+                    - key: service_instance_id
+                      value:
+                        stringValue: 4109d2cd-6907-4e60-862b-b3ef85d76574
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.118.0-9-g261873a8c
+                  timeUnixNano: "1000000"
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: gauge
+            name: otelcol_process_runtime_heap_alloc_bytes
+          - description: Total bytes of memory obtained from the OS (see 'go doc runtime.MemStats.Sys') [alpha]
+            gauge:
+              dataPoints:
+                - asDouble: 4.1506056e+07
+                  attributes:
+                    - key: service_instance_id
+                      value:
+                        stringValue: 4109d2cd-6907-4e60-862b-b3ef85d76574
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.118.0-9-g261873a8c
+                  timeUnixNano: "1000000"
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: gauge
+            name: otelcol_process_runtime_total_sys_memory_bytes
+          - description: Number of metric points successfully pushed into the pipeline. [alpha]
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: counter
+            name: otelcol_receiver_accepted_metric_points
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 319
+                  attributes:
+                    - key: receiver
+                      value:
+                        stringValue: prometheus
+                    - key: service_instance_id
+                      value:
+                        stringValue: 4109d2cd-6907-4e60-862b-b3ef85d76574
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.118.0-9-g261873a8c
+                    - key: transport
+                      value:
+                        stringValue: http
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+              isMonotonic: true
+          - description: The number of samples remaining after metric relabeling was applied
+            gauge:
+              dataPoints:
+                - asDouble: 13
+                  timeUnixNano: "1000000"
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: gauge
+            name: scrape_samples_post_metric_relabeling
+          - description: Current size of the retry queue (in batches)
+            gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: data_type
+                      value:
+                        stringValue: metrics
+                    - key: exporter
+                      value:
+                        stringValue: otlp
+                    - key: service_instance_id
+                      value:
+                        stringValue: 4109d2cd-6907-4e60-862b-b3ef85d76574
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.118.0-9-g261873a8c
+                  timeUnixNano: "1000000"
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: gauge
+            name: otelcol_exporter_queue_size
+          - description: Number of metric points in failed attempts to send to destination. [alpha]
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: counter
+            name: otelcol_exporter_send_failed_metric_points
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: exporter
+                      value:
+                        stringValue: otlp
+                    - key: service_instance_id
+                      value:
+                        stringValue: 4109d2cd-6907-4e60-862b-b3ef85d76574
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.118.0-9-g261873a8c
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+              isMonotonic: true
+          - description: Cumulative bytes allocated for heap objects (see 'go doc runtime.MemStats.TotalAlloc') [alpha]
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: counter
+            name: otelcol_process_runtime_total_alloc_bytes
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 3.8346408e+07
+                  attributes:
+                    - key: service_instance_id
+                      value:
+                        stringValue: 4109d2cd-6907-4e60-862b-b3ef85d76574
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.118.0-9-g261873a8c
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+              isMonotonic: true
+          - description: The scraping was successful
+            gauge:
+              dataPoints:
+                - asDouble: 1
+                  timeUnixNano: "1000000"
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: gauge
+            name: up
+          - description: The number of samples the target exposed
+            gauge:
+              dataPoints:
+                - asDouble: 13
+                  timeUnixNano: "1000000"
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: gauge
+            name: scrape_samples_scraped
+          - description: Number of metric points successfully sent to destination. [alpha]
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: counter
+            name: otelcol_exporter_sent_metric_points
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 319
+                  attributes:
+                    - key: exporter
+                      value:
+                        stringValue: otlp
+                    - key: service_instance_id
+                      value:
+                        stringValue: 4109d2cd-6907-4e60-862b-b3ef85d76574
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.118.0-9-g261873a8c
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+              isMonotonic: true
+          - description: The approximate number of new series in this scrape
+            gauge:
+              dataPoints:
+                - asDouble: 13
+                  timeUnixNano: "1000000"
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: gauge
+            name: scrape_series_added
+          - description: Total CPU user and system time in seconds [alpha]
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: counter
+            name: otelcol_process_cpu_seconds
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 1.11
+                  attributes:
+                    - key: service_instance_id
+                      value:
+                        stringValue: 4109d2cd-6907-4e60-862b-b3ef85d76574
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.118.0-9-g261873a8c
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+              isMonotonic: true
+          - description: Uptime of the process [alpha]
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: counter
+            name: otelcol_process_uptime
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 24.295834539
+                  attributes:
+                    - key: service_instance_id
+                      value:
+                        stringValue: 4109d2cd-6907-4e60-862b-b3ef85d76574
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.118.0-9-g261873a8c
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+              isMonotonic: true
+          - description: Number of metric points that could not be pushed into the pipeline. [alpha]
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: counter
+            name: otelcol_receiver_refused_metric_points
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: receiver
+                      value:
+                        stringValue: prometheus
+                    - key: service_instance_id
+                      value:
+                        stringValue: 4109d2cd-6907-4e60-862b-b3ef85d76574
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.118.0-9-g261873a8c
+                    - key: transport
+                      value:
+                        stringValue: http
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+              isMonotonic: true
+          - description: Duration of the scrape
+            gauge:
+              dataPoints:
+                - asDouble: 0.001270916
+                  timeUnixNano: "1000000"
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: gauge
+            name: scrape_duration_seconds
+            unit: s
+        scope:
+          name: github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver
+          version: v0.118.0-9-g261873a8c

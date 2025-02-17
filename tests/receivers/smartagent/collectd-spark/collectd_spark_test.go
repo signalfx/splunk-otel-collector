@@ -74,7 +74,7 @@ func TestCollectdSparkReceiverProvidesAllMetrics(t *testing.T) {
 		{"worker metrics", "all_worker.yaml", "all_worker_metrics_config.yaml"},
 	} {
 		t.Run(args.name, func(tt *testing.T) {
-			testutils.RunMetricsCollectionTest(t, args.collectorConfigFilename, args.resourceMetricsFilename,
+			testutils.RunMetricsCollectionTest(tt, args.collectorConfigFilename, args.resourceMetricsFilename,
 				testutils.WithCompareMetricsOptions(
 					pmetrictest.IgnoreTimestamp(),
 					pmetrictest.IgnoreStartTimestamp(),

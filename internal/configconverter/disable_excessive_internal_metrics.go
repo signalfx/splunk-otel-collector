@@ -36,8 +36,8 @@ var promScrapeConfigsKeys = []string{
 	"receivers::prometheus/collector::config::scrape_configs",
 }
 
-// The metric_relabel_configs prometheus config section to replace.
-var metricRelabelConfigsToReplace = []any{
+// metricRelabelConfigsV1 is the first version of prometheus metric_relabel_configs used in the Splunk distribution.
+var metricRelabelConfigsV1 = []any{
 	map[string]any{
 		"source_labels": []any{model.MetricNameLabel},
 		"regex":         ".*grpc_io.*",
@@ -45,7 +45,8 @@ var metricRelabelConfigsToReplace = []any{
 	},
 }
 
-var metricRelabelConfigsToSet = []any{
+// metricRelabelConfigsV2 is the second version of prometheus metric_relabel_configs used in the Splunk distribution.
+var metricRelabelConfigsV2 = []any{
 	map[string]any{
 		"source_labels": []any{model.MetricNameLabel},
 		"regex":         "otelcol_rpc_.*",
@@ -63,10 +64,23 @@ var metricRelabelConfigsToSet = []any{
 	},
 }
 
+// metricRelabelConfigsCurrent is the current version of prometheus metric_relabel_configs used in the Splunk distribution.
+var metricRelabelConfigsCurrent = []any{
+	map[string]any{
+		"source_labels": []any{model.MetricNameLabel},
+		"regex":         "promhttp_metric_handler_errors.*",
+		"action":        string(relabel.Drop),
+	},
+	map[string]any{
+		"source_labels": []any{model.MetricNameLabel},
+		"regex":         "otelcol_processor_batch_.*",
+		"action":        string(relabel.Drop),
+	},
+}
+
 // DisableExcessiveInternalMetrics updates config of the prometheus receiver scraping internal
 // collector metrics to drop excessive internal metrics matching the following patterns:
-// - "otelcol_rpc_.*"
-// - "otelcol_http_.*"
+// - "promhttp_metric_handler_errors.*"
 // - "otelcol_processor_batch_.*"
 func DisableExcessiveInternalMetrics(_ context.Context, cfgMap *confmap.Conf) error {
 	if cfgMap == nil {
@@ -103,9 +117,9 @@ func DisableExcessiveInternalMetrics(_ context.Context, cfgMap *confmap.Conf) er
 				continue // Ignore invalid metric_relabel_configs, as they will be caught by the config validation.
 			}
 
-			// Replace the metric_relabel_configs only if it's set to the old default value.
-			if len(mrcs) == 1 && reflect.DeepEqual(mrcs[0], metricRelabelConfigsToReplace[0]) {
-				sc["metric_relabel_configs"] = metricRelabelConfigsToSet
+			// Replace the metric_relabel_configs only if it's set to the old default values.
+			if reflect.DeepEqual(mrcs, metricRelabelConfigsV1) || reflect.DeepEqual(mrcs, metricRelabelConfigsV2) {
+				sc["metric_relabel_configs"] = metricRelabelConfigsCurrent
 			}
 		}
 

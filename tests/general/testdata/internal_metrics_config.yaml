@@ -6,6 +6,17 @@ receivers:
           scrape_interval: 1s
           static_configs:
             - targets: ["localhost:8888"]
+          metric_relabel_configs:
+            - source_labels: [ __name__ ]
+              regex: 'promhttp_metric_handler_errors.*'
+              action: drop
+            - source_labels: [ __name__ ]
+              regex: 'otelcol_processor_batch_.*'
+              action: drop
+
+processors:
+  batch:
+
 exporters:
   otlp:
     endpoint: "${OTLP_ENDPOINT}"
@@ -19,4 +30,5 @@ service:
   pipelines:
     metrics:
       receivers: [prometheus]
+      processors: [batch]
       exporters: [otlp]

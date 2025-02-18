@@ -76,7 +76,7 @@ type discoverer struct {
 	factories otelcol.Factories
 	// receiverID -> observerID -> config
 	unexpandedReceiverEntries map[component.ID]map[component.ID]map[string]any
-	operationalObservers      map[component.ID]otelcolextension.Extension // Only extensions successfully started should be added to this map.
+	operationalObservers      map[component.ID]component.Component // Only extensions successfully started should be added to this map.
 	logger                    *zap.Logger
 	discoveredReceivers       map[component.ID]discovery.StatusType
 	configs                   map[string]*Config
@@ -679,7 +679,7 @@ func (d *discoverer) GetFactory(kind component.Kind, componentType component.Typ
 
 // GetExtensions is a component.Host method used to forward discovery observers.
 // This method only returns operational extensions, i.e., those that have been successfully started.
-func (d *discoverer) GetExtensions() map[component.ID]otelcolextension.Extension {
+func (d *discoverer) GetExtensions() map[component.ID]component.Component {
 	return d.operationalObservers
 }
 

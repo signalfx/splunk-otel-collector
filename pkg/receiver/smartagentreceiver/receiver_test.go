@@ -409,17 +409,17 @@ func (m *mockHost) GetFactory(component.Kind, component.Type) component.Factory 
 	return nil
 }
 
-func (m *mockHost) GetExtensions() map[component.ID]otelcolextension.Extension {
+func (m *mockHost) GetExtensions() map[component.ID]component.Component {
 	exampleFactory := extensiontest.NewNopFactory()
 	randomExtensionConfig := exampleFactory.CreateDefaultConfig()
-	return map[component.ID]otelcolextension.Extension{
+	return map[component.ID]component.Component{
 		partialSettingsID: getExtension(smartagentextension.NewFactory(), m.smartagentextensionConfig),
 		component.MustNewID(exampleFactory.Type().String()): getExtension(exampleFactory, randomExtensionConfig),
 		extraSettingsID: getExtension(smartagentextension.NewFactory(), m.smartagentextensionConfigExtra),
 	}
 }
 
-func getExtension(f otelcolextension.Factory, cfg component.Config) otelcolextension.Extension {
+func getExtension(f otelcolextension.Factory, cfg component.Config) component.Component {
 	e, err := f.Create(context.Background(), otelcolextension.Settings{}, cfg)
 	if err != nil {
 		panic(err)

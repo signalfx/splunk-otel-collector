@@ -35,7 +35,6 @@ import (
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	otelcolexporter "go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/exporter/exportertest"
-	otelcolextension "go.opentelemetry.io/collector/extension"
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/pipeline"
@@ -354,7 +353,7 @@ func (h *nopHost) ReportFatalError(_ error) {}
 func (h *nopHost) GetFactory(_ component.Kind, _ component.Type) component.Factory {
 	return nil
 }
-func (h *nopHost) GetExtensions() map[component.ID]otelcolextension.Extension {
+func (h *nopHost) GetExtensions() map[component.ID]component.Component {
 	return nil
 }
 

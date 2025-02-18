@@ -95,7 +95,9 @@ func requireNoErrorExecCommand(t *testing.T, name string, arg ...string) {
 	var out strings.Builder
 	cmd.Stdout = &out
 	err := cmd.Run()
-	t.Log(out.String())
+	if out != nil {
+		t.Log(out.String())
+	}
 	require.NoError(t, err)
 }
 

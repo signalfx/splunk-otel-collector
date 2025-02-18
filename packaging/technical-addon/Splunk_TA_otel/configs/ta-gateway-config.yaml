@@ -40,10 +40,7 @@ receivers:
         - targets: ['${env:SPLUNK_LISTEN_INTERFACE}:8888']
         metric_relabel_configs:
           - source_labels: [ __name__ ]
-            regex: 'otelcol_rpc_.*'
-            action: drop
-          - source_labels: [ __name__ ]
-            regex: 'otelcol_http_.*'
+            regex: 'promhttp_metric_handler_errors.*'
             action: drop
           - source_labels: [ __name__ ]
             regex: 'otelcol_processor_batch_.*'

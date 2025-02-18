@@ -2,6 +2,94 @@
 
 ## Unreleased
 
+## v0.119.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.119.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.119.0) and the [opentelemetry-collector-contrib v0.119.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.119.0) releases where appropriate.
+
+### 🚩 Deprecations 🚩
+
+- (Contrib) `signalfxreceiver`: `access_token_passthrough` is deprecated ([#37575](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/37575))
+  Please use `include_metadata` in the receiver instead and add the following config to the batch processor:
+    ```yaml
+    batch:
+      metadata_keys: [X-Sf-Token]
+    ```
+
+### 🛑 Breaking changes 🛑
+
+- (Splunk) Deprecated ASP.NET and .NET SignalFx monitors are removed ([#5868](https://github.com/signalfx/splunk-otel-collector/pull/5868))
+- (Core) `exporters`: Rename exporter span signal specific attributes (e.g. "sent_spans" / "send_failed_span") to "items.sent" / "items.failed". ([#12165](https://github.com/open-telemetry/opentelemetry-collector/issues/12165))
+- (Core) `exporters`: Change exporter ID to be a Span level attribute instead on each event. ([#12164](https://github.com/open-telemetry/opentelemetry-collector/issues/12164))
+
+### 💡 Enhancements 💡
+
+- (Core) `configtls`: Allow users to mention their preferred curve types for ECDHE handshake ([#12174](https://github.com/open-telemetry/opentelemetry-collector/issues/12174))
+- (Contrib) `processor/transformprocessor`: Add support for flat configuration style. ([#29017](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29017))
+
+  The flat configuration style allows users to configure statements by providing a list of statements instead of a
+  structured configuration map. The statement's context is expressed by adding the context's name prefix to path names,
+  which are used to infer and to select the appropriate context for the statement.
+
+- (Contrib) `receiver/httpcheck`: Added support for specifying multiple endpoints in the `httpcheckreceiver` using the `endpoints` field. Users can now monitor multiple URLs with a single configuration block, improving flexibility and reducing redundancy. ([#37121](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/37121))
+- (Contrib) `processor/resourcedetection`: Expose additional configuration parameters for the AWS metadata client used by the EC2 detector ([#35936](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/35936))
+
+  In some cases, you might need to change the behavior of the AWS metadata client from the [standard retryer](https://docs.aws.amazon.com/sdk-for-go/v2/developer-guide/configure-retries-timeouts.html)
+  By default, the client retries 3 times with a max backoff delay of 20s.
+  We offer a limited set of options to override those defaults specifically, such that you can set the client to retry 10 times, for up to 5 minutes, for example:
+  ```yaml
+  processors:
+    resourcedetection/ec2:
+      detectors: ["ec2"]
+      ec2:
+        max_attempts: 10
+        max_backoff: 5m
+  ```
+
+- (Contrib) `processor/cumulativetodelta`: Add metric type filter for cumulativetodelta processor ([#33673](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/33673))
+- (Contrib) `processor/resourcedetection`: Add `fail_on_missing_metadata` option on EC2 detector ([#35936](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/35936))
+
+  If the EC2 metadata endpoint is unavailable, the EC2 detector by default ignores the error.
+  By setting `fail_on_missing_metadata` to true on the detector, the user will now trigger an error explicitly,
+  which will stop the collector from starting.
+
+- (Contrib) `processor/resourcedetection`: The `gcp` resource detector will now detect resource attributes identifying a GCE instance's managed instance group. ([#36142](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/36142))
+- (Contrib) `receiver/jaeger`: Log the endpoints of different servers started by jaegerreceiver ([#36961](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/36961))
+
+  This change logs the endpoints of different servers started by jaegerreceiver. It simplifies debugging by ensuring log messages match configuration settings.
+
+- (Contrib) `receiver/hostmetrics/process`: Added support for tracking process.uptime ([#36667](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/36667))
+- (Contrib) `receiver/googlecloudpubsub`: Added support for encoding extensions. ([#37109](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/37109))
+- (Contrib) `processor/transform`: Replace parser collection implementations with `ottl.ParserCollection` and add initial support for expressing statement's context via path names. ([#29017](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29017))
+- (Contrib) `receiver/prometheus`: Add `receiver.prometheusreceiver.UseCollectorStartTimeFallback` featuregate for the start time metric adjuster to use the collector start time as an approximation of process start time as a fallback. ([#36364](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/36364))
+- (Contrib) `processor/tailsampling`: Reworked the consume traces, sampling decision, and policy loading paths to improve performance and readability ([#37560](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/37560))
+
+### 🧰 Bug fixes 🧰
+
+- (Core) `exporters`: Fix bug that the exporter with new batcher may have been marked as non mutation. ([#12239](https://github.com/open-telemetry/opentelemetry-collector/issues/12239))
+  Only affects users that manually turned on `exporter.UsePullingBasedExporterQueueBatcher` featuregate.
+- (Core) `exporters`: Fix MergeSplit issue that ignores the initial message size. ([#12257](https://github.com/open-telemetry/opentelemetry-collector/issues/12257))
+- (Core) `service-telemetry`: pass the missing async error channel into service telemetry settings ([#11417](https://github.com/open-telemetry/opentelemetry-collector/issues/11417))
+- (Contrib) `receiver/filelog`: Fix issue where flushed tokens could be truncated. ([#35042](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/35042))
+- (Contrib) `connector/routing`: Fix config validation with context other than `resource` ([#37410](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/37410))
+- (Contrib) `processor/k8sattributes`: Wait for the other informers to complete their initial sync before starting the pod informers ([#37056](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/37056))
+- (Contrib) `processor/metricsgeneration`: Generated metric name may not match metric being scaled ([#37474](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/37474))
+- (Contrib) `connector/routing`: The connector splits the original payload so that it may be emitted in parts to each route. ([#37390](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/37390))
+- (Contrib) `pkg/stanza`: Fix default source identifier in recombine operator ([#37210](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/37210))
+  Its default value is now aligned with the semantic conventions: `attributes["log.file.path"]`
+- (Contrib) `processor/tailsampling`: Fixed sampling decision metrics `otelcol_processor_tail_sampling_sampling_trace_dropped_too_early` and `otelcol_processor_tail_sampling_sampling_policy_evaluation_error_total`, these were sometimes overcounted. ([#37212](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/37212))
+
+  As a result of this change non-zero values of `otelcol_processor_tail_sampling_sampling_trace_dropped_too_early`
+  and `otelcol_processor_tail_sampling_sampling_policy_evaluation_error_total` metrics will be lower.
+  Before this fix, errors got counted several times depending on the amount of traces being processed
+  that tick and where in the batch the error happened.
+  Zero values are unaffected.
+
+- (Contrib) `exporter/signalfx`: Warn on dropping metric data points when they have more than allowed dimension count ([#37484](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/37484))
+  
+  The SignalFx exporter drops metric data points if they have more than 36 dimensions.
+  Currently, the exporter logs at debug level when this occurs.
+  With this change, the exporter will log at the warning level.
+
 ## v0.118.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.118.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.118.0) and the [opentelemetry-collector-contrib v0.118.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.118.0) releases where appropriate.

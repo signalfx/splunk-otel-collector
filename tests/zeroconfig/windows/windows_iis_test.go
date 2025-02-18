@@ -17,7 +17,6 @@
 package zeroconfig
 
 import (
-	"fmt"
 	"net/http"
 	"os/exec"
 	"path"
@@ -100,40 +99,22 @@ func requireNoErrorExecCommand(t *testing.T, name string, arg ...string) {
 	require.NoError(t, err)
 }
 
-// Returns status code of 0 when an error is hit. The error contains useful information
-// when the status code is 0.
-func checkHTTPGetRequest(t *testing.T, url string) (int, error) {
-	httpClient := &http.Client{}
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return 0, err
-	}
-	resp, err := httpClient.Do(req)
-	if err != nil {
-		return 0, err
-	}
-
-	defer resp.Body.Close()
-	return resp.StatusCode, err
-}
-
 func testExpectedTracesForHTTPGetRequest(t *testing.T, otlp *testutils.OTLPReceiverSink, url string, expectedTracesFileName string) {
+	assert.EventuallyWithT(t,
+		func(c *assert.CollectT) {
+			httpClient := &http.Client{}
+			req, err := http.NewRequest("GET", url, nil)
+			assert.NoError(c, err)
+			resp, err := httpClient.Do(req)
+			assert.NoError(c, err)
+			defer resp.Body.Close()
+			assert.Equal(c, http.StatusOK, resp.StatusCode)
+		}, 3*time.Minute, 10*time.Millisecond, "Time ran out before successful GET request from server.")
+
 	expected, err := golden.ReadTraces(expectedTracesFileName)
 	require.NoError(t, err)
 
 	assert.Eventually(t, func() bool {
-		status, err := checkHTTPGetRequest(t, url)
-		if err != nil || status != http.StatusOK {
-			// Check err first as status code will be set to 0 upon error, which also enters this
-			// if statement
-			if err != nil {
-				t.Log(err)
-			} else {
-				t.Log(fmt.Sprintf("Expected status code %i, received %i. Retrying.", http.StatusOK, status))
-			}
-			return false
-		}
-
 		if otlp.SpanCount() == 0 {
 			return false
 		}

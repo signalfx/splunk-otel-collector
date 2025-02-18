@@ -122,7 +122,7 @@ func testExpectedTracesForHTTPGetRequest(t *testing.T, otlp *testutils.OTLPRecei
 	require.NoError(t, err)
 
 	assert.Eventually(t, func() bool {
-		status, err := checkHTTPGetRequestSuccess(t, url)
+		status, err := checkHTTPGetRequest(t, url)
 		if err != nil || status != http.StatusOK {
 			// Check err first as status code will be set to 0 upon error, which also enters this
 			// if statement

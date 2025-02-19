@@ -1,1 +1,1 @@
-FROM envoyproxy/envoy:v1.32-latest
+FROM envoyproxy/envoy:v1.33-latest

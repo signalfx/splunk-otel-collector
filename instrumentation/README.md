@@ -1,6 +1,6 @@
-# Splunk OpenTelemetry Zero Configuration Auto Instrumentation for Linux
+# Splunk OpenTelemetry Instrumentation Automatic Configuration for Linux
 
-The **Splunk OpenTelemetry Zero Configuration Auto Instrumentation for Linux** Debian/RPM package
+The **Splunk OpenTelemetry Instrumentation Automatic Configuration for Linux** Debian/RPM package
 (`splunk-otel-auto-instrumentation`) installs Splunk OpenTelemetry Auto Instrumentation agents, the `libsplunk.so`
 shared object library, and default/sample configuration files to automatically instrument applications and services to
 capture and report distributed traces and metrics to the [Splunk OpenTelemetry Collector](

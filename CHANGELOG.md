@@ -4,7 +4,7 @@
 
 ### 🛑 Breaking changes 🛑
 
-- (all) Bump minimum go version to 1.23
+- (all) Bump minimum go version to 1.23 ([#5920](https://github.com/signalfx/splunk-otel-collector/pull/5920))
 
 ## v0.119.0
 

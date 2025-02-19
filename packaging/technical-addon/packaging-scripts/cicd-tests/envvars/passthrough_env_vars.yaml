@@ -1,0 +1,75 @@
+receivers:
+  hostmetrics:
+    collection_interval: 10s
+    scrapers:
+      cpu:
+
+processors:
+  resource:
+    attributes:
+      - action: "insert"
+        key: "given"
+        value: "helloworld"
+      - action: "insert"
+        key: "GOMEMLIMIT"
+        value: "${env:GOMEMLIMIT}"
+      - action: "insert"
+        key: "SPLUNK_API_URL"
+        value: "${env:SPLUNK_API_URL}"
+      - action: "insert"
+        key: "SPLUNK_BUNDLE_DIR"
+        value: "${env:SPLUNK_BUNDLE_DIR}"
+      - action: "insert"
+        key: "SPLUNK_CONFIG"
+        value: "${env:SPLUNK_CONFIG}"
+      - action: "insert"
+        key: "SPLUNK_CONFIG_DIR"
+        value: "${env:SPLUNK_CONFIG_DIR}"
+      - action: "insert"
+        key: "SPLUNK_DEBUG_CONFIG_SERVER"
+        value: "${env:SPLUNK_DEBUG_CONFIG_SERVER}"
+      - action: "insert"
+        key: "SPLUNK_CONFIG_YAML"
+        value: "${env:SPLUNK_CONFIG_YAML}"
+      - action: "insert"
+        key: "SPLUNK_GATEWAY_URL"
+        value: "${env:SPLUNK_GATEWAY_URL}"
+      - action: "insert"
+        key: "SPLUNK_HEC_URL"
+        value: "${env:SPLUNK_HEC_URL}"
+      - action: "insert"
+        key: "SPLUNK_LISTEN_INTERFACE"
+        value: "${env:SPLUNK_LISTEN_INTERFACE}"
+      - action: "insert"
+        key: "SPLUNK_MEMORY_LIMIT_MIB"
+        value: "${env:SPLUNK_MEMORY_LIMIT_MIB}"
+      - action: "insert"
+        key: "SPLUNK_MEMORY_TOTAL_MIB"
+        value: "${env:SPLUNK_MEMORY_TOTAL_MIB}"
+      - action: "insert"
+        key: "SPLUNK_OTEL_LOG_FILE_NAME"
+        value: "${env:SPLUNK_OTEL_LOG_FILE_NAME}"
+      - action: "insert"
+        key: "SPLUNK_INGEST_URL"
+        value: "${env:SPLUNK_INGEST_URL}"
+      - action: "insert"
+        key: "SPLUNK_REALM"
+        value: "${env:SPLUNK_REALM}"
+      - action: "insert"
+        key: "SPLUNK_ACCESS_TOKEN_FILE"
+        value: "${env:SPLUNK_ACCESS_TOKEN_FILE}"
+
+
+exporters:
+  debug:
+    verbosity: detailed
+
+service:
+  telemetry:
+    logs:
+      level: debug
+  pipelines:
+    logs:
+      receivers: ["hostmetrics"]
+      exporters: ["resource"]
+      exporters: ["debug"]

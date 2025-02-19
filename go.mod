@@ -201,7 +201,7 @@ require (
 	github.com/ProtonMail/go-crypto v1.0.0 // indirect
 	github.com/antchfx/xmlquery v1.4.3 // indirect
 	github.com/antchfx/xpath v1.3.3 // indirect
-	github.com/apache/arrow/go/v15 v15.0.0 // indirect
+	github.com/apache/arrow/go/v16 v16.0.0 // indirect
 	github.com/apache/pulsar-client-go v0.14.0 // indirect
 	github.com/aws/aws-msk-iam-sasl-signer-go v1.0.0 // indirect
 	github.com/aws/aws-sdk-go-v2/config v1.29.2 // indirect
@@ -479,7 +479,7 @@ require (
 	github.com/evanphx/json-patch/v5 v5.9.0 // indirect
 	github.com/fatih/color v1.17.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
-	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
+	github.com/gabriel-vasile/mimetype v1.4.7 // indirect
 	github.com/go-kit/log v0.2.1 // indirect
 	github.com/go-logfmt/logfmt v0.6.0 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
@@ -629,7 +629,7 @@ require (
 	github.com/signalfx/sapm-proto v0.17.0 // indirect
 	github.com/sijms/go-ora/v2 v2.8.23 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
-	github.com/snowflakedb/gosnowflake v1.12.0 // indirect
+	github.com/snowflakedb/gosnowflake v1.13.0 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/spf13/cobra v1.8.1 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect

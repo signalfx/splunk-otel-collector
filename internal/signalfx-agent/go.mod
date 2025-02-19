@@ -1,8 +1,6 @@
 module github.com/signalfx/signalfx-agent
 
-go 1.22.5
-
-toolchain go1.22.7
+go 1.23.0
 
 replace (
 	code.cloudfoundry.org/go-loggregator => github.com/signalfx/go-loggregator v1.0.1-0.20200205155641-5ba5ca92118d

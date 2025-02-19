@@ -18,7 +18,7 @@ on:
       - '!packaging/**'
 
 env:
-  GO_VERSION: '1.22.10'
+  GO_VERSION: '1.23.6'
 
 concurrency:
   group: windows-test-${{ github.event.pull_request.number || github.ref }}

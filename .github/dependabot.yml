@@ -137,6 +137,10 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "docker"
+    directory: "/docker/envoy"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker"
     directory: "/docker/haproxy"
     schedule:
       interval: "weekly"

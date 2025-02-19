@@ -15,7 +15,6 @@
 #!/bin/bash
 
 set -euo pipefail
-set -x
 
 # This script is used to deploy the Splunk distribution of the OpenTelemetry Collector
 # on the current node of a Databricks cluster. Through UI configuration the script will
@@ -30,8 +29,8 @@ set -x
 #   Directions for creating a PAT: https://docs.databricks.com/en/dev-tools/auth/pat.html
 
 # Optional Variables:
-# - OTEL_VERSION: Version of the Splunk OpenTelemetry Collector to deploy as a part of this release.
-#   Default: "latest". Valid version must be >=0.120.0.
+# - SPLUNK_OTEL_VERSION: Version of the Splunk OpenTelemetry Collector to deploy as a part of this release.
+#   Default: "latest". Valid version must be >=0.119.0.
 # - SCRIPT_DIR: Installation path for the Collector and its config
 # - SPLUNK_REALM: Splunk o11y realm to send data to. Default: us0
 
@@ -49,39 +48,58 @@ if [ -z "${SPLUNK_ACCESS_TOKEN}" ]; then
   exit 1
 fi
 
-if [ -z "${SDATABRICKS_ACCESS_TOKEN}" ]; then
+if [ -z "${DATABRICKS_ACCESS_TOKEN}" ]; then
   echo "environment variable 'DATABRICKS_ACCESS_TOKEN' must be set, exiting."
+  exit 1
 fi
 
-
-OTEL_VERSION=${OTEL_VERSION:-latest}
+SPLUNK_OTEL_VERSION=${SPLUNK_OTEL_VERSION:-latest}
 OS="linux_amd64"
-OTEL_BINARY_NAME="splunk_otel_collector"
-OTEL_DOWNLOAD_BASE_URL="https://github.com/signalfx/splunk-otel-collector/releases"
-OTEL_API_URL="https://api.github.com/repos/signalfx/splunk-otel-collector/releases/latest"
+SPLUNK_OTEL_BINARY_NAME="splunk_otel_collector"
+SPLUNK_OTEL_DOWNLOAD_BASE_URL="https://github.com/signalfx/splunk-otel-collector/releases"
+SPLUNK_OTEL_API_URL="https://api.github.com/repos/signalfx/splunk-otel-collector/releases/latest"
 SCRIPT_DIR=${SCRIPT_DIR:-/tmp/collector_download}
 CONFIG_FILENAME="config.yaml"
-OTEL_BINARY_FILE="$SCRIPT_DIR/$OTEL_BINARY_NAME"
+SPLUNK_OTEL_BINARY_FILE="$SCRIPT_DIR/$SPLUNK_OTEL_BINARY_NAME"
 CONFIG_FILE="$SCRIPT_DIR/$CONFIG_FILENAME"
 SERVICE_PATH="/etc/systemd/system/"
-SERVICE_FILE="$SERVICE_PATH/$OTEL_BINARY_NAME.service"
+SERVICE_FILE="$SERVICE_PATH/$SPLUNK_OTEL_BINARY_NAME.service"
 
-if [ $OTEL_VERSION = "latest" ]; then
-        OTEL_VERSION=$(curl --silent "$OTEL_API_URL" |    # Get latest Collector release from GitHub api
+if [ $SPLUNK_OTEL_VERSION = "latest" ]; then
+        SPLUNK_OTEL_VERSION=$(curl --silent "$SPLUNK_OTEL_API_URL" |    # Get latest Collector release from GitHub api
             grep '"tag_name":' |                          # Get tag name line
             sed -E 's/.*"([^"]+)".*/\1/')                 # Pluck latest release version
-        if [ -z "$OTEL_VERSION" ]; then
-            echo "Failed to get tag_name for latest release from $OTEL_VERSION/latest" >&2
+        if [ -z "$SPLUNK_OTEL_VERSION" ]; then
+            echo "Failed to get tag_name for latest release from $SPLUNK_OTEL_VERSION/latest" >&2
             exit 1
         fi
 fi
 
-OTEL_BINARY_DOWNLOAD_URL=${OTEL_DOWNLOAD_BASE_URL}/download/${OTEL_VERSION}/otelcol_${OS}
-
-# Download Splunk's distribution of the OpenTelemetry Collector
+SPLUNK_OTEL_BINARY_DOWNLOAD_URL="${SPLUNK_OTEL_DOWNLOAD_BASE_URL}/download/${SPLUNK_OTEL_VERSION}/otelcol_${OS}"
 mkdir -p "$SCRIPT_DIR"
-wget -nv -O "$OTEL_BINARY_FILE" $OTEL_BINARY_DOWNLOAD_URL
-chmod +x "$OTEL_BINARY_FILE"
+INSTALLED_SPLUNK_OTEL_VERSION=""
+
+if [ -f $SPLUNK_OTEL_BINARY_FILE ]; then
+  # Output of `otelcol --version` is of the form:
+  # otelcol version vX.X.X
+  # Capture output of `otelcol --version` as an array, then extract version
+  INSTALLED_SPLUNK_OTEL_VERSION=($($SPLUNK_OTEL_BINARY_FILE --version))
+  INSTALLED_SPLUNK_OTEL_VERSION=${INSTALLED_SPLUNK_OTEL_VERSION[2]}
+fi
+
+if [ ! -f $SPLUNK_OTEL_BINARY_FILE ] || [ $INSTALLED_SPLUNK_OTEL_VERSION != $SPLUNK_OTEL_VERSION ]; then
+  # If the binary is already installed it's the wrong version and it needs to be removed before downloading again
+  # to avoid "Text file busy" errors
+  if [ -f $SPLUNK_OTEL_BINARY_FILE ]; then
+    rm "$SPLUNK_OTEL_BINARY_FILE"
+  fi
+
+  # Download Splunk's distribution of the OpenTelemetry Collector
+  curl --output "$SPLUNK_OTEL_BINARY_FILE" $SPLUNK_OTEL_BINARY_DOWNLOAD_URL || { echo "Failed to download $OTEL_BINARY_DOWNLOAD_URL"; exit 1; }
+  chmod +x "$SPLUNK_OTEL_BINARY_FILE"
+else
+  echo "Splunk OpenTelemetry Collector '${SPLUNK_OTEL_VERSION}' is already installed"
+fi
 
 # The Spark receiver should only be run in one instance per-Cluster. Run
 # it on the driver node, as there's one per-cluster.
@@ -96,7 +114,7 @@ fi
 collector_config="
 extensions:
   bearertokenauth:
-    token: "$DATABRICKS_ACCESS_TOKEN"
+    token: $DATABRICKS_ACCESS_TOKEN
 
 receivers:
   apachespark:
@@ -155,7 +173,7 @@ Type=simple
 Restart=always
 RestartSec=1
 User=root
-ExecStart=$OTEL_BINARY_FILE --config $CONFIG_FILE
+ExecStart=$SPLUNK_OTEL_BINARY_FILE --config $CONFIG_FILE
 
 [Install]
 WantedBy=multi-user.target
@@ -165,6 +183,6 @@ echo "$collector_service" > $SERVICE_FILE
 chmod 755 $SERVICE_FILE
 
 # The collector is run as a service on the current node
-systemctl start $OTEL_BINARY_NAME
+systemctl start $SPLUNK_OTEL_BINARY_NAME
 
 exit 0

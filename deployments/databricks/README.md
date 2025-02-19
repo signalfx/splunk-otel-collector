@@ -39,7 +39,7 @@ or by directly setting the values in the init script itself.
 
 #### Optional Environment Variables
 
-1. `OTEL_VERSION` - Version of the Splunk distribution of the OpenTelemetry Collector to deploy. Default: `latest`
+1. `SPLUNK_OTEL_VERSION` - Version of the Splunk distribution of the OpenTelemetry Collector to deploy. Default: `latest`
 1. `SPLUNK_REALM` - [Splunk Observability Cloud realm](https://docs.splunk.com/observability/en/get-started/service-description.html#sd-regions)
 to send data to. Default: `us0`
 1. `SCRIPT_DIR` - Installation path for the Collector and its config on a Databricks node. Default: `/tmp/collector_download`

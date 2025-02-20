@@ -266,7 +266,7 @@ jobs:
         uses: docker/setup-qemu-action@v3
         with:
           platforms: arm64,ppc64le
-          image: tonistiigi/binfmt:qemu-v7.0.0
+          image: tonistiigi/binfmt:qemu-v9.2.0
 
       - name: Downloading binaries-linux_amd64
         uses: actions/download-artifact@v4

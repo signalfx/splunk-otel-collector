@@ -6,6 +6,10 @@
 
 - (all) Bump minimum go version to 1.23 ([#5920](https://github.com/signalfx/splunk-otel-collector/pull/5920))
 
+### 🚀 New components 🚀
+
+- (Splunk) Add `influxdb` receiver ([#](https://github.com/signalfx/splunk-otel-collector/pull/))
+
 ## v0.119.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.119.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.119.0) and the [opentelemetry-collector-contrib v0.119.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.119.0) releases where appropriate.

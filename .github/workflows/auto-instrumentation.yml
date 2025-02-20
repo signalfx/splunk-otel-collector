@@ -67,7 +67,7 @@ jobs:
         if: ${{ matrix.ARCH != 'amd64' }}
         with:
           platforms: ${{ matrix.ARCH }}
-          image: tonistiigi/binfmt:qemu-v7.0.0
+          image: tonistiigi/binfmt:qemu-v9.2.0
 
       - name: Run tests
         run: make -C instrumentation tests ARCH=${{ matrix.ARCH }}
@@ -143,7 +143,7 @@ jobs:
         if: ${{ matrix.ARCH != 'amd64' }}
         with:
           platforms: ${{ matrix.ARCH }}
-          image: tonistiigi/binfmt:qemu-v7.0.0
+          image: tonistiigi/binfmt:qemu-v9.2.0
 
       - name: Setup python
         uses: actions/setup-python@v5

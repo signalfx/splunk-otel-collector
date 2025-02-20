@@ -14,6 +14,9 @@ rm -rf "$ADDON_DIR/$REPACKED_TA_NAME"
 echo 'splunk_config=$SPLUNK_OTEL_TA_HOME/configs/passthrough_env_vars.yaml' >> "$ADDON_DIR/Splunk_TA_otel/local/inputs.conf"
 echo 'gomemlimit=512MiB' >> "$ADDON_DIR/Splunk_TA_otel/local/inputs.conf"
 #echo 'splunk_config_dir=$SPLUNK_OTEL_TA_HOME/configs/' >> "$ADDON_DIR/Splunk_TA_otel/local/inputs.conf"
+echo 'splunk_debug_config_server=test_notused' >> "$ADDON_DIR/Splunk_TA_otel/local/inputs.conf"
+echo 'splunk_hec_url=test_notused' >> "$ADDON_DIR/Splunk_TA_otel/local/inputs.conf"
+echo 'splunk_gateway_url=test_notused' >> "$ADDON_DIR/Splunk_TA_otel/local/inputs.conf"
 cp "$SOURCE_DIR/packaging-scripts/cicd-tests/envvars/passthrough_env_vars.yaml" "$ADDON_DIR/Splunk_TA_otel/configs/"
 tar -C "$ADDON_DIR" -hcz --file "$TA_FULLPATH" "Splunk_TA_otel"
 
@@ -22,10 +25,7 @@ echo "Testing with hot TA $TA_FULLPATH ($ADDON_DIR and $REPACKED_TA_NAME)"
 DOCKER_COMPOSE_CONFIG="$SOURCE_DIR/packaging-scripts/cicd-tests/envvars/docker-compose.yml"
 REPACKED_TA_NAME=$REPACKED_TA_NAME ADDON_DIR=$ADDON_DIR docker compose --file "$DOCKER_COMPOSE_CONFIG" up --build --force-recreate --wait --detach --timestamps
 
-echo "starting"
 docker exec -u root envvars-ta-test-envvars-1 /opt/splunk/bin/splunk btool check --debug | grep -qi "Invalid key in stanza" && exit 1
-echo "started"
-#docker exec -it -u root envvars-ta-test-envvars-1 /bin/bash
 
 MAX_ATTEMPTS=6
 DELAY=10
@@ -44,29 +44,20 @@ while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
     fi
 done
 
-#docker exec -it -u root envvars-ta-test-envvars-1 /bin/bash
 echo "checking env vars"
-echo "checking 1"
 docker exec -u root envvars-ta-test-envvars-1 grep -qi 'envvartest_given: Str(helloworld)' /opt/splunk/var/log/splunk/otel.log
-echo "checking 1"
 docker exec -u root envvars-ta-test-envvars-1 grep -qi 'envvartest_GOMEMLIMIT: Str(512MiB)' /opt/splunk/var/log/splunk/otel.log
-echo "checking 1"
 docker exec -u root envvars-ta-test-envvars-1 grep -qi 'envvartest_SPLUNK_ACCESS_TOKEN_FILE: Str(/opt/splunk/etc/apps/Splunk_TA_otel/local/access_token)' /opt/splunk/var/log/splunk/otel.log
-echo "checking 1"
 docker exec -u root envvars-ta-test-envvars-1 grep -qi 'envvartest_SPLUNK_API_URL: Str(https://api.us0.signalfx.com)' /opt/splunk/var/log/splunk/otel.log
-echo "checking 1"
 docker exec -u root envvars-ta-test-envvars-1 grep -qi 'envvartest_SPLUNK_BUNDLE_DIR: Str(/opt/splunk/etc/apps/Splunk_TA_otel/linux_x86_64/bin/agent-bundle)' /opt/splunk/var/log/splunk/otel.log
-echo "checking 1"
 docker exec -u root envvars-ta-test-envvars-1 grep -qi 'envvartest_SPLUNK_COLLECTD_DIR: Str(/opt/splunk/etc/apps/Splunk_TA_otel/linux_x86_64/bin/agent-bundle/run/collectd)' /opt/splunk/var/log/splunk/otel.log
-echo "checking 1"
 docker exec -u root envvars-ta-test-envvars-1 grep -qi 'envvartest_SPLUNK_CONFIG: Str(/opt/splunk/etc/apps/Splunk_TA_otel/configs/passthrough_env_vars.yaml)' /opt/splunk/var/log/splunk/otel.log
-echo "checking 1"
+docker exec -u root envvars-ta-test-envvars-1 grep -qi 'envvartest_SPLUNK_DEBUG_CONFIG_SERVER: Str(test_notused)' /opt/splunk/var/log/splunk/otel.log
+docker exec -u root envvars-ta-test-envvars-1 grep -qi 'envvartest_SPLUNK_GATEWAY_URL: Str(test_notused)' /opt/splunk/var/log/splunk/otel.log
+docker exec -u root envvars-ta-test-envvars-1 grep -qi 'envvartest_SPLUNK_HEC_URL: Str(test_notused)' /opt/splunk/var/log/splunk/otel.log
 docker exec -u root envvars-ta-test-envvars-1 grep -qi 'envvartest_SPLUNK_INGEST_URL: Str(https://ingest.us0.signalfx.com)' /opt/splunk/var/log/splunk/otel.log
-echo "checking 1"
 docker exec -u root envvars-ta-test-envvars-1 grep -qi 'envvartest_SPLUNK_LISTEN_INTERFACE: Str(localhost)' /opt/splunk/var/log/splunk/otel.log
-echo "checking 1"
 docker exec -u root envvars-ta-test-envvars-1 grep -qi 'envvartest_SPLUNK_OTEL_LOG_FILE_NAME: Str(/opt/splunk/var/log/splunk/otel.log)' /opt/splunk/var/log/splunk/otel.log
-echo "checking 1"
 docker exec -u root envvars-ta-test-envvars-1 grep -qi 'envvartest_SPLUNK_REALM: Str(us0)' /opt/splunk/var/log/splunk/otel.log
 
 REPACKED_TA_NAME=$REPACKED_TA_NAME BUILD_DIR=$BUILD_DIR ADDON_DIR=$ADDON_DIR docker compose --file "$DOCKER_COMPOSE_CONFIG" down

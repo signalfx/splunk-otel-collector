@@ -1683,8 +1683,11 @@ parse_args_and_install() {
   fi
 
   if [ ! -f "${collector_env_path}.example" ]; then
+    echo "[DEBUG] Didn't find collector_env_path.example, using old path"
     collector_env_path=$collector_env_old_path
   fi
+
+  echo "Collector_env_path: $collector_env_path"
 
   mkdir -p "$(dirname $collector_env_path)"
 

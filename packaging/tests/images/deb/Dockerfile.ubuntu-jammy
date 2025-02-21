@@ -1,5 +1,5 @@
 # A ubuntu image with systemd enabled.  Must be run with:
-# `-d --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro` flags
+# `-d --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:rw` flags
 FROM ubuntu:jammy
 
 ENV DEBIAN_FRONTEND noninteractive

@@ -95,7 +95,7 @@ def run_distro_container(distro, arch="amd64", dockerfile=None, path=TESTS_DIR, 
         volumes={"/sys/fs/cgroup": {"bind": "/sys/fs/cgroup", "mode": "rw"}},
         platform=f"linux/{arch}",
         cgroupns="host",
-        mem_limit="128m",
+        mem_limit="128g",
     )
 
     try:

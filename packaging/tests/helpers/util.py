@@ -84,6 +84,7 @@ def run_distro_container(distro, arch="amd64", dockerfile=None, path=TESTS_DIR, 
             forcerm=True,
             platform=f"linux/{arch}",
             buildargs=buildargs,
+            mem_limit="128m",
         ),
         docker.errors.BuildError,
     )

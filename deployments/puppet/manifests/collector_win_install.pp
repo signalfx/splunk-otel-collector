@@ -3,12 +3,12 @@ class splunk_otel_collector::collector_win_install ($repo_url, $version, $packag
   contain 'splunk_otel_collector::collector_win_config_options'
 
   $msi_name = "splunk-otel-collector-${version}-amd64.msi"
-  $collector_path = "${$facts['win_programfiles']}\\Splunk\\OpenTelemetry Collector\\otelcol.exe"
+  $collector_path = "$win_programfiles\\Splunk\\OpenTelemetry Collector\\otelcol.exe"
   $registry_key = 'HKLM\SYSTEM\CurrentControlSet\Services\splunk-otel-collector'
 
   # Only download and install if not already installed or version does not match
-  if $win_collector_path != $collector_path or $facts['win_collector_version'] != $version {
-    $msi_file_path_backslashes = "${::win_temp}\\${msi_name}"
+  if $win_collector_path != $collector_path or ${win_collector_version} != $version {
+    $msi_file_path_backslashes = "${win_temp}\\${msi_name}"
     $msi_file_path = regsubst($msi_file_path_backslashes, '\\\\', '/', 'G')
     file { "${msi_file_path}":
       source => "${repo_url}/${msi_name}"

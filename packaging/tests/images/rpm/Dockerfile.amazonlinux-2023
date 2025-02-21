@@ -4,6 +4,8 @@ FROM amazonlinux:2023
 
 ENV container docker
 
+RUN yum clean all
+RUN yum update
 RUN yum install -y procps initscripts systemd wget tar ruby-devel
 
 RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i = \

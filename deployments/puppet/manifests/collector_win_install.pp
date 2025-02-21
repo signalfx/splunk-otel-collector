@@ -8,14 +8,14 @@ class splunk_otel_collector::collector_win_install ($repo_url, $version, $packag
 
   # Only download and install if not already installed or version does not match
   if $facts['win_collector_path'] != $collector_path or $facts['win_collector_version'] != $version {
-    $file_path = regsubst("${$facts['win_temp']}/${msi_name}", \\, /\//, 'G')
-    file { $file_path:
+    $msi_file_path = regsubst("${$facts['win_temp']}/${msi_name}", \\, "///", 'G')
+    file { $msi_file_path:
       source => "${repo_url}/${msi_name}"
     }
 
     -> package { $package_name:
       ensure          => $version,
-      source          => "${$facts['win_temp']}\\${msi_name}",
+      source          => $msi_file_path,
       require         => Class['splunk_otel_collector::collector_win_config_options'],
       # If the MSI is not configurable, the install_options below will be ignored during installation.
       install_options => $splunk_otel_collector::collector_win_config_options::collector_env_vars,

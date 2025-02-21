@@ -24,7 +24,7 @@ class splunk_otel_collector::params {
 
   } elsif $facts['os']['family'] == 'windows' {
     $collector_version = ''
-    $collector_install_dir = "${::win_programfiles}\\Splunk\\OpenTelemetry Collector"
+    $collector_install_dir = "$facts['win_programfiles']\\Splunk\\OpenTelemetry Collector"
     $collector_config_dir = "${::win_programdata}\\Splunk\\OpenTelemetry Collector"
     $splunk_bundle_dir = "${collector_install_dir}\\agent-bundle"
     $splunk_collectd_dir = "${splunk_bundle_dir}\\run\\collectd"

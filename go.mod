@@ -80,6 +80,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver v0.119.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/httpcheckreceiver v0.119.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/iisreceiver v0.119.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/influxdbreceiver v0.119.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver v0.119.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver v0.119.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/journaldreceiver v0.119.0
@@ -269,6 +270,9 @@ require (
 	github.com/hashicorp/mdns v1.0.5 // indirect
 	github.com/hashicorp/nomad/api v0.0.0-20241209202624-6a41dc7b2f1f // indirect
 	github.com/hetznercloud/hcloud-go/v2 v2.10.2 // indirect
+	github.com/influxdata/influxdb-observability/common v0.5.12 // indirect
+	github.com/influxdata/influxdb-observability/influx2otel v0.5.12 // indirect
+	github.com/influxdata/line-protocol/v2 v2.2.1 // indirect
 	github.com/influxdata/telegraf v1.30.1 // indirect
 	github.com/influxdata/wlog v0.0.0-20160411224016-7c63b0a71ef8 // indirect
 	github.com/ionos-cloud/sdk-go/v6 v6.1.11 // indirect

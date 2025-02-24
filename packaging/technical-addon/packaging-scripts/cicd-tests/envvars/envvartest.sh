@@ -49,19 +49,23 @@ while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
 done
 
 echo "checking env vars"
-docker exec -u root envvars-ta-test-envvars-1 grep -qi 'envvartest_given: Str(helloworld)' /opt/splunk/var/log/splunk/otel.log
-docker exec -u root envvars-ta-test-envvars-1 grep -qi 'envvartest_GOMEMLIMIT: Str(512MiB)' /opt/splunk/var/log/splunk/otel.log
-docker exec -u root envvars-ta-test-envvars-1 grep -qi 'envvartest_SPLUNK_ACCESS_TOKEN_FILE: Str(/opt/splunk/etc/apps/Splunk_TA_otel/local/access_token)' /opt/splunk/var/log/splunk/otel.log
-docker exec -u root envvars-ta-test-envvars-1 grep -qi 'envvartest_SPLUNK_API_URL: Str(https://api.us0.signalfx.com)' /opt/splunk/var/log/splunk/otel.log
-docker exec -u root envvars-ta-test-envvars-1 grep -qi 'envvartest_SPLUNK_BUNDLE_DIR: Str(/opt/splunk/etc/apps/Splunk_TA_otel/linux_x86_64/bin/agent-bundle)' /opt/splunk/var/log/splunk/otel.log
-docker exec -u root envvars-ta-test-envvars-1 grep -qi 'envvartest_SPLUNK_COLLECTD_DIR: Str(/opt/splunk/etc/apps/Splunk_TA_otel/linux_x86_64/bin/agent-bundle/run/collectd)' /opt/splunk/var/log/splunk/otel.log
-docker exec -u root envvars-ta-test-envvars-1 grep -qi 'envvartest_SPLUNK_CONFIG: Str(/opt/splunk/etc/apps/Splunk_TA_otel/configs/passthrough_env_vars.yaml)' /opt/splunk/var/log/splunk/otel.log
-docker exec -u root envvars-ta-test-envvars-1 grep -qi 'envvartest_SPLUNK_DEBUG_CONFIG_SERVER: Str(test_notused)' /opt/splunk/var/log/splunk/otel.log
-docker exec -u root envvars-ta-test-envvars-1 grep -qi 'envvartest_SPLUNK_GATEWAY_URL: Str(test_notused)' /opt/splunk/var/log/splunk/otel.log
-docker exec -u root envvars-ta-test-envvars-1 grep -qi 'envvartest_SPLUNK_HEC_URL: Str(test_notused)' /opt/splunk/var/log/splunk/otel.log
-docker exec -u root envvars-ta-test-envvars-1 grep -qi 'envvartest_SPLUNK_INGEST_URL: Str(https://ingest.us0.signalfx.com)' /opt/splunk/var/log/splunk/otel.log
-docker exec -u root envvars-ta-test-envvars-1 grep -qi 'envvartest_SPLUNK_LISTEN_INTERFACE: Str(localhost)' /opt/splunk/var/log/splunk/otel.log
-docker exec -u root envvars-ta-test-envvars-1 grep -qi 'envvartest_SPLUNK_OTEL_LOG_FILE_NAME: Str(/opt/splunk/var/log/splunk/otel.log)' /opt/splunk/var/log/splunk/otel.log
-docker exec -u root envvars-ta-test-envvars-1 grep -qi 'envvartest_SPLUNK_REALM: Str(us0)' /opt/splunk/var/log/splunk/otel.log
+for test_str in \
+    'envvartest_given: Str(helloworld)' \
+    'envvartest_GOMEMLIMIT: Str(512MiB)' \
+    'envvartest_SPLUNK_ACCESS_TOKEN_FILE: Str(/opt/splunk/etc/apps/Splunk_TA_otel/local/access_token)' \
+    'envvartest_SPLUNK_API_URL: Str(https://api.us0.signalfx.com)' \
+    'envvartest_SPLUNK_BUNDLE_DIR: Str(/opt/splunk/etc/apps/Splunk_TA_otel/linux_x86_64/bin/agent-bundle)' \
+    'envvartest_SPLUNK_COLLECTD_DIR: Str(/opt/splunk/etc/apps/Splunk_TA_otel/linux_x86_64/bin/agent-bundle/run/collectd)' \
+    'envvartest_SPLUNK_CONFIG: Str(/opt/splunk/etc/apps/Splunk_TA_otel/configs/passthrough_env_vars.yaml)' \
+    'envvartest_SPLUNK_DEBUG_CONFIG_SERVER: Str(test_notused)' \
+    'envvartest_SPLUNK_GATEWAY_URL: Str(test_notused)' \
+    'envvartest_SPLUNK_HEC_URL: Str(test_notused)' \
+    'envvartest_SPLUNK_INGEST_URL: Str(https://ingest.us0.signalfx.com)' \
+    'envvartest_SPLUNK_LISTEN_INTERFACE: Str(localhost)' \
+    'envvartest_SPLUNK_OTEL_LOG_FILE_NAME: Str(/opt/splunk/var/log/splunk/otel.log)' \
+    'envvartest_SPLUNK_REALM: Str(us0)' \
+; do
+    docker exec -u root envvars-ta-test-envvars-1 grep -qi "$test_str" /opt/splunk/var/log/splunk/otel.log
+done
 
 REPACKED_TA_NAME=$REPACKED_TA_NAME BUILD_DIR=$BUILD_DIR ADDON_DIR=$ADDON_DIR docker compose --file "$DOCKER_COMPOSE_CONFIG" down

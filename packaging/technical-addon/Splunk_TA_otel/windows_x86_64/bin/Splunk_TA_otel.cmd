@@ -190,9 +190,11 @@ if "%discovery_properties_value%" == "" (
 call :extract_bundle
 
 set "command_line=%splunk_TA_otel_app_directory%%splunk_otel_process_name%"
+call :splunk_TA_otel_log_msg "INFO" "Starting otel agent with: %command_line% %SPLUNK_OTEL_FLAGS%"
 start /B "" "%command_line%" %SPLUNK_OTEL_FLAGS% > "%splunk_otel_log_file_value%" 2>&1
 set "splunk_otel_common_ps=%splunk_TA_otel_app_directory%%splunk_otel_common_ps_name%"
-start /B "" /I /WAIT powershell "& '%splunk_otel_common_ps%' '%splunk_otel_process_name%' '%splunk_TA_otel_log_file%'"
+call :splunk_TA_otel_log_msg "INFO" "Monitoring collector process with: %splunk_otel_common_ps% '%splunk_otel_process_name%' '%splunk_TA_otel_log_file%'"
+start /B "" /I /WAIT powershell -ExecutionPolicy ByPass "& '%splunk_otel_common_ps%' '%splunk_otel_process_name%' '%splunk_TA_otel_log_file%'"
 
 call :splunk_TA_otel_log_msg "INFO" "Otel agent stopped"
 endlocal
@@ -206,7 +208,7 @@ echo on
 set "log_type=%~1"
 set "log_msg=%~2"
 
-for /f "delims=" %%a in ('powershell -noninteractive -noprofile -command "get-date -format 'MM-dd-yyyy HH:mm K'"') do (
+for /f "delims=" %%a in ('powershell -noninteractive -noprofile -command "get-date -format 'yyyy-MM-dd HH:mm:ss.fff K'"') do (
     set "log_date=%%a"
 )
 

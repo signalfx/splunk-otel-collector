@@ -1,0 +1,19 @@
+# See https://splunk.github.io/docker-splunk/advanced/APP_INSTALL.html#apps-on-filesystem
+services:
+  ta-test-stdin:
+    image: ${SPLUNK_IMAGE:-splunk/splunk:9.2.1}
+    network_mode: "host"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/en-US/account/login"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    environment:
+      # If there's a bug in the TA, you may comment out this line and use docker exec via cp and splunk restart
+      # in the test script to manually debug the TA
+      - SPLUNK_APPS_URL=/tmp/local-tas/$REPACKED_TA_NAME
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_PASSWORD=Chang3d!
+    volumes:
+      - $ADDON_DIR:/tmp/local-tas:rwz

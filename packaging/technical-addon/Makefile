@@ -136,6 +136,14 @@ envvar-test-ta:
 	PLATFORM="$(PLATFORM)" \
 	$(SOURCE_DIR)/packaging-scripts/cicd-tests/envvars/envvartest.sh
 
+.PHONY: stdin-test-ta
+stdin-test-ta:
+	SOURCE_DIR="$(SOURCE_DIR)" \
+	BUILD_DIR="$(BUILD_DIR)" \
+	ARCH="$(ARCH)" \
+	PLATFORM="$(PLATFORM)" \
+	$(SOURCE_DIR)/packaging-scripts/cicd-tests/stdin/stdintest.sh
+
 .PHONY: update-ta-deps
 update-ta-deps:
 	SOURCE_DIR="$(SOURCE_DIR)" \

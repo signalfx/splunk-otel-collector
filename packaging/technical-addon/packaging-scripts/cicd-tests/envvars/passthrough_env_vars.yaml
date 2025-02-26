@@ -1,0 +1,66 @@
+receivers:
+  hostmetrics:
+    collection_interval: 10s
+    scrapers:
+      cpu:
+
+processors:
+  resource:
+    attributes:
+      - action: "insert"
+        key: "envvartest_given"
+        value: "helloworld"
+      - action: "insert"
+        key: "envvartest_GOMEMLIMIT"
+        value: "${env:GOMEMLIMIT}"
+      - action: "insert"
+        key: "envvartest_SPLUNK_ACCESS_TOKEN_FILE"
+        value: "${env:SPLUNK_ACCESS_TOKEN_FILE}"
+      - action: "insert"
+        key: "envvartest_SPLUNK_API_URL"
+        value: "${env:SPLUNK_API_URL}"
+      - action: "insert"
+        key: "envvartest_SPLUNK_BUNDLE_DIR"
+        value: "${env:SPLUNK_BUNDLE_DIR}"
+      - action: "insert"
+        key: "envvartest_SPLUNK_COLLECTD_DIR"
+        value: "${env:SPLUNK_COLLECTD_DIR}"
+      - action: "insert"
+        key: "envvartest_SPLUNK_CONFIG"
+        value: "${env:SPLUNK_CONFIG}"
+      - action: "insert"
+        key: "envvartest_SPLUNK_DEBUG_CONFIG_SERVER"
+        value: "${env:SPLUNK_DEBUG_CONFIG_SERVER}"
+      - action: "insert"
+        key: "envvartest_SPLUNK_GATEWAY_URL"
+        value: "${env:SPLUNK_GATEWAY_URL}"
+      - action: "insert"
+        key: "envvartest_SPLUNK_HEC_URL"
+        value: "${env:SPLUNK_HEC_URL}"
+      - action: "insert"
+        key: "envvartest_SPLUNK_LISTEN_INTERFACE"
+        value: "${env:SPLUNK_LISTEN_INTERFACE}"
+      - action: "insert"
+        key: "envvartest_SPLUNK_OTEL_LOG_FILE_NAME"
+        value: "${env:SPLUNK_OTEL_LOG_FILE_NAME}"
+      - action: "insert"
+        key: "envvartest_SPLUNK_INGEST_URL"
+        value: "${env:SPLUNK_INGEST_URL}"
+      - action: "insert"
+        key: "envvartest_SPLUNK_REALM"
+        value: "${env:SPLUNK_REALM}"
+
+
+exporters:
+  debug:
+    verbosity: detailed
+
+service:
+  telemetry:
+    logs:
+      level: debug
+  pipelines:
+    logs:
+      receivers: ["hostmetrics"]
+      processors: ["resource"]
+      exporters: ["debug"]

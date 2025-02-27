@@ -26,6 +26,10 @@ import (
 	"testing"
 	"time"
 
+	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
+	"github.com/signalfx/signalfx-agent/pkg/monitors"
+	"github.com/signalfx/signalfx-agent/pkg/monitors/cpu"
+	"github.com/signalfx/signalfx-agent/pkg/utils/hostfs"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
@@ -43,11 +47,6 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
-
-	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
-	"github.com/signalfx/signalfx-agent/pkg/monitors"
-	"github.com/signalfx/signalfx-agent/pkg/monitors/cpu"
-	"github.com/signalfx/signalfx-agent/pkg/utils/hostfs"
 
 	"github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension"
 )

@@ -61,7 +61,7 @@ func TestNewFactory(t *testing.T) {
 func TestFactoryOtelIntegration(t *testing.T) {
 	cfg := NewFactory().CreateDefaultConfig()
 	require.NotNil(t, cfg)
-	factory, err := otelcol.MakeFactoryMap[receiver.Factory]()
+	factory, err := otelcol.MakeFactoryMap[receiver.Factory](NewFactory())
 	factories := otelcol.Factories{Receivers: factory}
 	require.NoError(t, err)
 	parsedFactory := factories.Receivers[metadata.Type]

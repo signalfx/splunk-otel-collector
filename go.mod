@@ -140,6 +140,7 @@ require (
 	go.opentelemetry.io/collector/confmap/provider/envprovider v1.26.0
 	go.opentelemetry.io/collector/confmap/provider/fileprovider v1.26.0
 	go.opentelemetry.io/collector/confmap/provider/yamlprovider v1.26.0
+	go.opentelemetry.io/collector/confmap/xconfmap v0.120.0
 	go.opentelemetry.io/collector/connector v0.120.0
 	go.opentelemetry.io/collector/connector/forwardconnector v0.120.0
 	go.opentelemetry.io/collector/consumer/consumertest v0.120.0
@@ -372,7 +373,6 @@ require (
 	go.opentelemetry.io/collector/config/configretry v1.26.0 // indirect
 	go.opentelemetry.io/collector/config/configtelemetry v0.120.0 // indirect
 	go.opentelemetry.io/collector/config/configtls v1.26.0 // indirect
-	go.opentelemetry.io/collector/confmap/xconfmap v0.120.0 // indirect
 	go.opentelemetry.io/collector/connector/connectortest v0.120.0 // indirect
 	go.opentelemetry.io/collector/connector/xconnector v0.120.0 // indirect
 	go.opentelemetry.io/collector/consumer/consumererror v0.120.0 // indirect
@@ -673,7 +673,7 @@ require (
 	golang.org/x/oauth2 v0.26.0 // indirect
 	golang.org/x/sync v0.11.0 // indirect
 	golang.org/x/term v0.29.0 // indirect
-	golang.org/x/text v0.22.0 // indirect
+	golang.org/x/text v0.22.0
 	golang.org/x/time v0.9.0 // indirect
 	golang.org/x/tools v0.26.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240716161551-93cc26a95ae9 // indirect

@@ -132,7 +132,7 @@ func (c *Config) Build(set component.TelemetrySettings) (operator.Operator, erro
 		cfg:           c,
 		InputOperator: inputOperator,
 		logger:        set.Logger.Sugar(),
-		decoder:       decode.New(enc),
+		decoder:       enc.NewDecoder(),
 		splitFunc:     splitFunc,
 		scriptContent: scriptContent,
 	}, nil

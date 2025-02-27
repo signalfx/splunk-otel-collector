@@ -24,7 +24,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
-	"go.opentelemetry.io/collector/extension"
 )
 
 func TestBundleDirDefault(t *testing.T) {
@@ -41,7 +40,7 @@ func TestBundleDirDefault(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, emptyConfig)
 
-	ext, err := NewFactory().Create(context.Background(), extension.Settings{}, emptyConfig)
+	ext, err := NewFactory().Create(context.Background(), defaultSettingsID.Type(), emptyConfig)
 	require.NoError(t, err)
 	require.NotNil(t, ext)
 

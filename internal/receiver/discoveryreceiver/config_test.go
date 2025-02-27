@@ -16,7 +16,6 @@ package discoveryreceiver
 
 import (
 	"fmt"
-	"go.opentelemetry.io/collector/confmap/xconfmap"
 	"path"
 	"testing"
 	"time"
@@ -26,6 +25,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
+	"go.opentelemetry.io/collector/confmap/xconfmap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
 )

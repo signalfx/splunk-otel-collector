@@ -18,15 +18,17 @@ import (
 	"context"
 	"testing"
 
-	"github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/extension"
+
+	"github.com/signalfx/signalfx-agent/pkg/core/config"
 )
 
 func TestExtensionLifecycle(t *testing.T) {
 	ctx := context.Background()
-	createParams := extension.Settings{}
+	createParams := extension.Settings{ID: component.MustNewID(typeStr)}
 	cfg := &Config{
 		Config: config.Config{
 			BundleDir: "/bundle/",

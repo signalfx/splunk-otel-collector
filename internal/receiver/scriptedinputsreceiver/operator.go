@@ -17,15 +17,14 @@ package scriptedinputsreceiver
 import (
 	"bufio"
 	"context"
-	"golang.org/x/text/encoding"
 	"io"
 	"sync"
 	"time"
 
-	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/decode"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator/helper"
 	"go.uber.org/zap"
+	"golang.org/x/text/encoding"
 )
 
 func init() {

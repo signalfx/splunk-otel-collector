@@ -17,7 +17,6 @@ package lightprometheusreceiver
 import (
 	"context"
 	"fmt"
-	"go.opentelemetry.io/collector/confmap/xconfmap"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -28,6 +27,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
+	"go.opentelemetry.io/collector/confmap/xconfmap"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/receiver/receivertest"
 	conventions "go.opentelemetry.io/collector/semconv/v1.6.1"

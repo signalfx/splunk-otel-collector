@@ -18,12 +18,11 @@ import (
 	"context"
 	"testing"
 
+	"github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/extension"
-
-	"github.com/signalfx/signalfx-agent/pkg/core/config"
 )
 
 func TestExtensionLifecycle(t *testing.T) {

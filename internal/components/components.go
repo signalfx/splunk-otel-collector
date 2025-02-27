@@ -119,14 +119,12 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowseventlogreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsperfcountersreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver"
-	"go.opentelemetry.io/collector/connector"
 	"go.opentelemetry.io/collector/connector/forwardconnector"
 	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/exporter/debugexporter"
 	"go.opentelemetry.io/collector/exporter/nopexporter"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
 	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
-	"go.opentelemetry.io/collector/extension"
 	"go.opentelemetry.io/collector/extension/zpagesextension"
 	"go.opentelemetry.io/collector/otelcol"
 	"go.opentelemetry.io/collector/processor"
@@ -148,7 +146,7 @@ import (
 
 func Get() (otelcol.Factories, error) {
 	var errs []error
-	extensions, err := otelcol.MakeFactoryMap[extension.Factory](
+	extensions, err := otelcol.MakeFactoryMap(
 		ackextension.NewFactory(),
 		basicauthextension.NewFactory(),
 		bearertokenauthextension.NewFactory(),
@@ -170,7 +168,7 @@ func Get() (otelcol.Factories, error) {
 		errs = append(errs, err)
 	}
 
-	receivers, err := otelcol.MakeFactoryMap[receiver.Factory](
+	receivers, err := otelcol.MakeFactoryMap(
 		activedirectorydsreceiver.NewFactory(),
 		apachereceiver.NewFactory(),
 		apachesparkreceiver.NewFactory(),
@@ -244,7 +242,7 @@ func Get() (otelcol.Factories, error) {
 		errs = append(errs, err)
 	}
 
-	exporters, err := otelcol.MakeFactoryMap[exporter.Factory](
+	exporters, err := otelcol.MakeFactoryMap(
 		awss3exporter.NewFactory(),
 		debugexporter.NewFactory(),
 		fileexporter.NewFactory(),
@@ -262,7 +260,7 @@ func Get() (otelcol.Factories, error) {
 		errs = append(errs, err)
 	}
 
-	processors, err := otelcol.MakeFactoryMap[processor.Factory](
+	processors, err := otelcol.MakeFactoryMap(
 		attributesprocessor.NewFactory(),
 		batchprocessor.NewFactory(),
 		cumulativetodeltaprocessor.NewFactory(),
@@ -287,7 +285,7 @@ func Get() (otelcol.Factories, error) {
 		errs = append(errs, err)
 	}
 
-	connectors, err := connector.MakeFactoryMap(
+	connectors, err := otelcol.MakeFactoryMap(
 		countconnector.NewFactory(),
 		forwardconnector.NewFactory(),
 		routingconnector.NewFactory(),

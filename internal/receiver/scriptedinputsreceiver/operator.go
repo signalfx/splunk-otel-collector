@@ -134,7 +134,7 @@ func (i *stdoutOperator) readOutput(ctx context.Context, r io.Reader) {
 	scanner.Split(i.splitFunc)
 
 	for scanner.Scan() {
-		decoded, err := i.decoder.Decode(scanner.Bytes())
+		decoded, err := i.decoder.Bytes(scanner.Bytes())
 		if err != nil {
 			i.logger.Errorw("Failed to decode data", zap.Error(err))
 			continue

@@ -17,6 +17,7 @@ package scriptedinputsreceiver
 import (
 	"bufio"
 	"context"
+	"golang.org/x/text/encoding"
 	"io"
 	"sync"
 	"time"
@@ -44,7 +45,7 @@ type stdoutOperator struct {
 	logger        *zap.SugaredLogger
 	cancelAll     context.CancelFunc
 	splitFunc     bufio.SplitFunc
-	decoder       *decode.Decoder
+	decoder       *encoding.Decoder
 	scriptContent string
 	helper.InputOperator
 	wg sync.WaitGroup

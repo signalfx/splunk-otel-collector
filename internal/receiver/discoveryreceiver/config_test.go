@@ -16,6 +16,7 @@ package discoveryreceiver
 
 import (
 	"fmt"
+	"go.opentelemetry.io/collector/confmap/xconfmap"
 	"path"
 	"testing"
 	"time"
@@ -139,7 +140,7 @@ func TestReceiverCreatorFactoryAndConfig(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, component.MustNewType("receiver_creator"), factory.Type())
 
-	require.NoError(t, component.ValidateConfig(rCfg))
+	require.NoError(t, xconfmap.Validate(rCfg))
 
 	creatorCfg, ok := rCfg.(*receivercreator.Config)
 	require.True(t, ok)

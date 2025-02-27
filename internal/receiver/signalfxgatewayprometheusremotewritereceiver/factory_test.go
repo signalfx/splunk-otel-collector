@@ -16,6 +16,7 @@ package signalfxgatewayprometheusremotewritereceiver
 
 import (
 	"context"
+	"go.opentelemetry.io/collector/receiver"
 	"testing"
 	"time"
 
@@ -24,7 +25,6 @@ import (
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/otelcol"
-	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/receivertest"
 
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/signalfxgatewayprometheusremotewritereceiver/internal/metadata"
@@ -61,7 +61,7 @@ func TestNewFactory(t *testing.T) {
 func TestFactoryOtelIntegration(t *testing.T) {
 	cfg := NewFactory().CreateDefaultConfig()
 	require.NotNil(t, cfg)
-	factory, err := receiver.MakeFactoryMap(NewFactory())
+	factory, err := otelcol.MakeFactoryMap[receiver.Factory]()
 	factories := otelcol.Factories{Receivers: factory}
 	require.NoError(t, err)
 	parsedFactory := factories.Receivers[metadata.Type]

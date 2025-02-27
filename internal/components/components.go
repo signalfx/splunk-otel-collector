@@ -148,7 +148,7 @@ import (
 
 func Get() (otelcol.Factories, error) {
 	var errs []error
-	extensions, err := extension.MakeFactoryMap(
+	extensions, err := otelcol.MakeFactoryMap[extension.Factory](
 		ackextension.NewFactory(),
 		basicauthextension.NewFactory(),
 		bearertokenauthextension.NewFactory(),
@@ -170,7 +170,7 @@ func Get() (otelcol.Factories, error) {
 		errs = append(errs, err)
 	}
 
-	receivers, err := receiver.MakeFactoryMap(
+	receivers, err := otelcol.MakeFactoryMap[receiver.Factory](
 		activedirectorydsreceiver.NewFactory(),
 		apachereceiver.NewFactory(),
 		apachesparkreceiver.NewFactory(),
@@ -244,7 +244,7 @@ func Get() (otelcol.Factories, error) {
 		errs = append(errs, err)
 	}
 
-	exporters, err := exporter.MakeFactoryMap(
+	exporters, err := otelcol.MakeFactoryMap[exporter.Factory](
 		awss3exporter.NewFactory(),
 		debugexporter.NewFactory(),
 		fileexporter.NewFactory(),
@@ -262,7 +262,7 @@ func Get() (otelcol.Factories, error) {
 		errs = append(errs, err)
 	}
 
-	processors, err := processor.MakeFactoryMap(
+	processors, err := otelcol.MakeFactoryMap[processor.Factory](
 		attributesprocessor.NewFactory(),
 		batchprocessor.NewFactory(),
 		cumulativetodeltaprocessor.NewFactory(),

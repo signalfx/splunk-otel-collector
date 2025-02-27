@@ -26,10 +26,6 @@ import (
 	"testing"
 	"time"
 
-	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
-	"github.com/signalfx/signalfx-agent/pkg/monitors"
-	"github.com/signalfx/signalfx-agent/pkg/monitors/cpu"
-	"github.com/signalfx/signalfx-agent/pkg/utils/hostfs"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
@@ -47,6 +43,11 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
+
+	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
+	"github.com/signalfx/signalfx-agent/pkg/monitors"
+	"github.com/signalfx/signalfx-agent/pkg/monitors/cpu"
+	"github.com/signalfx/signalfx-agent/pkg/utils/hostfs"
 
 	"github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension"
 )
@@ -411,16 +412,17 @@ func (m *mockHost) GetFactory(component.Kind, component.Type) component.Factory 
 
 func (m *mockHost) GetExtensions() map[component.ID]component.Component {
 	exampleFactory := extensiontest.NewNopFactory()
+	exampleID := component.MustNewID(exampleFactory.Type().String())
 	randomExtensionConfig := exampleFactory.CreateDefaultConfig()
 	return map[component.ID]component.Component{
-		partialSettingsID: getExtension(smartagentextension.NewFactory(), m.smartagentextensionConfig),
-		component.MustNewID(exampleFactory.Type().String()): getExtension(exampleFactory, randomExtensionConfig),
-		extraSettingsID: getExtension(smartagentextension.NewFactory(), m.smartagentextensionConfigExtra),
+		partialSettingsID: getExtension(smartagentextension.NewFactory(), partialSettingsID, m.smartagentextensionConfig),
+		exampleID:         getExtension(exampleFactory, exampleID, randomExtensionConfig),
+		extraSettingsID:   getExtension(smartagentextension.NewFactory(), extraSettingsID, m.smartagentextensionConfigExtra),
 	}
 }
 
-func getExtension(f otelcolextension.Factory, cfg component.Config) component.Component {
-	e, err := f.Create(context.Background(), otelcolextension.Settings{}, cfg)
+func getExtension(f otelcolextension.Factory, id component.ID, cfg component.Config) component.Component {
+	e, err := f.Create(context.Background(), otelcolextension.Settings{ID: id}, cfg)
 	if err != nil {
 		panic(err)
 	}

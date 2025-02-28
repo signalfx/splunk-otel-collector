@@ -411,16 +411,17 @@ func (m *mockHost) GetFactory(component.Kind, component.Type) component.Factory 
 
 func (m *mockHost) GetExtensions() map[component.ID]component.Component {
 	exampleFactory := extensiontest.NewNopFactory()
+	exampleID := component.MustNewID(exampleFactory.Type().String())
 	randomExtensionConfig := exampleFactory.CreateDefaultConfig()
 	return map[component.ID]component.Component{
-		partialSettingsID: getExtension(smartagentextension.NewFactory(), m.smartagentextensionConfig),
-		component.MustNewID(exampleFactory.Type().String()): getExtension(exampleFactory, randomExtensionConfig),
-		extraSettingsID: getExtension(smartagentextension.NewFactory(), m.smartagentextensionConfigExtra),
+		partialSettingsID: getExtension(smartagentextension.NewFactory(), partialSettingsID, m.smartagentextensionConfig),
+		exampleID:         getExtension(exampleFactory, exampleID, randomExtensionConfig),
+		extraSettingsID:   getExtension(smartagentextension.NewFactory(), extraSettingsID, m.smartagentextensionConfigExtra),
 	}
 }
 
-func getExtension(f otelcolextension.Factory, cfg component.Config) component.Component {
-	e, err := f.Create(context.Background(), otelcolextension.Settings{}, cfg)
+func getExtension(f otelcolextension.Factory, id component.ID, cfg component.Config) component.Component {
+	e, err := f.Create(context.Background(), otelcolextension.Settings{ID: id}, cfg)
 	if err != nil {
 		panic(err)
 	}

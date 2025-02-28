@@ -21,10 +21,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/decode"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator/helper"
 	"go.uber.org/zap"
+	"golang.org/x/text/encoding"
 )
 
 func init() {
@@ -44,7 +44,7 @@ type stdoutOperator struct {
 	logger        *zap.SugaredLogger
 	cancelAll     context.CancelFunc
 	splitFunc     bufio.SplitFunc
-	decoder       *decode.Decoder
+	decoder       *encoding.Decoder
 	scriptContent string
 	helper.InputOperator
 	wg sync.WaitGroup
@@ -134,7 +134,7 @@ func (i *stdoutOperator) readOutput(ctx context.Context, r io.Reader) {
 	scanner.Split(i.splitFunc)
 
 	for scanner.Scan() {
-		decoded, err := i.decoder.Decode(scanner.Bytes())
+		decoded, err := i.decoder.Bytes(scanner.Bytes())
 		if err != nil {
 			i.logger.Errorw("Failed to decode data", zap.Error(err))
 			continue

@@ -21,9 +21,6 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 ### 💡 Enhancements 💡
 
 - (Splunk) Make Windows TA agnostic to Powershell ExecutionPolicy ([#5935](https://github.com/signalfx/splunk-otel-collector/pull/5935))
-- (Splunk) Bump pygithub from 2.6.0 to 2.6.1 in /packaging/release ([#5933](https://github.com/signalfx/splunk-otel-collector/pull/5933))
-- (Splunk) Bump boto3 from 1.36.21 to 1.36.23 in /packaging/release ([#5923](https://github.com/signalfx/splunk-otel-collector/pull/5923))
-- (Splunk) Bump go.etcd.io/bbolt from 1.3.11 to 1.4.0 ([#5881](https://github.com/signalfx/splunk-otel-collector/pull/5881))
 - (Contrib) `processor/transformprocessor`: Add support for global conditions and error mode overrides. ([#29017](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/29017))
   Global conditions are now available for context-inferred structured configurations, allowing the use of fully
   qualified paths. Additionally, a new configuration key called `error_mode` has been added to the context statements group.

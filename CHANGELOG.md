@@ -6,16 +6,8 @@
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.120.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.120.0) and the [opentelemetry-collector-contrib v0.120.1](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.120.1) releases where appropriate.
 
-### 🚩 Deprecations 🚩
-
-- (Contrib) `opencensusexporter`: Deprecate the OpenCensus exporter ([#36791](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/36791))
-  Migrate to use the OTLP exporter moving forward.
-- (Contrib) `opencensusreceiver`: Deprecate the OpenCensus receiver ([#36791](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/36791))
-  Migrate to use the OTLP receiver moving forward.
-
 ### 🛑 Breaking changes 🛑
 
-- (All) Bump minimum go version to 1.23 ([#5920](https://github.com/signalfx/splunk-otel-collector/pull/5920), [#37875](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37875), [#12370](https://github.com/open-telemetry/opentelemetry-collector/pull/12370))
 - (Contrib) `receiver/prometheus`: Prometheus receiver now uses scrapers in Prometheus 3.0. ([#36873](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/36873))
   There are a number of breaking changes in Prometheus 3.0. Learn more about those changes and migration guide on https://prometheus.io/docs/prometheus/latest/migration/.
 - (Contrib) `activedirectorydsreceiver`: Fixed typo in the attribute `distingushed_names`, renaming it to `distinguished_names`. ([#37606](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37606))
@@ -23,18 +15,15 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 - (Contrib) `tailsamplingprocessor`: Fix the decision timer metric to capture longer latencies beyond 50ms. ([#37722](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37722))
   This changes the unit of the decision timer metric from microseconds to milliseconds.
 - (Contrib) `routingconnector`: Remove `match_once` configuration parameter. ([#36824](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/36824))
-- (Core) `mdatagen`: Removing deprecated generated funcs and a few test funcs as well. ([#12304](https://github.com/open-telemetry/opentelemetry-collector/pull/12304))
 - (Core) `service`: Align component logger attributes with those defined in RFC ([#12217](https://github.com/open-telemetry/opentelemetry-collector/pull/12217))
   See [Pipeline Component Telemetry RFC](https://github.com/open-telemetry/opentelemetry-collector/blob/main/docs/rfcs/component-universal-telemetry.md#attributes)
 
 ### 💡 Enhancements 💡
 
-- (Splunk) Bump boto3 from 1.36.23 to 1.36.26 in /packaging/release ([#5932](https://github.com/signalfx/splunk-otel-collector/pull/5932))
 - (Splunk) Make Windows TA agnostic to Powershell ExecutionPolicy ([#5935](https://github.com/signalfx/splunk-otel-collector/pull/5935))
 - (Splunk) Bump pygithub from 2.6.0 to 2.6.1 in /packaging/release ([#5933](https://github.com/signalfx/splunk-otel-collector/pull/5933))
 - (Splunk) Bump boto3 from 1.36.21 to 1.36.23 in /packaging/release ([#5923](https://github.com/signalfx/splunk-otel-collector/pull/5923))
 - (Splunk) Bump go.etcd.io/bbolt from 1.3.11 to 1.4.0 ([#5881](https://github.com/signalfx/splunk-otel-collector/pull/5881))
-- (Splunk) Bump github.com/hashicorp/vault/api from 1.15.0 to 1.16.0 ([#5901](https://github.com/signalfx/splunk-otel-collector/pull/5901))
 - (Contrib) `processor/transformprocessor`: Add support for global conditions and error mode overrides. ([#29017](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/29017))
   Global conditions are now available for context-inferred structured configurations, allowing the use of fully
   qualified paths. Additionally, a new configuration key called `error_mode` has been added to the context statements group.
@@ -51,18 +40,11 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
     - container.creation_timestamp: The time when the container was started. Only available if container is either in 'running' or 'terminated' state.
 
 - (Contrib) `splunkenterprisereceiver`: Added a new `splunk.health` metric. ([#36695](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/36695))
-- (Contrib) `pkg/ottl`: Introduce ToLowerCase converter function ([#32942](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/32942))
-- (Contrib) `pkg/ottl`: Introduce ToSnakeCase converter function ([#32942](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/32942))
-- (Contrib) `pkg/ottl`: Introduce ToUpperCase converter function ([#32942](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/32942))
 - (Contrib) `resourcedetectionprocessor`: add the Dynatrace detector to the resource detection processor ([#37577](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37577))
-- (Contrib) `googlecloudmonitoringreceiver`: support use [monitoring filters](https://cloud.google.com/monitoring/api/v3/filters) to filter metrics ([#36898](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/36898))
-- (Contrib) `pkg/translator/jaeger/internal/jaeger`: Remove jaeger model/converter/thrift/jaeger dependency ([#37820](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37820))
-- (Contrib) `pkg/translator/zipkin/internal/zipkin`: Remove jaeger model/converter/thrift/zipkin dependency ([#37795](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37795))
 - (Contrib) `extension/oauth2clientauth`: Add `expiry_buffer` config to `oauth2client` extension, allowing token refresh before expiration with a default buffer of 5 minutes. ([#35148](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35148))
   - Prevents authentication failures by refreshing the token early.
   - The default expiry buffer is set to 5 minutes, and users can adjust it as needed.
 
-- (Contrib) `pkg/ottl`: Introduce ToCamelCase converter function ([#32942](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/32942))
 - (Contrib) `googlecloudpubsubreceiver`: Turn noisy `warn` log about Pub/Sub servers into `debug`, and turn the reset count into a metric ([#37571](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37571))
   The receiver uses the Google Cloud Pub/Sub StreamingPull API and keeps a open connection. The Pub/Sub servers
   recurrently close the connection after a time period to avoid a long-running sticky connection. Before the
@@ -89,7 +71,6 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
   }
   ```
 
-- (Contrib) `receiver/zipkinreceiver`: Remove zipkinreceiver dependency on Jaeger ([#37795](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37795))
 - (Core) `otlpreceiver`: Update stability for logs ([#12335](https://github.com/open-telemetry/opentelemetry-collector/pull/12335))
 - (Core) `exporterhelper`: Implement sync disabled queue used when batching is enabled. ([#12245](https://github.com/open-telemetry/opentelemetry-collector/pull/12245))
 - (Core) `exporterhelper`: Enable the new pull-based batcher in exporterhelper ([#12291](https://github.com/open-telemetry/opentelemetry-collector/pull/12291))
@@ -112,7 +93,6 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 - (Core) `otlpreceiver`: Fix OTLP http receiver to correctly set Retry-After ([#12367](https://github.com/open-telemetry/opentelemetry-collector/pull/12367))
 - (Core) `otlphttpexporter`: Fix parsing logic for Retry-After in OTLP http protocol. ([#12366](https://github.com/open-telemetry/opentelemetry-collector/pull/12366))
   The value of Retry-After field can be either an HTTP-date or delay-seconds and the current logic only parsed delay-seconds.
-- (Core) `cmd/builder`: Ensure unique aliases for modules with same suffix ([#12201](https://github.com/open-telemetry/opentelemetry-collector/pull/12201))
 
 ### 🚀 New components 🚀
 

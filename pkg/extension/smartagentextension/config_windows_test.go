@@ -41,7 +41,7 @@ func TestBundleDirDefault(t *testing.T) {
 	require.NoError(t, err)
 
 	factory := NewFactory()
-	ext, err := factory.Create(context.Background(), extension.Settings{}, emptyConfig)
+	ext, err := factory.Create(context.Background(), extension.Settings{ID: defaultSettingsID}, emptyConfig)
 	require.NoError(t, err)
 	require.NotNil(t, ext)
 

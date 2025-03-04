@@ -2,9 +2,121 @@
 
 ## Unreleased
 
+## v0.120.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.120.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.120.0) and the [opentelemetry-collector-contrib v0.120.1](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.120.1) releases where appropriate.
+
 ### 🛑 Breaking changes 🛑
 
-- (all) Bump minimum go version to 1.23 ([#5920](https://github.com/signalfx/splunk-otel-collector/pull/5920))
+- (Contrib) `receiver/prometheus`: Prometheus receiver now uses scrapers in Prometheus 3.0. ([#36873](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/36873))
+  There are a number of breaking changes in Prometheus 3.0. Learn more about those changes and migration guide on https://prometheus.io/docs/prometheus/latest/migration/.
+  As a result of [adding support for UTF-8 names](https://prometheus.io/docs/prometheus/latest/migration/#utf-8-names),
+  the metrics and labels containing UTF-8 characters are no longer escaped. Consequently, the dots (.) in internal
+  collector metrics and resource attributes scraped by Prometheus are no longer replaced with underscores (_).
+  - The `service_name`, `service_instance_id`, and `service_version` resource attributes are now scraped as
+    `service.name`, `service.instance.id`, and `service.version`, respectively.
+  - The following metrics containing dots reported by several components are no longer escaped:
+    - `filter` processor:
+      - `processor_filter_datapoints_filtered` -> `processor_filter_datapoints.filtered`
+      - `processor_filter_logs_filtered` -> `processor_filter_logs.filtered`
+      - `processor_filter_spans_filtered` -> `processor_filter_spans.filtered`
+    - `deltatocumulative` processor:
+      - `deltatocumulative_streams_tracked` -> `deltatocumulative.streams.tracked`
+      - `deltatocumulative_streams_tracked_linear` -> `deltatocumulative.streams.tracked.linear`
+      - `deltatocumulative_streams_limit` -> `deltatocumulative.streams.limit`
+      - `deltatocumulative_streams_evicted` -> `deltatocumulative.streams.evicted`
+      - `deltatocumulative_streams_max_stale` -> `deltatocumulative.streams.max_stale`
+      - `deltatocumulative_datapoints_processed` -> `deltatocumulative.datapoints.processed`
+      - `deltatocumulative_datapoints_dropped` -> `deltatocumulative.datapoints.dropped`
+      - `deltatocumulative_datapoints_linear` -> `deltatocumulative.datapoints.linear`
+      - `deltatocumulative_gaps_length` -> `deltatocumulative.gaps.length`
+    - `googlecloudpubsub` receiver:
+      - `receiver_googlecloudpubsub_stream_restarts` -> `receiver.googlecloudpubsub.stream_restarts`
+
+- (Contrib) `activedirectorydsreceiver`: Fixed typo in the attribute `distingushed_names`, renaming it to `distinguished_names`. ([#37606](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37606))
+- (Contrib) `receiver/hostmetrics`: Remove receiver.hostmetrics.normalizeProcessCPUUtilization feature gate ([#34763](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/34763))
+- (Contrib) `tailsamplingprocessor`: Fix the decision timer metric to capture longer latencies beyond 50ms. ([#37722](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37722))
+  This changes the unit of the decision timer metric from microseconds to milliseconds.
+- (Contrib) `routingconnector`: Remove `match_once` configuration parameter. ([#36824](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/36824))
+- (Core) `service`: Align component logger attributes with those defined in RFC ([#12217](https://github.com/open-telemetry/opentelemetry-collector/pull/12217))
+  See [Pipeline Component Telemetry RFC](https://github.com/open-telemetry/opentelemetry-collector/blob/main/docs/rfcs/component-universal-telemetry.md#attributes)
+
+### 💡 Enhancements 💡
+
+- (Splunk) Make Windows TA agnostic to Powershell ExecutionPolicy ([#5935](https://github.com/signalfx/splunk-otel-collector/pull/5935))
+- (Contrib) `processor/transformprocessor`: Add support for global conditions and error mode overrides. ([#29017](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/29017))
+  Global conditions are now available for context-inferred structured configurations, allowing the use of fully
+  qualified paths. Additionally, a new configuration key called `error_mode` has been added to the context statements group.
+  This key determines how the processor reacts to errors that occur while processing that specific group of statements.
+  When provided, it overrides the top-level error mode, offering more granular control over error handling.
+
+- (Contrib) `pkg/stanza`: Allow users to configure initial buffer size ([#37786](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37786))
+- (Contrib) `vcenterreceiver`: Adds three more vCenter virtual machine performance metrics ([#37488](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37488))
+- (Contrib) `k8sclusterreceiver`: Adds new descriptive attributes/metadata to the k8s.namespace and the container entity emitted from k8sclusterreceiver. ([#37580](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37580))
+  - Adds the following attributes to k8s.namespace entity:
+    - k8s.namespace.phase: The phase of a namespace indicates where the namespace is in its lifecycle. E.g. 'active', 'terminating'
+    - k8s.namespace.creation_timestamp: The time when the namespace object was created.
+  - Adds the following attributes to container entity:
+    - container.creation_timestamp: The time when the container was started. Only available if container is either in 'running' or 'terminated' state.
+
+- (Contrib) `splunkenterprisereceiver`: Added a new `splunk.health` metric. ([#36695](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/36695))
+- (Contrib) `resourcedetectionprocessor`: add the Dynatrace detector to the resource detection processor ([#37577](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37577))
+- (Contrib) `extension/oauth2clientauth`: Add `expiry_buffer` config to `oauth2client` extension, allowing token refresh before expiration with a default buffer of 5 minutes. ([#35148](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35148))
+  - Prevents authentication failures by refreshing the token early.
+  - The default expiry buffer is set to 5 minutes, and users can adjust it as needed.
+
+- (Contrib) `googlecloudpubsubreceiver`: Turn noisy `warn` log about Pub/Sub servers into `debug`, and turn the reset count into a metric ([#37571](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37571))
+  The receiver uses the Google Cloud Pub/Sub StreamingPull API and keeps a open connection. The Pub/Sub servers
+  recurrently close the connection after a time period to avoid a long-running sticky connection. Before the
+  receiver logged `warn` log lines everytime this happened. These log lines are moved to debug so that fleets with
+  lots of collectors with the receiver don't span logs at warn level. To keep track of the resets, whenever a
+  connection reset happens a `otelcol_receiver_googlecloudpubsub_stream_restarts` metric is increased by one.
+
+- (Contrib) `processor/redaction`: Introduce 'allowed_values' parameter for allowed values of attributes ([#35840](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35840))
+- (Contrib) `routingconnector`: Avoid unnecessary copy of the data in routing connector ([#37946](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37946))
+- (Contrib) `awscontainerinsightreceiver`: Add support for HOST_PROC environment variable in AWS Container Insight Receiver. ([#35862](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35862))
+- (Contrib) `syslogreceiver`: Support setting `on_error` config for syslog receiver. ([#36906](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/36906))
+- (Contrib) `processor/tailsampling`: Adds support for optionally recording the policy (and any composite policy) associated with an inclusive tail processor sampling decision.
+  This functionality is disabled by default, you can enable it by passing the following feature flag to the collector: `+processor.tailsamplingprocessor.recordpolicy`
+  ([#35180](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35180))
+- (Contrib) `tailsamplingprocessor`: makes the `numeric_attribute` more flexible and allows to set only `min_value` or `max_value`, without the need to set both ([#37328](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37328))
+  This is useful to have simple configurations like these:
+  ```
+  {
+    type: numeric_attribute,
+    numeric_attribute: {
+      key: http.status_code,
+      min_value: 400
+    }
+  }
+  ```
+
+- (Core) `otlpreceiver`: Update stability for logs ([#12335](https://github.com/open-telemetry/opentelemetry-collector/pull/12335))
+- (Core) `exporterhelper`: Implement sync disabled queue used when batching is enabled. ([#12245](https://github.com/open-telemetry/opentelemetry-collector/pull/12245))
+- (Core) `exporterhelper`: Enable the new pull-based batcher in exporterhelper ([#12291](https://github.com/open-telemetry/opentelemetry-collector/pull/12291))
+- (Core) `exporterhelper`: Update queue size after the element is done exported ([#12399](https://github.com/open-telemetry/opentelemetry-collector/pull/12399))
+  After this change the active queue size will include elements in the process of being exported.
+- (Core) `otelcol`: Add featuregate command to display information about available features ([#11998](https://github.com/open-telemetry/opentelemetry-collector/pull/11998))
+  The featuregate command allows users to view detailed information about feature gates
+  including their status, stage, and description.
+
+### 🧰 Bug fixes 🧰
+- (Contrib) `azureeventhubreceiver`: Fix bug where persisted offset would be ignored after restart ([#37157](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37157))
+- (Contrib) `bearertokenauthextension`: Load token lazily for gRPC AUTH to fix token refresh issue ([#36749](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/36749))
+- (Contrib) `k8sattributes`: Fix bug where `Filters.Labels` failed with when the `exists` or `not-exists` operations were used. ([#37913](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37913))
+- (Contrib) `prometheusreceiver`: Start time metric adjuster now handles reset points correctly ([#37717](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37717))
+- (Contrib) `awscontainerinsightreceiver`: Fix race condition in shutdown of AWS Container Insight receiver ([#37695](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37695))
+- (Core) `memorylimiter`: Logger no longer attributes to single signal, pipeline, or component. ([#12217](https://github.com/open-telemetry/opentelemetry-collector/pull/12217))
+- (Core) `otlpreceiver`: Logger no longer attributes to random signal when receiving multiple signals. ([#12217](https://github.com/open-telemetry/opentelemetry-collector/pull/12217))
+- (Core) `exporterhelper`: Fix undefined behavior access to request after send to next component. This causes random memory access. ([#12281](https://github.com/open-telemetry/opentelemetry-collector/pull/12281))
+- (Core) `exporterhelper`: Fix default batcher to correctly call all done callbacks exactly once ([#12247](https://github.com/open-telemetry/opentelemetry-collector/pull/12247))
+- (Core) `otlpreceiver`: Fix OTLP http receiver to correctly set Retry-After ([#12367](https://github.com/open-telemetry/opentelemetry-collector/pull/12367))
+- (Core) `otlphttpexporter`: Fix parsing logic for Retry-After in OTLP http protocol. ([#12366](https://github.com/open-telemetry/opentelemetry-collector/pull/12366))
+  The value of Retry-After field can be either an HTTP-date or delay-seconds and the current logic only parsed delay-seconds.
+
+### 🚀 New components 🚀
+
+- (Splunk) Add `influxdb` receiver ([#5925](https://github.com/signalfx/splunk-otel-collector/pull/5925))
 
 ## v0.119.0
 

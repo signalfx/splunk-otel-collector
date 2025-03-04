@@ -27,6 +27,7 @@ import (
 //go:embed bundle.d/extensions/k8s-observer.discovery.yaml
 //go:embed bundle.d/receivers/apache.discovery.yaml
 //go:embed bundle.d/receivers/envoy.discovery.yaml
+//go:embed bundle.d/receivers/istio.discovery.yaml
 //go:embed bundle.d/receivers/jmx-cassandra.discovery.yaml
 //go:embed bundle.d/receivers/kafkametrics.discovery.yaml
 //go:embed bundle.d/receivers/mongodb.discovery.yaml

@@ -2,7 +2,7 @@
 <input>
   <server_host>R91395DV</server_host>
   <server_uri>https://127.0.0.1:8089</server_uri>
-  <session_key>_8ecddlaO_uQyTlmLigzukO3yo5M3b68gl8nge72jA7Dam3B2iPlzUlLUh7xucJnzs44VR0NzuvH9UHsl1xr0B6vNjJ9bGUC3HlCQnXf_94ikUzryC</session_key>
+  <session_key>_fake_session_key</session_key>
   <checkpoint_dir>C:\Program Files\Splunk\var\lib\splunk\modinputs\Splunk_TA_otel</checkpoint_dir>
   <configuration>
     <stanza name="Splunk_TA_otel://Splunk_TA_otel" app="Splunk_TA_otel">

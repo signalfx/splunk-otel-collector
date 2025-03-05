@@ -32,7 +32,7 @@ func TestUnmarshalInputXML(t *testing.T) {
 
 	assert.Equal(t, "R91395DV", input.ServerHost, "Expected ServerHost to be 'R91395DV'")
 	assert.Equal(t, "https://127.0.0.1:8089", input.ServerURI, "Expected ServerURI to be 'https://127.0.0.1:8089'")
-	assert.Equal(t, "_8ecddlaO_uQyTlmLigzukO3yo5M3b68gl8nge72jA7Dam3B2iPlzUlLUh7xucJnzs44VR0NzuvH9UHsl1xr0B6vNjJ9bGUC3HlCQnXf_94ikUzryC", input.SessionKey, "Expected SessionKey to be '_8ecddlaO_uQyTlmLigzukO3yo5M3b68gl8nge72jA7Dam3B2iPlzUlLUh7xucJnzs44VR0NzuvH9UHsl1xr0B6vNjJ9bGUC3HlCQnXf_94ikUzryC'")
+	assert.Equal(t, "_fake_session_key", input.SessionKey, "Expected SessionKey to be '_fake_session_key'")
 	assert.Equal(t, `C:\Program Files\Splunk\var\lib\splunk\modinputs\Splunk_TA_otel`, input.CheckpointDir, "Expected CheckpointDir to be 'C:\\Program Files\\Splunk\\var\\lib\\splunk\\modinputs\\Splunk_TA_otel'")
 	require.Len(t, input.Configuration.Stanza, 1, "Expected 1 Stanza")
 	stanza := input.Configuration.Stanza[0]

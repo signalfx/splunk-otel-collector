@@ -1,8 +1,9 @@
 # Splunk OpenTelemetry .NET Deployer
 
 The Splunk OpenTelemetry .NET Deployer is a technical add-on to be used with
-Splunk Enterprise to facilitate the deployment of the Splunk OpenTelemetry
-Distribution for .NET. It automates the setup process, ensuring that your .NET
+Splunk Enterprise to facilitate the deployment of the
+[Splunk Distribution of OpenTelemetry .NET](https://docs.splunk.com/observability/en/gdi/get-data-in/application/otel-dotnet/get-started.html).
+It automates the setup process, ensuring that your .NET
 applications are properly configured to send telemetry data to Splunk
 Observability Cloud.
 
@@ -25,7 +26,7 @@ configuration options.
 
 ## Development
 
-This project was tested on Windows, using `MINGW64` tools and the `bash`
+This project was developed on Windows, using `MINGW64` tools and the `bash`
 provided by Git for Windows. Check the [Makefile](./Makefile) for the available
 targets - the default target generates the technical add-on under
 `./out/distribution`.

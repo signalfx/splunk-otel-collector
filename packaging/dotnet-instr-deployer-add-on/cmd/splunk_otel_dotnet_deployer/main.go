@@ -90,7 +90,7 @@ func setupLogger() (closer func()) {
 	multiWriter := io.MultiWriter(os.Stdout, logFile)
 	log.SetOutput(multiWriter)
 
-	return func() { logFile.Close() }
+	return func() { _ = logFile.Close() }
 }
 
 // buildLogFilePath returns the path to the log file.

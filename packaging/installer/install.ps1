@@ -398,7 +398,7 @@ function install_msi([string]$path) {
     $startTime = Get-Date
     $proc = (Start-Process msiexec.exe -Wait -PassThru -ArgumentList "/i `"$path`" /qn /norestart $msi_public_properties")
     if ($proc.ExitCode -ne 0 -and $proc.ExitCode -ne 3010) {
-        Write-Warning "The installer failed with error code ${proc.ExitCode}."
+        Write-Warning "The installer failed with error code $($proc.ExitCode)."
         try {
             $events = (Get-WinEvent -ProviderName "MsiInstaller" | Where-Object { $_.TimeCreated -ge $startTime })
             ForEach ($event in $events) {

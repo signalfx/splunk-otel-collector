@@ -69,7 +69,7 @@ jobs:
             ./bin/*
 
   agent-bundle-linux:
-    runs-on: ${{ fromJSON('["ubuntu-20.04", "otel-arm64"]')[matrix.ARCH == 'arm64'] }}
+    runs-on: ${{ fromJSON('["ubuntu-24.04", "otel-arm64"]')[matrix.ARCH == 'arm64'] }}
     strategy:
       matrix:
         ARCH: ["amd64", "arm64"]
@@ -158,8 +158,7 @@ jobs:
       matrix: ${{ steps.get-matrix.outputs.matrix }}
 
   test-package:
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ${{ fromJSON('["ubuntu-20.04", "ubuntu-22.04"]')[matrix.DISTRO == 'amazonlinux-2023'] }}
+    runs-on: ${{ fromJSON('["ubuntu-22.04", "ubuntu-24.04"]')[matrix.DISTRO == 'amazonlinux-2023'] }}
     timeout-minutes: 30
     needs: [build-package, test-package-matrix]
     strategy:

@@ -17,6 +17,10 @@ RUN `
         exit $process.ExitCode; `
     }
 
+# Temporary workaround for .NET Framework instrumentation issue
+ENV OTEL_DOTNET_AUTO_TRACES_SqlClient_INSTRUMENTATION_ENABLED=false
+ENV OTEL_DOTNET_AUTO_METRICS_SqlClient_INSTRUMENTATION_ENABLED=false
+
 # WARNING: Passing access token as a build argument is to facilitate manual validation of this Dockerfile. It shouldn't be used in production.
 ARG verify_access_token=false
 ARG access_token=some_token

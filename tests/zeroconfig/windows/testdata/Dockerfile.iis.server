@@ -17,10 +17,6 @@ RUN `
         exit $process.ExitCode; `
     }
 
-# Temporary workaround for .NET Framework instrumentation issue due to SqlClient instrumentation
-ENV OTEL_DOTNET_AUTO_TRACES_SqlClient_INSTRUMENTATION_ENABLED=false
-ENV OTEL_DOTNET_AUTO_METRICS_SqlClient_INSTRUMENTATION_ENABLED=false
-
 # Workaround for the issue with the .NET Framework instrumentation "" error
 RUN Set-ItemProperty -Path "HKLM:\\SOFTWARE\\Microsoft\\.NETFramework" -Name "LoaderOptimization" -Value 1 -Type DWord
 

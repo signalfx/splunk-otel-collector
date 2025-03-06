@@ -1,3 +1,4 @@
+include ../../Makefile.Common
 MOD_INPUT_NAME = splunk_otel_dotnet_deployer
 
 .PHONY: all

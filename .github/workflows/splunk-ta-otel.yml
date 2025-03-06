@@ -107,6 +107,12 @@ jobs:
           set -o pipefail
           PLATFORM="all" make -e distribute-ta
 
+      - name: Upload Collector TA
+        uses: actions/upload-artifact@v4
+        with:
+          name: Splunk_TA_otel
+          path: ./build/out/distribution/Splunk_TA_otel.tgz
+
   test-discovery:
     name: test-discovery
     runs-on: ubuntu-24.04

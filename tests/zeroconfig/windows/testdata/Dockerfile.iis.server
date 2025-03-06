@@ -21,7 +21,7 @@ RUN `
 ENV OTEL_DOTNET_AUTO_TRACES_SqlClient_INSTRUMENTATION_ENABLED=false
 ENV OTEL_DOTNET_AUTO_METRICS_SqlClient_INSTRUMENTATION_ENABLED=false
 
-# Workaround for the issue with the .NET Framework instrumentation "" error
+# Workaround for the issue with the .NET Framework instrumentation "Loading this assembly would produce a different grant set from other instances." error
 RUN Set-ItemProperty -Path "HKLM:\\SOFTWARE\\Microsoft\\.NETFramework" -Name "LoaderOptimization" -Value 1 -Type DWord
 
 # WARNING: Passing access token as a build argument is to facilitate manual validation of this Dockerfile. It shouldn't be used in production.

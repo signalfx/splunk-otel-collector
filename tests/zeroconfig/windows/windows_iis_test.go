@@ -100,7 +100,7 @@ func requireNoErrorExecCommand(t *testing.T, name string, arg ...string) {
 	require.NoError(t, err)
 }
 
-func requireHTTPGetRequestSuccess(t *assert.CollectT, url string) {
+func requireHTTPGetRequestSuccess(t *testing.T, url string) {
 	httpClient := &http.Client{}
 	req, err := http.NewRequest("GET", url, nil)
 	require.NoError(t, err)
@@ -114,9 +114,11 @@ func testExpectedTracesForHTTPGetRequest(t *testing.T, otlp *testutils.OTLPRecei
 	expected, err := golden.ReadTraces(expectedTracesFileName)
 	require.NoError(t, err)
 
+	// Make only a single request to the server to avoid creating multiple traces.
+	requireHTTPGetRequestSuccess(t, url)
+
 	var index int
 	assert.EventuallyWithT(t, func(tt *assert.CollectT) {
-		requireHTTPGetRequestSuccess(tt, url)
 		matchErr := fmt.Errorf("no matching traces found, %d collected", index)
 		newIndex := len(otlp.AllTraces())
 		for i := index; i < newIndex && matchErr != nil; i++ {

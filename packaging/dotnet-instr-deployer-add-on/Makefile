@@ -2,8 +2,8 @@ include ../../Makefile.Common
 
 MOD_INPUT_NAME = splunk_otel_dotnet_deployer
 
-.PHONY: all
-all: download-dotnet-assets build pack
+.PHONY: build-pack
+build-pack: download-dotnet-assets build pack
 
 .PHONY: download-dotnet-assets
 download-dotnet-assets:

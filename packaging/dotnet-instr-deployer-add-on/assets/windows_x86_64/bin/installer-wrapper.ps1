@@ -28,18 +28,29 @@ $otelSDKInstallVersion = Get-OpenTelemetryInstallVersion
 
 if ($uninstall) {
     if ($otelSDKInstallVersion) {
-        # TODO: Is it necessary to uninstall for IIS specifically?
         Write-Host "Uninstalling Splunk Distribution of OpenTelemetry .NET ..."
         Uninstall-OpenTelemetryCore
+
+        $w3svc = Get-Service -name "W3SVC" -ErrorAction SilentlyContinue
+        $was = Get-Service -name "WAS" -ErrorAction SilentlyContinue
+        if ($w3svc -And $was) {
+            Write-Host "Unregistering OpenTelemetry for IIS ..."
+            Unregister-OpenTelemetryForIIS
+        }
+
         Write-Host "Splunk Distribution of OpenTelemetry .NET uninstalled successfully"
     } else {
         Write-Host "Nothing to do since Splunk Distribution of OpenTelemetry .NET is not installed"
     }
 # Install the SDK if it is not already installed
 } elseif ($otelSDKInstallVersion) {
-    Write-Host "Nothing to do since Splunk Distribution of OpenTelemetry .NET is already installed. OpenTelelemetry .NET SDK version: $otelSDKInstallVersion"
+    Write-Host "Nothing to do since Splunk Distribution of OpenTelemetry .NET is already installed. OpenTelemetry .NET SDK version: $otelSDKInstallVersion"
 } else {
     Write-Host "Installing Splunk Distribution of OpenTelemetry .NET ..."
+
+    # Avoid issues with NGEN assemblies by forcing SingleDomain mode.
+    RUN Set-ItemProperty -Path "HKLM:\\SOFTWARE\\Microsoft\\.NETFramework" -Name "LoaderOptimization" -Value 1 -Type DWord
+
     $zipPath = Join-Path $scriptDir "splunk-opentelemetry-dotnet-windows.zip"
     Install-OpenTelemetryCore -LocalPath $zipPath
 

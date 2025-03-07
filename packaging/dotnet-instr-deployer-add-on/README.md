@@ -28,7 +28,7 @@ configuration options.
 
 This project was developed on Windows, using `MINGW64` tools and the `bash`
 provided by Git for Windows. Check the [Makefile](./Makefile) for the available
-targets - the default target generates the technical add-on under
+targets - use the `build-pack` target to generate the technical add-on under
 `./out/distribution`.
 
 ### Sources

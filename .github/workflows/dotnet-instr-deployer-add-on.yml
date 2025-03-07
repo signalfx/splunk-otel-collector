@@ -1,0 +1,43 @@
+name: .NET Instrumentation Deployer Add-On
+
+on:
+  push:
+    paths:
+      - 'packaging/dotnet-instr-deployer-add-on/**'
+  pull_request:
+    paths:
+      - 'packaging/dotnet-instr-deployer-add-on/**'
+  workflow_dispatch:
+
+env:
+  GO_VERSION: 1.23.6
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+
+      - name: Check out the codebase.
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Unit tests
+        working-directory: ./packaging/dotnet-instr-deployer-add-on
+        shell: bash
+        run: make test
+
+      - name: Build and Package the .NET Instrumentation Deployer Add-On
+        working-directory: ./packaging/dotnet-instr-deployer-add-on
+        shell: bash
+        run: make build-pack
+
+      - name: Upload the .NET Instrumentation Deployer Add-On
+        uses: actions/upload-artifact@v4
+        with:
+          name: splunk_otel_dotnet_deployer
+          path: ./packaging/dotnet-instr-deployer-add-on/out/distribution/splunk_otel_dotnet_deployer.tgz

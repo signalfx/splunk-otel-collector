@@ -19,6 +19,7 @@ on:
       - 'go.sum'
       - '!**.md'
       - '!packaging/**'
+  workflow_dispatch: # Allows manual execution of the workflow
 
 concurrency:
   group: build-and-test-${{ github.event.pull_request.number || github.ref }}

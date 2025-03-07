@@ -38,12 +38,12 @@ type Configuration struct {
 }
 
 type Input struct {
-	XMLName        xml.Name      `xml:"input"`
-	ServerHost     string        `xml:"server_host"`
-	ServerURI      string        `xml:"server_uri"`
-	SessionKey     string        `xml:"session_key"`
-	CheckpointDir  string        `xml:"checkpoint_dir"`
-	Configuration  Configuration `xml:"configuration"`
+	XMLName       xml.Name      `xml:"input"`
+	ServerHost    string        `xml:"server_host"`
+	ServerURI     string        `xml:"server_uri"`
+	SessionKey    string        `xml:"session_key"`
+	CheckpointDir string        `xml:"checkpoint_dir"`
+	Configuration Configuration `xml:"configuration"`
 }
 
 func UnmarshalInputXML(data []byte) (*Input, error) {
@@ -57,20 +57,20 @@ func UnmarshalInputXML(data []byte) (*Input, error) {
 }
 
 func ReadXML(reader io.Reader) (*Input, error) {
-    var xmlData strings.Builder
-    scanner := bufio.NewScanner(reader)
+	var xmlData strings.Builder
+	scanner := bufio.NewScanner(reader)
 
-    for scanner.Scan() {
-        line := scanner.Text()
-        xmlData.WriteString(line)
-        if strings.Contains(line, "</input>") {
-            break
-        }
-    }
+	for scanner.Scan() {
+		line := scanner.Text()
+		xmlData.WriteString(line)
+		if strings.Contains(line, "</input>") {
+			break
+		}
+	}
 
-    if err := scanner.Err(); err != nil {
-        return nil, fmt.Errorf("error reading input: %w", err)
-    }
+	if err := scanner.Err(); err != nil {
+		return nil, fmt.Errorf("error reading input: %w", err)
+	}
 
-    return UnmarshalInputXML([]byte(xmlData.String()))
+	return UnmarshalInputXML([]byte(xmlData.String()))
 }

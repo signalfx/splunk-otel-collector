@@ -29,7 +29,7 @@ import (
 )
 
 const (
-	wrapperScript    = "installer-wrapper.ps1"
+	wrapperScript = "installer-wrapper.ps1"
 )
 
 func runDeployer(input *modularinput.Input, stdin, stdout, stderr *os.File) error {

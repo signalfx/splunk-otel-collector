@@ -46,10 +46,10 @@ func TestDefaultInternalMetrics(t *testing.T) {
 				"scrape_series_added",
 				"up",
 			),
-			pmetrictest.IgnoreResourceAttributeValue("service_instance_id"),
-			pmetrictest.IgnoreResourceAttributeValue("service_version"),
-			pmetrictest.IgnoreMetricAttributeValue("service_instance_id"),
-			pmetrictest.IgnoreMetricAttributeValue("service_version"),
+			pmetrictest.IgnoreResourceAttributeValue("service.instance.id"),
+			pmetrictest.IgnoreResourceAttributeValue("service.version"),
+			pmetrictest.IgnoreMetricAttributeValue("service.instance.id"),
+			pmetrictest.IgnoreMetricAttributeValue("service.version"),
 		),
 	)
 }

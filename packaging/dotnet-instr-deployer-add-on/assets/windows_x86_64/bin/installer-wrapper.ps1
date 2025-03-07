@@ -44,7 +44,7 @@ if ($uninstall) {
     }
 # Install the SDK if it is not already installed
 } elseif ($otelSDKInstallVersion) {
-    Write-Host "Nothing to do since Splunk Distribution of OpenTelemetry .NET is already installed. OpenTelelemetry .NET SDK version: $otelSDKInstallVersion"
+    Write-Host "Nothing to do since Splunk Distribution of OpenTelemetry .NET is already installed. OpenTelemetry .NET SDK version: $otelSDKInstallVersion"
 } else {
     Write-Host "Installing Splunk Distribution of OpenTelemetry .NET ..."
 

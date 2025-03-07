@@ -23,6 +23,6 @@ import (
 	"github.com/splunk/splunk_otel_dotnet_deployer/internal/modularinput"
 )
 
-func runDeployer(input *modularinput.Input, stdin, stdout, stderr *os.File) error {
+func runDeployer(_ *modularinput.Input, _, _, _ *os.File) error {
 	panic("OS not supported")
 }

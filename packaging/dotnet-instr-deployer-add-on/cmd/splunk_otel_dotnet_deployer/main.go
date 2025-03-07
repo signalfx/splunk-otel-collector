@@ -30,6 +30,10 @@ const (
 )
 
 func main() {
+	os.Exit(run())
+}
+
+func run() int {
 	logCloseFunc := setupLogger()
 	defer logCloseFunc()
 
@@ -38,17 +42,13 @@ func main() {
 	flag.Parse()
 
 	if *schemeFlag {
-		os.Exit(0)
+		return 0
 	}
 
 	if *validateFlag {
-		os.Exit(0)
+		return 0
 	}
 
-	os.Exit(run())
-}
-
-func run() int {
 	input, err := modularinput.ReadXML(os.Stdin)
 	if err != nil {
 		log.Println("Error:", err)

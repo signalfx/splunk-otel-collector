@@ -41,3 +41,19 @@ jobs:
         with:
           name: splunk_otel_dotnet_deployer
           path: ./packaging/dotnet-instr-deployer-add-on/out/distribution/splunk_otel_dotnet_deployer.tgz
+
+      # Run the .NET Instrumentation Deployer Add-On integration tests
+
+      - name: Download the Splunk UF MSI
+        shell: bash
+        run: curl https://download.splunk.com/products/universalforwarder/releases/9.4.0/windows/splunkforwarder-9.4.0-6b4ebe426ca6-windows-x64.msi -o splunkforwarder.msi
+
+      - name: Install then Splunk UF
+        run: msiexec.exe /i "$PWD\splunkforwarder.msi" /qn /l*v install-log.txt AGREETOLICENSE=Yes
+
+      - name: Run the integration test script
+        run: |
+          ./.github/workflows/scripts/win-test-dotnet-deployer-ta.ps1 `
+            -tgzFilePath ./packaging/dotnet-instr-deployer-add-on/out/distribution/splunk_otel_dotnet_deployer.tgz `
+            -splunkInstallPath $(Join-Path "${Env:ProgramFiles}" "SplunkUniversalForwarder")
+

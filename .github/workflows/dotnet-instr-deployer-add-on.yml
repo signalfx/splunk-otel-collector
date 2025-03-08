@@ -55,5 +55,5 @@ jobs:
         working-directory: ./packaging/dotnet-instr-deployer-add-on
         run: |
           ./tests/integration/win-deployment-test.ps1 `
-            -tgzFilePath ./packaging/dotnet-instr-deployer-add-on/out/distribution/splunk_otel_dotnet_deployer.tgz `
+            -tgzFilePath ./out/distribution/splunk_otel_dotnet_deployer.tgz `
             -splunkInstallPath $(Join-Path "${Env:ProgramFiles}" "SplunkUniversalForwarder")

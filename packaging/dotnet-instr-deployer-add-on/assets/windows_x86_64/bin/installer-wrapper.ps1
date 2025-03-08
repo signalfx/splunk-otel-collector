@@ -49,7 +49,7 @@ if ($uninstall) {
     Write-Host "Installing Splunk Distribution of OpenTelemetry .NET ..."
 
     # Avoid issues with NGEN assemblies by forcing SingleDomain mode.
-    RUN Set-ItemProperty -Path "HKLM:\\SOFTWARE\\Microsoft\\.NETFramework" -Name "LoaderOptimization" -Value 1 -Type DWord
+    Set-ItemProperty -Path "HKLM:\\SOFTWARE\\Microsoft\\.NETFramework" -Name "LoaderOptimization" -Value 1 -Type DWord
 
     $zipPath = Join-Path $scriptDir "splunk-opentelemetry-dotnet-windows.zip"
     Install-OpenTelemetryCore -LocalPath $zipPath

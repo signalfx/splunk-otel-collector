@@ -17,7 +17,16 @@ Notice that the technical add-on is not a standalone application, it is meant
 to be run under `splunkd` control.
 
 __Note:__ the technical add-on is only available for Windows x86_64 and requires
-`splunkd` to be running under a user with administrative privileges.
+`splunkd` to be running under a user with administrative privileges. If the
+`splunkd` process is not running with the necessary rights, the installation
+will fail with an error similar to:
+
+```PowerShell
++ Import-Module $modulePath
++ ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : PermissionDenied: (Splunk.OTel.DotNet.psm1:String) [Import-Module], ScriptRequiresException
+    + FullyQualifiedErrorId : ScriptRequiresElevation,Microsoft.PowerShell.Commands.ImportModuleCommand
+```
 
 ## Configuration
 

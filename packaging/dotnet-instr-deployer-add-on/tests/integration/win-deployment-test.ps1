@@ -64,7 +64,9 @@ if (Test-Path $taPath) {
 Write-Host "Restarting Splunk"
 & "$splunkInstallPath/bin/splunk.exe" restart
 
-# Check if the Splunk OpenTelemetry .NET instrumentation is installed
+# Check if the Splunk OpenTelemetry .NET instrumentation is installed - remember
+# that the TA needs some time to complete this operation after the restart
+Start-Sleep -Seconds 30
 $splunkOtelDotNetPath = Join-Path ${env:ProgramFiles} "Splunk OpenTelemetry .NET"
 if (Test-Path $splunkOtelDotNetPath) {
     Write-Host "Splunk OpenTelemetry .NET instrumentation is installed at $splunkOtelDotNetPath"
@@ -99,7 +101,9 @@ Set-Content -Path $localInputsConfPath -Value $localInputsConfContent
 Write-Host "Restarting Splunk"
 & "$splunkInstallPath/bin/splunk.exe" restart
 
-# Check if the Splunk OpenTelemetry .NET instrumentation is uninstalled
+# Check if the Splunk OpenTelemetry .NET instrumentation is uninstalled - remember
+# that the TA needs some time to complete this operation after the restart
+Start-Sleep -Seconds 30
 if (-not (Test-Path $splunkOtelDotNetPath)) {
     Write-Host "Splunk OpenTelemetry .NET instrumentation is uninstalled"
 } else {

@@ -13,6 +13,7 @@ on:
       - '!**.md'
       - 'packaging/**'
       - '!packaging/technical-addon/**'
+      - '!packaging/dotnet-instr-deployer-add-on/**'
 
 concurrency:
   group: auto-instrumentation-${{ github.event.pull_request.number || github.ref }}

@@ -13,7 +13,7 @@ env:
   GO_VERSION: 1.23.6
 
 jobs:
-  build:
+  build-pack-test-dotnet-deployer-ta:
     runs-on: windows-latest
 
     steps:
@@ -51,7 +51,14 @@ jobs:
       - name: Install then Splunk UF
         run: msiexec.exe /i "$PWD\splunkforwarder.msi" /qn /l*v install-log.txt AGREETOLICENSE=Yes
 
-      - name: Run the integration test script
+      - name: Start Splunk UF and check its status
+        run: |
+          Start-Sleep 30
+          cd "${Env:ProgramFiles}\SplunkUniversalForwarder\bin"
+          .\splunk.exe status
+          .\splunk.exe start
+
+      - name: Run the .NET Instrumentation Deployer Add-On integration tests
         working-directory: ./packaging/dotnet-instr-deployer-add-on
         run: |
           ./tests/integration/win-deployment-test.ps1 `

@@ -94,7 +94,10 @@ if (Test-Path $defaultInputsConfPath) {
 }
 
 # Modify the local inputs.conf to uninstall the Splunk OpenTelemetry .NET instrumentation
-$localInputsConfContent = (Get-Content $localInputsConfPath).Replace("uninstall = false", "uninstall = true")
+$localInputsConfContent = $(Get-Content $localInputsConfPath).Replace("uninstall = false", "uninstall = true")
+if (-not (Test-Path $localInputsConfPath)) {
+    New-Item -ItemType File -Force -Path $localInputsConfPath | Out-Null
+}
 Set-Content -Path $localInputsConfPath -Value $localInputsConfContent
 
 # Restart Splunk

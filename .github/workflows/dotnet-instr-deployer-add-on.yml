@@ -52,8 +52,8 @@ jobs:
         run: msiexec.exe /i "$PWD\splunkforwarder.msi" /qn /l*v install-log.txt AGREETOLICENSE=Yes
 
       - name: Run the integration test script
+        working-directory: ./packaging/dotnet-instr-deployer-add-on
         run: |
-          ./.github/workflows/scripts/win-test-dotnet-deployer-ta.ps1 `
+          ./tests/integration/win-deployment-test.ps1 `
             -tgzFilePath ./packaging/dotnet-instr-deployer-add-on/out/distribution/splunk_otel_dotnet_deployer.tgz `
             -splunkInstallPath $(Join-Path "${Env:ProgramFiles}" "SplunkUniversalForwarder")
-

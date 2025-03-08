@@ -48,10 +48,10 @@ jobs:
         shell: bash
         run: curl https://download.splunk.com/products/universalforwarder/releases/9.4.0/windows/splunkforwarder-9.4.0-6b4ebe426ca6-windows-x64.msi -o splunkforwarder.msi
 
-      - name: Install then Splunk UF
+      - name: Install Splunk UF
         run: msiexec.exe /i "$PWD\splunkforwarder.msi" /qn /l*v install-log.txt AGREETOLICENSE=Yes
 
-      - name: Start Splunk UF and check its status
+      - name: Start Splunk UF and check its status # Need to ensure that the UF is Ok before running the tests
         run: |
           Start-Sleep 30
           cd "${Env:ProgramFiles}\SplunkUniversalForwarder\bin"
@@ -66,5 +66,6 @@ jobs:
             -splunkInstallPath $(Join-Path "${Env:ProgramFiles}" "SplunkUniversalForwarder")
 
       - name: Display the Deployer TA logs # It is expected to be relatively small
+        if: always()
         run: |
           Get-Content "${Env:ProgramFiles}\SplunkUniversalForwarder\var\log\splunk\splunk_otel_dotnet_deployer.log"

@@ -49,7 +49,9 @@ jobs:
         run: curl https://download.splunk.com/products/universalforwarder/releases/9.4.0/windows/splunkforwarder-9.4.0-6b4ebe426ca6-windows-x64.msi -o splunkforwarder.msi
 
       - name: Install Splunk UF
-        run: msiexec.exe /i "$PWD\splunkforwarder.msi" /qn /l*v install-log.txt AGREETOLICENSE=Yes
+        run: msiexec.exe /i "$PWD\splunkforwarder.msi" /qn /l*v install-log.txt AGREETOLICENSE=Yes ALLUSERS=1
+        # ALLUSERS=1 is required when installing the UF since the install script needs to import the
+        # Splunk.OTel.DotNet.psm1 that requires admin privileges.
 
       - name: Start Splunk UF and check its status # Need to ensure that the UF is Ok before running the tests
         run: |

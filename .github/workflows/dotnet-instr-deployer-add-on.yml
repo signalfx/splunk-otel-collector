@@ -64,3 +64,7 @@ jobs:
           ./tests/integration/win-deployment-test.ps1 `
             -tgzFilePath ./out/distribution/splunk_otel_dotnet_deployer.tgz `
             -splunkInstallPath $(Join-Path "${Env:ProgramFiles}" "SplunkUniversalForwarder")
+
+      - name: Display the Deployer TA logs # It is expected to be relatively small
+        run: |
+          Get-Content "${Env:ProgramFiles}\SplunkUniversalForwarder\var\log\splunk\splunk_otel_dotnet_deployer.log"

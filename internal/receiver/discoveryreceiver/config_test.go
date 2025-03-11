@@ -25,6 +25,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
+	"go.opentelemetry.io/collector/confmap/xconfmap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
 )
@@ -139,7 +140,7 @@ func TestReceiverCreatorFactoryAndConfig(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, component.MustNewType("receiver_creator"), factory.Type())
 
-	require.NoError(t, component.ValidateConfig(rCfg))
+	require.NoError(t, xconfmap.Validate(rCfg))
 
 	creatorCfg, ok := rCfg.(*receivercreator.Config)
 	require.True(t, ok)

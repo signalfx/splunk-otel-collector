@@ -19,13 +19,14 @@ on:
       - 'go.sum'
       - '!**.md'
       - '!packaging/**'
+  workflow_dispatch: # Allows manual execution of the workflow
 
 concurrency:
   group: build-and-test-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.22.10
+  GO_VERSION: 1.23.6
 
 jobs:
   setup-environment:

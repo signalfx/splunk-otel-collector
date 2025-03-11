@@ -27,7 +27,7 @@ if (!(Test-Path (Join-Path $docker_setup_path splunk-otel-collector-*.msi) -Path
 # 2. ASP.NET Core IIS hosting bundle
 if (!(Test-Path (Join-Path $docker_setup_path dotnet-hosting-win.exe) -PathType Leaf)) {
     $dotnet_hosing_exe = Join-Path $docker_setup_path dotnet-hosting-win.exe
-    Invoke-WebRequest -Uri https://aka.ms/dotnet/6.0/dotnet-hosting-win.exe -OutFile $dotnet_hosing_exe -UseBasicParsing
+    Invoke-WebRequest -Uri https://aka.ms/dotnet/8.0/dotnet-hosting-win.exe -OutFile $dotnet_hosing_exe -UseBasicParsing
 }
 
 try {

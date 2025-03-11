@@ -17,6 +17,7 @@
 package zeroconfig
 
 import (
+	"fmt"
 	"net/http"
 	"os/exec"
 	"path"
@@ -110,18 +111,18 @@ func requireHTTPGetRequestSuccess(t *testing.T, url string) {
 }
 
 func testExpectedTracesForHTTPGetRequest(t *testing.T, otlp *testutils.OTLPReceiverSink, url string, expectedTracesFileName string) {
-	requireHTTPGetRequestSuccess(t, url)
-
 	expected, err := golden.ReadTraces(expectedTracesFileName)
 	require.NoError(t, err)
 
-	assert.Eventually(t, func() bool {
-		if otlp.SpanCount() == 0 {
-			return false
-		}
-		receivedOTLPTraces := otlp.AllTraces()
-		for _, trace := range receivedOTLPTraces {
-			err := ptracetest.CompareTraces(expected, trace,
+	// Make only a single request to the server to avoid creating multiple traces.
+	requireHTTPGetRequestSuccess(t, url)
+
+	var index int
+	assert.EventuallyWithT(t, func(tt *assert.CollectT) {
+		matchErr := fmt.Errorf("no matching traces found, %d collected", index)
+		newIndex := len(otlp.AllTraces())
+		for i := index; i < newIndex && matchErr != nil; i++ {
+			matchErr = ptracetest.CompareTraces(expected, otlp.AllTraces()[i],
 				ptracetest.IgnoreResourceAttributeValue("host.id"),
 				ptracetest.IgnoreResourceAttributeValue("host.name"),
 				ptracetest.IgnoreResourceAttributeValue("process.owner"),
@@ -139,11 +140,8 @@ func testExpectedTracesForHTTPGetRequest(t *testing.T, otlp *testutils.OTLPRecei
 				ptracetest.IgnoreTraceID(),
 				ptracetest.IgnoreSpanID(),
 			)
-			if err == nil {
-				return true
-			}
-			t.Log(err)
 		}
-		return false
+		index = newIndex
+		assert.NoError(tt, matchErr)
 	}, 1*time.Minute, 10*time.Millisecond, "Failed to receive expected traces")
 }

@@ -1,6 +1,6 @@
-#!/bin/bash -eux
-
+#!/bin/bash -eu
 set -o pipefail
+
 which jq || (echo "jq not found" && exit 1)
 source "${SOURCE_DIR}/packaging-scripts/cicd-tests/test-utils.sh"
 BUILD_DIR="$(realpath "$BUILD_DIR")"

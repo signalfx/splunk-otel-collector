@@ -91,7 +91,7 @@ for cmd in \
    "pgrep -f 'kafkametrics.discovery.properties.yaml'" \
    "test -d $SPLUNK_HOME/etc/apps/Splunk_TA_otel/configs/discovery/config.d.linux" \
 ; do
-    "$ORCA_SSH_USER@$IPV4_ADDR":/opt/splunk/var/log/splunk/ "$cmd"
+    ssh -i ~/.orca/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null  "$ORCA_SSH_USER@$IPV4_ADDR" "$cmd"
 done
 
 

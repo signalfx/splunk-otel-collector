@@ -132,12 +132,12 @@ if [ $ATTEMPT -gt $MAX_ATTEMPTS ]; then
     exit 1
 fi
 
-grep -q "Starting otel agent" "$GATEWAY_LOGS_DIR/Splunk_TA_otel.log"
+grep -q "Starting otel agent" "$GATEWAY_LOGS_DIR/splunk/Splunk_TA_otel.log"
 (grep -qi "ERROR" "$GATEWAY_LOGS_DIR/splunk/Splunk_TA_otel.log" && exit 1 ) || true
 (grep -qi "ERROR" "$GATEWAY_LOGS_DIR/splunk/otel.log" && exit 1 ) || true
 
 grep -q "Starting otel agent" "$GATEWAY_AGENT_LOGS_DIR/Splunk_TA_otel.log"
 (grep -qi "ERROR" "$GATEWAY_AGENT_LOGS_DIR/splunk/Splunk_TA_otel.log" && exit 1 ) || true
-(grep -qi "ERROR" "$GATEWAY_AGENT_LOGS_DIR/splunk/otel.log" && exit 1 ) || true
+(grep -qi "ERROR" "$GATEWAY_AGENT_LOGS_DIR/splunk/splunk/otel.log" && exit 1 ) || true
 
 exit 0

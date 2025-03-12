@@ -380,7 +380,7 @@ def test_installer_with_instrumentation_default(distro, arch, method):
 
     # minimum supported node version required for profiling
     node_version = 16
-    if arch == "arm64" and distro in ("centos-7", "oraclelinux-7"):
+    if arch == "arm64" and distro in ("centos-7"):
         # g++ for these distros is too old to build/compile splunk-otel-js with node v16:
         #   g++: error: unrecognized command line option '-std=gnu++14'
         # use the minimum supported node version without profiling instead
@@ -499,7 +499,7 @@ def test_installer_with_instrumentation_custom(distro, arch, method, sdk):
 
     # minimum supported node version required for profiling
     node_version = 16
-    if arch == "arm64" and distro in ("centos-7", "oraclelinux-7"):
+    if arch == "arm64" and distro in ("centos-7"):
         # g++ for these distros is too old to build/compile splunk-otel-js with node v16:
         #   g++: error: unrecognized command line option '-std=gnu++14'
         # use the minimum supported node version without profiling instead

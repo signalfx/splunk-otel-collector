@@ -40,8 +40,8 @@ safe_grep_log() {
     searchstring="$1"
     filename="$2"
     if [ -f "$filename" ]; then
-        found = "$(grep -qi "$searchstring" "$filename")"
-        return $found
+        grep -qi "$searchstring" "$filename"
+        return $?
     else
         echo "$filename not found"
         return 1

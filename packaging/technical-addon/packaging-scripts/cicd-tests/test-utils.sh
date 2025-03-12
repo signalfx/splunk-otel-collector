@@ -22,3 +22,28 @@ repack_with_access_token() {
     echo "$repacked"
     return 0
 }
+
+safe_tail() {
+    filename="$1"
+    set +u
+    taillines="$2"
+    set -u
+
+    if [ "$taillines" ]; then
+        ([ -f "$filename" ] && tail -n "$taillines" "$filename") || echo "File $filename not found"
+    else
+        ([ -f "$filename" ] && cat "$taillines" "$filename") || echo "File $filename not found"
+    fi
+}
+
+safe_grep_log() {
+    searchstring="$1"
+    filename="$2"
+    if [ -f "$filename" ]; then
+        grep -qi "$searchstring" "$filename"
+        return $?
+    else
+        echo "$filename not found"
+        return 1
+    fi
+}

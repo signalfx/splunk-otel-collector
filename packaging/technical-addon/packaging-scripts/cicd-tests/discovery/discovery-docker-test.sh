@@ -4,7 +4,7 @@ set -o pipefail
 [[ -z "$BUILD_DIR" ]] && echo "BUILD_DIR not set" && exit 1
 [[ -z "$SOURCE_DIR" ]] && echo "SOURCE_DIR not set" && exit 1
 
-source "${SOURCE_DIR}/packaging-scripts/cicd-tests/add-access-token.sh"
+source "${SOURCE_DIR}/packaging-scripts/cicd-tests/test-utils.sh"
 TA_FULLPATH="$(repack_with_access_token "foobar" "$BUILD_DIR/out/distribution/Splunk_TA_otel.tgz" | tail -n 1)"
 REPACKED_TA_NAME="$(basename "$TA_FULLPATH")"
 ADDON_DIR="$(realpath "$(dirname "$TA_FULLPATH")")"

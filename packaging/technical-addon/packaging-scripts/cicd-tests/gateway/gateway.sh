@@ -118,8 +118,8 @@ MAX_ATTEMPTS=24
 DELAY=10
 ATTEMPT=1
 while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
-    scp -i ~/.orca/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r "$ORCA_SSH_USER@$GATEWAY_AGENT_IPV4_ADDR":/opt/splunk/var/log/splunk/otel.log "$GATEWAY_AGENT_LOGS_DIR"
-    if safe_grep_log "Everything is ready" "$GATEWAY_AGENT_LOGS_DIR/otel.log"; then
+    scp -i ~/.orca/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r "$ORCA_SSH_USER@$GATEWAY_AGENT_IPV4_ADDR":/opt/splunk/var/log/splunk/ "$GATEWAY_AGENT_LOGS_DIR"
+    if safe_grep_log "Everything is ready" "$GATEWAY_AGENT_LOGS_DIR/splunk/otel.log"; then
         break
     fi
     echo "Did not see startup message according to otel.log... Retrying in $DELAY seconds"

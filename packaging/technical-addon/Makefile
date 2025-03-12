@@ -125,6 +125,18 @@ orca-gateway-test-ta:  env-guard-verify
 	OLLY_ACCESS_TOKEN="$(OLLY_ACCESS_TOKEN)" \
 	$(SOURCE_DIR)/packaging-scripts/cicd-tests/gateway/gateway.sh
 
+.PHONY: orca-discovery-test-ta
+orca-discovery-test-ta:  env-guard-verify
+	SOURCE_DIR="$(SOURCE_DIR)" \
+	BUILD_DIR="$(BUILD_DIR)" \
+	ARCH="$(ARCH)" \
+	SPLUNK_PLATFORM="$(SPLUNK_PLATFORM)" \
+	PLATFORM="$(PLATFORM)" \
+	ORCA_CLOUD="$(ORCA_CLOUD)" \
+	UF_VERSION="$(UF_VERSION)" \
+	OLLY_ACCESS_TOKEN="$(OLLY_ACCESS_TOKEN)" \
+	$(SOURCE_DIR)/packaging-scripts/cicd-tests/discovery/discovery-orca-test.sh
+
 .PHONY: smoketest-ta
 smoketest-ta:
 	SOURCE_DIR="$(SOURCE_DIR)" \

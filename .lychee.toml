@@ -1,4 +1,3 @@
-accept = ["200..=299", "429"]
 exclude = [
     "my.host",
     "file://*",

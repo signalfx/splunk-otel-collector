@@ -591,7 +591,8 @@ test-discovery-ta:
   after_script:
     # spin down orca deployments
     - "cd ${CI_PROJECT_DIR}"
-    - deployment_id=$(grep "orca_deployment_id" $TEST_FOLDER/orca-deployment.json | awk -F ':' '{print $2}' | awk -F '"' '{print $2}')
+    - cat $TEST_FOLDER/orca-deployment.json
+    - deployment_id=$(grep "orca_deployment_id" "$TEST_FOLDER/orca-deployment.json" | awk -F ':' '{print $2}' | awk -F '"' '{print $2}')
     - splunk_orca --cloud ${ORCA_CLOUD} destroy "${deployment_id}"
   artifacts:
     when: always

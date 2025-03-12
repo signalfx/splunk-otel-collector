@@ -85,7 +85,7 @@ grep -q "Starting otel agent" "$LOGS_DIR/splunk/Splunk_TA_otel.log"
 
 SPLUNK_HOME="/opt/splunk/"
 
-for cmd in 
+for cmd in \
    "pgrep -f 'discovery'" \
    "pgrep -f 'discovery-properties'" \
    "pgrep -f 'kafkametrics.discovery.properties.yaml'" \

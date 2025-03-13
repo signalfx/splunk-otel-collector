@@ -426,8 +426,15 @@ agent-bundle-windows:
       - dist/agent-bundle_windows_amd64.zip
 
 .auth-setup:
+  id_tokens:
+    CI_JOB_JWT:
+      aud:
+        - "$CICD_VAULT_ADDR"
+        - "$SECRETS_URL"
   variables:
     TEST_FOLDER: $BUILD_DIR/$CI_JOB_ID
+  after_script:
+    - creds-helper logout --silent=false
   before_script: |
       creds-helper init
       creds-helper pypi "$PYPI_READER_ROLE"
@@ -435,6 +442,7 @@ agent-bundle-windows:
       pip install --upgrade pip
       pip install --upgrade splunk-orca
       splunk_orca --help
+      eval "$(creds-helper artifactory --eval "$ARTIFACTORY_GENERIC_ROLE" )"
       pushd ~
       echo ${NEW_ORCA_TGZ} | base64 -d > orca_cred.tar.gz
       tar -xzvf ~/orca_cred.tar.gz

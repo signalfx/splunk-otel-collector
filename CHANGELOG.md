@@ -4,7 +4,7 @@
 
 ### 🛑 Breaking changes 🛑
 
-- (Splunk) Support for Oracle Linux 7 has been dropped ([#](https://github.com/signalfx/splunk-otel-collector/pull/))
+- (Splunk) Support for Oracle Linux 7 has been dropped ([#5974](https://github.com/signalfx/splunk-otel-collector/pull/5974))
 
 ## v0.120.0
 

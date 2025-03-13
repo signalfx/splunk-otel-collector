@@ -445,7 +445,7 @@ agent-bundle-windows:
       pip install --upgrade pip
       pip install --upgrade splunk-orca
       splunk_orca --help
-      eval "$(creds-helper artifactory --eval "$GENERIC_RELEASER_ROLE" )"
+      eval "$(creds-helper artifactory --eval "$GENERIC_RELEASER_ROLE_URI" )"
       pushd ~
       echo ${NEW_ORCA_TGZ} | base64 -d > orca_cred.tar.gz
       tar -xzvf ~/orca_cred.tar.gz

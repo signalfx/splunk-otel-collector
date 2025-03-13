@@ -434,7 +434,10 @@ agent-bundle-windows:
   variables:
     TEST_FOLDER: $BUILD_DIR/$CI_JOB_ID
   after_script:
+    - splunk_orca -v destroy --labels gitlab.job_url=${CI_JOB_URL} || true
+    - splunk_orca -v --cloud aws destroy --labels gitlab.job_url=${CI_JOB_URL} || true
     - creds-helper logout --silent=false
+
   before_script: |
       creds-helper init
       creds-helper pypi "$PYPI_READER_ROLE"
@@ -442,7 +445,7 @@ agent-bundle-windows:
       pip install --upgrade pip
       pip install --upgrade splunk-orca
       splunk_orca --help
-      eval "$(creds-helper artifactory --eval "$ARTIFACTORY_GENERIC_ROLE" )"
+      eval "$(creds-helper artifactory --eval "$GENERIC_RELEASER_ROLE" )"
       pushd ~
       echo ${NEW_ORCA_TGZ} | base64 -d > orca_cred.tar.gz
       tar -xzvf ~/orca_cred.tar.gz

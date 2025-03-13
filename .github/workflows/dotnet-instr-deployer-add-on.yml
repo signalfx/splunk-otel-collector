@@ -4,9 +4,11 @@ on:
   push:
     paths:
       - 'packaging/dotnet-instr-deployer-add-on/**'
+      - '.github/workflows/dotnet-instr-deployer-add-on.yml'
   pull_request:
     paths:
       - 'packaging/dotnet-instr-deployer-add-on/**'
+      - '.github/workflows/dotnet-instr-deployer-add-on.yml'
   workflow_dispatch:
     inputs:
       splunk_uf_version:

@@ -436,7 +436,7 @@ agent-bundle-windows:
       pip install --upgrade splunk-orca
       splunk_orca --help
       pushd ~
-      echo ${ORCA_TAR_GZ} | base64 -d > orca_cred.tar.gz
+      echo ${NEW_ORCA_TGZ} | base64 -d > orca_cred.tar.gz
       tar -xzvf ~/orca_cred.tar.gz
       echo "area = otel-collector" >> ~/.orca/orca.conf
       popd

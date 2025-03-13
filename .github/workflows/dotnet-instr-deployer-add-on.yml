@@ -4,13 +4,27 @@ on:
   push:
     paths:
       - 'packaging/dotnet-instr-deployer-add-on/**'
+      - '.github/workflows/dotnet-instr-deployer-add-on.yml'
   pull_request:
     paths:
       - 'packaging/dotnet-instr-deployer-add-on/**'
+      - '.github/workflows/dotnet-instr-deployer-add-on.yml'
   workflow_dispatch:
+    inputs:
+      splunk_uf_version:
+        description: 'Splunk UF version'
+        required: false
+        default: '9.4.0'
+      splunk_uf_build_hash:
+        description: 'Splunk UF build hash'
+        required: false
+        default: '6b4ebe426ca6'
 
 env:
   GO_VERSION: 1.23.6
+  # Provide default values for non-manually triggered executions
+  splunk_uf_version: ${{ github.event.inputs.splunk_uf_version || '9.4.0' }}
+  splunk_uf_build_hash: ${{ github.event.inputs.splunk_uf_build_hash || '6b4ebe426ca6' }}
 
 jobs:
   build-pack-test-dotnet-deployer-ta:
@@ -46,7 +60,8 @@ jobs:
 
       - name: Download the Splunk UF MSI
         shell: bash
-        run: curl https://download.splunk.com/products/universalforwarder/releases/9.4.0/windows/splunkforwarder-9.4.0-6b4ebe426ca6-windows-x64.msi -o splunkforwarder.msi
+        run: |
+          curl https://download.splunk.com/products/universalforwarder/releases/${{ env.splunk_uf_version }}/windows/splunkforwarder-${{ env.splunk_uf_version }}-${{ env.splunk_uf_build_hash }}-windows-x64.msi -o splunkforwarder.msi
 
       - name: Install Splunk UF
         run: msiexec.exe /i "$PWD\splunkforwarder.msi" /qn /l*v install-log.txt AGREETOLICENSE=Yes USE_LOCAL_SYSTEM=1

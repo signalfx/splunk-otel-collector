@@ -444,6 +444,8 @@ agent-bundle-windows:
       popd
 
 package-technical-addon:
+  rules:
+  - if: $CI_COMMIT_REF_PROTECTED == "true"
   image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
   stage: "package"
   script: |

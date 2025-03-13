@@ -22,8 +22,8 @@ stages:
   - build
   - sign-binaries
   - package
-  - code-analysis
   - orca-tests
+  - code-analysis
   - sign-packages
   - release
   - docker-manifest-release

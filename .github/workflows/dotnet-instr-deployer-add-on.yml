@@ -14,11 +14,11 @@ on:
       splunk_uf_version:
         description: 'Splunk UF version'
         required: false
-        default: '9.4.1'
+        default: '9.4.0'
       splunk_uf_build_hash:
         description: 'Splunk UF build hash'
         required: false
-        default: 'e3bdab203ac8'
+        default: '6b4ebe426ca6'
 
 env:
   GO_VERSION: 1.23.6

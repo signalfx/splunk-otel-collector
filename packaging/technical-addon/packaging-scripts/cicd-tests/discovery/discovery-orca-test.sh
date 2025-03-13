@@ -26,7 +26,7 @@ echo "Creating splunk cluster with TA $TA_FULLPATH"
 
 ORCA_SSH_USER="splunk"
 
-container_info="$(splunk_orca -v --printer json --cloud "$ORCA_CLOUD" --ansible-log "$TEST_FOLDER/ansible-local.log" create --env SPLUNK_CONNECTION_TIMEOUT=600 --platform "$SPLUNK_PLATFORM" --local-apps "$TA_FULLPATH" --playbook "$SOURCE_DIR/packaging-scripts/orca-playbook-windows.yml,site.yml")"
+container_info="$(splunk_orca -v --printer sdd-json --cloud "$ORCA_CLOUD" --ansible-log "$TEST_FOLDER/ansible-local.log" create --env SPLUNK_CONNECTION_TIMEOUT=600 --platform "$SPLUNK_PLATFORM" --local-apps "$TA_FULLPATH" --playbook "$SOURCE_DIR/packaging-scripts/orca-playbook-windows.yml,site.yml")"
 echo "$container_info" > "$TEST_FOLDER/orca-deployment.json"
 cat "$TEST_FOLDER/orca-deployment.json"
 

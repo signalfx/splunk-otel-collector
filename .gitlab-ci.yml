@@ -426,6 +426,8 @@ agent-bundle-windows:
       - dist/agent-bundle_windows_amd64.zip
 
 .auth-setup:
+  rules:
+  - if: $CI_COMMIT_REF_PROTECTED == "true"
   variables:
     TEST_FOLDER: $BUILD_DIR/$CI_JOB_ID
   before_script: |

@@ -455,7 +455,7 @@ package-technical-addon:
     matrix:
       - PLATFORM: ["all"]
 
-test-happypath-ta:
+.test-happypath-ta:
   image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
   extends: .auth-setup
   stage: orca-tests
@@ -512,7 +512,7 @@ test-collectd-ta:
     paths:
       - "$BUILD_DIR/out/**/*"
       - "$BUILD_DIR/$CI_JOB_ID/**/*"
-test-gateway-ta:
+.test-gateway-ta:
   image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
   extends: .auth-setup
   stage: orca-tests

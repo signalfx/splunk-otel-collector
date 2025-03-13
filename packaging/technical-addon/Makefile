@@ -111,7 +111,7 @@ orca-collectd-test-ta: env-guard-verify
 	UF_VERSION="$(UF_VERSION)" \
 	SPLUNK_PLATFORM="$(SPLUNK_PLATFORM)" \
 	OLLY_ACCESS_TOKEN="$(OLLY_ACCESS_TOKEN)" \
-	$(SOURCE_DIR)/packaging-scripts/cicd-tests/agent-bundle/collectd-orca-test.sh
+	$(SOURCE_DIR)/packaging-scripts/cicd-tests/agent-bundle/orca-collectd-test.sh
 
 .PHONY: orca-gateway-test-ta
 orca-gateway-test-ta:  env-guard-verify

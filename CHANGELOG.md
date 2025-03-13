@@ -11,7 +11,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 - (Core) `confighttp`: Make the client config options `max_idle_conns`, `max_idle_conns_per_host`, `max_conns_per_host`, and `idle_conn_timeout` integers ([#9478](https://github.com/open-telemetry/opentelemetry-collector/pull/9478))
   All four options can be set to `0` where they were previously set to `null`
 
-- (Contrib) `awss3exporter`: Replaced the `s3_partition` option with `s3_partition_format` to provide more flexibility to users. (#37915, #37503)
+- (Contrib) `awss3exporter`: Replaced the `s3_partition` option with `s3_partition_format` to provide more flexibility to users. ([#37915](https://github.com/open-telemetry/opentelemetry-collector/pull/37915), [#37503](https://github.com/open-telemetry/opentelemetry-collector/pull/37503))
   Users can provide custom file partitions using [strftime](https://www.man7.org/linux/man-pages/man3/strftime.3.html) formatting.
   The default value of `year=%Y/month=%m/day=%d/hour=%H/minute=%M` matches the older pattern (with `s3_partition: minute`)
 

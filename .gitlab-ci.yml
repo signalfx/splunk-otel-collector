@@ -446,7 +446,6 @@ agent-bundle-windows:
       pushd ~
       echo ${NEW_ORCA_TGZ} | base64 -d > orca_cred.tar.gz
       tar -xzvf ~/orca_cred.tar.gz
-      echo "area = otel-collector" >> ~/.orca/orca.conf
       popd
 
 package-technical-addon:

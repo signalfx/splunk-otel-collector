@@ -10,7 +10,7 @@ class splunk_otel_collector::collector_win_install ($repo_url, $version, $packag
   if $facts['win_collector_path'] != $collector_path or $facts['win_collector_version'] != $version {
     $msi_file_path = "${facts['win_temp']}\\${msi_name}"
     file { 'msi_file_path':
-      path => $msi_file_path,
+      path   => $msi_file_path,
       source => "${repo_url}/${msi_name}"
     }
 

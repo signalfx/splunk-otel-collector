@@ -30,9 +30,7 @@ container_info="$(splunk_orca -v --printer sdd-json --cloud "$ORCA_CLOUD" --ansi
 echo "$container_info" > "$TEST_FOLDER/orca-deployment.json"
 cat "$TEST_FOLDER/orca-deployment.json"
 
-# .keys[keys[0]] will grab the first key out of a dict
-# Structure is (currently) {"creator":{"deployment":{"containers":{"container_id":{}}}}}
-IPV4_ADDR="$(echo "$container_info" | jq -r '.[keys[0]] | .[keys[0]] | .containers | .[keys[0]] | .private_address')"
+IPV4_ADDR="$(jq -r '.server_roles.standalone[0].host' < "$TEST_FOLDER/orca-deployment.json")"
 LOGS_DIR="$TEST_FOLDER/$REPACKED_TA_NAME/"
 mkdir -p "$LOGS_DIR"
 

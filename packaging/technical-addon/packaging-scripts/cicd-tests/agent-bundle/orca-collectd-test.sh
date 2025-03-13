@@ -10,7 +10,7 @@ TEST_FOLDER="${TEST_FOLDER:-$BUILD_DIR/$CI_JOB_ID}"
 mkdir -p "$TEST_FOLDER"
 
 # Create ORCA container & grab id
-splunk_orca -vvv --cloud "${ORCA_CLOUD}" --printer sdd-json --deployment-file "$TEST_FOLDER/orca_deployment.json" --ansible-log "$TEST_FOLDER/ansible-local.log" create --prefix "happypath" --env SPLUNK_CONNECTION_TIMEOUT=600 --platform "$SPLUNK_PLATFORM" --splunk-version "${UF_VERSION}" --local-apps "$TA_FULLPATH" --playbook "$SOURCE_DIR/packaging-scripts/orca-playbook-$PLATFORM.yml,site.yml"
+splunk_orca -vvv --cloud "${ORCA_CLOUD}" "$ORCA_OPTION" --printer sdd-json --deployment-file "$TEST_FOLDER/orca_deployment.json" --ansible-log "$TEST_FOLDER/ansible-local.log" create --prefix "happypath" --env SPLUNK_CONNECTION_TIMEOUT=600 --platform "$SPLUNK_PLATFORM" --splunk-version "${UF_VERSION}" --local-apps "$TA_FULLPATH" --playbook "$SOURCE_DIR/packaging-scripts/orca-playbook-$PLATFORM.yml,site.yml"
 deployment_id="$(jq -r '.orca_deployment_id' < "$TEST_FOLDER/orca_deployment.json")"
 ip_addr="$(jq -r '.server_roles.standalone[0].host' < "$TEST_FOLDER/orca_deployment.json")"
 

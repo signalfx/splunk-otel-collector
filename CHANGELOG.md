@@ -8,6 +8,8 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 
 ### 🛑 Breaking changes 🛑
 
+- (Splunk) Support for Oracle Linux 7 has been dropped ([#5974](https://github.com/signalfx/splunk-otel-collector/pull/5974))
+
 - (Core) `confighttp`: Make the client config options `max_idle_conns`, `max_idle_conns_per_host`, `max_conns_per_host`, and `idle_conn_timeout` integers ([#9478](https://github.com/open-telemetry/opentelemetry-collector/issues/9478))
   All four options can be set to `0` where they were previously set to `null`
 

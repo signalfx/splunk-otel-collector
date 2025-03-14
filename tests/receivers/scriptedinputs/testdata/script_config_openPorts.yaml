@@ -1,7 +1,7 @@
 receivers:
   scripted_inputs/openPorts:
     script_name: openPorts
-    collection_interval: 10s
+    collection_interval: 1s
     source: openPorts
     sourcetype: openPorts
 

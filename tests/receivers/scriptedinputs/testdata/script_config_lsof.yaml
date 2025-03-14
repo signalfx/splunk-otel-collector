@@ -1,7 +1,7 @@
 receivers:
   scripted_inputs/lsof:
     script_name: lsof
-    collection_interval: 10s
+    collection_interval: 1s
     source: lsof
     sourcetype: lsof
 

@@ -1,7 +1,7 @@
 receivers:
   scripted_inputs/hardware:
     script_name: hardware
-    collection_interval: 10s
+    collection_interval: 3s
     source: hardware
     sourcetype: hardware
 

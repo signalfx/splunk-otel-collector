@@ -114,7 +114,7 @@ func testExpectedTracesForHTTPGetRequest(t *testing.T, otlp *testutils.OTLPRecei
 	expected, err := golden.ReadTraces(expectedTracesFileName)
 	require.NoError(t, err)
 
-	// Make only a single request to the server to avoid creating multiple traces.
+	// Make only a single successful request to the server to avoid creating multiple traces.
 
 	assert.EventuallyWithT(t, func(tt *assert.CollectT) {
 		assertHTTPGetRequestSuccess(t, url)

@@ -115,7 +115,6 @@ func testExpectedTracesForHTTPGetRequest(t *testing.T, otlp *testutils.OTLPRecei
 	require.NoError(t, err)
 
 	// Make only a single successful request to the server to avoid creating multiple traces.
-
 	assert.EventuallyWithT(t, func(tt *assert.CollectT) {
 		assertHTTPGetRequestSuccess(t, url)
 	}, 3*time.Minute, 100*time.Millisecond, "Failed to connect to target")

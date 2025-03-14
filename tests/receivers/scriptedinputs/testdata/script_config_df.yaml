@@ -1,7 +1,7 @@
 receivers:
   scripted_inputs/df:
     script_name: df
-    collection_interval: 1s
+    collection_interval: 3s
     source: df
     sourcetype: df
 

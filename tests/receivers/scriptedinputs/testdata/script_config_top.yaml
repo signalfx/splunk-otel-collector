@@ -1,7 +1,7 @@
 receivers:
   scripted_inputs/top:
     script_name: top
-    collection_interval: 1s
+    collection_interval: 3s
     source: top
     sourcetype: top
 

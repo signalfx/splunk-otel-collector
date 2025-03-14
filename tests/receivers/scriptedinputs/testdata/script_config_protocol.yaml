@@ -1,7 +1,7 @@
 receivers:
   scripted_inputs/protocol:
     script_name: protocol
-    collection_interval: 1s
+    collection_interval: 3s
     source: protocol
     sourcetype: protocol
 

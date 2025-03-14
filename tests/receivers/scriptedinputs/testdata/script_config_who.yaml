@@ -1,7 +1,7 @@
 receivers:
   scripted_inputs/who:
     script_name: who
-    collection_interval: 1s
+    collection_interval: 3s
     source: who
     sourcetype: who
 

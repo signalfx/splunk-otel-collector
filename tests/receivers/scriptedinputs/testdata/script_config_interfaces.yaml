@@ -1,7 +1,7 @@
 receivers:
   scripted_inputs/interfaces:
     script_name: interfaces
-    collection_interval: 1s
+    collection_interval: 3s
     source: interfaces
     sourcetype: interfaces
 

@@ -1,7 +1,7 @@
 receivers:
   scripted_inputs/cpu:
     script_name: cpu
-    collection_interval: 1s
+    collection_interval: 3s
     source: cpu
     sourcetype: cpu
 

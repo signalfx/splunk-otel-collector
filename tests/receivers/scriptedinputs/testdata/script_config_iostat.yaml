@@ -1,7 +1,7 @@
 receivers:
   scripted_inputs/iostat:
     script_name: iostat
-    collection_interval: 1s
+    collection_interval: 3s
     source: iostat
     sourcetype: iostat
 

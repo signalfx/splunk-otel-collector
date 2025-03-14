@@ -19,7 +19,6 @@ class splunk_otel_collector::collector_win_install ($repo_url, $version, $packag
     }
 
     -> package { $package_name:
-      ensure          => $version,
       source          => $msi_file_path,
       require         => Class['splunk_otel_collector::collector_win_config_options'],
       # If the MSI is not configurable, the install_options below will be ignored during installation.

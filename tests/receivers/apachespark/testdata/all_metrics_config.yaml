@@ -1,6 +1,6 @@
 receivers:
   apachespark:
-    collection_interval: 15s
+    collection_interval: 1s
 
 exporters:
   otlp:

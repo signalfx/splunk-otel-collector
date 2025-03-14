@@ -15,6 +15,11 @@ cat "$TEST_FOLDER/orca_deployment.json"
 deployment_id="$(jq -r '.orca_deployment_id' < "$TEST_FOLDER/orca_deployment.json")"
 ip_addr="$(jq -r '.server_roles.standalone[0].host' < "$TEST_FOLDER/orca_deployment.json")"
 
+SSH_PORT="22"
+if [ "$ORCA_CLOUD" == "kubernetes" ]; then
+    SSH_PORT="2222"
+fi
+
 # Check for successful startup
 if [ "$PLATFORM" == "windows" ]; then
     MAX_ATTEMPTS=96 # Windows takes a long time to extract, often 7 minutes on default hardware
@@ -25,7 +30,7 @@ ATTEMPT=1
 DELAY=10
 while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
     # Copy logs from container
-    scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r -i ~/.orca/id_rsa "splunk@$ip_addr:/opt/splunk/var/log/splunk/" "$TEST_FOLDER"
+    scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.orca/id_rsa -r -P $SSH_PORT "splunk@$ip_addr:/opt/splunk/var/log/splunk/" "$TEST_FOLDER"
     if safe_grep_log "Starting otel agent" "$TEST_FOLDER/splunk/Splunk_TA_otel.log" &&
        safe_grep_log "Everything is ready" "$TEST_FOLDER/splunk/otel.log"; then
         break
@@ -81,7 +86,7 @@ else
     restart_log_file="Splunk_TA_otel.log"
 fi
 while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
-    scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r -i ~/.orca/id_rsa "splunk@$ip_addr:/opt/splunk/var/log/splunk/$restart_log_file" "$TEST_FOLDER/splunk/$restart_log_file"
+    scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.orca/id_rsa -r -P $SSH_PORT "splunk@$ip_addr:/opt/splunk/var/log/splunk/$restart_log_file" "$TEST_FOLDER/splunk/$restart_log_file"
     # There seems to be an issue on linux where it does not gracefully wait for the job to shut down, need to investigate further.
     (safe_grep_log "INFO Otel agent stop" "$TEST_FOLDER/splunk/$restart_log_file" || safe_grep_log "INFO Stopping otel" "$TEST_FOLDER/splunk/$restart_log_file") && break
     ATTEMPT=$((ATTEMPT + 1))
@@ -99,8 +104,8 @@ MAX_ATTEMPTS=24
 DELAY=10
 ATTEMPT=1
 while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
-    scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r -i ~/.orca/id_rsa "splunk@$ip_addr:/opt/splunk/var/log/splunk/Splunk_TA_otel.log" "$TEST_FOLDER/splunk/Splunk_TA_otel.log"
-    scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r -i ~/.orca/id_rsa "splunk@$ip_addr:/opt/splunk/var/log/splunk/otel.log" "$TEST_FOLDER/splunk/otel.log"
+    scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.orca/id_rsa -r -P "$SSH_PORT" "splunk@$ip_addr:/opt/splunk/var/log/splunk/Splunk_TA_otel.log" "$TEST_FOLDER/splunk/Splunk_TA_otel.log"
+    scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.orca/id_rsa -r -P "$SSH_PORT" "splunk@$ip_addr:/opt/splunk/var/log/splunk/otel.log" "$TEST_FOLDER/splunk/otel.log"
     if safe_grep_log "Starting otel agent" "$TEST_FOLDER/splunk/Splunk_TA_otel.log" && safe_grep_log "Everything is ready" "$TEST_FOLDER/splunk/otel.log"; then
         break
     fi

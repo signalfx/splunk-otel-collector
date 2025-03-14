@@ -100,22 +100,24 @@ func requireNoErrorExecCommand(t *testing.T, name string, arg ...string) {
 	require.NoError(t, err)
 }
 
-func requireHTTPGetRequestSuccess(t *testing.T, url string) {
+func assertHTTPGetRequestSuccess(t *testing.T, url string) {
 	httpClient := &http.Client{}
 	req, err := http.NewRequest("GET", url, nil)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 	resp, err := httpClient.Do(req)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 	defer resp.Body.Close()
-	require.Equal(t, http.StatusOK, resp.StatusCode)
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }
 
 func testExpectedTracesForHTTPGetRequest(t *testing.T, otlp *testutils.OTLPReceiverSink, url string, expectedTracesFileName string) {
 	expected, err := golden.ReadTraces(expectedTracesFileName)
 	require.NoError(t, err)
 
-	// Make only a single request to the server to avoid creating multiple traces.
-	requireHTTPGetRequestSuccess(t, url)
+	// Make only a single successful request to the server to avoid creating multiple traces.
+	assert.EventuallyWithT(t, func(tt *assert.CollectT) {
+		assertHTTPGetRequestSuccess(t, url)
+	}, 3*time.Minute, 100*time.Millisecond, "Failed to connect to target")
 
 	var index int
 	assert.EventuallyWithT(t, func(tt *assert.CollectT) {

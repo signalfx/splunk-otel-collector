@@ -40,7 +40,6 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
   be changed in the future.
 - (Core) `memorylimiterprocessor`: Add support for profiles. ([#12453](https://github.com/open-telemetry/opentelemetry-collector/pull/12453))
 - (Core) `otelcol`: Converters are now available in the `components` command. ([#11900](https://github.com/open-telemetry/opentelemetry-collector/pull/11900), [#12385](https://github.com/open-telemetry/opentelemetry-collector/pull/12385))
-- (Core) `component`: Mark module as stable ([#9376](https://github.com/open-telemetry/opentelemetry-collector/pull/9376))
 - (Core) `confmap`: Surface YAML parsing errors when they happen at the top-level. ([#12180](https://github.com/open-telemetry/opentelemetry-collector/pull/12180))
   This adds context to some instances of the error "retrieved value (type=string) cannot be used as a Conf", which typically happens because of invalid YAML documents
 - (Core) `pprofile`: Add LinkIndex attribute to the generated Sample type ([#12485](https://github.com/open-telemetry/opentelemetry-collector/pull/12485))

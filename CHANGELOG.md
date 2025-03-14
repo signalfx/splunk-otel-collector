@@ -8,7 +8,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 
 ### 🛑 Breaking changes 🛑
 
-- (Core) `confighttp`: Make the client config options `max_idle_conns`, `max_idle_conns_per_host`, `max_conns_per_host`, and `idle_conn_timeout` integers ([#9478](https://github.com/open-telemetry/opentelemetry-collector/pull/9478))
+- (Core) `confighttp`: Make the client config options `max_idle_conns`, `max_idle_conns_per_host`, `max_conns_per_host`, and `idle_conn_timeout` integers ([#9478](https://github.com/open-telemetry/opentelemetry-collector/issues/9478))
   All four options can be set to `0` where they were previously set to `null`
 
 - (Contrib) `awss3exporter`: Replaced the `s3_partition` option with `s3_partition_format` to provide more flexibility to users. ([#37915](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37915), [#37503](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37503))

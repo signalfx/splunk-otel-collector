@@ -88,7 +88,7 @@ func RunMetricsCollectionTest(t *testing.T, configFile string, expectedFilePath 
 	c.GRPC.NetAddr.Endpoint = fmt.Sprintf("localhost:%d", port)
 	c.HTTP = nil
 	sink := &consumertest.MetricsSink{}
-	receiver, err := f.CreateMetrics(context.Background(), receivertest.NewNopSettings(), c, sink)
+	receiver, err := f.CreateMetrics(context.Background(), receivertest.NewNopSettings(f.Type()), c, sink)
 	require.NoError(t, err)
 	require.NoError(t, receiver.Start(context.Background(), componenttest.NewNopHost()))
 	t.Cleanup(func() {

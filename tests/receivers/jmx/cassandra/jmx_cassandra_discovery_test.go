@@ -69,7 +69,7 @@ func jmxCassandraAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFi
 	c.GRPC.NetAddr.Endpoint = fmt.Sprintf("localhost:%d", port)
 	endpoint := c.GRPC.NetAddr.Endpoint
 	sink := &consumertest.LogsSink{}
-	receiver, err := factory.CreateLogs(context.Background(), receivertest.NewNopSettings(), c, sink)
+	receiver, err := factory.CreateLogs(context.Background(), receivertest.NewNopSettings(factory.Type()), c, sink)
 	require.NoError(t, err)
 	require.NoError(t, receiver.Start(context.Background(), componenttest.NewNopHost()))
 	t.Cleanup(func() {

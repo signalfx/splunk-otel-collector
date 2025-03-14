@@ -32,6 +32,10 @@ import (
 	"go.uber.org/zap"
 )
 
+const (
+	typeStr = "otlp"
+)
+
 // To be used as a builder whose Build() method provides the actual instance capable of starting the OTLP receiver
 // providing received metrics to test cases.
 type OTLPReceiverSink struct {
@@ -74,6 +78,7 @@ func (otlp OTLPReceiverSink) Build() (*OTLPReceiverSink, error) {
 	otlpConfig.HTTP = nil
 
 	params := receiver.Settings{
+		ID: component.MustNewID(typeStr),
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         otlp.Logger,
 			TracerProvider: tnoop.NewTracerProvider(),

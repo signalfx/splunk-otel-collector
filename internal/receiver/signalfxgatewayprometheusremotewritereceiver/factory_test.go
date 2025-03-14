@@ -40,7 +40,7 @@ func TestFactory(t *testing.T) {
 	cfg.ListenPath = "/metrics"
 
 	nopHost := componenttest.NewNopHost()
-	mockSettings := receivertest.NewNopSettings()
+	mockSettings := receivertest.NewNopSettings(receivertest.NopType)
 	mockConsumer := consumertest.NewNop()
 	receiver, err := newReceiver(mockSettings, cfg, mockConsumer)
 

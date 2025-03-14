@@ -8,7 +8,11 @@ class splunk_otel_collector::collector_win_install ($repo_url, $version, $packag
 
   # Only download and install if not already installed or version does not match
   if $facts['win_collector_path'] != $collector_path or $facts['win_collector_version'] != $version {
-    $msi_file_path = "${facts['win_temp']}\\${msi_name}"
+    # From documentation: On Windows, the path should include the drive letter and should use /
+    # as the separator character (rather than \)."
+    $msi_file_path_backslashes = "${facts['win_temp']}\\${msi_name}"
+    $msi_file_path = regsubst($msi_file_path_backslashes, '\\\\', '/', 'G')
+    $msi_file_path = "C:${msi_file_path}"
     file { 'msi_file_path':
       path   => $msi_file_path,
       source => "${repo_url}/${msi_name}"

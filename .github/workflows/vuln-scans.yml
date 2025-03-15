@@ -111,7 +111,7 @@ jobs:
         if: ${{ matrix.ARCH != 'amd64' }}
         with:
           platforms: ${{ matrix.ARCH }}
-          image: tonistiigi/binfmt:qemu-v7.0.0
+          image: tonistiigi/binfmt:qemu-v9.2.0
       - uses: actions/download-artifact@v4
         with:
           name: otelcol-${{ matrix.ARCH }}${{ matrix.FIPS == true && '-fips' || '' }}
@@ -144,7 +144,7 @@ jobs:
         if: ${{ matrix.ARCH != 'amd64' }}
         with:
           platforms: ${{ matrix.ARCH }}
-          image: tonistiigi/binfmt:qemu-v7.0.0
+          image: tonistiigi/binfmt:qemu-v9.2.0
       - uses: actions/download-artifact@v4
         with:
           name: otelcol-${{ matrix.ARCH }}${{ matrix.FIPS == true && '-fips' || '' }}
@@ -249,7 +249,7 @@ jobs:
         if: ${{ matrix.ARCH != 'amd64' }}
         with:
           platforms: ${{ matrix.ARCH }}
-          image: tonistiigi/binfmt:qemu-v7.0.0
+          image: tonistiigi/binfmt:qemu-v9.2.0
       - uses: actions/download-artifact@v4
         with:
           name: otelcol-${{ matrix.ARCH }}${{ matrix.FIPS == true && '-fips' || '' }}

@@ -56,7 +56,7 @@ require (
 )
 
 replace (
-	github.com/influxdata/telegraf => github.com/signalfx/telegraf v0.10.2-0.20240111190717-3494050f2933
+	github.com/influxdata/telegraf => github.com/signalfx/telegraf v0.10.2-0.20250228233359-931557f78bed
 	github.com/signalfx/signalfx-agent => ../../../internal/signalfx-agent
 	github.com/signalfx/splunk-otel-collector/tests => ../../../tests
 )

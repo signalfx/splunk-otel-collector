@@ -1744,8 +1744,8 @@ github.com/signalfx/ingest-protocols v0.2.1 h1:26B4uemeYrLxWzuYQTbcgbCcaCtIAq2VM
 github.com/signalfx/ingest-protocols v0.2.1/go.mod h1:CYKWPtxFWF9RCUGfN0Hh6javdTTqediTCbXFbW0BF60=
 github.com/signalfx/sapm-proto v0.17.0 h1:KY+9zm/yDOq6uzaguI1RmrJcWxzbkGv0zE6GplA3ytc=
 github.com/signalfx/sapm-proto v0.17.0/go.mod h1:c8fGx9DjGP7Hqif7g6Zy6E+BCMXK/dERFU2b3faA0gk=
-github.com/signalfx/telegraf v0.10.2-0.20240111190717-3494050f2933 h1:jNMKfAVAQkkeQfSLqLhc0MZ80IR0Lp3YI2MnBiu76IY=
-github.com/signalfx/telegraf v0.10.2-0.20240111190717-3494050f2933/go.mod h1:1gnMOcwGO3lAxfoMq28M8gjooF2MqVwquPVEvgZ1its=
+github.com/signalfx/telegraf v0.10.2-0.20250228233359-931557f78bed h1:UnMojeBM2skhiZm8Iol3RBQpUHWvAkt993NxWhiV/70=
+github.com/signalfx/telegraf v0.10.2-0.20250228233359-931557f78bed/go.mod h1:1gnMOcwGO3lAxfoMq28M8gjooF2MqVwquPVEvgZ1its=
 github.com/sijms/go-ora/v2 v2.8.24 h1:TODRWjWGwJ1VlBOhbTLat+diTYe8HXq2soJeB+HMjnw=
 github.com/sijms/go-ora/v2 v2.8.24/go.mod h1:QgFInVi3ZWyqAiJwzBQA+nbKYKH77tdp1PYoCqhR2dU=
 github.com/sirupsen/logrus v1.2.0/go.mod h1:LxeOpSwHxABJmUn/MG1IvRgCAasNZTLOkJPxbbu5VWo=

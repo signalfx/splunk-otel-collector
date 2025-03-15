@@ -2,11 +2,8 @@ package sql
 
 import (
 	"database/sql"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 	"reflect"
-
-	"github.com/signalfx/golib/v3/datapoint"
-	"github.com/signalfx/golib/v3/sfxclient"
-	"github.com/signalfx/signalfx-agent/pkg/utils"
 )
 
 type ExprEnv map[string]interface{}
@@ -80,11 +77,20 @@ func convertToFloatOrPanic(val interface{}) float64 {
 	return rVal.Convert(floatType).Float()
 }
 
-func (e ExprEnv) GAUGE(metric string, dims map[string]interface{}, val interface{}) *datapoint.Datapoint {
-
-	return sfxclient.GaugeF(metric, utils.StringInterfaceMapToStringMap(dims), convertToFloatOrPanic(val))
+func (e ExprEnv) GAUGE(metric string, dims map[string]interface{}, val interface{}) pmetric.Metric {
+	m := pmetric.NewMetric()
+	dp := m.SetEmptyGauge().DataPoints().AppendEmpty()
+	dp.SetDoubleValue(convertToFloatOrPanic(val))
+	dp.Attributes().FromRaw(dims)
+	m.SetName(metric)
+	return m
 }
 
-func (e ExprEnv) CUMULATIVE(metric string, dims map[string]interface{}, val interface{}) *datapoint.Datapoint {
-	return sfxclient.CumulativeF(metric, utils.StringInterfaceMapToStringMap(dims), convertToFloatOrPanic(val))
+func (e ExprEnv) CUMULATIVE(metric string, dims map[string]interface{}, val interface{}) pmetric.Metric {
+	m := pmetric.NewMetric()
+	dp := m.SetEmptySum().DataPoints().AppendEmpty()
+	dp.SetDoubleValue(convertToFloatOrPanic(val))
+	dp.Attributes().FromRaw(dims)
+	m.SetName(metric)
+	return m
 }

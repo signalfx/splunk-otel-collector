@@ -3,6 +3,6 @@
 Facter.add(:win_programdata) do
   confine :kernel => 'windows'
   setcode do
-    ENV['PROGRAMDATA']
+    ENV['CSIDL_COMMON_APPDATA']
   end
 end

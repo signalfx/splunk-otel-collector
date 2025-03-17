@@ -2,9 +2,93 @@
 
 ## Unreleased
 
+## v0.121.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.121.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.121.0) and the [opentelemetry-collector-contrib v0.121.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.121.0) releases where appropriate.
+
 ### 🛑 Breaking changes 🛑
 
 - (Splunk) Support for Oracle Linux 7 has been dropped ([#5974](https://github.com/signalfx/splunk-otel-collector/pull/5974))
+
+- (Core) `confighttp`: Make the client config options `max_idle_conns`, `max_idle_conns_per_host`, `max_conns_per_host`, and `idle_conn_timeout` integers ([#9478](https://github.com/open-telemetry/opentelemetry-collector/issues/9478))
+  All four options can be set to `0` where they were previously set to `null`
+
+- (Contrib) `awss3exporter`: Replaced the `s3_partition` option with `s3_partition_format` to provide more flexibility to users. ([#37915](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37915), [#37503](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37503))
+  Users can provide custom file partitions using [strftime](https://www.man7.org/linux/man-pages/man3/strftime.3.html) formatting.
+  The default value of `year=%Y/month=%m/day=%d/hour=%H/minute=%M` matches the older pattern (with `s3_partition: minute`)
+
+  If users do not provide a value for `s3_prefix`, the exporter will not create a `/` folder in the bucket.
+
+- (Contrib) `processor/k8sattributes`: Move k8sattr.fieldExtractConfigRegex.disallow feature gate to stable ([#25128](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/25128))
+- (Contrib) `signalfxexporter`: Remove the deprecated configuration option `translation_rules` ([#35332](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35332))
+  Please use processors to handle desired metric transformations instead. Find migration guidance in the
+  [translation rules migration guide](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/exporter/signalfxexporter/docs/translation_rules_migration_guide.md).
+
+### 🚩 Deprecations 🚩
+
+- (Core) `exporterhelper`: Deprecate `min_size_items` and `max_size_items` in favor of `min_size` and `max_size`. ([#12486](https://github.com/open-telemetry/opentelemetry-collector/pull/12486))
+
+- (Contrib) `prometheusreceiver`: Deprecate metric start time adjustment in the prometheus receiver. It is being replaced by the metricstarttime processor. ([#37186](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37186))
+  Start time adjustment is still enabled by default. To disable it, enable the | receiver.prometheusreceiver.RemoveStartTimeAdjustment feature gate.
+
+### 💡 Enhancements 💡
+
+- (Core) `pipeline`: output pipeline name with signal as signal[/name] format in logs. ([#12410](https://github.com/open-telemetry/opentelemetry-collector/pull/12410))
+- (Core) `memorylimiter`: Add support to configure min GC intervals for soft and hard limits. ([#12450](https://github.com/open-telemetry/opentelemetry-collector/pull/12450))
+- (Core) `otlpexporter`: Update the stability level for logs, it has been as stable as traces and metrics for some time. ([#12423](https://github.com/open-telemetry/opentelemetry-collector/pull/12423))
+- (Core) `service`: Create a new subcommand to dump the initial configuration after resolving/merging. ([#11479](https://github.com/open-telemetry/opentelemetry-collector/pull/11479))
+  To use the `print-initial-config` subcommand, invoke the Collector with the subcommand and corresponding feature gate: `otelcol print-initial-config --feature-gates=otelcol.printInitialConfig --config=config.yaml`.
+  Note that the feature gate enabling this flag is currently in alpha stability, and the subcommand may
+  be changed in the future.
+- (Core) `memorylimiterprocessor`: Add support for profiles. ([#12453](https://github.com/open-telemetry/opentelemetry-collector/pull/12453))
+- (Core) `otelcol`: Converters are now available in the `components` command. ([#11900](https://github.com/open-telemetry/opentelemetry-collector/pull/11900), [#12385](https://github.com/open-telemetry/opentelemetry-collector/pull/12385))
+- (Core) `confmap`: Surface YAML parsing errors when they happen at the top-level. ([#12180](https://github.com/open-telemetry/opentelemetry-collector/pull/12180))
+  This adds context to some instances of the error "retrieved value (type=string) cannot be used as a Conf", which typically happens because of invalid YAML documents
+- (Core) `pprofile`: Add LinkIndex attribute to the generated Sample type ([#12485](https://github.com/open-telemetry/opentelemetry-collector/pull/12485))
+- (Core) `exporterhelper`: Stabilize exporter.UsePullingBasedExporterQueueBatcher and remove old batch sender ([#12425](https://github.com/open-telemetry/opentelemetry-collector/pull/12425))
+
+- (Contrib) `processor/resourcedetection`: Introduce retry logic for failed resource detection. ([#34761](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/34761))
+- (Contrib) `pkg/ottl`: Support dynamic indexing of math expressions in maps and slices ([#37644](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37644))
+- (Contrib) `receiver/sqlquery`: Add support for SapASE (sybase) database connections ([#36328](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/36328))
+
+- (Contrib) `iisreceiver`: Added state and uptime metrics for application pools ([#34924](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/34924))
+- (Contrib) `pkg/stanza`: Add entry's timestamp and attributes to errors logs from log transformers processors ([#37285](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37285))
+  When a log transformer processor fails to process an log entry it will include entry's timestamp and attributes in its own logs.
+  With this information the user can more easily identify the log file and find the entry that's having issues.
+
+- (Contrib) `kafkareceiver`: Add error backoff configuration to kafka receiver which allows to wait and retry a failed message when the next consumer returns some errors. ([#37009](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37009))
+- (Contrib) `receiver/kafkametricsreceiver`: Add `refresh_frequency` config to `kafkametricsreceiver`, to configure custom duration for cluster metadata refresh ([#37896](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37896))
+  - Helps fine tuning the refresh_frequency, and enables custom cluster metadata refresh intervals
+  - Default refresh_frequency is set 10 minutes from Sarama library defaults
+
+- (Contrib) `processor/resourcedetection`: Add k8s.cluster.uid to kubeadm detector ([#38207](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/38207))
+- (Contrib) `mongodbreceiver`: Added mongodb replica metrics and routing logic for multiple mongodb instances ([#37517](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37517))
+- (Contrib) `pkg/ottl`: Add `event_index` to the available paths of the span event context ([#35778](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35778))
+- (Contrib) `pkg/ottl`: Introduce Weekday() converter function ([#38126](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/38126))
+- (Contrib) `prometheusreceiver`: Make use of creation timestamp from prometheus ([#36473](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/36473))
+- (Contrib) `processor/redaction`: Introduce 'blocked_key_patterns' parameter ([#35830](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35830))
+
+- (Contrib) `awss3exporter`: Added `acl` option ([#37935](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37935))
+- (Contrib) `receiver/sqlserverreceiver`: Add `server.address` and `server.port` resource attributes to SQL server receiver. ([#35183](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35183))
+  The new resource attributes are added to the SQL server receiver to distinguish metrics coming from different SQL server instances.
+  - (Contrib) `server.address`: The address of the SQL server host, disabled by default.
+  - (Contrib) `server.port`: The port of the SQL server host, disabled by default.
+
+### 🧰 Bug fixes 🧰
+
+- (Core) `service`: Fix crash at startup when converting from v0.2.0 to v0.3.0 ([#12438](https://github.com/open-telemetry/opentelemetry-collector/pull/12438))
+- (Core) `service`: fix bug in parsing service::telemetry configuration ([#12437](https://github.com/open-telemetry/opentelemetry-collector/pull/12437))
+- (Core) `exporterhelper`: Fix bug where the error logged when conversion of data fails is always nil ([#12510](https://github.com/open-telemetry/opentelemetry-collector/pull/12510))
+
+- (Contrib) `ecsobserver`: Fixed ecs task tags not being included in metadata labels ([#38278](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/38278))
+- (Contrib) `redactionprocessor`: Fix redaction processor to redact span event attributes ([#36633](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/36633))
+- (Contrib) `azuremonitorreceiver`: Fix bug where the time grain wasn't honored ([#37337](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37337))
+- (Contrib) `exporter/splunk_hec`: Do not pass errors from draining the response body to the pipeline as a export failure. ([#38118](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/38118))
+- (Contrib) `kafkametricsreceiver`: Fix incorrect cluster admin initialization in consumer scraper ([#36818](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/36818))
+- (Contrib) `pkg/ottl`: Change the `ottlmetric` context to properly display the `TransformContext` value in debug logs ([#38103](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/38103))
+- (Contrib) `redisreceiver`: Collect keyspace metrics even if reported dbs are nonsequential ([#38135](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/38135))
+  If a redis instance has no activity on a db, the db number is not reported in the keyspace metrics.
+  This change ensures that the keyspace metrics are collected even if the reported dbs have gaps.
 
 ## v0.120.0
 

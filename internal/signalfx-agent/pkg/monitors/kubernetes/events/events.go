@@ -204,7 +204,13 @@ func syncEvents(clientset *k8s.Clientset, handlers cache.ResourceEventHandlerFun
 	client := clientset.CoreV1().RESTClient()
 	watchList := cache.NewListWatchFromClient(client, "events", v1.NamespaceAll, fields.Everything())
 
-	_, controller := cache.NewInformer(watchList, &v1.Event{}, 0, handlers)
+	options := cache.InformerOptions{
+		ListerWatcher: watchList,
+		ObjectType:    &v1.Event{},
+		ResyncPeriod:  0,
+		Handler:       handlers,
+	}
+	_, controller := cache.NewInformerWithOptions(options)
 
 	go controller.Run(stopper)
 }

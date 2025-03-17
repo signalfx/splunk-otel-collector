@@ -503,8 +503,8 @@ github.com/signalfx/ingest-protocols v0.2.1 h1:26B4uemeYrLxWzuYQTbcgbCcaCtIAq2VM
 github.com/signalfx/ingest-protocols v0.2.1/go.mod h1:CYKWPtxFWF9RCUGfN0Hh6javdTTqediTCbXFbW0BF60=
 github.com/signalfx/sapm-proto v0.12.0 h1:OtOe+Jm8L61Ml8K6X8a89zc8/RlaaMRElCImeGKR/Ew=
 github.com/signalfx/sapm-proto v0.12.0/go.mod h1:wQEki8RNCYjkv19jw5aWDcmDMTQru0ckfUbgHI69U2E=
-github.com/signalfx/telegraf v0.10.2-0.20240111190717-3494050f2933 h1:jNMKfAVAQkkeQfSLqLhc0MZ80IR0Lp3YI2MnBiu76IY=
-github.com/signalfx/telegraf v0.10.2-0.20240111190717-3494050f2933/go.mod h1:1gnMOcwGO3lAxfoMq28M8gjooF2MqVwquPVEvgZ1its=
+github.com/signalfx/telegraf v0.10.2-0.20250228233359-931557f78bed h1:UnMojeBM2skhiZm8Iol3RBQpUHWvAkt993NxWhiV/70=
+github.com/signalfx/telegraf v0.10.2-0.20250228233359-931557f78bed/go.mod h1:1gnMOcwGO3lAxfoMq28M8gjooF2MqVwquPVEvgZ1its=
 github.com/sirupsen/logrus v1.4.1/go.mod h1:ni0Sbl8bgC9z8RoU9G6nDWqqs/fq4eDPysMBDgk/93Q=
 github.com/sirupsen/logrus v1.4.2/go.mod h1:tLMulIdttU9McNUspp0xgXVQah82FyeX6MwdIuYE2rE=
 github.com/sirupsen/logrus v1.9.3 h1:dueUQJ1C2q9oE3F7wvmSGAaVtTmUizReu6fjN8uqzbQ=

@@ -45,6 +45,8 @@ def retry(function, exception, max_attempts=5, interval=5):
 
 def wait_for_container_cmd(container, cmd, timeout=DEFAULT_TIMEOUT):
     start_time = time.time()
+    if timeout == DEFAULT_TIMEOUT:
+        timeout = 3 * DEFAULT_TIMEOUT
     while True:
         code, output = container.exec_run(cmd)
         elapsed = time.time() - start_time

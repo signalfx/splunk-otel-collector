@@ -153,12 +153,7 @@ func TestDefaultGatewayConfig(t *testing.T) {
 									"metric_relabel_configs": []any{
 										map[string]any{
 											"action":        "drop",
-											"regex":         "otelcol_rpc_.*",
-											"source_labels": []any{"__name__"},
-										},
-										map[string]any{
-											"action":        "drop",
-											"regex":         "otelcol_http_.*",
+											"regex":         "promhttp_metric_handler_errors.*",
 											"source_labels": []any{"__name__"},
 										},
 										map[string]any{
@@ -373,12 +368,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 									"metric_relabel_configs": []any{
 										map[string]any{
 											"action":        "drop",
-											"regex":         "otelcol_rpc_.*",
-											"source_labels": []any{"__name__"},
-										},
-										map[string]any{
-											"action":        "drop",
-											"regex":         "otelcol_http_.*",
+											"regex":         "promhttp_metric_handler_errors.*",
 											"source_labels": []any{"__name__"},
 										},
 										map[string]any{

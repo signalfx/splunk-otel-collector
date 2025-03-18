@@ -115,7 +115,7 @@ func (m *Monitor) Configure(conf *Config) error {
 	containers := map[string]dockerContainer{}
 	isRegistered := false
 
-	changeHandler := func(oldState *dtypes.ContainerJSON, newState *dtypes.ContainerJSON) {
+	changeHandler := func(oldState *dcontainer.InspectResponse, newState *dcontainer.InspectResponse) {
 		if oldState == nil && newState == nil {
 			return
 		}

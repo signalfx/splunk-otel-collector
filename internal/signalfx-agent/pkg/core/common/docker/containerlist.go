@@ -5,7 +5,6 @@ import (
 	"sync"
 	"time"
 
-	dtypes "github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/events"
 	"github.com/docker/docker/api/types/filters"
@@ -19,12 +18,12 @@ import (
 // initially recognized or changed in some way.  oldState will be the previous state,
 // or nil if no previous state is known.  newState is the new state, or nil if the
 // container is being destroyed.
-type ContainerChangeHandler func(oldState *dtypes.ContainerJSON, newState *dtypes.ContainerJSON)
+type ContainerChangeHandler func(oldState *container.InspectResponse, newState *container.InspectResponse)
 
 // ListAndWatchContainers accepts a changeHandler that gets called as containers come and go.
 func ListAndWatchContainers(ctx context.Context, client *docker.Client, changeHandler ContainerChangeHandler, imageFilter filter.StringFilter, logger log.FieldLogger, syncTime time.Duration) {
 	lock := sync.Mutex{}
-	containers := make(map[string]*dtypes.ContainerJSON)
+	containers := make(map[string]*container.InspectResponse)
 
 	// Make sure you hold the lock before calling this
 	updateContainer := func(id string) bool {

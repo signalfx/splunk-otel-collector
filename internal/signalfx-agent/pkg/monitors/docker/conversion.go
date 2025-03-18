@@ -5,7 +5,6 @@ import (
 	"strings"
 	"time"
 
-	dtypes "github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/signalfx/golib/v3/datapoint"
 	"github.com/signalfx/golib/v3/sfxclient"
@@ -28,7 +27,7 @@ var basicBlockIOMetrics = map[string]bool{
 }
 
 // ConvertStatsToMetrics converts a docker container stats object into an array of datapoints
-func ConvertStatsToMetrics(container *dtypes.ContainerJSON, parsed *container.StatsResponse, enhancedMetricsConfig EnhancedMetricsConfig) ([]*datapoint.Datapoint, error) {
+func ConvertStatsToMetrics(container *container.InspectResponse, parsed *container.StatsResponse, enhancedMetricsConfig EnhancedMetricsConfig) ([]*datapoint.Datapoint, error) {
 	var dps []*datapoint.Datapoint
 	dps = append(dps, convertBlkioStats(&parsed.BlkioStats, enhancedMetricsConfig.EnableExtraBlockIOMetrics)...)
 	dps = append(dps, convertCPUStats(&parsed.CPUStats, &parsed.PreCPUStats, enhancedMetricsConfig.EnableExtraCPUMetrics)...)

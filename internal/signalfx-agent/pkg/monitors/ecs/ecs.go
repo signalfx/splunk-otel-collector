@@ -12,7 +12,6 @@ import (
 	"strings"
 	"time"
 
-	dtypes "github.com/docker/docker/api/types"
 	dcontainer "github.com/docker/docker/api/types/container"
 	"github.com/signalfx/golib/v3/datapoint"
 	"github.com/signalfx/golib/v3/sfxclient"
@@ -188,8 +187,8 @@ func (m *Monitor) fetchStatsForAll(enhancedMetricsConfig dmonitor.EnhancedMetric
 			m.containers[dockerID] = container
 		}
 
-		containerJSON := &dtypes.ContainerJSON{
-			ContainerJSONBase: &dtypes.ContainerJSONBase{
+		containerJSON := &dcontainer.InspectResponse{
+			ContainerJSONBase: &dcontainer.ContainerJSONBase{
 				ID:   dockerID,
 				Name: container.Name,
 			},

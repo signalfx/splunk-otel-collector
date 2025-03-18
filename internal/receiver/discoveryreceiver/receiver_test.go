@@ -57,13 +57,13 @@ func TestObservablesFromHost(t *testing.T) {
 
 	for _, tt := range []struct {
 		name                string
-		extensions          map[component.ID]extension.Extension
+		extensions          map[component.ID]component.Component
 		expectedObservables map[component.ID]observer.Observable
 		expectedError       string
 		watchObservers      []component.ID
 	}{
 		{name: "mixed non-observables ids",
-			extensions: map[component.ID]extension.Extension{
+			extensions: map[component.ID]component.Component{
 				nopObsID:     nopObs,
 				nopObsvbleID: nopObsvble,
 			},
@@ -71,7 +71,7 @@ func TestObservablesFromHost(t *testing.T) {
 			expectedError:  `extension "nop_observer" in watch_observers is not an observer`,
 		},
 		{name: "mixed non-observables ids with names",
-			extensions: map[component.ID]extension.Extension{
+			extensions: map[component.ID]component.Component{
 				nopObsIDWithName:     nopObsWithName,
 				nopObsvbleIDWithName: nopObsvbleWithName,
 			},
@@ -79,14 +79,14 @@ func TestObservablesFromHost(t *testing.T) {
 			expectedError:  `extension "nop_observer/with_name" in watch_observers is not an observer`,
 		},
 		{name: "only missing extension",
-			extensions: map[component.ID]extension.Extension{
+			extensions: map[component.ID]component.Component{
 				nopObsvbleID: nopObsvble,
 			},
 			watchObservers: []component.ID{nopObsID},
 			expectedError:  `failed to find observer "nop_observer" as a configured extension`,
 		},
 		{name: "happy path",
-			extensions: map[component.ID]extension.Extension{
+			extensions: map[component.ID]component.Component{
 				nopObsvbleID:         nopObsvble,
 				nopObsvbleIDWithName: nopObsvbleWithName,
 			},
@@ -127,14 +127,14 @@ func TestObservablesFromHost(t *testing.T) {
 
 type mockHost struct {
 	component.Host
-	extensions map[component.ID]extension.Extension
+	extensions map[component.ID]component.Component
 }
 
 func (mh mockHost) GetFactory(_ component.Kind, _ component.Type) component.Factory {
 	return nil
 }
 
-func (mh mockHost) GetExtensions() map[component.ID]extension.Extension {
+func (mh mockHost) GetExtensions() map[component.ID]component.Component {
 	return mh.extensions
 }
 

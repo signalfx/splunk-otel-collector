@@ -24,8 +24,6 @@ import (
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
-const sparkPort = "4040"
-
 func TestApacheSparkIntegration(t *testing.T) {
 	testutils.RunMetricsCollectionTest(t, "all_metrics_config.yaml", "all_expected_metrics.yaml",
 		testutils.WithCompareMetricsOptions(

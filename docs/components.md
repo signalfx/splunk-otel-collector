@@ -35,6 +35,7 @@ The distribution offers support for the following components.
 | [hostmetrics](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/hostmetricsreceiver)                                            | [beta]           |
 | [httpcheck](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/httpcheckreceiver)                                                | [in development] |
 | [iis](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/iisreceiver)                                                            | [beta]           |
+| [influxdb](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/influxdbreceiver)                                                       | [beta]           |
 | [jaeger](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jaegerreceiver)                                                      | [beta]           |
 | [jmx](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jmxreceiver)                                                            | [alpha]          |
 | [journald](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/journaldreceiver)                                                  | [alpha]          |
@@ -63,7 +64,6 @@ The distribution offers support for the following components.
 | [scripted_inputs](../internal/receiver//scriptedinputsreceiver)                                                                                                    | [in development] |
 | [signalfx](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/signalfxreceiver)                                                  | [stable]         |
 | [signalfxgatewayprometheusremotewrite](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/receiver/signalfxgatewayprometheusremotewritereceiver) | [in development] |
-| [simpleprometheus](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/simpleprometheusreceiver)                                  | [beta]           |
 | [smartagent](../pkg/receiver/smartagentreceiver)                                                                                                                   | [beta]           |
 | [snowflake](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/snowflakereceiver)                                                | [beta]           |
 | [solace](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/solacereceiver)                                                      | [beta]           |

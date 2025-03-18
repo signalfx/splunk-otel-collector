@@ -37,7 +37,7 @@ type SocketProxy struct {
 func CreateDockerSocketProxy(t testing.TB) *SocketProxy {
 	port := GetAvailablePort(t)
 
-	dockerHost := "0.0.0.0"
+	dockerHost := "172.17.0.1"
 	if runtime.GOOS == "darwin" {
 		dockerHost = "host.docker.internal"
 	}

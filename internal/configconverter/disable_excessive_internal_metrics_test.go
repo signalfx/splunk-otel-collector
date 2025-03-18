@@ -55,9 +55,14 @@ func TestDisableExcessiveInternalMetrics(t *testing.T) {
 			wantOutput: "testdata/disable_excessive_internal_metrics/metric_relabel_configs_with_other_actions.yaml",
 		},
 		{
-			name:       "metric_relabel_configs_with_batch_drop_action",
-			input:      "testdata/disable_excessive_internal_metrics/old_metric_relabel_configs_present_input.yaml",
-			wantOutput: "testdata/disable_excessive_internal_metrics/old_metric_relabel_configs_present_output.yaml",
+			name:       "metric_relabel_configs_v1_to_current",
+			input:      "testdata/disable_excessive_internal_metrics/old_v1_metric_relabel_configs_present_input.yaml",
+			wantOutput: "testdata/disable_excessive_internal_metrics/current_metric_relabel_configs_present_output.yaml",
+		},
+		{
+			name:       "metric_relabel_configs_v2_to_current",
+			input:      "testdata/disable_excessive_internal_metrics/old_v2_metric_relabel_configs_present_input.yaml",
+			wantOutput: "testdata/disable_excessive_internal_metrics/current_metric_relabel_configs_present_output.yaml",
 		},
 		{
 			name:       "all_metric_relabel_configs_are_present",

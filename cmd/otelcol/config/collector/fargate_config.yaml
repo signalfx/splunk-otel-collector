@@ -1,10 +1,5 @@
 # This collector config file is designed for use within an ECS task.
 # The collector should run in a sidecar container within an ECS task.
-config_sources:
-  env:
-    defaults:
-      METRICS_TO_EXCLUDE: []
-
 extensions:
   health_check:
     endpoint: 0.0.0.0:13133
@@ -40,10 +35,7 @@ receivers:
             - targets: ['0.0.0.0:8888']
           metric_relabel_configs:
             - source_labels: [ __name__ ]
-              regex: 'otelcol_rpc_.*'
-              action: drop
-            - source_labels: [ __name__ ]
-              regex: 'otelcol_http_.*'
+              regex: 'promhttp_metric_handler_errors.*'
               action: drop
             - source_labels: [ __name__ ]
               regex: 'otelcol_processor_batch_.*'
@@ -73,14 +65,6 @@ processors:
   resourcedetection:
     detectors: [ecs]
     override: false
-  # Enables the filter processor with example settings
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/filterprocessor
-  # NOTE: These settings need to be change when using this processor
-  filter/1:
-    metrics:
-      exclude:
-        match_type: regexp
-        metric_names: ${env:METRICS_TO_EXCLUDE}
   # Optional: The following processor can be used to add a default "deployment.environment" attribute to the logs and
   # traces when it's not populated by instrumentation libraries.
   # If enabled, make sure to enable this processor in the pipeline below.

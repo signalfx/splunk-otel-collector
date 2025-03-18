@@ -41,10 +41,10 @@ import (
 // launching two collector processes:
 // The first is the main collector process without internal prometheus metrics and `--discovery`
 // w/ a config dir containing a host discovery observer and simple prometheus discovery config whose
-// rule is for an "otelcol" process using a port of $INTERNAL_PROMETHEUS_PORT.
+// rule is for an "otelcol" process using a port of ${INTERNAL_PROMETHEUS_PORT}.
 // The second process is exec'ed after the first successfully starts and is a collector process using
 // a noop otlp receiver and logging exporter from another config.d with an internal prometheus server
-// bound to $INTERNAL_PROMETHEUS_PORT.
+// bound to ${INTERNAL_PROMETHEUS_PORT}.
 // The test verifies that the second collector process's internal metrics contain a logging exporter
 // one and that the first collector process's initial and effective configs from the config server
 // are as expected.
@@ -86,7 +86,7 @@ func TestHostObserver(t *testing.T) {
 				"LABEL_ONE_VALUE":            "actual.label.one.value.from.env.var",
 				"LABEL_TWO_VALUE":            "actual.label.two.value.from.env.var",
 			}).WithArgs(
-				"--discovery",
+				"--discovery", "--feature-gates=-splunk.continuousDiscovery",
 				"--config-dir", "/opt/config.d",
 				"--set", "splunk.discovery.receivers.prometheus_simple.config.labels::label_three=actual.label.three.value.from.cmdline.property",
 				"--set", "splunk.discovery.extensions.k8s_observer.enabled=false",
@@ -133,10 +133,10 @@ func TestHostObserver(t *testing.T) {
 			pmetrictest.IgnoreResourceAttributeValue("net.host.port"),
 			pmetrictest.IgnoreResourceAttributeValue("server.port"),
 			pmetrictest.IgnoreResourceAttributeValue("service.name"),
-			pmetrictest.IgnoreResourceAttributeValue("service_instance_id"),
-			pmetrictest.IgnoreResourceAttributeValue("service_version"),
-			pmetrictest.IgnoreMetricAttributeValue("service_version"),
-			pmetrictest.IgnoreMetricAttributeValue("service_instance_id"),
+			pmetrictest.IgnoreResourceAttributeValue("service.instance.id"),
+			pmetrictest.IgnoreResourceAttributeValue("service.version"),
+			pmetrictest.IgnoreMetricAttributeValue("service.version"),
+			pmetrictest.IgnoreMetricAttributeValue("service.instance.id"),
 			pmetrictest.IgnoreTimestamp(),
 			pmetrictest.IgnoreStartTimestamp(),
 			pmetrictest.IgnoreMetricDataPointsOrder(),
@@ -302,7 +302,7 @@ SPLUNK_DISCOVERY_DURATION=9s \
 SPLUNK_DISCOVERY_RECEIVERS_prometheus_simple_CONFIG_labels_x3a__x3a_label_three=actual.label.three.value.from.env.var.property \
 SPLUNK_DISCOVERY_EXTENSIONS_k8s_observer_ENABLED=false \
 SPLUNK_DISCOVERY_EXTENSIONS_host_observer_CONFIG_refresh_interval=\${REFRESH_INTERVAL} \
-/otelcol --config-dir /opt/config.d --discovery --dry-run`)
+/otelcol --config-dir /opt/config.d --discovery --feature-gates=-splunk.continuousDiscovery --dry-run`)
 
 	errorContent := fmt.Sprintf("unexpected --dry-run: %s", stderr)
 	require.Equal(t, `exporters:

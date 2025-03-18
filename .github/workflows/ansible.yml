@@ -36,8 +36,7 @@ jobs:
 
   lint:
     name: Lint
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4
@@ -56,8 +55,8 @@ jobs:
   linux-test:
     name: Linux Test
     needs: lint
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
+    # Use ubuntu-20.04.5 for containers with cgroups v1. Otherwise, use ubuntu-24.04 (cgroups v2).
+    runs-on: ${{ fromJSON('["ubuntu-24.04", "ubuntu-20.04"]')[contains(fromJSON('["amazonlinux2", "centos9", "opensuse12", "ubuntu1604"]'), matrix.distro)] }}
     strategy:
       fail-fast: false
       matrix:
@@ -70,19 +69,11 @@ jobs:
           - amazonlinux2023
           - centos8
           - centos9
-          - debian9
-          - debian10
           - debian11
           - debian12
           - opensuse12
-          - ubuntu1604
-          - ubuntu1804
           - ubuntu2004
           - ubuntu2204
-        exclude:
-          # ansible-core used by ansible 9.2.0 requires a minimum of Python2 version 2.7 or Python3 version 3.6. Current version: 3.5.2
-          - distro: ubuntu1604
-            ansible: ansible~=9.2.0
 
     steps:
       - name: Check out the codebase.
@@ -196,8 +187,7 @@ jobs:
   push-release-tag:
     name: Push Release Tag
     needs: lint
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     if: github.ref == 'refs/heads/main' 
     steps:
       - name: Checkout

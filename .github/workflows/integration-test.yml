@@ -27,7 +27,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: "1.22.10"
+  GO_VERSION: "1.23.6"
 jobs:
   agent-bundle-linux:
     runs-on: ${{ fromJSON('["ubuntu-24.04", "otel-arm64"]')[matrix.ARCH == 'arm64'] }}
@@ -221,7 +221,7 @@ jobs:
       - run: docker load -i ./docker-otelcol/${{ matrix.ARCH }}/image.tar
       - run: ln -sf otelcol_linux_${{ matrix.ARCH }} ./bin/otelcol
       - run: chmod a+x ./bin/*
-      - uses: shogo82148/actions-setup-redis@v1.35.1
+      - uses: shogo82148/actions-setup-redis@v1.38.0
         if: matrix.PROFILE == 'integration'
         with:
           auto-start: false
@@ -263,6 +263,8 @@ jobs:
     env:
       TEST_OUTPUT: ${{ github.job }}-${{ matrix.PROFILE }}-${{ matrix.RUNNER }}.out
     steps:
+      # Multiarch images require more disk space
+      - uses: jlumbroso/free-disk-space@v1.3.1
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -298,7 +300,7 @@ jobs:
           path: ./bin
       - run: ln -sf otelcol_linux_amd64 ./bin/otelcol
       - run: chmod a+x ./bin/*
-      - uses: shogo82148/actions-setup-redis@v1.35.1
+      - uses: shogo82148/actions-setup-redis@v1.38.0
         if: matrix.PROFILE == 'integration'
         with:
           auto-start: false
@@ -338,7 +340,7 @@ jobs:
         id: get-matrix
         run: |
           includes=""
-          for service in "apache" "jmx/cassandra" "kafkametrics" "mongodb" "nginx" "envoy"; do
+          for service in "apache" "jmx/cassandra" "kafkametrics" "mongodb" "nginx" "envoy" "oracledb" "mysql" "redis"; do
             for arch in "amd64" "arm64"; do
               if [ "$service" = "mongodb" ]; then
                 # tests for mongo "6.0" and "7.0" are flaky, skipping for now
@@ -392,3 +394,61 @@ jobs:
           run: make integration-test-${{ matrix.SERVICE }}-discovery
           env:
             SPLUNK_OTEL_COLLECTOR_IMAGE: 'otelcol:latest'
+
+  integration-test-discovery-k8s-matrix:
+    runs-on: ubuntu-24.04
+    outputs:
+      matrix: ${{ steps.get-matrix-k8s.outputs.matrix }}
+    steps:
+      - name: Get matrix for Kubernetes
+        id: get-matrix-k8s
+        run: |
+          includes=""
+          for service in "envoy"; do
+            for arch in "amd64"; do
+                includes="${includes},{\"SERVICE\": \"${service}\", \"ARCH\": \"${arch}\"}"
+            done
+          done
+          matrix="{\"include\": [${includes#,}]}"
+          echo "$matrix" | jq
+          echo "matrix=${matrix}" >> $GITHUB_OUTPUT
+
+  integration-test-discovery-k8s:
+    name: integration-test-discovery-k8s
+    runs-on: ubuntu-24.04
+    needs: [ "docker-otelcol", "otelcol", "integration-test-discovery-k8s-matrix" ]
+    strategy:
+      matrix: ${{ fromJSON(needs.integration-test-discovery-k8s-matrix.outputs.matrix) }}
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.12.0
+        with:
+          node_image: kindest/node:v1.30.0
+          kubectl_version: v1.30.0
+          cluster_name: kind
+      - name: Deploy service under test
+        run: |
+          kubectl apply -f k8s/${{ matrix.SERVICE }}/*.yaml
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: '**/go.sum'
+      - uses: actions/download-artifact@v4
+        with:
+          name: docker-otelcol-${{ matrix.ARCH }}
+          path: ./docker-otelcol/${{ matrix.ARCH }}
+      - run: docker load -i ./docker-otelcol/${{ matrix.ARCH }}/image.tar
+      - name: Load Docker image in kind
+        run: |
+          kind load docker-image otelcol:latest --name kind
+      - name: Run ${{ matrix.SERVICE }} Discovery Kubernetes Integration Test
+        run: KUBECONFIG=$HOME/.kube/config SKIP_TEARDOWN=true make integration-test-${{ matrix.SERVICE }}-discovery-k8s
+      - name: Print logs
+        if: failure()
+        run: |
+          kubectl get pods
+          kubectl logs $(kubectl get pod -l app=otelcol -o jsonpath="{.items[0].metadata.name}")

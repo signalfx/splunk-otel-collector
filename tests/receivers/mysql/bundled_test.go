@@ -12,46 +12,84 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build integration
+//go:build discovery_integration_mysql
 
 package tests
 
 import (
 	"fmt"
-	"runtime"
+	"path/filepath"
 	"testing"
+	"time"
+
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/golden"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
 func TestMysqlDockerObserver(t *testing.T) {
-	t.Skip("Redis data points are also discovered since Redis runs, making this test fail.")
-	if runtime.GOOS == "darwin" {
-		t.Skip("unable to share sockets between mac and d4m vm: https://github.com/docker/for-mac/issues/483#issuecomment-758836836")
-	}
 	testutils.SkipIfNotContainerTest(t)
+	dockerSocket := testutils.CreateDockerSocketProxy(t)
+	require.NoError(t, dockerSocket.Start())
+	t.Cleanup(func() {
+		dockerSocket.Stop()
+	})
 
-	testutils.AssertAllMetricsReceived(t, "bundled.yaml", "otlp_exporter.yaml",
-		nil, []testutils.CollectorBuilder{
-			func(c testutils.Collector) testutils.Collector {
-				cc := c.(*testutils.CollectorContainer)
-				cc.Container = cc.Container.WithBinds("/var/run/docker.sock:/var/run/docker.sock:ro")
-				cc.Container = cc.Container.WillWaitForLogs("Discovering for next")
-				cc.Container = cc.Container.WithUser(fmt.Sprintf("999:%d", testutils.GetDockerGID(t)))
-				return cc
-			},
-			func(collector testutils.Collector) testutils.Collector {
-				return collector.WithEnv(map[string]string{
-					"SPLUNK_DISCOVERY_DURATION":  "10s",
-					"SPLUNK_DISCOVERY_LOG_LEVEL": "debug",
-				}).WithArgs(
-					"--discovery",
-					"--set", `splunk.discovery.extensions.k8s_observer.enabled=false`,
-					"--set", `splunk.discovery.extensions.host_observer.enabled=false`,
-					"--set", `splunk.discovery.receivers.mysql.config.username=root`,
-					"--set", `splunk.discovery.receivers.mysql.config.password=testpass`,
-				)
-			},
-		},
-	)
+	tc := testutils.NewTestcase(t)
+	defer tc.PrintLogsOnFailure()
+	defer tc.ShutdownOTLPReceiverSink()
+
+	_, shutdown := tc.SplunkOtelCollectorContainer("otlp_exporter.yaml", func(c testutils.Collector) testutils.Collector {
+		cc := c.(*testutils.CollectorContainer)
+		cc.Container = cc.Container.WillWaitForLogs("Everything is ready")
+		return cc
+	},
+		func(collector testutils.Collector) testutils.Collector {
+			return collector.WithEnv(map[string]string{
+				"SPLUNK_DISCOVERY_LOG_LEVEL": "debug",
+			}).WithArgs(
+				"--discovery",
+				"--set", `splunk.discovery.extensions.k8s_observer.enabled=false`,
+				"--set", `splunk.discovery.extensions.host_observer.enabled=false`,
+				"--set", `splunk.discovery.receivers.mysql.config.username=root`,
+				"--set", `splunk.discovery.receivers.mysql.config.password=testpass`,
+				"--set", fmt.Sprintf("splunk.discovery.extensions.docker_observer.config.endpoint=tcp://%s", dockerSocket.ContainerEndpoint),
+			)
+		})
+	defer shutdown()
+
+	expected, err := golden.ReadMetrics(filepath.Join("testdata", "expected.yaml"))
+	require.NoError(t, err)
+	require.EventuallyWithT(t, func(tt *assert.CollectT) {
+		if len(tc.OTLPReceiverSink.AllMetrics()) == 0 {
+			assert.Fail(tt, "No metrics collected")
+			return
+		}
+		err := pmetrictest.CompareMetrics(expected, tc.OTLPReceiverSink.AllMetrics()[len(tc.OTLPReceiverSink.AllMetrics())-1],
+			pmetrictest.IgnoreResourceAttributeValue("service.instance.id"),
+			pmetrictest.IgnoreResourceAttributeValue("net.host.port"),
+			pmetrictest.IgnoreResourceAttributeValue("net.host.name"),
+			pmetrictest.IgnoreResourceAttributeValue("server.address"),
+			pmetrictest.IgnoreResourceAttributeValue("container.name"),
+			pmetrictest.IgnoreResourceAttributeValue("server.port"),
+			pmetrictest.IgnoreResourceAttributeValue("service.name"),
+			pmetrictest.IgnoreResourceAttributeValue("service_instance_id"),
+			pmetrictest.IgnoreResourceAttributeValue("service_version"),
+			pmetrictest.IgnoreResourceAttributeValue("discovery.endpoint.id"),
+			pmetrictest.IgnoreMetricAttributeValue("service_version"),
+			pmetrictest.IgnoreMetricAttributeValue("service_instance_id"),
+			pmetrictest.IgnoreResourceAttributeValue("mysql.instance.endpoint"),
+			pmetrictest.IgnoreTimestamp(),
+			pmetrictest.IgnoreStartTimestamp(),
+			pmetrictest.IgnoreMetricDataPointsOrder(),
+			pmetrictest.IgnoreScopeMetricsOrder(),
+			pmetrictest.IgnoreScopeVersion(),
+			pmetrictest.IgnoreResourceMetricsOrder(),
+			pmetrictest.IgnoreMetricValues(),
+		)
+		assert.NoError(tt, err)
+	}, 120*time.Second, 1*time.Second)
 }

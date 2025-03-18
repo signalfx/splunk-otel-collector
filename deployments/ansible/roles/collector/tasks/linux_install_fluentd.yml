@@ -6,8 +6,6 @@
     td_agent_version: |-
       {%- if td_agent_version -%}
         {{ td_agent_version }}
-      {%- elif ansible_distribution_release == "stretch" -%}
-        3.7.1-0
       {%- elif ansible_os_family == "Debian" -%}
         4.3.2-1
       {%- else -%}

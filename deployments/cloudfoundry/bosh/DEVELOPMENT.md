@@ -81,6 +81,7 @@ If no configuration file is provided, a template file will be populated using th
 
 Required Properties:
 
+- `cloudfoundry.deployment.hostname`
 - `cloudfoundry.rlp_gateway.endpoint`
 - `cloudfoundry.uaa.endpoint`
 - `cloudfoundry.uaa.password`

@@ -1,2 +1,2 @@
-yaml_00: $tstcfgsrc:valid_yaml_str
-yaml_01: $tstcfgsrc:invalid_yaml_str
+yaml_00: ${tstcfgsrc:valid_yaml_str}
+yaml_01: ${tstcfgsrc:invalid_yaml_str}

@@ -13,6 +13,7 @@ on:
       - 'internal/**'
       - 'Makefile'
       - 'Makefile.Common'
+      - 'packaging/msi/**'
       - 'tests/zeroconfig/windows/**'
       - '!**.md'
 
@@ -21,7 +22,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.22.10
+  GO_VERSION: 1.23.6
 
 jobs:
   setup-environment:
@@ -188,7 +189,7 @@ jobs:
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v2
 
-      - uses: actions/setup-dotnet@v4.1.0
+      - uses: actions/setup-dotnet@v4.3.0
         with:
           dotnet-version: |
             6.0.407

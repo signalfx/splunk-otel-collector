@@ -86,8 +86,9 @@ func RunMetricsCollectionTest(t *testing.T, configFile string, expectedFilePath 
 	port := GetAvailablePort(t)
 	c := f.CreateDefaultConfig().(*otlpreceiver.Config)
 	c.GRPC.NetAddr.Endpoint = fmt.Sprintf("localhost:%d", port)
+	c.HTTP = nil
 	sink := &consumertest.MetricsSink{}
-	receiver, err := f.CreateMetrics(context.Background(), receivertest.NewNopSettings(), c, sink)
+	receiver, err := f.CreateMetrics(context.Background(), receivertest.NewNopSettings(f.Type()), c, sink)
 	require.NoError(t, err)
 	require.NoError(t, receiver.Start(context.Background(), componenttest.NewNopHost()))
 	t.Cleanup(func() {
@@ -122,13 +123,19 @@ func RunMetricsCollectionTest(t *testing.T, configFile string, expectedFilePath 
 	expected, err := golden.ReadMetrics(filepath.Join("testdata", expectedFilePath))
 	require.NoError(t, err)
 
+	index := 0
 	assert.EventuallyWithT(t, func(tt *assert.CollectT) {
-		if len(sink.AllMetrics()) == 0 {
-			assert.Fail(tt, "No metrics collected")
-			return
+		err := fmt.Errorf("no matching metrics found, %d collected", index)
+		newIndex := len(sink.AllMetrics())
+		for i := index; i < newIndex; i++ {
+			m := sink.AllMetrics()[i]
+			err = pmetrictest.CompareMetrics(expected, m,
+				opts.compareMetricsOptions...)
+			if err == nil {
+				return
+			}
 		}
-		err := pmetrictest.CompareMetrics(expected, sink.AllMetrics()[len(sink.AllMetrics())-1],
-			opts.compareMetricsOptions...)
+		index = newIndex
 		assert.NoError(tt, err)
 	}, 30*time.Second, 1*time.Second)
 }

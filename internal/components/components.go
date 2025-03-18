@@ -79,6 +79,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/httpcheckreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/iisreceiver"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/influxdbreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/journaldreceiver"
@@ -118,20 +119,16 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowseventlogreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsperfcountersreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver"
-	"go.opentelemetry.io/collector/connector"
 	"go.opentelemetry.io/collector/connector/forwardconnector"
-	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/exporter/debugexporter"
 	"go.opentelemetry.io/collector/exporter/nopexporter"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
 	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
-	"go.opentelemetry.io/collector/extension"
 	"go.opentelemetry.io/collector/extension/zpagesextension"
 	"go.opentelemetry.io/collector/otelcol"
 	"go.opentelemetry.io/collector/processor"
 	"go.opentelemetry.io/collector/processor/batchprocessor"
 	"go.opentelemetry.io/collector/processor/memorylimiterprocessor"
-	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/nopreceiver"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"go.uber.org/multierr"
@@ -147,7 +144,7 @@ import (
 
 func Get() (otelcol.Factories, error) {
 	var errs []error
-	extensions, err := extension.MakeFactoryMap(
+	extensions, err := otelcol.MakeFactoryMap(
 		ackextension.NewFactory(),
 		basicauthextension.NewFactory(),
 		bearertokenauthextension.NewFactory(),
@@ -169,7 +166,7 @@ func Get() (otelcol.Factories, error) {
 		errs = append(errs, err)
 	}
 
-	receivers, err := receiver.MakeFactoryMap(
+	receivers, err := otelcol.MakeFactoryMap(
 		activedirectorydsreceiver.NewFactory(),
 		apachereceiver.NewFactory(),
 		apachesparkreceiver.NewFactory(),
@@ -192,6 +189,7 @@ func Get() (otelcol.Factories, error) {
 		hostmetricsreceiver.NewFactory(),
 		httpcheckreceiver.NewFactory(),
 		iisreceiver.NewFactory(),
+		influxdbreceiver.NewFactory(),
 		jaegerreceiver.NewFactory(),
 		jmxreceiver.NewFactory(),
 		journaldreceiver.NewFactory(),
@@ -242,7 +240,7 @@ func Get() (otelcol.Factories, error) {
 		errs = append(errs, err)
 	}
 
-	exporters, err := exporter.MakeFactoryMap(
+	exporters, err := otelcol.MakeFactoryMap(
 		awss3exporter.NewFactory(),
 		debugexporter.NewFactory(),
 		fileexporter.NewFactory(),
@@ -260,7 +258,7 @@ func Get() (otelcol.Factories, error) {
 		errs = append(errs, err)
 	}
 
-	processors, err := processor.MakeFactoryMap(
+	processors, err := otelcol.MakeFactoryMap[processor.Factory](
 		attributesprocessor.NewFactory(),
 		batchprocessor.NewFactory(),
 		cumulativetodeltaprocessor.NewFactory(),
@@ -285,7 +283,7 @@ func Get() (otelcol.Factories, error) {
 		errs = append(errs, err)
 	}
 
-	connectors, err := connector.MakeFactoryMap(
+	connectors, err := otelcol.MakeFactoryMap(
 		countconnector.NewFactory(),
 		forwardconnector.NewFactory(),
 		routingconnector.NewFactory(),

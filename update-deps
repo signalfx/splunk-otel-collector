@@ -43,12 +43,6 @@ update_gomod() {
     if [ -n "$(go list -f '{{if not .Indirect}}{{.Path}}{{end}}' -m ${pkgs}/... 2>/dev/null)" ]; then
         echo "Updating ${pkgs}/... in $gomod to $version"
         go get ${pkgs}/...@${version}
-        if [ -f Makefile ]; then
-            make tidy
-        else
-            rm -f go.sum
-            go mod tidy
-        fi
     fi
 
     popd >/dev/null
@@ -57,6 +51,5 @@ update_gomod() {
 for gomod in $( find "$REPO_DIR" -name "go.mod" | grep -v "/examples/" | sort ); do
     update_gomod "$gomod" "$CORE_PKGS" "$CORE_VERSION"
     update_gomod "$gomod" "$CONTRIB_PKGS" "$CONTRIB_VERSION"
+    make -C "$REPO_DIR" tidy-all
 done
-
-make -C "$REPO_DIR" for-all CMD='make tidy'

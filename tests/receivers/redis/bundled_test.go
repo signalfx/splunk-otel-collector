@@ -44,7 +44,7 @@ func TestRedisDockerObserver(t *testing.T) {
 
 	_, shutdown := tc.SplunkOtelCollectorContainer("otlp_exporter.yaml", func(c testutils.Collector) testutils.Collector {
 		cc := c.(*testutils.CollectorContainer)
-		cc.Container = cc.Container.WillWaitForLogs("Discovering for next")
+		cc.Container = cc.Container.WillWaitForLogs("Everything is ready")
 		return cc
 	},
 		func(collector testutils.Collector) testutils.Collector {
@@ -53,7 +53,6 @@ func TestRedisDockerObserver(t *testing.T) {
 				"REDIS_USERNAME": "otel",
 				// confirm that debug logging doesn't affect runtime
 				"SPLUNK_DISCOVERY_LOG_LEVEL": "debug",
-				"SPLUNK_DISCOVERY_DURATION":  "20s",
 			}).WithArgs(
 				"--discovery",
 				"--set", "splunk.discovery.receivers.redis.config.password=${REDIS_PASSWORD}",
@@ -81,6 +80,7 @@ func TestRedisDockerObserver(t *testing.T) {
 			pmetrictest.IgnoreResourceAttributeValue("service.name"),
 			pmetrictest.IgnoreResourceAttributeValue("service_instance_id"),
 			pmetrictest.IgnoreResourceAttributeValue("service_version"),
+			pmetrictest.IgnoreResourceAttributeValue("discovery.endpoint.id"),
 			pmetrictest.IgnoreMetricAttributeValue("service_version"),
 			pmetrictest.IgnoreMetricAttributeValue("service_instance_id"),
 			pmetrictest.IgnoreTimestamp(),

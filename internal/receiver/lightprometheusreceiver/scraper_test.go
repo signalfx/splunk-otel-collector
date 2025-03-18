@@ -26,8 +26,8 @@ import (
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
+	"go.opentelemetry.io/collector/confmap/xconfmap"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/receiver/receivertest"
 	conventions "go.opentelemetry.io/collector/semconv/v1.6.1"
@@ -85,9 +85,9 @@ func TestScraper(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			cfg := tt.cfg
 			cfg.ClientConfig.Endpoint = fmt.Sprintf("%s%s", promMock.URL, "/metrics")
-			require.NoError(t, component.ValidateConfig(cfg))
+			require.NoError(t, xconfmap.Validate(cfg))
 
-			scraper := newScraper(receivertest.NewNopSettings(), cfg)
+			scraper := newScraper(receivertest.NewNopSettings(receivertest.NopType), cfg)
 
 			err := scraper.start(context.Background(), componenttest.NewNopHost())
 			require.NoError(t, err)

@@ -72,8 +72,7 @@ jobs:
           distro=$(for d in $dockerfiles; do echo -n "\"$d\","; done)
           puppet_release='"6","7","8"'
           with_instrumentation='"true","false"'
-          exclude='{"DISTRO": "ubuntu-xenial", "PUPPET_RELEASE": "8"}'  # puppet 8 not supported for this distro
-          matrix="{\"DISTRO\": [${distro%,}], \"PUPPET_RELEASE\": [${puppet_release}], \"WITH_INSTRUMENTATION\": [${with_instrumentation}], \"exclude\": [${exclude}]}"
+          matrix="{\"DISTRO\": [${distro%,}], \"PUPPET_RELEASE\": [${puppet_release}], \"WITH_INSTRUMENTATION\": [${with_instrumentation}]}"
           echo "$matrix" | jq
           echo "matrix=${matrix}" >> $GITHUB_OUTPUT
     outputs:
@@ -86,7 +85,6 @@ jobs:
     timeout-minutes: 60
     needs:
       - puppet-lint
-      - puppet-rake-spec
       - puppet-test-matrix
     strategy:
       matrix: ${{ fromJSON(needs.puppet-test-matrix.outputs.matrix) }}
@@ -150,7 +148,6 @@ jobs:
     timeout-minutes: 60
     needs:
       - puppet-lint
-      - puppet-rake-spec
     strategy:
       matrix:
         OS: [ "windows-2022" ]

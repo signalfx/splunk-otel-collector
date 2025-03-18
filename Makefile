@@ -127,6 +127,10 @@ integration-test-oracledb-discovery:
 smartagent-integration-test:
 	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=smartagent_integration -v -timeout 5m -count 1 ./...
 
+.PHONY: integration-test-envoy-discovery-k8s
+integration-test-envoy-discovery-k8s:
+	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_envoy_k8s -v -timeout 5m -count 1 ./...
+
 .PHONY: test-with-cover
 test-with-cover:
 	@echo Verifying that all packages have test files to count in coverage
@@ -156,7 +160,7 @@ install-tools:
 	cd ./internal/tools && go install github.com/tcnksm/ghr
 	cd ./internal/tools && go install golang.org/x/tools/cmd/goimports
 	cd ./internal/tools && go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment
-	cd ./internal/tools && go install golang.org/x/vuln/cmd/govulncheck@master
+	cd ./internal/tools && go install golang.org/x/vuln/cmd/govulncheck@latest
 
 
 .PHONY: generate-metrics

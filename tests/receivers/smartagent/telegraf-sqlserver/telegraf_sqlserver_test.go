@@ -81,6 +81,7 @@ func TestTelegrafSQLServerReceiverProvidesAllMetrics(t *testing.T) {
 			pmetrictest.IgnoreResourceAttributeValue("service_version"),
 			pmetrictest.IgnoreMetricAttributeValue("service_version"),
 			pmetrictest.IgnoreMetricAttributeValue("service_instance_id"),
+			pmetrictest.IgnoreMetricAttributeValue("sql_version"),
 			pmetrictest.IgnoreMetricAttributeValue("sql_instance"),
 			pmetrictest.IgnoreMetricAttributeValue("instance"),
 			pmetrictest.IgnoreMetricAttributeValue("wait_type"),

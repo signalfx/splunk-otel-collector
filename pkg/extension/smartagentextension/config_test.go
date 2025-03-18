@@ -104,14 +104,15 @@ func TestSmartAgentConfigProvider(t *testing.T) {
 
 	require.Equal(t, 3, len(cfg.ToStringMap()))
 
-	cm, err := cfg.Sub(component.MustNewIDWithName(typeStr, "all_settings").String())
+	idWithName := component.MustNewIDWithName(typeStr, "all_settings")
+	cm, err := cfg.Sub(idWithName.String())
 	require.NoError(t, err)
 	allSettingsConfig := createDefaultConfig()
 	err = cm.Unmarshal(&allSettingsConfig)
 	require.NoError(t, err)
 	require.NotNil(t, allSettingsConfig)
 
-	ext, err := NewFactory().Create(context.Background(), extension.Settings{}, allSettingsConfig)
+	ext, err := NewFactory().Create(context.Background(), extension.Settings{ID: idWithName}, allSettingsConfig)
 	require.NoError(t, err)
 	require.NotNil(t, ext)
 

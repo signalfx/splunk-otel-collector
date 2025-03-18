@@ -66,6 +66,7 @@ func TestDefaultComponents(t *testing.T) {
 		"hostmetrics",
 		"httpcheck",
 		"iis",
+		"influxdb",
 		"jaeger",
 		"jmx",
 		"journald",

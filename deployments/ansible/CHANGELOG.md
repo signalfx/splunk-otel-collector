@@ -1,5 +1,14 @@
 # Changelog
 
+## ansible-v0.31.0
+
+### 🛑 Breaking changes 🛑
+
+- Install the [Splunk Distribution of OpenTelemetry .NET](https://docs.splunk.com/observability/en/gdi/get-data-in/application/otel-dotnet/get-started.html#instrument-net-applications-for-splunk-observability-cloud-opentelemetry)
+  instead of the [SignalFx Instrumentation for .NET](https://docs.splunk.com/observability/en/gdi/get-data-in/application/otel-dotnet/sfx/sfx-instrumentation.html#signalfx-instrumentation-for-net-deprecated)
+  when setting `install_splunk_dotnet_auto_instrumentation` to `true`.
+  Corresponding configuration options were renamed from `signalfx_dotnet_*` to `splunk_dotnet_*`.
+
 ## ansible-v0.30.0
 
 ### 💡 Enhancements 💡

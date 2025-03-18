@@ -1,7 +1,7 @@
 # Used for building
 SOURCE_DIR?=$(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 BUILD_DIR?=$(realpath .)/build
-OTEL_COLLECTOR_VERSION?=0.118.0
+OTEL_COLLECTOR_VERSION?=0.120.0
 SPLUNK_OTELCOL_DOWNLOAD_BASE?=https://github.com/signalfx/splunk-otel-collector/releases/download
 PLATFORM?=linux
 ARCH?=amd64
@@ -127,6 +127,14 @@ discovery-test-ta:
 	ARCH="$(ARCH)" \
 	PLATFORM="$(PLATFORM)" \
 	$(SOURCE_DIR)/packaging-scripts/cicd-tests/discovery/discovery-docker-test.sh
+
+.PHONY: envvar-test-ta
+envvar-test-ta:
+	SOURCE_DIR="$(SOURCE_DIR)" \
+	BUILD_DIR="$(BUILD_DIR)" \
+	ARCH="$(ARCH)" \
+	PLATFORM="$(PLATFORM)" \
+	$(SOURCE_DIR)/packaging-scripts/cicd-tests/envvars/envvartest.sh
 
 .PHONY: update-ta-deps
 update-ta-deps:

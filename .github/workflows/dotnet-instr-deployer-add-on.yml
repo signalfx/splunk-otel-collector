@@ -1,0 +1,88 @@
+name: .NET Instrumentation Deployer Add-On
+
+on:
+  push:
+    paths:
+      - 'packaging/dotnet-instr-deployer-add-on/**'
+      - '.github/workflows/dotnet-instr-deployer-add-on.yml'
+  pull_request:
+    paths:
+      - 'packaging/dotnet-instr-deployer-add-on/**'
+      - '.github/workflows/dotnet-instr-deployer-add-on.yml'
+  workflow_dispatch:
+    inputs:
+      splunk_uf_version:
+        description: 'Splunk UF version'
+        required: false
+        default: '9.4.0'
+      splunk_uf_build_hash:
+        description: 'Splunk UF build hash'
+        required: false
+        default: '6b4ebe426ca6'
+
+env:
+  GO_VERSION: 1.23.6
+  # Provide default values for non-manually triggered executions
+  splunk_uf_version: ${{ github.event.inputs.splunk_uf_version || '9.4.0' }}
+  splunk_uf_build_hash: ${{ github.event.inputs.splunk_uf_build_hash || '6b4ebe426ca6' }}
+
+jobs:
+  build-pack-test-dotnet-deployer-ta:
+    runs-on: windows-latest
+
+    steps:
+
+      - name: Check out the codebase.
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Unit tests
+        working-directory: ./packaging/dotnet-instr-deployer-add-on
+        shell: bash
+        run: make test
+
+      - name: Build and Package the .NET Instrumentation Deployer Add-On
+        working-directory: ./packaging/dotnet-instr-deployer-add-on
+        shell: bash
+        run: make build-pack
+
+      - name: Upload the .NET Instrumentation Deployer Add-On
+        uses: actions/upload-artifact@v4
+        with:
+          name: splunk_otel_dotnet_deployer
+          path: ./packaging/dotnet-instr-deployer-add-on/out/distribution/splunk_otel_dotnet_deployer.tgz
+
+      # Run the .NET Instrumentation Deployer Add-On integration tests
+
+      - name: Download the Splunk UF MSI
+        shell: bash
+        run: |
+          curl https://download.splunk.com/products/universalforwarder/releases/${{ env.splunk_uf_version }}/windows/splunkforwarder-${{ env.splunk_uf_version }}-${{ env.splunk_uf_build_hash }}-windows-x64.msi -o splunkforwarder.msi
+
+      - name: Install Splunk UF
+        run: msiexec.exe /i "$PWD\splunkforwarder.msi" /qn /l*v install-log.txt AGREETOLICENSE=Yes USE_LOCAL_SYSTEM=1
+        # USE_LOCAL_SYSTEM=1 is required when installing the UF since the install script needs to import the
+        # Splunk.OTel.DotNet.psm1 that requires admin privileges.
+
+      - name: Start Splunk UF and check its status # Need to ensure that the UF is Ok before running the tests
+        run: |
+          Start-Sleep 30
+          cd "${Env:ProgramFiles}\SplunkUniversalForwarder\bin"
+          .\splunk.exe status
+          .\splunk.exe start
+
+      - name: Run the .NET Instrumentation Deployer Add-On integration tests
+        working-directory: ./packaging/dotnet-instr-deployer-add-on
+        run: |
+          ./tests/integration/win-deployment-test.ps1 `
+            -tgzFilePath ./out/distribution/splunk_otel_dotnet_deployer.tgz `
+            -splunkInstallPath $(Join-Path "${Env:ProgramFiles}" "SplunkUniversalForwarder")
+
+      - name: Display the Deployer TA logs # It is expected to be relatively small
+        if: always()
+        run: |
+          Get-Content "${Env:ProgramFiles}\SplunkUniversalForwarder\var\log\splunk\splunk_otel_dotnet_deployer.log"

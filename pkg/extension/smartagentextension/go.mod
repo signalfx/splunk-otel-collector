@@ -6,14 +6,15 @@ require (
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657
 	github.com/signalfx/signalfx-agent v1.0.1-0.20230104182534-9eee411fe305
 	github.com/stretchr/testify v1.10.0
-	go.opentelemetry.io/collector/component v0.120.0
-	go.opentelemetry.io/collector/component/componenttest v0.120.0
-	go.opentelemetry.io/collector/confmap v1.26.0
-	go.opentelemetry.io/collector/extension v0.120.0
+	go.opentelemetry.io/collector/component v1.27.0
+	go.opentelemetry.io/collector/component/componenttest v0.121.0
+	go.opentelemetry.io/collector/confmap v1.27.0
+	go.opentelemetry.io/collector/extension v1.27.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
+	github.com/creasty/defaults v1.8.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/go-kit/log v0.2.1 // indirect
 	github.com/go-logfmt/logfmt v0.6.0 // indirect
@@ -38,7 +39,7 @@ require (
 	github.com/signalfx/golib/v3 v3.3.54 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
-	go.opentelemetry.io/collector/pdata v1.26.0 // indirect
+	go.opentelemetry.io/collector/pdata v1.27.0 // indirect
 	go.opentelemetry.io/otel v1.34.0 // indirect
 	go.opentelemetry.io/otel/metric v1.34.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.34.0 // indirect
@@ -50,13 +51,13 @@ require (
 	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/text v0.22.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250115164207-1a7da9e5054f // indirect
-	google.golang.org/grpc v1.70.0 // indirect
+	google.golang.org/grpc v1.71.0 // indirect
 	google.golang.org/protobuf v1.36.5 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
 replace (
-	github.com/influxdata/telegraf => github.com/signalfx/telegraf v0.10.2-0.20240111190717-3494050f2933
+	github.com/influxdata/telegraf => github.com/signalfx/telegraf v0.10.2-0.20250228233359-931557f78bed
 	github.com/signalfx/signalfx-agent => ../../../internal/signalfx-agent
 	github.com/signalfx/splunk-otel-collector/tests => ../../../tests
 )

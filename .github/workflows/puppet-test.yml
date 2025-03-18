@@ -84,7 +84,6 @@ jobs:
     timeout-minutes: 60
     needs:
       - puppet-lint
-      - puppet-rake-spec
       - puppet-test-matrix
     strategy:
       matrix: ${{ fromJSON(needs.puppet-test-matrix.outputs.matrix) }}
@@ -148,7 +147,6 @@ jobs:
     timeout-minutes: 60
     needs:
       - puppet-lint
-      - puppet-rake-spec
     strategy:
       matrix:
         OS: [ "windows-2022" ]

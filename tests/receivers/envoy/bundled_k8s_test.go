@@ -53,7 +53,7 @@ func TestEnvoyK8sObserver(t *testing.T) {
 	otlpReceiverConfig.GRPC.NetAddr.Endpoint = fmt.Sprintf("0.0.0.0:%d", port)
 	otlpReceiverConfig.HTTP = nil
 	sink := &consumertest.MetricsSink{}
-	receiver, err := f.CreateMetrics(context.Background(), receivertest.NewNopSettings(), otlpReceiverConfig, sink)
+	receiver, err := f.CreateMetrics(context.Background(), receivertest.NewNopSettings(f.Type()), otlpReceiverConfig, sink)
 	require.NoError(t, err)
 	require.NoError(t, receiver.Start(context.Background(), componenttest.NewNopHost()))
 	t.Cleanup(func() {

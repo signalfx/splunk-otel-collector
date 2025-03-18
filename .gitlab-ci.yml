@@ -291,7 +291,7 @@ update-dotnet-agent:
 
 tidy-dependabot-pr:
   rules:
-    - if: $CI_COMMIT_BRANCH =~ /^dependabot\/go_modules\/.*/ && $CI_COMMIT_AUTHOR =~ /^dependabot.*/
+    - if: ($CI_COMMIT_BRANCH =~ /^dependabot\/go_modules\/.*/) && ($CI_COMMIT_AUTHOR =~ /^dependabot.*/) && (($CI_PIPELINE_SOURCE == "merge_request_event") || ($CI_PIPELINE_SOURCE == "push"))
   extends: .go-cache
   stage: update-deps
   needs: []

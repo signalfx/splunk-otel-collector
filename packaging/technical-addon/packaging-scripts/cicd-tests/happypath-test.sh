@@ -2,7 +2,7 @@
 
 set -o pipefail
 which jq || (echo "jq not found" && exit 1)
-source "${SOURCE_DIR}/packaging-scripts/cicd-tests/add-access-token.sh"
+source "${SOURCE_DIR}/packaging-scripts/cicd-tests/test-utils.sh"
 BUILD_DIR="$(realpath "$BUILD_DIR")"
 TA_FULLPATH="$(repack_with_access_token "$OLLY_ACCESS_TOKEN" "$BUILD_DIR/out/distribution/Splunk_TA_otel.tgz" | tail -n 1)"
 CI_JOB_ID="${CI_JOB_ID:-$(basename $(dirname "$TA_FULLPATH"))}"
@@ -15,29 +15,28 @@ deployment_id="$(jq -r '.orca_deployment_id' < "$TEST_FOLDER/orca_deployment.jso
 ip_addr="$(jq -r '.server_roles.standalone[0].host' < "$TEST_FOLDER/orca_deployment.json")"
 
 # Check for successful startup
-ATTEMPT=1
 if [ "$PLATFORM" == "windows" ]; then
-    MAX_ATTEMPTS=12 # Windows takes a long time to extract, often 7 minutes on default hardware
-    DELAY=60
+    MAX_ATTEMPTS=96 # Windows takes a long time to extract, often 7 minutes on default hardware
 else
-    MAX_ATTEMPTS=6
-    DELAY=20
+    MAX_ATTEMPTS=36
 fi
+ATTEMPT=1
+DELAY=10
 while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
     # Copy logs from container
     scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r -i ~/.orca/id_rsa "splunk@$ip_addr:/opt/splunk/var/log/splunk/" "$TEST_FOLDER"
-    if grep -q "Starting otel agent" "$TEST_FOLDER/splunk/Splunk_TA_otel.log" &&
-       grep -q "Everything is ready" "$TEST_FOLDER/splunk/otel.log"; then
+    if safe_grep_log "Starting otel agent" "$TEST_FOLDER/splunk/Splunk_TA_otel.log" &&
+       safe_grep_log "Everything is ready" "$TEST_FOLDER/splunk/otel.log"; then
         break
     fi
     ATTEMPT=$((ATTEMPT + 1))
     sleep "$DELAY"
 done
 if [ $ATTEMPT -gt $MAX_ATTEMPTS ]; then
-    echo "Failed to find successful startup message(s) after $MAX_ATTEMPTS attempts."
-    cat "$TEST_FOLDER/splunk/splunkd.log"
-    cat "$TEST_FOLDER/splunk/Splunk_TA_otel.log"
-    cat "$TEST_FOLDER/splunk/otel.log"
+    safe_tail "$TEST_FOLDER/splunk/splunkd.log" 200
+    safe_tail "$TEST_FOLDER/splunk/Splunk_TA_otel.log"
+    safe_tail "$TEST_FOLDER/splunk/otel.log"
+    echo "Failed to find successful startup message(s) after $MAX_ATTEMPTS attempts. Logs above."
     exit 1
 fi
 
@@ -62,9 +61,9 @@ while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
     sleep $DELAY
 done
 if [ $ATTEMPT -gt $MAX_ATTEMPTS ]; then
-    echo "Failed to find metrics within $CUTOFF_DELTA after $MAX_ATTEMPTS attempts."
-    cat "$TEST_FOLDER/splunk/otel.log"
-    cat "$TEST_FOLDER/uptime.json"
+    safe_tail "$TEST_FOLDER/splunk/otel.log"
+    safe_tail "$TEST_FOLDER/uptime.json"
+    echo "Failed to find metrics within $CUTOFF_DELTA after $MAX_ATTEMPTS attempts. Logs above."
     exit 1
 fi
 
@@ -72,7 +71,7 @@ fi
 orca_container_name=$(splunk_orca --cloud "${ORCA_CLOUD}" --printer json show --deployment-id "${deployment_id}" containers |  jq -r '.[keys[0]] | .[keys[0]] | .containers | keys[0]')
 splunk_orca --cloud "${ORCA_CLOUD}" exec --exec-user splunk "${orca_container_name}" '/opt/splunk/bin/splunk restart'
 
-MAX_ATTEMPTS=30
+MAX_ATTEMPTS=12
 DELAY=10
 ATTEMPT=1
 if [ "$PLATFORM"  == "windows" ]; then
@@ -83,34 +82,34 @@ fi
 while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
     scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r -i ~/.orca/id_rsa "splunk@$ip_addr:/opt/splunk/var/log/splunk/$restart_log_file" "$TEST_FOLDER/splunk/$restart_log_file"
     # There seems to be an issue on linux where it does not gracefully wait for the job to shut down, need to investigate further.
-    (grep -q "INFO Otel agent stop" "$TEST_FOLDER/splunk/$restart_log_file" || grep -q "INFO Stopping otel" "$TEST_FOLDER/splunk/$restart_log_file") && break
+    (safe_grep_log "INFO Otel agent stop" "$TEST_FOLDER/splunk/$restart_log_file" || safe_grep_log "INFO Stopping otel" "$TEST_FOLDER/splunk/$restart_log_file") && break
     ATTEMPT=$((ATTEMPT + 1))
     sleep $DELAY
 done
 
 if [ $ATTEMPT -gt $MAX_ATTEMPTS ]; then
-    echo "Failed to see restart log after $MAX_ATTEMPTS attempts."
     cat "$TEST_FOLDER/splunk/$restart_log_file"
+    echo "Failed to see restart log after $MAX_ATTEMPTS attempts. Logs above."
     exit 1
 fi
 
 # Ensure restart was successful as well
+MAX_ATTEMPTS=24
 DELAY=10
 ATTEMPT=1
-MAX_ATTEMPTS=6
 while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
     scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r -i ~/.orca/id_rsa "splunk@$ip_addr:/opt/splunk/var/log/splunk/Splunk_TA_otel.log" "$TEST_FOLDER/splunk/Splunk_TA_otel.log"
     scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r -i ~/.orca/id_rsa "splunk@$ip_addr:/opt/splunk/var/log/splunk/otel.log" "$TEST_FOLDER/splunk/otel.log"
-    if grep -q "Starting otel agent" "$TEST_FOLDER/splunk/Splunk_TA_otel.log" && grep -q "Everything is ready" "$TEST_FOLDER/splunk/otel.log"; then
+    if safe_grep_log "Starting otel agent" "$TEST_FOLDER/splunk/Splunk_TA_otel.log" && safe_grep_log "Everything is ready" "$TEST_FOLDER/splunk/otel.log"; then
         break
     fi
     ATTEMPT=$((ATTEMPT + 1))
     sleep $DELAY
 done
 if [ $ATTEMPT -gt $MAX_ATTEMPTS ]; then
-    echo "Failed to see restarted log after $MAX_ATTEMPTS attempts."
-    cat "$TEST_FOLDER/splunk/Splunk_TA_otel.log"
-    cat "$TEST_FOLDER/splunk/otel.log"
+    safe_tail "$TEST_FOLDER/splunk/Splunk_TA_otel.log"
+    safe_tail "$TEST_FOLDER/splunk/otel.log"
+    echo "Failed to see restarted log after $MAX_ATTEMPTS attempts. Logs above."
     exit 1
 fi
 
@@ -121,7 +120,7 @@ fi
 # For release, ensure version is as expected.  TODO move this to another test and compare against tag
 actual_version="$(grep "Version" "$TEST_FOLDER/splunk/otel.log" | head -1 | awk -F 'Version": "' '{print $2}' | awk -F '", "' '{print $1}')"
 echo "actual version: $actual_version"
-[[ "$actual_version" != "v0.118.0" ]] && echo "Test failed -- invalid version" && exit 1
+[[ "$actual_version" != "v0.120.0" ]] && echo "Test failed -- invalid version" && exit 1
 
 # clean up orca container
 splunk_orca --cloud ${ORCA_CLOUD} destroy "${deployment_id}"

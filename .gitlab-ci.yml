@@ -426,8 +426,17 @@ agent-bundle-windows:
       - dist/agent-bundle_windows_amd64.zip
 
 .auth-setup:
+  id_tokens:
+    CI_JOB_JWT:
+      aud:
+        - "$CICD_VAULT_ADDR"
+        - "$SECRETS_URL"
   variables:
     TEST_FOLDER: $BUILD_DIR/$CI_JOB_ID
+  after_script:
+    - splunk_orca -v destroy --labels gitlab.job_url=${CI_JOB_URL} || true
+    - splunk_orca -v --cloud aws destroy --labels gitlab.job_url=${CI_JOB_URL} || true
+    - creds-helper logout --silent=false
   before_script: |
       creds-helper init
       creds-helper pypi "$PYPI_READER_ROLE"
@@ -435,10 +444,25 @@ agent-bundle-windows:
       pip install --upgrade pip
       pip install --upgrade splunk-orca
       splunk_orca --help
+      eval "$(creds-helper artifactory --eval "$GENERIC_RELEASER_ROLE_URI" )"
+      eval "$(creds-helper aws --eval "aws:v1/o11y-infra/role/o11y_gdi_otel_releaser_role" )"
+      # extract orca config (honestly we could probably just set this up every time)
       pushd ~
-      echo ${ORCA_TAR_GZ} | base64 -d > orca_cred.tar.gz
-      tar -xzvf ~/orca_cred.tar.gz
-      echo "area = otel-collector" >> ~/.orca/orca.conf
+      if [ "$SPLUNK_CLOUD" == "kubernetes" ]; then
+        echo ${NEW_ORCA_TGZ} | base64 -d > orca_cred.tar.gz
+        tar -xzvf ~/orca_cred.tar.gz
+        # Also set some aws auth
+        grep aws_secret_access_key "$AWS_SHARED_CREDENTIALS_FILE" >> ~/.orca/orca.conf
+        grep aws_access_key_id "$AWS_SHARED_CREDENTIALS_FILE" >> ~/.orca/orca.conf
+        grep aws_session_token "$AWS_SHARED_CREDENTIALS_FILE" >> ~/.orca/orca.conf
+        # Test access
+        splunk_orca --cloud kubernetes show deployments
+      else
+        echo ${ORCA_TAR_GZ} | base64 -d > orca_cred.tar.gz
+        tar -xzvf ~/orca_cred.tar.gz
+        # Test access
+        splunk_orca --cloud aws show deployments
+      fi
       popd
 
 package-technical-addon:
@@ -475,6 +499,33 @@ test-happypath-ta:
         PLATFORM: ["windows"]
   script: |
     make orca-test-ta -e
+  after_script:
+    # spin down orca deployments
+    - "cd ${CI_PROJECT_DIR}"
+    - deployment_id=$(grep "orca_deployment_id" $TEST_FOLDER/orca_deployment.json | awk -F ':' '{print $2}' | awk -F '"' '{print $2}')
+    - splunk_orca --cloud ${ORCA_CLOUD} destroy "${deployment_id}"
+  artifacts:
+    when: always
+    paths:
+      - "$BUILD_DIR/out/**/*"
+      - "$BUILD_DIR/$CI_JOB_ID/**/*"
+test-collectd-ta:
+  image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
+  extends: .auth-setup
+  stage: orca-tests
+  variables:
+    ORCA_TAR_GZ: "$NEW_ORCA_TGZ"
+  dependencies:
+    - "package-technical-addon"
+  parallel:
+    matrix:
+      - UF_VERSION: ["9.0.2", "8.2.7"]
+        SPLUNK_PLATFORM: ["x64_centos_7"]
+        ORCA_CLOUD: ["kubernetes"]
+        ORCA_OPTION: ["--exec-user root"]
+        PLATFORM: ["linux"]
+  script: |
+    make orca-collectd-test-ta -e
   after_script:
     # spin down orca deployments
     - "cd ${CI_PROJECT_DIR}"

@@ -509,7 +509,7 @@ package-technical-addon:
     paths:
       - "$BUILD_DIR/out/**/*"
       - "$BUILD_DIR/$CI_JOB_ID/**/*"
-.test-collectd-ta:
+test-collectd-ta:
   image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
   extends: .auth-setup
   stage: orca-tests
@@ -579,6 +579,7 @@ test-discovery-ta:
       - UF_VERSION: ["9.0.2", "8.2.7"]
         SPLUNK_PLATFORM: ["x64_centos_7"]
         ORCA_CLOUD: ["kubernetes"]
+        ORCA_OPTION: ["--exec-user root"]
         PLATFORM: ["linux"]
   script: |
     make orca-discovery-test-ta -e

@@ -1,5 +1,9 @@
 #!/bin/bash -eux
 set -o pipefail
+SSH_PORT="22"
+if [ "$ORCA_CLOUD" == "kubernetes" ]; then
+    SSH_PORT="2222"
+fi
 which jq || (echo "jq not found" && exit 1)
 [[ -z "$BUILD_DIR" ]] && echo "BUILD_DIR not set" && exit 1
 [[ -z "$SOURCE_DIR" ]] && echo "SOURCE_DIR not set" && exit 1
@@ -26,8 +30,8 @@ echo "Creating splunk cluster with TA $TA_FULLPATH"
 
 ORCA_SSH_USER="splunk"
 
-container_info="$(splunk_orca -v --printer sdd-json --cloud "$ORCA_CLOUD" --ansible-log "$TEST_FOLDER/ansible-local.log" create --env SPLUNK_CONNECTION_TIMEOUT=600 --platform "$SPLUNK_PLATFORM" --local-apps "$TA_FULLPATH" --playbook "$SOURCE_DIR/packaging-scripts/orca-playbook-windows.yml,site.yml")"
-echo "$container_info" > "$TEST_FOLDER/orca-deployment.json"
+splunk_orca -vvv --cloud "${ORCA_CLOUD}" --area otel-collector --printer sdd-json --deployment-file "$TEST_FOLDER/orca-deployment.json" --ansible-log "$TEST_FOLDER/ansible-local.log" create --prefix "discovery" --env SPLUNK_CONNECTION_TIMEOUT=600 --platform "$SPLUNK_PLATFORM" --splunk-version "${UF_VERSION}" --local-apps "$TA_FULLPATH" --playbook "$SOURCE_DIR/packaging-scripts/orca-playbook-$PLATFORM.yml,site.yml" --custom-services "$SOURCE_DIR/packaging-scripts/cicd-tests/agent-bundle/orca-playbook-mysql.yml"
+
 cat "$TEST_FOLDER/orca-deployment.json"
 
 IPV4_ADDR="$(jq -r '.server_roles.standalone[0].host' < "$TEST_FOLDER/orca-deployment.json")"
@@ -43,7 +47,7 @@ fi
 DELAY=10
 ATTEMPT=1
 while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
-    scp -i ~/.orca/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r "$ORCA_SSH_USER@$IPV4_ADDR":/opt/splunk/var/log/splunk/ "$LOGS_DIR"
+    scp -i ~/.orca/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r -P "$SSH_PORT" "$ORCA_SSH_USER@$IPV4_ADDR":/opt/splunk/var/log/splunk/ "$LOGS_DIR"
     if safe_grep_log "Done extracting agent bundle" "$LOGS_DIR/splunk/Splunk_TA_otel.log"; then
         break
     fi
@@ -62,7 +66,7 @@ MAX_ATTEMPTS=12
 DELAY=10
 ATTEMPT=1
 while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
-    scp -i ~/.orca/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r "$ORCA_SSH_USER@$IPV4_ADDR":/opt/splunk/var/log/splunk/ "$LOGS_DIR"
+    scp -i ~/.orca/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r  -P "$SSH_PORT" "$ORCA_SSH_USER@$IPV4_ADDR":/opt/splunk/var/log/splunk/ "$LOGS_DIR"
     if safe_grep_log "Everything is ready" "$LOGS_DIR/splunk/otel.log"; then
         break
     fi
@@ -98,7 +102,7 @@ MAX_ATTEMPTS=6
 DELAY=10
 ATTEMPT=1
 while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
-    scp -i ~/.orca/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r "$ORCA_SSH_USER@$IPV4_ADDR":/opt/splunk/var/log/splunk/ "$LOGS_DIR"
+    scp -i ~/.orca/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r -P "$SSH_PORT" "$ORCA_SSH_USER@$IPV4_ADDR":/opt/splunk/var/log/splunk/ "$LOGS_DIR"
     if safe_grep_log "9092" "$LOGS_DIR/splunk/otel.log" && safe_grep_log "kafkametrics receiver is working" "$LOGS_DIR/otel.log" ; then
         break
     fi

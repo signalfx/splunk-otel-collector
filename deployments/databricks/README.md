@@ -87,4 +87,4 @@ All required environment variables must be set on every node that runs the deplo
 The Databricks cluster provides a web terminal on the driver node. This is a BASH shell
 which can then be accessed to deploy the script.
 
-**Note: Investigation is ongoing to know how to deploy the script on non-driver nodes.**
+**Note: Investigation is ongoing to determine how to deploy the script on non-driver nodes.**

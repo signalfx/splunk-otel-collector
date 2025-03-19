@@ -66,7 +66,7 @@ MAX_ATTEMPTS=12
 DELAY=10
 ATTEMPT=1
 while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
-    scp -i ~/.orca/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r  -P "$SSH_PORT" "$ORCA_SSH_USER@$IPV4_ADDR":/opt/splunk/var/log/splunk/ "$LOGS_DIR"
+    scp -i ~/.orca/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r -P "$SSH_PORT" "$ORCA_SSH_USER@$IPV4_ADDR":/opt/splunk/var/log/splunk/ "$LOGS_DIR"
     if safe_grep_log "Everything is ready" "$LOGS_DIR/splunk/otel.log"; then
         break
     fi
@@ -94,7 +94,7 @@ for cmd in \
    "pgrep -f 'kafkametrics.discovery.properties.yaml'" \
    "test -d $SPLUNK_HOME/etc/apps/Splunk_TA_otel/configs/discovery/config.d.linux" \
 ; do
-    ssh -i ~/.orca/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null  "$ORCA_SSH_USER@$IPV4_ADDR" "$cmd"
+    ssh -i ~/.orca/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -P "$SSH_PORT" "$ORCA_SSH_USER@$IPV4_ADDR" "$cmd"
 done
 
 

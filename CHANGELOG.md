@@ -4,7 +4,7 @@
 
 ### 🚀 New components 🚀
 
-- (Splunk) Add `opamp` extension ([#](https://github.com/signalfx/splunk-otel-collector/pull/))
+- (Splunk) Add `opamp` extension ([#5999](https://github.com/signalfx/splunk-otel-collector/pull/5999))
 
 ## v0.121.0
 

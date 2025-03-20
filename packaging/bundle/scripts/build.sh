@@ -59,6 +59,9 @@ if [[ "$PUSH_CACHE" = "yes" ]]; then
             --push \
             --cache-to=type=inline \
             $DOCKER_OPTS
+        # This command is only available internally, but the image is
+        # pushed only from internal CI, so it's safe to leave it here.
+        artifact-ci sign docker $stage_image
     done
 else
     if [[ -d "$CACHE_DIR" ]]; then

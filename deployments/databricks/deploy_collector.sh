@@ -181,6 +181,7 @@ WantedBy=multi-user.target
 
 echo "$collector_service" > $SERVICE_FILE
 chmod 755 $SERVICE_FILE
+systemctl daemon-reload
 
 # The collector is run as a service on the current node
 systemctl start $SPLUNK_OTEL_BINARY_NAME

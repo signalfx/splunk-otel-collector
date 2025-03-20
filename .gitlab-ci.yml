@@ -395,7 +395,9 @@ agent-bundle-linux:
     - $TAG
   id_tokens:  # http://go/gitlab-17
     CI_JOB_JWT:
-      aud: $CICD_VAULT_ADDR
+      aud:
+        - $CICD_VAULT_ADDR
+        - $SIGNING_PRD_URL
   script:
     - *docker-reader-role
     - docker login -u $CIRCLECI_QUAY_USERNAME -p $CIRCLECI_QUAY_PASSWORD quay.io

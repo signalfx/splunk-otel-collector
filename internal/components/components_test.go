@@ -39,6 +39,7 @@ func TestDefaultComponents(t *testing.T) {
 		"http_forwarder",
 		"k8s_observer",
 		"oauth2client",
+		"opamp",
 		"pprof",
 		"smartagent",
 		"zpages",

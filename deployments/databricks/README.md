@@ -18,7 +18,8 @@ serverless.
 ### Overview
 
 The Splunk distribution of the OpenTelemetry Collector can be deployed on a Databricks cluster using an
-[init script](https://docs.databricks.com/en/init-scripts/index.html) on start up, or by directly running the script on each node in an existing Databricks cluster.
+[init script](https://docs.databricks.com/en/init-scripts/index.html) on start up, or by directly running
+the script on each node in an existing running Databricks cluster.
 The Collector will run on every node in a Databricks cluster, gathering host and Apache Spark metrics.
 
 ### Init script

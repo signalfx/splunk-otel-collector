@@ -7,6 +7,7 @@ default:
         - "$SECRETS_URL"
 
 variables:
+  GO_VERSION: 1.23.7
   WIN_2019_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2019
   WIN_2022_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2022
   SPLUNK_OTELCOL_DOWNLOAD_BASE:
@@ -163,7 +164,7 @@ fossa:
       fi
 
 .go-cache:
-  image: '${DOCKER_HUB_REPO}/golang:1.23.6'
+  image: '${DOCKER_HUB_REPO}/golang:${GO_VERSION}'
   variables:
     GOPATH: "$CI_PROJECT_DIR/.go"
   before_script:

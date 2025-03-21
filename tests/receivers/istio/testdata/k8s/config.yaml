@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config
+  namespace: default
+data:
+  config.yaml: |
+    exporters:
+      otlp:
+        endpoint: "${env:OTLP_ENDPOINT}"
+        tls:
+          insecure: true
+
+    service:
+      telemetry:
+        logs:
+          level: debug
+      pipelines:
+        metrics:
+          exporters: [otlp]
+  

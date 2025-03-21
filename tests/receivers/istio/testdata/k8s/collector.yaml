@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otelcol
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: otelcol
+  template:
+    metadata:
+      name: otelcol
+      labels:
+        app: otelcol
+    spec:
+      serviceAccountName: collector
+      containers:
+        - image: otelcol:latest
+          command:
+            - /otelcol
+            - --config
+            - /opt/config/config.yaml
+            - --discovery
+            - --set
+            - splunk.discovery.extensions.docker_observer.enabled=false
+            - --set
+            - splunk.discovery.extensions.host_observer.enabled=false
+          name: otelcol
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: config-volume
+              mountPath: /opt/config
+          env:
+            - name: OTLP_ENDPOINT
+              value: $OTLP_ENDPOINT
+            - name: SPLUNK_DISCOVERY_DURATION
+              value: 20s
+            - name: SPLUNK_DISCOVERY_LOG_LEVEL
+              value: debug
+      volumes:
+        - name: config-volume
+          configMap:
+            name: config

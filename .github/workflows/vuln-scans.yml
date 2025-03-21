@@ -280,9 +280,10 @@ jobs:
           cache-dependency-path: '**/go.sum'
       - name: Install Tools
         run: make install-tools
-      - name: Run `govulncheck`
-        run: govulncheck -format sarif ./... > govulncheck.sarif
+      - name: Run `govulncheck` script
+        run: ./.github/workflows/scripts/govulncheck-sarif.sh
       - name: Upload result to GitHub Code Scanning
+        if: always()
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: govulncheck.sarif
+          sarif_file: ./govulncheck/

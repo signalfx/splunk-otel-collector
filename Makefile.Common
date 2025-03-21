@@ -136,5 +136,13 @@ moddownload:
 	$(GOCMD) mod download
 
 .PHONY: govulncheck
-govulncheck: install-tools
-	govulncheck ./...
+govulncheck:
+	@FAILED=0; \
+	@for pkg in $(shell $(GOCMD) list $(ALL_PKG_DIRS)); do \
+		echo "\nRunning govulncheck for package $$pkg\n"; \
+		govulncheck $${GOVULN_OPT} $$pkg || FAILED=1; \
+	done; \
+	@if [ $$FAILED -ne 0 ]; then \
+		echo "\ngovulncheck failed for one or more packages"; \
+		exit 1; \
+	fi

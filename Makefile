@@ -139,6 +139,11 @@ test-with-cover:
 	$(GO_ACC) ./...
 	go tool cover -html=coverage.txt -o coverage.html
 
+.PHONY: gotest-with-cover
+gotest-with-cover:
+	@$(MAKE) for-all-target TARGET="test-with-codecov"
+	$(GOCMD) tool covdata textfmt -i=./coverage/unit -o ./coverage.txt
+
 .PHONY: gendependabot
 gendependabot:
 	.github/workflows/scripts/gendependabot.sh

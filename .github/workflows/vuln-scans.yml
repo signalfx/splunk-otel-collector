@@ -267,7 +267,7 @@ jobs:
         with:
           sarif_file: snyk.sarif
 
-  govulncheck:
+  govulncheck-run:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -278,12 +278,65 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
+
       - name: Install Tools
         run: make install-tools
+
+      - run: govulncheck --version
+
       - name: Run `govulncheck` script
-        run: ./.github/workflows/scripts/govulncheck-sarif.sh
+        env:
+          GOVULN_OPTS: --format sarif --scan package
+        run: ./.github/workflows/scripts/govulncheck-run.sh
+
+      - name: Save govulncheck results as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: govulncheck-results
+          path: ./govulncheck/
+
+  govulncheck-categories:
+    runs-on: ubuntu-24.04
+    outputs:
+      matrix: ${{ steps.capture-packages.outputs.matrix }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: '**/go.sum'
+      - name: Capture Go Packages
+        id: capture-packages
+        run: |
+          REPO_PREFIX=$(go list -m)
+          PACKAGES=$(go list ./... | sed "s|^$REPO_PREFIX/||" | tr '/' '_')
+          JSON_ARRAY=$(echo $PACKAGES | jq -R -s 'split("\n") | map(select(. != ""))' | sed "s/\"/'/g")
+          category=$(for p in $(echo -e "$PACKAGES"); do echo "\"$p\","; done)
+          matrix=$(echo "{\"category\": [${category%,}]}" | tr -d '\n')
+          echo "$matrix" | jq
+          echo $matrix
+          echo "matrix=${matrix}" >> $GITHUB_OUTPUT
+
+  govulncheck-upload:
+    runs-on: ubuntu-24.04
+    needs: [govulncheck-run, govulncheck-categories]
+    strategy:
+      matrix: ${{ fromJSON(needs.govulncheck-categories.outputs.matrix) }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Download govulncheck results artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: govulncheck-results
+          path: ./govulncheck/
+
       - name: Upload result to GitHub Code Scanning
         if: always()
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: ./govulncheck/
+          sarif_file: ./govulncheck/${{ matrix.category }}.sarif
+          category: ${{ matrix.category }}

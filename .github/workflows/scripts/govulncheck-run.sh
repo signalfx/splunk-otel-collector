@@ -17,7 +17,7 @@ REPO_PREFIX=$(go list -m)
 for pkg in $ALL_PKG_DIRS; do
   OUTPUT_FILE="./govulncheck/$(echo "$pkg" | sed "s|^$REPO_PREFIX/||" | tr '/' '_').sarif"
   echo -e "\nRunning govulncheck for package $pkg"
-  if ! govulncheck ${GOVULN_OPT:-} "$pkg" > "$OUTPUT_FILE"; then
+  if ! govulncheck ${GOVULN_OPTS:-} "$pkg" > "$OUTPUT_FILE"; then
     echo "govulncheck failed for package $pkg, output saved to $OUTPUT_FILE"
     FAILED=1
   else

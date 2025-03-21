@@ -23,6 +23,9 @@ endif
 # SRC_ROOT is the top of the source tree.
 SRC_ROOT := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
 
+# COVER_PKGS is the list of packages to include in the coverage
+COVER_PKGS := $(shell go list ./... | tr "\n" ",")
+
 # build tags required by any component should be defined as an independent variables and later added to GO_BUILD_TAGS below
 GO_BUILD_TAGS=""
 GOTEST_OPT?= -race -v -timeout 180s --tags=$(GO_BUILD_TAGS)
@@ -73,6 +76,11 @@ common: checklicense impi lint misspell
 .PHONY: test
 test:
 	$(GOTEST) $(GOTEST_OPT) $(ALL_PKG_DIRS)
+
+.PHONY: test-with-codecov
+test-with-codecov:
+	mkdir -p $(PWD)/coverage/unit
+	$(GOTEST) $(GOTEST_OPT) ./... -cover -covermode=atomic -coverpkg $(COVER_PKGS) -args -test.gocoverdir="$(PWD)/coverage/unit"
 
 .PHONY: addlicense
 addlicense:

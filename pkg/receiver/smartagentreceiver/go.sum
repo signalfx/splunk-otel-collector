@@ -594,8 +594,8 @@ github.com/onsi/gomega v1.5.0/go.mod h1:ex+gbHU/CVuBBDIJjb2X0qEXbFg53c61hWP/1Cpa
 github.com/onsi/gomega v1.7.1/go.mod h1:XdKZgCCFLUoM/7CFJVPcG8C1xQ1AJ0vpAezJrB7JYyY=
 github.com/onsi/gomega v1.10.1/go.mod h1:iN09h71vgCQne3DLsj+A5owkum+a2tYe+TOCB1ybHNo=
 github.com/onsi/gomega v1.13.0/go.mod h1:lRk9szgn8TxENtWd0Tp4c3wjlRfMTMH27I+3Je41yGY=
-github.com/onsi/gomega v1.35.1 h1:Cwbd75ZBPxFSuZ6T+rN/WCb/gOc6YgFBXLlZLhC7Ds4=
-github.com/onsi/gomega v1.35.1/go.mod h1:PvZbdDc8J6XJEpDK4HCuRBm8a6Fzp9/DmhC9C7yFlog=
+github.com/onsi/gomega v1.36.2 h1:koNYke6TVk6ZmnyHrCXba/T/MoLBXFjeC1PtvYgw0A8=
+github.com/onsi/gomega v1.36.2/go.mod h1:DdwyADRjrc825LhMEkD76cHR5+pUnjhUN8GlHlRPHzY=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.121.0 h1:w9WLbJx54+1UI/LU2v9oS49khpYKDsTO5m21q6O/f8A=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.121.0/go.mod h1:gG7FrCz38jead6qHMueRLB8EPxkXyVvvlE9GrNpcYlg=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/core/xidutils v0.121.0 h1:ra4lLXJgAv9EEZE9/zYsQdWYXl0aYownR77gu1MPxjs=

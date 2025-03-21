@@ -48,11 +48,10 @@ jobs:
       - name: Install golang dependency
         run: make install-tools
 
-      - name: Unit tests with coverage
-        run: make test-with-cover
+      - name: Run Unit Tests With Coverage
+        run: make gotest-with-cover
 
-      - name: Uploading artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-results-${{ matrix.OS }}
-          path: ./coverage.html
+      - name: Upload coverage report
+        uses: codecov/codecov-action@0565863a31f2c772f9f0395002a31e3f06189574 # 5.4.0
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

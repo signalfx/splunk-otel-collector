@@ -1,7 +1,7 @@
 deb:
   debian-bullseye: ["DISTRO_IMAGE=debian:bullseye"]
-  ubuntu-focal: ["DISTRO_IMAGE=ubuntu:20.04"]
   ubuntu-jammy: ["DISTRO_IMAGE=ubuntu:22.04"]
+  ubuntu-noble: ["DISTRO_IMAGE=ubuntu:24.04"]
 
 rpm:
   amazonlinux-2: ["DISTRO_IMAGE=amazonlinux:2", "PKG_MGR=yum"]

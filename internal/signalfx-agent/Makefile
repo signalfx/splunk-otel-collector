@@ -73,7 +73,7 @@ impi: impi-noop
 .PHONY: misspell
 misspell: misspell-noop
 
-.PHONY: test-with-codecov
-test-with-codecov:
+.PHONY: test-with-cover
+test-with-cover:
 	mkdir -p $(PWD)/coverage/unit
 	$(GOTEST) $(GOTEST_OPT) ./... -cover -covermode=atomic -coverpkg $(COVER_PKGS) -args -test.gocoverdir="$(PWD)/coverage/unit"

@@ -310,13 +310,11 @@ jobs:
       - name: Capture Go Packages
         id: capture-packages
         run: |
-          REPO_PREFIX=$(go list -m)
-          PACKAGES=$(go list ./... | sed "s|^$REPO_PREFIX/||" | tr '/' '_')
-          JSON_ARRAY=$(echo $PACKAGES | jq -R -s 'split("\n") | map(select(. != ""))' | sed "s/\"/'/g")
-          category=$(for p in $(echo -e "$PACKAGES"); do echo "\"$p\","; done)
+          repoPrefix=$(go list -m)
+          packages=$(go list ./... | sed "s|^$repoPrefix/||" | tr '/' '_')
+          category=$(for p in $(echo -e "$packages"); do echo "\"$p\","; done)
           matrix=$(echo "{\"category\": [${category%,}]}" | tr -d '\n')
           echo "$matrix" | jq
-          echo $matrix
           echo "matrix=${matrix}" >> $GITHUB_OUTPUT
 
   govulncheck-upload:

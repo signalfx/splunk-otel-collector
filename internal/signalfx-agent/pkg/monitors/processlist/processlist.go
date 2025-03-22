@@ -172,6 +172,7 @@ func (m *Monitor) encodeProcess(proc *TopProcess, sampleInterval time.Duration) 
 		nice = strconv.Itoa(*proc.Nice)
 	}
 
+	replacer := strings.NewReplacer(`"`, `'`, "\n", `\n`)
 	return fmt.Sprintf(`"%d":["%s",%d,"%s",%d,%d,%d,"%s",%.2f,%.2f,"%s","%s"]`,
 		proc.ProcessID,
 		strings.ReplaceAll(proc.Username, `"`, "'"),
@@ -184,7 +185,7 @@ func (m *Monitor) encodeProcess(proc *TopProcess, sampleInterval time.Duration) 
 		cpuPercent,
 		proc.MemPercent,
 		toTime(proc.TotalCPUTime.Seconds()),
-		strings.ReplaceAll(proc.Command, `"`, `'`),
+		replacer.Replace(proc.Command),
 	)
 }
 

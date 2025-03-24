@@ -274,10 +274,10 @@ func (container Container) Build() *Container {
 	return &container
 }
 
-func (container *Container) Start(ctx context.Context) error {
+func (container *Container) Start(ctx context.Context) (err error) {
 	defer func() {
 		if recover() != nil {
-			return errors.New("Docker must be installed and running")
+			err = errors.New("Docker must be installed and running")
 		}
 	}()
 
@@ -290,14 +290,14 @@ func (container *Container) Start(ctx context.Context) error {
 		Started:          true,
 	}
 
-	err := container.createNetworksIfNecessary(req)
+	err = container.createNetworksIfNecessary(req)
 	if err != nil {
 		return nil
 	}
 
-	started, err := testcontainers.GenericContainer(ctx, req)
+	var started testcontainers.Container
+	started, err = testcontainers.GenericContainer(ctx, req)
 	container.container = &started
-	return err
 }
 
 func (container *Container) assertStarted(operation string) error {

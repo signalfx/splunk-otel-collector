@@ -298,6 +298,7 @@ func (container *Container) Start(ctx context.Context) (err error) {
 	var started testcontainers.Container
 	started, err = testcontainers.GenericContainer(ctx, req)
 	container.container = &started
+	return
 }
 
 func (container *Container) assertStarted(operation string) error {

@@ -48,7 +48,7 @@ The distribution offers support for the following components.
 | [lightprometheus](../internal/receiver/lightprometheusreceiver)                                                                                                    | [in development] |
 | [mongodb](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/mongodbreceiver)                                                    | [beta]           |
 | [mongodbatlas](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/mongodbatlasreceiver)                                          | [beta]           |
-| [mysql](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/mongodbreceiver)                                                      | [beta]           |
+| [mysql](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/mysqlreceiver)                                                        | [beta]           |
 | [nginx](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/nginxreceiver)                                                        | [beta]           |
 | [nop](https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/nopreceiver)                                                                    | [beta]           |
 | [oracledb](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/oracledbreceiver)                                                  | [alpha]          |

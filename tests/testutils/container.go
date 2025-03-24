@@ -274,9 +274,16 @@ func (container Container) Build() *Container {
 }
 
 func (container *Container) Start(ctx context.Context) error {
+	defer func() {
+		if recover() != nil {
+			return errors.New("Docker must be installed and running")
+		}
+	}()
+
 	if container.req == nil {
 		return fmt.Errorf("cannot start a container that hasn't been built")
 	}
+
 	req := testcontainers.GenericContainerRequest{
 		ContainerRequest: *container.req,
 		Started:          true,

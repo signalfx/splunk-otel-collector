@@ -268,8 +268,8 @@ jobs:
           sarif_file: snyk.sarif
 
   govulncheck-run:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    # Running on a large macOS runner to reliably use scan mode as symbol without hitting OOM.
+    runs-on: macos-14-large
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -286,7 +286,7 @@ jobs:
 
       - name: Run `govulncheck` script
         env:
-          GOVULN_OPTS: --format sarif --scan package
+          GOVULN_OPTS: --format sarif --scan symbol
         run: ./.github/workflows/scripts/govulncheck-run.sh
 
       - name: Save govulncheck results as artifact

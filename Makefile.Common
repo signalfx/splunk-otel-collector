@@ -80,7 +80,7 @@ test:
 	$(GOTEST) $(GOTEST_OPT) $(ALL_PKG_DIRS)
 
 .PHONY: test-with-cover
-test-with-cover:
+test-with-cover: $(GOTESTSUM)
 	mkdir -p $(PWD)/coverage/unit
 	$(GOTESTSUM) $(GOTESTSUM_OPT) ./... -cover -covermode=atomic -coverpkg $(COVER_PKGS) -args -test.gocoverdir="$(PWD)/coverage/unit"
 

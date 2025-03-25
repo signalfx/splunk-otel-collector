@@ -268,7 +268,7 @@ jobs:
           sarif_file: snyk.sarif
 
   govulncheck-run:
-    runs-on: ubuntu-24.04
+    runs-on: macos-14-large
     timeout-minutes: 30
     steps:
       - name: Checkout Repo
@@ -286,7 +286,7 @@ jobs:
 
       - name: Run `govulncheck` script
         env:
-          GOVULN_OPTS: --format sarif --scan package
+          GOVULN_OPTS: --format sarif --scan symbol
         run: ./.github/workflows/scripts/govulncheck-run.sh
 
       - name: Save govulncheck results as artifact

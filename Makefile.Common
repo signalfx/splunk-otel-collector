@@ -43,7 +43,6 @@ IMPI=impi
 BUILD_TYPE?=release
 
 GOTESTSUM= gotestsum
-GOTESTSUM_OPT?= --rerun-fails=1
 
 ALL_PKG_DIRS := $(shell $(GOCMD) list -f '{{ .Dir }}' ./... | $(NORMALIZE_DIRS))
 
@@ -83,7 +82,7 @@ test:
 .PHONY: test-with-cover
 test-with-cover:
 	mkdir -p $(PWD)/coverage/unit
-	$(GOTESTSUM) $(GOTESTSUM_OPT) --packages="./..." -- $(GOTEST_OPT) -cover -covermode=atomic -args -test.gocoverdir="$(PWD)/coverage/unit"
+	$(GOTESTSUM) --packages="./..." -- $(GOTEST_OPT) -cover -covermode=atomic -coverpkg $(COVER_PKGS) -args -test.gocoverdir="$(PWD)/coverage/unit"
 
 .PHONY: addlicense
 addlicense:

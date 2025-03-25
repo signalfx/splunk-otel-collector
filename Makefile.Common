@@ -31,6 +31,7 @@ GO_BUILD_TAGS=""
 GOTEST_OPT?= -race -v -timeout 180s --tags=$(GO_BUILD_TAGS)
 GOCMD?= go
 GOTEST=$(GOCMD) test
+GOTESTSUM = $(PWD)/internal/tools/gotestsum
 GOOS=$(shell $(GOCMD) env GOOS)
 GOARCH=$(shell $(GOCMD) env GOARCH)
 ADDLICENCESE= addlicense
@@ -41,6 +42,7 @@ LINT=golangci-lint
 IMPI=impi
 # BUILD_TYPE should be one of (dev, release).
 BUILD_TYPE?=release
+GOTESTSUM_OPT?= --rerun-fails=1
 
 ALL_PKG_DIRS := $(shell $(GOCMD) list -f '{{ .Dir }}' ./... | $(NORMALIZE_DIRS))
 
@@ -80,7 +82,7 @@ test:
 .PHONY: test-with-cover
 test-with-cover:
 	mkdir -p $(PWD)/coverage/unit
-	$(GOTEST) $(GOTEST_OPT) ./... -cover -covermode=atomic -coverpkg $(COVER_PKGS) -args -test.gocoverdir="$(PWD)/coverage/unit"
+	$(GOTESTSUM) $(GOTESTSUM_OPT) ./... -cover -covermode=atomic -coverpkg $(COVER_PKGS) -args -test.gocoverdir="$(PWD)/coverage/unit"
 
 .PHONY: addlicense
 addlicense:

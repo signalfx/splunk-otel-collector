@@ -156,7 +156,7 @@ install-tools:
 	cd ./internal/tools && go install golang.org/x/tools/cmd/goimports
 	cd ./internal/tools && go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment
 	cd ./internal/tools && go install golang.org/x/vuln/cmd/govulncheck@latest
-
+	cd ./internal/tools && go install gotest.tools/gotestsum
 
 .PHONY: generate-metrics
 generate-metrics:

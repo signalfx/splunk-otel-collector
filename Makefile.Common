@@ -41,7 +41,8 @@ LINT=golangci-lint
 IMPI=impi
 # BUILD_TYPE should be one of (dev, release).
 BUILD_TYPE?=release
-GOTESTSUM := $(PWD)/internal/tools/gotestsum
+
+GOTESTSUM= gotestsum
 GOTESTSUM_OPT?= --rerun-fails=1
 
 ALL_PKG_DIRS := $(shell $(GOCMD) list -f '{{ .Dir }}' ./... | $(NORMALIZE_DIRS))

@@ -81,9 +81,9 @@ test:
 	$(GOTEST) $(GOTEST_OPT) $(ALL_PKG_DIRS)
 
 .PHONY: test-with-cover
-test-with-cover: $(GOTESTSUM)
+test-with-cover:
 	mkdir -p $(PWD)/coverage/unit
-	$(GOTESTSUM) $(GOTESTSUM_OPT) ./... -cover -covermode=atomic -coverpkg $(COVER_PKGS) -args -test.gocoverdir="$(PWD)/coverage/unit"
+	$(GOTESTSUM) $(GOTESTSUM_OPT) --packages="./..." -- $(GOTEST_OPT) -cover -covermode=atomic -args -test.gocoverdir="$(PWD)/coverage/unit"
 
 .PHONY: addlicense
 addlicense:

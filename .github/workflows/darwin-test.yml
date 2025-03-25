@@ -45,14 +45,24 @@ jobs:
 
       - run: go env -w CGO_ENABLED=0
 
-      - name: Install golang dependency
-        run: make install-tools
-
-      - name: Unit tests with coverage
-        run: make test-with-cover
+      - name: Unit tests
+        run: |
+          set -o pipefail
+          make install-tools
+          mkdir -p unit-test-results/junit
+          trap "go-junit-report  -set-exit-code < unit-test-results/go-unit-tests.out > unit-test-results/junit/results.xml" EXIT
+          make for-all CMD="make test" | tee unit-test-results/go-unit-tests.out
 
       - name: Uploading artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-results-${{ matrix.OS }}
-          path: ./coverage.html
+          name: unit-test-results
+          path: ./unit-test-results
+
+      - name: bundle.d
+        run: |
+          make bundle.d
+          if ! git diff --exit-code; then
+            echo "Discovery bundle.d config has changed. Run 'make bundle.d' and push the changes or ensure correct .tmpl updated."
+            exit 1
+          fi

@@ -15,6 +15,8 @@ REPO_PREFIX=$(go list -m)
 
 # Run govulncheck for each package
 for pkg in $ALL_PKG_DIRS; do
+  # Remove the repository prefix from the package name to keep the category names short
+  # and replace slashes with underscores to make clear that the categories are not nested.
   OUTPUT_FILE="./govulncheck/$(echo "$pkg" | sed "s|^$REPO_PREFIX/||" | tr '/' '_').sarif"
   echo -e "\nRunning govulncheck for package $pkg"
   if ! govulncheck ${GOVULN_OPTS:-} "$pkg" > "$OUTPUT_FILE"; then

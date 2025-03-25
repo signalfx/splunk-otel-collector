@@ -268,8 +268,8 @@ jobs:
           sarif_file: snyk.sarif
 
   govulncheck-run:
+    # Running on a large macOS runner to reliably use scan mode as symbol without hitting OOM.
     runs-on: macos-14-large
-    timeout-minutes: 30
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4

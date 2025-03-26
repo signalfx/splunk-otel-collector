@@ -22,7 +22,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.23.6
+  GO_VERSION: 1.23.7
 
 jobs:
   setup-environment:
@@ -189,7 +189,7 @@ jobs:
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v2
 
-      - uses: actions/setup-dotnet@v4.3.0
+      - uses: actions/setup-dotnet@v4.3.1
         with:
           dotnet-version: |
             6.0.407

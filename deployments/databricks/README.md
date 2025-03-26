@@ -117,24 +117,35 @@ As a first step of investigation, please ensure the init script has been properl
 #### Investigate
 
 1. Access the [web terminal](https://learn.microsoft.com/en-us/azure/databricks/compute/web-terminal)
+
 1. Ensure the `splunk_otel_collector.service` is running
+
     ```bash
     $ systemctl # Check output for the service
     ```
+
 1. Check contents of the Collector's configuration file
-    ```bash
+
+   ```bash
     $ cat /tmp/collector_download/config.yaml # This is the default location unless changed by user.
     ```
+
 1. Check syslogs for possible errors coming from the Collector
+
     ```bash
     $ tail -n 50 /var/log/syslog
     ```
+
 1. If the service is running, the configuration looks right, and nothing looks concerning from
 the syslogs, check the SignalFx backend for metrics to see if it's possibly a dashboard
 issue. Note that at the time of writing OOTB content has not been updated for OTel metrics.
 There is currently no OOTB content for Databricks, and the Apache Spark dashboard is
 for Smart Agent metrics. The only charts that show data are a subset of host metric
 charts.
+
+1. Confirm metric time series (MTS) limits are not being hit for the organization.
+   - [MTS default limits per product](https://docs.splunk.com/observability/en/admin/references/per-product-limits.html#mts-limits-per-product)
+   - [Access organization metrics](https://docs.splunk.com/observability/en/admin/org-metrics.html#org-metrics)
 
 ### Situation 3: Cluster is running but no data is seen in charts (disabled web terminal)
 
@@ -143,3 +154,7 @@ Note that at the time of writing OOTB content has not been updated for OTel metr
 There is currently no OOTB content for Databricks, and the Apache Spark dashboard is
 for Smart Agent metrics. The only charts that show data are a subset of host metric
 charts.
+
+1. Confirm metric time series (MTS) limits are not being hit for the organization.
+   - [MTS default limits per product](https://docs.splunk.com/observability/en/admin/references/per-product-limits.html#mts-limits-per-product)
+   - [Access organization metrics](https://docs.splunk.com/observability/en/admin/org-metrics.html#org-metrics)

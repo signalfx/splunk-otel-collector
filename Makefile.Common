@@ -79,7 +79,7 @@ common: checklicense impi lint misspell
 test:
 	$(GOTEST) $(GOTEST_OPT) $(ALL_PKG_DIRS)
 
-.PHONY: test-with-cover
+.PHONY: test-with-codecov
 test-with-cover:
 	mkdir -p $(PWD)/coverage/unit
 	$(GOTESTSUM) --packages="./..." -- $(GOTEST_OPT) -cover -covermode=atomic -coverpkg $(COVER_PKGS) -args -test.gocoverdir="$(PWD)/coverage/unit"

@@ -13,7 +13,6 @@ require (
 	go.opentelemetry.io/collector/cmd/mdatagen v0.122.1
 	golang.org/x/tools v0.31.0
 	golang.org/x/vuln v1.1.4
-	gotest.tools/gotestsum v1.12.1
 )
 
 require (
@@ -39,7 +38,6 @@ require (
 	github.com/ashanbrown/forbidigo v1.6.0 // indirect
 	github.com/ashanbrown/makezero v1.2.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/bitfield/gotestdox v0.2.2 // indirect
 	github.com/bkielbasa/cyclop v1.2.3 // indirect
 	github.com/blizzy78/varnamelen v0.8.0 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.6.0 // indirect
@@ -60,7 +58,6 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/denis-tingaikin/go-header v0.5.0 // indirect
 	github.com/dgraph-io/ristretto v0.0.2 // indirect
-	github.com/dnephin/pflag v1.0.7 // indirect
 	github.com/ettle/strcase v0.2.0 // indirect
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/fatih/structtag v1.2.0 // indirect
@@ -92,7 +89,6 @@ require (
 	github.com/google/go-github v17.0.0+incompatible // indirect
 	github.com/google/go-github/v47 v47.1.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
-	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gordonklaus/ineffassign v0.1.0 // indirect
 	github.com/gostaticanalysis/analysisutil v0.7.1 // indirect
@@ -228,7 +224,6 @@ require (
 	golang.org/x/sync v0.12.0 // indirect
 	golang.org/x/sys v0.31.0 // indirect
 	golang.org/x/telemetry v0.0.0-20240522233618-39ace7a40ae7 // indirect
-	golang.org/x/term v0.30.0 // indirect
 	golang.org/x/text v0.23.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250219182151-9fdb1cabc7b2 // indirect
 	google.golang.org/grpc v1.71.0 // indirect

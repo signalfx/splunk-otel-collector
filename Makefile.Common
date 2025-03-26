@@ -42,8 +42,6 @@ IMPI=impi
 # BUILD_TYPE should be one of (dev, release).
 BUILD_TYPE?=release
 
-GOTESTSUM= gotestsum
-
 ALL_PKG_DIRS := $(shell $(GOCMD) list -f '{{ .Dir }}' ./... | $(NORMALIZE_DIRS))
 
 ALL_SRC := $(shell find $(ALL_PKG_DIRS) -name '*.go' \
@@ -82,7 +80,7 @@ test:
 .PHONY: test-with-codecov
 test-with-codecov:
 	mkdir -p $(PWD)/coverage/unit
-	$(GOTESTSUM) --packages="./..." -- $(GOTEST_OPT) -cover -covermode=atomic -coverpkg $(COVER_PKGS) -args -test.gocoverdir="$(PWD)/coverage/unit"
+	$(GOTEST) $(GOTEST_OPT) ./... -cover -covermode=atomic -coverpkg $(COVER_PKGS) -args -test.gocoverdir="$(PWD)/coverage/unit"
 
 .PHONY: addlicense
 addlicense:

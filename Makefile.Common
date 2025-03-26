@@ -80,7 +80,7 @@ test:
 	$(GOTEST) $(GOTEST_OPT) $(ALL_PKG_DIRS)
 
 .PHONY: test-with-codecov
-test-with-cover:
+test-with-codecov:
 	mkdir -p $(PWD)/coverage/unit
 	$(GOTESTSUM) --packages="./..." -- $(GOTEST_OPT) -cover -covermode=atomic -coverpkg $(COVER_PKGS) -args -test.gocoverdir="$(PWD)/coverage/unit"
 

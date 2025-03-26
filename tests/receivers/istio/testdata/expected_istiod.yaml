@@ -40,7 +40,7 @@ resourceMetrics:
               - key: prometheus.type
                 value:
                   stringValue: counter
-            name: envoy_cluster_upstream_cx_total
+            name: envoy_cluster_upstream_cx_total_fake
             sum:
               aggregationTemporality: 2
               dataPoints:
@@ -80,7 +80,7 @@ resourceMetrics:
               - key: prometheus.type
                 value:
                   stringValue: gauge
-            name: envoy_cluster_upstream_rq_active
+            name: envoy_cluster_upstream_rq_active_fake
           - gauge:
               dataPoints:
                 - asDouble: 0

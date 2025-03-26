@@ -131,16 +131,15 @@ As a first step of investigation, please ensure the init script has been properl
     ```
 1. If the service is running, the configuration looks right, and nothing looks concerning from
 the syslogs, check the SignalFx backend for metrics to see if it's possibly a dashboard
-issue.
-   1. Note: At the time of writing, OOTB content has not been updated for OTel metrics.
-   There is currently no OOTB content for Databricks, and the Apache Spark dashboard is
-   for Smart Agent metrics. The only charts that show data are a subset of host metric
-   charts.
+issue. Note that at the time of writing OOTB content has not been updated for OTel metrics.
+There is currently no OOTB content for Databricks, and the Apache Spark dashboard is
+for Smart Agent metrics. The only charts that show data are a subset of host metric
+charts.
 
 ### Situation 3: Cluster is running but no data is seen in charts (disabled web terminal)
 
 1. Check the SignalFx backend for metrics to see if it's possibly a dashboard issue.
-   1. Note: At the time of writing, OOTB content has not been updated for OTel metrics.
-      There is currently no OOTB content for Databricks, and the Apache Spark dashboard is
-      for Smart Agent metrics. The only charts that show data are a subset of host metric
-      charts.
+Note that at the time of writing OOTB content has not been updated for OTel metrics.
+There is currently no OOTB content for Databricks, and the Apache Spark dashboard is
+for Smart Agent metrics. The only charts that show data are a subset of host metric
+charts.

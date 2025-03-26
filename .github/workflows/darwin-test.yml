@@ -32,7 +32,7 @@ jobs:
     strategy:
       matrix:
         # TODO: Add support for ARM runners: https://github.com/actions/runner-images?tab=readme-ov-file#available-images
-        OS: [ "macos-13", "macos-14", "macos-15-large" ]
+        OS: [ "macos-13", "macos-14-large", "macos-15-large" ]
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4

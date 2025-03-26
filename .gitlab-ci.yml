@@ -491,12 +491,12 @@ test-happypath-ta:
   parallel:
     matrix:
       - UF_VERSION: ["9.0.2", "8.2.7"]
-        SPLUNK_PLATFORM: ["x64_centos_7"]
+        SPLUNK_PLATFORM: ["x64_centos_7", "x64_oracle_9_fips"]
         ORCA_CLOUD: ["aws"]
         ORCA_OPTION: [""]
         PLATFORM: ["linux"]
       - UF_VERSION: ["9.0.2", "8.2.7"]
-        SPLUNK_PLATFORM: ["x64_windows_2019","x64_windows_2022" ]
+        SPLUNK_PLATFORM: ["x64_windows_2019","x64_windows_2022","x64_windows_2022_fips"]
         ORCA_CLOUD: ["aws"]
         ORCA_OPTION: [""]
         PLATFORM: ["windows"]

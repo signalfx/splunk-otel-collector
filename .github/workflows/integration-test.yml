@@ -432,7 +432,9 @@ jobs:
           cluster_name: kind
       - name: Deploy service under test
         run: |
-          kubectl apply -f k8s/${{ matrix.SERVICE }}/*.yaml
+          for f in k8s/${{ matrix.SERVICE }}/*.sh; do
+            bash "$f" 
+          done
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}

@@ -112,9 +112,6 @@ func TestCollectorContainerWithInvalidImage(t *testing.T) {
 	require.NoError(t, err)
 
 	err = collector.Start()
-	if strings.Contains(err.Error(), "docker must be installed and running") {
-		t.Skip("Skipping test because it requires docker to be installed and running")
-	}
 	require.Equal(t, strings.ToLower(err.Error()), "create container: build image: invalid reference format")
 
 	err = collector.Shutdown()

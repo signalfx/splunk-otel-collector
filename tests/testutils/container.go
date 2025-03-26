@@ -19,7 +19,6 @@ package testutils
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"testing"
@@ -274,31 +273,23 @@ func (container Container) Build() *Container {
 	return &container
 }
 
-func (container *Container) Start(ctx context.Context) (err error) {
-	defer func() {
-		if recover() != nil {
-			err = errors.New("docker must be installed and running")
-		}
-	}()
-
+func (container *Container) Start(ctx context.Context) error {
 	if container.req == nil {
 		return fmt.Errorf("cannot start a container that hasn't been built")
 	}
-
 	req := testcontainers.GenericContainerRequest{
 		ContainerRequest: *container.req,
 		Started:          true,
 	}
 
-	err = container.createNetworksIfNecessary(req)
+	err := container.createNetworksIfNecessary(req)
 	if err != nil {
 		return nil
 	}
 
-	var started testcontainers.Container
-	started, err = testcontainers.GenericContainer(ctx, req)
+	started, err := testcontainers.GenericContainer(ctx, req)
 	container.container = &started
-	return
+	return err
 }
 
 func (container *Container) assertStarted(operation string) error {

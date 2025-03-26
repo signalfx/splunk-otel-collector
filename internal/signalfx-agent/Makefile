@@ -11,7 +11,6 @@ GOTEST_OPT?= -race -v -timeout 180s --tags=$(GO_BUILD_TAGS)
 # COVER_PKGS is the list of packages to include in the coverage
 COVER_PKGS := $(shell $(GOCMD) list ./... | tr "\n" ",")
 
-
 .PHONY: clean
 clean:
 	rm -f pkg/core/constants/versions.go

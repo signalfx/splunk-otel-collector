@@ -5,7 +5,7 @@ NUM_CORES ?= $(shell getconf _NPROCESSORS_ONLN)
 # build tags required by any component should be defined as an independent variables and later added to GO_BUILD_TAGS below
 GOCMD?= go
 GOTEST=$(GOCMD) test
-GO_BUILD_TAGS=""
+GO_BUILD_TAGS?=""
 GOTEST_OPT?= -race -v -timeout 180s --tags=$(GO_BUILD_TAGS)
 
 # COVER_PKGS is the list of packages to include in the coverage

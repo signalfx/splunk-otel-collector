@@ -467,7 +467,18 @@ agent-bundle-windows:
         splunk_orca --cloud aws show deployments
       fi
       popd
-
+.SPLUNK_LINUX: &SPLUNK_LINUX
+      - UF_VERSION: ["9.0.2", "8.2.7"]
+        SPLUNK_PLATFORM: ["x64_centos_7", "x64_amazon_linux_2_fips"]
+        ORCA_CLOUD: ["aws"]
+        ORCA_OPTION: [""]
+        PLATFORM: ["linux"]
+.SPLUNK_WINDOWS: &SPLUNK_WINDOWS
+      - UF_VERSION: ["9.0.2", "8.2.7"]
+        SPLUNK_PLATFORM: ["x64_windows_2019","x64_windows_2022","x64_windows_2022_fips"]
+        ORCA_CLOUD: ["aws"]
+        ORCA_OPTION: [""]
+        PLATFORM: ["windows"]
 package-technical-addon:
   image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
   stage: "package"
@@ -490,16 +501,8 @@ test-happypath-ta:
     - "package-technical-addon"
   parallel:
     matrix:
-      - UF_VERSION: ["9.0.2", "8.2.7"]
-        SPLUNK_PLATFORM: ["x64_centos_7", "x64_amazon_linux_2_fips"]
-        ORCA_CLOUD: ["aws"]
-        ORCA_OPTION: [""]
-        PLATFORM: ["linux"]
-      - UF_VERSION: ["9.0.2", "8.2.7"]
-        SPLUNK_PLATFORM: ["x64_windows_2019","x64_windows_2022","x64_windows_2022_fips"]
-        ORCA_CLOUD: ["aws"]
-        ORCA_OPTION: [""]
-        PLATFORM: ["windows"]
+      - *SPLUNK_LINUX
+      - *SPLUNK_WINDOWS
   script: |
     make orca-test-ta -e
   after_script:
@@ -512,7 +515,7 @@ test-happypath-ta:
     paths:
       - "$BUILD_DIR/out/**/*"
       - "$BUILD_DIR/$CI_JOB_ID/**/*"
-.test-collectd-ta:
+test-collectd-ta:
   image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
   extends: .auth-setup
   stage: orca-tests
@@ -523,7 +526,7 @@ test-happypath-ta:
   parallel:
     matrix:
       - UF_VERSION: ["9.0.2", "8.2.7"]
-        SPLUNK_PLATFORM: ["x64_centos_7"]
+        SPLUNK_PLATFORM: ["x64_centos_7", "x64_amazon_linux_2_fips"]
         ORCA_CLOUD: ["kubernetes"]
         ORCA_OPTION: ["--exec-user root"]
         PLATFORM: ["linux"]
@@ -539,7 +542,7 @@ test-happypath-ta:
     paths:
       - "$BUILD_DIR/out/**/*"
       - "$BUILD_DIR/$CI_JOB_ID/**/*"
-.test-gateway-ta:
+test-gateway-ta:
   image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
   extends: .auth-setup
   stage: orca-tests
@@ -547,16 +550,8 @@ test-happypath-ta:
     - "package-technical-addon"
   parallel:
     matrix:
-      - UF_VERSION: ["9.0.2", "8.2.7"]
-        SPLUNK_PLATFORM: ["x64_centos_7"]
-        ORCA_CLOUD: ["aws"]
-        ORCA_OPTION: [""]
-        PLATFORM: ["linux"]
-      - UF_VERSION: ["9.0.2", "8.2.7"]
-        SPLUNK_PLATFORM: ["x64_windows_2019", "x64_windows_2022"]
-        ORCA_CLOUD: ["aws"]
-        ORCA_OPTION: [""]
-        PLATFORM: ["windows"]
+      - *SPLUNK_LINUX
+      - *SPLUNK_WINDOWS
   script: |
     make orca-gateway-test-ta -e
   after_script:
@@ -571,7 +566,7 @@ test-happypath-ta:
     paths:
       - "$BUILD_DIR/out/**/*"
       - "$BUILD_DIR/$CI_JOB_ID/**/*"
-.AppInspect_local:
+AppInspect_local:
   image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
   dependencies:
     - "package-technical-addon"

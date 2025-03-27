@@ -48,11 +48,10 @@ const (
 	otelEntityAttributesAttr = "otel.entity.attributes"
 )
 
-func setupReceiver(t *testing.T, port int) (*consumertest.LogsSink, string) {
+func setupReceiver(t *testing.T, endpoint string) *consumertest.LogsSink {
 	f := otlpreceiver.NewFactory()
 	cfg := f.CreateDefaultConfig().(*otlpreceiver.Config)
-	cfg.GRPC.NetAddr.Endpoint = fmt.Sprintf("localhost:%d", port)
-	endpoint := cfg.GRPC.NetAddr.Endpoint
+	cfg.GRPC.NetAddr.Endpoint = endpoint
 	sink := &consumertest.LogsSink{}
 	receiver, err := f.CreateLogs(context.Background(), receivertest.NewNopSettings(f.Type()), cfg, sink)
 	require.NoError(t, err)
@@ -60,11 +59,12 @@ func setupReceiver(t *testing.T, port int) (*consumertest.LogsSink, string) {
 	t.Cleanup(func() {
 		require.NoError(t, receiver.Shutdown(context.Background()))
 	})
-	return sink, endpoint
+	return sink
 }
 func Run(t *testing.T, receiverName string, configFilePath string, logMessageToAssert string) {
 	port := 16745
-	sink, endpoint := setupReceiver(t, port)
+	endpoint := fmt.Sprintf("localhost:%d", port)
+	sink := setupReceiver(t, endpoint)
 
 	dockerGID, err := getDockerGID()
 	require.NoError(t, err)
@@ -150,7 +150,8 @@ func RunWithK8s(t *testing.T, expectedEntityAttrs []map[string]string) {
 	}
 
 	port := int(testutils.GetAvailablePort(t))
-	sink, _ := setupReceiver(t, port)
+	endpoint := fmt.Sprintf("0.0.0.0:%d", port)
+	sink := setupReceiver(t, endpoint)
 
 	k8sClient, err := k8stest.NewK8sClient(kubeConfig)
 	require.NoError(t, err)

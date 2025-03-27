@@ -1,14 +1,14 @@
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: collector
+  name: otelcol
   labels:
-    app: collector
+    app: otelcol
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: collector
+  name: otelcol
 subjects:
   - kind: ServiceAccount
-    name: collector
-    namespace: default
+    name: otelcol
+    namespace: test

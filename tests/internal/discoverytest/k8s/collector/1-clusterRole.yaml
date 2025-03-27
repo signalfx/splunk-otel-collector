@@ -1,9 +1,9 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: collector
+  name: otelcol
   labels:
-    app: collector
+    app: otelcol
 rules:
   - apiGroups:
       - ""

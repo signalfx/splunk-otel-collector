@@ -509,19 +509,6 @@ var (
 			KubeletEndpointPort: 1,
 		},
 	}
-
-	podContainerEndpoint = observer.Endpoint{
-		ID:     observer.EndpointID("pod.container.id"),
-		Target: "pod.container.target",
-		Details: &observer.PodContainer{
-			Name:        "k8s.node.name",
-			Image:       "redis:123",
-			ContainerID: "123",
-			Pod: observer.Pod{
-				Name: "redis",
-			},
-		},
-	}
 )
 
 func expectedPLogs() plog.Logs {

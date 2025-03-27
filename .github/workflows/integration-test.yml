@@ -430,7 +430,9 @@ jobs:
           node_image: kindest/node:v1.30.0
           kubectl_version: v1.30.0
           cluster_name: kind
+          config: ./.github/workflows/configs/kind-config.yaml
       - name: Deploy service under test
+        if: ${{ matrix.SERVICE != 'istio' }}
         run: |
           for f in k8s/${{ matrix.SERVICE }}/*.sh; do
             bash "$f" 
@@ -452,5 +454,5 @@ jobs:
       - name: Print logs
         if: failure()
         run: |
-          kubectl get pods
-          kubectl logs $(kubectl get pod -l app=otelcol -o jsonpath="{.items[0].metadata.name}")
+          kubectl get pods -A 
+          kubectl get pod -A -l app=otelcol -o jsonpath="{range .items[*]}{.metadata.namespace} {.metadata.name}{'\n'}{end}" | xargs -r -n2 sh -c 'kubectl logs -n $0 $1'

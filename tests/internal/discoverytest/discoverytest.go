@@ -20,12 +20,16 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path"
+	"path/filepath"
+	"runtime"
 	"syscall"
 	"testing"
 	"time"
 
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
+	k8stest "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/xk8stest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
@@ -33,6 +37,8 @@ import (
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"go.opentelemetry.io/collector/receiver/receivertest"
+
+	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
 const (
@@ -41,19 +47,23 @@ const (
 	otelEntityAttributesAttr = "otel.entity.attributes"
 )
 
-func Run(t *testing.T, receiverName string, configFilePath string, logMessageToAssert string) {
-	factory := otlpreceiver.NewFactory()
-	port := 16745
-	cfg := factory.CreateDefaultConfig().(*otlpreceiver.Config)
+func setupReceiver(t *testing.T, port int) (*consumertest.LogsSink, string) {
+	f := otlpreceiver.NewFactory()
+	cfg := f.CreateDefaultConfig().(*otlpreceiver.Config)
 	cfg.GRPC.NetAddr.Endpoint = fmt.Sprintf("localhost:%d", port)
 	endpoint := cfg.GRPC.NetAddr.Endpoint
 	sink := &consumertest.LogsSink{}
-	receiver, err := factory.CreateLogs(context.Background(), receivertest.NewNopSettings(factory.Type()), cfg, sink)
+	receiver, err := f.CreateLogs(context.Background(), receivertest.NewNopSettings(f.Type()), cfg, sink)
 	require.NoError(t, err)
 	require.NoError(t, receiver.Start(context.Background(), componenttest.NewNopHost()))
 	t.Cleanup(func() {
 		require.NoError(t, receiver.Shutdown(context.Background()))
 	})
+	return sink, endpoint
+}
+func Run(t *testing.T, receiverName string, configFilePath string, logMessageToAssert string) {
+	port := 16745
+	sink, endpoint := setupReceiver(t, port)
 
 	dockerGID, err := getDockerGID()
 	require.NoError(t, err)
@@ -123,7 +133,98 @@ func Run(t *testing.T, receiverName string, configFilePath string, logMessageToA
 	t.Cleanup(func() {
 		require.NoError(t, c.Terminate(context.Background()))
 	})
+}
 
+// RunWithK8s create a collector in an existing k8s cluster (set env KUBECONFIG for access to cluster)
+// and assert that all expectedEntityAttrs for discovered entities are received by the collector in k8s.
+func RunWithK8s(t *testing.T, expectedEntityAttrs []map[string]string) {
+	kubeConfig := os.Getenv("KUBECONFIG")
+	if kubeConfig == "" {
+		t.Fatal("KUBECONFIG environment variable not set")
+	}
+
+	skipTearDown := false
+	if os.Getenv("SKIP_TEARDOWN") == "true" {
+		skipTearDown = true
+	}
+
+	port := int(testutils.GetAvailablePort(t))
+	sink, _ := setupReceiver(t, port)
+
+	k8sClient, err := k8stest.NewK8sClient(kubeConfig)
+	require.NoError(t, err)
+
+	dockerHost := "172.18.0.1"
+	if runtime.GOOS == "darwin" {
+		dockerHost = "host.docker.internal"
+	}
+
+	_, filename, _, ok := runtime.Caller(0)
+	if !ok {
+		t.Fatal("Failed to get current file directory")
+	}
+	currentDir := path.Dir(filename)
+
+	objs, err := k8stest.CreateObjects(k8sClient, filepath.Join(currentDir, "k8s"))
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		if skipTearDown {
+			return
+		}
+		for _, obj := range objs {
+			require.NoErrorf(t, k8stest.DeleteObject(k8sClient, obj), "failed to delete object %s", obj.GetName())
+		}
+	})
+
+	collectorObjs := k8stest.CreateCollectorObjects(t, k8sClient, "test", filepath.Join(currentDir, "k8s", "collector"), map[string]string{}, fmt.Sprintf("%s:%d", dockerHost, port))
+	t.Cleanup(func() {
+		if skipTearDown {
+			return
+		}
+		for _, obj := range append(collectorObjs) {
+			require.NoErrorf(t, k8stest.DeleteObject(k8sClient, obj), "failed to delete object %s", obj.GetName())
+		}
+	})
+
+	collectLogsWithAttrs(t, sink, expectedEntityAttrs)
+}
+
+func collectLogsWithAttrs(t *testing.T, sink *consumertest.LogsSink, expectedEntityAttrs []map[string]string) {
+	seenLogs := make(map[string]bool)
+
+	assert.EventuallyWithT(t, func(tt *assert.CollectT) {
+		if len(sink.AllLogs()) == 0 {
+			assert.Fail(tt, "No logs collected")
+			return
+		}
+		for i := 0; i < len(sink.AllLogs()); i++ {
+			plogs := sink.AllLogs()[i]
+			lrs := plogs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords()
+			for j := 0; j < lrs.Len(); j++ {
+				lr := lrs.At(j)
+				attrMap, ok := lr.Attributes().Get(otelEntityAttributesAttr)
+				if ok {
+					m := attrMap.Map()
+					for _, expectedLog := range expectedEntityAttrs {
+						matches := true
+						for key, value := range expectedLog {
+							attrValue, ok := m.Get(key)
+							if !ok || attrValue.AsString() != value {
+								matches = false
+								break
+							}
+						}
+						if matches {
+							seenLogs[fmt.Sprintf("%v", expectedLog)] = true
+						}
+					}
+				}
+			}
+		}
+		for _, expectedLog := range expectedEntityAttrs {
+			assert.True(tt, seenLogs[fmt.Sprintf("%v", expectedLog)], "Did not see expected log: %v", expectedLog)
+		}
+	}, 10*time.Minute, 10*time.Second, "Did not get expected logs in time")
 }
 
 func getDockerGID() (string, error) {

@@ -17,152 +17,231 @@
 package tests
 
 import (
+	"archive/tar"
+	"compress/gzip"
 	"context"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"testing"
 	"time"
 
-	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/golden"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/component/componenttest"
-	"go.opentelemetry.io/collector/consumer/consumertest"
-	"go.opentelemetry.io/collector/receiver/otlpreceiver"
-	"go.opentelemetry.io/collector/receiver/receivertest"
-	appsv1 "k8s.io/api/apps/v1"
-	v1 "k8s.io/api/core/v1"
-	rbacv1 "k8s.io/api/rbac/v1"
+	corev1 "k8s.io/api/core/v1"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/tools/clientcmd"
 
-	"github.com/signalfx/splunk-otel-collector/tests/testutils"
+	"github.com/signalfx/splunk-otel-collector/tests/internal/discoverytest"
 )
 
-func TestIstioK8sObserver(t *testing.T) {
+const (
+	istioVersion = "1.24.2"
+)
 
-	f := otlpreceiver.NewFactory()
-	port := testutils.GetAvailablePort(t)
-	otlpReceiverConfig := f.CreateDefaultConfig().(*otlpreceiver.Config)
-	otlpReceiverConfig.GRPC.NetAddr.Endpoint = fmt.Sprintf("0.0.0.0:%d", port)
-	otlpReceiverConfig.HTTP = nil
-	sink := &consumertest.MetricsSink{}
-	receiver, err := f.CreateMetrics(context.Background(), receivertest.NewNopSettings(f.Type()), otlpReceiverConfig, sink)
-	require.NoError(t, err)
-	require.NoError(t, receiver.Start(context.Background(), componenttest.NewNopHost()))
-	t.Cleanup(func() {
-		require.NoError(t, receiver.Shutdown(context.Background()))
-	})
-
-	require.NoError(t, err)
-	dockerHost := "172.18.0.1"
+func downloadIstio(t *testing.T, version string) (string, string) {
+	var url string
 	if runtime.GOOS == "darwin" {
-		dockerHost = "host.docker.internal"
+		url = fmt.Sprintf("https://github.com/istio/istio/releases/download/%s/istio-%s-osx.tar.gz", version, version)
+	} else if runtime.GOOS == "linux" {
+		url = fmt.Sprintf("https://github.com/istio/istio/releases/download/%s/istio-%s-linux-amd64.tar.gz", version, version)
+	} else {
+		t.Fatalf("unsupported operating system: %s", runtime.GOOS)
 	}
 
-	kubeConfig, err := clientcmd.BuildConfigFromFlags("", os.Getenv("KUBECONFIG"))
+	resp, err := http.Get(url)
 	require.NoError(t, err)
-	client, err := kubernetes.NewForConfig(kubeConfig)
+	defer resp.Body.Close()
 
-	decode := scheme.Codecs.UniversalDeserializer().Decode
-	// Cluster role, role binding, and service account
-	stream, err := os.ReadFile(filepath.Join("testdata", "k8s", "clusterRole.yaml"))
+	gz, err := gzip.NewReader(resp.Body)
 	require.NoError(t, err)
-	clusterRole, _, err := decode(stream, nil, nil)
-	require.NoError(t, err)
-	cr, err := client.RbacV1().ClusterRoles().Create(context.Background(), clusterRole.(*rbacv1.ClusterRole), metav1.CreateOptions{})
+	defer gz.Close()
 
-	stream, err = os.ReadFile(filepath.Join("testdata", "k8s", "clusterRoleBinding.yaml"))
-	require.NoError(t, err)
-	clusterRoleBinding, _, err := decode(stream, nil, nil)
-	require.NoError(t, err)
-	crb, err := client.RbacV1().ClusterRoleBindings().Create(context.Background(), clusterRoleBinding.(*rbacv1.ClusterRoleBinding), metav1.CreateOptions{})
-	require.NoError(t, err)
+	tr := tar.NewReader(gz)
+	var istioDir string
+	for {
+		hdr, err := tr.Next()
+		if err == io.EOF {
+			break
+		}
+		require.NoError(t, err)
 
-	stream, err = os.ReadFile(filepath.Join("testdata", "k8s", "serviceAccount.yaml"))
-	require.NoError(t, err)
-	serviceAccount, _, err := decode(stream, nil, nil)
-	require.NoError(t, err)
-	sa, err := client.CoreV1().ServiceAccounts("default").Create(context.Background(), serviceAccount.(*v1.ServiceAccount), metav1.CreateOptions{})
-	require.NoError(t, err)
-	// Configmap
-	stream, err = os.ReadFile(filepath.Join("testdata", "k8s", "config.yaml"))
-	require.NoError(t, err)
-	cfgMap, _, err := decode(stream, nil, nil)
-	require.NoError(t, err)
+		target := filepath.Join(".", hdr.Name)
+		if hdr.FileInfo().IsDir() && istioDir == "" {
+			istioDir = target
+		}
+		if hdr.FileInfo().IsDir() {
+			require.NoError(t, os.MkdirAll(target, hdr.FileInfo().Mode()))
+		} else {
+			f, err := os.Create(target)
+			require.NoError(t, err)
+			defer f.Close()
 
-	c, err := client.CoreV1().ConfigMaps("default").Create(context.Background(), cfgMap.(*v1.ConfigMap), metav1.CreateOptions{})
-	require.NoError(t, err)
-	// Collector:
-	stream, err = os.ReadFile(filepath.Join("testdata", "k8s", "collector.yaml"))
-	require.NoError(t, err)
-	streamStr := strings.Replace(string(stream), "$OTLP_ENDPOINT", fmt.Sprintf("%s:%d", dockerHost, port), 1)
-	collectorDeployment, _, err := decode([]byte(streamStr), nil, nil)
-	require.NoError(t, err)
+			_, err = io.Copy(f, tr)
+			require.NoError(t, err)
+		}
+	}
+	require.NotEmpty(t, istioDir, "istioctl path not found")
 
-	d, err := client.AppsV1().Deployments("default").Create(context.Background(), collectorDeployment.(*appsv1.Deployment), metav1.CreateOptions{})
-	require.NoError(t, err)
+	absIstioDir, err := filepath.Abs(istioDir)
+	require.NoError(t, err, "failed to get absolute path for istioDir")
+
+	istioctlPath := filepath.Join(absIstioDir, "bin", "istioctl")
+	require.FileExists(t, istioctlPath, "istioctl binary not found")
+	require.NoError(t, os.Chmod(istioctlPath, 0755), "failed to set executable permission for istioctl")
 
 	t.Cleanup(func() {
-		if os.Getenv("SKIP_TEARDOWN") == "true" {
-			return
-		}
-		require.NoError(t, client.CoreV1().ConfigMaps("default").Delete(context.Background(), c.Name, metav1.DeleteOptions{}))
-		require.NoError(t, client.AppsV1().Deployments("default").Delete(context.Background(), d.Name, metav1.DeleteOptions{}))
-
-		require.NoError(t, client.CoreV1().ServiceAccounts("default").Delete(context.Background(), sa.Name, metav1.DeleteOptions{}))
-		require.NoError(t, client.RbacV1().ClusterRoleBindings().Delete(context.Background(), crb.Name, metav1.DeleteOptions{}))
-		require.NoError(t, client.RbacV1().ClusterRoles().Delete(context.Background(), cr.Name, metav1.DeleteOptions{}))
+		os.RemoveAll(absIstioDir)
 	})
 
-	expected, err := golden.ReadMetrics(filepath.Join("testdata", "expected_k8s.yaml"))
+	return absIstioDir, istioctlPath
+}
+
+func TestIstioEntities(t *testing.T) {
+	kubeCfg := os.Getenv("KUBECONFIG")
+	if kubeCfg == "" {
+		t.Fatal("KUBECONFIG environment variable not set")
+	}
+
+	skipTearDown := false
+	if os.Getenv("SKIP_TEARDOWN") == "true" {
+		skipTearDown = true
+	}
+
+	config, err := clientcmd.BuildConfigFromFlags("", kubeCfg)
 	require.NoError(t, err)
 
-	index := 0
-	require.EventuallyWithT(t, func(tt *assert.CollectT) {
-		if len(sink.AllMetrics()) == 0 {
-			assert.Fail(tt, "No metrics collected")
+	clientset, err := kubernetes.NewForConfig(config)
+	require.NoError(t, err)
+
+	runCommand(t, "kubectl label ns default istio-injection=enabled")
+
+	istioDir, istioctlPath := downloadIstio(t, istioVersion)
+	runCommand(t, fmt.Sprintf("%s install -y", istioctlPath))
+
+	t.Cleanup(func() {
+		if skipTearDown {
+			t.Log("Skipping teardown as SKIP_TEARDOWN is set to true")
 			return
 		}
-		var err error
-		newIndex := len(sink.AllMetrics())
-		for i := index; i < newIndex; i++ {
-			err = pmetrictest.CompareMetrics(expected, sink.AllMetrics()[i],
-				pmetrictest.IgnoreResourceAttributeValue("service.instance.id"),
-				pmetrictest.IgnoreResourceAttributeValue("net.host.port"),
-				pmetrictest.IgnoreResourceAttributeValue("net.host.name"),
-				pmetrictest.IgnoreResourceAttributeValue("server.address"),
-				pmetrictest.IgnoreResourceAttributeValue("container.name"),
-				pmetrictest.IgnoreResourceAttributeValue("server.port"),
-				pmetrictest.IgnoreResourceAttributeValue("service.name"),
-				pmetrictest.IgnoreResourceAttributeValue("service_instance_id"),
-				pmetrictest.IgnoreResourceAttributeValue("service_version"),
-				pmetrictest.IgnoreResourceAttributeValue("discovery.endpoint.id"),
-				pmetrictest.IgnoreMetricAttributeValue("service_version"),
-				pmetrictest.IgnoreMetricAttributeValue("service_instance_id"),
-				pmetrictest.IgnoreResourceAttributeValue("server.address"),
-				pmetrictest.IgnoreResourceAttributeValue("k8s.pod.name"),
-				pmetrictest.IgnoreResourceAttributeValue("k8s.pod.uid"),
-				pmetrictest.IgnoreTimestamp(),
-				pmetrictest.IgnoreStartTimestamp(),
-				pmetrictest.IgnoreMetricDataPointsOrder(),
-				pmetrictest.IgnoreScopeMetricsOrder(),
-				pmetrictest.IgnoreScopeVersion(),
-				pmetrictest.IgnoreResourceMetricsOrder(),
-				pmetrictest.IgnoreMetricsOrder(),
-				pmetrictest.IgnoreMetricValues(),
-			)
-			if err == nil {
-				return
-			}
+		runCommand(t, fmt.Sprintf("%s uninstall --purge -y", istioctlPath))
+	})
+
+	// Patch ingress gateway to work in kind cluster
+	patchResource(t, clientset, "istio-system", "istio-ingressgateway", "deployments", `{"spec":{"template":{"spec":{"containers":[{"name":"istio-proxy","ports":[{"containerPort":8080,"hostPort":80},{"containerPort":8443,"hostPort":443}]}]}}}}`)
+	patchResource(t, clientset, "istio-system", "istio-ingressgateway", "services", `{"spec": {"type": "ClusterIP"}}`)
+
+	demoYaml := filepath.Join(istioDir, "samples", "bookinfo", "platform", "kube", "bookinfo.yaml")
+	runCommand(t, fmt.Sprintf("kubectl apply -f %s", demoYaml))
+	t.Cleanup(func() {
+		if skipTearDown {
+			return
 		}
-		index = newIndex
-		assert.NoError(tt, err)
-	}, 120*time.Second, 1*time.Second)
+		runCommand(t, fmt.Sprintf("kubectl delete -f %s", demoYaml))
+	})
+
+	waitForPodsReady(t, clientset, "")
+
+	pods, err := clientset.CoreV1().Pods("").List(context.TODO(), metav1.ListOptions{})
+	require.NoError(t, err)
+
+	expectedLogs := []map[string]string{}
+	for _, pod := range pods.Items {
+		message := "istio prometheus receiver is working for istio-proxy!"
+		if pod.Labels["app"] == "istiod" {
+			message = "istio prometheus receiver is working for istiod!"
+		}
+		if pod.Labels["app"] == "istiod" || pod.Labels["istio"] == "ingressgateway" || hasIstioProxyContainer(pod) {
+			t.Logf("Matching pod: %s", pod.Name)
+			expectedLogs = append(expectedLogs, map[string]string{
+				"discovery.receiver.name": "istio",
+				"discovery.receiver.type": "prometheus",
+				"k8s.pod.name":            pod.Name,
+				"discovery.message":       message,
+			})
+		}
+	}
+	discoverytest.RunWithK8s(t, expectedLogs)
+}
+
+func hasIstioProxyContainer(pod corev1.Pod) bool {
+	for _, container := range pod.Spec.Containers {
+		if container.Name == "istio-proxy" {
+			return true
+		}
+	}
+	return false
+}
+func runCommand(t *testing.T, command string) {
+	cmd := exec.Command("sh", "-c", command)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	require.NoError(t, cmd.Run(), "failed to run command: %s", command)
+}
+
+func patchResource(t *testing.T, clientset *kubernetes.Clientset, namespace, name, resourceType, patch string) {
+	var err error
+	switch resourceType {
+	case "deployments":
+		_, err = clientset.AppsV1().Deployments(namespace).Patch(context.TODO(), name, types.StrategicMergePatchType, []byte(patch), metav1.PatchOptions{})
+		require.NoError(t, err)
+		waitForDeploymentRollout(t, clientset, namespace, name)
+	case "services":
+		_, err = clientset.CoreV1().Services(namespace).Patch(context.TODO(), name, types.StrategicMergePatchType, []byte(patch), metav1.PatchOptions{})
+	}
+	require.NoError(t, err)
+}
+
+func waitForDeploymentRollout(t *testing.T, clientset *kubernetes.Clientset, namespace, name string) {
+
+	err := wait.PollImmediate(5*time.Second, 5*time.Minute, func() (bool, error) {
+		deployment, err := clientset.AppsV1().Deployments(namespace).Get(context.TODO(), name, metav1.GetOptions{})
+		if err != nil {
+			return false, err
+		}
+		if deployment.Status.UpdatedReplicas == *deployment.Spec.Replicas &&
+			deployment.Status.Replicas == *deployment.Spec.Replicas &&
+			deployment.Status.AvailableReplicas == *deployment.Spec.Replicas &&
+			deployment.Status.ObservedGeneration >= deployment.Generation {
+			return true, nil
+		}
+		return false, nil
+	})
+	require.NoError(t, err, "Deployment %s in namespace %s did not roll out successfully", name, namespace)
+}
+
+func waitForPodsReady(t *testing.T, clientset *kubernetes.Clientset, namespace string) {
+
+	pods, err := clientset.CoreV1().Pods(namespace).List(context.TODO(), metav1.ListOptions{})
+	require.NoError(t, err)
+
+	for _, pod := range pods.Items {
+		if pod.DeletionTimestamp != nil {
+			continue
+		}
+
+		err := wait.PollUntilContextTimeout(context.TODO(), 5*time.Second, 2*time.Minute, true, func(ctx context.Context) (bool, error) {
+			p, err := clientset.CoreV1().Pods(pod.Namespace).Get(ctx, pod.Name, metav1.GetOptions{})
+			if err != nil {
+				return false, err
+			}
+			for _, cond := range p.Status.Conditions {
+				if cond.Type == corev1.PodReady && cond.Status == corev1.ConditionTrue {
+					return true, nil
+				}
+			}
+			return false, nil
+		})
+		if k8serrors.IsNotFound(err) {
+			continue
+		}
+		require.NoError(t, err, "Pod %s in namespace %s is not ready", pod.Name, pod.Namespace)
+	}
 }

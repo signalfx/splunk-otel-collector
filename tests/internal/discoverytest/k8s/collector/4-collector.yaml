@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: otelcol
+  namespace: test
 spec:
   replicas: 1
   selector:
@@ -13,7 +14,7 @@ spec:
       labels:
         app: otelcol
     spec:
-      serviceAccountName: collector
+      serviceAccountName: otelcol
       containers:
         - image: otelcol:latest
           command:
@@ -31,8 +32,6 @@ spec:
             - name: config-volume
               mountPath: /opt/config
           env:
-            - name: OTLP_ENDPOINT
-              value: $OTLP_ENDPOINT
             - name: SPLUNK_DISCOVERY_DURATION
               value: 20s
             - name: SPLUNK_DISCOVERY_LOG_LEVEL
@@ -40,4 +39,4 @@ spec:
       volumes:
         - name: config-volume
           configMap:
-            name: config
+            name: otelcol-config

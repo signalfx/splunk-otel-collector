@@ -63,7 +63,7 @@ var allowedStatuses = func() map[StatusType]struct{} {
 
 func IsValidStatus(status StatusType) (bool, error) {
 	if status == "" {
-		return false, fmt.Errorf("status cannot be empty")
+		return false, fmt.Errorf("status must not be empty")
 	}
 	if _, ok := allowedStatuses[status]; !ok {
 		return false, fmt.Errorf("invalid status %q. must be one of %v", status, StatusTypes)

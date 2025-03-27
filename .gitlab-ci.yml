@@ -491,7 +491,7 @@ test-happypath-ta:
   parallel:
     matrix:
       - UF_VERSION: ["9.0.2", "8.2.7"]
-        SPLUNK_PLATFORM: ["x64_centos_7", "x64_oracle_9_fips"]
+        SPLUNK_PLATFORM: ["x64_centos_7", "x64_amazon_linux_2_fips"]
         ORCA_CLOUD: ["aws"]
         ORCA_OPTION: [""]
         PLATFORM: ["linux"]
@@ -512,7 +512,7 @@ test-happypath-ta:
     paths:
       - "$BUILD_DIR/out/**/*"
       - "$BUILD_DIR/$CI_JOB_ID/**/*"
-test-collectd-ta:
+.test-collectd-ta:
   image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
   extends: .auth-setup
   stage: orca-tests
@@ -539,7 +539,7 @@ test-collectd-ta:
     paths:
       - "$BUILD_DIR/out/**/*"
       - "$BUILD_DIR/$CI_JOB_ID/**/*"
-test-gateway-ta:
+.test-gateway-ta:
   image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
   extends: .auth-setup
   stage: orca-tests

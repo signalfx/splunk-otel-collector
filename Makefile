@@ -143,6 +143,11 @@ test-with-cover:
 	$(GO_ACC) ./...
 	go tool cover -html=coverage.txt -o coverage.html
 
+.PHONY: gotest-with-codecov
+gotest-with-cover:
+	@$(MAKE) for-all-target TARGET="test-with-codecov"
+	$(GOCMD) tool covdata textfmt -i=./coverage/unit -o ./coverage.txt
+
 .PHONY: gendependabot
 gendependabot:
 	.github/workflows/scripts/gendependabot.sh
@@ -165,7 +170,6 @@ install-tools:
 	cd ./internal/tools && go install golang.org/x/tools/cmd/goimports
 	cd ./internal/tools && go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment
 	cd ./internal/tools && go install golang.org/x/vuln/cmd/govulncheck@latest
-
 
 .PHONY: generate-metrics
 generate-metrics:

@@ -334,7 +334,8 @@ func CollectorImageIsForArm(t testing.TB) bool {
 	client.NegotiateAPIVersion(context.Background())
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	inspect, _, err := client.ImageInspectWithRaw(ctx, image)
+	var buf bytes.Buffer
+	inspect, err := client.ImageInspect(ctx, image, docker.ImageInspectWithRawResponse(&buf))
 	require.NoError(t, err)
 	return inspect.Architecture == "arm64"
 }

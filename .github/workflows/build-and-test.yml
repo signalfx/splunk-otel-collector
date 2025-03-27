@@ -193,16 +193,16 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
 
-      - name: Coverage tests
-        run: |
-          make install-tools
-          make test-with-cover
+      - name: Install Tools
+        run: make install-tools
 
-      - name: Uploading artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-results
-          path: ./coverage.html
+      - name: Run Unit Tests With Coverage
+        run: make gotest-with-cover
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@0565863a31f2c772f9f0395002a31e3f06189574 # 5.4.0
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   cross-compile:
     name: cross-compile

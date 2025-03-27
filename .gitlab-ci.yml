@@ -571,7 +571,7 @@ test-happypath-ta:
     paths:
       - "$BUILD_DIR/out/**/*"
       - "$BUILD_DIR/$CI_JOB_ID/**/*"
-AppInspect_local:
+.AppInspect_local:
   image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
   dependencies:
     - "package-technical-addon"

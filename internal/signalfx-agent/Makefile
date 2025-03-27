@@ -12,8 +12,6 @@ GOTEST_OPT_WITHOUT_RACE?= -v -timeout 180s --tags=$(GO_BUILD_TAGS)
 # COVER_PKGS is the list of packages to include in the coverage
 COVER_PKGS := $(shell $(GOCMD) list ./... | tr "\n" ",")
 
-ALL_PKG_DIRS := $(shell $(GOCMD) list -f '{{ .Dir }}' ./... | $(NORMALIZE_DIRS))
-
 .PHONY: clean
 clean:
 	rm -f pkg/core/constants/versions.go
@@ -64,7 +62,7 @@ test-race-detector:
 # https://github.com/shirou/gopsutil/issues/1774
 .PHONY: test-without-race
 test-without-race:
-	$(GOTEST) $(GOTEST_OPT_WITHOUT_RACE) $(ALL_PKG_DIRS)
+	$(GOTEST) $(GOTEST_OPT_WITHOUT_RACE) ./...
 
 .PHONY: check
 check: lint vet test

@@ -468,13 +468,13 @@ agent-bundle-windows:
       fi
       popd
 .SPLUNK_LINUX: &SPLUNK_LINUX
-      - UF_VERSION: ["9.0.2", "8.2.7"]
+        UF_VERSION: ["9.0.2", "8.2.7"]
         SPLUNK_PLATFORM: ["x64_centos_7", "x64_amazon_linux_2_fips"]
         ORCA_CLOUD: ["aws"]
         ORCA_OPTION: [""]
         PLATFORM: ["linux"]
 .SPLUNK_WINDOWS: &SPLUNK_WINDOWS
-      - UF_VERSION: ["9.0.2", "8.2.7"]
+        UF_VERSION: ["9.0.2", "8.2.7"]
         SPLUNK_PLATFORM: ["x64_windows_2019","x64_windows_2022","x64_windows_2022_fips"]
         ORCA_CLOUD: ["aws"]
         ORCA_OPTION: [""]

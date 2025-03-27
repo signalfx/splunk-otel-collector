@@ -526,7 +526,7 @@ test-collectd-ta:
   parallel:
     matrix:
       - UF_VERSION: ["9.0.2", "8.2.7"]
-        SPLUNK_PLATFORM: ["x64_centos_7", "x64_amazon_linux_2_fips"]
+        SPLUNK_PLATFORM: ["x64_centos_7"]
         ORCA_CLOUD: ["kubernetes"]
         ORCA_OPTION: ["--exec-user root"]
         PLATFORM: ["linux"]

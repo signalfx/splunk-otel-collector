@@ -445,6 +445,9 @@ jobs:
         with:
           name: docker-otelcol-${{ matrix.ARCH }}
           path: ./docker-otelcol/${{ matrix.ARCH }}
+      - name: Fix kubelet TLS server certificates
+        run: |
+          kubectl get csr -o=jsonpath='{range.items[?(@.spec.signerName=="kubernetes.io/kubelet-serving")]}{.metadata.name}{" "}{end}' | xargs kubectl certificate approve
       - run: docker load -i ./docker-otelcol/${{ matrix.ARCH }}/image.tar
       - name: Load Docker image in kind
         run: |

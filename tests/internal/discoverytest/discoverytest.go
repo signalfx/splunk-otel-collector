@@ -19,6 +19,7 @@ package discoverytest
 import (
 	"context"
 	"fmt"
+	docker "github.com/docker/docker/client"
 	"os"
 	"path"
 	"path/filepath"
@@ -154,11 +155,7 @@ func RunWithK8s(t *testing.T, expectedEntityAttrs []map[string]string) {
 	k8sClient, err := k8stest.NewK8sClient(kubeConfig)
 	require.NoError(t, err)
 
-	dockerHost := "172.18.0.1"
-	if runtime.GOOS == "darwin" {
-		dockerHost = "host.docker.internal"
-	}
-
+	dockerHost := getHostEndpoint(t)
 	_, filename, _, ok := runtime.Caller(0)
 	if !ok {
 		t.Fatal("Failed to get current file directory")
@@ -224,6 +221,9 @@ func collectLogsWithAttrs(t *testing.T, sink *consumertest.LogsSink, expectedEnt
 		for _, expectedLog := range expectedEntityAttrs {
 			assert.True(tt, seenLogs[fmt.Sprintf("%v", expectedLog)], "Did not see expected log: %v", expectedLog)
 		}
+		if len(seenLogs) == len(expectedEntityAttrs) {
+			t.Log("Successfully matched all expected logs")
+		}
 	}, 10*time.Minute, 10*time.Second, "Did not get expected logs in time")
 }
 
@@ -239,4 +239,29 @@ func getDockerGID() (string, error) {
 	}
 	dockerGID := fmt.Sprintf("%d", stat.Gid)
 	return dockerGID, nil
+}
+
+// getHostEndpoint returns the docker host endpoint.
+func getHostEndpoint(t *testing.T) string {
+	if host, ok := os.LookupEnv("HOST_ENDPOINT"); ok {
+		return host
+	}
+	if runtime.GOOS == "darwin" {
+		return "host.docker.internal"
+	}
+
+	client, err := docker.NewClientWithOpts(docker.FromEnv)
+	require.NoError(t, err)
+	client.NegotiateAPIVersion(context.Background())
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	network, err := client.NetworkInspect(ctx, "kind", network.InspectOptions{})
+	require.NoError(t, err)
+	for _, ipam := range network.IPAM.Config {
+		if ipam.Gateway != "" {
+			return ipam.Gateway
+		}
+	}
+	require.Fail(t, "failed to find host endpoint")
+	return ""
 }

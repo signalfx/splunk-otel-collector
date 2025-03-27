@@ -56,6 +56,13 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "gomod"
+    directory: "/packaging/dotnet-instr-deployer-add-on"
+    ignore:
+      - dependency-name: "go.opentelemetry.io/*"
+      - dependency-name: "github.com/open-telemetry/*"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "gomod"
     directory: "/pkg/extension/smartagentextension"
     ignore:
       - dependency-name: "go.opentelemetry.io/*"

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 🚀 New components 🚀
+
+- (Splunk) Add `opamp` extension ([#5999](https://github.com/signalfx/splunk-otel-collector/pull/5999))
+
 ## v0.121.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.121.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.121.0) and the [opentelemetry-collector-contrib v0.121.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.121.0) releases where appropriate.
@@ -2020,7 +2024,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 
 - (Splunk) The Splunk OpenTelemetry Collector [Windows install script](https://docs.splunk.com/observability/en/gdi/opentelemetry/collector-windows/install-windows.html#install-the-collector-using-the-script)
   now installs the [Splunk Distribution of OpenTelemetry .NET](https://docs.splunk.com/observability/en/gdi/get-data-in/application/otel-dotnet/get-started.html#instrument-net-applications-for-splunk-observability-cloud-opentelemetry)
-  instead of the [SignalFx Instrumentation for .NET](https://docs.splunk.com/observability/en/gdi/get-data-in/application/otel-dotnet/sfx/sfx-instrumentation.html#signalfx-instrumentation-for-net-deprecated)
+  instead of the `SignalFx Instrumentation for .NET`
   when the parameter `-with_dotnet_instrumentation` is set to `$true` ([#4343](https://github.com/signalfx/splunk-otel-collector/pull/4343))
 - (Core) `receiver/otlp`: Update gRPC code from `codes.InvalidArgument` to `codes.Internal` when a permanent error doesn't contain a gRPC status ([#9415](https://github.com/open-telemetry/opentelemetry-collector/pull/#9415))
 - (Contrib) `kafkareceiver`: standardizes the default topic name for metrics and logs receivers to the same topic name as the metrics and logs exporters of the kafkaexporter ([#27292](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/27292))

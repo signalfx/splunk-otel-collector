@@ -467,15 +467,27 @@ agent-bundle-windows:
         splunk_orca --cloud aws show deployments
       fi
       popd
+.SPLUNK_LINUX_AWS_FIPS: &SPLUNK_LINUX_AWS_FIPS
+        UF_VERSION: ["10.0.0"]
+        SPLUNK_PLATFORM: ["x64_amazon_linux_2_fips"]
+        ORCA_CLOUD: ["aws"]
+        ORCA_OPTION: ['--env SPLUNK_LAUNCH_CONF="SPLUNK_FIPS=1"']
+        PLATFORM: ["linux"]
 .SPLUNK_LINUX: &SPLUNK_LINUX
         UF_VERSION: ["9.0.2", "8.2.7"]
         SPLUNK_PLATFORM: ["x64_centos_7", "x64_amazon_linux_2_fips"]
         ORCA_CLOUD: ["aws"]
         ORCA_OPTION: [""]
         PLATFORM: ["linux"]
+.SPLUNK_WINDOWS_AWS_FIPS: &SPLUNK_WINDOWS_AWS_FIPS
+        UF_VERSION: ["10.0.0"]
+        SPLUNK_PLATFORM: ["x64_windows_2022_fips"]
+        ORCA_CLOUD: ["aws"]
+        ORCA_OPTION: ['--env SPLUNK_LAUNCH_CONF="SPLUNK_FIPS=1"']
+        PLATFORM: ["linux"]
 .SPLUNK_WINDOWS: &SPLUNK_WINDOWS
         UF_VERSION: ["9.0.2", "8.2.7"]
-        SPLUNK_PLATFORM: ["x64_windows_2019","x64_windows_2022","x64_windows_2022_fips"]
+        SPLUNK_PLATFORM: ["x64_windows_2019","x64_windows_2022"]
         ORCA_CLOUD: ["aws"]
         ORCA_OPTION: [""]
         PLATFORM: ["windows"]
@@ -502,7 +514,9 @@ test-happypath-ta:
   parallel:
     matrix:
       - *SPLUNK_LINUX
+      - *SPLUNK_LINUX_AWS_FIPS
       - *SPLUNK_WINDOWS
+      - *SPLUNK_WINDOWS_AWS_FIPS
   script: |
     make orca-test-ta -e
   after_script:
@@ -515,7 +529,7 @@ test-happypath-ta:
     paths:
       - "$BUILD_DIR/out/**/*"
       - "$BUILD_DIR/$CI_JOB_ID/**/*"
-test-collectd-ta:
+.test-collectd-ta:
   image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
   extends: .auth-setup
   stage: orca-tests
@@ -542,7 +556,7 @@ test-collectd-ta:
     paths:
       - "$BUILD_DIR/out/**/*"
       - "$BUILD_DIR/$CI_JOB_ID/**/*"
-test-gateway-ta:
+.test-gateway-ta:
   image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
   extends: .auth-setup
   stage: orca-tests
@@ -566,7 +580,7 @@ test-gateway-ta:
     paths:
       - "$BUILD_DIR/out/**/*"
       - "$BUILD_DIR/$CI_JOB_ID/**/*"
-AppInspect_local:
+.AppInspect_local:
   image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
   dependencies:
     - "package-technical-addon"

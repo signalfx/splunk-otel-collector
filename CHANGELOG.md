@@ -8,7 +8,7 @@
 
 ### 🧰 Bug fixes 🧰
 
-- (Splunk) `deployment/databricks`: Ensure `curl` commands are properly redirected ([#](https://github.com/signalfx/splunk-otel-collector/pull/))
+- (Splunk) `deployment/databricks`: Ensure `curl` commands are properly redirected ([#6047](https://github.com/signalfx/splunk-otel-collector/pull/6047))
 
 ## v0.121.0
 

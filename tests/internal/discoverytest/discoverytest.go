@@ -181,7 +181,7 @@ func RunWithK8s(t *testing.T, expectedEntityAttrs []map[string]string) {
 		if skipTearDown {
 			return
 		}
-		for _, obj := range append(collectorObjs) {
+		for _, obj := range collectorObjs {
 			require.NoErrorf(t, k8stest.DeleteObject(k8sClient, obj), "failed to delete object %s", obj.GetName())
 		}
 	})

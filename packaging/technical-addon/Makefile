@@ -100,6 +100,19 @@ orca-test-ta: env-guard-verify
 	OLLY_ACCESS_TOKEN="$(OLLY_ACCESS_TOKEN)" \
 	$(SOURCE_DIR)/packaging-scripts/cicd-tests/happypath-test.sh
 
+.PHONY: orca-test-ta
+orca-collectd-test-ta: env-guard-verify
+	SOURCE_DIR="$(SOURCE_DIR)" \
+	BUILD_DIR="$(BUILD_DIR)" \
+	ARCH="$(ARCH)" \
+	PLATFORM="$(PLATFORM)" \
+	OTEL_COLLECTOR_VERSION="$(OTEL_COLLECTOR_VERSION)" \
+	ORCA_CLOUD="$(ORCA_CLOUD)" \
+	UF_VERSION="$(UF_VERSION)" \
+	SPLUNK_PLATFORM="$(SPLUNK_PLATFORM)" \
+	OLLY_ACCESS_TOKEN="$(OLLY_ACCESS_TOKEN)" \
+	$(SOURCE_DIR)/packaging-scripts/cicd-tests/agent-bundle/orca-collectd-test.sh
+
 .PHONY: orca-gateway-test-ta
 orca-gateway-test-ta:  env-guard-verify
 	SOURCE_DIR="$(SOURCE_DIR)" \

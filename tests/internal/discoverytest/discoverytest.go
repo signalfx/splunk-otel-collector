@@ -19,7 +19,6 @@ package discoverytest
 import (
 	"context"
 	"fmt"
-	docker "github.com/docker/docker/client"
 	"os"
 	"path"
 	"path/filepath"
@@ -30,6 +29,7 @@ import (
 
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
+	docker "github.com/docker/docker/client"
 	k8stest "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/xk8stest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

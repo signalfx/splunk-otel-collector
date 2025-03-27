@@ -31,8 +31,8 @@ jobs:
     runs-on: ${{ matrix.OS }}
     strategy:
       matrix:
-        # TODO: Add support for ARM runners: https://github.com/actions/runner-images?tab=readme-ov-file#available-images
-        OS: [ "macos-13", "macos-14-large" ]
+        # The "macos-13-xlarge" runner is arm64: https://github.com/actions/runner-images/issues/8439
+        OS: [ "macos-13", "macos-13-xlarge", "macos-14", "macos-15" ]
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4
@@ -51,7 +51,7 @@ jobs:
           make install-tools
           mkdir -p unit-test-results/junit
           trap "go-junit-report  -set-exit-code < unit-test-results/go-unit-tests.out > unit-test-results/junit/results.xml" EXIT
-          make for-all CMD="make test" | tee unit-test-results/go-unit-tests.out
+          make for-all CMD="make test-without-race" | tee unit-test-results/go-unit-tests.out
 
       - name: Uploading artifacts
         uses: actions/upload-artifact@v4

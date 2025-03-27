@@ -27,7 +27,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: "1.23.6"
+  GO_VERSION: 1.23.7
 jobs:
   agent-bundle-linux:
     runs-on: ${{ fromJSON('["ubuntu-24.04", "otel-arm64"]')[matrix.ARCH == 'arm64'] }}
@@ -263,6 +263,8 @@ jobs:
     env:
       TEST_OUTPUT: ${{ github.job }}-${{ matrix.PROFILE }}-${{ matrix.RUNNER }}.out
     steps:
+      # Multiarch images require more disk space
+      - uses: jlumbroso/free-disk-space@v1.3.1
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0

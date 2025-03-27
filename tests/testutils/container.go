@@ -276,8 +276,8 @@ func (container Container) Build() *Container {
 
 func (container *Container) Start(ctx context.Context) (err error) {
 	defer func() {
-		if recover() != nil {
-			err = errors.New(fmt.Sprintf("container start panic: %s", string(debug.Stack())))
+		if r := recover(); r != nil {
+			err = errors.New(fmt.Sprintf("panic: %v, %s", r, string(debug.Stack())))
 		}
 	}()
 

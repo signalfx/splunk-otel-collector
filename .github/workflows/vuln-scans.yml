@@ -284,7 +284,7 @@ jobs:
 
       - run: govulncheck --version
 
-      - name: Run `govulncheck` script
+      - name: Run `govulncheck` to generate SARIF files
         env:
           GOVULN_OPTS: --format sarif --scan symbol
         run: ./.github/workflows/scripts/govulncheck-run.sh
@@ -294,6 +294,11 @@ jobs:
         with:
           name: govulncheck-results
           path: ./govulncheck/
+
+      - name: Run `govulncheck` to fail the workflow if vulnerabilities are found
+        env:
+          GOVULN_OPTS: --show verbose --scan symbol
+        run: ./.github/workflows/scripts/govulncheck-run.sh
 
   govulncheck-categories:
     runs-on: ubuntu-24.04
@@ -320,6 +325,7 @@ jobs:
   govulncheck-upload:
     runs-on: ubuntu-24.04
     needs: [govulncheck-run, govulncheck-categories]
+    if: always() # Always run to upload results to code-scanning even if the scan fails
     strategy:
       matrix: ${{ fromJSON(needs.govulncheck-categories.outputs.matrix) }}
     steps:

@@ -19,7 +19,6 @@ package testutils
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"runtime/debug"
@@ -277,7 +276,7 @@ func (container Container) Build() *Container {
 func (container *Container) Start(ctx context.Context) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			err = errors.New(fmt.Sprintf("panic: %v, %s", r, string(debug.Stack())))
+			err = fmt.Errorf("panic: %v, %s", r, string(debug.Stack()))
 		}
 	}()
 

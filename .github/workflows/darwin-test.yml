@@ -56,8 +56,8 @@ jobs:
       - name: Uploading artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: unit-test-results-darwin
-          path: ./unit-test-results-darwin
+          name: unit-test-results-${{ matrix.OS }}
+          path: ./unit-test-results-${{ matrix.OS }}
 
       - name: bundle.d
         run: |

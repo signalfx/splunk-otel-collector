@@ -22,6 +22,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"runtime/debug"
 	"testing"
 	"time"
 
@@ -276,7 +277,7 @@ func (container Container) Build() *Container {
 func (container *Container) Start(ctx context.Context) (err error) {
 	defer func() {
 		if recover() != nil {
-			err = errors.New("docker must be installed and running")
+			err = errors.New(fmt.Sprintf("container start panic: %s", string(debug.Stack())))
 		}
 	}()
 

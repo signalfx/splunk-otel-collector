@@ -42,7 +42,7 @@ LINT=golangci-lint
 IMPI=impi
 # BUILD_TYPE should be one of (dev, release).
 BUILD_TYPE?=release
-COVER_DIR=$(shell $(PWD)/coverage)
+COVER_DIR=$(PWD)/coverage
 COVER_OPTS?=-cover -covermode=atomic -coverpkg $(COVER_PKGS) -args -test.gocoverdir="$(COVER_DIR)"
 
 ALL_PKG_DIRS := $(shell $(GOCMD) list -f '{{ .Dir }}' ./... | $(NORMALIZE_DIRS))
@@ -82,7 +82,7 @@ test:
 
 .PHONY: test-with-cover
 test-with-cover:
-	mkdir -p $COVER_DIR
+	mkdir -p $(COVER_DIR)
 	$(GOTEST) $(GOTEST_OPT) ./... $(COVER_OPTS)
 
 # Currently, running CGO_ENABLED=0 go test -race is broken in gopsutil/v4
@@ -90,6 +90,7 @@ test-with-cover:
 # https://github.com/shirou/gopsutil/issues/1774
 .PHONY: test-cover-without-race
 test-cover-without-race:
+	mkdir -p $(COVER_DIR)
 	$(GOTEST) $(GOTEST_OPT_WITHOUT_RACE) $(ALL_PKG_DIRS) $(COVER_OPTS)
 
 .PHONY: addlicense

@@ -42,7 +42,7 @@ LINT=golangci-lint
 IMPI=impi
 # BUILD_TYPE should be one of (dev, release).
 BUILD_TYPE?=release
-COVER_DIR=$(PWD)/coverage
+COVER_DIR?=$(PWD)/coverage
 COVER_OPTS?=-cover -covermode=atomic -coverpkg $(COVER_PKGS) -args -test.gocoverdir="$(COVER_DIR)"
 
 ALL_PKG_DIRS := $(shell $(GOCMD) list -f '{{ .Dir }}' ./... | $(NORMALIZE_DIRS))

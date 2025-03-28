@@ -37,6 +37,9 @@ ARCH?=amd64
 BUNDLE_SUPPORTED_ARCHS := amd64 arm64
 SKIP_BUNDLE=false
 
+COVER_TEST_DIR?=$(PWD)/tests/coverage
+COVER_TEST_DIR_OPTS?=-cover -covermode=atomic -coverpkg $(COVER_PKGS) -args -test.gocoverdir="$(COVER_TEST_DIR)"
+
 # For integration testing against local changes you can run
 # SPLUNK_OTEL_COLLECTOR_IMAGE='otelcol:latest' make -e docker-otelcol integration-test
 # for local docker build testing or
@@ -84,51 +87,51 @@ integration-vet:
 
 .PHONY: integration-test
 integration-test:
-	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=integration -v -timeout 5m -count 1 ./...
+	@set -e; cd tests && mkdir -p $(COVER_TEST_DIR) && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=integration -v -timeout 5m -count 1 ./... $(COVER_TEST_DIR_OPTS)
 
 .PHONY: integration-test-mongodb-discovery
 integration-test-mongodb-discovery:
-	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_mongodb -v -timeout 5m -count 1 ./...
+	@set -e; cd tests && mkdir -p $(COVER_TEST_DIR) && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_mongodb -v -timeout 5m -count 1 ./... $(COVER_TEST_DIR_OPTS)
 
 .PHONY: integration-test-mysql-discovery
 integration-test-mysql-discovery:
-	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_mysql -v -timeout 5m -count 1 ./...
+	@set -e; cd tests && mkdir -p $(COVER_TEST_DIR) && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_mysql -v -timeout 5m -count 1 ./... $(COVER_TEST_DIR_OPTS)
 
 .PHONY: integration-test-kafkametrics-discovery
 integration-test-kafkametrics-discovery:
-	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_kafkametrics -v -timeout 5m -count 1 ./...
+	@set -e; cd tests && mkdir -p $(COVER_TEST_DIR) && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_kafkametrics -v -timeout 5m -count 1 ./... $(COVER_TEST_DIR_OPTS)
 
 .PHONY: integration-test-jmx/cassandra-discovery
 integration-test-jmx/cassandra-discovery:
-	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_jmx -v -timeout 5m -count 1 ./...
+	@set -e; cd tests && mkdir -p $(COVER_TEST_DIR) && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_jmx -v -timeout 5m -count 1 ./... $(COVER_TEST_DIR_OPTS)
 
 .PHONY: integration-test-apache-discovery
 integration-test-apache-discovery:
-	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_apachewebserver -v -timeout 5m -count 1 ./...
+	@set -e; cd tests && mkdir -p $(COVER_TEST_DIR) && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_apachewebserver -v -timeout 5m -count 1 ./... $(COVER_TEST_DIR_OPTS)
 
 .PHONY: integration-test-envoy-discovery
 integration-test-envoy-discovery:
-	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_envoy -v -timeout 5m -count 1 ./...
+	@set -e; cd tests && mkdir -p $(COVER_TEST_DIR) && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_envoy -v -timeout 5m -count 1 ./... $(COVER_TEST_DIR_OPTS)
 
 .PHONY: integration-test-nginx-discovery
 integration-test-nginx-discovery:
-	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_nginx -v -timeout 5m -count 1 ./...
+	@set -e; cd tests && mkdir -p $(COVER_TEST_DIR) && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_nginx -v -timeout 5m -count 1 ./... $(COVER_TEST_DIR_OPTS)
 
 .PHONY: integration-test-redis-discovery
 integration-test-redis-discovery:
-	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_redis -v -timeout 5m -count 1 ./...
+	@set -e; cd tests && mkdir -p $(COVER_TEST_DIR) && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_redis -v -timeout 5m -count 1 ./... $(COVER_TEST_DIR_OPTS)
 
 .PHONY: integration-test-oracledb-discovery
 integration-test-oracledb-discovery:
-	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_oracledb -v -timeout 5m -count 1 ./...
+	@set -e; cd tests && mkdir -p $(COVER_TEST_DIR) && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_oracledb -v -timeout 5m -count 1 ./... $(COVER_TEST_DIR_OPTS)
 
 .PHONY: smartagent-integration-test
 smartagent-integration-test:
-	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=smartagent_integration -v -timeout 5m -count 1 ./...
+	@set -e; cd tests && mkdir -p $(COVER_TEST_DIR) && (GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=smartagent_integration -v -timeout 5m -count 1 ./... $(COVER_TEST_DIR_OPTS)
 
 .PHONY: integration-test-envoy-discovery-k8s
 integration-test-envoy-discovery-k8s:
-	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_envoy_k8s -v -timeout 5m -count 1 ./...
+	@set -e; cd tests && mkdir -p $(COVER_TEST_DIR) && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_envoy_k8s -v -timeout 5m -count 1 ./... $(COVER_TEST_DIR_OPTS)
 
 .PHONY: gotest-with-cover
 gotest-with-cover:

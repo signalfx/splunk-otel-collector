@@ -92,7 +92,7 @@ prometheus/istio:
   status:
     metrics:
       - status: successful
-        strict: envoy_cluster_upstream_cx_active
+        strict: envoy_server_uptime
         message: istio prometheus receiver is working for istio-proxy!
       - status: successful
         strict: pilot_services

@@ -92,6 +92,7 @@ test-with-cover:
 test-cover-without-race:
 	mkdir -p $(COVER_DIR)
 	$(GOTEST) $(GOTEST_OPT_WITHOUT_RACE) $(ALL_PKG_DIRS) $(COVER_OPTS)
+	$(GOCMD) tool covdata textfmt -i=./coverage -o ./coverage.txt
 
 .PHONY: addlicense
 addlicense:

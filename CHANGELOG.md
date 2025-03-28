@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## v0.122.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.122.1](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.122.1) and the [opentelemetry-collector-contrib v0.122.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.122.0) releases where appropriate.
+
+### 💡 Enhancements 💡
+
+- (Splunk) Update `splunk-otel-javaagent` to `v2.14.0` ([#6000](https://github.com/signalfx/splunk-otel-collector/pull/6000))
+- (Splunk) Update `jmx-metric-gatherer` to `v1.45.0` ([#5995](https://github.com/signalfx/splunk-otel-collector/pull/5995))
+- (Splunk) Disabled redundant direct connection for MongoDB discovery ([#6042](https://github.com/signalfx/splunk-otel-collector/pull/6042))
+
 ### 🚀 New components 🚀
 
 - (Splunk) Add `opamp` extension ([#5999](https://github.com/signalfx/splunk-otel-collector/pull/5999))

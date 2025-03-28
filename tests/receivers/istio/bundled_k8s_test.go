@@ -160,11 +160,29 @@ func TestIstioEntities(t *testing.T) {
 		}
 		if pod.Labels["app"] == "istiod" || pod.Labels["istio"] == "ingressgateway" || hasIstioProxyContainer(pod) {
 			t.Logf("Matching pod: %s", pod.Name)
+			podIP := pod.Status.PodIP
+			promPort := "15090"
+			if port, ok := pod.Annotations["prometheus.io/port"]; ok {
+				promPort = port
+			}
 			expectedLogs = append(expectedLogs, map[string]string{
 				"discovery.receiver.name": "istio",
 				"discovery.receiver.type": "prometheus",
 				"k8s.pod.name":            pod.Name,
+				"k8s.namespace.name":      pod.Namespace,
 				"discovery.message":       message,
+				"discovery.observer.type": "k8s_observer",
+				"discovery.status":        "successful",
+				"endpoint":                podIP,
+				"net.host.name":           podIP,
+				"net.host.port":           promPort,
+				"server.address":          podIP,
+				"server.port":             promPort,
+				"service.instance.id":     fmt.Sprintf("%s:%s", podIP, promPort),
+				"service.name":            "istio",
+				"service.type":            "prometheus",
+				"type":                    "pod",
+				"url.scheme":              "http",
 			})
 		}
 	}

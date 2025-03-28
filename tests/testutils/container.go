@@ -21,6 +21,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"runtime/debug"
 	"testing"
 	"time"
 
@@ -272,23 +273,31 @@ func (container Container) Build() *Container {
 	return &container
 }
 
-func (container *Container) Start(ctx context.Context) error {
+func (container *Container) Start(ctx context.Context) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("panic: %v, %s", r, string(debug.Stack()))
+		}
+	}()
+
 	if container.req == nil {
 		return fmt.Errorf("cannot start a container that hasn't been built")
 	}
+
 	req := testcontainers.GenericContainerRequest{
 		ContainerRequest: *container.req,
 		Started:          true,
 	}
 
-	err := container.createNetworksIfNecessary(req)
+	err = container.createNetworksIfNecessary(req)
 	if err != nil {
 		return nil
 	}
 
-	started, err := testcontainers.GenericContainer(ctx, req)
+	var started testcontainers.Container
+	started, err = testcontainers.GenericContainer(ctx, req)
 	container.container = &started
-	return err
+	return
 }
 
 func (container *Container) assertStarted(operation string) error {

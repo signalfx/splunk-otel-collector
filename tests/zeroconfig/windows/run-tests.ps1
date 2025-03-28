@@ -47,7 +47,7 @@ try {
 
         # Run the tests
         Set-Location $repo_root/tests/zeroconfig/windows/
-        go test -timeout 5m -tags zeroconfig -v -cover -covermode=atomic -coverpkg $repo_root/packaging/msi -args -test.gocoverdir="$repo_root/coverage"
+        go test -timeout 5m -tags zeroconfig -v ./... -cover -covermode=atomic -coverpkg $repo_root/packaging/msi -args -test.gocoverdir="$repo_root/coverage"
     }
     finally {
         Remove-NetFirewallRule -DisplayName 'zc-iis-test'

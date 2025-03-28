@@ -60,8 +60,8 @@ test-race-detector:
 # Currently, running CGO_ENABLED=0 go test -race is broken in gopsutil/v4
 # This target should be removed in favor of "test" once the following issue is resolved:
 # https://github.com/shirou/gopsutil/issues/1774
-.PHONY: test-without-race
-test-without-race:
+.PHONY: test-cover-without-race
+test-cover-without-race:
 	$(GOTEST) $(GOTEST_OPT_WITHOUT_RACE) ./...
 
 .PHONY: check
@@ -80,7 +80,7 @@ impi: impi-noop
 .PHONY: misspell
 misspell: misspell-noop
 
-.PHONY: test-with-codecov
-test-with-codecov:
+.PHONY: test-with-cover
+test-with-cover:
 	mkdir -p $(PWD)/coverage/unit
 	$(GOTEST) $(GOTEST_OPT) ./... -cover -covermode=atomic -coverpkg $(COVER_PKGS) -args -test.gocoverdir="$(PWD)/coverage/unit"

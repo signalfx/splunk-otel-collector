@@ -217,7 +217,7 @@ jobs:
             # workaround for pytest substring matching
             distro="amazonlinux-2 and not amazonlinux-2023"
           fi
-          python3 -u -m pytest -s --verbose -m "${{ env.SYS_PACKAGE }}" \
+          python3 -u -m pytest -p pytest_cov --cov -s --verbose -m "${{ env.SYS_PACKAGE }}" \
             -k "$distro and ${{ matrix.ARCH }}" \
             packaging/tests/package_test.py
 
@@ -230,11 +230,18 @@ jobs:
             # workaround for pytest substring matching
             distro="amazonlinux-2 and not amazonlinux-2023"
           fi
-          python3 -u -m pytest -s --verbose -m "${{ env.SYS_PACKAGE }}" \
+          python3 -u -m pytest -p pytest_cov --cov -s --verbose -m "${{ env.SYS_PACKAGE }}" \
             -k "$distro and ${{ matrix.ARCH }}" \
             --last-failed \
             packaging/tests/package_test.py
 
+      # We could modify this to only upload on successful test runs, for now we'll upload
+      # unconditionally to get a best guess on coverage.
+      - name: Upload coverage report
+        uses: codecov/codecov-action@0565863a31f2c772f9f0395002a31e3f06189574 # 5.4.0
+        env:
+          fail_ci_if_error: true
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
   docker-otelcol:
     runs-on: ubuntu-24.04
     needs: [cross-compile, agent-bundle-linux]

@@ -7,6 +7,7 @@ GOCMD?= go
 GOTEST=$(GOCMD) test
 GO_BUILD_TAGS?=""
 GOTEST_OPT?= -race -v -timeout 180s --tags=$(GO_BUILD_TAGS)
+GOTEST_OPT_WITHOUT_RACE?= -v -timeout 180s --tags=$(GO_BUILD_TAGS)
 
 # COVER_PKGS is the list of packages to include in the coverage
 COVER_PKGS := $(shell $(GOCMD) list ./... | tr "\n" ",")
@@ -55,6 +56,13 @@ test:
 test-race-detector:
 	go generate ./...
 	CGO_ENABLED=1 go test -race -p $(NUM_CORES) ./...
+
+# Currently, running CGO_ENABLED=0 go test -race is broken in gopsutil/v4
+# This target should be removed in favor of "test" once the following issue is resolved:
+# https://github.com/shirou/gopsutil/issues/1774
+.PHONY: test-without-race
+test-without-race:
+	$(GOTEST) $(GOTEST_OPT_WITHOUT_RACE) ./...
 
 .PHONY: check
 check: lint vet test

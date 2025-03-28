@@ -29,7 +29,7 @@ releases where appropriate.
 
 - (Splunk) Update `splunk-otel-javaagent` to `v2.14.0` ([#6000](https://github.com/signalfx/splunk-otel-collector/pull/6000))
 - (Splunk) Update `jmx-metric-gatherer` to `v1.45.0` ([#5995](https://github.com/signalfx/splunk-otel-collector/pull/5995))
-- (Splunk) Disabled redundant direct connection for MongoDB discovery ([#6042](https://github.com/signalfx/splunk-otel-collector/pull/6042))
+- (Splunk) Use direct connection for MongoDB discovery ([#6042](https://github.com/signalfx/splunk-otel-collector/pull/6042))
 
 - (Core) `service: Add `service.AllowNoPipelines` feature gate to allow starting
   the Collector without pipelines. This can be used to start with only extensions.([#12613](https://github.com/open-telemetry/opentelemetry-collector/pull/12613))

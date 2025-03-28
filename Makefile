@@ -137,7 +137,7 @@ integration-test-oracledb-discovery:
 
 .PHONY: smartagent-integration-test
 smartagent-integration-test:
-	@set -e; cd tests && mkdir -p $(COVER_TEST_DIR) && (GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=smartagent_integration -v -timeout 5m -count 1 ./... $(COVER_TEST_DIR_OPTS)
+	@set -e; cd tests && mkdir -p $(COVER_TEST_DIR) && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=smartagent_integration -v -timeout 5m -count 1 ./... $(COVER_TEST_DIR_OPTS)
 	$(GOCMD) tool covdata textfmt -i=./tests/coverage -o ./coverage.txt
 
 .PHONY: integration-test-envoy-discovery-k8s

@@ -69,6 +69,10 @@ Splunk OpenTelemetry Collector can be configured to send data to them via the
 [`splunk_hec`
 exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/splunkhecexporter).
 
+## Testing signature
+
+Just to test signature.
+
 ## Current Status
 
 - The Splunk Distribution of the OpenTelemetry Collector is production tested; it is in use by a number of customers in their production environments

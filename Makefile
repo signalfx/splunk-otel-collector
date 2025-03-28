@@ -133,6 +133,7 @@ integration-test-envoy-discovery-k8s:
 .PHONY: gotest-with-cover
 gotest-with-cover:
 	@$(MAKE) for-all-target TARGET="test-with-cover"
+	# TODO: Is this step required for other make directives too, or unnecessary?
 	$(GOCMD) tool covdata textfmt -i=./coverage/unit -o ./coverage.txt
 
 .PHONY: gendependabot

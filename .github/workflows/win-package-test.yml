@@ -203,7 +203,15 @@ jobs:
       - name: Run the test script
         working-directory: tests/zeroconfig/windows/
         run: |
+          mkdir -p ./coverage
           .\run-tests.ps1
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@0565863a31f2c772f9f0395002a31e3f06189574 # 5.4.0
+        env:
+          directory: ./coverage
+          fail_ci_if_error: true
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   msi-test:
     strategy:
@@ -231,7 +239,16 @@ jobs:
 
       - name: Run the MSI tests
         run: |
-          go test -timeout 15m -v github.com/signalfx/splunk-otel-collector/tests/msi
+          mkdir -p $(PWD)/coverage
+          go test -timeout 15m -v github.com/signalfx/splunk-otel-collector/tests/msi \
+            -cover -covermode=atomic -coverpkg ./packaging/msi -args -test.gocoverdir="$(PWD)/coverage"
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@0565863a31f2c772f9f0395002a31e3f06189574 # 5.4.0
+        env:
+          directory: ./coverage
+          fail_ci_if_error: true
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   windows-install-script-test:
     runs-on: ${{ matrix.OS }}

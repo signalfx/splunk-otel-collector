@@ -24,7 +24,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/docker/docker/api/types"
 	dockerContainer "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/errdefs"
 	"github.com/docker/docker/pkg/stdcopy"
@@ -449,11 +448,11 @@ func (container *Container) IsRunning() bool {
 	return (*container.container).IsRunning()
 }
 
-func (container *Container) State(ctx context.Context) (*types.ContainerState, error) {
+func (container *Container) State(ctx context.Context) (*dockerContainer.State, error) {
 	if err := container.assertStarted("State"); err != nil {
 		return nil, err
 	}
-	return (*container.container).State(ctx)
+	return (*container).State(ctx)
 }
 
 func (container *Container) CopyToContainer(ctx context.Context, fileContent []byte, containerFilePath string, fileMode int64) error {

@@ -51,13 +51,19 @@ jobs:
           make install-tools
           mkdir -p unit-test-results-${{ matrix.OS }}/junit
           trap "go-junit-report  -set-exit-code < unit-test-results-${{ matrix.OS }}/go-unit-tests.out > unit-test-results-${{ matrix.OS }}/junit/results.xml" EXIT
-          make for-all CMD="make test-without-race" | tee unit-test-results-${{ matrix.OS }}/go-unit-tests.out
+          make for-all CMD="make test-cover-without-race" | tee unit-test-results-${{ matrix.OS }}/go-unit-tests.out
 
       - name: Uploading artifacts
         uses: actions/upload-artifact@v4
         with:
           name: unit-test-results-${{ matrix.OS }}
           path: ./unit-test-results-${{ matrix.OS }}
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@0565863a31f2c772f9f0395002a31e3f06189574 # 5.4.0
+        env:
+          fail_ci_if_error: true
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
       - name: bundle.d
         run: |

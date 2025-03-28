@@ -130,9 +130,9 @@ smartagent-integration-test:
 integration-test-envoy-discovery-k8s:
 	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_envoy_k8s -v -timeout 5m -count 1 ./...
 
-.PHONY: gotest-with-codecov
+.PHONY: gotest-with-cover
 gotest-with-cover:
-	@$(MAKE) for-all-target TARGET="test-with-codecov"
+	@$(MAKE) for-all-target TARGET="test-with-cover"
 	$(GOCMD) tool covdata textfmt -i=./coverage/unit -o ./coverage.txt
 
 .PHONY: gendependabot

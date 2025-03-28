@@ -31,7 +31,7 @@ releases where appropriate.
 - (Splunk) Update `jmx-metric-gatherer` to `v1.45.0` ([#5995](https://github.com/signalfx/splunk-otel-collector/pull/5995))
 - (Splunk) Use direct connection for MongoDB discovery ([#6042](https://github.com/signalfx/splunk-otel-collector/pull/6042))
 
-- (Core) `service: Add `service.AllowNoPipelines` feature gate to allow starting
+- (Core) `service`: Add `service.AllowNoPipelines` feature gate to allow starting
   the Collector without pipelines. This can be used to start with only extensions.([#12613](https://github.com/open-telemetry/opentelemetry-collector/pull/12613))
 - (Core) `service`: include component id/type in start error ([#10426](https://github.com/open-telemetry/opentelemetry-collector/issues/10426))
 - (Core) `confmap`: Introduce a new feature flag to allow for merging lists instead of discarding the existing ones.

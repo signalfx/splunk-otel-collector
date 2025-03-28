@@ -6,6 +6,10 @@
 
 - (Splunk) Add `opamp` extension ([#5999](https://github.com/signalfx/splunk-otel-collector/pull/5999))
 
+### 💡 Enhancements 💡
+
+- (Splunk) Add a new discovery bundle for Istio metrics which includes proxy, gateway, and pilot/istiod)  ([#5854](https://github.com/signalfx/splunk-otel-collector/pull/5854))
+
 ### 🧰 Bug fixes 🧰
 
 - (Splunk) `deployment/databricks`: Ensure `curl` commands are properly redirected ([#6047](https://github.com/signalfx/splunk-otel-collector/pull/6047))

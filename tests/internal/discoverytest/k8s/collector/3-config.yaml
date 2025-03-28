@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otelcol-config
+  namespace: test
+data:
+  config.yaml: |
+    exporters:
+      otlp:
+        endpoint: {{ .HostEndpoint }}
+        tls:
+          insecure: true
+      debug:
+        verbosity: detailed
+    service:
+      telemetry:
+        logs:
+          level: debug
+      pipelines:
+        logs/entities:
+          exporters:
+          - otlp
+        metrics:
+          exporters:
+          - otlp

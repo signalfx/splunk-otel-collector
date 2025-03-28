@@ -21,6 +21,9 @@ releases where appropriate.
 - (Contrib) `sqlserverreceiver`: SQL Server receiver now requires a positive serial number for X509 certificates.
   See known issues in README of `receiver/sqlserverreceiver` for more information. ([#38099](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/38099))
 
+### 🚀 New components 🚀
+
+- (Splunk) Add `opamp` extension ([#5999](https://github.com/signalfx/splunk-otel-collector/pull/5999))
 
 ### 💡 Enhancements 💡
 
@@ -65,10 +68,6 @@ releases where appropriate.
 - (Contrib) `pkg/stanza`: Prevent data loss in Stanza-based receivers on ungraceful shutdown of the collector ([#35456](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/35456))
   Enable the `stanza.synchronousLogEmitter` feature gate to unlock this feature.
   See the [documentation](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/pkg/stanza/README.md) for more information.
-
-### 🚀 New components 🚀
-
-- (Splunk) Add `opamp` extension ([#5999](https://github.com/signalfx/splunk-otel-collector/pull/5999))
 
 ### 🧰 Bug fixes 🧰
 

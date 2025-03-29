@@ -98,7 +98,7 @@ jobs:
             ./bin/*
 
   trivy-image-scan:
-    runs-on: ubuntu-24.04
+    runs-on: ${{ matrix.ARCH == 'amd64' && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
     needs: docker-otelcol
     strategy:
       matrix:
@@ -107,11 +107,6 @@ jobs:
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
-      - uses: docker/setup-qemu-action@v3
-        if: ${{ matrix.ARCH != 'amd64' }}
-        with:
-          platforms: ${{ matrix.ARCH }}
-          image: tonistiigi/binfmt:qemu-v7.0.0
       - uses: actions/download-artifact@v4
         with:
           name: otelcol-${{ matrix.ARCH }}${{ matrix.FIPS == true && '-fips' || '' }}
@@ -129,7 +124,7 @@ jobs:
           ignore-unfixed: true
 
   anchore-image-scan:
-    runs-on: ubuntu-24.04
+    runs-on: ${{ matrix.ARCH == 'amd64' && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
     needs: docker-otelcol
     strategy:
       matrix:
@@ -140,11 +135,6 @@ jobs:
       GRYPE_PLATFORM: ${{ matrix.ARCH }}
     steps:
       - uses: actions/checkout@v4
-      - uses: docker/setup-qemu-action@v3
-        if: ${{ matrix.ARCH != 'amd64' }}
-        with:
-          platforms: ${{ matrix.ARCH }}
-          image: tonistiigi/binfmt:qemu-v7.0.0
       - uses: actions/download-artifact@v4
         with:
           name: otelcol-${{ matrix.ARCH }}${{ matrix.FIPS == true && '-fips' || '' }}
@@ -235,7 +225,7 @@ jobs:
           sarif_file: snyk.sarif
 
   snyk-docker-scan:
-    runs-on: ubuntu-24.04
+    runs-on: ${{ matrix.ARCH == 'amd64' && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
     needs: [docker-otelcol, check-snyk-token]
     if: ${{ needs.check-snyk-token.outputs.has-snyk-token == 'true' }}
     strategy:
@@ -245,11 +235,6 @@ jobs:
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
-      - uses: docker/setup-qemu-action@v3
-        if: ${{ matrix.ARCH != 'amd64' }}
-        with:
-          platforms: ${{ matrix.ARCH }}
-          image: tonistiigi/binfmt:qemu-v7.0.0
       - uses: actions/download-artifact@v4
         with:
           name: otelcol-${{ matrix.ARCH }}${{ matrix.FIPS == true && '-fips' || '' }}

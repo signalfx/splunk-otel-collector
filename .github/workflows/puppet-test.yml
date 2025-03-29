@@ -80,7 +80,7 @@ jobs:
 
   puppet-test:
     name: puppet-test
-    runs-on: ${{ matrix.ARCH == 'amd64' && 'ubuntu-24.04' || 'ubuntu-22.04-arm' }}
+    runs-on: ${{ matrix.ARCH == 'amd64' && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
     timeout-minutes: 60
     needs:
       - puppet-lint

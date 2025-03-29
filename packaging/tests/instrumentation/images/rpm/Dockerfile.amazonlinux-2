@@ -2,7 +2,7 @@
 # `-d --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro` flags
 FROM tomcat:9-jre8 as tomcat
 
-FROM amazonlinux:2.0.20250305.0
+FROM amazonlinux:2
 
 ARG TARGETARCH
 

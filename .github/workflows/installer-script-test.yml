@@ -46,8 +46,7 @@ jobs:
       matrix: ${{ steps.get-matrix.outputs.matrix }}
 
   linux-installer-script-test:
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ${{ fromJSON('["ubuntu-20.04", "ubuntu-22.04"]')[matrix.DISTRO == 'amazonlinux-2023'] }}
+    runs-on: ${{ matrix.ARCH == 'amd64' && 'ubuntu-24.04' || 'ubuntu-22.04-arm' }}
     timeout-minutes: 90
     needs: installer-test-matrix
     strategy:
@@ -60,12 +59,6 @@ jobs:
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4
-
-      - uses: docker/setup-qemu-action@v3
-        if: ${{ matrix.ARCH != 'amd64' }}
-        with:
-          platforms: ${{ matrix.ARCH }}
-          image: tonistiigi/binfmt:qemu-v7.0.0
 
       - name: Setup python
         uses: actions/setup-python@v5

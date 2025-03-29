@@ -1,6 +1,6 @@
 # A amazonlinux2 image with systemd enabled.  Must be run with:
 # `-d --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro` flags
-FROM amazonlinux:2
+FROM amazonlinux:2.0.20250305.0
 
 ENV container docker
 

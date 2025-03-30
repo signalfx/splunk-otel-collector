@@ -330,6 +330,7 @@ jobs:
             }
 
       - name: Set up QEMU
+        # QEMU is needed for the ppc64le architecture
         if: ${{ matrix.ARCH != 'amd64' && matrix.ARCH != 'arm64' }}
         uses: docker/setup-qemu-action@v3
         with:

@@ -48,8 +48,8 @@ jobs:
   linux-installer-script-test:
     # Amazon Linux 2 and OpenSUSE 12 use cgroup v1
     # Ubuntu 24.04 uses cgroup v2
-    # Fallback to Ubuntu 20.04 when the matrix.DISRO is one of these two above
-    runs-on: ubuntu-${{ matrix.DISTRO == 'amazonlinux-2' || matrix.DISTRO == 'opensuse-12' && '20.04' || '24.04' }}${{ matrix.ARCH == 'amd64' && '' || '-arm' }}
+    # Fallback to Ubuntu 22.04 when the matrix.DISRO is one of these two above
+    runs-on: ubuntu-${{ (matrix.DISTRO != 'amazonlinux-2' && matrix.DISTRO != 'opensuse-12') && '24.04' || '22.04' }}${{ matrix.ARCH == 'amd64' && '' || '-arm' }}
     timeout-minutes: 90
     needs: installer-test-matrix
     strategy:

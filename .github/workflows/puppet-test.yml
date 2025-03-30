@@ -80,7 +80,10 @@ jobs:
 
   puppet-test:
     name: puppet-test
-    runs-on: ${{ matrix.ARCH == 'amd64' && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
+    # Amazon Linux 2 and OpenSUSE 12 use cgroup v1
+    # Ubuntu 24.04 uses cgroup v2
+    # Fallback to Ubuntu 20.04 when the matrix.DISRO is one of these two above
+    runs-on: ubuntu-${{ (matrix.DISTRO != 'amazonlinux-2' && matrix.DISTRO != 'opensuse-12') && '24.04' || '20.04' }}
     timeout-minutes: 60
     needs:
       - puppet-lint

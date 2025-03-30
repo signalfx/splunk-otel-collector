@@ -155,7 +155,6 @@ jobs:
           # amazonlinux-2 and tar-centos-7 require cgroup v1, only available on version 20.04 that doesn't have an arm runner
           exclude='{"DISTRO": "opensuse-12", "ARCH": "arm64"},{"DISTRO": "amazonlinux-2", "ARCH": "arm64"},{"DISTRO": "tar-centos-7", "ARCH": "arm64"}'
           matrix="{\"DISTRO\": [${distro%,}], \"ARCH\": [${arch}], \"exclude\": [${exclude}]}"
-          matrix="{\"DISTRO\": [${distro%,}], \"ARCH\": [${arch}]}"
           echo "$matrix" | jq
           echo "matrix=${matrix}" >> $GITHUB_OUTPUT
     outputs:

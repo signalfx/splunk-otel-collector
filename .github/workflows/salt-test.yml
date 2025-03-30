@@ -68,7 +68,10 @@ jobs:
 
   salt-test:
     name: salt-test
-    runs-on: ${{ matrix.ARCH == 'amd64' && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
+    # Amazon Linux 2 uses cgroup v1
+    # Ubuntu 24.04 uses cgroup v2
+    # Fallback to Ubuntu 20.04 when needed
+    runs-on: ${{ fromJSON('["ubuntu-24.04", "ubuntu-20.04"]')[matrix.DISTRO == 'amazonlinux-2'] }}
     timeout-minutes: 60
     needs: [salt-lint-test, salt-test-matrix]
     strategy:

@@ -100,7 +100,10 @@ jobs:
           distro=$(for d in $dockerfiles; do echo -n "\"$d\","; done)
           arch="\"amd64\", \"arm64\""
           testcase="\"express\",\"tomcat\",\"dotnet\""
-          exclude='{"ARCH": "arm64", "TESTCASE": "dotnet"}'  # splunk-otel-dotnet currently not supported on arm64
+          # splunk-otel-dotnet currently not supported on arm64
+          # amazonlinux-2 requires cgroup v1, only available on version 20.04 that doesn't have an arm runner
+          # opensuse-12 (leap 42) does not support arm64
+          exclude='{"ARCH": "arm64", "TESTCASE": "dotnet"},{"DISTRO": "opensuse-12", "ARCH": "arm64"},{"DISTRO": "amazonlinux-2", "ARCH": "arm64"}'
           matrix="{\"DISTRO\": [${distro%,}], \"ARCH\": [${arch}], \"TESTCASE\": [${testcase}], \"exclude\": [${exclude}]}"
           echo "$matrix" | jq
           echo "matrix=${matrix}" >> $GITHUB_OUTPUT
@@ -108,7 +111,10 @@ jobs:
       matrix: ${{ steps.get-matrix.outputs.matrix }}
 
   test-package:
-    runs-on: ${{ matrix.ARCH == 'amd64' && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
+    # Amazon Linux 2 and OpenSUSE 12 use cgroup v1
+    # Ubuntu 24.04 uses cgroup v2
+    # Fallback to Ubuntu 20.04 when the matrix.DISRO is one of these two above
+    runs-on: ubuntu-${{ (matrix.DISTRO != 'amazonlinux-2' && matrix.DISTRO != 'opensuse-12') && '24.04' || '20.04' }}${{ matrix.ARCH == 'arm64' && '-arm' || '' }}
     timeout-minutes: 60
     needs: [cross-compile, build-package, test-package-matrix]
     strategy:

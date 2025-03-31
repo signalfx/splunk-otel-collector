@@ -484,7 +484,7 @@ agent-bundle-windows:
         SPLUNK_PLATFORM: ["x64_windows_2022_fips"]
         ORCA_CLOUD: ["aws"]
         ORCA_OPTION: ['--env SPLUNK_LAUNCH_CONF="SPLUNK_FIPS=1"']
-        PLATFORM: ["linux"]
+        PLATFORM: ["windows"]
 .SPLUNK_WINDOWS: &SPLUNK_WINDOWS
         UF_VERSION: ["9.0.2", "8.2.7"]
         SPLUNK_PLATFORM: ["x64_windows_2019","x64_windows_2022"]

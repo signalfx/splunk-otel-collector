@@ -308,7 +308,7 @@ jobs:
           path: ./docker-otelcol
 
   docker-otelcol-verify:
-    runs-on: ubuntu-24.04
+    runs-on: ${{ matrix.ARCH == 'amd64' && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
     needs: [docker-otelcol]
     strategy:
       matrix:
@@ -330,7 +330,7 @@ jobs:
             }
 
       - name: Set up QEMU
-        if: ${{ matrix.ARCH != 'amd64' }}
+        if: ${{ matrix.ARCH == 'ppc64le' }}
         uses: docker/setup-qemu-action@v3
         with:
           platforms: ${{ matrix.ARCH }}

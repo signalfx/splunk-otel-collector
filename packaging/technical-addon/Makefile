@@ -1,5 +1,5 @@
 # Used for building
-SOURCE_DIR?=$(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+SOURCE_DIR:=$(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 BUILD_DIR?=$(realpath .)/build
 OTEL_COLLECTOR_VERSION?=0.122.0
 SPLUNK_OTELCOL_DOWNLOAD_BASE?=https://github.com/signalfx/splunk-otel-collector/releases/download
@@ -16,6 +16,43 @@ SPLUNK_ARCH?=x86_64
 SPLUNK_OTEL_VERSION?=
 TA_VERSION?=
 
+MODULAR_INPUT_SCHEMAS := $(shell find $(SOURCE_DIR)/pkg -type f -name "modular-inputs.yaml" -exec grep -m 1 "modular-input-schema-name:" {} \; | awk '{print $$2}')
+
+
+# Tools directory
+TOOLS_DIR := $(BUILD_DIR)/.tools
+MODINPUT_CONFIG_GENERATOR := $(TOOLS_DIR)/modinput_config_generator
+
+# Make targets
+.PHONY: ta-build-tools
+ta-build-tools:
+	@echo "Building tools..."
+	@mkdir -p $(TOOLS_DIR)
+.PHONY: test-ta-build-tools
+test-ta-build-tools: ta-build-tools
+	cd $(SOURCE_DIR) && go build -o $(TOOLS_DIR)/modinput_config_generator ./cmd/modinput_config_generator
+	$(MODINPUT_CONFIG_GENERATOR) -source-dir=$(SOURCE_DIR)/cmd/modinput_config_generator/internal/testdata -schema-name=Sample_Addon --build-dir=$(BUILD_DIR) || exit 1; \
+	mkdir -p $(BUILD_DIR)/Sample_Addon/$(PLATFORM)_$(SPLUNK_ARCH)/bin; \
+	cd $(SOURCE_DIR) && go build $(GO_BUILD_FLAGS) -o $(BUILD_DIR)/Sample_Addon/$(PLATFORM)_$(SPLUNK_ARCH)/bin/sample_addon ./cmd/modinput_config_generator/internal/testdata/pkg/sample_addon/runner || exit 1; \
+	SOURCE_DIR="$(SOURCE_DIR)/cmd/modinput_config_generator/internal/testdata" BUILD_DIR="$(BUILD_DIR)/cmd/modinput_config_generator/internal/testdata" go test -v ./...
+
+.PHONY: generate-modinput-configs
+generate-modinput-configs: test-ta-build-tools
+	@echo "Generating modinput config code from modular-inputs.yaml files..."
+	@for schema in $(MODULAR_INPUT_SCHEMAS); do \
+		echo "Generating runner config for $$schema..."; \
+		$(MODINPUT_CONFIG_GENERATOR) -source-dir=$(SOURCE_DIR) -schema-name=$$schema --build-dir=$(BUILD_DIR) || exit 1; \
+	done
+
+.PHONY: build-ta-runners
+build-ta-runners: generate-modinput-configs
+	@echo "Building runner binaries..."
+	@for schema in $(MODULAR_INPUT_SCHEMAS); do \
+		echo "Building $$schema..."; \
+		schema_lower=$$(echo $$schema | tr '[:upper:]' '[:lower:]'); \
+		mkdir -p $(BUILD_DIR)/$$schema/$(PLATFORM)_$(SPLUNK_ARCH)/bin; \
+		cd $(SOURCE_DIR) && go build $(GO_BUILD_FLAGS) -o $(BUILD_DIR)/$$schema/$(PLATFORM)_$(SPLUNK_ARCH)/bin/$$schema ./pkg/$$schema_lower/runner || exit 1; \
+	done
 
 .PHONY: generate-technical-addon
 generate-technical-addon: env-guard-all

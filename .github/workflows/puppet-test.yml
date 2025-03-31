@@ -80,8 +80,10 @@ jobs:
 
   puppet-test:
     name: puppet-test
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ${{ fromJSON('["ubuntu-20.04", "ubuntu-22.04"]')[matrix.DISTRO == 'amazonlinux-2023'] }}
+    # Amazon Linux 2 and OpenSUSE 12 use cgroup v1
+    # Ubuntu 24.04 uses cgroup v2
+    # Fallback to Ubuntu 20.04 when the matrix.DISRO is one of these two above
+    runs-on: ubuntu-${{ (matrix.DISTRO != 'amazonlinux-2' && matrix.DISTRO != 'opensuse-12') && '24.04' || '20.04' }}
     timeout-minutes: 60
     needs:
       - puppet-lint

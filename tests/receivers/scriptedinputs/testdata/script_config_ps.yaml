@@ -1,7 +1,7 @@
 receivers:
   scripted_inputs/ps:
     script_name: ps
-    collection_interval: 10s
+    collection_interval: 3s
     source: ps
     sourcetype: ps
 

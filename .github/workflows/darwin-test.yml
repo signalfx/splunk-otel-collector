@@ -51,7 +51,7 @@ jobs:
           make install-tools
           mkdir -p unit-test-results-${{ matrix.OS }}/junit
           trap "go-junit-report  -set-exit-code < unit-test-results-${{ matrix.OS }}/go-unit-tests.out > unit-test-results-${{ matrix.OS }}/junit/results.xml" EXIT
-          make for-all CMD="make test-without-race" | tee unit-test-results-${{ matrix.OS }}/go-unit-tests.out
+          make gotest-cover-without-race | tee unit-test-results-${{ matrix.OS }}/go-unit-tests.out
 
       - name: Uploading artifacts
         uses: actions/upload-artifact@v4

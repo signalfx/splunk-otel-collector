@@ -139,6 +139,14 @@ gotest-with-cover:
 	@$(MAKE) for-all-target TARGET="test-with-codecov"
 	$(GOCMD) tool covdata textfmt -i=./coverage/unit -o ./coverage.txt
 
+.PHONY: gotest-cover-without-race
+gotest-cover-without-race:
+	@$(MAKE) for-all-target TARGET="test-cover-without-race"
+	$(GOCMD) tool covdata textfmt -i=./coverage -o ./coverage.txt
+	# TODO: Figure out if this is necessary, or if relative paths mean the agent coverage files
+	# are in top-level coverage dir
+	$(GOCMD) tool covdata textfmt -i=./internal/signalfx-agent/coverage -o ./agent_coverage.txt
+
 .PHONY: gendependabot
 gendependabot:
 	.github/workflows/scripts/gendependabot.sh

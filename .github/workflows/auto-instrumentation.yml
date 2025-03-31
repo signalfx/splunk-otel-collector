@@ -167,7 +167,7 @@ jobs:
             distro="amazonlinux-2 and not amazonlinux-2023"
           fi
           testcase="${{ matrix.TESTCASE }} or uninstall"
-          python3 -u -m pytest -s --verbose -k "$distro and ${{ matrix.ARCH }} and ($testcase)" \
+          python3 -u -m pytest -p pytest_cov --cov -s --verbose -k "$distro and ${{ matrix.ARCH }} and ($testcase)" \
             packaging/tests/instrumentation/instrumentation_test.py
 
       # qemu, networking, running systemd in containers, etc., can be flaky
@@ -180,6 +180,13 @@ jobs:
             distro="amazonlinux-2 and not amazonlinux-2023"
           fi
           testcase="${{ matrix.TESTCASE }} or uninstall"
-          python3 -u -m pytest -s --verbose -k "$distro and ${{ matrix.ARCH }} and ($testcase)" \
+          python3 -u -m pytest -p pytest_cov --cov -s --verbose -k "$distro and ${{ matrix.ARCH }} and ($testcase)" \
             --last-failed \
             packaging/tests/instrumentation/instrumentation_test.py
+
+      # This step only runs if at least one of the test runs succeeded
+      - name: Upload coverage report
+        uses: codecov/codecov-action@0565863a31f2c772f9f0395002a31e3f06189574 # 5.4.0
+        env:
+          fail_ci_if_error: true
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

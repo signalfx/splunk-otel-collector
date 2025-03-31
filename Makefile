@@ -85,67 +85,72 @@ integration-vet:
 .PHONY: integration-test
 integration-test:
 	@set -e; cd tests && mkdir -p $(COVER_DIR) && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=integration -v -timeout 5m -count 1 ./... $(COVER_OPTS)
-	$(GOCMD) tool covdata textfmt -i=$(COVER_DIR) -o ./integration-test.txt
+	$(PWD)
+	ls -al $(PWD)
+	ls -al $(PWD)/coverage
+	ls -al $(PWD)/tests
+	ls- al $(PWD)/tests/coverage
+	$(GOCMD) tool covdata textfmt -i=$(COVER_DIR) -o ./coverage.txt
 
 .PHONY: integration-test-mongodb-discovery
 integration-test-mongodb-discovery:
-	@set -e; cd tests && mkdir -p $(COVER_DIR) && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_mongodb -v -timeout 5m -count 1 ./... $(COVER_OPTS)
-	$(GOCMD) tool covdata textfmt -i=$(COVER_DIR) -o ./integration-test-mongodb-discovery.txt
+	@set -e; mkdir -p $(COVER_DIR) && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_mongodb -v -timeout 5m -count 1 ./tests $(COVER_OPTS)
+	$(GOCMD) tool covdata textfmt -i=$(COVER_DIR) -o ./coverage.txt
 
 .PHONY: integration-test-mysql-discovery
 integration-test-mysql-discovery:
-	@set -e; cd tests && mkdir -p $(COVER_DIR) && (GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_mysql -v -timeout 5m -count 1 ./... $(COVER_OPTS)
-	$(GOCMD) tool covdata textfmt -i=$(COVER_DIR) -o ./integration-test-mysql-discovery.txt
+	@set -e; cd tests && mkdir -p $(COVER_DIR) && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_mysql -v -timeout 5m -count 1 ./... $(COVER_OPTS)
+	$(GOCMD) tool covdata textfmt -i=$(COVER_DIR) -o ./coverage.txt
 
 .PHONY: integration-test-kafkametrics-discovery
 integration-test-kafkametrics-discovery:
 	@set -e; cd tests && mkdir -p $(COVER_DIR) && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_kafkametrics -v -timeout 5m -count 1 ./... $(COVER_OPTS)
-	$(GOCMD) tool covdata textfmt -i=$(COVER_DIR) -o ./integration-test-kafkametrics-discovery.txt
+	$(GOCMD) tool covdata textfmt -i=$(COVER_DIR) -o ./coverage.txt
 
 .PHONY: integration-test-jmx/cassandra-discovery
 integration-test-jmx/cassandra-discovery:
 	@set -e; cd tests && mkdir -p $(COVER_DIR) && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_jmx -v -timeout 5m -count 1 ./... $(COVER_OPTS)
-	$(GOCMD) tool covdata textfmt -i=$(COVER_DIR) -o ./integration-test.txt
+	$(GOCMD) tool covdata textfmt -i=$(COVER_DIR) -o ./coverage.txt
 
 .PHONY: integration-test-apache-discovery
 integration-test-apache-discovery:
 	@set -e; cd tests && mkdir -p $(COVER_DIR) && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_apachewebserver -v -timeout 5m -count 1 ./... $(COVER_OPTS)
-	$(GOCMD) tool covdata textfmt -i=$(COVER_DIR) -o ./integration-test-cassandra-discovery.txt
+	$(GOCMD) tool covdata textfmt -i=$(COVER_DIR) -o ./coverage.txt
 
 .PHONY: integration-test-envoy-discovery
 integration-test-envoy-discovery:
 	@set -e; cd tests && mkdir -p $(COVER_DIR) && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_envoy -v -timeout 5m -count 1 ./... $(COVER_OPTS)
-	$(GOCMD) tool covdata textfmt -i=$(COVER_DIR) -o ./integration-test-envoy-discovery.txt
+	$(GOCMD) tool covdata textfmt -i=$(COVER_DIR) -o ./coverage.txt
 
 .PHONY: integration-test-nginx-discovery
 integration-test-nginx-discovery:
 	@set -e; cd tests && mkdir -p $(COVER_DIR) && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_nginx -v -timeout 5m -count 1 ./... $(COVER_OPTS)
-	$(GOCMD) tool covdata textfmt -i=$(COVER_DIR) -o ./integration-test-nginx-discovery.txt
+	$(GOCMD) tool covdata textfmt -i=$(COVER_DIR) -o ./coverage.txt
 
 .PHONY: integration-test-redis-discovery
 integration-test-redis-discovery:
 	@set -e; cd tests && mkdir -p $(COVER_DIR) && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_redis -v -timeout 5m -count 1 ./... $(COVER_OPTS)
-	$(GOCMD) tool covdata textfmt -i=$(COVER_DIR) -o ./integration-test-redis-discovery.txt
+	$(GOCMD) tool covdata textfmt -i=$(COVER_DIR) -o ./coverage.txt
 
 .PHONY: integration-test-oracledb-discovery
 integration-test-oracledb-discovery:
 	@set -e; cd tests && mkdir -p $(COVER_DIR) && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_oracledb -v -timeout 5m -count 1 ./... $(COVER_OPTS)
-	$(GOCMD) tool covdata textfmt -i=$(COVER_DIR) -o ./integration-test-oracledb-discovery.txt
+	$(GOCMD) tool covdata textfmt -i=$(COVER_DIR) -o ./coverage.txt
 
 .PHONY: smartagent-integration-test
 smartagent-integration-test:
 	@set -e; cd tests && mkdir -p $(COVER_DIR) && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=smartagent_integration -v -timeout 5m -count 1 ./... $(COVER_OPTS)
-	$(GOCMD) tool covdata textfmt -i=$(COVER_DIR) -o ./smartagent-integration-test.txt
+	$(GOCMD) tool covdata textfmt -i=$(COVER_DIR) -o ./coverage.txt
 
 .PHONY: integration-test-envoy-discovery-k8s
 integration-test-envoy-discovery-k8s:
 	@set -e; cd tests && mkdir -p $(COVER_DIR) && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_envoy_k8s -v -timeout 5m -count 1 ./... $(COVER_OPTS)
-	$(GOCMD) tool covdata textfmt -i=$(COVER_DIR) -o ./integration-test-envoy-discovery-k8s.txt
+	$(GOCMD) tool covdata textfmt -i=$(COVER_DIR) -o ./coverage.txt
 
 .PHONY: integration-test-istio-discovery-k8s
 integration-test-istio-discovery-k8s:
 	@set -e; cd tests && mkdir -p $(COVER_DIR) && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_istio_k8s -v -timeout 15m -count 1 ./... $(COVER_OPTS)
-	$(GOCMD) tool covdata textfmt -i=$(COVER_DIR) -o ./integration-test-istio-discovery-k8s.txt
+	$(GOCMD) tool covdata textfmt -i=$(COVER_DIR) -o ./coverage.txt
 
 .PHONY: gotest-with-codecov
 gotest-with-codecov:

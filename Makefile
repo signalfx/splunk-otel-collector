@@ -105,6 +105,12 @@ integration-test:
 .PHONY: integration-test-with-cover
 integration-test-with-cover:
 	@make integration-test-cover-target TARGET='integration'
+	@echo "$(PWD)"
+	ls -al $(PWD)
+	ls -al $(PWD)/coverage
+	ls -al $(PWD)/tests
+	ls- al $(PWD)/tests/coverage
+	$(GOCMD) tool covdata textfmt -i=$(COVER_DIR) -o ./coverage.txt
 
 .PHONY: integration-test-mongodb-discovery
 integration-test-mongodb-discovery:

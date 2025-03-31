@@ -59,6 +59,12 @@ jobs:
           name: unit-test-results-${{ matrix.OS }}
           path: ./unit-test-results-${{ matrix.OS }}
 
+      - name: Upload coverage report
+        uses: codecov/codecov-action@0565863a31f2c772f9f0395002a31e3f06189574 # 5.4.0
+        env:
+          fail_ci_if_error: true
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
       - name: bundle.d
         run: |
           make bundle.d

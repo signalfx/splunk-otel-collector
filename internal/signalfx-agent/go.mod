@@ -2,6 +2,8 @@ module github.com/signalfx/signalfx-agent
 
 go 1.23.0
 
+toolchain go1.24.1
+
 replace (
 	code.cloudfoundry.org/go-loggregator => github.com/signalfx/go-loggregator v1.0.1-0.20200205155641-5ba5ca92118d
 	github.com/influxdata/telegraf => github.com/signalfx/telegraf v0.10.2-0.20250228233359-931557f78bed
@@ -54,7 +56,7 @@ require (
 	github.com/snowflakedb/gosnowflake v1.13.1
 	github.com/stretchr/testify v1.10.0
 	github.com/ulule/deepcopier v0.0.0-20171107155558-ca99b135e50f
-	github.com/vmware/govmomi v0.47.1
+	github.com/vmware/govmomi v0.49.0
 	golang.org/x/net v0.37.0 // indirect
 	golang.org/x/sync v0.12.0
 	golang.org/x/sys v0.31.0

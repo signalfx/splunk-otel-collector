@@ -1,5 +1,5 @@
 {{ receiver "prometheus/istio" }}:
-  enabled: true
+  enabled: false
   rule:
     k8s_observer: type == "pod" and ("istio.io/rev" in annotations or labels["istio"] == "pilot" or name matches "istio.*")
   config:

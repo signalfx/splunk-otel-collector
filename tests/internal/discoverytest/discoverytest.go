@@ -138,7 +138,7 @@ func Run(t *testing.T, receiverName string, configFilePath string, logMessageToA
 
 // RunWithK8s create a collector in an existing k8s cluster (set env KUBECONFIG for access to cluster)
 // and assert that all expectedEntityAttrs for discovered entities are received by the collector in k8s.
-func RunWithK8s(t *testing.T, expectedEntityAttrs []map[string]string) {
+func RunWithK8s(t *testing.T, expectedEntityAttrs []map[string]string, setDiscoveryArgs []string) {
 	kubeConfig := os.Getenv("KUBECONFIG")
 	if kubeConfig == "" {
 		t.Fatal("KUBECONFIG environment variable not set")
@@ -174,7 +174,12 @@ func RunWithK8s(t *testing.T, expectedEntityAttrs []map[string]string) {
 		}
 	})
 
-	collectorObjs := k8stest.CreateCollectorObjects(t, k8sClient, "test", filepath.Join(currentDir, "k8s", "collector"), map[string]string{}, fmt.Sprintf("%s:%d", dockerHost, port))
+	var extraDiscoveryArgs string
+	for _, arg := range setDiscoveryArgs {
+		extraDiscoveryArgs += fmt.Sprintf("            - --set=%s\n", arg)
+	}
+
+	collectorObjs := k8stest.CreateCollectorObjects(t, k8sClient, "test", filepath.Join(currentDir, "k8s", "collector"), map[string]string{"ExtraDiscoveryArgs": extraDiscoveryArgs}, fmt.Sprintf("%s:%d", dockerHost, port))
 	t.Cleanup(func() {
 		if skipTearDown {
 			return

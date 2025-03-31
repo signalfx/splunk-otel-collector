@@ -186,7 +186,7 @@ func TestIstioEntities(t *testing.T) {
 			})
 		}
 	}
-	discoverytest.RunWithK8s(t, expectedLogs)
+	discoverytest.RunWithK8s(t, expectedLogs, []string{"splunk.discovery.receivers.prometheus/istio.enabled=true"})
 }
 
 func hasIstioProxyContainer(pod corev1.Pod) bool {

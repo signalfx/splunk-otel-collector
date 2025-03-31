@@ -27,6 +27,7 @@ const version = "0.0.30"
 
 var zlibCompressor = zlib.NewWriter(&bytes.Buffer{})
 var now = time.Now
+var replacer = strings.NewReplacer(`"`, `'`, "\n", `\n`)
 
 // Config for this monitor
 type Config struct {
@@ -172,7 +173,6 @@ func (m *Monitor) encodeProcess(proc *TopProcess, sampleInterval time.Duration) 
 		nice = strconv.Itoa(*proc.Nice)
 	}
 
-	replacer := strings.NewReplacer(`"`, `'`, "\n", `\n`)
 	return fmt.Sprintf(`"%d":["%s",%d,"%s",%d,%d,%d,"%s",%.2f,%.2f,"%s","%s"]`,
 		proc.ProcessID,
 		strings.ReplaceAll(proc.Username, `"`, "'"),

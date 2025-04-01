@@ -65,6 +65,7 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
+      - run: export COVER_TESTING="true"
       - run: make binaries-linux_${{ matrix.ARCH }}
       - uses: actions/upload-artifact@v4
         with:

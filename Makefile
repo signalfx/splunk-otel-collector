@@ -248,7 +248,11 @@ generate-metrics:
 .PHONY: otelcol
 otelcol:
 	go generate ./...
+ifeq ($(COVER_TESTING), "")
 	GO111MODULE=on CGO_ENABLED=$(CGO_ENABLED) go build -trimpath -o ./bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/otelcol
+else
+	GO111MODULE=on CGO_ENABLED=$(CGO_ENABLED) go build $(COVER_OPTS) -trimpath -o ./bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/otelcol
+endif
 ifeq ($(OS), Windows_NT)
 	$(LINK_CMD) .\bin\otelcol$(EXTENSION) .\bin\otelcol_$(GOOS)_$(GOARCH)$(EXTENSION)
 else

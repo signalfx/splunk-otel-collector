@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 	"time"
 
@@ -105,7 +106,18 @@ func RunMetricsCollectionTest(t *testing.T, configFile string, expectedFilePath 
 		WithConfigPath(filepath.Join("testdata", configFile)).
 		WithLogger(logger).
 		WithEnv(map[string]string{"OTLP_ENDPOINT": fmt.Sprintf("%s:%d", dockerHost, port)}).
-		WithEnv(opts.collectorEnvVars)
+		WithEnv(opts.collectorEnvVars).
+		WithEnv(map[string]string{"GOCOVERDIR": "/etc/otel/collector/coverage"})
+
+	if path, err := filepath.Abs("."); err == nil {
+		// Coverage should all be under the top-level `tests/coverage` dir that's mounted
+		// to the container. This string parsing logic is to ensure different sub-directory
+		// tests all put their coverage in the top-level directory.
+		testDirName := "tests"
+		index := strings.Index(path, testDirName)
+		cc = cc.WithMount(filepath.Join(path[0:index+len(testDirName)], "coverage"), "/etc/otel/collector/coverage")
+	}
+
 	for k, v := range opts.fileMounts {
 		cc.(*CollectorContainer).Container = cc.(*CollectorContainer).Container.WithFile(testcontainers.ContainerFile{
 			HostFilePath:      k,

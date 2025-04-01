@@ -38,9 +38,8 @@ jobs:
           distro=$(for d in $dockerfiles; do echo -n "\"$d\","; done)
           arch='"amd64","arm64"'
           instrumentation='"none","preload","systemd"'
-          # opensuse-12 (leap 42) does not support arm64
           # amazonlinux-2 requires cgroup v1, only available on version 20.04 that doesn't have an arm runner
-          exclude='{"DISTRO": "opensuse-12", "ARCH": "arm64"},{"DISTRO": "amazonlinux-2", "ARCH": "arm64"}'
+          exclude='{"DISTRO": "amazonlinux-2", "ARCH": "arm64"}'
           matrix="{\"DISTRO\": [${distro%,}], \"ARCH\": [${arch}], \"INSTRUMENTATION\": [${instrumentation}], \"exclude\": [${exclude}]}"
           echo "$matrix" | jq
           echo "matrix=${matrix}" >> $GITHUB_OUTPUT
@@ -48,10 +47,10 @@ jobs:
       matrix: ${{ steps.get-matrix.outputs.matrix }}
 
   linux-installer-script-test:
-    # Amazon Linux 2 and OpenSUSE 12 use cgroup v1
+    # Amazon Linux 2 uses cgroup v1
     # Ubuntu 24.04 uses cgroup v2
-    # Fallback to Ubuntu 20.04 when the matrix.DISRO is one of these two above
-    runs-on: ubuntu-${{ (matrix.DISTRO != 'amazonlinux-2' && matrix.DISTRO != 'opensuse-12') && '24.04' || '20.04' }}${{ matrix.ARCH == 'arm64' && '-arm' || '' }}
+    # Fallback to Ubuntu 20.04 when appropriate
+    runs-on: ubuntu-${{ matrix.DISTRO != 'amazonlinux-2' && '24.04' || '20.04' }}${{ matrix.ARCH == 'arm64' && '-arm' || '' }}
     timeout-minutes: 90
     needs: installer-test-matrix
     strategy:

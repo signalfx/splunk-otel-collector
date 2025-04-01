@@ -109,7 +109,8 @@ func RunMetricsCollectionTest(t *testing.T, configFile string, expectedFilePath 
 		WithEnv(opts.collectorEnvVars).
 		WithEnv(map[string]string{"GOCOVERDIR": "/etc/otel/collector/coverage"})
 
-	if path, err := filepath.Abs("."); err == nil {
+	var path string
+	if path, err = filepath.Abs("."); err == nil {
 		// Coverage should all be under the top-level `tests/coverage` dir that's mounted
 		// to the container. This string parsing logic is to ensure different sub-directory
 		// tests all put their coverage in the top-level directory.

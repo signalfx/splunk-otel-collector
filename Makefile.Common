@@ -42,7 +42,7 @@ BUILD_TYPE?=release
 
 # COVER_PKGS is the list of packages to include in the test coverage
 COVER_PKGS := $(shell go list ./... | tr "\n" ",")
-COVER_DIR?="coverage"
+COVER_DIR?=coverage
 COVER_DIR_ABS?=$(PWD)/$(COVER_DIR)
 COVER_OPTS?=-cover -covermode=atomic -coverpkg $(COVER_PKGS)
 COVER_TESTING_OPTS?=$(COVER_OPTS) -args -test.gocoverdir="$(COVER_DIR_ABS)"

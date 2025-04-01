@@ -42,8 +42,13 @@ BUILD_TYPE?=release
 
 # COVER_PKGS is the list of packages to include in the test coverage
 COVER_PKGS := $(shell go list ./... | tr "\n" ",")
-COVER_DIR?=$(PWD)/coverage
-COVER_OPTS?=-cover -covermode=atomic -coverpkg $(COVER_PKGS) -args -test.gocoverdir="$(COVER_DIR)"
+COVER_DIR?="coverage"
+COVER_DIR_ABS?=$(PWD)/$(COVER_DIR)
+COVER_OPTS?=-cover -covermode=atomic -coverpkg $(COVER_PKGS)
+COVER_TESTING_OPTS?=$(COVER_OPTS) -args -test.gocoverdir="$(COVER_DIR_ABS)"
+
+# Used for building the collector to collect coverage information
+COVER_TESTING?=""
 
 ALL_PKG_DIRS := $(shell $(GOCMD) list -f '{{ .Dir }}' ./... | $(NORMALIZE_DIRS))
 
@@ -90,8 +95,8 @@ test-with-codecov:
 # https://github.com/shirou/gopsutil/issues/1774
 .PHONY: test-cover-without-race
 test-cover-without-race:
-	mkdir -p $(COVER_DIR)
-	$(GOTEST) $(GOTEST_OPT_WITHOUT_RACE) ./... $(COVER_OPTS)
+	mkdir -p $(COVER_DIR_ABS)
+	$(GOTEST) $(GOTEST_OPT_WITHOUT_RACE) ./... $(COVER_TESTING_OPTS)
 
 .PHONY: addlicense
 addlicense:

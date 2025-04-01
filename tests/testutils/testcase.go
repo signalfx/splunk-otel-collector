@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
@@ -136,6 +137,7 @@ func (t *Testcase) newCollector(initial Collector, configFilename string, builde
 	envVars := map[string]string{
 		"OTLP_ENDPOINT":  t.OTLPEndpointForCollector,
 		"SPLUNK_TEST_ID": t.ID,
+		"GOCOVERDIR":     "/etc/otel/collector/coverage",
 	}
 
 	if configFilename != "" {
@@ -158,6 +160,15 @@ func (t *Testcase) newCollector(initial Collector, configFilename string, builde
 		}
 	}
 	collector = collector.WithEnv(splunkEnv)
+
+	if path, err := filepath.Abs("."); err == nil {
+		// Coverage should all be under the top-level `tests/coverage` dir that's mounted
+		// to the container. This string parsing logic is to ensure different sub-directory
+		// tests all put their coverage in the top-level directory.
+		testDirName := "tests"
+		index := strings.Index(path, testDirName)
+		collector = collector.WithMount(filepath.Join(path[0:index+len(testDirName)], "coverage"), "/etc/otel/collector/coverage")
+	}
 
 	var err error
 	collector, err = collector.Build()

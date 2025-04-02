@@ -461,7 +461,7 @@ jobs:
       - name: Run docker image
         run: |
           $ErrorActionPreference = 'Stop'
-          docker run -d -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=fake-realm --name otelcol otelcol-windows:latest
+          docker run -d -e SPLUNK_ACCESS_TOKEN=abc123 -e SPLUNK_REALM=fake-realm --name otelcol otelcol-windows:latest
           Start-Sleep 10
           $DockerOutput=$(docker ps --filter=status=running --filter=name=otelcol -q)
           if ( $DockerOutput -eq $null ) {

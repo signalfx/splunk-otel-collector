@@ -66,6 +66,9 @@ func TestDefaultGatewayConfig(t *testing.T) {
 						"headers": map[string]any{
 							"X-SF-Token": "<redacted>",
 						},
+						"auth": map[string]any{
+							"authenticator": "<redacted>",
+						},
 					},
 					"signalfx": map[string]any{
 						"access_token": "<redacted>",
@@ -93,6 +96,16 @@ func TestDefaultGatewayConfig(t *testing.T) {
 					},
 				},
 				"extensions": map[string]any{
+					"headers_setter": map[string]any{
+						"headers": []any{
+							map[string]any{
+								"action":        "upsert",
+								"key":           "X-SF-TOKEN",
+								"from_context":  "X-SF-TOKEN",
+								"default_value": "not.real",
+							},
+						},
+					},
 					"health_check": map[string]any{
 						"endpoint": fmt.Sprintf("%s:13133", ip),
 					},
@@ -183,7 +196,7 @@ func TestDefaultGatewayConfig(t *testing.T) {
 					},
 				},
 				"service": map[string]any{
-					"extensions": []any{"health_check", "http_forwarder", "zpages"},
+					"extensions": []any{"headers_setter", "health_check", "http_forwarder", "zpages"},
 					"pipelines": map[string]any{
 						"logs": map[string]any{
 							"exporters":  []any{"splunk_hec", "splunk_hec/profiling"},

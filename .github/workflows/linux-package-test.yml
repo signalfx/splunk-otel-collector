@@ -345,7 +345,7 @@ jobs:
       - name: Run docker image
         run: |
           # ensure the collector can start with the default config file
-          docker run --platform linux/${{ matrix.ARCH }} -d -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=fake-realm --name otelcol otelcol:latest
+          docker run --platform linux/${{ matrix.ARCH }} -d -e SPLUNK_ACCESS_TOKEN=abc123 -e SPLUNK_REALM=fake-realm --name otelcol otelcol:latest
           sleep 10
           if [ -z "$( docker ps --filter=status=running --filter=name=otelcol -q )" ]; then
             docker logs otelcol
@@ -379,7 +379,7 @@ jobs:
       - name: Check journalctl
         run: |
           # ensure journalctl can run with the collected libraries
-          docker run --platform linux/${{ matrix.ARCH }} -d -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=fake-realm --name otelcol otelcol:latest
+          docker run --platform linux/${{ matrix.ARCH }} -d -e SPLUNK_ACCESS_TOKEN=abc123 -e SPLUNK_REALM=fake-realm --name otelcol otelcol:latest
           docker exec otelcol /bin/journalctl
           docker rm -f otelcol
 
@@ -387,7 +387,7 @@ jobs:
         if: ${{ matrix.ARCH != 'ppc64le' }}
         run: |
           # ensure python and java can run with the collected libraries
-          docker run --platform linux/${{ matrix.ARCH }} -d -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=fake-realm --name otelcol otelcol:latest
+          docker run --platform linux/${{ matrix.ARCH }} -d -e SPLUNK_ACCESS_TOKEN=abc123 -e SPLUNK_REALM=fake-realm --name otelcol otelcol:latest
           docker exec otelcol /usr/lib/splunk-otel-collector/agent-bundle/bin/python --version
           docker exec otelcol /usr/lib/splunk-otel-collector/agent-bundle/jre/bin/java -version
           # ensure collectd-python plugins were installed

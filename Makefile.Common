@@ -47,9 +47,6 @@ COVER_DIR_ABS?=$(PWD)/$(COVER_DIR)
 COVER_OPTS?=-cover -covermode=atomic -coverpkg $(COVER_PKGS)
 COVER_TESTING_OPTS?=$(COVER_OPTS) -args -test.gocoverdir="$(COVER_DIR_ABS)"
 
-# Used for building the collector to collect coverage information
-COVER_TESTING?=""
-
 ALL_PKG_DIRS := $(shell $(GOCMD) list -f '{{ .Dir }}' ./... | $(NORMALIZE_DIRS))
 
 ALL_SRC := $(shell find $(ALL_PKG_DIRS) -name '*.go' \

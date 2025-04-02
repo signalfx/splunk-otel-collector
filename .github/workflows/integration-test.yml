@@ -102,6 +102,7 @@ jobs:
           pattern: otelcol-*
           merge-multiple: true
           path: ./bin
+      # Building multiarch container images requires qemu
       - uses: docker/setup-qemu-action@v3
         with:
           platforms: arm64,ppc64le
@@ -168,7 +169,7 @@ jobs:
           SPLUNK_OTEL_COLLECTOR_IMAGE: 'otelcol:latest'
 
   integration-test-docker:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04${{ matrix.ARCH == 'arm64' && '-arm' || '' }}
     needs: [ "docker-otelcol", "otelcol" ]
     strategy:
       matrix:
@@ -208,11 +209,6 @@ jobs:
         with:
           name: docker-otelcol-${{ matrix.ARCH }}
           path: ./docker-otelcol/${{ matrix.ARCH }}
-      - uses: docker/setup-qemu-action@v3
-        if: ${{ matrix.ARCH != 'amd64' }}
-        with:
-          platforms: ${{ matrix.ARCH }}
-          image: tonistiigi/binfmt:qemu-v7.0.0
       - run: docker load -i ./docker-otelcol/${{ matrix.ARCH }}/image.tar
       - run: ln -sf otelcol_linux_${{ matrix.ARCH }} ./bin/otelcol
       - run: chmod a+x ./bin/*
@@ -353,7 +349,7 @@ jobs:
 
   integration-test-discovery:
       name: integration-test-discovery
-      runs-on: ubuntu-24.04
+      runs-on: ubuntu-24.04${{ matrix.ARCH == 'arm64' && '-arm' || '' }}
       needs: [ "docker-otelcol", "otelcol", "integration-test-discovery-matrix" ]
       strategy:
         matrix: ${{ fromJSON(needs.integration-test-discovery-matrix.outputs.matrix) }}
@@ -377,11 +373,6 @@ jobs:
           with:
             name: docker-otelcol-${{ matrix.ARCH }}
             path: ./docker-otelcol/${{ matrix.ARCH }}
-        - uses: docker/setup-qemu-action@v3
-          if: ${{ matrix.ARCH != 'amd64' }}
-          with:
-            platforms: ${{ matrix.ARCH }}
-            image: tonistiigi/binfmt:qemu-v7.0.0
         - run: docker load -i ./docker-otelcol/${{ matrix.ARCH }}/image.tar
         - run: ln -sf otelcol_linux_${{ matrix.ARCH }} ./bin/otelcol
         - run: chmod a+x ./bin/*

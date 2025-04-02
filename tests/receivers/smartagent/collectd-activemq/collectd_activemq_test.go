@@ -115,6 +115,10 @@ func TestCollectdActiveMQReceiverProvidesDefaultMetrics(t *testing.T) {
 }
 
 func checkMetricsPresence(t *testing.T, metricNames []string, configFile string) {
+	if runtime.GOARCH == "arm64" {
+		// 
+		t.Skip("Skipping ActiveMQ integration test on arm64: docker image is not available on arm64")
+	}
 	f := otlpreceiver.NewFactory()
 	port := testutils.GetAvailablePort(t)
 	c := f.CreateDefaultConfig().(*otlpreceiver.Config)

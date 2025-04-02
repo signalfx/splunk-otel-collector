@@ -2,6 +2,8 @@ module github.com/signalfx/splunk-otel-collector
 
 go 1.23.7
 
+toolchain go1.24.1
+
 require (
 	github.com/alecthomas/participle/v2 v2.1.1
 	github.com/antonmedv/expr v1.15.5
@@ -132,7 +134,7 @@ require (
 	github.com/spf13/pflag v1.0.6
 	github.com/stretchr/testify v1.10.0
 	go.etcd.io/bbolt v1.4.0
-	go.etcd.io/etcd/client/v2 v2.305.20
+	go.etcd.io/etcd/client/v2 v2.305.21
 	go.opentelemetry.io/collector/component/componentstatus v0.122.1
 	go.opentelemetry.io/collector/component/componenttest v0.122.1
 	go.opentelemetry.io/collector/config/confighttp v0.122.1
@@ -687,8 +689,8 @@ require (
 	github.com/xdg-go/scram v1.1.2 // indirect
 	github.com/xdg-go/stringprep v1.0.4 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
-	go.etcd.io/etcd/api/v3 v3.5.20 // indirect
-	go.etcd.io/etcd/client/pkg/v3 v3.5.20 // indirect
+	go.etcd.io/etcd/api/v3 v3.5.21 // indirect
+	go.etcd.io/etcd/client/pkg/v3 v3.5.21 // indirect
 	go.mongodb.org/atlas v0.37.0 // indirect
 	go.opencensus.io v0.24.0
 	go.opentelemetry.io/collector/component v1.28.1
@@ -705,7 +707,7 @@ require (
 	golang.org/x/crypto v0.36.0 // indirect
 	golang.org/x/exp v0.0.0-20250106191152-7588d65b2ba8
 	golang.org/x/mod v0.23.0 // indirect
-	golang.org/x/net v0.37.0 // indirect
+	golang.org/x/net v0.38.0 // indirect
 	golang.org/x/oauth2 v0.28.0 // indirect
 	golang.org/x/sync v0.12.0 // indirect
 	golang.org/x/term v0.30.0 // indirect

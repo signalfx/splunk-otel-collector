@@ -19,6 +19,7 @@ package tests
 import (
 	"path"
 	"path/filepath"
+	"runtime"
 	"testing"
 	"time"
 
@@ -33,6 +34,10 @@ import (
 
 func TestTelegrafSQLServerReceiverProvidesAllMetrics(t *testing.T) {
 	testutils.SkipIfNotContainerTest(t)
+	if runtime.GOARCH == "arm64" {
+		// See https://github.com/microsoft/mssql-docker/issues/802
+		t.Skip("Skipping SQLServer integration test on arm64: docker image is not available on arm64")
+	}
 	server := testutils.NewContainer().WithContext(
 		path.Join(".", "testdata", "server"),
 	).WithExposedPorts("1433:1433").WithName("sql-server").WithNetworks(

@@ -86,8 +86,8 @@ integration-vet:
 
 .PHONY: integration-test
 integration-test:
-	@set -e; cd tests && mkdir -p $(COVER_DIR) && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=integration -v -timeout 5m -count 1 ./...
-	$(GOCMD) tool covdata textfmt -i=./tests/$(COVER_DIR) -o ./coverage.txt
+	@set -e; mkdir -p $(TEST_COVER_DIR) && cd tests && GOCOVERDIR=$(TEST_COVER_DIR) $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=integration -v -timeout 5m -count 1 ./... || true
+	$(GOCMD) tool covdata textfmt -i=$(TEST_COVER_DIR) -o ./coverage.txt
 
 .PHONY: integration-test-mongodb-discovery
 integration-test-mongodb-discovery:

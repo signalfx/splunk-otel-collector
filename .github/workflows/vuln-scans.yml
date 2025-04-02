@@ -50,7 +50,7 @@ jobs:
           path: "."
 
   docker-otelcol:
-    runs-on: ${{ fromJSON('["ubuntu-20.04", "otel-arm64"]')[matrix.ARCH == 'arm64'] }}
+    runs-on: ubuntu-24.04${{ matrix.ARCH == 'arm64' && '-arm' || '' }}
     strategy:
       matrix:
         ARCH: [ "amd64", "arm64" ]
@@ -253,7 +253,7 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          image: "otelcol${{ matrix.FIPS == true && '-fips' || '' }}:latest"
+          image: "otelcol${{ matrix.FIPS == true && '-fips' || '' }}:${{ matrix.ARCH }}"
           args: --file=cmd/otelcol/Dockerfile --severity-threshold=high --sarif-file-output=snyk.sarif --policy-path=.snyk
       - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v3

@@ -18,6 +18,7 @@
 package tests
 
 import (
+	"runtime"
 	"testing"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
@@ -28,6 +29,9 @@ import (
 // This test ensures the collector can connect to an Oracle DB, and properly get metrics. It's not intended to
 // test the receiver itself.
 func TestOracleDBIntegration(t *testing.T) {
+	if runtime.GOARCH == "arm64" {
+		t.Skip("Skipping OracleDB integration test on arm64: docker image is not available on arm64")
+	}
 	testutils.RunMetricsCollectionTest(t, "all_metrics_config.yaml", "all_expected.yaml",
 		testutils.WithCompareMetricsOptions(
 			pmetrictest.IgnoreScopeVersion(),

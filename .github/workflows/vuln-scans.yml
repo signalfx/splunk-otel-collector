@@ -209,6 +209,8 @@ jobs:
             echo "defined=true" >> $GITHUB_OUTPUT
           else
             echo "defined=false" >> $GITHUB_OUTPUT
+            echo "ERROR: The Snyk token is not available. The token is not available on PRs triggered from forked repositories."
+            exit 1
           fi
 
   snyk-fs-scan:

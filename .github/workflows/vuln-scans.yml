@@ -253,7 +253,7 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          image: "otelcol${{ matrix.FIPS == true && '-fips' || '' }}:${{ matrix.ARCH }}"
+          image: "otelcol${{ matrix.FIPS == true && '-fips' || '' }}:latest"
           args: --file=cmd/otelcol/Dockerfile --severity-threshold=high --sarif-file-output=snyk.sarif --policy-path=.snyk
       - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v3

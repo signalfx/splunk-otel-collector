@@ -27,6 +27,7 @@ const version = "0.0.30"
 
 var zlibCompressor = zlib.NewWriter(&bytes.Buffer{})
 var now = time.Now
+var replacer = strings.NewReplacer(`"`, `'`, "\n", `\n`)
 
 // Config for this monitor
 type Config struct {
@@ -184,7 +185,7 @@ func (m *Monitor) encodeProcess(proc *TopProcess, sampleInterval time.Duration) 
 		cpuPercent,
 		proc.MemPercent,
 		toTime(proc.TotalCPUTime.Seconds()),
-		strings.ReplaceAll(proc.Command, `"`, `'`),
+		replacer.Replace(proc.Command),
 	)
 }
 

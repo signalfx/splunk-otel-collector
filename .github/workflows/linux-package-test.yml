@@ -151,15 +151,19 @@ jobs:
           fi
           distro=$(for d in $dockerfiles; do echo -n "\"$d\","; done)
           arch="\"amd64\", \"arm64\""
-          matrix="{\"DISTRO\": [${distro%,}], \"ARCH\": [${arch}]}"
+          # amazonlinux-2 requires cgroup v1, only available on version 20.04 that doesn't have an arm runner
+          exclude='{"DISTRO": "amazonlinux-2", "ARCH": "arm64"}'
+          matrix="{\"DISTRO\": [${distro%,}], \"ARCH\": [${arch}], \"exclude\": [${exclude}]}"
           echo "$matrix" | jq
           echo "matrix=${matrix}" >> $GITHUB_OUTPUT
     outputs:
       matrix: ${{ steps.get-matrix.outputs.matrix }}
 
   test-package:
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ${{ fromJSON('["ubuntu-20.04", "ubuntu-22.04"]')[matrix.DISTRO == 'amazonlinux-2023'] }}
+    # Amazon Linux 2 uses cgroup v1
+    # Ubuntu 24.04 uses cgroup v2
+    # Fallback to Ubuntu 20.04 when appropriate
+    runs-on: ubuntu-${{ matrix.DISTRO != 'amazonlinux-2' && '24.04' || '20.04' }}${{ matrix.ARCH == 'arm64' && '-arm' || '' }}
     timeout-minutes: 30
     needs: [build-package, test-package-matrix]
     strategy:
@@ -184,12 +188,6 @@ jobs:
         with:
           name: ${{ env.SYS_PACKAGE }}-${{ matrix.ARCH }}-package
           path: ./dist
-
-      - uses: docker/setup-qemu-action@v3
-        if: ${{ matrix.ARCH != 'amd64' }}
-        with:
-          platforms: ${{ matrix.ARCH }}
-          image: tonistiigi/binfmt:qemu-v7.0.0
 
       - name: Setup python
         uses: actions/setup-python@v5
@@ -308,7 +306,7 @@ jobs:
           path: ./docker-otelcol
 
   docker-otelcol-verify:
-    runs-on: ubuntu-24.04
+    runs-on: ${{ matrix.ARCH == 'amd64' && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
     needs: [docker-otelcol]
     strategy:
       matrix:
@@ -330,7 +328,7 @@ jobs:
             }
 
       - name: Set up QEMU
-        if: ${{ matrix.ARCH != 'amd64' }}
+        if: ${{ matrix.ARCH == 'ppc64le' }}
         uses: docker/setup-qemu-action@v3
         with:
           platforms: ${{ matrix.ARCH }}

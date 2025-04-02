@@ -112,7 +112,7 @@ func (t *Testcase) SplunkOtelCollectorContainer(configFilename string, builders 
 	}
 
 	var c Collector
-	c, shutdown = t.newCollector(&cc, configFilename, builders...)
+	c, shutdown = t.newCollector(&cc, configFilename, "/etc/otel/collector/coverage", builders...)
 	return c.(*CollectorContainer), shutdown
 }
 
@@ -121,7 +121,7 @@ func (t *Testcase) SplunkOtelCollectorProcess(configFilename string, builders ..
 	cp := NewCollectorProcess()
 
 	var c Collector
-	c, shutdown = t.newCollector(&cp, configFilename, builders...)
+	c, shutdown = t.newCollector(&cp, configFilename, "", builders...)
 	return c.(*CollectorProcess), shutdown
 }
 
@@ -132,12 +132,15 @@ func (t *Testcase) splunkOtelCollector(configFilename string, builders ...Collec
 	return t.SplunkOtelCollectorProcess(configFilename, builders...)
 }
 
-func (t *Testcase) newCollector(initial Collector, configFilename string, builders ...CollectorBuilder) (collector Collector, shutdown func()) {
+func (t *Testcase) newCollector(initial Collector, configFilename string, coverDir string, builders ...CollectorBuilder) (collector Collector, shutdown func()) {
 	collector = initial
 	envVars := map[string]string{
 		"OTLP_ENDPOINT":  t.OTLPEndpointForCollector,
 		"SPLUNK_TEST_ID": t.ID,
-		"GOCOVERDIR":     "/etc/otel/collector/coverage",
+	}
+
+	if coverDir != "" {
+		envVars["GOCOVERDIR"] = coverDir
 	}
 
 	if configFilename != "" {

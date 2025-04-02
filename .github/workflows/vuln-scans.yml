@@ -254,7 +254,7 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           image: "otelcol${{ matrix.FIPS == true && '-fips' || '' }}:latest"
-          args: --file=cmd/otelcol/Dockerfile --severity-threshold=high --sarif-file-output=snyk.sarif --policy-path=.snyk
+          args: --file=cmd/otelcol/Dockerfile --severity-threshold=high --sarif-file-output=snyk.sarif --policy-path=.snyk --platform=linux/${{ matrix.ARCH == 'amd64'&& 'amd64' || 'arm64/v8' }}
       - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v3
         with:

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+###  🛑 Breaking changes 🛑
+
+- (Splunk) Support for OpenSUSE 12 and CentOS 7 (tar package) has been dropped ([#6073](https://github.com/signalfx/splunk-otel-collector/pull/6073))
+
 ## v0.122.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.122.1](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.122.1)
@@ -27,6 +31,8 @@ releases where appropriate.
 
 ### 💡 Enhancements 💡
 
+- (Splunk) Add a new discovery bundle for Istio metrics which includes proxy, gateway, and pilot/istiod  ([#5854](https://github.com/signalfx/splunk-otel-collector/pull/5854))
+  - This discovery receiver, named prometheus/istio, is disabled by default. Users can enable it by setting the discovery config `splunk.discovery.receivers.prometheus/istio.enabled=true`.
 - (Splunk) Update `splunk-otel-javaagent` to `v2.14.0` ([#6000](https://github.com/signalfx/splunk-otel-collector/pull/6000))
 - (Splunk) Update `jmx-metric-gatherer` to `v1.45.0` ([#5995](https://github.com/signalfx/splunk-otel-collector/pull/5995))
 - (Splunk) Use direct connection for MongoDB discovery ([#6042](https://github.com/signalfx/splunk-otel-collector/pull/6042))

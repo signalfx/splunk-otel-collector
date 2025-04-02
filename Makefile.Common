@@ -23,8 +23,6 @@ endif
 # SRC_ROOT is the top of the source tree.
 SRC_ROOT := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
 
-# COVER_PKGS is the list of packages to include in the coverage
-COVER_PKGS := $(shell go list ./... | tr "\n" ",")
 
 # build tags required by any component should be defined as an independent variables and later added to GO_BUILD_TAGS below
 GO_BUILD_TAGS=""
@@ -42,6 +40,11 @@ LINT=golangci-lint
 IMPI=impi
 # BUILD_TYPE should be one of (dev, release).
 BUILD_TYPE?=release
+
+# COVER_PKGS is the list of packages to include in the test coverage
+COVER_PKGS := $(shell go list ./... | tr "\n" ",")
+COVER_DIR?=$(PWD)/coverage
+COVER_OPTS?=-cover -covermode=atomic -coverpkg $(COVER_PKGS) -args -test.gocoverdir="$(COVER_DIR)"
 
 ALL_PKG_DIRS := $(shell $(GOCMD) list -f '{{ .Dir }}' ./... | $(NORMALIZE_DIRS))
 
@@ -86,9 +89,10 @@ test-with-codecov:
 # Currently, running CGO_ENABLED=0 go test -race is broken in gopsutil/v4
 # This target should be removed in favor of "test" once the following issue is resolved:
 # https://github.com/shirou/gopsutil/issues/1774
-.PHONY: test-without-race
-test-without-race:
-	$(GOTEST) $(GOTEST_OPT_WITHOUT_RACE) $(ALL_PKG_DIRS)
+.PHONY: test-cover-without-race
+test-cover-without-race:
+	mkdir -p $(COVER_DIR)
+	$(GOTEST) $(GOTEST_OPT_WITHOUT_RACE) ./... $(COVER_OPTS)
 
 .PHONY: addlicense
 addlicense:

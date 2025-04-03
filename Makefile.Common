@@ -42,7 +42,9 @@ IMPI=impi
 BUILD_TYPE?=release
 
 # COVER_PKGS is the list of packages to include in the test coverage
-COVER_PKGS := $(shell go list ./... | tr "\n" ",")
+COLLECTOR_PKGS := $(shell go list ./... | tr "\n" ",")
+SIGNALFX_PKGS := $(shell cd internal/signalfx-agent && go list ./... | tr "\n" ",")
+COVER_PKGS := $(COLLECTOR_PKGS)$(SIGNALFX_PKGS)
 COVER_DIR?=$(PWD)/coverage
 COVER_OPTS?=-cover -covermode=atomic -coverpkg $(COVER_PKGS) -args -test.gocoverdir="$(COVER_DIR)"
 

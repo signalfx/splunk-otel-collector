@@ -169,7 +169,7 @@ jobs:
           SPLUNK_OTEL_COLLECTOR_IMAGE: 'otelcol:latest'
 
   integration-test-docker:
-    runs-on: ubuntu-24.04${{ matrix.ARCH == 'arm64' && '-arm' || '' }}
+    runs-on: ubuntu-24.04
     needs: [ "docker-otelcol", "otelcol" ]
     strategy:
       matrix:
@@ -211,9 +211,9 @@ jobs:
           path: ./docker-otelcol/${{ matrix.ARCH }}
       # Not all images used in the docker-compose have arm64 support, for those it is necessary to use qemu
       - uses: docker/setup-qemu-action@v3
-        if: ${{ matrix.ARCH == 'arm64' }}
+        if: ${{ matrix.ARCH != 'amd64' }}
         with:
-          platforms: amd64
+          platforms: ${{ matrix.ARCH }}
           image: tonistiigi/binfmt:qemu-v7.0.0
       - run: docker load -i ./docker-otelcol/${{ matrix.ARCH }}/image.tar
       - run: ln -sf otelcol_linux_${{ matrix.ARCH }} ./bin/otelcol

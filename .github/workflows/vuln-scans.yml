@@ -50,7 +50,7 @@ jobs:
           path: "."
 
   docker-otelcol:
-    runs-on: ${{ fromJSON('["ubuntu-20.04", "otel-arm64"]')[matrix.ARCH == 'arm64'] }}
+    runs-on: ubuntu-24.04${{ matrix.ARCH == 'arm64' && '-arm' || '' }}
     strategy:
       matrix:
         ARCH: [ "amd64", "arm64" ]
@@ -209,6 +209,8 @@ jobs:
             echo "defined=true" >> $GITHUB_OUTPUT
           else
             echo "defined=false" >> $GITHUB_OUTPUT
+            echo "ERROR: The Snyk token is not available. The token is not available on PRs triggered from forked repositories."
+            exit 1
           fi
 
   snyk-fs-scan:
@@ -231,7 +233,7 @@ jobs:
           sarif_file: snyk.sarif
 
   snyk-docker-scan:
-    runs-on: ${{ matrix.ARCH == 'amd64' && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
+    runs-on: ubuntu-24.04
     needs: [docker-otelcol, check-snyk-token]
     if: ${{ needs.check-snyk-token.outputs.has-snyk-token == 'true' }}
     strategy:
@@ -241,6 +243,15 @@ jobs:
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
+
+      # There is no snyk/snyk:docker image for arm64, so we need to use the
+      # docker setup-qemu-action to run the scan
+      - uses: docker/setup-qemu-action@v3
+        if: ${{ matrix.ARCH != 'amd64' }}
+        with:
+          platforms: ${{ matrix.ARCH }}
+          image: tonistiigi/binfmt:qemu-v7.0.0
+
       - uses: actions/download-artifact@v4
         with:
           name: otelcol-${{ matrix.ARCH }}${{ matrix.FIPS == true && '-fips' || '' }}

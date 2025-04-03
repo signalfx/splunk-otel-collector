@@ -85,5 +85,5 @@ misspell: misspell-noop
 
 .PHONY: test-with-codecov
 test-with-codecov:
-	mkdir -p $(COVER_DIR)
+	mkdir -p $(COVER_DIR_ABS)
 	$(GOTEST) $(GOTEST_OPT) ./... $(COVER_OPTS)

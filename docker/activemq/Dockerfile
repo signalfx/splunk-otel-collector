@@ -7,7 +7,6 @@ ENV ACTIVEMQ_STATIC_TOPICS=testtopic
 ENV ACTIVEMQ_STATIC_QUEUES=testqueue
 
 COPY docker-entrypoint.sh /
-RUN chmod a+x /docker-entrypoint.sh
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["activemq"]

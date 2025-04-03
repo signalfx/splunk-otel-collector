@@ -219,7 +219,7 @@ jobs:
             -k "$distro and ${{ matrix.ARCH }}" \
             packaging/tests/package_test.py
 
-      # qemu, networking, running systemd in containers, etc., can be flaky
+      # networking, running systemd in containers, etc., can be flaky
       - name: Re-run failed tests
         if: ${{ steps.pytest.outcome == 'failure' }}
         run: |
@@ -260,6 +260,7 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
 
+      # Building multiarch container images requires qemu
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
         with:
@@ -327,6 +328,7 @@ jobs:
               }
             }
 
+      # There are no GH runners for ppc64le, so use qemu
       - name: Set up QEMU
         if: ${{ matrix.ARCH == 'ppc64le' }}
         uses: docker/setup-qemu-action@v3

@@ -112,7 +112,6 @@ integration-test-with-cover:
 	ls -al $(PWD)/coverage
 	ls -al $(PWD)/tests
 	ls- al $(PWD)/tests/coverage
-	$(GOCMD) tool covdata textfmt -i=$(COVER_DIR) -o ./coverage.txt
 
 .PHONY: integration-test-mongodb-discovery
 integration-test-mongodb-discovery:

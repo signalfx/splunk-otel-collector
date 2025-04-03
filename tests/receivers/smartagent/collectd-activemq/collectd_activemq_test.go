@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 	"time"
 
@@ -132,12 +133,26 @@ func checkMetricsPresence(t *testing.T, metricNames []string, configFile string)
 	if runtime.GOOS == "darwin" {
 		dockerHost = "host.docker.internal"
 	}
-	p, err := testutils.NewCollectorContainer().
+	p := testutils.NewCollectorContainer().
 		WithImage(testutils.GetCollectorImageOrSkipTest(t)).
 		WithConfigPath(filepath.Join("testdata", configFile)).
 		WithLogger(logger).
-		WithEnv(map[string]string{"OTLP_ENDPOINT": fmt.Sprintf("%s:%d", dockerHost, port)}).
-		Build()
+		WithEnv(map[string]string{
+			"OTLP_ENDPOINT": fmt.Sprintf("%s:%d", dockerHost, port),
+			"GOCOVERDIR":    "/etc/otel/collector/coverage",
+		})
+
+	var path string
+	if path, err = filepath.Abs("."); err == nil {
+		// Coverage should all be under the top-level `tests/coverage` dir that's mounted
+		// to the container. This string parsing logic is to ensure different sub-directory
+		// tests all put their coverage in the top-level directory.
+		testDirName := "tests"
+		index := strings.Index(path, testDirName)
+		p = p.WithMount(filepath.Join(path[0:index+len(testDirName)], "coverage"), "/etc/otel/collector/coverage")
+	}
+
+	p, err = p.Build()
 	require.NoError(t, err)
 	require.NoError(t, p.Start())
 	t.Cleanup(func() {

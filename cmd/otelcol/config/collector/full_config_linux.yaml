@@ -43,8 +43,12 @@ receivers:
     protocols:
       grpc:
         endpoint: 0.0.0.0:4317
+        # Uncomment below config to preserve incoming access token and use it instead of the token value set in exporter config
+        # include_metadata: true
       http:
         endpoint: 0.0.0.0:4318
+        # Uncomment below config to preserve incoming access token and use it instead of the token value set in exporter config
+        # include_metadata: true
 
   #############################################################################
   # Traces
@@ -634,6 +638,8 @@ exporters:
   # WARN: https://ingest.${SPLUNK_REALM}.signalfx.com does NOT support gRPC at this time; use otlphttp exporter instead
   otlp:
     endpoint: otelcol2:4317
+    auth:
+      authenticator: headers_setter
 
   # Enables the otlp http exporter
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlphttpexporter
@@ -643,6 +649,8 @@ exporters:
     compression: gzip
     headers:
       X-SF-TOKEN: "${SPLUNK_ACCESS_TOKEN}"
+    auth:
+      authenticator: headers_setter
 
   # Enables the zipkin exporter
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/zipkinexporter
@@ -706,6 +714,14 @@ exporters:
 # Some processors require configuration (e.g. attributes)
 ###############################################################################
 extensions:
+  # Enables the headers setter extension
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/headerssetterextension
+  headers_setter:
+    headers:
+      - action: upsert
+        key: X-SF-TOKEN
+        from_context: X-SF-TOKEN
+        default_value: "${SPLUNK_ACCESS_TOKEN}"
 
   # Enables the health check extension
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/healthcheckextension
@@ -750,7 +766,7 @@ extensions:
 service:
 
   # Which extensions you want to enable
-  extensions: [health_check, http_forwarder, zpages]
+  extensions: [headers_setter, health_check, http_forwarder, zpages]
 
   # Pipelines are data source specific today
   # Every data source is made up of at least one receiver and one exporter

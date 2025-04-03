@@ -18,6 +18,7 @@ package tests
 
 import (
 	"fmt"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -220,6 +221,9 @@ func TestNonDefaultGIDCanAccessJavaInAgentBundle(t *testing.T) {
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
 
+	if runtime.GOARCH == "arm64" {
+		t.Skip("Skipping integration test because the webcenter/activemq image is not available on arm64")
+	}
 	_, shutdown := tc.SplunkOtelCollectorContainer("activemq_config.yaml",
 		func(c testutils.Collector) testutils.Collector {
 			cc := c.(*testutils.CollectorContainer)

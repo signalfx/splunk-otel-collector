@@ -98,7 +98,7 @@ jobs:
           python3 -u -m pytest -s --verbose -k "$tests" \
             packaging/tests/installer_test.py
 
-      # qemu, networking, running systemd in containers, etc., can be flaky
+      # networking, running systemd in containers, etc., can be flaky
       - name: Re-run failed tests
         if: ${{ steps.pytest.outcome == 'failure' }}
         run: |

@@ -85,5 +85,5 @@ misspell: misspell-noop
 
 .PHONY: test-with-codecov
 test-with-codecov:
-	mkdir -p $(PWD)/coverage/unit
-	$(GOTEST) $(GOTEST_OPT) ./... -cover -covermode=atomic -coverpkg $(COVER_PKGS) -args -test.gocoverdir="$(PWD)/coverage/unit"
+	mkdir -p $(COVER_DIR)
+	$(GOTEST) $(GOTEST_OPT) ./... $(COVER_OPTS)

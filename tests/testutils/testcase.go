@@ -171,6 +171,12 @@ func (t *Testcase) newCollector(initial Collector, configFilename string, coverD
 		testDirName := "tests"
 		index := strings.Index(path, testDirName)
 		collector = collector.WithMount(filepath.Join(path[0:index+len(testDirName)], "coverage"), "/etc/otel/collector/coverage")
+		fmt.Printf("Container mount, source: %s, destination: %s\n", filepath.Join(path[0:index+len(testDirName)], "coverage"), "/etc/otel/collector/coverage")
+		if fileStat, err := os.Stat(filepath.Join(path[0:index+len(testDirName)], "coverage")); err == nil {
+			fmt.Printf("Coverage dir from source stat succeeded, is dir? %v, mode: %v\n", fileStat.IsDir(), fileStat.Mode())
+		} else {
+			fmt.Printf("coverdir stat err: %v\n", err)
+		}
 	}
 
 	var err error

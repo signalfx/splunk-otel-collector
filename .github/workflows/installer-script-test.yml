@@ -81,10 +81,6 @@ jobs:
         continue-on-error: true
         run: |
           distro="${{ matrix.DISTRO }}"
-          if [[ "$distro" = "amazonlinux-2" ]]; then
-            # workaround for pytest substring matching
-            distro="amazonlinux-2 and not amazonlinux-2023"
-          fi
           if [[ "${{ matrix.INSTRUMENTATION }}" = "none" ]]; then
             tests="$distro and ${{ matrix.ARCH }} and not instrumentation"
           else
@@ -98,10 +94,6 @@ jobs:
         if: ${{ steps.pytest.outcome == 'failure' }}
         run: |
           distro="${{ matrix.DISTRO }}"
-          if [[ "$distro" = "amazonlinux-2" ]]; then
-            # workaround for pytest substring matching
-            distro="amazonlinux-2 and not amazonlinux-2023"
-          fi
           if [[ "${{ matrix.INSTRUMENTATION }}" = "none" ]]; then
             tests="$distro and ${{ matrix.ARCH }} and not instrumentation"
           else

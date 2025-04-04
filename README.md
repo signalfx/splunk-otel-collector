@@ -17,9 +17,6 @@
   <a href="https://goreportcard.com/report/github.com/signalfx/splunk-otel-collector">
     <img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/signalfx/splunk-otel-collector?style=for-the-badge">
   </a>
-  <a href="https://codecov.io/gh/signalfx/splunk-otel-collector/branch/main/">
-    <img alt="Codecov Status" src="https://img.shields.io/codecov/c/github/signalfx/splunk-otel-collector?style=for-the-badge">
-  </a>
   <a href="https://github.com/signalfx/splunk-otel-collector/releases">
     <img alt="GitHub release (latest by date including pre-releases)" src="https://img.shields.io/github/v/release/signalfx/splunk-otel-collector?include_prereleases&style=for-the-badge">
   </a>

@@ -17,24 +17,12 @@
 package tests
 
 import (
-	"context"
 	"fmt"
-	"os"
-	"path/filepath"
-	"runtime"
-	"strings"
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/component/componenttest"
-	"go.opentelemetry.io/collector/consumer/consumertest"
-	"go.opentelemetry.io/collector/receiver/otlpreceiver"
-	"go.opentelemetry.io/collector/receiver/receivertest"
-	"go.uber.org/zap"
-
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCollectdActiveMQReceiverProvidesAllMetrics(t *testing.T) {
@@ -117,54 +105,12 @@ func TestCollectdActiveMQReceiverProvidesDefaultMetrics(t *testing.T) {
 }
 
 func checkMetricsPresence(t *testing.T, metricNames []string, configFile string) {
-	f := otlpreceiver.NewFactory()
-	port := testutils.GetAvailablePort(t)
-	c := f.CreateDefaultConfig().(*otlpreceiver.Config)
-	c.GRPC.NetAddr.Endpoint = fmt.Sprintf("localhost:%d", port)
-	sink := &consumertest.MetricsSink{}
-	receiver, err := f.CreateMetrics(context.Background(), receivertest.NewNopSettings(f.Type()), c, sink)
-	require.NoError(t, err)
-	require.NoError(t, receiver.Start(context.Background(), componenttest.NewNopHost()))
-	t.Cleanup(func() {
-		require.NoError(t, receiver.Shutdown(context.Background()))
-	})
-	logger, _ := zap.NewDevelopment()
+	tc := testutils.NewTestcase(t)
+	defer tc.PrintLogsOnFailure()
+	defer tc.ShutdownOTLPReceiverSink()
 
-	dockerHost := "localhost"
-	if runtime.GOOS == "darwin" {
-		dockerHost = "host.docker.internal"
-	}
-	p := testutils.NewCollectorContainer().
-		WithImage(testutils.GetCollectorImageOrSkipTest(t)).
-		WithConfigPath(filepath.Join("testdata", configFile)).
-		WithLogger(logger).
-		WithEnv(map[string]string{
-			"OTLP_ENDPOINT": fmt.Sprintf("%s:%d", dockerHost, port),
-			"GOCOVERDIR":    "/etc/otel/collector/coverage",
-		})
-
-	var path string
-	if path, err = filepath.Abs("."); err == nil {
-		// Coverage should all be under the top-level `tests/coverage` dir that's mounted
-		// to the container. This string parsing logic is to ensure different sub-directory
-		// tests all put their coverage in the top-level directory.
-		testDirName := "tests"
-		index := strings.Index(path, testDirName)
-		p = p.WithMount(filepath.Join(path[0:index+len(testDirName)], "coverage"), "/etc/otel/collector/coverage")
-		fmt.Printf("Container mount, source: %s, destination: %s\n", filepath.Join(path[0:index+len(testDirName)], "coverage"), "/etc/otel/collector/coverage")
-		if fileStat, err := os.Stat(filepath.Join(path[0:index+len(testDirName)], "coverage")); err == nil {
-			fmt.Printf("Coverage dir from source stat succeeded, is dir? %v, mode: %v\n", fileStat.IsDir(), fileStat.Mode())
-		} else {
-			fmt.Printf("coverdir stat err: %v\n", err)
-		}
-	}
-
-	p, err = p.Build()
-	require.NoError(t, err)
-	require.NoError(t, p.Start())
-	t.Cleanup(func() {
-		require.NoError(t, p.Shutdown())
-	})
+	_, shutdown := tc.SplunkOtelCollectorContainer(configFile)
+	t.Cleanup(shutdown)
 
 	missingMetrics := make(map[string]any, len(metricNames))
 	for _, m := range metricNames {
@@ -172,8 +118,8 @@ func checkMetricsPresence(t *testing.T, metricNames []string, configFile string)
 	}
 
 	assert.EventuallyWithT(t, func(tt *assert.CollectT) {
-		for i := 0; i < len(sink.AllMetrics()); i++ {
-			m := sink.AllMetrics()[i]
+		for i := 0; i < len(tc.OTLPReceiverSink.AllMetrics()); i++ {
+			m := tc.OTLPReceiverSink.AllMetrics()[i]
 			for j := 0; j < m.ResourceMetrics().Len(); j++ {
 				rm := m.ResourceMetrics().At(j)
 				for k := 0; k < rm.ScopeMetrics().Len(); k++ {

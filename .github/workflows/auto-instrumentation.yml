@@ -86,7 +86,7 @@ jobs:
         id: get-matrix
         run: |
           # create test matrix for distro and arch
-          dockerfiles=$(find packaging/tests/instrumentation/images/ -name "Dockerfile.*" | cut -d '.' -f2- | sort -u)
+          dockerfiles=$(find packaging/tests/instrumentation/images -name "Dockerfile.*" | cut -d '.' -f2- | sort -u)
           if [ -z "$dockerfiles" ]; then
             echo "Failed to get dockerfiles from packaging/tests/instrumentation/images!" >&2
             exit 1
@@ -156,10 +156,6 @@ jobs:
         continue-on-error: true
         run: |
           distro="${{ matrix.DISTRO }}"
-          if [[ "$distro" = "amazonlinux-2" ]]; then
-            # workaround for pytest substring matching
-            distro="amazonlinux-2 and not amazonlinux-2023"
-          fi
           testcase="${{ matrix.TESTCASE }} or uninstall"
           python3 -u -m pytest -s --verbose -k "$distro and ${{ matrix.ARCH }} and ($testcase)" \
             packaging/tests/instrumentation/instrumentation_test.py
@@ -169,10 +165,6 @@ jobs:
         if: ${{ steps.pytest.outcome == 'failure' }}
         run: |
           distro="${{ matrix.DISTRO }}"
-          if [[ "$distro" = "amazonlinux-2" ]]; then
-            # workaround for pytest substring matching
-            distro="amazonlinux-2 and not amazonlinux-2023"
-          fi
           testcase="${{ matrix.TESTCASE }} or uninstall"
           python3 -u -m pytest -s --verbose -k "$distro and ${{ matrix.ARCH }} and ($testcase)" \
             --last-failed \

@@ -109,10 +109,6 @@ jobs:
           PUPPET_RELEASE: "${{ matrix.PUPPET_RELEASE }}"
         run: |
           distro="${{ matrix.DISTRO }}"
-          if [[ "$distro" = "amazonlinux-2" ]]; then
-            # workaround for pytest substring matching
-            distro="amazonlinux-2 and not amazonlinux-2023"
-          fi
           if [[ "${{ matrix.WITH_INSTRUMENTATION }}" = "true" ]]; then
             tests="$distro and instrumentation"
           else
@@ -128,10 +124,6 @@ jobs:
           PUPPET_RELEASE: "${{ matrix.PUPPET_RELEASE }}"
         run: |
           distro="${{ matrix.DISTRO }}"
-          if [[ "$distro" = "amazonlinux-2" ]]; then
-            # workaround for pytest substring matching
-            distro="amazonlinux-2 and not amazonlinux-2023"
-          fi
           if [[ "${{ matrix.WITH_INSTRUMENTATION }}" = "true" ]]; then
             tests="$distro and instrumentation"
           else

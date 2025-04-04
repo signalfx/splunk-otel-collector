@@ -15,8 +15,6 @@ platforms:
     box: centos/8
   - name: bookworm64
     box: debian/bookworm64
-  - name: amazonlinux
-    box: bento/amazonlinux-2
 provisioner:
   env:
     ANSIBLE_ROLES_PATH: ../../roles

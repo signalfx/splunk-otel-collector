@@ -206,10 +206,6 @@ jobs:
         continue-on-error: true
         run: |
           distro="${{ matrix.DISTRO }}"
-          if [[ "$distro" = "amazonlinux-2" ]]; then
-            # workaround for pytest substring matching
-            distro="amazonlinux-2 and not amazonlinux-2023"
-          fi
           python3 -u -m pytest -s --verbose -m "${{ env.SYS_PACKAGE }}" \
             -k "$distro and ${{ matrix.ARCH }}" \
             packaging/tests/package_test.py
@@ -219,10 +215,6 @@ jobs:
         if: ${{ steps.pytest.outcome == 'failure' }}
         run: |
           distro="${{ matrix.DISTRO }}"
-          if [[ "$distro" = "amazonlinux-2" ]]; then
-            # workaround for pytest substring matching
-            distro="amazonlinux-2 and not amazonlinux-2023"
-          fi
           python3 -u -m pytest -s --verbose -m "${{ env.SYS_PACKAGE }}" \
             -k "$distro and ${{ matrix.ARCH }}" \
             --last-failed \

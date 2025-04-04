@@ -86,7 +86,7 @@ jobs:
         id: get-matrix
         run: |
           # create test matrix for distro and arch
-          dockerfiles=$(find packaging/tests/instrumentation/images/ -name "Dockerfile.*" | cut -d '.' -f2- | sort -u)
+          dockerfiles=$(find packaging/tests/instrumentation/images -name "Dockerfile.*" | cut -d '.' -f2- | sort -u)
           if [ -z "$dockerfiles" ]; then
             echo "Failed to get dockerfiles from packaging/tests/instrumentation/images!" >&2
             exit 1
@@ -95,8 +95,7 @@ jobs:
           arch="\"amd64\", \"arm64\""
           testcase="\"express\",\"tomcat\",\"dotnet\""
           # splunk-otel-dotnet currently not supported on arm64
-          # amazonlinux-2 requires cgroup v1, only available on version 20.04 that doesn't have an arm runner
-          exclude='{"ARCH": "arm64", "TESTCASE": "dotnet"},{"DISTRO": "amazonlinux-2", "ARCH": "arm64"}'
+          exclude='{"ARCH": "arm64", "TESTCASE": "dotnet"}'
           matrix="{\"DISTRO\": [${distro%,}], \"ARCH\": [${arch}], \"TESTCASE\": [${testcase}], \"exclude\": [${exclude}]}"
           echo "$matrix" | jq
           echo "matrix=${matrix}" >> $GITHUB_OUTPUT
@@ -104,10 +103,7 @@ jobs:
       matrix: ${{ steps.get-matrix.outputs.matrix }}
 
   test-package:
-    # Amazon Linux 2 uses cgroup v1
-    # Ubuntu 24.04 uses cgroup v2
-    # Fallback to Ubuntu 20.04 when appropriate
-    runs-on: ubuntu-${{ matrix.DISTRO != 'amazonlinux-2' && '24.04' || '20.04' }}${{ matrix.ARCH == 'arm64' && '-arm' || '' }}
+    runs-on: ubuntu-24.04${{ matrix.ARCH == 'arm64' && '-arm' || '' }}
     timeout-minutes: 60
     needs: [cross-compile, build-package, test-package-matrix]
     strategy:
@@ -160,10 +156,6 @@ jobs:
         continue-on-error: true
         run: |
           distro="${{ matrix.DISTRO }}"
-          if [[ "$distro" = "amazonlinux-2" ]]; then
-            # workaround for pytest substring matching
-            distro="amazonlinux-2 and not amazonlinux-2023"
-          fi
           testcase="${{ matrix.TESTCASE }} or uninstall"
           python3 -u -m pytest -s --verbose -k "$distro and ${{ matrix.ARCH }} and ($testcase)" \
             packaging/tests/instrumentation/instrumentation_test.py
@@ -173,10 +165,6 @@ jobs:
         if: ${{ steps.pytest.outcome == 'failure' }}
         run: |
           distro="${{ matrix.DISTRO }}"
-          if [[ "$distro" = "amazonlinux-2" ]]; then
-            # workaround for pytest substring matching
-            distro="amazonlinux-2 and not amazonlinux-2023"
-          fi
           testcase="${{ matrix.TESTCASE }} or uninstall"
           python3 -u -m pytest -s --verbose -k "$distro and ${{ matrix.ARCH }} and ($testcase)" \
             --last-failed \

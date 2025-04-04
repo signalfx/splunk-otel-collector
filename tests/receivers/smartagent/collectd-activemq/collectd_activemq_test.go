@@ -19,6 +19,7 @@ package tests
 import (
 	"context"
 	"fmt"
+	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -129,7 +130,7 @@ func checkMetricsPresence(t *testing.T, metricNames []string, configFile string)
 	})
 	logger, _ := zap.NewDevelopment()
 
-	dockerHost := "0.0.0.0"
+	dockerHost := "localhost"
 	if runtime.GOOS == "darwin" {
 		dockerHost = "host.docker.internal"
 	}
@@ -151,6 +152,11 @@ func checkMetricsPresence(t *testing.T, metricNames []string, configFile string)
 		index := strings.Index(path, testDirName)
 		p = p.WithMount(filepath.Join(path[0:index+len(testDirName)], "coverage"), "/etc/otel/collector/coverage")
 		fmt.Printf("Container mount, source: %s, destination: %s\n", filepath.Join(path[0:index+len(testDirName)], "coverage"), "/etc/otel/collector/coverage")
+		if fileStat, err := os.Stat(filepath.Join(path[0:index+len(testDirName)], "coverage")); err == nil {
+			fmt.Printf("Coverage dir from source stat succeeded, is dir? %v, mode: %v\n", fileStat.IsDir(), fileStat.Mode())
+		} else {
+			fmt.Printf("coverdir stat err: %v\n", err)
+		}
 	}
 
 	p, err = p.Build()

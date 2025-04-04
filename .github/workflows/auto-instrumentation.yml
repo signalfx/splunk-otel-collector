@@ -95,8 +95,7 @@ jobs:
           arch="\"amd64\", \"arm64\""
           testcase="\"express\",\"tomcat\",\"dotnet\""
           # splunk-otel-dotnet currently not supported on arm64
-          # amazonlinux-2 requires cgroup v1, only available on version 20.04 that doesn't have an arm runner
-          exclude='{"ARCH": "arm64", "TESTCASE": "dotnet"},{"DISTRO": "amazonlinux-2", "ARCH": "arm64"}'
+          exclude='{"ARCH": "arm64", "TESTCASE": "dotnet"}'
           matrix="{\"DISTRO\": [${distro%,}], \"ARCH\": [${arch}], \"TESTCASE\": [${testcase}], \"exclude\": [${exclude}]}"
           echo "$matrix" | jq
           echo "matrix=${matrix}" >> $GITHUB_OUTPUT
@@ -104,10 +103,7 @@ jobs:
       matrix: ${{ steps.get-matrix.outputs.matrix }}
 
   test-package:
-    # Amazon Linux 2 uses cgroup v1
-    # Ubuntu 24.04 uses cgroup v2
-    # Fallback to Ubuntu 20.04 when appropriate
-    runs-on: ubuntu-${{ matrix.DISTRO != 'amazonlinux-2' && '24.04' || '20.04' }}${{ matrix.ARCH == 'arm64' && '-arm' || '' }}
+    runs-on: ubuntu-24.04${{ matrix.ARCH == 'arm64' && '-arm' || '' }}
     timeout-minutes: 60
     needs: [cross-compile, build-package, test-package-matrix]
     strategy:

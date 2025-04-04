@@ -4,7 +4,6 @@ deb:
   ubuntu-jammy: ["DISTRO_IMAGE=ubuntu:22.04"]
 
 rpm:
-  amazonlinux-2: ["DISTRO_IMAGE=amazonlinux:2", "PKG_MGR=yum"]
   amazonlinux-2023: ["DISTRO_IMAGE=amazonlinux:2023"]
   centos-8: ["DISTRO_IMAGE=quay.io/centos/centos:stream8"]
   centos-9: ["DISTRO_IMAGE=quay.io/centos/centos:stream9"]

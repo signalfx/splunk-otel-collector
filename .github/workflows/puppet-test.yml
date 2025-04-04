@@ -80,10 +80,7 @@ jobs:
 
   puppet-test:
     name: puppet-test
-    # Amazon Linux 2 uses cgroup v1
-    # Ubuntu 24.04 uses cgroup v2
-    # Fallback to Ubuntu 20.04 when appropriate
-    runs-on: ubuntu-${{ matrix.DISTRO != 'amazonlinux-2' && '24.04' || '20.04' }}
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     needs:
       - puppet-lint

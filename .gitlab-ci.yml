@@ -290,6 +290,17 @@ update-dotnet-agent:
     - .gitlab/install-gh-cli.sh
     - .gitlab/update-dotnet-agent.sh
 
+update-downstream-chart:
+  only:
+    - schedules
+  extends: .go-cache
+  stage: update-deps
+  needs: []
+  dependencies: []
+  script:
+    - .gitlab/install-gh-cli.sh
+    - .gitlab/update-downstream-chart.sh
+
 tidy-dependabot-pr:
   rules:
     - if: ($CI_COMMIT_BRANCH =~ /^dependabot\/go_modules\/.*/) && ($CI_COMMIT_AUTHOR =~ /^dependabot.*/) && (($CI_PIPELINE_SOURCE == "merge_request_event") || ($CI_PIPELINE_SOURCE == "push"))

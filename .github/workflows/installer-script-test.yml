@@ -38,19 +38,14 @@ jobs:
           distro=$(for d in $dockerfiles; do echo -n "\"$d\","; done)
           arch='"amd64","arm64"'
           instrumentation='"none","preload","systemd"'
-          # amazonlinux-2 requires cgroup v1, only available on version 20.04 that doesn't have an arm runner
-          exclude='{"DISTRO": "amazonlinux-2", "ARCH": "arm64"}'
-          matrix="{\"DISTRO\": [${distro%,}], \"ARCH\": [${arch}], \"INSTRUMENTATION\": [${instrumentation}], \"exclude\": [${exclude}]}"
+          matrix="{\"DISTRO\": [${distro%,}], \"ARCH\": [${arch}], \"INSTRUMENTATION\": [${instrumentation}]}"
           echo "$matrix" | jq
           echo "matrix=${matrix}" >> $GITHUB_OUTPUT
     outputs:
       matrix: ${{ steps.get-matrix.outputs.matrix }}
 
   linux-installer-script-test:
-    # Amazon Linux 2 uses cgroup v1
-    # Ubuntu 24.04 uses cgroup v2
-    # Fallback to Ubuntu 20.04 when appropriate
-    runs-on: ubuntu-${{ matrix.DISTRO != 'amazonlinux-2' && '24.04' || '20.04' }}${{ matrix.ARCH == 'arm64' && '-arm' || '' }}
+    runs-on: ubuntu-24.04${{ matrix.ARCH == 'arm64' && '-arm' || '' }}
     timeout-minutes: 90
     needs: installer-test-matrix
     strategy:
@@ -86,10 +81,6 @@ jobs:
         continue-on-error: true
         run: |
           distro="${{ matrix.DISTRO }}"
-          if [[ "$distro" = "amazonlinux-2" ]]; then
-            # workaround for pytest substring matching
-            distro="amazonlinux-2 and not amazonlinux-2023"
-          fi
           if [[ "${{ matrix.INSTRUMENTATION }}" = "none" ]]; then
             tests="$distro and ${{ matrix.ARCH }} and not instrumentation"
           else
@@ -103,10 +94,6 @@ jobs:
         if: ${{ steps.pytest.outcome == 'failure' }}
         run: |
           distro="${{ matrix.DISTRO }}"
-          if [[ "$distro" = "amazonlinux-2" ]]; then
-            # workaround for pytest substring matching
-            distro="amazonlinux-2 and not amazonlinux-2023"
-          fi
           if [[ "${{ matrix.INSTRUMENTATION }}" = "none" ]]; then
             tests="$distro and ${{ matrix.ARCH }} and not instrumentation"
           else

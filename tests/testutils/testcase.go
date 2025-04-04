@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
@@ -111,7 +112,7 @@ func (t *Testcase) SplunkOtelCollectorContainer(configFilename string, builders 
 	}
 
 	var c Collector
-	c, shutdown = t.newCollector(&cc, configFilename, builders...)
+	c, shutdown = t.newCollector(&cc, configFilename, "/etc/otel/collector/coverage", builders...)
 	return c.(*CollectorContainer), shutdown
 }
 
@@ -120,7 +121,7 @@ func (t *Testcase) SplunkOtelCollectorProcess(configFilename string, builders ..
 	cp := NewCollectorProcess()
 
 	var c Collector
-	c, shutdown = t.newCollector(&cp, configFilename, builders...)
+	c, shutdown = t.newCollector(&cp, configFilename, "", builders...)
 	return c.(*CollectorProcess), shutdown
 }
 
@@ -131,11 +132,15 @@ func (t *Testcase) splunkOtelCollector(configFilename string, builders ...Collec
 	return t.SplunkOtelCollectorProcess(configFilename, builders...)
 }
 
-func (t *Testcase) newCollector(initial Collector, configFilename string, builders ...CollectorBuilder) (collector Collector, shutdown func()) {
+func (t *Testcase) newCollector(initial Collector, configFilename string, coverDir string, builders ...CollectorBuilder) (collector Collector, shutdown func()) {
 	collector = initial
 	envVars := map[string]string{
 		"OTLP_ENDPOINT":  t.OTLPEndpointForCollector,
 		"SPLUNK_TEST_ID": t.ID,
+	}
+
+	if coverDir != "" {
+		envVars["GOCOVERDIR"] = coverDir
 	}
 
 	if configFilename != "" {
@@ -158,6 +163,21 @@ func (t *Testcase) newCollector(initial Collector, configFilename string, builde
 		}
 	}
 	collector = collector.WithEnv(splunkEnv)
+
+	if path, err := filepath.Abs("."); err == nil {
+		// Coverage should all be under the top-level `tests/coverage` dir that's mounted
+		// to the container. This string parsing logic is to ensure different sub-directory
+		// tests all put their coverage in the top-level directory.
+		testDirName := "tests"
+		index := strings.Index(path, testDirName)
+		collector = collector.WithMount(filepath.Join(path[0:index+len(testDirName)], "coverage"), "/etc/otel/collector/coverage")
+		fmt.Printf("Container mount, source: %s, destination: %s\n", filepath.Join(path[0:index+len(testDirName)], "coverage"), "/etc/otel/collector/coverage")
+		if fileStat, err := os.Stat(filepath.Join(path[0:index+len(testDirName)], "coverage")); err == nil {
+			fmt.Printf("Coverage dir from source stat succeeded, is dir? %v, mode: %v\n", fileStat.IsDir(), fileStat.Mode())
+		} else {
+			fmt.Printf("coverdir stat err: %v\n", err)
+		}
+	}
 
 	var err error
 	collector, err = collector.Build()

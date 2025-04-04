@@ -150,6 +150,7 @@ func checkMetricsPresence(t *testing.T, metricNames []string, configFile string)
 		testDirName := "tests"
 		index := strings.Index(path, testDirName)
 		p = p.WithMount(filepath.Join(path[0:index+len(testDirName)], "coverage"), "/etc/otel/collector/coverage")
+		fmt.Printf("Container mount, source: %s, destination: %s\n", filepath.Join(path[0:index+len(testDirName)], "coverage"), "/etc/otel/collector/coverage")
 	}
 
 	p, err = p.Build()

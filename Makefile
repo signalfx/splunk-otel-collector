@@ -136,12 +136,12 @@ integration-test-istio-discovery-k8s:
 
 .PHONY: gotest-with-codecov
 gotest-with-codecov:
-	@$(MAKE) for-all-target TARGET="test-with-codecov" || true
+	@$(MAKE) for-all-target TARGET="test-with-codecov"
 	$(GOCMD) tool covdata textfmt -i=./coverage -o ./coverage.txt
 
 .PHONY: gotest-cover-without-race
 gotest-cover-without-race:
-	@$(MAKE) for-all-target TARGET="test-cover-without-race" || true
+	@$(MAKE) for-all-target TARGET="test-cover-without-race"
 	$(GOCMD) tool covdata textfmt -i=./coverage  -o ./coverage.txt
 
 .PHONY: gendependabot

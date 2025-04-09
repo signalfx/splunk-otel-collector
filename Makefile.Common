@@ -42,7 +42,15 @@ IMPI=impi
 BUILD_TYPE?=release
 
 # COVER_PKGS is the list of packages to include in the test coverage
-COVER_PKGS := $(shell go list ./... | tr "\n" ",")
+MAIN_PKGS := $(shell go list ./... | tr "\n" ",")
+SIGNALFX_AGENT_PKGS := $(shell cd internal/signalfx-agent && go list ./... | tr "\n" ",")
+TOOLS_PKGS := $(shell cd internal/tools && go list ./... | tr "\n" ",")
+DOTNET_DEPLOYER_PKGS := $(shell cd packaging/dotnet-instr-deployer-add-on && go list ./... | tr "\n" ",")
+SMARTAGENTEXT_PKGS := $(shell cd pkg/extension/smartagentextension && go list ./... | tr "\n" ",")
+TIMESTAMP_PROCESSOR_PKGS := $(shell cd pkg/processor/timestampprocessor && go list ./... | tr "\n" ",")
+SMARTAGENTREC_PKGS := $(shell cd pkg/receiver/smartagentreceiver && go list ./... | tr "\n" ",")
+
+COVER_PKGS := $(MAIN_PKGS)$(SIGNALFX_AGENT_PKGS)$(TOOLS_PKGS)$(DOTNET_DEPLOYER_PKGS)$(SMARTAGENTEXT_PKGS)$(TIMESTAMP_PROCESSOR_PKGS)$(SMARTAGENTREC_PKGS)
 COVER_DIR?=$(PWD)/coverage
 COVER_OPTS?=-cover -covermode=atomic -coverpkg $(COVER_PKGS) -args -test.gocoverdir="$(COVER_DIR)"
 

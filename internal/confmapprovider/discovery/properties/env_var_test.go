@@ -123,7 +123,7 @@ func TestInvalidEnvVarProperties(t *testing.T) {
 	}{
 		{envVar: "SPLUNK_DISCOVERY_NOTVALIDCOMPONENT_TYPE_CONFIG_ONE", expectedError: "invalid env var property (parsing error): invalid property env var (parsing error): SPLUNK_DISCOVERY:1:18: unexpected token \"NOTVALIDCOMPONENT\" (expected (\"RECEIVERS\" | \"EXTENSIONS\") <underscore> EnvVarComponentID <underscore> (\"CONFIG\" | \"ENABLED\") (<underscore> (<string> | <underscore>)+)*)"},
 		{envVar: "SPLUNK_DISCOVERY_RECEIVERS_TYPE_NOTCONFIG_ONE", expectedError: "invalid env var property (parsing error): invalid property env var (parsing error): SPLUNK_DISCOVERY:1:46: unexpected token \"<EOF>\" (expected <underscore> (\"CONFIG\" | \"ENABLED\") (<underscore> (<string> | <underscore>)+)*)"},
-		{envVar: "SPLUNK_DISCOVERY_EXTENSIONS_TYPE_x2f_NAME_CONFIG_", expectedError: "invalid env var property (parsing error): invalid property env var (parsing error): SPLUNK_DISCOVERY:1:50: sub-expression (<string> | <underscore>)+ must match at least once"},
+		{envVar: "SPLUNK_DISCOVERY_EXTENSIONS_TYPE_x2f_NAME_CONFIG_", expectedError: "invalid env var property (parsing error): invalid property env var (parsing error): SPLUNK_DISCOVERY:1:50: unexpected token \"<EOF>\" (expected (<string> | <underscore>)+)"},
 	} {
 		t.Run(tt.envVar, func(t *testing.T) {
 			p, ok, err := NewPropertyFromEnvVar(tt.envVar, "val")

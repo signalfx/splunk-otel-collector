@@ -4,17 +4,17 @@ ENV PATH=$PATH:/opt/puppetlabs/bin:/opt/puppetlabs/pdk/bin
 
 WORKDIR /tmp
 
-RUN wget https://apt.puppetlabs.com/puppet7-release-buster.deb &&\
-    dpkg -i puppet7-release-buster.deb &&\
-    rm *.deb &&\
-    apt update &&\
-    apt install -y puppet-agent
+RUN wget https://apt.puppetlabs.com/puppet6-release-buster.deb
+RUN dpkg -i puppet6-release-buster.deb
+RUN rm *.deb
+RUN apt update
+RUN apt install -y puppet-agent
 
-RUN wget https://apt.puppet.com/puppet-tools-release-buster.deb && \
-    dpkg -i puppet-tools-release-buster.deb && \
-    apt-get update && \
-    apt-get install -y pdk && \
-    rm -f *.deb
+RUN wget https://apt.puppet.com/puppet6-tools-release-buster.deb
+RUN dpkg -i puppet6-tools-release-buster.deb
+RUN apt-get update
+RUN apt-get install -y pdk
+RUN rm -f *.deb
 
 WORKDIR /etc/puppetlabs/code/modules/splunk_otel_collector
 COPY ./ ./

@@ -4,6 +4,10 @@
 
 ## v0.123.0
 
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.123.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.123.0)
+and the [opentelemetry-collector-contrib v0.123.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.123.0)
+releases where appropriate.
+
 ###  🛑 Breaking changes 🛑
 
 - (Splunk) Support for OpenSUSE 12 and CentOS 7 (tar package) has been dropped ([#6073](https://github.com/signalfx/splunk-otel-collector/pull/6073))

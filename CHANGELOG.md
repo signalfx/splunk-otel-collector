@@ -8,6 +8,11 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 and the [opentelemetry-collector-contrib v0.123.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.123.0)
 releases where appropriate.
 
+### ❗ Known Issues ❗
+
+- This version doesn't support discovery of kafka clusters. Will be fixed in 0.124.0. 
+  See https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/39313 for more details.
+
 ###  🛑 Breaking changes 🛑
 
 - (Splunk) Support for OpenSUSE 12 and CentOS 7 (tar package) has been dropped ([#6073](https://github.com/signalfx/splunk-otel-collector/pull/6073))
@@ -119,7 +124,6 @@ releases where appropriate.
 
 - (Splunk) Add headers_setter extension to OTLP HTTP exporters in the default configs to facilitate token passthrough ([#6083](https://github.com/signalfx/splunk-otel-collector/pull/6083), [#6075](https://github.com/signalfx/splunk-otel-collector/pull/6075))
 - (Core) `exporters`: Fix order of starting between queue and batch. ([#12705](https://github.com/open-telemetry/opentelemetry-collector/issues/12705))
-- `processor/metricstarttime`: Add reset detection for histograms (#38582)
 - `receiver/awsecscontainermetrics`: Ensure that the storage.read_bytes and storage.write_bytes metrics include i/o counts from all devices (#38301)
 - `receiver/sqlserver`: the current metric scraper would report error when parsing value, the value was parsed as int but actually it should be a float (#38823)
 - `receiver/sqlserver`: Ensure all enabled metrics are emitted (#38839)

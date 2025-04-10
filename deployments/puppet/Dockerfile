@@ -4,8 +4,8 @@ ENV PATH=$PATH:/opt/puppetlabs/bin:/opt/puppetlabs/pdk/bin
 
 WORKDIR /tmp
 
-RUN wget https://apt.puppetlabs.com/puppet6-release-buster.deb &&\
-    dpkg -i puppet6-release-buster.deb &&\
+RUN wget https://apt.puppetlabs.com/puppet7-release-buster.deb &&\
+    dpkg -i puppet7-release-buster.deb &&\
     rm *.deb &&\
     apt update &&\
     apt install -y puppet-agent

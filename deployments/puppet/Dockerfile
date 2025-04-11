@@ -1,24 +1,25 @@
-FROM ruby:2.6-buster
+FROM ruby:3.3.8-bookworm
 
 ENV PATH=$PATH:/opt/puppetlabs/bin:/opt/puppetlabs/pdk/bin
 
 WORKDIR /tmp
 
-RUN wget https://apt.puppetlabs.com/puppet6-release-buster.deb
-RUN dpkg -i puppet6-release-buster.deb
+RUN wget https://apt.puppetlabs.com/puppet8-release-bookworm.deb
+RUN dpkg -i puppet8-release-bookworm.deb
 RUN rm *.deb
 RUN apt update
 RUN apt install -y puppet-agent
 
-RUN wget https://apt.puppet.com/puppet6-tools-release-buster.deb
-RUN dpkg -i puppet6-tools-release-buster.deb
-RUN apt-get update
-RUN apt-get install -y pdk
+RUN wget https://apt.puppet.com/puppet-tools-release-bookworm.deb
+RUN dpkg --force-overwrite -i puppet-tools-release-bookworm.deb
+RUN apt update
+RUN apt install -y pdk
 RUN rm -f *.deb
 
 WORKDIR /etc/puppetlabs/code/modules/splunk_otel_collector
 COPY ./ ./
-RUN gem install bundler -v 2.4.22 && bundle install
+RUN pdk update
+RUN gem install bundler -v 2.4.13 && bundle install
 
 RUN mkdir -p /root/.config/puppet && \
     echo "---\n\

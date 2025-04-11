@@ -36,7 +36,6 @@
     {
       "operatingsystem": "CentOS",
       "operatingsystemrelease": [
-        "7",
         "8",
         "9"
       ]
@@ -60,9 +59,8 @@
     {
       "operatingsystem": "Debian",
       "operatingsystemrelease": [
-        "9",
-        "10",
-        "11"
+        "11",
+        "12"
       ]
     },
     {
@@ -77,14 +75,13 @@
     {
       "operatingsystem": "SLES",
       "operatingsystemrelease": [
-        "12",
-        "15"
+        "12.5",
+        "15.3"
       ]
     },
     {
       "operatingsystem": "Windows",
       "operatingsystemrelease": [
-        "2012",
         "2016",
         "2019",
         "2022"

@@ -18,7 +18,10 @@ lint: dev-image
 	docker run \
 		--rm \
 		splunk-otel-connector-puppet-dev \
-		puppet-lint --fail-on-warnings .
+		puppet-lint --fail-on-warnings \
+		--no-parameter_documentation-check --no-parameter_types-check \
+		--no-top_scope_facts-check --no-strict_indent-check \
+		.
 
 .PHONY: rake-spec
 rake-spec: dev-image

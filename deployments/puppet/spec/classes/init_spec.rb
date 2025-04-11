@@ -9,7 +9,12 @@ describe 'splunk_otel_collector' do
   end
 
   on_supported_os.each do |os, facts|
-    let(:facts) { facts }
+    let(:facts) {{
+      'win_temp' =>'C:\\Windows\\Temp',
+      'win_programfiles' => 'C:\\Program Files',
+      'win_programdata' => 'C:\\ProgramData',
+      'win_systemdrive' => 'C:'}.merge( facts )
+    }
     context "on #{os}" do
       let(:params) { { 'splunk_access_token' => "testing", 'splunk_realm' => 'test' } }
       it { is_expected.to compile.with_all_deps }

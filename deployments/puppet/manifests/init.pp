@@ -335,8 +335,8 @@ class splunk_otel_collector (
         subscribe => File[$fluentd_config_dest, $fluentd_config_override],
       }
     } else {
-      $collector_install_dir = "${::win_programfiles}\\Splunk\\OpenTelemetry Collector"
-      $td_agent_config_dir = "${::win_systemdrive}\\opt\\td-agent\\etc\\td-agent"
+      $collector_install_dir = "${facts['win_programfiles']}\\Splunk\\OpenTelemetry Collector"
+      $td_agent_config_dir = "${facts['win_systemdrive']}\\opt\\td-agent\\etc\\td-agent"
       $td_agent_config_dest = "${td_agent_config_dir}\\td-agent.conf"
 
       file { $td_agent_config_dest:

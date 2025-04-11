@@ -52,7 +52,6 @@ class splunk_otel_collector (
   $auto_instrumentation_npm_path                = 'npm', # linux only
   $collector_additional_env_vars            = {}
 ) inherits splunk_otel_collector::params {
-
   if empty($splunk_access_token) {
     fail('The splunk_access_token parameter is required')
   }

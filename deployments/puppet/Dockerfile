@@ -19,6 +19,7 @@ RUN rm -f *.deb
 WORKDIR /etc/puppetlabs/code/modules/splunk_otel_collector
 COPY ./ ./
 RUN pdk update
+# Bundler version matches the version used to generate the Gemfile.lock
 RUN gem install bundler -v 2.4.13 && bundle install
 
 RUN mkdir -p /root/.config/puppet && \

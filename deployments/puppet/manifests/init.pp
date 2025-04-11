@@ -52,7 +52,6 @@ class splunk_otel_collector (
   $auto_instrumentation_npm_path                = 'npm', # linux only
   $collector_additional_env_vars            = {}
 ) inherits splunk_otel_collector::params {
-
   if empty($splunk_access_token) {
     fail('The splunk_access_token parameter is required')
   }
@@ -336,8 +335,8 @@ class splunk_otel_collector (
         subscribe => File[$fluentd_config_dest, $fluentd_config_override],
       }
     } else {
-      $collector_install_dir = "${::win_programfiles}\\Splunk\\OpenTelemetry Collector"
-      $td_agent_config_dir = "${::win_systemdrive}\\opt\\td-agent\\etc\\td-agent"
+      $collector_install_dir = "${facts['win_programfiles']}\\Splunk\\OpenTelemetry Collector"
+      $td_agent_config_dir = "${facts['win_systemdrive']}\\opt\\td-agent\\etc\\td-agent"
       $td_agent_config_dest = "${td_agent_config_dir}\\td-agent.conf"
 
       file { $td_agent_config_dest:

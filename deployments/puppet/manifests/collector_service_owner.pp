@@ -1,7 +1,6 @@
 # Sets the user/group for the splunk-otel-collector service.
 # If the user or group does not exist, they will be created.
 class splunk_otel_collector::collector_service_owner ($service_name, $service_user, $service_group) {
-
   if !defined(Group[$service_group]) {
     if $service_group == 'splunk-otel-collector' or $service_group in split($::local_groups, ',') {
       group { $service_group:

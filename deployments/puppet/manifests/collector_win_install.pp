@@ -9,7 +9,7 @@ class splunk_otel_collector::collector_win_install ($repo_url, $version, $packag
   # Only download and install if not already installed or version does not match
   if $::win_collector_path != $collector_path or $::win_collector_version != $version {
     file { "${::win_temp}\\${msi_name}":
-      source => "${repo_url}/${msi_name}"
+      source => "${repo_url}/${msi_name}",
     }
 
     -> package { $package_name:

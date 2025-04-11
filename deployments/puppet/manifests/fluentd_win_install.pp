@@ -3,7 +3,7 @@ class splunk_otel_collector::fluentd_win_install ($repo_base, $version, $package
   $msi_name = "td-agent-${version}-x64.msi"
 
   file { "${::win_temp}\\${msi_name}":
-    source => "${repo_base}/4/windows/${msi_name}"
+    source => "${repo_base}/4/windows/${msi_name}",
   }
 
   -> package { $package_name:

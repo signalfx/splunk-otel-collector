@@ -9,6 +9,9 @@ describe 'splunk_otel_collector' do
   end
 
   on_supported_os.each do |os, facts|
+    # When running rake spec it checks for absolute paths and on Windows paths
+    # are built from facts. However, the needed facts are not set since rake
+    # spec is running on a non-windows system.
     let(:facts) {{
       'win_temp' =>'C:\\Windows\\Temp',
       'win_programfiles' => 'C:\\Program Files',

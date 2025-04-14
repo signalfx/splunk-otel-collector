@@ -1853,4 +1853,4 @@ dotnet-deployer-release:
     - make build-pack
   artifacts:
     paths:
-      - packaging/dotnet-instr-deployer-add-on/distpackaging/dotnet-instr-deployer-add-on/out/distribution/splunk_otel_dotnet_deployer.tgz
+      - packaging/dotnet-instr-deployer-add-on/out/distribution/splunk_otel_dotnet_deployer.tgz

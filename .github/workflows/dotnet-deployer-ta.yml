@@ -1,4 +1,4 @@
-name: Dotnet Deployer TA
+name: .NET Instrumentation Deployer Add-On Release Tag
 
 # This workflow is triggered by any change in packaging/dotnet-instr-deployer-add-on/assets/default/app.conf of the main branch.
 # The 'version' property is read from this file, and a new 'dotnet-deployer-ta-v<VERSION>' tag is pushed if it does not already exist.

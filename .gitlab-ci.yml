@@ -1838,3 +1838,19 @@ chef-release:
     - cp -r deployments/chef /tmp/cookbooks/splunk_otel_collector
   script:
     - knife supermarket share -o /tmp/cookbooks splunk_otel_collector
+
+dotnet-deployer-release:
+  image: '${DOCKER_HUB_REPO}/golang:${GO_VERSION}'
+  stage: release
+  only:
+    variables:
+      - $CI_COMMIT_TAG =~ /^dotnet-deployer-ta-v[0-9]+\.[0-9]+\.[0-9]+$/
+  except:
+    - schedules
+  before_script:
+    - cd packaging/dotnet-instr-deployer-add-on
+  script:
+    - make build-pack
+  artifacts:
+    paths:
+      - packaging/dotnet-instr-deployer-add-on/distpackaging/dotnet-instr-deployer-add-on/out/distribution/splunk_otel_dotnet_deployer.tgz

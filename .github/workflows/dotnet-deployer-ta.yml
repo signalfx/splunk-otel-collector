@@ -1,0 +1,55 @@
+name: Dotnet Deployer TA
+
+# This workflow is triggered by any change in packaging/dotnet-instr-deployer-add-on/assets/default/app.conf of the main branch.
+# The 'version' property is read from this file, and a new 'dotnet-deployer-ta-v<VERSION>' tag is pushed if it does not already exist.
+
+on:
+  push:
+    paths:
+      - 'packaging/dotnet-instr-deployer-add-on/assets/default/app.conf'
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  push-release-tag:
+    name: Push Release Tag
+    runs-on: ubuntu-24.04
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read version from app.conf
+        id: read-app-conf
+        run: |
+          version=$(grep -oP '^version = \K.*' packaging/dotnet-instr-deployer-add-on/assets/default/app.conf)
+          echo "::set-output name=version::$version"
+
+      - name: Ensure version is read from app.conf
+        if: steps.read-app-conf.outputs.version == ''
+        run: echo "Fail to read version from app.conf" && exit 1
+
+      - name: Push new release tag if it doesn't exist
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+              const tagRef = "tags/dotnet-deployer-ta-v${{ steps.read-app-conf.outputs.version }}"
+              const existingRefs = await github.rest.git.listMatchingRefs({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: tagRef
+              })
+              if (existingRefs.data.length === 0) {
+                await github.rest.git.createRef({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  ref: "refs/" + tagRef,
+                  sha: context.sha
+                })
+              } else {
+                console.log(tagRef + " already exists")
+              }

@@ -102,6 +102,7 @@ integration-test-cover-target:
 
 .PHONY: integration-test
 integration-test:
+<<<<<<< HEAD
 	@make integration-test-target TARGET='integration'
 
 .PHONY: integration-test-with-cover
@@ -112,6 +113,10 @@ integration-test-with-cover:
 	ls -al $(PWD)/coverage
 	ls -al $(PWD)/tests
 	ls- al $(PWD)/tests/coverage
+=======
+	@set -e; mkdir -p $(TEST_COVER_DIR) && cd tests && GOCOVERDIR=$(TEST_COVER_DIR) $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=integration -v -timeout 5m -count 1 ./...
+	$(GOCMD) tool covdata textfmt -i=$(TEST_COVER_DIR) -o ./integration-test-coverage.txt
+>>>>>>> a7310ef8 (Remove local debugging from git commits)
 
 .PHONY: integration-test-mongodb-discovery
 integration-test-mongodb-discovery:

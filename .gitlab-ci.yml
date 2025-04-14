@@ -1899,15 +1899,15 @@ dotnet-instrumentation-deployer-release:
   dependencies:
     - dotnet-instrumentation-deployer-builder
   script:
+    - pushd out/distribution/ && shasum -a 256 * > checksums.txt && popd
     - |
       set -e
-      # extract the version from CI_COMMIT_TAG
       if [[ "${CI_COMMIT_TAG:-}" =~ ^dotnet-instrumentation-deployer-ta-v([0-9]+\.[0-9]+\.[0-9]+[^ ]*) ]]; then
         VERSION=${BASH_REMATCH[1]}
         VERSION_CHANGELOG="$(awk -v version="$VERSION" '/^## / { if (p) { exit }; if ($2 == version) { p=1; next } } p && NF' CHANGELOG.md)"
         SPLUNK_OTEL_DOTNET_VERSION=$(grep -oP 'version = \K.*' assets/windows_x86_64/bin/Splunk.OTel.DotNet.psm1 | tr -d '"')
         RELEASE_NOTES=$(echo -e "$RELEASE_NOTES\n\nShipping Splunk OpenTelemetry .NET $SPLUNK_OTEL_DOTNET_VERSION")
-        ghr -t "$GITHUB_TOKEN" -u signalfx -r splunk-otel-collector -prerelease -draft -n "Splunk OpenTelemetry .NET Deployer Technical Add-On v$VERSION" -b "$RELEASE_NOTES" -replace "$CI_COMMIT_TAG" out/distribution/splunk_otel_dotnet_deployer.tgz
+        ghr -t "$GITHUB_TOKEN" -u signalfx -r splunk-otel-collector -prerelease -draft -n "Splunk OpenTelemetry .NET Deployer Technical Add-On v$VERSION" -b "$RELEASE_NOTES" -replace "$CI_COMMIT_TAG" out/distribution/
       else
         echo "Failed to get version from $CI_COMMIT_TAG"
         exit 1

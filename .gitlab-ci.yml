@@ -1839,18 +1839,76 @@ chef-release:
   script:
     - knife supermarket share -o /tmp/cookbooks splunk_otel_collector
 
-dotnet-deployer-release:
-  image: '${DOCKER_HUB_REPO}/golang:${GO_VERSION}'
-  stage: release
+.trigger-dotnet-instrumentation-deployer:
   only:
     variables:
-      - $CI_COMMIT_TAG =~ /^dotnet-deployer-ta-v[0-9]+\.[0-9]+\.[0-9]+$/
+      - $CI_COMMIT_TAG =~ /^dotnet-instrumentation-deployer-ta-v[0-9]+\.[0-9]+\.[0-9]+$/
   except:
     - schedules
+
+build-dotnet-instrumentation-deployer:
+  extends: .trigger-dotnet-instrumentation-deployer
+  image: '${DOCKER_HUB_REPO}/golang:${GO_VERSION}'
+  stage: build-dotnet-deployer
   before_script:
     - cd packaging/dotnet-instr-deployer-add-on
   script:
-    - make build-pack
+    - make build
+  artifacts:
+    paths:
+      - packaging/dotnet-instr-deployer-add-on/assets/windows_x86_64/bin/*
+
+sign-dotnet-instrumentation-deployer-exe:
+  extends:
+    - .trigger-filter
+    - .submit-signing-request
+  stage: sign-dotnet-deployer
+  retry: 2
+  needs:
+    - build-dotnet-instrumentation-deployer
+  variables:
+    ARTIFACT: packaging/dotnet-instr-deployer-add-on/assets/windows_x86_64/bin/splunk_otel_dotnet_deployer.exe
+    SIGN_TYPE: WIN
+    DOWNLOAD_DIR: packaging/dotnet-instr-deployer-add-on/assets/windows_x86_64/bin
+  artifacts:
+    paths:
+      - packaging/dotnet-instr-deployer-add-on/assets/**/*
+
+pack-dotnet-instrumentation-deployer:
+  extends: .trigger-dotnet-instrumentation-deployer
+  image: '${DOCKER_HUB_REPO}/golang:${GO_VERSION}'
+  stage: pack-dotnet-deployer
+  needs:
+    - sign-dotnet-instrumentation-deployer-exe
+  before_script:
+    - cd packaging/dotnet-instr-deployer-add-on
+  script:
+    - make pack
   artifacts:
     paths:
       - packaging/dotnet-instr-deployer-add-on/out/distribution/splunk_otel_dotnet_deployer.tgz
+
+dotnet-instrumentation-deployer-release:
+  extends: .trigger-dotnet-instrumentation-deployer
+  image: '${DOCKER_HUB_REPO}/golang:${GO_VERSION}'
+  stage: release-dotnet-deployer
+  needs:
+    - pack-dotnet-instrumentation-deployer
+  before_script:
+    - cd packaging/dotnet-instr-deployer-add-on
+  dependencies:
+    - dotnet-instrumentation-deployer-builder
+  script:
+    - |
+      set -e
+      # extract the version from CI_COMMIT_TAG
+      if [[ "${CI_COMMIT_TAG:-}" =~ ^dotnet-instrumentation-deployer-ta-v([0-9]+\.[0-9]+\.[0-9]+[^ ]*) ]]; then
+        VERSION=${BASH_REMATCH[1]}
+        VERSION_CHANGELOG="$(awk -v version="$VERSION" '/^## / { if (p) { exit }; if ($2 == version) { p=1; next } } p && NF' CHANGELOG.md)"
+        SPLUNK_OTEL_DOTNET_VERSION=$(grep -oP 'version = \K.*' assets/windows_x86_64/bin/Splunk.OTel.DotNet.psm1 | tr -d '"')
+        RELEASE_NOTES=$(echo -e "$RELEASE_NOTES\n\nShipping Splunk OpenTelemetry .NET $SPLUNK_OTEL_DOTNET_VERSION")
+        ghr -t "$GITHUB_TOKEN" -u signalfx -r splunk-otel-collector -prerelease -draft -n "Splunk OpenTelemetry .NET Deployer Technical Add-On v$VERSION" -b "$RELEASE_NOTES" -replace "$CI_COMMIT_TAG" out/distribution/splunk_otel_dotnet_deployer.tgz
+      else
+        echo "Failed to get version from $CI_COMMIT_TAG"
+        exit 1
+      fi

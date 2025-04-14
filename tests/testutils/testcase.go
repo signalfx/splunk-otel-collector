@@ -178,6 +178,8 @@ func (t *Testcase) newCollector(initial Collector, configFilename string, coverD
 		} else {
 			fmt.Printf("coverdir stat err: %v\n", err)
 		}
+	} else {
+		fmt.Printf("Container mount err: %v\n", err)
 	}
 
 	var err error

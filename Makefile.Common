@@ -42,7 +42,7 @@ IMPI=impi
 BUILD_TYPE?=release
 
 # COVER_PKGS is the list of packages to include in the test coverage
-EXCLUDE_MODS=-not -path "./examples/*" -not -path "./tests/*"
+EXCLUDE_MODS=-not -path "./examples/*"
 FIND_MOD_ARGS=-type f -name "go.mod"
 COVER_PKGS := $(shell find . $(EXCLUDE_MODS) $(FIND_MOD_ARGS) -execdir $(GOCMD) list ./... \; | tr "\n" "," )
 

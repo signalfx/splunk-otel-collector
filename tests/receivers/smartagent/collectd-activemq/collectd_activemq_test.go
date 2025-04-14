@@ -21,8 +21,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
 func TestCollectdActiveMQReceiverProvidesAllMetrics(t *testing.T) {

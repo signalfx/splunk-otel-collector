@@ -25,13 +25,13 @@ import (
 )
 
 type SocketProxy struct {
+	listener          net.Listener
+	t                 testing.TB
 	Path              string
 	Endpoint          string
 	ContainerEndpoint string
-	listener          net.Listener
 	wg                sync.WaitGroup
 	active            atomic.Bool
-	t                 testing.TB
 }
 
 func CreateDockerSocketProxy(t testing.TB) *SocketProxy {

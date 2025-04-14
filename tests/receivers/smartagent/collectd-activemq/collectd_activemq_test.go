@@ -17,11 +17,7 @@
 package tests
 
 import (
-	"fmt"
 	"testing"
-	"time"
-
-	"github.com/stretchr/testify/assert"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
@@ -69,7 +65,7 @@ func TestCollectdActiveMQReceiverProvidesAllMetrics(t *testing.T) {
 		"jmx_memory.used",
 		"total_time_in_ms.collection_time",
 	}
-	checkMetricsPresence(t, metricNames, "all_metrics_config.yaml")
+	testutils.CheckMetricsPresence(t, metricNames, "all_metrics_config.yaml")
 }
 func TestCollectdActiveMQReceiverProvidesDefaultMetrics(t *testing.T) {
 	metricNames := []string{
@@ -102,39 +98,5 @@ func TestCollectdActiveMQReceiverProvidesDefaultMetrics(t *testing.T) {
 		"jmx_memory.used",
 		"total_time_in_ms.collection_time",
 	}
-	checkMetricsPresence(t, metricNames, "default_metrics_config.yaml")
-}
-
-func checkMetricsPresence(t *testing.T, metricNames []string, configFile string) {
-	tc := testutils.NewTestcase(t)
-	defer tc.PrintLogsOnFailure()
-	defer tc.ShutdownOTLPReceiverSink()
-
-	_, shutdown := tc.SplunkOtelCollectorContainer(configFile)
-	t.Cleanup(shutdown)
-
-	missingMetrics := make(map[string]any, len(metricNames))
-	for _, m := range metricNames {
-		missingMetrics[m] = struct{}{}
-	}
-
-	assert.EventuallyWithT(t, func(tt *assert.CollectT) {
-		for i := 0; i < len(tc.OTLPReceiverSink.AllMetrics()); i++ {
-			m := tc.OTLPReceiverSink.AllMetrics()[i]
-			for j := 0; j < m.ResourceMetrics().Len(); j++ {
-				rm := m.ResourceMetrics().At(j)
-				for k := 0; k < rm.ScopeMetrics().Len(); k++ {
-					sm := rm.ScopeMetrics().At(k)
-					for l := 0; l < sm.Metrics().Len(); l++ {
-						delete(missingMetrics, sm.Metrics().At(l).Name())
-					}
-				}
-			}
-		}
-		msg := "Missing metrics:\n"
-		for k := range missingMetrics {
-			msg += fmt.Sprintf("- %q\n", k)
-		}
-		assert.Len(tt, missingMetrics, 0, msg)
-	}, 1*time.Minute, 1*time.Second)
+	testutils.CheckMetricsPresence(t, metricNames, "default_metrics_config.yaml")
 }

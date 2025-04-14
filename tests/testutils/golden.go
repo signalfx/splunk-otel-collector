@@ -37,9 +37,9 @@ import (
 )
 
 type metricCollectionTestOpts struct {
-	compareMetricsOptions []pmetrictest.CompareMetricsOption
 	collectorEnvVars      map[string]string
 	fileMounts            map[string]string
+	compareMetricsOptions []pmetrictest.CompareMetricsOption
 }
 
 type MetricsCollectionTestOption func(*metricCollectionTestOpts)

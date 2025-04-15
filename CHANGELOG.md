@@ -10,7 +10,7 @@ releases where appropriate.
 
 ### ❗ Known Issues ❗
 
-- This version doesn't support discovery of kafka clusters. Will be fixed in 0.124.0. 
+- This version won't collect kafka metrics with the discovery mode enabled. Will be fixed in 0.124.0. 
   See https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/39313 for more details.
 
 ###  🛑 Breaking changes 🛑

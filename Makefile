@@ -102,7 +102,6 @@ integration-test-cover-target:
 
 .PHONY: integration-test
 integration-test:
-<<<<<<< HEAD
 	@make integration-test-target TARGET='integration'
 
 .PHONY: integration-test-with-cover
@@ -113,10 +112,6 @@ integration-test-with-cover:
 	ls -al $(PWD)/coverage
 	ls -al $(PWD)/tests
 	ls- al $(PWD)/tests/coverage
-=======
-	@set -e; mkdir -p $(TEST_COVER_DIR) && cd tests && GOCOVERDIR=$(TEST_COVER_DIR) $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=integration -v -timeout 5m -count 1 ./...
-	$(GOCMD) tool covdata textfmt -i=$(TEST_COVER_DIR) -o ./integration-test-coverage.txt
->>>>>>> a7310ef8 (Remove local debugging from git commits)
 
 .PHONY: integration-test-mongodb-discovery
 integration-test-mongodb-discovery:
@@ -192,11 +187,16 @@ integration-test-oracledb-discovery-with-cover:
 
 .PHONY: smartagent-integration-test
 smartagent-integration-test:
+<<<<<<< HEAD
 	@make integration-test TARGET='smartagent_integration'
 
 .PHONY: smartagent-integration-test-with-cover
 smartagent-integration-test-with-cover:
 	@make integration-test-cover-target TARGET='smartagent_integration'
+=======
+	@set -e; mkdir -p $(TEST_COVER_DIR) && cd tests && GOCOVERDIR=$(TEST_COVER_DIR) $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=smartagent_integration -v -timeout 5m -count 1 -run TestCollectdCouchbaseReceiverProvidesAllMetrics ./... || true
+	$(GOCMD) tool covdata textfmt -i=$(TEST_COVER_DIR) -o ./smartagent-integration-test-coverage.txt
+>>>>>>> 124d2050 (Revert incorrect removal of file mounts, change test being run)
 
 .PHONY: integration-test-envoy-discovery-k8s
 integration-test-envoy-discovery-k8s:

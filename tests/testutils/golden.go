@@ -29,6 +29,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/testcontainers/testcontainers-go"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
@@ -117,16 +118,23 @@ func RunMetricsCollectionTest(t *testing.T, configFile string, expectedFilePath 
 		testDirName := "tests"
 		index := strings.Index(path, testDirName)
 		cc = cc.WithMount(filepath.Join(path[0:index+len(testDirName)], "coverage"), "/etc/otel/collector/coverage")
-		fmt.Printf("RunMetricsCollectionTest: Container mount, source: %s, destination: %s\n", filepath.Join(path[0:index+len(testDirName)], "coverage"), "/etc/otel/collector/coverage")
+		fmt.Printf("Container mount, source: %s, destination: %s\n", filepath.Join(path[0:index+len(testDirName)], "coverage"), "/etc/otel/collector/coverage")
 		if fileStat, err := os.Stat(filepath.Join(path[0:index+len(testDirName)], "coverage")); err == nil {
-			fmt.Printf("RunMetricsCollectionTest: Coverage dir from source stat succeeded, is dir? %v, mode: %v\n", fileStat.IsDir(), fileStat.Mode())
+			fmt.Printf("Coverage dir from source stat succeeded, is dir? %v, mode: %v\n", fileStat.IsDir(), fileStat.Mode())
 		} else {
-			fmt.Printf("RunMetricsCollectionTest: coverdir stat err: %v\n", err)
+			fmt.Printf("coverdir stat err: %v\n", err)
 		}
 	} else {
-		fmt.Printf("RunMetricsCollectionTest: Container mount err: %v\n", err)
+		fmt.Printf("Container mount err: %v\n", err)
 	}
 
+	for k, v := range opts.fileMounts {
+		cc.(*CollectorContainer).Container = cc.(*CollectorContainer).Container.WithFile(testcontainers.ContainerFile{
+			HostFilePath:      k,
+			ContainerFilePath: v,
+			FileMode:          0644,
+		})
+	}
 	p, err := cc.Build()
 	require.NoError(t, err)
 	require.NoError(t, p.Start())

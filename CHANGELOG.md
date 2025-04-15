@@ -125,17 +125,17 @@ releases where appropriate.
 
 - (Splunk) Add headers_setter extension to OTLP HTTP exporters in the default configs to facilitate token passthrough ([#6083](https://github.com/signalfx/splunk-otel-collector/pull/6083), [#6075](https://github.com/signalfx/splunk-otel-collector/pull/6075))
 - (Core) `exporters`: Fix order of starting between queue and batch. ([#12705](https://github.com/open-telemetry/opentelemetry-collector/issues/12705))
-- `receiver/awsecscontainermetrics`: Ensure that the storage.read_bytes and storage.write_bytes metrics include i/o counts from all devices (#38301)
-- `receiver/sqlserver`: the current metric scraper would report error when parsing value, the value was parsed as int but actually it should be a float (#38823)
-- `receiver/sqlserver`: Ensure all enabled metrics are emitted (#38839)
-- `receiver/kafka`: make calls to error backoff thread-safe and add logging (#38941)
-- `receiver/sqlserver`: Remove warning that `server.address` and `server.port` resource attributes will be enabled (#38831)
+- (Contrib) `receiver/awsecscontainermetrics`: Ensure that the storage.read_bytes and storage.write_bytes metrics include i/o counts from all devices (#38301)
+- (Contrib) `receiver/sqlserver`: the current metric scraper would report error when parsing value, the value was parsed as int but actually it should be a float (#38823)
+- (Contrib) `receiver/sqlserver`: Ensure all enabled metrics are emitted (#38839)
+- (Contrib) `receiver/kafka`: make calls to error backoff thread-safe and add logging (#38941)
+- (Contrib) `receiver/sqlserver`: Remove warning that `server.address` and `server.port` resource attributes will be enabled (#38831)
   There is no intention of enabling these resource attributes by default,
   this change is to simply remove the warning.
   The `server.address` and `server.port` resource attributes were, and still are,
   disabled by default.
 
-- `pkg/stanza`: Add retries when calls to retrieve Windows event via `EvtNext` fail with error RPC_S_INVALID_BOUND (1734). (#38149)
+- (Contrib) `pkg/stanza`: Add retries when calls to retrieve Windows event via `EvtNext` fail with error RPC_S_INVALID_BOUND (1734). (#38149)
   Whenever large events were read in by the Windows event log receiver, via the stanza input operator,
   the collector would fail with error RPC_S_INVALID_BOUND (1734). Now the operator tries to workaround
   this issue by reducing the number of events read on each attempt.

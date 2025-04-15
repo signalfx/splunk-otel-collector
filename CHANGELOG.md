@@ -17,7 +17,23 @@ releases where appropriate.
 
 - (Splunk) Support for OpenSUSE 12 and CentOS 7 (tar package) has been dropped ([#6073](https://github.com/signalfx/splunk-otel-collector/pull/6073))
 - (Core) `service/telemetry`: Mark `telemetry.disableAddressFieldForInternalTelemetry` as beta, usage of deprecated `service::telemetry::address` are ignored ([#12756](https://github.com/open-telemetry/opentelemetry-collector/issues/12756))
+  IMPORTANT: If you have `service::telemetry::address` configured manually, ensure to change it to the new format:
+  ```yaml
+  telemetry:
+    metrics:
+      readers:
+        - pull:
+            exporter:
+              prometheus:
+                host: <HOST>
+                port: <PORT>
+                without_scope_info: true
+                without_type_suffix: true
+                without_units: true
+  ```
+  Otherwise, the Collector will not emit any internal telemetry metrics.
   To restore the previous behavior disable `telemetry.disableAddressFieldForInternalTelemetry` feature gate.
+
 - (Core) `exporterbatch`: Remove deprecated fields `min_size_items` and `max_size_items` from batch config. ([#12684](https://github.com/open-telemetry/opentelemetry-collector/issues/12684))
 - (Contrib) `receiver/azuremonitor`: multi subscriptions support and automatic discovery ([#36612](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/36612))
 - (Contrib) `exporter/kafka`: change default client_id to "otel-collector" ([#38411](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/38411))

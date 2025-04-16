@@ -381,7 +381,10 @@ jobs:
           docker exec otelcol /usr/lib/splunk-otel-collector/agent-bundle/jre/bin/java -version
           # ensure collectd-python plugins were installed
           docker exec otelcol sh -c 'test -d /usr/lib/splunk-otel-collector/agent-bundle/collectd-python/'
-          if [[ "$(docker exec otelcol ls /usr/lib/splunk-otel-collector/agent-bundle/collectd-python/ | wc -l)" -eq 0 ]]; then
+          if ! docker exec otelcol /bin/ls /usr/lib/splunk-otel-collector/agent-bundle/collectd-python/ >/dev/null 2>&1; then
+            echo "Error: Failed to execute 'ls' on /usr/lib/splunk-otel-collector/agent-bundle/collectd-python/!" >&2
+            exit 1
+          elif [[ "$(docker exec otelcol /bin/ls /usr/lib/splunk-otel-collector/agent-bundle/collectd-python/ | wc -l)" -eq 0 ]]; then
             echo "/usr/lib/splunk-otel-collector/agent-bundle/collectd-python/ is empty!" >&2
             exit 1
           fi

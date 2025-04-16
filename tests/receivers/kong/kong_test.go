@@ -39,6 +39,7 @@ func TestKongMetrics(t *testing.T) {
 			pmetrictest.IgnoreMetricDataPointsOrder(),
 			pmetrictest.IgnoreSubsequentDataPoints(),
 			pmetrictest.IgnoreSummaryDataPointValueAtQuantileSliceOrder(),
+			pmetrictest.IgnoreMetricAttributeValue("version", "kong_node_info"),
 		),
 	)
 }

@@ -382,6 +382,7 @@ jobs:
           # ensure collectd-python plugins were installed
           docker exec otelcol sh -c 'test -d /usr/lib/splunk-otel-collector/agent-bundle/collectd-python/'
           if ! docker exec otelcol /bin/ls /usr/lib/splunk-otel-collector/agent-bundle/collectd-python/ >/tmp/ls_output 2>/tmp/ls_error; then
+            docker exec otelcol which ls
             echo "Error: Failed to execute 'ls'" >&2
             echo "Error details:"
             docker exec otelcol cat /tmp/ls_error

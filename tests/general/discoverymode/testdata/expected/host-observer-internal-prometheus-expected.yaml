@@ -56,15 +56,6 @@ resourceMetrics:
                     - key: label_two
                       value:
                         stringValue: actual.label.two.value.from.env.var
-                    - key: service.instance.id
-                      value:
-                        stringValue: b3d7e86d-d1fb-47be-9ecc-d3bc4f5b552d
-                    - key: service.name
-                      value:
-                        stringValue: otelcol
-                    - key: service.version
-                      value:
-                        stringValue: v0.120.0-12-ca35d36d9f
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
               isMonotonic: true

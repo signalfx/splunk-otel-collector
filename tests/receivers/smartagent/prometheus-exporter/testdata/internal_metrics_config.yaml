@@ -3,7 +3,7 @@ receivers:
     type: prometheus-exporter
     intervalSeconds: 1
     host: "localhost"
-    port: 8889
+    port: 8888
     extraDimensions:
       foo: bar
     scrapeFailureLogLevel: error
@@ -13,9 +13,6 @@ exporters:
     tls:
       insecure: true
 service:
-  telemetry:
-    metrics:
-      address: localhost:8889
   pipelines:
     metrics:
       receivers: [smartagent/prometheus-exporter]

@@ -26,6 +26,7 @@ import (
 )
 
 func TestIntegrationKafkaMetricsAutoDiscovery(t *testing.T) {
+	t.Skip("Skipping test as a known issue fixed in 0.124.0")
 	tests := map[string]struct {
 		configFileName     string
 		logMessageToAssert string

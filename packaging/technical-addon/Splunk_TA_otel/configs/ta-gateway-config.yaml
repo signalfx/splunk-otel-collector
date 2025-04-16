@@ -131,9 +131,6 @@ exporters:
     #verbosity: detailed
 
 service:
-  telemetry:
-    metrics:
-      address: "${env:SPLUNK_LISTEN_INTERFACE}:8888"
   extensions: [headers_setter, health_check, http_forwarder, zpages]
   pipelines:
     traces:

@@ -1575,8 +1575,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/purefareceive
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/purefareceiver v0.124.1/go.mod h1:iUeH1Z/G8pQisrAa220w6wwjYQGZkHwHidOfhztVH9c=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/rabbitmqreceiver v0.124.1 h1:1tJNY/h+9U9GOW1/0ROvMoEK1hIeiiNwTsCBn+0XLqI=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/rabbitmqreceiver v0.124.1/go.mod h1:V8kfzEwoaRBGlmn+C0bx2djDLxTHSiOcZLNE4lm2Qs4=
-github.com/open-telemetry/opentelemetry-collector-contrib/receiver/receivercreator v0.124.1 h1:YZ0FPYFusHQQhFZ9BkRIB/rLXo/N6D9DPsCs4tqyFZM=
-github.com/open-telemetry/opentelemetry-collector-contrib/receiver/receivercreator v0.124.1/go.mod h1:fjkSKem8mUj/YqpMzOi3+Hb4hj6I2Zo7dD+MzYCqFZc=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/receivercreator v0.124.1-0.20250415150511-f840bdff19ca h1:2DkV3PPR8izZQbGn0IQrT3/XEXDj5752aEijZMspagw=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/receivercreator v0.124.1-0.20250415150511-f840bdff19ca/go.mod h1:WYFUK1D6wSyuRJU77F3WbD+g1j0F+7E8hmOBLm1fa6o=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/redisreceiver v0.124.1 h1:HUI9nhjPnaoUvGndim7puswlaNHwRWE9GIWrTAcAIh4=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/redisreceiver v0.124.1/go.mod h1:Wown9o/vXUu6VJwpcNrKx/Ap77Q96Zh6V0Uu3LYLaJk=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sapmreceiver v0.124.1 h1:aRefZd/w7LSDHnOlOfnRhepCHRcwiOM2hpuvAFwQAxU=

@@ -107,11 +107,10 @@ integration-test:
 .PHONY: integration-test-with-cover
 integration-test-with-cover:
 	@make integration-test-cover-target TARGET='integration'
-	@echo "$(PWD)"
-	ls -al $(PWD)
-	ls -al $(PWD)/coverage
-	ls -al $(PWD)/tests
-	ls- al $(PWD)/tests/coverage
+	@echo "ls of files in $(TEST_COVER_DIR):"
+	@ls -al $(TEST_COVER_DIR)
+	@echo "ls of files in ./coverage:"
+	@ls -al ./coverage
 
 .PHONY: integration-test-mongodb-discovery
 integration-test-mongodb-discovery:
@@ -192,6 +191,11 @@ smartagent-integration-test:
 .PHONY: smartagent-integration-test-with-cover
 smartagent-integration-test-with-cover:
 	@make integration-test-cover-target TARGET='smartagent_integration'
+	@echo "ls of files in $(TEST_COVER_DIR):"
+	@ls -al $(TEST_COVER_DIR)
+	@echo "ls of files in ./coverage:"
+	@ls -al ./coverage
+	$(GOCMD) tool covdata textfmt -i=$(TEST_COVER_DIR) -o ./smartagent-integration-test-coverage.txt
 
 .PHONY: integration-test-envoy-discovery-k8s
 integration-test-envoy-discovery-k8s:

@@ -107,10 +107,10 @@ integration-test:
 .PHONY: integration-test-with-cover
 integration-test-with-cover:
 	@make integration-test-cover-target TARGET='integration'
-	@echo "ls of files in $(TEST_COVER_DIR):"
-	@ls -al $(TEST_COVER_DIR)
-	@echo "ls of files in ./coverage:"
-	@ls -al ./coverage
+	@echo "ls of files in $(TEST_COVER_DIR):" || true
+	@ls -al $(TEST_COVER_DIR) || true
+	@echo "ls of files in ./coverage:" || true
+	@ls -al ./coverage || true
 
 .PHONY: integration-test-mongodb-discovery
 integration-test-mongodb-discovery:
@@ -186,16 +186,16 @@ integration-test-oracledb-discovery-with-cover:
 
 .PHONY: smartagent-integration-test
 smartagent-integration-test:
+<<<<<<< HEAD
 	@make integration-test TARGET='smartagent_integration'
 
 .PHONY: smartagent-integration-test-with-cover
 smartagent-integration-test-with-cover:
 	@make integration-test-cover-target TARGET='smartagent_integration'
-	@echo "ls of files in $(TEST_COVER_DIR):"
-	@ls -al $(TEST_COVER_DIR)
-	@echo "ls of files in ./coverage:"
-	@ls -al ./coverage
-	$(GOCMD) tool covdata textfmt -i=$(TEST_COVER_DIR) -o ./smartagent-integration-test-coverage.txt
+	@echo "ls of files in $(TEST_COVER_DIR):" || true
+	@ls -al $(TEST_COVER_DIR) || true
+	@echo "ls of files in ./coverage:" || true
+	@ls -al ./coverage || true
 
 .PHONY: integration-test-envoy-discovery-k8s
 integration-test-envoy-discovery-k8s:

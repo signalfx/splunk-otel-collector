@@ -174,7 +174,7 @@ jobs:
     strategy:
       matrix:
         ARCH: [ "amd64", "arm64" ]
-        PROFILE: [ "smartagent" ]
+        PROFILE: [ "integration", "smartagent" ]
       fail-fast: false
     env:
       TEST_OUTPUT: ${{ github.job }}-${{ matrix.PROFILE }}-${{ matrix.ARCH }}.out

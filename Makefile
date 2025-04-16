@@ -307,12 +307,12 @@ binaries-darwin_arm64:
 
 .PHONY: binaries-linux_amd64
 binaries-linux_amd64:
-	GOOS=linux   GOARCH=amd64 $(MAKE) otelcol
+	GOOS=linux   GOARCH=amd64 COVER_TESTING=true $(MAKE) otelcol
 	GOOS=linux   GOARCH=amd64 $(MAKE) migratecheckpoint
 
 .PHONY: binaries-linux_arm64
 binaries-linux_arm64:
-	GOOS=linux   GOARCH=arm64 $(MAKE) otelcol
+	GOOS=linux   GOARCH=arm64 $(MAKE) otelcol COVER_TESTING=true
 	GOOS=linux   GOARCH=arm64 $(MAKE) migratecheckpoint
 
 .PHONY: binaries-windows_amd64
@@ -322,7 +322,7 @@ binaries-windows_amd64:
 
 .PHONY: binaries-linux_ppc64le
 binaries-linux_ppc64le:
-	GOOS=linux GOARCH=ppc64le $(MAKE) otelcol
+	GOOS=linux GOARCH=ppc64le COVER_TESTING=true $(MAKE) otelcol
 	GOOS=linux GOARCH=ppc64le $(MAKE) migratecheckpoint
 
 .PHONY: deb-rpm-tar-package

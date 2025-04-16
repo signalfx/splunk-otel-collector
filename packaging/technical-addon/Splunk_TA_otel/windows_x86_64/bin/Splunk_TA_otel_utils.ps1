@@ -6,27 +6,33 @@ $splunkTAPSLogFile=Join-Path -Path $splunkTAOtelLogDir -ChildPath Splunk_TA_otel
 function otelLogWrite
 {
    Param ([string]$logstring)
-
-   Add-content $splunkTAPSLogFile -value $logstring
+   $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss.fff K"
+   Add-content $splunkTAPSLogFile -value "$timestamp $logstring"
 }
 
 function isOtelProcessRunning($processName)
 {
 	$parent = (Get-WmiObject win32_process | ? processid -eq $PID).parentprocessid
 	$Global:parentPid = $parent
+	otelLogWrite "INFO Parent process id: $parent"
 	$child = (Get-WmiObject win32_process | ? parentprocessid -eq $parent | ? processname -eq $processName).processid
 	$Global:otelPid = $child
+	otelLogWrite "INFO Collector process id: $child"
 	$otelProcess = Get-Process -Id $child
 	if($otelProcess)
 	{
-		otelLogWrite "INFO Otel agent running"
-		return 1
+		return $true
+	}
+	else
+	{
+		return $false
 	}
 }
 
 function waitForExit($parent) 
 {
 	Wait-Process -Id $parent
+	otelLogWrite "INFO Parent process exited"
 }
 
 function forceStopOtelProcess($processId)
@@ -45,9 +51,13 @@ function CheckOtelProcessStop($processId)
 	}
 }
 
+otelLogWrite "INFO Splunk_TA_otelutils.ps1 started"
 start-sleep -s 3
-isOtelProcessRunning($otelProcessName)
-
-waitForExit($parentPid)
-forceStopOtelProcess($otelPid)
-CheckOtelProcessStop($otelPid)
+if (isOtelProcessRunning($otelProcessName)) {
+	otelLogWrite "INFO Otel agent running"
+	waitForExit($parentPid)
+	forceStopOtelProcess($otelPid)
+	CheckOtelProcessStop($otelPid)
+} else {
+	otelLogWrite "ERROR Otel agent not running"
+}

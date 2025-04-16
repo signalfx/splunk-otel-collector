@@ -19,7 +19,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.22.10
+  GO_VERSION: 1.23.8
 
 jobs:
   setup-environment:
@@ -107,6 +107,12 @@ jobs:
           set -o pipefail
           PLATFORM="all" make -e distribute-ta
 
+      - name: Upload Collector TA
+        uses: actions/upload-artifact@v4
+        with:
+          name: Splunk_TA_otel
+          path: ./build/out/distribution/Splunk_TA_otel.tgz
+
   test-discovery:
     name: test-discovery
     runs-on: ubuntu-24.04
@@ -129,6 +135,28 @@ jobs:
           set -o pipefail
           make -e bundle.d otelcol generate-technical-addon copy-local-build-to-ta package-ta
           make -e discovery-test-ta
+  test-envvars:
+    name: test-envvars
+    runs-on: ubuntu-24.04
+    needs: [setup-environment, test]
+    strategy:
+      matrix:
+        PLATFORM: ["all"]
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: '**/go.sum'
+
+      - name: Build & Package TA
+        run: |
+          set -o pipefail
+          make -e package-technical-addon
+          make -e envvar-test-ta
   spell-check:
     name: spell-check
     runs-on: ubuntu-latest

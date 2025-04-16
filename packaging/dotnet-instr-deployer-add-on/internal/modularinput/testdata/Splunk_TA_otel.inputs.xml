@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<input>
+  <server_host>R91395DV</server_host>
+  <server_uri>https://127.0.0.1:8089</server_uri>
+  <session_key>_fake_session_key</session_key>
+  <checkpoint_dir>C:\Program Files\Splunk\var\lib\splunk\modinputs\Splunk_TA_otel</checkpoint_dir>
+  <configuration>
+    <stanza name="Splunk_TA_otel://Splunk_TA_otel" app="Splunk_TA_otel">
+      <param name="disabled">false</param>
+      <param name="host">$decideOnStartup</param>
+      <param name="index">_internal</param>
+      <param name="interval">60</param>
+      <param name="sourcetype">Splunk_TA_otel</param>
+      <param name="splunk_access_token_file">$SPLUNK_OTEL_TA_HOME/local/access_token</param>
+      <param name="splunk_api_url">https://api.us0.signalfx.com</param>
+      <param name="splunk_bundle_dir">$SPLUNK_OTEL_TA_PLATFORM_HOME/bin/agent-bundle</param>
+      <param name="splunk_collectd_dir">$SPLUNK_OTEL_TA_PLATFORM_HOME/bin/agent-bundle/run/collectd</param>
+      <param name="splunk_config">$SPLUNK_OTEL_TA_HOME/configs/ta-agent-config.yaml</param>
+      <param name="splunk_ingest_url">https://ingest.us0.signalfx.com</param>
+      <param name="splunk_listen_interface">localhost</param>
+      <param name="splunk_otel_log_file">$SPLUNK_HOME/var/log/splunk/otel.log</param>
+      <param name="splunk_realm">us0</param>
+      <param name="splunk_trace_url">https://ingest.us0.signalfx.com/v2/trace</param>
+      <param name="start_by_shell">false</param>
+    </stanza>
+  </configuration>
+</input>

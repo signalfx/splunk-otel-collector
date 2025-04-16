@@ -8,7 +8,6 @@ BUILD_TYPE?=release
 VERSION?=latest
 
 GIT_SHA=$(shell git rev-parse --short HEAD)
-GO_ACC=go-acc
 GOARCH=$(shell go env GOARCH)
 GOOS=$(shell go env GOOS)
 
@@ -131,13 +130,19 @@ smartagent-integration-test:
 integration-test-envoy-discovery-k8s:
 	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_envoy_k8s -v -timeout 5m -count 1 ./...
 
-.PHONY: test-with-cover
-test-with-cover:
-	@echo Verifying that all packages have test files to count in coverage
-	@echo pre-compiling tests
-	@time go test -p $(NUM_CORES) ./...
-	$(GO_ACC) ./...
-	go tool cover -html=coverage.txt -o coverage.html
+.PHONY: integration-test-istio-discovery-k8s
+integration-test-istio-discovery-k8s:
+	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_istio_k8s -v -timeout 15m -count 1 ./...
+
+.PHONY: gotest-with-codecov
+gotest-with-codecov:
+	@$(MAKE) for-all-target TARGET="test-with-codecov"
+	$(GOCMD) tool covdata textfmt -i=./coverage -o ./coverage.txt
+
+.PHONY: gotest-cover-without-race
+gotest-cover-without-race:
+	@$(MAKE) for-all-target TARGET="test-cover-without-race"
+	$(GOCMD) tool covdata textfmt -i=./coverage  -o ./coverage.txt
 
 .PHONY: gendependabot
 gendependabot:
@@ -155,13 +160,11 @@ install-tools:
 	cd ./internal/tools && go install github.com/google/addlicense
 	cd ./internal/tools && go install github.com/jstemmer/go-junit-report
 	cd ./internal/tools && go install go.opentelemetry.io/collector/cmd/mdatagen
-	cd ./internal/tools && go install github.com/ory/go-acc
 	cd ./internal/tools && go install github.com/pavius/impi/cmd/impi
 	cd ./internal/tools && go install github.com/tcnksm/ghr
 	cd ./internal/tools && go install golang.org/x/tools/cmd/goimports
 	cd ./internal/tools && go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment
-	cd ./internal/tools && go install golang.org/x/vuln/cmd/govulncheck@master
-
+	cd ./internal/tools && go install golang.org/x/vuln/cmd/govulncheck@latest
 
 .PHONY: generate-metrics
 generate-metrics:

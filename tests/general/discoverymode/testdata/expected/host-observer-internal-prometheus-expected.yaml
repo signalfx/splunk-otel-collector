@@ -22,18 +22,15 @@ resourceMetrics:
         - key: service.instance.id
           value:
             stringValue: 127.0.0.1:52144
-        - key: service.name
-          value:
-            stringValue: prometheus_simple/127.0.0.1:52144
-        - key: service_instance_id
+        - key: service.instance.id
           value:
             stringValue: b3d7e86d-d1fb-47be-9ecc-d3bc4f5b552d
-        - key: service_name
+        - key: service.name
           value:
             stringValue: otelcol
-        - key: service_version
+        - key: service.version
           value:
-            stringValue: v0.115.0
+            stringValue: v0.120.0-12-ca35d36d9f
         - key: url.scheme
           value:
             stringValue: http
@@ -59,15 +56,6 @@ resourceMetrics:
                     - key: label_two
                       value:
                         stringValue: actual.label.two.value.from.env.var
-                    - key: service_instance_id
-                      value:
-                        stringValue: b3d7e86d-d1fb-47be-9ecc-d3bc4f5b552d
-                    - key: service_name
-                      value:
-                        stringValue: otelcol
-                    - key: service_version
-                      value:
-                        stringValue: v0.115.0
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
               isMonotonic: true

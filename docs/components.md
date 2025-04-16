@@ -35,6 +35,7 @@ The distribution offers support for the following components.
 | [hostmetrics](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/hostmetricsreceiver)                                            | [beta]           |
 | [httpcheck](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/httpcheckreceiver)                                                | [in development] |
 | [iis](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/iisreceiver)                                                            | [beta]           |
+| [influxdb](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/influxdbreceiver)                                                       | [beta]           |
 | [jaeger](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jaegerreceiver)                                                      | [beta]           |
 | [jmx](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jmxreceiver)                                                            | [alpha]          |
 | [journald](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/journaldreceiver)                                                  | [alpha]          |
@@ -47,7 +48,7 @@ The distribution offers support for the following components.
 | [lightprometheus](../internal/receiver/lightprometheusreceiver)                                                                                                    | [in development] |
 | [mongodb](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/mongodbreceiver)                                                    | [beta]           |
 | [mongodbatlas](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/mongodbatlasreceiver)                                          | [beta]           |
-| [mysql](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/mongodbreceiver)                                                      | [beta]           |
+| [mysql](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/mysqlreceiver)                                                        | [beta]           |
 | [nginx](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/nginxreceiver)                                                        | [beta]           |
 | [nop](https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/nopreceiver)                                                                    | [beta]           |
 | [oracledb](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/oracledbreceiver)                                                  | [alpha]          |
@@ -132,7 +133,7 @@ The distribution offers support for the following components.
 <div>
 
 | Extensions                                                                                                                          | Stability |
-|:------------------------------------------------------------------------------------------------------------------------------------| :-------- |
+|:------------------------------------------------------------------------------------------------------------------------------------|:----------|
 | [ack](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/ackextension)                           | [alpha]   |
 | [basicauth](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/basicauthextension)               | [beta]    |
 | [bearertokenauth](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/bearertokenauthextension)   | [beta]    |
@@ -146,6 +147,7 @@ The distribution offers support for the following components.
 | [http_forwarder](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/httpforwarderextension)      | [beta]    |
 | [k8s_observer](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/observer/k8sobserver)          | [beta]    |
 | [oauth2client](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/oauth2clientauthextension)     | [beta]    |
+| [opamp](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/opampextension)                       | [alpha]   |
 | [pprof](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/pprofextension)                       | [beta]    |
 | [smartagent](../pkg/extension/smartagentextension)                                                                                  | [beta]    |
 | [zpages](https://github.com/open-telemetry/opentelemetry-collector/tree/main/extension/zpagesextension)                             | [beta]    |

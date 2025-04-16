@@ -19,7 +19,7 @@ on:
       - '!packaging/**'
 
 env:
-  GO_VERSION: '1.22.10'
+  GO_VERSION: 1.23.8
 
 concurrency:
   group: darwin-test-${{ github.event.pull_request.number || github.ref }}
@@ -45,14 +45,32 @@ jobs:
 
       - run: go env -w CGO_ENABLED=0
 
-      - name: Install golang dependency
-        run: make install-tools
-
-      - name: Unit tests with coverage
-        run: make test-with-cover
+      - name: Unit tests
+        run: |
+          set -o pipefail
+          make install-tools
+          mkdir -p unit-test-results-${{ matrix.OS }}/junit
+          trap "go-junit-report  -set-exit-code < unit-test-results-${{ matrix.OS }}/go-unit-tests.out > unit-test-results-${{ matrix.OS }}/junit/results.xml" EXIT
+          make gotest-cover-without-race | tee unit-test-results-${{ matrix.OS }}/go-unit-tests.out
 
       - name: Uploading artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-results-${{ matrix.OS }}
-          path: ./coverage.html
+          name: unit-test-results-${{ matrix.OS }}
+          path: ./unit-test-results-${{ matrix.OS }}
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@0565863a31f2c772f9f0395002a31e3f06189574 # 5.4.0
+        with:
+          fail_ci_if_error: true
+          verbose: true
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: bundle.d
+        run: |
+          make bundle.d
+          if ! git diff --exit-code; then
+            echo "Discovery bundle.d config has changed. Run 'make bundle.d' and push the changes or ensure correct .tmpl updated."
+            exit 1
+          fi

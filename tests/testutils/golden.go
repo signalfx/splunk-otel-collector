@@ -88,7 +88,7 @@ func RunMetricsCollectionTest(t *testing.T, configFile string, expectedFilePath 
 	c.GRPC.NetAddr.Endpoint = fmt.Sprintf("localhost:%d", port)
 	c.HTTP = nil
 	sink := &consumertest.MetricsSink{}
-	receiver, err := f.CreateMetrics(context.Background(), receivertest.NewNopSettings(), c, sink)
+	receiver, err := f.CreateMetrics(context.Background(), receivertest.NewNopSettings(f.Type()), c, sink)
 	require.NoError(t, err)
 	require.NoError(t, receiver.Start(context.Background(), componenttest.NewNopHost()))
 	t.Cleanup(func() {
@@ -125,11 +125,7 @@ func RunMetricsCollectionTest(t *testing.T, configFile string, expectedFilePath 
 
 	index := 0
 	assert.EventuallyWithT(t, func(tt *assert.CollectT) {
-		if len(sink.AllMetrics()) == 0 {
-			assert.Fail(tt, "No metrics collected")
-			return
-		}
-		var err error
+		err := fmt.Errorf("no matching metrics found, %d collected", index)
 		newIndex := len(sink.AllMetrics())
 		for i := index; i < newIndex; i++ {
 			m := sink.AllMetrics()[i]

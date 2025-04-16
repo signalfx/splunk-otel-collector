@@ -17,9 +17,10 @@ https://www.splunk.com/en_us/observability.html).
 Currently, the following Linux distributions and versions are supported:
 
 - Amazon Linux: 2
-- CentOS / Red Hat / Oracle: 7, 8, 9
+- CentOS / Red Hat: 8, 9
+- Oracle: 8, 9
 - Debian: 9, 10, 11
-- SUSE: 12, 15 (**Note:** Only for Collector versions v0.34.0 or higher. Log collection with Fluentd not currently supported.)
+- SUSE: 15 (**Note:** Only for Collector versions v0.34.0 or higher. Log collection with Fluentd not currently supported.)
 - Ubuntu: 18.04, 20.04, 22.04
 
 ## Windows
@@ -302,8 +303,7 @@ after installation/configuration in order for any change to take effect.
 ### SignalFx Auto Instrumentation for .NET on Windows
 
 The option to install the [SignalFx Auto Instrumentation for .NET](
-https://docs.splunk.com/Observability/gdi/get-data-in/application/dotnet/get-started.html)
+https://docs.splunk.com/Observability/gdi/get-data-in/application/otel-dotnet/get-started.html)
 `with_signalfx_dotnet_auto_instrumentation` is deprecated and
 will have no effect after release `0.16.0`.
-Install the [Splunk Distribution of OpenTelemetry .NET](https://docs.splunk.com/observability/en/gdi/get-data-in/application/otel-dotnet/get-started.html#instrument-net-applications-for-splunk-observability-cloud-opentelemetry)
-instead.
+Install the `Splunk Distribution of OpenTelemetry .NET`.

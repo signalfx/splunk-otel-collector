@@ -22,7 +22,7 @@ env:
   PYTHON_VERSION: '3.13'
   PIP_VERSION: '24.2'
   REQUIREMENTS_PATH: "packaging/tests/requirements.txt"
-  GO_VERSION: 1.22.10
+  GO_VERSION: 1.23.8
 
 jobs:
   setup-environment:
@@ -69,7 +69,7 @@ jobs:
             ./bin/*
 
   agent-bundle-linux:
-    runs-on: ${{ fromJSON('["ubuntu-20.04", "otel-arm64"]')[matrix.ARCH == 'arm64'] }}
+    runs-on: ${{ fromJSON('["ubuntu-24.04", "otel-arm64"]')[matrix.ARCH == 'arm64'] }}
     strategy:
       matrix:
         ARCH: ["amd64", "arm64"]
@@ -158,8 +158,7 @@ jobs:
       matrix: ${{ steps.get-matrix.outputs.matrix }}
 
   test-package:
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ${{ fromJSON('["ubuntu-20.04", "ubuntu-22.04"]')[matrix.DISTRO == 'amazonlinux-2023'] }}
+    runs-on: ubuntu-24.04${{ matrix.ARCH == 'arm64' && '-arm' || '' }}
     timeout-minutes: 30
     needs: [build-package, test-package-matrix]
     strategy:
@@ -185,12 +184,6 @@ jobs:
           name: ${{ env.SYS_PACKAGE }}-${{ matrix.ARCH }}-package
           path: ./dist
 
-      - uses: docker/setup-qemu-action@v3
-        if: ${{ matrix.ARCH != 'amd64' }}
-        with:
-          platforms: ${{ matrix.ARCH }}
-          image: tonistiigi/binfmt:qemu-v7.0.0
-
       - name: Setup python
         uses: actions/setup-python@v5
         with:
@@ -213,23 +206,15 @@ jobs:
         continue-on-error: true
         run: |
           distro="${{ matrix.DISTRO }}"
-          if [[ "$distro" = "amazonlinux-2" ]]; then
-            # workaround for pytest substring matching
-            distro="amazonlinux-2 and not amazonlinux-2023"
-          fi
           python3 -u -m pytest -s --verbose -m "${{ env.SYS_PACKAGE }}" \
             -k "$distro and ${{ matrix.ARCH }}" \
             packaging/tests/package_test.py
 
-      # qemu, networking, running systemd in containers, etc., can be flaky
+      # networking, running systemd in containers, etc., can be flaky
       - name: Re-run failed tests
         if: ${{ steps.pytest.outcome == 'failure' }}
         run: |
           distro="${{ matrix.DISTRO }}"
-          if [[ "$distro" = "amazonlinux-2" ]]; then
-            # workaround for pytest substring matching
-            distro="amazonlinux-2 and not amazonlinux-2023"
-          fi
           python3 -u -m pytest -s --verbose -m "${{ env.SYS_PACKAGE }}" \
             -k "$distro and ${{ matrix.ARCH }}" \
             --last-failed \
@@ -262,6 +247,7 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
 
+      # Building multiarch container images requires qemu
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
         with:
@@ -308,7 +294,7 @@ jobs:
           path: ./docker-otelcol
 
   docker-otelcol-verify:
-    runs-on: ubuntu-24.04
+    runs-on: ${{ matrix.ARCH == 'amd64' && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
     needs: [docker-otelcol]
     strategy:
       matrix:
@@ -329,8 +315,9 @@ jobs:
               }
             }
 
+      # There are no GH runners for ppc64le, so use qemu
       - name: Set up QEMU
-        if: ${{ matrix.ARCH != 'amd64' }}
+        if: ${{ matrix.ARCH == 'ppc64le' }}
         uses: docker/setup-qemu-action@v3
         with:
           platforms: ${{ matrix.ARCH }}
@@ -347,7 +334,7 @@ jobs:
       - name: Run docker image
         run: |
           # ensure the collector can start with the default config file
-          docker run --platform linux/${{ matrix.ARCH }} -d -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=fake-realm --name otelcol otelcol:latest
+          docker run --platform linux/${{ matrix.ARCH }} -d -e SPLUNK_ACCESS_TOKEN=abc123 -e SPLUNK_REALM=fake-realm --name otelcol otelcol:latest
           sleep 10
           if [ -z "$( docker ps --filter=status=running --filter=name=otelcol -q )" ]; then
             docker logs otelcol
@@ -381,7 +368,7 @@ jobs:
       - name: Check journalctl
         run: |
           # ensure journalctl can run with the collected libraries
-          docker run --platform linux/${{ matrix.ARCH }} -d -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=fake-realm --name otelcol otelcol:latest
+          docker run --platform linux/${{ matrix.ARCH }} -d -e SPLUNK_ACCESS_TOKEN=abc123 -e SPLUNK_REALM=fake-realm --name otelcol otelcol:latest
           docker exec otelcol /bin/journalctl
           docker rm -f otelcol
 
@@ -389,7 +376,7 @@ jobs:
         if: ${{ matrix.ARCH != 'ppc64le' }}
         run: |
           # ensure python and java can run with the collected libraries
-          docker run --platform linux/${{ matrix.ARCH }} -d -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=fake-realm --name otelcol otelcol:latest
+          docker run --platform linux/${{ matrix.ARCH }} -d -e SPLUNK_ACCESS_TOKEN=abc123 -e SPLUNK_REALM=fake-realm --name otelcol otelcol:latest
           docker exec otelcol /usr/lib/splunk-otel-collector/agent-bundle/bin/python --version
           docker exec otelcol /usr/lib/splunk-otel-collector/agent-bundle/jre/bin/java -version
           # ensure collectd-python plugins were installed

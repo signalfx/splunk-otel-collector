@@ -19,13 +19,14 @@ on:
       - 'go.sum'
       - '!**.md'
       - '!packaging/**'
+  workflow_dispatch: # Allows manual execution of the workflow
 
 concurrency:
   group: build-and-test-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.22.10
+  GO_VERSION: 1.23.8
 
 jobs:
   setup-environment:
@@ -192,16 +193,19 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
 
-      - name: Coverage tests
-        run: |
-          make install-tools
-          make test-with-cover
+      - name: Install Tools
+        run: make install-tools
 
-      - name: Uploading artifacts
-        uses: actions/upload-artifact@v4
+      - name: Run Unit Tests With Coverage
+        run: make gotest-with-codecov
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@0565863a31f2c772f9f0395002a31e3f06189574 # 5.4.0
         with:
-          name: coverage-results
-          path: ./coverage.html
+          fail_ci_if_error: true
+          verbose: true
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   cross-compile:
     name: cross-compile

@@ -107,11 +107,6 @@ func TestDockerObserver(t *testing.T) {
 			pmetrictest.IgnoreResourceAttributeValue("server.address"),
 			pmetrictest.IgnoreResourceAttributeValue("container.name"),
 			pmetrictest.IgnoreResourceAttributeValue("server.port"),
-			pmetrictest.IgnoreResourceAttributeValue("service.name"),
-			pmetrictest.IgnoreResourceAttributeValue("service_instance_id"),
-			pmetrictest.IgnoreResourceAttributeValue("service_version"),
-			pmetrictest.IgnoreMetricAttributeValue("service_version"),
-			pmetrictest.IgnoreMetricAttributeValue("service_instance_id"),
 			pmetrictest.IgnoreTimestamp(),
 			pmetrictest.IgnoreStartTimestamp(),
 			pmetrictest.IgnoreMetricDataPointsOrder(),
@@ -154,8 +149,7 @@ func TestDockerObserver(t *testing.T) {
 				},
 				"telemetry": map[string]any{
 					"metrics": map[string]any{
-						"address": "",
-						"level":   "none",
+						"level": "none",
 					},
 				},
 			},
@@ -232,8 +226,7 @@ func TestDockerObserver(t *testing.T) {
 			},
 			"telemetry": map[string]any{
 				"metrics": map[string]any{
-					"address": "",
-					"level":   "none",
+					"level": "none",
 				},
 				"resource": map[string]any{
 					"splunk_autodiscovery": "true",
@@ -274,7 +267,7 @@ func TestDockerObserver(t *testing.T) {
 	}
 	require.Equal(t, expectedEffective, cc.EffectiveConfig(t, 55554))
 
-	sc, stdout, stderr := cc.Container.AssertExec(t, 25*time.Second,
+	sc, stdout, stderr := cc.Container.AssertExec(t, 3*time.Minute,
 		"sh", "-c", `SPLUNK_DISCOVERY_LOG_LEVEL=error SPLUNK_DEBUG_CONFIG_SERVER=false \
 SPLUNK_DISCOVERY_EXTENSIONS_k8s_observer_ENABLED=false \
 SPLUNK_DISCOVERY_EXTENSIONS_docker_observer_ENABLED=true \
@@ -336,7 +329,6 @@ service:
       - receiver_creator/discovery
   telemetry:
     metrics:
-      address: ""
       level: none
     resource:
       splunk_autodiscovery: "true"

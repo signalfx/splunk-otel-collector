@@ -1,7 +1,7 @@
 # Used for building
 SOURCE_DIR?=$(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 BUILD_DIR?=$(realpath .)/build
-OTEL_COLLECTOR_VERSION?=0.118.0
+OTEL_COLLECTOR_VERSION?=0.122.0
 SPLUNK_OTELCOL_DOWNLOAD_BASE?=https://github.com/signalfx/splunk-otel-collector/releases/download
 PLATFORM?=linux
 ARCH?=amd64
@@ -100,6 +100,19 @@ orca-test-ta: env-guard-verify
 	OLLY_ACCESS_TOKEN="$(OLLY_ACCESS_TOKEN)" \
 	$(SOURCE_DIR)/packaging-scripts/cicd-tests/happypath-test.sh
 
+.PHONY: orca-test-ta
+orca-collectd-test-ta: env-guard-verify
+	SOURCE_DIR="$(SOURCE_DIR)" \
+	BUILD_DIR="$(BUILD_DIR)" \
+	ARCH="$(ARCH)" \
+	PLATFORM="$(PLATFORM)" \
+	OTEL_COLLECTOR_VERSION="$(OTEL_COLLECTOR_VERSION)" \
+	ORCA_CLOUD="$(ORCA_CLOUD)" \
+	UF_VERSION="$(UF_VERSION)" \
+	SPLUNK_PLATFORM="$(SPLUNK_PLATFORM)" \
+	OLLY_ACCESS_TOKEN="$(OLLY_ACCESS_TOKEN)" \
+	$(SOURCE_DIR)/packaging-scripts/cicd-tests/agent-bundle/orca-collectd-test.sh
+
 .PHONY: orca-gateway-test-ta
 orca-gateway-test-ta:  env-guard-verify
 	SOURCE_DIR="$(SOURCE_DIR)" \
@@ -127,6 +140,14 @@ discovery-test-ta:
 	ARCH="$(ARCH)" \
 	PLATFORM="$(PLATFORM)" \
 	$(SOURCE_DIR)/packaging-scripts/cicd-tests/discovery/discovery-docker-test.sh
+
+.PHONY: envvar-test-ta
+envvar-test-ta:
+	SOURCE_DIR="$(SOURCE_DIR)" \
+	BUILD_DIR="$(BUILD_DIR)" \
+	ARCH="$(ARCH)" \
+	PLATFORM="$(PLATFORM)" \
+	$(SOURCE_DIR)/packaging-scripts/cicd-tests/envvars/envvartest.sh
 
 .PHONY: update-ta-deps
 update-ta-deps:

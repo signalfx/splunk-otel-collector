@@ -17,6 +17,7 @@
 package zeroconfig
 
 import (
+	"fmt"
 	"net/http"
 	"os/exec"
 	"path"
@@ -99,29 +100,31 @@ func requireNoErrorExecCommand(t *testing.T, name string, arg ...string) {
 	require.NoError(t, err)
 }
 
-func requireHTTPGetRequestSuccess(t *testing.T, url string) {
+func assertHTTPGetRequestSuccess(t *testing.T, url string) {
 	httpClient := &http.Client{}
 	req, err := http.NewRequest("GET", url, nil)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 	resp, err := httpClient.Do(req)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 	defer resp.Body.Close()
-	require.Equal(t, http.StatusOK, resp.StatusCode)
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }
 
 func testExpectedTracesForHTTPGetRequest(t *testing.T, otlp *testutils.OTLPReceiverSink, url string, expectedTracesFileName string) {
-	requireHTTPGetRequestSuccess(t, url)
-
 	expected, err := golden.ReadTraces(expectedTracesFileName)
 	require.NoError(t, err)
 
-	assert.Eventually(t, func() bool {
-		if otlp.SpanCount() == 0 {
-			return false
-		}
-		receivedOTLPTraces := otlp.AllTraces()
-		for _, trace := range receivedOTLPTraces {
-			err := ptracetest.CompareTraces(expected, trace,
+	// Make only a single successful request to the server to avoid creating multiple traces.
+	assert.EventuallyWithT(t, func(tt *assert.CollectT) {
+		assertHTTPGetRequestSuccess(t, url)
+	}, 3*time.Minute, 100*time.Millisecond, "Failed to connect to target")
+
+	var index int
+	assert.EventuallyWithT(t, func(tt *assert.CollectT) {
+		matchErr := fmt.Errorf("no matching traces found, %d collected", index)
+		newIndex := len(otlp.AllTraces())
+		for i := index; i < newIndex && matchErr != nil; i++ {
+			matchErr = ptracetest.CompareTraces(expected, otlp.AllTraces()[i],
 				ptracetest.IgnoreResourceAttributeValue("host.id"),
 				ptracetest.IgnoreResourceAttributeValue("host.name"),
 				ptracetest.IgnoreResourceAttributeValue("process.owner"),
@@ -139,11 +142,8 @@ func testExpectedTracesForHTTPGetRequest(t *testing.T, otlp *testutils.OTLPRecei
 				ptracetest.IgnoreTraceID(),
 				ptracetest.IgnoreSpanID(),
 			)
-			if err == nil {
-				return true
-			}
-			t.Log(err)
 		}
-		return false
+		index = newIndex
+		assert.NoError(tt, matchErr)
 	}, 1*time.Minute, 10*time.Millisecond, "Failed to receive expected traces")
 }

@@ -67,7 +67,7 @@ func checkMetricsPresence(t *testing.T, metricNames []string, configFile string)
 	mountDir, err := filepath.Abs(filepath.Join("testdata", "script.groovy"))
 	require.NoError(t, err)
 	p, err := testutils.NewCollectorContainer().
-		WithImage(GetCollectorImageOrSkipTest(t)).
+		WithImage(testutils.GetCollectorImageOrSkipTest(t)).
 		WithConfigPath(filepath.Join("testdata", configFile)).
 		WithLogger(logger).
 		WithEnv(map[string]string{

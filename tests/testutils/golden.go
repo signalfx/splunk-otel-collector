@@ -104,7 +104,7 @@ func RunMetricsCollectionTest(t *testing.T, configFile string, expectedFilePath 
 		dockerHost = "host.docker.internal"
 	}
 	cc := NewCollectorContainer().
-		WithImage("otelcol:latest").
+		WithImage(GetCollectorImageOrSkipTest(t)).
 		WithConfigPath(filepath.Join("testdata", configFile)).
 		WithLogger(logger).
 		WithEnv(map[string]string{"OTLP_ENDPOINT": fmt.Sprintf("%s:%d", dockerHost, port)}).

@@ -46,8 +46,12 @@ EXCLUDE_MODS=-not -path "./examples/*"
 FIND_MOD_ARGS=-type f -name "go.mod"
 COVER_PKGS := $(shell find . $(EXCLUDE_MODS) $(FIND_MOD_ARGS) -execdir $(GOCMD) list ./... \; | tr "\n" "," )
 
-COVER_DIR?=$(PWD)/coverage
-COVER_OPTS?=-cover -covermode=atomic -coverpkg $(COVER_PKGS) -args -test.gocoverdir="$(COVER_DIR)"
+COVER_DIR?=coverage
+COVER_DIR_ABS?=$(SRC_ROOT)/$(COVER_DIR)
+TEST_COVER_DIR?=$(SRC_ROOT)/tests/$(COVER_DIR)
+COVER_OPTS?=-cover -covermode=atomic -coverpkg $(COVER_PKGS)
+COVER_TESTING_OPTS?=$(COVER_OPTS) -args -test.gocoverdir="$(COVER_DIR_ABS)"
+COVER_TESTING_INTEGRATION_OPTS?=$(COVER_OPTS) -args -test.gocoverdir="$(TEST_COVER_DIR)"
 
 ALL_PKG_DIRS := $(shell $(GOCMD) list -f '{{ .Dir }}' ./... | $(NORMALIZE_DIRS))
 
@@ -94,8 +98,8 @@ test-with-codecov:
 # https://github.com/shirou/gopsutil/issues/1774
 .PHONY: test-cover-without-race
 test-cover-without-race:
-	mkdir -p $(COVER_DIR)
-	$(GOTEST) $(GOTEST_OPT_WITHOUT_RACE) ./... $(COVER_OPTS)
+	mkdir -p $(COVER_DIR_ABS)
+	$(GOTEST) $(GOTEST_OPT_WITHOUT_RACE) ./... $(COVER_TESTING_OPTS)
 
 .PHONY: addlicense
 addlicense:

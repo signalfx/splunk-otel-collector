@@ -4,6 +4,9 @@
 
 ## v0.124.0
 
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.124.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.124.0)
+and the [opentelemetry-collector-contrib v0.124.1](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.124.1) releases where appropriate.
+
 ### 🛑 Breaking changes 🛑
 
 - (Contrib) `splunkenterprisereceiver`: added new attributes to the receiver and modified config ([#36330](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/36330))

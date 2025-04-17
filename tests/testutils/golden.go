@@ -145,7 +145,7 @@ func RunMetricsCollectionTest(t *testing.T, configFile string, expectedFilePath 
 		index := strings.Index(path, testDirName)
 		cmd := exec.Command("ls", "-la", filepath.Join(path[0:index+len(testDirName)], "coverage"))
 		output, er := cmd.CombinedOutput()
-		if er != nil {
+		if er == nil {
 			fmt.Printf("After shutdown, ls -al %s: %s", filepath.Join(path[0:index+len(testDirName)], "coverage"), string(output))
 		} else {
 			fmt.Printf("Ran into an error with ls: %v", er)

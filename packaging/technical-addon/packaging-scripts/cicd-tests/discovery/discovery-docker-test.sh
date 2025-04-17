@@ -1,8 +1,6 @@
 #!/bin/bash -eu
 set -o pipefail
 
-echo "Skipping discovery tests since it's based on kafka metrics receiver that doesn't work in 0.123.0" && exit 0
-
 [[ -z "$BUILD_DIR" ]] && echo "BUILD_DIR not set" && exit 1
 [[ -z "$SOURCE_DIR" ]] && echo "SOURCE_DIR not set" && exit 1
 

@@ -13,7 +13,6 @@ service:
   telemetry:
     metrics:
       level: none
-      address: ""
   pipelines:
     metrics:
       exporters: [otlp]

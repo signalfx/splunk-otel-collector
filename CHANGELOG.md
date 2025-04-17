@@ -26,6 +26,7 @@ and the [opentelemetry-collector-contrib v0.124.1](https://github.com/open-telem
 
 ### 💡 Enhancements 💡
 
+- (Splunk) Update `splunk-otel-javaagent` to v2.15.0 ([#6131](https://github.com/signalfx/splunk-otel-collector/pull/6131))
 - (Splunk) Update `jmx-metric-gatherer` to v1.46.0 ([#6127](https://github.com/signalfx/splunk-otel-collector/pull/6127))
 - (Core) `exporterhelper`: Add support for bytes-based batching for profiles in the exporterhelper package. ([#3262](https://github.com/open-telemetry/opentelemetry-collector/issues/3262))
 - (Core) `otelcol`: Enhance config validation using <validate> command to capture all validation errors that prevents the collector from starting. ([#8721](https://github.com/open-telemetry/opentelemetry-collector/issues/8721))

@@ -81,6 +81,7 @@
 - (Contrib) `connector/spanmetrics`: This change proposes moving the start timestamp (and last seen timestamp) from the resourceMetrics level to the individual metrics level. This will ensure that each metric has its own accurate start and last seen timestamps, regardless of its relationship to other spans. ([#35994](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/35994))
 - (Contrib) `receiver/kubeletstats`: support user defined CA path for service account using the configtls option `ca_file` ([#39291](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/39291))
 - (Contrib) `splunkenterprisereceiver`: Fixes `otelcol_scraper_errored_metric_points` metric, which was not incrementing properly ([#38691](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/38691))
+- (Contrib) `receivercreator`: Fix automatic discovery of kafka endpoints ([#39313](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/39313)).
 
 ## v0.123.0
 
@@ -90,7 +91,7 @@ releases where appropriate.
 
 ### ❗ Known Issues ❗
 
-- This version won't collect kafka metrics with the discovery mode enabled. Will be fixed in 0.124.0. 
+- This version won't collect kafka metrics with the discovery mode enabled. Will be fixed in 0.124.0.
   See https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/39313 for more details.
 
 ###  🛑 Breaking changes 🛑
@@ -193,7 +194,7 @@ releases where appropriate.
 
 - (Contrib) `exporter/awss3`: Implement timeout for S3 exporter ([#36264](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/36264))
 - (Contrib) `extension/bearertokenauth`: Allow the header name to be customized in the bearerauthtoken extension ([#38793](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/38793))
-- (Contrib) `receiver/hostmetrics`: Reduced the cost of retrieving number of threads and parent process ID on Windows. 
+- (Contrib) `receiver/hostmetrics`: Reduced the cost of retrieving number of threads and parent process ID on Windows.
   Disable the featuregate `hostmetrics.process.onWindowsUseNewGetProcesses` to fallback to the previous[] implementation.
   ([#32947](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/32947), [#38589](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/38589))
 - (Contrib) `receiver/hostmetrics`: Reduced the CPU cost of collecting the `process.handles` metric on Windows. ([#38886](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/38886))
@@ -603,7 +604,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
   Zero values are unaffected.
 
 - (Contrib) `exporter/signalfx`: Warn on dropping metric data points when they have more than allowed dimension count ([#37484](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/37484))
-  
+
   The SignalFx exporter drops metric data points if they have more than 36 dimensions.
   Currently, the exporter logs at debug level when this occurs.
   With this change, the exporter will log at the warning level.

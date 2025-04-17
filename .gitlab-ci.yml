@@ -222,6 +222,7 @@ update-otel-deps:
   only:
     - schedules
   extends: .go-cache
+  tags: [large]
   stage: update-deps
   needs: []
   dependencies: []
@@ -233,6 +234,7 @@ update-otel-deps-nightly:
   only:
     - schedules
   extends: .go-cache
+  tags: [large]
   stage: update-deps
   needs: []
   dependencies: []
@@ -294,6 +296,7 @@ tidy-dependabot-pr:
   rules:
     - if: ($CI_COMMIT_BRANCH =~ /^dependabot\/go_modules\/.*/) && ($CI_COMMIT_AUTHOR =~ /^dependabot.*/) && (($CI_PIPELINE_SOURCE == "merge_request_event") || ($CI_PIPELINE_SOURCE == "push"))
   extends: .go-cache
+  tags: [large]
   stage: update-deps
   needs: []
   dependencies: []
@@ -305,6 +308,7 @@ compile:
   extends:
     - .trigger-filter
     - .go-cache
+  tags: [large]
   stage: build
   needs: []
   parallel:
@@ -1724,6 +1728,7 @@ github-release:
   extends:
     - .trigger-filter
     - .go-cache
+  tags: [large]
   stage: github-release
   dependencies:
     - compile
@@ -1838,3 +1843,82 @@ chef-release:
     - cp -r deployments/chef /tmp/cookbooks/splunk_otel_collector
   script:
     - knife supermarket share -o /tmp/cookbooks splunk_otel_collector
+
+.trigger-dotnet-instrumentation-deployer:
+  only:
+    variables:
+      - $CI_COMMIT_TAG =~ /^dotnet-instrumentation-deployer-ta-v[0-9]+\.[0-9]+\.[0-9]+[^ ]*$/
+  except:
+    - schedules
+
+build-dotnet-instrumentation-deployer:
+  extends: .trigger-dotnet-instrumentation-deployer
+  image: '${DOCKER_HUB_REPO}/golang:${GO_VERSION}'
+  stage: build
+  needs: []
+  dependencies: []
+  before_script:
+    - cd packaging/dotnet-instr-deployer-add-on
+  script:
+    - make download-dotnet-assets
+    - make build
+  artifacts:
+    paths:
+      - packaging/dotnet-instr-deployer-add-on/assets/windows_x86_64/bin/*
+
+sign-dotnet-instrumentation-deployer-exe:
+  extends:
+    - .trigger-dotnet-instrumentation-deployer
+    - .submit-signing-request
+  stage: sign-binaries
+  retry: 2
+  dependencies:
+    - build-dotnet-instrumentation-deployer
+  variables:
+    ARTIFACT: packaging/dotnet-instr-deployer-add-on/assets/windows_x86_64/bin/splunk_otel_dotnet_deployer.exe
+    SIGN_TYPE: WIN
+    DOWNLOAD_DIR: packaging/dotnet-instr-deployer-add-on/assets/windows_x86_64/bin
+  artifacts:
+    paths:
+      - packaging/dotnet-instr-deployer-add-on/assets/windows_x86_64/bin/*
+
+
+pack-dotnet-instrumentation-deployer:
+  extends: .trigger-dotnet-instrumentation-deployer
+  image: '${DOCKER_HUB_REPO}/golang:${GO_VERSION}'
+  stage: package
+  dependencies:
+    - sign-dotnet-instrumentation-deployer-exe
+  before_script:
+    - cd packaging/dotnet-instr-deployer-add-on
+  script:
+    - make pack
+  artifacts:
+    paths:
+      - packaging/dotnet-instr-deployer-add-on/assets/windows_x86_64/bin/*
+      - packaging/dotnet-instr-deployer-add-on/out/distribution/splunk_otel_dotnet_deployer.tgz
+
+dotnet-instrumentation-deployer-release:
+  extends:
+    - .trigger-dotnet-instrumentation-deployer
+    - .go-cache # Use this image since this job uses the ghr tool
+  tags: [large]
+  stage: github-release
+  dependencies:
+    - pack-dotnet-instrumentation-deployer
+  script:
+    - export
+    - cd packaging/dotnet-instr-deployer-add-on
+    - pushd out/distribution/ && shasum -a 256 * > checksums.txt && popd
+    - |
+      set -e
+      if [[ "${CI_COMMIT_TAG:-}" =~ ^dotnet-instrumentation-deployer-ta-v([0-9]+\.[0-9]+\.[0-9]+[^ ]*) ]]; then
+        VERSION=${BASH_REMATCH[1]}
+        VERSION_CHANGELOG="$(awk -v version="$VERSION" '/^## / { if (p) { exit }; if ($2 == version) { p=1; next } } p && NF' CHANGELOG.md)"
+        SPLUNK_OTEL_DOTNET_VERSION=$(grep -oP 'version = \K.*' assets/windows_x86_64/bin/Splunk.OTel.DotNet.psm1 | tr -d '"')
+        RELEASE_NOTES=$(echo -e "$VERSION_CHANGELOG\n\nShipping Splunk OpenTelemetry .NET $SPLUNK_OTEL_DOTNET_VERSION")
+        ghr -t "$GITHUB_TOKEN" -u signalfx -r splunk-otel-collector -prerelease -draft -n "Splunk OpenTelemetry .NET Deployer Technical Add-On v$VERSION" -b "$RELEASE_NOTES" -replace "$CI_COMMIT_TAG" out/distribution/
+      else
+        echo "Failed to get version from $CI_COMMIT_TAG"
+        exit 1
+      fi

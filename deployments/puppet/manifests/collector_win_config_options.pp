@@ -27,5 +27,5 @@ class splunk_otel_collector::collector_win_config_options {
             {}
         }
 
-    $collector_env_vars = stdlib::merge($base_env_vars, $gomemlimit, $listen_interface)
+    $collector_env_vars = $base_env_vars + $gomemlimit + $listen_interface
 }

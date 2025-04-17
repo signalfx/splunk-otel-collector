@@ -67,14 +67,37 @@ func checkMetricsPresence(t *testing.T, metricNames []string, configFile string)
 	mountDir, err := filepath.Abs(filepath.Join("testdata", "script.groovy"))
 	require.NoError(t, err)
 	p, err := testutils.NewCollectorContainer().
+		WithImage(GetCollectorImageOrSkipTest(t)).
 		WithConfigPath(filepath.Join("testdata", configFile)).
 		WithLogger(logger).
 		WithEnv(map[string]string{
 			"OTLP_ENDPOINT": fmt.Sprintf("%s:%d", dockerHost, port),
 			"HOST":          dockerHost,
+			"GOCOVERDIR":    "/etc/otel/collector/coverage",
 		}).
-		WithMount(mountDir, "/opt/script.groovy").
-		Build()
+		WithMount(mountDir, "/opt/script.groovy")
+	require.NoError(t, err)
+
+	var path string
+	testDirName := "tests"
+	if path, err = filepath.Abs("."); err == nil {
+		// Coverage should all be under the top-level `tests/coverage` dir that's mounted
+		// to the container. This string parsing logic is to ensure different sub-directory
+		// tests all put their coverage in the top-level directory.
+		index := strings.Index(path, testDirName)
+		mountPath := filepath.Join(path[0:index+len(testDirName)], "coverage")
+		p = p.WithMount(mountPath, "/etc/otel/collector/coverage")
+		fmt.Printf("PWD: %s, Container mount, source: %s, destination: %s\n", path, mountPath, "/etc/otel/collector/coverage")
+		if fileStat, err := os.Stat(filepath.Join(path[0:index+len(testDirName)], "coverage")); err == nil {
+			fmt.Printf("Coverage dir from source stat succeeded, is dir? %v, mode: %v\n", fileStat.IsDir(), fileStat.Mode())
+		} else {
+			fmt.Printf("coverdir stat err: %v\n", err)
+		}
+	} else {
+		fmt.Printf("Container mount err: %v\n", err)
+	}
+
+	p, err = p.Build()
 	require.NoError(t, err)
 	require.NoError(t, p.Start())
 	t.Cleanup(func() {

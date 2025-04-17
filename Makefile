@@ -186,7 +186,6 @@ integration-test-oracledb-discovery-with-cover:
 
 .PHONY: smartagent-integration-test
 smartagent-integration-test:
-<<<<<<< HEAD
 	@make integration-test TARGET='smartagent_integration'
 
 .PHONY: smartagent-integration-test-with-cover

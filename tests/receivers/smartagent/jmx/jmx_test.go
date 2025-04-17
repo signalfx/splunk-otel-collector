@@ -19,8 +19,10 @@ package tests
 import (
 	"context"
 	"fmt"
+	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 	"time"
 
@@ -66,7 +68,7 @@ func checkMetricsPresence(t *testing.T, metricNames []string, configFile string)
 	}
 	mountDir, err := filepath.Abs(filepath.Join("testdata", "script.groovy"))
 	require.NoError(t, err)
-	p, err := testutils.NewCollectorContainer().
+	p := testutils.NewCollectorContainer().
 		WithImage(testutils.GetCollectorImageOrSkipTest(t)).
 		WithConfigPath(filepath.Join("testdata", configFile)).
 		WithLogger(logger).
@@ -76,7 +78,6 @@ func checkMetricsPresence(t *testing.T, metricNames []string, configFile string)
 			"GOCOVERDIR":    "/etc/otel/collector/coverage",
 		}).
 		WithMount(mountDir, "/opt/script.groovy")
-	require.NoError(t, err)
 
 	var path string
 	testDirName := "tests"

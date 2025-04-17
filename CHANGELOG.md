@@ -72,7 +72,6 @@ and the [opentelemetry-collector-contrib v0.124.1](https://github.com/open-telem
 ### 🧰 Bug fixes 🧰
 
 - (Core) `confighttp`: Ensure http authentication server failures are handled by the provided error handler ([#12666](https://github.com/open-telemetry/opentelemetry-collector/issues/12666))
-- (Contrib) `receiver/filelog`: Remove printing to console the names of files which are read by File Log receiver ([#39414](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/39414))
 - (Contrib) `metricstransformprocessor`: Fix aggregation of exponential histograms in metricstransform processor. ([#39143](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/39143))
   Fix a panic when the number of populated buckets varies, and fix summing of counts for the Zero bucket.
 

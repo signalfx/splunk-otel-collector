@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"runtime"
@@ -165,14 +166,17 @@ func (t *Testcase) newCollector(initial Collector, configFilename string, coverD
 	}
 	collector = collector.WithEnv(splunkEnv)
 
-	if path, err := filepath.Abs("."); err == nil {
+	var path string
+	var err error
+	testDirName := "tests"
+	if path, err = filepath.Abs("."); err == nil {
 		// Coverage should all be under the top-level `tests/coverage` dir that's mounted
 		// to the container. This string parsing logic is to ensure different sub-directory
 		// tests all put their coverage in the top-level directory.
-		testDirName := "tests"
 		index := strings.Index(path, testDirName)
-		collector = collector.WithMount(filepath.Join(path[0:index+len(testDirName)], "coverage"), "/etc/otel/collector/coverage")
-		fmt.Printf("Container mount, source: %s, destination: %s\n", filepath.Join(path[0:index+len(testDirName)], "coverage"), "/etc/otel/collector/coverage")
+		mountPath := filepath.Join(path[0:index+len(testDirName)], "coverage")
+		collector = collector.WithMount(mountPath, "/etc/otel/collector/coverage")
+		fmt.Printf("PWD: %s, Container mount, source: %s, destination: %s\n", path, mountPath, "/etc/otel/collector/coverage")
 		if fileStat, err := os.Stat(filepath.Join(path[0:index+len(testDirName)], "coverage")); err == nil {
 			fmt.Printf("Coverage dir from source stat succeeded, is dir? %v, mode: %v\n", fileStat.IsDir(), fileStat.Mode())
 		} else {
@@ -182,13 +186,22 @@ func (t *Testcase) newCollector(initial Collector, configFilename string, coverD
 		fmt.Printf("Container mount err: %v\n", err)
 	}
 
-	var err error
 	collector, err = collector.Build()
 	require.NoError(t, err)
 	require.NotNil(t, collector)
 	require.NoError(t, collector.Start())
 
-	return collector, func() { require.NoError(t, collector.Shutdown()) }
+	return collector, func() {
+		require.NoError(t, collector.Shutdown())
+		index := strings.Index(path, testDirName)
+		cmd := exec.Command("ls", "-la", filepath.Join(path[0:index+len(testDirName)], "coverage"))
+		output, er := cmd.CombinedOutput()
+		if er != nil {
+			fmt.Printf("After shutdown, ls -al %s: %s\n", filepath.Join(path[0:index+len(testDirName)], "coverage"), string(output))
+		} else {
+			fmt.Printf("Ran into an error with ls: %v\n", er)
+		}
+	}
 }
 
 // PrintLogsOnFailure will print all ObserverLogs messages if the test has failed.  It's intended to be

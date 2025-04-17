@@ -194,10 +194,11 @@ func (t *Testcase) newCollector(initial Collector, configFilename string, coverD
 	return collector, func() {
 		require.NoError(t, collector.Shutdown())
 		index := strings.Index(path, testDirName)
-		cmd := exec.Command("ls", "-la", filepath.Join(path[0:index+len(testDirName)], "coverage"))
+		mountPath := filepath.Join(path[0:index+len(testDirName)], "coverage")
+		cmd := exec.Command("ls", "-la", mountPath)
 		output, er := cmd.CombinedOutput()
-		if er != nil {
-			fmt.Printf("After shutdown, ls -al %s: %s\n", filepath.Join(path[0:index+len(testDirName)], "coverage"), string(output))
+		if er == nil {
+			fmt.Printf("After shutdown, ls -al %s: %s\n", mountPath, string(output))
 		} else {
 			fmt.Printf("Ran into an error with ls: %v\n", er)
 		}

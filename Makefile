@@ -112,6 +112,11 @@ integration-test-with-cover:
 	@echo "ls of files in ./coverage:" || true
 	@ls -al ./coverage || true
 
+.PHONY: integration-test-discovery
+integration-test-discovery:
+	@set -e; $(MAKE_TEST_COVER_DIR) && cd tests && GOCOVERDIR=$(TEST_COVER_DIR) $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=$(TARGET) -v -timeout 5m -count 1 ./... $(COVER_TESTING_INTEGRATION_OPTS)
+	$(GOCMD) tool covdata textfmt -i=$(TEST_COVER_DIR) -o ./$(TARGET)-coverage.txt
+
 .PHONY: integration-test-mongodb-discovery
 integration-test-mongodb-discovery:
 	@make integration-test TARGET='discovery_integration_mongodb'

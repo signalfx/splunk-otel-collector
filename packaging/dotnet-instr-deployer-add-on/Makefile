@@ -21,7 +21,7 @@ download-dotnet-assets:
 build: ./assets/windows_x86_64/bin/$(MOD_INPUT_NAME).exe
 ./assets/windows_x86_64/bin/$(MOD_INPUT_NAME).exe: $(shell find ./ -name '*.go')
 	@echo "Building executable ..."
-	@go build -o ./assets/windows_x86_64/bin/ ./cmd/$(MOD_INPUT_NAME)/...
+	@GOOS=windows go build -o ./assets/windows_x86_64/bin/ ./cmd/$(MOD_INPUT_NAME)/...
 
 .PHONY: pack
 pack:

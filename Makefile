@@ -108,7 +108,7 @@ integration-test-with-cover:
 
 .PHONY: integration-test-mongodb-discovery
 integration-test-mongodb-discovery:
-	@make integration-test TARGET='discovery_integration_mongodb'
+	@make integration-test-target TARGET='discovery_integration_mongodb'
 
 .PHONY: integration-test-mongodb-discovery-with-cover
 integration-test-mongodb-discovery-with-cover:
@@ -116,7 +116,7 @@ integration-test-mongodb-discovery-with-cover:
 
 .PHONY: integration-test-mysql-discovery
 integration-test-mysql-discovery:
-	@make integration-test TARGET='discovery_integration_mysql'
+	@make integration-test-target TARGET='discovery_integration_mysql'
 
 .PHONY: integration-test-mysql-discovery-with-cover
 integration-test-mysql-discovery-with-cover:
@@ -124,7 +124,7 @@ integration-test-mysql-discovery-with-cover:
 
 .PHONY: integration-test-kafkametrics-discovery
 integration-test-kafkametrics-discovery:
-	@make integration-test TARGET='discovery_integration_kafkametrics'
+	@make integration-test-target TARGET='discovery_integration_kafkametrics'
 
 .PHONY: integration-test-kafkametrics-discovery-with-cover
 integration-test-kafkametrics-discovery-with-cover:
@@ -132,7 +132,7 @@ integration-test-kafkametrics-discovery-with-cover:
 
 .PHONY: integration-test-jmx/cassandra-discovery
 integration-test-jmx/cassandra-discovery:
-	@make integration-test TARGET='discovery_integration_jmx'
+	@make integration-test-target TARGET='discovery_integration_jmx'
 
 .PHONY: integration-test-jmx/cassandra-discovery-with-cover
 integration-test-jmx/cassandra-discovery-with-cover:
@@ -140,7 +140,7 @@ integration-test-jmx/cassandra-discovery-with-cover:
 
 .PHONY: integration-test-apache-discovery
 integration-test-apache-discovery:
-	@make integration-test TARGET='discovery_integration_apachewebserver'
+	@make integration-test-target TARGET='discovery_integration_apachewebserver'
 
 .PHONY: integration-test-apache-discovery-with-cover
 integration-test-apache-discovery-with-cover:
@@ -148,7 +148,7 @@ integration-test-apache-discovery-with-cover:
 
 .PHONY: integration-test-envoy-discovery
 integration-test-envoy-discovery:
-	@make integration-test TARGET='discovery_integration_envoy'
+	@make integration-test-target TARGET='discovery_integration_envoy'
 
 .PHONY: integration-test-envoy-discovery-with-cover
 integration-test-envoy-discovery-with-cover:
@@ -156,7 +156,7 @@ integration-test-envoy-discovery-with-cover:
 
 .PHONY: integration-test-nginx-discovery
 integration-test-nginx-discovery:
-	@make integration-test TARGET='discovery_integration_nginx'
+	@make integration-test-target TARGET='discovery_integration_nginx'
 
 .PHONY: integration-test-nginx-discovery-with-cover
 integration-test-nginx-discovery-with-cover:
@@ -164,7 +164,7 @@ integration-test-nginx-discovery-with-cover:
 
 .PHONY: integration-test-redis-discovery
 integration-test-redis-discovery:
-	@make integration-test TARGET='discovery_integration_redis'
+	@make integration-test-target TARGET='discovery_integration_redis'
 
 .PHONY: integration-test-redis-discovery-with-cover
 integration-test-redis-discovery-with-cover:
@@ -172,7 +172,7 @@ integration-test-redis-discovery-with-cover:
 
 .PHONY: integration-test-oracledb-discovery
 integration-test-oracledb-discovery:
-	@make integration-test TARGET='discovery_integration_oracledb'
+	@make integration-test-target TARGET='discovery_integration_oracledb'
 
 .PHONY: integration-test-oracledb-discovery-with-cover
 integration-test-oracledb-discovery-with-cover:
@@ -180,7 +180,7 @@ integration-test-oracledb-discovery-with-cover:
 
 .PHONY: smartagent-integration-test
 smartagent-integration-test:
-	@make integration-test TARGET='smartagent_integration'
+	@make integration-test-target TARGET='smartagent_integration'
 
 .PHONY: smartagent-integration-test-with-cover
 smartagent-integration-test-with-cover:
@@ -188,7 +188,7 @@ smartagent-integration-test-with-cover:
 
 .PHONY: integration-test-envoy-discovery-k8s
 integration-test-envoy-discovery-k8s:
-	@make integration-test TARGET='discovery_integration_envoy_k8s'
+	@make integration-test-target TARGET='discovery_integration_envoy_k8s'
 
 .PHONY: integration-test-envoy-discovery-k8s-with-cover
 integration-test-envoy-discovery-k8s-with-cover:
@@ -196,7 +196,7 @@ integration-test-envoy-discovery-k8s-with-cover:
 
 .PHONY: integration-test-istio-discovery-k8s
 integration-test-istio-discovery-k8s:
-	@make integration-test TARGET='discovery_integration_istio_k8s'
+	@make integration-test-target TARGET='discovery_integration_istio_k8s'
 
 .PHONY: integration-test-istio-discovery-k8s-with-cover
 integration-test-istio-discovery-k8s-with-cover:

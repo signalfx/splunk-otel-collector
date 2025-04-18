@@ -79,6 +79,13 @@ func jmxCassandraAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFi
 	dockerGID, err := getDockerGID()
 	require.NoError(t, err)
 
+	coverDest := os.Getenv("CONTAINER_COVER_DEST")
+	coverSrc := os.Getenv("CONTAINER_COVER_SRC")
+	var coverDirBind string
+	if coverSrc != "" && coverDest != "" {
+		coverDirBind = fmt.Sprintf("%s:%s", coverSrc, coverDest)
+	}
+
 	otelConfigPath, err := filepath.Abs(filepath.Join(".", "testdata", configFile))
 	if err != nil {
 		return nil, err
@@ -95,11 +102,12 @@ func jmxCassandraAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFi
 	req := testcontainers.ContainerRequest{
 		Image: "otelcol:latest",
 		HostConfigModifier: func(hc *container.HostConfig) {
-			hc.Binds = []string{"/var/run/docker.sock:/var/run/docker.sock"}
+			hc.Binds = []string{"/var/run/docker.sock:/var/run/docker.sock", coverDirBind}
 			hc.NetworkMode = network.NetworkHost
 			hc.GroupAdd = []string{dockerGID}
 		},
 		Env: map[string]string{
+			"GOCOVERDIR":                  coverDest,
 			"SPLUNK_REALM":                "us2",
 			"SPLUNK_ACCESS_TOKEN":         "12345",
 			"SPLUNK_DISCOVERY_LOG_LEVEL":  "info",

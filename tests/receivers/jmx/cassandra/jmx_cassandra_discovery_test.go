@@ -23,7 +23,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"syscall"
 	"testing"
 	"time"
@@ -89,25 +88,24 @@ func jmxCassandraAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFi
 		return nil, err
 	}
 
-	var path string
-	var mountPath string
-	testDirName := "tests"
-	if path, err = filepath.Abs("."); err == nil {
+	coverDest := os.Getenv("CONTAINER_COVER_DEST")
+	coverSrc := os.Getenv("CONTAINER_COVER_SRC")
+	var coverDirBind string
+	if coverSrc != "" && coverDest != "" {
+		coverDirBind = fmt.Sprintf("%s:%s", coverSrc, coverDest)
+
 		// Coverage should all be under the top-level `tests/coverage` dir that's mounted
 		// to the container. This string parsing logic is to ensure different sub-directory
 		// tests all put their coverage in the top-level directory.
-		index := strings.Index(path, testDirName)
-		mountPath = filepath.Join(path[0:index+len(testDirName)], "coverage")
-		fmt.Printf("PWD: %s, Container mount, source: %s, destination: %s\n", path, mountPath, "/etc/otel/collector/coverage")
-		if fileStat, err := os.Stat(filepath.Join(path[0:index+len(testDirName)], "coverage")); err == nil {
+		fmt.Printf("Container mount, source: %s, destination: %s\n", coverSrc, coverDest)
+		if fileStat, err := os.Stat(coverSrc); err == nil {
 			fmt.Printf("Coverage dir from source stat succeeded, is dir? %v, mode: %v\n", fileStat.IsDir(), fileStat.Mode())
 		} else {
 			fmt.Printf("coverdir stat err: %v\n", err)
 		}
 	} else {
-		fmt.Printf("Container mount err: %v\n", err)
+		fmt.Printf("coversrc or coverdest not set")
 	}
-	coverDirBind := fmt.Sprintf("%s:/etc/otel/collector/coverage", mountPath)
 
 	currPath, err := filepath.Abs(filepath.Join(".", "testdata"))
 	if err != nil {
@@ -128,7 +126,7 @@ func jmxCassandraAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFi
 			"SPLUNK_OTEL_COLLECTOR_IMAGE": "otelcol:latest",
 			"USERNAME":                    "hello",
 			"PASSWORD":                    "world",
-			"GOCOVERDIR":                  "/etc/otel/collector/coverage",
+			"GOCOVERDIR":                  coverDest,
 		},
 		Entrypoint: []string{"/otelcol", "--config", "/home/otel-local-config.yaml"},
 		Files: []testcontainers.ContainerFile{

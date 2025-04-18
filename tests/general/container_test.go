@@ -18,6 +18,7 @@ package tests
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -33,6 +34,9 @@ import (
 
 func TestDefaultContainerConfigRequiresEnvVars(t *testing.T) {
 	image := testutils.GetCollectorImageOrSkipTest(t)
+	coverDest := os.Getenv("CONTAINER_COVER_DEST")
+	coverSrc := os.Getenv("CONTAINER_COVER_SRC")
+
 	tests := []struct {
 		name    string
 		env     map[string]string
@@ -41,10 +45,12 @@ func TestDefaultContainerConfigRequiresEnvVars(t *testing.T) {
 		{"missing realm", map[string]string{
 			"SPLUNK_REALM":        "",
 			"SPLUNK_ACCESS_TOKEN": "some_token",
+			"GOCOVERDIR":          coverDest,
 		}, "SPLUNK_REALM"},
 		{"missing token", map[string]string{
 			"SPLUNK_REALM":        "some_realm",
 			"SPLUNK_ACCESS_TOKEN": "",
+			"GOCOVERDIR":          coverDest,
 		}, "SPLUNK_ACCESS_TOKEN"},
 	}
 	for _, testcase := range tests {
@@ -52,7 +58,14 @@ func TestDefaultContainerConfigRequiresEnvVars(t *testing.T) {
 			logCore, logs := observer.New(zap.DebugLevel)
 			logger := zap.New(logCore)
 
-			collector, err := testutils.NewCollectorContainer().WithImage(image).WithEnv(testcase.env).WithLogger(logger).WillFail(true).Build()
+			collector := testutils.NewCollectorContainer().WithImage(image).WithEnv(testcase.env).WithLogger(logger).WillFail(true)
+
+			if coverSrc != "" && coverDest != "" {
+				collector = collector.WithMount(coverSrc, coverDest)
+			}
+
+			var err error
+			collector, err = collector.Build()
 			require.NoError(t, err)
 			require.NotNil(t, collector)
 			defer collector.Shutdown()

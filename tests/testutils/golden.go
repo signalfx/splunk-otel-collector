@@ -18,6 +18,7 @@ package testutils
 import (
 	"context"
 	"fmt"
+	"os"
 	"path/filepath"
 	"runtime"
 	"testing"
@@ -36,9 +37,9 @@ import (
 )
 
 type metricCollectionTestOpts struct {
-	compareMetricsOptions []pmetrictest.CompareMetricsOption
 	collectorEnvVars      map[string]string
 	fileMounts            map[string]string
+	compareMetricsOptions []pmetrictest.CompareMetricsOption
 }
 
 type MetricsCollectionTestOption func(*metricCollectionTestOpts)
@@ -100,11 +101,18 @@ func RunMetricsCollectionTest(t *testing.T, configFile string, expectedFilePath 
 	if runtime.GOOS == "darwin" {
 		dockerHost = "host.docker.internal"
 	}
+
+	coverDest := os.Getenv("CONTAINER_COVER_DEST")
+	coverSrc := os.Getenv("CONTAINER_COVER_SRC")
+
 	cc := NewCollectorContainer().
 		WithImage(GetCollectorImageOrSkipTest(t)).
 		WithConfigPath(filepath.Join("testdata", configFile)).
 		WithLogger(logger).
-		WithEnv(map[string]string{"OTLP_ENDPOINT": fmt.Sprintf("%s:%d", dockerHost, port)}).
+		WithEnv(map[string]string{
+			"GOCOVERDIR":    coverDest,
+			"OTLP_ENDPOINT": fmt.Sprintf("%s:%d", dockerHost, port),
+		}).
 		WithEnv(opts.collectorEnvVars)
 	for k, v := range opts.fileMounts {
 		cc.(*CollectorContainer).Container = cc.(*CollectorContainer).Container.WithFile(testcontainers.ContainerFile{
@@ -113,6 +121,11 @@ func RunMetricsCollectionTest(t *testing.T, configFile string, expectedFilePath 
 			FileMode:          0644,
 		})
 	}
+
+	if coverSrc != "" && coverDest != "" {
+		cc = cc.WithMount(coverSrc, coverDest)
+	}
+
 	p, err := cc.Build()
 	require.NoError(t, err)
 	require.NoError(t, p.Start())

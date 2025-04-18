@@ -86,7 +86,7 @@ jobs:
       - name: gofmt
         run: |
           make install-tools
-          make fmt
+          make for-all CMD="make fmt"
           if ! git diff --exit-code; then
             echo "One or more Go files are not formatted correctly. Run 'make fmt' and push the changes."
             exit 1

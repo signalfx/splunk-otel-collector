@@ -237,13 +237,13 @@ jobs:
           if [[ "${{ matrix.PROFILE }}" = "smartagent" ]]; then
             target="smartagent-integration-test-with-cover"
           fi
+          export CONTAINER_COVER_SRC="$(realpath .)/tests/coverage"
           make $target 2>&1 | tee $TEST_OUTPUT
           exit_status=${PIPESTATUS[0]}
           echo "Exit status: $exit_status"
           exit $exit_status
         env:
           CONTAINER_COVER_DEST: '/etc/otel/collector/coverage'
-          CONTAINER_COVER_SRC: '$(realpath .)/tests/coverage'
           SPLUNK_OTEL_COLLECTOR_IMAGE: 'otelcol:latest'
       # The Integration Test output is extremely large so we upload it as an artifact
       - name: Upload Integration Test Output as Artifact
@@ -325,13 +325,13 @@ jobs:
           if [[ "${{ matrix.PROFILE }}" = "smartagent" ]]; then
             target="smartagent-integration-test-with-cover"
           fi
+          export CONTAINER_COVER_SRC="$(realpath .)/tests/coverage"
           make $target 2>&1 | tee $TEST_OUTPUT
           exit_status=${PIPESTATUS[0]}
           echo "Exit status: $exit_status"
           exit $exit_status
         env:
           CONTAINER_COVER_DEST: '/etc/otel/collector/coverage'
-          CONTAINER_COVER_SRC: '$(realpath .)/tests/coverage'
           SPLUNK_OTEL_COLLECTOR_IMAGE: ""
       # The Integration Test output is extremely large so we upload it as an artifact
       - name: Upload Integration Test Output as Artifact
@@ -405,10 +405,10 @@ jobs:
         - run: chmod a+x ./bin/*
         - name: Run ${{ matrix.SERVICE }} Discovery Integration Test With Cover
           run: |
+            export CONTAINER_COVER_SRC="$(realpath .)/tests/coverage"
             make integration-test-${{ matrix.SERVICE }}-discovery-with-cover
           env:
             CONTAINER_COVER_DEST: '/etc/otel/collector/coverage'
-            CONTAINER_COVER_SRC: '$(realpath .)/tests/coverage'
             SPLUNK_OTEL_COLLECTOR_IMAGE: 'otelcol:latest'
         - name: Upload coverage report
           uses: codecov/codecov-action@0565863a31f2c772f9f0395002a31e3f06189574 # 5.4.0
@@ -476,10 +476,11 @@ jobs:
         run: |
           kind load docker-image otelcol:latest --name kind
       - name: Run ${{ matrix.SERVICE }} Discovery Kubernetes Integration Test With Cover
-        run: KUBECONFIG=$HOME/.kube/config SKIP_TEARDOWN=true make integration-test-${{ matrix.SERVICE }}-discovery-k8s-with-cover
+        run: |
+          export CONTAINER_COVER_SRC="$(realpath .)/tests/coverage"
+          KUBECONFIG=$HOME/.kube/config SKIP_TEARDOWN=true make integration-test-${{ matrix.SERVICE }}-discovery-k8s-with-cover
         env:
           CONTAINER_COVER_DEST: '/etc/otel/collector/coverage'
-          CONTAINER_COVER_SRC: '$(realpath .)/tests/coverage'
       - name: Print logs
         if: failure()
         run: |

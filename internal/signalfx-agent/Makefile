@@ -11,8 +11,8 @@ GOTEST_OPT_WITHOUT_RACE?= -v -timeout 180s --tags=$(GO_BUILD_TAGS)
 
 # COVER_PKGS is the list of packages to include in the coverage
 COVER_PKGS := $(shell $(GOCMD) list ./... | tr "\n" ",")
-COVER_DIR?=$(PWD)/coverage
-COVER_OPTS?=-cover -covermode=atomic -coverpkg $(COVER_PKGS) -args -test.gocoverdir="$(COVER_DIR)"
+COVER_DIR_ABS?=$(PWD)/coverage
+COVER_TESTING_OPTS?=-cover -covermode=atomic -coverpkg $(COVER_PKGS) -args -test.gocoverdir="$(COVER_DIR_ABS)"
 
 .PHONY: clean
 clean:
@@ -64,8 +64,8 @@ test-race-detector:
 # https://github.com/shirou/gopsutil/issues/1774
 .PHONY: test-cover-without-race
 test-cover-without-race:
-	mkdir -p $(COVER_DIR)
-	$(GOTEST) $(GOTEST_OPT_WITHOUT_RACE) ./... $(COVER_OPTS)
+	mkdir -p $(COVER_DIR_ABS)
+	$(GOTEST) $(GOTEST_OPT_WITHOUT_RACE) ./... $(COVER_TESTING_OPTS)
 
 .PHONY: check
 check: lint vet test
@@ -85,5 +85,5 @@ misspell: misspell-noop
 
 .PHONY: test-with-codecov
 test-with-codecov:
-	mkdir -p $(COVER_DIR)
-	$(GOTEST) $(GOTEST_OPT) ./... $(COVER_OPTS)
+	mkdir -p $(COVER_DIR_ABS)
+	$(GOTEST) $(GOTEST_OPT) ./... $(COVER_TESTING_OPTS)

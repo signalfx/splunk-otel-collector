@@ -230,7 +230,7 @@ jobs:
         if: matrix.PROFILE == 'integration'
       - run: redis-cli set tempkey tempvalue
         if: matrix.PROFILE == 'integration'
-      - name: Run Integration Test
+      - name: Run Integration Test With Cover
         run: |
           set -o pipefail
           target="integration-test-with-cover"

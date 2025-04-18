@@ -88,6 +88,25 @@ func jmxCassandraAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFi
 		return nil, err
 	}
 
+	coverDest := os.Getenv("CONTAINER_COVER_DEST")
+	coverSrc := os.Getenv("CONTAINER_COVER_SRC")
+	var coverDirBind string
+	if coverSrc != "" && coverDest != "" {
+		coverDirBind = fmt.Sprintf("%s:%s", coverSrc, coverDest)
+
+		// Coverage should all be under the top-level `tests/coverage` dir that's mounted
+		// to the container. This string parsing logic is to ensure different sub-directory
+		// tests all put their coverage in the top-level directory.
+		fmt.Printf("Container mount, source: %s, destination: %s\n", coverSrc, coverDest)
+		if fileStat, err := os.Stat(coverSrc); err == nil {
+			fmt.Printf("Coverage dir from source stat succeeded, is dir? %v, mode: %v\n", fileStat.IsDir(), fileStat.Mode())
+		} else {
+			fmt.Printf("coverdir stat err: %v\n", err)
+		}
+	} else {
+		fmt.Printf("coversrc or coverdest not set")
+	}
+
 	currPath, err := filepath.Abs(filepath.Join(".", "testdata"))
 	if err != nil {
 		return nil, err
@@ -95,7 +114,7 @@ func jmxCassandraAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFi
 	req := testcontainers.ContainerRequest{
 		Image: "otelcol:latest",
 		HostConfigModifier: func(hc *container.HostConfig) {
-			hc.Binds = []string{"/var/run/docker.sock:/var/run/docker.sock"}
+			hc.Binds = []string{"/var/run/docker.sock:/var/run/docker.sock", coverDirBind}
 			hc.NetworkMode = network.NetworkHost
 			hc.GroupAdd = []string{dockerGID}
 		},
@@ -107,6 +126,7 @@ func jmxCassandraAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFi
 			"SPLUNK_OTEL_COLLECTOR_IMAGE": "otelcol:latest",
 			"USERNAME":                    "hello",
 			"PASSWORD":                    "world",
+			"GOCOVERDIR":                  coverDest,
 		},
 		Entrypoint: []string{"/otelcol", "--config", "/home/otel-local-config.yaml"},
 		Files: []testcontainers.ContainerFile{

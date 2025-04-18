@@ -18,8 +18,11 @@ package testutils
 import (
 	"context"
 	"fmt"
+	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 	"time"
 
@@ -36,9 +39,9 @@ import (
 )
 
 type metricCollectionTestOpts struct {
-	compareMetricsOptions []pmetrictest.CompareMetricsOption
 	collectorEnvVars      map[string]string
 	fileMounts            map[string]string
+	compareMetricsOptions []pmetrictest.CompareMetricsOption
 }
 
 type MetricsCollectionTestOption func(*metricCollectionTestOpts)
@@ -105,7 +108,28 @@ func RunMetricsCollectionTest(t *testing.T, configFile string, expectedFilePath 
 		WithConfigPath(filepath.Join("testdata", configFile)).
 		WithLogger(logger).
 		WithEnv(map[string]string{"OTLP_ENDPOINT": fmt.Sprintf("%s:%d", dockerHost, port)}).
-		WithEnv(opts.collectorEnvVars)
+		WithEnv(opts.collectorEnvVars).
+		WithEnv(map[string]string{"GOCOVERDIR": "/etc/otel/collector/coverage"})
+
+	var path string
+	testDirName := "tests"
+	if path, err = filepath.Abs("."); err == nil {
+		// Coverage should all be under the top-level `tests/coverage` dir that's mounted
+		// to the container. This string parsing logic is to ensure different sub-directory
+		// tests all put their coverage in the top-level directory.
+		index := strings.Index(path, testDirName)
+		mountPath := filepath.Join(path[0:index+len(testDirName)], "coverage")
+		cc = cc.WithMount(mountPath, "/etc/otel/collector/coverage")
+		fmt.Printf("PWD: %s, Container mount, source: %s, destination: %s\n", path, mountPath, "/etc/otel/collector/coverage")
+		if fileStat, err := os.Stat(filepath.Join(path[0:index+len(testDirName)], "coverage")); err == nil {
+			fmt.Printf("Coverage dir from source stat succeeded, is dir? %v, mode: %v\n", fileStat.IsDir(), fileStat.Mode())
+		} else {
+			fmt.Printf("coverdir stat err: %v\n", err)
+		}
+	} else {
+		fmt.Printf("Container mount err: %v\n", err)
+	}
+
 	for k, v := range opts.fileMounts {
 		cc.(*CollectorContainer).Container = cc.(*CollectorContainer).Container.WithFile(testcontainers.ContainerFile{
 			HostFilePath:      k,
@@ -118,6 +142,14 @@ func RunMetricsCollectionTest(t *testing.T, configFile string, expectedFilePath 
 	require.NoError(t, p.Start())
 	t.Cleanup(func() {
 		require.NoError(t, p.Shutdown())
+		index := strings.Index(path, testDirName)
+		cmd := exec.Command("ls", "-la", filepath.Join(path[0:index+len(testDirName)], "coverage"))
+		output, er := cmd.CombinedOutput()
+		if er == nil {
+			fmt.Printf("After shutdown, ls -al %s: %s", filepath.Join(path[0:index+len(testDirName)], "coverage"), string(output))
+		} else {
+			fmt.Printf("Ran into an error with ls: %v", er)
+		}
 	})
 
 	expected, err := golden.ReadMetrics(filepath.Join("testdata", expectedFilePath))

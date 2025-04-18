@@ -18,10 +18,12 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"os/exec"
 	"path"
 	"runtime"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -138,6 +140,11 @@ func (t *Testcase) newCollector(initial Collector, configFilename string, builde
 		"SPLUNK_TEST_ID": t.ID,
 	}
 
+	coverDest := os.Getenv("CONTAINER_COVER_DEST")
+	if coverDest != "" {
+		envVars["GOCOVERDIR"] = coverDest
+	}
+
 	if configFilename != "" {
 		collector = collector.WithConfigPath(
 			path.Join(".", "testdata", configFilename),
@@ -159,13 +166,35 @@ func (t *Testcase) newCollector(initial Collector, configFilename string, builde
 	}
 	collector = collector.WithEnv(splunkEnv)
 
+	coverSrc := os.Getenv("CONTAINER_COVER_SRC")
+	if coverSrc != "" && coverDest != "" {
+		collector = collector.WithMount(coverSrc, coverDest)
+		fmt.Printf("Container mount, source: %s, destination: %s\n", coverSrc, coverDest)
+		if fileStat, err := os.Stat(coverSrc); err == nil {
+			fmt.Printf("Coverage dir from source stat succeeded, is dir? %v, mode: %v\n", fileStat.IsDir(), fileStat.Mode())
+		} else {
+			fmt.Printf("coverdir stat err: %v\n", err)
+		}
+	} else {
+		fmt.Printf("Cover src or cover dest is empty, not mounting coverage dir")
+	}
+
 	var err error
 	collector, err = collector.Build()
 	require.NoError(t, err)
 	require.NotNil(t, collector)
 	require.NoError(t, collector.Start())
 
-	return collector, func() { require.NoError(t, collector.Shutdown()) }
+	return collector, func() {
+		require.NoError(t, collector.Shutdown())
+		cmd := exec.Command("ls", "-la", coverSrc)
+		output, er := cmd.CombinedOutput()
+		if er == nil {
+			fmt.Printf("After shutdown, ls -al %s: %s\n", coverSrc, string(output))
+		} else {
+			fmt.Printf("Ran into an error with ls: %v\n", er)
+		}
+	}
 }
 
 // PrintLogsOnFailure will print all ObserverLogs messages if the test has failed.  It's intended to be
@@ -185,4 +214,38 @@ func (t *Testcase) PrintLogsOnFailure() {
 // Validating shutdown helper for the Testcase's OTLPReceiverSink
 func (t *Testcase) ShutdownOTLPReceiverSink() {
 	require.NoError(t, t.OTLPReceiverSink.Shutdown())
+}
+
+func CheckMetricsPresence(t *testing.T, metricNames []string, configFile string) {
+	tc := NewTestcase(t)
+	defer tc.PrintLogsOnFailure()
+	defer tc.ShutdownOTLPReceiverSink()
+
+	_, shutdown := tc.SplunkOtelCollectorContainer(configFile)
+	tc.Cleanup(shutdown)
+
+	missingMetrics := make(map[string]any, len(metricNames))
+	for _, m := range metricNames {
+		missingMetrics[m] = struct{}{}
+	}
+
+	assert.EventuallyWithT(tc, func(tt *assert.CollectT) {
+		for i := 0; i < len(tc.OTLPReceiverSink.AllMetrics()); i++ {
+			m := tc.OTLPReceiverSink.AllMetrics()[i]
+			for j := 0; j < m.ResourceMetrics().Len(); j++ {
+				rm := m.ResourceMetrics().At(j)
+				for k := 0; k < rm.ScopeMetrics().Len(); k++ {
+					sm := rm.ScopeMetrics().At(k)
+					for l := 0; l < sm.Metrics().Len(); l++ {
+						delete(missingMetrics, sm.Metrics().At(l).Name())
+					}
+				}
+			}
+		}
+		msg := "Missing metrics:\n"
+		for k := range missingMetrics {
+			msg += fmt.Sprintf("- %q\n", k)
+		}
+		assert.Len(tt, missingMetrics, 0, msg)
+	}, 1*time.Minute, 1*time.Second)
 }

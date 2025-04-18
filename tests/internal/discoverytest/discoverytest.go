@@ -23,6 +23,7 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"syscall"
 	"testing"
 	"time"
@@ -69,10 +70,31 @@ func Run(t *testing.T, receiverName string, configFilePath string, logMessageToA
 	dockerGID, err := getDockerGID()
 	require.NoError(t, err)
 
+	var path string
+	var mountPath string
+	testDirName := "tests"
+	if path, err = filepath.Abs("."); err == nil {
+		// Coverage should all be under the top-level `tests/coverage` dir that's mounted
+		// to the container. This string parsing logic is to ensure different sub-directory
+		// tests all put their coverage in the top-level directory.
+		index := strings.Index(path, testDirName)
+		mountPath = filepath.Join(path[0:index+len(testDirName)], "coverage")
+		fmt.Printf("PWD: %s, Container mount, source: %s, destination: %s\n", path, mountPath, "/etc/otel/collector/coverage")
+		if fileStat, err := os.Stat(filepath.Join(path[0:index+len(testDirName)], "coverage")); err == nil {
+			fmt.Printf("Coverage dir from source stat succeeded, is dir? %v, mode: %v\n", fileStat.IsDir(), fileStat.Mode())
+		} else {
+			fmt.Printf("coverdir stat err: %v\n", err)
+		}
+	} else {
+		fmt.Printf("Container mount err: %v\n", err)
+	}
+
+	coverDirBind := fmt.Sprintf("%s:/etc/otel/collector/coverage", mountPath)
+
 	req := testcontainers.ContainerRequest{
 		Image: "otelcol:latest",
 		HostConfigModifier: func(hc *container.HostConfig) {
-			hc.Binds = []string{"/var/run/docker.sock:/var/run/docker.sock"}
+			hc.Binds = []string{"/var/run/docker.sock:/var/run/docker.sock", coverDirBind}
 			hc.NetworkMode = network.NetworkHost
 			hc.GroupAdd = []string{dockerGID}
 		},
@@ -82,6 +104,7 @@ func Run(t *testing.T, receiverName string, configFilePath string, logMessageToA
 			"SPLUNK_DISCOVERY_LOG_LEVEL":  "info",
 			"OTLP_ENDPOINT":               endpoint,
 			"SPLUNK_OTEL_COLLECTOR_IMAGE": "otelcol:latest",
+			"GOCOVERDIR":                  "/etc/otel/collector/coverage",
 		},
 		Entrypoint: []string{"/otelcol", "--config", "/home/otel-local-config.yaml"},
 		Files: []testcontainers.ContainerFile{

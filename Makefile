@@ -43,6 +43,8 @@ SKIP_COMPILE=false
 ARCH?=amd64
 BUNDLE_SUPPORTED_ARCHS := amd64 arm64
 SKIP_BUNDLE=false
+# Used for building the collector to collect coverage information
+COVER_TESTING=false
 
 # For integration testing against local changes you can run
 # SPLUNK_OTEL_COLLECTOR_IMAGE='otelcol:latest' make -e docker-otelcol integration-test
@@ -105,6 +107,15 @@ integration-test:
 .PHONY: integration-test-with-cover
 integration-test-with-cover:
 	@make integration-test-cover-target TARGET='integration'
+	@echo "ls of files in $(TEST_COVER_DIR):" || true
+	@ls -al $(TEST_COVER_DIR) || true
+	@echo "ls of files in ./coverage:" || true
+	@ls -al ./coverage || true
+
+.PHONY: integration-test-discovery
+integration-test-discovery:
+	@set -e; $(MAKE_TEST_COVER_DIR) && cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=$(TARGET) -v -timeout 5m -count 1 ./... $(COVER_TESTING_INTEGRATION_OPTS)
+	$(GOCMD) tool covdata textfmt -i=$(TEST_COVER_DIR) -o ./$(TARGET)-coverage.txt
 
 .PHONY: integration-test-mongodb-discovery
 integration-test-mongodb-discovery:
@@ -185,6 +196,10 @@ smartagent-integration-test:
 .PHONY: smartagent-integration-test-with-cover
 smartagent-integration-test-with-cover:
 	@make integration-test-cover-target TARGET='smartagent_integration'
+	@echo "ls of files in $(TEST_COVER_DIR):" || true
+	@ls -al $(TEST_COVER_DIR) || true
+	@echo "ls of files in ./coverage:" || true
+	@ls -al ./coverage || true
 
 .PHONY: integration-test-envoy-discovery-k8s
 integration-test-envoy-discovery-k8s:
@@ -242,7 +257,11 @@ generate-metrics:
 .PHONY: otelcol
 otelcol:
 	go generate ./...
+ifeq ($(COVER_TESTING), true)
+	GO111MODULE=on CGO_ENABLED=$(CGO_ENABLED) go build $(COVER_OPTS) -trimpath -o ./bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/otelcol
+else
 	GO111MODULE=on CGO_ENABLED=$(CGO_ENABLED) go build -trimpath -o ./bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/otelcol
+endif
 ifeq ($(OS), Windows_NT)
 	$(LINK_CMD) .\bin\otelcol$(EXTENSION) .\bin\otelcol_$(GOOS)_$(GOARCH)$(EXTENSION)
 else

@@ -18,6 +18,7 @@ package tests
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -52,7 +53,19 @@ func TestDefaultContainerConfigRequiresEnvVars(t *testing.T) {
 			logCore, logs := observer.New(zap.DebugLevel)
 			logger := zap.New(logCore)
 
-			collector, err := testutils.NewCollectorContainer().WithImage(image).WithEnv(testcase.env).WithLogger(logger).WillFail(true).Build()
+			collector := testutils.NewCollectorContainer().WithImage(image).WithEnv(testcase.env).WithLogger(logger).WillFail(true)
+
+			if path, err := filepath.Abs("."); err == nil {
+				// Coverage should all be under the top-level `tests/coverage` dir that's mounted
+				// to the container. This string parsing logic is to ensure different sub-directory
+				// tests all put their coverage in the top-level directory.
+				testDirName := "tests"
+				index := strings.Index(path, testDirName)
+				collector = collector.WithMount(filepath.Join(path[0:index+len(testDirName)], "coverage"), "/etc/otel/collector/coverage")
+			}
+
+			var err error
+			collector, err = collector.Build()
 			require.NoError(t, err)
 			require.NotNil(t, collector)
 			defer collector.Shutdown()

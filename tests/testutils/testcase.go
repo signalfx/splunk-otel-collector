@@ -20,7 +20,6 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
@@ -114,7 +113,7 @@ func (t *Testcase) SplunkOtelCollectorContainer(configFilename string, builders 
 	}
 
 	var c Collector
-	c, shutdown = t.newCollector(&cc, configFilename, "/etc/otel/collector/coverage", builders...)
+	c, shutdown = t.newCollector(&cc, configFilename, builders...)
 	return c.(*CollectorContainer), shutdown
 }
 
@@ -123,7 +122,7 @@ func (t *Testcase) SplunkOtelCollectorProcess(configFilename string, builders ..
 	cp := NewCollectorProcess()
 
 	var c Collector
-	c, shutdown = t.newCollector(&cp, configFilename, "", builders...)
+	c, shutdown = t.newCollector(&cp, configFilename, builders...)
 	return c.(*CollectorProcess), shutdown
 }
 
@@ -134,15 +133,16 @@ func (t *Testcase) splunkOtelCollector(configFilename string, builders ...Collec
 	return t.SplunkOtelCollectorProcess(configFilename, builders...)
 }
 
-func (t *Testcase) newCollector(initial Collector, configFilename string, coverDir string, builders ...CollectorBuilder) (collector Collector, shutdown func()) {
+func (t *Testcase) newCollector(initial Collector, configFilename string, builders ...CollectorBuilder) (collector Collector, shutdown func()) {
 	collector = initial
 	envVars := map[string]string{
 		"OTLP_ENDPOINT":  t.OTLPEndpointForCollector,
 		"SPLUNK_TEST_ID": t.ID,
 	}
 
-	if coverDir != "" {
-		envVars["GOCOVERDIR"] = coverDir
+	coverDest := os.Getenv("CONTAINER_COVER_DEST")
+	if coverDest != "" {
+		envVars["GOCOVERDIR"] = coverDest
 	}
 
 	if configFilename != "" {
@@ -166,26 +166,20 @@ func (t *Testcase) newCollector(initial Collector, configFilename string, coverD
 	}
 	collector = collector.WithEnv(splunkEnv)
 
-	var path string
-	var err error
-	testDirName := "tests"
-	if path, err = filepath.Abs("."); err == nil {
-		// Coverage should all be under the top-level `tests/coverage` dir that's mounted
-		// to the container. This string parsing logic is to ensure different sub-directory
-		// tests all put their coverage in the top-level directory.
-		index := strings.Index(path, testDirName)
-		mountPath := filepath.Join(path[0:index+len(testDirName)], "coverage")
-		collector = collector.WithMount(mountPath, "/etc/otel/collector/coverage")
-		fmt.Printf("PWD: %s, Container mount, source: %s, destination: %s\n", path, mountPath, "/etc/otel/collector/coverage")
-		if fileStat, err := os.Stat(filepath.Join(path[0:index+len(testDirName)], "coverage")); err == nil {
+	coverSrc := os.Getenv("CONTAINER_COVER_SRC")
+	if coverSrc != "" && coverDest != "" {
+		collector = collector.WithMount(coverSrc, coverDest)
+		fmt.Printf("Container mount, source: %s, destination: %s\n", coverSrc, coverDest)
+		if fileStat, err := os.Stat(coverSrc); err == nil {
 			fmt.Printf("Coverage dir from source stat succeeded, is dir? %v, mode: %v\n", fileStat.IsDir(), fileStat.Mode())
 		} else {
 			fmt.Printf("coverdir stat err: %v\n", err)
 		}
 	} else {
-		fmt.Printf("Container mount err: %v\n", err)
+		fmt.Printf("Cover src or cover dest is empty, not mounting coverage dir")
 	}
 
+	var err error
 	collector, err = collector.Build()
 	require.NoError(t, err)
 	require.NotNil(t, collector)
@@ -193,12 +187,10 @@ func (t *Testcase) newCollector(initial Collector, configFilename string, coverD
 
 	return collector, func() {
 		require.NoError(t, collector.Shutdown())
-		index := strings.Index(path, testDirName)
-		mountPath := filepath.Join(path[0:index+len(testDirName)], "coverage")
-		cmd := exec.Command("ls", "-la", mountPath)
+		cmd := exec.Command("ls", "-la", coverSrc)
 		output, er := cmd.CombinedOutput()
 		if er == nil {
-			fmt.Printf("After shutdown, ls -al %s: %s\n", mountPath, string(output))
+			fmt.Printf("After shutdown, ls -al %s: %s\n", coverSrc, string(output))
 		} else {
 			fmt.Printf("Ran into an error with ls: %v\n", er)
 		}

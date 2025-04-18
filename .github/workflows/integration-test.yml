@@ -237,6 +237,8 @@ jobs:
           if [[ "${{ matrix.PROFILE }}" = "smartagent" ]]; then
             target="smartagent-integration-test-with-cover"
           fi
+          export CONTAINER_COVER_DEST="/etc/otel/collector/coverage"
+          export CONTAINER_COVER_SRC=$(realpath)/tests/coverage
           make $target 2>&1 | tee $TEST_OUTPUT
           exit_status=${PIPESTATUS[0]}
           echo "Exit status: $exit_status"
@@ -323,6 +325,8 @@ jobs:
           if [[ "${{ matrix.PROFILE }}" = "smartagent" ]]; then
             target="smartagent-integration-test-with-cover"
           fi
+          export CONTAINER_COVER_DEST="/etc/otel/collector/coverage"
+          export CONTAINER_COVER_SRC=$(realpath)/tests/coverage
           make $target 2>&1 | tee $TEST_OUTPUT
           exit_status=${PIPESTATUS[0]}
           echo "Exit status: $exit_status"
@@ -400,7 +404,10 @@ jobs:
         - run: ln -sf otelcol_linux_${{ matrix.ARCH }} ./bin/otelcol
         - run: chmod a+x ./bin/*
         - name: Run ${{ matrix.SERVICE }} Discovery Integration Test With Cover
-          run: make integration-test-${{ matrix.SERVICE }}-discovery-with-cover
+          run: |
+            export CONTAINER_COVER_DEST="/etc/otel/collector/coverage"
+            export CONTAINER_COVER_SRC=$(realpath)/tests/coverage
+            make integration-test-${{ matrix.SERVICE }}-discovery-with-cover
           env:
             SPLUNK_OTEL_COLLECTOR_IMAGE: 'otelcol:latest'
         - name: Upload coverage report
@@ -469,7 +476,10 @@ jobs:
         run: |
           kind load docker-image otelcol:latest --name kind
       - name: Run ${{ matrix.SERVICE }} Discovery Kubernetes Integration Test With Cover
-        run: KUBECONFIG=$HOME/.kube/config SKIP_TEARDOWN=true make integration-test-${{ matrix.SERVICE }}-discovery-k8s-with-cover
+        run: |
+          export CONTAINER_COVER_DEST="/etc/otel/collector/coverage"
+          export CONTAINER_COVER_SRC=$(realpath)/tests/coverage
+          KUBECONFIG=$HOME/.kube/config SKIP_TEARDOWN=true make integration-test-${{ matrix.SERVICE }}-discovery-k8s-with-cover
       - name: Print logs
         if: failure()
         run: |

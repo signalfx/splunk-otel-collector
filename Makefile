@@ -33,7 +33,7 @@ CGO_ENABLED?=0
 
 # This directory is used in tests hold code coverage results.
 # It's mounted on docker containers which then write code coverage
-# results to it, making it available post-tests to the host.
+# results to it, making coverage profiles available on the host after tests.
 # 777 privileges are important to allow docker container write
 # access to host dir.
 MAKE_TEST_COVER_DIR=mkdir -m 777 -p $(TEST_COVER_DIR)

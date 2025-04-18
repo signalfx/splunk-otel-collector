@@ -447,7 +447,7 @@ jobs:
       - name: Load Docker image in kind
         run: |
           kind load docker-image otelcol:latest --name kind
-      - name: Run ${{ matrix.SERVICE }} Discovery Kubernetes Integration Test
+      - name: Run ${{ matrix.SERVICE }} Discovery Kubernetes Integration Test With Cover
         run: KUBECONFIG=$HOME/.kube/config SKIP_TEARDOWN=true make integration-test-${{ matrix.SERVICE }}-discovery-k8s-with-cover
       - name: Print logs
         if: failure()

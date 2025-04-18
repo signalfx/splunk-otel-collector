@@ -385,7 +385,7 @@ jobs:
         - run: docker load -i ./docker-otelcol/${{ matrix.ARCH }}/image.tar
         - run: ln -sf otelcol_linux_${{ matrix.ARCH }} ./bin/otelcol
         - run: chmod a+x ./bin/*
-        - name: Run ${{ matrix.SERVICE }} Discovery Integration Test
+        - name: Run ${{ matrix.SERVICE }} Discovery Integration Test With Cover
           run: make integration-test-${{ matrix.SERVICE }}-discovery-with-cover
           env:
             SPLUNK_OTEL_COLLECTOR_IMAGE: 'otelcol:latest'

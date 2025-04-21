@@ -12,7 +12,7 @@ GOTEST_OPT_WITHOUT_RACE?= -v -timeout 180s --tags=$(GO_BUILD_TAGS)
 # COVER_PKGS is the list of packages to include in the coverage
 COVER_PKGS := $(shell $(GOCMD) list ./... | tr "\n" ",")
 COVER_DIR_ABS?=$(PWD)/coverage
-COVER_TESTING_OPTS?=-cover -covermode=atomic -coverpkg $(COVER_PKGS) -args -test.gocoverdir="$(COVER_DIR_ABS)"
+COVER_TESTING_OPTS?=-cover -covermode=atomic -args -test.gocoverdir="$(COVER_DIR_ABS)"
 
 .PHONY: clean
 clean:

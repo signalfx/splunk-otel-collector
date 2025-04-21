@@ -31,11 +31,20 @@ BUILD_INFO=-ldflags "${BUILD_X1} ${BUILD_X2}"
 BUILD_INFO_TESTS=-ldflags "-X $(BUILD_INFO_IMPORT_PATH_TESTS).Version=$(VERSION)"
 CGO_ENABLED?=0
 
+# This directory is used in tests hold code coverage results.
+# It's mounted on docker containers which then write code coverage
+# results to it, making coverage profiles available on the host after tests.
+# 777 privileges are important to allow docker container write
+# access to host dir.
+MAKE_TEST_COVER_DIR=mkdir -m 777 -p $(TEST_COVER_DIR)
+
 JMX_METRIC_GATHERER_RELEASE=$(shell cat packaging/jmx-metric-gatherer-release.txt)
 SKIP_COMPILE=false
 ARCH?=amd64
 BUNDLE_SUPPORTED_ARCHS := amd64 arm64
 SKIP_BUNDLE=false
+# Used for building the collector to collect coverage information
+COVER_TESTING=false
 
 # For integration testing against local changes you can run
 # SPLUNK_OTEL_COLLECTOR_IMAGE='otelcol:latest' make -e docker-otelcol integration-test
@@ -82,57 +91,118 @@ for-all-target: $(ALL_MODS)
 integration-vet:
 	@set -e; cd tests && go vet -tags integration,testutilsintegration,zeroconfig,testutils ./... && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) -tags testutils,testutilsintegration -v -timeout 5m -count 1 ./...
 
+.PHONY: integration-test-target
+integration-test-target:
+	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=$(TARGET) -v -timeout 5m -count 1 ./...
+
+.PHONY: integration-test-cover-target
+integration-test-cover-target:
+	@set -e; $(MAKE_TEST_COVER_DIR) && cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=$(TARGET) -v -timeout 5m -count 1 ./... $(COVER_TESTING_INTEGRATION_OPTS)
+	$(GOCMD) tool covdata textfmt -i=$(TEST_COVER_DIR) -o ./$(TARGET)-coverage.txt
+
 .PHONY: integration-test
 integration-test:
-	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=integration -v -timeout 5m -count 1 ./...
+	@make integration-test-target TARGET='integration'
+
+.PHONY: integration-test-with-cover
+integration-test-with-cover:
+	@make integration-test-cover-target TARGET='integration'
 
 .PHONY: integration-test-mongodb-discovery
 integration-test-mongodb-discovery:
-	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_mongodb -v -timeout 5m -count 1 ./...
+	@make integration-test-target TARGET='discovery_integration_mongodb'
+
+.PHONY: integration-test-mongodb-discovery-with-cover
+integration-test-mongodb-discovery-with-cover:
+	@make integration-test-cover-target TARGET='discovery_integration_mongodb'
 
 .PHONY: integration-test-mysql-discovery
 integration-test-mysql-discovery:
-	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_mysql -v -timeout 5m -count 1 ./...
+	@make integration-test-target TARGET='discovery_integration_mysql'
+
+.PHONY: integration-test-mysql-discovery-with-cover
+integration-test-mysql-discovery-with-cover:
+	@make integration-test-cover-target TARGET='discovery_integration_mysql'
 
 .PHONY: integration-test-kafkametrics-discovery
 integration-test-kafkametrics-discovery:
-	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_kafkametrics -v -timeout 5m -count 1 ./...
+	@make integration-test-target TARGET='discovery_integration_kafkametrics'
+
+.PHONY: integration-test-kafkametrics-discovery-with-cover
+integration-test-kafkametrics-discovery-with-cover:
+	@make integration-test-cover-target TARGET='discovery_integration_kafkametrics'
 
 .PHONY: integration-test-jmx/cassandra-discovery
 integration-test-jmx/cassandra-discovery:
-	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_jmx -v -timeout 5m -count 1 ./...
+	@make integration-test-target TARGET='discovery_integration_jmx'
+
+.PHONY: integration-test-jmx/cassandra-discovery-with-cover
+integration-test-jmx/cassandra-discovery-with-cover:
+	@make integration-test-cover-target TARGET='discovery_integration_jmx'
 
 .PHONY: integration-test-apache-discovery
 integration-test-apache-discovery:
-	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_apachewebserver -v -timeout 5m -count 1 ./...
+	@make integration-test-target TARGET='discovery_integration_apachewebserver'
+
+.PHONY: integration-test-apache-discovery-with-cover
+integration-test-apache-discovery-with-cover:
+	@make integration-test-cover-target TARGET='discovery_integration_apachewebserver'
 
 .PHONY: integration-test-envoy-discovery
 integration-test-envoy-discovery:
-	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_envoy -v -timeout 5m -count 1 ./...
+	@make integration-test-target TARGET='discovery_integration_envoy'
+
+.PHONY: integration-test-envoy-discovery-with-cover
+integration-test-envoy-discovery-with-cover:
+	@make integration-test-cover-target TARGET='discovery_integration_envoy'
 
 .PHONY: integration-test-nginx-discovery
 integration-test-nginx-discovery:
-	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_nginx -v -timeout 5m -count 1 ./...
+	@make integration-test-target TARGET='discovery_integration_nginx'
+
+.PHONY: integration-test-nginx-discovery-with-cover
+integration-test-nginx-discovery-with-cover:
+	@make integration-test-cover-target TARGET='discovery_integration_nginx'
 
 .PHONY: integration-test-redis-discovery
 integration-test-redis-discovery:
-	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_redis -v -timeout 5m -count 1 ./...
+	@make integration-test-target TARGET='discovery_integration_redis'
+
+.PHONY: integration-test-redis-discovery-with-cover
+integration-test-redis-discovery-with-cover:
+	@make integration-test-cover-target TARGET='discovery_integration_redis'
 
 .PHONY: integration-test-oracledb-discovery
 integration-test-oracledb-discovery:
-	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_oracledb -v -timeout 5m -count 1 ./...
+	@make integration-test-target TARGET='discovery_integration_oracledb'
+
+.PHONY: integration-test-oracledb-discovery-with-cover
+integration-test-oracledb-discovery-with-cover:
+	@make integration-test-cover-target TARGET='discovery_integration_oracledb'
 
 .PHONY: smartagent-integration-test
 smartagent-integration-test:
-	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=smartagent_integration -v -timeout 5m -count 1 ./...
+	@make integration-test-target TARGET='smartagent_integration'
+
+.PHONY: smartagent-integration-test-with-cover
+smartagent-integration-test-with-cover:
+	@make integration-test-cover-target TARGET='smartagent_integration'
 
 .PHONY: integration-test-envoy-discovery-k8s
 integration-test-envoy-discovery-k8s:
-	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_envoy_k8s -v -timeout 5m -count 1 ./...
+	@make integration-test-target TARGET='discovery_integration_envoy_k8s'
+
+.PHONY: integration-test-envoy-discovery-k8s-with-cover
+integration-test-envoy-discovery-k8s-with-cover:
+	@make integration-test-cover-target TARGET='discovery_integration_envoy_k8s'
 
 .PHONY: integration-test-istio-discovery-k8s
 integration-test-istio-discovery-k8s:
-	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_istio_k8s -v -timeout 15m -count 1 ./...
+	@make integration-test-target TARGET='discovery_integration_istio_k8s'
+
+.PHONY: integration-test-istio-discovery-k8s-with-cover
+integration-test-istio-discovery-k8s-with-cover:
+	@make integration-test-cover-target TARGET='discovery_integration_istio_k8s'
 
 .PHONY: gotest-with-codecov
 gotest-with-codecov:
@@ -174,13 +244,16 @@ generate-metrics:
 .PHONY: otelcol
 otelcol:
 	go generate ./...
+ifeq ($(COVER_TESTING), true)
+	GO111MODULE=on CGO_ENABLED=$(CGO_ENABLED) go build $(COVER_OPTS) -trimpath -o ./bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/otelcol
+else
 	GO111MODULE=on CGO_ENABLED=$(CGO_ENABLED) go build -trimpath -o ./bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/otelcol
+endif
 ifeq ($(OS), Windows_NT)
 	$(LINK_CMD) .\bin\otelcol$(EXTENSION) .\bin\otelcol_$(GOOS)_$(GOARCH)$(EXTENSION)
 else
 	$(LINK_CMD) otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/otelcol$(EXTENSION)
 endif
-
 
 .PHONY: migratecheckpoint
 migratecheckpoint:

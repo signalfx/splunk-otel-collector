@@ -222,6 +222,7 @@ update-otel-deps:
   only:
     - schedules
   extends: .go-cache
+  tags: [large]
   stage: update-deps
   needs: []
   dependencies: []
@@ -233,6 +234,7 @@ update-otel-deps-nightly:
   only:
     - schedules
   extends: .go-cache
+  tags: [large]
   stage: update-deps
   needs: []
   dependencies: []
@@ -294,6 +296,7 @@ tidy-dependabot-pr:
   rules:
     - if: ($CI_COMMIT_BRANCH =~ /^dependabot\/go_modules\/.*/) && ($CI_COMMIT_AUTHOR =~ /^dependabot.*/) && (($CI_PIPELINE_SOURCE == "merge_request_event") || ($CI_PIPELINE_SOURCE == "push"))
   extends: .go-cache
+  tags: [large]
   stage: update-deps
   needs: []
   dependencies: []
@@ -305,6 +308,7 @@ compile:
   extends:
     - .trigger-filter
     - .go-cache
+  tags: [large]
   stage: build
   needs: []
   parallel:
@@ -469,6 +473,8 @@ agent-bundle-windows:
       popd
 
 package-technical-addon:
+  extends:
+    - .trigger-filter
   image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
   stage: "package"
   script: |
@@ -484,7 +490,9 @@ package-technical-addon:
 
 test-happypath-ta:
   image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
-  extends: .auth-setup
+  extends:
+    - .trigger-filter
+    - .auth-setup
   stage: orca-tests
   dependencies:
     - "package-technical-addon"
@@ -514,7 +522,9 @@ test-happypath-ta:
       - "$BUILD_DIR/$CI_JOB_ID/**/*"
 test-collectd-ta:
   image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
-  extends: .auth-setup
+  extends:
+    - .trigger-filter
+    - .auth-setup
   stage: orca-tests
   variables:
     ORCA_TAR_GZ: "$NEW_ORCA_TGZ"
@@ -541,7 +551,9 @@ test-collectd-ta:
       - "$BUILD_DIR/$CI_JOB_ID/**/*"
 test-gateway-ta:
   image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
-  extends: .auth-setup
+  extends:
+    - .trigger-filter
+    - .auth-setup
   stage: orca-tests
   dependencies:
     - "package-technical-addon"
@@ -572,12 +584,13 @@ test-gateway-ta:
       - "$BUILD_DIR/out/**/*"
       - "$BUILD_DIR/$CI_JOB_ID/**/*"
 AppInspect_local:
-  image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
+  extends:
+    - .trigger-filter
   dependencies:
     - "package-technical-addon"
   stage: code-analysis
   # AppInspect regex bugs out on python 3.11
-  image: docker.repo.splunkdev.net/ci-cd/ci-container/python-3.9:1.26.0
+  image: '${DOCKER_CICD_REPO}/ci-container/python-3.9:1.26.0'
   before_script:
     - pip install splunk-add-on-ucc-framework
     - pip install splunk-packaging-toolkit
@@ -1724,6 +1737,7 @@ github-release:
   extends:
     - .trigger-filter
     - .go-cache
+  tags: [large]
   stage: github-release
   dependencies:
     - compile
@@ -1897,6 +1911,7 @@ dotnet-instrumentation-deployer-release:
   extends:
     - .trigger-dotnet-instrumentation-deployer
     - .go-cache # Use this image since this job uses the ghr tool
+  tags: [large]
   stage: github-release
   dependencies:
     - pack-dotnet-instrumentation-deployer

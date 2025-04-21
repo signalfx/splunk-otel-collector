@@ -26,7 +26,7 @@ defaults:
     working-directory: 'deployments/chef'
 
 env:
-  CHEF_VERSION: "22.12.1024"
+  CHEF_VERSION: "24.12.1073"
   CHEF_LICENSE: accept
 
 jobs:

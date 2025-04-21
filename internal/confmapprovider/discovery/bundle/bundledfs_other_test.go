@@ -29,6 +29,7 @@ func TestBundleDir(t *testing.T) {
 	require.Equal(t, []string{
 		"bundle.d/receivers/apache.discovery.yaml",
 		"bundle.d/receivers/envoy.discovery.yaml",
+		"bundle.d/receivers/istio.discovery.yaml",
 		"bundle.d/receivers/jmx-cassandra.discovery.yaml",
 		"bundle.d/receivers/kafkametrics.discovery.yaml",
 		"bundle.d/receivers/mongodb.discovery.yaml",

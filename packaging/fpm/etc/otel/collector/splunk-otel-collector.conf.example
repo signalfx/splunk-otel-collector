@@ -24,7 +24,7 @@ SPLUNK_CONFIG=/etc/otel/collector/agent_config.yaml
 # The following environment variables are referenced in the default /etc/otel/collector/agent_config.yaml config file.
 
 # Access token to authenticate requests.
-SPLUNK_ACCESS_TOKEN=12345
+SPLUNK_ACCESS_TOKEN=abc123
 
 # Which realm to send the data to.
 SPLUNK_REALM=us0

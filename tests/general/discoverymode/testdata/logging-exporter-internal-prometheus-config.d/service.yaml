@@ -1,7 +1,15 @@
 telemetry:
   metrics:
     level: normal
-    address: "localhost:${INTERNAL_PROMETHEUS_PORT}"
+    readers:
+      - pull:
+          exporter:
+            prometheus:
+              host: localhost
+              port: ${INTERNAL_PROMETHEUS_PORT}
+              without_scope_info: true
+              without_type_suffix: true
+              without_units: true
 pipelines:
   metrics:
     receivers:

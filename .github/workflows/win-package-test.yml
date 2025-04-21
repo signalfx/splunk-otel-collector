@@ -22,7 +22,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.23.6
+  GO_VERSION: 1.23.8
 
 jobs:
   setup-environment:
@@ -189,7 +189,7 @@ jobs:
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v2
 
-      - uses: actions/setup-dotnet@v4.3.0
+      - uses: actions/setup-dotnet@v4.3.1
         with:
           dotnet-version: |
             6.0.407
@@ -461,7 +461,7 @@ jobs:
       - name: Run docker image
         run: |
           $ErrorActionPreference = 'Stop'
-          docker run -d -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=fake-realm --name otelcol otelcol-windows:latest
+          docker run -d -e SPLUNK_ACCESS_TOKEN=abc123 -e SPLUNK_REALM=fake-realm --name otelcol otelcol-windows:latest
           Start-Sleep 10
           $DockerOutput=$(docker ps --filter=status=running --filter=name=otelcol -q)
           if ( $DockerOutput -eq $null ) {

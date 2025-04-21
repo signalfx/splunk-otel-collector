@@ -26,6 +26,7 @@ SRC_ROOT := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
 # build tags required by any component should be defined as an independent variables and later added to GO_BUILD_TAGS below
 GO_BUILD_TAGS=""
 GOTEST_OPT?= -race -v -timeout 180s --tags=$(GO_BUILD_TAGS)
+GOTEST_OPT_WITHOUT_RACE?= -v -timeout 180s --tags=$(GO_BUILD_TAGS)
 GOCMD?= go
 GOTEST=$(GOCMD) test
 GOOS=$(shell $(GOCMD) env GOOS)
@@ -38,6 +39,18 @@ LINT=golangci-lint
 IMPI=impi
 # BUILD_TYPE should be one of (dev, release).
 BUILD_TYPE?=release
+
+# COVER_PKGS is the list of packages to include in the test coverage
+EXCLUDE_MODS=-not -path "./examples/*"
+FIND_MOD_ARGS=-type f -name "go.mod"
+COVER_PKGS := $(shell find . $(EXCLUDE_MODS) $(FIND_MOD_ARGS) -execdir $(GOCMD) list ./... \; | tr "\n" "," )
+
+COVER_DIR?=coverage
+COVER_DIR_ABS?=$(SRC_ROOT)/$(COVER_DIR)
+TEST_COVER_DIR?=$(SRC_ROOT)/tests/$(COVER_DIR)
+COVER_OPTS?=-cover -covermode=atomic -coverpkg $(COVER_PKGS)
+COVER_TESTING_OPTS?=$(COVER_OPTS) -args -test.gocoverdir="$(COVER_DIR_ABS)"
+COVER_TESTING_INTEGRATION_OPTS?=$(COVER_OPTS) -args -test.gocoverdir="$(TEST_COVER_DIR)"
 
 ALL_PKG_DIRS := $(shell $(GOCMD) list -f '{{ .Dir }}' ./... | $(NORMALIZE_DIRS))
 
@@ -73,6 +86,19 @@ common: checklicense impi lint misspell
 .PHONY: test
 test:
 	$(GOTEST) $(GOTEST_OPT) $(ALL_PKG_DIRS)
+
+.PHONY: test-with-codecov
+test-with-codecov:
+	mkdir -p $(COVER_DIR)
+	$(GOTEST) $(GOTEST_OPT) ./... $(COVER_OPTS)
+
+# Currently, running CGO_ENABLED=0 go test -race is broken in gopsutil/v4
+# This target should be removed in favor of "test" once the following issue is resolved:
+# https://github.com/shirou/gopsutil/issues/1774
+.PHONY: test-cover-without-race
+test-cover-without-race:
+	mkdir -p $(COVER_DIR_ABS)
+	$(GOTEST) $(GOTEST_OPT_WITHOUT_RACE) ./... $(COVER_TESTING_OPTS)
 
 .PHONY: addlicense
 addlicense:
@@ -136,5 +162,13 @@ moddownload:
 	$(GOCMD) mod download
 
 .PHONY: govulncheck
-govulncheck: install-tools
-	govulncheck ./...
+govulncheck:
+	@FAILED=0; \
+	@for pkg in $(shell $(GOCMD) list $(ALL_PKG_DIRS)); do \
+		echo "\nRunning govulncheck for package $$pkg\n"; \
+		govulncheck $${GOVULN_OPTS} $$pkg || FAILED=1; \
+	done; \
+	@if [ $$FAILED -ne 0 ]; then \
+		echo "\ngovulncheck failed for one or more packages"; \
+		exit 1; \
+	fi

@@ -55,8 +55,7 @@ jobs:
   linux-test:
     name: Linux Test
     needs: lint
-    # Use ubuntu-20.04.5 for containers with cgroups v1. Otherwise, use ubuntu-24.04 (cgroups v2).
-    runs-on: ${{ fromJSON('["ubuntu-24.04", "ubuntu-20.04"]')[contains(fromJSON('["amazonlinux2", "centos9", "opensuse12", "ubuntu1604"]'), matrix.distro)] }}
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -65,13 +64,10 @@ jobs:
           - ansible~=9.2.0
           - ansible~=8.7.0
         distro:
-          - amazonlinux2
           - amazonlinux2023
           - centos8
-          - centos9
           - debian11
           - debian12
-          - opensuse12
           - ubuntu2004
           - ubuntu2204
 

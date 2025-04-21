@@ -14,7 +14,4 @@ extensions:
 
 
 service:
-  telemetry:
-    metrics:
-      address: "${SPLUNK_LISTEN_INTERFACE}:8888"
   extensions: [health_check, http_forwarder, zpages, smartagent]

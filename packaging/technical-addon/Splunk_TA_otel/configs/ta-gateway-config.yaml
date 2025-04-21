@@ -2,6 +2,12 @@
 # data to Splunk products.
 
 extensions:
+  headers_setter:
+    headers:
+      - action: upsert
+        key: X-SF-TOKEN
+        from_context: X-SF-TOKEN
+        default_value: "${SPLUNK_ACCESS_TOKEN}"
   health_check:
     endpoint: "${env:SPLUNK_LISTEN_INTERFACE}:13133"
   http_forwarder:
@@ -27,8 +33,12 @@ receivers:
     protocols:
       grpc:
         endpoint: "${env:SPLUNK_LISTEN_INTERFACE}:4317"
+        # Uncomment below config to preserve incoming access token and use it instead of the token value set in exporter config
+        # include_metadata: true
       http:
         endpoint: "${env:SPLUNK_LISTEN_INTERFACE}:4318"
+        # Uncomment below config to preserve incoming access token and use it instead of the token value set in exporter config
+        # include_metadata: true
   # This section is used to collect the OpenTelemetry Collector metrics
   # Even if just a Splunk APM customer, these metrics are included
   prometheus/internal:
@@ -60,6 +70,8 @@ receivers:
 
 processors:
   batch:
+    metadata_keys:
+      - X-SF-Token
   # Enabling the memory_limiter is strongly recommended for every pipeline.
   # Configuration is based on the amount of memory allocated to the collector.
   # For more information about memory limiter, see
@@ -98,6 +110,8 @@ exporters:
       num_consumers: 32
     headers:
       "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
+    auth:
+      authenticator: headers_setter
   # Metrics + Events
   signalfx:
     access_token: "${env:SPLUNK_ACCESS_TOKEN}"
@@ -117,10 +131,7 @@ exporters:
     #verbosity: detailed
 
 service:
-  telemetry:
-    metrics:
-      address: "${env:SPLUNK_LISTEN_INTERFACE}:8888"
-  extensions: [health_check, http_forwarder, zpages]
+  extensions: [headers_setter, health_check, http_forwarder, zpages]
   pipelines:
     traces:
       receivers: [jaeger, otlp, sapm, zipkin]

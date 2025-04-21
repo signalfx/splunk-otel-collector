@@ -133,7 +133,12 @@ func (t *Testcase) splunkOtelCollector(configFilename string, builders ...Collec
 
 func (t *Testcase) newCollector(initial Collector, configFilename string, builders ...CollectorBuilder) (collector Collector, shutdown func()) {
 	collector = initial
+
+	coverDest := os.Getenv("CONTAINER_COVER_DEST")
+	coverSrc := os.Getenv("CONTAINER_COVER_SRC")
+
 	envVars := map[string]string{
+		"GOCOVERDIR":     coverDest,
 		"OTLP_ENDPOINT":  t.OTLPEndpointForCollector,
 		"SPLUNK_TEST_ID": t.ID,
 	}
@@ -158,6 +163,10 @@ func (t *Testcase) newCollector(initial Collector, configFilename string, builde
 		}
 	}
 	collector = collector.WithEnv(splunkEnv)
+
+	if coverSrc != "" && coverDest != "" {
+		collector = collector.WithMount(coverSrc, coverDest)
+	}
 
 	var err error
 	collector, err = collector.Build()

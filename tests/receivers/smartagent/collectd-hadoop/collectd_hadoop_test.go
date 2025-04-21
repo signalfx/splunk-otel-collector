@@ -17,21 +17,8 @@
 package tests
 
 import (
-	"context"
-	"fmt"
 	"path"
-	"path/filepath"
-	"runtime"
 	"testing"
-	"time"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/component/componenttest"
-	"go.opentelemetry.io/collector/consumer/consumertest"
-	"go.opentelemetry.io/collector/receiver/otlpreceiver"
-	"go.opentelemetry.io/collector/receiver/receivertest"
-	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
@@ -54,7 +41,7 @@ func TestCollectdHadoopReceiverProvidesAllMetrics(t *testing.T) {
 	_, stop := tc.Containers(containers...)
 	defer stop()
 
-	checkMetricsPresence(t, []string{
+	testutils.CheckMetricsPresence(t, []string{
 		"counter.hadoop.cluster.metrics.total_mb",
 		"counter.hadoop.cluster.metrics.total_nodes",
 		"counter.hadoop.cluster.metrics.total_virtual_cores",
@@ -104,60 +91,4 @@ func TestCollectdHadoopReceiverProvidesAllMetrics(t *testing.T) {
 		"gauge.hadoop.resource.manager.scheduler.root.queue.maxCapacity",
 		"gauge.hadoop.resource.manager.scheduler.root.queue.usedCapacity",
 	}, "all_metrics_config.yaml")
-}
-
-func checkMetricsPresence(t *testing.T, metricNames []string, configFile string) {
-	f := otlpreceiver.NewFactory()
-	port := testutils.GetAvailablePort(t)
-	c := f.CreateDefaultConfig().(*otlpreceiver.Config)
-	c.GRPC.NetAddr.Endpoint = fmt.Sprintf("localhost:%d", port)
-	sink := &consumertest.MetricsSink{}
-	receiver, err := f.CreateMetrics(context.Background(), receivertest.NewNopSettings(f.Type()), c, sink)
-	require.NoError(t, err)
-	require.NoError(t, receiver.Start(context.Background(), componenttest.NewNopHost()))
-	t.Cleanup(func() {
-		require.NoError(t, receiver.Shutdown(context.Background()))
-	})
-	logger, _ := zap.NewDevelopment()
-
-	dockerHost := "0.0.0.0"
-	if runtime.GOOS == "darwin" {
-		dockerHost = "host.docker.internal"
-	}
-	p, err := testutils.NewCollectorContainer().
-		WithImage(testutils.GetCollectorImageOrSkipTest(t)).
-		WithConfigPath(filepath.Join("testdata", configFile)).
-		WithLogger(logger).
-		WithEnv(map[string]string{"OTLP_ENDPOINT": fmt.Sprintf("%s:%d", dockerHost, port)}).
-		Build()
-	require.NoError(t, err)
-	require.NoError(t, p.Start())
-	t.Cleanup(func() {
-		require.NoError(t, p.Shutdown())
-	})
-
-	missingMetrics := make(map[string]any, len(metricNames))
-	for _, m := range metricNames {
-		missingMetrics[m] = struct{}{}
-	}
-
-	assert.EventuallyWithT(t, func(tt *assert.CollectT) {
-		for i := 0; i < len(sink.AllMetrics()); i++ {
-			m := sink.AllMetrics()[i]
-			for j := 0; j < m.ResourceMetrics().Len(); j++ {
-				rm := m.ResourceMetrics().At(j)
-				for k := 0; k < rm.ScopeMetrics().Len(); k++ {
-					sm := rm.ScopeMetrics().At(k)
-					for l := 0; l < sm.Metrics().Len(); l++ {
-						delete(missingMetrics, sm.Metrics().At(l).Name())
-					}
-				}
-			}
-		}
-		msg := "Missing metrics:\n"
-		for k := range missingMetrics {
-			msg += fmt.Sprintf("- %q\n", k)
-		}
-		assert.Len(tt, missingMetrics, 0, msg)
-	}, 1*time.Minute, 1*time.Second)
 }

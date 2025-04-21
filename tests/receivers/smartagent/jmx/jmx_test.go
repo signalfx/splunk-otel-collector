@@ -19,6 +19,7 @@ package tests
 import (
 	"context"
 	"fmt"
+	"os"
 	"path/filepath"
 	"runtime"
 	"testing"
@@ -36,7 +37,6 @@ import (
 )
 
 func TestJmxReceiverProvidesAllMetrics(t *testing.T) {
-	t.Skip("skipping")
 	metricNames := []string{
 		"cassandra.status",
 		"cassandra.state",
@@ -65,17 +65,28 @@ func checkMetricsPresence(t *testing.T, metricNames []string, configFile string)
 	if runtime.GOOS == "darwin" {
 		dockerHost = "host.docker.internal"
 	}
+
+	coverDest := os.Getenv("CONTAINER_COVER_DEST")
+	coverSrc := os.Getenv("CONTAINER_COVER_SRC")
+
 	mountDir, err := filepath.Abs(filepath.Join("testdata", "script.groovy"))
 	require.NoError(t, err)
-	p, err := testutils.NewCollectorContainer().
+	p := testutils.NewCollectorContainer().
+		WithImage(testutils.GetCollectorImageOrSkipTest(t)).
 		WithConfigPath(filepath.Join("testdata", configFile)).
 		WithLogger(logger).
 		WithEnv(map[string]string{
-			"OTLP_ENDPOINT": fmt.Sprintf("%s:%d", dockerHost, port),
+			"GOCOVERDIR":    coverDest,
 			"HOST":          dockerHost,
+			"OTLP_ENDPOINT": fmt.Sprintf("%s:%d", dockerHost, port),
 		}).
-		WithMount(mountDir, "/opt/script.groovy").
-		Build()
+		WithMount(mountDir, "/opt/script.groovy")
+
+	if coverSrc != "" && coverDest != "" {
+		p = p.WithMount(coverSrc, coverDest)
+	}
+
+	p, err = p.Build()
 	require.NoError(t, err)
 	require.NoError(t, p.Start())
 	t.Cleanup(func() {

@@ -73,3 +73,36 @@ modular-inputs:
     description: "hello"
     required: true
 ```
+
+
+## Example addon golang binary
+
+If you need to invoke another command (such as the collector), you may use golang's exec.Command as such
+
+```go
+package main
+
+import (
+	"os"
+	"os/exec"
+)
+
+func main() {
+
+	// modularinput.ModinputProcessor gives GetFlags and GetEnvVars functionality
+	var flags []string
+	var envVars []string
+
+	cmd := exec.Command("true", flags...)
+	cmd.Env = append(os.Environ(), envVars...)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err := cmd.Run()
+	if err != nil {
+		panic(err)
+	}
+}
+```
+
+Alternatively, if you need platform specific code, you may use `//go:build` flags, providing a file for every needed variation of code.

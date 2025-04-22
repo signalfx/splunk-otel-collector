@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"os"
 	"path/filepath"
 	"testing"
@@ -90,15 +92,32 @@ func TestInputsConfGeneration(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.testSchemaName, func(tt *testing.T) {
-			//assert.NoError(tt, os.MkdirAll(filepath.Join(tc.outDir, tc.testSchemaName), 0755))
 			config, err := loadYaml(tc.sampleYamlPath, tc.testSchemaName)
 			assert.NoError(tt, err)
 			err = generateTaModInputConfs(config, tc.sourceDir, tc.outDir)
 			assert.NoError(tt, err)
 			listPath(tc.outDir)
-			assert.FileExists(tt, filepath.Join(tc.outDir, "default", "inputs.conf"))
-			assert.FileExists(tt, filepath.Join(tc.outDir, "README", "inputs.conf.spec"))
+			assertFilesMatch(tt, filepath.Join("internal", "testdata", "pkg", "sample_addon", "expected", "inputs.conf"), filepath.Join(tc.outDir, "default", "inputs.conf"))
+			assertFilesMatch(tt, filepath.Join("internal", "testdata", "pkg", "sample_addon", "expected", "inputs.conf.spec"), filepath.Join(tc.outDir, "README", "inputs.conf.spec"))
 		})
+	}
+}
+
+func assertFilesMatch(tt *testing.T, expectedPath string, actualPath string) {
+	require.FileExists(tt, actualPath)
+	require.FileExists(tt, expectedPath)
+	expected, err := os.ReadFile(expectedPath)
+	if err != nil {
+		tt.Fatalf("Failed to read expected file: %v", err)
+	}
+
+	actual, err := os.ReadFile(actualPath)
+	if err != nil {
+		tt.Fatalf("Failed to read actual file: %v", err)
+	}
+
+	if diff := cmp.Diff(string(expected), string(actual)); diff != "" {
+		tt.Errorf("File contents mismatch (-expected +actual)\npaths: (%s, %s):\n%s", expectedPath, actualPath, diff)
 	}
 }
 

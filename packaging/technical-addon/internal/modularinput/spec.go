@@ -25,23 +25,6 @@ type TemplateData struct {
 	SchemaName    string                    `yaml:"modular-input-schema-name"`
 	ModularInputs map[string]ModInputConfig `yaml:"modular-inputs"`
 }
-type ModInput struct {
-	Config       ModInputConfig
-	Transformers []TransformerFunc
-	Value        string
-}
-
-func (t *ModInput) Transform(value string) error {
-	t.Value = value
-	for _, transformer := range t.Transformers {
-		transformed, err := transformer(t.Value)
-		if err != nil {
-			return err
-		}
-		t.Value = transformed
-	}
-	return nil
-}
 
 func LoadConfig(yamlPath string) (*TemplateData, error) {
 	yamlData, err := os.ReadFile(yamlPath)
@@ -79,5 +62,3 @@ func RenderTemplate(templatePath string, outputPath string, data *TemplateData) 
 
 	return nil
 }
-
-func EnsureRequired() {}

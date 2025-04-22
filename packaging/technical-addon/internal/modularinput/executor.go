@@ -7,15 +7,33 @@ import (
 	"strings"
 )
 
+type ModInput struct {
+	Config       ModInputConfig
+	Transformers []TransformerFunc
+	Value        string
+}
+
 // TransformerFunc is basically a reducer.. takes in "working" value of modinput string
 type TransformerFunc func(value string) (string, error)
-type ModinputTransformer struct {
+type ModinputProcessor struct {
 	SchemaName    string
 	ModularInputs map[string]ModInput
 }
 
-func NewModinputTransformer(schemaName string, inputs map[string]ModInput) *ModinputTransformer {
-	return &ModinputTransformer{
+func (t *ModInput) Transform(value string) error {
+	t.Value = value
+	for _, transformer := range t.Transformers {
+		transformed, err := transformer(t.Value)
+		if err != nil {
+			return err
+		}
+		t.Value = transformed
+	}
+	return nil
+}
+
+func NewModinputProcessor(schemaName string, inputs map[string]ModInput) *ModinputProcessor {
+	return &ModinputProcessor{
 		SchemaName:    schemaName,
 		ModularInputs: inputs,
 	}
@@ -25,7 +43,8 @@ func (t *ModInput) RegisterTransformer(transformer TransformerFunc) {
 	t.Transformers = append(t.Transformers, transformer)
 }
 
-func (mit *ModinputTransformer) Transform(modInput *XMLInput) error {
+func (mit *ModinputProcessor) ProcessXml(modInput *XMLInput) error {
+	providedInputs := make(map[string]bool)
 
 	for _, stanza := range modInput.Configuration.Stanzas {
 		stanzaPrefix := fmt.Sprintf("%s://", mit.SchemaName)
@@ -40,14 +59,19 @@ func (mit *ModinputTransformer) Transform(modInput *XMLInput) error {
 				} else {
 					return fmt.Errorf("modinput %s does not exist", param.Name)
 				}
+				providedInputs[param.Name] = true
 			}
 			break // I believe we should only handle one of these... do we need to look up my process name?
 		}
 	}
+	missing := mit.GetMissingRequired(providedInputs)
+	if missing != nil {
+		return fmt.Errorf("missing required inputs: %v", missing)
+	}
 	return nil
 }
 
-func (mit *ModinputTransformer) GetFlags() []string {
+func (mit *ModinputProcessor) GetFlags() []string {
 	var flags []string
 	for _, modularInput := range mit.ModularInputs {
 		if "" != modularInput.Config.Flag.Name {
@@ -60,7 +84,7 @@ func (mit *ModinputTransformer) GetFlags() []string {
 	return flags
 }
 
-func (mit *ModinputTransformer) GetEnvVars() []string {
+func (mit *ModinputProcessor) GetEnvVars() []string {
 	var envVars []string
 	for modinputName, modularInput := range mit.ModularInputs {
 		if modularInput.Config.PassthroughEnvVar {
@@ -83,4 +107,14 @@ func DefaultReplaceEnvVarTransformer(original string) (string, error) {
 	replacement = strings.ReplaceAll(original, "$SPLUNK_TA_HOME", splunkTaHome)
 	replacement = strings.ReplaceAll(original, "$SPLUNK_HOME", splunkHome)
 	return replacement, nil
+}
+
+func (mit *ModinputProcessor) GetMissingRequired(provided map[string]bool) []string {
+	var missing []string
+	for name, mi := range mit.ModularInputs {
+		if _, given := provided[name]; mi.Config.Required && !given {
+			missing = append(missing, fmt.Sprintf("modular input %s is required", name))
+		}
+	}
+	return missing
 }

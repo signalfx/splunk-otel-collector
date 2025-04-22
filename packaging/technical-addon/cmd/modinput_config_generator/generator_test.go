@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"github.com/google/go-cmp/cmp"
+	"github.com/splunk/otel-technical-addon/internal/packaging"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"os"
@@ -42,6 +42,13 @@ func TestPascalization(t *testing.T) {
 	}
 }
 
+func TestRunner(t *testing.T) {
+	addonPath := filepath.Join(t.TempDir(), "Sample_Addon.tgz")
+	err := packaging.PackageAddon("Sample_Addon", addonPath)
+	require.NoError(t, err)
+	// TODO add testcontainer run here
+}
+
 func TestRunnerConfigGeneration(t *testing.T) {
 	// This is a smoketest, any actual functionality test should be tested via the
 	// test addon's "runner" itself
@@ -61,12 +68,10 @@ func TestRunnerConfigGeneration(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.testSchemaName, func(tt *testing.T) {
-			//assert.NoError(tt, os.MkdirAll(filepath.Join(tc.outDir, tc.testSchemaName), 0755))
 			config, err := loadYaml(tc.sampleYamlPath, tc.testSchemaName)
 			assert.NoError(tt, err)
 			err = generateModinputConfig(config, tc.outDir)
 			assert.NoError(tt, err)
-			listPath(tc.outDir)
 			assert.FileExists(tt, filepath.Join(filepath.Dir(tc.sampleYamlPath), "modinput_config.go"))
 		})
 	}
@@ -96,7 +101,6 @@ func TestInputsConfGeneration(t *testing.T) {
 			assert.NoError(tt, err)
 			err = generateTaModInputConfs(config, tc.sourceDir, tc.outDir)
 			assert.NoError(tt, err)
-			listPath(tc.outDir)
 			assertFilesMatch(tt, filepath.Join("internal", "testdata", "pkg", "sample_addon", "expected", "inputs.conf"), filepath.Join(tc.outDir, "default", "inputs.conf"))
 			assertFilesMatch(tt, filepath.Join("internal", "testdata", "pkg", "sample_addon", "expected", "inputs.conf.spec"), filepath.Join(tc.outDir, "README", "inputs.conf.spec"))
 		})
@@ -118,35 +122,5 @@ func assertFilesMatch(tt *testing.T, expectedPath string, actualPath string) {
 
 	if diff := cmp.Diff(string(expected), string(actual)); diff != "" {
 		tt.Errorf("File contents mismatch (-expected +actual)\npaths: (%s, %s):\n%s", expectedPath, actualPath, diff)
-	}
-}
-
-func listPath(s string) {
-	// List current directory, similar to basic "ls"
-	entries, err := os.ReadDir(s)
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-		return
-	}
-
-	// Print names only (like basic ls)
-	for _, entry := range entries {
-		fmt.Println(entry.Name())
-	}
-
-	// For ls -l style output with more details
-	fmt.Println("\nDetailed listing:")
-	for _, entry := range entries {
-		info, err := entry.Info()
-		if err != nil {
-			continue
-		}
-
-		mode := info.Mode()
-		size := info.Size()
-		modTime := info.ModTime().Format("Jan _2 15:04")
-		name := entry.Name()
-
-		fmt.Printf("%s %8d %s %s\n", mode, size, modTime, name)
 	}
 }

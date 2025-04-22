@@ -4,9 +4,9 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
+	"log"
 )
 
 func Example(flags []string, envVars []string) {
-	fmt.Println(json.Marshal(ExampleOutput{flags, envVars, "linux"}))
+	log.Println(json.Marshal(ExampleOutput{flags, envVars, "linux"}))
 }

@@ -4,7 +4,7 @@ FROM ${DISTRO_IMAGE}
 ARG DISTRO_IMAGE
 ENV DEBIAN_FRONTEND=noninteractive
 ENV SALT_VERSION=latest
-ENV NODE_VERSION=16.20.2
+ENV NODE_VERSION=18.20.8
 
 RUN apt-get update && apt-get upgrade -y -o DPkg::Options::=--force-confold
 RUN apt-get install -y software-properties-common ca-certificates wget curl apt-transport-https python3-pip vim systemd procps

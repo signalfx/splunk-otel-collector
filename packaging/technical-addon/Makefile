@@ -16,7 +16,7 @@ SPLUNK_ARCH?=x86_64
 SPLUNK_OTEL_VERSION?=
 TA_VERSION?=
 
-MODULAR_INPUT_SCHEMAS := $(shell find $(SOURCE_DIR)/pkg -type f -name "modular-inputs.yaml" -exec grep -m 1 "modular-input-schema-name:" {} \; | awk '{print $$2}')
+#MODULAR_INPUT_SCHEMAS := $(shell find $(SOURCE_DIR)/pkg -type f -name "modular-inputs.yaml" -exec grep -m 1 "modular-input-schema-name:" {} \; | awk '{print $$2}')
 
 
 # Tools directory
@@ -34,7 +34,7 @@ test-ta-build-tools: ta-build-tools
 	$(MODINPUT_CONFIG_GENERATOR) -source-dir=$(SOURCE_DIR)/cmd/modinput_config_generator/internal/testdata -schema-name=Sample_Addon --build-dir=$(BUILD_DIR) || exit 1; \
 	mkdir -p $(BUILD_DIR)/Sample_Addon/$(PLATFORM)_$(SPLUNK_ARCH)/bin; \
 	cd $(SOURCE_DIR) && go build $(GO_BUILD_FLAGS) -o $(BUILD_DIR)/Sample_Addon/$(PLATFORM)_$(SPLUNK_ARCH)/bin/sample_addon ./cmd/modinput_config_generator/internal/testdata/pkg/sample_addon/runner || exit 1; \
-	SOURCE_DIR="$(SOURCE_DIR)/cmd/modinput_config_generator/internal/testdata" BUILD_DIR="$(BUILD_DIR)/cmd/modinput_config_generator/internal/testdata" go test -v ./...
+	SOURCE_DIR="$(SOURCE_DIR)/cmd/modinput_config_generator/internal/testdata" BUILD_DIR="$(BUILD_DIR)" go test -v ./...
 
 .PHONY: generate-modinput-configs
 generate-modinput-configs: test-ta-build-tools

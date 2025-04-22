@@ -44,7 +44,7 @@ func TestPascalization(t *testing.T) {
 
 func TestRunner(t *testing.T) {
 	addonPath := filepath.Join(t.TempDir(), "Sample_Addon.tgz")
-	err := packaging.PackageAddon("Sample_Addon", addonPath)
+	err := packaging.PackageAddon(filepath.Join(os.Getenv("BUILD_DIR"), "Sample_Addon"), addonPath)
 	require.NoError(t, err)
 	// TODO add testcontainer run here
 }

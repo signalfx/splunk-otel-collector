@@ -5,6 +5,12 @@ import (
 	"os"
 )
 
+type ExampleOutput struct {
+	Flags    []string
+	EnvVars  []string
+	Platform string
+}
+
 func main() {
 	config := GetDefaultSampleAddonModularInputs()
 

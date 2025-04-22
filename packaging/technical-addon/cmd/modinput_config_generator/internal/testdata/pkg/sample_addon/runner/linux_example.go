@@ -2,8 +2,11 @@
 
 package main
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 func Example(flags []string, envVars []string) {
-	fmt.Printf("for linux, flags: %v ; env vars: %v", flags, envVars)
+	fmt.Println(json.Marshal(ExampleOutput{flags, envVars, "linux"}))
 }

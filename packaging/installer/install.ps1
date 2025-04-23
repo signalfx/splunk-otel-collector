@@ -456,7 +456,17 @@ if ($with_dotnet_instrumentation) {
         $download = "https://github.com/signalfx/splunk-otel-dotnet/releases/latest/download/$module_name"
         $dotnet_autoinstr_path = Join-Path $tempdir $module_name
         echo "Downloading .NET Instrumentation installer ..."
-        Invoke-WebRequest -Uri $download -OutFile $dotnet_autoinstr_path -UseBasicParsing
+        try {
+            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+            Invoke-WebRequest -Uri $download -OutFile $dotnet_autoinstr_path -UseBasicParsing
+        } catch {
+            $err = $_.Exception.Message
+            $message = "
+            An error occured when trying to download .NET Instrumentation installer from $download. This may be due to a network connectivity issue.
+            $err
+            "
+            throw "$message"
+        }
         Import-Module $dotnet_autoinstr_path
     } else {
         $dotnet_autoinstr_path = $dotnet_psm1_path

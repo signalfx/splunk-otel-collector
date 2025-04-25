@@ -73,6 +73,11 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
 
+      - name: install tools
+        run: |
+          set -o pipefail
+          make install-tools
+
       - name: Test addon generator
         run: |
           set -o pipefail

@@ -383,5 +383,11 @@ endif
 	@docker rm -f otelcol-fips-builder-$(GOOS)-$(GOARCH) >/dev/null
 
 
+#
+#.PHONY: package-technical-addon
+#package-technical-addon: bundle.d otelcol
+#	cd packaging/technical-addon && $(MAKE) generate-technical-addon copy-local-build-to-ta package-ta smoketest-ta
+#
+
 .PHONY: package-technical-addon
 package-technical-addon: bundle.d otelcol generate-technical-addon copy-local-build-to-ta package-ta smoketest-ta

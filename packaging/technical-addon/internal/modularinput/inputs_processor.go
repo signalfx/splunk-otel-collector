@@ -26,8 +26,8 @@ import (
 
 type ModInput struct {
 	Value        string
-	Config       ModInputConfig
 	Transformers []TransformerFunc
+	Config       ModInputConfig
 }
 
 // TransformerFunc is basically a reducer.. takes in "working" value of modinput string

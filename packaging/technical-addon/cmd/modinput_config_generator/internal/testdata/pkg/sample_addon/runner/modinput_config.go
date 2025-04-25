@@ -6,8 +6,8 @@ import (
 )
 
 type SampleAddonModularInput struct {
-	SchemaName 		string
-	ModularInputs 	map[string]modularinput.ModInput
+	SchemaName    string
+	ModularInputs map[string]modularinput.ModInput
 }
 
 // GetDefaultSampleAddonModularInputs returns the embedded modular input configuration
@@ -15,26 +15,24 @@ func GetDefaultSampleAddonModularInputs() SampleAddonModularInput {
 	return SampleAddonModularInput{
 		SchemaName: "Sample_Addon",
 		ModularInputs: map[string]modularinput.ModInput{
-			"everything_set": modularinput.ModInput{
-				Config: modularinput.ModInputConfig{Description:"SET ALL THE THINGS", Default:"$SPLUNK_OTEL_TA_HOME/local/access_token", Flag:modularinput.Flag{Name:"test-flag", IsUnary:false}, Required:false, PassthroughEnvVar:true, ReplaceableEnvVar:true},
-				Value: "$SPLUNK_OTEL_TA_HOME/local/access_token",
+			"everything_set": {
+				Config: modularinput.ModInputConfig{Description: "SET ALL THE THINGS", Default: "$SPLUNK_OTEL_TA_HOME/local/access_token", Flag: modularinput.Flag{Name: "test-flag", IsUnary: false}, Required: false, PassthroughEnvVar: true, ReplaceableEnvVar: true},
+				Value:  "$SPLUNK_OTEL_TA_HOME/local/access_token",
 				Transformers: []modularinput.TransformerFunc{
 					modularinput.DefaultReplaceEnvVarTransformer,
 				},
 			},
-			"minimal_set": modularinput.ModInput{
-				Config: modularinput.ModInputConfig{Description:"This is all you need", Default:"", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:false, ReplaceableEnvVar:false},
-				Transformers: []modularinput.TransformerFunc{
-				},
+			"minimal_set": {
+				Config:       modularinput.ModInputConfig{Description: "This is all you need", Default: "", Flag: modularinput.Flag{Name: "", IsUnary: false}, Required: false, PassthroughEnvVar: false, ReplaceableEnvVar: false},
+				Transformers: []modularinput.TransformerFunc{},
 			},
-			"minimal_set_required": modularinput.ModInput{
-				Config: modularinput.ModInputConfig{Description:"hello", Default:"", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:true, PassthroughEnvVar:false, ReplaceableEnvVar:false},
-				Transformers: []modularinput.TransformerFunc{
-				},
+			"minimal_set_required": {
+				Config:       modularinput.ModInputConfig{Description: "hello", Default: "", Flag: modularinput.Flag{Name: "", IsUnary: false}, Required: true, PassthroughEnvVar: false, ReplaceableEnvVar: false},
+				Transformers: []modularinput.TransformerFunc{},
 			},
-			"unary_flag_with_everything_set": modularinput.ModInput{
-				Config: modularinput.ModInputConfig{Description:"Unary flags don't take arguments/values and are either present or not", Default:"$SPLUNK_OTEL_TA_HOME/local/access_token", Flag:modularinput.Flag{Name:"test-flag", IsUnary:true}, Required:false, PassthroughEnvVar:true, ReplaceableEnvVar:true},
-				Value: "$SPLUNK_OTEL_TA_HOME/local/access_token",
+			"unary_flag_with_everything_set": {
+				Config: modularinput.ModInputConfig{Description: "Unary flags don't take arguments/values and are either present or not", Default: "$SPLUNK_OTEL_TA_HOME/local/access_token", Flag: modularinput.Flag{Name: "test-flag", IsUnary: true}, Required: false, PassthroughEnvVar: true, ReplaceableEnvVar: true},
+				Value:  "$SPLUNK_OTEL_TA_HOME/local/access_token",
 				Transformers: []modularinput.TransformerFunc{
 					modularinput.DefaultReplaceEnvVarTransformer,
 				},

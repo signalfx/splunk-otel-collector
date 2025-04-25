@@ -1,8 +1,8 @@
 # Used for building
 SOURCE_DIR:=$(dir $(abspath $(lastword $(MAKEFILE_LIST))))
-BUILD_DIR?=$(realpath .)/build
-COMMON_MAKEFILE:=$(SOURCE_DIR)/../../Makefile.Common
-ifneq ($(filter $(COMMON_MAKEFILE),$(MAKEFILE_LIST)),)
+BUILD_DIR?=$(realpath $(SOURCE_DIR)/../../)/build
+COMMON_MAKEFILE:=$(abspath $(SOURCE_DIR)/../../Makefile.Common)
+ifeq ($(filter $(COMMON_MAKEFILE),$(MAKEFILE_LIST)),)
 	include $(COMMON_MAKEFILE)
 endif
 OTEL_COLLECTOR_VERSION?=0.122.0

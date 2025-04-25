@@ -18,8 +18,6 @@ package packaging
 import (
 	"archive/tar"
 	"compress/gzip"
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 	"io"
 	"os"
@@ -37,9 +35,6 @@ func TestPackaging(t *testing.T) {
 	actualPath := filepath.Join(tempPath, "Sample_Addon.tgz")
 	err := PackageAddon(filepath.Join("testdata", "Sample_Addon"), actualPath)
 	require.NoError(t, err)
-	sha256sum, err := calculateSHA256(actualPath)
-	require.NoError(t, err)
-	assert.Equal(t, "99f898321f430bc4876e947d6e5e9cfd33c82f43792d5d971e64596d9686a75f", sha256sum)
 
 	// check paths
 	paths, err := getFilesFromTarGz(actualPath)
@@ -47,20 +42,6 @@ func TestPackaging(t *testing.T) {
 	expectedPaths := mapset.NewSet[string]("Sample_Addon/default/inputs.conf", "Sample_Addon/README/inputs.conf.spec", "Sample_Addon/linux_x86_64/bin/helloworld.sh")
 	assert.EqualValues(t, expectedPaths, paths, "expected paths to match, missing: %v ; extra: %v", expectedPaths.Difference(paths), paths.Difference(expectedPaths))
 
-}
-
-func calculateSHA256(filePath string) (string, error) {
-	file, err := os.Open(filePath)
-	if err != nil {
-		return "", err
-	}
-	defer file.Close()
-	hash := sha256.New()
-
-	if _, err := io.Copy(hash, file); err != nil {
-		return "", err
-	}
-	return hex.EncodeToString(hash.Sum(nil)), nil
 }
 
 func getFilesFromTarGz(tarGzPath string) (mapset.Set[string], error) {

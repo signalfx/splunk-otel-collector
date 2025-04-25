@@ -60,27 +60,31 @@ func TestRunner(t *testing.T) {
 	err := packaging.PackageAddon(filepath.Join(buildDir, "Sample_Addon"), addonPath)
 	require.NoError(t, err)
 	tc := startSplunk(t, addonPath)
-	// TODO tests needed:
-	// 1. btool exec
-	// 2. grep for exact json
-	/*
-			04-25-2025 08:50:02.052 +0000 INFO  ExecProcessor [1687 ExecProcessor] - New scheduled exec process: /opt/splunk/etc/apps/Sample_Addon/linux_x86_64/bin/Sample_Addon
-		04-25-2025 08:50:02.060 +0000 ERROR ExecProcessor [1687 ExecProcessor] - message from "/opt/splunk/etc/apps/Sample_Addon/linux_x86_64/bin/Sample_Addon" panic: modinput disabled does not exist
-		04-25-2025 08:50:02.060 +0000 ERROR ExecProcessor [1687 ExecProcessor] - message from "/opt/splunk/etc/apps/Sample_Addon/linux_x86_64/bin/Sample_Addon" goroutine 1 [running]:
-		04-25-2025 08:50:02.060 +0000 ERROR ExecProcessor [1687 ExecProcessor] - message from "/opt/splunk/etc/apps/Sample_Addon/linux_x86_64/bin/Sample_Addon" main.run()
-		04-25-2025 08:50:02.060 +0000 ERROR ExecProcessor [1687 ExecProcessor] - message from "/opt/splunk/etc/apps/Sample_Addon/linux_x86_64/bin/Sample_Addon"         /home/jamehugh/workspace/otel/ta-add-runner-template/packaging/technical-addon/cmd/modinput_config_generator/internal/testdata/pkg/sample_addon/runner/main.go:55 +0x27d
-		04-25-2025 08:50:02.060 +0000 ERROR ExecProcessor [1687 ExecProcessor] - message from "/opt/splunk/etc/apps/Sample_Addon/linux_x86_64/bin/Sample_Addon" main.main()
-		04-25-2025 08:50:02.060 +0000 ERROR ExecProcessor [1687 ExecProcessor] - message from "/opt/splunk/etc/apps/Sample_Addon/linux_x86_64/bin/Sample_Addon"         /home/jamehugh/workspace/otel/ta-add-runner-template/packaging/technical-addon/cmd/modinput_config_generator/internal/testdata/pkg/sample_addon/runner/main.go:16 +0x13
-		04-25-2025 08:50:02.071 +0000 INFO  ApplicationUpdater [1838 TcpChannelThread] - Reloading via GET on /servicesNS/nobody/Sample_Addon/data/inputs/monitor/_reload
-	*/
-	code, reader, err := tc.Exec(ctx, []string{"grep", "-qiR", "everything_set", "/opt/splunk/var/log/splunk/"})
+
+	// Check Schema
+	code, output, err := tc.Exec(ctx, []string{"sudo", "/opt/splunk/bin/splunk", "btool", "check", "--debug"})
+	assert.NoError(t, err)
+	// current issue is that it can't read... maybe sudo it?
+	assert.Zero(t, code) // TODO may want to check context as well for "Invalid Key in Stanza" log, not sure about zero code
+	read, err := io.ReadAll(output)
+	assert.NoError(t, err)
+	t.Logf("read: %s", read)
+
+	// Check log output
+	expectedJson := `'{"Flags":["--test-flag","$SPLUNK_OTEL_TA_HOME/local/access_token","--test-flag"],"EnvVars":["UNARY_FLAG_WITH_EVERYTHING_SET=$SPLUNK_OTEL_TA_HOME/local/access_token","EVERYTHING_SET=$SPLUNK_OTEL_TA_HOME/local/access_token"],"Platform":"linux"}'`
+	code, output, err = tc.Exec(ctx, []string{"sudo", "grep", "-qi", expectedJson, "/opt/splunk/var/log/splunk/Sample_Addon.log"})
 	assert.NoError(t, err)
 	assert.Zero(t, code)
-	result, err := io.ReadAll(reader)
+	read, err = io.ReadAll(output)
 	assert.NoError(t, err)
-	assert.NotEmpty(t, result)
-	time.Sleep(10 * time.Minute)
-	//assert.NoError(t, tc.Terminate(ctx)) // TODO hughesjj re-enable before PR
+	t.Logf("read: %s", string(read))
+
+	code, output, err = tc.Exec(ctx, []string{"sudo", "cat", "/opt/splunk/var/log/splunk/Sample_Addon.log"})
+	read, err = io.ReadAll(output)
+	assert.NoError(t, err)
+	t.Logf("read: %s", read)
+
+	assert.NoError(t, tc.Terminate(ctx))
 }
 
 func TestRunnerConfigGeneration(t *testing.T) {
@@ -174,24 +178,16 @@ func startSplunk(t *testing.T, taPath string) testcontainers.Container {
 				Target: filepath.Dir(addonLocation),
 				Type:   mount.TypeBind,
 			})
-			c.AutoRemove = false // TODO hughesjj remove before publish
 		},
-		//ExposedPorts: []string{"8000/tcp", "8088/tcp", "8089/tcp"},
 		Env: map[string]string{
 			"SPLUNK_START_ARGS": "--accept-license",
 			"SPLUNK_PASSWORD":   "Chang3d!",
 			"SPLUNK_APPS_URL":   addonLocation,
 		},
-		//Files: []testcontainers.ContainerFile{
-		//	{
-		//		HostFilePath:      taPath,
-		//		ContainerFilePath: addonLocation,
-		//		FileMode:          0o644,
-		//	},
-		//},
 		WaitingFor: wait.ForAll(
 			wait.NewHTTPStrategy("/en-US/account/login").WithPort("8000"),
-		),
+			wait.ForExec([]string{"sudo", "stat", "/opt/splunk/var/log/splunk/Sample_Addon.log"}),
+		).WithDeadline(4*time.Minute + 20*time.Second).WithStartupTimeoutDefault(4 * time.Minute),
 		LogConsumerCfg: &testcontainers.LogConsumerConfig{
 			Consumers: []testcontainers.LogConsumer{&testLogConsumer{t: t}},
 		},

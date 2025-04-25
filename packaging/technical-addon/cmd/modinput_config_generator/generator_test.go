@@ -77,17 +77,13 @@ func TestRunner(t *testing.T) {
 	read, err := io.ReadAll(output)
 	assert.NoError(t, err)
 	assert.NotContains(t, string(read), "Invalid Key in Stanza")
-	t.Logf("read: %s", read)
 
+	// check log output
 	code, output, err = tc.Exec(ctx, []string{"sudo", "cat", "/opt/splunk/var/log/splunk/Sample_Addon.log"})
 	read, err = io.ReadAll(output)
 	assert.NoError(t, err)
-	t.Logf("read: %s", read)
-	// `{"Flags":["--test-flag","$SPLUNK_OTEL_TA_HOME/local/access_token","--test-flag"],"EnvVars":["UNARY_FLAG_WITH_EVERYTHING_SET=$SPLUNK_OTEL_TA_HOME/local/access_token\",\"EVERYTHING_SET=$SPLUNK_OTEL_TA_HOME/local/access_token\"],\"Platform\":\"linux\"}"
-	// issue is sorted order.  Let's maybe try to parse and then compare structure equality?
-	expectedJson := `{"Flags":["--test-flag","--test-flag","$SPLUNK_OTEL_TA_HOME/local/access_token"],"EnvVars":["EVERYTHING_SET=$SPLUNK_OTEL_TA_HOME/local/access_token","UNARY_FLAG_WITH_EVERYTHING_SET=$SPLUNK_OTEL_TA_HOME/local/access_token"],"Platform":"linux"}`
+	expectedJson := `{"Flags":["--test-flag","$SPLUNK_OTEL_TA_HOME/local/access_token","--test-flag"],"EnvVars":["EVERYTHING_SET=$SPLUNK_OTEL_TA_HOME/local/access_token","UNARY_FLAG_WITH_EVERYTHING_SET=$SPLUNK_OTEL_TA_HOME/local/access_token"],"Platform":"linux"}`
 	i := bytes.Index(read, []byte("Sample output:"))
-	t.Logf("fileContent: %s", read[i+len("Sample output:"):])
 	unmarshalled := &ExampleOutput{}
 	err = json.Unmarshal(read[i+len("Sample output:"):], unmarshalled)
 	assert.NoError(t, err)
@@ -215,7 +211,6 @@ func startSplunk(t *testing.T, taPath string) testcontainers.Container {
 	return tc
 }
 
-// testLogConsumer is a simple implementation of LogConsumer that logs to the test output.
 type testLogConsumer struct {
 	t *testing.T
 }

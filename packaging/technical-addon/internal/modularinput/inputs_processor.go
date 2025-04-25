@@ -2,8 +2,11 @@ package modularinput
 
 import (
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
+	"slices"
+	"sort"
 	"strings"
 )
 
@@ -71,7 +74,10 @@ func (mit *ModinputProcessor) ProcessXml(modInput *XMLInput) error {
 
 func (mit *ModinputProcessor) GetFlags() []string {
 	var flags []string
-	for _, modularInput := range mit.ModularInputs {
+	keys := slices.Collect(maps.Keys(mit.ModularInputs))
+	sort.Strings(keys)
+	for _, modinputName := range keys {
+		modularInput, _ := mit.ModularInputs[modinputName]
 		if "" != modularInput.Config.Flag.Name {
 			flags = append(flags, fmt.Sprintf("%s%s", flagPrefix, modularInput.Config.Flag.Name))
 			if !modularInput.Config.Flag.IsUnary {
@@ -84,12 +90,19 @@ func (mit *ModinputProcessor) GetFlags() []string {
 
 func (mit *ModinputProcessor) GetEnvVars() []string {
 	var envVars []string
-	for modinputName, modularInput := range mit.ModularInputs {
+	keys := slices.Collect(maps.Keys(mit.ModularInputs))
+	sort.Strings(keys)
+	for _, modinputName := range keys {
+		modularInput, _ := mit.ModularInputs[modinputName]
 		if modularInput.Config.PassthroughEnvVar {
 			envVars = append(envVars, fmt.Sprintf("%s=%s", strings.ToUpper(modinputName), modularInput.Value))
 		}
 	}
 	return envVars
+}
+
+func (mit *ModinputProcessor) GetModularInputs() {
+
 }
 
 func DefaultReplaceEnvVarTransformer(original string) (string, error) {

@@ -1,5 +1,6 @@
 # Explicitly define the shell we will use for commands.
 SHELL?=/bin/bash
+BUILD_DIR?=$(git rev-parse --show-toplevel)
 
 # Add support to use Makefile on Windows
 SHELL_CASE_EXP = case "$$(uname -s)" in CYGWIN*|MINGW*|MSYS*) echo "true";; esac;

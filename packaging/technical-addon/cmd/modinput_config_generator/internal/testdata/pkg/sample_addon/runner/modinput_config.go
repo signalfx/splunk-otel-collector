@@ -2,7 +2,7 @@
 package main
 
 import (
-	"github.com/splunk/otel-technical-addon/internal/modularinput"
+	"github.com/splunk/splunk-technical-addon/internal/modularinput"
 )
 
 type SampleAddonModularInput struct {

@@ -18,7 +18,7 @@ import (
 	"flag"
 	"os"
 
-	"github.com/splunk/otel-technical-addon/internal/modularinput"
+	"github.com/splunk/splunk-technical-addon/internal/modularinput"
 )
 
 type ExampleOutput struct {

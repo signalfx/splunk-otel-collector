@@ -1,4 +1,4 @@
-module github.com/splunk/otel-technical-addon
+module github.com/splunk/splunk-technical-addon
 
 go 1.23.0
 
@@ -66,4 +66,4 @@ require (
 	google.golang.org/protobuf v1.36.6 // indirect
 )
 
-replace github.com/splunk/otel-technical-addon/internal/modularinput => ./internal/modularinput
+replace github.com/splunk/splunk-technical-addon/internal/modularinput => ./internal/modularinput

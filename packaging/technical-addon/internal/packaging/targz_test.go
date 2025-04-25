@@ -39,12 +39,12 @@ func TestPackaging(t *testing.T) {
 	require.NoError(t, err)
 	sha256sum, err := calculateSHA256(actualPath)
 	require.NoError(t, err)
-	assert.Equal(t, "94627778c3ba3e20ac0a00733ad054f1c1ed4ded57b344058613345995dcb3c8", sha256sum)
+	assert.Equal(t, "99f898321f430bc4876e947d6e5e9cfd33c82f43792d5d971e64596d9686a75f", sha256sum)
 
 	// check paths
 	paths, err := getFilesFromTarGz(actualPath)
 	require.NoError(t, err)
-	expectedPaths := mapset.NewSet[string]("Sample_Addon/default/inputs.conf", "Sample_Addon/README/inputs.conf.spec", "Sample_Addon/linux_x86_64/bin/Sample_Addon")
+	expectedPaths := mapset.NewSet[string]("Sample_Addon/default/inputs.conf", "Sample_Addon/README/inputs.conf.spec", "Sample_Addon/linux_x86_64/bin/helloworld.sh")
 	assert.EqualValues(t, expectedPaths, paths, "expected paths to match, missing: %v ; extra: %v", expectedPaths.Difference(paths), paths.Difference(expectedPaths))
 
 }

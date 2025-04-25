@@ -60,7 +60,7 @@ func (t *ModInput) RegisterTransformer(transformer TransformerFunc) {
 	t.Transformers = append(t.Transformers, transformer)
 }
 
-func (mit *ModinputProcessor) ProcessXml(modInput *XMLInput) error {
+func (mit *ModinputProcessor) ProcessXML(modInput *XMLInput) error {
 	providedInputs := make(map[string]bool)
 
 	for _, stanza := range modInput.Configuration.Stanzas {
@@ -91,7 +91,7 @@ func (mit *ModinputProcessor) GetFlags() []string {
 	keys := slices.Collect(maps.Keys(mit.ModularInputs))
 	sort.Strings(keys)
 	for _, modinputName := range keys {
-		modularInput, _ := mit.ModularInputs[modinputName]
+		modularInput := mit.ModularInputs[modinputName]
 		if "" != modularInput.Config.Flag.Name {
 			flags = append(flags, fmt.Sprintf("--%s", modularInput.Config.Flag.Name))
 			if !modularInput.Config.Flag.IsUnary {
@@ -107,7 +107,7 @@ func (mit *ModinputProcessor) GetEnvVars() []string {
 	keys := slices.Collect(maps.Keys(mit.ModularInputs))
 	sort.Strings(keys)
 	for _, modinputName := range keys {
-		modularInput, _ := mit.ModularInputs[modinputName]
+		modularInput := mit.ModularInputs[modinputName]
 		if modularInput.Config.PassthroughEnvVar {
 			envVars = append(envVars, fmt.Sprintf("%s=%s", strings.ToUpper(modinputName), modularInput.Value))
 		}
@@ -122,15 +122,15 @@ func (mit *ModinputProcessor) GetModularInputs() {
 func DefaultReplaceEnvVarTransformer(original string) (string, error) {
 	execPath, err := os.Executable()
 	if err != nil {
-		return "", fmt.Errorf("Error getting executable path: %v\n", err)
+		return "", fmt.Errorf("error getting executable path: %v", err)
 	}
 	splunkTaPlatformHome := filepath.Dir(filepath.Dir(execPath)) // ../bin/(windows_x86_64|linux_x86_64)
 	splunkTaHome := filepath.Dir(splunkTaPlatformHome)           // ../<Name of TA>
 	splunkHome := filepath.Dir(filepath.Dir(splunkTaHome))       // etc/(apps|deployment_apps)/
 
 	replacement := strings.ReplaceAll(original, "$SPLUNK_TA_PLATFORM_HOME", splunkTaPlatformHome)
-	replacement = strings.ReplaceAll(original, "$SPLUNK_TA_HOME", splunkTaHome)
-	replacement = strings.ReplaceAll(original, "$SPLUNK_HOME", splunkHome)
+	replacement = strings.ReplaceAll(replacement, "$SPLUNK_TA_HOME", splunkTaHome)
+	replacement = strings.ReplaceAll(replacement, "$SPLUNK_HOME", splunkHome)
 	return replacement, nil
 }
 

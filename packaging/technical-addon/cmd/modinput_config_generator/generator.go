@@ -147,7 +147,7 @@ func loadYaml(yamlPath string, schemaName string) (*modularinput.TemplateData, e
 	if err != nil {
 		return nil, err
 	}
-	if strings.ToLower(config.SchemaName) != strings.ToLower(schemaName) {
+	if !strings.EqualFold(config.SchemaName, schemaName) {
 		return nil, fmt.Errorf("schema name mismatch: expected %q, got %q in file %s",
 			schemaName, config.SchemaName, yamlPath)
 	}

@@ -57,7 +57,7 @@ func run() int {
 	if err != nil {
 		panic(err)
 	}
-	err = mip.ProcessXml(xmlInput)
+	err = mip.ProcessXML(xmlInput)
 
 	if *validateFlag {
 		if err != nil {

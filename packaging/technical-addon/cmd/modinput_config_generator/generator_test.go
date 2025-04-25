@@ -94,16 +94,16 @@ func TestRunner(t *testing.T) {
 	assert.NotContains(t, string(read), "Invalid Key in Stanza")
 
 	// check log output
-	code, output, err = tc.Exec(ctx, []string{"sudo", "cat", "/opt/splunk/var/log/splunk/Sample_Addon.log"})
+	_, output, err = tc.Exec(ctx, []string{"sudo", "cat", "/opt/splunk/var/log/splunk/Sample_Addon.log"})
+	require.NoError(t, err)
 	read, err = io.ReadAll(output)
 	assert.NoError(t, err)
-	expectedJson := `{"Flags":["--test-flag","$SPLUNK_OTEL_TA_HOME/local/access_token","--test-flag"],"EnvVars":["EVERYTHING_SET=$SPLUNK_OTEL_TA_HOME/local/access_token","UNARY_FLAG_WITH_EVERYTHING_SET=$SPLUNK_OTEL_TA_HOME/local/access_token"],"Platform":"linux"}`
+	expectedJSON := `{"Flags":["--test-flag","$SPLUNK_OTEL_TA_HOME/local/access_token","--test-flag"],"EnvVars":["EVERYTHING_SET=$SPLUNK_OTEL_TA_HOME/local/access_token","UNARY_FLAG_WITH_EVERYTHING_SET=$SPLUNK_OTEL_TA_HOME/local/access_token"],"Platform":"linux"}`
 	i := bytes.Index(read, []byte("Sample output:"))
 	unmarshalled := &ExampleOutput{}
-	err = json.Unmarshal(read[i+len("Sample output:"):], unmarshalled)
-	assert.NoError(t, err)
+	require.NoError(t, json.Unmarshal(read[i+len("Sample output:"):], unmarshalled))
 	expected := &ExampleOutput{}
-	err = json.Unmarshal([]byte(expectedJson), expected)
+	require.NoError(t, json.Unmarshal([]byte(expectedJSON), expected))
 	assert.EqualValues(t, expected, unmarshalled)
 
 	assert.NoError(t, tc.Terminate(ctx))

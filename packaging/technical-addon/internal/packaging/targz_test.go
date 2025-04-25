@@ -24,10 +24,9 @@ import (
 	"path/filepath"
 	"testing"
 
+	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	mapset "github.com/deckarep/golang-set/v2"
 )
 
 func TestPackaging(t *testing.T) {

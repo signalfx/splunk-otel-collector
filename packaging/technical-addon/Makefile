@@ -2,7 +2,9 @@
 SOURCE_DIR:=$(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 BUILD_DIR?=$(realpath $(SOURCE_DIR)/../../)/build
 COMMON_MAKEFILE:=$(abspath $(SOURCE_DIR)/../../Makefile.Common)
-ifeq ($(filter $(COMMON_MAKEFILE),$(MAKEFILE_LIST)),)
+
+ABS_MAKEFILE_LIST := $(foreach file,$(MAKEFILE_LIST),$(abspath $(file)))
+ifeq ($(filter $(COMMON_MAKEFILE),$(ABS_MAKEFILE_LIST)),)
 	include $(COMMON_MAKEFILE)
 endif
 OTEL_COLLECTOR_VERSION?=0.122.0

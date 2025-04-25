@@ -1,6 +1,6 @@
 include ./Makefile.Common
 include ./packaging/technical-addon/Makefile
-
+BUILD_DIR?=$(realpath .)
 ### VARIABLES
 
 # BUILD_TYPE should be one of (dev, release).

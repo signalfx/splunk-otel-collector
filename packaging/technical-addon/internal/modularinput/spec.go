@@ -2,9 +2,10 @@ package modularinput
 
 import (
 	"fmt"
-	"gopkg.in/yaml.v3"
 	"os"
 	"text/template"
+
+	"gopkg.in/yaml.v3"
 )
 
 type Flag struct {

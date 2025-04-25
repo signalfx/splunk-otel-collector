@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
-	"github.com/splunk/otel-technical-addon/internal/modularinput"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
 	"unicode"
+
+	"github.com/splunk/otel-technical-addon/internal/modularinput"
 )
 
 const generatedFileName = "modinput_config.go"

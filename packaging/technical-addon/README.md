@@ -36,7 +36,3 @@ Further, they may remove the agent bundle downloaded to the `bin/` folder in the
 As with all TAs, any changes made to `configs` will be overwritten.
 Customers should copy any relevant custom configuration from `configs/` or `defaults/`
 to `local/`.
-
-# Autoinstrumentation
-1.  `make generate-technical-addon-autoinstrumentation`
-2. `make generate-inputs-conf && make build-runners`

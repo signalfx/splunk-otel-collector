@@ -29,8 +29,8 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/google/go-cmp/cmp"
-	"github.com/splunk/splunk-technical-addon/internal/modularinput"
 	"github.com/splunk/splunk-technical-addon/internal/packaging"
+	"github.com/splunk/splunk-technical-addon/internal/testcommon"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
@@ -78,7 +78,7 @@ func TestRunner(t *testing.T) {
 	ctx := context.Background()
 	addonPath := filepath.Join(t.TempDir(), "Sample_Addon.tgz")
 
-	buildDir := modularinput.GetBuildDir()
+	buildDir := testcommon.GetBuildDir()
 	require.NotEmpty(t, buildDir)
 	err := packaging.PackageAddon(filepath.Join(buildDir, "Sample_Addon"), addonPath)
 	require.NoError(t, err)
@@ -110,7 +110,9 @@ func TestRunner(t *testing.T) {
 }
 
 func TestRunnerConfigGeneration(t *testing.T) {
-
+	sourceDir, err := testcommon.GetSourceDir()
+	require.NoError(t, err)
+	sourceDir = filepath.Join(sourceDir, "cmd", "modinput_config_generator", "internal", "testdata")
 	tests := []struct {
 		testSchemaName string
 		sampleYamlPath string
@@ -120,7 +122,7 @@ func TestRunnerConfigGeneration(t *testing.T) {
 		{
 			testSchemaName: "Sample_Addon",
 			outDir:         t.TempDir(),
-			sampleYamlPath: filepath.Join(os.Getenv("SOURCE_DIR"), "pkg/sample_addon/runner/modular-inputs.yaml"),
+			sampleYamlPath: filepath.Join(sourceDir, "pkg/sample_addon/runner/modular-inputs.yaml"),
 		},
 	}
 
@@ -136,7 +138,9 @@ func TestRunnerConfigGeneration(t *testing.T) {
 }
 
 func TestInputsConfGeneration(t *testing.T) {
-
+	sourceDir, err := testcommon.GetSourceDir()
+	require.NoError(t, err)
+	sourceDir = filepath.Join(sourceDir, "cmd", "modinput_config_generator", "internal", "testdata")
 	tests := []struct {
 		testSchemaName   string
 		sampleYamlPath   string
@@ -148,8 +152,8 @@ func TestInputsConfGeneration(t *testing.T) {
 		{
 			testSchemaName: "Sample_Addon",
 			outDir:         t.TempDir(),
-			sourceDir:      filepath.Join(os.Getenv("SOURCE_DIR"), "pkg/sample_addon"),
-			sampleYamlPath: filepath.Join(os.Getenv("SOURCE_DIR"), "pkg/sample_addon/runner/modular-inputs.yaml"),
+			sourceDir:      filepath.Join(sourceDir, "pkg/sample_addon"),
+			sampleYamlPath: filepath.Join(sourceDir, "pkg/sample_addon/runner/modular-inputs.yaml"),
 		},
 	}
 

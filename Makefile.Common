@@ -1,5 +1,6 @@
 # Explicitly define the shell we will use for commands.
 SHELL?=/bin/bash
+SOURCE_DIR?=$(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 BUILD_DIR?=$(git rev-parse --show-toplevel)
 
 # Add support to use Makefile on Windows

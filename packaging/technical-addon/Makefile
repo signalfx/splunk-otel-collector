@@ -1,6 +1,6 @@
 # Used for building
-SOURCE_DIR:=$(dir $(abspath $(lastword $(MAKEFILE_LIST))))
-BUILD_DIR?=$(realpath $(SOURCE_DIR)/../../)/build
+SOURCE_DIR=$(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+BUILD_DIR=$(realpath $(SOURCE_DIR)/../../)/build
 COMMON_MAKEFILE:=$(abspath $(SOURCE_DIR)/../../Makefile.Common)
 
 ABS_MAKEFILE_LIST := $(foreach file,$(MAKEFILE_LIST),$(abspath $(file)))
@@ -39,7 +39,7 @@ test-ta-build-tools: ta-build-tools
 	mkdir -p $(BUILD_DIR)/Sample_Addon/$(PLATFORM)_$(SPLUNK_ARCH)/bin; \
 	cd $(SOURCE_DIR) && go build $(GO_BUILD_FLAGS) -o $(BUILD_DIR)/Sample_Addon/$(PLATFORM)_$(SPLUNK_ARCH)/bin/Sample_Addon ./cmd/modinput_config_generator/internal/testdata/pkg/sample_addon/runner || exit 1; \
 	echo "built addon, testing..."
-	cd $(SOURCE_DIR) && SOURCE_DIR="$(SOURCE_DIR)/cmd/modinput_config_generator/internal/testdata" BUILD_DIR="$(BUILD_DIR)" go test -v ./...
+	cd $(SOURCE_DIR) && go test -v ./...
 
 .PHONY: generate-technical-addon
 generate-technical-addon: env-guard-all

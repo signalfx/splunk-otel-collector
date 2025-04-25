@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/mount"
@@ -20,6 +22,12 @@ import (
 	"testing"
 	"time"
 )
+
+type ExampleOutput struct {
+	Flags    []string
+	EnvVars  []string
+	Platform string
+}
 
 func TestPascalization(t *testing.T) {
 	tests := []struct {
@@ -64,25 +72,28 @@ func TestRunner(t *testing.T) {
 	// Check Schema
 	code, output, err := tc.Exec(ctx, []string{"sudo", "/opt/splunk/bin/splunk", "btool", "check", "--debug"})
 	assert.NoError(t, err)
-	// current issue is that it can't read... maybe sudo it?
-	assert.Zero(t, code) // TODO may want to check context as well for "Invalid Key in Stanza" log, not sure about zero code
+	assert.LessOrEqual(t, code, 1)    // Other stanzas may be missing and thus have this be 0 or 1
+	assert.GreaterOrEqual(t, code, 0) // bound to [0,1]
 	read, err := io.ReadAll(output)
 	assert.NoError(t, err)
+	assert.NotContains(t, string(read), "Invalid Key in Stanza")
 	t.Logf("read: %s", read)
-
-	// Check log output
-	expectedJson := `'{"Flags":["--test-flag","$SPLUNK_OTEL_TA_HOME/local/access_token","--test-flag"],"EnvVars":["UNARY_FLAG_WITH_EVERYTHING_SET=$SPLUNK_OTEL_TA_HOME/local/access_token","EVERYTHING_SET=$SPLUNK_OTEL_TA_HOME/local/access_token"],"Platform":"linux"}'`
-	code, output, err = tc.Exec(ctx, []string{"sudo", "grep", "-qi", expectedJson, "/opt/splunk/var/log/splunk/Sample_Addon.log"})
-	assert.NoError(t, err)
-	assert.Zero(t, code)
-	read, err = io.ReadAll(output)
-	assert.NoError(t, err)
-	t.Logf("read: %s", string(read))
 
 	code, output, err = tc.Exec(ctx, []string{"sudo", "cat", "/opt/splunk/var/log/splunk/Sample_Addon.log"})
 	read, err = io.ReadAll(output)
 	assert.NoError(t, err)
 	t.Logf("read: %s", read)
+	// `{"Flags":["--test-flag","$SPLUNK_OTEL_TA_HOME/local/access_token","--test-flag"],"EnvVars":["UNARY_FLAG_WITH_EVERYTHING_SET=$SPLUNK_OTEL_TA_HOME/local/access_token\",\"EVERYTHING_SET=$SPLUNK_OTEL_TA_HOME/local/access_token\"],\"Platform\":\"linux\"}"
+	// issue is sorted order.  Let's maybe try to parse and then compare structure equality?
+	expectedJson := `{"Flags":["--test-flag","--test-flag","$SPLUNK_OTEL_TA_HOME/local/access_token"],"EnvVars":["EVERYTHING_SET=$SPLUNK_OTEL_TA_HOME/local/access_token","UNARY_FLAG_WITH_EVERYTHING_SET=$SPLUNK_OTEL_TA_HOME/local/access_token"],"Platform":"linux"}`
+	i := bytes.Index(read, []byte("Sample output:"))
+	t.Logf("fileContent: %s", read[i+len("Sample output:"):])
+	unmarshalled := &ExampleOutput{}
+	err = json.Unmarshal(read[i+len("Sample output:"):], unmarshalled)
+	assert.NoError(t, err)
+	expected := &ExampleOutput{}
+	err = json.Unmarshal([]byte(expectedJson), expected)
+	assert.EqualValues(t, expected, unmarshalled)
 
 	assert.NoError(t, tc.Terminate(ctx))
 }

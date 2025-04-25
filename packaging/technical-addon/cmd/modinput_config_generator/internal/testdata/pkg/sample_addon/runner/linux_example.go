@@ -13,7 +13,7 @@ func Example(flags []string, envVars []string) {
 	if err != nil {
 		log.Fatal("error marshalling json: ", err)
 	} else {
-		log.Printf("Sample output:%s", output)
+		log.Printf("Sample output:%s\n", output)
 	}
-	fmt.Println(string(output))
+	fmt.Printf("Sample output:%s\n", output)
 }

@@ -1,16 +1,25 @@
 package main
 
 import (
+	"context"
+	"fmt"
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/mount"
 	"github.com/google/go-cmp/cmp"
+	"github.com/splunk/otel-technical-addon/internal/modularinput"
 	"github.com/splunk/otel-technical-addon/internal/packaging"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/wait"
+	"go.uber.org/zap"
+	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
+	"time"
 )
-
-const testDataPrefix = "internal/testdata/"
 
 func TestPascalization(t *testing.T) {
 	tests := []struct {
@@ -43,15 +52,28 @@ func TestPascalization(t *testing.T) {
 }
 
 func TestRunner(t *testing.T) {
+	ctx := context.Background()
 	addonPath := filepath.Join(t.TempDir(), "Sample_Addon.tgz")
-	err := packaging.PackageAddon(filepath.Join(os.Getenv("BUILD_DIR"), "Sample_Addon"), addonPath)
+
+	buildDir := modularinput.GetBuildDir()
+	require.NotEmpty(t, buildDir)
+	err := packaging.PackageAddon(filepath.Join(buildDir, "Sample_Addon"), addonPath)
 	require.NoError(t, err)
-	// TODO add testcontainer run here
+	tc := startSplunk(t, addonPath)
+	// TODO tests needed:
+	// 1. btool exec
+	// 2. grep for exact json
+	code, reader, err := tc.Exec(ctx, []string{"grep", "-qiR", "everything_set", "/opt/splunk/var/log/splunk/"})
+	assert.NoError(t, err)
+	assert.Zero(t, code)
+	result, err := io.ReadAll(reader)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, result)
+	time.Sleep(10 * time.Minute)
+	//assert.NoError(t, tc.Terminate(ctx)) // TODO hughesjj re-enable before PR
 }
 
 func TestRunnerConfigGeneration(t *testing.T) {
-	// This is a smoketest, any actual functionality test should be tested via the
-	// test addon's "runner" itself
 
 	tests := []struct {
 		testSchemaName string
@@ -123,4 +145,64 @@ func assertFilesMatch(tt *testing.T, expectedPath string, actualPath string) {
 	if diff := cmp.Diff(string(expected), string(actual)); diff != "" {
 		tt.Errorf("File contents mismatch (-expected +actual)\npaths: (%s, %s):\n%s", expectedPath, actualPath, diff)
 	}
+}
+
+func startSplunk(t *testing.T, taPath string) testcontainers.Container {
+	logger, err := zap.NewProduction()
+	if err != nil {
+		panic(err)
+	}
+	conContext := context.Background()
+	addonLocation := fmt.Sprintf("/tmp/local-tas/%v", filepath.Base(taPath))
+
+	req := testcontainers.ContainerRequest{
+		Image: "splunk/splunk:9.1.2",
+		HostConfigModifier: func(c *container.HostConfig) {
+			c.NetworkMode = "host"
+			c.Mounts = append(c.Mounts, mount.Mount{
+				Source: filepath.Dir(taPath),
+				Target: filepath.Dir(addonLocation),
+				Type:   mount.TypeBind,
+			})
+			c.AutoRemove = false // TODO hughesjj remove before publish
+		},
+		//ExposedPorts: []string{"8000/tcp", "8088/tcp", "8089/tcp"},
+		Env: map[string]string{
+			"SPLUNK_START_ARGS": "--accept-license",
+			"SPLUNK_PASSWORD":   "Chang3d!",
+			"SPLUNK_APPS_URL":   addonLocation,
+		},
+		//Files: []testcontainers.ContainerFile{
+		//	{
+		//		HostFilePath:      taPath,
+		//		ContainerFilePath: addonLocation,
+		//		FileMode:          0o644,
+		//	},
+		//},
+		WaitingFor: wait.ForAll(
+			wait.NewHTTPStrategy("/en-US/account/login").WithPort("8000"),
+		),
+		LogConsumerCfg: &testcontainers.LogConsumerConfig{
+			Consumers: []testcontainers.LogConsumer{&testLogConsumer{t: t}},
+		},
+	}
+
+	tc, err := testcontainers.GenericContainer(conContext, testcontainers.GenericContainerRequest{
+		ContainerRequest: req,
+		Started:          true,
+	})
+	if err != nil {
+		logger.Info("Error while creating container")
+		panic(err)
+	}
+	return tc
+}
+
+// testLogConsumer is a simple implementation of LogConsumer that logs to the test output.
+type testLogConsumer struct {
+	t *testing.T
+}
+
+func (l *testLogConsumer) Accept(log testcontainers.Log) {
+	l.t.Log(log.LogType + ": " + strings.TrimSpace(string(log.Content)))
 }

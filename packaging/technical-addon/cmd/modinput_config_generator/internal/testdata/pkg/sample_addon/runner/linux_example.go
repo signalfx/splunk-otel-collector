@@ -4,9 +4,16 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 )
 
 func Example(flags []string, envVars []string) {
-	log.Println(json.Marshal(ExampleOutput{flags, envVars, "linux"}))
+	output, err := json.Marshal(ExampleOutput{flags, envVars, "linux"})
+	if err != nil {
+		log.Fatal(err)
+	} else {
+		log.Println(output)
+	}
+	fmt.Println(output)
 }

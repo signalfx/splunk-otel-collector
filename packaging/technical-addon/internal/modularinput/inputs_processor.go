@@ -20,7 +20,7 @@ type ModinputProcessor struct {
 	ModularInputs map[string]ModInput
 }
 
-func (t *ModInput) Transform(value string) error {
+func (t *ModInput) TransformInputs(value string) error {
 	t.Value = value
 	for _, transformer := range t.Transformers {
 		transformed, err := transformer(t.Value)
@@ -52,7 +52,7 @@ func (mit *ModinputProcessor) ProcessXml(modInput *XMLInput) error {
 		if strings.HasPrefix(stanza.Name, stanzaPrefix) {
 			for _, param := range stanza.Params {
 				if input, exists := mit.ModularInputs[param.Name]; exists {
-					err := input.Transform(param.Value)
+					err := input.TransformInputs(param.Value)
 					if err != nil {
 						return fmt.Errorf("transform failed for input %s: %s", param.Name, err)
 					}
@@ -117,4 +117,46 @@ func (mit *ModinputProcessor) GetMissingRequired(provided map[string]bool) []str
 		}
 	}
 	return missing
+}
+
+func GetBuildDir() string {
+	var err error
+	buildDir := os.Getenv("BUILD_DIR")
+	if buildDir == "" {
+		fmt.Println("$BUILD_DIR not set, searching for git root")
+		buildDir, err = findGitRoot(".")
+		if err != nil || buildDir == "" {
+			fmt.Println("no git dir found, defaulting to cwd")
+			buildDir, err = os.Getwd()
+			if err != nil {
+				fmt.Println("couldn't get cwd, defaulting to ./")
+				buildDir = "."
+			}
+		}
+		buildDir = filepath.Join(buildDir, "build")
+	}
+	return buildDir
+}
+
+func findGitRoot(startDir string) (string, error) {
+	dir, err := filepath.Abs(startDir)
+	if err != nil {
+		return "", fmt.Errorf("failed to get absolute path: %w", err)
+	}
+
+	for {
+		gitPath := filepath.Join(dir, ".git")
+		_, err := os.Stat(gitPath)
+		if err == nil {
+			return dir, nil
+		} else if !os.IsNotExist(err) {
+			return "", fmt.Errorf("error checking for .git: %w", err)
+		}
+
+		parentDir := filepath.Dir(dir)
+		if parentDir == dir {
+			return "", fmt.Errorf("no git repository found")
+		}
+		dir = parentDir
+	}
 }

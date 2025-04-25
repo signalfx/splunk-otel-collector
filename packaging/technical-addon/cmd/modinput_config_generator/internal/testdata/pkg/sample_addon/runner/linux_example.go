@@ -11,9 +11,9 @@ import (
 func Example(flags []string, envVars []string) {
 	output, err := json.Marshal(ExampleOutput{flags, envVars, "linux"})
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("error marshalling json: ", err)
 	} else {
-		log.Println(output)
+		log.Printf("Sample output:%v", string(output))
 	}
-	fmt.Println(output)
+	fmt.Println(string(output))
 }

@@ -63,6 +63,16 @@ func TestRunner(t *testing.T) {
 	// TODO tests needed:
 	// 1. btool exec
 	// 2. grep for exact json
+	/*
+			04-25-2025 08:50:02.052 +0000 INFO  ExecProcessor [1687 ExecProcessor] - New scheduled exec process: /opt/splunk/etc/apps/Sample_Addon/linux_x86_64/bin/Sample_Addon
+		04-25-2025 08:50:02.060 +0000 ERROR ExecProcessor [1687 ExecProcessor] - message from "/opt/splunk/etc/apps/Sample_Addon/linux_x86_64/bin/Sample_Addon" panic: modinput disabled does not exist
+		04-25-2025 08:50:02.060 +0000 ERROR ExecProcessor [1687 ExecProcessor] - message from "/opt/splunk/etc/apps/Sample_Addon/linux_x86_64/bin/Sample_Addon" goroutine 1 [running]:
+		04-25-2025 08:50:02.060 +0000 ERROR ExecProcessor [1687 ExecProcessor] - message from "/opt/splunk/etc/apps/Sample_Addon/linux_x86_64/bin/Sample_Addon" main.run()
+		04-25-2025 08:50:02.060 +0000 ERROR ExecProcessor [1687 ExecProcessor] - message from "/opt/splunk/etc/apps/Sample_Addon/linux_x86_64/bin/Sample_Addon"         /home/jamehugh/workspace/otel/ta-add-runner-template/packaging/technical-addon/cmd/modinput_config_generator/internal/testdata/pkg/sample_addon/runner/main.go:55 +0x27d
+		04-25-2025 08:50:02.060 +0000 ERROR ExecProcessor [1687 ExecProcessor] - message from "/opt/splunk/etc/apps/Sample_Addon/linux_x86_64/bin/Sample_Addon" main.main()
+		04-25-2025 08:50:02.060 +0000 ERROR ExecProcessor [1687 ExecProcessor] - message from "/opt/splunk/etc/apps/Sample_Addon/linux_x86_64/bin/Sample_Addon"         /home/jamehugh/workspace/otel/ta-add-runner-template/packaging/technical-addon/cmd/modinput_config_generator/internal/testdata/pkg/sample_addon/runner/main.go:16 +0x13
+		04-25-2025 08:50:02.071 +0000 INFO  ApplicationUpdater [1838 TcpChannelThread] - Reloading via GET on /servicesNS/nobody/Sample_Addon/data/inputs/monitor/_reload
+	*/
 	code, reader, err := tc.Exec(ctx, []string{"grep", "-qiR", "everything_set", "/opt/splunk/var/log/splunk/"})
 	assert.NoError(t, err)
 	assert.Zero(t, code)

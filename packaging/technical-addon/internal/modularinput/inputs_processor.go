@@ -56,8 +56,6 @@ func (mit *ModinputProcessor) ProcessXml(modInput *XMLInput) error {
 					if err != nil {
 						return fmt.Errorf("transform failed for input %s: %s", param.Name, err)
 					}
-				} else {
-					return fmt.Errorf("modinput %s does not exist", param.Name)
 				}
 				providedInputs[param.Name] = true
 			}

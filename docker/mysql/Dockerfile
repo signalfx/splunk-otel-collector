@@ -1,4 +1,4 @@
-FROM mysql:8.4
+FROM mysql:9.3
 ENV MYSQL_DATABASE testdb
 ENV MYSQL_USER testuser
 ENV MYSQL_PASSWORD testpass

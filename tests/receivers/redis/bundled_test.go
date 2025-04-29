@@ -77,6 +77,7 @@ func TestRedisDockerObserver(t *testing.T) {
 			pmetrictest.IgnoreResourceAttributeValue("server.address"),
 			pmetrictest.IgnoreResourceAttributeValue("container.name"),
 			pmetrictest.IgnoreResourceAttributeValue("server.port"),
+			pmetrictest.IgnoreResourceAttributeValue("redis.version"),
 			pmetrictest.IgnoreResourceAttributeValue("service.name"),
 			pmetrictest.IgnoreResourceAttributeValue("service_instance_id"),
 			pmetrictest.IgnoreResourceAttributeValue("service_version"),

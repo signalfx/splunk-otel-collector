@@ -2,8 +2,6 @@ include ./Makefile.Common
 include ./packaging/technical-addon/Makefile
 
 ### VARIABLES
-SOURCE_DIR?=$(dir $(abspath $(lastword $(MAKEFILE_LIST))))
-BUILD_DIR?=$(git rev-parse --show-toplevel)
 
 # BUILD_TYPE should be one of (dev, release).
 BUILD_TYPE?=release

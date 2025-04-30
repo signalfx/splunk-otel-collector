@@ -765,8 +765,7 @@ github.com/ulule/deepcopier v0.0.0-20171107155558-ca99b135e50f h1:QatZ4lsJBY3x1+
 github.com/ulule/deepcopier v0.0.0-20171107155558-ca99b135e50f/go.mod h1:BNLmYJ8oMJPIPpNx5968jCyUhwEU1XT3YsuOqtbo5qo=
 github.com/vjeantet/grok v1.0.1 h1:2rhIR7J4gThTgcZ1m2JY4TrJZNgjn985U28kT2wQrJ4=
 github.com/vjeantet/grok v1.0.1/go.mod h1:ax1aAchzC6/QMXMcyzHQGZWaW1l195+uMYIkCWPCNIo=
-github.com/vmware/govmomi v0.47.1 h1:6a2iNaqSS2/AFfvI8UMe0l787/TBKkK0KK9jCqCyYCE=
-github.com/vmware/govmomi v0.47.1/go.mod h1:bYwUHpGpisE4AOlDl5eph90T+cjJMIcKx/kaa5v5rQM=
+github.com/vmware/govmomi v0.50.0 h1:vFOnUCBCX3m3MgTKfBp68Pz5gsHvKkO07Y2wCGYYQOM=
 github.com/vmware/govmomi v0.50.0/go.mod h1:Z5uo7z0kRhVV00E4gfbUGwUaXIKTgqngsT+t/mIDpcI=
 github.com/x448/float16 v0.8.4 h1:qLwI1I70+NjRFUR3zs1JPUCgaCXSh3SW62uAKT1mSBM=
 github.com/x448/float16 v0.8.4/go.mod h1:14CWIYCyZA/cWjXOioeEpHeN/83MdbZDRQHoFcYsOfg=

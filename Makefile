@@ -2,6 +2,8 @@ include ./Makefile.Common
 include ./packaging/technical-addon/Makefile
 
 ### VARIABLES
+SOURCE_DIR?=$(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+BUILD_DIR?=$(git rev-parse --show-toplevel)
 
 # BUILD_TYPE should be one of (dev, release).
 BUILD_TYPE?=release
@@ -11,7 +13,7 @@ GIT_SHA=$(shell git rev-parse --short HEAD)
 GOARCH=$(shell go env GOARCH)
 GOOS=$(shell go env GOOS)
 
-FIND_MOD_ARGS=-type f -name "go.mod"
+FIND_MOD_ARGS=-type f -name "go.mod"  -not -path "./packaging/technical-addon/*"
 TO_MOD_DIR=dirname {} \; | sort | egrep  '^./'
 
 ALL_MODS := $(shell find . $(FIND_MOD_ARGS) -exec $(TO_MOD_DIR)) $(PWD)

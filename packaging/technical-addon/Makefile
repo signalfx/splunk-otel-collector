@@ -1,6 +1,12 @@
 # Used for building
-SOURCE_DIR?=$(dir $(abspath $(lastword $(MAKEFILE_LIST))))
-BUILD_DIR?=$(realpath .)/build
+SOURCE_DIR=$(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+BUILD_DIR=$(realpath $(SOURCE_DIR)/../../)/build
+COMMON_MAKEFILE:=$(abspath $(SOURCE_DIR)/../../Makefile.Common)
+
+ABS_MAKEFILE_LIST := $(foreach file,$(MAKEFILE_LIST),$(abspath $(file)))
+ifeq ($(filter $(COMMON_MAKEFILE),$(ABS_MAKEFILE_LIST)),)
+	include $(COMMON_MAKEFILE)
+endif
 OTEL_COLLECTOR_VERSION?=0.122.0
 SPLUNK_OTELCOL_DOWNLOAD_BASE?=https://github.com/signalfx/splunk-otel-collector/releases/download
 PLATFORM?=linux
@@ -16,6 +22,24 @@ SPLUNK_ARCH?=x86_64
 SPLUNK_OTEL_VERSION?=
 TA_VERSION?=
 
+# Tools directory
+TOOLS_DIR := $(BUILD_DIR)/.tools
+MODINPUT_CONFIG_GENERATOR := $(TOOLS_DIR)/modinput_config_generator
+
+# Make targets
+.PHONY: ta-build-tools
+ta-build-tools:
+	@echo "Building tools..."
+	@mkdir -p $(TOOLS_DIR)
+
+.PHONY: test-ta-build-tools
+test-ta-build-tools: ta-build-tools
+	cd $(SOURCE_DIR) && go build -o $(TOOLS_DIR)/modinput_config_generator ./cmd/modinput_config_generator
+	$(MODINPUT_CONFIG_GENERATOR) -source-dir=$(SOURCE_DIR)/cmd/modinput_config_generator/internal/testdata -schema-name=Sample_Addon --build-dir=$(BUILD_DIR) || exit 1; \
+	mkdir -p $(BUILD_DIR)/Sample_Addon/$(PLATFORM)_$(SPLUNK_ARCH)/bin; \
+	cd $(SOURCE_DIR) && go build $(GO_BUILD_FLAGS) -o $(BUILD_DIR)/Sample_Addon/$(PLATFORM)_$(SPLUNK_ARCH)/bin/Sample_Addon ./cmd/modinput_config_generator/internal/testdata/pkg/sample_addon/runner || exit 1; \
+	echo "built addon, testing..."
+	cd $(SOURCE_DIR) && go test -v ./...
 
 .PHONY: generate-technical-addon
 generate-technical-addon: env-guard-all

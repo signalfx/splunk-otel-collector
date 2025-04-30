@@ -1,5 +1,7 @@
 # Explicitly define the shell we will use for commands.
 SHELL?=/bin/bash
+SOURCE_DIR?=$(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+BUILD_DIR?=$(git rev-parse --show-toplevel)
 
 # Add support to use Makefile on Windows
 SHELL_CASE_EXP = case "$$(uname -s)" in CYGWIN*|MINGW*|MSYS*) echo "true";; esac;
@@ -41,7 +43,7 @@ IMPI=impi
 BUILD_TYPE?=release
 
 # COVER_PKGS is the list of packages to include in the test coverage
-EXCLUDE_MODS=-not -path "./examples/*"
+EXCLUDE_MODS=-not -path "./examples/*" -not -path "./packaging/technical-addon/*"
 FIND_MOD_ARGS=-type f -name "go.mod"
 COVER_PKGS := $(shell find . $(EXCLUDE_MODS) $(FIND_MOD_ARGS) -execdir $(GOCMD) list ./... \; | tr "\n" "," )
 

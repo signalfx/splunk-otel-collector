@@ -1,7 +1,5 @@
 # Explicitly define the shell we will use for commands.
 SHELL?=/bin/bash
-SOURCE_DIR?=$(dir $(abspath $(lastword $(MAKEFILE_LIST))))
-BUILD_DIR?=$(git rev-parse --show-toplevel)
 
 # Add support to use Makefile on Windows
 SHELL_CASE_EXP = case "$$(uname -s)" in CYGWIN*|MINGW*|MSYS*) echo "true";; esac;
@@ -24,6 +22,8 @@ endif
 
 # SRC_ROOT is the top of the source tree.
 SRC_ROOT := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
+ADDONS_SOURCE_DIR?=$(SRC_ROOT)/technical-addon/packaging
+BUILD_DIR?=$(SRC_ROOT)/build
 
 # build tags required by any component should be defined as an independent variables and later added to GO_BUILD_TAGS below
 GO_BUILD_TAGS=""

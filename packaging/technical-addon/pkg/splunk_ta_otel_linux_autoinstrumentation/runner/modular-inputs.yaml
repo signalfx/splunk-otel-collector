@@ -1,0 +1,85 @@
+modular-input-schema-name: Splunk_TA_otel_linux_autoinstrumentation
+version: 0.0.0
+modular-inputs:
+  splunk_otel_log_file:
+    description: "Log file for otel collector."
+    default: ""
+    replaceable: true
+
+  force:
+    description: "whether to force installation "
+    default: "false"
+
+  remove:
+    description: "If true, removes the installation"
+    default: "false"
+
+  resource_attributes:
+    description: "String representing the OTEL_RESOURCE_ATTRIBUTES."
+    default: ""
+
+  profiler_enabled:
+    description: "Enables system wide java cpu profiler in autoinstrumentation."
+    default: "false"
+
+  profiler_memory_enabled:
+    description: "Enables system wide java memory profiler in autoinstrumentation."
+    default: "false"
+
+  metrics_enabled:
+    description: "Enabled metrics exporting of autoinstrumented."
+    default: "false"
+
+  logs_enabled:
+    description: "Enables logs exporting of autoinstrumented."
+    default: "false"
+
+  otel_sevice_name:
+    description: "The service name to use for telemetry data."
+    default: ""
+
+  otel_exporter_otlp_endpoint:
+    description: "The endpoint for OTLP exporter."
+    default: ""
+
+  otel_exporter_otlp_protocol:
+    description: "The protocol for OTLP exporter."
+    default: ""
+
+  otel_metrics_exporter:
+    description: "The exporter to use for metrics."
+    default: ""
+
+  otel_logs_exporter:
+    description: "The exporter to use for logs."
+    default: ""
+
+  zeroconfig_path:
+    description: "Path for zeroconfig"
+    default: "$SPLUNK_OTEL_TA_HOME/config/zero.conf"
+    replaceable: true
+
+  autoinstrumentation_path:
+    description: "Path for .so"
+    default: "$SPLUNK_OTEL_TA_PLATFORM_HOME/bin/libsplunk_amd64.so"
+    replaceable: true
+
+  autoinstrumentation_preload_path:
+    description: "Path to add preload configuration to."
+    default: "/etc/ld.so.preload"
+    replaceable: true
+
+  splunk_otel_java_autoinstrumentation_jar_path:
+    description: "Path for the java jar used in autoinstumentation."
+    default: "$SPLUNK_OTEL_TA_PLATFORM_HOME/bin/splunk-otel-javaagent.jar"
+    replaceable: true
+
+  splunk_otel_autoinstrumentation_nodejs_path:
+    description: "Path for nodejs autoinstrumentation"
+    default: "$SPLUNK_OTEL_TA_PLATFORM_HOME/bin/splunk-otel-nodejs.tgz"
+    replaceable: true
+
+  deployment_environment:
+    description: "Same as --deployment environment"
+    default: ""
+    replaceable: true

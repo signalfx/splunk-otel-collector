@@ -1,22 +1,9 @@
-// Copyright Splunk, Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-package testcommon
+package testaddon
 
 import (
 	"context"
 	"fmt"
+	"github.com/stretchr/testify/assert"
 	"os"
 	"path/filepath"
 	"strings"
@@ -26,7 +13,6 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/pkg/fileutils"
-	"github.com/google/go-cmp/cmp"
 	"github.com/splunk/splunk-technical-addon/internal/modularinput"
 	"github.com/splunk/splunk-technical-addon/internal/packaging"
 	"github.com/stretchr/testify/require"
@@ -35,27 +21,9 @@ import (
 	"go.uber.org/zap"
 )
 
-func AssertFilesMatch(tt *testing.T, expectedPath string, actualPath string) {
-	require.FileExists(tt, actualPath)
-	require.FileExists(tt, expectedPath)
-	expected, err := os.ReadFile(expectedPath)
-	if err != nil {
-		tt.Fatalf("Failed to read expected file: %v", err)
-	}
-
-	actual, err := os.ReadFile(actualPath)
-	if err != nil {
-		tt.Fatalf("Failed to read actual file: %v", err)
-	}
-
-	if diff := cmp.Diff(string(expected), string(actual)); diff != "" {
-		tt.Errorf("File contents mismatch (-expected +actual)\npaths: (%s, %s):\n%s", expectedPath, actualPath, diff)
-	}
-}
-
 type SplunkStartOpts struct {
-	WaitStrategy wait.Strategy
 	AddonPaths   []string
+	WaitStrategy wait.Strategy
 }
 
 func StartSplunk(t *testing.T, startOpts SplunkStartOpts) testcontainers.Container {
@@ -77,7 +45,7 @@ func StartSplunk(t *testing.T, startOpts SplunkStartOpts) testcontainers.Contain
 	splunkStartURL := strings.Join(addonNames, ",")
 	t.Logf("Splunk start url: %s", splunkStartURL)
 	req := testcontainers.ContainerRequest{
-		Image: "splunk/splunk:latest",
+		Image: "splunk/splunk:9.4.1",
 		HostConfigModifier: func(c *container.HostConfig) {
 			c.NetworkMode = "host"
 			c.Mounts = append(c.Mounts, mount.Mount{
@@ -108,13 +76,12 @@ func StartSplunk(t *testing.T, startOpts SplunkStartOpts) testcontainers.Contain
 	if err != nil {
 		logger.Error("error starting up splunk")
 	}
-
 	// Uncomment this line if you'd like to debug the container
 	// docker container ls --all
 	// Grab id of splunk container
 	// docker exec -it $container_id bash
 	// See README.md in this package for more info
-	// time.Sleep(20 * time.Minute)
+	//time.Sleep(20 * time.Minute)
 	require.NoError(t, err)
 	return tc
 }
@@ -127,7 +94,7 @@ func (l *testLogConsumer) Accept(log testcontainers.Log) {
 	l.t.Log(log.LogType + ": " + strings.TrimSpace(string(log.Content)))
 }
 
-type RepackFunc func(t *testing.T, addonPath string) error
+type RepackFunc func(t *testing.T, addonDir string) error
 
 func PackAddon(t *testing.T, defaultModInputs *modularinput.GenericModularInput, repackFunc RepackFunc) string {
 	packedDir := filepath.Join(t.TempDir(), defaultModInputs.SchemaName)
@@ -146,4 +113,25 @@ func PackAddon(t *testing.T, defaultModInputs *modularinput.GenericModularInput,
 	require.NoError(t, err)
 
 	return addonPath
+}
+func GetModInputsForConfig(t *testing.T, addonPath string) *modularinput.GenericModularInput {
+	return nil
+}
+
+func AssertFileShasEqual(t *testing.T, expected string, actual string) {
+	expectedSum, err := packaging.Sha256Sum(expected)
+	require.NoError(t, err)
+	actualSum, err := packaging.Sha256Sum(actual)
+	require.NoError(t, err)
+	assert.Equal(t, expectedSum, actualSum)
+}
+
+func RepackAddon(t *testing.T, sourceAddonPath string, repackFunc RepackFunc) string {
+	repackedDir := t.TempDir()
+	err := packaging.ExtractAddon(sourceAddonPath, repackedDir)
+	require.NoError(t, err)
+	require.NoError(t, repackFunc(t, repackedDir))
+	repackedAddon := filepath.Join(t.TempDir(), filepath.Base(sourceAddonPath))
+	require.NoError(t, packaging.PackageAddon(repackedDir, repackedAddon))
+	return repackedAddon
 }

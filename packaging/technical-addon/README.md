@@ -36,3 +36,9 @@ Further, they may remove the agent bundle downloaded to the `bin/` folder in the
 As with all TAs, any changes made to `configs` will be overwritten.
 Customers should copy any relevant custom configuration from `configs/` or `defaults/`
 to `local/`.
+
+# Autoinstrumentation
+For all, you may run `build-linux-autoinstrumentation-ta`.
+For specific targets, you may run
+1. `make generate-technical-addon-linux-autoinstrumentation` (makes autoinstrumentation and dependencies)
+2. `make gen-modinput-config && make build-ta-runners`

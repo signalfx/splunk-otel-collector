@@ -8,6 +8,9 @@ SPLUNK_OTELCOL_DOWNLOAD_BASE?=https://github.com/signalfx/splunk-otel-collector/
 PLATFORM?=linux
 ARCH?=amd64
 
+# include autoinstrumentation
+AUTOINSTRUMENTATION_DIR:=$(SRC_ROOT)/instrumentation
+
 # Used for testing & validation
 ORCA_CLOUD?=kubernetes
 UF_VERSION?=8.2.7
@@ -29,15 +32,16 @@ MODINPUT_CONFIG_GENERATOR := $(TOOLS_DIR)/modinput_config_generator
 ta-build-tools:
 	@echo "Building tools..."
 	@mkdir -p $(TOOLS_DIR)
-	go build -o $(MODINPUT_CONFIG_GENERATOR) ./cmd/modinput_config_generator
+	cd $(ADDONS_SOURCE_DIR) && go build -o $(MODINPUT_CONFIG_GENERATOR) ./cmd/modinput_config_generator
 
 .PHONY: test-ta-build-tools
 test-ta-build-tools: ta-build-tools
 	$(MODINPUT_CONFIG_GENERATOR) -source-dir=$(ADDONS_SOURCE_DIR)/cmd/modinput_config_generator/internal/testdata -schema-name=Sample_Addon --build-dir=$(BUILD_DIR) || exit 1; \
 	mkdir -p $(BUILD_DIR)/Sample_Addon/$(PLATFORM)_$(SPLUNK_ARCH)/bin; \
-	go build $(GO_BUILD_FLAGS) -o $(BUILD_DIR)/Sample_Addon/$(PLATFORM)_$(SPLUNK_ARCH)/bin/Sample_Addon $(ADDONS_SOURCE_DIR)/cmd/modinput_config_generator/internal/testdata/pkg/sample_addon/runner || exit 1; \
+	cd $(ADDONS_SOURCE_DIR) && go build $(GO_BUILD_FLAGS) -o $(BUILD_DIR)/Sample_Addon/$(PLATFORM)_$(SPLUNK_ARCH)/bin/Sample_Addon $(ADDONS_SOURCE_DIR)/cmd/modinput_config_generator/internal/testdata/pkg/sample_addon/runner || exit 1; \
 	echo "built addon, testing..."
-	go test -v ./...
+	cd $(ADDONS_SOURCE_DIR) && go test -v `go list ./... | grep --invert-match pkg`
+
 
 .PHONY: gen-modinput-config
 gen-modinput-config:
@@ -45,12 +49,13 @@ gen-modinput-config:
 	@for schema in $(MODULAR_INPUT_SCHEMAS); do \
 		schema_lower=$$(echo $$schema | tr '[:upper:]' '[:lower:]'); \
 		echo "Generating config and TA scaffold for $$schema..."; \
+		rm -rf $(BUILD_DIR)/$$schema/; \
 		mkdir -p $(BUILD_DIR)/$$schema/; \
 		$(MODINPUT_CONFIG_GENERATOR) -source-dir=$(ADDONS_SOURCE_DIR) -schema-name=$$schema --build-dir=$(BUILD_DIR) || exit 1; \
 		ls -lAh $(BUILD_DIR); \
 	done
 
-build-ta-runners:
+build-ta-runners: gen-modinput-config ta-build-deps-all
 	@echo "Building runner binaries..."
 	@for schema in $(MODULAR_INPUT_SCHEMAS); do \
 		echo "Building $$schema..."; \
@@ -64,6 +69,21 @@ build-ta-runners:
 			GOOS=$$platform GOARCH=$$arch go build $(GO_BUILD_FLAGS) -o $(BUILD_DIR)/$$schema/$${platform}_$(SPLUNK_ARCH)/bin/$$schema $(ADDONS_SOURCE_DIR)/pkg/$$schema_lower/runner || exit 1; \
 		done \
 	done
+
+.PHONY: generate-technical-addon-linux-autoinstrumentation
+generate-technical-addon-linux-autoinstrumentation:
+	cd $(AUTOINSTRUMENTATION_DIR) && $(MAKE) dist
+	mkdir -p $(BUILD_DIR)/Splunk_TA_otel_linux_autoinstrumentation/linux_x86_64/bin;
+	mkdir -p $(BUILD_DIR)
+	PLATFORM="all" \
+	BUILD_DIR="$(BUILD_DIR)" \
+	SOURCE_DIR="$(ADDONS_SOURCE_DIR)" \
+	AUTOINSTRUMENTATION_DIR="$(AUTOINSTRUMENTATION_DIR)" \
+	$(ADDONS_SOURCE_DIR)/packaging-scripts/download-autoinstrumentation.sh
+
+
+.PHONY: ta-build-deps-all
+ta-build-deps-all: generate-technical-addon-linux-autoinstrumentation
 
 .PHONY: generate-technical-addon
 generate-technical-addon: env-guard-all

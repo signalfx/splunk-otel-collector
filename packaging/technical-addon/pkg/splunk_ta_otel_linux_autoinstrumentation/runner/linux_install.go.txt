@@ -1,0 +1,170 @@
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+)
+
+const (
+	PRELOAD_PATH = "/etc/ld.so.preload"
+)
+
+type (
+	AUTOINSTRUMENTATION_PATH string
+	ZEROCONFIG_PATH          string
+	FORCE                    string
+	FORCE_REMOVE             string
+)
+
+// Initialize environment variables
+func init() {
+	AUTOINSTRUMENTATION_PATH = os.Getenv("AUTOINSTRUMENTATION_PATH")
+	ZEROCONFIG_PATH = os.Getenv("ZEROCONFIG_PATH")
+	FORCE = os.Getenv("FORCE")
+	FORCE_REMOVE = os.Getenv("FORCE_REMOVE")
+}
+
+func instrument() {
+	// Check if libsplunk_amd64.so is already in preload
+	if !grepFile("libsplunk_amd64.so", PRELOAD_PATH) {
+		f, err := os.OpenFile(PRELOAD_PATH, os.O_APPEND|os.O_WRONLY, 0644)
+		if err != nil {
+			fmt.Printf("Error opening %s: %v\n", PRELOAD_PATH, err)
+			return
+		}
+		defer f.Close()
+
+		libPath := filepath.Join(AUTOINSTRUMENTATION_PATH, "libsplunk_amd64.so")
+		if _, err := f.WriteString(libPath + "\n"); err != nil {
+			fmt.Printf("Error writing to %s: %v\n", PRELOAD_PATH, err)
+			return
+		}
+
+	}
+	configureZeroconfig()
+}
+
+func configureZeroconfig() {
+	zeroconfigPath := "/etc/splunk/zeroconfig"
+
+	// Check if the path exists and is a symlink
+	linkTarget, err := os.Readlink(zeroconfigPath)
+	if err == nil {
+		// Path exists and is a symlink
+		if linkTarget != ZEROCONFIG_PATH {
+			// Symlink exists but points somewhere else
+			fmt.Printf("Symlink exists but points to %s instead of %s\n", linkTarget, ZEROCONFIG_PATH)
+			if FORCE == "true" {
+				fmt.Println("FORCE is set to true, recreating symlink")
+				os.Remove(zeroconfigPath)
+				os.Symlink(ZEROCONFIG_PATH, zeroconfigPath)
+			} else {
+				fmt.Println("Set FORCE=true to override the existing symlink")
+			}
+		} else {
+			fmt.Printf("Symlink already points to %s, nothing to do\n", ZEROCONFIG_PATH)
+		}
+	} else {
+		// Check if the path exists but is not a symlink
+		if _, err := os.Stat(zeroconfigPath); err == nil {
+			fmt.Println("/etc/splunk/zeroconfig exists but is not a symlink")
+			if FORCE == "true" {
+				fmt.Println("FORCE is set to true, removing existing file/directory and creating symlink")
+				os.RemoveAll(zeroconfigPath)
+				os.Symlink(ZEROCONFIG_PATH, zeroconfigPath)
+			} else {
+				fmt.Println("Set FORCE=true to replace the existing file/directory with a symlink")
+			}
+		} else {
+			// Path doesn't exist, create the symlink
+			fmt.Printf("Creating symlink /etc/splunk/zeroconfig -> %s\n", ZEROCONFIG_PATH)
+			os.MkdirAll("/etc/splunk", 0755)
+			os.Symlink(ZEROCONFIG_PATH, zeroconfigPath)
+		}
+	}
+}
+
+func deinstrument() {
+	// Check if the auto-instrumentation path is in the preload file
+	libPath := filepath.Join(AUTOINSTRUMENTATION_PATH, "libsplunk_amd64.so")
+	if grepFile(libPath, PRELOAD_PATH) {
+		// Read the file
+		content, err := os.ReadFile(PRELOAD_PATH)
+		if err != nil {
+			fmt.Printf("Error reading %s: %v\n", PRELOAD_PATH, err)
+			return
+		}
+
+		// Remove the line containing the library path
+		lines := strings.Split(string(content), "\n")
+		var newLines []string
+		for _, line := range lines {
+			if !strings.Contains(line, libPath) {
+				newLines = append(newLines, line)
+			}
+		}
+
+		// Write the file back
+		err = os.WriteFile(PRELOAD_PATH, []byte(strings.Join(newLines, "\n")), 0644)
+		if err != nil {
+			fmt.Printf("Error writing to %s: %v\n", PRELOAD_PATH, err)
+			return
+		}
+
+	}
+	deconfigureZeroconfig()
+}
+
+func deconfigureZeroconfig() {
+	zeroconfigPath := "/etc/splunk/zeroconfig"
+
+	// Check if the path exists and is a symlink
+	linkTarget, err := os.Readlink(zeroconfigPath)
+	if err == nil {
+		// Path exists and is a symlink
+		if linkTarget != ZEROCONFIG_PATH {
+			// Symlink exists but points somewhere else
+			fmt.Printf("Symlink exists but points to %s instead of %s\n", linkTarget, ZEROCONFIG_PATH)
+			if FORCE_REMOVE == "true" {
+				fmt.Printf("forcibly removing symlink as force_remove is set to %s\n", FORCE_REMOVE)
+				os.Remove(zeroconfigPath)
+			} else {
+				fmt.Printf("Set $FORCE_REMOVE=true to forcibly remove the existing symlink\n")
+			}
+		} else {
+			fmt.Println("Removing symlink /etc/splunk/zeroconfig")
+			os.Remove(zeroconfigPath)
+		}
+	} else if _, err := os.Stat(zeroconfigPath); err == nil {
+		// Path exists but is not a symlink
+		fmt.Println("/etc/splunk/zeroconfig exists but is not a symlink")
+		if FORCE_REMOVE == "true" {
+			fmt.Printf("%s is set to true, removing /etc/splunk/zeroconfig\n", FORCE_REMOVE)
+			os.RemoveAll(zeroconfigPath)
+		} else {
+			fmt.Println("Refusing to remove symlink. Set FORCE_REMOVE=true to forcibly remove the existing file/directory")
+		}
+	} else {
+		fmt.Println("symlink /etc/splunk/zeroconfig does not exist, so not removing")
+	}
+}
+
+// Helper function to check if a string exists in a file
+func grepFile(search string, filepath string) bool {
+	file, err := os.Open(filepath)
+	if err != nil {
+		return false
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		if strings.Contains(scanner.Text(), search) {
+			return true
+		}
+	}
+	return false
+}

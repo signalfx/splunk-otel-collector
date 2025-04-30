@@ -59,6 +59,44 @@ jobs:
           set -o pipefail
           make -e package-technical-addon
 
+  test-generator:
+    name: test
+    runs-on: ubuntu-24.04
+    needs: [setup-environment]
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: '**/go.sum'
+
+      - name: install tools
+        run: |
+          set -o pipefail
+          make install-tools
+
+      - name: Test addon generator
+        run: |
+          set -o pipefail
+          make -e test-ta-build-tools
+
+      - name: Test normal go code
+        run: |
+          set -o pipefail
+          cd packaging/technical-addon && make -e test
+
+      - name: Ensure license
+        run: |
+          set -o pipefail
+          cd packaging/technical-addon && make -e addlicense
+
+      - name: Ensure lint
+        run: |
+          set -o pipefail
+          cd packaging/technical-addon && make -e lint
 
 
   check_changes:

@@ -122,7 +122,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsperfcountersreceiver v0.124.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver v0.124.1
 	github.com/prometheus/client_model v0.6.2
-	github.com/prometheus/common v0.62.0
+	github.com/prometheus/common v0.63.0
 	github.com/prometheus/prometheus v0.300.1
 	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension v0.83.0
 	github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor v0.83.0
@@ -551,7 +551,7 @@ require (
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/golang/snappy v1.0.0
 	github.com/google/cadvisor v0.52.1 // indirect
-	github.com/google/flatbuffers v24.12.23+incompatible // indirect
+	github.com/google/flatbuffers v25.2.10+incompatible // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect

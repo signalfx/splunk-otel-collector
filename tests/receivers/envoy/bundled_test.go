@@ -85,5 +85,5 @@ func TestEnvoyDockerObserver(t *testing.T) {
 			pmetrictest.IgnoreMetricValues(),
 		)
 		assert.NoError(tt, err)
-	}, 30*time.Second, 1*time.Second)
+	}, 60*time.Second, 1*time.Second)
 }

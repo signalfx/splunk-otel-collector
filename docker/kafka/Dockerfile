@@ -1,4 +1,4 @@
-FROM bitnami/kafka:4.0.0
+FROM bitnami/kafka:3.9.0
 
 ENV JMX_PORT=7099
 EXPOSE 7099

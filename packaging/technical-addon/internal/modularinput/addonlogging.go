@@ -20,6 +20,8 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+
+	"github.com/splunk/splunk-technical-addon/internal/addonruntime"
 )
 
 func SetupAddonLogger(logFilePath string) (closer func(), err error) {
@@ -39,14 +41,11 @@ func SetupAddonLogger(logFilePath string) (closer func(), err error) {
 
 func GetDefaultLogFilePath(schemaName string) (string, error) {
 	splunkHome, ok := os.LookupEnv("SPLUNK_HOME")
+	var err error
 	if !ok {
-		ex, err := os.Executable()
-		if err != nil {
-			// Don't attempt to further figure out path
+		if splunkHome, err = addonruntime.GetSplunkHome(); err != nil {
 			return "", err
 		}
-		// $SPLUNK_HOME/etc/apps/Sample_Addon/${platform}_x86_64/bin/executable
-		splunkHome = filepath.Dir(filepath.Dir(filepath.Dir(filepath.Dir(filepath.Dir(ex)))))
 	}
 
 	return filepath.Join(splunkHome, "var", "log", "splunk", schemaName+".log"), nil

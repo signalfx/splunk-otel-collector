@@ -18,30 +18,32 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
-	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 	"time"
 
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/mount"
-	"github.com/google/go-cmp/cmp"
 	"github.com/splunk/splunk-technical-addon/internal/packaging"
 	"github.com/splunk/splunk-technical-addon/internal/testcommon"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
-	"go.uber.org/zap"
 )
 
 type ExampleOutput struct {
+	Flags   []string
+	EnvVars []string
+
+	SplunkHome   string
+	TaHome       string
+	PlatformHome string
+
+	EverythingSet              string
+	MinimalSet                 string
+	MinimalSetRequired         string
+	UnaryFlagWithEverythingSet string
+
 	Platform string
-	Flags    []string
-	EnvVars  []string
 }
 
 func TestPascalization(t *testing.T) {
@@ -78,11 +80,14 @@ func TestRunner(t *testing.T) {
 	ctx := context.Background()
 	addonPath := filepath.Join(t.TempDir(), "Sample_Addon.tgz")
 
-	buildDir := testcommon.GetBuildDir()
+	buildDir := packaging.GetBuildDir()
 	require.NotEmpty(t, buildDir)
 	err := packaging.PackageAddon(filepath.Join(buildDir, "Sample_Addon"), addonPath)
 	require.NoError(t, err)
-	tc := startSplunk(t, addonPath)
+	tc := testcommon.StartSplunk(t, testcommon.SplunkStartOpts{
+		AddonPaths:   []string{addonPath},
+		WaitStrategy: wait.ForExec([]string{"sudo", "stat", "/opt/splunk/var/log/splunk/Sample_Addon.log"}).WithStartupTimeout(time.Minute * 4),
+	})
 
 	// Check Schema
 	code, output, err := tc.Exec(ctx, []string{"sudo", "/opt/splunk/bin/splunk", "btool", "check", "--debug"})
@@ -98,10 +103,12 @@ func TestRunner(t *testing.T) {
 	require.NoError(t, err)
 	read, err = io.ReadAll(output)
 	assert.NoError(t, err)
-	expectedJSON := `{"Flags":["--test-flag","$SPLUNK_OTEL_TA_HOME/local/access_token","--test-flag"],"EnvVars":["EVERYTHING_SET=$SPLUNK_OTEL_TA_HOME/local/access_token","UNARY_FLAG_WITH_EVERYTHING_SET=$SPLUNK_OTEL_TA_HOME/local/access_token"],"Platform":"linux"}`
+	expectedJSON := `{"Flags":["--test-flag","/opt/splunk/etc/apps/Sample_Addon/local/access_token","--test-flag"],"EnvVars":["EVERYTHING_SET=/opt/splunk/etc/apps/Sample_Addon/local/access_token","UNARY_FLAG_WITH_EVERYTHING_SET=/opt/splunk/etc/apps/Sample_Addon/local/access_token"], "SplunkHome":"/opt/splunk/etc", "TaHome":"/opt/splunk/etc/apps/Sample_Addon", "PlatformHome":"/opt/splunk/etc/apps/Sample_Addon/linux_x86_64", "EverythingSet":"/opt/splunk/etc/apps/Sample_Addon/local/access_token", "MinimalSet":"", "MinimalSetRequired":"", "UnaryFlagWithEverythingSet":"/opt/splunk/etc/apps/Sample_Addon/local/access_token","Platform":"linux"}`
 	i := bytes.Index(read, []byte("Sample output:"))
 	unmarshalled := &ExampleOutput{}
-	require.NoError(t, json.Unmarshal(read[i+len("Sample output:"):], unmarshalled))
+	dec := json.NewDecoder(bytes.NewReader(read[i+len("Sample output:"):]))
+	dec.DisallowUnknownFields()
+	require.NoError(t, dec.Decode(unmarshalled))
 	expected := &ExampleOutput{}
 	require.NoError(t, json.Unmarshal([]byte(expectedJSON), expected))
 	assert.EqualValues(t, expected, unmarshalled)
@@ -110,7 +117,7 @@ func TestRunner(t *testing.T) {
 }
 
 func TestRunnerConfigGeneration(t *testing.T) {
-	sourceDir, err := testcommon.GetSourceDir()
+	sourceDir, err := packaging.GetSourceDir()
 	require.NoError(t, err)
 	sourceDir = filepath.Join(sourceDir, "cmd", "modinput_config_generator", "internal", "testdata")
 	tests := []struct {
@@ -138,22 +145,22 @@ func TestRunnerConfigGeneration(t *testing.T) {
 }
 
 func TestInputsConfGeneration(t *testing.T) {
-	sourceDir, err := testcommon.GetSourceDir()
+	sourceDir, err := packaging.GetSourceDir()
 	require.NoError(t, err)
 	sourceDir = filepath.Join(sourceDir, "cmd", "modinput_config_generator", "internal", "testdata")
 	tests := []struct {
 		testSchemaName   string
 		sampleYamlPath   string
 		outDir           string
-		sourceDir        string
+		addonSourceDir   string
 		expectedSpecPath string
 		shouldError      bool
 	}{
 		{
 			testSchemaName: "Sample_Addon",
 			outDir:         t.TempDir(),
-			sourceDir:      filepath.Join(sourceDir, "pkg/sample_addon"),
-			sampleYamlPath: filepath.Join(sourceDir, "pkg/sample_addon/runner/modular-inputs.yaml"),
+			addonSourceDir: filepath.Join(sourceDir, "pkg", "sample_addon"),
+			sampleYamlPath: filepath.Join(sourceDir, "pkg", "sample_addon", "runner", "modular-inputs.yaml"),
 		},
 	}
 
@@ -161,79 +168,10 @@ func TestInputsConfGeneration(t *testing.T) {
 		t.Run(tc.testSchemaName, func(tt *testing.T) {
 			config, err := loadYaml(tc.sampleYamlPath, tc.testSchemaName)
 			assert.NoError(tt, err)
-			err = generateTaModInputConfs(config, tc.sourceDir, tc.outDir)
+			err = generateTaModInputConfs(config, tc.addonSourceDir, tc.outDir)
 			assert.NoError(tt, err)
-			assertFilesMatch(tt, filepath.Join("internal", "testdata", "pkg", "sample_addon", "expected", "inputs.conf"), filepath.Join(tc.outDir, "default", "inputs.conf"))
-			assertFilesMatch(tt, filepath.Join("internal", "testdata", "pkg", "sample_addon", "expected", "inputs.conf.spec"), filepath.Join(tc.outDir, "README", "inputs.conf.spec"))
+			testcommon.AssertFilesMatch(tt, filepath.Join("internal", "testdata", "pkg", "sample_addon", "expected", "inputs.conf"), filepath.Join(tc.outDir, tc.testSchemaName, "default", "inputs.conf"))
+			testcommon.AssertFilesMatch(tt, filepath.Join("internal", "testdata", "pkg", "sample_addon", "expected", "inputs.conf.spec"), filepath.Join(tc.outDir, tc.testSchemaName, "README", "inputs.conf.spec"))
 		})
 	}
-}
-
-func assertFilesMatch(tt *testing.T, expectedPath string, actualPath string) {
-	require.FileExists(tt, actualPath)
-	require.FileExists(tt, expectedPath)
-	expected, err := os.ReadFile(expectedPath)
-	if err != nil {
-		tt.Fatalf("Failed to read expected file: %v", err)
-	}
-
-	actual, err := os.ReadFile(actualPath)
-	if err != nil {
-		tt.Fatalf("Failed to read actual file: %v", err)
-	}
-
-	if diff := cmp.Diff(string(expected), string(actual)); diff != "" {
-		tt.Errorf("File contents mismatch (-expected +actual)\npaths: (%s, %s):\n%s", expectedPath, actualPath, diff)
-	}
-}
-
-func startSplunk(t *testing.T, taPath string) testcontainers.Container {
-	logger, err := zap.NewProduction()
-	if err != nil {
-		panic(err)
-	}
-	conContext := context.Background()
-	addonLocation := fmt.Sprintf("/tmp/local-tas/%v", filepath.Base(taPath))
-
-	req := testcontainers.ContainerRequest{
-		Image: "splunk/splunk:9.1.2",
-		HostConfigModifier: func(c *container.HostConfig) {
-			c.NetworkMode = "host"
-			c.Mounts = append(c.Mounts, mount.Mount{
-				Source: filepath.Dir(taPath),
-				Target: filepath.Dir(addonLocation),
-				Type:   mount.TypeBind,
-			})
-		},
-		Env: map[string]string{
-			"SPLUNK_START_ARGS": "--accept-license",
-			"SPLUNK_PASSWORD":   "Chang3d!",
-			"SPLUNK_APPS_URL":   addonLocation,
-		},
-		WaitingFor: wait.ForAll(
-			wait.NewHTTPStrategy("/en-US/account/login").WithPort("8000"),
-			wait.ForExec([]string{"sudo", "stat", "/opt/splunk/var/log/splunk/Sample_Addon.log"}),
-		).WithDeadline(4*time.Minute + 20*time.Second).WithStartupTimeoutDefault(4 * time.Minute),
-		LogConsumerCfg: &testcontainers.LogConsumerConfig{
-			Consumers: []testcontainers.LogConsumer{&testLogConsumer{t: t}},
-		},
-	}
-
-	tc, err := testcontainers.GenericContainer(conContext, testcontainers.GenericContainerRequest{
-		ContainerRequest: req,
-		Started:          true,
-	})
-	if err != nil {
-		logger.Info("Error while creating container")
-		panic(err)
-	}
-	return tc
-}
-
-type testLogConsumer struct {
-	t *testing.T
-}
-
-func (l *testLogConsumer) Accept(log testcontainers.Log) {
-	l.t.Log(log.LogType + ": " + strings.TrimSpace(string(log.Content)))
 }

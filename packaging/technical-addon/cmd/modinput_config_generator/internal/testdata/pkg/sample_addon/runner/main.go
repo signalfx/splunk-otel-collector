@@ -22,8 +22,18 @@ import (
 )
 
 type ExampleOutput struct {
-	Flags    []string
-	EnvVars  []string
+	Flags   []string
+	EnvVars []string
+
+	SplunkHome   string
+	TaHome       string
+	PlatformHome string
+
+	EverythingSet              string
+	MinimalSet                 string
+	MinimalSetRequired         string
+	UnaryFlagWithEverythingSet string
+
 	Platform string
 }
 
@@ -69,8 +79,6 @@ func run() int {
 	if err != nil {
 		panic(err)
 	}
-	flags := mip.GetFlags()
-	envVars := mip.GetEnvVars()
-	Example(flags, envVars)
+	Example(mip)
 	return 0
 }

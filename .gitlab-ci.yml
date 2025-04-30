@@ -122,12 +122,11 @@ fossa:
   eval $(creds-helper aws --eval "aws:v1/o11y-infra/role/o11y_gdi_otel_releaser_role")
 
 .trigger-filter:
-  only:
-    variables:
-      - $CI_COMMIT_BRANCH == "main"
-      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
-  except:
-    - schedules
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+    - if: $CI_COMMIT_REF_PROTECTED == "true"
+    - if: $CI_PIPELINE_SOURCE == "schedule"
 
 .deploy-release:
   image: '${DOCKER_CICD_REPO}/ci-container/python-3.12-bookworm:3.5.0'
@@ -382,10 +381,7 @@ libsplunk:
       - instrumentation/dist/libsplunk_*.so
 
 agent-bundle-linux:
-  rules:
-    - if: $CI_COMMIT_BRANCH == "main"
-    - if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
-    - if: $CI_PIPELINE_SOURCE == "schedule"
+  extends: ".trigger-filter"
   stage: build
   needs: []
   retry: 2

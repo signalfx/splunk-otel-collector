@@ -18,6 +18,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"github.com/splunk/splunk-technical-addon/internal/testaddon"
 	"io"
 	"path/filepath"
 	"testing"
@@ -31,6 +32,9 @@ import (
 )
 
 type ExampleOutput struct {
+	Flags   []string
+	EnvVars []string
+
 	SplunkHome                 string
 	TaHome                     string
 	PlatformHome               string
@@ -39,8 +43,6 @@ type ExampleOutput struct {
 	MinimalSetRequired         string
 	UnaryFlagWithEverythingSet string
 	Platform                   string
-	Flags                      []string
-	EnvVars                    []string
 }
 
 func TestPascalization(t *testing.T) {
@@ -81,7 +83,7 @@ func TestRunner(t *testing.T) {
 	require.NotEmpty(t, buildDir)
 	err := packaging.PackageAddon(filepath.Join(buildDir, "Sample_Addon"), addonPath)
 	require.NoError(t, err)
-	tc := testcommon.StartSplunk(t, testcommon.SplunkStartOpts{
+	tc := testaddon.StartSplunk(t, testaddon.SplunkStartOpts{
 		AddonPaths:   []string{addonPath},
 		WaitStrategy: wait.ForExec([]string{"sudo", "stat", "/opt/splunk/var/log/splunk/Sample_Addon.log"}).WithStartupTimeout(time.Minute * 4),
 	})

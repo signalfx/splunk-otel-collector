@@ -17,6 +17,7 @@ package packaging
 import (
 	"archive/tar"
 	"compress/gzip"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -75,4 +76,94 @@ func PackageAddon(sourceDir, outputFile string) error {
 	})
 
 	return err
+}
+
+// ExtractAddon extracts a .tar.gz file from sourcePath to destinationPath
+func ExtractAddon(sourcePath, destinationPath string) error {
+	// Open the tar.gz file
+	file, err := os.Open(sourcePath)
+	if err != nil {
+		return fmt.Errorf("failed to open archive: %w", err)
+	}
+	defer file.Close()
+
+	// Create gzip reader
+	gzipReader, err := gzip.NewReader(file)
+	if err != nil {
+		return fmt.Errorf("failed to create gzip reader: %w", err)
+	}
+	defer gzipReader.Close()
+
+	// Create tar reader
+	tarReader := tar.NewReader(gzipReader)
+
+	// Iterate through the files in the archive
+	for {
+		header, err := tarReader.Next()
+		if err == io.EOF {
+			// End of archive
+			break
+		}
+		if err != nil {
+			return fmt.Errorf("error reading tar header: %w", err)
+		}
+
+		// Create the full path for the file
+		target := filepath.Join(destinationPath, header.Name)
+
+		// Check for illegal paths (path traversal attack prevention)
+		if !isInDirectory(target, destinationPath) {
+			return fmt.Errorf("illegal path traversal attempt: %s", header.Name)
+		}
+
+		// Handle different types of files
+		switch header.Typeflag {
+		case tar.TypeDir:
+			// Create directories with proper permissions
+			if err := os.MkdirAll(target, os.FileMode(header.Mode)); err != nil {
+				return fmt.Errorf("failed to create directory %s: %w", target, err)
+			}
+
+		case tar.TypeReg:
+			// Create containing directory if it doesn't exist
+			if err := os.MkdirAll(filepath.Dir(target), 0755); err != nil {
+				return fmt.Errorf("failed to create directory for file %s: %w", target, err)
+			}
+
+			// Create the file
+			file, err := os.OpenFile(target, os.O_CREATE|os.O_RDWR, os.FileMode(header.Mode))
+			if err != nil {
+				return fmt.Errorf("failed to create file %s: %w", target, err)
+			}
+
+			// Copy the file data
+			if _, err := io.Copy(file, tarReader); err != nil {
+				file.Close()
+				return fmt.Errorf("failed to write file %s: %w", target, err)
+			}
+			file.Close()
+
+		default:
+			// Skip other types of files (symlinks, devices, etc.)
+			fmt.Printf("Skipping unsupported file type: %c for %s\n", header.Typeflag, header.Name)
+		}
+	}
+
+	return nil
+}
+
+// isInDirectory checks if the path is inside the specified directory (prevents path traversal)
+func isInDirectory(path, directory string) bool {
+	// Convert to absolute paths
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		return false
+	}
+	absDir, err := filepath.Abs(directory)
+	if err != nil {
+		return false
+	}
+
+	// Check if the path is within the directory
+	return filepath.HasPrefix(absPath, absDir)
 }

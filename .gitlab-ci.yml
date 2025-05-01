@@ -435,9 +435,9 @@ agent-bundle-windows:
       - dist/agent-bundle_windows_amd64.zip
 .ta-trigger:
   rules:
-    - <<*main-condition
-    - <<*release-condition
-    - <<*no-schedules-condition
+    - <<: *main-condition
+    - <<: *release-condition
+    - <<: *no-schedules-condition
     - if: $CI_COMMIT_BRANCH != "main" && $CI_COMMIT_TAG == null && $CI_COMMIT_REF_PROTECTED == 'true'
       when: manual
 .auth-setup:

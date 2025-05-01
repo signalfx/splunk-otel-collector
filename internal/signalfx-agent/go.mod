@@ -85,7 +85,7 @@ require (
 	github.com/influxdata/telegraf v1.30.1
 	github.com/microsoft/go-mssqldb v1.8.0
 	github.com/smartystreets/goconvey v1.8.1
-	go.opentelemetry.io/collector/pdata v1.30.0
+	go.opentelemetry.io/collector/pdata v1.31.0
 )
 
 require (

@@ -44,6 +44,7 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 	err = cm.Unmarshal(&apacheCfg)
 	require.NoError(t, err)
 	require.Equal(t, &Config{
+		MonitorType: "collectd/apache",
 		monitorConfig: &apache.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "collectd/apache",
@@ -64,6 +65,7 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 	err = cm.Unmarshal(&kafkaCfg)
 	require.NoError(t, err)
 	require.Equal(t, &Config{
+		MonitorType: "collectd/kafka",
 		monitorConfig: &kafka.Config{
 			Config: genericjmx.Config{
 				MonitorConfig: saconfig.MonitorConfig{
@@ -87,6 +89,7 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 	err = cm.Unmarshal(&memcachedCfg)
 	require.NoError(t, err)
 	require.Equal(t, &Config{
+		MonitorType: "collectd/memcached",
 		monitorConfig: &memcached.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "collectd/memcached",
@@ -106,6 +109,7 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 	err = cm.Unmarshal(&phpCfg)
 	require.NoError(t, err)
 	require.Equal(t, &Config{
+		MonitorType: "collectd/php-fpm",
 		monitorConfig: &php.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "collectd/php-fpm",

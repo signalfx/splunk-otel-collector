@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 🧰 Bug fixes 🧰
+
+- (Splunk) `receiver/smartagent`: Fix the receiver failing to start by receiver_creator since 0.124.0 ([#6187](https://github.com/signalfx/splunk-otel-collector/pull/6187))
+
 ## v0.124.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.124.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.124.0)

@@ -48,17 +48,19 @@ var (
 )
 
 type Config struct {
-	monitorConfig saconfig.MonitorCustomConfig
+	MonitorType string `mapstructure:"type"` // Smart Agent monitor type, e.g. collectd/cpu
 	// Generally an observer/receivercreator-set value via Endpoint.Target.
 	// Will expand to MonitorCustomConfig Host and Port values if unset.
 	Endpoint         string   `mapstructure:"endpoint"`
 	DimensionClients []string `mapstructure:"dimensionClients"`
+
+	monitorConfig    saconfig.MonitorCustomConfig
 	acceptsEndpoints bool
 }
 
 func (cfg *Config) validate() error {
-	if cfg == nil || cfg.monitorConfig == nil {
-		return fmt.Errorf("you must supply a valid Smart Agent Monitor config")
+	if cfg.MonitorType == "" {
+		return fmt.Errorf(`you must specify a "type" for a smartagent receiver`)
 	}
 
 	monitorConfigCore := cfg.monitorConfig.MonitorConfigCore()
@@ -77,40 +79,33 @@ func (cfg *Config) validate() error {
 // Unmarshal dynamically creates the desired Smart Agent monitor config
 // from the provided receiver config content.
 func (cfg *Config) Unmarshal(componentParser *confmap.Conf) error {
-	// AllSettings() is the user provided config and intoCfg is the default Config instance we populate to
-	// form the final desired version. To do so, we manually obtain all Config items, leaving only Smart Agent
-	// monitor config settings to be unmarshalled to their respective custom monitor config types.
-	allSettings := componentParser.ToStringMap()
-	monitorType, ok := allSettings["type"].(string)
-	if !ok || monitorType == "" {
-		return fmt.Errorf("you must specify a \"type\" for a smartagent receiver")
-	}
-
-	var endpoint any
-	if endpoint, ok = allSettings["endpoint"]; ok {
-		cfg.Endpoint = fmt.Sprintf("%s", endpoint)
-		delete(allSettings, "endpoint")
-	}
-
-	var err error
-	cfg.DimensionClients, err = getStringSliceFromAllSettings(allSettings, "dimensionClients", errDimensionClientValue)
-	if err != nil {
+	// Load the non-dynamic config normally ignoring unused fields.
+	if err := componentParser.Unmarshal(cfg, confmap.WithIgnoreUnused()); err != nil {
 		return err
 	}
 
+	// No need to proceed if monitor type isn't specified, this will fail the validation.
+	if cfg.MonitorType == "" {
+		return nil
+	}
+
+	monitorConfmap := componentParser.ToStringMap()
+	delete(monitorConfmap, "endpoint")
+	delete(monitorConfmap, "dimensionClients")
+
 	// monitors.ConfigTemplates is a map that all monitors use to register their custom configs in the Smart Agent.
 	// The values are always pointers to an actual custom config.
-	var customMonitorConfig saconfig.MonitorCustomConfig
-	if customMonitorConfig, ok = monitors.ConfigTemplates[monitorType]; !ok {
-		if unsupported := nonWindowsMonitors[monitorType]; runtime.GOOS == "windows" && unsupported {
-			return fmt.Errorf("smart agent monitor type %q is not supported on windows platforms", monitorType)
+	customMonitorConfig, ok := monitors.ConfigTemplates[cfg.MonitorType]
+	if !ok {
+		if unsupported := nonWindowsMonitors[cfg.MonitorType]; runtime.GOOS == "windows" && unsupported {
+			return fmt.Errorf("smart agent monitor type %q is not supported on windows platforms", cfg.MonitorType)
 		}
-		return fmt.Errorf("no known monitor type %q", monitorType)
+		return fmt.Errorf("no known monitor type %q", cfg.MonitorType)
 	}
 	monitorConfigType := reflect.TypeOf(customMonitorConfig).Elem()
 	monitorConfig := reflect.New(monitorConfigType).Interface()
 
-	asBytes, err := yaml.Marshal(allSettings)
+	asBytes, err := yaml.Marshal(monitorConfmap)
 	if err != nil {
 		return fmt.Errorf("failed constructing raw Smart Agent Monitor config block: %w", err)
 	}
@@ -138,26 +133,6 @@ func (cfg *Config) Unmarshal(componentParser *confmap.Conf) error {
 
 	cfg.monitorConfig = monitorConfig.(saconfig.MonitorCustomConfig)
 	return nil
-}
-
-func getStringSliceFromAllSettings(allSettings map[string]any, key string, errToReturn error) ([]string, error) {
-	var items []string
-	if value, ok := allSettings[key]; ok {
-		items = []string{}
-		if valueAsSlice, isSlice := value.([]any); isSlice {
-			for _, c := range valueAsSlice {
-				if client, isString := c.(string); isString {
-					items = append(items, client)
-				} else {
-					return nil, errToReturn
-				}
-			}
-		} else {
-			return nil, errToReturn
-		}
-		delete(allSettings, key)
-	}
-	return items, nil
 }
 
 // If using the receivercreator, observer-provided endpoints should be used to set

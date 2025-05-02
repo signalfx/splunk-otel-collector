@@ -4,9 +4,10 @@
 package kafka
 
 import (
+	yaml "gopkg.in/yaml.v2"
+
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/genericjmx"
-	yaml "gopkg.in/yaml.v2"
 )
 
 var serviceName = "kafka"

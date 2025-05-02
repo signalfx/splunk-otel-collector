@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/SAP/go-hdb/driver"
+
 	"github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/sql"

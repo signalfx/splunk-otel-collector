@@ -35,8 +35,7 @@ const defaultIntervalSeconds = 10
 var (
 	_ confmap.Unmarshaler = (*Config)(nil)
 
-	errDimensionClientValue = fmt.Errorf("dimensionClients must be an array of compatible exporter names")
-	nonWindowsMonitors      = map[string]bool{
+	nonWindowsMonitors = map[string]bool{
 		"collectd/activemq": true, "collectd/apache": true, "collectd/cassandra": true, "collectd/chrony": true,
 		"collectd/cpu": true, "collectd/cpufreq": true, "collectd/custom": true,
 		"collectd/genericjmx": true, "collectd/hadoopjmx": true, "collectd/kafka": true, "collectd/kafka_consumer": true,
@@ -48,13 +47,12 @@ var (
 )
 
 type Config struct {
-	MonitorType string `mapstructure:"type"` // Smart Agent monitor type, e.g. collectd/cpu
+	monitorConfig saconfig.MonitorCustomConfig
+	MonitorType   string `mapstructure:"type"` // Smart Agent monitor type, e.g. collectd/cpu
 	// Generally an observer/receivercreator-set value via Endpoint.Target.
 	// Will expand to MonitorCustomConfig Host and Port values if unset.
 	Endpoint         string   `mapstructure:"endpoint"`
 	DimensionClients []string `mapstructure:"dimensionClients"`
-
-	monitorConfig    saconfig.MonitorCustomConfig
 	acceptsEndpoints bool
 }
 

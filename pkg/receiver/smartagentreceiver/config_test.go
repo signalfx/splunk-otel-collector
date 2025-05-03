@@ -76,7 +76,7 @@ func TestLoadConfig(t *testing.T) {
 		},
 		acceptsEndpoints: true,
 	}, haproxyCfg)
-	require.NoError(t, haproxyCfg.validate())
+	require.NoError(t, haproxyCfg.Validate())
 
 	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "redis").String())
 	require.NoError(t, err)
@@ -97,7 +97,7 @@ func TestLoadConfig(t *testing.T) {
 		},
 		acceptsEndpoints: true,
 	}, redisCfg)
-	require.NoError(t, redisCfg.validate())
+	require.NoError(t, redisCfg.Validate())
 
 	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "hadoop").String())
 	require.NoError(t, err)
@@ -118,7 +118,7 @@ func TestLoadConfig(t *testing.T) {
 		},
 		acceptsEndpoints: true,
 	}, hadoopCfg)
-	require.NoError(t, hadoopCfg.validate())
+	require.NoError(t, hadoopCfg.Validate())
 
 	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "etcd").String())
 	require.NoError(t, err)
@@ -143,7 +143,7 @@ func TestLoadConfig(t *testing.T) {
 		},
 		acceptsEndpoints: true,
 	}, etcdCfg)
-	require.NoError(t, etcdCfg.validate())
+	require.NoError(t, etcdCfg.Validate())
 
 	tr := true
 	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "ntpq").String())
@@ -162,7 +162,7 @@ func TestLoadConfig(t *testing.T) {
 		},
 		acceptsEndpoints: true,
 	}, ntpqCfg)
-	require.NoError(t, ntpqCfg.validate())
+	require.NoError(t, ntpqCfg.Validate())
 }
 
 func TestLoadInvalidConfigWithoutType(t *testing.T) {
@@ -173,7 +173,7 @@ func TestLoadInvalidConfigWithoutType(t *testing.T) {
 	withoutType := CreateDefaultConfig().(*Config)
 	err = cm.Unmarshal(&withoutType)
 	require.NoError(t, err)
-	err = withoutType.validate()
+	err = withoutType.Validate()
 	require.Error(t, err)
 	require.ErrorContains(t, err,
 		`you must specify a "type" for a smartagent receiver`)
@@ -225,7 +225,7 @@ func TestLoadInvalidConfigs(t *testing.T) {
 		},
 		acceptsEndpoints: true,
 	}, negativeIntervalCfg)
-	err = negativeIntervalCfg.validate()
+	err = negativeIntervalCfg.Validate()
 	require.Error(t, err)
 	require.EqualError(t, err, "intervalSeconds must be greater than 0s (-234 provided)")
 
@@ -247,7 +247,7 @@ func TestLoadInvalidConfigs(t *testing.T) {
 		},
 		acceptsEndpoints: true,
 	}, missingRequiredCfg)
-	err = missingRequiredCfg.validate()
+	err = missingRequiredCfg.Validate()
 	require.Error(t, err)
 	require.EqualError(t, err, "Validation error in field 'Config.host': host is a required field (got '')")
 }
@@ -283,7 +283,7 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 		},
 		acceptsEndpoints: true,
 	}, haproxyCfg)
-	require.NoError(t, haproxyCfg.validate())
+	require.NoError(t, haproxyCfg.Validate())
 
 	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "redis").String())
 	require.NoError(t, err)
@@ -303,7 +303,7 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 		},
 		acceptsEndpoints: true,
 	}, redisCfg)
-	require.NoError(t, redisCfg.validate())
+	require.NoError(t, redisCfg.Validate())
 
 	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "hadoop").String())
 	require.NoError(t, err)
@@ -324,7 +324,7 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 		},
 		acceptsEndpoints: true,
 	}, hadoopCfg)
-	require.NoError(t, hadoopCfg.validate())
+	require.NoError(t, hadoopCfg.Validate())
 
 	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "etcd").String())
 	require.NoError(t, err)
@@ -349,7 +349,7 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 		},
 		acceptsEndpoints: true,
 	}, etcdCfg)
-	require.NoError(t, etcdCfg.validate())
+	require.NoError(t, etcdCfg.Validate())
 
 	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "elasticsearch").String())
 	require.NoError(t, err)
@@ -380,7 +380,7 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 		},
 		acceptsEndpoints: true,
 	}, elasticCfg)
-	require.NoError(t, elasticCfg.validate())
+	require.NoError(t, elasticCfg.Validate())
 
 	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "kubelet-stats").String())
 	require.NoError(t, err)
@@ -402,7 +402,7 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 		},
 		acceptsEndpoints: true,
 	}, kubeletCfg)
-	require.NoError(t, kubeletCfg.validate())
+	require.NoError(t, kubeletCfg.Validate())
 }
 
 func TestLoadInvalidConfigWithInvalidEndpoint(t *testing.T) {
@@ -443,7 +443,7 @@ func TestLoadConfigWithUnsupportedEndpoint(t *testing.T) {
 		},
 		acceptsEndpoints: false,
 	}, nagiosCfg)
-	require.NoError(t, nagiosCfg.validate())
+	require.NoError(t, nagiosCfg.Validate())
 }
 
 func TestLoadInvalidConfigWithNonArrayDimensionClients(t *testing.T) {
@@ -512,7 +512,7 @@ func TestFilteringConfig(t *testing.T) {
 			},
 		},
 	}, fsCfg)
-	require.NoError(t, fsCfg.validate())
+	require.NoError(t, fsCfg.Validate())
 }
 
 func TestInvalidFilteringConfig(t *testing.T) {
@@ -539,7 +539,7 @@ func TestInvalidFilteringConfig(t *testing.T) {
 		},
 	}, fsCfg)
 
-	err = fsCfg.validate()
+	err = fsCfg.Validate()
 	require.Error(t, err)
 	require.EqualError(t, err, "unexpected end of input")
 }
@@ -572,7 +572,7 @@ func TestLoadConfigWithNestedMonitorConfig(t *testing.T) {
 			Timeout: timeutil.Duration(5 * time.Second),
 		},
 	}, telegrafExecCfg)
-	require.NoError(t, telegrafExecCfg.validate())
+	require.NoError(t, telegrafExecCfg.Validate())
 
 	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "kubernetes_volumes").String())
 	require.NoError(t, err)
@@ -597,5 +597,11 @@ func TestLoadConfigWithNestedMonitorConfig(t *testing.T) {
 			},
 		},
 	}, k8sVolumesCfg)
-	require.NoError(t, k8sVolumesCfg.validate())
+	require.NoError(t, k8sVolumesCfg.Validate())
+}
+
+func TestInvalidMonitorConfig(t *testing.T) {
+	t.Cleanup(cleanUp())
+	cfg := newConfig("cpu", -123)
+	assert.EqualError(t, cfg.Validate(), "intervalSeconds must be greater than 0s (-123 provided)")
 }

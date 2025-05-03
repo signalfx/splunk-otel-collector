@@ -20,7 +20,6 @@ import (
 
 	"github.com/signalfx/signalfx-agent/pkg/monitors/haproxy"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/consumer/consumertest"
@@ -48,20 +47,6 @@ func TestCreateMetrics(t *testing.T) {
 	assert.Same(t, receiver, receiverStore[cfg.(*Config)])
 }
 
-func TestCreateMetricsWithInvalidConfig(t *testing.T) {
-	factory := NewFactory()
-	cfg := &Config{}
-	require.Error(t, cfg.validate())
-
-	params := otelcolreceiver.Settings{ID: component.MustNewID(typeStr)}
-	receiver, err := factory.CreateMetrics(context.Background(), params, cfg, consumertest.NewNop())
-	require.Error(t, err)
-	assert.EqualError(t, err, `you must specify a "type" for a smartagent receiver`)
-	assert.Nil(t, receiver)
-
-	assert.NotContains(t, receiverStore, cfg)
-}
-
 func TestCreateLogs(t *testing.T) {
 	factory := NewFactory()
 	cfg := factory.CreateDefaultConfig()
@@ -76,20 +61,6 @@ func TestCreateLogs(t *testing.T) {
 	assert.Same(t, receiver, receiverStore[cfg.(*Config)])
 }
 
-func TestCreateLogsWithInvalidConfig(t *testing.T) {
-	factory := NewFactory()
-	cfg := &Config{}
-	require.Error(t, cfg.validate())
-
-	params := otelcolreceiver.Settings{ID: component.MustNewID(typeStr)}
-	receiver, err := factory.CreateLogs(context.Background(), params, cfg, consumertest.NewNop())
-	require.Error(t, err)
-	assert.EqualError(t, err, `you must specify a "type" for a smartagent receiver`)
-	assert.Nil(t, receiver)
-
-	assert.NotContains(t, receiverStore, cfg)
-}
-
 func TestCreateTraces(t *testing.T) {
 	factory := NewFactory()
 	cfg := factory.CreateDefaultConfig()
@@ -102,20 +73,6 @@ func TestCreateTraces(t *testing.T) {
 	assert.NotNil(t, receiver)
 
 	assert.Same(t, receiver, receiverStore[cfg.(*Config)])
-}
-
-func TestCreateTracesWithInvalidConfig(t *testing.T) {
-	factory := NewFactory()
-	cfg := &Config{}
-	require.Error(t, cfg.validate())
-
-	params := otelcolreceiver.Settings{ID: component.MustNewID(typeStr)}
-	receiver, err := factory.CreateTraces(context.Background(), params, cfg, consumertest.NewNop())
-	require.Error(t, err)
-	assert.EqualError(t, err, `you must specify a "type" for a smartagent receiver`)
-	assert.Nil(t, receiver)
-
-	assert.NotContains(t, receiverStore, cfg)
 }
 
 func TestCreateMetricsThenLogsAndThenTracesReceiver(t *testing.T) {

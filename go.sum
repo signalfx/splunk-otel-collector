@@ -922,8 +922,8 @@ github.com/hashicorp/raft-wal v0.4.0/go.mod h1:A6vP5o8hGOs1LHfC1Okh9xPwWDcmb6Vvu
 github.com/hashicorp/serf v0.9.6/go.mod h1:TXZNMjZQijwlDvp+r0b63xZ45H7JmCmgg4gpTwn9UV4=
 github.com/hashicorp/serf v0.10.1 h1:Z1H2J60yRKvfDYAOZLd2MU0ND4AH/WDz7xYHDWQsIPY=
 github.com/hashicorp/serf v0.10.1/go.mod h1:yL2t6BqATOLGc5HF7qbFkTfXoPIY0WZdWHfEvMqbG+4=
-github.com/hashicorp/vault v1.19.2 h1:/WzF47tObOPJ1ZQZYme6y53pJyul7RvPpnM9kKweAy4=
-github.com/hashicorp/vault v1.19.2/go.mod h1:ZzWI9eUn29CQKyYkkqxkUzpfYHaoIJpHQdzd4VjfXpM=
+github.com/hashicorp/vault v1.19.3 h1:qLspaIWWqHkG4nukIhQYdTarvWg9VKdaLhaLMGwGEZw=
+github.com/hashicorp/vault v1.19.3/go.mod h1:ld7UgdP9kfm1e0BD7suC4X5djlt5p25kTagiAidk5Ho=
 github.com/hashicorp/vault-plugin-auth-gcp v0.20.2 h1:M1gWdAo/WTu9PR8j8kfnDwDEqlgJKUDgEla/aB5IaZk=
 github.com/hashicorp/vault-plugin-auth-gcp v0.20.2/go.mod h1:FEXGIQPbjjc3Dzf3FEwRzj4qK7YfzwELd6ZHHsFXXM4=
 github.com/hashicorp/vault-plugin-secrets-kv v0.21.0 h1:P8WPzAkttLnhZyhTmY15bKlGkGcLjYsQUAIFi+tu5vA=

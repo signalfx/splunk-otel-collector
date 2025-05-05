@@ -1,10 +1,11 @@
 package diskio
 
 import (
+	log "github.com/sirupsen/logrus"
+
 	"github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
 	"github.com/signalfx/signalfx-agent/pkg/utils/timeutil"
-	log "github.com/sirupsen/logrus"
 )
 
 var logger = log.WithFields(log.Fields{"monitorType": monitorType})

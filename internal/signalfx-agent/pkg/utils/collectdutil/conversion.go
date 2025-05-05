@@ -7,6 +7,7 @@ import (
 	"github.com/signalfx/golib/v3/event"
 	"github.com/signalfx/golib/v3/pointer"
 	"github.com/signalfx/ingest-protocols/protocol/collectd"
+
 	"github.com/signalfx/signalfx-agent/pkg/utils"
 )
 

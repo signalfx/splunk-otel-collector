@@ -3,9 +3,10 @@
 package {{.goPackage}}
 
 import (
-{{if .metrics}}
+{{- if .metrics }}
 	"github.com/signalfx/golib/v3/datapoint"
-{{- end}}
+
+{{ end -}}
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
 )
 

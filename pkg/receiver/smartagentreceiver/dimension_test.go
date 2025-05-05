@@ -18,8 +18,9 @@ import (
 	"testing"
 
 	metadata "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata"
-	"github.com/signalfx/signalfx-agent/pkg/monitors/types"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/signalfx/signalfx-agent/pkg/monitors/types"
 )
 
 func TestDimensionToMetadataUpdate(t *testing.T) {

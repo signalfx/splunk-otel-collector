@@ -18,12 +18,13 @@ import (
 	"context"
 	"testing"
 
-	"github.com/signalfx/signalfx-agent/pkg/monitors/haproxy"
 	"github.com/stretchr/testify/assert"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	otelcolreceiver "go.opentelemetry.io/collector/receiver"
+
+	"github.com/signalfx/signalfx-agent/pkg/monitors/haproxy"
 )
 
 func TestCreateDefaultConfig(t *testing.T) {

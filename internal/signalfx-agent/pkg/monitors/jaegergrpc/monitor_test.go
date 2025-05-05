@@ -13,11 +13,12 @@ import (
 	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
 	"github.com/signalfx/golib/v3/pointer"
 	"github.com/signalfx/golib/v3/trace"
-	"github.com/signalfx/signalfx-agent/pkg/core/common/constants"
-	"github.com/signalfx/signalfx-agent/pkg/neotest"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
+
+	"github.com/signalfx/signalfx-agent/pkg/core/common/constants"
+	"github.com/signalfx/signalfx-agent/pkg/neotest"
 )
 
 var (

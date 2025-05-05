@@ -6,10 +6,11 @@ import (
 
 	"github.com/google/cadvisor/client"
 	info "github.com/google/cadvisor/info/v1"
+	stats "k8s.io/kubelet/pkg/apis/stats/v1alpha1"
+
 	"github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/types"
-	stats "k8s.io/kubelet/pkg/apis/stats/v1alpha1"
 )
 
 func init() {

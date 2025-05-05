@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	gopsutil "github.com/shirou/gopsutil/v3/disk"
+
 	"github.com/signalfx/signalfx-agent/pkg/utils/hostfs"
 )
 

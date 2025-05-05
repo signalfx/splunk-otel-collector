@@ -5,10 +5,11 @@ import (
 	"time"
 
 	"github.com/signalfx/golib/v3/datapoint"
+	appsv1 "k8s.io/api/apps/v1"
+
 	k8sutil "github.com/signalfx/signalfx-agent/pkg/monitors/kubernetes/utils"
 	atypes "github.com/signalfx/signalfx-agent/pkg/monitors/types"
 	"github.com/signalfx/signalfx-agent/pkg/utils"
-	appsv1 "k8s.io/api/apps/v1"
 )
 
 func datapointsForReplicaSet(rs *appsv1.ReplicaSet) []*datapoint.Datapoint {

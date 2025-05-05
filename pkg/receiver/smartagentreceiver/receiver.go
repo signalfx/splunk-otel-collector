@@ -97,11 +97,6 @@ func (r *receiver) Start(_ context.Context, host component.Host) error {
 		return nil
 	}
 
-	err := r.config.validate()
-	if err != nil {
-		return fmt.Errorf("config validation failed for %q: %w", r.params.ID.String(), err)
-	}
-
 	configCore := r.config.monitorConfig.MonitorConfigCore()
 	monitorType := configCore.Type
 	monitorID := nonWordCharacters.ReplaceAllString(r.params.ID.String(), "")
@@ -123,6 +118,7 @@ func (r *receiver) Start(_ context.Context, host component.Host) error {
 	if !r.config.acceptsEndpoints {
 		r.logger.Debug("This Smart Agent monitor does not use Host/Port config fields. If either are set, they will be ignored.", zap.String("monitor_type", monitorType))
 	}
+	var err error
 	r.monitor, err = r.createMonitor(monitorType, host)
 	if err != nil {
 		return fmt.Errorf("failed creating monitor %q: %w", monitorType, err)

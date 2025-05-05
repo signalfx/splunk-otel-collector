@@ -57,7 +57,7 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 		},
 		acceptsEndpoints: true,
 	}, apacheCfg)
-	require.NoError(t, apacheCfg.validate())
+	require.NoError(t, apacheCfg.Validate())
 
 	cm, err = configs.Sub(component.MustNewIDWithName(typeStr, "kafka").String())
 	require.NoError(t, err)
@@ -81,7 +81,7 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 		},
 		acceptsEndpoints: true,
 	}, kafkaCfg)
-	require.NoError(t, kafkaCfg.validate())
+	require.NoError(t, kafkaCfg.Validate())
 
 	cm, err = configs.Sub(component.MustNewIDWithName(typeStr, "memcached").String())
 	require.NoError(t, err)
@@ -101,7 +101,7 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 		},
 		acceptsEndpoints: true,
 	}, memcachedCfg)
-	require.NoError(t, memcachedCfg.validate())
+	require.NoError(t, memcachedCfg.Validate())
 
 	cm, err = configs.Sub(component.MustNewIDWithName(typeStr, "php").String())
 	require.NoError(t, err)
@@ -120,5 +120,5 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 		},
 		acceptsEndpoints: true,
 	}, phpCfg)
-	require.NoError(t, phpCfg.validate())
+	require.NoError(t, phpCfg.Validate())
 }

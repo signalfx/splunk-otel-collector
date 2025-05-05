@@ -200,16 +200,6 @@ func TestStripMonitorTypePrefix(t *testing.T) {
 	assert.Equal(t, "cpu", stripMonitorTypePrefix("cpu"))
 }
 
-func TestStartReceiverWithInvalidMonitorConfig(t *testing.T) {
-	t.Cleanup(cleanUp())
-	cfg := newConfig("cpu", -123)
-	receiver := newReceiver(newReceiverCreateSettings("invalid", t), cfg)
-	err := receiver.Start(context.Background(), componenttest.NewNopHost())
-	assert.EqualError(t, err,
-		"config validation failed for \"smartagent/invalid\": intervalSeconds must be greater than 0s (-123 provided)",
-	)
-}
-
 func TestStartReceiverWithUnknownMonitorType(t *testing.T) {
 	t.Cleanup(cleanUp())
 	cfg := newConfig("notamonitortype", 1)

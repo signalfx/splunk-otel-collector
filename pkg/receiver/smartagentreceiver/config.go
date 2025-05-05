@@ -27,6 +27,7 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/core/config/validation"
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
 	"go.opentelemetry.io/collector/confmap"
+	"go.opentelemetry.io/collector/confmap/xconfmap"
 	"gopkg.in/yaml.v2"
 )
 
@@ -34,6 +35,7 @@ const defaultIntervalSeconds = 10
 
 var (
 	_ confmap.Unmarshaler = (*Config)(nil)
+	_ xconfmap.Validator  = (*Config)(nil)
 
 	nonWindowsMonitors = map[string]bool{
 		"collectd/activemq": true, "collectd/apache": true, "collectd/cassandra": true, "collectd/chrony": true,
@@ -56,7 +58,7 @@ type Config struct {
 	acceptsEndpoints bool
 }
 
-func (cfg *Config) validate() error {
+func (cfg *Config) Validate() error {
 	if cfg.MonitorType == "" {
 		return fmt.Errorf(`you must specify a "type" for a smartagent receiver`)
 	}

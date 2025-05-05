@@ -38,7 +38,6 @@ MDLINKCHECK=markdown-link-check
 MISSPELL=misspell -error
 MISSPELL_CORRECTION=misspell -w
 LINT=golangci-lint
-IMPI=impi
 # BUILD_TYPE should be one of (dev, release).
 BUILD_TYPE?=release
 
@@ -83,7 +82,7 @@ all-pkg-dirs:
 .DEFAULT_GOAL := common
 
 .PHONY: common
-common: checklicense impi lint misspell
+common: checklicense lint misspell
 
 .PHONY: test
 test:
@@ -138,7 +137,7 @@ fmt: addlicense misspell-correction
 	fieldalignment -fix ./... || true
 
 .PHONY: lint
-lint: checklicense misspell impi
+lint: checklicense misspell
 	$(LINT) run --allow-parallel-runners -j$(NUM_CORES)
 
 .PHONY: tidy
@@ -154,10 +153,6 @@ misspell:
 .PHONY: misspell-correction
 misspell-correction:
 	$(MISSPELL_CORRECTION) $(ALL_SRC_AND_DOC)
-
-.PHONY: impi
-impi:
-	@$(IMPI) --local github.com/signalfx/splunk-otel-collector --skip internal/signalfx-agent --scheme stdThirdPartyLocal --ignore-generated=true ./...
 
 .PHONY: moddownload
 moddownload:

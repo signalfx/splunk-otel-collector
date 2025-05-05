@@ -69,7 +69,7 @@ all-modules:
 	@echo $(ALL_MODS) | tr ' ' '\n' | sort
 
 .PHONY: all
-all: checklicense impi lint misspell test otelcol
+all: checklicense lint misspell test otelcol
 
 .PHONY: for-all
 for-all:
@@ -232,7 +232,6 @@ install-tools:
 	cd ./internal/tools && go install github.com/google/addlicense
 	cd ./internal/tools && go install github.com/jstemmer/go-junit-report
 	cd ./internal/tools && go install go.opentelemetry.io/collector/cmd/mdatagen
-	cd ./internal/tools && go install github.com/pavius/impi/cmd/impi
 	cd ./internal/tools && go install github.com/tcnksm/ghr
 	cd ./internal/tools && go install golang.org/x/tools/cmd/goimports
 	cd ./internal/tools && go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment

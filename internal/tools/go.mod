@@ -7,7 +7,6 @@ require (
 	github.com/golangci/golangci-lint v1.64.8
 	github.com/google/addlicense v1.1.1
 	github.com/jstemmer/go-junit-report v1.0.0
-	github.com/pavius/impi v0.0.3
 	github.com/tcnksm/ghr v0.16.2
 	go.opentelemetry.io/collector/cmd/mdatagen v0.125.0
 	golang.org/x/tools v0.32.0
@@ -107,7 +106,6 @@ require (
 	github.com/julz/importas v0.2.0 // indirect
 	github.com/karamaru-alpha/copyloopvar v1.2.1 // indirect
 	github.com/kisielk/errcheck v1.9.0 // indirect
-	github.com/kisielk/gotool v1.0.0 // indirect
 	github.com/kkHAIKE/contextcheck v1.1.6 // indirect
 	github.com/knadh/koanf v1.5.0 // indirect
 	github.com/knadh/koanf/v2 v2.2.0 // indirect

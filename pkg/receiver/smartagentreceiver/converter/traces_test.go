@@ -24,13 +24,14 @@ import (
 	"testing"
 
 	"github.com/signalfx/golib/v3/trace"
-	sfxConstants "github.com/signalfx/signalfx-agent/pkg/core/common/constants"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest/observer"
+
+	sfxConstants "github.com/signalfx/signalfx-agent/pkg/core/common/constants"
 )
 
 var (

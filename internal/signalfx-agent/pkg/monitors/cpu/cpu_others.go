@@ -5,6 +5,7 @@ package cpu
 
 import (
 	"github.com/shirou/gopsutil/v3/cpu"
+
 	"github.com/signalfx/signalfx-agent/pkg/utils/hostfs"
 )
 

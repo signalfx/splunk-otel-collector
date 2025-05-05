@@ -22,13 +22,14 @@ import (
 	"strconv"
 
 	"github.com/signalfx/defaults"
+	"go.opentelemetry.io/collector/confmap"
+	"go.opentelemetry.io/collector/confmap/xconfmap"
+	"gopkg.in/yaml.v2"
+
 	_ "github.com/signalfx/signalfx-agent/pkg/core" // required to invoke monitor registration via init() calls
 	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/core/config/validation"
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
-	"go.opentelemetry.io/collector/confmap"
-	"go.opentelemetry.io/collector/confmap/xconfmap"
-	"gopkg.in/yaml.v2"
 )
 
 const defaultIntervalSeconds = 10

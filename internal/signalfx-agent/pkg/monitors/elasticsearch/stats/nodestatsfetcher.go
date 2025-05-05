@@ -2,6 +2,7 @@ package stats
 
 import (
 	"github.com/signalfx/golib/v3/datapoint"
+
 	esUtils "github.com/signalfx/signalfx-agent/pkg/monitors/elasticsearch/utils"
 	"github.com/signalfx/signalfx-agent/pkg/utils"
 )

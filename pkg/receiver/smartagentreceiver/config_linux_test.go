@@ -20,16 +20,17 @@ import (
 	"path"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/confmap/confmaptest"
+
 	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/apache"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/genericjmx"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/kafka"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/memcached"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/php"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/confmap/confmaptest"
 )
 
 func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {

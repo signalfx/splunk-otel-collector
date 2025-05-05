@@ -3,9 +3,10 @@ package model
 import (
 	"fmt"
 
+	"github.com/vmware/govmomi/vim25/types"
+
 	"github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/utils/timeutil"
-	"github.com/vmware/govmomi/vim25/types"
 )
 
 // "real-time" vsphereInfo metrics are available in 20 second intervals

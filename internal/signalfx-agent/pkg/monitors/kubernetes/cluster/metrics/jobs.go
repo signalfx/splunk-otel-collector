@@ -4,10 +4,11 @@ import (
 	"time"
 
 	"github.com/signalfx/golib/v3/datapoint"
+	batchv1 "k8s.io/api/batch/v1"
+
 	k8sutil "github.com/signalfx/signalfx-agent/pkg/monitors/kubernetes/utils"
 	atypes "github.com/signalfx/signalfx-agent/pkg/monitors/types"
 	"github.com/signalfx/signalfx-agent/pkg/utils"
-	batchv1 "k8s.io/api/batch/v1"
 )
 
 func datapointsForJob(job *batchv1.Job) []*datapoint.Datapoint {

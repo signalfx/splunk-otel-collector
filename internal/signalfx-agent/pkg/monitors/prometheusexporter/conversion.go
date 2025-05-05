@@ -4,8 +4,9 @@ import (
 	"strconv"
 
 	dto "github.com/prometheus/client_model/go"
-	"github.com/signalfx/signalfx-agent/pkg/utils"
 	"go.opentelemetry.io/collector/pdata/pmetric"
+
+	"github.com/signalfx/signalfx-agent/pkg/utils"
 )
 
 type extractor func(m *dto.Metric) float64

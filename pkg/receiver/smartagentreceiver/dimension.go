@@ -16,6 +16,7 @@ package smartagentreceiver
 
 import (
 	metadata "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata"
+
 	"github.com/signalfx/signalfx-agent/pkg/monitors/types"
 )
 

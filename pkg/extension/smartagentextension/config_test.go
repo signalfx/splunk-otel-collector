@@ -20,12 +20,13 @@ import (
 	"path/filepath"
 	"testing"
 
-	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
 	"go.opentelemetry.io/collector/extension"
+
+	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 )
 
 func TestLoadConfig(t *testing.T) {

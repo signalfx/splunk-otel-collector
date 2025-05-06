@@ -1,7 +1,7 @@
 #!/bin/bash -eux
 set -o pipefail
 which jq || (echo "jq not found" && exit 1)
-source "${SOURCE_DIR}/packaging-scripts/cicd-tests/test-utils.sh"
+source "${ADDONS_SOURCE_DIR}/packaging-scripts/cicd-tests/test-utils.sh"
 BUILD_DIR="$(realpath "$BUILD_DIR")"
 
 CI_JOB_ID="${CI_JOB_ID:-$(mktemp -d)}"
@@ -21,7 +21,7 @@ echo "Creating splunk cluster with TA $GATEWAY_TA_FULLPATH"
 
 ORCA_SSH_USER="splunk"
 
-gateway_container_info="$(splunk_orca -v --printer json --cloud "$ORCA_CLOUD" --ansible-log "$TEST_FOLDER/ansible-local-gateway.log" create --env SPLUNK_CONNECTION_TIMEOUT=600 --platform "$SPLUNK_PLATFORM" --local-apps "$GATEWAY_TA_FULLPATH" --playbook "$SOURCE_DIR/packaging-scripts/orca-playbook-windows.yml,site.yml")"
+gateway_container_info="$(splunk_orca -v --printer json --cloud "$ORCA_CLOUD" --ansible-log "$TEST_FOLDER/ansible-local-gateway.log" create --env SPLUNK_CONNECTION_TIMEOUT=600 --platform "$SPLUNK_PLATFORM" --local-apps "$GATEWAY_TA_FULLPATH" --playbook "$ADDONS_SOURCE_DIR/packaging-scripts/orca-playbook-windows.yml,site.yml")"
 echo "$gateway_container_info" > "$TEST_FOLDER/orca-gateway-deployment.json"
 
 # .keys[keys[0]] will grab the first key out of a dict
@@ -38,7 +38,7 @@ echo "splunk_gateway_url=$GATEWAY_IPV4_ADDR" >> "$GATEWAY_AGENT_ADDON_DIR/Splunk
 tar -C "$GATEWAY_AGENT_ADDON_DIR" -hcz --file "$GATEWAY_AGENT_TA_FULLPATH" "Splunk_TA_otel"
 echo "Creating splunk cluster with TA $GATEWAY_AGENT_TA_FULLPATH"
 
-gateway_agent_container_info=$(splunk_orca -v --printer json --cloud "$ORCA_CLOUD" --ansible-log "$TEST_FOLDER/ansible-local-gateway-agent.log" create --env SPLUNK_CONNECTION_TIMEOUT=600 --platform "$SPLUNK_PLATFORM"  --local-apps "$GATEWAY_AGENT_TA_FULLPATH" --playbook "$SOURCE_DIR/packaging-scripts/orca-playbook-windows.yml,site.yml")
+gateway_agent_container_info=$(splunk_orca -v --printer json --cloud "$ORCA_CLOUD" --ansible-log "$TEST_FOLDER/ansible-local-gateway-agent.log" create --env SPLUNK_CONNECTION_TIMEOUT=600 --platform "$SPLUNK_PLATFORM"  --local-apps "$GATEWAY_AGENT_TA_FULLPATH" --playbook "$ADDONS_SOURCE_DIR/packaging-scripts/orca-playbook-windows.yml,site.yml")
 GATEWAY_AGENT_IPV4_ADDR="$(echo "$gateway_agent_container_info" | jq -r '.[keys[0]] | .[keys[0]] | .containers | .[keys[0]] | .ssh_address')"
 
 echo "$gateway_agent_container_info" > "$TEST_FOLDER/orca-gateway-agent-deployment.json"

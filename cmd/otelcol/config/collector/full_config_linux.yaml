@@ -127,6 +127,11 @@ receivers:
       processes:
       # System processes metrics, disabled by default
       # process:
+      #   metrics:
+      #     process.cpu.utilization:
+      #       enabled: true
+      #     process.memory.utilization:
+      #       enabled: true      
 
   # Enables the prometheus receiver -- should only be used for local metric collection
   # This section is used to collect the OpenTelemetry Collector metrics

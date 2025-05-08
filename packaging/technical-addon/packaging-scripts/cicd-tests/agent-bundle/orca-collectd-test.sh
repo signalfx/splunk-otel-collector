@@ -5,7 +5,7 @@ if [ "$ORCA_CLOUD" == "kubernetes" ]; then
     SSH_PORT="2222"
 fi
 which jq || (echo "jq not found" && exit 1)
-source "${SOURCE_DIR}/packaging-scripts/cicd-tests/test-utils.sh"
+source "${ADDONS_SOURCE_DIR}/packaging-scripts/cicd-tests/test-utils.sh"
 BUILD_DIR="$(realpath "$BUILD_DIR")"
 TA_FULLPATH="$(repack_with_access_token "$OLLY_ACCESS_TOKEN" "$BUILD_DIR/out/distribution/Splunk_TA_otel.tgz" | tail -n 1)"
 REPACKED_TA_NAME="$(basename "$TA_FULLPATH")"
@@ -17,13 +17,13 @@ mkdir -p "$TEST_FOLDER"
 # Customize TA to use mysql collectd reciever
 #rm -rf "$ADDON_DIR/$REPACKED_TA_NAME"
 rm -rf "$TA_FULLPATH"
-cp "$SOURCE_DIR/packaging-scripts/cicd-tests/agent-bundle/ta-agent-mysql-config.yaml" "$ADDON_DIR/Splunk_TA_otel/configs/"
+cp "$ADDONS_SOURCE_DIR/packaging-scripts/cicd-tests/agent-bundle/ta-agent-mysql-config.yaml" "$ADDON_DIR/Splunk_TA_otel/configs/"
 echo 'splunk_config=$SPLUNK_OTEL_TA_HOME/configs/ta-agent-mysql-config.yaml' >> "$ADDON_DIR/Splunk_TA_otel/local/inputs.conf"
 tar -C "$ADDON_DIR" -hcz --file "$TA_FULLPATH" "Splunk_TA_otel"
 echo "Creating orca cluster with mysql and TA $TA_FULLPATH"
 
 # Create ORCA container & grab id
-splunk_orca -vvv --cloud "${ORCA_CLOUD}" --area otel-collector --printer sdd-json --deployment-file "$TEST_FOLDER/orca_deployment.json" --ansible-log "$TEST_FOLDER/ansible-local.log" create --prefix "collectd" --env SPLUNK_CONNECTION_TIMEOUT=600 --platform "$SPLUNK_PLATFORM" --splunk-version "${UF_VERSION}" --local-apps "$TA_FULLPATH" --playbook "$SOURCE_DIR/packaging-scripts/orca-playbook-$PLATFORM.yml,site.yml" --custom-services "$SOURCE_DIR/packaging-scripts/cicd-tests/agent-bundle/orca-playbook-mysql.yml"
+splunk_orca -vvv --cloud "${ORCA_CLOUD}" --area otel-collector --printer sdd-json --deployment-file "$TEST_FOLDER/orca_deployment.json" --ansible-log "$TEST_FOLDER/ansible-local.log" create --prefix "collectd" --env SPLUNK_CONNECTION_TIMEOUT=600 --platform "$SPLUNK_PLATFORM" --splunk-version "${UF_VERSION}" --local-apps "$TA_FULLPATH" --playbook "$ADDONS_SOURCE_DIR/packaging-scripts/orca-playbook-$PLATFORM.yml,site.yml" --custom-services "$ADDONS_SOURCE_DIR/packaging-scripts/cicd-tests/agent-bundle/orca-playbook-mysql.yml"
 cat "$TEST_FOLDER/orca_deployment.json"
 deployment_id="$(jq -r '.orca_deployment_id' < "$TEST_FOLDER/orca_deployment.json")"
 ip_addr="$(jq -r '.server_roles.standalone[0].host' < "$TEST_FOLDER/orca_deployment.json")"

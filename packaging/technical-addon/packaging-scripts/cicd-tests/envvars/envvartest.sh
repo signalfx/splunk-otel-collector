@@ -2,9 +2,9 @@
 set -o pipefail
 
 [[ -z "$BUILD_DIR" ]] && echo "BUILD_DIR not set" && exit 1
-[[ -z "$SOURCE_DIR" ]] && echo "SOURCE_DIR not set" && exit 1
+[[ -z "$ADDONS_SOURCE_DIR" ]] && echo "ADDONS_SOURCE_DIR not set" && exit 1
 
-source "${SOURCE_DIR}/packaging-scripts/cicd-tests/test-utils.sh"
+source "${ADDONS_SOURCE_DIR}/packaging-scripts/cicd-tests/test-utils.sh"
 TA_FULLPATH="$(repack_with_access_token "foobar" "$BUILD_DIR/out/distribution/Splunk_TA_otel.tgz" | tail -n 1)"
 REPACKED_TA_NAME="$(basename "$TA_FULLPATH")"
 ADDON_DIR="$(realpath "$(dirname "$TA_FULLPATH")")"
@@ -16,13 +16,13 @@ echo 'gomemlimit=512MiB' >> "$ADDON_DIR/Splunk_TA_otel/local/inputs.conf"
 echo 'splunk_debug_config_server=test_notused' >> "$ADDON_DIR/Splunk_TA_otel/local/inputs.conf"
 echo 'splunk_hec_url=test_notused' >> "$ADDON_DIR/Splunk_TA_otel/local/inputs.conf"
 echo 'splunk_gateway_url=test_notused' >> "$ADDON_DIR/Splunk_TA_otel/local/inputs.conf"
-cp "$SOURCE_DIR/packaging-scripts/cicd-tests/envvars/passthrough_env_vars.yaml" "$ADDON_DIR/Splunk_TA_otel/configs/"
+cp "$ADDONS_SOURCE_DIR/packaging-scripts/cicd-tests/envvars/passthrough_env_vars.yaml" "$ADDON_DIR/Splunk_TA_otel/configs/"
 tar -C "$ADDON_DIR" -hcz --file "$TA_FULLPATH" "Splunk_TA_otel"
 
 
 echo "Testing with hot TA $TA_FULLPATH ($ADDON_DIR and $REPACKED_TA_NAME)"
 
-DOCKER_COMPOSE_CONFIG="$SOURCE_DIR/packaging-scripts/cicd-tests/envvars/docker-compose.yml"
+DOCKER_COMPOSE_CONFIG="$ADDONS_SOURCE_DIR/packaging-scripts/cicd-tests/envvars/docker-compose.yml"
 REPACKED_TA_NAME=$REPACKED_TA_NAME ADDON_DIR=$ADDON_DIR docker compose --file "$DOCKER_COMPOSE_CONFIG" up --build --force-recreate --wait --detach --timestamps
 
 docker exec -u root envvars-ta-test-envvars-1 /opt/splunk/bin/splunk btool check --debug | grep -qi "Invalid key in stanza" && exit 1

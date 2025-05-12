@@ -50,7 +50,6 @@ gen-modinput-config:
 		ls -lAh $(BUILD_DIR); \
 	done
 
-# Build all runner binaries.. This may require some more build deps
 build-ta-runners:
 	@echo "Building runner binaries..."
 	@for schema in $(MODULAR_INPUT_SCHEMAS); do \

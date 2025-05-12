@@ -170,10 +170,12 @@ govulncheck:
 		exit 1; \
 	fi
 
+# CD's into SRC_ROOT so that this may be called/included from other Makefiles
 .PHONY: gogen
 gogen:
 	cd $(SRC_ROOT) && go generate ./...
 
+# CD's into SRC_ROOT so that this may be called/included from other Makefiles
 .PHONY: bundle.d
 bundle.d:
 	cd $(SRC_ROOT) && go install github.com/signalfx/splunk-otel-collector/internal/confmapprovider/discovery/bundle/cmd/discoverybundler

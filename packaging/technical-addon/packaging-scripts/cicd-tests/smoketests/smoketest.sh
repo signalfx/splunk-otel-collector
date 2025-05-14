@@ -2,14 +2,14 @@
 set -o pipefail
 
 [[ -z "$BUILD_DIR" ]] && echo "BUILD_DIR not set" && exit 1
-[[ -z "$SOURCE_DIR" ]] && echo "SOURCE_DIR not set" && exit 1
+[[ -z "$ADDONS_SOURCE_DIR" ]] && echo "ADDONS_SOURCE_DIR not set" && exit 1
 
-source "${SOURCE_DIR}/packaging-scripts/cicd-tests/test-utils.sh"
+source "${ADDONS_SOURCE_DIR}/packaging-scripts/cicd-tests/test-utils.sh"
 TA_FULLPATH="$(repack_with_access_token "foobar" "$BUILD_DIR/out/distribution/Splunk_TA_otel.tgz" | tail -n 1)"
 REPACKED_TA_NAME="$(basename "$TA_FULLPATH")"
 ADDON_DIR="$(realpath "$(dirname "$TA_FULLPATH")")"
 echo "Testing with hot TA $TA_FULLPATH ($ADDON_DIR and $REPACKED_TA_NAME)"
-DOCKER_COMPOSE_CONFIG="$SOURCE_DIR/packaging-scripts/cicd-tests/smoketests/docker-compose.yml"
+DOCKER_COMPOSE_CONFIG="$ADDONS_SOURCE_DIR/packaging-scripts/cicd-tests/smoketests/docker-compose.yml"
 ADDON_DIR="$ADDON_DIR" REPACKED_TA_NAME="$REPACKED_TA_NAME" docker compose --file "$DOCKER_COMPOSE_CONFIG" up --detach --wait --build --force-recreate --timestamps
 
 # If there's an error in the app, you can try manually installing it or modifying files

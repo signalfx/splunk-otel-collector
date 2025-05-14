@@ -64,12 +64,12 @@ func findGitRoot(startDir string) (string, error) {
 
 func GetSourceDir() (string, error) {
 	var err error
-	sourceDir := os.Getenv("SOURCE_DIR")
+	sourceDir := os.Getenv("ADDONS_SOURCE_DIR")
 	if sourceDir == "" {
-		fmt.Println("SOURCE_DIR not set, searching for make root")
+		fmt.Println("ADDONS_SOURCE_DIR not set, searching for make root")
 		sourceDir, err = findSourceRoot(".")
 		if err != nil || sourceDir == "" {
-			return "", fmt.Errorf("could not makefile to use as SOURCE_DIR and SOURCE_DIR was not specified as an env var")
+			return "", fmt.Errorf("could not makefile to use as ADDONS_SOURCE_DIR and ADDONS_SOURCE_DIR was not specified as an env var")
 		}
 	}
 	return sourceDir, nil

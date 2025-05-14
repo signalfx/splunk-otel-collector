@@ -16,6 +16,9 @@ variables:
   BUILD_DIR:
     value: '${CI_PROJECT_DIR}/build'
     description: 'in this CI, where builds are stored'
+  ADDONS_SOURCE_DIR:
+    value: '${CI_PROJECT_DIR}/packaging/technical-addon'
+    description: 'in this CI, where the addons source directory is located'
 
 stages:
   - update-deps
@@ -486,6 +489,7 @@ package-technical-addon:
   image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
   stage: "package"
   script: |
+    cd "${ADDONS_SOURCE_DIR}"
     make distribute-ta -e
   artifacts:
     paths:
@@ -517,6 +521,7 @@ test-happypath-ta:
         ORCA_OPTION: [""]
         PLATFORM: ["windows"]
   script: |
+    cd "${ADDONS_SOURCE_DIR}"
     make orca-test-ta -e
   after_script:
     # spin down orca deployments
@@ -546,6 +551,7 @@ test-collectd-ta:
         ORCA_OPTION: ["--exec-user root"]
         PLATFORM: ["linux"]
   script: |
+    cd "${ADDONS_SOURCE_DIR}"
     make orca-collectd-test-ta -e
   after_script:
     # spin down orca deployments
@@ -560,7 +566,7 @@ test-collectd-ta:
 test-gateway-ta:
   image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
   extends:
-    - .trigger-filter
+    - .ta-trigger
     - .auth-setup
   stage: orca-tests
   dependencies:
@@ -578,6 +584,7 @@ test-gateway-ta:
         ORCA_OPTION: [""]
         PLATFORM: ["windows"]
   script: |
+    cd "${ADDONS_SOURCE_DIR}"
     make orca-gateway-test-ta -e
   after_script:
     # spin down orca deployments

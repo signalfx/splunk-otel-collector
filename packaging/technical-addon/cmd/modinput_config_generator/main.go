@@ -22,7 +22,7 @@ import (
 )
 
 func main() {
-	sourceDir := flag.String("source-dir", "", "Source directory ($(SOURCE_DIR))")
+	sourceDir := flag.String("source-dir", "", "Source directory ($(ADDONS_SOURCE_DIR))")
 	schemaName := flag.String("schema-name", "", "Modular input schema name")
 	buildDir := flag.String("build-dir", "", "Build directory ($(BUILD_DIR))")
 	flag.Parse()

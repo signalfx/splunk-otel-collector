@@ -142,6 +142,21 @@ jobs:
           echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
           sudo apt update && sudo apt install -y vagrant
 
+      - name: free before clean cache
+        run: |
+          free
+
+      - name: Clean VirtualBox cache
+        run: |
+          # Related issues:
+          # https://bbs.archlinux.org/viewtopic.php?id=298056
+          # https://forums.virtualbox.org/viewtopic.php?t=112438
+          echo 3 > /proc/sys/vm/drop_caches
+
+      - name: free after clean cache
+        run: |
+          free
+
       - uses: DamianReeves/write-file-action@v1.3
         with:
           path: "${{ github.workspace }}/requirements.txt"
@@ -171,13 +186,6 @@ jobs:
           json=$( wget -nv -O- https://vagrantcloud.com/api/v2/vagrant/${box} )
           url=$( echo "$json" | jq -r ".versions[] | select(.version == \"${box_version}\") | .providers[] | select(.name == \"virtualbox\") | .url" )
           wget -nv -O /tmp/vagrant.box $url
-
-      - name: Clean VirtualBox cache
-        run: |
-          # Related issues:
-          # https://bbs.archlinux.org/viewtopic.php?id=298056
-          # https://forums.virtualbox.org/viewtopic.php?t=112438
-          echo "3" | sudo tee /proc/sys/vm/drop_caches
 
       - name: Run Molecule tests.
         run: molecule --debug -v --base-config ./molecule/config/windows.yml test -s ${{ matrix.scenario }} -p ${{ matrix.distro }}

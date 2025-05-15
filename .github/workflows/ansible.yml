@@ -187,6 +187,17 @@ jobs:
           url=$( echo "$json" | jq -r ".versions[] | select(.version == \"${box_version}\") | .providers[] | select(.name == \"virtualbox\") | .url" )
           wget -nv -O /tmp/vagrant.box $url
 
+      - name: Clean VirtualBox cache
+        run: |
+          # Related issues:
+          # https://bbs.archlinux.org/viewtopic.php?id=298056
+          # https://forums.virtualbox.org/viewtopic.php?t=112438
+          echo "3" | sudo tee /proc/sys/vm/drop_caches
+
+      - name: free before running tests
+        run: |
+          free
+
       - name: Run Molecule tests.
         run: molecule --debug -v --base-config ./molecule/config/windows.yml test -s ${{ matrix.scenario }} -p ${{ matrix.distro }}
         env:

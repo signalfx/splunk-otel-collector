@@ -144,7 +144,7 @@ jobs:
 
       - name: free before clean cache
         run: |
-          free
+          free -h
 
       - name: Clean VirtualBox cache
         run: |
@@ -155,7 +155,7 @@ jobs:
 
       - name: free after clean cache
         run: |
-          free
+          free -h
 
       - uses: DamianReeves/write-file-action@v1.3
         with:
@@ -196,7 +196,7 @@ jobs:
 
       - name: free before running tests
         run: |
-          free
+          free -h
 
       - name: Run Molecule tests.
         run: molecule --debug -v --base-config ./molecule/config/windows.yml test -s ${{ matrix.scenario }} -p ${{ matrix.distro }}

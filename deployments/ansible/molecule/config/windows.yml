@@ -10,7 +10,7 @@ driver:
 platforms:
   - name: "2016"
     box: cdaf/WindowsServer
-    box_version: ${MOLECULE_VAGRANT_BOX_VERSION:-2022.09.01}
+    box_version: ${MOLECULE_VAGRANT_BOX_VERSION:-2023.03.13}
     box_url: ${MOLECULE_VAGRANT_BOX_URL}
     cpus: 2
     memory: 4096
@@ -30,7 +30,7 @@ platforms:
       - "winrm.retry_delay = 10"
   - name: "2019"
     box: gusztavvargadr/windows-server-2019-standard
-    box_version: ${MOLECULE_VAGRANT_BOX_VERSION:-1809.0.2312}
+    box_version: ${MOLECULE_VAGRANT_BOX_VERSION:-1809.0.2407}
     box_url: ${MOLECULE_VAGRANT_BOX_URL}
     cpus: 2
     memory: 4096

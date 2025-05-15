@@ -21,7 +21,7 @@
 
 - name: "download and extract nodejs"
   unarchive:
-    src: https://nodejs.org/download/release/v16.20.2/node-v16.20.2-linux-x64.tar.gz
+    src: https://nodejs.org/download/release/v18.20.8/node-v18.20.8-linux-x64.tar.gz
     dest: /usr/local
     remote_src: yes
   register: result
@@ -31,7 +31,7 @@
 
 - name: "create symlinks in /usr/bin"
   file:
-    src: "/usr/local/node-v16.20.2-linux-x64/bin/{{ item }}"
+    src: "/usr/local/node-v18.20.8-linux-x64/bin/{{ item }}"
     dest: "/usr/bin/{{ item }}"
     state: link
     mode: '755'

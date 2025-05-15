@@ -63,7 +63,7 @@ func StartSplunk(t *testing.T, startOpts SplunkStartOpts) testcontainers.Contain
 	splunkStartURL := strings.Join(addonNames, ",")
 	t.Logf("Splunk start url: %s", splunkStartURL)
 	req := testcontainers.ContainerRequest{
-		Image: "splunk/splunk:9.4.1",
+		Image: "splunk/splunk:latest",
 		HostConfigModifier: func(c *container.HostConfig) {
 			c.NetworkMode = "host"
 			c.Mounts = append(c.Mounts, mount.Mount{

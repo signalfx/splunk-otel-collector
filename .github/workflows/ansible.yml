@@ -151,7 +151,9 @@ jobs:
           # Related issues:
           # https://bbs.archlinux.org/viewtopic.php?id=298056
           # https://forums.virtualbox.org/viewtopic.php?t=112438
+          # https://forums.virtualbox.org/viewtopic.php?t=112481
           echo "3" | sudo tee /proc/sys/vm/drop_caches
+          echo "1" | sudo tee /proc/sys/vm/drop_caches
 
       - name: free after clean cache
         run: |
@@ -192,7 +194,9 @@ jobs:
           # Related issues:
           # https://bbs.archlinux.org/viewtopic.php?id=298056
           # https://forums.virtualbox.org/viewtopic.php?t=112438
+          # https://forums.virtualbox.org/viewtopic.php?t=112481
           echo "3" | sudo tee /proc/sys/vm/drop_caches
+          echo "1" | sudo tee /proc/sys/vm/drop_caches
 
       - name: free before running tests
         run: |

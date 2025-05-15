@@ -37,8 +37,8 @@ type ModInputConfig struct {
 }
 
 type GenericModularInput struct {
-	SchemaName    string
 	ModularInputs map[string]*ModInput
+	SchemaName    string
 }
 type TemplateData struct {
 	ModularInputs map[string]ModInputConfig `yaml:"modular-inputs"`

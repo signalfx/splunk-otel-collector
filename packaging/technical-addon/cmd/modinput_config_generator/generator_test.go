@@ -31,19 +31,16 @@ import (
 )
 
 type ExampleOutput struct {
-	Flags   []string
-	EnvVars []string
-
-	SplunkHome   string
-	TaHome       string
-	PlatformHome string
-
+	SplunkHome                 string
+	TaHome                     string
+	PlatformHome               string
 	EverythingSet              string
 	MinimalSet                 string
 	MinimalSetRequired         string
 	UnaryFlagWithEverythingSet string
-
-	Platform string
+	Platform                   string
+	Flags                      []string
+	EnvVars                    []string
 }
 
 func TestPascalization(t *testing.T) {

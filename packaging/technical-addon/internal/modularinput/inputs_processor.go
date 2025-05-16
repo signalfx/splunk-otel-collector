@@ -17,11 +17,11 @@ package modularinput
 import (
 	"fmt"
 	"maps"
-	"os"
-	"path/filepath"
 	"slices"
 	"sort"
 	"strings"
+
+	"github.com/splunk/splunk-technical-addon/internal/addonruntime"
 )
 
 type ModInput struct {
@@ -33,23 +33,23 @@ type ModInput struct {
 // TransformerFunc is basically a reducer.. takes in "working" value of modinput string
 type TransformerFunc func(value string) (string, error)
 type ModinputProcessor struct {
-	ModularInputs map[string]ModInput
+	ModularInputs map[string]*ModInput
 	SchemaName    string
 }
 
-func (t *ModInput) TransformInputs(value string) error {
+func (t *ModInput) TransformInputs(value string) (string, error) {
 	t.Value = value
 	for _, transformer := range t.Transformers {
 		transformed, err := transformer(t.Value)
 		if err != nil {
-			return err
+			return "", err
 		}
 		t.Value = transformed
 	}
-	return nil
+	return t.Value, nil
 }
 
-func NewModinputProcessor(schemaName string, inputs map[string]ModInput) *ModinputProcessor {
+func NewModinputProcessor(schemaName string, inputs map[string]*ModInput) *ModinputProcessor {
 	return &ModinputProcessor{
 		SchemaName:    schemaName,
 		ModularInputs: inputs,
@@ -60,38 +60,39 @@ func (t *ModInput) RegisterTransformer(transformer TransformerFunc) {
 	t.Transformers = append(t.Transformers, transformer)
 }
 
-func (mit *ModinputProcessor) ProcessXML(modInput *XMLInput) error {
+func (mip *ModinputProcessor) ProcessXML(modInput *XMLInput) error {
 	providedInputs := make(map[string]bool)
 
 	for _, stanza := range modInput.Configuration.Stanzas {
-		stanzaPrefix := fmt.Sprintf("%s://", mit.SchemaName)
+		stanzaPrefix := fmt.Sprintf("%s://", mip.SchemaName)
 
 		if strings.HasPrefix(stanza.Name, stanzaPrefix) {
 			for _, param := range stanza.Params {
-				if input, exists := mit.ModularInputs[param.Name]; exists {
-					err := input.TransformInputs(param.Value)
+				if input, exists := mip.ModularInputs[param.Name]; exists {
+					value, err := input.TransformInputs(param.Value)
 					if err != nil {
 						return fmt.Errorf("transform failed for input %s: %s", param.Name, err)
 					}
+					input.Value = value
 				}
 				providedInputs[param.Name] = true
 			}
 			break // I believe we should only handle one of these... do we need to look up my process name?
 		}
 	}
-	missing := mit.GetMissingRequired(providedInputs)
+	missing := mip.GetMissingRequired(providedInputs)
 	if missing != nil {
 		return fmt.Errorf("missing required inputs: %v", missing)
 	}
 	return nil
 }
 
-func (mit *ModinputProcessor) GetFlags() []string {
+func (mip *ModinputProcessor) GetFlags() []string {
 	var flags []string
-	keys := slices.Collect(maps.Keys(mit.ModularInputs))
+	keys := slices.Collect(maps.Keys(mip.ModularInputs))
 	sort.Strings(keys)
 	for _, modinputName := range keys {
-		modularInput := mit.ModularInputs[modinputName]
+		modularInput := mip.ModularInputs[modinputName]
 		if "" != modularInput.Config.Flag.Name {
 			flags = append(flags, fmt.Sprintf("--%s", modularInput.Config.Flag.Name))
 			if !modularInput.Config.Flag.IsUnary {
@@ -102,12 +103,12 @@ func (mit *ModinputProcessor) GetFlags() []string {
 	return flags
 }
 
-func (mit *ModinputProcessor) GetEnvVars() []string {
+func (mip *ModinputProcessor) GetEnvVars() []string {
 	var envVars []string
-	keys := slices.Collect(maps.Keys(mit.ModularInputs))
+	keys := slices.Collect(maps.Keys(mip.ModularInputs))
 	sort.Strings(keys)
 	for _, modinputName := range keys {
-		modularInput := mit.ModularInputs[modinputName]
+		modularInput := mip.ModularInputs[modinputName]
 		if modularInput.Config.PassthroughEnvVar {
 			envVars = append(envVars, fmt.Sprintf("%s=%s", strings.ToUpper(modinputName), modularInput.Value))
 		}
@@ -115,28 +116,28 @@ func (mit *ModinputProcessor) GetEnvVars() []string {
 	return envVars
 }
 
-func (mit *ModinputProcessor) GetModularInputs() {
-
-}
-
 func DefaultReplaceEnvVarTransformer(original string) (string, error) {
-	execPath, err := os.Executable()
+	splunkTaPlatformHome, err := addonruntime.GetTaPlatformDir()
 	if err != nil {
-		return "", fmt.Errorf("error getting executable path: %v", err)
+		return "", err
 	}
-	splunkTaPlatformHome := filepath.Dir(filepath.Dir(execPath)) // ../bin/(windows_x86_64|linux_x86_64)
-	splunkTaHome := filepath.Dir(splunkTaPlatformHome)           // ../<Name of TA>
-	splunkHome := filepath.Dir(filepath.Dir(splunkTaHome))       // etc/(apps|deployment_apps)/
-
-	replacement := strings.ReplaceAll(original, "$SPLUNK_TA_PLATFORM_HOME", splunkTaPlatformHome)
-	replacement = strings.ReplaceAll(replacement, "$SPLUNK_TA_HOME", splunkTaHome)
+	splunkTaHome, err := addonruntime.GetTaHome()
+	if err != nil {
+		return "", err
+	}
+	splunkHome, err := addonruntime.GetSplunkHome()
+	if err != nil {
+		return "", err
+	}
+	replacement := strings.ReplaceAll(original, "$SPLUNK_OTEL_TA_PLATFORM_HOME", splunkTaPlatformHome)
+	replacement = strings.ReplaceAll(replacement, "$SPLUNK_OTEL_TA_HOME", splunkTaHome)
 	replacement = strings.ReplaceAll(replacement, "$SPLUNK_HOME", splunkHome)
 	return replacement, nil
 }
 
-func (mit *ModinputProcessor) GetMissingRequired(provided map[string]bool) []string {
+func (mip *ModinputProcessor) GetMissingRequired(provided map[string]bool) []string {
 	var missing []string
-	for name, mi := range mit.ModularInputs {
+	for name, mi := range mip.ModularInputs {
 		if _, given := provided[name]; mi.Config.Required && !given {
 			missing = append(missing, fmt.Sprintf("modular input %s is required", name))
 		}

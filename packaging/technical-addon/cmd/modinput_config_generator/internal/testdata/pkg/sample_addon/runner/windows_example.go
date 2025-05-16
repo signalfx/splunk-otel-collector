@@ -19,8 +19,10 @@ package main
 import (
 	"encoding/json"
 	"log"
+
+	"github.com/splunk/splunk-technical-addon/internal/modularinput"
 )
 
-func Example(flags []string, envVars []string) {
+func Example(mip *modularinput.ModinputProcessor) {
 	log.Println(json.Marshal(ExampleOutput{flags, envVars, "windows"}))
 }

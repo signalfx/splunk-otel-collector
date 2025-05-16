@@ -1,0 +1,28 @@
+######################################################
+#
+# {{ .SchemaName }}
+#
+# Copyright (C) 2005-2020 Splunk Inc. All Rights Reserved.
+#
+######################################################
+
+[install]
+state = enabled
+is_configured = false
+build = 0
+
+[ui]
+is_visible = false
+label = Sample Addon for testing
+
+[launcher]
+author = Splunk, Inc.
+description = Use this add on as a reference/example for creating your own and to test the generation logic
+version = {{ .Version }}
+
+[package]
+id = {{ .SchemaName }}
+
+[id]
+name = {{ .SchemaName }}
+version = {{ .Version }}

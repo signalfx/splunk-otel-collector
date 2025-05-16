@@ -106,3 +106,16 @@ func main() {
 ```
 
 Alternatively, if you need platform specific code, you may use `//go:build` flags, providing a file for every needed variation of code.
+
+# Debugging a container from testcommon.StartSplunk
+1. Change `autoremove` to false in the hostmodifierconfig
+2. Likely add a time.Sleep before the require.NoError check but after the container start
+3. In a terminal, run `docker container ls --all`
+4. Run `docker exec -it <container-id> /bin/bash`
+5. Inspect/debug a TA as normal, ex looking into `/opt/splunk/etc/apps/Sample_Addon` or `/opt/splunk/var/log/splunkd.log`
+
+To get the modular input in XML form, you can use the following command, replacing `Sample_Addon` with the addon name of your choice
+
+```bash
+/opt/splunk/bin/splunk cmd splunkd print-modinput-config Sample_Addon Sample_Addon://Sample_Addon	 
+```

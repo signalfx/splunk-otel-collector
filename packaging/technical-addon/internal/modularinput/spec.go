@@ -36,9 +36,15 @@ type ModInputConfig struct {
 	ReplaceableEnvVar bool   `yaml:"replaceable,omitempty"`
 }
 
+type GenericModularInput struct {
+	ModularInputs map[string]*ModInput
+	SchemaName    string
+}
+
 type TemplateData struct {
 	ModularInputs map[string]ModInputConfig `yaml:"modular-inputs"`
 	SchemaName    string                    `yaml:"modular-input-schema-name"`
+	Version       string                    `yaml:"version"`
 }
 
 func LoadConfig(yamlPath string) (*TemplateData, error) {

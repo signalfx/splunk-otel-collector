@@ -41,7 +41,7 @@ func main() {
 	if err := generateModinputConfig(config, filepath.Dir(yamlPath)); err != nil {
 		log.Fatalf("Error processing %v: %v\n", config, err)
 	}
-	if err := generateTaModInputConfs(config, filepath.Dir(filepath.Dir(yamlPath)), filepath.Join(*buildDir, *schemaName)); err != nil {
+	if err := generateTaModInputConfs(config, filepath.Dir(filepath.Dir(yamlPath)), *buildDir); err != nil {
 		log.Fatalf("Error processing %v: %v\n", config, err)
 	}
 }

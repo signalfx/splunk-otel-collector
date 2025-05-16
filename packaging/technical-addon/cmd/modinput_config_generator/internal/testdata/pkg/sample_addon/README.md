@@ -1,0 +1,1 @@
+This addon is used both as an example for how to author addons, and additionally is used as a test for our framework of doing such.

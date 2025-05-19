@@ -498,7 +498,7 @@ def test_installer_with_instrumentation_custom(distro, arch, method, sdk):
         pytest.skip("opensuse-12 arm64 no longer supported")
 
     # minimum supported node version required for profiling
-    node_version = 16
+    node_version = 18
     if arch == "arm64" and distro in ("centos-7"):
         # g++ for these distros is too old to build/compile splunk-otel-js with node v16:
         #   g++: error: unrecognized command line option '-std=gnu++14'

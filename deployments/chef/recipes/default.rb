@@ -104,12 +104,8 @@ elsif platform_family?('debian', 'rhel', 'amazon', 'suse')
   end
 
   if node['splunk_otel_collector']['with_fluentd'].to_s.downcase == 'true'
-    if platform_family?('debian') && node['platform_version'].to_i < 12
-      include_recipe 'splunk_otel_collector::fluentd_deb_repo'
-      include_recipe 'splunk_otel_collector::fluentd_linux_install'
-    elsif platform_family?('rhel', 'amazon')
+    if platform_family?('rhel', 'amazon')
       include_recipe 'splunk_otel_collector::fluentd_yum_repo'
-      include_recipe 'splunk_otel_collector::fluentd_linux_install'
     end
   end
 

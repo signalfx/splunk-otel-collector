@@ -78,12 +78,12 @@ type fakeOutput struct {
 var _ types.FilteringOutput = (*fakeOutput)(nil)
 
 // AddDatapointExclusionFilter implements types.FilteringOutput.
-func (fo *fakeOutput) AddDatapointExclusionFilter(filter dpfilters.DatapointFilter) {
+func (fo *fakeOutput) AddDatapointExclusionFilter(_ dpfilters.DatapointFilter) {
 	panic("unimplemented")
 }
 
 // AddExtraDimension implements types.FilteringOutput.
-func (fo *fakeOutput) AddExtraDimension(key string, value string) {
+func (fo *fakeOutput) AddExtraDimension(_ string, _ string) {
 	panic("unimplemented")
 }
 
@@ -103,27 +103,27 @@ func (fo *fakeOutput) HasAnyExtraMetrics() bool {
 }
 
 // HasEnabledMetricInGroup implements types.FilteringOutput.
-func (fo *fakeOutput) HasEnabledMetricInGroup(group string) bool {
+func (fo *fakeOutput) HasEnabledMetricInGroup(_ string) bool {
 	panic("unimplemented")
 }
 
 // SendDimensionUpdate implements types.FilteringOutput.
-func (fo *fakeOutput) SendDimensionUpdate(dim *types.Dimension) {
+func (fo *fakeOutput) SendDimensionUpdate(_ *types.Dimension) {
 	panic("unimplemented")
 }
 
 // SendEvent implements types.FilteringOutput.
-func (fo *fakeOutput) SendEvent(e *event.Event) {
+func (fo *fakeOutput) SendEvent(_ *event.Event) {
 	panic("unimplemented")
 }
 
 // SendMetrics implements types.FilteringOutput.
-func (fo *fakeOutput) SendMetrics(metrics ...pmetric.Metric) {
+func (fo *fakeOutput) SendMetrics(_ ...pmetric.Metric) {
 	panic("unimplemented")
 }
 
 // SendSpans implements types.FilteringOutput.
-func (fo *fakeOutput) SendSpans(spans ...*trace.Span) {
+func (fo *fakeOutput) SendSpans(_ ...*trace.Span) {
 	panic("unimplemented")
 }
 

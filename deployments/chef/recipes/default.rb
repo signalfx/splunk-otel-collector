@@ -29,7 +29,7 @@ if platform_family?('windows')
   end
 
   remote_file node['splunk_otel_collector']['collector_config_dest'] do
-    source "#{node['splunk_otel_collector']['collector_config_source']}"
+    source node['splunk_otel_collector']['collector_config_source'].to_s
     only_if { ::File.exist?(node['splunk_otel_collector']['collector_config_source']) && node['splunk_otel_collector']['collector_config'] == {} }
     notifies :restart, 'windows_service[splunk-otel-collector]', :delayed
   end
@@ -61,7 +61,7 @@ elsif platform_family?('debian', 'rhel', 'amazon', 'suse')
     options '--allow-downgrades' if platform_family?('debian') \
       && node['packages'] \
       && node['packages']['apt'] \
-      && Gem::Version.new(node['packages']['apt']['version'].split('~')[0]) >= Gem::Version.new('1.1.0')
+      && Gem::Version.new(node['packages']['apt']['version'].split('~').first) >= Gem::Version.new('1.1.0')
     allow_downgrade true if platform_family?('amazon', 'rhel', 'suse')
     notifies :restart, 'service[splunk-otel-collector]', :delayed
   end
@@ -82,7 +82,7 @@ elsif platform_family?('debian', 'rhel', 'amazon', 'suse')
   end
 
   remote_file node['splunk_otel_collector']['collector_config_dest'] do
-    source "#{node['splunk_otel_collector']['collector_config_source']}"
+    source node['splunk_otel_collector']['collector_config_source'].to_s
     owner node['splunk_otel_collector']['user']
     group node['splunk_otel_collector']['group']
     mode '0600'

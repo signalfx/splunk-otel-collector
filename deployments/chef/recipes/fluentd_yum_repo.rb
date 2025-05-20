@@ -1,7 +1,7 @@
 # Cookbook:: splunk_otel_collector
 # Recipe:: collector_yum_repo
 
-td_agent_major_version = node['splunk_otel_collector']['fluentd_version'].split('.')[0]
+td_agent_major_version = node['splunk_otel_collector']['fluentd_version'].split('.').first
 
 distro = if platform_family?('amazon')
            'amazon'

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 🧰 Bug fixes 🧰
+
+- (Splunk) `receiver/smartagent`: Use the system certificate pool as the default pool on Windows, keeping behavior of monitors consistent with other OSes. ([#TBD](https://github.com/signalfx/splunk-otel-collector/pull/TBD))
+
 ## v0.125.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.125.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.125.0)

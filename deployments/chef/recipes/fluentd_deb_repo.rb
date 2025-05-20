@@ -6,7 +6,7 @@ codename = node['lsb']['codename']
 distro = node['platform']
 
 apt_repository 'treasure-data' do
-  uri "#{node['splunk_otel_collector']['fluentd_base_url']}/#{td_agent_major_version}/#{distro}/#{codename}"
+  uri "#{node['splunk_otel_collector']['fluentd_base_url']}/#{td_agent_major_version}/#{distro}/#{codename}/pool/contrib/f/fluentd-apt-source"
   arch 'amd64'
   distribution codename
   components ['contrib']

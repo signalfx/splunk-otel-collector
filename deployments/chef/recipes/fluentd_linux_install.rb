@@ -8,7 +8,7 @@ package 'td-agent' do
   options '--allow-downgrades' if platform_family?('debian') \
     && node['packages'] \
     && node['packages']['apt'] \
-    && Gem::Version.new(node['packages']['apt']['version'].split('~')[0]) >= Gem::Version.new('1.1.0')
+    && Gem::Version.new(node['packages']['apt']['version'].split('~').first) >= Gem::Version.new('1.1.0')
 
   allow_downgrade true if platform_family?('rhel', 'amazon')
   notifies :restart, 'service[td-agent]', :delayed
@@ -64,7 +64,7 @@ directory ::File.dirname(node['splunk_otel_collector']['fluentd_config_dest']) d
 end
 
 remote_file node['splunk_otel_collector']['fluentd_config_dest'] do
-  source "#{node['splunk_otel_collector']['fluentd_config_source']}"
+  source node['splunk_otel_collector']['fluentd_config_source'].to_s
   owner 'td-agent'
   group 'td-agent'
   mode '0644'

@@ -4,7 +4,7 @@
 
 ### 🧰 Bug fixes 🧰
 
-- (Splunk) `receiver/smartagent`: Use the system certificate pool as the default pool on Windows, keeping behavior of monitors consistent with other OSes. ([#TBD](https://github.com/signalfx/splunk-otel-collector/pull/TBD))
+- (Splunk) `receiver/smartagent`: Use the system certificate pool as the default pool on Windows, keeping behavior of monitors consistent with other OSes. ([#6240](https://github.com/signalfx/splunk-otel-collector/pull/6240))
 
 ## v0.125.0
 

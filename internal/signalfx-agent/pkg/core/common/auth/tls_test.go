@@ -16,5 +16,5 @@ func TestDefaultCertPoolMustBeSystemPool(t *testing.T) {
 	defaultCertPool, err := CertPool()
 	require.NoError(t, err)
 	require.NotNil(t, defaultCertPool)
-	require.Equal(t, systemPool, defaultCertPool)
+	require.True(t, systemPool.Equal(defaultCertPool))
 }

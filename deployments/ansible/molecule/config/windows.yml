@@ -18,7 +18,7 @@ platforms:
       gui: false
       linked_clone: true
     instance_raw_config_args: &vagrant_args
-      - "vm.boot_timeout = 1200"
+      - "vm.boot_timeout = 2400"
       - "vm.communicator = 'winrm'"
       - "vm.guest = :windows"
       - "vm.network 'forwarded_port', guest: 5985, host: 55985"

@@ -101,7 +101,7 @@ suites:
     attributes:
       nodejs: &nodejs_options
         install_method: binary
-        version: 16.20.2
+        version: 18.20.8
         binary:
           append_env_path: false  # required for idempotence
           checksum: c9193e6c414891694759febe846f4f023bf48410a6924a8b1520c46565859665

@@ -135,7 +135,7 @@ jobs:
       # Running Virtualbox with Windows requires Swap space:
       # https://forums.virtualbox.org/viewtopic.php?p=551134#p551134
       - name: Create Swap File
-          run: |
+        run: |
             sudo fallocate -l 2G /swapfile
             sudo chmod 600 /swapfile
             sudo mkswap /swapfile

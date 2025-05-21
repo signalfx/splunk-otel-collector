@@ -9,8 +9,8 @@ driver:
     name: virtualbox
 platforms:
   - name: "2016"
-    box: cdaf/WindowsServer
-    box_version: ${MOLECULE_VAGRANT_BOX_VERSION:-2023.03.13}
+    box: StefanScherer/windows_2016
+    box_version: ${MOLECULE_VAGRANT_BOX_VERSION:-2019.02.14}
     box_url: ${MOLECULE_VAGRANT_BOX_URL}
     cpus: 2
     memory: 16384
@@ -29,8 +29,8 @@ platforms:
       - "winrm.retry_limit = 50"
       - "winrm.retry_delay = 10"
   - name: "2019"
-    box: gusztavvargadr/windows-server-2019-standard
-    box_version: ${MOLECULE_VAGRANT_BOX_VERSION:-1809.0.2407}
+    box: StefanScherer/windows_2019
+    box_version: ${MOLECULE_VAGRANT_BOX_VERSION:-2021.05.15}
     box_url: ${MOLECULE_VAGRANT_BOX_URL}
     cpus: 2
     memory: 16384

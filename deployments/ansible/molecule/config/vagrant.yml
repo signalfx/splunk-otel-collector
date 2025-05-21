@@ -11,8 +11,8 @@ driver:
 platforms:
   - name: focal64
     box: ubuntu/focal64
-  - name: centos8
-    box: centos/8
+  - name: centos9
+    box: centos/9
   - name: bookworm64
     box: debian/bookworm64
 provisioner:

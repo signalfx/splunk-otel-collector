@@ -65,7 +65,7 @@ jobs:
           - ansible~=10.7.0
         distro:
           - amazonlinux2023
-          - centos8
+          - centos9
           - debian11
           - debian12
           - ubuntu2004
@@ -81,7 +81,7 @@ jobs:
           contents: |
             ${{ matrix.ansible }}
             ansible-lint==25.4.0
-            molecule==25.4.0
+            molecule==25.1.0
             molecule-plugins[docker]==23.7.0
             docker==7.0.0
             requests<2.32.0
@@ -166,7 +166,7 @@ jobs:
             ${{ matrix.ansible }}
             ansible-compat==25.5.0
             ansible-lint==25.4.0
-            molecule==25.4.0
+            molecule==25.1.0
             molecule-plugins[vagrant]==23.7.0
             pywinrm==0.5.0
 

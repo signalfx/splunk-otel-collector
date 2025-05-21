@@ -132,16 +132,6 @@ jobs:
       - name: Free up disk space for vagrant box
         uses: jlumbroso/free-disk-space@v1.3.1
 
-      # Running Virtualbox with Windows requires Swap space:
-      # https://forums.virtualbox.org/viewtopic.php?p=551134#p551134
-      - name: Create Swap File
-        run: |
-            sudo fallocate -l 2G /swapfile
-            sudo chmod 600 /swapfile
-            sudo mkswap /swapfile
-            sudo swapon /swapfile
-            echo "/swapfile none swap sw 0 0" | sudo tee -a /etc/fstab
-
       - name: Check out the codebase.
         uses: actions/checkout@v4
 
@@ -151,6 +141,16 @@ jobs:
           wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
           echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
           sudo apt update && sudo apt install -y vagrant
+
+      # Running Virtualbox with Windows requires Swap space:
+      # https://forums.virtualbox.org/viewtopic.php?p=551134#p551134
+      - name: Create Swap File
+        run: |
+            sudo fallocate -l 2G /swapfile
+            sudo chmod 600 /swapfile
+            sudo mkswap /swapfile
+            sudo swapon /swapfile
+            echo "/swapfile none swap sw 0 0" | sudo tee -a /etc/fstab
 
       - name: free before clean cache
         run: |

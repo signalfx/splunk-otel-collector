@@ -5,6 +5,7 @@
 ### 🧰 Bug fixes 🧰
 
 - (Splunk) `receiver/smartagent`: Use the system certificate pool as the default pool on Windows, keeping behavior of monitors consistent with other OSes. ([#6240](https://github.com/signalfx/splunk-otel-collector/pull/6240))
+- (Splunk) `discovery`: Fix the prometheus config for envoy discovery receiver ([#6243](https://github.com/signalfx/splunk-otel-collector/pull/6243))
 
 ## v0.125.0
 

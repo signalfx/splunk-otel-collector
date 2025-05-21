@@ -24,7 +24,25 @@
 #             metric_relabel_configs:
 #               - source_labels: [__name__]
 #                 action: keep
-#                 regex: '(envoy_cluster_upstream_cx_active|envoy_cluster_upstream_cx_total|envoy_cluster_upstream_cx_connect_fail|envoy_cluster_upstream_cx_connect_ms|envoy_cluster_upstream_rq_active|envoy_cluster_upstream_rq_total|envoy_cluster_upstream_rq_timeout|envoy_cluster_upstream_rq_pending_active|envoy_cluster_upstream_rq_pending_overflow|envoy_cluster_upstream_rq_time|envoy_cluster_membership_total|envoy_cluster_membership_degraded|envoy_cluster_membership_excluded|envoy_listener_downstream_cx_active|envoy_listener_downstream_cx_total|envoy_listener_downstream_cx_transport_socket_connect_timeout|envoy_listener_downstream_cx_overflow|envoy_listener_downstream_cx_overload_reject|envoy_listener_downstream_global_cx_overflow)'
+#                 regex: "(envoy_cluster_upstream_cx_active|\
+#                 envoy_cluster_upstream_cx_total|\
+#                 envoy_cluster_upstream_cx_connect_fail|\
+#                 envoy_cluster_upstream_cx_connect_ms|\
+#                 envoy_cluster_upstream_rq_active|\
+#                 envoy_cluster_upstream_rq_total|\
+#                 envoy_cluster_upstream_rq_timeout|\
+#                 envoy_cluster_upstream_rq_pending_active|\
+#                 envoy_cluster_upstream_rq_pending_overflow|\
+#                 envoy_cluster_upstream_rq_time|\
+#                 envoy_cluster_membership_total|\
+#                 envoy_cluster_membership_degraded|\
+#                 envoy_cluster_membership_excluded|\
+#                 envoy_listener_downstream_cx_active|\
+#                 envoy_listener_downstream_cx_total|\
+#                 envoy_listener_downstream_cx_transport_socket_connect_timeout|\
+#                 envoy_listener_downstream_cx_overflow|\
+#                 envoy_listener_downstream_cx_overload_reject|\
+#                 envoy_listener_downstream_global_cx_overflow)(?:_sum|_count|_bucket)?"
 #   status:
 #     metrics:
 #       - status: successful

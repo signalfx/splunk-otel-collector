@@ -4,24 +4,30 @@ resourceMetrics:
         - key: container.image.name
           value:
             stringValue: quay.io/splunko11ytest/envoy
+        - key: container.name
+          value:
+            stringValue: docker-envoy-1
+        - key: discovery.endpoint.id
+          value:
+            stringValue: 30c5122db7a66a56ed6dce3b8ec50d8ccf12a8b3a217d92020e3560c4c13c3e4:9901
         - key: http.scheme
           value:
             stringValue: http
         - key: net.host.name
           value:
-            stringValue: host.docker.internal
+            stringValue: 172.19.0.2
         - key: net.host.port
           value:
             stringValue: "9901"
         - key: server.address
           value:
-            stringValue: host.docker.internal
+            stringValue: 172.19.0.2
         - key: server.port
           value:
             stringValue: "9901"
         - key: service.instance.id
           value:
-            stringValue: host.docker.internal:9901
+            stringValue: 172.19.0.2:9901
         - key: service.name
           value:
             stringValue: envoy
@@ -30,6 +36,260 @@ resourceMetrics:
             stringValue: http
     scopeMetrics:
       - metrics:
+          - description: The number of samples the target exposed
+            gauge:
+              dataPoints:
+                - asDouble: 782
+                  timeUnixNano: "1000000"
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: gauge
+            name: scrape_samples_scraped
+          - description: The approximate number of new series in this scrape
+            gauge:
+              dataPoints:
+                - asDouble: 61
+                  timeUnixNano: "1000000"
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: gauge
+            name: scrape_series_added
+          - metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: counter
+            name: envoy_cluster_upstream_cx_connect_fail
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: envoy_cluster_name
+                      value:
+                        stringValue: service_envoyproxy_io
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+              isMonotonic: true
+          - metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: counter
+            name: envoy_cluster_upstream_rq_pending_overflow
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: envoy_cluster_name
+                      value:
+                        stringValue: service_envoyproxy_io
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+              isMonotonic: true
+          - metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: counter
+            name: envoy_cluster_upstream_rq_total
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 4
+                  attributes:
+                    - key: envoy_cluster_name
+                      value:
+                        stringValue: service_envoyproxy_io
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+              isMonotonic: true
+          - metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: counter
+            name: envoy_listener_downstream_cx_total
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 1
+                  attributes:
+                    - key: envoy_listener_address
+                      value:
+                        stringValue: 0.0.0.0_10000
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+              isMonotonic: true
+          - gauge:
+              dataPoints:
+                - asDouble: 1
+                  attributes:
+                    - key: envoy_cluster_name
+                      value:
+                        stringValue: service_envoyproxy_io
+                  timeUnixNano: "1000000"
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: gauge
+            name: envoy_cluster_upstream_cx_active
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: envoy_cluster_name
+                      value:
+                        stringValue: service_envoyproxy_io
+                  timeUnixNano: "1000000"
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: gauge
+            name: envoy_cluster_upstream_rq_active
+          - histogram:
+              aggregationTemporality: 2
+              dataPoints:
+                - attributes:
+                    - key: envoy_cluster_name
+                      value:
+                        stringValue: service_envoyproxy_io
+                  bucketCounts:
+                    - "0"
+                    - "0"
+                    - "0"
+                    - "0"
+                    - "0"
+                    - "2"
+                    - "1"
+                    - "0"
+                    - "0"
+                    - "0"
+                    - "0"
+                    - "0"
+                    - "0"
+                    - "0"
+                    - "0"
+                    - "0"
+                    - "0"
+                    - "0"
+                    - "0"
+                    - "0"
+                  count: "3"
+                  explicitBounds:
+                    - 0.5
+                    - 1
+                    - 5
+                    - 10
+                    - 25
+                    - 50
+                    - 100
+                    - 250
+                    - 500
+                    - 1000
+                    - 2500
+                    - 5000
+                    - 10000
+                    - 30000
+                    - 60000
+                    - 300000
+                    - 600000
+                    - 1.8e+06
+                    - 3.6e+06
+                  startTimeUnixNano: "1000000"
+                  sum: 135.5
+                  timeUnixNano: "2000000"
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: histogram
+            name: envoy_cluster_upstream_rq_time
+          - metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: counter
+            name: envoy_listener_downstream_cx_transport_socket_connect_timeout
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: envoy_listener_address
+                      value:
+                        stringValue: 0.0.0.0_10000
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+              isMonotonic: true
+          - metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: counter
+            name: envoy_listener_downstream_global_cx_overflow
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: envoy_listener_address
+                      value:
+                        stringValue: 0.0.0.0_10000
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+              isMonotonic: true
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: envoy_cluster_name
+                      value:
+                        stringValue: service_envoyproxy_io
+                  timeUnixNano: "1000000"
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: gauge
+            name: envoy_cluster_membership_degraded
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: envoy_cluster_name
+                      value:
+                        stringValue: service_envoyproxy_io
+                  timeUnixNano: "1000000"
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: gauge
+            name: envoy_cluster_membership_excluded
+          - gauge:
+              dataPoints:
+                - asDouble: 1
+                  attributes:
+                    - key: envoy_listener_address
+                      value:
+                        stringValue: 0.0.0.0_10000
+                  timeUnixNano: "1000000"
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: gauge
+            name: envoy_listener_downstream_cx_active
+          - metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: counter
+            name: envoy_cluster_upstream_rq_timeout
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: envoy_cluster_name
+                      value:
+                        stringValue: service_envoyproxy_io
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+              isMonotonic: true
           - gauge:
               dataPoints:
                 - asDouble: 1
@@ -55,229 +315,68 @@ resourceMetrics:
               - key: prometheus.type
                 value:
                   stringValue: gauge
-            name: envoy_cluster_upstream_cx_active
-          - gauge:
-              dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: envoy_cluster_name
-                      value:
-                        stringValue: service_envoyproxy_io
-                  timeUnixNano: "1000000"
-            metadata:
-              - key: prometheus.type
-                value:
-                  stringValue: gauge
-            name: envoy_cluster_upstream_rq_active
-          - description: The scraping was successful
-            gauge:
-              dataPoints:
-                - asDouble: 1
-                  timeUnixNano: "1000000"
-            metadata:
-              - key: prometheus.type
-                value:
-                  stringValue: gauge
-            name: up
-          - description: The number of samples the target exposed
-            gauge:
-              dataPoints:
-                - asDouble: 694
-                  timeUnixNano: "1000000"
-            metadata:
-              - key: prometheus.type
-                value:
-                  stringValue: gauge
-            name: scrape_samples_scraped
-          - metadata:
-              - key: prometheus.type
-                value:
-                  stringValue: counter
-            name: envoy_cluster_upstream_cx_connect_fail
-            sum:
-              aggregationTemporality: 2
-              dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: envoy_cluster_name
-                      value:
-                        stringValue: service_envoyproxy_io
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "1000000"
-              isMonotonic: true
-          - metadata:
-              - key: prometheus.type
-                value:
-                  stringValue: counter
-            name: envoy_listener_downstream_global_cx_overflow
-            sum:
-              aggregationTemporality: 2
-              dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: envoy_listener_address
-                      value:
-                        stringValue: 0.0.0.0_10000
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "1000000"
-              isMonotonic: true
-          - gauge:
-              dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: envoy_cluster_name
-                      value:
-                        stringValue: service_envoyproxy_io
-                  timeUnixNano: "1000000"
-            metadata:
-              - key: prometheus.type
-                value:
-                  stringValue: gauge
-            name: envoy_cluster_membership_degraded
-          - description: The approximate number of new series in this scrape
-            gauge:
-              dataPoints:
-                - asDouble: 17
-                  timeUnixNano: "1000000"
-            metadata:
-              - key: prometheus.type
-                value:
-                  stringValue: gauge
-            name: scrape_series_added
-          - metadata:
-              - key: prometheus.type
-                value:
-                  stringValue: counter
-            name: envoy_cluster_upstream_cx_total
-            sum:
-              aggregationTemporality: 2
-              dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: envoy_cluster_name
-                      value:
-                        stringValue: service_envoyproxy_io
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "1000000"
-              isMonotonic: true
-          - metadata:
-              - key: prometheus.type
-                value:
-                  stringValue: counter
-            name: envoy_cluster_upstream_rq_pending_overflow
-            sum:
-              aggregationTemporality: 2
-              dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: envoy_cluster_name
-                      value:
-                        stringValue: service_envoyproxy_io
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "1000000"
-              isMonotonic: true
-          - metadata:
-              - key: prometheus.type
-                value:
-                  stringValue: counter
-            name: envoy_listener_downstream_cx_overload_reject
-            sum:
-              aggregationTemporality: 2
-              dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: envoy_listener_address
-                      value:
-                        stringValue: 0.0.0.0_10000
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "1000000"
-              isMonotonic: true
-          - description: Duration of the scrape
-            gauge:
-              dataPoints:
-                - asDouble: 0.044218584
-                  timeUnixNano: "1000000"
-            metadata:
-              - key: prometheus.type
-                value:
-                  stringValue: gauge
-            name: scrape_duration_seconds
-            unit: s
-          - metadata:
-              - key: prometheus.type
-                value:
-                  stringValue: counter
-            name: envoy_listener_downstream_cx_total
-            sum:
-              aggregationTemporality: 2
-              dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: envoy_listener_address
-                      value:
-                        stringValue: 0.0.0.0_10000
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "1000000"
-              isMonotonic: true
-          - gauge:
-              dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: envoy_cluster_name
-                      value:
-                        stringValue: service_envoyproxy_io
-                  timeUnixNano: "1000000"
-            metadata:
-              - key: prometheus.type
-                value:
-                  stringValue: gauge
             name: envoy_cluster_upstream_rq_pending_active
-          - gauge:
-              dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: envoy_listener_address
-                      value:
-                        stringValue: 0.0.0.0_10000
-                  timeUnixNano: "1000000"
-            metadata:
-              - key: prometheus.type
-                value:
-                  stringValue: gauge
-            name: envoy_listener_downstream_cx_active
-          - metadata:
-              - key: prometheus.type
-                value:
-                  stringValue: counter
-            name: envoy_listener_downstream_cx_transport_socket_connect_timeout
-            sum:
+          - histogram:
               aggregationTemporality: 2
               dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: envoy_listener_address
-                      value:
-                        stringValue: 0.0.0.0_10000
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "1000000"
-              isMonotonic: true
-          - gauge:
-              dataPoints:
-                - asDouble: 0
-                  attributes:
+                - attributes:
                     - key: envoy_cluster_name
                       value:
                         stringValue: service_envoyproxy_io
-                  timeUnixNano: "1000000"
+                  bucketCounts:
+                    - "0"
+                    - "0"
+                    - "0"
+                    - "0"
+                    - "0"
+                    - "0"
+                    - "1"
+                    - "0"
+                    - "0"
+                    - "0"
+                    - "0"
+                    - "0"
+                    - "0"
+                    - "0"
+                    - "0"
+                    - "0"
+                    - "0"
+                    - "0"
+                    - "0"
+                    - "0"
+                  count: "1"
+                  explicitBounds:
+                    - 0.5
+                    - 1
+                    - 5
+                    - 10
+                    - 25
+                    - 50
+                    - 100
+                    - 250
+                    - 500
+                    - 1000
+                    - 2500
+                    - 5000
+                    - 10000
+                    - 30000
+                    - 60000
+                    - 300000
+                    - 600000
+                    - 1.8e+06
+                    - 3.6e+06
+                  startTimeUnixNano: "1000000"
+                  sum: 60.5
+                  timeUnixNano: "2000000"
             metadata:
               - key: prometheus.type
                 value:
-                  stringValue: gauge
-            name: envoy_cluster_membership_excluded
+                  stringValue: histogram
+            name: envoy_cluster_upstream_cx_connect_ms
           - description: The number of samples remaining after metric relabeling was applied
             gauge:
               dataPoints:
-                - asDouble: 17
+                - asDouble: 61
                   timeUnixNano: "1000000"
             metadata:
               - key: prometheus.type
@@ -288,33 +387,17 @@ resourceMetrics:
               - key: prometheus.type
                 value:
                   stringValue: counter
-            name: envoy_cluster_upstream_rq_timeout
+            name: envoy_cluster_upstream_cx_total
             sum:
               aggregationTemporality: 2
               dataPoints:
-                - asDouble: 0
+                - asDouble: 1
                   attributes:
                     - key: envoy_cluster_name
                       value:
                         stringValue: service_envoyproxy_io
                   startTimeUnixNano: "1000000"
-                  timeUnixNano: "1000000"
-              isMonotonic: true
-          - metadata:
-              - key: prometheus.type
-                value:
-                  stringValue: counter
-            name: envoy_cluster_upstream_rq_total
-            sum:
-              aggregationTemporality: 2
-              dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: envoy_cluster_name
-                      value:
-                        stringValue: service_envoyproxy_io
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
               isMonotonic: true
           - metadata:
               - key: prometheus.type
@@ -330,8 +413,45 @@ resourceMetrics:
                       value:
                         stringValue: 0.0.0.0_10000
                   startTimeUnixNano: "1000000"
-                  timeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
               isMonotonic: true
+          - metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: counter
+            name: envoy_listener_downstream_cx_overload_reject
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: envoy_listener_address
+                      value:
+                        stringValue: 0.0.0.0_10000
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+              isMonotonic: true
+          - description: The scraping was successful
+            gauge:
+              dataPoints:
+                - asDouble: 1
+                  timeUnixNano: "1000000"
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: gauge
+            name: up
+          - description: Duration of the scrape
+            gauge:
+              dataPoints:
+                - asDouble: 0.005251709
+                  timeUnixNano: "1000000"
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: gauge
+            name: scrape_duration_seconds
+            unit: s
         scope:
           name: github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver
-          version: v0.116.0-9-g469980bb
+          version: latest

@@ -5,7 +5,6 @@ import (
 	"crypto/x509"
 	"fmt"
 	"os"
-	"runtime"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -58,10 +57,6 @@ func TLSConfig(tlsConfig *tls.Config, caCertPath string, clientCertPath string, 
 
 // CertPool returns the system cert pool for non-Windows platforms
 func CertPool() (*x509.CertPool, error) {
-	if runtime.GOOS == "windows" {
-		return x509.NewCertPool(), nil
-	}
-
 	certs, err := x509.SystemCertPool()
 	if err != nil {
 		return nil, fmt.Errorf("Could not load system x509 cert pool: %w", err)

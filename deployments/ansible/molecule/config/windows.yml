@@ -13,7 +13,7 @@ platforms:
     box_version: ${MOLECULE_VAGRANT_BOX_VERSION:-2023.03.13}
     box_url: ${MOLECULE_VAGRANT_BOX_URL}
     cpus: 2
-    memory: 8192
+    memory: 16384
     provider_options:
       gui: false
       linked_clone: true
@@ -33,7 +33,7 @@ platforms:
     box_version: ${MOLECULE_VAGRANT_BOX_VERSION:-1809.0.2407}
     box_url: ${MOLECULE_VAGRANT_BOX_URL}
     cpus: 2
-    memory: 8192
+    memory: 16384
     provider_options:
       gui: false
       linked_clone: true

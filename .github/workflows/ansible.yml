@@ -88,7 +88,7 @@ jobs:
             urllib3<2
 
       - name: Set up Python 3.
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v5.5.0
         with:
           python-version: '3.11'
           cache: 'pip'

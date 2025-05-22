@@ -65,7 +65,7 @@ jobs:
           - ansible~=10.7.0
         distro:
           - amazonlinux2023
-          - centos9
+          - centos8
           - debian11
           - debian12
           - ubuntu2004

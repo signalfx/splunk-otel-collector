@@ -96,6 +96,7 @@ jobs:
 
       - name: Install test dependencies.
         run: |
+          python -m pip install --upgrade setuptools
           # workaround for https://github.com/yaml/pyyaml/issues/724
           pip3 install 'wheel==0.40.0'
           pip3 install 'Cython<3.0' 'PyYaml~=5.0' --no-build-isolation

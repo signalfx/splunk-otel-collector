@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 💡 Enhancements 💡
+
+- (Splunk) `deployments/nomad`: Add official support for `v1.9.7` ([#6248](https://github.com/signalfx/splunk-otel-collector/pull/6248))
+
 ### 🧰 Bug fixes 🧰
 
 - (Splunk) `receiver/smartagent`: Use the system certificate pool as the default pool on Windows, keeping behavior of monitors consistent with other OSes. ([#6240](https://github.com/signalfx/splunk-otel-collector/pull/6240))

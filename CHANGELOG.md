@@ -14,18 +14,12 @@ and the [opentelemetry-collector-contrib v0.126.0](https://github.com/open-telem
   - `configauth.Authentication` use `configauth.Config` instead
   - `extensionauthtest.NewErrorClient` use `extensionauthtest.NewErr` instead
 
-- (Contrib) `pkg`: Remove the fields from category AzureCdnAccessLog from the body log record and place them as log record attributes. ([#39811](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39811))
 - (Contrib) `azuremonitorreceiver`: Renamed the `auth` field to `credentials` in the azuremonitorreceiver configuration. ([#39738](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39738))
-- (Contrib) `pkg/datadog`: Switch feature gate datadog.EnableOperationAndResourceNameV2 to beta. This gate affects exporter/datadog and connector/datadog. It modifies the logic for computing operation names from OTLP spans to produce shorter, more readable names and improve alignment with OpenTelemetry specifications. ([#39895](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39895))
-  Please see the migration guide for more details. https://docs.datadoghq.com/opentelemetry/migrate/migrate_operation_names/?tab=opentelemetrycollector
-- (Contrib) `opampsupervisor`: Remnove `agent.health_check_port`. ([#39908](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39908))
-  The opampsupervisor no longer starts the collector with a default health check extension.
 - (Contrib) `googlecloudpubsubreceiver`: Add `ignore_encoding_error` configuration to ignore decoding failures from the configured encoder ([#38164](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/38164))
   Introduce a setting to ignore errors when the configured encoder. It's advised to set this to `true` when using
   a custom encoder, and use the new `receiver.googlecloudpubsub.encoding_error` metric to monitor the number of errors.
   Ignoring the error will cause the receiver to drop the message.
 
-- (Contrib) `coralogixexporter`: Remove deprecated batcher config for coralogixexporter, use sending_queue::batch ([#39960](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39960))
 - (Contrib) `sqlserverreceiver`: Update event properties ([#39868](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39868))
   This change only applies to top query events and query sample events:
   * Update event name of top query event from `top query` to `db.server.top_query`
@@ -48,14 +42,6 @@ and the [opentelemetry-collector-contrib v0.126.0](https://github.com/open-telem
 
 - (Contrib) `processor/tailsampling`: The invert decisions (InvertSampled and InvertNotSampled) have been deprecated, please make use of drop policy to explicitly not sample select traces. ([#39833](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39833))
 
-### 🚀 New components 🚀
-
-- (Contrib) `golden`: Add a new CLI, golden, to run comparison of expected payloads over OTLP. ([#39662](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39662))
-  You can run golden with `--otlp-endpoint localhost:4317 --expected expected.yaml --write-expected --timeout 1m`
-
-- (Contrib) `confmap/googlesecretmanagerprovider`: Initial implementation of secrets manager provider. Allows fetch secrets from Google Secrets Manager ([#39665](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39665))
-- (Contrib) `googlecloudlogentryencodingextension`: Update stability to alpha. ([#37531](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37531))
-
 ### 💡 Enhancements 💡
 
 - (Splunk) `deployments/nomad`: Add official support for `v1.9.7` ([#6248](https://github.com/signalfx/splunk-otel-collector/pull/6248))
@@ -74,20 +60,12 @@ and the [opentelemetry-collector-contrib v0.126.0](https://github.com/open-telem
 - (Core) `tls`: Add trusted platform module (TPM) support to TLS authentication. ([#12801](https://github.com/open-telemetry/opentelemetry-collector/pull/12801))
   Now the TLS allows the use of TPM for loading private keys (e.g. in TSS2 format).
 
-- (Contrib) `azuremonitorexxporter`: support logging exceptions for azuremonitor exporter ([#38432](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/38432))
 - (Contrib) `fileconsumer`: Support "`compression:auto`" which automatically detects file compression type and ingests data. Currently, only gzip compressed files are auto detected. This allows for mix of compressed and uncompressed files to be ingested with the same filelogreceiver. ([#37772](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37772))
 - (Contrib) `kafkaexporter`: Add compression level in kafka producer. ([#39772](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39772))
-- (Contrib) `processor/metricstarttime`: Upgrade the stability to `Alpha` ([#39857](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39857))
 - (Contrib) `splunkenterprisereceiver`: adds `splunk.indexer.rollingrestart.status` metric ([#39023](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39023))
 - (Contrib) `carbonreceiver`: Support unnamed groups in carbon receiver regex parser ([#39137](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39137))
 - (Contrib) `splunkenterprisereceiver`: Added a new `splunk.search.initiation`, `splunk.search.duration`, `splunk.search.status`, and `splunk.search.success` metrics. ([#39566](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39566))
-- (Contrib) `googlecloudexporter`: Updated the exporter.googlecloud.CustomMonitoredResources featuregate to support user defined mapping from OTel resources to Monitored Resources for logging ([#40001](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40001))
-- (Contrib) `dockerstatsreceiver`: Returns Docker client options, using the DOCKER_HOST environment variable if no endpoint is configured. ([#35779](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35779))
-  - Previously, the receiver required explicit configuration of the endpoint.
-  - This change allows automatic detection of DOCKER_HOST, improving flexibility in different environments.
-- (Contrib) `elasticsearchexporter`: Report Elasticsearch request success / failure via componentstatus ([#39562](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39562))
 - (Contrib) `eventlogreceiver`: add raw XML query filtering option ([#38517](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/38517))
-- (Contrib) `faroreceiver`: Completes the implementation of the Faro receiver. ([#19180](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/19180))
 - (Contrib) `mongodbatlasreceiver`: Add support for setting custom base URL for the MongoDB Atlas API ([#39345](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39345))
 - (Contrib) `postgresqlreceiver`: Reduce component footprint by removing the loading of unnecessary SQL drivers ([#39918](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39918))
   Custom builds that are using the postgresql receiver and no other SQL related receivers
@@ -98,33 +76,16 @@ and the [opentelemetry-collector-contrib v0.126.0](https://github.com/open-telem
   Add two new fields to the settings: `histogram.dimensions` and `calls_dimensions`.
   Use them to add independent dimensions to the duration and calls metrics.
 
-- (Contrib) `cmd/golden`: Add a docker image for golden ([#39662](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39662))
-- (Contrib) `confmap/googlesecretmanager`: Mark the Google Secret Manager provider as alpha stability. ([#39665](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39665))
-- (Contrib) `confmap/googlesecretmanager`: Update scheme to use googlesecretsmanager instead of googlesecretmanagerprovider. ([#39971](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39971))
 - (Contrib) `pkg/ottl`: Add support for HasPrefix and HasSuffix functions ([#39825](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39825))
-- (Contrib) `datadogexporter`: Enable instrumentation_scope_metadata_as_tags by default in datadogexporter. Scope attributes are now added as tags to metrics. ([#39767](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39767))
-  If you have too many unique values for instrumentation scope attributes, this may cause cardinality issues.
-  If this is a concern, you can disable this by setting `datadog.metrics.instrumentation_scope_metadata_as_tags` to `false`.
-
-- (Contrib) `prometheusremotewriteexporter`: Add `exporter.prometheusremotewritexporter.enableSendingRW2` feature gate and configuration to the exporter to send Prometheus remote write 2.0 version. ([#33661](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/33661))
-  WARNING! PRW 2.0 support for the exporter is still under development and not ready for usage.
 - (Contrib) `k8sobjectsreceiver`: k8sobject receiver support leader election ([#39054](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39054))
 - (Contrib) `receiver/k8scluster`: Add node name to pod metadata ([#37454](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37454))
 - (Contrib) `receiver/hostmetricsreceiver`: Migrated `hostmetricsreceiver` to use `pkg/winperfcounters` when retrieving Windows performance counters. ([#38858](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/38858))
-- (Contrib) `netflowreceiver`: Add `send_raw` option to send logs as a raw string in the log body instead of parsed into attributes. ([#38920](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/38920))
-- (Contrib) `oidcauthextension`: Add ignore_audience config option for ignoring oidc audience ([#36568](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/36568))
-  go-oidc SkipClientIDCheck is set based on config ignore_audience
-- (Contrib) `opampsupervisor`: Update supervisor to forward the agent's ComponentHealth message to the server whenever it is received. ([#39890](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39890))
 - (Contrib) `pkg/ottl`: Add the OTTL function ProfileID() ([#39587](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39587))
 - (Contrib) `pkg/ottl`: OTTL is now officially considered Beta stability ([#39910](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39910))
 - (Contrib) `postgresqlreceiver`: we introduced the top query collection to postgresql receiver. this will collect the queries from `pg_stat_statements` and report the related metrics. this will help the end user to identify which queries are most executed, and resources most used. ([#39573](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39573))
 - (Contrib) `processor/redaction`: Apply redaction to log.body ([#37239](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37239))
-- (Contrib) `metricstarttimeprocessor`: Implementation of the subtractinitial strategy ([#38379](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/38379))
-- (Contrib) `awsfirehosereceiver`: support all possible quantile values of CloudWatch metrics in addition to quantile 0 (min) and 1 (max) ([#39687](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39687))
 - (Contrib) `processor/tailsampling`: New policy type to explicitly drop traces regardless of other policy decisions. ([#39668](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39668))
-- (Contrib) `stefexporter`: Implement async exporting ([#39958](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39958))
 - (Contrib) `processor/transform`: The transformprocessor is now officially considered Beta stability ([#39928](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39928))
-- (Contrib) `receiver/ntp`: Move ntpreceiver to beta stability ([#39897](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39897))
 
 ### 🧰 Bug fixes 🧰
 
@@ -153,33 +114,15 @@ If the feature-gate "confighttp.framedSnappy" is enabled, you'll see new behavio
   instead of "framed". Client compression type "x-snappy-framed" will now compress to the "framed" variant of snappy.
 - Servers will accept both "snappy" and "x-snappy-framed" as valid content-encodings.
 
-- (Core) `tlsconfig`: Disable TPM tests on MacOS/Darwin ([#12964](https://github.com/open-telemetry/opentelemetry-collector/pull/12964))
-
-- (Contrib) `pkg`: Fix empty resource attributes in the azure logs translator ([#39571](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39571))
-- (Contrib) `datadogexporter`: Fixes a memory leak in the Datadog exporter caused by an uninitialized logger. ([#39959](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39959))
-- (Contrib) `datadogreceiver`: Support 128 bits TraceIDs coming from Datadog ([#36926](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/36926))
-  This fix is released behind a featuregate so as to not be a breaking change for users. To enable it, enable
-  `receiver.datadogreceiver.Enable128BitTraceID`. The feature uses an LRU cache that will keep the last 100 trace ids by
-  default. This can be configured via `receivers.datadog.trace_id_cache_size`.
-
 - (Contrib) `kafkaexporter`: Make Sarama's ConfigurationError as permanent to prevent retries ([#38604](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/38604))
-- (Contrib) `clickhouseexporter`: clickhouseexporter doesn't set the database name in the dsn of the query that creates the database ([#38829](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/38829))
 - (Contrib) `kafkaexporter`: fix the default topic configuration, and default message partitioning (#39810, #39816)
 - (Contrib) `kafkareceiver`: Fix support for built-in text encodings with hyphens in the encoding name ([#39793](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39793))
 - (Contrib) `tailsamplingprocessor`: Fix the misleading decision timer latency metric ([#38502](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/38502))
 - (Contrib) `pkg/stanza/fileconsumer`: Mute new reader log when the noStateTracker is used ([#39855](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39855))
-- (Contrib) `cmd/opampsupervisor`: Fix slice merging when using local configuration files ([#39947](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39947))
 - (Contrib) `prometheusreceiver`: Add 'fallback_scrape_protocol' to entries obtained through Target Allocator, unless already defined. ([#39672](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39672))
   This applies the same configuration change that is already applied on static configuration.
 - (Contrib) `prometheusreceiver`: Convert ms to s when setting start time on the metric ([#39912](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39912))
-- (Contrib) `githubreceiver`: fix queue span lengths caused by GitHub event timestamp bug ([#39824](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39824))
-  GitHub events from skipped jobs sometimes have the createdAt timestamp to be
-  AFTER the startedAt timestamp. This causes the created span to having a time
-  of some crazy long time, while the duration attribute is negative. This change
-  accounts for that inconsistent behavior from GitHub and adds the corresponding
-  tests.
 
-- (Contrib) `signaltometricsconnector`: Fix same metric name, unit, and type with different description ignoring description ([#39736](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39736))
 - (Contrib) `receiver/sqlserver`: Properly parse numbers stored in scientific notation to integers ([#39124](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39124))
 
 ## v0.125.0

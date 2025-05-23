@@ -88,7 +88,7 @@ jobs:
             urllib3<2
 
       - name: Set up Python 3.
-        uses: actions/setup-python@v5.5.0
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
           cache: 'pip'
@@ -140,25 +140,9 @@ jobs:
           sudo apt update && sudo apt install -y virtualbox
           wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
           echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
-          sudo apt update && sudo apt install -y vagrant=2.4.3-1
+          sudo apt update && sudo apt install -y vagrant
 
       - uses: DamianReeves/write-file-action@v1.3
-        if: ${{ contains(matrix.ansible, '8.7.0') }}
-        with:
-          path: "${{ github.workspace }}/requirements.txt"
-          contents: |
-            ${{ matrix.ansible }}
-            ansible-compat==4.1.11
-            ansible-core==2.15.13
-            ansible-lint==6.22.2
-            molecule==6.0.3
-            molecule-plugins[vagrant]==23.5.0
-            pywinrm==0.4.3
-            yamllint==1.37.0
-            cryptography==44.0.2
-
-      - uses: DamianReeves/write-file-action@v1.3
-        if: ${{ contains(matrix.ansible, '9.2.0') }}
         with:
           path: "${{ github.workspace }}/requirements.txt"
           contents: |

@@ -1,12 +1,9 @@
 resourceMetrics:
   - resource:
       attributes:
-        - key: http.scheme
+        - key: url.scheme
           value:
             stringValue: http
-        - key: net.host.port
-          value:
-            stringValue: "18001"
         - key: service.instance.id
           value:
             stringValue: localhost:18001

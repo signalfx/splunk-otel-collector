@@ -102,8 +102,6 @@ func TestDockerObserver(t *testing.T) {
 		}
 		err := pmetrictest.CompareMetrics(expected, tc.OTLPReceiverSink.AllMetrics()[len(tc.OTLPReceiverSink.AllMetrics())-1],
 			pmetrictest.IgnoreResourceAttributeValue("service.instance.id"),
-			pmetrictest.IgnoreResourceAttributeValue("net.host.port"),
-			pmetrictest.IgnoreResourceAttributeValue("net.host.name"),
 			pmetrictest.IgnoreResourceAttributeValue("server.address"),
 			pmetrictest.IgnoreResourceAttributeValue("container.name"),
 			pmetrictest.IgnoreResourceAttributeValue("server.port"),

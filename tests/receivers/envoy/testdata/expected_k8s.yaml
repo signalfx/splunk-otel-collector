@@ -4,7 +4,7 @@ resourceMetrics:
         - key: discovery.endpoint.id
           value:
             stringValue: k8s_observer/aadd3afd-f140-4320-8259-5b25885cbb0a/admin(9901)
-        - key: http.scheme
+        - key: url.scheme
           value:
             stringValue: http
         - key: k8s.namespace.name

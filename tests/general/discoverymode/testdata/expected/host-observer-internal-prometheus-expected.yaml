@@ -1,7 +1,7 @@
 resourceMetrics:
   - resource:
       attributes:
-        - key: http.scheme
+        - key: url.scheme
           value:
             stringValue: http
         - key: label_one

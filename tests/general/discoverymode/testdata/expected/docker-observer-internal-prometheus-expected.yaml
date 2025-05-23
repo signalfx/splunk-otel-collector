@@ -7,15 +7,9 @@ resourceMetrics:
         - key: container.name
           value:
             stringValue: nervous_brahmagupta
-        - key: http.scheme
+        - key: url.scheme
           value:
             stringValue: http
-        - key: net.host.name
-          value:
-            stringValue: 172.17.0.3
-        - key: net.host.port
-          value:
-            stringValue: "9090"
         - key: server.address
           value:
             stringValue: 172.17.0.3

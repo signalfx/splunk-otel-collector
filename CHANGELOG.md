@@ -9,11 +9,6 @@ and the [opentelemetry-collector-contrib v0.126.0](https://github.com/open-telem
 
 ### 🛑 Breaking changes 🛑
 
-- (Core) `configauth`: Removes deprecated `configauth.Authentication` and `extensionauthtest.NewErrorClient` ([#12992](https://github.com/open-telemetry/opentelemetry-collector/pull/12992))
-  The following have been removed:
-  - `configauth.Authentication` use `configauth.Config` instead
-  - `extensionauthtest.NewErrorClient` use `extensionauthtest.NewErr` instead
-
 - (Contrib) `azuremonitorreceiver`: Renamed the `auth` field to `credentials` in the azuremonitorreceiver configuration. ([#39738](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39738))
 - (Contrib) `googlecloudpubsubreceiver`: Add `ignore_encoding_error` configuration to ignore decoding failures from the configured encoder ([#38164](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/38164))
   Introduce a setting to ignore errors when the configured encoder. It's advised to set this to `true` when using
@@ -46,7 +41,6 @@ and the [opentelemetry-collector-contrib v0.126.0](https://github.com/open-telem
 
 - (Splunk) `deployments/nomad`: Add official support for `v1.9.7` ([#6248](https://github.com/signalfx/splunk-otel-collector/pull/6248))
 
-- (Core) `service`: Replace `go.opentelemetry.io/collector/semconv` usage with `go.opentelemetry.io/otel/semconv` ([#12991](https://github.com/open-telemetry/opentelemetry-collector/pull/12991))
 - (Core) `confmap`: Update the behavior of the confmap.enableMergeAppendOption feature gate to merge only component lists. ([#12926](https://github.com/open-telemetry/opentelemetry-collector/pull/12926))
 - (Core) `service`: Add item count metrics defined in Pipeline Component Telemetry RFC ([#12812](https://github.com/open-telemetry/opentelemetry-collector/pull/12812))
   See [Pipeline Component Telemetry RFC](https://github.com/open-telemetry/opentelemetry-collector/blob/main/docs/rfcs/component-universal-telemetry.md) for more details:
@@ -65,7 +59,7 @@ and the [opentelemetry-collector-contrib v0.126.0](https://github.com/open-telem
 - (Contrib) `splunkenterprisereceiver`: adds `splunk.indexer.rollingrestart.status` metric ([#39023](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39023))
 - (Contrib) `carbonreceiver`: Support unnamed groups in carbon receiver regex parser ([#39137](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39137))
 - (Contrib) `splunkenterprisereceiver`: Added a new `splunk.search.initiation`, `splunk.search.duration`, `splunk.search.status`, and `splunk.search.success` metrics. ([#39566](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39566))
-- (Contrib) `eventlogreceiver`: add raw XML query filtering option ([#38517](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/38517))
+- (Contrib) `eventlogreceiver`: add raw XML query filtering option ([#39055](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39055))
 - (Contrib) `mongodbatlasreceiver`: Add support for setting custom base URL for the MongoDB Atlas API ([#39345](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39345))
 - (Contrib) `postgresqlreceiver`: Reduce component footprint by removing the loading of unnecessary SQL drivers ([#39918](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39918))
   Custom builds that are using the postgresql receiver and no other SQL related receivers
@@ -97,9 +91,7 @@ and the [opentelemetry-collector-contrib v0.126.0](https://github.com/open-telem
 - (Core) `confmap`: Use reflect.DeepEqual to avoid panic when confmap.enableMergeAppendOption feature gate is enabled. ([#12932](https://github.com/open-telemetry/opentelemetry-collector/pull/12932))
 - (Core) `internal telemetry`: Add resource attributes from telemetry.resource to the logger ([#12582](https://github.com/open-telemetry/opentelemetry-collector/pull/12582))
   Resource attributes from telemetry.resource were not added to the internal
-  console logs.
-
-Now, they are added to the logger as part of the "resource" field.
+  console logs. Now, they are added to the logger as part of the "resource" field.
 
 - (Core) `confighttp and configcompression`: Fix handling of `snappy` content-encoding in a backwards-compatible way ([#10584](https://github.com/open-telemetry/opentelemetry-collector/pull/10584), [#12825](https://github.com/open-telemetry/opentelemetry-collector/pull/12825))
   The collector used the Snappy compression type of "framed" to handle the HTTP

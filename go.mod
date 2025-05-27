@@ -1,6 +1,6 @@
 module github.com/signalfx/splunk-otel-collector
 
-go 1.23.8
+go 1.24.0
 
 require (
 	github.com/alecthomas/participle/v2 v2.1.4
@@ -10,7 +10,7 @@ require (
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/go-zookeeper/zk v1.0.4
 	github.com/gogo/protobuf v1.3.2
-	github.com/hashicorp/vault v1.19.3
+	github.com/hashicorp/vault v1.19.4
 	github.com/hashicorp/vault-plugin-auth-gcp v0.20.2
 	github.com/hashicorp/vault/api v1.16.0
 	github.com/knadh/koanf v1.5.0

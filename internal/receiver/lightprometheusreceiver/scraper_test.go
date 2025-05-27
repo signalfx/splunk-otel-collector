@@ -30,7 +30,7 @@ import (
 	"go.opentelemetry.io/collector/confmap/xconfmap"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/receiver/receivertest"
-	conventions "go.opentelemetry.io/collector/semconv/v1.6.1"
+	conventions "go.opentelemetry.io/collector/semconv/v1.25.0"
 )
 
 func TestScraper(t *testing.T) {
@@ -59,6 +59,24 @@ func TestScraper(t *testing.T) {
 				cfg.ResourceAttributes.URLScheme.Enabled = true
 				cfg.ResourceAttributes.ServerPort.Enabled = true
 				cfg.ResourceAttributes.ServerAddress.Enabled = true
+				return cfg
+			}(),
+			expectedResourceAttributes: map[string]any{
+				conventions.AttributeServiceName:       "",
+				conventions.AttributeServiceInstanceID: u.Host,
+				conventions.AttributeServerAddress:     u.Host,
+				conventions.AttributeServerPort:        u.Port(),
+				conventions.AttributeURLScheme:         "http",
+			},
+		},
+		{
+			name: "deprecated_resource_attributes",
+			cfg: func() *Config {
+				cfg := createDefaultConfig().(*Config)
+				cfg.ResourceAttributes.ServiceName.Enabled = true
+				cfg.ResourceAttributes.HTTPScheme.Enabled = true
+				cfg.ResourceAttributes.NetHostPort.Enabled = true
+				cfg.ResourceAttributes.NetHostName.Enabled = true
 				return cfg
 			}(),
 			expectedResourceAttributes: map[string]any{

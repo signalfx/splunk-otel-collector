@@ -28,17 +28,22 @@ func createDefaultConfig() component.Config {
 	// set the default collection interval to 30 seconds which is half of the
 	// lowest job frequency of 1 minute
 	scs.CollectionInterval = time.Second * 30
+
 	return &Config{
 		ControllerConfig: scs,
 		ClientConfig:     confighttp.NewDefaultClientConfig(),
 		ResourceAttributes: ResourceAttributesConfig{
 			ServiceInstanceID: ResourceAttributeConfig{Enabled: true},
 			ServiceName:       ResourceAttributeConfig{Enabled: true},
+			NetHostName:       ResourceAttributeConfig{Enabled: false},
+			NetHostPort:       ResourceAttributeConfig{Enabled: false},
+			HTTPScheme:        ResourceAttributeConfig{Enabled: false},
 			ServerAddress:     ResourceAttributeConfig{Enabled: false},
 			ServerPort:        ResourceAttributeConfig{Enabled: false},
 			URLScheme:         ResourceAttributeConfig{Enabled: false},
 		},
 	}
+
 }
 
 // ResourceAttributeConfig provides configuration for a resource attribute.
@@ -53,6 +58,9 @@ type ResourceAttributesConfig struct {
 	ServerAddress     ResourceAttributeConfig `mapstructure:"server.address"`
 	ServerPort        ResourceAttributeConfig `mapstructure:"server.port"`
 	URLScheme         ResourceAttributeConfig `mapstructure:"url.scheme"`
+	NetHostName       ResourceAttributeConfig `mapstructure:"net.host.name"`
+	NetHostPort       ResourceAttributeConfig `mapstructure:"net.host.port"`
+	HTTPScheme        ResourceAttributeConfig `mapstructure:"http.scheme"`
 }
 
 type Config struct {

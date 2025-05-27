@@ -2,13 +2,14 @@
 
 ## Unreleased
 
-### 🛑 Breaking changes 🛑
+### 🚩 Deprecations 🚩
 
-- (Splunk) `receiver/lightprometheus`: Change the names of configurable `resource_attributes` to match semantic conventions. ([#6257](https://github.com/signalfx/splunk-otel-collector/pull/6257))
-  The following resource attributes have been renamed:
+- (Splunk) `receiver/lightprometheus`: The following configurable `resource_attributes` are being renamed to match semantic conventions. ([#6257](https://github.com/signalfx/splunk-otel-collector/pull/6257))
   - `net.host.name` -> `server.address`
   - `net.host.port` -> `server.port`
   - `http.scheme`   -> `url.scheme`
+
+  The deprecated resource attributes will be removed in a future release.
 
 ### 💡 Enhancements 💡
 

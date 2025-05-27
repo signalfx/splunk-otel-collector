@@ -9,7 +9,7 @@
   - `net.host.port` -> `server.port`
   - `http.scheme`   -> `url.scheme`
 
-  The deprecated resource attributes will be removed in a future release.
+  `net.host.name`, `net.host.port`, and `http.scheme` are now considered to be deprecated and will be removed in a future release.
 
 ### 💡 Enhancements 💡
 

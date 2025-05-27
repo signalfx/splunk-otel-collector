@@ -1,12 +1,9 @@
 resourceMetrics:
   - resource:
       attributes:
-        - key: http.scheme
+        - key: url.scheme
           value:
             stringValue: http
-        - key: net.host.port
-          value:
-            stringValue: "8888"
         - key: server.port
           value:
             stringValue: "8888"

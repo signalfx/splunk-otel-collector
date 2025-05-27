@@ -56,9 +56,9 @@ func TestScraper(t *testing.T) {
 			cfg: func() *Config {
 				cfg := createDefaultConfig().(*Config)
 				cfg.ResourceAttributes.ServiceName.Enabled = true
-				cfg.ResourceAttributes.HTTPScheme.Enabled = true
-				cfg.ResourceAttributes.NetHostPort.Enabled = true
-				cfg.ResourceAttributes.NetHostName.Enabled = true
+				cfg.ResourceAttributes.URLScheme.Enabled = true
+				cfg.ResourceAttributes.ServerPort.Enabled = true
+				cfg.ResourceAttributes.ServerAddress.Enabled = true
 				return cfg
 			}(),
 			expectedResourceAttributes: map[string]any{

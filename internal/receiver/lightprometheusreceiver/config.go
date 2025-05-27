@@ -34,9 +34,9 @@ func createDefaultConfig() component.Config {
 		ResourceAttributes: ResourceAttributesConfig{
 			ServiceInstanceID: ResourceAttributeConfig{Enabled: true},
 			ServiceName:       ResourceAttributeConfig{Enabled: true},
-			NetHostName:       ResourceAttributeConfig{Enabled: false},
-			NetHostPort:       ResourceAttributeConfig{Enabled: false},
-			HTTPScheme:        ResourceAttributeConfig{Enabled: false},
+			ServerAddress:     ResourceAttributeConfig{Enabled: false},
+			ServerPort:        ResourceAttributeConfig{Enabled: false},
+			URLScheme:         ResourceAttributeConfig{Enabled: false},
 		},
 	}
 }
@@ -50,9 +50,9 @@ type ResourceAttributeConfig struct {
 type ResourceAttributesConfig struct {
 	ServiceName       ResourceAttributeConfig `mapstructure:"service.name"`
 	ServiceInstanceID ResourceAttributeConfig `mapstructure:"service.instance.id"`
-	NetHostName       ResourceAttributeConfig `mapstructure:"net.host.name"`
-	NetHostPort       ResourceAttributeConfig `mapstructure:"net.host.port"`
-	HTTPScheme        ResourceAttributeConfig `mapstructure:"http.scheme"`
+	ServerAddress     ResourceAttributeConfig `mapstructure:"server.address"`
+	ServerPort        ResourceAttributeConfig `mapstructure:"server.port"`
+	URLScheme         ResourceAttributeConfig `mapstructure:"url.scheme"`
 }
 
 type Config struct {

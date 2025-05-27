@@ -4,7 +4,7 @@
 
 ### 🛑 Breaking changes 🛑
 
-- (Splunk) `receiver/lightprometheus`: Change the names of configurable `resource_attributes` to match semantic conventions. ([#]())
+- (Splunk) `receiver/lightprometheus`: Change the names of configurable `resource_attributes` to match semantic conventions. ([#6257](https://github.com/signalfx/splunk-otel-collector/pull/6257))
   The following resource attributes have been renamed:
   - `net.host.name` -> `server.address`
   - `net.host.port` -> `server.port`

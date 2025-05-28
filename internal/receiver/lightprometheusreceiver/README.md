@@ -35,11 +35,11 @@ The following settings can be optionally configured:
     - `enabled`: (default: true)
   - `service.instance.id`:
     - `enabled`: (default: true)
-  - `net.host.name`:
+  - `server.address`:
     - `enabled`: (default: false)
-  - `net.host.port`:
+  - `server.port`:
     - `enabled`: (default: false)
-  - `http.scheme`:
+  - `url.scheme`:
     - `enabled`: (default: false)
 - [HTTP Client Configuration options](https://github.com/open-telemetry/opentelemetry-collector/tree/main/config/confighttp#client-configuration)
 

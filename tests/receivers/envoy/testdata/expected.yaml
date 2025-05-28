@@ -10,7 +10,7 @@ resourceMetrics:
         - key: discovery.endpoint.id
           value:
             stringValue: 30c5122db7a66a56ed6dce3b8ec50d8ccf12a8b3a217d92020e3560c4c13c3e4:9901
-        - key: http.scheme
+        - key: url.scheme
           value:
             stringValue: http
         - key: net.host.name

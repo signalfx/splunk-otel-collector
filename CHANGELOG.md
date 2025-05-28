@@ -31,6 +31,13 @@ and the [opentelemetry-collector-contrib v0.126.0](https://github.com/open-telem
 
 ### 🚩 Deprecations 🚩
 
+- (Splunk) `receiver/lightprometheus`: The following configurable `resource_attributes` are being renamed to match semantic conventions. ([#6257](https://github.com/signalfx/splunk-otel-collector/pull/6257))
+  - `net.host.name` -> `server.address`
+  - `net.host.port` -> `server.port`
+  - `http.scheme`   -> `url.scheme`
+
+  `net.host.name`, `net.host.port`, and `http.scheme` are now considered to be deprecated and will be removed in a future release.
+
 - (Contrib) `googlecloudpubsubreceiver`: Add deprecation warning for the build-in encoders ([#39371](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39371))
   The build-in encoders `cloud_logging` and `raw_text` both have encoding extension alternatives and will be removed
   in version v0.132.0 of the collector.

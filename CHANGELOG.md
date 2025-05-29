@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 💡 Enhancements 💡
+
+- (Splunk) `discovery` - Add more metrics that are enabled by default for the SQL Server receiver ([#]())
+
 ## v0.126.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.126.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.126.0)

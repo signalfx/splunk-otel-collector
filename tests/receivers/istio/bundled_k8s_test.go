@@ -177,8 +177,6 @@ func TestIstioEntities(t *testing.T) {
 				"server.address":          podIP,
 				"server.port":             promPort,
 				"service.instance.id":     fmt.Sprintf("%s:%s", podIP, promPort),
-				"service.name":            "istio",
-				"service.type":            "prometheus",
 				"type":                    "pod",
 				"url.scheme":              "http",
 			})

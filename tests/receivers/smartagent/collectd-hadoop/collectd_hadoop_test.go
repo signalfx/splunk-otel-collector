@@ -25,6 +25,7 @@ import (
 
 func TestCollectdHadoopReceiverProvidesAllMetrics(t *testing.T) {
 	tc := testutils.NewTestcase(t)
+
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
 

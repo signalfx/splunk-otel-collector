@@ -15,7 +15,7 @@
 
     - name: Assert specified version of splunk-otel-auto-instrumentation is installed
       assert:
-        that: ansible_facts.packages['splunk-otel-auto-instrumentation'][0].version == '0.50.0'
+        that: ansible_facts.packages['splunk-otel-auto-instrumentation'][0].version == 'latest'
 
     - name: Check for the new config files
       ansible.builtin.stat:
@@ -60,7 +60,7 @@
 
     - name: Assert instrumentation config contains resource attribute
       ansible.builtin.lineinfile:
-        line: resource_attributes=splunk.zc.method=splunk-otel-auto-instrumentation-0.50.0,deployment.environment=test
+        line: resource_attributes=splunk.zc.method=splunk-otel-auto-instrumentation-latest,deployment.environment=test
         dest: /usr/lib/splunk-instrumentation/instrumentation.conf
         state: present
       check_mode: yes

@@ -1327,7 +1327,7 @@ parse_args_and_install() {
         ;;
       --with-fluentd)
         with_fluentd="true"
-        echo "[WARNING] Fluentd support has been deprecated and will be removed in a future release." >&2
+        echo "[WARNING] Fluentd support has been deprecated and will be removed in a future release. Please use native OTel receivers instead (e.g. the filelog receiver)." >&2
         if ! fluentd_supported; then
           echo "[WARNING] Ignoring the --with-fluentd option since fluentd is currently not supported for ${distro}:${distro_version} ${distro_arch}." >&2
         fi

@@ -6,7 +6,7 @@
     splunk_access_token: fake-token
     splunk_realm: fake-realm
     install_splunk_otel_auto_instrumentation: true
-    splunk_otel_auto_instrumentation_version: latest
+    splunk_otel_auto_instrumentation_version: 0.126.0
     splunk_otel_auto_instrumentation_resource_attributes: deployment.environment=test
     splunk_otel_auto_instrumentation_service_name: test
     splunk_otel_auto_instrumentation_generate_service_name: false

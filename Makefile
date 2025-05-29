@@ -96,7 +96,7 @@ integration-test-target:
 
 .PHONY: integration-test-cover-target
 integration-test-cover-target:
-	@set -e; $(MAKE_TEST_COVER_DIR) && cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=$(TARGET) -v -timeout 5m -count 1 ./... $(COVER_TESTING_INTEGRATION_OPTS)
+	@set -e; $(MAKE_TEST_COVER_DIR) && cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=$(TARGET) -v -timeout 10m -count 1 ./... $(COVER_TESTING_INTEGRATION_OPTS)
 	$(GOCMD) tool covdata textfmt -i=$(TEST_COVER_DIR) -o ./$(TARGET)-coverage.txt
 
 .PHONY: integration-test

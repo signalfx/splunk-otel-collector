@@ -1,5 +1,13 @@
 # Changelog
 
+## ansible-v0.32.0
+
+### 💡 Enhancements 💡
+
+- Add support for the `splunk_otel_collector_command_line_args` option to
+  configure the command line arguments for the Splunk OpenTelemetry Collector
+  service.
+
 ## ansible-v0.31.0
 
 ### 🛑 Breaking changes 🛑

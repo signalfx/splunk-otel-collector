@@ -204,7 +204,7 @@ splunk-otel-collector:
   splunk_ingest_url: 'https://fake-ingest.com'
   splunk_api_url: 'https://fake-api.com'
   splunk_hec_token: 'fake-hec-token'
-  collector_version: '0.86.0'
+  collector_version: '0.126.0'
   splunk_service_user: 'test-user'
   splunk_service_group: 'test-user'
   splunk_listen_interface: '0.0.0.0'

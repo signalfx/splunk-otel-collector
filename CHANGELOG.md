@@ -9,6 +9,11 @@
   - A common replacement for Fluentd's functionality is the [filelog receiver](https://help.splunk.com/en/splunk-observability-cloud/manage-data/available-data-sources/supported-integrations-in-splunk-observability-cloud/opentelemetry-receivers/filelog-receiver).
     Many common configuration examples of the `filelog` receiver can be found in the [logs_config_linux.yaml](https://github.com/signalfx/splunk-otel-collector/blob/87bee7ae45b08be8d143a758d0f7004fd92d8f60/cmd/otelcol/config/collector/logs_config_linux.yaml) file.
 
+### 💡 Enhancements 💡
+
+- (Splunk) Add an install property, `COLLECTOR_SVC_ARGS`, to the Windows MSI to
+  configure the command-line arguments used to launch the collector service on Windows.
+
 ## v0.126.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.126.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.126.0)

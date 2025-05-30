@@ -6,5 +6,5 @@ lightprometheus:
         enabled: false
       service.instance.id:
         enabled: false
-      net.host.name:
+      server.address:
         enabled: true

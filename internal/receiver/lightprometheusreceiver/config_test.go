@@ -47,9 +47,9 @@ func TestValidConfig(t *testing.T) {
 		ResourceAttributes: ResourceAttributesConfig{
 			ServiceInstanceID: ResourceAttributeConfig{Enabled: false},
 			ServiceName:       ResourceAttributeConfig{Enabled: false},
-			NetHostName:       ResourceAttributeConfig{Enabled: true},
-			NetHostPort:       ResourceAttributeConfig{Enabled: false},
-			HTTPScheme:        ResourceAttributeConfig{Enabled: false},
+			ServerAddress:     ResourceAttributeConfig{Enabled: true},
+			ServerPort:        ResourceAttributeConfig{Enabled: false},
+			URLScheme:         ResourceAttributeConfig{Enabled: false},
 		},
 	}
 	expectedCfg.ClientConfig.Endpoint = "http://localhost:9090/metrics"

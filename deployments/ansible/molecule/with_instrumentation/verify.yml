@@ -26,9 +26,9 @@
         - /etc/splunk/zeroconfig/dotnet.conf
       register: new_config_files
 
-    - name: Assert the new config files do not exist
+    - name: Assert the new config files exist
       assert:
-        that: not item.stat.exists
+        that: item.stat.exists
       loop: "{{ new_config_files.results }}"
 
     - name: Check for systemd drop-in file

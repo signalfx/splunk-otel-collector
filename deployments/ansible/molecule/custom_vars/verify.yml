@@ -44,6 +44,13 @@
         state: present
       check_mode: yes
 
+    - name: Assert OTELCOL_OPTIONS env var is set per splunk_otel_collector_command_line_args
+      ansible.builtin.lineinfile:
+        line: OTELCOL_OPTIONS=--discovery
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: present
+      check_mode: yes
+
     - name: Assert MY_CUSTOM_VAR1 env var is set
       ansible.builtin.lineinfile:
         line: MY_CUSTOM_VAR1=value1

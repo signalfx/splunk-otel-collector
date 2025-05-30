@@ -41,7 +41,7 @@ SPLUNK_HEC_URL=https://ingest.us0.signalfx.com/v1/log
 # SPLUNK_HEC_URL=https://example.com:8088/services/collector
 
 # Splunk HEC token.
-SPLUNK_HEC_TOKEN=12345
+SPLUNK_HEC_TOKEN=abc123
 
 # Total memory in MIB to allocate to the collector.
 # Automatically configures the memory limit.

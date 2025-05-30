@@ -41,6 +41,8 @@ if os[:family] == 'windows'
   collector_env_vars_strings.sort!
   describe registry_key('HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\splunk-otel-collector') do
     it { should have_property 'Environment' }
+    puts "Value of collector_env_vars_strings: #{collector_env_vars_strings}"
+    puts "Value of #{'Environment'}"
     it { should have_property_value('Environment', :multi_string, collector_env_vars_strings) }
   end
   describe service('fluentdwinsvc') do

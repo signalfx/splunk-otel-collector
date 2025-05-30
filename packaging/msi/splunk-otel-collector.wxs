@@ -23,6 +23,10 @@
          Execute="deferred"
          Impersonate="no" /> 
 
+      <!-- Following name convention for this property to match upstream -->
+      <!-- On upstream it is required and has a default value, here it is optional -->
+      <Property Id="COLLECTOR_SVC_ARGS" Secure="yes" />
+
       <!-- SPLUNK setup control properties -->
       <Property Id="SPLUNK_SETUP_COLLECTOR_MODE" Value="agent" Secure="yes" />
 
@@ -79,6 +83,7 @@
                         Start="auto"
                         Account="LocalSystem"
                         ErrorControl="normal"
+                        Arguments="[COLLECTOR_SVC_ARGS]"
                         Interactive="no" />
                      <ServiceControl
                         Id="StartStopRemoveService"

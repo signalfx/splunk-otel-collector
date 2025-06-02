@@ -3,6 +3,7 @@
   hosts: all
   become: yes
   vars:
+    install_local_artifact: true
     splunk_access_token: fake-token
     splunk_realm: fake-realm
     install_splunk_otel_auto_instrumentation: true

@@ -8,15 +8,15 @@
 
 - name: Install Splunk OpenTelemetry Collector with apt package manager
   ansible.builtin.import_tasks: apt_install_otel_collector.yml
-  when: ansible_os_family == "Debian"
+  when: ansible_os_family == "Debian" and not install_local_artifact
 
 - name: Install Splunk OpenTelemetry Collector with yum package manager
   ansible.builtin.import_tasks: yum_install_otel_collector.yml
-  when: ansible_os_family == "RedHat"
+  when: ansible_os_family == "RedHat" and not install_local_artifact
 
 - name: Install Splunk OpenTelemetry Collector with zypper package manager
   ansible.builtin.import_tasks: zypper_install_otel_collector.yml
-  when: ansible_os_family == "Suse"
+  when: ansible_os_family == "Suse" and not install_local_artifact
 
 - name: Set Splunk Otel Collector service owner
   ansible.builtin.import_tasks: collector_service_owner.yml

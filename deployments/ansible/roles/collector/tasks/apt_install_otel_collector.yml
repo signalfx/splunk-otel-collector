@@ -8,6 +8,7 @@
       - gnupg
     state: present
     update_cache: yes
+  when: not install_local_artifact
 
 - name: Download an apt signing key for Splunk OpenTelemetry Collector
   ansible.builtin.get_url:
@@ -34,7 +35,7 @@
     - "restart td-agent"
   when: not install_local_artifact
 
-- name: Install Splunk OpenTelemetry Collector via local artifact (arm64)
+- name: Install Splunk OpenTelemetry Collector via local DEB artifact
   ansible.builtin.apt:
     deb: /tmp/deb-{{ ansible_facts.ansible_architecture }}-package
   notify:

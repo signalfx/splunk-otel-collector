@@ -6,6 +6,7 @@
     name: "libcap"
     state: present
     update_cache: yes
+  when: not install_local_artifact
 
 - name: Add Splunk OpenTelemetry Collector repo to yum source list
   ansible.builtin.yum_repository:
@@ -15,7 +16,7 @@
     gpgkey: "{{ splunk_repo_base_url }}/otel-collector-rpm/splunk-B3CD4420.pub"
     gpgcheck: yes
     enabled: yes
-  when: not (splunk_skip_repo | bool)
+  when: not (splunk_skip_repo | bool) and not install_local_artifact
 
 - name: Install Splunk OpenTelemetry Collector via yum package manager
   ansible.builtin.yum:
@@ -27,3 +28,12 @@
   notify:
     - "restart splunk-otel-collector"
     - "restart td-agent"
+  when: not install_local_artifact
+
+- name: Install Splunk OpenTelemetry Collector via local RPM artifact
+  ansible.builtin.yum:
+    name: /tmp/rpm-{{ ansible_facts.ansible_architecture }}-package
+  notify:
+    - "restart splunk-otel-collector"
+    - "restart td-agent"
+  when: install_local_artifact

@@ -6,18 +6,19 @@
     name: "libcap-progs"
     state: present
     update_cache: yes
+  when: not install_local_artifact
 
 - name: Import the Splunk GPG key
   ansible.builtin.rpm_key:
     state: present
     key: "{{ splunk_repo_base_url }}/otel-collector-rpm/splunk-B3CD4420.pub"
-  when: not (splunk_skip_repo | bool)
+  when: not (splunk_skip_repo | bool) and not install_local_artifact
 
 - name: Add Splunk OpenTelemetry Collector repo to zypper source list
   ansible.builtin.template:
     src: collector-zypper.repo.j2
     dest: /etc/zypp/repos.d/splunk-otel-collector.repo
-  when: not (splunk_skip_repo | bool)
+  when: not (splunk_skip_repo | bool) and not install_local_artifact
 
 - name: Install Splunk OpenTelemetry Collector via zypper package manager
   community.general.zypper:
@@ -28,3 +29,11 @@
     update_cache: yes
   notify:
     - "restart splunk-otel-collector"
+  when: not install_local_artifact
+
+- name: Install Splunk OpenTelemetry Collector via local RPM artifact
+  community.general.zypper:
+    name: /tmp/rpm-{{ ansible_facts.ansible_architecture }}-package
+  notify:
+    - "restart splunk-otel-collector"
+  when: install_local_artifact

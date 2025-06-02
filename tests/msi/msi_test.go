@@ -53,6 +53,13 @@ func TestMSI(t *testing.T) {
 			},
 		},
 		{
+			name: "default-plus-cli-args",
+			collectorMSIProperties: map[string]string{
+				"SPLUNK_ACCESS_TOKEN": "fakeToken",
+				"COLLECTOR_SVC_ARGS":  "--discovery --set=processors.batch.timeout=10s",
+			},
+		},
+		{
 			name: "gateway",
 			collectorMSIProperties: map[string]string{
 				"SPLUNK_SETUP_COLLECTOR_MODE": "gateway",
@@ -205,10 +212,13 @@ func runMsiTest(t *testing.T, test msiTest, msiInstallerPath string) {
 		return status.State == svc.Running
 	}, 10*time.Second, 500*time.Millisecond, "Failed to start the service")
 
-	assertServiceConfiguration(t, test.collectorMSIProperties)
+	svcConfig, err := service.Config()
+	require.NoError(t, err, "Failed to get service configuration")
+
+	assertServiceConfiguration(t, test.collectorMSIProperties, svcConfig)
 }
 
-func assertServiceConfiguration(t *testing.T, msiProperties map[string]string) {
+func assertServiceConfiguration(t *testing.T, msiProperties map[string]string, svcConfig mgr.Config) {
 	programDataDir := os.Getenv("PROGRAMDATA")
 	require.NotEmpty(t, programDataDir, "PROGRAMDATA environment variable is not set")
 	programFilesDir := os.Getenv("PROGRAMFILES")
@@ -241,8 +251,12 @@ func assertServiceConfiguration(t *testing.T, msiProperties map[string]string) {
 	}
 
 	// Verify the environment variables set for the service
-	svcConfig := getServiceEnvVars(t, "splunk-otel-collector")
-	assert.Equal(t, expectedEnvVars, svcConfig)
+	svcEnvVars := getServiceEnvVars(t, "splunk-otel-collector")
+	assert.Equal(t, expectedEnvVars, svcEnvVars)
+
+	if svcArgs, ok := msiProperties["COLLECTOR_SVC_ARGS"]; ok {
+		assert.Equal(t, expectedServiceCommand(t, svcArgs), svcConfig.BinaryPathName)
+	}
 }
 
 func optionalInstallPropertyOrDefault(msiProperties map[string]string, key, defaultValue string) string {
@@ -281,4 +295,30 @@ func getInstallerPath(t *testing.T) string {
 		msiInstallerPath = "\"" + msiInstallerPath + "\""
 	}
 	return msiInstallerPath
+}
+
+func expectedServiceCommand(t *testing.T, collectorServiceArgs string) string {
+	programFilesDir := os.Getenv("PROGRAMFILES")
+	require.NotEmpty(t, programFilesDir, "PROGRAMFILES environment variable is not set")
+
+	collectorDir := filepath.Join(programFilesDir, "Splunk", "OpenTelemetry Collector")
+	collectorExe := filepath.Join(collectorDir, "otelcol") + ".exe"
+
+	if collectorServiceArgs == "" {
+		return quotedIfRequired(collectorExe)
+	}
+
+	// Remove any quotation added for the msiexec command line
+	collectorServiceArgs = strings.Trim(collectorServiceArgs, "\"")
+	collectorServiceArgs = strings.ReplaceAll(collectorServiceArgs, "\"\"", "\"")
+
+	return quotedIfRequired(collectorExe) + " " + collectorServiceArgs
+}
+
+func quotedIfRequired(s string) string {
+	if strings.Contains(s, "\"") || strings.Contains(s, " ") {
+		s = strings.ReplaceAll(s, "\"", "\"\"")
+		return "\"" + s + "\""
+	}
+	return s
 }

@@ -28,10 +28,6 @@ concurrency:
 permissions:
   contents: write
 
-defaults:
-  run:
-    working-directory: 'deployments/ansible'
-
 env:
   GO_VERSION: 1.23.8
 
@@ -173,6 +169,9 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: 'deployments/ansible'
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4
@@ -192,6 +191,9 @@ jobs:
     name: Linux Test
     needs: [lint, build-package]
     runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: 'deployments/ansible'
     strategy:
       fail-fast: false
       matrix:
@@ -254,6 +256,9 @@ jobs:
     name: Windows Test
     needs: lint
     runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: 'deployments/ansible'
     timeout-minutes: 60
     strategy:
       fail-fast: false
@@ -339,6 +344,9 @@ jobs:
     name: Push Release Tag
     needs: lint
     runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: 'deployments/ansible'
     if: github.ref == 'refs/heads/main' 
     steps:
       - name: Checkout

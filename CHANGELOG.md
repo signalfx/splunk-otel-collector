@@ -12,7 +12,7 @@
 ### 💡 Enhancements 💡
 
 - (Splunk) Add an install property, `COLLECTOR_SVC_ARGS`, to the Windows MSI to
-  configure the command-line arguments used to launch the collector service on Windows.
+  configure the command-line arguments used to launch the collector service on Windows. ([#6268](https://github.com/signalfx/splunk-otel-collector/pull/6268))
 
 ## v0.126.0
 

@@ -13,13 +13,14 @@
   ansible.builtin.get_url:
     url: "{{ splunk_repo_base_url }}/otel-collector-deb/splunk-B3CD4420.gpg"
     dest: /etc/apt/trusted.gpg.d/splunk.gpg
+  when: not install_local_artifact
 
 - name: Add Splunk OpenTelemetry Collector repo to apt source list
   ansible.builtin.apt_repository:
     repo: "deb {{ splunk_repo_base_url }}/otel-collector-deb release main"
     filename: splunk-otel-collector.list
     state: present
-  when: not (splunk_skip_repo | bool)
+  when: not (splunk_skip_repo | bool) and not install_local_artifact
 
 - name: Install Splunk OpenTelemetry Collector via apt package manager
   ansible.builtin.apt:
@@ -31,3 +32,12 @@
   notify:
     - "restart splunk-otel-collector"
     - "restart td-agent"
+  when: not install_local_artifact
+
+- name: Install Splunk OpenTelemetry Collector via local artifact (arm64)
+  ansible.builtin.apt:
+    deb: /tmp/deb-{{ ansible_facts.ansible_architecture }}-package
+  notify:
+    - "restart splunk-otel-collector"
+    - "restart td-agent"
+  when: install_local_artifact

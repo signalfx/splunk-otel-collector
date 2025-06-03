@@ -41,6 +41,7 @@
 - name: Install Splunk OpenTelemetry Collector via local RPM artifact
   community.general.zypper:
     name: "{{ archive_contents.dest }}"
+    disable_gpg_check: true
   notify:
     - "restart splunk-otel-collector"
   when: install_local_artifact

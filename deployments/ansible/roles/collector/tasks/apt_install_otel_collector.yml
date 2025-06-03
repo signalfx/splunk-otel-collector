@@ -6,6 +6,7 @@
     name:
       - apt-transport-https
       - gnupg
+      - xz-utils
     state: present
     update_cache: yes
 

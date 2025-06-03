@@ -61,6 +61,9 @@
   set_fact:
     msi_arguments: "{{ msi_unfiltered_arguments | reject('eq', '') | list }}"
 
+- debug:
+    var: msi_arguments
+
 - name: Install splunk-otel-collector-msi
   when: splunk_collector_msi_is_configurable is defined
   ansible.windows.win_package:

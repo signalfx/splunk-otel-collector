@@ -8,6 +8,9 @@ splunk_realm: us0
 
 splunk_otel_collector_version: latest
 
+# Command-line arguments to pass to the collector service.
+splunk_otel_collector_command_line_args: ""
+
 # Set this variable to /etc/otel/collector/gateway_config.yaml on linux,
 # "Program Files\Splunk\OpenTelemetry Collector\gateway_config.yaml" on Windows
 # in order to deploy splunk-otel-collector in gateway mode.

@@ -121,6 +121,16 @@ $> ansible-playbook playbook.yaml -e start_service=false
   `splunk_otel_collector_proxy_http` or `splunk_otel_collector_proxy_https` is
   defined. (**default:** `localhost,127.0.0.1,::1`)
 
+- `splunk_otel_collector_command_line_args`: Command-line arguments to pass to the
+  Splunk OpenTelemetry Collector. These will be added as arguments to the service
+  command line.
+  (**default:** `""`)
+  
+  Example:
+  ```yaml
+  splunk_otel_collector_command_line_args: "--discovery --set=processors.batch.timeout=10s"
+  ```
+
 - `splunk_memory_total_mib`: Amount of memory in MiB allocated to the Splunk OTel 
   Collector. (**default:** `512`)
 

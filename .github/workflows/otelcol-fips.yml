@@ -134,7 +134,7 @@ jobs:
     needs: [ otelcol-fips ]
     strategy:
       matrix:
-        WIN_VERSION: [ 2019, 2022 ]
+        WIN_VERSION: [ 2022, 2025 ]
       fail-fast: false
     steps:
       - uses: actions/checkout@v4

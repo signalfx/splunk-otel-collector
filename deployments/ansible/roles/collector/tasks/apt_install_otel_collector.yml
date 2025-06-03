@@ -37,7 +37,7 @@
 
 - name: Install Splunk OpenTelemetry Collector via local DEB artifact
   ansible.builtin.apt:
-    deb: /tmp/deb-{{ ansible_architecture }}-package
+    deb: /tmp/deb-{% if ansible_architecture == 'aarch64' %}arm64{% else %}amd64{% endif %}-package
   notify:
     - "restart splunk-otel-collector"
     - "restart td-agent"

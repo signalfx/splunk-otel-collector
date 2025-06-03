@@ -32,7 +32,7 @@
 
 - name: Copy Splunk OpenTelemetry Collector RPM artifact to remote machine
   ansible.builtin.copy:
-    dest: /etc/otel/rpm-{% if ansible_architecture == 'aarch64' %}arm64{% else %}amd64{% endif %}-package
+    dest: /etc/otel
     src: /tmp/rpm-{% if ansible_architecture == 'aarch64' %}arm64{% else %}amd64{% endif %}-package
   when: install_local_artifact
 

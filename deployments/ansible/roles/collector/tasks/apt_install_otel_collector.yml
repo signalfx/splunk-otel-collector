@@ -8,13 +8,11 @@
       - gnupg
     state: present
     update_cache: yes
-  when: not install_local_artifact
 
 - name: Download an apt signing key for Splunk OpenTelemetry Collector
   ansible.builtin.get_url:
     url: "{{ splunk_repo_base_url }}/otel-collector-deb/splunk-B3CD4420.gpg"
     dest: /etc/apt/trusted.gpg.d/splunk.gpg
-  when: not install_local_artifact
 
 - name: Add Splunk OpenTelemetry Collector repo to apt source list
   ansible.builtin.apt_repository:
@@ -35,23 +33,16 @@
     - "restart td-agent"
   when: not install_local_artifact
 
-- name: Set archive name variable for local install
-  ansible.builtin.set_fact:
-    deb_archive_name: "deb-{% if ansible_architecture == 'aarch64' %}arm64{% else %}amd64{% endif %}-package"
-
 - name: Copy Splunk OpenTelemetry Collector DEB artifact to remote machine
   ansible.builtin.copy:
-    src: /tmp/{{ deb_archive_name }}
+    src: /tmp/deb-{% if ansible_architecture == 'aarch64' %}arm64{% else %}amd64{% endif %}-package
     dest: /etc/otel/
-  register: zip_content
+  register: archive_contents
   when: install_local_artifact
-
-- debug:
-    var: zip_content.dest
 
 - name: Install Splunk OpenTelemetry Collector via local DEB artifact
   ansible.builtin.apt:
-    deb: "{{ zip_content.dest }}"
+    deb: "{{ archive_contents.dest }}"
   notify:
     - "restart splunk-otel-collector"
     - "restart td-agent"

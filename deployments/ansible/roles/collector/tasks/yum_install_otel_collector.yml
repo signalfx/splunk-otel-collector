@@ -32,7 +32,7 @@
 
 - name: Install Splunk OpenTelemetry Collector via local RPM artifact
   ansible.builtin.yum:
-    name: /tmp/rpm-{{ otel_collector_arch }}-package
+    name: /tmp/rpm-{{ ansible_architecture }}-package
   notify:
     - "restart splunk-otel-collector"
     - "restart td-agent"

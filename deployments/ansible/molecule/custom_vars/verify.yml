@@ -124,7 +124,7 @@
 
     - name: Look for the test log message in collector service output
       ansible.builtin.shell:
-        cmd: 'journalctl -u splunk-otel-collector | grep "Body: test logs pipeline"'
+        cmd: 'journalctl -u splunk-otel-collector | grep "Body: Str(test logs pipeline)"'
       register: result
       changed_when: false
       until: result.stdout

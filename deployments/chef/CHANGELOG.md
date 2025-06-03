@@ -1,12 +1,9 @@
 # Changelog
 
-## chef-v0.18.0
+## chef-v0.17.0
 
 - Bug fix: Fix bug that caused custom variables to not be set when running on Windows
   with a Splunk OTel Collector version >= `0.98.0`.
-
-## chef-v0.17.0
-
 - Remove the option `with_signalfx_dotnet_auto_instrumentation` used to
 install the deprecated `SignalFx Auto Instrumentation for .NET` on Windows.
 

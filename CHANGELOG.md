@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+### 🚩 Deprecations 🚩
+
+- (Splunk) `Linux installer script`: Fluentd support has been deprecated and will be removed in a future release. ([#6264](https://github.com/signalfx/splunk-otel-collector/pull/6264))
+  - Please use native OTel Collector receivers instead.
+  - A common replacement for Fluentd's functionality is the [filelog receiver](https://help.splunk.com/en/splunk-observability-cloud/manage-data/available-data-sources/supported-integrations-in-splunk-observability-cloud/opentelemetry-receivers/filelog-receiver).
+    Many common configuration examples of the `filelog` receiver can be found in the [logs_config_linux.yaml](https://github.com/signalfx/splunk-otel-collector/blob/87bee7ae45b08be8d143a758d0f7004fd92d8f60/cmd/otelcol/config/collector/logs_config_linux.yaml) file.
+
+### 💡 Enhancements 💡
+
+- (Splunk) Add an install property, `COLLECTOR_SVC_ARGS`, to the Windows MSI to
+  configure the command-line arguments used to launch the collector service on Windows. ([#6268](https://github.com/signalfx/splunk-otel-collector/pull/6268))
+- (Splunk) `discovery` - Add more metrics that are enabled by default for the SQL Server receiver ([#6259](https://github.com/signalfx/splunk-otel-collector/pull/6259))
+
 ## v0.126.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.126.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.126.0)

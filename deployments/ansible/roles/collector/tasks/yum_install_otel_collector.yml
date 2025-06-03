@@ -30,9 +30,15 @@
     - "restart td-agent"
   when: not install_local_artifact
 
+- name: Copy Splunk OpenTelemetry Collector RPM artifact to remote machine
+  ansible.builtin.copy:
+    dest: /etc/otel/rpm-{% if ansible_architecture == 'aarch64' %}arm64{% else %}amd64{% endif %}-package
+    src: /tmp/rpm-{% if ansible_architecture == 'aarch64' %}arm64{% else %}amd64{% endif %}-package
+  when: install_local_artifact
+
 - name: Install Splunk OpenTelemetry Collector via local RPM artifact
   ansible.builtin.yum:
-    name: /tmp/rpm-{% if ansible_architecture == 'aarch64' %}arm64{% else %}amd64{% endif %}-package
+    name: /etc/otel/rpm-{% if ansible_architecture == 'aarch64' %}arm64{% else %}amd64{% endif %}-package
   notify:
     - "restart splunk-otel-collector"
     - "restart td-agent"

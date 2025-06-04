@@ -187,7 +187,9 @@ jobs:
           free -h
 
       - name: Run Molecule tests.
-        run: molecule --debug -v --base-config ./molecule/config/windows.yml test -s ${{ matrix.scenario }} -p ${{ matrix.distro }}
+        run: |
+          mkdir /tmp/log
+          molecule --debug -v --base-config ./molecule/config/windows.yml test -s ${{ matrix.scenario }} -p ${{ matrix.distro }}
         env:
           PY_COLORS: '1'
           ANSIBLE_FORCE_COLOR: '1'
@@ -198,7 +200,7 @@ jobs:
       - name: Uploading log file
         uses: actions/upload-artifact@v4
         with:
-          path: /tmp/otel_win_install_logs.log
+          path: /tmp/log/
 
   push-release-tag:
     name: Push Release Tag

@@ -86,11 +86,12 @@
 - debug:
     var: msi_installed
 
-- name: Fetch log file from SOC MSI install to host
+- name: Fetch log file from SOC MSI install to host (when install failed)
   ansible.builtin.fetch:
     src: "{{ msi_install_log_path }}"
     dest: /tmp/log/
     flat: true
+  when: msi_installed.rc != 0 and splunk_collector_msi_is_configurable is defined
 
 - name: Fail if MSI install failed
   ansible.builtin.fail:

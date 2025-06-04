@@ -159,7 +159,7 @@ jobs:
     needs: [ "binaries-windows_amd64" ]
     strategy:
       matrix:
-        OS: [ windows-2019, windows-2022 ]
+        OS: [ windows-2022, windows-2025 ]
       fail-fast: false
     env:
       PIP_CACHE_DIR: ${{ github.workspace }}/.cache/pip
@@ -181,8 +181,8 @@ jobs:
           $ErrorActionPreference = 'Stop'
           Copy-Item .\bin\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
           Copy-Item .\dist\agent-bundle_windows_amd64.zip .\cmd\otelcol\agent-bundle_windows_amd64.zip
-          if ("${{ matrix.OS }}" -eq "windows-2019") {
-            $base_image = "mcr.microsoft.com/windows/servercore:ltsc2019"
+          if ("${{ matrix.OS }}" -eq "windows-2025") {
+            $base_image = "mcr.microsoft.com/windows/servercore:ltsc2025"
           } else {
             $base_image = "mcr.microsoft.com/windows/servercore:ltsc2022"
           }

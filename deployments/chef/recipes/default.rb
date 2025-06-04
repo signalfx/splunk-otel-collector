@@ -14,7 +14,8 @@ if platform_family?('windows')
 
   # Older MSI versions can't properly setup the collector configuration
   # in this case, we need to use the registry to set the environment variables.
-  unless node['splunk_otel_collector']['collector_msi_is_configurable']
+  # Custom variables also require using the registry, as the MSI doesn't support it.
+  if !node['splunk_otel_collector']['collector_msi_is_configurable'] || !node['splunk_otel_collector']['collector_additional_env_vars'].empty?
     include_recipe 'splunk_otel_collector::collector_win_registry'
   end
 

@@ -196,8 +196,8 @@ jobs:
           MOLECULE_VAGRANT_BOX_URL: /tmp/vagrant.box
           MOLECULE_VAGRANT_BOX_VERSION: " "  # version must not be set when using a local box
 
-      - name: Uploading log file
-        if: success() || failure()
+      - name: Uploading log files
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
           path: /tmp/log/

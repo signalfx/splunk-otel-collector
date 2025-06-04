@@ -187,7 +187,6 @@ jobs:
           free -h
 
       - name: Run Molecule tests.
-        id: moleculeTests
         run: |
           mkdir /tmp/log
           molecule --debug -v --base-config ./molecule/config/windows.yml test -s ${{ matrix.scenario }} -p ${{ matrix.distro }}
@@ -196,19 +195,12 @@ jobs:
           ANSIBLE_FORCE_COLOR: '1'
           MOLECULE_VAGRANT_BOX_URL: /tmp/vagrant.box
           MOLECULE_VAGRANT_BOX_VERSION: " "  # version must not be set when using a local box
-        continue-on-error: true
 
       - name: Uploading log file
+        if: success() || failure()
         uses: actions/upload-artifact@v4
         with:
           path: /tmp/log/
-
-      - name: Check if molecule tests passed
-        if: steps.moleculeTests.outcome != 'success'
-        run: |
-            echo "Molecule tests failed for distro: ${{ matrix.distro }} and scenario: ${{ matrix.scenario }}"
-            echo "Check the logs for more details."
-            exit 1
 
   push-release-tag:
     name: Push Release Tag

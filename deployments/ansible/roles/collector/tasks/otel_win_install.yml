@@ -91,6 +91,7 @@
     src: "{{ msi_install_log_path }}"
     dest: /tmp/log/
     flat: true
+  ignore_errors: true
   when: splunk_collector_msi_is_configurable is defined
 
 - name: Fail if MSI install failed

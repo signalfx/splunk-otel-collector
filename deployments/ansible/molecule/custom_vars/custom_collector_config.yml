@@ -22,18 +22,18 @@ processors:
     limit_mib: ${SPLUNK_MEMORY_LIMIT_MIB}
 
 exporters:
-  logging/debug:
-    loglevel: debug
-  logging/info:
-    loglevel: info
+  debug/detailed:
+    verbosity: detailed
+  debug/normal:
+    verbosity: normal
 
 service:
   pipelines:
     metrics:
       receivers: [otlp, prometheus]
       processors: [memory_limiter]
-      exporters: [logging/info]
+      exporters: [debug/normal]
     logs:
       receivers: [fluentforward, otlp]
       processors: [memory_limiter]
-      exporters: [logging/debug]
+      exporters: [debug/detailed]

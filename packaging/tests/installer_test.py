@@ -265,7 +265,7 @@ def test_installer_custom(distro, arch):
     if distro == "opensuse-12" and arch == "arm64":
         pytest.skip("opensuse-12 arm64 no longer supported")
 
-    collector_version = "0.75.0"
+    collector_version = "0.126.0"
     service_owner = "test-user"
     custom_config = "/etc/my-custom-config.yaml"
 

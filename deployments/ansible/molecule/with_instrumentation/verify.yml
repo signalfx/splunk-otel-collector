@@ -14,7 +14,7 @@
       ansible.builtin.package_facts:
 
     - debug:
-        var: {{ ansible_facts.packages['splunk-otel-auto-instrumentation'][0] }}
+        var: {{ ansible_facts.packages['splunk-otel-auto-instrumentation'] }}
 
     - name: Assert specified version of splunk-otel-auto-instrumentation is installed
       assert:

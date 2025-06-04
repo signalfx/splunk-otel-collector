@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### 💡 Enhancements 💡
+
+- Add support for the `collector_command_line_args` option to
+  configure the command line arguments for the Splunk OpenTelemetry Collector
+  service.
+
 ## puppet-v0.18.0
 
 - Breaking change: The default for the `auto_instrumentation_otlp_endpoint` option has been changed from

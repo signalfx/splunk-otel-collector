@@ -73,8 +73,24 @@
   ansible.windows.win_package:
     path: "{{otel_msi_package.dest}}"
     state: present
-    log_path: /tmp/otel_win_install_logs.log
+    log_path: "{{ otel_msi_package.dest }}/otel_win_install_logs.log"
     arguments: "{{ msi_arguments }}"
+  ignore_errors: true
+  register: msi_installed
+
+- debug:
+    var: msi_installed
+
+- name: Fetch log file from SOC MSI install to host
+  ansible.builtin.fetch:
+    src: "{{ otel_msi_package.dest }}/otel_win_install_logs.log"
+    dest: /tmp/
+    flat: true
+
+- name: Fail if MSI install failed
+  ansible.builtin.fail:
+    msg: "Splunk OpenTelemetry Collector MSI installation failed. Check the log file for details."
+  when: splunk_collector_msi_is_configurable is defined
 
 - name: Install splunk-otel-collector-msi-legacy
   when: splunk_collector_msi_is_configurable is undefined

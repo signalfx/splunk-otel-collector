@@ -247,6 +247,7 @@ jobs:
           - "2022"
         scenario:
           - default
+          - default_install_remote_version
           - custom_vars
           - with_instrumentation
     steps:

@@ -1,5 +1,5 @@
 ---
-- name: Converge scenario with the default configuration
+- name: Converge scenario with the default configuration and remote version
   hosts: all
   become: yes
   vars:

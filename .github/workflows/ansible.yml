@@ -200,7 +200,7 @@ jobs:
         if: success() || failure()
         uses: actions/upload-artifact@v4
         with:
-          path: /tmp/log/
+          path: /tmp/log/*
 
   push-release-tag:
     name: Push Release Tag

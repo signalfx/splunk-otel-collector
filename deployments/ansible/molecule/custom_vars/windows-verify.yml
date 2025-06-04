@@ -65,7 +65,7 @@
     - name: Check custom_config.yml
       ansible.windows.win_stat:
         path: '{{ansible_env.ProgramData}}\Splunk\OpenTelemetry Collector\custom_config.yml'
-      register: custom_collector_config
+      register: custom_collector_config_deprecated
 
     - name: Assert custom_config.yml exists
       assert:

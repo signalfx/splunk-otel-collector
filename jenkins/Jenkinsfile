@@ -1,7 +1,6 @@
 @Library('sym-pipeline@CICD-1772') _
 
-def shortGitHash = ""
-def branch = env.BRANCH_NAME.replaceAll(/[\.-]/, "_")
+def dockerTag
 
 podTemplate(
   cloud: "kubernetes-build-sre-jenkins-agent",
@@ -13,12 +12,14 @@ podTemplate(
 
     stage('Checkout') {
       shortGitHash = gitCheckout()
+      branch = env.BRANCH_NAME.replaceAll(/[\.-]/, "_")
+      dockerTag = "${branch}-${env.BUILD_NUMBER}-${shortGitHash}"
     }
 
     buildGolangApp {
       buildDockerImage = true
       dockerRepository = "us-east4-docker.pkg.dev/sym-prod-mr-tools-01/sre-docker-us-east4"
-      dockerTag = "${branch}-${env.BUILD_NUMBER}-${shortGitHash}"
+      dockerTag = dockerTag
     }
   }
 }

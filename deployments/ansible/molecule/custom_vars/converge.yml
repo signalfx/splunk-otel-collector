@@ -3,7 +3,7 @@
   hosts: all
   become: yes
   vars:
-    install_local_artifact: true
+    local_artifact_testing_enabled: true
     splunk_access_token: fake-token
     splunk_ingest_url: https://fake-splunk-ingest.com
     splunk_api_url: https://fake-splunk-api.com

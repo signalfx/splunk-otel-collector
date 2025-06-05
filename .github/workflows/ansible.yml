@@ -200,7 +200,7 @@ jobs:
         if: success() || failure()
         uses: actions/upload-artifact@v4
         with:
-          name: ansible-molecule-windows-${{ matrix.distro }}-${{ matrix.scenario }}
+          name: ansible-molecule-windows-${{ matrix.distro }}-${{matrix.ansible}}-${{ matrix.scenario }}
           path: /tmp/log/*
 
   push-release-tag:

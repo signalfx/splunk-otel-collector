@@ -2,6 +2,7 @@
 
 podTemplate(
   cloud: "kubernetes-build-sre-jenkins-agent",
+  inheritFrom: 'jnlp',
   yaml: readTrusted('jenkins/podTemplate.yaml'),
   yamlMergeStrategy: merge()
 ) {

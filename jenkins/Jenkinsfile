@@ -15,7 +15,7 @@ podTemplate(
       def branch = env.BRANCH_NAME.replaceAll(/[\.-]/, "_")
       tag = "${branch}-${env.BUILD_NUMBER}-${shortGitHash}"
 
-      echo "dockerTag: ${dockerTag}"
+      echo "dockerTag: ${tag}"
     }
 
     buildGolangApp {

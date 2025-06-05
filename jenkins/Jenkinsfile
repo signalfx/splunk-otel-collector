@@ -6,17 +6,17 @@ podTemplate(
   yaml: readTrusted('jenkins/podTemplate.yaml'),
   yamlMergeStrategy: merge()
 ) {
-
   node(POD_LABEL) {
 
     stage('Checkout') {
-      gitref = gitCheckout()
+      def gitref = gitCheckout()
+      def branch = BRANCH_NAME.replaceAll(/[\.-]/, "_")
     }
 
     buildGolangApp {
       buildDockerImage = true
-      gitref = gitref
+      dockerRepository = "us-east4-docker.pkg.dev/sym-prod-mr-tools-01/sre-docker-us-east4"
+      dockerTag = "${branch}-${BUILD_NUMBER}-${gitref}"
     }
-
   }
 }

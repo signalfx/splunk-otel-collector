@@ -94,12 +94,21 @@
     dest: /tmp/log/
     flat: true
   ignore_errors: true
-  when: splunk_collector_msi_is_configurable is defined
+  when: splunk_collector_msi_is_configurable is defined and msi_installed.rc is defined
+
+- name: Fetch async log file from splunk-otel-collector MSI install to host on install failure
+  ansible.builtin.fetch:
+    src: "{{ msi_installed.results_file }}"
+    dest: /tmp/log/
+    flat: true
+  ignore_errors: true
+  when: splunk_collector_msi_is_configurable is defined and msi_installed.rc is not defined
 
 - name: Fail if MSI install failed
   ansible.builtin.fail:
     msg: "Splunk OpenTelemetry Collector MSI installation failed. Check the log file for details."
-  when: msi_installed.rc != 0 and splunk_collector_msi_is_configurable is defined
+  # TODO: This condition needs fixed to account for any failure other than async
+  when: msi_installed.rc is not defined and splunk_collector_msi_is_configurable is defined
 
 - name: Install splunk-otel-collector-msi-legacy
   when: splunk_collector_msi_is_configurable is undefined

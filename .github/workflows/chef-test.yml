@@ -93,6 +93,13 @@ jobs:
         with:
           version: ${{ env.CHEF_VERSION }}
 
+
+      # Install of fluentd is failing on Debian 11, so we disable it for that distro.
+      - name: Set `with_fluentd` to false on Debian 11
+        if: matrix.DISTRO == 'debian-11'
+        run: |
+          yq eval '(.suites[] | select(.name=="custom_vars").attributes.splunk_otel_collector.with_fluentd) = false' -i kitchen.yml
+
       - run: kitchen test ${{ matrix.DISTRO }}
 
       - uses: actions/upload-artifact@v4

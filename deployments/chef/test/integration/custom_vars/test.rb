@@ -70,7 +70,7 @@ else
     its('content') { should match /^User=custom-user$/ }
     its('content') { should match /^Group=custom-group$/ }
   end
-  if os[:family] != 'suse' && os[:family] != 'opensuse' && !(os[:family] == 'debian' && ::Gem::Version.new(os.release) >= ::Gem::Version.new('12'))
+  if os[:family] != 'suse' && os[:family] != 'opensuse' && !(os[:family] == 'debian' && ::Gem::Version.new(os.release) >= ::Gem::Version.new('11'))
     fluentd_config_path = '/etc/otel/collector/fluentd/fluent.conf'
     describe service('td-agent') do
       it { should be_enabled }

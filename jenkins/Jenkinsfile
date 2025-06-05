@@ -1,6 +1,4 @@
-@Library('sym-pipeline@main') _
-
-@Library('sym-pipeline@main') _
+@Library('sym-pipeline') _
 
 podTemplate(
   cloud: "kubernetes-build-sre-jenkins-agent",

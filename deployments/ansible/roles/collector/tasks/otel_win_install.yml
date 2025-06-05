@@ -88,21 +88,41 @@
 - debug:
     var: msi_installed
 
+- name: Stat log path for splunk-otel-collector MSI install
+  ansible.windows.win_stat:
+    path: "{{ msi_install_log_path }}"
+  register: msi_install_log_stat
+  ignore_errors: true
+  when: splunk_collector_msi_is_configurable is defined
+
+- debug:
+    var: msi_install_log_stat
+
+- name: Stat async results path for splunk-otel-collector MSI install
+  ansible.windows.win_stat:
+    path: "{{ msi_installed.results_file }}"
+  register: async_results_stat
+  ignore_errors: true
+  when: splunk_collector_msi_is_configurable is defined and msi_installed.results_file is defined
+
+- debug:
+    var: async_results_stat
+
 - name: Fetch log file from splunk-otel-collector MSI install to host
   ansible.builtin.fetch:
     src: "{{ msi_install_log_path }}"
     dest: /tmp/log/
     flat: true
   ignore_errors: true
-  when: splunk_collector_msi_is_configurable is defined and msi_installed.rc is defined
+  when: splunk_collector_msi_is_configurable is defined
 
-- name: Fetch async log file from splunk-otel-collector MSI install to host on install failure
+- name: Fetch async log file from splunk-otel-collector MSI install
   ansible.builtin.fetch:
     src: "{{ msi_installed.results_file }}"
     dest: /tmp/log/
     flat: true
   ignore_errors: true
-  when: splunk_collector_msi_is_configurable is defined and msi_installed.rc is not defined
+  when: splunk_collector_msi_is_configurable and msi_installed.results_file is defined
 
 - name: Fail if MSI install failed
   ansible.builtin.fail:

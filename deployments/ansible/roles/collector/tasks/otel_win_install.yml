@@ -38,6 +38,18 @@
     use_proxy: "{{ win_use_proxy }}"
   register: otel_msi_package
 
+# TDDO: DELETE THIS
+- name: Get Splunk OpenTelemetry Collector options list - legacy variables used to set registry
+  set_fact:
+    splunk_otel_collector_options_list: |-
+      {%- set value = item.value -%}
+      {{ (splunk_otel_collector_options_list | default([])) + [item.key + '=' + (value | string)] }}
+  loop: >
+    {{ splunk_otel_collector_options | default({}) | combine(splunk_otel_collector_additional_env_vars) | dict2items }}
+
+- debug:
+    var: splunk_otel_collector_options_list
+
 - name: Build the arguments for the MSI installer
   when: splunk_collector_msi_is_configurable is defined
   set_fact:

@@ -1,4 +1,4 @@
-@Library('sym-pipeline') _
+@Library('sym-pipeline@CICD-1772') _
 
 podTemplate(
   cloud: "kubernetes-build-sre-jenkins-agent",
@@ -10,7 +10,13 @@ podTemplate(
   node(POD_LABEL) {
 
     stage('Checkout') {
-      gitCheckout()
+      gitref = gitCheckout()
     }
+
+    buildGolanApp {
+      buildDockerImage = true
+      gitref = gitref
+    }
+
   }
 }

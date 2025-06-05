@@ -79,7 +79,11 @@
 - name: Surround msi argument values wtih quotes to properly handle spaces in values
   when: splunk_collector_msi_is_configurable is defined
   set_fact:
-    msi_arguments: "{{ msi_arguments | map('regex_replace', '^(.*)=(.*)$', '\\1=\\"\\2\\"') | list }}"
+    msi_arguments: "{{ msi_arguments | map('regex_replace', _regex, _replacement) | list }}"
+  vars:
+    _regex: '^(.*)=(.*)$'
+    _replacement: '\\1=\\"\\2\\"'
+
 
 - debug:
     var: msi_arguments

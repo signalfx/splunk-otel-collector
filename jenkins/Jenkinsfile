@@ -21,6 +21,7 @@ podTemplate(
     buildGolangApp {
       buildDockerImage = true
       dockerRepository = "us-east4-docker.pkg.dev/sym-prod-mr-tools-01/sre-docker-us-east4"
+      dockerImage = "splink-otel-collector"
       dockerTag = tag
     }
   }

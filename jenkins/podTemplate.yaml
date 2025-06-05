@@ -1,0 +1,41 @@
+spec:
+  containers:
+    - name: go
+      image: us-east4-docker.pkg.dev/sym-prod-mr-tools-01/jenkins-docker-us-east4/go:1.24.2
+      imagePullPolicy: IfNotPresent
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+        runAsUser: 1000
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: True
+        privileged: false
+      resources:
+        requests:
+          memory: 1Gi
+          cpu: 1
+        limits:
+          memory: 2Gi
+      command: [ sleep ]
+      args: [ 99d ]
+      volumeMounts:
+        - mountPath: "/tmp"
+          name: "tmpdir"
+        - mountPath: "/home/jenkins"
+          name: "homedir"
+        - mountPath: "/go"
+          name: "godir"
+      envFrom:
+        - configMapRef:
+            name: env
+  restartPolicy: Never
+  volumes:
+    - emptyDir:
+        medium: ""
+      name: "tmpdir"
+    - emptyDir:
+        medium: ""
+      name: "homedir"
+    - emptyDir:
+        medium: ""
+      name: "godir"

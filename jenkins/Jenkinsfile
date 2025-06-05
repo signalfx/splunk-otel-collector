@@ -1,0 +1,17 @@
+@Library('sym-pipeline@main') _
+
+@Library('sym-pipeline@main') _
+
+podTemplate(
+  cloud: "kubernetes-build-sre-jenkins-agent",
+  yaml: readTrusted('jenkins/podTemplate.yaml'),
+  yamlMergeStrategy: merge()
+) {
+
+  node(POD_LABEL) {
+
+    stage('Checkout') {
+      gitCheckout()
+    }
+  }
+}

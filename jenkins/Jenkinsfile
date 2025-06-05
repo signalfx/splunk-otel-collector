@@ -11,9 +11,11 @@ podTemplate(
   node(POD_LABEL) {
 
     stage('Checkout') {
-      shortGitHash = gitCheckout()
-      branch = env.BRANCH_NAME.replaceAll(/[\.-]/, "_")
+      def shortGitHash = gitCheckout()
+      def branch = env.BRANCH_NAME.replaceAll(/[\.-]/, "_")
       dockerTag = "${branch}-${env.BUILD_NUMBER}-${shortGitHash}"
+
+      echo "dockerTag: ${dockerTag}"
     }
 
     buildGolangApp {

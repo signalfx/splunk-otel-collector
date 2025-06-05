@@ -38,6 +38,18 @@
     use_proxy: "{{ win_use_proxy }}"
   register: otel_msi_package
 
+# TDDO: DELETE THIS
+- name: Get Splunk OpenTelemetry Collector options list - legacy variables used to set registry
+  set_fact:
+    splunk_otel_collector_options_list: |-
+      {%- set value = item.value -%}
+      {{ (splunk_otel_collector_options_list | default([])) + [item.key + '=' + (value | string)] }}
+  loop: >
+    {{ splunk_otel_collector_options | default({}) | combine(splunk_otel_collector_additional_env_vars) | dict2items }}
+
+- debug:
+    var: splunk_otel_collector_options_list
+
 - name: Build the arguments for the MSI installer
   when: splunk_collector_msi_is_configurable is defined
   set_fact:
@@ -61,12 +73,86 @@
   set_fact:
     msi_arguments: "{{ msi_unfiltered_arguments | reject('eq', '') | list }}"
 
+- debug:
+    var: msi_arguments
+
+- name: Surround msi argument values wtih quotes to properly handle spaces in values
+  when: splunk_collector_msi_is_configurable is defined
+  set_fact:
+    msi_arguments: "{{ msi_arguments | map('regex_replace', _regex, _replacement) | list }}"
+  vars:
+    _regex: '^(.*)=(.*)$'
+    _replacement: '\1="\2"'
+
+
+- debug:
+    var: msi_arguments
+
+- name: Check my username
+  ansible.windows.win_whoami:
+  become: true
+
+- name: Set the MSI install log path
+  ansible.builtin.set_fact:
+    msi_install_log_path: "C:\\Users\\vagrant\\AppData\\Local\\Temp\\{{ lookup('pipe', 'date +%Y%m%dT%H%M%S') }}.log"
+  when: splunk_collector_msi_is_configurable is defined
+
 - name: Install splunk-otel-collector-msi
   when: splunk_collector_msi_is_configurable is defined
   ansible.windows.win_package:
-    path: "{{otel_msi_package.dest}}"
+    path: "{{ otel_msi_package.dest }}"
     state: present
+    log_path: "{{ msi_install_log_path }}"
     arguments: "{{ msi_arguments }}"
+  ignore_errors: true
+  register: msi_installed
+  async: 900 # 15 minutes
+  poll: 10
+
+- debug:
+    var: msi_installed
+
+- name: Stat log path for splunk-otel-collector MSI install
+  ansible.windows.win_stat:
+    path: "{{ msi_install_log_path }}"
+  register: msi_install_log_stat
+  ignore_errors: true
+  when: splunk_collector_msi_is_configurable is defined
+
+- debug:
+    var: msi_install_log_stat
+
+- name: Stat async results path for splunk-otel-collector MSI install
+  ansible.windows.win_stat:
+    path: "{{ msi_installed.results_file }}"
+  register: async_results_stat
+  ignore_errors: true
+  when: splunk_collector_msi_is_configurable is defined and msi_installed.results_file is defined
+
+- debug:
+    var: async_results_stat
+
+- name: Fetch log file from splunk-otel-collector MSI install to host
+  ansible.builtin.fetch:
+    src: "{{ msi_install_log_path }}"
+    dest: /tmp/log/
+    flat: true
+  ignore_errors: true
+  when: splunk_collector_msi_is_configurable is defined
+
+- name: Fetch async log file from splunk-otel-collector MSI install
+  ansible.builtin.fetch:
+    src: "{{ msi_installed.results_file }}"
+    dest: /tmp/log/
+    flat: true
+  ignore_errors: true
+  when: splunk_collector_msi_is_configurable and msi_installed.results_file is defined
+
+- name: Fail if MSI install failed
+  ansible.builtin.fail:
+    msg: "Splunk OpenTelemetry Collector MSI installation failed. Check the log file for details."
+  # TODO: This condition needs fixed to account for any failure other than async
+  when: msi_installed.rc is not defined and splunk_collector_msi_is_configurable is defined
 
 - name: Install splunk-otel-collector-msi-legacy
   when: splunk_collector_msi_is_configurable is undefined

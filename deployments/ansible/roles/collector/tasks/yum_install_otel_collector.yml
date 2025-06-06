@@ -27,3 +27,20 @@
   notify:
     - "restart splunk-otel-collector"
     - "restart td-agent"
+  when: not local_artifact_testing_enabled
+
+- name: Copy Splunk OpenTelemetry Collector RPM artifact to remote machine
+  ansible.builtin.copy:
+    src: /tmp/rpm-{% if ansible_architecture == 'aarch64' %}arm64{% else %}amd64{% endif %}-package
+    dest: /etc/otel
+  register: archive_contents
+  when: local_artifact_testing_enabled
+
+- name: Install Splunk OpenTelemetry Collector via local RPM artifact
+  ansible.builtin.yum:
+    name: "{{ archive_contents.dest }}"
+    disable_gpg_check: true
+  notify:
+    - "restart splunk-otel-collector"
+    - "restart td-agent"
+  when: local_artifact_testing_enabled

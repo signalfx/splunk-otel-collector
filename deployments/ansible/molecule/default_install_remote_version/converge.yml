@@ -1,12 +1,12 @@
 ---
-- name: Converge scenario with the default configuration
+- name: Converge scenario with the default configuration and remote version
   hosts: all
   become: yes
   vars:
-    local_artifact_testing_enabled: true
     splunk_access_token: fake-token
     splunk_realm: fake-realm
     start_service: false
+    splunk_otel_collector_version: 0.126.0
   tasks:
     - name: "Include signalfx.splunk_otel_collector.collector role"
       include_role:

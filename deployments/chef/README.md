@@ -148,6 +148,10 @@ required `splunk_access_token` attribute and some optional attributes:
   `HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\splunk-otel-collector`
   registry key.
 
+- `collector_command_line_args`: Additional command line arguments to pass to the
+  collector service. The value will be set to the `OTELCOL_OPTIONS` environment
+  variable for the collector service (**default:** `''`).
+
 ### Fluentd
 
 - `with_fluentd`: Whether to install/manage Fluentd and dependencies for log

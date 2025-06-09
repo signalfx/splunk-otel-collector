@@ -91,7 +91,7 @@
 - name: Join msi argument list into space separated string
   when: splunk_collector_msi_is_configurable is defined
   set_fact:
-    msi_arguments: msi_arguments | join(' ')
+    msi_arguments: "{{ msi_arguments | join(' ') }}"
 
 - debug:
     var: msi_arguments

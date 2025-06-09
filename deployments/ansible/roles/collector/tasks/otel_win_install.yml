@@ -38,6 +38,15 @@
     use_proxy: "{{ win_use_proxy }}"
   register: otel_msi_package
 
+- name: Get Splunk OpenTelemetry Collector additional env var options list
+  when: splunk_collector_msi_is_configurable is defined
+  set_fact:
+    splunk_otel_collector_options_list: |-
+      {%- set value = item.value -%}
+      {{ (splunk_otel_collector_options_list | default([])) + [item.key + '=' + (value | string)] }}
+  loop: >
+    {{ splunk_otel_collector_additional_env_vars | dict2items }}
+
 - name: Build the arguments for the MSI installer
   when: splunk_collector_msi_is_configurable is defined
   set_fact:
@@ -55,6 +64,11 @@
       - "{{ 'SPLUNK_MEMORY_TOTAL_MIB=' + (splunk_memory_total_mib | string)
                if (splunk_memory_total_mib | string) != '' else '' }}"
       - "{{ 'SPLUNK_REALM=' + splunk_realm if splunk_realm != '' else '' }}"
+
+- name: Combine MSI arguments for MSI installer with additional env vars
+  when: splunk_collector_msi_is_configurable is defined
+  set_fact:
+    msi_arguments: "{{ msi_unfiltered_arguments + splunk_otel_collector_options_list }}"
 
 - name: Filter out undefined arguments
   when: splunk_collector_msi_is_configurable is defined

@@ -21,6 +21,8 @@
         dest: /etc/otel/collector/splunk-otel-collector.conf
         state: present
       check_mode: yes
+      register: config
+      failed_when: config is changed
 
     - name: Assert SPLUNK_REALM env var is set
       ansible.builtin.lineinfile:
@@ -28,6 +30,8 @@
         dest: /etc/otel/collector/splunk-otel-collector.conf
         state: present
       check_mode: yes
+      register: config
+      failed_when: config is changed
 
     - name: Assert SPLUNK_INGEST_URL env var is set
       ansible.builtin.lineinfile:
@@ -35,6 +39,8 @@
         dest: /etc/otel/collector/splunk-otel-collector.conf
         state: present
       check_mode: yes
+      register: config
+      failed_when: config is changed
 
     - name: Assert SPLUNK_API_URL env var is set
       ansible.builtin.lineinfile:
@@ -42,6 +48,8 @@
         dest: /etc/otel/collector/splunk-otel-collector.conf
         state: present
       check_mode: yes
+      register: config
+      failed_when: config is changed
 
     - name: Assert SPLUNK_HEC_URL env var is set
       ansible.builtin.lineinfile:
@@ -49,3 +57,5 @@
         dest: /etc/otel/collector/splunk-otel-collector.conf
         state: present
       check_mode: yes
+      register: config
+      failed_when: config is changed

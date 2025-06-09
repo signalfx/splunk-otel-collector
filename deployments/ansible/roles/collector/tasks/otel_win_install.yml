@@ -82,7 +82,7 @@
     msi_arguments: "{{ msi_arguments | map('regex_replace', _regex, _replacement) | list }}"
   vars:
     _regex: '^(.*)=(.*)$'
-    _replacement: '\1="\2"'
+    _replacement: ' \1="\2"'
 
 
 - debug:

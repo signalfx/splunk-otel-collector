@@ -77,7 +77,9 @@
     var: msi_arguments
 
 - name: Surround msi argument values wtih quotes to properly handle spaces in values
-  when: splunk_collector_msi_is_configurable is defined and item | search(' ')
+  when:
+    - splunk_collector_msi_is_configurable is defined
+    - item | search(' ')
   set_fact:
     msi_arguments: "{{ item | map('regex_replace', _regex, _replacement) | list }}"
   vars:

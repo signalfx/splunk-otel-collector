@@ -82,15 +82,19 @@
     msi_arguments: "{{ msi_arguments | map('regex_replace', _regex, _replacement) | list }}"
   vars:
     _regex: '^(.*)=(.*)$'
+    # Backticks are required to escape the double quotes
     _replacement: '\1=`"\2`"'
-
 
 - debug:
     var: msi_arguments
 
-- name: Check my username
-  ansible.windows.win_whoami:
-  become: true
+- name: Join msi argument list into space separated string
+  when: splunk_collector_msi_is_configurable is defined
+  set_fact:
+    msi_arguments: msi_arguments | join(' ')
+
+- debug:
+    var: msi_arguments
 
 - name: Set the MSI install log path
   ansible.builtin.set_fact:
@@ -106,7 +110,7 @@
     arguments: "{{ msi_arguments }}"
   ignore_errors: true
   register: msi_installed
-  async: 1800 # 30 minutes
+  async: 900 # 15 minutes
   poll: 10
 
 - debug:

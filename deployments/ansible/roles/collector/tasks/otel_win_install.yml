@@ -82,7 +82,7 @@
     msi_arguments: "{{ msi_arguments | map('regex_replace', _regex, _replacement) | list }}"
   vars:
     _regex: '^(.*)=(.*)$'
-    _replacement: ' \1="\2"'
+    _replacement: '\1="\2"'
 
 
 - debug:
@@ -106,7 +106,7 @@
     arguments: "{{ msi_arguments }}"
   ignore_errors: true
   register: msi_installed
-  async: 900 # 15 minutes
+  async: 1800 # 30 minutes
   poll: 10
 
 - debug:

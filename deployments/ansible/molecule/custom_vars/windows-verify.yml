@@ -108,6 +108,9 @@
         name: Environment
       register: collector_env
 
+    - debug:
+        var: collector_env
+
     - name: Verify splunk-otel-collector service env vars
       assert:
         that: (item.key + '=' + (item.value | string)) in collector_env.value

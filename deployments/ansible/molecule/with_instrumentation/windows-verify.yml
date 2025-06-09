@@ -33,6 +33,9 @@
         name: Environment
       register: iis_env
 
+    - debug:
+        var: iis_env
+
     - name: Verify IIS env vars
       assert:
         that: (item.key + '=' + (item.value | string)) in iis_env.value
@@ -43,6 +46,9 @@
         path: HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector
         name: Environment
       register: collector_env
+
+    - debug:
+        var: collector_env
 
     - name: Verify splunk-otel-collector service env vars
       assert:

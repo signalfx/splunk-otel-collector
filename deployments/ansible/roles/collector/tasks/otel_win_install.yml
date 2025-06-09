@@ -70,7 +70,7 @@
     - splunk_collector_msi_is_configurable is defined
     - splunk_otel_collector_options_list is defined
   set_fact:
-    msi_arguments: "{{ msi_unfiltered_arguments + splunk_otel_collector_options_list }}"
+    msi_unfiltered_arguments: "{{ msi_unfiltered_arguments + splunk_otel_collector_options_list }}"
 
 - name: Filter out undefined arguments
   when: splunk_collector_msi_is_configurable is defined

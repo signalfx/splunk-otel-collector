@@ -9,7 +9,7 @@ driver:
 platforms:
   - name: instance
     dockerfile: Dockerfile.j2
-    image: ${MOLECULE_DISTRO:-centos8}
+    image: ${MOLECULE_DISTRO:-centos9}
     command: ${MOLECULE_DOCKER_COMMAND:-""}
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:rw

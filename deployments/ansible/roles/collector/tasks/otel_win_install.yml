@@ -73,28 +73,41 @@
   set_fact:
     msi_arguments: "{{ msi_unfiltered_arguments | reject('eq', '') | list }}"
 
-- debug:
-    var: msi_arguments
+- set_fact:
+    args_without_spaces: []
+    args_with_spaces: []
 
-- name: Surround msi argument values wtih quotes to properly handle spaces in values
+- name: Surround msi argument values with quotes to properly handle spaces in values
   when:
     - splunk_collector_msi_is_configurable is defined
-    - item | search(' ')
+    - item is search(' ')
   set_fact:
-    msi_arguments: "{{ item | map('regex_replace', _regex, _replacement) | list }}"
+    args_with_spaces: "{{ args_with_spaces + [item | ansible.builtin.regex_replace(_regex, _replacement)] }}"
   vars:
     _regex: '^(.*)=(.*)$'
     # Backticks are required to escape the double quotes
     _replacement: '\1=`"\2`"'
   loop: "{{ msi_arguments }}"
-  register:
-    temp_msi_args
+
+- name: compile args without spaces
+  set_fact:
+    args_without_spaces: "{{ args_without_spaces + [item] }}"
+  loop: "{{ msi_arguments }}"
+  when:
+    - splunk_collector_msi_is_configurable is defined
+    - item is not search(' ')
+
+- set_fact:
+    msi_arguments: "{{ args_with_spaces + args_without_spaces }}"
+
+- debug:
+    var: args_without_spaces
+
+- debug:
+    var: args_with_spaces
 
 - debug:
     var: msi_arguments
-
-- debug:
-    var: temp_msi_args
 
 - name: Join msi argument list into space separated string
   when: splunk_collector_msi_is_configurable is defined

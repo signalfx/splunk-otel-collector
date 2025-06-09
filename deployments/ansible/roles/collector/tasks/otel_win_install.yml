@@ -38,18 +38,6 @@
     use_proxy: "{{ win_use_proxy }}"
   register: otel_msi_package
 
-# TDDO: DELETE THIS
-- name: Get Splunk OpenTelemetry Collector options list - legacy variables used to set registry
-  set_fact:
-    splunk_otel_collector_options_list: |-
-      {%- set value = item.value -%}
-      {{ (splunk_otel_collector_options_list | default([])) + [item.key + '=' + (value | string)] }}
-  loop: >
-    {{ splunk_otel_collector_options | default({}) | combine(splunk_otel_collector_additional_env_vars) | dict2items }}
-
-- debug:
-    var: splunk_otel_collector_options_list
-
 - name: Build the arguments for the MSI installer
   when: splunk_collector_msi_is_configurable is defined
   set_fact:
@@ -86,7 +74,7 @@
   vars:
     _regex: '^(.*)=(.*)$'
     # Backticks are required to escape the double quotes
-    _replacement: '\1=`"\2`"'
+    _replacement: '\1="\2"'
   loop: "{{ msi_arguments }}"
 
 - name: compile args without spaces
@@ -131,8 +119,6 @@
     arguments: "{{ msi_arguments }}"
   ignore_errors: true
   register: msi_installed
-  async: 900 # 15 minutes
-  poll: 10
 
 - debug:
     var: msi_installed
@@ -147,16 +133,6 @@
 - debug:
     var: msi_install_log_stat
 
-- name: Stat async results path for splunk-otel-collector MSI install
-  ansible.windows.win_stat:
-    path: "{{ msi_installed.results_file }}"
-  register: async_results_stat
-  ignore_errors: true
-  when: splunk_collector_msi_is_configurable is defined and msi_installed.results_file is defined
-
-- debug:
-    var: async_results_stat
-
 - name: Fetch log file from splunk-otel-collector MSI install to host
   ansible.builtin.fetch:
     src: "{{ msi_install_log_path }}"
@@ -164,14 +140,6 @@
     flat: true
   ignore_errors: true
   when: splunk_collector_msi_is_configurable is defined
-
-- name: Fetch async log file from splunk-otel-collector MSI install
-  ansible.builtin.fetch:
-    src: "{{ msi_installed.results_file }}"
-    dest: /tmp/log/
-    flat: true
-  ignore_errors: true
-  when: splunk_collector_msi_is_configurable and msi_installed.results_file is defined
 
 - name: Fail if MSI install failed
   ansible.builtin.fail:

@@ -1,7 +1,7 @@
 docker==7.1.0
 iterators==0.2.0
 psutil==7.0.0
-pytest==8.3.5
+pytest==8.4.0
 pytest-html==4.1.1
 pytest-xdist==3.7.0
 py>=1.8.2

@@ -156,7 +156,6 @@
 - name: Merge custom config into the default config
   ansible.builtin.import_tasks: config_override.yml
   when:
-    - splunk_collector_msi_is_configurable is undefined
     - splunk_config_override != ''
 
 - name: Copy the custom config
@@ -164,7 +163,6 @@
     content: '{{ updated_config | to_nice_yaml (indent=2) }}'
     dest: "{{ splunk_otel_collector_config }}"
   when:
-    - splunk_collector_msi_is_configurable is undefined
     - splunk_config_override != ''
 
 - name: Push Custom Config file for splunk-otel-collector, If provided
@@ -172,5 +170,4 @@
     src: "{{splunk_otel_collector_config_source}}"
     dest: "{{splunk_otel_collector_config}}"
   when:
-    - splunk_collector_msi_is_configurable is undefined
     - splunk_otel_collector_config_source != ""

@@ -1,7 +1,4 @@
 ---
-
-
-
 - name: Install Splunk OpenTelemetry Collector with msi package manager
   ansible.builtin.import_tasks: otel_win_install.yml
 

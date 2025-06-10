@@ -52,6 +52,6 @@
     path: "{{ splunk_otel_collector_service_registry_key }}"
     state: present
     name: Environment
-    data: "{{ splunk_otel_collector_options_list | sort }}"
+    data: "{{ splunk_otel_collector_options_list | sort | unique }}"
     type: multistring
   notify: "restart windows splunk-otel-collector"

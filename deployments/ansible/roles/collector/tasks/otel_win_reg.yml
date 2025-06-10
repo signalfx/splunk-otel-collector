@@ -17,7 +17,16 @@
   loop: >
     {{ splunk_otel_collector_additional_env_vars | dict2items }}
 
+- name: Get existing registry contents
+  ansible.windows.win_reg_stat:
+    path: "{{ splunk_otel_collector_service_registry_key }}"
+  register: registry_contents
+
+- debug:
+    var: registry_contents
+
 - name: Set Splunk OpenTelemetry Collector registry value
+  when: splunk_collector_msi_is_configurable is not defined
   ansible.windows.win_regedit:
     path: "{{ splunk_otel_collector_service_registry_key }}"
     state: present

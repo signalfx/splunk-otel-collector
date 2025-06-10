@@ -34,7 +34,8 @@
 - name: Append custom variables to existing registry contents
   when: splunk_collector_msi_is_configurable is defined
   set_fact:
-    splunk_otel_collector_options_list: "{{ registry_contents.properties.Environment.value + splunk_otel_collector_options_list }}"
+    splunk_otel_collector_options_list:
+      "{{ registry_contents.properties.Environment.value + splunk_otel_collector_options_list }}"
 
 - name: Set Splunk OpenTelemetry Collector registry value
   when: splunk_collector_msi_is_configurable is not defined

@@ -310,7 +310,7 @@ func (container *Container) Start(ctx context.Context) (err error) {
 		Started:          true,
 	})
 	if err != nil {
-		return fmt.Errorf("container start failed: %w", err)
+		return err
 	}
 
 	container.container = startedCtr
@@ -511,6 +511,8 @@ func (container *Container) AssertExec(t testing.TB, timeout time.Duration, cmd 
 	return rc, sout.String(), serr.String()
 }
 
+// Creates Docker networks for each label in ContainerNetworkLabels.
+// Returns a list of created networks or an error if creation fails.
 func (container *Container) createNetworksIfNecessary(ctx context.Context) ([]*testcontainers.DockerNetwork, error) {
 	var networks []*testcontainers.DockerNetwork
 	for _, label := range container.ContainerNetworkLabels {
@@ -528,6 +530,8 @@ func (container *Container) createNetworksIfNecessary(ctx context.Context) ([]*t
 	return networks, nil
 }
 
+// Returns a CustomizeRequestOption that attaches a container to the given network
+// and sets the specified network aliases. Falls back to a default alias if none are provided.
 func withNetworkAliases(aliases []string, nw *testcontainers.DockerNetwork) testcontainers.CustomizeRequestOption {
 	return func(req *testcontainers.GenericContainerRequest) error {
 		if req.NetworkAliases == nil {

@@ -26,13 +26,13 @@ import (
 	"time"
 
 	dockerContainer "github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/errdefs"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/docker/go-connections/nat"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/exec"
+	"github.com/testcontainers/testcontainers-go/network"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
@@ -496,32 +496,20 @@ func (container *Container) AssertExec(t testing.TB, timeout time.Duration, cmd 
 
 // Will create any networks that don't already exist on system.
 // Teardown/cleanup is handled by the testcontainers reaper.
-func (container *Container) createNetworksIfNecessary(req testcontainers.GenericContainerRequest) error {
-	provider, err := req.ProviderType.GetProvider()
-	if err != nil {
-		return err
-	}
+func (container *Container) createNetworksIfNecessary(req *testcontainers.GenericContainerRequest) error {
 	for _, networkName := range container.ContainerNetworks {
-		//nolint:staticcheck
-		query := testcontainers.NetworkRequest{
-			Name: networkName,
+		// Create a custom network
+		newNetwork, err := network.New(context.Background(),
+			network.WithDriver("bridge"),
+			network.WithAttachable(),
+			network.WithLabels(map[string]string{"name": networkName}),
+		)
+		if err != nil {
+			return fmt.Errorf("failed to create network %s: %w", networkName, err)
 		}
-		networkResource, err := provider.GetNetwork(context.Background(), query)
-		if err != nil && !errdefs.IsNotFound(err) {
-			return err
-		}
-		if networkResource.Name != networkName {
-			//nolint:staticcheck
-			create := testcontainers.NetworkRequest{
-				Driver:     "bridge",
-				Name:       networkName,
-				Attachable: true,
-			}
-			_, err := provider.CreateNetwork(context.Background(), create)
-			if err != nil {
-				return err
-			}
-		}
+
+		// Attach the container to the network
+		req.Networks = append(req.Networks, newNetwork.Name)
 	}
 	return nil
 }

@@ -17,7 +17,7 @@ env:
 jobs:
   setup-environment:
     name: setup-environment
-    uses: ./.github/workflows/setup-go-env.yml
+    uses: ./.github/workflows/setup-environment.yml
 
   tidy:
     name: tidy
@@ -180,4 +180,5 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   cross-compile:
+    needs: [setup-environment]
     uses: ./.github/workflows/cross-compile.yml

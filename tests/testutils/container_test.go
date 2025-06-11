@@ -380,6 +380,18 @@ func TestTestcontainersContainerMethodsRequireBuilding(t *testing.T) {
 	err = builder.CopyFileToContainer(context.Background(), "", "", 0)
 	require.Error(t, err)
 	assert.Equal(t, "cannot invoke CopyFileToContainer() on unstarted container", err.Error())
+
+	err = builder.CopyDirToContainer(context.Background(), "", "", 0755)
+	require.Error(t, err)
+	assert.Equal(t, "cannot invoke CopyDirToContainer() on unstarted container", err.Error())
+
+	err = builder.CopyToContainer(context.Background(), []byte("dummy"), "/tmp/test", 0644)
+	require.Error(t, err)
+	assert.Equal(t, "cannot invoke CopyToContainer() on unstarted container", err.Error())
+
+	_, err = builder.CopyFileFromContainer(context.Background(), "/tmp/test")
+	require.Error(t, err)
+	assert.Equal(t, "cannot invoke CopyFileFromContainer() on unstarted container", err.Error())
 }
 
 type logConsumer struct {

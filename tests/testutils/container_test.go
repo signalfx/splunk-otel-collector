@@ -88,10 +88,10 @@ func TestDockerBuilderMethods(t *testing.T) {
 	assert.NotEqual(t, builder, withName)
 	assert.Empty(t, builder.ContainerName)
 
-	withNetworks := builder.WithNetworks("network_one", "network_two")
-	assert.Equal(t, []string{"network_one", "network_two"}, withNetworks.ContainerNetworks)
-	assert.NotEqual(t, builder, withNetworks)
-	assert.Nil(t, builder.ContainerNetworks)
+	withNetworkLabels := builder.WithNetworkLabels("network_one", "network_two")
+	assert.Equal(t, []string{"network_one", "network_two"}, withNetworkLabels.ContainerNetworkLabels)
+	assert.NotEqual(t, builder, withNetworkLabels)
+	assert.Nil(t, builder.ContainerNetworkLabels)
 
 	withUser := builder.WithUser("some.user")
 	assert.Equal(t, "some.user", withUser.User)

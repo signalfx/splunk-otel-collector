@@ -294,26 +294,26 @@ func (container Container) Build() *Container {
 	return &container
 }
 
-func (c *Container) Start(ctx context.Context) (err error) {
+func (container *Container) Start(ctx context.Context) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("panic: %v, %s", r, string(debug.Stack()))
 		}
 	}()
 
-	if c.req == nil {
+	if container.req == nil {
 		return fmt.Errorf("cannot start a container that hasn't been built")
 	}
 
 	startedCtr, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
-		ContainerRequest: *c.req,
+		ContainerRequest: *container.req,
 		Started:          true,
 	})
 	if err != nil {
 		return fmt.Errorf("container start failed: %w", err)
 	}
 
-	c.container = startedCtr
+	container.container = startedCtr
 	return nil
 }
 
@@ -511,9 +511,9 @@ func (container *Container) AssertExec(t testing.TB, timeout time.Duration, cmd 
 	return rc, sout.String(), serr.String()
 }
 
-func (c *Container) createNetworksIfNecessary(ctx context.Context) ([]*testcontainers.DockerNetwork, error) {
+func (container *Container) createNetworksIfNecessary(ctx context.Context) ([]*testcontainers.DockerNetwork, error) {
 	var networks []*testcontainers.DockerNetwork
-	for _, label := range c.ContainerNetworkLabels {
+	for _, label := range container.ContainerNetworkLabels {
 		net, err := tcnetwork.New(ctx,
 			tcnetwork.WithDriver("bridge"),
 			tcnetwork.WithAttachable(),

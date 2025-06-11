@@ -176,4 +176,5 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
-
+  cross-compile:
+    uses: ./.github/workflows/cross-compile.yml

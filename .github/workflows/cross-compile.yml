@@ -1,6 +1,9 @@
 on:
   workflow_call:
 
+env:
+  GO_VERSION: 1.23.8
+
 jobs:
   setup-environment:
     uses: ./.github/workflows/setup-go-env.yml

@@ -20,11 +20,8 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/testcontainers/testcontainers-go/network"
 	"io"
-	"os/exec"
 	"runtime/debug"
-	"strings"
 	"testing"
 	"time"
 
@@ -34,6 +31,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/exec"
+	tcnetwork "github.com/testcontainers/testcontainers-go/network"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
@@ -44,26 +43,27 @@ const (
 // Container is a combination builder and testcontainers.Container wrapper
 // for convenient creation and management of docker images and containers.
 type Container struct {
-	req                  *testcontainers.ContainerRequest
-	container            *testcontainers.Container
-	startupTimeout       *time.Duration
-	Env                  map[string]string
-	Labels               map[string]string
-	Dockerfile           testcontainers.FromDockerfile
-	User                 string
-	Image                string
-	ContainerName        string
-	ContainerNetworkMode string
-	Entrypoint           []string
-	Cmd                  []string
-	ContainerNetworks    []string
-	ExposedPorts         []string
-	Binds                []string
-	WaitingFor           []wait.Strategy
-	Mounts               []testcontainers.ContainerMount
-	Files                []testcontainers.ContainerFile
-	HostConfigModifiers  []func(*dockerContainer.HostConfig)
-	Privileged           bool
+	req                    *testcontainers.ContainerRequest
+	container              testcontainers.Container
+	startupTimeout         *time.Duration
+	Env                    map[string]string
+	Labels                 map[string]string
+	Dockerfile             testcontainers.FromDockerfile
+	User                   string
+	Image                  string
+	ContainerName          string
+	ContainerNetworkLabels []string
+	ContainerNetworkMode   string
+	Entrypoint             []string
+	Cmd                    []string
+	ContainerNetworks      []string
+	ExposedPorts           []string
+	Binds                  []string
+	WaitingFor             []wait.Strategy
+	Mounts                 []testcontainers.ContainerMount
+	Files                  []testcontainers.ContainerFile
+	HostConfigModifiers    []func(*dockerContainer.HostConfig)
+	Privileged             bool
 }
 
 // To be used as a builder whose Build() method provides the actual instance capable of being started, and that
@@ -168,8 +168,8 @@ func (container Container) WithName(name string) Container {
 	return container
 }
 
-func (container Container) WithNetworks(networks ...string) Container {
-	container.ContainerNetworks = append(container.ContainerNetworks, networks...)
+func (container Container) WithNetworkLabels(labels ...string) Container {
+	container.ContainerNetworkLabels = append(container.ContainerNetworkLabels, labels...)
 	return container
 }
 
@@ -254,7 +254,7 @@ func (container Container) Build() *Container {
 		}
 	}
 
-	container.req = &testcontainers.ContainerRequest{
+	baseRequest := testcontainers.ContainerRequest{
 		User:               container.User,
 		Image:              container.Image,
 		FromDockerfile:     container.Dockerfile,
@@ -264,45 +264,61 @@ func (container Container) Build() *Container {
 		ExposedPorts:       container.ExposedPorts,
 		Files:              container.Files,
 		Name:               container.ContainerName,
-		Networks:           container.ContainerNetworks,
 		Mounts:             container.Mounts,
 		Labels:             container.Labels,
 		Privileged:         container.Privileged,
 		HostConfigModifier: hostConfigModifier,
 		WaitingFor:         wait.ForAll(container.WaitingFor...).WithDeadline(startupTimeout),
 	}
+
+	genericReq := testcontainers.GenericContainerRequest{
+		ContainerRequest: baseRequest,
+		Started:          false,
+	}
+
+	if len(container.ContainerNetworkLabels) > 0 {
+		networks, err := container.createNetworksIfNecessary(context.Background())
+		if err != nil {
+			panic(fmt.Errorf("failed to create/resolve networks: %w", err))
+		}
+		for _, net := range networks {
+			err := withNetworkAliases([]string{container.ContainerName}, net)(&genericReq)
+			if err != nil {
+				panic(fmt.Errorf("failed to attach to network %q: %w", net.Name, err))
+			}
+		}
+	}
+
+	// Update the container's internal request pointer
+	container.req = &genericReq.ContainerRequest
 	return &container
 }
 
-func (container *Container) Start(ctx context.Context) (err error) {
+func (c *Container) Start(ctx context.Context) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("panic: %v, %s", r, string(debug.Stack()))
 		}
 	}()
 
-	if container.req == nil {
+	if c.req == nil {
 		return fmt.Errorf("cannot start a container that hasn't been built")
 	}
 
-	req := testcontainers.GenericContainerRequest{
-		ContainerRequest: *container.req,
+	startedCtr, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
+		ContainerRequest: *c.req,
 		Started:          true,
-	}
-
-	err = container.createNetworksIfNecessary(req)
+	})
 	if err != nil {
-		return nil
+		return fmt.Errorf("container start failed: %w", err)
 	}
 
-	var started testcontainers.Container
-	started, err = testcontainers.GenericContainer(ctx, req)
-	container.container = &started
-	return
+	c.container = startedCtr
+	return nil
 }
 
 func (container *Container) assertStarted(operation string) error {
-	if container.container == nil || (*container.container) == nil {
+	if container.container == nil || (container.container) == nil {
 		return fmt.Errorf("cannot invoke %s() on unstarted container", operation)
 	}
 	return nil
@@ -312,75 +328,75 @@ func (container *Container) Stop(ctx context.Context, timeout *time.Duration) er
 	if err := container.assertStarted("Stop"); err != nil {
 		return err
 	}
-	return (*container.container).Stop(ctx, timeout)
+	return (container.container).Stop(ctx, timeout)
 }
 
 func (container *Container) GetContainerID() string {
 	if err := container.assertStarted("GetContainerID"); err != nil {
 		return ""
 	}
-	return (*container.container).GetContainerID()
+	return (container.container).GetContainerID()
 }
 
 func (container *Container) Endpoint(ctx context.Context, s string) (string, error) {
 	if err := container.assertStarted("Endpoint"); err != nil {
 		return "", err
 	}
-	return (*container.container).Endpoint(ctx, s)
+	return (container.container).Endpoint(ctx, s)
 }
 
 func (container *Container) PortEndpoint(ctx context.Context, port nat.Port, s string) (string, error) {
 	if err := container.assertStarted("PortEndpoint"); err != nil {
 		return "", err
 	}
-	return (*container.container).PortEndpoint(ctx, port, s)
+	return (container.container).PortEndpoint(ctx, port, s)
 }
 
 func (container *Container) Host(ctx context.Context) (string, error) {
 	if err := container.assertStarted("Host"); err != nil {
 		return "", err
 	}
-	return (*container.container).Host(ctx)
+	return (container.container).Host(ctx)
 }
 
 func (container *Container) MappedPort(ctx context.Context, port nat.Port) (nat.Port, error) {
 	if err := container.assertStarted("MappedPort"); err != nil {
 		return "", err
 	}
-	return (*container.container).MappedPort(ctx, port)
+	return (container.container).MappedPort(ctx, port)
 }
 
 func (container *Container) Ports(ctx context.Context) (nat.PortMap, error) {
 	if err := container.assertStarted("Ports"); err != nil {
 		return nil, err
 	}
-	return (*container.container).Ports(ctx)
+	return (container.container).Ports(ctx)
 }
 
 func (container *Container) SessionID() string {
 	if err := container.assertStarted("SessionID"); err != nil {
 		return ""
 	}
-	return (*container.container).SessionID()
+	return (container.container).SessionID()
 }
 
 func (container *Container) Terminate(ctx context.Context) error {
 	if err := container.assertStarted("Terminate"); err != nil {
 		return err
 	}
-	return (*container.container).Terminate(ctx)
+	return (container.container).Terminate(ctx)
 }
 
 func (container *Container) Logs(ctx context.Context) (io.ReadCloser, error) {
 	if err := container.assertStarted("Logs"); err != nil {
 		return nil, err
 	}
-	return (*container.container).Logs(ctx)
+	return (container.container).Logs(ctx)
 }
 
 func (container *Container) FollowOutput(consumer testcontainers.LogConsumer) {
 	if err := container.assertStarted("FollowOutput"); err == nil {
-		(*container.container).FollowOutput(consumer)
+		(container.container).FollowOutput(consumer)
 	}
 }
 
@@ -388,95 +404,95 @@ func (container *Container) StartLogProducer(ctx context.Context) error {
 	if err := container.assertStarted("StartLogProducer"); err != nil {
 		return err
 	}
-	return (*container.container).StartLogProducer(ctx)
+	return (container.container).StartLogProducer(ctx)
 }
 
 func (container *Container) StopLogProducer() error {
 	if err := container.assertStarted("StopLogProducer"); err != nil {
 		return err
 	}
-	return (*container.container).StopLogProducer()
+	return (container.container).StopLogProducer()
 }
 
 func (container *Container) Name(ctx context.Context) (string, error) {
 	if err := container.assertStarted("Name"); err != nil {
 		return "", err
 	}
-	return (*container.container).Name(ctx)
+	return (container.container).Name(ctx)
 }
 
 func (container *Container) Networks(ctx context.Context) ([]string, error) {
 	if err := container.assertStarted("Networks"); err != nil {
 		return nil, err
 	}
-	return (*container.container).Networks(ctx)
+	return (container.container).Networks(ctx)
 }
 
 func (container *Container) NetworkAliases(ctx context.Context) (map[string][]string, error) {
 	if err := container.assertStarted("NetworkAliases"); err != nil {
 		return nil, err
 	}
-	return (*container.container).NetworkAliases(ctx)
+	return (container.container).NetworkAliases(ctx)
 }
 
 func (container *Container) Exec(ctx context.Context, cmd []string, options ...exec.ProcessOption) (int, io.Reader, error) {
 	if err := container.assertStarted("Exec"); err != nil {
 		return 0, nil, err
 	}
-	return (*container.container).Exec(ctx, cmd, options...)
+	return (container.container).Exec(ctx, cmd, options...)
 }
 
 func (container *Container) ContainerIP(ctx context.Context) (string, error) {
 	if err := container.assertStarted("ContainerIP"); err != nil {
 		return "", err
 	}
-	return (*container.container).ContainerIP(ctx)
+	return (container.container).ContainerIP(ctx)
 }
 
 func (container *Container) ContainerIPs(ctx context.Context) ([]string, error) {
 	if err := container.assertStarted("ContainerIPs"); err != nil {
 		return nil, err
 	}
-	return (*container.container).ContainerIPs(ctx)
+	return (container.container).ContainerIPs(ctx)
 }
 
 func (container *Container) CopyDirToContainer(ctx context.Context, hostDirPath string, containerParentPath string, fileMode int64) error {
 	if err := container.assertStarted("CopyDirToContainer"); err != nil {
 		return err
 	}
-	return (*container.container).CopyDirToContainer(ctx, hostDirPath, containerParentPath, fileMode)
+	return (container.container).CopyDirToContainer(ctx, hostDirPath, containerParentPath, fileMode)
 }
 
 func (container *Container) CopyFileToContainer(ctx context.Context, hostFilePath string, containerFilePath string, fileMode int64) error {
 	if err := container.assertStarted("CopyFileToContainer"); err != nil {
 		return err
 	}
-	return (*container.container).CopyFileToContainer(ctx, hostFilePath, containerFilePath, fileMode)
+	return (container.container).CopyFileToContainer(ctx, hostFilePath, containerFilePath, fileMode)
 }
 
 func (container *Container) IsRunning() bool {
-	return (*container.container).IsRunning()
+	return (container.container).IsRunning()
 }
 
 func (container *Container) State(ctx context.Context) (*dockerContainer.State, error) {
 	if err := container.assertStarted("State"); err != nil {
 		return nil, err
 	}
-	return (*container).State(ctx)
+	return container.container.State(ctx)
 }
 
 func (container *Container) CopyToContainer(ctx context.Context, fileContent []byte, containerFilePath string, fileMode int64) error {
 	if err := container.assertStarted("CopyToContainer"); err != nil {
 		return err
 	}
-	return (*container.container).CopyToContainer(ctx, fileContent, containerFilePath, fileMode)
+	return (container.container).CopyToContainer(ctx, fileContent, containerFilePath, fileMode)
 }
 
 func (container *Container) CopyFileFromContainer(ctx context.Context, filePath string) (io.ReadCloser, error) {
 	if err := container.assertStarted("CopyFileFromContainer"); err != nil {
 		return nil, err
 	}
-	return (*container.container).CopyFileFromContainer(ctx, filePath)
+	return (container.container).CopyFileFromContainer(ctx, filePath)
 }
 
 // AssertExec will assert that the exec'ed command completes within the specified timeout, returning
@@ -495,39 +511,34 @@ func (container *Container) AssertExec(t testing.TB, timeout time.Duration, cmd 
 	return rc, sout.String(), serr.String()
 }
 
-// Ensures that any required Docker networks exist.
-// If not found, the network is created using the testcontainers-go network module.
-func (container *Container) createNetworksIfNecessary(req testcontainers.GenericContainerRequest) error {
-	ctx := context.Background()
-
-	for _, networkName := range container.ContainerNetworks {
-		// Inline: check if network exists
-		output, err := exec.CommandContext(ctx, "docker", "network", "ls", "--format", "{{.Name}}").Output()
-		if err != nil {
-			return fmt.Errorf("failed to list networks: %w", err)
-		}
-		exists := false
-		for _, line := range strings.Split(strings.TrimSpace(string(output)), "\n") {
-			if line == networkName {
-				exists = true
-				break
-			}
-		}
-		if exists {
-			continue
-		}
-
-		// Create network using modern API
-		_, err = network.New(ctx,
-			network.WithDriver("bridge"),
-			network.WithAttachable(),
-			network.WithLabels(map[string]string{
-				"testcontainers.name": networkName,
-			}),
+func (c *Container) createNetworksIfNecessary(ctx context.Context) ([]*testcontainers.DockerNetwork, error) {
+	var networks []*testcontainers.DockerNetwork
+	for _, label := range c.ContainerNetworkLabels {
+		net, err := tcnetwork.New(ctx,
+			tcnetwork.WithDriver("bridge"),
+			tcnetwork.WithAttachable(),
+			tcnetwork.WithLabels(map[string]string{"test-network-name": label}),
 		)
 		if err != nil {
-			return fmt.Errorf("failed to create network %q: %w", networkName, err)
+			return nil, fmt.Errorf("creating network for %q: %w", label, err)
 		}
+
+		networks = append(networks, net)
 	}
-	return nil
+	return networks, nil
+}
+
+func withNetworkAliases(aliases []string, nw *testcontainers.DockerNetwork) testcontainers.CustomizeRequestOption {
+	return func(req *testcontainers.GenericContainerRequest) error {
+		if req.NetworkAliases == nil {
+			req.NetworkAliases = make(map[string][]string)
+		}
+		req.Networks = append(req.Networks, nw.Name)
+		alias := aliases
+		if len(alias) == 0 || alias[0] == "" {
+			alias = []string{"default-alias"}
+		}
+		req.NetworkAliases[nw.Name] = alias
+		return nil
+	}
 }

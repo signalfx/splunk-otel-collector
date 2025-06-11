@@ -20,8 +20,11 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/testcontainers/testcontainers-go/network"
 	"io"
+	"os/exec"
 	"runtime/debug"
+	"strings"
 	"testing"
 	"time"
 
@@ -31,8 +34,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/exec"
-	"github.com/testcontainers/testcontainers-go/network"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
@@ -494,22 +495,39 @@ func (container *Container) AssertExec(t testing.TB, timeout time.Duration, cmd 
 	return rc, sout.String(), serr.String()
 }
 
-// Will create any networks that don't already exist on system.
-// Teardown/cleanup is handled by the testcontainers reaper.
-func (container *Container) createNetworksIfNecessary(req *testcontainers.GenericContainerRequest) error {
+// Ensures that any required Docker networks exist.
+// If not found, the network is created using the testcontainers-go network module.
+func (container *Container) createNetworksIfNecessary(req testcontainers.GenericContainerRequest) error {
+	ctx := context.Background()
+
 	for _, networkName := range container.ContainerNetworks {
-		// Create a custom network
-		newNetwork, err := network.New(context.Background(),
-			network.WithDriver("bridge"),
-			network.WithAttachable(),
-			network.WithLabels(map[string]string{"name": networkName}),
-		)
+		// Inline: check if network exists
+		output, err := exec.CommandContext(ctx, "docker", "network", "ls", "--format", "{{.Name}}").Output()
 		if err != nil {
-			return fmt.Errorf("failed to create network %s: %w", networkName, err)
+			return fmt.Errorf("failed to list networks: %w", err)
+		}
+		exists := false
+		for _, line := range strings.Split(strings.TrimSpace(string(output)), "\n") {
+			if line == networkName {
+				exists = true
+				break
+			}
+		}
+		if exists {
+			continue
 		}
 
-		// Attach the container to the network
-		req.Networks = append(req.Networks, newNetwork.Name)
+		// Create network using modern API
+		_, err = network.New(ctx,
+			network.WithDriver("bridge"),
+			network.WithAttachable(),
+			network.WithLabels(map[string]string{
+				"testcontainers.name": networkName,
+			}),
+		)
+		if err != nil {
+			return fmt.Errorf("failed to create network %q: %w", networkName, err)
+		}
 	}
 	return nil
 }

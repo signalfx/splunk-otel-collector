@@ -1,4 +1,4 @@
-name: cross-compile
+name: compile
 
 on:
   workflow_call:

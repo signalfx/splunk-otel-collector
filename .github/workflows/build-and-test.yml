@@ -22,6 +22,7 @@ jobs:
   tidy:
     name: tidy
     runs-on: ubuntu-24.04
+    needs: [setup-environment]
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4

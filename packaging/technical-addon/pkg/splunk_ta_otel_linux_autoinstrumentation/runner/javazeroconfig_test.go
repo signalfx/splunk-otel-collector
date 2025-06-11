@@ -27,10 +27,12 @@ func TestZeroConfig(t *testing.T) {
 		testDir        string
 		modInputs      *SplunkTAOtelLinuxAutoinstrumentationModularInputs
 		expectedConfig string
+		preload        bool
 	}{
 		{
-			testname: "happypath",
+			testname: "happypath-preload",
 			testDir:  t.TempDir(),
+			preload:  false,
 			modInputs: &SplunkTAOtelLinuxAutoinstrumentationModularInputs{
 				SplunkOtelJavaAutoinstrumentationJarPath: SplunkTAOtelLinuxAutoinstrumentationModInput{
 					Value: "Splunk_TA_otel_linux_autoinstrumentation/linux_x86_64/bin/splunk-otel-javaagent.jar",
@@ -41,7 +43,7 @@ func TestZeroConfig(t *testing.T) {
 					Name:  "autoinstrumentation_path",
 				},
 				AutoinstrumentationPreloadPath: SplunkTAOtelLinuxAutoinstrumentationModInput{
-					Value: "ld.preload",
+					Value: "/etc/ld.so.preload",
 					Name:  "autoinstrumentation_preload_path",
 				},
 				ZeroconfigPath: SplunkTAOtelLinuxAutoinstrumentationModInput{
@@ -91,12 +93,14 @@ SPLUNK_METRICS_ENABLED=false
 			tc.modInputs.SplunkOtelJavaAutoinstrumentationJarPath.Value = filepath.Join(tc.testDir, tc.modInputs.SplunkOtelJavaAutoinstrumentationJarPath.Value)
 
 			require.NoError(tt, CreateZeroConfigJava(tc.modInputs))
-
-			assert.FileExists(tt, tc.modInputs.AutoinstrumentationPath.Value)
-			assert.FileExists(tt, tc.modInputs.AutoinstrumentationPreloadPath.Value)
 			assert.FileExists(tt, tc.modInputs.SplunkOtelJavaAutoinstrumentationJarPath.Value)
 			testaddon.AssertFileShasEqual(t, expectedJar, tc.modInputs.SplunkOtelJavaAutoinstrumentationJarPath.Value)
-			// Test value
+			assert.FileExists(tt, tc.modInputs.AutoinstrumentationPath.Value)
+			if tc.preload {
+				assert.FileExists(tt, tc.modInputs.AutoinstrumentationPreloadPath.Value)
+			} else {
+				assert.NoFileExists(tt, tc.modInputs.AutoinstrumentationPreloadPath.Value)
+			}
 			require.FileExists(tt, tc.modInputs.ZeroconfigPath.Value)
 			expectedPath := filepath.Join(tc.testDir, "expected-zeroconfig.conf")
 			assert.NoFileExists(tt, expectedPath)
@@ -139,6 +143,8 @@ func TestHappyPath(t *testing.T) {
 		SplunkGroup: "root",
 		WaitStrategy: wait.ForAll(
 			wait.ForExec([]string{"sudo", "stat", "/opt/splunk/var/log/splunk/splunkd.log"}),
+			wait.ForExec([]string{"sudo", "stat", "/opt/splunk/var/log/splunk/Splunk_TA_otel_linux_autoinstrumentation.log"}),
+			//wait.ForExec([]string{"sudo", "stat", "/opt/splunk/var/log/splunk/Splunk_TA_otel.log"}),
 			// This shouldn't work unless the addon is run with a root user
 			//wait.ForExec([]string{"sudo", "grep", "error running splunk linux autoinstrumentation addon: Error opening /etc/ld.so.preload: open /etc/ld.so.preload: permission denied", "/opt/splunk/var/log/splunk/splunkd.log"}),
 		)})
@@ -194,11 +200,7 @@ func TestHappyPath(t *testing.T) {
 	read, err = io.ReadAll(output)
 	assert.NoError(t, err)
 	assert.Contains(t, string(read), strings.TrimSpace(javaAgent256Sum))
-	//time.Sleep(1 * time.Hour)
-	//c6c5de80e1cbd4bba132f645d7caaef0f64a3efafa76478cdfdd24639eb6f00e
 	//
-	//wait.ForExec([]string{"sudo", "stat", "/opt/splunk/var/log/splunk/Splunk_TA_otel_linux_autoinstrumentation.log"}),
-	//	wait.ForExec([]string{"sudo", "stat", "/opt/splunk/var/log/splunk/Splunk_TA_otel.log"}),
 
 	assert.NoError(t, tc.Terminate(ctx))
 }

@@ -70,11 +70,11 @@ func StartSplunk(t *testing.T, startOpts SplunkStartOpts) testcontainers.Contain
 			"SPLUNK_USER":       startOpts.SplunkUser,
 			"SPLUNK_GROUP":      startOpts.SplunkGroup,
 		},
-		WaitingFor: wait.ForHealthCheck().WithStartupTimeout(4 * time.Minute),
-		//WaitingFor: wait.ForAll(
-		//	//wait.NewHTTPStrategy("/en-US/account/login").WithPort("8000"),
-		//	startOpts.WaitStrategy,
-		//).WithStartupTimeoutDefault(10 * time.Minute).WithDeadline(10*time.Minute + 20*time.Second),
+		//WaitingFor: wait.ForHealthCheck().WithStartupTimeout(4 * time.Minute),
+		WaitingFor: wait.ForAll(
+			wait.NewHTTPStrategy("/en-US/account/login").WithPort("8000").WithStartupTimeout(20*time.Minute),
+			startOpts.WaitStrategy,
+		).WithStartupTimeoutDefault(20 * time.Minute).WithDeadline(20*time.Minute + 20*time.Second),
 		LogConsumerCfg: &testcontainers.LogConsumerConfig{
 			Consumers: []testcontainers.LogConsumer{&testLogConsumer{t: t}},
 		},

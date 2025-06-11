@@ -10,7 +10,7 @@
 
 ### 🧰 Bug fixes 🧰
 
-- Fix bug causing MSI installation failure when specified variables had spaces in their values (relevant when `splunk_otel_collector_version` >= `0.98.0`). ([#6288](https://github.com/signalfx/splunk-otel-collector/pull/6288))
+- Fix bug causing Windows deployment failure when specified variables had spaces in their values (relevant when `splunk_otel_collector_version` >= `0.98.0`). ([#6288](https://github.com/signalfx/splunk-otel-collector/pull/6288))
 - Fix bug causing custom variables to not be set for MSI installation (relevant when `splunk_otel_collector_version` >= `0.98.0`). ([#6288](https://github.com/signalfx/splunk-otel-collector/pull/6288))
 
 ## ansible-v0.31.0

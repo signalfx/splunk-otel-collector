@@ -87,6 +87,11 @@
 - set_fact:
     msi_arguments: "{{ args_with_spaces + args_without_spaces }}"
 
+- name: Join msi argument list into space separated string
+  when: splunk_collector_msi_is_configurable is defined
+  set_fact:
+    msi_arguments: "{{ msi_arguments | join(' ') }}"
+
 - name: Install splunk-otel-collector-msi
   when: splunk_collector_msi_is_configurable is defined
   ansible.windows.win_package:

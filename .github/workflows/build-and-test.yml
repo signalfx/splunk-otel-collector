@@ -15,10 +15,13 @@ env:
   GO_VERSION: 1.23.8
 
 jobs:
+  setup-environment:
+    name: setup-environment
+    uses: ./.github/workflows/setup-go-env.yml
+
   tidy:
     name: tidy
     runs-on: ubuntu-24.04
-    uses: ./.github/workflows/setup-go-env.yml
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4
@@ -41,7 +44,7 @@ jobs:
   gofmt:
     name: gofmt
     runs-on: ubuntu-24.04
-    uses: ./.github/workflows/setup-go-env.yml
+    needs: [setup-environment]
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4
@@ -64,7 +67,7 @@ jobs:
   generate-metrics:
     name: generate-metrics
     runs-on: ubuntu-24.04
-    uses: ./.github/workflows/setup-go-env.yml
+    needs: [setup-environment]
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4
@@ -89,7 +92,7 @@ jobs:
   lint:
     name: lint
     runs-on: ubuntu-24.04
-    uses: ./.github/workflows/setup-go-env.yml
+    needs: [setup-environment]
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4
@@ -115,7 +118,7 @@ jobs:
   test:
     name: test
     runs-on: ubuntu-24.04
-    uses: ./.github/workflows/setup-go-env.yml
+    needs: [setup-environment]
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4
@@ -151,7 +154,7 @@ jobs:
   coverage:
     name: coverage
     runs-on: ubuntu-24.04
-    uses: ./.github/workflows/setup-go-env.yml
+    needs: [setup-environment]
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4

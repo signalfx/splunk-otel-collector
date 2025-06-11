@@ -92,7 +92,7 @@ func installCollector(t *testing.T, version string, msiPath string) {
 func verifyServiceExists(t *testing.T, scm *mgr.Mgr) {
 	service, err := scm.OpenService(serviceName)
 	require.NoError(t, err)
-	defer service.Close()
+	service.Close()
 }
 
 func verifyServiceState(t *testing.T, scm *mgr.Mgr, desiredState svc.State) {
@@ -111,7 +111,7 @@ func verifyServiceState(t *testing.T, scm *mgr.Mgr, desiredState svc.State) {
 func getCurrentServiceVersion(t *testing.T) string {
 	// Read the service version from the registry, need to find the GUID registry key
 	// given the service name.
-	key, err := registry.OpenKey(registry.LOCAL_MACHINE, "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall", registry.ALL_ACCESS)
+	key, err := registry.OpenKey(registry.LOCAL_MACHINE, `Software\Microsoft\Windows\CurrentVersion\Uninstall`, registry.ALL_ACCESS)
 	require.NoError(t, err)
 	defer key.Close()
 
@@ -120,7 +120,7 @@ func getCurrentServiceVersion(t *testing.T) string {
 	require.NoError(t, err)
 
 	for _, subKey := range subKeys {
-		subKeyPath := fmt.Sprintf("Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\%s", subKey)
+		subKeyPath := fmt.Sprintf(`Software\Microsoft\Windows\CurrentVersion\Uninstall\%s`, subKey)
 		subKeyHandle, err := registry.OpenKey(registry.LOCAL_MACHINE, subKeyPath, registry.QUERY_VALUE)
 		if err != nil {
 			continue

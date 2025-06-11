@@ -11,7 +11,6 @@ env:
   GO_VERSION: 1.23.8
 
 jobs:
-  # NOTE: Caller must call reusable workflow setup-environment beforehand
   compile:
     name: compile
     runs-on: ubuntu-24.04

@@ -27,7 +27,8 @@
 
 - name: Append custom variables to existing registry contents
   when:
-    - registry_contents is defined
+    - splunk_collector_msi_is_configurable is defined
+    - splunk_otel_collector_options_list is defined
   set_fact:
     splunk_otel_collector_options_list:
       "{{ registry_contents.properties.Environment.value + splunk_otel_collector_options_list }}"

@@ -1,3 +1,5 @@
+name: cross-compile
+
 on:
   workflow_call:
 

@@ -124,6 +124,10 @@
     If specified, the -mode parameter will be ignored.
     .EXAMPLE
     .\install.ps1 -config_path "C:\SOME_FOLDER\my_config.yaml"
+.PARAMETER preserve_prev_default_config
+   (OPTIONAL) Preserve the default configuration files, located at `$Env:ProgramData\Splunk\OpenTelemetry Collector`, of previous version when upgrading the collector. By default it is $false since version changes can include breaking configuration changes.
+   .EXAMPLE
+    .\install.ps1 -preserve_prev_default_config $true
 #>
 
 param (
@@ -145,6 +149,7 @@ param (
     [string]$msi_path = "",
     [string]$msi_public_properties = "",
     [string]$config_path = "",
+    [bool]$preserve_prev_default_config = $false,
     [string]$collector_msi_url = "",
     [string]$fluentd_msi_url = "",
     [string]$dotnet_psm1_path = "",
@@ -370,8 +375,27 @@ function download_collector_package([string]$collector_version=$collector_versio
 }
 
 # check registry for the agent msi package
-function msi_installed([string]$name) {
-    return (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where { $_.DisplayName -eq $name }) -ne $null
+function is_msi_installed([string]$name) {
+    return $null -ne (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where { $_.DisplayName -eq $name })
+}
+
+function get_msi_installation_sids([string]$name) {
+    $sids = [string[]]@()
+
+    $uninstallEntry = Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* -ErrorAction SilentlyContinue | 
+        Where-Object { $_.DisplayName -eq $name }
+    if ($uninstallEntry) {
+        $userInstalls = Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\*\Products\*\InstallProperties' -ErrorAction SilentlyContinue |
+            Where-Object { $_.DisplayName -eq $name }
+        foreach ($user in $userInstalls) {
+            if ($user.PSPath -match 'UserData\\(?<SID>S-1-[0-9\-]+)') {
+                $sid = $Matches['SID']
+                $sids += , @($sid)
+            }
+        }
+    }
+
+    return $sids
 }
 
 function update_registry([string]$path, [string]$name, [string]$value) {
@@ -413,6 +437,22 @@ function install_msi([string]$path) {
     Write-Host "- Done"
 }
 
+function uninstall_msi([string]$product_name) {
+    Write-Host "Uninstalling $product_name ..."
+    $uninstall_entry = Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* -ErrorAction SilentlyContinue | 
+        Where-Object { $_.DisplayName -eq $product_name } | Select-Object -First 1
+    if (-not $uninstall_entry) {
+        throw "Failed to find the uninstall entry for $product_name"
+    }
+    Write-Host "/X `"$($uninstall_entry.PSChildName)`" /qn /norestart"
+    $proc = (Start-Process msiexec.exe -Wait -PassThru -ArgumentList "/X `"$($uninstall_entry.PSChildName)`" /qn /norestart")
+    if ($proc.ExitCode -ne 0) {
+        Write-Warning "The uninstall attempt failed with error code $($proc.ExitCode)."
+        Exit $proc.ExitCode
+    }
+    Write-Host "- Done"
+}
+
 $ErrorActionPreference = 'Stop'; # stop on all errors
 
 # check administrator status
@@ -427,12 +467,47 @@ if (!(check_if_admin)) {
 echo 'Checking execution policy'
 check_policy
 
-if (msi_installed -name "Splunk OpenTelemetry Collector") {
-    throw "The Splunk OpenTelemetry Collector is already installed. Remove or uninstall the Collector and rerun this script."
-}
-
 if (Get-Service -Name $service_name -ErrorAction SilentlyContinue) {
-    throw "The $service_name service is already installed. Remove or uninstall the Collector and rerun this script."
+    Write-Host "The $service_name service is already installed. Checking installation for automatic update."
+
+    $skip_uninstall = $false
+    $collector_sids = get_msi_installation_sids -name "Splunk OpenTelemetry Collector"
+    if ($collector_sids.Count -eq 0) {
+        $skip_uninstall = $true
+        Write-Warning "The $service_name service exists but it is not on the Windows installation database."
+    }
+    else {
+        if ($collector_sids.Count -gt 1) {
+            $sids_list = $collector_sids -join ", "
+            throw "The Splunk OpenTelemetry Collector is already installed for multiple users (SIDs: $sids_list). Uninstalling the collector and remove remaining users installations."
+        }
+        else {
+            if ("S-1-5-18" -ne $collector_sids[0]) {
+                # not a machine wide installation, check if it is the same user
+                $currentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent()
+                $currentUserSID = $currentUser.User.Value
+                if ($currentUserSID -ne $collector_sids[0]) {
+                    $sid = New-Object System.Security.Principal.SecurityIdentifier($userSid)
+                    $user = $sid.Translate([System.Security.Principal.NTAccount])
+                    throw "The Splunk OpenTelemetry Collector was last installed by '${user.Value}' it must be updated or uninstalled by the same user." 
+                }
+            }
+        }
+    }
+
+    Write-Host "Stopping $service_name service..."
+    stop_service -name "$service_name"
+    if (-not $skip_uninstall) {
+        uninstall_msi -product_name "Splunk OpenTelemetry Collector"
+    }
+    if (-not $preserve_prev_default_config) {
+        $default_config_files = @("agent_config.yaml", "gateway_config.yaml")
+        foreach ($file in $default_config_files) {
+            $target = Join-Path "${Env:ProgramData}\Splunk\OpenTelemetry Collector" "$file"
+            Write-Host "Deleting previous version default configuration file '$target'"
+            Remove-Item -Path $target
+        }
+    }
 }
 
 if ($with_fluentd -And (Get-Service -name $fluentd_service_name -ErrorAction SilentlyContinue)) {
@@ -447,7 +522,7 @@ if ($with_fluentd -And (Test-Path -Path "$fluentd_base_dir\bin\fluentd")) {
 $tempdir = create_temp_dir -tempdir $tempdir
 
 if ($with_dotnet_instrumentation) {
-    if ((msi_installed -name "SignalFx .NET Tracing 64-bit") -Or (msi_installed -name "SignalFx .NET Tracing 32-bit")) {
+    if ((is_msi_installed -name "SignalFx .NET Tracing 64-bit") -Or (is_msi_installed -name "SignalFx .NET Tracing 32-bit")) {
         throw "SignalFx .NET Instrumentation is already installed. Stop all instrumented applications and uninstall SignalFx Instrumentation for .NET before running this script again."
     }
     echo "Downloading Splunk Distribution of OpenTelemetry .NET ..."

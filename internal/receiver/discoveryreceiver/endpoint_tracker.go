@@ -39,6 +39,8 @@ const (
 
 // identifyingAttrKeys are the keys of attributes that are used to identify an entity.
 var identifyingAttrKeys = []string{
+	serviceTypeAttr,
+	semconv.AttributeServiceName,
 	semconv.AttributeK8SPodUID,
 	semconv.AttributeContainerID,
 	semconv.AttributeK8SNodeUID,
@@ -135,7 +137,7 @@ func (et *endpointTracker) stop() {
 
 func (et *endpointTracker) emitEntityStateEvents(observerCID component.ID, endpoints []observer.Endpoint) {
 	if et.pLogs != nil {
-		entityEvents, numFailed, err := entityStateEvents(observerCID, endpoints, et.correlations, time.Now())
+		entityEvents, numFailed, err := entityEvents(observerCID, endpoints, et.correlations, time.Now(), experimentalmetricmetadata.EventTypeState)
 		if err != nil {
 			et.logger.Warn(fmt.Sprintf("failed converting %v endpoints to entity state events", numFailed), zap.Error(err))
 		}
@@ -145,9 +147,10 @@ func (et *endpointTracker) emitEntityStateEvents(observerCID component.ID, endpo
 	}
 }
 
-func (et *endpointTracker) emitEntityDeleteEvents(endpoints []observer.Endpoint) {
+func (et *endpointTracker) emitEntityDeleteEvents(observerCID component.ID, endpoints []observer.Endpoint) {
 	if et.pLogs != nil {
-		entityEvents, numFailed, err := entityDeleteEvents(endpoints, time.Now())
+		entityEvents, numFailed, err := entityEvents(observerCID, endpoints, et.correlations, time.Now(),
+			experimentalmetricmetadata.EventTypeDelete)
 		if err != nil {
 			et.logger.Warn(fmt.Sprintf("failed converting %v endpoints to entity delete events", numFailed), zap.Error(err))
 		}
@@ -226,18 +229,18 @@ func (n *notify) OnRemove(removed []observer.Endpoint) {
 			n.endpointTracker.correlations.MarkStale(endpoint.ID)
 		}
 	}
-	n.endpointTracker.emitEntityDeleteEvents(matchingEndpoints)
+	n.endpointTracker.emitEntityDeleteEvents(n.observerID, matchingEndpoints)
 }
 
 func (n *notify) OnChange(changed []observer.Endpoint) {
 	n.endpointTracker.updateEndpoints(changed, n.observerID)
 }
 
-// entityStateEvents converts observer endpoints to entity state events excluding those
+// entityEvents converts observer endpoints to entity state events excluding those
 // that don't have a discovery status attribute yet.
-func entityStateEvents(observerID component.ID, endpoints []observer.Endpoint, correlations *correlationStore,
-	ts time.Time) (ees experimentalmetricmetadata.EntityEventsSlice, failed int, err error) {
-	entityEvents := experimentalmetricmetadata.NewEntityEventsSlice()
+func entityEvents(observerID component.ID, endpoints []observer.Endpoint, correlations *correlationStore,
+	ts time.Time, eventType experimentalmetricmetadata.EventType) (ees experimentalmetricmetadata.EntityEventsSlice, failed int, err error) {
+	events := experimentalmetricmetadata.NewEntityEventsSlice()
 	for _, endpoint := range endpoints {
 		if endpoint.Details == nil {
 			failed++
@@ -251,17 +254,11 @@ func entityStateEvents(observerID component.ID, endpoints []observer.Endpoint, c
 			continue
 		}
 
-		entityEvent := entityEvents.AppendEmpty()
-		entityEvent.SetTimestamp(pcommon.NewTimestampFromTime(ts))
-		entityState := entityEvent.SetEntityState()
-		entityState.SetEntityType(entityType)
-		attrs := entityState.Attributes()
-		if envAttrs, e := endpointEnvToAttrs(endpoint.Details.Type(), endpoint.Details.Env()); e != nil {
+		attrs, e := endpointEnvToAttrs(endpoint.Details.Type(), endpoint.Details.Env())
+		if e != nil {
 			err = multierr.Combine(err, fmt.Errorf("failed determining attributes for %q: %w", endpoint.ID, e))
 			failed++
-		} else {
-			// this must be the first mutation of attrs since it's destructive
-			envAttrs.CopyTo(attrs)
+			continue
 		}
 		attrs.PutStr("type", string(endpoint.Details.Type()))
 		attrs.PutStr(discovery.EndpointIDAttr, string(endpoint.ID))
@@ -273,31 +270,21 @@ func entityStateEvents(observerID component.ID, endpoints []observer.Endpoint, c
 		}
 		attrs.PutStr(serviceTypeAttr, deduceServiceType(attrs))
 		attrs.PutStr(semconv.AttributeServiceName, deduceServiceName(attrs))
-		extractIdentifyingAttrs(attrs, entityEvent.ID())
-	}
-	return entityEvents, failed, err
-}
 
-func entityDeleteEvents(endpoints []observer.Endpoint, ts time.Time) (ees experimentalmetricmetadata.EntityEventsSlice, failed int, err error) {
-	entityEvents := experimentalmetricmetadata.NewEntityEventsSlice()
-	for _, endpoint := range endpoints {
-		if endpoint.Details == nil {
-			failed++
-			err = multierr.Combine(err, fmt.Errorf("endpoint %q has no details", endpoint.ID))
-			continue
-		}
-
-		entityEvent := entityEvents.AppendEmpty()
-		entityEvent.SetTimestamp(pcommon.NewTimestampFromTime(ts))
-		entityEvent.SetEntityDelete()
-		if envAttrs, e := endpointEnvToAttrs(endpoint.Details.Type(), endpoint.Details.Env()); e != nil {
-			err = multierr.Combine(err, fmt.Errorf("failed determining attributes for %q: %w", endpoint.ID, e))
-			failed++
-		} else {
-			extractIdentifyingAttrs(envAttrs, entityEvent.ID())
+		event := events.AppendEmpty()
+		event.SetTimestamp(pcommon.NewTimestampFromTime(ts))
+		extractIdentifyingAttrs(attrs, event.ID())
+		switch eventType {
+		case experimentalmetricmetadata.EventTypeState:
+			entityState := event.SetEntityState()
+			entityState.SetEntityType(entityType)
+			attrs.MoveTo(entityState.Attributes())
+		case experimentalmetricmetadata.EventTypeDelete:
+			deleteEvent := event.SetEntityDelete()
+			deleteEvent.SetEntityType(entityType)
 		}
 	}
-	return entityEvents, failed, err
+	return events, failed, err
 }
 
 func endpointEnvToAttrs(endpointType observer.EndpointType, endpointEnv observer.EndpointEnv) (pcommon.Map, error) {

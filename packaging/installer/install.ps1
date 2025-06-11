@@ -482,7 +482,7 @@ if (Get-Service -Name $service_name -ErrorAction SilentlyContinue) {
     else {
         if ($collector_sids.Count -gt 1) {
             $sids_list = $collector_sids -join ", "
-            throw "The Splunk OpenTelemetry Collector is already installed for multiple users (SIDs: $sids_list). Uninstalling the collector and remove remaining users installations."
+            throw "The $CollectorServiceDisplayName is already installed for multiple users (SIDs: $sids_list). Uninstall the collector and remove remaining users installations from the registry."
         }
 
         # "S-1-5-18" is the SID for the Local System account, which is used for machine-wide installations.
@@ -493,7 +493,7 @@ if (Get-Service -Name $service_name -ErrorAction SilentlyContinue) {
             if ($currentUserSID -ne $collector_sids[0]) {
                 $sid = New-Object System.Security.Principal.SecurityIdentifier($userSid)
                 $user = $sid.Translate([System.Security.Principal.NTAccount])
-                throw "The Splunk OpenTelemetry Collector was last installed by '${user.Value}' it must be updated or uninstalled by the same user." 
+                throw "The $CollectorServiceDisplayName was last installed by '${user.Value}' it must be updated or uninstalled by the same user." 
             }
         }
     }
@@ -668,7 +668,7 @@ if ($network_interface -Ne "") {
 set_service_environment $service_name $collector_env_vars
 
 $message = "
-The Splunk OpenTelemetry Collector for Windows has been successfully installed.
+The $CollectorServiceDisplayName for Windows has been successfully installed.
 Make sure that your system's time is relatively accurate or else datapoints may not be accepted.
 The collector's main configuration file is located at $config_path,
 and the environment variables are stored in the $regkey registry key.
@@ -721,7 +721,7 @@ if ($with_fluentd) {
     install_msi -path "$fluentd_msi_path"
 
     $message = "
-Fluentd has been installed and configured to forward log events to the Splunk OpenTelemetry Collector.
+Fluentd has been installed and configured to forward log events to the $CollectorServiceDisplayName.
 By default, all log events with the @SPLUNK label will be forwarded to the collector.
 
 The main fluentd configuration file is located at $fluentd_config_path.
@@ -782,7 +782,7 @@ if ($with_dotnet_instrumentation) {
     }
 
     $message = "
-Splunk Distribution of OpenTelemetry for .NET has been installed and configured to forward traces to the Splunk OpenTelemetry Collector.
+Splunk Distribution of OpenTelemetry for .NET has been installed and configured to forward traces to the $CollectorServiceDisplayName.
 By default, the .NET instrumentation will automatically generate telemetry only for .NET applications running on IIS.
 "
     echo "$message"

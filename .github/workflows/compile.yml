@@ -2,19 +2,19 @@ name: cross-compile
 
 on:
   workflow_call:
+    inputs:
+      sys_binary:
+        required: true
+        type: string
 
 env:
   GO_VERSION: 1.23.8
 
 jobs:
-
   # NOTE: Caller must call reusable workflow setup-environment beforehand
-  cross-compile:
-    name: cross-compile
+  compile:
+    name: compile
     runs-on: ubuntu-24.04
-    strategy:
-      matrix:
-        SYS_BINARIES: [ "binaries-darwin_amd64", "binaries-darwin_arm64", "binaries-linux_amd64", "binaries-linux_arm64", "binaries-windows_amd64", "binaries-linux_ppc64le" ]
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4
@@ -27,11 +27,11 @@ jobs:
 
       - name: Build Collector
         run: |
-          make ${{ matrix.SYS_BINARIES }}
+          make ${{ inputs.sys_binary }}
 
       - name: Uploading binaries
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.SYS_BINARIES }}
+          name: ${{ inputs.sys_binary }}
           path: |
             ./bin/*

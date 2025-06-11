@@ -73,7 +73,6 @@
     args_with_spaces: "{{ args_with_spaces + [item | ansible.builtin.regex_replace(_regex, _replacement)] }}"
   vars:
     _regex: '^(.*)=(.*)$'
-    # Backticks are required to escape the double quotes
     _replacement: '\1="\2"'
   loop: "{{ msi_arguments }}"
 
@@ -88,64 +87,17 @@
 - set_fact:
     msi_arguments: "{{ args_with_spaces + args_without_spaces }}"
 
-- debug:
-    var: args_without_spaces
-
-- debug:
-    var: args_with_spaces
-
-- debug:
-    var: msi_arguments
-
 - name: Join msi argument list into space separated string
   when: splunk_collector_msi_is_configurable is defined
   set_fact:
     msi_arguments: "{{ msi_arguments | join(' ') }}"
-
-- debug:
-    var: msi_arguments
-
-- name: Set the MSI install log path
-  ansible.builtin.set_fact:
-    msi_install_log_path: "C:\\Users\\vagrant\\AppData\\Local\\Temp\\{{ lookup('pipe', 'date +%Y%m%dT%H%M%S') }}.log"
-  when: splunk_collector_msi_is_configurable is defined
 
 - name: Install splunk-otel-collector-msi
   when: splunk_collector_msi_is_configurable is defined
   ansible.windows.win_package:
     path: "{{ otel_msi_package.dest }}"
     state: present
-    log_path: "{{ msi_install_log_path }}"
     arguments: "{{ msi_arguments }}"
-  ignore_errors: true
-  register: msi_installed
-
-- debug:
-    var: msi_installed
-
-- name: Stat log path for splunk-otel-collector MSI install
-  ansible.windows.win_stat:
-    path: "{{ msi_install_log_path }}"
-  register: msi_install_log_stat
-  ignore_errors: true
-  when: splunk_collector_msi_is_configurable is defined
-
-- debug:
-    var: msi_install_log_stat
-
-- name: Fetch log file from splunk-otel-collector MSI install to host
-  ansible.builtin.fetch:
-    src: "{{ msi_install_log_path }}"
-    dest: /tmp/log/
-    flat: true
-  ignore_errors: true
-  when: splunk_collector_msi_is_configurable is defined
-
-- name: Fail if MSI install failed
-  ansible.builtin.fail:
-    msg: "Splunk OpenTelemetry Collector MSI installation failed. Check the log file for details."
-  # TODO: This condition needs fixed to account for any failure other than async
-  when: msi_installed.rc is not defined and splunk_collector_msi_is_configurable is defined
 
 - name: Install splunk-otel-collector-msi-legacy
   when: splunk_collector_msi_is_configurable is undefined
@@ -155,19 +107,16 @@
 
 - name: Merge custom config into the default config
   ansible.builtin.import_tasks: config_override.yml
-  when:
-    - splunk_config_override != ''
+  when: splunk_config_override != ''
 
 - name: Copy the custom config
   ansible.windows.win_copy:
     content: '{{ updated_config | to_nice_yaml (indent=2) }}'
     dest: "{{ splunk_otel_collector_config }}"
-  when:
-    - splunk_config_override != ''
+  when: splunk_config_override != ''
 
 - name: Push Custom Config file for splunk-otel-collector, If provided
   ansible.windows.win_template:
     src: "{{splunk_otel_collector_config_source}}"
     dest: "{{splunk_otel_collector_config}}"
-  when:
-    - splunk_otel_collector_config_source != ""
+  when: splunk_otel_collector_config_source != ""

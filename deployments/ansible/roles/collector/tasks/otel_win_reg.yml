@@ -8,7 +8,7 @@
   loop: >
     {{ splunk_otel_collector_options | default({}) | combine(splunk_otel_collector_additional_env_vars) | dict2items }}
 
-- name: Get Splunk OpenTelemetry Collector options list (only custom config variables
+- name: Get Splunk OpenTelemetry Collector options list (only custom config variables)
   when: splunk_collector_msi_is_configurable is defined
   set_fact:
     splunk_otel_collector_options_list: |-
@@ -25,22 +25,9 @@
     path: "{{ splunk_otel_collector_service_registry_key }}"
   register: registry_contents
 
-- debug:
-    var: registry_contents
-  when:
-    - splunk_collector_msi_is_configurable is defined
-    - splunk_otel_collector_options_list is defined
-
-- debug:
-    var: registry_contents.properties.Environment.value
-  when:
-    - splunk_collector_msi_is_configurable is defined
-    - splunk_otel_collector_options_list is defined
-
 - name: Append custom variables to existing registry contents
   when:
-    - splunk_collector_msi_is_configurable is defined
-    - splunk_otel_collector_options_list is defined
+    - registry_contents is defined
   set_fact:
     splunk_otel_collector_options_list:
       "{{ registry_contents.properties.Environment.value + splunk_otel_collector_options_list }}"

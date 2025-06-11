@@ -40,8 +40,7 @@ const (
 )
 
 func TestUpgradeFromNonMachineWideVersion(t *testing.T) {
-	os.Setenv("VERIFY_ACCESS_TOKEN", "false")
-	defer os.Unsetenv("VERIFY_ACCESS_TOKEN")
+	t.Setenv("VERIFY_ACCESS_TOKEN", "false")
 
 	requireNoPendingFileOperations(t)
 
@@ -79,6 +78,8 @@ func installCollector(t *testing.T, version string, msiPath string) {
 		args = append(args, "-collector_version", version)
 	} else if msiPath != "" {
 		args = append(args, "-msi_path", msiPath)
+	} else {
+		require.Fail(t, "Either version or msiPath must be provided")
 	}
 
 	cmd := exec.Command("powershell.exe", args...)
@@ -147,13 +148,11 @@ func requireNoPendingFileOperations(t *testing.T) {
 	defer pendingFileRenameKey.Close()
 	pendingFileRenameEntries, _, err := pendingFileRenameKey.GetStringsValue("PendingFileRenameOperations")
 	if err != nil {
-		if err != registry.ErrNotExist {
-			require.NoError(t, err, "Failed to read PendingFileRenameOperations")
-		}
+		require.ErrorIs(t, err, registry.ErrNotExist)
 	}
 
 	for _, fileName := range pendingFileRenameEntries {
-		if strings.Contains(fileName, "plunk") {
+		if strings.Contains(strings.ToLower(fileName), "splunk") {
 			require.Fail(t, "Found pending file rename: %s", fileName)
 		}
 	}

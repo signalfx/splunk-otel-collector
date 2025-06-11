@@ -290,7 +290,7 @@ jobs:
   windows-script-upgrade-test:
     strategy:
       matrix:
-        OS: [ "windows-2022" ]
+        OS: [ "windows-2022", "windows-2025" ]
     runs-on: otel-windows # Tests with uninstall require a more powerful runner
     needs: [msi-test, windows-install-script-test]
     timeout-minutes: 45
@@ -321,7 +321,7 @@ jobs:
       - name: Run the script upgrade tests
         shell: powershell # Use PowerShell to run the script since running the go test from pwsh.exe hides the Get-ExecutionPolicy cmdlet.
         run: |
-          go test -timeout 15m -v github.com/signalfx/splunk-otel-collector/tests/windows-install-script
+          go test -v github.com/signalfx/splunk-otel-collector/tests/windows-install-script
 
   choco-build:
     runs-on: ${{ matrix.OS }}

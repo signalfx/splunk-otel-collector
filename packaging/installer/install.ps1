@@ -159,6 +159,8 @@ param (
     [bool]$UNIT_TEST = $false
 )
 
+New-Variable -Name UninstallWildcardRegPath  -Option Constant -Value "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*"
+New-Variable -Name CollectorServiceDisplayName -Option Constant -Value "Splunk OpenTelemetry Collector"
 $arch = "amd64"
 $format = "msi"
 $service_name = "splunk-otel-collector"
@@ -375,19 +377,21 @@ function download_collector_package([string]$collector_version=$collector_versio
 }
 
 # check registry for the agent msi package
-function is_msi_installed([string]$name) {
-    return $null -ne (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where { $_.DisplayName -eq $name })
+function is_msi_installed([string]$product_name) {
+    return $null -ne (Get-ItemProperty $UninstallWildcardRegPath | Where { $_.DisplayName -eq $product_name })
 }
 
-function get_msi_installation_sids([string]$name) {
+function get_msi_installation_sids([string]$product_name) {
     $sids = [string[]]@()
 
-    $uninstallEntry = Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* -ErrorAction SilentlyContinue | 
-        Where-Object { $_.DisplayName -eq $name }
+    $uninstallEntry = Get-ItemProperty $UninstallWildcardRegPath -ErrorAction SilentlyContinue | 
+        Where-Object { $_.DisplayName -eq $product_name }
     if ($uninstallEntry) {
         $userInstalls = Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\*\Products\*\InstallProperties' -ErrorAction SilentlyContinue |
-            Where-Object { $_.DisplayName -eq $name }
+            Where-Object { $_.DisplayName -eq $product_name }
         foreach ($user in $userInstalls) {
+            # Not all entries are valid user SIDS, e.g.: some are SIDs with suffixes like "_Classes"
+            # We only want the SIDs.
             if ($user.PSPath -match 'UserData\\(?<SID>S-1-[0-9\-]+)') {
                 $sid = $Matches['SID']
                 $sids += , @($sid)
@@ -439,12 +443,11 @@ function install_msi([string]$path) {
 
 function uninstall_msi([string]$product_name) {
     Write-Host "Uninstalling $product_name ..."
-    $uninstall_entry = Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* -ErrorAction SilentlyContinue | 
+    $uninstall_entry = Get-ItemProperty $UninstallWildcardRegPath -ErrorAction SilentlyContinue | 
         Where-Object { $_.DisplayName -eq $product_name } | Select-Object -First 1
     if (-not $uninstall_entry) {
-        throw "Failed to find the uninstall entry for $product_name"
+        throw "Failed to find the uninstall registry entry for $product_name"
     }
-    Write-Host "/X `"$($uninstall_entry.PSChildName)`" /qn /norestart"
     $proc = (Start-Process msiexec.exe -Wait -PassThru -ArgumentList "/X `"$($uninstall_entry.PSChildName)`" /qn /norestart")
     if ($proc.ExitCode -ne 0) {
         Write-Warning "The uninstall attempt failed with error code $($proc.ExitCode)."
@@ -470,10 +473,10 @@ check_policy
 if (Get-Service -Name $service_name -ErrorAction SilentlyContinue) {
     Write-Host "The $service_name service is already installed. Checking installation for automatic update."
 
-    $skip_uninstall = $false
-    $collector_sids = get_msi_installation_sids -name "Splunk OpenTelemetry Collector"
+    $uninstall_collector = $true
+    $collector_sids = get_msi_installation_sids -product_name $CollectorServiceDisplayName
     if ($collector_sids.Count -eq 0) {
-        $skip_uninstall = $true
+        $uninstall_collector = $false
         Write-Warning "The $service_name service exists but it is not on the Windows installation database."
     }
     else {
@@ -481,24 +484,24 @@ if (Get-Service -Name $service_name -ErrorAction SilentlyContinue) {
             $sids_list = $collector_sids -join ", "
             throw "The Splunk OpenTelemetry Collector is already installed for multiple users (SIDs: $sids_list). Uninstalling the collector and remove remaining users installations."
         }
-        else {
-            if ("S-1-5-18" -ne $collector_sids[0]) {
-                # not a machine wide installation, check if it is the same user
-                $currentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent()
-                $currentUserSID = $currentUser.User.Value
-                if ($currentUserSID -ne $collector_sids[0]) {
-                    $sid = New-Object System.Security.Principal.SecurityIdentifier($userSid)
-                    $user = $sid.Translate([System.Security.Principal.NTAccount])
-                    throw "The Splunk OpenTelemetry Collector was last installed by '${user.Value}' it must be updated or uninstalled by the same user." 
-                }
+
+        # "S-1-5-18" is the SID for the Local System account, which is used for machine-wide installations.
+        if ("S-1-5-18" -ne $collector_sids[0]) {
+            # not a machine wide installation, check if it is the same user
+            $currentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent()
+            $currentUserSID = $currentUser.User.Value
+            if ($currentUserSID -ne $collector_sids[0]) {
+                $sid = New-Object System.Security.Principal.SecurityIdentifier($userSid)
+                $user = $sid.Translate([System.Security.Principal.NTAccount])
+                throw "The Splunk OpenTelemetry Collector was last installed by '${user.Value}' it must be updated or uninstalled by the same user." 
             }
         }
     }
 
     Write-Host "Stopping $service_name service..."
     stop_service -name "$service_name"
-    if (-not $skip_uninstall) {
-        uninstall_msi -product_name "Splunk OpenTelemetry Collector"
+    if ($uninstall_collector) {
+        uninstall_msi -product_name $CollectorServiceDisplayName
     }
     if (-not $preserve_prev_default_config) {
         $default_config_files = @("agent_config.yaml", "gateway_config.yaml")

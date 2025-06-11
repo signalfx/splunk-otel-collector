@@ -303,6 +303,10 @@ jobs:
         with:
           name: msi-build-${{ matrix.OS }}
           path: ./dist
+      - name: Ensure required ports in the dynamic range are available
+        run: |
+          $ErrorActionPreference = 'Continue'
+          & ${{ github.workspace }}\.github\workflows\scripts\win-required-ports.ps1
 
       - name: Set the MSI_COLLECTOR_PATH and INSTALL_SCRIPT_PATH environment variable
         run: |
@@ -315,6 +319,7 @@ jobs:
           "INSTALL_SCRIPT_PATH=$ps1_path" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Run the script upgrade tests
+        shell: powershell # Use PowerShell to run the script since running the go test from pwsh.exe hides the Get-ExecutionPolicy cmdlet.
         run: |
           go test -timeout 15m -v github.com/signalfx/splunk-otel-collector/tests/windows-install-script
 

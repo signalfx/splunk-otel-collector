@@ -85,7 +85,7 @@ func installCollector(t *testing.T, version string, msiPath string) {
 
 	output, err := cmd.CombinedOutput()
 	t.Logf("Install output: %s", string(output))
-	require.NoError(t, err, "Failed to install collector (version:%q msiPath:%q", version, msiPath)
+	require.NoError(t, err, "Failed to install collector (version:%q msiPath:%q)", version, msiPath)
 }
 
 func verifyServiceExists(t *testing.T, scm *mgr.Mgr) {

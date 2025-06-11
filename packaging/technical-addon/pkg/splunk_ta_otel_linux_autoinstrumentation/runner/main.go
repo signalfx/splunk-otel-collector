@@ -55,15 +55,17 @@ func run() int {
 		}
 	}
 	if err != nil {
-		log.Errorf("Error parsing modinput: %v", err)
+		log.Errorf("Error parsing modinput: %+v", err)
 		panic(err)
 	}
 	modInputs := GetSplunkTAOtelLinuxAutoinstrumentationModularInputs(mip)
 	err = Run(modInputs)
 	if err != nil {
-		log.Errorf("error running splunk linux autoinstrumentation addon: %v", err)
+		log.Errorf("error running splunk linux autoinstrumentation addon: %+v", err)
 		panic(err)
 	}
+	log.Println("Successfully autoinstrumented opentelemetry via the splunk addon for such")
+	// set up trap
 	return 0
 }
 
@@ -74,7 +76,7 @@ func grepFile(search string, filepath string) (bool, error) {
 		return false, nil
 	}
 	if err != nil {
-		return false, nil
+		return false, err
 	}
 	defer file.Close()
 
@@ -110,22 +112,26 @@ func Instrument(modInputs *SplunkTAOtelLinuxAutoinstrumentationModularInputs) er
 }
 
 func AutoinstrumentLdPreload(modInputs *SplunkTAOtelLinuxAutoinstrumentationModularInputs) error {
-	found, err := grepFile(modInputs.AutoinstrumentationPreloadPath.Value, modInputs.AutoinstrumentationPath.Value)
+	found, err := grepFile(modInputs.AutoinstrumentationPath.Value, modInputs.AutoinstrumentationPreloadPath.Value)
 	if err != nil {
 		return err
 	}
 	if !found {
+		// todo check modinputs for backup of file
 		if err = BackupFile(modInputs.AutoinstrumentationPreloadPath.Value); err != nil {
 			return err
 		}
-		f, err2 := os.OpenFile(modInputs.AutoinstrumentationPreloadPath.Value, os.O_APPEND|os.O_WRONLY, 0644)
+		f, err2 := os.OpenFile(modInputs.AutoinstrumentationPreloadPath.Value, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
 		if err2 != nil {
-			return fmt.Errorf("Error opening %s: %v\n", modInputs.AutoinstrumentationPath.Value, err)
+			return fmt.Errorf("Error opening %s: %w\n", modInputs.AutoinstrumentationPreloadPath.Value, err2)
 		}
 		defer f.Close()
-		if _, err = f.WriteString(modInputs.AutoinstrumentationPath.Value + "\n"); err != nil {
-			return fmt.Errorf("Error writing to %s: %v\n", modInputs.AutoinstrumentationPreloadPath.Value, err)
+		if _, err2 = f.WriteString(modInputs.AutoinstrumentationPath.Value + "\n"); err2 != nil {
+			return fmt.Errorf("Error writing to %s: %w\n", modInputs.AutoinstrumentationPreloadPath.Value, err2)
 		}
+		log.Printf("Successfully autoinstrumented preload at %v with %v \n", modInputs.AutoinstrumentationPreloadPath.Value, modInputs.AutoinstrumentationPath.Value)
+	} else {
+		log.Printf("Preload already autoinstrumented with %v at %v  \n", modInputs.AutoinstrumentationPath.Value, modInputs.AutoinstrumentationPreloadPath.Value)
 	}
 	return nil
 }
@@ -138,7 +144,7 @@ func BackupFile(currPath string) error {
 	if _, err := os.Stat(currPath); errors.Is(err, os.ErrNotExist) {
 		return nil
 	}
-	dir := filepath.Base(currPath)
+	dir := filepath.Dir(currPath)
 	ogFilename := filepath.Base(currPath)
 	newPathName := filepath.Join(dir, fmt.Sprintf("%s.%v", ogFilename, time.Now().UnixNano()))
 	if _, err := fileutils.CopyFile(currPath, newPathName); err != nil {

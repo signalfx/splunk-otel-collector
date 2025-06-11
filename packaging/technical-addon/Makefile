@@ -55,7 +55,11 @@ gen-modinput-config:
 		ls -lAh $(BUILD_DIR); \
 	done
 
-build-ta-runners: gen-modinput-config ta-build-deps-all
+.PHONY: build-tas
+build-tas: gen-modinput-config ta-build-deps-all build-ta-runners 
+
+.PHONY: build-ta-runners
+build-ta-runners:
 	@echo "Building runner binaries..."
 	@for schema in $(MODULAR_INPUT_SCHEMAS); do \
 		echo "Building $$schema..."; \

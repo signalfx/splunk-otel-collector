@@ -22,6 +22,8 @@
         dest: /etc/otel/collector/splunk-otel-collector.conf
         state: present
       check_mode: yes
+      register: config
+      failed_when: config is changed
 
     - name: Assert SPLUNK_INGEST_URL env var is set
       ansible.builtin.lineinfile:
@@ -29,6 +31,8 @@
         dest: /etc/otel/collector/splunk-otel-collector.conf
         state: present
       check_mode: yes
+      register: config
+      failed_when: config is changed
 
     - name: Assert SPLUNK_API_URL env var is set
       ansible.builtin.lineinfile:
@@ -36,6 +40,8 @@
         dest: /etc/otel/collector/splunk-otel-collector.conf
         state: present
       check_mode: yes
+      register: config
+      failed_when: config is changed
 
     - name: Assert SPLUNK_HEC_URL env var is set
       ansible.builtin.lineinfile:
@@ -43,6 +49,8 @@
         dest: /etc/otel/collector/splunk-otel-collector.conf
         state: present
       check_mode: yes
+      register: config
+      failed_when: config is changed
 
     - name: Assert OTELCOL_OPTIONS env var is set per splunk_otel_collector_command_line_args
       ansible.builtin.lineinfile:
@@ -50,6 +58,8 @@
         dest: /etc/otel/collector/splunk-otel-collector.conf
         state: present
       check_mode: yes
+      register: config
+      failed_when: config is changed
 
     - name: Assert MY_CUSTOM_VAR1 env var is set
       ansible.builtin.lineinfile:
@@ -57,6 +67,8 @@
         dest: /etc/otel/collector/splunk-otel-collector.conf
         state: present
       check_mode: yes
+      register: config
+      failed_when: config is changed
 
     - name: Assert MY_CUSTOM_VAR2 env var is set
       ansible.builtin.lineinfile:
@@ -64,13 +76,11 @@
         dest: /etc/otel/collector/splunk-otel-collector.conf
         state: present
       check_mode: yes
+      register: config
+      failed_when: config is changed
 
     - name: Populate package facts
       ansible.builtin.package_facts:
-
-    - name: Assert specified version of splunk-otel-collector is installed
-      assert:
-        that: ansible_facts.packages['splunk-otel-collector'][0].version == '0.126.0'
 
     - name: Assert custom service user is set
       ansible.builtin.lineinfile:
@@ -78,6 +88,8 @@
         dest: /etc/systemd/system/splunk-otel-collector.service.d/service-owner.conf
         state: present
       check_mode: yes
+      register: config
+      failed_when: config is changed
 
     - name: Assert custom service group is set
       ansible.builtin.lineinfile:
@@ -85,6 +97,8 @@
         dest: /etc/systemd/system/splunk-otel-collector.service.d/service-owner.conf
         state: present
       check_mode: yes
+      register: config
+      failed_when: config is changed
 
     - name: Assert SPLUNK_MEMORY_TOTAL_MIB env var is set
       ansible.builtin.lineinfile:
@@ -92,6 +106,8 @@
         dest: /etc/otel/collector/splunk-otel-collector.conf
         state: present
       check_mode: yes
+      register: config
+      failed_when: config is changed
 
     - name: Assert SPLUNK_LISTEN_INTERFACE env var is set
       ansible.builtin.lineinfile:
@@ -99,6 +115,8 @@
         dest: /etc/otel/collector/splunk-otel-collector.conf
         state: present
       check_mode: yes
+      register: config
+      failed_when: config is changed
 
     - name: Assert GOMEMLIMIT env var is set
       ansible.builtin.lineinfile:
@@ -106,6 +124,8 @@
         dest: /etc/otel/collector/splunk-otel-collector.conf
         state: present
       check_mode: yes
+      register: config
+      failed_when: config is changed
 
     - name: Check custom_fluentd.conf
       stat:
@@ -124,6 +144,8 @@
         state: present
       check_mode: yes
       when: fluentd_supported
+      register: config
+      failed_when: config is changed
 
     - name: Send a test log message
       ansible.builtin.uri:

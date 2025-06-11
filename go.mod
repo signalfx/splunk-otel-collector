@@ -769,4 +769,6 @@ replace github.com/pires/go-proxyproto v1.0.0 => github.com/peteski22/go-proxypr
 // github.com/veraison/go-cose v1.2.0 doesn't exists but required by the latest github.com/Microsoft/hcsshim
 replace github.com/veraison/go-cose v1.2.0 => github.com/veraison/go-cose v1.1.1
 
+// This is only needed for splunk-otel-collector 0.127.0 and can be removed in 0.128.0
+// See: https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40103/files#diff-2bb8e77bc0a07447b4df98ee53c775b57b842fe5d8a649c52506406aeb18c1c8
 replace github.com/prometheus/common v0.64.0 => github.com/prometheus/common v0.62.0

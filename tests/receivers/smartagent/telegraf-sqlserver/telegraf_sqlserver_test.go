@@ -35,14 +35,14 @@ func TestTelegrafSQLServerReceiverProvidesAllMetrics(t *testing.T) {
 	testutils.SkipIfNotContainerTest(t)
 	server := testutils.NewContainer().WithContext(
 		path.Join(".", "testdata", "server"),
-	).WithExposedPorts("1433:1433").WithName("sql-server").WithNetworks(
+	).WithExposedPorts("1433:1433").WithName("sql-server").WithNetworkLabels(
 		"mssql",
 	).WillWaitForPorts("1433").WillWaitForLogs(
 		"SQL Server is now ready for client connections.", "Recovery is complete.")
 
 	client := testutils.NewContainer().WithContext(
 		path.Join(".", "testdata", "client"),
-	).WithName("sql-client").WithNetworks("mssql").WillWaitForLogs("name", "signalfxagent")
+	).WithName("sql-client").WithNetworkLabels("mssql").WillWaitForLogs("name", "signalfxagent")
 
 	tc := testutils.NewTestcase(t)
 	defer tc.PrintLogsOnFailure()

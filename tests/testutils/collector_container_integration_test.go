@@ -33,7 +33,7 @@ import (
 func TestTestcontainersContainerMethods(t *testing.T) {
 	alpine := NewContainer().WithImage("alpine").WithEntrypoint("sh", "-c").WithCmd(
 		"echo rdy > /tmp/something && tail -f /tmp/something",
-	).WithExposedPorts("12345:12345").WithName("my-alpine").WithNetworks(
+	).WithExposedPorts("12345:12345").WithName("my-alpine").WithNetworkLabels(
 		"bridge", "network_a", "network_b",
 	).WillWaitForLogs("rdy").Build()
 

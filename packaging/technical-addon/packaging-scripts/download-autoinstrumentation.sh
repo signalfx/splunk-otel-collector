@@ -12,10 +12,10 @@ if [ "$PLATFORM" == "linux" ] || [ "$PLATFORM" == "all" ]; then
   # Copy our .so, which is made in the build step of the autoinstrumentation Makefile
   cp "${AUTOINSTRUMENTATION_DIR}/dist/libsplunk_amd64.so" "${BUILD_DIR}/Splunk_TA_otel_linux_autoinstrumentation/linux_x86_64/bin/libsplunk_amd64.so"
 
-  java_agent_path="${BUILD_DIR}/Splunk_TA_otel_linux_autoinstrumentation/linux_x86_64/bin/splunk-otel-${NODEJS_VERSION#v}.tgz"
-  nodejs_agent_path="${BUILD_DIR}/Splunk_TA_otel_linux_autoinstrumentation/linux_x86_64/bin/splunk-otel-javaagent.jar"
-  wget --timestamping "https://github.com/signalfx/splunk-otel-js/releases/download/${NODEJS_VERSION}/splunk-otel-${NODEJS_VERSION#v}.tgz" --output-document "$java_agent_path"
-  wget --timestamping "https://github.com/signalfx/splunk-otel-java/releases/download/${JAVA_VERSION}/splunk-otel-javaagent.jar" --output-document  "$nodejs_agent_path"
+  nodejs_agent_path="${BUILD_DIR}/Splunk_TA_otel_linux_autoinstrumentation/linux_x86_64/bin/splunk-otel-${NODEJS_VERSION#v}.tgz"
+  java_agent_path="${BUILD_DIR}/Splunk_TA_otel_linux_autoinstrumentation/linux_x86_64/bin/splunk-otel-javaagent.jar"
+  wget --timestamping "https://github.com/signalfx/splunk-otel-js/releases/download/${NODEJS_VERSION}/splunk-otel-${NODEJS_VERSION#v}.tgz" --output-document "$nodejs_agent_path"
+  wget --timestamping "https://github.com/signalfx/splunk-otel-java/releases/download/${JAVA_VERSION}/splunk-otel-javaagent.jar" --output-document  "$java_agent_path"
   # Needed for go:embed
   echo "$JAVA_VERSION" > "${SOURCE_DIR}/pkg/splunk_ta_otel_linux_autoinstrumentation/runner/java-agent-release.txt"
   echo "$NODEJS_VERSION" > "${SOURCE_DIR}/pkg/splunk_ta_otel_linux_autoinstrumentation/runner/nodejs-agent-release.txt"

@@ -6,12 +6,15 @@ import (
 	"github.com/docker/docker/pkg/fileutils"
 	"github.com/splunk/splunk-technical-addon/internal/packaging"
 	"github.com/splunk/splunk-technical-addon/internal/testaddon"
+	"github.com/splunk/splunk-technical-addon/internal/testcommon"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	tcexec "github.com/testcontainers/testcontainers-go/exec"
 	"github.com/testcontainers/testcontainers-go/wait"
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -20,9 +23,10 @@ func TestZeroConfig(t *testing.T) {
 	require.FileExists(t, expectedJar)
 
 	tests := []struct {
-		testname  string
-		testDir   string
-		modInputs *SplunkTAOtelLinuxAutoinstrumentationModularInputs
+		testname       string
+		testDir        string
+		modInputs      *SplunkTAOtelLinuxAutoinstrumentationModularInputs
+		expectedConfig string
 	}{
 		{
 			testname: "happypath",
@@ -69,20 +73,35 @@ func TestZeroConfig(t *testing.T) {
 					Name:  "remove",
 				},
 			},
+			expectedConfig: `JAVA_TOOL_OPTIONS=-javaagent:REPLACED_WITH_TESTDIR/Splunk_TA_otel_linux_autoinstrumentation/linux_x86_64/bin/splunk-otel-javaagent.jar
+OTEL_RESOURCE_ATTRIBUTES=splunk.zc.method=splunk-otel-auto-instrumentation-v2.15.0,asdasd
+SPLUNK_PROFILER_ENABLED=false
+SPLUNK_PROFILER_MEMORY_ENABLED=false
+SPLUNK_METRICS_ENABLED=false
+`,
 		},
 	}
-	for _, tt := range tests {
-		t.Run(tt.testname, func(t *testing.T) {
-			tt.modInputs.ZeroconfigPath.Value = filepath.Join(tt.testDir, tt.modInputs.ZeroconfigPath.Value)
-			tt.modInputs.AutoinstrumentationPath.Value = filepath.Join(tt.testDir, tt.modInputs.AutoinstrumentationPath.Value)
-			tt.modInputs.SplunkOtelJavaAutoinstrumentationJarPath.Value = filepath.Join(tt.testDir, tt.modInputs.SplunkOtelJavaAutoinstrumentationJarPath.Value)
+	for _, tc := range tests {
+		t.Run(tc.testname, func(tt *testing.T) {
+			require.NoError(tt, os.CopyFS(filepath.Join(tc.testDir, "Splunk_TA_otel_linux_autoinstrumentation"), os.DirFS(filepath.Join(packaging.GetBuildDir(), "Splunk_TA_otel_linux_autoinstrumentation"))))
 
-			require.NoError(t, CreateZeroConfigJava(tt.modInputs))
+			tc.modInputs.ZeroconfigPath.Value = filepath.Join(tc.testDir, tc.modInputs.ZeroconfigPath.Value)
+			tc.modInputs.AutoinstrumentationPath.Value = filepath.Join(tc.testDir, tc.modInputs.AutoinstrumentationPath.Value)
+			tc.modInputs.AutoinstrumentationPreloadPath.Value = filepath.Join(tc.testDir, tc.modInputs.AutoinstrumentationPreloadPath.Value)
+			tc.modInputs.SplunkOtelJavaAutoinstrumentationJarPath.Value = filepath.Join(tc.testDir, tc.modInputs.SplunkOtelJavaAutoinstrumentationJarPath.Value)
 
-			assert.FileExists(t, tt.modInputs.ZeroconfigPath.Value)
-			//assert.FileExists(t, tt.modInputs.AutoinstrumentationPath.Value)
-			//assert.FileExists(t, tt.modInputs.SplunkOtelJavaAutoinstrumentationJarPath.Value)
-			//testaddon.AssertFileShasEqual(t, expectedJar, tt.modInputs.SplunkOtelJavaAutoinstrumentationJarPath.Value)
+			require.NoError(tt, CreateZeroConfigJava(tc.modInputs))
+
+			assert.FileExists(tt, tc.modInputs.AutoinstrumentationPath.Value)
+			assert.FileExists(tt, tc.modInputs.AutoinstrumentationPreloadPath.Value)
+			assert.FileExists(tt, tc.modInputs.SplunkOtelJavaAutoinstrumentationJarPath.Value)
+			testaddon.AssertFileShasEqual(t, expectedJar, tc.modInputs.SplunkOtelJavaAutoinstrumentationJarPath.Value)
+			// Test value
+			require.FileExists(tt, tc.modInputs.ZeroconfigPath.Value)
+			expectedPath := filepath.Join(tc.testDir, "expected-zeroconfig.conf")
+			assert.NoFileExists(tt, expectedPath)
+			require.NoError(tt, os.WriteFile(expectedPath, []byte(strings.ReplaceAll(tc.expectedConfig, "REPLACED_WITH_TESTDIR", tc.testDir)), 0o644))
+			testcommon.AssertFilesMatch(tt, expectedPath, tc.modInputs.ZeroconfigPath.Value)
 		})
 	}
 }
@@ -110,14 +129,19 @@ func TestHappyPath(t *testing.T) {
 	otelAddonPath := filepath.Join(packaging.GetBuildDir(), "out", "distribution", "Splunk_TA_otel.tgz")
 	repackedOtelAddon := testaddon.RepackAddon(t, otelAddonPath, func(tt *testing.T, addonDir string) error {
 		// TODO copy over a debug output config
-		_, err = fileutils.CopyFile("internal/testdata/happypath/local/ta-agent-config.yaml", filepath.Join(addonDir, "Splunk_TA_otellk", "configs", "ta-agent-config.yaml"))
+		_, err = fileutils.CopyFile("internal/testdata/happypath/local/ta-agent-config.yaml", filepath.Join(addonDir, "Splunk_TA_otel", "configs", "ta-agent-config.yaml"))
 		require.NoError(tt, err)
 		return nil
 	})
-	tc := testaddon.StartSplunk(t, testaddon.SplunkStartOpts{AddonPaths: []string{zcAddonPath, repackedOtelAddon}, WaitStrategy: wait.ForAll(
-		wait.ForExec([]string{"sudo", "stat", "/opt/splunk/var/log/splunk/Splunk_TA_otel_linux_autoinstrumentation.log"}),
-		wait.ForExec([]string{"sudo", "stat", "/opt/splunk/var/log/splunk/Splunk_TA_otel.log"}),
-	)})
+	tc := testaddon.StartSplunk(t, testaddon.SplunkStartOpts{
+		AddonPaths:  []string{zcAddonPath, repackedOtelAddon},
+		SplunkUser:  "root",
+		SplunkGroup: "root",
+		WaitStrategy: wait.ForAll(
+			wait.ForExec([]string{"sudo", "stat", "/opt/splunk/var/log/splunk/splunkd.log"}),
+			// This shouldn't work unless the addon is run with a root user
+			//wait.ForExec([]string{"sudo", "grep", "error running splunk linux autoinstrumentation addon: Error opening /etc/ld.so.preload: open /etc/ld.so.preload: permission denied", "/opt/splunk/var/log/splunk/splunkd.log"}),
+		)})
 
 	// Check Schema
 	ctx := context.Background()
@@ -128,38 +152,53 @@ func TestHappyPath(t *testing.T) {
 	read, err := io.ReadAll(output)
 	assert.NoError(t, err)
 	assert.NotContains(t, string(read), "Invalid Key in Stanza")
-
+	//
+	//// restart splunkd as root user
+	//_, output, err = tc.Exec(ctx, []string{"sudo", "/opt/splunk/bin/splunk", "restart"})
+	//require.NoError(t, err)
+	//read, err = io.ReadAll(output)
+	//assert.NoError(t, err)
+	//assert.NotEmpty(t, string(read))
+	//// Wait to ensure it starts up properly
+	//_, output, err = tc.Exec(ctx, []string{"sudo", "sh", "-c", "'echo restarted>>/tmp/restartedlog'"})
+	//
 	// check log output
 	_, output, err = tc.Exec(ctx, []string{"sudo", "cat", "/opt/splunk/var/log/splunk/Splunk_TA_otel_linux_autoinstrumentation.log"})
 	require.NoError(t, err)
 	read, err = io.ReadAll(output)
 	assert.NoError(t, err)
-	//	assert.NotEmpty(t, read)
+	assert.Contains(t, string(read), "Successfully generated java autoinstrumentation config at /opt/splunk/etc/apps/Splunk_TA_otel_linux_autoinstrumentation/config/zero.conf")
 
 	// Check zeroconfig value
-	_, output, err = tc.Exec(ctx, []string{"sudo", "cat", "/opt/splunk/etc/apps/Splunk_TA_otel_linux_autoinstrumentation/linux_x86_64/config/zero.conf"})
+	_, output, err = tc.Exec(ctx, []string{"sudo", "cat", "/opt/splunk/etc/apps/Splunk_TA_otel_linux_autoinstrumentation/config/zero.conf"}, tcexec.Multiplexed())
+	require.NoError(t, err)
+	read, err = io.ReadAll(output)
+	assert.NoError(t, err)
+	assert.Equal(t, fmt.Sprintf("JAVA_TOOL_OPTIONS=-javaagent:/opt/splunk/etc/apps/Splunk_TA_otel_linux_autoinstrumentation/linux_x86_64/bin/splunk-otel-javaagent.jar\nOTEL_RESOURCE_ATTRIBUTES=splunk.zc.method=splunk-otel-auto-instrumentation-%s\nSPLUNK_PROFILER_ENABLED=false\nSPLUNK_PROFILER_MEMORY_ENABLED=false\nSPLUNK_METRICS_ENABLED=false", strings.TrimSpace(javaVersion)), strings.TrimSpace(string(read)))
+
+	_, output, err = tc.Exec(ctx, []string{"sudo", "cat", "/etc/ld.so.preload"}, tcexec.Multiplexed())
 	require.NoError(t, err)
 	read, err = io.ReadAll(output)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, read)
-	fmt.Println(string(read))
-	// TODO check written value of zeroconfig, existence of ldpreload etc
+	assert.Equal(t, "/opt/splunk/etc/apps/Splunk_TA_otel_linux_autoinstrumentation/linux_x86_64/bin/libsplunk_amd64.so", strings.TrimSpace(string(read)))
 
-	_, output, err = tc.Exec(ctx, []string{"sudo", "cat", "/etc/ld.preload"})
+	_, output, err = tc.Exec(ctx, []string{"sudo", "sha256sum", "/opt/splunk/etc/apps/Splunk_TA_otel_linux_autoinstrumentation/linux_x86_64/bin/libsplunk_amd64.so"}, tcexec.Multiplexed())
 	require.NoError(t, err)
 	read, err = io.ReadAll(output)
 	assert.NoError(t, err)
-	assert.NotEmpty(t, read)
-	fmt.Println(string(read))
+	assert.Contains(t, string(read), "4a9944614212c477cd63f5354026850052f2aa495312fb79ebd24e22dc8953bd")
 
-	_, output, err = tc.Exec(ctx, []string{"sudo", "sha256sum", "/opt/splunk/etc/apps/Splunk_TA_otel_linux_autoinstrumentation/linux_x86_64/bin/libsplunk_amd64.so"})
+	_, output, err = tc.Exec(ctx, []string{"sudo", "sha256sum", "/opt/splunk/etc/apps/Splunk_TA_otel_linux_autoinstrumentation/linux_x86_64/bin/splunk-otel-javaagent.jar"}, tcexec.Multiplexed())
 	require.NoError(t, err)
 	read, err = io.ReadAll(output)
 	assert.NoError(t, err)
-	assert.NotEmpty(t, read)
-	fmt.Println(string(read))
-
+	assert.Contains(t, string(read), strings.TrimSpace(javaAgent256Sum))
 	//time.Sleep(1 * time.Hour)
+	//c6c5de80e1cbd4bba132f645d7caaef0f64a3efafa76478cdfdd24639eb6f00e
+	//
+	//wait.ForExec([]string{"sudo", "stat", "/opt/splunk/var/log/splunk/Splunk_TA_otel_linux_autoinstrumentation.log"}),
+	//	wait.ForExec([]string{"sudo", "stat", "/opt/splunk/var/log/splunk/Splunk_TA_otel.log"}),
 
 	assert.NoError(t, tc.Terminate(ctx))
 }

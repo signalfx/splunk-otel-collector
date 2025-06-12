@@ -198,9 +198,8 @@ jobs:
 
   msi-build:
     runs-on: ubuntu-24.04
-    strategy:
-      matrix:
-        OS: [ "windows-2025" ]
+    env:
+      WINDOWS_VER: "windows-2025"
     needs: [cross-compile, agent-bundle-windows, msi-custom-actions]
     steps:
       - name: Check out the codebase.
@@ -223,7 +222,7 @@ jobs:
       - name: Downloading agent-bundle-windows
         uses: actions/download-artifact@v4
         with:
-          name: agent-bundle-windows-${{ matrix.OS }}
+          name: agent-bundle-windows-$WINDOWS_VER
           path: ./dist
 
       - name: Downloading msi-custom-actions

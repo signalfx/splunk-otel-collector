@@ -10,7 +10,7 @@
     splunk_hec_token: fake-hec-token
     splunk_otel_collector_version: 0.97.0
     splunk_otel_collector_config: '{{ansible_env.ProgramData}}\Splunk\OpenTelemetry Collector\custom_config.yml'
-    splunk_otel_collector_config_source: ./custom_collector_config_deprecated.yml
+    splunk_otel_collector_config_source: ./custom_collector_config.yml
     splunk_memory_total_mib: 256
     gomemlimit: 230
     install_fluentd: yes

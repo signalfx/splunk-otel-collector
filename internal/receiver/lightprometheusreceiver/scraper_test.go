@@ -30,7 +30,7 @@ import (
 	"go.opentelemetry.io/collector/confmap/xconfmap"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/receiver/receivertest"
-	conventions "go.opentelemetry.io/collector/semconv/v1.25.0"
+	conventions "go.opentelemetry.io/otel/semconv/v1.25.0"
 )
 
 func TestScraper(t *testing.T) {

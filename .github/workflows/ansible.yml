@@ -365,6 +365,9 @@ jobs:
         with:
           path: /tmp
 
+      - name: View contents of /tmp
+        run: ls -al /tmp
+
       - name: Install vagrant and virtualbox
         run: |
           sudo apt update && sudo apt install -y virtualbox

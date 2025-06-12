@@ -5,7 +5,7 @@
     paths: /tmp/msi-build
   register: msi_dir_contents
   when: local_artifact_testing_enabled
-  failed_when: "{{ msi_dir_contents.files | length }}" != 1
+  failed_when: msi_dir_contents.files is not defined or msi_dir_contents.files | length != 1
 
 - debug:
     var: msi_dir_contents

@@ -1,5 +1,6 @@
 ---
-- name: Get Splunk OpenTelemetry Collector options list
+- name: Get Splunk OpenTelemetry Collector options list (including default options)
+  when: splunk_collector_msi_is_configurable is not defined
   set_fact:
     splunk_otel_collector_options_list: |-
       {%- set value = item.value -%}
@@ -7,11 +8,38 @@
   loop: >
     {{ splunk_otel_collector_options | default({}) | combine(splunk_otel_collector_additional_env_vars) | dict2items }}
 
+- name: Get Splunk OpenTelemetry Collector options list (only custom config variables)
+  when: splunk_collector_msi_is_configurable is defined
+  set_fact:
+    splunk_otel_collector_options_list: |-
+      {%- set value = item.value -%}
+      {{ (splunk_otel_collector_options_list | default([])) + [item.key + '=' + (value | string)] }}
+  loop: >
+    {{ splunk_otel_collector_additional_env_vars | dict2items }}
+
+- name: Get existing registry contents
+  when:
+    - splunk_collector_msi_is_configurable is defined
+    - splunk_otel_collector_options_list is defined
+  ansible.windows.win_reg_stat:
+    path: "{{ splunk_otel_collector_service_registry_key }}"
+  register: registry_contents
+
+- name: Append custom variables to existing registry contents
+  when:
+    - splunk_collector_msi_is_configurable is defined
+    - splunk_otel_collector_options_list is defined
+  set_fact:
+    splunk_otel_collector_options_list:
+      "{{ registry_contents.properties.Environment.value + splunk_otel_collector_options_list }}"
+
 - name: Set Splunk OpenTelemetry Collector registry value
+  when:
+    - splunk_otel_collector_options_list is defined
   ansible.windows.win_regedit:
     path: "{{ splunk_otel_collector_service_registry_key }}"
     state: present
     name: Environment
-    data: "{{ splunk_otel_collector_options_list | sort }}"
+    data: "{{ splunk_otel_collector_options_list | sort | unique }}"
     type: multistring
   notify: "restart windows splunk-otel-collector"

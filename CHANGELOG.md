@@ -43,6 +43,10 @@ and the [opentelemetry-collector-contrib v0.127.0](https://github.com/open-telem
 
 ### 💡 Enhancements 💡
 
+- (Splunk) Add an install property, `COLLECTOR_SVC_ARGS`, to the Windows MSI to configure the command-line arguments used to launch the collector service on Windows. ([#6268](https://github.com/signalfx/splunk-otel-collector/pull/6268))
+- (Splunk) `discoveryreceiver` Add more metrics that are enabled by default for the SQL Server receiver ([#6259](https://github.com/signalfx/splunk-otel-collector/pull/6259))
+- (Splunk) `discoveryreceiver` Send delete entity events for discovered services ([#6260](https://github.com/signalfx/splunk-otel-collector/pull/6260))
+- (Splunk) Add version change support to Windows install script ([#6304](https://github.com/signalfx/splunk-otel-collector/pull/6304))
 - (Core) `exporter/debug`: Display resource and scope in `normal` verbosity ([#10515](https://github.com/open-telemetry/opentelemetry-collector/pull/10515))
 - (Contrib) `azuremonitorreceiver`: Add support for azureauthextension as a token provider for azuremonitorreceiver. ([#39048](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39048))
 - (Contrib) `kafkaexporter`: Allow Kafka exporter to produce to topics based on metadata key values ([#39208](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39208))
@@ -74,11 +78,6 @@ and the [opentelemetry-collector-contrib v0.127.0](https://github.com/open-telem
 - (Contrib) `sqlserverreceiver`: Add configuration option `top_query_collection.collection_interval` for top query collection to make the collection less frequent. ([#40002](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40002))
   - This change only applies to the `top_query_collection` feature.
   - The default value is `60s`
-
-- (Splunk) Add an install property, `COLLECTOR_SVC_ARGS`, to the Windows MSI to configure the command-line arguments used to launch the collector service on Windows. ([#6268](https://github.com/signalfx/splunk-otel-collector/pull/6268))
-- (Splunk) `discoveryreceiver` Add more metrics that are enabled by default for the SQL Server receiver ([#6259](https://github.com/signalfx/splunk-otel-collector/pull/6259))
-- (Splunk) `discoveryreceiver` Send delete entity events for discovered services ([#6260](https://github.com/signalfx/splunk-otel-collector/pull/6260))
-- (Splunk) Add version change support to Windows install script ([#6304](https://github.com/signalfx/splunk-otel-collector/pull/6304))
 
 ### 🧰 Bug fixes 🧰
 

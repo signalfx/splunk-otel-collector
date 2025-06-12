@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.127.0
+
 ### 🚩 Deprecations 🚩
 
 - (Splunk) `Linux installer script`: Fluentd support has been deprecated and will be removed in a future release. ([#6264](https://github.com/signalfx/splunk-otel-collector/pull/6264))

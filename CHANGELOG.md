@@ -17,7 +17,6 @@ and the [opentelemetry-collector-contrib v0.127.0](https://github.com/open-telem
   - `otelcol.connector.consumed.size`
   - `otelcol.connector.produced.size`
   - `otelcol.exporter.consumed.size`
-  
 - (Contrib) `sqlserverreceiver`: Zero values in delta attributes will be reported in top query collection. ([#40041](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40041))
   This change includes the following attributes:
   - `sqlserver.total_worker_time`
@@ -27,7 +26,6 @@ and the [opentelemetry-collector-contrib v0.127.0](https://github.com/open-telem
   - `sqlserver.total_physical_reads`
   - `sqlserver.total_rows`
   - `sqlserver.total_grant_kb`
-
 - (Contrib) `receiver/sqlserver`: Enable `sqlserver.page.life_expectancy` metric for all configurations ([#39940](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39940))
   This metric was originally only available when running on Windows, but is
   now available for all configuration options, including direct connection.
@@ -52,7 +50,6 @@ and the [opentelemetry-collector-contrib v0.127.0](https://github.com/open-telem
 - (Contrib) `kafkaexporter`: Allow Kafka exporter to produce to topics based on metadata key values ([#39208](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39208))
   Allows the Kafka exporter to dynamically use a signal's export target topic based
   on the value of the pipeline's metadata, allowing dynamic signal routing.
-
 - (Contrib) `processor/tailsampling`: Add first policy match decision to tailsampling processor ([#36795](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/36795))
 - (Contrib) `receiver/k8sclusterreceiver`: Added new resource attributes `k8s.hpa.scaletargetref.kind`, `k8s.hpa.scaletargetref.name`, and `k8s.hpa.scaletargetref.apiversion` to the `k8s.hpa` resource. These attributes are disabled by default. ([#38768](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/38768))
 - (Contrib) `k8sobserver`: Add namespaces setting for scoping k8s client to specific namespaces ([#39677](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39677))
@@ -65,16 +62,12 @@ and the [opentelemetry-collector-contrib v0.127.0](https://github.com/open-telem
   `extract: { metadata: ["service.namespace", "service.name", "service.version", "service.instance.id"] }`
   configuration to the `k8sattributesprocessor` processor.
   See the [documentation](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/k8sattributesprocessor/README.md#configuring-recommended-resource-attributes) for more details.
-
 - (Contrib) `receiver/sqlserver`: Add new metric for disk IO rate on a resource pool ([#39977](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39977))
   The new metric `sqlserver.resource_pool.disk.operations` is disabled by default.
-
 - (Contrib) `receiver/sqlserver`: Add new metric `sqlserver.lock.wait.count` ([#39892](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39892))
   This metric is disabled by default.
-
 - (Contrib) `receiver/sqlserver`: Add new metric to track OS wait times ([#39977](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39977))
   The new metric is named `sqlserver.os.wait.duration` and disabled by default.
-
 - (Contrib) `sqlserverreceiver`: Add configuration option `top_query_collection.collection_interval` for top query collection to make the collection less frequent. ([#40002](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40002))
   - This change only applies to the `top_query_collection` feature.
   - The default value is `60s`
@@ -88,7 +81,6 @@ and the [opentelemetry-collector-contrib v0.127.0](https://github.com/open-telem
   - Splunk responses with a 403 typically indicate an authentication or authorization issue that is not likely to be resolved by retrying.
   - This change ensures that the error is treated as permanent to avoid unnecessary retries.
   - This change is applicable to the `splunkhecexporter` and `signalfxexporter` components.
-
 - (Contrib) `spanmetricsconnector`: Fix bug causing span metrics calls count to be always 0 when using delta temporality ([#40139](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40139))
 - (Contrib) `kafkareceiver, kafkaexporter`: Add support for named encoding extensions in kafkareceiver and kafkaexporter ([#40142](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40142))
 

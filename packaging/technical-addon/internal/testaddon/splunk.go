@@ -80,7 +80,7 @@ func StartSplunk(t *testing.T, startOpts SplunkStartOpts) testcontainers.Contain
 				Target: containerAddonsDir,
 				Type:   mount.TypeBind,
 			})
-			c.AutoRemove = false // change to false for debugging
+			c.AutoRemove = true // change to false for debugging
 		},
 		Env: map[string]string{
 			"SPLUNK_START_ARGS": "--accept-license",
@@ -89,7 +89,6 @@ func StartSplunk(t *testing.T, startOpts SplunkStartOpts) testcontainers.Contain
 			"SPLUNK_USER":       startOpts.SplunkUser,
 			"SPLUNK_GROUP":      startOpts.SplunkGroup,
 		},
-		//WaitingFor: wait.ForHealthCheck().WithStartupTimeout(4 * time.Minute),
 		WaitingFor: wait.ForAll(
 			wait.NewHTTPStrategy("/en-US/account/login").WithPort("8000").WithStartupTimeout(startOpts.Timeout),
 			startOpts.WaitStrategy,

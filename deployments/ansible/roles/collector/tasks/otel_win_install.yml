@@ -1,8 +1,18 @@
 ---
 
+- name: Get path to local MSI on Ansible controller
+  ansible.builtin.find:
+    paths: /tmp/msi-build
+  register: msi_dir_contents
+  when: local_artifact_testing_enabled
+  failed_when: "{{ msi_dir_contents.files | length }}" != 1
+
+- debug:
+    var: msi_dir_contents
+
 - name: Get local MSI installer
   ansible.windows.win_copy:
-    src: /tmp/msi-build/*.msi
+    src: msi_dir_contents.files[0].path
     dest: "%TEMP%"
   register: otel_msi_package
   when: local_artifact_testing_enabled

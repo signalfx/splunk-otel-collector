@@ -2,9 +2,13 @@
 
 - name: Get local MSI installer
   ansible.windows.win_copy:
-    src: /tmp/msi-build
+    src: /tmp/msi-build/*.msi
     dest: "%TEMP%"
   register: otel_msi_package
+  when: local_artifact_testing_enabled
+
+- debug:
+    var: otel_msi_package
   when: local_artifact_testing_enabled
 
 - name: Get remote MSI installer

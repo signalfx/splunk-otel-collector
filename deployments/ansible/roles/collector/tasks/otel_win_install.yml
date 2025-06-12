@@ -15,7 +15,7 @@
   set_fact:
     splunk_collector_msi_is_configurable: true
   when:
-    - splunk_otel_collector_version is version('0.98.0', '>=') or local_artifact_testing_enabled
+    - local_artifact_testing_enabled or splunk_otel_collector_version is version('0.98.0', '>=')
 
 - name: Build the arguments for the MSI installer
   when: splunk_collector_msi_is_configurable is defined

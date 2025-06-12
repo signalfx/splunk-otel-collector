@@ -34,6 +34,7 @@ env:
 jobs:
   setup-environment:
     runs-on: ubuntu-24.04
+    needs: lint
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4
@@ -142,6 +143,7 @@ jobs:
           path: ./dist/splunk-otel-collector*
 
   agent-bundle-windows:
+    needs: lint
     runs-on: ${{ matrix.OS }}
     strategy:
       matrix:
@@ -165,6 +167,7 @@ jobs:
 
   msi-custom-actions:
     runs-on: windows-2025
+    needs: lint
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4

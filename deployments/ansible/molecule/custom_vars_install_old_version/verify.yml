@@ -1,0 +1,166 @@
+---
+- name: Verify scenario with custom variables
+  hosts: all
+  gather_facts: true
+  become: yes
+  tasks:
+    - name: Import shared verification tasks
+      ansible.builtin.import_tasks: ../shared/verify_tasks.yml
+
+    - name: Check custom_config.yaml
+      stat:
+        path: /etc/otel/collector/custom_config.yml
+      register: custom_collector_config
+
+    - name: Assert custom_config.yaml is created
+      assert:
+        that: custom_collector_config.stat.exists
+
+    - name: Assert custom_config.yaml is used
+      ansible.builtin.lineinfile:
+        line: SPLUNK_CONFIG=/etc/otel/collector/custom_config.yml
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Assert SPLUNK_INGEST_URL env var is set
+      ansible.builtin.lineinfile:
+        line: SPLUNK_INGEST_URL=https://fake-splunk-ingest.com
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Assert SPLUNK_API_URL env var is set
+      ansible.builtin.lineinfile:
+        line: SPLUNK_API_URL=https://fake-splunk-api.com
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Assert SPLUNK_HEC_URL env var is set
+      ansible.builtin.lineinfile:
+        line: SPLUNK_HEC_URL=https://fake-splunk-ingest.com/v1/log
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Assert OTELCOL_OPTIONS env var is set per splunk_otel_collector_command_line_args
+      ansible.builtin.lineinfile:
+        line: OTELCOL_OPTIONS=--discovery
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Assert MY_CUSTOM_VAR1 env var is set
+      ansible.builtin.lineinfile:
+        line: MY_CUSTOM_VAR1=value1
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Assert MY_CUSTOM_VAR2 env var is set
+      ansible.builtin.lineinfile:
+        line: MY_CUSTOM_VAR2=value2
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Populate package facts
+      ansible.builtin.package_facts:
+
+    - name: Assert custom service user is set
+      ansible.builtin.lineinfile:
+        line: User=custom-user
+        dest: /etc/systemd/system/splunk-otel-collector.service.d/service-owner.conf
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Assert custom service group is set
+      ansible.builtin.lineinfile:
+        line: Group=custom-group
+        dest: /etc/systemd/system/splunk-otel-collector.service.d/service-owner.conf
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Assert SPLUNK_MEMORY_TOTAL_MIB env var is set
+      ansible.builtin.lineinfile:
+        line: SPLUNK_MEMORY_TOTAL_MIB=256
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Assert SPLUNK_LISTEN_INTERFACE env var is set
+      ansible.builtin.lineinfile:
+        line: SPLUNK_LISTEN_INTERFACE=1.2.3.4
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Assert GOMEMLIMIT env var is set
+      ansible.builtin.lineinfile:
+        line: GOMEMLIMIT=230
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: present
+      check_mode: yes
+      register: config
+      failed_when: config is changed
+
+    - name: Check custom_fluentd.conf
+      stat:
+        path: /etc/otel/collector/fluentd/custom_fluentd.conf
+      register: custom_fluentd_config
+
+    - name: Assert custom_fluentd.conf is created
+      assert:
+        that: custom_fluentd_config.stat.exists
+      when: fluentd_supported
+
+    - name: Assert custom_fluentd.conf is used
+      ansible.builtin.lineinfile:
+        line: Environment=FLUENT_CONF=/etc/otel/collector/fluentd/custom_fluentd.conf
+        dest: /etc/systemd/system/td-agent.service.d/splunk-otel-collector.conf
+        state: present
+      check_mode: yes
+      when: fluentd_supported
+      register: config
+      failed_when: config is changed
+
+    - name: Send a test log message
+      ansible.builtin.uri:
+        body: json={"log":"test logs pipeline"}
+        method: POST
+        url: http://localhost:9880/app.log
+      changed_when: false
+      when: fluentd_supported
+
+    - name: Look for the test log message in collector service output
+      ansible.builtin.shell:
+        cmd: 'journalctl -u splunk-otel-collector | grep "Body: Str(test logs pipeline)"'
+      register: result
+      changed_when: false
+      until: result.stdout
+      retries: 20
+      delay: 1
+      when: fluentd_supported

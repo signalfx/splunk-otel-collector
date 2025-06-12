@@ -167,9 +167,9 @@ func TestDiscoveryProvider_ContinuousDiscoveryConfig(t *testing.T) {
 	pipelines := conf.Service.Pipelines
 	assert.Equal(t, 2, len(pipelines))
 	assert.Equal(t, []component.ID{component.MustNewIDWithName("discovery", "host_observer")},
-		pipelines[pipeline.MustNewID("metrics")].Receivers)
+		pipelines[pipeline.NewID(pipeline.SignalMetrics)].Receivers)
 	assert.Equal(t, []component.ID{component.MustNewIDWithName("discovery", "host_observer")},
-		pipelines[pipeline.MustNewIDWithName("logs", "entities")].Receivers)
+		pipelines[pipeline.NewIDWithName(pipeline.SignalLogs, "entities")].Receivers)
 	assert.Equal(t, []component.ID{component.MustNewIDWithName("otlphttp", "entities")},
-		pipelines[pipeline.MustNewIDWithName("logs", "entities")].Exporters)
+		pipelines[pipeline.NewIDWithName(pipeline.SignalLogs, "entities")].Exporters)
 }

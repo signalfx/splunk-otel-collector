@@ -15,6 +15,7 @@ type SplunkTAOtelLinuxAutoinstrumentationModInput struct {
 type SplunkTAOtelLinuxAutoinstrumentationModularInputs struct {
 	AutoinstrumentationPath SplunkTAOtelLinuxAutoinstrumentationModInput
 	AutoinstrumentationPreloadPath SplunkTAOtelLinuxAutoinstrumentationModInput
+	Backup SplunkTAOtelLinuxAutoinstrumentationModInput
 	DeploymentEnvironment SplunkTAOtelLinuxAutoinstrumentationModInput
 	Force SplunkTAOtelLinuxAutoinstrumentationModInput
 	LogsEnabled SplunkTAOtelLinuxAutoinstrumentationModInput
@@ -23,7 +24,7 @@ type SplunkTAOtelLinuxAutoinstrumentationModularInputs struct {
 	OtelExporterOtlpProtocol SplunkTAOtelLinuxAutoinstrumentationModInput
 	OtelLogsExporter SplunkTAOtelLinuxAutoinstrumentationModInput
 	OtelMetricsExporter SplunkTAOtelLinuxAutoinstrumentationModInput
-	OtelSeviceName SplunkTAOtelLinuxAutoinstrumentationModInput
+	OtelServiceName SplunkTAOtelLinuxAutoinstrumentationModInput
 	ProfilerEnabled SplunkTAOtelLinuxAutoinstrumentationModInput
 	ProfilerMemoryEnabled SplunkTAOtelLinuxAutoinstrumentationModInput
 	Remove SplunkTAOtelLinuxAutoinstrumentationModInput
@@ -43,6 +44,10 @@ func GetSplunkTAOtelLinuxAutoinstrumentationModularInputs(mip *modularinput.Modi
 		AutoinstrumentationPreloadPath: SplunkTAOtelLinuxAutoinstrumentationModInput{
 			Value: mip.ModularInputs["autoinstrumentation_preload_path"].Value,
 			Name: "autoinstrumentation_preload_path",
+		},
+		Backup: SplunkTAOtelLinuxAutoinstrumentationModInput{
+			Value: mip.ModularInputs["backup"].Value,
+			Name: "backup",
 		},
 		DeploymentEnvironment: SplunkTAOtelLinuxAutoinstrumentationModInput{
 			Value: mip.ModularInputs["deployment_environment"].Value,
@@ -76,9 +81,9 @@ func GetSplunkTAOtelLinuxAutoinstrumentationModularInputs(mip *modularinput.Modi
 			Value: mip.ModularInputs["otel_metrics_exporter"].Value,
 			Name: "otel_metrics_exporter",
 		},
-		OtelSeviceName: SplunkTAOtelLinuxAutoinstrumentationModInput{
-			Value: mip.ModularInputs["otel_sevice_name"].Value,
-			Name: "otel_sevice_name",
+		OtelServiceName: SplunkTAOtelLinuxAutoinstrumentationModInput{
+			Value: mip.ModularInputs["otel_service_name"].Value,
+			Name: "otel_service_name",
 		},
 		ProfilerEnabled: SplunkTAOtelLinuxAutoinstrumentationModInput{
 			Value: mip.ModularInputs["profiler_enabled"].Value,
@@ -134,6 +139,12 @@ func GetDefaultSplunkTAOtelLinuxAutoinstrumentationModularInputs() modularinput.
 					modularinput.DefaultReplaceEnvVarTransformer,
 				},
 			},
+			"backup": &modularinput.ModInput{
+				Config: modularinput.ModInputConfig{Description:"Backup files before writing to them or deleting them.  Backup files are not deleted by this addon.", Default:"false", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:false, ReplaceableEnvVar:false},
+				Value: "false",
+				Transformers: []modularinput.TransformerFunc{
+				},
+			},
 			"deployment_environment": &modularinput.ModInput{
 				Config: modularinput.ModInputConfig{Description:"Same as --deployment environment", Default:"", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:false, ReplaceableEnvVar:true},
 				Transformers: []modularinput.TransformerFunc{
@@ -178,7 +189,7 @@ func GetDefaultSplunkTAOtelLinuxAutoinstrumentationModularInputs() modularinput.
 				Transformers: []modularinput.TransformerFunc{
 				},
 			},
-			"otel_sevice_name": &modularinput.ModInput{
+			"otel_service_name": &modularinput.ModInput{
 				Config: modularinput.ModInputConfig{Description:"The service name to use for telemetry data.", Default:"", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:false, ReplaceableEnvVar:false},
 				Transformers: []modularinput.TransformerFunc{
 				},

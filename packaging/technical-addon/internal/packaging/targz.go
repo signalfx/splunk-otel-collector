@@ -21,6 +21,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 func PackageAddon(sourceDir, outputFile string) error {
@@ -80,24 +81,20 @@ func PackageAddon(sourceDir, outputFile string) error {
 
 // ExtractAddon extracts a .tar.gz file from sourcePath to destinationPath
 func ExtractAddon(sourcePath, destinationPath string) error {
-	// Open the tar.gz file
 	file, err := os.Open(sourcePath)
 	if err != nil {
 		return fmt.Errorf("failed to open archive: %w", err)
 	}
 	defer file.Close()
 
-	// Create gzip reader
 	gzipReader, err := gzip.NewReader(file)
 	if err != nil {
 		return fmt.Errorf("failed to create gzip reader: %w", err)
 	}
 	defer gzipReader.Close()
 
-	// Create tar reader
 	tarReader := tar.NewReader(gzipReader)
 
-	// Iterate through the files in the archive
 	for {
 		header, err := tarReader.Next()
 		if err == io.EOF {
@@ -109,34 +106,30 @@ func ExtractAddon(sourcePath, destinationPath string) error {
 		}
 
 		// Create the full path for the file
-		target := filepath.Join(destinationPath, header.Name)
+		target := filepath.Join(destinationPath, header.Name) // #nosec G305
 
-		// Check for illegal paths (path traversal attack prevention)
+		// Mitigation for gosec G305
 		if !isInDirectory(target, destinationPath) {
 			return fmt.Errorf("illegal path traversal attempt: %s", header.Name)
 		}
 
-		// Handle different types of files
 		switch header.Typeflag {
 		case tar.TypeDir:
-			// Create directories with proper permissions
-			if err := os.MkdirAll(target, os.FileMode(header.Mode)); err != nil {
+			if err := os.MkdirAll(target, header.FileInfo().Mode()); err != nil {
 				return fmt.Errorf("failed to create directory %s: %w", target, err)
 			}
 
 		case tar.TypeReg:
-			// Create containing directory if it doesn't exist
 			if err := os.MkdirAll(filepath.Dir(target), 0755); err != nil {
 				return fmt.Errorf("failed to create directory for file %s: %w", target, err)
 			}
 
-			// Create the file
-			file, err := os.OpenFile(target, os.O_CREATE|os.O_RDWR, os.FileMode(header.Mode))
+			file, err := os.OpenFile(target, os.O_CREATE|os.O_RDWR, header.FileInfo().Mode())
 			if err != nil {
 				return fmt.Errorf("failed to create file %s: %w", target, err)
 			}
 
-			// Copy the file data
+			// #nosec G110 We only use this for packaging on our systems, this module not included for code in addon itself
 			if _, err := io.Copy(file, tarReader); err != nil {
 				file.Close()
 				return fmt.Errorf("failed to write file %s: %w", target, err)
@@ -144,7 +137,6 @@ func ExtractAddon(sourcePath, destinationPath string) error {
 			file.Close()
 
 		default:
-			// Skip other types of files (symlinks, devices, etc.)
 			fmt.Printf("Skipping unsupported file type: %c for %s\n", header.Typeflag, header.Name)
 		}
 	}
@@ -165,5 +157,5 @@ func isInDirectory(path, directory string) bool {
 	}
 
 	// Check if the path is within the directory
-	return filepath.HasPrefix(absPath, absDir)
+	return strings.HasPrefix(absPath, absDir)
 }

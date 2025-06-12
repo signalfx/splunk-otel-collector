@@ -18,11 +18,12 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"github.com/splunk/splunk-technical-addon/internal/testaddon"
 	"io"
 	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/splunk/splunk-technical-addon/internal/testaddon"
 
 	"github.com/splunk/splunk-technical-addon/internal/packaging"
 	"github.com/splunk/splunk-technical-addon/internal/testcommon"
@@ -32,9 +33,6 @@ import (
 )
 
 type ExampleOutput struct {
-	Flags   []string
-	EnvVars []string
-
 	SplunkHome                 string
 	TaHome                     string
 	PlatformHome               string
@@ -43,6 +41,8 @@ type ExampleOutput struct {
 	MinimalSetRequired         string
 	UnaryFlagWithEverythingSet string
 	Platform                   string
+	Flags                      []string
+	EnvVars                    []string
 }
 
 func TestPascalization(t *testing.T) {

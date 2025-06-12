@@ -1,8 +1,28 @@
+// Copyright Splunk, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package testaddon
 
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/pkg/fileutils"
@@ -13,18 +33,14 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 	"go.uber.org/zap"
-	"os"
-	"path/filepath"
-	"strings"
-	"testing"
-	"time"
 )
 
 type SplunkStartOpts struct {
-	AddonPaths   []string
 	WaitStrategy wait.Strategy
 	SplunkUser   string
 	SplunkGroup  string
+	AddonPaths   []string
+	Timeout      time.Duration
 }
 
 func StartSplunk(t *testing.T, startOpts SplunkStartOpts) testcontainers.Container {
@@ -49,6 +65,9 @@ func StartSplunk(t *testing.T, startOpts SplunkStartOpts) testcontainers.Contain
 	if startOpts.SplunkGroup == "" {
 		startOpts.SplunkGroup = "splunk"
 	}
+	if startOpts.Timeout == 0 {
+		startOpts.Timeout = 10 * time.Minute
+	}
 	splunkStartURL := strings.Join(addonNames, ",")
 	t.Logf("Local addons packaged under: %s", localAddonsDir)
 	t.Logf("Splunk start url: %s", splunkStartURL)
@@ -72,9 +91,9 @@ func StartSplunk(t *testing.T, startOpts SplunkStartOpts) testcontainers.Contain
 		},
 		//WaitingFor: wait.ForHealthCheck().WithStartupTimeout(4 * time.Minute),
 		WaitingFor: wait.ForAll(
-			wait.NewHTTPStrategy("/en-US/account/login").WithPort("8000").WithStartupTimeout(20*time.Minute),
+			wait.NewHTTPStrategy("/en-US/account/login").WithPort("8000").WithStartupTimeout(startOpts.Timeout),
 			startOpts.WaitStrategy,
-		).WithStartupTimeoutDefault(20 * time.Minute).WithDeadline(20*time.Minute + 20*time.Second),
+		).WithStartupTimeoutDefault(startOpts.Timeout).WithDeadline(startOpts.Timeout + 20*time.Second),
 		LogConsumerCfg: &testcontainers.LogConsumerConfig{
 			Consumers: []testcontainers.LogConsumer{&testLogConsumer{t: t}},
 		},
@@ -88,7 +107,7 @@ func StartSplunk(t *testing.T, startOpts SplunkStartOpts) testcontainers.Contain
 		logger.Error("error starting up splunk")
 	}
 	// Uncomment this line if you'd like to debug the container
-	//time.Sleep(20 * time.Minute)
+	// time.Sleep(20 * time.Minute)
 	// Then, run the following to inspect
 	// docker container ls --all
 	// Grab id of splunk container
@@ -125,9 +144,6 @@ func PackAddon(t *testing.T, defaultModInputs *modularinput.GenericModularInput,
 	require.NoError(t, err)
 
 	return addonPath
-}
-func GetModInputsForConfig(t *testing.T, addonPath string) *modularinput.GenericModularInput {
-	return nil
 }
 
 func AssertFileShasEqual(t *testing.T, expected string, actual string) {

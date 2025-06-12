@@ -1,8 +1,29 @@
+// Copyright Splunk, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package main
 
 import (
 	"context"
 	"fmt"
+	"io"
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/docker/docker/pkg/fileutils"
 	"github.com/splunk/splunk-technical-addon/internal/packaging"
 	"github.com/splunk/splunk-technical-addon/internal/testaddon"
@@ -11,11 +32,6 @@ import (
 	"github.com/stretchr/testify/require"
 	tcexec "github.com/testcontainers/testcontainers-go/exec"
 	"github.com/testcontainers/testcontainers-go/wait"
-	"io"
-	"os"
-	"path/filepath"
-	"strings"
-	"testing"
 )
 
 func TestZeroConfig(t *testing.T) {
@@ -104,7 +120,7 @@ SPLUNK_METRICS_ENABLED=false
 			require.FileExists(tt, tc.modInputs.ZeroconfigPath.Value)
 			expectedPath := filepath.Join(tc.testDir, "expected-zeroconfig.conf")
 			assert.NoFileExists(tt, expectedPath)
-			require.NoError(tt, os.WriteFile(expectedPath, []byte(strings.ReplaceAll(tc.expectedConfig, "REPLACED_WITH_TESTDIR", tc.testDir)), 0o644))
+			require.NoError(tt, os.WriteFile(expectedPath, []byte(strings.ReplaceAll(tc.expectedConfig, "REPLACED_WITH_TESTDIR", tc.testDir)), 0o600))
 			testcommon.AssertFilesMatch(tt, expectedPath, tc.modInputs.ZeroconfigPath.Value)
 		})
 	}
@@ -116,7 +132,7 @@ func TestHappyPath(t *testing.T) {
 	sourcedir, err := packaging.GetSourceDir()
 	require.NoError(t, err)
 
-	addonFunc := func(t *testing.T, addonPath string) error {
+	addonFunc := func(_ *testing.T, addonPath string) error {
 		// Copies  "local/inputs.conf"
 		err2 := os.CopyFS(addonPath, os.DirFS(filepath.Join(
 			sourcedir,
@@ -137,17 +153,16 @@ func TestHappyPath(t *testing.T) {
 		require.NoError(tt, err)
 		return nil
 	})
+	startupTimeout := 20 * time.Minute
 	tc := testaddon.StartSplunk(t, testaddon.SplunkStartOpts{
 		AddonPaths:  []string{zcAddonPath, repackedOtelAddon},
 		SplunkUser:  "root",
 		SplunkGroup: "root",
+		Timeout:     startupTimeout,
 		WaitStrategy: wait.ForAll(
-			wait.ForExec([]string{"sudo", "stat", "/opt/splunk/var/log/splunk/splunkd.log"}),
-			wait.ForExec([]string{"sudo", "stat", "/opt/splunk/var/log/splunk/Splunk_TA_otel_linux_autoinstrumentation.log"}),
-			//wait.ForExec([]string{"sudo", "stat", "/opt/splunk/var/log/splunk/Splunk_TA_otel.log"}),
-			// This shouldn't work unless the addon is run with a root user
-			//wait.ForExec([]string{"sudo", "grep", "error running splunk linux autoinstrumentation addon: Error opening /etc/ld.so.preload: open /etc/ld.so.preload: permission denied", "/opt/splunk/var/log/splunk/splunkd.log"}),
-		)})
+			wait.ForExec([]string{"sudo", "stat", "/opt/splunk/var/log/splunk/splunkd.log"}).WithStartupTimeout(startupTimeout),
+			wait.ForExec([]string{"sudo", "stat", "/opt/splunk/var/log/splunk/Splunk_TA_otel_linux_autoinstrumentation.log"}).WithStartupTimeout(startupTimeout),
+		).WithDeadline(startupTimeout + 15*time.Second).WithStartupTimeoutDefault(startupTimeout)})
 
 	// Check Schema
 	ctx := context.Background()
@@ -158,16 +173,7 @@ func TestHappyPath(t *testing.T) {
 	read, err := io.ReadAll(output)
 	assert.NoError(t, err)
 	assert.NotContains(t, string(read), "Invalid Key in Stanza")
-	//
-	//// restart splunkd as root user
-	//_, output, err = tc.Exec(ctx, []string{"sudo", "/opt/splunk/bin/splunk", "restart"})
-	//require.NoError(t, err)
-	//read, err = io.ReadAll(output)
-	//assert.NoError(t, err)
-	//assert.NotEmpty(t, string(read))
-	//// Wait to ensure it starts up properly
-	//_, output, err = tc.Exec(ctx, []string{"sudo", "sh", "-c", "'echo restarted>>/tmp/restartedlog'"})
-	//
+
 	// check log output
 	_, output, err = tc.Exec(ctx, []string{"sudo", "cat", "/opt/splunk/var/log/splunk/Splunk_TA_otel_linux_autoinstrumentation.log"})
 	require.NoError(t, err)
@@ -182,6 +188,7 @@ func TestHappyPath(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, fmt.Sprintf("JAVA_TOOL_OPTIONS=-javaagent:/opt/splunk/etc/apps/Splunk_TA_otel_linux_autoinstrumentation/linux_x86_64/bin/splunk-otel-javaagent.jar\nOTEL_RESOURCE_ATTRIBUTES=splunk.zc.method=splunk-otel-auto-instrumentation-%s\nSPLUNK_PROFILER_ENABLED=false\nSPLUNK_PROFILER_MEMORY_ENABLED=false\nSPLUNK_METRICS_ENABLED=false", strings.TrimSpace(javaVersion)), strings.TrimSpace(string(read)))
 
+	// Check preload config
 	_, output, err = tc.Exec(ctx, []string{"sudo", "cat", "/etc/ld.so.preload"}, tcexec.Multiplexed())
 	require.NoError(t, err)
 	read, err = io.ReadAll(output)
@@ -189,18 +196,19 @@ func TestHappyPath(t *testing.T) {
 	assert.NotEmpty(t, read)
 	assert.Equal(t, "/opt/splunk/etc/apps/Splunk_TA_otel_linux_autoinstrumentation/linux_x86_64/bin/libsplunk_amd64.so", strings.TrimSpace(string(read)))
 
+	// Check preload binary
 	_, output, err = tc.Exec(ctx, []string{"sudo", "sha256sum", "/opt/splunk/etc/apps/Splunk_TA_otel_linux_autoinstrumentation/linux_x86_64/bin/libsplunk_amd64.so"}, tcexec.Multiplexed())
 	require.NoError(t, err)
 	read, err = io.ReadAll(output)
 	assert.NoError(t, err)
 	assert.Contains(t, string(read), "4a9944614212c477cd63f5354026850052f2aa495312fb79ebd24e22dc8953bd")
 
+	// check jar
 	_, output, err = tc.Exec(ctx, []string{"sudo", "sha256sum", "/opt/splunk/etc/apps/Splunk_TA_otel_linux_autoinstrumentation/linux_x86_64/bin/splunk-otel-javaagent.jar"}, tcexec.Multiplexed())
 	require.NoError(t, err)
 	read, err = io.ReadAll(output)
 	assert.NoError(t, err)
 	assert.Contains(t, string(read), strings.TrimSpace(javaAgent256Sum))
-	//
 
 	assert.NoError(t, tc.Terminate(ctx))
 }

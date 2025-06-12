@@ -88,10 +88,10 @@ func TestDockerBuilderMethods(t *testing.T) {
 	assert.NotEqual(t, builder, withName)
 	assert.Empty(t, builder.ContainerName)
 
-	withNetworkLabels := builder.WithNetworkLabels("network_one", "network_two")
-	assert.Equal(t, []string{"network_one", "network_two"}, withNetworkLabels.ContainerNetworkLabels)
-	assert.NotEqual(t, builder, withNetworkLabels)
-	assert.Nil(t, builder.ContainerNetworkLabels)
+	withNetworks := builder.WithNetworks("network_one", "network_two")
+	assert.Equal(t, []string{"network_one", "network_two"}, withNetworks.ContainerNetworks)
+	assert.NotEqual(t, builder, withNetworks)
+	assert.Nil(t, builder.ContainerNetworks)
 
 	withUser := builder.WithUser("some.user")
 	assert.Equal(t, "some.user", withUser.User)
@@ -380,18 +380,6 @@ func TestTestcontainersContainerMethodsRequireBuilding(t *testing.T) {
 	err = builder.CopyFileToContainer(context.Background(), "", "", 0)
 	require.Error(t, err)
 	assert.Equal(t, "cannot invoke CopyFileToContainer() on unstarted container", err.Error())
-
-	err = builder.CopyDirToContainer(context.Background(), "", "", 0755)
-	require.Error(t, err)
-	assert.Equal(t, "cannot invoke CopyDirToContainer() on unstarted container", err.Error())
-
-	err = builder.CopyToContainer(context.Background(), []byte("dummy"), "/tmp/test", 0644)
-	require.Error(t, err)
-	assert.Equal(t, "cannot invoke CopyToContainer() on unstarted container", err.Error())
-
-	_, err = builder.CopyFileFromContainer(context.Background(), "/tmp/test")
-	require.Error(t, err)
-	assert.Equal(t, "cannot invoke CopyFileFromContainer() on unstarted container", err.Error())
 }
 
 type logConsumer struct {

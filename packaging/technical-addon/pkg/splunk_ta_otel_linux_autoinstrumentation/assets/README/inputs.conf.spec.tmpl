@@ -1,0 +1,5 @@
+[{{.SchemaName}}://<name>]
+{{ range $name, $config := .ModularInputs }}
+{{ $name }} = <value>
+* {{ $config.Description }}{{ if $config.Default }} (Default: {{$config.Default}} ){{ end }}
+{{ end }}

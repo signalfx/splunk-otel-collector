@@ -1,7 +1,7 @@
 ---
 
 - name: Get local MSI installer
-  ansible.builtin.copy:
+  ansible.windows.win_copy:
     src: /tmp/msi-build
     dest: "%TEMP%"
   register: otel_msi_package

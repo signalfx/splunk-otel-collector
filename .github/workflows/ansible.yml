@@ -363,6 +363,7 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
+          name: msi-build
           path: /tmp
 
       - name: View contents of /tmp

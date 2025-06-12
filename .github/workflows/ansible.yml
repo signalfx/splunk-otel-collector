@@ -222,7 +222,7 @@ jobs:
       - name: Downloading agent-bundle-windows
         uses: actions/download-artifact@v4
         with:
-          name: agent-bundle-windows-$WINDOWS_VER
+          name: agent-bundle-windows-${{ env.WINDOWS_VER }}
           path: ./dist
 
       - name: Downloading msi-custom-actions

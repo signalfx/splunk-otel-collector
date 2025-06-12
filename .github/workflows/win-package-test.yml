@@ -287,6 +287,42 @@ jobs:
         if: ${{ always() && matrix.WITH_FLUENTD == 'true' }}
         run: Get-Content -Path "${env:SYSTEMDRIVE}\opt\td-agent\td-agent.log"
 
+  windows-script-upgrade-test:
+    strategy:
+      matrix:
+        OS: [ "windows-2022", "windows-2025" ]
+    runs-on: otel-windows # Tests with uninstall require a more powerful runner
+    needs: [msi-test, windows-install-script-test]
+    timeout-minutes: 45
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v4
+
+      - name: Downloading msi build
+        uses: actions/download-artifact@v4
+        with:
+          name: msi-build-${{ matrix.OS }}
+          path: ./dist
+      - name: Ensure required ports in the dynamic range are available
+        run: |
+          $ErrorActionPreference = 'Continue'
+          & ${{ github.workspace }}\.github\workflows\scripts\win-required-ports.ps1
+
+      - name: Set the MSI_COLLECTOR_PATH and INSTALL_SCRIPT_PATH environment variable
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $msi_path = Resolve-Path .\dist\splunk-otel-collector*.msi
+          Test-Path $msi_path
+          "MSI_COLLECTOR_PATH=$msi_path" | Out-File -FilePath $env:GITHUB_ENV -Append
+          $ps1_path = Resolve-Path .\packaging\installer\install.ps1
+          Test-Path $ps1_path
+          "INSTALL_SCRIPT_PATH=$ps1_path" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Run the script upgrade tests
+        shell: powershell # Use PowerShell to run the script since running the go test from pwsh.exe hides the Get-ExecutionPolicy cmdlet.
+        run: |
+          go test -v github.com/signalfx/splunk-otel-collector/tests/windows-install-script
+
   choco-build:
     runs-on: ${{ matrix.OS }}
     strategy:

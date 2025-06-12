@@ -250,7 +250,7 @@ jobs:
           - default_install_remote_version
           - custom_vars
           - with_instrumentation
-          - custom_vars_install_old_ver_windows
+          - custom_vars_install_old_version
     steps:
       - name: Free up disk space for vagrant box
         uses: jlumbroso/free-disk-space@v1.3.1

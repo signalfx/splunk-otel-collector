@@ -507,6 +507,7 @@ func (container *Container) createNetworksIfNecessary(req testcontainers.Generic
 			Name: networkName,
 		}
 		networkResource, err := provider.GetNetwork(context.Background(), query)
+		//nolint:staticcheck
 		if err != nil && !errdefs.IsNotFound(err) {
 			return err
 		}

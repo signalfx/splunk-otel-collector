@@ -13,6 +13,10 @@ modular-inputs:
   remove:
     description: "If true, removes the installation"
     default: "false"
+    
+  backup:
+    description: "Backup files before writing to them or deleting them.  Backup files are not deleted by this addon."
+    default: "false"
 
   resource_attributes:
     description: "String representing the OTEL_RESOURCE_ATTRIBUTES."
@@ -34,7 +38,7 @@ modular-inputs:
     description: "Enables logs exporting of autoinstrumented."
     default: "false"
 
-  otel_sevice_name:
+  otel_service_name:
     description: "The service name to use for telemetry data."
     default: ""
 

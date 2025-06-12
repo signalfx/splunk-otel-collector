@@ -142,7 +142,10 @@ jobs:
           path: ./dist/splunk-otel-collector*
 
   agent-bundle-windows:
-    runs-on: windows-2025
+    runs-on: ${{ matrix.OS }}
+    strategy:
+      matrix:
+        OS: [ "windows-2025" ]
     env:
       PIP_CACHE_DIR: ${{ github.workspace }}/.cache/pip
     steps:

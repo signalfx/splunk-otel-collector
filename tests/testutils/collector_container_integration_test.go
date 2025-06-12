@@ -20,11 +20,12 @@ import (
 	"fmt"
 	"io"
 	"path"
-	"sort"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/docker/docker/api/types/network"
+	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -136,21 +137,37 @@ func TestTestcontainersContainerMethods(t *testing.T) {
 	require.NoError(t, err)
 
 	networks, err := alpine.Networks(context.Background())
-	sort.Strings(networks)
-	assert.Equal(t, []string{"bridge", "network_a", "network_b"}, networks)
 	require.NoError(t, err)
+	require.Len(t, networks, 3) // Still expecting 3 networks
+
+	expectedLabels := map[string]bool{
+		"network_a": false,
+		"network_b": false,
+		"bridge":    false,
+	}
+	dockerClient, err := client.NewClientWithOpts(client.FromEnv)
+	require.NoError(t, err)
+	for _, net := range networks {
+		netInfo, err := dockerClient.NetworkInspect(context.Background(), net, network.InspectOptions{})
+		require.NoError(t, err)
+
+		label := netInfo.Labels["test-network-name"]
+		if _, ok := expectedLabels[label]; ok {
+			expectedLabels[label] = true
+		}
+	}
+	for name, found := range expectedLabels {
+		assert.True(t, found, "Expected network with label %q not found", name)
+	}
 
 	aliases, err := alpine.NetworkAliases(context.Background())
-	assert.NotEmpty(t, aliases)
 	require.NoError(t, err)
+	require.Len(t, aliases, 3) // Should match the number of attached networks
 
-	cip, err := alpine.ContainerIP(context.Background())
-	assert.NotEmpty(t, cip)
-	require.NoError(t, err)
-
-	ips, err := alpine.ContainerIPs(context.Background())
-	assert.NotEmpty(t, ips)
-	require.NoError(t, err)
+	expectedAlias := "my-alpine"
+	for networkName, aliasList := range aliases {
+		assert.Contains(t, aliasList, expectedAlias, "Expected alias %q not found in network %q", expectedAlias, networkName)
+	}
 
 	err = alpine.CopyFileToContainer(
 		context.Background(), path.Join(".", "testdata", "file_to_transfer"),

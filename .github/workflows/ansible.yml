@@ -78,6 +78,7 @@ jobs:
 
   agent-bundle-linux:
     runs-on: ${{ fromJSON('["ubuntu-24.04", "otel-arm64"]')[matrix.ARCH == 'arm64'] }}
+    needs: lint
     strategy:
       matrix:
         ARCH: [ "amd64", "arm64" ]

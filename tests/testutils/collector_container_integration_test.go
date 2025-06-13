@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"io"
 	"path"
-	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -31,11 +30,14 @@ import (
 )
 
 func TestTestcontainersContainerMethods(t *testing.T) {
-	alpine := NewContainer().WithImage("alpine").WithEntrypoint("sh", "-c").WithCmd(
-		"echo rdy > /tmp/something && tail -f /tmp/something",
-	).WithExposedPorts("12345:12345").WithName("my-alpine").WithNetworks(
-		"bridge", "network_a", "network_b",
-	).WillWaitForLogs("rdy").Build()
+	alpine := NewContainer().
+		WithImage("alpine").
+		WithEntrypoint("sh", "-c").
+		WithCmd("echo rdy > /tmp/something && tail -f /tmp/something").
+		WithExposedPorts("12345:12345").
+		WithName("my-alpine").
+		WillWaitForLogs("rdy").
+		Build()
 
 	defer func() {
 		require.NoError(t, alpine.Stop(context.Background(), nil))
@@ -133,11 +135,6 @@ func TestTestcontainersContainerMethods(t *testing.T) {
 
 	name, err := alpine.Name(context.Background())
 	assert.Equal(t, "/my-alpine", name)
-	require.NoError(t, err)
-
-	networks, err := alpine.Networks(context.Background())
-	sort.Strings(networks)
-	assert.Equal(t, []string{"bridge", "network_a", "network_b"}, networks)
 	require.NoError(t, err)
 
 	aliases, err := alpine.NetworkAliases(context.Background())

@@ -29,7 +29,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/receiver"
-	conventions "go.opentelemetry.io/otel/semconv/v1.22.0"
+	conventions "go.opentelemetry.io/otel/semconv/v1.25.0"
 	"go.uber.org/zap"
 )
 

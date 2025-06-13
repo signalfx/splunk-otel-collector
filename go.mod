@@ -707,7 +707,7 @@ require (
 	go.opencensus.io v0.24.0
 	go.opentelemetry.io/collector/component v1.33.0
 	go.opentelemetry.io/collector/consumer v1.33.0
-	go.opentelemetry.io/collector/featuregate v1.33.0
+	go.opentelemetry.io/collector/featuregate v1.34.0
 	go.opentelemetry.io/collector/semconv v0.127.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.60.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.60.0 // indirect
@@ -772,3 +772,7 @@ replace github.com/veraison/go-cose v1.2.0 => github.com/veraison/go-cose v1.1.1
 // This is only needed for splunk-otel-collector 0.127.0 and can be removed in 0.128.0
 // See: https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40103/files#diff-2bb8e77bc0a07447b4df98ee53c775b57b842fe5d8a649c52506406aeb18c1c8
 replace github.com/prometheus/common v0.64.0 => github.com/prometheus/common v0.62.0
+
+// This is only needed for splunk-otel-collector 0.127.0 and can be removed in 0.128.0
+// See: https://github.com/open-telemetry/opentelemetry-collector/issues/13117
+replace go.opentelemetry.io/collector/confmap v1.33.0 => go.opentelemetry.io/collector/confmap v1.34.0

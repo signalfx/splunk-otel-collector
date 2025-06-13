@@ -29,7 +29,8 @@
   when: local_artifact_testing_enabled
 
 - debug:
-  - var: temp_dest_stat
+    var: temp_dest_stat
+  when: local_artifact_testing_enabled
 
 - name: Get path to local MSI on Ansible controller
   ansible.windows.win_find:

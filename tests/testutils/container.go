@@ -289,13 +289,15 @@ func (container *Container) Start(ctx context.Context) (err error) {
 		Started:          true,
 	}
 
-	err = network.WithNewNetwork(ctx, container.ContainerNetworks,
-		network.WithDriver("bridge"),
-		network.WithAttachable(),
-		network.WithLabels(container.Labels),
-	)(&req)
-	if err != nil {
-		return err
+	if len(container.ContainerNetworks) > 0 {
+		err = network.WithNewNetwork(ctx, container.ContainerNetworks,
+			network.WithDriver("bridge"),
+			network.WithAttachable(),
+			network.WithLabels(container.Labels),
+		)(&req)
+		if err != nil {
+			return err
+		}
 	}
 
 	var started testcontainers.Container

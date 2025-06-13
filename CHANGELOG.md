@@ -9,14 +9,6 @@ and the [opentelemetry-collector-contrib v0.127.0](https://github.com/open-telem
 
 ### 🛑 Breaking changes 🛑
 
-- (Core) `service`: Add size metrics defined in Pipeline Component Telemetry RFC ([#13032](https://github.com/open-telemetry/opentelemetry-collector/pull/13032))
-  See [Pipeline Component Telemetry RFC](https://github.com/open-telemetry/opentelemetry-collector/blob/main/docs/rfcs/component-universal-telemetry.md) for more details:
-  - `otelcol.receiver.produced.size`
-  - `otelcol.processor.consumed.size`
-  - `otelcol.processor.produced.size`
-  - `otelcol.connector.consumed.size`
-  - `otelcol.connector.produced.size`
-  - `otelcol.exporter.consumed.size`
 - (Contrib) `sqlserverreceiver`: Zero values in delta attributes will be reported in top query collection. ([#40041](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40041))
   This change includes the following attributes:
   - `sqlserver.total_worker_time`
@@ -31,6 +23,16 @@ and the [opentelemetry-collector-contrib v0.127.0](https://github.com/open-telem
   now available for all configuration options, including direct connection.
   Since this metric is enabled by default, users who have direct connection
   configured will now have this metric emitted by default.
+  - NOTE: Marked as breaking only because new metrics are enabled by default, potentially impacting resource usage and billing.
+- (Core) `service`: Add size metrics defined in Pipeline Component Telemetry RFC ([#13032](https://github.com/open-telemetry/opentelemetry-collector/pull/13032))
+  - See [Pipeline Component Telemetry RFC](https://github.com/open-telemetry/opentelemetry-collector/blob/main/docs/rfcs/component-universal-telemetry.md) for more details:
+    - `otelcol.receiver.produced.size`
+    - `otelcol.processor.consumed.size`
+    - `otelcol.processor.produced.size`
+    - `otelcol.connector.consumed.size`
+    - `otelcol.connector.produced.size`
+    - `otelcol.exporter.consumed.size`
+  - NOTE: Marked as breaking only because new metrics are enabled by default, potentially impacting resource usage and billing.
 
 ### 🚩 Deprecations 🚩
 

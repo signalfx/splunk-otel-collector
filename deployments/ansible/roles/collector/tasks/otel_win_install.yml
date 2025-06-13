@@ -1,20 +1,21 @@
 ---
 
+- name: Get local MSI installer
+  ansible.windows.win_copy:
+    src: /tmp/msi-build/
+    dest: "%TEMP%"\msi_build
+  register: otel_msi_package
+  when: local_artifact_testing_enabled
+
 - name: Get path to local MSI on Ansible controller
-  ansible.builtin.find:
-    paths: /tmp/msi-build
+  ansible.windows.win_find:
+    paths: "%TEMP%"\msi_build
   register: msi_dir_contents
   when: local_artifact_testing_enabled
   failed_when: msi_dir_contents.files is not defined or msi_dir_contents.files | length != 1
 
 - debug:
     var: msi_dir_contents
-
-- name: Get local MSI installer
-  ansible.windows.win_copy:
-    src: msi_dir_contents.files[0].path
-    dest: "%TEMP%"
-  register: otel_msi_package
   when: local_artifact_testing_enabled
 
 - debug:
@@ -22,7 +23,7 @@
   when: local_artifact_testing_enabled
 
 - name: Get remote MSI installer
-  ansible.builtin.import_tasks: linux_install.yml
+  ansible.builtin.import_tasks: win_download_remote_msi.yml
   when: not local_artifact_testing_enabled
 
 - name: Use MSI capabilities to install the collector if possible

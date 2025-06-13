@@ -110,7 +110,7 @@
 - name: Set MSI source path (local install)
   when: local_artifact_testing_enabled
   set_fact:
-    msi_path: msi_dir_contents.files[0].path
+    msi_path: "{{ msi_dir_contents.files[0].path }}"
 
 - name: Set MSI source path (remote install)
   when: not local_artifact_testing_enabled

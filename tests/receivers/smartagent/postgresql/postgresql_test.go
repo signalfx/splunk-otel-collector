@@ -33,13 +33,13 @@ import (
 func TestPostgresReceiverProvidesAllMetrics(t *testing.T) {
 	server := testutils.NewContainer().WithContext(path.Join(".", "testdata", "server")).WithEnv(
 		map[string]string{"POSTGRES_DB": "test_db", "POSTGRES_USER": "postgres", "POSTGRES_PASSWORD": "postgres"},
-	).WithExposedPorts("5432:5432").WithName("postgres-server").WithNetworks(
-		"postgres",
-	).WillWaitForPorts("5432").WillWaitForLogs("database system is ready to accept connections")
+	).WithExposedPorts("5432:5432").WithName("postgres-server").WillWaitForPorts(
+		"5432",
+	).WillWaitForLogs("database system is ready to accept connections")
 
 	client := testutils.NewContainer().WithContext(path.Join(".", "testdata", "client")).WithEnv(
 		map[string]string{"POSTGRES_SERVER": "postgres-server"},
-	).WithName("postgres-client").WithNetworks("postgres").WillWaitForLogs("Beginning psql requests")
+	).WithName("postgres-client").WillWaitForLogs("Beginning psql requests")
 	containers := []testutils.Container{server, client}
 
 	tc := testutils.NewTestcase(t)

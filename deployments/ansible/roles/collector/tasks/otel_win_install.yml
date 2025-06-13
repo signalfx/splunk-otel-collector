@@ -14,7 +14,7 @@
 - name: Get local MSI installer
   ansible.windows.win_copy:
     src: /tmp/msi-build/
-    dest: temp_dest.path
+    dest: "{{ temp_dest.path }}"
   register: otel_msi_package
   when: local_artifact_testing_enabled
 
@@ -24,7 +24,7 @@
 
 - name: Stat information on temp folder that should contain msi installer
   ansible.windows.win_stat:
-    path: temp_dest.path
+    path: "{{ temp_dest.path }}"
   register: temp_dest_stat
   when: local_artifact_testing_enabled
 
@@ -34,7 +34,7 @@
 
 - name: Get path to local MSI on Ansible controller
   ansible.windows.win_find:
-    paths: temp_dest.path
+    paths: "{{ temp_dest.path }}"
   register: msi_dir_contents
   when: local_artifact_testing_enabled
   failed_when: msi_dir_contents.files is not defined or msi_dir_contents.files | length != 1
@@ -107,6 +107,9 @@
   set_fact:
     msi_arguments: "{{ msi_arguments | join(' ') }}"
 
+- debug:
+    var: otel_msi_package
+
 - name: Install splunk-otel-collector-msi
   when: splunk_collector_msi_is_configurable is defined
   ansible.windows.win_package:
@@ -117,7 +120,7 @@
 - name: Install splunk-otel-collector-msi-legacy
   when: splunk_collector_msi_is_configurable is undefined
   ansible.windows.win_package:
-    path: "{{otel_msi_package.dest}}"
+    path: "{{ otel_msi_package.dest }}"
     state: present
 
 - name: Merge custom config into the default config

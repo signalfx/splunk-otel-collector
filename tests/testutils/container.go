@@ -295,7 +295,7 @@ func (container *Container) Start(ctx context.Context) (err error) {
 		network.WithLabels(container.Labels),
 	)(&req)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	var started testcontainers.Container

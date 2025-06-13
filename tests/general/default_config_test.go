@@ -94,6 +94,15 @@ func TestDefaultGatewayConfig(t *testing.T) {
 						"token":            "<redacted>",
 						"log_data_enabled": false,
 					},
+					"otlphttp/entities": map[string]any{
+						"logs_endpoint": "https://ingest.not.real.signalfx.com/v3/event",
+						"headers": map[string]any{
+							"X-SF-Token": "<redacted>",
+						},
+						"auth": map[string]any{
+							"authenticator": "<redacted>",
+						},
+					},
 				},
 				"extensions": map[string]any{
 					"headers_setter": map[string]any{
@@ -195,18 +204,39 @@ func TestDefaultGatewayConfig(t *testing.T) {
 						"endpoint": fmt.Sprintf("%s:9411", ip),
 					},
 				},
+				"connectors": map[string]any{
+					"routing/logs": map[string]any{
+						"default_pipelines": []any{"logs"},
+						"table": []any{
+							map[string]any{
+								"context":   "log",
+								"condition": "instrumentation_scope.attributes[\"otel.entity.event_as_log\"] == true",
+								"pipelines": []any{"logs/entities"},
+							},
+						},
+					},
+				},
 				"service": map[string]any{
 					"extensions": []any{"headers_setter", "health_check", "http_forwarder", "zpages"},
 					"pipelines": map[string]any{
 						"logs": map[string]any{
 							"exporters":  []any{"splunk_hec", "splunk_hec/profiling"},
 							"processors": []any{"memory_limiter", "batch"},
-							"receivers":  []any{"otlp"},
+							"receivers":  []any{"routing/logs"},
 						},
 						"logs/signalfx": map[string]any{
 							"exporters":  []any{"signalfx"},
 							"processors": []any{"memory_limiter", "batch"},
 							"receivers":  []any{"signalfx"},
+						},
+						"logs/entities": map[string]any{
+							"exporters":  []any{"otlphttp/entities"},
+							"processors": []any{"memory_limiter", "batch"},
+							"receivers":  []any{"routing/logs"},
+						},
+						"logs/split": map[string]any{
+							"receivers": []any{"otlp"},
+							"exporters": []any{"routing/logs"},
 						},
 						"metrics": map[string]any{
 							"exporters":  []any{"signalfx"},

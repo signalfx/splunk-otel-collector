@@ -32,11 +32,8 @@ import (
 
 func TestMysqlDockerObserver(t *testing.T) {
 	testutils.SkipIfNotContainerTest(t)
-	dockerSocket := testutils.CreateDockerSocketProxy(t)
-	require.NoError(t, dockerSocket.Start())
-	t.Cleanup(func() {
-		dockerSocket.Stop()
-	})
+	dockerSocketProxy, err := testutils.CreateDockerSocketProxy(t)
+	require.NoError(t, err)
 
 	tc := testutils.NewTestcase(t)
 	defer tc.PrintLogsOnFailure()

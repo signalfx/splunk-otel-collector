@@ -2,7 +2,7 @@
 
 - name: Create temporary MSI build directory
   ansible.windows.win_file:
-    path: "%TEMP%\msi-build"
+    path: "%TEMP%\\msi-build"
     state: directory
   when: local_artifact_testing_enabled
   register: temp_dest

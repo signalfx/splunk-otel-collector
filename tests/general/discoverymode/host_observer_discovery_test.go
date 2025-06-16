@@ -196,11 +196,12 @@ func TestHostObserver(t *testing.T) {
 						"prometheus_simple": map[string]any{
 							"config": map[string]any{
 								"collection_interval": "1s",
-								"labels": map[string]any{
-									"label_one":   "${env:LABEL_ONE_VALUE}",
-									"label_two":   "${LABEL_TWO_VALUE}",
-									"label_three": "actual.label.three.value.from.cmdline.property",
-								},
+								//TODO: Re-enable test coverage after https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/40722
+								//"labels": map[string]any{
+								//	"label_one":   "${env:LABEL_ONE_VALUE}",
+								//	"label_two":   "${LABEL_TWO_VALUE}",
+								//	"label_three": "actual.label.three.value.from.cmdline.property",
+								//},
 							},
 							"resource_attributes": map[string]any{},
 							"rule":                `type == "hostport" and command contains "otelcol" and port == ${INTERNAL_PROMETHEUS_PORT}`,
@@ -274,11 +275,12 @@ func TestHostObserver(t *testing.T) {
 					"prometheus_simple": map[string]any{
 						"config": map[string]any{
 							"collection_interval": "1s",
-							"labels": map[string]any{
-								"label_one":   "actual.label.one.value.from.env.var",
-								"label_two":   "actual.label.two.value.from.env.var",
-								"label_three": "actual.label.three.value.from.cmdline.property",
-							},
+							//TODO: Re-enable test coverage after https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/40722
+							//"labels": map[string]any{
+							//	"label_one":   "actual.label.one.value.from.env.var",
+							//	"label_two":   "actual.label.two.value.from.env.var",
+							//	"label_three": "actual.label.three.value.from.cmdline.property",
+							//},
 						},
 						"resource_attributes": map[string]any{},
 						"rule":                fmt.Sprintf(`type == "hostport" and command contains "otelcol" and port == %d`, promPort),

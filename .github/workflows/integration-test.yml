@@ -19,10 +19,9 @@ jobs:
       matrix:
         ARCH: [ "amd64", "arm64" ]
       fail-fast: false
-    steps:
-      - uses: ./.github/workflows/agent-bundle-linux.yml
-        with:
-          ARCH: ${{ matrix.ARCH }}
+    uses: ./.github/workflows/agent-bundle-linux.yml
+    with:
+      ARCH: ${{ matrix.ARCH }}
 
   otelcol:
     runs-on: ubuntu-24.04

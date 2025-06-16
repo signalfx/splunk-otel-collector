@@ -43,21 +43,19 @@ jobs:
     strategy:
       matrix:
         OS: [ "windows-2022", "windows-2025" ]
-    steps:
-      - uses: ./.github/workflows/agent-bundle-windows.yml
-        with:
-          OS: ${{ matrix.OS }}
-          PIP_CACHE_DIR: ${{ github.workspace }}/.cache/pip
+    uses: ./.github/workflows/agent-bundle-windows.yml
+    with:
+      OS: ${{ matrix.OS }}
+      PIP_CACHE_DIR: ${{ github.workspace }}/.cache/pip
 
   msi-custom-actions:
     runs-on: ${{ matrix.OS }}
     strategy:
       matrix:
         OS: [ "windows-2022" ]
-    steps:
-      - uses: ./.github/workflows/msi-custom-actions.yml
-        with:
-          OS: ${{ matrix.OS }}
+    uses: ./.github/workflows/msi-custom-actions.yml
+    with:
+      OS: ${{ matrix.OS }}
 
   msi-build:
     runs-on: ubuntu-24.04
@@ -65,10 +63,9 @@ jobs:
       matrix:
         OS: [ "windows-2022", "windows-2025" ]
     needs: [cross-compile, agent-bundle-windows, msi-custom-actions]
-    steps:
-      - uses: ./.github/workflows/msi-build.yml
-        with:
-          OS: ${{ matrix.OS }}
+    uses: ./.github/workflows/msi-build.yml
+    with:
+      OS: ${{ matrix.OS }}
 
   dotnet-zeroconfig-e2e-test:
     runs-on: ${{ matrix.OS }}

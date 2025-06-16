@@ -137,7 +137,7 @@ require (
 	go.opentelemetry.io/collector/component/componenttest v0.127.0
 	go.opentelemetry.io/collector/config/confighttp v0.127.0
 	go.opentelemetry.io/collector/config/configopaque v1.33.0
-	go.opentelemetry.io/collector/confmap v1.33.0
+	go.opentelemetry.io/collector/confmap v1.34.0
 	go.opentelemetry.io/collector/confmap/provider/envprovider v1.33.0
 	go.opentelemetry.io/collector/confmap/provider/fileprovider v1.33.0
 	go.opentelemetry.io/collector/confmap/provider/yamlprovider v1.33.0
@@ -772,7 +772,3 @@ replace github.com/veraison/go-cose v1.2.0 => github.com/veraison/go-cose v1.1.1
 // This is only needed for splunk-otel-collector 0.127.0 and can be removed in 0.128.0
 // See: https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40103/files#diff-2bb8e77bc0a07447b4df98ee53c775b57b842fe5d8a649c52506406aeb18c1c8
 replace github.com/prometheus/common v0.64.0 => github.com/prometheus/common v0.62.0
-
-// This is only needed for splunk-otel-collector 0.127.0 and can be removed in 0.128.0
-// See: https://github.com/open-telemetry/opentelemetry-collector/issues/13117
-replace go.opentelemetry.io/collector/confmap v1.33.0 => go.opentelemetry.io/collector/confmap v1.34.0

@@ -3,7 +3,7 @@ name: unit-test
 on:
   workflow_call:
     inputs:
-      ARCH:
+      OS:
         required: true
         type: string
       COVERAGE:
@@ -12,6 +12,7 @@ on:
 
 jobs:
   unit-test:
+    runs-on: ${{ inputs.OS }}
     steps:
       - run: go env -w CGO_ENABLED=0
 
@@ -26,11 +27,11 @@ jobs:
       - name: Unit tests
         run: |
           set -o pipefail
-          mkdir -p unit-test-results-${{ inputs.ARCH }}/junit
-          trap "go-junit-report  -set-exit-code < unit-test-results-${{ inputs.ARCH }}/go-unit-tests.out > unit-test-results-${{ inputs.ARCH }}/junit/results.xml" EXIT
+          mkdir -p unit-test-results-${{ inputs.OS }}/junit
+          trap "go-junit-report  -set-exit-code < unit-test-results-${{ inputs.OS }}/go-unit-tests.out > unit-test-results-${{ inputs.OS }}/junit/results.xml" EXIT
 
           if ${{ inputs.COVERAGE }}; then
-            make gotest-cover-without-race | tee unit-test-results-${{ inputs.ARCH }}/go-unit-tests.out
+            make gotest-cover-without-race | tee unit-test-results-${{ inputs.OS }}/go-unit-tests.out
           else
             make for-all CMD="make test" | tee unit-test-results/go-unit-tests.out
           fi
@@ -38,8 +39,8 @@ jobs:
       - name: Uploading artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: unit-test-results-${{ inputs.ARCH }}
-          path: ./unit-test-results-${{ inputs.ARCH }}
+          name: unit-test-results-${{ inputs.OS }}
+          path: ./unit-test-results-${{ inputs.OS }}
 
       - name: Upload coverage report
         if: ${{ inputs.COVERAGE }}

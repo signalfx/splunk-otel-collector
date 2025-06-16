@@ -1,0 +1,44 @@
+name: msi-custom-actions
+
+on:
+  workflow_call:
+    inputs:
+      OS:
+        required: true
+        type: string
+
+msi-custom-actions:
+  runs-on: ${{ inputs.OS }}
+  steps:
+    - name: Check out the codebase.
+      uses: actions/checkout@v4
+
+    - name: Uninstall default WiX
+      run: choco uninstall wixtoolset
+
+    - name: Install WiX 3.14.0
+      run: choco install wixtoolset --version 3.14.0 --allow-downgrade --force
+
+    - name: Build Custom Actions
+      working-directory: packaging/msi/SplunkCustomActions
+      run: |
+        dotnet test ./test/SplunkCustomActionsTests.csproj -c Release
+        dotnet publish ./src/SplunkCustomActions.csproj -c Release -o ./bin/Release
+
+    - name: Package Custom Actions
+      run: |
+        $WixPath = "${Env:ProgramFiles(x86)}\WiX Toolset v3.14"
+        $sfxcaDll = "${WixPath}\SDK\x64\sfxca.dll"
+        $Env:PATH = "${WixPath}\SDK;" + $Env:PATH
+        $customActionDir = "${PWD}\packaging\msi\SplunkCustomActions"
+        $customActionBinDir = "${customActionDir}\bin\Release"
+        MakeSfxCA.exe "${PWD}\dist\SplunkCustomActions.CA.dll" `
+          "${sfxcaDll}" `
+          "${customActionBinDir}\SplunkCustomActions.dll" `
+          "${customActionBinDir}\Microsoft.Deployment.WindowsInstaller.dll" `
+          "${customActionDir}\src\CustomAction.config"
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: msi-custom-actions
+        path: ./dist/SplunkCustomActions.CA.dll

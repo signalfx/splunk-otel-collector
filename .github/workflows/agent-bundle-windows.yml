@@ -20,7 +20,7 @@ agent-bundle-windows:
 
     - uses: actions/cache@v4
       with:
-        path: ${{ env.PIP_CACHE_DIR }}
+        path: ${{ inputs.PIP_CACHE_DIR }}
         key: agent-bundle-windows-pip-${{ hashFiles('packaging/bundle/collectd-plugins.yaml', 'packaging/bundle/scripts/requirements.txt') }}
 
     - run: ./packaging/bundle/scripts/windows/make.ps1 bundle

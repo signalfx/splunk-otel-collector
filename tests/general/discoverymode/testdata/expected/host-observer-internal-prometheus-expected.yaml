@@ -17,6 +17,9 @@ resourceMetrics:
 #          - key: net.host.port
 #            value:
 #              stringValue: "52144"
+        - key: net.host.port
+          value:
+            stringValue: "52144"
         - key: server.port
           value:
             stringValue: "52144"

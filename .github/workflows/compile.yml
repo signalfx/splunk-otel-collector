@@ -3,7 +3,7 @@ name: compile
 on:
   workflow_call:
     inputs:
-      sys_binary:
+      SYS_BINARY:
         required: true
         type: string
 
@@ -26,11 +26,11 @@ jobs:
 
       - name: Build Collector
         run: |
-          make ${{ inputs.sys_binary }}
+          make ${{ inputs.SYS_BINARY }}
 
       - name: Uploading binaries
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.sys_binary }}
+          name: ${{ inputs.SYS_BINARY }}
           path: |
             ./bin/*

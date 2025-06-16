@@ -20,21 +20,9 @@ jobs:
         ARCH: [ "amd64", "arm64" ]
       fail-fast: false
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/cache@v4
-        id: bundle-cache
+      - uses: ./.github/workflows/agent-bundle-linux.yml
         with:
-          path: .cache/buildx/agent-bundle-${{ matrix.ARCH }}
-          key: agent-bundle-buildx-${{ matrix.ARCH }}-${{ hashFiles('packaging/bundle/**') }}
-          restore-keys: |
-            agent-bundle-buildx-${{ matrix.ARCH }}-
-      - run: make -C packaging/bundle agent-bundle-linux ARCH=${{ matrix.ARCH }}
-        env:
-          BUNDLE_CACHE_HIT: "${{ steps.bundle-cache.outputs.cache-hit }}"
-      - uses: actions/upload-artifact@v4
-        with:
-          name: agent-bundle-linux-${{ matrix.ARCH }}
-          path: ./dist/agent-bundle_linux_${{ matrix.ARCH }}.tar.gz
+          arch: ${{ matrix.ARCH }}
 
   otelcol:
     runs-on: ubuntu-24.04
@@ -78,7 +66,7 @@ jobs:
           cache-dependency-path: '**/go.sum'
       - uses: actions/download-artifact@v4
         with:
-          pattern: agent-bundle-linux-*
+          pattern: agent-bundle-linux.yml-*
           merge-multiple: true
           path: ./dist
       - uses: actions/download-artifact@v4
@@ -280,7 +268,7 @@ jobs:
           cache-dependency-path: '**/go.sum'
       - uses: actions/download-artifact@v4
         with:
-          pattern: agent-bundle-linux-amd64
+          pattern: agent-bundle-linux.yml-amd64
           merge-multiple: true
           path: ./dist
       - run: sudo mkdir -p /usr/lib/splunk-otel-collector

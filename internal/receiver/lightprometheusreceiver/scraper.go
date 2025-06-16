@@ -29,7 +29,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/receiver"
-	conventions "go.opentelemetry.io/collector/semconv/v1.25.0"
+	conventions "go.opentelemetry.io/otel/semconv/v1.22.0"
 	"go.uber.org/zap"
 )
 
@@ -108,32 +108,32 @@ func (s *scraper) fetchPrometheusMetrics(fetch fetcher) (pmetric.Metrics, error)
 	rm := m.ResourceMetrics().AppendEmpty()
 	res := rm.Resource()
 	if s.cfg.ResourceAttributes.ServiceName.Enabled {
-		res.Attributes().PutStr(conventions.AttributeServiceName, s.name)
+		res.Attributes().PutStr(string(conventions.ServiceNameKey), s.name)
 	}
 
 	if s.cfg.ResourceAttributes.NetHostName.Enabled {
-		res.Attributes().PutStr(conventions.AttributeNetHostName, u.Host)
+		res.Attributes().PutStr(string(conventions.NetHostNameKey), u.Host)
 	}
 	if s.cfg.ResourceAttributes.ServerAddress.Enabled {
-		res.Attributes().PutStr(conventions.AttributeServerAddress, u.Host)
+		res.Attributes().PutStr(string(conventions.ServerAddressKey), u.Host)
 	}
 
 	if s.cfg.ResourceAttributes.ServiceInstanceID.Enabled {
-		res.Attributes().PutStr(conventions.AttributeServiceInstanceID, u.Host)
+		res.Attributes().PutStr(string(conventions.ServiceInstanceIDKey), u.Host)
 	}
 
 	if s.cfg.ResourceAttributes.NetHostPort.Enabled {
-		res.Attributes().PutStr(conventions.AttributeNetHostPort, u.Port())
+		res.Attributes().PutStr(string(conventions.NetHostPortKey), u.Port())
 	}
 	if s.cfg.ResourceAttributes.ServerPort.Enabled {
-		res.Attributes().PutStr(conventions.AttributeServerPort, u.Port())
+		res.Attributes().PutStr(string(conventions.ServerPortKey), u.Port())
 	}
 
 	if s.cfg.ResourceAttributes.HTTPScheme.Enabled {
-		res.Attributes().PutStr(conventions.AttributeHTTPScheme, u.Scheme)
+		res.Attributes().PutStr(string(conventions.HTTPSchemeKey), u.Scheme)
 	}
 	if s.cfg.ResourceAttributes.URLScheme.Enabled {
-		res.Attributes().PutStr(conventions.AttributeURLScheme, u.Scheme)
+		res.Attributes().PutStr(string(conventions.URLSchemeKey), u.Scheme)
 	}
 	s.convertMetricFamilies(metricFamilies, rm)
 	return m, nil

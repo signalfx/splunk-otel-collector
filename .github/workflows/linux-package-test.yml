@@ -199,12 +199,12 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: agent-bundle-linux.yml-amd64
+          name: agent-bundle-linux-amd64
           path: ./dist
 
       - uses: actions/download-artifact@v4
         with:
-          name: agent-bundle-linux.yml-arm64
+          name: agent-bundle-linux-arm64
           path: ./dist
 
       - name: Build the multiarch docker image

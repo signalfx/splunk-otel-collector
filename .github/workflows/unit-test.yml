@@ -10,6 +10,9 @@ on:
         required: false
         type: boolean
 
+env:
+  GO_VERSION: 1.23.10
+
 jobs:
   unit-test:
     runs-on: ${{ inputs.OS }}

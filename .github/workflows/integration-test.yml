@@ -22,7 +22,7 @@ jobs:
     steps:
       - uses: ./.github/workflows/agent-bundle-linux.yml
         with:
-          arch: ${{ matrix.ARCH }}
+          ARCH: ${{ matrix.ARCH }}
 
   otelcol:
     runs-on: ubuntu-24.04
@@ -66,7 +66,7 @@ jobs:
           cache-dependency-path: '**/go.sum'
       - uses: actions/download-artifact@v4
         with:
-          pattern: agent-bundle-linux.yml-*
+          pattern: agent-bundle-linux-*
           merge-multiple: true
           path: ./dist
       - uses: actions/download-artifact@v4
@@ -268,7 +268,7 @@ jobs:
           cache-dependency-path: '**/go.sum'
       - uses: actions/download-artifact@v4
         with:
-          pattern: agent-bundle-linux.yml-amd64
+          pattern: agent-bundle-linux-amd64
           merge-multiple: true
           path: ./dist
       - run: sudo mkdir -p /usr/lib/splunk-otel-collector

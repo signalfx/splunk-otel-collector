@@ -1,46 +1,7 @@
 ---
 
-- name: Create temporary MSI build directory
-  ansible.windows.win_file:
-    path: "%TEMP%\\msi-build"
-    state: directory
-  when: local_artifact_testing_enabled
-  register: temp_dest
-
-- debug:
-    var: temp_dest
-  when: local_artifact_testing_enabled
-
 - name: Get local MSI installer
-  ansible.windows.win_copy:
-    src: /tmp/msi-build/
-    dest: "{{ temp_dest.path }}"
-  register: otel_msi_package
-  when: local_artifact_testing_enabled
-
-- debug:
-    var: otel_msi_package
-  when: local_artifact_testing_enabled
-
-- name: Stat information on temp folder that should contain msi installer
-  ansible.windows.win_stat:
-    path: "{{ temp_dest.path }}"
-  register: temp_dest_stat
-  when: local_artifact_testing_enabled
-
-- debug:
-    var: temp_dest_stat
-  when: local_artifact_testing_enabled
-
-- name: Get path to local MSI on Ansible controller
-  ansible.windows.win_find:
-    paths: "{{ temp_dest.path }}"
-  register: msi_dir_contents
-  when: local_artifact_testing_enabled
-  failed_when: msi_dir_contents.files is not defined or msi_dir_contents.files | length != 1
-
-- debug:
-    var: msi_dir_contents
+  ansible.builtin.import_tasks: win_local_msi.yml
   when: local_artifact_testing_enabled
 
 - name: Get remote MSI installer

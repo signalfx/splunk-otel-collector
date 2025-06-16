@@ -32,3 +32,8 @@
     proxy_username: "{{ win_proxy_username | default(omit) }}"
     use_proxy: "{{ win_use_proxy }}"
   register: otel_msi_package
+
+- name: Set MSI source path (remote install)
+  when: not local_artifact_testing_enabled
+  set_fact:
+    msi_path: "{{ otel_msi_package.dest }}"

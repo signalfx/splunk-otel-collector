@@ -68,16 +68,6 @@
   set_fact:
     msi_arguments: "{{ msi_arguments | join(' ') }}"
 
-- name: Set MSI source path (local install)
-  when: local_artifact_testing_enabled
-  set_fact:
-    msi_path: "{{ msi_dir_contents.files[0].path }}"
-
-- name: Set MSI source path (remote install)
-  when: not local_artifact_testing_enabled
-  set_fact:
-    msi_path: "{{ otel_msi_package.dest }}"
-
 - name: Install splunk-otel-collector-msi
   when: splunk_collector_msi_is_configurable is defined
   ansible.windows.win_package:

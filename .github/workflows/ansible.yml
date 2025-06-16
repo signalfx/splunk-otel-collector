@@ -373,12 +373,6 @@ jobs:
           name: msi-build
           path: /tmp/msi-build
 
-      - name: View contents of /tmp
-        run: ls -al /tmp
-
-      - name: View contents of /tmp/msi-build
-        run: ls -al /tmp/msi-build
-
       - name: Install vagrant and virtualbox
         run: |
           sudo apt update && sudo apt install -y virtualbox

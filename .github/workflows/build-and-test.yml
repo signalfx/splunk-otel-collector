@@ -125,7 +125,7 @@ jobs:
     needs: [setup-environment]
     uses: ./.github/workflows/unit-test.yml
     with:
-      ARCH: ${{ matrix.OS }}
+      OS: ${{ matrix.OS }}
       COVERAGE: true
 
   coverage:

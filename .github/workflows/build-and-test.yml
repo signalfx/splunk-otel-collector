@@ -117,7 +117,7 @@ jobs:
           make for-all CMD="make lint"
 
   test:
-    name: test
+    name: unit-test
     strategy:
       matrix:
         # The "macos-13-xlarge" runner is arm64: https://github.com/actions/runner-images/issues/8439

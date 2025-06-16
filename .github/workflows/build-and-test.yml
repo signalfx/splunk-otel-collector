@@ -124,12 +124,10 @@ jobs:
         # The "macos-13-xlarge" runner is arm64: https://github.com/actions/runner-images/issues/8439
         OS: [ "ubuntu-24.04", "macos-13", "macos-13-xlarge", "macos-14", "macos-15" ]
     needs: [setup-environment]
-    steps:
-      - name: Run unit tests
-        uses: ./.github/workflows/unit-test.yml
-        with:
-          ARCH: ${{ matrix.OS }}
-          COVERAGE: true
+    uses: ./.github/workflows/unit-test.yml
+    with:
+      ARCH: ${{ matrix.OS }}
+      COVERAGE: true
 
   coverage:
     name: coverage

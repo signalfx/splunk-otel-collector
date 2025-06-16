@@ -36,7 +36,7 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: agent-bundle-linux.yml-${{ inputs.ARCH }}
+          name: agent-bundle-linux-${{ inputs.ARCH }}
           path: ./dist
 
       - name: Build ${{ inputs.SYS_PACKAGE }} ${{ inputs.ARCH }} package

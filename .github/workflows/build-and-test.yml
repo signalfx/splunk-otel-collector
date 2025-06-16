@@ -118,7 +118,6 @@ jobs:
 
   test:
     name: test
-    runs-on: ${{ matrix.OS }}
     strategy:
       matrix:
         # The "macos-13-xlarge" runner is arm64: https://github.com/actions/runner-images/issues/8439

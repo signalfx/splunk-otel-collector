@@ -54,7 +54,6 @@ jobs:
       ARCH: ${{ matrix.ARCH }}
 
   build-package:
-    runs-on: ubuntu-24.04
     needs: [ cross-compile, agent-bundle-linux ]
     strategy:
       matrix:

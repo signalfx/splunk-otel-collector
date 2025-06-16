@@ -138,10 +138,10 @@ require (
 	go.opentelemetry.io/collector/config/confighttp v0.127.0
 	go.opentelemetry.io/collector/config/configopaque v1.33.0
 	go.opentelemetry.io/collector/confmap v1.34.0
-	go.opentelemetry.io/collector/confmap/provider/envprovider v1.33.0
-	go.opentelemetry.io/collector/confmap/provider/fileprovider v1.33.0
-	go.opentelemetry.io/collector/confmap/provider/yamlprovider v1.33.0
-	go.opentelemetry.io/collector/confmap/xconfmap v0.127.0
+	go.opentelemetry.io/collector/confmap/provider/envprovider v1.34.0
+	go.opentelemetry.io/collector/confmap/provider/fileprovider v1.34.0
+	go.opentelemetry.io/collector/confmap/provider/yamlprovider v1.34.0
+	go.opentelemetry.io/collector/confmap/xconfmap v0.128.0
 	go.opentelemetry.io/collector/connector/forwardconnector v0.127.0
 	go.opentelemetry.io/collector/consumer/consumertest v0.127.0
 	go.opentelemetry.io/collector/exporter/debugexporter v0.127.0

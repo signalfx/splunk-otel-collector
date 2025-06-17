@@ -190,6 +190,7 @@ jobs:
           Remove-Item .\cmd\otelcol\otelcol.exe
           Remove-Item .\cmd\otelcol\agent-bundle_windows_amd64.zip
       - uses: anchore/scan-action@v6
+        id: anchore-scan
         with:
           severity-cutoff: "high"
           only-fixed: true

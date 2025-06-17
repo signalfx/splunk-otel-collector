@@ -84,6 +84,8 @@ and the [opentelemetry-collector-contrib v0.127.0](https://github.com/open-telem
 
 ### 🧰 Bug fixes 🧰
 
+- (Core) `confmap`: Do not panic on assigning nil maps to non-nil maps ([#13117](https://github.com/open-telemetry/opentelemetry-collector/pull/13117))
+  - This fix was backported from [opentelemetry-collector v0.128.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.128.0) to ensure the bug does not affect splunk-otel-collector v0.127.0.
 - (Contrib) `azuremonitorreceiver`: Use ``metrics`` aggregation filter when ``use_batch_api: true`` ([#40079](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40079))
 - (Contrib) `postgresqlreceiver`: Fix too many top query got reported. Top query should only report those queries were executed during the query interval ([#39942](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39942))
 - (Contrib) `filelogreceiver`: Introduce `utf8-raw` encoding to avoid replacing invalid bytes with \uFFFD when reading UTF-8 input. ([#39653](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39653))

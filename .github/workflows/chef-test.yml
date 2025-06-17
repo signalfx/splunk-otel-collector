@@ -45,7 +45,6 @@ jobs:
 
   cross-compile:
     needs: [ setup-environment, chef-lint-spec-test ]
-    runs-on: ubuntu-24.04
     strategy:
       matrix:
         SYS_BINARIES: [ "binaries-linux_amd64", "binaries-linux_arm64", "binaries-windows_amd64" ]

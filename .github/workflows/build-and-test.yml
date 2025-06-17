@@ -15,27 +15,16 @@ env:
   GO_VERSION: 1.23.10
 
 jobs:
-  setup-environment:
-    name: setup-environment
-    uses: ./.github/workflows/setup-environment.yml
-
   tidy:
     name: tidy
     runs-on: ubuntu-24.04
-    needs: [setup-environment]
     steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-environment
         with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
-
+          GO_VERSION: ${{ env.GO_VERSION }}
       - name: tidy
         run: |
-          make install-tools
           make for-all CMD="make tidy"
           if ! git diff --exit-code; then
             echo "One or more Go files are not tidied. Run 'make for-all CMD=\"make tidy\"' and push the changes."
@@ -45,20 +34,14 @@ jobs:
   gofmt:
     name: gofmt
     runs-on: ubuntu-24.04
-    needs: [setup-environment]
     steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-environment
         with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
+          GO_VERSION: ${{ env.GO_VERSION }}
 
       - name: gofmt
         run: |
-          make install-tools
           make for-all CMD="make fmt"
           if ! git diff --exit-code; then
             echo "One or more Go files are not formatted correctly. Run 'make for-all CMD="make fmt"' and push the changes."
@@ -68,19 +51,11 @@ jobs:
   generate-metrics:
     name: generate-metrics
     runs-on: ubuntu-24.04
-    needs: [setup-environment]
     steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-environment
         with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
-
-      - name: install-tools
-        run: make install-tools
+          GO_VERSION: ${{ env.GO_VERSION }}
 
       - name: generate-metrics
         run: |
@@ -93,16 +68,11 @@ jobs:
   lint:
     name: lint
     runs-on: ubuntu-24.04
-    needs: [setup-environment]
     steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-environment
         with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
+          GO_VERSION: ${{ env.GO_VERSION }}
 
       - run: echo "GOLANGCI_LINT_CACHE=${HOME}/.cache/golangci-lint" >> $GITHUB_ENV
 
@@ -113,7 +83,6 @@ jobs:
 
       - name: Lint
         run: |
-          make install-tools
           make for-all CMD="make lint"
 
   test:
@@ -122,7 +91,6 @@ jobs:
       matrix:
         # The "macos-13-xlarge" runner is arm64: https://github.com/actions/runner-images/issues/8439
         OS: [ "ubuntu-24.04", "macos-13", "macos-13-xlarge", "macos-14", "macos-15" ]
-    needs: [setup-environment]
     uses: ./.github/workflows/unit-test.yml
     with:
       OS: ${{ matrix.OS }}
@@ -131,19 +99,11 @@ jobs:
   coverage:
     name: coverage
     runs-on: ubuntu-24.04
-    needs: [setup-environment]
     steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-environment
         with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
-
-      - name: Install Tools
-        run: make install-tools
+          GO_VERSION: ${{ env.GO_VERSION }}
 
       - name: Run Unit Tests With Coverage
         run: make gotest-with-codecov
@@ -157,7 +117,6 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   cross-compile:
-    needs: [setup-environment]
     strategy:
       matrix:
         SYS_BINARIES: [ "binaries-darwin_amd64", "binaries-darwin_arm64", "binaries-linux_amd64", "binaries-linux_arm64", "binaries-windows_amd64", "binaries-linux_ppc64le" ]

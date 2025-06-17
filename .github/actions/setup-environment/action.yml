@@ -1,0 +1,24 @@
+name: 'setup environment'
+description: 'setup go environment'
+
+inputs:
+  GO_VERSION:
+    description: 'Version of golang to setup'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Check out the codebase.
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ inputs.GO_VERSION }}
+        cache-dependency-path: '**/go.sum'
+
+    - name: Installing dependency
+      run: |
+        cd ${{github.workspace}} && make install-tools
+      shell: bash

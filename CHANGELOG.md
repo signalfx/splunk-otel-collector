@@ -7,6 +7,14 @@
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.127.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.127.0)
 and the [opentelemetry-collector-contrib v0.127.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.127.0) releases where appropriate.
 
+### ❗ Known Issues ❗
+
+- **`simpleprometheusreceiver`: Metrics from this receiver may be missing labels or exhibit unexpected label behavior**  
+  An issue has been identified in this receiver where labels are not being passed and processed correctly.
+  This means Prometheus metrics may be missing expected labels or exhibit unexpected label behavior, 
+  which can affect internal Collector processing as well as downstream dashboards, alerts, and metric analysis.
+  See contrib issue [#40722](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/40722) for more details on this bug.
+
 ### 🛑 Breaking changes 🛑
 
 - (Contrib) `sqlserverreceiver`: Zero values in delta attributes will be reported in top query collection. ([#40041](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40041))

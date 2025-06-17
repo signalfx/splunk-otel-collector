@@ -47,17 +47,17 @@ jobs:
     needs: [ setup-environment, chef-lint-spec-test ]
     strategy:
       matrix:
-        SYS_BINARIES: [ "binaries-linux_amd64", "binaries-linux_arm64", "binaries-windows_amd64" ]
+        SYS_BINARIES: [ "binaries-linux_amd64", "binaries-windows_amd64" ]
     uses: ./.github/workflows/compile.yml
     with:
       sys_binary: ${{ matrix.SYS_BINARIES }}
 
   agent-bundle-linux:
     needs: [chef-lint-spec-test]
-    runs-on: ${{ fromJSON('["ubuntu-24.04", "otel-arm64"]')[matrix.ARCH == 'arm64'] }}
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
-        ARCH: [ "amd64", "arm64" ]
+        ARCH: [ "amd64" ]
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
@@ -83,8 +83,8 @@ jobs:
     needs: [ cross-compile, agent-bundle-linux ]
     strategy:
       matrix:
-        SYS_PACKAGE: [ "deb", "rpm", "tar" ]
-        ARCH: [ "amd64", "arm64" ]
+        SYS_PACKAGE: [ "deb", "rpm" ]
+        ARCH: [ "amd64" ]
       fail-fast: false
     steps:
       - name: Check out the codebase.
@@ -300,25 +300,21 @@ jobs:
         run: |
           ls -al /tmp
 
-          sudo tar -xzf /tmp/deb-amd64-package
-          sudo tar -xzf /tmp/rpm-amd64-package
+          ls -al /tmp/deb-amd64-package
+          ls -al /tmp/rpm-amd64-package
+
+#          sudo tar -xzf /tmp/deb-amd64-package
+#          sudo tar -xzf /tmp/rpm-amd64-package
 
           ls -al /tmp
 
-          deb_path=$(find /tmp/splunk-otel-collector*amd64.deb)
+          mkdir -p files
+          deb_path=$(find /tmp/deb-amd64-package/splunk-otel-collector*amd64.deb)
           mv $deb_path ./files/deb-amd64-package
-          rpm_path=$(find /tmp/splunk-otel-collector*x86_64.rpm)
+          rpm_path=$(find /tmp/rpm-amd64-package/splunk-otel-collector*x86_64.rpm)
           mv $rpm_path ./files/rpm-amd64-package
 
-          sudo tar -xzf /tmp/deb-arm64-package
-          sudo tar -xzf /tmp/rpmn-arm64-package
-
-          ls -al /tmp
-
-          deb_path=$(find /tmp/splunk-otel-collector*arm64.deb)
-          mv $deb_path ./files/deb-arm64-package
-          rpm_path=$(find /tmp/splunk-otel-collector*aarch64.rpm)
-          mv $rpm_path ./files/rpm-amd64-package
+          ls -al ./files
 
       - name: Install chef
         uses: actionshub/chef-install@3.0.1
@@ -364,10 +360,11 @@ jobs:
         run: |
           ls /tmp
 
-          sudo tar -xzf /tmp/msi-build
+#          sudo tar -xzf /tmp/msi-build
 
-          ls /tmp
+#          ls /tmp
 
+          mkdir files
           Get-ChildItem /tmp -Recurse -Include 'splunk-otel-collector*.msi' | Select FullName -OutVariable msiPath
           echo $msiPath.FullName
           mv $msiPath.FullName ./files/splunk-otel-collector.msi

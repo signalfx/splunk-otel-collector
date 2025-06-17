@@ -61,7 +61,7 @@ jobs:
           make install-tools
           make for-all CMD="make fmt"
           if ! git diff --exit-code; then
-            echo "One or more Go files are not formatted correctly. Run 'make for-all CMD="make fmt"' and push the changes."
+            echo "One or more Go files are not formatted correctly. Run 'make for-all CMD=\"make fmt\"' and push the changes."
             exit 1
           fi
 

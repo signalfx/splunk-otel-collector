@@ -21,26 +21,17 @@ concurrency:
 env:
   GO_VERSION: 1.23.10
 jobs:
-  setup-environment:
-    name: setup-environment
-    uses: ./.github/workflows/setup-environment.yml
-
   test:
     name: test
     runs-on: ubuntu-24.04
-    needs: [setup-environment]
     defaults:
       run:
         working-directory: ${{github.workspace}}/packaging/technical-addon
     steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-environment
         with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
+          GO_VERSION: ${{ env.GO_VERSION }}
 
       - name: Build & Package TA
         run: |
@@ -54,24 +45,14 @@ jobs:
   test-generator:
     name: test-modinput-config-generator
     runs-on: ubuntu-24.04
-    needs: [setup-environment]
     defaults:
       run:
         working-directory: ${{github.workspace}}/packaging/technical-addon
     steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-environment
         with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
-
-      - name: install tools
-        run: |
-          set -o pipefail
-          cd ${{github.workspace}} && make install-tools
+          GO_VERSION: ${{ env.GO_VERSION }}
 
       - name: Test addon generator
         run: |

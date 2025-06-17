@@ -300,13 +300,25 @@ jobs:
         run: |
           ls -al /tmp
 
-          sudo tar -xzf /tmp/deb-amd64-deb
+          sudo tar -xzf /tmp/deb-amd64-package
+          sudo tar -xzf /tmp/rpm-amd64-package
+
+          ls -al /tmp
+
           deb_path=$(find /tmp/splunk-otel-collector*amd64.deb)
           mv $deb_path ./files/deb-amd64-package
+          rpm_path=$(find /tmp/splunk-otel-collector*x86_64.rpm)
+          mv $rpm_path ./files/rpm-amd64-package
 
-          sudo tar -xzf /tmp/deb-arm64-deb
+          sudo tar -xzf /tmp/deb-arm64-package
+          sudo tar -xzf /tmp/rpmn-arm64-package
+
+          ls -al /tmp
+
           deb_path=$(find /tmp/splunk-otel-collector*arm64.deb)
           mv $deb_path ./files/deb-arm64-package
+          rpm_path=$(find /tmp/splunk-otel-collector*aarch64.rpm)
+          mv $rpm_path ./files/rpm-amd64-package
 
       - name: Install chef
         uses: actionshub/chef-install@3.0.1
@@ -350,7 +362,17 @@ jobs:
       # Cookbook files reference: https://docs.chef.io/files/
       - name: Extract artifacts
         run: |
-          ls -al /tmp
+          ls /tmp
+
+          sudo tar -xzf /tmp/msi-build
+
+          ls /tmp
+
+          Get-ChildItem /tmp -Recurse -Include 'splunk-otel-collector*.msi' | Select FullName -OutVariable msiPath
+          echo $msiPath.FullName
+          mv $msiPath.FullName ./files/splunk-otel-collector.msi
+
+          ls ./files
 
       - name: Install chef
         uses: actionshub/chef-install@3.0.1

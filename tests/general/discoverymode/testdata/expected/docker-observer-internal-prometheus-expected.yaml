@@ -32,21 +32,22 @@ resourceMetrics:
               dataPoints:
                 - asDouble: 0
                   attributes:
-                    - key: label_five
-                      value:
-                        stringValue: actual.label.five.value
-                    - key: label_four
-                      value:
-                        stringValue: actual.label.four.value
-                    - key: label_one
-                      value:
-                        stringValue: actual.label.one.value
-                    - key: label_three
-                      value:
-                        stringValue: actual.label.three.value
-                    - key: label_two
-                      value:
-                        stringValue: actual.label.two.value
+#.    .              TODO: Re-enable test coverage after https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/40722
+#                    - key: label_five
+#                      value:
+#                        stringValue: actual.label.five.value
+#                    - key: label_four
+#                      value:
+#                        stringValue: actual.label.four.value
+#                    - key: label_one
+#                      value:
+#                        stringValue: actual.label.one.value
+#                    - key: label_three
+#                      value:
+#                        stringValue: actual.label.three.value
+#                    - key: label_two
+#                      value:
+#                        stringValue: actual.label.two.value
                   timeUnixNano: "1000000"
             metadata:
               - key: prometheus.type

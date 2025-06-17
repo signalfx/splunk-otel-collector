@@ -211,9 +211,13 @@ jobs:
       # Cookbook files reference: https://docs.chef.io/files/
       - name: Extract artifacts
         run: |
+          ls -al
+
+          sudo tar -xzf /tmp/deb-amd64-deb
           deb_path=$(find /tmp/splunk-otel-collector*amd64.deb)
           mv $deb_path ./files/deb-amd64-package
 
+          sudo tar -xzf /tmp/deb-arm64-deb
           deb_path=$(find /tmp/splunk-otel-collector*arm64.deb)
           mv $deb_path ./files/deb-arm64-package
 

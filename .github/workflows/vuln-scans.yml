@@ -194,8 +194,13 @@ jobs:
           severity-cutoff: "high"
           only-fixed: true
           add-cpes-if-none: true
-          output-format: "table"
+          output-format: sarif
           image: "otelcol-windows:latest"
+      - name: Upload result to GitHub Code Scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ${{ steps.anchore-scan.outputs.sarif }}
 
   check-snyk-token:
     runs-on: ubuntu-24.04

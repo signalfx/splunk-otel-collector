@@ -303,11 +303,6 @@ jobs:
           ls -al /tmp/deb-amd64-package
           ls -al /tmp/rpm-amd64-package
 
-#          sudo tar -xzf /tmp/deb-amd64-package
-#          sudo tar -xzf /tmp/rpm-amd64-package
-
-          ls -al /tmp
-
           mkdir -p files
           deb_path=$(find /tmp/deb-amd64-package/splunk-otel-collector*amd64.deb)
           mv $deb_path ./files/deb-amd64-package
@@ -359,10 +354,6 @@ jobs:
       - name: Extract artifacts
         run: |
           ls /tmp
-
-#          sudo tar -xzf /tmp/msi-build
-
-#          ls /tmp
 
           mkdir files
           Get-ChildItem /tmp -Recurse -Include 'splunk-otel-collector*.msi' | Select FullName -OutVariable msiPath

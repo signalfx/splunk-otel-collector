@@ -305,9 +305,9 @@ jobs:
 
           mkdir -p files
           deb_path=$(find /tmp/deb-amd64-package/splunk-otel-collector*amd64.deb)
-          mv $deb_path ./files/deb-amd64-package
+          mv $deb_path ./files/soc.deb
           rpm_path=$(find /tmp/rpm-amd64-package/splunk-otel-collector*x86_64.rpm)
-          mv $rpm_path ./files/rpm-amd64-package
+          mv $rpm_path ./files/soc.rpm
 
           ls -al ./files
 

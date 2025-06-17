@@ -8,12 +8,8 @@ remote_file '/etc/apt/trusted.gpg.d/splunk.gpg' do
 end
 
 if node['splunk_otel_collector']['local_artifact_testing_enabled']
-  cpu_arch = 'amd64'
-  if arm?
-    cpu_arch = 'arm64'
-  end
 
-  file_name = 'deb-' + cpu_arch + '-package'
+  file_name = 'soc.deb'
   deb_install_dir = '/etc/otel/collector/'
   deb_install_path = deb_install_dir + file_name
 

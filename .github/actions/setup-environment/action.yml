@@ -18,7 +18,7 @@ runs:
         go-version: ${{ inputs.GO_VERSION }}
         cache-dependency-path: '**/go.sum'
 
-    - name: Installing dependency
+    - name: Installing required tools
       run: |
         cd ${{github.workspace}} && make install-tools
       shell: bash

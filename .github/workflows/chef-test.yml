@@ -190,7 +190,7 @@ jobs:
 
   chef-kitchen-linux:
     runs-on: ubuntu-24.04
-    needs: [chef-lint-spec-test, chef-kitchen-matrix]
+    needs: [chef-lint-spec-test, chef-kitchen-matrix, build-package]
     defaults:
       run:
         working-directory: 'deployments/chef'

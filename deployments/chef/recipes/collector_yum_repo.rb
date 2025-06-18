@@ -13,15 +13,7 @@ end
 
 if node['splunk_otel_collector']['local_artifact_testing_enabled']
   file_name = 'soc.rpm'
-  rpm_install_dir = '/etc/otel/collector/'
-  rpm_install_path = rpm_install_dir + file_name
-
-  # Create destination dir on target machine
-  directory rpm_install_dir do
-    mode '0644'
-    action :create
-    recursive true
-  end
+  rpm_install_path = '/tmp/' + file_name
 
   # Copy rpm file from source to target
   cookbook_file rpm_install_path do

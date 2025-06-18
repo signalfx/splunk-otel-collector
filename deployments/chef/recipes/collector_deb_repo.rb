@@ -15,15 +15,7 @@ end
 
 if node['splunk_otel_collector']['local_artifact_testing_enabled']
   file_name = 'soc.deb'
-  deb_install_dir = '/etc/otel/collector/'
-  deb_install_path = deb_install_dir + file_name
-
-  # Create destination dir on target machine
-  directory deb_install_dir do
-    mode '0644'
-    action :create
-    recursive true
-  end
+  deb_install_path = '/tmp/' + file_name
 
   # Copy deb file from source to target
   cookbook_file deb_install_path do

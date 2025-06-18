@@ -191,9 +191,8 @@ jobs:
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4
-        with:
-          sparse-checkout: packaging/technical-addon/
       - uses: ./.github/actions/setup-environment
+
       - uses: streetsidesoftware/cspell-action@v7
         with:
           config: ${{github.workspace}}/packaging/technical-addon/packaging-scripts/cspell/cspell.json

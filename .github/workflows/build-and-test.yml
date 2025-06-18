@@ -21,8 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-environment
-        with:
-          GO_VERSION: ${{ env.GO_VERSION }}
+
       - name: tidy
         run: |
           make for-all CMD="make tidy"
@@ -37,8 +36,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-environment
-        with:
-          GO_VERSION: ${{ env.GO_VERSION }}
 
       - name: gofmt
         run: |
@@ -54,8 +51,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-environment
-        with:
-          GO_VERSION: ${{ env.GO_VERSION }}
 
       - name: generate-metrics
         run: |
@@ -71,8 +66,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-environment
-        with:
-          GO_VERSION: ${{ env.GO_VERSION }}
 
       - run: echo "GOLANGCI_LINT_CACHE=${HOME}/.cache/golangci-lint" >> $GITHUB_ENV
 
@@ -102,8 +95,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-environment
-        with:
-          GO_VERSION: ${{ env.GO_VERSION }}
 
       - name: Run Unit Tests With Coverage
         run: make gotest-with-codecov

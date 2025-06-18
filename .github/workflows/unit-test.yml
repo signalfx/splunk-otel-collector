@@ -19,8 +19,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-environment
-        with:
-          GO_VERSION: ${{ env.GO_VERSION }}
 
       - run: go env -w CGO_ENABLED=0
 

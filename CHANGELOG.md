@@ -7,6 +7,14 @@
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.127.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.127.0)
 and the [opentelemetry-collector-contrib v0.127.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.127.0) releases where appropriate.
 
+### ❗ Known Issues ❗
+
+- **`simpleprometheusreceiver`: Metrics from this receiver may be missing labels or exhibit unexpected label behavior**  
+  An issue has been identified in this receiver where labels are not being passed and processed correctly.
+  This means Prometheus metrics may be missing expected labels or exhibit unexpected label behavior, 
+  which can affect internal Collector processing as well as downstream dashboards, alerts, and metric analysis.
+  See contrib issue [#40722](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/40722) for more details on this bug.
+
 ### 🛑 Breaking changes 🛑
 
 - (Contrib) `sqlserverreceiver`: Zero values in delta attributes will be reported in top query collection. ([#40041](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40041))
@@ -76,6 +84,8 @@ and the [opentelemetry-collector-contrib v0.127.0](https://github.com/open-telem
 
 ### 🧰 Bug fixes 🧰
 
+- (Core) `confmap`: Do not panic on assigning nil maps to non-nil maps ([#13117](https://github.com/open-telemetry/opentelemetry-collector/pull/13117))
+  - This fix was backported from [opentelemetry-collector v0.128.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.128.0) to ensure the bug does not affect splunk-otel-collector v0.127.0.
 - (Contrib) `azuremonitorreceiver`: Use ``metrics`` aggregation filter when ``use_batch_api: true`` ([#40079](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40079))
 - (Contrib) `postgresqlreceiver`: Fix too many top query got reported. Top query should only report those queries were executed during the query interval ([#39942](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39942))
 - (Contrib) `filelogreceiver`: Introduce `utf8-raw` encoding to avoid replacing invalid bytes with \uFFFD when reading UTF-8 input. ([#39653](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39653))

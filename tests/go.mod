@@ -1,6 +1,6 @@
 module github.com/signalfx/splunk-otel-collector/tests
 
-go 1.23.8
+go 1.23.10
 
 require (
 	github.com/docker/docker v28.2.2+incompatible
@@ -16,7 +16,7 @@ require (
 	go.opentelemetry.io/collector/component v1.33.0
 	go.opentelemetry.io/collector/component/componenttest v0.127.0
 	go.opentelemetry.io/collector/config/confignet v1.33.0
-	go.opentelemetry.io/collector/confmap v1.33.0
+	go.opentelemetry.io/collector/confmap v1.34.0
 	go.opentelemetry.io/collector/consumer/consumertest v0.127.0
 	go.opentelemetry.io/collector/pdata v1.33.0
 	go.opentelemetry.io/collector/receiver v1.33.0
@@ -125,7 +125,7 @@ require (
 	go.opentelemetry.io/collector/consumer/xconsumer v0.127.0 // indirect
 	go.opentelemetry.io/collector/extension/extensionauth v1.33.0 // indirect
 	go.opentelemetry.io/collector/extension/extensionmiddleware v0.127.0 // indirect
-	go.opentelemetry.io/collector/featuregate v1.33.0 // indirect
+	go.opentelemetry.io/collector/featuregate v1.34.0 // indirect
 	go.opentelemetry.io/collector/internal/sharedcomponent v0.127.0 // indirect
 	go.opentelemetry.io/collector/internal/telemetry v0.127.0 // indirect
 	go.opentelemetry.io/collector/pdata/pprofile v0.127.0 // indirect

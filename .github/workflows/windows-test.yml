@@ -8,7 +8,7 @@ on:
     paths:
 
 env:
-  GO_VERSION: 1.23.8
+  GO_VERSION: 1.23.10
 
 concurrency:
   group: windows-test-${{ github.event.pull_request.number || github.ref }}

@@ -14,7 +14,7 @@ on:
     - cron: '0 0 * * 1-5' # Every weekday at midnight UTC
 
 env:
-  GO_VERSION: 1.23.8
+  GO_VERSION: 1.23.10
 
 concurrency:
   group: vuln-scans-${{ github.event.pull_request.number || github.ref }}
@@ -190,12 +190,18 @@ jobs:
           Remove-Item .\cmd\otelcol\otelcol.exe
           Remove-Item .\cmd\otelcol\agent-bundle_windows_amd64.zip
       - uses: anchore/scan-action@v6
+        id: anchore-scan
         with:
           severity-cutoff: "high"
           only-fixed: true
           add-cpes-if-none: true
-          output-format: "table"
+          output-format: sarif
           image: "otelcol-windows:latest"
+      - name: Upload result to GitHub Code Scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ${{ steps.anchore-scan.outputs.sarif }}
 
   check-snyk-token:
     runs-on: ubuntu-24.04

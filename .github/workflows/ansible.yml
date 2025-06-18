@@ -32,7 +32,6 @@ env:
   GO_VERSION: 1.23.10
 
 jobs:
-
   cross-compile:
     strategy:
       matrix:
@@ -68,105 +67,28 @@ jobs:
     strategy:
       matrix:
         OS: [ "windows-2025" ]
-    env:
+    uses: ./.github/workflows/agent-bundle-windows.yml
+    with:
+      OS: ${{ matrix.OS }}
       PIP_CACHE_DIR: ${{ github.workspace }}/.cache/pip
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/cache@v4
-        with:
-          path: ${{ env.PIP_CACHE_DIR }}
-          key: agent-bundle-windows-pip-${{ hashFiles('packaging/bundle/collectd-plugins.yaml', 'packaging/bundle/scripts/requirements.txt') }}
-
-      - run: ./packaging/bundle/scripts/windows/make.ps1 bundle
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: agent-bundle-windows-${{ matrix.OS }}
-          path: ./dist/agent-bundle_windows_amd64.zip
 
   msi-custom-actions:
-    runs-on: windows-2025
     needs: lint
-    steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v4
-
-      - name: Uninstall default WiX
-        run: choco uninstall wixtoolset
-
-      - name: Install WiX 3.14.0
-        run: choco install wixtoolset --version 3.14.0 --allow-downgrade --force
-
-      - name: Build Custom Actions
-        working-directory: packaging/msi/SplunkCustomActions
-        run: |
-          dotnet test ./test/SplunkCustomActionsTests.csproj -c Release
-          dotnet publish ./src/SplunkCustomActions.csproj -c Release -o ./bin/Release
-
-      - name: Package Custom Actions
-        run: |
-          $WixPath = "${Env:ProgramFiles(x86)}\WiX Toolset v3.14"
-          $sfxcaDll = "${WixPath}\SDK\x64\sfxca.dll"
-          $Env:PATH = "${WixPath}\SDK;" + $Env:PATH
-          $customActionDir = "${PWD}\packaging\msi\SplunkCustomActions"
-          $customActionBinDir = "${customActionDir}\bin\Release"
-          MakeSfxCA.exe "${PWD}\dist\SplunkCustomActions.CA.dll" `
-            "${sfxcaDll}" `
-            "${customActionBinDir}\SplunkCustomActions.dll" `
-            "${customActionBinDir}\Microsoft.Deployment.WindowsInstaller.dll" `
-            "${customActionDir}\src\CustomAction.config"
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: msi-custom-actions
-          path: ./dist/SplunkCustomActions.CA.dll
+    strategy:
+      matrix:
+        OS: [ "windows-2025" ]
+    uses: ./.github/workflows/msi-custom-actions.yml
+    with:
+      OS: ${{ matrix.OS }}
 
   msi-build:
-    runs-on: ubuntu-24.04
-    env:
-      WINDOWS_VER: "windows-2025"
     needs: [cross-compile, agent-bundle-windows, msi-custom-actions]
-    steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Downloading binaries-windows_amd64
-        uses: actions/download-artifact@v4
-        with:
-          name: binaries-windows_amd64
-          path: ./bin
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
-
-      - name: Downloading agent-bundle-windows
-        uses: actions/download-artifact@v4
-        with:
-          name: agent-bundle-windows-${{ env.WINDOWS_VER }}
-          path: ./dist
-
-      - name: Downloading msi-custom-actions
-        uses: actions/download-artifact@v4
-        with:
-          name: msi-custom-actions
-          path: ./packaging/msi/SplunkCustomActions/bin/Release
-
-      - name: Build MSI
-        run: |
-          mkdir -p dist
-          make msi SKIP_COMPILE=true VERSION=""
-
-      - name: Uploading msi build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: msi-build
-          path: ./dist/*.msi
+    strategy:
+      matrix:
+        OS: [ "windows-2025" ]
+    uses: ./.github/workflows/msi-build.yml
+    with:
+      OS: ${{ matrix.OS }}
 
   lint:
     name: Lint

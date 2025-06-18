@@ -293,23 +293,18 @@ jobs:
           path: /tmp
 
       # Chef doesn't have an easy way to get names of files from unarchived packages
-      # It's simpler to unarchive and move the built artifacts manually to the
-      # cookbook files directory
+      # It's simpler to manually unarchive and move the built artifacts to the
+      # cookbook files directory here. The files/ dir under the Chef deployment is a special
+      # directory in Chef, used for copying files from the cookbook to the host running
+      # Chef.
       # Cookbook files reference: https://docs.chef.io/files/
       - name: Extract artifacts
         run: |
-          ls -al /tmp
-
-          ls -al /tmp/deb-amd64-package
-          ls -al /tmp/rpm-amd64-package
-
           mkdir -p files
           deb_path=$(find /tmp/deb-amd64-package/splunk-otel-collector*amd64.deb)
           mv $deb_path ./files/soc.deb
           rpm_path=$(find /tmp/rpm-amd64-package/splunk-otel-collector*x86_64.rpm)
           mv $rpm_path ./files/soc.rpm
-
-          ls -al ./files
 
       - name: Install chef
         uses: actionshub/chef-install@3.0.1
@@ -349,18 +344,16 @@ jobs:
 
       # Chef doesn't have an easy way to get names of files from unarchived packages
       # It's simpler to unarchive and move the built artifacts manually to the
-      # cookbook files directory
+      # cookbook files directory. The files/ dir under the Chef deployment is a special
+      # directory in Chef, used for copying files from the cookbook to the host running
+      # Chef.
       # Cookbook files reference: https://docs.chef.io/files/
       - name: Extract artifacts
         run: |
-          ls /tmp
-
           mkdir files
           Get-ChildItem /tmp -Recurse -Include 'splunk-otel-collector*.msi' | Select FullName -OutVariable msiPath
           echo $msiPath.FullName
           mv $msiPath.FullName ./files/splunk-otel-collector.msi
-
-          ls ./files
 
       - name: Install chef
         uses: actionshub/chef-install@3.0.1

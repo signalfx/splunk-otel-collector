@@ -55,7 +55,7 @@ elsif platform_family?('debian', 'rhel', 'amazon', 'suse')
     include_recipe 'splunk_otel_collector::collector_zypper_repo'
   end
 
-  # Packages should already be installed for local artifact testing
+  # splunk-otel-collector package should already be installed for local artifact testing
   unless node['splunk_otel_collector']['local_artifact_testing_enabled']
     package 'splunk-otel-collector' do
       action :install

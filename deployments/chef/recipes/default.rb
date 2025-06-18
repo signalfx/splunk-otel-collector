@@ -56,7 +56,7 @@ elsif platform_family?('debian', 'rhel', 'amazon', 'suse')
   end
 
   # Packages should already be installed for local artifact testing
-  if !node['splunk_otel_collector']['local_artifact_testing_enabled']
+  unless node['splunk_otel_collector']['local_artifact_testing_enabled']
     package 'splunk-otel-collector' do
       action :install
       version node['splunk_otel_collector']['collector_version'] if node['splunk_otel_collector']['collector_version'] != 'latest'

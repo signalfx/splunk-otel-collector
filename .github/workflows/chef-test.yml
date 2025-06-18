@@ -352,7 +352,6 @@ jobs:
         run: |
           mkdir files
           Get-ChildItem /tmp -Recurse -Include 'splunk-otel-collector*.msi' | Select FullName -OutVariable msiPath
-          echo $msiPath.FullName
           mv $msiPath.FullName ./files/splunk-otel-collector.msi
 
       - name: Install chef

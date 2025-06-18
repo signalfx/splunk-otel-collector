@@ -21,7 +21,7 @@ if node['splunk_otel_collector']['local_artifact_testing_enabled']
     mode '0644'
   end
 
-  rpm_package rpm_install_path do
+  rpm_package 'splunk-otel-collector' do
     source rpm_install_path
     action :install
   end

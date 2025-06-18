@@ -23,7 +23,7 @@ if node['splunk_otel_collector']['local_artifact_testing_enabled']
     mode '0644'
   end
 
-  dpkg_package deb_install_path do
+  dpkg_package 'splunk-otel-collector' do
     source deb_install_path
     action :install
   end

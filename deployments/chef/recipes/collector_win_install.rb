@@ -16,10 +16,10 @@ collector_version = if node['splunk_otel_collector']['collector_version'] == 'la
 remote_destination_path = "#{ENV['TEMP']}/splunk-otel-collector-#{collector_version}-amd64.msi"
 
 if node['splunk_otel_collector']['local_artifact_testing_enabled']
-    cookbook_file remote_destination_path do
-      source "splunk-otel-collector.msi"
-      mode '0644'
-    end
+  cookbook_file remote_destination_path do
+    source "splunk-otel-collector.msi"
+    mode '0644'
+  end
 else
   remote_file 'Download msi' do
     path remote_destination_path

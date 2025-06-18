@@ -1,0 +1,26 @@
+---
+
+- set_fact:
+    win_temp_msi_dir: "%TEMP%\\msi-build"
+
+- name: Create temporary MSI build directory
+  ansible.windows.win_file:
+    path: win_temp_msi_dir
+    state: directory
+
+- name: Move local MSI installer to target machine
+  ansible.windows.win_copy:
+    src: /tmp/msi-build/
+    dest: win_temp_msi_dir
+  register: otel_msi_package
+
+- name: Get target machine path to MSI
+  ansible.windows.win_find:
+    paths: win_temp_msi_dir
+  register: msi_dir_contents
+  failed_when: msi_dir_contents.files is not defined or msi_dir_contents.files | length != 1
+
+- name: Set MSI source path (local install)
+  when: local_artifact_testing_enabled
+  set_fact:
+    msi_path: "{{ msi_dir_contents.files[0].path }}"

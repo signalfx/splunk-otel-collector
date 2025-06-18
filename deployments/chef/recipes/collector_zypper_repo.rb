@@ -1,8 +1,18 @@
 # Cookbook:: splunk_otel_collector
 # Recipe:: collector_zypper_repo
 
-if node['splunk_otel_collector']['local_artifact_testing_enabled']
+zypper_repository 'splunk-otel-collector' do
+  description 'Splunk OpenTelemetry Collector Repository'
+  baseurl "#{node['splunk_otel_collector']['rhel_repo_url']}/#{node['splunk_otel_collector']['package_stage']}/$basearch/"
+  gpgcheck true
+  gpgkey node['splunk_otel_collector']['rhel_gpg_key_url']
+  type 'yum'
+  enabled true
+  action :create
+  notifies :run, 'execute[add-rhel-key]', :immediately
+end
 
+if node['splunk_otel_collector']['local_artifact_testing_enabled']
   file_name = 'soc.rpm'
   rpm_install_dir = '/etc/otel/collector/'
   rpm_install_path = rpm_install_dir + file_name
@@ -25,20 +35,6 @@ if node['splunk_otel_collector']['local_artifact_testing_enabled']
     gpg_check false
     action :install
   end
-
-else
-
-  zypper_repository 'splunk-otel-collector' do
-    description 'Splunk OpenTelemetry Collector Repository'
-    baseurl "#{node['splunk_otel_collector']['rhel_repo_url']}/#{node['splunk_otel_collector']['package_stage']}/$basearch/"
-    gpgcheck true
-    gpgkey node['splunk_otel_collector']['rhel_gpg_key_url']
-    type 'yum'
-    enabled true
-    action :create
-    notifies :run, 'execute[add-rhel-key]', :immediately
-  end
-
 end
 
 execute 'add-rhel-key' do

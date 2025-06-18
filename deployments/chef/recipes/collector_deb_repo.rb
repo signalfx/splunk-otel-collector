@@ -7,8 +7,13 @@ remote_file '/etc/apt/trusted.gpg.d/splunk.gpg' do
   action :create
 end
 
-if node['splunk_otel_collector']['local_artifact_testing_enabled']
+file '/etc/apt/sources.list.d/splunk-otel-collector.list' do
+  content "deb #{node['splunk_otel_collector']['debian_repo_url']} #{node['splunk_otel_collector']['package_stage']} main\n"
+  mode '0644'
+  notifies :update, 'apt_update[update apt cache]', :immediately
+end
 
+if node['splunk_otel_collector']['local_artifact_testing_enabled']
   file_name = 'soc.deb'
   deb_install_dir = '/etc/otel/collector/'
   deb_install_path = deb_install_dir + file_name
@@ -29,13 +34,6 @@ if node['splunk_otel_collector']['local_artifact_testing_enabled']
   dpkg_package deb_install_path do
     source deb_install_path
     action :install
-  end
-
-else
-  file '/etc/apt/sources.list.d/splunk-otel-collector.list' do
-    content "deb #{node['splunk_otel_collector']['debian_repo_url']} #{node['splunk_otel_collector']['package_stage']} main\n"
-    mode '0644'
-    notifies :update, 'apt_update[update apt cache]', :immediately
   end
 end
 

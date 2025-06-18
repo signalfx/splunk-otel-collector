@@ -17,7 +17,7 @@ remote_destination_path = "#{ENV['TEMP']}/splunk-otel-collector-#{collector_vers
 
 if node['splunk_otel_collector']['local_artifact_testing_enabled']
   cookbook_file remote_destination_path do
-    source "splunk-otel-collector.msi"
+    source 'splunk-otel-collector.msi'
     mode '0644'
   end
 else

@@ -14,6 +14,7 @@
       GOMEMLIMIT: 230
       MY_CUSTOM_VAR1: value1
       MY_CUSTOM_VAR2: value2
+      MY_CUSTOM_VAR3: 'value3 with spaces'
     iis_reg_values:
       COR_ENABLE_PROFILING: "1"
       COR_PROFILER: "{918728DD-259F-4A6A-AC2B-B85E1B658318}"

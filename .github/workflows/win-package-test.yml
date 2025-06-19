@@ -22,51 +22,21 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.23.8
+  GO_VERSION: 1.23.10
 
 jobs:
   setup-environment:
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
-
-      - name: Installing dependency
-        run: |
-          make install-tools
+    name: setup-environment
+    uses: ./.github/workflows/setup-environment.yml
 
   cross-compile:
-    runs-on: ubuntu-24.04
     needs: [setup-environment]
     strategy:
       matrix:
         SYS_BINARIES: [ "binaries-windows_amd64" ]
-    steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
-
-      - name: Build Collector
-        run: |
-          make ${{ matrix.SYS_BINARIES }}
-
-      - name: Uploading binaries
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.SYS_BINARIES }}
-          path: |
-            ./bin/*
+    uses: ./.github/workflows/compile.yml
+    with:
+      sys_binary: ${{ matrix.SYS_BINARIES }}
 
   agent-bundle-windows:
     runs-on: ${{ matrix.OS }}
@@ -286,6 +256,42 @@ jobs:
       - name: fluentd logs
         if: ${{ always() && matrix.WITH_FLUENTD == 'true' }}
         run: Get-Content -Path "${env:SYSTEMDRIVE}\opt\td-agent\td-agent.log"
+
+  windows-script-upgrade-test:
+    strategy:
+      matrix:
+        OS: [ "windows-2022", "windows-2025" ]
+    runs-on: otel-windows # Tests with uninstall require a more powerful runner
+    needs: [msi-test, windows-install-script-test]
+    timeout-minutes: 45
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v4
+
+      - name: Downloading msi build
+        uses: actions/download-artifact@v4
+        with:
+          name: msi-build-${{ matrix.OS }}
+          path: ./dist
+      - name: Ensure required ports in the dynamic range are available
+        run: |
+          $ErrorActionPreference = 'Continue'
+          & ${{ github.workspace }}\.github\workflows\scripts\win-required-ports.ps1
+
+      - name: Set the MSI_COLLECTOR_PATH and INSTALL_SCRIPT_PATH environment variable
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $msi_path = Resolve-Path .\dist\splunk-otel-collector*.msi
+          Test-Path $msi_path
+          "MSI_COLLECTOR_PATH=$msi_path" | Out-File -FilePath $env:GITHUB_ENV -Append
+          $ps1_path = Resolve-Path .\packaging\installer\install.ps1
+          Test-Path $ps1_path
+          "INSTALL_SCRIPT_PATH=$ps1_path" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Run the script upgrade tests
+        shell: powershell # Use PowerShell to run the script since running the go test from pwsh.exe hides the Get-ExecutionPolicy cmdlet.
+        run: |
+          go test -v github.com/signalfx/splunk-otel-collector/tests/windows-install-script
 
   choco-build:
     runs-on: ${{ matrix.OS }}

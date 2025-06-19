@@ -1,28 +1,15 @@
-@Library('sym-pipeline@CICD-1772') _
-
-def tag
+@Library(['sym-pipeline@main']) _
 
 podTemplate(
   cloud: "kubernetes-build-sre-jenkins-agent",
-  inheritFrom: 'jnlp',
   yaml: readTrusted('jenkins/podTemplate.yaml'),
-  yamlMergeStrategy: merge()
+  yamlMergeStrategy: override()
 ) {
   node(POD_LABEL) {
-
-    stage('Checkout') {
-      def shortGitHash = gitCheckout()
-      def branch = env.BRANCH_NAME.replaceAll(/[\.-]/, "_")
-      tag = "${branch}-${env.BUILD_NUMBER}-${shortGitHash}"
-
-      echo "dockerTag: ${tag}"
-    }
-
-    buildGolangApp {
-      buildDockerImage = true
-      dockerRepository = "us-east4-docker.pkg.dev/sym-prod-mr-tools-01/sre-docker-us-east4"
-      dockerImage = "splink-otel-collector"
-      dockerTag = tag
+    stage("build") {
+      git url: 'https://github.com/SymphonyOSF/sre-cicd-lib.git', branch: 'CICD-1772-splunk-otel', credentialsId: 'github-app-gke-jenkins-prod'
+      def remotePipeline = load 'splunk-otel/build.groovy'
+      remotePipeline()
     }
   }
 }

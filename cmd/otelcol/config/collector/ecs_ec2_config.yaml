@@ -43,6 +43,11 @@ receivers:
       processes:
       # System processes metrics, disabled by default
       # process:
+      #   metrics:
+      #     process.cpu.utilization:
+      #       enabled: true
+      #     process.memory.utilization:
+      #       enabled: true      
   jaeger:
     protocols:
       grpc:

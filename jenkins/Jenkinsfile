@@ -1,11 +1,16 @@
 @Library(['sym-pipeline@main']) _
 
 podTemplate(
-  cloud: "kubernetes-build-sre-jenkins-agent"
+  cloud: "kubernetes-build-sre-jenkins-agent",
+  yaml: readTrusted('jenkins/podTemplate.yaml'),
+  yamlMergeStrategy: override()
 ) {
   node(POD_LABEL) {
     stage("build") {
-      git url: 'https://github.com/SymphonyOSF/sre-cicd-lib.git', branch: 'CICD-1772-splunk-otel', credentialsId: 'github-app-gke-jenkins-prod'
+      git url: 'https://github.com/SymphonyOSF/sre-cicd-lib.git', 
+          branch: 'CICD-1772-splunk-otel', 
+          credentialsId: 'github-app-gke-jenkins-prod'
+      
       def remotePipeline = load 'splunk-otel/build.groovy'
       remotePipeline()
     }

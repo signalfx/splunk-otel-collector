@@ -1,0 +1,34 @@
+spec:
+  containers:
+  - name: "jnlp"
+    securityContext:
+      seccompProfile:
+        type: RuntimeDefault
+      runAsUser: 1000
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: True
+      privileged: false
+    image: "us-east4-docker.pkg.dev/sym-prod-mr-tools-01/jenkins-docker-us-east4/jnlp:jdk17"
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "1"
+      limits:
+        memory: "1Gi"
+        cpu: "1"
+    volumeMounts:
+      - mountPath: "/tmp"
+        name: "tmpdir"
+      - mountPath: "/home/jenkins"
+        name: "homedir"
+    envFrom:
+      - configMapRef:
+          name: env
+  restartPolicy: Never
+  volumes:
+  - emptyDir:
+      medium: ""
+    name: "tmpdir"
+  - emptyDir:
+      medium: ""
+    name: "homedir"

@@ -1,9 +1,7 @@
 @Library(['sym-pipeline@main']) _
 
 podTemplate(
-  cloud: "kubernetes-build-sre-jenkins-agent",
-  yaml: readTrusted('jenkins/podTemplate.yaml'),
-  yamlMergeStrategy: override()
+  cloud: "kubernetes-build-sre-jenkins-agent"
 ) {
   node(POD_LABEL) {
     stage("build") {

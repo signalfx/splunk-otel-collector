@@ -32,3 +32,4 @@ spec:
   - emptyDir:
       medium: ""
     name: "homedir"
+  serviceAccountName: build-sre

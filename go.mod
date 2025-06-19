@@ -1,6 +1,6 @@
 module github.com/signalfx/splunk-otel-collector
 
-go 1.23.10
+go 1.24.0
 
 require (
 	github.com/alecthomas/participle/v2 v2.1.4
@@ -11,7 +11,7 @@ require (
 	github.com/go-zookeeper/zk v1.0.4
 	github.com/gogo/protobuf v1.3.2
 	github.com/hashicorp/vault v1.19.3
-	github.com/hashicorp/vault-plugin-auth-gcp v0.20.2
+	github.com/hashicorp/vault-plugin-auth-gcp v0.21.0
 	github.com/hashicorp/vault/api v1.16.0
 	github.com/knadh/koanf v1.5.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/countconnector v0.127.0
@@ -176,6 +176,7 @@ require (
 require (
 	cloud.google.com/go/auth v0.16.1 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.8 // indirect
+	cloud.google.com/go/cloudsqlconn v1.4.3 // indirect
 	cloud.google.com/go/iam v1.5.2 // indirect
 	cloud.google.com/go/logging v1.13.0 // indirect
 	cloud.google.com/go/longrunning v0.6.7 // indirect
@@ -257,7 +258,7 @@ require (
 	github.com/facette/natsort v0.0.0-20181210072756-2cd4dd1e2dcb // indirect
 	github.com/foxboron/go-tpm-keyfiles v0.0.0-20250323135004-b31fac66206e // indirect
 	github.com/fxamacker/cbor/v2 v2.7.0 // indirect
-	github.com/go-jose/go-jose/v4 v4.0.5 // indirect
+	github.com/go-jose/go-jose/v4 v4.1.0 // indirect
 	github.com/go-openapi/analysis v0.23.0 // indirect
 	github.com/go-openapi/errors v0.22.0 // indirect
 	github.com/go-openapi/loads v0.22.0 // indirect
@@ -284,6 +285,7 @@ require (
 	github.com/hashicorp/go-discover v0.0.0-20230724184603-e89ebd1b2f65 // indirect
 	github.com/hashicorp/go-hmac-drbg v0.0.0-20210916214228-a6e5a68489f6 // indirect
 	github.com/hashicorp/go-kms-wrapping/v2 v2.0.18 // indirect
+	github.com/hashicorp/go-metrics v0.5.4 // indirect
 	github.com/hashicorp/go-msgpack v1.1.5 // indirect
 	github.com/hashicorp/go-raftchunking v0.7.0 // indirect
 	github.com/hashicorp/go-secure-stdlib/cryptoutil v0.1.1 // indirect
@@ -586,7 +588,7 @@ require (
 	github.com/hashicorp/go-rootcerts v1.0.2 // indirect
 	github.com/hashicorp/go-secure-stdlib/awsutil v0.3.0 // indirect
 	github.com/hashicorp/go-secure-stdlib/mlock v0.1.3 // indirect
-	github.com/hashicorp/go-secure-stdlib/parseutil v0.1.9 // indirect
+	github.com/hashicorp/go-secure-stdlib/parseutil v0.2.0 // indirect
 	github.com/hashicorp/go-secure-stdlib/strutil v0.1.2 // indirect
 	github.com/hashicorp/go-sockaddr v1.0.7 // indirect
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
@@ -594,7 +596,7 @@ require (
 	github.com/hashicorp/golang-lru v1.0.2 // indirect
 	github.com/hashicorp/hcl v1.0.1-vault-5 // indirect
 	github.com/hashicorp/serf v0.10.1 // indirect
-	github.com/hashicorp/vault/sdk v0.15.2 // indirect
+	github.com/hashicorp/vault/sdk v0.17.0 // indirect
 	github.com/hashicorp/yamux v0.1.2 // indirect
 	github.com/iancoleman/strcase v0.3.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
@@ -728,7 +730,7 @@ require (
 	golang.org/x/tools v0.33.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
 	gonum.org/v1/gonum v0.16.0 // indirect
-	google.golang.org/api v0.233.0 // indirect
+	google.golang.org/api v0.235.0 // indirect
 	google.golang.org/grpc v1.73.0 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
 	gopkg.in/fsnotify.v1 v1.4.7 // indirect

@@ -1,5 +1,10 @@
 # Changelog
 
+### 🚩 Deprecations 🚩
+
+- Fluentd support has been deprecated and will be removed in a future release.
+  Please refer to [deprecation documentation](../../docs/deprecations/fluentd-support.md) for more information ([#]())
+
 ## ansible-v0.32.0
 
 ### 💡 Enhancements 💡

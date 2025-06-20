@@ -1,5 +1,10 @@
 # Changelog
 
+### 🚩 Deprecations 🚩
+
+- Fluentd support has been deprecated and will be removed in a future release.
+  Please refer to [deprecation documentation](../../docs/deprecations/fluentd-support.md) for more information ([#]())
+
 ## chef-v0.17.0
 
 - Bug fix: Fix bug that caused custom variables to not be set when running on Windows

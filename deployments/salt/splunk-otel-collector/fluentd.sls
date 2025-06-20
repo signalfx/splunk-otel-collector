@@ -1,3 +1,5 @@
+salt.modules.logmod.warning('Fluentd support has been deprecated and will be removed in a future release. Please refer to documentation on how to replace usage: https://github.com/signalfx/splunk-otel-collector/blob/main/docs/deprecations/fluentd-support.md')
+
 {% set splunk_fluentd_config = salt['pillar.get']('splunk-otel-collector:splunk_fluentd_config', '/etc/otel/collector/fluentd/fluent.conf') %}
 
 {% set fluentd_repo_base = salt['pillar.get']('splunk-otel-collector:fluentd_repo_base', 'https://packages.treasuredata.com') %}

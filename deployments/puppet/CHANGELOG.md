@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### 🚩 Deprecations 🚩
+
+- Fluentd support has been deprecated and will be removed in a future release.
+  Please refer to [deprecation documentation](../../docs/deprecations/fluentd-support.md) for more information ([#]())
+
 ### 💡 Enhancements 💡
 
 - Add support for the `collector_command_line_args` option to

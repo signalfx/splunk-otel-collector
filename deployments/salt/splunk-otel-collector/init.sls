@@ -26,7 +26,7 @@ include:
   - splunk-otel-collector.collector_config
   - splunk-otel-collector.service
 {% elif install_fluentd == True %}
-  salt.modules.logmod.warning('Fluentd support has been deprecated and will be removed in a future release. Please refer to documentation on how to replace usage: https://github.com/signalfx/splunk-otel-collector/blob/main/docs/deprecations/fluentd-support.md')
+  - salt.modules.logmod.warning('Fluentd support has been deprecated and will be removed in a future release. Please refer to documentation on how to replace usage: https://github.com/signalfx/splunk-otel-collector/blob/main/docs/deprecations/fluentd-support.md')
   - splunk-otel-collector.install
   - splunk-otel-collector.service_owner
   - splunk-otel-collector.config

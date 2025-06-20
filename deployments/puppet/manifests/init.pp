@@ -70,6 +70,8 @@ class splunk_otel_collector (
     }
   }
 
+  deprecation('with_fluentd', 'Fluentd support has been deprecated and will be removed in a future release. Please refer to documentation on how to replace usage: https://github.com/signalfx/splunk-otel-collector/blob/main/docs/deprecations/fluentd-support.md')
+
   $collector_service_name = 'splunk-otel-collector'
   $collector_package_name = $facts['os']['family'] ? {
     'windows' => 'Splunk OpenTelemetry Collector',

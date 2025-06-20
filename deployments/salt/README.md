@@ -115,6 +115,8 @@ splunk-otel-collector:
 
 ### Fluentd
 
+> **_NOTE:_**  Fluentd support has been deprecated and will be removed in a future release.
+
 - `install_fluentd`: Whether to install/manage fluentd and dependencies for log
   collection. The dependencies include [capng_c](
   https://github.com/fluent-plugins-nursery/capng_c) for enabling

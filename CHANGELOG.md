@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### 🚩 Deprecations 🚩
+
+- (Splunk) `deployments`: Fluentd support has been deprecated in all mass deployments and will be removed in a future release.
+  Please refer to [deprecation documentation](./docs/deprecations/fluentd-support.md) for more information ([#]())
+
 ## v0.127.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.127.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.127.0)

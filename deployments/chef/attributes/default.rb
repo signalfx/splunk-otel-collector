@@ -33,6 +33,10 @@ default['splunk_otel_collector']['fluentd_version'] = if platform_family?('debia
 default['splunk_otel_collector']['collector_additional_env_vars'] = {}
 default['splunk_otel_collector']['collector_command_line_args'] = ''
 
+# Set to true for testing against a locally built artifact of the Splunk OTel Collector
+# When enabled, defaults for remote URLs and collector versions are overridden
+default['splunk_otel_collector']['local_artifact_testing_enabled'] = false
+
 if platform_family?('windows')
   default['splunk_otel_collector']['collector_version'] = 'latest'
   default['splunk_otel_collector']['collector_version_url'] = "#{node['splunk_otel_collector']['windows_repo_url']}/#{node['splunk_otel_collector']['service_name']}/msi/#{node['splunk_otel_collector']['package_stage']}/latest.txt"

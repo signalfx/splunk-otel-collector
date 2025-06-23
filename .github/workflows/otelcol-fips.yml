@@ -27,7 +27,7 @@ env:
 
 jobs:
   otelcol-fips:
-    runs-on: ${{ fromJSON('["ubuntu-24.04", "ubuntu-24.04-arm"]')[matrix.GOARCH == 'arm64'] }}
+    runs-on: ${{ fromJSON('["ubuntu-24.04", "otel-arm64"]')[matrix.GOARCH == 'arm64'] }}
     strategy:
       matrix:
         include:
@@ -81,7 +81,7 @@ jobs:
         if: matrix.FIPSMODE == '0' && steps.run-otelcol.outcome == 'success'
 
   docker-otelcol-fips:
-    runs-on: ${{ fromJSON('["ubuntu-24.04", "ubuntu-24.04-arm"]')[matrix.ARCH == 'arm64'] }}
+    runs-on: ${{ fromJSON('["ubuntu-24.04", "otel-arm64"]')[matrix.ARCH == 'arm64'] }}
     needs: [ otelcol-fips ]
     strategy:
       matrix:

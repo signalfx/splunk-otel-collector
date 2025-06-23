@@ -11,7 +11,7 @@ env:
 
 jobs:
   agent-bundle-linux:
-    runs-on: ${{ fromJSON('["ubuntu-24.04", "ubuntu-24.04-arm"]')[inputs.ARCH == 'arm64'] }}
+    runs-on: ${{ fromJSON('["ubuntu-24.04", "otel-arm64"]')[inputs.ARCH == 'arm64'] }}
     steps:
       - uses: actions/checkout@v4
 

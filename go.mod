@@ -6,13 +6,13 @@ require (
 	github.com/alecthomas/participle/v2 v2.1.4
 	github.com/antonmedv/expr v1.15.5
 	github.com/cenkalti/backoff/v4 v4.3.0
-	github.com/expr-lang/expr v1.17.4
+	github.com/expr-lang/expr v1.17.5
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/go-zookeeper/zk v1.0.4
 	github.com/gogo/protobuf v1.3.2
 	github.com/hashicorp/vault v1.19.3
 	github.com/hashicorp/vault-plugin-auth-gcp v0.20.2
-	github.com/hashicorp/vault/api v1.16.0
+	github.com/hashicorp/vault/api v1.20.0
 	github.com/knadh/koanf v1.5.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/countconnector v0.127.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/routingconnector v0.127.0
@@ -549,7 +549,7 @@ require (
 	github.com/go-openapi/swag v0.23.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/go-sql-driver/mysql v1.9.2 // indirect
+	github.com/go-sql-driver/mysql v1.9.3 // indirect
 	github.com/go-stack/stack v1.8.1 // indirect
 	github.com/go-test/deep v1.1.1 // indirect
 	github.com/gobwas/glob v0.2.4-0.20181002190808-e7a84e9525fe
@@ -592,7 +592,7 @@ require (
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
 	github.com/hashicorp/go-version v1.7.0 // indirect
 	github.com/hashicorp/golang-lru v1.0.2 // indirect
-	github.com/hashicorp/hcl v1.0.1-vault-5 // indirect
+	github.com/hashicorp/hcl v1.0.1-vault-7 // indirect
 	github.com/hashicorp/serf v0.10.1 // indirect
 	github.com/hashicorp/vault/sdk v0.15.2 // indirect
 	github.com/hashicorp/yamux v0.1.2 // indirect

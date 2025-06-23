@@ -124,6 +124,10 @@
     If specified, the -mode parameter will be ignored.
     .EXAMPLE
     .\install.ps1 -config_path "C:\SOME_FOLDER\my_config.yaml"
+.PARAMETER preserve_prev_default_config
+   (OPTIONAL) Preserve the default configuration files, located at `$Env:ProgramData\Splunk\OpenTelemetry Collector`, of previous version when upgrading the collector. By default it is $false since version changes can include breaking configuration changes.
+   .EXAMPLE
+    .\install.ps1 -preserve_prev_default_config $true
 #>
 
 param (
@@ -145,6 +149,7 @@ param (
     [string]$msi_path = "",
     [string]$msi_public_properties = "",
     [string]$config_path = "",
+    [bool]$preserve_prev_default_config = $false,
     [string]$collector_msi_url = "",
     [string]$fluentd_msi_url = "",
     [string]$dotnet_psm1_path = "",
@@ -154,6 +159,8 @@ param (
     [bool]$UNIT_TEST = $false
 )
 
+New-Variable -Name UninstallWildcardRegPath  -Option Constant -Value "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*"
+New-Variable -Name CollectorServiceDisplayName -Option Constant -Value "Splunk OpenTelemetry Collector"
 $arch = "amd64"
 $format = "msi"
 $service_name = "splunk-otel-collector"
@@ -370,8 +377,29 @@ function download_collector_package([string]$collector_version=$collector_versio
 }
 
 # check registry for the agent msi package
-function msi_installed([string]$name) {
-    return (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where { $_.DisplayName -eq $name }) -ne $null
+function is_msi_installed([string]$product_name) {
+    return $null -ne (Get-ItemProperty $UninstallWildcardRegPath | Where { $_.DisplayName -eq $product_name })
+}
+
+function get_msi_installation_sids([string]$product_name) {
+    $sids = [string[]]@()
+
+    $uninstallEntry = Get-ItemProperty $UninstallWildcardRegPath -ErrorAction SilentlyContinue | 
+        Where-Object { $_.DisplayName -eq $product_name }
+    if ($uninstallEntry) {
+        $userInstalls = Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\*\Products\*\InstallProperties' -ErrorAction SilentlyContinue |
+            Where-Object { $_.DisplayName -eq $product_name }
+        foreach ($user in $userInstalls) {
+            # Not all entries are valid user SIDS, e.g.: some are SIDs with suffixes like "_Classes"
+            # We only want the SIDs.
+            if ($user.PSPath -match 'UserData\\(?<SID>S-1-[0-9\-]+)') {
+                $sid = $Matches['SID']
+                $sids += , @($sid)
+            }
+        }
+    }
+
+    return $sids
 }
 
 function update_registry([string]$path, [string]$name, [string]$value) {
@@ -413,6 +441,21 @@ function install_msi([string]$path) {
     Write-Host "- Done"
 }
 
+function uninstall_msi([string]$product_name) {
+    Write-Host "Uninstalling $product_name ..."
+    $uninstall_entry = Get-ItemProperty $UninstallWildcardRegPath -ErrorAction SilentlyContinue | 
+        Where-Object { $_.DisplayName -eq $product_name } | Select-Object -First 1
+    if (-not $uninstall_entry) {
+        throw "Failed to find the uninstall registry entry for $product_name"
+    }
+    $proc = (Start-Process msiexec.exe -Wait -PassThru -ArgumentList "/X `"$($uninstall_entry.PSChildName)`" /qn /norestart")
+    if ($proc.ExitCode -ne 0) {
+        Write-Warning "The uninstall attempt failed with error code $($proc.ExitCode)."
+        Exit $proc.ExitCode
+    }
+    Write-Host "- Done"
+}
+
 $ErrorActionPreference = 'Stop'; # stop on all errors
 
 # check administrator status
@@ -427,12 +470,47 @@ if (!(check_if_admin)) {
 echo 'Checking execution policy'
 check_policy
 
-if (msi_installed -name "Splunk OpenTelemetry Collector") {
-    throw "The Splunk OpenTelemetry Collector is already installed. Remove or uninstall the Collector and rerun this script."
-}
-
 if (Get-Service -Name $service_name -ErrorAction SilentlyContinue) {
-    throw "The $service_name service is already installed. Remove or uninstall the Collector and rerun this script."
+    Write-Host "The $service_name service is already installed. Checking installation for automatic update."
+
+    $uninstall_collector = $true
+    $collector_sids = get_msi_installation_sids -product_name $CollectorServiceDisplayName
+    if ($collector_sids.Count -eq 0) {
+        $uninstall_collector = $false
+        Write-Warning "The $service_name service exists but it is not on the Windows installation database."
+    }
+    else {
+        if ($collector_sids.Count -gt 1) {
+            $sids_list = $collector_sids -join ", "
+            throw "The $CollectorServiceDisplayName is already installed for multiple users (SIDs: $sids_list). Uninstall the collector and remove remaining users installations from the registry."
+        }
+
+        # "S-1-5-18" is the SID for the Local System account, which is used for machine-wide installations.
+        if ("S-1-5-18" -ne $collector_sids[0]) {
+            # not a machine wide installation, check if it is the same user
+            $currentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent()
+            $currentUserSID = $currentUser.User.Value
+            if ($currentUserSID -ne $collector_sids[0]) {
+                $sid = New-Object System.Security.Principal.SecurityIdentifier($userSid)
+                $user = $sid.Translate([System.Security.Principal.NTAccount])
+                throw "The $CollectorServiceDisplayName was last installed by '${user.Value}' it must be updated or uninstalled by the same user." 
+            }
+        }
+    }
+
+    Write-Host "Stopping $service_name service..."
+    stop_service -name "$service_name"
+    if ($uninstall_collector) {
+        uninstall_msi -product_name $CollectorServiceDisplayName
+    }
+    if (-not $preserve_prev_default_config) {
+        $default_config_files = @("agent_config.yaml", "gateway_config.yaml")
+        foreach ($file in $default_config_files) {
+            $target = Join-Path "${Env:ProgramData}\Splunk\OpenTelemetry Collector" "$file"
+            Write-Host "Deleting previous version default configuration file '$target'"
+            Remove-Item -Path $target
+        }
+    }
 }
 
 if ($with_fluentd -And (Get-Service -name $fluentd_service_name -ErrorAction SilentlyContinue)) {
@@ -447,7 +525,7 @@ if ($with_fluentd -And (Test-Path -Path "$fluentd_base_dir\bin\fluentd")) {
 $tempdir = create_temp_dir -tempdir $tempdir
 
 if ($with_dotnet_instrumentation) {
-    if ((msi_installed -name "SignalFx .NET Tracing 64-bit") -Or (msi_installed -name "SignalFx .NET Tracing 32-bit")) {
+    if ((is_msi_installed -name "SignalFx .NET Tracing 64-bit") -Or (is_msi_installed -name "SignalFx .NET Tracing 32-bit")) {
         throw "SignalFx .NET Instrumentation is already installed. Stop all instrumented applications and uninstall SignalFx Instrumentation for .NET before running this script again."
     }
     echo "Downloading Splunk Distribution of OpenTelemetry .NET ..."
@@ -590,7 +668,7 @@ if ($network_interface -Ne "") {
 set_service_environment $service_name $collector_env_vars
 
 $message = "
-The Splunk OpenTelemetry Collector for Windows has been successfully installed.
+The $CollectorServiceDisplayName for Windows has been successfully installed.
 Make sure that your system's time is relatively accurate or else datapoints may not be accepted.
 The collector's main configuration file is located at $config_path,
 and the environment variables are stored in the $regkey registry key.
@@ -643,7 +721,7 @@ if ($with_fluentd) {
     install_msi -path "$fluentd_msi_path"
 
     $message = "
-Fluentd has been installed and configured to forward log events to the Splunk OpenTelemetry Collector.
+Fluentd has been installed and configured to forward log events to the $CollectorServiceDisplayName.
 By default, all log events with the @SPLUNK label will be forwarded to the collector.
 
 The main fluentd configuration file is located at $fluentd_config_path.
@@ -704,7 +782,7 @@ if ($with_dotnet_instrumentation) {
     }
 
     $message = "
-Splunk Distribution of OpenTelemetry for .NET has been installed and configured to forward traces to the Splunk OpenTelemetry Collector.
+Splunk Distribution of OpenTelemetry for .NET has been installed and configured to forward traces to the $CollectorServiceDisplayName.
 By default, the .NET instrumentation will automatically generate telemetry only for .NET applications running on IIS.
 "
     echo "$message"

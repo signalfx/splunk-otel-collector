@@ -11,6 +11,22 @@ yum_repository 'splunk-otel-collector' do
   notifies :run, 'execute[add-rhel-key]', :immediately
 end
 
+if node['splunk_otel_collector']['local_artifact_testing_enabled']
+  file_name = 'soc.rpm'
+  rpm_install_path = '/tmp/' + file_name
+
+  # Copy rpm file from source to target
+  cookbook_file rpm_install_path do
+    source file_name
+    mode '0644'
+  end
+
+  rpm_package 'splunk-otel-collector' do
+    source rpm_install_path
+    action :install
+  end
+end
+
 execute 'add-rhel-key' do
   command "rpm --import #{node['splunk_otel_collector']['rhel_gpg_key_url']}"
   action :nothing

@@ -7,7 +7,7 @@ default:
         - "$SECRETS_URL"
 
 variables:
-  GO_VERSION: 1.23.8
+  GO_VERSION: 1.23.10
   WIN_2019_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2019
   WIN_2022_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2022
   SPLUNK_OTELCOL_DOWNLOAD_BASE:

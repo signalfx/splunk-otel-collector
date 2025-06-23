@@ -2,6 +2,46 @@
 
 ## Unreleased
 
+## v0.127.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.127.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.127.0)
+and the [opentelemetry-collector-contrib v0.127.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.127.0) releases where appropriate.
+
+### ❗ Known Issues ❗
+
+- **`simpleprometheusreceiver`: Metrics from this receiver may be missing labels or exhibit unexpected label behavior**  
+  An issue has been identified in this receiver where labels are not being passed and processed correctly.
+  This means Prometheus metrics may be missing expected labels or exhibit unexpected label behavior, 
+  which can affect internal Collector processing as well as downstream dashboards, alerts, and metric analysis.
+  See contrib issue [#40722](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/40722) for more details on this bug.
+
+### 🛑 Breaking changes 🛑
+
+- (Contrib) `sqlserverreceiver`: Zero values in delta attributes will be reported in top query collection. ([#40041](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40041))
+  This change includes the following attributes:
+  - `sqlserver.total_worker_time`
+  - `sqlserver.execution_count`
+  - `sqlserver.total_logical_reads`
+  - `sqlserver.total_logical_writes`
+  - `sqlserver.total_physical_reads`
+  - `sqlserver.total_rows`
+  - `sqlserver.total_grant_kb`
+- (Contrib) `receiver/sqlserver`: Enable `sqlserver.page.life_expectancy` metric for all configurations ([#39940](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39940))
+  This metric was originally only available when running on Windows, but is
+  now available for all configuration options, including direct connection.
+  Since this metric is enabled by default, users who have direct connection
+  configured will now have this metric emitted by default.
+  - NOTE: Marked as breaking only because new metrics are enabled by default, potentially impacting resource usage and billing.
+- (Core) `service`: Add size metrics defined in Pipeline Component Telemetry RFC ([#13032](https://github.com/open-telemetry/opentelemetry-collector/pull/13032))
+  - See [Pipeline Component Telemetry RFC](https://github.com/open-telemetry/opentelemetry-collector/blob/main/docs/rfcs/component-universal-telemetry.md) for more details:
+    - `otelcol.receiver.produced.size`
+    - `otelcol.processor.consumed.size`
+    - `otelcol.processor.produced.size`
+    - `otelcol.connector.consumed.size`
+    - `otelcol.connector.produced.size`
+    - `otelcol.exporter.consumed.size`
+  - NOTE: Marked as breaking only because new metrics are enabled by default, potentially impacting resource usage and billing.
+
 ### 🚩 Deprecations 🚩
 
 - (Splunk) `Linux installer script`: Fluentd support has been deprecated and will be removed in a future release. ([#6264](https://github.com/signalfx/splunk-otel-collector/pull/6264))
@@ -11,9 +51,50 @@
 
 ### 💡 Enhancements 💡
 
-- (Splunk) Add an install property, `COLLECTOR_SVC_ARGS`, to the Windows MSI to
-  configure the command-line arguments used to launch the collector service on Windows. ([#6268](https://github.com/signalfx/splunk-otel-collector/pull/6268))
-- (Splunk) `discovery` - Add more metrics that are enabled by default for the SQL Server receiver ([#6259](https://github.com/signalfx/splunk-otel-collector/pull/6259))
+- (Splunk) Add an install property, `COLLECTOR_SVC_ARGS`, to the Windows MSI to configure the command-line arguments used to launch the collector service on Windows. ([#6268](https://github.com/signalfx/splunk-otel-collector/pull/6268))
+- (Splunk) `discoveryreceiver` Add more metrics that are enabled by default for the SQL Server receiver ([#6259](https://github.com/signalfx/splunk-otel-collector/pull/6259))
+- (Splunk) `discoveryreceiver` Send delete entity events for discovered services ([#6260](https://github.com/signalfx/splunk-otel-collector/pull/6260))
+- (Splunk) Add version change support to Windows install script ([#6304](https://github.com/signalfx/splunk-otel-collector/pull/6304))
+- (Core) `exporter/debug`: Display resource and scope in `normal` verbosity ([#10515](https://github.com/open-telemetry/opentelemetry-collector/pull/10515))
+- (Contrib) `azuremonitorreceiver`: Add support for azureauthextension as a token provider for azuremonitorreceiver. ([#39048](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39048))
+- (Contrib) `kafkaexporter`: Allow Kafka exporter to produce to topics based on metadata key values ([#39208](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39208))
+  Allows the Kafka exporter to dynamically use a signal's export target topic based
+  on the value of the pipeline's metadata, allowing dynamic signal routing.
+- (Contrib) `processor/tailsampling`: Add first policy match decision to tailsampling processor ([#36795](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/36795))
+- (Contrib) `receiver/k8sclusterreceiver`: Added new resource attributes `k8s.hpa.scaletargetref.kind`, `k8s.hpa.scaletargetref.name`, and `k8s.hpa.scaletargetref.apiversion` to the `k8s.hpa` resource. These attributes are disabled by default. ([#38768](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/38768))
+- (Contrib) `k8sobserver`: Add namespaces setting for scoping k8s client to specific namespaces ([#39677](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39677))
+- (Contrib) `awss3exporter`: Add the retry mode, max attempts and max backoff to the settings ([#36264](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/36264))
+- (Contrib) `k8sattributesprocessor`: Add option to configure automatic service resource attributes ([#37114](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37114))
+  Implements [Service Attributes](https://opentelemetry.io/docs/specs/semconv/non-normative/k8s-attributes/#service-attributes).
+  If you are using the file log receiver, you can now create the same resource attributes as traces (via OTLP) received
+  from an application instrumented with the OpenTelemetry Operator -
+  simply by adding the
+  `extract: { metadata: ["service.namespace", "service.name", "service.version", "service.instance.id"] }`
+  configuration to the `k8sattributesprocessor` processor.
+  See the [documentation](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/k8sattributesprocessor/README.md#configuring-recommended-resource-attributes) for more details.
+- (Contrib) `receiver/sqlserver`: Add new metric for disk IO rate on a resource pool ([#39977](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39977))
+  The new metric `sqlserver.resource_pool.disk.operations` is disabled by default.
+- (Contrib) `receiver/sqlserver`: Add new metric `sqlserver.lock.wait.count` ([#39892](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39892))
+  This metric is disabled by default.
+- (Contrib) `receiver/sqlserver`: Add new metric to track OS wait times ([#39977](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39977))
+  The new metric is named `sqlserver.os.wait.duration` and disabled by default.
+- (Contrib) `sqlserverreceiver`: Add configuration option `top_query_collection.collection_interval` for top query collection to make the collection less frequent. ([#40002](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40002))
+  - This change only applies to the `top_query_collection` feature.
+  - The default value is `60s`
+
+### 🧰 Bug fixes 🧰
+
+- (Core) `confmap`: Do not panic on assigning nil maps to non-nil maps ([#13117](https://github.com/open-telemetry/opentelemetry-collector/pull/13117))
+  - This fix was backported from [opentelemetry-collector v0.128.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.128.0) to ensure the bug does not affect splunk-otel-collector v0.127.0.
+- (Contrib) `azuremonitorreceiver`: Use ``metrics`` aggregation filter when ``use_batch_api: true`` ([#40079](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40079))
+- (Contrib) `postgresqlreceiver`: Fix too many top query got reported. Top query should only report those queries were executed during the query interval ([#39942](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39942))
+- (Contrib) `filelogreceiver`: Introduce `utf8-raw` encoding to avoid replacing invalid bytes with \uFFFD when reading UTF-8 input. ([#39653](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39653))
+- (Contrib) `internal/splunk`: Treat HTTP 403 Forbidden as a permanent error. ([#39037](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39037))
+  - Splunk responses with a 403 typically indicate an authentication or authorization issue that is not likely to be resolved by retrying.
+  - This change ensures that the error is treated as permanent to avoid unnecessary retries.
+  - This change is applicable to the `splunkhecexporter` and `signalfxexporter` components.
+- (Contrib) `spanmetricsconnector`: Fix bug causing span metrics calls count to be always 0 when using delta temporality ([#40139](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40139))
+- (Contrib) `kafkareceiver, kafkaexporter`: Add support for named encoding extensions in kafkareceiver and kafkaexporter ([#40142](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40142))
 
 ## v0.126.0
 

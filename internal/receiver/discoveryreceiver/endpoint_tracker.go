@@ -24,7 +24,7 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
-	semconv "go.opentelemetry.io/collector/semconv/v1.22.0"
+	conventions "go.opentelemetry.io/otel/semconv/v1.22.0"
 	"go.uber.org/multierr"
 	"go.uber.org/zap"
 
@@ -40,11 +40,11 @@ const (
 // identifyingAttrKeys are the keys of attributes that are used to identify an entity.
 var identifyingAttrKeys = []string{
 	serviceTypeAttr,
-	semconv.AttributeServiceName,
-	semconv.AttributeK8SPodUID,
-	semconv.AttributeContainerID,
-	semconv.AttributeK8SNodeUID,
-	semconv.AttributeHostID,
+	string(conventions.ServiceNameKey),
+	string(conventions.K8SPodUIDKey),
+	string(conventions.ContainerIDKey),
+	string(conventions.K8SNodeUIDKey),
+	string(conventions.HostIDKey),
 	sourcePortAttr,
 }
 
@@ -269,7 +269,7 @@ func entityEvents(observerID component.ID, endpoints []observer.Endpoint, correl
 			attrs.PutStr(k, v)
 		}
 		attrs.PutStr(serviceTypeAttr, deduceServiceType(attrs))
-		attrs.PutStr(semconv.AttributeServiceName, deduceServiceName(attrs))
+		attrs.PutStr(string(conventions.ServiceNameKey), deduceServiceName(attrs))
 
 		event := events.AppendEmpty()
 		event.SetTimestamp(pcommon.NewTimestampFromTime(ts))
@@ -320,21 +320,21 @@ func endpointEnvToAttrs(endpointType observer.EndpointType, endpointEnv observer
 
 		// rename keys according to the OTel Semantic Conventions
 		case k == "container_id":
-			attrs.PutEmpty(semconv.AttributeContainerID).FromRaw(v)
+			attrs.PutEmpty(string(conventions.ContainerIDKey)).FromRaw(v)
 		case k == "port":
 			attrs.PutEmpty(sourcePortAttr).FromRaw(v)
 		case endpointType == observer.PodType:
 			if k == "namespace" {
-				attrs.PutEmpty(semconv.AttributeK8SNamespaceName).FromRaw(v)
+				attrs.PutEmpty(string(conventions.K8SNamespaceNameKey)).FromRaw(v)
 			} else {
 				attrs.PutEmpty("k8s.pod." + k).FromRaw(v)
 			}
 		case endpointType == observer.K8sNodeType:
 			switch k {
 			case "name":
-				attrs.PutEmpty(semconv.AttributeK8SNodeName).FromRaw(v)
+				attrs.PutEmpty(string(conventions.K8SNodeNameKey)).FromRaw(v)
 			case "uid":
-				attrs.PutEmpty(semconv.AttributeK8SNodeUID).FromRaw(v)
+				attrs.PutEmpty(string(conventions.K8SNodeUIDKey)).FromRaw(v)
 			default:
 				attrs.PutEmpty(k).FromRaw(v)
 			}
@@ -370,7 +370,7 @@ func extractIdentifyingAttrs(from pcommon.Map, to pcommon.Map) {
 }
 
 func deduceServiceName(attrs pcommon.Map) string {
-	if val, ok := attrs.Get(semconv.AttributeServiceName); ok {
+	if val, ok := attrs.Get(string(conventions.ServiceNameKey)); ok {
 		return val.AsString()
 	}
 	if labels, labelsFound := attrs.Get("labels"); labelsFound && labels.Type() == pcommon.ValueTypeMap {

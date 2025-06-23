@@ -29,7 +29,7 @@ jobs:
     strategy:
       matrix:
         SYS_BINARIES: [ "binaries-windows_amd64" ]
-    uses: ./.github/workflows/compile.yml
+    uses: ./.github/workflows/reusable-compile.yml
     with:
       SYS_BINARY: ${{ matrix.SYS_BINARIES }}
 
@@ -37,16 +37,15 @@ jobs:
     strategy:
       matrix:
         OS: [ "windows-2022", "windows-2025" ]
-    uses: ./.github/workflows/agent-bundle-windows.yml
+    uses: ./.github/workflows/reusable-agent-bundle-windows.yml
     with:
       OS: ${{ matrix.OS }}
-      PIP_CACHE_DIR: ${{ github.workspace }}/.cache/pip
 
   msi-custom-actions:
     strategy:
       matrix:
         OS: [ "windows-2022" ]
-    uses: ./.github/workflows/msi-custom-actions.yml
+    uses: ./.github/workflows/reusable-msi-custom-actions.yml
     with:
       OS: ${{ matrix.OS }}
 
@@ -55,7 +54,7 @@ jobs:
       matrix:
         OS: [ "windows-2022", "windows-2025" ]
     needs: [cross-compile, agent-bundle-windows, msi-custom-actions]
-    uses: ./.github/workflows/msi-build.yml
+    uses: ./.github/workflows/reusable-msi-build.yml
     with:
       OS: ${{ matrix.OS }}
 

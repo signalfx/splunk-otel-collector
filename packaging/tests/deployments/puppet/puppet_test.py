@@ -74,12 +74,22 @@ DOTNET_VARS = {
 }
 
 
-def run_puppet_apply(container, config):
+def run_puppet_apply(container, config, strict_mode=true):
     with tempfile.NamedTemporaryFile(mode="w+") as fd:
         print(config)
         fd.write(config)
         fd.flush()
         copy_file_into_container(container, fd.name, "/root/test.pp")
+
+    if not strict_mode:
+      print("DISABLING STRICT MODE")
+      code, output = container.exec_run("puppet config set strict warning --section main")
+      print(code)
+      print(output.decode("utf-8"))
+
+      code, output = container.exec_run("systemctl restart pe-puppetserver")
+      print(code)
+      print(output.decode("utf-8"))
 
     code, output = container.exec_run("puppet apply --detailed-exitcodes /root/test.pp")
     print(output.decode("utf-8"))
@@ -216,7 +226,8 @@ def test_puppet_with_custom_vars(distro, puppet_release):
             api_url = "https://fake-splunk-api.com"
             ingest_url = "https://fake-splunk-ingest.com"
             config = CUSTOM_VARS_CONFIG.substitute(api_url=api_url, ingest_url=ingest_url, version="0.126.0")
-            run_puppet_apply(container, config)
+            # TODO: When Fluentd is removed and `with_fluentd` is false, the strict_mode option can be removed.
+            run_puppet_apply(container, config, strict_mode=false)
             verify_package_version(container, "splunk-otel-collector", "0.126.0")
             verify_env_file(container, api_url, ingest_url, "fake-hec-token")
             verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_LISTEN_INTERFACE", "0.0.0.0")

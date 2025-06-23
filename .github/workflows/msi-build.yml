@@ -1,0 +1,53 @@
+name: msi-build
+
+on:
+  workflow_call:
+    inputs:
+      OS:
+        required: true
+        type: string
+
+env:
+  GO_VERSION: 1.23.10
+
+jobs:
+  msi-build:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v4
+
+      - name: Downloading binaries-windows_amd64
+        uses: actions/download-artifact@v4
+        with:
+          name: binaries-windows_amd64
+          path: ./bin
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: '**/go.sum'
+
+      - name: Downloading agent-bundle-windows
+        uses: actions/download-artifact@v4
+        with:
+          name: agent-bundle-windows-${{ inputs.OS }}
+          path: ./dist
+
+      - name: Downloading msi-custom-actions
+        uses: actions/download-artifact@v4
+        with:
+          name: msi-custom-actions
+          path: ./packaging/msi/SplunkCustomActions/bin/Release
+
+      - name: Build MSI
+        run: |
+          mkdir -p dist
+          make msi SKIP_COMPILE=true VERSION=""
+
+      - name: Uploading msi build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: msi-build-${{ inputs.OS }}
+          path: ./dist/*.msi

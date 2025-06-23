@@ -1,0 +1,32 @@
+name: agent-bundle-windows
+
+on:
+  workflow_call:
+    inputs:
+      OS:
+        required: true
+        type: string
+      PIP_CACHE_DIR:
+        required: true
+        type: string
+
+env:
+  GO_VERSION: 1.23.10
+
+jobs:
+  agent-bundle-windows:
+    runs-on: ${{ inputs.OS }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/cache@v4
+        with:
+          path: ${{ inputs.PIP_CACHE_DIR }}
+          key: agent-bundle-windows-pip-${{ hashFiles('packaging/bundle/collectd-plugins.yaml', 'packaging/bundle/scripts/requirements.txt') }}
+
+      - run: ./packaging/bundle/scripts/windows/make.ps1 bundle
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: agent-bundle-windows-${{ inputs.OS }}
+          path: ./dist/agent-bundle_windows_amd64.zip

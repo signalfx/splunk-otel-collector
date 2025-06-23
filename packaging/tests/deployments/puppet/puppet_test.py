@@ -483,7 +483,6 @@ def run_win_puppet_setup(puppet_release, strict_mode=True):
 
     if not strict_mode:
       run_win_command("puppet config set strict warning --section main")
-      run_win_command("systemctl restart pe-puppetserver")
 
 def run_win_puppet_agent(config):
     with tempfile.TemporaryDirectory() as tmpdir:

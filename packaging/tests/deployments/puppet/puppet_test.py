@@ -82,14 +82,7 @@ def run_puppet_apply(container, config, strict_mode=True):
         copy_file_into_container(container, fd.name, "/root/test.pp")
 
     if not strict_mode:
-      print("DISABLING STRICT MODE")
-      code, output = container.exec_run("puppet config set strict warning --section main")
-      print(code)
-      print(output.decode("utf-8"))
-
-      code, output = container.exec_run("systemctl restart pe-puppetserver")
-      print(code)
-      print(output.decode("utf-8"))
+      assert container.exec_run("puppet config set strict warning --section main").exit_code == 0
 
     code, output = container.exec_run("puppet apply --detailed-exitcodes /root/test.pp")
     print(output.decode("utf-8"))

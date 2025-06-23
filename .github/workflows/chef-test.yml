@@ -64,7 +64,6 @@ jobs:
     uses: ./.github/workflows/reusable-agent-bundle-windows.yml
     with:
       OS: ${{ matrix.OS }}
-      PIP_CACHE_DIR: ${{ github.workspace }}/.cache/pip
 
   msi-custom-actions:
     needs: [ chef-lint-spec-test ]

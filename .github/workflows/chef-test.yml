@@ -58,7 +58,6 @@ jobs:
 
   agent-bundle-windows:
     needs: [ chef-lint-spec-test ]
-    runs-on: ${{ matrix.OS }}
     strategy:
       matrix:
         OS: [ "windows-2025" ]

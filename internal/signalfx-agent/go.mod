@@ -83,7 +83,7 @@ require (
 	github.com/hashicorp/golang-lru v1.0.2
 	github.com/influxdata/telegraf v1.30.1
 	github.com/jaegertracing/jaeger v1.38.0
-	github.com/microsoft/go-mssqldb v1.8.0
+	github.com/microsoft/go-mssqldb v1.8.2
 	github.com/smartystreets/goconvey v1.8.1
 	go.opentelemetry.io/collector/pdata v1.33.0
 )

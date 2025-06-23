@@ -16,7 +16,7 @@ require (
 	github.com/beevik/ntp v1.4.3
 	github.com/cloudfoundry-incubator/uaago v0.0.0-20190307164349-8136b7bbe76e
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
-	github.com/docker/docker v28.1.1+incompatible
+	github.com/docker/docker v28.2.2+incompatible
 	github.com/docker/go-connections v0.5.0 // indirect
 	github.com/go-playground/locales v0.14.1
 	github.com/go-playground/universal-translator v0.18.1
@@ -24,7 +24,7 @@ require (
 	github.com/go-test/deep v1.1.1
 	github.com/gobwas/glob v0.2.4-0.20181002190808-e7a84e9525fe
 	github.com/gogo/protobuf v1.3.2
-	github.com/google/cadvisor v0.52.1
+	github.com/google/cadvisor v0.53.0
 	github.com/gorilla/mux v1.8.1
 	github.com/iancoleman/strcase v0.3.0
 	github.com/jackc/pgx/v4 v4.18.3
@@ -107,7 +107,6 @@ require (
 	github.com/apache/thrift v0.22.0 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.36.3 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.2 // indirect
-	github.com/aws/aws-sdk-go-v2/config v1.28.2 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.67 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.16.15 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.34 // indirect
@@ -118,7 +117,9 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.12.15 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.17.5 // indirect
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.53.1 // indirect
-	github.com/aws/smithy-go v1.22.2 // indirect
+	github.com/aws/smithy-go v1.22.3 // indirect
+	github.com/containerd/errdefs v1.0.0 // indirect
+	github.com/containerd/errdefs/pkg v0.3.0 // indirect
 	github.com/danieljoos/wincred v1.2.2 // indirect
 	github.com/distribution/reference v0.6.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
@@ -130,7 +131,7 @@ require (
 	github.com/fxamacker/cbor/v2 v2.7.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.7 // indirect
 	github.com/go-logfmt/logfmt v0.6.0 // indirect
-	github.com/go-logr/logr v1.4.2 // indirect
+	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/go-openapi/jsonpointer v0.21.0 // indirect
@@ -178,7 +179,7 @@ require (
 	github.com/lufia/plan9stats v0.0.0-20231016141302-07b5767bb0ed // indirect
 	github.com/miekg/dns v1.1.61 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
-	github.com/moby/sys/atomicwriter v0.1.0 // indirect
+	github.com/moby/sys/sequential v0.6.0 // indirect
 	github.com/moby/term v0.5.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
@@ -244,7 +245,7 @@ require (
 	gotest.tools/v3 v3.5.1 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20241105132330-32ad38e42d3f // indirect
-	k8s.io/utils v0.0.0-20241104100929-3ea5e8cea738 // indirect
+	k8s.io/utils v0.0.0-20250502105355-0f33e8f1c979 // indirect
 	sigs.k8s.io/json v0.0.0-20241010143419-9aa6b5e7a4b3 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.4.2 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect

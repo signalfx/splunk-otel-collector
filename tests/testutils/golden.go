@@ -30,6 +30,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	"go.opentelemetry.io/collector/component/componenttest"
+	"go.opentelemetry.io/collector/config/configgrpc"
+	"go.opentelemetry.io/collector/config/confignet"
 	"go.opentelemetry.io/collector/config/configoptional"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
@@ -87,7 +89,11 @@ func RunMetricsCollectionTest(t *testing.T, configFile string, expectedFilePath 
 	f := otlpreceiver.NewFactory()
 	port := GetAvailablePort(t)
 	c := f.CreateDefaultConfig().(*otlpreceiver.Config)
-	c.GRPC.Get().NetAddr.Endpoint = fmt.Sprintf("localhost:%d", port)
+	c.GRPC = configoptional.Some(configgrpc.ServerConfig{
+		NetAddr: confignet.AddrConfig{
+			Endpoint: fmt.Sprintf("localhost:%d", port),
+		},
+	})
 	c.HTTP = configoptional.None[otlpreceiver.HTTPConfig]()
 	sink := &consumertest.MetricsSink{}
 	receiver, err := f.CreateMetrics(context.Background(), receivertest.NewNopSettings(f.Type()), c, sink)

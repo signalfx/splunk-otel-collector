@@ -51,7 +51,7 @@ const (
 func setupReceiver(t *testing.T, endpoint string) *consumertest.LogsSink {
 	f := otlpreceiver.NewFactory()
 	cfg := f.CreateDefaultConfig().(*otlpreceiver.Config)
-	cfg.GRPC.NetAddr.Endpoint = endpoint
+	cfg.GRPC.Get().NetAddr.Endpoint = endpoint
 	sink := &consumertest.LogsSink{}
 	receiver, err := f.CreateLogs(context.Background(), receivertest.NewNopSettings(f.Type()), cfg, sink)
 	require.NoError(t, err)

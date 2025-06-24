@@ -59,7 +59,7 @@ func TestEnvoyK8sObserver(t *testing.T) {
 			Transport: "tcp",
 		},
 	})
-	otlpReceiverConfig.HTTP = configoptional.None[otlpreceiver.HTTPServerConfig]()
+	otlpReceiverConfig.HTTP = configoptional.None[otlpreceiver.HTTPConfig]()
 	sink := &consumertest.MetricsSink{}
 	receiver, err := f.CreateMetrics(context.Background(), receivertest.NewNopSettings(f.Type()), otlpReceiverConfig, sink)
 	require.NoError(t, err)

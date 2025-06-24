@@ -60,7 +60,6 @@ func setupReceiver(t *testing.T, endpoint string) *consumertest.LogsSink {
 			Transport: "tcp",
 		},
 	})
-	cfg.GRPC.Get().NetAddr.Endpoint = endpoint
 	sink := &consumertest.LogsSink{}
 	receiver, err := f.CreateLogs(context.Background(), receivertest.NewNopSettings(f.Type()), cfg, sink)
 	require.NoError(t, err)

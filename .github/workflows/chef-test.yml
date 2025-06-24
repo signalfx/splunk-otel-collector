@@ -38,7 +38,7 @@ jobs:
   agent-bundle-linux:
     strategy:
       matrix:
-        ARCH: [ "amd64", "arm64" ]
+        ARCH: [ "amd64" ]
       fail-fast: false
     uses: ./.github/workflows/reusable-agent-bundle-linux.yml
     with:
@@ -48,8 +48,8 @@ jobs:
     needs: [ cross-compile, agent-bundle-linux ]
     strategy:
       matrix:
-        SYS_PACKAGE: [ "deb", "rpm", "tar" ]
-        ARCH: [ "amd64", "arm64" ]
+        SYS_PACKAGE: [ "deb", "rpm" ]
+        ARCH: [ "amd64" ]
       fail-fast: false
     uses: ./.github/workflows/reusable-build-package.yml
     with:

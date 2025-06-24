@@ -35,7 +35,7 @@ jobs:
   cross-compile:
     strategy:
       matrix:
-        SYS_BINARIES: [ "binaries-linux_amd64", "binaries-linux_arm64", "binaries-linux_ppc64le" ]
+        SYS_BINARIES: [ "binaries-linux_amd64", "binaries-linux_arm64", "binaries-linux_ppc64le", "binaries-windows_amd64"]
     uses: ./.github/workflows/compile.yml
     with:
       SYS_BINARY: ${{ matrix.SYS_BINARIES }}
@@ -63,7 +63,6 @@ jobs:
 
   agent-bundle-windows:
     needs: lint
-    runs-on: ${{ matrix.OS }}
     strategy:
       matrix:
         OS: [ "windows-2025" ]
@@ -212,7 +211,7 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: msi-build
+          name: msi-build-windows-2025
           path: /tmp/msi-build
 
       - name: Install vagrant and virtualbox

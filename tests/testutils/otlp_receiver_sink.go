@@ -78,7 +78,7 @@ func (otlp OTLPReceiverSink) Build() (*OTLPReceiverSink, error) {
 	otlpConfig := otlpFactory.CreateDefaultConfig().(*otlpreceiver.Config)
 	otlpConfig.GRPC = configoptional.Some(configgrpc.ServerConfig{
 		NetAddr: confignet.AddrConfig{
-			Endpoint: otlp.Endpoint,
+			Endpoint:  otlp.Endpoint,
 			Transport: "tcp",
 		},
 	})

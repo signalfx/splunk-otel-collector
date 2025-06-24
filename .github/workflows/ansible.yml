@@ -65,7 +65,7 @@ jobs:
     needs: lint
     strategy:
       matrix:
-        OS: [ "${{ env.WINDOWS_VERSION }}" ]
+        OS: [ ${{ env.WINDOWS_VERSION }} ]
     uses: ./.github/workflows/reusable-agent-bundle-windows.yml
     with:
       OS: ${{ matrix.OS }}
@@ -74,7 +74,7 @@ jobs:
     needs: lint
     strategy:
       matrix:
-        OS: [ "${{ env.WINDOWS_VERSION }}" ]
+        OS: [ ${{ env.WINDOWS_VERSION }} ]
     uses: ./.github/workflows/reusable-msi-custom-actions.yml
     with:
       OS: ${{ matrix.OS }}
@@ -83,7 +83,7 @@ jobs:
     needs: [ cross-compile, agent-bundle-windows, msi-custom-actions ]
     strategy:
       matrix:
-        OS: [ "${{ env.WINDOWS_VERSION }}" ]
+        OS: [ ${{ env.WINDOWS_VERSION }} ]
     uses: ./.github/workflows/reusable-msi-build.yml
     with:
       OS: ${{ matrix.OS }}

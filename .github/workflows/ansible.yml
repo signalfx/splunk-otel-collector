@@ -28,6 +28,9 @@ concurrency:
 permissions:
   contents: write
 
+env:
+  WINDOWS_VERSION: "windows-2025"
+
 jobs:
   cross-compile:
     strategy:
@@ -62,7 +65,7 @@ jobs:
     needs: lint
     strategy:
       matrix:
-        OS: [ "windows-2025" ]
+        OS: [ "${{ env.WINDOWS_VERSION }}" ]
     uses: ./.github/workflows/reusable-agent-bundle-windows.yml
     with:
       OS: ${{ matrix.OS }}
@@ -71,7 +74,7 @@ jobs:
     needs: lint
     strategy:
       matrix:
-        OS: [ "windows-2025" ]
+        OS: [ "${{ env.WINDOWS_VERSION }}" ]
     uses: ./.github/workflows/reusable-msi-custom-actions.yml
     with:
       OS: ${{ matrix.OS }}
@@ -80,7 +83,7 @@ jobs:
     needs: [ cross-compile, agent-bundle-windows, msi-custom-actions ]
     strategy:
       matrix:
-        OS: [ "windows-2025" ]
+        OS: [ "${{ env.WINDOWS_VERSION }}" ]
     uses: ./.github/workflows/reusable-msi-build.yml
     with:
       OS: ${{ matrix.OS }}

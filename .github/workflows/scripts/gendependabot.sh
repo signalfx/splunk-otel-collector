@@ -51,7 +51,7 @@ get_pip_ignores() {
 
     ignore:
       - dependency-name: "urllib3"
-        versions: [">=2"]
+        versions: [">=3"]
 EOH
     esac
 }

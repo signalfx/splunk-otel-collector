@@ -1,0 +1,21 @@
+FROM alpine:3.17.0 AS otelcol
+COPY bin/otelcol_linux_amd64 /otelcol
+COPY bin/migratecheckpoint_linux_amd64 /migratecheckpoint
+RUN chmod 755 /otelcol
+RUN chmod 755 /migratecheckpoint
+RUN echo "splunk-otel-collector:x:999:999::/:" > /etc_passwd
+# create base dirs since we cannot chown in scratch image except via COPY
+RUN mkdir -p /otel/collector /splunk-otel-collector /tmp/tmp
+# used by jmx receiver to pass tmp properties. Nested to avoid inheriting existing tmp files.
+RUN chmod 755 /tmp/tmp
+FROM us-east4-docker.pkg.dev/sym-prod-mr-tools-01/sre-docker-us-east4/signalfx/splunk-otel-collector:0.125.0 AS base
+COPY --from=otelcol /etc_passwd /etc/passwd
+COPY --from=otelcol --chown=999 /otelcol /
+COPY --from=otelcol --chown=999 /migratecheckpoint /
+COPY --from=otelcol --chown=999 /otel /etc/otel
+COPY --from=otelcol --chown=999 /otel/collector /etc/otel/collector
+COPY --from=otelcol --chown=999 /tmp/tmp /tmp
+USER splunk-otel-collector
+ENTRYPOINT ["/otelcol"]
+EXPOSE 13133 14250 14268 4317 4318 6060 8006 8888 9411 9443 9080
+

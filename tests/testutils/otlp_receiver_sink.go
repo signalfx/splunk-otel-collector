@@ -20,6 +20,7 @@ import (
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
+	"go.opentelemetry.io/collector/config/configgrpc"
 	"go.opentelemetry.io/collector/config/confignet"
 	"go.opentelemetry.io/collector/config/configoptional"
 	"go.opentelemetry.io/collector/consumer/consumertest"
@@ -75,7 +76,12 @@ func (otlp OTLPReceiverSink) Build() (*OTLPReceiverSink, error) {
 
 	otlpFactory := otlpreceiver.NewFactory()
 	otlpConfig := otlpFactory.CreateDefaultConfig().(*otlpreceiver.Config)
-	otlpConfig.GRPC.Get().NetAddr = confignet.AddrConfig{Endpoint: otlp.Endpoint, Transport: "tcp"}
+	otlpConfig.GRPC = configoptional.Some(configgrpc.ServerConfig{
+		NetAddr: confignet.AddrConfig{
+			Endpoint: otlp.Endpoint,
+			Transport: "tcp",
+		},
+	})
 	otlpConfig.HTTP = configoptional.None[otlpreceiver.HTTPConfig]()
 
 	params := receiver.Settings{

@@ -51,7 +51,12 @@ func checkMetricsPresence(t *testing.T, metricNames []string, configFile string)
 	f := otlpreceiver.NewFactory()
 	port := testutils.GetAvailablePort(t)
 	c := f.CreateDefaultConfig().(*otlpreceiver.Config)
-	c.GRPC.NetAddr.Endpoint = fmt.Sprintf("localhost:%d", port)
+	c.GRPC = configoptional.Some(configgrpc.ServerConfig{
+		NetAddr: confignet.AddrConfig{
+			Endpoint:  fmt.Sprintf("localhost:%d", port),
+			Transport: "tcp",
+		},
+	})
 	sink := &consumertest.MetricsSink{}
 	receiver, err := f.CreateMetrics(context.Background(), receivertest.NewNopSettings(f.Type()), c, sink)
 	require.NoError(t, err)

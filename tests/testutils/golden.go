@@ -91,7 +91,7 @@ func RunMetricsCollectionTest(t *testing.T, configFile string, expectedFilePath 
 	c := f.CreateDefaultConfig().(*otlpreceiver.Config)
 	c.GRPC = configoptional.Some(configgrpc.ServerConfig{
 		NetAddr: confignet.AddrConfig{
-			Endpoint: fmt.Sprintf("localhost:%d", port),
+			Endpoint:  fmt.Sprintf("localhost:%d", port),
 			Transport: "tcp",
 		},
 	})

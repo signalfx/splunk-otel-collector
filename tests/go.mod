@@ -15,6 +15,7 @@ require (
 	github.com/testcontainers/testcontainers-go v0.37.0
 	go.opentelemetry.io/collector/component v1.34.0
 	go.opentelemetry.io/collector/component/componenttest v0.128.0
+	go.opentelemetry.io/collector/config/configgrpc v0.128.0
 	go.opentelemetry.io/collector/config/confignet v1.34.0
 	go.opentelemetry.io/collector/config/configoptional v0.128.0
 	go.opentelemetry.io/collector/confmap v1.34.0
@@ -116,7 +117,6 @@ require (
 	go.opentelemetry.io/collector/component/componentstatus v0.128.0 // indirect
 	go.opentelemetry.io/collector/config/configauth v0.128.0 // indirect
 	go.opentelemetry.io/collector/config/configcompression v1.34.0 // indirect
-	go.opentelemetry.io/collector/config/configgrpc v0.128.0 // indirect
 	go.opentelemetry.io/collector/config/confighttp v0.128.0 // indirect
 	go.opentelemetry.io/collector/config/configmiddleware v0.128.0 // indirect
 	go.opentelemetry.io/collector/config/configopaque v1.34.0 // indirect

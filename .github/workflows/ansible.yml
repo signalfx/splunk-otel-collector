@@ -165,7 +165,7 @@ jobs:
           # workaround for https://github.com/yaml/pyyaml/issues/724
           pip3 install 'wheel==0.40.0'
           pip3 install 'Cython<3.0' 'PyYaml~=5.0' --no-build-isolation
-          pip3 install --use-pep517 -r ${GITHUB_WORKSPACE}/requirements.txt
+          pip3 install --use-pep517 -r "${GITHUB_WORKSPACE}/requirements.txt"
 
       - name: Run Molecule tests.
         run: molecule --debug -v --base-config ./molecule/config/docker.yml test --all

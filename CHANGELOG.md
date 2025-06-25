@@ -21,7 +21,7 @@ and the [opentelemetry-collector-contrib v0.128.0](https://github.com/open-telem
 
 ### 🚩 Deprecations 🚩
 
-- (Contrib) `receiver/hostmetrics`: Mark `hostmetrics.process.onWindowsUseNewGetProcesses` feature gate as stable ([#32947](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/))
+- (Contrib) `receiver/hostmetrics`: Mark `hostmetrics.process.onWindowsUseNewGetProcesses` feature gate as stable ([#32947](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/32947)
 
 ### 💡 Enhancements 💡
 

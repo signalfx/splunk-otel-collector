@@ -30,7 +30,7 @@ import (
 	"go.opentelemetry.io/collector/confmap/xconfmap"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/receiver/receivertest"
-	conventions "go.opentelemetry.io/collector/semconv/v1.6.1"
+	conventions "go.opentelemetry.io/otel/semconv/v1.25.0"
 )
 
 func TestScraper(t *testing.T) {
@@ -47,12 +47,30 @@ func TestScraper(t *testing.T) {
 			name: "default_config",
 			cfg:  createDefaultConfig().(*Config),
 			expectedResourceAttributes: map[string]any{
-				conventions.AttributeServiceName:       "",
-				conventions.AttributeServiceInstanceID: u.Host,
+				string(conventions.ServiceNameKey):       "",
+				string(conventions.ServiceInstanceIDKey): u.Host,
 			},
 		},
 		{
 			name: "all_resource_attributes",
+			cfg: func() *Config {
+				cfg := createDefaultConfig().(*Config)
+				cfg.ResourceAttributes.ServiceName.Enabled = true
+				cfg.ResourceAttributes.URLScheme.Enabled = true
+				cfg.ResourceAttributes.ServerPort.Enabled = true
+				cfg.ResourceAttributes.ServerAddress.Enabled = true
+				return cfg
+			}(),
+			expectedResourceAttributes: map[string]any{
+				string(conventions.ServiceNameKey):       "",
+				string(conventions.ServiceInstanceIDKey): u.Host,
+				string(conventions.ServerAddressKey):     u.Host,
+				string(conventions.ServerPortKey):        u.Port(),
+				string(conventions.URLSchemeKey):         "http",
+			},
+		},
+		{
+			name: "deprecated_resource_attributes",
 			cfg: func() *Config {
 				cfg := createDefaultConfig().(*Config)
 				cfg.ResourceAttributes.ServiceName.Enabled = true
@@ -62,11 +80,11 @@ func TestScraper(t *testing.T) {
 				return cfg
 			}(),
 			expectedResourceAttributes: map[string]any{
-				conventions.AttributeServiceName:       "",
-				conventions.AttributeServiceInstanceID: u.Host,
-				conventions.AttributeNetHostName:       u.Host,
-				conventions.AttributeNetHostPort:       u.Port(),
-				conventions.AttributeHTTPScheme:        "http",
+				string(conventions.ServiceNameKey):       "",
+				string(conventions.ServiceInstanceIDKey): u.Host,
+				string(conventions.NetHostNameKey):       u.Host,
+				string(conventions.NetHostPortKey):       u.Port(),
+				string(conventions.HTTPSchemeKey):        "http",
 			},
 		},
 		{

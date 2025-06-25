@@ -1,0 +1,39 @@
+---
+
+- name: Get splunk-otel-collector latest version
+  ansible.windows.win_get_url:
+    url: "{{win_base_url}}/splunk-otel-collector/msi/{{package_stage}}/latest.txt"
+    dest: "%TEMP%"
+    proxy_password: "{{ win_proxy_password | default(omit) }}"
+    proxy_url: "{{ win_proxy_url | default(omit) }}"
+    proxy_username: "{{ win_proxy_username | default(omit) }}"
+    use_proxy: "{{ win_use_proxy }}"
+  register: latest
+  when: splunk_otel_collector_version == "latest"
+
+- name: get content of remote file
+  slurp:
+    src: "{{latest.dest}}"
+  register: version
+  when: splunk_otel_collector_version == "latest"
+
+- name: decode remote file content for latest version
+  set_fact:
+    splunk_otel_collector_version: "{{version.content | b64decode }}"
+  when: splunk_otel_collector_version == "latest"
+
+- name: Get splunk-otel-collector for windows
+  ansible.windows.win_get_url:
+    url: "{{win_base_url}}/splunk-otel-collector/msi/{{package_stage}}/splunk-otel-collector-\
+          {{splunk_otel_collector_version}}-amd64.msi"
+    dest: "%TEMP%"
+    proxy_password: "{{ win_proxy_password | default(omit) }}"
+    proxy_url: "{{ win_proxy_url | default(omit) }}"
+    proxy_username: "{{ win_proxy_username | default(omit) }}"
+    use_proxy: "{{ win_use_proxy }}"
+  register: otel_msi_package
+
+- name: Set MSI source path (remote install)
+  when: not local_artifact_testing_enabled
+  set_fact:
+    msi_path: "{{ otel_msi_package.dest }}"

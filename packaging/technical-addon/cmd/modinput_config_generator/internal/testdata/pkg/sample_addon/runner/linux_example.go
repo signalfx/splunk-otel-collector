@@ -20,10 +20,29 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+
+	"github.com/splunk/splunk-technical-addon/internal/addonruntime"
+	"github.com/splunk/splunk-technical-addon/internal/modularinput"
 )
 
-func Example(flags []string, envVars []string) {
-	output, err := json.Marshal(ExampleOutput{flags, envVars, "linux"})
+func Example(mip *modularinput.ModinputProcessor) {
+	splunkHome, _ := addonruntime.GetSplunkHome()
+	taPlatformHome, _ := addonruntime.GetTaPlatformDir()
+	taHome, _ := addonruntime.GetTaHome()
+
+	modInputs := GetSampleAddonModularInputs(mip)
+	output, err := json.Marshal(ExampleOutput{
+		Flags:                      mip.GetFlags(),
+		EnvVars:                    mip.GetEnvVars(),
+		SplunkHome:                 splunkHome,
+		TaHome:                     taHome,
+		PlatformHome:               taPlatformHome,
+		EverythingSet:              modInputs.EverythingSet.Value,
+		UnaryFlagWithEverythingSet: modInputs.UnaryFlagWithEverythingSet.Value,
+		MinimalSetRequired:         modInputs.MinimalSetRequired.Value,
+		MinimalSet:                 modInputs.MinimalSet.Value,
+		Platform:                   "linux",
+	})
 	if err != nil {
 		log.Fatal("error marshalling json: ", err)
 	} else {

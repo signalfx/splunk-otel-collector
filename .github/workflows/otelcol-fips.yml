@@ -23,7 +23,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.23.8
+  GO_VERSION: 1.23.10
 
 jobs:
   otelcol-fips:
@@ -134,7 +134,7 @@ jobs:
     needs: [ otelcol-fips ]
     strategy:
       matrix:
-        WIN_VERSION: [ 2019, 2022 ]
+        WIN_VERSION: [ 2022, 2025 ]
       fail-fast: false
     steps:
       - uses: actions/checkout@v4

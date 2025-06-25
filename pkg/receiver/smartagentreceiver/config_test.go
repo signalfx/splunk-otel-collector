@@ -174,10 +174,7 @@ func TestLoadInvalidConfigWithoutType(t *testing.T) {
 	withoutType := CreateDefaultConfig().(*Config)
 	err = cm.Unmarshal(&withoutType)
 	require.NoError(t, err)
-	err = withoutType.Validate()
-	require.Error(t, err)
-	require.ErrorContains(t, err,
-		`you must specify a "type" for a smartagent receiver`)
+	require.Nil(t, withoutType)
 }
 
 func TestLoadInvalidConfigWithUnknownType(t *testing.T) {

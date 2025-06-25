@@ -174,13 +174,9 @@ func TestIstioEntities(t *testing.T) {
 				"discovery.observer.type": "k8s_observer",
 				"discovery.status":        "successful",
 				"endpoint":                podIP,
-				"net.host.name":           podIP,
-				"net.host.port":           promPort,
 				"server.address":          podIP,
 				"server.port":             promPort,
 				"service.instance.id":     fmt.Sprintf("%s:%s", podIP, promPort),
-				"service.name":            "istio",
-				"service.type":            "prometheus",
 				"type":                    "pod",
 				"url.scheme":              "http",
 			})

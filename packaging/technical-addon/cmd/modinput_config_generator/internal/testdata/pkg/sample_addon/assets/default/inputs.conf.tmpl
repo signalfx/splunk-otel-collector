@@ -1,14 +1,14 @@
 [{{ .SchemaName }}://{{ .SchemaName }}]
 disabled=false
 start_by_shell=false
-interval = 60
-index = _internal
-sourcetype = {{ .SchemaName }}
+interval=60
+index=_internal
+sourcetype={{ .SchemaName }}
 
 {{- range $name, $inputConfig := .ModularInputs }}
 {{- if $inputConfig.Default }}
-{{ $name }} = "{{ $inputConfig.Default }}"
+{{ $name }}={{ $inputConfig.Default }}
 {{- else if $inputConfig.Required }}
-{{ $name }} =
+{{ $name }}=
 {{- end }}
 {{- end }}

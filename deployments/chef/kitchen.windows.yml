@@ -19,14 +19,14 @@ verifier:
   name: inspec
 
 platforms:
-  - name: windows-2019
-    driver:
-      dockerfile: test/windows/Dockerfile.windows-2019
-      build_context: true
-      platform: windows
   - name: windows-2022
     driver:
       dockerfile: test/windows/Dockerfile.windows-2022
+      build_context: true
+      platform: windows
+  - name: windows-2025
+    driver:
+      dockerfile: test/windows/Dockerfile.windows-2025
       build_context: true
       platform: windows
 
@@ -36,6 +36,7 @@ suites:
       - recipe[splunk_otel_collector]
     attributes:
       splunk_otel_collector:
+        local_artifact_testing_enabled: true
         splunk_access_token: testing123
         splunk_realm: test
     verifier:
@@ -48,6 +49,7 @@ suites:
       - recipe[splunk_otel_collector]
     attributes:
       splunk_otel_collector:
+        local_artifact_testing_enabled: true
         splunk_access_token: testing123
         splunk_realm: test
         splunk_ingest_url: https://fake-splunk-ingest.com
@@ -55,7 +57,7 @@ suites:
         splunk_memory_total_mib: "256"
         splunk_hec_token: fake-hec-token
         splunk_listen_interface: "0.0.0.0"
-        collector_version: 0.48.0
+        collector_version: 0.126.0
         collector_additional_env_vars:
           MY_CUSTOM_VAR1: value1
           MY_CUSTOM_VAR2: value2

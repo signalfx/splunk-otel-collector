@@ -1,5 +1,18 @@
 # Changelog
 
+## ansible-v0.32.0
+
+### 💡 Enhancements 💡
+
+- Add support for the `splunk_otel_collector_command_line_args` option to
+  configure the command line arguments for the Splunk OpenTelemetry Collector
+  service.
+
+### 🧰 Bug fixes 🧰
+
+- Fix bug causing Windows deployment failure when specified variables had spaces in their values (relevant when `splunk_otel_collector_version` >= `0.98.0`). ([#6288](https://github.com/signalfx/splunk-otel-collector/pull/6288))
+- Fix bug causing custom variables to not be set on Windows deployment (relevant when `splunk_otel_collector_version` >= `0.98.0`). ([#6288](https://github.com/signalfx/splunk-otel-collector/pull/6288))
+
 ## ansible-v0.31.0
 
 ### 🛑 Breaking changes 🛑

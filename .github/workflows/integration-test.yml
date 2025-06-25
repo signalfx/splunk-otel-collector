@@ -11,30 +11,16 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.23.8
+  GO_VERSION: 1.23.10
 jobs:
   agent-bundle-linux:
-    runs-on: ${{ fromJSON('["ubuntu-24.04", "otel-arm64"]')[matrix.ARCH == 'arm64'] }}
     strategy:
       matrix:
         ARCH: [ "amd64", "arm64" ]
       fail-fast: false
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/cache@v4
-        id: bundle-cache
-        with:
-          path: .cache/buildx/agent-bundle-${{ matrix.ARCH }}
-          key: agent-bundle-buildx-${{ matrix.ARCH }}-${{ hashFiles('packaging/bundle/**') }}
-          restore-keys: |
-            agent-bundle-buildx-${{ matrix.ARCH }}-
-      - run: make -C packaging/bundle agent-bundle-linux ARCH=${{ matrix.ARCH }}
-        env:
-          BUNDLE_CACHE_HIT: "${{ steps.bundle-cache.outputs.cache-hit }}"
-      - uses: actions/upload-artifact@v4
-        with:
-          name: agent-bundle-linux-${{ matrix.ARCH }}
-          path: ./dist/agent-bundle_linux_${{ matrix.ARCH }}.tar.gz
+    uses: ./.github/workflows/agent-bundle-linux.yml
+    with:
+      ARCH: ${{ matrix.ARCH }}
 
   otelcol:
     runs-on: ubuntu-24.04
@@ -205,7 +191,7 @@ jobs:
       - run: docker load -i ./docker-otelcol/${{ matrix.ARCH }}/image.tar
       - run: ln -sf otelcol_linux_${{ matrix.ARCH }} ./bin/otelcol
       - run: chmod a+x ./bin/*
-      - uses: shogo82148/actions-setup-redis@v1.39.0
+      - uses: shogo82148/actions-setup-redis@v1.41.0
         if: matrix.PROFILE == 'integration'
         with:
           auto-start: false
@@ -238,7 +224,7 @@ jobs:
           path: ${{ env.TEST_OUTPUT }}
           retention-days: 5
       - name: Upload coverage report
-        uses: codecov/codecov-action@ad3126e916f78f00edff4ed0317cf185271ccc2d # 5.4.2
+        uses: codecov/codecov-action@18283e04ce6e62d37312384ff67231eb8fd56d24 # 5.4.3
         with:
           verbose: true
           fail_ci_if_error: true
@@ -293,7 +279,7 @@ jobs:
           path: ./bin
       - run: ln -sf otelcol_linux_amd64 ./bin/otelcol
       - run: chmod a+x ./bin/*
-      - uses: shogo82148/actions-setup-redis@v1.39.0
+      - uses: shogo82148/actions-setup-redis@v1.41.0
         if: matrix.PROFILE == 'integration'
         with:
           auto-start: false
@@ -326,7 +312,7 @@ jobs:
           path: ${{ env.TEST_OUTPUT }}
           retention-days: 5
       - name: Upload coverage report
-        uses: codecov/codecov-action@ad3126e916f78f00edff4ed0317cf185271ccc2d # 5.4.2
+        uses: codecov/codecov-action@18283e04ce6e62d37312384ff67231eb8fd56d24 # 5.4.3
         with:
           verbose: true
           fail_ci_if_error: true
@@ -395,7 +381,7 @@ jobs:
             CONTAINER_COVER_DEST: '/etc/otel/collector/coverage'
             SPLUNK_OTEL_COLLECTOR_IMAGE: 'otelcol:latest'
         - name: Upload coverage report
-          uses: codecov/codecov-action@ad3126e916f78f00edff4ed0317cf185271ccc2d # 5.4.2
+          uses: codecov/codecov-action@18283e04ce6e62d37312384ff67231eb8fd56d24 # 5.4.3
           with:
             verbose: true
             fail_ci_if_error: true
@@ -471,7 +457,7 @@ jobs:
           kubectl get pods -A 
           kubectl get pod -A -l app=otelcol -o jsonpath="{range .items[*]}{.metadata.namespace} {.metadata.name}{'\n'}{end}" | xargs -r -n2 sh -c 'kubectl logs -n $0 $1'
       - name: Upload coverage report
-        uses: codecov/codecov-action@ad3126e916f78f00edff4ed0317cf185271ccc2d # 5.4.2
+        uses: codecov/codecov-action@18283e04ce6e62d37312384ff67231eb8fd56d24 # 5.4.3
         with:
           verbose: true
           fail_ci_if_error: true

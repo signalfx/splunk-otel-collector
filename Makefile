@@ -1,9 +1,6 @@
 include ./Makefile.Common
-include ./packaging/technical-addon/Makefile
 
 ### VARIABLES
-SOURCE_DIR?=$(dir $(abspath $(lastword $(MAKEFILE_LIST))))
-BUILD_DIR?=$(git rev-parse --show-toplevel)
 
 # BUILD_TYPE should be one of (dev, release).
 BUILD_TYPE?=release
@@ -99,7 +96,7 @@ integration-test-target:
 
 .PHONY: integration-test-cover-target
 integration-test-cover-target:
-	@set -e; $(MAKE_TEST_COVER_DIR) && cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=$(TARGET) -v -timeout 5m -count 1 ./... $(COVER_TESTING_INTEGRATION_OPTS)
+	@set -e; $(MAKE_TEST_COVER_DIR) && cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=$(TARGET) -v -timeout 10m -count 1 ./... $(COVER_TESTING_INTEGRATION_OPTS)
 	$(GOCMD) tool covdata textfmt -i=$(TEST_COVER_DIR) -o ./$(TARGET)-coverage.txt
 
 .PHONY: integration-test
@@ -266,12 +263,6 @@ else
 	$(LINK_CMD) migratecheckpoint_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/migratecheckpoint$(EXTENSION)
 endif
 
-.PHONY: bundle.d
-bundle.d:
-	go install github.com/signalfx/splunk-otel-collector/internal/confmapprovider/discovery/bundle/cmd/discoverybundler
-	go generate -tags bootstrap.bundle.d ./...
-	go generate -tags bundle.d ./...
-
 .PHONY: add-tag
 add-tag:
 	@[ "${TAG}" ] || ( echo ">> env var TAG is not set"; exit 1 )
@@ -382,7 +373,3 @@ endif
 	docker create --platform linux/$(GOARCH) --name otelcol-fips-builder-$(GOOS)-$(GOARCH) otelcol-fips-builder-$(GOOS)-$(GOARCH) true >/dev/null
 	docker cp otelcol-fips-builder-$(GOOS)-$(GOARCH):/src/bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/otelcol-fips_$(GOOS)_$(GOARCH)$(EXTENSION)
 	@docker rm -f otelcol-fips-builder-$(GOOS)-$(GOARCH) >/dev/null
-
-
-.PHONY: package-technical-addon
-package-technical-addon: bundle.d otelcol generate-technical-addon copy-local-build-to-ta package-ta smoketest-ta

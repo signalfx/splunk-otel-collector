@@ -14,7 +14,7 @@ on:
     - cron: '0 0 * * 1-5' # Every weekday at midnight UTC
 
 env:
-  GO_VERSION: 1.23.8
+  GO_VERSION: 1.23.10
 
 concurrency:
   group: vuln-scans-${{ github.event.pull_request.number || github.ref }}
@@ -26,7 +26,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run trivy filesystem scan
-        uses: aquasecurity/trivy-action@0.30.0
+        uses: aquasecurity/trivy-action@0.31.0
         with:
           version: v0.57.1
           scan-type: 'fs'
@@ -113,7 +113,7 @@ jobs:
           path: ./dist
       - run: docker load -i ./dist/image.tar
       - name: Run trivy image scan
-        uses: aquasecurity/trivy-action@0.30.0
+        uses: aquasecurity/trivy-action@0.31.0
         with:
           version: v0.57.1
           scan-type: 'image'
@@ -159,7 +159,7 @@ jobs:
     needs: [ "binaries-windows_amd64" ]
     strategy:
       matrix:
-        OS: [ windows-2019, windows-2022 ]
+        OS: [ windows-2022, windows-2025 ]
       fail-fast: false
     env:
       PIP_CACHE_DIR: ${{ github.workspace }}/.cache/pip
@@ -181,8 +181,8 @@ jobs:
           $ErrorActionPreference = 'Stop'
           Copy-Item .\bin\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
           Copy-Item .\dist\agent-bundle_windows_amd64.zip .\cmd\otelcol\agent-bundle_windows_amd64.zip
-          if ("${{ matrix.OS }}" -eq "windows-2019") {
-            $base_image = "mcr.microsoft.com/windows/servercore:ltsc2019"
+          if ("${{ matrix.OS }}" -eq "windows-2025") {
+            $base_image = "mcr.microsoft.com/windows/servercore:ltsc2025"
           } else {
             $base_image = "mcr.microsoft.com/windows/servercore:ltsc2022"
           }
@@ -190,12 +190,18 @@ jobs:
           Remove-Item .\cmd\otelcol\otelcol.exe
           Remove-Item .\cmd\otelcol\agent-bundle_windows_amd64.zip
       - uses: anchore/scan-action@v6
+        id: anchore-scan
         with:
           severity-cutoff: "high"
           only-fixed: true
           add-cpes-if-none: true
-          output-format: "table"
+          output-format: sarif
           image: "otelcol-windows:latest"
+      - name: Upload result to GitHub Code Scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ${{ steps.anchore-scan.outputs.sarif }}
 
   check-snyk-token:
     runs-on: ubuntu-24.04

@@ -22,7 +22,7 @@ import (
 )
 
 func main() {
-	sourceDir := flag.String("source-dir", "", "Source directory ($(SOURCE_DIR))")
+	sourceDir := flag.String("source-dir", "", "Source directory ($(ADDONS_SOURCE_DIR))")
 	schemaName := flag.String("schema-name", "", "Modular input schema name")
 	buildDir := flag.String("build-dir", "", "Build directory ($(BUILD_DIR))")
 	flag.Parse()
@@ -41,7 +41,7 @@ func main() {
 	if err := generateModinputConfig(config, filepath.Dir(yamlPath)); err != nil {
 		log.Fatalf("Error processing %v: %v\n", config, err)
 	}
-	if err := generateTaModInputConfs(config, filepath.Dir(filepath.Dir(yamlPath)), filepath.Join(*buildDir, *schemaName)); err != nil {
+	if err := generateTaModInputConfs(config, filepath.Dir(filepath.Dir(yamlPath)), *buildDir); err != nil {
 		log.Fatalf("Error processing %v: %v\n", config, err)
 	}
 }

@@ -22,117 +22,37 @@ env:
   PYTHON_VERSION: '3.13'
   PIP_VERSION: '24.2'
   REQUIREMENTS_PATH: "packaging/tests/requirements.txt"
-  GO_VERSION: 1.23.8
+  GO_VERSION: 1.23.10
 
 jobs:
-  setup-environment:
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
-
-      - name: Installing dependency
-        run: |
-          make install-tools
-
   cross-compile:
-    runs-on: ubuntu-24.04
-    needs: [setup-environment]
     strategy:
       matrix:
         SYS_BINARIES: [ "binaries-linux_amd64", "binaries-linux_arm64", "binaries-linux_ppc64le" ]
-    steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
-
-      - name: Build Collector
-        run: |
-          make ${{ matrix.SYS_BINARIES }}
-
-      - name: Uploading binaries
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.SYS_BINARIES }}
-          path: |
-            ./bin/*
+    uses: ./.github/workflows/compile.yml
+    with:
+      SYS_BINARY: ${{ matrix.SYS_BINARIES }}
 
   agent-bundle-linux:
-    runs-on: ${{ fromJSON('["ubuntu-24.04", "otel-arm64"]')[matrix.ARCH == 'arm64'] }}
     strategy:
       matrix:
-        ARCH: ["amd64", "arm64"]
+        ARCH: [ "amd64", "arm64" ]
       fail-fast: false
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/cache@v4
-        id: bundle-cache
-        with:
-          path: .cache/buildx/agent-bundle-${{ matrix.ARCH }}
-          key: agent-bundle-buildx-${{ matrix.ARCH }}-${{ hashFiles('packaging/bundle/**') }}
-          restore-keys: |
-            agent-bundle-buildx-${{ matrix.ARCH }}-
-
-      - run: make -C packaging/bundle agent-bundle-linux ARCH=${{ matrix.ARCH }}
-        env:
-          BUNDLE_CACHE_HIT: "${{ steps.bundle-cache.outputs.cache-hit }}"
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: agent-bundle-linux-${{ matrix.ARCH }}
-          path: ./dist/agent-bundle_linux_${{ matrix.ARCH }}.tar.gz
+    uses: ./.github/workflows/agent-bundle-linux.yml
+    with:
+      ARCH: ${{ matrix.ARCH }}
 
   build-package:
-    runs-on: ubuntu-24.04
     needs: [cross-compile, agent-bundle-linux]
     strategy:
       matrix:
         SYS_PACKAGE: [ "deb", "rpm", "tar" ]
         ARCH: [ "amd64", "arm64" ]
       fail-fast: false
-    steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
-
-      - name: Downloading binaries-linux_${{ matrix.ARCH }}
-        uses: actions/download-artifact@v4
-        with:
-          name: binaries-linux_${{ matrix.ARCH }}
-          path: ./bin
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: agent-bundle-linux-${{ matrix.ARCH }}
-          path: ./dist
-
-      - name: Build ${{ matrix.SYS_PACKAGE }} ${{ matrix.ARCH }} package
-        run: make ${{ matrix.SYS_PACKAGE }}-package SKIP_COMPILE=true SKIP_BUNDLE=true VERSION="" ARCH="${{ matrix.ARCH }}"
-
-      - name: Uploading ${{ matrix.SYS_PACKAGE }} ${{ matrix.ARCH }} package artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.SYS_PACKAGE }}-${{ matrix.ARCH }}-package
-          path: ./dist/splunk-otel-collector*
+    uses: ./.github/workflows/build-package.yml
+    with:
+      SYS_PACKAGE: ${{ matrix.SYS_PACKAGE }}
+      ARCH: ${{ matrix.ARCH }}
 
   test-package-matrix:
     runs-on: ubuntu-24.04

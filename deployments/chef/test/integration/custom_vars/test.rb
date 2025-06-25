@@ -40,6 +40,7 @@ if os[:family] == 'windows'
   end
   collector_env_vars_strings.sort!
   describe registry_key('HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\splunk-otel-collector') do
+    it { should have_property 'Environment' }
     it { should have_property_value('Environment', :multi_string, collector_env_vars_strings) }
   end
   describe service('fluentdwinsvc') do
@@ -64,12 +65,13 @@ else
     its('content') { should match /^SPLUNK_REALM=test$/ }
     its('content') { should match /^MY_CUSTOM_VAR1=value1$/ }
     its('content') { should match /^MY_CUSTOM_VAR2=value2$/ }
+    its('content') { should match /^OTELCOL_OPTIONS=--discovery$/ }
   end
   describe file('/etc/systemd/system/splunk-otel-collector.service.d/service-owner.conf') do
     its('content') { should match /^User=custom-user$/ }
     its('content') { should match /^Group=custom-group$/ }
   end
-  if os[:family] != 'suse' && os[:family] != 'opensuse' && !(os[:family] == 'debian' && ::Gem::Version.new(os.release) >= ::Gem::Version.new('12'))
+  if os[:family] != 'suse' && os[:family] != 'opensuse' && !(os[:family] == 'debian' && ::Gem::Version.new(os.release) >= ::Gem::Version.new('11'))
     fluentd_config_path = '/etc/otel/collector/fluentd/fluent.conf'
     describe service('td-agent') do
       it { should be_enabled }

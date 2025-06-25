@@ -57,7 +57,6 @@ and the [opentelemetry-collector-contrib v0.128.0](https://github.com/open-telem
 - (Core) `telemetry`: Add generated resource attributes to the printed log messages. ([#13110](https://github.com/open-telemetry/opentelemetry-collector/pull/13110))
   If service.name, service.version, or service.instance.id are not specified in the config, they will be generated automatically.
   This change ensures that these attributes are also included in the printed log messages.
-- (Core) `mdatagen`: Fix generation when there are no events in the metadata. ([#13123](https://github.com/open-telemetry/opentelemetry-collector/pull/13123))
 - (Core) `confmap`: Do not panic on assigning nil maps to non-nil maps ([#13117](https://github.com/open-telemetry/opentelemetry-collector/pull/13117))
 - (Core) `pdata`: Fix event_name skipped when unmarshalling LogRecord from JSON ([#13127](https://github.com/open-telemetry/opentelemetry-collector/pull/13127))
 - (Contrib) `kafkareceiver`: enforce a backoff mechanism on non-permanent errors, such as when the queue is full ([#39580](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39580))

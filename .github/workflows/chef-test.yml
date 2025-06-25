@@ -351,8 +351,8 @@ jobs:
       - name: Extract artifacts
         run: |
           mkdir files
-          Get-ChildItem /tmp -Recurse -Include 'splunk-otel-collector*.msi' | "Select FullName -OutVariable msiPath"
-          mv "$msiPath.FullName" ./files/splunk-otel-collector.msi
+          Get-ChildItem /tmp -Recurse -Include 'splunk-otel-collector*.msi' | Select FullName -OutVariable msiPath
+          mv $msiPath.FullName ./files/splunk-otel-collector.msi
 
       - name: Install chef
         uses: actionshub/chef-install@3.0.1

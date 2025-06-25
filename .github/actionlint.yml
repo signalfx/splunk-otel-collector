@@ -7,47 +7,65 @@ self-hosted-runner:
 
 # Path-specific configurations.
 paths:
-  # All Windows Paths should ignore errors related to PowerShell formatting.
-  # Linter shellcheck is not supported for PowerShell
-  .github/workflows/**/*win*.{yml,yaml}:
-    ignore:
-      # Ignore the specific error from shellcheck
-      - 'shellcheck reported issue in this script: SC1001:.+'
-      - 'shellcheck reported issue in this script: SC1009:.+'
-      - 'shellcheck reported issue in this script: SC1012:.+'
-      - 'shellcheck reported issue in this script: SC1050:.+'
-      - 'shellcheck reported issue in this script: SC1070:.+'
-      - 'shellcheck reported issue in this script: SC1072:.+'
-      - 'shellcheck reported issue in this script: SC1073:.+'
-      - 'shellcheck reported issue in this script: SC1087:.+'
-      - 'shellcheck reported issue in this script: SC1133:.+'
-      - 'shellcheck reported issue in this script: SC2006:.+'
-      - 'shellcheck reported issue in this script: SC2046:.+'
-      - 'shellcheck reported issue in this script: SC2086:.+'
-      - 'shellcheck reported issue in this script: SC2283:.+'
-
-  .github/workflows/**/*msi*.{yml,yaml}:
-    ignore:
-      # Ignore the specific error from shellcheck
-      - 'shellcheck reported issue in this script: SC1001:.+'
-      - 'shellcheck reported issue in this script: SC1009:.+'
-      - 'shellcheck reported issue in this script: SC1012:.+'
-      - 'shellcheck reported issue in this script: SC1050:.+'
-      - 'shellcheck reported issue in this script: SC1070:.+'
-      - 'shellcheck reported issue in this script: SC1072:.+'
-      - 'shellcheck reported issue in this script: SC1073:.+'
-      - 'shellcheck reported issue in this script: SC1087:.+'
-      - 'shellcheck reported issue in this script: SC1133:.+'
-      - 'shellcheck reported issue in this script: SC2006:.+'
-      - 'shellcheck reported issue in this script: SC2046:.+'
-      - 'shellcheck reported issue in this script: SC2086:.+'
-      - 'shellcheck reported issue in this script: SC2283:.+'
-
   # Configs are meant to be workflow helpers, not valid GitHub actions. Ignore all errors
   # from these files.
   .github/workflows/configs/**:
     ignore:
       - '.*'
+
+  # Ignore these notifications/errors for all workflows
+  .github/workflows/*.{yml,yaml}:
+    ignore:
+      - 'index access of array must be type of number but.*' # Caused by taking advantage of GitHub's automatic conversion of bools to integers in for array indexing
+
+  # All Windows Paths should ignore errors related to PowerShell formatting.
+  # Linter shellcheck is not supported for PowerShell
+  .github/workflows/**/*win*.{yml,yaml}:
+    ignore:
+      - 'shellcheck reported issue in this script: SC1001:.+'
+      - 'shellcheck reported issue in this script: SC1009:.+'
+      - 'shellcheck reported issue in this script: SC1012:.+'
+      - 'shellcheck reported issue in this script: SC1050:.+'
+      - 'shellcheck reported issue in this script: SC1070:.+'
+      - 'shellcheck reported issue in this script: SC1072:.+'
+      - 'shellcheck reported issue in this script: SC1073:.+'
+      - 'shellcheck reported issue in this script: SC1087:.+'
+      - 'shellcheck reported issue in this script: SC1133:.+'
+      - 'shellcheck reported issue in this script: SC2006:.+'
+      - 'shellcheck reported issue in this script: SC2046:.+'
+      - 'shellcheck reported issue in this script: SC2086:.+'
+      - 'shellcheck reported issue in this script: SC2283:.+'
+
+  # PowerShell lint messages need to be ignored
+  .github/workflows/**/*msi*.{yml,yaml}:
+    ignore:
+      - 'shellcheck reported issue in this script: SC1001:.+'
+      - 'shellcheck reported issue in this script: SC1009:.+'
+      - 'shellcheck reported issue in this script: SC1012:.+'
+      - 'shellcheck reported issue in this script: SC1050:.+'
+      - 'shellcheck reported issue in this script: SC1070:.+'
+      - 'shellcheck reported issue in this script: SC1072:.+'
+      - 'shellcheck reported issue in this script: SC1073:.+'
+      - 'shellcheck reported issue in this script: SC1087:.+'
+      - 'shellcheck reported issue in this script: SC1133:.+'
+      - 'shellcheck reported issue in this script: SC2006:.+'
+      - 'shellcheck reported issue in this script: SC2046:.+'
+      - 'shellcheck reported issue in this script: SC2086:.+'
+      - 'shellcheck reported issue in this script: SC2283:.+'
+
+  # PowerShell lint messages need to be ignored
+  .github/workflows/chef-test.yml:
+    ignore:
+      - 'shellcheck reported issue in this script: SC1081:.+'
+      - 'shellcheck reported issue in this script: SC2086:.+'
+
+  # PowerShell lint messages need to be ignored
+
+  .github/workflows/puppet-test.yml:
+    ignore:
+      - 'shellcheck reported issue in this script: SC1050:.+'
+      - 'shellcheck reported issue in this script: SC1072:.+'
+      - 'shellcheck reported issue in this script: SC1073:.+'
 
   # PowerShell lint messages need to be ignored
   .github/workflows/vuln-scans.yml:
@@ -55,15 +73,3 @@ paths:
       - 'shellcheck reported issue in this script: SC1050:.+'
       - 'shellcheck reported issue in this script: SC1072:.+'
       - 'shellcheck reported issue in this script: SC1073:.+'
-
-  # Ignore PowerShell related issues
-  .github/workflows/puppet-test.yml:
-    ignore:
-      - 'shellcheck reported issue in this script: SC1050:.+'
-      - 'shellcheck reported issue in this script: SC1072:.+'
-      - 'shellcheck reported issue in this script: SC1073:.+'
-
-  # Ignore these notifications/errors for all workflows
-  .github/workflows/*.{yml,yaml}:
-    ignore:
-      - 'index access of array must be type of number but.*' # Caused by taking advantage of GitHub's automatic conversion of bools to integers in for array indexing

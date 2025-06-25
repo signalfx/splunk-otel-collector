@@ -6,7 +6,6 @@
     splunk_access_token: fake-token
     splunk_realm: fake-realm
     start_service: false
-    splunk_otel_collector_version: 0.126.0
   tasks:
     - name: "Include signalfx.splunk_otel_collector.collector role"
       include_role:

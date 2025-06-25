@@ -82,17 +82,17 @@ receivers:
   prometheus/internal:
     config:
       scrape_configs:
-        - job_name: "otel-collector"
-          scrape_interval: 10s
-          static_configs:
-            - targets: ["0.0.0.0:8888"]
-          metric_relabel_configs:
-            - source_labels: [__name__]
-              regex: "promhttp_metric_handler_errors.*"
-              action: drop
-            - source_labels: [__name__]
-              regex: "otelcol_processor_batch_.*"
-              action: drop
+      - job_name: 'otel-collector'
+        scrape_interval: 10s
+        static_configs:
+        - targets: ['0.0.0.0:8888']
+        metric_relabel_configs:
+          - source_labels: [ __name__ ]
+            regex: 'promhttp_metric_handler_errors.*'
+            action: drop
+          - source_labels: [ __name__ ]
+            regex: 'otelcol_processor_batch_.*'
+            action: drop
   signalfx:
     endpoint: 0.0.0.0:9943
   zipkin:
@@ -126,10 +126,10 @@ processors:
   # traces when it's not populated by instrumentation libraries.
   # If enabled, make sure to enable this processor in the pipeline below.
   #resource/add_environment:
-  #attributes:
-  #- action: insert
-  #value: staging/production/...
-  #key: deployment.environment
+    #attributes:
+      #- action: insert
+        #value: staging/production/...
+        #key: deployment.environment
 
 exporters:
   # Traces
@@ -178,9 +178,9 @@ service:
     traces:
       receivers: [jaeger, otlp, zipkin]
       processors:
-        - memory_limiter
-        - batch
-        - resourcedetection
+      - memory_limiter
+      - batch
+      - resourcedetection
       #- resource/add_environment
       exporters: [otlphttp, signalfx]
       # Use instead when sending to gateway
@@ -215,9 +215,9 @@ service:
     logs:
       receivers: [otlp]
       processors:
-        - memory_limiter
-        - batch
-        - resourcedetection
+      - memory_limiter
+      - batch
+      - resourcedetection
       #- resource/add_environment
       exporters: [splunk_hec/profiling]
       # Use instead when sending to gateway

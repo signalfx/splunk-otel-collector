@@ -42,12 +42,13 @@ receivers:
       # Aggregated system process count metrics
       processes:
       # System processes metrics, disabled by default
+      # Uncomment to gather metrics per process and enable process panel
       # process:
       #   metrics:
       #     process.cpu.utilization:
       #       enabled: true
       #     process.memory.utilization:
-      #       enabled: true      
+      #       enabled: true
   jaeger:
     protocols:
       grpc:
@@ -69,16 +70,16 @@ receivers:
   prometheus/internal:
     config:
       scrape_configs:
-        - job_name: 'otel-collector'
+        - job_name: "otel-collector"
           scrape_interval: 10s
           static_configs:
-            - targets: ['0.0.0.0:8888']
+            - targets: ["0.0.0.0:8888"]
           metric_relabel_configs:
-            - source_labels: [ __name__ ]
-              regex: 'promhttp_metric_handler_errors.*'
+            - source_labels: [__name__]
+              regex: "promhttp_metric_handler_errors.*"
               action: drop
-            - source_labels: [ __name__ ]
-              regex: 'otelcol_processor_batch_.*'
+            - source_labels: [__name__]
+              regex: "otelcol_processor_batch_.*"
               action: drop
   signalfx:
     endpoint: 0.0.0.0:9943
@@ -91,7 +92,7 @@ receivers:
 processors:
   batch:
     metadata_keys:
-      - X-SF-Token  
+      - X-SF-Token
   # Enabling the memory_limiter is strongly recommended for every pipeline.
   # Configuration is based on the amount of memory allocated to the collector.
   # For more information about memory limiter, see

@@ -16,7 +16,6 @@
 # One advanced configuration that may be required is TLS/mTLS settings
 # https://github.com/open-telemetry/opentelemetry-collector/blob/main/config/configtls/README.md
 receivers:
-
   #############################################################################
   # Traces + Metrics + Logs
   #############################################################################
@@ -126,12 +125,13 @@ receivers:
       # Aggregated system process count metrics
       processes:
       # System processes metrics, disabled by default
+      # Uncomment to gather metrics per process and enable process panel
       # process:
       #   metrics:
       #     process.cpu.utilization:
       #       enabled: true
       #     process.memory.utilization:
-      #       enabled: true      
+      #       enabled: true
 
   # Enables the prometheus receiver -- should only be used for local metric collection
   # This section is used to collect the OpenTelemetry Collector metrics
@@ -403,7 +403,6 @@ receivers:
 # Some processors require configuration (e.g. attributes)
 ###############################################################################
 processors:
-
   #############################################################################
   # Traces + Metrics + Logs
   #############################################################################
@@ -419,23 +418,23 @@ processors:
   # NOTE: These settings need to be change when using this processor
   resource:
     attributes:
-    - key: cloud.zone
-      value: "zone-1"
-      action: upsert
-    - key: k8s.cluster.name
-      from_attribute: k8s-cluster
-      action: insert
-    - key: redundant-attribute
-      action: delete
+      - key: cloud.zone
+        value: "zone-1"
+        action: upsert
+      - key: k8s.cluster.name
+        from_attribute: k8s-cluster
+        action: insert
+      - key: redundant-attribute
+        action: delete
 
   # Enables the resource detection processor with default settings
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/resourcedetectionprocessor
   # NOTE: This processor settings need to be change when using this processor
   #resourcedetection:
-    # # a list of resource detectors to run, valid options are: "env", "system",  "gcp", "ec2", "ecs", "elastic_beanstalk"
-    #detectors: [ <string> ]
-    # # determines if existing resource attributes should be overridden or preserved, defaults to true
-    #override: <bool>
+  # # a list of resource detectors to run, valid options are: "env", "system",  "gcp", "ec2", "ecs", "elastic_beanstalk"
+  #detectors: [ <string> ]
+  # # determines if existing resource attributes should be overridden or preserved, defaults to true
+  #override: <bool>
 
   # Detect if the collector is running on a cloud system. Overrides resource attributes set by receivers.
   # Detector order is important: the `system` detector goes last so it can't preclude cloud detectors from setting host/os info.
@@ -499,10 +498,10 @@ processors:
   # when it's not populated by instrumentation libraries.
   # If enabled, make sure to enable this processor in the pipeline below.
   #resource/add_environment:
-    #attributes:
-      #- action: insert
-        #value: staging/production/...
-        #key: deployment.environment
+  #attributes:
+  #- action: insert
+  #value: staging/production/...
+  #key: deployment.environment
 
   #############################################################################
   # Metrics
@@ -586,7 +585,6 @@ processors:
 # https://github.com/open-telemetry/opentelemetry-collector/blob/main/config/configtls/README.md
 ###############################################################################
 exporters:
-
   #############################################################################
   # Traces + Metrics + Logs
   #############################################################################
@@ -769,7 +767,6 @@ extensions:
 # NOTE: Be sure you understand how processors work
 ###############################################################################
 service:
-
   # Which extensions you want to enable
   extensions: [headers_setter, health_check, http_forwarder, zpages]
 
@@ -782,8 +779,8 @@ service:
     traces:
       receivers: [jaeger, otlp, zipkin]
       processors:
-      - memory_limiter
-      - batch
+        - memory_limiter
+        - batch
       #- resource/add_environment
       exporters: [otlphttp, signalfx]
     metrics:
@@ -799,6 +796,39 @@ service:
       processors: [memory_limiter, batch]
       exporters: [signalfx]
     logs:
-      receivers: [fluentforward, otlp, scripted_inputs/bandwidth, scripted_inputs/cpu, scripted_inputs/df, scripted_inputs/hardware, scripted_inputs/interfaces, scripted_inputs/iostat, scripted_inputs/lastlog, scripted_inputs/lsof, scripted_inputs/netstat, scripted_inputs/nfsiostat, scripted_inputs/openPorts, scripted_inputs/openPortsEnhanced, scripted_inputs/package, scripted_inputs/passwd, scripted_inputs/protocol, scripted_inputs/ps, scripted_inputs/rlog, scripted_inputs/selinuxChecker, scripted_inputs/service, scripted_inputs/sshdChecker, scripted_inputs/time, scripted_inputs/top, scripted_inputs/update, scripted_inputs/uptime, scripted_inputs/usersWithLoginPrivs, scripted_inputs/version, scripted_inputs/vmstat, scripted_inputs/vsftpdChecker, scripted_inputs/who]
+      receivers:
+        [
+          fluentforward,
+          otlp,
+          scripted_inputs/bandwidth,
+          scripted_inputs/cpu,
+          scripted_inputs/df,
+          scripted_inputs/hardware,
+          scripted_inputs/interfaces,
+          scripted_inputs/iostat,
+          scripted_inputs/lastlog,
+          scripted_inputs/lsof,
+          scripted_inputs/netstat,
+          scripted_inputs/nfsiostat,
+          scripted_inputs/openPorts,
+          scripted_inputs/openPortsEnhanced,
+          scripted_inputs/package,
+          scripted_inputs/passwd,
+          scripted_inputs/protocol,
+          scripted_inputs/ps,
+          scripted_inputs/rlog,
+          scripted_inputs/selinuxChecker,
+          scripted_inputs/service,
+          scripted_inputs/sshdChecker,
+          scripted_inputs/time,
+          scripted_inputs/top,
+          scripted_inputs/update,
+          scripted_inputs/uptime,
+          scripted_inputs/usersWithLoginPrivs,
+          scripted_inputs/version,
+          scripted_inputs/vmstat,
+          scripted_inputs/vsftpdChecker,
+          scripted_inputs/who,
+        ]
       processors: [memory_limiter, batch]
       exporters: [splunk_hec, splunk_hec/profiling]

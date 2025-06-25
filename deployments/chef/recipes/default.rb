@@ -41,6 +41,7 @@ if platform_family?('windows')
   end
 
   if node['splunk_otel_collector']['with_fluentd'].to_s.downcase == 'true'
+    Chef::Log.deprecation('Fluentd support has been deprecated and will be removed in a future release. Please refer to documentation on how to replace usage: https://github.com/signalfx/splunk-otel-collector/blob/main/docs/deprecations/fluentd-support.md')
     include_recipe 'splunk_otel_collector::fluentd_win_install'
   end
 elsif platform_family?('debian', 'rhel', 'amazon', 'suse')

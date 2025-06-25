@@ -218,6 +218,8 @@ class splunk_otel_collector (
   }
 
   if $install_fluentd {
+    deprecation('with_fluentd', 'Fluentd support has been deprecated and will be removed in a future release. Please refer to documentation on how to replace usage: https://github.com/signalfx/splunk-otel-collector/blob/main/docs/deprecations/fluentd-support.md')
+
     case $facts['os']['family'] {
       'debian': {
         package { ['build-essential', 'libcap-ng0', 'libcap-ng-dev', 'pkg-config']:

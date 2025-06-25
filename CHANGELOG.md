@@ -21,6 +21,8 @@ and the [opentelemetry-collector-contrib v0.128.0](https://github.com/open-telem
 
 ### 🚩 Deprecations 🚩
 
+- (Splunk) `deployments`: Fluentd support has been deprecated in all mass deployments and will be removed in a future release.
+  Please refer to [deprecation documentation](./docs/deprecations/fluentd-support.md) for more information ([#6339](https://github.com/signalfx/splunk-otel-collector/pull/6339))
 - (Splunk) `Windows installer script`: Fluentd support has been deprecated and will be removed in a future release. ([#6362](https://github.com/signalfx/splunk-otel-collector/pull/6362))
   Please refer to [deprecation documentation](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/deprecations/fluentd-support.md) for more information.
 - (Contrib) `receiver/hostmetrics`: Mark `hostmetrics.process.onWindowsUseNewGetProcesses` feature gate as stable ([#32947](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/32947)

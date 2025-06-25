@@ -2,6 +2,77 @@
 
 ## Unreleased
 
+## v0.128.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.128.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.128.0)
+and the [opentelemetry-collector-contrib v0.128.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.128.0) releases where appropriate.
+
+### 🛑 Breaking changes 🛑
+
+- (Core) `service/telemetry`: Mark "telemetry.disableAddressFieldForInternalTelemetry" as stable ([#13152](https://github.com/open-telemetry/opentelemetry-collector/pull/13152))
+- (Contrib) `pkg`: Remove the fields from category FrontDoorWebApplicationFirewallLog from the body log record and place them as log record attributes. ([#39993](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39993))
+- (Contrib) `countconnector`: Upgrade profiles proto to 1.7.0 ([#40285](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40285))
+- (Contrib) `pkg/ottl`: Upgrade profiles proto to 1.7.0 ([#40285](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40285))
+- (Contrib) `pkg/ottl`: Remove access to the profile lookup tables ([#40227](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40227))
+  the mapping_table, location_table, function_table, attribute_table, attribute_units, link_table, string_stable have been moved to a root dictionary attribute and are not part of profile anymore.
+- (Contrib) `sqlserverreceiver`: Rename flags for enabling top query collection and query sample collection. ([#40416](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40416))
+  Renamed `top_query_collection.enabled` to `events."db.server.top_query".enabled` in top query collection.
+  Renamed `query_sample_collection.enabled` to `events."db.server.query_sample".enabled` in query sample collection.
+
+### 🚩 Deprecations 🚩
+
+- (Contrib) `receiver/hostmetrics`: Mark `hostmetrics.process.onWindowsUseNewGetProcesses` feature gate as stable ([#32947](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/32947)
+
+### 💡 Enhancements 💡
+
+- (Core) `confighttp`: Update the HTTP server span naming to use the HTTP method and route pattern instead of the path. ([#12468](https://github.com/open-telemetry/opentelemetry-collector/pull/12468))
+  The HTTP server span name will now be formatted as `<http.request.method> <http.route>`.
+  If a route pattern is not available, it will fall back to `<http.request.method>`.
+- (Core) `service`: Use configured loggers to log errors as soon as it is available ([#13081](https://github.com/open-telemetry/opentelemetry-collector/pull/13081))
+- (Core) `service`: Remove stabilized `featuregate` useOtelWithSDKConfigurationForInternalTelemetry ([#13152](https://github.com/open-telemetry/opentelemetry-collector/pull/13152))
+- (Contrib) `resourcedetectionprocessor`: Add the option to retrieve resource attributes from the K8s API server and EC2 api when the IMDS service is not available. ([#39503](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39503))
+- (Contrib) `windowseventlogreceiver`: Add a boolean option to include the `log.record.original` attribute of each event record. ([#40365](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40365))
+- (Contrib) `resourcedetectionprocessor`: Add additional OS properties to resource detection: `os.build.id` and `os.name` ([#39941](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39941))
+- (Contrib) `receivercreator`: Add an option to set default annotations to override the discovery logic ([#37436](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37436))
+- (Contrib) `kafkaexporter`: Add an Alpha feature gate `exporter.kafkaexporter.UseFranzGoClient` to use franz-go in the Kafka exporter for better performance. ([#40364](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40364))
+  This change adds an experimental opt-in support to use the franz-go client in the Kafka exporter.
+  The franz-go client is a high-performance Kafka client that can improve the performance of the Kafka exporter.
+  The default client remains sarama, which is used by the Kafka receiver and other components.
+  Enable the franz-go client by setting the `exporter.kafkaexporter.UseFranzGo` feature gate.
+- (Contrib) `filelogreceiver`: The fingerprint of gzip compressed files is created by decompressing and reading the first `fingerprint_size` bytes. ([#37772](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37772))
+  This feature can be enabled via the following feature gate `--feature-gates=filelog.decompressFingerprint`. This can cause existing gzip files to be re-ingested because of changes in how fingerprints are computed.
+- (Contrib) `sqlserverreceiver`: add one attribute for performance_counter.object_name to deduplicate data ([#40359](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40359))
+- (Contrib) `processor/k8sattributes`: Support extracting labels and annotations from k8s Deployments ([#37957](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37957))
+- (Contrib) `receiver/k8s_cluster`: Add onDelete handler to emit the experimental entity delete events ([#40278](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40278))
+- (Contrib) `processor/resourcedetection`: add `host.interface` resource attribute to `system` detector ([#39419](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39419))
+- (Contrib) `pkg/ottl`: Add `event_name` path to the OTTL Log context ([#40230](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40230))
+- (Contrib) `pkg/ottl`: Add metric.metadata as a valid OTTL path ([#40214](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40214))
+- (Contrib) `pkg/ottl`: Add ability to compare slices/pcommon.Slice in OTTL Boolean Expressions ([#40370](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40370))
+- (Contrib) `postgresqlreceiver`: add the ability to obtain query plan for top n queries ([#39995](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39995))
+- (Contrib) `splunkenterprisereceiver`: Add search artifact size metrics to the existing search dispatch collection, which uses the /services/server/status/dispatch-artifacts API. ([#40383](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40383))
+- (Contrib) `pkg/ottl`: Improve time parsing error messages by including the ctime directive instead of the go time layout ([#35176](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/35176))
+
+### 🧰 Bug fixes 🧰
+
+- (Core) `telemetry`: Add generated resource attributes to the printed log messages. ([#13110](https://github.com/open-telemetry/opentelemetry-collector/pull/13110))
+  If service.name, service.version, or service.instance.id are not specified in the config, they will be generated automatically.
+  This change ensures that these attributes are also included in the printed log messages.
+- (Core) `confmap`: Do not panic on assigning nil maps to non-nil maps ([#13117](https://github.com/open-telemetry/opentelemetry-collector/pull/13117))
+- (Core) `pdata`: Fix event_name skipped when unmarshalling LogRecord from JSON ([#13127](https://github.com/open-telemetry/opentelemetry-collector/pull/13127))
+- (Contrib) `kafkareceiver`: enforce a backoff mechanism on non-permanent errors, such as when the queue is full ([#39580](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39580))
+- (Contrib) `kafkaexporter`: Fix Snappy compression codec support for the Kafka exporter ([#40288](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40288))
+- (Contrib) `kafkareceiver`: Don't restart the Kafka consumer on failed errors when message marking is enabled for them. ([#39909](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39909))
+  The Kafka consumer will now only be restarted due to failed messages if
+  both `message_marking::after` is true, and `message_marking::on_error` is false.
+  In this case the message will not be marked as consumed, and the consumer will
+  restart with an error.
+- (Contrib) `signalfxexporter`: Fix invalid and missing host metadata when the collector is deployed in a containerized environment and | the host root filesystem is mounted to non-standard location. ([#40218](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40218))
+  Use the newly introduced `root_path` configuration option to specify the root path of the host filesystem.| This is required when the host root filesystem is mounted to a non-standard location.
+- (Contrib) `sqlserverreceiver`: Fix incorrect attribute name for database system name in the top query event collection. ([#40361](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40361))
+  Rename `db.server.name` to `db.system.name` in SQL Server receiver to align with semantic conventions.
+- (Contrib) `sqlserverreceiver`: Fix scraping failure on SQL obfuscation on top query collection and query sample collection. ([#40347](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40347))
+  Collector will now report original SQL statement if the obfuscation is failed.
+
 ## v0.127.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.127.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.127.0)

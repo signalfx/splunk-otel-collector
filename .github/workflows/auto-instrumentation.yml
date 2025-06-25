@@ -80,7 +80,7 @@ jobs:
           exclude='{"ARCH": "arm64", "TESTCASE": "dotnet"}'
           matrix="{\"DISTRO\": [${distro%,}], \"ARCH\": [${arch}], \"TESTCASE\": [${testcase}], \"exclude\": [${exclude}]}"
           echo "$matrix" | jq
-          echo "matrix=${matrix}" >> $GITHUB_OUTPUT
+          echo "matrix=${matrix}" >> "$GITHUB_OUTPUT"
     outputs:
       matrix: ${{ steps.get-matrix.outputs.matrix }}
 
@@ -99,7 +99,7 @@ jobs:
         run: |
           for pkg in "deb" "rpm"; do
             if [[ -f "packaging/tests/instrumentation/images/${pkg}/Dockerfile.${{ matrix.DISTRO }}" ]]; then
-              echo "SYS_PACKAGE=${pkg}" >> $GITHUB_ENV
+              echo "SYS_PACKAGE=${pkg}" >> "$GITHUB_ENV"
               exit 0
             fi
           done

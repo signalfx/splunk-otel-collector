@@ -31,6 +31,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
+	"go.opentelemetry.io/collector/config/configgrpc"
+	"go.opentelemetry.io/collector/config/confignet"
+	"go.opentelemetry.io/collector/config/configoptional"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"go.opentelemetry.io/collector/receiver/receivertest"
@@ -50,8 +53,13 @@ func TestEnvoyK8sObserver(t *testing.T) {
 	f := otlpreceiver.NewFactory()
 	port := testutils.GetAvailablePort(t)
 	otlpReceiverConfig := f.CreateDefaultConfig().(*otlpreceiver.Config)
-	otlpReceiverConfig.GRPC.NetAddr.Endpoint = fmt.Sprintf("0.0.0.0:%d", port)
-	otlpReceiverConfig.HTTP = nil
+	otlpReceiverConfig.GRPC = configoptional.Some(configgrpc.ServerConfig{
+		NetAddr: confignet.AddrConfig{
+			Endpoint:  fmt.Sprintf("0.0.0.0:%d", port),
+			Transport: "tcp",
+		},
+	})
+	otlpReceiverConfig.HTTP = configoptional.None[otlpreceiver.HTTPConfig]()
 	sink := &consumertest.MetricsSink{}
 	receiver, err := f.CreateMetrics(context.Background(), receivertest.NewNopSettings(f.Type()), otlpReceiverConfig, sink)
 	require.NoError(t, err)

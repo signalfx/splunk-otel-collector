@@ -33,6 +33,7 @@ jobs:
       - name: Lint
         run: |
           make install-tools
+          shopt -s globstar nullglob
           for gomod in examples/**/go.mod; do
             dir=$(dirname "$gomod")
             pushd "$dir" >/dev/null

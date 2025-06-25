@@ -4,7 +4,7 @@
 
 ### 🚩 Deprecations 🚩
 
-- (Splunk) `Windows installer script`: Fluentd support has been deprecated and will be removed in a future release. ([#](https://github.com/signalfx/splunk-otel-collector/pull/))
+- (Splunk) `Windows installer script`: Fluentd support has been deprecated and will be removed in a future release. ([#6362](https://github.com/signalfx/splunk-otel-collector/pull/6362))
   Please refer to [deprecation documentation](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/deprecations/fluentd-support.md) for more information.
 
 ## v0.127.0

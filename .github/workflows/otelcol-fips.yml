@@ -115,7 +115,7 @@ jobs:
       - name: Ensure the collector container can run with all included configs
         run: |
           for config in cmd/otelcol/fips/config/*.yaml; do
-            docker run -d --name otelcol-fips -e SPLUNK_ACCESS_TOKEN=fake-token -e SPLUNK_REALM=fake-realm -e SPLUNK_CONFIG="/etc/otel/collector/$(basename "$config") otelcol-fips:${{ matrix.ARCH }}"
+            docker run -d --name otelcol-fips -e SPLUNK_ACCESS_TOKEN=fake-token -e SPLUNK_REALM=fake-realm -e SPLUNK_CONFIG="/etc/otel/collector/$(basename "$config")" otelcol-fips:${{ matrix.ARCH }}
             sleep 30
             docker logs otelcol-fips
             if [ -z "$( docker ps --filter=status=running --filter=name=otelcol-fips -q )" ]; then

@@ -84,23 +84,23 @@ jobs:
         id: changed-files
         run: |
           if [ "${{ github.event_name }}" == "pull_request" ]; then
-            echo "files=$(git diff --name-only origin/${{ github.base_ref }} ${{ github.sha }} | tr '\n' ' ')" >> $GITHUB_OUTPUT
+            echo "files=$(git diff --name-only origin/${{ github.base_ref }} ${{ github.sha }} | tr '\n' ' ')" >> "$GITHUB_OUTPUT"
           else
-            echo "files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | tr '\n' ' ')" >> $GITHUB_OUTPUT
+            echo "files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | tr '\n' ' ')" >> "$GITHUB_OUTPUT"
           fi
       - name: Filter paths
         id: filter
         run: |
           files="${{ steps.changed-files.outputs.files }}"
           if echo "$files" | grep -qE "packaging/technical-addon"; then
-            echo "ta_packaging_change=true" >> $GITHUB_OUTPUT
+            echo "ta_packaging_change=true" >> "$GITHUB_OUTPUT"
           else
-            echo "ta_packaging_change=false" >> $GITHUB_OUTPUT
+            echo "ta_packaging_change=false" >> "$GITHUB_OUTPUT"
           fi
           if echo "$files" | grep -qE ".github/workflows/splunk-ta-otel.yml"; then
-            echo "ta_workflow_change=true" >> $GITHUB_OUTPUT
+            echo "ta_workflow_change=true" >> "$GITHUB_OUTPUT"
           else
-            echo "ta_workflow_change=false" >> $GITHUB_OUTPUT
+            echo "ta_workflow_change=false" >> "$GITHUB_OUTPUT"
           fi
 
   distribute-ta:

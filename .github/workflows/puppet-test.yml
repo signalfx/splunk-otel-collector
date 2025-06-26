@@ -74,7 +74,7 @@ jobs:
           with_instrumentation='"true","false"'
           matrix="{\"DISTRO\": [${distro%,}], \"PUPPET_RELEASE\": [${puppet_release}], \"WITH_INSTRUMENTATION\": [${with_instrumentation}]}"
           echo "$matrix" | jq
-          echo "matrix=${matrix}" >> $GITHUB_OUTPUT
+          echo "matrix=${matrix}" >> "$GITHUB_OUTPUT"
     outputs:
       matrix: ${{ steps.get-matrix.outputs.matrix }}
 

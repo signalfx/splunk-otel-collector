@@ -102,7 +102,7 @@ jobs:
         id: read-app-conf
         run: |
           version=$(grep -oP '^version = \K.*' packaging/dotnet-instr-deployer-add-on/assets/default/app.conf)
-          echo "version=$version" >> $GITHUB_OUTPUT
+          echo "version=$version" >> "$GITHUB_OUTPUT"
 
       - name: Ensure version is read from app.conf
         if: steps.read-app-conf.outputs.version == ''

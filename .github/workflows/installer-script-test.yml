@@ -30,7 +30,7 @@ jobs:
         id: get-matrix
         run: |
           # create test matrix for distro images and archs
-          dockerfiles=$(ls packaging/tests/images/deb/Dockerfile.* packaging/tests/images/rpm/Dockerfile.* | cut -d '.' -f2- | sort -u)
+          dockerfiles=$(find packaging/tests/images/deb/Dockerfile.* packaging/tests/images/rpm/Dockerfile.* | cut -d '.' -f2- | sort -u)
           if [ -z "$dockerfiles" ]; then
             echo "Failed to get dockerfiles from packaging/tests/images!" >&2
             exit 1
@@ -40,7 +40,7 @@ jobs:
           instrumentation='"none","preload","systemd"'
           matrix="{\"DISTRO\": [${distro%,}], \"ARCH\": [${arch}], \"INSTRUMENTATION\": [${instrumentation}]}"
           echo "$matrix" | jq
-          echo "matrix=${matrix}" >> $GITHUB_OUTPUT
+          echo "matrix=${matrix}" >> "$GITHUB_OUTPUT"
     outputs:
       matrix: ${{ steps.get-matrix.outputs.matrix }}
 

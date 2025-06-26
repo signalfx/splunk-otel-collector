@@ -31,7 +31,7 @@ jobs:
             echo "Failed to get version from deployments/chef/metadata.rb"
             exit 1
           fi
-          echo "version=${version}" >> $GITHUB_OUTPUT
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
 
       - name: Push new release tag if it doesn't exist
         uses: actions/github-script@v7

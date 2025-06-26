@@ -61,6 +61,7 @@
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -hec_token "HECTOKEN"
 .PARAMETER with_fluentd
+    DEPRECATED: Fluentd support has been deprecated and will be removed in a future release. Please refer to documentation for more information: https://github.com/signalfx/splunk-otel-collector/blob/main/docs/deprecations/fluentd-support.md
     (OPTIONAL) Whether to install and configure fluentd to forward log events to the collector (default: $false)
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -with_fluentd $true
@@ -683,6 +684,7 @@ following PowerShell commands:
 echo "$message"
 
 if ($with_fluentd) {
+    Write-Warning '[DEPRECATED] Fluentd support has been deprecated and will be removed in a future release. Please refer to documentation for more information: https://github.com/signalfx/splunk-otel-collector/blob/main/docs/deprecations/fluentd-support.md'
     $default_fluentd_config = "$installation_path\fluentd\td-agent.conf"
     $default_confd_dir = "$installation_path\fluentd\conf.d"
 

@@ -23,6 +23,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/splunk/splunk-technical-addon/internal/testaddon"
+
 	"github.com/splunk/splunk-technical-addon/internal/packaging"
 	"github.com/splunk/splunk-technical-addon/internal/testcommon"
 	"github.com/stretchr/testify/assert"
@@ -81,7 +83,7 @@ func TestRunner(t *testing.T) {
 	require.NotEmpty(t, buildDir)
 	err := packaging.PackageAddon(filepath.Join(buildDir, "Sample_Addon"), addonPath)
 	require.NoError(t, err)
-	tc := testcommon.StartSplunk(t, testcommon.SplunkStartOpts{
+	tc := testaddon.StartSplunk(t, testaddon.SplunkStartOpts{
 		AddonPaths:   []string{addonPath},
 		WaitStrategy: wait.ForExec([]string{"sudo", "stat", "/opt/splunk/var/log/splunk/Sample_Addon.log"}).WithStartupTimeout(time.Minute * 4),
 	})

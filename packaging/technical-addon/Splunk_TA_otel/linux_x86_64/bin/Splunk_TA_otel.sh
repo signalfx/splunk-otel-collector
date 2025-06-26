@@ -4,16 +4,16 @@
 splunk_TA_otel_num_args="$#"
 splunk_TA_otel_args=("$@")
 # script location and splunk app location
-splunk_TA_otel_script_file=$(realpath "$0")
+splunk_TA_otel_script_file=$(readlink -f "$0")
 splunk_TA_otel_script_directory=$(dirname "${splunk_TA_otel_script_file}")
 if [ -z "$SPLUNK_OTEL_TA_PLATFORM_HOME" ]; then
-    SPLUNK_OTEL_TA_PLATFORM_HOME="$(realpath "$splunk_TA_otel_script_directory/../")"
+    SPLUNK_OTEL_TA_PLATFORM_HOME="$(readlink -f "$splunk_TA_otel_script_directory/../")"
 fi
 if [ -z "$SPLUNK_OTEL_TA_HOME" ]; then
-    SPLUNK_OTEL_TA_HOME="$(realpath "$SPLUNK_OTEL_TA_PLATFORM_HOME/../")"
+    SPLUNK_OTEL_TA_HOME="$(readlink -f "$SPLUNK_OTEL_TA_PLATFORM_HOME/../")"
 fi
 if [ -z "$SPLUNK_HOME" ]; then
-    SPLUNK_HOME="$(realpath "$SPLUNK_OTEL_TA_HOME/../../../")"
+    SPLUNK_HOME="$(readlink -f "$SPLUNK_OTEL_TA_HOME/../../../")"
 fi
 
 SPLUNK_OTEL_FLAGS=""
@@ -523,7 +523,7 @@ extract_bundle() {
         splunk_TA_otel_log_msg "INFO" "Extracting agent bundle to $SPLUNK_BUNDLE_DIR"
     fi
     SMART_AGENT_BUNDLE="agent-bundle_linux_amd64.tar.gz"
-    BUNDLE_PARENT="$(realpath --canonicalize-missing "$SPLUNK_BUNDLE_DIR/../")"
+    BUNDLE_PARENT="$(readlink -f "$SPLUNK_BUNDLE_DIR/../")"
     splunk_TA_otel_log_msg "DEBUG" "will cd to $BUNDLE_PARENT"
     tar -C "$BUNDLE_PARENT" -xzf "$splunk_TA_otel_script_directory/$SMART_AGENT_BUNDLE" || splunk_TA_otel_log_error "failed to extract $splunk_TA_otel_script_directory/$SMART_AGENT_BUNDLE to $SPLUNK_BUNDLE_DIR"
     splunk_TA_otel_log_msg "INFO" "Done extracting agent bundle to $SPLUNK_BUNDLE_DIR"

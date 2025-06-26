@@ -32,114 +32,62 @@ env:
   GO_VERSION: 1.23.10
 
 jobs:
-  setup-environment:
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
-
-      - name: Installing dependency
-        run: |
-          make install-tools
-
   cross-compile:
-    runs-on: ubuntu-24.04
-    needs: [ setup-environment ]
     strategy:
       matrix:
-        SYS_BINARIES: [ "binaries-linux_amd64", "binaries-linux_arm64", "binaries-linux_ppc64le" ]
-    steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
-
-      - name: Build Collector
-        run: |
-          make ${{ matrix.SYS_BINARIES }}
-
-      - name: Uploading binaries
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.SYS_BINARIES }}
-          path: |
-            ./bin/*
+        SYS_BINARIES: [ "binaries-linux_amd64", "binaries-linux_arm64", "binaries-linux_ppc64le", "binaries-windows_amd64"]
+    uses: ./.github/workflows/compile.yml
+    with:
+      SYS_BINARY: ${{ matrix.SYS_BINARIES }}
 
   agent-bundle-linux:
-    runs-on: ${{ fromJSON('["ubuntu-24.04", "otel-arm64"]')[matrix.ARCH == 'arm64'] }}
     strategy:
       matrix:
         ARCH: [ "amd64", "arm64" ]
       fail-fast: false
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/cache@v4
-        id: bundle-cache
-        with:
-          path: .cache/buildx/agent-bundle-${{ matrix.ARCH }}
-          key: agent-bundle-buildx-${{ matrix.ARCH }}-${{ hashFiles('packaging/bundle/**') }}
-          restore-keys: |
-            agent-bundle-buildx-${{ matrix.ARCH }}-
-
-      - run: make -C packaging/bundle agent-bundle-linux ARCH=${{ matrix.ARCH }}
-        env:
-          BUNDLE_CACHE_HIT: "${{ steps.bundle-cache.outputs.cache-hit }}"
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: agent-bundle-linux-${{ matrix.ARCH }}
-          path: ./dist/agent-bundle_linux_${{ matrix.ARCH }}.tar.gz
+    uses: ./.github/workflows/agent-bundle-linux.yml
+    with:
+      ARCH: ${{ matrix.ARCH }}
 
   build-package:
-    runs-on: ubuntu-24.04
     needs: [ cross-compile, agent-bundle-linux ]
     strategy:
       matrix:
         SYS_PACKAGE: [ "deb", "rpm", "tar" ]
         ARCH: [ "amd64", "arm64" ]
       fail-fast: false
-    steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+    uses: ./.github/workflows/build-package.yml
+    with:
+      SYS_PACKAGE: ${{ matrix.SYS_PACKAGE }}
+      ARCH: ${{ matrix.ARCH }}
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
+  agent-bundle-windows:
+    needs: lint
+    strategy:
+      matrix:
+        OS: [ "windows-2025" ]
+    uses: ./.github/workflows/agent-bundle-windows.yml
+    with:
+      OS: ${{ matrix.OS }}
+      PIP_CACHE_DIR: ${{ github.workspace }}/.cache/pip
 
-      - name: Downloading binaries-linux_${{ matrix.ARCH }}
-        uses: actions/download-artifact@v4
-        with:
-          name: binaries-linux_${{ matrix.ARCH }}
-          path: ./bin
+  msi-custom-actions:
+    needs: lint
+    strategy:
+      matrix:
+        OS: [ "windows-2025" ]
+    uses: ./.github/workflows/msi-custom-actions.yml
+    with:
+      OS: ${{ matrix.OS }}
 
-      - uses: actions/download-artifact@v4
-        with:
-          name: agent-bundle-linux-${{ matrix.ARCH }}
-          path: ./dist
-
-      - name: Build ${{ matrix.SYS_PACKAGE }} ${{ matrix.ARCH }} package
-        run: make ${{ matrix.SYS_PACKAGE }}-package SKIP_COMPILE=true SKIP_BUNDLE=true VERSION="" ARCH="${{ matrix.ARCH }}"
-
-      - name: Uploading ${{ matrix.SYS_PACKAGE }} ${{ matrix.ARCH }} package artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.SYS_PACKAGE }}-${{ matrix.ARCH }}-package
-          path: ./dist/splunk-otel-collector*
+  msi-build:
+    needs: [cross-compile, agent-bundle-windows, msi-custom-actions]
+    strategy:
+      matrix:
+        OS: [ "windows-2025" ]
+    uses: ./.github/workflows/msi-build.yml
+    with:
+      OS: ${{ matrix.OS }}
 
   lint:
     name: Lint
@@ -202,7 +150,7 @@ jobs:
             molecule-plugins[docker]==23.5.0
             docker==7.0.0
             requests<2.32.0
-            urllib3<2
+            urllib3<3
 
       - name: Set up Python 3.
         uses: actions/setup-python@v5
@@ -217,7 +165,7 @@ jobs:
           # workaround for https://github.com/yaml/pyyaml/issues/724
           pip3 install 'wheel==0.40.0'
           pip3 install 'Cython<3.0' 'PyYaml~=5.0' --no-build-isolation
-          pip3 install --use-pep517 -r ${GITHUB_WORKSPACE}/requirements.txt
+          pip3 install --use-pep517 -r "${GITHUB_WORKSPACE}/requirements.txt"
 
       - name: Run Molecule tests.
         run: molecule --debug -v --base-config ./molecule/config/docker.yml test --all
@@ -228,7 +176,7 @@ jobs:
 
   windows-test:
     name: Windows Test
-    needs: lint
+    needs: [lint, msi-build]
     runs-on: ubuntu-24.04
     defaults:
       run:
@@ -250,12 +198,21 @@ jobs:
           - default_install_remote_version
           - custom_vars
           - with_instrumentation
+          - custom_vars_install_old_version
     steps:
       - name: Free up disk space for vagrant box
         uses: jlumbroso/free-disk-space@v1.3.1
 
       - name: Check out the codebase.
         uses: actions/checkout@v4
+
+      - name: Make tmp directory for msi build artifact
+        run: mkdir -p /tmp/msi-build
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: msi-build-windows-2025
+          path: /tmp/msi-build
 
       - name: Install vagrant and virtualbox
         run: |
@@ -283,16 +240,16 @@ jobs:
           cache-dependency-path: "${{ github.workspace }}/requirements.txt"
 
       - name: Install test dependencies.
-        run: pip3 install --use-pep517 -r ${GITHUB_WORKSPACE}/requirements.txt
+        run: pip3 install --use-pep517 -r "${GITHUB_WORKSPACE}/requirements.txt"
 
       - name: Download vagrant box
         run: |
           box=$( yq ".platforms[] | select(.name == \"${{ matrix.distro }}\") | .box" ./molecule/config/windows.yml )
           box_version=$( yq ".platforms[] | select(.name == \"${{ matrix.distro }}\") | .box_version" ./molecule/config/windows.yml )
           eval "box_version=${box_version}"
-          json=$( wget -nv -O- https://vagrantcloud.com/api/v2/vagrant/${box} )
+          json=$( wget -nv -O- "https://vagrantcloud.com/api/v2/vagrant/${box}" )
           url=$( echo "$json" | jq -r ".versions[] | select(.version == \"${box_version}\") | .providers[] | select(.name == \"virtualbox\") | .url" )
-          wget -nv -O /tmp/vagrant.box $url
+          wget -nv -O /tmp/vagrant.box "$url"
 
       - name: Clean VirtualBox cache
         run: |

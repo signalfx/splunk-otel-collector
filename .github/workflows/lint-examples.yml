@@ -33,9 +33,10 @@ jobs:
       - name: Lint
         run: |
           make install-tools
-          for gomod in $(find examples -name "go.mod"); do
-            dir=$(dirname $gomod)
-            pushd $dir >/dev/null
+          shopt -s globstar nullglob
+          for gomod in examples/**/go.mod; do
+            dir=$(dirname "$gomod")
+            pushd "$dir" >/dev/null
             echo "Running 'make lint' in $dir ..."
             make lint
             popd >/dev/null

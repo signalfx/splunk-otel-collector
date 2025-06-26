@@ -146,6 +146,8 @@ exporters:
   # Entities (applicable only if discovery mode is enabled)
   otlphttp/entities:
     logs_endpoint: "${SPLUNK_INGEST_URL}/v3/event"
+    # Use instead when sending to gateway
+    # endpoint: http://${SPLUNK_GATEWAY_URL}:4318
     headers:
       "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
     auth:

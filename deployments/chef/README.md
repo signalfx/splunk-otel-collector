@@ -154,6 +154,9 @@ required `splunk_access_token` attribute and some optional attributes:
 
 ### Fluentd
 
+> **_NOTE:_**  Fluentd support has been deprecated and will be removed in a future release.
+> Please refer to [deprecation documentation](../../docs/deprecations/fluentd-support.md) for more information.
+
 - `with_fluentd`: Whether to install/manage Fluentd and dependencies for log
   collection. On Linux, the dependencies include [capng_c](
   https://github.com/fluent-plugins-nursery/capng_c) for enabling

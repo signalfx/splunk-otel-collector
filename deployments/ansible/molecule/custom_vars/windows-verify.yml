@@ -95,3 +95,17 @@
       assert:
         that: (item.key + '=' + (item.value | string)) in collector_env.value
       loop: "{{ collector_reg_values | dict2items }}"
+
+    - name: Get splunk-otel-collector service ImagePath
+      ansible.windows.win_reg_stat:
+        path: HKLM:\\SYSTEM\\CurrentControlSet\\Services\\splunk-otel-collector
+        name: ImagePath
+      register: collector_imagepath
+
+    - name: Assert service ImagePath ends with splunk_otel_collector_command_line_args
+      assert:
+        that:
+          - collector_imagepath.value.endswith(splunk_otel_collector_command_line_args)
+      when:
+        - splunk_otel_collector_command_line_args is defined
+        - splunk_otel_collector_command_line_args != ''

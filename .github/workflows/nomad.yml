@@ -47,7 +47,7 @@ jobs:
 
       - name: Install Nomad Service.
         run: |
-          sudo echo "
+          echo "
           [Unit]
           Description=Nomad
           Documentation=https://www.nomadproject.io/docs/
@@ -69,14 +69,14 @@ jobs:
 
           [Install]
           WantedBy=multi-user.target
-          " >> nomad.service
+          " | sudo tee -a nomad.service
           
           sudo mv nomad.service /etc/systemd/system/nomad.service
           sudo systemctl enable nomad
 
       - name: Install Consul Service.
         run: |
-          sudo echo "
+          echo "
           [Unit]
           Description=Consul
           Documentation=https://www.consul.io/docs
@@ -84,7 +84,7 @@ jobs:
           After=network-online.target
 
           [Service]
-          Environment="HOME=/tmp"
+          Environment=\"HOME=/tmp\"
           ExecReload=/bin/kill -HUP $MAINPID
           ExecStart=/usr/bin/consul agent -dev
           KillMode=process
@@ -99,7 +99,7 @@ jobs:
 
           [Install]
           WantedBy=multi-user.target
-          " >> consul.service
+          " | sudo tee -a consul.service
           sudo mv consul.service /etc/systemd/system/consul.service
           sudo systemctl enable consul
       - name: Start Nomad and Consul
@@ -109,16 +109,16 @@ jobs:
           sudo systemctl start nomad
           sudo systemctl status nomad
           a=0
-          while [ "$a" -lt 10 ];
+          while [ $a -lt 10 ];
           do
-            if [ $(sudo systemctl is-active consul.service) == "active" -a $(sudo systemctl is-active nomad.service) == "active" ];
+            if [ "$(sudo systemctl is-active consul.service)" == "active" ] && [ "$(sudo systemctl is-active nomad.service)" == "active" ];
             then 
               echo "Consul and nomad services are running.";
               break;
             else 
               sleep 10;
             fi
-            a=`expr $a + 1`
+            ((a++))
           done
           if [ "$a" -eq 10 ];
           then

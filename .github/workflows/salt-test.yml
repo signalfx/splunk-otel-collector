@@ -62,7 +62,7 @@ jobs:
           config="\"default\", \"custom\""
           matrix="{\"DISTRO\": [${distro%,}], \"CONFIG\": [${config}]}"
           echo "$matrix" | jq
-          echo "matrix=${matrix}" >> $GITHUB_OUTPUT
+          echo "matrix=${matrix}" >> "$GITHUB_OUTPUT"
     outputs:
       matrix: ${{ steps.get-matrix.outputs.matrix }}
 

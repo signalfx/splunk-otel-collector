@@ -212,9 +212,9 @@ jobs:
         id: snyk-token-check
         run: |
           if [ -n "${{ secrets.SNYK_TOKEN }}" ]; then
-            echo "defined=true" >> $GITHUB_OUTPUT
+            echo "defined=true" >> "$GITHUB_OUTPUT"
           else
-            echo "defined=false" >> $GITHUB_OUTPUT
+            echo "defined=false" >> "$GITHUB_OUTPUT"
             echo "ERROR: The Snyk token is not available. The token is not available on PRs triggered from forked repositories."
             exit 1
           fi
@@ -328,7 +328,7 @@ jobs:
           category=$(for p in $(echo -e "$packages"); do echo "\"$p\","; done)
           matrix=$(echo "{\"category\": [${category%,}]}" | tr -d '\n')
           echo "$matrix" | jq
-          echo "matrix=${matrix}" >> $GITHUB_OUTPUT
+          echo "matrix=${matrix}" >> "$GITHUB_OUTPUT"
 
   govulncheck-upload:
     runs-on: ubuntu-24.04

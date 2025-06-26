@@ -165,7 +165,7 @@ jobs:
           # workaround for https://github.com/yaml/pyyaml/issues/724
           pip3 install 'wheel==0.40.0'
           pip3 install 'Cython<3.0' 'PyYaml~=5.0' --no-build-isolation
-          pip3 install --use-pep517 -r ${GITHUB_WORKSPACE}/requirements.txt
+          pip3 install --use-pep517 -r "${GITHUB_WORKSPACE}/requirements.txt"
 
       - name: Run Molecule tests.
         run: molecule --debug -v --base-config ./molecule/config/docker.yml test --all
@@ -240,16 +240,16 @@ jobs:
           cache-dependency-path: "${{ github.workspace }}/requirements.txt"
 
       - name: Install test dependencies.
-        run: pip3 install --use-pep517 -r ${GITHUB_WORKSPACE}/requirements.txt
+        run: pip3 install --use-pep517 -r "${GITHUB_WORKSPACE}/requirements.txt"
 
       - name: Download vagrant box
         run: |
           box=$( yq ".platforms[] | select(.name == \"${{ matrix.distro }}\") | .box" ./molecule/config/windows.yml )
           box_version=$( yq ".platforms[] | select(.name == \"${{ matrix.distro }}\") | .box_version" ./molecule/config/windows.yml )
           eval "box_version=${box_version}"
-          json=$( wget -nv -O- https://vagrantcloud.com/api/v2/vagrant/${box} )
+          json=$( wget -nv -O- "https://vagrantcloud.com/api/v2/vagrant/${box}" )
           url=$( echo "$json" | jq -r ".versions[] | select(.version == \"${box_version}\") | .providers[] | select(.name == \"virtualbox\") | .url" )
-          wget -nv -O /tmp/vagrant.box $url
+          wget -nv -O /tmp/vagrant.box "$url"
 
       - name: Clean VirtualBox cache
         run: |

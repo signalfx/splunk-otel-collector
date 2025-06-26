@@ -41,14 +41,14 @@ jobs:
         run: |
           ./make-latest-tile
           tanzu_tile_regex="product/splunk-otel-collector-*.pivotal"
-          size="$(stat -c '%s' $tanzu_tile_regex)"
+          size="$(stat -c '%s' "$tanzu_tile_regex")"
           if [[ $size -eq 0 ]]; then
             echo "File is empty!" >&2
             exit 1
           fi
 
-          tanzu_tile_path=$(pwd)/$tanzu_tile_regex
-          echo "tanzu_tile_path=$tanzu_tile_path" >> $GITHUB_ENV
+          tanzu_tile_path=$(pwd)/"$tanzu_tile_regex"
+          echo "tanzu_tile_path=$tanzu_tile_path" >> "$GITHUB_ENV"
 
       - name: Uploading artifacts
         uses: actions/upload-artifact@v4

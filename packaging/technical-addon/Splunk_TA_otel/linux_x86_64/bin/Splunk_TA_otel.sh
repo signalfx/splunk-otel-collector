@@ -523,8 +523,8 @@ extract_bundle() {
         splunk_TA_otel_log_msg "INFO" "Extracting agent bundle to $SPLUNK_BUNDLE_DIR"
     fi
     SMART_AGENT_BUNDLE="agent-bundle_linux_amd64.tar.gz"
-    BUNDLE_PARENT="$(readlink -f "$SPLUNK_BUNDLE_DIR/../")"
-    splunk_TA_otel_log_msg "DEBUG" "will cd to $BUNDLE_PARENT"
+    BUNDLE_PARENT="$(readlink -m "$SPLUNK_BUNDLE_DIR/../")"
+    splunk_TA_otel_log_msg "INFO" "will cd to $BUNDLE_PARENT"
     tar -C "$BUNDLE_PARENT" -xzf "$splunk_TA_otel_script_directory/$SMART_AGENT_BUNDLE" || splunk_TA_otel_log_error "failed to extract $splunk_TA_otel_script_directory/$SMART_AGENT_BUNDLE to $SPLUNK_BUNDLE_DIR"
     splunk_TA_otel_log_msg "INFO" "Done extracting agent bundle to $SPLUNK_BUNDLE_DIR"
 

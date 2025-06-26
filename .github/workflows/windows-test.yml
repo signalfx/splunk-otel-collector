@@ -5,7 +5,6 @@ on:
     branches:
       - main
   pull_request:
-    paths:
 
 env:
   GO_VERSION: 1.23.10

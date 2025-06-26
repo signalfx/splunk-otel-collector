@@ -2,13 +2,6 @@
 
 ## Unreleased
 
-### 🚩 Deprecations 🚩
-
-- (Splunk) `deployments`: Fluentd support has been deprecated in all mass deployments and will be removed in a future release.
-  Please refer to [deprecation documentation](./docs/deprecations/fluentd-support.md) for more information ([#6339](https://github.com/signalfx/splunk-otel-collector/pull/6339))
-- (Splunk) `Windows installer script`: Fluentd support has been deprecated and will be removed in a future release. ([#6362](https://github.com/signalfx/splunk-otel-collector/pull/6362))
-  Please refer to [deprecation documentation](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/deprecations/fluentd-support.md) for more information.
-
 ## v0.128.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.128.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.128.0)
@@ -28,10 +21,15 @@ and the [opentelemetry-collector-contrib v0.128.0](https://github.com/open-telem
 
 ### 🚩 Deprecations 🚩
 
+- (Splunk) `deployments`: Fluentd support has been deprecated in all mass deployments and will be removed in a future release.
+  Please refer to [deprecation documentation](./docs/deprecations/fluentd-support.md) for more information ([#6339](https://github.com/signalfx/splunk-otel-collector/pull/6339))
+- (Splunk) `Windows installer script`: Fluentd support has been deprecated and will be removed in a future release. ([#6362](https://github.com/signalfx/splunk-otel-collector/pull/6362))
+  Please refer to [deprecation documentation](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/deprecations/fluentd-support.md) for more information.
 - (Contrib) `receiver/hostmetrics`: Mark `hostmetrics.process.onWindowsUseNewGetProcesses` feature gate as stable ([#32947](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/32947)
 
 ### 💡 Enhancements 💡
 
+- (Splunk) `gateway`: Support discovery entities for gateway agent config ([#6311](https://github.com/signalfx/splunk-otel-collector/pull/6311))
 - (Core) `confighttp`: Update the HTTP server span naming to use the HTTP method and route pattern instead of the path. ([#12468](https://github.com/open-telemetry/opentelemetry-collector/pull/12468))
   The HTTP server span name will now be formatted as `<http.request.method> <http.route>`.
   If a route pattern is not available, it will fall back to `<http.request.method>`.

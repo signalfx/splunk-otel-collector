@@ -31,7 +31,8 @@
       - "{{ 'SPLUNK_MEMORY_TOTAL_MIB=' + (splunk_memory_total_mib | string)
                if (splunk_memory_total_mib | string) != '' else '' }}"
       - "{{ 'SPLUNK_REALM=' + splunk_realm if splunk_realm != '' else '' }}"
-      - "{{ 'COLLECTOR_SVC_ARGS=' + splunk_otel_collector_command_line_args if splunk_otel_collector_command_line_args != '' else '' }}"
+      - "{{ 'COLLECTOR_SVC_ARGS=' + splunk_otel_collector_command_line_args
+               if splunk_otel_collector_command_line_args != '' else '' }}"
 
 - name: Filter out undefined arguments
   when: splunk_collector_msi_is_configurable is defined

@@ -106,7 +106,7 @@ try {
 }
 
 if ($with_svc_args -ne "") {
-    if ($svc_commandline.EndsWith($with_svc_args)) {
+    if (-not $svc_commandline.EndsWith($with_svc_args)) {
         throw "Service command line does not match the expected arguments. Found: '$svc_commandline', Expected to end with: '$with_svc_args'"
     } else {
         Write-Host "Service command line matches the expected arguments."

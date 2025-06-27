@@ -37,9 +37,9 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $env:VERIFY_ACCESS_TOKEN = "false"
-          .\packaging\installer\install.ps1 -access_token "testing123" -realm "test" -mode "${{ matrix.MODE }}" -memory "256" -with_fluentd $${{ matrix.WITH_FLUENTD }} -msi_public_properties "ARPCOMMENTS=`"Installed via install.ps1`""
+          .\packaging\installer\install.ps1 -access_token "testing123" -realm "test" -mode "${{ matrix.MODE }}" -memory "256" -with_fluentd $${{ matrix.WITH_FLUENTD }} -msi_public_properties "ARPCOMMENTS=`"Installed via install.ps1`" COLLECTOR_SVC_ARGS=`"--discovery --set=processors.batch.timeout=10s`""
           Start-Sleep -s 30
-          & ${{ github.workspace }}\.github\workflows\scripts\win-test-services.ps1 -mode "${{ matrix.MODE }}" -access_token "testing123" -realm "test" -memory "256" -with_fluentd "${{ matrix.WITH_FLUENTD }}" -with_msi_uninstall_comments "Installed via install.ps1"
+          & ${{ github.workspace }}\.github\workflows\scripts\win-test-services.ps1 -mode "${{ matrix.MODE }}" -access_token "testing123" -realm "test" -memory "256" -with_fluentd "${{ matrix.WITH_FLUENTD }}" -with_msi_uninstall_comments "Installed via install.ps1" -with_svc_args "--discovery --set=processors.batch.timeout=10s"
           & ${{ github.workspace }}\.github\workflows\scripts\win-test-support-bundle.ps1 -mode "${{ matrix.MODE }}" -with_fluentd "${{ matrix.WITH_FLUENTD }}"
 
       - name: splunk-otel-collector logs

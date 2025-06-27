@@ -6,7 +6,8 @@ param (
     [string]$with_fluentd = "true",
     [string]$with_msi_uninstall_comments = "",
     [string]$api_url = "https://api.${realm}.signalfx.com",
-    [string]$ingest_url = "https://ingest.${realm}.signalfx.com"
+    [string]$ingest_url = "https://ingest.${realm}.signalfx.com",
+    [string]$with_svc_args = ""
 )
 
 $ErrorActionPreference = 'Stop'
@@ -95,4 +96,19 @@ if ($installed_version -gt [Version]"0.97.0.0") {
 
 If (!(Test-Path -Path "${Env:ProgramData}\Splunk\OpenTelemetry Collector\*_config.yaml")) {
     throw "No config files found in ${Env:ProgramData}\Splunk\OpenTelemetry Collector these files are expected after the install"
+}
+
+$svc_commandline = ""
+try {
+    $svc_commandline = Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -Name "ImagePath"
+} catch {
+    throw "Failed to retrieve the service command line from the registry."
+}
+
+if ($with_svc_args -ne "") {
+    if (-not $svc_commandline.EndsWith($with_svc_args)) {
+        throw "Service command line does not match the expected arguments. Found: '$svc_commandline', Expected to end with: '$with_svc_args'"
+    } else {
+        Write-Host "Service command line matches the expected arguments."
+    }
 }

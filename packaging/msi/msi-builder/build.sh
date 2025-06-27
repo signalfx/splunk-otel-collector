@@ -47,9 +47,15 @@ OPTIONS:
                                       Defaults to '$AGENT_CONFIG'.
     --gateway-config PATH             Absolute path to the gateway config.
                                       Defaults to '$GATEWAY_CONFIG'.
-    --fluentd PATH                    Absolute path to the fluentd config.
+    --fluentd PATH                    DEPRECATED: Fluentd support has been deprecated and will be removed in a future release.
+                                      Please refer to documentation for more information:
+                                      https://github.com/signalfx/splunk-otel-collector/blob/main/docs/deprecations/fluentd-support.md
+                                      Absolute path to the fluentd config.
                                       Defaults to '$FLUENTD_CONFIG'.
-    --fluentd-confd PATH              Absolute path to the conf.d.
+    --fluentd-confd PATH              DEPRECATED: Fluentd support has been deprecated and will be removed in a future release.
+                                      Please refer to documentation for more information:
+                                      https://github.com/signalfx/splunk-otel-collector/blob/main/docs/deprecations/fluentd-support.md
+                                      Absolute path to the conf.d.
                                       Defaults to '$FLUENTD_CONFD'.
     --support-bundle PATH             Absolute path to the support bundle script.
                                       Defaults to '$SUPPORT_BUNDLE_SCRIPT'.
@@ -91,10 +97,12 @@ parse_args_and_build() {
                 shift 1
                 ;;
             --fluentd)
+                echo "[WARNING] DEPRECATED: Fluentd support has been deprecated and will be removed in a future release. Please refer to documentation for more information: https://github.com/signalfx/splunk-otel-collector/blob/main/docs/deprecations/fluentd-support.md"
                 fluentd_config="$2"
                 shift 1
                 ;;
             --fluentd-confd)
+                echo "[WARNING] DEPRECATED: Fluentd support has been deprecated and will be removed in a future release. Please refer to documentation for more information: https://github.com/signalfx/splunk-otel-collector/blob/main/docs/deprecations/fluentd-support.md"
                 fluentd_confd="$2"
                 shift 1
                 ;;

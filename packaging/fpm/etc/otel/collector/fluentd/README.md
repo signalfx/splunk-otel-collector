@@ -1,4 +1,7 @@
-Custom TD Agent Fluentd Configuration for the Splunk OpenTelemetry Collector
+# [DEPRECATED] Custom TD Agent Fluentd Configuration for the Splunk OpenTelemetry Collector
+
+> **_NOTE:_**  Fluentd support has been deprecated and will be removed in a future release.
+> Please refer to [deprecation documentation](../../../../docs/deprecations/fluentd-support.md) for more information.
 
 This directory contains a custom fluentd configuration to forward log events
 to the Splunk OpenTelemetry Collector.  By default, the collector will listen

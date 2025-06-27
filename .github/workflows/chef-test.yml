@@ -255,7 +255,7 @@ jobs:
             echo "Failed to get platforms from kitchen.yml!" >&2
             exit 1
           fi
-          echo "matrix={'DISTRO': [${distros}]}" >> $GITHUB_OUTPUT
+          echo "matrix={'DISTRO': [${distros}]}" >> "$GITHUB_OUTPUT"
 
       - name: Get windows distros and suites
         id: get-win-matrix
@@ -270,7 +270,7 @@ jobs:
             echo "Failed to get suites from kitchen.windows.yml!" >&2
             exit 1
           fi
-          echo "matrix={'DISTRO': [${distros}], 'SUITE': [${suites}]}" >> $GITHUB_OUTPUT
+          echo "matrix={'DISTRO': [${distros}], 'SUITE': [${suites}]}" >> "$GITHUB_OUTPUT"
     outputs:
       linux-matrix: ${{ steps.get-linux-matrix.outputs.matrix }}
       win-matrix: ${{ steps.get-win-matrix.outputs.matrix }}
@@ -302,9 +302,9 @@ jobs:
         run: |
           mkdir -p files
           deb_path=$(find /tmp/deb-amd64-package/splunk-otel-collector*amd64.deb)
-          mv $deb_path ./files/soc.deb
+          mv "$deb_path" ./files/soc.deb
           rpm_path=$(find /tmp/rpm-amd64-package/splunk-otel-collector*x86_64.rpm)
-          mv $rpm_path ./files/soc.rpm
+          mv "$rpm_path" ./files/soc.rpm
 
       - name: Install chef
         uses: actionshub/chef-install@3.0.1

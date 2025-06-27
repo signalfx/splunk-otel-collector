@@ -67,7 +67,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-environment
 
-      - run: echo "GOLANGCI_LINT_CACHE=${HOME}/.cache/golangci-lint" >> $GITHUB_ENV
+      - run: echo "GOLANGCI_LINT_CACHE=${HOME}/.cache/golangci-lint" >> "$GITHUB_ENV"
 
       - uses: actions/cache@v4
         with:
@@ -77,6 +77,18 @@ jobs:
       - name: Lint
         run: |
           make for-all CMD="make lint"
+
+  actionlint:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download actionlint
+        id: get_actionlint
+        run: bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/03d0035/scripts/download-actionlint.bash) # v1.7.7
+        shell: bash
+      - name: Check workflow files
+        run: ${{ steps.get_actionlint.outputs.executable }} -color
+        shell: bash
 
   test:
     name: unit-test

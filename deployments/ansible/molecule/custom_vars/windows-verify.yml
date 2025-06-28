@@ -102,7 +102,7 @@
         name: ImagePath
       register: collector_imagepath
 
-    - name: Assert service ImagePath ends with splunk_otel_collector_command_line_args
+    - name: Assert service ImagePath ends with the splunk_otel_collector_command_line_args value used in the playbook
       assert:
         that:
-          - collector_imagepath.value.endswith(splunk_otel_collector_command_line_args)
+          - collector_imagepath.value.endswith("--discovery")

@@ -98,7 +98,7 @@
 
     - name: Get splunk-otel-collector service ImagePath
       ansible.windows.win_reg_stat:
-        path: HKLM:\\SYSTEM\\CurrentControlSet\\Services\\splunk-otel-collector
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector
         name: ImagePath
       register: collector_imagepath
 

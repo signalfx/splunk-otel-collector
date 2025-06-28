@@ -106,6 +106,3 @@
       assert:
         that:
           - collector_imagepath.value.endswith(splunk_otel_collector_command_line_args)
-      when:
-        - splunk_otel_collector_command_line_args is defined
-        - splunk_otel_collector_command_line_args != ''

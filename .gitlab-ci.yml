@@ -32,7 +32,7 @@ stages:
   - release
   - docker-manifest-release
   - xray-scan
-  - github-release
+  - publish-release
 
 include:
   - project: 'prodsec/scp-scanning/gitlab-checkmarx'
@@ -1565,7 +1565,7 @@ release-installers:
 
 choco-release:
   extends: .trigger-filter
-  stage: release
+  stage: publish-release
   dependencies:
     - sign-msi
   tags:
@@ -1752,7 +1752,7 @@ github-release:
     - .trigger-filter
     - .go-cache
   tags: [large]
-  stage: github-release
+  stage: publish-release
   dependencies:
     - compile
     - otelcol-fips
@@ -1764,7 +1764,6 @@ github-release:
     - sign-msi
     - sign-tar
     - push-multiarch-manifest
-    - choco-release
     - sign-agent-bundles
   script:
     - mkdir -p dist/assets
@@ -1926,7 +1925,7 @@ dotnet-instrumentation-deployer-release:
     - .trigger-dotnet-instrumentation-deployer
     - .go-cache # Use this image since this job uses the ghr tool
   tags: [large]
-  stage: github-release
+  stage: publish-release
   dependencies:
     - pack-dotnet-instrumentation-deployer
   script:

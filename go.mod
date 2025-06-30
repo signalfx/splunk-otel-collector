@@ -185,7 +185,7 @@ require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/Azure/azure-amqp-common-go/v4 v4.2.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.18.0 // indirect
-	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.10.0 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.10.1 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/internal v1.11.1 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/monitor/query/azmetrics v1.2.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v5 v5.7.0 // indirect
@@ -318,7 +318,7 @@ require (
 	github.com/magefile/mage v1.15.0 // indirect
 	github.com/mdlayher/socket v0.4.1 // indirect
 	github.com/mdlayher/vsock v1.2.1 // indirect
-	github.com/microsoft/go-mssqldb v1.8.2 // indirect
+	github.com/microsoft/go-mssqldb v1.9.2 // indirect
 	github.com/mistifyio/go-zfs v2.1.2-0.20190413222219-f784269be439+incompatible // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
 	github.com/moby/go-archive v0.1.0 // indirect

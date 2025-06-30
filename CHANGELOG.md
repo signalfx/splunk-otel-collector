@@ -2,13 +2,13 @@
 
 ## Unreleased
 
-## v0.128.1
-No functional difference to v0.128.0.  Bumping version due to issues in release pipeline regarding chocolatey. Any v0.128.0 docker image, msi, binary, zip, etc should be bitwise identical, but prefer v0.128.1 tagged artifacts.
 
-## v0.128.0
+## v0.128.1
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.128.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.128.0)
 and the [opentelemetry-collector-contrib v0.128.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.128.0) releases where appropriate.
+
+NOTE: This is effectively `v0.128.0`. The version being `v0.128.1` is due to issues in our release pipeline regarding chocolatey. Any `v0.128.0` docker image, msi, binary, zip, etc should be bitwise identical, but prefer `v0.128.1` tagged artifacts.
 
 ### 🛑 Breaking changes 🛑
 

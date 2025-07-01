@@ -240,4 +240,4 @@ update-and-release: update-ta-deps release-ta
 
 .PHONY: clean-ta
 clean-ta:
-	rm -rf build
+	rm -rf $(BUILD_DIR)

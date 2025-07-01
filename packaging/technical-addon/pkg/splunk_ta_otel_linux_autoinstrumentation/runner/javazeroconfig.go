@@ -93,7 +93,7 @@ func CreateZeroConfigJava(modInputs *SplunkTAOtelLinuxAutoinstrumentationModular
 
 	tmpl, err := template.New("JavaZeroConfig").Parse(configTemplate)
 	if err != nil {
-		log.Fatalf("error generating zeroconfig file at %s from template: %#v", modInputs.ZeroconfigPath.Value, err)
+		log.Fatalf("error generating zeroconfig file at %s from template: %#v", modInputs.JavaZeroconfigPath.Value, err)
 		return err
 	}
 	templateData := TemplateData{
@@ -108,7 +108,7 @@ func CreateZeroConfigJava(modInputs *SplunkTAOtelLinuxAutoinstrumentationModular
 		MetricsExporter:        modInputs.OtelMetricsExporter.Value,
 		LogsExporter:           modInputs.OtelLogsExporter.Value,
 	}
-	filePath, err := os.Create(modInputs.ZeroconfigPath.Value)
+	filePath, err := os.Create(modInputs.JavaZeroconfigPath.Value)
 	if err != nil && !errors.Is(err, os.ErrExist) {
 		return err
 	}
@@ -128,12 +128,12 @@ func InstrumentJava(modInputs *SplunkTAOtelLinuxAutoinstrumentationModularInputs
 
 func RemoveJavaInstrumentation(modInputs *SplunkTAOtelLinuxAutoinstrumentationModularInputs) error {
 	if strings.ToLower(modInputs.Backup.Value) != "false" {
-		if err := backupFile(modInputs.ZeroconfigPath.Value); err != nil && !errors.Is(err, os.ErrNotExist) {
+		if err := backupFile(modInputs.JavaZeroconfigPath.Value); err != nil && !errors.Is(err, os.ErrNotExist) {
 			log.Fatalf("error backing up java auto instrumentation configuration, refusing to remove (specify backup=false in inputs.conf if backup not needed): %v", err)
 			return err
 		}
 	}
-	if err := os.Remove(modInputs.ZeroconfigPath.Value); !errors.Is(err, os.ErrNotExist) {
+	if err := os.Remove(modInputs.JavaZeroconfigPath.Value); !errors.Is(err, os.ErrNotExist) {
 		return err
 	}
 	return nil

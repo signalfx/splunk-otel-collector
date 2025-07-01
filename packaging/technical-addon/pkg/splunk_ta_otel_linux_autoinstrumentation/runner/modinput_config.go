@@ -5,117 +5,122 @@ import (
 	"github.com/splunk/splunk-technical-addon/internal/modularinput"
 )
 
-const SchemaName = "Splunk_TA_otel_linux_autoinstrumentation"
+const SchemaName = "Splunk_TA_otel_linux_autoinstrumentation";
 
 type SplunkTAOtelLinuxAutoinstrumentationModInput struct {
 	Value string
-	Name  string
+	Name string
 }
 
 type SplunkTAOtelLinuxAutoinstrumentationModularInputs struct {
-	AutoinstrumentationPath                  SplunkTAOtelLinuxAutoinstrumentationModInput
-	AutoinstrumentationPreloadPath           SplunkTAOtelLinuxAutoinstrumentationModInput
-	Backup                                   SplunkTAOtelLinuxAutoinstrumentationModInput
-	DeploymentEnvironment                    SplunkTAOtelLinuxAutoinstrumentationModInput
-	Force                                    SplunkTAOtelLinuxAutoinstrumentationModInput
-	LogsEnabled                              SplunkTAOtelLinuxAutoinstrumentationModInput
-	MetricsEnabled                           SplunkTAOtelLinuxAutoinstrumentationModInput
-	OtelExporterOtlpEndpoint                 SplunkTAOtelLinuxAutoinstrumentationModInput
-	OtelExporterOtlpProtocol                 SplunkTAOtelLinuxAutoinstrumentationModInput
-	OtelLogsExporter                         SplunkTAOtelLinuxAutoinstrumentationModInput
-	OtelMetricsExporter                      SplunkTAOtelLinuxAutoinstrumentationModInput
-	OtelServiceName                          SplunkTAOtelLinuxAutoinstrumentationModInput
-	ProfilerEnabled                          SplunkTAOtelLinuxAutoinstrumentationModInput
-	ProfilerMemoryEnabled                    SplunkTAOtelLinuxAutoinstrumentationModInput
-	Remove                                   SplunkTAOtelLinuxAutoinstrumentationModInput
-	ResourceAttributes                       SplunkTAOtelLinuxAutoinstrumentationModInput
-	SplunkOtelAutoinstrumentationNodejsPath  SplunkTAOtelLinuxAutoinstrumentationModInput
+	AutoinstrumentationPath SplunkTAOtelLinuxAutoinstrumentationModInput
+	AutoinstrumentationPreloadPath SplunkTAOtelLinuxAutoinstrumentationModInput
+	Backup SplunkTAOtelLinuxAutoinstrumentationModInput
+	DeploymentEnvironment SplunkTAOtelLinuxAutoinstrumentationModInput
+	Force SplunkTAOtelLinuxAutoinstrumentationModInput
+	JavaZeroconfigPath SplunkTAOtelLinuxAutoinstrumentationModInput
+	LogsEnabled SplunkTAOtelLinuxAutoinstrumentationModInput
+	MetricsEnabled SplunkTAOtelLinuxAutoinstrumentationModInput
+	NodeZeroconfigPath SplunkTAOtelLinuxAutoinstrumentationModInput
+	OtelExporterOtlpEndpoint SplunkTAOtelLinuxAutoinstrumentationModInput
+	OtelExporterOtlpProtocol SplunkTAOtelLinuxAutoinstrumentationModInput
+	OtelLogsExporter SplunkTAOtelLinuxAutoinstrumentationModInput
+	OtelMetricsExporter SplunkTAOtelLinuxAutoinstrumentationModInput
+	OtelServiceName SplunkTAOtelLinuxAutoinstrumentationModInput
+	ProfilerEnabled SplunkTAOtelLinuxAutoinstrumentationModInput
+	ProfilerMemoryEnabled SplunkTAOtelLinuxAutoinstrumentationModInput
+	Remove SplunkTAOtelLinuxAutoinstrumentationModInput
+	ResourceAttributes SplunkTAOtelLinuxAutoinstrumentationModInput
+	SplunkOtelAutoinstrumentationNodejsPath SplunkTAOtelLinuxAutoinstrumentationModInput
 	SplunkOtelJavaAutoinstrumentationJarPath SplunkTAOtelLinuxAutoinstrumentationModInput
-	SplunkOtelLogFile                        SplunkTAOtelLinuxAutoinstrumentationModInput
-	ZeroconfigPath                           SplunkTAOtelLinuxAutoinstrumentationModInput
+	SplunkOtelLogFile SplunkTAOtelLinuxAutoinstrumentationModInput
 }
 
 func GetSplunkTAOtelLinuxAutoinstrumentationModularInputs(mip *modularinput.ModinputProcessor) *SplunkTAOtelLinuxAutoinstrumentationModularInputs {
 	return &SplunkTAOtelLinuxAutoinstrumentationModularInputs{
 		AutoinstrumentationPath: SplunkTAOtelLinuxAutoinstrumentationModInput{
 			Value: mip.ModularInputs["autoinstrumentation_path"].Value,
-			Name:  "autoinstrumentation_path",
+			Name: "autoinstrumentation_path",
 		},
 		AutoinstrumentationPreloadPath: SplunkTAOtelLinuxAutoinstrumentationModInput{
 			Value: mip.ModularInputs["autoinstrumentation_preload_path"].Value,
-			Name:  "autoinstrumentation_preload_path",
+			Name: "autoinstrumentation_preload_path",
 		},
 		Backup: SplunkTAOtelLinuxAutoinstrumentationModInput{
 			Value: mip.ModularInputs["backup"].Value,
-			Name:  "backup",
+			Name: "backup",
 		},
 		DeploymentEnvironment: SplunkTAOtelLinuxAutoinstrumentationModInput{
 			Value: mip.ModularInputs["deployment_environment"].Value,
-			Name:  "deployment_environment",
+			Name: "deployment_environment",
 		},
 		Force: SplunkTAOtelLinuxAutoinstrumentationModInput{
 			Value: mip.ModularInputs["force"].Value,
-			Name:  "force",
+			Name: "force",
+		},
+		JavaZeroconfigPath: SplunkTAOtelLinuxAutoinstrumentationModInput{
+			Value: mip.ModularInputs["java_zeroconfig_path"].Value,
+			Name: "java_zeroconfig_path",
 		},
 		LogsEnabled: SplunkTAOtelLinuxAutoinstrumentationModInput{
 			Value: mip.ModularInputs["logs_enabled"].Value,
-			Name:  "logs_enabled",
+			Name: "logs_enabled",
 		},
 		MetricsEnabled: SplunkTAOtelLinuxAutoinstrumentationModInput{
 			Value: mip.ModularInputs["metrics_enabled"].Value,
-			Name:  "metrics_enabled",
+			Name: "metrics_enabled",
+		},
+		NodeZeroconfigPath: SplunkTAOtelLinuxAutoinstrumentationModInput{
+			Value: mip.ModularInputs["node_zeroconfig_path"].Value,
+			Name: "node_zeroconfig_path",
 		},
 		OtelExporterOtlpEndpoint: SplunkTAOtelLinuxAutoinstrumentationModInput{
 			Value: mip.ModularInputs["otel_exporter_otlp_endpoint"].Value,
-			Name:  "otel_exporter_otlp_endpoint",
+			Name: "otel_exporter_otlp_endpoint",
 		},
 		OtelExporterOtlpProtocol: SplunkTAOtelLinuxAutoinstrumentationModInput{
 			Value: mip.ModularInputs["otel_exporter_otlp_protocol"].Value,
-			Name:  "otel_exporter_otlp_protocol",
+			Name: "otel_exporter_otlp_protocol",
 		},
 		OtelLogsExporter: SplunkTAOtelLinuxAutoinstrumentationModInput{
 			Value: mip.ModularInputs["otel_logs_exporter"].Value,
-			Name:  "otel_logs_exporter",
+			Name: "otel_logs_exporter",
 		},
 		OtelMetricsExporter: SplunkTAOtelLinuxAutoinstrumentationModInput{
 			Value: mip.ModularInputs["otel_metrics_exporter"].Value,
-			Name:  "otel_metrics_exporter",
+			Name: "otel_metrics_exporter",
 		},
 		OtelServiceName: SplunkTAOtelLinuxAutoinstrumentationModInput{
 			Value: mip.ModularInputs["otel_service_name"].Value,
-			Name:  "otel_service_name",
+			Name: "otel_service_name",
 		},
 		ProfilerEnabled: SplunkTAOtelLinuxAutoinstrumentationModInput{
 			Value: mip.ModularInputs["profiler_enabled"].Value,
-			Name:  "profiler_enabled",
+			Name: "profiler_enabled",
 		},
 		ProfilerMemoryEnabled: SplunkTAOtelLinuxAutoinstrumentationModInput{
 			Value: mip.ModularInputs["profiler_memory_enabled"].Value,
-			Name:  "profiler_memory_enabled",
+			Name: "profiler_memory_enabled",
 		},
 		Remove: SplunkTAOtelLinuxAutoinstrumentationModInput{
 			Value: mip.ModularInputs["remove"].Value,
-			Name:  "remove",
+			Name: "remove",
 		},
 		ResourceAttributes: SplunkTAOtelLinuxAutoinstrumentationModInput{
 			Value: mip.ModularInputs["resource_attributes"].Value,
-			Name:  "resource_attributes",
+			Name: "resource_attributes",
 		},
 		SplunkOtelAutoinstrumentationNodejsPath: SplunkTAOtelLinuxAutoinstrumentationModInput{
 			Value: mip.ModularInputs["splunk_otel_autoinstrumentation_nodejs_path"].Value,
-			Name:  "splunk_otel_autoinstrumentation_nodejs_path",
+			Name: "splunk_otel_autoinstrumentation_nodejs_path",
 		},
 		SplunkOtelJavaAutoinstrumentationJarPath: SplunkTAOtelLinuxAutoinstrumentationModInput{
 			Value: mip.ModularInputs["splunk_otel_java_autoinstrumentation_jar_path"].Value,
-			Name:  "splunk_otel_java_autoinstrumentation_jar_path",
+			Name: "splunk_otel_java_autoinstrumentation_jar_path",
 		},
 		SplunkOtelLogFile: SplunkTAOtelLinuxAutoinstrumentationModInput{
 			Value: mip.ModularInputs["splunk_otel_log_file"].Value,
-			Name:  "splunk_otel_log_file",
-		},
-		ZeroconfigPath: SplunkTAOtelLinuxAutoinstrumentationModInput{
-			Value: mip.ModularInputs["zeroconfig_path"].Value,
-			Name:  "zeroconfig_path",
+			Name: "splunk_otel_log_file",
 		},
 	}
 }
@@ -125,108 +130,129 @@ func GetDefaultSplunkTAOtelLinuxAutoinstrumentationModularInputs() modularinput.
 	return modularinput.GenericModularInput{
 		SchemaName: "Splunk_TA_otel_linux_autoinstrumentation",
 		ModularInputs: map[string]*modularinput.ModInput{
-			"autoinstrumentation_path": {
-				Config: modularinput.ModInputConfig{Description: "Path for .so", Default: "$SPLUNK_OTEL_TA_PLATFORM_HOME/bin/libsplunk_amd64.so", Flag: modularinput.Flag{Name: "", IsUnary: false}, Required: false, PassthroughEnvVar: false, ReplaceableEnvVar: true},
-				Value:  "$SPLUNK_OTEL_TA_PLATFORM_HOME/bin/libsplunk_amd64.so",
+			"autoinstrumentation_path": &modularinput.ModInput{
+				Config: modularinput.ModInputConfig{Description:"Path for .so", Default:"$SPLUNK_OTEL_TA_PLATFORM_HOME/bin/libsplunk_amd64.so", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:false, ReplaceableEnvVar:true},
+				Value: "$SPLUNK_OTEL_TA_PLATFORM_HOME/bin/libsplunk_amd64.so",
 				Transformers: []modularinput.TransformerFunc{
 					modularinput.DefaultReplaceEnvVarTransformer,
 				},
 			},
-			"autoinstrumentation_preload_path": {
-				Config: modularinput.ModInputConfig{Description: "Path to add preload configuration to.", Default: "/etc/ld.so.preload", Flag: modularinput.Flag{Name: "", IsUnary: false}, Required: false, PassthroughEnvVar: false, ReplaceableEnvVar: true},
-				Value:  "/etc/ld.so.preload",
+			"autoinstrumentation_preload_path": &modularinput.ModInput{
+				Config: modularinput.ModInputConfig{Description:"Path to add preload configuration to.", Default:"/etc/ld.so.preload", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:false, ReplaceableEnvVar:true},
+				Value: "/etc/ld.so.preload",
 				Transformers: []modularinput.TransformerFunc{
 					modularinput.DefaultReplaceEnvVarTransformer,
 				},
 			},
-			"backup": {
-				Config:       modularinput.ModInputConfig{Description: "Backup files before writing to them or deleting them.  Backup files are not deleted by this addon.", Default: "false", Flag: modularinput.Flag{Name: "", IsUnary: false}, Required: false, PassthroughEnvVar: false, ReplaceableEnvVar: false},
-				Value:        "false",
-				Transformers: []modularinput.TransformerFunc{},
+			"backup": &modularinput.ModInput{
+				Config: modularinput.ModInputConfig{Description:"Backup files before writing to them or deleting them.  Backup files are not deleted by this addon.", Default:"false", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:false, ReplaceableEnvVar:false},
+				Value: "false",
+				Transformers: []modularinput.TransformerFunc{
+				},
 			},
-			"deployment_environment": {
-				Config: modularinput.ModInputConfig{Description: "Same as --deployment environment", Default: "", Flag: modularinput.Flag{Name: "", IsUnary: false}, Required: false, PassthroughEnvVar: false, ReplaceableEnvVar: true},
+			"deployment_environment": &modularinput.ModInput{
+				Config: modularinput.ModInputConfig{Description:"Same as --deployment environment", Default:"", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:false, ReplaceableEnvVar:true},
 				Transformers: []modularinput.TransformerFunc{
 					modularinput.DefaultReplaceEnvVarTransformer,
 				},
 			},
-			"force": {
-				Config:       modularinput.ModInputConfig{Description: "whether to force installation ", Default: "false", Flag: modularinput.Flag{Name: "", IsUnary: false}, Required: false, PassthroughEnvVar: false, ReplaceableEnvVar: false},
-				Value:        "false",
-				Transformers: []modularinput.TransformerFunc{},
+			"force": &modularinput.ModInput{
+				Config: modularinput.ModInputConfig{Description:"whether to force installation ", Default:"false", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:false, ReplaceableEnvVar:false},
+				Value: "false",
+				Transformers: []modularinput.TransformerFunc{
+				},
 			},
-			"logs_enabled": {
-				Config:       modularinput.ModInputConfig{Description: "Enables logs exporting of autoinstrumented.", Default: "false", Flag: modularinput.Flag{Name: "", IsUnary: false}, Required: false, PassthroughEnvVar: false, ReplaceableEnvVar: false},
-				Value:        "false",
-				Transformers: []modularinput.TransformerFunc{},
-			},
-			"metrics_enabled": {
-				Config:       modularinput.ModInputConfig{Description: "Enabled metrics exporting of autoinstrumented.", Default: "false", Flag: modularinput.Flag{Name: "", IsUnary: false}, Required: false, PassthroughEnvVar: false, ReplaceableEnvVar: false},
-				Value:        "false",
-				Transformers: []modularinput.TransformerFunc{},
-			},
-			"otel_exporter_otlp_endpoint": {
-				Config:       modularinput.ModInputConfig{Description: "The endpoint for OTLP exporter.", Default: "", Flag: modularinput.Flag{Name: "", IsUnary: false}, Required: false, PassthroughEnvVar: false, ReplaceableEnvVar: false},
-				Transformers: []modularinput.TransformerFunc{},
-			},
-			"otel_exporter_otlp_protocol": {
-				Config:       modularinput.ModInputConfig{Description: "The protocol for OTLP exporter.", Default: "", Flag: modularinput.Flag{Name: "", IsUnary: false}, Required: false, PassthroughEnvVar: false, ReplaceableEnvVar: false},
-				Transformers: []modularinput.TransformerFunc{},
-			},
-			"otel_logs_exporter": {
-				Config:       modularinput.ModInputConfig{Description: "The exporter to use for logs.", Default: "", Flag: modularinput.Flag{Name: "", IsUnary: false}, Required: false, PassthroughEnvVar: false, ReplaceableEnvVar: false},
-				Transformers: []modularinput.TransformerFunc{},
-			},
-			"otel_metrics_exporter": {
-				Config:       modularinput.ModInputConfig{Description: "The exporter to use for metrics.", Default: "", Flag: modularinput.Flag{Name: "", IsUnary: false}, Required: false, PassthroughEnvVar: false, ReplaceableEnvVar: false},
-				Transformers: []modularinput.TransformerFunc{},
-			},
-			"otel_service_name": {
-				Config:       modularinput.ModInputConfig{Description: "The service name to use for telemetry data.", Default: "", Flag: modularinput.Flag{Name: "", IsUnary: false}, Required: false, PassthroughEnvVar: false, ReplaceableEnvVar: false},
-				Transformers: []modularinput.TransformerFunc{},
-			},
-			"profiler_enabled": {
-				Config:       modularinput.ModInputConfig{Description: "Enables system wide java cpu profiler in autoinstrumentation.", Default: "false", Flag: modularinput.Flag{Name: "", IsUnary: false}, Required: false, PassthroughEnvVar: false, ReplaceableEnvVar: false},
-				Value:        "false",
-				Transformers: []modularinput.TransformerFunc{},
-			},
-			"profiler_memory_enabled": {
-				Config:       modularinput.ModInputConfig{Description: "Enables system wide java memory profiler in autoinstrumentation.", Default: "false", Flag: modularinput.Flag{Name: "", IsUnary: false}, Required: false, PassthroughEnvVar: false, ReplaceableEnvVar: false},
-				Value:        "false",
-				Transformers: []modularinput.TransformerFunc{},
-			},
-			"remove": {
-				Config:       modularinput.ModInputConfig{Description: "If true, removes the installation", Default: "false", Flag: modularinput.Flag{Name: "", IsUnary: false}, Required: false, PassthroughEnvVar: false, ReplaceableEnvVar: false},
-				Value:        "false",
-				Transformers: []modularinput.TransformerFunc{},
-			},
-			"resource_attributes": {
-				Config:       modularinput.ModInputConfig{Description: "String representing the OTEL_RESOURCE_ATTRIBUTES.", Default: "", Flag: modularinput.Flag{Name: "", IsUnary: false}, Required: false, PassthroughEnvVar: false, ReplaceableEnvVar: false},
-				Transformers: []modularinput.TransformerFunc{},
-			},
-			"splunk_otel_autoinstrumentation_nodejs_path": {
-				Config: modularinput.ModInputConfig{Description: "Path for nodejs autoinstrumentation", Default: "$SPLUNK_OTEL_TA_PLATFORM_HOME/bin/splunk-otel-nodejs.tgz", Flag: modularinput.Flag{Name: "", IsUnary: false}, Required: false, PassthroughEnvVar: false, ReplaceableEnvVar: true},
-				Value:  "$SPLUNK_OTEL_TA_PLATFORM_HOME/bin/splunk-otel-nodejs.tgz",
+			"java_zeroconfig_path": &modularinput.ModInput{
+				Config: modularinput.ModInputConfig{Description:"Path for java zeroconfig", Default:"/etc/splunk/zeroconfig/java.conf", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:false, ReplaceableEnvVar:true},
+				Value: "/etc/splunk/zeroconfig/java.conf",
 				Transformers: []modularinput.TransformerFunc{
 					modularinput.DefaultReplaceEnvVarTransformer,
 				},
 			},
-			"splunk_otel_java_autoinstrumentation_jar_path": {
-				Config: modularinput.ModInputConfig{Description: "Path for the java jar used in autoinstumentation.", Default: "$SPLUNK_OTEL_TA_PLATFORM_HOME/bin/splunk-otel-javaagent.jar", Flag: modularinput.Flag{Name: "", IsUnary: false}, Required: false, PassthroughEnvVar: false, ReplaceableEnvVar: true},
-				Value:  "$SPLUNK_OTEL_TA_PLATFORM_HOME/bin/splunk-otel-javaagent.jar",
+			"logs_enabled": &modularinput.ModInput{
+				Config: modularinput.ModInputConfig{Description:"Enables logs exporting of autoinstrumented.", Default:"false", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:false, ReplaceableEnvVar:false},
+				Value: "false",
+				Transformers: []modularinput.TransformerFunc{
+				},
+			},
+			"metrics_enabled": &modularinput.ModInput{
+				Config: modularinput.ModInputConfig{Description:"Enabled metrics exporting of autoinstrumented.", Default:"false", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:false, ReplaceableEnvVar:false},
+				Value: "false",
+				Transformers: []modularinput.TransformerFunc{
+				},
+			},
+			"node_zeroconfig_path": &modularinput.ModInput{
+				Config: modularinput.ModInputConfig{Description:"Path for nodejs zeroconfig", Default:"/etc/splunk/zeroconfig/node.conf", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:false, ReplaceableEnvVar:true},
+				Value: "/etc/splunk/zeroconfig/node.conf",
 				Transformers: []modularinput.TransformerFunc{
 					modularinput.DefaultReplaceEnvVarTransformer,
 				},
 			},
-			"splunk_otel_log_file": {
-				Config: modularinput.ModInputConfig{Description: "Log file for otel collector.", Default: "", Flag: modularinput.Flag{Name: "", IsUnary: false}, Required: false, PassthroughEnvVar: false, ReplaceableEnvVar: true},
+			"otel_exporter_otlp_endpoint": &modularinput.ModInput{
+				Config: modularinput.ModInputConfig{Description:"The endpoint for OTLP exporter.", Default:"", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:false, ReplaceableEnvVar:false},
+				Transformers: []modularinput.TransformerFunc{
+				},
+			},
+			"otel_exporter_otlp_protocol": &modularinput.ModInput{
+				Config: modularinput.ModInputConfig{Description:"The protocol for OTLP exporter.", Default:"", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:false, ReplaceableEnvVar:false},
+				Transformers: []modularinput.TransformerFunc{
+				},
+			},
+			"otel_logs_exporter": &modularinput.ModInput{
+				Config: modularinput.ModInputConfig{Description:"The exporter to use for logs.", Default:"", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:false, ReplaceableEnvVar:false},
+				Transformers: []modularinput.TransformerFunc{
+				},
+			},
+			"otel_metrics_exporter": &modularinput.ModInput{
+				Config: modularinput.ModInputConfig{Description:"The exporter to use for metrics.", Default:"", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:false, ReplaceableEnvVar:false},
+				Transformers: []modularinput.TransformerFunc{
+				},
+			},
+			"otel_service_name": &modularinput.ModInput{
+				Config: modularinput.ModInputConfig{Description:"The service name to use for telemetry data.", Default:"", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:false, ReplaceableEnvVar:false},
+				Transformers: []modularinput.TransformerFunc{
+				},
+			},
+			"profiler_enabled": &modularinput.ModInput{
+				Config: modularinput.ModInputConfig{Description:"Enables system wide java cpu profiler in autoinstrumentation.", Default:"false", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:false, ReplaceableEnvVar:false},
+				Value: "false",
+				Transformers: []modularinput.TransformerFunc{
+				},
+			},
+			"profiler_memory_enabled": &modularinput.ModInput{
+				Config: modularinput.ModInputConfig{Description:"Enables system wide java memory profiler in autoinstrumentation.", Default:"false", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:false, ReplaceableEnvVar:false},
+				Value: "false",
+				Transformers: []modularinput.TransformerFunc{
+				},
+			},
+			"remove": &modularinput.ModInput{
+				Config: modularinput.ModInputConfig{Description:"If true, removes the installation", Default:"false", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:false, ReplaceableEnvVar:false},
+				Value: "false",
+				Transformers: []modularinput.TransformerFunc{
+				},
+			},
+			"resource_attributes": &modularinput.ModInput{
+				Config: modularinput.ModInputConfig{Description:"String representing the OTEL_RESOURCE_ATTRIBUTES.", Default:"", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:false, ReplaceableEnvVar:false},
+				Transformers: []modularinput.TransformerFunc{
+				},
+			},
+			"splunk_otel_autoinstrumentation_nodejs_path": &modularinput.ModInput{
+				Config: modularinput.ModInputConfig{Description:"Path for nodejs autoinstrumentation", Default:"$SPLUNK_OTEL_TA_PLATFORM_HOME/bin/splunk-otel-nodejs.tgz", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:false, ReplaceableEnvVar:true},
+				Value: "$SPLUNK_OTEL_TA_PLATFORM_HOME/bin/splunk-otel-nodejs.tgz",
 				Transformers: []modularinput.TransformerFunc{
 					modularinput.DefaultReplaceEnvVarTransformer,
 				},
 			},
-			"zeroconfig_path": {
-				Config: modularinput.ModInputConfig{Description: "Path for zeroconfig", Default: "$SPLUNK_OTEL_TA_HOME/config/zero.conf", Flag: modularinput.Flag{Name: "", IsUnary: false}, Required: false, PassthroughEnvVar: false, ReplaceableEnvVar: true},
-				Value:  "$SPLUNK_OTEL_TA_HOME/config/zero.conf",
+			"splunk_otel_java_autoinstrumentation_jar_path": &modularinput.ModInput{
+				Config: modularinput.ModInputConfig{Description:"Path for the java jar used in autoinstumentation.", Default:"$SPLUNK_OTEL_TA_PLATFORM_HOME/bin/splunk-otel-javaagent.jar", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:false, ReplaceableEnvVar:true},
+				Value: "$SPLUNK_OTEL_TA_PLATFORM_HOME/bin/splunk-otel-javaagent.jar",
+				Transformers: []modularinput.TransformerFunc{
+					modularinput.DefaultReplaceEnvVarTransformer,
+				},
+			},
+			"splunk_otel_log_file": &modularinput.ModInput{
+				Config: modularinput.ModInputConfig{Description:"Log file for otel collector.", Default:"$SPLUNK_HOME/var/log/splunk/otel.log", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:false, ReplaceableEnvVar:true},
+				Value: "$SPLUNK_HOME/var/log/splunk/otel.log",
 				Transformers: []modularinput.TransformerFunc{
 					modularinput.DefaultReplaceEnvVarTransformer,
 				},

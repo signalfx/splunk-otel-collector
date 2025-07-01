@@ -71,6 +71,19 @@ jobs:
           make -e lint
 
 
+  test-ta-linux-autoinstrumentation:
+    name: test-modinput-config-generator
+    runs-on: ubuntu-24.04
+    needs: [setup-environment]
+    defaults:
+      run:
+        working-directory: ${{github.workspace}}/packaging/technical-addon
+    steps:
+        - name: Test normal go code
+          run: |
+            set -o pipefail
+            make -e build-tas
+
   check_changes:
     runs-on: ubuntu-24.04
     outputs:

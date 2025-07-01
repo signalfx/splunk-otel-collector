@@ -41,6 +41,7 @@ func run() int {
 	validateFlag := flag.Bool("validate-arguments", false, "Validate the arguments and exit")
 	flag.Parse()
 	if *schemeFlag {
+		// TODO we've never actually implemented this, let's figure it out in the future
 		return 0
 	}
 	defaultLogFilepath, err := modularinput.GetDefaultLogFilePath(config.SchemaName)
@@ -78,7 +79,7 @@ func run() int {
 		log.Errorf("error running splunk linux autoinstrumentation addon: %+v", err)
 		panic(err)
 	}
-	// set up trap
+	// TODO set up traps, but not urgent given this is a run-once style script
 	return 0
 }
 

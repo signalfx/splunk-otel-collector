@@ -3,7 +3,7 @@ version: 0.0.0
 modular-inputs:
   splunk_otel_log_file:
     description: "Log file for otel collector."
-    default: ""
+    default: "$SPLUNK_HOME/var/log/splunk/otel.log"
     replaceable: true
 
   force:
@@ -58,9 +58,14 @@ modular-inputs:
     description: "The exporter to use for logs."
     default: ""
 
-  zeroconfig_path:
-    description: "Path for zeroconfig"
-    default: "$SPLUNK_OTEL_TA_HOME/config/zero.conf"
+  java_zeroconfig_path:
+    description: "Path for java zeroconfig"
+    default: "/etc/splunk/zeroconfig/java.conf"
+    replaceable: true
+
+  node_zeroconfig_path:
+    description: "Path for nodejs zeroconfig"
+    default: "/etc/splunk/zeroconfig/node.conf"
     replaceable: true
 
   autoinstrumentation_path:

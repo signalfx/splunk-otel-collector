@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 	"text/template"
 )
@@ -108,6 +109,13 @@ func CreateZeroConfigJava(modInputs *SplunkTAOtelLinuxAutoinstrumentationModular
 		MetricsExporter:        modInputs.OtelMetricsExporter.Value,
 		LogsExporter:           modInputs.OtelLogsExporter.Value,
 	}
+
+	if err = os.MkdirAll(filepath.Dir(modInputs.JavaZeroconfigPath.Value), 0755); err != nil {
+		err = fmt.Errorf("error creating java zeroconfig path, could not make parent directories: %v", err)
+		log.Println(err)
+		return err
+	}
+
 	filePath, err := os.Create(modInputs.JavaZeroconfigPath.Value)
 	if err != nil && !errors.Is(err, os.ErrExist) {
 		return err
@@ -120,6 +128,9 @@ func CreateZeroConfigJava(modInputs *SplunkTAOtelLinuxAutoinstrumentationModular
 }
 
 func InstrumentJava(modInputs *SplunkTAOtelLinuxAutoinstrumentationModularInputs) error {
+	if "true" != strings.ToLower(modInputs.JavaZeroconfigEnabled.Value) {
+		return nil
+	}
 	if err := CreateZeroConfigJava(modInputs); err != nil {
 		return err
 	}

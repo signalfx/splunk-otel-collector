@@ -116,6 +116,10 @@ func Instrument(modInputs *SplunkTAOtelLinuxAutoinstrumentationModularInputs) er
 }
 
 func AutoinstrumentLdPreload(modInputs *SplunkTAOtelLinuxAutoinstrumentationModularInputs) error {
+	if "true" != strings.ToLower(modInputs.AutoinstrumentationEnabled.Value) {
+		log.Println("Autoinstrumentation of /etc/ld.so.preload is disabled in inputs.conf, not configuring")
+		return nil
+	}
 	found, err := grepFile(modInputs.AutoinstrumentationPath.Value, modInputs.AutoinstrumentationPreloadPath.Value)
 	if err != nil {
 		return err

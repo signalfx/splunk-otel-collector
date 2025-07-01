@@ -6,6 +6,14 @@ modular-inputs:
     default: "$SPLUNK_HOME/var/log/splunk/otel.log"
     replaceable: true
 
+  autoinstrumentation_enabled:
+    description: "Enables autoinstrumentation via /etc/ld.so.preload"
+    default: "true"
+
+  java_zeroconfig_enabled:
+    description: "Enables java zeroconfig"
+    default: "true"
+
   force:
     description: "whether to force installation "
     default: "false"

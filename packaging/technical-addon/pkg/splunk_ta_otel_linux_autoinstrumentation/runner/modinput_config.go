@@ -13,11 +13,13 @@ type SplunkTAOtelLinuxAutoinstrumentationModInput struct {
 }
 
 type SplunkTAOtelLinuxAutoinstrumentationModularInputs struct {
+	AutoinstrumentationEnabled SplunkTAOtelLinuxAutoinstrumentationModInput
 	AutoinstrumentationPath SplunkTAOtelLinuxAutoinstrumentationModInput
 	AutoinstrumentationPreloadPath SplunkTAOtelLinuxAutoinstrumentationModInput
 	Backup SplunkTAOtelLinuxAutoinstrumentationModInput
 	DeploymentEnvironment SplunkTAOtelLinuxAutoinstrumentationModInput
 	Force SplunkTAOtelLinuxAutoinstrumentationModInput
+	JavaZeroconfigEnabled SplunkTAOtelLinuxAutoinstrumentationModInput
 	JavaZeroconfigPath SplunkTAOtelLinuxAutoinstrumentationModInput
 	LogsEnabled SplunkTAOtelLinuxAutoinstrumentationModInput
 	MetricsEnabled SplunkTAOtelLinuxAutoinstrumentationModInput
@@ -38,6 +40,10 @@ type SplunkTAOtelLinuxAutoinstrumentationModularInputs struct {
 
 func GetSplunkTAOtelLinuxAutoinstrumentationModularInputs(mip *modularinput.ModinputProcessor) *SplunkTAOtelLinuxAutoinstrumentationModularInputs {
 	return &SplunkTAOtelLinuxAutoinstrumentationModularInputs{
+		AutoinstrumentationEnabled: SplunkTAOtelLinuxAutoinstrumentationModInput{
+			Value: mip.ModularInputs["autoinstrumentation_enabled"].Value,
+			Name: "autoinstrumentation_enabled",
+		},
 		AutoinstrumentationPath: SplunkTAOtelLinuxAutoinstrumentationModInput{
 			Value: mip.ModularInputs["autoinstrumentation_path"].Value,
 			Name: "autoinstrumentation_path",
@@ -57,6 +63,10 @@ func GetSplunkTAOtelLinuxAutoinstrumentationModularInputs(mip *modularinput.Modi
 		Force: SplunkTAOtelLinuxAutoinstrumentationModInput{
 			Value: mip.ModularInputs["force"].Value,
 			Name: "force",
+		},
+		JavaZeroconfigEnabled: SplunkTAOtelLinuxAutoinstrumentationModInput{
+			Value: mip.ModularInputs["java_zeroconfig_enabled"].Value,
+			Name: "java_zeroconfig_enabled",
 		},
 		JavaZeroconfigPath: SplunkTAOtelLinuxAutoinstrumentationModInput{
 			Value: mip.ModularInputs["java_zeroconfig_path"].Value,
@@ -130,6 +140,12 @@ func GetDefaultSplunkTAOtelLinuxAutoinstrumentationModularInputs() modularinput.
 	return modularinput.GenericModularInput{
 		SchemaName: "Splunk_TA_otel_linux_autoinstrumentation",
 		ModularInputs: map[string]*modularinput.ModInput{
+			"autoinstrumentation_enabled": &modularinput.ModInput{
+				Config: modularinput.ModInputConfig{Description:"Enables autoinstrumentation via /etc/ld.so.preload", Default:"true", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:false, ReplaceableEnvVar:false},
+				Value: "true",
+				Transformers: []modularinput.TransformerFunc{
+				},
+			},
 			"autoinstrumentation_path": &modularinput.ModInput{
 				Config: modularinput.ModInputConfig{Description:"Path for .so", Default:"$SPLUNK_OTEL_TA_PLATFORM_HOME/bin/libsplunk_amd64.so", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:false, ReplaceableEnvVar:true},
 				Value: "$SPLUNK_OTEL_TA_PLATFORM_HOME/bin/libsplunk_amd64.so",
@@ -159,6 +175,12 @@ func GetDefaultSplunkTAOtelLinuxAutoinstrumentationModularInputs() modularinput.
 			"force": &modularinput.ModInput{
 				Config: modularinput.ModInputConfig{Description:"whether to force installation ", Default:"false", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:false, ReplaceableEnvVar:false},
 				Value: "false",
+				Transformers: []modularinput.TransformerFunc{
+				},
+			},
+			"java_zeroconfig_enabled": &modularinput.ModInput{
+				Config: modularinput.ModInputConfig{Description:"Enables java zeroconfig", Default:"true", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:false, ReplaceableEnvVar:false},
+				Value: "true",
 				Transformers: []modularinput.TransformerFunc{
 				},
 			},

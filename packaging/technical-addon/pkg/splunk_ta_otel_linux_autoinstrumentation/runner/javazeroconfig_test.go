@@ -62,7 +62,7 @@ func TestZeroConfig(t *testing.T) {
 					Value: "/etc/ld.so.preload",
 					Name:  "autoinstrumentation_preload_path",
 				},
-				ZeroconfigPath: SplunkTAOtelLinuxAutoinstrumentationModInput{
+				JavaZeroconfigPath: SplunkTAOtelLinuxAutoinstrumentationModInput{
 					Value: "zero.conf",
 					Name:  "zeroconfig_path",
 				},
@@ -103,7 +103,7 @@ SPLUNK_METRICS_ENABLED=false
 		t.Run(tc.testname, func(tt *testing.T) {
 			require.NoError(tt, os.CopyFS(filepath.Join(tc.testDir, "Splunk_TA_otel_linux_autoinstrumentation"), os.DirFS(filepath.Join(packaging.GetBuildDir(), "Splunk_TA_otel_linux_autoinstrumentation"))))
 
-			tc.modInputs.ZeroconfigPath.Value = filepath.Join(tc.testDir, tc.modInputs.ZeroconfigPath.Value)
+			tc.modInputs.JavaZeroconfigPath.Value = filepath.Join(tc.testDir, tc.modInputs.JavaZeroconfigPath.Value)
 			tc.modInputs.AutoinstrumentationPath.Value = filepath.Join(tc.testDir, tc.modInputs.AutoinstrumentationPath.Value)
 			tc.modInputs.AutoinstrumentationPreloadPath.Value = filepath.Join(tc.testDir, tc.modInputs.AutoinstrumentationPreloadPath.Value)
 			tc.modInputs.SplunkOtelJavaAutoinstrumentationJarPath.Value = filepath.Join(tc.testDir, tc.modInputs.SplunkOtelJavaAutoinstrumentationJarPath.Value)
@@ -117,11 +117,11 @@ SPLUNK_METRICS_ENABLED=false
 			} else {
 				assert.NoFileExists(tt, tc.modInputs.AutoinstrumentationPreloadPath.Value)
 			}
-			require.FileExists(tt, tc.modInputs.ZeroconfigPath.Value)
+			require.FileExists(tt, tc.modInputs.JavaZeroconfigPath.Value)
 			expectedPath := filepath.Join(tc.testDir, "expected-zeroconfig.conf")
 			assert.NoFileExists(tt, expectedPath)
 			require.NoError(tt, os.WriteFile(expectedPath, []byte(strings.ReplaceAll(tc.expectedConfig, "REPLACED_WITH_TESTDIR", tc.testDir)), 0o600))
-			testcommon.AssertFilesMatch(tt, expectedPath, tc.modInputs.ZeroconfigPath.Value)
+			testcommon.AssertFilesMatch(tt, expectedPath, tc.modInputs.JavaZeroconfigPath.Value)
 		})
 	}
 }
@@ -146,8 +146,8 @@ func TestHappyPath(t *testing.T) {
 		return err2
 	}
 	zcAddonPath := testaddon.PackAddon(t, &defaultModInputs, addonFunc)
-	otelAddonPath := filepath.Join(packaging.GetBuildDir(), "out", "distribution", "Splunk_TA_otel.tgz")
-	repackedOtelAddon := testaddon.RepackAddon(t, otelAddonPath, func(tt *testing.T, addonDir string) error {
+	otelCollectorAddonPath := filepath.Join(packaging.GetBuildDir(), "out", "distribution", "Splunk_TA_otel.tgz")
+	repackedOtelAddon := testaddon.RepackAddon(t, otelCollectorAddonPath, func(tt *testing.T, addonDir string) error {
 		// TODO copy over a debug output config
 		_, err = fileutils.CopyFile("internal/testdata/happypath/local/ta-agent-config.yaml", filepath.Join(addonDir, "Splunk_TA_otel", "configs", "ta-agent-config.yaml"))
 		require.NoError(tt, err)
@@ -179,10 +179,10 @@ func TestHappyPath(t *testing.T) {
 	require.NoError(t, err)
 	read, err = io.ReadAll(output)
 	assert.NoError(t, err)
-	assert.Contains(t, string(read), "Successfully generated java autoinstrumentation config at /opt/splunk/etc/apps/Splunk_TA_otel_linux_autoinstrumentation/config/zero.conf")
+	assert.Contains(t, string(read), "Successfully generated java autoinstrumentation config at /etc/splunk/zeroconfig/java.conf")
 
 	// Check zeroconfig value
-	_, output, err = tc.Exec(ctx, []string{"sudo", "cat", "/opt/splunk/etc/apps/Splunk_TA_otel_linux_autoinstrumentation/config/zero.conf"}, tcexec.Multiplexed())
+	_, output, err = tc.Exec(ctx, []string{"sudo", "cat", "/etc/splunk/zeroconfig/java.conf"}, tcexec.Multiplexed())
 	require.NoError(t, err)
 	read, err = io.ReadAll(output)
 	assert.NoError(t, err)
@@ -209,6 +209,4 @@ func TestHappyPath(t *testing.T) {
 	read, err = io.ReadAll(output)
 	assert.NoError(t, err)
 	assert.Contains(t, string(read), strings.TrimSpace(javaAgent256Sum))
-
-	assert.NoError(t, tc.Terminate(ctx))
 }

@@ -104,15 +104,15 @@ func TestRunner(t *testing.T) {
 	assert.NoError(t, err)
 	expectedJSON := `{"Flags":["--test-flag","/opt/splunk/etc/apps/Sample_Addon/local/access_token","--test-flag"],"EnvVars":["EVERYTHING_SET=/opt/splunk/etc/apps/Sample_Addon/local/access_token","UNARY_FLAG_WITH_EVERYTHING_SET=/opt/splunk/etc/apps/Sample_Addon/local/access_token"], "SplunkHome":"/opt/splunk/etc", "TaHome":"/opt/splunk/etc/apps/Sample_Addon", "PlatformHome":"/opt/splunk/etc/apps/Sample_Addon/linux_x86_64", "EverythingSet":"/opt/splunk/etc/apps/Sample_Addon/local/access_token", "MinimalSet":"", "MinimalSetRequired":"", "UnaryFlagWithEverythingSet":"/opt/splunk/etc/apps/Sample_Addon/local/access_token","Platform":"linux"}`
 	i := bytes.Index(read, []byte("Sample output:"))
+	line := read[i+len("Sample output:"):]
+	line = line[:bytes.Index(line, []byte("\n"))]
 	unmarshalled := &ExampleOutput{}
-	dec := json.NewDecoder(bytes.NewReader(read[i+len("Sample output:"):]))
+	dec := json.NewDecoder(bytes.NewReader(line))
 	dec.DisallowUnknownFields()
 	require.NoError(t, dec.Decode(unmarshalled))
 	expected := &ExampleOutput{}
 	require.NoError(t, json.Unmarshal([]byte(expectedJSON), expected))
 	assert.EqualValues(t, expected, unmarshalled)
-
-	assert.NoError(t, tc.Terminate(ctx))
 }
 
 func TestRunnerConfigGeneration(t *testing.T) {

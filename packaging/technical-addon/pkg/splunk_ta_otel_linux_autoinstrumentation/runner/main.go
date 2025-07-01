@@ -120,9 +120,10 @@ func AutoinstrumentLdPreload(modInputs *SplunkTAOtelLinuxAutoinstrumentationModu
 		return err
 	}
 	if !found {
-		// todo check modinputs for backup of file
-		if err = backupFile(modInputs.AutoinstrumentationPreloadPath.Value); err != nil {
-			return err
+		if strings.ToLower(modInputs.Backup.Value) != "false" {
+			if err = backupFile(modInputs.AutoinstrumentationPreloadPath.Value); err != nil {
+				return err
+			}
 		}
 		f, err2 := os.OpenFile(modInputs.AutoinstrumentationPreloadPath.Value, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
 		if err2 != nil {
@@ -149,7 +150,7 @@ func RemovePreloadInstrumentation(modInputs *SplunkTAOtelLinuxAutoinstrumentatio
 		if err != nil {
 			return err
 		}
-		if modInputs.Backup.Value != "false" {
+		if strings.ToLower(modInputs.Backup.Value) != "false" {
 			if err = backupFile(modInputs.AutoinstrumentationPreloadPath.Value); err != nil {
 				return err
 			}

@@ -27,6 +27,10 @@ MODULAR_INPUT_SCHEMAS=Splunk_TA_otel_linux_autoinstrumentation
 TOOLS_DIR := $(BUILD_DIR)/.tools
 MODINPUT_CONFIG_GENERATOR := $(TOOLS_DIR)/modinput_config_generator
 
+# Overrides
+# Packaging addons and starting splunk takes some time...
+GOTEST_OPT= -v -timeout 8m --tags=$(GO_BUILD_TAGS)
+
 # Make targets
 .PHONY: ta-build-tools
 ta-build-tools:

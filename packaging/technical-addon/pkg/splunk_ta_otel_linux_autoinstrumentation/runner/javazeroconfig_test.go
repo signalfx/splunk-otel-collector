@@ -25,6 +25,7 @@ import (
 	"time"
 
 	"github.com/docker/docker/pkg/fileutils"
+
 	"github.com/splunk/splunk-technical-addon/internal/packaging"
 	"github.com/splunk/splunk-technical-addon/internal/testaddon"
 	"github.com/splunk/splunk-technical-addon/internal/testcommon"

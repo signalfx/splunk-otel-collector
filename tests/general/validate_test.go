@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build integration
-
 package tests
 
 import (
@@ -153,5 +151,5 @@ service:
 	)
 	require.Equal(t, 1, sc)
 	require.Empty(t, stdout)
-	require.Contains(t, stderr, `error decoding 'exporters': unknown type: "notreal"`)
+	require.Contains(t, stderr, `'exporters' unknown type: \"notreal\" for id: \"notreal\"`)
 }

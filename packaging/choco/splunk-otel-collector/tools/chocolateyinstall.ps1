@@ -177,6 +177,7 @@ try {
 
 # Install and configure fluentd to forward log events to the collector.
 if ($WITH_FLUENTD) {
+    Write-Warning '[DEPRECATED] Fluentd support has been deprecated and will be removed in a future release. Please refer to documentation for more information: https://github.com/signalfx/splunk-otel-collector/blob/main/docs/deprecations/fluentd-support.md'
     # Skip installation of fluentd if already installed
     if ((Get-Service -Name $fluentd_service_name -ErrorAction SilentlyContinue) -OR (Test-Path -Path "$fluentd_base_dir\bin\fluentd")) {
         $SkipFluentd = $TRUE

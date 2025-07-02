@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### 🚩 Deprecations 🚩
+
+- (Splunk) `packaging`: Fluentd support has been deprecated in packages and will be removed in a future release.
+  Please refer to [deprecation documentation](./docs/deprecations/fluentd-support.md) for more information ([#6366](https://github.com/signalfx/splunk-otel-collector/pull/6366))
+
 ## v0.128.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.128.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.128.0)

@@ -2,7 +2,7 @@
 
 Ansible role that installs Splunk OpenTelemetry Collector configured to
 collect metrics, traces and logs from Linux machines and send data to [Splunk 
-Observability Cloud](https://www.splunk.com/en_us/observability.html). 
+Observability Cloud](https://www.splunk.com/en_us/products/observability.html). 
 
 ## Prerequisites
 

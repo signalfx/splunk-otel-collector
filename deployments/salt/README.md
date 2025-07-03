@@ -2,7 +2,7 @@
 
 This formula installs and configures Splunk OpenTelemetry Collector to
 collect metrics, traces and logs from Linux machines and send data to [Splunk 
-Observability Cloud](https://www.splunk.com/en_us/observability.html). 
+Observability Cloud](https://www.splunk.com/en_us/products/observability.html). 
 
 ## Linux
 Currently, the following Linux distributions and versions are supported:

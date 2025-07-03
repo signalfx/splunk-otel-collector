@@ -72,9 +72,9 @@ jobs:
 
 
   test-ta-linux-autoinstrumentation:
-    name: test-modinput-config-generator
+    name: test-ta-linux-autoinstrumentation
     runs-on: ubuntu-24.04
-    needs: [setup-environment]
+    needs: [setup-environment, test]
     defaults:
       run:
         working-directory: ${{github.workspace}}/packaging/technical-addon

@@ -79,6 +79,7 @@ and the [opentelemetry-collector-contrib v0.129.0](https://github.com/open-telem
   The affected functions are: convert_summary_count_val_to_sum(), convert_summary_sum_val_to_sum(), extract_count_metric(), extract_sum_metric()
 
 ### 🧰 Bug fixes 🧰
+
 - (Core) `pdata`: Fix copying of optional fields when the source is unset. ([#13268](https://github.com/open-telemetry/opentelemetry-collector/pull/13268))
 - (Core) `service`: Only allocate one set of internal log sampling counters ([#13014](https://github.com/open-telemetry/opentelemetry-collector/pull/13014))
   The case where logs are only exported to stdout was fixed in v0.126.0;

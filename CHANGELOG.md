@@ -38,6 +38,7 @@ and the [opentelemetry-collector-contrib v0.129.0](https://github.com/open-telem
   It has been beta since v0.126.0
 
 ### 💡 Enhancements 💡
+
 - (Core) `service`: Support setting `sampler` and `limits` under `service::telemetry::traces` ([#13201](https://github.com/open-telemetry/opentelemetry-collector/pull/13201))
   This allows users to enable sampling and set span limits on internal Collector traces using the
   OpenTelemetry SDK declarative configuration.

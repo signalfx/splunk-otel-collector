@@ -43,6 +43,7 @@ jobs:
   test-generator:
     name: test-modinput-config-generator
     runs-on: ubuntu-24.04
+    if: needs.check_changes.outputs.ta_packaging_change == 'true' || needs.check_changes.outputs.ta_workflow_change == 'true'
     defaults:
       run:
         working-directory: ${{github.workspace}}/packaging/technical-addon
@@ -75,10 +76,13 @@ jobs:
     name: test-ta-linux-autoinstrumentation
     runs-on: ubuntu-24.04
     needs: [test]
+    if: needs.check_changes.outputs.ta_packaging_change == 'true' || needs.check_changes.outputs.ta_workflow_change == 'true'
     defaults:
       run:
         working-directory: ${{github.workspace}}/packaging/technical-addon
     steps:
+        - uses: actions/checkout@v4
+        - uses: ./.github/actions/setup-environment
         - name: Test normal go code
           run: |
             set -o pipefail

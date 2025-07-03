@@ -290,4 +290,4 @@ is properly configured, is available
 
 [Apache Software License version 2.0](./LICENSE).
 
->ℹ️&nbsp;&nbsp;SignalFx was acquired by Splunk in October 2019. See [Splunk SignalFx](https://www.splunk.com/en_us/investor-relations/acquisitions/signalfx.html) for more information.
+>ℹ️&nbsp;&nbsp;SignalFx was acquired by Splunk in October 2019. See [Splunk SignalFx](https://www.splunk.com/en_us/about-splunk/acquisitions/signalfx.html) for more information.

@@ -42,15 +42,6 @@ and the [opentelemetry-collector-contrib v0.129.0](https://github.com/open-telem
 - (Core) `service`: Support setting `sampler` and `limits` under `service::telemetry::traces` ([#13201](https://github.com/open-telemetry/opentelemetry-collector/pull/13201))
   This allows users to enable sampling and set span limits on internal Collector traces using the
   OpenTelemetry SDK declarative configuration.
-- (Core) `pdata/pprofile`: Add new helper methods `FromLocationIndices` and `PutLocation` to read and modify the content of locations. ([#13150](https://github.com/open-telemetry/opentelemetry-collector/pull/13150))
-- (Core) `exporterhelper`: Preserve request span context and client information in the persistent queue. ([#11740](https://github.com/open-telemetry/opentelemetry-collector/pull/11740), [#13220](https://github.com/open-telemetry/opentelemetry-collector/pull/13220), [#13232](https://github.com/open-telemetry/opentelemetry-collector/pull/13232))
-  It allows internal collector spans and client information to propagate through the persistent queue used by
-  the exporters. The same way as it's done for the in-memory queue.
-  Currently, it is behind the exporter.PersistRequestContext feature gate, which can be enabled by adding
-  `--feature-gates=exporter.PersistRequestContext` to the collector command line. An exporter buffer stored by
-  a previous version of the collector (or by a collector with the feature gate disabled) can be read by a newer
-  collector with the feature enabled. However, the reverse is not supported: a buffer stored by a newer collector with
-  the feature enabled cannot be read by an older collector (or by a collector with the feature gate disabled).
 - (Contrib) `windowseventlogreceiver`: Added option to prevent collector shutdown due to errors while opening channels ([#36237](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/36237))
 - (Contrib) `azuremonitorreceiver`: Add support for azureauth when batch api is enabled. ([#40872](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40872))
 - (Contrib) `azuremonitorreceiver`: fix unnecessarily exported struct ([#40662](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40662))

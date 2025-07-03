@@ -46,7 +46,7 @@
 Splunk OpenTelemetry Collector is a distribution of the [OpenTelemetry
 Collector](https://github.com/open-telemetry/opentelemetry-collector). It
 provides a unified way to receive, process, and export metric, trace, and log
-data for [Splunk Observability Cloud](https://www.splunk.com/en_us/observability.html):
+data for [Splunk Observability Cloud](https://www.splunk.com/en_us/products/observability.html):
 
 - [Splunk APM](https://docs.splunk.com/Observability/apm/intro-to-apm.html#nav-Introduction-to-Splunk-APM) via the
   [`otlphttp`
@@ -63,8 +63,8 @@ data for [Splunk Observability Cloud](https://www.splunk.com/en_us/observability
 While it is recommended to use [Splunk
 Forwarders](https://docs.splunk.com/Documentation/Splunk/latest/Data/Usingforwardingagents)
 to send data to [Splunk
-Cloud](https://www.splunk.com/en_us/software/splunk-cloud-platform.html) or [Splunk
-Enterprise](https://www.splunk.com/en_us/software/splunk-enterprise.html),
+Cloud](https://www.splunk.com/en_us/products/splunk-cloud-platform.html) or [Splunk
+Enterprise](https://www.splunk.com/en_us/products/splunk-enterprise.html),
 Splunk OpenTelemetry Collector can be configured to send data to them via the
 [`splunk_hec`
 exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/splunkhecexporter).
@@ -290,4 +290,4 @@ is properly configured, is available
 
 [Apache Software License version 2.0](./LICENSE).
 
->ℹ️&nbsp;&nbsp;SignalFx was acquired by Splunk in October 2019. See [Splunk SignalFx](https://www.splunk.com/en_us/investor-relations/acquisitions/signalfx.html) for more information.
+>ℹ️&nbsp;&nbsp;SignalFx was acquired by Splunk in October 2019. See [Splunk SignalFx](https://www.splunk.com/en_us/about-splunk/acquisitions/signalfx.html) for more information.

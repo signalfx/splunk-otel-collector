@@ -3,7 +3,7 @@
 This cookbook installs and configures the Splunk OpenTelemetry Collector to
 collect metrics, traces and logs from Linux and Windows machines and sends
 data to [Splunk Observability Cloud](
-https://www.splunk.com/en_us/observability.html).
+https://www.splunk.com/en_us/products/observability.html).
 
 ## Prerequisites
 

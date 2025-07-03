@@ -63,7 +63,6 @@ and the [opentelemetry-collector-contrib v0.129.0](https://github.com/open-telem
   The franz-go client is a high-performance Kafka client that can improve the performance of the Kafka receiver.
   The default client remains sarama, which is used by the Kafka exporter and other components.
   Enable the franz-go client by setting the `receiver.kafkareceiver.UseFranzGo` feature gate.
-
 - (Contrib) `kafkareceiver`: Refactor Sarama client to pave the way for franz-go `featuregate` opt-in ([#40628](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40628))
 - (Contrib) `kafkaexporter`: Improve kafkaexporter internal metrics telemetry ([#40815](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40815))
 - (Contrib) `kafkareceiver`: Create the consumer group asynchronously, and report component status ([#40516](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40516))

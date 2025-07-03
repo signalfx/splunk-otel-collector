@@ -153,5 +153,5 @@ service:
 	)
 	require.Equal(t, 1, sc)
 	require.Empty(t, stdout)
-	require.Contains(t, stderr, `error decoding 'exporters': unknown type: "notreal"`)
+	require.Contains(t, stderr, `'exporters' unknown type: "notreal" for id: "notreal"`)
 }

@@ -4,19 +4,18 @@ resourceMetrics:
         - key: url.scheme
           value:
             stringValue: http
-#         TODO: Re-enable test coverage after https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/40722
-#          - key: label_one
-#            value:
-#              stringValue: actual.label.one.value.from.env.var
-#          - key: label_three
-#            value:
-#              stringValue: actual.label.three.value.from.cmdline.property
-#          - key: label_two
-#            value:
-#              stringValue: actual.label.two.value.from.env.var
-#          - key: net.host.port
-#            value:
-#              stringValue: "52144"
+        - key: label_one
+          value:
+            stringValue: actual.label.one.value.from.env.var
+        - key: label_three
+          value:
+            stringValue: actual.label.three.value.from.cmdline.property
+        - key: label_two
+          value:
+            stringValue: actual.label.two.value.from.env.var
+        - key: net.host.port
+          value:
+            stringValue: "52144"
         - key: net.host.port
           value:
             stringValue: "52144"

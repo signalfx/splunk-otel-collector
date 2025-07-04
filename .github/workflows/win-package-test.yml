@@ -78,7 +78,7 @@ jobs:
       - uses: actions/setup-dotnet@v4.3.1
         with:
           dotnet-version: |
-            6.0.407
+            8.0.300
 
       - name: Download Splunk OTel Collector msi
         uses: actions/download-artifact@v4.1.3

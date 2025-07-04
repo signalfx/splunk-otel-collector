@@ -7,6 +7,7 @@
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.129.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.129.0)
 and the [opentelemetry-collector-contrib v0.129.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.129.0) releases where appropriate.
 
+
 ### 🛑 Breaking changes 🛑
 
 - (Core) `exporterhelper`: Remove deprecated sending_queue::blocking options, use sending_queue::block_on_overflow. ([#13211](https://github.com/open-telemetry/opentelemetry-collector/pull/13211))
@@ -39,6 +40,8 @@ and the [opentelemetry-collector-contrib v0.129.0](https://github.com/open-telem
 
 ### 💡 Enhancements 💡
 
+- (Splunk) Update `splunk-otel-javaagent` to `v2.16.0` ([#6336](https://github.com/signalfx/splunk-otel-collector/pull/6336/files))
+- (Splunk) `receiver/discovery`: Propagate logs reported by dynamic receivers ([#6388 ](https://github.com/signalfx/splunk-otel-collector/pull/6388/files))
 - (Core) `service`: Support setting `sampler` and `limits` under `service::telemetry::traces` ([#13201](https://github.com/open-telemetry/opentelemetry-collector/pull/13201))
   This allows users to enable sampling and set span limits on internal Collector traces using the
   OpenTelemetry SDK declarative configuration.

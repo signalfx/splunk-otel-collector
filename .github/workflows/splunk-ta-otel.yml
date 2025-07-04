@@ -21,26 +21,15 @@ concurrency:
 env:
   GO_VERSION: 1.23.10
 jobs:
-  setup-environment:
-    name: setup-environment
-    uses: ./.github/workflows/setup-environment.yml
-
   test:
     name: test
     runs-on: ubuntu-24.04
-    needs: [setup-environment]
     defaults:
       run:
         working-directory: ${{github.workspace}}/packaging/technical-addon
     steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-environment
 
       - name: Build & Package TA
         run: |
@@ -54,24 +43,12 @@ jobs:
   test-generator:
     name: test-modinput-config-generator
     runs-on: ubuntu-24.04
-    needs: [setup-environment]
     defaults:
       run:
         working-directory: ${{github.workspace}}/packaging/technical-addon
     steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
-
-      - name: install tools
-        run: |
-          set -o pipefail
-          cd ${{github.workspace}} && make install-tools
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-environment
 
       - name: Test addon generator
         run: |
@@ -107,29 +84,29 @@ jobs:
         id: changed-files
         run: |
           if [ "${{ github.event_name }}" == "pull_request" ]; then
-            echo "files=$(git diff --name-only origin/${{ github.base_ref }} ${{ github.sha }} | tr '\n' ' ')" >> $GITHUB_OUTPUT
+            echo "files=$(git diff --name-only origin/${{ github.base_ref }} ${{ github.sha }} | tr '\n' ' ')" >> "$GITHUB_OUTPUT"
           else
-            echo "files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | tr '\n' ' ')" >> $GITHUB_OUTPUT
+            echo "files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | tr '\n' ' ')" >> "$GITHUB_OUTPUT"
           fi
       - name: Filter paths
         id: filter
         run: |
           files="${{ steps.changed-files.outputs.files }}"
           if echo "$files" | grep -qE "packaging/technical-addon"; then
-            echo "ta_packaging_change=true" >> $GITHUB_OUTPUT
+            echo "ta_packaging_change=true" >> "$GITHUB_OUTPUT"
           else
-            echo "ta_packaging_change=false" >> $GITHUB_OUTPUT
+            echo "ta_packaging_change=false" >> "$GITHUB_OUTPUT"
           fi
           if echo "$files" | grep -qE ".github/workflows/splunk-ta-otel.yml"; then
-            echo "ta_workflow_change=true" >> $GITHUB_OUTPUT
+            echo "ta_workflow_change=true" >> "$GITHUB_OUTPUT"
           else
-            echo "ta_workflow_change=false" >> $GITHUB_OUTPUT
+            echo "ta_workflow_change=false" >> "$GITHUB_OUTPUT"
           fi
 
   distribute-ta:
     name: "distribute-ta" # what gets run to package in gitlab
     runs-on: ubuntu-24.04
-    needs: [setup-environment, check_changes, test-discovery]
+    needs: [check_changes, test-discovery]
     if: needs.check_changes.outputs.ta_packaging_change == 'true' || needs.check_changes.outputs.ta_workflow_change == 'true'
     defaults:
       run:
@@ -137,6 +114,7 @@ jobs:
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-environment
 
       - name: Build & Package TA
         run: |
@@ -152,7 +130,7 @@ jobs:
   test-discovery:
     name: test-discovery
     runs-on: ubuntu-24.04
-    needs: [setup-environment, test]
+    needs: [test]
     defaults:
       run:
         working-directory: ${{github.workspace}}/packaging/technical-addon
@@ -162,6 +140,7 @@ jobs:
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-environment
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -180,7 +159,7 @@ jobs:
   test-envvars:
     name: test-envvars
     runs-on: ubuntu-24.04
-    needs: [setup-environment, test]
+    needs: [test]
     defaults:
       run:
         working-directory: ${{github.workspace}}/packaging/technical-addon
@@ -190,6 +169,7 @@ jobs:
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-environment
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -208,12 +188,11 @@ jobs:
   spell-check:
     name: spell-check
     runs-on: ubuntu-latest
-    needs: [setup-environment]
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4
-        with:
-          sparse-checkout: packaging/technical-addon/
+      - uses: ./.github/actions/setup-environment
+
       - uses: streetsidesoftware/cspell-action@v7
         with:
           config: ${{github.workspace}}/packaging/technical-addon/packaging-scripts/cspell/cspell.json

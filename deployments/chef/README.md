@@ -3,7 +3,7 @@
 This cookbook installs and configures the Splunk OpenTelemetry Collector to
 collect metrics, traces and logs from Linux and Windows machines and sends
 data to [Splunk Observability Cloud](
-https://www.splunk.com/en_us/observability.html).
+https://www.splunk.com/en_us/products/observability.html).
 
 ## Prerequisites
 
@@ -153,6 +153,9 @@ required `splunk_access_token` attribute and some optional attributes:
   variable for the collector service (**default:** `''`).
 
 ### Fluentd
+
+> **_NOTE:_**  Fluentd support has been deprecated and will be removed in a future release.
+> Please refer to [deprecation documentation](../../docs/deprecations/fluentd-support.md) for more information.
 
 - `with_fluentd`: Whether to install/manage Fluentd and dependencies for log
   collection. On Linux, the dependencies include [capng_c](

@@ -74,12 +74,15 @@ DOTNET_VARS = {
 }
 
 
-def run_puppet_apply(container, config):
+def run_puppet_apply(container, config, strict_mode=True):
     with tempfile.NamedTemporaryFile(mode="w+") as fd:
         print(config)
         fd.write(config)
         fd.flush()
         copy_file_into_container(container, fd.name, "/root/test.pp")
+
+    if not strict_mode:
+      assert container.exec_run("puppet config set strict warning --section main").exit_code == 0
 
     code, output = container.exec_run("puppet apply --detailed-exitcodes /root/test.pp")
     print(output.decode("utf-8"))
@@ -216,7 +219,8 @@ def test_puppet_with_custom_vars(distro, puppet_release):
             api_url = "https://fake-splunk-api.com"
             ingest_url = "https://fake-splunk-ingest.com"
             config = CUSTOM_VARS_CONFIG.substitute(api_url=api_url, ingest_url=ingest_url, version="0.126.0")
-            run_puppet_apply(container, config)
+            # TODO: When Fluentd is removed and `with_fluentd` is false, the strict_mode option can be removed.
+            run_puppet_apply(container, config, strict_mode=False)
             verify_package_version(container, "splunk-otel-collector", "0.126.0")
             verify_env_file(container, api_url, ingest_url, "fake-hec-token")
             verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_LISTEN_INTERFACE", "0.0.0.0")
@@ -455,7 +459,7 @@ WIN_CONFIG_PATH = r"C:\ProgramData\Splunk\OpenTelemetry Collector\agent_config.y
 
 WIN_COLLECTOR_VERSION = os.environ.get("WIN_COLLECTOR_VERSION", "123.456.789") # Windows require a pre-defined version, use an inexistent version to force a test failure 
 
-def run_win_puppet_setup(puppet_release):
+def run_win_puppet_setup(puppet_release, strict_mode=True):
     assert has_choco(), "choco not installed!"
     if puppet_release == "latest":
         run_win_command(f"choco upgrade -y -f puppet-agent")
@@ -470,6 +474,8 @@ def run_win_puppet_setup(puppet_release):
     run_win_command("puppet module install puppetlabs-powershell")
     run_win_command("puppet module install puppetlabs-registry")
 
+    if not strict_mode:
+      run_win_command("puppet config set strict warning --section main")
 
 def run_win_puppet_agent(config):
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -516,7 +522,8 @@ def test_win_puppet_default():
 @pytest.mark.windows
 @pytest.mark.skipif(sys.platform != "win32", reason="only runs on windows")
 def test_win_puppet_custom_vars():
-    run_win_puppet_setup(WIN_PUPPET_RELEASE)
+    # TODO: Remove strict_mode option when fluentd is disabled or removed
+    run_win_puppet_setup(WIN_PUPPET_RELEASE, strict_mode=False)
 
     api_url = "https://fake-splunk-api.com"
     ingest_url = "https://fake-splunk-ingest.com"

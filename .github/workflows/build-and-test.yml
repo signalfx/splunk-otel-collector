@@ -15,27 +15,15 @@ env:
   GO_VERSION: 1.23.10
 
 jobs:
-  setup-environment:
-    name: setup-environment
-    uses: ./.github/workflows/setup-environment.yml
-
   tidy:
     name: tidy
     runs-on: ubuntu-24.04
-    needs: [setup-environment]
     steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-environment
 
       - name: tidy
         run: |
-          make install-tools
           make for-all CMD="make tidy"
           if ! git diff --exit-code; then
             echo "One or more Go files are not tidied. Run 'make for-all CMD=\"make tidy\"' and push the changes."
@@ -45,42 +33,24 @@ jobs:
   gofmt:
     name: gofmt
     runs-on: ubuntu-24.04
-    needs: [setup-environment]
     steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-environment
 
       - name: gofmt
         run: |
-          make install-tools
           make for-all CMD="make fmt"
           if ! git diff --exit-code; then
-            echo "One or more Go files are not formatted correctly. Run 'make for-all CMD="make fmt"' and push the changes."
+            echo "One or more Go files are not formatted correctly. Run 'make for-all CMD=\"make fmt\"' and push the changes."
             exit 1
           fi
 
   generate-metrics:
     name: generate-metrics
     runs-on: ubuntu-24.04
-    needs: [setup-environment]
     steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
-
-      - name: install-tools
-        run: make install-tools
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-environment
 
       - name: generate-metrics
         run: |
@@ -93,18 +63,11 @@ jobs:
   lint:
     name: lint
     runs-on: ubuntu-24.04
-    needs: [setup-environment]
     steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-environment
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
-
-      - run: echo "GOLANGCI_LINT_CACHE=${HOME}/.cache/golangci-lint" >> $GITHUB_ENV
+      - run: echo "GOLANGCI_LINT_CACHE=${HOME}/.cache/golangci-lint" >> "$GITHUB_ENV"
 
       - uses: actions/cache@v4
         with:
@@ -113,61 +76,38 @@ jobs:
 
       - name: Lint
         run: |
-          make install-tools
           make for-all CMD="make lint"
 
-  test:
-    name: test
+  actionlint:
     runs-on: ubuntu-24.04
-    needs: [setup-environment]
     steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - name: Download actionlint
+        id: get_actionlint
+        run: bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/03d0035/scripts/download-actionlint.bash) # v1.7.7
+        shell: bash
+      - name: Check workflow files
+        run: ${{ steps.get_actionlint.outputs.executable }} -color
+        shell: bash
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
-
-      - name: Unit tests
-        run: |
-          set -o pipefail
-          make install-tools
-          mkdir -p unit-test-results/junit
-          trap "go-junit-report  -set-exit-code < unit-test-results/go-unit-tests.out > unit-test-results/junit/results.xml" EXIT
-          make for-all CMD="make test" | tee unit-test-results/go-unit-tests.out
-
-      - name: Uploading artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: unit-test-results
-          path: ./unit-test-results
-
-      - name: bundle.d
-        run: |
-          make bundle.d
-          if ! git diff --exit-code; then
-            echo "Discovery bundle.d config has changed. Run 'make bundle.d' and push the changes or ensure correct .tmpl updated."
-            exit 1
-          fi
+  test:
+    name: unit-test
+    strategy:
+      matrix:
+        # The "macos-13-xlarge" runner is arm64: https://github.com/actions/runner-images/issues/8439
+        OS: [ "ubuntu-24.04", "macos-13", "macos-13-xlarge", "macos-14", "macos-15" ]
+    uses: ./.github/workflows/unit-test.yml
+    with:
+      OS: ${{ matrix.OS }}
+      COVERAGE: true
+    secrets: inherit
 
   coverage:
     name: coverage
     runs-on: ubuntu-24.04
-    needs: [setup-environment]
     steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
-
-      - name: Install Tools
-        run: make install-tools
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-environment
 
       - name: Run Unit Tests With Coverage
         run: make gotest-with-codecov
@@ -181,10 +121,9 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   cross-compile:
-    needs: [setup-environment]
     strategy:
       matrix:
         SYS_BINARIES: [ "binaries-darwin_amd64", "binaries-darwin_arm64", "binaries-linux_amd64", "binaries-linux_arm64", "binaries-windows_amd64", "binaries-linux_ppc64le" ]
     uses: ./.github/workflows/compile.yml
     with:
-      sys_binary: ${{ matrix.SYS_BINARIES }}
+      SYS_BINARY: ${{ matrix.SYS_BINARIES }}

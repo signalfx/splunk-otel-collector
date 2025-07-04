@@ -2,7 +2,7 @@
 
 Ansible role that installs Splunk OpenTelemetry Collector configured to
 collect metrics, traces and logs from Linux machines and send data to [Splunk 
-Observability Cloud](https://www.splunk.com/en_us/observability.html). 
+Observability Cloud](https://www.splunk.com/en_us/products/observability.html). 
 
 ## Prerequisites
 
@@ -172,6 +172,9 @@ which allows setting up a proxy to download the collector binaries.
 - `win_proxy_password` (Windows only): The password for `win_proxy_username`. (**default:** ``)
 
 ### Fluentd
+
+> **_NOTE:_**  Fluentd support has been deprecated and will be removed in a future release.
+> Please refer to [deprecation documentation](../../../../docs/deprecations/fluentd-support.md) for more information.
 
 - `install_fluentd`: Whether to install/manage fluentd and dependencies for log
   collection. The dependencies include [capng_c](

@@ -32,7 +32,7 @@ jobs:
         SYS_BINARIES: [ "binaries-linux_amd64", "binaries-linux_arm64" ]
     uses: ./.github/workflows/compile.yml
     with:
-      sys_binary: ${{ matrix.SYS_BINARIES }}
+      SYS_BINARY: ${{ matrix.SYS_BINARIES }}
 
   build-package:
     runs-on: ${{ matrix.ARCH == 'amd64' && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
@@ -80,7 +80,7 @@ jobs:
           exclude='{"ARCH": "arm64", "TESTCASE": "dotnet"}'
           matrix="{\"DISTRO\": [${distro%,}], \"ARCH\": [${arch}], \"TESTCASE\": [${testcase}], \"exclude\": [${exclude}]}"
           echo "$matrix" | jq
-          echo "matrix=${matrix}" >> $GITHUB_OUTPUT
+          echo "matrix=${matrix}" >> "$GITHUB_OUTPUT"
     outputs:
       matrix: ${{ steps.get-matrix.outputs.matrix }}
 
@@ -99,19 +99,19 @@ jobs:
         run: |
           for pkg in "deb" "rpm"; do
             if [[ -f "packaging/tests/instrumentation/images/${pkg}/Dockerfile.${{ matrix.DISTRO }}" ]]; then
-              echo "SYS_PACKAGE=${pkg}" >> $GITHUB_ENV
+              echo "SYS_PACKAGE=${pkg}" >> "$GITHUB_ENV"
               exit 0
             fi
           done
           echo "Unknown distro '${{ matrix.DISTRO }}'!"
           exit 1
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4.1.3
         with:
           name: binaries-linux_${{ matrix.ARCH }}
           path: ./bin
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4.1.3
         with:
           name: splunk-otel-auto-instrumentation-${{ matrix.ARCH }}-${{ env.SYS_PACKAGE }}
           path: ./instrumentation/dist

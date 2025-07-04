@@ -2,7 +2,7 @@
 
 This formula installs and configures Splunk OpenTelemetry Collector to
 collect metrics, traces and logs from Linux machines and send data to [Splunk 
-Observability Cloud](https://www.splunk.com/en_us/observability.html). 
+Observability Cloud](https://www.splunk.com/en_us/products/observability.html). 
 
 ## Linux
 Currently, the following Linux distributions and versions are supported:
@@ -114,6 +114,9 @@ splunk-otel-collector:
   `/etc/otel/collector/splunk-otel-collector.conf` systemd environment file.
 
 ### Fluentd
+
+> **_NOTE:_**  Fluentd support has been deprecated and will be removed in a future release.
+> Please refer to [deprecation documentation](../../docs/deprecations/fluentd-support.md) for more information.
 
 - `install_fluentd`: Whether to install/manage fluentd and dependencies for log
   collection. The dependencies include [capng_c](

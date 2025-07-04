@@ -130,7 +130,6 @@ func TestHostObserver(t *testing.T) {
 		}
 		err := pmetrictest.CompareMetrics(expected, tc.OTLPReceiverSink.AllMetrics()[len(tc.OTLPReceiverSink.AllMetrics())-1],
 			pmetrictest.IgnoreResourceAttributeValue("service.instance.id"),
-			pmetrictest.IgnoreResourceAttributeValue("net.host.port"),
 			pmetrictest.IgnoreResourceAttributeValue("server.port"),
 			pmetrictest.IgnoreResourceAttributeValue("service.instance.id"),
 			pmetrictest.IgnoreResourceAttributeValue("service.version"),

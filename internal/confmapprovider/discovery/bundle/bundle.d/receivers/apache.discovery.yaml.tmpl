@@ -1,5 +1,6 @@
 {{ receiver "apache" }}:
   enabled: true
+  service_type: apache
   rule:
     docker_observer: type == "container" and any([name, image, command], {# matches "(?i)(httpd|apache2).*"}) and not (command matches "splunk.discovery")
     host_observer: type == "hostport" and command matches "(?i)(httpd|apache2).*" and not (command matches "splunk.discovery")

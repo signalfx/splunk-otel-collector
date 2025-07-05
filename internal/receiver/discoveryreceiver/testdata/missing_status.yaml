@@ -3,4 +3,5 @@ discovery:
     - an_observer
   receivers:
     a_receiver:
+      service_type: a_service
       rule: type == "container"

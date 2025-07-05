@@ -7,6 +7,7 @@ receivers:
     embed_receiver_config: true
     receivers:
       kafkametrics:
+        service_type: kafka
         config:
           client_id: "otel-integration-test"
           protocol_version: "2.0.0"

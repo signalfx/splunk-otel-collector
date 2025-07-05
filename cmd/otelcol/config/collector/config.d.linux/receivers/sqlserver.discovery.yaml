@@ -8,6 +8,7 @@
 #####################################################################################
 # sqlserver:
 #   enabled: true
+#   service_type: sqlserver
 #   rule:
 #     docker_observer: type == "container" and any([name, image, command], {# matches "(?i)mssql"}) and not (command matches "splunk.discovery")
 #     host_observer: type == "hostport" and command matches "(?i)mssql" and not (command matches "splunk.discovery")

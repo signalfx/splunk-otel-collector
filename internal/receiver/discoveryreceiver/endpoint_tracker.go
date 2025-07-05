@@ -268,7 +268,6 @@ func entityEvents(observerID component.ID, endpoints []observer.Endpoint, correl
 		for k, v := range endpointAttrs {
 			attrs.PutStr(k, v)
 		}
-		attrs.PutStr(serviceTypeAttr, deduceServiceType(attrs))
 		attrs.PutStr(string(conventions.ServiceNameKey), deduceServiceName(attrs))
 
 		event := events.AppendEmpty()
@@ -393,16 +392,6 @@ func deduceServiceName(attrs pcommon.Map) string {
 		return val.AsString()
 	}
 	if val, ok := attrs.Get("process_name"); ok {
-		return val.AsString()
-	}
-	return "unknown"
-}
-
-func deduceServiceType(attrs pcommon.Map) string {
-	if val, ok := attrs.Get(serviceTypeAttr); ok {
-		return val.AsString()
-	}
-	if val, ok := attrs.Get(discovery.ReceiverTypeAttr); ok {
 		return val.AsString()
 	}
 	return "unknown"

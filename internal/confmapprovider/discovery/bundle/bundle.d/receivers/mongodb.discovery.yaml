@@ -4,6 +4,7 @@
 #####################################################################################
 mongodb:
   enabled: true
+  service_type: mongodb
   rule:
     docker_observer: type == "container" and any([name, image, command], {# matches "(?i)mongo"}) and not (command matches "splunk.discovery")
     host_observer: type == "hostport" and command matches "(?i)mongo" and not (command matches "splunk.discovery")

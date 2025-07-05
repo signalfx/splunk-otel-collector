@@ -510,7 +510,6 @@ func expectedPLogs() plog.Logs {
 	lr.Attributes().PutStr(discovery.OtelEntityTypeAttr, entityType)
 	lr.Attributes().PutStr(discovery.OtelEntityEventTypeAttr, discovery.OtelEntityEventTypeState)
 	id := lr.Attributes().PutEmptyMap(discovery.OtelEntityIDAttr)
-	id.PutStr("service.type", "unknown")
 	id.PutStr("service.name", "unknown")
 	attrs := lr.Attributes().PutEmptyMap(discovery.OtelEntityAttributesAttr)
 	attrs.PutStr(observerNameAttr, "observer.name")
@@ -751,6 +750,7 @@ func TestEntityStateEvents(t *testing.T) {
 	cStore := newCorrelationStore(logger, cfg.CorrelationTTL)
 	cStore.UpdateAttrs(portEndpoint.ID, map[string]string{
 		discovery.ReceiverTypeAttr: "redis",
+		"service.type":             "redis",
 		discovery.StatusAttr:       "successful",
 		"attr1":                    "val1",
 		"attr2":                    "val2",
@@ -809,7 +809,6 @@ func TestEntityDeleteEvents(t *testing.T) {
 	assert.Equal(t, experimentalmetricmetadata.EventTypeDelete, event.EventType())
 	assert.Equal(t, t0, event.Timestamp().AsTime())
 	assert.Equal(t, map[string]any{
-		"service.type": "unknown",
 		"service.name": "redis-cart",
 		sourcePortAttr: int64(1),
 		"k8s.pod.uid":  "uid",

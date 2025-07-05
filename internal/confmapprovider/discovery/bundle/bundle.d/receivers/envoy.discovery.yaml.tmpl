@@ -1,5 +1,6 @@
 {{ receiver "prometheus" }}:
   enabled: true
+  service_type: envoy
   rule:
     docker_observer: type == "container" and any([name, image, command], {# matches "(?i)envoy"}) and not (command matches "splunk.discovery")
     host_observer: type == "hostport" and command matches "(?i)envoy" and not (command matches "splunk.discovery")

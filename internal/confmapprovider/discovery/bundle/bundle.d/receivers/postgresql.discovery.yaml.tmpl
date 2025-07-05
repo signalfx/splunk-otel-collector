@@ -1,5 +1,6 @@
 {{ receiver "postgresql" }}:
   enabled: true
+  service_type: postgresql
   rule:
     docker_observer: type == "container" and any([name, image, command], {# matches "(?i)postgres"}) and not (command matches "splunk.discovery")
     host_observer: type == "hostport" and command matches "(?i)postgres" and not (command matches "splunk.discovery")

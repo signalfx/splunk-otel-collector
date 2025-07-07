@@ -36,7 +36,7 @@ func TestCollectdSparkReceiverProvidesAllMetrics(t *testing.T) {
 	spark := testutils.NewContainer().WithContext(
 		path.Join(".", "testdata", "server"),
 	).WithNetwork(
-		"spark"
+		"spark",
 	)
 
 	containers, stop := tc.Containers(

@@ -34,7 +34,7 @@ func TestPostgresReceiverProvidesAllMetrics(t *testing.T) {
 	server := testutils.NewContainer().WithContext(path.Join(".", "testdata", "server")).WithEnv(
 		map[string]string{"POSTGRES_DB": "test_db", "POSTGRES_USER": "postgres", "POSTGRES_PASSWORD": "postgres"},
 	).WithExposedPorts("5432:5432").WithName("postgres-server").WithNetwork(
-		"postgres"
+		"postgres",
 	).WillWaitForPorts("5432").WillWaitForLogs("database system is ready to accept connections")
 
 	client := testutils.NewContainer().WithContext(path.Join(".", "testdata", "client")).WithEnv(

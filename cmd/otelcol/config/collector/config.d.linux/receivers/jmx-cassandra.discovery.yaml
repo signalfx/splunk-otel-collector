@@ -8,6 +8,7 @@
 #####################################################################################
 # jmx/cassandra:
 #   enabled: true
+#   service_type: cassandra
 #   rule:
 #     docker_observer: type == "container" and any([name, image, command], {# matches "(?i)cassandra.*"}) and not (command matches "splunk.discovery")
 #     host_observer: type == "hostport" and command matches "(?i)cassandra.*" and not (command matches "splunk.discovery")

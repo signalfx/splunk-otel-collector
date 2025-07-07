@@ -35,7 +35,7 @@ func TestBasicSecretAccess(t *testing.T) {
 	defer tc.PrintLogsOnFailure()
 
 	vaultHostname := "vault"
-	vault := testutils.NewContainer().WithImage("hashicorp/vault:latest").WithNetworks("vault").WithName("vault").WithEnv(
+	vault := testutils.NewContainer().WithImage("hashicorp/vault:latest").WithNetwork("vault").WithName("vault").WithEnv(
 		map[string]string{
 			"VAULT_DEV_ROOT_TOKEN_ID": "token",
 			"VAULT_TOKEN":             "token",
@@ -76,7 +76,7 @@ func TestBasicSecretAccess(t *testing.T) {
 			if cc, ok := collector.(*testutils.CollectorContainer); ok {
 				cc.Container = cc.Container.
 					WithExposedPorts("55679:55679", "55554:55554"). // This is required for tests that read the zpages or the config.
-					WithNetworks("vault").
+					WithNetwork("vault").
 					WithNetworkMode("bridge")
 				return cc
 			}

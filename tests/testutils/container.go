@@ -167,8 +167,8 @@ func (container Container) WithName(name string) Container {
 	return container
 }
 
-func (container Container) WithNetworks(networks ...string) Container {
-	container.ContainerNetworks = append(container.ContainerNetworks, networks...)
+func (container Container) WithNetwork(networkName string) Container {
+	container.ContainerNetworks = append(container.ContainerNetworks, networkName)
 	return container
 }
 
@@ -290,13 +290,17 @@ func (container *Container) Start(ctx context.Context) (err error) {
 	}
 
 	if len(container.ContainerNetworks) > 0 {
-		err = network.WithNewNetwork(ctx, container.ContainerNetworks,
-			network.WithDriver("bridge"),
+		dn, errNetwork := network.New(ctx,
 			network.WithAttachable(),
-			network.WithLabels(container.Labels),
-		)(&req)
-		if err != nil {
-			return err
+			network.WithDriver("bridge"),
+		)
+		if errNetwork != nil {
+			return fmt.Errorf("failed to create network %v: %w", container.ContainerNetworks, errNetwork)
+		}
+
+		errNetwork = network.WithNetwork(container.ContainerNetworks, dn)(&req)
+		if errNetwork != nil {
+			return errNetwork
 		}
 	}
 

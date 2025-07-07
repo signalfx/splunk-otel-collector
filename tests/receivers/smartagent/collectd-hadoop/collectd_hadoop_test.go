@@ -30,7 +30,7 @@ func TestCollectdHadoopReceiverProvidesAllMetrics(t *testing.T) {
 
 	hadoop := testutils.NewContainer().WithContext(
 		path.Join(".", "testdata", "server"),
-	).WithNetworks("hadoop")
+	).WithNetwork("hadoop")
 
 	containers := []testutils.Container{
 		hadoop.WithName("hadoop-worker1").WillWaitForLogs("ready"),

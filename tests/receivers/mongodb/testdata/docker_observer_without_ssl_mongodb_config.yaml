@@ -7,6 +7,7 @@ receivers:
     embed_receiver_config: true
     receivers:
       mongodb:
+        service_type: mongodb
         config:
           username: user1
           tls:

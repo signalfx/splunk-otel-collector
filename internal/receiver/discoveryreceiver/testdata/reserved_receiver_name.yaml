@@ -3,6 +3,7 @@ discovery:
     - an_observer
   receivers:
     a_receiver/with-receiver_creator/in-name:
+      service_type: a_service
       rule: type == "container"
       status:
         metrics:

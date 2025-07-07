@@ -1,5 +1,6 @@
 {{ receiver "redis" }}:
   enabled: true
+  service_type: redis
   rule:
     docker_observer: type == "container" and any([name, image, command], {# matches "(?i)redis"}) and not (command matches "splunk.discovery")
     host_observer: type == "hostport" and command matches "(?i)redis" and not (command matches "splunk.discovery")

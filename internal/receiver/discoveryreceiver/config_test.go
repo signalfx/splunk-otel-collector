@@ -47,6 +47,7 @@ func TestValidConfig(t *testing.T) {
 	require.Equal(t, &Config{
 		Receivers: map[component.ID]ReceiverEntry{
 			component.MustNewIDWithName("smartagent", "redis"): {
+				ServiceType: "redis",
 				Config: map[string]any{
 					"auth": "password",
 					"host": "`host`",
@@ -101,6 +102,7 @@ func TestInvalidConfigs(t *testing.T) {
 	tests := []struct{ name, expectedError string }{
 		{name: "no_watch_observers", expectedError: "`watch_observers` must be defined and include at least one configured observer extension"},
 		{name: "missing_status", expectedError: "receiver \"a_receiver\" validation failure: `status` must be defined and contain at least one `metrics` or `statements` mapping"},
+		{name: "missing_service_type", expectedError: "receiver \"smartagent/redis\" validation failure: `service_type` must be defined for each receiver"},
 		{name: "missing_match_status", expectedError: "receiver \"a_receiver\" validation failure: \"metrics\" status match validation failed: status cannot be empty; \"statements\" status match validation failed: status cannot be empty"},
 		{name: "missing_status_metrics_and_statements", expectedError: "receiver \"a_receiver\" validation failure: `status` must be defined and contain at least one `metrics` or `statements` mapping"},
 		{name: "invalid_status_types", expectedError: `receiver "a_receiver" validation failure: "metrics" status match validation failed: invalid status "unsupported". must be one of [successful partial failed]; "statements" status match validation failed: invalid status "another_unsupported". must be one of [successful partial failed]`},

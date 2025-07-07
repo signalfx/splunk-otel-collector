@@ -1,5 +1,6 @@
 {{ receiver "nginx" }}:
   enabled: true
+  service_type: nginx
   rule:
     docker_observer: type == "container" and any([name, image, command], {# matches "(?i)nginx"}) and not (command matches "splunk.discovery")
     host_observer: type == "hostport" and command matches "(?i)nginx" and not (command matches "splunk.discovery")

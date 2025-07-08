@@ -310,6 +310,7 @@ tidy-dependabot-pr:
     - .gitlab/tidy-dependabot-pr.sh
 
 compile:
+  timeout: 2h
   extends:
     - .trigger-filter
     - .go-cache

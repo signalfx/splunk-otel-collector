@@ -3,10 +3,11 @@
   hosts: all
   become: yes
   vars:
+    local_artifact_testing_enabled: true
     splunk_access_token: fake-token
     splunk_realm: fake-realm
     install_splunk_otel_auto_instrumentation: true
-    splunk_otel_auto_instrumentation_version: 0.50.0
+    splunk_otel_auto_instrumentation_version: latest
     splunk_otel_auto_instrumentation_resource_attributes: deployment.environment=test
     splunk_otel_auto_instrumentation_service_name: test
     splunk_otel_auto_instrumentation_generate_service_name: false

@@ -1,5 +1,5 @@
 #!/bin/bash -eux
-APP_CONFIG="$SOURCE_DIR/Splunk_TA_otel/default/app.conf"
+APP_CONFIG="$ADDONS_SOURCE_DIR/Splunk_TA_otel/default/app.conf"
 if ! [ -f "$APP_CONFIG" ]; then
     echo "file $APP_CONFIG not found"
     exit 1

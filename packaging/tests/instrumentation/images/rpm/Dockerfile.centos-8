@@ -27,7 +27,7 @@ COPY --from=tomcat /opt/java /opt/java
 COPY instrumentation/setup-tomcat.sh /opt/
 RUN bash /opt/setup-tomcat.sh
 
-ARG NODE_VERSION=v16
+ARG NODE_VERSION=v18
 COPY instrumentation/setup-express.sh /opt
 RUN bash /opt/setup-express.sh
 

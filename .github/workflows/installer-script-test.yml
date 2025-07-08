@@ -30,7 +30,7 @@ jobs:
         id: get-matrix
         run: |
           # create test matrix for distro images and archs
-          dockerfiles=$(ls packaging/tests/images/deb/Dockerfile.* packaging/tests/images/rpm/Dockerfile.* | cut -d '.' -f2- | sort -u)
+          dockerfiles=$(find packaging/tests/images/deb/Dockerfile.* packaging/tests/images/rpm/Dockerfile.* | cut -d '.' -f2- | sort -u)
           if [ -z "$dockerfiles" ]; then
             echo "Failed to get dockerfiles from packaging/tests/images!" >&2
             exit 1
@@ -38,16 +38,14 @@ jobs:
           distro=$(for d in $dockerfiles; do echo -n "\"$d\","; done)
           arch='"amd64","arm64"'
           instrumentation='"none","preload","systemd"'
-          exclude='{"DISTRO": "opensuse-12", "ARCH": "arm64"}'  # opensuse-12 (leap 42) does not support arm64
-          matrix="{\"DISTRO\": [${distro%,}], \"ARCH\": [${arch}], \"INSTRUMENTATION\": [${instrumentation}], \"exclude\": [${exclude}]}"
+          matrix="{\"DISTRO\": [${distro%,}], \"ARCH\": [${arch}], \"INSTRUMENTATION\": [${instrumentation}]}"
           echo "$matrix" | jq
-          echo "matrix=${matrix}" >> $GITHUB_OUTPUT
+          echo "matrix=${matrix}" >> "$GITHUB_OUTPUT"
     outputs:
       matrix: ${{ steps.get-matrix.outputs.matrix }}
 
   linux-installer-script-test:
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ${{ fromJSON('["ubuntu-20.04", "ubuntu-22.04"]')[matrix.DISTRO == 'amazonlinux-2023'] }}
+    runs-on: ubuntu-24.04${{ matrix.ARCH == 'arm64' && '-arm' || '' }}
     timeout-minutes: 90
     needs: installer-test-matrix
     strategy:
@@ -60,12 +58,6 @@ jobs:
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4
-
-      - uses: docker/setup-qemu-action@v3
-        if: ${{ matrix.ARCH != 'amd64' }}
-        with:
-          platforms: ${{ matrix.ARCH }}
-          image: tonistiigi/binfmt:qemu-v7.0.0
 
       - name: Setup python
         uses: actions/setup-python@v5
@@ -89,10 +81,6 @@ jobs:
         continue-on-error: true
         run: |
           distro="${{ matrix.DISTRO }}"
-          if [[ "$distro" = "amazonlinux-2" ]]; then
-            # workaround for pytest substring matching
-            distro="amazonlinux-2 and not amazonlinux-2023"
-          fi
           if [[ "${{ matrix.INSTRUMENTATION }}" = "none" ]]; then
             tests="$distro and ${{ matrix.ARCH }} and not instrumentation"
           else
@@ -101,15 +89,11 @@ jobs:
           python3 -u -m pytest -s --verbose -k "$tests" \
             packaging/tests/installer_test.py
 
-      # qemu, networking, running systemd in containers, etc., can be flaky
+      # networking, running systemd in containers, etc., can be flaky
       - name: Re-run failed tests
         if: ${{ steps.pytest.outcome == 'failure' }}
         run: |
           distro="${{ matrix.DISTRO }}"
-          if [[ "$distro" = "amazonlinux-2" ]]; then
-            # workaround for pytest substring matching
-            distro="amazonlinux-2 and not amazonlinux-2023"
-          fi
           if [[ "${{ matrix.INSTRUMENTATION }}" = "none" ]]; then
             tests="$distro and ${{ matrix.ARCH }} and not instrumentation"
           else

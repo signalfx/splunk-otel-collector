@@ -21,11 +21,10 @@ class splunk_otel_collector::params {
     $fluentd_config_dest = $fluentd_config_source
     $auto_instrumentation_version = 'latest'
     $auto_instrumentation_java_agent_jar = '/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar'
-
   } elsif $facts['os']['family'] == 'windows' {
-    $collector_version = ''
-    $collector_install_dir = "${::win_programfiles}\\Splunk\\OpenTelemetry Collector"
-    $collector_config_dir = "${::win_programdata}\\Splunk\\OpenTelemetry Collector"
+    $collector_version = 'latest'
+    $collector_install_dir = "${facts['win_programfiles']}\\Splunk\\OpenTelemetry Collector"
+    $collector_config_dir = "${facts['win_programdata']}\\Splunk\\OpenTelemetry Collector"
     $splunk_bundle_dir = "${collector_install_dir}\\agent-bundle"
     $splunk_collectd_dir = "${splunk_bundle_dir}\\run\\collectd"
     $collector_config_source = "${collector_install_dir}\\agent_config.yaml"

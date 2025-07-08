@@ -7,7 +7,7 @@ default:
         - "$SECRETS_URL"
 
 variables:
-  GO_VERSION: 1.23.7
+  GO_VERSION: 1.23.10
   WIN_2019_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2019
   WIN_2022_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2022
   SPLUNK_OTELCOL_DOWNLOAD_BASE:
@@ -16,6 +16,9 @@ variables:
   BUILD_DIR:
     value: '${CI_PROJECT_DIR}/build'
     description: 'in this CI, where builds are stored'
+  ADDONS_SOURCE_DIR:
+    value: '${CI_PROJECT_DIR}/packaging/technical-addon'
+    description: 'in this CI, where the addons source directory is located'
 
 stages:
   - update-deps
@@ -29,7 +32,7 @@ stages:
   - release
   - docker-manifest-release
   - xray-scan
-  - github-release
+  - publish-release
 
 include:
   - project: 'prodsec/scp-scanning/gitlab-checkmarx'
@@ -122,12 +125,14 @@ fossa:
   eval $(creds-helper aws --eval "aws:v1/o11y-infra/role/o11y_gdi_otel_releaser_role")
 
 .trigger-filter:
-  only:
-    variables:
-      - $CI_COMMIT_BRANCH == "main"
-      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
-  except:
-    - schedules
+  rules:
+    - &main-condition
+      if: $CI_COMMIT_BRANCH == "main"
+    - &release-condition
+      if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+    - &no-schedules-condition
+      if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
 
 .deploy-release:
   image: '${DOCKER_CICD_REPO}/ci-container/python-3.12-bookworm:3.5.0'
@@ -222,6 +227,7 @@ update-otel-deps:
   only:
     - schedules
   extends: .go-cache
+  tags: [large]
   stage: update-deps
   needs: []
   dependencies: []
@@ -233,6 +239,7 @@ update-otel-deps-nightly:
   only:
     - schedules
   extends: .go-cache
+  tags: [large]
   stage: update-deps
   needs: []
   dependencies: []
@@ -294,6 +301,7 @@ tidy-dependabot-pr:
   rules:
     - if: ($CI_COMMIT_BRANCH =~ /^dependabot\/go_modules\/.*/) && ($CI_COMMIT_AUTHOR =~ /^dependabot.*/) && (($CI_PIPELINE_SOURCE == "merge_request_event") || ($CI_PIPELINE_SOURCE == "push"))
   extends: .go-cache
+  tags: [large]
   stage: update-deps
   needs: []
   dependencies: []
@@ -305,6 +313,7 @@ compile:
   extends:
     - .trigger-filter
     - .go-cache
+  tags: [large]
   stage: build
   needs: []
   parallel:
@@ -427,7 +436,12 @@ agent-bundle-windows:
   artifacts:
     paths:
       - dist/agent-bundle_windows_amd64.zip
-
+.ta-trigger:
+  rules:
+    - <<: *main-condition
+    - <<: *no-schedules-condition
+    - if: $CI_COMMIT_BRANCH != "main" && $CI_COMMIT_TAG == null && $CI_COMMIT_REF_PROTECTED == 'true'
+      when: manual
 .auth-setup:
   id_tokens:
     CI_JOB_JWT:
@@ -469,9 +483,12 @@ agent-bundle-windows:
       popd
 
 package-technical-addon:
+  extends:
+    - .ta-trigger
   image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
   stage: "package"
   script: |
+    cd "${ADDONS_SOURCE_DIR}"
     make distribute-ta -e
   artifacts:
     paths:
@@ -484,7 +501,9 @@ package-technical-addon:
 
 test-happypath-ta:
   image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
-  extends: .auth-setup
+  extends:
+    - .ta-trigger
+    - .auth-setup
   stage: orca-tests
   dependencies:
     - "package-technical-addon"
@@ -501,6 +520,7 @@ test-happypath-ta:
         ORCA_OPTION: [""]
         PLATFORM: ["windows"]
   script: |
+    cd "${ADDONS_SOURCE_DIR}"
     make orca-test-ta -e
   after_script:
     # spin down orca deployments
@@ -514,7 +534,9 @@ test-happypath-ta:
       - "$BUILD_DIR/$CI_JOB_ID/**/*"
 test-collectd-ta:
   image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
-  extends: .auth-setup
+  extends:
+    - .ta-trigger
+    - .auth-setup
   stage: orca-tests
   variables:
     ORCA_TAR_GZ: "$NEW_ORCA_TGZ"
@@ -528,6 +550,7 @@ test-collectd-ta:
         ORCA_OPTION: ["--exec-user root"]
         PLATFORM: ["linux"]
   script: |
+    cd "${ADDONS_SOURCE_DIR}"
     make orca-collectd-test-ta -e
   after_script:
     # spin down orca deployments
@@ -541,7 +564,9 @@ test-collectd-ta:
       - "$BUILD_DIR/$CI_JOB_ID/**/*"
 test-gateway-ta:
   image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
-  extends: .auth-setup
+  extends:
+    - .ta-trigger
+    - .auth-setup
   stage: orca-tests
   dependencies:
     - "package-technical-addon"
@@ -558,6 +583,7 @@ test-gateway-ta:
         ORCA_OPTION: [""]
         PLATFORM: ["windows"]
   script: |
+    cd "${ADDONS_SOURCE_DIR}"
     make orca-gateway-test-ta -e
   after_script:
     # spin down orca deployments
@@ -572,12 +598,13 @@ test-gateway-ta:
       - "$BUILD_DIR/out/**/*"
       - "$BUILD_DIR/$CI_JOB_ID/**/*"
 AppInspect_local:
-  image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
+  extends:
+    - .ta-trigger
   dependencies:
     - "package-technical-addon"
   stage: code-analysis
   # AppInspect regex bugs out on python 3.11
-  image: docker.repo.splunkdev.net/ci-cd/ci-container/python-3.9:1.26.0
+  image: '${DOCKER_CICD_REPO}/ci-container/python-3.9:1.26.0'
   before_script:
     - pip install splunk-add-on-ucc-framework
     - pip install splunk-packaging-toolkit
@@ -1536,7 +1563,7 @@ release-installers:
   before_script:
     - cp -f dist/signed/install.ps1 packaging/installer/install.ps1
 
-choco-release:
+nupkg-release:
   extends: .trigger-filter
   stage: release
   dependencies:
@@ -1555,14 +1582,33 @@ choco-release:
       }
       .\packaging\choco\make.ps1 build_choco -Version $version -BuildDir .\dist\signed
     - Test-Path .\dist\signed\splunk-otel-collector.${version}.nupkg
+  artifacts:
+    paths:
+      - dist/signed/*.nupkg
+
+choco-release:
+  extends: .trigger-filter
+  stage: publish-release
+  dependencies:
+    - nupkg-release
+  tags:
+    - splunk-otel-collector-windows
+  script:
+    - |
+      $ErrorActionPreference = 'Stop'
+      Set-PSDebug -Trace 1
+      $msi_file_name = Resolve-Path .\dist\signed\splunk-otel-collector*.msi | Split-Path -leaf
+      if ($msi_file_name -match '(\d+\.\d+\.\d+)(\.\d+)?') {
+        $version = $matches[0]
+      } else {
+        throw "Failed to get version from $msi_file_name"
+      }
+    - Test-Path .\dist\signed\splunk-otel-collector.${version}.nupkg
     - |
       # Only push the choco package for stable release tags
       if ($env:CI_COMMIT_TAG -match '^v\d+\.\d+\.\d+$') {
         choco push -k $env:CHOCO_TOKEN .\dist\signed\splunk-otel-collector.${version}.nupkg
       }
-  artifacts:
-    paths:
-      - dist/signed/*.nupkg
 
 push-multiarch-manifest:
   extends: .trigger-filter
@@ -1724,7 +1770,8 @@ github-release:
   extends:
     - .trigger-filter
     - .go-cache
-  stage: github-release
+  tags: [large]
+  stage: publish-release
   dependencies:
     - compile
     - otelcol-fips
@@ -1736,7 +1783,6 @@ github-release:
     - sign-msi
     - sign-tar
     - push-multiarch-manifest
-    - choco-release
     - sign-agent-bundles
   script:
     - mkdir -p dist/assets
@@ -1838,3 +1884,82 @@ chef-release:
     - cp -r deployments/chef /tmp/cookbooks/splunk_otel_collector
   script:
     - knife supermarket share -o /tmp/cookbooks splunk_otel_collector
+
+.trigger-dotnet-instrumentation-deployer:
+  only:
+    variables:
+      - $CI_COMMIT_TAG =~ /^dotnet-instrumentation-deployer-ta-v[0-9]+\.[0-9]+\.[0-9]+[^ ]*$/
+  except:
+    - schedules
+
+build-dotnet-instrumentation-deployer:
+  extends: .trigger-dotnet-instrumentation-deployer
+  image: '${DOCKER_HUB_REPO}/golang:${GO_VERSION}'
+  stage: build
+  needs: []
+  dependencies: []
+  before_script:
+    - cd packaging/dotnet-instr-deployer-add-on
+  script:
+    - make download-dotnet-assets
+    - make build
+  artifacts:
+    paths:
+      - packaging/dotnet-instr-deployer-add-on/assets/windows_x86_64/bin/*
+
+sign-dotnet-instrumentation-deployer-exe:
+  extends:
+    - .trigger-dotnet-instrumentation-deployer
+    - .submit-signing-request
+  stage: sign-binaries
+  retry: 2
+  dependencies:
+    - build-dotnet-instrumentation-deployer
+  variables:
+    ARTIFACT: packaging/dotnet-instr-deployer-add-on/assets/windows_x86_64/bin/splunk_otel_dotnet_deployer.exe
+    SIGN_TYPE: WIN
+    DOWNLOAD_DIR: packaging/dotnet-instr-deployer-add-on/assets/windows_x86_64/bin
+  artifacts:
+    paths:
+      - packaging/dotnet-instr-deployer-add-on/assets/windows_x86_64/bin/*
+
+
+pack-dotnet-instrumentation-deployer:
+  extends: .trigger-dotnet-instrumentation-deployer
+  image: '${DOCKER_HUB_REPO}/golang:${GO_VERSION}'
+  stage: package
+  dependencies:
+    - sign-dotnet-instrumentation-deployer-exe
+  before_script:
+    - cd packaging/dotnet-instr-deployer-add-on
+  script:
+    - make pack
+  artifacts:
+    paths:
+      - packaging/dotnet-instr-deployer-add-on/assets/windows_x86_64/bin/*
+      - packaging/dotnet-instr-deployer-add-on/out/distribution/splunk_otel_dotnet_deployer.tgz
+
+dotnet-instrumentation-deployer-release:
+  extends:
+    - .trigger-dotnet-instrumentation-deployer
+    - .go-cache # Use this image since this job uses the ghr tool
+  tags: [large]
+  stage: publish-release
+  dependencies:
+    - pack-dotnet-instrumentation-deployer
+  script:
+    - export
+    - cd packaging/dotnet-instr-deployer-add-on
+    - pushd out/distribution/ && shasum -a 256 * > checksums.txt && popd
+    - |
+      set -e
+      if [[ "${CI_COMMIT_TAG:-}" =~ ^dotnet-instrumentation-deployer-ta-v([0-9]+\.[0-9]+\.[0-9]+[^ ]*) ]]; then
+        VERSION=${BASH_REMATCH[1]}
+        VERSION_CHANGELOG="$(awk -v version="$VERSION" '/^## / { if (p) { exit }; if ($2 == version) { p=1; next } } p && NF' CHANGELOG.md)"
+        SPLUNK_OTEL_DOTNET_VERSION=$(grep -oP 'version = \K.*' assets/windows_x86_64/bin/Splunk.OTel.DotNet.psm1 | tr -d '"')
+        RELEASE_NOTES=$(echo -e "$VERSION_CHANGELOG\n\nShipping Splunk OpenTelemetry .NET $SPLUNK_OTEL_DOTNET_VERSION")
+        ghr -t "$GITHUB_TOKEN" -u signalfx -r splunk-otel-collector -prerelease -draft -n "Splunk OpenTelemetry .NET Deployer Technical Add-On v$VERSION" -b "$RELEASE_NOTES" -replace "$CI_COMMIT_TAG" out/distribution/
+      else
+        echo "Failed to get version from $CI_COMMIT_TAG"
+        exit 1
+      fi

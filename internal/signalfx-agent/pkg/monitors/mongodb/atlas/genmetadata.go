@@ -4,6 +4,7 @@ package atlas
 
 import (
 	"github.com/signalfx/golib/v3/datapoint"
+
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
 )
 

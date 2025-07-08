@@ -1,6 +1,6 @@
 module github.com/signalfx/splunk-otel-collector/tests/tools
 
-go 1.23.0
+go 1.23.10
 
 require github.com/Songmu/gotesplit v0.3.1
 

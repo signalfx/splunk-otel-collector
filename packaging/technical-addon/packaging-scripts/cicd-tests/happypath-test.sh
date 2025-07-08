@@ -2,7 +2,7 @@
 
 set -o pipefail
 which jq || (echo "jq not found" && exit 1)
-source "${SOURCE_DIR}/packaging-scripts/cicd-tests/test-utils.sh"
+source "${ADDONS_SOURCE_DIR}/packaging-scripts/cicd-tests/test-utils.sh"
 BUILD_DIR="$(realpath "$BUILD_DIR")"
 TA_FULLPATH="$(repack_with_access_token "$OLLY_ACCESS_TOKEN" "$BUILD_DIR/out/distribution/Splunk_TA_otel.tgz" | tail -n 1)"
 CI_JOB_ID="${CI_JOB_ID:-$(basename $(dirname "$TA_FULLPATH"))}"
@@ -10,7 +10,7 @@ TEST_FOLDER="${TEST_FOLDER:-$BUILD_DIR/$CI_JOB_ID}"
 mkdir -p "$TEST_FOLDER"
 
 # Create ORCA container & grab id
-splunk_orca -vvv --cloud "${ORCA_CLOUD}" --printer sdd-json --deployment-file "$TEST_FOLDER/orca_deployment.json" --ansible-log "$TEST_FOLDER/ansible-local.log" create --prefix "happypath" --env SPLUNK_CONNECTION_TIMEOUT=600 --platform "$SPLUNK_PLATFORM" --splunk-version "${UF_VERSION}" --local-apps "$TA_FULLPATH" --playbook "$SOURCE_DIR/packaging-scripts/orca-playbook-$PLATFORM.yml,site.yml"
+splunk_orca -vvv --cloud "${ORCA_CLOUD}" --printer sdd-json --deployment-file "$TEST_FOLDER/orca_deployment.json" --ansible-log "$TEST_FOLDER/ansible-local.log" create --prefix "happypath" --env SPLUNK_CONNECTION_TIMEOUT=600 --platform "$SPLUNK_PLATFORM" --splunk-version "${UF_VERSION}" --local-apps "$TA_FULLPATH" --playbook "$ADDONS_SOURCE_DIR/packaging-scripts/orca-playbook-$PLATFORM.yml,site.yml"
 deployment_id="$(jq -r '.orca_deployment_id' < "$TEST_FOLDER/orca_deployment.json")"
 ip_addr="$(jq -r '.server_roles.standalone[0].host' < "$TEST_FOLDER/orca_deployment.json")"
 
@@ -120,7 +120,7 @@ fi
 # For release, ensure version is as expected.  TODO move this to another test and compare against tag
 actual_version="$(grep "Version" "$TEST_FOLDER/splunk/otel.log" | head -1 | awk -F 'Version": "' '{print $2}' | awk -F '", "' '{print $1}')"
 echo "actual version: $actual_version"
-[[ "$actual_version" != "v0.120.0" ]] && echo "Test failed -- invalid version" && exit 1
+[[ "$actual_version" != "v0.122.0" ]] && echo "Test failed -- invalid version" && exit 1
 
 # clean up orca container
 splunk_orca --cloud ${ORCA_CLOUD} destroy "${deployment_id}"

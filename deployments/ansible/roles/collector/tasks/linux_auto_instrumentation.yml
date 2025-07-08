@@ -33,7 +33,7 @@
       and auto_instrumentation_version is version('0.87.0', '>=') }}"
     with_dotnet: "{{ 'dotnet' in (splunk_otel_auto_instrumentation_sdks | default([])) \
       and auto_instrumentation_version is version('0.99.0', '>=') \
-      and ansible_architecture in ('x86_64', 'amd64') }}"
+      and ansible_architecture in ('x86_64', 'amd64', 'aarch64') }}"
 
 - name: Check for npm
   shell: npm --version

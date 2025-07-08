@@ -22,6 +22,7 @@ exclude = [
     "https://bugs.mysql.com/*", # Failing with 403 Forbidden. Likely rejecting the user agent
 ]
 max_concurrency = 20
+max_redirects = 10
 max_retries = 5
 retry_wait_time = 30
 timeout = 30

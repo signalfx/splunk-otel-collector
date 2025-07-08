@@ -4,8 +4,9 @@
 package genericjmx
 
 import (
-	"github.com/signalfx/signalfx-agent/pkg/monitors"
 	yaml "gopkg.in/yaml.v2"
+
+	"github.com/signalfx/signalfx-agent/pkg/monitors"
 )
 
 // Monitor is the main type that represents the monitor

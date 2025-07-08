@@ -23,37 +23,19 @@ env:
   PYTHON_VERSION: '3.13'
   PIP_VERSION: '24.2'
   REQUIREMENTS_PATH: "packaging/tests/requirements.txt"
-  GO_VERSION: 1.23.7
+  GO_VERSION: 1.23.10
 
 jobs:
   cross-compile:
-    runs-on: ubuntu-24.04
     strategy:
       matrix:
         SYS_BINARIES: [ "binaries-linux_amd64", "binaries-linux_arm64" ]
-    steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
-
-      - name: Build Collector
-        run: |
-          make ${{ matrix.SYS_BINARIES }}
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.SYS_BINARIES }}
-          path: |
-            ./bin/*
+    uses: ./.github/workflows/compile.yml
+    with:
+      SYS_BINARY: ${{ matrix.SYS_BINARIES }}
 
   build-package:
-    runs-on: ubuntu-24.04
+    runs-on: ${{ matrix.ARCH == 'amd64' && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
     strategy:
       matrix:
         SYS_PACKAGE: [ "deb", "rpm" ]
@@ -63,12 +45,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - uses: docker/setup-qemu-action@v3
-        if: ${{ matrix.ARCH != 'amd64' }}
-        with:
-          platforms: ${{ matrix.ARCH }}
-          image: tonistiigi/binfmt:qemu-v7.0.0
 
       - name: Run tests
         run: make -C instrumentation tests ARCH=${{ matrix.ARCH }}
@@ -92,7 +68,7 @@ jobs:
         id: get-matrix
         run: |
           # create test matrix for distro and arch
-          dockerfiles=$(find packaging/tests/instrumentation/images/ -name "Dockerfile.*" | cut -d '.' -f2- | sort -u)
+          dockerfiles=$(find packaging/tests/instrumentation/images -name "Dockerfile.*" | cut -d '.' -f2- | sort -u)
           if [ -z "$dockerfiles" ]; then
             echo "Failed to get dockerfiles from packaging/tests/instrumentation/images!" >&2
             exit 1
@@ -100,16 +76,16 @@ jobs:
           distro=$(for d in $dockerfiles; do echo -n "\"$d\","; done)
           arch="\"amd64\", \"arm64\""
           testcase="\"express\",\"tomcat\",\"dotnet\""
-          exclude='{"ARCH": "arm64", "TESTCASE": "dotnet"}'  # splunk-otel-dotnet currently not supported on arm64
+          # splunk-otel-dotnet currently not supported on arm64
+          exclude='{"ARCH": "arm64", "TESTCASE": "dotnet"}'
           matrix="{\"DISTRO\": [${distro%,}], \"ARCH\": [${arch}], \"TESTCASE\": [${testcase}], \"exclude\": [${exclude}]}"
           echo "$matrix" | jq
-          echo "matrix=${matrix}" >> $GITHUB_OUTPUT
+          echo "matrix=${matrix}" >> "$GITHUB_OUTPUT"
     outputs:
       matrix: ${{ steps.get-matrix.outputs.matrix }}
 
   test-package:
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ${{ fromJSON('["ubuntu-20.04", "ubuntu-22.04"]')[matrix.DISTRO == 'amazonlinux-2023'] }}
+    runs-on: ubuntu-24.04${{ matrix.ARCH == 'arm64' && '-arm' || '' }}
     timeout-minutes: 60
     needs: [cross-compile, build-package, test-package-matrix]
     strategy:
@@ -123,28 +99,22 @@ jobs:
         run: |
           for pkg in "deb" "rpm"; do
             if [[ -f "packaging/tests/instrumentation/images/${pkg}/Dockerfile.${{ matrix.DISTRO }}" ]]; then
-              echo "SYS_PACKAGE=${pkg}" >> $GITHUB_ENV
+              echo "SYS_PACKAGE=${pkg}" >> "$GITHUB_ENV"
               exit 0
             fi
           done
           echo "Unknown distro '${{ matrix.DISTRO }}'!"
           exit 1
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4.1.3
         with:
           name: binaries-linux_${{ matrix.ARCH }}
           path: ./bin
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4.1.3
         with:
           name: splunk-otel-auto-instrumentation-${{ matrix.ARCH }}-${{ env.SYS_PACKAGE }}
           path: ./instrumentation/dist
-
-      - uses: docker/setup-qemu-action@v3
-        if: ${{ matrix.ARCH != 'amd64' }}
-        with:
-          platforms: ${{ matrix.ARCH }}
-          image: tonistiigi/binfmt:qemu-v7.0.0
 
       - name: Setup python
         uses: actions/setup-python@v5
@@ -168,23 +138,15 @@ jobs:
         continue-on-error: true
         run: |
           distro="${{ matrix.DISTRO }}"
-          if [[ "$distro" = "amazonlinux-2" ]]; then
-            # workaround for pytest substring matching
-            distro="amazonlinux-2 and not amazonlinux-2023"
-          fi
           testcase="${{ matrix.TESTCASE }} or uninstall"
           python3 -u -m pytest -s --verbose -k "$distro and ${{ matrix.ARCH }} and ($testcase)" \
             packaging/tests/instrumentation/instrumentation_test.py
 
-      # qemu, networking, running systemd in containers, etc., can be flaky
+      # networking, running systemd in containers, etc., can be flaky
       - name: Re-run failed tests
         if: ${{ steps.pytest.outcome == 'failure' }}
         run: |
           distro="${{ matrix.DISTRO }}"
-          if [[ "$distro" = "amazonlinux-2" ]]; then
-            # workaround for pytest substring matching
-            distro="amazonlinux-2 and not amazonlinux-2023"
-          fi
           testcase="${{ matrix.TESTCASE }} or uninstall"
           python3 -u -m pytest -s --verbose -k "$distro and ${{ matrix.ARCH }} and ($testcase)" \
             --last-failed \

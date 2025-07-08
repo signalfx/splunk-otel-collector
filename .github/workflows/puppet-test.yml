@@ -70,18 +70,17 @@ jobs:
             exit 1
           fi
           distro=$(for d in $dockerfiles; do echo -n "\"$d\","; done)
-          puppet_release='"6","7","8"'
+          puppet_release='"7","8"'
           with_instrumentation='"true","false"'
           matrix="{\"DISTRO\": [${distro%,}], \"PUPPET_RELEASE\": [${puppet_release}], \"WITH_INSTRUMENTATION\": [${with_instrumentation}]}"
           echo "$matrix" | jq
-          echo "matrix=${matrix}" >> $GITHUB_OUTPUT
+          echo "matrix=${matrix}" >> "$GITHUB_OUTPUT"
     outputs:
       matrix: ${{ steps.get-matrix.outputs.matrix }}
 
   puppet-test:
     name: puppet-test
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ${{ fromJSON('["ubuntu-20.04", "ubuntu-22.04"]')[matrix.DISTRO == 'amazonlinux-2023'] }}
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     needs:
       - puppet-lint
@@ -110,10 +109,6 @@ jobs:
           PUPPET_RELEASE: "${{ matrix.PUPPET_RELEASE }}"
         run: |
           distro="${{ matrix.DISTRO }}"
-          if [[ "$distro" = "amazonlinux-2" ]]; then
-            # workaround for pytest substring matching
-            distro="amazonlinux-2 and not amazonlinux-2023"
-          fi
           if [[ "${{ matrix.WITH_INSTRUMENTATION }}" = "true" ]]; then
             tests="$distro and instrumentation"
           else
@@ -122,17 +117,13 @@ jobs:
           python3 -u -m pytest -s --verbose -k "$tests" \
             packaging/tests/deployments/puppet/puppet_test.py
 
-      # qemu, networking, running systemd in containers, etc., can be flaky
+      # networking, running systemd in containers, etc., can be flaky
       - name: Re-run failed tests
         if: ${{ steps.pytest.outcome == 'failure' }}
         env:
           PUPPET_RELEASE: "${{ matrix.PUPPET_RELEASE }}"
         run: |
           distro="${{ matrix.DISTRO }}"
-          if [[ "$distro" = "amazonlinux-2" ]]; then
-            # workaround for pytest substring matching
-            distro="amazonlinux-2 and not amazonlinux-2023"
-          fi
           if [[ "${{ matrix.WITH_INSTRUMENTATION }}" = "true" ]]; then
             tests="$distro and instrumentation"
           else
@@ -151,7 +142,7 @@ jobs:
     strategy:
       matrix:
         OS: [ "windows-2022" ]
-        PUPPET_RELEASE: [ "6.0.2", "7.21.0", "8.1.0" ]
+        PUPPET_RELEASE: [ "7.21.0", "8.1.0" ]
         TEST_CASE: [ "default", "custom_vars" ]
         WIN_COLLECTOR_VERSION: [ "0.86.0", "latest" ]
       fail-fast: false

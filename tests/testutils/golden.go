@@ -18,6 +18,7 @@ package testutils
 import (
 	"context"
 	"fmt"
+	"os"
 	"path/filepath"
 	"runtime"
 	"testing"
@@ -29,6 +30,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	"go.opentelemetry.io/collector/component/componenttest"
+	"go.opentelemetry.io/collector/config/configgrpc"
+	"go.opentelemetry.io/collector/config/confignet"
+	"go.opentelemetry.io/collector/config/configoptional"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"go.opentelemetry.io/collector/receiver/receivertest"
@@ -36,9 +40,9 @@ import (
 )
 
 type metricCollectionTestOpts struct {
-	compareMetricsOptions []pmetrictest.CompareMetricsOption
 	collectorEnvVars      map[string]string
 	fileMounts            map[string]string
+	compareMetricsOptions []pmetrictest.CompareMetricsOption
 }
 
 type MetricsCollectionTestOption func(*metricCollectionTestOpts)
@@ -85,8 +89,13 @@ func RunMetricsCollectionTest(t *testing.T, configFile string, expectedFilePath 
 	f := otlpreceiver.NewFactory()
 	port := GetAvailablePort(t)
 	c := f.CreateDefaultConfig().(*otlpreceiver.Config)
-	c.GRPC.NetAddr.Endpoint = fmt.Sprintf("localhost:%d", port)
-	c.HTTP = nil
+	c.GRPC = configoptional.Some(configgrpc.ServerConfig{
+		NetAddr: confignet.AddrConfig{
+			Endpoint:  fmt.Sprintf("localhost:%d", port),
+			Transport: "tcp",
+		},
+	})
+	c.HTTP = configoptional.None[otlpreceiver.HTTPConfig]()
 	sink := &consumertest.MetricsSink{}
 	receiver, err := f.CreateMetrics(context.Background(), receivertest.NewNopSettings(f.Type()), c, sink)
 	require.NoError(t, err)
@@ -100,11 +109,18 @@ func RunMetricsCollectionTest(t *testing.T, configFile string, expectedFilePath 
 	if runtime.GOOS == "darwin" {
 		dockerHost = "host.docker.internal"
 	}
+
+	coverDest := os.Getenv("CONTAINER_COVER_DEST")
+	coverSrc := os.Getenv("CONTAINER_COVER_SRC")
+
 	cc := NewCollectorContainer().
 		WithImage(GetCollectorImageOrSkipTest(t)).
 		WithConfigPath(filepath.Join("testdata", configFile)).
 		WithLogger(logger).
-		WithEnv(map[string]string{"OTLP_ENDPOINT": fmt.Sprintf("%s:%d", dockerHost, port)}).
+		WithEnv(map[string]string{
+			"GOCOVERDIR":    coverDest,
+			"OTLP_ENDPOINT": fmt.Sprintf("%s:%d", dockerHost, port),
+		}).
 		WithEnv(opts.collectorEnvVars)
 	for k, v := range opts.fileMounts {
 		cc.(*CollectorContainer).Container = cc.(*CollectorContainer).Container.WithFile(testcontainers.ContainerFile{
@@ -113,6 +129,11 @@ func RunMetricsCollectionTest(t *testing.T, configFile string, expectedFilePath 
 			FileMode:          0644,
 		})
 	}
+
+	if coverSrc != "" && coverDest != "" {
+		cc = cc.WithMount(coverSrc, coverDest)
+	}
+
 	p, err := cc.Build()
 	require.NoError(t, err)
 	require.NoError(t, p.Start())

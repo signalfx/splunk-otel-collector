@@ -1,7 +1,7 @@
 resourceMetrics:
   - resource:
       attributes:
-        - key: http.scheme
+        - key: url.scheme
           value:
             stringValue: http
         - key: label_one
@@ -13,9 +13,6 @@ resourceMetrics:
         - key: label_two
           value:
             stringValue: actual.label.two.value.from.env.var
-        - key: net.host.port
-          value:
-            stringValue: "52144"
         - key: server.port
           value:
             stringValue: "52144"
@@ -47,24 +44,15 @@ resourceMetrics:
               dataPoints:
                 - asDouble: 21.150509204
                   attributes:
-                    - key: label_one
-                      value:
-                        stringValue: actual.label.one.value.from.env.var
-                    - key: label_three
-                      value:
-                        stringValue: actual.label.three.value.from.cmdline.property
-                    - key: label_two
-                      value:
-                        stringValue: actual.label.two.value.from.env.var
-                    - key: service.instance.id
-                      value:
-                        stringValue: b3d7e86d-d1fb-47be-9ecc-d3bc4f5b552d
-                    - key: service.name
-                      value:
-                        stringValue: otelcol
-                    - key: service.version
-                      value:
-                        stringValue: v0.120.0-12-ca35d36d9f
+                     - key: label_one
+                       value:
+                         stringValue: actual.label.one.value.from.env.var
+                     - key: label_three
+                       value:
+                         stringValue: actual.label.three.value.from.cmdline.property
+                     - key: label_two
+                       value:
+                         stringValue: actual.label.two.value.from.env.var
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
               isMonotonic: true

@@ -62,7 +62,7 @@ package 'splunk-otel-auto-instrumentation' do
   options '--allow-downgrades' if platform_family?('debian') \
     && node['packages'] \
     && node['packages']['apt'] \
-    && Gem::Version.new(node['packages']['apt']['version'].split('~')[0]) >= Gem::Version.new('1.1.0')
+    && Gem::Version.new(node['packages']['apt']['version'].split('~').first) >= Gem::Version.new('1.1.0')
   allow_downgrade true if platform_family?('amazon', 'rhel', 'suse')
   notifies :reload, 'ohai[reload packages]', :immediately
   notifies :run, 'ruby_block[install splunk-otel-js]', :immediately

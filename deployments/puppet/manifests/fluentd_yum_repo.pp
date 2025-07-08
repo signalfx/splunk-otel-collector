@@ -1,6 +1,5 @@
 # Installs the fluentd yum package repostitory
 class splunk_otel_collector::fluentd_yum_repo ($repo_url, $gpg_key_url, $version, $manage_repo) {
-
   if $manage_repo {
     $os_name = $facts['os']['name'] ? {
       'Amazon' => 'amazon',

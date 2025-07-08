@@ -19,6 +19,7 @@ package tests
 import (
 	"context"
 	"fmt"
+	"os"
 	"path/filepath"
 	"runtime"
 	"testing"
@@ -27,6 +28,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
+	"go.opentelemetry.io/collector/config/configgrpc"
+	"go.opentelemetry.io/collector/config/confignet"
+	"go.opentelemetry.io/collector/config/configoptional"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"go.opentelemetry.io/collector/receiver/receivertest"
@@ -36,7 +40,6 @@ import (
 )
 
 func TestJmxReceiverProvidesAllMetrics(t *testing.T) {
-	t.Skip("skipping")
 	metricNames := []string{
 		"cassandra.status",
 		"cassandra.state",
@@ -51,7 +54,12 @@ func checkMetricsPresence(t *testing.T, metricNames []string, configFile string)
 	f := otlpreceiver.NewFactory()
 	port := testutils.GetAvailablePort(t)
 	c := f.CreateDefaultConfig().(*otlpreceiver.Config)
-	c.GRPC.NetAddr.Endpoint = fmt.Sprintf("localhost:%d", port)
+	c.GRPC = configoptional.Some(configgrpc.ServerConfig{
+		NetAddr: confignet.AddrConfig{
+			Endpoint:  fmt.Sprintf("localhost:%d", port),
+			Transport: "tcp",
+		},
+	})
 	sink := &consumertest.MetricsSink{}
 	receiver, err := f.CreateMetrics(context.Background(), receivertest.NewNopSettings(f.Type()), c, sink)
 	require.NoError(t, err)
@@ -65,17 +73,28 @@ func checkMetricsPresence(t *testing.T, metricNames []string, configFile string)
 	if runtime.GOOS == "darwin" {
 		dockerHost = "host.docker.internal"
 	}
+
+	coverDest := os.Getenv("CONTAINER_COVER_DEST")
+	coverSrc := os.Getenv("CONTAINER_COVER_SRC")
+
 	mountDir, err := filepath.Abs(filepath.Join("testdata", "script.groovy"))
 	require.NoError(t, err)
-	p, err := testutils.NewCollectorContainer().
+	p := testutils.NewCollectorContainer().
+		WithImage(testutils.GetCollectorImageOrSkipTest(t)).
 		WithConfigPath(filepath.Join("testdata", configFile)).
 		WithLogger(logger).
 		WithEnv(map[string]string{
-			"OTLP_ENDPOINT": fmt.Sprintf("%s:%d", dockerHost, port),
+			"GOCOVERDIR":    coverDest,
 			"HOST":          dockerHost,
+			"OTLP_ENDPOINT": fmt.Sprintf("%s:%d", dockerHost, port),
 		}).
-		WithMount(mountDir, "/opt/script.groovy").
-		Build()
+		WithMount(mountDir, "/opt/script.groovy")
+
+	if coverSrc != "" && coverDest != "" {
+		p = p.WithMount(coverSrc, coverDest)
+	}
+
+	p, err = p.Build()
 	require.NoError(t, err)
 	require.NoError(t, p.Start())
 	t.Cleanup(func() {

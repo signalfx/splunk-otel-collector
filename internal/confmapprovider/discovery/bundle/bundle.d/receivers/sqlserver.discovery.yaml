@@ -4,6 +4,7 @@
 #####################################################################################
 sqlserver:
   enabled: true
+  service_type: sqlserver
   rule:
     docker_observer: type == "container" and any([name, image, command], {# matches "(?i)mssql"}) and not (command matches "splunk.discovery")
     host_observer: type == "hostport" and command matches "(?i)mssql" and not (command matches "splunk.discovery")
@@ -33,11 +34,19 @@ sqlserver:
             enabled: true
         sqlserver.database.operations:
             enabled: true
+        sqlserver.deadlock.rate:
+            enabled: true
+        sqlserver.lock.wait.count:
+            enabled: true
         sqlserver.lock.wait.rate:
+            enabled: true
+        sqlserver.os.wait.duration:
             enabled: true
         sqlserver.page.buffer_cache.hit_ratio:
             enabled: true
         sqlserver.processes.blocked:
+            enabled: true
+        sqlserver.resource_pool.disk.operations:
             enabled: true
         sqlserver.resource_pool.disk.throttled.read.rate:
             enabled: true

@@ -29,7 +29,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/receiver"
-	conventions "go.opentelemetry.io/collector/semconv/v1.6.1"
+	conventions "go.opentelemetry.io/otel/semconv/v1.22.0"
 	"go.uber.org/zap"
 )
 
@@ -55,6 +55,16 @@ func newScraper(
 }
 
 func (s *scraper) start(ctx context.Context, host component.Host) error {
+	if s.cfg.ResourceAttributes.NetHostName.Enabled {
+		s.settings.Logger.Warn("[Deprecated] The resource attribute `net.host.name` has been renamed `server.address.name` to match semantic conventions in `v0.126.0`. Please update references. `net.host.name` will be removed in a future release.")
+	}
+	if s.cfg.ResourceAttributes.NetHostPort.Enabled {
+		s.settings.Logger.Warn("[Deprecated] The resource attribute `net.host.port` has been renamed `server.port` to match semantic conventions in `v0.126.0`. Please update references. `net.host.port` will be removed in a future release.")
+	}
+	if s.cfg.ResourceAttributes.HTTPScheme.Enabled {
+		s.settings.Logger.Warn("[Deprecated] The resource attribute `http.scheme` has been renamed `url.scheme` to match semantic conventions in `v0.126.0`. Please update references. `http.scheme` will be removed in a future release.")
+	}
+
 	s.startTime = pcommon.NewTimestampFromTime(time.Now())
 	var err error
 	s.client, err = s.cfg.ClientConfig.ToClient(ctx, host, s.settings)
@@ -98,19 +108,32 @@ func (s *scraper) fetchPrometheusMetrics(fetch fetcher) (pmetric.Metrics, error)
 	rm := m.ResourceMetrics().AppendEmpty()
 	res := rm.Resource()
 	if s.cfg.ResourceAttributes.ServiceName.Enabled {
-		res.Attributes().PutStr(conventions.AttributeServiceName, s.name)
+		res.Attributes().PutStr(string(conventions.ServiceNameKey), s.name)
 	}
+
 	if s.cfg.ResourceAttributes.NetHostName.Enabled {
-		res.Attributes().PutStr(conventions.AttributeNetHostName, u.Host)
+		res.Attributes().PutStr(string(conventions.NetHostNameKey), u.Host)
 	}
+	if s.cfg.ResourceAttributes.ServerAddress.Enabled {
+		res.Attributes().PutStr(string(conventions.ServerAddressKey), u.Host)
+	}
+
 	if s.cfg.ResourceAttributes.ServiceInstanceID.Enabled {
-		res.Attributes().PutStr(conventions.AttributeServiceInstanceID, u.Host)
+		res.Attributes().PutStr(string(conventions.ServiceInstanceIDKey), u.Host)
 	}
+
 	if s.cfg.ResourceAttributes.NetHostPort.Enabled {
-		res.Attributes().PutStr(conventions.AttributeNetHostPort, u.Port())
+		res.Attributes().PutStr(string(conventions.NetHostPortKey), u.Port())
 	}
+	if s.cfg.ResourceAttributes.ServerPort.Enabled {
+		res.Attributes().PutStr(string(conventions.ServerPortKey), u.Port())
+	}
+
 	if s.cfg.ResourceAttributes.HTTPScheme.Enabled {
-		res.Attributes().PutStr(conventions.AttributeHTTPScheme, u.Scheme)
+		res.Attributes().PutStr(string(conventions.HTTPSchemeKey), u.Scheme)
+	}
+	if s.cfg.ResourceAttributes.URLScheme.Enabled {
+		res.Attributes().PutStr(string(conventions.URLSchemeKey), u.Scheme)
 	}
 	s.convertMetricFamilies(metricFamilies, rm)
 	return m, nil

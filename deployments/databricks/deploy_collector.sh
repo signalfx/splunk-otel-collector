@@ -95,7 +95,7 @@ if [ ! -f $SPLUNK_OTEL_BINARY_FILE ] || [ $INSTALLED_SPLUNK_OTEL_VERSION != $SPL
   fi
 
   # Download Splunk's distribution of the OpenTelemetry Collector
-  curl --output "$SPLUNK_OTEL_BINARY_FILE" $SPLUNK_OTEL_BINARY_DOWNLOAD_URL || { echo "Failed to download $OTEL_BINARY_DOWNLOAD_URL"; exit 1; }
+  curl -L --output "$SPLUNK_OTEL_BINARY_FILE" $SPLUNK_OTEL_BINARY_DOWNLOAD_URL || { echo "Failed to download $OTEL_BINARY_DOWNLOAD_URL"; exit 1; }
   chmod +x "$SPLUNK_OTEL_BINARY_FILE"
 else
   echo "Splunk OpenTelemetry Collector '${SPLUNK_OTEL_VERSION}' is already installed"

@@ -72,6 +72,7 @@ suites:
       - recipe[splunk_otel_collector]
     attributes:
       splunk_otel_collector:
+        local_artifact_testing_enabled: true
         splunk_access_token: testing123
         splunk_realm: test
 
@@ -80,6 +81,7 @@ suites:
       - recipe[splunk_otel_collector]
     attributes:
       splunk_otel_collector:
+        local_artifact_testing_enabled: true
         splunk_access_token: testing123
         splunk_realm: test
         splunk_ingest_url: https://fake-splunk-ingest.com
@@ -92,6 +94,7 @@ suites:
         collector_additional_env_vars:
           MY_CUSTOM_VAR1: value1
           MY_CUSTOM_VAR2: value2
+        collector_command_line_args: --discovery
         with_fluentd: true
 
   - name: with_default_preload_instrumentation
@@ -101,7 +104,7 @@ suites:
     attributes:
       nodejs: &nodejs_options
         install_method: binary
-        version: 16.20.2
+        version: 18.20.8
         binary:
           append_env_path: false  # required for idempotence
           checksum: c9193e6c414891694759febe846f4f023bf48410a6924a8b1520c46565859665
@@ -173,6 +176,7 @@ suites:
       - recipe[splunk_otel_collector]
     attributes:
       splunk_otel_collector:
+        local_artifact_testing_enabled: true
         splunk_access_token: testing123
         splunk_realm: test
         with_auto_instrumentation: true
@@ -184,6 +188,7 @@ suites:
       - recipe[splunk_otel_collector]
     attributes:
       splunk_otel_collector:
+        local_artifact_testing_enabled: true
         splunk_access_token: testing123
         splunk_realm: test
         with_auto_instrumentation: true
@@ -205,6 +210,7 @@ suites:
       - recipe[splunk_otel_collector]
     attributes:
       splunk_otel_collector:
+        local_artifact_testing_enabled: true
         splunk_access_token: testing123
         splunk_realm: test
         with_auto_instrumentation: true
@@ -217,6 +223,7 @@ suites:
       - recipe[splunk_otel_collector]
     attributes:
       splunk_otel_collector:
+        local_artifact_testing_enabled: true
         splunk_access_token: testing123
         splunk_realm: test
         with_auto_instrumentation: true
@@ -315,6 +322,7 @@ suites:
       - recipe[splunk_otel_collector]
     attributes:
       splunk_otel_collector:
+        local_artifact_testing_enabled: true
         splunk_access_token: testing123
         splunk_realm: test
         with_auto_instrumentation: true
@@ -326,6 +334,7 @@ suites:
       - recipe[splunk_otel_collector]
     attributes:
       splunk_otel_collector:
+        local_artifact_testing_enabled: true
         splunk_access_token: testing123
         splunk_realm: test
         with_auto_instrumentation: true
@@ -347,6 +356,7 @@ suites:
       - recipe[splunk_otel_collector]
     attributes:
       splunk_otel_collector:
+        local_artifact_testing_enabled: true
         splunk_access_token: testing123
         splunk_realm: test
         with_auto_instrumentation: true
@@ -359,6 +369,7 @@ suites:
       - recipe[splunk_otel_collector]
     attributes:
       splunk_otel_collector:
+        local_artifact_testing_enabled: true
         splunk_access_token: testing123
         splunk_realm: test
         with_auto_instrumentation: true
@@ -380,6 +391,7 @@ suites:
       - recipe[splunk_otel_collector]
     attributes:
       splunk_otel_collector:
+        local_artifact_testing_enabled: true
         splunk_access_token: testing123
         splunk_realm: test
         with_auto_instrumentation: true
@@ -389,6 +401,7 @@ suites:
       - recipe[splunk_otel_collector]
     attributes:
       splunk_otel_collector:
+        local_artifact_testing_enabled: true
         splunk_access_token: testing123
         splunk_realm: test
         with_auto_instrumentation: true

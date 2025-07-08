@@ -22,6 +22,7 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -133,7 +134,12 @@ func (t *Testcase) splunkOtelCollector(configFilename string, builders ...Collec
 
 func (t *Testcase) newCollector(initial Collector, configFilename string, builders ...CollectorBuilder) (collector Collector, shutdown func()) {
 	collector = initial
+
+	coverDest := os.Getenv("CONTAINER_COVER_DEST")
+	coverSrc := os.Getenv("CONTAINER_COVER_SRC")
+
 	envVars := map[string]string{
+		"GOCOVERDIR":     coverDest,
 		"OTLP_ENDPOINT":  t.OTLPEndpointForCollector,
 		"SPLUNK_TEST_ID": t.ID,
 	}
@@ -158,6 +164,10 @@ func (t *Testcase) newCollector(initial Collector, configFilename string, builde
 		}
 	}
 	collector = collector.WithEnv(splunkEnv)
+
+	if coverSrc != "" && coverDest != "" {
+		collector = collector.WithMount(coverSrc, coverDest)
+	}
 
 	var err error
 	collector, err = collector.Build()
@@ -185,4 +195,38 @@ func (t *Testcase) PrintLogsOnFailure() {
 // Validating shutdown helper for the Testcase's OTLPReceiverSink
 func (t *Testcase) ShutdownOTLPReceiverSink() {
 	require.NoError(t, t.OTLPReceiverSink.Shutdown())
+}
+
+func CheckMetricsPresence(t *testing.T, metricNames []string, configFile string) {
+	tc := NewTestcase(t)
+	defer tc.PrintLogsOnFailure()
+	defer tc.ShutdownOTLPReceiverSink()
+
+	_, shutdown := tc.SplunkOtelCollectorContainer(configFile)
+	tc.Cleanup(shutdown)
+
+	missingMetrics := make(map[string]any, len(metricNames))
+	for _, m := range metricNames {
+		missingMetrics[m] = struct{}{}
+	}
+
+	assert.EventuallyWithT(tc, func(tt *assert.CollectT) {
+		for i := 0; i < len(tc.OTLPReceiverSink.AllMetrics()); i++ {
+			m := tc.OTLPReceiverSink.AllMetrics()[i]
+			for j := 0; j < m.ResourceMetrics().Len(); j++ {
+				rm := m.ResourceMetrics().At(j)
+				for k := 0; k < rm.ScopeMetrics().Len(); k++ {
+					sm := rm.ScopeMetrics().At(k)
+					for l := 0; l < sm.Metrics().Len(); l++ {
+						delete(missingMetrics, sm.Metrics().At(l).Name())
+					}
+				}
+			}
+		}
+		msg := "Missing metrics:\n"
+		for k := range missingMetrics {
+			msg += fmt.Sprintf("- %q\n", k)
+		}
+		assert.Len(tt, missingMetrics, 0, msg)
+	}, 1*time.Minute, 1*time.Second)
 }

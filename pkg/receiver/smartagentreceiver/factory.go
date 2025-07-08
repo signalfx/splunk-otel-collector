@@ -39,11 +39,6 @@ func getOrCreateReceiver(cfg component.Config, params otelcolreceiver.Settings) 
 	defer receiverStoreLock.Unlock()
 	receiverConfig := cfg.(*Config)
 
-	err := receiverConfig.validate()
-	if err != nil {
-		return nil, err
-	}
-
 	receiverInst, ok := receiverStore[receiverConfig]
 	if !ok {
 		receiverInst = newReceiver(params, *receiverConfig)

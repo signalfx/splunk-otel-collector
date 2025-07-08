@@ -18,13 +18,13 @@ import (
 	"context"
 	"testing"
 
-	"github.com/signalfx/signalfx-agent/pkg/monitors/haproxy"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	otelcolreceiver "go.opentelemetry.io/collector/receiver"
+
+	"github.com/signalfx/signalfx-agent/pkg/monitors/haproxy"
 )
 
 func TestCreateDefaultConfig(t *testing.T) {
@@ -37,6 +37,7 @@ func TestCreateDefaultConfig(t *testing.T) {
 func TestCreateMetrics(t *testing.T) {
 	factory := NewFactory()
 	cfg := factory.CreateDefaultConfig()
+	cfg.(*Config).MonitorType = "haproxy"
 	cfg.(*Config).monitorConfig = &haproxy.Config{}
 
 	params := otelcolreceiver.Settings{ID: component.MustNewID(typeStr)}
@@ -45,25 +46,12 @@ func TestCreateMetrics(t *testing.T) {
 	assert.NotNil(t, receiver)
 
 	assert.Same(t, receiver, receiverStore[cfg.(*Config)])
-}
-
-func TestCreateMetricsWithInvalidConfig(t *testing.T) {
-	factory := NewFactory()
-	cfg := &Config{}
-	require.Error(t, cfg.validate())
-
-	params := otelcolreceiver.Settings{ID: component.MustNewID(typeStr)}
-	receiver, err := factory.CreateMetrics(context.Background(), params, cfg, consumertest.NewNop())
-	require.Error(t, err)
-	assert.EqualError(t, err, "you must supply a valid Smart Agent Monitor config")
-	assert.Nil(t, receiver)
-
-	assert.NotContains(t, receiverStore, cfg)
 }
 
 func TestCreateLogs(t *testing.T) {
 	factory := NewFactory()
 	cfg := factory.CreateDefaultConfig()
+	cfg.(*Config).MonitorType = "haproxy"
 	cfg.(*Config).monitorConfig = &haproxy.Config{}
 
 	params := otelcolreceiver.Settings{ID: component.MustNewID(typeStr)}
@@ -72,25 +60,12 @@ func TestCreateLogs(t *testing.T) {
 	assert.NotNil(t, receiver)
 
 	assert.Same(t, receiver, receiverStore[cfg.(*Config)])
-}
-
-func TestCreateLogsWithInvalidConfig(t *testing.T) {
-	factory := NewFactory()
-	cfg := &Config{}
-	require.Error(t, cfg.validate())
-
-	params := otelcolreceiver.Settings{ID: component.MustNewID(typeStr)}
-	receiver, err := factory.CreateLogs(context.Background(), params, cfg, consumertest.NewNop())
-	require.Error(t, err)
-	assert.EqualError(t, err, "you must supply a valid Smart Agent Monitor config")
-	assert.Nil(t, receiver)
-
-	assert.NotContains(t, receiverStore, cfg)
 }
 
 func TestCreateTraces(t *testing.T) {
 	factory := NewFactory()
 	cfg := factory.CreateDefaultConfig()
+	cfg.(*Config).MonitorType = "haproxy"
 	cfg.(*Config).monitorConfig = &haproxy.Config{}
 
 	params := otelcolreceiver.Settings{ID: component.MustNewID(typeStr)}
@@ -101,23 +76,10 @@ func TestCreateTraces(t *testing.T) {
 	assert.Same(t, receiver, receiverStore[cfg.(*Config)])
 }
 
-func TestCreateTracesWithInvalidConfig(t *testing.T) {
-	factory := NewFactory()
-	cfg := &Config{}
-	require.Error(t, cfg.validate())
-
-	params := otelcolreceiver.Settings{ID: component.MustNewID(typeStr)}
-	receiver, err := factory.CreateTraces(context.Background(), params, cfg, consumertest.NewNop())
-	require.Error(t, err)
-	assert.EqualError(t, err, "you must supply a valid Smart Agent Monitor config")
-	assert.Nil(t, receiver)
-
-	assert.NotContains(t, receiverStore, cfg)
-}
-
 func TestCreateMetricsThenLogsAndThenTracesReceiver(t *testing.T) {
 	factory := NewFactory()
 	cfg := factory.CreateDefaultConfig()
+	cfg.(*Config).MonitorType = "haproxy"
 	cfg.(*Config).monitorConfig = &haproxy.Config{}
 
 	params := otelcolreceiver.Settings{ID: component.MustNewID(typeStr)}
@@ -148,6 +110,7 @@ func TestCreateMetricsThenLogsAndThenTracesReceiver(t *testing.T) {
 func TestCreateTracesThenLogsAndThenMetricsReceiver(t *testing.T) {
 	factory := NewFactory()
 	cfg := factory.CreateDefaultConfig()
+	cfg.(*Config).MonitorType = "haproxy"
 	cfg.(*Config).monitorConfig = &haproxy.Config{}
 
 	params := otelcolreceiver.Settings{ID: component.MustNewID(typeStr)}

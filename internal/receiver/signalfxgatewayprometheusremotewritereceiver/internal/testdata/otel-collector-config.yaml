@@ -13,9 +13,6 @@ exporters:
   debug:
     verbosity: detailed
 service:
-  telemetry:
-    metrics:
-      address: ":8888"
   pipelines:
     metrics/logging:
       receivers: [signalfxgatewayprometheusremotewrite]

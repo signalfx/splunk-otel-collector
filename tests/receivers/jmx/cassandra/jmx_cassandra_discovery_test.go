@@ -33,6 +33,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	"go.opentelemetry.io/collector/component/componenttest"
+	"go.opentelemetry.io/collector/config/configgrpc"
+	"go.opentelemetry.io/collector/config/confignet"
+	"go.opentelemetry.io/collector/config/configoptional"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"go.opentelemetry.io/collector/receiver/receivertest"
@@ -66,8 +69,13 @@ func jmxCassandraAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFi
 	factory := otlpreceiver.NewFactory()
 	port := 16745
 	c := factory.CreateDefaultConfig().(*otlpreceiver.Config)
-	c.GRPC.NetAddr.Endpoint = fmt.Sprintf("localhost:%d", port)
-	endpoint := c.GRPC.NetAddr.Endpoint
+	endpoint := fmt.Sprintf("localhost:%d", port)
+	c.GRPC = configoptional.Some(configgrpc.ServerConfig{
+		NetAddr: confignet.AddrConfig{
+			Endpoint:  endpoint,
+			Transport: "tcp",
+		},
+	})
 	sink := &consumertest.LogsSink{}
 	receiver, err := factory.CreateLogs(context.Background(), receivertest.NewNopSettings(factory.Type()), c, sink)
 	require.NoError(t, err)
@@ -78,6 +86,13 @@ func jmxCassandraAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFi
 
 	dockerGID, err := getDockerGID()
 	require.NoError(t, err)
+
+	coverDest := os.Getenv("CONTAINER_COVER_DEST")
+	coverSrc := os.Getenv("CONTAINER_COVER_SRC")
+	var coverDirBind string
+	if coverSrc != "" && coverDest != "" {
+		coverDirBind = fmt.Sprintf("%s:%s", coverSrc, coverDest)
+	}
 
 	otelConfigPath, err := filepath.Abs(filepath.Join(".", "testdata", configFile))
 	if err != nil {
@@ -95,11 +110,12 @@ func jmxCassandraAutoDiscoveryHelper(t *testing.T, ctx context.Context, configFi
 	req := testcontainers.ContainerRequest{
 		Image: "otelcol:latest",
 		HostConfigModifier: func(hc *container.HostConfig) {
-			hc.Binds = []string{"/var/run/docker.sock:/var/run/docker.sock"}
+			hc.Binds = []string{"/var/run/docker.sock:/var/run/docker.sock", coverDirBind}
 			hc.NetworkMode = network.NetworkHost
 			hc.GroupAdd = []string{dockerGID}
 		},
 		Env: map[string]string{
+			"GOCOVERDIR":                  coverDest,
 			"SPLUNK_REALM":                "us2",
 			"SPLUNK_ACCESS_TOKEN":         "12345",
 			"SPLUNK_DISCOVERY_LOG_LEVEL":  "info",

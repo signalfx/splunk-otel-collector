@@ -6,17 +6,17 @@ role for Splunk OpenTelemetry Collector](https://github.com/signalfx/splunk-otel
 
 The role installs Splunk OpenTelemetry Collector configured to
 collect metrics, traces and logs from Linux machines and send data to [Splunk 
-Observability Cloud](https://www.splunk.com/en_us/observability.html). 
+Observability Cloud](https://www.splunk.com/en_us/products/observability.html). 
 
 ## Linux
 
 Currently, the following Linux distributions and versions are supported:
 
 - Amazon Linux: 2, 2023 (**Note:** Log collection with Fluentd not currently supported for Amazon Linux 2023.)
-- CentOS / Red Hat: 7, 8, 9
+- CentOS / Red Hat: 8, 9
 - Oracle: 8, 9
 - Debian: 9, 10, 11
-- SUSE: 12, 15 (**Note:** Only for collector versions v0.34.0 or higher. Log collection with Fluentd not currently supported.)
+- SUSE: 15 (**Note:** Only for collector versions v0.34.0 or higher. Log collection with Fluentd not currently supported.)
 - Ubuntu: 16.04, 18.04, 20.04, 22.04
 
 ## Windows

@@ -22,156 +22,42 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.23.7
+  GO_VERSION: 1.23.10
 
 jobs:
-  setup-environment:
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
-
-      - name: Installing dependency
-        run: |
-          make install-tools
-
   cross-compile:
-    runs-on: ubuntu-24.04
-    needs: [setup-environment]
     strategy:
       matrix:
         SYS_BINARIES: [ "binaries-windows_amd64" ]
-    steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
-
-      - name: Build Collector
-        run: |
-          make ${{ matrix.SYS_BINARIES }}
-
-      - name: Uploading binaries
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.SYS_BINARIES }}
-          path: |
-            ./bin/*
+    uses: ./.github/workflows/compile.yml
+    with:
+      SYS_BINARY: ${{ matrix.SYS_BINARIES }}
 
   agent-bundle-windows:
-    runs-on: ${{ matrix.OS }}
     strategy:
       matrix:
         OS: [ "windows-2022", "windows-2025" ]
-    env:
+    uses: ./.github/workflows/agent-bundle-windows.yml
+    with:
+      OS: ${{ matrix.OS }}
       PIP_CACHE_DIR: ${{ github.workspace }}/.cache/pip
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/cache@v4
-        with:
-          path: ${{ env.PIP_CACHE_DIR }}
-          key: agent-bundle-windows-pip-${{ hashFiles('packaging/bundle/collectd-plugins.yaml', 'packaging/bundle/scripts/requirements.txt') }}
-
-      - run: ./packaging/bundle/scripts/windows/make.ps1 bundle
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: agent-bundle-windows-${{ matrix.OS }}
-          path: ./dist/agent-bundle_windows_amd64.zip
 
   msi-custom-actions:
-    runs-on: windows-2022
-    steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v4
-
-      - name: Uninstall default WiX
-        run: choco uninstall wixtoolset
-
-      - name: Install WiX 3.14.0
-        run: choco install wixtoolset --version 3.14.0 --allow-downgrade --force
-
-      - name: Build Custom Actions
-        working-directory: packaging/msi/SplunkCustomActions
-        run: |
-          dotnet test ./test/SplunkCustomActionsTests.csproj -c Release
-          dotnet publish ./src/SplunkCustomActions.csproj -c Release -o ./bin/Release
-
-      - name: Package Custom Actions
-        run: |
-          $WixPath = "${Env:ProgramFiles(x86)}\WiX Toolset v3.14"
-          $sfxcaDll = "${WixPath}\SDK\x64\sfxca.dll"
-          $Env:PATH = "${WixPath}\SDK;" + $Env:PATH
-          $customActionDir = "${PWD}\packaging\msi\SplunkCustomActions"
-          $customActionBinDir = "${customActionDir}\bin\Release"
-          MakeSfxCA.exe "${PWD}\dist\SplunkCustomActions.CA.dll" `
-            "${sfxcaDll}" `
-            "${customActionBinDir}\SplunkCustomActions.dll" `
-            "${customActionBinDir}\Microsoft.Deployment.WindowsInstaller.dll" `
-            "${customActionDir}\src\CustomAction.config"
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: msi-custom-actions
-          path: ./dist/SplunkCustomActions.CA.dll
+    strategy:
+      matrix:
+        OS: [ "windows-2022" ]
+    uses: ./.github/workflows/msi-custom-actions.yml
+    with:
+      OS: ${{ matrix.OS }}
 
   msi-build:
-    runs-on: ubuntu-24.04
     strategy:
       matrix:
         OS: [ "windows-2022", "windows-2025" ]
     needs: [cross-compile, agent-bundle-windows, msi-custom-actions]
-    steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Downloading binaries-windows_amd64
-        uses: actions/download-artifact@v4
-        with:
-          name: binaries-windows_amd64
-          path: ./bin
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
-
-      - name: Downloading agent-bundle-windows
-        uses: actions/download-artifact@v4
-        with:
-          name: agent-bundle-windows-${{ matrix.OS }}
-          path: ./dist
-
-      - name: Downloading msi-custom-actions
-        uses: actions/download-artifact@v4
-        with:
-          name: msi-custom-actions
-          path: ./packaging/msi/SplunkCustomActions/bin/Release
-
-      - name: Build MSI
-        run: |
-          mkdir -p dist
-          make msi SKIP_COMPILE=true VERSION=""
-
-      - name: Uploading msi build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: msi-build-${{ matrix.OS }}
-          path: ./dist/*.msi
+    uses: ./.github/workflows/msi-build.yml
+    with:
+      OS: ${{ matrix.OS }}
 
   dotnet-zeroconfig-e2e-test:
     runs-on: ${{ matrix.OS }}
@@ -192,10 +78,10 @@ jobs:
       - uses: actions/setup-dotnet@v4.3.1
         with:
           dotnet-version: |
-            6.0.407
+            8.0.300
 
       - name: Download Splunk OTel Collector msi
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v4.1.3
         with:
           name: msi-build-${{ matrix.OS }}
           path: ./tests/zeroconfig/windows/testdata/docker-setup/
@@ -217,7 +103,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Downloading msi build
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v4.1.3
         with:
           name: msi-build-${{ matrix.OS }}
           path: ./dist
@@ -247,7 +133,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Downloading msi build
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v4.1.3
         with:
           name: msi-build-${{ matrix.OS }}
           path: ./dist
@@ -287,6 +173,42 @@ jobs:
         if: ${{ always() && matrix.WITH_FLUENTD == 'true' }}
         run: Get-Content -Path "${env:SYSTEMDRIVE}\opt\td-agent\td-agent.log"
 
+  windows-script-upgrade-test:
+    strategy:
+      matrix:
+        OS: [ "windows-2022", "windows-2025" ]
+    runs-on: otel-windows # Tests with uninstall require a more powerful runner
+    needs: [msi-test, windows-install-script-test]
+    timeout-minutes: 45
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v4
+
+      - name: Downloading msi build
+        uses: actions/download-artifact@v4.1.3
+        with:
+          name: msi-build-${{ matrix.OS }}
+          path: ./dist
+      - name: Ensure required ports in the dynamic range are available
+        run: |
+          $ErrorActionPreference = 'Continue'
+          & ${{ github.workspace }}\.github\workflows\scripts\win-required-ports.ps1
+
+      - name: Set the MSI_COLLECTOR_PATH and INSTALL_SCRIPT_PATH environment variable
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $msi_path = Resolve-Path .\dist\splunk-otel-collector*.msi
+          Test-Path $msi_path
+          "MSI_COLLECTOR_PATH=$msi_path" | Out-File -FilePath $env:GITHUB_ENV -Append
+          $ps1_path = Resolve-Path .\packaging\installer\install.ps1
+          Test-Path $ps1_path
+          "INSTALL_SCRIPT_PATH=$ps1_path" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Run the script upgrade tests
+        shell: powershell # Use PowerShell to run the script since running the go test from pwsh.exe hides the Get-ExecutionPolicy cmdlet.
+        run: |
+          go test -v github.com/signalfx/splunk-otel-collector/tests/windows-install-script
+
   choco-build:
     runs-on: ${{ matrix.OS }}
     strategy:
@@ -298,7 +220,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Downloading msi build
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v4.1.3
         with:
           name: msi-build-${{ matrix.OS }}
           path: ./dist
@@ -350,7 +272,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Downloading choco build
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v4.1.3
         with:
           name: choco-build-${{ matrix.OS }}
           path: ./dist
@@ -439,12 +361,12 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Downloading binaries-windows_amd64
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v4.1.3
         with:
           name: binaries-windows_amd64
           path: ./bin
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4.1.3
         with:
           name: agent-bundle-windows-${{ matrix.OS }}
           path: ./dist
@@ -461,7 +383,7 @@ jobs:
       - name: Run docker image
         run: |
           $ErrorActionPreference = 'Stop'
-          docker run -d -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=fake-realm --name otelcol otelcol-windows:latest
+          docker run -d -e SPLUNK_ACCESS_TOKEN=abc123 -e SPLUNK_REALM=fake-realm --name otelcol otelcol-windows:latest
           Start-Sleep 10
           $DockerOutput=$(docker ps --filter=status=running --filter=name=otelcol -q)
           if ( $DockerOutput -eq $null ) {

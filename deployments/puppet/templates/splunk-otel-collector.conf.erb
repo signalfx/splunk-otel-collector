@@ -14,6 +14,9 @@ SPLUNK_REALM=<%= @splunk_realm %>
 <% unless @gomemlimit.to_s.strip.empty? -%>
 GOMEMLIMIT=<%= @gomemlimit %>
 <% end -%>
+<% unless @collector_command_line_args.to_s.strip.empty? -%>
+OTELCOL_OPTIONS=<%= @collector_command_line_args %>
+<% end -%>
 
 # Custom environment variables.
 <% @collector_additional_env_vars.each do |key, value| %>

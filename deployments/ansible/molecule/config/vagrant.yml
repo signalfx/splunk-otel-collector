@@ -11,12 +11,10 @@ driver:
 platforms:
   - name: focal64
     box: ubuntu/focal64
-  - name: centos8
-    box: centos/8
+  - name: centos9
+    box: centos/stream9
   - name: bookworm64
     box: debian/bookworm64
-  - name: amazonlinux
-    box: bento/amazonlinux-2
 provisioner:
   env:
     ANSIBLE_ROLES_PATH: ../../roles

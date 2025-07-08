@@ -7,8 +7,7 @@ class splunk_otel_collector::collector_win_registry {
     "${var}=${value}"
   }
   + if !empty($splunk_otel_collector::collector_additional_env_vars) or
-  versioncmp($splunk_otel_collector::collector_version, '0.98.0') < 0
-  {
+  versioncmp($splunk_otel_collector::collector_version, '0.98.0') < 0 {
     $splunk_otel_collector::collector_win_config_options::collector_env_vars.map |$var, $value| {
       "${var}=${value}"
     }

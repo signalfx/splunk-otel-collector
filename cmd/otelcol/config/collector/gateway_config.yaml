@@ -2,6 +2,12 @@
 # data to Splunk products.
 
 extensions:
+  headers_setter:
+    headers:
+      - action: upsert
+        key: X-SF-TOKEN
+        from_context: X-SF-TOKEN
+        default_value: "${SPLUNK_ACCESS_TOKEN}"
   health_check:
     endpoint: "${SPLUNK_LISTEN_INTERFACE}:13133"
   http_forwarder:
@@ -27,8 +33,12 @@ receivers:
     protocols:
       grpc:
         endpoint: "${SPLUNK_LISTEN_INTERFACE}:4317"
+        # Uncomment below config to preserve incoming access token and use it instead of the token value set in exporter config
+        # include_metadata: true
       http:
         endpoint: "${SPLUNK_LISTEN_INTERFACE}:4318"
+        # Uncomment below config to preserve incoming access token and use it instead of the token value set in exporter config
+        # include_metadata: true
   # This section is used to collect the OpenTelemetry Collector metrics
   # Even if just a Splunk APM customer, these metrics are included
   prometheus/internal:
@@ -101,6 +111,8 @@ exporters:
       num_consumers: 32
     headers:
       "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
+    auth:
+      authenticator: headers_setter
   # Metrics + Events
   signalfx:
     access_token: "${SPLUNK_ACCESS_TOKEN}"
@@ -130,9 +142,25 @@ exporters:
     token: "${SPLUNK_ACCESS_TOKEN}"
     endpoint: "${SPLUNK_INGEST_URL}/v1/log"
     log_data_enabled: false
+  # To send entities (applicable only if discovery mode is enabled)
+  otlphttp/entities:
+    logs_endpoint: "${SPLUNK_INGEST_URL}/v3/event"
+    headers:
+      "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
+    auth:
+      authenticator: headers_setter
+
+connectors:
+  # Routing connector to separate entity events from regular logs
+  routing/logs:
+    default_pipelines: [logs]
+    table:
+      - context: log
+        condition: instrumentation_scope.attributes["otel.entity.event_as_log"] == true
+        pipelines: [logs/entities]
 
 service:
-  extensions: [health_check, http_forwarder, zpages]
+  extensions: [headers_setter, health_check, http_forwarder, zpages]
   pipelines:
     traces:
       receivers: [jaeger, otlp, sapm, zipkin]
@@ -154,6 +182,13 @@ service:
       processors: [memory_limiter, batch]
       exporters: [signalfx]
     logs:
-      receivers: [otlp]
+      receivers: [routing/logs]
       processors: [memory_limiter, batch]
       exporters: [splunk_hec, splunk_hec/profiling]
+    logs/entities:
+      receivers: [routing/logs]
+      processors: [memory_limiter, batch]
+      exporters: [otlphttp/entities]
+    logs/split:
+      receivers: [otlp]
+      exporters: [routing/logs]

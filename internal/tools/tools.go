@@ -23,8 +23,6 @@ import (
 	_ "github.com/golangci/golangci-lint/cmd/golangci-lint"
 	_ "github.com/google/addlicense"
 	_ "github.com/jstemmer/go-junit-report"
-	_ "github.com/ory/go-acc"
-	_ "github.com/pavius/impi/cmd/impi"
 	_ "github.com/tcnksm/ghr"
 	_ "go.opentelemetry.io/collector/cmd/mdatagen"
 	_ "golang.org/x/tools/cmd/goimports"

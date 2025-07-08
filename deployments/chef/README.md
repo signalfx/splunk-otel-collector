@@ -3,7 +3,7 @@
 This cookbook installs and configures the Splunk OpenTelemetry Collector to
 collect metrics, traces and logs from Linux and Windows machines and sends
 data to [Splunk Observability Cloud](
-https://www.splunk.com/en_us/observability.html).
+https://www.splunk.com/en_us/products/observability.html).
 
 ## Prerequisites
 
@@ -17,10 +17,10 @@ https://www.splunk.com/en_us/observability.html).
 Currently, the following Linux distributions and versions are supported:
 
 - Amazon Linux: 2
-- CentOS / Red Hat: 7, 8, 9
+- CentOS / Red Hat: 8, 9
 - Oracle: 8, 9
 - Debian: 9, 10, 11
-- SUSE: 12, 15 (**Note:** Only for Collector versions v0.34.0 or higher. Log collection with Fluentd not currently supported.)
+- SUSE: 15 (**Note:** Only for Collector versions v0.34.0 or higher. Log collection with Fluentd not currently supported.)
 - Ubuntu: 18.04, 20.04, 22.04
 
 ## Windows
@@ -148,7 +148,14 @@ required `splunk_access_token` attribute and some optional attributes:
   `HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\splunk-otel-collector`
   registry key.
 
+- `collector_command_line_args`: Additional command line arguments to pass to the
+  collector service. The value will be set to the `OTELCOL_OPTIONS` environment
+  variable for the collector service (**default:** `''`).
+
 ### Fluentd
+
+> **_NOTE:_**  Fluentd support has been deprecated and will be removed in a future release.
+> Please refer to [deprecation documentation](../../docs/deprecations/fluentd-support.md) for more information.
 
 - `with_fluentd`: Whether to install/manage Fluentd and dependencies for log
   collection. On Linux, the dependencies include [capng_c](

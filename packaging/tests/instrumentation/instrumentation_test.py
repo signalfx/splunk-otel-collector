@@ -329,8 +329,8 @@ def test_express_instrumentation(distro, arch):
     assert pkg_path, f"{PKG_NAME} package not found"
     pkg_base = os.path.basename(pkg_path)
 
-    # minimum supported node version required for profiling
-    node_version = 16
+    # minimum supported node version
+    node_version = 18
 
     buildargs = {"NODE_VERSION": f"v{node_version}"}
 

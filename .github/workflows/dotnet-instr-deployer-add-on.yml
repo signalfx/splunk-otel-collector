@@ -9,6 +9,8 @@ on:
     paths:
       - 'packaging/dotnet-instr-deployer-add-on/**'
       - '.github/workflows/dotnet-instr-deployer-add-on.yml'
+  schedule:
+    - cron: '0 1 * * 1,4' # Every Monday and Thursday at 1 AM UTC
   workflow_dispatch:
     inputs:
       splunk_uf_version:
@@ -21,13 +23,13 @@ on:
         default: '6b4ebe426ca6'
 
 env:
-  GO_VERSION: 1.23.7
+  GO_VERSION: 1.23.10
   # Provide default values for non-manually triggered executions
   splunk_uf_version: ${{ github.event.inputs.splunk_uf_version || '9.4.0' }}
   splunk_uf_build_hash: ${{ github.event.inputs.splunk_uf_build_hash || '6b4ebe426ca6' }}
 
 jobs:
-  build-pack-test-dotnet-deployer-ta:
+  build-pack-test-dotnet-instrumentation-deployer-ta:
     runs-on: windows-latest
 
     steps:
@@ -86,3 +88,44 @@ jobs:
         if: always()
         run: |
           Get-Content "${Env:ProgramFiles}\SplunkUniversalForwarder\var\log\splunk\splunk_otel_dotnet_deployer.log"
+
+  push-release-tag:
+    name: Push Release Tag
+    runs-on: ubuntu-24.04
+    needs: [build-pack-test-dotnet-instrumentation-deployer-ta]
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read version from app.conf
+        id: read-app-conf
+        run: |
+          version=$(grep -oP '^version = \K.*' packaging/dotnet-instr-deployer-add-on/assets/default/app.conf)
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Ensure version is read from app.conf
+        if: steps.read-app-conf.outputs.version == ''
+        run: echo "Fail to read version from app.conf" && exit 1
+
+      - name: Push new release tag if it doesn't exist
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+              const tagRef = "tags/dotnet-instrumentation-deployer-ta-v${{ steps.read-app-conf.outputs.version }}"
+              const existingRefs = await github.rest.git.listMatchingRefs({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: tagRef
+              })
+              if (existingRefs.data.length === 0) {
+                await github.rest.git.createRef({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  ref: "refs/" + tagRef,
+                  sha: context.sha
+                })
+              } else {
+                console.log(tagRef + " already exists")
+              }

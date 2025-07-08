@@ -130,13 +130,9 @@ func TestHostObserver(t *testing.T) {
 		}
 		err := pmetrictest.CompareMetrics(expected, tc.OTLPReceiverSink.AllMetrics()[len(tc.OTLPReceiverSink.AllMetrics())-1],
 			pmetrictest.IgnoreResourceAttributeValue("service.instance.id"),
-			pmetrictest.IgnoreResourceAttributeValue("net.host.port"),
 			pmetrictest.IgnoreResourceAttributeValue("server.port"),
-			pmetrictest.IgnoreResourceAttributeValue("service.name"),
 			pmetrictest.IgnoreResourceAttributeValue("service.instance.id"),
 			pmetrictest.IgnoreResourceAttributeValue("service.version"),
-			pmetrictest.IgnoreMetricAttributeValue("service.version"),
-			pmetrictest.IgnoreMetricAttributeValue("service.instance.id"),
 			pmetrictest.IgnoreTimestamp(),
 			pmetrictest.IgnoreStartTimestamp(),
 			pmetrictest.IgnoreMetricDataPointsOrder(),
@@ -179,8 +175,7 @@ func TestHostObserver(t *testing.T) {
 				},
 				"telemetry": map[string]any{
 					"metrics": map[string]any{
-						"address": "",
-						"level":   "none",
+						"level": "none",
 					},
 				},
 			},
@@ -257,8 +252,7 @@ func TestHostObserver(t *testing.T) {
 			},
 			"telemetry": map[string]any{
 				"metrics": map[string]any{
-					"address": "",
-					"level":   "none",
+					"level": "none",
 				},
 				"resource": map[string]any{
 					"splunk_autodiscovery": "true",
@@ -351,7 +345,6 @@ service:
       - receiver_creator/discovery
   telemetry:
     metrics:
-      address: ""
       level: none
     resource:
       splunk_autodiscovery: "true"

@@ -21,10 +21,10 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"runtime/debug"
 	"testing"
 	"time"
 
-	"github.com/docker/docker/api/types"
 	dockerContainer "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/errdefs"
 	"github.com/docker/docker/pkg/stdcopy"
@@ -273,23 +273,31 @@ func (container Container) Build() *Container {
 	return &container
 }
 
-func (container *Container) Start(ctx context.Context) error {
+func (container *Container) Start(ctx context.Context) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("panic: %v, %s", r, string(debug.Stack()))
+		}
+	}()
+
 	if container.req == nil {
 		return fmt.Errorf("cannot start a container that hasn't been built")
 	}
+
 	req := testcontainers.GenericContainerRequest{
 		ContainerRequest: *container.req,
 		Started:          true,
 	}
 
-	err := container.createNetworksIfNecessary(req)
+	err = container.createNetworksIfNecessary(req)
 	if err != nil {
 		return nil
 	}
 
-	started, err := testcontainers.GenericContainer(ctx, req)
+	var started testcontainers.Container
+	started, err = testcontainers.GenericContainer(ctx, req)
 	container.container = &started
-	return err
+	return
 }
 
 func (container *Container) assertStarted(operation string) error {
@@ -449,11 +457,11 @@ func (container *Container) IsRunning() bool {
 	return (*container.container).IsRunning()
 }
 
-func (container *Container) State(ctx context.Context) (*types.ContainerState, error) {
+func (container *Container) State(ctx context.Context) (*dockerContainer.State, error) {
 	if err := container.assertStarted("State"); err != nil {
 		return nil, err
 	}
-	return (*container.container).State(ctx)
+	return (*container).State(ctx)
 }
 
 func (container *Container) CopyToContainer(ctx context.Context, fileContent []byte, containerFilePath string, fileMode int64) error {
@@ -499,6 +507,7 @@ func (container *Container) createNetworksIfNecessary(req testcontainers.Generic
 			Name: networkName,
 		}
 		networkResource, err := provider.GetNetwork(context.Background(), query)
+		//nolint:staticcheck
 		if err != nil && !errdefs.IsNotFound(err) {
 			return err
 		}

@@ -6,6 +6,7 @@
     name:
       - apt-transport-https
       - gnupg
+      - xz-utils
     state: present
     update_cache: yes
 
@@ -31,3 +32,19 @@
   notify:
     - "restart splunk-otel-collector"
     - "restart td-agent"
+  when: not local_artifact_testing_enabled
+
+- name: Copy Splunk OpenTelemetry Collector DEB artifact to remote machine
+  ansible.builtin.copy:
+    src: /tmp/deb-{% if ansible_architecture == 'aarch64' %}arm64{% else %}amd64{% endif %}-package
+    dest: /etc/otel/
+  register: archive_contents
+  when: local_artifact_testing_enabled
+
+- name: Install Splunk OpenTelemetry Collector via local DEB artifact
+  ansible.builtin.apt:
+    deb: "{{ archive_contents.dest }}"
+  notify:
+    - "restart splunk-otel-collector"
+    - "restart td-agent"
+  when: local_artifact_testing_enabled

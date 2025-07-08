@@ -26,10 +26,6 @@ import (
 	"testing"
 	"time"
 
-	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
-	"github.com/signalfx/signalfx-agent/pkg/monitors"
-	"github.com/signalfx/signalfx-agent/pkg/monitors/cpu"
-	"github.com/signalfx/signalfx-agent/pkg/utils/hostfs"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
@@ -47,6 +43,11 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
+
+	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
+	"github.com/signalfx/signalfx-agent/pkg/monitors"
+	"github.com/signalfx/signalfx-agent/pkg/monitors/cpu"
+	"github.com/signalfx/signalfx-agent/pkg/utils/hostfs"
 
 	"github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension"
 )
@@ -95,6 +96,7 @@ var (
 
 func newConfig(monitorType string, intervalSeconds int) Config {
 	return Config{
+		MonitorType: monitorType,
 		monitorConfig: &cpu.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:            monitorType,
@@ -197,16 +199,6 @@ func TestSmartAgentReceiver(t *testing.T) {
 func TestStripMonitorTypePrefix(t *testing.T) {
 	assert.Equal(t, "nginx", stripMonitorTypePrefix("collectd/nginx"))
 	assert.Equal(t, "cpu", stripMonitorTypePrefix("cpu"))
-}
-
-func TestStartReceiverWithInvalidMonitorConfig(t *testing.T) {
-	t.Cleanup(cleanUp())
-	cfg := newConfig("cpu", -123)
-	receiver := newReceiver(newReceiverCreateSettings("invalid", t), cfg)
-	err := receiver.Start(context.Background(), componenttest.NewNopHost())
-	assert.EqualError(t, err,
-		"config validation failed for \"smartagent/invalid\": intervalSeconds must be greater than 0s (-123 provided)",
-	)
 }
 
 func TestStartReceiverWithUnknownMonitorType(t *testing.T) {

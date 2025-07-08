@@ -67,7 +67,7 @@ resourceLogs:
                       - key: service_version
                         value:
                           stringValue: ""
-                      - key: http.scheme
+                      - key: url.scheme
                         value:
                           stringValue: http
                       - key: discovery.receiver.config

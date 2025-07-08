@@ -1,5 +1,4 @@
 include ./Makefile.Common
-include ./packaging/technical-addon/Makefile
 
 ### VARIABLES
 
@@ -8,11 +7,10 @@ BUILD_TYPE?=release
 VERSION?=latest
 
 GIT_SHA=$(shell git rev-parse --short HEAD)
-GO_ACC=go-acc
 GOARCH=$(shell go env GOARCH)
 GOOS=$(shell go env GOOS)
 
-FIND_MOD_ARGS=-type f -name "go.mod"
+FIND_MOD_ARGS=-type f -name "go.mod"  -not -path "./packaging/technical-addon/*"
 TO_MOD_DIR=dirname {} \; | sort | egrep  '^./'
 
 ALL_MODS := $(shell find . $(FIND_MOD_ARGS) -exec $(TO_MOD_DIR)) $(PWD)
@@ -32,11 +30,20 @@ BUILD_INFO=-ldflags "${BUILD_X1} ${BUILD_X2}"
 BUILD_INFO_TESTS=-ldflags "-X $(BUILD_INFO_IMPORT_PATH_TESTS).Version=$(VERSION)"
 CGO_ENABLED?=0
 
+# This directory is used in tests hold code coverage results.
+# It's mounted on docker containers which then write code coverage
+# results to it, making coverage profiles available on the host after tests.
+# 777 privileges are important to allow docker container write
+# access to host dir.
+MAKE_TEST_COVER_DIR=mkdir -m 777 -p $(TEST_COVER_DIR)
+
 JMX_METRIC_GATHERER_RELEASE=$(shell cat packaging/jmx-metric-gatherer-release.txt)
 SKIP_COMPILE=false
 ARCH?=amd64
 BUNDLE_SUPPORTED_ARCHS := amd64 arm64
 SKIP_BUNDLE=false
+# Used for building the collector to collect coverage information
+COVER_TESTING=false
 
 # For integration testing against local changes you can run
 # SPLUNK_OTEL_COLLECTOR_IMAGE='otelcol:latest' make -e docker-otelcol integration-test
@@ -59,7 +66,7 @@ all-modules:
 	@echo $(ALL_MODS) | tr ' ' '\n' | sort
 
 .PHONY: all
-all: checklicense impi lint misspell test otelcol
+all: checklicense lint misspell test otelcol
 
 .PHONY: for-all
 for-all:
@@ -83,61 +90,128 @@ for-all-target: $(ALL_MODS)
 integration-vet:
 	@set -e; cd tests && go vet -tags integration,testutilsintegration,zeroconfig,testutils ./... && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) -tags testutils,testutilsintegration -v -timeout 5m -count 1 ./...
 
+.PHONY: integration-test-target
+integration-test-target:
+	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=$(TARGET) -v -timeout 5m -count 1 ./...
+
+.PHONY: integration-test-cover-target
+integration-test-cover-target:
+	@set -e; $(MAKE_TEST_COVER_DIR) && cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=$(TARGET) -v -timeout 10m -count 1 ./... $(COVER_TESTING_INTEGRATION_OPTS)
+	$(GOCMD) tool covdata textfmt -i=$(TEST_COVER_DIR) -o ./$(TARGET)-coverage.txt
+
 .PHONY: integration-test
 integration-test:
-	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=integration -v -timeout 5m -count 1 ./...
+	@make integration-test-target TARGET='integration'
+
+.PHONY: integration-test-with-cover
+integration-test-with-cover:
+	@make integration-test-cover-target TARGET='integration'
 
 .PHONY: integration-test-mongodb-discovery
 integration-test-mongodb-discovery:
-	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_mongodb -v -timeout 5m -count 1 ./...
+	@make integration-test-target TARGET='discovery_integration_mongodb'
+
+.PHONY: integration-test-mongodb-discovery-with-cover
+integration-test-mongodb-discovery-with-cover:
+	@make integration-test-cover-target TARGET='discovery_integration_mongodb'
 
 .PHONY: integration-test-mysql-discovery
 integration-test-mysql-discovery:
-	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_mysql -v -timeout 5m -count 1 ./...
+	@make integration-test-target TARGET='discovery_integration_mysql'
+
+.PHONY: integration-test-mysql-discovery-with-cover
+integration-test-mysql-discovery-with-cover:
+	@make integration-test-cover-target TARGET='discovery_integration_mysql'
 
 .PHONY: integration-test-kafkametrics-discovery
 integration-test-kafkametrics-discovery:
-	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_kafkametrics -v -timeout 5m -count 1 ./...
+	@make integration-test-target TARGET='discovery_integration_kafkametrics'
+
+.PHONY: integration-test-kafkametrics-discovery-with-cover
+integration-test-kafkametrics-discovery-with-cover:
+	@make integration-test-cover-target TARGET='discovery_integration_kafkametrics'
 
 .PHONY: integration-test-jmx/cassandra-discovery
 integration-test-jmx/cassandra-discovery:
-	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_jmx -v -timeout 5m -count 1 ./...
+	@make integration-test-target TARGET='discovery_integration_jmx'
+
+.PHONY: integration-test-jmx/cassandra-discovery-with-cover
+integration-test-jmx/cassandra-discovery-with-cover:
+	@make integration-test-cover-target TARGET='discovery_integration_jmx'
 
 .PHONY: integration-test-apache-discovery
 integration-test-apache-discovery:
-	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_apachewebserver -v -timeout 5m -count 1 ./...
+	@make integration-test-target TARGET='discovery_integration_apachewebserver'
+
+.PHONY: integration-test-apache-discovery-with-cover
+integration-test-apache-discovery-with-cover:
+	@make integration-test-cover-target TARGET='discovery_integration_apachewebserver'
 
 .PHONY: integration-test-envoy-discovery
 integration-test-envoy-discovery:
-	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_envoy -v -timeout 5m -count 1 ./...
+	@make integration-test-target TARGET='discovery_integration_envoy'
+
+.PHONY: integration-test-envoy-discovery-with-cover
+integration-test-envoy-discovery-with-cover:
+	@make integration-test-cover-target TARGET='discovery_integration_envoy'
 
 .PHONY: integration-test-nginx-discovery
 integration-test-nginx-discovery:
-	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_nginx -v -timeout 5m -count 1 ./...
+	@make integration-test-target TARGET='discovery_integration_nginx'
+
+.PHONY: integration-test-nginx-discovery-with-cover
+integration-test-nginx-discovery-with-cover:
+	@make integration-test-cover-target TARGET='discovery_integration_nginx'
 
 .PHONY: integration-test-redis-discovery
 integration-test-redis-discovery:
-	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_redis -v -timeout 5m -count 1 ./...
+	@make integration-test-target TARGET='discovery_integration_redis'
+
+.PHONY: integration-test-redis-discovery-with-cover
+integration-test-redis-discovery-with-cover:
+	@make integration-test-cover-target TARGET='discovery_integration_redis'
 
 .PHONY: integration-test-oracledb-discovery
 integration-test-oracledb-discovery:
-	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_oracledb -v -timeout 5m -count 1 ./...
+	@make integration-test-target TARGET='discovery_integration_oracledb'
+
+.PHONY: integration-test-oracledb-discovery-with-cover
+integration-test-oracledb-discovery-with-cover:
+	@make integration-test-cover-target TARGET='discovery_integration_oracledb'
 
 .PHONY: smartagent-integration-test
 smartagent-integration-test:
-	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=smartagent_integration -v -timeout 5m -count 1 ./...
+	@make integration-test-target TARGET='smartagent_integration'
+
+.PHONY: smartagent-integration-test-with-cover
+smartagent-integration-test-with-cover:
+	@make integration-test-cover-target TARGET='smartagent_integration'
 
 .PHONY: integration-test-envoy-discovery-k8s
 integration-test-envoy-discovery-k8s:
-	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=discovery_integration_envoy_k8s -v -timeout 5m -count 1 ./...
+	@make integration-test-target TARGET='discovery_integration_envoy_k8s'
 
-.PHONY: test-with-cover
-test-with-cover:
-	@echo Verifying that all packages have test files to count in coverage
-	@echo pre-compiling tests
-	@time go test -p $(NUM_CORES) ./...
-	$(GO_ACC) ./...
-	go tool cover -html=coverage.txt -o coverage.html
+.PHONY: integration-test-envoy-discovery-k8s-with-cover
+integration-test-envoy-discovery-k8s-with-cover:
+	@make integration-test-cover-target TARGET='discovery_integration_envoy_k8s'
+
+.PHONY: integration-test-istio-discovery-k8s
+integration-test-istio-discovery-k8s:
+	@make integration-test-target TARGET='discovery_integration_istio_k8s'
+
+.PHONY: integration-test-istio-discovery-k8s-with-cover
+integration-test-istio-discovery-k8s-with-cover:
+	@make integration-test-cover-target TARGET='discovery_integration_istio_k8s'
+
+.PHONY: gotest-with-codecov
+gotest-with-codecov:
+	@$(MAKE) for-all-target TARGET="test-with-codecov"
+	$(GOCMD) tool covdata textfmt -i=./coverage -o ./coverage.txt
+
+.PHONY: gotest-cover-without-race
+gotest-cover-without-race:
+	@$(MAKE) for-all-target TARGET="test-cover-without-race"
+	$(GOCMD) tool covdata textfmt -i=./coverage  -o ./coverage.txt
 
 .PHONY: gendependabot
 gendependabot:
@@ -155,13 +229,10 @@ install-tools:
 	cd ./internal/tools && go install github.com/google/addlicense
 	cd ./internal/tools && go install github.com/jstemmer/go-junit-report
 	cd ./internal/tools && go install go.opentelemetry.io/collector/cmd/mdatagen
-	cd ./internal/tools && go install github.com/ory/go-acc
-	cd ./internal/tools && go install github.com/pavius/impi/cmd/impi
 	cd ./internal/tools && go install github.com/tcnksm/ghr
 	cd ./internal/tools && go install golang.org/x/tools/cmd/goimports
 	cd ./internal/tools && go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment
 	cd ./internal/tools && go install golang.org/x/vuln/cmd/govulncheck@latest
-
 
 .PHONY: generate-metrics
 generate-metrics:
@@ -171,13 +242,16 @@ generate-metrics:
 .PHONY: otelcol
 otelcol:
 	go generate ./...
+ifeq ($(COVER_TESTING), true)
+	GO111MODULE=on CGO_ENABLED=$(CGO_ENABLED) go build $(COVER_OPTS) -trimpath -o ./bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/otelcol
+else
 	GO111MODULE=on CGO_ENABLED=$(CGO_ENABLED) go build -trimpath -o ./bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/otelcol
+endif
 ifeq ($(OS), Windows_NT)
 	$(LINK_CMD) .\bin\otelcol$(EXTENSION) .\bin\otelcol_$(GOOS)_$(GOARCH)$(EXTENSION)
 else
 	$(LINK_CMD) otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/otelcol$(EXTENSION)
 endif
-
 
 .PHONY: migratecheckpoint
 migratecheckpoint:
@@ -188,12 +262,6 @@ ifeq ($(OS), Windows_NT)
 else
 	$(LINK_CMD) migratecheckpoint_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/migratecheckpoint$(EXTENSION)
 endif
-
-.PHONY: bundle.d
-bundle.d:
-	go install github.com/signalfx/splunk-otel-collector/internal/confmapprovider/discovery/bundle/cmd/discoverybundler
-	go generate -tags bootstrap.bundle.d ./...
-	go generate -tags bundle.d ./...
 
 .PHONY: add-tag
 add-tag:
@@ -305,7 +373,3 @@ endif
 	docker create --platform linux/$(GOARCH) --name otelcol-fips-builder-$(GOOS)-$(GOARCH) otelcol-fips-builder-$(GOOS)-$(GOARCH) true >/dev/null
 	docker cp otelcol-fips-builder-$(GOOS)-$(GOARCH):/src/bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/otelcol-fips_$(GOOS)_$(GOARCH)$(EXTENSION)
 	@docker rm -f otelcol-fips-builder-$(GOOS)-$(GOARCH) >/dev/null
-
-
-.PHONY: package-technical-addon
-package-technical-addon: bundle.d otelcol generate-technical-addon copy-local-build-to-ta package-ta smoketest-ta

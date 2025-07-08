@@ -1,7 +1,7 @@
 # Cookbook:: splunk_otel_collector
 # Recipe:: fluentd_win_install
 
-td_agent_major_version = node['splunk_otel_collector']['fluentd_version'].split('.')[0]
+td_agent_major_version = node['splunk_otel_collector']['fluentd_version'].split('.').first
 
 remote_file "#{ENV['TEMP']}\\td-agent-#{node['splunk_otel_collector']['fluentd_version']}-x64.msi" do
   source "#{node['splunk_otel_collector']['fluentd_base_url']}/#{td_agent_major_version}/windows/td-agent-#{node['splunk_otel_collector']['fluentd_version']}-x64.msi"
@@ -30,7 +30,7 @@ directory "#{ENV['SystemDrive']}\\opt\\td-agent\\etc\\td-agent\\conf.d" do
 end
 
 remote_file node['splunk_otel_collector']['fluentd_config_dest'] do
-  source "#{node['splunk_otel_collector']['fluentd_config_source']}"
+  source node['splunk_otel_collector']['fluentd_config_source'].to_s
   notifies :restart, 'windows_service[td-agent]', :delayed
 end
 

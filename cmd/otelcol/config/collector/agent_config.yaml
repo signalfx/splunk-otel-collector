@@ -12,6 +12,12 @@
 # - SPLUNK_LISTEN_INTERFACE: The network interface the agent receivers listen on.
 
 extensions:
+  headers_setter:
+    headers:
+      - action: upsert
+        key: X-SF-TOKEN
+        from_context: X-SF-TOKEN
+        default_value: "${SPLUNK_ACCESS_TOKEN}"
   health_check:
     endpoint: "${SPLUNK_LISTEN_INTERFACE}:13133"
   http_forwarder:
@@ -61,8 +67,12 @@ receivers:
     protocols:
       grpc:
         endpoint: "${SPLUNK_LISTEN_INTERFACE}:4317"
+        # Uncomment below config to preserve incoming access token and use it instead of the token value set in exporter config
+        # include_metadata: true
       http:
         endpoint: "${SPLUNK_LISTEN_INTERFACE}:4318"
+        # Uncomment below config to preserve incoming access token and use it instead of the token value set in exporter config
+        # include_metadata: true
   # This section is used to collect the OpenTelemetry Collector metrics
   # Even if just a Splunk APM customer, these metrics are included
   prometheus/internal:
@@ -134,6 +144,8 @@ exporters:
     traces_endpoint: "${SPLUNK_INGEST_URL}/v2/trace/otlp"
     headers:
       "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
+    auth:
+      authenticator: headers_setter
   # Metrics + Events
   signalfx:
     access_token: "${SPLUNK_ACCESS_TOKEN}"
@@ -149,6 +161,8 @@ exporters:
     logs_endpoint: "${SPLUNK_INGEST_URL}/v3/event"
     headers:
       "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
+    auth:
+      authenticator: headers_setter
   # Logs
   splunk_hec:
     token: "${SPLUNK_HEC_TOKEN}"
@@ -166,12 +180,14 @@ exporters:
     endpoint: "${SPLUNK_GATEWAY_URL}:4317"
     tls:
       insecure: true
+    auth:
+      authenticator: headers_setter
   # Debug
   debug:
     verbosity: detailed
 
 service:
-  extensions: [health_check, http_forwarder, zpages, smartagent]
+  extensions: [headers_setter, health_check, http_forwarder, zpages, smartagent]
   pipelines:
     traces:
       receivers: [jaeger, otlp, zipkin]
@@ -204,6 +220,8 @@ service:
       receivers: [nop]
       processors: [memory_limiter, batch, resourcedetection]
       exporters: [otlphttp/entities]
+      # Use instead when sending to gateway
+      #exporters: [otlp/gateway]
     logs:
       receivers: [fluentforward, otlp]
       processors:

@@ -1,0 +1,13 @@
+<input>
+  <server_host>IP-ACA-BABA</server_host>
+  <server_uri>https://127.0.0.1:9089</server_uri>
+  <session_key>_fake_session_key</session_key>
+  <checkpoint_dir>C:\Program Files\SplunkUniversalForwarder\var\lib\splunk\modinputs\splunk_otel_dotnet_deployer</checkpoint_dir>
+  <configuration>
+    <stanza name="splunk_otel_dotnet_deployer://splunk_otel_dotnet_deployer" app="splunk_otel_dotnet_deployer">
+      <param name="host">$decideOnStartup</param>
+      <param name="index">default</param>
+      <param name="uninstall">true</param>
+    </stanza>
+  </configuration>
+</input>

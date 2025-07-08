@@ -17,7 +17,7 @@ default['splunk_otel_collector']['splunk_realm'] = 'us0'
 default['splunk_otel_collector']['splunk_api_url'] = "https://api.#{node['splunk_otel_collector']['splunk_realm']}.signalfx.com"
 default['splunk_otel_collector']['splunk_ingest_url'] = "https://ingest.#{node['splunk_otel_collector']['splunk_realm']}.signalfx.com"
 default['splunk_otel_collector']['splunk_hec_url'] = "#{node['splunk_otel_collector']['splunk_ingest_url']}/v1/log"
-default['splunk_otel_collector']['splunk_hec_token'] = "#{node['splunk_otel_collector']['splunk_access_token']}"
+default['splunk_otel_collector']['splunk_hec_token'] = node['splunk_otel_collector']['splunk_access_token'].to_s
 default['splunk_otel_collector']['splunk_memory_total_mib'] = '512'
 default['splunk_otel_collector']['gomemlimit'] = ''
 default['splunk_otel_collector']['splunk_listen_interface'] = ''
@@ -31,6 +31,11 @@ default['splunk_otel_collector']['fluentd_version'] = if platform_family?('debia
                                                         '4.3.2'
                                                       end
 default['splunk_otel_collector']['collector_additional_env_vars'] = {}
+default['splunk_otel_collector']['collector_command_line_args'] = ''
+
+# Set to true for testing against a locally built artifact of the Splunk OTel Collector
+# When enabled, defaults for remote URLs and collector versions are overridden
+default['splunk_otel_collector']['local_artifact_testing_enabled'] = false
 
 if platform_family?('windows')
   default['splunk_otel_collector']['collector_version'] = 'latest'

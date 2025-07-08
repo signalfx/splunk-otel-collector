@@ -2,7 +2,7 @@
 
 Ansible role that installs Splunk OpenTelemetry Collector configured to
 collect metrics, traces and logs from Linux machines and send data to [Splunk 
-Observability Cloud](https://www.splunk.com/en_us/observability.html). 
+Observability Cloud](https://www.splunk.com/en_us/products/observability.html). 
 
 ## Prerequisites
 
@@ -121,6 +121,16 @@ $> ansible-playbook playbook.yaml -e start_service=false
   `splunk_otel_collector_proxy_http` or `splunk_otel_collector_proxy_https` is
   defined. (**default:** `localhost,127.0.0.1,::1`)
 
+- `splunk_otel_collector_command_line_args`: Command-line arguments to pass to the
+  Splunk OpenTelemetry Collector. These will be added as arguments to the service
+  command line.
+  (**default:** `""`)
+  
+  Example:
+  ```yaml
+  splunk_otel_collector_command_line_args: "--discovery --set=processors.batch.timeout=10s"
+  ```
+
 - `splunk_memory_total_mib`: Amount of memory in MiB allocated to the Splunk OTel 
   Collector. (**default:** `512`)
 
@@ -162,6 +172,9 @@ which allows setting up a proxy to download the collector binaries.
 - `win_proxy_password` (Windows only): The password for `win_proxy_username`. (**default:** ``)
 
 ### Fluentd
+
+> **_NOTE:_**  Fluentd support has been deprecated and will be removed in a future release.
+> Please refer to [deprecation documentation](../../../../docs/deprecations/fluentd-support.md) for more information.
 
 - `install_fluentd`: Whether to install/manage fluentd and dependencies for log
   collection. The dependencies include [capng_c](

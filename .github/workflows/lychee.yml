@@ -21,7 +21,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: lychee Link Checker
         id: lychee
-        uses: lycheeverse/lychee-action@v2.3.0
+        uses: lycheeverse/lychee-action@v2.4.1
         with:
           lycheeVersion: v0.18.1
           args: -v -n --config .lychee.toml './*.md' './**/*.md'

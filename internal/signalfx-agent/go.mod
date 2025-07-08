@@ -83,7 +83,7 @@ require (
 	github.com/hashicorp/golang-lru v1.0.2
 	github.com/influxdata/telegraf v1.30.1
 	github.com/jaegertracing/jaeger v1.38.0
-	github.com/microsoft/go-mssqldb v1.8.2
+	github.com/microsoft/go-mssqldb v1.9.2
 	github.com/smartystreets/goconvey v1.8.1
 	go.opentelemetry.io/collector/pdata v1.35.0
 )
@@ -95,8 +95,8 @@ require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.2 // indirect
-	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.13.0 // indirect
-	github.com/Azure/azure-sdk-for-go/sdk/internal v1.10.0 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.18.0 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/internal v1.11.1 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.1.0 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161 // indirect
 	github.com/BurntSushi/toml v1.4.0 // indirect

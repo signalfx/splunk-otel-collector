@@ -36,6 +36,11 @@ msi_install_properties = node['splunk_otel_collector']['collector_win_env_vars']
                          .map { |item| "#{item[:name]}=\"#{item[:data]}\"" }
                          .join(' ')
 
+collector_cmd_line_configurable = Gem::Version.new(collector_version) >= Gem::Version.new('0.127.0')
+if collector_cmd_line_configurable && !node['splunk_otel_collector']['collector_command_line_args'].strip.empty?
+  msi_install_properties += " COLLECTOR_SVC_ARGS=\"#{node['splunk_otel_collector']['collector_command_line_args']}\""
+end
+
 windows_package 'splunk-otel-collector' do
   source remote_destination_path
   options msi_install_properties # If the MSI is not configurable, this will be ignored during installation.

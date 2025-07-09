@@ -43,6 +43,10 @@ if os[:family] == 'windows'
     it { should have_property 'Environment' }
     it { should have_property_value('Environment', :multi_string, collector_env_vars_strings) }
   end
+  describe registry_key('HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\splunk-otel-collector') do
+    it { should have_property 'ImagePath' }
+    it { should match /^.*--discovery$/ }
+  end
   describe service('fluentdwinsvc') do
     it { should be_enabled }
     it { should be_running }

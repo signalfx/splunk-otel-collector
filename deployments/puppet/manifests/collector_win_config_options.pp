@@ -27,15 +27,15 @@ class splunk_otel_collector::collector_win_config_options {
             {}
         }
 
-    $custom_cmd_line = if !$splunk_otel_collector::collector_command_line_args.strip().empty() and
+    $custom_cmd_line = {}
+    if !$splunk_otel_collector::collector_command_line_args.strip().empty() and
         versioncmp($splunk_otel_collector::collector_version, '0.127.0') >= 0 {
-            { 'COLLECTOR_SVC_ARGS' => $splunk_otel_collector::collector_command_line_args }
-        } else {
-            {}
-            notify { 'collector_command_line_args_not_supported':
-                message => 'The collector_command_line_args option is not supported for the selected version. Please use version >= 0.127.0',
-            }
+        $custom_cmd_line = { 'COLLECTOR_SVC_ARGS' => $splunk_otel_collector::collector_command_line_args }
+    } else {
+        notify { 'collector_command_line_args_not_supported':
+            message => 'The collector_command_line_args option is not supported for the selected version. Please use version >= 0.127.0',
         }
+    }
 
     $collector_env_vars = $base_env_vars + $gomemlimit + $listen_interface + $custom_cmd_line
 }

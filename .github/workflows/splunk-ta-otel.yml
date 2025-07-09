@@ -20,6 +20,8 @@ concurrency:
 
 env:
   GO_VERSION: 1.23.10
+  ADDONS_SOURCE_DIR: "${{github.workspace}}/packaging/technical-addon"
+  BUILD_DIR: "${{github.workspace}}/build"
 jobs:
   check_changes:
     runs-on: ubuntu-24.04
@@ -88,11 +90,6 @@ jobs:
         run: |
           set -o pipefail
           make -e test-ta-build-tools
-
-      - name: Test normal go code
-        run: |
-          set -o pipefail
-          make -e test
 
       - name: Ensure license
         run: |

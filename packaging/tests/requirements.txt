@@ -3,7 +3,7 @@ iterators==0.2.0
 psutil==7.0.0
 pytest==8.4.1
 pytest-html==4.1.1
-pytest-xdist==3.7.0
+pytest-xdist==3.8.0
 py>=1.8.2
 requests<2.33.0
 six==1.17.0

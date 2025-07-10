@@ -203,12 +203,6 @@ func (se *statementEvaluator) evaluateStatement(statement *statussources.Stateme
 		attrs[discovery.ReceiverNameAttr] = receiverID.Name()
 		attrs[discovery.MessageAttr] = match.Message
 
-		// set original message as "discovery.matched_log" attribute
-		attrs[matchedLogAttr] = statement.Message
-		if err, ok := statement.Fields["error"]; ok {
-			attrs[matchedLogAttr] += fmt.Sprintf(" (error: %v)", err)
-		}
-
 		attrs[discovery.StatusAttr] = string(match.Status)
 		se.correlations.UpdateAttrs(endpointID, attrs)
 

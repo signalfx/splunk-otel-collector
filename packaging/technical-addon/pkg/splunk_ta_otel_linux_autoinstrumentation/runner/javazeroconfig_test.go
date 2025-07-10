@@ -20,6 +20,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -210,4 +211,16 @@ func TestHappyPath(t *testing.T) {
 	read, err = io.ReadAll(output)
 	assert.NoError(t, err)
 	assert.Contains(t, string(read), strings.TrimSpace(javaAgent256Sum))
+
+	// check for errors
+	_, output, err = tc.Exec(ctx, []string{"sudo", "cat", "/opt/splunk/var/log/splunk/Splunk_TA_otel_linux_autoinstrumentation.log"})
+	require.NoError(t, err)
+	read, err = io.ReadAll(output)
+	assert.NoError(t, err)
+	assert.NotRegexp(t, string(read), regexp.MustCompile(`(?i).*error.*`))
+	_, output, err = tc.Exec(ctx, []string{"sudo", "cat", "/opt/splunk/var/log/splunk/Splunk_TA_otel.log"})
+	require.NoError(t, err)
+	read, err = io.ReadAll(output)
+	assert.NoError(t, err)
+	assert.NotRegexp(t, string(read), regexp.MustCompile(`(?i).*error.*`))
 }

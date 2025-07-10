@@ -191,7 +191,7 @@ class {{ splunk_otel_collector:
     splunk_listen_interface => '0.0.0.0',
     collector_version => '$version',
     with_fluentd => true,
-    collector_command_line_args => '--discovery',
+    collector_command_line_args => '--discovery --set=processors.batch.timeout=10s',
     collector_additional_env_vars => {{ 'MY_CUSTOM_VAR1' => 'value1', 'MY_CUSTOM_VAR2' => 'value2' }},
 }}
 """
@@ -224,7 +224,7 @@ def test_puppet_with_custom_vars(distro, puppet_release):
             verify_package_version(container, "splunk-otel-collector", "0.126.0")
             verify_env_file(container, api_url, ingest_url, "fake-hec-token")
             verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_LISTEN_INTERFACE", "0.0.0.0")
-            verify_config_file(container, SPLUNK_ENV_PATH, "OTELCOL_OPTIONS", "--discovery")
+            verify_config_file(container, SPLUNK_ENV_PATH, "OTELCOL_OPTIONS", "--discovery --set=processors.batch.timeout=10s")
             verify_config_file(container, SPLUNK_ENV_PATH, "MY_CUSTOM_VAR1", "value1")
             verify_config_file(container, SPLUNK_ENV_PATH, "MY_CUSTOM_VAR2", "value2")
             assert wait_for(lambda: service_is_running(container))
@@ -544,6 +544,6 @@ def test_win_puppet_custom_vars():
     collector_service = psutil.win_service_get("splunk-otel-collector")
     assert collector_service.status() == psutil.STATUS_RUNNING
     if WIN_COLLECTOR_VERSION == "latest":
-        assert collector_service.binpath().endswith("--discovery")
+        assert collector_service.binpath().endswith("--discovery --set=processors.batch.timeout=10s")
 
     assert psutil.win_service_get("fluentdwinsvc").status() == psutil.STATUS_RUNNING

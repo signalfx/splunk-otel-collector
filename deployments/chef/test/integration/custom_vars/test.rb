@@ -45,7 +45,7 @@ if os[:family] == 'windows'
   end
   describe registry_key('HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\splunk-otel-collector') do
     it { should have_property 'ImagePath' }
-    its('ImagePath') { should match /^.*--discovery$/ }
+    its('ImagePath') { should match /^.*--discovery --set=processors.batch.timeout=10s$/ }
   end
   describe service('fluentdwinsvc') do
     it { should be_enabled }

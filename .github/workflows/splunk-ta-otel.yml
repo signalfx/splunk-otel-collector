@@ -114,12 +114,6 @@ jobs:
         - uses: ./.github/actions/setup-environment
         - name: Test normal go code
           run: |
-            set -o pipefail
-            pushd ${{github.workspace}}
-            make -e bundle.d otelcol
-            popd
-            # Generate otel collector TA for testing
-            make -e generate-technical-addon copy-local-build-to-ta package-ta
             pushd ${{github.workspace}}/instrumentation
             make -e dist
             popd

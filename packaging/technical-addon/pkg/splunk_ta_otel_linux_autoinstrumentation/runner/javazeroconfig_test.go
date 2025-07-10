@@ -25,8 +25,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/docker/docker/pkg/fileutils"
-
 	"github.com/splunk/splunk-technical-addon/internal/packaging"
 	"github.com/splunk/splunk-technical-addon/internal/testaddon"
 	"github.com/splunk/splunk-technical-addon/internal/testcommon"
@@ -148,16 +146,9 @@ func TestHappyPath(t *testing.T) {
 		return err2
 	}
 	zcAddonPath := testaddon.PackAddon(t, &defaultModInputs, addonFunc)
-	otelCollectorAddonPath := filepath.Join(packaging.GetBuildDir(), "out", "distribution", "Splunk_TA_otel.tgz")
-	repackedOtelAddon := testaddon.RepackAddon(t, otelCollectorAddonPath, func(tt *testing.T, addonDir string) error {
-		// TODO copy over a debug output config
-		_, err = fileutils.CopyFile("internal/testdata/happypath/local/ta-agent-config.yaml", filepath.Join(addonDir, "Splunk_TA_otel", "configs", "ta-agent-config.yaml"))
-		require.NoError(tt, err)
-		return nil
-	})
 	startupTimeout := 8 * time.Minute
 	tc := testaddon.StartSplunk(t, testaddon.SplunkStartOpts{
-		AddonPaths:  []string{repackedOtelAddon, zcAddonPath},
+		AddonPaths:  []string{zcAddonPath},
 		SplunkUser:  "root",
 		SplunkGroup: "root",
 		Timeout:     startupTimeout,
@@ -214,11 +205,6 @@ func TestHappyPath(t *testing.T) {
 
 	// check for errors
 	_, output, err = tc.Exec(ctx, []string{"sudo", "cat", "/opt/splunk/var/log/splunk/Splunk_TA_otel_linux_autoinstrumentation.log"})
-	require.NoError(t, err)
-	read, err = io.ReadAll(output)
-	assert.NoError(t, err)
-	assert.NotRegexp(t, regexp.MustCompile(`(?i).*error.*`), string(read))
-	_, output, err = tc.Exec(ctx, []string{"sudo", "cat", "/opt/splunk/var/log/splunk/Splunk_TA_otel.log"})
 	require.NoError(t, err)
 	read, err = io.ReadAll(output)
 	assert.NoError(t, err)

@@ -157,7 +157,7 @@ func TestHappyPath(t *testing.T) {
 	})
 	startupTimeout := 8 * time.Minute
 	tc := testaddon.StartSplunk(t, testaddon.SplunkStartOpts{
-		AddonPaths:  []string{zcAddonPath, repackedOtelAddon},
+		AddonPaths:  []string{repackedOtelAddon, zcAddonPath},
 		SplunkUser:  "root",
 		SplunkGroup: "root",
 		Timeout:     startupTimeout,
@@ -217,10 +217,10 @@ func TestHappyPath(t *testing.T) {
 	require.NoError(t, err)
 	read, err = io.ReadAll(output)
 	assert.NoError(t, err)
-	assert.NotRegexp(t, string(read), regexp.MustCompile(`(?i).*error.*`))
+	assert.NotRegexp(t, regexp.MustCompile(`(?i).*error.*`), string(read))
 	_, output, err = tc.Exec(ctx, []string{"sudo", "cat", "/opt/splunk/var/log/splunk/Splunk_TA_otel.log"})
 	require.NoError(t, err)
 	read, err = io.ReadAll(output)
 	assert.NoError(t, err)
-	assert.NotRegexp(t, string(read), regexp.MustCompile(`(?i).*error.*`))
+	assert.NotRegexp(t, regexp.MustCompile(`(?i).*error.*`), string(read))
 }

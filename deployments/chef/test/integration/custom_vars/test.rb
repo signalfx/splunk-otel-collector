@@ -69,7 +69,7 @@ else
     its('content') { should match /^SPLUNK_REALM=test$/ }
     its('content') { should match /^MY_CUSTOM_VAR1=value1$/ }
     its('content') { should match /^MY_CUSTOM_VAR2=value2$/ }
-    its('content') { should match /^OTELCOL_OPTIONS=--discovery$/ }
+    its('content') { should match /^OTELCOL_OPTIONS=--discovery --set=processors.batch.timeout=10s$/ }
   end
   describe file('/etc/systemd/system/splunk-otel-collector.service.d/service-owner.conf') do
     its('content') { should match /^User=custom-user$/ }

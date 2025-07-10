@@ -92,7 +92,7 @@ func TestZeroConfig(t *testing.T) {
 				},
 			},
 			expectedConfig: `JAVA_TOOL_OPTIONS=-javaagent:REPLACED_WITH_TESTDIR/Splunk_TA_otel_linux_autoinstrumentation/linux_x86_64/bin/splunk-otel-javaagent.jar
-OTEL_RESOURCE_ATTRIBUTES=splunk.zc.method=splunk-otel-auto-instrumentation-v2.15.0,asdasd
+OTEL_RESOURCE_ATTRIBUTES=splunk.zc.method=splunk-otel-auto-instrumentation-v2.17.0,asdasd
 SPLUNK_PROFILER_ENABLED=false
 SPLUNK_PROFILER_MEMORY_ENABLED=false
 SPLUNK_METRICS_ENABLED=false

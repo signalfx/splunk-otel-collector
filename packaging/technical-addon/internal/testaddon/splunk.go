@@ -72,9 +72,9 @@ func StartSplunk(t *testing.T, startOpts SplunkStartOpts) testcontainers.Contain
 	t.Logf("Local addons packaged under: %s", localAddonsDir)
 	t.Logf("Splunk start url: %s", splunkStartURL)
 	req := testcontainers.ContainerRequest{
-		Image: "splunk/splunk:9.4.1",
+		Image:        "splunk/splunk:9.4.1",
+		ExposedPorts: []string{"8000/tcp"},
 		HostConfigModifier: func(c *container.HostConfig) {
-			c.NetworkMode = "host"
 			c.Mounts = append(c.Mounts, mount.Mount{
 				Source: localAddonsDir,
 				Target: containerAddonsDir,

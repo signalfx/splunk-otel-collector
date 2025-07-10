@@ -29,7 +29,7 @@ MODINPUT_CONFIG_GENERATOR := $(TOOLS_DIR)/modinput_config_generator
 
 # Overrides
 # Packaging addons and starting splunk takes some time...
-GOTEST_OPT= -v -timeout 8m --tags=$(GO_BUILD_TAGS)
+GOTEST_OPT= -v -timeout 16m  -parallel 1 --tags=$(GO_BUILD_TAGS)
 
 # Make targets
 .PHONY: ta-build-tools

@@ -154,7 +154,7 @@ func TestHappyPath(t *testing.T) {
 		require.NoError(tt, err)
 		return nil
 	})
-	startupTimeout := 20 * time.Minute
+	startupTimeout := 8 * time.Minute
 	tc := testaddon.StartSplunk(t, testaddon.SplunkStartOpts{
 		AddonPaths:  []string{zcAddonPath, repackedOtelAddon},
 		SplunkUser:  "root",

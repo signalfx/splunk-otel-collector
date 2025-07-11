@@ -149,8 +149,9 @@ required `splunk_access_token` attribute and some optional attributes:
   registry key.
 
 - `collector_command_line_args`: Additional command line arguments to pass to the
-  collector service. The value will be set to the `OTELCOL_OPTIONS` environment
-  variable for the collector service (**default:** `''`).
+  collector service. On Linux the value will be set to the `OTELCOL_OPTIONS` environment
+  variable for the collector service. On Windows, this option is only supported
+  by versions `>= 0.127.0` (**default:** `''`).
 
 ### Fluentd
 

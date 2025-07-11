@@ -94,7 +94,7 @@ suites:
         collector_additional_env_vars:
           MY_CUSTOM_VAR1: value1
           MY_CUSTOM_VAR2: value2
-        collector_command_line_args: --discovery
+        collector_command_line_args: --discovery --set=processors.batch.timeout=10s
         with_fluentd: true
 
   - name: with_default_preload_instrumentation

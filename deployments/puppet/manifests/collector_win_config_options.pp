@@ -27,5 +27,12 @@ class splunk_otel_collector::collector_win_config_options {
             {}
         }
 
-    $collector_env_vars = $base_env_vars + $gomemlimit + $listen_interface
+    $custom_cmd_line = if !$splunk_otel_collector::collector_command_line_args.strip().empty() and
+        versioncmp($splunk_otel_collector::collector_version, '0.127.0') >= 0 {
+            { 'COLLECTOR_SVC_ARGS' => $splunk_otel_collector::collector_command_line_args }
+        } else {
+            {}
+        }
+
+    $collector_env_vars = $base_env_vars + $gomemlimit + $listen_interface + $custom_cmd_line
 }

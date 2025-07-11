@@ -8,6 +8,7 @@
 #####################################################################################
 # mysql:
 #   enabled: true
+#   service_type: mysql
 #   rule:
 #     docker_observer: type == "container" and port != 33060 and any([name, image, command], {# matches "(?i)mysql"}) and not (command matches "splunk.discovery")
 #     host_observer: type == "hostport" and port != 33060 and  command matches "(?i)mysqld"

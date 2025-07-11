@@ -62,6 +62,7 @@ type ReceiverEntry struct {
 	Status             *Status           `mapstructure:"status"`
 	ResourceAttributes map[string]string `mapstructure:"resource_attributes"`
 	Rule               Rule              `mapstructure:"rule"`
+	ServiceType        string            `mapstructure:"service_type"`
 }
 
 // Status defines the Match rules for applicable app and telemetry sources.
@@ -111,6 +112,9 @@ func (cfg *Config) Validate() error {
 }
 
 func (re *ReceiverEntry) validate() error {
+	if re.ServiceType == "" {
+		return fmt.Errorf("`service_type` must be defined for each receiver")
+	}
 	return re.Status.validate()
 }
 

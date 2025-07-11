@@ -109,7 +109,6 @@ func TestStatementEvaluation(t *testing.T) {
 						"discovery.receiver.type": "a_receiver",
 						"discovery.status":        string(status),
 						"discovery.message":       "desired body content",
-						"discovery.matched_log":   "desired.statement (error: some error)",
 					}, cStore.Attrs(endpointID))
 				})
 			}

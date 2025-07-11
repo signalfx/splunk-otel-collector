@@ -50,7 +50,7 @@
   set_fact:
     args_with_spaces: "{{ args_with_spaces + [item | ansible.builtin.regex_replace(_regex, _replacement)] }}"
   vars:
-    _regex: '^(.*)=(.*)$'
+    _regex: '^([^=]*)=(.*)$'
     _replacement: '\1="\2"'
   loop: "{{ msi_arguments }}"
 

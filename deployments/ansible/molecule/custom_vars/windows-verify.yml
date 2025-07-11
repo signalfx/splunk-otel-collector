@@ -105,4 +105,4 @@
     - name: Assert service ImagePath ends with the splunk_otel_collector_command_line_args value used in the playbook
       assert:
         that:
-          - collector_imagepath.value.endswith("--discovery")
+          - collector_imagepath.value.endswith("--discovery --set=processors.batch.timeout=10s")

@@ -22,7 +22,7 @@
       MY_CUSTOM_VAR1: value1
       MY_CUSTOM_VAR2: value2
       MY_CUSTOM_VAR3: 'value3 with spaces'
-    splunk_otel_collector_command_line_args: "--discovery"
+    splunk_otel_collector_command_line_args: "--discovery --set=processors.batch.timeout=10s"
     install_splunk_dotnet_auto_instrumentation: true
     splunk_dotnet_auto_instrumentation_version: 1.8.0
     splunk_dotnet_auto_instrumentation_system_wide: true

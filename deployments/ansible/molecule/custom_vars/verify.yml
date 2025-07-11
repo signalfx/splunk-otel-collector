@@ -54,7 +54,7 @@
 
     - name: Assert OTELCOL_OPTIONS env var is set per splunk_otel_collector_command_line_args
       ansible.builtin.lineinfile:
-        line: OTELCOL_OPTIONS=--discovery
+        line: OTELCOL_OPTIONS=--discovery --set=processors.batch.timeout=10s
         dest: /etc/otel/collector/splunk-otel-collector.conf
         state: present
       check_mode: yes

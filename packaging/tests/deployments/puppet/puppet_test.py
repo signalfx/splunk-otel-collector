@@ -38,7 +38,7 @@ from tests.helpers.util import (
 )
 
 if sys.platform == "win32":
-    from tests.helpers.win_utils import has_choco, run_win_command, get_registry_value
+    from tests.helpers.win_utils import has_choco, run_win_command, get_otelcol_svc_env_var
 
 IMAGES_DIR = Path(__file__).parent.resolve() / "images"
 DEB_DISTROS = [df.split(".")[-1] for df in glob.glob(str(IMAGES_DIR / "deb" / "Dockerfile.*"))]
@@ -191,7 +191,7 @@ class {{ splunk_otel_collector:
     splunk_listen_interface => '0.0.0.0',
     collector_version => '$version',
     with_fluentd => true,
-    collector_command_line_args => '--discovery',
+    collector_command_line_args => '--discovery --set=processors.batch.timeout=10s',
     collector_additional_env_vars => {{ 'MY_CUSTOM_VAR1' => 'value1', 'MY_CUSTOM_VAR2' => 'value2' }},
 }}
 """
@@ -224,7 +224,7 @@ def test_puppet_with_custom_vars(distro, puppet_release):
             verify_package_version(container, "splunk-otel-collector", "0.126.0")
             verify_env_file(container, api_url, ingest_url, "fake-hec-token")
             verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_LISTEN_INTERFACE", "0.0.0.0")
-            verify_config_file(container, SPLUNK_ENV_PATH, "OTELCOL_OPTIONS", "--discovery")
+            verify_config_file(container, SPLUNK_ENV_PATH, "OTELCOL_OPTIONS", "--discovery --set=processors.batch.timeout=10s")
             verify_config_file(container, SPLUNK_ENV_PATH, "MY_CUSTOM_VAR1", "value1")
             verify_config_file(container, SPLUNK_ENV_PATH, "MY_CUSTOM_VAR2", "value2")
             assert wait_for(lambda: service_is_running(container))
@@ -502,14 +502,14 @@ def test_win_puppet_default():
     """
     run_win_puppet_agent(config)
 
-    assert get_registry_value("SPLUNK_REALM") == SPLUNK_REALM
-    assert get_registry_value("SPLUNK_ACCESS_TOKEN") == SPLUNK_ACCESS_TOKEN
-    assert get_registry_value("SPLUNK_API_URL") == SPLUNK_API_URL
-    assert get_registry_value("SPLUNK_INGEST_URL") == SPLUNK_INGEST_URL
-    assert get_registry_value("SPLUNK_HEC_URL") == f"{SPLUNK_INGEST_URL}/v1/log"
-    assert get_registry_value("SPLUNK_HEC_TOKEN") == SPLUNK_ACCESS_TOKEN
+    assert get_otelcol_svc_env_var("SPLUNK_REALM") == SPLUNK_REALM
+    assert get_otelcol_svc_env_var("SPLUNK_ACCESS_TOKEN") == SPLUNK_ACCESS_TOKEN
+    assert get_otelcol_svc_env_var("SPLUNK_API_URL") == SPLUNK_API_URL
+    assert get_otelcol_svc_env_var("SPLUNK_INGEST_URL") == SPLUNK_INGEST_URL
+    assert get_otelcol_svc_env_var("SPLUNK_HEC_URL") == f"{SPLUNK_INGEST_URL}/v1/log"
+    assert get_otelcol_svc_env_var("SPLUNK_HEC_TOKEN") == SPLUNK_ACCESS_TOKEN
     try:
-        listen_interface = get_registry_value("SPLUNK_LISTEN_INTERFACE")
+        listen_interface = get_otelcol_svc_env_var("SPLUNK_LISTEN_INTERFACE")
     except FileNotFoundError:
         listen_interface = None
     assert listen_interface is None
@@ -531,15 +531,19 @@ def test_win_puppet_custom_vars():
 
     run_win_puppet_agent(config)
 
-    assert get_registry_value("SPLUNK_REALM") == SPLUNK_REALM
-    assert get_registry_value("SPLUNK_ACCESS_TOKEN") == SPLUNK_ACCESS_TOKEN
-    assert get_registry_value("SPLUNK_API_URL") == api_url
-    assert get_registry_value("SPLUNK_INGEST_URL") == ingest_url
-    assert get_registry_value("SPLUNK_HEC_URL") == f"{ingest_url}/v1/log"
-    assert get_registry_value("SPLUNK_LISTEN_INTERFACE") == "0.0.0.0"
-    assert get_registry_value("SPLUNK_HEC_TOKEN") == "fake-hec-token"
-    assert get_registry_value("MY_CUSTOM_VAR1") == "value1"
-    assert get_registry_value("MY_CUSTOM_VAR2") == "value2"
+    assert get_otelcol_svc_env_var("SPLUNK_REALM") == SPLUNK_REALM
+    assert get_otelcol_svc_env_var("SPLUNK_ACCESS_TOKEN") == SPLUNK_ACCESS_TOKEN
+    assert get_otelcol_svc_env_var("SPLUNK_API_URL") == api_url
+    assert get_otelcol_svc_env_var("SPLUNK_INGEST_URL") == ingest_url
+    assert get_otelcol_svc_env_var("SPLUNK_HEC_URL") == f"{ingest_url}/v1/log"
+    assert get_otelcol_svc_env_var("SPLUNK_LISTEN_INTERFACE") == "0.0.0.0"
+    assert get_otelcol_svc_env_var("SPLUNK_HEC_TOKEN") == "fake-hec-token"
+    assert get_otelcol_svc_env_var("MY_CUSTOM_VAR1") == "value1"
+    assert get_otelcol_svc_env_var("MY_CUSTOM_VAR2") == "value2"
 
-    assert psutil.win_service_get("splunk-otel-collector").status() == psutil.STATUS_RUNNING
+    collector_service = psutil.win_service_get("splunk-otel-collector")
+    assert collector_service.status() == psutil.STATUS_RUNNING
+    if WIN_COLLECTOR_VERSION == "latest":
+        assert collector_service.binpath().endswith("--discovery --set=processors.batch.timeout=10s")
+
     assert psutil.win_service_get("fluentdwinsvc").status() == psutil.STATUS_RUNNING

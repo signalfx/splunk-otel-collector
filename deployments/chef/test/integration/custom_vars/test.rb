@@ -43,6 +43,10 @@ if os[:family] == 'windows'
     it { should have_property 'Environment' }
     it { should have_property_value('Environment', :multi_string, collector_env_vars_strings) }
   end
+  describe registry_key('HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\splunk-otel-collector') do
+    it { should have_property 'ImagePath' }
+    its('ImagePath') { should match /^.*--discovery --set=processors.batch.timeout=10s$/ }
+  end
   describe service('fluentdwinsvc') do
     it { should be_enabled }
     it { should be_running }
@@ -65,7 +69,7 @@ else
     its('content') { should match /^SPLUNK_REALM=test$/ }
     its('content') { should match /^MY_CUSTOM_VAR1=value1$/ }
     its('content') { should match /^MY_CUSTOM_VAR2=value2$/ }
-    its('content') { should match /^OTELCOL_OPTIONS=--discovery$/ }
+    its('content') { should match /^OTELCOL_OPTIONS=--discovery --set=processors.batch.timeout=10s$/ }
   end
   describe file('/etc/systemd/system/splunk-otel-collector.service.d/service-owner.conf') do
     its('content') { should match /^User=custom-user$/ }

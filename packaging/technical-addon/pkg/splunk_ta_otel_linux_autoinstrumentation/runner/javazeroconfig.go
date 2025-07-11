@@ -123,7 +123,7 @@ func CreateZeroConfigJava(modInputs *SplunkTAOtelLinuxAutoinstrumentationModular
 	if err = tmpl.Execute(filePath, templateData); err != nil {
 		return fmt.Errorf("failed to execute template: %w %v", err, templateData)
 	}
-	log.Printf("Successfully generated java autoinstrumentation config at %s \n", filePath.Name())
+	log.Printf("Successfully generated java autoinstrumentation config at %s\n", filePath.Name())
 	return nil
 }
 

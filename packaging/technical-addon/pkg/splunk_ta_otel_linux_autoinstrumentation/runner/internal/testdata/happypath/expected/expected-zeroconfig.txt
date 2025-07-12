@@ -1,0 +1,5 @@
+JAVA_TOOL_OPTIONS=-javaagent:/foo/bar
+OTEL_RESOURCE_ATTRIBUTES=splunk.zc.method=splunk-otel-auto-instrumentation-v2.15.0,asdasd
+SPLUNK_PROFILER_ENABLED=false
+SPLUNK_PROFILER_MEMORY_ENABLED=false
+SPLUNK_METRICS_ENABLED=false

@@ -721,6 +721,21 @@ func TestDeduceServiceName(t *testing.T) {
 			expected: "my-app",
 		},
 		{
+			name:         "pod-port-k8s-instance-labels",
+			endpointType: observer.PortType,
+			endpointEnv: observer.EndpointEnv{
+				"pod": observer.EndpointEnv{
+					"labels": map[string]string{
+						"app.kubernetes.io/instance": "my-app-instance",
+						"app.kubernetes.io/name":     "my-app-new-name",
+						"app":                        "my-app-old-name",
+					},
+				},
+				"process_name": "my-process",
+			},
+			expected: "my-app-instance",
+		},
+		{
 			name:         "pod-port-new-k8s-labels",
 			endpointType: observer.PortType,
 			endpointEnv: observer.EndpointEnv{

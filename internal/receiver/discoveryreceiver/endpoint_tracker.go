@@ -260,6 +260,7 @@ func entityEvents(observerID component.ID, endpoints []observer.Endpoint, correl
 			failed++
 			continue
 		}
+
 		attrs.PutStr("type", string(endpoint.Details.Type()))
 		attrs.PutStr(discovery.EndpointIDAttr, string(endpoint.ID))
 		attrs.PutStr("endpoint", endpoint.Target)
@@ -268,7 +269,9 @@ func entityEvents(observerID component.ID, endpoints []observer.Endpoint, correl
 		for k, v := range endpointAttrs {
 			attrs.PutStr(k, v)
 		}
-		attrs.PutStr(string(conventions.ServiceNameKey), deduceServiceName(attrs))
+		if _, ok := attrs.Get(string(conventions.ServiceNameKey)); !ok {
+			attrs.PutStr(string(conventions.ServiceNameKey), extractServiceName(endpoint.Details.Type(), endpoint.Details.Env()))
+		}
 
 		event := events.AppendEmpty()
 		event.SetTimestamp(pcommon.NewTimestampFromTime(ts))
@@ -290,20 +293,19 @@ func endpointEnvToAttrs(endpointType observer.EndpointType, endpointEnv observer
 	attrs := pcommon.NewMap()
 	for k, v := range endpointEnv {
 		switch {
-		// labels and annotations for container/node types
-		// should result in a ValueMap
-		case shouldEmbedMap(endpointType, k):
-			if asMap, ok := v.(map[string]string); ok {
-				mapVal := attrs.PutEmptyMap(k)
-				for item, itemVal := range asMap {
-					mapVal.PutStr(item, itemVal)
-				}
-			} else {
-				return attrs, fmt.Errorf("failed parsing %v env attributes", endpointType)
-			}
-		// pod EndpointEnv is the value of the "pod" field for observer.PortType and should be
-		// embedded as ValueMap
-		case observer.EndpointType(k) == observer.PodType && endpointType == observer.PortType:
+		// keys shared between different endpoint types
+		case k == "container_id":
+			attrs.PutEmpty(string(conventions.ContainerIDKey)).FromRaw(v)
+		case k == "container_name":
+			attrs.PutEmpty(string(conventions.ContainerNameKey)).FromRaw(v)
+		case k == "port":
+			attrs.PutEmpty(sourcePortAttr).FromRaw(v)
+		case k == "process_name":
+			attrs.PutEmpty(string(conventions.ProcessExecutableNameKey)).FromRaw(v)
+
+		// pod EndpointEnv is the value of the "pod" field for observer.PortType and
+		// observer.PodContainerType which should be extracted
+		case observer.EndpointType(k) == observer.PodType:
 			if podEnv, ok := v.(observer.EndpointEnv); ok {
 				podAttrs, e := endpointEnvToAttrs(observer.PodType, podEnv)
 				if e != nil {
@@ -317,46 +319,32 @@ func endpointEnvToAttrs(endpointType observer.EndpointType, endpointEnv observer
 				return attrs, fmt.Errorf("failed parsing %v pod env %#v", endpointType, v)
 			}
 
-		// rename keys according to the OTel Semantic Conventions
-		case k == "container_id":
-			attrs.PutEmpty(string(conventions.ContainerIDKey)).FromRaw(v)
-		case k == "port":
-			attrs.PutEmpty(sourcePortAttr).FromRaw(v)
+		// keys specific to observer.PodType
 		case endpointType == observer.PodType:
-			if k == "namespace" {
+			switch k {
+			case "namespace":
 				attrs.PutEmpty(string(conventions.K8SNamespaceNameKey)).FromRaw(v)
-			} else {
-				attrs.PutEmpty("k8s.pod." + k).FromRaw(v)
+			case "uid":
+				attrs.PutEmpty(string(conventions.K8SPodUIDKey)).FromRaw(v)
+			case "name":
+				attrs.PutEmpty(string(conventions.K8SPodNameKey)).FromRaw(v)
 			}
+
+		// keys specific to observer.ContainerType
+		case endpointType == observer.ContainerType && k == "name":
+			attrs.PutEmpty(string(conventions.ContainerNameKey)).FromRaw(v)
+
+		// keys specific to observer.K8sNodePortType
 		case endpointType == observer.K8sNodeType:
 			switch k {
-			case "name":
-				attrs.PutEmpty(string(conventions.K8SNodeNameKey)).FromRaw(v)
 			case "uid":
 				attrs.PutEmpty(string(conventions.K8SNodeUIDKey)).FromRaw(v)
-			default:
-				attrs.PutEmpty(k).FromRaw(v)
-			}
-		default:
-			switch vVal := v.(type) {
-			case uint16:
-				attrs.PutInt(k, int64(vVal))
-			case bool:
-				attrs.PutBool(k, vVal)
-			default:
-				attrs.PutStr(k, fmt.Sprintf("%v", v))
+			case "name":
+				attrs.PutEmpty(string(conventions.K8SNodeNameKey)).FromRaw(v)
 			}
 		}
 	}
 	return attrs, nil
-}
-
-func shouldEmbedMap(endpointType observer.EndpointType, k string) bool {
-	return (k == "annotations" && (endpointType == observer.PodType ||
-		endpointType == observer.K8sNodeType)) ||
-		(k == "labels" && (endpointType == observer.PodType ||
-			endpointType == observer.ContainerType ||
-			endpointType == observer.K8sNodeType))
 }
 
 func extractIdentifyingAttrs(from pcommon.Map, to pcommon.Map) {
@@ -368,31 +356,50 @@ func extractIdentifyingAttrs(from pcommon.Map, to pcommon.Map) {
 	}
 }
 
-func deduceServiceName(attrs pcommon.Map) string {
-	if val, ok := attrs.Get(string(conventions.ServiceNameKey)); ok {
-		return val.AsString()
+func extractServiceName(endpointType observer.EndpointType, endpointEnv observer.EndpointEnv) string {
+	labels, labelsFound := endpointEnv["labels"].(map[string]string)
+	podEnv, podEnvFound := endpointEnv["pod"].(observer.EndpointEnv)
+	if !podEnvFound && endpointType == observer.PodType {
+		podEnv, podEnvFound = endpointEnv, true
 	}
-	if labels, labelsFound := attrs.Get("labels"); labelsFound && labels.Type() == pcommon.ValueTypeMap {
-		if val, ok := labels.Map().Get("app.kubernetes.io/name"); ok {
-			return val.AsString()
+	if !labelsFound && podEnvFound {
+		// If the endpoint is a pod, we can extract labels from the pod env.
+		labels, labelsFound = podEnv["labels"].(map[string]string)
+	}
+
+	// First, try to extract the service name from labels.
+	if labelsFound {
+		if val, ok := labels["app.kubernetes.io/name"]; ok {
+			return val
 		}
-		if val, ok := labels.Map().Get("app"); ok {
-			return val.AsString()
+		if val, ok := labels["app"]; ok {
+			return val
 		}
 	}
+
+	// Then, try to extract the service name from the pod name.
 	// TODO: Update the observer upstream to set the deployment/statefulset name in addition to the pod name,
 	//       so we don't have to extract it from the pod name.
-	if podName, ok := attrs.Get("k8s.pod.name"); ok {
-		matches := k8sPodRegexp.FindStringSubmatch(podName.AsString())
-		if len(matches) > 1 {
-			return matches[1]
+	if podEnvFound {
+		if podName, ok := podEnv["name"].(string); ok {
+			matches := k8sPodRegexp.FindStringSubmatch(podName)
+			if len(matches) > 1 {
+				return matches[1]
+			}
 		}
 	}
-	if val, ok := attrs.Get("name"); ok {
-		return val.AsString()
+
+	// Finally, try to extract the service name from the process name or the container name.
+	if endpointType == observer.HostPortType {
+		if processName, ok := endpointEnv["process_name"].(string); ok {
+			return processName
+		}
 	}
-	if val, ok := attrs.Get("process_name"); ok {
-		return val.AsString()
+
+	if endpointType == observer.ContainerType {
+		if name, ok := endpointEnv["name"].(string); ok {
+			return name
+		}
 	}
 	return "unknown"
 }

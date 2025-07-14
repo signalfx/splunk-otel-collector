@@ -33,7 +33,6 @@ import (
 const (
 	observerNameAttr = "discovery.observer.name"
 	observerTypeAttr = "discovery.observer.type"
-	matchedLogAttr   = "discovery.matched_log"
 )
 
 var (

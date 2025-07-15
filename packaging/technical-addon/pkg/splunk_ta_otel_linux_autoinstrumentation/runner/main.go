@@ -92,7 +92,7 @@ func Run(modInputs *SplunkTAOtelLinuxAutoinstrumentationModularInputs) error {
 		return DeInstrument(modInputs)
 	}
 
-	return fmt.Errorf("unknown value for 'remove' modular input, expected (true|false) given %v", strings.ToLower(modInputs.Remove.Value))
+	return fmt.Errorf("unknown value for 'remove' modular input, expected (true|false) given %q", modInputs.Remove.Value)
 }
 
 func DeInstrument(modInputs *SplunkTAOtelLinuxAutoinstrumentationModularInputs) error {

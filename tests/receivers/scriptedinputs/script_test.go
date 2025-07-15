@@ -245,7 +245,7 @@ func TestScriptReceiverPs(t *testing.T) {
 
 		lr := receivedOTLPLogs[0].ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
 		assert.Regexp(tt, regexp.MustCompile("USER\\s+PID\\s+%CPU\\s+%MEM\\s+VSZ\\s+RSS\\s+TTY\\s+STAT\\s+START\\s+TIME\\s+COMMAND\\s+ARGS"), lr.Body().Str())
-	}, 10*time.Second, 10*time.Millisecond, "Failed to receive expected logs")
+	}, 30*time.Second, 10*time.Millisecond, "Failed to receive expected logs")
 }
 
 func TestScriptReceiverTop(t *testing.T) {

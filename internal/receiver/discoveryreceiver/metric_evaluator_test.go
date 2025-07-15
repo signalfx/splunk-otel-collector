@@ -69,8 +69,9 @@ func TestConsumeMetrics(t *testing.T) {
 					cfg := &Config{
 						Receivers: map[component.ID]ReceiverEntry{
 							receiverID: {
-								Rule:   Rule{text: "a.rule", program: nil},
-								Status: &Status{Metrics: []Match{match}},
+								ServiceType: "a_service",
+								Rule:        Rule{text: "a.rule", program: nil},
+								Status:      &Status{Metrics: []Match{match}},
 							},
 						},
 						WatchObservers: []component.ID{observerID},
@@ -125,6 +126,7 @@ func TestConsumeMetrics(t *testing.T) {
 					emitWG.Wait()
 
 					require.Equal(t, map[string]string{
+						"service.type":            "a_service",
 						"discovery.observer.id":   "an_observer/observer.name",
 						"discovery.receiver.name": "receiver.name",
 						"discovery.receiver.type": "a_receiver",

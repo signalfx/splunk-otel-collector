@@ -3,7 +3,7 @@
 This cookbook installs and configures the Splunk OpenTelemetry Collector to
 collect metrics, traces and logs from Linux and Windows machines and sends
 data to [Splunk Observability Cloud](
-https://www.splunk.com/en_us/observability.html).
+https://www.splunk.com/en_us/products/observability.html).
 
 ## Prerequisites
 
@@ -149,8 +149,9 @@ required `splunk_access_token` attribute and some optional attributes:
   registry key.
 
 - `collector_command_line_args`: Additional command line arguments to pass to the
-  collector service. The value will be set to the `OTELCOL_OPTIONS` environment
-  variable for the collector service (**default:** `''`).
+  collector service. On Linux the value will be set to the `OTELCOL_OPTIONS` environment
+  variable for the collector service. On Windows, this option is only supported
+  by versions `>= 0.127.0` (**default:** `''`).
 
 ### Fluentd
 

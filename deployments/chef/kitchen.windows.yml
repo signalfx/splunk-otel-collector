@@ -57,10 +57,11 @@ suites:
         splunk_memory_total_mib: "256"
         splunk_hec_token: fake-hec-token
         splunk_listen_interface: "0.0.0.0"
-        collector_version: 0.126.0
+        collector_version: 0.127.0
         collector_additional_env_vars:
           MY_CUSTOM_VAR1: value1
           MY_CUSTOM_VAR2: value2
+        collector_command_line_args: --discovery --set=processors.batch.timeout=10s
         with_fluentd: true
     verifier:
       name: shell

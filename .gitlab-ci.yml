@@ -310,6 +310,7 @@ tidy-dependabot-pr:
     - .gitlab/tidy-dependabot-pr.sh
 
 compile:
+  timeout: 2h
   extends:
     - .trigger-filter
     - .go-cache
@@ -1563,7 +1564,7 @@ release-installers:
   before_script:
     - cp -f dist/signed/install.ps1 packaging/installer/install.ps1
 
-nupkg-release:
+release-nupkg:
   extends: .trigger-filter
   stage: release
   dependencies:
@@ -1584,13 +1585,13 @@ nupkg-release:
     - Test-Path .\dist\signed\splunk-otel-collector.${version}.nupkg
   artifacts:
     paths:
-      - dist/signed/*.nupkg
+      - .\dist\signed\*.nupkg
 
 choco-release:
   extends: .trigger-filter
   stage: publish-release
   dependencies:
-    - nupkg-release
+    - release-nupkg
   tags:
     - splunk-otel-collector-windows
   script:
@@ -1779,6 +1780,7 @@ github-release:
     - sign-exe
     - sign-osx
     - release-debs
+    - release-nupkg
     - release-rpms
     - sign-msi
     - sign-tar

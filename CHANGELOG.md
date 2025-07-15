@@ -2,10 +2,111 @@
 
 ## Unreleased
 
+- (Splunk) `receiver/discovery`: Reduce amount of attributes sent with the entities to the required set ([#6419](https://github.com/signalfx/splunk-otel-collector/pull/6419))
+
+## v0.129.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.129.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.129.0)
+and the [opentelemetry-collector-contrib v0.129.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.129.0) releases where appropriate.
+
+### 🛑 Breaking changes 🛑
+
+- (Core) `exporterhelper`: Remove deprecated sending_queue::blocking options, use sending_queue::block_on_overflow. ([#13211](https://github.com/open-telemetry/opentelemetry-collector/pull/13211))
+- (Contrib) `kafka`: remove broken SASL/AWS_MSK_IAM auth mechanism from Kafka components ([#40554](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40554))
+- (Contrib) `kafkareceiver`: Improve kafkareceiver internal metrics telemetry ([#40816](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40816))
+  This change adds the following internal telemetry metrics to the receiver:
+    - kafka_broker_connects
+    - kafka_broker_closed
+    - kafka_broker_throttling_duration
+    - kafka_receiver_bytes
+    - kafka_receiver_bytes_uncompressed
+    - kafka_receiver_latency
+
+  In addition it removes explicit component "name" metrics attribute which should be enabled with "telemetry.newPipelineTelemetry"
+  collector feature gate instead. And changes "partition" metrics attribute to more direct "int64" type instead of "string".
+- (Contrib) `receiver/httpcheck`: Always close resp.Body and add timeout ([#40552](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40552))
+- (Contrib) `sqlserverreceiver`: Only empty strings for query texts and query plans when obfuscation failed. ([#40527](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40527))
+  This change applies only to top query collection and query sample collection.
+
 ### 🚩 Deprecations 🚩
 
 - (Splunk) `packaging`: Fluentd support has been deprecated in packages and will be removed in a future release.
   Please refer to [deprecation documentation](./docs/deprecations/fluentd-support.md) for more information ([#6366](https://github.com/signalfx/splunk-otel-collector/pull/6366))
+- (Contrib) `resourcedetectionprocessor`: Promote the processor.resourcedetection.removeGCPFaasID feature gate to beta. ([#40601](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40601))
+  The faas.id attribute is replaced by the faas.instance attribute. | This disables detection of the faas.id resource attribute by default. | Re-enable by disabling the processor.resourcedetection.removeGCPFaasID feature gate.
+- (Contrib) `resourcedetectionprocessor`: Remove the stable processor.resourcedetection.hostCPUSteppingAsString featuregate ([#40569](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40569))
+  It was supposed to be removed in v0.110.0.
+- (Contrib) `prometheusreceiver`: Promote the receiver.prometheusreceiver.RemoveLegacyResourceAttributes featuregate to stable ([#40572](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40572))
+  It has been beta since v0.126.0
+
+### 💡 Enhancements 💡
+
+- (Splunk) Update `splunk-otel-javaagent` to `v2.17.0` ([#6397](https://github.com/signalfx/splunk-otel-collector/pull/6397))
+- (Splunk) Update `splunk-otel-js` to `v3.3.0` ([#6396](https://github.com/signalfx/splunk-otel-collector/pull/6396))
+- (Splunk) `receiver/discovery`: Propagate logs reported by dynamic receivers ([#6388](https://github.com/signalfx/splunk-otel-collector/pull/6388))
+  Sample and propagate all logs from the dynamically created receivers to the stdout. This brings visibility to discovery issues that are not covered by the matching discovery rules
+- (Splunk) `receiver/discovery`: Set service.type as part of a discovery rule ([#6400](https://github.com/signalfx/splunk-otel-collector/pull/6400))
+  Deducing service.type from the existing data isn't reliable. For example, discovered kafka service gets "kafkametrics" name.
+  This changes adds another required field to a service discovery rule to signify what type of a service is being discovered.
+- (Core) `service`: Support setting `sampler` and `limits` under `service::telemetry::traces` ([#13201](https://github.com/open-telemetry/opentelemetry-collector/pull/13201))
+  This allows users to enable sampling and set span limits on internal Collector traces using the
+  OpenTelemetry SDK declarative configuration.
+- (Contrib) `windowseventlogreceiver`: Added option to prevent collector shutdown due to errors while opening channels ([#36237](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/36237))
+- (Contrib) `azuremonitorreceiver`: Add support for azureauth when batch api is enabled. ([#40872](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40872))
+- (Contrib) `azuremonitorreceiver`: fix unnecessarily exported struct ([#40662](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40662))
+- (Contrib) `azuremonitorreceiver`: Added new config that sets the number of unique resource IDs to fetch per Batch API call ([#40112](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40112))
+- (Contrib) `hostmetricsreceiver`: Skeleton nfsscraper -- adds Linux nfs and nfsd metrics from /proc ([#39978](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39978))
+- (Contrib) `receiver/hostmetrics`: Add `system.paging.faults` metrics on Windows ([#40468](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40468))
+- (Contrib) `elasticsearchreceiver`: Add support for ES version 9 ([#39929](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39929))
+- (Contrib) `kafkareceiver`: Add an Alpha feature gate `receiver.kafkareceiver.UseFranzGo` to use franz-go in the Kafka receiver for better performance. ([#40628](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40628))
+  Adds an experimental opt-in support to use the franz-go client in the Kafka receiver.
+  The franz-go client is a high-performance Kafka client that can improve the performance of the Kafka receiver.
+  The default client remains sarama, which is used by the Kafka exporter and other components.
+  Enable the franz-go client by setting the `receiver.kafkareceiver.UseFranzGo` feature gate.
+- (Contrib) `kafkareceiver`: Refactor Sarama client to pave the way for franz-go `featuregate` opt-in ([#40628](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40628))
+- (Contrib) `kafkaexporter`: Improve kafkaexporter internal metrics telemetry ([#40815](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40815))
+- (Contrib) `kafkareceiver`: Create the consumer group asynchronously, and report component status ([#40516](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40516))
+  This change ensures that the collector can start up if the Kafka cluster is not available
+  or the consumer group creation fails due to some other transient, retryable error.
+- (Contrib) `sqlserverreceiver`: add feature gate for removing metrics resource attributes `server.address`, and `server.port` ([#40579](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40579))
+  These are not resource attributes according to the semantic conventions.
+  To enable this feature gate, when running the otel collector, pass the following argument `--feature-gates=receiver.sqlserver.RemoveServerResourceAttribute`.
+- (Contrib) `sqlqueryreceiver`: Add SQL connection fields `host`, `port`, `database`, `username`, `password`, and `additional_params`. ([#39760](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39760))
+  These options can be used instead of the existing `datasource` configuration option.
+- (Contrib) `sqlserverreceiver`: Update obfuscation library to use `mssql` mode. ([#40525](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40525))
+  Now it can obfuscate more SQL Server specific queries which may not work before.
+- (Contrib) `processor/transform`: Introduce optional metric name suffix setup for metric conversion functions ([#33850](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/33850))
+  The affected functions are: convert_summary_count_val_to_sum(), convert_summary_sum_val_to_sum(), extract_count_metric(), extract_sum_metric()
+
+### 🧰 Bug fixes 🧰
+
+- (Core) `pdata`: Fix copying of optional fields when the source is unset. ([#13268](https://github.com/open-telemetry/opentelemetry-collector/pull/13268))
+- (Core) `service`: Only allocate one set of internal log sampling counters ([#13014](https://github.com/open-telemetry/opentelemetry-collector/pull/13014))
+  The case where logs are only exported to stdout was fixed in v0.126.0;
+  this new fix also covers the case where logs are exported through OTLP.
+- (Contrib) `collectdreceiver`: Ensure the receiver closes its port when shutting down quickly after starting. ([#40406](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40406))
+- (Contrib) `hostmetricsreceiver`: Minor fix to the handling of conntrack errors ([#40175](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40175))
+- (Contrib) `k8sattributesprocessor`: Make sure getIdentifiersFromAssoc() can handle container.id ([#40745](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40745))
+- (Contrib) `kafka`: Fixes a defect introduced in [#39115](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39115) that prevents MSK IAM auth from working ([#40720](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40720))
+- (Contrib) `kafkareceiver`: Protect partition lost/revoke callback against unassigned groups ([#40920](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40920))
+  Note that due to the nature of the timing issue this is extremely unlikely to affect a real user,
+  and really only likely to occur in unit tests.
+  in the metadata file, the `host.name` resource attribute is defined for metrics, but it is not exported in reality. this fixed the issue and export it as a resource attribute.
+- (Contrib) `opampextension`: Set the default value of `ReportsAvailableComponents` to `true` ([#40485](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40485))
+- (Contrib) `receivercreator`: Properly handle default endpoint for annotation discovery ([#40712](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40712))
+  Annotation discovery should not add the default endpoint explicitly. Configuration
+  should be left empty if users do not set anything. Main flow of the receiver_creator
+  already adds the default endpoint, if not provided, at a later stage by also checking
+  if target receiver supports it. This patch ensures this logic is unified for both
+  annotation discovery and templated based discovery.
+  IAM auth requires TLS, but the config translation was enabling SASL when it intended to enable TLS
+- (Contrib) `receiver/httpcheck`: Fix resource leak caused by failure to close request body ([#40695](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40695))
+- (Contrib) `receiver/simpleprometheus`: Fix bug that caused the labels configuration option to be ignored ([#40722](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40722))
+- (Contrib) `routingconnector`: Copy IsMonotonic and AggregationTemporality when routing metrics on datapoint context. ([#37273](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37273))
+- (Contrib) `snowflakereceiver`: adds a pre-scrape check to see if metrics are enabled. ([#40418](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40418))
+- (Contrib) `snowflakereceiver`: Correct handling of datatypes of Snowflake receiver ([#40418](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40418))
+- (Contrib) `snowflakereceiver`: Rectified datatypes of storagemetrics of Snowflake receiver ([#40857](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40857))
+- (Contrib) `sqlserverreceiver`: export `host.name` as resource attributes for metrics ([#40576](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40576))
 
 ## v0.128.0
 

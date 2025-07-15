@@ -134,15 +134,15 @@ func ListAndWatchContainers(ctx context.Context, client *docker.Client, changeHa
 					// event associated with them, otherwise memory usage could
 					// be unbounded.
 					case "destroy":
-						logger.Debugf("Docker container was destroyed: %s", event.ID)
-						if _, ok := containers[event.ID]; ok {
-							changeHandler(containers[event.ID], nil)
-							delete(containers, event.ID)
+						logger.Debugf("Docker container was destroyed: %s", event.Actor.ID)
+						if _, ok := containers[event.Actor.ID]; ok {
+							changeHandler(containers[event.Actor.ID], nil)
+							delete(containers, event.Actor.ID)
 						}
 					default:
-						oldContainer := containers[event.ID]
-						if updateContainer(event.ID) {
-							changeHandler(oldContainer, containers[event.ID])
+						oldContainer := containers[event.Actor.ID]
+						if updateContainer(event.Actor.ID) {
+							changeHandler(oldContainer, containers[event.Actor.ID])
 						}
 					}
 

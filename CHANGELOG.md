@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- (Splunk) `receiver/discovery`: Reduce amount of attributes sent with the entities to the required set ([#6419](https://github.com/signalfx/splunk-otel-collector/pull/6419))
+
 ## v0.129.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.129.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.129.0)
@@ -39,6 +41,13 @@ and the [opentelemetry-collector-contrib v0.129.0](https://github.com/open-telem
 
 ### 💡 Enhancements 💡
 
+- (Splunk) Update `splunk-otel-javaagent` to `v2.17.0` ([#6397](https://github.com/signalfx/splunk-otel-collector/pull/6397))
+- (Splunk) Update `splunk-otel-js` to `v3.3.0` ([#6396](https://github.com/signalfx/splunk-otel-collector/pull/6396))
+- (Splunk) `receiver/discovery`: Propagate logs reported by dynamic receivers ([#6388](https://github.com/signalfx/splunk-otel-collector/pull/6388))
+  Sample and propagate all logs from the dynamically created receivers to the stdout. This brings visibility to discovery issues that are not covered by the matching discovery rules
+- (Splunk) `receiver/discovery`: Set service.type as part of a discovery rule ([#6400](https://github.com/signalfx/splunk-otel-collector/pull/6400))
+  Deducing service.type from the existing data isn't reliable. For example, discovered kafka service gets "kafkametrics" name.
+  This changes adds another required field to a service discovery rule to signify what type of a service is being discovered.
 - (Core) `service`: Support setting `sampler` and `limits` under `service::telemetry::traces` ([#13201](https://github.com/open-telemetry/opentelemetry-collector/pull/13201))
   This allows users to enable sampling and set span limits on internal Collector traces using the
   OpenTelemetry SDK declarative configuration.

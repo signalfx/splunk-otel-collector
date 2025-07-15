@@ -62,12 +62,12 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
-      - uses: actions/download-artifact@v4.1.3
+      - uses: actions/download-artifact@v4.3.0
         with:
           pattern: agent-bundle-linux-*
           merge-multiple: true
           path: ./dist
-      - uses: actions/download-artifact@v4.1.3
+      - uses: actions/download-artifact@v4.3.0
         with:
           pattern: otelcol-*
           merge-multiple: true
@@ -123,11 +123,11 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
-      - uses: actions/download-artifact@v4.1.3
+      - uses: actions/download-artifact@v4.3.0
         with:
           name: otelcol-${{ matrix.ARCH }}
           path: ./bin
-      - uses: actions/download-artifact@v4.1.3
+      - uses: actions/download-artifact@v4.3.0
         with:
           name: docker-otelcol-${{ matrix.ARCH }}
           path: ./docker-otelcol/${{ matrix.ARCH }}
@@ -171,11 +171,11 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
-      - uses: actions/download-artifact@v4.1.3
+      - uses: actions/download-artifact@v4.3.0
         with:
           name: otelcol-${{ matrix.ARCH }}
           path: ./bin
-      - uses: actions/download-artifact@v4.1.3
+      - uses: actions/download-artifact@v4.3.0
         with:
           name: docker-otelcol-${{ matrix.ARCH }}
           path: ./docker-otelcol/${{ matrix.ARCH }}
@@ -265,7 +265,7 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
-      - uses: actions/download-artifact@v4.1.3
+      - uses: actions/download-artifact@v4.3.0
         with:
           pattern: agent-bundle-linux-amd64
           merge-multiple: true
@@ -274,7 +274,7 @@ jobs:
       - run: sudo tar -xzf dist/agent-bundle_linux_amd64.tar.gz -C /usr/lib/splunk-otel-collector
       - run: sudo chown -R "$USER" /usr/lib/splunk-otel-collector
       - run: /usr/lib/splunk-otel-collector/agent-bundle/bin/patch-interpreter /usr/lib/splunk-otel-collector/agent-bundle
-      - uses: actions/download-artifact@v4.1.3
+      - uses: actions/download-artifact@v4.3.0
         with:
           name: otelcol-amd64
           path: ./bin
@@ -364,11 +364,11 @@ jobs:
           with:
             go-version: ${{ env.GO_VERSION }}
             cache-dependency-path: '**/go.sum'
-        - uses: actions/download-artifact@v4.1.3
+        - uses: actions/download-artifact@v4.3.0
           with:
             name: otelcol-${{ matrix.ARCH }}
             path: ./bin
-        - uses: actions/download-artifact@v4.1.3
+        - uses: actions/download-artifact@v4.3.0
           with:
             name: docker-otelcol-${{ matrix.ARCH }}
             path: ./docker-otelcol/${{ matrix.ARCH }}
@@ -437,7 +437,7 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
-      - uses: actions/download-artifact@v4.1.3
+      - uses: actions/download-artifact@v4.3.0
         with:
           name: docker-otelcol-${{ matrix.ARCH }}
           path: ./docker-otelcol/${{ matrix.ARCH }}

@@ -18,11 +18,12 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
+
+	log "github.com/sirupsen/logrus"
 )
 
 //go:embed java-agent-release.txt
@@ -53,14 +54,14 @@ OTEL_LOGS_EXPORTER={{.LogsExporter}}
 {{- end }}
 `
 
-// TemplateData hughesjj@
+// templateData hughesjj@
 // I've gone back and forth on whether to just wrap modInputs and add custom as needed
 // As of now, only resourceattributes differ from what's default in modInputs
 // I can't just add a transformer, given it would differ from the nodejs case
 // Since goland does not support autocompletion in the template, I've decided
 // to just duplicate them all for now, to decouple from the customer interface
 // as defined in inputs.conf
-type TemplateData struct {
+type templateData struct {
 	InstrumentationJarPath string
 	ResourceAttributes     string
 	EnableProfiler         string
@@ -94,10 +95,11 @@ func CreateZeroConfigJava(modInputs *SplunkTAOtelLinuxAutoinstrumentationModular
 
 	tmpl, err := template.New("JavaZeroConfig").Parse(configTemplate)
 	if err != nil {
-		log.Fatalf("error generating zeroconfig file at %s from template: %#v", modInputs.JavaZeroconfigPath.Value, err)
+		err = fmt.Errorf("error generating zeroconfig file at %s from template: %#v", modInputs.JavaZeroconfigPath.Value, err)
+		log.Error(err)
 		return err
 	}
-	templateData := TemplateData{
+	data := templateData{
 		InstrumentationJarPath: modInputs.SplunkOtelJavaAutoinstrumentationJarPath.Value,
 		ResourceAttributes:     resourceAttributes,
 		EnableProfiler:         modInputs.ProfilerEnabled.Value,
@@ -112,7 +114,6 @@ func CreateZeroConfigJava(modInputs *SplunkTAOtelLinuxAutoinstrumentationModular
 
 	if err = os.MkdirAll(filepath.Dir(modInputs.JavaZeroconfigPath.Value), 0755); err != nil {
 		err = fmt.Errorf("error creating java zeroconfig path, could not make parent directories: %w", err)
-		log.Println(err)
 		return err
 	}
 
@@ -120,8 +121,8 @@ func CreateZeroConfigJava(modInputs *SplunkTAOtelLinuxAutoinstrumentationModular
 	if err != nil && !errors.Is(err, os.ErrExist) {
 		return err
 	}
-	if err = tmpl.Execute(filePath, templateData); err != nil {
-		return fmt.Errorf("failed to execute template: %w %v", err, templateData)
+	if err = tmpl.Execute(filePath, data); err != nil {
+		return fmt.Errorf("failed to execute template: %w %v", err, data)
 	}
 	log.Printf("Successfully generated java autoinstrumentation config at %s\n", filePath.Name())
 	return nil
@@ -140,7 +141,7 @@ func InstrumentJava(modInputs *SplunkTAOtelLinuxAutoinstrumentationModularInputs
 func RemoveJavaInstrumentation(modInputs *SplunkTAOtelLinuxAutoinstrumentationModularInputs) error {
 	if strings.ToLower(modInputs.Backup.Value) != "false" {
 		if err := backupFile(modInputs.JavaZeroconfigPath.Value); err != nil && !errors.Is(err, os.ErrNotExist) {
-			log.Fatalf("error backing up java auto instrumentation configuration, refusing to remove (specify backup=false in inputs.conf if backup not needed): %v", err)
+			err = fmt.Errorf("error backing up java auto instrumentation configuration, refusing to remove (specify backup=false in inputs.conf if backup not needed): %v", err)
 			return err
 		}
 	}

@@ -61,8 +61,8 @@ func run() int {
 	if err != nil {
 		panic(err)
 	}
-	err = mip.ProcessXML(xmlInput)
 
+	err = mip.ProcessXML(xmlInput)
 	if *validateFlag {
 		if err != nil {
 			return -1
@@ -71,35 +71,34 @@ func run() int {
 	}
 	if err != nil {
 		log.Errorf("Error parsing modinput: %+v", err)
-		panic(err)
+		return -1
 	}
 	modInputs := GetSplunkTAOtelLinuxAutoinstrumentationModularInputs(mip)
-	err = Run(modInputs)
-	if err != nil {
+	if err = Run(modInputs); err != nil {
 		log.Errorf("error running splunk linux autoinstrumentation addon: %+v", err)
-		panic(err)
+		return -1
 	}
-	// TODO set up traps, but not urgent given this is a run-once style script
+	// TODO set up traps for completeness, but not urgent given this is a run-once style script
 	return 0
 }
 
 func Run(modInputs *SplunkTAOtelLinuxAutoinstrumentationModularInputs) error {
-	lowerModInput := strings.ToLower(modInputs.Remove.Value)
-	if "false" == lowerModInput {
+	shouldRemove := strings.ToLower(modInputs.Remove.Value)
+	if "false" == shouldRemove {
 		return Instrument(modInputs)
 	}
-	if "true" == lowerModInput {
+	if "true" == shouldRemove {
 		return DeInstrument(modInputs)
 	}
 
-	return fmt.Errorf("unknown value for 'remove' modular input, expected (true|false) given %q", modInputs.Remove.Value)
+	return fmt.Errorf("unknown value for 'remove' modular input, expected (true|false) given %q", shouldRemove)
 }
 
 func DeInstrument(modInputs *SplunkTAOtelLinuxAutoinstrumentationModularInputs) error {
-	if err := RemoveJavaInstrumentation(modInputs); err != nil {
+	if err := RemovePreloadInstrumentation(modInputs); err != nil {
 		return err
 	}
-	if err := RemovePreloadInstrumentation(modInputs); err != nil {
+	if err := RemoveJavaInstrumentation(modInputs); err != nil {
 		return err
 	}
 	return nil
@@ -120,52 +119,55 @@ func AutoinstrumentLdPreload(modInputs *SplunkTAOtelLinuxAutoinstrumentationModu
 		log.Println("Autoinstrumentation of /etc/ld.so.preload is disabled in inputs.conf, not configuring")
 		return nil
 	}
-	found, err := grepFile(modInputs.AutoinstrumentationPath.Value, modInputs.AutoinstrumentationPreloadPath.Value)
-	if err != nil {
-		return err
-	}
-	if !found {
-		if strings.ToLower(modInputs.Backup.Value) != "false" {
-			if err = backupFile(modInputs.AutoinstrumentationPreloadPath.Value); err != nil {
-				return err
-			}
-		}
-		f, err2 := os.OpenFile(modInputs.AutoinstrumentationPreloadPath.Value, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
-		if err2 != nil {
-			return fmt.Errorf("error opening %s: %w", modInputs.AutoinstrumentationPreloadPath.Value, err2)
-		}
-		defer f.Close()
-		if _, err2 = f.WriteString(modInputs.AutoinstrumentationPath.Value + "\n"); err2 != nil {
-			return fmt.Errorf("error writing to %s: %w", modInputs.AutoinstrumentationPreloadPath.Value, err2)
-		}
-		log.Printf("Successfully autoinstrumented preload at %v with %v\n", modInputs.AutoinstrumentationPreloadPath.Value, modInputs.AutoinstrumentationPath.Value)
-	} else {
-		log.Printf("Preload already autoinstrumented with %v at %v\n", modInputs.AutoinstrumentationPath.Value, modInputs.AutoinstrumentationPreloadPath.Value)
-	}
-	return nil
-}
-
-func RemovePreloadInstrumentation(modInputs *SplunkTAOtelLinuxAutoinstrumentationModularInputs) error {
-	found, err := grepFile(modInputs.Remove.Value, modInputs.AutoinstrumentationPreloadPath.Value)
+	found, err := stringContainedInFile(modInputs.AutoinstrumentationPath.Value, modInputs.AutoinstrumentationPreloadPath.Value)
 	if err != nil {
 		return err
 	}
 	if found {
-		content, err := os.ReadFile(modInputs.AutoinstrumentationPreloadPath.Value)
-		if err != nil {
+		log.Printf("Preload already autoinstrumented with %v at %v\n", modInputs.AutoinstrumentationPath.Value, modInputs.AutoinstrumentationPreloadPath.Value)
+		return nil
+	}
+
+	if strings.ToLower(modInputs.Backup.Value) != "false" {
+		if err = backupFile(modInputs.AutoinstrumentationPreloadPath.Value); err != nil {
 			return err
 		}
-		if strings.ToLower(modInputs.Backup.Value) != "false" {
-			if err = backupFile(modInputs.AutoinstrumentationPreloadPath.Value); err != nil {
-				return err
-			}
-		}
-		newContent := strings.ReplaceAll(string(content), modInputs.AutoinstrumentationPreloadPath.Value, "")
-		return os.WriteFile(modInputs.AutoinstrumentationPreloadPath.Value, []byte(newContent), 0644) // #nosec G306
-
 	}
-	log.Printf("Autoinstrumentation preload (%s) does not exist or does not contain configured autoinstrumentation (%s)", modInputs.AutoinstrumentationPreloadPath.Value, modInputs.AutoinstrumentationPath.Value)
+	preloadFile, err := os.OpenFile(modInputs.AutoinstrumentationPreloadPath.Value, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		return fmt.Errorf("error opening %s: %w", modInputs.AutoinstrumentationPreloadPath.Value, err)
+	}
+	defer preloadFile.Close()
+	if _, err = preloadFile.WriteString(modInputs.AutoinstrumentationPath.Value + "\n"); err != nil {
+		return fmt.Errorf("error writing to %s: %w", modInputs.AutoinstrumentationPreloadPath.Value, err)
+	}
+	log.Printf("Successfully autoinstrumented preload at %q with %q\n", modInputs.AutoinstrumentationPreloadPath.Value, modInputs.AutoinstrumentationPath.Value)
 	return nil
+}
+
+func RemovePreloadInstrumentation(modInputs *SplunkTAOtelLinuxAutoinstrumentationModularInputs) error {
+	found, err := stringContainedInFile(modInputs.Remove.Value, modInputs.AutoinstrumentationPreloadPath.Value)
+	if err != nil {
+		return err
+	}
+
+	if found {
+		log.Printf("Autoinstrumentation preload (%s) does not exist or does not contain configured autoinstrumentation (%s)", modInputs.AutoinstrumentationPreloadPath.Value, modInputs.AutoinstrumentationPath.Value)
+		return nil
+	}
+
+	content, err := os.ReadFile(modInputs.AutoinstrumentationPreloadPath.Value)
+	if err != nil {
+		return err
+	}
+	if strings.ToLower(modInputs.Backup.Value) != "false" {
+		if err = backupFile(modInputs.AutoinstrumentationPreloadPath.Value); err != nil {
+			return err
+		}
+	}
+	newContent := strings.ReplaceAll(string(content), modInputs.AutoinstrumentationPreloadPath.Value, "")
+	return os.WriteFile(modInputs.AutoinstrumentationPreloadPath.Value, []byte(newContent), 0644) // #nosec G306
+
 }
 
 func backupFile(currPath string) error {
@@ -181,7 +183,8 @@ func backupFile(currPath string) error {
 	return nil
 }
 
-func grepFile(search string, filepath string) (bool, error) {
+// stringContainedInFile If the file does not exist, vacuously returns (false, nil)
+func stringContainedInFile(search string, filepath string) (bool, error) {
 	file, err := os.Open(filepath)
 	if errors.Is(err, os.ErrNotExist) {
 		return false, nil

@@ -59,16 +59,22 @@ require (
 	github.com/apache/thrift v0.22.0 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.36.4 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.2 // indirect
+	github.com/aws/aws-sdk-go-v2/config v1.29.16 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.69 // indirect
+	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.31 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.16.15 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.35 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.35 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.3 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.3.5 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.12.3 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.3.7 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.12.16 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.17.5 // indirect
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.53.1 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sso v1.25.4 // indirect
+	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.30.2 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sts v1.33.21 // indirect
 	github.com/aws/smithy-go v1.22.3 // indirect
 	github.com/beevik/ntp v1.4.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -191,7 +197,7 @@ require (
 	github.com/signalfx/gohistogram v0.0.0-20160107210732-1ccfd2ff5083 // indirect
 	github.com/signalfx/ingest-protocols v0.2.1 // indirect
 	github.com/signalfx/sapm-proto v0.12.0 // indirect
-	github.com/snowflakedb/gosnowflake v1.14.0 // indirect
+	github.com/snowflakedb/gosnowflake v1.15.0 // indirect
 	github.com/soniah/gosnmp v0.0.0-20190220004421-68e8beac0db9 // indirect
 	github.com/spf13/pflag v1.0.6 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect

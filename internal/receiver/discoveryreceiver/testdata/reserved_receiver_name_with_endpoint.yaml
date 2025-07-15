@@ -3,6 +3,7 @@ discovery:
     - an_observer
   receivers:
     receiver/with{endpoint=}/:
+      service_type: a_service
       rule: type == "container"
       status:
         metrics:

@@ -49,8 +49,9 @@ func TestStatementEvaluation(t *testing.T) {
 					cfg := &Config{
 						Receivers: map[component.ID]ReceiverEntry{
 							component.MustNewIDWithName("a_receiver", "receiver.name"): {
-								Rule:   mustNewRule(`type == "container"`),
-								Status: &Status{Statements: []Match{match}},
+								ServiceType: "a_service",
+								Rule:        mustNewRule(`type == "container"`),
+								Status:      &Status{Statements: []Match{match}},
 							},
 						},
 						WatchObservers: []component.ID{observerID},
@@ -102,12 +103,12 @@ func TestStatementEvaluation(t *testing.T) {
 
 					// Validate the attributes
 					require.Equal(t, map[string]string{
+						"service.type":            "a_service",
 						"discovery.observer.id":   "an_observer/observer.name",
 						"discovery.receiver.name": "receiver.name",
 						"discovery.receiver.type": "a_receiver",
 						"discovery.status":        string(status),
 						"discovery.message":       "desired body content",
-						"discovery.matched_log":   "desired.statement (error: some error)",
 					}, cStore.Attrs(endpointID))
 				})
 			}

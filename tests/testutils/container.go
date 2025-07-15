@@ -26,7 +26,8 @@ import (
 	"time"
 
 	dockerContainer "github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/errdefs"
+	"github.com/docker/docker/api/types/filters"
+	dockernetwork "github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/docker/go-connections/nat"
 	"github.com/stretchr/testify/assert"
@@ -289,7 +290,7 @@ func (container *Container) Start(ctx context.Context) (err error) {
 		Started:          true,
 	}
 
-	err = container.createNetworksIfNecessary(req)
+	err = container.createNetworksIfNecessary()
 	if err != nil {
 		return nil
 	}
@@ -496,33 +497,42 @@ func (container *Container) AssertExec(t testing.TB, timeout time.Duration, cmd 
 
 // Will create any networks that don't already exist on system.
 // Teardown/cleanup is handled by the testcontainers reaper.
-func (container *Container) createNetworksIfNecessary(req testcontainers.GenericContainerRequest) error {
-	provider, err := req.ProviderType.GetProvider()
+func (container *Container) createNetworksIfNecessary() error {
+	ctx := context.Background()
+
+	// Use the client to check if the networks already exist.
+	client, err := testcontainers.NewDockerClientWithOpts(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create Docker client: %w", err)
 	}
+	defer client.Close()
+
+	// Check if the networks already exist, using any of the provided network names.
 	for _, networkName := range container.ContainerNetworks {
-		//nolint:staticcheck
-		query := testcontainers.NetworkRequest{
-			Name: networkName,
+		// Check if the network exists.
+		networks, err := client.NetworkList(ctx, dockernetwork.ListOptions{
+			Filters: filters.NewArgs(filters.KeyValuePair{
+				Key:   "name",
+				Value: networkName,
+			}),
+		})
+		if err != nil {
+			return fmt.Errorf("failed to list networks: %w", err)
 		}
-		networkResource, err := provider.GetNetwork(context.Background(), query)
-		//nolint:staticcheck
-		if err != nil && !errdefs.IsNotFound(err) {
-			return err
+		if len(networks) > 0 {
+			// Network already exists.
+			continue
 		}
-		if networkResource.Name != networkName {
-			//nolint:staticcheck
-			create := testcontainers.NetworkRequest{
-				Driver:     "bridge",
-				Name:       networkName,
-				Attachable: true,
-			}
-			_, err := provider.CreateNetwork(context.Background(), create)
-			if err != nil {
-				return err
-			}
+
+		// Create the network if it doesn't exist.
+		_, err = client.NetworkCreate(ctx, networkName, dockernetwork.CreateOptions{
+			Driver:     "bridge",
+			Attachable: true,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to create network %q: %w", networkName, err)
 		}
 	}
+
 	return nil
 }

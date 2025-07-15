@@ -4,6 +4,7 @@
 #####################################################################################
 kafkametrics:
   enabled: true
+  service_type: kafka
   rule:
     docker_observer: type == "container" and any([name, image, command], {# matches "(?i)kafka.*"}) and not (command matches "splunk.discovery")
     host_observer: type == "hostport" and command matches "(?i)kafka.*" and not (command matches "splunk.discovery")

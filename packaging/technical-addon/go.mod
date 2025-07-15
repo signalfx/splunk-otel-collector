@@ -4,7 +4,7 @@ go 1.23.0
 
 require (
 	github.com/deckarep/golang-set/v2 v2.8.0
-	github.com/docker/docker v28.3.1+incompatible
+	github.com/docker/docker v28.3.2+incompatible
 	github.com/google/go-cmp v0.7.0
 	github.com/stretchr/testify v1.10.0
 	github.com/testcontainers/testcontainers-go v0.36.0

@@ -2,7 +2,13 @@
 
 ## Unreleased
 
+### 💡 Enhancements 💡
+
 - (Splunk) `receiver/discovery`: Reduce amount of attributes sent with the entities to the required set ([#6419](https://github.com/signalfx/splunk-otel-collector/pull/6419))
+
+### 🧰 Bug fixes 🧰
+
+- (Splunk) `receiver/discovery`: Fix disabling observers with properties ([#6437](https://github.com/signalfx/splunk-otel-collector/pull/6437))
 
 ## v0.129.0
 

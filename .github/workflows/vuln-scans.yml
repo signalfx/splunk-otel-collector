@@ -263,6 +263,12 @@ jobs:
           name: otelcol-${{ matrix.ARCH }}${{ matrix.FIPS == true && '-fips' || '' }}
           path: ./dist
       - run: docker load -i ./dist/image.tar
+      - name: Debug errors
+        run: |
+          echo "=== Docker images ==="
+          docker images
+          echo "=== Docker image inspect ==="
+          docker image inspect otelcol${{ matrix.FIPS == true && '-fips' || '' }}:latest || echo "Image not found"
       - uses: snyk/actions/docker@master
         continue-on-error: true # To make sure that SARIF upload gets called
         env:
@@ -271,9 +277,15 @@ jobs:
           image: "otelcol${{ matrix.FIPS == true && '-fips' || '' }}:latest"
           args: --file=cmd/otelcol/Dockerfile --severity-threshold=high --sarif-file-output=snyk.sarif --policy-path=.snyk --platform=linux/${{ matrix.ARCH }}
       - name: Upload result to GitHub Code Scanning
+        if: hashFiles('snyk.sarif') != ''
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: snyk.sarif
+      - name: Fail if sarif file missing
+        if: hashFiles('snyk.sarif') == ''
+        run: |
+          echo "ERROR: snyk.sarif not found. Snyk scan likely failed."
+          exit 1
 
   govulncheck-run:
     # Running on a large macOS runner to reliably use scan mode as symbol without hitting OOM.

@@ -18,12 +18,11 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
-
-	log "github.com/sirupsen/logrus"
 )
 
 //go:embed java-agent-release.txt
@@ -95,9 +94,7 @@ func CreateZeroConfigJava(modInputs *SplunkTAOtelLinuxAutoinstrumentationModular
 
 	tmpl, err := template.New("JavaZeroConfig").Parse(configTemplate)
 	if err != nil {
-		err = fmt.Errorf("error generating zeroconfig file at %s from template: %#v", modInputs.JavaZeroconfigPath.Value, err)
-		log.Error(err)
-		return err
+		return fmt.Errorf("error generating zeroconfig file at %s from template: %#v", modInputs.JavaZeroconfigPath.Value, err)
 	}
 	data := templateData{
 		InstrumentationJarPath: modInputs.SplunkOtelJavaAutoinstrumentationJarPath.Value,
@@ -113,8 +110,7 @@ func CreateZeroConfigJava(modInputs *SplunkTAOtelLinuxAutoinstrumentationModular
 	}
 
 	if err = os.MkdirAll(filepath.Dir(modInputs.JavaZeroconfigPath.Value), 0755); err != nil {
-		err = fmt.Errorf("error creating java zeroconfig path, could not make parent directories: %w", err)
-		return err
+		return fmt.Errorf("error creating java zeroconfig path, could not make parent directories: %w", err)
 	}
 
 	filePath, err := os.Create(modInputs.JavaZeroconfigPath.Value)
@@ -141,8 +137,7 @@ func InstrumentJava(modInputs *SplunkTAOtelLinuxAutoinstrumentationModularInputs
 func RemoveJavaInstrumentation(modInputs *SplunkTAOtelLinuxAutoinstrumentationModularInputs) error {
 	if strings.ToLower(modInputs.Backup.Value) != "false" {
 		if err := backupFile(modInputs.JavaZeroconfigPath.Value); err != nil && !errors.Is(err, os.ErrNotExist) {
-			err = fmt.Errorf("error backing up java auto instrumentation configuration, refusing to remove (specify backup=false in inputs.conf if backup not needed): %v", err)
-			return err
+			return fmt.Errorf("error backing up java auto instrumentation configuration, refusing to remove (specify backup=false in inputs.conf if backup not needed): %v", err)
 		}
 	}
 	if err := os.Remove(modInputs.JavaZeroconfigPath.Value); !errors.Is(err, os.ErrNotExist) {

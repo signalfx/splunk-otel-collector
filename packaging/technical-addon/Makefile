@@ -42,9 +42,9 @@ ta-build-tools:
 test-ta-build-tools: ta-build-tools
 	$(MODINPUT_CONFIG_GENERATOR) -source-dir=$(ADDONS_SOURCE_DIR)/cmd/modinput_config_generator/internal/testdata -schema-name=Sample_Addon --build-dir=$(BUILD_DIR) || exit 1; \
 	mkdir -p $(BUILD_DIR)/Sample_Addon/$(PLATFORM)_$(SPLUNK_ARCH)/bin; \
-	cd $(ADDONS_SOURCE_DIR) && go build $(GO_BUILD_FLAGS) -o $(BUILD_DIR)/Sample_Addon/$(PLATFORM)_$(SPLUNK_ARCH)/bin/Sample_Addon $(ADDONS_SOURCE_DIR)/cmd/modinput_config_generator/internal/testdata/pkg/sample_addon/runner || exit 1; \
+	go build $(GO_BUILD_FLAGS) -o $(BUILD_DIR)/Sample_Addon/$(PLATFORM)_$(SPLUNK_ARCH)/bin/Sample_Addon $(ADDONS_SOURCE_DIR)/cmd/modinput_config_generator/internal/testdata/pkg/sample_addon/runner || exit 1; \
 	echo "built addon, testing..."
-	cd $(ADDONS_SOURCE_DIR) && go test -v `go list ./... | grep --invert-match pkg`
+	go test -v `go list ./... | grep --invert-match pkg`
 
 
 .PHONY: gen-modinput-config

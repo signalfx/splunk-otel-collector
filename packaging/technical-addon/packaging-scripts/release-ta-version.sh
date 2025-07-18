@@ -15,9 +15,10 @@ git checkout -B "$BRANCH"
 git add "$ADDONS_SOURCE_DIR/Makefile" "$APP_CONFIG"
 git commit -m "Updates TA to splunk-otel-collector v$SPLUNK_OTEL_VERSION and marks TA as v$TA_VERSION" || echo "version changes already committed"
 
-echo "Tagging..."
-git tag --annotate --sign --message "Release of Splunk_TA_otel version v$TA_VERSION" "$TAG"
 git push --set-upstream "$REMOTE" "$BRANCH"
+git push "$REMOTE" "$BRANCH"
+echo "Pushed branch $BRANCH to $REMOTE"
+
 
 PROMPT="Do you want to push the tag to remote too? [y/N] "
 USER_INPUT=""
@@ -32,9 +33,13 @@ fi
 
 # Convert input to lowercase and check
 if [[ "$USER_INPUT" == "y" ]]; then
+    echo "Tagging..."
+    git tag --annotate --sign --message "Release of Splunk_TA_otel version v$TA_VERSION" "$TAG"
     git push "$REMOTE" "$TAG"
     exit "$?"
 fi
 
 echo "Tag not pushed. To push this tag to remote, run "
 echo "git push $REMOTE '$TAG'"
+
+echo "Check gitlab for status of release pipeline"

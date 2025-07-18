@@ -437,10 +437,11 @@ agent-bundle-windows:
   artifacts:
     paths:
       - dist/agent-bundle_windows_amd64.zip
-.ta-trigger:
+.collector-ta-trigger:
   rules:
     - <<: *main-condition
     - <<: *no-schedules-condition
+    - if: $CI_COMMIT_BRANCH =~ /^release/technical-addon/v[0-9]+\.[0-9]+\.[0-9]+[^ ]*$/
     - if: $CI_COMMIT_BRANCH != "main" && $CI_COMMIT_TAG == null && $CI_COMMIT_REF_PROTECTED == 'true'
       when: manual
 .auth-setup:
@@ -485,7 +486,7 @@ agent-bundle-windows:
 
 package-technical-addon:
   extends:
-    - .ta-trigger
+    - .collector-ta-trigger
   image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
   stage: "package"
   script: |
@@ -503,9 +504,9 @@ package-technical-addon:
 test-happypath-ta:
   image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
   extends:
-    - .ta-trigger
+    - .collector-ta-trigger
     - .auth-setup
-  stage: orca-tests
+  stage: "orca-tests"
   dependencies:
     - "package-technical-addon"
   parallel:
@@ -537,7 +538,7 @@ test-happypath-ta:
 test-collectd-ta:
   image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
   extends:
-    - .ta-trigger
+    - .collector-ta-trigger
     - .auth-setup
   stage: orca-tests
   variables:
@@ -568,7 +569,7 @@ test-collectd-ta:
 test-gateway-ta:
   image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
   extends:
-    - .ta-trigger
+    - .collector-ta-trigger
     - .auth-setup
   stage: orca-tests
   dependencies:
@@ -603,7 +604,7 @@ test-gateway-ta:
   allow_failure: true
 AppInspect_local:
   extends:
-    - .ta-trigger
+    - .collector-ta-trigger
   dependencies:
     - "package-technical-addon"
   stage: code-analysis
@@ -1968,3 +1969,20 @@ dotnet-instrumentation-deployer-release:
         echo "Failed to get version from $CI_COMMIT_TAG"
         exit 1
       fi
+
+collector-ta-release:
+  rules:
+    - if: $CI_COMMIT_BRANCH =~ /^release/technical-addon/v[0-9]+\.[0-9]+\.[0-9]+[^ ]*$/
+  extends:
+    - .go-cache # Use this image since this job uses the ghr tool
+  tags: [large]
+  stage: publish-release
+  dependencies:
+    - orca-tests
+  script:
+    - |
+      cd "out/distribution"
+      TEMPDIR="$(mktemp -d)"
+
+      RELEASE_NOTES="TODO $VERSION"
+      ghr -t "$GITHUB_TOKEN" -u signalfx -r splunk-otel-collector -prerelease -draft -n "Splunk Add-On for OpenTelemetry Collector v$VERSION" -b "$RELEASE_NOTES" -replace "$CI_COMMIT_TAG" out/distribution/

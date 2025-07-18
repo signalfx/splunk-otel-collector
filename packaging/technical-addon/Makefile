@@ -242,6 +242,13 @@ release-ta:
 .PHONY: update-and-release-ta
 update-and-release: update-ta-deps release-ta
 
+.PHONY: validate-release
+validate-release:
+	ADDONS_SOURCE_DIR="$(ADDONS_SOURCE_DIR)" \
+	BUILD_DIR="$(BUILD_DIR)" \
+	OTEL_COLLECTOR_VERSION="$(OTEL_COLLECTOR_VERSION)" \
+	$(ADDONS_SOURCE_DIR)/packaging-scripts/validate-ta-release.sh
+
 .PHONY: clean-ta
 clean-ta:
 	rm -rf $(BUILD_DIR)

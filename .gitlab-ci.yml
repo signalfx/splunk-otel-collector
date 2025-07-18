@@ -1970,6 +1970,7 @@ dotnet-instrumentation-deployer-release:
 collector-ta-release:
   rules:
     - if: $CI_COMMIT_BRANCH =~ /^release/technical-addon/v[0-9]+\.[0-9]+\.[0-9]+[^ ]*$/
+      when: always
   extends:
     - .go-cache # Use this image since this job uses the ghr tool
   tags: [large]
@@ -1978,8 +1979,8 @@ collector-ta-release:
     - orca-tests
   script:
     - |
-      cd "out/distribution"
-      TEMPDIR="$(mktemp -d)"
-
-      RELEASE_NOTES="TODO $VERSION"
-      ghr -t "$GITHUB_TOKEN" -u signalfx -r splunk-otel-collector -prerelease -draft -n "Splunk Add-On for OpenTelemetry Collector v$VERSION" -b "$RELEASE_NOTES" -replace "$CI_COMMIT_TAG" out/distribution/
+      make -e validate-ta
+      RELEASE_NOTES="$("$ADDONS_SOURCE_DIR/packaging-scripts/github-ta-release-notes.sh")"
+      TA_VERSION=$(sed -n '/^\[id\]/,/^\[/{s/^version = \(.*\)/\1/p}' "$ADDONS_SOURCE_DIR/Splunk_TA_otel/default/app.conf" | tr -d ' \t\n\r')
+      [[ -z "$TA_VERSION" ]] && echo "TA_VERSION MUST BE SET" && exit 1
+      ghr -t "$GITHUB_TOKEN" -u signalfx -r splunk-otel-collector -prerelease -draft -n "Technical addon for the Splunk distribution of the OpenTelemetry Collector v$TA_VERSION" -b "$RELEASE_NOTES" -replace "$CI_COMMIT_TAG" out/distribution/

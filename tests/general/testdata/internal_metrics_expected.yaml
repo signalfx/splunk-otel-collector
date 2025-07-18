@@ -16,9 +16,6 @@ resourceMetrics:
         - key: service.version
           value:
             stringValue: v0.120.0-13-ga4dd36d9f
-        - key: url.scheme
-          value:
-            stringValue: http
     scopeMetrics:
       - metrics:
           - description: Number of metric points in failed attempts to send to destination. [alpha]
@@ -35,15 +32,6 @@ resourceMetrics:
                     - key: exporter
                       value:
                         stringValue: otlp
-                    - key: service.instance.id
-                      value:
-                        stringValue: dae83d4f-5546-4ffd-9568-357d1ef0db7d
-                    - key: service.name
-                      value:
-                        stringValue: otelcol
-                    - key: service.version
-                      value:
-                        stringValue: v0.120.0-13-ga4dd36d9f
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
               isMonotonic: true
@@ -61,15 +49,6 @@ resourceMetrics:
                     - key: exporter
                       value:
                         stringValue: otlp
-                    - key: service.instance.id
-                      value:
-                        stringValue: dae83d4f-5546-4ffd-9568-357d1ef0db7d
-                    - key: service.name
-                      value:
-                        stringValue: otelcol
-                    - key: service.version
-                      value:
-                        stringValue: v0.120.0-13-ga4dd36d9f
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
               isMonotonic: true
@@ -83,16 +62,6 @@ resourceMetrics:
               aggregationTemporality: 2
               dataPoints:
                 - asDouble: 0.84
-                  attributes:
-                    - key: service.instance.id
-                      value:
-                        stringValue: dae83d4f-5546-4ffd-9568-357d1ef0db7d
-                    - key: service.name
-                      value:
-                        stringValue: otelcol
-                    - key: service.version
-                      value:
-                        stringValue: v0.120.0-13-ga4dd36d9f
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
               isMonotonic: true
@@ -100,16 +69,6 @@ resourceMetrics:
             gauge:
               dataPoints:
                 - asDouble: 4.9370376e+07
-                  attributes:
-                    - key: service.instance.id
-                      value:
-                        stringValue: dae83d4f-5546-4ffd-9568-357d1ef0db7d
-                    - key: service.name
-                      value:
-                        stringValue: otelcol
-                    - key: service.version
-                      value:
-                        stringValue: v0.120.0-13-ga4dd36d9f
                   timeUnixNano: "1000000"
             metadata:
               - key: prometheus.type
@@ -127,15 +86,6 @@ resourceMetrics:
                     - key: exporter
                       value:
                         stringValue: otlp
-                    - key: service.instance.id
-                      value:
-                        stringValue: dae83d4f-5546-4ffd-9568-357d1ef0db7d
-                    - key: service.name
-                      value:
-                        stringValue: otelcol
-                    - key: service.version
-                      value:
-                        stringValue: v0.120.0-13-ga4dd36d9f
                   timeUnixNano: "1000000"
             metadata:
               - key: prometheus.type
@@ -146,16 +96,6 @@ resourceMetrics:
             gauge:
               dataPoints:
                 - asDouble: 1.89022208e+08
-                  attributes:
-                    - key: service.instance.id
-                      value:
-                        stringValue: dae83d4f-5546-4ffd-9568-357d1ef0db7d
-                    - key: service.name
-                      value:
-                        stringValue: otelcol
-                    - key: service.version
-                      value:
-                        stringValue: v0.120.0-13-ga4dd36d9f
                   timeUnixNano: "1000000"
             metadata:
               - key: prometheus.type
@@ -194,15 +134,6 @@ resourceMetrics:
                     - key: exporter
                       value:
                         stringValue: otlp
-                    - key: service.instance.id
-                      value:
-                        stringValue: dae83d4f-5546-4ffd-9568-357d1ef0db7d
-                    - key: service.name
-                      value:
-                        stringValue: otelcol
-                    - key: service.version
-                      value:
-                        stringValue: v0.120.0-13-ga4dd36d9f
                   timeUnixNano: "1000000"
             metadata:
               - key: prometheus.type
@@ -219,16 +150,6 @@ resourceMetrics:
               aggregationTemporality: 2
               dataPoints:
                 - asDouble: 4.0894728e+07
-                  attributes:
-                    - key: service.instance.id
-                      value:
-                        stringValue: dae83d4f-5546-4ffd-9568-357d1ef0db7d
-                    - key: service.name
-                      value:
-                        stringValue: otelcol
-                    - key: service.version
-                      value:
-                        stringValue: v0.120.0-13-ga4dd36d9f
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
               isMonotonic: true
@@ -242,16 +163,6 @@ resourceMetrics:
               aggregationTemporality: 2
               dataPoints:
                 - asDouble: 19.698130662
-                  attributes:
-                    - key: service.instance.id
-                      value:
-                        stringValue: dae83d4f-5546-4ffd-9568-357d1ef0db7d
-                    - key: service.name
-                      value:
-                        stringValue: otelcol
-                    - key: service.version
-                      value:
-                        stringValue: v0.120.0-13-ga4dd36d9f
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
               isMonotonic: true
@@ -269,15 +180,6 @@ resourceMetrics:
                     - key: receiver
                       value:
                         stringValue: prometheus
-                    - key: service.instance.id
-                      value:
-                        stringValue: dae83d4f-5546-4ffd-9568-357d1ef0db7d
-                    - key: service.name
-                      value:
-                        stringValue: otelcol
-                    - key: service.version
-                      value:
-                        stringValue: v0.120.0-13-ga4dd36d9f
                     - key: transport
                       value:
                         stringValue: http
@@ -298,16 +200,6 @@ resourceMetrics:
             gauge:
               dataPoints:
                 - asDouble: 3.1325144e+07
-                  attributes:
-                    - key: service.instance.id
-                      value:
-                        stringValue: dae83d4f-5546-4ffd-9568-357d1ef0db7d
-                    - key: service.name
-                      value:
-                        stringValue: otelcol
-                    - key: service.version
-                      value:
-                        stringValue: v0.120.0-13-ga4dd36d9f
                   timeUnixNano: "1000000"
             metadata:
               - key: prometheus.type
@@ -328,15 +220,6 @@ resourceMetrics:
                     - key: receiver
                       value:
                         stringValue: prometheus
-                    - key: service.instance.id
-                      value:
-                        stringValue: dae83d4f-5546-4ffd-9568-357d1ef0db7d
-                    - key: service.name
-                      value:
-                        stringValue: otelcol
-                    - key: service.version
-                      value:
-                        stringValue: v0.120.0-13-ga4dd36d9f
                     - key: transport
                       value:
                         stringValue: http

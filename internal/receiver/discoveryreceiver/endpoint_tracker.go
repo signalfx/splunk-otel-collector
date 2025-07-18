@@ -369,6 +369,9 @@ func extractServiceName(endpointType observer.EndpointType, endpointEnv observer
 
 	// First, try to extract the service name from labels.
 	if labelsFound {
+		if val, ok := labels["app.kubernetes.io/instance"]; ok {
+			return val
+		}
 		if val, ok := labels["app.kubernetes.io/name"]; ok {
 			return val
 		}

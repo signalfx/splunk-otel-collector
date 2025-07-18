@@ -1,0 +1,4 @@
+splunk.discovery:
+  extensions:
+    host_observer:
+      enabled: false

@@ -120,7 +120,8 @@ fi
 # For release, ensure version is as expected.  TODO move this to another test and compare against tag
 actual_version="$(grep "Version" "$TEST_FOLDER/splunk/otel.log" | head -1 | awk -F 'Version": "' '{print $2}' | awk -F '", "' '{print $1}')"
 echo "actual version: $actual_version"
-[[ "$actual_version" != "v0.122.0" ]] && echo "Test failed -- invalid version" && exit 1
+EXPECTED_VERSION="v0.128.0"
+[[ "$actual_version" != "$EXPECTED_VERSION" ]] && echo "Test failed -- invalid version" && exit 1
 
 # clean up orca container
 splunk_orca --cloud ${ORCA_CLOUD} destroy "${deployment_id}"

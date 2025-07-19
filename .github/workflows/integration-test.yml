@@ -29,8 +29,6 @@ jobs:
         ARCH: [ "amd64", "arm64", "ppc64le" ]
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
@@ -56,8 +54,6 @@ jobs:
       # Multiarch images require more disk space
       - uses: jlumbroso/free-disk-space@v1.3.1
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
@@ -117,8 +113,6 @@ jobs:
     needs: [ "docker-otelcol", "otelcol" ]
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
@@ -152,8 +146,6 @@ jobs:
       # Multiarch images require more disk space
       - uses: jlumbroso/free-disk-space@v1.3.1
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - name: Build ${{ matrix.PROFILE }} service images
         run: |
           images=$(yq '.services[] | select(.profiles[] | . == "${{ matrix.PROFILE }}") | .image' docker/docker-compose.yml | grep "quay.io/splunko11ytest/" | sort -u)
@@ -246,8 +238,6 @@ jobs:
       # Multiarch images require more disk space
       - uses: jlumbroso/free-disk-space@v1.3.1
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - name: Build ${{ matrix.PROFILE }} service images
         run: |
           images=$(yq '.services[] | select(.profiles[] | . == "${{ matrix.PROFILE }}") | .image' docker/docker-compose.yml | grep "quay.io/splunko11ytest/" | sort -u)
@@ -355,8 +345,6 @@ jobs:
         fail-fast: false
       steps:
         - uses: actions/checkout@v4
-          with:
-            fetch-depth: 0
         - run: echo "MONGODB_VERSION=${{ matrix.MONGODB_VERSION }}" > docker/.env
           if: matrix.SERVICE == 'mongodb'
         - run: docker compose -f docker/docker-compose.yml --profile integration-test-${{ matrix.SERVICE }}-discovery up -d --wait --build --quiet-pull
@@ -418,8 +406,6 @@ jobs:
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - name: Create kind cluster
         uses: helm/kind-action@v1.12.0
         with:

@@ -171,13 +171,10 @@ func RemovePreloadInstrumentation(modInputs *SplunkTAOtelLinuxAutoinstrumentatio
 }
 
 func backupFile(currPath string) error {
-	if _, err := os.Stat(currPath); errors.Is(err, os.ErrNotExist) {
-		return nil
-	}
 	dir := filepath.Dir(currPath)
 	ogFilename := filepath.Base(currPath)
 	newPathName := filepath.Join(dir, fmt.Sprintf("%s.%v", ogFilename, time.Now().UnixNano()))
-	if _, err := fileutils.CopyFile(currPath, newPathName); err != nil {
+	if _, err := fileutils.CopyFile(currPath, newPathName); err != nil && !errors.Is(err, os.ErrNotExist) {
 		return err
 	}
 	return nil

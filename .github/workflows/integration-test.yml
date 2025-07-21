@@ -29,8 +29,6 @@ jobs:
         ARCH: [ "amd64", "arm64", "ppc64le" ]
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
@@ -56,8 +54,6 @@ jobs:
       # Multiarch images require more disk space
       - uses: jlumbroso/free-disk-space@v1.3.1
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
@@ -117,8 +113,6 @@ jobs:
     needs: [ "docker-otelcol", "otelcol" ]
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
@@ -154,8 +148,6 @@ jobs:
       TEST_OUTPUT: ${{ github.job }}-${{ matrix.PROFILE }}-${{ matrix.ARCH }}.out
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - name: Cache Docker images.
         uses: AndreKurait/docker-cache@0fe76702a40db986d9663c24954fc14c6a6031b7 # 0.6.0
         with:
@@ -250,8 +242,6 @@ jobs:
       TEST_OUTPUT: ${{ github.job }}-${{ matrix.PROFILE }}-${{ matrix.RUNNER }}.out
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - name: Cache Docker images.
         uses: AndreKurait/docker-cache@0fe76702a40db986d9663c24954fc14c6a6031b7 # 0.6.0
         with:
@@ -363,8 +353,6 @@ jobs:
         fail-fast: false
       steps:
         - uses: actions/checkout@v4
-          with:
-            fetch-depth: 0
         - name: Cache Docker images.
           uses: AndreKurait/docker-cache@0fe76702a40db986d9663c24954fc14c6a6031b7 # 0.6.0
           with:
@@ -430,8 +418,6 @@ jobs:
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - name: Cache Docker images.
         uses: AndreKurait/docker-cache@0fe76702a40db986d9663c24954fc14c6a6031b7 # 0.6.0
         with:

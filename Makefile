@@ -26,8 +26,8 @@ BUILD_INFO_IMPORT_PATH_CORE=go.opentelemetry.io/collector/internal/version
 VERSION=$(shell git describe --match "v[0-9]*" HEAD)
 BUILD_X1=-X $(BUILD_INFO_IMPORT_PATH).Version=$(VERSION)
 BUILD_X2=-X $(BUILD_INFO_IMPORT_PATH_CORE).Version=$(VERSION)
-BUILD_INFO=-ldflags "${BUILD_X1} ${BUILD_X2}"
-BUILD_INFO_TESTS=-ldflags "-X $(BUILD_INFO_IMPORT_PATH_TESTS).Version=$(VERSION)"
+BUILD_INFO=-ldflags "-s -w ${BUILD_X1} ${BUILD_X2}"
+BUILD_INFO_TESTS=-ldflags "-s -w -X $(BUILD_INFO_IMPORT_PATH_TESTS).Version=$(VERSION)"
 CGO_ENABLED?=0
 
 # This directory is used in tests hold code coverage results.
@@ -353,7 +353,7 @@ ifeq ($(GOOS), linux)
     ifeq ($(filter $(GOARCH), amd64 arm64),)
 		$(error GOOS=$(GOOS) GOARCH=$(GOARCH) not supported)
     endif
-	$(eval BUILD_INFO = -ldflags "${BUILD_X1} ${BUILD_X2} -linkmode=external -extldflags=-static")
+	$(eval BUILD_INFO = -ldflags "-s -w ${BUILD_X1} ${BUILD_X2} -linkmode=external -extldflags=-static")
 else ifeq ($(GOOS), windows)
     ifeq ($(filter $(GOARCH), amd64),)
 		$(error GOOS=$(GOOS) GOARCH=$(GOARCH) not supported)

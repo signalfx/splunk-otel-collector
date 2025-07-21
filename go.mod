@@ -373,7 +373,7 @@ require (
 	github.com/prometheus/client_golang v1.22.0 // indirect
 	github.com/prometheus/common/assets v0.2.0 // indirect
 	github.com/prometheus/exporter-toolkit v0.14.0 // indirect
-	github.com/prometheus/otlptranslator v0.0.0-20250620074007-94f535e0c588 // indirect
+	github.com/prometheus/otlptranslator v0.0.0-20250717125610-8549f4ab4f8f // indirect
 	github.com/prometheus/procfs v0.17.0 // indirect
 	github.com/prometheus/sigv4 v0.2.0 // indirect
 	github.com/puzpuzpuz/xsync/v3 v3.5.1 // indirect
@@ -780,3 +780,6 @@ replace github.com/pires/go-proxyproto v1.0.0 => github.com/peteski22/go-proxypr
 
 // github.com/veraison/go-cose v1.2.0 doesn't exists but required by the latest github.com/Microsoft/hcsshim
 replace github.com/veraison/go-cose v1.2.0 => github.com/veraison/go-cose v1.1.1
+
+// pick up a fix for 0.130.0 update https://github.com/open-telemetry/opentelemetry-go/pull/7056
+replace go.opentelemetry.io/otel/exporters/prometheus v0.59.0 => go.opentelemetry.io/otel/exporters/prometheus v0.59.1

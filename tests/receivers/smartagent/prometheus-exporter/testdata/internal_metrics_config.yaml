@@ -13,17 +13,6 @@ exporters:
     tls:
       insecure: true
 service:
-  telemetry:
-    metrics:
-      readers:
-        - pull:
-            exporter:
-              prometheus:
-                host: localhost
-                port: 8888
-                without_scope_info: true
-                without_type_suffix: true
-                without_units: true
   pipelines:
     metrics:
       receivers: [smartagent/prometheus-exporter]

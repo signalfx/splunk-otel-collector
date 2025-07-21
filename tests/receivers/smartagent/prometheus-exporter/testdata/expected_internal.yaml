@@ -2,110 +2,33 @@ resourceMetrics:
   - resource: {}
     scopeMetrics:
       - metrics:
-          - gauge:
-              dataPoints:
-                - asDouble: 3.1429608e+07
-                  attributes:
-                    - key: foo
-                      value:
-                        stringValue: bar
-                    - key: system.type
-                      value:
-                        stringValue: prometheus-exporter
-            name: otelcol_process_runtime_heap_alloc_bytes
           - name: otelcol_process_runtime_total_alloc_bytes
             sum:
               aggregationTemporality: 2
               dataPoints:
-                - asDouble: 4.2176328e+07
+                - asDouble: 4.151924e+07
                   attributes:
                     - key: foo
                       value:
                         stringValue: bar
-                    - key: system.type
+                    - key: otel_scope_name
                       value:
-                        stringValue: prometheus-exporter
-              isMonotonic: true
-          - name: otelcol_receiver_refused_metric_points
-            sum:
-              aggregationTemporality: 2
-              dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: foo
+                        stringValue: go.opentelemetry.io/collector/service
+                    - key: otel_scope_schema_url
                       value:
-                        stringValue: bar
-                    - key: receiver
+                        stringValue: ""
+                    - key: otel_scope_version
                       value:
-                        stringValue: smartagent/prometheus-exporter
-                    - key: system.type
+                        stringValue: ""
+                    - key: service_instance_id
                       value:
-                        stringValue: prometheus-exporter
-                    - key: transport
+                        stringValue: 57eb6d62-9b04-4eaf-8093-c77eea386021
+                    - key: service_name
                       value:
-                        stringValue: internal
-              isMonotonic: true
-          - name: otelcol_receiver_accepted_metric_points
-            sum:
-              aggregationTemporality: 2
-              dataPoints:
-                - asDouble: 446
-                  attributes:
-                    - key: foo
+                        stringValue: otelcol
+                    - key: service_version
                       value:
-                        stringValue: bar
-                    - key: receiver
-                      value:
-                        stringValue: smartagent/prometheus-exporter
-                    - key: system.type
-                      value:
-                        stringValue: prometheus-exporter
-                    - key: transport
-                      value:
-                        stringValue: internal
-              isMonotonic: true
-          - name: otelcol_process_cpu_seconds
-            sum:
-              aggregationTemporality: 2
-              dataPoints:
-                - asDouble: 0.21000000000000002
-                  attributes:
-                    - key: foo
-                      value:
-                        stringValue: bar
-                    - key: system.type
-                      value:
-                        stringValue: prometheus-exporter
-              isMonotonic: true
-          - gauge:
-              dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: data_type
-                      value:
-                        stringValue: metrics
-                    - key: exporter
-                      value:
-                        stringValue: otlp
-                    - key: foo
-                      value:
-                        stringValue: bar
-                    - key: system.type
-                      value:
-                        stringValue: prometheus-exporter
-            name: otelcol_exporter_queue_size
-          - name: otelcol_exporter_sent_metric_points
-            sum:
-              aggregationTemporality: 2
-              dataPoints:
-                - asDouble: 446
-                  attributes:
-                    - key: exporter
-                      value:
-                        stringValue: otlp
-                    - key: foo
-                      value:
-                        stringValue: bar
+                        stringValue: v0.129.0-38-gbff57cfb
                     - key: system.type
                       value:
                         stringValue: prometheus-exporter
@@ -123,41 +46,213 @@ resourceMetrics:
                     - key: foo
                       value:
                         stringValue: bar
+                    - key: otel_scope_name
+                      value:
+                        stringValue: go.opentelemetry.io/collector/exporter/exporterhelper
+                    - key: otel_scope_schema_url
+                      value:
+                        stringValue: ""
+                    - key: otel_scope_version
+                      value:
+                        stringValue: ""
+                    - key: service_instance_id
+                      value:
+                        stringValue: 57eb6d62-9b04-4eaf-8093-c77eea386021
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.129.0-38-gbff57cfb
                     - key: system.type
                       value:
                         stringValue: prometheus-exporter
             name: otelcol_exporter_queue_capacity
           - gauge:
               dataPoints:
-                - asDouble: 1.53509888e+08
+                - asDouble: 1
                   attributes:
                     - key: foo
                       value:
                         stringValue: bar
+                    - key: service_instance_id
+                      value:
+                        stringValue: 57eb6d62-9b04-4eaf-8093-c77eea386021
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.129.0-38-gbff57cfb
                     - key: system.type
                       value:
                         stringValue: prometheus-exporter
-            name: otelcol_process_memory_rss
+            name: target_info
           - gauge:
               dataPoints:
-                - asDouble: 4.4913928e+07
+                - asDouble: 4.570036e+07
                   attributes:
                     - key: foo
                       value:
                         stringValue: bar
+                    - key: otel_scope_name
+                      value:
+                        stringValue: go.opentelemetry.io/collector/service
+                    - key: otel_scope_schema_url
+                      value:
+                        stringValue: ""
+                    - key: otel_scope_version
+                      value:
+                        stringValue: ""
+                    - key: service_instance_id
+                      value:
+                        stringValue: 57eb6d62-9b04-4eaf-8093-c77eea386021
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.129.0-38-gbff57cfb
                     - key: system.type
                       value:
                         stringValue: prometheus-exporter
             name: otelcol_process_runtime_total_sys_memory_bytes
-          - name: otelcol_process_uptime
+          - name: otelcol_receiver_refused_metric_points
             sum:
               aggregationTemporality: 2
               dataPoints:
-                - asDouble: 30.00805975
+                - asDouble: 0
                   attributes:
                     - key: foo
                       value:
                         stringValue: bar
+                    - key: otel_scope_name
+                      value:
+                        stringValue: go.opentelemetry.io/collector/receiver/receiverhelper
+                    - key: otel_scope_schema_url
+                      value:
+                        stringValue: ""
+                    - key: otel_scope_version
+                      value:
+                        stringValue: ""
+                    - key: receiver
+                      value:
+                        stringValue: smartagent/prometheus-exporter
+                    - key: service_instance_id
+                      value:
+                        stringValue: 57eb6d62-9b04-4eaf-8093-c77eea386021
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.129.0-38-gbff57cfb
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                    - key: transport
+                      value:
+                        stringValue: internal
+              isMonotonic: true
+          - gauge:
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: data_type
+                      value:
+                        stringValue: metrics
+                    - key: exporter
+                      value:
+                        stringValue: otlp
+                    - key: foo
+                      value:
+                        stringValue: bar
+                    - key: otel_scope_name
+                      value:
+                        stringValue: go.opentelemetry.io/collector/exporter/exporterhelper
+                    - key: otel_scope_schema_url
+                      value:
+                        stringValue: ""
+                    - key: otel_scope_version
+                      value:
+                        stringValue: ""
+                    - key: service_instance_id
+                      value:
+                        stringValue: 57eb6d62-9b04-4eaf-8093-c77eea386021
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.129.0-38-gbff57cfb
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+            name: otelcol_exporter_queue_size
+          - name: otelcol_exporter_sent_metric_points
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 446
+                  attributes:
+                    - key: exporter
+                      value:
+                        stringValue: otlp
+                    - key: foo
+                      value:
+                        stringValue: bar
+                    - key: otel_scope_name
+                      value:
+                        stringValue: go.opentelemetry.io/collector/exporter/exporterhelper
+                    - key: otel_scope_schema_url
+                      value:
+                        stringValue: ""
+                    - key: otel_scope_version
+                      value:
+                        stringValue: ""
+                    - key: service_instance_id
+                      value:
+                        stringValue: 57eb6d62-9b04-4eaf-8093-c77eea386021
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.129.0-38-gbff57cfb
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+              isMonotonic: true
+          - name: otelcol_exporter_send_failed_metric_points
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: exporter
+                      value:
+                        stringValue: otlp
+                    - key: foo
+                      value:
+                        stringValue: bar
+                    - key: otel_scope_name
+                      value:
+                        stringValue: go.opentelemetry.io/collector/exporter/exporterhelper
+                    - key: otel_scope_schema_url
+                      value:
+                        stringValue: ""
+                    - key: otel_scope_version
+                      value:
+                        stringValue: ""
+                    - key: service_instance_id
+                      value:
+                        stringValue: 57eb6d62-9b04-4eaf-8093-c77eea386021
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.129.0-38-gbff57cfb
                     - key: system.type
                       value:
                         stringValue: prometheus-exporter
@@ -194,40 +289,161 @@ resourceMetrics:
                       value:
                         stringValue: prometheus-exporter
               isMonotonic: true
-          - gauge:
+          - name: otelcol_process_cpu_seconds
+            sum:
+              aggregationTemporality: 2
               dataPoints:
-                - asDouble: 1
+                - asDouble: 0.26
                   attributes:
                     - key: foo
                       value:
                         stringValue: bar
+                    - key: otel_scope_name
+                      value:
+                        stringValue: go.opentelemetry.io/collector/service
+                    - key: otel_scope_schema_url
+                      value:
+                        stringValue: ""
+                    - key: otel_scope_version
+                      value:
+                        stringValue: ""
                     - key: service_instance_id
                       value:
-                        stringValue: 7a6241da-aff9-49a0-862e-8af3fc0cff6f
+                        stringValue: 57eb6d62-9b04-4eaf-8093-c77eea386021
                     - key: service_name
                       value:
                         stringValue: otelcol
                     - key: service_version
                       value:
-                        stringValue: v0.129.0-26-ga42ae532
-                    - key: system.type
-                      value:
-                        stringValue: prometheus-exporter
-            name: target_info
-          - name: otelcol_exporter_send_failed_metric_points
-            sum:
-              aggregationTemporality: 2
-              dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: exporter
-                      value:
-                        stringValue: otlp
-                    - key: foo
-                      value:
-                        stringValue: bar
+                        stringValue: v0.129.0-38-gbff57cfb
                     - key: system.type
                       value:
                         stringValue: prometheus-exporter
               isMonotonic: true
+          - gauge:
+              dataPoints:
+                - asDouble: 1.54714112e+08
+                  attributes:
+                    - key: foo
+                      value:
+                        stringValue: bar
+                    - key: otel_scope_name
+                      value:
+                        stringValue: go.opentelemetry.io/collector/service
+                    - key: otel_scope_schema_url
+                      value:
+                        stringValue: ""
+                    - key: otel_scope_version
+                      value:
+                        stringValue: ""
+                    - key: service_instance_id
+                      value:
+                        stringValue: 57eb6d62-9b04-4eaf-8093-c77eea386021
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.129.0-38-gbff57cfb
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+            name: otelcol_process_memory_rss
+          - name: otelcol_process_uptime
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 30.005101541
+                  attributes:
+                    - key: foo
+                      value:
+                        stringValue: bar
+                    - key: otel_scope_name
+                      value:
+                        stringValue: go.opentelemetry.io/collector/service
+                    - key: otel_scope_schema_url
+                      value:
+                        stringValue: ""
+                    - key: otel_scope_version
+                      value:
+                        stringValue: ""
+                    - key: service_instance_id
+                      value:
+                        stringValue: 57eb6d62-9b04-4eaf-8093-c77eea386021
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.129.0-38-gbff57cfb
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+              isMonotonic: true
+          - name: otelcol_receiver_accepted_metric_points
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 446
+                  attributes:
+                    - key: foo
+                      value:
+                        stringValue: bar
+                    - key: otel_scope_name
+                      value:
+                        stringValue: go.opentelemetry.io/collector/receiver/receiverhelper
+                    - key: otel_scope_schema_url
+                      value:
+                        stringValue: ""
+                    - key: otel_scope_version
+                      value:
+                        stringValue: ""
+                    - key: receiver
+                      value:
+                        stringValue: smartagent/prometheus-exporter
+                    - key: service_instance_id
+                      value:
+                        stringValue: 57eb6d62-9b04-4eaf-8093-c77eea386021
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.129.0-38-gbff57cfb
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                    - key: transport
+                      value:
+                        stringValue: internal
+              isMonotonic: true
+          - gauge:
+              dataPoints:
+                - asDouble: 3.0675576e+07
+                  attributes:
+                    - key: foo
+                      value:
+                        stringValue: bar
+                    - key: otel_scope_name
+                      value:
+                        stringValue: go.opentelemetry.io/collector/service
+                    - key: otel_scope_schema_url
+                      value:
+                        stringValue: ""
+                    - key: otel_scope_version
+                      value:
+                        stringValue: ""
+                    - key: service_instance_id
+                      value:
+                        stringValue: 57eb6d62-9b04-4eaf-8093-c77eea386021
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.129.0-38-gbff57cfb
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+            name: otelcol_process_runtime_heap_alloc_bytes
         scope: {}

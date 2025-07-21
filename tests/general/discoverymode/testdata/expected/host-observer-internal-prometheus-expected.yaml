@@ -1,6 +1,9 @@
 resourceMetrics:
   - resource:
       attributes:
+        - key: discovery.endpoint.id
+          value:
+            stringValue: (host_observer/with-name)127.0.0.1-51591-TCP-1
         - key: url.scheme
           value:
             stringValue: http
@@ -19,9 +22,6 @@ resourceMetrics:
         - key: service.instance.id
           value:
             stringValue: 127.0.0.1:52144
-        - key: service.instance.id
-          value:
-            stringValue: b3d7e86d-d1fb-47be-9ecc-d3bc4f5b552d
         - key: service.name
           value:
             stringValue: otelcol
@@ -31,6 +31,9 @@ resourceMetrics:
         - key: url.scheme
           value:
             stringValue: http
+        - key: splunk_autodiscovery
+          value:
+            stringValue: "true"
     scopeMetrics:
       - metrics:
           - description: Uptime of the process [alpha]

@@ -278,6 +278,10 @@ func (d *discoverer) startObservers(cfg *Config) []context.CancelFunc {
 	var cancels []context.CancelFunc
 	d.operationalObservers = make(map[component.ID]component.Component, len(cfg.DiscoveryObservers))
 	for observerID, observerEntry := range cfg.DiscoveryObservers {
+		if observerEntry.Enabled != nil && !*observerEntry.Enabled {
+			d.logger.Debug(fmt.Sprintf("skipping observer %q as it is disabled", observerID))
+			continue
+		}
 		d.logger.Debug(fmt.Sprintf("creating observer %q", observerID))
 		observerFactory, err := factoryForObserverType(observerID.Type())
 		if err != nil {

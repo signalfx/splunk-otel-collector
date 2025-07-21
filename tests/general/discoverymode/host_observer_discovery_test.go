@@ -17,12 +17,9 @@
 package tests
 
 import (
-	"bytes"
 	"fmt"
-	"os"
 	"path/filepath"
 	"testing"
-	"text/template"
 	"time"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/golden"
@@ -100,7 +97,7 @@ func TestHostObserver(t *testing.T) {
 	expectedInitialFile := filepath.Join("testdata", "expected", "host-observer-initial-config-expected.yaml")
 	expectedInitial := readConfigFromYamlTmplFile(t, expectedInitialFile, nil)
 	gotInitial := cc.InitialConfig(t, 55554)
-	assert.NotZero(t, removeBundledReceivers(gotInitial["splunk.discovery"].(map[string]any)))
+	assert.NotZero(t, removeBundledReceivers(gotInitial["splunk.discovery"].(map[string]any)["receivers"].(map[string]any)["discovery/host_observer"]))
 	assert.Equal(t, expectedInitial, gotInitial)
 
 	// verify collector's effective config
@@ -110,7 +107,7 @@ func TestHostObserver(t *testing.T) {
 		"PromPort":     promPort,
 	})
 	gotEffective := cc.EffectiveConfig(t, 55554)
-	assert.NotZero(t, removeBundledReceivers(gotEffective))
+	assert.NotZero(t, removeBundledReceivers(gotEffective["receivers"].(map[string]any)["discovery/host_observer"]))
 	require.Equal(t, expectedEffective, gotEffective)
 
 	// verify collector's dry-run config
@@ -128,35 +125,6 @@ SPLUNK_DISCOVERY_EXTENSIONS_host_observer_CONFIG_refresh_interval=\${REFRESH_INT
 	cmr, err := cm.AsRaw()
 	require.NoError(t, err)
 	gotDryRun := cmr.(map[string]any)
-	assert.NotZero(t, removeBundledReceivers(gotDryRun))
+	assert.NotZero(t, removeBundledReceivers(gotDryRun["receivers"].(map[string]any)["discovery/host_observer"]))
 	require.Equal(t, expectedDryRun, gotDryRun)
-}
-
-// removeAllKeysOtherThan removes all bundled receivers from the discovery receiver to avoid having to update the
-// expected config every time a new bundled receiver rule is added. It returns the number of bundled receivers.
-func removeBundledReceivers(cfg map[string]any) (removedCount int) {
-	receiverToKeep := "prometheus_simple"
-	rcvrs := cfg["receivers"].(map[string]any)["discovery/host_observer"].(map[string]any)["receivers"].(map[string]any)
-	for k := range rcvrs {
-		if k != receiverToKeep {
-			delete(rcvrs, k)
-			removedCount++
-		}
-	}
-	return
-}
-
-func readConfigFromYamlTmplFile(t *testing.T, path string, ctxData map[string]any) map[string]any {
-	b, err := os.ReadFile(path)
-	require.NoError(t, err)
-	tml, err := template.New("tmpl").Parse(string(b))
-	require.NoError(t, err)
-	out := &bytes.Buffer{}
-	require.NoError(t, tml.Execute(out, ctxData))
-	require.NoError(t, err)
-	cm, err := confmap.NewRetrievedFromYAML(out.Bytes())
-	require.NoError(t, err)
-	cmr, err := cm.AsRaw()
-	require.NoError(t, err)
-	return cmr.(map[string]any)
 }

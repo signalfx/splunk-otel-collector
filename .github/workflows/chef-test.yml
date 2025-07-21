@@ -89,8 +89,6 @@ jobs:
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -184,8 +182,6 @@ jobs:
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Downloading binaries-windows_amd64
         uses: actions/download-artifact@v4.1.3

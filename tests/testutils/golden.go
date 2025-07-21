@@ -159,4 +159,17 @@ func RunMetricsCollectionTest(t *testing.T, configFile string, expectedFilePath 
 		index = newIndex
 		assert.NoError(tt, err)
 	}, 30*time.Second, 1*time.Second)
+
+	// for dev purposes - set UPDATE_EXPECTED to update expected file after metrics have been collected
+	if os.Getenv("UPDATE_EXPECTED") == "true" {
+		allMetrics := sink.AllMetrics()
+		if len(allMetrics) == 0 {
+			t.Fatalf("Did not receive any metrics to write to golden file")
+		}
+		actual := allMetrics[len(allMetrics)-1]
+		outputPath := filepath.Join("testdata", expectedFilePath)
+		dir := filepath.Dir(outputPath)
+		require.NoError(t, os.MkdirAll(dir, 0o755))
+		require.NoError(t, golden.WriteMetrics(t, outputPath, actual))
+	}
 }

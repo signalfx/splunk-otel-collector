@@ -43,7 +43,7 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_model v0.6.2
 	github.com/prometheus/common v0.65.0
-	github.com/prometheus/procfs v0.16.1
+	github.com/prometheus/procfs v0.17.0
 	github.com/shirou/gopsutil/v3 v3.24.5
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657

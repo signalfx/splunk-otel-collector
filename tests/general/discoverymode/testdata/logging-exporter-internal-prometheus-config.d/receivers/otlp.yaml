@@ -1,4 +1,0 @@
-otlp:
-  protocols:
-    grpc:
-    http:

@@ -59,7 +59,7 @@ func run() int {
 
 	xmlInput, err := modularinput.ReadXML(os.Stdin)
 	if err != nil {
-		panic(err)
+		log.Errorln(fmt.Errorf("error reading modinput: %w", err))
 	}
 
 	err = mip.ProcessXML(xmlInput)
@@ -172,8 +172,8 @@ func RemovePreloadInstrumentation(modInputs *SplunkTAOtelLinuxAutoinstrumentatio
 
 func backupFile(currPath string) error {
 	dir := filepath.Dir(currPath)
-	ogFilename := filepath.Base(currPath)
-	newPathName := filepath.Join(dir, fmt.Sprintf("%s.%v", ogFilename, time.Now().UnixNano()))
+	origFilename := filepath.Base(currPath)
+	newPathName := filepath.Join(dir, fmt.Sprintf("%s.%v", origFilename, time.Now().UnixNano()))
 	if _, err := fileutils.CopyFile(currPath, newPathName); err != nil && !errors.Is(err, os.ErrNotExist) {
 		return err
 	}

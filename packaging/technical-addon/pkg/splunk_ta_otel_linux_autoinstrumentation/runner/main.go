@@ -70,12 +70,12 @@ func run() int {
 		return 0
 	}
 	if err != nil {
-		log.Errorf("Error parsing modinput: %+v", err)
+		log.Errorln(fmt.Errorf("error parsing modinput: %w", err))
 		return -1
 	}
 	modInputs := GetSplunkTAOtelLinuxAutoinstrumentationModularInputs(mip)
 	if err = Run(modInputs); err != nil {
-		log.Errorf("error running splunk linux autoinstrumentation addon: %+v", err)
+		log.Errorln(fmt.Errorf("error running splunk linux autoinstrumentation addon: %w", err))
 		return -1
 	}
 	// TODO set up traps for completeness, but not urgent given this is a run-once style script
@@ -124,7 +124,7 @@ func AutoinstrumentLdPreload(modInputs *SplunkTAOtelLinuxAutoinstrumentationModu
 		return err
 	}
 	if found {
-		log.Printf("Preload already autoinstrumented with %v at %v\n", modInputs.AutoinstrumentationPath.Value, modInputs.AutoinstrumentationPreloadPath.Value)
+		log.Printf("Preload already autoinstrumented with %q at %q\n", modInputs.AutoinstrumentationPath.Value, modInputs.AutoinstrumentationPreloadPath.Value)
 		return nil
 	}
 
@@ -135,11 +135,11 @@ func AutoinstrumentLdPreload(modInputs *SplunkTAOtelLinuxAutoinstrumentationModu
 	}
 	preloadFile, err := os.OpenFile(modInputs.AutoinstrumentationPreloadPath.Value, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
-		return fmt.Errorf("error opening %s: %w", modInputs.AutoinstrumentationPreloadPath.Value, err)
+		return fmt.Errorf("error opening %q: %w", modInputs.AutoinstrumentationPreloadPath.Value, err)
 	}
 	defer preloadFile.Close()
 	if _, err = preloadFile.WriteString(modInputs.AutoinstrumentationPath.Value + "\n"); err != nil {
-		return fmt.Errorf("error writing to %s: %w", modInputs.AutoinstrumentationPreloadPath.Value, err)
+		return fmt.Errorf("error writing to %q: %w", modInputs.AutoinstrumentationPreloadPath.Value, err)
 	}
 	log.Printf("Successfully autoinstrumented preload at %q with %q\n", modInputs.AutoinstrumentationPreloadPath.Value, modInputs.AutoinstrumentationPath.Value)
 	return nil
@@ -152,7 +152,7 @@ func RemovePreloadInstrumentation(modInputs *SplunkTAOtelLinuxAutoinstrumentatio
 	}
 
 	if found {
-		log.Printf("Autoinstrumentation preload (%s) does not exist or does not contain configured autoinstrumentation (%s)", modInputs.AutoinstrumentationPreloadPath.Value, modInputs.AutoinstrumentationPath.Value)
+		log.Printf("Autoinstrumentation preload path %q does not exist or does not contain configured autoinstrumentation %q", modInputs.AutoinstrumentationPreloadPath.Value, modInputs.AutoinstrumentationPath.Value)
 		return nil
 	}
 

@@ -76,11 +76,11 @@ type templateData struct {
 // CreateZeroConfigJava reimplements create_zeroconfig_java from installer script
 func CreateZeroConfigJava(modInputs *SplunkTAOtelLinuxAutoinstrumentationModularInputs) error {
 	if "" == modInputs.SplunkOtelJavaAutoinstrumentationJarPath.Value {
-		log.Printf("Not instrumenting java, as %s was not set", modInputs.SplunkOtelJavaAutoinstrumentationJarPath.Name)
+		log.Printf("Not instrumenting java, as %q was not set", modInputs.SplunkOtelJavaAutoinstrumentationJarPath.Name)
 		return nil
 	}
 	if "" == modInputs.AutoinstrumentationPath.Value {
-		log.Printf("Not instrumenting java, as %s was not set", modInputs.AutoinstrumentationPath.Name)
+		log.Printf("Not instrumenting java, as %q was not set", modInputs.AutoinstrumentationPath.Name)
 		return nil
 	}
 	resourceAttributes := fmt.Sprintf("splunk.zc.method=splunk-otel-auto-instrumentation-%s", strings.TrimSpace(javaVersion))
@@ -94,7 +94,7 @@ func CreateZeroConfigJava(modInputs *SplunkTAOtelLinuxAutoinstrumentationModular
 
 	tmpl, err := template.New("JavaZeroConfig").Parse(configTemplate)
 	if err != nil {
-		return fmt.Errorf("error generating zeroconfig file at %s from template: %#v", modInputs.JavaZeroconfigPath.Value, err)
+		return fmt.Errorf("error generating zeroconfig file at %q from template: %w", modInputs.JavaZeroconfigPath.Value, err)
 	}
 	data := templateData{
 		InstrumentationJarPath: modInputs.SplunkOtelJavaAutoinstrumentationJarPath.Value,
@@ -118,9 +118,9 @@ func CreateZeroConfigJava(modInputs *SplunkTAOtelLinuxAutoinstrumentationModular
 		return err
 	}
 	if err = tmpl.Execute(filePath, data); err != nil {
-		return fmt.Errorf("failed to execute template: %w %v", err, data)
+		return fmt.Errorf("failed to execute template: %w %+v", err, data)
 	}
-	log.Printf("Successfully generated java autoinstrumentation config at %s\n", filePath.Name())
+	log.Printf("Successfully generated java autoinstrumentation config at %q\n", filePath.Name())
 	return nil
 }
 
@@ -137,7 +137,7 @@ func InstrumentJava(modInputs *SplunkTAOtelLinuxAutoinstrumentationModularInputs
 func RemoveJavaInstrumentation(modInputs *SplunkTAOtelLinuxAutoinstrumentationModularInputs) error {
 	if strings.ToLower(modInputs.Backup.Value) != "false" {
 		if err := backupFile(modInputs.JavaZeroconfigPath.Value); err != nil && !errors.Is(err, os.ErrNotExist) {
-			return fmt.Errorf("error backing up java auto instrumentation configuration, refusing to remove (specify backup=false in inputs.conf if backup not needed): %v", err)
+			return fmt.Errorf("error backing up java auto instrumentation configuration, refusing to remove (specify backup=false in inputs.conf if backup not needed): %w", err)
 		}
 	}
 	if err := os.Remove(modInputs.JavaZeroconfigPath.Value); !errors.Is(err, os.ErrNotExist) {

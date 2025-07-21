@@ -172,7 +172,7 @@ func TestHappyPath(t *testing.T) {
 	require.NoError(t, err)
 	read, err = io.ReadAll(output)
 	assert.NoError(t, err)
-	assert.Contains(t, string(read), "Successfully generated java autoinstrumentation config at /etc/splunk/zeroconfig/java.conf")
+	assert.Contains(t, string(read), "Successfully generated java autoinstrumentation config at \"/etc/splunk/zeroconfig/java.conf\"")
 
 	// Check zeroconfig value
 	_, output, err = tc.Exec(ctx, []string{"sudo", "cat", "/etc/splunk/zeroconfig/java.conf"}, tcexec.Multiplexed())

@@ -23,10 +23,9 @@ ARG DOCKER_REPO=docker.io
 
 
 ######## Base image for subsequent stages ########
-FROM ${DOCKER_REPO}/python AS base
+FROM ${DOCKER_REPO}/python:${PYTHON_VERSION} AS base
 
 ARG ARCH
-ARG PYTHON_VERSION
 
 ENV DEBIAN_FRONTEND noninteractive
 

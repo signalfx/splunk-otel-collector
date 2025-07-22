@@ -1,0 +1,28 @@
+modular-input-schema-name: Sample_Addon
+version: "1.2.3"
+modular-inputs:
+  everything_set:
+    description: "SET ALL THE THINGS"
+    default: "$SPLUNK_OTEL_TA_HOME/local/access_token"
+    passthrough: true
+    replaceable: true
+    flag:
+      name: "test-flag"
+      is-unary: false
+
+  minimal_set:
+    description: "This is all you need"
+
+  unary_flag_with_everything_set:
+    description: "Unary flags don't take arguments/values and are either present or not"
+    default: "$SPLUNK_OTEL_TA_HOME/local/access_token"
+    passthrough: true
+    replaceable: true
+    flag:
+      name: "test-flag"
+      is-unary: true
+
+  minimal_set_required:
+    description: "hello"
+    required: true
+    

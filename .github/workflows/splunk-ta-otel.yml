@@ -20,57 +20,9 @@ concurrency:
 
 env:
   GO_VERSION: 1.23.10
+  ADDONS_SOURCE_DIR: "${{github.workspace}}/packaging/technical-addon"
+  BUILD_DIR: "${{github.workspace}}/build"
 jobs:
-  test:
-    name: test
-    runs-on: ubuntu-24.04
-    defaults:
-      run:
-        working-directory: ${{github.workspace}}/packaging/technical-addon
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-environment
-
-      - name: Build & Package TA
-        run: |
-          set -o pipefail
-          pushd ${{github.workspace}}
-          make -e bundle.d otelcol
-          popd
-          make -e generate-technical-addon copy-local-build-to-ta package-ta
-          make -e smoketest-ta
-
-  test-generator:
-    name: test-modinput-config-generator
-    runs-on: ubuntu-24.04
-    defaults:
-      run:
-        working-directory: ${{github.workspace}}/packaging/technical-addon
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-environment
-
-      - name: Test addon generator
-        run: |
-          set -o pipefail
-          make -e test-ta-build-tools
-
-      - name: Test normal go code
-        run: |
-          set -o pipefail
-          make -e test
-
-      - name: Ensure license
-        run: |
-          set -o pipefail
-          make -e addlicense
-
-      - name: Ensure lint
-        run: |
-          set -o pipefail
-          make -e lint
-
-
   check_changes:
     runs-on: ubuntu-24.04
     outputs:
@@ -102,6 +54,70 @@ jobs:
           else
             echo "ta_workflow_change=false" >> "$GITHUB_OUTPUT"
           fi
+
+  test:
+    name: test
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: ${{github.workspace}}/packaging/technical-addon
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-environment
+
+      - name: Build & Package TA
+        run: |
+          set -o pipefail
+          pushd ${{github.workspace}}
+          make -e bundle.d otelcol
+          popd
+          make -e generate-technical-addon copy-local-build-to-ta package-ta
+          make -e smoketest-ta
+
+  test-generator:
+    needs: [check_changes]
+    name: test-modinput-config-generator
+    runs-on: ubuntu-24.04
+    if: needs.check_changes.outputs.ta_packaging_change == 'true' || needs.check_changes.outputs.ta_workflow_change == 'true'
+    defaults:
+      run:
+        working-directory: ${{github.workspace}}/packaging/technical-addon
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-environment
+
+      - name: Test addon generator
+        run: |
+          set -o pipefail
+          make -e test-ta-build-tools
+
+      - name: Ensure license
+        run: |
+          set -o pipefail
+          make -e addlicense
+
+      - name: Ensure lint
+        run: |
+          set -o pipefail
+          make -e lint
+
+  test-ta-linux-autoinstrumentation:
+    name: test-ta-linux-autoinstrumentation
+    runs-on: ubuntu-24.04
+    needs: [check_changes, test]
+    if: needs.check_changes.outputs.ta_packaging_change == 'true' || needs.check_changes.outputs.ta_workflow_change == 'true'
+    defaults:
+      run:
+        working-directory: ${{github.workspace}}/packaging/technical-addon
+    steps:
+        - uses: actions/checkout@v4
+        - uses: ./.github/actions/setup-environment
+        - name: Test normal go code
+          run: |
+            pushd ${{github.workspace}}/instrumentation
+            make -e dist
+            popd
+            make -e test-ta-build-tools build-tas test
 
   distribute-ta:
     name: "distribute-ta" # what gets run to package in gitlab

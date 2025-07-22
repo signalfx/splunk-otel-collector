@@ -59,7 +59,8 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v4
-
+        with:
+          fetch-depth: 0
       - name: Get matrix
         id: get-matrix
         run: |
@@ -87,7 +88,8 @@ jobs:
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4
-
+        with:
+          fetch-depth: 0
       - name: Get package type for ${{ matrix.DISTRO }}
         run: |
           for pkg in "deb" "rpm" "tar"; do
@@ -149,7 +151,8 @@ jobs:
 
       - name: Check out the codebase.
         uses: actions/checkout@v4
-
+        with:
+          fetch-depth: 0
       # Required to export a multiarch manifest and images to the local image store
       - name: Set up containerd image store
         uses: docker/setup-docker-action@v4
@@ -223,7 +226,8 @@ jobs:
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4
-
+        with:
+          fetch-depth: 0
       # Required to load a multiarch archive to the local image store
       - name: Set up containerd image store
         uses: docker/setup-docker-action@v4

@@ -1983,7 +1983,9 @@ collector-ta-release:
   tags: [large]
   stage: publish-release
   dependencies:
-    - orca-tests
+    - test-happypath-ta
+    - test-collectd-ta
+    - test-gateway-ta
   script:
     - |
       make -e validate-ta

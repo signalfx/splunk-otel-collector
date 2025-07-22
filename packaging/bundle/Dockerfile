@@ -159,7 +159,7 @@ RUN wget -nv https://dev.mysql.com/get/mysql-apt-config_0.8.12-1_all.deb && \
     apt-key adv --homedir ~/.gnupg --keyserver keyserver.ubuntu.com --recv-keys B7B3B788A8D3785C && \
     dpkg -i mysql-apt-config_0.8.12-1_all.deb && \
     rm -f mysql-apt-config_0.8.12-1_all.deb && \
-    apt-get update -qq && apt-get install -qq -y libmysqlclient-dev libcurl4-gnutls-dev
+    apt-get update -qq && apt-get install -qq -y default-libmysqlclient-dev libcurl4-gnutls-dev
 
 RUN wget -nv -O /tmp/Python-${PYTHON_VERSION}.tgz https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz &&\
     cd /tmp &&\

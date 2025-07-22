@@ -23,13 +23,14 @@ ARG DOCKER_REPO=docker.io
 
 
 ######## Base image for subsequent stages ########
-FROM ${DOCKER_REPO}/ubuntu:24.04 AS base
+FROM ${DOCKER_REPO}/python:24.04 AS base
 
 ARG ARCH
+ARG PYTHON_VERSION
+
 ENV DEBIAN_FRONTEND noninteractive
 
-RUN sed -i -e '/^deb-src/d' /etc/apt/sources.list && \
-    apt-get update
+RUN apt-get update
 
 
 ######## Java monitor dependencies and monitor jar compilation ########

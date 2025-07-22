@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<input>
+    <server_host>jamehugh-l-PW0EPTQZ</server_host>
+    <server_uri>https://127.0.0.1:8089</server_uri>
+    <session_key>REDACTED</session_key>
+    <checkpoint_dir>/opt/splunk/var/lib/splunk/modinputs/Splunk_TA_otel_linux_autoinstrumentation</checkpoint_dir>
+    <configuration>
+        <stanza name="Splunk_TA_otel_linux_autoinstrumentation://Splunk_TA_otel_linux_autoinstrumentation" app="Splunk_TA_otel_linux_autoinstrumentation">
+            <param name="autoinstrumentation_path">"/etc/splunk/zeroconfig"</param>
+            <param name="disabled">false</param>
+            <param name="force">"false"</param>
+            <param name="host">$decideOnStartup</param>
+            <param name="index">_internal</param>
+            <param name="interval">60</param>
+            <param name="logs_enabled">"false"</param>
+            <param name="metrics_enabled">"false"</param>
+            <param name="profiler_enabled">"false"</param>
+            <param name="profiler_memory_enabled">"false"</param>
+            <param name="remove">"false"</param>
+            <param name="sourcetype">Splunk_TA_otel_linux_autoinstrumentation</param>
+            <param name="splunk_otel_autoinstrumentation_nodejs">"$SPLUNK_OTEL_TA_HOME/"</param>
+            <param name="splunk_otel_autoinstrumentation_preload_path">"/etc/ld.so.preload"</param>
+            <param name="splunk_otel_java_autoinstrumentation_jar_path">"$SPLUNK_OTEL_TA_HOME/linux_x86_64/bin/javaagent.jar"</param>
+            <param name="start_by_shell">false</param>
+            <param name="zeroconfig_path">"/etc/splunk/zeroconfig"</param>
+        </stanza>
+    </configuration>
+</input>

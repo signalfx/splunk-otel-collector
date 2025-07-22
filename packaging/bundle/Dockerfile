@@ -23,7 +23,7 @@ ARG DOCKER_REPO=docker.io
 
 
 ######## Base image for subsequent stages ########
-FROM ${DOCKER_REPO}/python:24.04 AS base
+FROM ${DOCKER_REPO}/python AS base
 
 ARG ARCH
 ARG PYTHON_VERSION

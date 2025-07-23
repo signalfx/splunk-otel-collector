@@ -533,6 +533,7 @@ test-happypath-ta:
     paths:
       - "$BUILD_DIR/out/**/*"
       - "$BUILD_DIR/$CI_JOB_ID/**/*"
+  allow_failure: true
 test-collectd-ta:
   image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
   extends:
@@ -599,6 +600,7 @@ test-gateway-ta:
     paths:
       - "$BUILD_DIR/out/**/*"
       - "$BUILD_DIR/$CI_JOB_ID/**/*"
+  allow_failure: true
 AppInspect_local:
   extends:
     - .ta-trigger

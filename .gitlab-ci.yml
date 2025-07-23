@@ -7,7 +7,9 @@ default:
         - "$SECRETS_URL"
 
 variables:
-
+  RELEASE_VERSION:
+    value: ""
+    description: "Version to release (must be in format v1.2.3)"
   GO_VERSION: 1.23.10
   WIN_2019_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2019
   WIN_2022_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2022
@@ -74,10 +76,6 @@ manual_release_trigger:
   only:
     - main
   needs: []
-  variables:
-    RELEASE_VERSION:
-      description: "Version to release (e.g. v1.2.3)"
-      value: ""
 
 semgrep:
   stage: sast-oss-scan

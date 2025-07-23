@@ -151,14 +151,7 @@ RUN apt-get update && apt-get install -qq -y \
       quilt \
       zlib1g-dev
 
-RUN wget -nv https://dev.mysql.com/get/mysql-apt-config_0.8.12-1_all.deb && \
-    mkdir -p ~/.gnupg && \
-    chmod 700 ~/.gnupg && \
-    echo "disable-ipv6" >> ~/.gnupg/dirmngr.conf && \
-    apt-key adv --homedir ~/.gnupg --keyserver keyserver.ubuntu.com --recv-keys B7B3B788A8D3785C && \
-    dpkg -i mysql-apt-config_0.8.12-1_all.deb && \
-    rm -f mysql-apt-config_0.8.12-1_all.deb && \
-    apt-get update -qq && apt-get install -qq -y default-libmysqlclient-dev libcurl4-gnutls-dev
+RUN apt-get update -qq && apt-get install -qq -y default-mysql-client libcurl4-gnutls-dev
 
 RUN wget -nv -O /tmp/Python-${PYTHON_VERSION}.tgz https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz &&\
     cd /tmp &&\

@@ -90,7 +90,7 @@ arch=$(uname -m)
 if [ "$arch" = "ppc64le" ]; then
     arch="powerpc64le"
 fi
-for lib in /lib/${arch}-linux-gnu/libnss_* /lib/${arch}-linux-gnu/libnsl* /usr/lib/${arch}-linux-gnu/libtirpc* $libs $transitive_deps
+for lib in /lib/${arch}-linux-gnu/libnss_* /lib/${arch}-linux-gnu/libnsl* /usr/lib/${arch}-linux-gnu/libtirpc* /usr/lib/${arch}-linux-gnu/libmariadb* $libs $transitive_deps
 do
   copy_file_and_links $lib $target_path
 done

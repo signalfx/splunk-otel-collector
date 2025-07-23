@@ -48,6 +48,33 @@ include:
     ref: develop
     file: '/templates/.sign-client.yml'
 
+<<<<<<< HEAD
+=======
+
+# Manual release job
+manual_release_trigger:
+  stage: manual-release
+  script:
+    - |
+      if [ -z "$RELEASE_VERSION" ]; then
+        echo "RELEASE_VERSION is not set. Cannot proceed." && exit 1
+      fi
+      # Validate version format (must be v1.2.3)
+      if ! echo "$RELEASE_VERSION" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+        echo "RELEASE_VERSION must be in format v1.2.3" && exit 1
+      fi
+      # Validate version is in changelog
+      if ! grep -q "^## $RELEASE_VERSION" CHANGELOG.md; then
+        echo "Version $RELEASE_VERSION not found in CHANGELOG.md" && exit 1
+      fi
+      echo "Manual release triggered for version $RELEASE_VERSION"
+  when: manual
+  allow_failure: false
+  only:
+    - main
+  needs: []
+
+>>>>>>> 6373249d ([chore] remove redundant artifact from gitlab pipeline)
 semgrep:
   stage: sast-oss-scan
   extends: .sast_scan

@@ -328,6 +328,13 @@ resourceMetrics:
             sum:
               aggregationTemporality: 2
               dataPoints:
+                - asInt: "60"
+                  attributes:
+                    - key: operation
+                      value:
+                        stringValue: fsyncs
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
                 - asInt: "0"
                   attributes:
                     - key: operation

@@ -8,7 +8,7 @@ require (
 	github.com/google/addlicense v1.1.1
 	github.com/jstemmer/go-junit-report v1.0.0
 	github.com/tcnksm/ghr v0.16.2
-	go.opentelemetry.io/collector/cmd/mdatagen v0.130.0
+	go.opentelemetry.io/collector/cmd/mdatagen v0.130.1
 	golang.org/x/tools v0.35.0
 	golang.org/x/vuln v1.1.4
 )
@@ -200,13 +200,13 @@ require (
 	go-simpler.org/musttag v0.13.0 // indirect
 	go-simpler.org/sloglint v0.9.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
-	go.opentelemetry.io/collector/component v1.36.0 // indirect
-	go.opentelemetry.io/collector/confmap v1.36.0 // indirect
-	go.opentelemetry.io/collector/confmap/provider/fileprovider v1.36.0 // indirect
-	go.opentelemetry.io/collector/featuregate v1.36.0 // indirect
-	go.opentelemetry.io/collector/filter v0.130.0 // indirect
-	go.opentelemetry.io/collector/internal/telemetry v0.130.0 // indirect
-	go.opentelemetry.io/collector/pdata v1.36.0 // indirect
+	go.opentelemetry.io/collector/component v1.36.1 // indirect
+	go.opentelemetry.io/collector/confmap v1.36.1 // indirect
+	go.opentelemetry.io/collector/confmap/provider/fileprovider v1.36.1 // indirect
+	go.opentelemetry.io/collector/featuregate v1.36.1 // indirect
+	go.opentelemetry.io/collector/filter v0.130.1 // indirect
+	go.opentelemetry.io/collector/internal/telemetry v0.130.1 // indirect
+	go.opentelemetry.io/collector/pdata v1.36.1 // indirect
 	go.opentelemetry.io/contrib/bridges/otelzap v0.12.0 // indirect
 	go.opentelemetry.io/otel v1.37.0 // indirect
 	go.opentelemetry.io/otel/log v0.13.0 // indirect

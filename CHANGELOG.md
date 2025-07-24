@@ -6,6 +6,7 @@
 
 - (Splunk) `receiver/discovery`: Reduce amount of attributes sent with the entities to the required set ([#6419](https://github.com/signalfx/splunk-otel-collector/pull/6419))
 - (Splunk) `receiver/discovery`: Use `app.kubernetes.io/instance` pod label for `service.name` entity attribute value if available ([#6435](https://github.com/signalfx/splunk-otel-collector/pull/6435))
+- (Contrib) `receiver/sqlserver` Make queries compatible with Azure SQL Database ([#41102](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41102))
 
 ### 🧰 Bug fixes 🧰
 

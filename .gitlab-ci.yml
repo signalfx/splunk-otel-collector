@@ -444,7 +444,8 @@ agent-bundle-windows:
     - if: $CI_COMMIT_BRANCH =~ /^release\/technical-addon\/v[0-9]+\.[0-9]+\.[0-9]+$/
       when: always
     - if: $CI_COMMIT_BRANCH != "main" && $CI_COMMIT_TAG == null && $CI_COMMIT_REF_PROTECTED == 'true'
-      when: manual
+#      when: manual
+      when: always
 .auth-setup:
   id_tokens:
     CI_JOB_JWT:
@@ -1982,7 +1983,8 @@ collector-ta-release:
     - .go-cache # Use this image since this job uses the ghr tool
   tags: [large]
   stage: publish-release
-#  dependencies:
+  dependencies:
+    - package-technical-addon
 #    - test-happypath-ta
 #    - test-collectd-ta
 #    - test-gateway-ta

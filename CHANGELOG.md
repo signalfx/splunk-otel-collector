@@ -39,6 +39,7 @@ and the [opentelemetry-collector-contrib v0.130.0](https://github.com/open-telem
 - (Core) exporterhelper: Enable items and bytes sizers for persistent queue ([#12881](https://github.com/open-telemetry/opentelemetry-collector/issues/12881))
 - (Core) exporterhelper: Refactor persistent storage size backup to always record it. ([#12890](https://github.com/open-telemetry/opentelemetry-collector/issues/12890))
 - (Core) exporterhelper: Add support to configure a different Sizer for the batcher than the queue ([#13313](https://github.com/open-telemetry/opentelemetry-collector/issues/13313))
+- (Contrib) `receiver/sqlserver` Make queries compatible with Azure SQL Database ([#41102](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41102))
 
 ### 🧰 Bug fixes 🧰
 

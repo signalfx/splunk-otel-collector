@@ -80,6 +80,28 @@ RUN cd /usr/src/agent-java/jmx &&\
 
 RUN rm -rf /tmp/apache-maven*
 
+######## Explicitly get libmysqlclient.so.21.* ########
+FROM ubuntu:24.04 AS ubuntu-deps
+# Get the file from Ubuntu since this version can't be installed by packages on Debian
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -qq -y \
+    lsb-release \
+    gnupg \
+    wget
+
+RUN wget -nv https://dev.mysql.com/get/mysql-apt-config_0.8.12-1_all.deb && \
+    mkdir -p ~/.gnupg && \
+    chmod 700 ~/.gnupg && \
+    echo "disable-ipv6" >> ~/.gnupg/dirmngr.conf && \
+    apt-key adv --homedir ~/.gnupg --keyserver keyserver.ubuntu.com --recv-keys B7B3B788A8D3785C && \
+    dpkg -i mysql-apt-config_0.8.12-1_all.deb && \
+    rm -f mysql-apt-config_0.8.12-1_all.deb && \
+    apt-get update -qq && apt-get install -qq -y libmysqlclient-dev libcurl4-gnutls-dev
+
+RUN mkdir -p /tmp/libmysqlclient && \
+    cp /usr/lib/*-linux-gnu/libmysqlclient.so.21.* /tmp/libmysqlclient/
 
 ######## Python bundle builder image ########
 FROM base AS python
@@ -151,7 +173,16 @@ RUN apt-get update && apt-get install -qq -y \
       quilt \
       zlib1g-dev
 
-RUN apt-get update -qq && apt-get install -qq -y default-mysql-client libcurl4-gnutls-dev
+# Get the dependencies that come via the ubuntu-deps stage
+# Create the proper symlinks
+RUN mkdir -p /tmp/libmysqlclient
+COPY --from=ubuntu-deps /tmp/libmysqlclient/* /tmp/libmysqlclient/
+RUN export DEST=$(uname -m) && \
+    cp /tmp/libmysqlclient/* /usr/lib/$DEST-linux-gnu/ && \
+    ln -sf $(ls /usr/lib/$DEST-linux-gnu/libmysqlclient.so.21.*) /usr/lib/$DEST-linux-gnu/libmysqlclient.so.21
+RUN rm -rf /tmp/libmysqlclient
+
+RUN apt-get update -qq && apt-get install -qq -y libcurl4-gnutls-dev
 
 RUN wget -nv -O /tmp/Python-${PYTHON_VERSION}.tgz https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz &&\
     cd /tmp &&\

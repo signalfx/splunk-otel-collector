@@ -1601,8 +1601,11 @@ choco-release:
     - |
       $ErrorActionPreference = 'Stop'
       Set-PSDebug -Trace 1
+      if (-not (Test-Path .\dist\signed\splunk-otel-collector*.msi)) {
+        throw "MSI artifact not found in dist/signed/"
+      }
       $msi_file_name = Resolve-Path .\dist\signed\splunk-otel-collector*.msi | Split-Path -leaf
-      if ($msi_file_name -match '(\d+\.\d+\.\d+)(\.\d+)?') {
+      if ($msi_file_name -match '(\d+\.\d+\.\d+(\.\d+)?)') {
         $version = $matches[0]
       } else {
         throw "Failed to get version from $msi_file_name"

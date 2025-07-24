@@ -2,6 +2,9 @@
 
 ## v0.130.0
 
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.130.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.130.0)
+and the [opentelemetry-collector-contrib v0.130.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.130.0) releases where appropriate.
+
 ### 🛑 Breaking changes 🛑
 
 - (Core) `exporter/otlp`: Remove deprecated batcher config from OTLP, use queuebatch ([#13339](https://github.com/open-telemetry/opentelemetry-collector/issues/13339))

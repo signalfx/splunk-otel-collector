@@ -1982,12 +1982,13 @@ collector-ta-release:
     - .go-cache # Use this image since this job uses the ghr tool
   tags: [large]
   stage: publish-release
-  dependencies:
-    - test-happypath-ta
-    - test-collectd-ta
-    - test-gateway-ta
+#  dependencies:
+#    - test-happypath-ta
+#    - test-collectd-ta
+#    - test-gateway-ta
   script:
     - |
+      cd "${ADDONS_SOURCE_DIR}"
       make -e validate-ta
       TA_VERSION=$(sed -n '/^\[id\]/,/^\[/{s/^version = \(.*\)/\1/p}' "$ADDONS_SOURCE_DIR/Splunk_TA_otel/default/app.conf" | tr -d ' \t\n\r')
       [[ -z "$TA_VERSION" ]] && echo "TA_VERSION MUST BE SET" && exit 1

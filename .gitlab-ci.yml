@@ -1991,7 +1991,7 @@ collector-ta-release:
   script:
     - |
       cd "${ADDONS_SOURCE_DIR}"
-      make -e validate-ta
+      make -e validate-release
       TA_VERSION=$(sed -n '/^\[id\]/,/^\[/{s/^version = \(.*\)/\1/p}' "$ADDONS_SOURCE_DIR/Splunk_TA_otel/default/app.conf" | tr -d ' \t\n\r')
       [[ -z "$TA_VERSION" ]] && echo "TA_VERSION MUST BE SET" && exit 1
       RELEASE_NOTES="$(TA_NAME=Splunk_TA_otel "$ADDONS_SOURCE_DIR/packaging-scripts/github-ta-release-notes.sh")"

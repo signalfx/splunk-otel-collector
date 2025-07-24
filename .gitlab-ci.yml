@@ -27,12 +27,12 @@ stages:
   - sign-binaries
   - package
   - code-analysis
-#  - orca-tests
   - sign-packages
   - release
   - docker-manifest-release
   - xray-scan
   - publish-release
+  - orca-tests
 
 include:
   - project: 'prodsec/scp-scanning/gitlab-checkmarx'

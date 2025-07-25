@@ -1,6 +1,8 @@
 monitors:
 - dimensions:
   doc: |
+    **This plugin is deprecated and will be removed by the end of 2025. Please follow the documentation at https://docs.couchbase.com/server/current/manage/monitor/set-up-prometheus-for-monitoring.html to set up with the prometheus receiver.**
+
     This is a Smart Agent monitor for [Couchbase](https://www.couchbase.com/)
     that uses the [couchbase collectd Python
     plugin](https://github.com/signalfx/collectd-couchbase) to collect metrics

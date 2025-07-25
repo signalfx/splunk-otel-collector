@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### 🚩 Deprecations 🚩
+
+- (Splunk) Deprecate the collectd/couchbase monitor. Please use the prometheus receiver instead. See https://docs.couchbase.com/server/current/manage/monitor/set-up-prometheus-for-monitoring.html for more information. ([#6488](https://github.com/signalfx/splunk-otel-collector/pull/6488))
+
 ## v0.130.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.130.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.130.0)

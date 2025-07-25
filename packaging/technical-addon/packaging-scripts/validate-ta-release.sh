@@ -22,7 +22,7 @@ tar -xzvf "Splunk_TA_otel-${TA_VERSION}.tgz"
 access_token_size="$(ls --size "Splunk_TA_otel/default/access_token")"
 [[ "$access_token_size" != "0 Splunk_TA_otel/default/access_token" ]] && echo "access token is not empty! validation failed" && exit 1
 
+[ ! -f ./Splunk_TA_otel/windows_x86_64/bin/otelcol_windows_amd64.exe ] && echo "Can't find windows binary in Addon" && exit 1
 ACTUAL_VERSION="$(Splunk_TA_otel/linux_x86_64/bin/otelcol_linux_amd64 --version)"
 EXPECTED_VERSION="otelcol version v$OTEL_COLLECTOR_VERSION"
-[ ! -f ./Splunk_TA_otel/windows_x86_64/bin/otelcol_windows_amd64.exe ] && echo "Can't find windows binary in Addon" && exit 1
 [[ "$EXPECTED_VERSION" != "$ACTUAL_VERSION" ]] && echo "Invalid version -- Expected $EXPECTED_VERSION but got $ACTUAL_VERSION" && exit 1

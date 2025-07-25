@@ -6,6 +6,10 @@
 
 - (Splunk) Remove, already deprecated, `collectd/mysql` monitor. Use the [mysql receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/mysqlreceiver) instead. ([#6487](https://github.com/signalfx/splunk-otel-collector/pull/6487))
 
+### 🚩 Deprecations 🚩
+
+- (Splunk) The collectd/couchbase plugin is deprecated. Please use the prometheus receiver instead. See https://docs.couchbase.com/server/current/manage/monitor/set-up-prometheus-for-monitoring.html for more information. This plugin will be removed by the end of October 2025. ([#6488](https://github.com/signalfx/splunk-otel-collector/pull/6488))
+
 ## v0.130.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.130.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.130.0)

@@ -24,4 +24,4 @@ access_token_size="$(ls --size "Splunk_TA_otel/default/access_token")"
 
 ACTUAL_VERSION="$(Splunk_TA_otel/linux_x86_64/bin/otelcol_linux_amd64 --version)"
 [ ! -f ./Splunk_TA_otel/windows_x86_64/bin/otelcol_windows_amd64.exe ] && echo "Can't find windows binary in Addon" && exit 1
-[[ "otelcol version $OTEL_COLLECTOR_VERSION" != "$ACTUAL_VERSION" ]] && echo "Invalid version -- Expected otelcol version $OTEL_COLLECTOR_VERSION but got $ACTUAL_VERSION" && exit 1
+[[ "otelcol version v$OTEL_COLLECTOR_VERSION" != "$ACTUAL_VERSION" ]] && echo "Invalid version -- Expected otelcol version v$OTEL_COLLECTOR_VERSION but got $ACTUAL_VERSION" && exit 1

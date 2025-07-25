@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### 🚩 Deprecations 🚩
+
+- (Splunk) The collectd/redis plugin is deprecated. Please use the [redis receiver](https://help.splunk.com/en/splunk-observability-cloud/manage-data/available-data-sources/supported-integrations-in-splunk-observability-cloud/opentelemetry-receivers/redis-receiver) instead.
+  This plugin will be removed by the end of October 2025. ([#6491](https://github.com/signalfx/splunk-otel-collector/pull/6491))
+
 ## v0.130.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.130.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.130.0)

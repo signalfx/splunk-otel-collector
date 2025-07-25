@@ -29,7 +29,6 @@ import (
 	"go.opentelemetry.io/collector/confmap/provider/envprovider"
 	"go.opentelemetry.io/collector/confmap/provider/fileprovider"
 	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
-	"go.opentelemetry.io/collector/featuregate"
 	"go.opentelemetry.io/collector/otelcol"
 	"go.opentelemetry.io/collector/pipeline"
 
@@ -111,7 +110,6 @@ func TestConfigDProviderInvalidURIs(t *testing.T) {
 }
 
 func TestDiscoveryProvider_ContinuousDiscoveryConfig(t *testing.T) {
-	require.NoError(t, featuregate.GlobalRegistry().Set(continuousDiscoveryFGKey, true))
 	t.Setenv("SPLUNK_INGEST_URL", "https://ingest.fake-realm.signalfx.com")
 	t.Setenv("SPLUNK_ACCESS_TOKEN", "fake-token")
 

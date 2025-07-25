@@ -19,6 +19,10 @@ and the [opentelemetry-collector-contrib v0.130.0](https://github.com/open-telem
 - (Contrib) `splunkhecexporter`: Deprecate 'batcher' config, use 'sending_queue::batch' instead ([#41224](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41224))
 - (Contrib) `spanmetricsconnector`: Mark dimensions_cache_size as deprecated following the upstream guidelines ([#41101](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41101))
 
+### 🛑 Breaking changes 🛑
+
+- (Splunk) `discovery`: Move `splunk.continuousDiscovery` feature flag to stable
+
 ### 💡 Enhancements 💡
 
 - (Splunk) Update jmx-metric-gatherer version to v1.47.0 ([#6399](https://github.com/signalfx/splunk-otel-collector/pull/6399))

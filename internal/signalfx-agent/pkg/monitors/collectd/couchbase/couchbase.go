@@ -77,6 +77,7 @@ func (c *Config) Validate() error {
 
 // Configure configures and runs the plugin in collectd
 func (m *Monitor) Configure(conf *Config) error {
+	m.Logger().Warn("[NOTICE] The collectd/couchbase plugin is deprecated. Please use the prometheus receiver instead. See https://docs.couchbase.com/server/current/manage/monitor/set-up-prometheus-for-monitoring.html for more information. This plugin will be removed by the end of October 2025.")
 	conf.pyConf = &python.Config{
 		MonitorConfig: conf.MonitorConfig,
 		Host:          conf.Host,

@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### 🚩 Deprecations 🚩
+
+- (Splunk) The collectd/jenkins plugin is deprecated. Please see https://plugins.jenkins.io/opentelemetry/ to enable OpenTelemetry signals. This plugin will be removed by the end of October 2025. ([#6489](https://github.com/signalfx/splunk-otel-collector/pull/6489))
+
 ## v0.130.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.130.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.130.0)

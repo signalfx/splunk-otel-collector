@@ -4,7 +4,9 @@
 
 ### 🚩 Deprecations 🚩
 
-- (Splunk) Deprecate the collectd/couchbase monitor. Please use the prometheus receiver instead. See https://docs.couchbase.com/server/current/manage/monitor/set-up-prometheus-for-monitoring.html for more information. ([#6488](https://github.com/signalfx/splunk-otel-collector/pull/6488))
+- (Splunk) Deprecate the collectd/couchbase monitor. Please use the prometheus receiver instead.
+  This monitor will be removed by the end of October 2025.
+  See https://docs.couchbase.com/server/current/manage/monitor/set-up-prometheus-for-monitoring.html for more information. ([#6488](https://github.com/signalfx/splunk-otel-collector/pull/6488))
 
 ## v0.130.0
 

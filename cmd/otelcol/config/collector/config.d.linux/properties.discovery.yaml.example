@@ -17,5 +17,3 @@ splunk.discovery:
       enabled: true
     postgresql:
       enabled: true
-    smartagent/postgresql:
-      enabled: false

@@ -92,6 +92,7 @@ func formatCapitalizedBool(b bool) string {
 
 // Configure configures and runs the plugin in python
 func (m *Monitor) Configure(conf *Config) error {
+		rm.Logger().Warn("[NOTICE] The collectd/spark plugin is deprecated. Please use the apache spark receiver instead. This plugin will be removed by the end of October 2025.")
 	conf.pyConf = &python.Config{
 		MonitorConfig: conf.MonitorConfig,
 		Host:          conf.Host,

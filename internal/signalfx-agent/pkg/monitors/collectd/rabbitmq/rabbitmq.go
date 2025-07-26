@@ -72,6 +72,7 @@ type Monitor struct {
 
 // Configure configures and runs the plugin in python.
 func (m *Monitor) Configure(conf *Config) error {
+	m.Logger().Warn("[NOTICE] The collectd/rabbitmq plugin is deprecated. Please use the rabbitmq receiver instead. This plugin will be removed by the end of October 2025.")
 	sendChannelMetrics := conf.CollectChannels
 	sendConnectionMetrics := conf.CollectConnections
 	sendExchangeMetrics := conf.CollectExchanges

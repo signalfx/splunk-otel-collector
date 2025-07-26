@@ -41,10 +41,6 @@
   version: v0.1.4
   repo: signalfx/collectd-zookeeper
 
-- name: vmstat
-  version: v1.0.0
-  repo: signalfx/vmstat-collectd
-
 - name: systemd
   version: v1.1.0
   repo: signalfx/collectd-systemd

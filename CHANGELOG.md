@@ -15,6 +15,7 @@
 - (Splunk) The collectd/redis plugin is deprecated. Please use the [redis receiver](https://help.splunk.com/en/splunk-observability-cloud/manage-data/available-data-sources/supported-integrations-in-splunk-observability-cloud/opentelemetry-receivers/redis-receiver) instead.
   This plugin will be removed by the end of October 2025. ([#6491](https://github.com/signalfx/splunk-otel-collector/pull/6491))
 - (Splunk) The collectd/spark plugin is deprecated. Please use the [apache spark receiver](https://help.splunk.com/en/splunk-observability-cloud/manage-data/available-data-sources/supported-integrations-in-splunk-observability-cloud/opentelemetry-receivers/apache-spark-receiver) instead.
+  This plugin will be removed by the end of October 2025. ([#6494](https://github.com/signalfx/splunk-otel-collector/pull/6494))
 
 ## v0.130.0
 

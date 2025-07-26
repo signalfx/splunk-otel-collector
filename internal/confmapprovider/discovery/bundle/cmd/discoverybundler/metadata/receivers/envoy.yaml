@@ -1,4 +1,6 @@
-{{ receiver "prometheus" }}:
+component_id: prometheus
+supported_platforms: all
+properties_tmpl: |
   enabled: true
   service_type: envoy
   rule:

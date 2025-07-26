@@ -1,4 +1,6 @@
-{{ receiver "nginx" }}:
+component_id: nginx
+supported_platforms: unix_only
+properties_tmpl: |
   enabled: true
   service_type: nginx
   rule:

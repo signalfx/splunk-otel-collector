@@ -1,4 +1,6 @@
-{{ receiver "prometheus/istio" }}:
+component_id: prometheus/istio
+supported_platforms: all
+properties_tmpl: |
   enabled: false
   service_type: istio
   rule:

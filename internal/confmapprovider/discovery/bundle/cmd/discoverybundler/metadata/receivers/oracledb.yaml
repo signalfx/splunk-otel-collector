@@ -1,4 +1,6 @@
-{{ receiver "oracledb" }}:
+component_id: oracledb
+supported_platforms: all
+properties_tmpl: |
   enabled: true
   service_type: oracledb
   rule:

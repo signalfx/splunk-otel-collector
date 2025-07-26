@@ -1,4 +1,6 @@
-{{ receiver "postgresql" }}:
+component_id: postgresql
+supported_platforms: all
+properties_tmpl: |
   enabled: true
   service_type: postgresql
   rule:
@@ -7,8 +9,8 @@
     k8s_observer: type == "port" and pod.name matches "(?i)postgres"
   config:
     default:
-        username: {{ defaultValue }}
-        password: {{ defaultValue }}
+      username: {{ defaultValue }}
+      password: {{ defaultValue }}
   status:
     metrics:
       - status: successful

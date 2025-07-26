@@ -70,6 +70,7 @@ type Monitor struct {
 
 // Configure configures and runs the plugin in collectd
 func (m *Monitor) Configure(conf *Config) error {
+	m.Logger().Warn("[NOTICE] The collectd/jenkins plugin is deprecated. Please see https://plugins.jenkins.io/opentelemetry/ to enable OpenTelemetry signals. This plugin will be removed by the end of October 2025.")
 	conf.pyConf = &python.Config{
 		MonitorConfig: conf.MonitorConfig,
 		Host:          conf.Host,

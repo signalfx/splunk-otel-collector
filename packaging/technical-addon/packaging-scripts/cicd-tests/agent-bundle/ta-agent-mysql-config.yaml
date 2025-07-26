@@ -26,14 +26,6 @@ extensions:
     #endpoint: "${env:SPLUNK_LISTEN_INTERFACE}:55679"
 
 receivers:
-  smartagent/mysql:
-    type: collectd/mysql
-    host: 127.0.0.1
-    port: 3306
-    username: root
-    password: password
-    databases:
-      - name: mysql
   smartagent/apache:
     type: collectd/apache
     host: localhost

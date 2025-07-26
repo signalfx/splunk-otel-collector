@@ -20,16 +20,16 @@ import (
 	"text/template"
 
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/component"
 )
 
 func TestFuncMap(t *testing.T) {
-	fm := FuncMap()
+	componentID := component.MustNewID("redis")
+	fm := funcMap(componentID)
 	functions := []string{
 		"configProperty",
 		"configPropertyEnvVar",
 		"defaultValue",
-		"extension",
-		"receiver",
 	}
 	for _, function := range functions {
 		require.Contains(t, fm, function)
@@ -39,90 +39,52 @@ func TestFuncMap(t *testing.T) {
 	}
 }
 
-func TestReceiverValidatesComponentType(t *testing.T) {
-	dc := newDiscoveryConfig()
-	cid, err := dc.receiver("notreal")
-	require.EqualError(t, err, `no receiver "notreal" available in this distribution`)
-	require.Empty(t, cid)
-
-	cid, err = dc.receiver("bad.character")
-	require.EqualError(t, err, `in "bad.character" id: invalid character(s) in type "bad.character"`)
-	require.Empty(t, cid)
-
-	cid, err = dc.receiver("otlp")
-	require.NoError(t, err)
-	require.Equal(t, "otlp", cid)
-
-	cid, err = dc.receiver("otlp/name")
-	require.NoError(t, err)
-	require.Equal(t, "otlp/name", cid)
-}
-
-func TestExtensionValidatesComponentType(t *testing.T) {
-	dc := newDiscoveryConfig()
-	cid, err := dc.extension("notreal")
-	require.EqualError(t, err, `no extension "notreal" available in this distribution`)
-	require.Empty(t, cid)
-
-	cid, err = dc.receiver("bad.character")
-	require.EqualError(t, err, `in "bad.character" id: invalid character(s) in type "bad.character"`)
-	require.Empty(t, cid)
-
-	cid, err = dc.extension("docker_observer")
-	require.NoError(t, err)
-	require.Equal(t, "docker_observer", cid)
-
-	cid, err = dc.extension("docker_observer/name")
-	require.NoError(t, err)
-	require.Equal(t, "docker_observer/name", cid)
-}
-
 func TestReceiverConfigProperties(t *testing.T) {
-	dc := newDiscoveryConfig()
-	cid, err := dc.receiver("otlp")
-	require.NoError(t, err)
-	require.Equal(t, "otlp", cid)
-	prop, err := dc.configProperty("one", "two", "three", "<value>")
+	fm := funcMap(component.MustNewID("otlp"))
+	configProperty := fm["configProperty"].(func(...string) (string, error))
+	configPropertyEnvVar := fm["configPropertyEnvVar"].(func(...string) (string, error))
+
+	prop, err := configProperty("one", "two", "three", "<value>")
 	require.NoError(t, err)
 	require.Equal(t, `splunk.discovery.receivers.otlp.config.one::two::three="<value>"`, prop)
 
-	prop, err = dc.configProperty("invalid")
+	prop, err = configProperty("invalid")
 	require.EqualError(t, err, "configProperty takes key+ and value{1} arguments (minimum 2)")
 	require.Empty(t, prop)
 
-	prop, err = dc.configPropertyEnvVar("one", "two", "three", "<value>")
+	prop, err = configPropertyEnvVar("one", "two", "three", "<value>")
 	require.NoError(t, err)
 	require.Equal(t, `SPLUNK_DISCOVERY_RECEIVERS_otlp_CONFIG_one_x3a__x3a_two_x3a__x3a_three="<value>"`, prop)
 
-	prop, err = dc.configPropertyEnvVar("invalid")
+	prop, err = configPropertyEnvVar("invalid")
 	require.EqualError(t, err, "configPropertyEnvVar takes key+ and value{1} arguments (minimum 2)")
 	require.Empty(t, prop)
 }
 
 func TestExtensionConfigProperties(t *testing.T) {
-	dc := newDiscoveryConfig()
-	cid, err := dc.extension("host_observer/name")
-	require.NoError(t, err)
-	require.Equal(t, "host_observer/name", cid)
-	prop, err := dc.configProperty("one", "two", "three", "<value>")
+	fm := funcMap(component.MustNewIDWithName("host_observer", "name"))
+	configProperty := fm["configProperty"].(func(...string) (string, error))
+	configPropertyEnvVar := fm["configPropertyEnvVar"].(func(...string) (string, error))
+
+	prop, err := configProperty("one", "two", "three", "<value>")
 	require.NoError(t, err)
 	require.Equal(t, `splunk.discovery.extensions.host_observer/name.config.one::two::three="<value>"`, prop)
 
-	prop, err = dc.configProperty("invalid")
+	prop, err = configProperty("invalid")
 	require.EqualError(t, err, "configProperty takes key+ and value{1} arguments (minimum 2)")
 	require.Empty(t, prop)
 
-	prop, err = dc.configPropertyEnvVar("one", "two", "three", "<value>")
+	prop, err = configPropertyEnvVar("one", "two", "three", "<value>")
 	require.NoError(t, err)
 	require.Equal(t, `SPLUNK_DISCOVERY_EXTENSIONS_host_x5f_observer_x2f_name_CONFIG_one_x3a__x3a_two_x3a__x3a_three="<value>"`, prop)
 
-	prop, err = dc.configPropertyEnvVar("invalid")
+	prop, err = configPropertyEnvVar("invalid")
 	require.EqualError(t, err, "configPropertyEnvVar takes key+ and value{1} arguments (minimum 2)")
 	require.Empty(t, prop)
 }
 
 func TestDefaultValue(t *testing.T) {
-	tmplt, err := template.New("").Funcs(FuncMap()).Parse("{{ defaultValue }}")
+	tmplt, err := template.New("").Funcs(funcMap(component.MustNewID("redis"))).Parse("{{ defaultValue }}")
 	require.NoError(t, err)
 	out := &bytes.Buffer{}
 	require.NoError(t, tmplt.Execute(out, nil))

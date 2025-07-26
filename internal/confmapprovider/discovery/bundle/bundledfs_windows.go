@@ -16,9 +16,7 @@
 
 package bundle
 
-import (
-	"embed"
-)
+import "embed"
 
 // BundledFS is the in-executable filesystem that contains all bundled discovery config.d components.
 

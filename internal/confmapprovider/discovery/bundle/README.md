@@ -18,19 +18,18 @@ All discovery config component discovery.yaml files are generated from [`text/te
 Example `redis.discovery.yaml.tmpl`:
 
 ```yaml
-{{ receiver "redis" }}:
-  enabled: true
-  rule:
-    docker_observer: type == "container" and port == 6379
-    <...>
-  status:
-    <...>
-    statements:
-      partial:
-        - regexp: 'ERR AUTH.*'
-          message: >-
-            Please ensure your redis password is correctly specified with
-            `{{ configPropertyEnvVar "password" "<username>" }}` environment variable.
+enabled: true
+rule:
+  docker_observer: type == "container" and port == 6379
+  <...>
+status:
+  <...>
+  statements:
+    partial:
+      - regexp: 'ERR AUTH.*'
+        message: >-
+          Please ensure your redis password is correctly specified with
+          `{{ configPropertyEnvVar "password" "<username>" }}` environment variable.
 ```
 
 After adding the required new component filename prefix to the `Components` instance in [`components.go`](./components.go)

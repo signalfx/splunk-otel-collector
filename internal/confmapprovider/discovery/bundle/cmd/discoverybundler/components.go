@@ -14,83 +14,106 @@
 
 package main
 
-import (
-	"sort"
-)
+import "go.opentelemetry.io/collector/component"
+
+type componentParams struct {
+	TemplateFile    string
+	ComponentID     component.ID
+	SupportsWindows bool
+}
 
 var (
-	// These are extensions that must match corresponding bundle.d/extensions/<NAME>.discovery.yaml.tmpl files.
-	// If they are desired for !windows BundledFS inclusion (and a default linux conf.d entry), ensure they are included
-	// in Components.Linux. If desired in windows BundledFS, ensure they are included in Components.Windows.
-	extensions = []string{
-		"docker-observer",
-		"host-observer",
-		"k8s-observer",
-	}
-	// These are receivers that must match corresponding bundle.d/receivers/<NAME>.discovery.yaml.tmpl files
-	// If they are desired for !windows BundledFS inclusion (and a default linux conf.d entry), ensure they are included
-	// in Components.Linux. If desired in windows BundledFS, ensure they are included in Components.Windows.
-	receivers = []string{
-		"apache",
-		"envoy",
-		"istio",
-		"jmx-cassandra",
-		"kafkametrics",
-		"mongodb",
-		"mysql",
-		"nginx",
-		"oracledb",
-		"postgresql",
-		"rabbitmq",
-		"redis",
-		"sqlserver",
+	receivers = []componentParams{
+		{
+			ComponentID:     component.MustNewID("apache"),
+			TemplateFile:    "apache",
+			SupportsWindows: true,
+		},
+		{
+			ComponentID:     component.MustNewID("prometheus"),
+			TemplateFile:    "envoy",
+			SupportsWindows: true,
+		},
+		{
+			ComponentID:     component.MustNewIDWithName("prometheus", "istio"),
+			TemplateFile:    "istio",
+			SupportsWindows: true,
+		},
+		{
+			ComponentID:     component.MustNewIDWithName("jmx", "cassandra"),
+			TemplateFile:    "jmx-cassandra",
+			SupportsWindows: true,
+		},
+		{
+			ComponentID:     component.MustNewID("kafkametrics"),
+			TemplateFile:    "kafkametrics",
+			SupportsWindows: true,
+		},
+		{
+			ComponentID:     component.MustNewID("mongodb"),
+			TemplateFile:    "mongodb",
+			SupportsWindows: true,
+		},
+		{
+			ComponentID:     component.MustNewID("mysql"),
+			TemplateFile:    "mysql",
+			SupportsWindows: true,
+		},
+		{
+			ComponentID:     component.MustNewID("nginx"),
+			TemplateFile:    "nginx",
+			SupportsWindows: false,
+		},
+		{
+			ComponentID:     component.MustNewID("oracledb"),
+			TemplateFile:    "oracledb",
+			SupportsWindows: true,
+		},
+		{
+			ComponentID:     component.MustNewID("postgresql"),
+			TemplateFile:    "postgresql",
+			SupportsWindows: true,
+		},
+		{
+			ComponentID:     component.MustNewID("rabbitmq"),
+			TemplateFile:    "rabbitmq",
+			SupportsWindows: true,
+		},
+		{
+			ComponentID:     component.MustNewID("redis"),
+			TemplateFile:    "redis",
+			SupportsWindows: true,
+		},
+		{
+			ComponentID:     component.MustNewID("sqlserver"),
+			TemplateFile:    "sqlserver",
+			SupportsWindows: true,
+		},
 	}
 
-	Components = DiscoComponents{
-		Extensions: func() []string {
-			sort.Strings(extensions)
-			return extensions
-		}(),
-		Receivers: func() []string {
-			sort.Strings(receivers)
-			return receivers
-		}(),
-		Linux: func() map[string]struct{} {
-			linux := map[string]struct{}{}
-			for _, extension := range extensions {
-				linux[extension] = struct{}{}
-			}
-			for _, receiver := range receivers {
-				linux[receiver] = struct{}{}
-			}
-			return linux
-		}(),
-		Windows: func() map[string]struct{} {
-			windows := map[string]struct{}{
-				"apache":        {},
-				"envoy":         {},
-				"istio":         {},
-				"jmx-cassandra": {},
-				"kafkametrics":  {},
-				"mongodb":       {},
-				"mysql":         {},
-				"oracledb":      {},
-				"postgresql":    {},
-				"rabbitmq":      {},
-				"redis":         {},
-				"sqlserver":     {},
-			}
-			for _, extension := range extensions {
-				windows[extension] = struct{}{}
-			}
-			return windows
-		}(),
+	extensions = []componentParams{
+		{
+			ComponentID:     component.MustNewID("docker_observer"),
+			TemplateFile:    "docker-observer",
+			SupportsWindows: true,
+		},
+		{
+			ComponentID:     component.MustNewID("host_observer"),
+			TemplateFile:    "host-observer",
+			SupportsWindows: true,
+		},
+		{
+			ComponentID:     component.MustNewID("k8s_observer"),
+			TemplateFile:    "k8s-observer",
+			SupportsWindows: true,
+		},
+	}
+
+	Components = struct {
+		Extensions []componentParams
+		Receivers  []componentParams
+	}{
+		Extensions: extensions,
+		Receivers:  receivers,
 	}
 )
-
-type DiscoComponents struct {
-	Linux      map[string]struct{}
-	Windows    map[string]struct{}
-	Extensions []string
-	Receivers  []string
-}

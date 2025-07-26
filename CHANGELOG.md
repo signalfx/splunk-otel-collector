@@ -9,6 +9,7 @@
 ### 🚩 Deprecations 🚩
 
 - (Splunk) The collectd/couchbase plugin is deprecated. Please use the prometheus receiver instead. See https://docs.couchbase.com/server/current/manage/monitor/set-up-prometheus-for-monitoring.html for more information. This plugin will be removed by the end of October 2025. ([#6488](https://github.com/signalfx/splunk-otel-collector/pull/6488))
+- (Splunk) The collectd/jenkins plugin is deprecated. Please see https://plugins.jenkins.io/opentelemetry/ to enable OpenTelemetry signals. This plugin will be removed by the end of October 2025. ([#6489](https://github.com/signalfx/splunk-otel-collector/pull/6489))
 
 ## v0.130.0
 

@@ -1,6 +1,8 @@
 monitors:
 - dimensions:
   doc: |
+    **This plugin is deprecated and will be removed by the end of October 2025. Please see https://plugins.jenkins.io/opentelemetry/ to enable OpenTelemetry signals.**
+
     Monitors jenkins by using the
     [jenkins collectd Python
     plugin](https://github.com/signalfx/collectd-jenkins), which collects

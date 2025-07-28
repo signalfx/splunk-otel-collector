@@ -42,6 +42,7 @@ and the [opentelemetry-collector-contrib v0.130.0](https://github.com/open-telem
 
 ### 💡 Enhancements 💡
 
+- (Splunk) `discovery`: Enable nginx discovery on Windows ([#6500](https://github.com/signalfx/splunk-otel-collector/pull/6500))
 - (Splunk) Update jmx-metric-gatherer version to v1.47.0 ([#6399](https://github.com/signalfx/splunk-otel-collector/pull/6399))
 - (Splunk) Update bundled openjdk version to 11.0.28_6 ([#6459](https://github.com/signalfx/splunk-otel-collector/pull/6459))
 - (Splunk) `receiver/discovery`: Reduce amount of attributes sent with the entities to the required set ([#6419](https://github.com/signalfx/splunk-otel-collector/pull/6419))

@@ -27,23 +27,10 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-const (
-	PlatformAll      = "all"
-	PlatformUnixOnly = "unix_only"
-)
-
 type ComponentMetadata struct {
-	ComponentID        component.ID `yaml:"component_id"`
-	SupportedPlatforms string       `yaml:"supported_platforms"`
-	PropertiesTmpl     string       `yaml:"properties_tmpl"`
-	FileName           string
-}
-
-type buildTarget struct {
-	Tag            string
-	FileSuffix     string
-	ExtensionFiles []string
-	ReceiverFiles  []string
+	ComponentID    component.ID `yaml:"component_id"`
+	PropertiesTmpl string       `yaml:"properties_tmpl"`
+	FileName       string
 }
 
 const (
@@ -158,45 +145,23 @@ func genBundledFS(bundleFSFile string, extensions, receivers []ComponentMetadata
 	bundleFSTmpl, err := os.ReadFile(bundleFSFile)
 	panicOnError(err)
 
-	// Build targets for different platforms
-	windowsTarget := buildTarget{Tag: "windows", FileSuffix: "windows"}
-	othersTarget := buildTarget{Tag: "!windows", FileSuffix: "others"}
-
-	// Add extensions to appropriate build targets
+	target := struct {
+		ExtensionFiles []string
+		ReceiverFiles  []string
+	}{}
 	for _, ext := range extensions {
-		switch ext.SupportedPlatforms {
-		case PlatformAll:
-			windowsTarget.ExtensionFiles = append(windowsTarget.ExtensionFiles, ext.FileName)
-			fallthrough
-		case PlatformUnixOnly:
-			othersTarget.ExtensionFiles = append(othersTarget.ExtensionFiles, ext.FileName)
-		default:
-			panic(fmt.Errorf("unsupported platform %s for extension %s", ext.SupportedPlatforms, ext.ComponentID))
-		}
+		target.ExtensionFiles = append(target.ExtensionFiles, ext.FileName)
 	}
-
-	// Add receivers to appropriate build targets
 	for _, rec := range receivers {
-		switch rec.SupportedPlatforms {
-		case PlatformAll:
-			windowsTarget.ReceiverFiles = append(windowsTarget.ReceiverFiles, rec.FileName)
-			fallthrough
-		case PlatformUnixOnly:
-			othersTarget.ReceiverFiles = append(othersTarget.ReceiverFiles, rec.FileName)
-		default:
-			panic(fmt.Errorf("unsupported platform %s for receiver %s", rec.SupportedPlatforms, rec.ComponentID))
-		}
+		target.ReceiverFiles = append(target.ReceiverFiles, rec.FileName)
 	}
 
-	// Generate bundledfs files for each build target
-	for _, target := range []buildTarget{windowsTarget, othersTarget} {
-		t, err := template.New(fmt.Sprintf("bundledfs_%s", target.FileSuffix)).Parse(string(bundleFSTmpl))
-		panicOnError(err)
-		out := &bytes.Buffer{}
-		panicOnError(t.Execute(out, target))
-		filename := filepath.Join("..", "..", fmt.Sprintf("bundledfs_%s.go", target.FileSuffix))
-		if err = os.WriteFile(filename, out.Bytes(), 0644); err != nil { // nolint:gosec // existing project file permissions
-			panicOnError(fmt.Errorf("failed writing to %s: %w", filename, err))
-		}
+	t, err := template.New("bundledfs").Parse(string(bundleFSTmpl))
+	panicOnError(err)
+	out := &bytes.Buffer{}
+	panicOnError(t.Execute(out, target))
+	filename := filepath.Join(filepath.Dir(bundleFSFile), "generated_bundledfs.go")
+	if err = os.WriteFile(filename, out.Bytes(), 0644); err != nil { // nolint:gosec // existing project file permissions
+		panicOnError(fmt.Errorf("failed writing to %s: %w", filename, err))
 	}
 }

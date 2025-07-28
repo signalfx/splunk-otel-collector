@@ -20,7 +20,6 @@ import (
 	"text/template"
 
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/otelcol"
 
 	"github.com/signalfx/splunk-otel-collector/internal/components"
 	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/discovery/properties"
@@ -28,77 +27,47 @@ import (
 
 const defaultValue = "splunk.discovery.default"
 
-func FuncMap() template.FuncMap {
-	dc := newDiscoveryConfig()
+func funcMap(componentID component.ID) template.FuncMap {
 	return map[string]any{
-		"configProperty":       dc.configProperty,
-		"configPropertyEnvVar": dc.configPropertyEnvVar,
-		"extension":            dc.extension,
-		"receiver":             dc.receiver,
+		"configProperty":       createConfigProperty(componentID),
+		"configPropertyEnvVar": createConfigPropertyEnvVar(componentID),
 		"defaultValue":         func() string { return defaultValue },
 	}
 }
 
-type discoveryConfig struct {
-	factories     otelcol.Factories
-	componentID   component.ID
-	componentKind component.Kind
+func createConfigProperty(componentID component.ID) func(...string) (string, error) {
+	return func(args ...string) (string, error) {
+		return configPropertyForComponent(componentID, "configProperty", args, func(property *properties.Property) string {
+			return fmt.Sprintf("%s=%q", property.Input, property.Val)
+		})
+	}
 }
 
-func newDiscoveryConfig() *discoveryConfig {
+func createConfigPropertyEnvVar(componentID component.ID) func(...string) (string, error) {
+	return func(args ...string) (string, error) {
+		return configPropertyForComponent(componentID, "configPropertyEnvVar", args, func(property *properties.Property) string {
+			return fmt.Sprintf("%s=%q", property.ToEnvVar(), property.Val)
+		})
+	}
+}
+
+func configPropertyForComponent(componentID component.ID, methodName string, args []string, stringer func(property *properties.Property) string) (string, error) {
 	factories, err := components.Get()
 	if err != nil {
-		panic(fmt.Errorf("failed accessing distribution components: %w", err))
+		return "", fmt.Errorf("failed accessing distribution components: %w", err)
 	}
-	return &discoveryConfig{
-		factories: factories,
+
+	// Validate component availability based on type
+	componentType := ""
+	if _, ok := factories.Receivers[componentID.Type()]; ok {
+		componentType = "receivers"
+	} else if _, ok := factories.Extensions[componentID.Type()]; ok {
+		componentType = "extensions"
+	} else {
+		return "", fmt.Errorf("no receiver or extension %q available in this distribution", componentID.Type())
 	}
-}
 
-func (dc *discoveryConfig) extension(id string) (string, error) {
-	return dc.setComponentType(id, component.KindExtension)
-}
-
-func (dc *discoveryConfig) receiver(id string) (string, error) {
-	return dc.setComponentType(id, component.KindReceiver)
-}
-
-func (dc *discoveryConfig) setComponentType(id string, kind component.Kind) (string, error) {
-	cid := &component.ID{}
-	if err := cid.UnmarshalText([]byte(id)); err != nil {
-		return "", err
-	}
-	dc.componentKind = kind
-	dc.componentID = *cid
-	switch kind {
-	case component.KindExtension:
-		if _, ok := dc.factories.Extensions[cid.Type()]; !ok {
-			return "", fmt.Errorf("no extension %q available in this distribution", cid.Type())
-		}
-	case component.KindReceiver:
-		if _, ok := dc.factories.Receivers[cid.Type()]; !ok {
-			return "", fmt.Errorf("no receiver %q available in this distribution", cid.Type())
-		}
-	default:
-		return "", fmt.Errorf("unsupported discovery config component kind %#v", kind)
-	}
-	return dc.componentID.String(), nil
-}
-
-func (dc *discoveryConfig) configProperty(args ...string) (string, error) {
-	return dc.configPropertyWithStringer(args, "configProperty", func(property *properties.Property) string {
-		return fmt.Sprintf("%s=%q", property.Input, property.Val)
-	})
-}
-
-func (dc *discoveryConfig) configPropertyEnvVar(args ...string) (string, error) {
-	return dc.configPropertyWithStringer(args, "configPropertyEnvVar", func(property *properties.Property) string {
-		return fmt.Sprintf("%s=%q", property.ToEnvVar(), property.Val)
-	})
-}
-
-func (dc *discoveryConfig) configPropertyWithStringer(args []string, methodName string, stringer func(property *properties.Property) string) (string, error) {
-	prefix, err := dc.configPropertyPrefix(methodName, args)
+	prefix, err := configPropertyPrefix(methodName, args, componentID, componentType)
 	if err != nil {
 		return "", err
 	}
@@ -110,20 +79,12 @@ func (dc *discoveryConfig) configPropertyWithStringer(args []string, methodName 
 	return stringer(property), nil
 }
 
-func (dc *discoveryConfig) configPropertyPrefix(methodName string, args []string) (string, error) {
+func configPropertyPrefix(methodName string, args []string, componentID component.ID, componentType string) (string, error) {
 	l := len(args)
 	if l < 2 {
 		return "", fmt.Errorf("%s takes key+ and value{1} arguments (minimum 2)", methodName)
 	}
-	var prefix string
-	switch dc.componentKind {
-	case component.KindReceiver:
-		prefix = fmt.Sprintf("splunk.discovery.receivers.%s.config", dc.componentID)
-	case component.KindExtension:
-		prefix = fmt.Sprintf("splunk.discovery.extensions.%s.config", dc.componentID)
-	default:
-		return "", fmt.Errorf("invalid discovery config component type %s", dc.componentKind)
-	}
+	prefix := fmt.Sprintf("splunk.discovery.%s.%s.config", componentType, componentID)
 	return prefix, nil
 }
 

@@ -520,35 +520,17 @@ func parseCfgSrcInvocation(s string) (cfgSrcName, selector string, paramsConfigM
 	}
 	cfgSrcName = strings.Trim(parts[0], " ")
 
-	// Separate multi-line and single line case.
 	afterCfgSrcName := parts[1]
-	switch {
-	case strings.Contains(afterCfgSrcName, "\n"):
-		// Multi-line, until the first \n it is the selector, everything after as YAML.
-		parts = strings.SplitN(afterCfgSrcName, "\n", 2)
-		selector = strings.Trim(parts[0], " ")
+	const selectorDelim string = "?"
+	parts = strings.SplitN(afterCfgSrcName, selectorDelim, 2)
+	selector = strings.Trim(parts[0], " ")
 
-		if len(parts) > 1 && len(parts[1]) > 0 {
-			var data map[string]any
-			if err = yaml.Unmarshal([]byte(parts[1]), &data); err != nil {
-				return
-			}
-			paramsConfigMap = confmap.NewFromStringMap(data)
-		}
-
-	default:
-		// Single line, and parameters as URL query.
-		const selectorDelim string = "?"
-		parts = strings.SplitN(parts[1], selectorDelim, 2)
-		selector = strings.Trim(parts[0], " ")
-
-		if len(parts) == 2 {
-			paramsPart := parts[1]
-			paramsConfigMap, err = parseParamsAsURLQuery(paramsPart)
-			if err != nil {
-				err = fmt.Errorf("invalid parameters syntax at %q: %w", s, err)
-				return
-			}
+	if len(parts) == 2 {
+		paramsPart := parts[1]
+		paramsConfigMap, err = parseParamsAsURLQuery(paramsPart)
+		if err != nil {
+			err = fmt.Errorf("invalid parameters syntax at %q: %w", s, err)
+			return
 		}
 	}
 

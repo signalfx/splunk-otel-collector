@@ -1,5 +1,4 @@
 component_id: sqlserver
-supported_platforms: all
 properties_tmpl: |
   enabled: true
   service_type: sqlserver

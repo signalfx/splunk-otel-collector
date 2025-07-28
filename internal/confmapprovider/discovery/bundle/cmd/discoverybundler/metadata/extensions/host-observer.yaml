@@ -1,0 +1,4 @@
+component_id: host_observer
+supported_platforms: all
+properties_tmpl: |
+  enabled: true

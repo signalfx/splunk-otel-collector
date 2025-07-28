@@ -1,4 +1,6 @@
-{{ receiver "redis" }}:
+component_id: redis
+supported_platforms: all
+properties_tmpl: |
   enabled: true
   service_type: redis
   rule:

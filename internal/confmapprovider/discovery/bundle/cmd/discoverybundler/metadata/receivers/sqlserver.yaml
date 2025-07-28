@@ -1,4 +1,6 @@
-{{ receiver "sqlserver" }}:
+component_id: sqlserver
+supported_platforms: all
+properties_tmpl: |
   enabled: true
   service_type: sqlserver
   rule:
@@ -79,7 +81,6 @@
             enabled: false
         sqlserver.transaction_log.usage:
             enabled: false
-
   status:
     metrics:
       - status: successful

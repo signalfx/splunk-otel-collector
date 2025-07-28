@@ -20,16 +20,37 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"text/template"
 
+	"go.opentelemetry.io/collector/component"
 	"gopkg.in/yaml.v3"
 )
 
 const (
-	bundledHeader = `#####################################################################################
-#                               Do not edit manually!                               #
-# All changes must be made to associated .tmpl file before running 'make bundle.d'. #
-#####################################################################################
+	PlatformAll      = "all"
+	PlatformUnixOnly = "unix_only"
+)
+
+type ComponentMetadata struct {
+	ComponentID        component.ID `yaml:"component_id"`
+	SupportedPlatforms string       `yaml:"supported_platforms"`
+	PropertiesTmpl     string       `yaml:"properties_tmpl"`
+	FileName           string
+}
+
+type buildTarget struct {
+	Tag            string
+	FileSuffix     string
+	ExtensionFiles []string
+	ReceiverFiles  []string
+}
+
+const (
+	bundledHeader = `##############################################################################################
+#                               Do not edit manually!                                        #
+# All changes must be made to associated .yaml metadata file before running 'make bundle.d'. #
+##############################################################################################
 `
 
 	commentedHeader = `#####################################################################################
@@ -49,43 +70,78 @@ func panicOnError(err error) {
 	}
 }
 
+func loadComponentMetadata(dir string) []ComponentMetadata {
+	var components []ComponentMetadata
+	files, err := filepath.Glob(filepath.Join(dir, "*.yaml"))
+	panicOnError(err)
+	for _, file := range files {
+		data, err := os.ReadFile(file)
+		panicOnError(err)
+		var metadata ComponentMetadata
+		panicOnError(yaml.Unmarshal(data, &metadata))
+		// Extract filename without extension
+		metadata.FileName = strings.TrimSuffix(filepath.Base(file), ".yaml")
+		components = append(components, metadata)
+	}
+	return components
+}
+
 func main() {
 	_, thisFile, _, ok := runtime.Caller(0)
 	if !ok {
 		panic("failed to get current file path")
 	}
-	bundleDir := filepath.Join(filepath.Dir(thisFile), "..", "..")
-	projectRoot := filepath.Join(bundleDir, "..", "..", "..", "..")
+	metadataDir := filepath.Join(filepath.Dir(thisFile), "metadata")
+	bundleDir := filepath.Join(filepath.Join(filepath.Dir(thisFile), "..", ".."), "bundle.d")
+	projectRoot := filepath.Join(filepath.Dir(thisFile), "..", "..", "..", "..", "..", "..")
+	configDLinuxDir := filepath.Join(projectRoot, "cmd", "otelcol", "config", "collector", "config.d.linux")
 
-	generateBundleFiles(filepath.Join(bundleDir, "bundle.d"))
+	// Generate properties files for extensions
+	extensions := loadComponentMetadata(filepath.Join(metadataDir, "extensions"))
+	for _, extension := range extensions {
+		bundleFile := filepath.Join(filepath.Join(bundleDir, "extensions"), extension.FileName+".discovery.yaml")
+		generateFile(extension.PropertiesTmpl, bundleFile, false, extension.ComponentID)
+		configDLinuxFile := filepath.Join(filepath.Join(configDLinuxDir, "extensions"), extension.FileName+".discovery.yaml")
+		generateFile(extension.PropertiesTmpl, configDLinuxFile, true, extension.ComponentID)
+	}
 
-	configDLinux := filepath.Join(projectRoot, "cmd", "otelcol", "config", "collector", "config.d.linux")
-	generateConfigFiles(filepath.Join(bundleDir, "bundle.d"), configDLinux)
+	// Generate properties files for receivers
+	receivers := loadComponentMetadata(filepath.Join(metadataDir, "receivers"))
+	for _, receiver := range receivers {
+		bundleFile := filepath.Join(filepath.Join(bundleDir, "receivers"), receiver.FileName+".discovery.yaml")
+		generateFile(receiver.PropertiesTmpl, bundleFile, false, receiver.ComponentID)
+		configDLinuxFile := filepath.Join(filepath.Join(configDLinuxDir, "receivers"), receiver.FileName+".discovery.yaml")
+		generateFile(receiver.PropertiesTmpl, configDLinuxFile, true, receiver.ComponentID)
+	}
 
-	genBundledFS(filepath.Join(bundleDir, "bundledfs.tmpl"))
+	genBundledFS(filepath.Join(filepath.Join(bundleDir, ".."), "bundledfs.tmpl"), extensions, receivers)
 }
 
-func generateFile(templateFile string, outFile string, commented bool) {
-	tmpl, err := os.ReadFile(templateFile)
+func generateFile(propertiesTmpl string, outFile string, commented bool, componentID component.ID) {
+	t, err := template.New("discoverybundler").Funcs(funcMap(componentID)).Parse(propertiesTmpl)
 	panicOnError(err)
 
+	tempOut := &bytes.Buffer{}
+	panicOnError(t.Execute(tempOut, nil))
+
+	contentBuf := &bytes.Buffer{}
+	contentBuf.WriteString(componentID.String())
+	contentBuf.WriteString(":\n")
+	contentBuf.WriteString(prependAllLines(tempOut.String(), "  "))
+
+	body := contentBuf.String()
 	out := &bytes.Buffer{}
 	if commented {
+		body = prependAllLines(contentBuf.String(), "# ")
 		out.WriteString(commentedHeader)
-		tmpl = commentedTemplate(tmpl)
 	} else {
 		out.WriteString(bundledHeader)
 	}
-
-	t, err := template.New("discoverybundler").Funcs(FuncMap()).Parse(string(tmpl))
-	panicOnError(err)
-
-	panicOnError(t.Execute(out, nil))
+	out.WriteString(body)
 
 	var rendered map[string]any
-	// confirm rendered is valid yaml
-	if err = yaml.Unmarshal(out.Bytes(), &rendered); err != nil {
-		panicOnError(fmt.Errorf("failed unmarshaling %s: %w", templateFile, err))
+	if err = yaml.Unmarshal(contentBuf.Bytes(), &rendered); err != nil {
+		panicOnError(fmt.Errorf("failed unmarshaling component %s: %w", componentID, err))
 	}
 
 	if err = os.WriteFile(outFile, out.Bytes(), 0600); err != nil {
@@ -93,73 +149,52 @@ func generateFile(templateFile string, outFile string, commented bool) {
 	}
 }
 
-// commentedTemplate will prepend "# " to all lines
-// resulting in completely commented out file contents.
-// The resulting template is still usable for execution
-func commentedTemplate(tmpl []byte) []byte {
-	tmplLen := len(tmpl)
-	commented := []byte{'#', ' '}
-	for i, b := range tmpl {
-		commented = append(commented, b)
-		if b == '\n' && i < tmplLen-1 {
-			commented = append(commented, '#', ' ')
-		}
-	}
-	return commented
+func prependAllLines(content, prefix string) string {
+	prefixed := strings.ReplaceAll(content, "\n", "\n"+prefix)
+	return prefix + strings.TrimSuffix(prefixed, prefix)
 }
 
-// generateBundleFiles generates YAML files from .tmpl files in bundle.d
-func generateBundleFiles(bundleDir string) {
-	for _, extension := range Components.Extensions {
-		templateFile := filepath.Join(bundleDir, "extensions", extension+".discovery.yaml.tmpl")
-		outFile := filepath.Join(bundleDir, "extensions", extension+".discovery.yaml")
-		generateFile(templateFile, outFile, false)
-	}
-	for _, receiver := range Components.Receivers {
-		templateFile := filepath.Join(bundleDir, "receivers", receiver+".discovery.yaml.tmpl")
-		outFile := filepath.Join(bundleDir, "receivers", receiver+".discovery.yaml")
-		generateFile(templateFile, outFile, false)
-	}
-}
-
-// generateConfigFiles generates commented YAML files for config.d.linux
-func generateConfigFiles(bundleDir, configDir string) {
-	extensionDir := filepath.Join(configDir, "extensions")
-	for _, extension := range Components.Extensions {
-		templateFile := filepath.Join(bundleDir, "extensions", extension+".discovery.yaml.tmpl")
-		outFile := filepath.Join(extensionDir, extension+".discovery.yaml")
-		generateFile(templateFile, outFile, true)
-	}
-	receiverDir := filepath.Join(configDir, "receivers")
-	for _, receiver := range Components.Receivers {
-		templateFile := filepath.Join(bundleDir, "receivers", receiver+".discovery.yaml.tmpl")
-		outFile := filepath.Join(receiverDir, receiver+".discovery.yaml")
-		generateFile(templateFile, outFile, true)
-	}
-}
-
-func genBundledFS(bundleFSFile string) {
+func genBundledFS(bundleFSFile string, extensions, receivers []ComponentMetadata) {
 	bundleFSTmpl, err := os.ReadFile(bundleFSFile)
 	panicOnError(err)
 
-	for _, tup := range []struct {
-		components map[string]struct{}
-		tag        string
-		suffix     string
-	}{
-		{tag: "windows", suffix: "windows", components: Components.Windows},
-		{tag: "!windows", suffix: "others", components: Components.Linux},
-	} {
-		t, err := template.New(fmt.Sprintf("bundledfs_%s", tup.suffix)).Funcs(map[string]any{
-			"tag":      func() string { return tup.tag },
-			"included": func(s string) bool { _, ok := tup.components[s]; return ok },
-		}).Parse(string(bundleFSTmpl))
+	// Build targets for different platforms
+	windowsTarget := buildTarget{Tag: "windows", FileSuffix: "windows"}
+	othersTarget := buildTarget{Tag: "!windows", FileSuffix: "others"}
+
+	// Add extensions to appropriate build targets
+	for _, ext := range extensions {
+		switch ext.SupportedPlatforms {
+		case PlatformAll:
+			windowsTarget.ExtensionFiles = append(windowsTarget.ExtensionFiles, ext.FileName)
+			fallthrough
+		case PlatformUnixOnly:
+			othersTarget.ExtensionFiles = append(othersTarget.ExtensionFiles, ext.FileName)
+		default:
+			panic(fmt.Errorf("unsupported platform %s for extension %s", ext.SupportedPlatforms, ext.ComponentID))
+		}
+	}
+
+	// Add receivers to appropriate build targets
+	for _, rec := range receivers {
+		switch rec.SupportedPlatforms {
+		case PlatformAll:
+			windowsTarget.ReceiverFiles = append(windowsTarget.ReceiverFiles, rec.FileName)
+			fallthrough
+		case PlatformUnixOnly:
+			othersTarget.ReceiverFiles = append(othersTarget.ReceiverFiles, rec.FileName)
+		default:
+			panic(fmt.Errorf("unsupported platform %s for receiver %s", rec.SupportedPlatforms, rec.ComponentID))
+		}
+	}
+
+	// Generate bundledfs files for each build target
+	for _, target := range []buildTarget{windowsTarget, othersTarget} {
+		t, err := template.New(fmt.Sprintf("bundledfs_%s", target.FileSuffix)).Parse(string(bundleFSTmpl))
 		panicOnError(err)
-
 		out := &bytes.Buffer{}
-		panicOnError(t.Execute(out, Components))
-
-		filename := filepath.Join("..", "..", fmt.Sprintf("bundledfs_%s.go", tup.suffix))
+		panicOnError(t.Execute(out, target))
+		filename := filepath.Join("..", "..", fmt.Sprintf("bundledfs_%s.go", target.FileSuffix))
 		if err = os.WriteFile(filename, out.Bytes(), 0644); err != nil { // nolint:gosec // existing project file permissions
 			panicOnError(fmt.Errorf("failed writing to %s: %w", filename, err))
 		}

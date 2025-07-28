@@ -1,4 +1,6 @@
-{{ receiver "mongodb" }}:
+component_id: mongodb
+supported_platforms: all
+properties_tmpl: |
   enabled: true
   service_type: mongodb
   rule:

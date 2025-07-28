@@ -87,7 +87,6 @@
 #             enabled: false
 #         sqlserver.transaction_log.usage:
 #             enabled: false
-# 
 #   status:
 #     metrics:
 #       - status: successful

@@ -12,24 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build {{ tag }}
+//go:build {{ .Tag }}
 
 package bundle
 
-import (
-	"embed"
-)
+import "embed"
 
 // BundledFS is the in-executable filesystem that contains all bundled discovery config.d components.
-{{ range $ext := .Extensions }}
-{{- if included $ext }}
+{{ range $ext := .ExtensionFiles }}
 //go:embed bundle.d/extensions/{{ $ext }}.discovery.yaml
 {{- end }}
-{{- end }}
 
-{{- range $rec := .Receivers }}
-{{- if included $rec }}
+{{- range $rec := .ReceiverFiles }}
 //go:embed bundle.d/receivers/{{ $rec }}.discovery.yaml
-{{- end }}
 {{- end }}
 var BundledFS embed.FS

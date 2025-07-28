@@ -1,7 +1,7 @@
-#####################################################################################
-#                               Do not edit manually!                               #
-# All changes must be made to associated .tmpl file before running 'make bundle.d'. #
-#####################################################################################
+##############################################################################################
+#                               Do not edit manually!                                        #
+# All changes must be made to associated .yaml metadata file before running 'make bundle.d'. #
+##############################################################################################
 prometheus/istio:
   enabled: false
   service_type: istio

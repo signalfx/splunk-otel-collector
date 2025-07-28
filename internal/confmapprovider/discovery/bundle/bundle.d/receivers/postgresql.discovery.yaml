@@ -1,7 +1,7 @@
-#####################################################################################
-#                               Do not edit manually!                               #
-# All changes must be made to associated .tmpl file before running 'make bundle.d'. #
-#####################################################################################
+##############################################################################################
+#                               Do not edit manually!                                        #
+# All changes must be made to associated .yaml metadata file before running 'make bundle.d'. #
+##############################################################################################
 postgresql:
   enabled: true
   service_type: postgresql
@@ -11,8 +11,8 @@ postgresql:
     k8s_observer: type == "port" and pod.name matches "(?i)postgres"
   config:
     default:
-        username: splunk.discovery.default
-        password: splunk.discovery.default
+      username: splunk.discovery.default
+      password: splunk.discovery.default
   status:
     metrics:
       - status: successful

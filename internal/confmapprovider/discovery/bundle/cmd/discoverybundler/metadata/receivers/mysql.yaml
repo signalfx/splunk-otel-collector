@@ -1,4 +1,6 @@
-{{ receiver "mysql" }}:
+component_id: mysql
+supported_platforms: all
+properties_tmpl: |
   enabled: true
   service_type: mysql
   rule:

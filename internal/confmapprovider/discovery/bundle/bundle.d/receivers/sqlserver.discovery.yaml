@@ -1,7 +1,7 @@
-#####################################################################################
-#                               Do not edit manually!                               #
-# All changes must be made to associated .tmpl file before running 'make bundle.d'. #
-#####################################################################################
+##############################################################################################
+#                               Do not edit manually!                                        #
+# All changes must be made to associated .yaml metadata file before running 'make bundle.d'. #
+##############################################################################################
 sqlserver:
   enabled: true
   service_type: sqlserver
@@ -83,7 +83,6 @@ sqlserver:
             enabled: false
         sqlserver.transaction_log.usage:
             enabled: false
-
   status:
     metrics:
       - status: successful

@@ -141,7 +141,7 @@ I. Receivers
 * `kafkametrics` ([Linux and Windows](./bundle/bundle.d/receivers/kafkametrics.discovery.yaml))
 * `mongodb` ([Linux and Windows](./bundle/bundle.d/receivers/mongodb.discovery.yaml))
 * `mysql` ([Linux and Windows](./bundle/bundle.d/receivers/mysql.discovery.yaml))
-* `nginx` ([Linux and Windows](./bundle/bundle.d/receivers/nginx.discovery.yaml))
+* `nginx` ([Linux](./bundle/bundle.d/receivers/nginx.discovery.yaml))
 * `oracledb` ([Linux and Windows](./bundle/bundle.d/receivers/oracledb.discovery.yaml))
 * `postgresql` ([Linux and Windows](./bundle/bundle.d/receivers/postgresql.discovery.yaml))
 * `redis` ([Linux and Windows](./bundle/bundle.d/receivers/redis.discovery.yaml))

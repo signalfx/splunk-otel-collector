@@ -1,7 +1,3 @@
 smartagent/negativeintervalseconds:
   type: collectd/redis
   intervalSeconds: -234
-smartagent/missingrequired:
-  type: collectd/consul
-  port: 5309
-

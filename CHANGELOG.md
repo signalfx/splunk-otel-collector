@@ -4,6 +4,7 @@
 
 ### 🛑 Breaking changes 🛑
 
+- (Splunk) Remove, already deprecated, `collectd/consul` monitor. Please follow the documentation at https://developer.hashicorp.com/consul/docs/agent/monitor/telemetry to set up with statsd or prometheus receivers. ([#6505](https://github.com/signalfx/splunk-otel-collector/pull/6505))
 - (Splunk) Remove, already deprecated, `collectd/mysql` monitor. Use the [mysql receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/mysqlreceiver) instead. ([#6487](https://github.com/signalfx/splunk-otel-collector/pull/6487))
 
 ### 🚩 Deprecations 🚩

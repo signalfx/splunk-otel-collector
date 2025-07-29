@@ -29,7 +29,6 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/core/common/kubernetes"
 	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/cadvisor"
-	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/consul"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/hadoop"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/python"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/redis"
@@ -226,28 +225,6 @@ func TestLoadInvalidConfigs(t *testing.T) {
 	err = negativeIntervalCfg.Validate()
 	require.Error(t, err)
 	require.EqualError(t, err, "intervalSeconds must be greater than 0s (-234 provided)")
-
-	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "missingrequired").String())
-	require.NoError(t, err)
-	missingRequiredCfg := CreateDefaultConfig().(*Config)
-	require.NoError(t, cm.Unmarshal(&missingRequiredCfg))
-	require.Equal(t, &Config{
-		MonitorType: "collectd/consul",
-		monitorConfig: &consul.Config{
-			MonitorConfig: saconfig.MonitorConfig{
-				Type:                "collectd/consul",
-				IntervalSeconds:     0,
-				DatapointsToExclude: []saconfig.MetricFilter{},
-			},
-			Port:          5309,
-			TelemetryHost: "0.0.0.0",
-			TelemetryPort: 8125,
-		},
-		acceptsEndpoints: true,
-	}, missingRequiredCfg)
-	err = missingRequiredCfg.Validate()
-	require.Error(t, err)
-	require.EqualError(t, err, "Validation error in field 'Config.host': host is a required field (got '')")
 }
 
 func TestLoadConfigWithEndpoints(t *testing.T) {

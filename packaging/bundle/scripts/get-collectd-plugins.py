@@ -20,6 +20,7 @@ import shutil
 import subprocess
 import sys
 import tarfile
+import time
 import urllib.request
 
 import yaml
@@ -27,6 +28,7 @@ import yaml
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 TARGET_DIR = os.path.join("/", "usr", "share", "collectd") if len(sys.argv) < 2 else sys.argv[1]
 PYTHON_EXECUTABLE = sys.executable if sys.executable else "python"
+MAX_RETRIES = 3
 
 with open(os.path.join(SCRIPT_DIR, "..", "collectd-plugins.yaml"), "r") as f:
     PLUGINS = yaml.safe_load(f)
@@ -47,12 +49,21 @@ url:     {u}""".format(
         )
     )
 
-    with contextlib.closing(urllib.request.urlopen(url)) as stream:
-        with tarfile.open(fileobj=stream, mode="r|gz") as tar_archive:
-            tar_archive.extractall(TARGET_DIR)
-            plugin_dir = os.path.join(TARGET_DIR, plugin_name)
-            os.rename(os.path.join(TARGET_DIR, tar_archive.getnames()[0]), plugin_dir)
-
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            with contextlib.closing(urllib.request.urlopen(url)) as stream:
+                with tarfile.open(fileobj=stream, mode="r|gz") as tar_archive:
+                    tar_archive.extractall(TARGET_DIR)
+                    plugin_dir = os.path.join(TARGET_DIR, plugin_name)
+                    os.rename(os.path.join(TARGET_DIR, tar_archive.getnames()[0]), plugin_dir)
+            break
+        except urllib.error.HTTPError as e:
+            if e.code == 429 and attempt < MAX_RETRIES:
+                wait_time = 5 ** attempt
+                print(f"HTTP 429 received, retrying in {wait_time} seconds... (attempt {attempt}/{MAX_RETRIES})")
+                time.sleep(wait_time)
+            else:
+                raise
     # install pip deps
     for package in p.get("pip_packages", []):
         subprocess.check_call([PYTHON_EXECUTABLE, "-m", "pip", "install", "-qq", "--no-warn-script-location", package])

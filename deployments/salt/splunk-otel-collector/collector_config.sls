@@ -26,11 +26,14 @@
 
 {% set splunk_listen_interface = salt['pillar.get']('splunk-otel-collector:splunk_listen_interface', '') %}
 
+{% set splunk_otel_collector_command_line_args = salt['pillar.get']('splunk-otel-collector:splunk_otel_collector_command_line_args', '') %}
+
 {% set collector_additional_env_vars = salt['pillar.get']('splunk-otel-collector:collector_additional_env_vars', {}) %}
 
 /etc/otel/collector/splunk-otel-collector.conf:
   file.managed:
     - contents: |
+        OTELCOL_OPTIONS={{ splunk_otel_collector_command_line_args }}
         SPLUNK_CONFIG={{ splunk_otel_collector_config }}
         SPLUNK_ACCESS_TOKEN={{ splunk_access_token }}
         SPLUNK_REALM={{ splunk_realm }}

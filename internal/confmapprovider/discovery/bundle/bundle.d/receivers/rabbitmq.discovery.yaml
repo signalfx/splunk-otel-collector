@@ -15,28 +15,28 @@ rabbitmq:
       username: splunk.discovery.default
       password: splunk.discovery.default
       collection_interval: 10s
-    metrics:
-    # Enable all OOTB dashboard default metrics
-      rabbitmq.node.disk_free:
-          enabled: true
-      rabbitmq.node.mem_used:
-          enabled: true
-      rabbitmq.node.mem_limit:
-          enabled: true
-      rabbitmq.node.fd_used:
-          enabled: true
-      rabbitmq.node.uptime:
-          enabled: true
-      rabbitmq.node.fd_total:
-          enabled: true
-      rabbitmq.node.disk_free_limit:
-          enabled: true
-      rabbitmq.node.io_write_avg_time:
-          enabled: true
-      rabbitmq.node.io_read_avg_time:
-          enabled: true
-      rabbitmq.node.io_sync_avg_time:
-          enabled: true
+      metrics:
+      # Enable all OOTB dashboard default metrics
+        rabbitmq.node.disk_free:
+            enabled: true
+        rabbitmq.node.mem_used:
+            enabled: true
+        rabbitmq.node.mem_limit:
+            enabled: true
+        rabbitmq.node.fd_used:
+            enabled: true
+        rabbitmq.node.uptime:
+            enabled: true
+        rabbitmq.node.fd_total:
+            enabled: true
+        rabbitmq.node.disk_free_limit:
+            enabled: true
+        rabbitmq.node.io_write_avg_time:
+            enabled: true
+        rabbitmq.node.io_read_avg_time:
+            enabled: true
+        rabbitmq.node.io_sync_avg_time:
+            enabled: true
   status:
     metrics:
       - status: successful

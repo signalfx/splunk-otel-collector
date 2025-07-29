@@ -205,7 +205,7 @@ func TestLoadInvalidConfigs(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
-	assert.Equal(t, 2, len(cfg.ToStringMap()))
+	assert.Equal(t, 1, len(cfg.ToStringMap()))
 
 	cm, err := cfg.Sub(component.MustNewIDWithName(typeStr, "negativeintervalseconds").String())
 	require.NoError(t, err)

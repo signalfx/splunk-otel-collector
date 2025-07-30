@@ -124,7 +124,7 @@ func ConfigureMainCollectd(conf *config.CollectdConfig) error {
 // monitorID is passed in so that we can keep track of what monitors are
 // actively using collectd.  When a monitor is done (i.e. shutdown) it should
 // call MonitorDidShutdown.
-func (cm *Manager) ConfigureFromMonitor(monitorID types.MonitorID, output types.Output, usesGenericJMX bool) error {
+func (cm *Manager) ConfigureFromMonitor(monitorID types.MonitorID, output types.Output) error {
 	cm.configMutex.Lock()
 	defer cm.configMutex.Unlock()
 

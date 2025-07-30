@@ -68,7 +68,7 @@ func TestLoadConfig(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
-	assert.Equal(t, 5, len(cfg.ToStringMap()))
+	assert.Equal(t, 4, len(cfg.ToStringMap()))
 
 	cm, err := cfg.Sub(component.MustNewIDWithName(typeStr, "haproxy").String())
 	require.NoError(t, err)
@@ -249,7 +249,7 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
-	assert.Equal(t, 6, len(cfg.ToStringMap()))
+	assert.Equal(t, 5, len(cfg.ToStringMap()))
 
 	cm, err := cfg.Sub(component.MustNewIDWithName(typeStr, "haproxy").String())
 	require.NoError(t, err)

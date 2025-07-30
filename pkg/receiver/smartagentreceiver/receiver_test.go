@@ -322,20 +322,19 @@ func TestSmartAgentConfigProviderOverrides(t *testing.T) {
 		return false
 	}())
 	require.Equal(t, saconfig.CollectdConfig{
-		Timeout:              10,
-		ReadThreads:          1,
-		WriteThreads:         4,
-		WriteQueueLimitHigh:  5,
-		WriteQueueLimitLow:   400000,
-		LogLevel:             "notice",
-		IntervalSeconds:      10,
-		WriteServerIPAddr:    "127.9.8.7",
-		WriteServerPort:      0,
-		ConfigDir:            filepath.Join("/opt", "run", "collectd"),
-		BundleDir:            "/opt/",
-		HasGenericJMXMonitor: false,
-		InstanceName:         "",
-		WriteServerQuery:     "",
+		Timeout:             10,
+		ReadThreads:         1,
+		WriteThreads:        4,
+		WriteQueueLimitHigh: 5,
+		WriteQueueLimitLow:  400000,
+		LogLevel:            "notice",
+		IntervalSeconds:     10,
+		WriteServerIPAddr:   "127.9.8.7",
+		WriteServerPort:     0,
+		ConfigDir:           filepath.Join("/opt", "run", "collectd"),
+		BundleDir:           "/opt/",
+		InstanceName:        "",
+		WriteServerQuery:    "",
 	}, saConfig.Collectd)
 
 	if runtime.GOOS == "windows" {

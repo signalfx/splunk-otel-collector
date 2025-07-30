@@ -49,8 +49,7 @@ type Manager struct {
 	configMutex sync.Mutex
 	conf        *config.CollectdConfig
 	// Map of each active monitor to its output instance
-	activeMonitors  map[types.MonitorID]types.Output
-	genericJMXUsers map[types.MonitorID]bool
+	activeMonitors map[types.MonitorID]types.Output
 	// The port of the active write server, will be 0 if write server isn't
 	// started yet.
 	writeServerPort int
@@ -85,11 +84,10 @@ func InitCollectd(conf *config.CollectdConfig) *Manager {
 	logger = logger.WithField("collectdInstance", conf.InstanceName)
 
 	manager := &Manager{
-		conf:            conf,
-		activeMonitors:  make(map[types.MonitorID]types.Output),
-		genericJMXUsers: make(map[types.MonitorID]bool),
-		requestRestart:  make(chan struct{}),
-		logger:          logger,
+		conf:           conf,
+		activeMonitors: make(map[types.MonitorID]types.Output),
+		requestRestart: make(chan struct{}),
+		logger:         logger,
 	}
 	manager.deleteExistingConfig()
 
@@ -125,23 +123,12 @@ func ConfigureMainCollectd(conf *config.CollectdConfig) error {
 // have added a configuration file to managed_config and need a restart. The
 // monitorID is passed in so that we can keep track of what monitors are
 // actively using collectd.  When a monitor is done (i.e. shutdown) it should
-// call MonitorDidShutdown.  GenericJMX monitors should set usesGenericJMX to
-// true so that collectd can know to load the java plugin in the collectd.conf
-// file so that any JVM config doesn't get set multiple times and cause
-// spurious log output.
+// call MonitorDidShutdown.
 func (cm *Manager) ConfigureFromMonitor(monitorID types.MonitorID, output types.Output, usesGenericJMX bool) error {
 	cm.configMutex.Lock()
 	defer cm.configMutex.Unlock()
 
 	cm.activeMonitors[monitorID] = output
-
-	// This is kind of ugly having to keep track of this but it allows us to
-	// load the GenericJMX plugin in a central place and then have each
-	// GenericJMX monitor render its own config file and not have to worry
-	// about reinitializing GenericJMX and causing errors to be thrown.
-	if usesGenericJMX {
-		cm.genericJMXUsers[monitorID] = true
-	}
 
 	cm.RequestRestart()
 	return nil
@@ -158,8 +145,6 @@ func (cm *Manager) MonitorDidShutdown(monitorID types.MonitorID) {
 		// explicitly disallowed.
 		return
 	}
-
-	delete(cm.genericJMXUsers, monitorID)
 
 	if len(cm.activeMonitors) == 1 {
 		if !utils.IsSignalChanClosed(cm.stop) {
@@ -463,7 +448,6 @@ func (cm *Manager) rerenderConf(writeHTTPPort int) error {
 
 	// Copy so that hash of config struct is consistent
 	conf := *cm.conf
-	conf.HasGenericJMXMonitor = len(cm.genericJMXUsers) > 0
 	conf.WriteServerPort = uint16(writeHTTPPort) //nolint:gosec
 
 	if err := CollectdTemplate.Execute(&output, &conf); err != nil {

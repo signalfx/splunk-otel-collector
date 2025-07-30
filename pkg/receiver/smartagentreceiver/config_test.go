@@ -30,7 +30,6 @@ import (
 	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/cadvisor"
-	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/hadoop"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/python"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/redis"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/elasticsearch/stats"
@@ -116,27 +115,6 @@ func TestLoadConfig(t *testing.T) {
 		acceptsEndpoints: true,
 	}, redisCfg)
 	require.NoError(t, redisCfg.Validate())
-
-	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "hadoop").String())
-	require.NoError(t, err)
-	hadoopCfg := CreateDefaultConfig().(*Config)
-	require.NoError(t, cm.Unmarshal(&hadoopCfg))
-
-	require.Equal(t, &Config{
-		MonitorType: "collectd/hadoop",
-		monitorConfig: &hadoop.Config{
-			MonitorConfig: saconfig.MonitorConfig{
-				Type:                "collectd/hadoop",
-				IntervalSeconds:     345,
-				DatapointsToExclude: []saconfig.MetricFilter{},
-			},
-			CommonConfig: python.CommonConfig{},
-			Host:         "localhost",
-			Port:         8088,
-		},
-		acceptsEndpoints: true,
-	}, hadoopCfg)
-	require.NoError(t, hadoopCfg.Validate())
 
 	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "etcd").String())
 	require.NoError(t, err)
@@ -317,27 +295,6 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 		acceptsEndpoints: true,
 	}, redisCfg)
 	require.NoError(t, redisCfg.Validate())
-
-	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "hadoop").String())
-	require.NoError(t, err)
-	hadoopCfg := CreateDefaultConfig().(*Config)
-	require.NoError(t, cm.Unmarshal(&hadoopCfg))
-	require.Equal(t, &Config{
-		MonitorType: "collectd/hadoop",
-		Endpoint:    "[::]:12345",
-		monitorConfig: &hadoop.Config{
-			MonitorConfig: saconfig.MonitorConfig{
-				Type:                "collectd/hadoop",
-				IntervalSeconds:     345,
-				DatapointsToExclude: []saconfig.MetricFilter{},
-			},
-			CommonConfig: python.CommonConfig{},
-			Host:         "localhost",
-			Port:         8088,
-		},
-		acceptsEndpoints: true,
-	}, hadoopCfg)
-	require.NoError(t, hadoopCfg.Validate())
 
 	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "etcd").String())
 	require.NoError(t, err)

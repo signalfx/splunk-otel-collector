@@ -178,4 +178,4 @@ gogen:
 # CD's into SRC_ROOT so that this may be called/included from other Makefiles
 .PHONY: bundle.d
 bundle.d:
-	cd $(SRC_ROOT)/internal/confmapprovider/discovery/bundle/cmd/discoverybundler && go run .
+	cd $(SRC_ROOT)/cmd/discoverybundler && go run .

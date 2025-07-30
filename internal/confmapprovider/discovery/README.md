@@ -131,31 +131,44 @@ the components:
       <discovery receiver statement status entries>
 ```
 
-By default, the discovery mode is provided with pre-made discovery config components in [`bundle.d`](./bundle/README.md).
+## Bundled Discovery Components
+
+By default, the discovery mode is provided with pre-made discovery config components in `bundle.d`. These components are generated from YAML metadata files using the [`discoverybundler`](../../cmd/discoverybundler/) tool and embedded into the collector binary.
+
+The `bundle.d` directory contains:
+- `bundle.d/extensions/*.discovery.yaml` - Pre-configured observer extensions 
+- `bundle.d/receivers/*.discovery.yaml` - Pre-configured receiver components
+- `generated_bundledfs.go` - Embedded filesystem containing all bundled components
+
+To regenerate the bundled components after making changes to metadata:
+
+```bash
+make bundle.d
+```
 
 The following components have bundled discovery configurations in the last Splunk OpenTelemetry Collector release:
 
 I. Receivers
 
-* `apache` ([config](./bundle/bundle.d/receivers/apache.discovery.yaml))
-* `envoy` ([config](./bundle/bundle.d/receivers/envoy.discovery.yaml))
-* `istio` ([config](./bundle/bundle.d/receivers/istio.discovery.yaml))
-* `jmx/cassandra` ([config](./bundle/bundle.d/receivers/jmx-cassandra.discovery.yaml))
-* `kafkametrics` ([config](./bundle/bundle.d/receivers/kafkametrics.discovery.yaml))
-* `mongodb` ([config](./bundle/bundle.d/receivers/mongodb.discovery.yaml))
-* `mysql` ([config](./bundle/bundle.d/receivers/mysql.discovery.yaml))
-* `nginx` ([config](./bundle/bundle.d/receivers/nginx.discovery.yaml))
-* `oracledb` ([config](./bundle/bundle.d/receivers/oracledb.discovery.yaml))
-* `postgresql` ([config](./bundle/bundle.d/receivers/postgresql.discovery.yaml))
-* `rabbitmq` ([config](./bundle/bundle.d/receivers/rabbitmq.discovery.yaml))
-* `redis` ([config](./bundle/bundle.d/receivers/redis.discovery.yaml))
-* `sqlserver` ([config](./bundle/bundle.d/receivers/sqlserver.discovery.yaml))
+* `apache` ([config](./bundle.d/receivers/apache.discovery.yaml))
+* `envoy` ([config](./bundle.d/receivers/envoy.discovery.yaml))
+* `istio` ([config](./bundle.d/receivers/istio.discovery.yaml))
+* `jmx/cassandra` ([config](./bundle.d/receivers/jmx-cassandra.discovery.yaml))
+* `kafkametrics` ([config](./bundle.d/receivers/kafkametrics.discovery.yaml))
+* `mongodb` ([config](./bundle.d/receivers/mongodb.discovery.yaml))
+* `mysql` ([config](./bundle.d/receivers/mysql.discovery.yaml))
+* `nginx` ([config](./bundle.d/receivers/nginx.discovery.yaml))
+* `oracledb` ([config](./bundle.d/receivers/oracledb.discovery.yaml))
+* `postgresql` ([config](./bundle.d/receivers/postgresql.discovery.yaml))
+* `rabbitmq` ([config](./bundle.d/receivers/rabbitmq.discovery.yaml))
+* `redis` ([config](./bundle.d/receivers/redis.discovery.yaml))
+* `sqlserver` ([config](./bundle.d/receivers/sqlserver.discovery.yaml))
 
 II. Extensions
 
-* `docker_observer` ([config](./bundle/bundle.d/extensions/docker-observer.discovery.yaml))
-* `host_observer` ([config](./bundle/bundle.d/extensions/host-observer.discovery.yaml))
-* `k8s_observer` ([config](./bundle/bundle.d/extensions/k8s-observer.discovery.yaml))
+* `docker_observer` ([config](./bundle.d/extensions/docker-observer.discovery.yaml))
+* `host_observer` ([config](./bundle.d/extensions/host-observer.discovery.yaml))
+* `k8s_observer` ([config](./bundle.d/extensions/k8s-observer.discovery.yaml))
 
 ### Discovery properties
 

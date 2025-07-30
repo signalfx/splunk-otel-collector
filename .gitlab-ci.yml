@@ -1665,6 +1665,7 @@ release-nupkg:
   artifacts:
     paths:
       - .\dist\signed\*.nupkg
+      - .\dist\signed\*.msi
 
 choco-release:
   extends: .trigger-filter

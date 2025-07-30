@@ -28,6 +28,7 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/core/common/kubelet"
 	"github.com/signalfx/signalfx-agent/pkg/core/common/kubernetes"
 	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
+	"github.com/signalfx/signalfx-agent/pkg/monitors"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/cadvisor"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/hadoop"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/python"
@@ -43,6 +44,24 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/ntpq"
 	"github.com/signalfx/signalfx-agent/pkg/utils/timeutil"
 )
+
+type fakeConfig struct {
+	saconfig.MonitorConfig `yaml:",inline" acceptsEndpoints:"true"`
+	python.CommonConfig    `yaml:",inline"`
+	pyConf                 *python.Config
+	Host                   string `yaml:"host" validate:"required"`
+	Port                   uint16 `yaml:"port" validate:"required"`
+	EnhancedMetrics        *bool  `yaml:"enhancedMetrics"`
+}
+
+func init() {
+	monitors.Register(&monitors.Metadata{
+			MonitorType: "collectd/fake",
+		},
+		nil,
+		&fakeConfig{},
+	)
+}
 
 func TestLoadConfig(t *testing.T) {
 
@@ -205,7 +224,7 @@ func TestLoadInvalidConfigs(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
-	assert.Equal(t, 1, len(cfg.ToStringMap()))
+	assert.Equal(t, 2, len(cfg.ToStringMap()))
 
 	cm, err := cfg.Sub(component.MustNewIDWithName(typeStr, "negativeintervalseconds").String())
 	require.NoError(t, err)
@@ -225,6 +244,26 @@ func TestLoadInvalidConfigs(t *testing.T) {
 	err = negativeIntervalCfg.Validate()
 	require.Error(t, err)
 	require.EqualError(t, err, "intervalSeconds must be greater than 0s (-234 provided)")
+
+	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "missingrequired").String())
+	require.NoError(t, err)
+	missingRequiredCfg := CreateDefaultConfig().(*Config)
+	require.NoError(t, cm.Unmarshal(&missingRequiredCfg))
+	require.Equal(t, &Config{
+		MonitorType: "collectd/fake",
+		monitorConfig: &fakeConfig{
+			MonitorConfig: saconfig.MonitorConfig{
+				Type:                "collectd/fake",
+				IntervalSeconds:     0,
+				DatapointsToExclude: []saconfig.MetricFilter{},
+			},
+			Port: 5309,
+		},
+		acceptsEndpoints: true,
+	}, missingRequiredCfg)
+	err = missingRequiredCfg.Validate()
+	require.Error(t, err)
+	require.EqualError(t, err, "Validation error in field 'fakeConfig.host': host is a required field (got '')")
 }
 
 func TestLoadConfigWithEndpoints(t *testing.T) {

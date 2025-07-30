@@ -1,3 +1,7 @@
 smartagent/negativeintervalseconds:
   type: collectd/redis
   intervalSeconds: -234
+smartagent/missingrequired:
+  type: collectd/fake
+  port: 5309
+

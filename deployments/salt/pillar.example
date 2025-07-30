@@ -5,3 +5,5 @@ splunk-otel-collector:
   splunk_otel_collector_config: '/etc/otel/collector/agent_config.yaml'
   splunk_service_user: splunk-otel-collector
   splunk_service_group: splunk-otel-collector
+  # Command-line arguments to pass to the collector service.
+  splunk_otel_collector_command_line_args: ""

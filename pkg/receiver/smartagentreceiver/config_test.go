@@ -46,18 +46,17 @@ import (
 )
 
 type fakeConfig struct {
+	EnhancedMetrics        *bool `yaml:"enhancedMetrics"`
 	saconfig.MonitorConfig `yaml:",inline" acceptsEndpoints:"true"`
 	python.CommonConfig    `yaml:",inline"`
-	pyConf                 *python.Config
 	Host                   string `yaml:"host" validate:"required"`
 	Port                   uint16 `yaml:"port" validate:"required"`
-	EnhancedMetrics        *bool  `yaml:"enhancedMetrics"`
 }
 
 func init() {
 	monitors.Register(&monitors.Metadata{
-			MonitorType: "collectd/fake",
-		},
+		MonitorType: "collectd/fake",
+	},
 		nil,
 		&fakeConfig{},
 	)

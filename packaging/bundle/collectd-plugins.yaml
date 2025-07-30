@@ -1,8 +1,4 @@
 ---
-- name: consul
-  version: v1.1.1
-  repo: signalfx/collectd-consul
-
 - name: couchbase
   version: v1.2.0
   repo: signalfx/collectd-couchbase

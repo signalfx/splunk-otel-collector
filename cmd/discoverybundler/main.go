@@ -27,7 +27,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-type ComponentMetadata struct {
+type componentMetadata struct {
 	ComponentID    component.ID `yaml:"component_id"`
 	PropertiesTmpl string       `yaml:"properties_tmpl"`
 	FileName       string
@@ -57,14 +57,14 @@ func panicOnError(err error) {
 	}
 }
 
-func loadComponentMetadata(dir string) []ComponentMetadata {
-	var components []ComponentMetadata
+func loadComponentMetadata(dir string) []componentMetadata {
+	var components []componentMetadata
 	files, err := filepath.Glob(filepath.Join(dir, "*.yaml"))
 	panicOnError(err)
 	for _, file := range files {
 		data, err := os.ReadFile(file)
 		panicOnError(err)
-		var metadata ComponentMetadata
+		var metadata componentMetadata
 		panicOnError(yaml.Unmarshal(data, &metadata))
 		// Extract filename without extension
 		metadata.FileName = strings.TrimSuffix(filepath.Base(file), ".yaml")
@@ -79,8 +79,8 @@ func main() {
 		panic("failed to get current file path")
 	}
 	metadataDir := filepath.Join(filepath.Dir(thisFile), "metadata")
-	bundleDir := filepath.Join(filepath.Join(filepath.Dir(thisFile), "..", ".."), "bundle.d")
-	projectRoot := filepath.Join(filepath.Dir(thisFile), "..", "..", "..", "..", "..", "..")
+	projectRoot := filepath.Join(filepath.Dir(thisFile), "..", "..")
+	bundleDir := filepath.Join(projectRoot, "internal", "confmapprovider", "discovery", "bundle.d")
 	configDLinuxDir := filepath.Join(projectRoot, "cmd", "otelcol", "config", "collector", "config.d.linux")
 
 	// Generate properties files for extensions
@@ -101,7 +101,8 @@ func main() {
 		generateFile(receiver.PropertiesTmpl, configDLinuxFile, true, receiver.ComponentID)
 	}
 
-	genBundledFS(filepath.Join(filepath.Join(bundleDir, ".."), "bundledfs.tmpl"), extensions, receivers)
+	bundleFSTemplate := filepath.Join(projectRoot, "internal", "confmapprovider", "discovery", "bundledfs.tmpl")
+	genBundledFS(bundleFSTemplate, extensions, receivers)
 }
 
 func generateFile(propertiesTmpl string, outFile string, commented bool, componentID component.ID) {
@@ -141,7 +142,7 @@ func prependAllLines(content, prefix string) string {
 	return prefix + strings.TrimSuffix(prefixed, prefix)
 }
 
-func genBundledFS(bundleFSFile string, extensions, receivers []ComponentMetadata) {
+func genBundledFS(bundleFSFile string, extensions, receivers []componentMetadata) {
 	bundleFSTmpl, err := os.ReadFile(bundleFSFile)
 	panicOnError(err)
 

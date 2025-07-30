@@ -15,11 +15,12 @@ services:
     build: ./apachespark
     ports:
       - "4040:4040"
-  # Cassandra image for integration test:
+  # Cassandra image for integration & smartagent/jmx test:
   cassandra:
     image: quay.io/splunko11ytest/cassandra:latest
     profiles:
       - integration
+      - smartagent
     build: ./cassandra
     ports:
       - "7199:7199"

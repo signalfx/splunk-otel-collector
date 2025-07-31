@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.130.1-rc.0
+
 ### 🛑 Breaking changes 🛑
 
 - (Splunk) Remove, already deprecated, `collectd/consul` monitor. Please follow the documentation at https://developer.hashicorp.com/consul/docs/agent/monitor/telemetry to set up with statsd or prometheus receivers. ([#6505](https://github.com/signalfx/splunk-otel-collector/pull/6505))

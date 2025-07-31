@@ -225,3 +225,41 @@ service:
 		return false
 	}, 30*time.Second, 10*time.Millisecond, "Failed to receive expected metrics")
 }
+
+func TestNonDefaultGIDCanAccessPythonInAgentBundle(t *testing.T) {
+	testutils.SkipIfNotContainerTest(t)
+	tc := testutils.NewTestcase(t)
+	defer tc.PrintLogsOnFailure()
+	defer tc.ShutdownOTLPReceiverSink()
+
+	_, shutdown := tc.SplunkOtelCollectorContainer("couchbase_config.yaml",
+		func(c testutils.Collector) testutils.Collector {
+			cc := c.(*testutils.CollectorContainer)
+			cc.Container = cc.Container.WithUser("splunk-otel-collector:234567890")
+			return cc
+		},
+	)
+	defer shutdown()
+
+	require.EventuallyWithT(t, func(tt *assert.CollectT) {
+		if len(tc.OTLPReceiverSink.AllMetrics()) == 0 {
+			assert.Fail(tt, "No metrics collected")
+			return
+		}
+		metricsFound := map[string]struct{}{}
+		m := tc.OTLPReceiverSink.AllMetrics()[len(tc.OTLPReceiverSink.AllMetrics())-1]
+		for i := 0; i < m.ResourceMetrics().Len(); i++ {
+			rm := m.ResourceMetrics().At(i)
+			for j := 0; j < rm.ScopeMetrics().Len(); j++ {
+				sm := rm.ScopeMetrics().At(j)
+				for k := 0; k < sm.Metrics().Len(); k++ {
+					metric := sm.Metrics().At(k)
+					if metric.Name() == "gauge.storage.ram.quotaUsed" {
+						metricsFound[metric.Name()] = struct{}{}
+					}
+				}
+			}
+		}
+		assert.Equal(tt, 1, len(metricsFound))
+	}, 30*time.Second, 1*time.Second)
+}

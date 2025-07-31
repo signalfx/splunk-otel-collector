@@ -46,6 +46,29 @@ if [ -z "$VERSION" ]; then
     VERSION="$( get_version )"
 fi
 
+# Convert pre-release version format for MSI compatibility
+# e.g., v0.130.1-rc.0 -> 0.130.1.0, v0.130.1-beta.1 -> 0.130.1.1
+convert_version_for_msi() {
+    local version="$1"
+    version="${version#v}"
+    
+    if [[ "$version" =~ ^([0-9]+\.[0-9]+\.[0-9]+)-(rc|beta)\.([0-9]+)$ ]]; then
+        local base_version="${BASH_REMATCH[1]}"
+        local prerelease_type="${BASH_REMATCH[2]}"
+        local prerelease_number="${BASH_REMATCH[3]}"
+        
+        if [[ "$prerelease_type" == "rc" ]]; then
+            echo "${base_version}.$prerelease_number"
+        elif [[ "$prerelease_type" == "beta" ]]; then
+            echo "${base_version}.$((100 + prerelease_number))"
+        fi
+    else
+        echo "$version"
+    fi
+}
+
+MSI_VERSION=$(convert_version_for_msi "$VERSION")
+
 docker build -t msi-builder \
     --build-arg JMX_METRIC_GATHERER_RELEASE="${JMX_METRIC_GATHERER_RELEASE}" \
     --build-arg DOCKER_REPO="$DOCKER_REPO" \
@@ -55,8 +78,8 @@ docker rm -fv msi-builder 2>/dev/null || true
 docker run -d --name msi-builder msi-builder sleep inf
 docker exec \
     -e OUTPUT_DIR=/project/dist \
-    -e VERSION="${VERSION#v}" \
+    -e VERSION="$MSI_VERSION" \
     msi-builder /docker-entrypoint.sh
 mkdir -p "${REPO_DIR}/dist"
-docker cp msi-builder:/project/dist/splunk-otel-collector-${VERSION#v}-amd64.msi "${REPO_DIR}/dist/"
+docker cp msi-builder:/project/dist/splunk-otel-collector-${MSI_VERSION}-amd64.msi "${REPO_DIR}/dist/"
 docker rm -fv msi-builder

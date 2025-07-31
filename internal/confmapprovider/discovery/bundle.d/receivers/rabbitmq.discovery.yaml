@@ -16,7 +16,7 @@ rabbitmq:
       password: splunk.discovery.default
       collection_interval: 10s
       metrics:
-      # Enable all OOTB dashboard default metrics
+        # Enable all OOTB dashboard default metrics
         rabbitmq.node.disk_free:
             enabled: true
         rabbitmq.node.mem_used:

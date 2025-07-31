@@ -1680,13 +1680,9 @@ release-nupkg:
 choco-release:
   extends: .trigger-filter
   stage: publish-release
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "web" && $RELEASE_VERSION'
-      needs:
-        - job: manual_release_trigger
-          optional: true
-      when: on_success
-    - when: on_success
+  needs:
+    - job: manual_release_trigger
+      optional: true
     - job: release-nupkg
       artifacts: true
   tags:

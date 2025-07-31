@@ -65,15 +65,19 @@ manual_release_trigger:
       if ! echo "$RELEASE_VERSION" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+(-beta\.[0-9]+)?(-rc\.[0-9]+)?$'; then
         echo "RELEASE_VERSION must be in format v1.2.3 for stable releases and in the format v1.2.3-rc.0 or v1.2.3-beta.1 for pre-releases." && exit 1
       fi
-      # Validate version is in changelog
-      if ! grep -q "^## $RELEASE_VERSION" CHANGELOG.md; then
-        echo "Version $RELEASE_VERSION not found in CHANGELOG.md" && exit 1
+      if echo "$RELEASE_VERSION" | grep -Eq '-(beta|rc)\.[0-9]+$'; then
+        echo "Pre-release version detected ($RELEASE_VERSION). Skipping changelog validation."
+      else
+        # Validate version is in changelog only for stable releases
+        if ! grep -q "^## $RELEASE_VERSION" CHANGELOG.md; then
+          echo "Version $RELEASE_VERSION not found in CHANGELOG.md" && exit 1
+        fi
       fi
       echo "Manual release triggered for version $RELEASE_VERSION"
-  when: manual
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web" && $RELEASE_VERSION && $CI_COMMIT_BRANCH == "main"'
+      when: on_success
   allow_failure: false
-  only:
-    - main
   needs: []
 
 semgrep:
@@ -346,7 +350,9 @@ compile:
     - .go-cache
   tags: [large]
   stage: build
-  needs: []
+  needs:
+    - job: manual_release_trigger
+      optional: true
   parallel:
     matrix:
       - TARGET: [binaries-darwin_amd64, binaries-darwin_arm64, binaries-linux_amd64, binaries-linux_arm64, binaries-windows_amd64, binaries-linux_ppc64le]
@@ -371,7 +377,9 @@ otelcol-fips:
   extends:
     - .trigger-filter
   stage: build
-  needs: []
+  needs:
+    - job: manual_release_trigger
+      optional: true
   parallel:
     matrix:
       - GOOS: linux
@@ -400,7 +408,9 @@ otelcol-fips:
 libsplunk:
   extends: .trigger-filter
   stage: build
-  needs: []
+  needs:
+    - job: manual_release_trigger
+      optional: true
   retry: 2
   parallel:
     matrix:
@@ -422,7 +432,9 @@ agent-bundle-linux:
     - if: $CI_PIPELINE_SOURCE == "schedule"
     - <<: *manual-release-condition
   stage: build
-  needs: []
+  needs:
+    - job: manual_release_trigger
+      optional: true
   retry: 2
   resource_group: agent-bundle-linux-${ARCH}
   parallel:
@@ -449,7 +461,9 @@ agent-bundle-linux:
 agent-bundle-windows:
   extends: .trigger-filter
   stage: build
-  needs: []
+  needs:
+    - job: manual_release_trigger
+      optional: true
   tags:
     - splunk-otel-collector-windows
   variables:
@@ -468,6 +482,9 @@ agent-bundle-windows:
       - dist/agent-bundle_windows_amd64.zip
 .collector-ta-trigger:
   rules:
+    # exclude manual collector release
+    - if: $RELEASE_VERSION =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+      when: never
     - <<: *main-condition
     - <<: *no-schedules-condition
     - if: $CI_COMMIT_BRANCH =~ /^release\/technical-addon\/v[0-9]+\.[0-9]+\.[0-9]+$/
@@ -1106,8 +1123,9 @@ build-push-linux-image:
         IMAGE_TAG=${CI_COMMIT_BRANCH:-${CI_COMMIT_SHA}}
       fi
       LATEST_TAG=""
-      if [[ "${CI_COMMIT_BRANCH:-}" = "main" ]] || [[ "${CI_COMMIT_TAG:-}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || [[ -n "${RELEASE_VERSION:-}" ]]; then
-        # Only push latest tag for main and stable releases
+      VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
+      if [[ "${CI_COMMIT_BRANCH:-}" = "main" ]] || [[ "${VERSION_TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        # Only push latest tag for main and stable releases (no beta/rc)
         LATEST_TAG="latest"
       fi
     - echo "Building and pushing ${IMAGE_NAME}:${IMAGE_TAG}"
@@ -1147,9 +1165,10 @@ build-push-linux-fips-image:
     - |
       # Set env vars
       set -e
-      if [[ -n "${CI_COMMIT_TAG:-}" ]]; then
+      VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
+      if [[ -n "${VERSION_TAG}" ]]; then
         IMAGE_NAME="quay.io/signalfx/splunk-otel-collector-fips"
-        IMAGE_TAG=${CI_COMMIT_TAG#v}
+        IMAGE_TAG=${VERSION_TAG#v}
       else
         IMAGE_NAME="quay.io/signalfx/splunk-otel-collector-fips-dev"
         IMAGE_TAG=${CI_COMMIT_SHA}
@@ -1260,7 +1279,8 @@ build-push-windows-image:
         $IMAGE_TAG = "${env:CI_COMMIT_SHA}-${env:WIN_VERSION}"
       }
       $LATEST_TAG = ""
-      if ($env:CI_COMMIT_BRANCH -eq "main" -or $env:CI_COMMIT_TAG -match '^v\d+\.\d+\.\d+$' -or $env:RELEASE_VERSION) {
+      $VERSION_TAG = if ($env:RELEASE_VERSION) { $env:RELEASE_VERSION } else { $env:CI_COMMIT_TAG }
+      if ($env:CI_COMMIT_BRANCH -eq "main" -or $VERSION_TAG -match '^v\d+\.\d+\.\d+$') {
         # Only push latest tag for main and stable releases
         $LATEST_TAG = "latest-${env:WIN_VERSION}"
       }
@@ -1723,18 +1743,19 @@ push-multiarch-manifest:
     - docker login -u $CIRCLECI_QUAY_USERNAME -p $CIRCLECI_QUAY_PASSWORD quay.io
     - |
       # Set env vars
-      if [[ -n "${CI_COMMIT_TAG:-}" ]]; then
+      VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
+      if [[ -n "${VERSION_TAG}" ]]; then
         MANIFEST_NAME="quay.io/signalfx/splunk-otel-collector${FIPS}"
         WIN_MANIFEST_NAME="quay.io/signalfx/splunk-otel-collector${FIPS}-windows"
-        MANIFEST_TAG=${CI_COMMIT_TAG#v}
+        MANIFEST_TAG=${VERSION_TAG#v}
       else
         MANIFEST_NAME="quay.io/signalfx/splunk-otel-collector${FIPS}-dev"
         WIN_MANIFEST_NAME="quay.io/signalfx/splunk-otel-collector${FIPS}-windows-dev"
         MANIFEST_TAG=${CI_COMMIT_SHA}
       fi
       LATEST_TAG=""
-      if [[ "${CI_COMMIT_BRANCH:-}" = "main" ]] || [[ "${CI_COMMIT_TAG:-}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        # Only push latest manifest tag for main and stable releases
+      if [[ "${CI_COMMIT_BRANCH:-}" = "main" ]] || [[ "${VERSION_TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        # Only push latest manifest tag for main and stable releases (no beta/rc)
         LATEST_TAG="latest"
       fi
       if [[ "$MANIFEST" = "windows_multiarch" ]]; then
@@ -1868,8 +1889,6 @@ github-release:
   tags: [large]
   stage: publish-release
   needs:
-    - job: manual_release_trigger
-      optional: true
     - job: compile
       artifacts: true
     - job: otelcol-fips
@@ -1905,8 +1924,8 @@ github-release:
     - |
       set -e
       VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
-      # Rename agent bundles to include the version for stable releases
-      if [[ "$VERSION_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+      # Rename agent bundles to include the version for all releases (include pre-releases)
+      if [[ "$VERSION_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+.*$ ]]; then
         VERSION="${VERSION_TAG#v}"
         mv dist/assets/agent-bundle_linux_amd64.tar.gz dist/assets/agent-bundle_${VERSION}_linux_amd64.tar.gz
         mv dist/assets/agent-bundle_linux_amd64.tar.gz.asc dist/assets/agent-bundle_${VERSION}_linux_amd64.tar.gz.asc
@@ -1919,7 +1938,7 @@ github-release:
       pushd dist/assets && shasum -a 256 * > checksums.txt && popd
       # Tag if this is a manual release (RELEASE_VERSION set, CI_COMMIT_TAG not set)
       if [[ -n "${RELEASE_VERSION:-}" && -z "${CI_COMMIT_TAG:-}" ]]; then
-        ./packaging/release/create-github-tag.sh "$VERSION_TAG" "$CI_COMMIT_SHA"
+        ./.gitlab/create-github-tag.sh "$VERSION_TAG" "$CI_COMMIT_SHA"
       fi
       # Only create github release for stable release tags
       if [[ "$VERSION_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then

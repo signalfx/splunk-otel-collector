@@ -70,10 +70,10 @@ manual_release_trigger:
         echo "Version $RELEASE_VERSION not found in CHANGELOG.md" && exit 1
       fi
       echo "Manual release triggered for version $RELEASE_VERSION"
-  when: manual
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web" && $RELEASE_VERSION && ($CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "update_ci_rc_tag")'
+      when: on_success
   allow_failure: false
-  only:
-    - main
   needs: []
 
 semgrep:
@@ -159,7 +159,7 @@ fossa:
     - &release-condition
       if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
     - &manual-release-condition
-      if: $RELEASE_VERSION =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/ && $CI_COMMIT_BRANCH == "main"
+      if: $RELEASE_VERSION =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/ && ($CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "update_ci_rc_tag")
     - &no-schedules-condition
       if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
@@ -346,7 +346,9 @@ compile:
     - .go-cache
   tags: [large]
   stage: build
-  needs: []
+  needs:
+    - job: manual_release_trigger
+      optional: true
   parallel:
     matrix:
       - TARGET: [binaries-darwin_amd64, binaries-darwin_arm64, binaries-linux_amd64, binaries-linux_arm64, binaries-windows_amd64, binaries-linux_ppc64le]
@@ -371,7 +373,9 @@ otelcol-fips:
   extends:
     - .trigger-filter
   stage: build
-  needs: []
+  needs:
+    - job: manual_release_trigger
+      optional: true
   parallel:
     matrix:
       - GOOS: linux
@@ -400,7 +404,9 @@ otelcol-fips:
 libsplunk:
   extends: .trigger-filter
   stage: build
-  needs: []
+  needs:
+    - job: manual_release_trigger
+      optional: true
   retry: 2
   parallel:
     matrix:
@@ -422,7 +428,9 @@ agent-bundle-linux:
     - if: $CI_PIPELINE_SOURCE == "schedule"
     - <<: *manual-release-condition
   stage: build
-  needs: []
+  needs:
+    - job: manual_release_trigger
+      optional: true
   retry: 2
   resource_group: agent-bundle-linux-${ARCH}
   parallel:
@@ -449,7 +457,9 @@ agent-bundle-linux:
 agent-bundle-windows:
   extends: .trigger-filter
   stage: build
-  needs: []
+  needs:
+    - job: manual_release_trigger
+      optional: true
   tags:
     - splunk-otel-collector-windows
   variables:
@@ -1670,9 +1680,13 @@ release-nupkg:
 choco-release:
   extends: .trigger-filter
   stage: publish-release
-  needs:
-    - job: manual_release_trigger
-      optional: true
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web" && $RELEASE_VERSION'
+      needs:
+        - job: manual_release_trigger
+          optional: true
+      when: on_success
+    - when: on_success
     - job: release-nupkg
       artifacts: true
   tags:
@@ -1868,8 +1882,6 @@ github-release:
   tags: [large]
   stage: publish-release
   needs:
-    - job: manual_release_trigger
-      optional: true
     - job: compile
       artifacts: true
     - job: otelcol-fips

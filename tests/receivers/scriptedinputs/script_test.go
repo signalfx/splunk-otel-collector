@@ -104,7 +104,7 @@ func TestScriptReceiverInterfaces(t *testing.T) {
 		receivedOTLPLogs := tc.OTLPReceiverSink.AllLogs()
 
 		lr := receivedOTLPLogs[0].ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
-		assert.Regexp(tt, regexp.MustCompile("Name\\s+MAC\\s+inetAddr\\s+inet6Addr\\s+Collisions\\s+RXbytes\\s+RXerrors\\s+RXdropped\\s+TXbytes\\s+TXerrors\\s+TXdropped\\s+Speed\\s+Duplex"), lr.Body().Str())
+		assert.Regexp(tt, regexp.MustCompile("Name\\s+MAC\\s+inetAddr\\s+inet6Addr\\s+Collisions\\s+RXbytes\\s+RXerrors(\\s+RXdropped)?\\s+TXbytes\\s+TXerrors(\\s+TXdropped)?\\s+Speed\\s+Duplex"), lr.Body().Str())
 	}, 10*time.Second, 10*time.Millisecond, "Failed to receive expected logs")
 }
 

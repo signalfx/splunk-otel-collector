@@ -1118,7 +1118,7 @@ build-push-linux-image:
         IMAGE_TAG=${CI_COMMIT_TAG#v}
       else
         IMAGE_NAME="quay.io/signalfx/splunk-otel-collector-dev"
-        IMAGE_TAG=${CI_COMMIT_BRANCH:-${CI_COMMIT_SHA}}
+        IMAGE_TAG=${CI_COMMIT_SHA}
       fi
       LATEST_TAG=""
       VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"

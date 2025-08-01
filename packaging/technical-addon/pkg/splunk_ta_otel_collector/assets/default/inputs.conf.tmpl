@@ -1,0 +1,24 @@
+[monitor://$SPLUNK_HOME/var/log/splunk/otel.log]
+_TCP_ROUTING = *
+index = _internal
+sourcetype = Splunk_TA_otel
+
+[monitor://$SPLUNK_HOME/var/log/splunk/{{ .SchemaName }}.log]
+_TCP_ROUTING = *
+index = _internal
+sourcetype = {{ .SchemaName }}
+
+[{{ .SchemaName }}://{{ .SchemaName }}]
+disabled=false
+start_by_shell=false
+interval=0
+index=_internal
+sourcetype={{ .SchemaName }}
+
+{{- range $name, $inputConfig := .ModularInputs }}
+{{- if $inputConfig.Default }}
+{{ $name }}={{ $inputConfig.Default }}
+{{- else if $inputConfig.Required }}
+{{ $name }}=
+{{- end }}
+{{- end }}

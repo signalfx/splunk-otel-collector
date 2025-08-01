@@ -1227,9 +1227,6 @@ build-push-windows-image:
   parallel:
     matrix:
       - WIN_VERSION: ["2019", "2022"]
-  needs:
-    - job: manual_release_trigger
-      optional: true
   dependencies:
     - sign-exe
     - agent-bundle-windows

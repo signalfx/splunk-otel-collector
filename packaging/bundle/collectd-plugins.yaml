@@ -1,8 +1,4 @@
 ---
-- name: consul
-  version: v1.1.1
-  repo: signalfx/collectd-consul
-
 - name: couchbase
   version: v1.2.0
   repo: signalfx/collectd-couchbase
@@ -40,10 +36,6 @@
 - name: zookeeper
   version: v0.1.4
   repo: signalfx/collectd-zookeeper
-
-- name: vmstat
-  version: v1.0.0
-  repo: signalfx/vmstat-collectd
 
 - name: systemd
   version: v1.1.0

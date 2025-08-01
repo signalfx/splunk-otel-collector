@@ -23,7 +23,6 @@ import (
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/kafkaproducer"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/memcached"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/memory"
-	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/mysql"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/nginx"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/processes"
 	_ "github.com/signalfx/signalfx-agent/pkg/monitors/collectd/protocols"

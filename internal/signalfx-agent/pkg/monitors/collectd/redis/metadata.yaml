@@ -3,6 +3,8 @@ monitors:
     plugin_instance:
       description: Identifies the Redis instance -- will be of the form `<host>_<port>`.
   doc: |
+    **This plugin is deprecated and will be removed by the end of October 2025. Please follow the documentation to set up the redis receiver.**
+
     Monitors a redis instance using the [collectd Python Redis
     plugin](https://github.com/signalfx/redis-collectd-plugin).  Supports Redis
     2.8 and later.

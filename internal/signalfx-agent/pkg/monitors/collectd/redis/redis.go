@@ -79,7 +79,7 @@ type Monitor struct {
 
 // Configure configures and runs the plugin in collectd
 func (rm *Monitor) Configure(conf *Config) error {
-
+	rm.Logger().Warn("[NOTICE] The collectd/redis plugin is deprecated. Please use the redis receiver instead. This plugin will be removed by the end of October 2025.")
 	instanceID := conf.Name
 	if conf.Name == "" {
 		instanceID = fmt.Sprintf("%s:%d", conf.Host, conf.Port)

@@ -15,7 +15,7 @@
 ARG ARCH=amd64
 ARG JDK_VERSION=11.0.28_6
 ARG MAVEN_VERSION=3.6.0
-ARG PYTHON_VERSION=3.13.4
+ARG PYTHON_VERSION=3.13.5
 ARG PIP_VERSION=24.2
 ARG COLLECTD_VERSION=5.8.0-sfx0
 ARG COLLECTD_COMMIT=4d3327b14cf4359029613baf4f90c4952702105e
@@ -23,13 +23,13 @@ ARG DOCKER_REPO=docker.io
 
 
 ######## Base image for subsequent stages ########
-FROM ${DOCKER_REPO}/ubuntu:24.04 AS base
+FROM ${DOCKER_REPO}/python:${PYTHON_VERSION} AS base
 
 ARG ARCH
+
 ENV DEBIAN_FRONTEND noninteractive
 
-RUN sed -i -e '/^deb-src/d' /etc/apt/sources.list && \
-    apt-get update
+RUN apt-get update
 
 
 ######## Java monitor dependencies and monitor jar compilation ########
@@ -151,14 +151,7 @@ RUN apt-get update && apt-get install -qq -y \
       quilt \
       zlib1g-dev
 
-RUN wget -nv https://dev.mysql.com/get/mysql-apt-config_0.8.12-1_all.deb && \
-    mkdir -p ~/.gnupg && \
-    chmod 700 ~/.gnupg && \
-    echo "disable-ipv6" >> ~/.gnupg/dirmngr.conf && \
-    apt-key adv --homedir ~/.gnupg --keyserver keyserver.ubuntu.com --recv-keys B7B3B788A8D3785C && \
-    dpkg -i mysql-apt-config_0.8.12-1_all.deb && \
-    rm -f mysql-apt-config_0.8.12-1_all.deb && \
-    apt-get update -qq && apt-get install -qq -y libmysqlclient-dev libcurl4-gnutls-dev
+RUN apt-get update -qq && apt-get install -qq -y libcurl4-gnutls-dev
 
 RUN wget -nv -O /tmp/Python-${PYTHON_VERSION}.tgz https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz &&\
     cd /tmp &&\

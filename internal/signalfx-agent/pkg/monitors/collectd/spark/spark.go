@@ -42,7 +42,7 @@ type Config struct {
 	// Set to `true` when monitoring a master Spark node
 	IsMaster bool `yaml:"isMaster" default:"false"`
 	// Should be one of `Standalone` or `Mesos` or `Yarn`.  Cluster metrics will
-	// not be collected on Yarn.  Please use the collectd/hadoop monitor to gain
+	// not be collected on Yarn.  Use the jmxreceiver with the hadoop target to gain
 	// insights to your cluster's health.
 	ClusterType               sparkClusterType `yaml:"clusterType" validate:"required"`
 	CollectApplicationMetrics bool             `yaml:"collectApplicationMetrics"`

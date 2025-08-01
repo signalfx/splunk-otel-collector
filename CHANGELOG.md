@@ -5,6 +5,16 @@
 ### 🛑 Breaking changes 🛑
 
 - (Splunk) Remove, already deprecated, `collectd/consul` monitor. Please follow the documentation at https://developer.hashicorp.com/consul/docs/agent/monitor/telemetry to set up with statsd or prometheus receivers. ([#6505](https://github.com/signalfx/splunk-otel-collector/pull/6505))
+- (Splunk) Remove, already deprecated, `collectd/genericjmx` and all related monitors. Please use the [jmxreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jmxreceiver) instead with the appropriate target system. 
+  Removed monitors that relied on `collectd/genericjmx` ([#6510](https://github.com/signalfx/splunk-otel-collector/pull/6510)):
+  - `collectd/activemq` replace with `activemq` target with the [jmxreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jmxreceiver).
+  - `collectd/cassandra` replace with `cassandra` target with the [jmxreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jmxreceiver).
+  - `collectd/hadoop` replace with `hadoop` target with the [jmxreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jmxreceiver).
+  - `collectd/kafka` replace with `kafka` target with the [jmxreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jmxreceiver).
+  - `collectd/kafka-consumer` replace with `kafka` target with the [jmxreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jmxreceiver).
+  - `collectd/kafka-producer` replace with `kafka` target with the [jmxreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jmxreceiver).
+  - `collectd/solr` replace with `solr` target with the [jmxreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jmxreceiver).
+  - `collectd/tomcat` replace with `tomcat` target with the [jmxreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jmxreceiver).
 - (Splunk) Remove, already deprecated, `collectd/mysql` monitor. Use the [mysql receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/mysqlreceiver) instead. ([#6487](https://github.com/signalfx/splunk-otel-collector/pull/6487))
 
 ### 🚩 Deprecations 🚩

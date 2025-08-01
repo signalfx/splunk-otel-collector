@@ -8,6 +8,8 @@ To create a new addon,
 1. Determine the name of your addon, ex `Sample_Addon`
 1. Make a new directory under `packaging/technical-addon/pkg/` with the lower-cased name of your new addon (ex `packaging/technical-addon/pkg/Sample_Addon`)
 1. In this newly created directory, create a new `runners/modular-inputs.yaml` (see below for details)
+1. Add the value of `schema-name` from your new `runners/modular-inputs.yaml` to the `MODULAR_INPUT_SCHEMAS` array in the `Makefile` (the one under `packaging/technical-addon/`)
+1. Run `make gen-modinput-config` to generate a golang file
 1. In this newly created directory, create a new `assets/inputs.conf.tmpl` and `assets/inputs.conf.spec.tmpl`.  See below for examples. Edit these as nescessary, but the defaults should be good enough for most cases.
 1. In this newly created directory, create a new main module under ex `runner/main.go`.  This runner will actually invoke whatever logic you wish the addon to perform.
 1. If you need windows/linux specific code, feel free to use golang build flags to implement any such need.

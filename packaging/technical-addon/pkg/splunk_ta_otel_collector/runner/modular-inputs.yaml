@@ -1,0 +1,79 @@
+modular-input-schema-name: Splunk_TA_otel_collector
+version: 0.0.0
+modular-inputs:
+  splunk_otel_log_file:
+    description: "Log file for otel collector."
+    default: "$SPLUNK_HOME/var/log/splunk/otel.log"
+    replaceable: true
+  splunk_access_token_file:
+    description: "File whose contents store the credentials to be set in `SPLUNK_ACCESS_TOKEN` (used to auth with Splunk Observability Cloud, default `$SPLUNK_OTEL_TA_HOME/local/access_token`)."
+    default: "$SPLUNK_TA_HOME/default/access_token"
+    replaceable: true
+  # Below are command line flags that are passed to/configure the collector, such as for discovery
+  discovery:
+    description: "Boolean, if `true` will enable `--discovery`"
+    flag:
+      name: "discovery"
+      is-unary: true
+  discovery_properties:
+    description: "String, same as `--discovery-properties` parameter.  See [properties reference](https://github.com/signalfx/splunk-otel-collector/blob/v0.114.0/internal/confmapprovider/discovery/README.md?plain=1#L175)"
+    flag:
+      name: "discovery-properties"
+      is-unary: false
+  configd:
+    description: "Boolean, if `true` will enable `--configd`"
+    flag:
+      name: "configd"
+      is-unary: false
+  # Below are all "pass through" configuration options that will enable environment variables supported in
+  # https://github.com/signalfx/splunk-otel-collector/blob/main/internal/settings/settings.go#L37-L64
+  gomemlimit:
+    description: "Value to use for the `GOMEMLIMIT` environment variable"
+    passthrough: true
+  splunk_api_url:
+    description: "Value to use for the `SPLUNK_API_URL` environment variable"
+    passthrough: true
+  splunk_bundle_dir:
+    description: "Value to use for the `SPLUNK_BUNDLE_DIR` environment variable (used in smart agent config, default `$SPLUNK_OTEL_TA_PLATFORM_HOME/bin/agent-bundle`).  NOTE: Once extracted, please do not move the folder structure, as some \"first-run\" patching occurs that depends on the directory it was run in.  Instead, allow the TA to re-extract to the new location if changed."
+    passthrough: true
+    replaceable: true
+    default: "$SPLUNK_OTEL_TA_PLATFORM_HOME/bin/agent-bundle"
+  splunk_collectd_dir:
+    description: "Value to use for the `SPLUNK_COLLECTD_DIR` environment variable (used in smart agent config, default `$SPLUNK_OTEL_TA_PLATFORM_HOME/bin/agent-bundle/run/collectd`)"
+    passthrough: true
+    replaceable: true
+    default: "$SPLUNK_OTEL_TA_PLATFORM_HOME/bin/agent-bundle/run/collectd"
+  splunk_config:
+    description: "Value to use for the `SPLUNK_CONFIG` environment variable (default `$SPLUNK_OTEL_TA_HOME/config/ta_agent_config.yaml`)"
+    passthrough: true
+    replaceable: true
+    default: "$SPLUNK_OTEL_TA_HOME/config/ta_agent_config.yaml"
+  splunk_config_dir:
+    description: "Value to use for the `SPLUNK_CONFIG_DIR` environment variable (default `$SPLUNK_OTEL_TA_HOME/config/`).  Same as `--configd` parameter as defined in https://github.com/signalfx/splunk-otel-collector/blob/v0.114.0/internal/confmapprovider/discovery/README.md?plain=1#L47"
+    passthrough: true
+    replaceable: true
+    default: "$SPLUNK_OTEL_TA_HOME/config/"
+  splunk_debug_config_server:
+    description: "Value to use for the `SPLUNK_DEBUG_CONFIG_SERVER` environment variable"
+    passthrough: true
+  splunk_config_yaml:
+    description: "Value to use for the `SPLUNK_CONFIG_YAML` environment variable"
+    passthrough: true
+  splunk_listen_interface:
+    description: "Value to use for the `SPLUNK_LISTEN_INTERFACE` environment variable"
+    passthrough: true
+  splunk_gateway_url:
+    description: "Value to use for the `SPLUNK_GATEWAY_URL` environment variable"
+    passthrough: true
+  splunk_memory_limit_mib:
+    description: "Value to use for the `SPLUNK_MEMORY_LIMIT_MIB` environment variable"
+    passthrough: true
+  splunk_memory_total_mib:
+    description: "Value to use for the `SPLUNK_MEMORY_TOTAL_MIB` environment variable"
+    passthrough: true
+  splunk_ingest_url:
+    description: "Endpoint for `SPLUNK_API_URL`"
+    passthrough: true
+  splunk_realm:
+    description: "Splunk Observability realm to use for the `SPLUNK_REALM` environment variable (ex us0)"
+    passthrough: true

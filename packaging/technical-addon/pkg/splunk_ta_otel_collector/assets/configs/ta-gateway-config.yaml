@@ -1,0 +1,154 @@
+# Configuration file that uses the Splunk exporters (SAPM, SignalFx) to push
+# data to Splunk products.
+
+extensions:
+  headers_setter:
+    headers:
+      - action: upsert
+        key: X-SF-TOKEN
+        from_context: X-SF-TOKEN
+        default_value: "${SPLUNK_ACCESS_TOKEN}"
+  health_check:
+    endpoint: "${env:SPLUNK_LISTEN_INTERFACE}:13133"
+  http_forwarder:
+    ingress:
+      endpoint: "${env:SPLUNK_LISTEN_INTERFACE}:6060"
+    egress:
+      endpoint: "https://api.${env:SPLUNK_REALM}.signalfx.com"
+  zpages:
+    endpoint: "${env:SPLUNK_LISTEN_INTERFACE}:55679"
+
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+        endpoint: "${env:SPLUNK_LISTEN_INTERFACE}:14250"
+      thrift_binary:
+        endpoint: "${env:SPLUNK_LISTEN_INTERFACE}:6832"
+      thrift_compact:
+        endpoint: "${env:SPLUNK_LISTEN_INTERFACE}:6831"
+      thrift_http:
+        endpoint: "${env:SPLUNK_LISTEN_INTERFACE}:14268"
+  otlp:
+    protocols:
+      grpc:
+        endpoint: "${env:SPLUNK_LISTEN_INTERFACE}:4317"
+        # Uncomment below config to preserve incoming access token and use it instead of the token value set in exporter config
+        # include_metadata: true
+      http:
+        endpoint: "${env:SPLUNK_LISTEN_INTERFACE}:4318"
+        # Uncomment below config to preserve incoming access token and use it instead of the token value set in exporter config
+        # include_metadata: true
+  # This section is used to collect the OpenTelemetry Collector metrics
+  # Even if just a Splunk APM customer, these metrics are included
+  prometheus/internal:
+    config:
+      scrape_configs:
+      - job_name: 'otel-collector'
+        scrape_interval: 10s
+        static_configs:
+        - targets: ['${env:SPLUNK_LISTEN_INTERFACE}:8888']
+        metric_relabel_configs:
+          - source_labels: [ __name__ ]
+            regex: 'promhttp_metric_handler_errors.*'
+            action: drop
+          - source_labels: [ __name__ ]
+            regex: 'otelcol_processor_batch_.*'
+            action: drop
+  sapm:
+    endpoint: "${env:SPLUNK_LISTEN_INTERFACE}:7276"
+    # Whether to preserve incoming access token and use instead of exporter token
+    # default = false
+    #access_token_passthrough: true
+  signalfx:
+    endpoint: "${env:SPLUNK_LISTEN_INTERFACE}:9943"
+    # Whether to preserve incoming access token and use instead of exporter token
+    # default = false
+    #access_token_passthrough: true
+  zipkin:
+    endpoint: "${env:SPLUNK_LISTEN_INTERFACE}:9411"
+
+processors:
+  batch:
+    metadata_keys:
+      - X-SF-Token
+  # Enabling the memory_limiter is strongly recommended for every pipeline.
+  # Configuration is based on the amount of memory allocated to the collector.
+  # For more information about memory limiter, see
+  # https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiter/README.md
+  memory_limiter:
+    check_interval: 2s
+    limit_mib: ${env:SPLUNK_MEMORY_LIMIT_MIB}
+
+  # Optional: The following processor can be used to add a default "deployment.environment" attribute to the traces
+  # when it's not populated by instrumentation libraries.
+  # If enabled, make sure to enable this processor in the pipeline below.
+  #resource/add_environment:
+    #attributes:
+      #- action: insert
+        #value: staging/production/...
+        #key: deployment.environment
+
+  # Detect if the collector is running on a cloud system. Overrides resource attributes set by receivers.
+  # Detector order is important: the `system` detector goes last so it can't preclude cloud detectors from setting host/os info.
+  # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/resourcedetectionprocessor#ordering
+  resourcedetection/internal:
+    detectors: [gcp, ecs, ec2, azure, system]
+    override: true
+
+  resource/telemetry:
+    attributes:
+      - action: insert
+        value: otel-ta-gateway-agent
+        key: splunk.distribution
+
+exporters:
+  # Traces
+  otlphttp:
+    traces_endpoint: "${SPLUNK_INGEST_URL}/v2/trace/otlp"
+    sending_queue:
+      num_consumers: 32
+    headers:
+      "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
+    auth:
+      authenticator: headers_setter
+  # Metrics + Events
+  signalfx:
+    access_token: "${env:SPLUNK_ACCESS_TOKEN}"
+    realm: "${env:SPLUNK_REALM}"
+    sending_queue:
+      num_consumers: 32
+    ## Uncomment below if your agents are sending via signalfx exporter
+    ## to avoid double translations and exclusions.
+    #translation_rules: []
+    #exclude_metrics: []
+  signalfx/internal:
+    access_token: "${env:SPLUNK_ACCESS_TOKEN}"
+    realm: "${env:SPLUNK_REALM}"
+    sync_host_metadata: true
+  # Debug
+  #debug:
+    #verbosity: detailed
+
+service:
+  extensions: [headers_setter, health_check, http_forwarder, zpages]
+  pipelines:
+    traces:
+      receivers: [jaeger, otlp, sapm, zipkin]
+      processors:
+      - memory_limiter
+      - batch
+      #- resource/add_environment
+      exporters: [otlphttp]
+    metrics:
+      receivers: [otlp, signalfx]
+      processors: [memory_limiter, batch]
+      exporters: [signalfx]
+    metrics/internal:
+      receivers: [prometheus/internal]
+      processors: [memory_limiter, batch, resourcedetection/internal, resource/telemetry]
+      exporters: [signalfx/internal]
+    logs/signalfx:
+      receivers: [signalfx]
+      processors: [memory_limiter, batch]
+      exporters: [signalfx]

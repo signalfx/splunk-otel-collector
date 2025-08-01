@@ -16,7 +16,10 @@ REPO_URL="https://srv-gh-o11y-gdi:${GITHUB_TOKEN}@github.com/${REPO}.git"
 
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-source "$SCRIPT_DIR/../../../.gitlab/common.sh"
+source "$SCRIPT_DIR/common.sh"
+
+ROOT_DIR="${SCRIPT_DIR}/../"
+cd "${ROOT_DIR}"
 
 setup_gpg
 import_gpg_secret_key "$GITHUB_BOT_GPG_KEY"

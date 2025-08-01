@@ -3,10 +3,6 @@
   version: v1.2.0
   repo: signalfx/collectd-couchbase
 
-- name: hadoop
-  version: v1.1.0
-  repo: signalfx/collectd-hadoop
-
 - name: jenkins
   version: v2.7.0
   repo: signalfx/collectd-jenkins
@@ -24,10 +20,6 @@
 - name: redis
   version: v1.2.2
   repo: signalfx/redis-collectd-plugin
-
-- name: solr
-  version: v1.2.1
-  repo: signalfx/collectd-solr
 
 - name: spark
   version: v1.1.0

@@ -182,7 +182,7 @@ jobs:
       # Not all images used in the docker-compose have arm64 support, for those it is necessary to use qemu
       # Here is the list of "services" (see above) that don't support arm64:
       # On profile integration: oracle
-      # On profile smartagent: activemq, and httpd
+      # On profile smartagent: httpd
       - uses: docker/setup-qemu-action@v3
         if: ${{ matrix.ARCH != 'amd64' }}
         with:

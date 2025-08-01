@@ -1,14 +1,19 @@
 receivers:
-  smartagent/collectd_tomcat:
-    type: collectd/tomcat
+  smartagent/collectd_couchbase:
+    type: collectd/couchbase
     host: localhost
-    port: 5000
+    port: 8091
+    collectTarget: NODE
+    username: administrator
+    password: password
+    extraMetrics: ["*"]
     intervalSeconds: 1
+
 processors:
   batch:
   groupbyattrs:
     keys:
-      - host
+      - node
 exporters:
   otlp:
     endpoint: "${OTLP_ENDPOINT}"
@@ -19,6 +24,6 @@ service:
   pipelines:
     metrics:
       receivers:
-        - smartagent/collectd_tomcat
+        - smartagent/collectd_couchbase
       processors: [batch, groupbyattrs]
       exporters: [otlp]

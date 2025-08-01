@@ -26,7 +26,7 @@ monitors:
 
     When running Spark on Apache Hadoop / YARN, this integration is only capable
     of reporting application metrics from the master node.  Use the
-    collectd/hadoop monitor to report on the health of the cluster.
+    jmxreceiver with the hadoop target to report on the health of the cluster.
 
     <!--- SETUP --->
     ### Example config:

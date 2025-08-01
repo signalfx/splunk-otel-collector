@@ -29,7 +29,6 @@ type MonitorCore struct {
 	config                   config.MonitorCustomConfig
 	monitorID                types.MonitorID
 	lock                     sync.Mutex
-	UsesGenericJMX           bool
 	collectdInstanceOverride *Manager
 	logger                   log.FieldLogger
 }
@@ -111,7 +110,7 @@ func (mc *MonitorCore) SetConfigurationAndRun(conf config.MonitorCustomConfig, o
 // SetConfiguration adds various fields from the config to the template context
 // but does not render the config.
 func (mc *MonitorCore) SetConfiguration() error {
-	return mc.collectdInstance().ConfigureFromMonitor(mc.monitorID, mc.Output, mc.UsesGenericJMX)
+	return mc.collectdInstance().ConfigureFromMonitor(mc.monitorID, mc.Output)
 }
 
 // WriteConfigForPlugin will render the config template to the filesystem and

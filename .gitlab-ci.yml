@@ -1165,9 +1165,10 @@ build-push-linux-fips-image:
     - |
       # Set env vars
       set -e
-      if [[ -n "${CI_COMMIT_TAG:-}" ]]; then
+      VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
+      if [[ -n "${VERSION_TAG}" ]]; then
         IMAGE_NAME="quay.io/signalfx/splunk-otel-collector-fips"
-        IMAGE_TAG=${CI_COMMIT_TAG#v}
+        IMAGE_TAG=${VERSION_TAG#v}
       else
         IMAGE_NAME="quay.io/signalfx/splunk-otel-collector-fips-dev"
         IMAGE_TAG=${CI_COMMIT_SHA}

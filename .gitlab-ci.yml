@@ -1938,7 +1938,7 @@ github-release:
       pushd dist/assets && shasum -a 256 * > checksums.txt && popd
       # Tag if this is a manual release (RELEASE_VERSION set, CI_COMMIT_TAG not set)
       if [[ -n "${RELEASE_VERSION:-}" && -z "${CI_COMMIT_TAG:-}" ]]; then
-        ./packaging/release/create-github-tag.sh "$VERSION_TAG" "$CI_COMMIT_SHA"
+        ./.gitlab/create-github-tag.sh "$VERSION_TAG" "$CI_COMMIT_SHA"
       fi
       # Only create github release for stable release tags
       if [[ "$VERSION_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then

@@ -9,15 +9,6 @@ resourceMetrics:
                     - key: foo
                       value:
                         stringValue: bar
-                    - key: otel_scope_name
-                      value:
-                        stringValue: go.opentelemetry.io/collector/service
-                    - key: otel_scope_schema_url
-                      value:
-                        stringValue: ""
-                    - key: otel_scope_version
-                      value:
-                        stringValue: ""
                     - key: service_instance_id
                       value:
                         stringValue: d2e3467b-9645-4682-829e-6b45efec8375
@@ -40,15 +31,6 @@ resourceMetrics:
                     - key: foo
                       value:
                         stringValue: bar
-                    - key: otel_scope_name
-                      value:
-                        stringValue: go.opentelemetry.io/collector/receiver/receiverhelper
-                    - key: otel_scope_schema_url
-                      value:
-                        stringValue: ""
-                    - key: otel_scope_version
-                      value:
-                        stringValue: ""
                     - key: receiver
                       value:
                         stringValue: smartagent/prometheus-exporter
@@ -77,15 +59,6 @@ resourceMetrics:
                     - key: foo
                       value:
                         stringValue: bar
-                    - key: otel_scope_name
-                      value:
-                        stringValue: go.opentelemetry.io/collector/receiver/receiverhelper
-                    - key: otel_scope_schema_url
-                      value:
-                        stringValue: ""
-                    - key: otel_scope_version
-                      value:
-                        stringValue: ""
                     - key: receiver
                       value:
                         stringValue: smartagent/prometheus-exporter
@@ -117,15 +90,6 @@ resourceMetrics:
                     - key: foo
                       value:
                         stringValue: bar
-                    - key: otel_scope_name
-                      value:
-                        stringValue: go.opentelemetry.io/collector/exporter/exporterhelper
-                    - key: otel_scope_schema_url
-                      value:
-                        stringValue: ""
-                    - key: otel_scope_version
-                      value:
-                        stringValue: ""
                     - key: service_instance_id
                       value:
                         stringValue: d2e3467b-9645-4682-829e-6b45efec8375
@@ -148,15 +112,6 @@ resourceMetrics:
                     - key: foo
                       value:
                         stringValue: bar
-                    - key: otel_scope_name
-                      value:
-                        stringValue: go.opentelemetry.io/collector/service
-                    - key: otel_scope_schema_url
-                      value:
-                        stringValue: ""
-                    - key: otel_scope_version
-                      value:
-                        stringValue: ""
                     - key: service_instance_id
                       value:
                         stringValue: d2e3467b-9645-4682-829e-6b45efec8375
@@ -199,15 +154,6 @@ resourceMetrics:
                     - key: foo
                       value:
                         stringValue: bar
-                    - key: otel_scope_name
-                      value:
-                        stringValue: go.opentelemetry.io/collector/service
-                    - key: otel_scope_schema_url
-                      value:
-                        stringValue: ""
-                    - key: otel_scope_version
-                      value:
-                        stringValue: ""
                     - key: service_instance_id
                       value:
                         stringValue: d2e3467b-9645-4682-829e-6b45efec8375
@@ -234,15 +180,6 @@ resourceMetrics:
                     - key: foo
                       value:
                         stringValue: bar
-                    - key: otel_scope_name
-                      value:
-                        stringValue: go.opentelemetry.io/collector/exporter/exporterhelper
-                    - key: otel_scope_schema_url
-                      value:
-                        stringValue: ""
-                    - key: otel_scope_version
-                      value:
-                        stringValue: ""
                     - key: service_instance_id
                       value:
                         stringValue: d2e3467b-9645-4682-829e-6b45efec8375
@@ -263,15 +200,6 @@ resourceMetrics:
                     - key: foo
                       value:
                         stringValue: bar
-                    - key: otel_scope_name
-                      value:
-                        stringValue: go.opentelemetry.io/collector/service
-                    - key: otel_scope_schema_url
-                      value:
-                        stringValue: ""
-                    - key: otel_scope_version
-                      value:
-                        stringValue: ""
                     - key: service_instance_id
                       value:
                         stringValue: d2e3467b-9645-4682-829e-6b45efec8375
@@ -292,15 +220,6 @@ resourceMetrics:
                     - key: foo
                       value:
                         stringValue: bar
-                    - key: otel_scope_name
-                      value:
-                        stringValue: go.opentelemetry.io/collector/service
-                    - key: otel_scope_schema_url
-                      value:
-                        stringValue: ""
-                    - key: otel_scope_version
-                      value:
-                        stringValue: ""
                     - key: service_instance_id
                       value:
                         stringValue: d2e3467b-9645-4682-829e-6b45efec8375
@@ -323,15 +242,6 @@ resourceMetrics:
                     - key: foo
                       value:
                         stringValue: bar
-                    - key: otel_scope_name
-                      value:
-                        stringValue: go.opentelemetry.io/collector/service
-                    - key: otel_scope_schema_url
-                      value:
-                        stringValue: ""
-                    - key: otel_scope_version
-                      value:
-                        stringValue: ""
                     - key: service_instance_id
                       value:
                         stringValue: d2e3467b-9645-4682-829e-6b45efec8375
@@ -357,15 +267,6 @@ resourceMetrics:
                     - key: foo
                       value:
                         stringValue: bar
-                    - key: otel_scope_name
-                      value:
-                        stringValue: go.opentelemetry.io/collector/exporter/exporterhelper
-                    - key: otel_scope_schema_url
-                      value:
-                        stringValue: ""
-                    - key: otel_scope_version
-                      value:
-                        stringValue: ""
                     - key: service_instance_id
                       value:
                         stringValue: d2e3467b-9645-4682-829e-6b45efec8375
@@ -424,15 +325,6 @@ resourceMetrics:
                     - key: foo
                       value:
                         stringValue: bar
-                    - key: otel_scope_name
-                      value:
-                        stringValue: go.opentelemetry.io/collector/exporter/exporterhelper
-                    - key: otel_scope_schema_url
-                      value:
-                        stringValue: ""
-                    - key: otel_scope_version
-                      value:
-                        stringValue: ""
                     - key: service_instance_id
                       value:
                         stringValue: d2e3467b-9645-4682-829e-6b45efec8375

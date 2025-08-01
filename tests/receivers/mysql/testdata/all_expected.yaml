@@ -11,7 +11,7 @@ resourceMetrics:
             sum:
               aggregationTemporality: 2
               dataPoints:
-                - asInt: "1130"
+                - asInt: "1220"
                   attributes:
                     - key: status
                       value:
@@ -61,14 +61,14 @@ resourceMetrics:
                         stringValue: read_ahead_rnd
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "16448"
+                - asInt: "26242"
                   attributes:
                     - key: operation
                       value:
                         stringValue: read_requests
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "983"
+                - asInt: "1068"
                   attributes:
                     - key: operation
                       value:
@@ -82,7 +82,7 @@ resourceMetrics:
                         stringValue: wait_free
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "1970"
+                - asInt: "2182"
                   attributes:
                     - key: operation
                       value:
@@ -96,7 +96,7 @@ resourceMetrics:
             sum:
               aggregationTemporality: 2
               dataPoints:
-                - asInt: "193"
+                - asInt: "235"
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
               isMonotonic: true
@@ -106,25 +106,32 @@ resourceMetrics:
             sum:
               aggregationTemporality: 2
               dataPoints:
-                - asInt: "1130"
+                - asInt: "1220"
                   attributes:
                     - key: kind
                       value:
                         stringValue: data
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "7062"
+                - asInt: "6971"
                   attributes:
                     - key: kind
                       value:
                         stringValue: free
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "0"
+                - asInt: "1"
                   attributes:
                     - key: kind
                       value:
                         stringValue: misc
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+                - asInt: "8192"
+                  attributes:
+                    - key: kind
+                      value:
+                        stringValue: total
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
             unit: "1"
@@ -133,7 +140,7 @@ resourceMetrics:
             sum:
               aggregationTemporality: 2
               dataPoints:
-                - asInt: "18513920"
+                - asInt: "19988480"
                   attributes:
                     - key: status
                       value:
@@ -153,14 +160,14 @@ resourceMetrics:
             sum:
               aggregationTemporality: 2
               dataPoints:
-                - asInt: "52"
+                - asInt: "94"
                   attributes:
                     - key: kind
                       value:
                         stringValue: pages_written
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "3"
+                - asInt: "2"
                   attributes:
                     - key: kind
                       value:
@@ -174,7 +181,7 @@ resourceMetrics:
             sum:
               aggregationTemporality: 2
               dataPoints:
-                - asInt: "785"
+                - asInt: "2319"
                   attributes:
                     - key: kind
                       value:
@@ -195,7 +202,7 @@ resourceMetrics:
                         stringValue: discover
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "6813"
+                - asInt: "13453"
                   attributes:
                     - key: kind
                       value:
@@ -216,14 +223,14 @@ resourceMetrics:
                         stringValue: prepare
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "41"
+                - asInt: "47"
                   attributes:
                     - key: kind
                       value:
                         stringValue: read_first
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "1960"
+                - asInt: "5212"
                   attributes:
                     - key: kind
                       value:
@@ -237,7 +244,7 @@ resourceMetrics:
                         stringValue: read_last
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "4235"
+                - asInt: "6444"
                   attributes:
                     - key: kind
                       value:
@@ -251,14 +258,14 @@ resourceMetrics:
                         stringValue: read_prev
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "4"
+                - asInt: "25"
                   attributes:
                     - key: kind
                       value:
                         stringValue: read_rnd
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "867"
+                - asInt: "6259"
                   attributes:
                     - key: kind
                       value:
@@ -293,7 +300,7 @@ resourceMetrics:
                         stringValue: update
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "322"
+                - asInt: "2016"
                   attributes:
                     - key: kind
                       value:
@@ -307,7 +314,7 @@ resourceMetrics:
             sum:
               aggregationTemporality: 2
               dataPoints:
-                - asInt: "6"
+                - asInt: "15"
                   attributes:
                     - key: kind
                       value:
@@ -328,7 +335,7 @@ resourceMetrics:
             sum:
               aggregationTemporality: 2
               dataPoints:
-                - asInt: "60"
+                - asInt: "53"
                   attributes:
                     - key: operation
                       value:
@@ -342,14 +349,14 @@ resourceMetrics:
                         stringValue: waits
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "837"
+                - asInt: "989"
                   attributes:
                     - key: operation
                       value:
                         stringValue: write_requests
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "32"
+                - asInt: "76"
                   attributes:
                     - key: operation
                       value:
@@ -391,21 +398,21 @@ resourceMetrics:
             sum:
               aggregationTemporality: 2
               dataPoints:
-                - asInt: "2"
+                - asInt: "6"
                   attributes:
                     - key: kind
                       value:
                         stringValue: file
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "157"
+                - asInt: "260"
                   attributes:
                     - key: kind
                       value:
                         stringValue: table
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "78"
+                - asInt: "203"
                   attributes:
                     - key: kind
                       value:
@@ -419,21 +426,21 @@ resourceMetrics:
             sum:
               aggregationTemporality: 2
               dataPoints:
-                - asInt: "74"
+                - asInt: "110"
                   attributes:
                     - key: operation
                       value:
                         stringValue: fsyncs
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "1005"
+                - asInt: "1092"
                   attributes:
                     - key: operation
                       value:
                         stringValue: reads
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "257"
+                - asInt: "348"
                   attributes:
                     - key: operation
                       value:
@@ -447,21 +454,21 @@ resourceMetrics:
             sum:
               aggregationTemporality: 2
               dataPoints:
-                - asInt: "148"
+                - asInt: "153"
                   attributes:
                     - key: operation
                       value:
                         stringValue: created
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "982"
+                - asInt: "1067"
                   attributes:
                     - key: operation
                       value:
                         stringValue: read
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "193"
+                - asInt: "235"
                   attributes:
                     - key: operation
                       value:
@@ -594,14 +601,14 @@ resourceMetrics:
                         stringValue: range
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "4"
+                - asInt: "25"
                   attributes:
                     - key: kind
                       value:
                         stringValue: rows
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "1"
+                - asInt: "3"
                   attributes:
                     - key: kind
                       value:
@@ -663,7 +670,7 @@ resourceMetrics:
                         stringValue: files
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "2"
+                - asInt: "6"
                   attributes:
                     - key: resource
                       value:
@@ -677,11 +684,11 @@ resourceMetrics:
             sum:
               aggregationTemporality: 2
               dataPoints:
-                - asInt: "21"
+                - asInt: "22"
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
               isMonotonic: true
             unit: s
         scope:
           name: github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mysqlreceiver
-          version: v0.97.0
+          version: v0.130.0-26-g7ce4528e

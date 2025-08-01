@@ -1,0 +1,46 @@
+component_id: redis
+properties_tmpl: |
+  enabled: true
+  service_type: redis
+  rule:
+    docker_observer: type == "container" and any([name, image, command], {# matches "(?i)redis"}) and not (command matches "splunk.discovery")
+    host_observer: type == "hostport" and command matches "(?i)redis" and not (command matches "splunk.discovery")
+    k8s_observer: type == "port" and pod.name matches "(?i)redis"
+  config:
+    default: {}
+  status:
+    metrics:
+      - status: successful
+        strict: redis.uptime
+        message: redis receiver is working!
+    statements:
+      - status: failed
+        regexp: "connection refused"
+        message: The container is not serving http connections.
+      - status: failed
+        regexp: "received goaway and there are no active streams"
+        message: Unable to connect and scrape metrics.
+      - status: failed
+        regexp: "dial tcp: lookup"
+        message: Unable to resolve redis tcp endpoint
+      - status: partial
+        regexp: 'NOAUTH Authentication required.'
+        message: |-
+          Make sure your user credentials are correctly specified as an environment variable.
+          ```
+          {{ configPropertyEnvVar "password" "<password>" }}
+          ```
+      - status: partial
+        regexp: 'called without any password configured for the default user'
+        message: |-
+          Make sure your user credentials are correctly specified as an environment variable.
+          ```
+          {{ configPropertyEnvVar "password" "<password>" }}
+          ```
+      - status: partial
+        regexp: 'WRONGPASS invalid username-password pair or user is disabled'
+        message: |-
+          Make sure your user credentials are correctly specified as an environment variable.
+          ```
+          {{ configPropertyEnvVar "password" "<password>" }}
+          ```

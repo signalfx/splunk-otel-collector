@@ -28,8 +28,8 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/core/common/kubelet"
 	"github.com/signalfx/signalfx-agent/pkg/core/common/kubernetes"
 	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
+	"github.com/signalfx/signalfx-agent/pkg/monitors"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/cadvisor"
-	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/consul"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/hadoop"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/python"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/redis"
@@ -44,6 +44,23 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/ntpq"
 	"github.com/signalfx/signalfx-agent/pkg/utils/timeutil"
 )
+
+type fakeConfig struct {
+	EnhancedMetrics        *bool `yaml:"enhancedMetrics"`
+	saconfig.MonitorConfig `yaml:",inline" acceptsEndpoints:"true"`
+	python.CommonConfig    `yaml:",inline"`
+	Host                   string `yaml:"host" validate:"required"`
+	Port                   uint16 `yaml:"port" validate:"required"`
+}
+
+func init() {
+	monitors.Register(&monitors.Metadata{
+		MonitorType: "collectd/fake",
+	},
+		nil,
+		&fakeConfig{},
+	)
+}
 
 func TestLoadConfig(t *testing.T) {
 
@@ -232,22 +249,20 @@ func TestLoadInvalidConfigs(t *testing.T) {
 	missingRequiredCfg := CreateDefaultConfig().(*Config)
 	require.NoError(t, cm.Unmarshal(&missingRequiredCfg))
 	require.Equal(t, &Config{
-		MonitorType: "collectd/consul",
-		monitorConfig: &consul.Config{
+		MonitorType: "collectd/fake",
+		monitorConfig: &fakeConfig{
 			MonitorConfig: saconfig.MonitorConfig{
-				Type:                "collectd/consul",
+				Type:                "collectd/fake",
 				IntervalSeconds:     0,
 				DatapointsToExclude: []saconfig.MetricFilter{},
 			},
-			Port:          5309,
-			TelemetryHost: "0.0.0.0",
-			TelemetryPort: 8125,
+			Port: 5309,
 		},
 		acceptsEndpoints: true,
 	}, missingRequiredCfg)
 	err = missingRequiredCfg.Validate()
 	require.Error(t, err)
-	require.EqualError(t, err, "Validation error in field 'Config.host': host is a required field (got '')")
+	require.EqualError(t, err, "Validation error in field 'fakeConfig.host': host is a required field (got '')")
 }
 
 func TestLoadConfigWithEndpoints(t *testing.T) {

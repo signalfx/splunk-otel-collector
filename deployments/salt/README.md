@@ -5,6 +5,7 @@ collect metrics, traces and logs from Linux machines and send data to [Splunk
 Observability Cloud](https://www.splunk.com/en_us/products/observability.html). 
 
 ## Linux
+
 Currently, the following Linux distributions and versions are supported:
 
 - Amazon Linux: 2, 2023 (**Note:** Log collection with Fluentd not currently supported for Amazon Linux 2023.)
@@ -99,6 +100,10 @@ splunk-otel-collector:
 
 - `splunk_listen_interface`: The network interface the collector receivers will listen
   on. (**default:** `127.0.0.1` for agent config, `0.0.0.0` otherwise)
+
+- `splunk_otel_collector_command_line_args`: Additional command line arguments to
+  pass to the Splunk OTel Collector service. This value will be set as the
+  `OTELCOL_OPTIONS` environment variable for the collector service. (**default:** `""`)
 
 - `collector_additional_env_vars`: Dictionary of additional environment
   variables from the collector configuration file for the collector service

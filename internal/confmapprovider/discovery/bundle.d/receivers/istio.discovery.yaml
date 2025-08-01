@@ -1,0 +1,107 @@
+##############################################################################################
+#                               Do not edit manually!                                        #
+# All changes must be made to associated .yaml metadata file before running 'make bundle.d'. #
+##############################################################################################
+prometheus/istio:
+  enabled: false
+  service_type: istio
+  rule:
+    k8s_observer: type == "pod" and ("istio.io/rev" in annotations or labels["istio"] == "pilot" or name matches "istio.*")
+  config:
+    default:
+      config:
+        scrape_configs:
+          - job_name: 'istio'
+            metrics_path: '`"prometheus.io/path" in annotations ? annotations["prometheus.io/path"] : "/metrics"`'
+            scrape_interval: 10s
+            static_configs:
+              - targets: ['`endpoint`:`"prometheus.io/port" in annotations ? annotations["prometheus.io/port"] : 15090`']
+            metric_relabel_configs:
+              - source_labels: [__name__]
+                action: keep
+                regex: "(envoy_cluster_lb_healthy_panic|\
+                envoy_cluster_manager_warming_clusters|\
+                envoy_cluster_membership_healthy|\
+                envoy_cluster_membership_total|\
+                envoy_cluster_ssl_handshake|\
+                envoy_cluster_ssl_session_reused|\
+                envoy_cluster_ssl_versions_TLSv1_2|\
+                envoy_cluster_ssl_versions_TLSv1_3|\
+                envoy_cluster_upstream_cx_active|\
+                envoy_cluster_upstream_cx_close_notify|\
+                envoy_cluster_upstream_cx_connect_attempts_exceeded|\
+                envoy_cluster_upstream_cx_connect_ms_sum|\
+                envoy_cluster_upstream_cx_connect_timeout|\
+                envoy_cluster_upstream_cx_destroy_local_with_active_rq|\
+                envoy_cluster_upstream_cx_http1_total|\
+                envoy_cluster_upstream_cx_http2_total|\
+                envoy_cluster_upstream_cx_idle_timeout|\
+                envoy_cluster_upstream_cx_max_requests|\
+                envoy_cluster_upstream_cx_none_healthy|\
+                envoy_cluster_upstream_cx_pool_overflow|\
+                envoy_cluster_upstream_cx_protocol_error|\
+                envoy_cluster_upstream_cx_total|\
+                envoy_cluster_upstream_rq_4xx|\
+                envoy_cluster_upstream_rq_5xx|\
+                envoy_cluster_upstream_rq_active|\
+                envoy_cluster_upstream_rq_cancelled|\
+                envoy_cluster_upstream_rq_completed|\
+                envoy_cluster_upstream_rq_pending_active|\
+                envoy_cluster_upstream_rq_retry|\
+                envoy_cluster_upstream_rq_retry_limit_exceeded|\
+                envoy_cluster_upstream_rq_timeout|\
+                envoy_cluster_upstream_rq_tx_reset|\
+                envoy_cluster_upstream_rq_time|\
+                envoy_cluster_upstream_rq_xx|\
+                envoy_listener_downstream_cx_total|\
+                envoy_listener_ssl_versions_TLSv1_2|\
+                envoy_listener_ssl_versions_TLSv1_3|\
+                envoy_server_live|\
+                envoy_server_memory_allocated|\
+                envoy_server_memory_heap_size|\
+                envoy_server_total_connections|\
+                envoy_server_uptime|\
+                istio_mesh_connections_from_logs|\
+                istio_monitor_pods_without_sidecars|\
+                istio_request_bytes|\
+                istio_request_duration_milliseconds|\
+                istio_request_messages_total|\
+                istio_requests_total|\
+                istio_response_messages_total|\
+                istio_tcp_connections_closed_total|\
+                istio_tcp_connections_opened_total|\
+                istio_tcp_received_bytes_total|\
+                istio_tcp_response_bytes_total|\
+                pilot_conflict_inbound_listener|\
+                pilot_eds_no_instances|\
+                pilot_k8s_cfg_events|\
+                pilot_k8s_endpoints_pending_pod|\
+                pilot_k8s_endpoints_with_no_pods|\
+                pilot_no_ip|\
+                pilot_proxy_convergence_time|\
+                pilot_proxy_queue_time|\
+                pilot_services|\
+                pilot_xds_cds_reject|\
+                pilot_xds_eds_reject|\
+                pilot_xds_expired_nonce|\
+                pilot_xds_lds_reject|\
+                pilot_xds_push_context_errors|\
+                pilot_xds_push_time|\
+                pilot_xds_rds_reject|\
+                pilot_xds_send_time|\
+                pilot_xds_write_timeout)(?:_sum|_count|_bucket)?"
+  status:
+    metrics:
+      - status: successful
+        strict: envoy_server_uptime
+        message: istio prometheus receiver is working for istio-proxy!
+      - status: successful
+        strict: pilot_services
+        message: istio prometheus receiver is working for istiod!
+    statements:
+      - status: failed
+        regexp: "connection refused"
+        message: The container is not serving http connections.
+      - status: failed
+        regexp: "dial tcp: lookup"
+        message: Unable to resolve istio prometheus tcp endpoint

@@ -1,6 +1,9 @@
 resourceMetrics:
   - resource:
       attributes:
+        - key: host.name
+          value:
+            stringValue: localhost:1521
         - key: oracledb.instance.name
           value:
             stringValue: localhost:1521/XE

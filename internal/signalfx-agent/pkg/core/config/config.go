@@ -85,8 +85,7 @@ type CollectdConfig struct {
 	ConfigDir string `yaml:"configDir" default:"/var/run/signalfx-agent/collectd"`
 
 	// The following are propagated from the top-level config
-	BundleDir            string `yaml:"-"`
-	HasGenericJMXMonitor bool   `yaml:"-"`
+	BundleDir string `yaml:"-"`
 	// Assigned by manager, not by user
 	InstanceName string `yaml:"-"`
 	// A hack to allow custom collectd to easily specify a single monitorID via

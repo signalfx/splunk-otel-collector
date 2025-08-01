@@ -127,10 +127,6 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "docker"
-    directory: "/docker/activemq"
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "docker"
     directory: "/docker/apache"
     schedule:
       interval: "weekly"
@@ -200,10 +196,6 @@ updates:
       interval: "weekly"
   - package-ecosystem: "docker"
     directory: "/docker/redis_server"
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "docker"
-    directory: "/docker/solr"
     schedule:
       interval: "weekly"
   - package-ecosystem: "docker"

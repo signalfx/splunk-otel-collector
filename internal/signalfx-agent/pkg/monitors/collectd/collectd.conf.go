@@ -57,16 +57,5 @@ LoadPlugin target_set
   </Node>
 </Plugin>
 
-{{if .HasGenericJMXMonitor}}
-LoadPlugin "java"
-
-<Plugin java>
-  #JVMArg "-verbose:jni"
-  JVMArg "-Djava.class.path={{ stripTrailingSlash .BundleDir }}/collectd-java/collectd-api.jar:{{ stripTrailingSlash .BundleDir }}/collectd-java/generic-jmx.jar"
-
-  LoadPlugin "org.collectd.java.GenericJMX"
-</Plugin>
-{{end}}
-
 Include "{{.ManagedConfigDir}}/*.conf"
 `)).Option("missingkey=error")

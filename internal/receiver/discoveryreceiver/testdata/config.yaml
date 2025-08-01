@@ -6,6 +6,7 @@ discovery:
   correlation_ttl: 25s
   receivers:
     smartagent/redis:
+      service_type: redis
       rule: type == "container" && name matches "(?i)redis"
       config:
         type: collectd/redis

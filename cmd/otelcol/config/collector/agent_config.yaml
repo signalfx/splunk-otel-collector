@@ -226,6 +226,8 @@ service:
       receivers: [nop]
       processors: [memory_limiter, batch, resourcedetection]
       exporters: [otlphttp/entities]
+      # Use instead when sending to gateway
+      #exporters: [otlp/gateway]
     logs:
       receivers: [fluentforward, otlp]
       processors:

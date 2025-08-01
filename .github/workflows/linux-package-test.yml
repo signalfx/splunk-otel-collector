@@ -73,7 +73,7 @@ jobs:
           arch="\"amd64\", \"arm64\""
           matrix="{\"DISTRO\": [${distro%,}], \"ARCH\": [${arch}]}"
           echo "$matrix" | jq
-          echo "matrix=${matrix}" >> $GITHUB_OUTPUT
+          echo "matrix=${matrix}" >> "$GITHUB_OUTPUT"
     outputs:
       matrix: ${{ steps.get-matrix.outputs.matrix }}
 
@@ -92,14 +92,14 @@ jobs:
         run: |
           for pkg in "deb" "rpm" "tar"; do
             if [[ -f "packaging/tests/images/${pkg}/Dockerfile.${{ matrix.DISTRO }}" ]]; then
-              echo "SYS_PACKAGE=${pkg}" >> $GITHUB_ENV
+              echo "SYS_PACKAGE=${pkg}" >> "$GITHUB_ENV"
               exit 0
             fi
           done
           echo "Unknown distro '${{ matrix.DISTRO }}'!"
           exit 1
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4.1.3
         with:
           name: ${{ env.SYS_PACKAGE }}-${{ matrix.ARCH }}-package
           path: ./dist
@@ -175,29 +175,29 @@ jobs:
           image: tonistiigi/binfmt:qemu-v7.0.0
 
       - name: Downloading binaries-linux_amd64
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v4.1.3
         with:
           name: binaries-linux_amd64
           path: ./bin
 
       - name: Downloading binaries-linux_arm64
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v4.1.3
         with:
           name: binaries-linux_arm64
           path: ./bin
 
       - name: Downloading binaries-linux_ppc64le
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v4.1.3
         with:
           name: binaries-linux_ppc64le
           path: ./bin
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4.1.3
         with:
           name: agent-bundle-linux-amd64
           path: ./dist
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4.1.3
         with:
           name: agent-bundle-linux-arm64
           path: ./dist
@@ -243,7 +243,7 @@ jobs:
           platforms: ${{ matrix.ARCH }}
           image: tonistiigi/binfmt:qemu-v7.0.0
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4.1.3
         with:
           name: otelcol
           path: ./docker-otelcol
@@ -264,18 +264,18 @@ jobs:
 
           # get all provided config files from the container
           tmpdir=$(mktemp -d)
-          docker cp otelcol:/etc/otel/collector $tmpdir
+          docker cp otelcol:/etc/otel/collector "$tmpdir"
           docker rm -f otelcol
 
           # ensure the collector can start with all provided config files
-          configs=$(ls ${tmpdir}/collector/ 2>/dev/null)
+          configs=$(ls "${tmpdir}/collector/" 2>/dev/null)
           if [ -z "$configs" ]; then
             echo "failed to get config files from otelcol:/etc/otel/collector"
             exit 1
           fi
           for config in $configs; do
             # TODO: set fake-token back to 12345 once https://github.com/open-telemetry/opentelemetry-collector/issues/10937 is resolved
-            docker run --platform linux/${{ matrix.ARCH }} -d -e SPLUNK_CONFIG=/etc/otel/collector/${config} -e SPLUNK_ACCESS_TOKEN=fake-token -e SPLUNK_REALM=fake-realm -e ECS_CONTAINER_METADATA_URI_V4=http://localhost --name otelcol otelcol:latest
+            docker run --platform linux/${{ matrix.ARCH }} -d -e SPLUNK_CONFIG="/etc/otel/collector/${config}" -e SPLUNK_ACCESS_TOKEN=fake-token -e SPLUNK_REALM=fake-realm -e ECS_CONTAINER_METADATA_URI_V4=http://localhost --name otelcol otelcol:latest
             sleep 10
             if [ -z "$( docker ps --filter=status=running --filter=name=otelcol -q )" ]; then
               docker logs otelcol

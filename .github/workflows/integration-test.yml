@@ -62,12 +62,12 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4.1.3
         with:
           pattern: agent-bundle-linux-*
           merge-multiple: true
           path: ./dist
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4.1.3
         with:
           pattern: otelcol-*
           merge-multiple: true
@@ -123,11 +123,11 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4.1.3
         with:
           name: otelcol-${{ matrix.ARCH }}
           path: ./bin
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4.1.3
         with:
           name: docker-otelcol-${{ matrix.ARCH }}
           path: ./docker-otelcol/${{ matrix.ARCH }}
@@ -160,7 +160,7 @@ jobs:
           for image in $images; do
             service=$(basename "$image" | cut -d ':' -f1)
             if [[ -f docker/${service}/Dockerfile ]]; then
-              docker build --cache-from=quay.io/splunko11ytest/${service}:latest -t quay.io/splunko11ytest/${service}:latest docker/${service}
+              docker build --cache-from="quay.io/splunko11ytest/${service}:latest" -t "quay.io/splunko11ytest/${service}:latest" "docker/${service}"
             fi
           done
           docker system prune -f
@@ -171,11 +171,11 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4.1.3
         with:
           name: otelcol-${{ matrix.ARCH }}
           path: ./bin
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4.1.3
         with:
           name: docker-otelcol-${{ matrix.ARCH }}
           path: ./docker-otelcol/${{ matrix.ARCH }}
@@ -207,11 +207,12 @@ jobs:
           if [[ "${{ matrix.PROFILE }}" = "smartagent" ]]; then
             target="smartagent-integration-test-with-cover"
           fi
-          export CONTAINER_COVER_SRC="$(realpath .)/tests/coverage"
-          make $target 2>&1 | tee $TEST_OUTPUT
+          CONTAINER_COVER_SRC="$(realpath .)/tests/coverage"
+          export CONTAINER_COVER_SRC
+          make $target 2>&1 | tee "$TEST_OUTPUT"
           exit_status=${PIPESTATUS[0]}
           echo "Exit status: $exit_status"
-          exit $exit_status
+          exit "$exit_status"
         env:
           CONTAINER_COVER_DEST: '/etc/otel/collector/coverage'
           SPLUNK_OTEL_COLLECTOR_IMAGE: 'otelcol:latest'
@@ -253,7 +254,7 @@ jobs:
           for image in $images; do
             service=$(basename "$image" | cut -d ':' -f1)
             if [[ -f docker/${service}/Dockerfile ]]; then
-              docker build --cache-from=quay.io/splunko11ytest/${service}:latest -t quay.io/splunko11ytest/${service}:latest docker/${service}
+              docker build --cache-from="quay.io/splunko11ytest/${service}:latest" -t "quay.io/splunko11ytest/${service}:latest" "docker/${service}"
             fi
           done
           docker system prune -f
@@ -264,16 +265,16 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4.1.3
         with:
           pattern: agent-bundle-linux-amd64
           merge-multiple: true
           path: ./dist
       - run: sudo mkdir -p /usr/lib/splunk-otel-collector
       - run: sudo tar -xzf dist/agent-bundle_linux_amd64.tar.gz -C /usr/lib/splunk-otel-collector
-      - run: sudo chown -R $USER /usr/lib/splunk-otel-collector
+      - run: sudo chown -R "$USER" /usr/lib/splunk-otel-collector
       - run: /usr/lib/splunk-otel-collector/agent-bundle/bin/patch-interpreter /usr/lib/splunk-otel-collector/agent-bundle
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4.1.3
         with:
           name: otelcol-amd64
           path: ./bin
@@ -295,11 +296,12 @@ jobs:
           if [[ "${{ matrix.PROFILE }}" = "smartagent" ]]; then
             target="smartagent-integration-test-with-cover"
           fi
-          export CONTAINER_COVER_SRC="$(realpath .)/tests/coverage"
-          make $target 2>&1 | tee $TEST_OUTPUT
+          CONTAINER_COVER_SRC="$(realpath .)/tests/coverage"
+          export CONTAINER_COVER_SRC
+          make $target 2>&1 | tee "$TEST_OUTPUT"
           exit_status=${PIPESTATUS[0]}
           echo "Exit status: $exit_status"
-          exit $exit_status
+          exit "$exit_status"
         env:
           CONTAINER_COVER_DEST: '/etc/otel/collector/coverage'
           SPLUNK_OTEL_COLLECTOR_IMAGE: ""
@@ -342,7 +344,7 @@ jobs:
           done
           matrix="{\"include\": [${includes#,}]}"
           echo "$matrix" | jq
-          echo "matrix=${matrix}" >> $GITHUB_OUTPUT
+          echo "matrix=${matrix}" >> "$GITHUB_OUTPUT"
 
   integration-test-discovery:
       name: integration-test-discovery
@@ -362,11 +364,11 @@ jobs:
           with:
             go-version: ${{ env.GO_VERSION }}
             cache-dependency-path: '**/go.sum'
-        - uses: actions/download-artifact@v4
+        - uses: actions/download-artifact@v4.1.3
           with:
             name: otelcol-${{ matrix.ARCH }}
             path: ./bin
-        - uses: actions/download-artifact@v4
+        - uses: actions/download-artifact@v4.1.3
           with:
             name: docker-otelcol-${{ matrix.ARCH }}
             path: ./docker-otelcol/${{ matrix.ARCH }}
@@ -375,7 +377,8 @@ jobs:
         - run: chmod a+x ./bin/*
         - name: Run ${{ matrix.SERVICE }} Discovery Integration Test With Cover
           run: |
-            export CONTAINER_COVER_SRC="$(realpath .)/tests/coverage"
+            CONTAINER_COVER_SRC="$(realpath .)/tests/coverage"
+            export CONTAINER_COVER_SRC
             make integration-test-${{ matrix.SERVICE }}-discovery-with-cover
           env:
             CONTAINER_COVER_DEST: '/etc/otel/collector/coverage'
@@ -404,7 +407,7 @@ jobs:
           done
           matrix="{\"include\": [${includes#,}]}"
           echo "$matrix" | jq
-          echo "matrix=${matrix}" >> $GITHUB_OUTPUT
+          echo "matrix=${matrix}" >> "$GITHUB_OUTPUT"
 
   integration-test-discovery-k8s:
     name: integration-test-discovery-k8s
@@ -434,7 +437,7 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4.1.3
         with:
           name: docker-otelcol-${{ matrix.ARCH }}
           path: ./docker-otelcol/${{ matrix.ARCH }}
@@ -447,7 +450,8 @@ jobs:
           kind load docker-image otelcol:latest --name kind
       - name: Run ${{ matrix.SERVICE }} Discovery Kubernetes Integration Test With Cover
         run: |
-          export CONTAINER_COVER_SRC="$(realpath .)/tests/coverage"
+          CONTAINER_COVER_SRC="$(realpath .)/tests/coverage"
+          export CONTAINER_COVER_SRC
           KUBECONFIG=$HOME/.kube/config SKIP_TEARDOWN=true make integration-test-${{ matrix.SERVICE }}-discovery-k8s-with-cover
         env:
           CONTAINER_COVER_DEST: '/etc/otel/collector/coverage'
@@ -455,7 +459,7 @@ jobs:
         if: failure()
         run: |
           kubectl get pods -A 
-          kubectl get pod -A -l app=otelcol -o jsonpath="{range .items[*]}{.metadata.namespace} {.metadata.name}{'\n'}{end}" | xargs -r -n2 sh -c 'kubectl logs -n $0 $1'
+          kubectl get pod -A -l app=otelcol -o jsonpath="{range .items[*]}{.metadata.namespace} {.metadata.name}{'\n'}{end}" | xargs -r -n2 sh -c "kubectl logs -n $0 $1"
       - name: Upload coverage report
         uses: codecov/codecov-action@18283e04ce6e62d37312384ff67231eb8fd56d24 # 5.4.3
         with:

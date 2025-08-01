@@ -6,7 +6,7 @@ role for Splunk OpenTelemetry Collector](https://github.com/signalfx/splunk-otel
 
 The role installs Splunk OpenTelemetry Collector configured to
 collect metrics, traces and logs from Linux machines and send data to [Splunk 
-Observability Cloud](https://www.splunk.com/en_us/observability.html). 
+Observability Cloud](https://www.splunk.com/en_us/products/observability.html). 
 
 ## Linux
 

@@ -3,10 +3,13 @@ THIS_MAKEFILE_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 include $(abspath $(THIS_MAKEFILE_DIR)/../../Makefile.Common)
 
 # Used for packaging
-OTEL_COLLECTOR_VERSION?=0.122.0
+OTEL_COLLECTOR_VERSION?=0.128.0
 SPLUNK_OTELCOL_DOWNLOAD_BASE?=https://github.com/signalfx/splunk-otel-collector/releases/download
 PLATFORM?=linux
 ARCH?=amd64
+
+# include autoinstrumentation
+AUTOINSTRUMENTATION_DIR:=$(SRC_ROOT)/instrumentation
 
 # Used for testing & validation
 ORCA_CLOUD?=kubernetes
@@ -24,12 +27,16 @@ MODULAR_INPUT_SCHEMAS=Splunk_TA_otel_linux_autoinstrumentation
 TOOLS_DIR := $(BUILD_DIR)/.tools
 MODINPUT_CONFIG_GENERATOR := $(TOOLS_DIR)/modinput_config_generator
 
+# Overrides
+# Packaging addons and starting splunk takes some time...
+GOTEST_OPT= -v -timeout 16m --tags=$(GO_BUILD_TAGS)
+
 # Make targets
 .PHONY: ta-build-tools
 ta-build-tools:
 	@echo "Building tools..."
 	@mkdir -p $(TOOLS_DIR)
-	go build -o $(MODINPUT_CONFIG_GENERATOR) ./cmd/modinput_config_generator
+	cd $(ADDONS_SOURCE_DIR) && go build -o $(MODINPUT_CONFIG_GENERATOR) ./cmd/modinput_config_generator
 
 .PHONY: test-ta-build-tools
 test-ta-build-tools: ta-build-tools
@@ -37,7 +44,8 @@ test-ta-build-tools: ta-build-tools
 	mkdir -p $(BUILD_DIR)/Sample_Addon/$(PLATFORM)_$(SPLUNK_ARCH)/bin; \
 	go build $(GO_BUILD_FLAGS) -o $(BUILD_DIR)/Sample_Addon/$(PLATFORM)_$(SPLUNK_ARCH)/bin/Sample_Addon $(ADDONS_SOURCE_DIR)/cmd/modinput_config_generator/internal/testdata/pkg/sample_addon/runner || exit 1; \
 	echo "built addon, testing..."
-	go test -v ./...
+	go test -v `go list ./... | grep --invert-match pkg`
+
 
 .PHONY: gen-modinput-config
 gen-modinput-config:
@@ -45,11 +53,16 @@ gen-modinput-config:
 	@for schema in $(MODULAR_INPUT_SCHEMAS); do \
 		schema_lower=$$(echo $$schema | tr '[:upper:]' '[:lower:]'); \
 		echo "Generating config and TA scaffold for $$schema..."; \
+		rm -rf $(BUILD_DIR)/$$schema/; \
 		mkdir -p $(BUILD_DIR)/$$schema/; \
 		$(MODINPUT_CONFIG_GENERATOR) -source-dir=$(ADDONS_SOURCE_DIR) -schema-name=$$schema --build-dir=$(BUILD_DIR) || exit 1; \
 		ls -lAh $(BUILD_DIR); \
 	done
 
+.PHONY: build-tas
+build-tas: gen-modinput-config ta-build-deps-all build-ta-runners 
+
+.PHONY: build-ta-runners
 build-ta-runners:
 	@echo "Building runner binaries..."
 	@for schema in $(MODULAR_INPUT_SCHEMAS); do \
@@ -64,6 +77,21 @@ build-ta-runners:
 			GOOS=$$platform GOARCH=$$arch go build $(GO_BUILD_FLAGS) -o $(BUILD_DIR)/$$schema/$${platform}_$(SPLUNK_ARCH)/bin/$$schema $(ADDONS_SOURCE_DIR)/pkg/$$schema_lower/runner || exit 1; \
 		done \
 	done
+
+.PHONY: generate-technical-addon-linux-autoinstrumentation
+generate-technical-addon-linux-autoinstrumentation:
+	cd $(AUTOINSTRUMENTATION_DIR) && $(MAKE) dist
+	mkdir -p $(BUILD_DIR)/Splunk_TA_otel_linux_autoinstrumentation/linux_x86_64/bin;
+	mkdir -p $(BUILD_DIR)
+	PLATFORM="all" \
+	BUILD_DIR="$(BUILD_DIR)" \
+	SOURCE_DIR="$(ADDONS_SOURCE_DIR)" \
+	AUTOINSTRUMENTATION_DIR="$(AUTOINSTRUMENTATION_DIR)" \
+	$(ADDONS_SOURCE_DIR)/packaging-scripts/download-autoinstrumentation.sh
+
+
+.PHONY: ta-build-deps-all
+ta-build-deps-all: generate-technical-addon-linux-autoinstrumentation
 
 .PHONY: generate-technical-addon
 generate-technical-addon: env-guard-all
@@ -214,6 +242,13 @@ release-ta:
 .PHONY: update-and-release-ta
 update-and-release: update-ta-deps release-ta
 
+.PHONY: validate-release
+validate-release:
+	ADDONS_SOURCE_DIR="$(ADDONS_SOURCE_DIR)" \
+	BUILD_DIR="$(BUILD_DIR)" \
+	OTEL_COLLECTOR_VERSION="$(OTEL_COLLECTOR_VERSION)" \
+	$(ADDONS_SOURCE_DIR)/packaging-scripts/validate-ta-release.sh
+
 .PHONY: clean-ta
 clean-ta:
-	rm -rf build
+	rm -rf $(BUILD_DIR)

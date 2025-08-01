@@ -20,7 +20,41 @@ concurrency:
 
 env:
   GO_VERSION: 1.23.10
+  ADDONS_SOURCE_DIR: "${{github.workspace}}/packaging/technical-addon"
+  BUILD_DIR: "${{github.workspace}}/build"
 jobs:
+  check_changes:
+    runs-on: ubuntu-24.04
+    outputs:
+      ta_packaging_change: ${{ steps.filter.outputs.ta_packaging_change }}
+      ta_workflow_change: ${{ steps.filter.outputs.ta_workflow_change }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for all branches and tags
+      - name: Get changed files
+        id: changed-files
+        run: |
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "files=$(git diff --name-only origin/${{ github.base_ref }} ${{ github.sha }} | tr '\n' ' ')" >> "$GITHUB_OUTPUT"
+          else
+            echo "files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | tr '\n' ' ')" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Filter paths
+        id: filter
+        run: |
+          files="${{ steps.changed-files.outputs.files }}"
+          if echo "$files" | grep -qE "packaging/technical-addon"; then
+            echo "ta_packaging_change=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ta_packaging_change=false" >> "$GITHUB_OUTPUT"
+          fi
+          if echo "$files" | grep -qE ".github/workflows/splunk-ta-otel.yml"; then
+            echo "ta_workflow_change=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ta_workflow_change=false" >> "$GITHUB_OUTPUT"
+          fi
+
   test:
     name: test
     runs-on: ubuntu-24.04
@@ -41,8 +75,10 @@ jobs:
           make -e smoketest-ta
 
   test-generator:
+    needs: [check_changes]
     name: test-modinput-config-generator
     runs-on: ubuntu-24.04
+    if: needs.check_changes.outputs.ta_packaging_change == 'true' || needs.check_changes.outputs.ta_workflow_change == 'true'
     defaults:
       run:
         working-directory: ${{github.workspace}}/packaging/technical-addon
@@ -55,11 +91,6 @@ jobs:
           set -o pipefail
           make -e test-ta-build-tools
 
-      - name: Test normal go code
-        run: |
-          set -o pipefail
-          make -e test
-
       - name: Ensure license
         run: |
           set -o pipefail
@@ -70,38 +101,23 @@ jobs:
           set -o pipefail
           make -e lint
 
-
-  check_changes:
+  test-ta-linux-autoinstrumentation:
+    name: test-ta-linux-autoinstrumentation
     runs-on: ubuntu-24.04
-    outputs:
-      ta_packaging_change: ${{ steps.filter.outputs.ta_packaging_change }}
-      ta_workflow_change: ${{ steps.filter.outputs.ta_workflow_change }}
+    needs: [check_changes, test]
+    if: needs.check_changes.outputs.ta_packaging_change == 'true' || needs.check_changes.outputs.ta_workflow_change == 'true'
+    defaults:
+      run:
+        working-directory: ${{github.workspace}}/packaging/technical-addon
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Fetch all history for all branches and tags
-      - name: Get changed files
-        id: changed-files
-        run: |
-          if [ "${{ github.event_name }}" == "pull_request" ]; then
-            echo "files=$(git diff --name-only origin/${{ github.base_ref }} ${{ github.sha }} | tr '\n' ' ')" >> $GITHUB_OUTPUT
-          else
-            echo "files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | tr '\n' ' ')" >> $GITHUB_OUTPUT
-          fi
-      - name: Filter paths
-        id: filter
-        run: |
-          files="${{ steps.changed-files.outputs.files }}"
-          if echo "$files" | grep -qE "packaging/technical-addon"; then
-            echo "ta_packaging_change=true" >> $GITHUB_OUTPUT
-          else
-            echo "ta_packaging_change=false" >> $GITHUB_OUTPUT
-          fi
-          if echo "$files" | grep -qE ".github/workflows/splunk-ta-otel.yml"; then
-            echo "ta_workflow_change=true" >> $GITHUB_OUTPUT
-          else
-            echo "ta_workflow_change=false" >> $GITHUB_OUTPUT
-          fi
+        - uses: actions/checkout@v4
+        - uses: ./.github/actions/setup-environment
+        - name: Test normal go code
+          run: |
+            pushd ${{github.workspace}}/instrumentation
+            make -e dist
+            popd
+            make -e test-ta-build-tools build-tas test
 
   distribute-ta:
     name: "distribute-ta" # what gets run to package in gitlab

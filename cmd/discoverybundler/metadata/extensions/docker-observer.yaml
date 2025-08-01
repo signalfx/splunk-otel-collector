@@ -1,0 +1,3 @@
+component_id: docker_observer
+properties_tmpl: |
+  enabled: true

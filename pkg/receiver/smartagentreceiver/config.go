@@ -43,7 +43,7 @@ var (
 		"collectd/cpu": true, "collectd/cpufreq": true, "collectd/custom": true,
 		"collectd/genericjmx": true, "collectd/hadoopjmx": true, "collectd/kafka": true, "collectd/kafka_consumer": true,
 		"collectd/kafka_producer": true, "collectd/memcached": true, "collectd/memory": true,
-		"collectd/mysql": true, "collectd/nginx": true, "collectd/php-fpm": true,
+		"collectd/nginx": true, "collectd/php-fpm": true,
 		"collectd/processes": true, "collectd/protocols": true,
 		"collectd/signalfx-metadata": true, "collectd/statsd": true, "collectd/uptime": true,
 	}

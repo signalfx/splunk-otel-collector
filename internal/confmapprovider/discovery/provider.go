@@ -26,7 +26,6 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/discovery/bundle"
 	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/discovery/properties"
 )
 
@@ -171,7 +170,7 @@ func (m *Provider) retrieve(scheme string) func(context.Context, string, confmap
 			}
 			m.logger.Debug("loading bundle.d")
 			bundledCfg := NewConfig(m.logger)
-			if err := bundledCfg.LoadFS(bundle.BundledFS); err != nil {
+			if err := bundledCfg.LoadFS(BundledFS); err != nil {
 				m.logger.Error("failed loading bundle.d", zap.Error(err))
 				return nil, err
 			}

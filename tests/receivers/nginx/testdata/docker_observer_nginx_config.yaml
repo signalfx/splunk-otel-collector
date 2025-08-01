@@ -11,6 +11,7 @@ receivers:
     embed_receiver_config: true
     receivers:
       nginx:
+        service_type: nginx
         config:
           endpoint: '`(port in [443] ? "https://" : "http://")``endpoint`/nginx_status}}'
           auth:

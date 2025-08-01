@@ -466,10 +466,12 @@ agent-bundle-windows:
   artifacts:
     paths:
       - dist/agent-bundle_windows_amd64.zip
-.ta-trigger:
+.collector-ta-trigger:
   rules:
     - <<: *main-condition
     - <<: *no-schedules-condition
+    - if: $CI_COMMIT_BRANCH =~ /^release\/technical-addon\/v[0-9]+\.[0-9]+\.[0-9]+$/
+      when: always
     - if: $CI_COMMIT_BRANCH != "main" && $CI_COMMIT_TAG == null && $CI_COMMIT_REF_PROTECTED == 'true'
       when: manual
 .auth-setup:
@@ -514,7 +516,7 @@ agent-bundle-windows:
 
 package-technical-addon:
   extends:
-    - .ta-trigger
+    - .collector-ta-trigger
   image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
   stage: "package"
   script: |
@@ -532,9 +534,9 @@ package-technical-addon:
 test-happypath-ta:
   image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
   extends:
-    - .ta-trigger
+    - .collector-ta-trigger
     - .auth-setup
-  stage: orca-tests
+  stage: "orca-tests"
   dependencies:
     - "package-technical-addon"
   parallel:
@@ -566,7 +568,7 @@ test-happypath-ta:
 test-collectd-ta:
   image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
   extends:
-    - .ta-trigger
+    - .collector-ta-trigger
     - .auth-setup
   stage: orca-tests
   variables:
@@ -597,7 +599,7 @@ test-collectd-ta:
 test-gateway-ta:
   image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
   extends:
-    - .ta-trigger
+    - .collector-ta-trigger
     - .auth-setup
   stage: orca-tests
   dependencies:
@@ -632,7 +634,7 @@ test-gateway-ta:
   allow_failure: true
 AppInspect_local:
   extends:
-    - .ta-trigger
+    - .collector-ta-trigger
   dependencies:
     - "package-technical-addon"
   stage: code-analysis
@@ -652,6 +654,32 @@ AppInspect_local:
     expire_in: 21 day
     when: always
   allow_failure: false
+
+collector-ta-release:
+  rules:
+    - if: $CI_COMMIT_BRANCH =~ /^release\/technical-addon\/v[0-9]+\.[0-9]+\.[0-9]+[^ ]$/
+      when: always
+    # To be deleted after merge
+    - if: $CI_COMMIT_BRANCH =~ /^github_release_collector_ta.*$/
+      when: always
+  extends:
+    - .go-cache # Use this image since this job uses the ghr tool
+  tags: [large]
+  stage: publish-release
+  dependencies:
+    - package-technical-addon
+    - test-happypath-ta
+    - test-collectd-ta
+    - test-gateway-ta
+  script:
+    - |
+      cd "${ADDONS_SOURCE_DIR}"
+      export TA_VERSION="$(sed -n '/^\[id\]/,/^\[/{s/^version = \(.*\)/\1/p}' "$ADDONS_SOURCE_DIR/Splunk_TA_otel/default/app.conf" | tr -d ' \t\n\r')"
+      [[ -z "$TA_VERSION" ]] && echo "TA_VERSION MUST BE SET" && exit 1
+      make -e validate-release
+      RELEASE_NOTES="$(TA_NAME=Splunk_TA_otel "$ADDONS_SOURCE_DIR/packaging-scripts/github-ta-release-notes.sh")"
+      ls "$BUILD_DIR/out/distribution/"
+      ghr -draft -t "$GITHUB_TOKEN" -u signalfx -r splunk-otel-collector -prerelease -draft -n "Technical addon for the Splunk distribution of the OpenTelemetry Collector v$TA_VERSION" -b "$RELEASE_NOTES" -replace "$CI_COMMIT_TAG" "$BUILD_DIR/out/distribution/Splunk_TA_otel-$TA_VERSION.tgz" 
 
 .instrumentation-deb-rpm:
   extends: .trigger-filter
@@ -1637,6 +1665,7 @@ release-nupkg:
   artifacts:
     paths:
       - .\dist\signed\*.nupkg
+      - .\dist\signed\*.msi
 
 choco-release:
   extends: .trigger-filter

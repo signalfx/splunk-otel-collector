@@ -20,6 +20,7 @@ exclude = [
     "https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/loggingexporter", # exporter was deleted
     "https://github.com/.*/(pull|issues)/[0-9]+", # We have too many PR and issues links in CHANGELOG.md that we allways run out of the rate limit
     "https://bugs.mysql.com/*", # Failing with 403 Forbidden. Likely rejecting the user agent
+    "https://collectd.org", # collectd.org is down, remove when it is back up
 ]
 max_concurrency = 20
 max_redirects = 10

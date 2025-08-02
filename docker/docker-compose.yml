@@ -1,12 +1,4 @@
 services:
-  # ActiveMQ image for collectd-activemq test:
-  activemq:
-    image: quay.io/splunko11ytest/activemq:latest
-    profiles:
-      - smartagent
-    build: ./activemq
-    ports:
-      - "1099:1099"
   # Apache image for collectd-apache test
   apache:
     image: quay.io/splunko11ytest/apache:latest
@@ -23,7 +15,7 @@ services:
     build: ./apachespark
     ports:
       - "4040:4040"
-  # Cassandra image for collectd-cassandra test:
+  # Cassandra image for integration & smartagent/jmx test:
   cassandra:
     image: quay.io/splunko11ytest/cassandra:latest
     profiles:
@@ -248,7 +240,6 @@ services:
     image: quay.io/splunko11ytest/mysql:latest
     profiles:
       - integration
-      - smartagent
       - integration-test-mysql-discovery
     build: ./mysql
     ports:
@@ -285,22 +276,6 @@ services:
     build: ./redis_server
     ports:
       - "6379:6379"
-  solr:
-    image: quay.io/splunko11ytest/solr:latest
-    profiles:
-      - smartagent
-    build: ./solr
-    ports:
-      - "8983:8983"
-  # Tomcat image for collectd-tomcat test:
-  tomcat:
-    image: tomcat:10
-    profiles:
-      - smartagent
-    environment:
-      JAVA_TOOL_OPTIONS: "-Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.port=5000 -Dcom.sun.management.jmxremote.rmi.port=5000 -Dcom.sun.management.jmxremote.host=0.0.0.0 -Djava.rmi.server.hostname=0.0.0.0"
-    ports:
-      - "5000:5000"
   # Kafka test, requires multiple Kafka containers and Zookeeper:
   zookeeper:
     image: zookeeper:3.5

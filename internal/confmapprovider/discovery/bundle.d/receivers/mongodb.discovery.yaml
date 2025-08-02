@@ -1,0 +1,49 @@
+##############################################################################################
+#                               Do not edit manually!                                        #
+# All changes must be made to associated .yaml metadata file before running 'make bundle.d'. #
+##############################################################################################
+mongodb:
+  enabled: true
+  service_type: mongodb
+  rule:
+    docker_observer: type == "container" and any([name, image, command], {# matches "(?i)mongo"}) and not (command matches "splunk.discovery")
+    host_observer: type == "hostport" and command matches "(?i)mongo" and not (command matches "splunk.discovery")
+    k8s_observer: type == "port" and pod.name matches "(?i)mongo"
+  config:
+    default:
+      username: splunk.discovery.default
+      password: splunk.discovery.default
+      direct_connection: true
+      tls:
+        insecure_skip_verify: true
+        insecure: false
+      hosts:
+        - endpoint: '`endpoint`'
+      timeout: 5s
+  status:
+    metrics:
+      - status: successful
+        strict: mongodb.database.count
+        message: mongodb receiver is working!
+    statements:
+      - status: failed
+        regexp: 'connect: network is unreachable'
+        message: The container cannot be reached by the Collector. Make sure they're in the same network.
+      - status: failed
+        regexp: 'connect: connection refused'
+        message: The container is refusing mongodb connections.
+      - status: partial
+        regexp: '.* unable to authenticate using mechanism .*'
+        message: |-
+          Make sure your user credentials are correctly specified as environment variables.
+          ```
+          SPLUNK_DISCOVERY_RECEIVERS_mongodb_CONFIG_username="<username>"
+          SPLUNK_DISCOVERY_RECEIVERS_mongodb_CONFIG_password="<password>"
+          ```
+      - status: partial
+        regexp: '.* failed to fetch index stats metrics: (Unauthorized) not authorized on admin to execute command .*'
+        message: |-
+          Make sure the account used to access Mongodb has been given a clusterMonitor role in order to collect metrics.
+          ```
+          db.grantRolesToUser('someUser', [{ role: 'clusterMonitor', db: 'admin' }])
+          ```

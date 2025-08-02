@@ -15,8 +15,8 @@
 #     k8s_observer: type == "port" and pod.name matches "(?i)postgres"
 #   config:
 #     default:
-#         username: splunk.discovery.default
-#         password: splunk.discovery.default
+#       username: splunk.discovery.default
+#       password: splunk.discovery.default
 #   status:
 #     metrics:
 #       - status: successful

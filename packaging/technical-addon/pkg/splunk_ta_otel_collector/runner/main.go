@@ -16,12 +16,13 @@ package main
 import (
 	"flag"
 	"fmt"
-	log "github.com/sirupsen/logrus"
-	"github.com/splunk/splunk-technical-addon/internal/addonruntime"
-	"github.com/splunk/splunk-technical-addon/internal/modularinput"
 	"os"
 	"os/exec"
 	"path/filepath"
+
+	log "github.com/sirupsen/logrus"
+	"github.com/splunk/splunk-technical-addon/internal/addonruntime"
+	"github.com/splunk/splunk-technical-addon/internal/modularinput"
 )
 
 func main() {
@@ -90,7 +91,7 @@ func Run(mip *modularinput.ModinputProcessor) error {
 		return err
 	}
 
-	cmd := exec.Command(filepath.Join(splunkTaPlatformDir, otelBinaryName), flags...)
+	cmd := exec.Command(filepath.Join(splunkTaPlatformDir, otelBinaryName), flags...) // #nosec G204
 	cmd.Env = append(os.Environ(), envVars...)
 	cmd.Stdout = outfile
 	cmd.Stderr = outfile

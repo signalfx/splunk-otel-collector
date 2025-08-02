@@ -5,112 +5,112 @@ import (
 	"github.com/splunk/splunk-technical-addon/internal/modularinput"
 )
 
-const SchemaName = "Splunk_TA_otel_collector";
+const SchemaName = "Splunk_TA_otel_collector"
 
 type SplunkTAOtelCollectorModInput struct {
 	Value string
-	Name string
+	Name  string
 }
 
 type SplunkTAOtelCollectorModularInputs struct {
-	Configd SplunkTAOtelCollectorModInput
-	Discovery SplunkTAOtelCollectorModInput
-	DiscoveryProperties SplunkTAOtelCollectorModInput
-	Gomemlimit SplunkTAOtelCollectorModInput
-	SplunkAccessTokenFile SplunkTAOtelCollectorModInput
-	SplunkApiUrl SplunkTAOtelCollectorModInput
-	SplunkBundleDir SplunkTAOtelCollectorModInput
-	SplunkCollectdDir SplunkTAOtelCollectorModInput
-	SplunkConfig SplunkTAOtelCollectorModInput
-	SplunkConfigDir SplunkTAOtelCollectorModInput
-	SplunkConfigYaml SplunkTAOtelCollectorModInput
+	Configd                 SplunkTAOtelCollectorModInput
+	Discovery               SplunkTAOtelCollectorModInput
+	DiscoveryProperties     SplunkTAOtelCollectorModInput
+	Gomemlimit              SplunkTAOtelCollectorModInput
+	SplunkAccessTokenFile   SplunkTAOtelCollectorModInput
+	SplunkApiUrl            SplunkTAOtelCollectorModInput
+	SplunkBundleDir         SplunkTAOtelCollectorModInput
+	SplunkCollectdDir       SplunkTAOtelCollectorModInput
+	SplunkConfig            SplunkTAOtelCollectorModInput
+	SplunkConfigDir         SplunkTAOtelCollectorModInput
+	SplunkConfigYaml        SplunkTAOtelCollectorModInput
 	SplunkDebugConfigServer SplunkTAOtelCollectorModInput
-	SplunkGatewayUrl SplunkTAOtelCollectorModInput
-	SplunkIngestUrl SplunkTAOtelCollectorModInput
-	SplunkListenInterface SplunkTAOtelCollectorModInput
-	SplunkMemoryLimitMib SplunkTAOtelCollectorModInput
-	SplunkMemoryTotalMib SplunkTAOtelCollectorModInput
-	SplunkOtelLogFile SplunkTAOtelCollectorModInput
-	SplunkRealm SplunkTAOtelCollectorModInput
+	SplunkGatewayUrl        SplunkTAOtelCollectorModInput
+	SplunkIngestUrl         SplunkTAOtelCollectorModInput
+	SplunkListenInterface   SplunkTAOtelCollectorModInput
+	SplunkMemoryLimitMib    SplunkTAOtelCollectorModInput
+	SplunkMemoryTotalMib    SplunkTAOtelCollectorModInput
+	SplunkOtelLogFile       SplunkTAOtelCollectorModInput
+	SplunkRealm             SplunkTAOtelCollectorModInput
 }
 
 func GetSplunkTAOtelCollectorModularInputs(mip *modularinput.ModinputProcessor) *SplunkTAOtelCollectorModularInputs {
 	return &SplunkTAOtelCollectorModularInputs{
 		Configd: SplunkTAOtelCollectorModInput{
 			Value: mip.ModularInputs["configd"].Value,
-			Name: "configd",
+			Name:  "configd",
 		},
 		Discovery: SplunkTAOtelCollectorModInput{
 			Value: mip.ModularInputs["discovery"].Value,
-			Name: "discovery",
+			Name:  "discovery",
 		},
 		DiscoveryProperties: SplunkTAOtelCollectorModInput{
 			Value: mip.ModularInputs["discovery_properties"].Value,
-			Name: "discovery_properties",
+			Name:  "discovery_properties",
 		},
 		Gomemlimit: SplunkTAOtelCollectorModInput{
 			Value: mip.ModularInputs["gomemlimit"].Value,
-			Name: "gomemlimit",
+			Name:  "gomemlimit",
 		},
 		SplunkAccessTokenFile: SplunkTAOtelCollectorModInput{
 			Value: mip.ModularInputs["splunk_access_token_file"].Value,
-			Name: "splunk_access_token_file",
+			Name:  "splunk_access_token_file",
 		},
 		SplunkApiUrl: SplunkTAOtelCollectorModInput{
 			Value: mip.ModularInputs["splunk_api_url"].Value,
-			Name: "splunk_api_url",
+			Name:  "splunk_api_url",
 		},
 		SplunkBundleDir: SplunkTAOtelCollectorModInput{
 			Value: mip.ModularInputs["splunk_bundle_dir"].Value,
-			Name: "splunk_bundle_dir",
+			Name:  "splunk_bundle_dir",
 		},
 		SplunkCollectdDir: SplunkTAOtelCollectorModInput{
 			Value: mip.ModularInputs["splunk_collectd_dir"].Value,
-			Name: "splunk_collectd_dir",
+			Name:  "splunk_collectd_dir",
 		},
 		SplunkConfig: SplunkTAOtelCollectorModInput{
 			Value: mip.ModularInputs["splunk_config"].Value,
-			Name: "splunk_config",
+			Name:  "splunk_config",
 		},
 		SplunkConfigDir: SplunkTAOtelCollectorModInput{
 			Value: mip.ModularInputs["splunk_config_dir"].Value,
-			Name: "splunk_config_dir",
+			Name:  "splunk_config_dir",
 		},
 		SplunkConfigYaml: SplunkTAOtelCollectorModInput{
 			Value: mip.ModularInputs["splunk_config_yaml"].Value,
-			Name: "splunk_config_yaml",
+			Name:  "splunk_config_yaml",
 		},
 		SplunkDebugConfigServer: SplunkTAOtelCollectorModInput{
 			Value: mip.ModularInputs["splunk_debug_config_server"].Value,
-			Name: "splunk_debug_config_server",
+			Name:  "splunk_debug_config_server",
 		},
 		SplunkGatewayUrl: SplunkTAOtelCollectorModInput{
 			Value: mip.ModularInputs["splunk_gateway_url"].Value,
-			Name: "splunk_gateway_url",
+			Name:  "splunk_gateway_url",
 		},
 		SplunkIngestUrl: SplunkTAOtelCollectorModInput{
 			Value: mip.ModularInputs["splunk_ingest_url"].Value,
-			Name: "splunk_ingest_url",
+			Name:  "splunk_ingest_url",
 		},
 		SplunkListenInterface: SplunkTAOtelCollectorModInput{
 			Value: mip.ModularInputs["splunk_listen_interface"].Value,
-			Name: "splunk_listen_interface",
+			Name:  "splunk_listen_interface",
 		},
 		SplunkMemoryLimitMib: SplunkTAOtelCollectorModInput{
 			Value: mip.ModularInputs["splunk_memory_limit_mib"].Value,
-			Name: "splunk_memory_limit_mib",
+			Name:  "splunk_memory_limit_mib",
 		},
 		SplunkMemoryTotalMib: SplunkTAOtelCollectorModInput{
 			Value: mip.ModularInputs["splunk_memory_total_mib"].Value,
-			Name: "splunk_memory_total_mib",
+			Name:  "splunk_memory_total_mib",
 		},
 		SplunkOtelLogFile: SplunkTAOtelCollectorModInput{
 			Value: mip.ModularInputs["splunk_otel_log_file"].Value,
-			Name: "splunk_otel_log_file",
+			Name:  "splunk_otel_log_file",
 		},
 		SplunkRealm: SplunkTAOtelCollectorModInput{
 			Value: mip.ModularInputs["splunk_realm"].Value,
-			Name: "splunk_realm",
+			Name:  "splunk_realm",
 		},
 	}
 }
@@ -120,112 +120,99 @@ func GetDefaultSplunkTAOtelCollectorModularInputs() modularinput.GenericModularI
 	return modularinput.GenericModularInput{
 		SchemaName: "Splunk_TA_otel_collector",
 		ModularInputs: map[string]*modularinput.ModInput{
-			"configd": &modularinput.ModInput{
-				Config: modularinput.ModInputConfig{Description:"Boolean, if `true` will enable `--configd`", Default:"", Flag:modularinput.Flag{Name:"configd", IsUnary:false}, Required:false, PassthroughEnvVar:false, ReplaceableEnvVar:false},
-				Transformers: []modularinput.TransformerFunc{
-				},
+			"configd": {
+				Config:       modularinput.ModInputConfig{Description: "Boolean, if `true` will enable `--configd`", Default: "", Flag: modularinput.Flag{Name: "configd", IsUnary: false}, Required: false, PassthroughEnvVar: false, ReplaceableEnvVar: false},
+				Transformers: []modularinput.TransformerFunc{},
 			},
-			"discovery": &modularinput.ModInput{
-				Config: modularinput.ModInputConfig{Description:"Boolean, if `true` will enable `--discovery`", Default:"", Flag:modularinput.Flag{Name:"discovery", IsUnary:true}, Required:false, PassthroughEnvVar:false, ReplaceableEnvVar:false},
-				Transformers: []modularinput.TransformerFunc{
-				},
+			"discovery": {
+				Config:       modularinput.ModInputConfig{Description: "Boolean, if `true` will enable `--discovery`", Default: "", Flag: modularinput.Flag{Name: "discovery", IsUnary: true}, Required: false, PassthroughEnvVar: false, ReplaceableEnvVar: false},
+				Transformers: []modularinput.TransformerFunc{},
 			},
-			"discovery_properties": &modularinput.ModInput{
-				Config: modularinput.ModInputConfig{Description:"String, same as `--discovery-properties` parameter.  See [properties reference](https://github.com/signalfx/splunk-otel-collector/blob/v0.114.0/internal/confmapprovider/discovery/README.md?plain=1#L175)", Default:"", Flag:modularinput.Flag{Name:"discovery-properties", IsUnary:false}, Required:false, PassthroughEnvVar:false, ReplaceableEnvVar:false},
-				Transformers: []modularinput.TransformerFunc{
-				},
+			"discovery_properties": {
+				Config:       modularinput.ModInputConfig{Description: "String, same as `--discovery-properties` parameter.  See [properties reference](https://github.com/signalfx/splunk-otel-collector/blob/v0.114.0/internal/confmapprovider/discovery/README.md?plain=1#L175)", Default: "", Flag: modularinput.Flag{Name: "discovery-properties", IsUnary: false}, Required: false, PassthroughEnvVar: false, ReplaceableEnvVar: false},
+				Transformers: []modularinput.TransformerFunc{},
 			},
-			"gomemlimit": &modularinput.ModInput{
-				Config: modularinput.ModInputConfig{Description:"Value to use for the `GOMEMLIMIT` environment variable", Default:"", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:true, ReplaceableEnvVar:false},
-				Transformers: []modularinput.TransformerFunc{
-				},
+			"gomemlimit": {
+				Config:       modularinput.ModInputConfig{Description: "Value to use for the `GOMEMLIMIT` environment variable", Default: "", Flag: modularinput.Flag{Name: "", IsUnary: false}, Required: false, PassthroughEnvVar: true, ReplaceableEnvVar: false},
+				Transformers: []modularinput.TransformerFunc{},
 			},
-			"splunk_access_token_file": &modularinput.ModInput{
-				Config: modularinput.ModInputConfig{Description:"File whose contents store the credentials to be set in `SPLUNK_ACCESS_TOKEN` (used to auth with Splunk Observability Cloud, default `$SPLUNK_OTEL_TA_HOME/local/access_token`).", Default:"$SPLUNK_TA_HOME/default/access_token", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:false, ReplaceableEnvVar:true},
-				Value: "$SPLUNK_TA_HOME/default/access_token",
+			"splunk_access_token_file": {
+				Config: modularinput.ModInputConfig{Description: "File whose contents store the credentials to be set in `SPLUNK_ACCESS_TOKEN` (used to auth with Splunk Observability Cloud, default `$SPLUNK_OTEL_TA_HOME/local/access_token`).", Default: "$SPLUNK_TA_HOME/default/access_token", Flag: modularinput.Flag{Name: "", IsUnary: false}, Required: false, PassthroughEnvVar: false, ReplaceableEnvVar: true},
+				Value:  "$SPLUNK_TA_HOME/default/access_token",
 				Transformers: []modularinput.TransformerFunc{
 					modularinput.DefaultReplaceEnvVarTransformer,
 				},
 			},
-			"splunk_api_url": &modularinput.ModInput{
-				Config: modularinput.ModInputConfig{Description:"Value to use for the `SPLUNK_API_URL` environment variable", Default:"", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:true, ReplaceableEnvVar:false},
-				Transformers: []modularinput.TransformerFunc{
-				},
+			"splunk_api_url": {
+				Config:       modularinput.ModInputConfig{Description: "Value to use for the `SPLUNK_API_URL` environment variable", Default: "", Flag: modularinput.Flag{Name: "", IsUnary: false}, Required: false, PassthroughEnvVar: true, ReplaceableEnvVar: false},
+				Transformers: []modularinput.TransformerFunc{},
 			},
-			"splunk_bundle_dir": &modularinput.ModInput{
-				Config: modularinput.ModInputConfig{Description:"Value to use for the `SPLUNK_BUNDLE_DIR` environment variable (used in smart agent config, default `$SPLUNK_OTEL_TA_PLATFORM_HOME/bin/agent-bundle`).  NOTE: Once extracted, please do not move the folder structure, as some \"first-run\" patching occurs that depends on the directory it was run in.  Instead, allow the TA to re-extract to the new location if changed.", Default:"$SPLUNK_OTEL_TA_PLATFORM_HOME/bin/agent-bundle", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:true, ReplaceableEnvVar:true},
-				Value: "$SPLUNK_OTEL_TA_PLATFORM_HOME/bin/agent-bundle",
+			"splunk_bundle_dir": {
+				Config: modularinput.ModInputConfig{Description: "Value to use for the `SPLUNK_BUNDLE_DIR` environment variable (used in smart agent config, default `$SPLUNK_OTEL_TA_PLATFORM_HOME/bin/agent-bundle`).  NOTE: Once extracted, please do not move the folder structure, as some \"first-run\" patching occurs that depends on the directory it was run in.  Instead, allow the TA to re-extract to the new location if changed.", Default: "$SPLUNK_OTEL_TA_PLATFORM_HOME/bin/agent-bundle", Flag: modularinput.Flag{Name: "", IsUnary: false}, Required: false, PassthroughEnvVar: true, ReplaceableEnvVar: true},
+				Value:  "$SPLUNK_OTEL_TA_PLATFORM_HOME/bin/agent-bundle",
 				Transformers: []modularinput.TransformerFunc{
 					modularinput.DefaultReplaceEnvVarTransformer,
 				},
 			},
-			"splunk_collectd_dir": &modularinput.ModInput{
-				Config: modularinput.ModInputConfig{Description:"Value to use for the `SPLUNK_COLLECTD_DIR` environment variable (used in smart agent config, default `$SPLUNK_OTEL_TA_PLATFORM_HOME/bin/agent-bundle/run/collectd`)", Default:"$SPLUNK_OTEL_TA_PLATFORM_HOME/bin/agent-bundle/run/collectd", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:true, ReplaceableEnvVar:true},
-				Value: "$SPLUNK_OTEL_TA_PLATFORM_HOME/bin/agent-bundle/run/collectd",
+			"splunk_collectd_dir": {
+				Config: modularinput.ModInputConfig{Description: "Value to use for the `SPLUNK_COLLECTD_DIR` environment variable (used in smart agent config, default `$SPLUNK_OTEL_TA_PLATFORM_HOME/bin/agent-bundle/run/collectd`)", Default: "$SPLUNK_OTEL_TA_PLATFORM_HOME/bin/agent-bundle/run/collectd", Flag: modularinput.Flag{Name: "", IsUnary: false}, Required: false, PassthroughEnvVar: true, ReplaceableEnvVar: true},
+				Value:  "$SPLUNK_OTEL_TA_PLATFORM_HOME/bin/agent-bundle/run/collectd",
 				Transformers: []modularinput.TransformerFunc{
 					modularinput.DefaultReplaceEnvVarTransformer,
 				},
 			},
-			"splunk_config": &modularinput.ModInput{
-				Config: modularinput.ModInputConfig{Description:"Value to use for the `SPLUNK_CONFIG` environment variable (default `$SPLUNK_OTEL_TA_HOME/config/ta_agent_config.yaml`)", Default:"$SPLUNK_OTEL_TA_HOME/config/ta_agent_config.yaml", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:true, ReplaceableEnvVar:true},
-				Value: "$SPLUNK_OTEL_TA_HOME/config/ta_agent_config.yaml",
+			"splunk_config": {
+				Config: modularinput.ModInputConfig{Description: "Value to use for the `SPLUNK_CONFIG` environment variable (default `$SPLUNK_OTEL_TA_HOME/config/ta_agent_config.yaml`)", Default: "$SPLUNK_OTEL_TA_HOME/config/ta_agent_config.yaml", Flag: modularinput.Flag{Name: "", IsUnary: false}, Required: false, PassthroughEnvVar: true, ReplaceableEnvVar: true},
+				Value:  "$SPLUNK_OTEL_TA_HOME/config/ta_agent_config.yaml",
 				Transformers: []modularinput.TransformerFunc{
 					modularinput.DefaultReplaceEnvVarTransformer,
 				},
 			},
-			"splunk_config_dir": &modularinput.ModInput{
-				Config: modularinput.ModInputConfig{Description:"Value to use for the `SPLUNK_CONFIG_DIR` environment variable (default `$SPLUNK_OTEL_TA_HOME/config/`).  Same as `--configd` parameter as defined in https://github.com/signalfx/splunk-otel-collector/blob/v0.114.0/internal/confmapprovider/discovery/README.md?plain=1#L47", Default:"$SPLUNK_OTEL_TA_HOME/config/", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:true, ReplaceableEnvVar:true},
-				Value: "$SPLUNK_OTEL_TA_HOME/config/",
+			"splunk_config_dir": {
+				Config: modularinput.ModInputConfig{Description: "Value to use for the `SPLUNK_CONFIG_DIR` environment variable (default `$SPLUNK_OTEL_TA_HOME/config/`).  Same as `--configd` parameter as defined in https://github.com/signalfx/splunk-otel-collector/blob/v0.114.0/internal/confmapprovider/discovery/README.md?plain=1#L47", Default: "$SPLUNK_OTEL_TA_HOME/config/", Flag: modularinput.Flag{Name: "", IsUnary: false}, Required: false, PassthroughEnvVar: true, ReplaceableEnvVar: true},
+				Value:  "$SPLUNK_OTEL_TA_HOME/config/",
 				Transformers: []modularinput.TransformerFunc{
 					modularinput.DefaultReplaceEnvVarTransformer,
 				},
 			},
-			"splunk_config_yaml": &modularinput.ModInput{
-				Config: modularinput.ModInputConfig{Description:"Value to use for the `SPLUNK_CONFIG_YAML` environment variable", Default:"", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:true, ReplaceableEnvVar:false},
-				Transformers: []modularinput.TransformerFunc{
-				},
+			"splunk_config_yaml": {
+				Config:       modularinput.ModInputConfig{Description: "Value to use for the `SPLUNK_CONFIG_YAML` environment variable", Default: "", Flag: modularinput.Flag{Name: "", IsUnary: false}, Required: false, PassthroughEnvVar: true, ReplaceableEnvVar: false},
+				Transformers: []modularinput.TransformerFunc{},
 			},
-			"splunk_debug_config_server": &modularinput.ModInput{
-				Config: modularinput.ModInputConfig{Description:"Value to use for the `SPLUNK_DEBUG_CONFIG_SERVER` environment variable", Default:"", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:true, ReplaceableEnvVar:false},
-				Transformers: []modularinput.TransformerFunc{
-				},
+			"splunk_debug_config_server": {
+				Config:       modularinput.ModInputConfig{Description: "Value to use for the `SPLUNK_DEBUG_CONFIG_SERVER` environment variable", Default: "", Flag: modularinput.Flag{Name: "", IsUnary: false}, Required: false, PassthroughEnvVar: true, ReplaceableEnvVar: false},
+				Transformers: []modularinput.TransformerFunc{},
 			},
-			"splunk_gateway_url": &modularinput.ModInput{
-				Config: modularinput.ModInputConfig{Description:"Value to use for the `SPLUNK_GATEWAY_URL` environment variable", Default:"", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:true, ReplaceableEnvVar:false},
-				Transformers: []modularinput.TransformerFunc{
-				},
+			"splunk_gateway_url": {
+				Config:       modularinput.ModInputConfig{Description: "Value to use for the `SPLUNK_GATEWAY_URL` environment variable", Default: "", Flag: modularinput.Flag{Name: "", IsUnary: false}, Required: false, PassthroughEnvVar: true, ReplaceableEnvVar: false},
+				Transformers: []modularinput.TransformerFunc{},
 			},
-			"splunk_ingest_url": &modularinput.ModInput{
-				Config: modularinput.ModInputConfig{Description:"Endpoint for `SPLUNK_API_URL`", Default:"", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:true, ReplaceableEnvVar:false},
-				Transformers: []modularinput.TransformerFunc{
-				},
+			"splunk_ingest_url": {
+				Config:       modularinput.ModInputConfig{Description: "Endpoint for `SPLUNK_API_URL`", Default: "", Flag: modularinput.Flag{Name: "", IsUnary: false}, Required: false, PassthroughEnvVar: true, ReplaceableEnvVar: false},
+				Transformers: []modularinput.TransformerFunc{},
 			},
-			"splunk_listen_interface": &modularinput.ModInput{
-				Config: modularinput.ModInputConfig{Description:"Value to use for the `SPLUNK_LISTEN_INTERFACE` environment variable", Default:"", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:true, ReplaceableEnvVar:false},
-				Transformers: []modularinput.TransformerFunc{
-				},
+			"splunk_listen_interface": {
+				Config:       modularinput.ModInputConfig{Description: "Value to use for the `SPLUNK_LISTEN_INTERFACE` environment variable", Default: "", Flag: modularinput.Flag{Name: "", IsUnary: false}, Required: false, PassthroughEnvVar: true, ReplaceableEnvVar: false},
+				Transformers: []modularinput.TransformerFunc{},
 			},
-			"splunk_memory_limit_mib": &modularinput.ModInput{
-				Config: modularinput.ModInputConfig{Description:"Value to use for the `SPLUNK_MEMORY_LIMIT_MIB` environment variable", Default:"", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:true, ReplaceableEnvVar:false},
-				Transformers: []modularinput.TransformerFunc{
-				},
+			"splunk_memory_limit_mib": {
+				Config:       modularinput.ModInputConfig{Description: "Value to use for the `SPLUNK_MEMORY_LIMIT_MIB` environment variable", Default: "", Flag: modularinput.Flag{Name: "", IsUnary: false}, Required: false, PassthroughEnvVar: true, ReplaceableEnvVar: false},
+				Transformers: []modularinput.TransformerFunc{},
 			},
-			"splunk_memory_total_mib": &modularinput.ModInput{
-				Config: modularinput.ModInputConfig{Description:"Value to use for the `SPLUNK_MEMORY_TOTAL_MIB` environment variable", Default:"", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:true, ReplaceableEnvVar:false},
-				Transformers: []modularinput.TransformerFunc{
-				},
+			"splunk_memory_total_mib": {
+				Config:       modularinput.ModInputConfig{Description: "Value to use for the `SPLUNK_MEMORY_TOTAL_MIB` environment variable", Default: "", Flag: modularinput.Flag{Name: "", IsUnary: false}, Required: false, PassthroughEnvVar: true, ReplaceableEnvVar: false},
+				Transformers: []modularinput.TransformerFunc{},
 			},
-			"splunk_otel_log_file": &modularinput.ModInput{
-				Config: modularinput.ModInputConfig{Description:"Log file for otel collector.", Default:"$SPLUNK_HOME/var/log/splunk/otel.log", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:false, ReplaceableEnvVar:true},
-				Value: "$SPLUNK_HOME/var/log/splunk/otel.log",
+			"splunk_otel_log_file": {
+				Config: modularinput.ModInputConfig{Description: "Log file for otel collector.", Default: "$SPLUNK_HOME/var/log/splunk/otel.log", Flag: modularinput.Flag{Name: "", IsUnary: false}, Required: false, PassthroughEnvVar: false, ReplaceableEnvVar: true},
+				Value:  "$SPLUNK_HOME/var/log/splunk/otel.log",
 				Transformers: []modularinput.TransformerFunc{
 					modularinput.DefaultReplaceEnvVarTransformer,
 				},
 			},
-			"splunk_realm": &modularinput.ModInput{
-				Config: modularinput.ModInputConfig{Description:"Splunk Observability realm to use for the `SPLUNK_REALM` environment variable (ex us0)", Default:"", Flag:modularinput.Flag{Name:"", IsUnary:false}, Required:false, PassthroughEnvVar:true, ReplaceableEnvVar:false},
-				Transformers: []modularinput.TransformerFunc{
-				},
+			"splunk_realm": {
+				Config:       modularinput.ModInputConfig{Description: "Splunk Observability realm to use for the `SPLUNK_REALM` environment variable (ex us0)", Default: "", Flag: modularinput.Flag{Name: "", IsUnary: false}, Required: false, PassthroughEnvVar: true, ReplaceableEnvVar: false},
+				Transformers: []modularinput.TransformerFunc{},
 			},
 		},
 	}

@@ -191,11 +191,7 @@ call :extract_bundle
 
 set "command_line=%splunk_TA_otel_app_directory%%splunk_otel_process_name%"
 call :splunk_TA_otel_log_msg "INFO" "Starting otel agent with: %command_line% %SPLUNK_OTEL_FLAGS%"
-start /B "" "%command_line%" %SPLUNK_OTEL_FLAGS% > "%splunk_otel_log_file_value%" 2>&1
-set "splunk_otel_common_ps=%splunk_TA_otel_app_directory%%splunk_otel_common_ps_name%"
-call :splunk_TA_otel_log_msg "INFO" "Monitoring collector process with: %splunk_otel_common_ps% '%splunk_otel_process_name%' '%splunk_TA_otel_log_file%'"
-start /B "" /I /WAIT powershell -ExecutionPolicy ByPass "& '%splunk_otel_common_ps%' '%splunk_otel_process_name%' '%splunk_TA_otel_log_file%'"
-
+Start-Process -Wait -NoNewWindow -FilePath "%command_line%" -ArgumentList %SPLUNK_OTEL_FLAGS% > "%splunk_otel_log_file_value%" 2>&1
 call :splunk_TA_otel_log_msg "INFO" "Otel agent stopped"
 endlocal
 exit /B 0

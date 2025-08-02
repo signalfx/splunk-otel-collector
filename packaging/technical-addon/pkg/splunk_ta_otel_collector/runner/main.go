@@ -90,12 +90,10 @@ func Run(mip *modularinput.ModinputProcessor) error {
 		return err
 	}
 
-	// todo setup logger for and attach stderr + stdout to such
 	cmd := exec.Command(filepath.Join(splunkTaPlatformDir, otelBinaryName), flags...)
 	cmd.Env = append(os.Environ(), envVars...)
 	cmd.Stdout = outfile
 	cmd.Stderr = outfile
-	// TODO configure traps
 	err = cmd.Run()
 	if err != nil {
 		return err

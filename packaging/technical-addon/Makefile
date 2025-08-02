@@ -60,7 +60,7 @@ gen-modinput-config:
 	done
 
 .PHONY: build-tas
-build-tas: gen-modinput-config ta-build-deps-all build-ta-runners 
+build-tas: gen-modinput-config ta-build-deps-all build-ta-runners package-tas
 
 .PHONY: build-ta-runners
 build-ta-runners:
@@ -92,26 +92,43 @@ generate-technical-addon-linux-autoinstrumentation:
 .PHONY: generate-technical-addon-splunk-otel-collector
 generate-technical-addon-splunk-otel-collector:
 	@for platform in $(TA_PLATFORMS); do \
+		TA_NAME="Splunk_TA_otel_collector"; \
 		export smartagent_extension=".tar.gz" ; \
 		if [ "$${platform}" = "windows" ]; then \
 			export extension=".exe"; \
 			export smartagent_extension=".zip"; \
 		fi; \
-		mkdir -p $(BUILD_DIR)/Splunk_TA_otel_collector/$${platform}_$(SPLUNK_ARCH)/bin; \
+		mkdir -p $(BUILD_DIR)/$${TA_NAME}/$${platform}_$(SPLUNK_ARCH)/bin; \
 		echo "Building collector for $${platform} in $(SRC_ROOT)"; \
-		cd $(SRC_ROOT) && GOOS=$$platform GOARCH=$$arch GO111MODULE=on CGO_ENABLED=$(CGO_ENABLED) go build -trimpath -o $(BUILD_DIR)/Splunk_TA_otel_collector/$${platform}_$(SPLUNK_ARCH)/bin/otelcol_$${platform}_$(GOARCH)$${extension} "./cmd/otelcol" && cd - || exit 1; \
+		cd $(SRC_ROOT) && GOOS=$$platform GOARCH=$$arch GO111MODULE=on CGO_ENABLED=$(CGO_ENABLED) go build -trimpath -o $(BUILD_DIR)/$${TA_NAME}/$${platform}_$(SPLUNK_ARCH)/bin/otelcol_$${platform}_$(GOARCH)$${extension} "./cmd/otelcol" && cd - || exit 1; \
 		BUILD_DIR="$(BUILD_DIR)" \
 		PLATFORM="$${platform}" \
 		ARCH="$(ARCH)" \
 		SPLUNK_OTELCOL_DOWNLOAD_BASE="$(SPLUNK_OTELCOL_DOWNLOAD_BASE)" \
 		OTEL_COLLECTOR_VERSION="$(OTEL_COLLECTOR_VERSION)" \
 		$(ADDONS_SOURCE_DIR)/packaging-scripts/download-agent-bundle.sh ; \
-		cp $(BUILD_DIR)/out/smart-agent/agent-bundle_$(OTEL_COLLECTOR_VERSION)_$${platform}_$(ARCH)$$smartagent_extension $(BUILD_DIR)/Splunk_TA_otel_collector/$${platform}_$(SPLUNK_ARCH)/bin/ ; \
+		cp $(BUILD_DIR)/out/smart-agent/agent-bundle_$(OTEL_COLLECTOR_VERSION)_$${platform}_$(ARCH)$$smartagent_extension $(BUILD_DIR)/$${TA_NAME}/$${platform}_$(SPLUNK_ARCH)/bin/ ; \
 	done
 
 
 .PHONY: ta-build-deps-all
 ta-build-deps-all: generate-technical-addon-linux-autoinstrumentation generate-technical-addon-splunk-otel-collector
+
+.PHONY: package-tas
+package-tas:
+	mkdir -p $(BUILD_DIR)/out/distribution/
+	@echo "Building runner binaries..."
+	@for schema in $(MODULAR_INPUT_SCHEMAS); do \
+  		echo "packaging $$schema"; \
+  		APP_CONFIG="$(BUILD_DIR)/$$schema/default/app.conf" ;\
+        if ! [ -f "$$APP_CONFIG" ]; then \
+            echo "file $$APP_CONFIG not found" ;\
+            exit 1; \
+        fi ; \
+		VERSION=$$(sed -n '/^\[launcher\]/,/^\[/{s/^version = \(.*\)/\1/p}' "$$APP_CONFIG" | tr -d ' \t\n\r') ; \
+		COPYFILE_DISABLE=1 tar -C "$(BUILD_DIR)" -hcz -f "$(BUILD_DIR)/out/distribution/$${schema}-$$VERSION.tgz" "$${schema}" ;\
+	done
+
 
 .PHONY: generate-technical-addon
 generate-technical-addon: env-guard-all

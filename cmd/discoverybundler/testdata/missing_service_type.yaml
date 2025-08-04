@@ -1,0 +1,13 @@
+receiver_id: a_receiver
+# service_type is intentionally missing
+properties_tmpl: |
+  enabled: true
+  rule:
+    docker_observer: type == "container" and any([name, image, command], {# matches "(?i)redis"})
+  config:
+    default: {}
+status:
+  metrics:
+    - status: successful
+      strict: redis.uptime
+      message: redis receiver is working!

@@ -8,7 +8,6 @@
 #####################################################################################
 # prometheus/istio:
 #   enabled: false
-#   service_type: istio
 #   rule:
 #     k8s_observer: type == "pod" and ("istio.io/rev" in annotations or labels["istio"] == "pilot" or name matches "istio.*")
 #   config:
@@ -94,18 +93,3 @@
 #                 pilot_xds_rds_reject|\
 #                 pilot_xds_send_time|\
 #                 pilot_xds_write_timeout)(?:_sum|_count|_bucket)?"
-#   status:
-#     metrics:
-#       - status: successful
-#         strict: envoy_server_uptime
-#         message: istio prometheus receiver is working for istio-proxy!
-#       - status: successful
-#         strict: pilot_services
-#         message: istio prometheus receiver is working for istiod!
-#     statements:
-#       - status: failed
-#         regexp: "connection refused"
-#         message: The container is not serving http connections.
-#       - status: failed
-#         regexp: "dial tcp: lookup"
-#         message: Unable to resolve istio prometheus tcp endpoint

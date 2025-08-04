@@ -9,7 +9,6 @@ receivers:
       # For more information on configuring JMX receivers, see
       # https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/jmxreceiver/README.md
       jmx/cassandra:
-        service_type: cassandra
         config:
           # Jar path must be set.  It is bundled in most of our installations (including the docker image).
           # see https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/jmxreceiver/README.md#jar_path-default-optopentelemetry-java-contrib-jmx-metricsjar
@@ -25,11 +24,6 @@ receivers:
             stage: integ-test
           log_level: info
         rule: type == "container" and any([name, image, command], {# matches "(?i)cassandra.*"}) and not (command matches "splunk.discovery")
-        status:
-          metrics:
-            - status: "successful"
-              strict: "cassandra.client.request.count"
-              message: "jmx/cassandra receiver is working!"
     watch_observers:
       - docker_observer
 

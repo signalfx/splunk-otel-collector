@@ -1,5 +1,4 @@
 prometheus_simple:
-  service_type: otelcol
   rule:
     host_observer: type == "hostport" and command contains "otelcol" and port == ${INTERNAL_PROMETHEUS_PORT}
   config:
@@ -12,8 +11,3 @@ prometheus_simple:
       collection_interval: 1s
       labels:
         label_two: ${LABEL_TWO_VALUE}
-  status:
-    metrics:
-      - status: successful
-        strict: otelcol_process_uptime
-        message: internal collector prometheus exporter detected

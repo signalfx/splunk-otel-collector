@@ -160,8 +160,9 @@ fossa:
   rules:
     - &main-condition
       if: $CI_COMMIT_BRANCH == "main"
-    - &release-condition
-      if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+    # commenting out to the original commit-tag trigger condition for collector release
+    # - &release-condition
+    #   if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
     - &manual-release-condition
       if: $RELEASE_VERSION =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/ && $CI_COMMIT_BRANCH == "main"
     - &no-schedules-condition
@@ -1634,11 +1635,8 @@ verify-signed-metadata:
 
 # only upload the msi to S3 for stable release tags
 release-msi:
-  only:
-    variables:
-      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
-  except:
-    - schedules
+  rules:
+    - <<: *manual-release-condition
   extends:
     - .deploy-release
   stage: release
@@ -1649,11 +1647,8 @@ release-msi:
 
 # only upload the installer scripts to S3 for stable release tags
 release-installers:
-  only:
-    variables:
-      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
-  except:
-    - schedules
+  rules:
+    - <<: *manual-release-condition
   extends:
     - .deploy-release
   stage: release
@@ -1916,6 +1911,10 @@ github-release:
       artifacts: true
   before_script:
     - .gitlab/install-gh-cli.sh
+    - echo "PATH=$PATH"
+    - echo "GOPATH=$GOPATH"
+    - ls -la $GOPATH/bin/ || echo "GOPATH/bin does not exist"
+    - which ghr || echo "ghr not found in PATH"
   script:
     - mkdir -p dist/assets
     - cp bin/otelcol_linux_* dist/assets/

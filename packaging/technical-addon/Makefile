@@ -31,7 +31,9 @@ MODINPUT_CONFIG_GENERATOR := $(TOOLS_DIR)/modinput_config_generator
 # Packaging addons and starting splunk takes some time...
 GOTEST_OPT= -v -timeout 16m --tags=$(GO_BUILD_TAGS)
 
-# Make targets
+## Make targets
+
+# Targets for: TA Build tools (currently just the stuff genreated from modular-inputs.yaml)
 .PHONY: ta-build-tools
 ta-build-tools:
 	@echo "Building tools..."
@@ -46,6 +48,9 @@ test-ta-build-tools: ta-build-tools
 	echo "built addon, testing..."
 	go test -v `go list ./... | grep --invert-match pkg`
 
+# Targets for building the golang style TAs
+.PHONY: build-tas
+build-tas: gen-modinput-config ta-build-deps-all build-ta-runners package-tas
 
 .PHONY: gen-modinput-config
 gen-modinput-config:
@@ -58,9 +63,6 @@ gen-modinput-config:
 		$(MODINPUT_CONFIG_GENERATOR) -source-dir=$(ADDONS_SOURCE_DIR) -schema-name=$$schema --build-dir=$(BUILD_DIR) || exit 1; \
 		ls -lAh $(BUILD_DIR); \
 	done
-
-.PHONY: build-tas
-build-tas: gen-modinput-config ta-build-deps-all build-ta-runners 
 
 .PHONY: build-ta-runners
 build-ta-runners:
@@ -92,6 +94,24 @@ generate-technical-addon-linux-autoinstrumentation:
 
 .PHONY: ta-build-deps-all
 ta-build-deps-all: generate-technical-addon-linux-autoinstrumentation
+
+.PHONY: package-tas
+package-tas:
+	mkdir -p $(BUILD_DIR)/out/distribution/
+	@echo "Building runner binaries..."
+	@for schema in $(MODULAR_INPUT_SCHEMAS); do \
+		echo "packaging $$schema"; \
+		APP_CONFIG="$(BUILD_DIR)/$$schema/default/app.conf" ;\
+		if ! [ -f "$$APP_CONFIG" ]; then \
+			echo "file $$APP_CONFIG not found" ;\
+			exit 1; \
+		fi ; \
+		VERSION=$$(sed -n '/^\[launcher\]/,/^\[/{s/^version = \(.*\)/\1/p}' "$$APP_CONFIG" | tr -d ' \t\n\r') ; \
+		COPYFILE_DISABLE=1 tar -C "$(BUILD_DIR)" -hcz -f "$(BUILD_DIR)/out/distribution/$${schema}-$$VERSION.tgz" "$${schema}" ;\
+	done
+
+# Targets for building/releasing the "original" Splunk_TA_otel, which is essentially just the collector + agent bundle + discovery mode.
+# Some of these can be reused with the new golang-style TAs
 
 .PHONY: generate-technical-addon
 generate-technical-addon: env-guard-all

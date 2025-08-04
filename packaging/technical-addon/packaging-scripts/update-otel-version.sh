@@ -23,4 +23,4 @@ if [ -z "$SPLUNK_OTEL_VERSION" ]; then
 fi
 echo "updating otel to version $SPLUNK_OTEL_VERSION"
 sed -i'.old' "s/^OTEL_COLLECTOR_VERSION?=.*$/OTEL_COLLECTOR_VERSION?=${SPLUNK_OTEL_VERSION#v}/g" "$ADDONS_SOURCE_DIR/Makefile" && rm "$ADDONS_SOURCE_DIR/Makefile.old"
-sed -i "s/^EXPECTED_ADDON_VERSION?=.*$/EXPECTED_ADDON_VERSION?=${SPLUNK_OTEL_VERSION#v}/g" "$ADDONS_SOURCE_DIR/packaging-scripts/cicd-tests/happypath-test.sh"
+sed -i "s/^EXPECTED_ADDON_VERSION=.*$/EXPECTED_ADDON_VERSION=${SPLUNK_OTEL_VERSION#v}/g" "$ADDONS_SOURCE_DIR/packaging-scripts/cicd-tests/happypath-test.sh"

@@ -1,0 +1,2 @@
+## v2.0
+Changes runner to a golang binary, rather than shell scripts.  This increases the security compliance and significantly improves development speed, while leaving less room for platform specific bugs that we've encountered in the past.

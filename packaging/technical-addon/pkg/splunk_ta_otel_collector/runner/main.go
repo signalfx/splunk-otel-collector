@@ -70,7 +70,7 @@ func run() int {
 	}
 
 	if err = Run(mip); err != nil {
-		log.Errorln(fmt.Errorf("error running splunk linux autoinstrumentation addon: %w", err))
+		log.Errorln(fmt.Errorf("error running splunk collector addon: %w", err))
 		return -1
 	}
 	return 0

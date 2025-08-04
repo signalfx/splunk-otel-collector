@@ -160,7 +160,7 @@ fossa:
   rules:
     - &main-condition
       if: $CI_COMMIT_BRANCH == "main"
-    # commenting out to the original commit-tag trigger condition for collector release
+    # commenting out the original commit-tag trigger condition for collector release
     # - &release-condition
     #   if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
     - &manual-release-condition
@@ -429,7 +429,7 @@ libsplunk:
 agent-bundle-linux:
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
-    - if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+    # - if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
     - if: $CI_PIPELINE_SOURCE == "schedule"
     - <<: *manual-release-condition
   stage: build
@@ -1911,10 +1911,7 @@ github-release:
       artifacts: true
   before_script:
     - .gitlab/install-gh-cli.sh
-    - echo "PATH=$PATH"
-    - echo "GOPATH=$GOPATH"
-    - ls -la $GOPATH/bin/ || echo "GOPATH/bin does not exist"
-    - which ghr || echo "ghr not found in PATH"
+    - export PATH="$GOPATH/bin:$PATH"
   script:
     - mkdir -p dist/assets
     - cp bin/otelcol_linux_* dist/assets/
@@ -1945,6 +1942,7 @@ github-release:
         release_notes="$( ./packaging/release/gh-release-notes.sh "$VERSION_TAG" )"
         ghr -t "$GITHUB_TOKEN" -u signalfx -r splunk-otel-collector -n "$VERSION_TAG" -b "$release_notes" --replace "$VERSION_TAG" dist/assets/
       fi
+
   artifacts:
     when: always
     paths:

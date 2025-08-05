@@ -1,6 +1,6 @@
 module github.com/signalfx/splunk-otel-collector/tests
 
-go 1.24.5
+go 1.24.0
 
 require (
 	github.com/docker/docker v28.3.2+incompatible

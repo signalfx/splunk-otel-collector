@@ -32,10 +32,10 @@ function isOtelProcessRunning($processName)
 	}
 }
 
-function waitForExit($parent) 
+function waitForExit($processId) 
 {
-	Wait-Process -Id $parent
-	otelLogWrite "INFO Parent process exited"
+	Wait-Process -Id $processId
+	otelLogWrite "INFO $processId process exited"
 }
 
 function forceStopOtelProcess($processId)

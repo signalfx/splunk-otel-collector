@@ -1,0 +1,17 @@
+receiver_id: a_receiver
+service_type: a_service
+properties_tmpl: |
+  enabled: true
+  rule:
+    docker_observer: type == "container"
+  config:
+    default: {}
+status:
+  metrics:
+    - # status is intentionally missing/empty
+      regexp: ".*"
+      message: test message
+  statements:
+    - # status is intentionally missing/empty
+      regexp: ".*"
+      message: test message

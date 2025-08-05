@@ -3,16 +3,6 @@ discovery:
     - an_observer
   receivers:
     receiver_1:
-      service_type: a_service
       rule: type == "container" && name == "app"
-      status:
-        metrics:
-          - status: successful
-            regexp: '.*'
     receiver_2:
-      service_type: a_service
       rule: type == "container" && name == "app"
-      status:
-        statements:
-          - status: failed
-            regexp: '.*'

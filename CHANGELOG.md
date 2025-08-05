@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 🛑 Breaking changes 🛑
+
+- (Splunk) Bump minimum go version to 1.24 ([#](https://github.com/signalfx/splunk-otel-collector/pull/))
+
 ## v0.131.1
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.131.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.131.0)

@@ -8,7 +8,6 @@
 #####################################################################################
 # oracledb:
 #   enabled: true
-#   service_type: oracledb
 #   rule:
 #     docker_observer: type == "container" and any([name, image, command], {# matches "(?i)oracle"}) and not (command matches "splunk.discovery")
 #     host_observer: type == "hostport" and command matches "(?i)oracle" and not (command matches "splunk.discovery")
@@ -18,36 +17,3 @@
 #       username: splunk.discovery.default
 #       password: splunk.discovery.default
 #       service: splunk.discovery.default
-#   status:
-#     metrics:
-#       - status: successful
-#         strict: oracledb.cpu_time
-#         message: oracledb receiver is working!
-#     statements:
-#       - status: failed
-#         regexp: "connection refused"
-#         message: The container is not serving http connections.
-#       - status: failed
-#         regexp: "received goaway and there are no active streams"
-#         message: Unable to connect and scrape metrics.
-#       - status: failed
-#         regexp: "dial tcp: lookup"
-#         message: Unable to resolve oracledb tcp endpoint
-#       - status: failed
-#         regexp: 'error executing select .*: EOF'
-#         message: Unable to execute select from oracledb. Verify endpoint and user permissions.
-#       - status: partial
-#         regexp: "listener does not currently know of service requested"
-#         message: |-
-#           Make sure your oracledb service is correctly specified using an environment variable.
-#           ```
-#           SPLUNK_DISCOVERY_RECEIVERS_oracledb_CONFIG_service="<service>"
-#           ```
-#       - status: partial
-#         regexp: 'invalid username/password'
-#         message: |-
-#           Make sure your user credentials are correctly specified as environment variables.
-#           ```
-#           SPLUNK_DISCOVERY_RECEIVERS_oracledb_CONFIG_username="<username>"
-#           SPLUNK_DISCOVERY_RECEIVERS_oracledb_CONFIG_password="<password>"
-#           ```

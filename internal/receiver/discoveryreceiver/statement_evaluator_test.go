@@ -46,17 +46,22 @@ func TestStatementEvaluation(t *testing.T) {
 				match.Status = status
 				t.Run(string(status), func(t *testing.T) {
 					observerID := component.MustNewIDWithName("an_observer", "observer.name")
+					receiverID := component.MustNewIDWithName("a_receiver", "receiver.name")
 					cfg := &Config{
 						Receivers: map[component.ID]ReceiverEntry{
-							component.MustNewIDWithName("a_receiver", "receiver.name"): {
-								ServiceType: "a_service",
-								Rule:        mustNewRule(`type == "container"`),
-								Status:      &Status{Statements: []Match{match}},
+							receiverID: {
+								Rule: mustNewRule(`type == "container"`),
 							},
 						},
 						WatchObservers: []component.ID{observerID},
 					}
 					require.NoError(t, cfg.Validate())
+
+					// Override the receiverMetaMap for this test case
+					receiverMetaMap[receiverID.String()] = ReceiverMeta{
+						ServiceType: "a_service",
+						Status:      Status{Statements: []Match{match}},
+					}
 
 					// If debugging tests, replace the Nop Logger with a test instance to see
 					// all statements. Not in regular use to avoid spamming output.
@@ -72,7 +77,6 @@ func TestStatementEvaluation(t *testing.T) {
 						emitWG.Done()
 					}()
 
-					receiverID := component.MustNewIDWithName("a_receiver", "receiver.name")
 					endpointID := observer.EndpointID("endpoint.id")
 					cStore.UpdateEndpoint(observer.Endpoint{ID: endpointID}, receiverID, observerID)
 

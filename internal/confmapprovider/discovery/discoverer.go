@@ -290,7 +290,7 @@ func (d *discoverer) discoveryReceiversConfigs(cfg *Config) (map[string]any, err
 			}
 		}
 		for receiverID, receiver := range cfg.ReceiversToDiscover {
-			if ok, updErr := d.updateReceiverForObserver(receiverID, receiver, observerID); updErr != nil {
+			if ok, updErr := d.updateReceiverForObserver(receiverID, &receiver, observerID); updErr != nil {
 				return nil, updErr
 			} else if !ok {
 				continue
@@ -391,12 +391,14 @@ func (d *discoverer) prepareObserverConfig(observerID component.ID, cfg *Config)
 	return nil
 }
 
-func (d *discoverer) updateReceiverForObserver(receiverID component.ID, receiver ReceiverToDiscoverEntry, observerID component.ID) (bool, error) {
+func (d *discoverer) updateReceiverForObserver(receiverID component.ID, receiver *ReceiverToDiscoverEntry, observerID component.ID) (bool, error) {
 	observerRule, hasRule := receiver.Rule[observerID]
 	if !hasRule {
 		d.logger.Debug(fmt.Sprintf("disregarding %q without a %q rule", receiverID, observerID))
 		return false, nil
 	}
+
+	receiver.Entry = make(Entry)
 	receiver.Entry["rule"] = observerRule
 
 	var defaultConfig map[string]any

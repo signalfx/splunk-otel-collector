@@ -1,0 +1,17 @@
+receiver_id: a_receiver
+service_type: a_service
+properties_tmpl: |
+  enabled: true
+  rule:
+    docker_observer: type == "container"
+  config:
+    default: {}
+status:
+  metrics:
+    - status: unsupported  # invalid status type
+      regexp: ".*"
+      message: test message
+  statements:
+    - status: another_unsupported  # invalid status type
+      regexp: ".*"
+      message: test message

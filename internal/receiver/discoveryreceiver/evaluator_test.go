@@ -111,8 +111,7 @@ func TestCorrelateResourceAttrs(t *testing.T) {
 			cfg := &Config{
 				Receivers: map[component.ID]ReceiverEntry{
 					receiverID: {
-						ServiceType: "a_service",
-						Rule:        mustNewRule(`type == "container"`),
+						Rule: mustNewRule(`type == "container"`),
 						Config: map[string]any{
 							"config_option": "val",
 						},
@@ -129,7 +128,6 @@ func TestCorrelateResourceAttrs(t *testing.T) {
 			eval.correlateResourceAttributes(cfg, to, corr)
 
 			expectedResourceAttrs := map[string]string{
-				"service.type":          "a_service",
 				"discovery.observer.id": "type/name",
 			}
 

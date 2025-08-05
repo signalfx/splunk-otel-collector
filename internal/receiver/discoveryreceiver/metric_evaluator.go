@@ -92,16 +92,19 @@ func (m *metricsConsumer) evaluateMetrics(md pmetric.Metrics) {
 		return
 	}
 
-	rEntry, ok := m.config.Receivers[receiverID]
+	_, ok := m.config.Receivers[receiverID]
 	if !ok {
 		m.logger.Info("No matching configured receiver for metric status evaluation", zap.String("receiver", receiverID.String()))
 		return
 	}
-	if rEntry.Status == nil || len(rEntry.Status.Metrics) == 0 {
+
+	meta, hasMeta := receiverMetaMap[receiverID.String()]
+	if !hasMeta || len(meta.Status.Metrics) == 0 {
+		m.logger.Warn("No metadata found for receiver", zap.String("receiver", receiverID.String()))
 		return
 	}
 
-	for _, match := range rEntry.Status.Metrics {
+	for _, match := range meta.Status.Metrics {
 		res, matched := m.findMatchedMetric(md, match, receiverID, endpointID)
 		if !matched {
 			continue

@@ -154,7 +154,7 @@ func (se *statementEvaluator) Sync() error {
 func (se *statementEvaluator) evaluateStatement(statement *statussources.Statement) {
 	se.logger.Debug("evaluating statement", zap.Any("statement", statement))
 
-	receiverID, endpointID, rEntry, shouldEvaluate := se.receiverEntryFromStatement(statement)
+	receiverID, endpointID, shouldEvaluate := se.receiverEntryFromStatement(statement)
 	if !shouldEvaluate {
 		return
 	}
@@ -178,7 +178,12 @@ func (se *statementEvaluator) evaluateStatement(statement *statussources.Stateme
 	}
 	se.logger.Debug("non-strict matches will be evaluated with pattern map", zap.String("map", patternMapStr))
 
-	for _, match := range rEntry.Status.Statements {
+	meta, hasMeta := receiverMetaMap[receiverID.String()]
+	if !hasMeta || len(meta.Status.Statements) == 0 {
+		return
+	}
+
+	for _, match := range meta.Status.Statements {
 		p := patternMapStr
 		if match.Strict != "" {
 			p = statement.Message
@@ -211,23 +216,24 @@ func (se *statementEvaluator) evaluateStatement(statement *statussources.Stateme
 	}
 }
 
-func (se *statementEvaluator) receiverEntryFromStatement(statement *statussources.Statement) (component.ID, observer.EndpointID, ReceiverEntry, bool) {
+func (se *statementEvaluator) receiverEntryFromStatement(statement *statussources.Statement) (component.ID, observer.EndpointID, bool) {
 	receiverID, endpointID := statussources.ReceiverNameToIDs(statement)
 	if receiverID == discovery.NoType || endpointID == "" {
 		// statement evaluation requires both a populated receiver.ID and EndpointID
 		se.logger.Debug("unable to evaluate statement from receiver", zap.String("receiver", receiverID.String()))
-		return discovery.NoType, "", ReceiverEntry{}, false
+		return discovery.NoType, "", false
 	}
 
-	rEntry, ok := se.config.Receivers[receiverID]
+	_, ok := se.config.Receivers[receiverID]
 	if !ok {
 		se.logger.Info("No matching configured receiver for statement status evaluation", zap.String("receiver", receiverID.String()))
-		return discovery.NoType, "", ReceiverEntry{}, false
+		return discovery.NoType, "", false
 	}
 
-	if rEntry.Status == nil {
-		return discovery.NoType, "", ReceiverEntry{}, false
+	_, hasMeta := receiverMetaMap[receiverID.String()]
+	if !hasMeta {
+		return discovery.NoType, "", false
 	}
 
-	return receiverID, endpointID, rEntry, true
+	return receiverID, endpointID, true
 }

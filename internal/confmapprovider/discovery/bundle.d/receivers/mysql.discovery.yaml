@@ -4,7 +4,6 @@
 ##############################################################################################
 mysql:
   enabled: true
-  service_type: mysql
   rule:
     docker_observer: type == "container" and port != 33060 and any([name, image, command], {# matches "(?i)mysql"}) and not (command matches "splunk.discovery")
     host_observer: type == "hostport" and port != 33060 and  command matches "(?i)mysqld"
@@ -13,20 +12,3 @@ mysql:
     default:
       username: splunk.discovery.default
       password: splunk.discovery.default
-  status:
-    metrics:
-      - status: successful
-        strict: mysql.locks
-        message: Mysql receiver is working!
-    statements:
-      - status: failed
-        regexp: "Can't connect to MySQL server on .* [(]111[)]"
-        message:  The container cannot be reached by the Collector. The container is refusing MySQL connections.
-      - status: partial
-        regexp: 'Access denied for user'
-        message: |-
-          Make sure your user credentials are correctly specified as environment variables.
-          ```
-          SPLUNK_DISCOVERY_RECEIVERS_mysql_CONFIG_username="<username>"
-          SPLUNK_DISCOVERY_RECEIVERS_mysql_CONFIG_password="<password>"
-          ```

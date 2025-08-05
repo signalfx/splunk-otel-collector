@@ -587,15 +587,7 @@ func mergeConfigWithBundle(userCfg *Config, bundleCfg *Config) error {
 			enabled = userRec.Enabled
 		}
 
-		bundledConfMap := confmap.NewFromStringMap(bundledRec.ToStringMap())
-		userConfMap := confmap.NewFromStringMap(userRec.ToStringMap())
-		if err := bundledConfMap.Merge(userConfMap); err != nil {
-			return fmt.Errorf("failed merged user and bundled receiver %q discovery configs: %w", rec, err)
-		}
-		receiver := ReceiverToDiscoverEntry{
-			Enabled: enabled, Rule: bundledRec.Rule,
-			Config: bundledRec.Config, Entry: bundledConfMap.ToStringMap(),
-		}
+		receiver := ReceiverToDiscoverEntry{Enabled: enabled, Rule: bundledRec.Rule, Config: bundledRec.Config}
 		for cid, rule := range userRec.Rule {
 			receiver.Rule[cid] = rule
 		}

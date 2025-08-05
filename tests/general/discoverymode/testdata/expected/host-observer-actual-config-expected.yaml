@@ -18,7 +18,6 @@ receivers:
     embed_receiver_config: true
     receivers:
       prometheus_simple:
-        service_type: otelcol
         rule: type == "hostport" and command contains "otelcol" and port == {{ .PromPort }}
         config:
           collection_interval: 1s
@@ -26,11 +25,6 @@ receivers:
             label_one: actual.label.one.value.from.env.var
             label_two: actual.label.two.value.from.env.var
             label_three: actual.label.three.value.from.cmdline.property
-        status:
-          metrics:
-            - status: successful
-              strict: otelcol_process_uptime
-              message: internal collector prometheus exporter detected
 service:
   telemetry:
     resource:

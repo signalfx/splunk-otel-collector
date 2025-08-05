@@ -27,7 +27,6 @@ splunk.discovery:
       embed_receiver_config: true
       receivers:
         prometheus_simple:
-          service_type: prometheus
           config:
             collection_interval: 1s
             labels:
@@ -37,11 +36,6 @@ splunk.discovery:
               label_three: actual.label.three.value
               label_two: ${LABEL_TWO_VALUE}
           rule: type == "container" and labels['test.id'] == '${SPLUNK_TEST_ID}' and port == 9090
-          status:
-            metrics:
-              - message: prometheus detected
-                status: successful
-                strict: prometheus_tsdb_time_retentions_total
       watch_observers: [docker_observer]
   service:
     extensions/splunk.discovery: [docker_observer]

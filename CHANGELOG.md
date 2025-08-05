@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 🛑 Breaking changes 🛑
+
+- (Splunk) `receiver/discovery`: Discovery receiver no longer supports setting `status` and `service_type` options. They are now pre-defined for each receiver type. ([#6501](https://github.com/signalfx/splunk-otel-collector/pull/6501))
+
 ## v0.131.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.131.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.131.0)

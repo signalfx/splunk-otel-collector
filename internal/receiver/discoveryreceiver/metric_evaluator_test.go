@@ -68,15 +68,17 @@ func TestConsumeMetrics(t *testing.T) {
 					receiverID := component.MustNewIDWithName("a_receiver", "receiver.name")
 					cfg := &Config{
 						Receivers: map[component.ID]ReceiverEntry{
-							receiverID: {
-								ServiceType: "a_service",
-								Rule:        Rule{text: "a.rule", program: nil},
-								Status:      &Status{Metrics: []Match{match}},
-							},
+							receiverID: {Rule: Rule{text: "a.rule", program: nil}},
 						},
 						WatchObservers: []component.ID{observerID},
 					}
 					require.NoError(t, cfg.Validate())
+
+					// Override the receiverMetaMap for this test case
+					receiverMetaMap["a_receiver/receiver.name"] = ReceiverMeta{
+						ServiceType: "a_service",
+						Status:      Status{Metrics: []Match{match}},
+					}
 
 					cStore := newCorrelationStore(logger, time.Hour)
 

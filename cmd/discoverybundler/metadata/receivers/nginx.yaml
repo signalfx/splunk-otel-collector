@@ -1,7 +1,7 @@
-component_id: nginx
+receiver_id: nginx
+service_type: nginx
 properties_tmpl: |
   enabled: true
-  service_type: nginx
   rule:
     docker_observer: type == "container" and any([name, image, command], {# matches "(?i)nginx"}) and not (command matches "splunk.discovery")
     host_observer: type == "hostport" and command matches "(?i)nginx" and not (command matches "splunk.discovery")
@@ -9,12 +9,12 @@ properties_tmpl: |
   config:
     default:
       endpoint: '`(port in [443] ? "https://" : "http://")``endpoint`/nginx_status}}'
-  status:
-    metrics:
-      - status: successful
-        strict: nginx.connections_accepted
-        message: nginx receiver is working!
-    statements:
-      - status: failed
-        regexp: "Failed to fetch nginx stats"
-        message: Failed to retrieve metrics from NGINX stub_status endpoint.
+status:
+  metrics:
+    - status: successful
+      strict: nginx.connections_accepted
+      message: nginx receiver is working!
+  statements:
+    - status: failed
+      regexp: "Failed to fetch nginx stats"
+      message: Failed to retrieve metrics from NGINX stub_status endpoint.

@@ -15,9 +15,12 @@ function isOtelProcessRunning($processName)
 	$parent = (Get-WmiObject win32_process | ? processid -eq $PID).parentprocessid
 	$Global:parentPid = $parent
 	otelLogWrite "INFO Parent process id: $parent"
+	$grandParent = (Get-WmiObject win32_process | ? processid -eq $parentPid).parentprocessid
+	$Global:grandParentPid = $grandParent
+	otelLogWrite "INFO GrandParent process id: $Global:grandParentPid"
 	$child = (Get-WmiObject win32_process | ? parentprocessid -eq $parent | ? processname -eq $processName).processid
 	$Global:otelPid = $child
-	otelLogWrite "INFO Collector process id: $child"
+	otelLogWrite "INFO Collector process id: $otelPid"
 	$otelProcess = Get-Process -Id $child
 	if($otelProcess)
 	{
@@ -55,7 +58,7 @@ otelLogWrite "INFO Splunk_TA_otelutils.ps1 started"
 start-sleep -s 3
 if (isOtelProcessRunning($otelProcessName)) {
 	otelLogWrite "INFO Otel agent running"
-	waitForExit($parentPid)
+	waitForExit($grandParentPid)
 	forceStopOtelProcess($otelPid)
 	CheckOtelProcessStop($otelPid)
 } else {

@@ -114,6 +114,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/syslogreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tcplogreceiver"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tlscheckreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/udplogreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/vcenterreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/wavefrontreceiver"
@@ -231,6 +232,7 @@ func Get() (otelcol.Factories, error) {
 		statsdreceiver.NewFactory(),
 		syslogreceiver.NewFactory(),
 		tcplogreceiver.NewFactory(),
+		tlscheckreceiver.NewFactory(),
 		udplogreceiver.NewFactory(),
 		vcenterreceiver.NewFactory(),
 		wavefrontreceiver.NewFactory(),

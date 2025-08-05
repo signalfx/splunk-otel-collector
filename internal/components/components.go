@@ -34,6 +34,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/headerssetterextension"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarderextension"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/k8sleaderelector"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/oauth2clientauthextension"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/dockerobserver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecsobserver"
@@ -157,6 +158,7 @@ func Get() (otelcol.Factories, error) {
 		healthcheckextension.NewFactory(),
 		hostobserver.NewFactory(),
 		httpforwarderextension.NewFactory(),
+		k8sleaderelector.NewFactory(),
 		k8sobserver.NewFactory(),
 		oauth2clientauthextension.NewFactory(),
 		opampextension.NewFactory(),

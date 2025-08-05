@@ -163,7 +163,7 @@ fossa:
     - &release-condition
       if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
     - &manual-release-condition
-      if: $RELEASE_VERSION =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/ && $CI_COMMIT_BRANCH == "main"
+      if: $RELEASE_VERSION =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/ && $CI_COMMIT_BRANCH == "update_ci_release"
     - &no-schedules-condition
       if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
@@ -509,32 +509,32 @@ agent-bundle-windows:
     - splunk_orca -v --cloud aws destroy --labels gitlab.job_url=${CI_JOB_URL} || true
     - creds-helper logout --silent=false
   before_script: |
-      creds-helper init
-      creds-helper pypi "$PYPI_READER_ROLE"
-      eval "$(creds-helper artifactory --eval "$PYPI_READER_ROLE" )"
-      pip install --upgrade pip
-      pip install --upgrade splunk-orca
-      splunk_orca --help
-      eval "$(creds-helper artifactory --eval "$GENERIC_RELEASER_ROLE_URI" )"
-      eval "$(creds-helper aws --eval "aws:v1/o11y-infra/role/o11y_gdi_otel_releaser_role" )"
-      # extract orca config (honestly we could probably just set this up every time)
-      pushd ~
-      if [ "$SPLUNK_CLOUD" == "kubernetes" ]; then
-        echo ${NEW_ORCA_TGZ} | base64 -d > orca_cred.tar.gz
-        tar -xzvf ~/orca_cred.tar.gz
-        # Also set some aws auth
-        grep aws_secret_access_key "$AWS_SHARED_CREDENTIALS_FILE" >> ~/.orca/orca.conf
-        grep aws_access_key_id "$AWS_SHARED_CREDENTIALS_FILE" >> ~/.orca/orca.conf
-        grep aws_session_token "$AWS_SHARED_CREDENTIALS_FILE" >> ~/.orca/orca.conf
-        # Test access
-        splunk_orca --cloud kubernetes show deployments
-      else
-        echo ${ORCA_TAR_GZ} | base64 -d > orca_cred.tar.gz
-        tar -xzvf ~/orca_cred.tar.gz
-        # Test access
-        splunk_orca --cloud aws show deployments
-      fi
-      popd
+    creds-helper init
+    creds-helper pypi "$PYPI_READER_ROLE"
+    eval "$(creds-helper artifactory --eval "$PYPI_READER_ROLE" )"
+    pip install --upgrade pip
+    pip install --upgrade splunk-orca
+    splunk_orca --help
+    eval "$(creds-helper artifactory --eval "$GENERIC_RELEASER_ROLE_URI" )"
+    eval "$(creds-helper aws --eval "aws:v1/o11y-infra/role/o11y_gdi_otel_releaser_role" )"
+    # extract orca config (honestly we could probably just set this up every time)
+    pushd ~
+    if [ "$SPLUNK_CLOUD" == "kubernetes" ]; then
+      echo ${NEW_ORCA_TGZ} | base64 -d > orca_cred.tar.gz
+      tar -xzvf ~/orca_cred.tar.gz
+      # Also set some aws auth
+      grep aws_secret_access_key "$AWS_SHARED_CREDENTIALS_FILE" >> ~/.orca/orca.conf
+      grep aws_access_key_id "$AWS_SHARED_CREDENTIALS_FILE" >> ~/.orca/orca.conf
+      grep aws_session_token "$AWS_SHARED_CREDENTIALS_FILE" >> ~/.orca/orca.conf
+      # Test access
+      splunk_orca --cloud kubernetes show deployments
+    else
+      echo ${ORCA_TAR_GZ} | base64 -d > orca_cred.tar.gz
+      tar -xzvf ~/orca_cred.tar.gz
+      # Test access
+      splunk_orca --cloud aws show deployments
+    fi
+    popd
 
 package-technical-addon:
   extends:
@@ -1889,63 +1889,13 @@ github-release:
     - .go-cache
   tags: [large]
   stage: publish-release
-  needs:
-    - job: compile
-      artifacts: true
-    - job: otelcol-fips
-      artifacts: true
-    - job: libsplunk
-      artifacts: true
-    - job: sign-exe
-      artifacts: true
-    - job: sign-osx
-      artifacts: true
-    - job: release-debs
-      artifacts: true
-    - job: release-nupkg
-      artifacts: true
-    - job: release-rpms
-      artifacts: true
-    - job: sign-msi
-      artifacts: true
-    - job: sign-tar
-      artifacts: true
-    - job: push-multiarch-manifest
-      artifacts: true
-    - job: sign-agent-bundles
-      artifacts: true
+  dependencies:
+    - compile
   before_script:
     - .gitlab/install-gh-cli.sh
   script:
-    - mkdir -p dist/assets
-    - cp bin/otelcol_linux_* dist/assets/
-    - cp bin/otelcol-fips_linux_* dist/assets/
-    - cp instrumentation/dist/libsplunk_*.so dist/assets/
-    - cp dist/signed/* dist/assets/
-    - |
-      set -e
-      VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
-      # Rename agent bundles to include the version for all releases (include pre-releases)
-      if [[ "$VERSION_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+.*$ ]]; then
-        VERSION="${VERSION_TAG#v}"
-        mv dist/assets/agent-bundle_linux_amd64.tar.gz dist/assets/agent-bundle_${VERSION}_linux_amd64.tar.gz
-        mv dist/assets/agent-bundle_linux_amd64.tar.gz.asc dist/assets/agent-bundle_${VERSION}_linux_amd64.tar.gz.asc
-        mv dist/assets/agent-bundle_windows_amd64.zip dist/assets/agent-bundle_${VERSION}_windows_amd64.zip
-        mv dist/assets/agent-bundle_windows_amd64.zip.asc dist/assets/agent-bundle_${VERSION}_windows_amd64.zip.asc
-        # exclude the arm64 bundle from release assets
-        rm -f dist/assets/agent-bundle_linux_arm64.tar.gz
-        rm -f dist/assets/agent-bundle_linux_arm64.tar.gz.asc
-      fi
-      pushd dist/assets && shasum -a 256 * > checksums.txt && popd
-      # Tag if this is a manual release (RELEASE_VERSION set, CI_COMMIT_TAG not set)
-      if [[ -n "${RELEASE_VERSION:-}" && -z "${CI_COMMIT_TAG:-}" ]]; then
-        ./.gitlab/create-github-tag.sh "$VERSION_TAG" "$CI_COMMIT_SHA"
-      fi
-      # Only create github release for stable release tags
-      if [[ "$VERSION_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        release_notes="$( ./packaging/release/gh-release-notes.sh "$VERSION_TAG" )"
-        ghr -t "$GITHUB_TOKEN" -u signalfx -r splunk-otel-collector -n "$VERSION_TAG" -b "$release_notes" --replace "$VERSION_TAG" dist/assets/
-      fi
+    - echo "this is a test"
+    - ghr -h
   artifacts:
     when: always
     paths:

@@ -62,10 +62,10 @@ manual_release_trigger:
         echo "RELEASE_VERSION is not set. Cannot proceed." && exit 1
       fi
       # Validate version format (must be v1.2.3 or v1.2.3-rc.0)
-      if ! echo "$RELEASE_VERSION" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+(-beta\.[0-9]+)?(-rc\.[0-9]+)?$'; then
+      if ! echo "$RELEASE_VERSION" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+(\-beta\.[0-9]+)?(\-rc\.[0-9]+)?$'; then
         echo "RELEASE_VERSION must be in format v1.2.3 for stable releases and in the format v1.2.3-rc.0 or v1.2.3-beta.1 for pre-releases." && exit 1
       fi
-      if echo "$RELEASE_VERSION" | grep -Eq '-(beta|rc)\.[0-9]+$'; then
+      if echo "$RELEASE_VERSION" | grep -Eq '\-(beta|rc)\.[0-9]+$'; then
         echo "Pre-release version detected ($RELEASE_VERSION). Skipping changelog validation."
       else
         # Validate version is in changelog only for stable releases

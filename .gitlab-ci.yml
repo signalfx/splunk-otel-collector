@@ -168,6 +168,18 @@ fossa:
       if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
 
+.trigger-filter-test:
+  rules:
+    - &main-condition
+      if: $CI_COMMIT_BRANCH == "main"
+    - &release-condition
+      if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+    - &manual-release-condition
+      if: $RELEASE_VERSION =~ /^test[0-9]+\.[0-9]+\.[0-9]+.*/ && $CI_COMMIT_BRANCH == "update_ci_release"
+    - &no-schedules-condition
+      if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+
 .deploy-release:
   image: '${DOCKER_CICD_REPO}/ci-container/python-3.12-bookworm:3.5.0'
   variables:
@@ -346,7 +358,7 @@ tidy-dependabot-pr:
 compile:
   timeout: 2h
   extends:
-    - .trigger-filter
+    - .trigger-filter-test
     - .go-cache
   tags: [large]
   stage: build
@@ -355,7 +367,7 @@ compile:
       optional: true
   parallel:
     matrix:
-      - TARGET: [binaries-darwin_amd64, binaries-darwin_arm64, binaries-linux_amd64, binaries-linux_arm64, binaries-windows_amd64, binaries-linux_ppc64le]
+      - TARGET: [binaries-darwin_amd64]
   script:
     - |
       VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
@@ -1885,7 +1897,7 @@ xray-scan-docker:
 
 github-release:
   extends:
-    - .trigger-filter
+    - .trigger-filter-test
     - .go-cache
   tags: [large]
   stage: publish-release

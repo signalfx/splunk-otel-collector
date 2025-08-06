@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.131.1
+
 ### 💡 Enhancements 💡
 
 - (Contrib) `receiver/sqlserver` Enable sqlserver events collection on windows ([#41762](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41762))

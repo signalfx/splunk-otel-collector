@@ -1,7 +1,7 @@
 # See https://splunk.github.io/docker-splunk/advanced/APP_INSTALL.html#apps-on-filesystem
 services:
   so1:
-    image: "splunk/splunk:${SPLUNK_VERSION:-10.0}"
+    image: "splunk/splunk:${SPLUNK_VERSION:-9.4}"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/en-US/account/login"]
       interval: 30s

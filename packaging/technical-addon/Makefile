@@ -254,13 +254,13 @@ update-ta-deps:
 	TA_VERSION="$(TA_VERSION)" \
 	$(ADDONS_SOURCE_DIR)/packaging-scripts/update-ta-version.sh
 
-.PHONY: release-ta
-release-ta:
+.PHONY: draft-release-ta
+draft-release-ta:
 	ADDONS_SOURCE_DIR="$(ADDONS_SOURCE_DIR)" \
-	$(ADDONS_SOURCE_DIR)/packaging-scripts/release-ta-version.sh
+	$(ADDONS_SOURCE_DIR)/packaging-scripts/draft-release-ta-version.sh
 
 .PHONY: update-and-release-ta
-update-and-release: update-ta-deps release-ta
+update-and-draft-release: update-ta-deps draft-release-ta
 
 .PHONY: validate-release
 validate-release:
@@ -268,6 +268,11 @@ validate-release:
 	BUILD_DIR="$(BUILD_DIR)" \
 	OTEL_COLLECTOR_VERSION="$(OTEL_COLLECTOR_VERSION)" \
 	$(ADDONS_SOURCE_DIR)/packaging-scripts/validate-ta-release.sh
+
+.PHONY: release-ta
+release-ta:
+	ADDONS_SOURCE_DIR="$(ADDONS_SOURCE_DIR)" \
+	$(ADDONS_SOURCE_DIR)/packaging-scripts/release-ta.sh
 
 .PHONY: clean-ta
 clean-ta:

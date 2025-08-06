@@ -58,6 +58,11 @@ jobs:
   test:
     name: test
     runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        environment:
+          # see https://hub.docker.com/r/splunk/splunk/tags
+          SPLUNK_VERSION: ["10.0", "9.4", "8.2"]
     defaults:
       run:
         working-directory: ${{github.workspace}}/packaging/technical-addon
@@ -72,7 +77,7 @@ jobs:
           make -e bundle.d otelcol
           popd
           make -e generate-technical-addon copy-local-build-to-ta package-ta
-          make -e smoketest-ta
+          SPLUNK_IMAGE=SPLUNK_IMAGE make -e smoketest-ta
 
   test-generator:
     needs: [check_changes]

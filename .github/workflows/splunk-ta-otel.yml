@@ -77,7 +77,7 @@ jobs:
           make -e bundle.d otelcol
           popd
           make -e generate-technical-addon copy-local-build-to-ta package-ta
-          SPLUNK_VERSION=SPLUNK_VERSION make -e smoketest-ta
+          make -e smoketest-ta
 
   test-generator:
     needs: [check_changes]

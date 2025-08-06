@@ -233,6 +233,7 @@ install-tools:
 	cd ./internal/tools && go install golang.org/x/tools/cmd/goimports
 	cd ./internal/tools && go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment
 	cd ./internal/tools && go install golang.org/x/vuln/cmd/govulncheck@latest
+	cd ./internal/tools && go install go.opentelemetry.io/build-tools/chloggen
 
 .PHONY: generate-metrics
 generate-metrics:
@@ -373,3 +374,20 @@ endif
 	docker create --platform linux/$(GOARCH) --name otelcol-fips-builder-$(GOOS)-$(GOARCH) otelcol-fips-builder-$(GOOS)-$(GOARCH) true >/dev/null
 	docker cp otelcol-fips-builder-$(GOOS)-$(GOARCH):/src/bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/otelcol-fips_$(GOOS)_$(GOARCH)$(EXTENSION)
 	@docker rm -f otelcol-fips-builder-$(GOOS)-$(GOARCH) >/dev/null
+
+FILENAME?=$(shell git branch --show-current)
+.PHONY: chlog-new
+chlog-new:
+	$(CHLOGGEN) new --filename $(FILENAME)
+
+.PHONY: chlog-validate
+chlog-validate:
+	$(CHLOGGEN) validate
+
+.PHONY: chlog-preview
+chlog-preview:
+	$(CHLOGGEN) update --dry
+
+.PHONY: chlog-update
+chlog-update:
+	$(CHLOGGEN) update -v $(VERSION)

@@ -24,6 +24,7 @@ import (
 	_ "github.com/google/addlicense"
 	_ "github.com/jstemmer/go-junit-report"
 	_ "github.com/tcnksm/ghr"
+	_ "go.opentelemetry.io/build-tools/chloggen"
 	_ "go.opentelemetry.io/collector/cmd/mdatagen"
 	_ "golang.org/x/tools/cmd/goimports"
 	_ "golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment"

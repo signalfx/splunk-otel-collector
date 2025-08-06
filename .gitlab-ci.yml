@@ -1691,6 +1691,8 @@ choco-release:
       optional: true
     - job: release-nupkg
       artifacts: true
+    - job: github-release
+      artifacts: false
   tags:
     - splunk-otel-collector-windows
   script:

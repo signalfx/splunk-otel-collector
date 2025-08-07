@@ -68,7 +68,7 @@ try {
 		otelLogWrite "INFO Otel agent running"
 		$parentJob      = Start-Job { Wait-Process -Id $using:parentId } -Name "cmd job"
 		$grandParentJob = Start-Job { Wait-Process -Id $using:grandParentId } -Name "splunkd job"
-		$otelJob = Start-Job { Wait-Process -Id $using:otelPid } -Name "Otel agent job"
+		$otelJob        = Start-Job { Wait-Process -Id $using:otelPid } -Name "Otel agent job"
 		otelLogWrite "INFO waiting on termination of any one of splunkd, cmd, and Otel agent"
 		$finishedJob = Wait-Job -Any -Job $parentJob,$grandParentJob,$otelJob
 		otelLogWrite "INFO at least one of the jobs finished:`n`t'$($finishedJob.Name)': finished with $($finishedJob.JobStateInfo)"

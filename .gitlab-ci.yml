@@ -10,7 +10,7 @@ variables:
   RELEASE_VERSION:
     value: ""
     description: "Version to release (must be in format v1.2.3)"
-  GO_VERSION: 1.23.10
+  GO_VERSION: 1.24.5
   WIN_2019_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2019
   WIN_2022_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2022
   SPLUNK_OTELCOL_DOWNLOAD_BASE:
@@ -374,7 +374,7 @@ compile:
       - bin/migratecheckpoint_*
 
 otelcol-fips:
-  image: '${DOCKER_CICD_REPO}/ci-container/golang-1.23:3.9.0'
+  image: '${DOCKER_CICD_REPO}/ci-container/golang-1.24:4.0.0'
   extends:
     - .trigger-filter
   stage: build

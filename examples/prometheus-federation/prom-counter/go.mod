@@ -1,6 +1,6 @@
 module github.com/signalfx/splunk-otel-collector/examples/prometheus-federation/prom-counter
 
-go 1.23.10
+go 1.24.0
 
 require (
 	go.opentelemetry.io/otel v0.20.0

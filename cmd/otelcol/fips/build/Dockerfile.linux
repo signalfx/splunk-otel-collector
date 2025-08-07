@@ -1,9 +1,9 @@
 ARG DOCKER_REPO=docker.io
-ARG GO_VERSION=1.23
+ARG GO_VERSION=1.24
 FROM ${DOCKER_REPO}/golang:${GO_VERSION}
 
 # https://splunk.atlassian.net/wiki/x/qYqRDfs
-ENV BORING_SHA="c1dd71f0ea77e385796db11102c461896ee0824825c773979751983e2bf49912"
+ENV BORING_SHA="2ace5a99ae43b388845592472026b0225cf1f07c9b28124c23f0f3fef77f0210"
 ENV BORING_PATH="src/crypto/internal/boring/syso/goboringcrypto_linux_amd64.syso"
 RUN echo "$BORING_SHA" "$( go env GOROOT )/${BORING_PATH}" | sha256sum --check || ( echo "$BORING_PATH SHA256 doesn't match $BORING_SHA" && exit 1 )
 

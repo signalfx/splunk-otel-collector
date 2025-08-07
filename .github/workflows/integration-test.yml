@@ -18,7 +18,7 @@ jobs:
       matrix:
         ARCH: [ "amd64", "arm64" ]
       fail-fast: false
-    uses: ./.github/workflows/agent-bundle-linux.yml
+    uses: ./.github/workflows/reusable-agent-bundle-linux.yml
     with:
       ARCH: ${{ matrix.ARCH }}
 

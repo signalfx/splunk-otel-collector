@@ -30,7 +30,7 @@ jobs:
     strategy:
       matrix:
         SYS_BINARIES: [ "binaries-linux_amd64", "binaries-linux_arm64" ]
-    uses: ./.github/workflows/compile.yml
+    uses: ./.github/workflows/reusable-compile.yml
     with:
       SYS_BINARY: ${{ matrix.SYS_BINARIES }}
 

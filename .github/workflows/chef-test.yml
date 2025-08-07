@@ -24,7 +24,7 @@ concurrency:
 env:
   CHEF_VERSION: "22.12.1024"
   CHEF_LICENSE: accept
-  GO_VERSION: 1.23.10
+  GO_VERSION: 1.24.5
 
 jobs:
   setup-environment:

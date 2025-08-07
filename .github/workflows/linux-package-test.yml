@@ -99,7 +99,7 @@ jobs:
           echo "Unknown distro '${{ matrix.DISTRO }}'!"
           exit 1
 
-      - uses: actions/download-artifact@v4.1.3
+      - uses: actions/download-artifact@v4.3.0
         with:
           name: ${{ env.SYS_PACKAGE }}-${{ matrix.ARCH }}-package
           path: ./dist
@@ -175,29 +175,29 @@ jobs:
           image: tonistiigi/binfmt:qemu-v7.0.0
 
       - name: Downloading binaries-linux_amd64
-        uses: actions/download-artifact@v4.1.3
+        uses: actions/download-artifact@v4.3.0
         with:
           name: binaries-linux_amd64
           path: ./bin
 
       - name: Downloading binaries-linux_arm64
-        uses: actions/download-artifact@v4.1.3
+        uses: actions/download-artifact@v4.3.0
         with:
           name: binaries-linux_arm64
           path: ./bin
 
       - name: Downloading binaries-linux_ppc64le
-        uses: actions/download-artifact@v4.1.3
+        uses: actions/download-artifact@v4.3.0
         with:
           name: binaries-linux_ppc64le
           path: ./bin
 
-      - uses: actions/download-artifact@v4.1.3
+      - uses: actions/download-artifact@v4.3.0
         with:
           name: agent-bundle-linux-amd64
           path: ./dist
 
-      - uses: actions/download-artifact@v4.1.3
+      - uses: actions/download-artifact@v4.3.0
         with:
           name: agent-bundle-linux-arm64
           path: ./dist
@@ -243,7 +243,7 @@ jobs:
           platforms: ${{ matrix.ARCH }}
           image: tonistiigi/binfmt:qemu-v7.0.0
 
-      - uses: actions/download-artifact@v4.1.3
+      - uses: actions/download-artifact@v4.3.0
         with:
           name: otelcol
           path: ./docker-otelcol

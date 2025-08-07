@@ -20,18 +20,16 @@ rm -rf "$TA_FULLPATH"
 cp "$ADDONS_SOURCE_DIR/packaging-scripts/cicd-tests/agent-bundle/ta-agent-mysql-config.yaml" "$ADDON_DIR/Splunk_TA_otel/configs/"
 echo 'splunk_config=$SPLUNK_OTEL_TA_HOME/configs/ta-agent-mysql-config.yaml' >> "$ADDON_DIR/Splunk_TA_otel/local/inputs.conf"
 tar -C "$ADDON_DIR" -hcz --file "$TA_FULLPATH" "Splunk_TA_otel"
-echo "Creating orca cluster with mysql and TA $TA_FULLPATH"
+echo "Creating orca cluster with nginx and TA $TA_FULLPATH"
 
 # Create ORCA container & grab id
-splunk_orca -vvv --cloud "${ORCA_CLOUD}" --area otel-collector --printer sdd-json --deployment-file "$TEST_FOLDER/orca_deployment.json" --ansible-log "$TEST_FOLDER/ansible-local.log" create --prefix "collectd" --env SPLUNK_CONNECTION_TIMEOUT=600 --platform "$SPLUNK_PLATFORM" --splunk-version "${UF_VERSION}" --local-apps "$TA_FULLPATH" --playbook "$ADDONS_SOURCE_DIR/packaging-scripts/orca-playbook-$PLATFORM.yml,site.yml" --custom-services "$ADDONS_SOURCE_DIR/packaging-scripts/cicd-tests/agent-bundle/orca-playbook-mysql.yml"
+splunk_orca -vvv --cloud "${ORCA_CLOUD}" --area otel-collector --printer sdd-json --deployment-file "$TEST_FOLDER/orca_deployment.json" --ansible-log "$TEST_FOLDER/ansible-local.log" create --prefix "collectd" --env SPLUNK_CONNECTION_TIMEOUT=600 --platform "$SPLUNK_PLATFORM" --splunk-version "${UF_VERSION}" --local-apps "$TA_FULLPATH" --playbook "$ADDONS_SOURCE_DIR/packaging-scripts/orca-playbook-$PLATFORM.yml,site.yml"
 cat "$TEST_FOLDER/orca_deployment.json"
 deployment_id="$(jq -r '.orca_deployment_id' < "$TEST_FOLDER/orca_deployment.json")"
 ip_addr="$(jq -r '.server_roles.standalone[0].host' < "$TEST_FOLDER/orca_deployment.json")"
-mysql_ip="$(jq -r '.server_roles.custom[0].host' < "$TEST_FOLDER/orca_deployment.json")"
 
 # Seed in the correct IP address for the TA
 SPLUNK_HOME="/opt/splunk" # as it's ansible ssh, path is linux-like with c==root
-ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.orca/id_rsa "ssh://splunk@$ip_addr:$SSH_PORT" sed -i "s/127.0.0.1/$mysql_ip/g" "$SPLUNK_HOME/etc/apps/Splunk_TA_otel/configs/ta-agent-mysql-config.yaml"
 ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.orca/id_rsa "ssh://splunk@$ip_addr:$SSH_PORT" '/opt/splunk/bin/splunk restart'
 
 
@@ -47,9 +45,7 @@ while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
     # Copy logs from container
     scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.orca/id_rsa -r -P $SSH_PORT "splunk@$ip_addr:/opt/splunk/var/log/splunk/" "$TEST_FOLDER"
     if safe_grep_log "Starting otel agent" "$TEST_FOLDER/splunk/Splunk_TA_otel.log" && \
-        safe_grep_log "mysql" "$TEST_FOLDER/splunk/Splunk_TA_otel.log" && \
         safe_grep_log "Everything is ready" "$TEST_FOLDER/splunk/otel.log" && \
-        safe_grep_log "plugin: Str(mysql)" "$TEST_FOLDER/splunk/otel.log" ; then
         break
     fi
     ATTEMPT=$((ATTEMPT + 1))

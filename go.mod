@@ -278,6 +278,7 @@ require (
 	github.com/google/gnostic-models v0.6.9 // indirect
 	github.com/google/go-metrics-stackdriver v0.6.0 // indirect
 	github.com/google/go-tpm v0.9.5 // indirect
+	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/s2a-go v0.1.9 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/gophercloud/gophercloud/v2 v2.7.0 // indirect
@@ -788,3 +789,9 @@ replace github.com/veraison/go-cose v1.2.0 => github.com/veraison/go-cose v1.1.1
 
 // pick up a fix for 0.130.0 update https://github.com/open-telemetry/opentelemetry-go/pull/7056
 replace go.opentelemetry.io/otel/exporters/prometheus v0.59.0 => go.opentelemetry.io/otel/exporters/prometheus v0.59.1
+
+replace k8s.io/api v0.33.1 => k8s.io/api v0.32.7
+
+replace k8s.io/apimachinery v0.33.1 => k8s.io/apimachinery v0.32.7
+
+replace k8s.io/client-go v0.33.1 => k8s.io/client-go v0.32.6

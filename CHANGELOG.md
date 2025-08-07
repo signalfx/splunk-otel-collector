@@ -2,9 +2,14 @@
 
 ## Unreleased
 
-### 🛑 Breaking changes 🛑
+## v0.131.1
 
-- (Splunk) `receiver/discovery`: Discovery receiver no longer supports setting `status` and `service_type` options. They are now pre-defined for each receiver type. ([#6501](https://github.com/signalfx/splunk-otel-collector/pull/6501))
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.131.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.131.0)
+and the [opentelemetry-collector-contrib v0.131.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.131.0) releases where appropriate.
+
+### 💡 Enhancements 💡
+
+- (Contrib) `receiver/sqlserver` Enable sqlserver events collection on windows ([#41762](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41762))
 
 ## v0.131.0
 
@@ -13,6 +18,7 @@ and the [opentelemetry-collector-contrib v0.131.0](https://github.com/open-telem
 
 ### 🛑 Breaking changes 🛑
 
+- (Splunk) `receiver/discovery`: Discovery receiver no longer supports setting `status` and `service_type` options. They are now pre-defined for each receiver type. ([#6530](https://github.com/signalfx/splunk-otel-collector/pull/6530))
 - (Splunk) `discovery`: The `splunk.continuousDiscovery` feature flag, enabled by default since v0.118.0, is now stable. The feature gate has been removed, and default behavior remains unchanged.
 - (Splunk) Remove, already deprecated, `collectd/consul` monitor. Please follow the documentation at https://developer.hashicorp.com/consul/docs/agent/monitor/telemetry to set up with statsd or prometheus receivers. ([#6505](https://github.com/signalfx/splunk-otel-collector/pull/6505))
 - (Splunk) Remove, already deprecated, `collectd/genericjmx` and all related monitors. Please use the [jmxreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jmxreceiver) instead with the appropriate target system. 

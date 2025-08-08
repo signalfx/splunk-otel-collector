@@ -5,7 +5,7 @@ change_type: new_component
 component: extension/k8sleaderelector
 
 # A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
-note: Add extension to the Splunk distro
+note: Add [extension](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/k8sleaderelector) to the Splunk distro
 
 # One or more tracking issues related to the change
 issues: [6539]

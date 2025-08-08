@@ -1,7 +1,5 @@
 # Changelog
 
-## Unreleased
-
 ## v0.131.1
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.131.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.131.0)

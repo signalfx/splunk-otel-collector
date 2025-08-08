@@ -715,6 +715,8 @@ github.com/gorilla/sessions v1.2.1/go.mod h1:dk2InVEVJ0sfLlnXv9EAgkf6ecYs/i80K/z
 github.com/gorilla/websocket v1.4.0/go.mod h1:E7qHFY5m1UJ88s3WnNqhKjPHQ0heANvMoAMk2YaljkQ=
 github.com/gorilla/websocket v1.5.4-0.20250319132907-e064f32e3674 h1:JeSE6pjso5THxAzdVpqr6/geYxZytqFMBCOtn/ujyeo=
 github.com/gorilla/websocket v1.5.4-0.20250319132907-e064f32e3674/go.mod h1:r4w70xmWCQKmi1ONH4KIaBptdivuRPyosB9RmPlGEwA=
+github.com/gosnmp/gosnmp v1.42.1 h1:MEJxhpC5v1coL3tFRix08PYmky9nyb1TLRRgJAmXm8A=
+github.com/gosnmp/gosnmp v1.42.1/go.mod h1:CxVS6bXqmWZlafUj9pZUnQX5e4fAltqPcijxWpCitDo=
 github.com/grafana/regexp v0.0.0-20240518133315-a468a5bfb3bc h1:GN2Lv3MGO7AS6PrRoT6yV5+wkrOpcszoIsO4+4ds248=
 github.com/grafana/regexp v0.0.0-20240518133315-a468a5bfb3bc/go.mod h1:+JKpmjMGhpgPL+rXZ5nsZieVzvarn86asRlBg4uNGnk=
 github.com/grpc-ecosystem/go-grpc-middleware v1.0.0/go.mod h1:FiyG127CGDf3tlThmgyCl78X/SZQqEOJBCDaAfeWzPs=
@@ -1557,6 +1559,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/signalfxrecei
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/signalfxreceiver v0.131.0/go.mod h1:FjX76eIuy/c1Vi92m6nCmonKFo7ayRjCkP1YpXDkBag=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/simpleprometheusreceiver v0.131.0 h1:pRtDTOImLb4jBFabijcCXz/LRyB9DmBCj3uh2xZBY3o=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/simpleprometheusreceiver v0.131.0/go.mod h1:FUGG/U/TfTymMAcSUIbHKxF2mOwFKwhVP/D3UAhnsck=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/snmpreceiver v0.131.0 h1:FWJF+a5s8XyU21UhGxAVDPIR8WB7UMlXOKqyoar+3Z4=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/snmpreceiver v0.131.0/go.mod h1:xy6s9V4bIekXhKsg3orF9JtGs1BAiEbaN5K5j8aDosM=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/snowflakereceiver v0.131.0 h1:33AnzblNRaDTTVE6OoWLcjawYsvg0Xfe/yYZQDs7UCM=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/snowflakereceiver v0.131.0/go.mod h1:oCZE48jHXgOfJVBbvYwrbxYybrGxMHIiFWyVe1K0HNA=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/solacereceiver v0.131.0 h1:gVKeQpwCfmkedvhXbkZnnD1fpdsgM1GRMkVxbh6TNpE=

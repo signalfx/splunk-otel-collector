@@ -37,6 +37,7 @@ func TestDefaultComponents(t *testing.T) {
 		"health_check",
 		"host_observer",
 		"http_forwarder",
+		"k8s_leader_elector",
 		"k8s_observer",
 		"oauth2client",
 		"opamp",

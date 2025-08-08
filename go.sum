@@ -1581,6 +1581,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/syslogreceive
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/syslogreceiver v0.131.0/go.mod h1:u08EEt7vGrB08go8rPxZud0ChRtZhRQ4ZAQSWcc5Mb0=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tcplogreceiver v0.131.0 h1:cCFH2WFeWa47nq7ez/G+26pgl/x10V1bzwlqCRIFWe4=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tcplogreceiver v0.131.0/go.mod h1:mqLVTIebVNwwGFjhqFcSpj/xvUiny6UHPe3vxxgEwyM=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tlscheckreceiver v0.131.0 h1:VjvP5v5svkjOklrMCk7F6VZQg/U+f+HxSyFSwAF2Sgg=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tlscheckreceiver v0.131.0/go.mod h1:yl4W2WyMFSHZyLEjt8RlEfCBdjIpcycmkG/H0WZhFt4=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/udplogreceiver v0.131.0 h1:Au3aGfeoRHbrlDICqusudNoFkya5wUxjx6tIKW1g3PI=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/udplogreceiver v0.131.0/go.mod h1:IEOaNt6wt9AX/i37fXP8hOL2JKO5/06qVn1f0uHusnc=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/vcenterreceiver v0.131.0 h1:peEB1ScEG9SGTsC9RciiCzfM7CgOJmZWL5lcbe3miL4=

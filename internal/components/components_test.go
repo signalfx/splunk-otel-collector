@@ -108,6 +108,7 @@ func TestDefaultComponents(t *testing.T) {
 		"statsd",
 		"syslog",
 		"tcplog",
+		"tlscheck",
 		"udplog",
 		"vcenter",
 		"wavefront",

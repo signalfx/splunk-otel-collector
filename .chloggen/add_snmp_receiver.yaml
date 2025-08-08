@@ -5,7 +5,7 @@ change_type: new_component
 component: receiver/snmp
 
 # A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
-note: Add receiver to the Splunk distro
+note: Add [receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/snmpreceiver) to the Splunk distro
 
 # One or more tracking issues related to the change
 issues: [6538]

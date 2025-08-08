@@ -65,6 +65,7 @@ The distribution offers support for the following components.
 | [signalfx](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/signalfxreceiver)                                                  | [stable]         |
 | [signalfxgatewayprometheusremotewrite](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/receiver/signalfxgatewayprometheusremotewritereceiver) | [in development] |
 | [smartagent](../pkg/receiver/smartagentreceiver)                                                                                                                   | [beta]           |
+| [snmp](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/snmpreceiver)                                                          | [alpha]          |
 | [snowflake](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/snowflakereceiver)                                                | [beta]           |
 | [solace](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/solacereceiver)                                                      | [beta]           |
 | [splunkenterprise](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/splunkenterprisereceiver)                                  | [beta]           |

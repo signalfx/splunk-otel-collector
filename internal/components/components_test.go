@@ -97,6 +97,7 @@ func TestDefaultComponents(t *testing.T) {
 		"signalfx",
 		"signalfxgatewayprometheusremotewrite",
 		"smartagent",
+		"snmp",
 		"snowflake",
 		"solace",
 		"splunkenterprise",

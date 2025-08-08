@@ -105,6 +105,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sapmreceiver v0.131.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/signalfxreceiver v0.131.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/simpleprometheusreceiver v0.131.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/snmpreceiver v0.131.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/snowflakereceiver v0.131.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/solacereceiver v0.131.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkenterprisereceiver v0.131.0
@@ -283,6 +284,7 @@ require (
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/gophercloud/gophercloud/v2 v2.7.0 // indirect
 	github.com/gorilla/websocket v1.5.4-0.20250319132907-e064f32e3674 // indirect
+	github.com/gosnmp/gosnmp v1.42.1 // indirect
 	github.com/grafana/regexp v0.0.0-20240518133315-a468a5bfb3bc // indirect
 	github.com/hamba/avro/v2 v2.26.0 // indirect
 	github.com/hashicorp/consul/sdk v0.16.2 // indirect

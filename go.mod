@@ -32,6 +32,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/headerssetterextension v0.131.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension v0.131.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarderextension v0.131.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/k8sleaderelector v0.131.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/oauth2clientauthextension v0.131.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer v0.131.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/dockerobserver v0.131.0
@@ -342,7 +343,6 @@ require (
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
 	github.com/open-telemetry/opamp-go v0.20.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/encoding v0.131.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/extension/k8sleaderelector v0.131.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/opampcustommessages v0.131.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/awsutil v0.131.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/containerinsight v0.131.0 // indirect

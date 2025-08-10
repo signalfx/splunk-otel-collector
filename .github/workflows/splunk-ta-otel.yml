@@ -57,11 +57,14 @@ jobs:
 
   test:
     name: test
-    runs-on: ubuntu-24.04
     strategy:
       matrix:
         # see https://hub.docker.com/r/splunk/splunk/tags
         SPLUNK_VERSION: ["10.0", "9.4", "8.2"]
+        runner:
+          - ubuntu-24.04
+          - windows-latest
+    runs-on: ${{ matrix.runner }}
     defaults:
       run:
         working-directory: ${{github.workspace}}/packaging/technical-addon
@@ -76,6 +79,11 @@ jobs:
           make -e bundle.d otelcol
           popd
           make -e generate-technical-addon copy-local-build-to-ta package-ta
+
+      - name: Linux Smoketest
+        if: ${{ matrix.runner != 'windows-latest' }}
+        run: |
+          set -o pipefail
           make -e smoketest-ta
 
   test-generator:

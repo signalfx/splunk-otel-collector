@@ -20,7 +20,7 @@ concurrency:
 
 env:
   GO_VERSION: 1.24.5
-  ADDONS_SOURCE_DIR: "./packaging/technical-addon"
+  ADDONS_SOURCE_DIR: "."
   BUILD_DIR: "./build"
 jobs:
   check_changes:

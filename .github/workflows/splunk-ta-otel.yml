@@ -83,7 +83,7 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          make -e generate-technical-addon copy-local-build-to-ta package-ta
+          PLATFORM=${{ fromJSON('["linux", "windows"]')[matrix.runner == 'windows-latest'] }} make -e generate-technical-addon copy-local-build-to-ta package-ta
 
       - name: Linux Smoketest
         if: ${{ matrix.runner != 'windows-latest' }}

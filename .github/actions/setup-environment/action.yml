@@ -11,6 +11,7 @@ runs:
         cache-dependency-path: '**/go.sum'
 
     - name: Installing required tools
-      run: |
-        cd ${{github.workspace}} && make install-tools
       shell: bash
+      working-directory: ${{github.workspace}}
+      run: |
+        make install-tools

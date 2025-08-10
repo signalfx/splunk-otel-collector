@@ -76,7 +76,7 @@ jobs:
         if: ${{ matrix.runner == 'windows-latest' }}
         shell: pwsh
         run: |
-          Invoke-WebRequest -Uri "https://eternallybored.org/misc/wget/wget-1.21.4-win64.zip" -OutFile "wget.zip"
+          Invoke-WebRequest -Uri "https://eternallybored.org/misc/wget/releases/wget-1.21.4-win64.zip" -OutFile "wget.zip"
           Expand-Archive -Path "wget.zip" -DestinationPath "."
           Copy-Item -Path "wget-1.21.4-win64\wget.exe" -Destination "C:\Windows\System32\"
 

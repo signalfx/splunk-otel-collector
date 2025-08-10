@@ -20,8 +20,8 @@ concurrency:
 
 env:
   GO_VERSION: 1.24.5
-  ADDONS_SOURCE_DIR: "${{github.workspace}}/packaging/technical-addon"
-  BUILD_DIR: "${{github.workspace}}/build"
+  ADDONS_SOURCE_DIR: "./packaging/technical-addon"
+  BUILD_DIR: "./build"
 jobs:
   check_changes:
     runs-on: ubuntu-24.04
@@ -84,7 +84,6 @@ jobs:
         run: |
           set -o pipefail
           make -e generate-technical-addon copy-local-build-to-ta package-ta
-
 
       - name: Linux Smoketest
         if: ${{ matrix.runner != 'windows-latest' }}

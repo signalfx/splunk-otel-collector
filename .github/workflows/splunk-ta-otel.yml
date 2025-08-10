@@ -73,6 +73,7 @@ jobs:
       - uses: ./.github/actions/setup-environment
 
       - name: Build & Package TA
+        shell: bash
         run: |
           set -o pipefail
           pushd ${{github.workspace}}

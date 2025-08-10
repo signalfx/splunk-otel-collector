@@ -72,6 +72,14 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-environment
 
+      - name: Download and install Wget
+        if: ${{ matrix.runner == 'windows-latest' }}
+        shell: powershell
+        run: |
+          Invoke-WebRequest -Uri "https://eternallybored.org/misc/wget/wget-1.21.4-win64.zip" -OutFile "wget.zip"
+          Expand-Archive -Path "wget.zip" -DestinationPath "."
+          Copy-Item -Path "wget-1.21.4-win64\wget.exe" -Destination "C:\Windows\System32\"
+
       - name: Build bundle
         shell: bash
         working-directory: ${{ github.workspace }}

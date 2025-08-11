@@ -274,7 +274,7 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: snyk.sarif
-          category: "fips=${{ matrix.FIPS }}"
+          category: "arch=${{ matrix.ARCH }},fips=${{ matrix.FIPS }}"
 
   govulncheck-run:
     # Running on a large macOS runner to reliably use scan mode as symbol without hitting OOM.

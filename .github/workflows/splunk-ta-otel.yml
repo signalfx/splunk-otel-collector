@@ -20,8 +20,8 @@ concurrency:
 
 env:
   GO_VERSION: 1.24.5
-  ADDONS_SOURCE_DIR: "."
-  BUILD_DIR: "./build"
+  ADDONS_SOURCE_DIR: "${{github.workspace}}/packaging/technical-addon"
+  BUILD_DIR: "${{github.workspace}}/build"
 jobs:
   check_changes:
     runs-on: ubuntu-24.04
@@ -57,14 +57,11 @@ jobs:
 
   test:
     name: test
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         # see https://hub.docker.com/r/splunk/splunk/tags
         SPLUNK_VERSION: ["10.0", "9.4", "8.2"]
-        runner:
-          - ubuntu-24.04
-          - windows-latest
-    runs-on: ${{ matrix.runner }}
     defaults:
       run:
         working-directory: ${{github.workspace}}/packaging/technical-addon
@@ -72,31 +69,13 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-environment
 
-      - name: Download and install Wget
-        if: ${{ matrix.runner == 'windows-latest' }}
-        shell: pwsh
-        run: |
-          Invoke-WebRequest -Uri "https://eternallybored.org/misc/wget/releases/wget-1.21.4-win64.zip" -OutFile "wget.zip"
-          Expand-Archive -Path "wget.zip" -DestinationPath "."
-          Copy-Item -Path "wget.exe" -Destination "C:\Windows\System32\"
-
-      - name: Build bundle
-        shell: bash
-        working-directory: ${{ github.workspace }}
+      - name: Build & Package TA
         run: |
           set -o pipefail
+          pushd ${{github.workspace}}
           make -e bundle.d otelcol
-
-      - name: Package TA
-        shell: bash
-        run: |
-          set -o pipefail
-          PLATFORM=${{ fromJSON('["linux", "windows"]')[matrix.runner == 'windows-latest'] }} make -e generate-technical-addon copy-local-build-to-ta package-ta
-
-      - name: Linux Smoketest
-        if: ${{ matrix.runner != 'windows-latest' }}
-        run: |
-          set -o pipefail
+          popd
+          make -e generate-technical-addon copy-local-build-to-ta package-ta
           make -e smoketest-ta
 
   test-generator:

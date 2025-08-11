@@ -10,7 +10,7 @@ variables:
   RELEASE_VERSION:
     value: ""
     description: "Version to release (must be in format v1.2.3)"
-  GO_VERSION: 1.24.5
+  GO_VERSION: 1.24.6
   WIN_2019_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2019
   WIN_2022_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2022
   SPLUNK_OTELCOL_DOWNLOAD_BASE:

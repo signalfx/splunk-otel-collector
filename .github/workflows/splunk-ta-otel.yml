@@ -126,7 +126,7 @@ jobs:
   distribute-ta:
     name: "distribute-ta" # what gets run to package in gitlab
     runs-on: ubuntu-24.04
-    needs: [check_changes, test-discovery]
+    needs: [check_changes]
     if: needs.check_changes.outputs.ta_packaging_change == 'true' || needs.check_changes.outputs.ta_workflow_change == 'true'
     defaults:
       run:

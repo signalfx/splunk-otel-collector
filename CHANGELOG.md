@@ -134,9 +134,18 @@ and the [opentelemetry-collector-contrib v0.131.0](https://github.com/open-telem
 - (Core) `builder`: Remove undocumented handling of `DIST_*` environment variables replacements ([#13335](https://github.com/open-telemetry/opentelemetry-collector/issues/13335))
 - (Contrib) `tailsamplingprocessor`: Numeric-range values, if zero, are properly treated as unset. ([#41562](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41562))
 - (Contrib) `filestorageextension`: Add an option to recreate databse if the database file is corrupted. ([#35899](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/35899))
-- (Contrib) `receiver/prometheus`: Fix otel_scope_name and otel_scope_version labels not being dropped from metric attributes ([#41456](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/     41456))
+- (Contrib) `receiver/prometheus`: Fix `otel_scope_name` and `otel_scope_version` labels not being dropped from metric attributes ([#41456](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41456)).
+  Since the signalfx exporter ignores the native OTel fields for scope name and version, this change prevents the exporter from sending these fields as attributes.
+  If needed, they can be re-added using an additional transform processor with the following configuration:
+  ```yaml
+  processors:
+    transform/add_scope_attrs:
+      metric_statements:
+        - set(resource.attributes["otel_scope_name"], scope.name) where scope.name != ""
+        - set(resource.attributes["otel_scope_version"], scope.version) where scope.version != ""
+  ```
 - (Contrib) `ottlprofile`: Fix the handling of references to location. ([#41466](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41466))
-- (Contrib) `splunkenterprisereceiver`: Add test for empty string response on search artifact metrics & fix unmarshall error ([#41288](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/      41288))
+- (Contrib) `splunkenterprisereceiver`: Add test for empty string response on search artifact metrics & fix unmarshall error ([#41288](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41288))
 - (Contrib) `awss3exporter`: Fixed panic error when more than 1 exporter is in the pipeline with s3 exporter ([#41262](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41262))
 
 ## v0.130.0

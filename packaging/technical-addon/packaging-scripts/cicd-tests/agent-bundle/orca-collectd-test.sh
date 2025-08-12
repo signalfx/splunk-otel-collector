@@ -45,7 +45,7 @@ while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
     # Copy logs from container
     scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.orca/id_rsa -r -P $SSH_PORT "splunk@$ip_addr:/opt/splunk/var/log/splunk/" "$TEST_FOLDER"
     if safe_grep_log "Starting otel agent" "$TEST_FOLDER/splunk/Splunk_TA_otel.log" && \
-        safe_grep_log "Everything is ready" "$TEST_FOLDER/splunk/otel.log" && \
+        safe_grep_log "Everything is ready" "$TEST_FOLDER/splunk/otel.log" ; then
         break
     fi
     ATTEMPT=$((ATTEMPT + 1))

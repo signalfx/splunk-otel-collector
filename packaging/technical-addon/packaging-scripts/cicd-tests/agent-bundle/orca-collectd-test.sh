@@ -17,10 +17,10 @@ mkdir -p "$TEST_FOLDER"
 # Customize TA to use mysql collectd reciever
 #rm -rf "$ADDON_DIR/$REPACKED_TA_NAME"
 rm -rf "$TA_FULLPATH"
-cp "$ADDONS_SOURCE_DIR/packaging-scripts/cicd-tests/agent-bundle/ta-agent-mysql-config.yaml" "$ADDON_DIR/Splunk_TA_otel/configs/"
-echo 'splunk_config=$SPLUNK_OTEL_TA_HOME/configs/ta-agent-mysql-config.yaml' >> "$ADDON_DIR/Splunk_TA_otel/local/inputs.conf"
+cp "$ADDONS_SOURCE_DIR/packaging-scripts/cicd-tests/agent-bundle/ta-agent-collectd-config.yaml" "$ADDON_DIR/Splunk_TA_otel/configs/"
+echo 'splunk_config=$SPLUNK_OTEL_TA_HOME/configs/ta-agent-collectd-config.yaml' >> "$ADDON_DIR/Splunk_TA_otel/local/inputs.conf"
 tar -C "$ADDON_DIR" -hcz --file "$TA_FULLPATH" "Splunk_TA_otel"
-echo "Creating orca cluster with nginx and TA $TA_FULLPATH"
+echo "Creating orca cluster with collectd SA monitors and TA $TA_FULLPATH"
 
 # Create ORCA container & grab id
 splunk_orca -vvv --cloud "${ORCA_CLOUD}" --area otel-collector --printer sdd-json --deployment-file "$TEST_FOLDER/orca_deployment.json" --ansible-log "$TEST_FOLDER/ansible-local.log" create --prefix "collectd" --env SPLUNK_CONNECTION_TIMEOUT=600 --platform "$SPLUNK_PLATFORM" --splunk-version "${UF_VERSION}" --local-apps "$TA_FULLPATH" --playbook "$ADDONS_SOURCE_DIR/packaging-scripts/orca-playbook-$PLATFORM.yml,site.yml"
@@ -45,6 +45,7 @@ while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
     # Copy logs from container
     scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.orca/id_rsa -r -P $SSH_PORT "splunk@$ip_addr:/opt/splunk/var/log/splunk/" "$TEST_FOLDER"
     if safe_grep_log "Starting otel agent" "$TEST_FOLDER/splunk/Splunk_TA_otel.log" && \
+        safe_grep_log "collectd\/cpu" "$TEST_FOLDER/splunk/otel.log" && \
         safe_grep_log "Everything is ready" "$TEST_FOLDER/splunk/otel.log" ; then
         break
     fi

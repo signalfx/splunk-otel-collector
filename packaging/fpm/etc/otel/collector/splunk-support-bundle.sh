@@ -130,7 +130,6 @@ getConfig() {
     else
         echo "WARN: localhost:55554 unavailable so in memory configuration not collected"
     fi
-
 }
 
 #######################################
@@ -193,6 +192,7 @@ getZpages() {
     echo "INFO: Getting zpages information..."
     # It's possible user has disabled zpages extension
     if timeout 1 bash -c 'cat < /dev/null > /dev/tcp/localhost/55679'; then
+        curl -s http://localhost:55679/debug/expvarz > "$TMPDIR"/zpages/expvarz.json 2>&1
         curl -s http://localhost:55679/debug/tracez >"$TMPDIR"/zpages/tracez.html 2>&1
         # Recursively get pages to see output of samples
         wget -q -r -np -l 1 -P "$TMPDIR/zpages" http://localhost:55679/debug/tracez

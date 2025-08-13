@@ -20,7 +20,7 @@ $DIRECTORY= # Either passed as CLI parameter or later set to CONFDIR
 $TMPDIR="${env:PROGRAMFILES}\Splunk\OpenTelemetry Collector\splunk-support-bundle-$([int64](New-TimeSpan -Start (Get-Date "01/01/1970") -End (Get-Date)).TotalSeconds)" # Unique temporary directory for support bundle contents
 $SVC_REGISTRY_KEY="HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" # Registry key for the collector service
 
-$ErrorActionPreference= 'debug'
+$ErrorActionPreference= 'stop'
 
 function usage {
     "This is help for this program. It does nothing. Hope that helps."
@@ -40,7 +40,6 @@ for ( $i = 0; $i -lt $args.count; $i++ ) {
     if (($args[$i] -eq "-d") -OR ($args[$i] -eq "-directory")) {
         if (($args[$i+1]) -AND ($args[$i+1] -ne "-t") -AND ($args[$i+1] -ne "-tempdir") -AND ($args[$i+1] -ne "-h") -AND ($args[$i+1] -ne "-help")) {
             $CONFDIR = $args[$i+1];
-            Write-Warning "CONFDIR=$CONFDIR"
             $i = $i + 1;
         } else {
             usage;
@@ -49,7 +48,6 @@ for ( $i = 0; $i -lt $args.count; $i++ ) {
         if (($args[$i+1]) -AND ($args[$i+1] -ne "-d") -AND ($args[$i+1] -ne "-directory") -AND ($args[$i+1] -ne "-h") -AND ($args[$i+1] -ne "-help")) {
             $TMPDIR = $args[$i+1];
             $i = $i + 1;
-            Write-Warning "TMPDIR=$TMPDIR"
         } else {
             usage;
         }
@@ -388,9 +386,7 @@ function zipResults {
     }
 }
 
-Write-Host createTempDir
 $(createTempDir) 2>&1 | Tee-Object -FilePath "$TMPDIR/stdout.log" -Append
-Write-Host getConfig
 $(getConfig) 2>&1 | Tee-Object -FilePath "$TMPDIR/stdout.log" -Append
 $(getStatus) 2>&1 | Tee-Object -FilePath "$TMPDIR/stdout.log" -Append
 $(getLogs) 2>&1 | Tee-Object -FilePath "$TMPDIR/stdout.log" -Append

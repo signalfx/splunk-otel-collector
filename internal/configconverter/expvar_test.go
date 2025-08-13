@@ -34,20 +34,20 @@ func resetExpvarConverter() {
 func TestGetExpvarConverter(t *testing.T) {
 	// Reset singleton state for this test
 	resetExpvarConverter()
-	
+
 	converter1 := GetExpvarConverter()
 	converter2 := GetExpvarConverter()
-	
+
 	// Verify both calls return the same instance (singleton)
 	assert.Same(t, converter1, converter2)
-	
+
 	// Verify the converter is properly initialized
 	assert.NotNil(t, converter1)
 	assert.NotNil(t, converter1.initial)
 	assert.NotNil(t, converter1.effective)
 	assert.Empty(t, converter1.initial)
 	assert.Empty(t, converter1.effective)
-	
+
 	// Verify expvar variables are published
 	initialVar := expvar.Get("splunk.config.initial")
 	effectiveVar := expvar.Get("splunk.config.effective")
@@ -58,9 +58,9 @@ func TestGetExpvarConverter(t *testing.T) {
 func TestExpvarConverter_OnRetrieve(t *testing.T) {
 	// Reset singleton state for this test
 	resetExpvarConverter()
-	
+
 	converter := GetExpvarConverter()
-	
+
 	// Test retrieving configuration for different schemes
 	testData := map[string]any{
 		"key1": "value1",
@@ -68,19 +68,19 @@ func TestExpvarConverter_OnRetrieve(t *testing.T) {
 			"nested": "value2",
 		},
 	}
-	
+
 	converter.OnRetrieve("file", testData)
-	
+
 	// Verify data is stored in initial map
 	assert.Contains(t, converter.initial, "file")
 	assert.Equal(t, testData, converter.initial["file"])
-	
+
 	// Test multiple schemes
 	envData := map[string]any{
 		"env_key": "env_value",
 	}
 	converter.OnRetrieve("env", envData)
-	
+
 	assert.Contains(t, converter.initial, "file")
 	assert.Contains(t, converter.initial, "env")
 	assert.Equal(t, testData, converter.initial["file"])
@@ -90,9 +90,9 @@ func TestExpvarConverter_OnRetrieve(t *testing.T) {
 func TestExpvarConverter_Convert(t *testing.T) {
 	// Reset singleton state for this test
 	resetExpvarConverter()
-	
+
 	converter := GetExpvarConverter()
-	
+
 	// Test converting configuration
 	configData := map[string]any{
 		"receivers": map[string]any{
@@ -115,10 +115,10 @@ func TestExpvarConverter_Convert(t *testing.T) {
 			},
 		},
 	}
-	
+
 	conf := confmap.NewFromStringMap(configData)
 	err := converter.Convert(context.Background(), conf)
-	
+
 	assert.NoError(t, err)
 	assert.Equal(t, configData, converter.effective)
 }
@@ -126,12 +126,12 @@ func TestExpvarConverter_Convert(t *testing.T) {
 func TestExpvarConverter_Convert_EmptyConfig(t *testing.T) {
 	// Reset singleton state for this test
 	resetExpvarConverter()
-	
+
 	converter := GetExpvarConverter()
-	
+
 	conf := confmap.NewFromStringMap(map[string]any{})
 	err := converter.Convert(context.Background(), conf)
-	
+
 	assert.NoError(t, err)
 	assert.Empty(t, converter.effective)
 }
@@ -139,12 +139,12 @@ func TestExpvarConverter_Convert_EmptyConfig(t *testing.T) {
 func TestExpvarConverter_OnNew(t *testing.T) {
 	// Reset singleton state for this test
 	resetExpvarConverter()
-	
+
 	converter := GetExpvarConverter()
-	
+
 	// OnNew should be a no-op
 	converter.OnNew()
-	
+
 	// State should remain unchanged
 	assert.Empty(t, converter.initial)
 	assert.Empty(t, converter.effective)
@@ -153,18 +153,18 @@ func TestExpvarConverter_OnNew(t *testing.T) {
 func TestExpvarConverter_OnShutdown(t *testing.T) {
 	// Reset singleton state for this test
 	resetExpvarConverter()
-	
+
 	converter := GetExpvarConverter()
-	
+
 	// Add some data first
 	converter.OnRetrieve("test", map[string]any{"key": "value"})
 	conf := confmap.NewFromStringMap(map[string]any{"test": "config"})
 	err := converter.Convert(context.Background(), conf)
 	require.NoError(t, err)
-	
+
 	// OnShutdown should be a no-op
 	converter.OnShutdown()
-	
+
 	// State should remain unchanged
 	assert.NotEmpty(t, converter.initial)
 	assert.NotEmpty(t, converter.effective)
@@ -173,15 +173,15 @@ func TestExpvarConverter_OnShutdown(t *testing.T) {
 func TestExpvarConverter_SingletonPersistence(t *testing.T) {
 	// Reset singleton state for this test
 	resetExpvarConverter()
-	
+
 	// First access creates the singleton
 	converter1 := GetExpvarConverter()
 	converter1.OnRetrieve("test", map[string]any{"initial": "data"})
-	
+
 	conf := confmap.NewFromStringMap(map[string]any{"effective": "data"})
 	err := converter1.Convert(context.Background(), conf)
 	require.NoError(t, err)
-	
+
 	// Second access should return the same instance with preserved state
 	converter2 := GetExpvarConverter()
 	assert.Same(t, converter1, converter2)

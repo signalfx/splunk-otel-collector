@@ -25,11 +25,11 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/configsource"
 )
 
-var _ confmap.Converter = (*expvarConverter)(nil)
-var _ configsource.Hook = (*expvarConverter)(nil)
+var _ confmap.Converter = (*ExpvarConverter)(nil)
+var _ configsource.Hook = (*ExpvarConverter)(nil)
 
 var (
-	expvarConverterInstance *expvarConverter
+	expvarConverterInstance *ExpvarConverter
 	expvarConverterOnce     sync.Once
 
 	// expvarPublishOnce ensures that the expvar variables are published only once.
@@ -38,7 +38,7 @@ var (
 	expvarPublishOnce sync.Once
 )
 
-type expvarConverter struct {
+type ExpvarConverter struct {
 	initial        map[string]any
 	effective      map[string]any
 	initialMutex   sync.RWMutex
@@ -47,9 +47,9 @@ type expvarConverter struct {
 
 // GetExpvarConverter returns the singleton instance of expvarConverter that publishes
 // two entries to the `expvar` JSON map:
-//  - "splunk.config.effective": a map with the effective configuration being used by the collector.
-//  - "splunk.config.initial": a map with the initial configuration being used by the collector.
-func GetExpvarConverter() *expvarConverter {
+//   - "splunk.config.effective": a map with the effective configuration being used by the collector.
+//   - "splunk.config.initial": a map with the initial configuration being used by the collector.
+func GetExpvarConverter() *ExpvarConverter {
 	expvarConverterOnce.Do(func() {
 		expvarPublishOnce.Do(func() {
 			expvar.Publish("splunk.config.effective", expvar.Func(func() any {
@@ -68,7 +68,7 @@ func GetExpvarConverter() *expvarConverter {
 			}))
 		})
 
-		expvarConverterInstance = &expvarConverter{
+		expvarConverterInstance = &ExpvarConverter{
 			initial:        make(map[string]any),
 			effective:      make(map[string]any),
 			initialMutex:   sync.RWMutex{},
@@ -79,17 +79,17 @@ func GetExpvarConverter() *expvarConverter {
 	return expvarConverterInstance
 }
 
-func (e *expvarConverter) OnNew() {}
+func (e *ExpvarConverter) OnNew() {}
 
-func (e *expvarConverter) OnRetrieve(scheme string, retrieved map[string]any) {
+func (e *ExpvarConverter) OnRetrieve(scheme string, retrieved map[string]any) {
 	e.initialMutex.Lock()
 	defer e.initialMutex.Unlock()
 	e.initial[scheme] = retrieved
 }
 
-func (e *expvarConverter) OnShutdown() {}
+func (e *ExpvarConverter) OnShutdown() {}
 
-func (e *expvarConverter) Convert(_ context.Context, conf *confmap.Conf) error {
+func (e *ExpvarConverter) Convert(_ context.Context, conf *confmap.Conf) error {
 	e.effectiveMutex.Lock()
 	defer e.effectiveMutex.Unlock()
 	e.effective = conf.ToStringMap()

@@ -1,0 +1,16 @@
+# One of 'breaking', 'deprecation', 'new_component', 'enhancement', 'bug_fix'
+change_type: deprecation
+
+# The name of the component, or a single word describing the area of concern, (e.g. crosslink)
+component: smartagent/kubelet-metrics
+
+# A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
+note: "The kubelet-metrics monitor is deprecated and will be removed by the end of October 2025. Please use the kubeletstats receiver instead."
+
+# One or more tracking issues related to the change
+issues: [6599]
+
+# (Optional) One or more lines of additional information to render under the primary note.
+# These lines will be padded with 2 spaces and then inserted directly into the document.
+# Use pipe (|) for multiline entries.
+subtext:

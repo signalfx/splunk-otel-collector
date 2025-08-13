@@ -1,8 +1,8 @@
 monitors:
 - monitorType: kubelet-metrics
   doc: |
-    This monitor pulls container metrics from a Kubernetes kubelet instance via
-    the `/stats/summary` endpoint.
+    **This plugin is deprecated and will be removed by the end of October 2025.
+    Please use the kubeletstats receiver instead.**
 
     This montior is intended to replace the `kubelet-stats` monitor that
     relied on now deprecated endpoints in the kubelet.  It does not get as

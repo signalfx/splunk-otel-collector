@@ -60,10 +60,7 @@ jobs:
       OS: ${{ matrix.OS }}
 
   dotnet-zeroconfig-e2e-test:
-    runs-on: ${{ matrix.OS }}
-    strategy:
-      matrix:
-        OS: [ "windows-2022", "windows-2025" ]
+    runs-on: otel-windows
     needs: [msi-build]
     steps:
       - name: Check out the codebase.
@@ -83,7 +80,7 @@ jobs:
       - name: Download Splunk OTel Collector msi
         uses: actions/download-artifact@v4.1.3
         with:
-          name: msi-build-${{ matrix.OS }}
+          name: msi-build-windows-2025
           path: ./tests/zeroconfig/windows/testdata/docker-setup/
 
       - name: Run the test script

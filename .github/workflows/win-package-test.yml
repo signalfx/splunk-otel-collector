@@ -60,10 +60,7 @@ jobs:
       OS: ${{ matrix.OS }}
 
   dotnet-zeroconfig-e2e-test:
-    runs-on: ${{ matrix.OS }}
-    strategy:
-      matrix:
-        OS: [ "windows-2022", "windows-2025" ]
+    runs-on: otel-windows
     needs: [msi-build]
     steps:
       - name: Check out the codebase.

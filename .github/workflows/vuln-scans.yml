@@ -269,12 +269,11 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           image: "otelcol${{ matrix.FIPS == true && '-fips' || '' }}:latest"
-          args: --file=cmd/otelcol/Dockerfile --severity-threshold=high --sarif-file-output=snyk.sarif --policy-path=.snyk --platform=linux/${{ matrix.ARCH }}
+          args: --file=cmd/otelcol/Dockerfile --severity-threshold=high --exclude-app-vulns --sarif-file-output=snyk.sarif --policy-path=.snyk --platform=linux/${{ matrix.ARCH }}
       - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: snyk.sarif
-          category: "arch=${{ matrix.ARCH }},fips=${{ matrix.FIPS }}"
 
   govulncheck-run:
     # Running on a large macOS runner to reliably use scan mode as symbol without hitting OOM.
@@ -352,4 +351,3 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: ./govulncheck/${{ matrix.category }}.sarif
-          category: ${{ matrix.category }}

@@ -54,6 +54,8 @@ extensions:
       endpoint: :1888
     zpages:
       endpoint: :55679
+      expvar:
+        enabled: true
     file_storage/checkpoint:
       directory: /output/
       timeout: 1s

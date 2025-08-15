@@ -128,6 +128,9 @@ func TestDefaultGatewayConfig(t *testing.T) {
 					},
 					"zpages": map[string]any{
 						"endpoint": fmt.Sprintf("%s:55679", ip),
+						"expvar": map[string]any{
+							"enabled": true,
+						},
 					},
 				},
 				"processors": map[string]any{
@@ -369,7 +372,11 @@ func TestDefaultAgentConfig(t *testing.T) {
 							"configDir": "/usr/lib/splunk-otel-collector/agent-bundle/run/collectd",
 						},
 					},
-					"zpages": nil,
+					"zpages": map[string]any{
+						"expvar": map[string]any{
+							"enabled": true,
+						},
+					},
 				},
 				"processors": map[string]any{
 					"batch": map[string]any{

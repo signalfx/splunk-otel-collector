@@ -11,7 +11,8 @@ extensions:
     collectd:
       configDir: "${SPLUNK_COLLECTD_DIR}"
   zpages:
-
+    expvar:
+      enabled: true
 
 service:
   extensions: [health_check, http_forwarder, zpages, smartagent]

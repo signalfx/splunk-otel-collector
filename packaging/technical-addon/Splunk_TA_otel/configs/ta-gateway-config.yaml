@@ -17,6 +17,8 @@ extensions:
       endpoint: "https://api.${env:SPLUNK_REALM}.signalfx.com"
   zpages:
     endpoint: "${env:SPLUNK_LISTEN_INTERFACE}:55679"
+    expvar:
+      enabled: true
 
 receivers:
   jaeger:

@@ -16,6 +16,8 @@ extensions:
       endpoint: "https://api.${SPLUNK_REALM}.signalfx.com"
   zpages:
     endpoint: 0.0.0.0:55679
+    expvar:
+      enabled: true
 
 receivers:
   jaeger:

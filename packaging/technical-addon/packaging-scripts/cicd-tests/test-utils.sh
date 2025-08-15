@@ -32,7 +32,7 @@ safe_tail() {
     if [ "$taillines" ]; then
         ([ -f "$filename" ] && tail -n "$taillines" "$filename") || echo "File $filename not found"
     else
-        ([ -f "$filename" ] && cat "$taillines" "$filename") || echo "File $filename not found"
+        ([ -f "$filename" ] && cat "$filename") || echo "File $filename not found"
     fi
 }
 

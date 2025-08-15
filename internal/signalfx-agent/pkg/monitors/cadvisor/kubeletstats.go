@@ -46,6 +46,8 @@ type KubeletStatsMonitor struct {
 
 // Configure the Kubelet Stats monitor
 func (ks *KubeletStatsMonitor) Configure(conf *KubeletStatsConfig) error {
+	ks.logger.Warn("[NOTICE] The kubelet-stats monitor is deprecated. Please use the prometheus receiver instead. This plugin will be removed by the end of October 2025.")
+
 	ks.logger = logrus.WithFields(logrus.Fields{"monitorType": conf.MonitorConfig.Type, "monitorID": conf.MonitorID})
 	client, err := kubelet.NewClient(&conf.KubeletAPI, ks.logger)
 	if err != nil {

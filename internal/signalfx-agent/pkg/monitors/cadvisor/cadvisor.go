@@ -32,6 +32,7 @@ type Cadvisor struct {
 
 // Configure the cAdvisor monitor
 func (c *Cadvisor) Configure(conf *CHTTPConfig) error {
+	c.logger.Warn("[NOTICE] The cadvisor monitor is deprecated. Please use the prometheus receiver instead. This plugin will be removed by the end of October 2025.")
 	cadvisorClient, err := client.NewClient(conf.CAdvisorURL)
 	if err != nil {
 		return fmt.Errorf("could not create cAdvisor client: %w", err)

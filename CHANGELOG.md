@@ -1,4 +1,24 @@
+<!-- This file is autogenerate, see CONTRIBUTING.md for instructions to add content. -->
+
 # Changelog
+
+<!-- For unreleased changes, see entries in .chloggen -->
+<!-- next version -->
+
+## v0.131.2
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.131.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.131.0)
+and the [opentelemetry-collector-contrib v0.131.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.131.0) releases where appropriate.
+
+### 💡 Enhancements 💡
+
+- `all`: Upgrade go version to 1.24 (#6542)
+
+### 🚀 New components 🚀
+
+- `extension/k8sleaderelector`: Add [extension](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/k8sleaderelector) to the Splunk distro (#6539)
+- `receiver/snmp`: Add [receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/snmpreceiver) to the Splunk distro (#6538)
+- `receiver/tlscheck`: Add [receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/tlscheckreceiver) to the Splunk distro (#6541)
 
 ## v0.131.1
 

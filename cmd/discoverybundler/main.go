@@ -218,7 +218,7 @@ func generateReceiverMetadataFile(discoveryReceiverDir string, receivers []recei
 		panicOnError(fmt.Errorf("failed writing to %s: %w", filename, err))
 	}
 
-	cmd := exec.Command("go", "fmt", filename)
+	cmd := exec.Command("go", "fmt", filename) //nolint:gosec // the command is only for local usage, not shipped
 	if err := cmd.Run(); err != nil {
 		panicOnError(fmt.Errorf("failed formatting %s: %w", filename, err))
 	}

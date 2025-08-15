@@ -1,14 +1,14 @@
 # One of 'breaking', 'deprecation', 'new_component', 'enhancement', 'bug_fix'
-change_type: new_component
+change_type: deprecation
 
 # The name of the component, or a single word describing the area of concern, (e.g. crosslink)
-component: receiver/snmp
+component: smartagent/kubelet-stats
 
 # A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
-note: Add [receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/snmpreceiver) to the Splunk distro
+note: "The kubelet-stats monitor is deprecated and will be removed by the end of October 2025. Please use the prometheus receiver instead."
 
 # One or more tracking issues related to the change
-issues: [6538]
+issues: [6597]
 
 # (Optional) One or more lines of additional information to render under the primary note.
 # These lines will be padded with 2 spaces and then inserted directly into the document.

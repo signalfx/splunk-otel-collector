@@ -15,7 +15,7 @@
 ARG ARCH=amd64
 ARG JDK_VERSION=11.0.28_6
 ARG MAVEN_VERSION=3.6.0
-ARG PYTHON_VERSION=3.13.5
+ARG PYTHON_VERSION=3.13.7
 ARG PIP_VERSION=24.2
 ARG COLLECTD_VERSION=5.8.0-sfx0
 ARG COLLECTD_COMMIT=4d3327b14cf4359029613baf4f90c4952702105e
@@ -23,7 +23,8 @@ ARG DOCKER_REPO=docker.io
 
 
 ######## Base image for subsequent stages ########
-FROM ${DOCKER_REPO}/python:${PYTHON_VERSION} AS base
+# Trim the python version to just major.minor in case the tag for the full version isn't available yet
+FROM ${DOCKER_REPO}/python:${PYTHON_VERSION%.*}-bookworm AS base
 
 ARG ARCH
 

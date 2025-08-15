@@ -5,6 +5,26 @@
 <!-- For unreleased changes, see entries in .chloggen -->
 <!-- next version -->
 
+## v0.131.3
+
+### 🛑 Breaking changes 🛑
+
+- `smartagent/jaeger-grpc`: Remove, already deprecated, `jaeger-grpc` monitor. Please use the [jaeger receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jaegerreceiver) instead. (#6601)
+  To use the OTel-native jaeger receiver with the same port used by default by the jaeger-grpc monitor, apply the following config:
+  ```yaml
+  receivers:
+    jaeger:
+      protocols:
+        grpc:
+          endpoint: localhost:14250
+  ```
+
+### 🚩 Deprecations 🚩
+
+- `smartagent/kubelet-metrics`: The kubelet-metrics monitor is deprecated and will be removed by the end of October 2025. Please use the [kubeletstats receiver](https://help.splunk.com/en/splunk-observability-cloud/manage-data/available-data-sources/supported-integrations-in-splunk-observability-cloud/opentelemetry-receivers/kubelet-stats-receiver) instead. (#6599)
+- `smartagent/kubelet-stats`: The kubelet-stats monitor is deprecated and will be removed by the end of October 2025. Please use the prometheus receiver instead. (#6597)
+- `smartagent/cadvisor`: The cadvisor monitor is deprecated and will be removed by the end of October 2025. Please use the prometheus receiver instead. (#6597)
+
 ## v0.131.2
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.131.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.131.0)

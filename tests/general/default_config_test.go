@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build integration
-
 package tests
 
 import (
@@ -264,6 +262,7 @@ func TestDefaultGatewayConfig(t *testing.T) {
 }
 
 func TestDefaultAgentConfig(t *testing.T) {
+	t.Setenv("SPLUNK_OTEL_COLLECTOR_IMAGE", "otelcol:latest")
 	for _, ip := range []string{"default", "0.0.0.0", "127.2.3.4"} {
 		ip := ip
 		t.Run(ip, func(t *testing.T) {
@@ -509,4 +508,47 @@ func TestDefaultAgentConfig(t *testing.T) {
 			}, 20*time.Second, time.Second)
 		})
 	}
+}
+
+func TestDefaultLogConfig(t *testing.T) {
+	t.Setenv("SPLUNK_OTEL_COLLECTOR_IMAGE", "otelcol:latest")
+	tc := testutils.NewTestcase(t)
+	defer tc.PrintLogsOnFailure()
+	defer tc.ShutdownOTLPReceiverSink()
+	defer tc.ShutdownHECReceiverSink()
+
+	_, shutdown := tc.SplunkOtelCollectorContainer(
+		"",
+		func(collector testutils.Collector) testutils.Collector {
+			env := map[string]string{
+				"SPLUNK_ACCESS_TOKEN":     "not.real",
+				"SPLUNK_HEC_TOKEN":        "not.real",
+				"SPLUNK_INGEST_URL":       "not.real",
+				"SPLUNK_REALM":            "not.real",
+				"SPLUNK_LISTEN_INTERFACE": "127.0.0.1",
+			}
+			return collector.WithArgs(
+				"--config", "/etc/otel/collector/logs_config_linux.yaml",
+			).WithEnv(env).WithMount("/Users/crobert/dev/splunk-otel-collector/second/logs", "/var/lib/otelcol/filelogs")
+		},
+	)
+	defer shutdown()
+
+	require.Eventually(t, func() bool {
+		for _, log := range tc.ObservedLogs.All() {
+			if strings.Contains(log.Message,
+				`Set config to [/etc/otel/collector/logs_config_linux.yaml]`,
+			) {
+				return true
+			}
+		}
+		return false
+	}, 20*time.Second, time.Second)
+
+	require.Eventually(t, func() bool {
+		if len(tc.HECReceiverSink.AllLogs()) > 0 {
+			return true
+		}
+		return false
+	}, 20*time.Second, time.Second)
 }

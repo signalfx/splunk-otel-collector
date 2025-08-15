@@ -40,6 +40,9 @@ type CollectorBuilder func(Collector) Collector
 type Testcase struct {
 	testing.TB
 	Logger                              *zap.Logger
+	HECReceiverSink                     *HECReceiverSink
+	HECEndpoint                         string
+	HECEndpointForCollector             string
 	ObservedLogs                        *observer.ObservedLogs
 	OTLPReceiverSink                    *OTLPReceiverSink
 	OTLPEndpoint                        string
@@ -56,8 +59,13 @@ func NewTestcase(t testing.TB) *Testcase {
 	logCore, tc.ObservedLogs = observer.New(zap.DebugLevel)
 	tc.Logger = zap.New(logCore)
 
-	tc.setOTLPEndpoint()
 	var err error
+	tc.setHECEndpoint()
+	tc.HECReceiverSink, err = NewHECReceiverSink().WithEndpoint(tc.HECEndpoint).Build()
+	require.NoError(tc, err)
+	require.NoError(tc, tc.HECReceiverSink.Start())
+
+	tc.setOTLPEndpoint()
 	tc.OTLPReceiverSink, err = NewOTLPReceiverSink().WithEndpoint(tc.OTLPEndpoint).Build()
 	require.NoError(tc, err)
 	require.NoError(tc, tc.OTLPReceiverSink.Start())
@@ -73,6 +81,13 @@ func (t *Testcase) setOTLPEndpoint() {
 	otlpHost := "localhost"
 	t.OTLPEndpoint = fmt.Sprintf("%s:%d", otlpHost, otlpPort)
 	t.OTLPEndpointForCollector = t.OTLPEndpoint
+}
+
+func (t *Testcase) setHECEndpoint() {
+	hecPort := GetAvailablePort(t)
+	hecHost := "localhost"
+	t.HECEndpoint = fmt.Sprintf("%s:%d", hecHost, hecPort)
+	t.HECEndpointForCollector = t.HECEndpoint
 }
 
 // Builds and starts all provided Container builder instances, returning them and a validating stop function.
@@ -109,6 +124,9 @@ func (t *Testcase) SplunkOtelCollectorContainer(configFilename string, builders 
 	if runtime.GOOS == "darwin" {
 		port := strings.Split(t.OTLPEndpointForCollector, ":")[1]
 		t.OTLPEndpointForCollector = fmt.Sprintf("host.docker.internal:%s", port)
+
+		port = strings.Split(t.HECEndpointForCollector, ":")[1]
+		t.HECEndpointForCollector = fmt.Sprintf("host.docker.internal:%s", port)
 	}
 
 	var c Collector
@@ -141,6 +159,7 @@ func (t *Testcase) newCollector(initial Collector, configFilename string, builde
 	envVars := map[string]string{
 		"GOCOVERDIR":     coverDest,
 		"OTLP_ENDPOINT":  t.OTLPEndpointForCollector,
+		"SPLUNK_HEC_URL": t.HECEndpointForCollector,
 		"SPLUNK_TEST_ID": t.ID,
 	}
 
@@ -195,6 +214,10 @@ func (t *Testcase) PrintLogsOnFailure() {
 // Validating shutdown helper for the Testcase's OTLPReceiverSink
 func (t *Testcase) ShutdownOTLPReceiverSink() {
 	require.NoError(t, t.OTLPReceiverSink.Shutdown())
+}
+
+func (t *Testcase) ShutdownHECReceiverSink() {
+	require.NoError(t, t.HECReceiverSink.Shutdown())
 }
 
 func CheckMetricsPresence(t *testing.T, metricNames []string, configFile string) {

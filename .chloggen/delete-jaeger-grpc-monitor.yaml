@@ -5,7 +5,7 @@ change_type: breaking
 component: smartagent/jaeger-grpc
 
 # A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
-note: "Remove, already deprecated, `jaeger-grpc` monitor. Please use the [jaeger receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jaegerreceiver) instead.
+note: "Remove, already deprecated, `jaeger-grpc` monitor. Please use the [jaeger receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jaegerreceiver) instead."
 
 # One or more tracking issues related to the change
 issues: [6601]

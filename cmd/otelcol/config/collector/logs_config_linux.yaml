@@ -535,6 +535,7 @@ receivers:
     include_file_name: false
     include_file_path: true
     storage: file_storage/filelogs
+    start_at: beginning
 
   # Apache Tomcat.
   # See https://tomcat.apache.org/tomcat-9.0-doc/logging.html
@@ -689,7 +690,8 @@ exporters:
     endpoint: "${SPLUNK_INGEST_URL}/v1/log"
     # Disabling logs as only profiling data should be sent to Splunk Observability Cloud.
     log_data_enabled: false
-
+  debug:
+    verbosity: detailed
 
 extensions:
   health_check:
@@ -741,4 +743,4 @@ service:
         #- filelog/zookeeper
         #- filelog/zookeeper-trace
       processors: [memory_limiter, batch]
-      exporters: [splunk_hec, splunk_hec/profiling]
+      exporters: [splunk_hec, splunk_hec/profiling, debug]

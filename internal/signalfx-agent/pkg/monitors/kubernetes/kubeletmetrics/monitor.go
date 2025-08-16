@@ -46,6 +46,7 @@ type Monitor struct {
 // Configure the monitor and kick off volume metric syncing
 func (m *Monitor) Configure(conf *Config) error {
 	m.logger = log.WithFields(log.Fields{"monitorType": monitorType, "monitorID": conf.MonitorID})
+	m.logger.Warn("[NOTICE] The kubelet-metrics monitor is deprecated. Please use the kubeletstats receiver instead. This plugin will be removed by the end of October 2025.")
 
 	var err error
 	m.kubeletClient, err = kubelet.NewClient(&conf.KubeletAPI, m.logger)

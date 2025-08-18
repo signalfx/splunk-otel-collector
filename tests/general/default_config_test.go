@@ -510,40 +510,20 @@ func TestDefaultAgentConfig(t *testing.T) {
 	}
 }
 
-func TestDefaultLogConfig(t *testing.T) {
-	t.Setenv("SPLUNK_OTEL_COLLECTOR_IMAGE", "otelcol:latest")
+func TestDefaultOGLogConfig(t *testing.T) {
 	tc := testutils.NewTestcase(t)
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
 	defer tc.ShutdownHECReceiverSink()
 
-	_, shutdown := tc.SplunkOtelCollectorContainer(
-		"",
-		func(collector testutils.Collector) testutils.Collector {
-			env := map[string]string{
-				"SPLUNK_ACCESS_TOKEN":     "not.real",
-				"SPLUNK_HEC_TOKEN":        "not.real",
-				"SPLUNK_INGEST_URL":       "not.real",
-				"SPLUNK_REALM":            "not.real",
-				"SPLUNK_LISTEN_INTERFACE": "127.0.0.1",
-			}
-			return collector.WithArgs(
-				"--config", "/etc/otel/collector/logs_config_linux.yaml",
-			).WithEnv(env).WithMount("/Users/crobert/dev/splunk-otel-collector/second/logs", "/var/lib/otelcol/filelogs")
-		},
-	)
-	defer shutdown()
+	t.Setenv("SPLUNK_ACCESS_TOKEN", "not.real")
+	t.Setenv("SPLUNK_HEC_TOKEN", "not.real")
+	t.Setenv("SPLUNK_INGEST_URL", "not.real")
+	t.Setenv("SPLUNK_REALM", "not.real")
+	t.Setenv("SPLUNK_LISTEN_INTERFACE", "127.0.0.1")
 
-	require.Eventually(t, func() bool {
-		for _, log := range tc.ObservedLogs.All() {
-			if strings.Contains(log.Message,
-				`Set config to [/etc/otel/collector/logs_config_linux.yaml]`,
-			) {
-				return true
-			}
-		}
-		return false
-	}, 20*time.Second, time.Second)
+	_, shutdown := tc.SplunkOtelCollectorProcess("logs_config_linux.yaml")
+	defer shutdown()
 
 	require.Eventually(t, func() bool {
 		if len(tc.HECReceiverSink.AllLogs()) > 0 {

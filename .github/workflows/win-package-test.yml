@@ -64,7 +64,7 @@ jobs:
     needs: [msi-build]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup NuGet
         uses: nuget/setup-nuget@v2.0.1
@@ -97,7 +97,7 @@ jobs:
     timeout-minutes: 40
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Downloading msi build
         uses: actions/download-artifact@v4.1.3
@@ -127,7 +127,7 @@ jobs:
         WITH_FLUENTD: [ "true", "false" ]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Downloading msi build
         uses: actions/download-artifact@v4.1.3
@@ -179,7 +179,7 @@ jobs:
     timeout-minutes: 45
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Downloading msi build
         uses: actions/download-artifact@v4.1.3
@@ -214,7 +214,7 @@ jobs:
     needs: [msi-build]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Downloading msi build
         uses: actions/download-artifact@v4.1.3
@@ -266,7 +266,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Downloading choco build
         uses: actions/download-artifact@v4.1.3
@@ -355,7 +355,7 @@ jobs:
         OS: [ "windows-2022", "windows-2025" ]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Downloading binaries-windows_amd64
         uses: actions/download-artifact@v4.1.3

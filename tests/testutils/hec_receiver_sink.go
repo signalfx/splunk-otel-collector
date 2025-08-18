@@ -17,8 +17,6 @@ package testutils
 import (
 	"context"
 	"fmt"
-	"go.opentelemetry.io/collector/config/confighttp"
-
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
@@ -66,9 +64,7 @@ func (hec HECReceiverSink) Build() (*HECReceiverSink, error) {
 
 	hecFactory := splunkhecreceiver.NewFactory()
 	hecConfig := hecFactory.CreateDefaultConfig().(*splunkhecreceiver.Config)
-	hecConfig.ServerConfig = confighttp.ServerConfig{
-		Endpoint: hec.Endpoint,
-	}
+	hecConfig.Endpoint = fmt.Sprintf("%s", hec.Endpoint)
 
 	params := receiver.Settings{
 		ID: component.MustNewID(splunkhectypeStr),

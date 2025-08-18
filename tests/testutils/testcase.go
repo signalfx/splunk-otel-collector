@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
@@ -64,6 +65,8 @@ func NewTestcase(t testing.TB) *Testcase {
 	tc.HECReceiverSink, err = NewHECReceiverSink().WithEndpoint(tc.HECEndpoint).Build()
 	require.NoError(tc, err)
 	require.NoError(tc, tc.HECReceiverSink.Start())
+	tc.HECEndpoint = fmt.Sprintf("http://%s", tc.HECEndpoint)
+	tc.HECEndpointForCollector = fmt.Sprintf("http://%s", tc.HECEndpointForCollector)
 
 	tc.setOTLPEndpoint()
 	tc.OTLPReceiverSink, err = NewOTLPReceiverSink().WithEndpoint(tc.OTLPEndpoint).Build()
@@ -85,7 +88,7 @@ func (t *Testcase) setOTLPEndpoint() {
 
 func (t *Testcase) setHECEndpoint() {
 	hecPort := GetAvailablePort(t)
-	hecHost := "localhost"
+	hecHost := "0.0.0.0"
 	t.HECEndpoint = fmt.Sprintf("%s:%d", hecHost, hecPort)
 	t.HECEndpointForCollector = t.HECEndpoint
 }
@@ -164,9 +167,11 @@ func (t *Testcase) newCollector(initial Collector, configFilename string, builde
 	}
 
 	if configFilename != "" {
-		collector = collector.WithConfigPath(
-			path.Join(".", "testdata", configFilename),
-		)
+		if !filepath.IsAbs(configFilename) {
+			configFilename = path.Join(".", "testdata", configFilename)
+		}
+
+		collector = collector.WithConfigPath(configFilename)
 	}
 
 	collector = collector.WithEnv(envVars).WithLogLevel("debug").WithLogger(t.Logger)

@@ -1911,9 +1911,6 @@ github-release:
       artifacts: true
     - job: sign-agent-bundles
       artifacts: true
-  before_script:
-    - .gitlab/install-gh-cli.sh
-    - export PATH="$GOPATH/bin:$PATH"
   script:
     - mkdir -p dist/assets
     - cp bin/otelcol_linux_* dist/assets/

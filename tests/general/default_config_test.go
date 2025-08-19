@@ -264,7 +264,6 @@ func TestDefaultGatewayConfig(t *testing.T) {
 }
 
 func TestDefaultAgentConfig(t *testing.T) {
-	t.Setenv("SPLUNK_OTEL_COLLECTOR_IMAGE", "otelcol:latest")
 	for _, ip := range []string{"default", "0.0.0.0", "127.2.3.4"} {
 		ip := ip
 		t.Run(ip, func(t *testing.T) {

@@ -69,7 +69,6 @@ COPY --chown=999 config/collector/otlp_config_linux.yaml /etc/otel/collector/otl
 COPY --chown=999 config/collector/agent_config.yaml /etc/otel/collector/agent_config.yaml
 COPY --chown=999 config/collector/fargate_config.yaml /etc/otel/collector/fargate_config.yaml
 COPY --chown=999 config/collector/ecs_ec2_config.yaml /etc/otel/collector/ecs_ec2_config.yaml
-COPY --chown=999 config/collector/logs_config_linux.yaml /etc/otel/collector/logs_config_linux.yaml
 
 USER splunk-otel-collector
 ENTRYPOINT ["/otelcol"]

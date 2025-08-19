@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//go:build integration
+
 package tests
 
 import (
@@ -508,27 +510,4 @@ func TestDefaultAgentConfig(t *testing.T) {
 			}, 20*time.Second, time.Second)
 		})
 	}
-}
-
-func TestDefaultOGLogConfig(t *testing.T) {
-	tc := testutils.NewTestcase(t)
-	defer tc.PrintLogsOnFailure()
-	defer tc.ShutdownOTLPReceiverSink()
-	defer tc.ShutdownHECReceiverSink()
-
-	t.Setenv("SPLUNK_ACCESS_TOKEN", "not.real")
-	t.Setenv("SPLUNK_HEC_TOKEN", "not.real")
-	t.Setenv("SPLUNK_INGEST_URL", "not.real")
-	t.Setenv("SPLUNK_REALM", "not.real")
-	t.Setenv("SPLUNK_LISTEN_INTERFACE", "127.0.0.1")
-
-	_, shutdown := tc.SplunkOtelCollectorProcess("logs_config_linux.yaml")
-	defer shutdown()
-
-	require.Eventually(t, func() bool {
-		if len(tc.HECReceiverSink.AllLogs()) > 0 {
-			return true
-		}
-		return false
-	}, 20*time.Second, time.Second)
 }

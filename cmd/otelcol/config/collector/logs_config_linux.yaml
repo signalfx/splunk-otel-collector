@@ -518,10 +518,23 @@ receivers:
   # Syslog and messages log files.
   # These are not in the RFC3164 format.
   filelog/syslog:
-    include: [ "/var/log/syslog", "/var/log/messages", "/var/log/system.log"]
+    include: [ "/var/log/syslog", "/var/log/messages"]
+    operators:
+      - type: regex_parser
+        regex: '^(?P<time>.+?) (?P<hostname>\S+) (?P<program>[^ :\[]+)\[?(?P<pid>\d+)?\]?: (?P<log>.*)$'
+        timestamp:
+          parse_from: attributes.time
+          layout: '%b %e %H:%M:%S'
+      - type: move
+        from: attributes.log
+        to: body
+      - type: retain
+        fields:
+          - attributes.program
+          - attributes["log.file.path"]
     include_file_name: false
     include_file_path: true
-    start_at: beginning
+    storage: file_storage/filelogs
 
   # Apache Tomcat.
   # See https://tomcat.apache.org/tomcat-9.0-doc/logging.html
@@ -652,6 +665,7 @@ processors:
     check_interval: 2s
     limit_mib: ${SPLUNK_MEMORY_LIMIT_MIB}
 
+
 exporters:
   # Enables the Splunk HEC exporter.
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/splunkhecexporter
@@ -676,6 +690,8 @@ exporters:
     # Disabling logs as only profiling data should be sent to Splunk Observability Cloud.
     log_data_enabled: false
 
+
+
 extensions:
   health_check:
     endpoint: "${SPLUNK_LISTEN_INTERFACE}:13133"
@@ -692,9 +708,8 @@ extensions:
       directory: /tmp/
     create_directory: true
 
-
 service:
-  extensions: [health_check]
+  extensions: [health_check, file_storage/filelogs]
   pipelines:
     logs:
       receivers:

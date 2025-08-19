@@ -686,18 +686,16 @@ exporters:
     log_data_enabled: false
 
 
-
 extensions:
   health_check:
     endpoint: "${SPLUNK_LISTEN_INTERFACE}:13133"
-
 
   # Storage extension for storing filelog checkpoints.
   # Checkpoints allow the receiver to pick up where it left off in the case of a
   # collector restart.
   file_storage/filelogs:
-    # Location where checkpoint files are stored. This directory must exist and
-    # must be writable by the collector..
+    # Location where checkpoint files are stored. This directory must be writable
+    # by the collector.
     directory: "${SPLUNK_FILE_STORAGE_EXTENSION_PATH}"
     create_directory: true
     compaction:

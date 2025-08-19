@@ -17,6 +17,7 @@
 package tests
 
 import (
+	"fmt"
 	"log"
 	"log/syslog"
 	"path/filepath"
@@ -34,41 +35,44 @@ func TestDefaultLogConfig(t *testing.T) {
 	defer tc.ShutdownOTLPReceiverSink()
 	defer tc.ShutdownHECReceiverSink()
 
-	t.Setenv("SPLUNK_ACCESS_TOKEN", "not.real")
-	t.Setenv("SPLUNK_HEC_TOKEN", "not.real")
-	t.Setenv("SPLUNK_INGEST_URL", "not.real")
-	t.Setenv("SPLUNK_REALM", "not.real")
-	t.Setenv("SPLUNK_LISTEN_INTERFACE", "127.0.0.1")
-	t.Setenv("SPLUNK_FILE_STORAGE_EXTENSION_PATH", t.TempDir())
-
 	path, err := filepath.Abs("../../cmd/otelcol/config/collector/logs_config_linux.yaml")
 	require.NoError(t, err)
 
-	_, shutdown := tc.SplunkOtelCollectorProcess(path)
+	_, shutdown := tc.SplunkOtelCollectorProcess(path,
+		func(collector testutils.Collector) testutils.Collector {
+			env := map[string]string{
+				"SPLUNK_ACCESS_TOKEN": "not.real",
+				"SPLUNK_HEC_TOKEN": "not.real",
+				"SPLUNK_INGEST_URL": "not.real",
+				"SPLUNK_REALM": "not.real",
+				"SPLUNK_LISTEN_INTERFACE": "127.0.0.1",
+				"SPLUNK_FILE_STORAGE_EXTENSION_PATH": t.TempDir(),
+			}
+			return collector.WithEnv(env))
 	defer shutdown()
 
-	// Establish a connection to the syslog daemon.
-	// The priority here acts as a default for the Writer if not specified in method calls.
 	writer, err := syslog.New(syslog.LOG_DAEMON|syslog.LOG_INFO, "otelcol")
-	if err != nil {
-		log.Fatalf("Unable to connect to syslog: %v", err)
-	}
+	require.NoError(t, err)
 	defer writer.Close()
 
+	// The channel is required for synchronizing between the syslog writer and the
+	// check for logs written to syslog. Without it, the logs may be written before
+	// the check occurs, meaning the test is waiting for some other process to write to
+	// syslog, resulting in flakiness.
 	checked_logs := make(chan bool, 1)
-
 	go func() {
 		<-checked_logs
-		writer.Info("This is an informational message.")
-		writer.Warning("A warning occurred.")
-		writer.Err("An error happened!")
-		writer.Debug("This is a debug message (may not be visible depending on syslog configuration).")
+		writer.Info("syslog information level log for testing")
 	}()
 
 	require.Eventually(t, func() bool {
 		checked_logs <- true
 		if len(tc.HECReceiverSink.AllLogs()) > 0 {
-			return true
+			t.Log("hec receiver logs found")
+			for _, log := range tc.HECReceiverSink.AllLogs() {
+				t.log.Info(log)
+			}
+			return false
 		}
 		return false
 	}, 20*time.Second, time.Second)

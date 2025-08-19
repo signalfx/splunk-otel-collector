@@ -3,6 +3,7 @@ package tests
 import (
 	"log"
 	"log/syslog"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -23,12 +24,15 @@ func TestDefaultLogConfig(t *testing.T) {
 	t.Setenv("SPLUNK_REALM", "not.real")
 	t.Setenv("SPLUNK_LISTEN_INTERFACE", "127.0.0.1")
 
-	_, shutdown := tc.SplunkOtelCollectorProcess("logs_config_linux.yaml")
+	path, err := filepath.Abs("../../cmd/otelcol/config/collector/logs_config_linux.yaml")
+	require.NoError(t, err)
+
+	_, shutdown := tc.SplunkOtelCollectorProcess(path)
 	defer shutdown()
 
 	// Establish a connection to the syslog daemon.
 	// The priority here acts as a default for the Writer if not specified in method calls.
-	writer, err := syslog.New(syslog.LOG_LOCAL0|syslog.LOG_INFO, "my_service")
+	writer, err := syslog.New(syslog.LOG_DAEMON|syslog.LOG_INFO, "otelcol")
 	if err != nil {
 		log.Fatalf("Unable to connect to syslog: %v", err)
 	}

@@ -39,6 +39,7 @@ func TestDefaultLogConfig(t *testing.T) {
 	t.Setenv("SPLUNK_INGEST_URL", "not.real")
 	t.Setenv("SPLUNK_REALM", "not.real")
 	t.Setenv("SPLUNK_LISTEN_INTERFACE", "127.0.0.1")
+	t.Setenv("SPLUNK_FILE_STORAGE_EXTENSION_PATH", t.TempDir())
 
 	path, err := filepath.Abs("../../cmd/otelcol/config/collector/logs_config_linux.yaml")
 	require.NoError(t, err)

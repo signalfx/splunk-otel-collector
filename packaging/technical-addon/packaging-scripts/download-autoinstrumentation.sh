@@ -22,5 +22,5 @@ if [ "$PLATFORM" == "linux" ] || [ "$PLATFORM" == "all" ]; then
   sha256sum "$java_agent_path" | cut -d' ' --fields=1 > "${SOURCE_DIR}/pkg/splunk_ta_otel_linux_autoinstrumentation/runner/java-agent-sha256sum.txt"
   sha256sum "$nodejs_agent_path" | cut -d' ' --fields=1  > "${SOURCE_DIR}/pkg/splunk_ta_otel_linux_autoinstrumentation/runner/nodejs-agent-sha256sum.txt"
 
-  sed -i "s/splunk-otel-auto-instrumentation-v[0-9]\+\.[0-9]\+\.[0-9]\+/splunk-otel-auto-instrumentation-$JAVA_VERSION/g" "${SOURCE_DIR}/pkg/splunk_ta_otel_linux_autoinstrumentation/runner/internal/testdata/happypath/expected/expected-zeroconfig.txt"
+  sed -i'.old' "s/splunk-otel-auto-instrumentation-v[0-9]\+\.[0-9]\+\.[0-9]\+/splunk-otel-auto-instrumentation-$JAVA_VERSION/g" "${SOURCE_DIR}/pkg/splunk_ta_otel_linux_autoinstrumentation/runner/internal/testdata/happypath/expected/expected-zeroconfig.txt" && rm "${SOURCE_DIR}/pkg/splunk_ta_otel_linux_autoinstrumentation/runner/internal/testdata/happypath/expected/expected-zeroconfig.txt.old"
 fi

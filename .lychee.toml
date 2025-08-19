@@ -1,3 +1,5 @@
+accept = ["200..=299", "429"]
+
 exclude = [
     "my.host",
     "file://*",
@@ -21,9 +23,17 @@ exclude = [
     "https://github.com/.*/(pull|issues)/[0-9]+", # We have too many PR and issues links in CHANGELOG.md that we allways run out of the rate limit
     "https://bugs.mysql.com/*", # Failing with 403 Forbidden. Likely rejecting the user agent
     "https://collectd.org", # collectd.org is down, remove when it is back up
+    "^http(s)?://localhost",
+    "^http(s)?://example.com",
+    "^https://dev.mysql.com"
 ]
+
+include-fragments = true
+
 max_concurrency = 20
 max_redirects = 10
 max_retries = 5
+
 retry_wait_time = 30
+
 timeout = 30

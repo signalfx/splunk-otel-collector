@@ -18,6 +18,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -25,12 +26,22 @@ import (
 
 	"go.opentelemetry.io/collector/component"
 	"gopkg.in/yaml.v3"
+
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver"
 )
 
-type componentMetadata struct {
-	ComponentID    component.ID `yaml:"component_id"`
+type extensionMetadata struct {
+	ExtensionID    component.ID `yaml:"extension_id"`
 	PropertiesTmpl string       `yaml:"properties_tmpl"`
 	FileName       string
+}
+
+type receiverMetadata struct {
+	ReceiverID     component.ID `yaml:"receiver_id"`
+	PropertiesTmpl string       `yaml:"properties_tmpl"`
+	ServiceType    string       `yaml:"service_type"`
+	FileName       string
+	Status         discoveryreceiver.Status `yaml:"status"`
 }
 
 const (
@@ -57,20 +68,37 @@ func panicOnError(err error) {
 	}
 }
 
-func loadComponentMetadata(dir string) []componentMetadata {
-	var components []componentMetadata
+func loadExtensionMetadata(dir string) []extensionMetadata {
+	var extensions []extensionMetadata
 	files, err := filepath.Glob(filepath.Join(dir, "*.yaml"))
 	panicOnError(err)
 	for _, file := range files {
 		data, err := os.ReadFile(file)
 		panicOnError(err)
-		var metadata componentMetadata
+		var metadata extensionMetadata
 		panicOnError(yaml.Unmarshal(data, &metadata))
 		// Extract filename without extension
 		metadata.FileName = strings.TrimSuffix(filepath.Base(file), ".yaml")
-		components = append(components, metadata)
+		extensions = append(extensions, metadata)
 	}
-	return components
+	return extensions
+}
+
+func loadReceiverMetadata(dir string) []receiverMetadata {
+	var receivers []receiverMetadata
+	files, err := filepath.Glob(filepath.Join(dir, "*.yaml"))
+	panicOnError(err)
+	for _, file := range files {
+		data, err := os.ReadFile(file)
+		panicOnError(err)
+		var metadata receiverMetadata
+		panicOnError(yaml.Unmarshal(data, &metadata))
+		// Extract filename without extension
+		metadata.FileName = strings.TrimSuffix(filepath.Base(file), ".yaml")
+		panicOnError(validateReceiverMetadata(metadata))
+		receivers = append(receivers, metadata)
+	}
+	return receivers
 }
 
 func main() {
@@ -84,25 +112,29 @@ func main() {
 	configDLinuxDir := filepath.Join(projectRoot, "cmd", "otelcol", "config", "collector", "config.d.linux")
 
 	// Generate properties files for extensions
-	extensions := loadComponentMetadata(filepath.Join(metadataDir, "extensions"))
+	extensions := loadExtensionMetadata(filepath.Join(metadataDir, "extensions"))
 	for _, extension := range extensions {
 		bundleFile := filepath.Join(filepath.Join(bundleDir, "extensions"), extension.FileName+".discovery.yaml")
-		generateFile(extension.PropertiesTmpl, bundleFile, false, extension.ComponentID)
+		generateFile(extension.PropertiesTmpl, bundleFile, false, extension.ExtensionID)
 		configDLinuxFile := filepath.Join(filepath.Join(configDLinuxDir, "extensions"), extension.FileName+".discovery.yaml")
-		generateFile(extension.PropertiesTmpl, configDLinuxFile, true, extension.ComponentID)
+		generateFile(extension.PropertiesTmpl, configDLinuxFile, true, extension.ExtensionID)
 	}
 
 	// Generate properties files for receivers
-	receivers := loadComponentMetadata(filepath.Join(metadataDir, "receivers"))
+	receivers := loadReceiverMetadata(filepath.Join(metadataDir, "receivers"))
 	for _, receiver := range receivers {
 		bundleFile := filepath.Join(filepath.Join(bundleDir, "receivers"), receiver.FileName+".discovery.yaml")
-		generateFile(receiver.PropertiesTmpl, bundleFile, false, receiver.ComponentID)
+		generateFile(receiver.PropertiesTmpl, bundleFile, false, receiver.ReceiverID)
 		configDLinuxFile := filepath.Join(filepath.Join(configDLinuxDir, "receivers"), receiver.FileName+".discovery.yaml")
-		generateFile(receiver.PropertiesTmpl, configDLinuxFile, true, receiver.ComponentID)
+		generateFile(receiver.PropertiesTmpl, configDLinuxFile, true, receiver.ReceiverID)
 	}
 
 	bundleFSTemplate := filepath.Join(projectRoot, "internal", "confmapprovider", "discovery", "bundledfs.tmpl")
 	genBundledFS(bundleFSTemplate, extensions, receivers)
+
+	// Generate receiverMetaMap for discovery receiver
+	discoveryReceiverDir := filepath.Join(projectRoot, "internal", "receiver", "discoveryreceiver")
+	generateReceiverMetadataFile(discoveryReceiverDir, receivers)
 }
 
 func generateFile(propertiesTmpl string, outFile string, commented bool, componentID component.ID) {
@@ -142,7 +174,7 @@ func prependAllLines(content, prefix string) string {
 	return prefix + strings.TrimSuffix(prefixed, prefix)
 }
 
-func genBundledFS(bundleFSFile string, extensions, receivers []componentMetadata) {
+func genBundledFS(bundleFSFile string, extensions []extensionMetadata, receivers []receiverMetadata) {
 	bundleFSTmpl, err := os.ReadFile(bundleFSFile)
 	panicOnError(err)
 
@@ -165,4 +197,59 @@ func genBundledFS(bundleFSFile string, extensions, receivers []componentMetadata
 	if err = os.WriteFile(filename, out.Bytes(), 0644); err != nil { // nolint:gosec // existing project file permissions
 		panicOnError(fmt.Errorf("failed writing to %s: %w", filename, err))
 	}
+}
+
+func generateReceiverMetadataFile(discoveryReceiverDir string, receivers []receiverMetadata) {
+	templatePath := "templates/receiver_metadata.go.tmpl"
+	templateData, err := os.ReadFile(templatePath)
+	panicOnError(err)
+
+	tmpl, err := template.New("receiver_metadata").Funcs(template.FuncMap{
+		"formatMessage": formatMessage,
+	}).Parse(string(templateData))
+	panicOnError(err)
+	out := &bytes.Buffer{}
+	panicOnError(tmpl.Execute(out, map[string]any{
+		"receivers": receivers,
+	}))
+
+	filename := filepath.Join(discoveryReceiverDir, "generated_metadata.go")
+	if err := os.WriteFile(filename, out.Bytes(), 0644); err != nil { // nolint:gosec // existing project file permissions
+		panicOnError(fmt.Errorf("failed writing to %s: %w", filename, err))
+	}
+
+	cmd := exec.Command("go", "fmt", filename) //nolint:gosec // the command is only for local usage, not shipped
+	if err := cmd.Run(); err != nil {
+		panicOnError(fmt.Errorf("failed formatting %s: %w", filename, err))
+	}
+}
+
+// processMessageTemplate processes a message template with the given component ID.
+func processMessageTemplate(message string, componentID component.ID) string {
+	tmpl, err := template.New("message").Funcs(funcMap(componentID)).Parse(message)
+	if err != nil {
+		panic(fmt.Errorf("failed to parse message template: %w", err))
+	}
+
+	var buf bytes.Buffer
+	panicOnError(tmpl.Execute(&buf, nil))
+	return buf.String()
+}
+
+func formatMessage(message string, componentID component.ID) string {
+	// Ensure the message is processed as a template first
+	m := processMessageTemplate(message, componentID)
+	// Replace newlines with Go string concatenation for readability
+	return strings.ReplaceAll(fmt.Sprintf("%q", m), "\\n", `" +
+				"`)
+}
+
+func validateReceiverMetadata(md receiverMetadata) error {
+	if md.ReceiverID == (component.ID{}) {
+		return fmt.Errorf("receiver ID cannot be empty")
+	}
+	if md.ServiceType == "" {
+		return fmt.Errorf("service type cannot be empty for receiver %s", md.ReceiverID)
+	}
+	return md.Status.Validate()
 }

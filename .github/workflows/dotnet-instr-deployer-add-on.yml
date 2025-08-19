@@ -23,7 +23,7 @@ on:
         default: '6b4ebe426ca6'
 
 env:
-  GO_VERSION: 1.23.10
+  GO_VERSION: 1.24.6
   # Provide default values for non-manually triggered executions
   splunk_uf_version: ${{ github.event.inputs.splunk_uf_version || '9.4.0' }}
   splunk_uf_build_hash: ${{ github.event.inputs.splunk_uf_build_hash || '6b4ebe426ca6' }}

@@ -7,22 +7,9 @@ receivers:
     embed_receiver_config: true
     receivers:
       apache:
-        service_type: apache
         config:
           endpoint: http://`endpoint`/server-status?auto
         rule: type == "container" and any([name, image, command], {# matches "(?i)(httpd|apache2).*"}) and not (command matches "splunk.discovery")
-        status:
-          metrics:
-            - status: successful
-              strict: apache.uptime
-              message: apachereceiver receiver is working!
-          statements:
-            - status: failed
-              regexp: 'connect: network is unreachable'
-              message: The container cannot be reached by the Collector. Make sure they're in the same network.
-            - status: failed
-              regexp: 'connect: connection refused'
-              message: The container is refusing apache webserver connections.
     watch_observers:
       - docker_observer
 

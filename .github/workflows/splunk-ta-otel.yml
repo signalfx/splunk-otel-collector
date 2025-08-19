@@ -19,7 +19,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.23.10
+  GO_VERSION: 1.24.6
   ADDONS_SOURCE_DIR: "${{github.workspace}}/packaging/technical-addon"
   BUILD_DIR: "${{github.workspace}}/build"
 jobs:
@@ -58,6 +58,10 @@ jobs:
   test:
     name: test
     runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        # see https://hub.docker.com/r/splunk/splunk/tags
+        SPLUNK_VERSION: ["10.0", "9.4", "8.2"]
     defaults:
       run:
         working-directory: ${{github.workspace}}/packaging/technical-addon

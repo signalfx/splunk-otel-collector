@@ -23,7 +23,10 @@ Discovery components are defined using YAML metadata files in the `metadata/` di
 - `metadata/receivers/` - Receiver component definitions
 
 Each metadata file contains:
-- `component_id` - The OpenTelemetry component identifier
+- `extension_id` - The OpenTelemetry extension identifier (for extensions)
+- `receiver_id` - The OpenTelemetry receiver identifier (for receivers)
+- `service_type` - The service type identifier (for receivers)
+- `status` - Status validation rules with metrics and statements (for receivers)
 - `properties_tmpl` - Template to generate the properties YAML for the component
 
 ### Example Metadata File
@@ -31,10 +34,10 @@ Each metadata file contains:
 `metadata/receivers/redis.yaml`:
 
 ```yaml
-component_id: redis
+receiver_id: redis
+service_type: redis
 properties_tmpl: |
   enabled: true
-  service_type: redis
   rule:
     docker_observer: type == "container" and port == 6379
     host_observer: type == "hostport" and port == 6379
@@ -42,19 +45,19 @@ properties_tmpl: |
     default:
       endpoint: '`endpoint`'
       collection_interval: 10s
-  status:
-    metrics:
-      - status: successful
-        strict: redis_connected_clients
-        message: Redis receiver is working!
-    statements:
-      - status: partial
-        regexp: 'NOAUTH Authentication required.'
-        message: |-
-          Make sure your user credentials are correctly specified as an environment variable.
-          ```
-          {{ configPropertyEnvVar "password" "<password>" }}
-          ```
+status:
+  metrics:
+    - status: successful
+      strict: redis_connected_clients
+      message: Redis receiver is working!
+  statements:
+    - status: partial
+      regexp: 'NOAUTH Authentication required.'
+      message: |-
+        Make sure your user credentials are correctly specified as an environment variable.
+        ```
+        {{ configPropertyEnvVar "password" "<password>" }}
+        ```
 ```
 
 ## Adding New Components
@@ -66,10 +69,29 @@ To add a new discovery component:
    - Receivers: `cmd/discoverybundler/metadata/receivers/<component-name>.yaml`
 
 2. **Define metadata**: Include the required fields:
+   
+   For receivers:
    ```yaml
-   component_id: <component-name>
+   receiver_id: <receiver-name>
+   service_type: <service-type>
    properties_tmpl: |
      enabled: true
+     # ... your template content
+   status:
+     metrics:
+       - status: successful
+         strict: <metric-name>
+         message: <success-message>
+     statements:
+       - status: failed
+         regexp: <error-pattern>
+         message: <error-message>
+   ```
+   
+   For extensions:
+   ```yaml
+   extension_id: <extension-name>
+   properties_tmpl: |
      # ... your template content
    ```
 
@@ -106,3 +128,5 @@ After running `make bundle.d`, the metadata generates:
 2. **Linux config files**: Commented versions in `cmd/otelcol/config/collector/config.d.linux/`
 
 3. **Embedded filesystem**: `generated_bundledfs.go` file with embedded file lists for all components
+
+4. **Receiver metadata**: Updates `generated_metadata.go` with receiver service types and status validation rules for the discovery receiver

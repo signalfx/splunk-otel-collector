@@ -1,0 +1,19 @@
+# One of 'breaking', 'deprecation', 'new_component', 'enhancement', 'bug_fix'
+change_type: new_component
+
+# The name of the component, or a single word describing the area of concern, (e.g. crosslink)
+component: dockerstatsreceiver
+
+# A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
+note: "Added the `docker_stats` receiver to the Splunk OpenTelemetry Collector."
+
+# One or more tracking issues related to the change
+issues: [6621]
+
+# (Optional) One or more lines of additional information to render under the primary note.
+# These lines will be padded with 2 spaces and then inserted directly into the document.
+# Use pipe (|) for multiline entries.
+subtext: |
+  The [`docker_stats` receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/dockerstatsreceiver)
+  queries the local Docker daemon's container stats API for all desired running containers on a configured interval.
+  These stats are for container resource usage of cpu, memory, network, and the blkio controller.

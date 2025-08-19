@@ -191,15 +191,6 @@ jobs:
       - run: docker load -i ./docker-otelcol/${{ matrix.ARCH }}/image.tar
       - run: ln -sf otelcol_linux_${{ matrix.ARCH }} ./bin/otelcol
       - run: chmod a+x ./bin/*
-      - uses: shogo82148/actions-setup-redis@v1.42.0
-        if: matrix.PROFILE == 'integration'
-        with:
-          auto-start: false
-          redis-port: "6379"
-      - run: redis-cli ping
-        if: matrix.PROFILE == 'integration'
-      - run: redis-cli set tempkey tempvalue
-        if: matrix.PROFILE == 'integration'
       - name: Run Integration Test With Cover
         run: |
           set -o pipefail
@@ -280,15 +271,6 @@ jobs:
           path: ./bin
       - run: ln -sf otelcol_linux_amd64 ./bin/otelcol
       - run: chmod a+x ./bin/*
-      - uses: shogo82148/actions-setup-redis@v1.42.0
-        if: matrix.PROFILE == 'integration'
-        with:
-          auto-start: false
-          redis-port: "6379"
-      - run: redis-cli ping
-        if: matrix.PROFILE == 'integration'
-      - run: redis-cli set tempkey tempvalue
-        if: matrix.PROFILE == 'integration'
       - name: Run Integration Test With Cover
         run: |
           set -o pipefail

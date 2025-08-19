@@ -17,8 +17,6 @@
 package tests
 
 import (
-	"fmt"
-	"log"
 	"log/syslog"
 	"path/filepath"
 	"testing"
@@ -41,14 +39,16 @@ func TestDefaultLogConfig(t *testing.T) {
 	_, shutdown := tc.SplunkOtelCollectorProcess(path,
 		func(collector testutils.Collector) testutils.Collector {
 			env := map[string]string{
-				"SPLUNK_ACCESS_TOKEN": "not.real",
-				"SPLUNK_HEC_TOKEN": "not.real",
-				"SPLUNK_INGEST_URL": "not.real",
-				"SPLUNK_REALM": "not.real",
-				"SPLUNK_LISTEN_INTERFACE": "127.0.0.1",
+				"SPLUNK_ACCESS_TOKEN":                "not.real",
+				"SPLUNK_HEC_TOKEN":                   "not.real",
+				"SPLUNK_INGEST_URL":                  "not.real",
+				"SPLUNK_REALM":                       "not.real",
+				"SPLUNK_LISTEN_INTERFACE":            "127.0.0.1",
 				"SPLUNK_FILE_STORAGE_EXTENSION_PATH": t.TempDir(),
 			}
-			return collector.WithEnv(env))
+			return collector.WithEnv(env)
+		},
+	)
 	defer shutdown()
 
 	writer, err := syslog.New(syslog.LOG_DAEMON|syslog.LOG_INFO, "otelcol")

@@ -254,6 +254,8 @@ github.com/aws/aws-sdk-go-v2/internal/ini v1.8.3/go.mod h1:H5O/EsxDWyU+LP/V8i5sm
 github.com/aws/aws-sdk-go-v2/internal/v4a v1.4.0 h1:iLvW/zOkHGU3BDU5thWnj+UZ9pjhuVhv1loLj7yVtBw=
 github.com/aws/aws-sdk-go-v2/internal/v4a v1.4.0/go.mod h1:Fn3gvhdF1x5Rs9nUoCy/fJT1ms8f8dO7RqM9lJHuazQ=
 github.com/aws/aws-sdk-go-v2/service/appconfig v1.4.2/go.mod h1:FZ3HkCe+b10uFZZkFdvf98LHW21k49W8o8J366lqVKY=
+github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.54.0 h1:YBaZkj6OnJvSPKMPMOhhEk3mGq0UzYtvCnEEXk93jko=
+github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.54.0/go.mod h1:JGvzarQ8vyLLmajh2eV3lfS/BrOE32ryCgEh6mwDGnc=
 github.com/aws/aws-sdk-go-v2/service/ec2 v1.237.0 h1:XHE2G+yaDQql32FZt19QmQt4WuisqQJIkMUSCxeCUl8=
 github.com/aws/aws-sdk-go-v2/service/ec2 v1.237.0/go.mod h1:t11/j/nH9i6bbsPH9xc04BJOsV2nVPUqrB67/TLDsyM=
 github.com/aws/aws-sdk-go-v2/service/ecs v1.61.0 h1:2VrFedi1M671QYjgwUoBVTLNnYJLHEWziQGxI4b7VP8=
@@ -1473,6 +1475,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/apachereceive
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/apachereceiver v0.132.0/go.mod h1:HqTQ6fQB3wQUUwjJ15Pet3u0CKbfdsYJQpDaGviHLM0=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/apachesparkreceiver v0.132.0 h1:RU2zvCSLELW4KHC84HiFhDTvyRpxsawMPc2u0XxCL8A=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/apachesparkreceiver v0.132.0/go.mod h1:vECLnZWjMCWFACt/OispbIEoCK6DL1J5vS2Qp0RGnHg=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/awscloudwatchreceiver v0.132.0 h1:2s1Yati6+lRjb4OgF4QwiDy756Pcz7w5POg5hN62wEQ=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/awscloudwatchreceiver v0.132.0/go.mod h1:kZP5D5I0caqs2Zi5rH8dxLQCfNtn3swhYbsFVkFk0ws=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/awscontainerinsightreceiver v0.132.0 h1:pkkRxCCR1ChFgSqiJ+oK7PU/ZP/Q6yVR655f66WZJB0=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/awscontainerinsightreceiver v0.132.0/go.mod h1:VCPQf6EHdWPABfbhgT9VUUEXAxa4hmDCF9fghV4CZo8=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/awsecscontainermetricsreceiver v0.132.0 h1:jcX9KYDJS9uWnZ3QdJ7wiEGwJvurwayn9xmtpjjHG6s=

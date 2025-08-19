@@ -42,11 +42,8 @@ func TestDockerObserver(t *testing.T) {
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
 
-	dockerSocketProxy := testutils.CreateDockerSocketProxy(t)
-	require.NoError(t, dockerSocketProxy.Start())
-	t.Cleanup(func() {
-		dockerSocketProxy.Stop()
-	})
+	dockerSocketProxy, err := testutils.CreateDockerSocketProxy(t)
+	require.NoError(t, err)
 
 	_, shutdownPrometheus := tc.Containers(
 		testutils.NewContainer().WithImage("bitnami/prometheus").WithLabel("test.id", tc.ID).WillWaitForLogs("Server is ready to receive web requests."),

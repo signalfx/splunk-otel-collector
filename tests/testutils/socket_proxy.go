@@ -19,7 +19,6 @@ import (
 	"io"
 	"net"
 	"runtime"
-	"sync"
 	"sync/atomic"
 	"testing"
 )
@@ -30,11 +29,10 @@ type SocketProxy struct {
 	Path              string
 	Endpoint          string
 	ContainerEndpoint string
-	wg                sync.WaitGroup
 	active            atomic.Bool
 }
 
-func CreateDockerSocketProxy(t testing.TB) *SocketProxy {
+func CreateDockerSocketProxy(t testing.TB) (*SocketProxy, error) {
 	port := GetAvailablePort(t)
 
 	dockerHost := "172.17.0.1"
@@ -42,12 +40,18 @@ func CreateDockerSocketProxy(t testing.TB) *SocketProxy {
 		dockerHost = "host.docker.internal"
 	}
 
-	return &SocketProxy{
+	s := &SocketProxy{
 		Path:              "/var/run/docker.sock",
 		Endpoint:          fmt.Sprintf("0.0.0.0:%d", port),
 		ContainerEndpoint: fmt.Sprintf("%s:%d", dockerHost, port),
 		t:                 t,
 	}
+	err := s.Start()
+	if err != nil {
+		return nil, err
+	}
+	t.Cleanup(s.Stop)
+	return s, nil
 }
 
 func (s *SocketProxy) Start() error {
@@ -56,7 +60,6 @@ func (s *SocketProxy) Start() error {
 		return err
 	}
 	s.listener = l
-	s.wg.Add(1)
 	s.active.Store(true)
 	go func() {
 		for s.active.Load() {
@@ -79,7 +82,6 @@ func (s *SocketProxy) Start() error {
 				_, _ = io.Copy(socketConn, c)
 			}(conn)
 		}
-		s.wg.Done()
 	}()
 	return nil
 }

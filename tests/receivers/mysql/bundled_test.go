@@ -32,11 +32,8 @@ import (
 
 func TestMysqlDockerObserver(t *testing.T) {
 	testutils.SkipIfNotContainerTest(t)
-	dockerSocket := testutils.CreateDockerSocketProxy(t)
-	require.NoError(t, dockerSocket.Start())
-	t.Cleanup(func() {
-		dockerSocket.Stop()
-	})
+	dockerSocketProxy, err := testutils.CreateDockerSocketProxy(t)
+	require.NoError(t, err)
 
 	tc := testutils.NewTestcase(t)
 	defer tc.PrintLogsOnFailure()
@@ -56,7 +53,7 @@ func TestMysqlDockerObserver(t *testing.T) {
 				"--set", `splunk.discovery.extensions.host_observer.enabled=false`,
 				"--set", `splunk.discovery.receivers.mysql.config.username=root`,
 				"--set", `splunk.discovery.receivers.mysql.config.password=testpass`,
-				"--set", fmt.Sprintf("splunk.discovery.extensions.docker_observer.config.endpoint=tcp://%s", dockerSocket.ContainerEndpoint),
+				"--set", fmt.Sprintf("splunk.discovery.extensions.docker_observer.config.endpoint=tcp://%s", dockerSocketProxy.ContainerEndpoint),
 			)
 		})
 	defer shutdown()

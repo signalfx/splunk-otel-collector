@@ -696,6 +696,7 @@ extensions:
     # Location where checkpoint files are stored. This directory must exist and
     # must be writable by the collector..
     directory: /var/lib/otelcol/filelogs
+    create_directory: true
     compaction:
       on_start: true
       directory: /tmp/

@@ -63,7 +63,7 @@ func TestDefaultLogConfig(t *testing.T) {
 		writer.Warning("A warning occurred.")
 		writer.Err("An error happened!")
 		writer.Debug("This is a debug message (may not be visible depending on syslog configuration).")
-	}
+	}()
 
 	require.Eventually(t, func() bool {
 		defer func() {

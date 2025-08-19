@@ -55,12 +55,20 @@ func TestDefaultLogConfig(t *testing.T) {
 	}
 	defer writer.Close()
 
-	writer.Info("This is an informational message.")
-	writer.Warning("A warning occurred.")
-	writer.Err("An error happened!")
-	writer.Debug("This is a debug message (may not be visible depending on syslog configuration).")
+	checked_logs := make(chan bool, 1)
+
+	go func() {
+		<-checked_logs
+		writer.Info("This is an informational message.")
+		writer.Warning("A warning occurred.")
+		writer.Err("An error happened!")
+		writer.Debug("This is a debug message (may not be visible depending on syslog configuration).")
+	}
 
 	require.Eventually(t, func() bool {
+		defer func() {
+			checked_logs <- true
+		}()
 		if len(tc.HECReceiverSink.AllLogs()) > 0 {
 			return true
 		}

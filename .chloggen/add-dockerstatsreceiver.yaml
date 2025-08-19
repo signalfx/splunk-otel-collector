@@ -5,7 +5,7 @@ change_type: new_component
 component: dockerstatsreceiver
 
 # A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
-note: "Added the `docker_stats` receiver to the Splunk OpenTelemetry Collector."
+note: "Added the `docker_stats` receiver to the Splunk distribution of the OpenTelemetry Collector."
 
 # One or more tracking issues related to the change
 issues: [6621]

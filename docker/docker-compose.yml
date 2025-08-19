@@ -236,6 +236,7 @@ services:
   oracle:
     image: quay.io/splunko11ytest/oracle:latest
     profiles:
+      - integration # there is no integration test for oracle upstream
       - integration-test-oracledb-discovery
     build: ./oracle
     ports:

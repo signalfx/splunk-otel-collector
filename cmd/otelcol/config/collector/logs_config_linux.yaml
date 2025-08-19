@@ -694,10 +694,10 @@ exporters:
     log_data_enabled: false
 
 
-
 extensions:
   health_check:
     endpoint: "${SPLUNK_LISTEN_INTERFACE}:13133"
+
   # Storage extension for storing filelog checkpoints.
   # Checkpoints allow the receiver to pick up where it left off in the case of a
   # collector restart.

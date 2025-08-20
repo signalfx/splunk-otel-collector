@@ -33,6 +33,7 @@ func TestDefaultLogConfig(t *testing.T) {
 	defer tc.ShutdownOTLPReceiverSink()
 	defer tc.ShutdownHECReceiverSink()
 
+	syslogTestMessage := "syslog information level log for testing"
 	path, err := filepath.Abs("../../cmd/otelcol/config/collector/logs_config_linux.yaml")
 	require.NoError(t, err)
 
@@ -62,7 +63,7 @@ func TestDefaultLogConfig(t *testing.T) {
 	checked_logs := make(chan bool, 1)
 	go func() {
 		<-checked_logs
-		writer.Info("syslog information level log for testing")
+		writer.Info(syslogTestMessage)
 	}()
 
 	require.Eventually(t, func() bool {
@@ -73,7 +74,9 @@ func TestDefaultLogConfig(t *testing.T) {
 				for i := range log.ResourceLogs().Len() {
 					for j := range log.ResourceLogs().At(i).ScopeLogs().Len() {
 						for k := range log.ResourceLogs().At(i).ScopeLogs().At(j).LogRecords().Len() {
-							t.Log(log.ResourceLogs().At(i).ScopeLogs().At(j).LogRecords().At(k).Body().Str())
+							if log.ResourceLogs().At(i).ScopeLogs().At(j).LogRecords().At(k).Body().Str() == syslogTestMessage {
+								return true
+							}
 						}
 					}
 				}

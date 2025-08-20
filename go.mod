@@ -112,7 +112,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkenterprisereceiver v0.132.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver v0.132.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sqlqueryreceiver v0.132.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sqlserverreceiver v0.131.1-0.20250805181324-59cf6d80f9b1
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sqlserverreceiver v0.132.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sshcheckreceiver v0.132.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceiver v0.132.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/syslogreceiver v0.132.0

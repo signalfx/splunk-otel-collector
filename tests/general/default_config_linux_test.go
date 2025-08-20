@@ -70,9 +70,9 @@ func TestDefaultLogConfig(t *testing.T) {
 		if len(tc.HECReceiverSink.AllLogs()) > 0 {
 			t.Log("hec receiver logs found")
 			for _, log := range tc.HECReceiverSink.AllLogs() {
-				for i := range len(log.ResourceLogs()) {
-					for j := range len(log.ResourceLogs().At(i).ScopeLogs()) {
-						for k := range len(log.ResourceLogs().At(i).ScopeLogs().At(j).LogRecords()) {
+				for i := range log.ResourceLogs().Len() {
+					for j := range log.ResourceLogs().At(i).ScopeLogs().Len() {
+						for k := range log.ResourceLogs().At(i).ScopeLogs().At(j).LogRecords().Len() {
 							t.Log(log.ResourceLogs().At(i).ScopeLogs().At(j).LogRecords().At(k).Body().Str())
 						}
 					}

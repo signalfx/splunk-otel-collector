@@ -12,14 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//go:build mdatagen
+
+//go:generate mdatagen metadata.yaml
+
+// Package discoveryreceiver implements a receiver that can automatically discover
+// and configure other receivers based on running services.
 package discoveryreceiver
-
-import (
-	"testing"
-
-	"go.uber.org/goleak"
-)
-
-func TestMain(m *testing.M) {
-	goleak.VerifyTestMain(m)
-}

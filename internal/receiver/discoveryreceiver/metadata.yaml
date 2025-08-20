@@ -1,0 +1,9 @@
+type: discovery
+
+status:
+  class: receiver
+  stability:
+    development: [logs, metrics]
+  distributions: [splunk]
+  codeowners:
+    active: [dmitryax]

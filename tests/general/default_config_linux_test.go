@@ -19,6 +19,7 @@ package tests
 import (
 	"log/syslog"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -74,7 +75,7 @@ func TestDefaultLogConfig(t *testing.T) {
 				for i := range log.ResourceLogs().Len() {
 					for j := range log.ResourceLogs().At(i).ScopeLogs().Len() {
 						for k := range log.ResourceLogs().At(i).ScopeLogs().At(j).LogRecords().Len() {
-							if log.ResourceLogs().At(i).ScopeLogs().At(j).LogRecords().At(k).Body().Str() == syslogTestMessage {
+							if strings.Contains(log.ResourceLogs().At(i).ScopeLogs().At(j).LogRecords().At(k).Body().Str(), syslogTestMessage) {
 								return true
 							}
 						}

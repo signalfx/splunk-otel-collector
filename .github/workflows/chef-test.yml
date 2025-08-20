@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -60,7 +60,7 @@ jobs:
         ARCH: [ "amd64" ]
       fail-fast: false
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: actions/cache@v4
         id: bundle-cache
@@ -88,7 +88,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -127,7 +127,7 @@ jobs:
     env:
       PIP_CACHE_DIR: ${{ github.workspace }}/.cache/pip
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: actions/cache@v4
         with:
@@ -146,7 +146,7 @@ jobs:
     runs-on: windows-2025
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Uninstall default WiX
         run: choco uninstall wixtoolset
@@ -183,7 +183,7 @@ jobs:
     needs: [cross-compile, agent-bundle-windows, msi-custom-actions]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -229,7 +229,7 @@ jobs:
         working-directory: 'deployments/chef'
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       
       - name: lint
         run: make lint
@@ -245,7 +245,7 @@ jobs:
         working-directory: 'deployments/chef'
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Get linux distros and suites
         id: get-linux-matrix
@@ -286,7 +286,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - uses: actions/download-artifact@v4.1.3
         with:
@@ -336,7 +336,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - uses: actions/download-artifact@v4.1.3
         with:

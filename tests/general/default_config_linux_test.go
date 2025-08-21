@@ -29,7 +29,7 @@ import (
 )
 
 func TestDefaultLogConfig(t *testing.T) {
-	tc := testutils.NewTestcase(t)
+	tc := testutils.NewHECTestcase(t)
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownHECReceiverSink()
 

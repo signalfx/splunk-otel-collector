@@ -17,7 +17,6 @@ package configconverter
 import (
 	"context"
 	"expvar"
-	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -25,16 +24,7 @@ import (
 	"go.opentelemetry.io/collector/confmap"
 )
 
-// resetExpvarConverter resets the singleton instance for testing
-func resetExpvarConverter() {
-	expvarConverterOnce = sync.Once{}
-	expvarConverterInstance = nil
-}
-
 func TestGetExpvarConverter(t *testing.T) {
-	// Reset singleton state for this test
-	resetExpvarConverter()
-
 	converter1 := GetExpvarConverter()
 	converter2 := GetExpvarConverter()
 
@@ -56,9 +46,6 @@ func TestGetExpvarConverter(t *testing.T) {
 }
 
 func TestExpvarConverter_OnRetrieve(t *testing.T) {
-	// Reset singleton state for this test
-	resetExpvarConverter()
-
 	converter := GetExpvarConverter()
 
 	// Test retrieving configuration for different schemes
@@ -88,9 +75,6 @@ func TestExpvarConverter_OnRetrieve(t *testing.T) {
 }
 
 func TestExpvarConverter_Convert(t *testing.T) {
-	// Reset singleton state for this test
-	resetExpvarConverter()
-
 	converter := GetExpvarConverter()
 
 	// Test converting configuration
@@ -124,9 +108,6 @@ func TestExpvarConverter_Convert(t *testing.T) {
 }
 
 func TestExpvarConverter_Convert_EmptyConfig(t *testing.T) {
-	// Reset singleton state for this test
-	resetExpvarConverter()
-
 	converter := GetExpvarConverter()
 
 	conf := confmap.NewFromStringMap(map[string]any{})
@@ -137,10 +118,10 @@ func TestExpvarConverter_Convert_EmptyConfig(t *testing.T) {
 }
 
 func TestExpvarConverter_OnNew(t *testing.T) {
-	// Reset singleton state for this test
-	resetExpvarConverter()
-
 	converter := GetExpvarConverter()
+
+	converter.initial = map[string]any{}
+	converter.effective = map[string]any{}
 
 	// OnNew should be a no-op
 	converter.OnNew()
@@ -151,9 +132,6 @@ func TestExpvarConverter_OnNew(t *testing.T) {
 }
 
 func TestExpvarConverter_OnShutdown(t *testing.T) {
-	// Reset singleton state for this test
-	resetExpvarConverter()
-
 	converter := GetExpvarConverter()
 
 	// Add some data first
@@ -171,9 +149,6 @@ func TestExpvarConverter_OnShutdown(t *testing.T) {
 }
 
 func TestExpvarConverter_SingletonPersistence(t *testing.T) {
-	// Reset singleton state for this test
-	resetExpvarConverter()
-
 	// First access creates the singleton
 	converter1 := GetExpvarConverter()
 	converter1.OnRetrieve("test", map[string]any{"initial": "data"})

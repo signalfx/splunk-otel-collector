@@ -31,8 +31,6 @@ var _ configsource.Hook = (*ExpvarConverter)(nil)
 var (
 	expvarConverterInstance *ExpvarConverter
 	expvarConverterOnce     sync.Once
-
-	expvarPublishOnce sync.Once
 )
 
 type ExpvarConverter struct {
@@ -55,25 +53,20 @@ func GetExpvarConverter() *ExpvarConverter {
 			effectiveMutex: sync.RWMutex{},
 		}
 
-		// expvarPublishOnce ensures that the expvar variables are published only once per process.
-		// This is necessary to avoid multiple registrations of the same variables, which causes panic, during tests
-		// tests, while only publishing if they are going to be used via an actual call to `GetExpvarConverter`.
-		expvarPublishOnce.Do(func() {
-			expvar.Publish("splunk.config.effective", expvar.Func(func() any {
-				instance := expvarConverterInstance
-				instance.effectiveMutex.RLock()
-				defer instance.effectiveMutex.RUnlock()
-				configYAML, _ := yaml.Marshal(instance.effective)
-				return string(configYAML)
-			}))
-			expvar.Publish("splunk.config.initial", expvar.Func(func() any {
-				instance := expvarConverterInstance
-				instance.initialMutex.RLock()
-				defer instance.initialMutex.RUnlock()
-				configYAML, _ := yaml.Marshal(instance.initial)
-				return string(configYAML)
-			}))
-		})
+		expvar.Publish("splunk.config.effective", expvar.Func(func() any {
+			instance := expvarConverterInstance
+			instance.effectiveMutex.RLock()
+			defer instance.effectiveMutex.RUnlock()
+			configYAML, _ := yaml.Marshal(instance.effective)
+			return string(configYAML)
+		}))
+		expvar.Publish("splunk.config.initial", expvar.Func(func() any {
+			instance := expvarConverterInstance
+			instance.initialMutex.RLock()
+			defer instance.initialMutex.RUnlock()
+			configYAML, _ := yaml.Marshal(instance.initial)
+			return string(configYAML)
+		}))
 	})
 
 	return expvarConverterInstance

@@ -25,8 +25,7 @@ exclude = [
     "https://docs.splunk.com", # is returning 403, ignoring temporarily
     "^http(s)?://localhost",
     "^http(s)?://example.com",
-    "^https://dev.mysql.com",
-    "
+    "^https://dev.mysql.com"
 ]
 
 include-fragments = true

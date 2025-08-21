@@ -49,11 +49,32 @@ type Testcase struct {
 	OTLPEndpointForCollector            string
 	ID                                  string
 	OTLPReceiverShouldBindAllInterfaces bool
+	isHECTestCase                       bool
 }
 
 // NewTestcase is the recommended constructor that will automatically configure an OTLPReceiverSink
 // with available endpoint and ObservedLogs.
 func NewTestcase(t testing.TB) *Testcase {
+	tc := Testcase{TB: t}
+	var logCore zapcore.Core
+	logCore, tc.ObservedLogs = observer.New(zap.DebugLevel)
+	tc.Logger = zap.New(logCore)
+
+	tc.setOTLPEndpoint()
+	var err error
+	tc.OTLPReceiverSink, err = NewOTLPReceiverSink().WithEndpoint(tc.OTLPEndpoint).Build()
+	require.NoError(tc, err)
+	require.NoError(tc, tc.OTLPReceiverSink.Start())
+
+	id, err := uuid.NewRandom()
+	require.NoError(tc, err)
+	tc.ID = id.String()
+	return &tc
+}
+
+// NewHECTestcase is the recommended constructor that will automatically configure an HECReceiverSink
+// with available endpoint and ObservedLogs.
+func NewHECTestcase(t testing.TB) *Testcase {
 	tc := Testcase{TB: t}
 	var logCore zapcore.Core
 	logCore, tc.ObservedLogs = observer.New(zap.DebugLevel)
@@ -66,11 +87,7 @@ func NewTestcase(t testing.TB) *Testcase {
 	require.NoError(tc, tc.HECReceiverSink.Start())
 	tc.HECEndpoint = fmt.Sprintf("http://%s", tc.HECEndpoint)
 	tc.HECEndpointForCollector = fmt.Sprintf("http://%s", tc.HECEndpointForCollector)
-
-	tc.setOTLPEndpoint()
-	tc.OTLPReceiverSink, err = NewOTLPReceiverSink().WithEndpoint(tc.OTLPEndpoint).Build()
-	require.NoError(tc, err)
-	require.NoError(tc, tc.OTLPReceiverSink.Start())
+	tc.isHECTestCase = true
 
 	id, err := uuid.NewRandom()
 	require.NoError(tc, err)
@@ -164,6 +181,10 @@ func (t *Testcase) newCollector(initial Collector, configFilename string, builde
 		"SPLUNK_TEST_ID": t.ID,
 	}
 
+	if t.isHECTestCase {
+		envVars["SPLUNK_HEC_URL"] = t.HECEndpointForCollector
+	}
+
 	if configFilename != "" {
 		if !filepath.IsAbs(configFilename) {
 			configFilename = path.Join(".", "testdata", configFilename)
@@ -184,9 +205,6 @@ func (t *Testcase) newCollector(initial Collector, configFilename string, builde
 		if strings.HasPrefix(strings.ToUpper(split[0]), "SPLUNK_") {
 			splunkEnv[split[0]] = split[1]
 		}
-	}
-	if len(splunkEnv["SPLUNK_HEC_URL"]) == 0 {
-		splunkEnv["SPLUNK_HEC_URL"] = t.HECEndpointForCollector
 	}
 	collector = collector.WithEnv(splunkEnv)
 

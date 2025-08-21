@@ -31,7 +31,6 @@ import (
 func TestDefaultLogConfig(t *testing.T) {
 	tc := testutils.NewTestcase(t)
 	defer tc.PrintLogsOnFailure()
-	defer tc.ShutdownOTLPReceiverSink()
 	defer tc.ShutdownHECReceiverSink()
 
 	syslogTestMessage := "syslog information level log for testing"
@@ -44,7 +43,6 @@ func TestDefaultLogConfig(t *testing.T) {
 				"SPLUNK_ACCESS_TOKEN":                "not.real",
 				"SPLUNK_HEC_TOKEN":                   "not.real",
 				"SPLUNK_INGEST_URL":                  "not.real",
-				"SPLUNK_REALM":                       "not.real",
 				"SPLUNK_LISTEN_INTERFACE":            "127.0.0.1",
 				"SPLUNK_FILE_STORAGE_EXTENSION_PATH": t.TempDir(),
 			}
@@ -84,5 +82,5 @@ func TestDefaultLogConfig(t *testing.T) {
 			return false
 		}
 		return false
-	}, 20*time.Second, time.Second)
+	}, 20*time.Second, 500*time.Millisecond)
 }

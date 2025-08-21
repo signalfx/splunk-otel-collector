@@ -9,9 +9,6 @@ import (
 // for a datapoint to be matched.
 type FilterSet struct {
 	ExcludeFilters []DatapointFilter
-	// IncludeFilters are optional and serve as a top-priority list of matchers
-	// that will cause a datapoint to always be sent
-	IncludeFilters []DatapointFilter
 }
 
 var _ DatapointFilter = &FilterSet{}
@@ -21,13 +18,6 @@ var _ DatapointFilter = &FilterSet{}
 func (fs *FilterSet) Matches(dp *datapoint.Datapoint) bool {
 	for _, ex := range fs.ExcludeFilters {
 		if ex.Matches(dp) {
-			// If we match an exclusionary filter, run through each inclusion
-			// filter and see if anything includes the metrics.
-			for _, incl := range fs.IncludeFilters {
-				if incl.Matches(dp) {
-					return false
-				}
-			}
 			return true
 		}
 	}
@@ -39,13 +29,6 @@ func (fs *FilterSet) Matches(dp *datapoint.Datapoint) bool {
 func (fs *FilterSet) MatchesMetricDataPoint(metricName string, dimensions pcommon.Map) bool {
 	for _, ex := range fs.ExcludeFilters {
 		if ex.MatchesMetricDataPoint(metricName, dimensions) {
-			// If we match an exclusionary filter, run through each inclusion
-			// filter and see if anything includes the metrics.
-			for _, incl := range fs.IncludeFilters {
-				if incl.MatchesMetricDataPoint(metricName, dimensions) {
-					return false
-				}
-			}
 			return true
 		}
 	}

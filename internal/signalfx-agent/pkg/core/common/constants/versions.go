@@ -4,6 +4,3 @@ package constants
 
 // Version of the agent
 const Version = "latest"
-
-// CollectdVersion used by the agent
-const CollectdVersion = "5.8.0-sfx0"

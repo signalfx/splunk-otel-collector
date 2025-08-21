@@ -19,10 +19,8 @@ import (
 
 	"github.com/signalfx/golib/v3/datapoint"
 	"github.com/signalfx/golib/v3/event"
-	"github.com/signalfx/golib/v3/trace"
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/pmetric"
-	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.uber.org/zap"
 )
 
@@ -40,8 +38,4 @@ func (c Translator) ToMetrics(datapoints []*datapoint.Datapoint) (pmetric.Metric
 
 func (c Translator) ToLogs(event *event.Event) (plog.Logs, error) {
 	return sfxEventToPDataLogs(event, c.logger), nil
-}
-
-func (c Translator) ToTraces(spans []*trace.Span) (ptrace.Traces, error) {
-	return sfxSpansToPDataTraces(spans, c.logger)
 }

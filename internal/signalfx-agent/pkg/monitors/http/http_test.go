@@ -6,7 +6,6 @@ import (
 
 	"github.com/signalfx/golib/v3/datapoint"
 	"github.com/signalfx/golib/v3/event"
-	"github.com/signalfx/golib/v3/trace"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/pdata/pmetric"
@@ -119,11 +118,6 @@ func (fo *fakeOutput) SendEvent(_ *event.Event) {
 
 // SendMetrics implements types.FilteringOutput.
 func (fo *fakeOutput) SendMetrics(_ ...pmetric.Metric) {
-	panic("unimplemented")
-}
-
-// SendSpans implements types.FilteringOutput.
-func (fo *fakeOutput) SendSpans(_ ...*trace.Span) {
 	panic("unimplemented")
 }
 

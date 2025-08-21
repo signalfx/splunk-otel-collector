@@ -11,7 +11,6 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/signalfx/signalfx-agent/pkg/core/config"
-	"github.com/signalfx/signalfx-agent/pkg/core/meta"
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/types"
 	"github.com/signalfx/signalfx-agent/pkg/utils"
@@ -32,10 +31,9 @@ type Config struct {
 // Monitor for collecting internal metrics from the simple server that dumps
 // them.
 type Monitor struct {
-	Output    types.Output
-	AgentMeta *meta.AgentMeta
-	cancel    func()
-	logger    log.FieldLogger
+	Output types.Output
+	cancel func()
+	logger log.FieldLogger
 }
 
 func init() {
@@ -64,14 +62,8 @@ func (m *Monitor) Configure(conf *Config) error {
 		// Derive the url each time since the AgentMeta data can change but
 		// there is no notification system for it.
 		host := conf.Host
-		if host == "" {
-			host = m.AgentMeta.InternalStatusHost
-		}
 
 		port := conf.Port
-		if port == 0 {
-			port = m.AgentMeta.InternalStatusPort
-		}
 
 		url := fmt.Sprintf("http://%s:%d%s", host, port, conf.Path)
 

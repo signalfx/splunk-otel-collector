@@ -116,6 +116,7 @@ func TestDefaultComponents(t *testing.T) {
 		"windowseventlog",
 		"windowsperfcounters",
 		"zipkin",
+		"zookeeper",
 	}
 	expectedProcessors := []string{
 		"attributes",

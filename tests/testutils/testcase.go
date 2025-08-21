@@ -161,7 +161,6 @@ func (t *Testcase) newCollector(initial Collector, configFilename string, builde
 	envVars := map[string]string{
 		"GOCOVERDIR":     coverDest,
 		"OTLP_ENDPOINT":  t.OTLPEndpointForCollector,
-		"SPLUNK_HEC_URL": t.HECEndpointForCollector,
 		"SPLUNK_TEST_ID": t.ID,
 	}
 
@@ -185,6 +184,9 @@ func (t *Testcase) newCollector(initial Collector, configFilename string, builde
 		if strings.HasPrefix(strings.ToUpper(split[0]), "SPLUNK_") {
 			splunkEnv[split[0]] = split[1]
 		}
+	}
+	if len(splunkEnv["SPLUNK_HEC_URL"]) == 0 {
+		splunkEnv["SPLUNK_HEC_URL"] = t.HECEndpointForCollector
 	}
 	collector = collector.WithEnv(splunkEnv)
 

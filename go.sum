@@ -470,8 +470,8 @@ github.com/euank/go-kmsg-parser v2.0.0+incompatible h1:cHD53+PLQuuQyLZeriD1V/esu
 github.com/euank/go-kmsg-parser v2.0.0+incompatible/go.mod h1:MhmAMZ8V4CYH4ybgdRwPr2TU5ThnS43puaKEMpja1uw=
 github.com/evanphx/json-patch/v5 v5.9.11 h1:/8HVnzMq13/3x9TPvjG08wUGqBTmZBsCWzjTM0wiaDU=
 github.com/evanphx/json-patch/v5 v5.9.11/go.mod h1:3j+LviiESTElxA4p3EMKAB9HXj3/XEtnUf6OZxqIQTM=
-github.com/expr-lang/expr v1.17.5 h1:i1WrMvcdLF249nSNlpQZN1S6NXuW9WaOfF5tPi3aw3k=
-github.com/expr-lang/expr v1.17.5/go.mod h1:8/vRC7+7HBzESEqt5kKpYXxrxkr31SaO8r40VO/1IT4=
+github.com/expr-lang/expr v1.17.6 h1:1h6i8ONk9cexhDmowO/A64VPxHScu7qfSl2k8OlINec=
+github.com/expr-lang/expr v1.17.6/go.mod h1:8/vRC7+7HBzESEqt5kKpYXxrxkr31SaO8r40VO/1IT4=
 github.com/facebook/time v0.0.0-20240510113249-fa89cc575891 h1:x6T9k2Jw0IPzSdM2i4tVWmnJ3KJ1fEKwWJ++IzDvPDU=
 github.com/facebook/time v0.0.0-20240510113249-fa89cc575891/go.mod h1:2UFAomOuD2vAK1x68czUtCVjAqmyWCEnAXOlmGqf+G0=
 github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 h1:JWuenKqqX8nojtoVVWjGfOF9635RETekkoH6Cc9SX0A=
@@ -1571,8 +1571,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecrece
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver v0.132.0/go.mod h1:R/IO6We1oRJ41LglTkrYQ2F6j+D11H/neGGiRzvBDdc=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sqlqueryreceiver v0.132.0 h1:MuJ5wwyHx4T4osdhTMGUE2/zMx92lcnfRlwxFohVLdE=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sqlqueryreceiver v0.132.0/go.mod h1:sT59LG/YwcKCYpQir/Z7BCAeyuNuGVmcrXOQXxXnRYM=
-github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sqlserverreceiver v0.131.1-0.20250805181324-59cf6d80f9b1 h1:khq6E/Bx+5XKp7PCXTLxVYzMjqdzwKlcYYNdsWAlHjk=
-github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sqlserverreceiver v0.131.1-0.20250805181324-59cf6d80f9b1/go.mod h1:GAf3wZgJ3PiT8mUT43xxaktVGw2jP4dBfLXvNsQGfBM=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sqlserverreceiver v0.132.0 h1:p5aOnAmCR8Vb8FF1/Ir0P1VB9gEqBMy0cN6UCU7eIhg=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sqlserverreceiver v0.132.0/go.mod h1:aPD+fAMbqDUArdDOwjW/RCzW6T6q3D8Ka07Cl73MnjE=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sshcheckreceiver v0.132.0 h1:lpaTk0vYxnQmeR+hi2V1QPxW4c/bGmdlMVsWRHGdoJQ=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sshcheckreceiver v0.132.0/go.mod h1:iU0Q+IIxOolAqMyPol+55I+5CCcj66nh9ccJE8z8E2g=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceiver v0.132.0 h1:65k9ffoHUqUMTjrniHK32iYP+7AzbOEYF/Ry8r29zOE=

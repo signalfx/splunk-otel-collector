@@ -3,7 +3,6 @@ package types
 import (
 	"github.com/signalfx/golib/v3/datapoint"
 	"github.com/signalfx/golib/v3/event"
-	"github.com/signalfx/golib/v3/trace"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 
 	"github.com/signalfx/signalfx-agent/pkg/core/dpfilters"
@@ -18,7 +17,6 @@ type Output interface {
 	SendDatapoints(dps ...*datapoint.Datapoint)
 	SendMetrics(metrics ...pmetric.Metric)
 	SendEvent(e *event.Event)
-	SendSpans(spans ...*trace.Span)
 	SendDimensionUpdate(dim *Dimension)
 	AddExtraDimension(key string, value string)
 }

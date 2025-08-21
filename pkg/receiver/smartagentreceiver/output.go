@@ -20,7 +20,6 @@ import (
 	metadata "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata"
 	"github.com/signalfx/golib/v3/datapoint"
 	"github.com/signalfx/golib/v3/event"
-	"github.com/signalfx/golib/v3/trace"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pmetric"
@@ -281,22 +280,6 @@ func (out *output) SendEvent(event *event.Event) {
 	err = out.nextLogsConsumer.ConsumeLogs(context.Background(), logs)
 	if err != nil {
 		out.logger.Debug("SendEvent has failed", zap.Error(err))
-	}
-}
-
-func (out *output) SendSpans(spans ...*trace.Span) {
-	if out.nextTracesConsumer == nil {
-		return
-	}
-
-	traces, err := out.translator.ToTraces(spans)
-	if err != nil {
-		out.logger.Error("error converting SFx spans to ptrace.Traces", zap.Error(err))
-	}
-
-	err = out.nextTracesConsumer.ConsumeTraces(context.Background(), traces)
-	if err != nil {
-		out.logger.Debug("SendSpans has failed", zap.Error(err))
 	}
 }
 

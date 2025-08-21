@@ -70,7 +70,6 @@ func TestDefaultLogConfig(t *testing.T) {
 	require.Eventually(t, func() bool {
 		checked_logs <- true
 		if len(tc.HECReceiverSink.AllLogs()) > 0 {
-			t.Log("hec receiver logs found")
 			for _, log := range tc.HECReceiverSink.AllLogs() {
 				for i := range log.ResourceLogs().Len() {
 					for j := range log.ResourceLogs().At(i).ScopeLogs().Len() {

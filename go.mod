@@ -6,7 +6,7 @@ require (
 	github.com/alecthomas/participle/v2 v2.1.4
 	github.com/antonmedv/expr v1.15.5
 	github.com/cenkalti/backoff/v4 v4.3.0
-	github.com/expr-lang/expr v1.17.5
+	github.com/expr-lang/expr v1.17.6
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/go-zookeeper/zk v1.0.4
 	github.com/gogo/protobuf v1.3.2
@@ -112,7 +112,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkenterprisereceiver v0.132.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver v0.132.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sqlqueryreceiver v0.132.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sqlserverreceiver v0.131.1-0.20250805181324-59cf6d80f9b1
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sqlserverreceiver v0.132.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sshcheckreceiver v0.132.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceiver v0.132.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/syslogreceiver v0.132.0

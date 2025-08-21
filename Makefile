@@ -391,3 +391,12 @@ chlog-preview:
 .PHONY: chlog-update
 chlog-update:
 	$(CHLOGGEN) update -v $(VERSION)
+
+.PHONY: prepare-changelog
+prepare-changelog: chlog-update
+	@if [ -z "$(VERSION)" ]; then \
+		echo "Error: VERSION is required. Usage: make prepare-changelog VERSION=v0.132.0"; \
+		exit 1; \
+	fi
+	@echo "Preparing changelog for $(VERSION)..."
+	@./.github/workflows/scripts/prepare-changelog.sh $(VERSION)

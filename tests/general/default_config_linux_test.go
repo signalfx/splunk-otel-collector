@@ -72,6 +72,12 @@ func TestDefaultLogConfig(t *testing.T) {
 				for i := range log.ResourceLogs().Len() {
 					for j := range log.ResourceLogs().At(i).ScopeLogs().Len() {
 						for k := range log.ResourceLogs().At(i).ScopeLogs().At(j).LogRecords().Len() {
+							t.Log("Received another syslog:")
+							t.Logf("Timestamp: %s", log.ResourceLogs().At(i).ScopeLogs().At(j).LogRecords().At(k).Timestamp().String())
+							t.Logf("Body: %s", log.ResourceLogs().At(i).ScopeLogs().At(j).LogRecords().At(k).Body().Str())
+							t.Logf("Attributes: %v", log.ResourceLogs().At(i).ScopeLogs().At(j).LogRecords().At(k).Attributes().AsRaw())
+							t.Logf("Event name: %s", log.ResourceLogs().At(i).ScopeLogs().At(j).LogRecords().At(k).EventName())
+							t.Logf("Severity text: %s", log.ResourceLogs().At(i).ScopeLogs().At(j).LogRecords().At(k).SeverityText())
 							if strings.Contains(log.ResourceLogs().At(i).ScopeLogs().At(j).LogRecords().At(k).Body().Str(), syslogTestMessage) {
 								return true
 							}

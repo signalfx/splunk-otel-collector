@@ -63,14 +63,17 @@ func TestDefaultLogConfig(t *testing.T) {
 	go func() {
 		<-checked_logs
 		writer.Info(syslogTestMessage)
+		t.Log("Sent log message to syslog in other goroutine")
 	}()
 
 	logMessageSent := false
 	require.Eventually(t, func() bool {
 		if !logMessageSent {
+			t.Logf("No log message has been sent yet")
 			logMessageSent = true
 			defer func() {
 				checked_logs <- true
+				t.Logf("Sent bool to checked logs chan")
 			}()
 		}
 
@@ -92,8 +95,10 @@ func TestDefaultLogConfig(t *testing.T) {
 					}
 				}
 			}
+			t.Logf("Didn't find log, but there was more than 0")
 			return false
 		}
+		t.Logf("No logs found")
 		return false
 	}, 20*time.Second, 500*time.Millisecond)
 }

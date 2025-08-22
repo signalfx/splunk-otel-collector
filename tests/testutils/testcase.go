@@ -22,7 +22,6 @@ import (
 	"runtime"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -190,43 +189,4 @@ func (t *Testcase) PrintLogsOnFailure() {
 	for _, statement := range t.ObservedLogs.All() {
 		fmt.Printf("%v\n", statement)
 	}
-}
-
-// Validating shutdown helper for the Testcase's OTLPReceiverSink
-func (t *Testcase) ShutdownOTLPReceiverSink() {
-	require.NoError(t, t.OTLPReceiverSink.Shutdown())
-}
-
-func CheckMetricsPresence(t *testing.T, metricNames []string, configFile string) {
-	tc := NewTestcase(t)
-	defer tc.PrintLogsOnFailure()
-	defer tc.ShutdownOTLPReceiverSink()
-
-	_, shutdown := tc.SplunkOtelCollectorContainer(configFile)
-	tc.Cleanup(shutdown)
-
-	missingMetrics := make(map[string]any, len(metricNames))
-	for _, m := range metricNames {
-		missingMetrics[m] = struct{}{}
-	}
-
-	assert.EventuallyWithT(tc, func(tt *assert.CollectT) {
-		for i := 0; i < len(tc.OTLPReceiverSink.AllMetrics()); i++ {
-			m := tc.OTLPReceiverSink.AllMetrics()[i]
-			for j := 0; j < m.ResourceMetrics().Len(); j++ {
-				rm := m.ResourceMetrics().At(j)
-				for k := 0; k < rm.ScopeMetrics().Len(); k++ {
-					sm := rm.ScopeMetrics().At(k)
-					for l := 0; l < sm.Metrics().Len(); l++ {
-						delete(missingMetrics, sm.Metrics().At(l).Name())
-					}
-				}
-			}
-		}
-		msg := "Missing metrics:\n"
-		for k := range missingMetrics {
-			msg += fmt.Sprintf("- %q\n", k)
-		}
-		assert.Len(tt, missingMetrics, 0, msg)
-	}, 1*time.Minute, 1*time.Second)
 }

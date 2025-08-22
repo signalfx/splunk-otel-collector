@@ -190,3 +190,8 @@ func (t *Testcase) PrintLogsOnFailure() {
 		fmt.Printf("%v\n", statement)
 	}
 }
+
+// Validating shutdown helper for the Testcase's OTLPReceiverSink
+func (t *Testcase) ShutdownOTLPReceiverSink() {
+	require.NoError(t, t.OTLPReceiverSink.Shutdown())
+}

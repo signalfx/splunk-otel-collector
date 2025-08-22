@@ -179,6 +179,9 @@ func (t *Testcase) newCollector(initial Collector, configFilename string, builde
 		"SPLUNK_TEST_ID": t.ID,
 	}
 
+	// This check is required as container tests set the SPLUNK_HEC_URL environment variable
+	// by default, and many tests check the expected value to see if it matches the default.
+	// We don't want to match a hardcoded test default for HEC tests.
 	if t.isHECTestCase {
 		envVars["SPLUNK_HEC_URL"] = t.HECEndpointForCollector
 	}

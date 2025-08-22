@@ -59,14 +59,21 @@ func TestDefaultLogConfig(t *testing.T) {
 	// check for logs written to syslog. Without it, the logs may be written before
 	// the check occurs, meaning the test is waiting for some other process to write to
 	// syslog, resulting in flakiness.
-	checked_logs := make(chan bool, 1)
+	checked_logs := make(chan bool)
 	go func() {
 		<-checked_logs
 		writer.Info(syslogTestMessage)
 	}()
 
+	logMessageSent := false
 	require.Eventually(t, func() bool {
-		checked_logs <- true
+		if !logMessageSent {
+			logMessageSent = true
+			defer func() {
+				checked_logs <- true
+			}()
+		}
+
 		if len(tc.HECReceiverSink.AllLogs()) > 0 {
 			for _, log := range tc.HECReceiverSink.AllLogs() {
 				for i := range log.ResourceLogs().Len() {

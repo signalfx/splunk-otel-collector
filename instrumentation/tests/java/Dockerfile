@@ -10,9 +10,9 @@ COPY zeroconfig.conf /etc/splunk/zeroconfig/java.conf
 
 CMD java -jar Main.jar
 
-ENV OTEL_SERVICE_NAME iknowmyownservicename
+ENV OTEL_SERVICE_NAME=iknowmyownservicename
 
-ENV ANOTHER_VAR foo
+ENV ANOTHER_VAR=foo
 
 COPY libsplunk.so /usr/lib/splunk-instrumentation/libsplunk.so
 

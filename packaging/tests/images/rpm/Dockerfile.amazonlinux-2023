@@ -2,7 +2,7 @@
 # `-d --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro` flags
 FROM amazonlinux:2023
 
-ENV container docker
+ENV container=docker
 
 RUN yum install -y procps initscripts systemd wget tar
 

@@ -6,7 +6,7 @@ FROM amazonlinux:2023
 
 ARG TARGETARCH
 
-ENV container docker
+ENV container=docker
 
 RUN yum install -y procps initscripts python3 systemd systemd-udev wget tar
 

@@ -6,7 +6,7 @@ FROM opensuse/leap:15
 
 ARG TARGETARCH
 
-ENV container docker
+ENV container=docker
 
 # RUN sed -i 's|download.opensuse.org|provo-mirror.opensuse.org|' /etc/zypp/repos.d/*.repo
 RUN zypper -n install -l curl dbus-1 gzip python3 systemd-sysvinit tar wget

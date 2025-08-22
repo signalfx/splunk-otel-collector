@@ -2,7 +2,7 @@
 # `-d --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro` flags
 FROM oraclelinux:9
 
-ENV container docker
+ENV container=docker
 
 RUN dnf install -y curl procps initscripts systemd wget
 

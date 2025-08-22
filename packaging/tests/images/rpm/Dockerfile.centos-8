@@ -2,7 +2,7 @@
 # `-d --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro` flags
 FROM quay.io/centos/centos:stream8
 
-ENV container docker
+ENV container=docker
 
 RUN echo 'fastestmirror=1' >> /etc/yum.conf
 RUN sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*

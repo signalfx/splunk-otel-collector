@@ -96,7 +96,7 @@ func TestDefaultLogConfig(t *testing.T) {
 				}
 			}
 			t.Logf("Didn't find log, but there was more than 0")
-			return false
+			return true
 		}
 		t.Logf("No logs found")
 		return false

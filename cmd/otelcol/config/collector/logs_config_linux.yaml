@@ -9,8 +9,8 @@
 # - SPLUNK_LISTEN_INTERFACE: The network interface the agent receivers listen on.
 # - SPLUNK_MEMORY_LIMIT_MIB: 90% of memory allocated
 # - SPLUNK_FILE_STORAGE_EXTENSION_PATH: Path to directory that will be used to contain file offsets
-#   used by the filelog receivers. This allows the receivers to pick up where they left off in case of
-#   a collector restart. This directory must be writable by the collector. e.g. /var/lib/otelcol/filelogs
+#   used by the filelog receivers ( e.g. `/var/lib/otelcol/filelogs`). This allows the receivers to pick up
+#   where they left off in case of a collector restart. This directory must be writable by the collector.
 
 # The following environment variables are optional:
 

@@ -40,10 +40,10 @@ func TestDefaultLogConfig(t *testing.T) {
 		func(collector testutils.Collector) testutils.Collector {
 			env := map[string]string{
 				"SPLUNK_ACCESS_TOKEN":                "not.real",
+				"SPLUNK_FILE_STORAGE_EXTENSION_PATH": t.TempDir(),
 				"SPLUNK_HEC_TOKEN":                   "not.real",
 				"SPLUNK_INGEST_URL":                  "not.real",
 				"SPLUNK_LISTEN_INTERFACE":            "127.0.0.1",
-				"SPLUNK_FILE_STORAGE_EXTENSION_PATH": t.TempDir(),
 			}
 			return collector.WithEnv(env)
 		},

@@ -17,6 +17,8 @@ receivers:
 
 extensions:
   zpages:
+    expvar:
+      enabled: true
 
 processors:
   memory_limiter:

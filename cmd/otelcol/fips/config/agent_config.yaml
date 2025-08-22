@@ -27,6 +27,8 @@ extensions:
       #endpoint: "${SPLUNK_GATEWAY_URL}"
   zpages:
     #endpoint: "${SPLUNK_LISTEN_INTERFACE}:55679"
+    expvar:
+      enabled: true
 
 receivers:
   fluentforward:

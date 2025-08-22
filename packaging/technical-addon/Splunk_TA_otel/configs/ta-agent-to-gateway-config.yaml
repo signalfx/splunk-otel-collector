@@ -32,6 +32,8 @@ extensions:
       configDir: "${env:SPLUNK_COLLECTD_DIR}"
   zpages:
     #endpoint: "${env:SPLUNK_LISTEN_INTERFACE}:55679"
+    expvar:
+      enabled: true
 
 receivers:
   fluentforward:

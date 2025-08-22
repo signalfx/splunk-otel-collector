@@ -31,6 +31,8 @@ extensions:
       #endpoint: "${SPLUNK_GATEWAY_URL}"
   zpages:
     #endpoint: 0.0.0.0:55679
+    expvar:
+      enabled: true
 
 receivers:
   fluentforward:

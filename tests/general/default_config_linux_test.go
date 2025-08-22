@@ -73,7 +73,7 @@ func TestDefaultLogConfig(t *testing.T) {
 			}()
 		}
 
-		if len(tc.HECReceiverSink.AllLogs()) > 0 {
+		if tc.HECReceiverSink.LogRecordCount() > 0 {
 			return true
 		}
 		return false

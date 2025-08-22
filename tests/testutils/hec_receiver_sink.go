@@ -22,7 +22,6 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/consumer/consumertest"
-	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/receiver"
 	mnoop "go.opentelemetry.io/otel/metric/noop"
 	tnoop "go.opentelemetry.io/otel/trace/noop"
@@ -106,13 +105,6 @@ func (hec *HECReceiverSink) Shutdown() error {
 	}
 
 	return (*hec.logsReceiver).Shutdown(context.Background())
-}
-
-func (hec *HECReceiverSink) AllLogs() []plog.Logs {
-	if err := hec.assertBuilt("AllLogs"); err != nil {
-		return nil
-	}
-	return hec.logsSink.AllLogs()
 }
 
 func (hec *HECReceiverSink) LogRecordCount() int {

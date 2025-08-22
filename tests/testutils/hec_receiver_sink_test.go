@@ -39,7 +39,7 @@ func TestHECReceiverNotBuilt(t *testing.T) {
 	require.Error(t, hec.assertBuilt("NotBuilt"))
 	require.Error(t, hec.Start())
 	require.Error(t, hec.Shutdown())
-	require.Error(t, hec.LogRecordCount())
+	require.Zero(t, hec.LogRecordCount())
 }
 
 func TestHECBuilderMethods(t *testing.T) {

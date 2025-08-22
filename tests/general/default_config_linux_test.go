@@ -19,7 +19,6 @@ package tests
 import (
 	"log/syslog"
 	"path/filepath"
-	"strings"
 	"testing"
 	"time"
 
@@ -51,7 +50,7 @@ func TestDefaultLogConfig(t *testing.T) {
 	)
 	defer shutdown()
 
-	writer, err := syslog.New(syslog.LOG_INFO, "otelcol")
+	writer, err := syslog.New(syslog.LOG_DAEMON|syslog.LOG_INFO, "otelcol")
 	require.NoError(t, err)
 	defer writer.Close()
 
@@ -62,43 +61,21 @@ func TestDefaultLogConfig(t *testing.T) {
 	checked_logs := make(chan bool)
 	go func() {
 		<-checked_logs
-		writer.Emerg(syslogTestMessage)
-		t.Log("Sent log message to syslog in other goroutine")
+		writer.Info(syslogTestMessage)
 	}()
 
 	logMessageSent := false
 	require.Eventually(t, func() bool {
 		if !logMessageSent {
-			t.Logf("No log message has been sent yet")
 			logMessageSent = true
 			defer func() {
 				checked_logs <- true
-				t.Logf("Sent bool to checked logs chan")
 			}()
 		}
 
 		if len(tc.HECReceiverSink.AllLogs()) > 0 {
-			for _, log := range tc.HECReceiverSink.AllLogs() {
-				for i := range log.ResourceLogs().Len() {
-					for j := range log.ResourceLogs().At(i).ScopeLogs().Len() {
-						for k := range log.ResourceLogs().At(i).ScopeLogs().At(j).LogRecords().Len() {
-							t.Log("Received another syslog:")
-							t.Logf("Timestamp: %s", log.ResourceLogs().At(i).ScopeLogs().At(j).LogRecords().At(k).Timestamp().String())
-							t.Logf("Body: %s", log.ResourceLogs().At(i).ScopeLogs().At(j).LogRecords().At(k).Body().Str())
-							t.Logf("Attributes: %v", log.ResourceLogs().At(i).ScopeLogs().At(j).LogRecords().At(k).Attributes().AsRaw())
-							t.Logf("Event name: %s", log.ResourceLogs().At(i).ScopeLogs().At(j).LogRecords().At(k).EventName())
-							t.Logf("Severity text: %s", log.ResourceLogs().At(i).ScopeLogs().At(j).LogRecords().At(k).SeverityText())
-							if strings.Contains(log.ResourceLogs().At(i).ScopeLogs().At(j).LogRecords().At(k).Body().Str(), syslogTestMessage) {
-								return true
-							}
-						}
-					}
-				}
-			}
-			t.Logf("Didn't find log, but there was more than 0")
 			return true
 		}
-		t.Logf("No logs found")
 		return false
 	}, 20*time.Second, 500*time.Millisecond)
 }

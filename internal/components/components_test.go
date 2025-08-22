@@ -132,7 +132,6 @@ func TestDefaultComponents(t *testing.T) {
 		"redaction",
 		"resource",
 		"resourcedetection",
-		"routing",
 		"span",
 		"tail_sampling",
 		"timestamp",

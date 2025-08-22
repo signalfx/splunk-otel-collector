@@ -1459,8 +1459,6 @@ github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedete
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor v0.132.0/go.mod h1:z7Qg+HsTc+i0Qc66WYetTdaIrnfTJQD+MAHDncTNXw0=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceprocessor v0.132.0 h1:mFzF2tztjDn0VUBxZFQjZOPHgdT8gTa4wMqilmsxQ9s=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceprocessor v0.132.0/go.mod h1:rjWFVJn9LKfJ25uiQbj5W5TtCz/mAcmE5KPw9ix9OuE=
-github.com/open-telemetry/opentelemetry-collector-contrib/processor/routingprocessor v0.132.0 h1:mV5lI2XBqLqwQ+veQGtYCcjbyB1j6PKBoJ/bt04osRQ=
-github.com/open-telemetry/opentelemetry-collector-contrib/processor/routingprocessor v0.132.0/go.mod h1:ENW4G3JnlJNqHrgWHttKo5iVv25l3kN5/OLpuo4kxW8=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.132.0 h1:4J1x5mfqHJ09jZyptrN2vDEpgU3yiCb0TsD/rg6Rc/M=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.132.0/go.mod h1:yZ+ZjpDQ3FcnJK9X9CKsHaeaHBfLtcEEhOM3VdfqP50=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor v0.132.0 h1:/Pl3dk9Njqbj/xHuZUTrz+l/nqDqplb/+2bxQYaxCvE=

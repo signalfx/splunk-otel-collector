@@ -28,7 +28,7 @@ FROM ${DOCKER_REPO}/python:${PYTHON_VERSION%.*}-bookworm AS base
 
 ARG ARCH
 
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update
 
@@ -58,7 +58,7 @@ RUN mkdir -p /opt/root && \
     mv /opt/root/jdk* /opt/root/jdk && \
     rm -f /tmp/openjdk.tar.gz
 
-ENV JAVA_HOME /opt/root/jdk
+ENV JAVA_HOME=/opt/root/jdk
 
 RUN mkdir -p /opt/root/jre && \
     rm -f ${JAVA_HOME}/lib/src.zip && \
@@ -209,13 +209,13 @@ COPY --from=java /opt/root/jdk/ /opt/root/jdk/
 WORKDIR /usr/src/collectd
 
 ARG extra_cflags="-O2"
-ENV CFLAGS "-Wno-error -Wno-format-truncation -Wno-stringop-truncation -fPIC $extra_cflags"
-ENV CXXFLAGS $CFLAGS
-ENV JAVA_HOME /opt/root/jdk
+ENV CFLAGS="-Wno-error -Wno-format-truncation -Wno-stringop-truncation -fPIC $extra_cflags"
+ENV CXXFLAGS=$CFLAGS
+ENV JAVA_HOME=/opt/root/jdk
 
 # In the bundle, the java plugin so will live in /lib/collectd and the JVM
 # exists at /jre
-ENV JAVA_LDFLAGS "-Wl,-rpath -Wl,\$\$\ORIGIN/../../jre/lib/server"
+ENV JAVA_LDFLAGS="-Wl,-rpath -Wl,\$\$\ORIGIN/../../jre/lib/server"
 
 # xencpu plugin is not supported on ppc64le
 RUN autoreconf -vif &&\
@@ -387,7 +387,7 @@ RUN patch-rpath /opt/root
 FROM scratch AS final-image
 
 COPY --from=collectd /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
-ENV SSL_CERT_FILE /etc/ssl/certs/ca-certificates.crt
+ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
 
 COPY --from=collectd /etc/nsswitch.conf /etc/nsswitch.conf
 COPY --from=collectd /usr/local/bin/patchelf /bin/

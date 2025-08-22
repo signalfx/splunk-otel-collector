@@ -16,7 +16,7 @@ RUN wget -O /tmp/nodejs.tar.gz https://nodejs.org/dist/v18.20.8/node-v18.20.8-li
 
 ENV PATH=/opt/puppetlabs/bin:/opt/node/bin:$PATH
 
-ENV container docker
+ENV container=docker
 
 RUN rm -f /lib/systemd/system/multi-user.target.wants/* \
     /etc/systemd/system/*.wants/* \
@@ -26,7 +26,7 @@ RUN rm -f /lib/systemd/system/multi-user.target.wants/* \
     /lib/systemd/system/systemd-update-utmp*
 
 RUN systemctl set-default multi-user.target
-ENV init /lib/systemd/systemd
+ENV init=/lib/systemd/systemd
 
 RUN if [ $PUPPET_RELEASE -lt 8 ]; then \
       puppet module install puppetlabs-stdlib --version 4.24.0 && \

@@ -85,8 +85,6 @@ func NewHECTestcase(t testing.TB) *Testcase {
 	tc.HECReceiverSink, err = NewHECReceiverSink().WithEndpoint(tc.HECEndpoint).Build()
 	require.NoError(tc, err)
 	require.NoError(tc, tc.HECReceiverSink.Start())
-	tc.HECEndpoint = fmt.Sprintf("http://%s", tc.HECEndpoint)
-	tc.HECEndpointForCollector = fmt.Sprintf("http://%s", tc.HECEndpointForCollector)
 	tc.isHECTestCase = true
 
 	id, err := uuid.NewRandom()
@@ -106,7 +104,7 @@ func (t *Testcase) setHECEndpoint() {
 	hecPort := GetAvailablePort(t)
 	hecHost := "0.0.0.0"
 	t.HECEndpoint = fmt.Sprintf("%s:%d", hecHost, hecPort)
-	t.HECEndpointForCollector = t.HECEndpoint
+	t.HECEndpointForCollector = fmt.Sprintf("http://%s", t.HECEndpoint)
 }
 
 // Builds and starts all provided Container builder instances, returning them and a validating stop function.

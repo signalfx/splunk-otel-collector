@@ -2,7 +2,7 @@
 FROM geerlingguy/docker-{{ item.image }}-ansible:latest
 {% elif item.image == "centos9" %}
 FROM quay.io/centos/centos:stream9
-ENV container docker
+ENV container=docker
 RUN rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
 RUN dnf install -y initscripts sudo systemd
 RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i = \
@@ -28,7 +28,7 @@ RUN sed -i 's|download.opensuse.org|provo-mirror.opensuse.org|' /etc/zypp/repos.
 RUN zypper -n install -l ansible dbus-1 python3-rpm sudo systemd-sysvinit
 {% endif %}
 
-ENV container docker
+ENV container=docker
 
 RUN (cd /usr/lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i = \
     "systemd-tmpfiles-setup.service" ] || rm -f $i; done); \

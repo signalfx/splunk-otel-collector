@@ -51,7 +51,7 @@ func TestDefaultLogConfig(t *testing.T) {
 	)
 	defer shutdown()
 
-	writer, err := syslog.New(syslog.LOG_DAEMON|syslog.LOG_INFO, "otelcol")
+	writer, err := syslog.New(syslog.LOG_INFO, "otelcol")
 	require.NoError(t, err)
 	defer writer.Close()
 
@@ -62,7 +62,7 @@ func TestDefaultLogConfig(t *testing.T) {
 	checked_logs := make(chan bool)
 	go func() {
 		<-checked_logs
-		writer.Info(syslogTestMessage)
+		writer.Emerg(syslogTestMessage)
 		t.Log("Sent log message to syslog in other goroutine")
 	}()
 

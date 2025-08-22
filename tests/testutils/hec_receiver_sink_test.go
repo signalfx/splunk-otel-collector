@@ -34,6 +34,14 @@ func TestNewHECReceiverSink(t *testing.T) {
 	require.Nil(t, hec.logsSink)
 }
 
+func TestHECReceiverNotBuilt(t *testing.T) {
+	hec := NewHECReceiverSink()
+	require.Error(t, hec.assertBuilt("NotBuilt"))
+	require.Error(t, hec.Start())
+	require.Error(t, hec.Shutdown())
+	require.Error(t, hec.LogRecordCount())
+}
+
 func TestHECBuilderMethods(t *testing.T) {
 	hec := NewHECReceiverSink()
 

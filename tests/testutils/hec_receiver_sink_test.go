@@ -34,7 +34,7 @@ func TestNewHECReceiverSink(t *testing.T) {
 	require.Nil(t, hec.logsSink)
 }
 
-func TestBuilderMethods(t *testing.T) {
+func TestHECBuilderMethods(t *testing.T) {
 	hec := NewHECReceiverSink()
 
 	withEndpoint := hec.WithEndpoint("myendpoint")
@@ -42,7 +42,7 @@ func TestBuilderMethods(t *testing.T) {
 	require.Empty(t, hec.Endpoint)
 }
 
-func TestBuildDefaults(t *testing.T) {
+func TestHECBuildDefaults(t *testing.T) {
 	hec, err := NewHECReceiverSink().Build()
 	require.Error(t, err)
 	assert.EqualError(t, err, "must provide an Endpoint for HECReceiverSink")

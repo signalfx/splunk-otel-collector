@@ -1,6 +1,6 @@
 FROM amazonlinux:2023
 
-ENV container docker
+ENV container=docker
 
 RUN yum install -y systemd procps initscripts wget
 

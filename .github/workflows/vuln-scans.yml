@@ -81,21 +81,12 @@ jobs:
           path: ./dist
 
   binaries-windows_amd64:
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
-      - run: make binaries-windows_amd64
-      - uses: actions/upload-artifact@v4
-        with:
-          name: binaries-windows_amd64
-          path: |
-            ./bin/*
+    strategy:
+      matrix:
+        SYS_BINARIES: [ "binaries-windows_amd64" ]
+    uses: ./.github/workflows/reusable-compile.yml
+    with:
+      SYS_BINARY: ${{ matrix.SYS_BINARIES }}
 
   trivy-image-scan:
     runs-on: ${{ matrix.ARCH == 'amd64' && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
@@ -281,14 +272,7 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
-      - name: Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
-
-      - name: Install Tools
-        run: make install-tools
+      - uses: ./.github/actions/setup-environment
 
       - run: govulncheck --version
 

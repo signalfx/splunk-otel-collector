@@ -6,10 +6,10 @@ require (
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657
 	github.com/signalfx/signalfx-agent v1.0.1-0.20230104182534-9eee411fe305
 	github.com/stretchr/testify v1.10.0
-	go.opentelemetry.io/collector/component v1.38.0
-	go.opentelemetry.io/collector/component/componenttest v0.132.0
-	go.opentelemetry.io/collector/confmap v1.38.0
-	go.opentelemetry.io/collector/extension v1.38.0
+	go.opentelemetry.io/collector/component v1.39.0
+	go.opentelemetry.io/collector/component/componenttest v0.133.0
+	go.opentelemetry.io/collector/confmap v1.39.0
+	go.opentelemetry.io/collector/extension v1.39.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
@@ -41,9 +41,9 @@ require (
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/smarty/assertions v1.16.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
-	go.opentelemetry.io/collector/featuregate v1.38.0 // indirect
-	go.opentelemetry.io/collector/internal/telemetry v0.132.0 // indirect
-	go.opentelemetry.io/collector/pdata v1.38.0 // indirect
+	go.opentelemetry.io/collector/featuregate v1.39.0 // indirect
+	go.opentelemetry.io/collector/internal/telemetry v0.133.0 // indirect
+	go.opentelemetry.io/collector/pdata v1.39.0 // indirect
 	go.opentelemetry.io/contrib/bridges/otelzap v0.12.0 // indirect
 	go.opentelemetry.io/otel v1.37.0 // indirect
 	go.opentelemetry.io/otel/log v0.13.0 // indirect
@@ -58,7 +58,7 @@ require (
 	golang.org/x/sys v0.34.0 // indirect
 	golang.org/x/text v0.27.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250728155136-f173205681a0 // indirect
-	google.golang.org/grpc v1.74.2 // indirect
+	google.golang.org/grpc v1.75.0 // indirect
 	google.golang.org/protobuf v1.36.7 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

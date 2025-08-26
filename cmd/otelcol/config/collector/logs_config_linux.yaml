@@ -8,9 +8,6 @@
 # - SPLUNK_INGEST_URL: The Splunk ingest URL, e.g. https://ingest.us0.signalfx.com
 # - SPLUNK_LISTEN_INTERFACE: The network interface the agent receivers listen on.
 # - SPLUNK_MEMORY_LIMIT_MIB: 90% of memory allocated
-# - SPLUNK_FILE_STORAGE_EXTENSION_PATH: Path to directory that will be used to contain file offsets
-#   used by the filelog receivers ( e.g. `/var/lib/otelcol/filelogs`). This allows the receivers to pick up
-#   where they left off in case of a collector restart. This directory must be writable by the collector.
 
 # The following environment variables are optional:
 
@@ -709,6 +706,7 @@ extensions:
       on_start: true
       directory: /tmp/
     create_directory: true
+
 
 service:
   extensions: [health_check, file_storage/filelogs]

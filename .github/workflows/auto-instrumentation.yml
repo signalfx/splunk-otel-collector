@@ -106,12 +106,12 @@ jobs:
           echo "Unknown distro '${{ matrix.DISTRO }}'!"
           exit 1
 
-      - uses: actions/download-artifact@v4.1.3
+      - uses: actions/download-artifact@v4.3.0
         with:
           name: binaries-linux_${{ matrix.ARCH }}
           path: ./bin
 
-      - uses: actions/download-artifact@v4.1.3
+      - uses: actions/download-artifact@v4.3.0
         with:
           name: splunk-otel-auto-instrumentation-${{ matrix.ARCH }}-${{ env.SYS_PACKAGE }}
           path: ./instrumentation/dist

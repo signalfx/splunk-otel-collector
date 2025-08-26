@@ -213,10 +213,6 @@ gotest-cover-without-race:
 	@$(MAKE) for-all-target TARGET="test-cover-without-race"
 	$(GOCMD) tool covdata textfmt -i=./coverage  -o ./coverage.txt
 
-.PHONY: gendependabot
-gendependabot:
-	.github/workflows/scripts/gendependabot.sh
-
 .PHONY: tidy-all
 tidy-all:
 	$(MAKE) for-all-target TARGET="tidy"

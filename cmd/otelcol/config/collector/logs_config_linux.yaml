@@ -1,6 +1,6 @@
 # Example configuration file for logs collection.
 
-# If the collector is installed without the Linux/Windows installer script, the following
+# If the collector is installed without the Linux installer script, the following
 # environment variables are required to be manually defined or configured below:
 # - SPLUNK_ACCESS_TOKEN: The Splunk access token to authenticate requests
 # - SPLUNK_HEC_TOKEN: The Splunk HEC authentication token
@@ -8,6 +8,14 @@
 # - SPLUNK_INGEST_URL: The Splunk ingest URL, e.g. https://ingest.us0.signalfx.com
 # - SPLUNK_LISTEN_INTERFACE: The network interface the agent receivers listen on.
 # - SPLUNK_MEMORY_LIMIT_MIB: 90% of memory allocated
+
+# The following environment variables are optional:
+
+# - SPLUNK_FILE_STORAGE_EXTENSION_PATH: Path to directory that will be used to
+#   contain file offsets used by the filelog receivers. This allows the receivers
+#   to pick up where they left off in case of a collector restart. This directory
+#   must be writable by the collector.
+#   default: `/var/lib/otelcol/filelogs`
 
 receivers:
   # Receivers for tailing and parsing log files coming from various services.
@@ -683,22 +691,21 @@ exporters:
     log_data_enabled: false
 
 
-
 extensions:
   health_check:
     endpoint: "${SPLUNK_LISTEN_INTERFACE}:13133"
-
 
   # Storage extension for storing filelog checkpoints.
   # Checkpoints allow the receiver to pick up where it left off in the case of a
   # collector restart.
   file_storage/filelogs:
-    # Location where checkpoint files are stored. This directory must exist and
-    # must be writable by the collector..
-    directory: /var/lib/otelcol/filelogs
+    # Location where checkpoint files are stored. This directory must be writable
+    # by the collector.
+    directory: "${SPLUNK_FILE_STORAGE_EXTENSION_PATH}"
     compaction:
       on_start: true
       directory: /tmp/
+    create_directory: true
 
 
 service:

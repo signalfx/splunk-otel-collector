@@ -72,8 +72,7 @@ func (suite *SubprocessIntegrationSuite) TearDownSuite() {
 // prepareSubprocess will create a Subprocess based on a temporary script.
 // It returns a pointer to the pointer to psutil process info and a closure to set its
 // value from the running process once started.
-func (suite *SubprocessIntegrationSuite) prepareSubprocess(conf *Config) (*Subprocess, **process.Process, func() bool) {
-	t := suite.T()
+func (suite *SubprocessIntegrationSuite) prepareSubprocess(conf *Config) (*Subprocess, **process.Process, func(t *assert.CollectT) bool) {
 	logCore, _ := observer.New(zap.DebugLevel)
 	logger := zap.New(logCore)
 
@@ -84,7 +83,7 @@ func (suite *SubprocessIntegrationSuite) prepareSubprocess(conf *Config) (*Subpr
 	expectedExecutable := fmt.Sprintf("/bin/sh %v", suite.scriptPath)
 
 	var procInfo *process.Process
-	findProcessInfo := func() bool {
+	findProcessInfo := func(t *assert.CollectT) bool {
 		pid := int32(subprocess.Pid())
 		if pid == -1 {
 			return false
@@ -133,7 +132,9 @@ func (suite *SubprocessIntegrationSuite) TestHappyPath() {
 	subprocess.Start(ctx)
 	defer subprocess.Shutdown(ctx)
 
-	assert.Eventually(t, findProcessInfo, 5*time.Second, 10*time.Millisecond)
+	assert.EventuallyWithT(t, func(t *assert.CollectT) {
+		require.True(t, findProcessInfo(t))
+	}, 5*time.Second, 10*time.Millisecond)
 	require.NotNil(t, *procInfo)
 
 	cmdline, err := (*procInfo).Cmdline()
@@ -150,7 +151,9 @@ func (suite *SubprocessIntegrationSuite) TestWithArgs() {
 	subprocess.Start(ctx)
 	defer subprocess.Shutdown(ctx)
 
-	require.Eventually(t, findProcessInfo, 5*time.Second, 10*time.Millisecond)
+	assert.EventuallyWithT(t, func(t *assert.CollectT) {
+		require.True(t, findProcessInfo(t))
+	}, 5*time.Second, 10*time.Millisecond)
 	require.NotNil(t, *procInfo)
 
 	cmdline, err := (*procInfo).Cmdline()
@@ -173,7 +176,9 @@ func (suite *SubprocessIntegrationSuite) TestWithEnvVars() {
 	subprocess, procInfo, findProcessInfo := suite.prepareSubprocess(config)
 	subprocess.Start(ctx)
 	defer subprocess.Shutdown(ctx)
-	require.Eventually(t, findProcessInfo, 5*time.Second, 10*time.Millisecond)
+	assert.EventuallyWithT(t, func(t *assert.CollectT) {
+		require.True(t, findProcessInfo(t))
+	}, 5*time.Second, 10*time.Millisecond)
 	require.NotNil(t, *procInfo)
 
 	stdout := <-subprocess.Stdout
@@ -192,7 +197,9 @@ func (suite *SubprocessIntegrationSuite) TestWithAutoRestart() {
 	subprocess.Start(ctx)
 	defer subprocess.Shutdown(ctx)
 
-	require.Eventually(t, findProcessInfo, 5*time.Second, 10*time.Millisecond)
+	require.EventuallyWithT(t, func(t *assert.CollectT) {
+		require.True(t, findProcessInfo(t))
+	}, 5*time.Second, 10*time.Millisecond)
 	require.NotNil(t, *procInfo)
 
 	cmdline, err := (*procInfo).Cmdline()
@@ -205,7 +212,7 @@ func (suite *SubprocessIntegrationSuite) TestWithAutoRestart() {
 
 	// Should be restarted
 	require.EventuallyWithT(t, func(t *assert.CollectT) {
-		require.True(t, findProcessInfo())
+		require.True(t, findProcessInfo(t))
 		require.True(t, *procInfo != nil)
 		require.True(t, (*procInfo).Pid != oldProcPid)
 	}, restartDelay+5*time.Second, 10*time.Millisecond)
@@ -220,7 +227,9 @@ func (suite *SubprocessIntegrationSuite) TestSendingStdin() {
 	subprocess.Start(ctx)
 	defer subprocess.Shutdown(ctx)
 
-	require.Eventually(t, findProcessInfo, 5*time.Second, 10*time.Millisecond)
+	require.EventuallyWithT(t, func(t *assert.CollectT) {
+		require.True(t, findProcessInfo(t))
+	}, 5*time.Second, 10*time.Millisecond)
 	require.NotNil(t, *procInfo)
 
 	requireDesiredStdout(t, subprocess, "Stdin: mystdincontents")

@@ -688,8 +688,9 @@ func TestSetNonDefaultEnvVarsFileStorageExtension(t *testing.T) {
 	nonDefaultPath := "/var/non/default/path"
 	err := os.Setenv("SPLUNK_FILE_STORAGE_EXTENSION_PATH", nonDefaultPath)
 	require.NoError(t, err)
+	require.NoError(t, setDefaultEnvVars(nil))
 	path, ok := os.LookupEnv("SPLUNK_FILE_STORAGE_EXTENSION_PATH")
-	require.True(t, ok, "Expected SPLUNK_FILE_STORAGE_EXTENSION_PATH set by default")
+	require.True(t, ok, "Expected SPLUNK_FILE_STORAGE_EXTENSION_PATH to be set")
 	require.Equal(t, path, nonDefaultPath)
 }
 

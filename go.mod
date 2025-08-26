@@ -132,7 +132,7 @@ require (
 	github.com/signalfx/splunk-otel-collector/tests v0.83.0
 	github.com/spf13/cast v1.9.2
 	github.com/spf13/pflag v1.0.7
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.0
 	go.etcd.io/bbolt v1.4.2
 	go.etcd.io/etcd/client/v2 v2.305.22
 	go.opentelemetry.io/collector/component/componentstatus v0.132.0

@@ -673,6 +673,26 @@ func TestDiscoveryPropertiesMustExist(t *testing.T) {
 	require.Nil(t, settings)
 }
 
+func TestSetDefaultEnvVarsFileStorageExtension(t *testing.T) {
+	t.Cleanup(clearEnv(t))
+	_, ok := os.LookupEnv("SPLUNK_FILE_STORAGE_EXTENSION_PATH")
+	require.False(t, ok)
+	require.NoError(t, setDefaultEnvVars(nil))
+	path, ok := os.LookupEnv("SPLUNK_FILE_STORAGE_EXTENSION_PATH")
+	require.True(t, ok, "Expected SPLUNK_FILE_STORAGE_EXTENSION_PATH set by default")
+	require.Equal(t, path, "/var/lib/otelcol/filelogs")
+}
+
+func TestSetNonDefaultEnvVarsFileStorageExtension(t *testing.T) {
+	t.Cleanup(clearEnv(t))
+	nonDefaultPath := "/var/non/default/path"
+	err := os.Setenv("SPLUNK_FILE_STORAGE_EXTENSION_PATH", nonDefaultPath)
+	require.NoError(t, err)
+	path, ok := os.LookupEnv("SPLUNK_FILE_STORAGE_EXTENSION_PATH")
+	require.True(t, ok, "Expected SPLUNK_FILE_STORAGE_EXTENSION_PATH set by default")
+	require.Equal(t, path, nonDefaultPath)
+}
+
 // to satisfy Settings generation
 func setRequiredEnvVars(t *testing.T) func() {
 	cleanup := clearEnv(t)

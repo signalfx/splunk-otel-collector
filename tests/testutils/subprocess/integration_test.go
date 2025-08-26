@@ -204,7 +204,7 @@ func (suite *SubprocessIntegrationSuite) TestWithAutoRestart() {
 	require.NoError(t, err)
 
 	// Should be restarted
-	require.Eventually(t, func() bool {
+	require.EventuallyWithT(t, func(t *assert.CollectT) bool {
 		return findProcessInfo() && *procInfo != nil && (*procInfo).Pid != oldProcPid
 	}, restartDelay+5*time.Second, 10*time.Millisecond)
 }

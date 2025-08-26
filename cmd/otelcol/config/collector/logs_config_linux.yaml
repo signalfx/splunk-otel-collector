@@ -9,8 +9,7 @@
 # - SPLUNK_LISTEN_INTERFACE: The network interface the agent receivers listen on.
 # - SPLUNK_MEMORY_LIMIT_MIB: 90% of memory allocated
 
-# If the collector is installed without the Linux installer script, the following
-# environment variables are optional:
+# The following environment variables are optional:
 
 # - SPLUNK_FILE_STORAGE_EXTENSION_PATH: Path to directory that will be used to
 #   contain file offsets used by the filelog receivers. This allows the receivers

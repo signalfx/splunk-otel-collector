@@ -56,6 +56,9 @@ func TestDefaultLogConfig(t *testing.T) {
 	require.NoError(t, err)
 	defer writer.Close()
 	quit := make(chan struct{})
+	t.Cleanup(func() {
+		close(quit)
+	})
 
 	syslogTestMessage := "syslog information level log for testing"
 	go func() {

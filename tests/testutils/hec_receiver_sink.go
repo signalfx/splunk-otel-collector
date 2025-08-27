@@ -97,7 +97,6 @@ func (hec *HECReceiverSink) Start() error {
 	if err := hec.assertBuilt("Start"); err != nil {
 		return err
 	}
-
 	return (*hec.logsReceiver).Start(context.Background(), hec.Host)
 }
 
@@ -105,7 +104,6 @@ func (hec *HECReceiverSink) Shutdown() error {
 	if err := hec.assertBuilt("Shutdown"); err != nil {
 		return err
 	}
-
 	return (*hec.logsReceiver).Shutdown(context.Background())
 }
 

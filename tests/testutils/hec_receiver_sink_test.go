@@ -26,7 +26,6 @@ import (
 func TestNewHECReceiverSink(t *testing.T) {
 	hec := NewHECReceiverSink()
 	require.NotNil(t, hec)
-
 	require.Empty(t, hec.Endpoint)
 	require.Nil(t, hec.Host)
 	require.Nil(t, hec.Logger)
@@ -45,7 +44,6 @@ func TestHECReceiverNotBuilt(t *testing.T) {
 
 func TestHECBuilderMethods(t *testing.T) {
 	hec := NewHECReceiverSink()
-
 	withEndpoint := hec.WithEndpoint("myendpoint")
 	require.Equal(t, "myendpoint", withEndpoint.Endpoint)
 	require.Empty(t, hec.Endpoint)

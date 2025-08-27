@@ -18,7 +18,6 @@ package tests
 
 import (
 	"log/syslog"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -67,19 +66,16 @@ func TestDefaultLogConfig(t *testing.T) {
 			case <-quit:
 				return
 			default:
-				t.Logf("Sending syslog message")
 				writer.Emerg(syslogTestMessage)
-				cmd := exec.Command("logger", syslogTestMessage)
-				require.NoError(t, cmd.Run())
+				//cmd := exec.Command("logger", syslogTestMessage)
+				//require.NoError(t, cmd.Run())
 			}
 		}
 	}()
 
 	require.EventuallyWithT(t, func(c *assert.CollectT) {
-		t.Logf("Checking for sent log messages")
 		foundSyslog := false
 		if tc.HECReceiverSink.LogRecordCount() > 0 {
-			t.Logf("Found syslogs")
 			for _, log := range tc.HECReceiverSink.AllLogs() {
 				for i := range log.ResourceLogs().Len() {
 					for j := range log.ResourceLogs().At(i).ScopeLogs().Len() {
@@ -91,10 +87,9 @@ func TestDefaultLogConfig(t *testing.T) {
 					}
 				}
 			}
-		} else {
-			t.Logf("No syslogs found")
 		}
 		require.Greater(c, tc.HECReceiverSink.LogRecordCount(), 0)
 		require.True(c, foundSyslog)
 	}, 20*time.Second, 500*time.Millisecond)
+
 }

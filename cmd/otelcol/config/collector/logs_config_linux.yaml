@@ -535,6 +535,7 @@ receivers:
     include_file_name: false
     include_file_path: true
     storage: file_storage/filelogs
+    start_at: beginning
 
   # Apache Tomcat.
   # See https://tomcat.apache.org/tomcat-9.0-doc/logging.html

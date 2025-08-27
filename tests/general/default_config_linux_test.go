@@ -78,7 +78,7 @@ func TestDefaultLogConfig(t *testing.T) {
 		}
 	}()
 
-	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
+	require.EventuallyWithT(t, func(c *assert.CollectT) {
 		t.Logf("Checking for sent log messages")
 		if tc.HECReceiverSink.LogRecordCount() > 0 {
 			for _, log := range tc.HECReceiverSink.AllLogs() {
@@ -92,7 +92,7 @@ func TestDefaultLogConfig(t *testing.T) {
 							t.Logf("Event name: %s", log.ResourceLogs().At(i).ScopeLogs().At(j).LogRecords().At(k).EventName())
 							t.Logf("Severity text: %s", log.ResourceLogs().At(i).ScopeLogs().At(j).LogRecords().At(k).SeverityText())
 							if strings.Contains(log.ResourceLogs().At(i).ScopeLogs().At(j).LogRecords().At(k).Body().Str(), syslogTestMessage) {
-								require.True(ct, true)
+								require.True(c, true)
 							}
 						}
 					}
@@ -100,6 +100,6 @@ func TestDefaultLogConfig(t *testing.T) {
 			}
 			t.Logf("Didn't find log, but there was more than 0")
 		}
-		require.Greater(ct, tc.HECReceiverSink.LogRecordCount(), 0)
+		require.Greater(c, tc.HECReceiverSink.LogRecordCount(), 0)
 	}, 20*time.Second, 500*time.Millisecond)
 }

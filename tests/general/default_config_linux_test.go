@@ -60,25 +60,25 @@ func TestDefaultLogConfig(t *testing.T) {
 	// check for logs written to syslog. Without it, the logs may be written before
 	// the check occurs, meaning the test is waiting for some other process to write to
 	// syslog, resulting in flakiness.
-	checked_logs := make(chan bool)
+	ticker := time.NewTicker(100 * time.Millisecond)
+	quit := make(chan struct{})
+	t.Cleanup(func() {
+		close(quit)
+	})
 	go func() {
-		<-checked_logs
-		writer.Emerg(syslogTestMessage)
-		t.Log("Sent log message to syslog in other goroutine")
-		writer.Info(syslogTestMessage)
+		for {
+			select {
+			case <-ticker.C:
+				t.Log("Sent log message to syslog in other goroutine")
+				writer.Info(syslogTestMessage)
+			case <-quit:
+				ticker.Stop()
+				return
+			}
+		}
 	}()
 
-	logMessageSent := false
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
-		if !logMessageSent {
-			t.Logf("No log message has been sent yet")
-			logMessageSent = true
-			defer func() {
-				checked_logs <- true
-				t.Logf("Sent bool to checked logs chan")
-			}()
-		}
-
 		t.Logf("Checking for sent log messages")
 		if tc.HECReceiverSink.LogRecordCount() > 0 {
 			for _, log := range tc.HECReceiverSink.AllLogs() {

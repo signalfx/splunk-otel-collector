@@ -182,6 +182,7 @@ jobs:
       - name:  Install Splunk_TA_otel on the local Splunk UF
         run: |
           cd "${Env:ProgramFiles}\SplunkUniversalForwarder\bin"
+          .\splunk.exe start
           .\splunk.exe install app "${{github.workspace}}/build/out/distribution/Splunk_TA_otel.tgz"
 
       - name: Start Splunk UF

@@ -18,6 +18,7 @@ package tests
 
 import (
 	"log/syslog"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -67,8 +68,8 @@ func TestDefaultLogConfig(t *testing.T) {
 				return
 			default:
 				writer.Emerg(syslogTestMessage)
-				//cmd := exec.Command("logger", syslogTestMessage)
-				//require.NoError(t, cmd.Run())
+				cmd := exec.Command("logger", syslogTestMessage)
+				require.NoError(t, cmd.Run())
 			}
 		}
 	}()

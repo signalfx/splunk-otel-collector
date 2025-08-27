@@ -17,6 +17,7 @@
 package tests
 
 import (
+	"log/syslog"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -51,6 +52,9 @@ func TestDefaultLogConfig(t *testing.T) {
 	)
 	defer shutdown()
 
+	writer, err := syslog.New(syslog.LOG_DAEMON, "otelcol")
+	require.NoError(t, err)
+	defer writer.Close()
 	quit := make(chan struct{})
 	t.Cleanup(func() {
 		close(quit)
@@ -63,6 +67,7 @@ func TestDefaultLogConfig(t *testing.T) {
 			case <-quit:
 				return
 			default:
+				writer.Emerg(syslogTestMessage)
 				cmd := exec.Command("logger", syslogTestMessage)
 				require.NoError(t, cmd.Run())
 			}

@@ -17,7 +17,9 @@
 package tests
 
 import (
+	"fmt"
 	"log/syslog"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -75,6 +77,11 @@ func TestDefaultLogConfig(t *testing.T) {
 				writer.Err(syslogTestMessage)
 				writer.Info(syslogTestMessage)
 				t.Log("Sent log message to syslog in other goroutine")
+
+				cmd := exec.Command(fmt.Sprintf("logger %s", syslogTestMessage))
+				require.NoError(t, cmd.Run())
+				t.Log("Sent log message to syslog via logger command in other goroutine")
+
 			case <-quit:
 				ticker.Stop()
 				return

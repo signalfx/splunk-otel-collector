@@ -69,7 +69,7 @@ func TestDefaultLogConfig(t *testing.T) {
 	}()
 
 	logMessageSent := false
-	require.EventuallyWithT(t, func(ct *assert.CollectT) {
+	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
 		if !logMessageSent {
 			t.Logf("No log message has been sent yet")
 			logMessageSent = true
@@ -79,6 +79,7 @@ func TestDefaultLogConfig(t *testing.T) {
 			}()
 		}
 
+		t.Logf("Checking for sent log messages")
 		if tc.HECReceiverSink.LogRecordCount() > 0 {
 			for _, log := range tc.HECReceiverSink.AllLogs() {
 				for i := range log.ResourceLogs().Len() {

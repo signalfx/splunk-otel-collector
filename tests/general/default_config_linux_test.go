@@ -69,7 +69,7 @@ func TestDefaultLogConfig(t *testing.T) {
 	}()
 
 	logMessageSent := false
-	require.EventuallyWithT(t, func(t *assert.CollectT) {
+	require.EventuallyWithT(t, func(ct *assert.CollectT) {
 		if !logMessageSent {
 			t.Logf("No log message has been sent yet")
 			logMessageSent = true
@@ -91,7 +91,7 @@ func TestDefaultLogConfig(t *testing.T) {
 							t.Logf("Event name: %s", log.ResourceLogs().At(i).ScopeLogs().At(j).LogRecords().At(k).EventName())
 							t.Logf("Severity text: %s", log.ResourceLogs().At(i).ScopeLogs().At(j).LogRecords().At(k).SeverityText())
 							if strings.Contains(log.ResourceLogs().At(i).ScopeLogs().At(j).LogRecords().At(k).Body().Str(), syslogTestMessage) {
-								require.True(t, true)
+								require.True(ct, true)
 							}
 						}
 					}
@@ -99,6 +99,6 @@ func TestDefaultLogConfig(t *testing.T) {
 			}
 			t.Logf("Didn't find log, but there was more than 0")
 		}
-		require.Greater(t, tc.HECReceiverSink.LogRecordCount(), 0)
+		require.Greater(ct, tc.HECReceiverSink.LogRecordCount(), 0)
 	}, 20*time.Second, 500*time.Millisecond)
 }

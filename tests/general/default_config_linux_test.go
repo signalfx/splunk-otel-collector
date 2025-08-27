@@ -69,8 +69,12 @@ func TestDefaultLogConfig(t *testing.T) {
 		for {
 			select {
 			case <-ticker.C:
-				t.Log("Sent log message to syslog in other goroutine")
+				writer.Emerg(syslogTestMessage)
+				writer.Alert(syslogTestMessage)
+				writer.Crit(syslogTestMessage)
+				writer.Err(syslogTestMessage)
 				writer.Info(syslogTestMessage)
+				t.Log("Sent log message to syslog in other goroutine")
 			case <-quit:
 				ticker.Stop()
 				return

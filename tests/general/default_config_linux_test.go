@@ -17,6 +17,7 @@
 package tests
 
 import (
+	"log/syslog"
 	"os/exec"
 	"path/filepath"
 	"strings"

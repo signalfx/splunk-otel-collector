@@ -52,34 +52,22 @@ func TestDefaultLogConfig(t *testing.T) {
 	)
 	defer shutdown()
 
-	writer, err := syslog.New(syslog.LOG_DAEMON|syslog.LOG_INFO, "otelcol")
+	writer, err := syslog.New(syslog.LOG_DAEMON, "otelcol")
 	require.NoError(t, err)
 	defer writer.Close()
-
-	ticker := time.NewTicker(100 * time.Millisecond)
 	quit := make(chan struct{})
-	t.Cleanup(func() {
-		close(quit)
-	})
 
 	syslogTestMessage := "syslog information level log for testing"
 	go func() {
 		for {
 			select {
-			case <-ticker.C:
+			case <-quit:
+				return
+			default:
 				t.Logf("Sending syslog message")
 				writer.Emerg(syslogTestMessage)
-				writer.Alert(syslogTestMessage)
-				writer.Crit(syslogTestMessage)
-				writer.Err(syslogTestMessage)
-				writer.Info(syslogTestMessage)
-				t.Logf("Sent log message to syslog in other goroutine")
-
 				cmd := exec.Command("logger", syslogTestMessage)
 				require.NoError(t, cmd.Run())
-			case <-quit:
-				ticker.Stop()
-				return
 			}
 		}
 	}()

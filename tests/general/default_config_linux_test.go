@@ -51,6 +51,10 @@ func TestDefaultLogConfig(t *testing.T) {
 	)
 	defer shutdown()
 
+	writer, err := syslog.New(syslog.LOG_DAEMON|syslog.LOG_INFO, "otelcol")
+	require.NoError(t, err)
+	defer writer.Close()
+
 	ticker := time.NewTicker(100 * time.Millisecond)
 	quit := make(chan struct{})
 	t.Cleanup(func() {
@@ -62,6 +66,14 @@ func TestDefaultLogConfig(t *testing.T) {
 		for {
 			select {
 			case <-ticker.C:
+				t.Logf("Sending syslog message")
+				writer.Emerg(syslogTestMessage)
+				writer.Alert(syslogTestMessage)
+				writer.Crit(syslogTestMessage)
+				writer.Err(syslogTestMessage)
+				writer.Info(syslogTestMessage)
+				t.Logf("Sent log message to syslog in other goroutine")
+
 				cmd := exec.Command("logger", syslogTestMessage)
 				require.NoError(t, cmd.Run())
 			case <-quit:
@@ -72,8 +84,10 @@ func TestDefaultLogConfig(t *testing.T) {
 	}()
 
 	require.EventuallyWithT(t, func(c *assert.CollectT) {
+		t.Logf("Checking for sent log messages")
 		foundSyslog := false
 		if tc.HECReceiverSink.LogRecordCount() > 0 {
+			t.Logf("Found syslogs")
 			for _, log := range tc.HECReceiverSink.AllLogs() {
 				for i := range log.ResourceLogs().Len() {
 					for j := range log.ResourceLogs().At(i).ScopeLogs().Len() {
@@ -85,6 +99,8 @@ func TestDefaultLogConfig(t *testing.T) {
 					}
 				}
 			}
+		} else {
+			t.Logf("No syslogs found")
 		}
 		require.Greater(c, tc.HECReceiverSink.LogRecordCount(), 0)
 		require.True(c, foundSyslog)

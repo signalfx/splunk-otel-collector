@@ -17,7 +17,6 @@
 package tests
 
 import (
-	"log/syslog"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -35,7 +34,6 @@ func TestDefaultLogConfig(t *testing.T) {
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownHECReceiverSink()
 
-	syslogTestMessage := "syslog information level log for testing"
 	path, err := filepath.Abs("../../cmd/otelcol/config/collector/logs_config_linux.yaml")
 	require.NoError(t, err)
 
@@ -53,34 +51,19 @@ func TestDefaultLogConfig(t *testing.T) {
 	)
 	defer shutdown()
 
-	writer, err := syslog.New(syslog.LOG_DAEMON|syslog.LOG_INFO, "otelcol")
-	require.NoError(t, err)
-	defer writer.Close()
-
-	// The channel is required for synchronizing between the syslog writer and the
-	// check for logs written to syslog. Without it, the logs may be written before
-	// the check occurs, meaning the test is waiting for some other process to write to
-	// syslog, resulting in flakiness.
 	ticker := time.NewTicker(100 * time.Millisecond)
 	quit := make(chan struct{})
 	t.Cleanup(func() {
 		close(quit)
 	})
+
+	syslogTestMessage := "syslog information level log for testing"
 	go func() {
 		for {
 			select {
 			case <-ticker.C:
-				writer.Emerg(syslogTestMessage)
-				writer.Alert(syslogTestMessage)
-				writer.Crit(syslogTestMessage)
-				writer.Err(syslogTestMessage)
-				writer.Info(syslogTestMessage)
-				t.Log("Sent log message to syslog in other goroutine")
-
 				cmd := exec.Command("logger", syslogTestMessage)
 				require.NoError(t, cmd.Run())
-				t.Log("Sent log message to syslog via logger command in other goroutine")
-
 			case <-quit:
 				ticker.Stop()
 				return
@@ -89,28 +72,21 @@ func TestDefaultLogConfig(t *testing.T) {
 	}()
 
 	require.EventuallyWithT(t, func(c *assert.CollectT) {
-		t.Logf("Checking for sent log messages")
+		foundSyslog := false
 		if tc.HECReceiverSink.LogRecordCount() > 0 {
 			for _, log := range tc.HECReceiverSink.AllLogs() {
 				for i := range log.ResourceLogs().Len() {
 					for j := range log.ResourceLogs().At(i).ScopeLogs().Len() {
 						for k := range log.ResourceLogs().At(i).ScopeLogs().At(j).LogRecords().Len() {
-							t.Log("Received another syslog:")
-							t.Logf("Timestamp: %s", log.ResourceLogs().At(i).ScopeLogs().At(j).LogRecords().At(k).Timestamp().String())
-							t.Logf("Body: %s", log.ResourceLogs().At(i).ScopeLogs().At(j).LogRecords().At(k).Body().Str())
-							t.Logf("Attributes: %v", log.ResourceLogs().At(i).ScopeLogs().At(j).LogRecords().At(k).Attributes().AsRaw())
-							t.Logf("Event name: %s", log.ResourceLogs().At(i).ScopeLogs().At(j).LogRecords().At(k).EventName())
-							t.Logf("Severity text: %s", log.ResourceLogs().At(i).ScopeLogs().At(j).LogRecords().At(k).SeverityText())
 							if strings.Contains(log.ResourceLogs().At(i).ScopeLogs().At(j).LogRecords().At(k).Body().Str(), syslogTestMessage) {
-								t.Logf("Found the syslog sent")
-								require.True(c, true)
+								foundSyslog = true
 							}
 						}
 					}
 				}
 			}
-			t.Logf("Didn't find log, but there was more than 0")
 		}
 		require.Greater(c, tc.HECReceiverSink.LogRecordCount(), 0)
+		require.True(c, foundSyslog)
 	}, 20*time.Second, 500*time.Millisecond)
 }

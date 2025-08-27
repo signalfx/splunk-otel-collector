@@ -18,8 +18,6 @@ import (
 	"context"
 	"fmt"
 
-	"go.opentelemetry.io/collector/pdata/plog"
-
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
@@ -114,11 +112,4 @@ func (hec *HECReceiverSink) LogRecordCount() int {
 		return 0
 	}
 	return hec.logsSink.LogRecordCount()
-}
-
-func (hec *HECReceiverSink) AllLogs() []plog.Logs {
-	if err := hec.assertBuilt("AllLogs"); err != nil {
-		return nil
-	}
-	return hec.logsSink.AllLogs()
 }

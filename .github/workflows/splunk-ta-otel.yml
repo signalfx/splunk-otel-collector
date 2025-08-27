@@ -181,15 +181,13 @@ jobs:
 
       - name:  Install Splunk_TA_otel on the local Splunk UF
         run: |
-          cd "${Env:ProgramFiles}\SplunkUniversalForwarder\bin"
-          .\splunk.exe start
-          .\splunk.exe install app "${{github.workspace}}/build/out/distribution/Splunk_TA_otel.tgz"
+          tar -xzf "${{github.workspace}}/build/out/distribution/Splunk_TA_otel.tgz" -C "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps"
+          dir "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps"
 
-      - name: Start Splunk UF
+      - name: Restart Splunk UF
         run: |
           cd "${Env:ProgramFiles}\SplunkUniversalForwarder\bin"
-          .\splunk.exe status
-          .\splunk.exe start
+          .\splunk.exe restart
 
       - name: Check Status
         if: always()

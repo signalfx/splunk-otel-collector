@@ -92,6 +92,7 @@ func TestDefaultLogConfig(t *testing.T) {
 							t.Logf("Event name: %s", log.ResourceLogs().At(i).ScopeLogs().At(j).LogRecords().At(k).EventName())
 							t.Logf("Severity text: %s", log.ResourceLogs().At(i).ScopeLogs().At(j).LogRecords().At(k).SeverityText())
 							if strings.Contains(log.ResourceLogs().At(i).ScopeLogs().At(j).LogRecords().At(k).Body().Str(), syslogTestMessage) {
+								t.Logf("Found the syslog sent")
 								require.True(c, true)
 							}
 						}

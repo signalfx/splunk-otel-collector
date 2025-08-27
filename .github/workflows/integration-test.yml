@@ -234,6 +234,9 @@ jobs:
     env:
       TEST_OUTPUT: ${{ github.job }}-${{ matrix.PROFILE }}-${{ matrix.RUNNER }}.out
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Build ${{ matrix.PROFILE }} service images
         run: |
           images=$(yq '.services[] | select(.profiles[] | . == "${{ matrix.PROFILE }}") | .image' docker/docker-compose.yml | grep "quay.io/splunko11ytest/" | sort -u)

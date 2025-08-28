@@ -187,10 +187,10 @@ jobs:
           mkdir local
           Set-Content -Path local/access_token -Value "FaKeAcCeSsToKeN"
 
-      - name: Restart Splunk UF
-        run: |
-          cd "${Env:ProgramFiles}\SplunkUniversalForwarder\bin"
-          .\splunk.exe restart
+      # - name: Restart Splunk UF
+      #   run: |
+      #     cd "${Env:ProgramFiles}\SplunkUniversalForwarder\bin"
+      #     .\splunk.exe restart
 
       - name: Wait for Collector launch attempt
         run: |

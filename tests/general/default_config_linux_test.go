@@ -93,7 +93,7 @@ func TestDefaultLogConfig(t *testing.T) {
 				}
 			}
 		}
-		require.Greater(c, tc.HECReceiverSink.LogRecordCount(), 0)
+		require.Positive(c, tc.HECReceiverSink.LogRecordCount())
 		require.True(c, foundSyslog)
 	}, 20*time.Second, 500*time.Millisecond)
 

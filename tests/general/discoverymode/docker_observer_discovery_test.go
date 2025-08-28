@@ -46,7 +46,7 @@ func TestDockerObserver(t *testing.T) {
 	require.NoError(t, err)
 
 	_, shutdownPrometheus := tc.Containers(
-		testutils.NewContainer().WithImage("bitnami/prometheus").WithLabel("test.id", tc.ID).WillWaitForLogs("Server is ready to receive web requests."),
+		testutils.NewContainer().WithImage("bitnamilegacy/prometheus").WithLabel("test.id", tc.ID).WillWaitForLogs("Server is ready to receive web requests."),
 	)
 	defer shutdownPrometheus()
 

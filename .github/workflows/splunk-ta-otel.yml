@@ -192,11 +192,36 @@ jobs:
           cd "${Env:ProgramFiles}\SplunkUniversalForwarder\bin"
           .\splunk.exe restart
 
+      - name: Wait for Collector launch attempt
+        run: |
+          cd "${Env:ProgramFiles}\SplunkUniversalForwarder\var\log\splunk"
+          $logFile = "Splunk_TA_otel.log"
+          $found = $false
+          $timeout = 60
+          $elapsed = 0
+
+          while (-not $found -and $elapsed -lt $timeout) {
+              if (Test-Path $logFile) {
+                  $found = Select-String -Path $logFile -Pattern "Monitoring collector process with" -Quiet
+              }
+              if (-not $found) {
+                  Start-Sleep -Seconds 1
+                  $elapsed++
+              }
+          }
+
+          if ($found) {
+              Write-Host "Collector was launched"
+          } else {
+              Write-Host "Timeout reached. Collector was not launched"
+              exit 1
+          }
+
       - name: Check Status
         if: always()
         run: |
           cd "${Env:ProgramFiles}\SplunkUniversalForwarder\var\log\splunk"
-          Start-Sleep 15
+          Start-Sleep 30
           dir
           Write-Host "`n======= otel.log contents ======="
           Get-Content otel.log -ErrorAction SilentlyContinue

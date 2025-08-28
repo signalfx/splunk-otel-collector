@@ -67,6 +67,10 @@ func TestDefaultLogConfig(t *testing.T) {
 			case <-quit:
 				return
 			default:
+				// From testing, both ways of sending syslog messages is required to
+				// trigger writing to syslog. If only one is included, for some reason
+				// /var/log/syslog doesn't get written to until some external syslog
+				// message is sent, in which case the message sent here would appear.
 				writer.Emerg(syslogTestMessage)
 				cmd := exec.Command("logger", syslogTestMessage)
 				require.NoError(t, cmd.Run())

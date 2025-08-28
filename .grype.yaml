@@ -19,11 +19,31 @@ ignore:
       location: "**/MimeKitLite.dll"
   # Excluding 7-Zip and SQLite dlls from the scan since these are not actionable directly by us
   # initial tracking Q at https://github.com/microsoft/Windows-Containers/issues/610
-  - vulnerability: CVE-2023-53817
+  - vulnerability: CVE-2023-40481
     package:
       name: 7-Zip
       type: binary
-      location: "/Files/Windows/WinSxS/amd64_windows-senseclient-service_*/7z.dll"
+      location: "/Files/Windows/WinSxS/**/7z.dll"
+  - vulnerability: CVE-2023-52169
+    package:
+      name: 7-Zip
+      type: binary
+      location: "/Files/Windows/WinSxS/**/7z.dll"
+  - vulnerability: CVE-2024-11477
+    package:
+      name: 7-Zip
+      type: binary
+      location: "/Files/Windows/WinSxS/**/7z.dll"
+  - vulnerability: CVE-2025-53816
+    package:
+      name: 7-Zip
+      type: binary
+      location: "/Files/Windows/WinSxS/**/7z.dll"
+  - vulnerability: CVE-2025-53817
+    package:
+      name: 7-Zip
+      type: binary
+      location: "/Files/Windows/WinSxS/**/7z.dll"
   - vulnerability: CVE-2025-6965
     package:
       name: SQLite

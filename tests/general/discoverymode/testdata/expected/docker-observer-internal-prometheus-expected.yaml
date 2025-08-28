@@ -3,7 +3,7 @@ resourceMetrics:
       attributes:
         - key: container.image.name
           value:
-            stringValue: bitnami/prometheus
+            stringValue: bitnamilegacy/prometheus
         - key: container.name
           value:
             stringValue: nervous_brahmagupta

@@ -50,6 +50,34 @@ resourceMetrics:
                       value:
                         stringValue: internal
               isMonotonic: true
+          - name: otelcol_receiver_failed_metric_points
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 11
+                  attributes:
+                    - key: foo
+                      value:
+                        stringValue: bar
+                    - key: receiver
+                      value:
+                        stringValue: smartagent/prometheus-exporter
+                    - key: service_instance_id
+                      value:
+                        stringValue: d2e3467b-9645-4682-829e-6b45efec8375
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.129.0-39-g57743d1f
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                    - key: transport
+                      value:
+                        stringValue: internal
+              isMonotonic: true
           - name: otelcol_receiver_refused_metric_points
             sum:
               aggregationTemporality: 2

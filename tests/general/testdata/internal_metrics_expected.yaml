@@ -229,6 +229,26 @@ resourceMetrics:
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
               isMonotonic: true
+          - description: The number of metric points that failed to be processed by the receiver due to internal errors. [alpha]
+            metadata:
+              - key: prometheus.type
+                value:
+                  stringValue: counter
+            name: otelcol_receiver_failed_metric_points
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 234
+                  attributes:
+                    - key: receiver
+                      value:
+                        stringValue: prometheus
+                    - key: transport
+                      value:
+                        stringValue: http
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+              isMonotonic: true
           - description: The number of samples remaining after metric relabeling was applied
             gauge:
               dataPoints:

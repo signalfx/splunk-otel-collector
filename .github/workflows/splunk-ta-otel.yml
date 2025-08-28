@@ -197,12 +197,13 @@ jobs:
         run: |
           cd "${Env:ProgramFiles}\SplunkUniversalForwarder\var\log\splunk"
           Start-Sleep 15
+          dir
           Write-Host "`n======= otel.log contents ======="
-          Get-Content otel.log
+          Get-Content otel.log -ErrorAction SilentlyContinue
           Write-Host "`n======= Splunk_TA_otel.log contents ======="
-          Get-Content Splunk_TA_otel.log
+          Get-Content Splunk_TA_otel.log -ErrorAction SilentlyContinue
           Write-Host "`n======= splunkd.log contents ======="
-          Get-Content splunkd.log
+          Get-Content splunkd.log -ErrorAction SilentlyContinue
 
   test-discovery:
     name: test-discovery

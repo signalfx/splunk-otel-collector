@@ -72,7 +72,7 @@ func NewTestcase(t testing.TB) *Testcase {
 	return &tc
 }
 
-// NewHECTestcase is the recommended constructor that will automatically configure an HECReceiverSink
+// NewHECTestcase is the recommended constructor that will automatically configure a HECReceiverSink
 // with available endpoint and ObservedLogs.
 func NewHECTestcase(t testing.TB) *Testcase {
 	tc := Testcase{TB: t}

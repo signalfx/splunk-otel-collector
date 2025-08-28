@@ -4,11 +4,6 @@ exclude:
   - './instrumentation/packaging/**'
   - './packaging/**'
   - './tests/**'
-  # Excluding 7-Zip and SQLite dlls from the scan since these are not actionable directly by us
-  # initial tracking Q at https://github.com/microsoft/Windows-Containers/issues/610
-  - './Files/Windows/WinSxS/amd64_windows-senseclient-service_31bf3856ad364e35_10.0.26100.4768_none_43cb7db83f4f3973/7z.dll'
-  - './Files/Windows/SysWOW64/winsqlite3.dll'
-  - './Files/Windows/System32/winsqlite3.dll'
 ignore:
   # false positive since the detected version is 2023.7.22 but expects 2023.07.22
   - vulnerability: GHSA-xqr8-7jwr-rhp7
@@ -22,3 +17,10 @@ ignore:
       name: MimeKit
       type: dotnet
       location: "**/MimeKitLite.dll"
+  # Excluding 7-Zip and SQLite dlls from the scan since these are not actionable directly by us
+  # initial tracking Q at https://github.com/microsoft/Windows-Containers/issues/610
+  - vulnerability: CVE-2025-6965
+    package:
+      name: SQLite
+      type: binary
+      location: "/Files/Windows/**/winsqlite3.dll"

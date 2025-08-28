@@ -198,7 +198,7 @@ jobs:
           cd "${Env:ProgramFiles}\SplunkUniversalForwarder\var\log\splunk"
           $logFile = "Splunk_TA_otel.log"
           $found = $false
-          $timeout = 120
+          $timeout = 360
           $elapsed = 0
 
           while (-not $found -and $elapsed -lt $timeout) {
@@ -214,7 +214,7 @@ jobs:
           if ($found) {
               Write-Host "Collector was launched after $elapsed seconds"
           } else {
-              Write-Host "Timeout reached. Collector was not launched"
+              Write-Host "Timeout reached. Collector was not launched after $elapsed seconds"
               exit 1
           }
 

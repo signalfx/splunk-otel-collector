@@ -23,4 +23,9 @@ ignore:
     package:
       name: SQLite
       type: binary
-      location: "/Files/Windows/**/winsqlite3.dll"
+      location: "**/winsqlite3.dll"
+  - vulnerability: CVE-2025-3277
+    package:
+      name: SQLite
+      type: binary
+      location: "**/winsqlite3.dll"

@@ -308,7 +308,6 @@ require (
 	github.com/influxdata/wlog v0.0.0-20160411224016-7c63b0a71ef8 // indirect
 	github.com/ionos-cloud/sdk-go/v6 v6.3.4 // indirect
 	github.com/itchyny/timefmt-go v0.1.6 // indirect
-	github.com/jaegertracing/jaeger v1.66.0 // indirect
 	github.com/jaegertracing/jaeger-idl v0.6.0 // indirect
 	github.com/jcmturner/goidentity/v6 v6.0.1 // indirect
 	github.com/jonboulle/clockwork v0.5.0 // indirect
@@ -393,7 +392,7 @@ require (
 	github.com/shirou/gopsutil/v4 v4.25.7 // indirect
 	github.com/shoenig/go-m1cpu v0.1.6 // indirect
 	github.com/shurcooL/httpfs v0.0.0-20230704072500-f1e31cf0ba5c // indirect
-	github.com/signalfx/golib/v3 v3.3.54 // indirect
+	github.com/signalfx/golib/v3 v3.4.1 // indirect
 	github.com/signalfx/signalfx-agent v1.0.1-0.20230222185249-54e5d1064c5b // indirect
 	github.com/softlayer/softlayer-go v1.1.3 // indirect
 	github.com/soniah/gosnmp v0.0.0-20190220004421-68e8beac0db9 // indirect
@@ -700,7 +699,7 @@ require (
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657 // indirect
 	github.com/signalfx/gohistogram v0.0.0-20160107210732-1ccfd2ff5083 // indirect
-	github.com/signalfx/ingest-protocols v0.2.1 // indirect
+	github.com/signalfx/ingest-protocols v0.4.1 // indirect
 	github.com/signalfx/sapm-proto v0.18.0 // indirect
 	github.com/sijms/go-ora/v2 v2.9.0 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect

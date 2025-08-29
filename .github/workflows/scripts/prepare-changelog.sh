@@ -50,7 +50,7 @@ convert_pr_issue_links() {
     local result="$content"
     
     # Find all (#number) patterns
-    local numbers=$(echo "$content" | grep -oE '\(#[0-9]+((, #[0-9]+)?)*\)' | grep -oE '[0-9]+' | sort -u)
+    local numbers=$(echo "$content" | grep -oE '\(#[0-9]+((, ?#[0-9]+)?)*\)' | grep -oE '[0-9]+' | sort -u)
 
     local total=$(echo "$numbers" | wc -w)
 
@@ -58,7 +58,9 @@ convert_pr_issue_links() {
         local type=$(check_pr_or_issue "$repo_url" "$number")
 
         # Replace #number with proper markdown link
-        result=$(echo "$result" | sed "s|#$number|[#$number]($repo_url/$type/$number)|g")
+        # \([^0-9]\) - This is a capture group to ensure sed ONLY matches the given number. This avoids matching
+        # numbers that are part of larger numbers (e.g., #123 should not match #1234).
+        result=$(echo "$result" | sed "s|#$number\([^0-9]\)|[#$number]($repo_url/$type/$number)\1|g")
     done
 
     echo "$result"

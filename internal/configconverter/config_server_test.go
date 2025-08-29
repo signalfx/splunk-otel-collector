@@ -35,6 +35,7 @@ import (
 
 func TestConfigServer_RequireEnvVar(t *testing.T) {
 	waitForRequiredPort(t, defaultConfigServerPort)
+	t.Setenv(configServerEnabledEnvVar, "false")
 
 	initial := map[string]any{
 		"minimal": "config",
@@ -57,10 +58,7 @@ func TestConfigServer_RequireEnvVar(t *testing.T) {
 
 func TestConfigServer_EnvVar(t *testing.T) {
 	alternativePort := strconv.FormatUint(uint64(testutils.GetAvailablePort(t)), 10)
-	require.NoError(t, os.Setenv(configServerEnabledEnvVar, "true"))
-	t.Cleanup(func() {
-		assert.NoError(t, os.Unsetenv(configServerEnabledEnvVar))
-	})
+	t.Setenv(configServerEnabledEnvVar, "true")
 
 	tests := []struct {
 		name          string
@@ -97,10 +95,7 @@ func TestConfigServer_EnvVar(t *testing.T) {
 			}
 
 			if tt.portEnvVar != "" || tt.setPortEnvVar {
-				require.NoError(t, os.Setenv(configServerPortEnvVar, tt.portEnvVar))
-				defer func() {
-					assert.NoError(t, os.Unsetenv(configServerPortEnvVar))
-				}()
+				t.Setenv(configServerPortEnvVar, tt.portEnvVar)
 			}
 
 			cs := NewConfigServer()
@@ -136,11 +131,7 @@ func TestConfigServer_EnvVar(t *testing.T) {
 
 func TestConfigServer_Serve(t *testing.T) {
 	waitForRequiredPort(t, defaultConfigServerPort)
-
-	require.NoError(t, os.Setenv(configServerEnabledEnvVar, "true"))
-	t.Cleanup(func() {
-		assert.NoError(t, os.Unsetenv(configServerEnabledEnvVar))
-	})
+	t.Setenv(configServerEnabledEnvVar, "true"))
 
 	initial := map[string]any{
 		"field":   "not_redacted",

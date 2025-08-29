@@ -29,7 +29,7 @@ jobs:
     strategy:
       matrix:
         SYS_BINARIES: [ "binaries-linux_amd64", "binaries-linux_arm64", "binaries-linux_ppc64le" ]
-    uses: ./.github/workflows/compile.yml
+    uses: ./.github/workflows/reusable-compile.yml
     with:
       SYS_BINARY: ${{ matrix.SYS_BINARIES }}
 
@@ -38,7 +38,7 @@ jobs:
       matrix:
         ARCH: [ "amd64", "arm64" ]
       fail-fast: false
-    uses: ./.github/workflows/agent-bundle-linux.yml
+    uses: ./.github/workflows/reusable-agent-bundle-linux.yml
     with:
       ARCH: ${{ matrix.ARCH }}
 
@@ -49,7 +49,7 @@ jobs:
         SYS_PACKAGE: [ "deb", "rpm", "tar" ]
         ARCH: [ "amd64", "arm64" ]
       fail-fast: false
-    uses: ./.github/workflows/build-package.yml
+    uses: ./.github/workflows/reusable-build-package.yml
     with:
       SYS_PACKAGE: ${{ matrix.SYS_PACKAGE }}
       ARCH: ${{ matrix.ARCH }}

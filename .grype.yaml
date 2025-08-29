@@ -91,3 +91,9 @@ ignore:
       name: SQLite
       type: binary
       location: "**/Files/Windows/**/winsqlite3.dll"
+  - vulnerability: CVE-2025-29087
+    reason: Coming from Windows base image, tracking via https://github.com/microsoft/Windows-Containers/issues/610
+    package:
+      name: SQLite
+      type: binary
+      location: "**/Files/Windows/**/winsqlite3.dll"

@@ -45,7 +45,7 @@ func TestConfigServer_RequireEnvVar(t *testing.T) {
 	cs.OnNew()
 	t.Cleanup(func() {
 		cs.OnShutdown()
-		assert.True(t, isPortAvailable(defaultConfigServerPort))
+		waitForRequiredPort(t, defaultConfigServerPort)
 	})
 	require.NoError(t, cs.Convert(context.Background(), confmap.NewFromStringMap(initial)))
 
@@ -108,7 +108,7 @@ func TestConfigServer_EnvVar(t *testing.T) {
 			cs.OnNew()
 			defer func() {
 				cs.OnShutdown()
-				assert.True(t, isPortAvailable(actualConfigServerPort))
+				waitForRequiredPort(t, actualConfigServerPort)
 			}()
 
 			require.NoError(t, cs.Convert(context.Background(), confmap.NewFromStringMap(initial)))
@@ -168,7 +168,7 @@ func TestConfigServer_Serve(t *testing.T) {
 	cs.OnNew()
 	t.Cleanup(func() {
 		cs.OnShutdown()
-		assert.True(t, isPortAvailable(defaultConfigServerPort))
+		waitForRequiredPort(t, defaultConfigServerPort)
 	})
 
 	cs.OnRetrieve("scheme", initial)
@@ -244,8 +244,8 @@ func TestSimpleRedact(t *testing.T) {
 func waitForRequiredPort(t *testing.T, port string) {
 	// Wait for a relatively long time for the port to be available, given that other package tests might be using it.
 	const waitTime = 60 * time.Second
-	require.Eventually(t, func() bool {
-		return isPortAvailable(port)
+	require.EventuallyWithT(t, func(c *assert.CollectT) {
+		require.True(c, isPortAvailable(port))
 	}, waitTime, 500*time.Millisecond)
 }
 

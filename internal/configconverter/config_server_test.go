@@ -246,7 +246,7 @@ func waitForRequiredPort(t *testing.T, port string) {
 	const waitTime = 60 * time.Second
 	require.EventuallyWithT(t, func(c *assert.CollectT) {
 		require.True(c, isPortAvailable(port))
-	}, waitTime, 500*time.Millisecond)
+	}, waitTime, 100*time.Millisecond)
 }
 
 func isPortAvailable(port string) bool {

@@ -1487,6 +1487,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/cloudfoundryr
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/cloudfoundryreceiver v0.133.0/go.mod h1:4wJoZiyzcMFgwsxNJp6wtm+e0O95//l60g6/fXfJ24w=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdreceiver v0.133.0 h1:1NQm2o6JnlF77z5NRP6eE622ZBs7y//arijGX26zduE=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdreceiver v0.133.0/go.mod h1:7Ez2V44zjnjMz1gwIQQ8PZmBzqRGZ5YSonsVmQfa2xE=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/dockerstatsreceiver v0.133.0 h1:h56RTkLXewkNZWFkGLC1NlUhQblJpdWuyLCBNC30hAM=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/dockerstatsreceiver v0.133.0/go.mod h1:Poi+PixR+6+RFQjGnmTVzNLB5Fx8udqu6IALyWX79R0=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/elasticsearchreceiver v0.133.0 h1:eQ0w4db5SuJKmPPj6cTX352PThGPH84wosEugGJZuiI=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/elasticsearchreceiver v0.133.0/go.mod h1:Rs5UCMC0xuSUFbBwpYEqinw0cFQtr79Pq0Vd+4lUxHQ=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filelogreceiver v0.133.0 h1:oELZeps+RYIr8zsdMPZPBC5UxB8P+bDpxu2c+nu+sKA=

@@ -3,18 +3,21 @@ module github.com/signalfx/splunk-otel-collector/examples/splunk-hec-traces/trac
 go 1.24.0
 
 require (
-	go.opentelemetry.io/otel v1.1.0
+	go.opentelemetry.io/otel v1.38.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.1.0
 	go.opentelemetry.io/otel/sdk v1.1.0
-	go.opentelemetry.io/otel/trace v1.1.0
+	go.opentelemetry.io/otel/trace v1.38.0
 )
 
 require (
 	github.com/cenkalti/backoff/v4 v4.1.1 // indirect
+	github.com/go-logr/logr v1.4.3 // indirect
+	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
-	github.com/stretchr/testify v1.10.0 // indirect
+	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.1.0 // indirect
+	go.opentelemetry.io/otel/metric v1.38.0 // indirect
 	go.opentelemetry.io/proto/otlp v0.9.0 // indirect
 	golang.org/x/net v0.38.0 // indirect
 	golang.org/x/sys v0.31.0 // indirect

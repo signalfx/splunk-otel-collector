@@ -162,7 +162,7 @@ jobs:
           path: ${{github.workspace}}/build/out/distribution/Splunk_TA_otel.tgz
 
   smoke-test-windows:
-    runs-on: windows-latest
+    runs-on: windows-2025
     needs: [distribute-ta]
     steps:
       - name: Download the Splunk UF MSI
@@ -222,7 +222,6 @@ jobs:
         if: always()
         run: |
           cd "${Env:ProgramFiles}\SplunkUniversalForwarder\var\log\splunk"
-          Start-Sleep 30
           dir
           Write-Host "`n======= otel.log contents ======="
           Get-Content otel.log -ErrorAction SilentlyContinue

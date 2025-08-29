@@ -13,6 +13,16 @@ on:
       - 'pkg/**'
       - 'tests/**'
       - '!**.md'
+  workflow_dispatch:
+    inputs:
+      splunk_uf_version:
+        description: 'Splunk UF version'
+        required: false
+        default: '9.4.0'
+      splunk_uf_build_hash:
+        description: 'Splunk UF build hash'
+        required: false
+        default: '6b4ebe426ca6'
 
 concurrency:
   group: splunk-technical-addon-${{ github.event.pull_request.number || github.ref }}
@@ -22,6 +32,10 @@ env:
   GO_VERSION: 1.24.6
   ADDONS_SOURCE_DIR: "${{github.workspace}}/packaging/technical-addon"
   BUILD_DIR: "${{github.workspace}}/build"
+  # Provide default values for non-manually triggered executions
+  splunk_uf_version: ${{ github.event.inputs.splunk_uf_version || '9.4.0' }}
+  splunk_uf_build_hash: ${{ github.event.inputs.splunk_uf_build_hash || '6b4ebe426ca6' }}
+
 jobs:
   check_changes:
     runs-on: ubuntu-24.04
@@ -126,7 +140,7 @@ jobs:
   distribute-ta:
     name: "distribute-ta" # what gets run to package in gitlab
     runs-on: ubuntu-24.04
-    needs: [check_changes, test-discovery]
+    needs: [check_changes]
     if: needs.check_changes.outputs.ta_packaging_change == 'true' || needs.check_changes.outputs.ta_workflow_change == 'true'
     defaults:
       run:
@@ -146,6 +160,75 @@ jobs:
         with:
           name: Splunk_TA_otel
           path: ${{github.workspace}}/build/out/distribution/Splunk_TA_otel.tgz
+
+  smoke-test-windows:
+    runs-on: windows-2025
+    needs: [distribute-ta]
+    steps:
+      - name: Download the Splunk UF MSI
+        shell: bash
+        run: |
+          curl https://download.splunk.com/products/universalforwarder/releases/${{ env.splunk_uf_version }}/windows/splunkforwarder-${{ env.splunk_uf_version }}-${{ env.splunk_uf_build_hash }}-windows-x64.msi -o splunkforwarder.msi
+
+      - name: Install Splunk UF
+        run: msiexec.exe /i "$PWD\splunkforwarder.msi" /qn /l*v install-log.txt AGREETOLICENSE=Yes
+
+      - name: Download Collector TA
+        uses: actions/download-artifact@v4
+        with:
+          name: Splunk_TA_otel
+          path: ${{github.workspace}}/build/out/distribution
+
+      - name:  Install Splunk_TA_otel on the local Splunk UF
+        run: |
+          tar -xzf "${{github.workspace}}/build/out/distribution/Splunk_TA_otel.tgz" -C "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps"
+          dir "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps"
+          cd "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps\Splunk_TA_otel"
+          mkdir local
+          Set-Content -Path local/access_token -Value "FaKeAcCeSsToKeN"
+
+      - name: Stop and start Splunk UF
+        run: |
+          cd "${Env:ProgramFiles}\SplunkUniversalForwarder\bin"
+          .\splunk.exe stop
+          .\splunk.exe start
+
+      - name: Wait for Collector launch attempt
+        run: |
+          cd "${Env:ProgramFiles}\SplunkUniversalForwarder\var\log\splunk"
+          $logFile = "Splunk_TA_otel.log"
+          $found = $false
+          $timeout = 360
+          $elapsed = 0
+
+          while (-not $found -and $elapsed -lt $timeout) {
+              if (Test-Path $logFile) {
+                  $found = Select-String -Path $logFile -Pattern "Monitoring collector process with" -Quiet
+              }
+              if (-not $found) {
+                  Start-Sleep -Seconds 1
+                  $elapsed++
+              }
+          }
+
+          if ($found) {
+              Write-Host "Collector was launched after $elapsed seconds"
+          } else {
+              Write-Host "Timeout reached. Collector was not launched after $elapsed seconds"
+              exit 1
+          }
+
+      - name: Log status after test
+        if: always()
+        run: |
+          cd "${Env:ProgramFiles}\SplunkUniversalForwarder\var\log\splunk"
+          dir
+          Write-Host "`n======= otel.log contents ======="
+          Get-Content otel.log -ErrorAction SilentlyContinue
+          Write-Host "`n======= Splunk_TA_otel.log contents ======="
+          Get-Content Splunk_TA_otel.log -ErrorAction SilentlyContinue
+          Write-Host "`n======= splunkd.log contents ======="
+          Get-Content splunkd.log -ErrorAction SilentlyContinue
 
   test-discovery:
     name: test-discovery

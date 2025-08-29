@@ -72,6 +72,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/chronyreceiver v0.133.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/cloudfoundryreceiver v0.133.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdreceiver v0.133.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/dockerstatsreceiver v0.133.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/elasticsearchreceiver v0.133.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filelogreceiver v0.133.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filestatsreceiver v0.133.0

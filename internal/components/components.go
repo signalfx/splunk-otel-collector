@@ -71,6 +71,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/chronyreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/cloudfoundryreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdreceiver"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/dockerstatsreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/elasticsearchreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filelogreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filestatsreceiver"
@@ -185,6 +186,7 @@ func Get() (otelcol.Factories, error) {
 		cloudfoundryreceiver.NewFactory(),
 		collectdreceiver.NewFactory(),
 		discoveryreceiver.NewFactory(),
+		dockerstatsreceiver.NewFactory(),
 		elasticsearchreceiver.NewFactory(),
 		filelogreceiver.NewFactory(),
 		filestatsreceiver.NewFactory(),

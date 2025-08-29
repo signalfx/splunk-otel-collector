@@ -20,7 +20,6 @@ import (
 	"io"
 	"net"
 	"net/http"
-	"os"
 	"strconv"
 	"testing"
 	"time"
@@ -131,7 +130,7 @@ func TestConfigServer_EnvVar(t *testing.T) {
 
 func TestConfigServer_Serve(t *testing.T) {
 	waitForRequiredPort(t, defaultConfigServerPort)
-	t.Setenv(configServerEnabledEnvVar, "true"))
+	t.Setenv(configServerEnabledEnvVar, "true")
 
 	initial := map[string]any{
 		"field":   "not_redacted",

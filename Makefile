@@ -15,8 +15,6 @@ TO_MOD_DIR=dirname {} \; | sort | egrep  '^./'
 
 ALL_MODS := $(shell find . $(FIND_MOD_ARGS) -exec $(TO_MOD_DIR)) $(PWD)
 
-GOTEST=go test -p $(NUM_CORES)
-
 # Currently integration tests are flakey when run in parallel due to internal metric and config server conflicts
 GOTEST_SERIAL=go test -p 1
 

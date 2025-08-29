@@ -218,7 +218,7 @@ jobs:
               exit 1
           }
 
-      - name: Check Status
+      - name: Log status after test
         if: always()
         run: |
           cd "${Env:ProgramFiles}\SplunkUniversalForwarder\var\log\splunk"

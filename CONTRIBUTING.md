@@ -70,6 +70,37 @@ GitHub provides additional documentation on [forking a
 repository](https://help.github.com/articles/fork-a-repo/) and [creating a pull
 request](https://help.github.com/articles/creating-a-pull-request/).
 
+## Adding a Changelog Entry
+
+The changelog for this repository is auto-generated from `.yaml` files in the 
+`./.chloggen` directory. When contributing changes that affect users, you should 
+create a changelog entry by:
+
+1. Create a new changelog entry file using:
+   ```bash
+   make chlog-new
+   ```
+   This generates a file based on your current branch (e.g. `./.chloggen/my-branch.yaml`)
+
+2. Fill in all required fields in the new file
+
+3. Run validation to ensure the file is valid:
+   ```bash
+   make chlog-validate
+   ```
+
+4. Commit and push the file with your changes
+
+Alternatively, you can copy the `./.chloggen/TEMPLATE.yaml` or create the file from scratch.
+
+Changelog entries are required for:
+- Changes to component behavior
+- Configuration changes  
+- Changes to default settings
+- New component additions
+
+Note: Unlike the upstream OpenTelemetry collector, our CHANGELOG targets the end user, so we don't document Go API changes.
+
 ## Finding contributions to work on
 
 Looking at the existing issues is a great way to find something to contribute

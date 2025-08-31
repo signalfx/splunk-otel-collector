@@ -388,7 +388,7 @@ chlog-update:
 
 .PHONY: prepare-changelog
 prepare-changelog: chlog-update
-	@if [ -z "$(VERSION)" ]; then \
+	@if [ "$(VERSION)" = "latest" ]; then \
 		echo "Error: VERSION is required. Usage: make prepare-changelog VERSION=v0.132.0"; \
 		exit 1; \
 	fi

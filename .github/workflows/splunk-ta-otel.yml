@@ -174,7 +174,7 @@ jobs:
         run: msiexec.exe /i "$PWD\splunkforwarder.msi" /qn /l*v install-log.txt AGREETOLICENSE=Yes
 
       - name: Download Collector TA
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: Splunk_TA_otel
           path: ${{github.workspace}}/build/out/distribution

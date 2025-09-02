@@ -172,11 +172,13 @@ jobs:
           name: Splunk_TA_otel
           path: ${{github.workspace}}/build/out/distribution
 
-      - name: Uncompress the Collector TA
+      - name: Uncompress the Collector TA and prepare local configuration
         run: |
           mkdir -p "${{github.workspace}}/build/out/splunk_ta_otel"
           tar -xzf "${{github.workspace}}/build/out/distribution/Splunk_TA_otel.tgz" -C "${{github.workspace}}/build/out/splunk_ta_otel"
-          ls -l "${{github.workspace}}/build/out/splunk_ta_otel"
+          cd "${{github.workspace}}/build/out/splunk_ta_otel/Splunk_TA_otel"
+          mkdir local
+          echo "FaKeAcCeSsToKeN" > local/access_token
 
       - name: Launch Splunk container
         run: |
@@ -187,11 +189,32 @@ jobs:
           -v ${{github.workspace}}/var/log/splunk:/opt/splunk/var/log/splunk \
           splunk/splunk:${{env.splunk_uf_version}}
 
-      - name: Wait for Splunk to start (temporary)
+      - name: Wait for Collector launch attempt
         run: |
-          sleep 30
-          docker ps
-          ls -l "${{github.workspace}}/var/log/splunk"
+          cd "${{github.workspace}}/var/log/splunk"
+          logFile="Splunk_TA_otel.log"
+          found=false
+          timeout=360
+          elapsed=0
+
+          while [ "$found" = false ] && [ "$elapsed" -lt "$timeout" ]; do
+              if [ -f "$logFile" ]; then
+                  if grep -q "/otelcol_linux_amd64 " "$logFile"; then
+                      found=true
+                  fi
+              fi
+              if [ "$found" = false ]; then
+                  sleep 1
+                  elapsed=$((elapsed + 1))
+              fi
+          done
+
+          if [ "$found" = true ]; then
+              echo "Collector was launched after $elapsed seconds"
+          else
+              echo "Timeout reached. Collector was not launched after $elapsed seconds"
+              exit 1
+          fi
 
       - name: Log status after test
         if: always()
@@ -199,11 +222,11 @@ jobs:
           cd "${{github.workspace}}/var/log/splunk"
           ls -l
           echo -e "\n======= otel.log contents ======="
-          cat otel.log
+          cat otel.log || echo 'otel.log not found'
           echo -e "\n======= Splunk_TA_otel.log contents ======="
-          cat Splunk_TA_otel.log
+          cat Splunk_TA_otel.log || echo 'Splunk_TA_otel.log not found'
           echo -e "\n======= splunkd.log contents ======="
-          cat splunkd.log
+          cat splunkd.log || echo 'splunkd.log not found'
 
   smoke-test-windows:
     runs-on: windows-2025
@@ -223,7 +246,7 @@ jobs:
           name: Splunk_TA_otel
           path: ${{github.workspace}}/build/out/distribution
 
-      - name:  Install Splunk_TA_otel on the local Splunk UF
+      - name: Install Splunk_TA_otel on the local Splunk UF
         run: |
           tar -xzf "${{github.workspace}}/build/out/distribution/Splunk_TA_otel.tgz" -C "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps"
           dir "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps"

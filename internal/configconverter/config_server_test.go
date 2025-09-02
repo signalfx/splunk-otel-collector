@@ -20,7 +20,6 @@ import (
 	"io"
 	"net"
 	"net/http"
-	"os"
 	"strconv"
 	"testing"
 	"time"
@@ -35,6 +34,7 @@ import (
 
 func TestConfigServer_RequireEnvVar(t *testing.T) {
 	waitForRequiredPort(t, defaultConfigServerPort)
+	t.Setenv(configServerEnabledEnvVar, "false")
 
 	initial := map[string]any{
 		"minimal": "config",
@@ -45,7 +45,7 @@ func TestConfigServer_RequireEnvVar(t *testing.T) {
 	cs.OnNew()
 	t.Cleanup(func() {
 		cs.OnShutdown()
-		assert.True(t, isPortAvailable(defaultConfigServerPort))
+		waitForRequiredPort(t, defaultConfigServerPort)
 	})
 	require.NoError(t, cs.Convert(context.Background(), confmap.NewFromStringMap(initial)))
 
@@ -57,10 +57,7 @@ func TestConfigServer_RequireEnvVar(t *testing.T) {
 
 func TestConfigServer_EnvVar(t *testing.T) {
 	alternativePort := strconv.FormatUint(uint64(testutils.GetAvailablePort(t)), 10)
-	require.NoError(t, os.Setenv(configServerEnabledEnvVar, "true"))
-	t.Cleanup(func() {
-		assert.NoError(t, os.Unsetenv(configServerEnabledEnvVar))
-	})
+	t.Setenv(configServerEnabledEnvVar, "true")
 
 	tests := []struct {
 		name          string
@@ -97,10 +94,7 @@ func TestConfigServer_EnvVar(t *testing.T) {
 			}
 
 			if tt.portEnvVar != "" || tt.setPortEnvVar {
-				require.NoError(t, os.Setenv(configServerPortEnvVar, tt.portEnvVar))
-				defer func() {
-					assert.NoError(t, os.Unsetenv(configServerPortEnvVar))
-				}()
+				t.Setenv(configServerPortEnvVar, tt.portEnvVar)
 			}
 
 			cs := NewConfigServer()
@@ -108,7 +102,7 @@ func TestConfigServer_EnvVar(t *testing.T) {
 			cs.OnNew()
 			defer func() {
 				cs.OnShutdown()
-				assert.True(t, isPortAvailable(actualConfigServerPort))
+				waitForRequiredPort(t, actualConfigServerPort)
 			}()
 
 			require.NoError(t, cs.Convert(context.Background(), confmap.NewFromStringMap(initial)))
@@ -136,11 +130,7 @@ func TestConfigServer_EnvVar(t *testing.T) {
 
 func TestConfigServer_Serve(t *testing.T) {
 	waitForRequiredPort(t, defaultConfigServerPort)
-
-	require.NoError(t, os.Setenv(configServerEnabledEnvVar, "true"))
-	t.Cleanup(func() {
-		assert.NoError(t, os.Unsetenv(configServerEnabledEnvVar))
-	})
+	t.Setenv(configServerEnabledEnvVar, "true")
 
 	initial := map[string]any{
 		"field":   "not_redacted",
@@ -168,7 +158,7 @@ func TestConfigServer_Serve(t *testing.T) {
 	cs.OnNew()
 	t.Cleanup(func() {
 		cs.OnShutdown()
-		assert.True(t, isPortAvailable(defaultConfigServerPort))
+		waitForRequiredPort(t, defaultConfigServerPort)
 	})
 
 	cs.OnRetrieve("scheme", initial)
@@ -244,9 +234,9 @@ func TestSimpleRedact(t *testing.T) {
 func waitForRequiredPort(t *testing.T, port string) {
 	// Wait for a relatively long time for the port to be available, given that other package tests might be using it.
 	const waitTime = 60 * time.Second
-	require.Eventually(t, func() bool {
-		return isPortAvailable(port)
-	}, waitTime, 500*time.Millisecond)
+	require.EventuallyWithT(t, func(c *assert.CollectT) {
+		require.True(c, isPortAvailable(port))
+	}, waitTime, 100*time.Millisecond)
 }
 
 func isPortAvailable(port string) bool {

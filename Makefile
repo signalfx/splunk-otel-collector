@@ -4,7 +4,8 @@ include ./Makefile.Common
 
 # BUILD_TYPE should be one of (dev, release).
 BUILD_TYPE?=release
-VERSION?=latest
+DEFAULT_VERSION=$(shell git describe --match "v[0-9]*" HEAD)
+VERSION?=${DEFAULT_VERSION}
 
 GIT_SHA=$(shell git rev-parse --short HEAD)
 GOARCH=$(shell go env GOARCH)
@@ -21,7 +22,6 @@ GOTEST_SERIAL=go test -p 1
 BUILD_INFO_IMPORT_PATH=github.com/signalfx/splunk-otel-collector/internal/version
 BUILD_INFO_IMPORT_PATH_TESTS=github.com/signalfx/splunk-otel-collector/tests/internal/version
 BUILD_INFO_IMPORT_PATH_CORE=go.opentelemetry.io/collector/internal/version
-VERSION=$(shell git describe --match "v[0-9]*" HEAD)
 BUILD_X1=-X $(BUILD_INFO_IMPORT_PATH).Version=$(VERSION)
 BUILD_X2=-X $(BUILD_INFO_IMPORT_PATH_CORE).Version=$(VERSION)
 BUILD_INFO=-ldflags "${BUILD_X1} ${BUILD_X2}"
@@ -387,10 +387,11 @@ chlog-update:
 	$(CHLOGGEN) update -v $(VERSION)
 
 .PHONY: prepare-changelog
-prepare-changelog: chlog-update
-	@if [ "$(VERSION)" = "latest" ]; then \
+prepare-changelog:
+	@if [ "$(VERSION)" = $(DEFAULT_VERSION) ]; then \
 		echo "Error: VERSION is required. Usage: make prepare-changelog VERSION=v0.132.0"; \
 		exit 1; \
 	fi
+	@make chlog-update
 	@echo "Preparing changelog for $(VERSION)..."
 	@./.github/workflows/scripts/prepare-changelog.sh $(VERSION)

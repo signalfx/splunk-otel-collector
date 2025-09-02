@@ -82,14 +82,14 @@ create a changelog entry by:
    ```
    This generates a file based on your current branch (e.g. `./.chloggen/my-branch.yaml`)
 
-2. Fill in all required fields in the new file
+1. Fill in all required fields in the new file
 
-3. Run validation to ensure the file is valid:
+1. Run validation to ensure the file is valid:
    ```bash
    make chlog-validate
    ```
 
-4. Commit and push the file with your changes
+1. Commit and push the file with your changes
 
 Alternatively, you can copy the `./.chloggen/TEMPLATE.yaml` or create the file from scratch.
 

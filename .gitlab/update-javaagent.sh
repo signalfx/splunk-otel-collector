@@ -36,6 +36,7 @@ create_collector_pr() {
 
   # Only create the PR if there are changes
   if ! git diff --exit-code >/dev/null 2>&1; then
+    make chlog-new
     git commit -S -am "$message"
     git push -f "$repo_url" "$branch"
     echo ">>> Creating the PR ..."

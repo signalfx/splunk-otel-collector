@@ -13,7 +13,7 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/mailru/easyjson"
 	sfxmodel "github.com/signalfx/com_signalfx_metrics_protobuf/model"
-	"github.com/signalfx/golib/v3/datapoint"
+	"github.com/signalfx/golib/v3/datapoint" //nolint:staticcheck // SA1019: deprecated package still in use
 	"github.com/signalfx/ingest-protocols/protocol/signalfx"
 	"github.com/sirupsen/logrus"
 

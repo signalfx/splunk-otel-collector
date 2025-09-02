@@ -156,7 +156,7 @@ func TestNewSettingsConvertConfig(t *testing.T) {
 	require.Equal(t, []string(nil), settings.discoveryProperties)
 
 	require.Equal(t, []string{configPath, anotherConfigPath}, settings.ResolverURIs())
-	require.Equal(t, 6, len(settings.ConfMapConverterFactories()))
+	require.Equal(t, 5, len(settings.ConfMapConverterFactories()))
 	require.Equal(t, []string{"--feature-gates", "foo", "--feature-gates", "-bar"}, settings.ColCoreArgs())
 }
 
@@ -671,6 +671,27 @@ func TestDiscoveryPropertiesMustExist(t *testing.T) {
 	settings, err := New([]string{"--discovery", "--discovery-properties", "notafile"})
 	require.ErrorContains(t, err, "unable to find discovery properties file notafile. Ensure flag '--discovery-properties' is set correctly:")
 	require.Nil(t, settings)
+}
+
+func TestSetDefaultEnvVarsFileStorageExtension(t *testing.T) {
+	t.Cleanup(clearEnv(t))
+	_, ok := os.LookupEnv("SPLUNK_FILE_STORAGE_EXTENSION_PATH")
+	require.False(t, ok)
+	require.NoError(t, setDefaultEnvVars(nil))
+	path, ok := os.LookupEnv("SPLUNK_FILE_STORAGE_EXTENSION_PATH")
+	require.True(t, ok, "Expected SPLUNK_FILE_STORAGE_EXTENSION_PATH set by default")
+	require.Equal(t, path, "/var/lib/otelcol/filelogs")
+}
+
+func TestSetNonDefaultEnvVarsFileStorageExtension(t *testing.T) {
+	t.Cleanup(clearEnv(t))
+	nonDefaultPath := "/var/non/default/path"
+	err := os.Setenv("SPLUNK_FILE_STORAGE_EXTENSION_PATH", nonDefaultPath)
+	require.NoError(t, err)
+	require.NoError(t, setDefaultEnvVars(nil))
+	path, ok := os.LookupEnv("SPLUNK_FILE_STORAGE_EXTENSION_PATH")
+	require.True(t, ok, "Expected SPLUNK_FILE_STORAGE_EXTENSION_PATH to be set")
+	require.Equal(t, path, nonDefaultPath)
 }
 
 // to satisfy Settings generation

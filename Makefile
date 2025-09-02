@@ -15,8 +15,6 @@ TO_MOD_DIR=dirname {} \; | sort | egrep  '^./'
 
 ALL_MODS := $(shell find . $(FIND_MOD_ARGS) -exec $(TO_MOD_DIR)) $(PWD)
 
-GOTEST=go test -p $(NUM_CORES)
-
 # Currently integration tests are flakey when run in parallel due to internal metric and config server conflicts
 GOTEST_SERIAL=go test -p 1
 
@@ -212,10 +210,6 @@ gotest-with-codecov:
 gotest-cover-without-race:
 	@$(MAKE) for-all-target TARGET="test-cover-without-race"
 	$(GOCMD) tool covdata textfmt -i=./coverage  -o ./coverage.txt
-
-.PHONY: gendependabot
-gendependabot:
-	.github/workflows/scripts/gendependabot.sh
 
 .PHONY: tidy-all
 tidy-all:

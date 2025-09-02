@@ -38,15 +38,16 @@ import (
 type envVarWarnings map[string]string
 
 const (
-	APIURLEnvVar              = "SPLUNK_API_URL"
-	ConfigEnvVar              = "SPLUNK_CONFIG"
-	ConfigDirEnvVar           = "SPLUNK_CONFIG_DIR"
-	ConfigServerEnabledEnvVar = "SPLUNK_DEBUG_CONFIG_SERVER"
-	ConfigYamlEnvVar          = "SPLUNK_CONFIG_YAML"
-	HecLogIngestURLEnvVar     = "SPLUNK_HEC_URL"
-	ListenInterfaceEnvVar     = "SPLUNK_LISTEN_INTERFACE"
-	GoMemLimitEnvVar          = "GOMEMLIMIT"
-	GoGCEnvVar                = "GOGC"
+	APIURLEnvVar                   = "SPLUNK_API_URL"
+	ConfigEnvVar                   = "SPLUNK_CONFIG"
+	ConfigDirEnvVar                = "SPLUNK_CONFIG_DIR"
+	ConfigServerEnabledEnvVar      = "SPLUNK_DEBUG_CONFIG_SERVER"
+	ConfigYamlEnvVar               = "SPLUNK_CONFIG_YAML"
+	FileStorageExtensionPathEnvVar = "SPLUNK_FILE_STORAGE_EXTENSION_PATH"
+	HecLogIngestURLEnvVar          = "SPLUNK_HEC_URL"
+	ListenInterfaceEnvVar          = "SPLUNK_LISTEN_INTERFACE"
+	GoMemLimitEnvVar               = "GOMEMLIMIT"
+	GoGCEnvVar                     = "GOGC"
 	// nolint:gosec
 	HecTokenEnvVar    = "SPLUNK_HEC_TOKEN" // this isn't a hardcoded token
 	IngestURLEnvVar   = "SPLUNK_INGEST_URL"
@@ -211,7 +212,6 @@ func (s *Settings) ConfMapConverterFactories() []confmap.ConverterFactory {
 	if !s.noConvertConfig {
 		confMapConverterFactories = append(
 			confMapConverterFactories,
-			configconverter.ConverterFactoryFromFunc(configconverter.NormalizeGcp),
 			configconverter.ConverterFactoryFromFunc(configconverter.DisableKubeletUtilizationMetrics),
 			configconverter.ConverterFactoryFromFunc(configconverter.DisableExcessiveInternalMetrics),
 			configconverter.ConverterFactoryFromFunc(configconverter.AddOTLPHistogramAttr),
@@ -396,6 +396,10 @@ func setDefaultEnvVars(s *Settings) error {
 
 	if token, ok := os.LookupEnv(TokenEnvVar); ok {
 		defaultEnvVars[HecTokenEnvVar] = token
+	}
+
+	if _, ok := os.LookupEnv(FileStorageExtensionPathEnvVar); !ok {
+		defaultEnvVars[FileStorageExtensionPathEnvVar] = "/var/lib/otelcol/filelogs"
 	}
 
 	for e, v := range defaultEnvVars {

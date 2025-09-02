@@ -12,6 +12,9 @@ updates:
         patterns:
           - "go.opentelemetry.io/collector*"
           - "github.com/open-telemetry/opentelemetry-collector-contrib/*"
+      otel:
+        patterns:
+          - "go.opentelemetry.io/otel*"
       testify:
         patterns:
         - "github.com/stretchr/testify"

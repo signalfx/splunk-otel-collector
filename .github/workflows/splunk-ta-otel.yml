@@ -199,7 +199,7 @@ jobs:
 
           while [ "$found" = false ] && [ "$elapsed" -lt "$timeout" ]; do
               if [ -f "$logFile" ]; then
-                  if grep -q "/otelcol_linux_amd64 " "$logFile"; then
+                  if sudo grep -q "/otelcol_linux_amd64 " "$logFile"; then
                       found=true
                   fi
               fi

@@ -246,7 +246,7 @@ main() {
     fi
     local current_changelog=$(cat "$CHANGELOG_FILE")
 
-    # Take entries added by .chologgen, add (Splunk) prefix and make PR/issue links
+    # Take entries added by .chloggen, add (Splunk) prefix and make PR/issue links
     local splunk_entries=$(echo "$current_changelog" | sed -E -n "/^## $VERSION/,/^(## |<!-- previous-version -->)/p" | sed '$d' | tail -n +3 | sed 's/^- \([^(]\)/- (Splunk) \1/')
     splunk_entries=$(convert_pr_issue_links "$splunk_entries" "https://github.com/signalfx/splunk-otel-collector")
 

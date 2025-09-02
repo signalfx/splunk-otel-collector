@@ -14,7 +14,6 @@ and the [opentelemetry-collector-contrib v0.133.0](https://github.com/open-telem
 
 - (Splunk, Contrib) `routingprocessor`: Remove deprecated component routingprocessor ([#6634](https://github.com/signalfx/splunk-otel-collector/pull/6634), [#19739](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/19739))
   Please use the [routing connector](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/connector/routingconnector) instead.
-- (Core, Contrib) `all`: Increase minimum Go version to 1.24 ([#13627](https://github.com/open-telemetry/opentelemetry-collector/pull/13627), [#41968](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41968))
 
 ### 🚀 New components 🚀
 

@@ -59,7 +59,7 @@ and the [opentelemetry-collector-contrib v0.133.0](https://github.com/open-telem
   If any problems observed with this consider to disable the featuregate `--feature-gates=-pdata.useCustomProtoEncoding`
 <!-- cspell:ignore MLKEM mlkem -->
 - (Core) `configtls`: Enable X25519MLKEM768 as per draft-ietf-tls-ecdhe-mlkem ([#13670](https://github.com/open-telemetry/opentelemetry-collector/issues/13670))
-- (Contrib) `k8sclusterreceiver`: Add optional experimental k8s.container.status.state metric ([#32457](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/32457), [#32457](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/32457))
+- (Contrib) `k8sclusterreceiver`: Add optional experimental k8s.container.status.state metric ([#32457](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/32457))
 - (Contrib) `kafkareceiver`: Add `on_permanent_error` option to `message_marking` configuration. ([#41333](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41333))
 - (Contrib) `filelogreceiver`: Move filelog.decompressFingerprint feature gate to beta stage ([#42189](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/42189))
 - (Contrib) `httpcheckreceiver`: Add request body to http requests ([#41325](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41325))

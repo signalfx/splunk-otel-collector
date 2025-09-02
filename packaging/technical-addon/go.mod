@@ -7,7 +7,7 @@ require (
 	github.com/docker/docker v28.3.3+incompatible
 	github.com/google/go-cmp v0.7.0
 	github.com/sirupsen/logrus v1.9.3
-	github.com/stretchr/testify v1.11.0
+	github.com/stretchr/testify v1.11.1
 	github.com/testcontainers/testcontainers-go v0.38.0
 	go.uber.org/zap v1.27.0
 	gopkg.in/yaml.v3 v3.0.1

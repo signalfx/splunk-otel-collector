@@ -161,6 +161,50 @@ jobs:
           name: Splunk_TA_otel
           path: ${{github.workspace}}/build/out/distribution/Splunk_TA_otel.tgz
 
+
+  smoke-test-linux:
+    runs-on: ubuntu-24.04
+    needs: [distribute-ta]
+    steps:
+      - name: Download Collector TA
+        uses: actions/download-artifact@v5
+        with:
+          name: Splunk_TA_otel
+          path: ${{github.workspace}}/build/out/distribution
+
+      - name: Uncompress the Collector TA
+        run: |
+          mkdir -p "${{github.workspace}}/build/out/splunk_ta_otel"
+          tar -xzf "${{github.workspace}}/build/out/distribution/Splunk_TA_otel.tgz" -C "${{github.workspace}}/build/out/splunk_ta_otel"
+          ls -l "${{github.workspace}}/build/out/splunk_ta_otel"
+
+      - name: Launch Splunk container
+        run: |
+          mkdir -p "${{github.workspace}}/var/log/splunk"
+          docker run -d --name splunk \
+          -e SPLUNK_START_ARGS="--accept-license" -e SPLUNK_PASSWORD=$(uuidgen) \
+          -v ${{github.workspace}}/build/out/splunk_ta_otel/Splunk_TA_otel:/opt/splunk/etc/apps/Splunk_TA_otel \
+          -v ${{github.workspace}}/var/log/splunk:/opt/splunk/var/log/splunk \
+          splunk/splunk:${{env.splunk_uf_version}}
+
+      - name: Wait for Splunk to start (temporary)
+        run: |
+          sleep 30
+          docker ps
+          ls -l "${{github.workspace}}/var/log/splunk"
+
+      - name: Log status after test
+        if: always()
+        run: |
+          cd "${{github.workspace}}/var/log/splunk"
+          ls -l
+          echo -e "\n======= otel.log contents ======="
+          cat otel.log
+          echo -e "\n======= Splunk_TA_otel.log contents ======="
+          cat Splunk_TA_otel.log
+          echo -e "\n======= splunkd.log contents ======="
+          cat splunkd.log
+
   smoke-test-windows:
     runs-on: windows-2025
     needs: [distribute-ta]

@@ -17,7 +17,7 @@ RUN curl -fsSL https://github.com/saltstack/salt-install-guide/releases/${SALT_V
 RUN apt-get update
 RUN apt-get install -y salt-minion
 
-RUN pip3 install salt-lint==${SALT_LINT_VERSION}
+RUN pipx install salt-lint==${SALT_LINT_VERSION}
 
 RUN sed -i "s|#file_client:.*|file_client: local|" /etc/salt/minion
 

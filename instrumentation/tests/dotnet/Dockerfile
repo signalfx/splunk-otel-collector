@@ -11,7 +11,7 @@ COPY . .
 RUN dotnet publish -a $TARGETARCH --no-restore -o /app
 
 # final stage/image
-FROM mcr.microsoft.com/dotnet/runtime:8.0
+FROM mcr.microsoft.com/dotnet/runtime:9.0
 WORKDIR /app
 COPY --from=build /app .
 

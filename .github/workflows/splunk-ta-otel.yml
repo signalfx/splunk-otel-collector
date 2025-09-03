@@ -216,6 +216,12 @@ jobs:
               exit 1
           fi
 
+      - name: Get otelcol_linux_amd64 PID from Splunk container
+        id: get_pid
+        run: |
+          pid=$(docker exec splunk pgrep otelcol_linux_amd64 | head -n 1)
+          echo "otelcol_pid=$pid" >> "$GITHUB_OUTPUT"
+
       - name: Log status after test
         if: always()
         run: |
@@ -227,6 +233,16 @@ jobs:
           sudo cat Splunk_TA_otel.log || echo 'Splunk_TA_otel.log not found'
           echo -e "\n======= splunkd.log contents ======="
           sudo cat splunkd.log || echo 'splunkd.log not found'
+
+      - name: Check if otelcol_linux_amd64 process is alive
+        run: |
+          pid="${{ steps.get_pid.outputs.otelcol_pid }}"
+          if docker exec splunk kill -0 "$pid"; then
+            echo "otelcol_linux_amd64 process ($pid) was still running."
+          else
+            echo "otelcol_linux_amd64 process ($pid) was not running!"
+            exit 1
+          fi
 
   smoke-test-windows:
     runs-on: windows-2025

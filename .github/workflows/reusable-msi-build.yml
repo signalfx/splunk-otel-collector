@@ -15,10 +15,10 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Downloading binaries-windows_amd64
-        uses: actions/download-artifact@v4.1.3
+        uses: actions/download-artifact@v5
         with:
           name: binaries-windows_amd64
           path: ./bin
@@ -30,13 +30,13 @@ jobs:
           cache-dependency-path: '**/go.sum'
 
       - name: Downloading agent-bundle-windows
-        uses: actions/download-artifact@v4.1.3
+        uses: actions/download-artifact@v5
         with:
           name: agent-bundle-windows-${{ inputs.OS }}
           path: ./dist
 
       - name: Downloading msi-custom-actions
-        uses: actions/download-artifact@v4.1.3
+        uses: actions/download-artifact@v5
         with:
           name: msi-custom-actions
           path: ./packaging/msi/SplunkCustomActions/bin/Release

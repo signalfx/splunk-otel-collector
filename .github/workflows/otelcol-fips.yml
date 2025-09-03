@@ -39,7 +39,7 @@ jobs:
             GOARCH: amd64
       fail-fast: false
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - uses: actions/setup-go@v5
@@ -63,7 +63,7 @@ jobs:
         FIPSMODE: [ "1", "0" ]
       fail-fast: false
     steps:
-      - uses: actions/download-artifact@v4.1.3
+      - uses: actions/download-artifact@v5
         with:
           name: otelcol-fips-windows-amd64
           path: ./bin
@@ -88,14 +88,14 @@ jobs:
         ARCH: [ amd64, arm64 ]
       fail-fast: false
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
-      - uses: actions/download-artifact@v4.1.3
+      - uses: actions/download-artifact@v5
         with:
           name: otelcol-fips-linux-${{ matrix.ARCH }}
           path: ./bin
@@ -137,10 +137,10 @@ jobs:
         WIN_VERSION: [ 2022, 2025 ]
       fail-fast: false
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-      - uses: actions/download-artifact@v4.1.3
+      - uses: actions/download-artifact@v5
         with:
           name: otelcol-fips-windows-amd64
           path: ./cmd/otelcol/fips/dist

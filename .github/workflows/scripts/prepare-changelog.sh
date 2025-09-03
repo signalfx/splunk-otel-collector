@@ -22,7 +22,6 @@ HEADER_NEW_COMPONENTS="### 🚀 New components 🚀"
 HEADER_ENHANCEMENTS="### 💡 Enhancements 💡"
 HEADER_BUG_FIXES="### 🧰 Bug fixes 🧰"
 
-
 # Function to check if a number is a PR or issue using redirect behavior
 check_pr_or_issue() {
     local repo_url="$1"
@@ -50,46 +49,46 @@ convert_pr_issue_links() {
     local result="$content"
     
     # Find all (#number) patterns
-    local numbers=$(echo "$content" | grep -oE '\(#[0-9]+\)' | grep -oE '[0-9]+' | sort -u)
-    
+    local numbers=$(echo "$content" | grep -oE '\(#[0-9]+((, ?#[0-9]+)?)*\)' | grep -oE '[0-9]+' | sort -u)
+
     local total=$(echo "$numbers" | wc -w)
-    
+
     for number in $numbers; do
         local type=$(check_pr_or_issue "$repo_url" "$number")
-        
-        # Replace (#number) with proper markdown link
-        result=$(echo "$result" | sed "s|(#$number)|([#$number]($repo_url/$type/$number))|g")
+
+        # Replace #number with proper markdown link
+        # \([^0-9]\) - This is a capture group to ensure sed ONLY matches the given number. This avoids matching
+        # numbers that are part of larger numbers (e.g., #123 should not match #1234).
+        result=$(echo "$result" | sed "s|#$number\([^0-9]\)|[#$number]($repo_url/$type/$number)\1|g")
     done
-    
+
     echo "$result"
 }
-
 
 # Function to fetch and process upstream changelog entries
 fetch_upstream_entries() {
     local repo_url="$1"
     local prefix="$2"
     local version="$3"
-    
-    
+
     # Download the changelog
     local changelog_url="$repo_url/raw/main/CHANGELOG.md"
     local temp_changelog="$TEMP_DIR/$(basename "$repo_url")_changelog.md"
-    
+
     if ! curl -L -s -o "$temp_changelog" "$changelog_url"; then
         echo "Error: Failed to download changelog from $repo_url" >&2
         return 1
     fi
-    
+
     # Extract entries for the specific version (handle both "## v0.132.0" and "## v1.38.0/v0.132.0" formats)
     local escaped_version="${version//\./\\.}"
     local entries=$(sed -E -n "/^## .*${escaped_version}/,/^(## |<!-- previous-version -->)/p" "$temp_changelog" | sed '$d' | tail -n +3)
-    
+
     if [ -z "$entries" ]; then
         echo "Warning: No entries found for version $version in $repo_url" >&2
         return 0
     fi
-    
+
     # Add prefix to each entry
     local prefixed_entries=""
     while IFS= read -r line; do
@@ -103,10 +102,10 @@ fetch_upstream_entries() {
             prefixed_entries="$prefixed_entries"$'\n'
         fi
     done <<< "$entries"
-    
+
     # Convert PR/issue references to proper markdown links
     prefixed_entries=$(convert_pr_issue_links "$prefixed_entries" "$repo_url")
-    
+
     echo "$prefixed_entries"
 }
 
@@ -114,7 +113,7 @@ fetch_upstream_entries() {
 extract_section() {
     local content="$1"
     local header="$2"
-    
+
     # Use awk to handle special characters in headers properly
     echo "$content" | awk -v header="$header" '
     BEGIN { in_section = 0 }
@@ -124,33 +123,32 @@ extract_section() {
     '
 }
 
-# Function to parse entries into categories  
+# Function to parse entries into categories
 parse_entries_by_category() {
     local content="$1"
     local temp_dir=$(mktemp -d)
-    
+
     # Extract each section by header
     extract_section "$content" "$HEADER_BREAKING" > "$temp_dir/breaking" 2>/dev/null || true
     extract_section "$content" "$HEADER_DEPRECATIONS" > "$temp_dir/deprecations" 2>/dev/null || true
     extract_section "$content" "$HEADER_NEW_COMPONENTS" > "$temp_dir/new_components" 2>/dev/null || true
     extract_section "$content" "$HEADER_ENHANCEMENTS" > "$temp_dir/enhancements" 2>/dev/null || true
     extract_section "$content" "$HEADER_BUG_FIXES" > "$temp_dir/bug_fixes" 2>/dev/null || true
-    
-    
+
     echo "$temp_dir"
 }
 
 # Function to merge entries by category in correct order (Splunk, Core, Contrib)
 merge_entries_by_category() {
     local splunk_entries="$1"
-    local core_entries="$2" 
+    local core_entries="$2"
     local contrib_entries="$3"
-    
+
     # Parse each set of entries into categories
     local splunk_dir=$(parse_entries_by_category "$splunk_entries")
     local core_dir=$(parse_entries_by_category "$core_entries")
     local contrib_dir=$(parse_entries_by_category "$contrib_entries")
-    
+
     # Standard category order
     local categories=(
         "breaking"
@@ -159,34 +157,34 @@ merge_entries_by_category() {
         "enhancements"
         "bug_fixes"
     )
-    
+
     local result=""
-    
+
     # For each category, merge entries in order: Splunk, Core, Contrib
     for category in "${categories[@]}"; do
         local category_content=""
         local has_entries=false
-        
+
         # Add Splunk entries for this category
         if [ -f "$splunk_dir/$category" ]; then
             category_content+="$(cat "$splunk_dir/$category")"
             has_entries=true
         fi
-        
-        # Add Core entries for this category  
+
+        # Add Core entries for this category
         if [ -f "$core_dir/$category" ]; then
             [ -n "$category_content" ] && category_content+=$'\n'
             category_content+="$(cat "$core_dir/$category")"
             has_entries=true
         fi
-        
+
         # Add Contrib entries for this category
         if [ -f "$contrib_dir/$category" ]; then
             [ -n "$category_content" ] && category_content+=$'\n'
             category_content+="$(cat "$contrib_dir/$category")"
             has_entries=true
         fi
-        
+
         # If we have entries for this category, add the header and content
         if [ "$has_entries" = true ]; then
             [ -n "$result" ] && result+=$'\n'
@@ -210,10 +208,10 @@ merge_entries_by_category() {
             result+="$category_content"$'\n'
         fi
     done
-    
+
     # Cleanup temp directories
     rm -rf "$splunk_dir" "$core_dir" "$contrib_dir"
-    
+
     echo "$result"
 }
 
@@ -222,21 +220,21 @@ replace_version_section() {
     local current_changelog="$1"
     local version="$2"
     local replacement_content="$3"
-    
+
     local temp_file=$(mktemp)
-    
+
     # Part 1: Everything before our version
     echo "$current_changelog" | sed "/^## $version/,\$d" > "$temp_file"
-    
+
     # Part 2: Our version section
     echo "## $version" >> "$temp_file"
     echo >> "$temp_file"
     echo "$replacement_content" >> "$temp_file"
     echo >> "$temp_file"
-    
+
     # Part 3: Everything from next version onwards
     echo "$current_changelog" | awk '/^## / && $0 != "## '"$version"'" {found=1} found' >> "$temp_file"
-    
+
     cat "$temp_file"
     rm -f "$temp_file"
 }
@@ -248,7 +246,7 @@ main() {
     fi
     local current_changelog=$(cat "$CHANGELOG_FILE")
 
-    # Take entries added by .chologen, add (Splunk) prefix and make PR/issue links
+    # Take entries added by .chloggen, add (Splunk) prefix and make PR/issue links
     local splunk_entries=$(echo "$current_changelog" | sed -E -n "/^## $VERSION/,/^(## |<!-- previous-version -->)/p" | sed '$d' | tail -n +3 | sed 's/^- \([^(]\)/- (Splunk) \1/')
     splunk_entries=$(convert_pr_issue_links "$splunk_entries" "https://github.com/signalfx/splunk-otel-collector")
 

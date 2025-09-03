@@ -12,6 +12,12 @@ updates:
         patterns:
           - "go.opentelemetry.io/collector*"
           - "github.com/open-telemetry/opentelemetry-collector-contrib/*"
+      otel:
+        patterns:
+          - "go.opentelemetry.io/otel*"
+      testify:
+        patterns:
+        - "github.com/stretchr/testify"
     ignore:
       - dependency-name: "github.com/openshift/*"
         versions: ["v3.9.0+incompatible"]
@@ -22,6 +28,10 @@ updates:
       - "/packaging/**/*"
     schedule:
       interval: "weekly"
+    groups:
+      boto3:
+        patterns:
+          - "boto3"
   - package-ecosystem: "docker"
     directories:
       - "**/*"

@@ -6,22 +6,19 @@ on:
       OS:
         required: true
         type: string
-      PIP_CACHE_DIR:
-        required: true
-        type: string
 
 env:
-  GO_VERSION: 1.24.6
+  PIP_CACHE_DIR: ${{ github.workspace }}/.cache/pip
 
 jobs:
   agent-bundle-windows:
     runs-on: ${{ inputs.OS }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: actions/cache@v4
         with:
-          path: ${{ inputs.PIP_CACHE_DIR }}
+          path: ${{ env.PIP_CACHE_DIR }}
           key: agent-bundle-windows-pip-${{ hashFiles('packaging/bundle/collectd-plugins.yaml', 'packaging/bundle/scripts/requirements.txt') }}
 
       - run: ./packaging/bundle/scripts/windows/make.ps1 bundle

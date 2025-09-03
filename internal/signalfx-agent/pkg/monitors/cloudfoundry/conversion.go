@@ -8,7 +8,7 @@ import (
 
 	"code.cloudfoundry.org/go-loggregator/rpc/loggregator_v2"
 	"github.com/davecgh/go-spew/spew"
-	"github.com/signalfx/golib/v3/datapoint"
+	"github.com/signalfx/golib/v3/datapoint" //nolint:staticcheck // SA1019: deprecated package still in use
 )
 
 var hexIDRegexp = regexp.MustCompile(`^[a-fA-F0-9]+-[a-fA-F0-9-]+$`)

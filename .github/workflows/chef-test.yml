@@ -24,202 +24,64 @@ concurrency:
 env:
   CHEF_VERSION: "22.12.1024"
   CHEF_LICENSE: accept
-  GO_VERSION: 1.24.6
 
 jobs:
-  setup-environment:
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
-
-      - name: Installing dependency
-        run: |
-          make install-tools
-
   cross-compile:
-    needs: [ setup-environment, chef-lint-spec-test ]
+    needs: [ chef-lint-spec-test ]
     strategy:
       matrix:
         SYS_BINARIES: [ "binaries-linux_amd64", "binaries-windows_amd64" ]
-    uses: ./.github/workflows/compile.yml
+    uses: ./.github/workflows/reusable-compile.yml
     with:
-      sys_binary: ${{ matrix.SYS_BINARIES }}
+      SYS_BINARY: ${{ matrix.SYS_BINARIES }}
 
   agent-bundle-linux:
-    needs: [chef-lint-spec-test]
-    runs-on: ubuntu-24.04
     strategy:
       matrix:
         ARCH: [ "amd64" ]
       fail-fast: false
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/cache@v4
-        id: bundle-cache
-        with:
-          path: .cache/buildx/agent-bundle-${{ matrix.ARCH }}
-          key: agent-bundle-buildx-${{ matrix.ARCH }}-${{ hashFiles('packaging/bundle/**') }}
-          restore-keys: |
-            agent-bundle-buildx-${{ matrix.ARCH }}-
-      - run: make -C packaging/bundle agent-bundle-linux ARCH=${{ matrix.ARCH }}
-        env:
-          BUNDLE_CACHE_HIT: "${{ steps.bundle-cache.outputs.cache-hit }}"
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: agent-bundle-linux-${{ matrix.ARCH }}
-          path: ./dist/agent-bundle_linux_${{ matrix.ARCH }}.tar.gz
+    uses: ./.github/workflows/reusable-agent-bundle-linux.yml
+    with:
+      ARCH: ${{ matrix.ARCH }}
 
   build-package:
-    runs-on: ubuntu-24.04
     needs: [ cross-compile, agent-bundle-linux ]
     strategy:
       matrix:
         SYS_PACKAGE: [ "deb", "rpm" ]
         ARCH: [ "amd64" ]
       fail-fast: false
-    steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
-
-      - name: Downloading binaries-linux_${{ matrix.ARCH }}
-        uses: actions/download-artifact@v4.1.3
-        with:
-          name: binaries-linux_${{ matrix.ARCH }}
-          path: ./bin
-
-      - uses: actions/download-artifact@v4.1.3
-        with:
-          name: agent-bundle-linux-${{ matrix.ARCH }}
-          path: ./dist
-
-      - name: Build ${{ matrix.SYS_PACKAGE }} ${{ matrix.ARCH }} package
-        run: make ${{ matrix.SYS_PACKAGE }}-package SKIP_COMPILE=true SKIP_BUNDLE=true VERSION="" ARCH="${{ matrix.ARCH }}"
-
-      - name: Uploading ${{ matrix.SYS_PACKAGE }} ${{ matrix.ARCH }} package artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.SYS_PACKAGE }}-${{ matrix.ARCH }}-package
-          path: ./dist/splunk-otel-collector*
+    uses: ./.github/workflows/reusable-build-package.yml
+    with:
+      SYS_PACKAGE: ${{ matrix.SYS_PACKAGE }}
+      ARCH: ${{ matrix.ARCH }}
 
   agent-bundle-windows:
-    needs: [chef-lint-spec-test]
-    runs-on: ${{ matrix.OS }}
+    needs: [ chef-lint-spec-test ]
     strategy:
       matrix:
         OS: [ "windows-2025" ]
-    env:
-      PIP_CACHE_DIR: ${{ github.workspace }}/.cache/pip
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/cache@v4
-        with:
-          path: ${{ env.PIP_CACHE_DIR }}
-          key: agent-bundle-windows-pip-${{ hashFiles('packaging/bundle/collectd-plugins.yaml', 'packaging/bundle/scripts/requirements.txt') }}
-
-      - run: ./packaging/bundle/scripts/windows/make.ps1 bundle
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: agent-bundle-windows-${{ matrix.OS }}
-          path: ./dist/agent-bundle_windows_amd64.zip
+    uses: ./.github/workflows/reusable-agent-bundle-windows.yml
+    with:
+      OS: ${{ matrix.OS }}
 
   msi-custom-actions:
-    needs: [chef-lint-spec-test]
-    runs-on: windows-2025
-    steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v4
-
-      - name: Uninstall default WiX
-        run: choco uninstall wixtoolset
-
-      - name: Install WiX 3.14.0
-        run: choco install wixtoolset --version 3.14.0 --allow-downgrade --force
-
-      - name: Build Custom Actions
-        working-directory: packaging/msi/SplunkCustomActions
-        run: |
-          dotnet test ./test/SplunkCustomActionsTests.csproj -c Release
-          dotnet publish ./src/SplunkCustomActions.csproj -c Release -o ./bin/Release
-      - name: Package Custom Actions
-        run: |
-          $WixPath = "${Env:ProgramFiles(x86)}\WiX Toolset v3.14"
-          $sfxcaDll = "${WixPath}\SDK\x64\sfxca.dll"
-          $Env:PATH = "${WixPath}\SDK;" + $Env:PATH
-          $customActionDir = "${PWD}\packaging\msi\SplunkCustomActions"
-          $customActionBinDir = "${customActionDir}\bin\Release"
-          MakeSfxCA.exe "${PWD}\dist\SplunkCustomActions.CA.dll" `
-            "${sfxcaDll}" `
-            "${customActionBinDir}\SplunkCustomActions.dll" `
-            "${customActionBinDir}\Microsoft.Deployment.WindowsInstaller.dll" `
-            "${customActionDir}\src\CustomAction.config"
-      - uses: actions/upload-artifact@v4
-        with:
-          name: msi-custom-actions
-          path: ./dist/SplunkCustomActions.CA.dll
+    needs: [ chef-lint-spec-test ]
+    strategy:
+      matrix:
+        OS: [ "windows-2025" ]
+    uses: ./.github/workflows/reusable-msi-custom-actions.yml
+    with:
+      OS: ${{ matrix.OS }}
 
   msi-build:
-    runs-on: ubuntu-24.04
-    env:
-      WINDOWS_VER: "windows-2025"
-    needs: [cross-compile, agent-bundle-windows, msi-custom-actions]
-    steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Downloading binaries-windows_amd64
-        uses: actions/download-artifact@v4.1.3
-        with:
-          name: binaries-windows_amd64
-          path: ./bin
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
-
-      - name: Downloading agent-bundle-windows
-        uses: actions/download-artifact@v4.1.3
-        with:
-          name: agent-bundle-windows-${{ env.WINDOWS_VER }}
-          path: ./dist
-
-      - name: Downloading msi-custom-actions
-        uses: actions/download-artifact@v4.1.3
-        with:
-          name: msi-custom-actions
-          path: ./packaging/msi/SplunkCustomActions/bin/Release
-
-      - name: Build MSI
-        run: |
-          mkdir -p dist
-          make msi SKIP_COMPILE=true VERSION=""
-      - name: Uploading msi build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: msi-build
-          path: ./dist/*.msi
+    needs: [ cross-compile, agent-bundle-windows, msi-custom-actions ]
+    strategy:
+      matrix:
+        OS: [ "windows-2025" ]
+    uses: ./.github/workflows/reusable-msi-build.yml
+    with:
+      OS: ${{ matrix.OS }}
 
   chef-lint-spec-test:
     name: chef-lint-spec-test
@@ -229,7 +91,7 @@ jobs:
         working-directory: 'deployments/chef'
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       
       - name: lint
         run: make lint
@@ -245,7 +107,7 @@ jobs:
         working-directory: 'deployments/chef'
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Get linux distros and suites
         id: get-linux-matrix
@@ -277,7 +139,7 @@ jobs:
 
   chef-kitchen-linux:
     runs-on: ubuntu-24.04
-    needs: [chef-lint-spec-test, chef-kitchen-matrix, build-package]
+    needs: [ chef-lint-spec-test, chef-kitchen-matrix, build-package ]
     defaults:
       run:
         working-directory: 'deployments/chef'
@@ -286,9 +148,9 @@ jobs:
       fail-fast: false
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
-      - uses: actions/download-artifact@v4.1.3
+      - uses: actions/download-artifact@v5
         with:
           path: /tmp
 
@@ -327,7 +189,7 @@ jobs:
 
   chef-kitchen-windows:
     runs-on: ${{ matrix.DISTRO }}
-    needs: [chef-lint-spec-test, chef-kitchen-matrix, msi-build]
+    needs: [ chef-lint-spec-test, chef-kitchen-matrix, msi-build ]
     defaults:
       run:
         working-directory: 'deployments/chef'
@@ -336,9 +198,9 @@ jobs:
       fail-fast: false
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
-      - uses: actions/download-artifact@v4.1.3
+      - uses: actions/download-artifact@v5
         with:
           path: /tmp
 

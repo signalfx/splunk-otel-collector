@@ -29,7 +29,7 @@ jobs:
     strategy:
       matrix:
         SYS_BINARIES: [ "binaries-linux_amd64", "binaries-linux_arm64", "binaries-linux_ppc64le" ]
-    uses: ./.github/workflows/compile.yml
+    uses: ./.github/workflows/reusable-compile.yml
     with:
       SYS_BINARY: ${{ matrix.SYS_BINARIES }}
 
@@ -38,7 +38,7 @@ jobs:
       matrix:
         ARCH: [ "amd64", "arm64" ]
       fail-fast: false
-    uses: ./.github/workflows/agent-bundle-linux.yml
+    uses: ./.github/workflows/reusable-agent-bundle-linux.yml
     with:
       ARCH: ${{ matrix.ARCH }}
 
@@ -49,7 +49,7 @@ jobs:
         SYS_PACKAGE: [ "deb", "rpm", "tar" ]
         ARCH: [ "amd64", "arm64" ]
       fail-fast: false
-    uses: ./.github/workflows/build-package.yml
+    uses: ./.github/workflows/reusable-build-package.yml
     with:
       SYS_PACKAGE: ${{ matrix.SYS_PACKAGE }}
       ARCH: ${{ matrix.ARCH }}
@@ -58,7 +58,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Get matrix
         id: get-matrix
@@ -86,7 +86,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Get package type for ${{ matrix.DISTRO }}
         run: |
@@ -99,7 +99,7 @@ jobs:
           echo "Unknown distro '${{ matrix.DISTRO }}'!"
           exit 1
 
-      - uses: actions/download-artifact@v4.1.3
+      - uses: actions/download-artifact@v5
         with:
           name: ${{ env.SYS_PACKAGE }}-${{ matrix.ARCH }}-package
           path: ./dist
@@ -148,7 +148,7 @@ jobs:
       - uses: jlumbroso/free-disk-space@v1.3.1
 
       - name: Check out the codebase.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # Required to export a multiarch manifest and images to the local image store
       - name: Set up containerd image store
@@ -175,29 +175,29 @@ jobs:
           image: tonistiigi/binfmt:qemu-v7.0.0
 
       - name: Downloading binaries-linux_amd64
-        uses: actions/download-artifact@v4.1.3
+        uses: actions/download-artifact@v5
         with:
           name: binaries-linux_amd64
           path: ./bin
 
       - name: Downloading binaries-linux_arm64
-        uses: actions/download-artifact@v4.1.3
+        uses: actions/download-artifact@v5
         with:
           name: binaries-linux_arm64
           path: ./bin
 
       - name: Downloading binaries-linux_ppc64le
-        uses: actions/download-artifact@v4.1.3
+        uses: actions/download-artifact@v5
         with:
           name: binaries-linux_ppc64le
           path: ./bin
 
-      - uses: actions/download-artifact@v4.1.3
+      - uses: actions/download-artifact@v5
         with:
           name: agent-bundle-linux-amd64
           path: ./dist
 
-      - uses: actions/download-artifact@v4.1.3
+      - uses: actions/download-artifact@v5
         with:
           name: agent-bundle-linux-arm64
           path: ./dist
@@ -222,7 +222,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # Required to load a multiarch archive to the local image store
       - name: Set up containerd image store
@@ -243,7 +243,7 @@ jobs:
           platforms: ${{ matrix.ARCH }}
           image: tonistiigi/binfmt:qemu-v7.0.0
 
-      - uses: actions/download-artifact@v4.1.3
+      - uses: actions/download-artifact@v5
         with:
           name: otelcol
           path: ./docker-otelcol

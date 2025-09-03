@@ -22,7 +22,6 @@ HEADER_NEW_COMPONENTS="### 🚀 New components 🚀"
 HEADER_ENHANCEMENTS="### 💡 Enhancements 💡"
 HEADER_BUG_FIXES="### 🧰 Bug fixes 🧰"
 
-
 # Function to check if a number is a PR or issue using redirect behavior
 check_pr_or_issue() {
     local repo_url="$1"
@@ -66,13 +65,11 @@ convert_pr_issue_links() {
     echo "$result"
 }
 
-
 # Function to fetch and process upstream changelog entries
 fetch_upstream_entries() {
     local repo_url="$1"
     local prefix="$2"
     local version="$3"
-
 
     # Download the changelog
     local changelog_url="$repo_url/raw/main/CHANGELOG.md"
@@ -137,7 +134,6 @@ parse_entries_by_category() {
     extract_section "$content" "$HEADER_NEW_COMPONENTS" > "$temp_dir/new_components" 2>/dev/null || true
     extract_section "$content" "$HEADER_ENHANCEMENTS" > "$temp_dir/enhancements" 2>/dev/null || true
     extract_section "$content" "$HEADER_BUG_FIXES" > "$temp_dir/bug_fixes" 2>/dev/null || true
-
 
     echo "$temp_dir"
 }
@@ -250,7 +246,7 @@ main() {
     fi
     local current_changelog=$(cat "$CHANGELOG_FILE")
 
-    # Take entries added by .chologen, add (Splunk) prefix and make PR/issue links
+    # Take entries added by .chloggen, add (Splunk) prefix and make PR/issue links
     local splunk_entries=$(echo "$current_changelog" | sed -E -n "/^## $VERSION/,/^(## |<!-- previous-version -->)/p" | sed '$d' | tail -n +3 | sed 's/^- \([^(]\)/- (Splunk) \1/')
     splunk_entries=$(convert_pr_issue_links "$splunk_entries" "https://github.com/signalfx/splunk-otel-collector")
 

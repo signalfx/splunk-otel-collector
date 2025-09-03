@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/mailru/easyjson"
-	"github.com/signalfx/golib/v3/datapoint"
-	"github.com/signalfx/golib/v3/event"
+	"github.com/signalfx/golib/v3/datapoint" //nolint:staticcheck // SA1019: deprecated package still in use
+	"github.com/signalfx/golib/v3/event"     //nolint:staticcheck // SA1019: deprecated package still in use
 	"github.com/signalfx/ingest-protocols/protocol/collectd"
 	log "github.com/sirupsen/logrus"
 

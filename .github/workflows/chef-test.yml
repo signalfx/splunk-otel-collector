@@ -91,7 +91,7 @@ jobs:
         working-directory: 'deployments/chef'
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       
       - name: lint
         run: make lint
@@ -107,7 +107,7 @@ jobs:
         working-directory: 'deployments/chef'
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Get linux distros and suites
         id: get-linux-matrix
@@ -148,7 +148,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - uses: actions/download-artifact@v5
         with:
@@ -198,7 +198,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - uses: actions/download-artifact@v5
         with:

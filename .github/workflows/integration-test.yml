@@ -28,7 +28,7 @@ jobs:
       matrix:
         ARCH: [ "amd64", "arm64", "ppc64le" ]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - uses: actions/setup-go@v5
@@ -55,7 +55,7 @@ jobs:
     steps:
       # Multiarch images require more disk space
       - uses: jlumbroso/free-disk-space@v1.3.1
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - uses: actions/setup-go@v5
@@ -116,7 +116,7 @@ jobs:
       fail-fast: false
     needs: [ "docker-otelcol", "otelcol" ]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - uses: actions/setup-go@v5
@@ -151,7 +151,7 @@ jobs:
     steps:
       # Multiarch images require more disk space
       - uses: jlumbroso/free-disk-space@v1.3.1
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - name: Build ${{ matrix.PROFILE }} service images
@@ -236,7 +236,7 @@ jobs:
     steps:
       # Multiarch images require more disk space
       - uses: jlumbroso/free-disk-space@v1.3.1
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - name: Build ${{ matrix.PROFILE }} service images
@@ -336,7 +336,7 @@ jobs:
         matrix: ${{ fromJSON(needs.integration-test-discovery-matrix.outputs.matrix) }}
         fail-fast: false
       steps:
-        - uses: actions/checkout@v4
+        - uses: actions/checkout@v5
           with:
             fetch-depth: 0
         - run: echo "MONGODB_VERSION=${{ matrix.MONGODB_VERSION }}" > docker/.env
@@ -399,7 +399,7 @@ jobs:
       matrix: ${{ fromJSON(needs.integration-test-discovery-k8s-matrix.outputs.matrix) }}
       fail-fast: false
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - name: Create kind cluster

@@ -311,6 +311,16 @@ jobs:
           Write-Host "otelcol_windows_amd64 PID $otelcol_pid"
           "otelcol_pid=$otelcol_pid" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
+      - name: Collect Windows event logs
+        if: always()
+        run: |
+          Write-Host "Last 50 Application log events:"
+          Get-WinEvent -Log Application -MaxEvents 50 | Format-List TimeCreated, ProviderName, Message
+
+          Write-Host "Last 50 System log events:"
+          Get-WinEvent -Log System -MaxEvents 50 | Format-List TimeCreated, ProviderName, Message
+
+
       - name: Collect log files
         if: always()
         run: |

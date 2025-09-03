@@ -95,6 +95,15 @@ jobs:
     needs: [msi-build]
     timeout-minutes: 40
     steps:
+      - name: Runner information
+        run: |
+          $ramGB = [math]::Round((Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory / 1GB, 2)
+          $cpuCount = (Get-CimInstance Win32_ComputerSystem).NumberOfLogicalProcessors
+          $diskGBs = Get-CimInstance Win32_DiskDrive | ForEach-Object { [math]::Round($_.Size / 1GB, 2) }
+          Write-Host "RAM (GB): $ramGB"
+          Write-Host "CPUs: $cpuCount"
+          Write-Host "Disk sizes (GB): $($diskGBs -join ', ')"
+
       - name: Check out the codebase.
         uses: actions/checkout@v4
 

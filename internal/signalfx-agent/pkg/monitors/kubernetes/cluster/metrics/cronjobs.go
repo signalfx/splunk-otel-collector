@@ -3,7 +3,7 @@ package metrics
 import (
 	"time"
 
-	"github.com/signalfx/golib/v3/datapoint"
+	"github.com/signalfx/golib/v3/datapoint" //nolint:staticcheck // SA1019: deprecated package still in use
 	batchv1beta1 "k8s.io/api/batch/v1beta1"
 
 	k8sutil "github.com/signalfx/signalfx-agent/pkg/monitors/kubernetes/utils"

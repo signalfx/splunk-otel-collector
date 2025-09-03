@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/signalfx/golib/v3/trace"
+	"github.com/signalfx/golib/v3/trace" //nolint:staticcheck // SA1019: deprecated package still in use
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"

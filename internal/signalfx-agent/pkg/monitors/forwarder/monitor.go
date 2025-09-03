@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	goliblog "github.com/signalfx/golib/v3/log"
+	goliblog "github.com/signalfx/golib/v3/log" //nolint:staticcheck // SA1019: deprecated package still in use
 	"github.com/sirupsen/logrus"
 
 	"github.com/signalfx/signalfx-agent/pkg/core/config"

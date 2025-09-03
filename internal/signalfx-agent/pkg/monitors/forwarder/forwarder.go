@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/signalfx/golib/v3/datapoint/dpsink"
-	"github.com/signalfx/golib/v3/sfxclient"
-	"github.com/signalfx/golib/v3/web"
+	"github.com/signalfx/golib/v3/datapoint/dpsink" //nolint:staticcheck // SA1019: deprecated package still in use
+	"github.com/signalfx/golib/v3/sfxclient"        //nolint:staticcheck // SA1019: deprecated package still in use
+	"github.com/signalfx/golib/v3/web"              //nolint:staticcheck // SA1019: deprecated package still in use
 	"github.com/signalfx/ingest-protocols/protocol/signalfx"
 )
 

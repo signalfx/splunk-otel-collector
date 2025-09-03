@@ -184,10 +184,11 @@ jobs:
         run: |
           mkdir -p "${{github.workspace}}/var/log/splunk"
           docker run -d --name splunk \
-          -e SPLUNK_START_ARGS="--accept-license" -e SPLUNK_PASSWORD=$(uuidgen) \
-          -v ${{github.workspace}}/build/out/splunk_ta_otel/Splunk_TA_otel:/opt/splunk/etc/apps/Splunk_TA_otel \
-          -v ${{github.workspace}}/var/log/splunk:/opt/splunk/var/log/splunk \
-          splunk/splunk:${{env.splunk_uf_version}}
+            -e SPLUNK_START_ARGS="--accept-license" -e SPLUNK_PASSWORD=$(uuidgen) \
+            -v ${{github.workspace}}/build/out/splunk_ta_otel/Splunk_TA_otel:/opt/splunk/etc/apps/Splunk_TA_otel \
+            -v ${{github.workspace}}/var/log/splunk:/opt/splunk/var/log/splunk \
+            splunk/splunk:${{env.splunk_uf_version}}
+          ls -l "${{github.workspace}}/var/log/splunk"
 
       - name: Wait for Collector launch attempt
         run: |

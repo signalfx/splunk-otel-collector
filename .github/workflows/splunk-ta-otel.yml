@@ -219,9 +219,8 @@ jobs:
       - name: Get otelcol_linux_amd64 PID from Splunk container
         id: get_pid
         run: |
-          docker exec splunk sudo ps -aux
-          docker exec splunk sudo pgrep otelcol_linux_amd64
-          pid=$(docker exec splunk sudo pgrep otelcol_linux_amd64 | head -n 1)
+          docker exec splunk sudo ps -aux | grep otelcol_linux_amd64
+          pid=$(docker exec splunk sudo ps -aux | grep otelcol_linux_amd64 | awk '{print $2}' | head -n 1)
           echo otelcol_linux_amd64 PID $pid
           echo "otelcol_pid=$pid" >> "$GITHUB_OUTPUT"
 

@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
@@ -39,12 +40,16 @@ type CollectorBuilder func(Collector) Collector
 type Testcase struct {
 	testing.TB
 	Logger                              *zap.Logger
+	HECReceiverSink                     *HECReceiverSink
+	HECEndpoint                         string
+	HECEndpointForCollector             string
 	ObservedLogs                        *observer.ObservedLogs
 	OTLPReceiverSink                    *OTLPReceiverSink
 	OTLPEndpoint                        string
 	OTLPEndpointForCollector            string
 	ID                                  string
 	OTLPReceiverShouldBindAllInterfaces bool
+	isHECTestCase                       bool
 }
 
 // NewTestcase is the recommended constructor that will automatically configure an OTLPReceiverSink
@@ -67,11 +72,39 @@ func NewTestcase(t testing.TB) *Testcase {
 	return &tc
 }
 
+// NewHECTestcase is the recommended constructor that will automatically configure a HECReceiverSink
+// with available endpoint and ObservedLogs.
+func NewHECTestcase(t testing.TB) *Testcase {
+	tc := Testcase{TB: t}
+	var logCore zapcore.Core
+	logCore, tc.ObservedLogs = observer.New(zap.DebugLevel)
+	tc.Logger = zap.New(logCore)
+
+	var err error
+	tc.setHECEndpoint()
+	tc.HECReceiverSink, err = NewHECReceiverSink().WithEndpoint(tc.HECEndpoint).Build()
+	require.NoError(tc, err)
+	require.NoError(tc, tc.HECReceiverSink.Start())
+	tc.isHECTestCase = true
+
+	id, err := uuid.NewRandom()
+	require.NoError(tc, err)
+	tc.ID = id.String()
+	return &tc
+}
+
 func (t *Testcase) setOTLPEndpoint() {
 	otlpPort := GetAvailablePort(t)
 	otlpHost := "localhost"
 	t.OTLPEndpoint = fmt.Sprintf("%s:%d", otlpHost, otlpPort)
 	t.OTLPEndpointForCollector = t.OTLPEndpoint
+}
+
+func (t *Testcase) setHECEndpoint() {
+	hecPort := GetAvailablePort(t)
+	hecHost := "0.0.0.0"
+	t.HECEndpoint = fmt.Sprintf("%s:%d", hecHost, hecPort)
+	t.HECEndpointForCollector = fmt.Sprintf("http://%s", t.HECEndpoint)
 }
 
 // Builds and starts all provided Container builder instances, returning them and a validating stop function.
@@ -108,6 +141,9 @@ func (t *Testcase) SplunkOtelCollectorContainer(configFilename string, builders 
 	if runtime.GOOS == "darwin" {
 		port := strings.Split(t.OTLPEndpointForCollector, ":")[1]
 		t.OTLPEndpointForCollector = fmt.Sprintf("host.docker.internal:%s", port)
+
+		port = strings.Split(t.HECEndpointForCollector, ":")[1]
+		t.HECEndpointForCollector = fmt.Sprintf("host.docker.internal:%s", port)
 	}
 
 	var c Collector
@@ -143,10 +179,19 @@ func (t *Testcase) newCollector(initial Collector, configFilename string, builde
 		"SPLUNK_TEST_ID": t.ID,
 	}
 
+	// This check is required as container tests set the SPLUNK_HEC_URL environment variable
+	// by default, and many tests check the expected value to see if it matches the default.
+	// We don't want to match a hardcoded test default for HEC tests.
+	if t.isHECTestCase {
+		envVars["SPLUNK_HEC_URL"] = t.HECEndpointForCollector
+	}
+
 	if configFilename != "" {
-		collector = collector.WithConfigPath(
-			path.Join(".", "testdata", configFilename),
-		)
+		if !filepath.IsAbs(configFilename) {
+			configFilename = path.Join(".", "testdata", configFilename)
+		}
+
+		collector = collector.WithConfigPath(configFilename)
 	}
 
 	collector = collector.WithEnv(envVars).WithLogLevel("debug").WithLogger(t.Logger)
@@ -194,4 +239,8 @@ func (t *Testcase) PrintLogsOnFailure() {
 // Validating shutdown helper for the Testcase's OTLPReceiverSink
 func (t *Testcase) ShutdownOTLPReceiverSink() {
 	require.NoError(t, t.OTLPReceiverSink.Shutdown())
+}
+
+func (t *Testcase) ShutdownHECReceiverSink() {
+	require.NoError(t, t.HECReceiverSink.Shutdown())
 }

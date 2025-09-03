@@ -5,6 +5,51 @@
 <!-- For unreleased changes, see entries in .chloggen -->
 <!-- next version -->
 
+## v0.134.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.134.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.134.0)
+and the [opentelemetry-collector-contrib v0.134.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.134.0) releases where appropriate.
+
+### 🛑 Breaking changes 🛑
+
+- (Splunk) `configconverter`: Remove `normalize_gcp` config converter ([#6695](https://github.com/signalfx/splunk-otel-collector/pull/6695))
+  Upgrades from below v0.69.0 to v0.69.0 or above will no longer handle GCP config conversion.
+  This is relevant for the resourcedetection processor, if a user was using the `gce` or
+  `gke` detectors. Please refer to the
+  [upgrade guide](https://github.com/signalfx/splunk-otel-collector/blob/e541a9a0340f68471c96006ac88940cbcbcfefa3/README.md#from-0680-to-0690)
+  for information on how to resolve.
+
+- (Contrib) `pkg/ottl`: Keep the original map and continue processing keys if an error is encountered when calling an optional replacement function in `replace_all_patterns`. ([#42359](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/42359))
+
+### 💡 Enhancements 💡
+
+- (Splunk) `instrumentation`: Update `splunk-otel-javaagent` to `v2.19.0` ([#6635](https://github.com/signalfx/splunk-otel-collector/pull/6635))
+- (Core) `pdata`: Add custom grpc/encoding that replaces proto and calls into the custom marshal/unmarshal logic in pdata. ([#13631](https://github.com/open-telemetry/opentelemetry-collector/issues/13631))
+  This change should not affect other gRPC calls since it fallbacks to the default grpc/proto encoding if requests are not pdata/otlp requests.
+- (Core) `pdata`: Avoid copying the pcommon.Map when same origin ([#13731](https://github.com/open-telemetry/opentelemetry-collector/pull/13731))
+  This is a very large improvement if using OTTL with map functions since it will avoid a map copy.
+- (Core) `exporterhelper`: Respect `num_consumers` when batching and partitioning are enabled. ([#13607](https://github.com/open-telemetry/opentelemetry-collector/pull/13607))
+- (Contrib) `httpcheckreceiver`: Add response body validation ([#41325](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41325))
+  The httpcheckreceiver now supports validating the response body using a few approaches.
+  String matching, JSON path matching, size ranges, and regex matching are supported.
+- (Contrib) `httpcheckreceiver`: Fix race for timing of request steps ([#42042](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/42042))
+  The httpcheckreceiver uses atomic operations to track the timing of request steps to avoid race conditions.
+- (Contrib) `pkg/ottl`: Avoid multiple copies of the Map in replace_all_patterns. ([#42359](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/42359))
+- (Contrib) `kafkareceiver`: Add profiles support ([#41479](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41479))
+- (Contrib) `pkg/ottl`: Remove unnecessary Value initialization when setting an attribute/body ([#42335](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/42335), [#42362](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/42362))
+- (Contrib) `pkg/ottl`: Add an `Index(target, value)` OTTL function which returns the index of the first occurrence of `value` in `target`. ([#40351](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/40351))
+- (Contrib) `pkg/stanza`: add `sanitize_utf8` operator to replace invalid UTF-8 characters. ([#42028](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/42028))
+
+### 🧰 Bug fixes 🧰
+
+- (Core) `pdata`: Correctly parse OTLP payloads containing non-packed repeated primitive fields ([#13727](https://github.com/open-telemetry/opentelemetry-collector/issues/13727), [#13730](https://github.com/open-telemetry/opentelemetry-collector/pull/13730))
+  This bug prevented the Collector from ingesting most Histogram, ExponentialHistogram,
+  and Profile payloads.
+- (Contrib) `k8sattributesprocessor`: Allow service.namespace to be used in rules and fix docs ([#40859](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40859))
+- (Contrib) `tailsamplingprocessor`: Fix a race condition in the tailsampling processor that could cause traces to be dropped prematurely. ([#41656](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41656))
+- (Contrib) `sqlserverreceiver`: Fix memory leak from top queries and query samples features ([#42302](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/42302))
+  The issue was caused by the misuse of the obfuscate library.
+
 ## v0.133.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.133.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.133.0)

@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/influxdata/telegraf"
-	"github.com/signalfx/golib/v3/datapoint"
-	"github.com/signalfx/golib/v3/event"
+	"github.com/signalfx/golib/v3/datapoint" //nolint:staticcheck // SA1019: deprecated package still in use
+	"github.com/signalfx/golib/v3/event"     //nolint:staticcheck // SA1019: deprecated package still in use
 	log "github.com/sirupsen/logrus"
 
 	"github.com/signalfx/signalfx-agent/pkg/monitors/types"

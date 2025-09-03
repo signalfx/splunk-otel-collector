@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/mattn/go-xmlrpc"
-	"github.com/signalfx/golib/v3/datapoint"
+	"github.com/signalfx/golib/v3/datapoint" //nolint:staticcheck // SA1019: deprecated package still in use
 	"github.com/sirupsen/logrus"
 
 	"github.com/signalfx/signalfx-agent/pkg/core/config"

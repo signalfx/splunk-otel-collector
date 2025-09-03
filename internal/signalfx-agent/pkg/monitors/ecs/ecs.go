@@ -13,8 +13,8 @@ import (
 	"time"
 
 	dcontainer "github.com/docker/docker/api/types/container"
-	"github.com/signalfx/golib/v3/datapoint"
-	"github.com/signalfx/golib/v3/sfxclient"
+	"github.com/signalfx/golib/v3/datapoint" //nolint:staticcheck // SA1019: deprecated package still in use
+	"github.com/signalfx/golib/v3/sfxclient" //nolint:staticcheck // SA1019: deprecated package still in use
 	log "github.com/sirupsen/logrus"
 
 	"github.com/signalfx/signalfx-agent/pkg/core/common/ecs"

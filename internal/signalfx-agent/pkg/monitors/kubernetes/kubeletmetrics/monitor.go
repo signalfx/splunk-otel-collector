@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/signalfx/golib/v3/datapoint"
-	"github.com/signalfx/golib/v3/sfxclient"
+	"github.com/signalfx/golib/v3/datapoint" //nolint:staticcheck // SA1019: deprecated package still in use
+	"github.com/signalfx/golib/v3/sfxclient" //nolint:staticcheck // SA1019: deprecated package still in use
 	log "github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
 	k8stypes "k8s.io/apimachinery/pkg/types"

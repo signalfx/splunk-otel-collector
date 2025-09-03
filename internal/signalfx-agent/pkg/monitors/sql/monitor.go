@@ -19,7 +19,7 @@ import (
 	_ "github.com/microsoft/go-mssqldb/integratedauth/krb5"
 	_ "github.com/snowflakedb/gosnowflake"
 
-	"github.com/signalfx/golib/v3/datapoint"
+	"github.com/signalfx/golib/v3/datapoint" //nolint:staticcheck // SA1019: deprecated package still in use
 	"github.com/sirupsen/logrus"
 
 	"github.com/signalfx/signalfx-agent/pkg/core/config"

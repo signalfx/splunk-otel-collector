@@ -3,9 +3,9 @@ package neotest
 import (
 	"time"
 
-	"github.com/signalfx/golib/v3/datapoint"
-	"github.com/signalfx/golib/v3/event"
-	"github.com/signalfx/golib/v3/trace"
+	"github.com/signalfx/golib/v3/datapoint" //nolint:staticcheck // SA1019: deprecated package still in use
+	"github.com/signalfx/golib/v3/event"     //nolint:staticcheck // SA1019: deprecated package still in use
+	"github.com/signalfx/golib/v3/trace"     //nolint:staticcheck // SA1019: deprecated package still in use
 	"go.opentelemetry.io/collector/pdata/pmetric"
 
 	"github.com/signalfx/signalfx-agent/pkg/core/dpfilters"

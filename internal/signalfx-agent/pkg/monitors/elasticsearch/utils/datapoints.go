@@ -1,8 +1,8 @@
 package utils
 
 import (
-	"github.com/signalfx/golib/v3/datapoint"
-	"github.com/signalfx/golib/v3/sfxclient"
+	"github.com/signalfx/golib/v3/datapoint" //nolint:staticcheck // SA1019: deprecated package still in use
+	"github.com/signalfx/golib/v3/sfxclient" //nolint:staticcheck // SA1019: deprecated package still in use
 )
 
 func PrepareGaugeHelper(metricName string, dims map[string]string, metricValue *int64) *datapoint.Datapoint {

@@ -19,7 +19,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/signalfx/golib/v3/event"
+	"github.com/signalfx/golib/v3/event" //nolint:staticcheck // SA1019: deprecated package still in use
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/pdata/pcommon"

@@ -3,7 +3,7 @@ package rabbitmq
 import (
 	"strings"
 
-	"github.com/signalfx/golib/v3/pointer"
+	"github.com/signalfx/golib/v3/pointer" //nolint:staticcheck // SA1019: deprecated package still in use
 
 	"github.com/signalfx/signalfx-agent/pkg/core/config"
 

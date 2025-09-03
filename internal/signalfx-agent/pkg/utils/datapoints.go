@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"github.com/signalfx/golib/v3/datapoint"
+	"github.com/signalfx/golib/v3/datapoint" //nolint:staticcheck // SA1019: deprecated package still in use
 )
 
 // BoolToInt returns 1 if b is true and 0 otherwise.  It is useful for

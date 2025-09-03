@@ -3,7 +3,7 @@ package signalfx
 import (
 	"fmt"
 
-	"github.com/signalfx/golib/v3/trace"
+	"github.com/signalfx/golib/v3/trace" //nolint:staticcheck // SA1019: deprecated package still in use
 )
 
 // JSONDatapointV1 is the JSON API format for /v1/datapoint

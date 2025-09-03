@@ -220,7 +220,7 @@ jobs:
         id: get_pid
         run: |
           docker exec splunk sudo ps -aux | grep otelcol_linux_amd64
-          otelcol_pid=$(docker exec splunk sudo ps -aux | grep otelcol_linux_amd64 | awk '{print $2}')
+          otelcol_pid="$(docker exec splunk sudo ps -aux | grep otelcol_linux_amd64 | awk '{print $2}')"
           echo otelcol_linux_amd64 PID $otelcol_pid
           echo "otelcol_pid=$otelcol_pid" >> "$GITHUB_OUTPUT"
 

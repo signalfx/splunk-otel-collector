@@ -220,9 +220,9 @@ jobs:
         id: get_pid
         run: |
           docker exec splunk sudo ps -aux | grep otelcol_linux_amd64
-          pid=$(docker exec splunk sudo ps -aux | grep otelcol_linux_amd64 | awk '{print $2}')
-          echo otelcol_linux_amd64 PID $pid
-          echo "otelcol_pid=$pid" >> "$GITHUB_OUTPUT"
+          otelcol_pid=$(docker exec splunk sudo ps -aux | grep otelcol_linux_amd64 | awk '{print $2}')
+          echo otelcol_linux_amd64 PID $otelcol_pid
+          echo "otelcol_pid=$otelcol_pid" >> "$GITHUB_OUTPUT"
 
       - name: Collect log files
         if: always()
@@ -238,11 +238,11 @@ jobs:
 
       - name: Check if otelcol_linux_amd64 process is alive
         run: |
-          pid="${{ steps.get_pid.outputs.otelcol_pid }}"
-          if docker exec splunk sudo ps "$pid"; then
-            echo "otelcol_linux_amd64 process ($pid) was still running."
+          otelcol_pid="${{ steps.get_pid.outputs.otelcol_pid }}"
+          if docker exec splunk sudo ps "$otelcol_pid"; then
+            echo "otelcol_linux_amd64 process ($otelcol_pid) was still running."
           else
-            echo "otelcol_linux_amd64 process ($pid) was not running!"
+            echo "otelcol_linux_amd64 process ($otelcol_pid) was not running!"
             exit 1
           fi
 
@@ -307,9 +307,9 @@ jobs:
         id: get_pid
         run: |
           Get-Process
-          $pid = (Get-Process -Name otelcol_windows_amd64).Id
-          Write-Host "otelcol_windows_amd64 PID $pid"
-          "otelcol_pid=$pid" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          $otelcol_pid = (Get-Process -Name otelcol_windows_amd64).Id
+          Write-Host "otelcol_windows_amd64 PID $otelcol_pid"
+          "otelcol_pid=$otelcol_pid" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
       - name: Collect log files
         if: always()
@@ -325,12 +325,12 @@ jobs:
 
       - name: Check if otelcol_windows_amd64 process is alive
         run: |
-          $otelcol_pid="${{ steps.get_pid.outputs.otelcol_pid }}"
-          $pid = (Get-Process -Id $otelcol_pid).Id
-          if ($pid) {
-              Write-Host "otelcol_windows_amd64 process ($otelcol_pid) was still running."
+          $prev_otelcol_pid = ${{ steps.get_pid.outputs.otelcol_pid }}
+          $otelcol_pid = (Get-Process -Id $prev_otelcol_pid).Id
+          if ($otelcol_pid) {
+              Write-Host "otelcol_windows_amd64 process ($prev_otelcol_pid) was still running."
           } else {
-              Write-Host "otelcol_windows_amd64 process ($otelcol_pid) was not running!"
+              Write-Host "otelcol_windows_amd64 process ($prev_otelcol_pid) was not running!"
               exit 1
           }
 

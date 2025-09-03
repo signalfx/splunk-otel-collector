@@ -9,6 +9,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/golden v0.134.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.134.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/xk8stest v0.134.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver v0.134.0
 	github.com/shirou/gopsutil/v3 v3.24.5
 	github.com/stretchr/testify v1.11.1
 	github.com/testcontainers/testcontainers-go v0.38.0
@@ -39,6 +40,7 @@ require (
 	github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
+	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/containerd/errdefs v1.0.0 // indirect
 	github.com/containerd/errdefs/pkg v0.3.0 // indirect
@@ -62,6 +64,7 @@ require (
 	github.com/go-openapi/swag v0.23.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
+	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/golang/snappy v1.0.0 // indirect
@@ -69,7 +72,9 @@ require (
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/go-tpm v0.9.5 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
+	github.com/gorilla/mux v1.8.1 // indirect
 	github.com/hashicorp/go-version v1.7.0 // indirect
+	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.18.0 // indirect
@@ -92,6 +97,9 @@ require (
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/mostynb/go-grpc-compression v1.2.3 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/ackextension v0.134.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/internal/sharedcomponent v0.134.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/internal/splunk v0.134.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatautil v0.134.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.1 // indirect
@@ -117,17 +125,23 @@ require (
 	go.opentelemetry.io/collector/config/confighttp v0.134.0 // indirect
 	go.opentelemetry.io/collector/config/configmiddleware v0.134.0 // indirect
 	go.opentelemetry.io/collector/config/configopaque v1.40.0 // indirect
+	go.opentelemetry.io/collector/config/configretry v1.40.0 // indirect
 	go.opentelemetry.io/collector/config/configtls v1.40.0 // indirect
 	go.opentelemetry.io/collector/confmap/xconfmap v0.134.0 // indirect
 	go.opentelemetry.io/collector/consumer v1.40.0 // indirect
 	go.opentelemetry.io/collector/consumer/consumererror v0.134.0 // indirect
 	go.opentelemetry.io/collector/consumer/xconsumer v0.134.0 // indirect
+	go.opentelemetry.io/collector/exporter v0.134.0 // indirect
+	go.opentelemetry.io/collector/exporter/exporterhelper v0.134.0 // indirect
+	go.opentelemetry.io/collector/extension v1.40.0 // indirect
 	go.opentelemetry.io/collector/extension/extensionauth v1.40.0 // indirect
 	go.opentelemetry.io/collector/extension/extensionmiddleware v0.134.0 // indirect
+	go.opentelemetry.io/collector/extension/xextension v0.134.0 // indirect
 	go.opentelemetry.io/collector/featuregate v1.40.0 // indirect
 	go.opentelemetry.io/collector/internal/sharedcomponent v0.134.0 // indirect
 	go.opentelemetry.io/collector/internal/telemetry v0.134.0 // indirect
 	go.opentelemetry.io/collector/pdata/pprofile v0.134.0 // indirect
+	go.opentelemetry.io/collector/pdata/xpdata v0.134.0 // indirect
 	go.opentelemetry.io/collector/pipeline v1.40.0 // indirect
 	go.opentelemetry.io/collector/receiver/receiverhelper v0.134.0 // indirect
 	go.opentelemetry.io/collector/receiver/xreceiver v0.134.0 // indirect

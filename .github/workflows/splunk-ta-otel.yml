@@ -306,6 +306,7 @@ jobs:
       - name: Get otelcol_windows_amd64 PID
         id: get_pid
         run: |
+          Get-Process
           $pid = (Get-Process -Name otelcol_windows_amd64).Id
           Write-Host "otelcol_windows_amd64 PID $pid"
           "otelcol_pid=$pid" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append

@@ -272,10 +272,10 @@ jobs:
           mkdir local
           Set-Content -Path local/access_token -Value "FaKeAcCeSsToKeN"
 
-      - name: Stop and start Splunk UF
+      - name: Start Splunk UF
         run: |
           cd "${Env:ProgramFiles}\SplunkUniversalForwarder\bin"
-          .\splunk.exe stop
+          .\splunk.exe status
           .\splunk.exe start
 
       - name: Wait for Collector launch attempt

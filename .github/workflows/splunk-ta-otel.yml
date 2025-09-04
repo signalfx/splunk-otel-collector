@@ -273,12 +273,16 @@ jobs:
           Set-Content -Path local/access_token -Value "FaKeAcCeSsToKeN"
 
       - name: Start Splunk UF
+        # workaround for actionlint not recognizing that "otel-windows" is a windows runner
+        shell: pwsh
         run: |
           cd "${Env:ProgramFiles}\SplunkUniversalForwarder\bin"
           .\splunk.exe status
           .\splunk.exe start
 
       - name: Wait for Collector launch attempt
+        # workaround for actionlint not recognizing that "otel-windows" is a windows runner
+        shell: pwsh
         run: |
           cd "${Env:ProgramFiles}\SplunkUniversalForwarder\var\log\splunk"
           $logFile = "Splunk_TA_otel.log"
@@ -305,6 +309,8 @@ jobs:
 
       - name: Get otelcol_windows_amd64 PID
         id: get_pid
+        # workaround for actionlint not recognizing that "otel-windows" is a windows runner
+        shell: pwsh
         run: |
           Get-Process
           $otelcol_pid = (Get-Process -Name otelcol_windows_amd64).Id
@@ -313,6 +319,8 @@ jobs:
 
       - name: Collect Windows event logs
         if: always()
+        # workaround for actionlint not recognizing that "otel-windows" is a windows runner
+        shell: pwsh
         run: |
           Write-Host "Last 50 Application log events:"
           Get-WinEvent -Log Application -MaxEvents 50 | Format-List TimeCreated, ProviderName, Message
@@ -323,6 +331,8 @@ jobs:
 
       - name: Collect log files
         if: always()
+        # workaround for actionlint not recognizing that "otel-windows" is a windows runner
+        shell: pwsh
         run: |
           cd "${Env:ProgramFiles}\SplunkUniversalForwarder\var\log\splunk"
           dir
@@ -334,6 +344,8 @@ jobs:
           Get-Content splunkd.log -ErrorAction SilentlyContinue
 
       - name: Check if otelcol_windows_amd64 process is alive
+        # workaround for actionlint not recognizing that "otel-windows" is a windows runner
+        shell: pwsh
         run: |
           $prev_otelcol_pid = ${{ steps.get_pid.outputs.otelcol_pid }}
           $otelcol_pid = (Get-Process -Id $prev_otelcol_pid).Id

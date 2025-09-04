@@ -43,7 +43,7 @@ jobs:
       ta_packaging_change: ${{ steps.filter.outputs.ta_packaging_change }}
       ta_workflow_change: ${{ steps.filter.outputs.ta_workflow_change }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0  # Fetch all history for all branches and tags
       - name: Get changed files
@@ -80,7 +80,7 @@ jobs:
       run:
         working-directory: ${{github.workspace}}/packaging/technical-addon
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-environment
 
       - name: Build & Package TA
@@ -101,7 +101,7 @@ jobs:
       run:
         working-directory: ${{github.workspace}}/packaging/technical-addon
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-environment
 
       - name: Test addon generator
@@ -128,7 +128,7 @@ jobs:
       run:
         working-directory: ${{github.workspace}}/packaging/technical-addon
     steps:
-        - uses: actions/checkout@v4
+        - uses: actions/checkout@v5
         - uses: ./.github/actions/setup-environment
         - name: Test normal go code
           run: |
@@ -147,7 +147,7 @@ jobs:
         working-directory: ${{github.workspace}}/packaging/technical-addon
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - uses: ./.github/actions/setup-environment
 
       - name: Build & Package TA
@@ -368,7 +368,7 @@ jobs:
         PLATFORM: ["all"]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - uses: ./.github/actions/setup-environment
 
       - name: Set up Go
@@ -397,7 +397,7 @@ jobs:
         PLATFORM: ["all"]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - uses: ./.github/actions/setup-environment
 
       - name: Set up Go
@@ -419,7 +419,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - uses: ./.github/actions/setup-environment
 
       - uses: streetsidesoftware/cspell-action@v7

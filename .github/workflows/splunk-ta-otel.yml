@@ -247,7 +247,7 @@ jobs:
           fi
 
   smoke-test-windows:
-    runs-on: windows-2025
+    runs-on: otel-windows
     needs: [distribute-ta]
     steps:
       - name: Download the Splunk UF MSI

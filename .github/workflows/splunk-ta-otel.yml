@@ -264,6 +264,13 @@ jobs:
           name: Splunk_TA_otel
           path: ${{github.workspace}}/build/out/distribution
 
+      - name: Stop Splunk UF
+        # workaround for actionlint not recognizing that "otel-windows" is a windows runner
+        shell: pwsh
+        run: |
+          cd "${Env:ProgramFiles}\SplunkUniversalForwarder\bin"
+          .\splunk.exe stop
+
       - name: Install Splunk_TA_otel on the local Splunk UF
         run: |
           tar -xzf "${{github.workspace}}/build/out/distribution/Splunk_TA_otel.tgz" -C "${Env:ProgramFiles}\SplunkUniversalForwarder\etc\apps"

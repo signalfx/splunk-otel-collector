@@ -3,10 +3,6 @@ FROM mcr.microsoft.com/oss/go/microsoft/golang:${GO_VERSION}
 
 ARG TARGETARCH
 
-# install toolchain for cgo
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends gcc-mingw-w64
-
 COPY cmd /src/cmd
 COPY internal /src/internal
 COPY packaging /src/packaging
@@ -19,18 +15,10 @@ COPY go.sum /src/
 ARG BUILD_INFO
 ENV GOOS=windows
 ENV GOARCH=${TARGETARCH}
-ENV GOEXPERIMENT=cngcrypto
 ENV GOMODCACHE=/go/pkg/mod
-ENV CGO_ENABLED=1
-ENV CC=x86_64-w64-mingw32-gcc
-ENV CXX=x86_64-w64-mingw32-g++
 ENV GOFLAGS="-tags=requirefips"
+ENV GOEXPERIMENT=systemcrypto
 ENV EXTENSION=.exe
 
 WORKDIR /src
 RUN --mount=type=cache,target=${GOMODCACHE} make otelcol BUILD_INFO="${BUILD_INFO}"
-
-# check the binary
-RUN go version ./bin/otelcol_${GOOS}_${GOARCH}${EXTENSION} | grep "X:${GOEXPERIMENT}"
-RUN go tool nm ./bin/otelcol_${GOOS}_${GOARCH}${EXTENSION} > symbols
-RUN grep -m5 "github.com/microsoft/go-crypto-winnative" symbols

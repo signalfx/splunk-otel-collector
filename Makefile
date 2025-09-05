@@ -348,7 +348,7 @@ ifeq ($(GOOS), linux)
     ifeq ($(filter $(GOARCH), amd64 arm64),)
 		$(error GOOS=$(GOOS) GOARCH=$(GOARCH) not supported)
     endif
-	$(eval BUILD_INFO = -ldflags "${BUILD_X1} ${BUILD_X2} -linkmode=external -extldflags=-static")
+	$(eval BUILD_INFO = -ldflags "${BUILD_X1} ${BUILD_X2}")
 else ifeq ($(GOOS), windows)
     ifeq ($(filter $(GOARCH), amd64),)
 		$(error GOOS=$(GOOS) GOARCH=$(GOARCH) not supported)

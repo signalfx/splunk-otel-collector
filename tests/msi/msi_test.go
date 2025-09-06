@@ -237,6 +237,7 @@ func assertServiceConfiguration(t *testing.T, msiProperties map[string]string, s
 	assert.NoFileExists(t, filepath.Join(programFilesDir, "Splunk", "OpenTelemetry Collector", configFileName))
 
 	expectedEnvVars := map[string]string{
+		"GODEBUG":             "fips140=off",
 		"SPLUNK_CONFIG":       configFileFullName,
 		"SPLUNK_ACCESS_TOKEN": msiProperties["SPLUNK_ACCESS_TOKEN"], // Required install property for a successful start of the service
 		"SPLUNK_REALM":        installRealm,

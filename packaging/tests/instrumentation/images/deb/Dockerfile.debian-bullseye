@@ -1,6 +1,6 @@
 # A debian image with systemd enabled.  Must be run with:
 # `-d --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro` flags
-FROM tomcat:9-jre8 as tomcat
+FROM tomcat:10-jre8 as tomcat
 
 FROM debian:bullseye
 

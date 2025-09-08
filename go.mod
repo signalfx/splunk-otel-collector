@@ -782,17 +782,9 @@ replace (
 	github.com/influxdata/telegraf => github.com/signalfx/telegraf v0.10.2-0.20250228233359-931557f78bed
 )
 
-// Required for github.com/hashicorp/vault@v1.17.2
-replace github.com/pires/go-proxyproto v1.0.0 => github.com/peteski22/go-proxyproto v1.0.0
-
-// github.com/veraison/go-cose v1.2.0 doesn't exists but required by the latest github.com/Microsoft/hcsshim
-replace github.com/veraison/go-cose v1.2.0 => github.com/veraison/go-cose v1.1.1
-
-// pick up a fix for 0.130.0 update https://github.com/open-telemetry/opentelemetry-go/pull/7056
-replace go.opentelemetry.io/otel/exporters/prometheus v0.59.0 => go.opentelemetry.io/otel/exporters/prometheus v0.59.1
-
 // k8s.io replace statements should be able to be removed in September, 2025. Currently required for backwards
 // compatibility with upstream dependencies
+// Relevant upstream PR: https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39725
 replace (
 	k8s.io/api v0.33.1 => k8s.io/api v0.32.7
 	k8s.io/apimachinery v0.33.1 => k8s.io/apimachinery v0.32.7

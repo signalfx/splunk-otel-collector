@@ -435,7 +435,7 @@ splunk_TA_otel_run_agent() {
     LD_PRELOAD="$LD_PRELOAD" \
     LD_LIBRARY_PATH="$LD_LIBRARY_PATH" \
     SPLUNK_OTEL_TA_PLATFORM_HOME="$SPLUNK_OTEL_TA_PLATFORM_HOME" \
-        exec "$otel_path" "$SPLUNK_OTEL_FLAGS" > "$splunk_otel_log_file_value" 2>&1
+        exec "$otel_path" "$SPLUNK_OTEL_FLAGS"
 }
 
 splunk_TA_otel_scheme() {

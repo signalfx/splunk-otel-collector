@@ -60,7 +60,7 @@ try {
 	$otelProcess = Get-Win32_ProcessByNameAndParentId `
 		$otelProcessName `
 		$parentProcess.ProcessId `
-		-timeout ([TimeSpan]::FromSeconds(5)) `
+		-timeout ([TimeSpan]::FromSeconds(10)) `
 		-sleepInterval ([TimeSpan]::FromMilliseconds(150))
 	if ($null -eq $otelProcess) {
 		Write-Log "ERROR Otel agent not running"

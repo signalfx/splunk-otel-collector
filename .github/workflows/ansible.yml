@@ -292,7 +292,7 @@ jobs:
         run: echo "Fail to read version from galaxy.yml" && exit 1
 
       - name: Push new release tag if it doesn't exist
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |

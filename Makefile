@@ -216,6 +216,21 @@ tidy-all:
 	$(MAKE) for-all-target TARGET="tidy"
 	$(MAKE) tidy
 
+.PHONY: fmt-all
+fmt-all:
+	$(MAKE) for-all-target TARGET="fmt"
+	$(MAKE) fmt
+
+.PHONY: lint-all
+lint-all:
+	$(MAKE) for-all-target TARGET="lint"
+	$(MAKE) lint
+
+.PHONY: test-all
+test-all:
+	$(MAKE) for-all-target TARGET="test"
+	$(MAKE) test
+
 .PHONY: install-tools
 install-tools:
 	cd ./internal/tools && go install github.com/client9/misspell/cmd/misspell

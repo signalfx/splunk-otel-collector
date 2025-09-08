@@ -96,7 +96,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Set up Python 3.
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.11'
 
@@ -149,7 +149,7 @@ jobs:
             urllib3<3
 
       - name: Set up Python 3.
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.13'
           cache: 'pip'
@@ -229,7 +229,7 @@ jobs:
             pywinrm==0.4.3
 
       - name: Set up Python 3.
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.11'
           cache: 'pip'

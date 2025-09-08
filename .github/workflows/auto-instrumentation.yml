@@ -117,7 +117,7 @@ jobs:
           path: ./instrumentation/dist
 
       - name: Setup python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'

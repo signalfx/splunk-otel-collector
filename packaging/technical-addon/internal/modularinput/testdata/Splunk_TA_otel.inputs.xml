@@ -18,7 +18,6 @@
       <param name="splunk_config">$SPLUNK_OTEL_TA_HOME/configs/ta-agent-config.yaml</param>
       <param name="splunk_ingest_url">https://ingest.us0.signalfx.com</param>
       <param name="splunk_listen_interface">localhost</param>
-      <param name="splunk_otel_log_file">$SPLUNK_HOME/var/log/splunk/otel.log</param>
       <param name="splunk_realm">us0</param>
       <param name="splunk_trace_url">https://ingest.us0.signalfx.com/v2/trace</param>
       <param name="start_by_shell">false</param>

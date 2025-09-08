@@ -38,7 +38,7 @@ func TestUnmarshalInputXML(t *testing.T) {
 	stanza := input.Configuration.Stanzas[0]
 	assert.Equal(t, "Splunk_TA_otel://Splunk_TA_otel", stanza.Name, "Expected Stanza Name to be 'Splunk_TA_otel://Splunk_TA_otel'")
 	assert.Equal(t, "Splunk_TA_otel", stanza.App, "Expected Stanza App to be 'Splunk_TA_otel'")
-	assert.Len(t, stanza.Params, 16, "Expected 16 Params")
+	assert.Len(t, stanza.Params, 15, "Expected 15 Params")
 }
 
 func TestUnmarshalInputXML_InvalidXML(t *testing.T) {

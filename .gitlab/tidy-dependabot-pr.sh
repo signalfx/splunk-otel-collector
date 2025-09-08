@@ -24,7 +24,7 @@ tidy_dependabot_pr() {
   git checkout "$branch"
 
   echo ">>> make tidy ..."
-  if make for-all CMD='make tidy'; then
+  if make tidy-all; then
     if ! git diff --exit-code >/dev/null 2>&1; then
       git commit -S -am "$message"
       git push -f "$repo_url" "$branch"

@@ -24,9 +24,9 @@ jobs:
 
       - name: tidy
         run: |
-          make for-all CMD="make tidy"
+          make tidy-all
           if ! git diff --exit-code; then
-            echo "One or more Go files are not tidied. Run 'make for-all CMD=\"make tidy\"' and push the changes."
+            echo "One or more Go files are not tidied. Run 'make tidy-all' and push the changes."
             exit 1
           fi
 
@@ -39,9 +39,9 @@ jobs:
 
       - name: gofmt
         run: |
-          make for-all CMD="make fmt"
+          make fmt-all
           if ! git diff --exit-code; then
-            echo "One or more Go files are not formatted correctly. Run 'make for-all CMD=\"make fmt\"' and push the changes."
+            echo "One or more Go files are not formatted correctly. Run 'make fmt-all' and push the changes."
             exit 1
           fi
 
@@ -76,7 +76,7 @@ jobs:
 
       - name: Lint
         run: |
-          make for-all CMD="make lint"
+          make lint-all
 
   actionlint:
     runs-on: ubuntu-24.04

@@ -39,7 +39,7 @@ jobs:
           if ${{ inputs.COVERAGE }}; then
             make gotest-cover-without-race | tee unit-test-results-${{ inputs.OS }}/go-unit-tests.out
           else
-            make for-all CMD="make test" | tee unit-test-results/go-unit-tests.out
+            make test-all | tee unit-test-results/go-unit-tests.out
           fi
 
       - name: Uploading artifacts

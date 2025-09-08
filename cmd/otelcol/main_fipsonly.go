@@ -13,8 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build linux && boringcrypto && cgo && (amd64 || arm64)
+//go:build requirefips
+
+//go:debug fips140=on
 
 package main
-
-import _ "crypto/tls/fipsonly"

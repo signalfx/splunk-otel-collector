@@ -2,15 +2,6 @@ ARG DOCKER_REPO=docker.io
 ARG GO_VERSION=1.24
 FROM ${DOCKER_REPO}/golang:${GO_VERSION}
 
-# https://splunk.atlassian.net/wiki/x/qYqRDfs
-ENV BORING_SHA="2ace5a99ae43b388845592472026b0225cf1f07c9b28124c23f0f3fef77f0210"
-ENV BORING_PATH="src/crypto/internal/boring/syso/goboringcrypto_linux_amd64.syso"
-RUN echo "$BORING_SHA" "$( go env GOROOT )/${BORING_PATH}" | sha256sum --check || ( echo "$BORING_PATH SHA256 doesn't match $BORING_SHA" && exit 1 )
-
-# install toolchain to build a statically linked binary with cgo enabled
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends file musl-dev musl-tools
-
 COPY cmd /src/cmd
 COPY internal /src/internal
 COPY packaging /src/packaging
@@ -24,17 +15,8 @@ ARG TARGETARCH
 ARG BUILD_INFO
 ENV GOOS=linux
 ENV GOARCH=${TARGETARCH}
-ENV GOEXPERIMENT=boringcrypto
+ENV GOFLAGS="-tags=requirefips"
 ENV GOMODCACHE=/go/pkg/mod
-ENV CGO_ENABLED=1
-ENV CC=musl-gcc
 
 WORKDIR /src
 RUN --mount=type=cache,target=${GOMODCACHE} make otelcol BUILD_INFO="${BUILD_INFO}"
-
-# check the binary
-RUN file ./bin/otelcol_${GOOS}_${GOARCH} | grep -i "statically linked" || ( echo "the binary is not statically linked" && exit 1 )
-RUN go version ./bin/otelcol_${GOOS}_${GOARCH} | grep "X:${GOEXPERIMENT}"
-RUN go tool nm ./bin/otelcol_${GOOS}_${GOARCH} > symbols
-RUN grep -i "fipsonly" symbols
-RUN grep -m5 "_Cfunc__goboringcrypto" symbols

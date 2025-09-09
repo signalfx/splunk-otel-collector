@@ -31,7 +31,7 @@ jobs:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
@@ -58,7 +58,7 @@ jobs:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
@@ -119,7 +119,7 @@ jobs:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
@@ -167,7 +167,7 @@ jobs:
           docker builder prune -f
           docker images
       - run: docker compose -f docker/docker-compose.yml --profile ${{ matrix.PROFILE }} up -d --quiet-pull
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
@@ -252,7 +252,7 @@ jobs:
           docker builder prune -f
           docker images
       - run: docker compose -f docker/docker-compose.yml --profile ${{ matrix.PROFILE }} up -d --quiet-pull
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
@@ -342,7 +342,7 @@ jobs:
         - run: echo "MONGODB_VERSION=${{ matrix.MONGODB_VERSION }}" > docker/.env
           if: matrix.SERVICE == 'mongodb'
         - run: docker compose -f docker/docker-compose.yml --profile integration-test-${{ matrix.SERVICE }}-discovery up -d --wait --build --quiet-pull
-        - uses: actions/setup-go@v5
+        - uses: actions/setup-go@v6
           with:
             go-version: ${{ env.GO_VERSION }}
             cache-dependency-path: '**/go.sum'
@@ -415,7 +415,7 @@ jobs:
           for f in k8s/${{ matrix.SERVICE }}/*.sh; do
             bash "$f" 
           done
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'

@@ -85,6 +85,10 @@ jobs:
 
       - name: Build & Package TA
         run: |
+          set -o pipefail
+          pushd ${{github.workspace}}
+          make -e bundle.d otelcol
+          popd
           make -e generate-technical-addon copy-local-build-to-ta package-ta
           make -e smoketest-ta
 

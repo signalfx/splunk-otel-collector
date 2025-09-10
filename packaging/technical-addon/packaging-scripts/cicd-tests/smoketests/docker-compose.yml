@@ -14,7 +14,6 @@ services:
       - SPLUNK_APPS_URL=/tmp/local-tas/$REPACKED_TA_NAME
       - SPLUNK_START_ARGS=--accept-license
       - SPLUNK_PASSWORD=Chang3d!
-      - SPLUNK_OTEL_FLAGS=--set=service.telemetry.logs.output_paths=["/opt/splunk/var/log/splunk/otel.log"] --set=service.telemetry.logs.level=debug
     ports:
       - 8000
     volumes:

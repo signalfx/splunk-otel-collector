@@ -370,7 +370,7 @@ func checkRuntimeParams(settings *Settings) error {
 
 	if _, ok := os.LookupEnv(GoGCEnvVar); !ok {
 		debug.SetGCPercent(DefaultGoGC)
-		log.Printf("Set garbage collection target percentage (GOGC) to %d", DefaultGoGC)
+		logInfo("Set garbage collection target percentage (GOGC) to %d", DefaultGoGC)
 	}
 
 	return nil
@@ -415,7 +415,7 @@ func setDefaultEnvVars(s *Settings) error {
 					RealmEnvVar, IngestURLEnvVar)
 			}
 			if e == ListenInterfaceEnvVar {
-				log.Printf("set %q to %q", e, v)
+				logInfo("set %q to %q", e, v)
 			}
 		}
 	}
@@ -431,7 +431,7 @@ func setDefaultFeatureGates(flagSet *flag.FlagSet) {
 	arrVal, ok := fgFlag.Value.(*stringArrayFlagValue)
 	if !ok {
 		// programming error - should only happen w/ invalid changes over time.
-		log.Printf("unexpected feature-gates flag value %T. Not setting default gates.", fgFlag.Value)
+		logWarn("unexpected feature-gates flag value %T. Not setting default gates.", fgFlag.Value)
 		return
 	}
 	for _, fg := range defaultFeatureGates {
@@ -479,14 +479,14 @@ func checkConfig(settings *Settings) error {
 		if err := checkInputConfigs(settings); err != nil {
 			return err
 		}
-		log.Printf("Set config to %v", settings.configPaths.String())
+		logInfo("Set config to %v", settings.configPaths.String())
 	case configPathVar != "":
 		if err := checkConfigPathEnvVar(settings); err != nil {
 			return err
 		}
-		log.Printf("Set config to %v", configPathVar)
+		logInfo("Set config to %v", configPathVar)
 	case configYaml != "":
-		log.Printf("Using environment variable %s for configuration", ConfigYamlEnvVar)
+		logInfo("Using environment variable %s for configuration", ConfigYamlEnvVar)
 	default:
 		defaultConfigPath, err := getExistingDefaultConfigPath()
 		if err != nil {
@@ -496,7 +496,7 @@ func checkConfig(settings *Settings) error {
 		if err = confirmRequiredEnvVarsForDefaultConfigs(settings.configPaths.value); err != nil {
 			return err
 		}
-		log.Printf("Set config to %v", defaultConfigPath)
+		logInfo("Set config to %v", defaultConfigPath)
 	}
 	return nil
 }
@@ -515,7 +515,7 @@ func envVarAsInt(env string) int {
 	// Check if it is a numeric value.
 	val, err := strconv.Atoi(envVal)
 	if err != nil {
-		log.Fatalf("Expected a number in %s env variable but got %s", env, envVal)
+		logFatal("Expected a number in %s env variable but got %s", env, envVal)
 	}
 	return val
 }
@@ -525,7 +525,7 @@ func setSoftMemoryLimit(memTotalSizeMiB int) {
 	memLimit := int64(memTotalSizeMiB * DefaultMemoryLimitPercentage / 100)
 	// 1 MiB = 1048576 bytes
 	debug.SetMemoryLimit(memLimit * 1048576)
-	log.Printf("Set soft memory limit set to %d MiB", memLimit)
+	logInfo("Set soft memory limit set to %d MiB", memLimit)
 }
 
 // Validate and set the memory limit
@@ -540,7 +540,7 @@ func setMemoryLimit(memTotalSizeMiB int) (int, error) {
 	if err := os.Setenv(MemLimitMiBEnvVar, strconv.Itoa(memLimit)); err != nil {
 		return -1, err
 	}
-	log.Printf("Set memory limit to %d MiB", memLimit)
+	logInfo("Set memory limit to %d MiB", memLimit)
 	return memLimit, nil
 }
 
@@ -576,12 +576,12 @@ func checkInputConfigs(settings *Settings) error {
 			}
 		}
 		if differingVals {
-			log.Printf("Both environment variable %v and flag '--config' were specified. Using the flag values and ignoring the environment variable value %s in this session", ConfigEnvVar, configPathVar)
+			logWarn("Both environment variable %v and flag '--config' were specified. Using the flag values and ignoring the environment variable value %s in this session", ConfigEnvVar, configPathVar)
 		}
 	}
 
 	if configYaml != "" {
-		log.Printf("Both environment variable %s and flag '--config' were specified. Using the flag values and ignoring the environment variable in this session", ConfigYamlEnvVar)
+		logWarn("Both environment variable %s and flag '--config' were specified. Using the flag values and ignoring the environment variable in this session", ConfigYamlEnvVar)
 	}
 
 	return confirmRequiredEnvVarsForDefaultConfigs(configFilePaths)
@@ -596,7 +596,7 @@ func checkConfigPathEnvVar(settings *Settings) error {
 	}
 
 	if configYaml != "" {
-		log.Printf("Both %s and %s were specified. Using %s environment variable value %s for this session", ConfigEnvVar, ConfigYamlEnvVar, ConfigEnvVar, configPath)
+		logWarn("Both %s and %s were specified. Using %s environment variable value %s for this session", ConfigEnvVar, ConfigYamlEnvVar, ConfigEnvVar, configPath)
 	}
 
 	if !settings.configPaths.contains(configPath) {
@@ -616,7 +616,7 @@ func confirmRequiredEnvVarsForDefaultConfigs(paths []string) error {
 			requiredEnvVars := []string{RealmEnvVar, TokenEnvVar}
 			for _, v := range requiredEnvVars {
 				if len(os.Getenv(v)) == 0 {
-					log.Printf("Usage: %s=12345 %s=us0 %s", TokenEnvVar, RealmEnvVar, os.Args[0])
+					logWarn("Usage: %s=12345 %s=us0 %s", TokenEnvVar, RealmEnvVar, os.Args[0])
 					return fmt.Errorf("ERROR: Missing required environment variable %s with default config path %s", v, path)
 				}
 			}
@@ -689,4 +689,19 @@ func parseURI(uri string) (scheme string, location string, isURI bool) {
 		return "", "", false
 	}
 	return submatches[1], submatches[2], true
+}
+
+// Use wrapper functions to log, so the code uses prefixes compatible with splunk/splunkd
+// otherwise all of these are reported as ERROR on the splunkd.log file.
+
+func logInfo(format string, v ...any) {
+	log.Printf("INFO "+format, v...)
+}
+
+func logWarn(format string, v ...any) {
+	log.Printf("WARN "+format, v...)
+}
+
+func logFatal(format string, v ...any) {
+	log.Fatalf("ERROR "+format, v...)
 }

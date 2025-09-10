@@ -133,9 +133,6 @@ exporters:
     #verbosity: detailed
 
 service:
-  telemetry:
-    logs:
-      level: error
   extensions: [headers_setter, health_check, http_forwarder, zpages]
   pipelines:
     traces:

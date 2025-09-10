@@ -153,6 +153,10 @@ exporters:
     verbosity: detailed
 
 service:
+  telemetry:
+    logs:
+      level: info
+      output_paths: [ "${env:SPLUNK_HOME}/var/log/splunk/otel.log" ]
   extensions: [headers_setter, health_check, http_forwarder, zpages, smartagent]
   pipelines:
     traces:

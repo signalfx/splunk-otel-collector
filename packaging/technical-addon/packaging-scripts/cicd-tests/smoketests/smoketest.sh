@@ -9,7 +9,7 @@ TA_FULLPATH="$(repack_with_test_config "foobar" "$BUILD_DIR/out/distribution/Spl
 # Dump the repacked local yaml files for debugging
 echo "Listing repacked files"
 find "$BUILD_DIR/repack/" -name "*"
-for yaml_file in "$BUILD_DIR/repack/Splunk_TA_otel/local/"*.yaml; do
+for yaml_file in $(find "$BUILD_DIR/repack/*/Splunk_TA_otel/configs/" -name "*.yaml"); do
     if [ -f "$yaml_file" ]; then
         echo -e "\n=============== $yaml_file =================="
         cat "$yaml_file"

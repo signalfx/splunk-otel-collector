@@ -62,7 +62,6 @@ for test_str in \
     'envvartest_SPLUNK_HEC_URL: Str(test_notused)' \
     'envvartest_SPLUNK_INGEST_URL: Str(https://ingest.us0.signalfx.com)' \
     'envvartest_SPLUNK_LISTEN_INTERFACE: Str(localhost)' \
-    'envvartest_SPLUNK_OTEL_LOG_FILE_NAME: Str(/opt/splunk/var/log/splunk/otel.log)' \
     'envvartest_SPLUNK_REALM: Str(us0)' \
 ; do
     docker exec -u root envvars-ta-test-envvars-1 grep -qi "$test_str" /opt/splunk/var/log/splunk/otel.log

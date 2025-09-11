@@ -5,7 +5,7 @@ set -o pipefail
 [[ -z "$ADDONS_SOURCE_DIR" ]] && echo "ADDONS_SOURCE_DIR not set" && exit 1
 
 source "${ADDONS_SOURCE_DIR}/packaging-scripts/cicd-tests/test-utils.sh"
-TA_FULLPATH="$(repack_with_access_token "foobar" "$BUILD_DIR/out/distribution/Splunk_TA_otel.tgz" | tail -n 1)"
+TA_FULLPATH="$(repack_with_test_config "foobar" "$BUILD_DIR/out/distribution/Splunk_TA_otel.tgz" | tail -n 1)"
 REPACKED_TA_NAME="$(basename "$TA_FULLPATH")"
 ADDON_DIR="$(realpath "$(dirname "$TA_FULLPATH")")"
 rm -rf "$ADDON_DIR/$REPACKED_TA_NAME"
@@ -22,7 +22,7 @@ tar -C "$ADDON_DIR" -hcz --file "$TA_FULLPATH" "Splunk_TA_otel"
 echo "Testing with hot TA $TA_FULLPATH ($ADDON_DIR and $REPACKED_TA_NAME)"
 
 DOCKER_COMPOSE_CONFIG="$ADDONS_SOURCE_DIR/packaging-scripts/cicd-tests/discovery/docker-compose.yml"
-REPACKED_TA_NAME=$REPACKED_TA_NAME ADDON_DIR=$ADDON_DIR docker compose --file "$DOCKER_COMPOSE_CONFIG" up --build --force-recreate --wait --detach --timestamps
+REPACKED_TA_NAME=$REPACKED_TA_NAME ADDON_DIR=$ADDON_DIR docker compose --quiet-pull --file "$DOCKER_COMPOSE_CONFIG" up --build --force-recreate --wait --detach --timestamps
 
 # If there's an error in the app, you can try manually installing it or modifying files
 # Lines are for debugging only, until we get better testing documentation
@@ -62,4 +62,4 @@ docker exec -u root discovery-ta-test-discovery-1 grep -qi "9092" /opt/splunk/va
 docker exec -u root discovery-ta-test-discovery-1 grep -qi "kafkametrics receiver is working" /opt/splunk/var/log/splunk/otel.log
 
 # Should trap this
-REPACKED_TA_NAME=$REPACKED_TA_NAME BUILD_DIR=$BUILD_DIR ADDON_DIR=$ADDON_DIR docker compose --file "$DOCKER_COMPOSE_CONFIG" down
+REPACKED_TA_NAME=$REPACKED_TA_NAME BUILD_DIR=$BUILD_DIR ADDON_DIR=$ADDON_DIR docker compose --quiet-pull --file "$DOCKER_COMPOSE_CONFIG" down

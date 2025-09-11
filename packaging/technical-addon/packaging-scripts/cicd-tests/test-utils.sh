@@ -1,10 +1,10 @@
 #!/bin/bash -eu
 
-repack_with_access_token() {
+repack_with_test_config() {
     local token="${SPLUNK_O11Y_ACCESS_TOKEN:-$1}"
     local path="${TA_TGZ_PATH:-$2}"
 
-    echo "Adding access token to: $path"
+    echo "Setting test config to: $path"
 
     TEMP_DIR="$BUILD_DIR/repack"
     mkdir -p "$TEMP_DIR"
@@ -12,7 +12,16 @@ repack_with_access_token() {
     tar xzvf "$BUILD_DIR/out/distribution/Splunk_TA_otel.tgz" -C "$TEMP_DIR"
     cp -r "$TEMP_DIR/Splunk_TA_otel/default/" "$TEMP_DIR/Splunk_TA_otel/local/"
     chmod -R a+rwx "$TEMP_DIR"
+
     echo "$token" > "$TEMP_DIR/Splunk_TA_otel/local/access_token"
+
+    # Loop over all YAML files and update log level and output lines
+    for yaml_file in "$TEMP_DIR/Splunk_TA_otel/local/"*.yaml; do
+        if [ -f "$yaml_file" ]; then
+            sed -i "s/^level: .*/level: debug/" "$yaml_file"
+            sed -i "s/^# output_paths: /output_paths: /" "$yaml_file"
+        fi
+    done
 
     random_suffix="$(LC_CTYPE=c tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 6)"
     repacked="$TEMP_DIR/Splunk_TA_otel-${random_suffix}.tgz"

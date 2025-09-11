@@ -6,16 +6,6 @@ set -o pipefail
 
 source "${ADDONS_SOURCE_DIR}/packaging-scripts/cicd-tests/test-utils.sh"
 TA_FULLPATH="$(repack_with_test_config "foobar" "$BUILD_DIR/out/distribution/Splunk_TA_otel.tgz" | tail -n 1)"
-# Dump the repacked local yaml files for debugging
-echo "Listing repacked files"
-find "$BUILD_DIR/repack/" -name "*"
-for yaml_file in $(find "$BUILD_DIR/repack/*/Splunk_TA_otel/configs/" -name "*.yaml"); do
-    if [ -f "$yaml_file" ]; then
-        echo -e "\n=============== $yaml_file =================="
-        cat "$yaml_file"
-    fi
-done
-
 REPACKED_TA_NAME="$(basename "$TA_FULLPATH")"
 ADDON_DIR="$(realpath "$(dirname "$TA_FULLPATH")")"
 echo "Testing with hot TA $TA_FULLPATH ($ADDON_DIR and $REPACKED_TA_NAME)"

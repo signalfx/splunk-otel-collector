@@ -32,6 +32,9 @@ updates:
       boto3:
         patterns:
           - "boto3"
+      pyyaml:
+        patterns:
+          - "pyyaml"
   - package-ecosystem: "docker"
     directories:
       - "**/*"

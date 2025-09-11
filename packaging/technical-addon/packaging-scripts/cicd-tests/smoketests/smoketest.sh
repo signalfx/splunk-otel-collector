@@ -10,7 +10,7 @@ REPACKED_TA_NAME="$(basename "$TA_FULLPATH")"
 ADDON_DIR="$(realpath "$(dirname "$TA_FULLPATH")")"
 echo "Testing with hot TA $TA_FULLPATH ($ADDON_DIR and $REPACKED_TA_NAME)"
 DOCKER_COMPOSE_CONFIG="$ADDONS_SOURCE_DIR/packaging-scripts/cicd-tests/smoketests/docker-compose.yml"
-ADDON_DIR="$ADDON_DIR" REPACKED_TA_NAME="$REPACKED_TA_NAME" docker compose --quiet-pull --file "$DOCKER_COMPOSE_CONFIG" up --detach --wait --build --force-recreate --timestamps
+ADDON_DIR="$ADDON_DIR" REPACKED_TA_NAME="$REPACKED_TA_NAME" docker compose --file "$DOCKER_COMPOSE_CONFIG" up --quiet-pull --detach --wait --build --force-recreate --timestamps
 
 # If there's an error in the app, you can try manually installing it or modifying files
 # Lines are for debugging only, until we get better testing documentation
@@ -39,4 +39,4 @@ while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
 done
 
 # Should trap this
-ADDON_DIR="$ADDON_DIR" REPACKED_TA_NAME="$REPACKED_TA_NAME" docker compose --quiet-pull --file "$DOCKER_COMPOSE_CONFIG" down
+ADDON_DIR="$ADDON_DIR" REPACKED_TA_NAME="$REPACKED_TA_NAME" docker compose --file "$DOCKER_COMPOSE_CONFIG" down

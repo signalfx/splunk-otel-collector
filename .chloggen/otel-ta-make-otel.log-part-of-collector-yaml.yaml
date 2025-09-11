@@ -1,0 +1,19 @@
+# One of 'breaking', 'deprecation', 'new_component', 'enhancement', 'bug_fix'
+change_type: 'breaking'
+
+# The name of the component, or a single word describing the area of concern, (e.g. crosslink)
+component: Splunk_TA_otel
+
+# A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
+note: "Make otel.log part of the collector YAML configuration"
+
+# One or more tracking issues related to the change
+issues: [6748]
+
+# (Optional) One or more lines of additional information to render under the primary note.
+# These lines will be padded with 2 spaces and then inserted directly into the document.
+# Use pipe (|) for multiline entries.
+subtext: |
+  Removed `splunk_otel_log_file` configuration option. By default, the OTel Collector will log errors
+  to `splunkd.log` on all platforms. If you want more detailed logging or if you want to log to a different file,
+  you can modify the `service.telemetry.logs` section in the YAML files under the `configs/` directory of the addon.

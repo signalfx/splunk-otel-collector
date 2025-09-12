@@ -10,7 +10,7 @@ if [ "$PLATFORM" == "windows" ] || [ "$PLATFORM" == "all" ]; then
     mkdir -p "$BUILD_DIR/out/bin"
     OUTPUT_PATH="$BUILD_DIR/out/bin/$COLLECTOR_BINARY"
     if ! [ -f "$OUTPUT_PATH" ]; then
-        wget "$URL" --output-document "$OUTPUT_PATH"
+        wget --no-verbose  "$URL" --output-document "$OUTPUT_PATH"
     fi
     chmod +x "$OUTPUT_PATH"
     echo "SAVED $COLLECTOR_BINARY TO $OUTPUT_PATH"
@@ -21,7 +21,7 @@ if [ "$PLATFORM" == "linux" ] || [ "$PLATFORM" == "all" ]; then
     mkdir -p "$BUILD_DIR/out/bin"
     OUTPUT_PATH="$BUILD_DIR/out/bin/$COLLECTOR_BINARY"
     if ! [ -f "$OUTPUT_PATH" ]; then
-        wget "$URL" --output-document "$OUTPUT_PATH"
+        wget --no-verbose  "$URL" --output-document "$OUTPUT_PATH"
     fi
     chmod +x "$OUTPUT_PATH"
     echo "SAVED $COLLECTOR_BINARY TO $OUTPUT_PATH"

@@ -25,6 +25,7 @@ service:
   telemetry:
     logs:
       level: debug
+      output_paths: [ "${env:SPLUNK_HOME}/var/log/splunk/otel.log" ]
   extensions:
     - host_observer
   pipelines:

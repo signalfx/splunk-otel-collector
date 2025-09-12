@@ -128,10 +128,6 @@ func GetSplunkTAOtelLinuxAutoinstrumentationModularInputs(mip *modularinput.Modi
 			Value: mip.ModularInputs["splunk_otel_java_autoinstrumentation_jar_path"].Value,
 			Name:  "splunk_otel_java_autoinstrumentation_jar_path",
 		},
-		SplunkOtelLogFile: SplunkTAOtelLinuxAutoinstrumentationModInput{
-			Value: mip.ModularInputs["splunk_otel_log_file"].Value,
-			Name:  "splunk_otel_log_file",
-		},
 	}
 }
 
@@ -253,13 +249,6 @@ func GetDefaultSplunkTAOtelLinuxAutoinstrumentationModularInputs() modularinput.
 			"splunk_otel_java_autoinstrumentation_jar_path": {
 				Config: modularinput.ModInputConfig{Description: "Path for the java jar used in autoinstumentation.", Default: "$SPLUNK_OTEL_TA_PLATFORM_HOME/bin/splunk-otel-javaagent.jar", Flag: modularinput.Flag{Name: "", IsUnary: false}, Required: false, PassthroughEnvVar: false, ReplaceableEnvVar: true},
 				Value:  "$SPLUNK_OTEL_TA_PLATFORM_HOME/bin/splunk-otel-javaagent.jar",
-				Transformers: []modularinput.TransformerFunc{
-					modularinput.DefaultReplaceEnvVarTransformer,
-				},
-			},
-			"splunk_otel_log_file": {
-				Config: modularinput.ModInputConfig{Description: "Log file for otel collector.", Default: "$SPLUNK_HOME/var/log/splunk/otel.log", Flag: modularinput.Flag{Name: "", IsUnary: false}, Required: false, PassthroughEnvVar: false, ReplaceableEnvVar: true},
-				Value:  "$SPLUNK_HOME/var/log/splunk/otel.log",
 				Transformers: []modularinput.TransformerFunc{
 					modularinput.DefaultReplaceEnvVarTransformer,
 				},

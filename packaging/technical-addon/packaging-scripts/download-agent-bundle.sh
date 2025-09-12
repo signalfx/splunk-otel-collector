@@ -10,7 +10,7 @@ if [ "$PLATFORM" == "windows" ] || [ "$PLATFORM" == "all" ]; then
     mkdir -p "$BUILD_DIR/out/smart-agent/"
     OUTPUT_PATH="$BUILD_DIR/out/smart-agent/$SMART_AGENT_BUNDLE"
     if ! [ -f "$OUTPUT_PATH" ]; then
-        wget "$URL" --output-document "$OUTPUT_PATH"
+        wget --no-verbose "$URL" --output-document "$OUTPUT_PATH"
     fi
     echo "SAVED $SMART_AGENT_BUNDLE TO $OUTPUT_PATH"
 fi
@@ -20,7 +20,7 @@ if [ "$PLATFORM" == "linux" ] || [ "$PLATFORM" == "all" ]; then
     mkdir -p "$BUILD_DIR/out/smart-agent/"
     OUTPUT_PATH="$BUILD_DIR/out/smart-agent/$SMART_AGENT_BUNDLE"
     if ! [ -f "$OUTPUT_PATH" ]; then
-        wget "$URL" --output-document "$OUTPUT_PATH"
+        wget --no-verbose "$URL" --output-document "$OUTPUT_PATH"
     fi
     echo "SAVED $SMART_AGENT_BUNDLE TO $OUTPUT_PATH"
 fi

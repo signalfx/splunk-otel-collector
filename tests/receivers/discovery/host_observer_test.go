@@ -30,7 +30,6 @@ import (
 )
 
 func TestDiscoveryReceiverWithHostObserverAndSimplePrometheusReceiverProvideStatusLogs(t *testing.T) {
-	t.Skip("Skip to make the build pass, to be fixed in next PR")
 	testutils.SkipIfNotContainerTest(t)
 	tc := testutils.NewTestcase(t)
 	defer tc.PrintLogsOnFailure()
@@ -107,6 +106,8 @@ func TestDiscoveryReceiverWithHostObserverAndSimplePrometheusReceiverProvideStat
 				}
 			}
 		}
+
+		t.Log("Foundfailure: %t, foundSuccess: %t, received log count: %d", foundFailure, foundSuccess, tc.OTLPReceiverSink.LogRecordCount())
 		return foundSuccess && foundFailure
 	}, 30*time.Second, 10*time.Millisecond, "Failed to receive expected logs")
 }

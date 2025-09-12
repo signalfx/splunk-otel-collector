@@ -17,22 +17,6 @@ receivers:
         resource_attributes:
           one.key: one.value
           two.key: two.value
-        status:
-          metrics:
-            - status: successful
-              regexp: ^otelcol_process_uptime$
-              message: Successfully connected to prometheus server
-          statements:
-            # Only the first matching statement match will be applied
-            - status: failed
-              strict: Failed to scrape Prometheus endpoint
-              message: (strict) Port appears to not be serving prometheus metrics
-            - status: failed
-              regexp: '"message":"Failed to scrape Prometheus endpoint"'
-              message: (regexp) Port appears to not be serving prometheus metrics
-            - status: failed
-              expr: message == 'Failed to scrape Prometheus endpoint' && ExprEnv["target_labels"] contains "up"
-              message: (expr) Port appears to not be serving prometheus metrics
 
     watch_observers:
       - host_observer

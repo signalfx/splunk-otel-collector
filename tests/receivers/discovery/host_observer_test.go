@@ -30,7 +30,6 @@ import (
 )
 
 func TestDiscoveryReceiverWithHostObserverAndSimplePrometheusReceiverProvideStatusLogs(t *testing.T) {
-	t.Skip("Skip to make the build pass, to be fixed in next PR")
 	testutils.SkipIfNotContainerTest(t)
 	tc := testutils.NewTestcase(t)
 	defer tc.PrintLogsOnFailure()

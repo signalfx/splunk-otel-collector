@@ -1,4 +1,0 @@
-processors:
-  resourcedetection:
-    detectors: [ecs, ec2, azure, system]
-    override: true

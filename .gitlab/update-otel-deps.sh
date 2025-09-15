@@ -44,7 +44,7 @@ create_collector_pr() {
         --repo "$repo" \
         --title "$message" \
         --body "$message" \
-        --label "Skip Changelog"
+        --label "Skip Changelog" \
         --base main \
         --head "$BRANCH"
     fi

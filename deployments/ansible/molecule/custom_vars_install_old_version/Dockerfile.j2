@@ -1,4 +1,4 @@
-{% if item.image not in ["opensuse12", "opensuse15", "centos9"] %}
+{% if item.image not in ["opensuse15", "centos9"] %}
 FROM geerlingguy/docker-{{ item.image }}-ansible:latest
 {% elif item.image == "centos9" %}
 FROM quay.io/centos/centos:stream9
@@ -17,16 +17,9 @@ RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i = \
 RUN sed -i -e 's/^\(Defaults\s*requiretty\)/#--- \1/'  /etc/sudoers
 CMD ["/usr/sbin/init"]
 {% else %}
-{% if item.image == "opensuse12" %}
-FROM opensuse/leap:42
-RUN sed -i 's|download.opensuse.org|ftp5.gwdg.de/pub/opensuse/discontinued|' /etc/zypp/repos.d/*.repo
-RUN zypper -n clean && zypper -n refresh
-RUN zypper -n install -l ansible dbus-1 rpm-python sudo systemd-sysvinit
-{% else %}
 FROM opensuse/leap:15
 RUN sed -i 's|download.opensuse.org|provo-mirror.opensuse.org|' /etc/zypp/repos.d/*.repo
 RUN zypper -n install -l ansible dbus-1 python3-rpm sudo systemd-sysvinit
-{% endif %}
 
 ENV container docker
 

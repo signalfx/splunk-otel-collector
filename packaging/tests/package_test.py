@@ -102,9 +102,6 @@ def test_tar_collector_package_install(distro, arch):
 )
 @pytest.mark.parametrize("arch", ["amd64", "arm64"])
 def test_collector_package_install(distro, arch):
-    if distro == "opensuse-12" and arch == "arm64":
-        pytest.skip("opensuse-12 arm64 no longer supported")
-
     pkg_path = get_package(distro, PKG_NAME, PKG_DIR, arch)
     assert pkg_path, f"{PKG_NAME} {arch} package not found in {PKG_DIR}"
     pkg_base = os.path.basename(pkg_path)
@@ -181,9 +178,6 @@ def test_collector_package_install(distro, arch):
     )
 @pytest.mark.parametrize("arch", ["amd64", "arm64"])
 def test_collector_package_upgrade(distro, arch):
-    if distro == "opensuse-12" and arch == "arm64":
-        pytest.skip("opensuse-12 arm64 no longer supported")
-
     install_cmd = f"sh /test/install.sh -- testing123 --realm test --without-fluentd --collector-version 0.35.0"
 
     pkg_path = get_package(distro, PKG_NAME, PKG_DIR, arch)

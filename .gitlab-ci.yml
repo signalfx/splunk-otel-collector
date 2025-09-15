@@ -286,6 +286,7 @@ update-openjdk:
   only:
     - schedules
   extends: .go-cache
+  tags: [large]
   stage: update-deps
   needs: []
   dependencies: []
@@ -297,6 +298,7 @@ update-javaagent:
   only:
     - schedules
   extends: .go-cache
+  tags: [large]
   stage: update-deps
   needs: []
   dependencies: []
@@ -308,6 +310,7 @@ update-jmx-metrics-gatherer:
   only:
     - schedules
   extends: .go-cache
+  tags: [large]
   stage: update-deps
   needs: []
   dependencies: []
@@ -319,6 +322,7 @@ update-nodejs-agent:
   only:
     - schedules
   extends: .go-cache
+  tags: [large]
   stage: update-deps
   needs: []
   dependencies: []
@@ -330,6 +334,7 @@ update-dotnet-agent:
   only:
     - schedules
   extends: .go-cache
+  tags: [large]
   stage: update-deps
   needs: []
   dependencies: []

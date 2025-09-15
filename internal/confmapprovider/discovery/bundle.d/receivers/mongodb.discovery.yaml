@@ -1,0 +1,21 @@
+##############################################################################################
+#                               Do not edit manually!                                        #
+# All changes must be made to associated .yaml metadata file before running 'make bundle.d'. #
+##############################################################################################
+mongodb:
+  enabled: true
+  rule:
+    docker_observer: type == "container" and any([name, image, command], {# matches "(?i)mongo"}) and not (command matches "splunk.discovery")
+    host_observer: type == "hostport" and command matches "(?i)mongo" and not (command matches "splunk.discovery")
+    k8s_observer: type == "port" and pod.name matches "(?i)mongo"
+  config:
+    default:
+      username: splunk.discovery.default
+      password: splunk.discovery.default
+      direct_connection: true
+      tls:
+        insecure_skip_verify: true
+        insecure: false
+      hosts:
+        - endpoint: '`endpoint`'
+      timeout: 5s

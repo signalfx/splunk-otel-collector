@@ -1,0 +1,138 @@
+# Default configuration file for the Linux (deb/rpm) and Windows MSI collector packages
+
+# If the collector is installed without the Linux/Windows installer script, the following
+# environment variables are required to be manually defined or configured below:
+# - SPLUNK_ACCESS_TOKEN: The Splunk access token to authenticate requests
+# - SPLUNK_API_URL: The Splunk API URL, e.g. https://api.us0.signalfx.com
+# - SPLUNK_BUNDLE_DIR: The path to the Smart Agent bundle, e.g. /usr/lib/splunk-otel-collector/agent-bundle
+# - SPLUNK_COLLECTD_DIR: The path to the collectd config directory for the Smart Agent, e.g. /usr/lib/splunk-otel-collector/agent-bundle/run/collectd
+# - SPLUNK_INGEST_URL: The Splunk ingest URL, e.g. https://ingest.us0.signalfx.com
+# - SPLUNK_LISTEN_INTERFACE: The network interface the agent receivers listen on.
+
+extensions:
+  headers_setter:
+    headers:
+      - action: upsert
+        key: X-SF-TOKEN
+        from_context: X-SF-TOKEN
+        default_value: "${SPLUNK_ACCESS_TOKEN}"
+  health_check:
+    endpoint: "${env:SPLUNK_LISTEN_INTERFACE}:13133"
+  http_forwarder:
+    ingress:
+      endpoint: "${env:SPLUNK_LISTEN_INTERFACE}:6060"
+    egress:
+      endpoint: "${env:SPLUNK_API_URL}"
+  zpages:
+    #endpoint: "${env:SPLUNK_LISTEN_INTERFACE}:55679"
+
+receivers:
+  fluentforward:
+    endpoint: 127.0.0.1:8006
+  hostmetrics:
+    collection_interval: 10s
+    scrapers:
+      cpu:
+      disk:
+      filesystem:
+      memory:
+      network:
+      # System load average metrics https://en.wikipedia.org/wiki/Load_(computing)
+      load:
+      # Paging/Swap space utilization and I/O metrics
+      paging:
+      # Aggregated system process count metrics
+      processes:
+      # System processes metrics, disabled by default
+      # process:
+  jaeger:
+    protocols:
+      grpc:
+        endpoint: "${env:SPLUNK_LISTEN_INTERFACE}:14250"
+      thrift_binary:
+        endpoint: "${env:SPLUNK_LISTEN_INTERFACE}:6832"
+      thrift_compact:
+        endpoint: "${env:SPLUNK_LISTEN_INTERFACE}:6831"
+      thrift_http:
+        endpoint: "${env:SPLUNK_LISTEN_INTERFACE}:14268"
+  otlp:
+    protocols:
+      grpc:
+        endpoint: "${env:SPLUNK_LISTEN_INTERFACE}:4317"
+        # Uncomment below config to preserve incoming access token and use it instead of the token value set in exporter config
+        # include_metadata: true
+      http:
+        endpoint: "${env:SPLUNK_LISTEN_INTERFACE}:4318"
+        # Uncomment below config to preserve incoming access token and use it instead of the token value set in exporter config
+        # include_metadata: true
+  # This section is used to collect the OpenTelemetry Collector metrics
+  # Even if just a Splunk APM customer, these metrics are included
+  prometheus/internal:
+    config:
+      scrape_configs:
+      - job_name: 'otel-collector'
+        scrape_interval: 10s
+        static_configs:
+        - targets: ["${env:SPLUNK_LISTEN_INTERFACE}:8888"]
+        metric_relabel_configs:
+          - source_labels: [ __name__ ]
+            regex: '.*grpc_io.*'
+            action: drop
+  smartagent/processlist:
+    type: processlist
+  signalfx:
+    endpoint: "${env:SPLUNK_LISTEN_INTERFACE}:9943"
+    # Whether to preserve incoming access token and use instead of exporter token
+    # default = false
+    #access_token_passthrough: true
+  zipkin:
+    endpoint: "${env:SPLUNK_LISTEN_INTERFACE}:9411"
+
+processors:
+  batch:
+    metadata_keys:
+      - X-SF-Token
+  # Enabling the memory_limiter is strongly recommended for every pipeline.
+  # Configuration is based on the amount of memory allocated to the collector.
+  # For more information about memory limiter, see
+  # https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiter/README.md
+  memory_limiter:
+    check_interval: 2s
+    limit_mib: ${env:SPLUNK_MEMORY_LIMIT_MIB}
+  resourcedetection:
+    detectors: [gcp, ecs, ec2, azure, system]
+    override: true
+  resource/telemetry:
+    attributes:
+      - action: insert
+        key: splunk.distribution
+        value: otel-ta-test
+
+exporters:
+  # Debug
+  debug:
+    verbosity: detailed
+
+service:
+  extensions: [headers_setter, health_check, http_forwarder, zpages, smartagent]
+  pipelines:
+    traces:
+      receivers: [jaeger, otlp, zipkin]
+      processors:
+      - memory_limiter
+      - batch
+      - resourcedetection
+      #- resource/add_environment
+      exporters: [otlphttp, signalfx]
+    metrics:
+      receivers: [hostmetrics, otlp, signalfx]
+      processors: [memory_limiter, batch, resourcedetection]
+      exporters: [debug]
+    logs/signalfx:
+      receivers: [signalfx, smartagent/processlist]
+      processors: [memory_limiter, batch, resourcedetection]
+      exporters: [debug]
+    metrics/telemetry:
+      receivers: [prometheus/internal]
+      processors: [memory_limiter, batch, resourcedetection, resource/telemetry]
+      exporters: [debug]

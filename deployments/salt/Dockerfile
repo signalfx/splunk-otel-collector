@@ -2,14 +2,14 @@
 # Salt Stack Salt Dev Container
 #
 
-FROM ubuntu:20.04
+FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV SALT_VERSION=latest
 ENV SALT_LINT_VERSION=0.9.2
 
 RUN apt-get update && apt-get upgrade -y -o DPkg::Options::=--force-confold
-RUN apt-get install -y python3-pip curl
+RUN apt-get install -y pipx curl
 
 RUN mkdir -p /etc/apt/keyrings
 RUN curl -fsSL https://packages.broadcom.com/artifactory/api/security/keypair/SaltProjectKey/public | tee /etc/apt/keyrings/salt-archive-keyring.pgp
@@ -17,7 +17,7 @@ RUN curl -fsSL https://github.com/saltstack/salt-install-guide/releases/${SALT_V
 RUN apt-get update
 RUN apt-get install -y salt-minion
 
-RUN pip3 install salt-lint==${SALT_LINT_VERSION}
+RUN pipx install salt-lint==${SALT_LINT_VERSION}
 
 RUN sed -i "s|#file_client:.*|file_client: local|" /etc/salt/minion
 

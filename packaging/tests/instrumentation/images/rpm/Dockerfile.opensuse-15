@@ -6,7 +6,7 @@ FROM opensuse/leap:15
 
 ARG TARGETARCH
 
-ENV container docker
+ENV container=docker
 
 # RUN sed -i 's|download.opensuse.org|provo-mirror.opensuse.org|' /etc/zypp/repos.d/*.repo
 RUN zypper -n install -l curl dbus-1 gzip python3 systemd-sysvinit tar wget
@@ -25,7 +25,7 @@ COPY --from=tomcat /opt/java /opt/java
 COPY instrumentation/setup-tomcat.sh /opt/
 RUN bash /opt/setup-tomcat.sh
 
-ARG NODE_VERSION=v16
+ARG NODE_VERSION=v18
 COPY instrumentation/setup-express.sh /opt
 RUN bash /opt/setup-express.sh
 

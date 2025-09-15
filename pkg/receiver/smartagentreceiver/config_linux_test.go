@@ -20,23 +20,22 @@ import (
 	"path"
 	"testing"
 
-	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
-	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/apache"
-	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/genericjmx"
-	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/kafka"
-	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/memcached"
-	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/php"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
+
+	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
+	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/apache"
+	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/memcached"
+	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/php"
 )
 
 func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 	configs, err := confmaptest.LoadConf(path.Join(".", "testdata", "linux_config.yaml"))
 	require.NoError(t, err)
 
-	assert.Equal(t, 4, len(configs.ToStringMap()))
+	assert.Equal(t, 3, len(configs.ToStringMap()))
 
 	cm, err := configs.Sub(component.MustNewIDWithName(typeStr, "apache").String())
 	require.NoError(t, err)
@@ -44,6 +43,7 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 	err = cm.Unmarshal(&apacheCfg)
 	require.NoError(t, err)
 	require.Equal(t, &Config{
+		MonitorType: "collectd/apache",
 		monitorConfig: &apache.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "collectd/apache",
@@ -56,30 +56,7 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 		},
 		acceptsEndpoints: true,
 	}, apacheCfg)
-	require.NoError(t, apacheCfg.validate())
-
-	cm, err = configs.Sub(component.MustNewIDWithName(typeStr, "kafka").String())
-	require.NoError(t, err)
-	kafkaCfg := CreateDefaultConfig().(*Config)
-	err = cm.Unmarshal(&kafkaCfg)
-	require.NoError(t, err)
-	require.Equal(t, &Config{
-		monitorConfig: &kafka.Config{
-			Config: genericjmx.Config{
-				MonitorConfig: saconfig.MonitorConfig{
-					Type:                "collectd/kafka",
-					IntervalSeconds:     345,
-					DatapointsToExclude: []saconfig.MetricFilter{},
-				},
-				Host:       "localhost",
-				Port:       7199,
-				ServiceURL: "service:jmx:rmi:///jndi/rmi://{{.Host}}:{{.Port}}/jmxrmi",
-			},
-			ClusterName: "somecluster",
-		},
-		acceptsEndpoints: true,
-	}, kafkaCfg)
-	require.NoError(t, kafkaCfg.validate())
+	require.NoError(t, apacheCfg.Validate())
 
 	cm, err = configs.Sub(component.MustNewIDWithName(typeStr, "memcached").String())
 	require.NoError(t, err)
@@ -87,6 +64,7 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 	err = cm.Unmarshal(&memcachedCfg)
 	require.NoError(t, err)
 	require.Equal(t, &Config{
+		MonitorType: "collectd/memcached",
 		monitorConfig: &memcached.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "collectd/memcached",
@@ -98,7 +76,7 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 		},
 		acceptsEndpoints: true,
 	}, memcachedCfg)
-	require.NoError(t, memcachedCfg.validate())
+	require.NoError(t, memcachedCfg.Validate())
 
 	cm, err = configs.Sub(component.MustNewIDWithName(typeStr, "php").String())
 	require.NoError(t, err)
@@ -106,6 +84,7 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 	err = cm.Unmarshal(&phpCfg)
 	require.NoError(t, err)
 	require.Equal(t, &Config{
+		MonitorType: "collectd/php-fpm",
 		monitorConfig: &php.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "collectd/php-fpm",
@@ -116,5 +95,5 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 		},
 		acceptsEndpoints: true,
 	}, phpCfg)
-	require.NoError(t, phpCfg.validate())
+	require.NoError(t, phpCfg.Validate())
 }

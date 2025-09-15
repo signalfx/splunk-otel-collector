@@ -6,7 +6,7 @@ FROM quay.io/centos/centos:stream8
 
 ARG TARGETARCH
 
-ENV container docker
+ENV container=docker
 
 RUN echo 'fastestmirror=1' >> /etc/yum.conf
 RUN sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
@@ -27,7 +27,7 @@ COPY --from=tomcat /opt/java /opt/java
 COPY instrumentation/setup-tomcat.sh /opt/
 RUN bash /opt/setup-tomcat.sh
 
-ARG NODE_VERSION=v16
+ARG NODE_VERSION=v18
 COPY instrumentation/setup-express.sh /opt
 RUN bash /opt/setup-express.sh
 

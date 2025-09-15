@@ -1,0 +1,26 @@
+receiver_id: jmx/cassandra
+service_type: cassandra
+properties_tmpl: |
+  enabled: true
+  rule:
+    docker_observer: type == "container" and any([name, image, command], {# matches "(?i)cassandra.*"}) and not (command matches "splunk.discovery")
+    host_observer: type == "hostport" and command matches "(?i)cassandra.*" and not (command matches "splunk.discovery")
+    k8s_observer: type == "port" and pod.name matches "(?i)cassandra.*"
+  config:
+    default:
+      jar_path: /opt/opentelemetry-java-contrib-jmx-metrics.jar
+      endpoint: "service:jmx:rmi:///jndi/rmi://`endpoint`/jmxrmi"
+      target_system: cassandra
+      collection_interval: 10s
+status:
+  metrics:
+    - status: successful
+      strict: cassandra.client.request.count
+      message: jmx/cassandra receiver is working!
+  statements:
+    - status: failed
+      regexp: 'connect: network is unreachable'
+      message: The container cannot be reached by the Collector. Make sure they're in the same network.
+    - status: failed
+      regexp: 'connect: connection refused'
+      message: The container is refusing cassandra server connections.

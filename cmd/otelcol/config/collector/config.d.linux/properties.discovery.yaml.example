@@ -17,7 +17,3 @@ splunk.discovery:
       enabled: true
     postgresql:
       enabled: true
-    smartagent/collectd/mysql:
-      enabled: false
-    smartagent/postgresql:
-      enabled: false

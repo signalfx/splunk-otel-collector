@@ -14,6 +14,14 @@
 - name: Set Vars based on ansible_os_family
   ansible.builtin.import_tasks: vars.yml
 
+- name: Log deprecation warning when Fluentd is enabled
+  debug:
+    msg: |
+      [DEPRECATION WARNING] Fluentd support has been deprecated and will be removed in a future release.
+      Please refer to documentation on how to replace usage:
+      https://github.com/signalfx/splunk-otel-collector/blob/main/docs/deprecations/fluentd-support.md
+  when: install_fluentd
+
 - name: Linux deployment
   ansible.builtin.import_tasks: linux_install.yml
   when: ansible_os_family != "Windows"

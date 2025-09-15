@@ -45,7 +45,7 @@ func TestLogsReceiver(t *testing.T) {
 	receiver, err := factory.CreateLogs(context.Background(), params, cfg, consumertest.NewNop())
 	assert.NoError(t, err)
 	assert.NotNil(t, receiver)
-	require.NoError(t, receiver.Start(context.Background(), componenttest.NewNopHost()))
+	require.NoError(t, receiver.Start(context.Background(), newMdatagenNopHost()))
 	require.NoError(t, receiver.Shutdown(context.Background()))
 }
 
@@ -59,7 +59,7 @@ func TestMetricsReceiver(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, receiver)
 
-	require.NoError(t, receiver.Start(context.Background(), componenttest.NewNopHost()))
+	require.NoError(t, receiver.Start(context.Background(), newMdatagenNopHost()))
 	require.NoError(t, receiver.Shutdown(context.Background()))
 }
 

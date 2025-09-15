@@ -3,19 +3,13 @@ resourceMetrics:
       attributes:
         - key: container.image.name
           value:
-            stringValue: bitnami/prometheus
+            stringValue: bitnamilegacy/prometheus
         - key: container.name
           value:
             stringValue: nervous_brahmagupta
-        - key: http.scheme
+        - key: url.scheme
           value:
             stringValue: http
-        - key: net.host.name
-          value:
-            stringValue: 172.17.0.3
-        - key: net.host.port
-          value:
-            stringValue: "9090"
         - key: server.address
           value:
             stringValue: 172.17.0.3
@@ -38,21 +32,21 @@ resourceMetrics:
               dataPoints:
                 - asDouble: 0
                   attributes:
-                    - key: label_five
-                      value:
-                        stringValue: actual.label.five.value
-                    - key: label_four
-                      value:
-                        stringValue: actual.label.four.value
-                    - key: label_one
-                      value:
-                        stringValue: actual.label.one.value
-                    - key: label_three
-                      value:
-                        stringValue: actual.label.three.value
-                    - key: label_two
-                      value:
-                        stringValue: actual.label.two.value
+                   - key: label_five
+                     value:
+                       stringValue: actual.label.five.value
+                   - key: label_four
+                     value:
+                       stringValue: actual.label.four.value
+                   - key: label_one
+                     value:
+                       stringValue: actual.label.one.value
+                   - key: label_three
+                     value:
+                       stringValue: actual.label.three.value
+                   - key: label_two
+                     value:
+                       stringValue: actual.label.two.value
                   timeUnixNano: "1000000"
             metadata:
               - key: prometheus.type

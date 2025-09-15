@@ -1,0 +1,14 @@
+##############################################################################################
+#                               Do not edit manually!                                        #
+# All changes must be made to associated .yaml metadata file before running 'make bundle.d'. #
+##############################################################################################
+mysql:
+  enabled: true
+  rule:
+    docker_observer: type == "container" and port != 33060 and any([name, image, command], {# matches "(?i)mysql"}) and not (command matches "splunk.discovery")
+    host_observer: type == "hostport" and port != 33060 and  command matches "(?i)mysqld"
+    k8s_observer: type == "port" and port != 33060 and pod.name matches "(?i)mysql"
+  config:
+    default:
+      username: splunk.discovery.default
+      password: splunk.discovery.default

@@ -1,0 +1,48 @@
+{% if item.image not in ["opensuse15", "centos9"] %}
+FROM geerlingguy/docker-{{ item.image }}-ansible:latest
+{% elif item.image == "centos9" %}
+FROM quay.io/centos/centos:stream9
+ENV container docker
+RUN rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
+RUN dnf install -y initscripts sudo systemd
+RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i = \
+    "systemd-tmpfiles-setup.service" ] || rm -f $i; done); \
+    rm -f /lib/systemd/system/multi-user.target.wants/*;\
+    rm -f /lib/systemd/system/local-fs.target.wants/*; \
+    rm -f /lib/systemd/system/sockets.target.wants/*udev*; \
+    rm -f /lib/systemd/system/sockets.target.wants/*initctl*; \
+    rm -f /lib/systemd/system/basic.target.wants/*;\
+    rm -f /lib/systemd/system/anaconda.target.wants/*;
+# Disable requiretty.
+RUN sed -i -e 's/^\(Defaults\s*requiretty\)/#--- \1/'  /etc/sudoers
+CMD ["/usr/sbin/init"]
+{% else %}
+FROM opensuse/leap:15
+RUN sed -i 's|download.opensuse.org|provo-mirror.opensuse.org|' /etc/zypp/repos.d/*.repo
+RUN zypper -n install -l ansible dbus-1 python3-rpm sudo systemd-sysvinit
+
+ENV container docker
+
+RUN (cd /usr/lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i = \
+    "systemd-tmpfiles-setup.service" ] || rm -f $i; done); \
+    rm -f /usr/lib/systemd/system/multi-user.target.wants/*;\
+    rm -f /usr/lib/systemd/system/local-fs.target.wants/*; \
+    rm -f /usr/lib/systemd/system/sockets.target.wants/*udev*; \
+    rm -f /usr/lib/systemd/system/sockets.target.wants/*initctl*; \
+    rm -f /usr/lib/systemd/system/basic.target.wants/*;
+
+# Disable requiretty.
+RUN sed -i -e 's/^\(Defaults\s*requiretty\)/#--- \1/'  /etc/sudoers
+
+# Install Ansible inventory file.
+RUN mkdir -p /etc/ansible
+RUN echo -e '[local]\nlocalhost ansible_connection=local' > /etc/ansible/hosts
+
+VOLUME [ "/sys/fs/cgroup" ]
+CMD ["/sbin/init"]
+{% endif %}
+
+# Workaround for Ansible Molecule bug causing sudo actions to fail.
+# https://github.com/ansible/molecule/issues/4365
+# https://github.com/geerlingguy/docker-rockylinux9-ansible/issues/6#issuecomment-2805378491
+RUN chmod 0400 /etc/shadow

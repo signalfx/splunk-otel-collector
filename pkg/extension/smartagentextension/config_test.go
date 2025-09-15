@@ -20,12 +20,13 @@ import (
 	"path/filepath"
 	"testing"
 
-	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
 	"go.opentelemetry.io/collector/extension"
+
+	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 )
 
 func TestLoadConfig(t *testing.T) {
@@ -72,7 +73,6 @@ func TestLoadConfig(t *testing.T) {
 		c.Collectd.WriteServerPort = 9090
 		c.Collectd.ConfigDir = "/etc/"
 		c.Collectd.BundleDir = "/opt/bin/collectd/"
-		c.Collectd.HasGenericJMXMonitor = false
 		return &c
 	}(), allSettingsConfig)
 
@@ -121,18 +121,17 @@ func TestSmartAgentConfigProvider(t *testing.T) {
 
 	require.Equal(t, func() saconfig.CollectdConfig {
 		return saconfig.CollectdConfig{
-			Timeout:              40,
-			LogLevel:             "notice",
-			ReadThreads:          1,
-			WriteThreads:         4,
-			WriteQueueLimitHigh:  5,
-			WriteQueueLimitLow:   1,
-			IntervalSeconds:      5,
-			WriteServerIPAddr:    "10.100.12.1",
-			WriteServerPort:      9090,
-			BundleDir:            "/opt/bin/collectd/",
-			ConfigDir:            "/etc/",
-			HasGenericJMXMonitor: false,
+			Timeout:             40,
+			LogLevel:            "notice",
+			ReadThreads:         1,
+			WriteThreads:        4,
+			WriteQueueLimitHigh: 5,
+			WriteQueueLimitLow:  1,
+			IntervalSeconds:     5,
+			WriteServerIPAddr:   "10.100.12.1",
+			WriteServerPort:     9090,
+			BundleDir:           "/opt/bin/collectd/",
+			ConfigDir:           "/etc/",
 		}
 	}(), saConfigProvider.SmartAgentConfig().Collectd)
 	require.Equal(t, "/opt/bin/collectd/", saConfigProvider.SmartAgentConfig().BundleDir)
@@ -158,18 +157,17 @@ func defaultConfig() Config {
 			RunPath:   "/run",
 			SysPath:   "/sys",
 			Collectd: saconfig.CollectdConfig{
-				Timeout:              40,
-				LogLevel:             "notice",
-				ReadThreads:          5,
-				WriteThreads:         2,
-				WriteQueueLimitHigh:  500000,
-				WriteQueueLimitLow:   400000,
-				IntervalSeconds:      10,
-				WriteServerIPAddr:    "127.9.8.7",
-				WriteServerPort:      0,
-				ConfigDir:            filepath.Join(bundleDir, "run", "collectd"),
-				BundleDir:            bundleDir,
-				HasGenericJMXMonitor: false,
+				Timeout:             40,
+				LogLevel:            "notice",
+				ReadThreads:         5,
+				WriteThreads:        2,
+				WriteQueueLimitHigh: 500000,
+				WriteQueueLimitLow:  400000,
+				IntervalSeconds:     10,
+				WriteServerIPAddr:   "127.9.8.7",
+				WriteServerPort:     0,
+				ConfigDir:           filepath.Join(bundleDir, "run", "collectd"),
+				BundleDir:           bundleDir,
 			},
 		},
 	}

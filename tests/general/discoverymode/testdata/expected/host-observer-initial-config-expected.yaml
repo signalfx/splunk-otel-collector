@@ -1,0 +1,51 @@
+file:
+  exporters:
+    otlp:
+      endpoint: ${OTLP_ENDPOINT}
+      tls:
+        insecure: true
+  processors:
+    filter:
+      metrics:
+        include:
+          match_type: strict
+          metric_names: [otelcol_process_uptime]
+  service:
+    telemetry:
+      metrics:
+        level: normal
+        readers:
+          - pull:
+              exporter:
+                prometheus:
+                  host: localhost
+                  port: ${INTERNAL_PROMETHEUS_PORT}
+                  without_scope_info: true
+                  without_type_suffix: true
+                  without_units: true
+    pipelines:
+      metrics:
+        exporters: [otlp]
+        processors: [filter]
+splunk.discovery:
+  extensions:
+    host_observer:
+      refresh_interval: 1s
+  receivers:
+    discovery/host_observer:
+      watch_observers: [host_observer]
+      embed_receiver_config: true
+      receivers:
+        prometheus_simple:
+          rule: type == "hostport" and command contains "otelcol" and port == ${INTERNAL_PROMETHEUS_PORT}
+          config:
+            collection_interval: 1s
+            labels:
+              label_one: '${env:LABEL_ONE_VALUE}'
+              label_two: ${LABEL_TWO_VALUE}
+              label_three: actual.label.three.value.from.cmdline.property
+  service:
+    extensions/splunk.discovery:
+      - host_observer
+    receivers/splunk.discovery:
+      - discovery/host_observer

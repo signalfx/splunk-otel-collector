@@ -18,10 +18,10 @@ jobs:
   linkChecker:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: lychee Link Checker
         id: lychee
-        uses: lycheeverse/lychee-action@v2.4.0
+        uses: lycheeverse/lychee-action@v2.4.1
         with:
           lycheeVersion: v0.18.1
           args: -v -n --config .lychee.toml './*.md' './**/*.md'

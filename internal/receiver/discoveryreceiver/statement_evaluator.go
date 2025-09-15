@@ -17,6 +17,8 @@ package discoveryreceiver
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
+	"time"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
 	"go.opentelemetry.io/collector/component"
@@ -37,7 +39,12 @@ type statementEvaluator struct {
 	// this is the logger to share with other components to evaluate their statements and produce plog.Logs
 	evaluatedLogger *zap.Logger
 	encoder         zapcore.Encoder
-	id              component.ID
+
+	// sampledLogger is logger to propagate logs from the dynamically instantiated receivers.
+	// Sampled to avoid flooding the logs with potential scraping errors.
+	sampledLogger *zap.Logger
+
+	id component.ID
 }
 
 func newStatementEvaluator(logger *zap.Logger, id component.ID, config *Config,
@@ -53,6 +60,7 @@ func newStatementEvaluator(logger *zap.Logger, id component.ID, config *Config,
 		id:      id,
 	}
 	se.evaluator = newEvaluator(logger, config, correlations, se.exprEnv)
+	se.sampledLogger = zap.New(zapcore.NewSamplerWithOptions(logger.Core(), time.Hour, 1, 0))
 
 	var err error
 	if se.evaluatedLogger, err = zapConfig.Build(
@@ -109,9 +117,10 @@ func (se *statementEvaluator) Write(entry zapcore.Entry, fields []zapcore.Field)
 	if err != nil {
 		return err
 	}
-	if name, ok := statement.Fields["name"]; ok {
+	name := fmt.Sprintf("%v", statement.Fields["name"])
+	if name != "" {
 		cid := &component.ID{}
-		if err := cid.UnmarshalText([]byte(fmt.Sprintf("%v", name))); err == nil {
+		if err := cid.UnmarshalText([]byte(name)); err == nil {
 			if cid.Type() == component.MustNewType("receiver_creator") && cid.Name() == se.id.String() {
 				// this is from our internal Receiver Creator and not a generated receiver, so write
 				// it to our logger core without submitting the entry for evaluation
@@ -124,6 +133,13 @@ func (se *statementEvaluator) Write(entry zapcore.Entry, fields []zapcore.Field)
 		}
 	}
 
+	// propagate the log entry to the sampled logger using the name field + error message as the sampling key
+	errMsg := fmt.Sprintf("%v", statement.Fields["error"])
+	if ce := se.sampledLogger.Check(entry.Level, strings.Join([]string{name, entry.Message, errMsg}, "")); ce != nil {
+		_ = se.sampledLogger.Core().Write(entry, fields)
+	}
+
+	// evaluate statement against the discovery rules
 	se.evaluateStatement(statement)
 	return nil
 }
@@ -138,7 +154,7 @@ func (se *statementEvaluator) Sync() error {
 func (se *statementEvaluator) evaluateStatement(statement *statussources.Statement) {
 	se.logger.Debug("evaluating statement", zap.Any("statement", statement))
 
-	receiverID, endpointID, rEntry, shouldEvaluate := se.receiverEntryFromStatement(statement)
+	receiverID, endpointID, shouldEvaluate := se.receiverEntryFromStatement(statement)
 	if !shouldEvaluate {
 		return
 	}
@@ -162,7 +178,12 @@ func (se *statementEvaluator) evaluateStatement(statement *statussources.Stateme
 	}
 	se.logger.Debug("non-strict matches will be evaluated with pattern map", zap.String("map", patternMapStr))
 
-	for _, match := range rEntry.Status.Statements {
+	meta, hasMeta := receiverMetaMap[receiverID.String()]
+	if !hasMeta || len(meta.Status.Statements) == 0 {
+		return
+	}
+
+	for _, match := range meta.Status.Statements {
 		p := patternMapStr
 		if match.Strict != "" {
 			p = statement.Message
@@ -187,12 +208,6 @@ func (se *statementEvaluator) evaluateStatement(statement *statussources.Stateme
 		attrs[discovery.ReceiverNameAttr] = receiverID.Name()
 		attrs[discovery.MessageAttr] = match.Message
 
-		// set original message as "discovery.matched_log" attribute
-		attrs[matchedLogAttr] = statement.Message
-		if err, ok := statement.Fields["error"]; ok {
-			attrs[matchedLogAttr] += fmt.Sprintf(" (error: %v)", err)
-		}
-
 		attrs[discovery.StatusAttr] = string(match.Status)
 		se.correlations.UpdateAttrs(endpointID, attrs)
 
@@ -201,23 +216,24 @@ func (se *statementEvaluator) evaluateStatement(statement *statussources.Stateme
 	}
 }
 
-func (se *statementEvaluator) receiverEntryFromStatement(statement *statussources.Statement) (component.ID, observer.EndpointID, ReceiverEntry, bool) {
+func (se *statementEvaluator) receiverEntryFromStatement(statement *statussources.Statement) (component.ID, observer.EndpointID, bool) {
 	receiverID, endpointID := statussources.ReceiverNameToIDs(statement)
 	if receiverID == discovery.NoType || endpointID == "" {
 		// statement evaluation requires both a populated receiver.ID and EndpointID
 		se.logger.Debug("unable to evaluate statement from receiver", zap.String("receiver", receiverID.String()))
-		return discovery.NoType, "", ReceiverEntry{}, false
+		return discovery.NoType, "", false
 	}
 
-	rEntry, ok := se.config.Receivers[receiverID]
+	_, ok := se.config.Receivers[receiverID]
 	if !ok {
 		se.logger.Info("No matching configured receiver for statement status evaluation", zap.String("receiver", receiverID.String()))
-		return discovery.NoType, "", ReceiverEntry{}, false
+		return discovery.NoType, "", false
 	}
 
-	if rEntry.Status == nil {
-		return discovery.NoType, "", ReceiverEntry{}, false
+	_, hasMeta := receiverMetaMap[receiverID.String()]
+	if !hasMeta {
+		return discovery.NoType, "", false
 	}
 
-	return receiverID, endpointID, rEntry, true
+	return receiverID, endpointID, true
 }

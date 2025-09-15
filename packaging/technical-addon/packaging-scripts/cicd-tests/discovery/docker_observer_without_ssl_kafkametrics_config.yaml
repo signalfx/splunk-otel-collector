@@ -12,19 +12,6 @@ receivers:
           scrapers:
             - brokers
         rule: type == "hostport" and any([name, image, command], {# matches "(?i)(.*)kafka(.*)"}) and not (command matches "splunk.discovery")
-        status:
-          metrics:
-            - status: successful
-              strict: kafka.brokers
-              message: kafkametrics receiver is working!
-          statements:
-            - status: failed
-              regexp: 'connect: network is unreachable'
-              message: The container cannot be reached by the Collector. Make sure they're in the same network.
-            - status: failed
-              regexp: 'connect: connection refused'
-              message: The container is refusing kafka connections.
-
     watch_observers:
       - host_observer
 

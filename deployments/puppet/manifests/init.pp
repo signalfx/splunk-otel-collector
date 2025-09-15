@@ -10,6 +10,7 @@ class splunk_otel_collector (
   $splunk_collectd_dir     = $splunk_otel_collector::params::splunk_collectd_dir,
   $splunk_memory_total_mib = '512',
   $splunk_listen_interface = '',
+  $collector_command_line_args = '',
   $collector_version       = $splunk_otel_collector::params::collector_version,
   $collector_config_source = $splunk_otel_collector::params::collector_config_source,
   $collector_config_dest   = $splunk_otel_collector::params::collector_config_dest,
@@ -217,6 +218,8 @@ class splunk_otel_collector (
   }
 
   if $install_fluentd {
+    deprecation('with_fluentd', 'Fluentd support has been deprecated and will be removed in a future release. Please refer to documentation on how to replace usage: https://github.com/signalfx/splunk-otel-collector/blob/main/docs/deprecations/fluentd-support.md')
+
     case $facts['os']['family'] {
       'debian': {
         package { ['build-essential', 'libcap-ng0', 'libcap-ng-dev', 'pkg-config']:

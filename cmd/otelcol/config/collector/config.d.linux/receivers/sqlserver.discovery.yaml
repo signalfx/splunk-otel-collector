@@ -37,11 +37,19 @@
 #             enabled: true
 #         sqlserver.database.operations:
 #             enabled: true
+#         sqlserver.deadlock.rate:
+#             enabled: true
+#         sqlserver.lock.wait.count:
+#             enabled: true
 #         sqlserver.lock.wait.rate:
+#             enabled: true
+#         sqlserver.os.wait.duration:
 #             enabled: true
 #         sqlserver.page.buffer_cache.hit_ratio:
 #             enabled: true
 #         sqlserver.processes.blocked:
+#             enabled: true
+#         sqlserver.resource_pool.disk.operations:
 #             enabled: true
 #         sqlserver.resource_pool.disk.throttled.read.rate:
 #             enabled: true
@@ -78,31 +86,3 @@
 #             enabled: false
 #         sqlserver.transaction_log.usage:
 #             enabled: false
-# 
-#   status:
-#     metrics:
-#       - status: successful
-#         strict: sqlserver.database.io
-#         message: sqlserver receiver is working!
-#     statements:
-#       - status: failed
-#         regexp: "connection refused"
-#         message: The container is not serving http connections.
-#       - status: failed
-#         regexp: "unable to open tcp connection"
-#         message: Unable to resolve sql server tcp endpoint
-#       - status: partial
-#         regexp: "Login failed for user"
-#         message: |-
-#             Make sure your user credentials are correctly specified as environment variables.
-#             ```
-#             SPLUNK_DISCOVERY_RECEIVERS_sqlserver_CONFIG_username="<username>"
-#             SPLUNK_DISCOVERY_RECEIVERS_sqlserver_CONFIG_password="<password>"
-#             ```
-#       - status: partial
-#         regexp: "The user does not have permission"
-#         message: |-
-#             Specified user does not have proper permissions. User must have view `SERVER STATE` permissions. This can be accomplished by:
-#             ```
-#             GRANT VIEW SERVER STATE TO [username]
-#             ```

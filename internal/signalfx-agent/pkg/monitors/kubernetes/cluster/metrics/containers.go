@@ -3,11 +3,12 @@ package metrics
 import (
 	"time"
 
-	"github.com/signalfx/golib/v3/datapoint"
+	"github.com/signalfx/golib/v3/datapoint" //nolint:staticcheck // SA1019: deprecated package still in use
+	v1 "k8s.io/api/core/v1"
+
 	atypes "github.com/signalfx/signalfx-agent/pkg/monitors/types"
 	"github.com/signalfx/signalfx-agent/pkg/utils"
 	"github.com/signalfx/signalfx-agent/pkg/utils/k8sutil"
-	v1 "k8s.io/api/core/v1"
 )
 
 func datapointsForContainerStatus(cs v1.ContainerStatus, contDims map[string]string) []*datapoint.Datapoint {

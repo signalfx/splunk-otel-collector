@@ -4,12 +4,13 @@ package metrics
 import (
 	"time"
 
-	"github.com/signalfx/golib/v3/datapoint"
+	"github.com/signalfx/golib/v3/datapoint" //nolint:staticcheck // SA1019: deprecated package still in use
+	appsv1 "k8s.io/api/apps/v1"
+
 	"github.com/signalfx/signalfx-agent/pkg/monitors/kubernetes/cluster/meta"
 	k8sutil "github.com/signalfx/signalfx-agent/pkg/monitors/kubernetes/utils"
 	atypes "github.com/signalfx/signalfx-agent/pkg/monitors/types"
 	"github.com/signalfx/signalfx-agent/pkg/utils"
-	appsv1 "k8s.io/api/apps/v1"
 )
 
 func datapointsForDeployment(dep *appsv1.Deployment) []*datapoint.Datapoint {

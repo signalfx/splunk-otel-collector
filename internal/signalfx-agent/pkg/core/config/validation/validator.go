@@ -7,9 +7,10 @@ import (
 
 	"github.com/go-playground/locales/en"
 	ut "github.com/go-playground/universal-translator"
-	"github.com/signalfx/signalfx-agent/pkg/utils"
 	validator "gopkg.in/go-playground/validator.v9"
 	en_translations "gopkg.in/go-playground/validator.v9/translations/en"
+
+	"github.com/signalfx/signalfx-agent/pkg/utils"
 )
 
 // Validatable should be implemented by config structs that want to provide

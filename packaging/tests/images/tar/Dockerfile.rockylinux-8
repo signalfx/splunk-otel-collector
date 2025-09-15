@@ -2,7 +2,7 @@
 # `-d --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro` flags
 FROM quay.io/rockylinux/rockylinux:8
 
-ENV container docker
+ENV container=docker
 
 RUN rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-rockyofficial
 RUN echo 'fastestmirror=1' >> /etc/yum.conf

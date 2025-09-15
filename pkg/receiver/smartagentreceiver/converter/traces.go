@@ -20,10 +20,11 @@ import (
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin/zipkinv2"
 	zipkinmodel "github.com/openzipkin/zipkin-go/model"
-	"github.com/signalfx/golib/v3/trace"
-	sfxConstants "github.com/signalfx/signalfx-agent/pkg/core/common/constants"
+	"github.com/signalfx/golib/v3/trace" //nolint:staticcheck // SA1019: deprecated package still in use
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.uber.org/zap"
+
+	sfxConstants "github.com/signalfx/signalfx-agent/pkg/core/common/constants"
 )
 
 const resourceClientIPAttrName = "ip"

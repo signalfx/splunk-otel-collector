@@ -4,7 +4,3 @@ discovery:
   receivers:
     receiver_creator/with-name:
       rule: type == "container"
-      status:
-        metrics:
-          - status: successful
-            regexp: '.*'

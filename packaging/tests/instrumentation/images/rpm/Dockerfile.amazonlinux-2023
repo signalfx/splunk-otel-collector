@@ -6,7 +6,7 @@ FROM amazonlinux:2023
 
 ARG TARGETARCH
 
-ENV container docker
+ENV container=docker
 
 RUN yum install -y procps initscripts python3 systemd systemd-udev wget tar
 
@@ -24,7 +24,7 @@ COPY --from=tomcat /opt/java /opt/java
 COPY instrumentation/setup-tomcat.sh /opt/
 RUN bash /opt/setup-tomcat.sh
 
-ARG NODE_VERSION=v16
+ARG NODE_VERSION=v18
 COPY instrumentation/setup-express.sh /opt
 RUN bash /opt/setup-express.sh
 

@@ -22,6 +22,8 @@ endif
 
 # SRC_ROOT is the top of the source tree.
 SRC_ROOT := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
+ADDONS_SOURCE_DIR?=$(SRC_ROOT)/packaging/technical-addon
+BUILD_DIR?=$(SRC_ROOT)/build
 
 # build tags required by any component should be defined as an independent variables and later added to GO_BUILD_TAGS below
 GO_BUILD_TAGS=""
@@ -35,13 +37,13 @@ ADDLICENCESE= addlicense
 MDLINKCHECK=markdown-link-check
 MISSPELL=misspell -error
 MISSPELL_CORRECTION=misspell -w
+CHLOGGEN=chloggen
 LINT=golangci-lint
-IMPI=impi
 # BUILD_TYPE should be one of (dev, release).
 BUILD_TYPE?=release
 
 # COVER_PKGS is the list of packages to include in the test coverage
-EXCLUDE_MODS=-not -path "./examples/*"
+EXCLUDE_MODS=-not -path "./examples/*" -not -path "./packaging/technical-addon/*"
 FIND_MOD_ARGS=-type f -name "go.mod"
 COVER_PKGS := $(shell find . $(EXCLUDE_MODS) $(FIND_MOD_ARGS) -execdir $(GOCMD) list ./... \; | tr "\n" "," )
 
@@ -81,7 +83,7 @@ all-pkg-dirs:
 .DEFAULT_GOAL := common
 
 .PHONY: common
-common: checklicense impi lint misspell
+common: checklicense lint misspell
 
 .PHONY: test
 test:
@@ -132,11 +134,11 @@ checklinks:
 .PHONY: fmt
 fmt: addlicense misspell-correction
 	gofmt -w -s .
-	goimports -w  -local github.com/signalfx/splunk-otel-collector ./
+	goimports -w  -local github.com/signalfx/splunk-otel-collector,github.com/signalfx/signalfx-agent ./
 	fieldalignment -fix ./... || true
 
 .PHONY: lint
-lint: checklicense misspell impi
+lint: checklicense misspell
 	$(LINT) run --allow-parallel-runners -j$(NUM_CORES)
 
 .PHONY: tidy
@@ -153,10 +155,6 @@ misspell:
 misspell-correction:
 	$(MISSPELL_CORRECTION) $(ALL_SRC_AND_DOC)
 
-.PHONY: impi
-impi:
-	@$(IMPI) --local github.com/signalfx/splunk-otel-collector --skip internal/signalfx-agent --scheme stdThirdPartyLocal --ignore-generated=true ./...
-
 .PHONY: moddownload
 moddownload:
 	$(GOCMD) mod download
@@ -172,3 +170,13 @@ govulncheck:
 		echo "\ngovulncheck failed for one or more packages"; \
 		exit 1; \
 	fi
+
+# CD's into SRC_ROOT so that this may be called/included from other Makefiles
+.PHONY: gogen
+gogen:
+	cd $(SRC_ROOT) && go generate ./...
+
+# CD's into SRC_ROOT so that this may be called/included from other Makefiles
+.PHONY: bundle.d
+bundle.d:
+	cd $(SRC_ROOT)/cmd/discoverybundler && go run .

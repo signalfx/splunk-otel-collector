@@ -20,10 +20,11 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/signalfx/signalfx-agent/pkg/core/common/constants"
-	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/extension"
+
+	"github.com/signalfx/signalfx-agent/pkg/core/common/constants"
+	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 )
 
 const (

@@ -1,0 +1,12 @@
+##############################################################################################
+#                               Do not edit manually!                                        #
+# All changes must be made to associated .yaml metadata file before running 'make bundle.d'. #
+##############################################################################################
+redis:
+  enabled: true
+  rule:
+    docker_observer: type == "container" and any([name, image, command], {# matches "(?i)redis"}) and not (command matches "splunk.discovery")
+    host_observer: type == "hostport" and command matches "(?i)redis" and not (command matches "splunk.discovery")
+    k8s_observer: type == "port" and pod.name matches "(?i)redis"
+  config:
+    default: {}

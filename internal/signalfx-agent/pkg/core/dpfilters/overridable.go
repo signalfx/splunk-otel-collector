@@ -3,9 +3,10 @@ package dpfilters
 import (
 	"errors"
 
-	"github.com/signalfx/golib/v3/datapoint"
-	"github.com/signalfx/signalfx-agent/pkg/utils/filter"
+	"github.com/signalfx/golib/v3/datapoint" //nolint:staticcheck // SA1019: deprecated package still in use
 	"go.opentelemetry.io/collector/pdata/pcommon"
+
+	"github.com/signalfx/signalfx-agent/pkg/utils/filter"
 )
 
 type overridableDatapointFilter struct {

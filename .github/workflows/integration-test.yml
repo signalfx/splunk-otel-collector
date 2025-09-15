@@ -5,52 +5,22 @@ on:
     branches:
       - main
   pull_request:
-    paths:
-      - '.github/workflows/integration-test.yml'
-      - 'cmd/**'
-      - 'docker/**'
-      - 'internal/**'
-      - 'packaging/bundle/**'
-      - 'instrumentation/packaging/**'
-      - 'pkg/**'
-      - 'tests/**'
-      - 'Makefile'
-      - 'Makefile.Common'
-      - 'go.mod'
-      - 'go.sum'
-      - 'packaging/jmx-metric-gatherer-release.txt'
-      - '!**.md'
-      - '!packaging/technical-addon/**'
 
 concurrency:
   group: integration-test-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.23.8
+  GO_VERSION: 1.24.6
 jobs:
   agent-bundle-linux:
-    runs-on: ${{ fromJSON('["ubuntu-24.04", "otel-arm64"]')[matrix.ARCH == 'arm64'] }}
     strategy:
       matrix:
         ARCH: [ "amd64", "arm64" ]
       fail-fast: false
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/cache@v4
-        id: bundle-cache
-        with:
-          path: .cache/buildx/agent-bundle-${{ matrix.ARCH }}
-          key: agent-bundle-buildx-${{ matrix.ARCH }}-${{ hashFiles('packaging/bundle/**') }}
-          restore-keys: |
-            agent-bundle-buildx-${{ matrix.ARCH }}-
-      - run: make -C packaging/bundle agent-bundle-linux ARCH=${{ matrix.ARCH }}
-        env:
-          BUNDLE_CACHE_HIT: "${{ steps.bundle-cache.outputs.cache-hit }}"
-      - uses: actions/upload-artifact@v4
-        with:
-          name: agent-bundle-linux-${{ matrix.ARCH }}
-          path: ./dist/agent-bundle_linux_${{ matrix.ARCH }}.tar.gz
+    uses: ./.github/workflows/reusable-agent-bundle-linux.yml
+    with:
+      ARCH: ${{ matrix.ARCH }}
 
   otelcol:
     runs-on: ubuntu-24.04
@@ -58,10 +28,10 @@ jobs:
       matrix:
         ARCH: [ "amd64", "arm64", "ppc64le" ]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
@@ -85,19 +55,19 @@ jobs:
     steps:
       # Multiarch images require more disk space
       - uses: jlumbroso/free-disk-space@v1.3.1
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           pattern: agent-bundle-linux-*
           merge-multiple: true
           path: ./dist
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           pattern: otelcol-*
           merge-multiple: true
@@ -146,18 +116,18 @@ jobs:
       fail-fast: false
     needs: [ "docker-otelcol", "otelcol" ]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: otelcol-${{ matrix.ARCH }}
           path: ./bin
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: docker-otelcol-${{ matrix.ARCH }}
           path: ./docker-otelcol/${{ matrix.ARCH }}
@@ -181,7 +151,7 @@ jobs:
     steps:
       # Multiarch images require more disk space
       - uses: jlumbroso/free-disk-space@v1.3.1
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - name: Build ${{ matrix.PROFILE }} service images
@@ -190,29 +160,29 @@ jobs:
           for image in $images; do
             service=$(basename "$image" | cut -d ':' -f1)
             if [[ -f docker/${service}/Dockerfile ]]; then
-              docker build --cache-from=quay.io/splunko11ytest/${service}:latest -t quay.io/splunko11ytest/${service}:latest docker/${service}
+              docker build --cache-from="quay.io/splunko11ytest/${service}:latest" -t "quay.io/splunko11ytest/${service}:latest" "docker/${service}"
             fi
           done
           docker system prune -f
           docker builder prune -f
           docker images
       - run: docker compose -f docker/docker-compose.yml --profile ${{ matrix.PROFILE }} up -d --quiet-pull
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: otelcol-${{ matrix.ARCH }}
           path: ./bin
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: docker-otelcol-${{ matrix.ARCH }}
           path: ./docker-otelcol/${{ matrix.ARCH }}
       # Not all images used in the docker-compose have arm64 support, for those it is necessary to use qemu
       # Here is the list of "services" (see above) that don't support arm64:
       # On profile integration: oracle
-      # On profile smartagent: activemq, and httpd
+      # On profile smartagent: httpd
       - uses: docker/setup-qemu-action@v3
         if: ${{ matrix.ARCH != 'amd64' }}
         with:
@@ -221,15 +191,6 @@ jobs:
       - run: docker load -i ./docker-otelcol/${{ matrix.ARCH }}/image.tar
       - run: ln -sf otelcol_linux_${{ matrix.ARCH }} ./bin/otelcol
       - run: chmod a+x ./bin/*
-      - uses: shogo82148/actions-setup-redis@v1.39.0
-        if: matrix.PROFILE == 'integration'
-        with:
-          auto-start: false
-          redis-port: "6379"
-      - run: redis-cli ping
-        if: matrix.PROFILE == 'integration'
-      - run: redis-cli set tempkey tempvalue
-        if: matrix.PROFILE == 'integration'
       - name: Run Integration Test With Cover
         run: |
           set -o pipefail
@@ -237,11 +198,12 @@ jobs:
           if [[ "${{ matrix.PROFILE }}" = "smartagent" ]]; then
             target="smartagent-integration-test-with-cover"
           fi
-          export CONTAINER_COVER_SRC="$(realpath .)/tests/coverage"
-          make $target 2>&1 | tee $TEST_OUTPUT
+          CONTAINER_COVER_SRC="$(realpath .)/tests/coverage"
+          export CONTAINER_COVER_SRC
+          make $target 2>&1 | tee "$TEST_OUTPUT"
           exit_status=${PIPESTATUS[0]}
           echo "Exit status: $exit_status"
-          exit $exit_status
+          exit "$exit_status"
         env:
           CONTAINER_COVER_DEST: '/etc/otel/collector/coverage'
           SPLUNK_OTEL_COLLECTOR_IMAGE: 'otelcol:latest'
@@ -254,7 +216,7 @@ jobs:
           path: ${{ env.TEST_OUTPUT }}
           retention-days: 5
       - name: Upload coverage report
-        uses: codecov/codecov-action@0565863a31f2c772f9f0395002a31e3f06189574 # 5.4.0
+        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # 5.5.1
         with:
           verbose: true
           fail_ci_if_error: true
@@ -274,7 +236,7 @@ jobs:
     steps:
       # Multiarch images require more disk space
       - uses: jlumbroso/free-disk-space@v1.3.1
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - name: Build ${{ matrix.PROFILE }} service images
@@ -283,41 +245,32 @@ jobs:
           for image in $images; do
             service=$(basename "$image" | cut -d ':' -f1)
             if [[ -f docker/${service}/Dockerfile ]]; then
-              docker build --cache-from=quay.io/splunko11ytest/${service}:latest -t quay.io/splunko11ytest/${service}:latest docker/${service}
+              docker build --cache-from="quay.io/splunko11ytest/${service}:latest" -t "quay.io/splunko11ytest/${service}:latest" "docker/${service}"
             fi
           done
           docker system prune -f
           docker builder prune -f
           docker images
       - run: docker compose -f docker/docker-compose.yml --profile ${{ matrix.PROFILE }} up -d --quiet-pull
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           pattern: agent-bundle-linux-amd64
           merge-multiple: true
           path: ./dist
       - run: sudo mkdir -p /usr/lib/splunk-otel-collector
       - run: sudo tar -xzf dist/agent-bundle_linux_amd64.tar.gz -C /usr/lib/splunk-otel-collector
-      - run: sudo chown -R $USER /usr/lib/splunk-otel-collector
+      - run: sudo chown -R "$USER" /usr/lib/splunk-otel-collector
       - run: /usr/lib/splunk-otel-collector/agent-bundle/bin/patch-interpreter /usr/lib/splunk-otel-collector/agent-bundle
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: otelcol-amd64
           path: ./bin
       - run: ln -sf otelcol_linux_amd64 ./bin/otelcol
       - run: chmod a+x ./bin/*
-      - uses: shogo82148/actions-setup-redis@v1.39.0
-        if: matrix.PROFILE == 'integration'
-        with:
-          auto-start: false
-          redis-port: "6379"
-      - run: redis-cli ping
-        if: matrix.PROFILE == 'integration'
-      - run: redis-cli set tempkey tempvalue
-        if: matrix.PROFILE == 'integration'
       - name: Run Integration Test With Cover
         run: |
           set -o pipefail
@@ -325,11 +278,12 @@ jobs:
           if [[ "${{ matrix.PROFILE }}" = "smartagent" ]]; then
             target="smartagent-integration-test-with-cover"
           fi
-          export CONTAINER_COVER_SRC="$(realpath .)/tests/coverage"
-          make $target 2>&1 | tee $TEST_OUTPUT
+          CONTAINER_COVER_SRC="$(realpath .)/tests/coverage"
+          export CONTAINER_COVER_SRC
+          make $target 2>&1 | tee "$TEST_OUTPUT"
           exit_status=${PIPESTATUS[0]}
           echo "Exit status: $exit_status"
-          exit $exit_status
+          exit "$exit_status"
         env:
           CONTAINER_COVER_DEST: '/etc/otel/collector/coverage'
           SPLUNK_OTEL_COLLECTOR_IMAGE: ""
@@ -342,7 +296,7 @@ jobs:
           path: ${{ env.TEST_OUTPUT }}
           retention-days: 5
       - name: Upload coverage report
-        uses: codecov/codecov-action@0565863a31f2c772f9f0395002a31e3f06189574 # 5.4.0
+        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # 5.5.1
         with:
           verbose: true
           fail_ci_if_error: true
@@ -372,7 +326,7 @@ jobs:
           done
           matrix="{\"include\": [${includes#,}]}"
           echo "$matrix" | jq
-          echo "matrix=${matrix}" >> $GITHUB_OUTPUT
+          echo "matrix=${matrix}" >> "$GITHUB_OUTPUT"
 
   integration-test-discovery:
       name: integration-test-discovery
@@ -382,21 +336,21 @@ jobs:
         matrix: ${{ fromJSON(needs.integration-test-discovery-matrix.outputs.matrix) }}
         fail-fast: false
       steps:
-        - uses: actions/checkout@v4
+        - uses: actions/checkout@v5
           with:
             fetch-depth: 0
         - run: echo "MONGODB_VERSION=${{ matrix.MONGODB_VERSION }}" > docker/.env
           if: matrix.SERVICE == 'mongodb'
         - run: docker compose -f docker/docker-compose.yml --profile integration-test-${{ matrix.SERVICE }}-discovery up -d --wait --build --quiet-pull
-        - uses: actions/setup-go@v5
+        - uses: actions/setup-go@v6
           with:
             go-version: ${{ env.GO_VERSION }}
             cache-dependency-path: '**/go.sum'
-        - uses: actions/download-artifact@v4
+        - uses: actions/download-artifact@v5
           with:
             name: otelcol-${{ matrix.ARCH }}
             path: ./bin
-        - uses: actions/download-artifact@v4
+        - uses: actions/download-artifact@v5
           with:
             name: docker-otelcol-${{ matrix.ARCH }}
             path: ./docker-otelcol/${{ matrix.ARCH }}
@@ -405,13 +359,14 @@ jobs:
         - run: chmod a+x ./bin/*
         - name: Run ${{ matrix.SERVICE }} Discovery Integration Test With Cover
           run: |
-            export CONTAINER_COVER_SRC="$(realpath .)/tests/coverage"
+            CONTAINER_COVER_SRC="$(realpath .)/tests/coverage"
+            export CONTAINER_COVER_SRC
             make integration-test-${{ matrix.SERVICE }}-discovery-with-cover
           env:
             CONTAINER_COVER_DEST: '/etc/otel/collector/coverage'
             SPLUNK_OTEL_COLLECTOR_IMAGE: 'otelcol:latest'
         - name: Upload coverage report
-          uses: codecov/codecov-action@0565863a31f2c772f9f0395002a31e3f06189574 # 5.4.0
+          uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # 5.5.1
           with:
             verbose: true
             fail_ci_if_error: true
@@ -434,7 +389,7 @@ jobs:
           done
           matrix="{\"include\": [${includes#,}]}"
           echo "$matrix" | jq
-          echo "matrix=${matrix}" >> $GITHUB_OUTPUT
+          echo "matrix=${matrix}" >> "$GITHUB_OUTPUT"
 
   integration-test-discovery-k8s:
     name: integration-test-discovery-k8s
@@ -444,7 +399,7 @@ jobs:
       matrix: ${{ fromJSON(needs.integration-test-discovery-k8s-matrix.outputs.matrix) }}
       fail-fast: false
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - name: Create kind cluster
@@ -460,11 +415,11 @@ jobs:
           for f in k8s/${{ matrix.SERVICE }}/*.sh; do
             bash "$f" 
           done
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: docker-otelcol-${{ matrix.ARCH }}
           path: ./docker-otelcol/${{ matrix.ARCH }}
@@ -477,7 +432,8 @@ jobs:
           kind load docker-image otelcol:latest --name kind
       - name: Run ${{ matrix.SERVICE }} Discovery Kubernetes Integration Test With Cover
         run: |
-          export CONTAINER_COVER_SRC="$(realpath .)/tests/coverage"
+          CONTAINER_COVER_SRC="$(realpath .)/tests/coverage"
+          export CONTAINER_COVER_SRC
           KUBECONFIG=$HOME/.kube/config SKIP_TEARDOWN=true make integration-test-${{ matrix.SERVICE }}-discovery-k8s-with-cover
         env:
           CONTAINER_COVER_DEST: '/etc/otel/collector/coverage'
@@ -485,9 +441,9 @@ jobs:
         if: failure()
         run: |
           kubectl get pods -A 
-          kubectl get pod -A -l app=otelcol -o jsonpath="{range .items[*]}{.metadata.namespace} {.metadata.name}{'\n'}{end}" | xargs -r -n2 sh -c 'kubectl logs -n $0 $1'
+          kubectl get pod -A -l app=otelcol -o jsonpath="{range .items[*]}{.metadata.namespace} {.metadata.name}{'\n'}{end}" | xargs -r -n2 sh -c "kubectl logs -n $0 $1"
       - name: Upload coverage report
-        uses: codecov/codecov-action@0565863a31f2c772f9f0395002a31e3f06189574 # 5.4.0
+        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # 5.5.1
         with:
           verbose: true
           fail_ci_if_error: true

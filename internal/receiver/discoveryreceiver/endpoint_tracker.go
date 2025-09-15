@@ -24,7 +24,7 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
-	semconv "go.opentelemetry.io/collector/semconv/v1.22.0"
+	conventions "go.opentelemetry.io/otel/semconv/v1.22.0"
 	"go.uber.org/multierr"
 	"go.uber.org/zap"
 
@@ -39,10 +39,12 @@ const (
 
 // identifyingAttrKeys are the keys of attributes that are used to identify an entity.
 var identifyingAttrKeys = []string{
-	semconv.AttributeK8SPodUID,
-	semconv.AttributeContainerID,
-	semconv.AttributeK8SNodeUID,
-	semconv.AttributeHostID,
+	serviceTypeAttr,
+	string(conventions.ServiceNameKey),
+	string(conventions.K8SPodUIDKey),
+	string(conventions.ContainerIDKey),
+	string(conventions.K8SNodeUIDKey),
+	string(conventions.HostIDKey),
 	sourcePortAttr,
 }
 
@@ -135,7 +137,7 @@ func (et *endpointTracker) stop() {
 
 func (et *endpointTracker) emitEntityStateEvents(observerCID component.ID, endpoints []observer.Endpoint) {
 	if et.pLogs != nil {
-		entityEvents, numFailed, err := entityStateEvents(observerCID, endpoints, et.correlations, time.Now())
+		entityEvents, numFailed, err := entityEvents(observerCID, endpoints, et.correlations, time.Now(), experimentalmetricmetadata.EventTypeState)
 		if err != nil {
 			et.logger.Warn(fmt.Sprintf("failed converting %v endpoints to entity state events", numFailed), zap.Error(err))
 		}
@@ -145,9 +147,10 @@ func (et *endpointTracker) emitEntityStateEvents(observerCID component.ID, endpo
 	}
 }
 
-func (et *endpointTracker) emitEntityDeleteEvents(endpoints []observer.Endpoint) {
+func (et *endpointTracker) emitEntityDeleteEvents(observerCID component.ID, endpoints []observer.Endpoint) {
 	if et.pLogs != nil {
-		entityEvents, numFailed, err := entityDeleteEvents(endpoints, time.Now())
+		entityEvents, numFailed, err := entityEvents(observerCID, endpoints, et.correlations, time.Now(),
+			experimentalmetricmetadata.EventTypeDelete)
 		if err != nil {
 			et.logger.Warn(fmt.Sprintf("failed converting %v endpoints to entity delete events", numFailed), zap.Error(err))
 		}
@@ -226,18 +229,18 @@ func (n *notify) OnRemove(removed []observer.Endpoint) {
 			n.endpointTracker.correlations.MarkStale(endpoint.ID)
 		}
 	}
-	n.endpointTracker.emitEntityDeleteEvents(matchingEndpoints)
+	n.endpointTracker.emitEntityDeleteEvents(n.observerID, matchingEndpoints)
 }
 
 func (n *notify) OnChange(changed []observer.Endpoint) {
 	n.endpointTracker.updateEndpoints(changed, n.observerID)
 }
 
-// entityStateEvents converts observer endpoints to entity state events excluding those
+// entityEvents converts observer endpoints to entity state events excluding those
 // that don't have a discovery status attribute yet.
-func entityStateEvents(observerID component.ID, endpoints []observer.Endpoint, correlations *correlationStore,
-	ts time.Time) (ees experimentalmetricmetadata.EntityEventsSlice, failed int, err error) {
-	entityEvents := experimentalmetricmetadata.NewEntityEventsSlice()
+func entityEvents(observerID component.ID, endpoints []observer.Endpoint, correlations *correlationStore,
+	ts time.Time, eventType experimentalmetricmetadata.EventType) (ees experimentalmetricmetadata.EntityEventsSlice, failed int, err error) {
+	events := experimentalmetricmetadata.NewEntityEventsSlice()
 	for _, endpoint := range endpoints {
 		if endpoint.Details == nil {
 			failed++
@@ -251,18 +254,13 @@ func entityStateEvents(observerID component.ID, endpoints []observer.Endpoint, c
 			continue
 		}
 
-		entityEvent := entityEvents.AppendEmpty()
-		entityEvent.SetTimestamp(pcommon.NewTimestampFromTime(ts))
-		entityState := entityEvent.SetEntityState()
-		entityState.SetEntityType(entityType)
-		attrs := entityState.Attributes()
-		if envAttrs, e := endpointEnvToAttrs(endpoint.Details.Type(), endpoint.Details.Env()); e != nil {
+		attrs, e := endpointEnvToAttrs(endpoint.Details.Type(), endpoint.Details.Env())
+		if e != nil {
 			err = multierr.Combine(err, fmt.Errorf("failed determining attributes for %q: %w", endpoint.ID, e))
 			failed++
-		} else {
-			// this must be the first mutation of attrs since it's destructive
-			envAttrs.CopyTo(attrs)
+			continue
 		}
+
 		attrs.PutStr("type", string(endpoint.Details.Type()))
 		attrs.PutStr(discovery.EndpointIDAttr, string(endpoint.ID))
 		attrs.PutStr("endpoint", endpoint.Target)
@@ -271,53 +269,43 @@ func entityStateEvents(observerID component.ID, endpoints []observer.Endpoint, c
 		for k, v := range endpointAttrs {
 			attrs.PutStr(k, v)
 		}
-		attrs.PutStr(serviceTypeAttr, deduceServiceType(attrs))
-		attrs.PutStr(semconv.AttributeServiceName, deduceServiceName(attrs))
-		extractIdentifyingAttrs(attrs, entityEvent.ID())
-	}
-	return entityEvents, failed, err
-}
-
-func entityDeleteEvents(endpoints []observer.Endpoint, ts time.Time) (ees experimentalmetricmetadata.EntityEventsSlice, failed int, err error) {
-	entityEvents := experimentalmetricmetadata.NewEntityEventsSlice()
-	for _, endpoint := range endpoints {
-		if endpoint.Details == nil {
-			failed++
-			err = multierr.Combine(err, fmt.Errorf("endpoint %q has no details", endpoint.ID))
-			continue
+		if _, ok := attrs.Get(string(conventions.ServiceNameKey)); !ok {
+			attrs.PutStr(string(conventions.ServiceNameKey), extractServiceName(endpoint.Details.Type(), endpoint.Details.Env()))
 		}
 
-		entityEvent := entityEvents.AppendEmpty()
-		entityEvent.SetTimestamp(pcommon.NewTimestampFromTime(ts))
-		entityEvent.SetEntityDelete()
-		if envAttrs, e := endpointEnvToAttrs(endpoint.Details.Type(), endpoint.Details.Env()); e != nil {
-			err = multierr.Combine(err, fmt.Errorf("failed determining attributes for %q: %w", endpoint.ID, e))
-			failed++
-		} else {
-			extractIdentifyingAttrs(envAttrs, entityEvent.ID())
+		event := events.AppendEmpty()
+		event.SetTimestamp(pcommon.NewTimestampFromTime(ts))
+		extractIdentifyingAttrs(attrs, event.ID())
+		switch eventType {
+		case experimentalmetricmetadata.EventTypeState:
+			entityState := event.SetEntityState()
+			entityState.SetEntityType(entityType)
+			attrs.MoveTo(entityState.Attributes())
+		case experimentalmetricmetadata.EventTypeDelete:
+			deleteEvent := event.SetEntityDelete()
+			deleteEvent.SetEntityType(entityType)
 		}
 	}
-	return entityEvents, failed, err
+	return events, failed, err
 }
 
 func endpointEnvToAttrs(endpointType observer.EndpointType, endpointEnv observer.EndpointEnv) (pcommon.Map, error) {
 	attrs := pcommon.NewMap()
 	for k, v := range endpointEnv {
 		switch {
-		// labels and annotations for container/node types
-		// should result in a ValueMap
-		case shouldEmbedMap(endpointType, k):
-			if asMap, ok := v.(map[string]string); ok {
-				mapVal := attrs.PutEmptyMap(k)
-				for item, itemVal := range asMap {
-					mapVal.PutStr(item, itemVal)
-				}
-			} else {
-				return attrs, fmt.Errorf("failed parsing %v env attributes", endpointType)
-			}
-		// pod EndpointEnv is the value of the "pod" field for observer.PortType and should be
-		// embedded as ValueMap
-		case observer.EndpointType(k) == observer.PodType && endpointType == observer.PortType:
+		// keys shared between different endpoint types
+		case k == "container_id":
+			attrs.PutEmpty(string(conventions.ContainerIDKey)).FromRaw(v)
+		case k == "container_name":
+			attrs.PutEmpty(string(conventions.ContainerNameKey)).FromRaw(v)
+		case k == "port":
+			attrs.PutEmpty(sourcePortAttr).FromRaw(v)
+		case k == "process_name":
+			attrs.PutEmpty(string(conventions.ProcessExecutableNameKey)).FromRaw(v)
+
+		// pod EndpointEnv is the value of the "pod" field for observer.PortType and
+		// observer.PodContainerType which should be extracted
+		case observer.EndpointType(k) == observer.PodType:
 			if podEnv, ok := v.(observer.EndpointEnv); ok {
 				podAttrs, e := endpointEnvToAttrs(observer.PodType, podEnv)
 				if e != nil {
@@ -331,46 +319,32 @@ func endpointEnvToAttrs(endpointType observer.EndpointType, endpointEnv observer
 				return attrs, fmt.Errorf("failed parsing %v pod env %#v", endpointType, v)
 			}
 
-		// rename keys according to the OTel Semantic Conventions
-		case k == "container_id":
-			attrs.PutEmpty(semconv.AttributeContainerID).FromRaw(v)
-		case k == "port":
-			attrs.PutEmpty(sourcePortAttr).FromRaw(v)
+		// keys specific to observer.PodType
 		case endpointType == observer.PodType:
-			if k == "namespace" {
-				attrs.PutEmpty(semconv.AttributeK8SNamespaceName).FromRaw(v)
-			} else {
-				attrs.PutEmpty("k8s.pod." + k).FromRaw(v)
+			switch k {
+			case "namespace":
+				attrs.PutEmpty(string(conventions.K8SNamespaceNameKey)).FromRaw(v)
+			case "uid":
+				attrs.PutEmpty(string(conventions.K8SPodUIDKey)).FromRaw(v)
+			case "name":
+				attrs.PutEmpty(string(conventions.K8SPodNameKey)).FromRaw(v)
 			}
+
+		// keys specific to observer.ContainerType
+		case endpointType == observer.ContainerType && k == "name":
+			attrs.PutEmpty(string(conventions.ContainerNameKey)).FromRaw(v)
+
+		// keys specific to observer.K8sNodePortType
 		case endpointType == observer.K8sNodeType:
 			switch k {
-			case "name":
-				attrs.PutEmpty(semconv.AttributeK8SNodeName).FromRaw(v)
 			case "uid":
-				attrs.PutEmpty(semconv.AttributeK8SNodeUID).FromRaw(v)
-			default:
-				attrs.PutEmpty(k).FromRaw(v)
-			}
-		default:
-			switch vVal := v.(type) {
-			case uint16:
-				attrs.PutInt(k, int64(vVal))
-			case bool:
-				attrs.PutBool(k, vVal)
-			default:
-				attrs.PutStr(k, fmt.Sprintf("%v", v))
+				attrs.PutEmpty(string(conventions.K8SNodeUIDKey)).FromRaw(v)
+			case "name":
+				attrs.PutEmpty(string(conventions.K8SNodeNameKey)).FromRaw(v)
 			}
 		}
 	}
 	return attrs, nil
-}
-
-func shouldEmbedMap(endpointType observer.EndpointType, k string) bool {
-	return (k == "annotations" && (endpointType == observer.PodType ||
-		endpointType == observer.K8sNodeType)) ||
-		(k == "labels" && (endpointType == observer.PodType ||
-			endpointType == observer.ContainerType ||
-			endpointType == observer.K8sNodeType))
 }
 
 func extractIdentifyingAttrs(from pcommon.Map, to pcommon.Map) {
@@ -382,41 +356,53 @@ func extractIdentifyingAttrs(from pcommon.Map, to pcommon.Map) {
 	}
 }
 
-func deduceServiceName(attrs pcommon.Map) string {
-	if val, ok := attrs.Get(semconv.AttributeServiceName); ok {
-		return val.AsString()
+func extractServiceName(endpointType observer.EndpointType, endpointEnv observer.EndpointEnv) string {
+	labels, labelsFound := endpointEnv["labels"].(map[string]string)
+	podEnv, podEnvFound := endpointEnv["pod"].(observer.EndpointEnv)
+	if !podEnvFound && endpointType == observer.PodType {
+		podEnv, podEnvFound = endpointEnv, true
 	}
-	if labels, labelsFound := attrs.Get("labels"); labelsFound && labels.Type() == pcommon.ValueTypeMap {
-		if val, ok := labels.Map().Get("app.kubernetes.io/name"); ok {
-			return val.AsString()
+	if !labelsFound && podEnvFound {
+		// If the endpoint is a pod, we can extract labels from the pod env.
+		labels, labelsFound = podEnv["labels"].(map[string]string)
+	}
+
+	// First, try to extract the service name from labels.
+	if labelsFound {
+		if val, ok := labels["app.kubernetes.io/instance"]; ok {
+			return val
 		}
-		if val, ok := labels.Map().Get("app"); ok {
-			return val.AsString()
+		if val, ok := labels["app.kubernetes.io/name"]; ok {
+			return val
+		}
+		if val, ok := labels["app"]; ok {
+			return val
 		}
 	}
+
+	// Then, try to extract the service name from the pod name.
 	// TODO: Update the observer upstream to set the deployment/statefulset name in addition to the pod name,
 	//       so we don't have to extract it from the pod name.
-	if podName, ok := attrs.Get("k8s.pod.name"); ok {
-		matches := k8sPodRegexp.FindStringSubmatch(podName.AsString())
-		if len(matches) > 1 {
-			return matches[1]
+	if podEnvFound {
+		if podName, ok := podEnv["name"].(string); ok {
+			matches := k8sPodRegexp.FindStringSubmatch(podName)
+			if len(matches) > 1 {
+				return matches[1]
+			}
 		}
 	}
-	if val, ok := attrs.Get("name"); ok {
-		return val.AsString()
-	}
-	if val, ok := attrs.Get("process_name"); ok {
-		return val.AsString()
-	}
-	return "unknown"
-}
 
-func deduceServiceType(attrs pcommon.Map) string {
-	if val, ok := attrs.Get(serviceTypeAttr); ok {
-		return val.AsString()
+	// Finally, try to extract the service name from the process name or the container name.
+	if endpointType == observer.HostPortType {
+		if processName, ok := endpointEnv["process_name"].(string); ok {
+			return processName
+		}
 	}
-	if val, ok := attrs.Get(discovery.ReceiverTypeAttr); ok {
-		return val.AsString()
+
+	if endpointType == observer.ContainerType {
+		if name, ok := endpointEnv["name"].(string); ok {
+			return name
+		}
 	}
 	return "unknown"
 }

@@ -19,13 +19,17 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/confmap/confmaptest"
+
 	"github.com/signalfx/signalfx-agent/pkg/core/common/httpclient"
 	"github.com/signalfx/signalfx-agent/pkg/core/common/kubelet"
 	"github.com/signalfx/signalfx-agent/pkg/core/common/kubernetes"
 	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
+	"github.com/signalfx/signalfx-agent/pkg/monitors"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/cadvisor"
-	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/consul"
-	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/hadoop"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/python"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/redis"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/elasticsearch/stats"
@@ -38,11 +42,24 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/exec"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/ntpq"
 	"github.com/signalfx/signalfx-agent/pkg/utils/timeutil"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/confmap/confmaptest"
 )
+
+type fakeConfig struct {
+	EnhancedMetrics        *bool `yaml:"enhancedMetrics"`
+	saconfig.MonitorConfig `yaml:",inline" acceptsEndpoints:"true"`
+	python.CommonConfig    `yaml:",inline"`
+	Host                   string `yaml:"host" validate:"required"`
+	Port                   uint16 `yaml:"port" validate:"required"`
+}
+
+func init() {
+	monitors.Register(&monitors.Metadata{
+		MonitorType: "collectd/fake",
+	},
+		nil,
+		&fakeConfig{},
+	)
+}
 
 func TestLoadConfig(t *testing.T) {
 
@@ -51,7 +68,7 @@ func TestLoadConfig(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
-	assert.Equal(t, 5, len(cfg.ToStringMap()))
+	assert.Equal(t, 4, len(cfg.ToStringMap()))
 
 	cm, err := cfg.Sub(component.MustNewIDWithName(typeStr, "haproxy").String())
 	require.NoError(t, err)
@@ -60,6 +77,7 @@ func TestLoadConfig(t *testing.T) {
 
 	expectedDimensionClients := []string{"nop/one", "nop/two"}
 	require.Equal(t, &Config{
+		MonitorType:      "haproxy",
 		DimensionClients: expectedDimensionClients,
 		monitorConfig: &haproxy.Config{
 			MonitorConfig: saconfig.MonitorConfig{
@@ -75,7 +93,7 @@ func TestLoadConfig(t *testing.T) {
 		},
 		acceptsEndpoints: true,
 	}, haproxyCfg)
-	require.NoError(t, haproxyCfg.validate())
+	require.NoError(t, haproxyCfg.Validate())
 
 	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "redis").String())
 	require.NoError(t, err)
@@ -83,6 +101,7 @@ func TestLoadConfig(t *testing.T) {
 	require.NoError(t, cm.Unmarshal(&redisCfg))
 
 	require.Equal(t, &Config{
+		MonitorType:      "collectd/redis",
 		DimensionClients: []string{},
 		monitorConfig: &redis.Config{
 			MonitorConfig: saconfig.MonitorConfig{
@@ -95,27 +114,7 @@ func TestLoadConfig(t *testing.T) {
 		},
 		acceptsEndpoints: true,
 	}, redisCfg)
-	require.NoError(t, redisCfg.validate())
-
-	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "hadoop").String())
-	require.NoError(t, err)
-	hadoopCfg := CreateDefaultConfig().(*Config)
-	require.NoError(t, cm.Unmarshal(&hadoopCfg))
-
-	require.Equal(t, &Config{
-		monitorConfig: &hadoop.Config{
-			MonitorConfig: saconfig.MonitorConfig{
-				Type:                "collectd/hadoop",
-				IntervalSeconds:     345,
-				DatapointsToExclude: []saconfig.MetricFilter{},
-			},
-			CommonConfig: python.CommonConfig{},
-			Host:         "localhost",
-			Port:         8088,
-		},
-		acceptsEndpoints: true,
-	}, hadoopCfg)
-	require.NoError(t, hadoopCfg.validate())
+	require.NoError(t, redisCfg.Validate())
 
 	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "etcd").String())
 	require.NoError(t, err)
@@ -123,6 +122,7 @@ func TestLoadConfig(t *testing.T) {
 	require.NoError(t, cm.Unmarshal(&etcdCfg))
 
 	require.Equal(t, &Config{
+		MonitorType: "etcd",
 		monitorConfig: &prometheusexporter.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "etcd",
@@ -139,7 +139,7 @@ func TestLoadConfig(t *testing.T) {
 		},
 		acceptsEndpoints: true,
 	}, etcdCfg)
-	require.NoError(t, etcdCfg.validate())
+	require.NoError(t, etcdCfg.Validate())
 
 	tr := true
 	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "ntpq").String())
@@ -147,6 +147,7 @@ func TestLoadConfig(t *testing.T) {
 	ntpqCfg := CreateDefaultConfig().(*Config)
 	require.NoError(t, cm.Unmarshal(&ntpqCfg))
 	require.Equal(t, &Config{
+		MonitorType: "telegraf/ntpq",
 		monitorConfig: &ntpq.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "telegraf/ntpq",
@@ -157,7 +158,7 @@ func TestLoadConfig(t *testing.T) {
 		},
 		acceptsEndpoints: true,
 	}, ntpqCfg)
-	require.NoError(t, ntpqCfg.validate())
+	require.NoError(t, ntpqCfg.Validate())
 }
 
 func TestLoadInvalidConfigWithoutType(t *testing.T) {
@@ -167,9 +168,8 @@ func TestLoadInvalidConfigWithoutType(t *testing.T) {
 	require.NoError(t, err)
 	withoutType := CreateDefaultConfig().(*Config)
 	err = cm.Unmarshal(&withoutType)
-	require.Error(t, err)
-	require.ErrorContains(t, err,
-		`you must specify a "type" for a smartagent receiver`)
+	require.NoError(t, err)
+	require.Nil(t, withoutType)
 }
 
 func TestLoadInvalidConfigWithUnknownType(t *testing.T) {
@@ -208,6 +208,7 @@ func TestLoadInvalidConfigs(t *testing.T) {
 	negativeIntervalCfg := CreateDefaultConfig().(*Config)
 	require.NoError(t, cm.Unmarshal(&negativeIntervalCfg))
 	require.Equal(t, &Config{
+		MonitorType: "collectd/redis",
 		monitorConfig: &redis.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "collectd/redis",
@@ -217,7 +218,7 @@ func TestLoadInvalidConfigs(t *testing.T) {
 		},
 		acceptsEndpoints: true,
 	}, negativeIntervalCfg)
-	err = negativeIntervalCfg.validate()
+	err = negativeIntervalCfg.Validate()
 	require.Error(t, err)
 	require.EqualError(t, err, "intervalSeconds must be greater than 0s (-234 provided)")
 
@@ -226,21 +227,20 @@ func TestLoadInvalidConfigs(t *testing.T) {
 	missingRequiredCfg := CreateDefaultConfig().(*Config)
 	require.NoError(t, cm.Unmarshal(&missingRequiredCfg))
 	require.Equal(t, &Config{
-		monitorConfig: &consul.Config{
+		MonitorType: "collectd/fake",
+		monitorConfig: &fakeConfig{
 			MonitorConfig: saconfig.MonitorConfig{
-				Type:                "collectd/consul",
+				Type:                "collectd/fake",
 				IntervalSeconds:     0,
 				DatapointsToExclude: []saconfig.MetricFilter{},
 			},
-			Port:          5309,
-			TelemetryHost: "0.0.0.0",
-			TelemetryPort: 8125,
+			Port: 5309,
 		},
 		acceptsEndpoints: true,
 	}, missingRequiredCfg)
-	err = missingRequiredCfg.validate()
+	err = missingRequiredCfg.Validate()
 	require.Error(t, err)
-	require.EqualError(t, err, "Validation error in field 'Config.host': host is a required field (got '')")
+	require.EqualError(t, err, "Validation error in field 'fakeConfig.host': host is a required field (got '')")
 }
 
 func TestLoadConfigWithEndpoints(t *testing.T) {
@@ -249,14 +249,15 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
-	assert.Equal(t, 6, len(cfg.ToStringMap()))
+	assert.Equal(t, 5, len(cfg.ToStringMap()))
 
 	cm, err := cfg.Sub(component.MustNewIDWithName(typeStr, "haproxy").String())
 	require.NoError(t, err)
 	haproxyCfg := CreateDefaultConfig().(*Config)
 	require.NoError(t, cm.Unmarshal(&haproxyCfg))
 	require.Equal(t, &Config{
-		Endpoint: "[fe80::20c:29ff:fe59:9446]:2345",
+		MonitorType: "haproxy",
+		Endpoint:    "[fe80::20c:29ff:fe59:9446]:2345",
 		monitorConfig: &haproxy.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "haproxy",
@@ -273,14 +274,15 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 		},
 		acceptsEndpoints: true,
 	}, haproxyCfg)
-	require.NoError(t, haproxyCfg.validate())
+	require.NoError(t, haproxyCfg.Validate())
 
 	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "redis").String())
 	require.NoError(t, err)
 	redisCfg := CreateDefaultConfig().(*Config)
 	require.NoError(t, cm.Unmarshal(&redisCfg))
 	require.Equal(t, &Config{
-		Endpoint: "redishost",
+		MonitorType: "collectd/redis",
+		Endpoint:    "redishost",
 		monitorConfig: &redis.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "collectd/redis",
@@ -292,34 +294,15 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 		},
 		acceptsEndpoints: true,
 	}, redisCfg)
-	require.NoError(t, redisCfg.validate())
-
-	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "hadoop").String())
-	require.NoError(t, err)
-	hadoopCfg := CreateDefaultConfig().(*Config)
-	require.NoError(t, cm.Unmarshal(&hadoopCfg))
-	require.Equal(t, &Config{
-		Endpoint: "[::]:12345",
-		monitorConfig: &hadoop.Config{
-			MonitorConfig: saconfig.MonitorConfig{
-				Type:                "collectd/hadoop",
-				IntervalSeconds:     345,
-				DatapointsToExclude: []saconfig.MetricFilter{},
-			},
-			CommonConfig: python.CommonConfig{},
-			Host:         "localhost",
-			Port:         8088,
-		},
-		acceptsEndpoints: true,
-	}, hadoopCfg)
-	require.NoError(t, hadoopCfg.validate())
+	require.NoError(t, redisCfg.Validate())
 
 	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "etcd").String())
 	require.NoError(t, err)
 	etcdCfg := CreateDefaultConfig().(*Config)
 	require.NoError(t, cm.Unmarshal(&etcdCfg))
 	require.Equal(t, &Config{
-		Endpoint: "etcdhost:5555",
+		MonitorType: "etcd",
+		Endpoint:    "etcdhost:5555",
 		monitorConfig: &prometheusexporter.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "etcd",
@@ -336,7 +319,7 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 		},
 		acceptsEndpoints: true,
 	}, etcdCfg)
-	require.NoError(t, etcdCfg.validate())
+	require.NoError(t, etcdCfg.Validate())
 
 	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "elasticsearch").String())
 	require.NoError(t, err)
@@ -344,7 +327,8 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 	require.NoError(t, cm.Unmarshal(&elasticCfg))
 	tru := true
 	require.Equal(t, &Config{
-		Endpoint: "elastic:567",
+		MonitorType: "elasticsearch",
+		Endpoint:    "elastic:567",
 		monitorConfig: &stats.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "elasticsearch",
@@ -366,14 +350,15 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 		},
 		acceptsEndpoints: true,
 	}, elasticCfg)
-	require.NoError(t, elasticCfg.validate())
+	require.NoError(t, elasticCfg.Validate())
 
 	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "kubelet-stats").String())
 	require.NoError(t, err)
 	kubeletCfg := CreateDefaultConfig().(*Config)
 	require.NoError(t, cm.Unmarshal(&kubeletCfg))
 	require.Equal(t, &Config{
-		Endpoint: "disregarded:678",
+		MonitorType: "kubelet-stats",
+		Endpoint:    "disregarded:678",
 		monitorConfig: &cadvisor.KubeletStatsConfig{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "kubelet-stats",
@@ -387,7 +372,7 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 		},
 		acceptsEndpoints: true,
 	}, kubeletCfg)
-	require.NoError(t, kubeletCfg.validate())
+	require.NoError(t, kubeletCfg.Validate())
 }
 
 func TestLoadInvalidConfigWithInvalidEndpoint(t *testing.T) {
@@ -415,7 +400,8 @@ func TestLoadConfigWithUnsupportedEndpoint(t *testing.T) {
 	require.NoError(t, cm.Unmarshal(&nagiosCfg))
 
 	require.Equal(t, &Config{
-		Endpoint: "localhost:12345",
+		MonitorType: "nagios",
+		Endpoint:    "localhost:12345",
 		monitorConfig: &nagios.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "nagios",
@@ -427,7 +413,7 @@ func TestLoadConfigWithUnsupportedEndpoint(t *testing.T) {
 		},
 		acceptsEndpoints: false,
 	}, nagiosCfg)
-	require.NoError(t, nagiosCfg.validate())
+	require.NoError(t, nagiosCfg.Validate())
 }
 
 func TestLoadInvalidConfigWithNonArrayDimensionClients(t *testing.T) {
@@ -437,9 +423,24 @@ func TestLoadInvalidConfigWithNonArrayDimensionClients(t *testing.T) {
 	require.NoError(t, err)
 	haproxyCfg := CreateDefaultConfig().(*Config)
 	err = cm.Unmarshal(&haproxyCfg)
-	require.Error(t, err)
-	require.ErrorContains(t, err,
-		`dimensionClients must be an array of compatible exporter names`)
+	require.NoError(t, err)
+	require.Equal(t, &Config{
+		MonitorType:      "haproxy",
+		DimensionClients: []string{"notanarray"},
+		monitorConfig: &haproxy.Config{
+			MonitorConfig: saconfig.MonitorConfig{
+				Type:                "haproxy",
+				DatapointsToExclude: []saconfig.MetricFilter{},
+				IntervalSeconds:     123,
+			},
+			Username:  "SomeUser",
+			Password:  "secret",
+			Path:      "stats?stats;csv",
+			SSLVerify: true,
+			Timeout:   5000000000,
+		},
+		acceptsEndpoints: true,
+	}, haproxyCfg)
 }
 
 func TestLoadInvalidConfigWithNonStringArrayDimensionClients(t *testing.T) {
@@ -450,8 +451,7 @@ func TestLoadInvalidConfigWithNonStringArrayDimensionClients(t *testing.T) {
 	haproxyCfg := CreateDefaultConfig().(*Config)
 	err = cm.Unmarshal(&haproxyCfg)
 	require.Error(t, err)
-	require.ErrorContains(t, err,
-		`dimensionClients must be an array of compatible exporter names`)
+	require.ErrorContains(t, err, `expected type 'string'`)
 }
 
 func TestFilteringConfig(t *testing.T) {
@@ -465,6 +465,7 @@ func TestFilteringConfig(t *testing.T) {
 	require.NoError(t, cm.Unmarshal(&fsCfg))
 
 	require.Equal(t, &Config{
+		MonitorType: "filesystems",
 		monitorConfig: &filesystems.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type: "filesystems",
@@ -481,7 +482,7 @@ func TestFilteringConfig(t *testing.T) {
 			},
 		},
 	}, fsCfg)
-	require.NoError(t, fsCfg.validate())
+	require.NoError(t, fsCfg.Validate())
 }
 
 func TestInvalidFilteringConfig(t *testing.T) {
@@ -495,6 +496,7 @@ func TestInvalidFilteringConfig(t *testing.T) {
 	fsCfg := CreateDefaultConfig().(*Config)
 	require.NoError(t, cm.Unmarshal(&fsCfg))
 	require.Equal(t, &Config{
+		MonitorType: "filesystems",
 		monitorConfig: &filesystems.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type: "filesystems",
@@ -507,7 +509,7 @@ func TestInvalidFilteringConfig(t *testing.T) {
 		},
 	}, fsCfg)
 
-	err = fsCfg.validate()
+	err = fsCfg.Validate()
 	require.Error(t, err)
 	require.EqualError(t, err, "unexpected end of input")
 }
@@ -525,6 +527,7 @@ func TestLoadConfigWithNestedMonitorConfig(t *testing.T) {
 	telegrafExecCfg := CreateDefaultConfig().(*Config)
 	require.NoError(t, cm.Unmarshal(&telegrafExecCfg))
 	require.Equal(t, &Config{
+		MonitorType: "telegraf/exec",
 		monitorConfig: &exec.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "telegraf/exec",
@@ -539,7 +542,7 @@ func TestLoadConfigWithNestedMonitorConfig(t *testing.T) {
 			Timeout: timeutil.Duration(5 * time.Second),
 		},
 	}, telegrafExecCfg)
-	require.NoError(t, telegrafExecCfg.validate())
+	require.NoError(t, telegrafExecCfg.Validate())
 
 	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "kubernetes_volumes").String())
 	require.NoError(t, err)
@@ -547,6 +550,7 @@ func TestLoadConfigWithNestedMonitorConfig(t *testing.T) {
 	require.NoError(t, cm.Unmarshal(&k8sVolumesCfg))
 	tru := true
 	require.Equal(t, &Config{
+		MonitorType: "kubernetes-volumes",
 		monitorConfig: &volumes.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "kubernetes-volumes",
@@ -563,5 +567,11 @@ func TestLoadConfigWithNestedMonitorConfig(t *testing.T) {
 			},
 		},
 	}, k8sVolumesCfg)
-	require.NoError(t, k8sVolumesCfg.validate())
+	require.NoError(t, k8sVolumesCfg.Validate())
+}
+
+func TestInvalidMonitorConfig(t *testing.T) {
+	t.Cleanup(cleanUp())
+	cfg := newConfig("cpu", -123)
+	assert.EqualError(t, cfg.Validate(), "intervalSeconds must be greater than 0s (-123 provided)")
 }

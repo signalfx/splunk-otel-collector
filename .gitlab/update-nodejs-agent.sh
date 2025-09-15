@@ -25,7 +25,7 @@ create_collector_pr() {
   setup_branch "$branch" "$repo_url"
 
   echo ">>> Getting latest splunk-otel-js release ..."
-  tag="$( gh release view --repo "https://github.com/signalfx/splunk-otel-js" --json tagName --jq 'select(.isDraft|not and .isPrelease|not) | .tagName' )"
+  tag="$(curl "https://api.github.com/repos/signalfx/splunk-otel-js/tags" | jq -r '[.[].name | select(test("v[0-9]+\\.[0-9]+\\.[0-9]+")) ] | sort_by(split(".")) | last')"
   if [[ -n "$tag" ]]; then
     echo ">>> Updating splunk-otel-js version to $tag ..."
     echo "$tag" > instrumentation/packaging/nodejs-agent-release.txt
@@ -36,6 +36,7 @@ create_collector_pr() {
 
   # Only create the PR if there are changes
   if ! git diff --exit-code >/dev/null 2>&1; then
+    make chlog-new
     git commit -S -am "$message"
     git push -f "$repo_url" "$branch"
     echo ">>> Creating the PR ..."

@@ -7,12 +7,13 @@ import (
 
 	"github.com/iancoleman/strcase"
 
-	"github.com/signalfx/golib/v3/datapoint"
-	"github.com/signalfx/golib/v3/sfxclient"
+	"github.com/signalfx/golib/v3/datapoint" //nolint:staticcheck // SA1019: deprecated package still in use
+	"github.com/signalfx/golib/v3/sfxclient" //nolint:staticcheck // SA1019: deprecated package still in use
+	v1 "k8s.io/api/core/v1"
+
 	"github.com/signalfx/signalfx-agent/pkg/monitors/kubernetes/cluster/meta"
 	k8sutil "github.com/signalfx/signalfx-agent/pkg/monitors/kubernetes/utils"
 	atypes "github.com/signalfx/signalfx-agent/pkg/monitors/types"
-	v1 "k8s.io/api/core/v1"
 )
 
 var resourceNameToMetric = map[v1.ResourceName]string{

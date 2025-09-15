@@ -122,9 +122,13 @@ func (e *evaluator) correlateResourceAttributes(cfg *Config, to map[string]strin
 		to[discovery.ObserverIDAttr] = observerID
 	}
 
+	rEntry := cfg.Receivers[corr.receiverID] // it's safe to assume this exists.
+	if meta, exists := receiverMetaMap[corr.receiverID.String()]; exists {
+		to[serviceTypeAttr] = meta.ServiceType
+	}
+
 	if e.config.EmbedReceiverConfig {
 		embeddedConfig := map[string]any{}
-		rEntry := cfg.Receivers[corr.receiverID] // it's safe to assume this exists.
 		embeddedReceiversConfig := map[string]any{}
 		receiverConfig := map[string]any{}
 		receiverConfig["rule"] = rEntry.Rule

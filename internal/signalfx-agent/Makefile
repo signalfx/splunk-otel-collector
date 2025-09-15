@@ -77,9 +77,6 @@ check: lint vet test
 .PHONY: checklicense
 checklicense: checklicense-noop
 
-.PHONY: impi
-impi: impi-noop
-
 .PHONY: misspell
 misspell: misspell-noop
 

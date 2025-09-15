@@ -17,15 +17,6 @@ receivers:
             authenticator: basicauth
           collection_interval: 1s
         rule: type == "container" and any([name, image, command], {# matches "(?i)nginx"}) and not (command matches "splunk.discovery")
-        status:
-          metrics:
-            - status: successful
-              strict: nginx.connections_accepted
-              message: nginx receiver is working!
-          statements:
-            - status: failed
-              regexp: "Failed to fetch nginx stats"
-              message: Failed to retrieve metrics from NGINX stub_status endpoint.
     watch_observers:
       - docker_observer
 

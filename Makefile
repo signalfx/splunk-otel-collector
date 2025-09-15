@@ -1,22 +1,20 @@
 include ./Makefile.Common
-include ./packaging/technical-addon/Makefile
 
 ### VARIABLES
 
 # BUILD_TYPE should be one of (dev, release).
 BUILD_TYPE?=release
-VERSION?=latest
+DEFAULT_VERSION=$(shell git describe --match "v[0-9]*" HEAD)
+VERSION?=${DEFAULT_VERSION}
 
 GIT_SHA=$(shell git rev-parse --short HEAD)
 GOARCH=$(shell go env GOARCH)
 GOOS=$(shell go env GOOS)
 
-FIND_MOD_ARGS=-type f -name "go.mod"
+FIND_MOD_ARGS=-type f -name "go.mod"  -not -path "./packaging/technical-addon/*"
 TO_MOD_DIR=dirname {} \; | sort | egrep  '^./'
 
 ALL_MODS := $(shell find . $(FIND_MOD_ARGS) -exec $(TO_MOD_DIR)) $(PWD)
-
-GOTEST=go test -p $(NUM_CORES)
 
 # Currently integration tests are flakey when run in parallel due to internal metric and config server conflicts
 GOTEST_SERIAL=go test -p 1
@@ -24,7 +22,6 @@ GOTEST_SERIAL=go test -p 1
 BUILD_INFO_IMPORT_PATH=github.com/signalfx/splunk-otel-collector/internal/version
 BUILD_INFO_IMPORT_PATH_TESTS=github.com/signalfx/splunk-otel-collector/tests/internal/version
 BUILD_INFO_IMPORT_PATH_CORE=go.opentelemetry.io/collector/internal/version
-VERSION=$(shell git describe --match "v[0-9]*" HEAD)
 BUILD_X1=-X $(BUILD_INFO_IMPORT_PATH).Version=$(VERSION)
 BUILD_X2=-X $(BUILD_INFO_IMPORT_PATH_CORE).Version=$(VERSION)
 BUILD_INFO=-ldflags "${BUILD_X1} ${BUILD_X2}"
@@ -67,7 +64,7 @@ all-modules:
 	@echo $(ALL_MODS) | tr ' ' '\n' | sort
 
 .PHONY: all
-all: checklicense impi lint misspell test otelcol
+all: checklicense lint misspell test otelcol
 
 .PHONY: for-all
 for-all:
@@ -97,7 +94,7 @@ integration-test-target:
 
 .PHONY: integration-test-cover-target
 integration-test-cover-target:
-	@set -e; $(MAKE_TEST_COVER_DIR) && cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=$(TARGET) -v -timeout 5m -count 1 ./... $(COVER_TESTING_INTEGRATION_OPTS)
+	@set -e; $(MAKE_TEST_COVER_DIR) && cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=$(TARGET) -v -timeout 10m -count 1 ./... $(COVER_TESTING_INTEGRATION_OPTS)
 	$(GOCMD) tool covdata textfmt -i=$(TEST_COVER_DIR) -o ./$(TARGET)-coverage.txt
 
 .PHONY: integration-test
@@ -214,14 +211,25 @@ gotest-cover-without-race:
 	@$(MAKE) for-all-target TARGET="test-cover-without-race"
 	$(GOCMD) tool covdata textfmt -i=./coverage  -o ./coverage.txt
 
-.PHONY: gendependabot
-gendependabot:
-	.github/workflows/scripts/gendependabot.sh
-
 .PHONY: tidy-all
 tidy-all:
 	$(MAKE) for-all-target TARGET="tidy"
 	$(MAKE) tidy
+
+.PHONY: fmt-all
+fmt-all:
+	$(MAKE) for-all-target TARGET="fmt"
+	$(MAKE) fmt
+
+.PHONY: lint-all
+lint-all:
+	$(MAKE) for-all-target TARGET="lint"
+	$(MAKE) lint
+
+.PHONY: test-all
+test-all:
+	$(MAKE) for-all-target TARGET="test"
+	$(MAKE) test
 
 .PHONY: install-tools
 install-tools:
@@ -230,11 +238,11 @@ install-tools:
 	cd ./internal/tools && go install github.com/google/addlicense
 	cd ./internal/tools && go install github.com/jstemmer/go-junit-report
 	cd ./internal/tools && go install go.opentelemetry.io/collector/cmd/mdatagen
-	cd ./internal/tools && go install github.com/pavius/impi/cmd/impi
 	cd ./internal/tools && go install github.com/tcnksm/ghr
 	cd ./internal/tools && go install golang.org/x/tools/cmd/goimports
 	cd ./internal/tools && go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment
 	cd ./internal/tools && go install golang.org/x/vuln/cmd/govulncheck@latest
+	cd ./internal/tools && go install go.opentelemetry.io/build-tools/chloggen
 
 .PHONY: generate-metrics
 generate-metrics:
@@ -264,12 +272,6 @@ ifeq ($(OS), Windows_NT)
 else
 	$(LINK_CMD) migratecheckpoint_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/migratecheckpoint$(EXTENSION)
 endif
-
-.PHONY: bundle.d
-bundle.d:
-	go install github.com/signalfx/splunk-otel-collector/internal/confmapprovider/discovery/bundle/cmd/discoverybundler
-	go generate -tags bootstrap.bundle.d ./...
-	go generate -tags bundle.d ./...
 
 .PHONY: add-tag
 add-tag:
@@ -382,6 +384,29 @@ endif
 	docker cp otelcol-fips-builder-$(GOOS)-$(GOARCH):/src/bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/otelcol-fips_$(GOOS)_$(GOARCH)$(EXTENSION)
 	@docker rm -f otelcol-fips-builder-$(GOOS)-$(GOARCH) >/dev/null
 
+FILENAME?=$(shell git branch --show-current)
+.PHONY: chlog-new
+chlog-new:
+	$(CHLOGGEN) new --filename $(FILENAME)
 
-.PHONY: package-technical-addon
-package-technical-addon: bundle.d otelcol generate-technical-addon copy-local-build-to-ta package-ta smoketest-ta
+.PHONY: chlog-validate
+chlog-validate:
+	$(CHLOGGEN) validate
+
+.PHONY: chlog-preview
+chlog-preview:
+	$(CHLOGGEN) update --dry
+
+.PHONY: chlog-update
+chlog-update:
+	$(CHLOGGEN) update -v $(VERSION)
+
+.PHONY: prepare-changelog
+prepare-changelog:
+	@if [ "$(VERSION)" = $(DEFAULT_VERSION) ]; then \
+		echo "Error: VERSION is required. Usage: make prepare-changelog VERSION=v0.132.0"; \
+		exit 1; \
+	fi
+	@make chlog-update
+	@echo "Preparing changelog for $(VERSION)..."
+	@./.github/workflows/scripts/prepare-changelog.sh $(VERSION)

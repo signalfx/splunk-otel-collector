@@ -126,7 +126,11 @@ def verify_config_file(container, path, key, value=None, exists=True):
         assert not match, f"'{line}' found in {path}:\n{config}"
 
 
-def verify_env_file(container, api_url=SPLUNK_API_URL, ingest_url=SPLUNK_INGEST_URL, hec_token=SPLUNK_ACCESS_TOKEN, listen_interface=None):
+def verify_env_file(container, api_url=SPLUNK_API_URL, ingest_url=SPLUNK_INGEST_URL, hec_token=SPLUNK_ACCESS_TOKEN, listen_interface=None, command_line_args=None):
+    if command_line_args:
+        verify_config_file(container, SPLUNK_ENV_PATH, "OTELCOL_OPTIONS", command_line_args)
+    else:
+        verify_config_file(container, SPLUNK_ENV_PATH, "OTELCOL_OPTIONS=", None, exists=True)
     verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_CONFIG", SPLUNK_CONFIG)
     verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_ACCESS_TOKEN", SPLUNK_ACCESS_TOKEN)
     verify_config_file(container, SPLUNK_ENV_PATH, "SPLUNK_REALM", SPLUNK_REALM)
@@ -204,10 +208,11 @@ splunk-otel-collector:
   splunk_ingest_url: 'https://fake-ingest.com'
   splunk_api_url: 'https://fake-api.com'
   splunk_hec_token: 'fake-hec-token'
-  collector_version: '0.86.0'
+  collector_version: '0.126.0'
   splunk_service_user: 'test-user'
   splunk_service_group: 'test-user'
   splunk_listen_interface: '0.0.0.0'
+  splunk_otel_collector_command_line_args: '--discovery --set=processors.batch.timeout=10s'
   collector_additional_env_vars:
     MY_CUSTOM_VAR1: value1
     MY_CUSTOM_VAR2: value2
@@ -237,7 +242,8 @@ def test_salt_custom(distro):
                 api_url="https://fake-api.com",
                 ingest_url="https://fake-ingest.com",
                 hec_token="fake-hec-token",
-                listen_interface="0.0.0.0"
+                listen_interface="0.0.0.0",
+                command_line_args="--discovery --set=processors.batch.timeout=10s"
             )
             verify_config_file(container, SPLUNK_ENV_PATH, "MY_CUSTOM_VAR1", "value1")
             verify_config_file(container, SPLUNK_ENV_PATH, "MY_CUSTOM_VAR2", "value2")

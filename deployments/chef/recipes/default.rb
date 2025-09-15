@@ -14,7 +14,8 @@ if platform_family?('windows')
 
   # Older MSI versions can't properly setup the collector configuration
   # in this case, we need to use the registry to set the environment variables.
-  unless node['splunk_otel_collector']['collector_msi_is_configurable']
+  # Custom variables also require using the registry, as the MSI doesn't support it.
+  if !node['splunk_otel_collector']['collector_msi_is_configurable'] || !node['splunk_otel_collector']['collector_additional_env_vars'].empty?
     include_recipe 'splunk_otel_collector::collector_win_registry'
   end
 
@@ -29,7 +30,7 @@ if platform_family?('windows')
   end
 
   remote_file node['splunk_otel_collector']['collector_config_dest'] do
-    source "#{node['splunk_otel_collector']['collector_config_source']}"
+    source node['splunk_otel_collector']['collector_config_source'].to_s
     only_if { ::File.exist?(node['splunk_otel_collector']['collector_config_source']) && node['splunk_otel_collector']['collector_config'] == {} }
     notifies :restart, 'windows_service[splunk-otel-collector]', :delayed
   end
@@ -40,6 +41,7 @@ if platform_family?('windows')
   end
 
   if node['splunk_otel_collector']['with_fluentd'].to_s.downcase == 'true'
+    Chef::Log.deprecation('Fluentd support has been deprecated and will be removed in a future release. Please refer to documentation on how to replace usage: https://github.com/signalfx/splunk-otel-collector/blob/main/docs/deprecations/fluentd-support.md')
     include_recipe 'splunk_otel_collector::fluentd_win_install'
   end
 elsif platform_family?('debian', 'rhel', 'amazon', 'suse')
@@ -54,16 +56,19 @@ elsif platform_family?('debian', 'rhel', 'amazon', 'suse')
     include_recipe 'splunk_otel_collector::collector_zypper_repo'
   end
 
-  package 'splunk-otel-collector' do
-    action :install
-    version node['splunk_otel_collector']['collector_version'] if node['splunk_otel_collector']['collector_version'] != 'latest'
-    flush_cache [ :before ] if platform_family?('amazon', 'rhel')
-    options '--allow-downgrades' if platform_family?('debian') \
-      && node['packages'] \
-      && node['packages']['apt'] \
-      && Gem::Version.new(node['packages']['apt']['version'].split('~')[0]) >= Gem::Version.new('1.1.0')
-    allow_downgrade true if platform_family?('amazon', 'rhel', 'suse')
-    notifies :restart, 'service[splunk-otel-collector]', :delayed
+  # splunk-otel-collector package should already be installed for local artifact testing
+  unless node['splunk_otel_collector']['local_artifact_testing_enabled']
+    package 'splunk-otel-collector' do
+      action :install
+      version node['splunk_otel_collector']['collector_version'] if node['splunk_otel_collector']['collector_version'] != 'latest'
+      flush_cache [ :before ] if platform_family?('amazon', 'rhel')
+      options '--allow-downgrades' if platform_family?('debian') \
+        && node['packages'] \
+        && node['packages']['apt'] \
+        && Gem::Version.new(node['packages']['apt']['version'].split('~').first) >= Gem::Version.new('1.1.0')
+      allow_downgrade true if platform_family?('amazon', 'rhel', 'suse')
+      notifies :restart, 'service[splunk-otel-collector]', :delayed
+    end
   end
 
   include_recipe 'splunk_otel_collector::collector_service_owner'
@@ -82,7 +87,7 @@ elsif platform_family?('debian', 'rhel', 'amazon', 'suse')
   end
 
   remote_file node['splunk_otel_collector']['collector_config_dest'] do
-    source "#{node['splunk_otel_collector']['collector_config_source']}"
+    source node['splunk_otel_collector']['collector_config_source'].to_s
     owner node['splunk_otel_collector']['user']
     group node['splunk_otel_collector']['group']
     mode '0600'

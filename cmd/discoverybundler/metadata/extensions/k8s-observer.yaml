@@ -1,0 +1,5 @@
+extension_id: k8s_observer
+properties_tmpl: |
+  enabled: true
+  config:
+    auth_type: serviceAccount

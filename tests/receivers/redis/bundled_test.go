@@ -32,11 +32,8 @@ import (
 
 func TestRedisDockerObserver(t *testing.T) {
 	testutils.SkipIfNotContainerTest(t)
-	dockerSocket := testutils.CreateDockerSocketProxy(t)
-	require.NoError(t, dockerSocket.Start())
-	t.Cleanup(func() {
-		dockerSocket.Stop()
-	})
+	dockerSocketProxy, err := testutils.CreateDockerSocketProxy(t)
+	require.NoError(t, err)
 
 	tc := testutils.NewTestcase(t)
 	defer tc.PrintLogsOnFailure()
@@ -59,7 +56,7 @@ func TestRedisDockerObserver(t *testing.T) {
 				"--set", "splunk.discovery.receivers.redis.config.username=${REDIS_USERNAME}",
 				"--set", `splunk.discovery.extensions.k8s_observer.enabled=false`,
 				"--set", `splunk.discovery.extensions.host_observer.enabled=false`,
-				"--set", fmt.Sprintf("splunk.discovery.extensions.docker_observer.config.endpoint=tcp://%s", dockerSocket.ContainerEndpoint),
+				"--set", fmt.Sprintf("splunk.discovery.extensions.docker_observer.config.endpoint=tcp://%s", dockerSocketProxy.ContainerEndpoint),
 			)
 		})
 	defer shutdown()
@@ -71,18 +68,19 @@ func TestRedisDockerObserver(t *testing.T) {
 			return
 		}
 		err := pmetrictest.CompareMetrics(expected, tc.OTLPReceiverSink.AllMetrics()[len(tc.OTLPReceiverSink.AllMetrics())-1],
-			pmetrictest.IgnoreResourceAttributeValue("service.instance.id"),
-			pmetrictest.IgnoreResourceAttributeValue("net.host.port"),
-			pmetrictest.IgnoreResourceAttributeValue("net.host.name"),
-			pmetrictest.IgnoreResourceAttributeValue("server.address"),
 			pmetrictest.IgnoreResourceAttributeValue("container.name"),
+			pmetrictest.IgnoreResourceAttributeValue("discovery.endpoint.id"),
+			pmetrictest.IgnoreResourceAttributeValue("net.host.name"),
+			pmetrictest.IgnoreResourceAttributeValue("net.host.port"),
+			pmetrictest.IgnoreResourceAttributeValue("redis.version"),
+			pmetrictest.IgnoreResourceAttributeValue("server.address"),
 			pmetrictest.IgnoreResourceAttributeValue("server.port"),
 			pmetrictest.IgnoreResourceAttributeValue("service.name"),
+			pmetrictest.IgnoreResourceAttributeValue("service.instance.id"),
 			pmetrictest.IgnoreResourceAttributeValue("service_instance_id"),
 			pmetrictest.IgnoreResourceAttributeValue("service_version"),
-			pmetrictest.IgnoreResourceAttributeValue("discovery.endpoint.id"),
-			pmetrictest.IgnoreMetricAttributeValue("service_version"),
 			pmetrictest.IgnoreMetricAttributeValue("service_instance_id"),
+			pmetrictest.IgnoreMetricAttributeValue("service_version"),
 			pmetrictest.IgnoreTimestamp(),
 			pmetrictest.IgnoreStartTimestamp(),
 			pmetrictest.IgnoreMetricDataPointsOrder(),

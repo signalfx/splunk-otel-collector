@@ -10,11 +10,6 @@ smartagent/redis:
   host: localhost
   port: 6379
   intervalSeconds: 234
-smartagent/hadoop:
-  type: collectd/hadoop
-  host: localhost
-  port: 8088
-  intervalSeconds: 345
 smartagent/etcd:
   type: etcd
   host: localhost

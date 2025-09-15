@@ -4,13 +4,5 @@ discovery:
   receivers:
     receiver_1:
       rule: type == "container" && name == "app"
-      status:
-        metrics:
-          - status: successful
-            regexp: '.*'
     receiver_2:
       rule: type == "container" && name == "app"
-      status:
-        statements:
-          - status: failed
-            regexp: '.*'

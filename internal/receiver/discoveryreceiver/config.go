@@ -59,7 +59,6 @@ type Config struct {
 // Receiver Creator config.
 type ReceiverEntry struct {
 	Config             map[string]any    `mapstructure:"config"`
-	Status             *Status           `mapstructure:"status"`
 	ResourceAttributes map[string]string `mapstructure:"resource_attributes"`
 	Rule               Rule              `mapstructure:"rule"`
 }
@@ -82,9 +81,15 @@ type Match struct {
 	Expr    string               `mapstructure:"expr"`
 }
 
+// ReceiverMeta contains pre-defined metadata about the receiver
+type ReceiverMeta struct {
+	ServiceType string `mapstructure:"service_type"`
+	Status      Status `mapstructure:"status"`
+}
+
 func (cfg *Config) Validate() error {
 	var err error
-	for rName, rEntry := range cfg.Receivers {
+	for rName := range cfg.Receivers {
 		name := rName.String()
 		if rName.Type() == component.MustNewType("receiver_creator") {
 			err = multierr.Combine(err, fmt.Errorf("receiver %q validation failure: receiver cannot be a receiver_creator", name))
@@ -98,9 +103,6 @@ func (cfg *Config) Validate() error {
 				err = multierr.Combine(err, fmt.Errorf("receiver %q validation failure: receiver name cannot contain %q", name, re.String()))
 			}
 		}
-		if e := rEntry.validate(); e != nil {
-			err = multierr.Combine(err, fmt.Errorf("receiver %q validation failure: %w", name, e))
-		}
 	}
 
 	if len(cfg.WatchObservers) == 0 {
@@ -110,11 +112,7 @@ func (cfg *Config) Validate() error {
 	return err
 }
 
-func (re *ReceiverEntry) validate() error {
-	return re.Status.validate()
-}
-
-func (s *Status) validate() error {
+func (s *Status) Validate() error {
 	if s == nil {
 		return fmt.Errorf("`status` must be defined and contain at least one `metrics` or `statements` mapping")
 	}

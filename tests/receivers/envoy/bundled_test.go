@@ -32,11 +32,8 @@ import (
 
 func TestEnvoyDockerObserver(t *testing.T) {
 	testutils.SkipIfNotContainerTest(t)
-	dockerSocket := testutils.CreateDockerSocketProxy(t)
-	require.NoError(t, dockerSocket.Start())
-	t.Cleanup(func() {
-		dockerSocket.Stop()
-	})
+	dockerSocketProxy, err := testutils.CreateDockerSocketProxy(t)
+	require.NoError(t, err)
 
 	tc := testutils.NewTestcase(t)
 	defer tc.PrintLogsOnFailure()
@@ -49,7 +46,7 @@ func TestEnvoyDockerObserver(t *testing.T) {
 			"--discovery",
 			"--set", `splunk.discovery.extensions.k8s_observer.enabled=false`,
 			"--set", `splunk.discovery.extensions.host_observer.enabled=false`,
-			"--set", fmt.Sprintf("splunk.discovery.extensions.docker_observer.config.endpoint=tcp://%s", dockerSocket.ContainerEndpoint),
+			"--set", fmt.Sprintf("splunk.discovery.extensions.docker_observer.config.endpoint=tcp://%s", dockerSocketProxy.ContainerEndpoint),
 		)
 	})
 	defer shutdown()
@@ -85,5 +82,5 @@ func TestEnvoyDockerObserver(t *testing.T) {
 			pmetrictest.IgnoreMetricValues(),
 		)
 		assert.NoError(tt, err)
-	}, 30*time.Second, 1*time.Second)
+	}, 60*time.Second, 1*time.Second)
 }

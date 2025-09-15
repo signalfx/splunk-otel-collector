@@ -15,12 +15,3 @@
 #   config:
 #     default:
 #       endpoint: '`(port in [443] ? "https://" : "http://")``endpoint`/nginx_status}}'
-#   status:
-#     metrics:
-#       - status: successful
-#         strict: nginx.connections_accepted
-#         message: nginx receiver is working!
-#     statements:
-#       - status: failed
-#         regexp: "Failed to fetch nginx stats"
-#         message: Failed to retrieve metrics from NGINX stub_status endpoint.

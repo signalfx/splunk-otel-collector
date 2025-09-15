@@ -39,6 +39,11 @@ SPLUNK_BUNDLE_DIR=<%= node['splunk_otel_collector']['splunk_bundle_dir'] %>
 # This directory must be read/writable by the collector process.
 SPLUNK_COLLECTD_DIR=<%= node['splunk_otel_collector']['splunk_collectd_dir'] %>
 
+<% unless node['splunk_otel_collector']['collector_command_line_args'].to_s.strip.empty? -%>
+# Additional command line arguments for the collector.
+OTELCOL_OPTIONS=<%= node['splunk_otel_collector']['collector_command_line_args'] %>
+<% end -%>
+
 # Additional environment variables.
 <% node['splunk_otel_collector']['collector_additional_env_vars'].each do |key,value| -%>
 <%= key %>=<%= value %>

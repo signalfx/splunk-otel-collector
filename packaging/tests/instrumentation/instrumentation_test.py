@@ -251,9 +251,6 @@ def verify_app_instrumentation(container, app, method, attributes, otelcol_path=
     )
 @pytest.mark.parametrize("arch", ["amd64", "arm64"])
 def test_tomcat_instrumentation(distro, arch):
-    if distro == "opensuse-12" and arch == "arm64":
-        pytest.skip("opensuse-12 arm64 no longer supported")
-
     otelcol_bin = f"otelcol_linux_{arch}"
     otelcol_bin_path = OTELCOL_BIN_DIR / otelcol_bin
     assert os.path.isfile(otelcol_bin_path), f"{otelcol_bin_path} not found!"
@@ -317,9 +314,6 @@ def test_tomcat_instrumentation(distro, arch):
     )
 @pytest.mark.parametrize("arch", ["amd64", "arm64"])
 def test_express_instrumentation(distro, arch):
-    if distro == "opensuse-12" and arch == "arm64":
-        pytest.skip("opensuse-12 arm64 no longer supported")
-
     otelcol_bin = f"otelcol_linux_{arch}"
     otelcol_bin_path = OTELCOL_BIN_DIR / otelcol_bin
     assert os.path.isfile(otelcol_bin_path), f"{otelcol_bin_path} not found!"
@@ -329,8 +323,8 @@ def test_express_instrumentation(distro, arch):
     assert pkg_path, f"{PKG_NAME} package not found"
     pkg_base = os.path.basename(pkg_path)
 
-    # minimum supported node version required for profiling
-    node_version = 16
+    # minimum supported node version
+    node_version = 18
 
     buildargs = {"NODE_VERSION": f"v{node_version}"}
 
@@ -455,9 +449,6 @@ def test_dotnet_instrumentation(distro, arch):
     )
 @pytest.mark.parametrize("arch", ["amd64", "arm64"])
 def test_package_uninstall(distro, arch):
-    if distro == "opensuse-12" and arch == "arm64":
-        pytest.skip("opensuse-12 arm64 no longer supported")
-
     pkg_path = get_package(distro, PKG_NAME, arch)
     assert pkg_path, f"{PKG_NAME} package not found"
     pkg_base = os.path.basename(pkg_path)

@@ -9,14 +9,14 @@ RUN wget https://apt.puppetlabs.com/puppet${PUPPET_RELEASE}-release-focal.deb &&
     apt-get update && \
     apt-get install -y puppet-agent
 
-RUN wget -O /tmp/nodejs.tar.gz https://nodejs.org/dist/v16.20.2/node-v16.20.2-linux-x64.tar.gz && \
+RUN wget -O /tmp/nodejs.tar.gz https://nodejs.org/dist/v18.20.8/node-v18.20.8-linux-x64.tar.gz && \
     mkdir -p /opt/ && \
     tar -C /opt/ -xzf /tmp/nodejs.tar.gz && \
     mv /opt/node* /opt/node
 
 ENV PATH=/opt/puppetlabs/bin:/opt/node/bin:$PATH
 
-ENV container docker
+ENV container=docker
 
 RUN rm -f /lib/systemd/system/multi-user.target.wants/* \
     /etc/systemd/system/*.wants/* \
@@ -26,7 +26,7 @@ RUN rm -f /lib/systemd/system/multi-user.target.wants/* \
     /lib/systemd/system/systemd-update-utmp*
 
 RUN systemctl set-default multi-user.target
-ENV init /lib/systemd/systemd
+ENV init=/lib/systemd/systemd
 
 RUN if [ $PUPPET_RELEASE -lt 8 ]; then \
       puppet module install puppetlabs-stdlib --version 4.24.0 && \

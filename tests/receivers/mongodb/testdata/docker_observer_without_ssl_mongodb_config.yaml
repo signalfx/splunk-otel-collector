@@ -13,29 +13,6 @@ receivers:
             insecure: true
           password: user1
         rule: type == "container" and any([name, image, command], {# matches "(?i)mongo"}) and not (command matches "splunk.discovery")
-        status:
-          metrics:
-            - status: successful
-              strict: mongodb.index.size
-              message: mongodb receiver is working!
-          statements:
-            - status: failed
-              regexp: 'connect: network is unreachable'
-              message: The container cannot be reached by the Collector. Make sure they're in the same network.
-            - status: failed
-              regexp: 'connect: connection refused'
-              message: The container is refusing mongodb connections.
-            - status: partial
-              regexp: '.* unable to authenticate using mechanism .*'
-              message: >-
-                    Please ensure your user credentials are correctly specified with
-                    `{{ configPropertyEnvVar "username" "<username>" }}` and
-                    `{{ configPropertyEnvVar "password" "<password>" }}` environment variables.
-            - status: partial
-              regexp: '.*not authorized on admin to execute command.*'
-              message: >-
-                  Make sure the account used to access Mongodb has been given a clusterMonitor role in order to collect metrics.
-                  `db.grantRolesToUser('someUser', [{ role: 'clusterMonitor', db: 'admin' }])`
     watch_observers:
       - docker_observer
 

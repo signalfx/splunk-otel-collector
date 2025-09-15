@@ -1,6 +1,6 @@
 FROM oraclelinux:8
 
-ENV container docker
+ENV container=docker
 
 RUN dnf install -y systemd procps initscripts wget
 
@@ -8,7 +8,7 @@ ARG PUPPET_RELEASE="6"
 RUN rpm -Uvh https://yum.puppet.com/puppet${PUPPET_RELEASE}-release-el-8.noarch.rpm && \
     dnf install -y puppet-agent
 
-RUN wget -O /tmp/nodejs.tar.gz https://nodejs.org/dist/v16.20.2/node-v16.20.2-linux-x64.tar.gz && \
+RUN wget -O /tmp/nodejs.tar.gz https://nodejs.org/dist/v18.20.8/node-v18.20.8-linux-x64.tar.gz && \
     mkdir -p /opt/ && \
     tar -C /opt/ -xzf /tmp/nodejs.tar.gz && \
     mv /opt/node* /opt/node

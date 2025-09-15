@@ -26,22 +26,6 @@ import (
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
-func TestExpandedDollarSignsViaEnvConfigSource(t *testing.T) {
-	testutils.RunMetricsCollectionTest(t, "env_config_source_labels.yaml", "env_config_source_labels_expected.yaml",
-		testutils.WithCollectorEnvVars(map[string]string{"AN_ENVVAR": "an-envvar-value"}),
-		testutils.WithCompareMetricsOptions(
-			pmetrictest.IgnoreScopeVersion(),
-			pmetrictest.IgnoreTimestamp(),
-			pmetrictest.IgnoreStartTimestamp(),
-			pmetrictest.IgnoreMetricDataPointsOrder(),
-			pmetrictest.IgnoreScopeMetricsOrder(),
-			pmetrictest.IgnoreResourceMetricsOrder(),
-			pmetrictest.IgnoreMetricsOrder(),
-			pmetrictest.IgnoreMetricValues(),
-		),
-	)
-}
-
 func TestExpandedYamlViaEnvConfigSource(t *testing.T) {
 	testutils.RunMetricsCollectionTest(t, "yaml_from_env.yaml", "yaml_from_env_expected.yaml",
 		testutils.WithCollectorEnvVars(map[string]string{

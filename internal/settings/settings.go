@@ -617,7 +617,7 @@ func confirmRequiredEnvVarsForDefaultConfigs(paths []string) error {
 			requiredEnvVars := []string{RealmEnvVar, TokenEnvVar}
 			for _, v := range requiredEnvVars {
 				if len(os.Getenv(v)) == 0 {
-					logWarn("Usage: %s=12345 %s=us0 %s", TokenEnvVar, RealmEnvVar, os.Args[0])
+					logError("Usage: %s=12345 %s=us0 %s", TokenEnvVar, RealmEnvVar, os.Args[0])
 					return fmt.Errorf("ERROR: Missing required environment variable %s with default config path %s", v, path)
 				}
 			}
@@ -714,6 +714,13 @@ func logInfo(format string, v ...any) {
 func logWarn(format string, v ...any) {
 	if isSplunkHomeDefined() {
 		format = "WARN " + format
+	}
+	log.Printf(format, v...)
+}
+
+func logError(format string, v ...any) {
+	if isSplunkHomeDefined() {
+		format = "ERROR " + format
 	}
 	log.Printf(format, v...)
 }

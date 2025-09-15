@@ -107,7 +107,7 @@ func TestDiscoveryReceiverWithHostObserverAndSimplePrometheusReceiverProvideStat
 			}
 		}
 
-		t.Log("Foundfailure: %t, foundSuccess: %t, received log count: %d", foundFailure, foundSuccess, tc.OTLPReceiverSink.LogRecordCount())
+		t.Logf("Foundfailure: %t, foundSuccess: %t, received log count: %d", foundFailure, foundSuccess, tc.OTLPReceiverSink.LogRecordCount())
 		return foundSuccess && foundFailure
 	}, 30*time.Second, 10*time.Millisecond, "Failed to receive expected logs")
 }

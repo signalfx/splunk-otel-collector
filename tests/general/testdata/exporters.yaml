@@ -1,5 +1,0 @@
-exporters:
-  otlp:
-    endpoint: localhost:23456
-    tls:
-      insecure: true

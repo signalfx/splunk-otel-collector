@@ -762,6 +762,8 @@ extensions:
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/extension/zpagesextension
   zpages:
     #endpoint: 0.0.0.0:55679
+    expvar:
+      enabled: true
 
 ###############################################################################
 # Service

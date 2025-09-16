@@ -4,7 +4,8 @@ include ./Makefile.Common
 
 # BUILD_TYPE should be one of (dev, release).
 BUILD_TYPE?=release
-VERSION?=latest
+DEFAULT_VERSION=$(shell git describe --match "v[0-9]*" HEAD)
+VERSION?=${DEFAULT_VERSION}
 
 GIT_SHA=$(shell git rev-parse --short HEAD)
 GOARCH=$(shell go env GOARCH)
@@ -15,15 +16,12 @@ TO_MOD_DIR=dirname {} \; | sort | egrep  '^./'
 
 ALL_MODS := $(shell find . $(FIND_MOD_ARGS) -exec $(TO_MOD_DIR)) $(PWD)
 
-GOTEST=go test -p $(NUM_CORES)
-
 # Currently integration tests are flakey when run in parallel due to internal metric and config server conflicts
 GOTEST_SERIAL=go test -p 1
 
 BUILD_INFO_IMPORT_PATH=github.com/signalfx/splunk-otel-collector/internal/version
 BUILD_INFO_IMPORT_PATH_TESTS=github.com/signalfx/splunk-otel-collector/tests/internal/version
 BUILD_INFO_IMPORT_PATH_CORE=go.opentelemetry.io/collector/internal/version
-VERSION=$(shell git describe --match "v[0-9]*" HEAD)
 BUILD_X1=-X $(BUILD_INFO_IMPORT_PATH).Version=$(VERSION)
 BUILD_X2=-X $(BUILD_INFO_IMPORT_PATH_CORE).Version=$(VERSION)
 BUILD_INFO=-ldflags "${BUILD_X1} ${BUILD_X2}"
@@ -213,14 +211,25 @@ gotest-cover-without-race:
 	@$(MAKE) for-all-target TARGET="test-cover-without-race"
 	$(GOCMD) tool covdata textfmt -i=./coverage  -o ./coverage.txt
 
-.PHONY: gendependabot
-gendependabot:
-	.github/workflows/scripts/gendependabot.sh
-
 .PHONY: tidy-all
 tidy-all:
 	$(MAKE) for-all-target TARGET="tidy"
 	$(MAKE) tidy
+
+.PHONY: fmt-all
+fmt-all:
+	$(MAKE) for-all-target TARGET="fmt"
+	$(MAKE) fmt
+
+.PHONY: lint-all
+lint-all:
+	$(MAKE) for-all-target TARGET="lint"
+	$(MAKE) lint
+
+.PHONY: test-all
+test-all:
+	$(MAKE) for-all-target TARGET="test"
+	$(MAKE) test
 
 .PHONY: install-tools
 install-tools:
@@ -233,6 +242,7 @@ install-tools:
 	cd ./internal/tools && go install golang.org/x/tools/cmd/goimports
 	cd ./internal/tools && go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment
 	cd ./internal/tools && go install golang.org/x/vuln/cmd/govulncheck@latest
+	cd ./internal/tools && go install go.opentelemetry.io/build-tools/chloggen
 
 .PHONY: generate-metrics
 generate-metrics:
@@ -353,7 +363,7 @@ ifeq ($(GOOS), linux)
     ifeq ($(filter $(GOARCH), amd64 arm64),)
 		$(error GOOS=$(GOOS) GOARCH=$(GOARCH) not supported)
     endif
-	$(eval BUILD_INFO = -ldflags "${BUILD_X1} ${BUILD_X2} -linkmode=external -extldflags=-static")
+	$(eval BUILD_INFO = -ldflags "${BUILD_X1} ${BUILD_X2}")
 else ifeq ($(GOOS), windows)
     ifeq ($(filter $(GOARCH), amd64),)
 		$(error GOOS=$(GOOS) GOARCH=$(GOARCH) not supported)
@@ -373,3 +383,30 @@ endif
 	docker create --platform linux/$(GOARCH) --name otelcol-fips-builder-$(GOOS)-$(GOARCH) otelcol-fips-builder-$(GOOS)-$(GOARCH) true >/dev/null
 	docker cp otelcol-fips-builder-$(GOOS)-$(GOARCH):/src/bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/otelcol-fips_$(GOOS)_$(GOARCH)$(EXTENSION)
 	@docker rm -f otelcol-fips-builder-$(GOOS)-$(GOARCH) >/dev/null
+
+FILENAME?=$(shell git branch --show-current)
+.PHONY: chlog-new
+chlog-new:
+	$(CHLOGGEN) new --filename $(FILENAME)
+
+.PHONY: chlog-validate
+chlog-validate:
+	$(CHLOGGEN) validate
+
+.PHONY: chlog-preview
+chlog-preview:
+	$(CHLOGGEN) update --dry
+
+.PHONY: chlog-update
+chlog-update:
+	$(CHLOGGEN) update -v $(VERSION)
+
+.PHONY: prepare-changelog
+prepare-changelog:
+	@if [ "$(VERSION)" = $(DEFAULT_VERSION) ]; then \
+		echo "Error: VERSION is required. Usage: make prepare-changelog VERSION=v0.132.0"; \
+		exit 1; \
+	fi
+	@make chlog-update
+	@echo "Preparing changelog for $(VERSION)..."
+	@./.github/workflows/scripts/prepare-changelog.sh $(VERSION)

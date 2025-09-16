@@ -1,0 +1,58 @@
+name: unit-test
+
+on:
+  workflow_call:
+    inputs:
+      OS:
+        required: true
+        type: string
+      COVERAGE:
+        required: false
+        type: boolean
+
+env:
+  GO_VERSION: 1.24.6
+
+jobs:
+  unit-test:
+    runs-on: ${{ inputs.OS }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-environment
+
+      - run: go env -w CGO_ENABLED=0
+
+      - name: bundle.d
+        run: |
+          make bundle.d
+          if ! git diff --exit-code; then
+            echo "Discovery bundle.d config has changed. Run 'make bundle.d' and push the changes or ensure correct .tmpl updated."
+            exit 1
+          fi
+
+      - name: Unit tests
+        run: |
+          set -o pipefail
+          mkdir -p unit-test-results-${{ inputs.OS }}/junit
+          trap "go-junit-report  -set-exit-code < unit-test-results-${{ inputs.OS }}/go-unit-tests.out > unit-test-results-${{ inputs.OS }}/junit/results.xml" EXIT
+
+          if ${{ inputs.COVERAGE }}; then
+            make gotest-cover-without-race | tee unit-test-results-${{ inputs.OS }}/go-unit-tests.out
+          else
+            make test-all | tee unit-test-results/go-unit-tests.out
+          fi
+
+      - name: Uploading artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-results-${{ inputs.OS }}
+          path: ./unit-test-results-${{ inputs.OS }}
+
+      - name: Upload coverage report
+        if: ${{ inputs.COVERAGE }}
+        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # 5.5.1
+        with:
+          fail_ci_if_error: true
+          verbose: true
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

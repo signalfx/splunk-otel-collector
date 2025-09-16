@@ -1,0 +1,31 @@
+name: agent-bundle-linux
+
+on:
+  workflow_call:
+    inputs:
+      ARCH:
+        required: true
+        type: string
+
+jobs:
+  agent-bundle-linux:
+    runs-on: ${{ fromJSON('["ubuntu-24.04", "otel-arm64"]')[inputs.ARCH == 'arm64'] }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/cache@v4
+        id: bundle-cache
+        with:
+          path: .cache/buildx/agent-bundle-${{ inputs.ARCH }}
+          key: agent-bundle-buildx-${{ inputs.ARCH }}-${{ hashFiles('packaging/bundle/**') }}
+          restore-keys: |
+            agent-bundle-buildx-${{ inputs.ARCH }}-
+
+      - run: make -C packaging/bundle agent-bundle-linux ARCH=${{ inputs.ARCH }}
+        env:
+          BUNDLE_CACHE_HIT: "${{ steps.bundle-cache.outputs.cache-hit }}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: agent-bundle-linux-${{ inputs.ARCH }}
+          path: ./dist/agent-bundle_linux_${{ inputs.ARCH }}.tar.gz

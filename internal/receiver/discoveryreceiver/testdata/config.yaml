@@ -6,7 +6,6 @@ discovery:
   correlation_ttl: 25s
   receivers:
     smartagent/redis:
-      service_type: redis
       rule: type == "container" && name matches "(?i)redis"
       config:
         type: collectd/redis
@@ -15,15 +14,3 @@ discovery:
         port: '`port`'
       resource_attributes:
         receiver_attribute: receiver_attribute_value
-      status:
-        metrics:
-          - status: successful
-            regexp: '.*'
-            message: smartagent/redis receiver successful status
-        statements:
-          - status: failed
-            regexp: ConnectionRefusedError
-            message: container appears to not be accepting redis connections
-          - status: partial
-            regexp: (WRONGPASS|NOAUTH|ERR AUTH)
-            message: desired log invalid auth log body

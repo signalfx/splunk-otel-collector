@@ -6,7 +6,7 @@ FROM oraclelinux:9
 
 ARG TARGETARCH
 
-ENV container docker
+ENV container=docker
 
 RUN dnf install -y curl procps initscripts python3 systemd wget
 

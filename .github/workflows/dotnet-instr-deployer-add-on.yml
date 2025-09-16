@@ -23,7 +23,7 @@ on:
         default: '6b4ebe426ca6'
 
 env:
-  GO_VERSION: 1.23.10
+  GO_VERSION: 1.24.6
   # Provide default values for non-manually triggered executions
   splunk_uf_version: ${{ github.event.inputs.splunk_uf_version || '9.4.0' }}
   splunk_uf_build_hash: ${{ github.event.inputs.splunk_uf_build_hash || '6b4ebe426ca6' }}
@@ -35,10 +35,10 @@ jobs:
     steps:
 
       - name: Check out the codebase.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
 
@@ -96,7 +96,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Read version from app.conf
         id: read-app-conf
@@ -109,7 +109,7 @@ jobs:
         run: echo "Fail to read version from app.conf" && exit 1
 
       - name: Push new release tag if it doesn't exist
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |

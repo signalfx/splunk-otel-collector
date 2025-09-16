@@ -37,6 +37,7 @@ ADDLICENCESE= addlicense
 MDLINKCHECK=markdown-link-check
 MISSPELL=misspell -error
 MISSPELL_CORRECTION=misspell -w
+CHLOGGEN=chloggen
 LINT=golangci-lint
 # BUILD_TYPE should be one of (dev, release).
 BUILD_TYPE?=release

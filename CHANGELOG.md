@@ -1,11 +1,266 @@
+<!-- This file is autogenerate, see CONTRIBUTING.md for instructions to add content. -->
+
 # Changelog
 
-## Unreleased
+<!-- For unreleased changes, see entries in .chloggen -->
+<!-- next version -->
+
+## v0.134.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.134.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.134.0)
+and the [opentelemetry-collector-contrib v0.134.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.134.0) releases where appropriate.
 
 ### 🛑 Breaking changes 🛑
 
+- (Splunk) `configconverter`: Remove `normalize_gcp` config converter ([#6695](https://github.com/signalfx/splunk-otel-collector/pull/6695))
+  Upgrades from below v0.69.0 to v0.69.0 or above will no longer handle GCP config conversion.
+  This is relevant for the resourcedetection processor, if a user was using the `gce` or
+  `gke` detectors. Please refer to the
+  [upgrade guide](https://github.com/signalfx/splunk-otel-collector/blob/e541a9a0340f68471c96006ac88940cbcbcfefa3/README.md#from-0680-to-0690)
+  for information on how to resolve.
+- (Splunk, Contrib) `routingprocessor`: Remove deprecated component routingprocessor ([#6634](https://github.com/signalfx/splunk-otel-collector/pull/6634), [#19739](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/19739))
+  Please use the [routing connector](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/connector/routingconnector) instead.
+- (Contrib) `pkg/ottl`: Keep the original map and continue processing keys if an error is encountered when calling an optional replacement function in `replace_all_patterns`. ([#42359](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/42359))
+
+### 🚀 New components 🚀
+
+- (Splunk) `dockerstatsreceiver`: Added the `docker_stats` receiver to the Splunk distribution of the OpenTelemetry Collector. ([#6621](https://github.com/signalfx/splunk-otel-collector/pull/6621))
+  The [`docker_stats` receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/dockerstatsreceiver)
+  queries the local Docker daemon's container stats API for all desired running containers on a configured interval.
+  These stats are for container resource usage of cpu, memory, network, and the blkio controller.
+
+### 💡 Enhancements 💡
+
+- (Splunk) `zpagesextension`: Expose collector configuration via the `zpages` extension. ([#6595](https://github.com/signalfx/splunk-otel-collector/pull/6595))
+  The endpoint exposed by the `zpages` extension is now configured expose the collector configurations
+  (initial and effective) via the `expvarz` endpoint, e.g.: http://localhost:55679/debug/expvarz
+  for the default `zpages` configuration. The endpoint contents is a JSON map in which the keys
+  `splunk.config.initial` and `splunk.config.effective` contains a string with the respective
+  configuration YAML. This will be the replacement when the config debug endpoint is removed
+  in the future. The `expvarz` endpoint can be disabled directly on the configuration file
+  or via the command-line flags by use of `--set=extensions.zpages.expvar.enabled=false`
+  when using the default configurations of the Splunk collector.
+- (Splunk) `logs`: Added a new optional environment variable to the default Linux logs configuration file ([#6656](https://github.com/signalfx/splunk-otel-collector/pull/6656))
+  The new variable is `SPLUNK_FILE_STORAGE_EXTENSION_PATH`, which is used for
+  setting where the filelog receiver's checkpoint files are stored. The default value
+  for this flag is `/var/lib/otelcol/filelogs`. This is only relevant for the
+  `logs_config_linux.yaml` configuration file at this time.
+- (Splunk) `instrumentation`: Update `splunk-otel-javaagent` to `v2.19.0` ([#6635](https://github.com/signalfx/splunk-otel-collector/pull/6635))
+- (Core) `pdata`: Add custom grpc/encoding that replaces proto and calls into the custom marshal/unmarshal logic in pdata. ([#13631](https://github.com/open-telemetry/opentelemetry-collector/issues/13631))
+  This change should not affect other gRPC calls since it fallbacks to the default grpc/proto encoding if requests are not pdata/otlp requests.
+- (Core) `pdata`: Avoid copying the pcommon.Map when same origin ([#13731](https://github.com/open-telemetry/opentelemetry-collector/pull/13731))
+  This is a very large improvement if using OTTL with map functions since it will avoid a map copy.
+- (Core) `exporterhelper`: Respect `num_consumers` when batching and partitioning are enabled. ([#13607](https://github.com/open-telemetry/opentelemetry-collector/pull/13607))
+- (Core) `otlphttpexporter`: Add `profiles_endpoint` configuration option to allow custom endpoint for profiles data export ([#13504](https://github.com/open-telemetry/opentelemetry-collector/issues/13504))
+  The `profiles_endpoint` configuration follows the same pattern as `traces_endpoint`, `metrics_endpoint`, and `logs_endpoint`.
+  When specified, profiles data will be sent to the custom URL instead of the default `{endpoint}/v1development/profiles`.
+- (Core) `pdata`: Add support for local memory pooling for data objects. ([#13678](https://github.com/open-telemetry/opentelemetry-collector/pull/13678))
+  This is still an early experimental (alpha) feature. Do not recommended to be used production. To enable use "--featuregate=+pdata.useProtoPooling"
+- (Core) `pdata`: Optimize CopyTo messages to avoid any copy when same source and destination ([#13680](https://github.com/open-telemetry/opentelemetry-collector/pull/13680))
+- (Core) `receiverhelper`: New feature flag to make receiverhelper distinguish internal vs. downstream errors using new `otelcol_receiver_failed_x` and `otelcol_receiver_requests` metrics ([#12207](https://github.com/open-telemetry/opentelemetry-collector/issues/12207), [#12802](https://github.com/open-telemetry/opentelemetry-collector/pull/12802))
+  This is a breaking change for the semantics of the otelcol_receiver_refused_metric_points,  otelcol_receiver_refused_log_records and otelcol_receiver_refused_spans metrics.
+  These new metrics and semantics are enabled through the `receiverhelper.newReceiverMetrics` feature gate.
+- (Core) `debugexporter`: Add support for entity references in debug exporter output ([#13324](https://github.com/open-telemetry/opentelemetry-collector/issues/13324))
+- (Core) `pdata`: Fix unnecessary allocation of a new state when adding new values to pcommon.Map ([#13634](https://github.com/open-telemetry/opentelemetry-collector/pull/13634))
+- (Core) `service`: Implement refcounting for pipeline data owned memory. ([#13631](https://github.com/open-telemetry/opentelemetry-collector/issues/13631))
+  This feature is protected by `--featuregate=+pdata.useProtoPooling`.
+- (Core) `service`: Add a debug-level log message when a consumer returns an error. ([#13357](https://github.com/open-telemetry/opentelemetry-collector/issues/13357))
+- (Core) `xpdata`: Optimize xpdata/context for persistent queue when only one value for key ([#13636](https://github.com/open-telemetry/opentelemetry-collector/pull/13636))
+- (Core) `otlpreceiver`: Log the listening addresses of the receiver, rather than the configured endpoints. ([#13654](https://github.com/open-telemetry/opentelemetry-collector/issues/13654))
+- (Core) `pdata`: Use the newly added proto marshaler/unmarshaler for the official proto Marshaler/Unmarshaler ([#13637](https://github.com/open-telemetry/opentelemetry-collector/pull/13637))
+  If any problems observed with this consider to disable the featuregate `--feature-gates=-pdata.useCustomProtoEncoding`
+<!-- cspell:ignore MLKEM mlkem -->
+- (Core) `configtls`: Enable X25519MLKEM768 as per draft-ietf-tls-ecdhe-mlkem ([#13670](https://github.com/open-telemetry/opentelemetry-collector/issues/13670))
+- (Contrib) `k8sclusterreceiver`: Add optional experimental k8s.container.status.state metric ([#32457](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/32457))
+- (Contrib) `kafkareceiver`: Add `on_permanent_error` option to `message_marking` configuration. ([#41333](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41333))
+- (Contrib) `filelogreceiver`: Move filelog.decompressFingerprint feature gate to beta stage ([#42189](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/42189))
+- (Contrib) `httpcheckreceiver`: Add request body to http requests ([#41325](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41325))
+  The httpcheckreceiver can be configured to send a request body to the target endpoint.
+- (Contrib) `tailsamplingprocessor`: Optimize telemetry collection in tailsamplingprocessor ([#41888](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41888))
+- (Contrib) `oracledbreceiver`: Add support for Oracle DB receiver to read session action as trace context. ([#41878](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41878))
+- (Contrib) `oracledbreceiver`: Removing the toLowercase conversion on sql text in top_query payload. Also, adding child_address into the query_samples payload. ([#37478](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/37478))
+- (Contrib) `prometheusreceiver`: Remove temporary fix for metric name validation, fix upstream resolved ([#42004](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/42004))
+- (Contrib) `tailsamplingprocessor`: Add a new option to block on num traces overflow. ([#41546](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41546))
+- (Contrib) `httpcheckreceiver`: Add response body validation ([#41325](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41325))
+  The httpcheckreceiver now supports validating the response body using a few approaches.
+  String matching, JSON path matching, size ranges, and regex matching are supported.
+- (Contrib) `httpcheckreceiver`: Fix race for timing of request steps ([#42042](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/42042))
+  The httpcheckreceiver uses atomic operations to track the timing of request steps to avoid race conditions.
+- (Contrib) `pkg/ottl`: Avoid multiple copies of the Map in replace_all_patterns. ([#42359](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/42359))
+- (Contrib) `kafkareceiver`: Add profiles support ([#41479](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41479))
+- (Contrib) `pkg/ottl`: Remove unnecessary Value initialization when setting an attribute/body ([#42335](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/42335), [#42362](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/42362))
+- (Contrib) `pkg/ottl`: Add an `Index(target, value)` OTTL function which returns the index of the first occurrence of `value` in `target`. ([#40351](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/40351))
+- (Contrib) `pkg/stanza`: add `sanitize_utf8` operator to replace invalid UTF-8 characters. ([#42028](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/42028))
+
+### 🧰 Bug fixes 🧰
+
+- (Core) `exporterhelper`: Prevent uncontrolled goroutines in batcher due to a incorrect worker pool behaviour. ([#13689](https://github.com/open-telemetry/opentelemetry-collector/pull/13689))
+- (Core) `service`: Ensure the insecure configuration is accounted for when normalizing the endpoint. ([#13691](https://github.com/open-telemetry/opentelemetry-collector/pull/13691))
+- (Core) `configoptional`: Allow validating nested types ([#13579](https://github.com/open-telemetry/opentelemetry-collector/issues/13579))
+  `configoptional.Optional` now implements `xconfmap.Validator`
+- (Core) `batchprocessor`: Fix UB in batch processor when trying to read bytes size after adding request to pipeline ([#13698](https://github.com/open-telemetry/opentelemetry-collector/pull/13698))
+  This bug only happens id detailed metrics are enabled and also an async (sending queue enabled) exporter that mutates data is configure.
+- (Core) `pdata`: Correctly parse OTLP payloads containing non-packed repeated primitive fields ([#13727](https://github.com/open-telemetry/opentelemetry-collector/issues/13727), [#13730](https://github.com/open-telemetry/opentelemetry-collector/pull/13730))
+  This bug prevented the Collector from ingesting most Histogram, ExponentialHistogram,
+  and Profile payloads.
+- (Contrib) `k8sattributesprocessor`: Allow service.namespace to be used in rules and fix docs ([#40859](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40859))
+- (Contrib) `tailsamplingprocessor`: Fix a race condition in the tailsampling processor that could cause traces to be dropped prematurely. ([#41656](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41656))
+- (Contrib) `sqlserverreceiver`: Fix memory leak from top queries and query samples features ([#42302](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/42302))
+  The issue was caused by the misuse of the obfuscate library.
+- (Contrib) `jmxreceiver`: support `jmx_configs` for jmx scraper usecase ([#41952](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41952))
+- (Contrib) `vcenterreceiver`: Fixes a potential issue with vm collection without a types.VirtualMachineConfigInfo attached to the VM. ([#42098](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/42098))
+- (Contrib) `prometheusreceiver`: Fixes a bug where static configuration labels were dropped when using the Prometheus receiver. Previously, labels defined in the static config were not being applied to the metrics. ([#41727](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41727))
+- (Contrib) `mysqlreceiver`: Fix for the conversion error on mysql.event_id. Setting an int (0) as default value in SQL. ([#42040](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/42040))
+- (Contrib) `windowseventlogreceiver`: Fixes issue for remote log collection where domain was not properly passed into EvtOpenSession syscall ([#41950](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41950))
+
+## v0.133.0
+
+This release was skipped in order to avoid hitting a [known issue](https://github.com/open-telemetry/opentelemetry-collector/issues/13727)
+in the upstream v0.133.0 release.
+
+## v0.132.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.132.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.132.0)
+and the [opentelemetry-collector-contrib v0.132.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.132.0) releases where appropriate.
+
+### 🛑 Breaking changes 🛑
+
+- (Contrib) `receiver/azuremonitor`: Updated `append_tags_as_attributes` configuration type from boolean to array ([#40988](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40988))
+- (Contrib) `receiver/googlecloudpubsub`: Removed built-in support for cloud_logging and raw_text encoding ([#41812](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41812))
+- (Contrib) `receiver/postgresql`: Unified configuration and enabled events by default ([#41700](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41700))
+  - Removed the existing `query_sample_collection.enabled` and `top_query_collection.enabled` flags in favor of using the field generated by mdatagen.
+  - Both collections are now enabled by default.
+
+### 🚩 Deprecations 🚩
+
+- (Core) `service`: Moved `service.noopTraceProvider` feature gate to deprecated stage ([#13492](https://github.com/open-telemetry/opentelemetry-collector/pull/13492))
+  The functionality of the feature gate is available via configuration with the following telemetry settings:
+  ```yaml
+  service:
+    telemetry:
+      traces:
+        level: none
+  ```
+- (Core) `service`: Deprecated `telemetry.disableHighCardinalityMetrics` feature gate ([#13537](https://github.com/open-telemetry/opentelemetry-collector/pull/13537))
+- (Contrib) `receiver/kafka`: Improved internal metrics telemetry, deprecated some existing metrics ([#41109](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41109))
+
+### 💡 Enhancements 💡
+
+- (Core) `confighttp`: Added option to configure ForceAttemptHTTP2 ([#13426](https://github.com/open-telemetry/opentelemetry-collector/pull/13426))
+- (Core) `pdata`: Avoided unnecessary buffer copy when JSON marshal fails ([#13598](https://github.com/open-telemetry/opentelemetry-collector/pull/13598))
+- (Core) `processorhelper`: Added processor internal duration metric ([#13231](https://github.com/open-telemetry/opentelemetry-collector/pull/13231))
+- (Contrib) `exporter/kafka`: Enrich kafkaexporter errors with topic ([#41691](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41691))
+- (Contrib) `exporter/kafka`: Use exporterhelper's `WithQueueBatch` and configure batch partitioner based on configured metadata keys ([#41775](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41775))
+- (Contrib) `pkg/ottl`: Add `UUIDv7` function to generate v7 UUIDs. ([#41268](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41268))
+- (Contrib) `pkg/stanza`: Add support for batch processing in most operators ([#39575](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/39575))
+  The following operators now support batching: `add`, `assign_keys`, `copy`, `flatten`, `move`,
+  `regex_replace`, `remove`, `retain`, `unquote` `json_parser`, `json_array_parser`, `key_value_parser`,
+  `regex_parser`, `scope_name`, `severity`, `timestamp`, `trace_parser`, `uri_parser`.
+  The following operators do not support batching yet: `container`, `csv_parser`, `filter`, `recombine`, `router`, `syslog`.
+- (Contrib) `processor/redaction`: Add database sanitization capability to the redaction processor. ([#41647](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41647))
+- (Contrib) `processor/tailsampling`: Add `decision` attribute to metrics tracking sampling decisions ([#41819](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41819))
+  Possible values for the `decision` attribute are `sampled`, `not_sampled` and `dropped`
+- (Contrib) `processor/transform`: Introduce convert_summary_quantile_val_to_gauge() function ([#33850](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/33850))
+- (Contrib) `receiver/filelog`: Add a new setting, `polls_to_archive`, to control the number of poll cycles to store on disk, rather than being discarded. ([#32727](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/32727))
+  If `polls_to_archive` setting is used in conjunction with `storage` setting, file offsets older than three poll cycles are stored on disk rather than being discarded.
+  This feature enables the receiver to remember file for a longer period and also aims to use limited amount of memory.
+- (Contrib) `receiver/httpcheck`: Add detailed timing metrics ([#41379](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41379))
+  The timing metrics added to the receiver now include durations for dns lookup, tcp connection, tls handshake, request, and response.
+- (Contrib) `receiver/k8sobjects`: Introduces `include_initial_state` for watch mode, so the existing state of watched objects emitted as log events. ([#41536](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41536))
+- (Contrib) `receiver/kafka`, `exporter/kafka`: Allow to configure the metdata refresh interval when using the franz-go client. ([#41088](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41088))
+- (Contrib) `receiver/mysql`: Add 'mysql.page_size' metric ([#41572](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41572))
+- (Contrib) `receiver/oracledb`: Add options and child_address into oracle plan ([#37478](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37478))
+  Adding options and child_address into oracle plan to enhance the details
+- (Contrib) `receiver/oracledb`: Moving child_address from plan details to attributes in top N query collection. ([#37478](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/37478))
+
+### 🧰 Bug fixes 🧰
+
+- (Core) `pdata`: Fixed null pointer access when copying into a slice ([#13523](https://github.com/open-telemetry/opentelemetry-collector/pull/13523))
+- (Core) `confighttp`: Fixed middleware configuration field name ([#13444](https://github.com/open-telemetry/opentelemetry-collector/pull/13444))
+- (Core) `processor/memorylimiter`: Improved shutdown handling ([#9687](https://github.com/open-telemetry/opentelemetry-collector/pull/9687))
+- (Core) `confighttp`: Reused zstd Reader objects ([#11824](https://github.com/open-telemetry/opentelemetry-collector/pull/11824))
+- (Contrib) `connector/routing`: Add support for the `IsRootSpan` OTTL function. ([#41462](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41462))
+- (Contrib) `connector/spanmetrics`: Adds a default maximum number of exemplars within the metric export interval. ([#41679](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41679))
+- (Contrib) `exporter/awss3`: Fixes S3 path joining in the AWS S3 exporter to ensure correct partitioning and prefix handling. ([#41675](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41675))
+- (Contrib) `exporter/splunkhec`: Do not log entries if they are rejected as too long ([#41575](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41575))
+- (Contrib) `receiver/awscontainerinsight`: Set Aws config in the info to pass the creds ([#41799](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41799))
+- (Contrib) `receiver/jmx`: fix sha256sum for opentelemetry-jmx-scraper-1.48.0-alpha.jar ([#41864](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41864))
+- (Contrib) `receiver/solace`: The Solace receiver may leak memory on reporting traces when used under high load. ([#41792](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41792))
+- (Contrib) `receiver/splunkenterprise`: fixes behavior of kvstore metrics scraper ([#41527](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41527))
+- (Contrib) `receiver/splunkhec`: Accept dashes in metric names ([#41127](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41127))
+- (Contrib) `receiver/statsd`: Fixes a bug when storing k8s.pod.ip in the metrics. Previously otelcol IP was used instead of the client IP. ([#41361](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41361), [#41362](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41362))
+- (Contrib) `receiver/vcenter`: Fixes a potential NPE during VM collection ([#41018](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41018))
+
+## v0.131.3
+
+### 🛑 Breaking changes 🛑
+
+- `smartagent/jaeger-grpc`: Remove, already deprecated, `jaeger-grpc` monitor. Please use the [jaeger receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jaegerreceiver) instead. (#6601)
+  To use the OTel-native jaeger receiver with the same port used by default by the jaeger-grpc monitor, apply the following config:
+  ```yaml
+  receivers:
+    jaeger:
+      protocols:
+        grpc:
+          endpoint: localhost:14250
+  ```
+
+### 🚩 Deprecations 🚩
+
+- `smartagent/kubelet-metrics`: The kubelet-metrics monitor is deprecated and will be removed by the end of October 2025. Please use the [kubeletstats receiver](https://help.splunk.com/en/splunk-observability-cloud/manage-data/available-data-sources/supported-integrations-in-splunk-observability-cloud/opentelemetry-receivers/kubelet-stats-receiver) instead. (#6599)
+- `smartagent/kubelet-stats`: The kubelet-stats monitor is deprecated and will be removed by the end of October 2025. Please use the prometheus receiver instead. (#6597)
+- `smartagent/cadvisor`: The cadvisor monitor is deprecated and will be removed by the end of October 2025. Please use the prometheus receiver instead. (#6597)
+
+## v0.131.2
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.131.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.131.0)
+and the [opentelemetry-collector-contrib v0.131.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.131.0) releases where appropriate.
+
+### 💡 Enhancements 💡
+
+- `all`: Upgrade go version to 1.24 (#6542)
+
+### 🚀 New components 🚀
+
+- `extension/k8sleaderelector`: Add [extension](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/k8sleaderelector) to the Splunk distro (#6539)
+- `receiver/snmp`: Add [receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/snmpreceiver) to the Splunk distro (#6538)
+- `receiver/tlscheck`: Add [receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/tlscheckreceiver) to the Splunk distro (#6541)
+
+## v0.131.1
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.131.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.131.0)
+and the [opentelemetry-collector-contrib v0.131.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.131.0) releases where appropriate.
+
+### 💡 Enhancements 💡
+
+- (Contrib) `receiver/sqlserver` Enable sqlserver events collection on windows ([#41762](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41762))
+
+## v0.131.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.131.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.131.0)
+and the [opentelemetry-collector-contrib v0.131.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.131.0) releases where appropriate.
+
+### 🛑 Breaking changes 🛑
+
+- (Splunk) `receiver/discovery`: Discovery receiver no longer supports setting `status` and `service_type` options. They are now pre-defined for each receiver type. ([#6530](https://github.com/signalfx/splunk-otel-collector/pull/6530))
+- (Splunk) `discovery`: The `splunk.continuousDiscovery` feature flag, enabled by default since v0.118.0, is now stable. The feature gate has been removed, and default behavior remains unchanged.
 - (Splunk) Remove, already deprecated, `collectd/consul` monitor. Please follow the documentation at https://developer.hashicorp.com/consul/docs/agent/monitor/telemetry to set up with statsd or prometheus receivers. ([#6505](https://github.com/signalfx/splunk-otel-collector/pull/6505))
+- (Splunk) Remove, already deprecated, `collectd/genericjmx` and all related monitors. Please use the [jmxreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jmxreceiver) instead with the appropriate target system. 
+  Removed monitors that relied on `collectd/genericjmx` ([#6510](https://github.com/signalfx/splunk-otel-collector/pull/6510)):
+  - `collectd/activemq` replace with `activemq` target with the [jmxreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jmxreceiver).
+  - `collectd/cassandra` replace with `cassandra` target with the [jmxreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jmxreceiver).
+  - `collectd/hadoop` replace with `hadoop` target with the [jmxreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jmxreceiver).
+  - `collectd/kafka` replace with `kafka` target with the [jmxreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jmxreceiver).
+  - `collectd/kafka-consumer` replace with `kafka` target with the [jmxreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jmxreceiver).
+  - `collectd/kafka-producer` replace with `kafka` target with the [jmxreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jmxreceiver).
+  - `collectd/solr` replace with `solr` target with the [jmxreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jmxreceiver).
+  - `collectd/tomcat` replace with `tomcat` target with the [jmxreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jmxreceiver).
 - (Splunk) Remove, already deprecated, `collectd/mysql` monitor. Use the [mysql receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/mysqlreceiver) instead. ([#6487](https://github.com/signalfx/splunk-otel-collector/pull/6487))
+- (Core) `confighttp`: Move `confighttp.framedSnappy` feature gate to beta. ([#10584](https://github.com/open-telemetry/opentelemetry-collector/issues/10584))
+- (Contrib) `iisreceiver`: Enable IIS Application Pool state and uptime metrics by default. ([#34924](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/34924))
+  WARNING: This change enables the `iis.application_pool.state` and `iis.application_pool.uptime` metrics by default.
+  This may cause a significant increase in the number of metrics collected if you have many application pools.
+  If you are concerned about the number of metrics, you can disable these metrics in your configuration.
 
 ### 🚩 Deprecations 🚩
 
@@ -17,6 +272,107 @@
   This plugin will be removed by the end of October 2025. ([#6491](https://github.com/signalfx/splunk-otel-collector/pull/6491))
 - (Splunk) The collectd/spark plugin is deprecated. Please use the [apache spark receiver](https://help.splunk.com/en/splunk-observability-cloud/manage-data/available-data-sources/supported-integrations-in-splunk-observability-cloud/opentelemetry-receivers/apache-spark-receiver) instead.
   This plugin will be removed by the end of October 2025. ([#6494](https://github.com/signalfx/splunk-otel-collector/pull/6494))
+- (Contrib) `kafkaexporter`: Improve kafkaexporter internal metrics telemetry consistency, measure latency in seconds ([#41108](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41108))
+  Improve internal metrics telemetry consistency:
+  kafka_broker_throttling_duration is deprecated in favor of kafka_broker_throttling_latency
+  kafka_exporter_latency is deprecated in favor of kafka_exporter_write_latency
+  kafka_exporter_messages is deprecated in favor kafka_exporter_records
+
+### 💡 Enhancements 💡
+
+- (Splunk) `discovery`: Enable nginx discovery on Windows ([#6500](https://github.com/signalfx/splunk-otel-collector/pull/6500))
+- (Splunk) Update `splunk-otel-javaagent` to `v2.18.0` ([#6481](https://github.com/signalfx/splunk-otel-collector/pull/6481))
+- (Splunk) Update `jmx-metric-gatherer` to `v1.48.0` ([#6482](https://github.com/signalfx/splunk-otel-collector/pull/6482))
+- (Core) `exporter/debug`: Move to alpha stability except profiles ([#13487](https://github.com/open-telemetry/opentelemetry-collector/pull/13487))
+- (Core) `exporterhelper`: Enable `exporter.PersistRequestContext` feature gate by default. ([#13437](https://github.com/open-telemetry/opentelemetry-collector/pull/13437))
+  Request context is now preserved by default when using persistent queues.
+  Note that Auth extensions context is not propagated through the persistent queue.
+
+- (Core) `otlpreceiver`: Remove usage of gogo proto which uses reflect.Value.MethodByName. Removes one source of disabling DCE. ([#12747](https://github.com/open-telemetry/opentelemetry-collector/issues/12747))
+- (Core) `exporterhelper`: Fix metrics split logic to consider metrics description into the size. ([#13418](https://github.com/open-telemetry/opentelemetry-collector/pull/13418))
+- (Core) `service`: New pipeline instrumentation now differentiates internal failures from downstream errors ([#13234](https://github.com/open-telemetry/opentelemetry-collector/pull/13234))
+  With the telemetry.newPipelineTelemetry feature gate enabled, the "received" and "produced"
+  metrics related to a component now distinguish between two types of errors:
+  - "outcome = failure" indicates that the component returned an internal error;
+  - "outcome = refused" indicates that the component successfully emitted data, but returned an
+    error coming from a downstream component processing that data.
+
+- (Core) `pdata`: Remove usage of text/template from pdata, improves DCE. ([#12747](https://github.com/open-telemetry/opentelemetry-collector/issues/12747))
+- (Core) `architecture`: New Tier 3 platform riscv64 allowing the collector to be built and distributed for this platform. ([#13462](https://github.com/open-telemetry/opentelemetry-collector/issues/13462))
+- (Contrib) `jmxreceiver`: Add support for jmx-scraper JARs ([#37469](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/37469))
+- (Contrib) `awss3exporter`: Add a new configuration `resource_attrs_to_s3/s3_bucket` to enable mapping OTel resource attributes to s3 bucket ([#40321](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/40321))
+- (Contrib) `awss3exporter`: Add support for UUIDv7 as a unique key function in the S3 exporter. ([#40515](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/40515))
+- (Contrib) `httpcheckreceiver`: Add TLS certificate checking capability for HTTPS endpoints. ([#35968](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/35968))
+  The receiver can collect TLS certificate metrics including time remaining until expiry, issuer, common name, and SANs.
+  If the HttpCheckTLSCertRemaining metric is enabled and the endpoint is HTTPS, it will collect the certificate metrics.
+
+- (Contrib) `httpcheckreceiver`: Remove unnecessary status codes ([#38564](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/38564))
+  The httpcheckreceiver now removes the http.status_code attribute from httpcheck.status metrics
+  when the metric value is 0, as per the feature request to avoid redundant status codes.
+
+- (Contrib) `processor/k8sattributes`: Support extracting labels and annotations from k8s StatefulSets ([#37957](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/37957))
+- (Contrib) `mysqlreceiver`: Support query-level collection. ([#40965](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/40965))
+  Added query sample collection. The query will gather the queries that were currently running at the moment when scraping is happening.
+  The number of collected queries can be configured. This will enable user to have better understanding on what is going on with the database.
+  This enhancement empowers users to not only monitor but also actively manage and optimize their MSSQL database performance based on real usage patterns.
+
+- (Contrib) `mysqlreceiver`: Add the total number of buffer pool pages ([#41252](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41252))
+- (Contrib) `oracledbreceiver`: Add 'oracledb.logons' metric ([#41067](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41067))
+- (Contrib) `oracledbreceiver`: Support query-level log collection, fetching query samples. ([#37478](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/37478))
+  With the introduction of query level log collection, details about currently running queries can be collected.
+  The maximum number of queries to be collected can be configured. This feature helps the user to have a better understanding of the database operations.
+
+- (Contrib) `oracledbreceiver`: Support query-level log collection, fetching top N query metrics. ([#37478](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/37478))
+  With the introduction of query level log collection, the oracledbreceiver can now send metrics for Top N queries,
+  filtered based on the highest CPU time consumed. The number of queries can be configured. This helps the user to have
+  a better understanding of the database operations.
+
+- (Contrib) `pkg/ottl`: Add support for combining `scope` with other OTTL contexts. ([#39308](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/39308))
+  Previously, OTTL paths could only use the `instrumentation_scope` context when combined with
+  lower-level contexts like `log` or `metric`. This change allows the `scope` context to be
+  used interchangeably with `instrumentation_scope`, improving flexibility and consistency.
+
+- (Contrib) `pkg/ottl`: Added a new `Values` OTTL Function. ([#41243](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41243))
+- (Contrib) `pkg/ottl`: Allow optional KeyPath in OTTL SliceToMap function. ([#41390](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41390))
+- (Contrib) `postgresqlreceiver`: Add `postgresql.function.calls` metric. ([#40969](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/40969))
+  Requires `track_functions=pl|all` in Postgres config
+- (Contrib) `postgresqlreceiver`: Add 'postgresql.temp.io' metric ([#41365](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41365))
+  The metric emits the amount of data written to temporary files.
+- (Contrib) `kafkaexporter`: Add profiles support ([#41369](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41369))
+- (Contrib) `prometheusreceiver`: Add retry logic for connection refused errors so the collector doesn't crash at startup. ([#40982](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/40982))
+  This change adds retry logic for connection refused errors. The target allocator could be
+  busy starting up the receiver and the first connection attempt may fail.
+
+- (Contrib) `receiver/prometheus`: Add support for otel_scope_schema_url label mapping to OpenTelemetry ScopeMetrics schema URL field ([#41488](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41488))
+- (Contrib) `architecture`: New Tier 3 platform riscv64 allowing the collector to be built and distributed for this platform. ([#41507](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41507))
+- (Contrib) `redactionprocessor`: The new `redact_all_types` option redacts all field types after casting them to string. ([#36684](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/36684))
+- (Contrib) `sqlserverreceiver`: Add 'sqlserver.computer.uptime' metric ([#41207](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41207))
+- (Contrib) `sqlserverreceiver`: Make queries compatible with Azure SQL Database and Azure SQL Managed Instance. ([#41102](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41102))
+- (Contrib) `telemetrygen`: Adds a new telemetrygen flag to generate unique timestamps for within a second interval ([#39933](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/39933))
+
+### 🧰 Bug fixes 🧰
+
+- (Core) `exporterhelper`: Prevents the exporter for being stuck when telemetry data is bigger than batch.max_size ([#12893](https://github.com/open-telemetry/opentelemetry-collector/issues/12893))
+- (Core) `service`: Downgrade dependency of prometheus exporter in OTel Go SDK ([#13429](https://github.com/open-telemetry/opentelemetry-collector/pull/13429))
+  This fixes the bug where collector's internal metrics are emitted with an unexpected suffix in their names when users configure the service::telemetry::metrics::readers with Prometheus
+- (Core) `service`: Revert Default internal metrics config now enables `otel_scope_` labels ([#12939](https://github.com/open-telemetry/opentelemetry-collector/issues/12939), [#13344](https://github.com/open-telemetry/opentelemetry-collector/pull/13344))
+  Reverting change temporarily due to prometheus exporter downgrade. This unfortunately re-introduces the bug that instrumentation scope attributes cause errors in Prometheus exporter. See http://github.com/open-telemetry/opentelemetry-collector/issues/12939 for details.
+- (Core) `builder`: Remove undocumented handling of `DIST_*` environment variables replacements ([#13335](https://github.com/open-telemetry/opentelemetry-collector/issues/13335))
+- (Contrib) `tailsamplingprocessor`: Numeric-range values, if zero, are properly treated as unset. ([#41562](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41562))
+- (Contrib) `filestorageextension`: Add an option to recreate databse if the database file is corrupted. ([#35899](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/35899))
+- (Contrib) `receiver/prometheus`: Fix `otel_scope_name` and `otel_scope_version` labels not being dropped from metric attributes ([#41456](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41456)).
+  Since the signalfx exporter ignores the native OTel fields for scope name and version, this change prevents the exporter from sending these fields as attributes.
+  If needed, they can be re-added using an additional transform processor with the following configuration:
+  ```yaml
+  processors:
+    transform/add_scope_attrs:
+      metric_statements:
+        - set(resource.attributes["otel_scope_name"], scope.name) where scope.name != ""
+        - set(resource.attributes["otel_scope_version"], scope.version) where scope.version != ""
+  ```
+- (Contrib) `ottlprofile`: Fix the handling of references to location. ([#41466](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41466))
+- (Contrib) `splunkenterprisereceiver`: Add test for empty string response on search artifact metrics & fix unmarshall error ([#41288](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41288))
+- (Contrib) `awss3exporter`: Fixed panic error when more than 1 exporter is in the pipeline with s3 exporter ([#41262](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41262))
 
 ## v0.130.0
 
@@ -37,13 +393,8 @@ and the [opentelemetry-collector-contrib v0.130.0](https://github.com/open-telem
 - (Contrib) `splunkhecexporter`: Deprecate 'batcher' config, use 'sending_queue::batch' instead ([#41224](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41224))
 - (Contrib) `spanmetricsconnector`: Mark dimensions_cache_size as deprecated following the upstream guidelines ([#41101](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41101))
 
-### 🛑 Breaking changes 🛑
-
-- (Splunk) `discovery`: Move `splunk.continuousDiscovery` feature flag to stable
-
 ### 💡 Enhancements 💡
 
-- (Splunk) `discovery`: Enable nginx discovery on Windows ([#6500](https://github.com/signalfx/splunk-otel-collector/pull/6500))
 - (Splunk) Update jmx-metric-gatherer version to v1.47.0 ([#6399](https://github.com/signalfx/splunk-otel-collector/pull/6399))
 - (Splunk) Update bundled openjdk version to 11.0.28_6 ([#6459](https://github.com/signalfx/splunk-otel-collector/pull/6459))
 - (Splunk) `receiver/discovery`: Reduce amount of attributes sent with the entities to the required set ([#6419](https://github.com/signalfx/splunk-otel-collector/pull/6419))
@@ -4609,7 +4960,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 ### 🚀 New components 🚀
 
 - [mongodbatlas](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/mongodbatlasreceiver) receiver to receive metrics from MongoDB Atlas via their monitoring APIs (#997)
-- [routing](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/routingprocessor) processor to route logs, metrics or traces to specific exporters (#982)
+- routing processor to route logs, metrics or traces to specific exporters (#982)
 
 ## v0.39.0
 

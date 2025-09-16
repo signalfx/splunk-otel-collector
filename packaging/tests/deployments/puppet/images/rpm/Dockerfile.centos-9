@@ -1,6 +1,6 @@
 FROM quay.io/centos/centos:stream9
 
-ENV container docker
+ENV container=docker
 
 RUN rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
 RUN echo 'fastestmirror=1' >> /etc/yum.conf

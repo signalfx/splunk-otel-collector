@@ -22,14 +22,14 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.23.10
+  GO_VERSION: 1.24.6
 
 jobs:
   cross-compile:
     strategy:
       matrix:
         SYS_BINARIES: [ "binaries-windows_amd64" ]
-    uses: ./.github/workflows/compile.yml
+    uses: ./.github/workflows/reusable-compile.yml
     with:
       SYS_BINARY: ${{ matrix.SYS_BINARIES }}
 
@@ -37,16 +37,15 @@ jobs:
     strategy:
       matrix:
         OS: [ "windows-2022", "windows-2025" ]
-    uses: ./.github/workflows/agent-bundle-windows.yml
+    uses: ./.github/workflows/reusable-agent-bundle-windows.yml
     with:
       OS: ${{ matrix.OS }}
-      PIP_CACHE_DIR: ${{ github.workspace }}/.cache/pip
 
   msi-custom-actions:
     strategy:
       matrix:
         OS: [ "windows-2022" ]
-    uses: ./.github/workflows/msi-custom-actions.yml
+    uses: ./.github/workflows/reusable-msi-custom-actions.yml
     with:
       OS: ${{ matrix.OS }}
 
@@ -55,19 +54,16 @@ jobs:
       matrix:
         OS: [ "windows-2022", "windows-2025" ]
     needs: [cross-compile, agent-bundle-windows, msi-custom-actions]
-    uses: ./.github/workflows/msi-build.yml
+    uses: ./.github/workflows/reusable-msi-build.yml
     with:
       OS: ${{ matrix.OS }}
 
   dotnet-zeroconfig-e2e-test:
-    runs-on: ${{ matrix.OS }}
-    strategy:
-      matrix:
-        OS: [ "windows-2022", "windows-2025" ]
+    runs-on: otel-windows
     needs: [msi-build]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup NuGet
         uses: nuget/setup-nuget@v2.0.1
@@ -75,15 +71,15 @@ jobs:
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v2
 
-      - uses: actions/setup-dotnet@v4.3.1
+      - uses: actions/setup-dotnet@v5.0.0
         with:
           dotnet-version: |
             8.0.300
 
       - name: Download Splunk OTel Collector msi
-        uses: actions/download-artifact@v4.1.3
+        uses: actions/download-artifact@v5
         with:
-          name: msi-build-${{ matrix.OS }}
+          name: msi-build-windows-2025
           path: ./tests/zeroconfig/windows/testdata/docker-setup/
 
       - name: Run the test script
@@ -100,10 +96,10 @@ jobs:
     timeout-minutes: 40
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Downloading msi build
-        uses: actions/download-artifact@v4.1.3
+        uses: actions/download-artifact@v5
         with:
           name: msi-build-${{ matrix.OS }}
           path: ./dist
@@ -130,10 +126,10 @@ jobs:
         WITH_FLUENTD: [ "true", "false" ]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Downloading msi build
-        uses: actions/download-artifact@v4.1.3
+        uses: actions/download-artifact@v5
         with:
           name: msi-build-${{ matrix.OS }}
           path: ./dist
@@ -182,10 +178,10 @@ jobs:
     timeout-minutes: 45
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Downloading msi build
-        uses: actions/download-artifact@v4.1.3
+        uses: actions/download-artifact@v5
         with:
           name: msi-build-${{ matrix.OS }}
           path: ./dist
@@ -217,10 +213,10 @@ jobs:
     needs: [msi-build]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Downloading msi build
-        uses: actions/download-artifact@v4.1.3
+        uses: actions/download-artifact@v5
         with:
           name: msi-build-${{ matrix.OS }}
           path: ./dist
@@ -269,10 +265,10 @@ jobs:
       fail-fast: false
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Downloading choco build
-        uses: actions/download-artifact@v4.1.3
+        uses: actions/download-artifact@v5
         with:
           name: choco-build-${{ matrix.OS }}
           path: ./dist
@@ -358,15 +354,15 @@ jobs:
         OS: [ "windows-2022", "windows-2025" ]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Downloading binaries-windows_amd64
-        uses: actions/download-artifact@v4.1.3
+        uses: actions/download-artifact@v5
         with:
           name: binaries-windows_amd64
           path: ./bin
 
-      - uses: actions/download-artifact@v4.1.3
+      - uses: actions/download-artifact@v5
         with:
           name: agent-bundle-windows-${{ matrix.OS }}
           path: ./dist

@@ -84,6 +84,7 @@ The distribution offers support for the following components.
 | [windowseventlog](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/windowseventlogreceiver)                                    | [alpha]          |
 | [windowsperfcounters](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/windowsperfcountersreceiver)                            | [beta]           |
 | [zipkin](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/zipkinreceiver)                                                      | [beta]           |
+| [zookeeper](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/zookeeperreceiver)                                                | [alpha]          |
 
 </div>
 

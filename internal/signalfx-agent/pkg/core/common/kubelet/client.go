@@ -20,8 +20,6 @@ import (
 type AuthType string
 
 const (
-	// AuthTypeNone means there is no authentication to kubelet
-	AuthTypeNone AuthType = "none"
 	// AuthTypeTLS indicates that client TLS auth is desired
 	AuthTypeTLS AuthType = "tls"
 	// AuthTypeServiceAccount indicates that the default service account token should be used

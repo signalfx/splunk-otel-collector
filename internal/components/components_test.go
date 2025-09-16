@@ -49,6 +49,7 @@ func TestDefaultComponents(t *testing.T) {
 		"active_directory_ds",
 		"apache",
 		"apachespark",
+		"awscloudwatch",
 		"awscontainerinsightreceiver",
 		"awsecscontainermetrics",
 		"azureblob",

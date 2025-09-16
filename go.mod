@@ -128,7 +128,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zookeeperreceiver v0.135.0
 	github.com/prometheus/client_model v0.6.2
 	github.com/prometheus/common v0.66.1
-	github.com/prometheus/prometheus v0.304.3-0.20250703114031-419d436a447a
+	github.com/prometheus/prometheus v0.306.0-rc.1
 	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension v0.83.0
 	github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor v0.83.0
 	github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver v0.0.0-00010101000000-000000000000
@@ -250,7 +250,7 @@ require (
 	github.com/dennwc/varint v1.0.0 // indirect
 	github.com/denverdino/aliyungo v0.0.0-20230411124812-ab98a9173ace // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
-	github.com/digitalocean/godo v1.152.0 // indirect
+	github.com/digitalocean/godo v1.157.0 // indirect
 	github.com/distribution/reference v0.6.0 // indirect
 	github.com/duosecurity/duo_api_golang v0.0.0-20240205144049-bb361ad4ae1c // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
@@ -325,7 +325,7 @@ require (
 	github.com/kr/fs v0.1.0 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/leodido/go-syslog/v4 v4.2.0 // indirect
-	github.com/linode/linodego v1.52.1 // indirect
+	github.com/linode/linodego v1.52.2 // indirect
 	github.com/magefile/mage v1.15.0 // indirect
 	github.com/mdlayher/socket v0.4.1 // indirect
 	github.com/mdlayher/vsock v1.2.1 // indirect
@@ -373,7 +373,7 @@ require (
 	github.com/opencontainers/cgroups v0.0.2 // indirect
 	github.com/opencontainers/runtime-spec v1.2.1 // indirect
 	github.com/outcaste-io/ristretto v0.2.3 // indirect
-	github.com/ovh/go-ovh v1.8.0 // indirect
+	github.com/ovh/go-ovh v1.9.0 // indirect
 	github.com/packethost/packngo v0.31.0 // indirect
 	github.com/petermattis/goid v0.0.0-20240813172612-4fcff4a6cae7 // indirect
 	github.com/pkg/errors v0.9.1 // indirect

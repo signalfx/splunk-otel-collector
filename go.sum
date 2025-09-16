@@ -1602,6 +1602,10 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsperfco
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsperfcountersreceiver v0.135.0/go.mod h1:CqLUHY/WdoPVOl1EzbTlAffxdc28rtHPITff5OMMCa0=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver v0.135.0 h1:s92RbFmizrSr7Ywdp3d5ZxJrPNZMzASRRRcIrEdJpWg=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver v0.135.0/go.mod h1:4PwLMZv5bDEloRdRpp1t6ejvNGTsv7X/vdYnqiwhNT0=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zookeeperreceiver v0.135.0 h1:JaUpeQXYuGBR3jIM0WnWzbylQQei9GNJ1WAAnAn9oy8=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zookeeperreceiver v0.135.0/go.mod h1:fo0QFyNnCrAH2N+z8N6LKKkI62k7XSHe4NpNbdESZDo=
+github.com/open-telemetry/opentelemetry-collector-contrib/scraper/zookeeperscraper v0.135.0 h1:TjO1GvjHoL0vVo4PRl3ZcH4xUN7utTqOuHJ+T8F0OYA=
+github.com/open-telemetry/opentelemetry-collector-contrib/scraper/zookeeperscraper v0.135.0/go.mod h1:PQVQcgIs+99sm3PuLiCdzVGrqmA28zq2nqYcfOWqanw=
 github.com/opencontainers/cgroups v0.0.2 h1:A+mAPPMfgKNCEZUUtibESFx06uvhAmvo8sSz3Abwk7o=
 github.com/opencontainers/cgroups v0.0.2/go.mod h1:s8lktyhlGUqM7OSRL5P7eAW6Wb+kWPNvt4qvVfzA5vs=
 github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8Oi/yOhh5U=

@@ -124,6 +124,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowseventlogreceiver v0.135.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsperfcountersreceiver v0.135.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver v0.135.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zookeeperreceiver v0.135.0
 	github.com/prometheus/client_model v0.6.2
 	github.com/prometheus/common v0.66.1
 	github.com/prometheus/prometheus v0.304.3-0.20250703114031-419d436a447a
@@ -367,6 +368,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.135.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus v0.135.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/deltatocumulativeprocessor v0.135.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/scraper/zookeeperscraper v0.135.0 // indirect
 	github.com/opencontainers/cgroups v0.0.2 // indirect
 	github.com/opencontainers/runtime-spec v1.2.1 // indirect
 	github.com/outcaste-io/ristretto v0.2.3 // indirect

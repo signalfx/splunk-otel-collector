@@ -1552,6 +1552,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/postgresqlrec
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/postgresqlreceiver v0.135.0/go.mod h1:gZUOZHhx3qlnR9/sAzcMxaMTWdJ5ZSukYBF2TmnrS/s=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.135.0 h1:HBNPVpCIYEMbypyNAAQPM/0j5UTqk94f+0Bi145oZNo=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.135.0/go.mod h1:M89Ila5LSmmui0R/tHO5SA/04eYyPkXOhyS3qNHcTE8=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusremotewritereceiver v0.135.0 h1:M4j8YXE+g0u+1DCSkQOfGwA0HKOXQyqH8q+FzFDOE9I=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusremotewritereceiver v0.135.0/go.mod h1:Wf7iVbTgUlrWMlhHB7S6sAkNPk9i+5UTP3J/ED5MxiM=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/purefareceiver v0.135.0 h1:r5jg4c5jp3rBeyMoUnYMe9HgaXahQWDzrlVD1vUFUtI=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/purefareceiver v0.135.0/go.mod h1:wKffgskx/9chwbEO6kMplRVGVrwTgpuhhsfYOtiuxvE=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/rabbitmqreceiver v0.135.0 h1:MNfTgbl/SqVl2uxfBMu0NWPguC2hToR6K3p9UWIw1AY=

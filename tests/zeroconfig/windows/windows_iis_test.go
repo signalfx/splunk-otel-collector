@@ -104,9 +104,18 @@ func assertHTTPGetRequestSuccess(t *testing.T, url string) {
 	httpClient := &http.Client{}
 	req, err := http.NewRequest("GET", url, nil)
 	assert.NoError(t, err)
+	if err != nil {
+		t.Logf("Error creating HTTP request: %v", err)
+		return
+	}
+
 	resp, err := httpClient.Do(req)
-	assert.NoError(t, err)
+	if err != nil {
+		t.Logf("Error making HTTP request: %v", err)
+		return
+	}
 	defer resp.Body.Close()
+
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }
 

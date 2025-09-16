@@ -57,11 +57,6 @@ receivers:
           - source_labels: [ __name__ ]
             regex: 'otelcol_processor_batch_.*'
             action: drop
-  sapm:
-    endpoint: "${SPLUNK_LISTEN_INTERFACE}:7276"
-    # Whether to preserve incoming access token and use instead of exporter token
-    # default = false
-    #access_token_passthrough: true
   signalfx:
     endpoint: "${SPLUNK_LISTEN_INTERFACE}:9943"
     # Whether to preserve incoming access token and use instead of exporter token

@@ -39,6 +39,9 @@ jobs:
             GOARCH: amd64
       fail-fast: false
     steps:
+      # Building FIPs for Windows is flaky due to out of space issues.
+      - uses: jlumbroso/free-disk-space@v1.3.1
+        if: matrix.GOOS == 'windows'
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0

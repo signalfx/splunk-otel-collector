@@ -65,23 +65,9 @@ splunk_access_token_file_value=""
 
 # otel agent related vars
 splunk_otel_process_name="otelcol_linux_amd64"
-splunk_TA_otel_pid=""
-if [ -z "$SPLUNK_ACCESS_TOKEN" ]; then 
+if [ -z "$SPLUNK_ACCESS_TOKEN" ]; then
     SPLUNK_ACCESS_TOKEN=""
 fi
-
-splunk_TA_otel_configure_traps() {
-    trap splunk_TA_otel_exit_func INT TERM
-}
-
-splunk_TA_otel_exit_func() {
-    # called when this script is asked to exit
-    if [ "$splunk_TA_otel_pid" ] ;  then
-        log_message="Stopping otel agent"
-        splunk_TA_otel_log_msg "INFO" "$log_message"
-    	kill "$splunk_TA_otel_pid"
-    fi
-}
 
 Splunk_TA_otel_expand_config_param() {
     # Start with longest matching string and move down to least substring.
@@ -263,16 +249,6 @@ splunk_TA_otel_read_configs() {
     done < /dev/stdin
 }
 
-is_splunk_TA_otel_agent_running() {
-    # checks if the otel agent is running - if running, returns 0 else returns 1
-    pid="$1"
-    if ps -p "$pid" > /dev/null 2>&1
-    then
-        return 0
-    fi
-    return 1
-}
-
 get_access_token() {
     if [ "$SPLUNK_ACCESS_TOKEN" ] ; then
         splunk_TA_otel_log_msg "INFO" "Using access token in SPLUNK_ACCESS_TOKEN environment variable."
@@ -311,13 +287,10 @@ splunk_TA_otel_run_agent() {
         splunk_TA_otel_log_error "$log_msg"
     fi
 
-    #3 Control start/stop of otel agent
-    splunk_TA_otel_configure_traps
-
     log_message="Starting otel agent from $(dirname "${splunk_TA_otel_script_directory}") with configuration file $splunk_config_value and log file $splunk_otel_log_file_value"
     splunk_TA_otel_log_msg "INFO" "$log_message"
     
-    #4 Start the agent
+    #3 Start the agent
     otel_path="$splunk_TA_otel_script_directory/$splunk_otel_process_name"
     if ! [ -f "$otel_path" ] ; then
         splunk_TA_otel_log_error "Otel binary not found: $otel_path"
@@ -462,22 +435,7 @@ splunk_TA_otel_run_agent() {
     LD_PRELOAD="$LD_PRELOAD" \
     LD_LIBRARY_PATH="$LD_LIBRARY_PATH" \
     SPLUNK_OTEL_TA_PLATFORM_HOME="$SPLUNK_OTEL_TA_PLATFORM_HOME" \
-        "$otel_path" "$SPLUNK_OTEL_FLAGS" > "$splunk_otel_log_file_value" 2>&1 &
-    splunk_TA_otel_pid="$!"
-    is_splunk_TA_otel_agent_running "$splunk_TA_otel_pid"
-    if [[ $? == 1 ]] ; then
-        log_message="Failed to start otel agent"
-        splunk_TA_otel_log_error "$log_message"
-    else
-        log_message="Otel agent running"
-        splunk_TA_otel_log_msg "INFO" "$log_message"
-        wait $splunk_TA_otel_pid
-        trap - TERM INT
-        wait $splunk_TA_otel_pid
-    fi
-
-    log_message="Otel agent stopped"
-    splunk_TA_otel_log_msg "INFO" "$log_message"
+        exec "$otel_path" "$SPLUNK_OTEL_FLAGS" > "$splunk_otel_log_file_value" 2>&1
 }
 
 splunk_TA_otel_scheme() {
@@ -519,17 +477,16 @@ extract_bundle() {
     if [ -d "$SPLUNK_BUNDLE_DIR" ]; then
         splunk_TA_otel_log_msg "INFO" "Agent bundle path exists on filesystem -- not attempting to extract nor patch interpreter.  May still patch PATH env var."
         return 0
-    else
-        splunk_TA_otel_log_msg "INFO" "Extracting agent bundle to $SPLUNK_BUNDLE_DIR"
     fi
     SMART_AGENT_BUNDLE="agent-bundle_linux_amd64.tar.gz"
-    BUNDLE_PARENT="$(readlink -f "$SPLUNK_BUNDLE_DIR/../")"
-    splunk_TA_otel_log_msg "DEBUG" "will cd to $BUNDLE_PARENT"
-    tar -C "$BUNDLE_PARENT" -xzf "$splunk_TA_otel_script_directory/$SMART_AGENT_BUNDLE" || splunk_TA_otel_log_error "failed to extract $splunk_TA_otel_script_directory/$SMART_AGENT_BUNDLE to $SPLUNK_BUNDLE_DIR"
+    BUNDLE_PARENT="$(readlink -f "$(dirname "$SPLUNK_BUNDLE_DIR")")"
+    splunk_TA_otel_log_msg "INFO" "Extracting agent bundle to $BUNDLE_PARENT"
+    splunk_TA_otel_log_msg "DEBUG" "Will cd to $BUNDLE_PARENT"
+    tar -C "$BUNDLE_PARENT" -xzf "$splunk_TA_otel_script_directory/$SMART_AGENT_BUNDLE" || splunk_TA_otel_log_error "failed to extract $splunk_TA_otel_script_directory/$SMART_AGENT_BUNDLE to $BUNDLE_PARENT"
     splunk_TA_otel_log_msg "INFO" "Done extracting agent bundle to $SPLUNK_BUNDLE_DIR"
 
     # Patch everything in agent-bundle/bin to use our provided .so
-    root_path="$(readlink -f "$splunk_bundle_dir_value")"
+    root_path="$(readlink -f "$SPLUNK_BUNDLE_DIR")"
     "$root_path"/bin/patch-interpreter "$root_path"
 
 }
@@ -537,4 +494,3 @@ extract_bundle() {
 echo "Starting Splunk TA Otel."
 
 splunk_TA_otel_perform_actions
-exit 0

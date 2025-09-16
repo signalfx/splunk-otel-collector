@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/signalfx/golib/v3/datapoint"
-	"github.com/signalfx/golib/v3/sfxclient"
+	"github.com/signalfx/golib/v3/datapoint" //nolint:staticcheck // SA1019: deprecated package still in use
+	"github.com/signalfx/golib/v3/sfxclient" //nolint:staticcheck // SA1019: deprecated package still in use
 	log "github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
 	k8stypes "k8s.io/apimachinery/pkg/types"
@@ -46,6 +46,7 @@ type Monitor struct {
 // Configure the monitor and kick off volume metric syncing
 func (m *Monitor) Configure(conf *Config) error {
 	m.logger = log.WithFields(log.Fields{"monitorType": monitorType, "monitorID": conf.MonitorID})
+	m.logger.Warn("[NOTICE] The kubelet-metrics monitor is deprecated. Please use the kubeletstats receiver instead. This plugin will be removed by the end of October 2025.")
 
 	var err error
 	m.kubeletClient, err = kubelet.NewClient(&conf.KubeletAPI, m.logger)

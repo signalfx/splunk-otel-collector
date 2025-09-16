@@ -4,7 +4,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/signalfx/golib/v3/event"
+	"github.com/signalfx/golib/v3/event" //nolint:staticcheck // SA1019: deprecated package still in use
 	log "github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/fields"

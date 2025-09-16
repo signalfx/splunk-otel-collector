@@ -19,10 +19,10 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -40,12 +40,16 @@ type CollectorBuilder func(Collector) Collector
 type Testcase struct {
 	testing.TB
 	Logger                              *zap.Logger
+	HECReceiverSink                     *HECReceiverSink
+	HECEndpoint                         string
+	HECEndpointForCollector             string
 	ObservedLogs                        *observer.ObservedLogs
 	OTLPReceiverSink                    *OTLPReceiverSink
 	OTLPEndpoint                        string
 	OTLPEndpointForCollector            string
 	ID                                  string
 	OTLPReceiverShouldBindAllInterfaces bool
+	isHECTestCase                       bool
 }
 
 // NewTestcase is the recommended constructor that will automatically configure an OTLPReceiverSink
@@ -68,11 +72,39 @@ func NewTestcase(t testing.TB) *Testcase {
 	return &tc
 }
 
+// NewHECTestcase is the recommended constructor that will automatically configure a HECReceiverSink
+// with available endpoint and ObservedLogs.
+func NewHECTestcase(t testing.TB) *Testcase {
+	tc := Testcase{TB: t}
+	var logCore zapcore.Core
+	logCore, tc.ObservedLogs = observer.New(zap.DebugLevel)
+	tc.Logger = zap.New(logCore)
+
+	var err error
+	tc.setHECEndpoint()
+	tc.HECReceiverSink, err = NewHECReceiverSink().WithEndpoint(tc.HECEndpoint).Build()
+	require.NoError(tc, err)
+	require.NoError(tc, tc.HECReceiverSink.Start())
+	tc.isHECTestCase = true
+
+	id, err := uuid.NewRandom()
+	require.NoError(tc, err)
+	tc.ID = id.String()
+	return &tc
+}
+
 func (t *Testcase) setOTLPEndpoint() {
 	otlpPort := GetAvailablePort(t)
 	otlpHost := "localhost"
 	t.OTLPEndpoint = fmt.Sprintf("%s:%d", otlpHost, otlpPort)
 	t.OTLPEndpointForCollector = t.OTLPEndpoint
+}
+
+func (t *Testcase) setHECEndpoint() {
+	hecPort := GetAvailablePort(t)
+	hecHost := "0.0.0.0"
+	t.HECEndpoint = fmt.Sprintf("%s:%d", hecHost, hecPort)
+	t.HECEndpointForCollector = fmt.Sprintf("http://%s", t.HECEndpoint)
 }
 
 // Builds and starts all provided Container builder instances, returning them and a validating stop function.
@@ -109,6 +141,9 @@ func (t *Testcase) SplunkOtelCollectorContainer(configFilename string, builders 
 	if runtime.GOOS == "darwin" {
 		port := strings.Split(t.OTLPEndpointForCollector, ":")[1]
 		t.OTLPEndpointForCollector = fmt.Sprintf("host.docker.internal:%s", port)
+
+		port = strings.Split(t.HECEndpointForCollector, ":")[1]
+		t.HECEndpointForCollector = fmt.Sprintf("host.docker.internal:%s", port)
 	}
 
 	var c Collector
@@ -144,10 +179,19 @@ func (t *Testcase) newCollector(initial Collector, configFilename string, builde
 		"SPLUNK_TEST_ID": t.ID,
 	}
 
+	// This check is required as container tests set the SPLUNK_HEC_URL environment variable
+	// by default, and many tests check the expected value to see if it matches the default.
+	// We don't want to match a hardcoded test default for HEC tests.
+	if t.isHECTestCase {
+		envVars["SPLUNK_HEC_URL"] = t.HECEndpointForCollector
+	}
+
 	if configFilename != "" {
-		collector = collector.WithConfigPath(
-			path.Join(".", "testdata", configFilename),
-		)
+		if !filepath.IsAbs(configFilename) {
+			configFilename = path.Join(".", "testdata", configFilename)
+		}
+
+		collector = collector.WithConfigPath(configFilename)
 	}
 
 	collector = collector.WithEnv(envVars).WithLogLevel("debug").WithLogger(t.Logger)
@@ -197,36 +241,6 @@ func (t *Testcase) ShutdownOTLPReceiverSink() {
 	require.NoError(t, t.OTLPReceiverSink.Shutdown())
 }
 
-func CheckMetricsPresence(t *testing.T, metricNames []string, configFile string) {
-	tc := NewTestcase(t)
-	defer tc.PrintLogsOnFailure()
-	defer tc.ShutdownOTLPReceiverSink()
-
-	_, shutdown := tc.SplunkOtelCollectorContainer(configFile)
-	tc.Cleanup(shutdown)
-
-	missingMetrics := make(map[string]any, len(metricNames))
-	for _, m := range metricNames {
-		missingMetrics[m] = struct{}{}
-	}
-
-	assert.EventuallyWithT(tc, func(tt *assert.CollectT) {
-		for i := 0; i < len(tc.OTLPReceiverSink.AllMetrics()); i++ {
-			m := tc.OTLPReceiverSink.AllMetrics()[i]
-			for j := 0; j < m.ResourceMetrics().Len(); j++ {
-				rm := m.ResourceMetrics().At(j)
-				for k := 0; k < rm.ScopeMetrics().Len(); k++ {
-					sm := rm.ScopeMetrics().At(k)
-					for l := 0; l < sm.Metrics().Len(); l++ {
-						delete(missingMetrics, sm.Metrics().At(l).Name())
-					}
-				}
-			}
-		}
-		msg := "Missing metrics:\n"
-		for k := range missingMetrics {
-			msg += fmt.Sprintf("- %q\n", k)
-		}
-		assert.Len(tt, missingMetrics, 0, msg)
-	}, 1*time.Minute, 1*time.Second)
+func (t *Testcase) ShutdownHECReceiverSink() {
+	require.NoError(t, t.HECReceiverSink.Shutdown())
 }

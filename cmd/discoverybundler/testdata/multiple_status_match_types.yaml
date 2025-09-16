@@ -1,0 +1,19 @@
+receiver_id: a_receiver
+service_type: a_service
+properties_tmpl: |
+  enabled: true
+  rule:
+    docker_observer: type == "container"
+  config:
+    default: {}
+status:
+  metrics:
+    - status: successful
+      strict: exact_match  # multiple match types
+      regexp: ".*"
+      message: test message
+  statements:
+    - status: successful
+      strict: exact_match  # multiple match types
+      expr: test
+      message: test message

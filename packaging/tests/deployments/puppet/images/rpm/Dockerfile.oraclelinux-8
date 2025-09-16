@@ -1,6 +1,6 @@
 FROM oraclelinux:8
 
-ENV container docker
+ENV container=docker
 
 RUN dnf install -y systemd procps initscripts wget
 

@@ -12,21 +12,21 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.23.10
+  GO_VERSION: 1.24.6
 
 jobs:
   tidy:
     name: tidy
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-environment
 
       - name: tidy
         run: |
-          make for-all CMD="make tidy"
+          make tidy-all
           if ! git diff --exit-code; then
-            echo "One or more Go files are not tidied. Run 'make for-all CMD=\"make tidy\"' and push the changes."
+            echo "One or more Go files are not tidied. Run 'make tidy-all' and push the changes."
             exit 1
           fi
 
@@ -34,14 +34,14 @@ jobs:
     name: gofmt
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-environment
 
       - name: gofmt
         run: |
-          make for-all CMD="make fmt"
+          make fmt-all
           if ! git diff --exit-code; then
-            echo "One or more Go files are not formatted correctly. Run 'make for-all CMD=\"make fmt\"' and push the changes."
+            echo "One or more Go files are not formatted correctly. Run 'make fmt-all' and push the changes."
             exit 1
           fi
 
@@ -49,7 +49,7 @@ jobs:
     name: generate-metrics
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-environment
 
       - name: generate-metrics
@@ -64,7 +64,7 @@ jobs:
     name: lint
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-environment
 
       - run: echo "GOLANGCI_LINT_CACHE=${HOME}/.cache/golangci-lint" >> "$GITHUB_ENV"
@@ -76,12 +76,12 @@ jobs:
 
       - name: Lint
         run: |
-          make for-all CMD="make lint"
+          make lint-all
 
   actionlint:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Download actionlint
         id: get_actionlint
         run: bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/03d0035/scripts/download-actionlint.bash) # v1.7.7
@@ -96,7 +96,7 @@ jobs:
       matrix:
         # The "macos-13-xlarge" runner is arm64: https://github.com/actions/runner-images/issues/8439
         OS: [ "ubuntu-24.04", "macos-13", "macos-13-xlarge", "macos-14", "macos-15" ]
-    uses: ./.github/workflows/unit-test.yml
+    uses: ./.github/workflows/reusable-unit-test.yml
     with:
       OS: ${{ matrix.OS }}
       COVERAGE: true
@@ -106,14 +106,14 @@ jobs:
     name: coverage
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-environment
 
       - name: Run Unit Tests With Coverage
         run: make gotest-with-codecov
 
       - name: Upload coverage report
-        uses: codecov/codecov-action@18283e04ce6e62d37312384ff67231eb8fd56d24 # 5.4.3
+        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # 5.5.1
         with:
           fail_ci_if_error: true
           verbose: true
@@ -124,6 +124,6 @@ jobs:
     strategy:
       matrix:
         SYS_BINARIES: [ "binaries-darwin_amd64", "binaries-darwin_arm64", "binaries-linux_amd64", "binaries-linux_arm64", "binaries-windows_amd64", "binaries-linux_ppc64le" ]
-    uses: ./.github/workflows/compile.yml
+    uses: ./.github/workflows/reusable-compile.yml
     with:
       SYS_BINARY: ${{ matrix.SYS_BINARIES }}

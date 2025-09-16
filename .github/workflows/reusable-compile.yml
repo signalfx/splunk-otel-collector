@@ -1,0 +1,30 @@
+name: compile
+
+on:
+  workflow_call:
+    inputs:
+      SYS_BINARY:
+        required: true
+        type: string
+
+env:
+  GO_VERSION: 1.24.6
+
+jobs:
+  compile:
+    name: compile
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-environment
+
+      - name: Build Collector
+        run: |
+          make ${{ inputs.SYS_BINARY }}
+
+      - name: Uploading binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.SYS_BINARY }}
+          path: |
+            ./bin/*

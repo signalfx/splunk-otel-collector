@@ -6,7 +6,7 @@ import (
 	"time"
 
 	lru "github.com/hashicorp/golang-lru"
-	"github.com/signalfx/golib/v3/log"
+	"github.com/signalfx/golib/v3/log" //nolint:staticcheck // SA1019: deprecated package still in use
 	"github.com/sirupsen/logrus"
 )
 

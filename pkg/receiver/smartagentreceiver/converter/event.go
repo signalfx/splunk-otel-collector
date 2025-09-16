@@ -17,7 +17,7 @@ package converter
 import (
 	"fmt"
 
-	"github.com/signalfx/golib/v3/event"
+	"github.com/signalfx/golib/v3/event" //nolint:staticcheck // SA1019: deprecated package still in use
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.uber.org/zap"

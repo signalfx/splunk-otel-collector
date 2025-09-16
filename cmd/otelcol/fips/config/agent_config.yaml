@@ -5,7 +5,7 @@
 # - SPLUNK_ACCESS_TOKEN: The Splunk access token to authenticate requests
 # - SPLUNK_API_URL: The Splunk API URL, e.g. https://api.us0.signalfx.com
 # - SPLUNK_HEC_TOKEN: The Splunk HEC authentication token
-# - SPLUNK_HEC_URL: The Splunk HEC endpoint URL, e.g. https://ingest.us0.signalfx.com/v1/log
+# - SPLUNK_HEC_URL: The Splunk HEC endpoint URL, e.g. https://http-inputs-acme.splunkcloud.com/services/collector
 # - SPLUNK_INGEST_URL: The Splunk ingest URL, e.g. https://ingest.us0.signalfx.com
 # - SPLUNK_LISTEN_INTERFACE: The network interface the agent receivers listen on.
 
@@ -27,6 +27,8 @@ extensions:
       #endpoint: "${SPLUNK_GATEWAY_URL}"
   zpages:
     #endpoint: "${SPLUNK_LISTEN_INTERFACE}:55679"
+    expvar:
+      enabled: true
 
 receivers:
   fluentforward:

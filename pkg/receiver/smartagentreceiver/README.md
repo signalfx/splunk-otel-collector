@@ -55,12 +55,6 @@ receivers:
       - signalfx  # references the SignalFx Exporter configured below
   smartagent/processlist:
     type: processlist
-  smartagent/kafka:
-    type: collectd/kafka
-    host: mykafkabroker
-    port: 7099
-    clusterName: mykafkacluster
-    intervalSeconds: 5
 
 processors:
   resourcedetection:

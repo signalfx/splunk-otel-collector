@@ -14,9 +14,9 @@ repack_with_access_token() {
     chmod -R a+rwx "$TEMP_DIR"
     echo "$token" > "$TEMP_DIR/Splunk_TA_otel/local/access_token"
 
-    random_suffix="$(tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 6)"
+    random_suffix="$(LC_CTYPE=c tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 6)"
     repacked="$TEMP_DIR/Splunk_TA_otel-${random_suffix}.tgz"
-    tar -C "$TEMP_DIR" -hcz --file "$repacked"  "Splunk_TA_otel"
+    COPYFILE_DISABLE=1 tar --format ustar -C "$TEMP_DIR" -hcz --file "$repacked"  "Splunk_TA_otel"
     chmod a+rwx "$repacked"
 
     echo "$repacked"
@@ -32,7 +32,7 @@ safe_tail() {
     if [ "$taillines" ]; then
         ([ -f "$filename" ] && tail -n "$taillines" "$filename") || echo "File $filename not found"
     else
-        ([ -f "$filename" ] && cat "$taillines" "$filename") || echo "File $filename not found"
+        ([ -f "$filename" ] && cat "$filename") || echo "File $filename not found"
     fi
 }
 

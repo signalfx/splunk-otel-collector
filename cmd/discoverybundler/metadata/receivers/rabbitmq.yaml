@@ -1,7 +1,7 @@
-component_id: rabbitmq
+receiver_id: rabbitmq
+service_type: rabbitmq
 properties_tmpl: |
   enabled: true
-  service_type: rabbitmq
   rule:
     docker_observer: type == "container" and any([name, image, command], {# matches "(?i)rabbitmq.*"}) and not (command matches "splunk.discovery")
     host_observer: type == "hostport" and command matches "(?i)rabbitmq.*" and not (command matches "splunk.discovery")
@@ -34,15 +34,15 @@ properties_tmpl: |
             enabled: true
         rabbitmq.node.io_sync_avg_time:
             enabled: true
-  status:
-    metrics:
-      - status: successful
-        strict: rabbitmq.consumer.count
-        message: RabbitMQ receiver is working!
-    statements:
-      - status: failed
-        regexp: 'connect: network is unreachable'
-        message: The endpoint is refusing RabbitMQ server connections.
-      - status: failed
-        regexp: 'connect: connection refused'
-        message: The endpoint is refusing RabbitMQ server connections.
+status:
+  metrics:
+    - status: successful
+      strict: rabbitmq.consumer.count
+      message: RabbitMQ receiver is working!
+  statements:
+    - status: failed
+      regexp: 'connect: network is unreachable'
+      message: The endpoint is refusing RabbitMQ server connections.
+    - status: failed
+      regexp: 'connect: connection refused'
+      message: The endpoint is refusing RabbitMQ server connections.

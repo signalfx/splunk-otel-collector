@@ -15,7 +15,7 @@
 ARG ARCH=amd64
 ARG JDK_VERSION=11.0.28_6
 ARG MAVEN_VERSION=3.6.0
-ARG PYTHON_VERSION=3.13.5
+ARG PYTHON_VERSION=3.13.7
 ARG PIP_VERSION=24.2
 ARG COLLECTD_VERSION=5.8.0-sfx0
 ARG COLLECTD_COMMIT=4d3327b14cf4359029613baf4f90c4952702105e
@@ -23,11 +23,12 @@ ARG DOCKER_REPO=docker.io
 
 
 ######## Base image for subsequent stages ########
-FROM ${DOCKER_REPO}/python:${PYTHON_VERSION} AS base
+# Trim the python version to just major.minor in case the tag for the full version isn't available yet
+FROM ${DOCKER_REPO}/python:${PYTHON_VERSION%.*}-bookworm AS base
 
 ARG ARCH
 
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update
 
@@ -57,7 +58,7 @@ RUN mkdir -p /opt/root && \
     mv /opt/root/jdk* /opt/root/jdk && \
     rm -f /tmp/openjdk.tar.gz
 
-ENV JAVA_HOME /opt/root/jdk
+ENV JAVA_HOME=/opt/root/jdk
 
 RUN mkdir -p /opt/root/jre && \
     rm -f ${JAVA_HOME}/lib/src.zip && \
@@ -208,13 +209,13 @@ COPY --from=java /opt/root/jdk/ /opt/root/jdk/
 WORKDIR /usr/src/collectd
 
 ARG extra_cflags="-O2"
-ENV CFLAGS "-Wno-error -Wno-format-truncation -Wno-stringop-truncation -fPIC $extra_cflags"
-ENV CXXFLAGS $CFLAGS
-ENV JAVA_HOME /opt/root/jdk
+ENV CFLAGS="-Wno-error -Wno-format-truncation -Wno-stringop-truncation -fPIC $extra_cflags"
+ENV CXXFLAGS=$CFLAGS
+ENV JAVA_HOME=/opt/root/jdk
 
 # In the bundle, the java plugin so will live in /lib/collectd and the JVM
 # exists at /jre
-ENV JAVA_LDFLAGS "-Wl,-rpath -Wl,\$\$\ORIGIN/../../jre/lib/server"
+ENV JAVA_LDFLAGS="-Wl,-rpath -Wl,\$\$\ORIGIN/../../jre/lib/server"
 
 # xencpu plugin is not supported on ppc64le
 RUN autoreconf -vif &&\
@@ -386,7 +387,7 @@ RUN patch-rpath /opt/root
 FROM scratch AS final-image
 
 COPY --from=collectd /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
-ENV SSL_CERT_FILE /etc/ssl/certs/ca-certificates.crt
+ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
 
 COPY --from=collectd /etc/nsswitch.conf /etc/nsswitch.conf
 COPY --from=collectd /usr/local/bin/patchelf /bin/

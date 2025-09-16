@@ -1,0 +1,25 @@
+extensions:
+  smartagent:
+    bundleDir: "${env:SPLUNK_BUNDLE_DIR}"
+    collectd:
+      configDir: "${env:SPLUNK_COLLECTD_DIR}"
+
+receivers:
+  smartagent/cpu:
+    type: collectd/cpu
+  smartagent/apache:
+    type: collectd/apache
+    host: localhost
+    port: 80
+    url: "http://localhost:80/server-status?auto"
+
+exporters:
+  debug:
+    verbosity: detailed
+
+service:
+  extensions: [smartagent]
+  pipelines:
+    metrics/loggingcollectd:
+      receivers: ["smartagent/apache", "smartagent/cpu"]
+      exporters: [debug]

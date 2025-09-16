@@ -34,6 +34,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/headerssetterextension"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarderextension"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/k8sleaderelector"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/oauth2clientauthextension"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/dockerobserver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecsobserver"
@@ -55,7 +56,6 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/redactionprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceprocessor"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/routingprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor"
@@ -71,6 +71,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/chronyreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/cloudfoundryreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdreceiver"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/dockerstatsreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/elasticsearchreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filelogreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filestatsreceiver"
@@ -104,6 +105,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sapmreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/signalfxreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/simpleprometheusreceiver"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/snmpreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/snowflakereceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/solacereceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkenterprisereceiver"
@@ -114,6 +116,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/syslogreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tcplogreceiver"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tlscheckreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/udplogreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/vcenterreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/wavefrontreceiver"
@@ -157,6 +160,7 @@ func Get() (otelcol.Factories, error) {
 		healthcheckextension.NewFactory(),
 		hostobserver.NewFactory(),
 		httpforwarderextension.NewFactory(),
+		k8sleaderelector.NewFactory(),
 		k8sobserver.NewFactory(),
 		oauth2clientauthextension.NewFactory(),
 		opampextension.NewFactory(),
@@ -182,6 +186,7 @@ func Get() (otelcol.Factories, error) {
 		cloudfoundryreceiver.NewFactory(),
 		collectdreceiver.NewFactory(),
 		discoveryreceiver.NewFactory(),
+		dockerstatsreceiver.NewFactory(),
 		elasticsearchreceiver.NewFactory(),
 		filelogreceiver.NewFactory(),
 		filestatsreceiver.NewFactory(),
@@ -221,6 +226,7 @@ func Get() (otelcol.Factories, error) {
 		signalfxgatewayprometheusremotewritereceiver.NewFactory(),
 		simpleprometheusreceiver.NewFactory(),
 		smartagentreceiver.NewFactory(),
+		snmpreceiver.NewFactory(),
 		snowflakereceiver.NewFactory(),
 		solacereceiver.NewFactory(),
 		splunkenterprisereceiver.NewFactory(),
@@ -231,6 +237,7 @@ func Get() (otelcol.Factories, error) {
 		statsdreceiver.NewFactory(),
 		syslogreceiver.NewFactory(),
 		tcplogreceiver.NewFactory(),
+		tlscheckreceiver.NewFactory(),
 		udplogreceiver.NewFactory(),
 		vcenterreceiver.NewFactory(),
 		wavefrontreceiver.NewFactory(),
@@ -275,7 +282,6 @@ func Get() (otelcol.Factories, error) {
 		redactionprocessor.NewFactory(),
 		resourcedetectionprocessor.NewFactory(),
 		resourceprocessor.NewFactory(),
-		routingprocessor.NewFactory(),
 		spanprocessor.NewFactory(),
 		tailsamplingprocessor.NewFactory(),
 		timestampprocessor.NewFactory(),

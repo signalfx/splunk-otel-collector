@@ -37,7 +37,7 @@ func TestIntegrationMongoDBAutoDiscovery(t *testing.T) {
 	}{
 		"Partial Discovery test": {
 			configFileName:     "docker_observer_without_ssl_with_wrong_authentication_mongodb_config.yaml",
-			logMessageToAssert: "Please ensure your user credentials are correctly specified with `{{ configPropertyEnvVar \"username\" \"<username>\" }}` and `{{ configPropertyEnvVar \"password\" \"<password>\" }}` environment variables.",
+			logMessageToAssert: "Make sure your user credentials are correctly specified as environment variables.```SPLUNK_DISCOVERY_RECEIVERS_mongodb_CONFIG_username=\"<username>\"SPLUNK_DISCOVERY_RECEIVERS_mongodb_CONFIG_password=\"<password>\"```",
 		},
 		"Successful Discovery test": {
 			configFileName:     "docker_observer_without_ssl_mongodb_config.yaml",

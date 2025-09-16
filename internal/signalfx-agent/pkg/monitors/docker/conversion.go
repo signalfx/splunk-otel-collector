@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/docker/docker/api/types/container"
-	"github.com/signalfx/golib/v3/datapoint"
-	"github.com/signalfx/golib/v3/sfxclient"
+	"github.com/signalfx/golib/v3/datapoint" //nolint:staticcheck // SA1019: deprecated package still in use
+	"github.com/signalfx/golib/v3/sfxclient" //nolint:staticcheck // SA1019: deprecated package still in use
 )
 
 var memoryStatCounters = map[string]bool{

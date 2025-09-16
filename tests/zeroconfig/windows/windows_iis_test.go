@@ -110,6 +110,7 @@ func assertHTTPGetRequestSuccess(t *testing.T, url string) {
 	}
 
 	resp, err := httpClient.Do(req)
+	assert.NoError(t, err)
 	if err != nil {
 		t.Logf("Error making HTTP request: %v", err)
 		return

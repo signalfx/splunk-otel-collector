@@ -1,6 +1,0 @@
-discovery:
-  watch_observers:
-    - an_observer
-  receivers:
-    a_receiver:
-      rule: type == "container"

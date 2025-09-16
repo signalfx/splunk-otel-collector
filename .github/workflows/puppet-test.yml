@@ -37,7 +37,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Lint
         run: |
@@ -48,7 +48,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Lint
         run: |
@@ -58,7 +58,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Get matrix
         id: get-matrix
@@ -74,7 +74,7 @@ jobs:
           with_instrumentation='"true","false"'
           matrix="{\"DISTRO\": [${distro%,}], \"PUPPET_RELEASE\": [${puppet_release}], \"WITH_INSTRUMENTATION\": [${with_instrumentation}]}"
           echo "$matrix" | jq
-          echo "matrix=${matrix}" >> $GITHUB_OUTPUT
+          echo "matrix=${matrix}" >> "$GITHUB_OUTPUT"
     outputs:
       matrix: ${{ steps.get-matrix.outputs.matrix }}
 
@@ -90,10 +90,10 @@ jobs:
       fail-fast: false
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
@@ -148,10 +148,10 @@ jobs:
       fail-fast: false
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip

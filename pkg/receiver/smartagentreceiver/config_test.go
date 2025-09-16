@@ -28,9 +28,8 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/core/common/kubelet"
 	"github.com/signalfx/signalfx-agent/pkg/core/common/kubernetes"
 	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
+	"github.com/signalfx/signalfx-agent/pkg/monitors"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/cadvisor"
-	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/consul"
-	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/hadoop"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/python"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/redis"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/elasticsearch/stats"
@@ -45,6 +44,23 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/utils/timeutil"
 )
 
+type fakeConfig struct {
+	EnhancedMetrics        *bool `yaml:"enhancedMetrics"`
+	saconfig.MonitorConfig `yaml:",inline" acceptsEndpoints:"true"`
+	python.CommonConfig    `yaml:",inline"`
+	Host                   string `yaml:"host" validate:"required"`
+	Port                   uint16 `yaml:"port" validate:"required"`
+}
+
+func init() {
+	monitors.Register(&monitors.Metadata{
+		MonitorType: "collectd/fake",
+	},
+		nil,
+		&fakeConfig{},
+	)
+}
+
 func TestLoadConfig(t *testing.T) {
 
 	cfg, err := confmaptest.LoadConf(path.Join(".", "testdata", "config.yaml"))
@@ -52,7 +68,7 @@ func TestLoadConfig(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
-	assert.Equal(t, 5, len(cfg.ToStringMap()))
+	assert.Equal(t, 4, len(cfg.ToStringMap()))
 
 	cm, err := cfg.Sub(component.MustNewIDWithName(typeStr, "haproxy").String())
 	require.NoError(t, err)
@@ -99,27 +115,6 @@ func TestLoadConfig(t *testing.T) {
 		acceptsEndpoints: true,
 	}, redisCfg)
 	require.NoError(t, redisCfg.Validate())
-
-	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "hadoop").String())
-	require.NoError(t, err)
-	hadoopCfg := CreateDefaultConfig().(*Config)
-	require.NoError(t, cm.Unmarshal(&hadoopCfg))
-
-	require.Equal(t, &Config{
-		MonitorType: "collectd/hadoop",
-		monitorConfig: &hadoop.Config{
-			MonitorConfig: saconfig.MonitorConfig{
-				Type:                "collectd/hadoop",
-				IntervalSeconds:     345,
-				DatapointsToExclude: []saconfig.MetricFilter{},
-			},
-			CommonConfig: python.CommonConfig{},
-			Host:         "localhost",
-			Port:         8088,
-		},
-		acceptsEndpoints: true,
-	}, hadoopCfg)
-	require.NoError(t, hadoopCfg.Validate())
 
 	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "etcd").String())
 	require.NoError(t, err)
@@ -232,22 +227,20 @@ func TestLoadInvalidConfigs(t *testing.T) {
 	missingRequiredCfg := CreateDefaultConfig().(*Config)
 	require.NoError(t, cm.Unmarshal(&missingRequiredCfg))
 	require.Equal(t, &Config{
-		MonitorType: "collectd/consul",
-		monitorConfig: &consul.Config{
+		MonitorType: "collectd/fake",
+		monitorConfig: &fakeConfig{
 			MonitorConfig: saconfig.MonitorConfig{
-				Type:                "collectd/consul",
+				Type:                "collectd/fake",
 				IntervalSeconds:     0,
 				DatapointsToExclude: []saconfig.MetricFilter{},
 			},
-			Port:          5309,
-			TelemetryHost: "0.0.0.0",
-			TelemetryPort: 8125,
+			Port: 5309,
 		},
 		acceptsEndpoints: true,
 	}, missingRequiredCfg)
 	err = missingRequiredCfg.Validate()
 	require.Error(t, err)
-	require.EqualError(t, err, "Validation error in field 'Config.host': host is a required field (got '')")
+	require.EqualError(t, err, "Validation error in field 'fakeConfig.host': host is a required field (got '')")
 }
 
 func TestLoadConfigWithEndpoints(t *testing.T) {
@@ -256,7 +249,7 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
-	assert.Equal(t, 6, len(cfg.ToStringMap()))
+	assert.Equal(t, 5, len(cfg.ToStringMap()))
 
 	cm, err := cfg.Sub(component.MustNewIDWithName(typeStr, "haproxy").String())
 	require.NoError(t, err)
@@ -302,27 +295,6 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 		acceptsEndpoints: true,
 	}, redisCfg)
 	require.NoError(t, redisCfg.Validate())
-
-	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "hadoop").String())
-	require.NoError(t, err)
-	hadoopCfg := CreateDefaultConfig().(*Config)
-	require.NoError(t, cm.Unmarshal(&hadoopCfg))
-	require.Equal(t, &Config{
-		MonitorType: "collectd/hadoop",
-		Endpoint:    "[::]:12345",
-		monitorConfig: &hadoop.Config{
-			MonitorConfig: saconfig.MonitorConfig{
-				Type:                "collectd/hadoop",
-				IntervalSeconds:     345,
-				DatapointsToExclude: []saconfig.MetricFilter{},
-			},
-			CommonConfig: python.CommonConfig{},
-			Host:         "localhost",
-			Port:         8088,
-		},
-		acceptsEndpoints: true,
-	}, hadoopCfg)
-	require.NoError(t, hadoopCfg.Validate())
 
 	cm, err = cfg.Sub(component.MustNewIDWithName(typeStr, "etcd").String())
 	require.NoError(t, err)

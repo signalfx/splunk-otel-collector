@@ -321,11 +321,11 @@ function getZpages {
     try {
         $connection = New-Object System.Net.Sockets.TcpClient("localhost", 55679)
         if ($connection.Connected) {
+            (Invoke-WebRequest -Uri "http://localhost:55679/debug/expvarz").Content > $TMPDIR/zpages/expvarz.json 2>&1
             (Invoke-WebRequest -Uri "http://localhost:55679/debug/tracez").Content > $TMPDIR/zpages/tracez.html 2>&1
-            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
             $packages = Invoke-WebRequest -Uri "http://localhost:55679/debug/tracez" -UseBasicParsing
             foreach ($package in $packages.links.href) {
-                $ENCODED_PACKAGE_NAME = [System.Web.HTTPUtility]::UrlEncode("$package")
+                $ENCODED_PACKAGE_NAME = [System.Web.HTTPUtility]::UrlEncode("$package").Replace("?", "%3F")
                 (Invoke-WebRequest -Uri "http://localhost:55679/debug/$package").Content > $TMPDIR/zpages/$global:DIRECTORY/debug/$ENCODED_PACKAGE_NAME 2>&1
             }
         } else { 
@@ -333,7 +333,7 @@ function getZpages {
         }    
     }
     catch {
-        "ERROR: localhost:55679 could not be resolved."
+        "ERROR: getting zpages: $_"
     }  
 }
 

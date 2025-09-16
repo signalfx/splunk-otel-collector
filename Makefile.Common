@@ -37,6 +37,7 @@ ADDLICENCESE= addlicense
 MDLINKCHECK=markdown-link-check
 MISSPELL=misspell -error
 MISSPELL_CORRECTION=misspell -w
+CHLOGGEN=chloggen
 LINT=golangci-lint
 # BUILD_TYPE should be one of (dev, release).
 BUILD_TYPE?=release
@@ -178,6 +179,4 @@ gogen:
 # CD's into SRC_ROOT so that this may be called/included from other Makefiles
 .PHONY: bundle.d
 bundle.d:
-	cd $(SRC_ROOT) && go install github.com/signalfx/splunk-otel-collector/internal/confmapprovider/discovery/bundle/cmd/discoverybundler
-	cd $(SRC_ROOT) && go generate -tags bootstrap.bundle.d ./...
-	cd $(SRC_ROOT) && go generate -tags bundle.d ./...
+	cd $(SRC_ROOT)/cmd/discoverybundler && go run .

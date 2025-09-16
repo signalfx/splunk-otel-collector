@@ -19,7 +19,8 @@
 #SPLUNK_OTEL_VERSION="v0.88.0"
 SPLUNK_OTEL_VERSION="${SPLUNK_OTEL_VERSION:-}"
 if [ -z "$SPLUNK_OTEL_VERSION" ]; then
-    SPLUNK_OTEL_VERSION="$(curl "https://api.github.com/repos/signalfx/splunk-otel-collector/tags" | jq -r '[.[].name | select(test("v[0-9]+\\.[0-9]+\\.[0-9]+")) | sub("^v"; "")] | sort_by(split(".") | map(tonumber)) | last | "v" + .')"
+    SPLUNK_OTEL_VERSION="$(curl "https://api.github.com/repos/signalfx/splunk-otel-collector/tags" | jq -r '[.[].name | select(test("v[0-9]+\\.[0-9]+\\.[0-9]+$")) | sub("^v"; "")] | sort_by(split(".") | map(tonumber)) | last | "v" + .')"
 fi
 echo "updating otel to version $SPLUNK_OTEL_VERSION"
 sed -i'.old' "s/^OTEL_COLLECTOR_VERSION?=.*$/OTEL_COLLECTOR_VERSION?=${SPLUNK_OTEL_VERSION#v}/g" "$ADDONS_SOURCE_DIR/Makefile" && rm "$ADDONS_SOURCE_DIR/Makefile.old"
+sed -i'.old' "s/^EXPECTED_ADDON_VERSION=.*$/EXPECTED_ADDON_VERSION=${SPLUNK_OTEL_VERSION}/g" "$ADDONS_SOURCE_DIR/packaging-scripts/cicd-tests/happypath-test.sh" && rm "$ADDONS_SOURCE_DIR/packaging-scripts/cicd-tests/happypath-test.sh.old"

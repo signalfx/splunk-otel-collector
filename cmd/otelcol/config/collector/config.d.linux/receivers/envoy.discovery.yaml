@@ -43,15 +43,3 @@
 #                 envoy_listener_downstream_cx_overflow|\
 #                 envoy_listener_downstream_cx_overload_reject|\
 #                 envoy_listener_downstream_global_cx_overflow)(?:_sum|_count|_bucket)?"
-#   status:
-#     metrics:
-#       - status: successful
-#         strict: envoy_cluster_upstream_cx_active
-#         message: envoy prometheus receiver is working!
-#     statements:
-#       - status: failed
-#         regexp: "connection refused"
-#         message: The container is not serving http connections.
-#       - status: failed
-#         regexp: "dial tcp: lookup"
-#         message: Unable to resolve envoy prometheus tcp endpoint

@@ -16,8 +16,8 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/mailru/easyjson"
-	"github.com/signalfx/golib/v3/datapoint"
-	"github.com/signalfx/golib/v3/event"
+	"github.com/signalfx/golib/v3/datapoint" //nolint:staticcheck // SA1019: deprecated package still in use
+	"github.com/signalfx/golib/v3/event"     //nolint:staticcheck // SA1019: deprecated package still in use
 	mpCollectd "github.com/signalfx/ingest-protocols/protocol/collectd"
 	collectdformat "github.com/signalfx/ingest-protocols/protocol/collectd/format"
 	log "github.com/sirupsen/logrus"

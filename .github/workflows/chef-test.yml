@@ -21,21 +21,77 @@ concurrency:
   group: chef-test-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
-defaults:
-  run:
-    working-directory: 'deployments/chef'
-
 env:
   CHEF_VERSION: "22.12.1024"
   CHEF_LICENSE: accept
 
 jobs:
+  cross-compile:
+    needs: [ chef-lint-spec-test ]
+    strategy:
+      matrix:
+        SYS_BINARIES: [ "binaries-linux_amd64", "binaries-windows_amd64" ]
+    uses: ./.github/workflows/reusable-compile.yml
+    with:
+      SYS_BINARY: ${{ matrix.SYS_BINARIES }}
+
+  agent-bundle-linux:
+    strategy:
+      matrix:
+        ARCH: [ "amd64" ]
+      fail-fast: false
+    uses: ./.github/workflows/reusable-agent-bundle-linux.yml
+    with:
+      ARCH: ${{ matrix.ARCH }}
+
+  build-package:
+    needs: [ cross-compile, agent-bundle-linux ]
+    strategy:
+      matrix:
+        SYS_PACKAGE: [ "deb", "rpm" ]
+        ARCH: [ "amd64" ]
+      fail-fast: false
+    uses: ./.github/workflows/reusable-build-package.yml
+    with:
+      SYS_PACKAGE: ${{ matrix.SYS_PACKAGE }}
+      ARCH: ${{ matrix.ARCH }}
+
+  agent-bundle-windows:
+    needs: [ chef-lint-spec-test ]
+    strategy:
+      matrix:
+        OS: [ "windows-2025" ]
+    uses: ./.github/workflows/reusable-agent-bundle-windows.yml
+    with:
+      OS: ${{ matrix.OS }}
+
+  msi-custom-actions:
+    needs: [ chef-lint-spec-test ]
+    strategy:
+      matrix:
+        OS: [ "windows-2025" ]
+    uses: ./.github/workflows/reusable-msi-custom-actions.yml
+    with:
+      OS: ${{ matrix.OS }}
+
+  msi-build:
+    needs: [ cross-compile, agent-bundle-windows, msi-custom-actions ]
+    strategy:
+      matrix:
+        OS: [ "windows-2025" ]
+    uses: ./.github/workflows/reusable-msi-build.yml
+    with:
+      OS: ${{ matrix.OS }}
+
   chef-lint-spec-test:
     name: chef-lint-spec-test
     runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: 'deployments/chef'
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       
       - name: lint
         run: make lint
@@ -46,9 +102,12 @@ jobs:
 
   chef-kitchen-matrix:
     runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: 'deployments/chef'
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Get linux distros and suites
         id: get-linux-matrix
@@ -58,7 +117,7 @@ jobs:
             echo "Failed to get platforms from kitchen.yml!" >&2
             exit 1
           fi
-          echo "matrix={'DISTRO': [${distros}]}" >> $GITHUB_OUTPUT
+          echo "matrix={'DISTRO': [${distros}]}" >> "$GITHUB_OUTPUT"
 
       - name: Get windows distros and suites
         id: get-win-matrix
@@ -73,26 +132,46 @@ jobs:
             echo "Failed to get suites from kitchen.windows.yml!" >&2
             exit 1
           fi
-          echo "matrix={'DISTRO': [${distros}], 'SUITE': [${suites}]}" >> $GITHUB_OUTPUT
+          echo "matrix={'DISTRO': [${distros}], 'SUITE': [${suites}]}" >> "$GITHUB_OUTPUT"
     outputs:
       linux-matrix: ${{ steps.get-linux-matrix.outputs.matrix }}
       win-matrix: ${{ steps.get-win-matrix.outputs.matrix }}
 
   chef-kitchen-linux:
     runs-on: ubuntu-24.04
-    needs: [chef-lint-spec-test, chef-kitchen-matrix]
+    needs: [ chef-lint-spec-test, chef-kitchen-matrix, build-package ]
+    defaults:
+      run:
+        working-directory: 'deployments/chef'
     strategy:
       matrix: ${{ fromJSON(needs.chef-kitchen-matrix.outputs.linux-matrix) }}
       fail-fast: false
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
+
+      - uses: actions/download-artifact@v5
+        with:
+          path: /tmp
+
+      # Chef doesn't have an easy way to get names of files from unarchived packages
+      # It's simpler to manually unarchive and move the built artifacts to the
+      # cookbook files directory here. The files/ dir under the Chef deployment is a special
+      # directory in Chef, used for copying files from the cookbook to the host running
+      # Chef.
+      # Cookbook files reference: https://docs.chef.io/files/
+      - name: Extract artifacts
+        run: |
+          mkdir -p files
+          deb_path=$(find /tmp/deb-amd64-package/splunk-otel-collector*amd64.deb)
+          mv "$deb_path" ./files/soc.deb
+          rpm_path=$(find /tmp/rpm-amd64-package/splunk-otel-collector*x86_64.rpm)
+          mv "$rpm_path" ./files/soc.rpm
 
       - name: Install chef
         uses: actionshub/chef-install@3.0.1
         with:
           version: ${{ env.CHEF_VERSION }}
-
 
       # Install of fluentd is failing on Debian 11, so we disable it for that distro.
       - name: Set `with_fluentd` to false on Debian 11
@@ -110,13 +189,32 @@ jobs:
 
   chef-kitchen-windows:
     runs-on: ${{ matrix.DISTRO }}
-    needs: [chef-lint-spec-test, chef-kitchen-matrix]
+    needs: [ chef-lint-spec-test, chef-kitchen-matrix, msi-build ]
+    defaults:
+      run:
+        working-directory: 'deployments/chef'
     strategy:
       matrix: ${{ fromJSON(needs.chef-kitchen-matrix.outputs.win-matrix) }}
       fail-fast: false
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
+
+      - uses: actions/download-artifact@v5
+        with:
+          path: /tmp
+
+      # Chef doesn't have an easy way to get names of files from unarchived packages
+      # It's simpler to unarchive and move the built artifacts manually to the
+      # cookbook files directory. The files/ dir under the Chef deployment is a special
+      # directory in Chef, used for copying files from the cookbook to the host running
+      # Chef.
+      # Cookbook files reference: https://docs.chef.io/files/
+      - name: Extract artifacts
+        run: |
+          mkdir files
+          Get-ChildItem /tmp -Recurse -Include 'splunk-otel-collector*.msi' | Select FullName -OutVariable msiPath
+          mv $msiPath.FullName ./files/splunk-otel-collector.msi
 
       - name: Install chef
         uses: actionshub/chef-install@3.0.1

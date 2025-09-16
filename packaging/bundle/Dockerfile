@@ -13,9 +13,9 @@
 # limitations under the License.
 
 ARG ARCH=amd64
-ARG JDK_VERSION=11.0.27_6
+ARG JDK_VERSION=11.0.28_6
 ARG MAVEN_VERSION=3.6.0
-ARG PYTHON_VERSION=3.13.4
+ARG PYTHON_VERSION=3.13.7
 ARG PIP_VERSION=24.2
 ARG COLLECTD_VERSION=5.8.0-sfx0
 ARG COLLECTD_COMMIT=4d3327b14cf4359029613baf4f90c4952702105e
@@ -23,13 +23,14 @@ ARG DOCKER_REPO=docker.io
 
 
 ######## Base image for subsequent stages ########
-FROM ${DOCKER_REPO}/ubuntu:24.04 AS base
+# Trim the python version to just major.minor in case the tag for the full version isn't available yet
+FROM ${DOCKER_REPO}/python:${PYTHON_VERSION%.*}-bookworm AS base
 
 ARG ARCH
-ENV DEBIAN_FRONTEND noninteractive
 
-RUN sed -i -e '/^deb-src/d' /etc/apt/sources.list && \
-    apt-get update
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update
 
 
 ######## Java monitor dependencies and monitor jar compilation ########
@@ -57,7 +58,7 @@ RUN mkdir -p /opt/root && \
     mv /opt/root/jdk* /opt/root/jdk && \
     rm -f /tmp/openjdk.tar.gz
 
-ENV JAVA_HOME /opt/root/jdk
+ENV JAVA_HOME=/opt/root/jdk
 
 RUN mkdir -p /opt/root/jre && \
     rm -f ${JAVA_HOME}/lib/src.zip && \
@@ -151,14 +152,7 @@ RUN apt-get update && apt-get install -qq -y \
       quilt \
       zlib1g-dev
 
-RUN wget -nv https://dev.mysql.com/get/mysql-apt-config_0.8.12-1_all.deb && \
-    mkdir -p ~/.gnupg && \
-    chmod 700 ~/.gnupg && \
-    echo "disable-ipv6" >> ~/.gnupg/dirmngr.conf && \
-    apt-key adv --homedir ~/.gnupg --keyserver keyserver.ubuntu.com --recv-keys B7B3B788A8D3785C && \
-    dpkg -i mysql-apt-config_0.8.12-1_all.deb && \
-    rm -f mysql-apt-config_0.8.12-1_all.deb && \
-    apt-get update -qq && apt-get install -qq -y libmysqlclient-dev libcurl4-gnutls-dev
+RUN apt-get update -qq && apt-get install -qq -y libcurl4-gnutls-dev
 
 RUN wget -nv -O /tmp/Python-${PYTHON_VERSION}.tgz https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz &&\
     cd /tmp &&\
@@ -215,13 +209,13 @@ COPY --from=java /opt/root/jdk/ /opt/root/jdk/
 WORKDIR /usr/src/collectd
 
 ARG extra_cflags="-O2"
-ENV CFLAGS "-Wno-error -Wno-format-truncation -Wno-stringop-truncation -fPIC $extra_cflags"
-ENV CXXFLAGS $CFLAGS
-ENV JAVA_HOME /opt/root/jdk
+ENV CFLAGS="-Wno-error -Wno-format-truncation -Wno-stringop-truncation -fPIC $extra_cflags"
+ENV CXXFLAGS=$CFLAGS
+ENV JAVA_HOME=/opt/root/jdk
 
 # In the bundle, the java plugin so will live in /lib/collectd and the JVM
 # exists at /jre
-ENV JAVA_LDFLAGS "-Wl,-rpath -Wl,\$\$\ORIGIN/../../jre/lib/server"
+ENV JAVA_LDFLAGS="-Wl,-rpath -Wl,\$\$\ORIGIN/../../jre/lib/server"
 
 # xencpu plugin is not supported on ppc64le
 RUN autoreconf -vif &&\
@@ -393,7 +387,7 @@ RUN patch-rpath /opt/root
 FROM scratch AS final-image
 
 COPY --from=collectd /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
-ENV SSL_CERT_FILE /etc/ssl/certs/ca-certificates.crt
+ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
 
 COPY --from=collectd /etc/nsswitch.conf /etc/nsswitch.conf
 COPY --from=collectd /usr/local/bin/patchelf /bin/

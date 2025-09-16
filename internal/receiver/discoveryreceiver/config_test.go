@@ -26,8 +26,6 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
 	"go.opentelemetry.io/collector/confmap/xconfmap"
-
-	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
 )
 
 func TestValidConfig(t *testing.T) {
@@ -53,33 +51,6 @@ func TestValidConfig(t *testing.T) {
 					"port": "`port`",
 					"type": "collectd/redis",
 				},
-				Status: &Status{
-					Metrics: []Match{
-						{
-							Status:  discovery.Successful,
-							Message: "smartagent/redis receiver successful status",
-							Strict:  "",
-							Regexp:  ".*",
-							Expr:    "",
-						},
-					},
-					Statements: []Match{
-						{
-							Status:  discovery.Failed,
-							Strict:  "",
-							Regexp:  "ConnectionRefusedError",
-							Expr:    "",
-							Message: "container appears to not be accepting redis connections",
-						},
-						{
-							Status:  discovery.Partial,
-							Strict:  "",
-							Regexp:  "(WRONGPASS|NOAUTH|ERR AUTH)",
-							Expr:    "",
-							Message: "desired log invalid auth log body",
-						},
-					},
-				},
 				ResourceAttributes: map[string]string{
 					"receiver_attribute": "receiver_attribute_value",
 				},
@@ -100,11 +71,6 @@ func TestValidConfig(t *testing.T) {
 func TestInvalidConfigs(t *testing.T) {
 	tests := []struct{ name, expectedError string }{
 		{name: "no_watch_observers", expectedError: "`watch_observers` must be defined and include at least one configured observer extension"},
-		{name: "missing_status", expectedError: "receiver \"a_receiver\" validation failure: `status` must be defined and contain at least one `metrics` or `statements` mapping"},
-		{name: "missing_match_status", expectedError: "receiver \"a_receiver\" validation failure: \"metrics\" status match validation failed: status cannot be empty; \"statements\" status match validation failed: status cannot be empty"},
-		{name: "missing_status_metrics_and_statements", expectedError: "receiver \"a_receiver\" validation failure: `status` must be defined and contain at least one `metrics` or `statements` mapping"},
-		{name: "invalid_status_types", expectedError: `receiver "a_receiver" validation failure: "metrics" status match validation failed: invalid status "unsupported". must be one of [successful partial failed]; "statements" status match validation failed: invalid status "another_unsupported". must be one of [successful partial failed]`},
-		{name: "multiple_status_match_types", expectedError: "receiver \"a_receiver\" validation failure: \"metrics\" status match validation failed. Must provide one of [regexp strict expr] but received [strict regexp]; \"statements\" status match validation failed. Must provide one of [regexp strict expr] but received [strict expr]"},
 		{name: "reserved_receiver_creator", expectedError: `receiver "receiver_creator/with-name" validation failure: receiver cannot be a receiver_creator`},
 		{name: "reserved_receiver_name", expectedError: "receiver \"a_receiver/with-receiver_creator/in-name\" validation failure: receiver name cannot contain \"receiver_creator/\""},
 	}

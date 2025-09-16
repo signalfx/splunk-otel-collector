@@ -21,9 +21,11 @@ import (
 	"time"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.uber.org/zap"
+	zapobs "go.uber.org/zap/zaptest/observer"
 
 	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
 )
@@ -44,16 +46,22 @@ func TestStatementEvaluation(t *testing.T) {
 				match.Status = status
 				t.Run(string(status), func(t *testing.T) {
 					observerID := component.MustNewIDWithName("an_observer", "observer.name")
+					receiverID := component.MustNewIDWithName("a_receiver", "receiver.name")
 					cfg := &Config{
 						Receivers: map[component.ID]ReceiverEntry{
-							component.MustNewIDWithName("a_receiver", "receiver.name"): {
-								Rule:   mustNewRule(`type == "container"`),
-								Status: &Status{Statements: []Match{match}},
+							receiverID: {
+								Rule: mustNewRule(`type == "container"`),
 							},
 						},
 						WatchObservers: []component.ID{observerID},
 					}
 					require.NoError(t, cfg.Validate())
+
+					// Override the receiverMetaMap for this test case
+					receiverMetaMap[receiverID.String()] = ReceiverMeta{
+						ServiceType: "a_service",
+						Status:      Status{Statements: []Match{match}},
+					}
 
 					// If debugging tests, replace the Nop Logger with a test instance to see
 					// all statements. Not in regular use to avoid spamming output.
@@ -69,7 +77,6 @@ func TestStatementEvaluation(t *testing.T) {
 						emitWG.Done()
 					}()
 
-					receiverID := component.MustNewIDWithName("a_receiver", "receiver.name")
 					endpointID := observer.EndpointID("endpoint.id")
 					cStore.UpdateEndpoint(observer.Endpoint{ID: endpointID}, receiverID, observerID)
 
@@ -100,15 +107,40 @@ func TestStatementEvaluation(t *testing.T) {
 
 					// Validate the attributes
 					require.Equal(t, map[string]string{
+						"service.type":            "a_service",
 						"discovery.observer.id":   "an_observer/observer.name",
 						"discovery.receiver.name": "receiver.name",
 						"discovery.receiver.type": "a_receiver",
 						"discovery.status":        string(status),
 						"discovery.message":       "desired body content",
-						"discovery.matched_log":   "desired.statement (error: some error)",
 					}, cStore.Attrs(endpointID))
 				})
 			}
 		})
 	}
+}
+
+func TestStatementEvaluatorSampledLogger(t *testing.T) {
+	logCore, logObserver := zapobs.New(zap.ErrorLevel)
+
+	id := component.MustNewID("test_component")
+	cfg := &Config{
+		Receivers: map[component.ID]ReceiverEntry{},
+	}
+	cStore := newCorrelationStore(zap.New(logCore), time.Hour)
+
+	se, err := newStatementEvaluator(zap.New(logCore), id, cfg, cStore)
+	require.NoError(t, err)
+	logger := se.evaluatedLogger.With(zap.String("kind", "receiver"), zap.String("name", "test_receiver"))
+
+	logger.Error("test error", zap.Error(errors.New("error details 1")))
+	logger.Error("test error", zap.Error(errors.New("error details 1"))) // should be sampled
+	logger.Error("test error", zap.Error(errors.New("error details 2")),
+		zap.String("ignored_field", "field.value.1"))
+	logger.Error("test error", zap.Error(errors.New("error details 2")),
+		zap.String("ignored_field", "field.value.2")) // should be sampled
+
+	assert.Equal(t, 2, logObserver.Len())
+	assert.Equal(t, "test error", logObserver.All()[0].Message)
+	assert.Equal(t, "test error", logObserver.All()[1].Message)
 }

@@ -34,6 +34,9 @@ func TestPrometheusExporterProvidesOTelInternalMetrics(t *testing.T) {
 			pmetrictest.IgnoreTimestamp(),
 			pmetrictest.IgnoreStartTimestamp(),
 			pmetrictest.IgnoreMetricValues(
+				"otelcol_exporter_queue_batch_send_size",
+				"otelcol_exporter_queue_batch_send_size_bucket",
+				"otelcol_exporter_queue_batch_send_size_count",
 				"otelcol_exporter_sent_metric_points",
 				"otelcol_process_cpu_seconds",
 				"otelcol_process_memory_rss",
@@ -42,6 +45,7 @@ func TestPrometheusExporterProvidesOTelInternalMetrics(t *testing.T) {
 				"otelcol_process_runtime_total_sys_memory_bytes",
 				"otelcol_process_uptime",
 				"otelcol_receiver_accepted_metric_points",
+				"otelcol_receiver_failed_metric_points",
 			),
 		),
 	)

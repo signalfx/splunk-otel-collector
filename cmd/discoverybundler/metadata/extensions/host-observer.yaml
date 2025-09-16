@@ -1,0 +1,3 @@
+extension_id: host_observer
+properties_tmpl: |
+  enabled: true

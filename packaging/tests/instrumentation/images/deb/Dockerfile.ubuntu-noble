@@ -1,17 +1,17 @@
 # A ubuntu image with systemd enabled.  Must be run with:
 # `-d --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro` flags
-FROM tomcat:9-jre8 as tomcat
+FROM tomcat:10-jre8 as tomcat
 
 FROM ubuntu:noble
 
 ARG TARGETARCH
 
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update &&\
     apt-get install -yq ca-certificates curl procps python3 systemd wget
 
-ENV container docker
+ENV container=docker
 RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i = \
     "systemd-tmpfiles-setup.service" ] || rm -f $i; done); \
     rm -f /lib/systemd/system/multi-user.target.wants/*;\
@@ -37,7 +37,7 @@ RUN if [ "$TARGETARCH" = "amd64" ]; then \
     fi
 
 RUN systemctl set-default multi-user.target
-ENV init /lib/systemd/systemd
+ENV init=/lib/systemd/systemd
 
 VOLUME [ "/sys/fs/cgroup" ]
 

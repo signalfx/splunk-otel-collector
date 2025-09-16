@@ -14,7 +14,7 @@ on:
     - cron: '0 0 * * 1-5' # Every weekday at midnight UTC
 
 env:
-  GO_VERSION: 1.23.10
+  GO_VERSION: 1.24.6
 
 concurrency:
   group: vuln-scans-${{ github.event.pull_request.number || github.ref }}
@@ -24,9 +24,9 @@ jobs:
   trivy-fs-scan:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Run trivy filesystem scan
-        uses: aquasecurity/trivy-action@0.31.0
+        uses: aquasecurity/trivy-action@0.33.1
         with:
           version: v0.57.1
           scan-type: 'fs'
@@ -40,7 +40,7 @@ jobs:
   anchore-fs-scan:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: anchore/scan-action@v6
         with:
           severity-cutoff: "high"
@@ -57,8 +57,8 @@ jobs:
         FIPS: [ true, false ]
       fail-fast: false
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
@@ -81,21 +81,12 @@ jobs:
           path: ./dist
 
   binaries-windows_amd64:
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
-      - run: make binaries-windows_amd64
-      - uses: actions/upload-artifact@v4
-        with:
-          name: binaries-windows_amd64
-          path: |
-            ./bin/*
+    strategy:
+      matrix:
+        SYS_BINARIES: [ "binaries-windows_amd64" ]
+    uses: ./.github/workflows/reusable-compile.yml
+    with:
+      SYS_BINARY: ${{ matrix.SYS_BINARIES }}
 
   trivy-image-scan:
     runs-on: ${{ matrix.ARCH == 'amd64' && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
@@ -106,14 +97,14 @@ jobs:
         FIPS: [ true, false ]
       fail-fast: false
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v5
         with:
           name: otelcol-${{ matrix.ARCH }}${{ matrix.FIPS == true && '-fips' || '' }}
           path: ./dist
       - run: docker load -i ./dist/image.tar
       - name: Run trivy image scan
-        uses: aquasecurity/trivy-action@0.31.0
+        uses: aquasecurity/trivy-action@0.33.1
         with:
           version: v0.57.1
           scan-type: 'image'
@@ -134,8 +125,8 @@ jobs:
     env:
       GRYPE_PLATFORM: ${{ matrix.ARCH }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v5
         with:
           name: otelcol-${{ matrix.ARCH }}${{ matrix.FIPS == true && '-fips' || '' }}
           path: ./dist
@@ -165,9 +156,9 @@ jobs:
       PIP_CACHE_DIR: ${{ github.workspace }}/.cache/pip
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Downloading binaries-windows_amd64
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: binaries-windows_amd64
           path: ./bin
@@ -212,9 +203,9 @@ jobs:
         id: snyk-token-check
         run: |
           if [ -n "${{ secrets.SNYK_TOKEN }}" ]; then
-            echo "defined=true" >> $GITHUB_OUTPUT
+            echo "defined=true" >> "$GITHUB_OUTPUT"
           else
-            echo "defined=false" >> $GITHUB_OUTPUT
+            echo "defined=false" >> "$GITHUB_OUTPUT"
             echo "ERROR: The Snyk token is not available. The token is not available on PRs triggered from forked repositories."
             exit 1
           fi
@@ -224,7 +215,7 @@ jobs:
     needs: check-snyk-token
     if: ${{ needs.check-snyk-token.outputs.has-snyk-token == 'true' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/golang@master
         continue-on-error: true # To make sure that SARIF upload gets called
@@ -248,7 +239,7 @@ jobs:
         FIPS: [ true, false ]
       fail-fast: false
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       # There is no snyk/snyk:docker image for arm64, so we need to use the
       # docker setup-qemu-action to run the scan
@@ -258,7 +249,7 @@ jobs:
           platforms: ${{ matrix.ARCH }}
           image: tonistiigi/binfmt:qemu-v7.0.0
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: otelcol-${{ matrix.ARCH }}${{ matrix.FIPS == true && '-fips' || '' }}
           path: ./dist
@@ -269,7 +260,7 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           image: "otelcol${{ matrix.FIPS == true && '-fips' || '' }}:latest"
-          args: --file=cmd/otelcol/Dockerfile --severity-threshold=high --sarif-file-output=snyk.sarif --policy-path=.snyk --platform=linux/${{ matrix.ARCH }}
+          args: --file=cmd/otelcol/Dockerfile --severity-threshold=high --exclude-app-vulns --sarif-file-output=snyk.sarif --policy-path=.snyk --platform=linux/${{ matrix.ARCH }}
       - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v3
         with:
@@ -280,15 +271,8 @@ jobs:
     runs-on: macos-14-large
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v4
-      - name: Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
-
-      - name: Install Tools
-        run: make install-tools
+        uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-environment
 
       - run: govulncheck --version
 
@@ -314,9 +298,9 @@ jobs:
       matrix: ${{ steps.capture-packages.outputs.matrix }}
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
@@ -328,7 +312,7 @@ jobs:
           category=$(for p in $(echo -e "$packages"); do echo "\"$p\","; done)
           matrix=$(echo "{\"category\": [${category%,}]}" | tr -d '\n')
           echo "$matrix" | jq
-          echo "matrix=${matrix}" >> $GITHUB_OUTPUT
+          echo "matrix=${matrix}" >> "$GITHUB_OUTPUT"
 
   govulncheck-upload:
     runs-on: ubuntu-24.04
@@ -338,10 +322,10 @@ jobs:
       matrix: ${{ fromJSON(needs.govulncheck-categories.outputs.matrix) }}
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Download govulncheck results artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: govulncheck-results
           path: ./govulncheck/
@@ -351,4 +335,3 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: ./govulncheck/${{ matrix.category }}.sarif
-          category: ${{ matrix.category }}

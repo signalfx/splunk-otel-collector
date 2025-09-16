@@ -46,7 +46,7 @@
 Splunk OpenTelemetry Collector is a distribution of the [OpenTelemetry
 Collector](https://github.com/open-telemetry/opentelemetry-collector). It
 provides a unified way to receive, process, and export metric, trace, and log
-data for [Splunk Observability Cloud](https://www.splunk.com/en_us/observability.html):
+data for [Splunk Observability Cloud](https://www.splunk.com/en_us/products/observability.html):
 
 - [Splunk APM](https://docs.splunk.com/Observability/apm/intro-to-apm.html#nav-Introduction-to-Splunk-APM) via the
   [`otlphttp`
@@ -63,8 +63,8 @@ data for [Splunk Observability Cloud](https://www.splunk.com/en_us/observability
 While it is recommended to use [Splunk
 Forwarders](https://docs.splunk.com/Documentation/Splunk/latest/Data/Usingforwardingagents)
 to send data to [Splunk
-Cloud](https://www.splunk.com/en_us/software/splunk-cloud-platform.html) or [Splunk
-Enterprise](https://www.splunk.com/en_us/software/splunk-enterprise.html),
+Cloud](https://www.splunk.com/en_us/products/splunk-cloud-platform.html) or [Splunk
+Enterprise](https://www.splunk.com/en_us/products/splunk-enterprise.html),
 Splunk OpenTelemetry Collector can be configured to send data to them via the
 [`splunk_hec`
 exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/splunkhecexporter).
@@ -133,7 +133,7 @@ A variety of default configuration files are provided:
   documentation. The `logs_config_linux.yaml` is a good starting point for using
   the collector for collecting application logs on Linux environments.
   `agent_config.yaml` is the recommended starting configuration for most environments.
-- [Fluentd](https://github.com/signalfx/splunk-otel-collector/tree/main/packaging/fpm/etc/otel/collector/fluentd)
+- [[DEPRECATED]](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/deprecations/fluentd-support.md) [Fluentd](https://github.com/signalfx/splunk-otel-collector/tree/main/packaging/fpm/etc/otel/collector/fluentd)
   applicable to Helm or installer script installations only. See the `*.conf`
   files as well as the `conf.d` directory. Common sources including filelog,
   journald, and Windows event viewer are included.
@@ -211,8 +211,8 @@ as a reference.
 
   If you have customized it via `SPLUNK_BALLAST_SIZE_MIB` (or `extensions::memory_ballast::size_mib` config), you should
   remove the `memory_ballast` extension and use the [`GOMEMLIMIT`](https://pkg.go.dev/runtime) environment variable to set a custom soft memory limit:
-  - To increase frequency of garbage collections: set `GOMEMLIMIT` to a higher value than the default 90% of total memory.
-  - To decrease frequency of garbage collections: set `GOMEMLIMIT` to a lower value than the default 90% of total memory.
+  - To decrease frequency of garbage collections: set `GOMEMLIMIT` to a higher value than the default 90% of total memory.
+  - To increase frequency of garbage collections: set `GOMEMLIMIT` to a lower value than the default 90% of total memory.
 
 ### From 0.68.0 to 0.69.0
 
@@ -290,4 +290,4 @@ is properly configured, is available
 
 [Apache Software License version 2.0](./LICENSE).
 
->ℹ️&nbsp;&nbsp;SignalFx was acquired by Splunk in October 2019. See [Splunk SignalFx](https://www.splunk.com/en_us/investor-relations/acquisitions/signalfx.html) for more information.
+>ℹ️&nbsp;&nbsp;SignalFx was acquired by Splunk in October 2019. See [Splunk SignalFx](https://www.splunk.com/en_us/about-splunk/acquisitions/signalfx.html) for more information.

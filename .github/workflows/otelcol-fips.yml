@@ -23,7 +23,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.23.10
+  GO_VERSION: 1.24.6
 
 jobs:
   otelcol-fips:
@@ -39,10 +39,13 @@ jobs:
             GOARCH: amd64
       fail-fast: false
     steps:
-      - uses: actions/checkout@v4
+      # Building FIPs for Windows is flaky due to out of space issues.
+      - uses: jlumbroso/free-disk-space@v1.3.1
+        if: matrix.GOOS == 'windows'
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
@@ -63,7 +66,7 @@ jobs:
         FIPSMODE: [ "1", "0" ]
       fail-fast: false
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: otelcol-fips-windows-amd64
           path: ./bin
@@ -88,14 +91,14 @@ jobs:
         ARCH: [ amd64, arm64 ]
       fail-fast: false
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: otelcol-fips-linux-${{ matrix.ARCH }}
           path: ./bin
@@ -115,7 +118,7 @@ jobs:
       - name: Ensure the collector container can run with all included configs
         run: |
           for config in cmd/otelcol/fips/config/*.yaml; do
-            docker run -d --name otelcol-fips -e SPLUNK_ACCESS_TOKEN=fake-token -e SPLUNK_REALM=fake-realm -e SPLUNK_CONFIG=/etc/otel/collector/$(basename $config) otelcol-fips:${{ matrix.ARCH }}
+            docker run -d --name otelcol-fips -e SPLUNK_ACCESS_TOKEN=fake-token -e SPLUNK_REALM=fake-realm -e SPLUNK_CONFIG="/etc/otel/collector/$(basename "$config")" otelcol-fips:${{ matrix.ARCH }}
             sleep 30
             docker logs otelcol-fips
             if [ -z "$( docker ps --filter=status=running --filter=name=otelcol-fips -q )" ]; then
@@ -137,10 +140,10 @@ jobs:
         WIN_VERSION: [ 2022, 2025 ]
       fail-fast: false
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: otelcol-fips-windows-amd64
           path: ./cmd/otelcol/fips/dist
@@ -161,7 +164,7 @@ jobs:
         shell: bash
         run: |
           for config in cmd/otelcol/fips/config/*.yaml; do
-            docker run -d --name otelcol-fips -e SPLUNK_ACCESS_TOKEN=fake-token -e SPLUNK_REALM=fake-realm -e SPLUNK_CONFIG="C:\\ProgramData\\Splunk\\OpenTelemetry Collector\\$(basename $config)" otelcol-fips:${{ matrix.WIN_VERSION }}
+            docker run -d --name otelcol-fips -e SPLUNK_ACCESS_TOKEN=fake-token -e SPLUNK_REALM=fake-realm -e SPLUNK_CONFIG="C:\\ProgramData\\Splunk\\OpenTelemetry Collector\\$(basename "$config")" otelcol-fips:${{ matrix.WIN_VERSION }}
             sleep 30
             docker logs otelcol-fips
             if [ -z "$( docker ps --filter=status=running --filter=name=otelcol-fips -q )" ]; then

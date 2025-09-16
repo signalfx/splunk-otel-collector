@@ -3,7 +3,7 @@ package rabbitmq
 import (
 	"strings"
 
-	"github.com/signalfx/golib/v3/pointer"
+	"github.com/signalfx/golib/v3/pointer" //nolint:staticcheck // SA1019: deprecated package still in use
 
 	"github.com/signalfx/signalfx-agent/pkg/core/config"
 
@@ -72,6 +72,7 @@ type Monitor struct {
 
 // Configure configures and runs the plugin in python.
 func (m *Monitor) Configure(conf *Config) error {
+	m.Logger().Warn("[NOTICE] The collectd/rabbitmq plugin is deprecated. Please use the rabbitmq receiver instead. This plugin will be removed by the end of October 2025.")
 	sendChannelMetrics := conf.CollectChannels
 	sendConnectionMetrics := conf.CollectConnections
 	sendExchangeMetrics := conf.CollectExchanges

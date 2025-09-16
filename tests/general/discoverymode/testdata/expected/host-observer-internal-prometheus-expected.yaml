@@ -1,34 +1,27 @@
 resourceMetrics:
   - resource:
       attributes:
+        - key: discovery.endpoint.id
+          value:
+            stringValue: (host_observer/with-name)127.0.0.1-51591-TCP-1
         - key: url.scheme
           value:
             stringValue: http
-#         TODO: Re-enable test coverage after https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/40722
-#          - key: label_one
-#            value:
-#              stringValue: actual.label.one.value.from.env.var
-#          - key: label_three
-#            value:
-#              stringValue: actual.label.three.value.from.cmdline.property
-#          - key: label_two
-#            value:
-#              stringValue: actual.label.two.value.from.env.var
-#          - key: net.host.port
-#            value:
-#              stringValue: "52144"
-        - key: net.host.port
+        - key: label_one
           value:
-            stringValue: "52144"
+            stringValue: actual.label.one.value.from.env.var
+        - key: label_three
+          value:
+            stringValue: actual.label.three.value.from.cmdline.property
+        - key: label_two
+          value:
+            stringValue: actual.label.two.value.from.env.var
         - key: server.port
           value:
             stringValue: "52144"
         - key: service.instance.id
           value:
             stringValue: 127.0.0.1:52144
-        - key: service.instance.id
-          value:
-            stringValue: b3d7e86d-d1fb-47be-9ecc-d3bc4f5b552d
         - key: service.name
           value:
             stringValue: otelcol
@@ -38,6 +31,9 @@ resourceMetrics:
         - key: url.scheme
           value:
             stringValue: http
+        - key: splunk_autodiscovery
+          value:
+            stringValue: "true"
     scopeMetrics:
       - metrics:
           - description: Uptime of the process [alpha]
@@ -51,16 +47,15 @@ resourceMetrics:
               dataPoints:
                 - asDouble: 21.150509204
                   attributes:
-#                   TODO: Re-enable test coverage after https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/40722
-#                    - key: label_one
-#                      value:
-#                         stringValue: actual.label.one.value.from.env.var
-#                     - key: label_three
-#                       value:
-#                         stringValue: actual.label.three.value.from.cmdline.property
-#                     - key: label_two
-#                       value:
-#                         stringValue: actual.label.two.value.from.env.var
+                     - key: label_one
+                       value:
+                         stringValue: actual.label.one.value.from.env.var
+                     - key: label_three
+                       value:
+                         stringValue: actual.label.three.value.from.cmdline.property
+                     - key: label_two
+                       value:
+                         stringValue: actual.label.two.value.from.env.var
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
               isMonotonic: true

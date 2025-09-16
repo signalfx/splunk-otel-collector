@@ -7,7 +7,10 @@ default:
         - "$SECRETS_URL"
 
 variables:
-  GO_VERSION: 1.23.10
+  RELEASE_VERSION:
+    value: ""
+    description: "Version to release (must be in format v1.2.3)"
+  GO_VERSION: 1.24.6
   WIN_2019_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2019
   WIN_2022_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2022
   SPLUNK_OTELCOL_DOWNLOAD_BASE:
@@ -21,6 +24,7 @@ variables:
     description: 'in this CI, where the addons source directory is located'
 
 stages:
+  - manual-release
   - update-deps
   - sast-oss-scan
   - build
@@ -32,7 +36,7 @@ stages:
   - release
   - docker-manifest-release
   - xray-scan
-  - github-release
+  - publish-release
 
 include:
   - project: 'prodsec/scp-scanning/gitlab-checkmarx'
@@ -47,6 +51,34 @@ include:
   - project: 'core-ee/signing/api-integration'
     ref: develop
     file: '/templates/.sign-client.yml'
+
+
+# Manual release job
+manual_release_trigger:
+  stage: manual-release
+  script:
+    - |
+      if [ -z "$RELEASE_VERSION" ]; then
+        echo "RELEASE_VERSION is not set. Cannot proceed." && exit 1
+      fi
+      # Validate version format (must be v1.2.3 or v1.2.3-rc.0)
+      if ! echo "$RELEASE_VERSION" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+(\-beta\.[0-9]+)?(\-rc\.[0-9]+)?$'; then
+        echo "RELEASE_VERSION must be in format v1.2.3 for stable releases and in the format v1.2.3-rc.0 or v1.2.3-beta.1 for pre-releases." && exit 1
+      fi
+      if echo "$RELEASE_VERSION" | grep -Eq '\-(beta|rc)\.[0-9]+$'; then
+        echo "Pre-release version detected ($RELEASE_VERSION). Skipping changelog validation."
+      else
+        # Validate version is in changelog only for stable releases
+        if ! grep -q "^## $RELEASE_VERSION" CHANGELOG.md; then
+          echo "Version $RELEASE_VERSION not found in CHANGELOG.md" && exit 1
+        fi
+      fi
+      echo "Manual release triggered for version $RELEASE_VERSION"
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web" && $RELEASE_VERSION && $CI_COMMIT_BRANCH == "main"'
+      when: on_success
+  allow_failure: false
+  needs: []
 
 semgrep:
   stage: sast-oss-scan
@@ -114,9 +146,9 @@ fossa:
   - |
     set -ex
     export STAGE="test"
-    if [[ "${CI_COMMIT_TAG:-}" =~ beta ]]; then
+    if [[ "${CI_COMMIT_TAG:-}" =~ (beta|rc) ]] || [[ "${RELEASE_VERSION:-}" =~ (beta|rc) ]]; then
       export STAGE="beta"
-    elif [[ "${CI_COMMIT_TAG:-}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    elif [[ "${CI_COMMIT_TAG:-}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || [[ "${RELEASE_VERSION:-}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
       export STAGE="release"
     fi
 
@@ -128,8 +160,11 @@ fossa:
   rules:
     - &main-condition
       if: $CI_COMMIT_BRANCH == "main"
-    - &release-condition
-      if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+    # commenting out the original commit-tag trigger condition for collector release
+    # - &release-condition
+    #   if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+    - &manual-release-condition
+      if: $RELEASE_VERSION =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/ && $CI_COMMIT_BRANCH == "main"
     - &no-schedules-condition
       if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
@@ -250,6 +285,8 @@ update-otel-deps-nightly:
 update-openjdk:
   only:
     - schedules
+  extends: .go-cache
+  tags: [large]
   stage: update-deps
   needs: []
   dependencies: []
@@ -260,6 +297,8 @@ update-openjdk:
 update-javaagent:
   only:
     - schedules
+  extends: .go-cache
+  tags: [large]
   stage: update-deps
   needs: []
   dependencies: []
@@ -270,6 +309,8 @@ update-javaagent:
 update-jmx-metrics-gatherer:
   only:
     - schedules
+  extends: .go-cache
+  tags: [large]
   stage: update-deps
   needs: []
   dependencies: []
@@ -280,6 +321,8 @@ update-jmx-metrics-gatherer:
 update-nodejs-agent:
   only:
     - schedules
+  extends: .go-cache
+  tags: [large]
   stage: update-deps
   needs: []
   dependencies: []
@@ -290,6 +333,8 @@ update-nodejs-agent:
 update-dotnet-agent:
   only:
     - schedules
+  extends: .go-cache
+  tags: [large]
   stage: update-deps
   needs: []
   dependencies: []
@@ -310,19 +355,23 @@ tidy-dependabot-pr:
     - .gitlab/tidy-dependabot-pr.sh
 
 compile:
+  timeout: 2h
   extends:
     - .trigger-filter
     - .go-cache
   tags: [large]
   stage: build
-  needs: []
+  needs:
+    - job: manual_release_trigger
+      optional: true
   parallel:
     matrix:
       - TARGET: [binaries-darwin_amd64, binaries-darwin_arm64, binaries-linux_amd64, binaries-linux_arm64, binaries-windows_amd64, binaries-linux_ppc64le]
   script:
     - |
-      if [[ -n "${CI_COMMIT_TAG:-}" ]]; then
-        make $TARGET VERSION=${CI_COMMIT_TAG}
+      VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
+      if [[ -n "${VERSION_TAG:-}" ]]; then
+        make $TARGET VERSION=${VERSION_TAG}
       else
         make $TARGET
       fi
@@ -335,11 +384,13 @@ compile:
       - bin/migratecheckpoint_*
 
 otelcol-fips:
-  image: '${DOCKER_CICD_REPO}/ci-container/golang-1.23:3.9.0'
+  image: '${DOCKER_CICD_REPO}/ci-container/golang-1.24:4.0.0'
   extends:
     - .trigger-filter
   stage: build
-  needs: []
+  needs:
+    - job: manual_release_trigger
+      optional: true
   parallel:
     matrix:
       - GOOS: linux
@@ -359,11 +410,8 @@ otelcol-fips:
   script:
     - *docker-reader-role
     - |
-      if [[ -n "${CI_COMMIT_TAG:-}" ]]; then
-        make otelcol-fips VERSION=${CI_COMMIT_TAG} DOCKER_REPO=${DOCKER_HUB_REPO}
-      else
-        make otelcol-fips DOCKER_REPO=${DOCKER_HUB_REPO}
-      fi
+      VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
+      make otelcol-fips VERSION=${VERSION_TAG} DOCKER_REPO=${DOCKER_HUB_REPO}
   artifacts:
     paths:
       - bin/otelcol-fips_*
@@ -371,7 +419,9 @@ otelcol-fips:
 libsplunk:
   extends: .trigger-filter
   stage: build
-  needs: []
+  needs:
+    - job: manual_release_trigger
+      optional: true
   retry: 2
   parallel:
     matrix:
@@ -389,10 +439,13 @@ libsplunk:
 agent-bundle-linux:
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
-    - if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+    # - if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
     - if: $CI_PIPELINE_SOURCE == "schedule"
+    - <<: *manual-release-condition
   stage: build
-  needs: []
+  needs:
+    - job: manual_release_trigger
+      optional: true
   retry: 2
   resource_group: agent-bundle-linux-${ARCH}
   parallel:
@@ -419,7 +472,9 @@ agent-bundle-linux:
 agent-bundle-windows:
   extends: .trigger-filter
   stage: build
-  needs: []
+  needs:
+    - job: manual_release_trigger
+      optional: true
   tags:
     - splunk-otel-collector-windows
   variables:
@@ -436,11 +491,20 @@ agent-bundle-windows:
   artifacts:
     paths:
       - dist/agent-bundle_windows_amd64.zip
-.ta-trigger:
+
+.collector-ta-trigger:
   rules:
+    # exclude manual collector release
+    - if: $RELEASE_VERSION =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+      when: never
     - <<: *main-condition
-    - <<: *release-condition
     - <<: *no-schedules-condition
+    - &collector-ta-release-precondition
+      if: $CI_COMMIT_BRANCH =~ /^release\/technical-addon\/v[0-9]+\.[0-9]+\.[0-9]+$/
+      when: always
+    - &collector-ta-release-condition
+      if: $CI_COMMIT_TAG =~ /^Splunk_TA_otel\/v[0-9]+\.[0-9]+\.[0-9]+$/
+      when: always
     - if: $CI_COMMIT_BRANCH != "main" && $CI_COMMIT_TAG == null && $CI_COMMIT_REF_PROTECTED == 'true'
       when: manual
 .auth-setup:
@@ -485,7 +549,7 @@ agent-bundle-windows:
 
 package-technical-addon:
   extends:
-    - .ta-trigger
+    - .collector-ta-trigger
   image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
   stage: "package"
   script: |
@@ -503,9 +567,9 @@ package-technical-addon:
 test-happypath-ta:
   image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
   extends:
-    - .ta-trigger
+    - .collector-ta-trigger
     - .auth-setup
-  stage: orca-tests
+  stage: "orca-tests"
   dependencies:
     - "package-technical-addon"
   parallel:
@@ -533,10 +597,11 @@ test-happypath-ta:
     paths:
       - "$BUILD_DIR/out/**/*"
       - "$BUILD_DIR/$CI_JOB_ID/**/*"
+  allow_failure: true
 test-collectd-ta:
   image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
   extends:
-    - .ta-trigger
+    - .collector-ta-trigger
     - .auth-setup
   stage: orca-tests
   variables:
@@ -563,10 +628,11 @@ test-collectd-ta:
     paths:
       - "$BUILD_DIR/out/**/*"
       - "$BUILD_DIR/$CI_JOB_ID/**/*"
+  allow_failure: true
 test-gateway-ta:
   image: "${DOCKER_CICD_REPO}/ci-container/python-3.11-bullseye:1.19.0"
   extends:
-    - .ta-trigger
+    - .collector-ta-trigger
     - .auth-setup
   stage: orca-tests
   dependencies:
@@ -598,9 +664,10 @@ test-gateway-ta:
     paths:
       - "$BUILD_DIR/out/**/*"
       - "$BUILD_DIR/$CI_JOB_ID/**/*"
+  allow_failure: true
 AppInspect_local:
   extends:
-    - .ta-trigger
+    - .collector-ta-trigger
   dependencies:
     - "package-technical-addon"
   stage: code-analysis
@@ -621,6 +688,28 @@ AppInspect_local:
     when: always
   allow_failure: false
 
+collector-ta-release:
+  rules:
+    - <<: *collector-ta-release-condition
+  extends:
+    - .go-cache # Use this image since this job uses the ghr tool
+  tags: [large]
+  stage: publish-release
+  dependencies:
+    - package-technical-addon
+    - test-happypath-ta
+    - test-collectd-ta
+    - test-gateway-ta
+  script:
+    - |
+      cd "${ADDONS_SOURCE_DIR}"
+      export TA_VERSION="$(sed -n '/^\[id\]/,/^\[/{s/^version = \(.*\)/\1/p}' "$ADDONS_SOURCE_DIR/Splunk_TA_otel/default/app.conf" | tr -d ' \t\n\r')"
+      [[ -z "$TA_VERSION" ]] && echo "TA_VERSION MUST BE SET" && exit 1
+      make -e validate-release
+      RELEASE_NOTES="$(TA_NAME=Splunk_TA_otel "$ADDONS_SOURCE_DIR/packaging-scripts/github-ta-release-notes.sh")"
+      ls "$BUILD_DIR/out/distribution/"
+      ghr -draft -t "$GITHUB_TOKEN" -u signalfx -r splunk-otel-collector -prerelease -draft -n "Technical addon for the Splunk distribution of the OpenTelemetry Collector v$TA_VERSION" -b "$RELEASE_NOTES" -replace "$CI_COMMIT_TAG" "$BUILD_DIR/out/distribution/Splunk_TA_otel-$TA_VERSION.tgz" 
+
 .instrumentation-deb-rpm:
   extends: .trigger-filter
   stage: package
@@ -635,7 +724,9 @@ AppInspect_local:
   before_script:
     - ./instrumentation/packaging/fpm/install-deps.sh
   script:
-    - ./instrumentation/packaging/fpm/${PKG_TYPE}/build.sh "${CI_COMMIT_TAG:-}" "$ARCH" "./dist"
+    - |
+      VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
+      ./instrumentation/packaging/fpm/${PKG_TYPE}/build.sh "${VERSION_TAG}" "$ARCH" "./dist"
     - *xray-publish-package
 
 instrumentation-deb:
@@ -732,7 +823,9 @@ sign-osx:
   before_script:
     - ./packaging/fpm/install-deps.sh
   script:
-    - ./packaging/fpm/${PKG_TYPE}/build.sh "${CI_COMMIT_TAG:-}" "$ARCH" "./dist"
+    - |
+      VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
+      ./packaging/fpm/${PKG_TYPE}/build.sh "${VERSION_TAG}" "$ARCH" "./dist"
     - *xray-publish-package
 
 build-deb:
@@ -799,7 +892,9 @@ build-msi:
       aud: $CICD_VAULT_ADDR
   script:
     - *docker-reader-role
-    - make msi SKIP_COMPILE=true VERSION=${CI_COMMIT_TAG:-} DOCKER_REPO=${DOCKER_HUB_REPO}
+    - |
+      VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
+      make msi SKIP_COMPILE=true VERSION=${VERSION_TAG} DOCKER_REPO=${DOCKER_HUB_REPO}
   artifacts:
     paths:
       - dist/*.msi
@@ -1029,7 +1124,10 @@ build-push-linux-image:
     - |
       # Set env vars
       set -e
-      if [[ -n "${CI_COMMIT_TAG:-}" ]]; then
+      if [[ -n "${RELEASE_VERSION:-}" ]]; then
+        IMAGE_NAME="quay.io/signalfx/splunk-otel-collector"
+        IMAGE_TAG=${RELEASE_VERSION#v}
+      elif [[ -n "${CI_COMMIT_TAG:-}" ]]; then
         IMAGE_NAME="quay.io/signalfx/splunk-otel-collector"
         IMAGE_TAG=${CI_COMMIT_TAG#v}
       else
@@ -1037,8 +1135,9 @@ build-push-linux-image:
         IMAGE_TAG=${CI_COMMIT_SHA}
       fi
       LATEST_TAG=""
-      if [[ "${CI_COMMIT_BRANCH:-}" = "main" ]] || [[ "${CI_COMMIT_TAG:-}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        # Only push latest tag for main and stable releases
+      VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
+      if [[ "${CI_COMMIT_BRANCH:-}" = "main" ]] || [[ "${VERSION_TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        # Only push latest tag for main and stable releases (no beta/rc)
         LATEST_TAG="latest"
       fi
     - echo "Building and pushing ${IMAGE_NAME}:${IMAGE_TAG}"
@@ -1078,9 +1177,10 @@ build-push-linux-fips-image:
     - |
       # Set env vars
       set -e
-      if [[ -n "${CI_COMMIT_TAG:-}" ]]; then
+      VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
+      if [[ -n "${VERSION_TAG}" ]]; then
         IMAGE_NAME="quay.io/signalfx/splunk-otel-collector-fips"
-        IMAGE_TAG=${CI_COMMIT_TAG#v}
+        IMAGE_TAG=${VERSION_TAG#v}
       else
         IMAGE_NAME="quay.io/signalfx/splunk-otel-collector-fips-dev"
         IMAGE_TAG=${CI_COMMIT_SHA}
@@ -1175,7 +1275,12 @@ build-push-windows-image:
       if ($LASTEXITCODE -ne 0) { exit 1 }
     - |
       # Set env vars
-      if ($env:CI_COMMIT_TAG) {
+      if ($env:RELEASE_VERSION) {
+        $IMAGE_NAME = "quay.io/signalfx/splunk-otel-collector"
+        $OLD_IMAGE_NAME = "quay.io/signalfx/splunk-otel-collector-windows"
+        $tagNumber = $env:RELEASE_VERSION.TrimStart("v")
+        $IMAGE_TAG = "${tagNumber}-${env:WIN_VERSION}"
+      } elseif ($env:CI_COMMIT_TAG) {
         $IMAGE_NAME = "quay.io/signalfx/splunk-otel-collector"
         $OLD_IMAGE_NAME = "quay.io/signalfx/splunk-otel-collector-windows"
         $tagNumber = $env:CI_COMMIT_TAG.TrimStart("v")
@@ -1186,7 +1291,8 @@ build-push-windows-image:
         $IMAGE_TAG = "${env:CI_COMMIT_SHA}-${env:WIN_VERSION}"
       }
       $LATEST_TAG = ""
-      if ($env:CI_COMMIT_BRANCH -eq "main" -or $env:CI_COMMIT_TAG -match '^v\d+\.\d+\.\d+$') {
+      $VERSION_TAG = if ($env:RELEASE_VERSION) { $env:RELEASE_VERSION } else { $env:CI_COMMIT_TAG }
+      if ($env:CI_COMMIT_BRANCH -eq "main" -or $VERSION_TAG -match '^v\d+\.\d+\.\d+$') {
         # Only push latest tag for main and stable releases
         $LATEST_TAG = "latest-${env:WIN_VERSION}"
       }
@@ -1318,7 +1424,12 @@ build-push-windows-fips-image:
       if ($LASTEXITCODE -ne 0) { exit 1 }
     - |
       # Set env vars
-      if ($env:CI_COMMIT_TAG) {
+      if ($env:RELEASE_VERSION) {
+        $IMAGE_NAME = "quay.io/signalfx/splunk-otel-collector-fips"
+        $OLD_IMAGE_NAME = "quay.io/signalfx/splunk-otel-collector-fips-windows"
+        $tagNumber = $env:RELEASE_VERSION.TrimStart("v")
+        $IMAGE_TAG = "${tagNumber}-${env:WIN_VERSION}"
+      } elseif ($env:CI_COMMIT_TAG) {
         $IMAGE_NAME = "quay.io/signalfx/splunk-otel-collector-fips"
         $OLD_IMAGE_NAME = "quay.io/signalfx/splunk-otel-collector-fips-windows"
         $tagNumber = $env:CI_COMMIT_TAG.TrimStart("v")
@@ -1329,8 +1440,8 @@ build-push-windows-fips-image:
         $IMAGE_TAG = "${env:CI_COMMIT_SHA}-${env:WIN_VERSION}"
       }
       $LATEST_TAG = ""
-      if ($env:CI_COMMIT_BRANCH -eq "main" -or $env:CI_COMMIT_TAG -match '^v\d+\.\d+\.\d+$') {
-        # Only push latest tag for main and stable releases
+      if ($env:CI_COMMIT_BRANCH -eq "main" -or $env:RELEASE_VERSION -match '^v\d+\.\d+\.\d+$' -or $env:CI_COMMIT_TAG -match '^v\d+\.\d+\.\d+$') {
+        # Only push latest tag for main and stable releases (manual or tag)
         $LATEST_TAG = "latest-${env:WIN_VERSION}"
       }
     - $JMX_METRIC_GATHERER_RELEASE = $(Get-Content packaging\jmx-metric-gatherer-release.txt)
@@ -1534,11 +1645,8 @@ verify-signed-metadata:
 
 # only upload the msi to S3 for stable release tags
 release-msi:
-  only:
-    variables:
-      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
-  except:
-    - schedules
+  rules:
+    - <<: *manual-release-condition
   extends:
     - .deploy-release
   stage: release
@@ -1549,11 +1657,8 @@ release-msi:
 
 # only upload the installer scripts to S3 for stable release tags
 release-installers:
-  only:
-    variables:
-      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
-  except:
-    - schedules
+  rules:
+    - <<: *manual-release-condition
   extends:
     - .deploy-release
   stage: release
@@ -1564,7 +1669,7 @@ release-installers:
   before_script:
     - cp -f dist/signed/install.ps1 packaging/installer/install.ps1
 
-choco-release:
+release-nupkg:
   extends: .trigger-filter
   stage: release
   dependencies:
@@ -1583,14 +1688,50 @@ choco-release:
       }
       .\packaging\choco\make.ps1 build_choco -Version $version -BuildDir .\dist\signed
     - Test-Path .\dist\signed\splunk-otel-collector.${version}.nupkg
-    - |
-      # Only push the choco package for stable release tags
-      if ($env:CI_COMMIT_TAG -match '^v\d+\.\d+\.\d+$') {
-        choco push -k $env:CHOCO_TOKEN .\dist\signed\splunk-otel-collector.${version}.nupkg
-      }
   artifacts:
     paths:
-      - dist/signed/*.nupkg
+      - .\dist\signed\*.nupkg
+      - .\dist\signed\*.msi
+
+choco-release:
+  extends: .trigger-filter
+  stage: publish-release
+  needs:
+    - job: manual_release_trigger
+      optional: true
+    - job: release-nupkg
+      artifacts: true
+    - job: github-release
+      artifacts: false
+  tags:
+    - splunk-otel-collector-windows
+  script:
+    - |
+      $ErrorActionPreference = 'Stop'
+      Set-PSDebug -Trace 1
+      if (-not (Test-Path .\dist\signed\splunk-otel-collector*.msi)) {
+        throw "MSI artifact not found in dist/signed/"
+      }
+      $msi_file_name = Resolve-Path .\dist\signed\splunk-otel-collector*.msi | Split-Path -leaf
+      if ($msi_file_name -match '(\d+\.\d+\.\d+(\.\d+)?)') {
+        $version = $matches[0]
+      } else {
+        throw "Failed to get version from $msi_file_name"
+      }
+    - Test-Path .\dist\signed\splunk-otel-collector.${version}.nupkg
+    - |
+      # Only push the choco package for stable release tags or manual releases
+      $should_release = $false
+      if ($env:RELEASE_VERSION -match '^v\d+\.\d+\.\d+$') {
+        $should_release = $true
+      } elseif ($env:CI_COMMIT_TAG -match '^v\d+\.\d+\.\d+$') {
+        $should_release = $true
+      }
+      if ($should_release) {
+        choco push -k $env:CHOCO_TOKEN .\dist\signed\splunk-otel-collector.${version}.nupkg
+      } else {
+        Write-Host "Skipping choco push - not a stable release tag or manual release"
+      }
 
 push-multiarch-manifest:
   extends: .trigger-filter
@@ -1610,18 +1751,19 @@ push-multiarch-manifest:
     - docker login -u $CIRCLECI_QUAY_USERNAME -p $CIRCLECI_QUAY_PASSWORD quay.io
     - |
       # Set env vars
-      if [[ -n "${CI_COMMIT_TAG:-}" ]]; then
+      VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
+      if [[ -n "${VERSION_TAG}" ]]; then
         MANIFEST_NAME="quay.io/signalfx/splunk-otel-collector${FIPS}"
         WIN_MANIFEST_NAME="quay.io/signalfx/splunk-otel-collector${FIPS}-windows"
-        MANIFEST_TAG=${CI_COMMIT_TAG#v}
+        MANIFEST_TAG=${VERSION_TAG#v}
       else
         MANIFEST_NAME="quay.io/signalfx/splunk-otel-collector${FIPS}-dev"
         WIN_MANIFEST_NAME="quay.io/signalfx/splunk-otel-collector${FIPS}-windows-dev"
         MANIFEST_TAG=${CI_COMMIT_SHA}
       fi
       LATEST_TAG=""
-      if [[ "${CI_COMMIT_BRANCH:-}" = "main" ]] || [[ "${CI_COMMIT_TAG:-}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        # Only push latest manifest tag for main and stable releases
+      if [[ "${CI_COMMIT_BRANCH:-}" = "main" ]] || [[ "${VERSION_TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        # Only push latest manifest tag for main and stable releases (no beta/rc)
         LATEST_TAG="latest"
       fi
       if [[ "$MANIFEST" = "windows_multiarch" ]]; then
@@ -1753,20 +1895,32 @@ github-release:
     - .trigger-filter
     - .go-cache
   tags: [large]
-  stage: github-release
-  dependencies:
-    - compile
-    - otelcol-fips
-    - libsplunk
-    - sign-exe
-    - sign-osx
-    - release-debs
-    - release-rpms
-    - sign-msi
-    - sign-tar
-    - push-multiarch-manifest
-    - choco-release
-    - sign-agent-bundles
+  stage: publish-release
+  needs:
+    - job: compile
+      artifacts: true
+    - job: otelcol-fips
+      artifacts: true
+    - job: libsplunk
+      artifacts: true
+    - job: sign-exe
+      artifacts: true
+    - job: sign-osx
+      artifacts: true
+    - job: release-debs
+      artifacts: true
+    - job: release-nupkg
+      artifacts: true
+    - job: release-rpms
+      artifacts: true
+    - job: sign-msi
+      artifacts: true
+    - job: sign-tar
+      artifacts: true
+    - job: push-multiarch-manifest
+      artifacts: true
+    - job: sign-agent-bundles
+      artifacts: true
   script:
     - mkdir -p dist/assets
     - cp bin/otelcol_linux_* dist/assets/
@@ -1774,25 +1928,30 @@ github-release:
     - cp instrumentation/dist/libsplunk_*.so dist/assets/
     - cp dist/signed/* dist/assets/
     - |
-      # rename agent bundles to include the version for stable releases
       set -e
-      if [[ "${CI_COMMIT_TAG:-}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        mv dist/assets/agent-bundle_linux_amd64.tar.gz dist/assets/agent-bundle_${CI_COMMIT_TAG#v}_linux_amd64.tar.gz
-        mv dist/assets/agent-bundle_linux_amd64.tar.gz.asc dist/assets/agent-bundle_${CI_COMMIT_TAG#v}_linux_amd64.tar.gz.asc
-        mv dist/assets/agent-bundle_windows_amd64.zip dist/assets/agent-bundle_${CI_COMMIT_TAG#v}_windows_amd64.zip
-        mv dist/assets/agent-bundle_windows_amd64.zip.asc dist/assets/agent-bundle_${CI_COMMIT_TAG#v}_windows_amd64.zip.asc
+      VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
+      # Rename agent bundles to include the version for all releases (include pre-releases)
+      if [[ "$VERSION_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+.*$ ]]; then
+        VERSION="${VERSION_TAG#v}"
+        mv dist/assets/agent-bundle_linux_amd64.tar.gz dist/assets/agent-bundle_${VERSION}_linux_amd64.tar.gz
+        mv dist/assets/agent-bundle_linux_amd64.tar.gz.asc dist/assets/agent-bundle_${VERSION}_linux_amd64.tar.gz.asc
+        mv dist/assets/agent-bundle_windows_amd64.zip dist/assets/agent-bundle_${VERSION}_windows_amd64.zip
+        mv dist/assets/agent-bundle_windows_amd64.zip.asc dist/assets/agent-bundle_${VERSION}_windows_amd64.zip.asc
         # exclude the arm64 bundle from release assets
         rm -f dist/assets/agent-bundle_linux_arm64.tar.gz
         rm -f dist/assets/agent-bundle_linux_arm64.tar.gz.asc
       fi
-    - pushd dist/assets && shasum -a 256 * > checksums.txt && popd
-    - |
-      # only create github release for stable release tags
-      set -e
-      if [[ "${CI_COMMIT_TAG:-}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        release_notes="$( ./packaging/release/gh-release-notes.sh "$CI_COMMIT_TAG" )"
-        ghr -t "$GITHUB_TOKEN" -u signalfx -r splunk-otel-collector -n "$CI_COMMIT_TAG" -b "$release_notes" --replace "$CI_COMMIT_TAG" dist/assets/
+      pushd dist/assets && shasum -a 256 * > checksums.txt && popd
+      # Tag if this is a manual release (RELEASE_VERSION set, CI_COMMIT_TAG not set)
+      if [[ -n "${RELEASE_VERSION:-}" && -z "${CI_COMMIT_TAG:-}" ]]; then
+        ./.gitlab/create-github-tag.sh "$VERSION_TAG" "$CI_COMMIT_SHA"
       fi
+      # Only create github release for stable release tags
+      if [[ "$VERSION_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        release_notes="$( ./packaging/release/gh-release-notes.sh "$VERSION_TAG" )"
+        ghr -t "$GITHUB_TOKEN" -u signalfx -r splunk-otel-collector -n "$VERSION_TAG" -b "$release_notes" --replace "$VERSION_TAG" dist/assets/
+      fi
+
   artifacts:
     when: always
     paths:
@@ -1927,7 +2086,7 @@ dotnet-instrumentation-deployer-release:
     - .trigger-dotnet-instrumentation-deployer
     - .go-cache # Use this image since this job uses the ghr tool
   tags: [large]
-  stage: github-release
+  stage: publish-release
   dependencies:
     - pack-dotnet-instrumentation-deployer
   script:

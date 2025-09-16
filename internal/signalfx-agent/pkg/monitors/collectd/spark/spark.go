@@ -42,7 +42,7 @@ type Config struct {
 	// Set to `true` when monitoring a master Spark node
 	IsMaster bool `yaml:"isMaster" default:"false"`
 	// Should be one of `Standalone` or `Mesos` or `Yarn`.  Cluster metrics will
-	// not be collected on Yarn.  Please use the collectd/hadoop monitor to gain
+	// not be collected on Yarn.  Use the jmxreceiver with the hadoop target to gain
 	// insights to your cluster's health.
 	ClusterType               sparkClusterType `yaml:"clusterType" validate:"required"`
 	CollectApplicationMetrics bool             `yaml:"collectApplicationMetrics"`
@@ -92,6 +92,7 @@ func formatCapitalizedBool(b bool) string {
 
 // Configure configures and runs the plugin in python
 func (m *Monitor) Configure(conf *Config) error {
+	m.Logger().Warn("[NOTICE] The collectd/spark plugin is deprecated. Please use the apache spark receiver instead. This plugin will be removed by the end of October 2025.")
 	conf.pyConf = &python.Config{
 		MonitorConfig: conf.MonitorConfig,
 		Host:          conf.Host,

@@ -29,7 +29,6 @@ import (
 	"go.opentelemetry.io/collector/confmap/provider/envprovider"
 	"go.opentelemetry.io/collector/confmap/provider/fileprovider"
 	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
-	"go.opentelemetry.io/collector/featuregate"
 	"go.opentelemetry.io/collector/otelcol"
 	"go.opentelemetry.io/collector/pipeline"
 
@@ -111,7 +110,6 @@ func TestConfigDProviderInvalidURIs(t *testing.T) {
 }
 
 func TestDiscoveryProvider_ContinuousDiscoveryConfig(t *testing.T) {
-	require.NoError(t, featuregate.GlobalRegistry().Set(continuousDiscoveryFGKey, true))
 	t.Setenv("SPLUNK_INGEST_URL", "https://ingest.fake-realm.signalfx.com")
 	t.Setenv("SPLUNK_ACCESS_TOKEN", "fake-token")
 
@@ -172,4 +170,42 @@ func TestDiscoveryProvider_ContinuousDiscoveryConfig(t *testing.T) {
 		pipelines[pipeline.NewIDWithName(pipeline.SignalLogs, "entities")].Receivers)
 	assert.Equal(t, []component.ID{component.MustNewIDWithName("otlphttp", "entities")},
 		pipelines[pipeline.NewIDWithName(pipeline.SignalLogs, "entities")].Exporters)
+}
+
+func TestDiscoveryProvider_HostObserverDisabled(t *testing.T) {
+	confmapProvider, err := New()
+	require.NoError(t, err)
+
+	provider, err := otelcol.NewConfigProvider(otelcol.ConfigProviderSettings{
+		ResolverSettings: confmap.ResolverSettings{
+			URIs: []string{
+				fmt.Sprintf("file:%s", filepath.Join("testdata", "base-config.yaml")),
+				fmt.Sprintf("%s:%s", propertiesFileScheme, filepath.Join("testdata", "disable-host-observer.properties.yaml")),
+				fmt.Sprintf("%s:%s", discoveryModeScheme, filepath.Join("testdata", "config.d")),
+			},
+			ProviderFactories: []confmap.ProviderFactory{
+				fileprovider.NewFactory(),
+				confmapProvider.DiscoveryModeProviderFactory(),
+				envprovider.NewFactory(),
+				confmapProvider.PropertiesFileProviderFactory(),
+			},
+			ConverterFactories: []confmap.ConverterFactory{configconverter.ConverterFactoryFromFunc(configconverter.SetupDiscovery)},
+			DefaultScheme:      "env",
+		},
+	})
+	require.NoError(t, err)
+	require.NotNil(t, provider)
+
+	factories, err := components.Get()
+	require.NoError(t, err)
+
+	conf, err := provider.Get(context.Background(), factories)
+	require.NoError(t, err)
+	assert.NotNil(t, conf)
+
+	// The only functional host observer must be disabled in the provided properties file.
+	assert.Empty(t, conf.Extensions)
+
+	// Discovery receivers should not be created if no discovery observers available.
+	assert.Empty(t, conf.Receivers)
 }

@@ -17,6 +17,8 @@ extensions:
       endpoint: "https://api.${SPLUNK_REALM}.signalfx.com"
   zpages:
     endpoint: "${SPLUNK_LISTEN_INTERFACE}:55679"
+    expvar:
+      enabled: true
 
 receivers:
   jaeger:
@@ -142,6 +144,22 @@ exporters:
     token: "${SPLUNK_ACCESS_TOKEN}"
     endpoint: "${SPLUNK_INGEST_URL}/v1/log"
     log_data_enabled: false
+  # To send entities (applicable only if discovery mode is enabled)
+  otlphttp/entities:
+    logs_endpoint: "${SPLUNK_INGEST_URL}/v3/event"
+    headers:
+      "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
+    auth:
+      authenticator: headers_setter
+
+connectors:
+  # Routing connector to separate entity events from regular logs
+  routing/logs:
+    default_pipelines: [logs]
+    table:
+      - context: log
+        condition: instrumentation_scope.attributes["otel.entity.event_as_log"] == true
+        pipelines: [logs/entities]
 
 service:
   extensions: [headers_setter, health_check, http_forwarder, zpages]
@@ -166,6 +184,13 @@ service:
       processors: [memory_limiter, batch]
       exporters: [signalfx]
     logs:
-      receivers: [otlp]
+      receivers: [routing/logs]
       processors: [memory_limiter, batch]
       exporters: [splunk_hec, splunk_hec/profiling]
+    logs/entities:
+      receivers: [routing/logs]
+      processors: [memory_limiter, batch]
+      exporters: [otlphttp/entities]
+    logs/split:
+      receivers: [otlp]
+      exporters: [routing/logs]

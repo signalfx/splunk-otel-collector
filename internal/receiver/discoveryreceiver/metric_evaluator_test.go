@@ -68,14 +68,17 @@ func TestConsumeMetrics(t *testing.T) {
 					receiverID := component.MustNewIDWithName("a_receiver", "receiver.name")
 					cfg := &Config{
 						Receivers: map[component.ID]ReceiverEntry{
-							receiverID: {
-								Rule:   Rule{text: "a.rule", program: nil},
-								Status: &Status{Metrics: []Match{match}},
-							},
+							receiverID: {Rule: Rule{text: "a.rule", program: nil}},
 						},
 						WatchObservers: []component.ID{observerID},
 					}
 					require.NoError(t, cfg.Validate())
+
+					// Override the receiverMetaMap for this test case
+					receiverMetaMap["a_receiver/receiver.name"] = ReceiverMeta{
+						ServiceType: "a_service",
+						Status:      Status{Metrics: []Match{match}},
+					}
 
 					cStore := newCorrelationStore(logger, time.Hour)
 
@@ -125,6 +128,7 @@ func TestConsumeMetrics(t *testing.T) {
 					emitWG.Wait()
 
 					require.Equal(t, map[string]string{
+						"service.type":            "a_service",
 						"discovery.observer.id":   "an_observer/observer.name",
 						"discovery.receiver.name": "receiver.name",
 						"discovery.receiver.type": "a_receiver",

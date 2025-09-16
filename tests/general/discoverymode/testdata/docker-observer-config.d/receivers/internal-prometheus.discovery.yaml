@@ -13,8 +13,3 @@ prometheus_simple:
         label_two: ${LABEL_TWO_VALUE}
         label_three: overwritten by --set property
         label_four: overwritten by env var property
-  status:
-    metrics:
-      - status: successful
-        strict: prometheus_tsdb_time_retentions_total
-        message: prometheus detected

@@ -2,27 +2,24 @@ resourceMetrics:
   - resource: {}
     scopeMetrics:
       - metrics:
-          - name: otelcol_exporter_sent_metric_points
+          - name: otelcol_process_uptime
             sum:
               aggregationTemporality: 2
               dataPoints:
-                - asDouble: 431
+                - asDouble: 30.004392792
                   attributes:
-                    - key: exporter
-                      value:
-                        stringValue: otlp
                     - key: foo
                       value:
                         stringValue: bar
                     - key: service_instance_id
                       value:
-                        stringValue: 5fb48cd6-8727-4427-87a5-fe761d424fa2
+                        stringValue: 18f8ccde-0bb6-43a9-bc9c-2b763f8d624f
                     - key: service_name
                       value:
                         stringValue: otelcol
                     - key: service_version
                       value:
-                        stringValue: v0.118.0-12-gcd123384d
+                        stringValue: v0.134.0-31-g82f4c1df
                     - key: system.type
                       value:
                         stringValue: prometheus-exporter
@@ -31,7 +28,7 @@ resourceMetrics:
             sum:
               aggregationTemporality: 2
               dataPoints:
-                - asDouble: 431
+                - asDouble: 1200
                   attributes:
                     - key: foo
                       value:
@@ -41,13 +38,13 @@ resourceMetrics:
                         stringValue: smartagent/prometheus-exporter
                     - key: service_instance_id
                       value:
-                        stringValue: 5fb48cd6-8727-4427-87a5-fe761d424fa2
+                        stringValue: 18f8ccde-0bb6-43a9-bc9c-2b763f8d624f
                     - key: service_name
                       value:
                         stringValue: otelcol
                     - key: service_version
                       value:
-                        stringValue: v0.118.0-12-gcd123384d
+                        stringValue: v0.134.0-31-g82f4c1df
                     - key: system.type
                       value:
                         stringValue: prometheus-exporter
@@ -55,68 +52,6 @@ resourceMetrics:
                       value:
                         stringValue: internal
               isMonotonic: true
-          - name: otelcol_process_runtime_total_alloc_bytes
-            sum:
-              aggregationTemporality: 2
-              dataPoints:
-                - asDouble: 4.42026e+07
-                  attributes:
-                    - key: foo
-                      value:
-                        stringValue: bar
-                    - key: service_instance_id
-                      value:
-                        stringValue: 5fb48cd6-8727-4427-87a5-fe761d424fa2
-                    - key: service_name
-                      value:
-                        stringValue: otelcol
-                    - key: service_version
-                      value:
-                        stringValue: v0.118.0-12-gcd123384d
-                    - key: system.type
-                      value:
-                        stringValue: prometheus-exporter
-              isMonotonic: true
-          - gauge:
-              dataPoints:
-                - asDouble: 3.7448472e+07
-                  attributes:
-                    - key: foo
-                      value:
-                        stringValue: bar
-                    - key: service_instance_id
-                      value:
-                        stringValue: 5fb48cd6-8727-4427-87a5-fe761d424fa2
-                    - key: service_name
-                      value:
-                        stringValue: otelcol
-                    - key: service_version
-                      value:
-                        stringValue: v0.118.0-12-gcd123384d
-                    - key: system.type
-                      value:
-                        stringValue: prometheus-exporter
-            name: otelcol_process_runtime_heap_alloc_bytes
-          - gauge:
-              dataPoints:
-                - asDouble: 1.99712768e+08
-                  attributes:
-                    - key: foo
-                      value:
-                        stringValue: bar
-                    - key: service_instance_id
-                      value:
-                        stringValue: 5fb48cd6-8727-4427-87a5-fe761d424fa2
-                    - key: service_name
-                      value:
-                        stringValue: otelcol
-                    - key: service_version
-                      value:
-                        stringValue: v0.118.0-12-gcd123384d
-                    - key: system.type
-                      value:
-                        stringValue: prometheus-exporter
-            name: otelcol_process_memory_rss
           - gauge:
               dataPoints:
                 - asDouble: 0
@@ -132,17 +67,854 @@ resourceMetrics:
                         stringValue: bar
                     - key: service_instance_id
                       value:
-                        stringValue: 5fb48cd6-8727-4427-87a5-fe761d424fa2
+                        stringValue: 18f8ccde-0bb6-43a9-bc9c-2b763f8d624f
                     - key: service_name
                       value:
                         stringValue: otelcol
                     - key: service_version
                       value:
-                        stringValue: v0.118.0-12-gcd123384d
+                        stringValue: v0.134.0-31-g82f4c1df
                     - key: system.type
                       value:
                         stringValue: prometheus-exporter
             name: otelcol_exporter_queue_size
+          - name: otelcol_exporter_queue_batch_send_size_count
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "30"
+                  attributes:
+                    - key: exporter
+                      value:
+                        stringValue: otlp
+                    - key: foo
+                      value:
+                        stringValue: bar
+                    - key: service_instance_id
+                      value:
+                        stringValue: 18f8ccde-0bb6-43a9-bc9c-2b763f8d624f
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.134.0-31-g82f4c1df
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+              isMonotonic: true
+          - name: otelcol_exporter_queue_batch_send_size
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 1200
+                  attributes:
+                    - key: exporter
+                      value:
+                        stringValue: otlp
+                    - key: foo
+                      value:
+                        stringValue: bar
+                    - key: service_instance_id
+                      value:
+                        stringValue: 18f8ccde-0bb6-43a9-bc9c-2b763f8d624f
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.134.0-31-g82f4c1df
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+              isMonotonic: true
+          - name: otelcol_exporter_queue_batch_send_size_bucket
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: exporter
+                      value:
+                        stringValue: otlp
+                    - key: foo
+                      value:
+                        stringValue: bar
+                    - key: service_instance_id
+                      value:
+                        stringValue: 18f8ccde-0bb6-43a9-bc9c-2b763f8d624f
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.134.0-31-g82f4c1df
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                    - key: upper_bound
+                      value:
+                        stringValue: "10.000000"
+              isMonotonic: true
+          - name: otelcol_exporter_queue_batch_send_size_bucket
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "1"
+                  attributes:
+                    - key: exporter
+                      value:
+                        stringValue: otlp
+                    - key: foo
+                      value:
+                        stringValue: bar
+                    - key: service_instance_id
+                      value:
+                        stringValue: 18f8ccde-0bb6-43a9-bc9c-2b763f8d624f
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.134.0-31-g82f4c1df
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                    - key: upper_bound
+                      value:
+                        stringValue: "25.000000"
+              isMonotonic: true
+          - name: otelcol_exporter_queue_batch_send_size_bucket
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "30"
+                  attributes:
+                    - key: exporter
+                      value:
+                        stringValue: otlp
+                    - key: foo
+                      value:
+                        stringValue: bar
+                    - key: service_instance_id
+                      value:
+                        stringValue: 18f8ccde-0bb6-43a9-bc9c-2b763f8d624f
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.134.0-31-g82f4c1df
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                    - key: upper_bound
+                      value:
+                        stringValue: "50.000000"
+              isMonotonic: true
+          - name: otelcol_exporter_queue_batch_send_size_bucket
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "30"
+                  attributes:
+                    - key: exporter
+                      value:
+                        stringValue: otlp
+                    - key: foo
+                      value:
+                        stringValue: bar
+                    - key: service_instance_id
+                      value:
+                        stringValue: 18f8ccde-0bb6-43a9-bc9c-2b763f8d624f
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.134.0-31-g82f4c1df
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                    - key: upper_bound
+                      value:
+                        stringValue: "75.000000"
+              isMonotonic: true
+          - name: otelcol_exporter_queue_batch_send_size_bucket
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "30"
+                  attributes:
+                    - key: exporter
+                      value:
+                        stringValue: otlp
+                    - key: foo
+                      value:
+                        stringValue: bar
+                    - key: service_instance_id
+                      value:
+                        stringValue: 18f8ccde-0bb6-43a9-bc9c-2b763f8d624f
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.134.0-31-g82f4c1df
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                    - key: upper_bound
+                      value:
+                        stringValue: "100.000000"
+              isMonotonic: true
+          - name: otelcol_exporter_queue_batch_send_size_bucket
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "30"
+                  attributes:
+                    - key: exporter
+                      value:
+                        stringValue: otlp
+                    - key: foo
+                      value:
+                        stringValue: bar
+                    - key: service_instance_id
+                      value:
+                        stringValue: 18f8ccde-0bb6-43a9-bc9c-2b763f8d624f
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.134.0-31-g82f4c1df
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                    - key: upper_bound
+                      value:
+                        stringValue: "250.000000"
+              isMonotonic: true
+          - name: otelcol_exporter_queue_batch_send_size_bucket
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "30"
+                  attributes:
+                    - key: exporter
+                      value:
+                        stringValue: otlp
+                    - key: foo
+                      value:
+                        stringValue: bar
+                    - key: service_instance_id
+                      value:
+                        stringValue: 18f8ccde-0bb6-43a9-bc9c-2b763f8d624f
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.134.0-31-g82f4c1df
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                    - key: upper_bound
+                      value:
+                        stringValue: "500.000000"
+              isMonotonic: true
+          - name: otelcol_exporter_queue_batch_send_size_bucket
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "30"
+                  attributes:
+                    - key: exporter
+                      value:
+                        stringValue: otlp
+                    - key: foo
+                      value:
+                        stringValue: bar
+                    - key: service_instance_id
+                      value:
+                        stringValue: 18f8ccde-0bb6-43a9-bc9c-2b763f8d624f
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.134.0-31-g82f4c1df
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                    - key: upper_bound
+                      value:
+                        stringValue: "750.000000"
+              isMonotonic: true
+          - name: otelcol_exporter_queue_batch_send_size_bucket
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "30"
+                  attributes:
+                    - key: exporter
+                      value:
+                        stringValue: otlp
+                    - key: foo
+                      value:
+                        stringValue: bar
+                    - key: service_instance_id
+                      value:
+                        stringValue: 18f8ccde-0bb6-43a9-bc9c-2b763f8d624f
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.134.0-31-g82f4c1df
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                    - key: upper_bound
+                      value:
+                        stringValue: "1000.000000"
+              isMonotonic: true
+          - name: otelcol_exporter_queue_batch_send_size_bucket
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "30"
+                  attributes:
+                    - key: exporter
+                      value:
+                        stringValue: otlp
+                    - key: foo
+                      value:
+                        stringValue: bar
+                    - key: service_instance_id
+                      value:
+                        stringValue: 18f8ccde-0bb6-43a9-bc9c-2b763f8d624f
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.134.0-31-g82f4c1df
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                    - key: upper_bound
+                      value:
+                        stringValue: "2000.000000"
+              isMonotonic: true
+          - name: otelcol_exporter_queue_batch_send_size_bucket
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "30"
+                  attributes:
+                    - key: exporter
+                      value:
+                        stringValue: otlp
+                    - key: foo
+                      value:
+                        stringValue: bar
+                    - key: service_instance_id
+                      value:
+                        stringValue: 18f8ccde-0bb6-43a9-bc9c-2b763f8d624f
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.134.0-31-g82f4c1df
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                    - key: upper_bound
+                      value:
+                        stringValue: "3000.000000"
+              isMonotonic: true
+          - name: otelcol_exporter_queue_batch_send_size_bucket
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "30"
+                  attributes:
+                    - key: exporter
+                      value:
+                        stringValue: otlp
+                    - key: foo
+                      value:
+                        stringValue: bar
+                    - key: service_instance_id
+                      value:
+                        stringValue: 18f8ccde-0bb6-43a9-bc9c-2b763f8d624f
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.134.0-31-g82f4c1df
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                    - key: upper_bound
+                      value:
+                        stringValue: "4000.000000"
+              isMonotonic: true
+          - name: otelcol_exporter_queue_batch_send_size_bucket
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "30"
+                  attributes:
+                    - key: exporter
+                      value:
+                        stringValue: otlp
+                    - key: foo
+                      value:
+                        stringValue: bar
+                    - key: service_instance_id
+                      value:
+                        stringValue: 18f8ccde-0bb6-43a9-bc9c-2b763f8d624f
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.134.0-31-g82f4c1df
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                    - key: upper_bound
+                      value:
+                        stringValue: "5000.000000"
+              isMonotonic: true
+          - name: otelcol_exporter_queue_batch_send_size_bucket
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "30"
+                  attributes:
+                    - key: exporter
+                      value:
+                        stringValue: otlp
+                    - key: foo
+                      value:
+                        stringValue: bar
+                    - key: service_instance_id
+                      value:
+                        stringValue: 18f8ccde-0bb6-43a9-bc9c-2b763f8d624f
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.134.0-31-g82f4c1df
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                    - key: upper_bound
+                      value:
+                        stringValue: "6000.000000"
+              isMonotonic: true
+          - name: otelcol_exporter_queue_batch_send_size_bucket
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "30"
+                  attributes:
+                    - key: exporter
+                      value:
+                        stringValue: otlp
+                    - key: foo
+                      value:
+                        stringValue: bar
+                    - key: service_instance_id
+                      value:
+                        stringValue: 18f8ccde-0bb6-43a9-bc9c-2b763f8d624f
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.134.0-31-g82f4c1df
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                    - key: upper_bound
+                      value:
+                        stringValue: "7000.000000"
+              isMonotonic: true
+          - name: otelcol_exporter_queue_batch_send_size_bucket
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "30"
+                  attributes:
+                    - key: exporter
+                      value:
+                        stringValue: otlp
+                    - key: foo
+                      value:
+                        stringValue: bar
+                    - key: service_instance_id
+                      value:
+                        stringValue: 18f8ccde-0bb6-43a9-bc9c-2b763f8d624f
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.134.0-31-g82f4c1df
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                    - key: upper_bound
+                      value:
+                        stringValue: "8000.000000"
+              isMonotonic: true
+          - name: otelcol_exporter_queue_batch_send_size_bucket
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "30"
+                  attributes:
+                    - key: exporter
+                      value:
+                        stringValue: otlp
+                    - key: foo
+                      value:
+                        stringValue: bar
+                    - key: service_instance_id
+                      value:
+                        stringValue: 18f8ccde-0bb6-43a9-bc9c-2b763f8d624f
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.134.0-31-g82f4c1df
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                    - key: upper_bound
+                      value:
+                        stringValue: "9000.000000"
+              isMonotonic: true
+          - name: otelcol_exporter_queue_batch_send_size_bucket
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "30"
+                  attributes:
+                    - key: exporter
+                      value:
+                        stringValue: otlp
+                    - key: foo
+                      value:
+                        stringValue: bar
+                    - key: service_instance_id
+                      value:
+                        stringValue: 18f8ccde-0bb6-43a9-bc9c-2b763f8d624f
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.134.0-31-g82f4c1df
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                    - key: upper_bound
+                      value:
+                        stringValue: "10000.000000"
+              isMonotonic: true
+          - name: otelcol_exporter_queue_batch_send_size_bucket
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "30"
+                  attributes:
+                    - key: exporter
+                      value:
+                        stringValue: otlp
+                    - key: foo
+                      value:
+                        stringValue: bar
+                    - key: service_instance_id
+                      value:
+                        stringValue: 18f8ccde-0bb6-43a9-bc9c-2b763f8d624f
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.134.0-31-g82f4c1df
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                    - key: upper_bound
+                      value:
+                        stringValue: "20000.000000"
+              isMonotonic: true
+          - name: otelcol_exporter_queue_batch_send_size_bucket
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "30"
+                  attributes:
+                    - key: exporter
+                      value:
+                        stringValue: otlp
+                    - key: foo
+                      value:
+                        stringValue: bar
+                    - key: service_instance_id
+                      value:
+                        stringValue: 18f8ccde-0bb6-43a9-bc9c-2b763f8d624f
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.134.0-31-g82f4c1df
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                    - key: upper_bound
+                      value:
+                        stringValue: "30000.000000"
+              isMonotonic: true
+          - name: otelcol_exporter_queue_batch_send_size_bucket
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "30"
+                  attributes:
+                    - key: exporter
+                      value:
+                        stringValue: otlp
+                    - key: foo
+                      value:
+                        stringValue: bar
+                    - key: service_instance_id
+                      value:
+                        stringValue: 18f8ccde-0bb6-43a9-bc9c-2b763f8d624f
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.134.0-31-g82f4c1df
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                    - key: upper_bound
+                      value:
+                        stringValue: "50000.000000"
+              isMonotonic: true
+          - name: otelcol_exporter_queue_batch_send_size_bucket
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "30"
+                  attributes:
+                    - key: exporter
+                      value:
+                        stringValue: otlp
+                    - key: foo
+                      value:
+                        stringValue: bar
+                    - key: service_instance_id
+                      value:
+                        stringValue: 18f8ccde-0bb6-43a9-bc9c-2b763f8d624f
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.134.0-31-g82f4c1df
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                    - key: upper_bound
+                      value:
+                        stringValue: "100000.000000"
+              isMonotonic: true
+          - name: otelcol_exporter_queue_batch_send_size_bucket
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asInt: "30"
+                  attributes:
+                    - key: exporter
+                      value:
+                        stringValue: otlp
+                    - key: foo
+                      value:
+                        stringValue: bar
+                    - key: service_instance_id
+                      value:
+                        stringValue: 18f8ccde-0bb6-43a9-bc9c-2b763f8d624f
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.134.0-31-g82f4c1df
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                    - key: upper_bound
+                      value:
+                        stringValue: +Inf
+              isMonotonic: true
+          - name: otelcol_process_runtime_total_alloc_bytes
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 4.3298808e+07
+                  attributes:
+                    - key: foo
+                      value:
+                        stringValue: bar
+                    - key: service_instance_id
+                      value:
+                        stringValue: 18f8ccde-0bb6-43a9-bc9c-2b763f8d624f
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.134.0-31-g82f4c1df
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+              isMonotonic: true
+          - name: otelcol_receiver_refused_metric_points
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: foo
+                      value:
+                        stringValue: bar
+                    - key: receiver
+                      value:
+                        stringValue: smartagent/prometheus-exporter
+                    - key: service_instance_id
+                      value:
+                        stringValue: 18f8ccde-0bb6-43a9-bc9c-2b763f8d624f
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.134.0-31-g82f4c1df
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+                    - key: transport
+                      value:
+                        stringValue: internal
+              isMonotonic: true
+          - name: otelcol_exporter_send_failed_metric_points
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 0
+                  attributes:
+                    - key: exporter
+                      value:
+                        stringValue: otlp
+                    - key: foo
+                      value:
+                        stringValue: bar
+                    - key: service_instance_id
+                      value:
+                        stringValue: 18f8ccde-0bb6-43a9-bc9c-2b763f8d624f
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.134.0-31-g82f4c1df
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+              isMonotonic: true
+          - gauge:
+              dataPoints:
+                - asDouble: 1000
+                  attributes:
+                    - key: data_type
+                      value:
+                        stringValue: metrics
+                    - key: exporter
+                      value:
+                        stringValue: otlp
+                    - key: foo
+                      value:
+                        stringValue: bar
+                    - key: service_instance_id
+                      value:
+                        stringValue: 18f8ccde-0bb6-43a9-bc9c-2b763f8d624f
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.134.0-31-g82f4c1df
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+            name: otelcol_exporter_queue_capacity
+          - name: otelcol_process_cpu_seconds
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 0.5
+                  attributes:
+                    - key: foo
+                      value:
+                        stringValue: bar
+                    - key: service_instance_id
+                      value:
+                        stringValue: 18f8ccde-0bb6-43a9-bc9c-2b763f8d624f
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.134.0-31-g82f4c1df
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+              isMonotonic: true
+          - gauge:
+              dataPoints:
+                - asDouble: 4.5176072e+07
+                  attributes:
+                    - key: foo
+                      value:
+                        stringValue: bar
+                    - key: service_instance_id
+                      value:
+                        stringValue: 18f8ccde-0bb6-43a9-bc9c-2b763f8d624f
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.134.0-31-g82f4c1df
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+            name: otelcol_process_runtime_total_sys_memory_bytes
           - name: promhttp_metric_handler_errors_total
             sum:
               aggregationTemporality: 2
@@ -175,7 +947,7 @@ resourceMetrics:
                       value:
                         stringValue: prometheus-exporter
               isMonotonic: true
-          - name: otelcol_receiver_refused_metric_points
+          - name: otelcol_receiver_failed_metric_points
             sum:
               aggregationTemporality: 2
               dataPoints:
@@ -189,13 +961,13 @@ resourceMetrics:
                         stringValue: smartagent/prometheus-exporter
                     - key: service_instance_id
                       value:
-                        stringValue: 5fb48cd6-8727-4427-87a5-fe761d424fa2
+                        stringValue: 18f8ccde-0bb6-43a9-bc9c-2b763f8d624f
                     - key: service_name
                       value:
                         stringValue: otelcol
                     - key: service_version
                       value:
-                        stringValue: v0.118.0-12-gcd123384d
+                        stringValue: v0.134.0-31-g82f4c1df
                     - key: system.type
                       value:
                         stringValue: prometheus-exporter
@@ -203,101 +975,26 @@ resourceMetrics:
                       value:
                         stringValue: internal
               isMonotonic: true
-          - name: otelcol_process_cpu_seconds
-            sum:
-              aggregationTemporality: 2
-              dataPoints:
-                - asDouble: 1.21
-                  attributes:
-                    - key: foo
-                      value:
-                        stringValue: bar
-                    - key: service_instance_id
-                      value:
-                        stringValue: 5fb48cd6-8727-4427-87a5-fe761d424fa2
-                    - key: service_name
-                      value:
-                        stringValue: otelcol
-                    - key: service_version
-                      value:
-                        stringValue: v0.118.0-12-gcd123384d
-                    - key: system.type
-                      value:
-                        stringValue: prometheus-exporter
-              isMonotonic: true
           - gauge:
               dataPoints:
-                - asDouble: 1000
-                  attributes:
-                    - key: data_type
-                      value:
-                        stringValue: metrics
-                    - key: exporter
-                      value:
-                        stringValue: otlp
-                    - key: foo
-                      value:
-                        stringValue: bar
-                    - key: service_instance_id
-                      value:
-                        stringValue: 5fb48cd6-8727-4427-87a5-fe761d424fa2
-                    - key: service_name
-                      value:
-                        stringValue: otelcol
-                    - key: service_version
-                      value:
-                        stringValue: v0.118.0-12-gcd123384d
-                    - key: system.type
-                      value:
-                        stringValue: prometheus-exporter
-            name: otelcol_exporter_queue_capacity
-          - name: otelcol_exporter_send_failed_metric_points
-            sum:
-              aggregationTemporality: 2
-              dataPoints:
-                - asDouble: 0
-                  attributes:
-                    - key: exporter
-                      value:
-                        stringValue: otlp
-                    - key: foo
-                      value:
-                        stringValue: bar
-                    - key: service_instance_id
-                      value:
-                        stringValue: 5fb48cd6-8727-4427-87a5-fe761d424fa2
-                    - key: service_name
-                      value:
-                        stringValue: otelcol
-                    - key: service_version
-                      value:
-                        stringValue: v0.118.0-12-gcd123384d
-                    - key: system.type
-                      value:
-                        stringValue: prometheus-exporter
-              isMonotonic: true
-          - name: otelcol_process_uptime
-            sum:
-              aggregationTemporality: 2
-              dataPoints:
-                - asDouble: 29.036884416
+                - asDouble: 3.2306408e+07
                   attributes:
                     - key: foo
                       value:
                         stringValue: bar
                     - key: service_instance_id
                       value:
-                        stringValue: 5fb48cd6-8727-4427-87a5-fe761d424fa2
+                        stringValue: 18f8ccde-0bb6-43a9-bc9c-2b763f8d624f
                     - key: service_name
                       value:
                         stringValue: otelcol
                     - key: service_version
                       value:
-                        stringValue: v0.118.0-12-gcd123384d
+                        stringValue: v0.134.0-31-g82f4c1df
                     - key: system.type
                       value:
                         stringValue: prometheus-exporter
-              isMonotonic: true
+            name: otelcol_process_runtime_heap_alloc_bytes
           - gauge:
               dataPoints:
                 - asDouble: 1
@@ -307,35 +1004,60 @@ resourceMetrics:
                         stringValue: bar
                     - key: service_instance_id
                       value:
-                        stringValue: 5fb48cd6-8727-4427-87a5-fe761d424fa2
+                        stringValue: 18f8ccde-0bb6-43a9-bc9c-2b763f8d624f
                     - key: service_name
                       value:
                         stringValue: otelcol
                     - key: service_version
                       value:
-                        stringValue: v0.118.0-12-gcd123384d
+                        stringValue: v0.134.0-31-g82f4c1df
                     - key: system.type
                       value:
                         stringValue: prometheus-exporter
             name: target_info
+          - name: otelcol_exporter_sent_metric_points
+            sum:
+              aggregationTemporality: 2
+              dataPoints:
+                - asDouble: 1200
+                  attributes:
+                    - key: exporter
+                      value:
+                        stringValue: otlp
+                    - key: foo
+                      value:
+                        stringValue: bar
+                    - key: service_instance_id
+                      value:
+                        stringValue: 18f8ccde-0bb6-43a9-bc9c-2b763f8d624f
+                    - key: service_name
+                      value:
+                        stringValue: otelcol
+                    - key: service_version
+                      value:
+                        stringValue: v0.134.0-31-g82f4c1df
+                    - key: system.type
+                      value:
+                        stringValue: prometheus-exporter
+              isMonotonic: true
           - gauge:
               dataPoints:
-                - asDouble: 5.4154504e+07
+                - asDouble: 1.63299328e+08
                   attributes:
                     - key: foo
                       value:
                         stringValue: bar
                     - key: service_instance_id
                       value:
-                        stringValue: 5fb48cd6-8727-4427-87a5-fe761d424fa2
+                        stringValue: 18f8ccde-0bb6-43a9-bc9c-2b763f8d624f
                     - key: service_name
                       value:
                         stringValue: otelcol
                     - key: service_version
                       value:
-                        stringValue: v0.118.0-12-gcd123384d
+                        stringValue: v0.134.0-31-g82f4c1df
                     - key: system.type
                       value:
                         stringValue: prometheus-exporter
-            name: otelcol_process_runtime_total_sys_memory_bytes
+            name: otelcol_process_memory_rss
         scope: {}

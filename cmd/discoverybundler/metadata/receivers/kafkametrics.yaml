@@ -1,0 +1,28 @@
+receiver_id: kafkametrics
+service_type: kafka
+properties_tmpl: |
+  enabled: true
+  rule:
+    docker_observer: type == "container" and any([name, image, command], {# matches "(?i)kafka.*"}) and not (command matches "splunk.discovery")
+    host_observer: type == "hostport" and command matches "(?i)kafka.*" and not (command matches "splunk.discovery")
+    k8s_observer: type == "port" and pod.name matches "(?i)kafka.*"
+  config:
+    default:
+      protocol_version: 2.0.0
+      brokers: '`endpoint`'
+      scrapers:
+        - brokers
+        - topics
+        - consumers
+status:
+  metrics:
+    - status: successful
+      strict: kafka.brokers
+      message: kafkametrics receiver is working!
+  statements:
+    - status: failed
+      regexp: 'connect: network is unreachable'
+      message: The container cannot be reached by the Collector. Make sure they're in the same network.
+    - status: failed
+      regexp: 'connect: connection refused'
+      message: The container is refusing kafka server connections.

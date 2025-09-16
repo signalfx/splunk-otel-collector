@@ -1,0 +1,46 @@
+receiver_id: oracledb
+service_type: oracledb
+properties_tmpl: |
+  enabled: true
+  rule:
+    docker_observer: type == "container" and any([name, image, command], {# matches "(?i)oracle"}) and not (command matches "splunk.discovery")
+    host_observer: type == "hostport" and command matches "(?i)oracle" and not (command matches "splunk.discovery")
+    k8s_observer: type == "port" and pod.name matches "(?i)oracle"
+  config:
+    default:
+      username: {{ defaultValue }}
+      password: {{ defaultValue }}
+      service: {{ defaultValue }}
+status:
+  metrics:
+    - status: successful
+      strict: oracledb.cpu_time
+      message: oracledb receiver is working!
+  statements:
+    - status: failed
+      regexp: "connection refused"
+      message: The container is not serving http connections.
+    - status: failed
+      regexp: "received goaway and there are no active streams"
+      message: Unable to connect and scrape metrics.
+    - status: failed
+      regexp: "dial tcp: lookup"
+      message: Unable to resolve oracledb tcp endpoint
+    - status: failed
+      regexp: 'error executing select .*: EOF'
+      message: Unable to execute select from oracledb. Verify endpoint and user permissions.
+    - status: partial
+      regexp: "listener does not currently know of service requested"
+      message: |-
+        Make sure your oracledb service is correctly specified using an environment variable.
+        ```
+        {{ configPropertyEnvVar "service" "<service>" }}
+        ```
+    - status: partial
+      regexp: 'invalid username/password'
+      message: |-
+        Make sure your user credentials are correctly specified as environment variables.
+        ```
+        {{ configPropertyEnvVar "username" "<username>" }}
+        {{ configPropertyEnvVar "password" "<password>" }}
+        ```

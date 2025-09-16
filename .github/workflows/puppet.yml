@@ -21,7 +21,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Read version from metadata.json
         id: read-metadata-json
@@ -35,7 +35,7 @@ jobs:
         run: echo "Fail to read version from metadata.json" && exit 1
 
       - name: Push new release tag if it doesn't exist
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |

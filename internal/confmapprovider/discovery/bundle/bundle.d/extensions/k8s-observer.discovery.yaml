@@ -1,8 +1,0 @@
-#####################################################################################
-#                               Do not edit manually!                               #
-# All changes must be made to associated .tmpl file before running 'make bundle.d'. #
-#####################################################################################
-k8s_observer:
-  enabled: true
-  config:
-    auth_type: serviceAccount

@@ -24,11 +24,6 @@ receivers:
             stage: integ-test
           log_level: info
         rule: type == "container" and any([name, image, command], {# matches "(?i)cassandra.*"}) and not (command matches "splunk.discovery")
-        status:
-          metrics:
-            - status: "successful"
-              strict: "cassandra.client.request.count"
-              message: "jmx/cassandra receiver is working!"
     watch_observers:
       - docker_observer
 

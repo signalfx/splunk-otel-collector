@@ -41,6 +41,7 @@ if platform_family?('windows')
   end
 
   if node['splunk_otel_collector']['with_fluentd'].to_s.downcase == 'true'
+    Chef::Log.deprecation('Fluentd support has been deprecated and will be removed in a future release. Please refer to documentation on how to replace usage: https://github.com/signalfx/splunk-otel-collector/blob/main/docs/deprecations/fluentd-support.md')
     include_recipe 'splunk_otel_collector::fluentd_win_install'
   end
 elsif platform_family?('debian', 'rhel', 'amazon', 'suse')
@@ -55,16 +56,19 @@ elsif platform_family?('debian', 'rhel', 'amazon', 'suse')
     include_recipe 'splunk_otel_collector::collector_zypper_repo'
   end
 
-  package 'splunk-otel-collector' do
-    action :install
-    version node['splunk_otel_collector']['collector_version'] if node['splunk_otel_collector']['collector_version'] != 'latest'
-    flush_cache [ :before ] if platform_family?('amazon', 'rhel')
-    options '--allow-downgrades' if platform_family?('debian') \
-      && node['packages'] \
-      && node['packages']['apt'] \
-      && Gem::Version.new(node['packages']['apt']['version'].split('~').first) >= Gem::Version.new('1.1.0')
-    allow_downgrade true if platform_family?('amazon', 'rhel', 'suse')
-    notifies :restart, 'service[splunk-otel-collector]', :delayed
+  # splunk-otel-collector package should already be installed for local artifact testing
+  unless node['splunk_otel_collector']['local_artifact_testing_enabled']
+    package 'splunk-otel-collector' do
+      action :install
+      version node['splunk_otel_collector']['collector_version'] if node['splunk_otel_collector']['collector_version'] != 'latest'
+      flush_cache [ :before ] if platform_family?('amazon', 'rhel')
+      options '--allow-downgrades' if platform_family?('debian') \
+        && node['packages'] \
+        && node['packages']['apt'] \
+        && Gem::Version.new(node['packages']['apt']['version'].split('~').first) >= Gem::Version.new('1.1.0')
+      allow_downgrade true if platform_family?('amazon', 'rhel', 'suse')
+      notifies :restart, 'service[splunk-otel-collector]', :delayed
+    end
   end
 
   include_recipe 'splunk_otel_collector::collector_service_owner'

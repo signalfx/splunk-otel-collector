@@ -17,6 +17,9 @@ monitors:
     kubernetes_pod_uid:
       description: The UID of the pod instance under which this container runs
   doc: |
+    **This plugin is deprecated and will be removed by the end of October 2025.
+    Please use the prometheus receiver instead.**
+
     This monitor pulls metrics directly from cadvisor, which
     conventionally runs on port 4194, but can be configured to anything.  If you
     are running on Kubernetes, consider the [kubelet-stats](./kubelet-stats.md)
@@ -230,6 +233,9 @@ monitors:
   properties:
 - <<: *cadvisor
   doc: |
+    **This plugin is deprecated and will be removed by the end of October 2025.
+    Please use the prometheus receiver instead.**
+
     **As of Kubernetes 1.18 the `/spec` and `/stats/containers` endpoint that
     this monitor uses have been deprecated.  Therefore, this monitor is
     deprecated in favor of the kubelet-metrics` monitor, which uses the

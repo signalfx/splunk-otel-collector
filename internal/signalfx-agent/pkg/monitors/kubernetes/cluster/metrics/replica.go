@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/signalfx/golib/v3/datapoint"
+	"github.com/signalfx/golib/v3/datapoint" //nolint:staticcheck // SA1019: deprecated package still in use
 )
 
 func makeReplicaDPs(resource string, dimensions map[string]string, desired, available int32) []*datapoint.Datapoint {

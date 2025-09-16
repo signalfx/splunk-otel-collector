@@ -7,9 +7,12 @@ resourceMetrics:
         - key: container.name
           value:
             stringValue: docker-mysql-1
+        - key: discovery.endpoint.id
+          value:
+            stringValue: 96b2b48130365d677e850f47c3fee3ba28603f13ee4884736a765f13744b3799:3306
         - key: mysql.instance.endpoint
           value:
-            stringValue: 172.21.0.2:3306
+            stringValue: 172.18.0.2:3306
     scopeMetrics:
       - metrics:
           - description: The number of data pages in the InnoDB buffer pool.
@@ -17,7 +20,7 @@ resourceMetrics:
             sum:
               aggregationTemporality: 2
               dataPoints:
-                - asInt: "1190"
+                - asInt: "1239"
                   attributes:
                     - key: status
                       value:
@@ -67,14 +70,14 @@ resourceMetrics:
                         stringValue: read_ahead_rnd
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "27242"
+                - asInt: "44760"
                   attributes:
                     - key: operation
                       value:
                         stringValue: read_requests
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "1038"
+                - asInt: "1086"
                   attributes:
                     - key: operation
                       value:
@@ -88,7 +91,7 @@ resourceMetrics:
                         stringValue: wait_free
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "2222"
+                - asInt: "2212"
                   attributes:
                     - key: operation
                       value:
@@ -102,7 +105,7 @@ resourceMetrics:
             sum:
               aggregationTemporality: 2
               dataPoints:
-                - asInt: "253"
+                - asInt: "256"
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
               isMonotonic: true
@@ -112,14 +115,14 @@ resourceMetrics:
             sum:
               aggregationTemporality: 2
               dataPoints:
-                - asInt: "1190"
+                - asInt: "1239"
                   attributes:
                     - key: kind
                       value:
                         stringValue: data
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "7001"
+                - asInt: "6952"
                   attributes:
                     - key: kind
                       value:
@@ -133,13 +136,20 @@ resourceMetrics:
                         stringValue: misc
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
+                - asInt: "8192"
+                  attributes:
+                    - key: kind
+                      value:
+                        stringValue: total
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
             unit: "1"
           - description: The number of bytes in the InnoDB buffer pool.
             name: mysql.buffer_pool.usage
             sum:
               aggregationTemporality: 2
               dataPoints:
-                - asInt: "19496960"
+                - asInt: "20299776"
                   attributes:
                     - key: status
                       value:
@@ -159,7 +169,7 @@ resourceMetrics:
             sum:
               aggregationTemporality: 2
               dataPoints:
-                - asInt: "112"
+                - asInt: "115"
                   attributes:
                     - key: kind
                       value:
@@ -180,7 +190,7 @@ resourceMetrics:
             sum:
               aggregationTemporality: 2
               dataPoints:
-                - asInt: "2303"
+                - asInt: "2342"
                   attributes:
                     - key: kind
                       value:
@@ -201,7 +211,7 @@ resourceMetrics:
                         stringValue: discover
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "13149"
+                - asInt: "13807"
                   attributes:
                     - key: kind
                       value:
@@ -222,14 +232,14 @@ resourceMetrics:
                         stringValue: prepare
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "43"
+                - asInt: "65"
                   attributes:
                     - key: kind
                       value:
                         stringValue: read_first
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "4977"
+                - asInt: "9213"
                   attributes:
                     - key: kind
                       value:
@@ -243,7 +253,7 @@ resourceMetrics:
                         stringValue: read_last
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "6678"
+                - asInt: "11042"
                   attributes:
                     - key: kind
                       value:
@@ -264,7 +274,7 @@ resourceMetrics:
                         stringValue: read_rnd
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "3015"
+                - asInt: "49574"
                   attributes:
                     - key: kind
                       value:
@@ -299,7 +309,7 @@ resourceMetrics:
                         stringValue: update
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "1170"
+                - asInt: "19382"
                   attributes:
                     - key: kind
                       value:
@@ -313,7 +323,7 @@ resourceMetrics:
             sum:
               aggregationTemporality: 2
               dataPoints:
-                - asInt: "10"
+                - asInt: "120"
                   attributes:
                     - key: kind
                       value:
@@ -334,6 +344,13 @@ resourceMetrics:
             sum:
               aggregationTemporality: 2
               dataPoints:
+                - asInt: "60"
+                  attributes:
+                    - key: operation
+                      value:
+                        stringValue: fsyncs
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
                 - asInt: "0"
                   attributes:
                     - key: operation
@@ -348,7 +365,7 @@ resourceMetrics:
                         stringValue: write_requests
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "92"
+                - asInt: "82"
                   attributes:
                     - key: operation
                       value:
@@ -397,14 +414,14 @@ resourceMetrics:
                         stringValue: file
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "376"
+                - asInt: "382"
                   attributes:
                     - key: kind
                       value:
                         stringValue: table
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "200"
+                - asInt: "203"
                   attributes:
                     - key: kind
                       value:
@@ -418,21 +435,21 @@ resourceMetrics:
             sum:
               aggregationTemporality: 2
               dataPoints:
-                - asInt: "122"
+                - asInt: "123"
                   attributes:
                     - key: operation
                       value:
                         stringValue: fsyncs
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "1060"
+                - asInt: "1115"
                   attributes:
                     - key: operation
                       value:
                         stringValue: reads
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "377"
+                - asInt: "380"
                   attributes:
                     - key: operation
                       value:
@@ -446,21 +463,21 @@ resourceMetrics:
             sum:
               aggregationTemporality: 2
               dataPoints:
-                - asInt: "153"
+                - asInt: "152"
                   attributes:
                     - key: operation
                       value:
                         stringValue: created
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "1037"
+                - asInt: "1087"
                   attributes:
                     - key: operation
                       value:
                         stringValue: read
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "253"
+                - asInt: "256"
                   attributes:
                     - key: operation
                       value:
@@ -600,7 +617,7 @@ resourceMetrics:
                         stringValue: rows
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "2"
+                - asInt: "24"
                   attributes:
                     - key: kind
                       value:
@@ -662,7 +679,7 @@ resourceMetrics:
                         stringValue: files
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "4"
+                - asInt: "48"
                   attributes:
                     - key: resource
                       value:
@@ -676,11 +693,11 @@ resourceMetrics:
             sum:
               aggregationTemporality: 2
               dataPoints:
-                - asInt: "212"
+                - asInt: "318"
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
               isMonotonic: true
             unit: s
         scope:
           name: github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mysqlreceiver
-          version: v0.116.0-11-g739c4d44
+          version: latest

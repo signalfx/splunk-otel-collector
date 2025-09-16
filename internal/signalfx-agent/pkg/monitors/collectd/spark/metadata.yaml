@@ -6,6 +6,8 @@ monitors:
     cluster:
       description: set to value corresponding to key `cluster` in configuration file
   doc: |
+    **This plugin is deprecated and will be removed by the end of October 2025. Please follow the documentation to set up the apache spark receiver.**
+
     This integration collects metrics about a Spark cluster using the [collectd Spark Python
     plugin](https://github.com/signalfx/collectd-spark). That plugin collects
     metrics from Spark cluster and instances by hitting endpoints specified in
@@ -24,7 +26,7 @@ monitors:
 
     When running Spark on Apache Hadoop / YARN, this integration is only capable
     of reporting application metrics from the master node.  Use the
-    collectd/hadoop monitor to report on the health of the cluster.
+    jmxreceiver with the hadoop target to report on the health of the cluster.
 
     <!--- SETUP --->
     ### Example config:

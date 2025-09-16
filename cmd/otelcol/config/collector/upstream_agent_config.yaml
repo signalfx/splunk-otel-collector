@@ -10,7 +10,7 @@
 # - SPLUNK_API_URL: The Splunk API URL, e.g. https://api.us0.signalfx.com
 # - SPLUNK_MEMORY_LIMIT_MIB: 90% of memory allocated
 # - SPLUNK_HEC_TOKEN: The Splunk HEC authentication token
-# - SPLUNK_HEC_URL: The Splunk HEC endpoint URL, e.g. https://ingest.us0.signalfx.com/v1/log
+# - SPLUNK_HEC_URL: The Splunk HEC endpoint URL, e.g. https://http-inputs-acme.splunkcloud.com/services/collector
 # - SPLUNK_INGEST_URL: The Splunk ingest URL, e.g. https://ingest.us0.signalfx.com
 
 extensions:
@@ -31,6 +31,8 @@ extensions:
       #endpoint: "${SPLUNK_GATEWAY_URL}"
   zpages:
     #endpoint: 0.0.0.0:55679
+    expvar:
+      enabled: true
 
 receivers:
   fluentforward:
@@ -146,6 +148,8 @@ exporters:
   # Entities (applicable only if discovery mode is enabled)
   otlphttp/entities:
     logs_endpoint: "${SPLUNK_INGEST_URL}/v3/event"
+    # Use instead when sending to gateway
+    # endpoint: http://${SPLUNK_GATEWAY_URL}:4318
     headers:
       "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
     auth:

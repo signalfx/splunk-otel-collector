@@ -57,6 +57,7 @@ The distribution offers support for the following components.
 | [otlp](https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/otlpreceiver)                                                                  | [stable]         |
 | [postgresql](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/postgresqlreceiver)                                              | [beta]           |
 | [prometheus](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/prometheusreceiver)                                              | [beta]           |
+| [prometheusremotewrite](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/prometheusremotewritereceiver)                        | [alpha]          |
 | [prometheus_simple](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/simpleprometheusreceiver)                                 | [beta]           |
 | [purefa](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/purefareceiver)                                                      | [alpha]          |
 | [rabbitmq](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/rabbitmqreceiver)                                                  | [beta]           |
@@ -85,6 +86,7 @@ The distribution offers support for the following components.
 | [windowseventlog](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/windowseventlogreceiver)                                    | [alpha]          |
 | [windowsperfcounters](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/windowsperfcountersreceiver)                            | [beta]           |
 | [zipkin](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/zipkinreceiver)                                                      | [beta]           |
+| [zookeeper](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/zookeeperreceiver)                                                | [alpha]          |
 
 </div>
 

@@ -90,6 +90,7 @@ func TestDefaultComponents(t *testing.T) {
 		"otlp",
 		"postgresql",
 		"prometheus",
+		"prometheusremotewrite",
 		"prometheus_simple",
 		"purefa",
 		"rabbitmq",
@@ -118,6 +119,7 @@ func TestDefaultComponents(t *testing.T) {
 		"windowseventlog",
 		"windowsperfcounters",
 		"zipkin",
+		"zookeeper",
 	}
 	expectedProcessors := []string{
 		"attributes",

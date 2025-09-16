@@ -1,4 +1,4 @@
-# Runs E2E tests for zero-confing for Windows deployments
+# Runs E2E tests for zero-config for Windows deployments
 
 # This script update Firewall rules and needs elevation to work correctly.
 #Requires -RunAsAdministrator

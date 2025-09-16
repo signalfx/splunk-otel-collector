@@ -78,15 +78,6 @@ receivers:
   kafka:
     protocol_version: 2.0.0
 
-  # Enables the sapm receiver with default settings
-  #  - grpc (default endpoint = 0.0.0.0:7276)
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/sapmreceiver
-  sapm:
-    endpoint: 0.0.0.0:7276
-    # Whether to preserve incoming access token and use instead of exporter token
-    # default = false
-    #access_token_passthrough: true
-
   # Enables the zipkin receiver with default settings
   #  - grpc (default endpoint = 0.0.0.0:9411)
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/zipkinreceiver

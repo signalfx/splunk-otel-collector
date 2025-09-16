@@ -197,9 +197,6 @@ func TestDefaultGatewayConfig(t *testing.T) {
 							},
 						},
 					},
-					"sapm": map[string]any{
-						"endpoint": fmt.Sprintf("%s:7276", ip),
-					},
 					"signalfx": map[string]any{
 						"endpoint": fmt.Sprintf("%s:9943", ip),
 					},
@@ -254,7 +251,7 @@ func TestDefaultGatewayConfig(t *testing.T) {
 						"traces": map[string]any{
 							"exporters":  []any{"otlphttp"},
 							"processors": []any{"memory_limiter", "batch"},
-							"receivers":  []any{"jaeger", "otlp", "sapm", "zipkin"},
+							"receivers":  []any{"jaeger", "otlp", "zipkin"},
 						},
 					},
 				},

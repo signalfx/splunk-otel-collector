@@ -160,7 +160,7 @@ service:
   extensions: [headers_setter, health_check, http_forwarder, zpages]
   pipelines:
     traces:
-      receivers: [jaeger, otlp, sapm, zipkin]
+      receivers: [jaeger, otlp, zipkin]
       processors:
       - memory_limiter
       - batch

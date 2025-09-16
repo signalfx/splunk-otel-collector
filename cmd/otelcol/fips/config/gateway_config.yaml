@@ -1,4 +1,4 @@
-# Configuration file that uses the Splunk exporters (SAPM, SignalFx) to push
+# Configuration file that uses the Splunk exporters (OTLP HTTP, SignalFx) to push
 # data to Splunk products.
 
 extensions:
@@ -137,7 +137,7 @@ service:
   extensions: [headers_setter, health_check, http_forwarder, zpages]
   pipelines:
     traces:
-      receivers: [jaeger, otlp, sapm, zipkin]
+      receivers: [jaeger, otlp, zipkin]
       processors:
       - memory_limiter
       - batch

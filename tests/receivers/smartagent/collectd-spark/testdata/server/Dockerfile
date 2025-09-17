@@ -1,4 +1,4 @@
-FROM bitnamilegacy/spark:3.1.3
+FROM bitnamilegacy/spark:4.0.0
 
 EXPOSE 8080
 

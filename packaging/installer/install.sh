@@ -1569,7 +1569,7 @@ parse_args_and_install() {
   echo "Ingest Endpoint: $ingest_url"
   echo "API Endpoint: $api_url"
   echo "HEC Endpoint: $hec_url"
-  echo "GODEBUG: godebug"
+  echo "GODEBUG: $godebug"
   if [ -n "$td_agent_version" ]; then
     echo "TD Agent (Fluentd) Version: $td_agent_version"
   fi

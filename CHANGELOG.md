@@ -5,6 +5,60 @@
 <!-- For unreleased changes, see entries in .chloggen -->
 <!-- next version -->
 
+## v0.135.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.135.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.135.0)
+and the [opentelemetry-collector-contrib v0.135.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.135.0) releases where appropriate.
+
+### 🛑 Breaking changes 🛑
+
+- (Splunk) `receiver/sapmreceiver`: Remove already deprecated `sapm` receiver ([#6772](https://github.com/signalfx/splunk-otel-collector/pull/6772))
+  Replace any usage of the `sapm` receiver with the [OTLP receiver](https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/otlpreceiver#otlp-receiver)
+  also updating any corresponding `sapm` exporter to the [OTLP HTTP exporter](https://github.com/open-telemetry/opentelemetry-collector/blob/main/exporter/otlphttpexporter/README.md#otlphttp-exporter)
+  as appropriate.
+
+- (Contrib) `apachereceiver`: Add number of connections per async state metrics. ([#41886](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41886))
+- (Contrib) `k8sattributesprocessor`: Introduce allowLabelsAnnotationsSingular feature gate to use singular format for k8s label and annotation resource attributes ([#39774](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/39774))
+  The feature gate, when enabled, will change the default resource attribute key format from k8s.<workload>.labels.<label-key> to k8s.<workload>.label.<label-key>. Same applies for annotations.
+
+### 🚀 New components 🚀
+
+- (Splunk) `receiver/prometheusremotewrite`: Add the Prometheus Remote Write receiver to the distribution. ([#6632](https://github.com/signalfx/splunk-otel-collector/pull/6632))
+  See https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/prometheusremotewritereceiver
+- (Splunk) `receiver/zookeeper`: Add zookeeper receiver to the distribution ([#6620](https://github.com/signalfx/splunk-otel-collector/pull/6620))
+  See https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/zookeeperreceiver
+- (Splunk) `receiver/awscloudwatch`: Add AWS CloudWatch receiver ([#6619](https://github.com/signalfx/splunk-otel-collector/pull/6619))
+  See https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/awscloudwatchreceiver
+
+### 💡 Enhancements 💡
+
+- (Splunk) `Splunk_TA_otel`: Change internal/settings log format for Splunk TA for OpenTelemetry ([#6749](https://github.com/signalfx/splunk-otel-collector/pull/6749))
+  The formatting of the internal/settings log was changed to correctly report log level when the collector is running
+  as the Splunk TA for OpenTelemetry. Related to change [6748](https://github.com/signalfx/splunk-otel-collector/pull/6748).
+- (Splunk) `fips`: Use native FIPS 140-3 support, bundled with go 1.24 ([#6718](https://github.com/signalfx/splunk-otel-collector/pull/6718))
+  See https://tip.golang.org/doc/security/fips140
+- (Core) `exporterhelper`: Add new `exporter_queue_batch_send_size` and `exporter_queue_batch_send_size_bytes` metrics, showing the size of telemetry batches from the exporter. ([#12894](https://github.com/open-telemetry/opentelemetry-collector/issues/12894))
+- (Contrib) `transformprocessor`: Add support for merging histogram buckets. ([#40280](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/40280))
+  The transformprocessor now supports merging histogram buckets using the `merge_histogram_buckets` function.
+- (Contrib) `k8seventsreceiver`: Adds scope name and version to logs ([#42426](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/42426))
+- (Contrib) `azureeventhubreceiver`: Added feature flag to use the new Azure SDK ([#40795](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/40795))
+- (Contrib) `dockerstatsreceiver`: Add Windows support ([#42297](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/42297))
+  The dockerstatsreceiver now supports Windows hosts.
+- (Contrib) `kafkaexporter`: Use franz-go client for Kafka exporter as default, promoting the exporter.kafkaexporter.UseFranzGo feature gate to Beta. ([#42156](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/42156))
+- (Contrib) `kafkaexporter`: Add allow_auto_topic_creation producer option to kafka exporter and client ([#42468](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/42468))
+- (Contrib) `processor/resourcedetection`: Add support for hetzner cloud in resourcedetectionprocessor ([#42476](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/42476))
+- (Contrib) `kafkareceiver`: Add `rack_id` configuration option to enable rack-aware replica selection ([#42313](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/42313))
+  When configured and brokers support rack-aware replica selection, the client will prefer fetching from the closest replica, potentially reducing latency and improving performance.
+- (Contrib) `statsdreceiver`: Introduce explicit bucket for statsd receiver ([#41203](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41203), [#41503](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41503))
+- (Contrib) `processor/k8sattributes`: Support extracting labels and annotations from k8s DaemonSets ([#37957](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/37957))
+- (Contrib) `processor/k8sattributes`: Support extracting labels and annotations from k8s Jobs ([#37957](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/37957))
+- (Contrib) `k8sclusterreceiver`: Add option `namespaces` for setting a list of namespaces to be observed by the receiver. This supersedes the `namespace` option which is now deprecated. ([#40089](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/40089))
+- (Contrib) `k8sobjectsreceiver`: Adds the instrumentation scope name and version ([#42290](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/42290))
+- (Contrib) `receiver/kubeletstats`: Introduce k8s.pod.volume.usage metric. ([#40476](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/40476))
+- (Contrib) `sqlserverreceiver`: Add `service.instance.id` resource attribute to all metrics and logs ([#41894](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41894))
+  The `service.instance.id` attribute is added in the format `<host>:<port>` to uniquely identify 
+  SQL Server hosts.
+
 ## v0.134.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.134.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.134.0)

@@ -17,6 +17,7 @@ package configconverter
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net"
 	"net/http"
@@ -34,6 +35,15 @@ import (
 
 func TestConfigServer_RequireEnvVar(t *testing.T) {
 	waitForRequiredPort(t, defaultConfigServerPort)
+	url := fmt.Sprintf("http://%s/debug/configz/initial", defaultConfigServerEndpoint)
+	client := &http.Client{}
+
+	require.EventuallyWithT(t, func(c *assert.CollectT) {
+		assert.True(c, isPortAvailable(defaultConfigServerPort))
+		_, err := client.Get(url)
+		assert.Error(c, err)
+	}, 1*time.Minute, 100*time.Millisecond)
+
 	t.Setenv(configServerEnabledEnvVar, "false")
 
 	initial := map[string]any{
@@ -49,9 +59,7 @@ func TestConfigServer_RequireEnvVar(t *testing.T) {
 	})
 	require.NoError(t, cs.Convert(context.Background(), confmap.NewFromStringMap(initial)))
 
-	client := &http.Client{}
-	path := "/debug/configz/initial"
-	_, err := client.Get("http://" + defaultConfigServerEndpoint + path)
+	_, err := client.Get(url)
 	assert.Error(t, err)
 }
 

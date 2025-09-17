@@ -34,7 +34,7 @@ and the [opentelemetry-collector-contrib v0.135.0](https://github.com/open-telem
 
 - (Splunk) `Splunk_TA_otel`: Change internal/settings log format for Splunk TA for OpenTelemetry ([#6749](https://github.com/signalfx/splunk-otel-collector/pull/6749))
   The formatting of the internal/settings log was changed to correctly report log level when the collector is running
-  as the Splunk TA for OpenTelemetry. Related to change [6748](https://github.com/signalfx/splunk-otel-collector/pull/6748).
+  as the Splunk TA for OpenTelemetry. Related to change [#6748](https://github.com/signalfx/splunk-otel-collector/pull/6748).
 - (Splunk) `fips`: Use native FIPS 140-3 support, bundled with go 1.24 ([#6718](https://github.com/signalfx/splunk-otel-collector/pull/6718))
   See https://tip.golang.org/doc/security/fips140
 - (Core) `exporterhelper`: Add new `exporter_queue_batch_send_size` and `exporter_queue_batch_send_size_bytes` metrics, showing the size of telemetry batches from the exporter. ([#12894](https://github.com/open-telemetry/opentelemetry-collector/issues/12894))

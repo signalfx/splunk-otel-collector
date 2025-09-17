@@ -260,6 +260,8 @@ github.com/aws/aws-sdk-go-v2/internal/ini v1.8.3/go.mod h1:H5O/EsxDWyU+LP/V8i5sm
 github.com/aws/aws-sdk-go-v2/internal/v4a v1.4.0 h1:iLvW/zOkHGU3BDU5thWnj+UZ9pjhuVhv1loLj7yVtBw=
 github.com/aws/aws-sdk-go-v2/internal/v4a v1.4.0/go.mod h1:Fn3gvhdF1x5Rs9nUoCy/fJT1ms8f8dO7RqM9lJHuazQ=
 github.com/aws/aws-sdk-go-v2/service/appconfig v1.4.2/go.mod h1:FZ3HkCe+b10uFZZkFdvf98LHW21k49W8o8J366lqVKY=
+github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.54.0 h1:YBaZkj6OnJvSPKMPMOhhEk3mGq0UzYtvCnEEXk93jko=
+github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.54.0/go.mod h1:JGvzarQ8vyLLmajh2eV3lfS/BrOE32ryCgEh6mwDGnc=
 github.com/aws/aws-sdk-go-v2/service/ec2 v1.237.0 h1:XHE2G+yaDQql32FZt19QmQt4WuisqQJIkMUSCxeCUl8=
 github.com/aws/aws-sdk-go-v2/service/ec2 v1.237.0/go.mod h1:t11/j/nH9i6bbsPH9xc04BJOsV2nVPUqrB67/TLDsyM=
 github.com/aws/aws-sdk-go-v2/service/ecs v1.61.0 h1:2VrFedi1M671QYjgwUoBVTLNnYJLHEWziQGxI4b7VP8=
@@ -1480,6 +1482,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/apachereceive
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/apachereceiver v0.135.0/go.mod h1:13uSfYHYa6wJm+J+rX3AP6RbI4EovYGjwStD29gjtSQ=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/apachesparkreceiver v0.135.0 h1:48DoT3McWl6PA5zH3Af2HoUzH/IEb8mWR8ZFYT8yfaY=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/apachesparkreceiver v0.135.0/go.mod h1:1IlOml2J/1FWvNhxig8woxwnbdd1NV/Yb20/grx6d6s=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/awscloudwatchreceiver v0.135.0 h1:DOo7WIHnhTTl8DP8gr6dR+zHeGk4ynKd8SNJ1gXjWXI=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/awscloudwatchreceiver v0.135.0/go.mod h1:8KKYAyy8DUUuKVJQ5whp6trtirkvj6MjJhJqxT1LXHQ=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/awscontainerinsightreceiver v0.135.0 h1:VOygknW4jDfWWa79NCU1Iue+RqQIvse9rMuiB1gaqGg=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/awscontainerinsightreceiver v0.135.0/go.mod h1:TiRzNlBWvrflu+Sp6DSkUeWx/aEWm3EqXWNKF/wplbY=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/awsecscontainermetricsreceiver v0.135.0 h1:5mTcCP4vltUpw8BUD1Mp9YWh8H8Phk96JvMCId8Kx5U=
@@ -1552,6 +1556,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/postgresqlrec
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/postgresqlreceiver v0.135.0/go.mod h1:gZUOZHhx3qlnR9/sAzcMxaMTWdJ5ZSukYBF2TmnrS/s=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.135.0 h1:HBNPVpCIYEMbypyNAAQPM/0j5UTqk94f+0Bi145oZNo=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.135.0/go.mod h1:M89Ila5LSmmui0R/tHO5SA/04eYyPkXOhyS3qNHcTE8=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusremotewritereceiver v0.135.0 h1:M4j8YXE+g0u+1DCSkQOfGwA0HKOXQyqH8q+FzFDOE9I=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusremotewritereceiver v0.135.0/go.mod h1:Wf7iVbTgUlrWMlhHB7S6sAkNPk9i+5UTP3J/ED5MxiM=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/purefareceiver v0.135.0 h1:r5jg4c5jp3rBeyMoUnYMe9HgaXahQWDzrlVD1vUFUtI=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/purefareceiver v0.135.0/go.mod h1:wKffgskx/9chwbEO6kMplRVGVrwTgpuhhsfYOtiuxvE=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/rabbitmqreceiver v0.135.0 h1:MNfTgbl/SqVl2uxfBMu0NWPguC2hToR6K3p9UWIw1AY=
@@ -1560,8 +1566,6 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/receivercreat
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/receivercreator v0.135.0/go.mod h1:8mDfEFmTG4TOhYD6Y+sqm4eRsJfCbRsmTb0YHxEiCmw=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/redisreceiver v0.135.0 h1:C7WcGC4H6zCJtXcWY0hpib9dExbsabVB4uspI7UuO98=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/redisreceiver v0.135.0/go.mod h1:oMDl8Pc4RqTUGCifyFngjeH3vaLMMrW/7beoFu1wQfM=
-github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sapmreceiver v0.134.0 h1:EwgsfaobxhGquUpIahR6UmtexTFU7vcVprlYyJiuDTw=
-github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sapmreceiver v0.134.0/go.mod h1:ixc+u9Yxf9DzdfnhFbGte2tbXP3X9SeRwXTOwaLEIH8=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/signalfxreceiver v0.135.0 h1:nTlIi5pCW3u8AJs3e0QdUTxG/O26kfTGaD0WOWBA/zo=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/signalfxreceiver v0.135.0/go.mod h1:7Kk16TtYAUOVRoRtc/RhLz75vZ0YOUvv0ROBSGnaj60=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/simpleprometheusreceiver v0.135.0 h1:jafK60Mi/bWpFBne2ht2Z0vLPYpOW2tUdKYk5fvFhRo=
@@ -1602,6 +1606,10 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsperfco
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsperfcountersreceiver v0.135.0/go.mod h1:CqLUHY/WdoPVOl1EzbTlAffxdc28rtHPITff5OMMCa0=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver v0.135.0 h1:s92RbFmizrSr7Ywdp3d5ZxJrPNZMzASRRRcIrEdJpWg=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver v0.135.0/go.mod h1:4PwLMZv5bDEloRdRpp1t6ejvNGTsv7X/vdYnqiwhNT0=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zookeeperreceiver v0.135.0 h1:JaUpeQXYuGBR3jIM0WnWzbylQQei9GNJ1WAAnAn9oy8=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zookeeperreceiver v0.135.0/go.mod h1:fo0QFyNnCrAH2N+z8N6LKKkI62k7XSHe4NpNbdESZDo=
+github.com/open-telemetry/opentelemetry-collector-contrib/scraper/zookeeperscraper v0.135.0 h1:TjO1GvjHoL0vVo4PRl3ZcH4xUN7utTqOuHJ+T8F0OYA=
+github.com/open-telemetry/opentelemetry-collector-contrib/scraper/zookeeperscraper v0.135.0/go.mod h1:PQVQcgIs+99sm3PuLiCdzVGrqmA28zq2nqYcfOWqanw=
 github.com/opencontainers/cgroups v0.0.2 h1:A+mAPPMfgKNCEZUUtibESFx06uvhAmvo8sSz3Abwk7o=
 github.com/opencontainers/cgroups v0.0.2/go.mod h1:s8lktyhlGUqM7OSRL5P7eAW6Wb+kWPNvt4qvVfzA5vs=
 github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8Oi/yOhh5U=

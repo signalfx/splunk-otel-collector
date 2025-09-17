@@ -18,7 +18,7 @@ and the [opentelemetry-collector-contrib v0.135.0](https://github.com/open-telem
   as appropriate.
 
 - (Contrib) `apachereceiver`: Add number of connections per async state metrics. ([#41886](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41886))
-- (Contrib) `k8sattributesprocessor`: Introduce allowLabelsAnnotationsSingular feature gate to use singular format for k8s label and annotation resource attributes ([#39774](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/39774))
+- (Contrib) `k8sattributesprocessor`: Introduce `allowLabelsAnnotationsSingular` feature gate to use singular format for k8s label and annotation resource attributes ([#39774](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/39774))
   The feature gate, when enabled, will change the default resource attribute key format from k8s.<workload>.labels.<label-key> to k8s.<workload>.label.<label-key>. Same applies for annotations.
 
 ### 🚀 New components 🚀

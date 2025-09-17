@@ -117,6 +117,7 @@ func TestCollectorReconfiguration(t *testing.T) {
 				"SPLUNK_ACCESS_TOKEN":         "2ndInstall",
 				"SPLUNK_REALM":                "2nd",
 				"SPLUNK_MEMORY_TOTAL_MIB":     "256",
+				"GODEBUG":                     "fips140=on",
 			},
 			skipSvcStart: true,
 			genericMSIProperties: map[string]string{
@@ -237,7 +238,7 @@ func assertServiceConfiguration(t *testing.T, msiProperties map[string]string, s
 	assert.NoFileExists(t, filepath.Join(programFilesDir, "Splunk", "OpenTelemetry Collector", configFileName))
 
 	expectedEnvVars := map[string]string{
-		"GODEBUG":             "fips140=off",
+		"GODEBUG":             msiProperties["GODEBUG"],
 		"SPLUNK_CONFIG":       configFileFullName,
 		"SPLUNK_ACCESS_TOKEN": msiProperties["SPLUNK_ACCESS_TOKEN"], // Required install property for a successful start of the service
 		"SPLUNK_REALM":        installRealm,

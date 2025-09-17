@@ -5,7 +5,7 @@ change_type: enhancement
 component: installer
 
 # A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
-note: Support setting fips mode in the Windows installer
+note: The Windows installer now supports setting the `GODEBUG` environment variable.
 
 # One or more tracking issues related to the change
 issues: [6719]
@@ -13,4 +13,10 @@ issues: [6719]
 # (Optional) One or more lines of additional information to render under the primary note.
 # These lines will be padded with 2 spaces and then inserted directly into the document.
 # Use pipe (|) for multiline entries.
-subtext:
+subtext: |
+  You can set `GODEBUG` to turn on Go runtime FIPS 140-3 compatibility with the following values:
+  * `GODEBUG=fips140=off` turn off any FIPS 140-3
+  * `GODEBUG=fips140=on` turn on FIPS 140-3. This is the preferred setting in FedRAMP environments.
+  * `GODEBUG=fips140=only` Experimental mode to disable any encryption mechanisms but FIPS 140-3 encryption.
+    This mode is still under review by the Go team.
+  See https://go.dev/doc/security/fips140 for further information.

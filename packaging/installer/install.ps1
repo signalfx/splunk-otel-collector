@@ -660,7 +660,6 @@ $collector_env_vars = @{
     "SPLUNK_BUNDLE_DIR"       = "$bundle_dir";
     "SPLUNK_CONFIG"           = "$config_path";
     "SPLUNK_HEC_TOKEN"        = "$hec_token";
-    "GODEBUG"                 = "$godebug";
     "SPLUNK_HEC_URL"          = "$hec_url";
     "SPLUNK_INGEST_URL"       = "$ingest_url";
     "SPLUNK_MEMORY_TOTAL_MIB" = "$memory";
@@ -669,6 +668,10 @@ $collector_env_vars = @{
 
 if ($network_interface -Ne "") {
     $collector_env_vars.Add("SPLUNK_LISTEN_INTERFACE", "$network_interface")
+}
+
+if ($godebug -Ne "") {
+    $collector_env_vars.Add("GODEBUG", "$godebug")
 }
 
 # set the environment variables for the collector service

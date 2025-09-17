@@ -905,6 +905,8 @@ Collector:
   --hec-url <url>                       Set the HEC endpoint URL explicitly instead of the endpoint inferred from the
                                         specified realm.
                                         (default: https://ingest.REALM.signalfx.com/v1/log)
+  --godebug <value>                     Set values for the GODEBUG environment variable.
+                                        For example: --godebug fips140=on
   --ingest-url <url>                    Set the ingest endpoint URL explicitly instead of the endpoint inferred from the
                                         specified realm.
                                         (default: https://ingest.REALM.signalfx.com)
@@ -1220,6 +1222,7 @@ parse_args_and_install() {
   local collector_version="$default_collector_version"
   local hec_token=
   local hec_url=
+  local godebug=
   local ingest_url=
   local insecure=
   local memory="$default_memory_size"
@@ -1272,6 +1275,10 @@ parse_args_and_install() {
         ;;
       --hec-url)
         hec_url="$2"
+        shift 1
+        ;;
+      --godebug)
+        godebug="$2"
         shift 1
         ;;
       --ingest-url)
@@ -1562,6 +1569,7 @@ parse_args_and_install() {
   echo "Ingest Endpoint: $ingest_url"
   echo "API Endpoint: $api_url"
   echo "HEC Endpoint: $hec_url"
+  echo "GODEBUG: $godebug"
   if [ -n "$td_agent_version" ]; then
     echo "TD Agent (Fluentd) Version: $td_agent_version"
   fi
@@ -1703,6 +1711,7 @@ parse_args_and_install() {
   configure_env_file "SPLUNK_API_URL" "$api_url" "$collector_env_path"
   configure_env_file "SPLUNK_INGEST_URL" "$ingest_url" "$collector_env_path"
   configure_env_file "SPLUNK_HEC_URL" "$hec_url" "$collector_env_path"
+  configure_env_file "GODEBUG" "$godebug" "$collector_env_path"
   configure_env_file "SPLUNK_HEC_TOKEN" "$hec_token" "$collector_env_path"
   configure_env_file "SPLUNK_MEMORY_TOTAL_MIB" "$memory" "$collector_env_path"
   if [ -d "$collector_bundle_dir" ]; then

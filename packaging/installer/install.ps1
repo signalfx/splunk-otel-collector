@@ -60,6 +60,10 @@
     (OPTIONAL) Set the HEC token if different than the specified Splunk access_token.
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -hec_token "HECTOKEN"
+.PARAMETER godebug
+    (OPTIONAL) Set values for the GODEBUG environment variable.
+    .EXAMPLE
+    .\install.ps1 -access_token "ACCESSTOKEN" -godebug "fips140=on"
 .PARAMETER with_fluentd
     DEPRECATED: Fluentd support has been deprecated and will be removed in a future release. Please refer to documentation for more information: https://github.com/signalfx/splunk-otel-collector/blob/main/docs/deprecations/fluentd-support.md
     (OPTIONAL) Whether to install and configure fluentd to forward log events to the collector (default: $false)
@@ -141,6 +145,7 @@ param (
     [string]$api_url = "",
     [string]$hec_url = "",
     [string]$hec_token = "",
+    [string]$godebug= "",
     [bool]$insecure = $false,
     [string]$collector_version = "",
     [bool]$with_fluentd = $false,
@@ -663,6 +668,10 @@ $collector_env_vars = @{
 
 if ($network_interface -Ne "") {
     $collector_env_vars.Add("SPLUNK_LISTEN_INTERFACE", "$network_interface")
+}
+
+if ($godebug -Ne "") {
+    $collector_env_vars.Add("GODEBUG", "$godebug")
 }
 
 # set the environment variables for the collector service

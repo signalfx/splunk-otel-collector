@@ -41,7 +41,7 @@ func TestConfigServer_RequireEnvVar(t *testing.T) {
 	require.EventuallyWithT(t, func(c *assert.CollectT) {
 		assert.True(c, isPortAvailable(defaultConfigServerPort))
 		_, err := client.Get(url)
-		assert.Error(t, err)
+		assert.Error(c, err)
 	}, 1*time.Minute, 100*time.Millisecond)
 
 	t.Setenv(configServerEnabledEnvVar, "false")

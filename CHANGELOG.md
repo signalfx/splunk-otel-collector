@@ -37,13 +37,15 @@ and the [opentelemetry-collector-contrib v0.135.0](https://github.com/open-telem
   as the Splunk TA for OpenTelemetry. Related to change [#6748](https://github.com/signalfx/splunk-otel-collector/pull/6748).
 - (Splunk) `fips`: Use native FIPS 140-3 support, bundled with go 1.24 ([#6718](https://github.com/signalfx/splunk-otel-collector/pull/6718))
   See [FIPS 140-3 Compliance](https://tip.golang.org/doc/security/fips140).
-- (Splunk) `installer`: The Windows installer now supports setting the `GODEBUG` environment variable. ([#6719](https://github.com/signalfx/splunk-otel-collector/pull/6719))
+- (Splunk) `installer`: The Windows MSI installer now supports setting the `GODEBUG` environment variable. ([#6719](https://github.com/signalfx/splunk-otel-collector/pull/6719))
   You can set `GODEBUG` to turn on Go runtime FIPS 140-3 compatibility with the following values:
   - `GODEBUG=fips140=off` turn off any FIPS 140-3
   - `GODEBUG=fips140=on` turn on FIPS 140-3. This is the preferred setting in FedRAMP environments.
   - `GODEBUG=fips140=only` Experimental mode to disable any encryption mechanisms but FIPS 140-3 encryption.
     This mode is still under review by the Go team.
   See [FIPS 140-3 Compliance](https://tip.golang.org/doc/security/fips140) for further information.
+- (Splunk) `installer`: Expose setting `GODEBUG` as an option of the install scripts ([#6778](https://github.com/signalfx/splunk-otel-collector/pull/6778))
+- (Splunk) `discovery`: Automatic discovery of RabbitMQ by default enables the extra metrics used by dashboards on Splunk Observability ([#6509](https://github.com/signalfx/splunk-otel-collector/pull/6509))
 - (Core) `exporterhelper`: Add new `exporter_queue_batch_send_size` and `exporter_queue_batch_send_size_bytes` metrics, showing the size of telemetry batches from the exporter. ([#12894](https://github.com/open-telemetry/opentelemetry-collector/issues/12894))
 - (Contrib) `transformprocessor`: Add support for merging histogram buckets. ([#40280](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/40280))
   The transformprocessor now supports merging histogram buckets using the `merge_histogram_buckets` function.

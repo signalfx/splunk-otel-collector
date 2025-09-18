@@ -197,7 +197,7 @@ require (
 	github.com/power-devops/perfstat v0.0.0-20221212215047-62379fc7944b // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/shoenig/go-m1cpu v0.1.6 // indirect
-	github.com/shoenig/test v1.7.1 // indirect
+	github.com/shoenig/test v1.12.2 // indirect
 	github.com/shopspring/decimal v1.4.0 // indirect
 	github.com/signalfx/gohistogram v0.0.0-20160107210732-1ccfd2ff5083 // indirect
 	github.com/signalfx/sapm-proto v0.18.0 // indirect

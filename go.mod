@@ -292,7 +292,7 @@ require (
 	github.com/grafana/regexp v0.0.0-20240518133315-a468a5bfb3bc // indirect
 	github.com/hamba/avro/v2 v2.26.0 // indirect
 	github.com/hashicorp/consul/sdk v0.16.2 // indirect
-	github.com/hashicorp/cronexpr v1.1.2 // indirect
+	github.com/hashicorp/cronexpr v1.1.3 // indirect
 	github.com/hashicorp/go-bexpr v0.1.14 // indirect
 	github.com/hashicorp/go-hmac-drbg v0.0.0-20210916214228-a6e5a68489f6 // indirect
 	github.com/hashicorp/go-kms-wrapping/v2 v2.0.18 // indirect
@@ -305,7 +305,7 @@ require (
 	github.com/hashicorp/go-secure-stdlib/regexp v1.0.0 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/hashicorp/mdns v1.0.5 // indirect
-	github.com/hashicorp/nomad/api v0.0.0-20241218080744-e3ac00f30eec // indirect
+	github.com/hashicorp/nomad/api v0.0.0-20250917172301-3432b0a2d65c // indirect
 	github.com/hetznercloud/hcloud-go/v2 v2.22.0 // indirect
 	github.com/influxdata/influxdb-observability/common v0.5.12 // indirect
 	github.com/influxdata/influxdb-observability/influx2otel v0.5.12 // indirect

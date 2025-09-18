@@ -9,7 +9,7 @@ TEST_FOLDER="${TEST_FOLDER:-$BUILD_DIR/$CI_JOB_ID}"
 mkdir -p "$TEST_FOLDER"
 
 # customize TA to act as gateway
-GATEWAY_TA_FULLPATH="$(repack_with_access_token "$OLLY_ACCESS_TOKEN" "$BUILD_DIR/out/distribution/Splunk_TA_otel.tgz" | tail -n 1)"
+GATEWAY_TA_FULLPATH="$(repack_with_test_config "$OLLY_ACCESS_TOKEN" "$BUILD_DIR/out/distribution/Splunk_TA_otel.tgz" | tail -n 1)"
 GATEWAY_REPACKED_TA_NAME="$(basename "$GATEWAY_TA_FULLPATH")"
 GATEWAY_ADDON_DIR="$(realpath "$(dirname "$GATEWAY_TA_FULLPATH")")"
 rm -rf "$GATEWAY_ADDON_DIR/$GATEWAY_REPACKED_TA_NAME"
@@ -29,7 +29,7 @@ echo "$gateway_container_info" > "$TEST_FOLDER/orca-gateway-deployment.json"
 GATEWAY_IPV4_ADDR="$(echo "$gateway_container_info" | jq -r '.[keys[0]] | .[keys[0]] | .containers | .[keys[0]] | .private_address')"
 
 # Customize TA to act as agent which forwards to gateway
-GATEWAY_AGENT_TA_FULLPATH="$(repack_with_access_token "$OLLY_ACCESS_TOKEN" "$BUILD_DIR/out/distribution/Splunk_TA_otel.tgz" | tail -n 1)"
+GATEWAY_AGENT_TA_FULLPATH="$(repack_with_test_config "$OLLY_ACCESS_TOKEN" "$BUILD_DIR/out/distribution/Splunk_TA_otel.tgz" | tail -n 1)"
 GATEWAY_AGENT_REPACKED_TA_NAME="$(basename "$GATEWAY_AGENT_TA_FULLPATH")"
 GATEWAY_AGENT_ADDON_DIR="$(realpath "$(dirname "$GATEWAY_AGENT_TA_FULLPATH")")"
 rm -rf "$GATEWAY_AGENT_ADDON_DIR/$GATEWAY_AGENT_REPACKED_TA_NAME"

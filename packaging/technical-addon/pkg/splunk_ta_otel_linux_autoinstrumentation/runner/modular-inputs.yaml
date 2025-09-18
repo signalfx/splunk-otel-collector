@@ -1,11 +1,6 @@
 modular-input-schema-name: Splunk_TA_otel_linux_autoinstrumentation
 version: 0.0.0
 modular-inputs:
-  splunk_otel_log_file:
-    description: "Log file for otel collector."
-    default: "$SPLUNK_HOME/var/log/splunk/otel.log"
-    replaceable: true
-
   autoinstrumentation_enabled:
     description: "Enables autoinstrumentation via /etc/ld.so.preload"
     default: "true"

@@ -3,10 +3,6 @@
 splunk_access_token_file = <value>
 * File whose contents store the credentials to be set in `SPLUNK_ACCESS_TOKEN` (used to auth with Splunk Observability Cloud, default `$SPLUNK_OTEL_TA_HOME/local/access_token`).
 
-splunk_otel_log_file = <value>
-* Log file for otel collector
-
-
 # Below are all "pass through" configuration options that will enable environment variables supported in 
 # https://github.com/signalfx/splunk-otel-collector/blob/main/internal/settings/settings.go#L37-L64
 gomemlimit = <value>

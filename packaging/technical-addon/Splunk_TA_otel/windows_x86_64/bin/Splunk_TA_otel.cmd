@@ -41,8 +41,6 @@ set "splunk_memory_limit_mib_name=splunk_memory_limit_mib"
 set "splunk_memory_limit_mib_value="
 set "splunk_memory_total_mib_name=splunk_memory_total_mib"
 set "splunk_memory_total_mib_value="
-set "splunk_otel_log_file_name=splunk_otel_log_file"
-set "splunk_otel_log_file_value="
 set "splunk_ingest_url_name=splunk_ingest_url"
 set "splunk_ingest_url_value="
 set "splunk_realm_name=splunk_realm"
@@ -81,7 +79,7 @@ setlocal enabledelayedexpansion
 :: READING CONFIGURATION FROM STDIN
 call :splunk_TA_otel_read_configs
 
-call :splunk_TA_otel_log_msg "INFO" "Starting otel agent from %splunk_TA_otel_app_directory% with configuration file %splunk_config_value% and log file %splunk_otel_log_file_value%"
+call :splunk_TA_otel_log_msg "INFO" "Starting otel agent from %splunk_TA_otel_app_directory% with configuration file %splunk_config_value%"
 call :splunk_TA_otel_log_msg "INFO" "Logging TA notices to %splunk_TA_otel_log_file%"
 :: By default, otel will register itself as a windows service. In context of the TA, we want splunk to manage our lifecycle, so turn this off.
 set "NO_WINDOWS_SERVICE=1"
@@ -159,11 +157,6 @@ if "%splunk_memory_total_mib_value%" == "" (
 ) else (
     set "SPLUNK_MEMORY_TOTAL_MIB=%splunk_memory_total_mib_value%"
 )
-if "%splunk_otel_log_file_value%" == "" (
-    call :splunk_TA_otel_log_msg "DEBUG" "Param %splunk_otel_log_file_name% not set"
-) else (
-    set "SPLUNK_OTEL_LOG_FILE=%splunk_otel_log_file_value%"
-)
 if "%splunk_ingest_url_value%" == "" (
     call :splunk_TA_otel_log_msg "DEBUG" "Param %splunk_ingest_url_name% not set"
 ) else (
@@ -192,11 +185,11 @@ call :extract_bundle
 set "command_line=%splunk_TA_otel_app_directory%%splunk_otel_process_name%"
 call :splunk_TA_otel_log_msg "INFO" "Terminating any orphaned instances of the collector (if present)..."
 start /B "" /I /WAIT powershell -ExecutionPolicy ByPass "& { Get-WmiObject Win32_Process | ? ProcessName -eq '%splunk_otel_process_name%' | ? CommandLine -like '*%command_line%*' | ForEach-Object { taskkill.exe /f /pid $_.ProcessId } }" >> "%splunk_TA_otel_log_file%"
-call :splunk_TA_otel_log_msg "INFO" "Starting otel agent with: %command_line% %SPLUNK_OTEL_FLAGS%"
-start /B "" "%command_line%" %SPLUNK_OTEL_FLAGS% > "%splunk_otel_log_file_value%" 2>&1
 set "splunk_otel_common_ps=%splunk_TA_otel_app_directory%%splunk_otel_common_ps_name%"
 call :splunk_TA_otel_log_msg "INFO" "Monitoring collector process with: %splunk_otel_common_ps% '%splunk_otel_process_name%'"
-start /B "" /I /WAIT powershell -ExecutionPolicy ByPass "& '%splunk_otel_common_ps%' '%splunk_otel_process_name%'" >> "%splunk_TA_otel_log_file%"
+start /B "" /I powershell -ExecutionPolicy ByPass "& '%splunk_otel_common_ps%' '%splunk_otel_process_name%'" >> "%splunk_TA_otel_log_file%"
+call :splunk_TA_otel_log_msg "INFO" "Starting otel agent with: %command_line% %SPLUNK_OTEL_FLAGS%"
+"%command_line%" %SPLUNK_OTEL_FLAGS%
 
 call :splunk_TA_otel_log_msg "INFO" "Otel agent stopped"
 endlocal
@@ -224,7 +217,7 @@ exit /b 0
 :splunk_TA_otel_read_configs
 echo "INFO grabbing config from stdin..."
 
-for /F "tokens=1,2 delims==" %%I in ('powershell -noninteractive -noprofile -command "$input | Select-String -Pattern '.*?(%configd_name%|%discovery_name%|%discovery_properties_name%|%gomemlimit_name%|%splunk_api_url_name%|%splunk_bundle_dir_name%|%splunk_config_name%|%splunk_config_dir_name%|%splunk_collectd_dir_name%|%splunk_debug_config_server_name%|%splunk_config_yaml_name%|%splunk_gateway_url_name%|%splunk_hec_url_name%|%splunk_listen_interface_name%|%splunk_memory_limit_mib_name%|%splunk_memory_total_mib_name%|%splunk_otel_log_file_name%|%splunk_ingest_url_name%|%splunk_realm_name%|%splunk_access_token_file_name%|session_key).*?>(.*?)<' | ForEach-Object { $_.Matches.Groups[1].Value + '=' + $_.Matches.Groups[2].Value }"') do (
+for /F "tokens=1,2 delims==" %%I in ('powershell -noninteractive -noprofile -command "$input | Select-String -Pattern '.*?(%configd_name%|%discovery_name%|%discovery_properties_name%|%gomemlimit_name%|%splunk_api_url_name%|%splunk_bundle_dir_name%|%splunk_config_name%|%splunk_config_dir_name%|%splunk_collectd_dir_name%|%splunk_debug_config_server_name%|%splunk_config_yaml_name%|%splunk_gateway_url_name%|%splunk_hec_url_name%|%splunk_listen_interface_name%|%splunk_memory_limit_mib_name%|%splunk_memory_total_mib_name%|%splunk_ingest_url_name%|%splunk_realm_name%|%splunk_access_token_file_name%|session_key).*?>(.*?)<' | ForEach-Object { $_.Matches.Groups[1].Value + '=' + $_.Matches.Groups[2].Value }"') do (
     if "%%I"=="%configd_name%" set "SPLUNK_OTEL_FLAGS=%SPLUNK_OTEL_FLAGS% /configd"
     if "%%I"=="%discovery_name%" set "SPLUNK_OTEL_FLAGS=%SPLUNK_OTEL_FLAGS% /discovery"
     if "%%I"=="%discovery_properties_name%" set "discovery_properties_value=%%J"
@@ -241,7 +234,6 @@ for /F "tokens=1,2 delims==" %%I in ('powershell -noninteractive -noprofile -com
     if "%%I"=="%splunk_listen_interface_name%" set "splunk_listen_interface_value=%%J"
     if "%%I"=="%splunk_memory_limit_mib_name%" set "splunk_memory_limit_mib_value=%%J"
     if "%%I"=="%splunk_memory_total_mib_name%" set "splunk_memory_total_mib_value=%%J"
-    if "%%I"=="%splunk_otel_log_file_name%" set "splunk_otel_log_file_value=%%J"
     if "%%I"=="%splunk_ingest_url_name%" set "splunk_ingest_url_value=%%J"
     if "%%I"=="%splunk_realm_name%" set "splunk_realm_value=%%J"
     if "%%I"=="%splunk_access_token_file_name%" set "splunk_access_token_file_value=%%J"
@@ -336,17 +328,6 @@ for /f "delims=" %%i in ('powershell -noninteractive -noprofile -command "'%splu
 )
 for /f "delims=" %%i in ('powershell -noninteractive -noprofile -command "'%splunk_config_yaml_value%' -replace '\$SPLUNK_HOME', '%SPLUNK_HOME%'"') do (
     set "splunk_config_yaml_value=%%i"
-)
-
-:: expand params in splunk_otel_log_file_value
-for /f "delims=" %%i in ('powershell -noninteractive -noprofile -command "'%splunk_otel_log_file_value%' -replace '\$SPLUNK_OTEL_TA_PLATFORM_HOME', '%SPLUNK_OTEL_TA_PLATFORM_HOME%'"') do (
-    set "splunk_otel_log_file_value=%%i"
-)
-for /f "delims=" %%i in ('powershell -noninteractive -noprofile -command "'%splunk_otel_log_file_value%' -replace '\$SPLUNK_OTEL_TA_HOME', '%SPLUNK_OTEL_TA_HOME%'"') do (
-    set "splunk_otel_log_file_value=%%i"
-)
-for /f "delims=" %%i in ('powershell -noninteractive -noprofile -command "'%splunk_otel_log_file_value%' -replace '\$SPLUNK_HOME', '%SPLUNK_HOME%'"') do (
-    set "splunk_otel_log_file_value=%%i"
 )
 
 :: expand params in discovery_properties_value

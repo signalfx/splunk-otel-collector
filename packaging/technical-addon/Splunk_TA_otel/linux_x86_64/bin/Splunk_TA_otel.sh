@@ -52,8 +52,6 @@ splunk_memory_limit_mib_name="splunk_memory_limit_mib"
 splunk_memory_limit_mib_value=""
 splunk_memory_total_mib_name="splunk_memory_total_mib"
 splunk_memory_total_mib_value=""
-splunk_otel_log_file_name="splunk_otel_log_file"
-splunk_otel_log_file_value=""
 splunk_ingest_url_name="splunk_ingest_url"
 splunk_ingest_url_value=""
 splunk_realm_name="splunk_realm"
@@ -217,13 +215,6 @@ splunk_TA_otel_read_configs() {
             splunk_TA_otel_log_msg "DEBUG" "Set $splunk_memory_total_mib_name to $splunk_memory_total_mib_value"
         fi
 
-        has_splunk_otel_log_file_name="$(echo "$line" | grep "$splunk_otel_log_file_name")"
-        if [ "$has_splunk_otel_log_file_name" ] ; then
-            splunk_TA_otel_log_msg "DEBUG" "reading $splunk_otel_log_file_name from line $has_splunk_otel_log_file_name"
-            splunk_otel_log_file_value="$(echo "$has_splunk_otel_log_file_name" | grep -Eo ">(.*?)<" | sed 's/^>\(.*\)<$/\1/')"
-            splunk_TA_otel_log_msg "INFO" "Set $splunk_otel_log_file_name to $splunk_otel_log_file_value"
-        fi
-
         has_splunk_ingest_url="$(echo "$line" | grep "$splunk_ingest_url_name")"
         if [ "$has_splunk_ingest_url" ] ; then
             splunk_TA_otel_log_msg "DEBUG" "reading $splunk_ingest_url_name from line $has_splunk_ingest_url"
@@ -276,7 +267,6 @@ splunk_TA_otel_run_agent() {
     splunk_config_value="$(Splunk_TA_otel_expand_config_param "$splunk_config_value")"
     splunk_config_yaml_value="$(Splunk_TA_otel_expand_config_param "$splunk_config_yaml_value")"
     splunk_collectd_dir_value="$(Splunk_TA_otel_expand_config_param "$splunk_collectd_dir_value")"
-    splunk_otel_log_file_value="$(Splunk_TA_otel_expand_config_param "$splunk_otel_log_file_value")"
     splunk_access_token_file_value="$(Splunk_TA_otel_expand_config_param "$splunk_access_token_file_value")"
     discovery_properties_value="$(Splunk_TA_otel_expand_config_param "$discovery_properties_value")"
     splunk_config_dir_value="$(Splunk_TA_otel_expand_config_param "$splunk_config_dir_value")"
@@ -287,7 +277,7 @@ splunk_TA_otel_run_agent() {
         splunk_TA_otel_log_error "$log_msg"
     fi
 
-    log_message="Starting otel agent from $(dirname "${splunk_TA_otel_script_directory}") with configuration file $splunk_config_value and log file $splunk_otel_log_file_value"
+    log_message="Starting otel agent from $(dirname "${splunk_TA_otel_script_directory}") with configuration file $splunk_config_value"
     splunk_TA_otel_log_msg "INFO" "$log_message"
     
     #3 Start the agent
@@ -365,11 +355,6 @@ splunk_TA_otel_run_agent() {
     else
       splunk_TA_otel_log_msg "DEBUG" "NOT SET: $splunk_memory_total_mib_name"
     fi
-    if [ "$splunk_otel_log_file_value" ] ; then
-      export SPLUNK_OTEL_LOG_FILE_NAME="$splunk_otel_log_file_value"
-    else
-      splunk_TA_otel_log_msg "INFO" "NOT SET: $splunk_otel_log_file_name"
-    fi
     if [ "$splunk_ingest_url_value" ] ; then
       export SPLUNK_INGEST_URL="$splunk_ingest_url_value"
     else
@@ -435,7 +420,7 @@ splunk_TA_otel_run_agent() {
     LD_PRELOAD="$LD_PRELOAD" \
     LD_LIBRARY_PATH="$LD_LIBRARY_PATH" \
     SPLUNK_OTEL_TA_PLATFORM_HOME="$SPLUNK_OTEL_TA_PLATFORM_HOME" \
-        exec "$otel_path" "$SPLUNK_OTEL_FLAGS" > "$splunk_otel_log_file_value" 2>&1
+        exec "$otel_path" "$SPLUNK_OTEL_FLAGS"
 }
 
 splunk_TA_otel_scheme() {

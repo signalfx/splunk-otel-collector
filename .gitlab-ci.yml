@@ -285,6 +285,8 @@ update-otel-deps-nightly:
 update-openjdk:
   only:
     - schedules
+  extends: .go-cache
+  tags: [large]
   stage: update-deps
   needs: []
   dependencies: []
@@ -295,6 +297,8 @@ update-openjdk:
 update-javaagent:
   only:
     - schedules
+  extends: .go-cache
+  tags: [large]
   stage: update-deps
   needs: []
   dependencies: []
@@ -305,6 +309,8 @@ update-javaagent:
 update-jmx-metrics-gatherer:
   only:
     - schedules
+  extends: .go-cache
+  tags: [large]
   stage: update-deps
   needs: []
   dependencies: []
@@ -315,6 +321,8 @@ update-jmx-metrics-gatherer:
 update-nodejs-agent:
   only:
     - schedules
+  extends: .go-cache
+  tags: [large]
   stage: update-deps
   needs: []
   dependencies: []
@@ -325,6 +333,8 @@ update-nodejs-agent:
 update-dotnet-agent:
   only:
     - schedules
+  extends: .go-cache
+  tags: [large]
   stage: update-deps
   needs: []
   dependencies: []

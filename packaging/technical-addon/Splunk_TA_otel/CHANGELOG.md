@@ -1,5 +1,7 @@
 # Changelog
 
+## Unreleased
+
 ## v1.6.0
 
 - Updates addon to use collector version v0.135.0

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+## v1.6.0
+
+- Updates addon to use collector version v0.135.0
 - Removed `splunk_otel_log_file` configuration option. In unmanaged scenarios, this file
   would grow in case of errors and would not be rotated or truncated by operators, leading
   to problems with disk space use. Now, by default, the OTel Collector will log errors

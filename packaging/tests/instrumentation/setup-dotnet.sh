@@ -8,7 +8,7 @@ DOTNET_APP_HOME=/opt/dotnet
 
 useradd -r -m -U -d $DOTNET_APP_HOME -s /bin/false dotnet
 
-wget -nv https://builds.dotnet.microsoft.com/dotnet/Runtime/8.0.20/dotnet-runtime-8.0.20-linux-x64.tar.gz -O dotnet-sdk.tar.gz
+wget -nv https://builds.dotnet.microsoft.com/dotnet/Sdk/8.0.414/dotnet-sdk-8.0.414-linux-x64.tar.gz -O dotnet-sdk.tar.gz
 mkdir -p $DOTNET_SDK_HOME
 tar -xzf dotnet-sdk.tar.gz -C $DOTNET_SDK_HOME
 rm -f dotnet-sdk.tar.gz

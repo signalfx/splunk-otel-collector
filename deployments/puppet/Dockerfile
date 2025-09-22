@@ -1,4 +1,4 @@
-FROM ruby:3.3.8-bookworm
+FROM ruby:3.4.6-bookworm
 
 ENV PATH=$PATH:/opt/puppetlabs/bin:/opt/puppetlabs/pdk/bin
 

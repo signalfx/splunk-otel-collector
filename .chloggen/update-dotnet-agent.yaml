@@ -15,4 +15,5 @@ issues: [6773]
 # Use pipe (|) for multiline entries.
 subtext: |
   This updates the Zero-code instrumentation for .NET deployed with the
-  Splunk Distribution of the OpenTelemetry Collector.
+  Splunk Distribution of the OpenTelemetry Collector. This version drops support
+  to .NET 6 that reached EOL on November 2024.

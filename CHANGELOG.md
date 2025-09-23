@@ -2262,7 +2262,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 - (Contrib) `prometheusreceiver`: Ensure Target Allocator's confighttp is used in the receiver's service discovery ([#33370](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/33370))
 - (Contrib) `metricstransformprocessor`: Add scaling exponential histogram support ([#29803](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29803))
 - (Contrib) `pkg/ottl`: Introduce `UserAgent` converter to parse UserAgent strings ([#32434](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/32434))
-- (Splunk) Update JMX Metric Gatherer to [v1.38.0](https://github.com/open-telemetry/opentelemetry-java-contrib/releases/tag/v1.37.0) ([#5287](https://github.com/signalfx/splunk-otel-collector/pull/5287))
+- (Splunk) Update JMX Metric Gatherer to [v1.38.0](https://github.com/open-telemetry/opentelemetry-java-contrib/releases/tag/v1.38.0) ([#5287](https://github.com/signalfx/splunk-otel-collector/pull/5287))
 - (Splunk) Auto Instrumentation for Linux ([#5243](https://github.com/signalfx/splunk-otel-collector/pull/5243))
   - Add support for the `OTEL_LOGS_EXPORTER` environment variable to `libsplunk.so` for system-wide auto instrumentation.
   - Linux installer script: Add the `--logs-exporter <value>` option:

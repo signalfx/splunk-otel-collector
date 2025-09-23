@@ -86,9 +86,9 @@ func TestWindowsIISInstrumentation(t *testing.T) {
 		return resp.StatusCode == http.StatusOK
 	}, 30*time.Second, 100*time.Millisecond)
 
-	testExpectedTracesForHTTPGetRequest(t, otlp, "http://localhost:8000/aspnetcoreapp/api/values/6", filepath.Join("testdata", "expected", "aspnetcore.yaml"))
-
 	testExpectedTracesForHTTPGetRequest(t, otlp, "http://localhost:8000/aspnetfxapp/api/values/4", filepath.Join("testdata", "expected", "aspnetfx.yaml"))
+
+	testExpectedTracesForHTTPGetRequest(t, otlp, "http://localhost:8000/aspnetcoreapp/api/values/6", filepath.Join("testdata", "expected", "aspnetcore.yaml"))
 }
 
 func requireNoErrorExecCommand(t *testing.T, name string, arg ...string) {

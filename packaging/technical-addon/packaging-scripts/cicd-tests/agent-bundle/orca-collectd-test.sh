@@ -7,7 +7,7 @@ fi
 which jq || (echo "jq not found" && exit 1)
 source "${ADDONS_SOURCE_DIR}/packaging-scripts/cicd-tests/test-utils.sh"
 BUILD_DIR="$(realpath "$BUILD_DIR")"
-TA_FULLPATH="$(repack_with_access_token "$OLLY_ACCESS_TOKEN" "$BUILD_DIR/out/distribution/Splunk_TA_otel.tgz" | tail -n 1)"
+TA_FULLPATH="$(repack_with_test_config "$OLLY_ACCESS_TOKEN" "$BUILD_DIR/out/distribution/Splunk_TA_otel.tgz" | tail -n 1)"
 REPACKED_TA_NAME="$(basename "$TA_FULLPATH")"
 ADDON_DIR="$(realpath "$(dirname "$TA_FULLPATH")")"
 CI_JOB_ID="${CI_JOB_ID:-$(basename $(dirname "$TA_FULLPATH"))}"

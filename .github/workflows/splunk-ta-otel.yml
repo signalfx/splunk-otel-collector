@@ -246,6 +246,14 @@ jobs:
             exit 1
           fi
 
+      - name: Check that no otel.log was generated with default config
+        run: |
+          cd "${{github.workspace}}/var/log/splunk"
+          if [ -f "otel.log" ]; then
+            echo "Error: otel.log exists"
+            exit 1
+          fi
+
   smoke-test-windows:
     runs-on: otel-windows
     needs: [distribute-ta]
@@ -335,7 +343,6 @@ jobs:
           Write-Host "Last 50 System log events:"
           Get-WinEvent -Log System -MaxEvents 50 | Format-List TimeCreated, ProviderName, Message
 
-
       - name: Collect log files
         if: always()
         # workaround for actionlint not recognizing that "otel-windows" is a windows runner
@@ -360,6 +367,15 @@ jobs:
               Write-Host "otelcol_windows_amd64 process ($prev_otelcol_pid) was still running."
           } else {
               Write-Host "otelcol_windows_amd64 process ($prev_otelcol_pid) was not running!"
+              exit 1
+          }
+
+      - name: Check that no otel.log was generated with default config
+        shell: pwsh
+        run: |
+          cd "${Env:ProgramFiles}\SplunkUniversalForwarder\var\log\splunk"
+          if (Test-Path "otel.log") {
+              Write-Host "Error: otel.log exists"
               exit 1
           }
 

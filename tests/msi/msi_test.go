@@ -117,6 +117,7 @@ func TestCollectorReconfiguration(t *testing.T) {
 				"SPLUNK_ACCESS_TOKEN":         "2ndInstall",
 				"SPLUNK_REALM":                "2nd",
 				"SPLUNK_MEMORY_TOTAL_MIB":     "256",
+				"GODEBUG":                     "fips140=on",
 			},
 			skipSvcStart: true,
 			genericMSIProperties: map[string]string{
@@ -248,6 +249,9 @@ func assertServiceConfiguration(t *testing.T, msiProperties map[string]string, s
 	}
 	if memoryTotalMib, ok := msiProperties["SPLUNK_MEMORY_TOTAL_MIB"]; ok {
 		expectedEnvVars["SPLUNK_MEMORY_TOTAL_MIB"] = memoryTotalMib
+	}
+	if goDebug, ok := msiProperties["GODEBUG"]; ok {
+		expectedEnvVars["GODEBUG"] = goDebug
 	}
 
 	// Verify the environment variables set for the service

@@ -5,7 +5,7 @@ change_type: enhancement
 component: jmx
 
 # A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
-note: Update JMX metric gatherer to version 1.49.0
+note: Update JMX Metric Gatherer to version [1.49.0](https://github.com/open-telemetry/opentelemetry-java-contrib/releases/tag/v1.49.0)
 
 # One or more tracking issues related to the change
 issues: [6774]

@@ -18,7 +18,7 @@ and the [opentelemetry-collector-contrib v0.136.0](https://github.com/open-telem
   added intentionally and may lead to log spam when the broker does not really
   support metrics. We may make this configurable in the future.
 - (Contrib) `pkg/ottl`: Upgrade profiles proto to 1.8.0 ([#42526](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/42526))
-  See proto changelog. https://github.com/open-telemetry/opentelemetry-proto/blob/main/CHANGELOG.md#180---2025-09-02
+  See [proto changelog](https://github.com/open-telemetry/opentelemetry-proto/blob/main/CHANGELOG.md#180---2025-09-02).
 - (Contrib) `transformprocessor`: Upgrade profiles proto to 1.8.0 ([#42526](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/42526))
 
 ### 💡 Enhancements 💡

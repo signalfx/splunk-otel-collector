@@ -23,7 +23,6 @@ and the [opentelemetry-collector-contrib v0.136.0](https://github.com/open-telem
 
 ### 💡 Enhancements 💡
 
-- (Splunk) `discovery`: Automatic discovery of RabbitMQ by default enables the extra metrics used by dashboards on Splunk Observability. ([#6509](https://github.com/signalfx/splunk-otel-collector/pull/6509))
 - (Splunk) `dotnet-agent`: Update the Splunk Distribution of OpenTelemetry .NET to version 1.11.0 ([#6773](https://github.com/signalfx/splunk-otel-collector/pull/6773))
   This updates the Zero-code instrumentation for .NET deployed with the
   Splunk Distribution of the OpenTelemetry Collector. This version drops support

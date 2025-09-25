@@ -1316,8 +1316,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/exporter/pulsarexporte
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/pulsarexporter v0.136.0/go.mod h1:t4qSE+Jlgjxxut/fypFzXm+SfpeQFhgQtHxyCrS/3lQ=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.136.0 h1:16tS+5FbHsWO82XG+DRn6hdi5dtu+lxfUUGppDY+zx4=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.136.0/go.mod h1:x9ffBYE1oyhmiW+0jTuqPmFnR4MuPAKcWrdEu/MdFjA=
-github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.136.1-0.20250924164731-3810f7b92bca h1:acK261ZVFMJOyvNbn39G94XHq1/culPRNS/qWZuigBA=
-github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.136.1-0.20250924164731-3810f7b92bca/go.mod h1:TSaRarQSqXiQLMACugsxGj8LNEmblFi7WVaaI2D++O8=
+github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.136.0 h1:y1FjTzhZETTTpelOTkQL6YFEOO21pCg3t7cYJlGKxV4=
+github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.136.0/go.mod h1:TSaRarQSqXiQLMACugsxGj8LNEmblFi7WVaaI2D++O8=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.136.0 h1:ZtVJ7K0WYxBkSX+Zi4N+ZFz9mf5L1i43WjIqE0QSWUs=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.136.0/go.mod h1:zgmkXY0EISWv6OfemH5JWUdUcYNYPOLrCaM5UfQiHeM=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/ackextension v0.136.0 h1:o7OgFQ74sIKRoPL433Q9CgBQUXJONoCJFmP0eR/ZZcg=

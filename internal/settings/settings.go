@@ -378,7 +378,7 @@ func checkRuntimeParams(settings *Settings) error {
 
 func setDefaultEnvVars(s *Settings) error {
 	defaultEnvVars := map[string]string{
-		ListenInterfaceEnvVar:     defaultListenAddr(s),
+		ListenInterfaceEnvVar: defaultListenAddr(s),
 	}
 
 	if realm, ok := os.LookupEnv(RealmEnvVar); ok {

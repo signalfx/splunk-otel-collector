@@ -42,7 +42,6 @@ const (
 	APIURLEnvVar                   = "SPLUNK_API_URL"
 	ConfigEnvVar                   = "SPLUNK_CONFIG"
 	ConfigDirEnvVar                = "SPLUNK_CONFIG_DIR"
-	ConfigServerEnabledEnvVar      = "SPLUNK_DEBUG_CONFIG_SERVER"
 	ConfigYamlEnvVar               = "SPLUNK_CONFIG_YAML"
 	FileStorageExtensionPathEnvVar = "SPLUNK_FILE_STORAGE_EXTENSION_PATH"
 	HecLogIngestURLEnvVar          = "SPLUNK_HEC_URL"
@@ -380,7 +379,6 @@ func checkRuntimeParams(settings *Settings) error {
 func setDefaultEnvVars(s *Settings) error {
 	defaultEnvVars := map[string]string{
 		ListenInterfaceEnvVar:     defaultListenAddr(s),
-		ConfigServerEnabledEnvVar: "true",
 	}
 
 	if realm, ok := os.LookupEnv(RealmEnvVar); ok {

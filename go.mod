@@ -24,7 +24,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter v0.136.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/pulsarexporter v0.136.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.136.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.136.1-0.20250924164731-3810f7b92bca
+	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.136.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.136.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/ackextension v0.136.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.136.0

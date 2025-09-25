@@ -1922,6 +1922,12 @@ github-release:
       artifacts: true
     - job: sign-agent-bundles
       artifacts: true
+    - job: release-msi
+      artifacts: false
+      optional: true
+    - job: release-installers
+      artifacts: false
+      optional: true
   script:
     - mkdir -p dist/assets
     - cp bin/otelcol_linux_* dist/assets/

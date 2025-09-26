@@ -302,7 +302,7 @@ func (collector *CollectorContainer) execConfigRequest(t testing.TB, uri, config
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 	}, 180*time.Second, 100*time.Millisecond)
 
-	// Convert the full expvar with the equivalent of 
+	// Convert the full expvar with the equivalent of
 	// cat <expvarz_page> | jq -r '.["splunk.config.initial"]'
 	var top map[string]any
 	err := json.Unmarshal(body, &top)

@@ -188,7 +188,7 @@ func requestConfig(t testing.TB, uri, configType string) map[string]any {
 	body, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 
-	// Convert the full expvar with the equivalent of 
+	// Convert the full expvar with the equivalent of
 	// cat <expvarz_page> | jq -r '.["splunk.config.initial"]'
 	var top map[string]any
 	err = json.Unmarshal(body, &top)

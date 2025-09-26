@@ -17,7 +17,6 @@
 package tests
 
 import (
-	"fmt"
 	"path"
 	"strings"
 	"testing"
@@ -34,13 +33,9 @@ func TestCollectorProcessWithMultipleTemplateConfigs(t *testing.T) {
 	logCore, logs := observer.New(zap.DebugLevel)
 	logger := zap.New(logCore)
 
-	csPort := testutils.GetAvailablePort(t)
 	collector, err := testutils.NewCollectorProcess().
 		WithArgs("--config", path.Join(".", "testdata", "templated.yaml")).
 		WithLogger(logger).
-		WithEnv(map[string]string{
-			"SPLUNK_DEBUG_CONFIG_SERVER_PORT": fmt.Sprintf("%d", csPort),
-		}).
 		Build()
 
 	require.NotNil(t, collector)
@@ -75,6 +70,13 @@ func TestCollectorProcessWithMultipleTemplateConfigs(t *testing.T) {
 	}, 20*time.Second, time.Second)
 
 	expectedConfig := map[string]any{
+		"extensions": map[string]any{
+			"zpages": map[string]any{
+				"expvar": map[string]any{
+					"enabled": true,
+				},
+			},
+		},
 		"receivers": map[string]any{
 			"hostmetrics": map[string]any{
 				"collection_interval": "10s",
@@ -101,6 +103,7 @@ func TestCollectorProcessWithMultipleTemplateConfigs(t *testing.T) {
 			},
 		},
 		"service": map[string]any{
+			"extensions": []any{"zpages"},
 			"pipelines": map[string]any{
 				"metrics": map[string]any{
 					"processors": []any{"resourcedetection"},
@@ -111,5 +114,5 @@ func TestCollectorProcessWithMultipleTemplateConfigs(t *testing.T) {
 		},
 	}
 
-	require.Equal(t, expectedConfig, collector.EffectiveConfig(t, csPort))
+	require.Equal(t, expectedConfig, collector.EffectiveConfig(t, 0))
 }

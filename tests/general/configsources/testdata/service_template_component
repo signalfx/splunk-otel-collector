@@ -1,3 +1,4 @@
+  extensions: [zpages]
   pipelines:
     metrics:
       receivers: {{ .my_receivers }}

@@ -18,6 +18,7 @@ import (
 	"archive/tar"
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -271,36 +272,48 @@ func (l collectorLogConsumer) Accept(log testcontainers.Log) {
 	}
 }
 
-func (collector *CollectorContainer) InitialConfig(t testing.TB, port uint16) map[string]any {
-	return collector.execConfigRequest(t, fmt.Sprintf("http://localhost:%d/debug/configz/initial", port))
+func (collector *CollectorContainer) InitialConfig(t testing.TB, _ uint16) map[string]any {
+	return collector.execConfigRequest(t, "http://localhost:55679/debug/expvarz", "initial")
 }
 
-func (collector *CollectorContainer) EffectiveConfig(t testing.TB, port uint16) map[string]any {
-	return collector.execConfigRequest(t, fmt.Sprintf("http://localhost:%d/debug/configz/effective", port))
+func (collector *CollectorContainer) EffectiveConfig(t testing.TB, _ uint16) map[string]any {
+	return collector.execConfigRequest(t, "http://localhost:55679/debug/expvarz", "effective")
 }
 
-func (collector *CollectorContainer) execConfigRequest(t testing.TB, uri string) map[string]any {
+func (collector *CollectorContainer) execConfigRequest(t testing.TB, uri, configType string) map[string]any {
 	// Wait until the splunk-otel-collector is up: relying on the entrypoint of the image
 	// can have the request happening before the collector is ready.
-	var initial string
+	var body []byte
 	require.EventuallyWithT(t, func(tt *assert.CollectT) {
 		httpClient := &http.Client{}
 		req, err := http.NewRequest("GET", uri, nil)
+		t.Logf("NewRequest err: %s", err)
 		require.NoError(t, err)
 		resp, err := httpClient.Do(req)
+		t.Logf("httpClient.Do err: %s", err)
 		require.NoError(tt, err)
 
 		defer resp.Body.Close()
-		arr, err := io.ReadAll(resp.Body)
+		body, err = io.ReadAll(resp.Body)
+		t.Logf("ReadAll err: %s", err)
 		require.NoError(tt, err)
 
-		initial = string(arr)
-
+		t.Logf("StatusCode: %n", resp.StatusCode)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
-	}, 30*time.Second, 100*time.Millisecond)
+	}, 180*time.Second, 100*time.Millisecond)
+
+	// Convert the full expvar with the equivalent of 
+	// cat <expvarz_page> | jq -r '.["splunk.config.initial"]'
+	var top map[string]any
+	err := json.Unmarshal(body, &top)
+	require.NoError(t, err)
+	actualAny, ok := top["splunk.config."+configType]
+	require.True(t, ok, "key 'splunk.config.%s' not found", configType)
+	actualStr, ok := actualAny.(string)
+	require.True(t, ok, "'splunk.config.%s' cannot be cast to string", configType)
 
 	actual := map[string]any{}
-	require.NoError(t, yaml.Unmarshal([]byte(initial), &actual))
+	require.NoError(t, yaml.Unmarshal([]byte(actualStr), &actual))
 	return confmap.NewFromStringMap(actual).ToStringMap()
 }
 

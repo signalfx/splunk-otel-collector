@@ -16,6 +16,7 @@ package testutils
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -163,15 +164,15 @@ func (collector *CollectorProcess) Shutdown() error {
 	return collector.Process.Shutdown(context.Background())
 }
 
-func (collector *CollectorProcess) InitialConfig(t testing.TB, port uint16) map[string]any {
-	return requestConfig(t, fmt.Sprintf("http://localhost:%d/debug/configz/initial", port))
+func (collector *CollectorProcess) InitialConfig(t testing.TB, _ uint16) map[string]any {
+	return requestConfig(t, "http://localhost:55679/debug/expvarz", "initial")
 }
 
-func (collector *CollectorProcess) EffectiveConfig(t testing.TB, port uint16) map[string]any {
-	return requestConfig(t, fmt.Sprintf("http://localhost:%d/debug/configz/effective", port))
+func (collector *CollectorProcess) EffectiveConfig(t testing.TB, _ uint16) map[string]any {
+	return requestConfig(t, "http://localhost:55679/debug/expvarz", "effective")
 }
 
-func requestConfig(t testing.TB, uri string) map[string]any {
+func requestConfig(t testing.TB, uri, configType string) map[string]any {
 	var resp *http.Response
 	var err error
 	for i := 0; i < 3; i++ {
@@ -187,8 +188,18 @@ func requestConfig(t testing.TB, uri string) map[string]any {
 	body, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 
+	// Convert the full expvar with the equivalent of 
+	// cat <expvarz_page> | jq -r '.["splunk.config.initial"]'
+	var top map[string]any
+	err = json.Unmarshal(body, &top)
+	require.NoError(t, err)
+	actualAny, ok := top["splunk.config."+configType]
+	require.True(t, ok, "key 'splunk.config.%s' not found", configType)
+	actualStr, ok := actualAny.(string)
+	require.True(t, ok, "'splunk.config.%s' cannot be cast to string", configType)
+
 	actual := map[string]any{}
-	require.NoError(t, yaml.Unmarshal(body, &actual))
+	require.NoError(t, yaml.Unmarshal([]byte(actualStr), &actual))
 	return confmap.NewFromStringMap(actual).ToStringMap()
 }
 

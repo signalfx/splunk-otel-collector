@@ -204,21 +204,56 @@ fossa:
         exit 1
       fi
 
+# YAML anchors for Go cache - define once, reuse everywhere
+.go-cache-files: &go-cache-files
+  - go.mod
+  - go.sum
+  - "*/go.mod"
+  - "*/go.sum" 
+  - "**/go.mod"
+  - "**/go.sum"
+
+.go-cache-paths: &go-cache-paths
+  - .go/pkg/mod
+  - .go/build-cache
+  - .go/bin
+
+# YAML anchor for Go setup commands - reusable in before_script
+.go-setup-commands: &go-setup-commands
+  - mkdir -p $GOMODCACHE $GOCACHE $GOPATH/bin
+  # Download modules for all go.mod files in parallel
+  - echo "Found $(find . -name "go.mod" | wc -l) go.mod files"
+  - find . -name "go.mod" -execdir sh -c 'echo "Downloading modules in $(pwd)" && go mod download' \; &
+  - make install-tools &
+  - wait  # Wait for parallel downloads to complete
+  - export PATH=$GOPATH/bin:$PATH
+
 .go-cache:
+  image: '${DOCKER_HUB_REPO}/golang:${GO_VERSION}'
+  variables:
+    GOMODCACHE: "$CI_PROJECT_DIR/.go/pkg/mod"
+    GOCACHE: "$CI_PROJECT_DIR/.go/build-cache"
+    GOPATH: "$CI_PROJECT_DIR/.go"
+    GOPROXY: "https://proxy.golang.org,direct"
+    GOSUMDB: "sum.golang.org"
+  before_script: *go-setup-commands
+  cache:
+    key:
+      files: *go-cache-files
+    paths: *go-cache-paths
+
+# Lightweight cache for jobs that only need ghr tool (no Go compilation)
+.ghr-cache:
   image: '${DOCKER_HUB_REPO}/golang:${GO_VERSION}'
   variables:
     GOPATH: "$CI_PROJECT_DIR/.go"
   before_script:
-    - mkdir -p $GOPATH
+    - mkdir -p $GOPATH/bin
     - make install-tools
     - export PATH=$GOPATH/bin:$PATH
   cache:
-    key:
-      files:
-        - go.mod
-        - go.sum
+    key: "ghr-tools"
     paths:
-      - .go/pkg/mod
       - .go/bin
 
 # Upload deb/rpm package for the main branch to the generic-test artifactory repo for xray scanning
@@ -368,6 +403,11 @@ compile:
   parallel:
     matrix:
       - TARGET: [binaries-darwin_amd64, binaries-darwin_arm64, binaries-linux_amd64, binaries-linux_arm64, binaries-windows_amd64, binaries-linux_ppc64le]
+  cache:
+    key:
+      files: *go-cache-files
+      prefix: "go-cache-${TARGET}"
+    paths: *go-cache-paths
   script:
     - |
       VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
@@ -418,7 +458,9 @@ otelcol-fips:
       - bin/otelcol-fips_*
 
 libsplunk:
-  extends: .trigger-filter
+  extends: 
+    - .trigger-filter
+    - .go-cache
   stage: build
   needs:
     - job: manual_release_trigger
@@ -427,6 +469,11 @@ libsplunk:
   parallel:
     matrix:
       - ARCH: ["amd64", "arm64"]
+  cache:
+    key:
+      files: *go-cache-files
+      prefix: "go-cache-libsplunk-${ARCH}"
+    paths: *go-cache-paths
   id_tokens:  # http://go/gitlab-17
     CI_JOB_JWT:
       aud: $CICD_VAULT_ADDR
@@ -693,7 +740,7 @@ collector-ta-release:
   rules:
     - <<: *collector-ta-release-condition
   extends:
-    - .go-cache # Use this image since this job uses the ghr tool
+    - .ghr-cache # Use this image since this job uses the ghr tool
   tags: [large]
   stage: publish-release
   dependencies:
@@ -1894,7 +1941,7 @@ xray-scan-docker:
 github-release:
   extends:
     - .trigger-filter
-    - .go-cache
+    - .ghr-cache
   tags: [large]
   stage: publish-release
   needs:
@@ -2091,7 +2138,7 @@ pack-dotnet-instrumentation-deployer:
 dotnet-instrumentation-deployer-release:
   extends:
     - .trigger-dotnet-instrumentation-deployer
-    - .go-cache # Use this image since this job uses the ghr tool
+    - .ghr-cache # Use this image since this job uses the ghr tool
   tags: [large]
   stage: publish-release
   dependencies:

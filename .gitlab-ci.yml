@@ -205,13 +205,10 @@ fossa:
       fi
 
 # YAML anchors for Go cache - define once, reuse everywhere
+# Note: GitLab CI cache key files limited to 2 items maximum
 .go-cache-files: &go-cache-files
-  - go.mod
-  - go.sum
-  - "*/go.mod"
-  - "*/go.sum" 
-  - "**/go.mod"
-  - "**/go.sum"
+  - go.sum  # Root go.sum changes when any submodule dependencies change
+  - go.mod  # Root go.mod for version constraints
 
 .go-cache-paths: &go-cache-paths
   - .go/pkg/mod

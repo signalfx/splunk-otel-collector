@@ -235,12 +235,7 @@ fossa:
   - echo "TIMING: PARALLEL DOWNLOADS START:" $(date +"%Y-%m-%d %H:%M:%S")
   - export DOWNLOADS_START=$(date +%s)
   - echo "Found $(find . -name "go.mod" | wc -l) go.mod files"
-  - |
-    find . -name "go.mod" -execdir sh -c '
-      echo "Processing modules in $(pwd)"
-      go mod download
-      go mod verify
-    ' \; &
+  - find . -name "go.mod" -execdir sh -c 'echo "Processing modules in $(pwd)" && go mod download && go mod verify' \; &
   - make install-tools &
   - wait  # Wait for parallel downloads to complete
   - export DOWNLOADS_END=$(date +%s)
@@ -465,13 +460,8 @@ compile:
     # Time the actual compilation
     - echo "TIMING: COMPILATION START:" $(date +"%Y-%m-%d %H:%M:%S")
     - export COMPILE_START=$(date +%s)
-    - |
-      VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
-      if [[ -n "${VERSION_TAG:-}" ]]; then
-        time make $TARGET VERSION=${VERSION_TAG}
-      else
-        time make $TARGET
-      fi
+    - export VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
+    - if [[ -n "${VERSION_TAG:-}" ]]; then time make $TARGET VERSION=${VERSION_TAG}; else time make $TARGET; fi
     - export COMPILE_END=$(date +%s)
     - echo "TIMING: COMPILATION COMPLETE:" $(date +"%Y-%m-%d %H:%M:%S") "(took $((COMPILE_END - COMPILE_START))s)"
     

@@ -217,33 +217,12 @@ fossa:
 
 # YAML anchor for Go setup commands - reusable in before_script
 .go-setup-commands: &go-setup-commands
-  - export GO_SETUP_START=$(date +%s)
-  - echo "TIMING: GO SETUP START:" $(date +"%Y-%m-%d %H:%M:%S")
-  - mkdir -p $GOMODCACHE $GOCACHE $GOPATH/bin
-  # Configure Go for reliable module resolution
-  - export GOWORK=off  # Disable go.work files which might be causing issues with dependencies
-  - export GOFLAGS="-mod=mod"  # Force module mode, avoid vendor issues
-  
-  # Time the cache cleaning
-  - echo "TIMING: CACHE CLEAN START:" $(date +"%Y-%m-%d %H:%M:%S")
-  - export CLEAN_START=$(date +%s)
-  - go clean -modcache || echo "Failed to clean modcache, continuing..."
-  - export CLEAN_END=$(date +%s)
-  - echo "TIMING: CACHE CLEAN COMPLETE:" $(date +"%Y-%m-%d %H:%M:%S") "(took $((CLEAN_END - CLEAN_START))s)"
-  
-  # Time the parallel downloads
-  - echo "TIMING: PARALLEL DOWNLOADS START:" $(date +"%Y-%m-%d %H:%M:%S")
-  - export DOWNLOADS_START=$(date +%s)
-  - echo "Found $(find . -name "go.mod" | wc -l) go.mod files"
-  - find . -name "go.mod" -execdir sh -c 'echo "Processing modules in $(pwd)" && go mod download && go mod verify' \; &
-  - make install-tools &
-  - wait  # Wait for parallel downloads to complete
-  - export DOWNLOADS_END=$(date +%s)
-  - echo "TIMING: PARALLEL DOWNLOADS COMPLETE:" $(date +"%Y-%m-%d %H:%M:%S") "(took $((DOWNLOADS_END - DOWNLOADS_START))s)"
-  
-  - export PATH=$GOPATH/bin:$PATH
-  - export GO_SETUP_END=$(date +%s)
-  - echo "TIMING: GO SETUP COMPLETE:" $(date +"%Y-%m-%d %H:%M:%S") "(took $((GO_SETUP_END - GO_SETUP_START))s)"
+  - mkdir -p $GOMODCACHE $GOCACHE $GOPATH/bin && export GOWORK=off && export GOFLAGS="-mod=mod" && export GO_SETUP_START=$(date +%s) && echo "TIMING GO SETUP START" $(date +"%Y-%m-%d %H:%M:%S")
+  - export CLEAN_START=$(date +%s) && echo "TIMING CACHE CLEAN START" $(date +"%Y-%m-%d %H:%M:%S") && go clean -modcache || echo "Failed to clean modcache, continuing..."
+  - export CLEAN_END=$(date +%s) && echo "TIMING CACHE CLEAN COMPLETE took $((CLEAN_END - CLEAN_START))s"
+  - export DOWNLOADS_START=$(date +%s) && echo "TIMING PARALLEL DOWNLOADS START" $(date +"%Y-%m-%d %H:%M:%S") && echo "Found $(find . -name "go.mod" | wc -l) go.mod files"
+  - 'find . -name "go.mod" -execdir sh -c "echo Processing modules in $(pwd) && go mod download && go mod verify" \; & make install-tools & wait'
+  - export DOWNLOADS_END=$(date +%s) && export PATH=$GOPATH/bin:$PATH && export GO_SETUP_END=$(date +%s) && echo "TIMING DOWNLOADS COMPLETE took $((DOWNLOADS_END - DOWNLOADS_START))s" && echo "TIMING GO SETUP COMPLETE took $((GO_SETUP_END - GO_SETUP_START))s"
 
 .go-cache:
   image: '${DOCKER_HUB_REPO}/golang:${GO_VERSION}'

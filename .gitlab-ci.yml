@@ -483,7 +483,7 @@ libsplunk:
 
 agent-bundle-linux:
   rules:
-    - if: $CI_COMMIT_BRANCH == "main"
+    - <<: *main-condition  # Use the same condition as other jobs
     # - if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
     - if: $CI_PIPELINE_SOURCE == "schedule"
     - <<: *manual-release-condition

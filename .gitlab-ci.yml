@@ -407,49 +407,17 @@ compile:
       prefix: "go-cache-${TARGET}"
     paths: *go-cache-paths
   script:
-    # Start timing for compile script
-    - export SCRIPT_START_TIME=$(date +%s)
-    - echo "TIMING COMPILE START" $(date +"%Y-%m-%d %H:%M:%S")
-    # Time the environment debug section
-    - echo "TIMING DEBUG START" $(date +"%Y-%m-%d %H:%M:%S")
-    - export DEBUG_START=$(date +%s)
-    - echo "=== Debugging: Go environment ==="
-    - go version
-    - go env GOMODCACHE
-    - go env GOCACHE
-    - go env GOFLAGS
-    - go env GOWORK
-    - echo "=== Module cache contents ==="
-    - ls -la "$GOMODCACHE" || echo "GOMODCACHE directory not found"
-    - echo "=== Checking for problematic AWS replacements ==="
-    - find "$GOMODCACHE" -name "*aws*" -type d | head -10 || echo "No AWS modules in cache yet"
-    - export DEBUG_END=$(date +%s)
-    - echo "TIMING DEBUG COMPLETE took $((DEBUG_END - DEBUG_START))s"
-    
-    # Time the module download section
-    - echo "TIMING MODULE DOWNLOAD START" $(date +"%Y-%m-%d %H:%M:%S")
-    - export DOWNLOAD_START=$(date +%s)
-    - echo "=== Force-refreshing modules for compile step ==="
-    - go mod download -x || echo "Initial download failed, retrying..."
-    - go mod download -x || echo "Second download failed, continuing with build..."
-    - export DOWNLOAD_END=$(date +%s)
-    - echo "TIMING MODULE DOWNLOAD COMPLETE took $((DOWNLOAD_END - DOWNLOAD_START))s"
-    
-    # Time the actual compilation
-    - echo "TIMING COMPILATION START" $(date +"%Y-%m-%d %H:%M:%S")
-    - export COMPILE_START=$(date +%s)
-    - export VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
+    # Start timing and debug environment
+    - export SCRIPT_START_TIME=$(date +%s) DEBUG_START=$(date +%s) && echo "TIMING COMPILE START" $(date +"%Y-%m-%d %H:%M:%S") && echo "TIMING DEBUG START" $(date +"%Y-%m-%d %H:%M:%S")
+    - echo "=== Debugging Go environment ===" && go version && go env GOMODCACHE && go env GOCACHE && go env GOFLAGS && go env GOWORK
+    - echo "=== Module cache contents ===" && ls -la "$GOMODCACHE" || echo "GOMODCACHE directory not found"
+    - echo "=== Checking for problematic AWS replacements ===" && find "$GOMODCACHE" -name "*aws*" -type d | head -10 || echo "No AWS modules in cache yet"
+    - export DEBUG_END=$(date +%s) DOWNLOAD_START=$(date +%s) && echo "TIMING DEBUG COMPLETE took $((DEBUG_END - DEBUG_START))s" && echo "TIMING MODULE DOWNLOAD START" $(date +"%Y-%m-%d %H:%M:%S")
+    - echo "=== Force-refreshing modules for compile step ===" && go mod download -x || echo "Initial download failed, retrying..." && go mod download -x || echo "Second download failed, continuing with build..."
+    - export DOWNLOAD_END=$(date +%s) COMPILE_START=$(date +%s) VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}" && echo "TIMING MODULE DOWNLOAD COMPLETE took $((DOWNLOAD_END - DOWNLOAD_START))s" && echo "TIMING COMPILATION START" $(date +"%Y-%m-%d %H:%M:%S")
     - if [[ -n "${VERSION_TAG:-}" ]]; then time make $TARGET VERSION=${VERSION_TAG}; else time make $TARGET; fi
-    - export COMPILE_END=$(date +%s)
-    - echo "TIMING COMPILATION COMPLETE took $((COMPILE_END - COMPILE_START))s"
-    
-    # Final timing summary
-    - export TOTAL_END=$(date +%s)
-    - echo "TIMING TOTAL SCRIPT TIME $((TOTAL_END - SCRIPT_START_TIME))s"
-    - echo "TIMING BREAKDOWN"
-    - echo "  - Debug phase: $((DEBUG_END - DEBUG_START))s"
-    - echo "  - Module downloads: $((DOWNLOAD_END - DOWNLOAD_START))s" 
-    - echo "  - Compilation: $((COMPILE_END - COMPILE_START))s"
+    - export COMPILE_END=$(date +%s) TOTAL_END=$(date +%s) && echo "TIMING COMPILATION COMPLETE took $((COMPILE_END - COMPILE_START))s" && echo "TIMING TOTAL SCRIPT TIME $((TOTAL_END - SCRIPT_START_TIME))s"
+    - echo "TIMING BREAKDOWN" && echo "  - Debug phase $((DEBUG_END - DEBUG_START))s" && echo "  - Module downloads $((DOWNLOAD_END - DOWNLOAD_START))s" && echo "  - Compilation $((COMPILE_END - COMPILE_START))s"
   after_script:
     - if [ -e bin/otelcol ]; then rm -f bin/otelcol; fi  # remove the symlink
     - if [ -e bin/migratecheckpoint ]; then rm -f bin/migratecheckpoint; fi  # remove the symlink

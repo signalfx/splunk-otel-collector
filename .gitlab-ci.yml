@@ -218,9 +218,17 @@ fossa:
 # YAML anchor for Go setup commands - reusable in before_script
 .go-setup-commands: &go-setup-commands
   - mkdir -p $GOMODCACHE $GOCACHE $GOPATH/bin
+  # Configure Go for reliable module resolution
+  - export GOWORK=off  # Disable go.work files which might be causing issues with dependencies
+  - export GOFLAGS="-mod=mod"  # Force module mode, avoid vendor issues
   # Download modules for all go.mod files in parallel
   - echo "Found $(find . -name "go.mod" | wc -l) go.mod files"
-  - find . -name "go.mod" -execdir sh -c 'echo "Downloading modules in $(pwd)" && go mod download' \; &
+  - |
+    find . -name "go.mod" -execdir sh -c '
+      echo "Processing modules in $(pwd)"
+      go mod download
+      go mod verify
+    ' \; &
   - make install-tools &
   - wait  # Wait for parallel downloads to complete
   - export PATH=$GOPATH/bin:$PATH
@@ -233,6 +241,8 @@ fossa:
     GOPATH: "$CI_PROJECT_DIR/.go"
     GOPROXY: "https://proxy.golang.org,direct"
     GOSUMDB: "sum.golang.org"
+    GOWORK: "off"  # Disable go.work files that cause dependency issues
+    GOFLAGS: "-mod=mod"  # Force module mode, avoid vendor conflicts
   before_script: *go-setup-commands
   cache:
     key:

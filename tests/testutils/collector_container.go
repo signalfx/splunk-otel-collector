@@ -298,7 +298,7 @@ func (collector *CollectorContainer) execConfigRequest(t testing.TB, uri, config
 		t.Logf("ReadAll err: %s", err)
 		require.NoError(tt, err)
 
-		t.Logf("StatusCode: %n", resp.StatusCode)
+		t.Logf("StatusCode: %d", resp.StatusCode)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 	}, 180*time.Second, 100*time.Millisecond)
 

@@ -217,11 +217,23 @@ fossa:
 
 # YAML anchor for Go setup commands - reusable in before_script
 .go-setup-commands: &go-setup-commands
+  - export GO_SETUP_START=$(date +%s)
+  - echo "TIMING: GO SETUP START:" $(date +"%Y-%m-%d %H:%M:%S")
   - mkdir -p $GOMODCACHE $GOCACHE $GOPATH/bin
   # Configure Go for reliable module resolution
   - export GOWORK=off  # Disable go.work files which might be causing issues with dependencies
   - export GOFLAGS="-mod=mod"  # Force module mode, avoid vendor issues
-  # Download modules for all go.mod files in parallel
+  
+  # Time the cache cleaning
+  - echo "TIMING: CACHE CLEAN START:" $(date +"%Y-%m-%d %H:%M:%S")
+  - export CLEAN_START=$(date +%s)
+  - go clean -modcache || echo "Failed to clean modcache, continuing..."
+  - export CLEAN_END=$(date +%s)
+  - echo "TIMING: CACHE CLEAN COMPLETE:" $(date +"%Y-%m-%d %H:%M:%S") "(took $((CLEAN_END - CLEAN_START))s)"
+  
+  # Time the parallel downloads
+  - echo "TIMING: PARALLEL DOWNLOADS START:" $(date +"%Y-%m-%d %H:%M:%S")
+  - export DOWNLOADS_START=$(date +%s)
   - echo "Found $(find . -name "go.mod" | wc -l) go.mod files"
   - |
     find . -name "go.mod" -execdir sh -c '
@@ -231,7 +243,12 @@ fossa:
     ' \; &
   - make install-tools &
   - wait  # Wait for parallel downloads to complete
+  - export DOWNLOADS_END=$(date +%s)
+  - echo "TIMING: PARALLEL DOWNLOADS COMPLETE:" $(date +"%Y-%m-%d %H:%M:%S") "(took $((DOWNLOADS_END - DOWNLOADS_START))s)"
+  
   - export PATH=$GOPATH/bin:$PATH
+  - export GO_SETUP_END=$(date +%s)
+  - echo "TIMING: GO SETUP COMPLETE:" $(date +"%Y-%m-%d %H:%M:%S") "(took $((GO_SETUP_END - GO_SETUP_START))s)"
 
 .go-cache:
   image: '${DOCKER_HUB_REPO}/golang:${GO_VERSION}'
@@ -415,14 +432,56 @@ compile:
       files: *go-cache-files
       prefix: "go-cache-${TARGET}"
     paths: *go-cache-paths
+  before_script:
+    # Start timing for entire before_script
+    - export SCRIPT_START_TIME=$(date +%s)
+    - echo "TIMING: COMPILE START:" $(date +"%Y-%m-%d %H:%M:%S")
   script:
+    # Time the environment debug section
+    - echo "TIMING: DEBUG START:" $(date +"%Y-%m-%d %H:%M:%S")
+    - export DEBUG_START=$(date +%s)
+    - echo "=== Debugging: Go environment ==="
+    - go version
+    - go env GOMODCACHE
+    - go env GOCACHE
+    - go env GOFLAGS
+    - go env GOWORK
+    - echo "=== Module cache contents ==="
+    - ls -la "$GOMODCACHE" || echo "GOMODCACHE directory not found"
+    - echo "=== Checking for problematic AWS replacements ==="
+    - find "$GOMODCACHE" -name "*aws*" -type d | head -10 || echo "No AWS modules in cache yet"
+    - export DEBUG_END=$(date +%s)
+    - echo "TIMING: DEBUG COMPLETE:" $(date +"%Y-%m-%d %H:%M:%S") "(took $((DEBUG_END - DEBUG_START))s)"
+    
+    # Time the module download section
+    - echo "TIMING: MODULE DOWNLOAD START:" $(date +"%Y-%m-%d %H:%M:%S")
+    - export DOWNLOAD_START=$(date +%s)
+    - echo "=== Force-refreshing modules for compile step ==="
+    - go mod download -x || echo "Initial download failed, retrying..."
+    - go mod download -x || echo "Second download failed, continuing with build..."
+    - export DOWNLOAD_END=$(date +%s)
+    - echo "TIMING: MODULE DOWNLOAD COMPLETE:" $(date +"%Y-%m-%d %H:%M:%S") "(took $((DOWNLOAD_END - DOWNLOAD_START))s)"
+    
+    # Time the actual compilation
+    - echo "TIMING: COMPILATION START:" $(date +"%Y-%m-%d %H:%M:%S")
+    - export COMPILE_START=$(date +%s)
     - |
       VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
       if [[ -n "${VERSION_TAG:-}" ]]; then
-        make $TARGET VERSION=${VERSION_TAG}
+        time make $TARGET VERSION=${VERSION_TAG}
       else
-        make $TARGET
+        time make $TARGET
       fi
+    - export COMPILE_END=$(date +%s)
+    - echo "TIMING: COMPILATION COMPLETE:" $(date +"%Y-%m-%d %H:%M:%S") "(took $((COMPILE_END - COMPILE_START))s)"
+    
+    # Final timing summary
+    - export TOTAL_END=$(date +%s)
+    - echo "TIMING TOTAL SCRIPT TIME:" "$((TOTAL_END - SCRIPT_START_TIME))s"
+    - echo "TIMING BREAKDOWN:"
+    - echo "  - Debug phase: $((DEBUG_END - DEBUG_START))s"
+    - echo "  - Module downloads: $((DOWNLOAD_END - DOWNLOAD_START))s" 
+    - echo "  - Compilation: $((COMPILE_END - COMPILE_START))s"
   after_script:
     - if [ -e bin/otelcol ]; then rm -f bin/otelcol; fi  # remove the symlink
     - if [ -e bin/migratecheckpoint ]; then rm -f bin/migratecheckpoint; fi  # remove the symlink
@@ -465,9 +524,7 @@ otelcol-fips:
       - bin/otelcol-fips_*
 
 libsplunk:
-  extends: 
-    - .trigger-filter
-    - .go-cache
+  extends: .trigger-filter
   stage: build
   needs:
     - job: manual_release_trigger
@@ -476,11 +533,6 @@ libsplunk:
   parallel:
     matrix:
       - ARCH: ["amd64", "arm64"]
-  cache:
-    key:
-      files: *go-cache-files
-      prefix: "go-cache-libsplunk-${ARCH}"
-    paths: *go-cache-paths
   id_tokens:  # http://go/gitlab-17
     CI_JOB_JWT:
       aud: $CICD_VAULT_ADDR

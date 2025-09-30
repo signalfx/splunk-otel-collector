@@ -30,6 +30,8 @@ jobs:
     steps:
       - name: Free up disk space for next step
         uses: jlumbroso/free-disk-space@v1.3.1
+        if: runner.os == 'Linux'
+        continue-on-error: true
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0

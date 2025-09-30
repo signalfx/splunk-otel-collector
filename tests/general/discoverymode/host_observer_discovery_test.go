@@ -106,7 +106,7 @@ func TestHostObserver(t *testing.T) {
 		"OTLPEndpoint": tc.OTLPEndpointForCollector,
 		"PromPort":     promPort,
 	})
-	gotEffective := cc.EffectiveConfig(t, 55554)
+	gotEffective := cc.EffectiveConfig(t, "localhost")
 	assert.NotZero(t, removeBundledReceivers(gotEffective["receivers"].(map[string]any)["discovery/host_observer"]))
 	require.Equal(t, expectedEffective, gotEffective)
 

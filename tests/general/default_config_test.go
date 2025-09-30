@@ -55,7 +55,7 @@ func TestDefaultGatewayConfig(t *testing.T) {
 				ip = "0.0.0.0"
 			}
 
-			config := collector.EffectiveConfig(t, 55554)
+			config := collector.EffectiveConfig(t, ip)
 			require.Equal(t, map[string]any{
 				"exporters": map[string]any{
 					"otlphttp": map[string]any{
@@ -290,7 +290,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 				ip = "127.0.0.1"
 			}
 
-			config := collector.EffectiveConfig(t, 55554)
+			config := collector.EffectiveConfig(t, ip)
 			require.Equal(t, map[string]any{
 				"exporters": map[string]any{
 					"debug": map[string]any{

@@ -5,7 +5,7 @@ change_type: bug_fix
 component: receiver/kubeletstats
 
 # A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
-note: Remove support for no-op configuration sections for disabled kubeletstats CPU utilization metrics
+note: Removed the Splunk distribution's config converter that handled no-op configuration sections for CPU utilization metrics that were already disabled
 
 # One or more tracking issues related to the change
 issues: [6815]
@@ -13,6 +13,4 @@ issues: [6815]
 # (Optional) One or more lines of additional information to render under the primary note.
 # These lines will be padded with 2 spaces and then inserted directly into the document.
 # Use pipe (|) for multiline entries.
-subtext: |
-  Removed the Splunk distribution's config converter that handled no-op configuration 
-  sections for CPU utilization metrics that were already disabled.
+subtext:

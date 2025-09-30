@@ -126,7 +126,7 @@ func TestDockerObserver(t *testing.T) {
 	})
 	gotEffective := cc.EffectiveConfig(t)
 	assert.NotZero(t, removeBundledReceivers(gotEffective["receivers"].(map[string]any)["discovery/docker_observer"]))
-	require.Equal(t, expectedEffective, gotEffective)
+	assert.Equal(t, expectedEffective, gotEffective)
 
 	expectedDryRunFile := filepath.Join("testdata", "expected", "docker-observer-dry-run-config-expected.yaml")
 	expectedDryRun := readConfigFromYamlTmplFile(t, expectedDryRunFile, nil)

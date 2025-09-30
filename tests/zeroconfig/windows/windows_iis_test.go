@@ -96,7 +96,6 @@ func requireNoErrorExecCommand(t *testing.T, name string, arg ...string) {
 	var out strings.Builder
 	cmd.Stdout = &out
 	err := cmd.Run()
-	t.Log(out.String())
 	require.NoError(t, err)
 }
 
@@ -126,7 +125,7 @@ func testExpectedTracesForHTTPGetRequest(t *testing.T, otlp *testutils.OTLPRecei
 
 	// Make only a single successful request to the server to avoid creating multiple traces.
 	assert.EventuallyWithT(t, func(tt *assert.CollectT) {
-		assertHTTPGetRequestSuccess(t, url)
+		assertHTTPGetRequestSuccess(tt, url)
 	}, 3*time.Minute, 100*time.Millisecond, "Failed to connect to target")
 
 	var index int

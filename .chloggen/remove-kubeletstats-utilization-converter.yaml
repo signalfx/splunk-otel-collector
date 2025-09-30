@@ -1,11 +1,11 @@
 # One of 'breaking', 'deprecation', 'new_component', 'enhancement', 'bug_fix'
-change_type: breaking
+change_type: bug_fix
 
 # The name of the component, or a single word describing the area of concern, (e.g. crosslink)
 component: receiver/kubeletstats
 
 # A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
-note: Remove deprecated kubeletstats CPU utilization metrics from the collector's config converter
+note: Remove support for no-op configuration sections for disabled kubeletstats CPU utilization metrics
 
 # One or more tracking issues related to the change
 issues: [6815]
@@ -14,17 +14,5 @@ issues: [6815]
 # These lines will be padded with 2 spaces and then inserted directly into the document.
 # Use pipe (|) for multiline entries.
 subtext: |
-  The kubeletstats receiver's deprecated CPU utilization metrics have been completely removed in
-  OpenTelemetry Collector Contrib v0.136.0, along with the `receiver.kubeletstats.enableCPUUsageMetrics` 
-  feature gate. Users who were explicitly including these metrics in their SignalFx exporter 
-  `include_metrics` configuration need to update their configs:
-  
-  - `container.cpu.utilization` → `container.cpu.usage`
-  - `k8s.node.cpu.utilization` → `k8s.node.cpu.usage`
-  - `k8s.pod.cpu.utilization` → `k8s.pod.cpu.usage`
-  
-  Note: The new `.cpu.usage` metrics show usage counted in CPUs (not a percentage of used resources).
-  The previous metrics were incorrectly named using the "utilization" term.
-  
-  The Splunk distribution's config converter that automatically disabled these deprecated
-  metrics has been removed to prevent collector startup failures.
+  Removed the Splunk distribution's config converter that handled no-op configuration 
+  sections for CPU utilization metrics that were already disabled.

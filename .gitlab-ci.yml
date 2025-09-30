@@ -217,12 +217,9 @@ fossa:
 
 # YAML anchor for Go setup commands - reusable in before_script
 .go-setup-commands: &go-setup-commands
-  - mkdir -p $GOMODCACHE $GOCACHE $GOPATH/bin && export GOWORK=off && export GOFLAGS="-mod=mod" && export GO_SETUP_START=$(date +%s) && echo "TIMING GO SETUP START" $(date +"%Y-%m-%d %H:%M:%S")
-  - export CLEAN_START=$(date +%s) && echo "TIMING CACHE CLEAN START" $(date +"%Y-%m-%d %H:%M:%S") && go clean -modcache || echo "Failed to clean modcache, continuing..."
-  - export CLEAN_END=$(date +%s) && echo "TIMING CACHE CLEAN COMPLETE took $((CLEAN_END - CLEAN_START))s"
-  - export DOWNLOADS_START=$(date +%s) && echo "TIMING PARALLEL DOWNLOADS START" $(date +"%Y-%m-%d %H:%M:%S") && echo "Found $(find . -name "go.mod" | wc -l) go.mod files"
-  - 'find . -name "go.mod" -execdir sh -c "echo Processing modules in $(pwd) && go mod download && go mod verify" \; & make install-tools & wait'
-  - export DOWNLOADS_END=$(date +%s) && export PATH=$GOPATH/bin:$PATH && export GO_SETUP_END=$(date +%s) && echo "TIMING DOWNLOADS COMPLETE took $((DOWNLOADS_END - DOWNLOADS_START))s" && echo "TIMING GO SETUP COMPLETE took $((GO_SETUP_END - GO_SETUP_START))s"
+  - make install-tools
+  - go mod download
+  - export PATH=$GOPATH/bin:$PATH
 
 .go-cache:
   image: '${DOCKER_HUB_REPO}/golang:${GO_VERSION}'
@@ -230,10 +227,6 @@ fossa:
     GOMODCACHE: "$CI_PROJECT_DIR/.go/pkg/mod"
     GOCACHE: "$CI_PROJECT_DIR/.go/build-cache"
     GOPATH: "$CI_PROJECT_DIR/.go"
-    GOPROXY: "https://proxy.golang.org,direct"
-    GOSUMDB: "sum.golang.org"
-    GOWORK: "off"  # Disable go.work files that cause dependency issues
-    GOFLAGS: "-mod=mod"  # Force module mode, avoid vendor conflicts
   before_script: *go-setup-commands
   cache:
     key:
@@ -393,6 +386,9 @@ compile:
   extends:
     - .trigger-filter
     - .go-cache
+  variables:
+    GOWORK: "off"
+    GOFLAGS: "-mod=mod"
   tags: [large]
   stage: build
   needs:
@@ -407,17 +403,10 @@ compile:
       prefix: "go-cache-${TARGET}"
     paths: *go-cache-paths
   script:
-    # Start timing and debug environment
-    - export SCRIPT_START_TIME=$(date +%s) DEBUG_START=$(date +%s) && echo "TIMING COMPILE START" $(date +"%Y-%m-%d %H:%M:%S") && echo "TIMING DEBUG START" $(date +"%Y-%m-%d %H:%M:%S")
-    - echo "=== Debugging Go environment ===" && go version && go env GOMODCACHE && go env GOCACHE && go env GOFLAGS && go env GOWORK
-    - echo "=== Module cache contents ===" && ls -la "$GOMODCACHE" || echo "GOMODCACHE directory not found"
-    - echo "=== Checking for problematic AWS replacements ===" && find "$GOMODCACHE" -name "*aws*" -type d | head -10 || echo "No AWS modules in cache yet"
-    - export DEBUG_END=$(date +%s) DOWNLOAD_START=$(date +%s) && echo "TIMING DEBUG COMPLETE took $((DEBUG_END - DEBUG_START))s" && echo "TIMING MODULE DOWNLOAD START" $(date +"%Y-%m-%d %H:%M:%S")
-    - echo "=== Force-refreshing modules for compile step ===" && go mod download -x || echo "Initial download failed, retrying..." && go mod download -x || echo "Second download failed, continuing with build..."
-    - export DOWNLOAD_END=$(date +%s) COMPILE_START=$(date +%s) VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}" && echo "TIMING MODULE DOWNLOAD COMPLETE took $((DOWNLOAD_END - DOWNLOAD_START))s" && echo "TIMING COMPILATION START" $(date +"%Y-%m-%d %H:%M:%S")
+    - export VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
+    - echo "START COMPILATION $(date)"
     - if [[ -n "${VERSION_TAG:-}" ]]; then time make $TARGET VERSION=${VERSION_TAG}; else time make $TARGET; fi
-    - export COMPILE_END=$(date +%s) TOTAL_END=$(date +%s) && echo "TIMING COMPILATION COMPLETE took $((COMPILE_END - COMPILE_START))s" && echo "TIMING TOTAL SCRIPT TIME $((TOTAL_END - SCRIPT_START_TIME))s"
-    - echo "TIMING BREAKDOWN" && echo "  - Debug phase $((DEBUG_END - DEBUG_START))s" && echo "  - Module downloads $((DOWNLOAD_END - DOWNLOAD_START))s" && echo "  - Compilation $((COMPILE_END - COMPILE_START))s"
+    - echo "END COMPILATION $(date)"
   after_script:
     - if [ -e bin/otelcol ]; then rm -f bin/otelcol; fi  # remove the symlink
     - if [ -e bin/migratecheckpoint ]; then rm -f bin/migratecheckpoint; fi  # remove the symlink

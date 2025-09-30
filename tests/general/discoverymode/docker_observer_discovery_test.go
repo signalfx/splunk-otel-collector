@@ -124,7 +124,7 @@ func TestDockerObserver(t *testing.T) {
 		"DockerEndpoint": fmt.Sprintf("tcp://%s", dockerSocketProxy.ContainerEndpoint),
 		"TestID":         tc.ID,
 	})
-	gotEffective := cc.EffectiveConfig(t, 55554)
+	gotEffective := cc.EffectiveConfig(t)
 	assert.NotZero(t, removeBundledReceivers(gotEffective["receivers"].(map[string]any)["discovery/docker_observer"]))
 	require.Equal(t, expectedEffective, gotEffective)
 

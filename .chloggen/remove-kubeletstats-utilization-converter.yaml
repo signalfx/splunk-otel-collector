@@ -14,7 +14,7 @@ issues: [6815]
 # These lines will be padded with 2 spaces and then inserted directly into the document.
 # Use pipe (|) for multiline entries.
 subtext: |
-  The kubeletstats receiver deprecated CPU utilization metrics have been completely removed in
+  The kubeletstats receiver's deprecated CPU utilization metrics have been completely removed in
   OpenTelemetry Collector Contrib v0.136.0, along with the `receiver.kubeletstats.enableCPUUsageMetrics` 
   feature gate. Users who were explicitly including these metrics in their SignalFx exporter 
   `include_metrics` configuration need to update their configs:

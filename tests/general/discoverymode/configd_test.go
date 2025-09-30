@@ -72,7 +72,7 @@ func TestConfigDInitialAndEffectiveConfig(t *testing.T) {
 					"expvar": map[string]any{
 						"enabled": true,
 					},
-				}
+				},
 			},
 			"processors": map[string]any{
 				"batch/from-config-file": nil,

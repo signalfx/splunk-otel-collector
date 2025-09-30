@@ -85,7 +85,7 @@ func TestConfigDInitialAndEffectiveConfig(t *testing.T) {
 				},
 			},
 			"service": map[string]any{
-				"extensions": []any{"health_check/from-config-file", "zpages"},
+				"extensions": []any{"health_check/from-config-file"},
 				"pipelines": map[string]any{
 					"metrics/from-config-file": map[string]any{
 						"exporters":  []any{"otlp/from-config-file"},
@@ -117,7 +117,7 @@ func TestConfigDInitialAndEffectiveConfig(t *testing.T) {
 				},
 			},
 			"service": map[string]any{
-				"extensions": []any{"health_check/from-configd"},
+				"extensions": []any{"health_check/from-configd", "zpages"},
 				"pipelines": map[string]any{
 					"metrics/from-configd": map[string]any{
 						"exporters":  []any{"otlp/from-configd"},

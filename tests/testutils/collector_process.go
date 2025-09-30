@@ -164,11 +164,11 @@ func (collector *CollectorProcess) Shutdown() error {
 	return collector.Process.Shutdown(context.Background())
 }
 
-func (collector *CollectorProcess) InitialConfig(t testing.TB, _ uint16) map[string]any {
+func (collector *CollectorProcess) InitialConfig(t testing.TB) map[string]any {
 	return requestConfig(t, "http://localhost:55679/debug/expvarz", "initial")
 }
 
-func (collector *CollectorProcess) EffectiveConfig(t testing.TB, _ uint16) map[string]any {
+func (collector *CollectorProcess) EffectiveConfig(t testing.TB) map[string]any {
 	return requestConfig(t, "http://localhost:55679/debug/expvarz", "effective")
 }
 

@@ -272,11 +272,11 @@ func (l collectorLogConsumer) Accept(log testcontainers.Log) {
 	}
 }
 
-func (collector *CollectorContainer) InitialConfig(t testing.TB, _ uint16) map[string]any {
+func (collector *CollectorContainer) InitialConfig(t testing.TB) map[string]any {
 	return collector.execConfigRequest(t, "http://localhost:55679/debug/expvarz", "initial")
 }
 
-func (collector *CollectorContainer) EffectiveConfig(t testing.TB, _ uint16) map[string]any {
+func (collector *CollectorContainer) EffectiveConfig(t testing.TB) map[string]any {
 	return collector.execConfigRequest(t, "http://localhost:55679/debug/expvarz", "effective")
 }
 

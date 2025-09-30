@@ -164,12 +164,12 @@ func (collector *CollectorProcess) Shutdown() error {
 	return collector.Process.Shutdown(context.Background())
 }
 
-func (collector *CollectorProcess) InitialConfig(t testing.TB, ip string) map[string]any {
-	return requestConfig(t, fmt.Sprintf("http://%s:55679/debug/expvarz", ip), "initial")
+func (collector *CollectorProcess) InitialConfig(t testing.TB, _ uint16) map[string]any {
+	return requestConfig(t, "http://localhost:55679/debug/expvarz", "initial")
 }
 
-func (collector *CollectorProcess) EffectiveConfig(t testing.TB, ip string) map[string]any {
-	return requestConfig(t, fmt.Sprintf("http://%s:55679/debug/expvarz", ip), "effective")
+func (collector *CollectorProcess) EffectiveConfig(t testing.TB, _ uint16) map[string]any {
+	return requestConfig(t, "http://localhost:55679/debug/expvarz", "effective")
 }
 
 func requestConfig(t testing.TB, uri, configType string) map[string]any {

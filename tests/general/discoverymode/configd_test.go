@@ -186,7 +186,7 @@ func TestConfigDInitialAndEffectiveConfig(t *testing.T) {
 		},
 	}
 
-	require.Equal(t, expectedEffective, cc.EffectiveConfig(t, "localhost"))
+	require.Equal(t, expectedEffective, cc.EffectiveConfig(t, 55554))
 
 	sc, stdout, stderr := cc.Container.AssertExec(
 		tc, 15*time.Second, "sh", "-c",

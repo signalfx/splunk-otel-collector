@@ -114,5 +114,5 @@ func TestCollectorProcessWithMultipleTemplateConfigs(t *testing.T) {
 		},
 	}
 
-	require.Equal(t, expectedConfig, collector.EffectiveConfig(t, "localhost"))
+	require.Equal(t, expectedConfig, collector.EffectiveConfig(t, 0))
 }

@@ -32,8 +32,8 @@ type Collector interface {
 	Build() (Collector, error)
 	Start() error
 	Shutdown() error
-	InitialConfig(t testing.TB, ip string) map[string]any
-	EffectiveConfig(t testing.TB, ip string) map[string]any
+	InitialConfig(t testing.TB, port uint16) map[string]any
+	EffectiveConfig(t testing.TB, port uint16) map[string]any
 }
 
 var configFromArgsPattern = regexp.MustCompile("--config($|[^d-]+)")

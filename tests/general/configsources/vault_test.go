@@ -85,7 +85,7 @@ func TestBasicSecretAccess(t *testing.T) {
 	)
 	defer stop()
 
-	effective := collector.EffectiveConfig(tc, "localhost")
+	effective := collector.EffectiveConfig(tc, 55554)
 	if !testutils.CollectorImageIsSet() {
 		// default collector process uses --set service.telemetry args
 		delete(effective["service"].(map[string]any), "telemetry")

@@ -272,12 +272,12 @@ func (l collectorLogConsumer) Accept(log testcontainers.Log) {
 	}
 }
 
-func (collector *CollectorContainer) InitialConfig(t testing.TB, ip string) map[string]any {
-	return collector.execConfigRequest(t, fmt.Sprintf("http://%s:55679/debug/expvarz", ip), "initial")
+func (collector *CollectorContainer) InitialConfig(t testing.TB, _ uint16) map[string]any {
+	return collector.execConfigRequest(t, "http://localhost:55679/debug/expvarz", "initial")
 }
 
-func (collector *CollectorContainer) EffectiveConfig(t testing.TB, ip string) map[string]any {
-	return collector.execConfigRequest(t, fmt.Sprintf("http://%s:55679/debug/expvarz", ip), "effective")
+func (collector *CollectorContainer) EffectiveConfig(t testing.TB, _ uint16) map[string]any {
+	return collector.execConfigRequest(t, "http://localhost:55679/debug/expvarz", "effective")
 }
 
 func (collector *CollectorContainer) execConfigRequest(t testing.TB, uri, configType string) map[string]any {

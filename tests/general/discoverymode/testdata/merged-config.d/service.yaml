@@ -1,5 +1,6 @@
 extensions:
   - health_check/from-configd
+  - zpages
 pipelines:
   metrics/from-configd:
     receivers:

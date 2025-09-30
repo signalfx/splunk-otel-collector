@@ -28,6 +28,8 @@ jobs:
       matrix:
         ARCH: [ "amd64", "arm64", "ppc64le" ]
     steps:
+      - name: Free up disk space for next step
+        uses: jlumbroso/free-disk-space@v1.3.1
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0

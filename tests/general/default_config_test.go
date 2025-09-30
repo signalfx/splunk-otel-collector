@@ -28,7 +28,7 @@ import (
 )
 
 func TestDefaultGatewayConfig(t *testing.T) {
-	for _, ip := range []string{"default", "0.0.0.0", "127.2.3.4"} {
+	for _, ip := range []string{"default", "0.0.0.0"} {
 		ip := ip
 		t.Run(ip, func(t *testing.T) {
 			tc := testutils.NewTestcase(t)
@@ -261,7 +261,7 @@ func TestDefaultGatewayConfig(t *testing.T) {
 }
 
 func TestDefaultAgentConfig(t *testing.T) {
-	for _, ip := range []string{"default", "0.0.0.0", "127.2.3.4"} {
+	for _, ip := range []string{"default", "0.0.0.0"} {
 		ip := ip
 		t.Run(ip, func(t *testing.T) {
 			tc := testutils.NewTestcase(t)

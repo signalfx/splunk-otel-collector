@@ -114,7 +114,7 @@ func TestDockerObserver(t *testing.T) {
 
 	expectedInitialFile := filepath.Join("testdata", "expected", "docker-observer-initial-config-expected.yaml")
 	expectedInitial := readConfigFromYamlTmplFile(t, expectedInitialFile, nil)
-	gotInitial := cc.InitialConfig(t, 55554)
+	gotInitial := cc.InitialConfig(t)
 	assert.NotZero(t, removeBundledReceivers(gotInitial["splunk.discovery"].(map[string]any)["receivers"].(map[string]any)["discovery/docker_observer"]))
 	assert.Equal(t, expectedInitial, gotInitial)
 

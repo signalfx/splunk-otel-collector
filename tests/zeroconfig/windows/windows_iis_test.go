@@ -99,24 +99,22 @@ func requireNoErrorExecCommand(t *testing.T, name string, arg ...string) {
 	require.NoError(t, err)
 }
 
-func assertHTTPGetRequestSuccess(t *testing.T, url string) {
+func assertHTTPGetRequestSuccess(c *assert.CollectT, url string) {
 	httpClient := &http.Client{}
 	req, err := http.NewRequest("GET", url, nil)
-	assert.NoError(t, err)
+	assert.NoError(c, err)
 	if err != nil {
-		t.Logf("Error creating HTTP request: %v", err)
 		return
 	}
 
 	resp, err := httpClient.Do(req)
-	assert.NoError(t, err)
+	assert.NoError(c, err)
 	if err != nil {
-		t.Logf("Error making HTTP request: %v", err)
 		return
 	}
 	defer resp.Body.Close()
 
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	assert.Equal(c, http.StatusOK, resp.StatusCode)
 }
 
 func testExpectedTracesForHTTPGetRequest(t *testing.T, otlp *testutils.OTLPReceiverSink, url string, expectedTracesFileName string) {
@@ -124,12 +122,12 @@ func testExpectedTracesForHTTPGetRequest(t *testing.T, otlp *testutils.OTLPRecei
 	require.NoError(t, err)
 
 	// Make only a single successful request to the server to avoid creating multiple traces.
-	assert.EventuallyWithT(t, func(tt *assert.CollectT) {
-		assertHTTPGetRequestSuccess(tt, url)
+	assert.EventuallyWithT(t, func(c *assert.CollectT) {
+		assertHTTPGetRequestSuccess(c, url)
 	}, 3*time.Minute, 100*time.Millisecond, "Failed to connect to target")
 
 	var index int
-	assert.EventuallyWithT(t, func(tt *assert.CollectT) {
+	assert.EventuallyWithT(t, func(c *assert.CollectT) {
 		matchErr := fmt.Errorf("no matching traces found, %d collected", index)
 		newIndex := len(otlp.AllTraces())
 		for i := index; i < newIndex && matchErr != nil; i++ {
@@ -153,6 +151,6 @@ func testExpectedTracesForHTTPGetRequest(t *testing.T, otlp *testutils.OTLPRecei
 			)
 		}
 		index = newIndex
-		assert.NoError(tt, matchErr)
+		assert.NoError(c, matchErr)
 	}, 1*time.Minute, 10*time.Millisecond, "Failed to receive expected traces")
 }

@@ -127,7 +127,7 @@ func TestConfigDInitialAndEffectiveConfig(t *testing.T) {
 			},
 		},
 	}
-	require.Equal(t, expectedInitial, cc.InitialConfig(t, "localhost"))
+	require.Equal(t, expectedInitial, cc.InitialConfig(t, 55554))
 
 	expectedEffective := map[string]any{
 		"exporters": map[string]any{

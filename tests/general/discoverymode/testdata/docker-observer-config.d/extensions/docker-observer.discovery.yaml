@@ -2,3 +2,7 @@ docker_observer:
   enabled: false # overwritten by --set and env var properties
   config:
     endpoint: overwritten.by.cmdline.property.that.references.env.var
+zpages:
+  endpoint: 0.0.0.0:55679
+  expvar:
+    enabled: true

@@ -1,2 +1,6 @@
 host_observer:
   enabled: false
+zpages:
+  endpoint: 0.0.0.0:55679
+  expvar:
+    enabled: true

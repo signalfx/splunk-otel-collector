@@ -1,3 +1,7 @@
 host_observer:
   config:
     refresh_interval: overrwritten by property
+zpages:
+  endpoint: 0.0.0.0:55679
+  expvar:
+    enabled: true

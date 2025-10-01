@@ -15,7 +15,8 @@ issues: [6806]
 # Use pipe (|) for multiline entries.
 subtext: |
   For troubleshooting the Splunk OpenTelemetry Collector provides a sensitive value-redacting, local config server listening at
-  `http://localhost:55554/debug/configz/effective`. This endpoint is being phased out in favor of the `expvar` entry under the
-  `zpages`, see [previous release changelog](https://github.com/signalfx/splunk-otel-collector/blob/b44d72b60f92c0de165cdbafc90d288313f959dd/CHANGELOG.md?plain=1#L159)
+  `http://localhost:55554/debug/configz/effective`. This endpoint is being phased out, it is planned to be removed by the
+  end of October 2025, in favor of the `expvar` entry under the `zpages`,
+  see [previous release changelog](https://github.com/signalfx/splunk-otel-collector/blob/b44d72b60f92c0de165cdbafc90d288313f959dd/CHANGELOG.md?plain=1#L159)
   for information about how to use and configure the new endpoint. If you still need the old endpoint
   set the `SPLUNK_DEBUG_CONFIG_SERVER` environment variable to `true`.

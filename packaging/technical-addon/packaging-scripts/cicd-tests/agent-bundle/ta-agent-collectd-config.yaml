@@ -18,6 +18,10 @@ exporters:
     verbosity: detailed
 
 service:
+  telemetry:
+    logs:
+      level: debug
+      output_paths: [ "${env:SPLUNK_HOME}/var/log/splunk/otel.log" ]
   extensions: [smartagent]
   pipelines:
     metrics/loggingcollectd:

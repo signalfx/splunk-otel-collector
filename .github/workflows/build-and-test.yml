@@ -106,6 +106,8 @@ jobs:
     name: coverage
     runs-on: ubuntu-24.04
     steps:
+      - name: Free up disk space for next step
+        uses: jlumbroso/free-disk-space@v1.3.1
       - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-environment
 

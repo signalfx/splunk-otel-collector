@@ -38,11 +38,6 @@ receivers:
           - source_labels: [ __name__ ]
             regex: 'otelcol_processor_batch_.*'
             action: drop
-  sapm:
-    endpoint: 0.0.0.0:7276
-    # Whether to preserve incoming access token and use instead of exporter token
-    # default = false
-    #access_token_passthrough: true
   signalfx:
     endpoint: 0.0.0.0:9943
   zipkin:

@@ -4,7 +4,7 @@ set -o pipefail
 which jq || (echo "jq not found" && exit 1)
 source "${ADDONS_SOURCE_DIR}/packaging-scripts/cicd-tests/test-utils.sh"
 BUILD_DIR="$(realpath "$BUILD_DIR")"
-TA_FULLPATH="$(repack_with_access_token "$OLLY_ACCESS_TOKEN" "$BUILD_DIR/out/distribution/Splunk_TA_otel.tgz" | tail -n 1)"
+TA_FULLPATH="$(repack_with_test_config "$OLLY_ACCESS_TOKEN" "$BUILD_DIR/out/distribution/Splunk_TA_otel.tgz" | tail -n 1)"
 CI_JOB_ID="${CI_JOB_ID:-$(basename $(dirname "$TA_FULLPATH"))}"
 TEST_FOLDER="${TEST_FOLDER:-$BUILD_DIR/$CI_JOB_ID}"
 mkdir -p "$TEST_FOLDER"
@@ -69,7 +69,7 @@ if [ $ATTEMPT -gt $MAX_ATTEMPTS ]; then
 fi
 
 # For release, ensure version is as expected.  TODO move this to another test and compare against tag
-EXPECTED_ADDON_VERSION=v0.131.0
+EXPECTED_ADDON_VERSION=v0.135.0
 actual_version="$(grep "Version" "$TEST_FOLDER/splunk/otel.log" | head -1 | awk -F 'Version": "' '{print $2}' | awk -F '", "' '{print $1}')"
 echo "actual version: $actual_version"
 [[ "$actual_version" != "$EXPECTED_ADDON_VERSION" ]] && echo "Test failed -- invalid version" && exit 1

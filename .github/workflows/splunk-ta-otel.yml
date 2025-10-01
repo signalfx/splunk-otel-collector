@@ -83,6 +83,9 @@ jobs:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-environment
 
+      - name: Free up disk space for next step
+        uses: jlumbroso/free-disk-space@v1.3.1
+
       - name: Build & Package TA
         run: |
           set -o pipefail
@@ -146,6 +149,9 @@ jobs:
       run:
         working-directory: ${{github.workspace}}/packaging/technical-addon
     steps:
+      - name: Free up disk space for next step
+        uses: jlumbroso/free-disk-space@v1.3.1
+
       - name: Check out the codebase.
         uses: actions/checkout@v5
       - uses: ./.github/actions/setup-environment
@@ -246,6 +252,14 @@ jobs:
             exit 1
           fi
 
+      - name: Check that no otel.log was generated with default config
+        run: |
+          cd "${{github.workspace}}/var/log/splunk"
+          if [ -f "otel.log" ]; then
+            echo "Error: otel.log exists"
+            exit 1
+          fi
+
   smoke-test-windows:
     runs-on: otel-windows
     needs: [distribute-ta]
@@ -335,7 +349,6 @@ jobs:
           Write-Host "Last 50 System log events:"
           Get-WinEvent -Log System -MaxEvents 50 | Format-List TimeCreated, ProviderName, Message
 
-
       - name: Collect log files
         if: always()
         # workaround for actionlint not recognizing that "otel-windows" is a windows runner
@@ -363,6 +376,15 @@ jobs:
               exit 1
           }
 
+      - name: Check that no otel.log was generated with default config
+        shell: pwsh
+        run: |
+          cd "${Env:ProgramFiles}\SplunkUniversalForwarder\var\log\splunk"
+          if (Test-Path "otel.log") {
+              Write-Host "Error: otel.log exists"
+              exit 1
+          }
+
   test-discovery:
     name: test-discovery
     runs-on: ubuntu-24.04
@@ -374,6 +396,9 @@ jobs:
       matrix:
         PLATFORM: ["all"]
     steps:
+      - name: Free up disk space for next step
+        uses: jlumbroso/free-disk-space@v1.3.1
+
       - name: Check out the codebase.
         uses: actions/checkout@v5
       - uses: ./.github/actions/setup-environment
@@ -403,6 +428,9 @@ jobs:
       matrix:
         PLATFORM: ["all"]
     steps:
+      - name: Free up disk space for next step
+        uses: jlumbroso/free-disk-space@v1.3.1
+
       - name: Check out the codebase.
         uses: actions/checkout@v5
       - uses: ./.github/actions/setup-environment

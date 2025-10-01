@@ -16,7 +16,6 @@ package testutils
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -27,9 +26,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/confmap"
 	"go.uber.org/zap"
-	"gopkg.in/yaml.v2"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils/subprocess"
 )
@@ -188,19 +185,7 @@ func requestConfig(t testing.TB, uri, configType string) map[string]any {
 	body, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 
-	// Convert the full expvar with the equivalent of
-	// cat <expvarz_page> | jq -r '.["splunk.config.initial"]'
-	var top map[string]any
-	err = json.Unmarshal(body, &top)
-	require.NoError(t, err)
-	actualAny, ok := top["splunk.config."+configType]
-	require.True(t, ok, "key 'splunk.config.%s' not found", configType)
-	actualStr, ok := actualAny.(string)
-	require.True(t, ok, "'splunk.config.%s' cannot be cast to string", configType)
-
-	actual := map[string]any{}
-	require.NoError(t, yaml.Unmarshal([]byte(actualStr), &actual))
-	return confmap.NewFromStringMap(actual).ToStringMap()
+	return expvarzPageToMap(t, body, configType)
 }
 
 // Walks up parent directories looking for bin/otelcol

@@ -18,7 +18,6 @@ import (
 	"archive/tar"
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -33,9 +32,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
-	"go.opentelemetry.io/collector/confmap"
 	"go.uber.org/zap"
-	"gopkg.in/yaml.v2"
 )
 
 const collectorImageEnvVar = "SPLUNK_OTEL_COLLECTOR_IMAGE"
@@ -287,34 +284,18 @@ func (collector *CollectorContainer) execConfigRequest(t testing.TB, uri, config
 	require.EventuallyWithT(t, func(tt *assert.CollectT) {
 		httpClient := &http.Client{}
 		req, err := http.NewRequest("GET", uri, nil)
-		t.Logf("NewRequest err: %s", err)
 		require.NoError(t, err)
 		resp, err := httpClient.Do(req)
-		t.Logf("httpClient.Do err: %s", err)
 		require.NoError(tt, err)
 
 		defer resp.Body.Close()
 		body, err = io.ReadAll(resp.Body)
-		t.Logf("ReadAll err: %s", err)
 		require.NoError(tt, err)
 
-		t.Logf("StatusCode: %d", resp.StatusCode)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
-	}, 180*time.Second, 100*time.Millisecond)
+	}, 30*time.Second, 100*time.Millisecond)
 
-	// Convert the full expvar with the equivalent of
-	// cat <expvarz_page> | jq -r '.["splunk.config.initial"]'
-	var top map[string]any
-	err := json.Unmarshal(body, &top)
-	require.NoError(t, err)
-	actualAny, ok := top["splunk.config."+configType]
-	require.True(t, ok, "key 'splunk.config.%s' not found", configType)
-	actualStr, ok := actualAny.(string)
-	require.True(t, ok, "'splunk.config.%s' cannot be cast to string", configType)
-
-	actual := map[string]any{}
-	require.NoError(t, yaml.Unmarshal([]byte(actualStr), &actual))
-	return confmap.NewFromStringMap(actual).ToStringMap()
+	return expvarzPageToMap(t, body, configType)
 }
 
 func GetCollectorImage() string {

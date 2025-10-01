@@ -156,7 +156,7 @@ func TestNewSettingsConvertConfig(t *testing.T) {
 	require.Equal(t, []string(nil), settings.discoveryProperties)
 
 	require.Equal(t, []string{configPath, anotherConfigPath}, settings.ResolverURIs())
-	require.Equal(t, 5, len(settings.ConfMapConverterFactories()))
+	require.Equal(t, 4, len(settings.ConfMapConverterFactories()))
 	require.Equal(t, []string{"--feature-gates", "foo", "--feature-gates", "-bar"}, settings.ColCoreArgs())
 }
 

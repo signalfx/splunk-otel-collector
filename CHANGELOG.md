@@ -5,6 +5,15 @@
 <!-- For unreleased changes, see entries in .chloggen -->
 <!-- next version -->
 
+## v0.136.1
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.136.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.136.0)
+and the [opentelemetry-collector-contrib v0.136.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.136.0) releases where appropriate.
+
+### 🧰 Bug fixes 🧰
+
+- (Splunk) `receiver/kubeletstats`: Removed the Splunk distribution's config converter that handled no-op configuration sections for CPU utilization metrics that were already disabled ([#6815](https://github.com/signalfx/splunk-otel-collector/pull/6815))
+
 ## v0.136.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.136.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.136.0)
@@ -20,6 +29,7 @@ and the [opentelemetry-collector-contrib v0.136.0](https://github.com/open-telem
 - (Contrib) `pkg/ottl`: Upgrade profiles proto to 1.8.0 ([#42526](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/42526))
   See [proto changelog](https://github.com/open-telemetry/opentelemetry-proto/blob/main/CHANGELOG.md#180---2025-09-02).
 - (Contrib) `transformprocessor`: Upgrade profiles proto to 1.8.0 ([#42526](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/42526))
+- (Contrib) `kubeletstatsreceiver`: Remove support for no-op config sections for disabled CPU utilization metrics ([#42727](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/42727))
 
 ### 💡 Enhancements 💡
 

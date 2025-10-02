@@ -39,23 +39,29 @@ jobs:
         shell: bash
         run: |
           mkdir -p dist
-          if find ./packaging/msi -name "*.wxs" | xargs grep -q "RemoveFolderEx"; then
+
+          if find ./packaging/msi -name "*.wxs" -print0 | xargs -0 grep -q "RemoveFolderEx"; then
             echo "Custom action 'RemoveFolderEx' can't be used without corresponding WiX upgrade due to CVE-2024-29188."
             exit 1
           fi
+
           if ! test -f ./dist/agent-bundle_windows_amd64.zip; then
             echo "./dist/agent-bundle_windows_amd64.zip not found! Either download a pre-built bundle to ./dist/, or run './packaging/bundle/scripts/windows/make.ps1 bundle' on a windows host and copy it to ./dist/."
             exit 1
           fi
+
+          # Build script parameters
+          VERSION=""
+          DOCKER_REPO=docker.io
+          JMX_METRIC_GATHERER_RELEASE=$(cat packaging/jmx-metric-gatherer-release.txt)
+
+          # Launch scrippt
           PROJECT_DIR="$PWD" \
           WORK_DIR="$PWD/work" \
           SUPPORT_BUNDLE_SCRIPT="$PWD/packaging/msi/splunk-support-bundle.ps1" \
           FLUENTD_CONFIG="$PWD/packaging/fpm/etc/otel/collector/fluentd/fluent.conf" \
           MSI_SRC_DIR="$PWD/packaging/msi" \
-          VERSION="" \
-          DOCKER_REPO=docker.io \
-          JMX_METRIC_GATHERER_RELEASE=$(cat packaging/jmx-metric-gatherer-release.txt) \
-          ./packaging/msi/build.sh "$VERSION" "$DOCKER_REPO" "$JMX_METRIC_GATHERER_RELEASE"
+            ./packaging/msi/build.sh "$VERSION" "$DOCKER_REPO" "$JMX_METRIC_GATHERER_RELEASE"
 
       - name: Uploading msi build artifacts
         uses: actions/upload-artifact@v4

@@ -37,7 +37,7 @@ if [ $# -eq 0 ]; then
         exit 1
     fi
 
-    buildargs="--output /work/build/stage --jmx-metric-gatherer ${JMX_METRIC_GATHERER_RELEASE} ${VERSION#v}"
+    buildargs="--output ./work/build/stage --jmx-metric-gatherer ${JMX_METRIC_GATHERER_RELEASE} ${VERSION#v}"
     "$SCRIPT_DIR/build.sh" $buildargs
     mkdir -p $OUTPUT_DIR
     echo "Copying MSI to $OUTPUT_DIR"

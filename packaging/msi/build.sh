@@ -75,17 +75,17 @@ if [[ "$OSTYPE" != "msys" && "$OSTYPE" != "cygwin" && "$OSTYPE" != "win32" ]]; t
     exit 1
 fi
 
-if find ./packaging/msi -name "*.wxs" -print0 | xargs -0 grep -q "RemoveFolderEx"; then
+if find "$REPO_DIR/packaging/msi" -name "*.wxs" -print0 | xargs -0 grep -q "RemoveFolderEx"; then
     echo "Custom action 'RemoveFolderEx' can't be used without corresponding WiX upgrade due to CVE-2024-29188."
     exit 1
 fi
 
-if ! test -f ./dist/agent-bundle_windows_amd64.zip; then
-    echo "./dist/agent-bundle_windows_amd64.zip not found! Either download a pre-built bundle to ./dist/, or run './packaging/bundle/scripts/windows/make.ps1 bundle' on a windows host and copy it to ./dist/."
+if ! test -f "$REPO_DIR/dist/agent-bundle_windows_amd64.zip"; then
+    echo "$REPO_DIR/dist/agent-bundle_windows_amd64.zip not found! Either download a pre-built bundle to $REPO_DIR/dist/, or run '$REPO_DIR/packaging/bundle/scripts/windows/make.ps1 bundle' on a windows host and copy it to $REPO_DIR/dist/."
     exit 1
 fi
 
 OUTPUT_DIR="${REPO_DIR}/dist/" \
 VERSION="${MSI_VERSION}" \
 JMX_METRIC_GATHERER_RELEASE="${JMX_METRIC_GATHERER_RELEASE}" \
-    "${SCRIPT_DIR}/msi-builder/build-launcher.sh"
+    "$SCRIPT_DIR/msi-builder/build-launcher.sh"

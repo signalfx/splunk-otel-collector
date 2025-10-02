@@ -51,4 +51,4 @@ fi
 "$SCRIPT_DIR/build.sh" --output "$WORK_DIR/build/stage" --jmx-metric-gatherer "$JMX_METRIC_GATHERER_RELEASE" "${VERSION#v}"
 mkdir -p "$OUTPUT_DIR"
 echo "Copying MSI to $OUTPUT_DIR"
-cp "$WORK_DIR/build/stage/*.msi" "$OUTPUT_DIR"
+cp "$WORK_DIR/build/stage"/*.msi "$OUTPUT_DIR"

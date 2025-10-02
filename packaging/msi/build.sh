@@ -16,8 +16,14 @@
 
 set -euxo pipefail
 
+if [[ "$OSTYPE" != "msys" && "$OSTYPE" != "cygwin" && "$OSTYPE" != "win32" ]]; then
+    echo "Running on Non-Windows system"
+    echo "This script should be run on Git Bash on a Windows box with WiX Toolset already installed"
+    exit 1
+fi
+
 SCRIPT_DIR="$( cd "$( dirname ${BASH_SOURCE[0]} )" && pwd )"
-REPO_DIR="$( cd "$SCRIPT_DIR/../../" && pwd )"
+REPO_DIR="$( git rev-parse --show-toplevel )"
 JMX_METRIC_GATHERER_RELEASE_PATH="${SCRIPT_DIR}/../jmx-metric-gatherer-release.txt"
 
 VERSION="${1:-}"
@@ -69,12 +75,6 @@ convert_version_for_msi() {
 
 MSI_VERSION=$(convert_version_for_msi "$VERSION")
 
-if [[ "$OSTYPE" != "msys" && "$OSTYPE" != "cygwin" && "$OSTYPE" != "win32" ]]; then
-    echo "Running on Non-Windows system"
-    echo "This script should be run on Git Bash on a Windows box with WiX Toolset already installed"
-    exit 1
-fi
-
 if find "$REPO_DIR/packaging/msi" -name "*.wxs" -print0 | xargs -0 grep -q "RemoveFolderEx"; then
     echo "Custom action 'RemoveFolderEx' can't be used without corresponding WiX upgrade due to CVE-2024-29188."
     exit 1
@@ -85,7 +85,9 @@ if ! test -f "$REPO_DIR/dist/agent-bundle_windows_amd64.zip"; then
     exit 1
 fi
 
-OUTPUT_DIR="${REPO_DIR}/dist/" \
-VERSION="${MSI_VERSION}" \
+OUTPUT_DIR="$REPO_DIR/dist" \
+REPO_DIR="$REPO_DIR" \
+WORK_DIR="$REPO_DIR/work" \
+VERSION="$MSI_VERSION" \
 JMX_METRIC_GATHERER_RELEASE="${JMX_METRIC_GATHERER_RELEASE}" \
     "$SCRIPT_DIR/msi-builder/build-launcher.sh"

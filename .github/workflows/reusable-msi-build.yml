@@ -43,13 +43,7 @@ jobs:
           DOCKER_REPO=docker.io
           JMX_METRIC_GATHERER_RELEASE=$(cat packaging/jmx-metric-gatherer-release.txt)
 
-          # Launch script
-          PROJECT_DIR="$PWD" \
-          WORK_DIR="$PWD/work" \
-          SUPPORT_BUNDLE_SCRIPT="$PWD/packaging/msi/splunk-support-bundle.ps1" \
-          FLUENTD_CONFIG="$PWD/packaging/fpm/etc/otel/collector/fluentd/fluent.conf" \
-          MSI_SRC_DIR="$PWD/packaging/msi" \
-            ./packaging/msi/build.sh "$VERSION" "$DOCKER_REPO" "$JMX_METRIC_GATHERER_RELEASE"
+          ./packaging/msi/build.sh "$VERSION" "$DOCKER_REPO" "$JMX_METRIC_GATHERER_RELEASE"
 
       - name: Uploading msi build artifacts
         uses: actions/upload-artifact@v4

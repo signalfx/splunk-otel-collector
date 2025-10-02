@@ -16,20 +16,16 @@
 
 set -euo pipefail
 
-# This script builds the Splunk OpenTelemetry MSI from the project available at ${PROJECT_DIR}.
-PROJECT_DIR=${PROJECT_DIR:-.}
-WORK_DIR=${WORK_DIR:-./work}
-
-MSI_SRC_DIR=${MSI_SRC_DIR:-"${PROJECT_DIR}/packaging/msi"}
+MSI_SRC_DIR=${MSI_SRC_DIR:-"${REPO_DIR}/packaging/msi"}
 WXS_PATH="${MSI_SRC_DIR}/splunk-otel-collector.wxs"
-OTELCOL="${PROJECT_DIR}/bin/otelcol_windows_amd64.exe"
-AGENT_CONFIG="${PROJECT_DIR}/cmd/otelcol/config/collector/agent_config.yaml"
-GATEWAY_CONFIG="${PROJECT_DIR}/cmd/otelcol/config/collector/gateway_config.yaml"
-FLUENTD_CONFIG=${FLUENTD_CONFIG:-"${PROJECT_DIR}/packaging/fpm/etc/otel/collector/fluentd/fluent.conf"}
+OTELCOL="${REPO_DIR}/bin/otelcol_windows_amd64.exe"
+AGENT_CONFIG="${REPO_DIR}/cmd/otelcol/config/collector/agent_config.yaml"
+GATEWAY_CONFIG="${REPO_DIR}/cmd/otelcol/config/collector/gateway_config.yaml"
+FLUENTD_CONFIG=${FLUENTD_CONFIG:-"${REPO_DIR}/packaging/fpm/etc/otel/collector/fluentd/fluent.conf"}
 FLUENTD_CONFD="${MSI_SRC_DIR}/fluentd/conf.d"
 SUPPORT_BUNDLE_SCRIPT=${SUPPORT_BUNDLE_SCRIPT:-"${MSI_SRC_DIR}/splunk-support-bundle.ps1"}
 SPLUNK_ICON="${MSI_SRC_DIR}/splunk.ico"
-OUTPUT_DIR="${PROJECT_DIR}/dist"
+OUTPUT_DIR="${REPO_DIR}/dist"
 JMX_METRIC_GATHERER_RELEASE="1.29.0"
 
 usage() {

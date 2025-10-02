@@ -69,17 +69,26 @@ convert_version_for_msi() {
 
 MSI_VERSION=$(convert_version_for_msi "$VERSION")
 
-docker build -t msi-builder \
-    --build-arg JMX_METRIC_GATHERER_RELEASE="${JMX_METRIC_GATHERER_RELEASE}" \
-    --build-arg DOCKER_REPO="$DOCKER_REPO" \
-    -f "${SCRIPT_DIR}/msi-builder/Dockerfile" \
-    "$REPO_DIR"
-docker rm -fv msi-builder 2>/dev/null || true
-docker run -d --name msi-builder msi-builder sleep inf
-docker exec \
-    -e OUTPUT_DIR=/project/dist \
-    -e VERSION="$MSI_VERSION" \
-    msi-builder /docker-entrypoint.sh
 mkdir -p "${REPO_DIR}/dist"
-docker cp msi-builder:/project/dist/splunk-otel-collector-${MSI_VERSION}-amd64.msi "${REPO_DIR}/dist/"
-docker rm -fv msi-builder
+
+# On Windows directly invoke Wix tools, on other platforms go with the docker commands
+if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "win32" ]]; then
+    echo "Running on Windows"
+    OUTPUT_DIR="${REPO_DIR}/dist/" VERSION="${MSI_VERSION}" "${SCRIPT_DIR}/msi-builder/docker-entrypoint.sh"
+else
+    echo "Running on Unix-like system"
+
+    docker build -t msi-builder \
+        --build-arg JMX_METRIC_GATHERER_RELEASE="${JMX_METRIC_GATHERER_RELEASE}" \
+        --build-arg DOCKER_REPO="$DOCKER_REPO" \
+        -f "${SCRIPT_DIR}/msi-builder/Dockerfile" \
+        "$REPO_DIR"
+    docker rm -fv msi-builder 2>/dev/null || true
+    docker run -d --name msi-builder msi-builder sleep inf
+    docker exec \
+        -e OUTPUT_DIR=/project/dist \
+        -e VERSION="$MSI_VERSION" \
+        msi-builder /docker-entrypoint.sh
+    docker cp msi-builder:/project/dist/splunk-otel-collector-${MSI_VERSION}-amd64.msi "${REPO_DIR}/dist/"
+    docker rm -fv msi-builder
+fi

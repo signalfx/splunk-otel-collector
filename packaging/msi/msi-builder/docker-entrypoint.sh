@@ -16,6 +16,7 @@
 
 set -euxo pipefail
 
+SCRIPT_DIR="$( cd "$( dirname ${BASH_SOURCE[0]} )" && pwd )"
 JMX_METRIC_GATHERER_RELEASE="${JMX_METRIC_GATHERER_RELEASE:-}"
 OUTPUT_DIR="${OUTPUT_DIR:-}"
 VERSION="${VERSION:-}"
@@ -37,7 +38,7 @@ if [ $# -eq 0 ]; then
     fi
 
     buildargs="--output /work/build/stage --jmx-metric-gatherer ${JMX_METRIC_GATHERER_RELEASE} ${VERSION#v}"
-    /project/internal/buildscripts/packaging/msi/msi-builder/build.sh $buildargs
+    "$SCRIPT_DIR/build.sh" $buildargs
     mkdir -p $OUTPUT_DIR
     echo "Copying MSI to $OUTPUT_DIR"
     cp /work/build/stage/*.msi $OUTPUT_DIR/

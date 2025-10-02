@@ -12,7 +12,10 @@ env:
 
 jobs:
   msi-build:
-    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        OS: [ "ubuntu-24.04", "windows-2025" ]
+    runs-on: ${{ matrix.OS }}
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v5
@@ -42,11 +45,13 @@ jobs:
           path: ./packaging/msi/SplunkCustomActions/bin/Release
 
       - name: Build MSI
+        shell: bash
         run: |
           mkdir -p dist
           make msi SKIP_COMPILE=true VERSION=""
 
       - name: Uploading msi build artifacts
+        if: ${{ matrix.OS == 'windows-2025' }}
         uses: actions/upload-artifact@v4
         with:
           name: msi-build-${{ inputs.OS }}

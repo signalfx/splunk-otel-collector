@@ -59,7 +59,7 @@ jobs:
       OS: ${{ matrix.OS }}
 
   dotnet-zeroconfig-e2e-test:
-    runs-on: otel-windows
+    runs-on: windows-2022 # windows-2022 comes preloaded with the Docker image used in the test
     needs: [msi-build]
     steps:
       - name: Check out the codebase.

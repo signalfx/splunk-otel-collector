@@ -23,12 +23,6 @@ jobs:
           name: binaries-windows_amd64
           path: ./bin
 
-      - name: Set up Go
-        uses: actions/setup-go@v6
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
-
       - name: Downloading agent-bundle-windows
         uses: actions/download-artifact@v5
         with:
@@ -45,7 +39,23 @@ jobs:
         shell: bash
         run: |
           mkdir -p dist
-          PROJECT_DIR="$PWD" WORK_DIR="$PWD/work" SUPPORT_BUNDLE_SCRIPT="$PWD/packaging/msi/splunk-support-bundle.ps1" FLUENTD_CONFIG="$PWD/packaging/fpm/etc/otel/collector/fluentd/fluent.conf" MSI_SRC_DIR="$PWD/packaging/msi" make msi SKIP_COMPILE=true VERSION=""
+          if find ./packaging/msi -name "*.wxs" | xargs grep -q "RemoveFolderEx"; then
+            echo "Custom action 'RemoveFolderEx' can't be used without corresponding WiX upgrade due to CVE-2024-29188."
+            exit 1
+          fi
+          if ! test -f ./dist/agent-bundle_windows_amd64.zip; then
+            echo "./dist/agent-bundle_windows_amd64.zip not found! Either download a pre-built bundle to ./dist/, or run './packaging/bundle/scripts/windows/make.ps1 bundle' on a windows host and copy it to ./dist/."
+            exit 1
+          fi
+          PROJECT_DIR="$PWD"
+          WORK_DIR="$PWD/work"
+          SUPPORT_BUNDLE_SCRIPT="$PWD/packaging/msi/splunk-support-bundle.ps1"
+          FLUENTD_CONFIG="$PWD/packaging/fpm/etc/otel/collector/fluentd/fluent.conf"
+          MSI_SRC_DIR="$PWD/packaging/msi"
+          VERSION=""
+          DOCKER_REPO=docker.io
+          JMX_METRIC_GATHERER_RELEASE=$(cat packaging/jmx-metric-gatherer-release.txt)
+          ./packaging/msi/build.sh "$VERSION" "$DOCKER_REPO" "$JMX_METRIC_GATHERER_RELEASE"
 
       - name: Uploading msi build artifacts
         uses: actions/upload-artifact@v4

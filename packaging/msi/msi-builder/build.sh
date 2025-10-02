@@ -184,16 +184,16 @@ parse_args_and_build() {
     cd ${WORK_DIR}
 
     configFilesWsx="${build_dir}/configfiles.wsx"
-    heat dir "$files_dir" -srd -sreg -gg -template fragment -cg ConfigFiles -dr INSTALLDIR -out "${configFilesWsx//\//\\}"
+    heat dir "$files_dir" -srd -sreg -gg -template fragment -cg ConfigFiles -dr INSTALLDIR -out "${configFilesWsx}"
 
     configFilesWixObj="${build_dir}/configfiles.wixobj"
-    candle -arch x64 -out "${configFilesWixObj//\//\\}" "${configFilesWsx//\//\\}"
+    candle -arch x64 -out "${configFilesWixObj}" "${configFilesWsx}"
 
     collectorWixObj="${build_dir}/splunk-otel-collector.wixobj"
-    candle -arch x64 -out "${collectorWixObj//\//\\}" -dVersion="$version" -dOtelcol="$otelcol" -dJmxMetricsJar="$jmx_metrics_jar" "${WXS_PATH//\//\\}"
+    candle -arch x64 -out "${collectorWixObj}" -dVersion="$version" -dOtelcol="$otelcol" -dJmxMetricsJar="$jmx_metrics_jar" "${WXS_PATH}"
 
     msi="${build_dir}/${msi_name}"
-    light -ext WixUtilExtension.dll -sval -out "${msi//\//\\}" -b "${files_dir//\//\\}" "${collectorWixObj//\//\\}" "${configFilesWixObj//\//\\}"
+    light -ext WixUtilExtension.dll -sval -out "${msi}" -b "${files_dir}" "${collectorWixObj}" "${configFilesWixObj}"
 
     mkdir -p $output
     cp "${msi}" "${output}/${msi_name}"

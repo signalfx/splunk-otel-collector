@@ -74,7 +74,7 @@ mkdir -p "${REPO_DIR}/dist"
 # On Windows directly invoke Wix tools, on other platforms go with the docker commands
 if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "win32" ]]; then
     echo "Running on Windows"
-    OUTPUT_DIR="${REPO_DIR}/dist/" VERSION="${MSI_VERSION}" "${SCRIPT_DIR}/msi-builder/docker-entrypoint.sh"
+    OUTPUT_DIR="${REPO_DIR}/dist/" VERSION="${MSI_VERSION}" JMX_METRIC_GATHERER_RELEASE="${JMX_METRIC_GATHERER_RELEASE}" "${SCRIPT_DIR}/msi-builder/docker-entrypoint.sh"
 else
     echo "Running on Unix-like system"
 

@@ -12,10 +12,7 @@ env:
 
 jobs:
   msi-build:
-    strategy:
-      matrix:
-        OS: [ "ubuntu-24.04", "windows-2025" ]
-    runs-on: ${{ matrix.OS }}
+    runs-on: ${{ inputs.OS }}
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v5
@@ -48,7 +45,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p dist
-          make msi SKIP_COMPILE=true VERSION=""
+          PROJECT_DIR="$PWD" WORK_DIR="$PWD/work" SUPPORT_BUNDLE_SCRIPT="$PWD/packaging/msi/splunk-support-bundle.ps1" FLUENTD_CONFIG="$PWD/packaging/fpm/etc/otel/collector/fluentd/fluent.conf" MSI_SRC_DIR="$PWD/packaging/msi"
 
       - name: Uploading msi build artifacts
         if: ${{ matrix.OS == 'windows-2025' }}

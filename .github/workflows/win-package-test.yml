@@ -52,7 +52,7 @@ jobs:
   msi-build:
     strategy:
       matrix:
-        OS: [ "windows-2022", "windows-2025" ]
+        OS: [ "ubuntu-24.04", "windows-2025" ]
     needs: [cross-compile, agent-bundle-windows, msi-custom-actions]
     uses: ./.github/workflows/reusable-msi-build.yml
     with:

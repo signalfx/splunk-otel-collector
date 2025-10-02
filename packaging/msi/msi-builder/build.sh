@@ -20,14 +20,14 @@ set -euo pipefail
 PROJECT_DIR=${PROJECT_DIR:-/project}
 WORK_DIR=${WORK_DIR:-/work}
 
-MSI_SRC_DIR="${PROJECT_DIR}/internal/buildscripts/packaging/msi"
+MSI_SRC_DIR=${MSI_SRC_DIR:-"${PROJECT_DIR}/internal/buildscripts/packaging/msi"}
 WXS_PATH="${MSI_SRC_DIR}/splunk-otel-collector.wxs"
 OTELCOL="${PROJECT_DIR}/bin/otelcol_windows_amd64.exe"
 AGENT_CONFIG="${PROJECT_DIR}/cmd/otelcol/config/collector/agent_config.yaml"
 GATEWAY_CONFIG="${PROJECT_DIR}/cmd/otelcol/config/collector/gateway_config.yaml"
-FLUENTD_CONFIG="${PROJECT_DIR}/internal/buildscripts/packaging/fpm/etc/otel/collector/fluentd/fluent.conf"
+FLUENTD_CONFIG=${FLUENTD_CONFIG:-"${PROJECT_DIR}/internal/buildscripts/packaging/fpm/etc/otel/collector/fluentd/fluent.conf"}
 FLUENTD_CONFD="${MSI_SRC_DIR}/fluentd/conf.d"
-SUPPORT_BUNDLE_SCRIPT="${MSI_SRC_DIR}/splunk-support-bundle.ps1"
+SUPPORT_BUNDLE_SCRIPT=${SUPPORT_BUNDLE_SCRIPT:-"${MSI_SRC_DIR}/splunk-support-bundle.ps1"}
 SPLUNK_ICON="${MSI_SRC_DIR}/splunk.ico"
 OUTPUT_DIR="${PROJECT_DIR}/dist"
 JMX_METRIC_GATHERER_RELEASE="1.29.0"
@@ -154,7 +154,7 @@ parse_args_and_build() {
     files_dir="${build_dir}/msi"
     msi_name="splunk-otel-collector-${version}-amd64.msi"
 
-    if [ -z "$skip_build_dir_removal" && -d "$build_dir" ]; then
+    if [ -z "$skip_build_dir_removal" ] && [ -d "$build_dir" ]; then
         rm -rf "$build_dir"
     else
         echo "Skipping build directory removal"

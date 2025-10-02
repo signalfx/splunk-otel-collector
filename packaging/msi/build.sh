@@ -23,7 +23,7 @@ if [[ "$OSTYPE" != "msys" && "$OSTYPE" != "cygwin" && "$OSTYPE" != "win32" ]]; t
 fi
 
 SCRIPT_DIR="$( cd "$( dirname ${BASH_SOURCE[0]} )" && pwd )"
-REPO_DIR="$( git rev-parse --show-toplevel )"
+REPO_DIR="$( cd "$SCRIPT_DIR/../../" && pwd )"
 JMX_METRIC_GATHERER_RELEASE_PATH="${SCRIPT_DIR}/../jmx-metric-gatherer-release.txt"
 
 VERSION="${1:-}"

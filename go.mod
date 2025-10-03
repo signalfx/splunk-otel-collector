@@ -12,7 +12,7 @@ require (
 	github.com/gogo/protobuf v1.3.2
 	github.com/hashicorp/vault v1.20.3
 	github.com/hashicorp/vault-plugin-auth-gcp v0.21.0
-	github.com/hashicorp/vault/api v1.20.0
+	github.com/hashicorp/vault/api v1.21.0
 	github.com/knadh/koanf v1.5.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/countconnector v0.136.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/routingconnector v0.136.0

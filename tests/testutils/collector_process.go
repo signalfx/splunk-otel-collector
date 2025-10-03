@@ -26,9 +26,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/confmap"
 	"go.uber.org/zap"
-	"gopkg.in/yaml.v2"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils/subprocess"
 )
@@ -163,15 +161,15 @@ func (collector *CollectorProcess) Shutdown() error {
 	return collector.Process.Shutdown(context.Background())
 }
 
-func (collector *CollectorProcess) InitialConfig(t testing.TB, port uint16) map[string]any {
-	return requestConfig(t, fmt.Sprintf("http://localhost:%d/debug/configz/initial", port))
+func (collector *CollectorProcess) InitialConfig(t testing.TB) map[string]any {
+	return requestConfig(t, "http://localhost:55679/debug/expvarz", "initial")
 }
 
-func (collector *CollectorProcess) EffectiveConfig(t testing.TB, port uint16) map[string]any {
-	return requestConfig(t, fmt.Sprintf("http://localhost:%d/debug/configz/effective", port))
+func (collector *CollectorProcess) EffectiveConfig(t testing.TB) map[string]any {
+	return requestConfig(t, "http://localhost:55679/debug/expvarz", "effective")
 }
 
-func requestConfig(t testing.TB, uri string) map[string]any {
+func requestConfig(t testing.TB, uri, configType string) map[string]any {
 	var resp *http.Response
 	var err error
 	for i := 0; i < 3; i++ {
@@ -187,9 +185,7 @@ func requestConfig(t testing.TB, uri string) map[string]any {
 	body, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 
-	actual := map[string]any{}
-	require.NoError(t, yaml.Unmarshal(body, &actual))
-	return confmap.NewFromStringMap(actual).ToStringMap()
+	return expvarzPageToMap(t, body, configType)
 }
 
 // Walks up parent directories looking for bin/otelcol

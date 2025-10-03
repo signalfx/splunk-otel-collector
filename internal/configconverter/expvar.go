@@ -57,14 +57,14 @@ func GetExpvarConverter() *ExpvarConverter {
 			instance := expvarConverterInstance
 			instance.effectiveMutex.RLock()
 			defer instance.effectiveMutex.RUnlock()
-			configYAML, _ := yaml.Marshal(instance.effective)
+			configYAML, _ := yaml.Marshal(simpleRedact(instance.effective))
 			return string(configYAML)
 		}))
 		expvar.Publish("splunk.config.initial", expvar.Func(func() any {
 			instance := expvarConverterInstance
 			instance.initialMutex.RLock()
 			defer instance.initialMutex.RUnlock()
-			configYAML, _ := yaml.Marshal(instance.initial)
+			configYAML, _ := yaml.Marshal(simpleRedact(instance.initial))
 			return string(configYAML)
 		}))
 	})

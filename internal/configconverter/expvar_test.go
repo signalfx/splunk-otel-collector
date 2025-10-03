@@ -16,12 +16,14 @@ package configconverter
 
 import (
 	"context"
+	"encoding/json"
 	"expvar"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/confmap"
+	"gopkg.in/yaml.v2"
 )
 
 func TestGetExpvarConverter(t *testing.T) {
@@ -162,4 +164,49 @@ func TestExpvarConverter_SingletonPersistence(t *testing.T) {
 	assert.Same(t, converter1, converter2)
 	assert.Contains(t, converter2.initial, "test")
 	assert.Contains(t, converter2.effective, "effective")
+}
+
+func TestExpvarConverter_SimpleRedaction(t *testing.T) {
+	// Test that simpleRedact correctly redacts sensitive information
+	// uses all expected keys from the redactKeys map
+	anchorsToBeRedacted := []string{
+		"access",
+		"api_key",
+		"apikey",
+		"auth",
+		"credential",
+		"creds",
+		"login",
+		"password",
+		"pwd",
+		"token",
+		"user",
+		"X-SF-Token",
+	}
+
+	unredacted := make(map[string]any)
+	for _, anchor := range anchorsToBeRedacted {
+		unredacted[anchor] = "unredacted_value"
+	}
+	unredacted["unrelated_key"] = "safe_value"
+
+	converter := GetExpvarConverter()
+	converter.initial = unredacted
+	converter.effective = unredacted
+
+	redacted := simpleRedact(unredacted)
+
+	initialConfigJSONStr := expvar.Get("splunk.config.initial")
+	var initialConfigYAMLStr string
+	require.NoError(t, json.Unmarshal([]byte(initialConfigJSONStr.String()), &initialConfigYAMLStr))
+	var initialConfigMap map[string]any
+	require.NoError(t, yaml.Unmarshal([]byte(initialConfigYAMLStr), &initialConfigMap))
+	assert.Equal(t, redacted, initialConfigMap)
+
+	effectiveConfigJSONStr := expvar.Get("splunk.config.effective")
+	var effectiveConfigYAMLStr string
+	require.NoError(t, json.Unmarshal([]byte(effectiveConfigJSONStr.String()), &effectiveConfigYAMLStr))
+	var effectiveConfigMap map[string]any
+	require.NoError(t, yaml.Unmarshal([]byte(effectiveConfigYAMLStr), &effectiveConfigMap))
+	assert.Equal(t, redacted, effectiveConfigMap)
 }

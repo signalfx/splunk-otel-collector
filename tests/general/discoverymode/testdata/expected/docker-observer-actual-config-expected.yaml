@@ -1,6 +1,10 @@
 extensions:
   docker_observer:
     endpoint: "{{ .DockerEndpoint }}"
+  zpages:
+    endpoint: 0.0.0.0:55679
+    expvar:
+      enabled: true
 exporters:
   otlp:
     endpoint: "{{ .OTLPEndpoint }}"
@@ -28,7 +32,7 @@ receivers:
         rule: type == "container" and labels['test.id'] == '{{ .TestID }}' and port == 9090
     watch_observers: [docker_observer]
 service:
-  extensions: [docker_observer]
+  extensions: [zpages, docker_observer]
   pipelines:
     metrics:
       receivers: [discovery/docker_observer]

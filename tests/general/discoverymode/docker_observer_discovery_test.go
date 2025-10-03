@@ -114,7 +114,7 @@ func TestDockerObserver(t *testing.T) {
 
 	expectedInitialFile := filepath.Join("testdata", "expected", "docker-observer-initial-config-expected.yaml")
 	expectedInitial := readConfigFromYamlTmplFile(t, expectedInitialFile, nil)
-	gotInitial := cc.InitialConfig(t, 55554)
+	gotInitial := cc.InitialConfig(t)
 	assert.NotZero(t, removeBundledReceivers(gotInitial["splunk.discovery"].(map[string]any)["receivers"].(map[string]any)["discovery/docker_observer"]))
 	assert.Equal(t, expectedInitial, gotInitial)
 
@@ -124,9 +124,9 @@ func TestDockerObserver(t *testing.T) {
 		"DockerEndpoint": fmt.Sprintf("tcp://%s", dockerSocketProxy.ContainerEndpoint),
 		"TestID":         tc.ID,
 	})
-	gotEffective := cc.EffectiveConfig(t, 55554)
+	gotEffective := cc.EffectiveConfig(t)
 	assert.NotZero(t, removeBundledReceivers(gotEffective["receivers"].(map[string]any)["discovery/docker_observer"]))
-	require.Equal(t, expectedEffective, gotEffective)
+	assert.Equal(t, expectedEffective, gotEffective)
 
 	expectedDryRunFile := filepath.Join("testdata", "expected", "docker-observer-dry-run-config-expected.yaml")
 	expectedDryRun := readConfigFromYamlTmplFile(t, expectedDryRunFile, nil)

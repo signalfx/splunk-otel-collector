@@ -32,9 +32,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
-	"go.opentelemetry.io/collector/confmap"
 	"go.uber.org/zap"
-	"gopkg.in/yaml.v2"
 )
 
 const collectorImageEnvVar = "SPLUNK_OTEL_COLLECTOR_IMAGE"
@@ -271,18 +269,18 @@ func (l collectorLogConsumer) Accept(log testcontainers.Log) {
 	}
 }
 
-func (collector *CollectorContainer) InitialConfig(t testing.TB, port uint16) map[string]any {
-	return collector.execConfigRequest(t, fmt.Sprintf("http://localhost:%d/debug/configz/initial", port))
+func (collector *CollectorContainer) InitialConfig(t testing.TB) map[string]any {
+	return collector.execConfigRequest(t, "http://localhost:55679/debug/expvarz", "initial")
 }
 
-func (collector *CollectorContainer) EffectiveConfig(t testing.TB, port uint16) map[string]any {
-	return collector.execConfigRequest(t, fmt.Sprintf("http://localhost:%d/debug/configz/effective", port))
+func (collector *CollectorContainer) EffectiveConfig(t testing.TB) map[string]any {
+	return collector.execConfigRequest(t, "http://localhost:55679/debug/expvarz", "effective")
 }
 
-func (collector *CollectorContainer) execConfigRequest(t testing.TB, uri string) map[string]any {
+func (collector *CollectorContainer) execConfigRequest(t testing.TB, uri, configType string) map[string]any {
 	// Wait until the splunk-otel-collector is up: relying on the entrypoint of the image
 	// can have the request happening before the collector is ready.
-	var initial string
+	var body []byte
 	require.EventuallyWithT(t, func(tt *assert.CollectT) {
 		httpClient := &http.Client{}
 		req, err := http.NewRequest("GET", uri, nil)
@@ -291,17 +289,13 @@ func (collector *CollectorContainer) execConfigRequest(t testing.TB, uri string)
 		require.NoError(tt, err)
 
 		defer resp.Body.Close()
-		arr, err := io.ReadAll(resp.Body)
+		body, err = io.ReadAll(resp.Body)
 		require.NoError(tt, err)
-
-		initial = string(arr)
 
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 	}, 30*time.Second, 100*time.Millisecond)
 
-	actual := map[string]any{}
-	require.NoError(t, yaml.Unmarshal([]byte(initial), &actual))
-	return confmap.NewFromStringMap(actual).ToStringMap()
+	return expvarzPageToMap(t, body, configType)
 }
 
 func GetCollectorImage() string {

@@ -96,7 +96,7 @@ func TestHostObserver(t *testing.T) {
 	// verify collector's initial config
 	expectedInitialFile := filepath.Join("testdata", "expected", "host-observer-initial-config-expected.yaml")
 	expectedInitial := readConfigFromYamlTmplFile(t, expectedInitialFile, nil)
-	gotInitial := cc.InitialConfig(t, 55554)
+	gotInitial := cc.InitialConfig(t)
 	assert.NotZero(t, removeBundledReceivers(gotInitial["splunk.discovery"].(map[string]any)["receivers"].(map[string]any)["discovery/host_observer"]))
 	assert.Equal(t, expectedInitial, gotInitial)
 
@@ -106,7 +106,7 @@ func TestHostObserver(t *testing.T) {
 		"OTLPEndpoint": tc.OTLPEndpointForCollector,
 		"PromPort":     promPort,
 	})
-	gotEffective := cc.EffectiveConfig(t, 55554)
+	gotEffective := cc.EffectiveConfig(t)
 	assert.NotZero(t, removeBundledReceivers(gotEffective["receivers"].(map[string]any)["discovery/host_observer"]))
 	require.Equal(t, expectedEffective, gotEffective)
 

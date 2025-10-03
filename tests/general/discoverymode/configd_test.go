@@ -67,6 +67,12 @@ func TestConfigDInitialAndEffectiveConfig(t *testing.T) {
 				"health_check/from-config-file": map[string]any{
 					"endpoint": "0.0.0.0:23456",
 				},
+				"zpages": map[string]any{
+					"endpoint": "0.0.0.0:55679",
+					"expvar": map[string]any{
+						"enabled": true,
+					},
+				},
 			},
 			"processors": map[string]any{
 				"batch/from-config-file": nil,
@@ -111,7 +117,7 @@ func TestConfigDInitialAndEffectiveConfig(t *testing.T) {
 				},
 			},
 			"service": map[string]any{
-				"extensions": []any{"health_check/from-configd"},
+				"extensions": []any{"health_check/from-configd", "zpages"},
 				"pipelines": map[string]any{
 					"metrics/from-configd": map[string]any{
 						"exporters":  []any{"otlp/from-configd"},
@@ -127,7 +133,7 @@ func TestConfigDInitialAndEffectiveConfig(t *testing.T) {
 			},
 		},
 	}
-	require.Equal(t, expectedInitial, cc.InitialConfig(t, 55554))
+	assert.Equal(t, expectedInitial, cc.InitialConfig(t))
 
 	expectedEffective := map[string]any{
 		"exporters": map[string]any{
@@ -144,6 +150,12 @@ func TestConfigDInitialAndEffectiveConfig(t *testing.T) {
 			},
 			"health_check/from-configd": map[string]any{
 				"endpoint": "0.0.0.0:45678",
+			},
+			"zpages": map[string]any{
+				"endpoint": "0.0.0.0:55679",
+				"expvar": map[string]any{
+					"enabled": true,
+				},
 			},
 		},
 		"processors": map[string]any{
@@ -165,7 +177,7 @@ func TestConfigDInitialAndEffectiveConfig(t *testing.T) {
 			},
 		},
 		"service": map[string]any{
-			"extensions": []any{"health_check/from-configd"},
+			"extensions": []any{"health_check/from-configd", "zpages"},
 			"pipelines": map[string]any{
 				"metrics/from-config-file": map[string]any{
 					"exporters":  []any{"otlp/from-config-file"},
@@ -186,13 +198,13 @@ func TestConfigDInitialAndEffectiveConfig(t *testing.T) {
 		},
 	}
 
-	require.Equal(t, expectedEffective, cc.EffectiveConfig(t, 55554))
+	assert.Equal(t, expectedEffective, cc.EffectiveConfig(t))
 
 	sc, stdout, stderr := cc.Container.AssertExec(
 		tc, 15*time.Second, "sh", "-c",
 		"SPLUNK_DEBUG_CONFIG_SERVER=false /otelcol --config-dir /opt/config.d --configd --set processors.batch/from-config-file.send_batch_size=123456789 --dry-run 2>/dev/null",
 	)
-	require.Equal(t, `exporters:
+	assert.Equal(t, `exporters:
   otlp/from-config-file:
     endpoint: 0.0.0.0:${CONFIG_FILE_PORT_FROM_ENV_VAR}
   otlp/from-configd:
@@ -202,6 +214,10 @@ extensions:
     endpoint: 0.0.0.0:23456
   health_check/from-configd:
     endpoint: 0.0.0.0:45678
+  zpages:
+    endpoint: 0.0.0.0:55679
+    expvar:
+      enabled: true
 processors:
   batch/from-config-file:
     send_batch_size: 123456789
@@ -216,6 +232,7 @@ receivers:
 service:
   extensions:
   - health_check/from-configd
+  - zpages
   pipelines:
     metrics/from-config-file:
       exporters:
@@ -235,8 +252,8 @@ service:
     logs:
       level: debug
 `, stdout)
-	require.Equal(t, "", stderr)
-	require.Zero(t, sc)
+	assert.Equal(t, "", stderr)
+	assert.Zero(t, sc)
 }
 
 func TestStandaloneConfigD(t *testing.T) {

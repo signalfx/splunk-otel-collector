@@ -96,6 +96,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mongodbreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mysqlreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/nginxreceiver"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/ntpreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/oracledbreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/postgresqlreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver"
@@ -116,6 +117,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sshcheckreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/syslogreceiver"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tcpcheckreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tcplogreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tlscheckreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/udplogreceiver"
@@ -215,6 +217,7 @@ func Get() (otelcol.Factories, error) {
 		mysqlreceiver.NewFactory(),
 		nginxreceiver.NewFactory(),
 		nopreceiver.NewFactory(),
+		ntpreceiver.NewFactory(),
 		oracledbreceiver.NewFactory(),
 		otlpreceiver.NewFactory(),
 		postgresqlreceiver.NewFactory(),
@@ -239,6 +242,7 @@ func Get() (otelcol.Factories, error) {
 		sshcheckreceiver.NewFactory(),
 		statsdreceiver.NewFactory(),
 		syslogreceiver.NewFactory(),
+		tcpcheckreceiver.NewFactory(),
 		tcplogreceiver.NewFactory(),
 		tlscheckreceiver.NewFactory(),
 		udplogreceiver.NewFactory(),

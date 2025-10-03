@@ -1,6 +1,10 @@
 extensions:
   host_observer:
     refresh_interval: ${REFRESH_INTERVAL}
+  zpages:
+    endpoint: 0.0.0.0:55679
+    expvar:
+      enabled: true
 exporters:
   otlp:
     endpoint: ${OTLP_ENDPOINT}
@@ -40,7 +44,7 @@ service:
                 without_scope_info: true
                 without_type_suffix: true
                 without_units: true
-  extensions: [host_observer]
+  extensions: [zpages, host_observer]
   pipelines:
     metrics:
       receivers: [discovery/host_observer]

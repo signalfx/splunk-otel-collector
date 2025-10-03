@@ -27,8 +27,7 @@ REPO_DIR="$( cd "$SCRIPT_DIR/../../" && pwd )"
 JMX_METRIC_GATHERER_RELEASE_PATH="${SCRIPT_DIR}/../jmx-metric-gatherer-release.txt"
 
 VERSION="${1:-}"
-DOCKER_REPO="${2:-docker.io}"
-JMX_METRIC_GATHERER_RELEASE="${3:-}"
+JMX_METRIC_GATHERER_RELEASE="${2:-}"
 
 get_version() {
     commit_tag="$( git -C "$REPO_DIR" describe --abbrev=0 --tags --exact-match --match 'v[0-9]*' 2>/dev/null || true )"

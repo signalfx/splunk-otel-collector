@@ -46,10 +46,9 @@ jobs:
         run: |
           # Build script parameters
           VERSION=""
-          DOCKER_REPO=docker.io
           JMX_METRIC_GATHERER_RELEASE=$(cat packaging/jmx-metric-gatherer-release.txt)
 
-          ./packaging/msi/build.sh "$VERSION" "$DOCKER_REPO" "$JMX_METRIC_GATHERER_RELEASE"
+          ./packaging/msi/build.sh "$VERSION" "$JMX_METRIC_GATHERER_RELEASE"
 
       - name: Uploading msi build artifacts
         uses: actions/upload-artifact@v4

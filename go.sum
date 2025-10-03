@@ -1554,6 +1554,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mysqlreceiver
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mysqlreceiver v0.136.0/go.mod h1:8QekyyW88MlaUlVS5HWh2CsITOrUqFgcvktIc3Y6e/Y=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/nginxreceiver v0.136.0 h1:unWNVUvSYxAp3Pt01xYk3+LFyVLdlxfaXpGpm0rFQnE=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/nginxreceiver v0.136.0/go.mod h1:4HK50Awavud6gq0O17mRFih+mLHVNCg+oIvGCD8kCmw=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/ntpreceiver v0.136.0 h1:5aCXx/8L9cjccNvp3UjA5lbBNmFAE5YPO/YmVIeB+HM=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/ntpreceiver v0.136.0/go.mod h1:OQzr159bej18W4dXwrIMcx14tWAm6DnbUJ99UrW2mec=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/oracledbreceiver v0.136.0 h1:MiZon0JJSBfbRLfja2RxP8ajgm7AFeoLIfTObdueF4g=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/oracledbreceiver v0.136.0/go.mod h1:op8CQLfG2jr6BwFytIJHIENjlRtMg8fKSv3crH5lNx4=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/postgresqlreceiver v0.136.0 h1:sr2n/is0TiFGwG+//3f5NAhw42ABtg/0vgS4MaY7Bts=

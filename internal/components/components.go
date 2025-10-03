@@ -96,6 +96,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mongodbreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mysqlreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/nginxreceiver"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/ntpreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/oracledbreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/postgresqlreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver"
@@ -216,6 +217,7 @@ func Get() (otelcol.Factories, error) {
 		mysqlreceiver.NewFactory(),
 		nginxreceiver.NewFactory(),
 		nopreceiver.NewFactory(),
+		ntpreceiver.NewFactory(),
 		oracledbreceiver.NewFactory(),
 		otlpreceiver.NewFactory(),
 		postgresqlreceiver.NewFactory(),

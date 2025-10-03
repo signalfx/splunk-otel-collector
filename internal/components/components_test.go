@@ -110,6 +110,7 @@ func TestDefaultComponents(t *testing.T) {
 		"sshcheck",
 		"statsd",
 		"syslog",
+		"tcpcheck",
 		"tcplog",
 		"tlscheck",
 		"udplog",

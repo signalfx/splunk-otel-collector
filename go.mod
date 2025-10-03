@@ -117,6 +117,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sshcheckreceiver v0.136.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceiver v0.136.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/syslogreceiver v0.136.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tcpcheckreceiver v0.136.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tcplogreceiver v0.136.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tlscheckreceiver v0.136.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/udplogreceiver v0.136.0

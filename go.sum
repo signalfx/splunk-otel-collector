@@ -1594,6 +1594,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceive
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceiver v0.136.0/go.mod h1:a5IeReM8E+RGCojhsuUKEe5HBSAtrWwl7haFrvAIOH8=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/syslogreceiver v0.136.0 h1:XAbayY3eHvOhCBkjUhKXQU6WarkSWXp1JoRlS6Nhv+U=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/syslogreceiver v0.136.0/go.mod h1:eevKSLDAyIMpQv2/MCB1R1ikeLwEzDRo3sYzCNa34Mw=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tcpcheckreceiver v0.136.0 h1:DSqKqM7RlgKBzpNGJgaF1nt8DsZ54Dv4mJ7Icqvk+/k=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tcpcheckreceiver v0.136.0/go.mod h1:exY14rGjCEaP7jbFsacfpbV8b6pw1YZEPp6DnQLFNjg=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tcplogreceiver v0.136.0 h1:ymPrk1SMuDKBuesCVtT5Mb/1vo/SRP4lNJhWuA7PY3Y=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tcplogreceiver v0.136.0/go.mod h1:tuXKEv/ZYExY3HysAp3EQQUPb7rV7VcQP4P7/RvAyOY=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tlscheckreceiver v0.136.0 h1:pegwBN/0X67/lOSIKeSkYRedKuYKEc6fBCy8d1Q74u0=

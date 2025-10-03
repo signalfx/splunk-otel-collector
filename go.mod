@@ -97,6 +97,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mongodbreceiver v0.136.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mysqlreceiver v0.136.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/nginxreceiver v0.136.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/ntpreceiver v0.136.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/oracledbreceiver v0.136.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/postgresqlreceiver v0.136.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.136.0

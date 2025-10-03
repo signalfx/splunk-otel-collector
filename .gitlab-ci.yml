@@ -327,6 +327,9 @@ update-nodejs-agent:
   stage: update-deps
   needs: []
   dependencies: []
+  before_script:
+    - !reference [.go-cache, before_script]
+    - apt-get update && apt-get install -y jq
   script:
     - .gitlab/install-gh-cli.sh
     - .gitlab/update-nodejs-agent.sh

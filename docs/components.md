@@ -53,7 +53,7 @@ The distribution offers support for the following components.
 | [mysql](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/mysqlreceiver)                                                        | [beta]           |
 | [nginx](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/nginxreceiver)                                                        | [beta]           |
 | [nop](https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/nopreceiver)                                                                    | [beta]           |
-| [ntp](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/ntpreceiver)                                                             | [beta]           |
+| [ntp](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/ntpreceiver)                                                            | [beta]           |
 | [oracledb](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/oracledbreceiver)                                                  | [alpha]          |
 | [otlp](https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/otlpreceiver)                                                                  | [stable]         |
 | [postgresql](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/postgresqlreceiver)                                              | [beta]           |

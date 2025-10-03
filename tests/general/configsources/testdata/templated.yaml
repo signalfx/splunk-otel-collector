@@ -1,6 +1,9 @@
 config_sources:
   include:
-
+extensions:
+  zpages:
+    expvar:
+      enabled: true
 receivers:
   hostmetrics:
     scrapers:

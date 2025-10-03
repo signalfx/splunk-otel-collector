@@ -97,6 +97,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mongodbreceiver v0.136.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mysqlreceiver v0.136.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/nginxreceiver v0.136.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/ntpreceiver v0.136.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/oracledbreceiver v0.136.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/postgresqlreceiver v0.136.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.136.0
@@ -117,6 +118,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sshcheckreceiver v0.136.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceiver v0.136.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/syslogreceiver v0.136.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tcpcheckreceiver v0.136.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tcplogreceiver v0.136.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tlscheckreceiver v0.136.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/udplogreceiver v0.136.0
@@ -580,7 +582,7 @@ require (
 	github.com/go-sql-driver/mysql v1.9.3 // indirect
 	github.com/go-stack/stack v1.8.1 // indirect
 	github.com/go-test/deep v1.1.1 // indirect
-	github.com/gobwas/glob v0.2.4-0.20181002190808-e7a84e9525fe
+	github.com/gobwas/glob v0.2.4-0.20181002190808-e7a84e9525fe // indirect
 	github.com/godbus/dbus v0.0.0-20190726142602-4481cbc300e2 // indirect
 	github.com/gogo/googleapis v1.4.1 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.2 // indirect
@@ -707,7 +709,7 @@ require (
 	github.com/rs/cors v1.11.1 // indirect
 	github.com/ryanuber/go-glob v1.0.0 // indirect
 	github.com/shirou/gopsutil/v3 v3.24.5 // indirect
-	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3
+	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3 // indirect
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657 // indirect
 	github.com/signalfx/gohistogram v0.0.0-20160107210732-1ccfd2ff5083 // indirect
 	github.com/signalfx/ingest-protocols v0.4.1 // indirect

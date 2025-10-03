@@ -888,14 +888,19 @@ build-msi:
     # build the MSI with the signed exe
     - mkdir -p bin
     - cp -f dist/signed/otelcol_windows_amd64.exe bin/otelcol_windows_amd64.exe
-  id_tokens:  # http://go/gitlab-17
-    CI_JOB_JWT:
-      aud: $CICD_VAULT_ADDR
+  tags:
+    - splunk-otel-collector-windows
   script:
-    - *docker-reader-role
     - |
-      VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
-      make msi SKIP_COMPILE=true VERSION=${VERSION_TAG} DOCKER_REPO=${DOCKER_HUB_REPO}
+      # Equivalent of: VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
+      if (-not [string]::IsNullOrEmpty($env:RELEASE_VERSION)) {
+          $VERSION_TAG = $env:RELEASE_VERSION
+      } elseif (-not [string]::IsNullOrEmpty($env:CI_COMMIT_TAG)) {
+          $VERSION_TAG = $env:CI_COMMIT_TAG
+      } else {
+          $VERSION_TAG = ""
+      }
+      bash -c ./packaging/msi/build.sh $VERSION_TAG (Get-Content packaging/jmx-metric-gatherer-release.txt)
   artifacts:
     paths:
       - dist/*.msi

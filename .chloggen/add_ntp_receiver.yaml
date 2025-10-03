@@ -5,7 +5,7 @@ change_type: new_component
 component: receiver/ntp
 
 # A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
-note: Add NTP receiver to the distribution.
+note: Add `ntp` receiver to the distribution.
 
 # One or more tracking issues related to the change
 issues: [6821]

@@ -5,7 +5,7 @@ change_type: new_component
 component: receiver/tcpcheck
 
 # A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
-note: Add tcpcheck receiver to the distribution.
+note: Add `tcpcheck` receiver to the distribution.
 
 # One or more tracking issues related to the change
 issues: [6822]

@@ -329,7 +329,7 @@ update-nodejs-agent:
   dependencies: []
   before_script:
     - !reference [.go-cache, before_script]
-    - apt-get update && apt-get install -y jq
+    - apt update && apt install -y jq
   script:
     - .gitlab/install-gh-cli.sh
     - .gitlab/update-nodejs-agent.sh

@@ -889,8 +889,8 @@ build-msi:
     - msi-custom-actions-package
   before_script:
     # build the MSI with the signed exe
-    - mkdir -p bin
-    - cp -f dist/signed/otelcol_windows_amd64.exe bin/otelcol_windows_amd64.exe
+    - New-Item -Path bin -ItemType Directory -Force 
+    - Copy-Item -Force dist/signed/otelcol_windows_amd64.exe bin/otelcol_windows_amd64.exe
   tags:
     - splunk-otel-collector-windows
   script:
@@ -903,7 +903,8 @@ build-msi:
       } else {
           $VERSION_TAG = ""
       }
-      bash -c ./packaging/msi/build.sh $VERSION_TAG (Get-Content packaging/jmx-metric-gatherer-release.txt)
+      $Env:PATH += ";${Env:ProgramFiles(x86)}\WiX Toolset v3.14\bin"
+      & 'C:\Program Files\Git\bin\bash.exe' -c "./packaging/msi/build.sh $VERSION_TAG $(Get-Content ./packaging/jmx-metric-gatherer-release.txt)"
   artifacts:
     paths:
       - dist/*.msi

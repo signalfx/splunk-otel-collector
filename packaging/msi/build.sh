@@ -74,6 +74,20 @@ convert_version_for_msi() {
 
 MSI_VERSION=$(convert_version_for_msi "$VERSION")
 
+# Verify WiX Toolset required version
+expected_candle_version="Windows Installer XML Toolset Compiler version 3.14.0.8606"
+if ! candle_first_line="$(candle.exe -? 2>/dev/null | head -n 1)"; then
+    echo "Error: candle.exe not found or failed to run. Ensure WiX Toolset 3.14.0.8606 is installed and in PATH."
+    echo "Latest version of 3.14 introduces an issue with elevation, see https://github.com/signalfx/splunk-otel-collector/pull/4688"
+    exit 1
+fi
+if [[ "$candle_first_line" != "$expected_candle_version" ]]; then
+    echo "Error: Unexpected candle.exe version."
+    echo " Got:      '$candle_first_line'"
+    echo " Expected: '$expected_candle_version'"
+    exit 1
+fi
+
 if find "$REPO_DIR/packaging/msi" -name "*.wxs" -print0 | xargs -0 grep -q "RemoveFolderEx"; then
     echo "Custom action 'RemoveFolderEx' can't be used without corresponding WiX upgrade due to CVE-2024-29188."
     exit 1

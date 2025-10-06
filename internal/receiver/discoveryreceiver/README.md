@@ -6,8 +6,8 @@
 | Supported pipeline types | logs, metrics    |
 | Distributions            | [Splunk]         |
 
-The Discovery receiver is a receiver compatible with both logs and metrics pipelines that discovers and monitors
-the functional status of services reported by Observer extensions. It works similarly to the
+The Discovery receiver is a receiver that discovers and monitors the functional status
+of services reported by Observer extensions. It works similarly to the
 [Receiver Creator](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/receivercreator/README.md)
 (it actually wraps an internal instance of one) and passes through metrics from dynamically-instantiated receivers
 to your metrics pipelines while simultaneously evaluating them using pre-bundled status rules for each receiver type.

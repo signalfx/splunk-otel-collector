@@ -3,7 +3,7 @@
 - name: Make sure access token is provided
   ansible.builtin.assert:
     that:
-      - splunk_access_token
+      - splunk_access_token is defined and (splunk_access_token | trim) != ''
     fail_msg: splunk_access_token variable must be provided
 
 - name: Make sure host OS is supported
@@ -20,7 +20,7 @@
       [DEPRECATION WARNING] Fluentd support has been deprecated and will be removed in a future release.
       Please refer to documentation on how to replace usage:
       https://github.com/signalfx/splunk-otel-collector/blob/main/docs/deprecations/fluentd-support.md
-  when: install_fluentd
+  when: (install_fluentd | default(false) | bool)
 
 - name: Linux deployment
   ansible.builtin.import_tasks: linux_install.yml

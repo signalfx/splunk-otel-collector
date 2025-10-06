@@ -44,51 +44,74 @@
 
 - set_fact:
     npm_found: yes
-  when: (with_nodejs | default(false) | bool) and not (npm_found | default(false) | bool) and (npm_check is defined) and (npm_check.rc == 0)
+  when: >-
+    (with_nodejs | default(false) | bool)
+    and not (npm_found | default(false) | bool)
+    and (npm_check is defined)
+    and (npm_check.rc == 0)
 
 - name: Create /usr/lib/splunk-instrumentation/splunk-otel-js/node_modules
   ansible.builtin.file:
     path: /usr/lib/splunk-instrumentation/splunk-otel-js/node_modules
     state: directory
-  when: (with_nodejs | default(false) | bool) and (npm_found | default(false) | bool) and (package_changed | default(false) | bool)
+  when: >-
+    (with_nodejs | default(false) | bool)
+    and (npm_found | default(false) | bool)
+    and (package_changed | default(false) | bool)
 
 - name: Install splunk-otel-js
   community.general.npm:
     name: /usr/lib/splunk-instrumentation/splunk-otel-js.tgz
     path: /usr/lib/splunk-instrumentation/splunk-otel-js
     executable: "{{ splunk_otel_auto_instrumentation_npm_path | default('npm') }}"
-  when: (with_nodejs | default(false) | bool) and (npm_found | default(false) | bool) and (package_changed | default(false) | bool)
+  when: >-
+    (with_nodejs | default(false) | bool)
+    and (npm_found | default(false) | bool)
+    and (package_changed | default(false) | bool)
 
 - name: Delete the Splunk OpenTelemetry Auto Instrumentation systemd config
   ansible.builtin.file:
     path: /usr/lib/systemd/system.conf.d/00-splunk-otel-auto-instrumentation.conf
     state: absent
-  when: not (with_systemd | default(false) | bool)
+  when: >-
+    not (with_systemd | default(false) | bool)
   notify: "Reload systemd daemon"
 
 - name: Delete the old Splunk OpenTelemetry Auto Instrumentation config
   ansible.builtin.file:
     path: /usr/lib/splunk-instrumentation/instrumentation.conf
     state: absent
-  when: (with_systemd | default(false) | bool) or (with_new_instrumentation | default(false) | bool)
+  when: >-
+    (with_systemd | default(false) | bool)
+    or (with_new_instrumentation | default(false) | bool)
 
 - name: Delete the Splunk OpenTelemetry Auto Instrumentation for Java config file
   ansible.builtin.file:
     path: /etc/splunk/zeroconfig/java.conf
     state: absent
-  when: (with_systemd | default(false) | bool) or not (with_new_instrumentation | default(false) | bool) or not (with_java | default(false) | bool)
+  when: >-
+    (with_systemd | default(false) | bool)
+    or not (with_new_instrumentation | default(false) | bool)
+    or not (with_java | default(false) | bool)
 
 - name: Delete the Splunk OpenTelemetry Auto Instrumentation for Node.js config file
   ansible.builtin.file:
     path: /etc/splunk/zeroconfig/node.conf
     state: absent
-  when: (with_systemd | default(false) | bool) or not (with_new_instrumentation | default(false) | bool) or not (with_nodejs | default(false) | bool) or not (npm_found | default(false) | bool)
+  when: >-
+    (with_systemd | default(false) | bool)
+    or not (with_new_instrumentation | default(false) | bool)
+    or not (with_nodejs | default(false) | bool)
+    or not (npm_found | default(false) | bool)
 
 - name: Delete the Splunk OpenTelemetry Auto Instrumentation for .NET config file
   ansible.builtin.file:
     path: /etc/splunk/zeroconfig/dotnet.conf
     state: absent
-  when: (with_systemd | default(false) | bool) or not (with_new_instrumentation | default(false) | bool) or not (with_dotnet | default(false) | bool)
+  when: >-
+    (with_systemd | default(false) | bool)
+    or not (with_new_instrumentation | default(false) | bool)
+    or not (with_dotnet | default(false) | bool)
 
 - name: Set up the Splunk OpenTelemetry Auto Instrumentation config file
   ansible.builtin.template:
@@ -97,7 +120,10 @@
     owner: root
     group: root
     mode: '644'
-  when: (with_java | default(false) | bool) and not (with_new_instrumentation | default(false) | bool) and not (with_systemd | default(false) | bool)
+  when: >-
+    (with_java | default(false) | bool)
+    and not (with_new_instrumentation | default(false) | bool)
+    and not (with_systemd | default(false) | bool)
 
 - name: Set up the Splunk OpenTelemetry Auto Instrumentation for Java config file
   ansible.builtin.template:
@@ -106,7 +132,10 @@
     owner: root
     group: root
     mode: '644'
-  when: (with_java | default(false) | bool) and (with_new_instrumentation | default(false) | bool) and not (with_systemd | default(false) | bool)
+  when: >-
+    (with_java | default(false) | bool)
+    and (with_new_instrumentation | default(false) | bool)
+    and not (with_systemd | default(false) | bool)
 
 - name: Set up the Splunk OpenTelemetry Auto Instrumentation for Node.js config file
   ansible.builtin.template:
@@ -115,7 +144,10 @@
     owner: root
     group: root
     mode: '644'
-  when: (with_nodejs | default(false) | bool) and (npm_found | default(false) | bool) and not (with_systemd | default(false) | bool)
+  when: >-
+    (with_nodejs | default(false) | bool)
+    and (npm_found | default(false) | bool)
+    and not (with_systemd | default(false) | bool)
 
 - name: Set up the Splunk OpenTelemetry Auto Instrumentation for .NET config file
   ansible.builtin.template:
@@ -124,7 +156,9 @@
     owner: root
     group: root
     mode: '644'
-  when: (with_dotnet | default(false) | bool) and not (with_systemd | default(false) | bool)
+  when: >-
+    (with_dotnet | default(false) | bool)
+    and not (with_systemd | default(false) | bool)
 
 - name: Ensure the system.conf.d directory exists
   ansible.builtin.file:
@@ -139,7 +173,16 @@
     owner: root
     group: root
     mode: '644'
-  when: (with_systemd | default(false) | bool) and ((with_java | default(false) | bool) or ((with_nodejs | default(false) | bool) and (npm_found | default(false) | bool)) or (with_dotnet | default(false) | bool))
+  when: >-
+    (with_systemd | default(false) | bool)
+    and (
+      (with_java | default(false) | bool)
+      or (
+        (with_nodejs | default(false) | bool)
+        and (npm_found | default(false) | bool)
+      )
+      or (with_dotnet | default(false) | bool)
+    )
   notify: "Reload systemd daemon"
 
 - name: Set up /etc/ld.so.preload for Splunk OpenTelemetry Auto Instrumentation

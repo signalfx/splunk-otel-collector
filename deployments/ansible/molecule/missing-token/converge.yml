@@ -1,14 +1,16 @@
-# Negative test: role must fail if splunk_access_token is not provided.
+---
 - name: Converge (expect role failure without splunk_access_token)
   hosts: all
   gather_facts: true
-  vars: {}
+  become: yes
+  vars:
+    local_artifact_testing_enabled: true
+    splunk_realm: fake-realm
+    start_service: false
   tasks:
-    - name: Run collector role inside block (expect failure)
-      block:
-        - name: Apply collector role (should fail on missing splunk_access_token)
-          ansible.builtin.import_role:
-            name: collector
+    - name: "Include signalfx.splunk_otel_collector.collector role"
+      include_role:
+        name: "signalfx.splunk_otel_collector.collector"
       rescue:
         - name: Mark that expected failure happened
           ansible.builtin.set_fact:

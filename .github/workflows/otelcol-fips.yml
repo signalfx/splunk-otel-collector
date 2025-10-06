@@ -39,9 +39,6 @@ jobs:
             GOARCH: amd64
       fail-fast: false
     steps:
-      # Building FIPs is flaky due to out of space issues.
-      - name: Free up disk space for next step
-        uses: jlumbroso/free-disk-space@v1.3.1
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0

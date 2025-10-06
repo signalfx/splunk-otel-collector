@@ -1,0 +1,26 @@
+dependency:
+  name: galaxy
+
+driver:
+  name: docker
+
+platforms:
+  - name: ubuntu-22
+    image: ubuntu:22.04
+    command: /sbin/init
+    privileged: true
+    pre_build_image: true
+
+provisioner:
+  name: ansible
+  playbooks:
+    converge: converge.yml
+  inventory:
+    host_vars: {}
+  lint: |
+    ansible-lint
+
+verifier:
+  name: ansible
+scenario:
+  name: missing-token

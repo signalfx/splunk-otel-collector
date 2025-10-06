@@ -1,0 +1,22 @@
+# Negative test: role must fail if splunk_access_token is not provided.
+- name: Converge (expect role failure without splunk_access_token)
+  hosts: all
+  gather_facts: true
+  vars: {}
+  tasks:
+    - name: Run collector role inside block (expect failure)
+      block:
+        - name: Apply collector role (should fail on missing splunk_access_token)
+          ansible.builtin.import_role:
+            name: collector
+      rescue:
+        - name: Mark that expected failure happened
+          ansible.builtin.set_fact:
+            expected_token_failure: true
+
+    - name: Assert the role failed due to missing splunk_access_token
+      ansible.builtin.assert:
+        that:
+          - expected_token_failure | default(false)
+        fail_msg: "Collector role did NOT fail when splunk_access_token was absent."
+        success_msg: "Collector role correctly failed without splunk_access_token."

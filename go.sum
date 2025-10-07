@@ -903,8 +903,8 @@ github.com/hashicorp/vault-plugin-auth-gcp v0.21.0/go.mod h1:wzBCdw8cRPVQvhbbnhE
 github.com/hashicorp/vault-plugin-secrets-kv v0.24.0 h1:LRL9eeEgQxVzf05IEJWg6uApFZeDOCJEU9M0LbnVB1U=
 github.com/hashicorp/vault-plugin-secrets-kv v0.24.0/go.mod h1:U+aKQtbJH78mP/X6k/nxaPXIzdqLyNfo1LaP9570yAQ=
 github.com/hashicorp/vault/api v1.0.4/go.mod h1:gDcqh3WGcR1cpF5AJz/B1UFheUEneMoIospckxBxk6Q=
-github.com/hashicorp/vault/api v1.21.0 h1:Xej4LJETV/spWRdjreb2vzQhEZt4+B5yxHAObfQVDOs=
-github.com/hashicorp/vault/api v1.21.0/go.mod h1:IUZA2cDvr4Ok3+NtK2Oq/r+lJeXkeCrHRmqdyWfpmGM=
+github.com/hashicorp/vault/api v1.22.0 h1:+HYFquE35/B74fHoIeXlZIP2YADVboaPjaSicHEZiH0=
+github.com/hashicorp/vault/api v1.22.0/go.mod h1:IUZA2cDvr4Ok3+NtK2Oq/r+lJeXkeCrHRmqdyWfpmGM=
 github.com/hashicorp/vault/sdk v0.1.13/go.mod h1:B+hVj7TpuQY1Y/GPbCpffmgd+tSEwvhkWnjtSYCaS2M=
 github.com/hashicorp/vault/sdk v0.18.0 h1:8RWVn4P4HOU5lct0GDeZS9fysJHyOJwR+Ulb5n8NPnI=
 github.com/hashicorp/vault/sdk v0.18.0/go.mod h1:8LGmRHQBzlRSuUlyhXBy5MlMaNleS5K8LO4zc4qr1HE=

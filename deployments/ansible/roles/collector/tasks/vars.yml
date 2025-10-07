@@ -28,7 +28,7 @@
     fluentd_supported: >-
       {{ (ansible_os_family != 'Suse'
          and not (ansible_distribution == 'Amazon' and ansible_distribution_version == '2023')
-         and not (ansible_os_family == 'Debian' and ansible_distribution_major_version == '12')) | bool }}
+         and not (ansible_os_family == 'Debian' and ansible_distribution_major_version == '12')) }}
   when: ansible_os_family != "Windows"
 
 - name: set configurable defaults for Windows

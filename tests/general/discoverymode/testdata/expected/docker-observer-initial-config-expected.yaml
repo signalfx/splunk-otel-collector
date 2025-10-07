@@ -4,6 +4,11 @@ file:
       endpoint: ${OTLP_ENDPOINT}
       tls:
         insecure: true
+  extensions:
+    zpages:
+      endpoint: 0.0.0.0:55679
+      expvar:
+        enabled: true
   processors:
     filter:
       metrics:
@@ -11,6 +16,7 @@ file:
           match_type: strict
           metric_names: [prometheus_tsdb_exemplar_exemplars_in_storage]
   service:
+    extensions: [zpages]
     pipelines:
       metrics:
         exporters: [otlp]

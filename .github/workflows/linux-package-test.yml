@@ -144,6 +144,8 @@ jobs:
     runs-on: ubuntu-24.04
     needs: [cross-compile, agent-bundle-linux]
     steps:
+      # Multiarch images require more disk space
+      - uses: jlumbroso/free-disk-space@v1.3.1
 
       - name: Check out the codebase.
         uses: actions/checkout@v5

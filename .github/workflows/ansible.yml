@@ -225,7 +225,7 @@ jobs:
             ansible-compat==25.8.2
             ansible-lint==25.9.1
             molecule==25.5.0
-            molecule-plugins[vagrant]==25.8.12
+            molecule-plugins[vagrant]==23.5.0
             pywinrm==0.4.3
 
       - name: Set up Python 3.

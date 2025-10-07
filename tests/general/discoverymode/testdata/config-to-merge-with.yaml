@@ -1,6 +1,10 @@
 extensions:
   health_check/from-config-file:
     endpoint: 0.0.0.0:23456
+  zpages:
+    endpoint: 0.0.0.0:55679
+    expvar:
+      enabled: true
 receivers:
   otlp/from-config-file:
     protocols:

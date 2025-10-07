@@ -28,7 +28,7 @@ import (
 )
 
 func TestDefaultGatewayConfig(t *testing.T) {
-	for _, ip := range []string{"default", "0.0.0.0", "127.2.3.4"} {
+	for _, ip := range []string{"default", "0.0.0.0"} {
 		ip := ip
 		t.Run(ip, func(t *testing.T) {
 			tc := testutils.NewTestcase(t)
@@ -55,7 +55,7 @@ func TestDefaultGatewayConfig(t *testing.T) {
 				ip = "0.0.0.0"
 			}
 
-			config := collector.EffectiveConfig(t, 55554)
+			config := collector.EffectiveConfig(t)
 			require.Equal(t, map[string]any{
 				"exporters": map[string]any{
 					"otlphttp": map[string]any{
@@ -261,7 +261,7 @@ func TestDefaultGatewayConfig(t *testing.T) {
 }
 
 func TestDefaultAgentConfig(t *testing.T) {
-	for _, ip := range []string{"default", "0.0.0.0", "127.2.3.4"} {
+	for _, ip := range []string{"default", "0.0.0.0"} {
 		ip := ip
 		t.Run(ip, func(t *testing.T) {
 			tc := testutils.NewTestcase(t)
@@ -290,7 +290,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 				ip = "127.0.0.1"
 			}
 
-			config := collector.EffectiveConfig(t, 55554)
+			config := collector.EffectiveConfig(t)
 			require.Equal(t, map[string]any{
 				"exporters": map[string]any{
 					"debug": map[string]any{

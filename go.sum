@@ -903,8 +903,8 @@ github.com/hashicorp/vault-plugin-auth-gcp v0.21.0/go.mod h1:wzBCdw8cRPVQvhbbnhE
 github.com/hashicorp/vault-plugin-secrets-kv v0.24.0 h1:LRL9eeEgQxVzf05IEJWg6uApFZeDOCJEU9M0LbnVB1U=
 github.com/hashicorp/vault-plugin-secrets-kv v0.24.0/go.mod h1:U+aKQtbJH78mP/X6k/nxaPXIzdqLyNfo1LaP9570yAQ=
 github.com/hashicorp/vault/api v1.0.4/go.mod h1:gDcqh3WGcR1cpF5AJz/B1UFheUEneMoIospckxBxk6Q=
-github.com/hashicorp/vault/api v1.20.0 h1:KQMHElgudOsr+IbJgmbjHnCTxEpKs9LnozA1D3nozU4=
-github.com/hashicorp/vault/api v1.20.0/go.mod h1:GZ4pcjfzoOWpkJ3ijHNpEoAxKEsBJnVljyTe3jM2Sms=
+github.com/hashicorp/vault/api v1.21.0 h1:Xej4LJETV/spWRdjreb2vzQhEZt4+B5yxHAObfQVDOs=
+github.com/hashicorp/vault/api v1.21.0/go.mod h1:IUZA2cDvr4Ok3+NtK2Oq/r+lJeXkeCrHRmqdyWfpmGM=
 github.com/hashicorp/vault/sdk v0.1.13/go.mod h1:B+hVj7TpuQY1Y/GPbCpffmgd+tSEwvhkWnjtSYCaS2M=
 github.com/hashicorp/vault/sdk v0.18.0 h1:8RWVn4P4HOU5lct0GDeZS9fysJHyOJwR+Ulb5n8NPnI=
 github.com/hashicorp/vault/sdk v0.18.0/go.mod h1:8LGmRHQBzlRSuUlyhXBy5MlMaNleS5K8LO4zc4qr1HE=
@@ -1554,6 +1554,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mysqlreceiver
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mysqlreceiver v0.136.0/go.mod h1:8QekyyW88MlaUlVS5HWh2CsITOrUqFgcvktIc3Y6e/Y=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/nginxreceiver v0.136.0 h1:unWNVUvSYxAp3Pt01xYk3+LFyVLdlxfaXpGpm0rFQnE=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/nginxreceiver v0.136.0/go.mod h1:4HK50Awavud6gq0O17mRFih+mLHVNCg+oIvGCD8kCmw=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/ntpreceiver v0.136.0 h1:5aCXx/8L9cjccNvp3UjA5lbBNmFAE5YPO/YmVIeB+HM=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/ntpreceiver v0.136.0/go.mod h1:OQzr159bej18W4dXwrIMcx14tWAm6DnbUJ99UrW2mec=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/oracledbreceiver v0.136.0 h1:MiZon0JJSBfbRLfja2RxP8ajgm7AFeoLIfTObdueF4g=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/oracledbreceiver v0.136.0/go.mod h1:op8CQLfG2jr6BwFytIJHIENjlRtMg8fKSv3crH5lNx4=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/postgresqlreceiver v0.136.0 h1:sr2n/is0TiFGwG+//3f5NAhw42ABtg/0vgS4MaY7Bts=
@@ -1594,6 +1596,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceive
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceiver v0.136.0/go.mod h1:a5IeReM8E+RGCojhsuUKEe5HBSAtrWwl7haFrvAIOH8=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/syslogreceiver v0.136.0 h1:XAbayY3eHvOhCBkjUhKXQU6WarkSWXp1JoRlS6Nhv+U=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/syslogreceiver v0.136.0/go.mod h1:eevKSLDAyIMpQv2/MCB1R1ikeLwEzDRo3sYzCNa34Mw=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tcpcheckreceiver v0.136.0 h1:DSqKqM7RlgKBzpNGJgaF1nt8DsZ54Dv4mJ7Icqvk+/k=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tcpcheckreceiver v0.136.0/go.mod h1:exY14rGjCEaP7jbFsacfpbV8b6pw1YZEPp6DnQLFNjg=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tcplogreceiver v0.136.0 h1:ymPrk1SMuDKBuesCVtT5Mb/1vo/SRP4lNJhWuA7PY3Y=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tcplogreceiver v0.136.0/go.mod h1:tuXKEv/ZYExY3HysAp3EQQUPb7rV7VcQP4P7/RvAyOY=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tlscheckreceiver v0.136.0 h1:pegwBN/0X67/lOSIKeSkYRedKuYKEc6fBCy8d1Q74u0=

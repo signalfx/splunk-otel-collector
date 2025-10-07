@@ -3,20 +3,22 @@
 | Status                   |                  |
 |--------------------------|------------------|
 | Stability                | [in-development] |
-| Supported pipeline types | logs             |
+| Supported pipeline types | logs, metrics    |
 | Distributions            | [Splunk]         |
 
-The Discovery receiver is a receiver compatible with logs pipelines that allows you to test the functional
-status of any receiver type whose target is reported by an Observer. It provides configurable `status`
-match rules that evaluate the generated receiver's emitted metrics (if any), or component-level log statements
-via the instance's [zap.Logger](https://pkg.go.dev/go.uber.org/zap). It works similarly to the
+The Discovery receiver is a receiver that discovers and monitors the functional status
+of services reported by Observer extensions. It works similarly to the
 [Receiver Creator](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/receivercreator/README.md)
-(it actually wraps an internal instance of one), but the resulting dynamically-instantiated receivers don't actually
-report their metric content to your metrics pipelines. Instead, the metrics are intercepted by an internal metrics
-consumer capable of translating desired metrics to log records based on the `status: metrics` rules you define. All
-component-level log statements are similarly intercepted by a log evaluator, and can be translated to emitted log
-records based on the `status: statements` rules you define. The matching rules SHOULD NOT conflict with each other.
-The first matching rule in the list will be used to determine the status of the receiver.
+(it actually wraps an internal instance of one) and passes through metrics from dynamically-instantiated receivers
+to your metrics pipelines while simultaneously evaluating them using pre-bundled status rules for each receiver type.
+
+The receiver emits experimental entity events as log records for discovered services. These entity events indicate
+the operational status (`successful`, `partial`, or `failed`) of each discovered service based on:
+- Metrics emitted by the receiver for that service
+- Component-level log statements from the receiver via [zap.Logger](https://pkg.go.dev/go.uber.org/zap)
+
+Status evaluation rules are pre-bundled for each supported receiver type and cannot be configured by users.
+The first matching rule determines the status of the endpoint.
 
 The receiver emits entity events for 
 [Endpoints](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/extension/observer/endpoints.go)
@@ -63,17 +65,18 @@ Flags: 0
 
 The following Collector configuration will create a Discovery receiver instance that receives
 endpoints from a [Kubernetes Observer](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/extension/observer/k8sobserver/README.md)
-that reports log records denoting the status of a [MySQL receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/mysqlreceiver/README.md).
-The `status` mapping comprises entries that signal the receiver has been instantiated with a `successful`, `partial`, 
-or `failed` status, based on reported `metrics` or recorded application log `statements`.
+and reports entity events denoting the status of discovered services. For example, it will automatically discover and monitor
+[MySQL receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/mysqlreceiver/README.md) instances.
 
-The following rules are defined for the `mysql` receiver:
+The receiver uses pre-bundled status rules for the `mysql` receiver type:
 
-* `successful` if it emits any `mysql.locks` metrics, denoting that metric gathering and the Receiver are functional.
+* `successful` if it emits any `mysql.locks` metrics, denoting that metric gathering and the receiver are functional.
 * `partial` if it internally logs a statement matching the `Access denied for user` pattern, suggesting
 there is a MySQL server but it's receiving incorrect credentials.
 * `failed` if it internally logs a statement matching the `Can't connect to MySQL server on .* [(]111[)]` pattern,
 suggesting that no MySQL server is available at the endpoint.
+
+These status rules are pre-defined and cannot be modified in the configuration.
 
 ```yaml
 extensions:
@@ -89,21 +92,6 @@ receivers:
          config:
            username: root
            password: root
-         status:
-           metrics:
-             - status: successful
-               strict: mysql.locks
-               message: Mysql receiver is working!
-           statements:
-             - status: failed
-               regexp: "Can't connect to MySQL server on .* [(]111[)]"
-               message:  The container cannot be reached by the Collector. The container is refusing MySQL connections.
-             - status: partial
-               regexp: 'Access denied for user'
-               message: >-
-                 Make sure your user credentials are correctly specified using the
-                 `SPLUNK_DISCOVERY_RECEIVERS_mysql_CONFIG_username="<username>"` and
-                 `SPLUNK_DISCOVERY_RECEIVERS_mysql_CONFIG_password="<password>"` environment variables.
 exporters:
   debug:
     verbosity: detailed
@@ -115,7 +103,12 @@ service:
       receivers:
         - discovery
       exporters:
-        - logging
+        - debug
+    metrics:
+      receivers:
+        - discovery
+      exporters:
+        - debug
 ```
 
 Given this configuration, if the Discovery receiver's Kubernetes observer instance reports an active MySQL container, and
@@ -202,11 +195,12 @@ Flags: 0
 
 ### Main
 
-| Name                         | Type                      | Default    | Docs                                                                                                                                                                                                 |
-|------------------------------|---------------------------|------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `watch_observers` (required) | []string                  | <no value> | The array of Observer extensions to receive Endpoint events from                                                                                                                                     |
-| `embed_receiver_config`      | bool                      | false      | Whether to embed a base64-encoded, minimal Receiver Creator config for the generated receiver as a reported metrics `discovery.receiver.rule` resource attribute value for status log record matches |
-| `receivers`                  | map[string]ReceiverConfig | <no value> | The mapping of receiver names to their Receiver sub-config                                                                                                                                           |
+| Name                         | Type                      | Default     | Docs                                                                                                                                                                                                 |
+|------------------------------|---------------------------|-------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `watch_observers` (required) | []string                  | <no value>  | The array of Observer extensions to receive Endpoint events from                                                                                                                                     |
+| `embed_receiver_config`      | bool                      | false       | Whether to embed a base64-encoded, minimal Receiver Creator config for the generated receiver as a reported metrics `discovery.receiver.rule` resource attribute value for status log record matches |
+| `correlation_ttl`            | time.Duration             | 10m         | The duration to maintain "removed" endpoints since their last updated timestamp                                                                                                                      |
+| `receivers`                  | map[string]ReceiverConfig | <no value>  | The mapping of receiver names to their Receiver sub-config                                                                                                                                           |
 
 ### ReceiverConfig
 
@@ -215,59 +209,18 @@ Flags: 0
 | `rule` (required)     | string            | <no value> | The Receiver Creator compatible discover rule. Ensure that rules defined in different receivers cannot match the same endpoint. Endpoints matching rules from multiple receivers will be ignored. |
 | `config`              | map[string]any    | <no value> | The receiver instance configuration, including any Receiver Creator endpoint env value expr program value expansion                                                                               |
 | `resource_attributes` | map[string]string | <no value> | A mapping of string resource attributes and their (expr program compatible) values to include in reported metrics for status log record matches                                                   |
-| `status`              | map[string]Match  | <no value> | A mapping of `metrics` and/or `statements` to Match items for status evaluation                                                                                                                   |
 
-### Match
+**Note**: Status evaluation rules (`metrics` and `statements` matching) are pre-bundled for each receiver type and cannot be configured by users. The receiver automatically uses the appropriate pre-defined status rules based on the receiver type.
 
-**One of `regexp`, `strict`, or `expr` is required.**
+## Entity Events and Status
 
-| Name         | Type      | Default    | Docs                                                                                                                |
-|--------------|-----------|------------|---------------------------------------------------------------------------------------------------------------------|
-| `strict`     | string    | <no value> | The string literal to compare equivalence against reported received metric names or component log statement message |
-| `regexp`     | string    | <no value> | The regexp pattern to evaluate reported received metric names or component log statements                           |
-| `expr`       | string    | <no value> | The expr program run with the reported received metric names or component log statements                            |
-| `record`     | LogRecord | <no value> | The emitted log record content                                                                                      |
+The discovery receiver emits experimental entity events as log records for discovered services. Each entity event log record includes:
 
-#### `strict`
+* `otel.entity.event.type` attribute set to `entity_state`  
+* `otel.entity.id` attribute containing the unique endpoint identifier
+* `otel.entity.attributes` attribute containing service metadata and discovery information
+* `discovery.status` attribute with `successful`, `partial`, or `failed` status based on pre-bundled evaluation rules
+* `discovery.event.type` attribute indicating whether the status was determined by `metric.match` or `statement.match`
 
-For metrics, the metric name must match exactly.
-For logged statements, the message (`zapLogger.Info("<this statement message>")`) must match exactly.
-
-#### `regexp`
-
-For metrics, the regexp is evaluated against the metric name.
-For logged statements, the regexp is evaluated against the message and fields (`zapLogger.Info("<logged statement message>", zap.Any("field_name", "field_value"))`) rendered as a yaml mapping. The fields for `caller`, `name`, and `stacktrace` are currently withheld from the mapping.
-
-#### `expr`
-
-See [https://expr.medv.io/](https://expr.medv.io/) for env and language documentation.
-
-For metrics, the expr env consists of `{ "name": "<metric name>" }`.
-For logs, the expr env consists of `{ "message": "<logged statement message>", "<field_name>": "<field_value>" }`. The fields `caller`, `name`, and `stacktrace` are currently withheld from the env.
-
-Since some fields may not be valid expr identifiers (containing non word characters), the env contains a self-referential `ExprEnv` object:
-
-```go
-logger.Warn("some message", zap.String("some.field.with.periods", "some.value"))
-```
-
-In this case `some.field.with.periods` can be referenced via:
-
-```yaml
-expr: 'ExprEnv["some.field.with.periods"] contains "value"'
-```
-
-### LogRecord
-
-| Name             | Type              | Default                       | Docs                                |
-|------------------|-------------------|-------------------------------|-------------------------------------|
-| `body`           | string            | Emitted log statement message | The emitted log record's body       |
-| `attributes`     | map[string]string | Emitted log statements fields | The emitted log record's attributes |
-
-## Status log record content
-
-In addition to the effects of the configured values, each emitted log record will include:
-
-* `event.type` resource attribute with either `metric.match` or `statement.match` based on context.
-* `discovery.status` log record attribute with `successful`, `partial`, or `failed` status depending on match.
+The receiver also passes through metrics from discovered services to metrics pipelines while using them for status evaluation.
 

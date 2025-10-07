@@ -1,3 +1,8 @@
+extensions:
+  zpages:
+    endpoint: 0.0.0.0:55679
+    expvar:
+      enabled: true
 exporters:
   otlp:
     endpoint: "${OTLP_ENDPOINT}"
@@ -10,6 +15,7 @@ processors:
         match_type: strict
         metric_names: [prometheus_tsdb_exemplar_exemplars_in_storage]
 service:
+  extensions: [zpages]
   telemetry:
     metrics:
       level: none

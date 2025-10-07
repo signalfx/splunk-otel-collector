@@ -54,6 +54,7 @@ jobs:
           - 5000:5000
     steps:
       # Multiarch images require more disk space
+      - uses: jlumbroso/free-disk-space@v1.3.1
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
@@ -233,6 +234,9 @@ jobs:
     env:
       TEST_OUTPUT: ${{ github.job }}-${{ matrix.PROFILE }}-${{ matrix.RUNNER }}.out
     steps:
+      # Multiarch images require more disk space
+      - uses: jlumbroso/free-disk-space@v1.3.1
+        if: ${{ matrix.PROFILE == 'integration' && matrix.RUNNER == 'ubuntu-24.04' }}
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0

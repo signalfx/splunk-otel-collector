@@ -12,8 +12,10 @@
   ansible.builtin.service:
     name: td-agent
     state: restarted
-  when:
-    - install_fluentd and fluentd_supported and (start_service | default(true) | bool)
+  when: >-
+    (install_fluentd | default(false) | bool)
+    and (fluentd_supported | default(false) | bool)
+    and (start_service | default(true) | bool)
   listen: "restart td-agent"
 
 - name: Restart Splunk OpenTelemetry Collector
@@ -64,5 +66,6 @@
     }
     & { iisreset.exe }
   listen: "reset iis"
-  when:
-    - install_splunk_dotnet_auto_instrumentation and splunk_dotnet_auto_instrumentation_iisreset
+  when: >-
+    (install_splunk_dotnet_auto_instrumentation | default(false) | bool)
+    and (splunk_dotnet_auto_instrumentation_iisreset | default(false) | bool)

@@ -335,16 +335,6 @@ endif
 	docker build -t otelcol-fpm packaging/fpm
 	docker run --rm -v $(CURDIR):/repo -e PACKAGE=$* -e VERSION=$(VERSION) -e ARCH=$(ARCH) -e JMX_METRIC_GATHERER_RELEASE=$(JMX_METRIC_GATHERER_RELEASE) otelcol-fpm
 
-.PHONY: msi
-msi:
-ifneq ($(SKIP_COMPILE), true)
-	$(MAKE) binaries-windows_amd64
-endif
-
-	!(find ./internal/buildscripts/packaging/msi -name "*.wxs" | xargs grep -q "RemoveFolderEx") || (echo "Custom action 'RemoveFolderEx' can't be used without corresponding WiX upgrade due to CVE-2024-29188." && exit 1)
-	test -f ./dist/agent-bundle_windows_amd64.zip || (echo "./dist/agent-bundle_windows_amd64.zip not found! Either download a pre-built bundle to ./dist/, or run './packaging/bundle/scripts/windows/make.ps1 bundle' on a windows host and copy it to ./dist/." && exit 1)
-	./packaging/msi/build.sh "$(VERSION)" "$(DOCKER_REPO)" "$(JMX_METRIC_GATHERER_RELEASE)"
-
 .PHONY: update-examples
 update-examples:
 	cd examples && $(MAKE) update-examples

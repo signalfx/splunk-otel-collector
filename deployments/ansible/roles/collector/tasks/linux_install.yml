@@ -26,9 +26,7 @@
     src: collector-service-proxy.conf.j2
     dest: /etc/systemd/system/splunk-otel-collector.service.d/service-proxy.conf
   notify: "restart splunk-otel-collector"
-  when: >-
-    (splunk_otel_collector_proxy_http | default('') != '')
-    or (splunk_otel_collector_proxy_https | default('') != '')
+  when: splunk_otel_collector_proxy_http != "" or splunk_otel_collector_proxy_https != ""
 
 - name: Set default hec token
   set_fact:
@@ -46,13 +44,13 @@
 
 - name: Merge custom config into the default config
   ansible.builtin.import_tasks: config_override.yml
-  when: (splunk_config_override | default('') != '')
+  when: splunk_config_override != ''
 
 - name: Copy the custom config
   ansible.builtin.copy:
     content: '{{ updated_config | to_nice_yaml (indent=2) }}'
     dest: "{{ splunk_otel_collector_config }}"
-  when: (splunk_config_override | default('') != '')
+  when: splunk_config_override != ''
   notify: "restart splunk-otel-collector"
 
 - name: Push custom config for Splunk OTel Collector, if provided
@@ -62,13 +60,13 @@
     owner: "{{ splunk_service_user }}"
     group: "{{ splunk_service_group }}"
     mode: 0644
-  when: (splunk_otel_collector_config_source | default('') != '')
+  when: splunk_otel_collector_config_source != ''
   notify: "restart splunk-otel-collector"
 
 - name: Install FluentD
   ansible.builtin.import_tasks: linux_install_fluentd.yml
-  when: (install_fluentd | default(false) | bool) and (fluentd_supported | default(false) | bool)
+  when: install_fluentd and fluentd_supported
 
 - name: Install Splunk OpenTelemetry Auto Instrumentation
   ansible.builtin.import_tasks: linux_auto_instrumentation.yml
-  when: (install_splunk_otel_auto_instrumentation | default(false) | bool)
+  when: install_splunk_otel_auto_instrumentation

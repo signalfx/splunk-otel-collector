@@ -418,9 +418,6 @@ jobs:
       matrix:
         PLATFORM: ["all"]
     steps:
-      - name: Free up disk space for next step
-        uses: jlumbroso/free-disk-space@v1.3.1
-
       - name: Check out the codebase.
         uses: actions/checkout@v5
       - uses: ./.github/actions/setup-environment

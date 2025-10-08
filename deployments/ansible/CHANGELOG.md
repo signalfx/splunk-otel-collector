@@ -4,7 +4,7 @@
 
 ### 💡 Enhancements 💡
 
-  - Added support for Ansible v12 ([#6828](https://github.com/signalfx/splunk-otel-collector/pull/6828))
+- Added support for Ansible v12 ([#6828](https://github.com/signalfx/splunk-otel-collector/pull/6828))
 
 ### 🚩 Deprecations 🚩
 

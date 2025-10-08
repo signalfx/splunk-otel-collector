@@ -1,9 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### 💡 Enhancements 💡
+
+  - Added support for Ansible v12 ([#6828](https://github.com/signalfx/splunk-otel-collector/pull/6828))
+
 ### 🚩 Deprecations 🚩
 
 - Fluentd support has been deprecated and will be removed in a future release.
   Please refer to [deprecation documentation](../../docs/deprecations/fluentd-support.md) for more information ([#6339](https://github.com/signalfx/splunk-otel-collector/pull/6339))
+- Already EOL Ansible v10 is no longer supported ([#6828](https://github.com/signalfx/splunk-otel-collector/pull/6828))
 
 ## ansible-v0.32.0
 

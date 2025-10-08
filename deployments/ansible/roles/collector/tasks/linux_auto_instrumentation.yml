@@ -28,10 +28,10 @@
     npm_found: "{{ (splunk_otel_auto_instrumentation_npm_path | default('npm')) != 'npm' }}"
     with_new_instrumentation: "{{ auto_instrumentation_version is version('0.87.0', '>=') }}"
     with_systemd: "{{ splunk_otel_auto_instrumentation_systemd }}"
-    with_java: "{{ 'java' in (splunk_otel_auto_instrumentation_sdks | default(false)) }}"
-    with_nodejs: "{{ 'nodejs' in (splunk_otel_auto_instrumentation_sdks | default(false)) \
+    with_java: "{{ 'java' in (splunk_otel_auto_instrumentation_sdks | default([])) }}"
+    with_nodejs: "{{ 'nodejs' in (splunk_otel_auto_instrumentation_sdks | default([])) \
       and auto_instrumentation_version is version('0.87.0', '>=') }}"
-    with_dotnet: "{{ 'dotnet' in (splunk_otel_auto_instrumentation_sdks | default(false)) \
+    with_dotnet: "{{ 'dotnet' in (splunk_otel_auto_instrumentation_sdks | default([])) \
       and auto_instrumentation_version is version('0.99.0', '>=') \
       and ansible_architecture in ('x86_64', 'amd64', 'aarch64') }}"
 

@@ -95,7 +95,7 @@ receivers:
     type: processlist
   signalfx:
     endpoint: "${SPLUNK_LISTEN_INTERFACE}:9943"
-    # Whether propagate the client metadata from the incoming requests to the downstream consumers
+    # Whether to propagate the client metadata from the incoming requests to the downstream consumers
     # Should be enabled to preserve incoming access token and use instead of exporter token
     #include_metadata: true
   zipkin:

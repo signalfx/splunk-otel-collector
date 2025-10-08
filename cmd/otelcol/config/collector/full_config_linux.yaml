@@ -147,9 +147,9 @@ receivers:
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/signalfxreceiver
   signalfx:
     endpoint: 0.0.0.0:9943
-    # Whether to preserve incoming access token and use instead of exporter token
-    # default = false
-    #access_token_passthrough: true
+    # Whether propagate the client metadata from the incoming requests to the downstream consumers
+    # Should be enabled to preserve incoming access token and use instead of exporter token
+    #include_metadata: true
 
   #############################################################################
   # Logs

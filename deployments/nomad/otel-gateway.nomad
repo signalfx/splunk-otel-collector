@@ -161,7 +161,7 @@ receivers:
       http:
         endpoint: 0.0.0.0:4318
   signalfx:
-    access_token_passthrough: true
+  include_metadata: true
     endpoint: 0.0.0.0:9943
   zipkin:
     endpoint: 0.0.0.0:9411

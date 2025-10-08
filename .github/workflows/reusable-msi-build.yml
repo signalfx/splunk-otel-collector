@@ -12,22 +12,22 @@ env:
 
 jobs:
   msi-build:
-    runs-on: ubuntu-24.04
+    runs-on: ${{ inputs.OS }}
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v5
+
+      - name: Uninstall default WiX
+        run: choco uninstall wixtoolset
+
+      - name: Install WiX 3.14.0
+        run: choco install wixtoolset --version 3.14.0 --allow-downgrade --force
 
       - name: Downloading binaries-windows_amd64
         uses: actions/download-artifact@v5
         with:
           name: binaries-windows_amd64
           path: ./bin
-
-      - name: Set up Go
-        uses: actions/setup-go@v6
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: '**/go.sum'
 
       - name: Downloading agent-bundle-windows
         uses: actions/download-artifact@v5
@@ -42,9 +42,13 @@ jobs:
           path: ./packaging/msi/SplunkCustomActions/bin/Release
 
       - name: Build MSI
+        shell: bash
         run: |
-          mkdir -p dist
-          make msi SKIP_COMPILE=true VERSION=""
+          # Build script parameters
+          VERSION=""
+          JMX_METRIC_GATHERER_RELEASE=$(cat packaging/jmx-metric-gatherer-release.txt)
+
+          ./packaging/msi/build.sh "$VERSION" "$JMX_METRIC_GATHERER_RELEASE"
 
       - name: Uploading msi build artifacts
         uses: actions/upload-artifact@v4

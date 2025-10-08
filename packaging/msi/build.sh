@@ -16,13 +16,18 @@
 
 set -euxo pipefail
 
+if [[ "$OSTYPE" != "msys" && "$OSTYPE" != "cygwin" && "$OSTYPE" != "win32" ]]; then
+    echo "Running on Non-Windows system"
+    echo "This script should be run on Git Bash on a Windows box with WiX Toolset already installed"
+    exit 1
+fi
+
 SCRIPT_DIR="$( cd "$( dirname ${BASH_SOURCE[0]} )" && pwd )"
 REPO_DIR="$( cd "$SCRIPT_DIR/../../" && pwd )"
 JMX_METRIC_GATHERER_RELEASE_PATH="${SCRIPT_DIR}/../jmx-metric-gatherer-release.txt"
 
 VERSION="${1:-}"
-DOCKER_REPO="${2:-docker.io}"
-JMX_METRIC_GATHERER_RELEASE="${3:-}"
+JMX_METRIC_GATHERER_RELEASE="${2:-}"
 
 get_version() {
     commit_tag="$( git -C "$REPO_DIR" describe --abbrev=0 --tags --exact-match --match 'v[0-9]*' 2>/dev/null || true )"
@@ -69,17 +74,33 @@ convert_version_for_msi() {
 
 MSI_VERSION=$(convert_version_for_msi "$VERSION")
 
-docker build -t msi-builder \
-    --build-arg JMX_METRIC_GATHERER_RELEASE="${JMX_METRIC_GATHERER_RELEASE}" \
-    --build-arg DOCKER_REPO="$DOCKER_REPO" \
-    -f "${SCRIPT_DIR}/msi-builder/Dockerfile" \
-    "$REPO_DIR"
-docker rm -fv msi-builder 2>/dev/null || true
-docker run -d --name msi-builder msi-builder sleep inf
-docker exec \
-    -e OUTPUT_DIR=/project/dist \
-    -e VERSION="$MSI_VERSION" \
-    msi-builder /docker-entrypoint.sh
-mkdir -p "${REPO_DIR}/dist"
-docker cp msi-builder:/project/dist/splunk-otel-collector-${MSI_VERSION}-amd64.msi "${REPO_DIR}/dist/"
-docker rm -fv msi-builder
+# Verify WiX Toolset required version
+expected_candle_version="Windows Installer XML Toolset Compiler version 3.14.0.8606"
+if ! candle_first_line="$(candle.exe -? 2>/dev/null | head -n 1)"; then
+    echo "Error: candle.exe not found or failed to run. Ensure WiX Toolset 3.14.0.8606 is installed and in PATH."
+    echo "Latest version of 3.14 introduces an issue with elevation, see https://github.com/signalfx/splunk-otel-collector/pull/4688"
+    exit 1
+fi
+if [[ "$candle_first_line" != "$expected_candle_version" ]]; then
+    echo "Error: Unexpected candle.exe version."
+    echo " Got:      '$candle_first_line'"
+    echo " Expected: '$expected_candle_version'"
+    exit 1
+fi
+
+if find "$REPO_DIR/packaging/msi" -name "*.wxs" -print0 | xargs -0 grep -q "RemoveFolderEx"; then
+    echo "Custom action 'RemoveFolderEx' can't be used without corresponding WiX upgrade due to CVE-2024-29188."
+    exit 1
+fi
+
+if ! test -f "$REPO_DIR/dist/agent-bundle_windows_amd64.zip"; then
+    echo "$REPO_DIR/dist/agent-bundle_windows_amd64.zip not found! Either download a pre-built bundle to $REPO_DIR/dist/, or run '$REPO_DIR/packaging/bundle/scripts/windows/make.ps1 bundle' on a windows host and copy it to $REPO_DIR/dist/."
+    exit 1
+fi
+
+OUTPUT_DIR="$REPO_DIR/dist" \
+REPO_DIR="$REPO_DIR" \
+WORK_DIR="$REPO_DIR/work" \
+VERSION="$MSI_VERSION" \
+JMX_METRIC_GATHERER_RELEASE="${JMX_METRIC_GATHERER_RELEASE}" \
+    "$SCRIPT_DIR/msi-builder/build-launcher.sh"

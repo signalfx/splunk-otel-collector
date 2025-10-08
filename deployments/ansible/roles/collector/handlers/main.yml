@@ -65,4 +65,4 @@
     & { iisreset.exe }
   listen: "reset iis"
   when:
-    install_splunk_dotnet_auto_instrumentation and splunk_dotnet_auto_instrumentation_iisreset
+    - install_splunk_dotnet_auto_instrumentation and splunk_dotnet_auto_instrumentation_iisreset

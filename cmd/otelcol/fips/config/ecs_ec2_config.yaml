@@ -78,9 +78,9 @@ receivers:
               action: drop
   signalfx:
     endpoint: 0.0.0.0:9943
-    # Whether to preserve incoming access token and use instead of exporter token
-    # default = false
-    #access_token_passthrough: true
+    # Whether to propagate the client metadata from the incoming requests to the downstream consumers
+    # Should be enabled to preserve incoming access token and use instead of exporter token
+    #include_metadata: true
   zipkin:
     endpoint: 0.0.0.0:9411
 

@@ -39,8 +39,8 @@ func datapointsForDeployment(dep *appsv1.Deployment) []*datapoint.Datapoint {
 	return dps
 }
 
-func dimensionForDeployment(dep *appsv1.Deployment) *atypes.Dimension {
-	props, tags := k8sutil.PropsAndTagsFromLabels(dep.Labels)
+func dimensionForDeployment(dep *appsv1.Deployment, sendUnsanitizedProperties bool) *atypes.Dimension {
+	props, tags := k8sutil.PropsAndTagsFromLabels(dep.Labels, sendUnsanitizedProperties)
 	props["kubernetes_workload_name"] = dep.Name
 	props["deployment"] = dep.Name
 	props["kubernetes_workload"] = "Deployment"

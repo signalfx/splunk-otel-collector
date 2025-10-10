@@ -64,6 +64,11 @@ type Config struct {
 	// properties about each respective node synced to it. Do not enable this, if node names in the cluster are
 	// reused (can lead to colliding or stale properties).
 	UpdatesForNodeDimension bool `yaml:"updatesForNodeDimension" default:"false"`
+	// If set to true, pod and node label names will be sent as properties in both their original unsanitized form
+	// and their sanitized form. By default (false), only sanitized properties are sent where characters like "."
+	// and "/" in label names are replaced with "_".
+	// This can be useful for migration to the OTel native k8s_cluster receiver which does not sanitize label names.
+	SendUnsanitizedProperties bool `yaml:"sendUnsanitizedProperties" default:"false"`
 }
 
 // Validate the k8s-specific config
@@ -110,7 +115,7 @@ func (m *Monitor) Configure(config *Config) error {
 	}
 
 	m.datapointCache = metrics.NewDatapointCache(m.config.NodeConditionTypesToReport, m.logger)
-	m.dimHandler = metrics.NewDimensionHandler(m.Output.SendDimensionUpdate, m.config.UpdatesForNodeDimension, m.logger)
+	m.dimHandler = metrics.NewDimensionHandler(m.Output.SendDimensionUpdate, m.config.UpdatesForNodeDimension, m.config.SendUnsanitizedProperties, m.logger)
 	m.stop = make(chan struct{})
 
 	return m.Start()

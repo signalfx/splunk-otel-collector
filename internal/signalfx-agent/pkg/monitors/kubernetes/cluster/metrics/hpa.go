@@ -51,8 +51,8 @@ func datapointsForHpa(hpa *v2beta1.HorizontalPodAutoscaler, logger logrus.FieldL
 	}, newStatusDatapoints(hpa, dimensions, logger)...)
 }
 
-func dimensionForHpa(hpa *v2beta1.HorizontalPodAutoscaler) *types.Dimension {
-	props, tags := k8sutils.PropsAndTagsFromLabels(hpa.Labels)
+func dimensionForHpa(hpa *v2beta1.HorizontalPodAutoscaler, sendUnsanitizedProperties bool) *types.Dimension {
+	props, tags := k8sutils.PropsAndTagsFromLabels(hpa.Labels, sendUnsanitizedProperties)
 
 	for _, or := range hpa.OwnerReferences {
 		props["kubernetes_workload"] = or.Kind

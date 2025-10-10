@@ -52,8 +52,8 @@ func datapointsForStatefulSet(ss *appsv1.StatefulSet) []*datapoint.Datapoint {
 	}
 }
 
-func dimensionForStatefulSet(ss *appsv1.StatefulSet) *atypes.Dimension {
-	props, tags := k8sutil.PropsAndTagsFromLabels(ss.Labels)
+func dimensionForStatefulSet(ss *appsv1.StatefulSet, sendUnsanitizedProperties bool) *atypes.Dimension {
+	props, tags := k8sutil.PropsAndTagsFromLabels(ss.Labels, sendUnsanitizedProperties)
 	props["kubernetes_workload"] = "StatefulSet"
 	props["kubernetes_workload_name"] = ss.Name
 	props["current_revision"] = ss.Status.CurrentRevision

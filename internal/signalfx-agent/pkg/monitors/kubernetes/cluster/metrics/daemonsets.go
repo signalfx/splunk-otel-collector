@@ -54,8 +54,8 @@ func datapointsForDaemonSet(ds *appsv1.DaemonSet) []*datapoint.Datapoint {
 	}
 }
 
-func dimensionForDaemonSet(ds *appsv1.DaemonSet) *atypes.Dimension {
-	props, tags := k8sutil.PropsAndTagsFromLabels(ds.Labels)
+func dimensionForDaemonSet(ds *appsv1.DaemonSet, sendUnsanitizedProperties bool) *atypes.Dimension {
+	props, tags := k8sutil.PropsAndTagsFromLabels(ds.Labels, sendUnsanitizedProperties)
 	props["kubernetes_workload"] = "DaemonSet"
 	props["kubernetes_workload_name"] = ds.Name
 	props["daemonset_creation_timestamp"] = ds.GetCreationTimestamp().Format(time.RFC3339)

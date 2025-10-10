@@ -3,7 +3,7 @@
 - name: Make sure access token is provided
   ansible.builtin.assert:
     that:
-      - splunk_access_token
+      - splunk_access_token is defined and (splunk_access_token | trim) != ''
     fail_msg: splunk_access_token variable must be provided
 
 - name: Make sure host OS is supported

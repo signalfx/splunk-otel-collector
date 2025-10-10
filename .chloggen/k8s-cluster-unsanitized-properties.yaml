@@ -16,5 +16,5 @@ issues: [6831]
 subtext: |
   When enabled, pod and node labels are sent as dimension properties in both their original form (with "." and "/")
   and sanitized form (with "_"). This allows users to receive both property formats during migration to k8s_cluster 
-  receiver that don't sanitize label names, ensuring continuity of existing queries while adopting new naming
+  receiver that doesn't sanitize label names, ensuring continuity of existing queries while adopting new naming
   conventions.

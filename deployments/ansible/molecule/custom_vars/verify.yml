@@ -160,7 +160,7 @@
         cmd: 'journalctl -u splunk-otel-collector | grep "Body: Str(test logs pipeline)"'
       register: result
       changed_when: false
-      until: result.stdout
+      until: result.stdout != ""
       retries: 20
       delay: 1
       when: fluentd_supported

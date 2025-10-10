@@ -118,8 +118,8 @@ jobs:
       matrix:
         ansible:
           # Testing only the versions currently supported per https://endoflife.date/ansible
+          - ansible~=12.0.0
           - ansible~=11.6.0
-          - ansible~=10.7.0
         distro:
           - amazonlinux2023
           - centos9
@@ -141,10 +141,10 @@ jobs:
           path: "${{ github.workspace }}/requirements.txt"
           contents: |
             ${{ matrix.ansible }}
-            ansible-lint==6.22.2
-            molecule==6.0.3
-            molecule-plugins[docker]==23.5.0
-            docker==7.0.0
+            ansible-lint==25.9.1
+            molecule==25.5.0
+            molecule-plugins[docker]==25.8.12
+            docker==7.1.0
             requests<2.32.0
             urllib3<3
 
@@ -183,8 +183,8 @@ jobs:
       matrix:
         ansible:
           # Testing only the versions currently supported per https://endoflife.date/ansible
+          - ansible~=12.0.0
           - ansible~=11.6.0
-          - ansible~=10.7.0
         distro:
           - "2016"
           - "2019"
@@ -222,10 +222,10 @@ jobs:
           path: "${{ github.workspace }}/requirements.txt"
           contents: |
             ${{ matrix.ansible }}
-            ansible-compat==4.1.11
-            ansible-lint==6.22.2
-            molecule==6.0.3
-            molecule-plugins[vagrant]==23.5.0
+            ansible-compat==25.8.2
+            ansible-lint==25.9.1
+            molecule==25.1.0
+            molecule-plugins[vagrant]==25.8.12
             pywinrm==0.4.3
 
       - name: Set up Python 3.

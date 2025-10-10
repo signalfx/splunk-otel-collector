@@ -6,16 +6,10 @@
 
 - name: Set fluentd_supported fact
   ansible.builtin.set_fact:
-    fluentd_supported: |-
-      {%- if ansible_os_family == "Suse" -%}
-        false
-      {%- elif ansible_distribution == "Amazon" and ansible_distribution_version == "2023" -%}
-        false
-      {%- elif ansible_os_family == "Debian" and ansible_distribution_major_version == "12" -%}
-        false
-      {%- else -%}
-        true
-      {%- endif -%}
+    fluentd_supported: >-
+      {{ (ansible_os_family != 'Suse'
+         and not (ansible_distribution == 'Amazon' and ansible_distribution_version == '2023')
+         and not (ansible_os_family == 'Debian' and ansible_distribution_major_version == '12')) }}
 
 - name: Assert splunk-otel-collector service is running
   assert:

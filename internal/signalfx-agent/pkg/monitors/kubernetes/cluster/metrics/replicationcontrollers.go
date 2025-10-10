@@ -26,8 +26,8 @@ func datapointsForReplicationController(rc *v1.ReplicationController) []*datapoi
 		*rc.Spec.Replicas, rc.Status.AvailableReplicas)
 }
 
-func dimensionForReplicationController(rc *v1.ReplicationController) *atypes.Dimension {
-	props, tags := k8sutil.PropsAndTagsFromLabels(rc.Labels)
+func dimensionForReplicationController(rc *v1.ReplicationController, sendUnsanitizedProperties bool) *atypes.Dimension {
+	props, tags := k8sutil.PropsAndTagsFromLabels(rc.Labels, sendUnsanitizedProperties)
 	props["kubernetes_workload_name"] = rc.Name
 	props["kubernetes_workload"] = "ReplicationController"
 	props["replication_controller_creation_timestamp"] = rc.GetCreationTimestamp().Format(time.RFC3339)

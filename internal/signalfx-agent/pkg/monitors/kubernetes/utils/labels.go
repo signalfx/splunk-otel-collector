@@ -13,17 +13,23 @@ var propNameSanitizer = strings.NewReplacer(
 
 // PropsAndTagsFromLabels converts k8s label set into SignalFx
 // properties and tags formatted sets.
-func PropsAndTagsFromLabels(labels map[string]string) (map[string]string, map[string]bool) {
+func PropsAndTagsFromLabels(labels map[string]string, sendUnsanitized bool) (map[string]string, map[string]bool) {
 	props := make(map[string]string)
 	tags := make(map[string]bool)
 
 	for label, value := range labels {
-		key := propNameSanitizer.Replace(label)
+		sanitizedKey := propNameSanitizer.Replace(label)
 		// K8s labels without values are treated as tags
 		if value == "" {
-			tags[key] = true
+			tags[sanitizedKey] = true
+			if sendUnsanitized && label != sanitizedKey {
+				tags[label] = true
+			}
 		} else {
-			props[key] = value
+			props[sanitizedKey] = value
+			if sendUnsanitized && label != sanitizedKey {
+				props[label] = value
+			}
 		}
 	}
 

@@ -23,25 +23,27 @@ type DimensionHandler struct {
 	uidKindCache      map[types.UID]string
 	sendDimensionFunc func(*atypes.Dimension)
 
-	podCache                *k8sutil.PodCache
-	serviceCache            *k8sutil.ServiceCache
-	replicaSetCache         *k8sutil.ReplicaSetCache
-	jobCache                *k8sutil.JobCache
-	updatesForNodeDimension bool
-	logger                  log.FieldLogger
+	podCache                  *k8sutil.PodCache
+	serviceCache              *k8sutil.ServiceCache
+	replicaSetCache           *k8sutil.ReplicaSetCache
+	jobCache                  *k8sutil.JobCache
+	updatesForNodeDimension   bool
+	sendUnsanitizedProperties bool
+	logger                    log.FieldLogger
 }
 
 // NewDimensionHandler creates a handler for dimension updates
-func NewDimensionHandler(sendDimensionFunc func(*atypes.Dimension), updatesForNodeDimension bool, logger log.FieldLogger) *DimensionHandler {
+func NewDimensionHandler(sendDimensionFunc func(*atypes.Dimension), updatesForNodeDimension bool, sendUnsanitizedProperties bool, logger log.FieldLogger) *DimensionHandler {
 	return &DimensionHandler{
-		uidKindCache:            make(map[types.UID]string),
-		sendDimensionFunc:       sendDimensionFunc,
-		podCache:                k8sutil.NewPodCache(),
-		serviceCache:            k8sutil.NewServiceCache(),
-		replicaSetCache:         k8sutil.NewReplicaSetCache(),
-		jobCache:                k8sutil.NewJobCache(),
-		updatesForNodeDimension: updatesForNodeDimension,
-		logger:                  logger,
+		uidKindCache:              make(map[types.UID]string),
+		sendDimensionFunc:         sendDimensionFunc,
+		podCache:                  k8sutil.NewPodCache(),
+		serviceCache:              k8sutil.NewServiceCache(),
+		replicaSetCache:           k8sutil.NewReplicaSetCache(),
+		jobCache:                  k8sutil.NewJobCache(),
+		updatesForNodeDimension:   updatesForNodeDimension,
+		sendUnsanitizedProperties: sendUnsanitizedProperties,
+		logger:                    logger,
 	}
 }
 
@@ -50,27 +52,27 @@ func (dh *DimensionHandler) HandleAdd(newObj runtime.Object) interface{} {
 
 	switch o := newObj.(type) {
 	case *v1.Pod:
-		dh.sendDimensionFunc(dimensionForPod(o))
+		dh.sendDimensionFunc(dimensionForPod(o, dh.sendUnsanitizedProperties))
 		for _, dim := range dimensionsForPodContainers(o) {
 			dh.sendDimensionFunc(dim)
 		}
 		dh.handleAddPod(o)
 		kind = "Pod"
 	case *appsv1.DaemonSet:
-		dh.sendDimensionFunc(dimensionForDaemonSet(o))
+		dh.sendDimensionFunc(dimensionForDaemonSet(o, dh.sendUnsanitizedProperties))
 		kind = "DaemonSet"
 	case *appsv1.Deployment:
-		dh.sendDimensionFunc(dimensionForDeployment(o))
+		dh.sendDimensionFunc(dimensionForDeployment(o, dh.sendUnsanitizedProperties))
 		kind = "Deployment"
 	case *appsv1.ReplicaSet:
 		dh.handleAddReplicaSet(o)
-		dh.sendDimensionFunc(dimensionForReplicaSet(o))
+		dh.sendDimensionFunc(dimensionForReplicaSet(o, dh.sendUnsanitizedProperties))
 		kind = "ReplicaSet"
 	case *v1.ReplicationController:
-		dh.sendDimensionFunc(dimensionForReplicationController(o))
+		dh.sendDimensionFunc(dimensionForReplicationController(o, dh.sendUnsanitizedProperties))
 		kind = "ReplicationController"
 	case *v1.Node:
-		for _, dim := range dimensionsForNode(o, dh.updatesForNodeDimension) {
+		for _, dim := range dimensionsForNode(o, dh.updatesForNodeDimension, dh.sendUnsanitizedProperties) {
 			dh.sendDimensionFunc(dim)
 		}
 		kind = "Node"
@@ -78,17 +80,17 @@ func (dh *DimensionHandler) HandleAdd(newObj runtime.Object) interface{} {
 		dh.handleAddService(o)
 		kind = "Service"
 	case *appsv1.StatefulSet:
-		dh.sendDimensionFunc(dimensionForStatefulSet(o))
+		dh.sendDimensionFunc(dimensionForStatefulSet(o, dh.sendUnsanitizedProperties))
 		kind = "StatefulSet"
 	case *batchv1.Job:
-		dh.sendDimensionFunc(dimensionForJob(o))
+		dh.sendDimensionFunc(dimensionForJob(o, dh.sendUnsanitizedProperties))
 		dh.handleAddJob(o)
 		kind = "Job"
 	case *batchv1beta1.CronJob:
-		dh.sendDimensionFunc(dimensionForCronJob(o))
+		dh.sendDimensionFunc(dimensionForCronJob(o, dh.sendUnsanitizedProperties))
 		kind = "CronJob"
 	case *v2beta1.HorizontalPodAutoscaler:
-		dh.sendDimensionFunc(dimensionForHpa(o))
+		dh.sendDimensionFunc(dimensionForHpa(o, dh.sendUnsanitizedProperties))
 		kind = "HorizontalPodAutoscaler"
 	default:
 		return nil

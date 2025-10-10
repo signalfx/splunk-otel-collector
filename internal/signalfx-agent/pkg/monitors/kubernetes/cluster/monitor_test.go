@@ -355,6 +355,77 @@ var _ = ginkgo.Describe("Kubernetes plugin", func() {
 
 	}, 5)
 
+	ginkgo.It("Sends unsanitized properties when enabled", func() {
+		log.SetLevel(log.DebugLevel)
+		fakeK8s.SetInitialList([]runtime.Object{
+			&v1.Pod{
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "Pod",
+					APIVersion: "v1",
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-pod",
+					UID:       "pod-uid-1",
+					Namespace: "default",
+					Labels: map[string]string{
+						"app.kubernetes.io/name":    "myapp",
+						"app.kubernetes.io/version": "1.0.0",
+						"example.com/team":          "platform",
+					},
+				},
+				Status: v1.PodStatus{
+					Phase: v1.PodRunning,
+				},
+			},
+			&v1.Node{
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "Node",
+					APIVersion: "v1",
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "test-node",
+					UID:  "node-uid-1",
+					Labels: map[string]string{
+						"kubernetes.io/hostname":  "node1",
+						"node.kubernetes.io/role": "worker",
+					},
+				},
+			},
+		})
+
+		config.SendUnsanitizedProperties = true
+		doSetup(true, "")
+
+		dims := output.WaitForDimensions(2, 3)
+		gomega.Expect(len(dims)).Should(gomega.BeNumerically(">=", 2))
+
+		var podDim *types.Dimension
+		var nodeDim *types.Dimension
+		for _, dim := range dims {
+			if dim.Name == "kubernetes_pod_uid" && dim.Value == "pod-uid-1" {
+				podDim = dim
+			}
+			if dim.Name == "kubernetes_node_uid" && dim.Value == "node-uid-1" {
+				nodeDim = dim
+			}
+		}
+
+		gomega.Expect(podDim).ShouldNot(gomega.BeNil())
+		gomega.Expect(nodeDim).ShouldNot(gomega.BeNil())
+
+		gomega.Expect(podDim.Properties["app_kubernetes_io_name"]).To(gomega.Equal("myapp"))
+		gomega.Expect(podDim.Properties["app.kubernetes.io/name"]).To(gomega.Equal("myapp"))
+		gomega.Expect(podDim.Properties["app_kubernetes_io_version"]).To(gomega.Equal("1.0.0"))
+		gomega.Expect(podDim.Properties["app.kubernetes.io/version"]).To(gomega.Equal("1.0.0"))
+		gomega.Expect(podDim.Properties["example_com_team"]).To(gomega.Equal("platform"))
+		gomega.Expect(podDim.Properties["example.com/team"]).To(gomega.Equal("platform"))
+
+		gomega.Expect(nodeDim.Properties["kubernetes_io_hostname"]).To(gomega.Equal("node1"))
+		gomega.Expect(nodeDim.Properties["kubernetes.io/hostname"]).To(gomega.Equal("node1"))
+		gomega.Expect(nodeDim.Properties["node_kubernetes_io_role"]).To(gomega.Equal("worker"))
+		gomega.Expect(nodeDim.Properties["node.kubernetes.io/role"]).To(gomega.Equal("worker"))
+	})
+
 	ginkgo.It("Sends Deployment metrics", func() {
 		fakeK8s.SetInitialList([]runtime.Object{
 			&v1.Pod{

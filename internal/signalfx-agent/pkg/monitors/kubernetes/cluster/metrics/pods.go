@@ -55,8 +55,8 @@ func datapointsForPod(pod *v1.Pod) []*datapoint.Datapoint {
 	return dps
 }
 
-func dimensionForPod(pod *v1.Pod) *atypes.Dimension {
-	props, tags := k8sutil.PropsAndTagsFromLabels(pod.Labels)
+func dimensionForPod(pod *v1.Pod, sendUnsanitizedProperties bool) *atypes.Dimension {
+	props, tags := k8sutil.PropsAndTagsFromLabels(pod.Labels, sendUnsanitizedProperties)
 
 	props["pod_creation_timestamp"] = pod.CreationTimestamp.Format(time.RFC3339)
 

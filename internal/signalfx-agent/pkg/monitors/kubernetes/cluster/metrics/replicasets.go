@@ -27,8 +27,8 @@ func datapointsForReplicaSet(rs *appsv1.ReplicaSet) []*datapoint.Datapoint {
 		*rs.Spec.Replicas, rs.Status.AvailableReplicas)
 }
 
-func dimensionForReplicaSet(rs *appsv1.ReplicaSet) *atypes.Dimension {
-	props, tags := k8sutil.PropsAndTagsFromLabels(rs.Labels)
+func dimensionForReplicaSet(rs *appsv1.ReplicaSet, sendUnsanitizedProperties bool) *atypes.Dimension {
+	props, tags := k8sutil.PropsAndTagsFromLabels(rs.Labels, sendUnsanitizedProperties)
 	props["kubernetes_workload_name"] = rs.Name
 	props["kubernetes_workload"] = "ReplicaSet"
 	props["replicaset_creation_timestamp"] = rs.GetCreationTimestamp().Format(time.RFC3339)

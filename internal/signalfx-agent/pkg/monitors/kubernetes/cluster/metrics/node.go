@@ -58,9 +58,9 @@ func datapointsForNode(
 	return datapoints
 }
 
-func dimensionsForNode(node *v1.Node, updatesForNodeDimension bool) []*atypes.Dimension {
+func dimensionsForNode(node *v1.Node, updatesForNodeDimension bool, sendUnsanitizedProperties bool) []*atypes.Dimension {
 	var out []*atypes.Dimension
-	props, tags := k8sutil.PropsAndTagsFromLabels(node.Labels)
+	props, tags := k8sutil.PropsAndTagsFromLabels(node.Labels, sendUnsanitizedProperties)
 	_ = getPropsFromTaints(node.Spec.Taints)
 
 	props["node_creation_timestamp"] = node.GetCreationTimestamp().Format(time.RFC3339)

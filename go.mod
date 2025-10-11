@@ -10,9 +10,9 @@ require (
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/go-zookeeper/zk v1.0.4
 	github.com/gogo/protobuf v1.3.2
-	github.com/hashicorp/vault v1.20.3
+	github.com/hashicorp/vault v1.20.4
 	github.com/hashicorp/vault-plugin-auth-gcp v0.21.0
-	github.com/hashicorp/vault/api v1.20.0
+	github.com/hashicorp/vault/api v1.22.0
 	github.com/knadh/koanf v1.5.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/countconnector v0.136.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/routingconnector v0.136.0
@@ -97,6 +97,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mongodbreceiver v0.136.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mysqlreceiver v0.136.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/nginxreceiver v0.136.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/ntpreceiver v0.136.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/oracledbreceiver v0.136.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/postgresqlreceiver v0.136.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.136.0
@@ -117,6 +118,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sshcheckreceiver v0.136.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceiver v0.136.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/syslogreceiver v0.136.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tcpcheckreceiver v0.136.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tcplogreceiver v0.136.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tlscheckreceiver v0.136.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/udplogreceiver v0.136.0
@@ -133,7 +135,7 @@ require (
 	github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor v0.83.0
 	github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver v0.0.0-00010101000000-000000000000
 	github.com/signalfx/splunk-otel-collector/tests v0.83.0
-	github.com/spf13/cast v1.9.2
+	github.com/spf13/cast v1.10.0
 	github.com/spf13/pflag v1.0.10
 	github.com/stretchr/testify v1.11.1
 	go.etcd.io/bbolt v1.4.3

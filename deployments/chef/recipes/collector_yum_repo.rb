@@ -3,7 +3,7 @@
 
 yum_repository 'splunk-otel-collector' do
   description 'Splunk OpenTelemetry Collector Repository'
-  baseurl "#{node['splunk_otel_collector']['rhel_repo_url']}/#{node['splunk_otel_collector']['package_stage']}/$basearch/"
+  baseurl node['splunk_otel_collector']['rhel_repo_url']
   gpgcheck true
   gpgkey node['splunk_otel_collector']['rhel_gpg_key_url']
   enabled true

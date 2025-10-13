@@ -39,7 +39,7 @@ RUN JMX_METRICS_JAR=opentelemetry-jmx-metrics.jar && \
     URL=https://github.com/open-telemetry/opentelemetry-java-contrib/releases/download/${JMX_METRIC_GATHERER_RELEASE}/${JMX_METRICS_JAR} && \
     cd /tmp && wget "$URL";
 
-FROM ${DOCKER_REPO}/debian:12.8 as journalctl
+FROM ${DOCKER_REPO}/debian:13 as journalctl
 RUN apt update
 RUN apt install -y systemd
 COPY dist/collect-libs.sh /collect-libs.sh

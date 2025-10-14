@@ -4,6 +4,7 @@ name: Tanzu Tile
 # or /deployments/cloudfoundry/tile
 
 on:
+  workflow_dispatch:
   pull_request:
     paths:
       - 'deployments/cloudfoundry/bosh/**'

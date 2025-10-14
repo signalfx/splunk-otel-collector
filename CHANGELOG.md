@@ -77,7 +77,7 @@ and the [opentelemetry-collector-contrib v0.137.0](https://github.com/open-telem
 - (Contrib) `azureeventhubreceiver`: Use `$Default` as the default consumer group with the new azeventhubs SDK ([#43049](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/43049))
 - (Contrib) `azureeventhubreceiver`: Offset configuration option is now correctly honored, and the default start position is set to latest. ([#38487](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/38487))
 - (Contrib) `jmxreceiver`: Fix the jmx-scraper hash for version 1.49.0 ([#121332](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/121332))
-- (Contrib) `postgreqsqlreceiver`: Fix for memory leak when using top queries ([#43076](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/43076))
+- (Contrib) `postgresqlreceiver`: Fix for memory leak when using top queries ([#43076](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/43076))
 - (Contrib) `ntpreceiver`: Fix missing resource attribute 'ntp.host' to ntpreceiver metrics ([#43129](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/43129))
 - (Contrib) `receiver/k8seventsreceiver`: Prevent potential panic in the events receiver by safely checking that informer objects are *corev1.Event before handling them. ([#43014](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/43014))
 - (Contrib) `awscloudwatchlogexporter, awsemfexporter, awsxrayexporter`: Fix support for role_arn (STS, short-lived token authentication). ([#42115](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/42115))

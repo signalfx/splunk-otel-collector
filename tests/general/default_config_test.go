@@ -197,6 +197,9 @@ func TestDefaultGatewayConfig(t *testing.T) {
 							},
 						},
 					},
+					"signalfx": map[string]any{
+						"endpoint": fmt.Sprintf("%s:9943", ip),
+					},
 					"zipkin": map[string]any{
 						"endpoint": fmt.Sprintf("%s:9411", ip),
 					},
@@ -221,6 +224,11 @@ func TestDefaultGatewayConfig(t *testing.T) {
 							"processors": []any{"memory_limiter", "batch"},
 							"receivers":  []any{"routing/logs"},
 						},
+						"logs/signalfx": map[string]any{
+							"exporters":  []any{"signalfx"},
+							"processors": []any{"memory_limiter", "batch"},
+							"receivers":  []any{"signalfx"},
+						},
 						"logs/entities": map[string]any{
 							"exporters":  []any{"otlphttp/entities"},
 							"processors": []any{"memory_limiter", "batch"},
@@ -233,7 +241,7 @@ func TestDefaultGatewayConfig(t *testing.T) {
 						"metrics": map[string]any{
 							"exporters":  []any{"signalfx"},
 							"processors": []any{"memory_limiter", "batch"},
-							"receivers":  []any{"otlp"},
+							"receivers":  []any{"otlp", "signalfx"},
 						},
 						"metrics/internal": map[string]any{
 							"exporters":  []any{"signalfx/internal"},

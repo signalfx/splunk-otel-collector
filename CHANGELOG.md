@@ -80,7 +80,6 @@ and the [opentelemetry-collector-contrib v0.137.0](https://github.com/open-telem
 - (Contrib) `postgresqlreceiver`: Fix for memory leak when using top queries ([#43076](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/43076))
 - (Contrib) `ntpreceiver`: Fix missing resource attribute 'ntp.host' to ntpreceiver metrics ([#43129](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/43129))
 - (Contrib) `receiver/k8seventsreceiver`: Prevent potential panic in the events receiver by safely checking that informer objects are *corev1.Event before handling them. ([#43014](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/43014))
-- (Contrib) `awscloudwatchlogexporter, awsemfexporter, awsxrayexporter`: Fix support for role_arn (STS, short-lived token authentication). ([#42115](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/42115))
 - (Contrib) `jmxreceiver`: restart the java process on error ([#42138](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/42138))
   Previously, the java process would not restart on error. By default, this receiver will now
   always restart the process on error.

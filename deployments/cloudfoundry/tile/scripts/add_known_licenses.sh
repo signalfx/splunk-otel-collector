@@ -32,7 +32,6 @@ license_finder licenses add github.com/hashicorp/vault/sdk "Mozilla Public Licen
 license_finder licenses add github.com/hashicorp/yamux "Mozilla Public License 2.0"
 license_finder licenses add github.com/jmespath/go-jmespath "Apache 2.0"
 license_finder licenses add github.com/rcrowley/go-metrics "Simplified BSD"
-license_finder licenses remove github.com/hashicorp/valud-plugin-auth-gcp
 license_finder licenses add github.com/hashicorp/go-gcp-common "Mozilla Public License 2.0"
 license_finder licenses add github.com/hashicorp/go-version "Mozilla Public License 2.0"
 license_finder licenses add github.com/hashicorp/go-kms-wrapping/entropy/v2 "Mozilla Public License 2.0"

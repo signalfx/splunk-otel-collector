@@ -45,7 +45,7 @@ jobs:
         run: |
           ./make-latest-tile
           tanzu_tile_glob="product/splunk-otel-collector-*.pivotal"
-          size="$(stat -c '%s' "$tanzu_tile_glob")"
+          size="$(stat -c '%s' $tanzu_tile_glob)"
           if [[ $size -eq 0 ]]; then
             echo "File is empty!" >&2
             exit 1

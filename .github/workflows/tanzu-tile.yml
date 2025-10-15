@@ -105,4 +105,3 @@ jobs:
             ${{ env.tanzu_tile_path }}
             ${{ env.osdf_license_path }}
             deployments/cloudfoundry/bosh/config/blobs.yml
-            deployments/cloudfoundry/tile/resources/latest-release.tgz

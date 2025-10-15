@@ -28,6 +28,18 @@ jobs:
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v5
+
+      - name: Install license_finder
+        run: gem install license_finder
+
+      - name: Add known licenses
+        run: ./scripts/add_known_licenses.sh
+
+      - name: Run license_finder from repository root
+        run: |
+          cd ../../..
+          license_finder
+
       - name: Set up Homebrew
         id: set-up-homebrew
         uses: Homebrew/actions/setup-homebrew@master

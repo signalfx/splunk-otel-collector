@@ -89,8 +89,13 @@ jobs:
           fi
 
           tanzu_tile_path=$(pwd)/"$tanzu_tile_glob"
-          echo "Tanzu Tile glob path $tanzu_tile_path"
+          echo "Tanzu Tile glob path: $tanzu_tile_path"
           echo "tanzu_tile_path=$tanzu_tile_path" >> "$GITHUB_ENV"
+
+          cd ../../..
+          osdf_license_path=$(pwd)/"OSDF*"
+          echo "OSDF license glob path: $osdf_license_path"
+          echo "osdf_license_path=$osdf_license_path" >> "$GITHUB_ENV"
 
       - name: Uploading artifacts
         uses: actions/upload-artifact@v4
@@ -98,6 +103,6 @@ jobs:
           name: tanzu-tile-publication-bundle
           path: |
             ${{ env.tanzu_tile_path }}
+            ${{ env.osdf_license_path }}
             deployments/cloudfoundry/bosh/config/blobs.yml
             deployments/cloudfoundry/tile/resources/latest-release.tgz
-            ../../../OSDF*

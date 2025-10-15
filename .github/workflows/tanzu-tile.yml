@@ -38,7 +38,7 @@ jobs:
       - name: Run license_finder from repository root
         run: |
           cd ../../..
-          license_finder
+          license_finder --debug
 
       - name: Set up Homebrew
         id: set-up-homebrew

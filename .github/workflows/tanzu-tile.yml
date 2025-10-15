@@ -33,7 +33,10 @@ jobs:
         run: sudo gem install license_finder
 
       - name: Add known licenses
-        run: ./scripts/add_known_licenses.sh
+        # Need to run add_known_licenses.sh from repository root
+        run: |
+          cd ../../..
+          ./deployments/cloudfoundry/tile/scripts/add_known_licenses.sh
 
       - name: Run license_finder from repository root
         run: |

@@ -4,6 +4,10 @@ name: Tanzu Tile
 # or /deployments/cloudfoundry/tile
 
 on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
   pull_request:
     paths:
       - 'deployments/cloudfoundry/bosh/**'
@@ -36,18 +40,22 @@ jobs:
         shell: bash
         run: |
           pip install tile-generator
-      - name: Run release script
+      - name: Run make tile
         shell: bash
         run: |
           ./make-latest-tile
-          tanzu_tile_regex="product/splunk-otel-collector-*.pivotal"
-          size="$(stat -c '%s' "$tanzu_tile_regex")"
+      - name: Check release
+        shell: bash
+        run: |
+          tanzu_tile_glob="product/splunk-otel-collector-*.pivotal"
+          # shellcheck disable=SC2086
+          size="$(stat -c '%s' $tanzu_tile_glob)"
           if [[ $size -eq 0 ]]; then
             echo "File is empty!" >&2
             exit 1
           fi
 
-          tanzu_tile_path=$(pwd)/"$tanzu_tile_regex"
+          tanzu_tile_path=$(pwd)/"$tanzu_tile_glob"
           echo "tanzu_tile_path=$tanzu_tile_path" >> "$GITHUB_ENV"
 
       - name: Uploading artifacts

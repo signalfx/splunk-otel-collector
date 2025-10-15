@@ -40,11 +40,15 @@ jobs:
         shell: bash
         run: |
           pip install tile-generator
-      - name: Run release script
+      - name: Run make tile
         shell: bash
         run: |
           ./make-latest-tile
+      - name: Check release
+        shell: bash
+        run: |
           tanzu_tile_glob="product/splunk-otel-collector-*.pivotal"
+          # shellcheck disable=SC2086
           size="$(stat -c '%s' $tanzu_tile_glob)"
           if [[ $size -eq 0 ]]; then
             echo "File is empty!" >&2

@@ -58,7 +58,7 @@ jobs:
       - name: Generate OSDF file
         run: |
           cd ../../..
-          python3 ./deployments/cloudfoundry/tile/scripts/generate_osdf.py --otel-version ${{ env.COLLECTOR_VERSION }}
+          python3 ./deployments/cloudfoundry/tile/scripts/generate_osdf.py --otelcol_version ${{ env.COLLECTOR_VERSION }}
 
       - name: Set up Homebrew
         id: set-up-homebrew

@@ -26,6 +26,11 @@ jobs:
     name: Test Tanzu Tile creation
     runs-on: ubuntu-24.04
     steps:
+      - name: Check out the codebase.
+        # Technically it will be more precise for the license check to happen against the label matching the
+        # Collector version, but that makes harder to track updates to scripts and so on.
+        uses: actions/checkout@v5
+
       - name: Get the Collector version to be packaged
         run: |
           COLLECTOR_VERSION=$(wget -qO- --header="Accept: application/json" "https://github.com/signalfx/splunk-otel-collector/releases/latest" | jq -r '.tag_name')
@@ -35,11 +40,6 @@ jobs:
           fi
           echo "The Splunk OpenTelemetry Collector version to be packaged is $COLLECTOR_VERSION"
           echo "COLLECTOR_VERSION=$COLLECTOR_VERSION" >> "$GITHUB_ENV"
-
-      - name: Check out the codebase.
-        # Technically it will be more precise for the license check to happen against the label matching the
-        # Collector version, but that makes harder to track updates to scripts and so on.
-        uses: actions/checkout@v5
 
       - name: Install license_finder
         run: sudo gem install license_finder

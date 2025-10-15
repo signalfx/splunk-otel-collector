@@ -30,7 +30,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Install license_finder
-        run: gem install --user-install license_finder
+        run: sudo gem install license_finder
 
       - name: Add known licenses
         run: ./scripts/add_known_licenses.sh

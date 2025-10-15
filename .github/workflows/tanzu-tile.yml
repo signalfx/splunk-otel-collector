@@ -4,6 +4,10 @@ name: Tanzu Tile
 # or /deployments/cloudfoundry/tile
 
 on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
   pull_request:
     paths:
       - 'deployments/cloudfoundry/bosh/**'

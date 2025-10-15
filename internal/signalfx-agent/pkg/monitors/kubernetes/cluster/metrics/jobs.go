@@ -68,8 +68,8 @@ func datapointsForJob(job *batchv1.Job) []*datapoint.Datapoint {
 	return dps
 }
 
-func dimensionForJob(job *batchv1.Job) *atypes.Dimension {
-	props, tags := k8sutil.PropsAndTagsFromLabels(job.Labels)
+func dimensionForJob(job *batchv1.Job, sendUnsanitizedProperties bool) *atypes.Dimension {
+	props, tags := k8sutil.PropsAndTagsFromLabels(job.Labels, sendUnsanitizedProperties)
 
 	props["kubernetes_workload"] = "Job"
 	props["kubernetes_workload_name"] = job.Name

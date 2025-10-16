@@ -41,8 +41,8 @@ if [ $ATTEMPT -gt $MAX_ATTEMPTS ]; then
 fi
 
 # Verify Otel agent is running without any error
-(grep -qi "ERROR" "$TEST_FOLDER/splunk/Splunk_TA_otel.log" && exit 1 ) || true
-(grep -qi "ERROR" "$TEST_FOLDER/splunk/otel.log" && exit 1 ) || true
+(grep -qi "ERROR" "$TEST_FOLDER/splunk/Splunk_TA_otel.log" && safe_tail "$TEST_FOLDER/splunk/Splunk_TA_otel.log" && exit 1 ) || true
+(grep -qi "ERROR" "$TEST_FOLDER/splunk/otel.log" && safe_tail "$TEST_FOLDER/splunk/otel.log" && exit 1 ) || true
 
 # Verify O11y has (recently) received metrics data from this host.  TODO add a resource attribute or similar with the job name
 MAX_ATTEMPTS=10
@@ -69,7 +69,7 @@ if [ $ATTEMPT -gt $MAX_ATTEMPTS ]; then
 fi
 
 # For release, ensure version is as expected.  TODO move this to another test and compare against tag
-EXPECTED_ADDON_VERSION=v0.135.0
+EXPECTED_ADDON_VERSION=v0.137.0
 actual_version="$(grep "Version" "$TEST_FOLDER/splunk/otel.log" | head -1 | awk -F 'Version": "' '{print $2}' | awk -F '", "' '{print $1}')"
 echo "actual version: $actual_version"
 [[ "$actual_version" != "$EXPECTED_ADDON_VERSION" ]] && echo "Test failed -- invalid version" && exit 1

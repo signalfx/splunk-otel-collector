@@ -41,8 +41,8 @@ if [ $ATTEMPT -gt $MAX_ATTEMPTS ]; then
 fi
 
 # Verify Otel agent is running without any error
-(grep -qi "ERROR" "$TEST_FOLDER/splunk/Splunk_TA_otel.log" && exit 1 ) || true
-(grep -qi "ERROR" "$TEST_FOLDER/splunk/otel.log" && exit 1 ) || true
+(grep -qi "ERROR" "$TEST_FOLDER/splunk/Splunk_TA_otel.log" && safe_tail "$TEST_FOLDER/splunk/Splunk_TA_otel.log" && exit 1 ) || true
+(grep -qi "ERROR" "$TEST_FOLDER/splunk/otel.log" && safe_tail "$TEST_FOLDER/splunk/otel.log" && exit 1 ) || true
 
 # Verify O11y has (recently) received metrics data from this host.  TODO add a resource attribute or similar with the job name
 MAX_ATTEMPTS=10

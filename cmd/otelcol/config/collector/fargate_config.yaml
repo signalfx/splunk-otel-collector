@@ -52,11 +52,6 @@ receivers:
             - source_labels: [ __name__ ]
               regex: 'otelcol_processor_batch_.*'
               action: drop
-  signalfx:
-    endpoint: 0.0.0.0:9943
-    # Whether to propagate the client metadata from the incoming requests to the downstream consumers
-    # Should be enabled to preserve incoming access token and use instead of exporter token
-    #include_metadata: true
   zipkin:
     endpoint: 0.0.0.0:9411
   awsecscontainermetrics:
@@ -124,7 +119,7 @@ service:
         #- resource/add_environment
       exporters: [otlphttp, signalfx]
     metrics:
-      receivers: [otlp, signalfx, awsecscontainermetrics, prometheus/internal]
+      receivers: [otlp, awsecscontainermetrics, prometheus/internal]
       processors: [memory_limiter, batch, resourcedetection]
       exporters: [signalfx]
     logs:

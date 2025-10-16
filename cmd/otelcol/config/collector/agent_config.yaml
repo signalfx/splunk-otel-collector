@@ -93,11 +93,6 @@ receivers:
             action: drop
   smartagent/processlist:
     type: processlist
-  signalfx:
-    endpoint: "${SPLUNK_LISTEN_INTERFACE}:9943"
-    # Whether to propagate the client metadata from the incoming requests to the downstream consumers
-    # Should be enabled to preserve incoming access token and use instead of exporter token
-    #include_metadata: true
   zipkin:
     endpoint: "${SPLUNK_LISTEN_INTERFACE}:9411"
   nop:
@@ -202,7 +197,7 @@ service:
       # Use instead when sending to gateway
       #exporters: [otlp/gateway, signalfx]
     metrics:
-      receivers: [hostmetrics, otlp, signalfx]
+      receivers: [hostmetrics, otlp]
       processors: [memory_limiter, batch, resourcedetection]
       exporters: [signalfx]
       # Use instead when sending to gateway
@@ -214,7 +209,7 @@ service:
       # to use signalfx exporter so host metadata gets emitted
       exporters: [signalfx]
     logs/signalfx:
-      receivers: [signalfx, smartagent/processlist]
+      receivers: [smartagent/processlist]
       processors: [memory_limiter, batch, resourcedetection]
       exporters: [signalfx]
     logs/entities:

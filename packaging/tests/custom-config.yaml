@@ -1,6 +1,4 @@
 receivers:
-  signalfx:
-    endpoint: 0.0.0.0:9943
   otlp:
     protocols:
       grpc:
@@ -15,7 +13,7 @@ exporters:
 service:
   pipelines:
     metrics:
-      receivers: [signalfx, otlp]
+      receivers: [otlp]
       exporters: [file]
     logs:
       receivers: [otlp]

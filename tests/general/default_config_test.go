@@ -453,7 +453,6 @@ func TestDefaultAgentConfig(t *testing.T) {
 							},
 						},
 					},
-					"signalfx":               map[string]any{"endpoint": fmt.Sprintf("%s:9943", ip)},
 					"smartagent/processlist": map[string]any{"type": "processlist"},
 					"zipkin":                 map[string]any{"endpoint": fmt.Sprintf("%s:9411", ip)},
 					"nop":                    nil,
@@ -469,12 +468,12 @@ func TestDefaultAgentConfig(t *testing.T) {
 						"logs/signalfx": map[string]any{
 							"exporters":  []any{"signalfx"},
 							"processors": []any{"memory_limiter", "batch", "resourcedetection"},
-							"receivers":  []any{"signalfx", "smartagent/processlist"},
+							"receivers":  []any{"smartagent/processlist"},
 						},
 						"metrics": map[string]any{
 							"exporters":  []any{"signalfx"},
 							"processors": []any{"memory_limiter", "batch", "resourcedetection"},
-							"receivers":  []any{"hostmetrics", "otlp", "signalfx"},
+							"receivers":  []any{"hostmetrics", "otlp"},
 						},
 						"metrics/internal": map[string]any{
 							"exporters":  []any{"signalfx"},

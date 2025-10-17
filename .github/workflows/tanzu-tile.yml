@@ -33,7 +33,7 @@ jobs:
 
       - name: Get the Collector version to be packaged
         run: |
-          COLLECTOR_VERSION=$(wget -qO- --header="Accept: application/json" "https://github.com/signalfx/splunk-otel-collector/releases/latest" | jq -r '.tag_name')
+          COLLECTOR_VERSION=$(curl "https://api.github.com/repos/signalfx/splunk-otel-collector/tags" | jq -r '[.[].name | select(test("v[0-9]+\\.[0-9]+\\.[0-9]+$")) | sub("^v"; "")] | sort_by(split(".") | map(tonumber)) | last | "v" + .')
           if [ -z "$COLLECTOR_VERSION" ]; then
             echo "Failed to get tag_name for latest release" >&2
             exit 1

@@ -23,3 +23,5 @@ apt-get update
 apt-get install -y ruby ruby-dev rubygems build-essential git rpm sudo curl jq ruby-bundler
 
 bundle install --gemfile ${SCRIPT_DIR}/Gemfile
+
+gem install fpm

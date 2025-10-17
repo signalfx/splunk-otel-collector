@@ -148,6 +148,14 @@ linters:
         - regexpSimplify
         - stringConcatSimplify
         - httpNoBody
+        - evalOrder
+        - emptyFallthrough
+        - preferDecodeRune
+        - appendCombine
+        - typeAssertChain
+        - unlabelStmt
+        - sprintfQuotedString
+        - badRegexp
       enable-all: true
 
     gosec:

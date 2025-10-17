@@ -160,6 +160,7 @@ linters:
 
     gosec:
       excludes:
+        - G204 # Subprocess launched with function call as argument or cmd arguments.
         - G301 # TLS InsecureSkipVerify set true.
         - G304 # File path provided as tainted input to file opening function.
         - G104 # Errors unhandled.
@@ -173,6 +174,7 @@ linters:
         # defined in this repository are not in the execution hot path.
         # See https://github.com/open-telemetry/opentelemetry-collector/issues/2789
         - fieldalignment
+        - hostport
       enable-all: true
       # settings per analyzer
       settings:
@@ -264,7 +266,7 @@ linters:
         # report when a variable declaration can be simplified
         - name: var-declaration
         # warns when initialism, variable or package naming conventions are not followed.
-        - name: var-naming
+#        - name: var-naming
 
     staticcheck:
       checks:

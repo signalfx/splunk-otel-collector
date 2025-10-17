@@ -1,8 +1,6 @@
 module github.com/signalfx/splunk-otel-collector
 
-go 1.25.1
-
-replace github.com/hashicorp/go-cmp => github.com/google/go-cmp v0.5.3
+go 1.24.6
 
 require (
 	github.com/alecthomas/participle/v2 v2.1.4

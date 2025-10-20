@@ -4,3 +4,47 @@ exclude:
   - './instrumentation/packaging/**'
   - './packaging/**'
   - './tests/**'
+ignore:
+  # false positive: https://github.com/jstedfast/MimeKit/discussions/1054
+  - vulnerability: GHSA-gmc6-fwg3-75m5
+    package:
+      name: MimeKit
+      type: dotnet
+      location: "**/MimeKitLite.dll"
+  - vulnerability: CVE-2025-53816
+    reason: Coming from Windows base image, tracking via https://github.com/microsoft/Windows-Containers/issues/610
+    package:
+      name: 7-Zip
+      type: binary
+      location: "/Files/Windows/WinSxS/**/7z.dll"
+  - vulnerability: CVE-2025-53817
+    reason: Coming from Windows base image, tracking via https://github.com/microsoft/Windows-Containers/issues/610
+    package:
+      name: 7-Zip
+      type: binary
+      location: "/Files/Windows/WinSxS/**/7z.dll"
+  - vulnerability: CVE-2025-55188
+    reason: Coming from Windows base image, tracking via https://github.com/microsoft/Windows-Containers/issues/610
+    package:
+      name: 7-Zip
+      type: binary
+      location: "/Files/Windows/WinSxS/**/7z.dll"
+  - vulnerability: CVE-2025-3277
+    reason: Coming from Windows base image, tracking via https://github.com/microsoft/Windows-Containers/issues/610
+    package:
+      name: SQLite
+      type: binary
+      location: "**/Files/Windows/**/winsqlite3.dll"
+  - vulnerability: CVE-2025-6965
+    reason: Coming from Windows base image, tracking via https://github.com/microsoft/Windows-Containers/issues/610
+    package:
+      name: SQLite
+      type: binary
+      location: "**/Files/Windows/**/winsqlite3.dll"
+  - vulnerability: CVE-2025-29087
+    reason: Coming from Windows base image, tracking via https://github.com/microsoft/Windows-Containers/issues/610
+    package:
+      name: SQLite
+      type: binary
+      location: "**/Files/Windows/**/winsqlite3.dll"
+

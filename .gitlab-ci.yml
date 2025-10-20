@@ -44,7 +44,7 @@ include:
     ref: latest
     file: '/templates/.sast_scan.yml'
   - project: 'ci-cd/templates'
-    ref: master
+    ref: main
     file:
       - '/prodsec/.oss-scan.yml'
       - '/prodsec/.binary-scan.yml'

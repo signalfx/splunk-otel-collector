@@ -150,6 +150,8 @@ linters:
         - unlabelStmt
         - sprintfQuotedString
         - badRegexp
+        - stringXbytes
+        - redundantSprint
       enable-all: true
 
     gosec:

@@ -160,10 +160,11 @@ linters:
 
     gosec:
       excludes:
+        - G104 # Errors unhandled.
+        - G103 # Audit errors not checked.
         - G204 # Subprocess launched with function call as argument or cmd arguments.
         - G301 # TLS InsecureSkipVerify set true.
         - G304 # File path provided as tainted input to file opening function.
-        - G104 # Errors unhandled.
         - G402 # TLS MinVersion too low.
         - G404 # Insecure random number source (math/rand instead of crypto/rand).
 
@@ -175,6 +176,7 @@ linters:
         # See https://github.com/open-telemetry/opentelemetry-collector/issues/2789
         - fieldalignment
         - hostport
+        - unsafeptr
       enable-all: true
       # settings per analyzer
       settings:

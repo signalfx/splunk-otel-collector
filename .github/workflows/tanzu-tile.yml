@@ -27,7 +27,39 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Check out the codebase.
+        # Technically it will be more precise for the license check to happen against the label matching the
+        # Collector version, but that makes harder to track updates to scripts and so on.
         uses: actions/checkout@v5
+
+      - name: Get the Collector version to be packaged
+        run: |
+          COLLECTOR_VERSION=$(curl "https://api.github.com/repos/signalfx/splunk-otel-collector/tags" | jq -r '[.[].name | select(test("v[0-9]+\\.[0-9]+\\.[0-9]+$")) | sub("^v"; "")] | sort_by(split(".") | map(tonumber)) | last | "v" + .')
+          if [ -z "$COLLECTOR_VERSION" ]; then
+            echo "Failed to get tag_name for latest release" >&2
+            exit 1
+          fi
+          echo "The Splunk OpenTelemetry Collector version to be packaged is $COLLECTOR_VERSION"
+          echo "COLLECTOR_VERSION=$COLLECTOR_VERSION" >> "$GITHUB_ENV"
+
+      - name: Install license_finder
+        run: sudo gem install license_finder
+
+      - name: Add known licenses
+        # Need to run add_known_licenses.sh from repository root
+        run: |
+          cd ../../..
+          ./deployments/cloudfoundry/tile/scripts/add_known_licenses.sh
+
+      - name: Run license_finder from repository root
+        run: |
+          cd ../../..
+          license_finder --debug
+
+      - name: Generate OSDF file
+        run: |
+          cd ../../..
+          python3 ./deployments/cloudfoundry/tile/scripts/generate_osdf.py --otelcol_version ${{ env.COLLECTOR_VERSION }}
+
       - name: Set up Homebrew
         id: set-up-homebrew
         uses: Homebrew/actions/setup-homebrew@master
@@ -43,7 +75,8 @@ jobs:
       - name: Run make tile
         shell: bash
         run: |
-          ./make-latest-tile
+          # Ensure that we are targeting the same version as the generated OSDF file.
+          OTEL_VERSION=${{ env.COLLECTOR_VERSION }} ./make-latest-tile
       - name: Check release
         shell: bash
         run: |
@@ -56,10 +89,19 @@ jobs:
           fi
 
           tanzu_tile_path=$(pwd)/"$tanzu_tile_glob"
+          echo "Tanzu Tile glob path: $tanzu_tile_path"
           echo "tanzu_tile_path=$tanzu_tile_path" >> "$GITHUB_ENV"
+
+          cd ../../..
+          osdf_license_path=$(pwd)/"OSDF*"
+          echo "OSDF license glob path: $osdf_license_path"
+          echo "osdf_license_path=$osdf_license_path" >> "$GITHUB_ENV"
 
       - name: Uploading artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: tanzu-tile-latest.pivotal
-          path: ${{ env.tanzu_tile_path }}
+          name: tanzu-tile-publication-bundle
+          path: |
+            ${{ env.tanzu_tile_path }}
+            ${{ env.osdf_license_path }}
+            deployments/cloudfoundry/bosh/config/blobs.yml

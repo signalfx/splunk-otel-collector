@@ -62,26 +62,27 @@ linters:
   disable:
     - errcheck
   enable:
+    - copyloopvar
+    - gocritic
+    - gosec
+    - govet
+    - misspell
+    - revive
+    - staticcheck
+    - unconvert
+    - unparam
+#    Enable additional linters as needed in the future
 #    - asasalint
 #    - contextcheck
-    - copyloopvar
 #    - decorder
 #    - depguard
 #    - errcheck
 #    - errorlint
 #    - fatcontext
-    - gocritic
-    - gosec
-    - govet
-    - misspell
 #    - nolintlint
 #    - perfsprint
-    - revive
-    - staticcheck
 #    - testifylint
 #    - thelper
-    - unconvert
-    - unparam
 #    - unused
 #    - usestdlibvars
 #    - usetesting
@@ -305,5 +306,3 @@ issues:
       linters:
         - staticcheck
   exclude-dirs-use-default: false
-  exclude-dirs:
-    - internal/signalfx-agent/pkg/monitors/telegraf/monitors/winperfcounters

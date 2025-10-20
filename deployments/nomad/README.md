@@ -92,7 +92,6 @@ service:
       - batch
       receivers:
       - hostmetrics
-      - signalfx
 EOF
     destination = "local/config/otel-agent-config.yaml"
 }

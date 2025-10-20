@@ -31,14 +31,8 @@ run:
 output:
   # The formats used to render issues.
   formats:
-    # Prints issues in a text format with colors, line number, and linter name.
-    text:
-      # Output path can be either `stdout`, `stderr` or path to the file to write to.
+    colored-line-number:
       path: stdout
-      # print linter name in the end of issue text, default is true
-      print-linter-name: true
-      # print lines of code with issue, default is true
-      print-issued-lines: true
 
   # Show statistics per linter.
   show-stats: false
@@ -309,3 +303,5 @@ issues:
       linters:
         - staticcheck
   exclude-dirs-use-default: false
+  exclude-dirs:
+    - internal/signalfx-agent/pkg/monitors/telegraf/monitors/winperfcounters

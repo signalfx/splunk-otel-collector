@@ -114,7 +114,7 @@
       <CustomAction Id="DeleteProgramFilesConfig" ExeCommand="cmd /c del /q &quot;[INSTALLDIR]*config.yaml&quot;" Directory="INSTALLDIR" Impersonate="no" Execute="deferred" Return="ignore" />
 
       <ComponentGroup Id="AssortedFiles">
-         <Files Directory="INSTALLDIR" Include="!(bindpath)\msi\**" />
+         <Files Directory="INSTALLDIR" Include="$(var.FilesDir)\**" />
       </ComponentGroup>
 
       <StandardDirectory Id="ProgramFiles64Folder">

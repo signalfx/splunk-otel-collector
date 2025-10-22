@@ -62,7 +62,10 @@ linters:
   disable:
     - errcheck
   enable:
+    - asasalint
     - copyloopvar
+    - decorder
+    - errcheck
     - gocritic
     - gosec
     - govet
@@ -71,19 +74,16 @@ linters:
     - staticcheck
     - unconvert
     - unparam
+    - unused
 #    Enable additional linters as needed in the future
-#    - asasalint
 #    - contextcheck
-#    - decorder
 #    - depguard
-#    - errcheck
 #    - errorlint
 #    - fatcontext
 #    - nolintlint
 #    - perfsprint
 #    - testifylint
 #    - thelper
-#    - unused
 #    - usestdlibvars
 #    - usetesting
 #    - whitespace
@@ -122,7 +122,6 @@ linters:
 
     gocritic:
       disabled-checks:
-        - commentedOutCode
         - deferInLoop
         - filepathJoin
         - hugeParam
@@ -143,14 +142,6 @@ linters:
         - regexpSimplify
         - stringConcatSimplify
         - httpNoBody
-        - evalOrder
-        - emptyFallthrough
-        - preferDecodeRune
-        - appendCombine
-        - typeAssertChain
-        - unlabelStmt
-        - sprintfQuotedString
-        - badRegexp
         - stringXbytes
         - redundantSprint
       enable-all: true
@@ -158,23 +149,11 @@ linters:
     gosec:
       excludes:
         - G104 # Errors unhandled.
-        - G103 # Audit errors not checked.
-        - G204 # Subprocess launched with function call as argument or cmd arguments.
         - G301 # TLS InsecureSkipVerify set true.
         - G302 # Poor file permissions used when creating a new file or directory.
         - G304 # File path provided as tainted input to file opening function.
-        - G402 # TLS MinVersion too low.
-        - G404 # Insecure random number source (math/rand instead of crypto/rand).
 
     govet:
-      disable:
-        # We want to order fields according to readability and grouping them by use cases.
-        # This linter does not offer a discernible performance improvement as the structs
-        # defined in this repository are not in the execution hot path.
-        # See https://github.com/open-telemetry/opentelemetry-collector/issues/2789
-        - fieldalignment
-        - hostport
-        - unsafeptr
       enable-all: true
       # settings per analyzer
       settings:
@@ -190,13 +169,6 @@ linters:
       # Default is to use a neutral variety of English.
       # Setting locale to US will correct the British spelling of 'colour' to 'color'.
       locale: US
-      ignore-words:
-        - cancelled
-        - metre
-        - meter
-        - metres
-        - kilometre
-        - kilometres
 
     nolintlint:
       require-specific: true
@@ -225,6 +197,7 @@ linters:
         - name: context-keys-type
         # Importing with `.` makes the programs much harder to understand
         - name: dot-imports
+#          Enable this rule after refactoring in the if else block.
 #        - name: early-return
 #          arguments:
 #            - preserveScope
@@ -261,25 +234,22 @@ linters:
         - name: unreachable-code
         # Functions or methods with unused parameters can be a symptom of an unfinished refactoring or a bug.
         - name: unused-parameter
-#        # Since Go 1.18, interface{} has an alias: any. This rule proposes to replace instances of interface{} with any.
-#        - name: use-any
+        # Since Go 1.18, interface{} has an alias: any. This rule proposes to replace instances of interface{} with any.
+        # Enable this rule after refactoring in the affected places.
+        # - name: use-any
         # report when a variable declaration can be simplified
         - name: var-declaration
         # warns when initialism, variable or package naming conventions are not followed.
-#        - name: var-naming
+        - name: var-naming
 
     staticcheck:
       checks:
         - all
         - -SA4011 # disable: analysis of atomic values is unsound
         - -ST1000
-        - -ST1005
         - -ST1003
         - -ST1020
         - -ST1021
-        - -ST1022
-        - -QF1001
-        - -QF1003
         - -QF1007
         - -QF1008
 

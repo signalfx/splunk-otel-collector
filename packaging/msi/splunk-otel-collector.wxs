@@ -109,7 +109,7 @@
       </Property>
 
       <!-- Copy the default agent config file to ProgramData if it does not already exist -->
-      <CustomAction Id="CopyConfig" ExeCommand="xcopy /y &quot;[INSTALLDIR]*_config.yaml&quot; &quot;[CommonAppDataFolder]Splunk\OpenTelemetry Collector&quot;" Directory="INSTALLDIR" Impersonate="no" Execute="deferred" Return="check" />
+      <CustomAction Id="CopyConfig" ExeCommand="xcopy /y &quot;[INSTALLDIR]*_config.yaml&quot; &quot;[CommonAppDataFolder]Splunk\OpenTelemetry Collector\&quot;" Directory="INSTALLDIR" Impersonate="no" Execute="deferred" Return="check" />
       <CustomAction Id="DeleteProgramFilesConfig" ExeCommand="cmd /c del /q &quot;[INSTALLDIR]*config.yaml&quot;" Directory="INSTALLDIR" Impersonate="no" Execute="deferred" Return="ignore" />
 
       <StandardDirectory Id="ProgramFiles64Folder">

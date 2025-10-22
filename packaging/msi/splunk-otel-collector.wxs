@@ -4,7 +4,7 @@
          Name="Splunk OpenTelemetry Collector"
          Version="$(var.Version)"
          Manufacturer="Splunk, Inc."
-         Scope="perMachince"
+         Scope="perMachine"
          Language="1033"
          InstallerVersion="200"
          Compressed="yes">

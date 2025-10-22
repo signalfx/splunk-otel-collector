@@ -4,6 +4,7 @@
          Name="Splunk OpenTelemetry Collector"
          Version="$(var.Version)"
          Manufacturer="Splunk, Inc."
+         Scope="perMachince"
          Language="1033"
          InstallerVersion="200"
          Compressed="yes">
@@ -116,8 +117,24 @@
             <Directory Id="INSTALLDIR" Name="OpenTelemetry Collector">
                <Component Id="ApplicationComponent" Guid="484fa99a-2efe-41cd-a047-98bc1fc71e04">
                   <File Id="OtelcolExecutableFile" Name="otelcol.exe" KeyPath="yes" Source="$(var.Otelcol)" />
-                  <ServiceInstall Id="Service" Name="splunk-otel-collector" DisplayName="Splunk OpenTelemetry Collector" Description="Splunk OpenTelemetry Collector" Type="ownProcess" Vital="yes" Start="auto" Account="LocalSystem" ErrorControl="normal" Arguments="[COLLECTOR_SVC_ARGS]" Interactive="no" />
-                  <ServiceControl Id="StartStopRemoveService" Name="splunk-otel-collector" Stop="both" Remove="uninstall" Wait="yes" />
+                  <ServiceInstall
+                        Id="Service"
+                        Name="splunk-otel-collector"
+                        DisplayName="Splunk OpenTelemetry Collector"
+                        Description="Splunk OpenTelemetry Collector"
+                        Type="ownProcess"
+                        Vital="yes"
+                        Start="auto"
+                        Account="LocalSystem"
+                        ErrorControl="normal"
+                        Arguments="[COLLECTOR_SVC_ARGS]"
+                        Interactive="no" />
+                  <ServiceControl
+                        Id="StartStopRemoveService"
+                        Name="splunk-otel-collector"
+                        Stop="both"
+                        Remove="uninstall"
+                        Wait="yes" />
                </Component>
             </Directory>
          </Directory>

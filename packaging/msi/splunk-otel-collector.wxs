@@ -1,27 +1,27 @@
-<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-   <Product Id="*" UpgradeCode="fde3e4d9-9ca5-4c82-be7b-81445ab5b605" Name="Splunk OpenTelemetry Collector" Version="$(var.Version)" Manufacturer="Splunk, Inc." Language="1033">
-      <Package InstallerVersion="200" Compressed="yes" Comments="Windows Installer Package" InstallPrivileges="elevated" InstallScope="perMachine" />
-      <Media Id="1" Cabinet="product.cab" EmbedCab="yes"/>
-      <Icon Id="ProductIcon" SourceFile="$(sys.SOURCEFILEDIR)/splunk.ico"/>
-      <Property Id="ARPPRODUCTICON" Value="ProductIcon"/>
-      <Property Id="ARPHELPLINK" Value="https://splunk.com/"/>
-      <Property Id="ARPURLINFOABOUT" Value="https://splunk.com/"/>
-      <Property Id="ARPNOREPAIR" Value="1"/>
-      <Property Id="ARPNOMODIFY" Value="1"/>
+﻿<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+   <Package
+         UpgradeCode="fde3e4d9-9ca5-4c82-be7b-81445ab5b605"
+         Name="Splunk OpenTelemetry Collector"
+         Version="$(var.Version)"
+         Manufacturer="Splunk, Inc."
+         Language="1033"
+         InstallerVersion="200"
+         Compressed="yes">
+
+      <Media Id="1" Cabinet="product.cab" EmbedCab="yes" />
+
+      <Icon Id="ProductIcon" SourceFile="$(sys.SOURCEFILEDIR)/splunk.ico" />
+      <Property Id="ARPPRODUCTICON" Value="ProductIcon" />
+      <Property Id="ARPHELPLINK" Value="https://splunk.com/" />
+      <Property Id="ARPURLINFOABOUT" Value="https://splunk.com/" />
+      <Property Id="ARPNOREPAIR" Value="1" />
+      <Property Id="ARPNOMODIFY" Value="1" />
 
       <!-- Load the Splunk custom actions -->
       <Binary Id="SplunkCustomActionsDll" SourceFile="$(sys.SOURCEFILEDIR)/SplunkCustomActions/bin/Release/SplunkCustomActions.CA.dll" />
-      <CustomAction Id="CheckLaunchConditions" DllEntry="CheckLaunchConditions" BinaryKey="SplunkCustomActionsDll" Execute="immediate" />
-      <CustomAction
-         Id="AddOptionalConfigurationsCustomActionData"
-         Property="AddOptionalConfigurations"
-         Value="GODEBUG=[GODEBUG];GOMEMLIMIT=[GOMEMLIMIT];SPLUNK_COLLECTD_DIR=[SPLUNK_COLLECTD_DIR];SPLUNK_GATEWAY_URL=[SPLUNK_GATEWAY_URL];SPLUNK_LISTEN_INTERFACE=[SPLUNK_LISTEN_INTERFACE];SPLUNK_MEMORY_LIMIT_MIB=[SPLUNK_MEMORY_LIMIT_MIB];SPLUNK_MEMORY_TOTAL_MIB=[SPLUNK_MEMORY_TOTAL_MIB]" />
-      <CustomAction 
-         Id="AddOptionalConfigurations"
-         DllEntry="AddOptionalConfigurations"
-         BinaryKey="SplunkCustomActionsDll"
-         Execute="deferred"
-         Impersonate="no" /> 
+      <CustomAction Id="CheckLaunchConditions" DllEntry="CheckLaunchConditions" Execute="immediate" BinaryRef="SplunkCustomActionsDll" />
+      <CustomAction Id="AddOptionalConfigurationsCustomActionData" Property="AddOptionalConfigurations" Value="GODEBUG=[GODEBUG];GOMEMLIMIT=[GOMEMLIMIT];SPLUNK_COLLECTD_DIR=[SPLUNK_COLLECTD_DIR];SPLUNK_GATEWAY_URL=[SPLUNK_GATEWAY_URL];SPLUNK_LISTEN_INTERFACE=[SPLUNK_LISTEN_INTERFACE];SPLUNK_MEMORY_LIMIT_MIB=[SPLUNK_MEMORY_LIMIT_MIB];SPLUNK_MEMORY_TOTAL_MIB=[SPLUNK_MEMORY_TOTAL_MIB]" />
+      <CustomAction Id="AddOptionalConfigurations" DllEntry="AddOptionalConfigurations" Execute="deferred" Impersonate="no" BinaryRef="SplunkCustomActionsDll" />
 
       <!-- Following name convention for this property to match upstream -->
       <!-- On upstream it is required and has a default value, here it is optional -->
@@ -34,102 +34,66 @@
       <Property Id="SPLUNK_ACCESS_TOKEN" Secure="yes" />
 
       <Property Id="SPLUNK_HEC_TOKEN" Secure="yes" />
-      <CustomAction Id="Set_SPLUNK_HEC_TOKEN" Property="SPLUNK_HEC_TOKEN" Value="[SPLUNK_ACCESS_TOKEN]"/>
+      <CustomAction Id="Set_SPLUNK_HEC_TOKEN" Property="SPLUNK_HEC_TOKEN" Value="[SPLUNK_ACCESS_TOKEN]" />
 
       <!-- SPLUNK_*_URL properties required to start the collector -->
       <Property Id="SPLUNK_REALM" Value="us0" Secure="yes" />
 
-      <Property Id="SPLUNK_CONFIG"     Secure="yes" />
-      <Property Id="SPLUNK_API_URL"    Secure="yes" />
+      <Property Id="SPLUNK_CONFIG" Secure="yes" />
+      <Property Id="SPLUNK_API_URL" Secure="yes" />
       <Property Id="SPLUNK_INGEST_URL" Secure="yes" />
-      <Property Id="SPLUNK_HEC_URL"    Secure="yes" />
+      <Property Id="SPLUNK_HEC_URL" Secure="yes" />
       <Property Id="SPLUNK_BUNDLE_DIR" Secure="yes" />
 
-      <CustomAction Id="Set_SPLUNK_CONFIG"     Property="SPLUNK_CONFIG"     Value="[CommonAppDataFolder]Splunk\OpenTelemetry Collector\[SPLUNK_SETUP_COLLECTOR_MODE]_config.yaml" />
-      <CustomAction Id="Set_SPLUNK_API_URL"    Property="SPLUNK_API_URL"    Value="https://api.[SPLUNK_REALM].signalfx.com"/>
-      <CustomAction Id="Set_SPLUNK_INGEST_URL" Property="SPLUNK_INGEST_URL" Value="https://ingest.[SPLUNK_REALM].signalfx.com"/>
-      <CustomAction Id="Set_SPLUNK_HEC_URL"    Property="SPLUNK_HEC_URL"    Value="[SPLUNK_INGEST_URL]/v1/log"/>
+      <CustomAction Id="Set_SPLUNK_CONFIG" Property="SPLUNK_CONFIG" Value="[CommonAppDataFolder]Splunk\OpenTelemetry Collector\[SPLUNK_SETUP_COLLECTOR_MODE]_config.yaml" />
+      <CustomAction Id="Set_SPLUNK_API_URL" Property="SPLUNK_API_URL" Value="https://api.[SPLUNK_REALM].signalfx.com" />
+      <CustomAction Id="Set_SPLUNK_INGEST_URL" Property="SPLUNK_INGEST_URL" Value="https://ingest.[SPLUNK_REALM].signalfx.com" />
+      <CustomAction Id="Set_SPLUNK_HEC_URL" Property="SPLUNK_HEC_URL" Value="[SPLUNK_INGEST_URL]/v1/log" />
       <CustomAction Id="Set_SPLUNK_BUNDLE_DIR" Property="SPLUNK_BUNDLE_DIR" Value="[INSTALLDIR]agent-bundle" />
 
       <InstallExecuteSequence>
          <Custom Action="CheckLaunchConditions" After="LaunchConditions" />
-         <Custom Action="Set_SPLUNK_HEC_TOKEN"  After="LaunchConditions">NOT SPLUNK_HEC_TOKEN</Custom>
-         <Custom Action="Set_SPLUNK_CONFIG"     After="LaunchConditions">NOT SPLUNK_CONFIG</Custom>
-         <Custom Action="Set_SPLUNK_API_URL"    After="LaunchConditions">NOT SPLUNK_API_URL</Custom>
-         <Custom Action="Set_SPLUNK_INGEST_URL" After="LaunchConditions">NOT SPLUNK_INGEST_URL</Custom>
+         <Custom Action="Set_SPLUNK_HEC_TOKEN" After="LaunchConditions" Condition="NOT SPLUNK_HEC_TOKEN" />
+         <Custom Action="Set_SPLUNK_CONFIG" After="LaunchConditions" Condition="NOT SPLUNK_CONFIG" />
+         <Custom Action="Set_SPLUNK_API_URL" After="LaunchConditions" Condition="NOT SPLUNK_API_URL" />
+         <Custom Action="Set_SPLUNK_INGEST_URL" After="LaunchConditions" Condition="NOT SPLUNK_INGEST_URL" />
          <!-- The properties below depend on another properties and should be run only after all other properties are set -->
-         <Custom Action="Set_SPLUNK_HEC_URL"    After="CostFinalize">NOT SPLUNK_HEC_URL</Custom>
-         <Custom Action="Set_SPLUNK_BUNDLE_DIR" After="CostFinalize">NOT SPLUNK_BUNDLE_DIR</Custom>
+         <Custom Action="Set_SPLUNK_HEC_URL" After="CostFinalize" Condition="NOT SPLUNK_HEC_URL" />
+         <Custom Action="Set_SPLUNK_BUNDLE_DIR" After="CostFinalize" Condition="NOT SPLUNK_BUNDLE_DIR" />
          <!-- After files installation the registry is set for the service, check optional configurations -->
          <Custom Action="AddOptionalConfigurationsCustomActionData" Before="AddOptionalConfigurations" />
          <Custom Action="AddOptionalConfigurations" After="WriteRegistryValues" />
+         <Custom Action="CopyConfig" After="InstallFiles" Condition="NOT CONFIG_FILE_EXISTS AND NOT Installed" />
+         <Custom Action="DeleteProgramFilesConfig" After="CopyConfig" />
       </InstallExecuteSequence>
 
-      <MajorUpgrade DowngradeErrorMessage="A later version of the Splunk OpenTelemetry Collector is already installed. Setup will now exit."/>
+      <MajorUpgrade DowngradeErrorMessage="A later version of the Splunk OpenTelemetry Collector is already installed. Setup will now exit." />
 
-      <Directory Id="TARGETDIR" Name="SourceDir">
-         <Directory Id="ProgramFiles64Folder">
-            <Directory Id="COMPANYDIR" Name="Splunk">
-               <Directory Id="INSTALLDIR" Name="OpenTelemetry Collector">
-                  <Component Id="ApplicationComponent" Guid="484fa99a-2efe-41cd-a047-98bc1fc71e04">
-                     <File Id="OtelcolExecutableFile" Name="otelcol.exe" KeyPath="yes" Source="$(var.Otelcol)"/>
-                     <ServiceInstall
-                        Id="Service"
-                        Name="splunk-otel-collector"
-                        DisplayName="Splunk OpenTelemetry Collector"
-                        Description="Splunk OpenTelemetry Collector"
-                        Type="ownProcess"
-                        Vital="yes"
-                        Start="auto"
-                        Account="LocalSystem"
-                        ErrorControl="normal"
-                        Arguments="[COLLECTOR_SVC_ARGS]"
-                        Interactive="no" />
-                     <ServiceControl
-                        Id="StartStopRemoveService"
-                        Name="splunk-otel-collector"
-                        Stop="both"
-                        Remove="uninstall"
-                        Wait="yes" />
-                  </Component>
-               </Directory>
-            </Directory>
-         </Directory>
-         <Directory Id="OptDir" Name="opt">
-            <Component Id="JmxMetricsJarComponent" Guid="c2aca15f-813a-4497-9bad-1c97e7bff618">
-               <File Id="JmxMetricsJar" Name="opentelemetry-java-contrib-jmx-metrics.jar" KeyPath="yes" Source="$(var.JmxMetricsJar)"/>
-            </Component>
-         </Directory>
-      </Directory>
-
-      <Component Id="RegistryComponent" Guid="8d6d2a92-9952-4251-8f6b-d85c5b2182e4" Directory="INSTALLDIR">
-         <Condition>NOT Installed OR REINSTALL</Condition>
+      <Component Id="RegistryComponent" Guid="8d6d2a92-9952-4251-8f6b-d85c5b2182e4" Directory="INSTALLDIR" Condition="NOT Installed OR REINSTALL">
          <RegistryKey Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\EventLog\Application\splunk-otel-collector">
-            <RegistryValue Type="expandable" Name="EventMessageFile" Value="%SystemRoot%\System32\EventCreate.exe"/>
+            <RegistryValue Type="expandable" Name="EventMessageFile" Value="%SystemRoot%\System32\EventCreate.exe" />
          </RegistryKey>
          <RegistryKey Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\splunk-otel-collector">
             <RegistryValue Type="multiString" Name="Environment">
-               <MultiStringValue>SPLUNK_ACCESS_TOKEN=[SPLUNK_ACCESS_TOKEN]</MultiStringValue>
-               <MultiStringValue>SPLUNK_API_URL=[SPLUNK_API_URL]</MultiStringValue>
-               <MultiStringValue>SPLUNK_BUNDLE_DIR=[SPLUNK_BUNDLE_DIR]</MultiStringValue>
-               <MultiStringValue>SPLUNK_CONFIG=[SPLUNK_CONFIG]</MultiStringValue>
-               <MultiStringValue>SPLUNK_HEC_TOKEN=[SPLUNK_HEC_TOKEN]</MultiStringValue>
-               <MultiStringValue>SPLUNK_HEC_URL=[SPLUNK_HEC_URL]</MultiStringValue>
-               <MultiStringValue>SPLUNK_INGEST_URL=[SPLUNK_INGEST_URL]</MultiStringValue>
-               <MultiStringValue>SPLUNK_REALM=[SPLUNK_REALM]</MultiStringValue>
+               <MultiStringValue Value="SPLUNK_ACCESS_TOKEN=[SPLUNK_ACCESS_TOKEN]" />
+               <MultiStringValue Value="SPLUNK_API_URL=[SPLUNK_API_URL]" />
+               <MultiStringValue Value="SPLUNK_BUNDLE_DIR=[SPLUNK_BUNDLE_DIR]" />
+               <MultiStringValue Value="SPLUNK_CONFIG=[SPLUNK_CONFIG]" />
+               <MultiStringValue Value="SPLUNK_HEC_TOKEN=[SPLUNK_HEC_TOKEN]" />
+               <MultiStringValue Value="SPLUNK_HEC_URL=[SPLUNK_HEC_URL]" />
+               <MultiStringValue Value="SPLUNK_INGEST_URL=[SPLUNK_INGEST_URL]" />
+               <MultiStringValue Value="SPLUNK_REALM=[SPLUNK_REALM]" />
             </RegistryValue>
          </RegistryKey>
       </Component>
 
       <Feature Id="SplunkOtelCollector" Level="1">
-         <ComponentRef Id="ApplicationComponent"/>
+         <ComponentRef Id="ApplicationComponent" />
          <Feature Id="SplunkCollectorConfiguration" Level="1">
-            <ComponentRef Id="RegistryComponent"/>
+            <ComponentRef Id="RegistryComponent" />
          </Feature>
-         <ComponentRef Id="RegistryComponent"/>
-         <ComponentRef Id="JmxMetricsJarComponent"/>
-         <!-- list of config files auto-generated by heat at build time -->
-         <ComponentGroupRef Id="ConfigFiles"/>
+         <ComponentRef Id="RegistryComponent" />
+         <ComponentRef Id="JmxMetricsJarComponent" />
       </Feature>
 
       <!-- Check if the config file already exists in ProgramData -->
@@ -144,12 +108,26 @@
       </Property>
 
       <!-- Copy the default agent config file to ProgramData if it does not already exist -->
-      <CustomAction Id="CopyConfig" ExeCommand="xcopy /y &quot;[INSTALLDIR]*_config.yaml&quot; &quot;[CommonAppDataFolder]Splunk\OpenTelemetry Collector\&quot;" Directory="INSTALLDIR" Impersonate="no" Execute="deferred" Return="check" />
+      <CustomAction Id="CopyConfig" ExeCommand="xcopy /y &quot;[INSTALLDIR]*_config.yaml&quot; &quot;[CommonAppDataFolder]Splunk\OpenTelemetry Collector&quot;" Directory="INSTALLDIR" Impersonate="no" Execute="deferred" Return="check" />
       <CustomAction Id="DeleteProgramFilesConfig" ExeCommand="cmd /c del /q &quot;[INSTALLDIR]*config.yaml&quot;" Directory="INSTALLDIR" Impersonate="no" Execute="deferred" Return="ignore" />
-      <InstallExecuteSequence>
-         <Custom Action="CopyConfig" After="InstallFiles">NOT CONFIG_FILE_EXISTS AND NOT Installed</Custom>
-         <Custom Action="DeleteProgramFilesConfig" After="CopyConfig"/>
-      </InstallExecuteSequence>
 
-   </Product>
+      <StandardDirectory Id="ProgramFiles64Folder">
+         <Directory Id="COMPANYDIR" Name="Splunk">
+            <Directory Id="INSTALLDIR" Name="OpenTelemetry Collector">
+               <Component Id="ApplicationComponent" Guid="484fa99a-2efe-41cd-a047-98bc1fc71e04">
+                  <File Id="OtelcolExecutableFile" Name="otelcol.exe" KeyPath="yes" Source="$(var.Otelcol)" />
+                  <ServiceInstall Id="Service" Name="splunk-otel-collector" DisplayName="Splunk OpenTelemetry Collector" Description="Splunk OpenTelemetry Collector" Type="ownProcess" Vital="yes" Start="auto" Account="LocalSystem" ErrorControl="normal" Arguments="[COLLECTOR_SVC_ARGS]" Interactive="no" />
+                  <ServiceControl Id="StartStopRemoveService" Name="splunk-otel-collector" Stop="both" Remove="uninstall" Wait="yes" />
+               </Component>
+            </Directory>
+         </Directory>
+      </StandardDirectory>
+      <Directory Id="WindowsVolume" DiskId="1">
+         <Directory Id="OptDir" Name="opt">
+            <Component Id="JmxMetricsJarComponent" Guid="c2aca15f-813a-4497-9bad-1c97e7bff618">
+               <File Id="JmxMetricsJar" Name="opentelemetry-java-contrib-jmx-metrics.jar" KeyPath="yes" Source="$(var.JmxMetricsJar)" />
+            </Component>
+         </Directory>
+      </Directory>
+   </Package>
 </Wix>

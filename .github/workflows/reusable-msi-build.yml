@@ -17,11 +17,8 @@ jobs:
       - name: Check out the codebase.
         uses: actions/checkout@v5
 
-      - name: Uninstall default WiX
-        run: choco uninstall wixtoolset
-
-      - name: Install WiX 3.14.0
-        run: choco install wixtoolset --version 3.14.0 --allow-downgrade --force
+      - name: Install Wix
+        run: dotnet tool restore
 
       - name: Downloading binaries-windows_amd64
         uses: actions/download-artifact@v5

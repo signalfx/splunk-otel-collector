@@ -1517,6 +1517,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsre
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver v0.138.0/go.mod h1:5dTpB/Jd4ikqTji2wqiUApPC3czrd8M00juN2AUbaLc=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/httpcheckreceiver v0.138.0 h1:ey1idGo3xhuOB6Zdg5wA8S4zrkpdGsx0CbaF8twBQGc=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/httpcheckreceiver v0.138.0/go.mod h1:QW86V43/7psSFZQWBqub7IQs82Mi3FeXXUIv+fpK1cA=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/icmpcheckreceiver v0.138.0 h1:pWoacGCVTd/fV3u4HVrp3bLjM2Rcwie2Gt4vAl46uPo=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/icmpcheckreceiver v0.138.0/go.mod h1:ahwee38ymCp4dE0IoujfHV6bzksDeNevyBkN885BkIo=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/iisreceiver v0.138.0 h1:zvtj8aMBthjq0zP2p+18/eS9H38oz6CEaDc5JaunE4Y=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/iisreceiver v0.138.0/go.mod h1:751RQeo0KSXKdcif8nK/NzrOcFOeITVQ6Ia5qa/CVZA=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/influxdbreceiver v0.138.0 h1:yzLOpbVmUqLYBcGXy41xh5Nmi+wC3P9SkbUSVHJtWo0=
@@ -1680,6 +1682,8 @@ github.com/power-devops/perfstat v0.0.0-20240221224432-82ca36839d55/go.mod h1:Om
 github.com/poy/eachers v0.0.0-20181020210610-23942921fe77/go.mod h1:x1vqpbcMW9T/KRcQ4b48diSiSVtYgvwQ5xzDByEg4WE=
 github.com/pquerna/otp v1.4.0 h1:wZvl1TIVxKRThZIBiwOOHOGP/1+nZyWBil9Y2XNEDzg=
 github.com/pquerna/otp v1.4.0/go.mod h1:dkJfzwRKNiegxyNb54X/3fLwhCynbMspSyWKnvi1AEg=
+github.com/prometheus-community/pro-bing v0.7.0 h1:KFYFbxC2f2Fp6c+TyxbCOEarf7rbnzr9Gw8eIb0RfZA=
+github.com/prometheus-community/pro-bing v0.7.0/go.mod h1:Moob9dvlY50Bfq6i88xIwfyw7xLFHH69LUgx9n5zqCE=
 github.com/prometheus/alertmanager v0.28.1 h1:BK5pCoAtaKg01BYRUJhEDV1tqJMEtYBGzPw8QdvnnvA=
 github.com/prometheus/alertmanager v0.28.1/go.mod h1:0StpPUDDHi1VXeM7p2yYfeZgLVi/PPlt39vo9LQUHxM=
 github.com/prometheus/client_golang v0.9.1/go.mod h1:7SWBe2y4D6OKWSNQJUaRYU/AaXPKyh/dDVn+NZz0KFw=

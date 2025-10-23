@@ -673,8 +673,8 @@ go.opentelemetry.io/auto/sdk v1.1.0 h1:cH53jehLUN6UFLY71z+NDOiNJqDdPRaXzTel0sJyS
 go.opentelemetry.io/auto/sdk v1.1.0/go.mod h1:3wSPjt5PWp2RhlCcmmOial7AvC4DQqZb7a7wCow3W8A=
 go.opentelemetry.io/build-tools/chloggen v0.26.0 h1:3ioGgExq6MJpqFzHmgMKmkaNbk6qVa5q1NEx7XG4dTc=
 go.opentelemetry.io/build-tools/chloggen v0.26.0/go.mod h1:1e/hCg1CjMlLgdZeUuSACZLHuX59jWw2cSyJ2FHRK30=
-go.opentelemetry.io/collector/cmd/mdatagen v0.138.0 h1:xQ/CXYRA3J7qWKjmvcOrkAhGd95UysOaFJfjiiH4tlE=
-go.opentelemetry.io/collector/cmd/mdatagen v0.138.0/go.mod h1:BpDGQ8tRroQ8YqpzX3oh/bV0qmtbYqQ5ZUItR3xeYaQ=
+go.opentelemetry.io/collector/cmd/mdatagen v0.138.1-0.20251022171543-c48065709769 h1:NAPn9EXAosuaMzkg4rCsH3VJHBvIYoZceLj6/M8cyC0=
+go.opentelemetry.io/collector/cmd/mdatagen v0.138.1-0.20251022171543-c48065709769/go.mod h1:BpDGQ8tRroQ8YqpzX3oh/bV0qmtbYqQ5ZUItR3xeYaQ=
 go.opentelemetry.io/collector/component v1.44.0 h1:SX5UO/gSDm+1zyvHVRFgpf8J1WP6U3y/SLUXiVEghbE=
 go.opentelemetry.io/collector/component v1.44.0/go.mod h1:geKbCTNoQfu55tOPiDuxLzNZsoO9//HRRg10/8WusWk=
 go.opentelemetry.io/collector/confmap v1.44.0 h1:CIK4jAk6H3KTKza4nvWQkqLqrudLkYGz3evu5163uxg=

@@ -7,9 +7,6 @@
     <RootNamespace>SplunkCustomActions</RootNamespace>
     <TargetFramework>net462</TargetFramework>
     <LangVersion>Latest</LangVersion>
-    <WiXPackageVersion>3.14.0</WiXPackageVersion>
-    <WindowsInstallerAssembliesDll Condition="'$(OS)' != 'Windows_NT'">$(HOME)/.nuget/packages/wix/$(WiXPackageVersion)/tools/sdk</WindowsInstallerAssembliesDll>
-    <WindowsInstallerAssembliesDll Condition="'$(OS)' == 'Windows_NT'">$(MSBuildProgramFiles32)\Wix Toolset v3.14\SDK</WindowsInstallerAssembliesDll>
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' ">
@@ -17,19 +14,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <!-- This doesn't directly bring the dependency needed to build the project but installs it on the NuGet cache -->
-    <PackageReference Include="wix" Version="$(WiXPackageVersion)">
-      <!-- Version 3.14.1 fails to install when run with elevation, see https://github.com/wixtoolset/issues/issues/8078  -->
-      <!-- We are downgrading the package to a version with a known issue given that we don't use the custom action       -->
-      <!-- RemoveFolderEx that exposes the vulnerability described in https://nvd.nist.gov/vuln/detail/CVE-2024-29188     -->
-      <NoWarn>NU1903</NoWarn>
-    </PackageReference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="Microsoft.Deployment.WindowsInstaller">
-      <HintPath>$(WindowsInstallerAssembliesDll)/Microsoft.Deployment.WindowsInstaller.dll</HintPath>
-    </Reference>
+    <PackageReference Include="WixToolset.Dtf.CustomAction" Version="6.0.2" />
   </ItemGroup>
 
 </Project>

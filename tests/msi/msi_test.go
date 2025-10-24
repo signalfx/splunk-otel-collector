@@ -166,7 +166,7 @@ func runMsiTest(t *testing.T, test msiTest, msiInstallerPath string) {
 	installCmd.SysProcAttr = &syscall.SysProcAttr{CmdLine: "msiexec " + cmdLine}
 	err := installCmd.Run()
 	logFile, _ := os.Open(installLogFile)
-	scanner := bufio.NewScanner(transform.NewReader(file, unicode.UTF16(unicode.LittleEndian, unicode.UseBOM).NewDecoder()))
+	scanner := bufio.NewScanner(transform.NewReader(logFile, unicode.UTF16(unicode.LittleEndian, unicode.UseBOM).NewDecoder()))
 	for scanner.Scan() {
 		t.Log(scanner.Text())
 	}

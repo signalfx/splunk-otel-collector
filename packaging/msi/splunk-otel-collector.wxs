@@ -144,7 +144,7 @@
             </Directory>
          </Directory>
       </StandardDirectory>
-      <Directory Id="WindowsVolume" DiskId="1">
+      <Directory Id="OptDrive" DiskId="1">
          <Directory Id="OptDir" Name="opt">
             <Component Id="JmxMetricsJarComponent" Guid="c2aca15f-813a-4497-9bad-1c97e7bff618">
                <File Id="JmxMetricsJar" Name="opentelemetry-java-contrib-jmx-metrics.jar" KeyPath="yes" Source="$(var.JmxMetricsJar)" />

@@ -162,10 +162,8 @@ func runMsiTest(t *testing.T, test msiTest, msiInstallerPath string) {
 	cmdLine := strings.Join(args, " ")
 	installCmd.SysProcAttr = &syscall.SysProcAttr{CmdLine: "msiexec " + cmdLine}
 	err := installCmd.Run()
-	if err != nil {
-		logText, _ := os.ReadFile(installLogFile)
-		t.Log(string(logText))
-	}
+	logText, _ := os.ReadFile(installLogFile)
+	t.Log(string(logText))
 	t.Logf("Install command: %s", installCmd.SysProcAttr.CmdLine)
 	require.NoError(t, err, "Failed to install the MSI: %v\nArgs: %v", err, args)
 

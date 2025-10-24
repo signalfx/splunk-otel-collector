@@ -17,6 +17,7 @@
 package msi
 
 import (
+	"bufio"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -30,6 +31,8 @@ import (
 	"golang.org/x/sys/windows/registry"
 	"golang.org/x/sys/windows/svc"
 	"golang.org/x/sys/windows/svc/mgr"
+	"golang.org/x/text/encoding/unicode"
+	"golang.org/x/text/transform"
 )
 
 // Test structure for MSI installation tests
@@ -162,8 +165,11 @@ func runMsiTest(t *testing.T, test msiTest, msiInstallerPath string) {
 	cmdLine := strings.Join(args, " ")
 	installCmd.SysProcAttr = &syscall.SysProcAttr{CmdLine: "msiexec " + cmdLine}
 	err := installCmd.Run()
-	logText, _ := os.ReadFile(installLogFile)
-	t.Log(string(logText))
+	logFile, _ := os.Open(installLogFile)
+	scanner := bufio.NewScanner(transform.NewReader(file, unicode.UTF16(unicode.LittleEndian, unicode.UseBOM).NewDecoder()))
+	for scanner.Scan() {
+		t.Log(scanner.Text())
+	}
 	t.Logf("Install command: %s", installCmd.SysProcAttr.CmdLine)
 	require.NoError(t, err, "Failed to install the MSI: %v\nArgs: %v", err, args)
 

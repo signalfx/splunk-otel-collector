@@ -5,6 +5,55 @@
 <!-- For unreleased changes, see entries in .chloggen -->
 <!-- next version -->
 
+## v0.138.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.138.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.138.0)
+and the [opentelemetry-collector-contrib v0.138.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.138.0) releases where appropriate.
+
+### 🛑 Breaking changes 🛑
+
+- (Splunk) `deployments/nomad`: Remove `signalfx` receiver from default agent configuration ([#6840](https://github.com/signalfx/splunk-otel-collector/pull/6840))
+  Data should be sent to the Collector in the OTLP format instead.
+- (Splunk) `receiver/signalfx`: Remove the receiver from all default configurations (except for gateways) ([#6837](https://github.com/signalfx/splunk-otel-collector/pull/6837))
+  Please send data to the Collector in the OTLP format instead.
+- (Core) `pkg/exporterhelper`: Add default values for `sending_queue::batch` configuration. ([#13766](https://github.com/open-telemetry/opentelemetry-collector/issues/13766))
+  Setting `sending_queue::batch` to an empty value now results in the same setup as the default batch processor configuration.
+
+### 💡 Enhancements 💡
+
+- (Splunk) `auto-instrumentation`: Update NodeJS instrumentation library to v4.0.1 ([#6826](https://github.com/signalfx/splunk-otel-collector/pull/6826))
+- (Core) `all`: Add `keep_alives_enabled` option to ServerConfig to control HTTP keep-alives for all components that create an HTTP server. ([#13783](https://github.com/open-telemetry/opentelemetry-collector/pull/13783))
+- (Core) `pkg/otelcol`: Avoid unnecessary mutex in collector logs, replace by atomic pointer ([#14008](https://github.com/open-telemetry/opentelemetry-collector/pull/14008))
+- (Contrib) `pkg/ottl`: Add XXH3 Converter function to converts a `value` to a XXH3 hash/digest ([#42792](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/42792))
+- (Contrib) `processor/resourcedetection`: Add Openstack Nova resource detector to gather Openstack instance metadata as resource attributes ([#39117](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/39117))
+  The Openstack Nova resource detector has been added to gather metadata such as host name, ID, cloud provider, region, and availability zone as resource attributes, enhancing the observability of Openstack environments.
+- (Contrib) `processor/resourcedetection`: Add Azure availability zone to resourcedetectionprocessor ([#40983](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/40983))
+- (Contrib) `receiver/azuremonitor`: parallelize calls by subscriptions in Batch API mode ([#39417](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/39417))
+- (Contrib) `receiver/hostmetrics`: Add metrics, Linux scraper, and tests to hostmetricsreceiver's nfsscraper ([#40134](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40134))
+- (Contrib) `receiver/mysql`: Support query-level collection. ([#41847](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41847))
+  Added top query (most time consumed) collection. The query will gather the queries took most of the time during the last
+  query interval and report related metrics. The number of queries can be configured. This will enable user to have better
+  understanding on what is going on with the database. This enhancement empowers users to not only monitor but also actively 
+  manage and optimize their MySQL database performance based on real usage patterns.
+- (Contrib) `receiver/prometheus`: added NHCB(native histogram with custom buckets) to explicit histogram conversion ([#41131](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41131))
+- (Contrib) `receiver/redis`: Add `ClusterInfo` capability to `redisreceiver` ([#38117](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/38117))
+- (Contrib) `receiver/splunkenterprise`: Added a new metric `splunk.license.expiration.seconds_remaining` to report the time remaining in seconds before a Splunk Enterprise license expires. ([#42630](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/42630))
+  - Includes the following attributes: `status`, `label`, `type`.
+- (Contrib) `receiver/sqlserver`: Removing instance name usage in the SQL for top-query collection. ([#43558](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/43558))
+  Additional config of instance name is not required for collecting the top queries.
+- (Contrib) `receiver/syslog`: Promote Syslog receiver to beta stability ([#28551](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/28551))
+
+### 🧰 Bug fixes 🧰
+
+- (Core) `all`: Fix zstd decoder data corruption due to decoder pooling for all components that create an HTTP server. ([#13954](https://github.com/open-telemetry/opentelemetry-collector/issues/13954))
+- (Core) `pkg/otelcol`: Remove UB when taking internal logs and move them to the final zapcore.Core ([#14009](https://github.com/open-telemetry/opentelemetry-collector/pull/14009))
+  This can happen because of a race on accessing `logsTaken`.
+- (Core) `pkg/confmap`: Fix a potential race condition in confmap by closing the providers first. ([#14018](https://github.com/open-telemetry/opentelemetry-collector/pull/14018))
+- (Contrib) `exporter/awss3`: Support compression with the sumo_ic marshaller ([#43574](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/43574))
+- (Contrib) `receiver/k8s_cluster`: Fix for k8sclusterreceiver to handle empty containerID in ContainerStatus ([#43147](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/43147))
+- (Contrib) `receiver/oracledb`: Fix to use time from database clock for more accurate collection window calculation. ([#43621](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/43621))
+  Fixed the top-query collection logic to use database clock instead of the time from collector instance.
+
 ## v0.137.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.137.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.137.0)

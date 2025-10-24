@@ -7,6 +7,7 @@
     <RootNamespace>SplunkCustomActions</RootNamespace>
     <TargetFramework>net462</TargetFramework>
     <LangVersion>Latest</LangVersion>
+    <CustomActionContents>CustomAction.config</CustomActionContents>
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' ">

@@ -15,6 +15,7 @@
   
   <ItemGroup>
     <PackageReference Include="WixToolset.Dtf.CustomAction" Version="6.0.2" />
+    <PackageReference Include="WixToolset.Util.wixext" Version="6.0.2" />
   </ItemGroup>
 
 </Project>

@@ -35,7 +35,7 @@ and the [opentelemetry-collector-contrib v0.138.0](https://github.com/open-telem
   query interval and report related metrics. The number of queries can be configured. This will enable user to have better
   understanding on what is going on with the database. This enhancement empowers users to not only monitor but also actively 
   manage and optimize their MySQL database performance based on real usage patterns.
-- (Contrib) `receiver/prometheus`: added NHCB(native histogram wit custom buckets) to explicit histogram conversion ([#41131](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41131))
+- (Contrib) `receiver/prometheus`: added NHCB(native histogram with custom buckets) to explicit histogram conversion ([#41131](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41131))
 - (Contrib) `receiver/redis`: Add `ClusterInfo` capability to `redisreceiver` ([#38117](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/38117))
 - (Contrib) `receiver/splunkenterprise`: Added a new metric `splunk.license.expiration.seconds_remaining` to report the time remaining in seconds before a Splunk Enterprise license expires. ([#42630](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/42630))
   - Includes the following attributes: `status`, `label`, `type`.

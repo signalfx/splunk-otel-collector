@@ -19,6 +19,7 @@ jobs:
         run: |
           dotnet test ./test/SplunkCustomActionsTests.csproj -c Release
           dotnet build ./src/SplunkCustomActions.csproj -c Release -o ./bin/Release
+          mkdir "${{ github.workspace }}/dist"
           cp ./bin/Release/SplunkCustomActions.CA.dll "${{ github.workspace }}/dist/SplunkCustomActions.CA.dll"
 
       - uses: actions/upload-artifact@v4

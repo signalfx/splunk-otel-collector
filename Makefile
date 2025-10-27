@@ -40,8 +40,6 @@ SKIP_COMPILE=false
 ARCH?=amd64
 BUNDLE_SUPPORTED_ARCHS := amd64 arm64
 SKIP_BUNDLE=false
-# Used for building the collector to collect coverage information
-COVER_TESTING=false
 
 # For integration testing against local changes you can run
 # SPLUNK_OTEL_COLLECTOR_IMAGE='otelcol:latest' make -e docker-otelcol integration-test

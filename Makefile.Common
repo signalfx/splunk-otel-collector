@@ -85,28 +85,29 @@ test:
 	$(GOTEST) $(GOTEST_OPT) $(ALL_PKG_DIRS)
 
 ifeq ($(COVER_TESTING),true)
-	# These variables and targets are expensive to build, so only build if explicitly requested
+# These variables and targets are expensive to build, so only build if explicitly requested
 
-	COVER_PKGS := $(shell find . $(EXCLUDE_MODS) $(FIND_MOD_ARGS) -execdir $(GOCMD) list ./... \; | tr "\n" "," )
-	COVER_DIR?=coverage
-	COVER_DIR_ABS?=$(SRC_ROOT)/$(COVER_DIR)
-	TEST_COVER_DIR?=$(SRC_ROOT)/tests/$(COVER_DIR)
-	COVER_OPTS?=-cover -covermode=atomic -coverpkg $(COVER_PKGS)
-	COVER_TESTING_OPTS?=$(COVER_OPTS) -args -test.gocoverdir="$(COVER_DIR_ABS)"
-	COVER_TESTING_INTEGRATION_OPTS?=$(COVER_OPTS) -args -test.gocoverdir="$(TEST_COVER_DIR)"
+COVER_PKGS := $(shell find . $(EXCLUDE_MODS) $(FIND_MOD_ARGS) -execdir $(GOCMD) list ./... \; | tr "\n" "," )
+COVER_DIR?=coverage
+COVER_DIR_ABS?=$(SRC_ROOT)/$(COVER_DIR)
+TEST_COVER_DIR?=$(SRC_ROOT)/tests/$(COVER_DIR)
+COVER_OPTS?=-cover -covermode=atomic -coverpkg $(COVER_PKGS)
+COVER_TESTING_OPTS?=$(COVER_OPTS) -args -test.gocoverdir="$(COVER_DIR_ABS)"
+COVER_TESTING_INTEGRATION_OPTS?=$(COVER_OPTS) -args -test.gocoverdir="$(TEST_COVER_DIR)"
 
-	.PHONY: test-with-codecov
-	test-with-codecov:
-		mkdir -p $(COVER_DIR)
-		$(GOTEST) $(GOTEST_OPT) ./... $(COVER_OPTS)
+.PHONY: test-with-codecov
+test-with-codecov:
+	mkdir -p $(COVER_DIR)
+	$(GOTEST) $(GOTEST_OPT) ./... $(COVER_OPTS)
 
-	# Currently, running CGO_ENABLED=0 go test -race is broken in gopsutil/v4
-	# This target should be removed in favor of "test" once the following issue is resolved:
-	# https://github.com/shirou/gopsutil/issues/1774
-	.PHONY: test-cover-without-race
-	test-cover-without-race:
-		mkdir -p $(COVER_DIR_ABS)
-		$(GOTEST) $(GOTEST_OPT_WITHOUT_RACE) ./... $(COVER_TESTING_OPTS)
+# Currently, running CGO_ENABLED=0 go test -race is broken in gopsutil/v4
+# This target should be removed in favor of "test" once the following issue is resolved:
+# https://github.com/shirou/gopsutil/issues/1774
+.PHONY: test-cover-without-race
+test-cover-without-race:
+	mkdir -p $(COVER_DIR_ABS)
+	$(GOTEST) $(GOTEST_OPT_WITHOUT_RACE) ./... $(COVER_TESTING_OPTS)
+
 endif
 
 .PHONY: addlicense

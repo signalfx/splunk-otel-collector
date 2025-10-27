@@ -199,15 +199,19 @@ integration-test-istio-discovery-k8s:
 integration-test-istio-discovery-k8s-with-cover:
 	@make integration-test-cover-target TARGET='discovery_integration_istio_k8s'
 
-.PHONY: gotest-with-codecov
-gotest-with-codecov:
-	@$(MAKE) for-all-target TARGET="test-with-codecov"
-	$(GOCMD) tool covdata textfmt -i=./coverage -o ./coverage.txt
+ifeq(($(COVER_TESTING),true)
+	# These targets are expensive to build, so only build if explicitly requested
 
-.PHONY: gotest-cover-without-race
-gotest-cover-without-race:
-	@$(MAKE) for-all-target TARGET="test-cover-without-race"
-	$(GOCMD) tool covdata textfmt -i=./coverage  -o ./coverage.txt
+	.PHONY: gotest-with-codecov
+	gotest-with-codecov:
+		@$(MAKE) for-all-target TARGET="test-with-codecov"
+		$(GOCMD) tool covdata textfmt -i=./coverage -o ./coverage.txt
+
+	.PHONY: gotest-cover-without-race
+	gotest-cover-without-race:
+		@$(MAKE) for-all-target TARGET="test-cover-without-race"
+		$(GOCMD) tool covdata textfmt -i=./coverage  -o ./coverage.txt
+endif
 
 .PHONY: tidy-all
 tidy-all:

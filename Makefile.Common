@@ -2,7 +2,7 @@
 SHELL?=/bin/bash
 
 # Used for building the collector to collect coverage information
-COVER_TESTING=false
+COVER_TESTING?=false
 
 # Add support to use Makefile on Windows
 SHELL_CASE_EXP = case "$$(uname -s)" in CYGWIN*|MINGW*|MSYS*) echo "true";; esac;
@@ -85,27 +85,28 @@ test:
 	$(GOTEST) $(GOTEST_OPT) $(ALL_PKG_DIRS)
 
 ifeq ($(COVER_TESTING),true)
-COVER_PKGS := $(shell find . $(EXCLUDE_MODS) $(FIND_MOD_ARGS) -execdir $(GOCMD) list ./... \; | tr "\n" "," )
-COVER_DIR?=coverage
-COVER_DIR_ABS?=$(SRC_ROOT)/$(COVER_DIR)
-TEST_COVER_DIR?=$(SRC_ROOT)/tests/$(COVER_DIR)
-COVER_OPTS?=-cover -covermode=atomic -coverpkg $(COVER_PKGS)
-COVER_TESTING_OPTS?=$(COVER_OPTS) -args -test.gocoverdir="$(COVER_DIR_ABS)"
-COVER_TESTING_INTEGRATION_OPTS?=$(COVER_OPTS) -args -test.gocoverdir="$(TEST_COVER_DIR)"
+	# These variables and targets are expensive to build, so only build if explicitly requested
 
-.PHONY: test-with-codecov
-test-with-codecov:
-	mkdir -p $(COVER_DIR)
-	$(GOTEST) $(GOTEST_OPT) ./... $(COVER_OPTS)
+	COVER_PKGS := $(shell find . $(EXCLUDE_MODS) $(FIND_MOD_ARGS) -execdir $(GOCMD) list ./... \; | tr "\n" "," )
+	COVER_DIR?=coverage
+	COVER_DIR_ABS?=$(SRC_ROOT)/$(COVER_DIR)
+	TEST_COVER_DIR?=$(SRC_ROOT)/tests/$(COVER_DIR)
+	COVER_OPTS?=-cover -covermode=atomic -coverpkg $(COVER_PKGS)
+	COVER_TESTING_OPTS?=$(COVER_OPTS) -args -test.gocoverdir="$(COVER_DIR_ABS)"
+	COVER_TESTING_INTEGRATION_OPTS?=$(COVER_OPTS) -args -test.gocoverdir="$(TEST_COVER_DIR)"
 
-# Currently, running CGO_ENABLED=0 go test -race is broken in gopsutil/v4
-# This target should be removed in favor of "test" once the following issue is resolved:
-# https://github.com/shirou/gopsutil/issues/1774
-.PHONY: test-cover-without-race
-test-cover-without-race:
-	mkdir -p $(COVER_DIR_ABS)
-	$(GOTEST) $(GOTEST_OPT_WITHOUT_RACE) ./... $(COVER_TESTING_OPTS)
+	.PHONY: test-with-codecov
+	test-with-codecov:
+		mkdir -p $(COVER_DIR)
+		$(GOTEST) $(GOTEST_OPT) ./... $(COVER_OPTS)
 
+	# Currently, running CGO_ENABLED=0 go test -race is broken in gopsutil/v4
+	# This target should be removed in favor of "test" once the following issue is resolved:
+	# https://github.com/shirou/gopsutil/issues/1774
+	.PHONY: test-cover-without-race
+	test-cover-without-race:
+		mkdir -p $(COVER_DIR_ABS)
+		$(GOTEST) $(GOTEST_OPT_WITHOUT_RACE) ./... $(COVER_TESTING_OPTS)
 endif
 
 .PHONY: addlicense

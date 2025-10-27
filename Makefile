@@ -199,7 +199,7 @@ integration-test-istio-discovery-k8s:
 integration-test-istio-discovery-k8s-with-cover:
 	@make integration-test-cover-target TARGET='discovery_integration_istio_k8s'
 
-ifeq(($(COVER_TESTING),true)
+ifeq($(COVER_TESTING),true)
 	# These targets are expensive to build, so only build if explicitly requested
 
 	.PHONY: gotest-with-codecov

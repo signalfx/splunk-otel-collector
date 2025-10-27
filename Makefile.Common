@@ -84,7 +84,7 @@ common: checklicense lint misspell
 test:
 	$(GOTEST) $(GOTEST_OPT) $(ALL_PKG_DIRS)
 
-ifeq ($(COVER_TESTING), true)
+ifeq ($(COVER_TESTING),true)
 COVER_PKGS := $(shell find . $(EXCLUDE_MODS) $(FIND_MOD_ARGS) -execdir $(GOCMD) list ./... \; | tr "\n" "," )
 COVER_DIR?=coverage
 COVER_DIR_ABS?=$(SRC_ROOT)/$(COVER_DIR)

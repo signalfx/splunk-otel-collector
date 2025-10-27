@@ -446,6 +446,7 @@ jobs:
           KUBECONFIG=$HOME/.kube/config SKIP_TEARDOWN=true make integration-test-${{ matrix.SERVICE }}-discovery-k8s-with-cover
         env:
           CONTAINER_COVER_DEST: '/etc/otel/collector/coverage'
+          COVER_TESTING: true
       - name: Print logs
         if: failure()
         run: |

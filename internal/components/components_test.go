@@ -69,6 +69,7 @@ func TestDefaultComponents(t *testing.T) {
 		"haproxy",
 		"hostmetrics",
 		"httpcheck",
+		"icmpcheckreceiver",
 		"iis",
 		"influxdb",
 		"jaeger",
@@ -177,6 +178,7 @@ func TestDefaultComponents(t *testing.T) {
 
 	recvs := factories.Receivers
 	assert.Len(t, recvs, len(expectedReceivers))
+
 	for _, k := range expectedReceivers {
 		v, ok := recvs[component.MustNewType(k)]
 		require.True(t, ok, k)

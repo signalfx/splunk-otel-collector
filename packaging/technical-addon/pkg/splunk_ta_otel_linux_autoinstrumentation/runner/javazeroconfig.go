@@ -75,20 +75,20 @@ type templateData struct {
 
 // CreateZeroConfigJava reimplements create_zeroconfig_java from installer script
 func CreateZeroConfigJava(modInputs *SplunkTAOtelLinuxAutoinstrumentationModularInputs) error {
-	if "" == modInputs.SplunkOtelJavaAutoinstrumentationJarPath.Value {
+	if modInputs.SplunkOtelJavaAutoinstrumentationJarPath.Value == "" {
 		log.Printf("Not instrumenting java, as %q was not set", modInputs.SplunkOtelJavaAutoinstrumentationJarPath.Name)
 		return nil
 	}
-	if "" == modInputs.AutoinstrumentationPath.Value {
+	if modInputs.AutoinstrumentationPath.Value == "" {
 		log.Printf("Not instrumenting java, as %q was not set", modInputs.AutoinstrumentationPath.Name)
 		return nil
 	}
 	resourceAttributes := fmt.Sprintf("splunk.zc.method=splunk-otel-auto-instrumentation-%s", strings.TrimSpace(javaVersion))
 
-	if "" != modInputs.DeploymentEnvironment.Value {
+	if modInputs.DeploymentEnvironment.Value != "" {
 		resourceAttributes = fmt.Sprintf("%s,deployment.environment=%s", resourceAttributes, modInputs.DeploymentEnvironment.Value)
 	}
-	if "" != modInputs.ResourceAttributes.Value {
+	if modInputs.ResourceAttributes.Value != "" {
 		resourceAttributes = fmt.Sprintf("%s,%s", resourceAttributes, modInputs.ResourceAttributes.Value)
 	}
 
@@ -125,7 +125,7 @@ func CreateZeroConfigJava(modInputs *SplunkTAOtelLinuxAutoinstrumentationModular
 }
 
 func InstrumentJava(modInputs *SplunkTAOtelLinuxAutoinstrumentationModularInputs) error {
-	if "true" != strings.ToLower(modInputs.JavaZeroconfigEnabled.Value) {
+	if !strings.EqualFold(modInputs.JavaZeroconfigEnabled.Value, "true") {
 		return nil
 	}
 	if err := CreateZeroConfigJava(modInputs); err != nil {
@@ -135,7 +135,7 @@ func InstrumentJava(modInputs *SplunkTAOtelLinuxAutoinstrumentationModularInputs
 }
 
 func RemoveJavaInstrumentation(modInputs *SplunkTAOtelLinuxAutoinstrumentationModularInputs) error {
-	if strings.ToLower(modInputs.Backup.Value) != "false" {
+	if !strings.EqualFold(modInputs.Backup.Value, "false") {
 		if err := backupFile(modInputs.JavaZeroconfigPath.Value); err != nil && !errors.Is(err, os.ErrNotExist) {
 			return fmt.Errorf("error backing up java auto instrumentation configuration, refusing to remove (specify backup=false in inputs.conf if backup not needed): %w", err)
 		}

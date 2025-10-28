@@ -147,6 +147,7 @@ jobs:
         PROFILE: [ "integration", "smartagent" ]
       fail-fast: false
     env:
+      COVER_TESTING: true
       TEST_OUTPUT: ${{ github.job }}-${{ matrix.PROFILE }}-${{ matrix.ARCH }}.out
     steps:
       # Multiarch images require more disk space
@@ -232,6 +233,7 @@ jobs:
         PROFILE: [ "integration", "smartagent" ]
       fail-fast: false
     env:
+      COVER_TESTING: true
       TEST_OUTPUT: ${{ github.job }}-${{ matrix.PROFILE }}-${{ matrix.RUNNER }}.out
     steps:
       # Multiarch images require more disk space
@@ -336,6 +338,8 @@ jobs:
       strategy:
         matrix: ${{ fromJSON(needs.integration-test-discovery-matrix.outputs.matrix) }}
         fail-fast: false
+      env:
+        COVER_TESTING: true
       steps:
         - name: Free up disk space for next step
           uses: jlumbroso/free-disk-space@v1.3.1
@@ -442,6 +446,7 @@ jobs:
           KUBECONFIG=$HOME/.kube/config SKIP_TEARDOWN=true make integration-test-${{ matrix.SERVICE }}-discovery-k8s-with-cover
         env:
           CONTAINER_COVER_DEST: '/etc/otel/collector/coverage'
+          COVER_TESTING: true
       - name: Print logs
         if: failure()
         run: |

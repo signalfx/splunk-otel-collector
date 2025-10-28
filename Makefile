@@ -40,8 +40,6 @@ SKIP_COMPILE=false
 ARCH?=amd64
 BUNDLE_SUPPORTED_ARCHS := amd64 arm64
 SKIP_BUNDLE=false
-# Used for building the collector to collect coverage information
-COVER_TESTING=false
 
 # For integration testing against local changes you can run
 # SPLUNK_OTEL_COLLECTOR_IMAGE='otelcol:latest' make -e docker-otelcol integration-test
@@ -201,6 +199,9 @@ integration-test-istio-discovery-k8s:
 integration-test-istio-discovery-k8s-with-cover:
 	@make integration-test-cover-target TARGET='discovery_integration_istio_k8s'
 
+ifeq ($(COVER_TESTING),true)
+# These targets are expensive to build, so only build if explicitly requested
+
 .PHONY: gotest-with-codecov
 gotest-with-codecov:
 	@$(MAKE) for-all-target TARGET="test-with-codecov"
@@ -210,6 +211,8 @@ gotest-with-codecov:
 gotest-cover-without-race:
 	@$(MAKE) for-all-target TARGET="test-cover-without-race"
 	$(GOCMD) tool covdata textfmt -i=./coverage  -o ./coverage.txt
+
+endif
 
 .PHONY: tidy-all
 tidy-all:

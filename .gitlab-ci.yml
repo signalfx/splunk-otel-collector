@@ -895,6 +895,8 @@ build-msi:
     - splunk-otel-collector-windows
   script:
     - |
+      # Install WiX toolset
+      & dotnet tool restore
       # Equivalent of: VERSION_TAG="${RELEASE_VERSION:-${CI_COMMIT_TAG:-}}"
       if (-not [string]::IsNullOrEmpty($env:RELEASE_VERSION)) {
           $VERSION_TAG = $env:RELEASE_VERSION
@@ -903,7 +905,6 @@ build-msi:
       } else {
           $VERSION_TAG = ""
       }
-      $Env:PATH += ";${Env:ProgramFiles(x86)}\WiX Toolset v3.14\bin"
       & 'C:\Program Files\Git\bin\bash.exe' -c "./packaging/msi/build.sh $VERSION_TAG $(Get-Content ./packaging/jmx-metric-gatherer-release.txt)"
   artifacts:
     paths:
@@ -911,41 +912,17 @@ build-msi:
 
 msi-custom-actions-package:
   extends: .trigger-filter
-  stage: package
-  needs:
-    - job: msi-custom-actions-assemblies
-      artifacts: true
-  tags:
-    - splunk-otel-collector-windows
-  script:
-    - $WixPath = "${Env:ProgramFiles(x86)}\WiX Toolset v3.14"
-    - $sfxcaDll = "${WixPath}\SDK\x64\sfxca.dll"
-    - $Env:PATH = "${WixPath}\SDK;" + $Env:PATH
-    - $customActionDir = "${PWD}\packaging\msi\SplunkCustomActions"
-    - $customActionBinDir = "${customActionDir}\bin\Release"
-    - MakeSfxCA.exe "${customActionBinDir}\SplunkCustomActions.CA.dll" `
-      "${sfxcaDll}" `
-      "${customActionBinDir}\SplunkCustomActions.dll" `
-      "${customActionBinDir}\Microsoft.Deployment.WindowsInstaller.dll" `
-      "${customActionDir}\src\CustomAction.config"
-  artifacts:
-    paths:
-      - packaging/msi/SplunkCustomActions/bin/Release/SplunkCustomActions.CA.dll
-
-msi-custom-actions-assemblies:
-  extends: .trigger-filter
   image: 'mcr.microsoft.com/dotnet/sdk:8.0'
   stage: package
   needs: []
   dependencies: []
   script:
     - pushd ./packaging/msi/SplunkCustomActions/
-    - dotnet publish ./src/SplunkCustomActions.csproj -c Release -o ./bin/Release
+    - dotnet build ./src/SplunkCustomActions.csproj -c Release  -p:Platform=x64 -o ./bin/Release
     - popd
   artifacts:
-    name: msi-custom-actions-assemblies
     paths:
-      - packaging/msi/SplunkCustomActions/bin/Release/*
+      - packaging/msi/SplunkCustomActions/bin/Release/SplunkCustomActions.CA.dll
 
 sign-debs:
   extends:

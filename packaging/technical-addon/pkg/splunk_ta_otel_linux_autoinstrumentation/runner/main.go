@@ -84,10 +84,10 @@ func run() int {
 
 func Run(modInputs *SplunkTAOtelLinuxAutoinstrumentationModularInputs) error {
 	shouldRemove := strings.ToLower(modInputs.Remove.Value)
-	if "false" == shouldRemove {
+	if shouldRemove == "false" {
 		return Instrument(modInputs)
 	}
-	if "true" == shouldRemove {
+	if shouldRemove == "true" {
 		return DeInstrument(modInputs)
 	}
 
@@ -115,7 +115,7 @@ func Instrument(modInputs *SplunkTAOtelLinuxAutoinstrumentationModularInputs) er
 }
 
 func AutoinstrumentLdPreload(modInputs *SplunkTAOtelLinuxAutoinstrumentationModularInputs) error {
-	if "true" != strings.ToLower(modInputs.AutoinstrumentationEnabled.Value) {
+	if !strings.EqualFold(modInputs.AutoinstrumentationEnabled.Value, "true") {
 		log.Println("Autoinstrumentation of /etc/ld.so.preload is disabled in inputs.conf, not configuring")
 		return nil
 	}
@@ -128,7 +128,7 @@ func AutoinstrumentLdPreload(modInputs *SplunkTAOtelLinuxAutoinstrumentationModu
 		return nil
 	}
 
-	if strings.ToLower(modInputs.Backup.Value) != "false" {
+	if !strings.EqualFold(modInputs.Backup.Value, "false") {
 		if err = backupFile(modInputs.AutoinstrumentationPreloadPath.Value); err != nil {
 			return err
 		}
@@ -160,7 +160,7 @@ func RemovePreloadInstrumentation(modInputs *SplunkTAOtelLinuxAutoinstrumentatio
 	if err != nil {
 		return err
 	}
-	if strings.ToLower(modInputs.Backup.Value) != "false" {
+	if !strings.EqualFold(modInputs.Backup.Value, "false") {
 		if err = backupFile(modInputs.AutoinstrumentationPreloadPath.Value); err != nil {
 			return err
 		}

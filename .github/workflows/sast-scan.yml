@@ -8,6 +8,6 @@ jobs:
 on:
   push:
     branches:
-      - "main" #Add the main branch of your project
+      - "main" 
   pull_request:
     branches: [main]

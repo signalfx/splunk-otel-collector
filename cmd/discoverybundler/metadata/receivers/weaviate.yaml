@@ -37,7 +37,7 @@ properties_tmpl: |
                 lsm_segment_size|\
                 object_count|\
                 objects_durations_ms|\
-                requests_total|
+                requests_total|\
                 startup_diskio_throughput|\
                 startup_durations_ms|\
                 vector_index_durations_ms|\

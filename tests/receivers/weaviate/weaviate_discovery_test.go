@@ -33,7 +33,7 @@ import (
 
 const (
 	testDataDir = "testdata"
-	nodeID      = "5245ra617433bd"
+	maskValue   = "xyz"
 )
 
 func TestWeaviateDockerObserver(t *testing.T) {
@@ -67,7 +67,7 @@ func TestWeaviateDockerObserver(t *testing.T) {
 			return
 		}
 		actualMetrics = tc.OTLPReceiverSink.AllMetrics()[len(tc.OTLPReceiverSink.AllMetrics())-1]
-		require.NotNil(t, actualMetrics)
+		require.NotNil(tt, actualMetrics)
 	}, 60*time.Second, 1*time.Second)
 
 	testutils.MaybeUpdateExpectedMetricsResults(t, expectedMetricsFile, &actualMetrics)
@@ -84,8 +84,8 @@ func TestWeaviateDockerObserver(t *testing.T) {
 		pmetrictest.IgnoreResourceAttributeValue("discovery.endpoint.id"),
 		pmetrictest.IgnoreMetricAttributeValue("service_version"),
 		pmetrictest.IgnoreMetricAttributeValue("service_instance_id"),
-		pmetrictest.IgnoreResourceAttributeValue("server.address"),
-		pmetrictest.ChangeDatapointAttributeValue("nodeID", func(string) string { return nodeID }),
+		pmetrictest.ChangeDatapointAttributeValue("nodeID", func(string) string { return maskValue }),
+		pmetrictest.ChangeDatapointAttributeValue("goarch", func(string) string { return maskValue }),
 		pmetrictest.IgnoreTimestamp(),
 		pmetrictest.IgnoreStartTimestamp(),
 		pmetrictest.IgnoreMetricDataPointsOrder(),

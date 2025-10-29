@@ -93,7 +93,7 @@ func (mip *ModinputProcessor) GetFlags() []string {
 	sort.Strings(keys)
 	for _, modinputName := range keys {
 		modularInput := mip.ModularInputs[modinputName]
-		if "" != modularInput.Config.Flag.Name {
+		if modularInput.Config.Flag.Name != "" {
 			flags = append(flags, fmt.Sprintf("--%s", modularInput.Config.Flag.Name))
 			if !modularInput.Config.Flag.IsUnary {
 				flags = append(flags, modularInput.Value)

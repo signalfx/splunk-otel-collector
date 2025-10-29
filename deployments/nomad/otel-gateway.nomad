@@ -146,6 +146,12 @@ extensions:
   http_forwarder:
     egress:
       endpoint: https://api.${SPLUNK_REALM}.signalfx.com
+  http_forwarder/signalfx:
+    ingress:
+      endpoint: 0.0.0.0:9943
+      include_metadata: true
+    egress:
+      endpoint: https://ingest.${SPLUNK_REALM}.signalfx.com
   zpages: null
 receivers:
   jaeger:
@@ -160,9 +166,6 @@ receivers:
         endpoint: 0.0.0.0:4317
       http:
         endpoint: 0.0.0.0:4318
-  signalfx:
-    include_metadata: true
-    endpoint: 0.0.0.0:9943
   zipkin:
     endpoint: 0.0.0.0:9411
   prometheus/collector:

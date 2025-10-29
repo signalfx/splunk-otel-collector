@@ -126,6 +126,14 @@ func TestDefaultGatewayConfig(t *testing.T) {
 							"endpoint": fmt.Sprintf("%s:6060", ip),
 						},
 					},
+					"http_forwarder/signalfx": map[string]any{
+						"egress": map[string]any{
+							"endpoint": "https://ingest.not.real.signalfx.com",
+						},
+						"ingress": map[string]any{
+							"endpoint": fmt.Sprintf("%s:9943", ip),
+						},
+					},
 					"zpages": map[string]any{
 						"endpoint": fmt.Sprintf("%s:55679", ip),
 						"expvar": map[string]any{
@@ -196,9 +204,6 @@ func TestDefaultGatewayConfig(t *testing.T) {
 								},
 							},
 						},
-					},
-					"signalfx": map[string]any{
-						"endpoint": fmt.Sprintf("%s:9943", ip),
 					},
 					"zipkin": map[string]any{
 						"endpoint": fmt.Sprintf("%s:9411", ip),

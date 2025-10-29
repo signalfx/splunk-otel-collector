@@ -82,7 +82,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/haproxyreceiver v0.138.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver v0.138.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/httpcheckreceiver v0.138.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/icmpcheckreceiver v0.138.1-0.20251023154113-ec58426707f1
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/icmpcheckreceiver v0.138.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/iisreceiver v0.138.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/influxdbreceiver v0.138.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver v0.138.0
@@ -142,16 +142,16 @@ require (
 	go.etcd.io/bbolt v1.4.3
 	go.etcd.io/etcd/client/v2 v2.305.23
 	go.opentelemetry.io/collector/component/componentstatus v0.138.0
-	go.opentelemetry.io/collector/component/componenttest v0.138.1-0.20251021231522-c657d5d4e920
+	go.opentelemetry.io/collector/component/componenttest v0.138.0
 	go.opentelemetry.io/collector/config/confighttp v0.138.0
 	go.opentelemetry.io/collector/config/configopaque v1.44.0
-	go.opentelemetry.io/collector/confmap v1.44.1-0.20251021231522-c657d5d4e920
+	go.opentelemetry.io/collector/confmap v1.44.0
 	go.opentelemetry.io/collector/confmap/provider/envprovider v1.44.0
 	go.opentelemetry.io/collector/confmap/provider/fileprovider v1.44.0
 	go.opentelemetry.io/collector/confmap/provider/yamlprovider v1.44.0
 	go.opentelemetry.io/collector/confmap/xconfmap v0.138.0
 	go.opentelemetry.io/collector/connector/forwardconnector v0.138.0
-	go.opentelemetry.io/collector/consumer/consumertest v0.138.1-0.20251021231522-c657d5d4e920
+	go.opentelemetry.io/collector/consumer/consumertest v0.138.0
 	go.opentelemetry.io/collector/exporter/debugexporter v0.138.0
 	go.opentelemetry.io/collector/exporter/nopexporter v0.138.0
 	go.opentelemetry.io/collector/exporter/otlpexporter v0.138.0
@@ -159,18 +159,18 @@ require (
 	go.opentelemetry.io/collector/extension v1.44.0
 	go.opentelemetry.io/collector/extension/zpagesextension v0.138.0
 	go.opentelemetry.io/collector/otelcol v0.138.0
-	go.opentelemetry.io/collector/pdata v1.44.1-0.20251021231522-c657d5d4e920
-	go.opentelemetry.io/collector/pipeline v1.44.1-0.20251021231522-c657d5d4e920
+	go.opentelemetry.io/collector/pdata v1.44.0
+	go.opentelemetry.io/collector/pipeline v1.44.0
 	go.opentelemetry.io/collector/processor v1.44.0
 	go.opentelemetry.io/collector/processor/batchprocessor v0.138.0
 	go.opentelemetry.io/collector/processor/memorylimiterprocessor v0.138.0
-	go.opentelemetry.io/collector/receiver v1.44.1-0.20251021231522-c657d5d4e920
+	go.opentelemetry.io/collector/receiver v1.44.0
 	go.opentelemetry.io/collector/receiver/nopreceiver v0.138.0
 	go.opentelemetry.io/collector/receiver/otlpreceiver v0.138.0
-	go.opentelemetry.io/collector/receiver/receiverhelper v0.138.1-0.20251021231522-c657d5d4e920
-	go.opentelemetry.io/collector/receiver/receivertest v0.138.1-0.20251021231522-c657d5d4e920
-	go.opentelemetry.io/collector/scraper v0.138.1-0.20251021231522-c657d5d4e920
-	go.opentelemetry.io/collector/scraper/scraperhelper v0.138.1-0.20251021231522-c657d5d4e920
+	go.opentelemetry.io/collector/receiver/receiverhelper v0.138.0
+	go.opentelemetry.io/collector/receiver/receivertest v0.138.0
+	go.opentelemetry.io/collector/scraper v0.138.0
+	go.opentelemetry.io/collector/scraper/scraperhelper v0.138.0
 	go.opentelemetry.io/otel/metric v1.38.0
 	go.opentelemetry.io/otel/trace v1.38.0
 	go.uber.org/atomic v1.11.0
@@ -741,9 +741,9 @@ require (
 	go.etcd.io/etcd/client/pkg/v3 v3.5.23 // indirect
 	go.mongodb.org/atlas v0.38.0 // indirect
 	go.opencensus.io v0.24.0
-	go.opentelemetry.io/collector/component v1.44.1-0.20251021231522-c657d5d4e920
-	go.opentelemetry.io/collector/consumer v1.44.1-0.20251021231522-c657d5d4e920
-	go.opentelemetry.io/collector/featuregate v1.44.1-0.20251021231522-c657d5d4e920
+	go.opentelemetry.io/collector/component v1.44.0
+	go.opentelemetry.io/collector/consumer v1.44.0
+	go.opentelemetry.io/collector/featuregate v1.44.0
 	go.opentelemetry.io/collector/semconv v0.128.1-0.20250610090210-188191247685 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.63.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.63.0 // indirect

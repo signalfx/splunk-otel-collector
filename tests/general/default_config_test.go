@@ -229,11 +229,6 @@ func TestDefaultGatewayConfig(t *testing.T) {
 							"processors": []any{"memory_limiter", "batch"},
 							"receivers":  []any{"routing/logs"},
 						},
-						"logs/signalfx": map[string]any{
-							"exporters":  []any{"signalfx"},
-							"processors": []any{"memory_limiter", "batch"},
-							"receivers":  []any{"signalfx"},
-						},
 						"logs/entities": map[string]any{
 							"exporters":  []any{"otlphttp/entities"},
 							"processors": []any{"memory_limiter", "batch"},
@@ -246,7 +241,7 @@ func TestDefaultGatewayConfig(t *testing.T) {
 						"metrics": map[string]any{
 							"exporters":  []any{"signalfx"},
 							"processors": []any{"memory_limiter", "batch"},
-							"receivers":  []any{"otlp", "signalfx"},
+							"receivers":  []any{"otlp"},
 						},
 						"metrics/internal": map[string]any{
 							"exporters":  []any{"signalfx/internal"},

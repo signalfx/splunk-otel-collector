@@ -10,7 +10,7 @@ variables:
   RELEASE_VERSION:
     value: ""
     description: "Version to release (must be in format v1.2.3)"
-  GO_VERSION: 1.24.6
+  GO_VERSION: 1.25
   WIN_2019_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2019
   WIN_2022_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2022
   SPLUNK_OTELCOL_DOWNLOAD_BASE:
@@ -381,14 +381,12 @@ compile:
       fi
   after_script:
     - if [ -e bin/otelcol ]; then rm -f bin/otelcol; fi  # remove the symlink
-    - if [ -e bin/migratecheckpoint ]; then rm -f bin/migratecheckpoint; fi  # remove the symlink
   artifacts:
     paths:
       - bin/otelcol_*
-      - bin/migratecheckpoint_*
 
 otelcol-fips:
-  image: '${DOCKER_CICD_REPO}/ci-container/golang-1.24:4.0.0'
+  image: '${DOCKER_CICD_REPO}/ci-container/golang-1.25:4.0.0'
   extends:
     - .trigger-filter
   stage: build

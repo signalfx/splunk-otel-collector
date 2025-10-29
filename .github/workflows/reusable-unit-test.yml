@@ -11,7 +11,7 @@ on:
         type: boolean
 
 env:
-  GO_VERSION: 1.24.6
+  GO_VERSION: 1.25
 
 jobs:
   unit-test:
@@ -37,7 +37,7 @@ jobs:
           trap "go-junit-report  -set-exit-code < unit-test-results-${{ inputs.OS }}/go-unit-tests.out > unit-test-results-${{ inputs.OS }}/junit/results.xml" EXIT
 
           if ${{ inputs.COVERAGE }}; then
-            make gotest-cover-without-race | tee unit-test-results-${{ inputs.OS }}/go-unit-tests.out
+            COVER_TESTING=true make gotest-cover-without-race | tee unit-test-results-${{ inputs.OS }}/go-unit-tests.out
           else
             make test-all | tee unit-test-results/go-unit-tests.out
           fi

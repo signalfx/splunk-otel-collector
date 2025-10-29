@@ -204,15 +204,6 @@ service:
   - http_forwarder
   - zpages
   pipelines:
-    logs/signalfx-events:
-      exporters:
-      - signalfx
-      - debug
-      processors:
-      - memory_limiter
-      - batch
-      receivers:
-      - signalfx
     metrics:
       exporters:
       - signalfx
@@ -222,7 +213,6 @@ service:
       - batch
       receivers:
       - otlp
-      - signalfx
     traces:
       exporters:
       - otlphttp

@@ -165,6 +165,14 @@ integration-test-nginx-discovery-with-cover:
 integration-test-redis-discovery:
 	@make integration-test-target TARGET='discovery_integration_redis'
 
+.PHONY: integration-test-weaviate-discovery-with-cover
+integration-test-weaviate-discovery-with-cover:
+	@make integration-test-cover-target TARGET='discovery_integration_weaviate'
+
+.PHONY: integration-test-weaviate-discovery
+integration-test-weaviate-discovery:
+	@make integration-test-target TARGET='discovery_integration_weaviate'
+
 .PHONY: integration-test-redis-discovery-with-cover
 integration-test-redis-discovery-with-cover:
 	@make integration-test-cover-target TARGET='discovery_integration_redis'

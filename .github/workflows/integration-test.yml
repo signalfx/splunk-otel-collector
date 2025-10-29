@@ -313,7 +313,7 @@ jobs:
         id: get-matrix
         run: |
           includes=""
-          for service in "apache" "jmx/cassandra" "kafkametrics" "mongodb" "nginx" "envoy" "oracledb" "mysql" "redis"; do
+          for service in "apache" "jmx/cassandra" "kafkametrics" "mongodb" "nginx" "envoy" "oracledb" "mysql" "redis" "weaviate"; do
             for arch in "amd64" "arm64"; do
               if [ "$service" = "mongodb" ]; then
                 # tests for mongo "6.0" and "7.0" are flaky, skipping for now

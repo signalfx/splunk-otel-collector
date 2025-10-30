@@ -8,6 +8,9 @@ jobs:
 on:
   push:
     branches:
-      - "main" 
+      - main
   pull_request:
-    branches: [main]
+    paths:
+      - '.github/workflows/sast-scan.yml'
+  schedule:
+    - cron: '0 0 * * 1-5' # Every weekday at midnight UTC

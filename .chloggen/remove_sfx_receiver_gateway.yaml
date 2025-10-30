@@ -17,4 +17,5 @@ subtext: |
     This change means that metrics and logs sent to the gateway in the SignalFx format
     will no longer be subject to the batch and memory limiter processors configured in
     the gateway pipelines. Please ensure any required memory limiting or batching is
-    configured on the sending side (e.g. the agent).
+    configured on the sending side (e.g. the agent). Please note that the `signalfx` receiver
+    will eventually be deprecated and removed.

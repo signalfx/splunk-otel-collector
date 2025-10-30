@@ -33,6 +33,7 @@ func TestDefaultComponents(t *testing.T) {
 		"ecs_observer",
 		"ecs_task_observer",
 		"file_storage",
+		"googlecloudlogentry_encoding",
 		"headers_setter",
 		"health_check",
 		"host_observer",
@@ -43,6 +44,7 @@ func TestDefaultComponents(t *testing.T) {
 		"opamp",
 		"pprof",
 		"smartagent",
+		"text_encoding",
 		"zpages",
 	}
 	expectedReceivers := []string{

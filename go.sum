@@ -1321,8 +1321,12 @@ github.com/open-telemetry/opentelemetry-collector-contrib/extension/bearertokena
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/bearertokenauthextension v0.138.0/go.mod h1:aaQ53QUnHZdkK2ZA7ex6E40W73a6/20a5Tv4pThYewc=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/encoding v0.138.0 h1:zhKuIzIF71eAoAU37nRCykiSjC4Dwpa5l3q4/4kUA7w=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/encoding v0.138.0/go.mod h1:lWXbkNbbuGf54qD8dtTdKC4pyio/jNW8BkB1/RDj/Lc=
+github.com/open-telemetry/opentelemetry-collector-contrib/extension/encoding/googlecloudlogentryencodingextension v0.138.0 h1:EyuusZFHfDiv+Q4lMs5/bW7/zUBLR5KXBS8gpaGi28w=
+github.com/open-telemetry/opentelemetry-collector-contrib/extension/encoding/googlecloudlogentryencodingextension v0.138.0/go.mod h1:Gc3VQGmyK3T6KWVUSK26NbF8evCIRSQRjr9jaRLQMkw=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/encoding/otlpencodingextension v0.138.0 h1:pSvdb5U2i6S8ve4+KuhHfm5ORnL2aFVxojgbSQzsHcQ=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/encoding/otlpencodingextension v0.138.0/go.mod h1:6m/BK5b95Q+HwGRiI9MwpstoOsb5kBf3PODEt+Evzs8=
+github.com/open-telemetry/opentelemetry-collector-contrib/extension/encoding/textencodingextension v0.138.0 h1:+bKr0MqRdOKAKd56WRBibHBVHqiZBdYdq7lHPa6ERtA=
+github.com/open-telemetry/opentelemetry-collector-contrib/extension/encoding/textencodingextension v0.138.0/go.mod h1:cy+kBjkIVsgqYbpteyJkjn6jmklTBpRRGY9yCZ71Hkw=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/headerssetterextension v0.138.0 h1:a/RELB87Dcn9Q8ivoKkt4hHeASbZrIWLwLLSKG6cPEU=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/headerssetterextension v0.138.0/go.mod h1:Qf4W3IBXVg3I4DqrY/Mv7MQ8lqVRvsKyWLwPYm+cCjA=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension v0.138.0 h1:7ac8har2IhEg7A63xvXNFsebH0kCaUEw0kCwMrLBmkM=

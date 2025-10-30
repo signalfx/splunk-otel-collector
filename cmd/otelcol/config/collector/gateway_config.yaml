@@ -22,7 +22,7 @@ extensions:
       # Should be enabled to preserve incoming access token
       # include_metadata: true
     egress:
-        endpoint: "https://ingest.${SPLUNK_REALM}.signalfx.com"
+      endpoint: "https://ingest.${SPLUNK_REALM}.signalfx.com"
   zpages:
     endpoint: "${SPLUNK_LISTEN_INTERFACE}:55679"
     expvar:

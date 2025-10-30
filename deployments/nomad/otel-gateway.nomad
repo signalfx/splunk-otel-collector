@@ -202,6 +202,7 @@ service:
   extensions:
   - health_check
   - http_forwarder
+  - http_forwarder/signalfx
   - zpages
   pipelines:
     metrics:

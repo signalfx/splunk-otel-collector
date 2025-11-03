@@ -24,10 +24,10 @@ Below is a mapping of scripted input scripts to their recommended OTel Collector
 | `package`, `service`, `version`, `hardware` | [filelogreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/filelogreceiver) | For log-based data collection |
 | `lastlog`, `who`, `passwd`, `usersWithLoginPrivs` | [filelogreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/filelogreceiver) | Monitor system log files |
 | `rlog` | [filelogreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/filelogreceiver) | Monitor `/var/log/audit/audit.log` |
-| `openPorts`, `openPortsEnhanced` | Custom scripting with [execreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/execreceiver) | Or monitor via network scraper |
+| `openPorts`, `openPortsEnhanced` | [hostmetricsreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/hostmetricsreceiver) | Use network scraper or custom monitoring solution |
 | `selinuxChecker`, `sshdChecker`, `vsftpdChecker` | [filelogreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/filelogreceiver) | Monitor configuration files |
 | `time`, `uptime` | [hostmetricsreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/hostmetricsreceiver) or [ntpreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/ntpreceiver) | For uptime and time sync monitoring |
-| `update` | Custom scripting with [execreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/execreceiver) | For package update information |
+| `update` | Custom monitoring solution | No direct receiver replacement available for package updates |
 
 ### Example: Migrating from df script to Host Metrics Receiver
 
@@ -83,7 +83,6 @@ service:
 
 - [Host Metrics Receiver Documentation](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/hostmetricsreceiver)
 - [File Log Receiver Documentation](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/filelogreceiver)
-- [Exec Receiver Documentation](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/execreceiver) (for custom script execution)
 - [Splunk OpenTelemetry Collector Configuration Examples](https://github.com/signalfx/splunk-otel-collector/tree/main/examples)
 
 ## Timeline

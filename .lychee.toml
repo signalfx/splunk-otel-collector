@@ -20,6 +20,7 @@ exclude = [
     "https://self-service.isv.ci", # Failing with timeouts, not stable and still current according to https://github.com/cf-platform-eng/selfservice/blame/main/README.md#L3
     "https://github.com/signalfx/splunk-otel-collector/tree/main/internal/exporter/httpsinkexporter", # exporter was deleted
     "https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/loggingexporter", # exporter was deleted
+    "https://github.com/signalfx/splunk-otel-collector/tree/main/cmd/migratecheckpoint", # migratecheckpoint was deleted
     "https://github.com/.*/(pull|issues)/[0-9]+", # We have too many PR and issues links in CHANGELOG.md that we always run out of the rate limit
     "https://bugs.mysql.com/*", # Failing with 403 Forbidden. Likely rejecting the user agent
     "https://docs.splunk.com", # is returning 403, ignoring temporarily

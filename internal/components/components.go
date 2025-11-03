@@ -31,6 +31,8 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/ackextension"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/bearertokenauthextension"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/encoding/googlecloudlogentryencodingextension"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/encoding/textencodingextension"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/headerssetterextension"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarderextension"
@@ -161,6 +163,7 @@ func Get() (otelcol.Factories, error) {
 		ecsobserver.NewFactory(),
 		ecstaskobserver.NewFactory(),
 		filestorage.NewFactory(),
+		googlecloudlogentryencodingextension.NewFactory(),
 		headerssetterextension.NewFactory(),
 		healthcheckextension.NewFactory(),
 		hostobserver.NewFactory(),
@@ -171,6 +174,7 @@ func Get() (otelcol.Factories, error) {
 		opampextension.NewFactory(),
 		pprofextension.NewFactory(),
 		smartagentextension.NewFactory(),
+		textencodingextension.NewFactory(),
 		zpagesextension.NewFactory(),
 	)
 	if err != nil {

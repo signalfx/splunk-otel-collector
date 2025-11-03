@@ -82,7 +82,6 @@ func convertToFloatOrPanic(val interface{}) float64 {
 }
 
 func (e ExprEnv) GAUGE(metric string, dims map[string]interface{}, val interface{}) *datapoint.Datapoint {
-
 	return sfxclient.GaugeF(metric, utils.StringInterfaceMapToStringMap(dims), convertToFloatOrPanic(val))
 }
 

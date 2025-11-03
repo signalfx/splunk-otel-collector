@@ -65,7 +65,7 @@ func LoadConfig(yamlPath string) (*TemplateData, error) {
 	return &config, nil
 }
 
-func RenderTemplate(templatePath string, outputPath string, data *TemplateData) error {
+func RenderTemplate(templatePath, outputPath string, data *TemplateData) error {
 	tmpl, err := template.ParseFiles(templatePath)
 	if err != nil {
 		return fmt.Errorf("failed to parse template: %w", err)

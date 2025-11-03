@@ -245,7 +245,8 @@ func FuzzEndpointToPlogs(f *testing.F) {
 	f.Fuzz(func(t *testing.T, observerType, observerName,
 		endpointID, target, portName, podName, uid, labelValue,
 		annotationOne, annotationValueOne, annotationTwo, annotationValueTwo,
-		namespace, transport string, port uint16) {
+		namespace, transport string, port uint16,
+	) {
 		require.NotPanics(t, func() {
 			observerTypeSanitized, err := component.NewType(observerType)
 			if err != nil {

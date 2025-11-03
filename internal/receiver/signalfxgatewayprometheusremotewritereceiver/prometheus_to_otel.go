@@ -109,7 +109,6 @@ func (prwParser *prometheusRemoteOtelParser) partitionWriteRequest(writeReq *pro
 // This actually converts from a prometheus prompdb.MetaDataType to the closest equivalent otel type
 // See https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/13bcae344506fe2169b59d213361d04094c651f6/receiver/prometheusreceiver/internal/util.go#L106
 func (prwParser *prometheusRemoteOtelParser) addMetrics(ilm pmetric.ScopeMetrics, metricType prompb.MetricMetadata_MetricType, metrics []metricData) {
-
 	switch metricType {
 	case prompb.MetricMetadata_COUNTER, prompb.MetricMetadata_HISTOGRAM, prompb.MetricMetadata_GAUGEHISTOGRAM:
 		prwParser.addCounterMetrics(ilm, metrics)
@@ -125,7 +124,7 @@ func (prwParser *prometheusRemoteOtelParser) scaffoldNewMetric(ilm pmetric.Scope
 }
 
 // addBadRequests is used to report write requests with invalid data
-func (prwParser *prometheusRemoteOtelParser) addBadRequests(ilm pmetric.ScopeMetrics, start time.Time, end time.Time) {
+func (prwParser *prometheusRemoteOtelParser) addBadRequests(ilm pmetric.ScopeMetrics, start, end time.Time) {
 	errMetric := ilm.Metrics().AppendEmpty()
 	errMetric.SetName("prometheus.invalid_requests")
 	errorSum := errMetric.SetEmptySum()
@@ -138,7 +137,7 @@ func (prwParser *prometheusRemoteOtelParser) addBadRequests(ilm pmetric.ScopeMet
 }
 
 // addMetricsWithMissingName is used to report metrics in the remote write request without names
-func (prwParser *prometheusRemoteOtelParser) addMetricsWithMissingName(ilm pmetric.ScopeMetrics, start time.Time, end time.Time) {
+func (prwParser *prometheusRemoteOtelParser) addMetricsWithMissingName(ilm pmetric.ScopeMetrics, start, end time.Time) {
 	errMetric := ilm.Metrics().AppendEmpty()
 	errMetric.SetName("prometheus.total_bad_datapoints")
 	errorSum := errMetric.SetEmptySum()
@@ -152,7 +151,7 @@ func (prwParser *prometheusRemoteOtelParser) addMetricsWithMissingName(ilm pmetr
 }
 
 // addNanDataPoints is an sfx compatibility error metric
-func (prwParser *prometheusRemoteOtelParser) addNanDataPoints(ilm pmetric.ScopeMetrics, start time.Time, end time.Time) {
+func (prwParser *prometheusRemoteOtelParser) addNanDataPoints(ilm pmetric.ScopeMetrics, start, end time.Time) {
 	errMetric := ilm.Metrics().AppendEmpty()
 	errMetric.SetName("prometheus.total_NAN_samples")
 	errorSum := errMetric.SetEmptySum()

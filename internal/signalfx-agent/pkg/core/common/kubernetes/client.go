@@ -101,7 +101,6 @@ func CreateRestConfig(apiConf *APIConfig) (*rest.Config, error) {
 			configOverrides := &clientcmd.ConfigOverrides{}
 			authConf, err = clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
 				loadingRules, configOverrides).ClientConfig()
-
 			if err != nil {
 				return nil, err
 			}

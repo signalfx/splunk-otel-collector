@@ -52,7 +52,6 @@ type stdoutOperator struct {
 
 // Start will start generating log entries.
 func (i *stdoutOperator) Start(_ operator.Persister) error {
-
 	ctx, cancelAll := context.WithCancel(context.Background())
 	i.cancelAll = cancelAll
 

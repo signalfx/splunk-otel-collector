@@ -115,7 +115,7 @@ func (m *Monitor) Configure(conf *Config) error {
 	containers := map[string]dockerContainer{}
 	isRegistered := false
 
-	changeHandler := func(oldState *dcontainer.InspectResponse, newState *dcontainer.InspectResponse) {
+	changeHandler := func(oldState, newState *dcontainer.InspectResponse) {
 		if oldState == nil && newState == nil {
 			return
 		}
@@ -157,7 +157,6 @@ func (m *Monitor) Configure(conf *Config) error {
 			go m.fetchStats(containers[id], conf.LabelsToDimensions, conf.EnvToDimensions, enhancedMetricsConfig)
 		}
 		lock.Unlock()
-
 	}, time.Duration(conf.IntervalSeconds)*time.Second)
 
 	return nil
@@ -167,7 +166,7 @@ func (m *Monitor) Configure(conf *Config) error {
 // parallel in individual goroutines.  This is much easier on CPU usage since
 // we aren't doing something every second across all containers, but only
 // something once every metric interval.
-func (m *Monitor) fetchStats(container dockerContainer, labelMap map[string]string, envMap map[string]string, enhancedMetricsConfig EnhancedMetricsConfig) {
+func (m *Monitor) fetchStats(container dockerContainer, labelMap, envMap map[string]string, enhancedMetricsConfig EnhancedMetricsConfig) {
 	ctx, cancel := context.WithTimeout(m.ctx, m.timeout)
 	stats, err := m.client.ContainerStats(ctx, container.ID, false)
 	if err != nil {
@@ -257,7 +256,6 @@ func (m *Monitor) Shutdown() {
 	if m.cancel != nil {
 		m.cancel()
 	}
-
 }
 
 // GetExtraMetrics returns additional metrics that should be allowed through.
@@ -289,5 +287,5 @@ func isContainerNotFound(err error) (notfound bool) {
 		notfound = true
 	}
 
-	return
+	return notfound
 }

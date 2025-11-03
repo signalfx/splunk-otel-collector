@@ -37,8 +37,10 @@ import (
 
 const collectorImageEnvVar = "SPLUNK_OTEL_COLLECTOR_IMAGE"
 
-var _ Collector = (*CollectorContainer)(nil)
-var _ testcontainers.LogConsumer = (*collectorLogConsumer)(nil)
+var (
+	_ Collector                  = (*CollectorContainer)(nil)
+	_ testcontainers.LogConsumer = (*collectorLogConsumer)(nil)
+)
 
 type CollectorContainer struct {
 	contextArchive io.ReadSeeker
@@ -106,7 +108,8 @@ func (collector CollectorContainer) WillFail(fail bool) Collector {
 	collector.Fail = fail
 	return &collector
 }
-func (collector CollectorContainer) WithMount(path string, mountPoint string) Collector {
+
+func (collector CollectorContainer) WithMount(path, mountPoint string) Collector {
 	collector.Mounts[path] = mountPoint
 	return &collector
 }
@@ -203,7 +206,7 @@ func (collector *CollectorContainer) buildContextArchive() (io.ReadSeeker, error
 		}
 		header := tar.Header{
 			Name:     "config.yaml",
-			Mode:     0777,
+			Mode:     0o777,
 			Size:     int64(len(config)),
 			Typeflag: tar.TypeReg,
 			Format:   tar.FormatGNU,
@@ -234,7 +237,7 @@ func (collector *CollectorContainer) buildContextArchive() (io.ReadSeeker, error
 
 	header := tar.Header{
 		Name:     "Dockerfile",
-		Mode:     0777,
+		Mode:     0o777,
 		Size:     int64(len(dockerfile)),
 		Typeflag: tar.TypeReg,
 		Format:   tar.FormatGNU,

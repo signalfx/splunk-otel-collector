@@ -5,8 +5,7 @@ package processlist
 
 import "github.com/sirupsen/logrus"
 
-type osCache struct {
-}
+type osCache struct{}
 
 func initOSCache() *osCache {
 	return &osCache{}

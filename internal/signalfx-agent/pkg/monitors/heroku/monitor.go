@@ -52,7 +52,6 @@ func (m *Monitor) Configure(c *Config) error {
 			Properties:        properties,
 			MergeIntoExisting: false,
 		})
-
 	}()
 
 	return nil

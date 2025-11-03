@@ -126,7 +126,6 @@ func (m *Monitor) Configure(conf *Config) error {
 		if err := plugin.Gather(ac); err != nil {
 			m.logger.WithError(err).Errorf("an error occurred while gathering metrics from the plugin")
 		}
-
 	}, time.Duration(conf.IntervalSeconds)*time.Second)
 
 	return nil

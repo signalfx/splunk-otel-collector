@@ -32,9 +32,7 @@ import (
 
 var _ consumer.Metrics = (*metricsConsumer)(nil)
 
-var (
-	jsonMarshaler = &pmetric.JSONMarshaler{}
-)
+var jsonMarshaler = &pmetric.JSONMarshaler{}
 
 // metricsConsumer conforms to a consumer.Metrics to receive any metrics from
 // receiver creator-created receivers and determine if they match any configured

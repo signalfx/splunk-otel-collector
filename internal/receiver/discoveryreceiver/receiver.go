@@ -35,9 +35,7 @@ const (
 	observerTypeAttr = "discovery.observer.type"
 )
 
-var (
-	_ receiver.Logs = (*discoveryReceiver)(nil)
-)
+var _ receiver.Logs = (*discoveryReceiver)(nil)
 
 type discoveryReceiver struct {
 	nextLogsConsumer    consumer.Logs
@@ -123,7 +121,7 @@ func (d *discoveryReceiver) Start(ctx context.Context, host component.Host) (err
 		return fmt.Errorf("failed starting internal receiver_creator: %w", err)
 	}
 	d.logger.Debug("started receiver_creator receiver")
-	return
+	return err
 }
 
 func (d *discoveryReceiver) Shutdown(ctx context.Context) error {

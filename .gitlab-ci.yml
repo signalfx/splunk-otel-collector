@@ -81,22 +81,6 @@ manual_release_trigger:
   allow_failure: false
   needs: []
 
-semgrep:
-  stage: sast-oss-scan
-  extends: .sast_scan
-  retry: 2
-  variables:
-    SAST_SCANNER: "Semgrep"
-    SEMGREP_EXCLUDE: "examples,tests,*_test.go,cmd/otelcol/Dockerfile.windows,deployments/ansible/molecule"
-    alert_mode: "policy"
-  after_script:
-    - echo "Check results at $CI_PIPELINE_URL/security"
-  only:
-    - main
-    - schedules
-  needs: []
-  dependencies: []
-
 fossa:
   extends: .oss-scan
   stage: sast-oss-scan

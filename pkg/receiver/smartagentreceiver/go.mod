@@ -5,7 +5,7 @@ go 1.25.3
 require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.139.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.139.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.139.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.139.1-0.20251104032327-2ac2ed902668
 	github.com/openzipkin/zipkin-go v0.4.3
 	github.com/shirou/gopsutil/v3 v3.24.5
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657

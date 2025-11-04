@@ -912,9 +912,10 @@ build-msi:
 
 msi-custom-actions-package:
   extends: .trigger-filter
-  image: 'mcr.microsoft.com/dotnet/sdk:8.0'
   stage: package
   needs: []
+  tags:
+    - splunk-otel-collector-windows
   dependencies: []
   script:
     - pushd ./packaging/msi/SplunkCustomActions/

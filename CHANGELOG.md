@@ -5270,7 +5270,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 
 ### 💡 Enhancements 💡
 
-- Initial release of [`migratecheckpoint`](https://github.com/signalfx/splunk-otel-collector/tree/main/cmd/migratecheckpoint) to migrate Fluentd's position file to Otel checkpoints
+- Initial release of `cmd/migratecheckpoint` to migrate Fluentd's position file to Otel checkpoints
 - Upgrade golang to v1.17.2 for CVE-2021-38297
 - Upgrade `github.com/hashicorp/consul/api` to v1.11.0 for CVE-2021-37219
 - Upgrade `github.com/hashicorp/vault` to v1.7.2 for CVE-2021-27400, CVE-2021-29653, and CVE-2021-32923

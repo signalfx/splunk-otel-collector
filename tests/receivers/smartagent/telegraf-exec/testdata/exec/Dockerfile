@@ -1,7 +1,7 @@
 ARG SPLUNK_OTEL_COLLECTOR_IMAGE
 ARG IMAGE_PLATFORM
 
-FROM --platform=${IMAGE_PLATFORM} golang:1.25 as golang
+FROM --platform=${IMAGE_PLATFORM} golang:1.25.3 as golang
 COPY telegraf-exec.go /opt/telegraf-exec.go
 RUN go build -o /opt/telegraf-exec /opt/telegraf-exec.go
 

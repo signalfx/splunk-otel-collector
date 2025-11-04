@@ -2,7 +2,7 @@
 change_type: new_component
 
 # The name of the component, or a single word describing the area of concern, (e.g. crosslink)
-component: ciscoosreceiver
+component: ciscoos
 
 # A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
 note: "Add Cisco OS Receiver component to the distribution."

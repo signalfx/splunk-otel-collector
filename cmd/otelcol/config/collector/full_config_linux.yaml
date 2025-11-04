@@ -680,7 +680,7 @@ exporters:
     path: ./filename.json
 
   # Enables the logging exporter
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/loggingexporter
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/debugexporter
   # NOTE: This exporter is very helpful in troubleshooting issues
   debug:
     verbosity: detailed

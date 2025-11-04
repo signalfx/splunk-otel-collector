@@ -203,7 +203,7 @@ is currently unsupported due to metric name format changes.
     - Check logs to make sure no errors are showing up
     - Check metrics manually coming from Tanzu to see if they match charts.
       - Follow steps to
-      [Access Metrics Using the Firehose PLugin](https://docs.vmware.com/en/VMware-Tanzu-Application-Service/5.0/tas-for-vms/cli-plugin.html)
+      [Access Metrics Using the Firehose PLugin](https://techdocs.broadcom.com/us/en/vmware-tanzu/platform/elastic-application-runtime/10-2/eart/cli-plugin.html)
         - You can use the `hammer` login command instead of `cf login`
         - Example metric filter command:
         ```cf nozzle -no-filter | grep -i mem | grep -i percent```

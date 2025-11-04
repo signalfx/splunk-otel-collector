@@ -4879,7 +4879,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 
 ## v0.63.0
 
-This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.63.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.63.0) and the [opentelemetry-collector-contrib v0.63.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.63.0) releases, and the [opentelemetry-collector v0.63.1](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.63.1) and the [opentelemetry-collector-contrib v0.63.1](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.63.1) releases where appropriate.
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.63.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.63.0) and the [opentelemetry-collector-contrib v0.63.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.63.0) releases, and the opentelemetry-collector v0.63.1 releases where appropriate.
 
 ### 💡 Enhancements 💡
 
@@ -5026,7 +5026,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 
 - [`k8sevents` receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/k8seventsreceiver)
   to collect Kubernetes events in OpenTelemetry semantics (#1641)
-- **Experimental**: [`pulsar` exporter](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/exporter/pulsarexporter) to export metrics to Pulsar (#1683)
+- **Experimental**: `pulsar` exporter to export metrics to Pulsar (#1683)
 
 ## v0.52.2
 
@@ -5167,7 +5167,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 
 ### 🚀 New components 🚀
 
-- [`databricks` receiver](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/receiver/databricksreceiver) to generate metrics about the operation of a Databricks instance (Alpha)
+- `databricks` receiver to generate metrics about the operation of a Databricks instance (Alpha)
 
 ### 💡 Enhancements 💡
 
@@ -5299,8 +5299,8 @@ This Splunk OpenTelemetry Connector release includes changes from the [opentelem
 
 ### 🚀 New components 🚀
 
-- [`httpsink` exporter](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/exporter/httpsinkexporter) to make span data available via a HTTP endpoint
-- Initial release of [`translatesfx`](https://github.com/signalfx/splunk-otel-collector/tree/main/cmd/translatesfx) to translate a SignalFx Smart Agent configuration file into a configuration that can be used by an OpenTelemetry Collector
+- `httpsink` exporter to make span data available via a HTTP endpoint
+- Initial release of `cmd/translatesfx` to translate a SignalFx Smart Agent configuration file into a configuration that can be used by an OpenTelemetry Collector
 
 ### 🛑 Breaking changes 🛑
 

@@ -1499,6 +1499,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/carbonreceive
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/carbonreceiver v0.138.0/go.mod h1:H9zH25nZBOL+FEYm+2Ch0ybn7afpz/ZrQ1I4hE+A6iE=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/chronyreceiver v0.138.0 h1:6LhF7X8WAxYVFWtb2l8KhdtDZCjjZTvV1md1Nio4K2I=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/chronyreceiver v0.138.0/go.mod h1:D/CPCszYoeG0THkuloiEGM5osZynQsUlWm0GYGsMMfM=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/ciscoosreceiver v0.138.0 h1:IvfYfug0EoA743yYumVBstRYxZioYMHfoZY65rb0B0E=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/ciscoosreceiver v0.138.0/go.mod h1:DyJ+oYbaHGWPD++rO2ww2Ubi/kLoiGJ8DlhMS831Mus=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/cloudfoundryreceiver v0.138.0 h1:eGjtw3W81fWXZYOJwEvuvxSQXi4uGroZcHEgP57J884=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/cloudfoundryreceiver v0.138.0/go.mod h1:dS2qM8BT69A4hUeBRVqaEuYt0rPRX3PF7xS4tkqjBe8=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdreceiver v0.138.0 h1:vPvft0Yn4JQ2H3Uf1/SwjIvz3yYXqvdC2ZE2R6X57zQ=

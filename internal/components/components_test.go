@@ -59,6 +59,7 @@ func TestDefaultComponents(t *testing.T) {
 		"azuremonitor",
 		"carbon",
 		"chrony",
+		"ciscoosreceiver",
 		"cloudfoundry",
 		"collectd",
 		"discovery",

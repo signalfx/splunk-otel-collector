@@ -71,6 +71,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/azuremonitorreceiver v0.138.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/carbonreceiver v0.138.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/chronyreceiver v0.138.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/ciscoosreceiver v0.138.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/cloudfoundryreceiver v0.138.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdreceiver v0.138.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/dockerstatsreceiver v0.138.0

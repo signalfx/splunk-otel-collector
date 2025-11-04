@@ -1,6 +1,6 @@
 module github.com/signalfx/splunk-otel-collector
 
-go 1.24.6
+go 1.25
 
 require (
 	github.com/alecthomas/participle/v2 v2.1.4
@@ -139,7 +139,6 @@ require (
 	github.com/spf13/cast v1.10.0
 	github.com/spf13/pflag v1.0.10
 	github.com/stretchr/testify v1.11.1
-	go.etcd.io/bbolt v1.4.3
 	go.etcd.io/etcd/client/v2 v2.305.23
 	go.opentelemetry.io/collector/component/componentstatus v0.138.0
 	go.opentelemetry.io/collector/component/componenttest v0.138.1-0.20251021231522-c657d5d4e920
@@ -433,6 +432,7 @@ require (
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20240726163527-a2c0da244d78 // indirect
 	github.com/zeebo/xxh3 v1.0.2 // indirect
+	go.etcd.io/bbolt v1.4.3 // indirect
 	go.mongodb.org/mongo-driver v1.17.3 // indirect
 	go.mongodb.org/mongo-driver/v2 v2.3.1 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
@@ -684,6 +684,8 @@ require (
 	github.com/mwielbut/pointy v1.1.0 // indirect
 	github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f // indirect
 	github.com/oklog/run v1.2.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/encoding/googlecloudlogentryencodingextension v0.138.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/encoding/textencodingextension v0.138.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/ecsutil v0.138.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/common v0.138.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.138.0 // indirect

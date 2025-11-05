@@ -41,7 +41,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
-      - uses: anchore/scan-action@v6
+      - uses: anchore/scan-action@v7
         with:
           severity-cutoff: "high"
           only-fixed: true
@@ -131,7 +131,7 @@ jobs:
           name: otelcol-${{ matrix.ARCH }}${{ matrix.FIPS == true && '-fips' || '' }}
           path: ./dist
       - run: docker load -i ./dist/image.tar
-      - uses: anchore/scan-action@v6
+      - uses: anchore/scan-action@v7
         id: anchore-scan
         with:
           severity-cutoff: "high"
@@ -180,7 +180,7 @@ jobs:
           docker build -t otelcol-windows --pull --build-arg BASE_IMAGE=${base_image} --build-arg JMX_METRIC_GATHERER_RELEASE=$(Get-Content packaging\jmx-metric-gatherer-release.txt) -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
           Remove-Item .\cmd\otelcol\otelcol.exe
           Remove-Item .\cmd\otelcol\agent-bundle_windows_amd64.zip
-      - uses: anchore/scan-action@v6
+      - uses: anchore/scan-action@v7
         id: anchore-scan
         with:
           severity-cutoff: "high"

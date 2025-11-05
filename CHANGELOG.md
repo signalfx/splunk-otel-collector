@@ -76,7 +76,7 @@ and the [opentelemetry-collector-contrib v0.139.0](https://github.com/open-telem
 - (Contrib) `processor/resourcedetection`: Add the `dt.smartscape.host` resource attribute to data enriched with the Dynatrace detector ([#43650](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/43650))
 - (Contrib) `receiver/azureeventhub`: Adds support for receiving Azure app metrics from Azure Event Hubs in the azureeventhubreceiver ([#41343](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/41343), [#41367](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/41367))
   The azureeventhubreceiver now supports receiving custom metrics emitted by applications to Azure Insights and forwarded using Diagnostic Settings to Azure Event Hub.
-  There's also on optional setting to aggregate received metrics into a single metric to keep the original name, instead of multiply the metrics by added suffixes `_total`, `_sum`, `_max` etc.
+  There's also an optional setting to aggregate received metrics into a single metric to keep the original name, instead of multiply the metrics by added suffixes `_total`, `_sum`, `_max` etc.
 - (Contrib) `receiver/ciscoos`: Add new receiver for collecting metrics from Cisco network devices via SSH ([#42647](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/42647))
   Supports Cisco IOS, IOS-XE, and NX-OS devices with SSH-based metric collection.
   Initial implementation includes system scraper for device availability and connection metrics.

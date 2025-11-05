@@ -13,16 +13,6 @@ and the [opentelemetry-collector-contrib v0.139.0](https://github.com/open-telem
 ### 🛑 Breaking changes 🛑
 
 - (Splunk) `migratecheckpoint`: Remove `migratecheckpoint` command following fluentd sidecar deprecation ([#6881](https://github.com/signalfx/splunk-otel-collector/pull/6881))
-- (Core) `cmd/mdatagen`: Make stability.level a required field for metrics ([#14070](https://github.com/open-telemetry/opentelemetry-collector/pull/14070))
-- (Core) `cmd/mdatagen`: Replace `optional` field with `requirement_level` field for attributes in metadata schema ([#13913](https://github.com/open-telemetry/opentelemetry-collector/pull/13913))
-  The `optional` boolean field for attributes has been replaced with a `requirement_level` field that accepts enum values: `required`, `conditionally_required`, `recommended`, or `opt_in`.
-  - `required`: attribute is always included and cannot be excluded
-  - `conditionally_required`: attribute is included by default when certain conditions are met (replaces `optional: true`)
-  - `recommended`: attribute is included by default but can be disabled via configuration (replaces `optional: false`)
-  - `opt_in`: attribute is not included unless explicitly enabled in user config
-  When `requirement_level` is not specified, it defaults to `recommended`.
-- (Core) `pdata/pprofile`: Remove deprecated `PutAttribute` helper method ([#14082](https://github.com/open-telemetry/opentelemetry-collector/pull/14082))
-- (Core) `pdata/pprofile`: Remove deprecated `PutLocation` helper method ([#14082](https://github.com/open-telemetry/opentelemetry-collector/pull/14082))
 - (Contrib) `receiver/sqlserver`: Standardizing the unit interpretation of lookback_time in config for top query collection ([#43573](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/43573))
   Like other interval related config values, lookback_time also should suffix 's' to represent time in seconds.
 

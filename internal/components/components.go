@@ -143,6 +143,7 @@ import (
 	"go.opentelemetry.io/collector/processor/memorylimiterprocessor"
 	"go.opentelemetry.io/collector/receiver/nopreceiver"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
+	"go.opentelemetry.io/collector/service/telemetry/otelconftelemetry"
 	"go.uber.org/multierr"
 
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver"
@@ -324,6 +325,7 @@ func Get() (otelcol.Factories, error) {
 		Processors: processors,
 		Exporters:  exporters,
 		Connectors: connectors,
+		Telemetry:  otelconftelemetry.NewFactory(),
 	}
 
 	return factories, multierr.Combine(errs...)

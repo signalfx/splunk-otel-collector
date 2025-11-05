@@ -40,8 +40,6 @@ SKIP_COMPILE=false
 ARCH?=amd64
 BUNDLE_SUPPORTED_ARCHS := amd64 arm64
 SKIP_BUNDLE=false
-# Used for building the collector to collect coverage information
-COVER_TESTING=false
 
 # For integration testing against local changes you can run
 # SPLUNK_OTEL_COLLECTOR_IMAGE='otelcol:latest' make -e docker-otelcol integration-test
@@ -201,6 +199,9 @@ integration-test-istio-discovery-k8s:
 integration-test-istio-discovery-k8s-with-cover:
 	@make integration-test-cover-target TARGET='discovery_integration_istio_k8s'
 
+ifeq ($(COVER_TESTING),true)
+# These targets are expensive to build, so only build if explicitly requested
+
 .PHONY: gotest-with-codecov
 gotest-with-codecov:
 	@$(MAKE) for-all-target TARGET="test-with-codecov"
@@ -210,6 +211,8 @@ gotest-with-codecov:
 gotest-cover-without-race:
 	@$(MAKE) for-all-target TARGET="test-cover-without-race"
 	$(GOCMD) tool covdata textfmt -i=./coverage  -o ./coverage.txt
+
+endif
 
 .PHONY: tidy-all
 tidy-all:
@@ -263,15 +266,6 @@ else
 	$(LINK_CMD) otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/otelcol$(EXTENSION)
 endif
 
-.PHONY: migratecheckpoint
-migratecheckpoint:
-	go generate ./...
-	GO111MODULE=on CGO_ENABLED=0 go build -trimpath -o ./bin/migratecheckpoint_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/migratecheckpoint
-ifeq ($(OS), Windows_NT)
-	$(LINK_CMD) .\bin\migratecheckpoint$(EXTENSION) .\bin\migratecheckpoint_$(GOOS)_$(GOARCH)$(EXTENSION)
-else
-	$(LINK_CMD) migratecheckpoint_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/migratecheckpoint$(EXTENSION)
-endif
 
 .PHONY: add-tag
 add-tag:
@@ -295,32 +289,26 @@ binaries-all-sys: binaries-darwin_amd64 binaries-darwin_arm64 binaries-linux_amd
 .PHONY: binaries-darwin_amd64
 binaries-darwin_amd64:
 	GOOS=darwin  GOARCH=amd64 $(MAKE) otelcol
-	GOOS=darwin  GOARCH=amd64 $(MAKE) migratecheckpoint
 
 .PHONY: binaries-darwin_arm64
 binaries-darwin_arm64:
 	GOOS=darwin  GOARCH=arm64 $(MAKE) otelcol
-	GOOS=darwin  GOARCH=arm64 $(MAKE) migratecheckpoint
 
 .PHONY: binaries-linux_amd64
 binaries-linux_amd64:
 	GOOS=linux   GOARCH=amd64 $(MAKE) otelcol
-	GOOS=linux   GOARCH=amd64 $(MAKE) migratecheckpoint
 
 .PHONY: binaries-linux_arm64
 binaries-linux_arm64:
 	GOOS=linux   GOARCH=arm64 $(MAKE) otelcol
-	GOOS=linux   GOARCH=arm64 $(MAKE) migratecheckpoint
 
 .PHONY: binaries-windows_amd64
 binaries-windows_amd64:
 	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) otelcol
-	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) migratecheckpoint
 
 .PHONY: binaries-linux_ppc64le
 binaries-linux_ppc64le:
 	GOOS=linux GOARCH=ppc64le $(MAKE) otelcol
-	GOOS=linux GOARCH=ppc64le $(MAKE) migratecheckpoint
 
 .PHONY: deb-rpm-tar-package
 %-package:

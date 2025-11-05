@@ -132,7 +132,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zookeeperreceiver v0.139.0
 	github.com/prometheus/client_model v0.6.2
 	github.com/prometheus/common v0.67.2
-	github.com/prometheus/prometheus v0.307.1
+	github.com/prometheus/prometheus v0.307.3
 	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension v0.83.0
 	github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor v0.0.0-00010101000000-000000000000
 	github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver v0.0.0-00010101000000-000000000000

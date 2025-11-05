@@ -91,7 +91,7 @@ and the [opentelemetry-collector-contrib v0.139.0](https://github.com/open-telem
   Previously, the exporter created unique IDs for each backend endpoint by appending the endpoint
   to the exporter ID (e.g., loadbalancing_10.11.68.62:4317). This caused high cardinality in metrics,
   especially in dynamic environments. Now the endpoint is added as an attribute instead.
-- (Contrib) `exporter/pulsar`: Fix the oauth2 flow for pulsar exporter by adding additional configuration fields ([#435960](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/435960))
+- (Contrib) `exporter/pulsar`: Fix the oauth2 flow for pulsar exporter by adding additional configuration fields ([#43596](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/43596))
   Fixes the oauth2 authentication flow in pulsar exporter by exposing additional configuration like `private_key` and `scope`.
 - (Contrib) `processor/tailsampling`: Fix panic when invalid regex was sent to string_attribute sampler ([#43735](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/43735))
 - (Contrib) `receiver/sqlserver`: Fixed a bug in effective value calculation of lookback time in top query collection. ([#43944](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/43944))

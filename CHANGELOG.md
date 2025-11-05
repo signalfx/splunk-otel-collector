@@ -55,7 +55,7 @@ and the [opentelemetry-collector-contrib v0.139.0](https://github.com/open-telem
 - (Contrib) `internal/aws`: Upgrade k8s libraries from v0.32.x to v0.34.x ([#43890](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/43890))
 - (Contrib) `pkg/ottl`: Support taking match patterns from runtime data in the `replace_all_patterns` and `replace_pattern` functions. ([#43555](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/43555))
 - (Contrib) `pkg/ottl`: Add TrimPrefix and TrimSuffix to OTTL ([#43883](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/43883))
-  This is a much optimal way to remove prefix/suffix compare with `replace_pattern(name, "^prefixed", "")`
+  This is a more optimal way to remove prefix/suffix compared with `replace_pattern(name, "^prefixed", "")`
 - (Contrib) `pkg/ottl`: Added support for dynamic delimiter in Split() function in OTTL. ([#43555](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/43555))
 - (Contrib) `pkg/ottl`: Added support for dynamic delimiter in Concat() function in OTTL. ([#43555](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/43555))
 - (Contrib) `pkg/ottl`: Added support for dynamic prefix/suffix in HasPrefix and HasSuffix functions in OTTL. ([#43555](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/43555))

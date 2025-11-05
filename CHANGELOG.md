@@ -28,7 +28,7 @@ and the [opentelemetry-collector-contrib v0.139.0](https://github.com/open-telem
 
 ### 🚀 New components 🚀
 
-- (Splunk) `receiver/ciscoos`: Add Cisco OS Receiver component to the distribution. ([#42647](https://github.com/signalfx/splunk-otel-collector/issues/42647))
+- (Splunk) `receiver/ciscoos`: Add Cisco OS Receiver component to the distribution. ([#6894](https://github.com/signalfx/splunk-otel-collector/issues/6894))
   See [README](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/ciscoosreceiver) for more details.
 - (Splunk) `extension/googlecloudlogentry_encoding`: Added `googlecloudlogentry_encoding` extension component to the distribution. ([#6880](https://github.com/signalfx/splunk-otel-collector/pull/6880))
   See [README](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/extension/encoding/googlecloudlogentryencodingextension/README.md) for details.

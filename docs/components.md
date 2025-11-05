@@ -24,7 +24,7 @@ The distribution offers support for the following components.
 | [azuremonitor](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/azuremonitorreceiver)                                          | [alpha]          |
 | [carbon](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/carbonreceiver)                                                      | [alpha]          |
 | [chrony](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/chronyreceiver)                                                      | [beta]           |
-| [ciscoos](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/ciscoosreceiver)                                                    | [development]    |
+| [ciscoos](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/ciscoosreceiver)                                                    | [alpha]          |
 | [cloudfoundry](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/cloudfoundryreceiver)                                          | [beta]           |
 | [collectd](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/collectdreceiver)                                                  | [beta]           |
 | [discovery](../internal/receiver/discoveryreceiver)                                                                                                                | [in development] |

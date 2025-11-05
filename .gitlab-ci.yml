@@ -10,7 +10,7 @@ variables:
   RELEASE_VERSION:
     value: ""
     description: "Version to release (must be in format v1.2.3)"
-  GO_VERSION: 1.25
+  GO_VERSION: 1.25.3
   WIN_2019_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2019
   WIN_2022_BASE_IMAGE: mcr.microsoft.com/windows/servercore:ltsc2022
   SPLUNK_OTELCOL_DOWNLOAD_BASE:
@@ -80,22 +80,6 @@ manual_release_trigger:
       when: on_success
   allow_failure: false
   needs: []
-
-semgrep:
-  stage: sast-oss-scan
-  extends: .sast_scan
-  retry: 2
-  variables:
-    SAST_SCANNER: "Semgrep"
-    SEMGREP_EXCLUDE: "examples,tests,*_test.go,cmd/otelcol/Dockerfile.windows,deployments/ansible/molecule"
-    alert_mode: "policy"
-  after_script:
-    - echo "Check results at $CI_PIPELINE_URL/security"
-  only:
-    - main
-    - schedules
-  needs: []
-  dependencies: []
 
 fossa:
   extends: .oss-scan

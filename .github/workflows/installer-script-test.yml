@@ -52,7 +52,7 @@ jobs:
       matrix: ${{ fromJSON(needs.installer-test-matrix.outputs.matrix) }}
       fail-fast: false
     env:
-      PYTHON_VERSION: '3.13'
+      PYTHON_VERSION: '3.14'
       PIP_VERSION: '24.2'
       REQUIREMENTS_PATH: "packaging/tests/requirements.txt"
     steps:

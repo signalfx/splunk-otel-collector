@@ -1584,8 +1584,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecrece
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver v0.139.0/go.mod h1:uN4ms6dZuUcrQYdrjZZs5q35NG7PyeouClGxEtREBD4=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sqlqueryreceiver v0.139.0 h1:KYxB+AK6PI19c4i3w4q8F0CPCg9jzrqQOMFsvUcYIus=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sqlqueryreceiver v0.139.0/go.mod h1:dZL+RHyJ27DLQ0CuFVItjb4Jm4+8OtSSQGhyWT1JinI=
-github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sqlserverreceiver v0.139.0 h1:KYZ4QXpoVLnCdey+7UjYcb3J5jmIVEjjwKW1MrQC7JM=
-github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sqlserverreceiver v0.139.0/go.mod h1:ZnoQNt1oRAWLngoYWLbFUdrr1m8UcXZxEDg/W6+JrOY=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sqlserverreceiver v0.139.1-0.20251103231350-35320bda8ba0 h1:yVg2sRKELgoYG8AQ6kEGFeMSmo1cHJQkuWRxA4dReyo=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sqlserverreceiver v0.139.1-0.20251103231350-35320bda8ba0/go.mod h1:ZnoQNt1oRAWLngoYWLbFUdrr1m8UcXZxEDg/W6+JrOY=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sshcheckreceiver v0.139.0 h1:roPXCD0r4fhuRYNDfP1nQ1te8Bok83OvmoJxA6vWN9M=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sshcheckreceiver v0.139.0/go.mod h1:sYCkZP0T266JqOPiNTo6EcahqMv0I3hSutwdW/amjf4=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceiver v0.139.0 h1:fAYyrmL6PWthT/zDsxpTihYdSBNN0g9icnsVF63BaMY=

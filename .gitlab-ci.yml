@@ -370,7 +370,7 @@ compile:
       - bin/otelcol_*
 
 otelcol-fips:
-  image: '${DOCKER_CICD_REPO}/ci-container/golang-1.25:4.0.0'
+  image: '${DOCKER_CICD_REPO}/ci-container/golang-1.25:4.3.1'
   extends:
     - .trigger-filter
   stage: build

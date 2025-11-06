@@ -75,7 +75,7 @@ service:
   pipelines:
     metrics:
       receivers: [hostmetrics]
-      processors: [resource, memory_limiter, batch]
+      processors: [memory_limiter, batch, resource]
       exporters: [splunk_hec]
 ```
 
@@ -91,4 +91,3 @@ service:
 - **Planned Removal**: Future release (to be announced)
 
 Please plan to migrate to the recommended alternatives at your earliest convenience.
-

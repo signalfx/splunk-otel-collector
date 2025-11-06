@@ -151,8 +151,8 @@ func TestDiscoveryProvider_ContinuousDiscoveryConfig(t *testing.T) {
 	require.True(t, ok)
 	expectedOtlpExporterConfig := otlphttpexporter.NewFactory().CreateDefaultConfig().(*otlphttpexporter.Config)
 	expectedOtlpExporterConfig.LogsEndpoint = "https://ingest.fake-realm.signalfx.com/v3/event"
-	expectedOtlpExporterConfig.ClientConfig.Headers = map[string]configopaque.String{
-		"X-SF-Token": "fake-token",
+	expectedOtlpExporterConfig.ClientConfig.Headers = configopaque.MapList{
+		{Name: "X-SF-Token", Value: "fake-token"},
 	}
 	assert.Equal(t, expectedOtlpExporterConfig, oec)
 

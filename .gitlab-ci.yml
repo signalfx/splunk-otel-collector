@@ -1813,18 +1813,18 @@ push-multiarch-manifest:
           done
         fi
         # Check the manifest for the windows images
-#        for base_image in "$WIN_2019_BASE_IMAGE" "$WIN_2022_BASE_IMAGE"; do
-#          os_version=$( docker buildx imagetools inspect --raw $base_image | jq -r '.manifests[0] | .platform."os.version"' )
-#          if [[ -z "$os_version" ]]; then
-#            echo "Failed to get os.version from $base_image"
-#            exit 1
-#          fi
-#          found=$( echo "$json" | jq -r ".manifests[] | select(.platform.architecture == \"amd64\" and .platform.os == \"windows\" and .platform.\"os.version\" == \"${os_version}\")" )
-#          if [[ -z "$found" ]]; then
-#            echo "windows/amd64/${os_version} not found in ${MANIFEST_NAME}:${tag}"
-#            exit 1
-#          fi
-#        done
+        #        for base_image in "$WIN_2019_BASE_IMAGE" "$WIN_2022_BASE_IMAGE"; do
+        #          os_version=$( docker buildx imagetools inspect --raw $base_image | jq -r '.manifests[0] | .platform."os.version"' )
+        #          if [[ -z "$os_version" ]]; then
+        #            echo "Failed to get os.version from $base_image"
+        #            exit 1
+        #          fi
+        #          found=$( echo "$json" | jq -r ".manifests[] | select(.platform.architecture == \"amd64\" and .platform.os == \"windows\" and .platform.\"os.version\" == \"${os_version}\")" )
+        #          if [[ -z "$found" ]]; then
+        #            echo "windows/amd64/${os_version} not found in ${MANIFEST_NAME}:${tag}"
+        #            exit 1
+        #          fi
+        #        done
       done
     - |
       # Get the manifest digest

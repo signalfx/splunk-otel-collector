@@ -42,7 +42,7 @@ jobs:
       - name: Build Docker image from local changes
         run: |
           cd ${{github.workspace}}
-          make docker-otelcol SKIP_COMPILE=false SKIP_BUNDLE=true
+          make docker-otelcol SKIP_COMPILE=false
         env:
           DOCKER_REPO: local
           ARCH: amd64

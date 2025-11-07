@@ -1767,9 +1767,9 @@ push-multiarch-manifest:
         # Update the linux multiarch manifest to include the windows images
         echo "Updating and pushing ${MANIFEST_NAME}:${MANIFEST_TAG} manifest"
         docker buildx imagetools create --tag ${MANIFEST_NAME}:${MANIFEST_TAG} \
-          ${MANIFEST_NAME}:${MANIFEST_TAG} \
-          ${MANIFEST_NAME}:${MANIFEST_TAG}-2019 \
-          ${MANIFEST_NAME}:${MANIFEST_TAG}-2022
+          ${MANIFEST_NAME}:${MANIFEST_TAG} #\
+         # ${MANIFEST_NAME}:${MANIFEST_TAG}-2019 \
+         # ${MANIFEST_NAME}:${MANIFEST_TAG}-2022
       else
         # DEPRECATED: Create the windows multiarch manifest for the windows images
         echo "Creating and pushing ${MANIFEST_NAME}:${MANIFEST_TAG} manifest"
@@ -1792,9 +1792,9 @@ push-multiarch-manifest:
         echo "$json"
         # Check number of images in the manifest
         count=$( echo "$json" | jq -r ".manifests | length" )
-        if [[ "$MANIFEST" = "multiarch" && "$FIPS" == "" && $count -ne 5 ]]; then
+        if [[ "$MANIFEST" = "multiarch" && "$FIPS" == "" && $count -ne 3 ]]; then
           exit 1
-        elif [[ "$MANIFEST" = "multiarch" && "$FIPS" == "-fips" && $count -ne 4 ]]; then
+        elif [[ "$MANIFEST" = "multiarch" && "$FIPS" == "-fips" && $count -ne 2 ]]; then
           exit 1
         elif [[ "$MANIFEST" = "windows_multiarch" && $count -ne 2 ]]; then
           exit 1

@@ -42,15 +42,14 @@ jobs:
       - name: Build Docker image from local changes
         run: |
           cd ${{github.workspace}}
-          make docker-otelcol SKIP_COMPILE=false
+          make docker-otelcol SKIP_COMPILE=false IMAGE_NAME=splunk-otel-collector-local IMAGE_TAG=test
         env:
-          DOCKER_REPO: local
           ARCH: amd64
 
       - name: Verify Docker image
         run: |
           docker images | grep splunk-otel-collector
-          docker tag local/splunk-otel-collector:latest splunk-otel-collector:local-test
+          docker tag splunk-otel-collector-local:test splunk-otel-collector:local-test
 
       - name: Install Nomad and Consul.
         run: |

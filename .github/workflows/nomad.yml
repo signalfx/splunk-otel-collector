@@ -148,15 +148,13 @@ jobs:
           until nc -w 10 127.0.0.1 4646; do sleep 1; done
       - name: Prepare deployment
         run: |
-          sed -i 's/<SPLUNK_ACCESS_TOKEN>/12345/g' otel-agent.nomad
+          sed -i 's/<SPLUNK_ACCESS_TOKEN>/token-12345/g' otel-agent.nomad
           sed -i 's/<SPLUNK_REALM>/test/g' otel-agent.nomad
-          sed -i 's/<SPLUNK_ACCESS_TOKEN>/12345/g' otel-gateway.nomad
+          sed -i 's/<SPLUNK_ACCESS_TOKEN>/token-12345/g' otel-gateway.nomad
           sed -i 's/<SPLUNK_REALM>/test/g' otel-gateway.nomad
           # Use locally built Docker image instead of pulling from registry
           sed -i 's|image = "quay.io/signalfx/splunk-otel-collector:latest"|image = "splunk-otel-collector:local-test"|g' otel-agent.nomad
           sed -i 's|image = "quay.io/signalfx/splunk-otel-collector:latest"|image = "splunk-otel-collector:local-test"|g' otel-gateway.nomad
-          sed -i 's|force_pull = false|force_pull = false|g' otel-agent.nomad
-          sed -i 's|force_pull = false|force_pull = false|g' otel-gateway.nomad
 
       - name: Deploy gateway with Nomad
         run: |

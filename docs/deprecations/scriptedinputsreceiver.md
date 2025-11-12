@@ -1,6 +1,6 @@
 # Scripted Inputs Receiver Deprecation
 
-The Scripted Inputs Receiver has been deprecated and will be removed in a future release.
+[The Scripted Inputs Receiver](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/receiver/scriptedinputsreceiver) has been deprecated and will be removed in a future release.
 
 ## Replacement guidance
 

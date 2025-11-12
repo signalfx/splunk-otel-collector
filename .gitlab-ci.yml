@@ -1364,17 +1364,17 @@ build-push-windows-image:
     - echo "${IMAGE_NAME}:${IMAGE_TAG}" > tags
     - echo "${OLD_IMAGE_NAME}:${IMAGE_TAG}" >> tags
     - (Get-Content -Raw -Path tags) -replace "`r`n", "`n"| Set-Content -NoNewline tags_to_sign_${env:WIN_VERSION}
-#  after_script:
-#    - *get-base-image
-#    - *delete-all-images-except-base
-#    - docker system prune --force
-#    - |
-#      if (Test-Path -Path C:\Users\Administrator\Desktop\ops-scripts\docker-leak-check.exe) {
-#        C:\Users\Administrator\Desktop\ops-scripts\docker-leak-check.exe -remove
-#      }
-#  artifacts:
-#    paths:
-#      - tags_to_sign_${WIN_VERSION}
+  after_script:
+    - *get-base-image
+    - *delete-all-images-except-base
+    - docker system prune --force
+    - |
+      if (Test-Path -Path C:\Users\Administrator\Desktop\ops-scripts\docker-leak-check.exe) {
+        C:\Users\Administrator\Desktop\ops-scripts\docker-leak-check.exe -remove
+      }
+  artifacts:
+    paths:
+      - tags_to_sign_${WIN_VERSION}
 
 build-push-windows-fips-image:
   extends: .trigger-filter
@@ -1512,17 +1512,17 @@ build-push-windows-fips-image:
     - echo "${IMAGE_NAME}:${IMAGE_TAG}" > tags
     - echo "${OLD_IMAGE_NAME}:${IMAGE_TAG}" >> tags
     - (Get-Content -Raw -Path tags) -replace "`r`n", "`n"| Set-Content -NoNewline tags_to_sign_${env:WIN_VERSION}-fips
-#  after_script:
-#    - *get-base-image
-#    - *delete-all-images-except-base
-#    - docker system prune --force
-#    - |
-#      if (Test-Path -Path C:\Users\Administrator\Desktop\ops-scripts\docker-leak-check.exe) {
-#        C:\Users\Administrator\Desktop\ops-scripts\docker-leak-check.exe -remove
-#      }
-#  artifacts:
-#    paths:
-#      - tags_to_sign_${WIN_VERSION}-fips
+  after_script:
+    - *get-base-image
+    - *delete-all-images-except-base
+    - docker system prune --force
+    - |
+      if (Test-Path -Path C:\Users\Administrator\Desktop\ops-scripts\docker-leak-check.exe) {
+        C:\Users\Administrator\Desktop\ops-scripts\docker-leak-check.exe -remove
+      }
+  artifacts:
+    paths:
+      - tags_to_sign_${WIN_VERSION}-fips
 
 #sign-windows-image:
 #  extends: .sign-docker

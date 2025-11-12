@@ -5,7 +5,7 @@ change_type: deprecation
 component: scriptedinputsreceiver
 
 # A brief description of the change.  Surround your text with quotes ("") if it needs to start with a backtick (`).
-note: Deprecate the scripted inputs receiver. Please use native OTel Collector receivers instead, such as the hostmetricsreceiver for system metrics.
+note: Deprecate the scripted inputs receiver.
 
 # One or more tracking issues related to the change
 issues: [6893]

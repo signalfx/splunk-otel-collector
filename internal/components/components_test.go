@@ -155,6 +155,7 @@ func TestDefaultComponents(t *testing.T) {
 		"nop",
 		"otlp",
 		"otlphttp",
+		"prometheusremotewrite",
 		"pulsar",
 		"sapm",
 		"signalfx",

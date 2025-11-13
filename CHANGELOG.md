@@ -5,14 +5,23 @@
 <!-- For unreleased changes, see entries in .chloggen -->
 <!-- next version -->
 
-## v0.139.1
+## v0.139.2
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.139.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.139.0)
 and the [opentelemetry-collector-contrib v0.139.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.139.0) releases where appropriate.
 
 ### ❗ Known Issues ❗
 
-- (Splunk) `quay.io`: Windows Docker images aren't available at [quay.io](quay.io/repository/signalfx/splunk-otel-collector) yet. This is actively being investigated.
+- (Splunk) `quay.io`: Windows Docker images aren't available at [quay.io](https://quay.io/repository/signalfx/splunk-otel-collector) yet. This is actively being investigated.
+
+## v0.139.1
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.139.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.139.0)
+and the [opentelemetry-collector-contrib v0.139.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.139.0) releases where appropriate.
+  
+### ❗ Known Issues ❗
+
+- (Splunk) `quay.io`: Windows Docker images aren't available at [quay.io](https://quay.io/repository/signalfx/splunk-otel-collector) yet. This is actively being investigated.
 
 ## v0.139.0
 
@@ -5295,7 +5304,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 ### 🚀 New components 🚀
 
 - [`docker_observer`](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/observer/dockerobserver) to detect and create container endpoints, to be used with the [`receiver_creator`](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/receivercreator) (#1044)
-- [`ecs_task_observer`](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/observer/ecstaskobserver) to detect and create ECS task container endpoints, to be used with the [`receiver_creator`](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/receivercreator) (#1125)
+- [`ecs_task_observer`](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/release/v0.138.x/extension/observer/ecstaskobserver) to detect and create ECS task container endpoints, to be used with the [`receiver_creator`](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/receivercreator) (#1125)
 
 ### 💡 Enhancements 💡
 

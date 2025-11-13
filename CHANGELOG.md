@@ -13,8 +13,7 @@ and the [opentelemetry-collector-contrib v0.139.0](https://github.com/open-telem
 ### ❗ Known Issues ❗
 
 - (Splunk) `quay.io`: Windows Docker images aren't available at [quay.io](https://quay.io/repository/signalfx/splunk-otel-collector) yet. This is actively being investigated.
-- (Splunk) `quay.io`: the tags `0.139.0*` and `0.139.1*` that were published to [quay.io](https://quay.io/repository/signalfx/splunk-otel-collector),
-  for non-Windows platforms, were built with the same code as `v0.139.2`, and share the same changelog as `v0.139.2`.
+- (Splunk) `quay.io`: the tags `0.139.0*` and `0.139.1*` published to [quay.io](https://quay.io/repository/signalfx/splunk-otel-collector) for non-Windows platforms were built with the same code as `v0.139.2` and share the same changelog.
 
 ### 🛑 Breaking changes 🛑
 

@@ -24,7 +24,6 @@ import (
 	"time"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/dockerobserver"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecstaskobserver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/hostobserver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/k8sobserver"
 	"go.opentelemetry.io/collector/component"
@@ -428,7 +427,6 @@ func factoryForObserverType(extType component.Type) (otelcolextension.Factory, e
 		component.MustNewType("docker_observer"):   dockerobserver.NewFactory(),
 		component.MustNewType("host_observer"):     hostobserver.NewFactory(),
 		component.MustNewType("k8s_observer"):      k8sobserver.NewFactory(),
-		component.MustNewType("ecs_task_observer"): ecstaskobserver.NewFactory(),
 	}
 
 	ef, ok := factories[extType]

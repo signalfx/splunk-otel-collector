@@ -31,7 +31,6 @@ func TestDefaultComponents(t *testing.T) {
 		"bearertokenauth",
 		"docker_observer",
 		"ecs_observer",
-		"ecs_task_observer",
 		"file_storage",
 		"googlecloudlogentry_encoding",
 		"headers_setter",

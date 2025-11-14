@@ -613,8 +613,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.139.0
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.139.0/go.mod h1:0v3C+DUgl/J/Q9g/xK5m0nsYnHgqzH5ICEtCzalO2uY=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatautil v0.139.0 h1:6/j0Ta8ZJnmAFVEoC3aZ1Hs19RB4fHzlN6kOZhsBJqM=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatautil v0.139.0/go.mod h1:VfA8xHz4xg7Fyj5bBsCDbOO3iVYzDn9wP/QFsjcAE5c=
-github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.139.1-0.20251104032327-2ac2ed902668 h1:Vm1DuOK33aVbcakzsuB27C/D6TV6vy/7ecJGP3m+CYY=
-github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.139.1-0.20251104032327-2ac2ed902668/go.mod h1:BduGmN98+nV2KObW0woovcuNwkSvSVLiPG6+Ww95uSk=
+github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.139.0 h1:ctfs8S1cQuhbXJVqSlAx8SxPmgFq2eOcllc7Pdpr9RE=
+github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.139.0/go.mod h1:BduGmN98+nV2KObW0woovcuNwkSvSVLiPG6+Ww95uSk=
 github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8Oi/yOhh5U=
 github.com/opencontainers/go-digest v1.0.0/go.mod h1:0JzlMkj0TRzQZfJkVvzbP0HBR3IKzErnv2BNG4W4MAM=
 github.com/opencontainers/image-spec v1.1.1 h1:y0fUlFfIZhPF1W537XOLg0/fcx6zcHCJwooC2xJA040=

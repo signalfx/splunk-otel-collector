@@ -71,7 +71,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/azuremonitorreceiver v0.139.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/carbonreceiver v0.139.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/chronyreceiver v0.139.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/ciscoosreceiver v0.139.1-0.20251104033224-b4046e6e8c22
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/ciscoosreceiver v0.139.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/cloudfoundryreceiver v0.139.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdreceiver v0.139.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/dockerstatsreceiver v0.139.0
@@ -116,7 +116,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkenterprisereceiver v0.139.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver v0.139.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sqlqueryreceiver v0.139.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sqlserverreceiver v0.139.1-0.20251103231350-35320bda8ba0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sqlserverreceiver v0.139.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sshcheckreceiver v0.139.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceiver v0.139.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/syslogreceiver v0.139.0

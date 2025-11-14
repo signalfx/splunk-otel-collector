@@ -201,13 +201,19 @@ jobs:
     steps:
       - name: Check for snyk token
         id: snyk-token-check
+        env:
+          IS_FORK_PR: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork }}
         run: |
           if [ -n "${{ secrets.SNYK_TOKEN }}" ]; then
             echo "defined=true" >> "$GITHUB_OUTPUT"
           else
             echo "defined=false" >> "$GITHUB_OUTPUT"
-            echo "ERROR: The Snyk token is not available. The token is not available on PRs triggered from forked repositories."
-            exit 1
+            if [ "${IS_FORK_PR}" = "true" ]; then
+              echo "INFO: The Snyk token is not available on fork-based pull requests; skipping Snyk scans."
+            else
+              echo "ERROR: The Snyk token is not available."
+              exit 1
+            fi
           fi
 
   snyk-fs-scan:

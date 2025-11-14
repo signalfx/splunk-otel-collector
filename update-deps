@@ -42,7 +42,11 @@ update_gomod() {
 
     for mod in $( go list -f '{{if not .Indirect}}{{.Path}}{{end}}' -m ${pkgs}/... 2>/dev/null | grep -v go.opentelemetry.io/collector/semconv ); do
         echo "Updating ${mod} in $gomod to $version"
-        go get ${mod}@${version}
+        if [[ "$version" = "latest" ]]; then
+            go get ${mod}
+        else
+            go get ${mod}@${version}
+        fi
     done
 
     popd >/dev/null

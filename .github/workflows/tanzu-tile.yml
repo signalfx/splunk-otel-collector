@@ -98,7 +98,7 @@ jobs:
           echo "osdf_license_path=$osdf_license_path" >> "$GITHUB_ENV"
 
       - name: Uploading artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: tanzu-tile-publication-bundle
           path: |

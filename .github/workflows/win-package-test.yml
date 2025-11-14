@@ -77,7 +77,7 @@ jobs:
             8.0.300
 
       - name: Download Splunk OTel Collector msi
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: msi-build-windows-2025
           path: ./tests/zeroconfig/windows/testdata/docker-setup/
@@ -99,7 +99,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Downloading msi build
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: msi-build-${{ matrix.OS }}
           path: ./dist
@@ -129,7 +129,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Downloading msi build
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: msi-build-${{ matrix.OS }}
           path: ./dist
@@ -181,7 +181,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Downloading msi build
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: msi-build-${{ matrix.OS }}
           path: ./dist
@@ -216,7 +216,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Downloading msi build
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: msi-build-${{ matrix.OS }}
           path: ./dist
@@ -268,7 +268,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Downloading choco build
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: choco-build-${{ matrix.OS }}
           path: ./dist
@@ -357,12 +357,12 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Downloading binaries-windows_amd64
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: binaries-windows_amd64
           path: ./bin
 
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
           name: agent-bundle-windows-${{ matrix.OS }}
           path: ./dist

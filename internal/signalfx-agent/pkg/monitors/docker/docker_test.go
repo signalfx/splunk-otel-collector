@@ -33,6 +33,16 @@ func TestMinimumRequiredClientVersion(t *testing.T) {
 		t.Skip("Skipping test outside of GitHub Actions")
 	}
 
+	// Run a container to have some metrics to collect
+	cmd := exec.Command("docker", "run", "-d", "--name", "docker-client-test", "alpine")
+	err := cmd.Run()
+	require.NoError(t, err, "Failed to run docker container")
+	t.Cleanup(func() {
+		cmd := exec.Command("docker", "rm", "docker-client-test")
+		err := cmd.Run()
+		require.NoError(t, err, "Failed to remove docker container")
+	})
+
 	tt := []struct {
 		minimumRequiredClientVersion string
 	}{

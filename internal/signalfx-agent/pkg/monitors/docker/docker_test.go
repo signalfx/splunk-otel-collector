@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"sync"
@@ -88,22 +89,36 @@ func updateGHLinuxRunnerDockerDaemonMinClientVersion(t *testing.T, minimumRequir
 	configJSON, err := json.MarshalIndent(daemonConfig, "", "  ")
 	require.NoError(t, err, "Failed to marshal daemon config")
 
-	err = os.WriteFile("/etc/docker/daemon.json", configJSON, 0644)
+	// Create a temporary daemon.json file with the new configuration then
+	// move it using sudo to the correct location.
+	tempFileName := filepath.Join(t.TempDir(), "daemon.json")
+	err = os.WriteFile(tempFileName, configJSON, 0644)
 	require.NoError(t, err, "Failed to write daemon.json")
 
-	cmd := exec.Command("sudo", "systemctl", "restart", "docker")
+	cmd := exec.Command("sudo", "mv", tempFileName, "/etc/docker/daemon.json")
+	err = cmd.Run()
+	require.NoError(t, err, "Failed to move daemon.json")
+
+	cmd = exec.Command("sudo", "systemctl", "restart", "docker")
 	err = cmd.Run()
 	require.NoError(t, err, "Failed to restart docker daemon")
 
 	t.Cleanup(func() {
-		err := os.Remove("/etc/docker/daemon.json")
+		cmd := exec.Command("sudo", "rm", "/etc/docker/daemon.json")
+		err := cmd.Run()
 		require.NoError(t, err, "Failed to remove daemon.json")
-		cmd := exec.Command("sudo", "systemctl", "restart", "docker")
+
+		cmd = exec.Command("sudo", "systemctl", "restart", "docker")
 		err = cmd.Run()
 		require.NoError(t, err, "Failed to restart docker daemon")
+
+		requireDockerDaemonRunning(t)
 	})
 
-	// Wait for the daemon to be running with the new configuration
+	requireDockerDaemonRunning(t)
+}
+
+func requireDockerDaemonRunning(t *testing.T) {
 	require.Eventually(t, func() bool {
 		status, err := getServiceStatus("docker")
 		require.NoError(t, err, "Failed to get docker service status")

@@ -33,10 +33,6 @@ func TestMinimumRequiredClientVersion(t *testing.T) {
 		t.Skip("Skipping test outside of GitHub Actions")
 	}
 
-	// Run a container to have some metrics to collect
-	cmd := exec.Command("docker", "run", "-d", "--name", "docker-client-test", "alpine", "sleep", "180")
-	err := cmd.Run()
-	require.NoError(t, err, "Failed to run docker container")
 	t.Cleanup(func() {
 		cmd := exec.Command("docker", "rm", "-f", "docker-client-test")
 		err := cmd.Run()
@@ -64,6 +60,18 @@ func TestMinimumRequiredClientVersion(t *testing.T) {
 				updateGHLinuxRunnerDockerDaemonMinClientVersion(t, tc.minimumRequiredClientVersion)
 			}
 
+			// Run a container to have some metrics to collect
+			// Attention: this container should started only the settings for docker daemon are updated
+			// and should be removed before the docker daemon settings are reset.
+			cmd := exec.Command("docker", "run", "-d", "--name", "docker-client-test", "alpine", "sleep", "180")
+			err := cmd.Run()
+			require.NoError(t, err, "Failed to run docker container")
+			defer func() {
+				cmd := exec.Command("docker", "rm", "-f", "docker-client-test")
+				err := cmd.Run()
+				require.NoError(t, err, "Failed to remove docker container")
+			}()
+
 			output := &fakeOutput{}
 			monitor := &Monitor{
 				Output: output,
@@ -75,9 +83,9 @@ func TestMinimumRequiredClientVersion(t *testing.T) {
 			}
 			defaults.Set(config)
 
-			err := monitor.Configure(config)
+			err = monitor.Configure(config)
 			require.NoError(t, err, "Expected no error during monitor configuration")
-			t.Cleanup(monitor.Shutdown)
+			defer monitor.Shutdown()
 
 			require.Eventually(t, func() bool {
 				return output.HasDatapoints()

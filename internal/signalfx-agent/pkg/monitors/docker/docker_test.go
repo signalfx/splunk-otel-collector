@@ -1,0 +1,193 @@
+package docker
+
+import (
+	"encoding/json"
+	"fmt"
+	"os"
+	"os/exec"
+	"runtime"
+	"strings"
+	"sync"
+	"testing"
+	"time"
+
+	"github.com/signalfx/defaults"
+	"github.com/signalfx/golib/v3/datapoint" //nolint:staticcheck // SA1019: deprecated package still in use
+	"github.com/signalfx/golib/v3/event"     //nolint:staticcheck // SA1019: deprecated package still in use
+	"github.com/signalfx/golib/v3/trace"     //nolint:staticcheck // SA1019: deprecated package still in use
+	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/pdata/pmetric"
+
+	"github.com/signalfx/signalfx-agent/pkg/core/config"
+	"github.com/signalfx/signalfx-agent/pkg/core/dpfilters"
+	"github.com/signalfx/signalfx-agent/pkg/monitors/types"
+)
+
+func TestMinimumRequiredClientVersion(t *testing.T) {
+	// Skip this test if not running on Linux GitHub runner
+	if runtime.GOOS != "linux" {
+		t.Skip("Skipping test on non-Linux OS")
+	}
+	if os.Getenv("GITHUB_ACTIONS") != "true" {
+		t.Skip("Skipping test outside of GitHub Actions")
+	}
+
+	tt := []struct {
+		minimumRequiredClientVersion string
+	}{
+		{
+			minimumRequiredClientVersion: "default",
+		},
+		{
+			minimumRequiredClientVersion: "1.24",
+		},
+		{
+			minimumRequiredClientVersion: "1.44",
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.minimumRequiredClientVersion, func(t *testing.T) {
+			if tc.minimumRequiredClientVersion != "default" {
+				// TODO: Update the docker daemon to the specified version before running the test
+				updateGHLinuxRunnerDockerDaemonMinClientVersion(t, tc.minimumRequiredClientVersion)
+			}
+
+			output := &fakeOutput{}
+			monitor := &Monitor{
+				Output: output,
+			}
+			config := &Config{
+				MonitorConfig: config.MonitorConfig{
+					IntervalSeconds: 1,
+				},
+			}
+			defaults.Set(config)
+
+			err := monitor.Configure(config)
+			require.NoError(t, err, "Expected no error during monitor configuration")
+			t.Cleanup(monitor.Shutdown)
+
+			require.Eventually(t, func() bool {
+				return output.HasDatapoints()
+			}, 10*time.Second, 100*time.Millisecond, "Expected datapoints to be collected")
+		})
+	}
+}
+
+func updateGHLinuxRunnerDockerDaemonMinClientVersion(t *testing.T, minimumRequiredClientVersion string) {
+	// Fail if there is already a daemon.json file
+	if _, err := os.Stat("/etc/docker/daemon.json"); err == nil {
+		t.Fatal("daemon.json already exists, cannot update minimum required client version")
+	}
+
+	daemonConfig := map[string]string{
+		"min-api-version": minimumRequiredClientVersion,
+	}
+
+	configJSON, err := json.MarshalIndent(daemonConfig, "", "  ")
+	require.NoError(t, err, "Failed to marshal daemon config")
+
+	err = os.WriteFile("/etc/docker/daemon.json", configJSON, 0644)
+	require.NoError(t, err, "Failed to write daemon.json")
+
+	cmd := exec.Command("sudo", "systemctl", "restart", "docker")
+	err = cmd.Run()
+	require.NoError(t, err, "Failed to restart docker daemon")
+
+	t.Cleanup(func() {
+		err := os.Remove("/etc/docker/daemon.json")
+		require.NoError(t, err, "Failed to remove daemon.json")
+		cmd := exec.Command("sudo", "systemctl", "restart", "docker")
+		err = cmd.Run()
+		require.NoError(t, err, "Failed to restart docker daemon")
+	})
+
+	// Wait for the daemon to be running with the new configuration
+	require.Eventually(t, func() bool {
+		status, err := getServiceStatus("docker")
+		require.NoError(t, err, "Failed to get docker service status")
+		return status == "running"
+	}, 30*time.Second, 1*time.Second)
+}
+
+func getServiceStatus(serviceName string) (string, error) {
+	cmd := exec.Command("service", serviceName, "status")
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		// The 'service status' command often returns a non-zero exit code if the service is not running
+		// or if there's an error. We still need to parse the output to determine the status.
+		// fmt.Printf("Error running command: %v, output: %s\n", err, output)
+	}
+
+	outputStr := string(output)
+
+	if strings.Contains(outputStr, "is running") {
+		return "running", nil
+	} else if strings.Contains(outputStr, "is stopped") || strings.Contains(outputStr, "not running") {
+		return "stopped", nil
+	} else if strings.Contains(outputStr, "unrecognized service") {
+		return "not found", fmt.Errorf("service '%s' not found", serviceName)
+	}
+
+	return "unknown", fmt.Errorf("could not determine status for service '%s': %s", serviceName, outputStr)
+}
+
+type fakeOutput struct {
+	datapoints []*datapoint.Datapoint
+	mu         sync.Mutex
+}
+
+var _ types.FilteringOutput = (*fakeOutput)(nil)
+
+func (fo *fakeOutput) AddDatapointExclusionFilter(_ dpfilters.DatapointFilter) {
+	panic("unimplemented")
+}
+
+func (fo *fakeOutput) AddExtraDimension(_ string, _ string) {
+	panic("unimplemented")
+}
+
+func (fo *fakeOutput) Copy() types.Output {
+	panic("unimplemented")
+}
+
+func (fo *fakeOutput) EnabledMetrics() []string {
+	return []string{}
+}
+
+func (fo *fakeOutput) HasAnyExtraMetrics() bool {
+	panic("unimplemented")
+}
+
+func (fo *fakeOutput) HasEnabledMetricInGroup(_ string) bool {
+	panic("unimplemented")
+}
+
+func (fo *fakeOutput) SendDimensionUpdate(_ *types.Dimension) {
+	panic("unimplemented")
+}
+
+func (fo *fakeOutput) SendEvent(_ *event.Event) {
+	panic("unimplemented")
+}
+
+func (fo *fakeOutput) SendMetrics(_ ...pmetric.Metric) {
+	panic("unimplemented")
+}
+
+func (fo *fakeOutput) SendSpans(_ ...*trace.Span) {
+	panic("unimplemented")
+}
+
+func (fo *fakeOutput) SendDatapoints(dps ...*datapoint.Datapoint) {
+	fo.mu.Lock()
+	defer fo.mu.Unlock()
+	fo.datapoints = append(fo.datapoints, dps...)
+}
+
+func (fo *fakeOutput) HasDatapoints() bool {
+	fo.mu.Lock()
+	defer fo.mu.Unlock()
+	return len(fo.datapoints) > 0
+}

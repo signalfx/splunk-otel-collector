@@ -99,7 +99,7 @@ func updateGHLinuxRunnerDockerDaemonMinClientVersion(t *testing.T, minimumRequir
 	err = cmd.Run()
 	require.NoError(t, err, "Failed to move daemon.json")
 
-	cmd = exec.Command("sudo", "systemctl", "restart", "docker")
+	cmd = exec.Command("sudo", "service", "docker", "restart")
 	err = cmd.Run()
 	require.NoError(t, err, "Failed to restart docker daemon")
 
@@ -108,7 +108,7 @@ func updateGHLinuxRunnerDockerDaemonMinClientVersion(t *testing.T, minimumRequir
 		err := cmd.Run()
 		require.NoError(t, err, "Failed to remove daemon.json")
 
-		cmd = exec.Command("sudo", "systemctl", "restart", "docker")
+		cmd = exec.Command("sudo", "service", "docker", "restart")
 		err = cmd.Run()
 		require.NoError(t, err, "Failed to restart docker daemon")
 

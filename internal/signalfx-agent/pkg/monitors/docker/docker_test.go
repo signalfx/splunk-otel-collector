@@ -34,11 +34,11 @@ func TestMinimumRequiredClientVersion(t *testing.T) {
 	}
 
 	// Run a container to have some metrics to collect
-	cmd := exec.Command("docker", "run", "-d", "--name", "docker-client-test", "alpine")
+	cmd := exec.Command("docker", "run", "-d", "--name", "docker-client-test", "alpine", "sleep", "180")
 	err := cmd.Run()
 	require.NoError(t, err, "Failed to run docker container")
 	t.Cleanup(func() {
-		cmd := exec.Command("docker", "rm", "docker-client-test")
+		cmd := exec.Command("docker", "rm", "-f", "docker-client-test")
 		err := cmd.Run()
 		require.NoError(t, err, "Failed to remove docker container")
 	})

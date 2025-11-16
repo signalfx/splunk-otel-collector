@@ -106,6 +106,7 @@ func updateGHLinuxRunnerDockerDaemonMinClientVersion(t *testing.T, minimumRequir
 
 	configJSON, err := json.MarshalIndent(daemonConfig, "", "  ")
 	require.NoError(t, err, "Failed to marshal daemon config")
+	t.Logf("Docker daemon config JSON:\n%s", string(configJSON))
 
 	// Create a temporary daemon.json file with the new configuration then
 	// move it using sudo to the correct location.
@@ -118,8 +119,12 @@ func updateGHLinuxRunnerDockerDaemonMinClientVersion(t *testing.T, minimumRequir
 	require.NoError(t, err, "Failed to move daemon.json")
 
 	cmd = exec.Command("sudo", "service", "docker", "restart")
+	// Ignore error since the docker daemon might automatically restart after
+	// adding the config file
 	err = cmd.Run()
-	require.NoError(t, err, "Failed to restart docker daemon")
+	if err != nil {
+		t.Logf("Docker daemon restart error: %s", err)
+	}
 
 	t.Cleanup(func() {
 		cmd := exec.Command("sudo", "rm", "/etc/docker/daemon.json")
@@ -127,8 +132,12 @@ func updateGHLinuxRunnerDockerDaemonMinClientVersion(t *testing.T, minimumRequir
 		require.NoError(t, err, "Failed to remove daemon.json")
 
 		cmd = exec.Command("sudo", "service", "docker", "restart")
+		// Ignore error since the docker daemon might automatically restart after
+		// removing the config file
 		err = cmd.Run()
-		require.NoError(t, err, "Failed to restart docker daemon")
+		if err != nil {
+			t.Logf("Docker daemon restart error: %s", err)
+		}
 
 		requireDockerDaemonRunning(t)
 	})

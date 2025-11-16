@@ -113,7 +113,7 @@ func updateGHLinuxRunnerDockerDaemonMinClientVersion(t *testing.T, minimumRequir
 	err = os.WriteFile(tempFileName, configJSON, 0644)
 	require.NoError(t, err, "Failed to write daemon.json")
 
-	cmd := exec.Command("sudo", "mv", tempFileName, "/etc/docker/daemon.json")
+	cmd := exec.Command("sudo", "mv", tempFileName, "/etc/docker/")
 	err = cmd.Run()
 	require.NoError(t, err, "Failed to move daemon.json")
 

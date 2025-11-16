@@ -153,26 +153,23 @@ func requireDockerDaemonRunning(t *testing.T) {
 	}, 30*time.Second, 1*time.Second)
 }
 
-func getServiceStatus(serviceName string) (string, error) {
+func getServiceStatus(t *testing.T, serviceName string) (string, error) {
 	cmd := exec.Command("service", serviceName, "status")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		// The 'service status' command often returns a non-zero exit code if the service is not running
 		// or if there's an error. We still need to parse the output to determine the status.
-		// fmt.Printf("Error running command: %v, output: %s\n", err, output)
+		t.Logf("Error getting %q service status: %v", serviceName, err)
 	}
 
 	outputStr := string(output)
+	t.Logf("%q service status output:\n%s", serviceName, outputStr)
 
-	if strings.Contains(outputStr, "is running") {
+	if strings.Contains(outputStr, "active (running)") {
 		return "running", nil
-	} else if strings.Contains(outputStr, "is stopped") || strings.Contains(outputStr, "not running") {
-		return "stopped", nil
-	} else if strings.Contains(outputStr, "unrecognized service") {
-		return "not found", fmt.Errorf("service '%s' not found", serviceName)
 	}
 
-	return "unknown", fmt.Errorf("could not determine status for service '%s': %s", serviceName, outputStr)
+	return "not running", nil
 }
 
 type fakeOutput struct {

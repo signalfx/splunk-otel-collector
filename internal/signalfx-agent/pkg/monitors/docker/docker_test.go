@@ -146,7 +146,7 @@ func updateGHLinuxRunnerDockerDaemonMinClientVersion(t *testing.T, minimumRequir
 
 func requireDockerDaemonRunning(t *testing.T) {
 	require.Eventually(t, func() bool {
-		status, err := getServiceStatus("docker")
+		status, err := getServiceStatus(t, "docker")
 		require.NoError(t, err, "Failed to get docker service status")
 		return status == "running"
 	}, 30*time.Second, 1*time.Second)

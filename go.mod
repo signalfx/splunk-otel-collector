@@ -22,6 +22,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.139.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.139.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter v0.139.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter v0.139.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/pulsarexporter v0.139.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.139.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.139.0
@@ -37,7 +38,6 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer v0.139.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/dockerobserver v0.139.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecsobserver v0.139.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecstaskobserver v0.139.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/hostobserver v0.139.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/k8sobserver v0.139.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/opampextension v0.139.0
@@ -372,12 +372,14 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/kafka/topic v0.139.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/ottl v0.139.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatautil v0.139.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/resourcetotelemetry v0.139.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/sampling v0.139.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/status v0.139.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/azure v0.139.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/azurelogs v0.139.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.139.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus v0.139.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheusremotewrite v0.139.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/deltatocumulativeprocessor v0.139.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/scraper/zookeeperscraper v0.139.0 // indirect
 	github.com/opencontainers/cgroups v0.0.2 // indirect
@@ -422,6 +424,8 @@ require (
 	github.com/tidwall/gjson v1.18.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
+	github.com/tidwall/tinylru v1.1.0 // indirect
+	github.com/tidwall/wal v1.2.1 // indirect
 	github.com/tilinna/clock v1.1.0 // indirect
 	github.com/twmb/franz-go v1.20.2 // indirect
 	github.com/twmb/franz-go/pkg/kadm v1.17.1 // indirect

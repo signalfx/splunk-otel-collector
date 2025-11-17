@@ -1338,8 +1338,6 @@ github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/doc
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/dockerobserver v0.139.0/go.mod h1:StCwXbhgQmG30PV5mBxX1O99l+yYJy+BZNisuOz7USk=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecsobserver v0.139.0 h1:mU2fHKOt2m/x3fw8FO5HLlCQ0sInRLdr9RUqUZOTXTk=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecsobserver v0.139.0/go.mod h1:0H0eEKhl4bjCSxJFU2O6xsW++Tju8H1WfvTBVMfc9VI=
-github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecstaskobserver v0.139.0 h1:jDSDkdf6E/mgp63xzlCN4KZ2uZVPjCZe2b4uAl+AgLk=
-github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecstaskobserver v0.139.0/go.mod h1:k6F3G1uU+7JPbQvBt3gNVRIc8y28ewCSkNWKKr7f3r4=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/hostobserver v0.139.0 h1:YXZvS2GytjrTvrvRsdeGNJOQv10EV9p3+j61lFulIZs=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/hostobserver v0.139.0/go.mod h1:JTjgDh4psDOvsb5XLlc4v6ev6xCUBUytCmea622nviE=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/k8sobserver v0.139.0 h1:zV33tKHmU8OXBTUfTl8TioFIJof5uQ+RVHL6SbUxV6w=
@@ -1886,6 +1884,7 @@ github.com/tg123/go-htpasswd v1.2.4 h1:HgH8KKCjdmo7jjXWN9k1nefPBd7Be3tFCTjc2jPra
 github.com/tg123/go-htpasswd v1.2.4/go.mod h1:EKThQok9xHkun6NBMynNv6Jmu24A33XdZzzl4Q7H1+0=
 github.com/thda/tds v0.1.7 h1:s29kbnJK0agL3ps85A/sb9XS2uxgKF5UJ6AZjbyqXX4=
 github.com/thda/tds v0.1.7/go.mod h1:isLIF1oZdXfkqVMJM8RyNrsjlHPlTKnPlnsBs7ngZcM=
+github.com/tidwall/gjson v1.10.2/go.mod h1:/wbyibRr2FHMks5tjHJ5F8dMZh3AcwJEMf5vlfC0lxk=
 github.com/tidwall/gjson v1.18.0 h1:FIDeeyB800efLX89e5a8Y0BNH+LOngJyGrIWxG2FKQY=
 github.com/tidwall/gjson v1.18.0/go.mod h1:/wbyibRr2FHMks5tjHJ5F8dMZh3AcwJEMf5vlfC0lxk=
 github.com/tidwall/match v1.1.1 h1:+Ho715JplO36QYgwN9PGYNhgZvoUSc9X2c80KVTi+GA=

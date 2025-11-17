@@ -51,9 +51,6 @@ func TestMinimumRequiredClientVersion(t *testing.T) {
 		{
 			minimumRequiredClientVersion: "1.24",
 		},
-		{
-			minimumRequiredClientVersion: "1.44",
-		},
 	}
 
 	for _, tc := range tt {

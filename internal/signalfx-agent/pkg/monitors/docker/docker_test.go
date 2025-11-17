@@ -111,7 +111,7 @@ func updateGHLinuxRunnerDockerDaemonMinClientVersion(t *testing.T, minimumRequir
 	// Create a temporary daemon.json file with the new configuration then
 	// move it using sudo to the correct location.
 	tempFileName := filepath.Join(t.TempDir(), "daemon.json")
-	err = os.WriteFile(tempFileName, configJSON, 0644)
+	err = os.WriteFile(tempFileName, configJSON, 0o644)
 	require.NoError(t, err, "Failed to write daemon.json")
 
 	cmd := exec.Command("sudo", "mv", tempFileName, "/etc/docker/")

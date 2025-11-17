@@ -129,3 +129,15 @@ jobs:
     uses: ./.github/workflows/reusable-compile.yml
     with:
       SYS_BINARY: ${{ matrix.SYS_BINARIES }}
+
+  latest-dockerd-test:
+    # Run this as a separate test to avoid affecting other tests with the dockerd upgrade.
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-environment
+
+      - name: dockerd test
+        working-directory: ./internal/signalfx-agent/pkg/monitors/docker
+        run: |
+          go test -tags=dockerd -timeout 3m ./...

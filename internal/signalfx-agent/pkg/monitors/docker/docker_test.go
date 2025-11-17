@@ -1,3 +1,5 @@
+//go:build dockerd
+
 package docker
 
 import (
@@ -32,11 +34,13 @@ func TestMinimumRequiredClientVersion(t *testing.T) {
 		t.Skip("Skipping test outside of GitHub Actions")
 	}
 
-	t.Cleanup(func() {
-		cmd := exec.Command("docker", "rm", "-f", "docker-client-test")
-		err := cmd.Run()
-		require.NoError(t, err, "Failed to remove docker container")
-	})
+	// Execute the dockerd upgrade script and fail the test if it fails.
+	// This test is not rolling back the dockerd upgrade, so it can affect all subsequent tests.
+	scriptPath := filepath.Join("testdata", "upgrade-dockerd-on-ubuntu.sh")
+	scriptCmd := exec.Command("bash", scriptPath)
+	scriptOut, err := scriptCmd.CombinedOutput()
+	t.Logf("upgrade-dockerd-on-ubuntu.sh output:\n%s\n", string(scriptOut))
+	require.NoError(t, err, "upgrade-dockerd-on-ubuntu.sh failed with exit code %d", scriptCmd.ProcessState.ExitCode())
 
 	tt := []struct {
 		minimumRequiredClientVersion string

@@ -15,6 +15,14 @@ extensions:
       endpoint: "${SPLUNK_LISTEN_INTERFACE}:6060"
     egress:
       endpoint: "https://api.${SPLUNK_REALM}.signalfx.com"
+  http_forwarder/signalfx:
+    ingress:
+      endpoint: "${SPLUNK_LISTEN_INTERFACE}:9943"
+      # Whether to propagate the client metadata from the incoming requests to the backend.
+      # Should be enabled to preserve incoming access token
+      # include_metadata: true
+    egress:
+      endpoint: "https://ingest.${SPLUNK_REALM}.signalfx.com"
   zpages:
     endpoint: "${SPLUNK_LISTEN_INTERFACE}:55679"
     expvar:
@@ -57,11 +65,6 @@ receivers:
           - source_labels: [ __name__ ]
             regex: 'otelcol_processor_batch_.*'
             action: drop
-  signalfx:
-    endpoint: "${SPLUNK_LISTEN_INTERFACE}:9943"
-    # Whether to propagate the client metadata from the incoming requests to the downstream consumers
-    # Should be enabled to preserve incoming access token and use instead of exporter token
-    #include_metadata: true
   zipkin:
     endpoint: "${SPLUNK_LISTEN_INTERFACE}:9411"
 
@@ -109,10 +112,6 @@ exporters:
     realm: "${SPLUNK_REALM}"
     sending_queue:
       num_consumers: 32
-    ## Uncomment below if your agents are sending via signalfx exporter
-    ## to avoid double translations and exclusions.
-    #translation_rules: []
-    #exclude_metrics: []
   signalfx/internal:
     access_token: "${SPLUNK_ACCESS_TOKEN}"
     realm: "${SPLUNK_REALM}"
@@ -134,7 +133,7 @@ exporters:
     log_data_enabled: false
 
 service:
-  extensions: [headers_setter, health_check, http_forwarder, zpages]
+  extensions: [headers_setter, health_check, http_forwarder, http_forwarder/signalfx, zpages]
   pipelines:
     traces:
       receivers: [jaeger, otlp, zipkin]
@@ -144,17 +143,13 @@ service:
       #- resource/add_environment
       exporters: [otlphttp]
     metrics:
-      receivers: [otlp, signalfx]
+      receivers: [otlp]
       processors: [memory_limiter, batch]
       exporters: [signalfx]
     metrics/internal:
       receivers: [prometheus/internal]
       processors: [memory_limiter, batch, resourcedetection/internal]
       exporters: [signalfx/internal]
-    logs/signalfx:
-      receivers: [signalfx]
-      processors: [memory_limiter, batch]
-      exporters: [signalfx]
     logs:
       receivers: [otlp]
       processors: [memory_limiter, batch]

@@ -20,5 +20,5 @@ Signed-By: /etc/apt/keyrings/docker.asc
 EOF
 
 sudo apt update
-sudo apt-get install docker-ce --only-upgrade
+sudo apt-get install -y docker-ce --only-upgrade
 sudo dockerd --version

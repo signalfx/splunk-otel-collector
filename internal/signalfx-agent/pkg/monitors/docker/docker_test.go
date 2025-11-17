@@ -61,7 +61,7 @@ func TestMinimumRequiredClientVersion(t *testing.T) {
 			}
 
 			// Run a container to have some metrics to collect
-			// Attention: this container should started only the settings for docker daemon are updated
+			// Attention: this container should be started only after the settings for docker daemon are updated
 			// and should be removed before the docker daemon settings are reset.
 			cmd := exec.Command("docker", "run", "-d", "--name", "docker-client-test", "alpine", "sleep", "180")
 			err := cmd.Run()
